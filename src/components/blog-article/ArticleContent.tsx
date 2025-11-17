@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import { OptimizedImage } from "@/components/OptimizedImage";
 import { MermaidPreview } from "@/components/MermaidPreview";
 import { ExternalCitation } from "@/types/blog";
-import { injectExternalLinks, addCitationMarkers } from "@/lib/linkInjection";
+import { injectExternalLinks, addCitationMarkers, processInternalLinks } from "@/lib/linkInjection";
 
 interface ArticleContentProps {
   content: string;
@@ -47,7 +47,7 @@ export const ArticleContent = ({
     return htmlContent;
   };
 
-  // Process content: sanitize -> bold markers -> external links -> citation markers
+  // Process content: sanitize -> bold markers -> internal links -> external links -> citation markers
   const processContent = (htmlContent: string) => {
     let processed = sanitizeContent(htmlContent);
     
@@ -56,6 +56,7 @@ export const ArticleContent = ({
     processed = processed.replace(/\[CITATION_NEEDED\]/g, '');
     
     processed = processed.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+    processed = processInternalLinks(processed);
     processed = injectExternalLinks(processed, externalCitations);
     processed = addCitationMarkers(processed, externalCitations);
     return processed;
