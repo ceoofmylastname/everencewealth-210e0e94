@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
+import { Helmet } from "react-helmet";
 import { supabase } from "@/integrations/supabase/client";
 import { BlogHeader } from "@/components/blog-index/BlogHeader";
 import { FilterBar } from "@/components/blog-index/FilterBar";
@@ -113,6 +114,17 @@ const BlogIndex = () => {
 
   const isLoading = categoriesLoading || articlesLoading;
   const hasError = categoriesError || articlesError;
+
+  // Hreflang configuration
+  const baseUrl = "https://delsolprimehomes.com";
+  const blogUrl = `${baseUrl}/blog`;
+  
+  const langToHreflang: Record<string, string> = {
+    en: 'en-GB', es: 'es-ES', de: 'de-DE', nl: 'nl-NL',
+    fr: 'fr-FR', pl: 'pl-PL', sv: 'sv-SE', da: 'da-DK', hu: 'hu-HU',
+  };
+
+  const activeLanguages = ['en', 'es', 'de', 'nl', 'fr', 'pl', 'sv', 'da', 'hu'];
   
   const totalArticles = articlesData?.length || 0;
   const totalPages = Math.ceil(totalArticles / ARTICLES_PER_PAGE);
@@ -135,8 +147,27 @@ const BlogIndex = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-12">
-      <BlogHeader totalCount={totalArticles} />
+    <>
+      <Helmet>
+        <title>Blog | Del Sol Prime Homes</title>
+        <meta name="description" content="Explore our latest articles about Costa del Sol real estate, property guides, and market insights." />
+        <link rel="canonical" href={blogUrl} />
+        
+        {/* Self-referencing hreflang */}
+        <link rel="alternate" hrefLang="en-GB" href={blogUrl} />
+        
+        {/* All active language variants (all point to same URL since no translations yet) */}
+        {activeLanguages.map(lang => {
+          const hreflang = langToHreflang[lang] || lang;
+          return <link key={lang} rel="alternate" hrefLang={hreflang} href={blogUrl} />;
+        })}
+        
+        {/* x-default */}
+        <link rel="alternate" hrefLang="x-default" href={blogUrl} />
+      </Helmet>
+      
+      <div className="container mx-auto px-4 py-12">
+        <BlogHeader totalCount={totalArticles} />
 
       <SearchBar searchQuery={searchQuery} onSearchChange={setSearchQuery} />
 
@@ -200,7 +231,8 @@ const BlogIndex = () => {
           />
         </>
       )}
-    </div>
+      </div>
+    </>
   );
 };
 
