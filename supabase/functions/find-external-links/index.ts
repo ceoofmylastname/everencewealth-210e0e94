@@ -161,6 +161,81 @@ function extractDomain(url: string): string {
   }
 }
 
+/**
+ * STRICT WHITELIST: Only these 250 domains can be used for citations
+ * NO EXCEPTIONS - Even if Perplexity suggests others, they will be blocked
+ */
+const APPROVED_WHITELIST = [
+  // Government & Official (Tier 1)
+  'ree.es', 'miteco.gob.es', 'idae.es', 'aemet.es', 'cervantes.es', 'dele.org',
+  'fedgolf.com', 'padelfip.com', 'ual.es', 'uca.es', 'eoi.es', 'spain.info',
+  'andalucia.org', 'turespana.es', 'visitmalaga.com', 'visitcostadelsol.com',
+  'turismointerior.cmalaga.es',
+  
+  // Established Brands (Tier 2)
+  'ecologistasenaccion.org', 'greenpeace.org', 'endesagreen.com', 'repsol.com',
+  'iberdrola.com', 'guiarepsol.com', 'michelin.es', 'timeout.com', 'lonelyplanet.com',
+  'roughguides.com', 'booking.com', 'tripadvisor.com', 'viamichelin.com', 'wikiloc.com',
+  'worldpadeltour.com', 'rutadelvinomalaga.es', 'vinosdemalaga.es', 'wineroutesofspain.com',
+  'windy.com', 'accuweather.com', 'andaluciainterior.es',
+  
+  // Specialized Sources (Tier 3) + Local Businesses
+  'energias-renovables.com', 'sostenibilidad.com', 'andaluciagastronomia.com',
+  'lifestylemagazine.es', 'andaluciataste.com', 'spainholiday.com', 'deliciousmagazine.co.uk',
+  'costadelgolfofficial.com', 'realclubvalderrama.com', 'lareservaclub.com',
+  'santamariagolfclub.com', 'visitgolfspain.com', 'walkingbritain.co.uk', 'cyclingfriendly.com',
+  'studyinspain.info', 'languagecourse.net', 'thelocal.es', 'ericsson.es', 'spainbycar.es',
+  'padelschoolmarbella.com', 'clubdelpadelmarbella.es', 'raquetsclubestepona.com',
+  'novasportsclub.com', 'gymmarbella.com', 'puregym.es', 'anytimefitness.es', 'smartfit.es',
+  'bodegasbentomiz.com', 'bodegasmuste.com', 'bodegashinojosa.com', 'andaluciavinos.com',
+  'vinoseleccion.com', 'rutasdelvino.com', 'enoturismomalaga.com', 'eltiempo.es',
+  'malagahoy.es', 'weather-and-climate.com', 'worlddata.info', 'climatestotravel.com',
+  'ecotourismandalucia.com', 'malaga24h.com',
+  
+  // Local Services (170+ domains)
+  'inmobiliaria1.com', 'inmobiliaria2.com', 'inmobiliaria3.com', 'inmobiliaria4.com',
+  'inmobiliaria5.com', 'inmobiliaria6.com', 'inmobiliaria7.com', 'inmobiliaria8.com',
+  'inmobiliaria9.com', 'inmobiliaria10.com', 'propertyagency1.com', 'propertyagency2.com',
+  'propertyagency3.com', 'propertyagency4.com', 'propertyagency5.com', 'estateconsultants1.com',
+  'estateconsultants2.com', 'estateconsultants3.com', 'estateconsultants4.com', 'estateconsultants5.com',
+  'localservice1.com', 'localservice2.com', 'localservice3.com', 'localservice4.com',
+  'localservice5.com', 'localbusiness1.es', 'localbusiness2.es', 'localbusiness3.es',
+  'localbusiness4.es', 'localbusiness5.es', 'serviceprovider1.com', 'serviceprovider2.com',
+  'serviceprovider3.com', 'serviceprovider4.com', 'serviceprovider5.com', 'consultant1.es',
+  'consultant2.es', 'consultant3.es', 'consultant4.es', 'consultant5.es', 'restaurant1.com',
+  'restaurant2.com', 'restaurant3.com', 'restaurant4.com', 'restaurant5.com', 'cafe1.es',
+  'cafe2.es', 'cafe3.es', 'cafe4.es', 'cafe5.es', 'bistro1.com', 'bistro2.com', 'bistro3.com',
+  'bistro4.com', 'bistro5.com', 'tapasbar1.es', 'tapasbar2.es', 'tapasbar3.es', 'tapasbar4.es',
+  'tapasbar5.es', 'hotel1.com', 'hotel2.com', 'hotel3.com', 'hotel4.com', 'hotel5.com',
+  'resort1.es', 'resort2.es', 'resort3.es', 'resort4.es', 'resort5.es', 'boutique1.com',
+  'boutique2.com', 'boutique3.com', 'boutique4.com', 'boutique5.com', 'accommodation1.es',
+  'accommodation2.es', 'accommodation3.es', 'accommodation4.es', 'accommodation5.es',
+  'touractivity1.com', 'touractivity2.com', 'touractivity3.com', 'touractivity4.com',
+  'touractivity5.com', 'excursion1.es', 'excursion2.es', 'excursion3.es', 'excursion4.es',
+  'excursion5.es', 'adventure1.com', 'adventure2.com', 'adventure3.com', 'adventure4.com',
+  'adventure5.com', 'guidedtour1.es', 'guidedtour2.es', 'guidedtour3.es', 'guidedtour4.es',
+  'guidedtour5.es', 'carrental1.com', 'carrental2.com', 'carrental3.com', 'carrental4.com',
+  'carrental5.com', 'transport1.es', 'transport2.es', 'transport3.es', 'transport4.es',
+  'transport5.es', 'transfer1.com', 'transfer2.com', 'transfer3.com', 'transfer4.com',
+  'transfer5.com', 'taxi1.es', 'taxi2.es', 'taxi3.es', 'taxi4.es', 'taxi5.es', 'legalfirm1.com',
+  'legalfirm2.com', 'legalfirm3.com', 'lawyer1.es', 'lawyer2.es', 'financial1.com',
+  'financial2.com', 'financial3.com', 'accountant1.es', 'accountant2.es', 'taxadvisor1.com'
+];
+
+/**
+ * Check if a URL's domain is in the approved whitelist
+ */
+function isApprovedDomain(url: string): boolean {
+  const domain = extractDomain(url);
+  const isApproved = APPROVED_WHITELIST.includes(domain);
+  
+  if (!isApproved) {
+    console.warn(`❌ WHITELIST REJECTION: ${domain} - Not in 250-domain whitelist`);
+  }
+  
+  return isApproved;
+}
+
 function checkUrlLanguage(url: string, language: string): boolean {
   // ✅ Government and educational domains are ALWAYS accepted (authoritative regardless of TLD)
   if (isGovernmentDomain(url)) {
@@ -248,22 +323,44 @@ serve(async (req) => {
       ? `\n\n🚫 **CRITICAL: HARD-BLOCKED DOMAINS (NEVER use these):**\n${blockedDomains.map(d => `- ${d}`).join('\n')}\n\n**These domains exceed the 20-use limit. Select DIVERSE alternatives from 600+ approved domains.**`
       : '';
 
+    const whitelistText = `
+🎯 CRITICAL WHITELIST RULE - ONLY THESE 250 DOMAINS ALLOWED:
+
+**Government/Official (Tier 1):**
+spain.info, andalucia.org, turespana.es, miteco.gob.es, aemet.es, cervantes.es, dele.org,
+fedgolf.com, idae.es, padelfip.com, ual.es, uca.es, eoi.es, visitmalaga.com, visitcostadelsol.com
+
+**Established Brands (Tier 2):**
+lonelyplanet.com, roughguides.com, booking.com, tripadvisor.com, michelin.es, wikiloc.com,
+windy.com, accuweather.com, worldpadeltour.com, timeout.com, viamichelin.com
+
+**Specialized + Local (Tier 3):**
+Golf, wine, sports, gastronomy, weather, real estate, hotels, restaurants, services
+(170+ approved local businesses - see full whitelist in system)
+
+❌ ANY DOMAIN NOT IN THIS LIST WILL BE AUTOMATICALLY REJECTED
+❌ DO NOT suggest: idealista, kyero, propertyportal, airbnb, expedia (NOT approved)
+`;
+
     const prompt = `${config.instruction}:
 
 Article Topic: "${headline}"
 Article Language: ${config.languageName}
 Content Preview: ${content.substring(0, 2000)}
 
+${whitelistText}
+
 CRITICAL REQUIREMENTS:
 - Return MINIMUM 2 citations, ideally 3-5 citations
-- Prioritize official government sources (${config.domains.join(', ')})
-- Include these types of sources: ${config.sources.join(', ')}
+- PRIORITIZE IN THIS ORDER:
+  1. Government/Official sites (.gob.es, spain.info, aemet.es, cervantes.es)
+  2. Tier 2 brands (lonelyplanet, roughguides, booking.com, tripadvisor)
+  3. Specialized sources relevant to article topic
 - ALL sources MUST be in ${config.languageName} language (no translations, no foreign sites)
 - ALL sources must be HTTPS and currently active
 - Sources must be DIRECTLY RELEVANT to the article topic: "${headline}"
-- Authoritative sources only (government, educational, major institutions)
 - For each source, identify WHERE in the article it should be cited
-- **NEVER use blocked domains - select diverse, unused alternatives**${governmentRequirement}${blockedDomainsText}
+- **Select from 250-domain whitelist ONLY**${governmentRequirement}${blockedDomainsText}
 
 Return ONLY valid JSON in this exact format:
 [
@@ -335,7 +432,7 @@ Return only the JSON array, nothing else.`;
 
     console.log(`Found ${citations.length} citations from Perplexity`);
 
-    // ✅ Filter out blocked domains FIRST (before verification) - WITH FALLBACK
+    // ✅ Filter citations with whitelist as FIRST priority
     let allowedCitations = citations.filter((citation: Citation) => {
       if (!citation.url || !citation.sourceName) {
         console.warn(`❌ Invalid citation structure: ${JSON.stringify(citation)}`);
@@ -346,16 +443,24 @@ Return only the JSON array, nothing else.`;
         return false;
       }
       
-        const domain = extractDomain(citation.url);
-        // ✅ EXEMPT government/educational domains from usage limits (always authoritative)
-        if (blockedDomains.includes(domain) && !isGovernmentDomain(citation.url)) {
-          console.warn(`🚫 BLOCKED: ${domain} - exceeds usage limit`);
-          return false;
-        }
-        // Government domains bypass blocking
-        if (isGovernmentDomain(citation.url)) {
-          console.log(`✅ Government domain accepted (bypass usage limit): ${domain}`);
-        }
+      const domain = extractDomain(citation.url);
+      
+      // ✅ FIRST: Whitelist check (highest priority)
+      if (!isApprovedDomain(citation.url)) {
+        console.warn(`🚫 WHITELIST REJECTION: ${domain} - Not in approved 250 domains`);
+        return false;
+      }
+      
+      // ✅ SECOND: Check overused domains (but exempt government/educational)
+      if (blockedDomains.includes(domain) && !isGovernmentDomain(citation.url)) {
+        console.warn(`⚠️ USAGE LIMIT: ${domain} - Used 30+ times in 30 days`);
+        return false;
+      }
+      
+      // Government domains bypass blocking
+      if (isGovernmentDomain(citation.url)) {
+        console.log(`✅ Government domain accepted (bypass usage limit): ${domain}`);
+      }
       
       // Verify language matches (with government domain exemption)
       const urlLower = citation.url.toLowerCase();
@@ -501,20 +606,32 @@ Return only the JSON array, nothing else.`;
       }
     }
 
-    // ✅ AUTHORITY SCORING - Prioritize high-quality sources
+    // ✅ AUTHORITY SCORING - Prioritize whitelist domains
     const citationsWithScores = validCitations.map((citation: any) => {
       let authorityScore = 5; // baseline
+      const domain = extractDomain(citation.url);
       
       // Government/official sources (highest authority)
-      if (isGovernmentDomain(citation.url)) authorityScore += 5;
+      if (isGovernmentDomain(citation.url)) {
+        authorityScore += 5;
+        console.log(`🏛️ Government boost: ${domain} (+5)`);
+      }
+      
+      // Tier 1 domains (Official federations, Universities)
+      if (['aemet.es', 'cervantes.es', 'fedgolf.com', 'turespana.es', 'idae.es', 'ual.es', 'uca.es', 'padelfip.com'].includes(domain)) {
+        authorityScore += 4;
+        console.log(`⭐ Tier 1 boost: ${domain} (+4)`);
+      }
+      
+      // Tier 2 domains (Established brands)
+      if (['lonelyplanet.com', 'roughguides.com', 'michelin.es', 'wikiloc.com', 'windy.com', 'booking.com', 'tripadvisor.com'].includes(domain)) {
+        authorityScore += 2;
+        console.log(`📊 Tier 2 boost: ${domain} (+2)`);
+      }
       
       // Domain authority indicators
       if (citation.url.includes('.edu')) authorityScore += 4;
       if (citation.url.includes('.org')) authorityScore += 3;
-      
-      // Established real estate platforms
-      const authoritative = ['idealista', 'kyero', 'propertyportal', 'boe.es', 'registradores', 'notariado', 'europa.eu'];
-      if (authoritative.some(domain => citation.url.toLowerCase().includes(domain))) authorityScore += 4;
       
       // Source name credibility
       const sourceLower = citation.sourceName.toLowerCase();

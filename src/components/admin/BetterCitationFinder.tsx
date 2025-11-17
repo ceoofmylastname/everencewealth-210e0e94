@@ -47,7 +47,7 @@ export const BetterCitationFinder = ({
           articleLanguage,
           articleContent: articleContent.substring(0, 2000),
           currentCitations,
-          focusArea: articleTopic.toLowerCase().includes('costa del sol') 
+          focusArea: articleTopic.toLowerCase().includes('costa del sol')
             ? 'Costa del Sol real estate'
             : undefined,
           verifyUrls: true,
