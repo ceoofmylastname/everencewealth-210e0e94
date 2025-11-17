@@ -236,7 +236,21 @@ VALIDATION BEFORE RESPONDING:
 
     if (!approvedDomain) {
       console.error(`Rejected: ${replacementDomain} not in whitelist`);
-      throw new Error(`Suggested domain ${replacementDomain} is not in approved whitelist`);
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: 'domain_not_approved',
+          message: `The AI suggested ${replacementDomain}, but it's not in your approved domains list.`,
+          suggestedDomain: replacementDomain,
+          suggestedUrl: suggestion.url,
+          suggestedSource: suggestion.sourceName,
+          relevanceScore: suggestion.relevanceScore,
+          reason: suggestion.reason
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
     }
 
     // Determine if this is a high-trust government domain (Option 2)
