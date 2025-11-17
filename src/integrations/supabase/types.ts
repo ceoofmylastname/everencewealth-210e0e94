@@ -14,6 +14,102 @@ export type Database = {
   }
   public: {
     Tables: {
+      approved_domains: {
+        Row: {
+          category: string
+          created_at: string | null
+          domain: string
+          id: string
+          is_allowed: boolean | null
+          notes: string | null
+          tier: string | null
+          trust_score: number
+          updated_at: string | null
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          domain: string
+          id?: string
+          is_allowed?: boolean | null
+          notes?: string | null
+          tier?: string | null
+          trust_score: number
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          domain?: string
+          id?: string
+          is_allowed?: boolean | null
+          notes?: string | null
+          tier?: string | null
+          trust_score?: number
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      article_link_patterns: {
+        Row: {
+          article_id: string
+          compliance_score: number | null
+          has_parent_category_link: boolean | null
+          has_related_article_link: boolean | null
+          has_service_link: boolean | null
+          last_updated: string | null
+          last_validated_by: string | null
+          parent_category_url: string | null
+          related_article_urls: string[] | null
+          service_link_url: string | null
+          total_external_links: number | null
+          total_internal_links: number | null
+        }
+        Insert: {
+          article_id: string
+          compliance_score?: number | null
+          has_parent_category_link?: boolean | null
+          has_related_article_link?: boolean | null
+          has_service_link?: boolean | null
+          last_updated?: string | null
+          last_validated_by?: string | null
+          parent_category_url?: string | null
+          related_article_urls?: string[] | null
+          service_link_url?: string | null
+          total_external_links?: number | null
+          total_internal_links?: number | null
+        }
+        Update: {
+          article_id?: string
+          compliance_score?: number | null
+          has_parent_category_link?: boolean | null
+          has_related_article_link?: boolean | null
+          has_service_link?: boolean | null
+          last_updated?: string | null
+          last_validated_by?: string | null
+          parent_category_url?: string | null
+          related_article_urls?: string[] | null
+          service_link_url?: string | null
+          total_external_links?: number | null
+          total_internal_links?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "article_link_patterns_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: true
+            referencedRelation: "blog_articles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "article_link_patterns_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: true
+            referencedRelation: "content_freshness_report"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       article_revisions: {
         Row: {
           article_id: string
@@ -60,6 +156,13 @@ export type Database = {
             columns: ["article_id"]
             isOneToOne: false
             referencedRelation: "blog_articles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "article_revisions_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "content_freshness_report"
             referencedColumns: ["id"]
           },
           {
@@ -130,6 +233,8 @@ export type Database = {
           date_modified: string | null
           date_published: string | null
           detailed_content: string
+          diagram_alt: string | null
+          diagram_caption: string | null
           diagram_description: string | null
           diagram_url: string | null
           external_citations: Json | null
@@ -145,11 +250,14 @@ export type Database = {
           language: string
           last_citation_check_at: string | null
           last_edited_by: string | null
+          last_link_validation: string | null
+          link_depth: number | null
           meta_description: string
           meta_title: string
           published_by: string | null
           read_time: number | null
           related_article_ids: string[] | null
+          related_cluster_articles: Json | null
           reviewer_id: string | null
           slug: string
           speakable_answer: string
@@ -170,6 +278,8 @@ export type Database = {
           date_modified?: string | null
           date_published?: string | null
           detailed_content: string
+          diagram_alt?: string | null
+          diagram_caption?: string | null
           diagram_description?: string | null
           diagram_url?: string | null
           external_citations?: Json | null
@@ -185,11 +295,14 @@ export type Database = {
           language: string
           last_citation_check_at?: string | null
           last_edited_by?: string | null
+          last_link_validation?: string | null
+          link_depth?: number | null
           meta_description: string
           meta_title: string
           published_by?: string | null
           read_time?: number | null
           related_article_ids?: string[] | null
+          related_cluster_articles?: Json | null
           reviewer_id?: string | null
           slug: string
           speakable_answer: string
@@ -210,6 +323,8 @@ export type Database = {
           date_modified?: string | null
           date_published?: string | null
           detailed_content?: string
+          diagram_alt?: string | null
+          diagram_caption?: string | null
           diagram_description?: string | null
           diagram_url?: string | null
           external_citations?: Json | null
@@ -225,11 +340,14 @@ export type Database = {
           language?: string
           last_citation_check_at?: string | null
           last_edited_by?: string | null
+          last_link_validation?: string | null
+          link_depth?: number | null
           meta_description?: string
           meta_title?: string
           published_by?: string | null
           read_time?: number | null
           related_article_ids?: string[] | null
+          related_cluster_articles?: Json | null
           reviewer_id?: string | null
           slug?: string
           speakable_answer?: string
@@ -246,13 +364,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "blog_articles_cluster_id_fkey"
-            columns: ["cluster_id"]
-            isOneToOne: false
-            referencedRelation: "cluster_generations"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "blog_articles_reviewer_id_fkey"
             columns: ["reviewer_id"]
             isOneToOne: false
@@ -260,6 +371,51 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      bulk_recitation_jobs: {
+        Row: {
+          completed_at: string | null
+          created_at: string | null
+          created_by: string | null
+          error_count: number | null
+          error_message: string | null
+          id: string
+          progress_current: number | null
+          progress_total: number | null
+          started_at: string | null
+          status: string
+          success_count: number | null
+          total_new_citations: number | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          error_count?: number | null
+          error_message?: string | null
+          id?: string
+          progress_current?: number | null
+          progress_total?: number | null
+          started_at?: string | null
+          status?: string
+          success_count?: number | null
+          total_new_citations?: number | null
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          error_count?: number | null
+          error_message?: string | null
+          id?: string
+          progress_current?: number | null
+          progress_total?: number | null
+          started_at?: string | null
+          status?: string
+          success_count?: number | null
+          total_new_citations?: number | null
+        }
+        Relationships: []
       }
       categories: {
         Row: {
@@ -324,44 +480,474 @@ export type Database = {
         }
         Relationships: []
       }
+      citation_cleanup_audit_log: {
+        Row: {
+          action_taken: string | null
+          article_id: string | null
+          article_slug: string | null
+          citation_url: string | null
+          competitor_domain: string | null
+          created_at: string | null
+          field_name: string | null
+          id: string
+          match_type: string | null
+          scan_type: string
+        }
+        Insert: {
+          action_taken?: string | null
+          article_id?: string | null
+          article_slug?: string | null
+          citation_url?: string | null
+          competitor_domain?: string | null
+          created_at?: string | null
+          field_name?: string | null
+          id?: string
+          match_type?: string | null
+          scan_type: string
+        }
+        Update: {
+          action_taken?: string | null
+          article_id?: string | null
+          article_slug?: string | null
+          citation_url?: string | null
+          competitor_domain?: string | null
+          created_at?: string | null
+          field_name?: string | null
+          id?: string
+          match_type?: string | null
+          scan_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "citation_cleanup_audit_log_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "blog_articles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "citation_cleanup_audit_log_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "content_freshness_report"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      citation_compliance_alerts: {
+        Row: {
+          alert_type: string
+          article_id: string | null
+          article_title: string | null
+          auto_suggested_replacement: string | null
+          citation_url: string
+          created_at: string
+          detected_at: string
+          id: string
+          resolution_notes: string | null
+          resolved_at: string | null
+          severity: string
+          updated_at: string
+        }
+        Insert: {
+          alert_type: string
+          article_id?: string | null
+          article_title?: string | null
+          auto_suggested_replacement?: string | null
+          citation_url: string
+          created_at?: string
+          detected_at?: string
+          id?: string
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          severity: string
+          updated_at?: string
+        }
+        Update: {
+          alert_type?: string
+          article_id?: string | null
+          article_title?: string | null
+          auto_suggested_replacement?: string | null
+          citation_url?: string
+          created_at?: string
+          detected_at?: string
+          id?: string
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          severity?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "citation_compliance_alerts_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "blog_articles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "citation_compliance_alerts_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "content_freshness_report"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      citation_hygiene_reports: {
+        Row: {
+          articles_cleaned: number | null
+          articles_with_violations: number
+          auto_replacement_triggered: boolean | null
+          banned_citations_found: number
+          clean_replacements_applied: number | null
+          compliance_score: number
+          created_at: string
+          detailed_violations: Json | null
+          id: string
+          next_scan_scheduled: string | null
+          scan_date: string
+          scan_duration_ms: number | null
+          top_offenders: Json | null
+          total_articles_scanned: number
+          total_citations_scanned: number
+          violations_by_domain: Json | null
+          violations_by_language: Json | null
+        }
+        Insert: {
+          articles_cleaned?: number | null
+          articles_with_violations: number
+          auto_replacement_triggered?: boolean | null
+          banned_citations_found: number
+          clean_replacements_applied?: number | null
+          compliance_score: number
+          created_at?: string
+          detailed_violations?: Json | null
+          id?: string
+          next_scan_scheduled?: string | null
+          scan_date?: string
+          scan_duration_ms?: number | null
+          top_offenders?: Json | null
+          total_articles_scanned: number
+          total_citations_scanned: number
+          violations_by_domain?: Json | null
+          violations_by_language?: Json | null
+        }
+        Update: {
+          articles_cleaned?: number | null
+          articles_with_violations?: number
+          auto_replacement_triggered?: boolean | null
+          banned_citations_found?: number
+          clean_replacements_applied?: number | null
+          compliance_score?: number
+          created_at?: string
+          detailed_violations?: Json | null
+          id?: string
+          next_scan_scheduled?: string | null
+          scan_date?: string
+          scan_duration_ms?: number | null
+          top_offenders?: Json | null
+          total_articles_scanned?: number
+          total_citations_scanned?: number
+          violations_by_domain?: Json | null
+          violations_by_language?: Json | null
+        }
+        Relationships: []
+      }
+      citation_quality_scores: {
+        Row: {
+          authority_score: number | null
+          citation_id: string | null
+          created_at: string | null
+          diversity_score: number | null
+          final_score: number | null
+          id: string
+          recency_score: number | null
+          relevance_score: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          authority_score?: number | null
+          citation_id?: string | null
+          created_at?: string | null
+          diversity_score?: number | null
+          final_score?: number | null
+          id?: string
+          recency_score?: number | null
+          relevance_score?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          authority_score?: number | null
+          citation_id?: string | null
+          created_at?: string | null
+          diversity_score?: number | null
+          final_score?: number | null
+          id?: string
+          recency_score?: number | null
+          relevance_score?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "citation_quality_scores_citation_id_fkey"
+            columns: ["citation_id"]
+            isOneToOne: false
+            referencedRelation: "citation_usage_tracking"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      citation_replacement_chunks: {
+        Row: {
+          auto_applied_count: number | null
+          blocked_competitor_count: number | null
+          chunk_number: number
+          chunk_size: number
+          citations: Json
+          completed_at: string | null
+          created_at: string | null
+          error_message: string | null
+          failed_count: number | null
+          id: string
+          manual_review_count: number | null
+          parent_job_id: string | null
+          progress_current: number | null
+          progress_total: number
+          started_at: string | null
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          auto_applied_count?: number | null
+          blocked_competitor_count?: number | null
+          chunk_number: number
+          chunk_size: number
+          citations: Json
+          completed_at?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          failed_count?: number | null
+          id?: string
+          manual_review_count?: number | null
+          parent_job_id?: string | null
+          progress_current?: number | null
+          progress_total: number
+          started_at?: string | null
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          auto_applied_count?: number | null
+          blocked_competitor_count?: number | null
+          chunk_number?: number
+          chunk_size?: number
+          citations?: Json
+          completed_at?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          failed_count?: number | null
+          id?: string
+          manual_review_count?: number | null
+          parent_job_id?: string | null
+          progress_current?: number | null
+          progress_total?: number
+          started_at?: string | null
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "citation_replacement_chunks_parent_job_id_fkey"
+            columns: ["parent_job_id"]
+            isOneToOne: false
+            referencedRelation: "citation_replacement_jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      citation_replacement_jobs: {
+        Row: {
+          articles_processed: number | null
+          auto_applied_count: number | null
+          blocked_competitor_count: number | null
+          chunk_size: number | null
+          completed_at: string | null
+          completed_chunks: number | null
+          created_at: string | null
+          created_by: string | null
+          error_message: string | null
+          failed_chunks: number | null
+          failed_count: number | null
+          id: string
+          manual_review_count: number | null
+          progress_current: number | null
+          progress_total: number | null
+          results: Json | null
+          started_at: string | null
+          status: string
+          total_chunks: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          articles_processed?: number | null
+          auto_applied_count?: number | null
+          blocked_competitor_count?: number | null
+          chunk_size?: number | null
+          completed_at?: string | null
+          completed_chunks?: number | null
+          created_at?: string | null
+          created_by?: string | null
+          error_message?: string | null
+          failed_chunks?: number | null
+          failed_count?: number | null
+          id?: string
+          manual_review_count?: number | null
+          progress_current?: number | null
+          progress_total?: number | null
+          results?: Json | null
+          started_at?: string | null
+          status?: string
+          total_chunks?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          articles_processed?: number | null
+          auto_applied_count?: number | null
+          blocked_competitor_count?: number | null
+          chunk_size?: number | null
+          completed_at?: string | null
+          completed_chunks?: number | null
+          created_at?: string | null
+          created_by?: string | null
+          error_message?: string | null
+          failed_chunks?: number | null
+          failed_count?: number | null
+          id?: string
+          manual_review_count?: number | null
+          progress_current?: number | null
+          progress_total?: number | null
+          results?: Json | null
+          started_at?: string | null
+          status?: string
+          total_chunks?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      citation_scoring_log: {
+        Row: {
+          article_id: string | null
+          citation_url: string
+          domain: string
+          final_score: number | null
+          id: string
+          novelty_boost: number | null
+          overuse_penalty: number | null
+          relevance_score: number | null
+          suggested_at: string | null
+          trust_score: number | null
+          was_selected: boolean | null
+        }
+        Insert: {
+          article_id?: string | null
+          citation_url: string
+          domain: string
+          final_score?: number | null
+          id?: string
+          novelty_boost?: number | null
+          overuse_penalty?: number | null
+          relevance_score?: number | null
+          suggested_at?: string | null
+          trust_score?: number | null
+          was_selected?: boolean | null
+        }
+        Update: {
+          article_id?: string | null
+          citation_url?: string
+          domain?: string
+          final_score?: number | null
+          id?: string
+          novelty_boost?: number | null
+          overuse_penalty?: number | null
+          relevance_score?: number | null
+          suggested_at?: string | null
+          trust_score?: number | null
+          was_selected?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "citation_scoring_log_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "blog_articles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "citation_scoring_log_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "content_freshness_report"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       citation_usage_tracking: {
         Row: {
           anchor_text: string | null
           article_id: string | null
+          citation_domain: string | null
           citation_source: string | null
           citation_url: string
+          confidence_score: number | null
+          context_paragraph_index: number | null
           created_at: string | null
           first_added_at: string | null
           id: string
+          insertion_location: number | null
           is_active: boolean | null
           last_verified_at: string | null
           position_in_article: number | null
+          suggested_anchor: string | null
+          target_sentence: string | null
           updated_at: string | null
         }
         Insert: {
           anchor_text?: string | null
           article_id?: string | null
+          citation_domain?: string | null
           citation_source?: string | null
           citation_url: string
+          confidence_score?: number | null
+          context_paragraph_index?: number | null
           created_at?: string | null
           first_added_at?: string | null
           id?: string
+          insertion_location?: number | null
           is_active?: boolean | null
           last_verified_at?: string | null
           position_in_article?: number | null
+          suggested_anchor?: string | null
+          target_sentence?: string | null
           updated_at?: string | null
         }
         Update: {
           anchor_text?: string | null
           article_id?: string | null
+          citation_domain?: string | null
           citation_source?: string | null
           citation_url?: string
+          confidence_score?: number | null
+          context_paragraph_index?: number | null
           created_at?: string | null
           first_added_at?: string | null
           id?: string
+          insertion_location?: number | null
           is_active?: boolean | null
           last_verified_at?: string | null
           position_in_article?: number | null
+          suggested_anchor?: string | null
+          target_sentence?: string | null
           updated_at?: string | null
         }
         Relationships: [
@@ -370,6 +956,63 @@ export type Database = {
             columns: ["article_id"]
             isOneToOne: false
             referencedRelation: "blog_articles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "citation_usage_tracking_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "content_freshness_report"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cluster_article_chunks: {
+        Row: {
+          article_data: Json | null
+          article_plan: Json
+          chunk_number: number
+          completed_at: string | null
+          created_at: string | null
+          error_message: string | null
+          id: string
+          parent_job_id: string
+          started_at: string | null
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          article_data?: Json | null
+          article_plan: Json
+          chunk_number: number
+          completed_at?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          parent_job_id: string
+          started_at?: string | null
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          article_data?: Json | null
+          article_plan?: Json
+          chunk_number?: number
+          completed_at?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          parent_job_id?: string
+          started_at?: string | null
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cluster_article_chunks_parent_job_id_fkey"
+            columns: ["parent_job_id"]
+            isOneToOne: false
+            referencedRelation: "cluster_generations"
             referencedColumns: ["id"]
           },
         ]
@@ -467,6 +1110,57 @@ export type Database = {
         }
         Relationships: []
       }
+      content_updates: {
+        Row: {
+          article_id: string
+          created_at: string
+          id: string
+          new_date_modified: string
+          previous_date_modified: string | null
+          update_notes: string | null
+          update_type: string
+          updated_by: string | null
+          updated_fields: Json | null
+        }
+        Insert: {
+          article_id: string
+          created_at?: string
+          id?: string
+          new_date_modified?: string
+          previous_date_modified?: string | null
+          update_notes?: string | null
+          update_type: string
+          updated_by?: string | null
+          updated_fields?: Json | null
+        }
+        Update: {
+          article_id?: string
+          created_at?: string
+          id?: string
+          new_date_modified?: string
+          previous_date_modified?: string | null
+          update_notes?: string | null
+          update_type?: string
+          updated_by?: string | null
+          updated_fields?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_updates_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "blog_articles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "content_updates_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "content_freshness_report"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       dead_link_replacements: {
         Row: {
           applied_at: string | null
@@ -521,8 +1215,57 @@ export type Database = {
         }
         Relationships: []
       }
+      domain_usage_stats: {
+        Row: {
+          articles_used_in: number | null
+          avg_uses_per_article: number | null
+          category: string | null
+          created_at: string | null
+          domain: string
+          id: string
+          last_suggested_at: string | null
+          last_used_at: string | null
+          tier: string | null
+          times_rejected: number | null
+          times_suggested: number | null
+          total_uses: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          articles_used_in?: number | null
+          avg_uses_per_article?: number | null
+          category?: string | null
+          created_at?: string | null
+          domain: string
+          id?: string
+          last_suggested_at?: string | null
+          last_used_at?: string | null
+          tier?: string | null
+          times_rejected?: number | null
+          times_suggested?: number | null
+          total_uses?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          articles_used_in?: number | null
+          avg_uses_per_article?: number | null
+          category?: string | null
+          created_at?: string | null
+          domain?: string
+          id?: string
+          last_suggested_at?: string | null
+          last_used_at?: string | null
+          tier?: string | null
+          times_rejected?: number | null
+          times_suggested?: number | null
+          total_uses?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       external_citation_health: {
         Row: {
+          authority_score: number | null
           content_hash: string | null
           created_at: string | null
           first_seen_at: string | null
@@ -535,13 +1278,16 @@ export type Database = {
           redirect_url: string | null
           response_time_ms: number | null
           source_name: string | null
+          source_type: string | null
           status: string | null
           times_failed: number | null
           times_verified: number | null
           updated_at: string | null
           url: string
+          verification_date: string | null
         }
         Insert: {
+          authority_score?: number | null
           content_hash?: string | null
           created_at?: string | null
           first_seen_at?: string | null
@@ -554,13 +1300,16 @@ export type Database = {
           redirect_url?: string | null
           response_time_ms?: number | null
           source_name?: string | null
+          source_type?: string | null
           status?: string | null
           times_failed?: number | null
           times_verified?: number | null
           updated_at?: string | null
           url: string
+          verification_date?: string | null
         }
         Update: {
+          authority_score?: number | null
           content_hash?: string | null
           created_at?: string | null
           first_seen_at?: string | null
@@ -573,11 +1322,13 @@ export type Database = {
           redirect_url?: string | null
           response_time_ms?: number | null
           source_name?: string | null
+          source_type?: string | null
           status?: string | null
           times_failed?: number | null
           times_verified?: number | null
           updated_at?: string | null
           url?: string
+          verification_date?: string | null
         }
         Relationships: []
       }
@@ -621,6 +1372,67 @@ export type Database = {
             columns: ["article_id"]
             isOneToOne: false
             referencedRelation: "blog_articles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "link_suggestions_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "content_freshness_report"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      link_validation_alerts: {
+        Row: {
+          alert_type: string
+          article_id: string | null
+          created_at: string | null
+          details: Json | null
+          id: string
+          is_resolved: boolean | null
+          message: string
+          resolved_at: string | null
+          resolved_by: string | null
+          severity: string
+        }
+        Insert: {
+          alert_type: string
+          article_id?: string | null
+          created_at?: string | null
+          details?: Json | null
+          id?: string
+          is_resolved?: boolean | null
+          message: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity: string
+        }
+        Update: {
+          alert_type?: string
+          article_id?: string | null
+          created_at?: string | null
+          details?: Json | null
+          id?: string
+          is_resolved?: boolean | null
+          message?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "link_validation_alerts_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "blog_articles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "link_validation_alerts_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "content_freshness_report"
             referencedColumns: ["id"]
           },
         ]
@@ -680,6 +1492,372 @@ export type Database = {
             columns: ["article_id"]
             isOneToOne: false
             referencedRelation: "blog_articles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "link_validations_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "content_freshness_report"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      page_translations: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_published: boolean | null
+          language_code: string
+          page_identifier: string | null
+          page_type: string
+          updated_at: string | null
+          url_slug: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_published?: boolean | null
+          language_code: string
+          page_identifier?: string | null
+          page_type: string
+          updated_at?: string | null
+          url_slug: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_published?: boolean | null
+          language_code?: string
+          page_identifier?: string | null
+          page_type?: string
+          updated_at?: string | null
+          url_slug?: string
+        }
+        Relationships: []
+      }
+      site_languages: {
+        Row: {
+          created_at: string | null
+          display_flag: string | null
+          hreflang_code: string
+          id: string
+          is_active: boolean | null
+          is_default: boolean | null
+          language_code: string
+          language_name: string
+          sort_order: number | null
+          url_prefix: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          display_flag?: string | null
+          hreflang_code: string
+          id?: string
+          is_active?: boolean | null
+          is_default?: boolean | null
+          language_code: string
+          language_name: string
+          sort_order?: number | null
+          url_prefix?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          display_flag?: string | null
+          hreflang_code?: string
+          id?: string
+          is_active?: boolean | null
+          is_default?: boolean | null
+          language_code?: string
+          language_name?: string
+          sort_order?: number | null
+          url_prefix?: string | null
+        }
+        Relationships: []
+      }
+      sitemap_alerts: {
+        Row: {
+          alert_type: string
+          created_at: string
+          details: Json | null
+          id: string
+          is_resolved: boolean | null
+          message: string
+          resolution_notes: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          severity: string
+        }
+        Insert: {
+          alert_type: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          is_resolved?: boolean | null
+          message: string
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity: string
+        }
+        Update: {
+          alert_type?: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          is_resolved?: boolean | null
+          message?: string
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: string
+        }
+        Relationships: []
+      }
+      sitemap_validations: {
+        Row: {
+          articles_in_sitemap: number
+          articles_with_changefreq: number
+          articles_with_images: number
+          articles_with_lastmod: number
+          articles_with_priority: number
+          broken_urls: Json | null
+          broken_urls_count: number | null
+          coverage_percentage: number
+          created_at: string
+          health_score: number
+          id: string
+          images_with_caption: number | null
+          images_with_title: number | null
+          last_submitted_to_bing: string | null
+          last_submitted_to_gsc: string | null
+          missing_article_slugs: Json | null
+          recommendations: Json | null
+          sitemap_file_size_kb: number | null
+          total_images: number | null
+          total_published_articles: number
+          total_urls: number
+          validated_by: string | null
+          validation_duration_ms: number | null
+          xml_is_valid: boolean
+          xml_validation_errors: Json | null
+        }
+        Insert: {
+          articles_in_sitemap: number
+          articles_with_changefreq?: number
+          articles_with_images?: number
+          articles_with_lastmod?: number
+          articles_with_priority?: number
+          broken_urls?: Json | null
+          broken_urls_count?: number | null
+          coverage_percentage: number
+          created_at?: string
+          health_score: number
+          id?: string
+          images_with_caption?: number | null
+          images_with_title?: number | null
+          last_submitted_to_bing?: string | null
+          last_submitted_to_gsc?: string | null
+          missing_article_slugs?: Json | null
+          recommendations?: Json | null
+          sitemap_file_size_kb?: number | null
+          total_images?: number | null
+          total_published_articles: number
+          total_urls: number
+          validated_by?: string | null
+          validation_duration_ms?: number | null
+          xml_is_valid?: boolean
+          xml_validation_errors?: Json | null
+        }
+        Update: {
+          articles_in_sitemap?: number
+          articles_with_changefreq?: number
+          articles_with_images?: number
+          articles_with_lastmod?: number
+          articles_with_priority?: number
+          broken_urls?: Json | null
+          broken_urls_count?: number | null
+          coverage_percentage?: number
+          created_at?: string
+          health_score?: number
+          id?: string
+          images_with_caption?: number | null
+          images_with_title?: number | null
+          last_submitted_to_bing?: string | null
+          last_submitted_to_gsc?: string | null
+          missing_article_slugs?: Json | null
+          recommendations?: Json | null
+          sitemap_file_size_kb?: number | null
+          total_images?: number | null
+          total_published_articles?: number
+          total_urls?: number
+          validated_by?: string | null
+          validation_duration_ms?: number | null
+          xml_is_valid?: boolean
+          xml_validation_errors?: Json | null
+        }
+        Relationships: []
+      }
+      translation_audit_log: {
+        Row: {
+          affected_language: string
+          article_headline: string | null
+          article_id: string
+          article_status: string | null
+          change_reason: string | null
+          change_type: string
+          changed_by: string | null
+          created_at: string | null
+          id: string
+          new_status: string | null
+          new_translation_slug: string | null
+          previous_status: string | null
+          previous_translation_slug: string | null
+          validation_result: Json | null
+        }
+        Insert: {
+          affected_language: string
+          article_headline?: string | null
+          article_id: string
+          article_status?: string | null
+          change_reason?: string | null
+          change_type: string
+          changed_by?: string | null
+          created_at?: string | null
+          id?: string
+          new_status?: string | null
+          new_translation_slug?: string | null
+          previous_status?: string | null
+          previous_translation_slug?: string | null
+          validation_result?: Json | null
+        }
+        Update: {
+          affected_language?: string
+          article_headline?: string | null
+          article_id?: string
+          article_status?: string | null
+          change_reason?: string | null
+          change_type?: string
+          changed_by?: string | null
+          created_at?: string | null
+          id?: string
+          new_status?: string | null
+          new_translation_slug?: string | null
+          previous_status?: string | null
+          previous_translation_slug?: string | null
+          validation_result?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "translation_audit_log_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "blog_articles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "translation_audit_log_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "content_freshness_report"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      translation_status: {
+        Row: {
+          article_id: string
+          bidirectional_valid: boolean | null
+          blocking_issues: string[] | null
+          completeness_score: number
+          content_similarity_score: number | null
+          created_at: string | null
+          has_translation: boolean
+          id: string
+          language_code: string
+          last_validated_at: string | null
+          linked_languages: number
+          missing_languages: string[] | null
+          total_languages: number
+          translation_article_id: string | null
+          translation_slug: string | null
+          updated_at: string | null
+          url_exists: boolean | null
+          validated_by: string | null
+          validation_status: string
+          warnings: string[] | null
+        }
+        Insert: {
+          article_id: string
+          bidirectional_valid?: boolean | null
+          blocking_issues?: string[] | null
+          completeness_score?: number
+          content_similarity_score?: number | null
+          created_at?: string | null
+          has_translation?: boolean
+          id?: string
+          language_code: string
+          last_validated_at?: string | null
+          linked_languages?: number
+          missing_languages?: string[] | null
+          total_languages: number
+          translation_article_id?: string | null
+          translation_slug?: string | null
+          updated_at?: string | null
+          url_exists?: boolean | null
+          validated_by?: string | null
+          validation_status?: string
+          warnings?: string[] | null
+        }
+        Update: {
+          article_id?: string
+          bidirectional_valid?: boolean | null
+          blocking_issues?: string[] | null
+          completeness_score?: number
+          content_similarity_score?: number | null
+          created_at?: string | null
+          has_translation?: boolean
+          id?: string
+          language_code?: string
+          last_validated_at?: string | null
+          linked_languages?: number
+          missing_languages?: string[] | null
+          total_languages?: number
+          translation_article_id?: string | null
+          translation_slug?: string | null
+          updated_at?: string | null
+          url_exists?: boolean | null
+          validated_by?: string | null
+          validation_status?: string
+          warnings?: string[] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "translation_status_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "blog_articles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "translation_status_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "content_freshness_report"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "translation_status_translation_article_id_fkey"
+            columns: ["translation_article_id"]
+            isOneToOne: false
+            referencedRelation: "blog_articles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "translation_status_translation_article_id_fkey"
+            columns: ["translation_article_id"]
+            isOneToOne: false
+            referencedRelation: "content_freshness_report"
             referencedColumns: ["id"]
           },
         ]
@@ -746,13 +1924,56 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      content_freshness_report: {
+        Row: {
+          date_modified: string | null
+          date_published: string | null
+          days_since_update: number | null
+          freshness_status: string | null
+          headline: string | null
+          id: string | null
+          language: string | null
+          slug: string | null
+          status: string | null
+          update_count: number | null
+        }
+        Insert: {
+          date_modified?: string | null
+          date_published?: string | null
+          days_since_update?: never
+          freshness_status?: never
+          headline?: string | null
+          id?: string | null
+          language?: string | null
+          slug?: string | null
+          status?: string | null
+          update_count?: never
+        }
+        Update: {
+          date_modified?: string | null
+          date_published?: string | null
+          days_since_update?: never
+          freshness_status?: never
+          headline?: string | null
+          id?: string | null
+          language?: string | null
+          slug?: string | null
+          status?: string | null
+          update_count?: never
+        }
+        Relationships: []
+      }
     }
     Functions: {
+      calculate_translation_completeness: {
+        Args: { p_article_id: string }
+        Returns: number
+      }
       check_extension_exists: {
         Args: { extension_name: string }
         Returns: boolean
       }
+      check_stuck_citation_jobs: { Args: never; Returns: undefined }
       check_stuck_cluster_jobs: { Args: never; Returns: undefined }
       get_database_triggers: {
         Args: never
@@ -761,6 +1982,10 @@ export type Database = {
           event_object_table: string
           trigger_name: string
         }[]
+      }
+      get_missing_languages: {
+        Args: { p_article_id: string }
+        Returns: string[]
       }
       get_table_columns: {
         Args: { table_name: string }
@@ -777,6 +2002,16 @@ export type Database = {
         Returns: boolean
       }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
+      replace_citation_tracking: {
+        Args: {
+          p_anchor_text: string
+          p_article_id: string
+          p_new_source: string
+          p_new_url: string
+          p_old_url: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role: "admin" | "editor" | "viewer"
