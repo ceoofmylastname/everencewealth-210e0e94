@@ -297,8 +297,34 @@ const CitationHealth = () => {
           return;
         }
 
-        toast.success("Replacement suggestion created");
-        queryClient.invalidateQueries({ queryKey: ["dead-link-replacements"] });
+        // Save suggestions to dead_link_replacements table
+        if (data?.suggestions && data.suggestions.length > 0) {
+          const replacementsToInsert = data.suggestions.slice(0, 3).map((s: any) => ({
+            original_url: url,
+            original_source: 'Auto-detected broken link',
+            replacement_url: s.suggestedUrl,
+            replacement_source: s.sourceName,
+            replacement_reason: s.reason,
+            confidence_score: (s.relevanceScore + s.authorityScore * 10) / 2,
+            status: s.verified ? 'suggested' : 'pending',
+            suggested_by: 'ai'
+          }));
+          
+          const { error: insertError } = await supabase
+            .from('dead_link_replacements')
+            .insert(replacementsToInsert);
+          
+          if (insertError) {
+            console.error('Error inserting replacements:', insertError);
+            toast.error("Failed to save replacement suggestions");
+            return;
+          }
+          
+          toast.success(`Found ${data.suggestions.length} replacement suggestions!`);
+          queryClient.invalidateQueries({ queryKey: ["dead-link-replacements"] });
+        } else {
+          toast.warning("No suitable replacements found");
+        }
         return;
       }
       
