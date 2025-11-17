@@ -708,7 +708,7 @@ async function testSeoMetaTagsInIframe(slug: string): Promise<TestResult[]> {
             document.body.removeChild(iframe);
             clearTimeout(timeoutId);
           }
-        }, 2000); // Wait 2 seconds for React Helmet to inject meta tags
+        }, 4000); // Wait 4 seconds for React Helmet to inject meta tags
       } catch (error: any) {
         resolve([{
           name: 'SEO Meta Tags',
