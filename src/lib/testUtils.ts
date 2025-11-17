@@ -433,10 +433,143 @@ export async function testPhase7(): Promise<TestResult[]> {
   return results;
 }
 
-// Phase 8: Public Article Display Page
+// Helper function: Test article page using hidden iframe
+async function testArticleInIframe(slug: string): Promise<TestResult> {
+  return new Promise((resolve) => {
+    const iframe = document.createElement('iframe');
+    iframe.style.display = 'none';
+    iframe.style.position = 'absolute';
+    iframe.style.width = '1px';
+    iframe.style.height = '1px';
+    iframe.style.opacity = '0';
+    iframe.style.pointerEvents = 'none';
+    
+    const articleUrl = `/blog/${slug}`;
+    let timeoutId: NodeJS.Timeout;
+    
+    iframe.onload = () => {
+      try {
+        // Wait a bit for React to render and inject schemas
+        setTimeout(() => {
+          try {
+            const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
+            
+            if (!iframeDoc) {
+              resolve({
+                name: 'Schema Injection',
+                status: 'fail',
+                message: '✗ Could not access iframe document',
+                details: 'Iframe loading failed or was blocked'
+              });
+              document.body.removeChild(iframe);
+              clearTimeout(timeoutId);
+              return;
+            }
+
+            const schemaScripts = iframeDoc.querySelectorAll('script[type="application/ld+json"]');
+            const hasSchema = schemaScripts.length > 0;
+
+            if (hasSchema) {
+              // Parse and validate schemas
+              const schemaTypes: string[] = [];
+              let hasArticleSchema = false;
+              let hasBreadcrumbs = false;
+              let hasFAQ = false;
+
+              schemaScripts.forEach((script) => {
+                try {
+                  const schemaData = JSON.parse(script.textContent || '{}');
+                  const type = schemaData['@type'];
+                  if (type) schemaTypes.push(type);
+                  
+                  if (type === 'BlogPosting' || type === 'Article') hasArticleSchema = true;
+                  if (type === 'BreadcrumbList') hasBreadcrumbs = true;
+                  if (type === 'FAQPage') hasFAQ = true;
+                } catch (e) {
+                  // Ignore parse errors for individual schemas
+                }
+              });
+
+              resolve({
+                name: 'Schema Injection',
+                status: hasArticleSchema ? 'pass' : 'warning',
+                message: hasArticleSchema
+                  ? `✓ JSON-LD schemas injected successfully (${schemaScripts.length} total)`
+                  : `⚠ Schemas found but missing Article/BlogPosting schema`,
+                details: `Found schema types: ${schemaTypes.join(', ')}\n` +
+                        `Article Schema: ${hasArticleSchema ? '✓' : '✗'}\n` +
+                        `Breadcrumbs: ${hasBreadcrumbs ? '✓' : '✗'}\n` +
+                        `FAQ: ${hasFAQ ? '✓' : 'N/A'}`
+              });
+            } else {
+              resolve({
+                name: 'Schema Injection',
+                status: 'fail',
+                message: '✗ No JSON-LD schemas found in article page',
+                details: 'Schema injection may not be working correctly'
+              });
+            }
+
+            document.body.removeChild(iframe);
+            clearTimeout(timeoutId);
+          } catch (error: any) {
+            resolve({
+              name: 'Schema Injection',
+              status: 'fail',
+              message: '✗ Error testing iframe content',
+              details: error.message
+            });
+            document.body.removeChild(iframe);
+            clearTimeout(timeoutId);
+          }
+        }, 2000); // Wait 2 seconds for React to mount and inject schemas
+      } catch (error: any) {
+        resolve({
+          name: 'Schema Injection',
+          status: 'fail',
+          message: '✗ Iframe access error',
+          details: error.message
+        });
+        document.body.removeChild(iframe);
+        clearTimeout(timeoutId);
+      }
+    };
+
+    iframe.onerror = () => {
+      resolve({
+        name: 'Schema Injection',
+        status: 'fail',
+        message: '✗ Failed to load article page in iframe',
+        details: `Could not load /blog/${slug}`
+      });
+      document.body.removeChild(iframe);
+      clearTimeout(timeoutId);
+    };
+
+    // Set timeout to prevent hanging
+    timeoutId = setTimeout(() => {
+      resolve({
+        name: 'Schema Injection',
+        status: 'fail',
+        message: '✗ Iframe loading timeout',
+        details: 'Article page took too long to load (>10 seconds)'
+      });
+      if (document.body.contains(iframe)) {
+        document.body.removeChild(iframe);
+      }
+    }, 10000);
+
+    // Append iframe and load article
+    document.body.appendChild(iframe);
+    iframe.src = articleUrl;
+  });
+}
+
+// Phase 8: Public Article Display Page (Enhanced with Auto-Testing)
 export async function testPhase8(): Promise<TestResult[]> {
   const results: TestResult[] = [];
 
+  // Fetch a published article
   const { data: article } = await supabase
     .from('blog_articles')
     .select('slug')
@@ -454,12 +587,12 @@ export async function testPhase8(): Promise<TestResult[]> {
     return results;
   }
 
-  // Check if we're currently on a blog article page
+  // Check current location
   const currentPath = window.location.pathname;
   const isOnArticlePage = currentPath.startsWith('/blog/') && currentPath !== '/blog';
 
   if (isOnArticlePage) {
-    // We're on an article page, check the DOM directly
+    // Already on article page - test directly
     const schemaScripts = document.querySelectorAll('script[type="application/ld+json"]');
     const hasSchema = schemaScripts.length > 0;
     
@@ -477,23 +610,19 @@ export async function testPhase8(): Promise<TestResult[]> {
         : '✗ No JSON-LD found in page',
       details: hasSchema 
         ? `Found schemas: ${Array.from(schemaScripts).map((_, i) => `Schema ${i + 1}`).join(', ')}`
-        : 'Navigate to a blog article page and run this test again'
+        : 'Schema injection failed'
     });
   } else {
-    // Not on article page - provide instructions
+    // Not on article page - use iframe testing
     results.push({
       name: 'Article Page Route',
-      status: 'warning',
-      message: `⚠ Navigate to an article to test schema injection`,
-      details: `Example: /blog/${article.slug}`
+      status: 'pass',
+      message: `✓ Testing article programmatically: /blog/${article.slug}`
     });
-    
-    results.push({
-      name: 'Schema Injection',
-      status: 'warning',
-      message: '⚠ Schema test requires article page',
-      details: 'This test must be run while viewing a blog article page'
-    });
+
+    // Test article page via iframe
+    const schemaTestResult = await testArticleInIframe(article.slug);
+    results.push(schemaTestResult);
   }
 
   return results;
