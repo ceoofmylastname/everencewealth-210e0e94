@@ -6,9 +6,10 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Image, BarChart3, Link2, Link, Loader2, Sparkles } from "lucide-react";
+import { Image, BarChart3, Link2, Link, Loader2, Sparkles, Code2 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { BatchLinkValidator } from "@/components/admin/BatchLinkValidator";
+import { CodeFenceCleanup } from "@/components/admin/CodeFenceCleanup";
 
 export default function AITools() {
   const [testingImage, setTestingImage] = useState(false);
@@ -432,6 +433,22 @@ export default function AITools() {
 
         {/* Batch Link Validation */}
         <BatchLinkValidator />
+
+        {/* Code Fence Cleanup */}
+        <Card className="border-2 border-orange-200 dark:border-orange-900">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Code2 className="w-5 h-5" />
+              Bulk Code Fence Cleanup
+            </CardTitle>
+            <CardDescription>
+              Remove accidental ```html prefixes from article content with backup and rollback support
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <CodeFenceCleanup />
+          </CardContent>
+        </Card>
 
       </div>
     </AdminLayout>
