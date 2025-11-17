@@ -2,7 +2,8 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { AlertCircle, Plus, Trash2 } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertCircle, Plus, Trash2, Info } from "lucide-react";
 import { ExternalCitation } from "@/types/blog";
 import { ExternalLinkFinder } from "@/components/ExternalLinkFinder";
 import { BetterCitationFinder } from "@/components/admin/BetterCitationFinder";
@@ -60,6 +61,16 @@ export const ExternalCitationsSection = ({
         </p>
       </CardHeader>
       <CardContent className="space-y-6">
+        <Alert className="mb-4">
+          <Info className="h-4 w-4" />
+          <AlertTitle>Approved Domains Only</AlertTitle>
+          <AlertDescription>
+            Citations must be from the approved 250-domain whitelist. Government sources (.gob.es, spain.info) are prioritized.
+            {' '}
+            <a href="/admin/approved-domains" className="text-primary underline">View approved domains</a>
+          </AlertDescription>
+        </Alert>
+        
         {/* AI-Powered Better Citation Finder (New - Perplexity) */}
         {headline && articleContent && (
           <BetterCitationFinder
