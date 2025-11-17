@@ -172,12 +172,6 @@ const BlogArticle = () => {
   const baseUrl = window.location.origin;
   const currentUrl = `${baseUrl}/blog/${article.slug}`;
 
-  // Generate hreflang URLs from translations
-  const hreflangUrls = Object.entries(article.translations || {}).reduce((acc, [lang, slug]) => {
-    acc[lang] = `${baseUrl}/blog/${slug}`;
-    return acc;
-  }, {} as Record<string, string>);
-
   // Language to hreflang mapping
   const langToHreflang: Record<string, string> = {
     en: 'en-GB',
@@ -190,6 +184,41 @@ const BlogArticle = () => {
     da: 'da-DK',
     hu: 'hu-HU',
   };
+
+  // Generate hreflang tags array
+  const hreflangTags = [];
+  
+  // 1. Self-referencing hreflang (current page)
+  const currentLangCode = langToHreflang[article.language] || article.language;
+  hreflangTags.push({
+    lang: article.language,
+    hrefLang: currentLangCode,
+    href: currentUrl
+  });
+  
+  // 2. Add translations (only existing translations)
+  if (article.translations && typeof article.translations === 'object') {
+    Object.entries(article.translations).forEach(([lang, slug]) => {
+      if (slug && typeof slug === 'string' && lang !== article.language) {
+        const langCode = langToHreflang[lang] || lang;
+        hreflangTags.push({
+          lang: lang,
+          hrefLang: langCode,
+          href: `${baseUrl}/blog/${slug}`
+        });
+      }
+    });
+  }
+  
+  // 3. x-default (point to English if exists, otherwise current page)
+  const xDefaultUrl = article.translations?.en 
+    ? `${baseUrl}/blog/${article.translations.en}` 
+    : currentUrl;
+  hreflangTags.push({
+    lang: 'x-default',
+    hrefLang: 'x-default',
+    href: xDefaultUrl
+  });
 
   return (
     <>
@@ -224,12 +253,9 @@ const BlogArticle = () => {
         <meta name="twitter:image" content={article.featured_image_url} />
         
         {/* Hreflang Tags */}
-        {Object.entries(hreflangUrls).map(([lang, url]) => (
-          <link key={lang} rel="alternate" hrefLang={langToHreflang[lang]} href={url} />
+        {hreflangTags.map((tag) => (
+          <link key={tag.lang} rel="alternate" hrefLang={tag.hrefLang} href={tag.href} />
         ))}
-        {hreflangUrls['en'] && (
-          <link rel="alternate" hrefLang="x-default" href={hreflangUrls['en']} />
-        )}
         
         {/* Additional Meta */}
         <meta name="robots" content="index, follow, max-image-preview:large" />
