@@ -581,8 +581,12 @@ async function testSeoMetaTagsInIframe(slug: string): Promise<TestResult[]> {
     
     iframe.onload = () => {
       try {
-        // Wait for React Helmet to inject meta tags
-        setTimeout(() => {
+        // Polling mechanism to wait for React Helmet to inject meta tags
+        let checkAttempts = 0;
+        const maxAttempts = 30; // Check up to 30 times over 9 seconds
+        const pollInterval = 300; // Check every 300ms
+        
+        const checkForHelmetTags = () => {
           try {
             const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
             
@@ -598,117 +602,131 @@ async function testSeoMetaTagsInIframe(slug: string): Promise<TestResult[]> {
               return;
             }
 
-            const results: TestResult[] = [];
-
-            // Test 1: Title Tag
-            const titleTag = iframeDoc.querySelector('title');
-            results.push({
-              name: 'Meta Title',
-              status: titleTag && titleTag.textContent ? 'pass' : 'fail',
-              message: titleTag && titleTag.textContent
-                ? `✓ Title tag present: "${titleTag.textContent.substring(0, 60)}${titleTag.textContent.length > 60 ? '...' : ''}"`
-                : '✗ Missing title tag',
-              details: titleTag ? `Full title: ${titleTag.textContent}` : undefined
-            });
-
-            // Test 2: Meta Description
-            const metaDescription = iframeDoc.querySelector('meta[name="description"]');
-            const descContent = metaDescription?.getAttribute('content');
-            results.push({
-              name: 'Meta Description',
-              status: descContent ? 'pass' : 'fail',
-              message: descContent
-                ? `✓ Meta description present (${descContent.length} chars)`
-                : '✗ Missing meta description',
-              details: descContent ? `Content: ${descContent.substring(0, 100)}${descContent.length > 100 ? '...' : ''}` : undefined
-            });
-
-            // Test 3: Canonical Tag
+            checkAttempts++;
+            
+            // Check if React Helmet has injected the canonical tag (primary indicator)
             const canonicalTag = iframeDoc.querySelector('link[rel="canonical"]');
-            const canonicalHref = canonicalTag?.getAttribute('href');
-            results.push({
-              name: 'Canonical Tag',
-              status: canonicalHref ? 'pass' : 'fail',
-              message: canonicalHref
-                ? `✓ Canonical tag present`
-                : '✗ Missing canonical tag',
-              details: canonicalHref ? `Points to: ${canonicalHref}` : undefined
-            });
-
-            // Test 4: Hreflang Tags
-            const hreflangTags = iframeDoc.querySelectorAll('link[rel="alternate"][hreflang]');
-            results.push({
-              name: 'Hreflang Tags',
-              status: hreflangTags.length > 0 ? 'pass' : 'warning',
-              message: hreflangTags.length > 0
-                ? `✓ Hreflang tags present (${hreflangTags.length} languages)`
-                : '⚠ No hreflang tags found',
-              details: hreflangTags.length > 0
-                ? `Languages: ${Array.from(hreflangTags).map(tag => tag.getAttribute('hreflang')).join(', ')}`
-                : 'Hreflang tags help with international SEO'
-            });
-
-            // Test 5: Open Graph Tags
-            const ogTitle = iframeDoc.querySelector('meta[property="og:title"]');
-            const ogDescription = iframeDoc.querySelector('meta[property="og:description"]');
-            const ogImage = iframeDoc.querySelector('meta[property="og:image"]');
-            const ogUrl = iframeDoc.querySelector('meta[property="og:url"]');
-            const ogType = iframeDoc.querySelector('meta[property="og:type"]');
-            const ogTags = iframeDoc.querySelectorAll('meta[property^="og:"]');
+            const helmetInjected = canonicalTag !== null;
             
-            const ogCount = ogTags.length;
-            const hasRequiredOG = ogTitle && ogDescription && ogImage;
-            
-            results.push({
-              name: 'Open Graph Tags',
-              status: hasRequiredOG ? 'pass' : 'fail',
-              message: hasRequiredOG
-                ? `✓ Open Graph tags present (${ogCount} total)`
-                : `✗ Missing required OG tags`,
-              details: `OG Title: ${ogTitle ? '✓' : '✗'}\n` +
-                      `OG Description: ${ogDescription ? '✓' : '✗'}\n` +
-                      `OG Image: ${ogImage ? '✓' : '✗'}\n` +
-                      `OG URL: ${ogUrl ? '✓' : '✗'}\n` +
-                      `OG Type: ${ogType ? '✓' : '✗'}`
-            });
+            // If Helmet has injected tags OR we've maxed out attempts, run validation
+            if (helmetInjected || checkAttempts >= maxAttempts) {
+              const results: TestResult[] = [];
 
-            // Test 6: Twitter Card Tags
-            const twitterCard = iframeDoc.querySelector('meta[name="twitter:card"]');
-            const twitterTitle = iframeDoc.querySelector('meta[name="twitter:title"]');
-            const twitterDescription = iframeDoc.querySelector('meta[name="twitter:description"]');
-            const twitterImage = iframeDoc.querySelector('meta[name="twitter:image"]');
-            const twitterTags = iframeDoc.querySelectorAll('meta[name^="twitter:"]');
-            
-            const hasTwitterCard = twitterCard !== null;
-            
-            results.push({
-              name: 'Twitter Card Tags',
-              status: hasTwitterCard ? 'pass' : 'warning',
-              message: hasTwitterCard
-                ? `✓ Twitter Card tags present (${twitterTags.length} total)`
-                : '⚠ No Twitter Card tags found',
-              details: hasTwitterCard
-                ? `Twitter Card: ${twitterCard?.getAttribute('content') || 'N/A'}\n` +
-                  `Twitter Title: ${twitterTitle ? '✓' : '✗'}\n` +
-                  `Twitter Description: ${twitterDescription ? '✓' : '✗'}\n` +
-                  `Twitter Image: ${twitterImage ? '✓' : '✗'}`
-                : 'Twitter Cards enhance social sharing appearance'
-            });
+              // Test 1: Title Tag
+              const titleTag = iframeDoc.querySelector('title');
+              results.push({
+                name: 'Meta Title',
+                status: titleTag && titleTag.textContent ? 'pass' : 'fail',
+                message: titleTag && titleTag.textContent
+                  ? `✓ Title tag present: "${titleTag.textContent.substring(0, 60)}${titleTag.textContent.length > 60 ? '...' : ''}"`
+                  : '✗ Missing title tag',
+                details: titleTag ? `Full title: ${titleTag.textContent}` : undefined
+              });
 
-            document.body.removeChild(iframe);
-            clearTimeout(timeoutId);
-            resolve(results);
+              // Test 2: Meta Description
+              const metaDescription = iframeDoc.querySelector('meta[name="description"]');
+              const descContent = metaDescription?.getAttribute('content');
+              results.push({
+                name: 'Meta Description',
+                status: descContent ? 'pass' : 'fail',
+                message: descContent
+                  ? `✓ Meta description present (${descContent.length} chars)`
+                  : '✗ Missing meta description',
+                details: descContent ? `Content: ${descContent.substring(0, 100)}${descContent.length > 100 ? '...' : ''}` : undefined
+              });
+
+              // Test 3: Canonical Tag
+              const canonicalHref = canonicalTag?.getAttribute('href');
+              results.push({
+                name: 'Canonical Tag',
+                status: canonicalHref ? 'pass' : 'fail',
+                message: canonicalHref
+                  ? `✓ Canonical tag present`
+                  : '✗ Missing canonical tag',
+                details: canonicalHref ? `Points to: ${canonicalHref}` : undefined
+              });
+
+              // Test 4: Hreflang Tags
+              const hreflangTags = iframeDoc.querySelectorAll('link[rel="alternate"][hreflang]');
+              results.push({
+                name: 'Hreflang Tags',
+                status: hreflangTags.length > 0 ? 'pass' : 'warning',
+                message: hreflangTags.length > 0
+                  ? `✓ Hreflang tags present (${hreflangTags.length} languages)`
+                  : '⚠ No hreflang tags found',
+                details: hreflangTags.length > 0
+                  ? `Languages: ${Array.from(hreflangTags).map(tag => tag.getAttribute('hreflang')).join(', ')}`
+                  : 'Hreflang tags help with international SEO'
+              });
+
+              // Test 5: Open Graph Tags
+              const ogTitle = iframeDoc.querySelector('meta[property="og:title"]');
+              const ogDescription = iframeDoc.querySelector('meta[property="og:description"]');
+              const ogImage = iframeDoc.querySelector('meta[property="og:image"]');
+              const ogUrl = iframeDoc.querySelector('meta[property="og:url"]');
+              const ogType = iframeDoc.querySelector('meta[property="og:type"]');
+              const ogTags = iframeDoc.querySelectorAll('meta[property^="og:"]');
+              
+              const ogCount = ogTags.length;
+              const hasRequiredOG = ogTitle && ogDescription && ogImage;
+              
+              results.push({
+                name: 'Open Graph Tags',
+                status: hasRequiredOG ? 'pass' : 'fail',
+                message: hasRequiredOG
+                  ? `✓ Open Graph tags present (${ogCount} total)`
+                  : `✗ Missing required OG tags`,
+                details: `OG Title: ${ogTitle ? '✓' : '✗'}\n` +
+                        `OG Description: ${ogDescription ? '✓' : '✗'}\n` +
+                        `OG Image: ${ogImage ? '✓' : '✗'}\n` +
+                        `OG URL: ${ogUrl ? '✓' : '✗'}\n` +
+                        `OG Type: ${ogType ? '✓' : '✗'}`
+              });
+
+              // Test 6: Twitter Card Tags
+              const twitterCard = iframeDoc.querySelector('meta[name="twitter:card"]');
+              const twitterTitle = iframeDoc.querySelector('meta[name="twitter:title"]');
+              const twitterDescription = iframeDoc.querySelector('meta[name="twitter:description"]');
+              const twitterImage = iframeDoc.querySelector('meta[name="twitter:image"]');
+              const twitterTags = iframeDoc.querySelectorAll('meta[name^="twitter:"]');
+              
+              const hasTwitterCard = twitterCard !== null;
+              
+              results.push({
+                name: 'Twitter Card Tags',
+                status: hasTwitterCard ? 'pass' : 'warning',
+                message: hasTwitterCard
+                  ? `✓ Twitter Card tags present (${twitterTags.length} total)`
+                  : '⚠ No Twitter Card tags found',
+                details: hasTwitterCard
+                  ? `Twitter Card: ${twitterCard?.getAttribute('content') || 'N/A'}\n` +
+                    `Twitter Title: ${twitterTitle ? '✓' : '✗'}\n` +
+                    `Twitter Description: ${twitterDescription ? '✓' : '✗'}\n` +
+                    `Twitter Image: ${twitterImage ? '✓' : '✗'}`
+                  : 'Twitter Cards enhance social sharing appearance'
+              });
+
+              document.body.removeChild(iframe);
+              clearTimeout(timeoutId);
+              resolve(results);
+            } else {
+              // Tags not found yet, check again
+              setTimeout(checkForHelmetTags, pollInterval);
+            }
           } catch (error: any) {
             resolve([{
               name: 'SEO Meta Tags',
               status: 'fail',
-              message: '✗ Error testing iframe content',
+              message: '✗ Error during polling',
               details: error.message
             }]);
             document.body.removeChild(iframe);
             clearTimeout(timeoutId);
           }
-        }, 4000); // Wait 4 seconds for React Helmet to inject meta tags
+        };
+        
+        // Start polling after 1 second (allow React to hydrate first)
+        setTimeout(checkForHelmetTags, 1000);
       } catch (error: any) {
         resolve([{
           name: 'SEO Meta Tags',
