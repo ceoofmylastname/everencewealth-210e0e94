@@ -10,6 +10,7 @@ import { Image, BarChart3, Link2, Link, Loader2, Sparkles, Code2 } from "lucide-
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { BatchLinkValidator } from "@/components/admin/BatchLinkValidator";
 import { CodeFenceCleanup } from "@/components/admin/CodeFenceCleanup";
+import { ContentMarkerCleanup } from "@/components/admin/ContentMarkerCleanup";
 
 export default function AITools() {
   const [testingImage, setTestingImage] = useState(false);
@@ -433,6 +434,22 @@ export default function AITools() {
 
         {/* Batch Link Validation */}
         <BatchLinkValidator />
+
+        {/* Content Marker Cleanup */}
+        <Card className="border-2 border-blue-200 dark:border-blue-900">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Sparkles className="w-5 h-5" />
+              AI Content Marker Cleanup
+            </CardTitle>
+            <CardDescription>
+              Intelligently replace citation markers and internal link placeholders using AI with backup and rollback support
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ContentMarkerCleanup />
+          </CardContent>
+        </Card>
 
         {/* Code Fence Cleanup */}
         <Card className="border-2 border-orange-200 dark:border-orange-900">
