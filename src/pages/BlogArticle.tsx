@@ -167,7 +167,14 @@ const BlogArticle = () => {
     organization: typeof document !== 'undefined' && document.querySelector('script[type="application/ld+json"][data-schema="organization"]')
   };
 
-  const shouldInjectSchemas = !isStaticPrerendered || !existingSchemas.article;
+  // Check each schema type individually to prevent duplicates
+  const shouldInjectSchemas = {
+    article: !existingSchemas.article,
+    speakable: !existingSchemas.speakable,
+    breadcrumb: !existingSchemas.breadcrumb,
+    faq: !existingSchemas.faq,
+    organization: !existingSchemas.organization
+  };
 
   const baseUrl = window.location.origin;
   const currentUrl = `${baseUrl}/blog/${article.slug}`;
@@ -263,11 +270,11 @@ const BlogArticle = () => {
         <meta name="language" content={article.language} />
         
         {/* Inject JSON-LD schemas only if static schemas don't exist */}
-        {shouldInjectSchemas && <script type="application/ld+json">{JSON.stringify(schemas.article)}</script>}
-        {shouldInjectSchemas && <script type="application/ld+json">{JSON.stringify(schemas.speakable)}</script>}
-        {shouldInjectSchemas && <script type="application/ld+json">{JSON.stringify(schemas.breadcrumb)}</script>}
-        {shouldInjectSchemas && schemas.faq && <script type="application/ld+json">{JSON.stringify(schemas.faq)}</script>}
-        {shouldInjectSchemas && <script type="application/ld+json">{JSON.stringify(schemas.organization)}</script>}
+        {shouldInjectSchemas.article && <script type="application/ld+json">{JSON.stringify(schemas.article)}</script>}
+        {shouldInjectSchemas.speakable && <script type="application/ld+json">{JSON.stringify(schemas.speakable)}</script>}
+        {shouldInjectSchemas.breadcrumb && <script type="application/ld+json">{JSON.stringify(schemas.breadcrumb)}</script>}
+        {shouldInjectSchemas.faq && schemas.faq && <script type="application/ld+json">{JSON.stringify(schemas.faq)}</script>}
+        {shouldInjectSchemas.organization && <script type="application/ld+json">{JSON.stringify(schemas.organization)}</script>}
       </Helmet>
 
       <div className="min-h-screen py-8 md:py-12">

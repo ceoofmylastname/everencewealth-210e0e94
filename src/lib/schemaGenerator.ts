@@ -200,9 +200,15 @@ export function generateFAQSchema(
     return null;
   }
   
+  const baseUrl = typeof window !== 'undefined' 
+    ? window.location.origin 
+    : 'https://delsolprimehomes.com';
+  
   return {
     "@context": "https://schema.org",
     "@type": "FAQPage",
+    "@id": `${baseUrl}/blog/${article.slug}#faq`,
+    "inLanguage": article.language,
     "mainEntity": article.faq_entities.map(faq => ({
       "@type": "Question",
       "name": faq.question,
