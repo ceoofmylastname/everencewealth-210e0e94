@@ -148,16 +148,28 @@ function extractDomain(url: string): string {
 }
 
 function checkUrlLanguage(url: string, language: string): boolean {
+  // ✅ Government and educational domains are ALWAYS accepted (authoritative regardless of TLD)
+  if (isGovernmentDomain(url)) {
+    console.log(`✅ Accepting government/educational domain: ${url}`);
+    return true;
+  }
+  
   const languagePatterns: Record<string, string[]> = {
-    'es': ['.es', '.gob.es', 'spain', 'spanish', 'espana', 'espanol'],
-    'en': ['.com', '.org', '.gov', '.uk', 'english'],
-    'nl': ['.nl', 'dutch', 'netherlands', 'nederland'],
-    'de': ['.de', 'german', 'deutschland'],
-    'fr': ['.fr', 'french', 'france'],
+    'es': ['.es', '.gob.es', 'spain', 'spanish', 'espana', 'espanol', '.eu', 'europa.eu'],
+    'en': ['.com', '.org', '.gov', '.uk', '.us', '.edu', 'english', '.int', '.eu', 'europa.eu'],
+    'nl': ['.nl', 'dutch', 'netherlands', 'nederland', '.eu', 'europa.eu'],
+    'de': ['.de', 'german', 'deutschland', '.eu', 'europa.eu'],
+    'fr': ['.fr', 'french', 'france', '.eu', 'europa.eu'],
   };
   
   const patterns = languagePatterns[language] || languagePatterns['es'];
-  return patterns.some(pattern => url.includes(pattern));
+  const matches = patterns.some(pattern => url.includes(pattern));
+  
+  if (!matches) {
+    console.log(`⚠️ Language mismatch for ${url} (expected: ${language})`);
+  }
+  
+  return matches;
 }
 
 serve(async (req) => {
@@ -309,10 +321,16 @@ Return only the JSON array, nothing else.`;
 
     console.log(`Found ${citations.length} citations from Perplexity`);
 
-    // ✅ Filter out blocked domains FIRST (before verification)
-    const allowedCitations = citations.filter((citation: Citation) => {
-      if (!citation.url || !citation.sourceName) return false;
-      if (!citation.url.startsWith('http')) return false;
+    // ✅ Filter out blocked domains FIRST (before verification) - WITH FALLBACK
+    let allowedCitations = citations.filter((citation: Citation) => {
+      if (!citation.url || !citation.sourceName) {
+        console.warn(`❌ Invalid citation structure: ${JSON.stringify(citation)}`);
+        return false;
+      }
+      if (!citation.url.startsWith('http')) {
+        console.warn(`❌ Invalid URL protocol: ${citation.url}`);
+        return false;
+      }
       
       const domain = extractDomain(citation.url);
       if (blockedDomains.includes(domain)) {
@@ -320,22 +338,42 @@ Return only the JSON array, nothing else.`;
         return false;
       }
       
-      // Verify language matches
+      // Verify language matches (with government domain exemption)
       const urlLower = citation.url.toLowerCase();
       const isCorrectLanguage = checkUrlLanguage(urlLower, language);
       
       if (!isCorrectLanguage) {
-        console.warn(`Rejected ${citation.url} - language mismatch`);
+        console.warn(`⚠️ Language filter: ${citation.url}`);
         return false;
       }
       
       return true;
     });
 
-    console.log(`${allowedCitations.length} citations passed filtering (${citations.length - allowedCitations.length} blocked)`);
+    console.log(`${allowedCitations.length} citations passed strict filtering (${citations.length - allowedCitations.length} blocked)`);
 
+    // ✅ FALLBACK: If all citations blocked, try with RELAXED filters (skip language check)
     if (allowedCitations.length === 0) {
-      throw new Error('All suggested citations were blocked or invalid');
+      console.warn('⚠️ All citations blocked by strict filters - trying RELAXED mode (accepting all non-blocked domains)');
+      
+      allowedCitations = citations.filter((citation: Citation) => {
+        if (!citation.url || !citation.sourceName) return false;
+        if (!citation.url.startsWith('http')) return false;
+        
+        const domain = extractDomain(citation.url);
+        if (blockedDomains.includes(domain)) {
+          return false;
+        }
+        
+        // Accept ALL domains in relaxed mode
+        return true;
+      });
+      
+      console.log(`${allowedCitations.length} citations passed RELAXED filtering`);
+      
+      if (allowedCitations.length === 0) {
+        throw new Error('All suggested citations were blocked or invalid (even with relaxed filters)');
+      }
     }
 
     console.log(`Verifying ${allowedCitations.length} URLs...`);
