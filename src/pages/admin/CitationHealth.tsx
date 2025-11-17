@@ -307,6 +307,14 @@ const CitationHealth = () => {
       if (error) throw error;
 
       if (!data.success) {
+        // Handle domain not approved case specifically
+        if (data.error === 'domain_not_approved') {
+          toast.error('Domain Not Approved', {
+            description: `The AI suggested ${data.suggestedDomain}, but it's not in your approved domains. Please add it to the Approved Domains list first.`,
+            duration: 8000
+          });
+          return;
+        }
         throw new Error(data.error || 'Replacement failed');
       }
 
