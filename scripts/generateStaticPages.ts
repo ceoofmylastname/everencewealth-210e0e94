@@ -210,9 +210,34 @@ function generateStaticHTML(article: ArticleData): string {
   ].filter(Boolean).join('\n  ');
 
   // Build hreflang links for translations
-  const hreflangLinks = Object.entries(article.translations)
-    .map(([lang, slug]) => `  <link rel="alternate" hreflang="${lang}" href="https://delsolprimehomes.com/blog/${slug}" />`)
-    .join('\n');
+  const langToHreflang: Record<string, string> = {
+    en: 'en-GB', es: 'es-ES', de: 'de-DE', nl: 'nl-NL',
+    fr: 'fr-FR', pl: 'pl-PL', sv: 'sv-SE', da: 'da-DK', hu: 'hu-HU'
+  };
+
+  const hreflangLinksArray = [];
+  const baseUrl = 'https://delsolprimehomes.com';
+  const currentUrl = `${baseUrl}/blog/${article.slug}`;
+
+  // 1. Self-referencing
+  const currentLangCode = langToHreflang[article.language] || article.language;
+  hreflangLinksArray.push(`  <link rel="alternate" hreflang="${currentLangCode}" href="${currentUrl}" />`);
+
+  // 2. Translations (only existing translations)
+  if (article.translations && typeof article.translations === 'object') {
+    Object.entries(article.translations).forEach(([lang, slug]) => {
+      if (slug && typeof slug === 'string' && lang !== article.language) {
+        const langCode = langToHreflang[lang] || lang;
+        hreflangLinksArray.push(`  <link rel="alternate" hreflang="${langCode}" href="${baseUrl}/blog/${slug}" />`);
+      }
+    });
+  }
+
+  // 3. x-default (point to English if exists, otherwise current page)
+  const xDefaultSlug = article.translations?.en || article.slug;
+  hreflangLinksArray.push(`  <link rel="alternate" hreflang="x-default" href="${baseUrl}/blog/${xDefaultSlug}" />`);
+
+  const hreflangLinks = hreflangLinksArray.join('\n');
 
   const canonicalUrl = article.canonical_url || `https://delsolprimehomes.com/blog/${article.slug}`;
 
