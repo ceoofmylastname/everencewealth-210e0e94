@@ -1168,6 +1168,7 @@ export type Database = {
           applied_to_articles: string[] | null
           confidence_score: number | null
           created_at: string | null
+          duplicate_count: number | null
           id: string
           original_source: string | null
           original_url: string
@@ -1185,6 +1186,7 @@ export type Database = {
           applied_to_articles?: string[] | null
           confidence_score?: number | null
           created_at?: string | null
+          duplicate_count?: number | null
           id?: string
           original_source?: string | null
           original_url: string
@@ -1202,6 +1204,7 @@ export type Database = {
           applied_to_articles?: string[] | null
           confidence_score?: number | null
           created_at?: string | null
+          duplicate_count?: number | null
           id?: string
           original_source?: string | null
           original_url?: string
@@ -1975,6 +1978,15 @@ export type Database = {
       }
       check_stuck_citation_jobs: { Args: never; Returns: undefined }
       check_stuck_cluster_jobs: { Args: never; Returns: undefined }
+      cleanup_duplicate_replacements: {
+        Args: never
+        Returns: {
+          duplicates_merged: number
+          kept_id: string
+          original_url: string
+          replacement_url: string
+        }[]
+      }
       find_articles_with_citation: {
         Args: { citation_url: string; published_only?: boolean }
         Returns: {
@@ -1983,6 +1995,7 @@ export type Database = {
           headline: string
           id: string
           language: string
+          match_type: string
           status: string
         }[]
       }
@@ -2019,6 +2032,10 @@ export type Database = {
         }[]
       }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
+      normalize_url: {
+        Args: { domain_only?: boolean; strip_query?: boolean; url: string }
+        Returns: string
+      }
       replace_citation_tracking: {
         Args: {
           p_anchor_text: string

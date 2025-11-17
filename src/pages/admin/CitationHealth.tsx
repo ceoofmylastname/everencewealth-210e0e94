@@ -297,7 +297,7 @@ const CitationHealth = () => {
           return;
         }
 
-        // Save suggestions to dead_link_replacements table
+        // Save suggestions to dead_link_replacements table with duplicate prevention
         if (data?.suggestions && data.suggestions.length > 0) {
           const replacementsToInsert = data.suggestions.slice(0, 3).map((s: any) => ({
             original_url: url,
@@ -310,18 +310,53 @@ const CitationHealth = () => {
             suggested_by: 'ai'
           }));
           
-          const { error: insertError } = await supabase
-            .from('dead_link_replacements')
-            .insert(replacementsToInsert);
+          let newCount = 0;
+          let updatedCount = 0;
           
-          if (insertError) {
-            console.error('Error inserting replacements:', insertError);
-            toast.error("Failed to save replacement suggestions");
-            return;
+          for (const replacement of replacementsToInsert) {
+            // Check if this exact pair already exists
+            const { data: existing } = await supabase
+              .from("dead_link_replacements")
+              .select("id, duplicate_count")
+              .eq("original_url", replacement.original_url)
+              .eq("replacement_url", replacement.replacement_url)
+              .in("status", ["pending", "suggested"])
+              .maybeSingle();
+
+            if (existing) {
+              // Update existing record instead of inserting
+              const { error: updateError } = await supabase
+                .from("dead_link_replacements")
+                .update({ 
+                  updated_at: new Date().toISOString(),
+                  duplicate_count: (existing.duplicate_count || 0) + 1
+                })
+                .eq("id", existing.id);
+              
+              if (!updateError) {
+                updatedCount++;
+              }
+            } else {
+              // Insert new record
+              const { error: insertError } = await supabase
+                .from("dead_link_replacements")
+                .insert({ ...replacement, duplicate_count: 0 });
+              
+              if (!insertError) {
+                newCount++;
+              }
+            }
           }
-          
-          toast.success(`Found ${data.suggestions.length} replacement suggestions!`);
-          queryClient.invalidateQueries({ queryKey: ["dead-link-replacements"] });
+
+          if (newCount > 0 || updatedCount > 0) {
+            const message = [];
+            if (newCount > 0) message.push(`${newCount} new`);
+            if (updatedCount > 0) message.push(`${updatedCount} updated`);
+            toast.success(`Replacement suggestions: ${message.join(", ")}`);
+            queryClient.invalidateQueries({ queryKey: ["dead-link-replacements"] });
+          } else {
+            toast.warning("No new replacement suggestions found");
+          }
         } else {
           toast.warning("No suitable replacements found");
         }
