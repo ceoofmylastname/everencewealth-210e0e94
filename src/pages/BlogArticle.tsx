@@ -1,3 +1,4 @@
+import React from "react";
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -258,6 +259,43 @@ const BlogArticle = () => {
         {author && <meta name="author" content={author.name} />}
         <meta name="language" content={article.language} />
       </Helmet>
+
+      {/* Manual DOM injection fallback for canonical + hreflang if Helmet fails */}
+      {(() => {
+        React.useEffect(() => {
+          const timeout = setTimeout(() => {
+            const canonicalExists = document.querySelector('link[rel="canonical"]');
+
+            if (!canonicalExists) {
+              console.warn('[BlogArticle] Helmet failed to inject canonical/hreflang - using manual fallback');
+              
+              // Manual canonical injection
+              const canonical = document.createElement('link');
+              canonical.rel = 'canonical';
+              canonical.href = article.canonical_url || currentUrl;
+              canonical.setAttribute('data-manual-inject', 'true');
+              document.head.appendChild(canonical);
+
+              // Manual hreflang injection
+              hreflangTags.forEach(tag => {
+                const existing = document.querySelector(`link[rel="alternate"][hreflang="${tag.hrefLang}"]`);
+                if (!existing) {
+                  const link = document.createElement('link');
+                  link.rel = 'alternate';
+                  link.setAttribute('hreflang', tag.hrefLang);
+                  link.href = tag.href;
+                  link.setAttribute('data-manual-inject', 'true');
+                  document.head.appendChild(link);
+                }
+              });
+            }
+          }, 500);
+
+          return () => clearTimeout(timeout);
+        }, [article, currentUrl, hreflangTags]);
+        
+        return null;
+      })()}
 
       {/* Synchronous JSON-LD Schema Injection - Always render */}
       <script 
