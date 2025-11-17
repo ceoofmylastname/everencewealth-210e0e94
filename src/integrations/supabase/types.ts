@@ -2001,6 +2001,12 @@ export type Database = {
         }
         Returns: boolean
       }
+      increment_domain_usage: {
+        Args: { p_article_id?: string; p_domain: string }
+        Returns: {
+          new_count: number
+        }[]
+      }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
       replace_citation_tracking: {
         Args: {
