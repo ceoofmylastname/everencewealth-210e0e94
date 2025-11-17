@@ -131,11 +131,16 @@ async function verifyUrlWithRetry(url: string, retries = 2): Promise<boolean> {
 }
 
 // ===== DOMAIN DIVERSITY ENFORCEMENT =====
-async function getOverusedDomains(supabase: any, limit: number = 20): Promise<string[]> {
+async function getOverusedDomains(supabase: any, limit: number = 30): Promise<string[]> {
+  // ✅ Only block domains with high recent usage (30 days)
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+  
   const { data, error } = await supabase
     .from('domain_usage_stats')
-    .select('domain, total_uses')
+    .select('domain, total_uses, last_used_at')
     .gte('total_uses', limit)
+    .gte('last_used_at', thirtyDaysAgo.toISOString())
     .order('total_uses', { ascending: false });
     
   if (error) {
@@ -143,7 +148,7 @@ async function getOverusedDomains(supabase: any, limit: number = 20): Promise<st
     return [];
   }
   
-  console.log(`🚫 Blocked ${data.length} overused domains (>${limit} uses)`);
+  console.log(`🚫 Blocked ${data.length} overused domains (>${limit} uses in last 30 days)`);
   return data.map((d: any) => d.domain);
 }
 
@@ -200,7 +205,7 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     // Get blocked domains
-    const blockedDomains = await getOverusedDomains(supabase, 20);
+    const blockedDomains = await getOverusedDomains(supabase, 30);
 
     // Language-specific configurations
     const languageConfig: Record<string, {
@@ -341,11 +346,16 @@ Return only the JSON array, nothing else.`;
         return false;
       }
       
-      const domain = extractDomain(citation.url);
-      if (blockedDomains.includes(domain)) {
-        console.warn(`🚫 BLOCKED: ${domain} - exceeds 20-use limit`);
-        return false;
-      }
+        const domain = extractDomain(citation.url);
+        // ✅ EXEMPT government/educational domains from usage limits (always authoritative)
+        if (blockedDomains.includes(domain) && !isGovernmentDomain(citation.url)) {
+          console.warn(`🚫 BLOCKED: ${domain} - exceeds usage limit`);
+          return false;
+        }
+        // Government domains bypass blocking
+        if (isGovernmentDomain(citation.url)) {
+          console.log(`✅ Government domain accepted (bypass usage limit): ${domain}`);
+        }
       
       // Verify language matches (with government domain exemption)
       const urlLower = citation.url.toLowerCase();
@@ -370,7 +380,8 @@ Return only the JSON array, nothing else.`;
         if (!citation.url.startsWith('http')) return false;
         
         const domain = extractDomain(citation.url);
-        if (blockedDomains.includes(domain)) {
+        // Government domains always exempt from blocking
+        if (blockedDomains.includes(domain) && !isGovernmentDomain(citation.url)) {
           return false;
         }
         
@@ -380,9 +391,85 @@ Return only the JSON array, nothing else.`;
       
       console.log(`${allowedCitations.length} citations passed RELAXED filtering`);
       
-      if (allowedCitations.length === 0) {
-        throw new Error('All suggested citations were blocked or invalid (even with relaxed filters)');
+    if (allowedCitations.length === 0) {
+      console.warn('⚠️ All citations blocked by filters - will attempt Perplexity retry');
+      // Continue execution - Perplexity retry and fallback mechanisms will handle this
+    }
+    
+    // ✅ PERPLEXITY RETRY: If all citations blocked, make second attempt with different parameters
+    if (allowedCitations.length === 0) {
+      console.log('🔄 PERPLEXITY RETRY: Making second attempt with alternative domain search...');
+      
+      // Build a more diverse prompt focusing on non-blocked domains
+      const retryPrompt = `
+        Find 5-8 authoritative external sources for an article about "${headline}".
+        
+        CONTEXT: ${content.slice(0, 500)}
+        
+        CRITICAL REQUIREMENTS:
+        - Focus on .org, .com, and .int domains (international organizations)
+        - Prioritize: WHO, UN agencies, OECD, academic journals (.edu), industry associations
+        - AVOID these overused domains: ${blockedDomains.join(', ')}
+        - Language: ${language}
+        - Each source must be highly authoritative and directly relevant
+        
+        Return JSON array only (no markdown):
+        [
+          {
+            "sourceName": "Organization Name",
+            "url": "https://full-url.com/page",
+            "anchorText": "descriptive anchor text",
+            "contextInArticle": "why this source supports the article",
+            "relevance": "how this relates to the topic"
+          }
+        ]
+      `;
+      
+      try {
+        const retryResponse = await fetch('https://api.perplexity.ai/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${PERPLEXITY_API_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'llama-3.1-sonar-large-128k-online',
+            messages: [
+              { role: 'system', content: 'You are a research assistant finding diverse authoritative sources. Return only valid JSON.' },
+              { role: 'user', content: retryPrompt }
+            ],
+            temperature: 0.3,
+            max_tokens: 2000,
+          }),
+        });
+        
+        if (retryResponse.ok) {
+          const retryData = await retryResponse.json();
+          const retryText = retryData.choices[0].message.content;
+          const retryCitations = JSON.parse(retryText.replace(/```json\n?|\n?```/g, ''));
+          
+          console.log(`🔄 RETRY found ${retryCitations.length} alternative citations`);
+          
+          // Filter retry citations (no language check, only domain blocking)
+          allowedCitations = retryCitations.filter((citation: Citation) => {
+            if (!citation.url || !citation.sourceName) return false;
+            if (!citation.url.startsWith('http')) return false;
+            
+            const domain = extractDomain(citation.url);
+            // Still block overused non-government domains
+            if (blockedDomains.includes(domain) && !isGovernmentDomain(citation.url)) {
+              return false;
+            }
+            return true;
+          });
+          
+          console.log(`✅ RETRY yielded ${allowedCitations.length} usable citations`);
+        }
+      } catch (retryError) {
+        console.error('⚠️ Perplexity retry failed:', retryError);
+        // Continue with empty array - will use unverified fallback later
       }
+    }
     }
 
     console.log(`Verifying ${allowedCitations.length} URLs...`);
@@ -448,8 +535,22 @@ Return only the JSON array, nothing else.`;
 
     // Ensure at least 1 citation (relaxed to allow single high-quality source)
     if (citationsWithScores.length === 0) {
-      console.error('No valid citations found after filtering and verification');
-      throw new Error('Unable to find any verified citations that meet quality standards.');
+      console.error('⚠️ No citations found after all attempts - returning empty result for manual review');
+      return new Response(
+        JSON.stringify({ 
+          citations: [],
+          totalFound: citations.length,
+          totalVerified: 0,
+          hasGovernmentSource: false,
+          warning: 'No suitable citations found - manual review required'
+        }),
+        { 
+          headers: { 
+            ...corsHeaders, 
+            'Content-Type': 'application/json' 
+          } 
+        }
+      );
     }
     
     // Warn if only 1 citation (recommend 2+ for better E-E-A-T)
