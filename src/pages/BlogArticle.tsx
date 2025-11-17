@@ -268,14 +268,44 @@ const BlogArticle = () => {
         <meta name="robots" content="index, follow, max-image-preview:large" />
         {author && <meta name="author" content={author.name} />}
         <meta name="language" content={article.language} />
-        
-        {/* Inject JSON-LD schemas only if static schemas don't exist */}
-        {shouldInjectSchemas.article && <script type="application/ld+json">{JSON.stringify(schemas.article)}</script>}
-        {shouldInjectSchemas.speakable && <script type="application/ld+json">{JSON.stringify(schemas.speakable)}</script>}
-        {shouldInjectSchemas.breadcrumb && <script type="application/ld+json">{JSON.stringify(schemas.breadcrumb)}</script>}
-        {shouldInjectSchemas.faq && schemas.faq && <script type="application/ld+json">{JSON.stringify(schemas.faq)}</script>}
-        {shouldInjectSchemas.organization && <script type="application/ld+json">{JSON.stringify(schemas.organization)}</script>}
       </Helmet>
+
+      {/* Synchronous JSON-LD Schema Injection */}
+      {shouldInjectSchemas.article && (
+        <script 
+          type="application/ld+json" 
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(schemas.article) }}
+          data-schema="article"
+        />
+      )}
+      {shouldInjectSchemas.speakable && (
+        <script 
+          type="application/ld+json" 
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(schemas.speakable) }}
+          data-schema="speakable"
+        />
+      )}
+      {shouldInjectSchemas.breadcrumb && (
+        <script 
+          type="application/ld+json" 
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(schemas.breadcrumb) }}
+          data-schema="breadcrumb"
+        />
+      )}
+      {shouldInjectSchemas.faq && schemas.faq && (
+        <script 
+          type="application/ld+json" 
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(schemas.faq) }}
+          data-schema="faq"
+        />
+      )}
+      {shouldInjectSchemas.organization && (
+        <script 
+          type="application/ld+json" 
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(schemas.organization) }}
+          data-schema="organization"
+        />
+      )}
 
       <div className="min-h-screen py-8 md:py-12">
         <div className="flex flex-col">
