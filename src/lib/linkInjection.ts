@@ -76,6 +76,23 @@ export const injectExternalLinks = (
 };
 
 /**
+ * Converts [INTERNAL_LINK: text] markers to actual internal links
+ */
+export const processInternalLinks = (content: string): string => {
+  const internalLinkPattern = /\[INTERNAL_LINK:\s*([^\]]+)\]/g;
+  
+  return content.replace(internalLinkPattern, (match, linkText) => {
+    const slug = linkText
+      .toLowerCase()
+      .trim()
+      .replace(/\s+/g, '-')
+      .replace(/[^a-z0-9-]/g, '');
+    
+    return `<a href="/blog/${slug}" class="internal-link font-medium text-primary hover:text-primary/80 transition-colors underline">${linkText}</a>`;
+  });
+};
+
+/**
  * Adds citation superscript markers throughout the content
  */
 export const addCitationMarkers = (
