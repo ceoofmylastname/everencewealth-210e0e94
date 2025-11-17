@@ -104,18 +104,24 @@ export const ArticleReviewCard = ({
           <AccordionTrigger className="px-6 hover:no-underline">
             <div className="flex items-center justify-between w-full pr-4">
               <h3 className="text-lg font-semibold">📝 Headline & SEO</h3>
-              <Button 
+              <div 
                 onClick={(e) => {
                   e.stopPropagation();
-                  onRegenerate('seo');
+                  if (!isRegenerating) onRegenerate('seo');
                 }}
-                size="sm"
-                variant="outline"
-                disabled={isRegenerating}
+                className="inline-flex items-center justify-center px-3 py-1.5 text-sm font-medium rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground cursor-pointer transition-colors"
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if ((e.key === 'Enter' || e.key === ' ') && !isRegenerating) {
+                    e.preventDefault();
+                    onRegenerate('seo');
+                  }
+                }}
               >
                 <RefreshCw className={`h-4 w-4 mr-2 ${isRegenerating ? 'animate-spin' : ''}`} />
                 Regenerate All SEO
-              </Button>
+              </div>
             </div>
           </AccordionTrigger>
           <AccordionContent className="px-6 pb-6 space-y-6">
