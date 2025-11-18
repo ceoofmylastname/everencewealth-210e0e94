@@ -45,7 +45,10 @@ serve(async (req) => {
       JSON.stringify({
         success: true,
         status: job.status,
-        progress: job.progress,
+        progress: {
+          ...job.progress,
+          updated_at: job.updated_at
+        },
         articles: job.status === 'completed' ? job.articles : null,
         error: job.error
       }),
