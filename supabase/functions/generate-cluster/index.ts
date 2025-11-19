@@ -1440,55 +1440,32 @@ Return ONLY valid JSON:
         article.reviewer_id = null;
       }
 
-      // 10. EXTERNAL CITATIONS (Perplexity for authoritative sources) - WITH RETRY & VALIDATION
-      let citationAttempts = 0;
-      const maxCitationAttempts = 2; // Initial attempt + 1 retry if insufficient
-      const minCitationsRequired = 3;
-      
-      while (citationAttempts < maxCitationAttempts) {
-        citationAttempts++;
-        try {
-          console.log(`[Job ${jobId}] 📚 Finding external citations for article ${i+1}: "${plan.headline}" (${language}) [Attempt ${citationAttempts}/${maxCitationAttempts}]`);
-          
-          const citationsResponse = await withTimeout(
-            retryWithBackoff(
-              () => supabase.functions.invoke('find-external-links', {
-                body: {
-                  content: article.detailed_content,
-                  headline: plan.headline,
-                  language: language,
-                },
-              }),
-              3, // 3 retries with exponential backoff
-              1000, // Start with 1s delay
-              `External citations for article ${i+1}`
-            ),
-            20000, // 20 second timeout per attempt (increased from default)
-            'External citations lookup timeout after 20 seconds'
-          );
+      // 10. EXTERNAL CITATIONS (BEST EFFORT - NON-FATAL)
+      // Citations are now optional and won't block cluster generation
+      try {
+        console.log(`[Job ${jobId}] 📚 Finding external citations for article ${i+1}: "${plan.headline}" (${language}) [Best effort]`);
+        
+        const citationsResponse = await withTimeout(
+          supabase.functions.invoke('find-external-links', {
+            body: {
+              content: article.detailed_content,
+              headline: plan.headline,
+              language: language,
+            },
+          }),
+          20000, // 20 second timeout
+          'External citations lookup timeout after 20 seconds'
+        );
 
-          // Validate response structure
-          if (citationsResponse.error) {
-            throw new Error(`Edge function error: ${JSON.stringify(citationsResponse.error)}`);
-          }
-
+        // Soft-fail if function returns an error
+        if (citationsResponse.error) {
+          console.warn(`[Job ${jobId}] ⚠️ External citations function returned error for article ${i+1}, skipping citations:`, citationsResponse.error);
+          article.external_citations = [];
+        } else {
           const citations = citationsResponse.data?.citations || [];
           const totalVerified = citationsResponse.data?.totalVerified || 0;
           
           console.log(`[Job ${jobId}] ✅ Found ${citations.length} external citations (${totalVerified} verified)`);
-
-          // Check if we met minimum threshold
-          if (citations.length < minCitationsRequired) {
-            console.warn(`[Job ${jobId}] ⚠️ Only found ${citations.length} citations (minimum: ${minCitationsRequired})`);
-            
-            if (citationAttempts < maxCitationAttempts) {
-              console.log(`[Job ${jobId}] 🔄 Retrying with relaxed parameters...`);
-              await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2s before retry
-              continue; // Try again
-            } else {
-              console.warn(`[Job ${jobId}] ⚠️ Proceeding with ${citations.length} citations after ${citationAttempts} attempts`);
-            }
-          }
 
           if (citations.length > 0) {
             // Insert citations into content
@@ -1522,52 +1499,24 @@ Return ONLY valid JSON:
             }
             
             article.detailed_content = updatedContent;
-            
-            // Filter citations against approved domains before saving
-            const rawCitations = citations.map((c: any) => ({
-              text: c.anchorText,
-              url: c.url,
-              source: c.sourceName,
+            article.external_citations = citations.map((citation: any) => ({
+              source: citation.sourceName,
+              url: citation.url,
+              text: citation.anchorText,
+              context: citation.contextInArticle,
+              relevance: citation.relevance
             }));
-            
-            const filterResult = await filterCitations(
-              supabase,
-              rawCitations,
-              jobId,
-              i + 1,
-              updatedContent
-            );
-            
-            article.external_citations = filterResult.filtered;
-            article.detailed_content = filterResult.cleanedContent || updatedContent;
-            
-            console.log(`[Job ${jobId}] 💾 Saved ${filterResult.filtered.length} approved citations to article`);
           } else {
             article.external_citations = [];
-            console.warn(`[Job ${jobId}] ⚠️ No citations found after ${citationAttempts} attempts`);
+            console.warn(`[Job ${jobId}] ⚠️ No citations found for article ${i+1}`);
           }
-          
-          break; // Success - exit retry loop
-          
-        } catch (error) {
-          const errorMessage = error instanceof Error ? error.message : String(error);
-          console.error(`[Job ${jobId}] ❌ External citations attempt ${citationAttempts}/${maxCitationAttempts} failed:`, {
-            error: errorMessage,
-            article: plan.headline,
-            language: language
-          });
-          
-          // If this was the last attempt, set empty citations
-          if (citationAttempts >= maxCitationAttempts) {
-            console.error(`[Job ${jobId}] ❌ All citation attempts failed - proceeding with 0 citations`);
-            article.external_citations = [];
-            break;
-          }
-          
-          // Wait before next attempt
-          console.log(`[Job ${jobId}] 🔄 Waiting 3s before next citation attempt...`);
-          await new Promise(resolve => setTimeout(resolve, 3000));
         }
+      } catch (error) {
+        // NON-FATAL: Log warning and continue without citations
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        console.warn(`[Job ${jobId}] ⚠️ External citations step failed for article ${i+1}, skipping. Error:`, errorMessage);
+        article.external_citations = [];
+        // Do NOT throw - continue with generation
       }
 
       // Post-process: Replace any remaining [CITATION_NEEDED] markers

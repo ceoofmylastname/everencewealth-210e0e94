@@ -221,19 +221,26 @@ const ClusterGenerator = () => {
         localStorage.removeItem('current_job_id');
         setJobId(null);
         
-        // Parse error if it's a JSON string
+        // Parse error message
         let errorMessage = 'Generation failed';
         if (data.error) {
           try {
             const errorObj = typeof data.error === 'string' ? JSON.parse(data.error) : data.error;
             errorMessage = errorObj.message || data.error;
           } catch {
-            // If parsing fails, use the raw error string
             errorMessage = data.error;
           }
         }
         
-        toast.error(errorMessage);
+        // Check if this is a partial success (citations failed but articles generated)
+        if (data.articles && data.articles.length > 0) {
+          console.log('Partial generation - articles exist despite failure status');
+          setGeneratedArticles(data.articles);
+          setShowReview(true);
+          toast.warning(`Cluster generated with ${data.articles.length} articles, but some external citations were skipped. ${errorMessage}`);
+        } else {
+          toast.error(errorMessage);
+        }
       }
 
     } catch (error) {
