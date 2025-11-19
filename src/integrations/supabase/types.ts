@@ -603,6 +603,36 @@ export type Database = {
           },
         ]
       }
+      citation_diversity_alerts: {
+        Row: {
+          created_at: string | null
+          current_uses: number
+          detected_at: string | null
+          domain: string
+          id: string
+          resolved: boolean | null
+          threshold_reached: string
+        }
+        Insert: {
+          created_at?: string | null
+          current_uses: number
+          detected_at?: string | null
+          domain: string
+          id?: string
+          resolved?: boolean | null
+          threshold_reached: string
+        }
+        Update: {
+          created_at?: string | null
+          current_uses?: number
+          detected_at?: string | null
+          domain?: string
+          id?: string
+          resolved?: boolean | null
+          threshold_reached?: string
+        }
+        Relationships: []
+      }
       citation_hygiene_reports: {
         Row: {
           articles_cleaned: number | null
@@ -2026,6 +2056,20 @@ export type Database = {
           slug?: string | null
           status?: string | null
           update_count?: never
+        }
+        Relationships: []
+      }
+      domain_diversity_report: {
+        Row: {
+          category: string | null
+          diversity_score: number | null
+          domain: string | null
+          language: string | null
+          region: string | null
+          tier: string | null
+          total_uses: number | null
+          trust_score: number | null
+          usage_status: string | null
         }
         Relationships: []
       }
