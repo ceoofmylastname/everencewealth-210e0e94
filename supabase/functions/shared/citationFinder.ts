@@ -85,6 +85,32 @@ async function getOverusedDomains(limit: number = 20): Promise<string[]> {
   }
 }
 
+// ===== STRICT LANGUAGE MATCHING =====
+async function getApprovedDomainsForLanguage(language: string): Promise<Array<{domain: string, category: string}>> {
+  try {
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseKey);
+    
+    const { data, error } = await supabase
+      .from('approved_domains')
+      .select('domain, category, language')
+      .eq('is_allowed', true)
+      .or(`language.eq.${language},language.eq.EU,language.eq.GLOBAL,language.eq.EU/GLOBAL`);
+      
+    if (error) {
+      console.error('Error fetching approved domains:', error);
+      return [];
+    }
+    
+    console.log(`✅ Loaded ${data.length} approved domains for language: ${language.toUpperCase()}`);
+    return data.map((d: any) => ({ domain: d.domain, category: d.category || d.domain }));
+  } catch (error) {
+    console.error('Failed to fetch approved domains:', error);
+    return [];
+  }
+}
+
 function extractDomain(url: string): string {
   try {
     const urlObj = new URL(url);
@@ -108,8 +134,9 @@ export async function findBetterCitations(
   
   const config = languageConfig[articleLanguage as keyof typeof languageConfig] || languageConfig.es;
   
-  // ✅ Get blocked domains
+  // ✅ Get blocked domains AND language-filtered approved domains
   const blockedDomains = await getOverusedDomains(20);
+  const approvedDomains = await getApprovedDomainsForLanguage(articleLanguage);
   
   const focusContext = focusArea 
     ? `\n**Special Focus:** ${focusArea} - prioritize sources specific to this region/topic`
@@ -120,7 +147,12 @@ export async function findBetterCitations(
     : '';
 
   const blockedDomainsText = blockedDomains.length > 0
-    ? `\n\n🚫 **CRITICAL: HARD-BLOCKED DOMAINS (NEVER use these):**\n${blockedDomains.map(d => `- ${d}`).join('\n')}\n\n**These domains exceed the 20-use limit. Find DIVERSE alternatives from our 600+ approved domains.**`
+    ? `\n\n🚫 **CRITICAL: HARD-BLOCKED DOMAINS (NEVER use these):**\n${blockedDomains.map(d => `- ${d}`).join('\n')}\n\n**These domains exceed the 20-use limit. Find DIVERSE alternatives from our approved domains.**`
+    : '';
+
+  // ✅ LANGUAGE WHITELIST - ONLY these domains are allowed
+  const languageWhitelistText = approvedDomains.length > 0
+    ? `\n\n✅ **MANDATORY LANGUAGE WHITELIST - ONLY USE THESE ${articleLanguage.toUpperCase()} SOURCES:**\n${approvedDomains.slice(0, 30).map(d => `- ${d.domain} (${d.category})`).join('\n')}\n${approvedDomains.length > 30 ? `...and ${approvedDomains.length - 30} more approved ${articleLanguage.toUpperCase()} domains\n` : ''}\n**⚠️ DO NOT suggest domains outside this whitelist. Language matching is MANDATORY.**`
     : '';
 
   const prompt = `You are an expert research assistant finding authoritative external sources for a ${config.name} language article.
@@ -205,23 +237,32 @@ Return only the JSON array, nothing else.`;
 
     const citations = JSON.parse(jsonMatch[0]) as BetterCitation[];
 
-    // Validate and filter citations
+    // ✅ Filter out blocked domains AND enforce language matching
+    const allowedDomainSet = new Set(approvedDomains.map(d => d.domain));
+    
     const validCitations = citations.filter(citation => {
       const domain = extractDomain(citation.url);
-      const isBlocked = blockedDomains.includes(domain);
       
-      if (isBlocked) {
-        console.warn(`🚫 BLOCKED: ${domain} - exceeds 20-use limit`);
+      // Check if blocked
+      if (blockedDomains.includes(domain)) {
+        console.warn(`🚫 REJECTED overused domain: ${domain}`);
         return false;
       }
       
+      // Check if in language whitelist
+      if (!allowedDomainSet.has(domain)) {
+        console.warn(`❌ REJECTED wrong language domain: ${domain} (not in ${articleLanguage.toUpperCase()} whitelist)`);
+        return false;
+      }
+      
+      // Basic validation
       return citation.url && 
              citation.sourceName && 
              citation.url.startsWith('http') &&
              !currentCitations.includes(citation.url);
     });
 
-    console.log(`Found ${validCitations.length} valid citations (${citations.length - validCitations.length} blocked)`);
+    console.log(`Filtered ${citations.length} → ${validCitations.length} citations (removed ${citations.length - validCitations.length} blocked/wrong-language)`);
 
     return validCitations;
   } catch (parseError) {

@@ -91,15 +91,15 @@ export function validateCitations(
     }
   });
 
-  // Validate language-specific domains
+  // Validate language-specific domains - NOW A CRITICAL ERROR
   const languageMismatch = checkLanguageMismatch(inlineCitations, externalCitations, language);
   if (languageMismatch.count > 0) {
     issues.push({
-      type: 'warning',
-      message: `${languageMismatch.count} citation${languageMismatch.count !== 1 ? 's' : ''} may not match article language (${language.toUpperCase()})`,
-      severity: 'medium'
+      type: 'error',
+      message: `${languageMismatch.count} citation${languageMismatch.count !== 1 ? 's' : ''} don't match article language (${language.toUpperCase()})`,
+      severity: 'critical'
     });
-    score -= languageMismatch.count * 5;
+    score -= languageMismatch.count * 20; // Increased penalty for language mismatches
   }
 
   // Ensure score stays in 0-100 range

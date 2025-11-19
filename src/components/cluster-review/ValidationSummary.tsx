@@ -17,6 +17,7 @@ export const ValidationSummary = ({ validationResults, onAutoFix, isFixing }: Va
   const totalErrors = results.reduce((sum, r) => sum + r.errors.length, 0);
   const articlesWithMissingLinks = results.filter(r => r.missingInternalLinks).length;
   const articlesWithMissingCitations = results.filter(r => r.missingExternalCitations).length;
+  const totalLanguageMismatches = results.reduce((sum, r) => sum + r.languageMismatches, 0);
   
   const isClusterValid = results.every(r => r.isValid);
 
@@ -84,6 +85,16 @@ export const ValidationSummary = ({ validationResults, onAutoFix, isFixing }: Va
                 <AlertTitle className="text-sm">Missing External Citations</AlertTitle>
                 <AlertDescription className="text-xs">
                   {articlesWithMissingCitations} article{articlesWithMissingCitations !== 1 ? 's need' : ' needs'} more external citations (min. 2)
+                </AlertDescription>
+              </Alert>
+            )}
+            {totalLanguageMismatches > 0 && (
+              <Alert variant="destructive" className="col-span-2">
+                <XCircle className="h-4 w-4" />
+                <AlertTitle className="text-sm font-semibold">❌ Language Mismatches Detected</AlertTitle>
+                <AlertDescription className="text-xs">
+                  {totalLanguageMismatches} citation{totalLanguageMismatches !== 1 ? 's don\'t' : ' doesn\'t'} match article language. 
+                  Citations must use approved domains tagged for the article's language.
                 </AlertDescription>
               </Alert>
             )}
