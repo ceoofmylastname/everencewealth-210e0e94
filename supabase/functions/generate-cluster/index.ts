@@ -273,6 +273,9 @@ async function withHeartbeat<T>(
 
 // Main generation function (runs in background)
 async function generateCluster(jobId: string, topic: string, language: string, targetAudience: string, primaryKeyword: string) {
+  const FUNCTION_START_TIME = Date.now();
+  const MAX_FUNCTION_RUNTIME = 13 * 60 * 1000; // 13 minutes (safety margin before 15-min Supabase limit)
+  
   const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
   const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
   const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
@@ -1470,13 +1473,28 @@ Return ONLY valid JSON:
 
       // 3-LAYER FALLBACK SYSTEM
       while (citationsAttempt < MAX_CITATION_ATTEMPTS && citations.length < 2) {
+        // Function-level timeout guard: abort if approaching edge function limit
+        const elapsedMinutes = ((Date.now() - FUNCTION_START_TIME) / 60000).toFixed(1);
+        if (Date.now() - FUNCTION_START_TIME > MAX_FUNCTION_RUNTIME) {
+          throw new Error(`Approaching edge function timeout limit (${elapsedMinutes} min) - aborting gracefully`);
+        }
+        
         citationsAttempt++;
+        
+        // Send heartbeat update before each citation attempt
+        await updateProgress(
+          supabase, 
+          jobId, 
+          2 + i, 
+          `Article ${i + 1}/${articleStructures.length} - Citations: Attempt ${citationsAttempt}/${MAX_CITATION_ATTEMPTS} (${elapsedMinutes} min elapsed)`, 
+          i + 1
+        );
         
         console.log(`[Job ${jobId}] Citation attempt ${citationsAttempt}/${MAX_CITATION_ATTEMPTS}`);
         
         try {
-          // Extended timeout: 7 minutes (420,000ms) to allow full 7-attempt retry cycle with feedback and full domain scanning
-          const citationTimeout = 420000;
+          // Reduced timeout: 2 minutes (120,000ms) per attempt for faster iteration (7 attempts = 14 min total)
+          const citationTimeout = 120000;
           
           const citationsResponse = await withTimeout(
             supabase.functions.invoke('find-external-links', {

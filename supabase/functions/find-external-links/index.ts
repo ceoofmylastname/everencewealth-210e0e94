@@ -907,8 +907,8 @@ Return only the JSON array, nothing else.`;
     const searchDomains = approvedDomains.map((d: {domain: string}) => d.domain);
     console.log(`🔍 Searching ${searchDomains.length} approved domains with Gemini + Google Search`);
 
-    // Extended timeout: 7 minutes (420,000ms) to allow full domain scanning with 7 retry attempts
-    const GEMINI_TIMEOUT = 420000;
+    // Extended timeout: 2 minutes (120,000ms) per attempt for faster iteration
+    const GEMINI_TIMEOUT = 120000;
     const startTime = Date.now();
     
     let response: Response;
