@@ -58,17 +58,19 @@ export const CitationQualityBadge = ({
             {validation.issues.length > 0 && (
               <div className="space-y-1 pt-2 border-t">
                 <div className="text-xs font-semibold">Issues:</div>
-                {validation.issues.slice(0, 3).map((issue, index) => (
-                  <div key={index} className="text-xs flex items-start gap-1">
+                {validation.issues.slice(0, 5).map((issue, index) => (
+                  <div key={index} className={`text-xs flex items-start gap-1 ${issue.severity === 'critical' ? 'font-semibold' : ''}`}>
                     {issue.type === 'error' && <AlertCircle className="h-3 w-3 text-red-400 shrink-0 mt-0.5" />}
                     {issue.type === 'warning' && <AlertTriangle className="h-3 w-3 text-amber-400 shrink-0 mt-0.5" />}
                     {issue.type === 'info' && <Info className="h-3 w-3 text-blue-400 shrink-0 mt-0.5" />}
-                    <span>{issue.message}</span>
+                    <span className={issue.severity === 'critical' ? 'text-red-400' : ''}>
+                      {issue.message}
+                    </span>
                   </div>
                 ))}
-                {validation.issues.length > 3 && (
+                {validation.issues.length > 5 && (
                   <div className="text-xs text-muted-foreground">
-                    ...and {validation.issues.length - 3} more issue{validation.issues.length - 3 !== 1 ? 's' : ''}
+                    ...and {validation.issues.length - 5} more issue{validation.issues.length - 5 !== 1 ? 's' : ''}
                   </div>
                 )}
               </div>

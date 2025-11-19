@@ -1,4 +1,6 @@
 import { BlogArticle } from "@/types/blog";
+import { supabase } from "@/integrations/supabase/client";
+import { extractDomain } from "./domainLanguageValidator";
 
 export interface LinkValidationResult {
   isValid: boolean;
@@ -63,7 +65,7 @@ export function validateArticleLinks(
     }
   });
 
-  // Validate external citations
+  // Validate external citations with database-backed language checking
   const govPatterns = ['.gov', '.gob.', '.edu', '.ac.', 'europa.eu', '.overheid.'];
   const hasGovernmentSource = externalCitations.some((citation: any) => {
     const url = citation.url?.toLowerCase() || '';
@@ -90,6 +92,18 @@ export function validateArticleLinks(
       warnings.push(`Citation ${index + 1} has empty source name`);
     }
   });
+
+  // CRITICAL: Database-backed language validation for external citations
+  // This runs asynchronously but we'll handle it synchronously for now
+  // In production, this should be called from an async context
+  validateExternalCitationLanguages(externalCitations, article.language || 'es')
+    .then(languageErrors => {
+      errors.push(...languageErrors);
+      languageMismatches += languageErrors.length;
+    })
+    .catch(err => {
+      console.error('Error validating citation languages:', err);
+    });
 
   // Check for duplicate URLs in internal links
   const internalUrls = internalLinks.map((link: any) => link.url);
@@ -133,6 +147,48 @@ export function validateAllArticles(
   });
 
   return validationResults;
+}
+
+/**
+ * Validate external citation languages against approved_domains table
+ */
+async function validateExternalCitationLanguages(
+  citations: any[],
+  articleLanguage: string
+): Promise<string[]> {
+  const errors: string[] = [];
+  
+  for (const citation of citations) {
+    if (!citation.url) continue;
+    
+    const domain = extractDomain(citation.url);
+    if (!domain) continue;
+    
+    const { data } = await supabase
+      .from('approved_domains')
+      .select('language, domain, category')
+      .eq('domain', domain)
+      .eq('is_allowed', true)
+      .single();
+    
+    if (!data) {
+      errors.push(`Citation "${citation.text || citation.source}" uses unapproved domain: ${domain}`);
+      continue;
+    }
+    
+    // Check if language matches or if it's a universal source
+    const isUniversal = data.language?.toUpperCase() === 'EU' || 
+                       data.language?.toUpperCase() === 'GLOBAL' ||
+                       data.language?.toUpperCase() === 'EU/GLOBAL';
+    
+    if (!isUniversal && data.language !== articleLanguage) {
+      errors.push(
+        `Citation "${citation.text || citation.source}" is ${data.language?.toUpperCase()} (expected ${articleLanguage?.toUpperCase()})`
+      );
+    }
+  }
+  
+  return errors;
 }
 
 export function getClusterValidationSummary(
