@@ -1475,8 +1475,8 @@ Return ONLY valid JSON:
         console.log(`[Job ${jobId}] Citation attempt ${citationsAttempt}/${MAX_CITATION_ATTEMPTS}`);
         
         try {
-          // Gemini 2.5 Flash timeouts: 35s for attempts 1-2, 45s for strict mode (attempt 3)
-          const citationTimeout = citationsAttempt === 3 ? 45000 : 35000;
+          // Extended timeout: 4 minutes to allow full 5-attempt retry cycle with feedback
+          const citationTimeout = 240000;
           
           const citationsResponse = await withTimeout(
             supabase.functions.invoke('find-external-links', {
