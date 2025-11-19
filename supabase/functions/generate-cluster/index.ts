@@ -337,7 +337,8 @@ Generate 6 article titles following this funnel structure:
 
 Each article must include the location "Costa del Sol" in the headline.
 
-Return ONLY valid JSON:
+CRITICAL: You MUST return ONLY a valid JSON object with this EXACT structure. Do NOT include markdown code blocks, explanations, or any other text:
+
 {
   "articles": [
     {
@@ -348,7 +349,9 @@ Return ONLY valid JSON:
       "contentAngle": "Overview of Costa del Sol lifestyle, climate, culture for foreign buyers"
     }
   ]
-}`;
+}
+
+Return ONLY the JSON object above, nothing else. No markdown, no explanations, no code fences.`;
 
     // Wrap AI call with timeout and retry
     const structureResponse = await retryWithBackoff(
@@ -406,22 +409,57 @@ Return ONLY valid JSON:
     }
     const structureText = structureData.choices[0].message.content;
 
-    console.log('Raw AI response:', structureText); // Debug logging
+    console.log(`[Job ${jobId}] 📥 Raw AI response (first 500 chars):`, structureText.substring(0, 500));
 
+    // Enhanced parsing with multiple fallback strategies
     let articleStructures;
     try {
-      const parsed = JSON.parse(structureText.replace(/```json\n?|\n?```/g, ''));
-      // Handle both flat and nested responses
-      articleStructures = parsed.articles || parsed.contentCluster?.articles || [];
+      // Strategy 1: Try parsing as-is
+      let parsed;
+      try {
+        parsed = JSON.parse(structureText);
+      } catch (e1) {
+        // Strategy 2: Remove markdown code blocks
+        const cleaned = structureText.replace(/```json\n?|\n?```|```\n?/g, '').trim();
+        try {
+          parsed = JSON.parse(cleaned);
+        } catch (e2) {
+          // Strategy 3: Extract JSON from text (find first { to last })
+          const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
+          if (jsonMatch) {
+            parsed = JSON.parse(jsonMatch[0]);
+          } else {
+            throw new Error('No valid JSON found in response');
+          }
+        }
+      }
+      
+      // Handle multiple response formats
+      articleStructures = 
+        parsed.articles || 
+        parsed.contentCluster?.articles || 
+        parsed.data?.articles ||
+        (Array.isArray(parsed) ? parsed : []);
       
       if (!Array.isArray(articleStructures) || articleStructures.length === 0) {
-        throw new Error('AI did not return valid article structures');
+        console.error(`[Job ${jobId}] ❌ Invalid structure format. Full response:`, structureText);
+        throw new Error(`Invalid AI response format: Expected array of articles, got ${typeof articleStructures}. Response structure: ${JSON.stringify(Object.keys(parsed || {}))}`);
       }
+      
+      console.log(`[Job ${jobId}] ✅ Successfully parsed ${articleStructures.length} article structures`);
     } catch (parseError) {
-      console.error('Failed to parse AI response:', parseError);
-      console.error('Response text:', structureText);
-      const errorMessage = parseError instanceof Error ? parseError.message : 'Unknown error';
-      throw new Error(`Invalid AI response format: ${errorMessage}`);
+      const errorMsg = parseError instanceof Error ? parseError.message : String(parseError);
+      console.error(`[Job ${jobId}] ❌ Failed to parse article structures. Full AI response:`, structureText);
+      throw new Error(`Failed to parse AI structure response: ${errorMsg}. AI returned: ${structureText.substring(0, 200)}...`);
+    }
+    
+    // Validate article structure format
+    const invalidArticles = articleStructures.filter((a: any) => 
+      !a.funnelStage || !a.headline || !a.targetKeyword
+    );
+    if (invalidArticles.length > 0) {
+      console.error(`[Job ${jobId}] ❌ ${invalidArticles.length} articles missing required fields:`, invalidArticles);
+      throw new Error(`${invalidArticles.length} articles are missing required fields (funnelStage, headline, targetKeyword)`);
     }
 
     console.log(`[Job ${jobId}] Generated structure for`, articleStructures.length, 'articles');
