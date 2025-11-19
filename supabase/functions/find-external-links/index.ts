@@ -1211,14 +1211,19 @@ Return ONLY valid JSON:
     );
   } catch (error) {
     console.error('Error in find-external-links function:', error);
+    // Return success with empty citations to make this truly non-fatal
     return new Response(
       JSON.stringify({ 
-        error: error instanceof Error ? error.message : 'Unknown error',
-        details: 'Failed to find external links',
-        citations: []
+        success: true,
+        citations: [],
+        totalFound: 0,
+        totalVerified: 0,
+        hasGovernmentSource: false,
+        warning: error instanceof Error ? error.message : 'Citation lookup failed',
+        details: 'Failed to find external links but continuing generation'
       }),
       { 
-        status: 500,
+        status: 200, // Return 200 to avoid breaking the pipeline
         headers: { 
           ...corsHeaders, 
           'Content-Type': 'application/json' 
