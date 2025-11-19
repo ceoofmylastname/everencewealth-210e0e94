@@ -210,23 +210,87 @@ function isCompetitorDomain(url: string, blacklist: string[]): boolean {
   return blacklist.includes(domain);
 }
 
-// Check if domain looks like a real estate company
-function looksLikeRealEstateCompetitor(url: string, sourceName: string): boolean {
+// Check if domain is an authoritative source that should be auto-approved
+function isAuthoritativeSource(url: string, sourceName: string): boolean {
   const domain = extractDomain(url).toLowerCase();
   const name = sourceName.toLowerCase();
   
-  // Patterns that indicate real estate company
-  const realEstatePatterns = [
+  // Auto-approve government and educational domains
+  const authoritativeTLDs = ['.gov', '.gob.es', '.edu', '.ac.uk', '.eu', '.int'];
+  if (authoritativeTLDs.some(tld => domain.endsWith(tld))) {
+    console.log(`✅ AUTO-APPROVED (Government/Educational TLD): ${domain}`);
+    return true;
+  }
+  
+  // Auto-approve official institutions
+  const officialInstitutions = [
+    'ayuntamiento', 'diputacion', 'junta-andalucia', 'gobierno',
+    'ministerio', 'council', 'commission', 'parliament'
+  ];
+  if (officialInstitutions.some(inst => domain.includes(inst) || name.includes(inst))) {
+    console.log(`✅ AUTO-APPROVED (Official Institution): ${domain}`);
+    return true;
+  }
+  
+  return false;
+}
+
+// Multi-signal scoring system for competitor detection
+function looksLikeRealEstateCompetitor(url: string, sourceName: string): boolean {
+  // First check if it's an authoritative source - auto-approve these
+  if (isAuthoritativeSource(url, sourceName)) {
+    return false;
+  }
+  
+  const domain = extractDomain(url).toLowerCase();
+  const name = sourceName.toLowerCase();
+  const fullUrl = url.toLowerCase();
+  
+  let score = 0;
+  const signals: string[] = [];
+  
+  // Property type keywords (1 point each)
+  const propertyKeywords = [
     'properties', 'property', 'real-estate', 'realestate', 'realtor',
     'inmobiliaria', 'homes', 'villas', 'apartments', 'housing',
-    'marbella', 'estepona', 'sotogrande', 'costa-del-sol',
-    'casas', 'vivienda', 'piso', 'finca', 'urbanization'
+    'casas', 'vivienda', 'piso', 'finca'
   ];
   
-  // Check if domain or source name contains real estate keywords
-  return realEstatePatterns.some(pattern => 
-    domain.includes(pattern) || name.includes(pattern)
-  );
+  if (propertyKeywords.some(kw => domain.includes(kw) || name.includes(kw))) {
+    score += 1;
+    signals.push('property-keywords');
+  }
+  
+  // Commercial intent keywords (2 points each)
+  const commercialKeywords = [
+    'buy', 'sell', 'sale', 'for-sale', 'comprar', 'vender', 'venta',
+    'listings', 'listing', 'agent', 'broker', 'agency'
+  ];
+  
+  if (commercialKeywords.some(kw => domain.includes(kw) || name.includes(kw) || fullUrl.includes(`/${kw}/`))) {
+    score += 2;
+    signals.push('commercial-intent');
+  }
+  
+  // Domain structure signals (2 points each)
+  const commercialPaths = ['/properties/', '/listings/', '/buy/', '/sell/', '/for-sale/'];
+  if (commercialPaths.some(path => fullUrl.includes(path))) {
+    score += 2;
+    signals.push('commercial-url-structure');
+  }
+  
+  // NOTE: Geographic keywords (marbella, estepona, etc.) are NOT penalized alone
+  // They only matter when combined with property + commercial signals
+  
+  const isCompetitor = score >= 3;
+  
+  if (isCompetitor) {
+    console.log(`❌ REJECTED as competitor: ${domain} (score: ${score}, signals: ${signals.join(', ')})`);
+  } else {
+    console.log(`✅ APPROVED: ${domain} (score: ${score}${signals.length > 0 ? `, signals: ${signals.join(', ')}` : ' - no commercial signals'})`);
+  }
+  
+  return isCompetitor;
 }
 
 // Log discovered domain for review
