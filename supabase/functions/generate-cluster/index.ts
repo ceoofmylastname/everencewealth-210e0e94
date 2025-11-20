@@ -292,12 +292,19 @@ async function withHeartbeat<T>(
 // Main generation function (runs in background)
 async function generateCluster(jobId: string, topic: string, language: string, targetAudience: string, primaryKeyword: string) {
   const FUNCTION_START_TIME = Date.now();
-  const MAX_FUNCTION_RUNTIME = 13 * 60 * 1000; // 13 minutes (safety margin before 15-min Supabase limit)
+  const MAX_FUNCTION_RUNTIME = 4.5 * 60 * 1000; // 4.5 minutes (safety margin before 5-min Supabase limit)
+  const ARTICLE_TIME_ESTIMATE = 30000; // 30 seconds per article estimate
   
   const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
   const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
   const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
   const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!);
+
+  // Timeout monitoring helpers
+  const getRemainingTime = () => MAX_FUNCTION_RUNTIME - (Date.now() - FUNCTION_START_TIME);
+  const hasTimeForNextArticle = () => getRemainingTime() > ARTICLE_TIME_ESTIMATE;
+  
+  console.log(`[Job ${jobId}] ⏱️ Timeout monitoring: ${MAX_FUNCTION_RUNTIME / 1000}s limit, ${ARTICLE_TIME_ESTIMATE / 1000}s per article buffer`);
 
   // Start continuous heartbeat to prevent timeout detection
   const heartbeat = startHeartbeat(jobId, supabase);
@@ -513,6 +520,7 @@ Return ONLY the JSON object above, nothing else. No markdown, no explanations, n
     // FIX #1: Track saved article IDs instead of keeping full articles in memory
     const savedArticleIds: string[] = [];
     let failedArticleCount = 0;
+    let timeoutStopped = false;
 
     console.log(`\n╔════════════════════════════════════════╗`);
     console.log(`║  STARTING ARTICLE GENERATION LOOP     ║`);
@@ -520,6 +528,18 @@ Return ONLY the JSON object above, nothing else. No markdown, no explanations, n
     console.log(`[Job ${jobId}] Total articles to generate: ${articleStructures.length}\n`);
 
     for (let i = 0; i < articleStructures.length; i++) {
+      // Check timeout BEFORE starting next article
+      if (!hasTimeForNextArticle()) {
+        const remainingArticles = articleStructures.length - i;
+        console.log(`\n⚠️  [Job ${jobId}] TIMEOUT APPROACHING - Gracefully stopping`);
+        console.log(`   Remaining time: ${(getRemainingTime() / 1000).toFixed(1)}s`);
+        console.log(`   Articles saved: ${savedArticleIds.length}/${articleStructures.length}`);
+        console.log(`   Articles remaining: ${remainingArticles}`);
+        timeoutStopped = true;
+        break;
+      }
+
+      const articleStartTime = Date.now();
       await updateProgress(supabase, jobId, 2 + i, `Generating article ${i + 1} of ${articleStructures.length}...`, i + 1);
       const plan = articleStructures[i];
       
@@ -529,6 +549,7 @@ Return ONLY the JSON object above, nothing else. No markdown, no explanations, n
       console.log(`╚════════════════════════════════════════╝`);
       console.log(`[Job ${jobId}] Headline: "${plan.headline}"`);
       console.log(`[Job ${jobId}] Keyword: "${plan.targetKeyword}"`);
+      console.log(`⏱️  Time remaining: ${(getRemainingTime() / 1000).toFixed(1)}s\n`);
       console.log(`[Job ${jobId}] Stage: ${plan.funnelStage}`);
       console.log(`[Job ${jobId}] Language: ${language}\n`);
       
@@ -1849,7 +1870,9 @@ Return ONLY valid JSON:
         }
         
         savedArticleIds.push(savedArticle.id);
+        const articleDuration = ((Date.now() - articleStartTime) / 1000).toFixed(1);
         console.log(`✅ [Job ${jobId}] Article ${i + 1} - SAVED SUCCESSFULLY (ID: ${savedArticle.id})`);
+        console.log(`⏱️  Article time: ${articleDuration}s | Total elapsed: ${((Date.now() - FUNCTION_START_TIME) / 1000).toFixed(1)}s`);
         
         // Update cluster progress immediately
         await supabase
@@ -1901,6 +1924,13 @@ Return ONLY valid JSON:
         
         console.warn(`⚠️ [Job ${jobId}] Continuing to next article despite save failure`);
       }
+    }
+
+    // Check if we stopped due to timeout
+    if (timeoutStopped) {
+      console.log(`\n⚠️  [Job ${jobId}] Generation stopped early due to approaching timeout`);
+      console.log(`   ✅ Successfully saved: ${savedArticleIds.length}/${articleStructures.length} articles`);
+      console.log(`   ⏱️  Total time used: ${((Date.now() - FUNCTION_START_TIME) / 1000).toFixed(1)}s / ${(MAX_FUNCTION_RUNTIME / 1000).toFixed(1)}s`);
     }
 
     // FIX #1: Fetch saved articles to check citation status
@@ -2134,14 +2164,17 @@ Return ONLY valid JSON:
     
     // FIX #1: Determine final status based on success rate
     const successRate = (savedArticleIds.length / articleStructures.length) * 100;
-    const finalStatus = successRate >= 67 ? 'completed' : 'partial'; // At least 4/6 = success
+    const allArticlesGenerated = savedArticleIds.length === articleStructures.length;
+    const finalStatus = allArticlesGenerated ? 'completed' : 'partial';
     
     console.log(`\n========================================`);
     console.log(`🎉 [Job ${jobId}] CLUSTER GENERATION ${finalStatus.toUpperCase()}`);
     console.log(`   Total articles: ${articleStructures.length}`);
     console.log(`   Successfully saved: ${savedArticleIds.length}`);
     console.log(`   Failed: ${failedArticleCount}`);
+    console.log(`   Timeout stopped: ${timeoutStopped ? 'Yes' : 'No'}`);
     console.log(`   Success rate: ${successRate.toFixed(1)}%`);
+    console.log(`   Total time: ${((Date.now() - FUNCTION_START_TIME) / 1000).toFixed(1)}s`);
     console.log(`   Status: ${finalStatus}`);
     console.log(`========================================\n`);
 
@@ -2153,17 +2186,23 @@ Return ONLY valid JSON:
       .update({
         status: finalStatus,
         articles: savedArticleIds, // Only store article IDs
-        completion_note: `${savedArticleIds.length}/${articleStructures.length} articles generated as drafts. Citations to be added during review process before publishing.`,
+        completion_note: timeoutStopped 
+          ? `${savedArticleIds.length}/${articleStructures.length} articles generated. Generation stopped early due to timeout to prevent job failure.`
+          : `${savedArticleIds.length}/${articleStructures.length} articles generated as drafts. Citations to be added during review process before publishing.`,
         progress: {
           current_step: 11,
           total_steps: 11,
-          current_article: articleStructures.length,
+          current_article: savedArticleIds.length,
           total_articles: articleStructures.length,
           saved_articles: savedArticleIds.length,
           failed_articles: failedArticleCount,
+          timeout_stopped: timeoutStopped,
+          total_time_seconds: ((Date.now() - FUNCTION_START_TIME) / 1000).toFixed(1),
           message: finalStatus === 'completed' 
             ? `✅ Cluster complete: ${savedArticleIds.length}/${articleStructures.length} articles saved as DRAFTS. Citations pending - add before publishing.`
-            : `⚠️  Partial completion: ${savedArticleIds.length}/${articleStructures.length} articles saved as DRAFTS. Citations pending - add before publishing.`,
+            : timeoutStopped
+            ? `⚠️ Gracefully stopped before timeout: ${savedArticleIds.length}/${articleStructures.length} articles saved. Run again to generate remaining articles.`
+            : `⚠️ Partial completion: ${savedArticleIds.length}/${articleStructures.length} articles saved as DRAFTS. Citations pending - add before publishing.`,
           success_rate: successRate
         },
         updated_at: new Date().toISOString()
