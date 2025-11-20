@@ -492,18 +492,33 @@ Return ONLY the JSON object above, nothing else. No markdown, no explanations, n
     console.log(`[Job ${jobId}] Generated structure for`, articleStructures.length, 'articles');
 
     // STEP 2: Generate each article with detailed sections
-    const articles = [];
+    // FIX #1: Track saved article IDs instead of keeping full articles in memory
+    const savedArticleIds: string[] = [];
+    let failedArticleCount = 0;
+
+    console.log(`\n╔════════════════════════════════════════╗`);
+    console.log(`║  STARTING ARTICLE GENERATION LOOP     ║`);
+    console.log(`╚════════════════════════════════════════╝`);
+    console.log(`[Job ${jobId}] Total articles to generate: ${articleStructures.length}\n`);
 
     for (let i = 0; i < articleStructures.length; i++) {
       await updateProgress(supabase, jobId, 2 + i, `Generating article ${i + 1} of ${articleStructures.length}...`, i + 1);
       const plan = articleStructures[i];
+      
+      // FIX #3: Enhanced article start logging
+      console.log(`\n╔════════════════════════════════════════╗`);
+      console.log(`║  ARTICLE ${i + 1}/${articleStructures.length} - ${plan.funnelStage.padEnd(4, ' ')}                      ║`);
+      console.log(`╚════════════════════════════════════════╝`);
+      console.log(`[Job ${jobId}] Headline: "${plan.headline}"`);
+      console.log(`[Job ${jobId}] Keyword: "${plan.targetKeyword}"`);
+      console.log(`[Job ${jobId}] Stage: ${plan.funnelStage}`);
+      console.log(`[Job ${jobId}] Language: ${language}\n`);
+      
       const article: any = {
         funnel_stage: plan.funnelStage,
         language,
         status: 'draft',
       };
-
-      console.log(`[Job ${jobId}] Generating article ${i + 1}/${articleStructures.length}: ${plan.headline}`);
 
       // 1. HEADLINE
       article.headline = plan.headline;
@@ -787,6 +802,16 @@ Return ONLY the HTML content, no JSON wrapper, no markdown code blocks.`;
         ];
       }
 
+      // FIX #4: Dynamic timeout based on funnel stage
+      const getContentTimeout = (funnelStage: string): number => {
+        switch(funnelStage) {
+          case 'TOFU': return 120000;  // 2 minutes
+          case 'MOFU': return 150000;  // 2.5 minutes
+          case 'BOFU': return 180000;  // 3 minutes
+          default: return 120000;
+        }
+      };
+
       // Build Lovable AI request
       let aiRequestBody: any = {
           model: 'google/gemini-2.5-flash',
@@ -794,48 +819,84 @@ Return ONLY the HTML content, no JSON wrapper, no markdown code blocks.`;
         messages: contentPromptMessages,
       };
 
-      console.log(`[Job ${jobId}] 🤖 Starting Lovable AI call for article ${i + 1}:`, {
-        headline: plan.headline,
-        funnelStage: plan.funnelStage,
-        hasCustomPrompt,
-        maxTokens: 8192,
-        timestamp: new Date().toISOString()
-      });
+      // FIX #3: Enhanced phase logging - Content Generation
+      const contentTimeout = getContentTimeout(plan.funnelStage);
+      console.log(`\n========================================`);
+      console.log(`🚀 [Job ${jobId}] ARTICLE ${i + 1}/${articleStructures.length} - PHASE: Content Generation`);
+      console.log(`   Funnel Stage: ${plan.funnelStage}`);
+      console.log(`   Timeout: ${contentTimeout/1000}s`);
+      console.log(`   Expected words: 1,500-2,500`);
+      console.log(`========================================\n`);
 
-      const contentResponse = await withHeartbeat(
-        supabase,
-        jobId,
-        withTimeout(
-          fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${LOVABLE_API_KEY!}`,
-              'Content-Type': 'application/json',
+      // FIX #2: Comprehensive error handling for AI calls
+      let contentResponse;
+      try {
+        console.log(`🤖 [Job ${jobId}] Article ${i + 1} - Calling Lovable AI...`);
+        
+        contentResponse = await withHeartbeat(
+          supabase,
+          jobId,
+          withTimeout(
+            fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${LOVABLE_API_KEY!}`,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(aiRequestBody),
+            }),
+            contentTimeout,
+            `Content generation timeout (${contentTimeout/1000}s) for ${plan.funnelStage} Article ${i + 1}`
+          )
+        );
+      } catch (aiError) {
+        const error = aiError as Error;
+        console.error(`❌ [Job ${jobId}] Article ${i + 1} - AI call FAILED:`, {
+          error: error.message,
+          stack: error.stack?.substring(0, 500),
+          headline: plan.headline
+        });
+        
+        await supabase
+          .from('cluster_generations')
+          .update({
+            progress: {
+              message: `Article ${i + 1} AI call failed: ${error.message}`,
+              phase: 'content_generation',
+              article_number: i + 1
             },
-            body: JSON.stringify(aiRequestBody),
-          }),
-          120000, // 2 minutes - Flash completes in 1-2 min
-          `Gemini Flash timeout after 2 minutes for article ${i + 1}`
-        )
-      );
-
-      console.log(`[Job ${jobId}] ✅ Lovable AI responded for article ${i + 1}:`, {
-        status: contentResponse.status,
-        statusText: contentResponse.statusText,
-        timestamp: new Date().toISOString()
-      });
+            error: JSON.stringify({
+              phase: 'content_generation',
+              article: i + 1,
+              headline: plan.headline,
+              error: error.message,
+              timestamp: new Date().toISOString()
+            })
+          })
+          .eq('id', jobId);
+        
+        throw new Error(`Article ${i + 1} content generation failed: ${error.message}`);
+      }
 
       if (!contentResponse.ok) {
+        const errorText = await contentResponse.text();
+        console.error(`❌ [Job ${jobId}] Article ${i + 1} - AI API error:`, {
+          status: contentResponse.status,
+          statusText: contentResponse.statusText,
+          error: errorText
+        });
+        
         if (contentResponse.status === 429) {
           throw new Error('Lovable AI rate limit exceeded. Please wait and try again.');
         }
         if (contentResponse.status === 402) {
           throw new Error('Lovable AI credits depleted. Please add credits in workspace settings.');
         }
-        const errorText = await contentResponse.text();
-        console.error(`[Job ${jobId}] Content generation failed for article ${i + 1}:`, contentResponse.status, errorText);
-        throw new Error(`Content generation failed: ${contentResponse.status}`);
+        throw new Error(`AI API returned ${contentResponse.status}: ${errorText}`);
       }
+      
+      console.log(`✅ [Job ${jobId}] Article ${i + 1} - AI responded successfully (${contentResponse.status})`);
+
 
       let contentData;
       try {
@@ -1196,13 +1257,18 @@ Return ONLY the HTML content, no JSON wrapper, no markdown code blocks.`;
         i  // Pass article index for uniqueness tracking
       );
 
+      // FIX #3: Enhanced phase logging - Image Generation
+      console.log(`\n========================================`);
+      console.log(`🚀 [Job ${jobId}] ARTICLE ${i + 1} - PHASE: Image Generation`);
+      console.log(`   Funnel Stage: ${plan.funnelStage}`);
+      console.log(`   Topic: ${articleTopic}`);
+      console.log(`   Location: ${location}`);
+      console.log(`========================================\n`);
+      
+      // FIX #2: Comprehensive error handling for image generation
       try {
-        console.log(`🎨 Image generation context:
-  - Funnel Stage: ${plan.funnelStage}
-  - Detected Topic: ${articleTopic}
-  - Property Type: ${propertyType}
-  - Location: ${location}
-  - Prompt: ${imagePrompt.substring(0, 150)}...`);
+        console.log(`🎨 [Job ${jobId}] Article ${i + 1} - Generating image...`);
+        console.log(`   Prompt: ${imagePrompt.substring(0, 100)}...`);
         
         const imageResponse = await supabase.functions.invoke('generate-image', {
           body: {
@@ -1463,6 +1529,14 @@ Return ONLY valid JSON:
         article.reviewer_id = null;
       }
 
+      // FIX #3: Enhanced phase logging - Citation Discovery
+      console.log(`\n========================================`);
+      console.log(`🚀 [Job ${jobId}] ARTICLE ${i + 1} - PHASE: Citation Discovery`);
+      console.log(`   Target: 2+ approved citations`);
+      console.log(`   Max attempts: 4`);
+      console.log(`   Language: ${language}`);
+      console.log(`========================================\n`);
+      
       // 10. EXTERNAL CITATIONS (MANDATORY - BLOCKING)
       console.log(`[Job ${jobId}] 📚 Finding REQUIRED external citations for article ${i+1}: "${plan.headline}" (${language})`);
 
@@ -1756,12 +1830,137 @@ Return ONLY valid JSON:
       article.cta_article_ids = [];
       article.translations = {};
 
-      articles.push(article);
-      console.log(`Article ${i + 1} complete:`, article.headline, `(${wordCount} words, quality: ${qualityCheck.score}/100)`);
+      // FIX #1: SAVE ARTICLE IMMEDIATELY TO DATABASE
+      console.log(`\n========================================`);
+      console.log(`💾 [Job ${jobId}] ARTICLE ${i + 1} - PHASE: Database Save`);
+      console.log(`   Headline: ${article.headline}`);
+      console.log(`   Word count: ${wordCount}`);
+      console.log(`   Citations: ${article.external_citations?.length || 0}`);
+      console.log(`   Quality score: ${qualityCheck.score}/100`);
+      console.log(`========================================\n`);
+      
+      try {
+        console.log(`💾 [Job ${jobId}] Article ${i + 1} - Saving to blog_articles table...`);
+        
+        const { data: savedArticle, error: saveError } = await supabase
+          .from('blog_articles')
+          .insert([{
+            headline: article.headline,
+            slug: article.slug,
+            category: article.category,
+            funnel_stage: article.funnel_stage,
+            language: article.language,
+            status: 'draft',
+            detailed_content: article.detailed_content,
+            speakable_answer: article.speakable_answer,
+            meta_title: article.meta_title,
+            meta_description: article.meta_description,
+            canonical_url: article.canonical_url,
+            featured_image_url: article.featured_image_url,
+            featured_image_alt: article.featured_image_alt,
+            featured_image_caption: article.featured_image_caption || null,
+            diagram_url: article.diagram_url || null,
+            diagram_description: article.diagram_description || null,
+            diagram_alt: article.diagram_alt || null,
+            diagram_caption: article.diagram_caption || null,
+            external_citations: article.external_citations || [],
+            internal_links: article.internal_links || [],
+            author_id: article.author_id || null,
+            reviewer_id: article.reviewer_id || null,
+            faq_entities: article.faq_entities || [],
+            read_time: article.read_time,
+            cluster_id: jobId,
+            cluster_number: i + 1,
+            cluster_theme: topic,
+            related_article_ids: [],
+            cta_article_ids: [],
+            translations: {},
+            date_published: null,
+            date_modified: new Date().toISOString(),
+            citation_status: article.citation_status || 'pending',
+            citation_failure_reason: article.citation_failure_reason || null,
+            citation_health_score: null,
+            has_dead_citations: false,
+            last_citation_check_at: null
+          }])
+          .select()
+          .single();
+        
+        if (saveError) {
+          console.error(`❌ [Job ${jobId}] Article ${i + 1} - Database save FAILED:`, saveError);
+          throw new Error(`Failed to save article: ${saveError.message}`);
+        }
+        
+        savedArticleIds.push(savedArticle.id);
+        console.log(`✅ [Job ${jobId}] Article ${i + 1} - SAVED SUCCESSFULLY (ID: ${savedArticle.id})`);
+        
+        // Update cluster progress immediately
+        await supabase
+          .from('cluster_generations')
+          .update({
+            articles: savedArticleIds,
+            progress: {
+              current_step: 2 + i,
+              total_steps: 11,
+              current_article: i + 1,
+              total_articles: articleStructures.length,
+              saved_articles: savedArticleIds.length,
+              failed_articles: failedArticleCount,
+              message: `Article ${i + 1}/${articleStructures.length} saved: "${article.headline}"`
+            },
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', jobId);
+        
+        console.log(`📊 [Job ${jobId}] Progress: ${savedArticleIds.length}/${articleStructures.length} articles saved\n`);
+        
+      } catch (saveError) {
+        const error = saveError as Error;
+        failedArticleCount++;
+        console.error(`❌ [Job ${jobId}] Article ${i + 1} - Save operation FAILED:`, error);
+        
+        // Log failure but continue to next article
+        await supabase
+          .from('cluster_generations')
+          .update({
+            progress: {
+              current_step: 2 + i,
+              total_steps: 11,
+              current_article: i + 1,
+              total_articles: articleStructures.length,
+              saved_articles: savedArticleIds.length,
+              failed_articles: failedArticleCount,
+              message: `Article ${i + 1} FAILED to save: ${error.message}`,
+              last_error: {
+                article_number: i + 1,
+                headline: article.headline,
+                error: error.message,
+                timestamp: new Date().toISOString()
+              }
+            },
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', jobId);
+        
+        console.warn(`⚠️ [Job ${jobId}] Continuing to next article despite save failure`);
+      }
     }
 
+    // FIX #1: Fetch saved articles to check citation status
+    console.log(`\n[Job ${jobId}] Fetching ${savedArticleIds.length} saved articles for final validation...`);
+    
+    const { data: savedArticles, error: fetchError } = await supabase
+      .from('blog_articles')
+      .select('id, headline, citation_status, citation_failure_reason')
+      .in('id', savedArticleIds);
+    
+    if (fetchError) {
+      console.error(`❌ [Job ${jobId}] Failed to fetch saved articles:`, fetchError);
+      throw new Error(`Failed to validate articles: ${fetchError.message}`);
+    }
+    
     // FINAL VALIDATION: Block cluster if any article failed citations
-    const failedCitationArticles = articles.filter((a: any) => a.citation_status === 'failed');
+    const failedCitationArticles = (savedArticles || []).filter((a: any) => a.citation_status === 'failed');
 
     if (failedCitationArticles.length > 0) {
       const failedHeadlines = failedCitationArticles.map((a: any) => a.headline).join(', ');
@@ -1779,9 +1978,22 @@ Return ONLY valid JSON:
     console.log(`[Job ${jobId}] ✅ All articles passed citation requirements`);
 
     await updateProgress(supabase, jobId, 8, 'Finding internal links...');
-    console.log(`[Job ${jobId}] All articles generated, now finding internal links...`);
+    console.log(`[Job ${jobId}] Fetching saved articles for internal linking...`);
 
     // STEP 3: Find internal links between cluster articles
+    // Fetch all saved articles from database
+    const { data: articlesForLinking, error: fetchArticlesError } = await supabase
+      .from('blog_articles')
+      .select('id, slug, headline, speakable_answer, category, funnel_stage, language, detailed_content')
+      .in('id', savedArticleIds);
+    
+    if (fetchArticlesError) {
+      console.error(`❌ [Job ${jobId}] Failed to fetch articles for linking:`, fetchArticlesError);
+      throw new Error(`Failed to fetch articles: ${fetchArticlesError.message}`);
+    }
+    
+    const articles = articlesForLinking || [];
+    console.log(`[Job ${jobId}] Fetched ${articles.length} articles for internal linking`);
     
     for (let i = 0; i < articles.length; i++) {
       try {
@@ -1791,7 +2003,7 @@ Return ONLY valid JSON:
         const otherArticles = articles
           .filter((a: any, idx: number) => idx !== i)
           .map((a: any) => ({
-            id: `temp-${a.slug}`,
+            id: a.id,
             slug: a.slug,
             headline: a.headline,
             speakable_answer: a.speakable_answer,
@@ -1807,7 +2019,7 @@ Return ONLY valid JSON:
           body: {
             content: article.detailed_content,
             headline: article.headline,
-            currentArticleId: `temp-${article.slug}`,
+            currentArticleId: article.id,
             language: article.language,
             funnelStage: article.funnel_stage,
             availableArticles: otherArticles,
@@ -1854,67 +2066,111 @@ Return ONLY valid JSON:
             }
           }
           
-          article.detailed_content = updatedContent;
-          article.internal_links = links.map((l: any) => ({
-            text: l.text,
-            url: l.url,
-            title: l.title,
-          }));
+          // Update article in database with new content and links
+          await supabase
+            .from('blog_articles')
+            .update({
+              detailed_content: updatedContent,
+              internal_links: links.map((link: any) => ({
+                url: link.url,
+                text: link.text,
+                title: link.title,
+                relevance: link.relevance
+              }))
+            })
+            .eq('id', article.id);
+          
+          console.log(`[Job ${jobId}] ✅ Updated article ${i+1} with ${links.length} internal links`);
         }
       } catch (error) {
         console.error(`Internal links failed for article ${i + 1}:`, error);
       }
     }
 
-    // STEP 4: Link articles in funnel progression
+    // STEP 4: Set up funnel-based CTAs
+    await updateProgress(supabase, jobId, 9, 'Setting funnel CTAs...');
+    console.log(`[Job ${jobId}] Setting funnel CTAs for ${articles.length} articles...`);
+
     const tofuArticles = articles.filter((a: any) => a.funnel_stage === 'TOFU');
     const mofuArticles = articles.filter((a: any) => a.funnel_stage === 'MOFU');
     const bofuArticles = articles.filter((a: any) => a.funnel_stage === 'BOFU');
 
-    console.log('Linking articles in funnel progression...');
-
-    // TOFU articles → link to MOFU articles (awareness to consideration)
-    tofuArticles.forEach((tofuArticle: any, idx: number) => {
-      // Store slugs temporarily - will be converted to IDs when saved to database
-      const otherTofu = tofuArticles.filter((t: any, i: number) => i !== idx);
-      
-      tofuArticle._temp_cta_slugs = mofuArticles.map((m: any) => m.slug);
-      tofuArticle._temp_related_slugs = [
-        ...otherTofu.map((t: any) => t.slug),
+    // TOFU → MOFU CTAs, related: other TOFU + select MOFU
+    for (const tofuArticle of tofuArticles) {
+      const ctaSlugs = mofuArticles.slice(0, 2).map((m: any) => m.slug);
+      const relatedSlugs = [
+        ...tofuArticles.filter((t: any) => t.id !== tofuArticle.id).slice(0, 3).map((t: any) => t.slug),
         ...mofuArticles.slice(0, 2).map((m: any) => m.slug)
       ].slice(0, 7);
       
-      // Keep as empty for now - frontend will resolve slugs to IDs when saving
-      tofuArticle.cta_article_ids = [];
-      tofuArticle.related_article_ids = [];
-    });
-
-    // MOFU articles → link to BOFU article (consideration to decision)
-    mofuArticles.forEach((mofuArticle: any, idx: number) => {
-      const otherMofu = mofuArticles.filter((m: any, i: number) => i !== idx);
+      // Convert slugs to IDs
+      const { data: ctaArticles } = await supabase
+        .from('blog_articles')
+        .select('id')
+        .in('slug', ctaSlugs);
       
-      mofuArticle._temp_cta_slugs = bofuArticles.map((b: any) => b.slug);
-      mofuArticle._temp_related_slugs = [
-        ...tofuArticles.slice(0, 3).map((t: any) => t.slug),
-        ...otherMofu.map((m: any) => m.slug),
+      const { data: relatedArticles } = await supabase
+        .from('blog_articles')
+        .select('id')
+        .in('slug', relatedSlugs);
+      
+      await supabase
+        .from('blog_articles')
+        .update({
+          cta_article_ids: (ctaArticles || []).map((a: any) => a.id),
+          related_article_ids: (relatedArticles || []).map((a: any) => a.id)
+        })
+        .eq('id', tofuArticle.id);
+    }
+
+    // MOFU → BOFU CTAs, related: other MOFU + TOFU context
+    for (const mofuArticle of mofuArticles) {
+      const ctaSlugs = bofuArticles.slice(0, 2).map((b: any) => b.slug);
+      const relatedSlugs = [
+        ...mofuArticles.filter((m: any) => m.id !== mofuArticle.id).slice(0, 3).map((m: any) => m.slug),
+        ...tofuArticles.slice(0, 2).map((t: any) => t.slug),
         ...bofuArticles.map((b: any) => b.slug)
       ].slice(0, 7);
       
-      mofuArticle.cta_article_ids = [];
-      mofuArticle.related_article_ids = [];
-    });
+      const { data: ctaArticles } = await supabase
+        .from('blog_articles')
+        .select('id')
+        .in('slug', ctaSlugs);
+      
+      const { data: relatedArticles } = await supabase
+        .from('blog_articles')
+        .select('id')
+        .in('slug', relatedSlugs);
+      
+      await supabase
+        .from('blog_articles')
+        .update({
+          cta_article_ids: (ctaArticles || []).map((a: any) => a.id),
+          related_article_ids: (relatedArticles || []).map((a: any) => a.id)
+        })
+        .eq('id', mofuArticle.id);
+    }
 
-    // BOFU article → no CTA (chatbot for conversion), link to supporting content
-    bofuArticles.forEach((bofuArticle: any) => {
-      bofuArticle._temp_cta_slugs = []; // No CTA - use chatbot instead
-      bofuArticle._temp_related_slugs = [
+    // BOFU → no CTA (chatbot), related: MOFU + select TOFU
+    for (const bofuArticle of bofuArticles) {
+      const relatedSlugs = [
         ...mofuArticles.map((m: any) => m.slug),
         ...tofuArticles.slice(0, 3).map((t: any) => t.slug)
       ].slice(0, 7);
       
-      bofuArticle.cta_article_ids = [];
-      bofuArticle.related_article_ids = [];
-    });
+      const { data: relatedArticles } = await supabase
+        .from('blog_articles')
+        .select('id')
+        .in('slug', relatedSlugs);
+      
+      await supabase
+        .from('blog_articles')
+        .update({
+          cta_article_ids: [],
+          related_article_ids: (relatedArticles || []).map((a: any) => a.id)
+        })
+        .eq('id', bofuArticle.id);
+    }
 
     await updateProgress(supabase, jobId, 10, 'Setting related articles...');
     console.log(`[Job ${jobId}] Funnel linking complete`);
@@ -1922,19 +2178,43 @@ Return ONLY valid JSON:
     // STEP 5: Set related articles - Already set in CTA logic above
 
     await updateProgress(supabase, jobId, 11, 'Completed!');
-    console.log(`[Job ${jobId}] Generation complete!`);
+    
+    // FIX #1: Determine final status based on success rate
+    const successRate = (savedArticleIds.length / articleStructures.length) * 100;
+    const finalStatus = successRate >= 67 ? 'completed' : 'partial'; // At least 4/6 = success
+    
+    console.log(`\n========================================`);
+    console.log(`🎉 [Job ${jobId}] CLUSTER GENERATION ${finalStatus.toUpperCase()}`);
+    console.log(`   Total articles: ${articleStructures.length}`);
+    console.log(`   Successfully saved: ${savedArticleIds.length}`);
+    console.log(`   Failed: ${failedArticleCount}`);
+    console.log(`   Success rate: ${successRate.toFixed(1)}%`);
+    console.log(`   Status: ${finalStatus}`);
+    console.log(`========================================\n`);
 
-    // Save final articles to job record
+    // Save final status to job record
     await supabase
       .from('cluster_generations')
       .update({
-        status: 'completed',
-        articles: articles,
+        status: finalStatus,
+        articles: savedArticleIds, // Only store article IDs
+        progress: {
+          current_step: 11,
+          total_steps: 11,
+          current_article: articleStructures.length,
+          total_articles: articleStructures.length,
+          saved_articles: savedArticleIds.length,
+          failed_articles: failedArticleCount,
+          message: finalStatus === 'completed' 
+            ? `Cluster complete: ${savedArticleIds.length}/${articleStructures.length} articles saved`
+            : `Partial completion: ${savedArticleIds.length}/${articleStructures.length} articles saved`,
+          success_rate: successRate
+        },
         updated_at: new Date().toISOString()
       })
       .eq('id', jobId);
 
-    console.log(`[Job ${jobId}] ✅ Job completed successfully, saved ${articles.length} articles`);
+    console.log(`✅ [Job ${jobId}] Job ${finalStatus} - ${savedArticleIds.length} articles saved to database`);
 
   } catch (error) {
     console.error(`[Job ${jobId}] ❌ Generation failed:`, error);
