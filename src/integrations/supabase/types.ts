@@ -1064,6 +1064,7 @@ export type Database = {
       }
       cluster_generations: {
         Row: {
+          article_structure: Json | null
           articles: Json | null
           articles_per_cluster: number | null
           cluster_count: number | null
@@ -1084,6 +1085,7 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          article_structure?: Json | null
           articles?: Json | null
           articles_per_cluster?: number | null
           cluster_count?: number | null
@@ -1104,6 +1106,7 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          article_structure?: Json | null
           articles?: Json | null
           articles_per_cluster?: number | null
           cluster_count?: number | null
