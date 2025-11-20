@@ -139,27 +139,7 @@ export const ArticleReviewCard = ({
         {/* SEO Section */}
         <AccordionItem value="seo" className="border rounded-lg">
           <AccordionTrigger className="px-6 hover:no-underline">
-            <div className="flex items-center justify-between w-full pr-4">
-              <h3 className="text-lg font-semibold">📝 Headline & SEO</h3>
-              <div 
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (!isRegenerating) onRegenerate('seo');
-                }}
-                className="inline-flex items-center justify-center px-3 py-1.5 text-sm font-medium rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground cursor-pointer transition-colors"
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => {
-                  if ((e.key === 'Enter' || e.key === ' ') && !isRegenerating) {
-                    e.preventDefault();
-                    onRegenerate('seo');
-                  }
-                }}
-              >
-                <RefreshCw className={`h-4 w-4 mr-2 ${isRegenerating ? 'animate-spin' : ''}`} />
-                Regenerate All SEO
-              </div>
-            </div>
+            <h3 className="text-lg font-semibold">📝 Headline & SEO</h3>
           </AccordionTrigger>
           <AccordionContent className="px-6 pb-6 space-y-6">
             {/* Headline */}
@@ -274,21 +254,7 @@ export const ArticleReviewCard = ({
         {/* Featured Image Section */}
         <AccordionItem value="image" className="border rounded-lg">
           <AccordionTrigger className="px-6 hover:no-underline">
-            <div className="flex items-center justify-between w-full pr-4">
-              <h3 className="text-lg font-semibold">🖼️ Featured Image</h3>
-              <Button 
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onRegenerate('image');
-                }}
-                size="sm"
-                variant="outline"
-                disabled={isRegenerating}
-              >
-                <RefreshCw className={`h-4 w-4 mr-2 ${isRegenerating ? 'animate-spin' : ''}`} />
-                Regenerate Image
-              </Button>
-            </div>
+            <h3 className="text-lg font-semibold">🖼️ Featured Image</h3>
           </AccordionTrigger>
           <AccordionContent className="px-6 pb-6 space-y-4">
             <AIImageGenerator
@@ -317,21 +283,7 @@ export const ArticleReviewCard = ({
         {/* E-E-A-T Attribution Section */}
         <AccordionItem value="eeat" className="border rounded-lg">
           <AccordionTrigger className="px-6 hover:no-underline">
-            <div className="flex items-center justify-between w-full pr-4">
-              <h3 className="text-lg font-semibold">👤 E-E-A-T Attribution</h3>
-              <Button 
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onRegenerate('eeat');
-                }}
-                size="sm"
-                variant="outline"
-                disabled={isRegenerating}
-              >
-                <RefreshCw className={`h-4 w-4 mr-2 ${isRegenerating ? 'animate-spin' : ''}`} />
-                Get New Suggestions
-              </Button>
-            </div>
+            <h3 className="text-lg font-semibold">👤 E-E-A-T Attribution</h3>
           </AccordionTrigger>
           <AccordionContent className="px-6 pb-6 space-y-4">
             {article.author_id && authors ? (
@@ -361,21 +313,7 @@ export const ArticleReviewCard = ({
         {/* Content Section */}
         <AccordionItem value="content" className="border rounded-lg">
           <AccordionTrigger className="px-6 hover:no-underline">
-            <div className="flex items-center justify-between w-full pr-4">
-              <h3 className="text-lg font-semibold">📄 Content</h3>
-              <Button 
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onRegenerate('content');
-                }}
-                size="sm"
-                variant="outline"
-                disabled={isRegenerating}
-              >
-                <RefreshCw className={`h-4 w-4 mr-2 ${isRegenerating ? 'animate-spin' : ''}`} />
-                Regenerate Content
-              </Button>
-            </div>
+            <h3 className="text-lg font-semibold">📄 Content</h3>
           </AccordionTrigger>
           <AccordionContent className="px-6 pb-6 space-y-6">
             {/* Speakable Answer */}

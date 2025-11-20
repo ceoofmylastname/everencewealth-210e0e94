@@ -502,6 +502,7 @@ export const ClusterReviewInterface = ({
 
       {/* Article Review Card */}
       <ArticleReviewCard
+        key={activeTab}
         article={currentArticle}
         allArticles={allArticles}
         categories={categories}
