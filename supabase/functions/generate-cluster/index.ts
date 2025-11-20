@@ -1471,8 +1471,18 @@ Return ONLY valid JSON:
       let citations: any[] = [];
       let citationError: Error | null = null;
 
+      // Fix #5: Per-article timeout safety
+      const ARTICLE_START_TIME = Date.now();
+      const MAX_CITATION_TIME_PER_ARTICLE = 8 * 60 * 1000; // 8 minutes max per article
+
       // 3-LAYER FALLBACK SYSTEM
       while (citationsAttempt < MAX_CITATION_ATTEMPTS && citations.length < 2) {
+        // Fix #5: Check per-article timeout
+        if (Date.now() - ARTICLE_START_TIME > MAX_CITATION_TIME_PER_ARTICLE) {
+          console.warn(`⏱️ Article ${i + 1} citation search exceeded 8 minutes - moving to next article`);
+          break; // Exit citation loop, flag article for manual review
+        }
+        
         // Function-level timeout guard: abort if approaching edge function limit
         const elapsedMinutes = ((Date.now() - FUNCTION_START_TIME) / 60000).toFixed(1);
         if (Date.now() - FUNCTION_START_TIME > MAX_FUNCTION_RUNTIME) {
@@ -1493,8 +1503,8 @@ Return ONLY valid JSON:
         console.log(`[Job ${jobId}] Citation attempt ${citationsAttempt}/${MAX_CITATION_ATTEMPTS}`);
         
         try {
-          // Reduced timeout: 2 minutes (120,000ms) per attempt for faster iteration (7 attempts = 14 min total)
-          const citationTimeout = 120000;
+          // Fix #2: Increased timeout: 3 minutes (180,000ms) per attempt for thorough evaluation (7 attempts = 21 min total)
+          const citationTimeout = 180000;
           
           const citationsResponse = await withTimeout(
             supabase.functions.invoke('find-external-links', {
