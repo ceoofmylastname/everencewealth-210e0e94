@@ -752,6 +752,24 @@ Focus on government (.gov, .gob.es), educational (.edu, .ac.uk), and official st
 `;
     };
     
+    // Helper function for tiered domain batching (Fix #1)
+    const getDomainsByTier = (attemptNumber: number): string[] => {
+      const tier1 = approvedDomains.filter((d: any) => d.tier === 'Tier 1');
+      const tier2 = approvedDomains.filter((d: any) => d.tier === 'Tier 2');
+      
+      // Progressive expansion:
+      // Attempts 1-2: Tier 1 only (government/official)
+      // Attempts 3-4: Tiers 1+2 (add educational)
+      // Attempts 5-7: All tiers (full domain coverage)
+      if (attemptNumber <= 2) {
+        return tier1.map((d: any) => d.domain);
+      } else if (attemptNumber <= 4) {
+        return [...tier1, ...tier2].map((d: any) => d.domain);
+      } else {
+        return approvedDomains.map((d: any) => d.domain);
+      }
+    };
+    
     console.log(`\n🔄 Starting persistent retry loop (max ${maxAttempts} attempts)`);
     console.log(`📊 Available approved domains: ${approvedDomains.length}`);
     
@@ -903,12 +921,12 @@ Return only the JSON array, nothing else.`;
       throw new Error('LOVABLE_API_KEY is not configured');
     }
 
-    // Build domain filter for Google Search Grounding
-    const searchDomains = approvedDomains.map((d: {domain: string}) => d.domain);
-    console.log(`🔍 Searching ${searchDomains.length} approved domains with Gemini + Google Search`);
+    // Build domain filter for Google Search Grounding with tiered batching (Fix #1)
+    const searchDomains = getDomainsByTier(currentAttempt);
+    console.log(`🔍 Attempt ${currentAttempt}: Searching ${searchDomains.length} domains (Tier ${currentAttempt <= 2 ? '1' : currentAttempt <= 4 ? '1+2' : 'All'})`);
 
-    // Extended timeout: 2 minutes (120,000ms) per attempt for faster iteration
-    const GEMINI_TIMEOUT = 120000;
+    // Increased timeout: 3 minutes (180,000ms) per attempt for thorough evaluation (Fix #2)
+    const GEMINI_TIMEOUT = 180000;
     const startTime = Date.now();
     
     let response: Response;
@@ -940,7 +958,7 @@ Return only the JSON array, nothing else.`;
               google_search_retrieval: {
                 dynamic_retrieval_config: {
                   mode: 'MODE_DYNAMIC',
-                  dynamic_threshold: 0.7,
+                  dynamic_threshold: 0.4, // Fix #4: Lower threshold for more active search grounding
                   // CRITICAL: Filter Google results by language
                   language_codes: [languageCodeMap[language] || 'en']
                 }
@@ -952,8 +970,8 @@ Return only the JSON array, nothing else.`;
               search_domain_filter: searchDomains
             }
           },
-          temperature: 0.3,
-          max_tokens: 2000
+          temperature: 0.6, // Fix #3: More exploration while staying factual
+          max_tokens: 3500 // Fix #3: Room for more citations with full context
         }),
         signal: controller.signal
       });
