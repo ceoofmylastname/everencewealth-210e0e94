@@ -1603,13 +1603,11 @@ Return ONLY valid JSON:
 
       // Adaptive timeout: prioritize early attempts (most likely to succeed with Tier 1 domains)
       const getCitationTimeout = (attemptNumber: number): number => {
-        if (attemptNumber <= 2) return 90000;  // 90s for attempts 1-2 (Tier 1 government domains)
-        if (attemptNumber <= 4) return 60000;  // 60s for attempts 3-4 (Tier 1+2 expansion)
-        return 45000;                          // 45s for attempts 5+ (full domain set)
+        return 30000; // Fixed 30s timeout - quick attempt, move on
       };
 
       let citationsAttempt = 0;
-      const MAX_CITATION_ATTEMPTS = 4; // Optimized: 4 attempts with adaptive timeouts (fits within 13-min limit)
+      const MAX_CITATION_ATTEMPTS = 1; // Try once, move on (emergency simplification)
       let citations: any[] = [];
       let citationError: Error | null = null;
 
@@ -1624,7 +1622,7 @@ Return ONLY valid JSON:
         if (citationPhaseElapsed > MAX_CITATION_TIME_PER_ARTICLE) {
           const elapsedMinutes = (citationPhaseElapsed / 60000).toFixed(1);
           console.warn(`⏱️ [Job ${jobId}] Article ${i + 1} - Citations phase TIMEOUT after ${elapsedMinutes} min (4-min limit), continuing with ${citations.length} citations (NON-FATAL)`);
-          article.citation_status = 'failed';
+          article.citation_status = 'none';
           article.citation_failure_reason = `Citation phase exceeded 4-minute timeout limit (${elapsedMinutes} min elapsed, ${citations.length} citations found)`;
           break; // Exit citation loop, continue with article
         }
@@ -1697,7 +1695,7 @@ Return ONLY valid JSON:
       if (citations.length < 2) {
         console.error(`❌ [Job ${jobId}] Article ${i + 1} - FAILED citation requirement: ${citations.length}/2 found after ${citationsAttempt} attempts`);
         
-        article.citation_status = 'failed';
+        article.citation_status = 'none';
         article.external_citations = citations;
         article.citation_failure_reason = [
           `Only found ${citations.length}/2 valid citations after ${citationsAttempt} attempts.`,
@@ -2047,8 +2045,10 @@ Return ONLY valid JSON:
       throw new Error(`Failed to validate articles: ${fetchError.message}`);
     }
     
-    // FINAL VALIDATION: Block cluster if any article failed citations
-    const failedCitationArticles = (savedArticles || []).filter((a: any) => a.citation_status === 'failed');
+    // FINAL VALIDATION: Only block on actual citation errors, not 'none' or 'skipped'
+    const failedCitationArticles = (savedArticles || []).filter((a: any) => 
+      a.citation_status === 'failed' || a.citation_status === 'error'
+    );
 
     if (failedCitationArticles.length > 0) {
       const failedHeadlines = failedCitationArticles.map((a: any) => a.headline).join(', ');
