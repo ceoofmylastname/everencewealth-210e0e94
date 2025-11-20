@@ -41,13 +41,24 @@ serve(async (req) => {
 
     console.log(`Job ${jobId} status: ${job.status}`);
 
+    // Count existing articles for progress tracking
+    const { data: existingArticles } = await supabase
+      .from('blog_articles')
+      .select('id')
+      .eq('cluster_id', jobId);
+    
+    const generatedCount = existingArticles?.length || 0;
+    const totalTarget = job.total_articles || 6;
+
     return new Response(
       JSON.stringify({
         success: true,
         status: job.status,
         progress: {
           ...job.progress,
-          updated_at: job.updated_at
+          updated_at: job.updated_at,
+          generated_articles: generatedCount,
+          total_articles: totalTarget
         },
         articles: job.status === 'completed' ? job.articles : null,
         error: job.error

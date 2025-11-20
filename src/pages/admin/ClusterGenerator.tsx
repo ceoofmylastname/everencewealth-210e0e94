@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
-import { Sparkles, Check, Loader2 } from "lucide-react";
+import { Sparkles, Check, Loader2, AlertCircle, PlayCircle } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { ClusterReviewInterface } from "@/components/cluster-review/ClusterReviewInterface";
@@ -47,6 +47,8 @@ const ClusterGenerator = () => {
   const [primaryKeyword, setPrimaryKeyword] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [articlesGenerated, setArticlesGenerated] = useState(0);
+  const [totalArticles, setTotalArticles] = useState(6);
   const [steps, setSteps] = useState<GenerationStep[]>([]);
   const [generatedArticles, setGeneratedArticles] = useState<Partial<BlogArticle>[]>([]);
   const [showReview, setShowReview] = useState(false);
@@ -55,6 +57,7 @@ const ClusterGenerator = () => {
   const [pollingInterval, setPollingInterval] = useState<NodeJS.Timeout | null>(null);
   const [generationStartTime, setGenerationStartTime] = useState<number>(0);
   const [lastBackendUpdate, setLastBackendUpdate] = useState<Date | null>(null);
+  const [generationStatus, setGenerationStatus] = useState<'idle' | 'generating' | 'partial' | 'completed'>('idle');
 
   // Check for saved backup on mount
   useEffect(() => {
@@ -180,6 +183,14 @@ const ClusterGenerator = () => {
       if (data.progress) {
         const progressPercent = (data.progress.current_step / data.progress.total_steps) * 100;
         setProgress(progressPercent);
+        
+        // Update article counts
+        if (data.progress.generated_articles !== undefined) {
+          setArticlesGenerated(data.progress.generated_articles);
+        }
+        if (data.progress.total_articles !== undefined) {
+          setTotalArticles(data.progress.total_articles);
+        }
 
         // Update steps based on current step
         setSteps(prev => prev.map((step, idx) => {
@@ -187,6 +198,31 @@ const ClusterGenerator = () => {
           if (idx === data.progress.current_step) return { ...step, status: 'running' as StepStatus };
           return step;
         }));
+      }
+
+      // Handle partial status (timeout before all articles complete)
+      if (data.status === 'partial') {
+        const generatedCount = data.progress?.generated_articles || 0;
+        const totalCount = data.progress?.total_articles || 6;
+        
+        console.log(`Job ${currentJobId} partial: ${generatedCount}/${totalCount} articles`);
+        
+        setArticlesGenerated(generatedCount);
+        setTotalArticles(totalCount);
+        
+        if (pollingInterval) {
+          clearInterval(pollingInterval);
+          setPollingInterval(null);
+        }
+        
+        setIsGenerating(false);
+        setGenerationStatus('partial');
+        
+        toast.warning(
+          `Cluster partially generated: ${generatedCount}/${totalCount} articles created. Click "Resume Generation" to continue.`,
+          { duration: 8000 }
+        );
+        return;
       }
 
       // Handle completion
@@ -272,12 +308,52 @@ const ClusterGenerator = () => {
       setIsGenerating(false);
       setGenerationStartTime(0);
       setJobId(null);
+      setGenerationStatus('idle');
       localStorage.removeItem('current_job_id');
 
       toast.success('Generation aborted');
     } catch (error) {
       console.error('Error aborting generation:', error);
       toast.error('Failed to abort generation');
+    }
+  };
+
+  // Handle resuming partial generation
+  const handleResumeGeneration = async () => {
+    if (!jobId) return;
+
+    try {
+      setIsGenerating(true);
+      setGenerationStatus('generating');
+      setGenerationStatus('generating');
+      toast.info('Resuming cluster generation...');
+
+      const { data, error } = await supabase.functions.invoke('resume-cluster', {
+        body: { jobId }
+      });
+
+      if (error) throw error;
+      if (!data?.success) throw new Error(data?.error || 'Resume failed');
+
+      // Start polling for this job
+      const poll = () => checkJobStatus(jobId);
+      const interval = setInterval(poll, 3000);
+      setPollingInterval(interval);
+
+      // Switch to slower polling after 2 minutes
+      setTimeout(() => {
+        if (pollingInterval) {
+          clearInterval(pollingInterval);
+          const slowerInterval = setInterval(poll, 10000);
+          setPollingInterval(slowerInterval);
+        }
+      }, 2 * 60 * 1000);
+
+    } catch (error) {
+      console.error('Resume error:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to resume generation');
+      setIsGenerating(false);
+      setGenerationStatus('partial');
     }
   };
 
@@ -715,6 +791,9 @@ const ClusterGenerator = () => {
     setTargetAudience('');
     setPrimaryKeyword('');
     setJobId(null);
+    setGenerationStatus('idle');
+    setArticlesGenerated(0);
+    setTotalArticles(6);
     localStorage.removeItem('current_job_id');
     toast.success('Ready to generate a new cluster!');
   };
@@ -762,7 +841,53 @@ const ClusterGenerator = () => {
             </Card>
           )}
           
-          {!isGenerating ? (
+          {/* Partial Status - Resume Generation UI */}
+          {generationStatus === 'partial' && !isGenerating && jobId && (
+            <Card className="border-yellow-500 bg-yellow-50/50 dark:bg-yellow-950/20">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-2xl text-yellow-900 dark:text-yellow-100">
+                  <AlertCircle className="h-6 w-6" />
+                  Cluster Partially Generated
+                </CardTitle>
+                <CardDescription className="text-yellow-800 dark:text-yellow-300">
+                  Some articles were created before the timeout. Resume to complete the remaining articles.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span>Articles Generated</span>
+                    <span className="font-medium text-yellow-900 dark:text-yellow-100">
+                      {articlesGenerated}/{totalArticles}
+                    </span>
+                  </div>
+                  <Progress 
+                    value={(articlesGenerated / totalArticles) * 100} 
+                    className="h-2 bg-yellow-200 dark:bg-yellow-900" 
+                  />
+                </div>
+                <div className="flex gap-3">
+                  <Button
+                    onClick={handleResumeGeneration}
+                    size="lg"
+                    className="flex-1"
+                  >
+                    <PlayCircle className="mr-2 h-5 w-5" />
+                    Resume Generation
+                  </Button>
+                  <Button
+                    onClick={handleStartNew}
+                    variant="outline"
+                    size="lg"
+                  >
+                    Start New
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+          
+          {!isGenerating && generationStatus !== 'partial' ? (
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-3xl">

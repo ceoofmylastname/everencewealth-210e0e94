@@ -515,6 +515,17 @@ Return ONLY the JSON object above, nothing else. No markdown, no explanations, n
     }
 
     console.log(`[Job ${jobId}] Generated structure for`, articleStructures.length, 'articles');
+    
+    // Save article structure to DB for resume capability
+    await supabase
+      .from('cluster_generations')
+      .update({
+        article_structure: articleStructures,
+        total_articles: articleStructures.length,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', jobId);
+    console.log(`[Job ${jobId}] ✅ Saved article structure to DB for resume capability`);
 
     // STEP 2: Generate each article with detailed sections
     // FIX #1: Track saved article IDs instead of keeping full articles in memory

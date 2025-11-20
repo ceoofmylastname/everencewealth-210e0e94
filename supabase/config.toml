@@ -6,6 +6,9 @@ verify_jwt = false
 [functions.find-citations-gemini]
 verify_jwt = false
 
+[functions.resume-cluster]
+verify_jwt = false
+
 [functions.sync-citation-health]
 verify_jwt = false
 
