@@ -6,21 +6,482 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// ============================================
+// COMPREHENSIVE COMPETITOR BLOCKLIST
+// ============================================
+const BLOCKED_DOMAINS = [
+  // International Property Portals
+  'zillow.com', 'realtor.com', 'trulia.com', 'redfin.com',
+  'rightmove.co.uk', 'zoopla.co.uk', 'onthemarket.com', 'primelocation.com',
+  'propertyfinder.com', 'propertypal.com', 'daft.ie', 'myhome.ie',
+  
+  // Spanish Property Portals
+  'idealista.com', 'fotocasa.es', 'pisos.com', 'habitaclia.com',
+  'kyero.com', 'thinkspain.com', 'aplaceinthesun.com', 'casas.com',
+  'spanishpropertyinsight.com', 'propertyspain.co.uk', 'spainhouses.net',
+  'spanish-property-centre.com', 'viva-estates.com', 'spanishhomes.com',
+  
+  // Costa del Sol Specific Real Estate
+  'costadelsolproperties.com', 'marbellaproperties.com',
+  'marbella-realestate.com', 'costa-del-sol-properties.com',
+  'mijas-property.com', 'fuengirola-property.com',
+  'estepona-properties.com', 'benalmadena-property.com',
+  'nerja-property.com', 'torrox-property.com',
+  'marbella.es', 'costadelsol.com', 'marbellaeast.com',
+  'nuevaandalucia.com', 'goldenmileproperty.com',
+  'puerto-banus.com', 'sotogrande-property.com',
+  
+  // Real Estate Agencies (Spain/International)
+  'solvilla.com', 'viva-estates.com', 'panorama-estates.com',
+  'inmobilia.com', 'garu-garu.com', 'terra-meridiana.com',
+  'gilmar.es', 'housers.com', 'engel-voelkers.com',
+  'lucasfox.com', 'coldwellbanker.com', 'century21.com',
+  'remax.com', 're-max.com', 'sothebysrealty.com',
+  'knightfrank.com', 'savills.com', 'christiesrealestate.com',
+  'berkshirehathaway.com', 'kw.com', 'kellerwilliams.com',
+  
+  // Property Investment Sites
+  'propertyinvestment.com', 'investproperty.com', 'buyspanishproperty.com',
+  'investinspain.com', 'spanish-property-investment.com',
+  'international-property-investment.com',
+  
+  // Property Listing Aggregators
+  'mitula.com', 'trovit.com', 'nestoria.com', 'realtor.com',
+  'homes.com', 'point2homes.com', 'homefinder.com',
+  
+  // Developer Websites (Generic patterns will catch most)
+  'taylor-wimpey.es', 'metrovacesa.com', 'aedas-homes.com',
+  'neinor.com', 'habitat-inmobiliaria.com',
+];
+
+const BLOCKED_URL_PATTERNS = [
+  '/property/', '/properties/', '/real-estate/', '/realestate/',
+  '/homes/', '/villas/', '/apartments/', '/for-sale/', '/forsale/',
+  '/inmobiliaria/', '/comprar/', '/venta/', '/alquiler/', '/rent/',
+  '/buy/', '/sell/', '/listing/', '/listings/', '/search/',
+  '/property-for-sale/', '/homes-for-sale/', '/houses-for-sale/',
+  '/venta-de-viviendas/', '/comprar-casa/', '/alquilar-piso/',
+];
+
+const BLOCKED_DOMAIN_KEYWORDS = [
+  'property', 'properties', 'realestate', 'real-estate',
+  'inmobiliaria', 'inmobiliarias', 'homes', 'villas',
+  'apartments', 'casas', 'pisos', 'viviendas',
+];
+
 interface Citation {
   url: string;
   sourceName: string;
-  description: string;
+  description?: string;
   relevance: string;
   authorityScore: number;
-  suggestedContext: string;
+  specificityScore: number;
+  suggestedContext?: string;
+  claimText?: string;
+  sentenceIndex?: number;
   diversityScore?: number;
   usageCount?: number;
 }
 
+interface Claim {
+  claim: string;
+  context: string;
+  sentenceIndex: number;
+}
+
+// ============================================
+// EXTRACT SPECIFIC CLAIMS FROM ARTICLE
+// ============================================
+function extractClaimsNeedingCitations(content: string): Claim[] {
+  console.log('📝 Extracting claims needing citations...');
+  
+  const claims: Claim[] = [];
+  
+  // Remove HTML tags
+  const cleanContent = content.replace(/<[^>]+>/g, '').trim();
+  
+  // Split into sentences (handle multiple languages)
+  const sentences = cleanContent
+    .split(/[.!?]+\s+/)
+    .filter(s => s.trim().length > 20);
+  
+  sentences.forEach((sentence, index) => {
+    // Identify factual claims that need citations
+    const needsCitation = 
+      /\d+%/.test(sentence) || // Percentages
+      /\d{4}/.test(sentence) || // Years
+      /€\d+|£\d+|\$\d+/.test(sentence) || // Prices/amounts
+      /\d+\s*(million|thousand|billion|millón|mil|millones)/i.test(sentence) || // Statistics
+      /(increased|decreased|rose|fell|grew|declined|subió|bajó|creció|disminuyó)/i.test(sentence) || // Change verbs
+      /(according to|statistics show|data indicates|según|estadísticas|datos)/i.test(sentence) || // Citation phrases
+      /(government|study|research|report|gobierno|estudio|investigación|informe)/i.test(sentence) || // Authority mentions
+      /(requires|mandatory|obligatory|necesita|obligatorio|requerido)/i.test(sentence) || // Requirements
+      /(average|median|mean|promedio|media)/i.test(sentence); // Statistical terms
+    
+    if (needsCitation) {
+      // Get 3-sentence context window
+      const contextStart = Math.max(0, index - 1);
+      const contextEnd = Math.min(sentences.length, index + 2);
+      const contextSentences = sentences.slice(contextStart, contextEnd);
+      const context = contextSentences.join('. ') + '.';
+      
+      claims.push({
+        claim: sentence.trim(),
+        context,
+        sentenceIndex: index
+      });
+      
+      console.log(`   ✓ Claim ${claims.length}: "${sentence.substring(0, 80)}..."`);
+    }
+  });
+  
+  console.log(`📊 Found ${claims.length} claims needing citations\n`);
+  return claims;
+}
+
+// ============================================
+// CHECK IF URL IS A COMPETITOR
+// ============================================
+function isCompetitorUrl(url: string): boolean {
+  try {
+    const urlObj = new URL(url);
+    const hostname = urlObj.hostname.toLowerCase();
+    const pathname = urlObj.pathname.toLowerCase();
+    const fullUrl = url.toLowerCase();
+    
+    // Check blocked domains
+    for (const blocked of BLOCKED_DOMAINS) {
+      if (hostname.includes(blocked.toLowerCase())) {
+        console.warn(`   ❌ COMPETITOR BLOCKED: Domain contains "${blocked}"`);
+        return true;
+      }
+    }
+    
+    // Check URL path for property keywords
+    for (const pattern of BLOCKED_URL_PATTERNS) {
+      if (pathname.includes(pattern) || fullUrl.includes(pattern)) {
+        console.warn(`   ❌ COMPETITOR BLOCKED: URL contains "${pattern}"`);
+        return true;
+      }
+    }
+    
+    // Check hostname for real estate keywords
+    for (const keyword of BLOCKED_DOMAIN_KEYWORDS) {
+      if (hostname.includes(keyword)) {
+        console.warn(`   ❌ COMPETITOR BLOCKED: Domain contains keyword "${keyword}"`);
+        return true;
+      }
+    }
+    
+    return false;
+    
+  } catch (e) {
+    console.warn(`   ⚠️ Invalid URL format: ${url}`);
+    return true; // Block invalid URLs
+  }
+}
+
+// ============================================
+// VALIDATE CITATION SPECIFICITY
+// ============================================
+function validateCitationSpecificity(citation: any, claim: string): boolean {
+  console.log(`   🔍 Validating specificity for: ${citation.sourceName}`);
+  
+  // Stage 1: Extract keywords from claim
+  const claimKeywords = claim
+    .toLowerCase()
+    .replace(/[^\w\sáéíóúñü]/g, '')
+    .split(/\s+/)
+    .filter(word => word.length > 3);
+  
+  const relevanceText = citation.relevance.toLowerCase();
+  
+  // Stage 2: Check relevance mentions claim keywords (40%+ match required)
+  const keywordMatches = claimKeywords.filter(keyword => 
+    relevanceText.includes(keyword)
+  );
+  
+  const keywordMatchPercent = claimKeywords.length > 0 
+    ? (keywordMatches.length / claimKeywords.length) * 100 
+    : 0;
+  
+  if (keywordMatchPercent < 40) {
+    console.warn(`   ❌ FAILED: Relevance doesn't mention claim keywords (${keywordMatchPercent.toFixed(1)}% match, need 40%+)`);
+    return false;
+  }
+  
+  // Stage 3: URL is specific (not homepage)
+  try {
+    const url = new URL(citation.url);
+    const path = url.pathname;
+    
+    const isHomepage = 
+      path === '/' ||
+      path === '/index.html' ||
+      path === '/index.php' ||
+      path === '/home' ||
+      path.match(/^\/(en|es|de|nl|fr|pl|sv|da|hu)\/?$/);
+    
+    if (isHomepage) {
+      console.warn(`   ❌ FAILED: URL is homepage (not specific): ${citation.url}`);
+      return false;
+    }
+    
+    // Stage 4: URL path should be substantial
+    const hasSpecificPath = 
+      path.length > 15 ||
+      path.includes('data') ||
+      path.includes('statistics') ||
+      path.includes('estadisticas') ||
+      path.includes('report') ||
+      path.includes('informe') ||
+      path.includes('research') ||
+      path.includes('investigacion') ||
+      path.includes('article') ||
+      path.includes('articulo') ||
+      /\d{4}/.test(path); // Contains year
+    
+    if (!hasSpecificPath) {
+      console.warn(`   ❌ FAILED: URL path too generic: ${path}`);
+      return false;
+    }
+    
+  } catch (e) {
+    console.warn(`   ❌ FAILED: Invalid URL: ${citation.url}`);
+    return false;
+  }
+  
+  // Stage 5: Relevance indicates specific data/evidence
+  const evidenceKeywords = [
+    'data', 'statistics', 'report', 'study', 'research',
+    'datos', 'estadísticas', 'informe', 'estudio', 'investigación',
+    'shows', 'indicates', 'reveals', 'states', 'confirms',
+    'muestra', 'indica', 'revela', 'afirma', 'confirma',
+    'government', 'official', 'gobierno', 'oficial',
+    'according to', 'según'
+  ];
+  
+  const hasEvidenceLanguage = evidenceKeywords.some(keyword => 
+    relevanceText.includes(keyword)
+  ) || /\d+%|\d+\s*(million|thousand|millón|mil)/.test(relevanceText);
+  
+  if (!hasEvidenceLanguage) {
+    console.warn(`   ❌ FAILED: Relevance doesn't indicate specific data/evidence`);
+    return false;
+  }
+  
+  console.log(`   ✅ PASSED: Citation is specific and relevant (${keywordMatchPercent.toFixed(1)}% keyword match)`);
+  return true;
+}
+
+// ============================================
+// FIND CITATION FOR SPECIFIC CLAIM
+// ============================================
+async function findCitationForClaim(
+  claim: string,
+  context: string,
+  language: string,
+  headline: string,
+  approvedDomains: string[]
+): Promise<Citation | null> {
+  
+  const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
+  if (!lovableApiKey) {
+    throw new Error('LOVABLE_API_KEY not configured');
+  }
+  
+  const languageMap: Record<string, string> = {
+    'en': 'English',
+    'es': 'Spanish',
+    'de': 'German',
+    'nl': 'Dutch',
+    'fr': 'French',
+    'pl': 'Polish',
+    'sv': 'Swedish',
+    'da': 'Danish',
+    'hu': 'Hungarian',
+  };
+  
+  const preferredSources: Record<string, string> = {
+    'en': 'Government (.gov), Education (.edu), Research institutions, Major news organizations',
+    'es': 'Gobierno (.gob.es, ministerios), Educación (.edu.es), INE (ine.es), Banco de España, Grandes medios (El País, El Mundo)',
+    'de': 'Regierung (.de), Bildungseinrichtungen, Forschungsinstitute, Große Medien',
+    'nl': 'Overheid (.nl), Onderwijsinstellingen, Onderzoeksinstellingen, Grote media',
+    'fr': 'Gouvernement (.gouv.fr), Éducation, Instituts de recherche, Grands médias',
+  };
+  
+  const targetLang = languageMap[language] || 'English';
+  const preferredSourceTypes = preferredSources[language] || preferredSources['en'];
+  
+  const prompt = `You are a research expert finding ONE authoritative citation for a SPECIFIC CLAIM.
+
+**ARTICLE TITLE:** "${headline}"
+**LANGUAGE REQUIRED:** ${targetLang}
+
+**SPECIFIC CLAIM THAT NEEDS PROOF:**
+"${claim}"
+
+**SURROUNDING CONTEXT:**
+${context}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎯 CRITICAL REQUIREMENTS - READ CAREFULLY:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. ✅ Source MUST directly prove THIS EXACT CLAIM (not just the general topic)
+2. ✅ Source MUST be in ${targetLang} language
+3. ✅ Source MUST be authoritative: ${preferredSourceTypes}
+4. ✅ URL MUST link to a SPECIFIC PAGE with this data (NOT homepage)
+
+5. ❌ ABSOLUTELY NO real estate company websites
+6. ❌ ABSOLUTELY NO property listing sites
+7. ❌ ABSOLUTELY NO companies selling Costa del Sol property
+8. ❌ ABSOLUTELY NO real estate agencies
+9. ❌ ABSOLUTELY NO property portals (idealista, fotocasa, kyero, etc.)
+10. ❌ ABSOLUTELY NO developer websites
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ GOOD SOURCE EXAMPLES:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Claim: "Property prices rose 15% in 2023"
+✅ GOOD: ine.es/estadisticas/mercado-inmobiliario/andalucia-2023
+   Reason: Official government statistics with exact data
+
+✅ GOOD: bde.es/informes/vivienda/analisis-precios-2023.pdf
+   Reason: Bank of Spain official report on housing prices
+
+✅ GOOD: mitma.gob.es/vivienda/precios-estadisticas
+   Reason: Ministry of Transport housing statistics
+
+❌ BAD: marbella-property-experts.com/market-report
+   Reason: REAL ESTATE COMPANY - BLOCKED
+
+❌ BAD: idealista.com/precios/malaga
+   Reason: PROPERTY PORTAL - BLOCKED
+
+❌ BAD: spain-real-estate.com/prices
+   Reason: PROPERTY SELLER - BLOCKED
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📋 APPROVED DOMAINS (PRIORITIZE THESE):
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+${approvedDomains.slice(0, 40).join(', ')}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📋 RETURN FORMAT (JSON ONLY):
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+{
+  "sourceName": "Official Organization Name",
+  "url": "https://exact-specific-page-url.com/data-page",
+  "relevance": "Explains EXACTLY how this source proves the specific claim with specific data points",
+  "authorityScore": 95,
+  "specificityScore": 90
+}
+
+**Authority Scores:**
+- Government: 95-100
+- Education/Research: 90-95  
+- Major News: 85-90
+- Industry Associations: 80-85
+
+**Specificity Score:** How directly it addresses THIS EXACT CLAIM (0-100)
+- 90-100: Contains the exact statistic/fact from the claim
+- 70-89: Directly relevant with supporting data
+- Below 70: Too general (DO NOT SUGGEST)
+
+⚠️ CRITICAL: Return ONLY the JSON object. No markdown. No code blocks. No explanations. Start with { and end with }`;
+
+  try {
+    console.log(`   📡 Calling Lovable AI (Gemini)...`);
+    
+    const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${lovableApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'google/gemini-2.5-flash',
+        messages: [
+          { role: 'user', content: prompt }
+        ],
+        temperature: 0.2, // Low temperature for factual accuracy
+      }),
+    });
+    
+    if (!aiResponse.ok) {
+      const errorText = await aiResponse.text();
+      console.error(`   ❌ AI Gateway error: ${aiResponse.status}`);
+      return null;
+    }
+    
+    const aiData = await aiResponse.json();
+    const responseText = aiData.choices[0].message.content;
+    
+    console.log(`   ✅ Gemini response received (${responseText.length} chars)`);
+    
+    // Parse JSON from response (multiple methods)
+    let citation = null;
+    
+    // Method 1: Direct parse
+    try {
+      citation = JSON.parse(responseText);
+    } catch (e) {
+      // Method 2: Extract from code blocks
+      const codeMatch = responseText.match(/```(?:json)?\s*(\{[\s\S]*?\})\s*```/);
+      if (codeMatch) {
+        citation = JSON.parse(codeMatch[1]);
+      } else {
+        // Method 3: Find JSON object
+        const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          citation = JSON.parse(jsonMatch[0]);
+        }
+      }
+    }
+    
+    if (!citation || !citation.url || !citation.sourceName) {
+      console.warn(`   ❌ Invalid citation structure returned`);
+      return null;
+    }
+    
+    // CRITICAL: Check if it's a competitor
+    if (isCompetitorUrl(citation.url)) {
+      return null;
+    }
+    
+    // Validate specificity
+    if (!validateCitationSpecificity(citation, claim)) {
+      return null;
+    }
+    
+    // Check specificity score threshold
+    if (citation.specificityScore && citation.specificityScore < 70) {
+      console.warn(`   ❌ REJECTED: Specificity too low (${citation.specificityScore}% - need 70%+)`);
+      return null;
+    }
+    
+    console.log(`   ✅ Citation validated and accepted`);
+    return citation;
+    
+  } catch (error) {
+    console.error(`   ❌ Error finding citation:`, error);
+    return null;
+  }
+}
+
+// ============================================
+// MAIN HANDLER
+// ============================================
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
+
+  const startTime = Date.now();
 
   try {
     const { 
@@ -34,14 +495,13 @@ serve(async (req) => {
       throw new Error('Article topic and content are required');
     }
 
-    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
-    if (!lovableApiKey) {
-      throw new Error('LOVABLE_API_KEY is not configured');
-    }
+    console.log('\n🔍 ═══════════════════════════════════════════');
+    console.log('   CLAIM-SPECIFIC CITATION FINDER (GEMINI)');
+    console.log('═══════════════════════════════════════════\n');
+    console.log(`📄 Article: "${articleTopic}"`);
+    console.log(`🌍 Language: ${articleLanguage}\n`);
 
-    console.log(`🔍 Finding citations with Gemini for: "${articleTopic}" (${articleLanguage})`);
-
-    // Initialize Supabase client to query approved domains
+    // Initialize Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
@@ -49,7 +509,7 @@ serve(async (req) => {
     // Get approved domains for this language
     const { data: approvedDomains, error: domainsError } = await supabase
       .from('approved_domains')
-      .select('domain, category, trust_score, tier, source_type')
+      .select('domain, category, trust_score, tier')
       .eq('is_allowed', true)
       .or(`language.eq.${articleLanguage},language.eq.EU,language.eq.GLOBAL`)
       .order('trust_score', { ascending: false });
@@ -59,250 +519,148 @@ serve(async (req) => {
     }
 
     const approvedDomainsList = approvedDomains?.map(d => d.domain) || [];
-    console.log(`📋 Loaded ${approvedDomainsList.length} approved domains for ${articleLanguage}`);
+    console.log(`📋 Loaded ${approvedDomainsList.length} approved domains for ${articleLanguage}\n`);
 
-    // Get domain usage stats for diversity scoring
+    // Get domain usage stats
     const { data: usageStats } = await supabase
       .from('domain_usage_stats')
       .select('domain, total_uses');
 
     const usageMap = new Map(usageStats?.map(s => [s.domain, s.total_uses]) || []);
 
-    // Language mapping
-    const languageMap: Record<string, string> = {
-      'en': 'English',
-      'es': 'Spanish',
-      'de': 'German',
-      'nl': 'Dutch',
-      'fr': 'French',
-      'pl': 'Polish',
-      'sv': 'Swedish',
-      'da': 'Danish',
-      'hu': 'Hungarian',
-    };
+    // Extract claims needing citations
+    const claims = extractClaimsNeedingCitations(articleContent);
 
-    const targetLanguage = languageMap[articleLanguage] || 'Spanish';
-
-    // Extract content preview
-    const bodyPreview = articleContent.substring(0, 1000).replace(/<[^>]+>/g, '');
-
-    // Build the prompt for Gemini
-    const prompt = `You are an expert research assistant finding authoritative external citations for real estate articles.
-
-ARTICLE INFORMATION:
-Title: "${articleTopic}"
-Language: ${targetLanguage}
-Content Preview: ${bodyPreview}
-
-YOUR TASK:
-Find 4-6 authoritative external sources that support claims or provide context for this article.
-
-SOURCE REQUIREMENTS:
-✅ MUST BE IN ${targetLanguage} LANGUAGE
-✅ MUST be from credible sources:
-   - Government websites (.gov, .gob.es, etc.)
-   - Educational institutions (.edu)
-   - Reputable news organizations
-   - Industry research organizations
-   - Real estate associations or councils
-
-❌ MUST NOT BE:
-   - Direct real estate competitor websites (property listing sites like Idealista, Fotocasa, etc.)
-   - Social media posts
-   - User forums
-   - Paywalled content
-
-APPROVED DOMAINS (prioritize these):
-${approvedDomainsList.slice(0, 50).join(', ')}
-
-CRITICAL: Return ONLY a valid JSON array. No markdown, no code blocks, no explanations.
-
-EXACT JSON FORMAT:
-[
-  {
-    "sourceName": "Organization Name",
-    "url": "https://complete-url.com/page",
-    "description": "Brief description of the source",
-    "relevance": "Why this source is relevant to the article",
-    "authorityScore": 8,
-    "suggestedContext": "Where in the article to place this citation"
-  }
-]
-
-Authority scores: Government=9-10, Education=8-9, Major News=7-8, Industry Org=6-7
-
-RETURN ONLY THE JSON ARRAY. NO OTHER TEXT OR FORMATTING.`;
-
-    console.log('📡 Calling Lovable AI (Gemini)...');
-
-    // Call Lovable AI Gateway with Gemini
-    const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${lovableApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
-        messages: [
-          { role: 'user', content: prompt }
-        ],
-        temperature: 0.3,
-      }),
-    });
-
-    if (!aiResponse.ok) {
-      const errorText = await aiResponse.text();
-      console.error('AI Gateway error:', aiResponse.status, errorText);
-      throw new Error(`AI Gateway returned ${aiResponse.status}: ${errorText}`);
+    if (claims.length === 0) {
+      console.log('ℹ️  No claims requiring citations found\n');
+      return new Response(
+        JSON.stringify({
+          success: true,
+          citations: [],
+          message: 'No specific claims requiring citations found',
+          totalFound: 0,
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
-    const aiData = await aiResponse.json();
-    const responseText = aiData.choices[0].message.content;
+    const citations: Citation[] = [];
+    const maxClaims = Math.min(claims.length, 5); // Limit to 5 citations
+    let competitorsBlocked = 0;
 
-    console.log('✅ Gemini response received');
-    console.log('📝 Raw response length:', responseText.length);
+    console.log(`🎯 Processing ${maxClaims} claims...\n`);
 
-    // Parse response with multiple fallback methods
-    let citations: Citation[] = [];
+    // Find citation for each claim
+    for (let i = 0; i < maxClaims; i++) {
+      const claimData = claims[i];
 
-    // Method 1: Direct JSON parse
-    try {
-      citations = JSON.parse(responseText);
-      console.log('✅ Direct JSON parse successful');
-    } catch (e) {
-      console.log('⚠️ Direct parse failed, trying extraction...');
-    }
+      console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
+      console.log(`📌 CLAIM ${i + 1}/${maxClaims}:`);
+      console.log(`   "${claimData.claim}"\n`);
 
-    // Method 2: Extract from code blocks
-    if (citations.length === 0) {
-      const codeBlockMatch = responseText.match(/```(?:json)?\s*(\[[\s\S]*?\])\s*```/);
-      if (codeBlockMatch) {
-        try {
-          citations = JSON.parse(codeBlockMatch[1]);
-          console.log('✅ Extracted from code block');
-        } catch (e) {
-          console.log('⚠️ Code block extraction failed');
-        }
-      }
-    }
-
-    // Method 3: Find any JSON array
-    if (citations.length === 0) {
-      const arrayMatch = responseText.match(/\[\s*\{[\s\S]*?\}\s*\]/);
-      if (arrayMatch) {
-        try {
-          citations = JSON.parse(arrayMatch[0]);
-          console.log('✅ Extracted JSON array via regex');
-        } catch (e) {
-          console.log('⚠️ Regex extraction failed');
-        }
-      }
-    }
-
-    // Method 4: Clean and parse
-    if (citations.length === 0) {
       try {
-        const cleaned = responseText
-          .replace(/```json/g, '')
-          .replace(/```/g, '')
-          .trim();
-        citations = JSON.parse(cleaned);
-        console.log('✅ Parsed after cleaning');
-      } catch (e) {
-        console.log('⚠️ Cleaned parse failed');
-      }
-    }
-
-    if (citations.length === 0) {
-      console.error('❌ Failed to parse citations');
-      console.error('Raw response:', responseText.substring(0, 500));
-      throw new Error('Failed to parse AI response');
-    }
-
-    // Validate and filter citations
-    const validCitations = citations.filter((citation) => {
-      if (!citation.url || !citation.sourceName) {
-        console.warn('⚠️ Citation missing required fields');
-        return false;
-      }
-
-      // Extract domain from URL
-      try {
-        const url = new URL(citation.url);
-        const domain = url.hostname.replace('www.', '');
-
-        // Check if domain is in approved list
-        const isApproved = approvedDomainsList.some(approved => 
-          domain.includes(approved) || approved.includes(domain)
+        const citation = await findCitationForClaim(
+          claimData.claim,
+          claimData.context,
+          articleLanguage,
+          articleTopic,
+          approvedDomainsList
         );
 
-        if (!isApproved) {
-          console.warn(`⚠️ Domain not approved: ${domain}`);
+        if (citation) {
+          // Extract domain for diversity scoring
+          try {
+            const url = new URL(citation.url);
+            const domain = url.hostname.replace('www.', '');
+            const usageCount = usageMap.get(domain) || 0;
+            
+            let diversityScore = 100;
+            if (usageCount >= 20) diversityScore = 0;
+            else if (usageCount >= 15) diversityScore = 30;
+            else if (usageCount >= 10) diversityScore = 60;
+            else if (usageCount >= 5) diversityScore = 80;
+
+            citations.push({
+              ...citation,
+              claimText: claimData.claim,
+              sentenceIndex: claimData.sentenceIndex,
+              diversityScore,
+              usageCount,
+            });
+            
+            console.log(`   ✅ ACCEPTED: Citation ${i + 1} added\n`);
+          } catch (e) {
+            console.warn(`   ⚠️ Invalid URL in citation: ${citation.url}`);
+          }
+        } else {
+          competitorsBlocked++;
+          console.log(`   ⚠️  REJECTED: No valid citation found (competitor or low specificity)\n`);
         }
 
-        // Calculate diversity score based on usage
-        const usageCount = usageMap.get(domain) || 0;
-        let diversityScore = 100;
-        if (usageCount >= 20) diversityScore = 0;
-        else if (usageCount >= 15) diversityScore = 30;
-        else if (usageCount >= 10) diversityScore = 60;
-        else if (usageCount >= 5) diversityScore = 80;
-
-        citation.diversityScore = diversityScore;
-        citation.usageCount = usageCount;
-
-        return true;
-      } catch (e) {
-        console.warn(`⚠️ Invalid URL: ${citation.url}`);
-        return false;
+      } catch (error) {
+        console.error(`   ❌ ERROR processing claim ${i + 1}:`, error);
       }
-    });
-
-    console.log(`✅ Validated: ${validCitations.length}/${citations.length} citations`);
-
-    if (validCitations.length === 0) {
-      throw new Error('No valid citations found after filtering');
     }
 
-    // Sort by diversity score and authority
-    validCitations.sort((a, b) => {
-      const scoreA = (a.diversityScore || 0) + (a.authorityScore * 10);
-      const scoreB = (b.diversityScore || 0) + (b.authorityScore * 10);
+    const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+
+    console.log(`\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
+    console.log(`📊 FINAL RESULTS:`);
+    console.log(`   Claims analyzed: ${maxClaims}`);
+    console.log(`   Citations found: ${citations.length}`);
+    console.log(`   Competitors blocked: ${competitorsBlocked}`);
+    console.log(`   Success rate: ${((citations.length/maxClaims)*100).toFixed(1)}%`);
+    console.log(`   Time elapsed: ${elapsed}s`);
+    console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`);
+
+    // Sort by specificity score and authority
+    citations.sort((a, b) => {
+      const scoreA = (a.specificityScore || 0) + (a.authorityScore * 0.5);
+      const scoreB = (b.specificityScore || 0) + (b.authorityScore * 0.5);
       return scoreB - scoreA;
     });
+
+    if (citations.length === 0) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          message: 'No valid citations found. All sources were either competitors or not specific enough.',
+          citations: [],
+          claimsAnalyzed: maxClaims,
+          competitorsBlocked,
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     return new Response(
       JSON.stringify({
         success: true,
-        citations: validCitations,
-        totalFound: validCitations.length,
-        verifiedCount: validCitations.length,
+        citations,
+        totalFound: citations.length,
+        verifiedCount: citations.length,
+        claimsAnalyzed: maxClaims,
+        competitorsBlocked,
+        timeElapsed: elapsed,
         language: articleLanguage,
         model: 'google/gemini-2.5-flash',
+        message: `Found ${citations.length} high-quality, claim-specific citations (${competitorsBlocked} competitors blocked)`,
       }),
-      { 
-        headers: { 
-          ...corsHeaders, 
-          'Content-Type': 'application/json' 
-        } 
-      }
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
   } catch (error) {
-    console.error('❌ Error in find-citations-gemini:', error);
+    console.error('\n❌ CITATION FINDER FAILED:', error);
+
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error',
-        citations: []
+        citations: [],
       }),
       { 
         status: 500,
-        headers: { 
-          ...corsHeaders, 
-          'Content-Type': 'application/json' 
-        } 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
       }
     );
   }
