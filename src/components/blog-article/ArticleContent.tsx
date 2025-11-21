@@ -25,18 +25,29 @@ export const ArticleContent = ({
 }: ArticleContentProps) => {
   const contentRef = useRef<HTMLDivElement>(null);
   
-  // Sanitize content to remove HTML document wrapper
+  // Sanitize content to remove HTML document wrapper and code fence markers
   const sanitizeContent = (htmlContent: string): string => {
+    let content = htmlContent;
+    
+    // Remove code fence markers at start and end of content
+    // Handle triple backticks with optional language identifier
+    content = content.replace(/^```[a-z]*\n?/i, '');
+    content = content.replace(/\n?```$/i, '');
+    
+    // Handle triple quotes with optional language identifier
+    content = content.replace(/^"""[a-z]*\n?/i, '');
+    content = content.replace(/\n?"""$/i, '');
+    
     // Check if content contains full HTML document structure
-    if (htmlContent.includes('<!DOCTYPE') || htmlContent.includes('<html')) {
+    if (content.includes('<!DOCTYPE') || content.includes('<html')) {
       // Extract only the body content
-      const bodyMatch = htmlContent.match(/<body[^>]*>([\s\S]*)<\/body>/i);
+      const bodyMatch = content.match(/<body[^>]*>([\s\S]*)<\/body>/i);
       if (bodyMatch && bodyMatch[1]) {
         return bodyMatch[1].trim();
       }
       
       // Fallback: remove document structure tags
-      return htmlContent
+      return content
         .replace(/<!DOCTYPE[^>]*>/gi, '')
         .replace(/<\/?html[^>]*>/gi, '')
         .replace(/<head[\s\S]*?<\/head>/gi, '')
@@ -44,7 +55,7 @@ export const ArticleContent = ({
         .trim();
     }
     
-    return htmlContent;
+    return content.trim();
   };
 
   // Process content: sanitize -> bold markers -> internal links -> external links -> citation markers
