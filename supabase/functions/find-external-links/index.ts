@@ -976,7 +976,7 @@ Return only the JSON array, nothing else.`;
             hasGovernmentSource: false
           }),
           { 
-            status: 429,
+            status: 200,
             headers: { ...corsHeaders, 'Content-Type': 'application/json' }
           }
         );

@@ -649,7 +649,7 @@ serve(async (req) => {
           citations: [],
         }),
         { 
-          status: 429,
+          status: 200,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
         }
       );
