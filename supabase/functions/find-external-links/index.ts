@@ -1,6 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.75.0';
-import { GoogleGenerativeAI } from "https://esm.sh/@google/generative-ai@0.21.0";
 import { validateDomainLanguage } from '../shared/domainLanguageValidator.ts';
 
 const corsHeaders = {
@@ -732,7 +731,7 @@ REMEMBER: Quality > Quantity. We need MINIMUM 2, but all 2+ must be perfect.
     const rejectedDomains: Map<string, string> = new Map(); // domain -> rejection reason
     let allowedCitations: Citation[] = [];
     
-    // Helper function to build rejection feedback for Gemini
+    // Helper function to build rejection feedback for OpenAI
     const buildRejectionFeedback = (rejectedDomains: Map<string, string>, attemptNumber: number): string => {
       if (rejectedDomains.size === 0) return '';
       
@@ -777,7 +776,7 @@ Focus on government (.gov, .gob.es), educational (.edu, .ac.uk), and official st
       
       const feedbackText = buildRejectionFeedback(rejectedDomains, currentAttempt);
 
-    // Build comprehensive domain statistics for Gemini
+    // Build comprehensive domain statistics for AI
     const articleWordCount = fullArticleText.split(/\s+/).length;
     const domainStats = {
       total: totalDomains,
@@ -893,7 +892,7 @@ Return ONLY valid JSON in this exact format:
 
 Return only the JSON array, nothing else.`;
 
-    console.log('🤖 Calling Gemini 2.5 Flash with Google Search Grounding...');
+    console.log('🤖 Calling OpenAI GPT-5 Mini...');
     
     // Language code mapping for Google Search Grounding
     const languageCodeMap: Record<string, string> = {
@@ -908,51 +907,60 @@ Return only the JSON array, nothing else.`;
       'hu': 'hu'
     };
     
-    const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
-    if (!GEMINI_API_KEY) {
-      throw new Error('GEMINI_API_KEY not configured');
+    const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
+    if (!OPENAI_API_KEY) {
+      throw new Error('OPENAI_API_KEY not configured');
     }
 
-    const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-
-    // Build domain filter for Google Search Grounding with tiered batching
+    // Build domain filter for tiered batching
     const searchDomains = getDomainsByTier(currentAttempt);
     console.log(`🔍 Attempt ${currentAttempt}: Searching ${searchDomains.length} domains (Tier ${currentAttempt <= 2 ? '1' : currentAttempt <= 4 ? '1+2' : 'All'})`);
 
-    const GEMINI_TIMEOUT = 45000;
+    const API_TIMEOUT = 45000;
     const startTime = Date.now();
     
     let aiResponse: string;
     try {
-      const model = genAI.getGenerativeModel({ 
-        model: 'gemini-2.5-flash',
-        generationConfig: {
-          temperature: 0.6,
-          responseMimeType: 'application/json'
-        }
-      });
-
       const systemPrompt = `You are a research assistant specialized in finding authoritative ${config.languageName} sources. ${blockedDomains.length > 0 ? `NEVER use these blocked domains: ${blockedDomains.join(', ')}. ` : ''}CRITICAL: Return ONLY valid JSON arrays. All URLs must be in ${config.languageName} language. Prioritize government and educational sources from these approved domains: ${searchDomains.slice(0, 50).join(', ')}`;
       
-      const fullPrompt = `${systemPrompt}\n\n${prompt}`;
-      
-      const result = await Promise.race([
-        model.generateContent(fullPrompt),
+      const response = await Promise.race([
+        fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${OPENAI_API_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'gpt-5-mini-2025-08-07',
+            messages: [
+              { role: 'system', content: systemPrompt },
+              { role: 'user', content: prompt }
+            ],
+            temperature: 0.6,
+            response_format: { type: "json_object" },
+            max_completion_tokens: 4000
+          })
+        }),
         new Promise<never>((_, reject) => 
-          setTimeout(() => reject(new Error('Timeout')), GEMINI_TIMEOUT)
+          setTimeout(() => reject(new Error('Timeout')), API_TIMEOUT)
         )
       ]);
       
-      const response = result.response;
-      aiResponse = response.text();
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`OpenAI API error: ${response.status} - ${errorText}`);
+      }
+      
+      const data = await response.json();
+      aiResponse = data.choices[0].message.content;
       
       const elapsed = Date.now() - startTime;
-      console.log(`⏱️ Gemini call completed in ${elapsed}ms`);
+      console.log(`⏱️ OpenAI call completed in ${elapsed}ms`);
       
     } catch (error) {
       const elapsed = Date.now() - startTime;
       if (error instanceof Error && error.message === 'Timeout') {
-        console.warn(`⏱️ Gemini citation discovery timed out after ${elapsed}ms (limit: ${GEMINI_TIMEOUT}ms) - returning empty citations (NON-FATAL)`);
+        console.warn(`⏱️ OpenAI citation discovery timed out after ${elapsed}ms (limit: ${API_TIMEOUT}ms) - returning empty citations (NON-FATAL)`);
         return new Response(
           JSON.stringify({ citations: [] }),
           { 
@@ -963,13 +971,13 @@ Return only the JSON array, nothing else.`;
       }
       
       // Handle 429 rate limit errors specifically
-      if (error instanceof Error && (error.message.includes('429') || error.message.includes('quota'))) {
-        console.error('⚠️ Gemini API quota exhausted - 429 rate limit');
+      if (error instanceof Error && (error.message.includes('429') || error.message.toLowerCase().includes('rate limit'))) {
+        console.error('⚠️ OpenAI API rate limited - 429');
         return new Response(
           JSON.stringify({ 
             success: false,
-            error: 'QUOTA_EXHAUSTED',
-            userMessage: 'Gemini API quota exhausted. Please check your quota at https://aistudio.google.com/app/apikey or wait a few minutes before trying again.',
+            error: 'RATE_LIMITED',
+            userMessage: 'OpenAI API rate limit reached. Please wait a moment before trying again.',
             citations: [],
             totalFound: 0,
             totalVerified: 0,
@@ -989,7 +997,7 @@ Return only the JSON array, nothing else.`;
     const truncatedResponse = aiResponse.length > 2000 
       ? aiResponse.substring(0, 2000) + '... (truncated)'
       : aiResponse;
-    console.log('Gemini response:', truncatedResponse);
+    console.log('OpenAI response:', truncatedResponse);
     
     let citations: Citation[] = [];
     try {
@@ -1056,9 +1064,9 @@ Return only the JSON array, nothing else.`;
       // Continue with empty citations, frontend will handle "no suggestions" state
     }
 
-    console.log(`Found ${citations.length} citations from Gemini + Google Search`);
+    console.log(`Found ${citations.length} citations from OpenAI`);
 
-    // 🛡️ CRITICAL: Language validation checkpoint (post-Gemini)
+    // 🛡️ CRITICAL: Language validation checkpoint (post-AI)
     console.log(`[Language Validation] Checking all ${citations.length} citations for language match...`);
     const languageValidatedCitations: Citation[] = [];
 

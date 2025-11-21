@@ -1,6 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.47.10";
-import { GoogleGenerativeAI } from "https://esm.sh/@google/generative-ai@0.21.0";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -286,19 +285,10 @@ async function findCitationForClaim(
   approvedDomains: string[]
 ): Promise<Citation | null> {
   
-  const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
-  if (!geminiApiKey) {
-    throw new Error('GEMINI_API_KEY not configured');
+  const openaiApiKey = Deno.env.get('OPENAI_API_KEY');
+  if (!openaiApiKey) {
+    throw new Error('OPENAI_API_KEY not configured');
   }
-  
-  const genAI = new GoogleGenerativeAI(geminiApiKey);
-  const model = genAI.getGenerativeModel({ 
-    model: 'gemini-2.5-flash',
-    generationConfig: {
-      temperature: 0.2,
-      responseMimeType: 'application/json'
-    }
-  });
   
   const languageMap: Record<string, string> = {
     'en': 'English',
@@ -405,13 +395,34 @@ ${approvedDomains.slice(0, 40).join(', ')}
 ⚠️ CRITICAL: Return ONLY the JSON object. No markdown. No code blocks. No explanations. Start with { and end with }`;
 
   try {
-    console.log(`   📡 Calling direct Gemini API...`);
+    console.log(`   📡 Calling OpenAI API...`);
     
-    const result = await model.generateContent(prompt);
-    const response = result.response;
-    const responseText = response.text();
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${openaiApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'gpt-5-mini-2025-08-07',
+        messages: [
+          { role: 'user', content: prompt }
+        ],
+        temperature: 0.2,
+        response_format: { type: "json_object" },
+        max_completion_tokens: 2000
+      })
+    });
     
-    console.log(`   ✅ Gemini response received (${responseText.length} chars)`);
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`OpenAI API error: ${response.status} - ${errorText}`);
+    }
+    
+    const data = await response.json();
+    const responseText = data.choices[0].message.content;
+    
+    console.log(`   ✅ OpenAI response received (${responseText.length} chars)`);
     
     // Parse JSON from response
     let citation = null;
@@ -450,9 +461,9 @@ ${approvedDomains.slice(0, 40).join(', ')}
     
   } catch (error) {
     // Check for rate limit errors and propagate them
-    if (error instanceof Error && (error.message.includes('429') || error.message.includes('quota'))) {
-      console.error(`   ⚠️ Gemini API quota exhausted (429)`);
-      throw new Error('QUOTA_EXHAUSTED: Gemini API rate limit reached');
+    if (error instanceof Error && (error.message.includes('429') || error.message.toLowerCase().includes('rate limit'))) {
+      console.error(`   ⚠️ OpenAI API rate limited (429)`);
+      throw new Error('RATE_LIMITED: OpenAI API rate limit reached');
     }
     
     console.error(`   ❌ Error finding citation:`, error);
@@ -483,7 +494,7 @@ serve(async (req) => {
     }
 
     console.log('\n🔍 ═══════════════════════════════════════════');
-    console.log('   CLAIM-SPECIFIC CITATION FINDER (GEMINI)');
+    console.log('   CLAIM-SPECIFIC CITATION FINDER (OpenAI)');
     console.log('═══════════════════════════════════════════\n');
     console.log(`📄 Article: "${articleTopic}"`);
     console.log(`🌍 Language: ${articleLanguage}\n`);
@@ -630,7 +641,7 @@ serve(async (req) => {
         competitorsBlocked,
         timeElapsed: elapsed,
         language: articleLanguage,
-        model: 'google/gemini-2.5-flash',
+        model: 'openai/gpt-5-mini',
         message: `Found ${citations.length} high-quality, claim-specific citations (${competitorsBlocked} competitors blocked)`,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -639,13 +650,13 @@ serve(async (req) => {
   } catch (error) {
     console.error('\n❌ CITATION FINDER FAILED:', error);
 
-    // Handle quota exhaustion specifically
-    if (error instanceof Error && (error.message.includes('QUOTA_EXHAUSTED') || error.message.includes('429') || error.message.includes('quota'))) {
+    // Handle rate limit specifically
+    if (error instanceof Error && (error.message.includes('RATE_LIMITED') || error.message.includes('429') || error.message.toLowerCase().includes('rate limit'))) {
       return new Response(
         JSON.stringify({
           success: false,
-          error: 'QUOTA_EXHAUSTED',
-          userMessage: 'Gemini API quota exhausted. Please check your quota at https://aistudio.google.com/app/apikey or wait before trying again.',
+          error: 'RATE_LIMITED',
+          userMessage: 'OpenAI API rate limit reached. Please wait a moment before trying again.',
           citations: [],
         }),
         { 
