@@ -1,6 +1,22 @@
 // Advanced Citation Discovery with Perplexity AI
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.75.0';
 
+// ===== TIER 1: STATISTICAL SOURCES ALLOWLIST =====
+const ALLOWED_DATA_PATHS = [
+  '/informe',
+  '/report',
+  '/estudio',
+  '/study',
+  '/estadistica',
+  '/statistics',
+  '/analisis',
+  '/analysis',
+  '/mercado',
+  '/market',
+  '/datos',
+  '/data'
+];
+
 export interface CitationValidation {
   isValid: boolean;
   validationScore: number;
@@ -103,7 +119,7 @@ async function getOverusedDomains(limit: number = 20): Promise<string[]> {
   }
 }
 
-// ===== STRICT LANGUAGE MATCHING =====
+// ===== TIER 2: CROSS-LANGUAGE DOMAIN SUPPORT =====
 async function getApprovedDomainsForLanguage(language: string): Promise<Array<{domain: string, category: string, language: string | null}>> {
   try {
     // Normalize language to lowercase for case-insensitive matching
@@ -113,18 +129,19 @@ async function getApprovedDomainsForLanguage(language: string): Promise<Array<{d
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
     
+    // TIER 2: Include international sources (is_international = true) alongside language-matched sources
     const { data, error } = await supabase
       .from('approved_domains')
-      .select('domain, category, language')
+      .select('domain, category, language, is_international')
       .eq('is_allowed', true)
-      .or(`language.ilike.${normalizedLang},language.ilike.EU,language.ilike.GLOBAL,language.ilike.EU/GLOBAL`);
+      .or(`language.ilike.${normalizedLang},language.ilike.EU,language.ilike.GLOBAL,language.ilike.EU/GLOBAL,is_international.eq.true`);
       
     if (error) {
       console.error('Error fetching approved domains:', error);
       return [];
     }
     
-    console.log(`✅ Loaded ${data.length} approved domains for ${language.toUpperCase()} (normalized: ${normalizedLang})`);
+    console.log(`✅ Loaded ${data.length} approved domains for ${language.toUpperCase()} (normalized: ${normalizedLang}, including international sources)`);
     return data.map((d: any) => ({ domain: d.domain, category: d.category || d.domain, language: d.language }));
   } catch (error) {
     console.error('Failed to fetch approved domains:', error);
@@ -429,16 +446,25 @@ async function searchCitationsInBatches(
     const validCitations = batchCitations.filter(citation => {
       const domain = extractDomain(citation.url);
       
-      // Check if blocked
-      if (blockedDomainSet.has(domain)) {
+      // TIER 1: Allow statistical/research pages from any domain in approved list
+      const urlPath = citation.url.toLowerCase();
+      const isStatisticalPage = ALLOWED_DATA_PATHS.some(path => urlPath.includes(path));
+      
+      // Check if blocked (but allow statistical pages even from blocked domains)
+      if (blockedDomainSet.has(domain) && !isStatisticalPage) {
         console.warn(`   🚫 REJECTED blocked domain: ${domain}`);
         return false;
       }
       
-      // Check if in approved list
-      if (!allowedDomainSet.has(domain)) {
+      // Check if in approved list (statistical pages get a pass if from any known domain)
+      if (!allowedDomainSet.has(domain) && !isStatisticalPage) {
         console.warn(`   ❌ REJECTED uncategorized domain: ${domain}`);
         return false;
+      }
+      
+      // Log statistical page approval
+      if (isStatisticalPage && blockedDomainSet.has(domain)) {
+        console.log(`   ✅ ALLOWED statistical page from otherwise blocked domain: ${citation.url}`);
       }
       
       // Basic validation
