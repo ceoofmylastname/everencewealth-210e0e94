@@ -13,8 +13,8 @@ const PERPLEXITY_API_KEY = Deno.env.get('PERPLEXITY_API_KEY');
 const PERPLEXITY_BASE_URL = 'https://api.perplexity.ai/chat/completions';
 
 // Maximum chunks to search before giving up (prevents timeout)
-// Each chunk = 20 domains, so 8 chunks = 160 domains searched
-const MAX_CHUNKS_TO_SEARCH = 8;
+// Each chunk = 20 domains, so 5 chunks = 100 domains searched
+const MAX_CHUNKS_TO_SEARCH = 5;
 
 if (!PERPLEXITY_API_KEY) {
   console.warn('⚠️ PERPLEXITY_API_KEY not found - citation search will fail');
@@ -665,7 +665,7 @@ serve(async (req) => {
 
     const citations: any[] = [];
     const softMatches: any[] = [];
-    const maxClaims = Math.min(claims.length, 5); // Limit to 5 citations
+    const maxClaims = Math.min(claims.length, 3); // Limit to 3 citations to prevent timeout
     let competitorsBlocked = 0;
     let specificityRejections = 0;
     let jsonParseFailures = 0;
@@ -699,53 +699,46 @@ serve(async (req) => {
           console.log(`   "${claimData.claim}"\n`);
           
           try {
-            // Decompose complex claims
-            const subClaims = decomposeComplexClaim(claimData.claim);
-            
-            for (const subClaim of subClaims) {
-              // ⭐ USE SMART BATCH RETRY SEARCH
-              const citation = await findCitationWithTieredSearch(
-                subClaim,
-                articleLanguage,
-                articleTopic,
-                globalClaimIdx + 1,
-                supabase // Pass Supabase client
-              );
+            // Search directly without sub-claim decomposition to save time
+            const citation = await findCitationWithTieredSearch(
+              claimData.claim,
+              articleLanguage,
+              articleTopic,
+              globalClaimIdx + 1,
+              supabase // Pass Supabase client
+            );
 
-              if (citation) {
-                // Check for duplicates
-                const isDuplicate = citations.some(c => c.url === citation.url);
-                if (isDuplicate) {
-                  console.log(`⏭️ Skipping duplicate: ${citation.url}`);
-                  continue;
-                }
+            if (citation) {
+              // Check for duplicates
+              const isDuplicate = citations.some(c => c.url === citation.url);
+              if (isDuplicate) {
+                console.log(`⏭️ Skipping duplicate: ${citation.url}`);
+                return { success: false };
+              }
+              
+              // Extract domain for diversity scoring
+              try {
+                const url = new URL(citation.url);
+                const domain = url.hostname.replace('www.', '');
+                const usageCount = usageMap.get(domain) || 0;
                 
-                // Extract domain for diversity scoring
-                try {
-                  const url = new URL(citation.url);
-                  const domain = url.hostname.replace('www.', '');
-                  const usageCount = usageMap.get(domain) || 0;
-                  
-                  let diversityScore = 100;
-                  if (usageCount >= 20) diversityScore = 0;
-                  else if (usageCount >= 15) diversityScore = 30;
-                  else if (usageCount >= 10) diversityScore = 60;
-                  else if (usageCount >= 5) diversityScore = 80;
+                let diversityScore = 100;
+                if (usageCount >= 20) diversityScore = 0;
+                else if (usageCount >= 15) diversityScore = 30;
+                else if (usageCount >= 10) diversityScore = 60;
+                else if (usageCount >= 5) diversityScore = 80;
 
-                  const citationWithMeta = {
-                    ...citation,
-                    claimText: claimData.claim,
-                    sentenceIndex: claimData.sentenceIndex,
-                    diversityScore,
-                    usageCount,
-                  };
-                  
-                  return { success: true, citation: citationWithMeta, batchTier: citation.batchTier, needsReview: citation.needsManualReview };
-                } catch (e) {
-                  console.warn(`   ⚠️ Invalid URL in citation: ${citation.url}`);
-                }
+                const citationWithMeta = {
+                  ...citation,
+                  claimText: claimData.claim,
+                  sentenceIndex: claimData.sentenceIndex,
+                  diversityScore,
+                  usageCount,
+                };
                 
-                break; // Found citation for this claim
+                return { success: true, citation: citationWithMeta, batchTier: citation.batchTier, needsReview: citation.needsManualReview };
+              } catch (e) {
+                console.warn(`   ⚠️ Invalid URL in citation: ${citation.url}`);
               }
             }
             
