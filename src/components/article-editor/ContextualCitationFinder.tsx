@@ -6,7 +6,6 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Lightbulb, Target, X, ChevronDown, ChevronUp, MousePointerClick } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ExternalLinkFinder } from "@/components/ExternalLinkFinder";
 import { BetterCitationFinder } from "@/components/admin/BetterCitationFinder";
 import type { ExternalCitation } from "@/types/blog";
 
@@ -143,14 +142,6 @@ export function ContextualCitationFinder({
         </Collapsible>
 
         <div className="flex flex-wrap gap-2">
-          <ExternalLinkFinder
-            articleContent={articleContent}
-            headline={headline}
-            currentCitations={currentCitations}
-            onCitationsChange={onCitationsChange}
-            language={language}
-            targetContext={targetContext || undefined}
-          />
           <BetterCitationFinder
             articleTopic={headline}
             articleLanguage={language}
