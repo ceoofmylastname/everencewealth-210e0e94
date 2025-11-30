@@ -72,6 +72,12 @@ serve(async (req) => {
       throw new Error('RESALES_ONLINE_API_KEY not configured');
     }
 
+    // API key format: "AGENCY_ID|P1|P2"
+    const [agencyId, p1, p2] = apiKey.split('|');
+    if (!agencyId || !p1 || !p2) {
+      throw new Error('RESALES_ONLINE_API_KEY is invalid. Expected format "AGENCY_ID|P1|P2"');
+    }
+
     // Extract search parameters from either URL (GET) or body (POST)
     let location = '';
     let priceMin: number | undefined;
@@ -110,7 +116,9 @@ serve(async (req) => {
 
     // Build Resales-Online API URL
     const apiUrl = new URL('https://webapi.resales-online.com/V6/SearchProperties');
-    apiUrl.searchParams.append('P1', apiKey);
+    apiUrl.searchParams.append('p_agency_filterid', agencyId);
+    apiUrl.searchParams.append('P1', p1);
+    apiUrl.searchParams.append('P2', p2);
     apiUrl.searchParams.append('P_Lang', 'en');
     
     if (location) apiUrl.searchParams.append('P_Location', location);
