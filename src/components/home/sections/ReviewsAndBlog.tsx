@@ -4,16 +4,19 @@ import { Section } from '../ui/Section';
 import { Button } from '../ui/Button';
 import { LATEST_POSTS } from '../../../constants/home';
 import { Star, Quote, ArrowRight } from 'lucide-react';
+import { useTranslation } from '../../../i18n';
 
 export const Reviews: React.FC = () => {
+  const { t } = useTranslation();
+  
   return (
     <Section className="bg-slate-50 relative">
       <div className="text-center mb-16 reveal-on-scroll">
-        <h2 className="text-4xl font-serif font-bold text-prime-900 mb-6">What Our Clients Say</h2>
+        <h2 className="text-4xl font-serif font-bold text-prime-900 mb-6">{t.reviews.headline}</h2>
         <div className="flex justify-center gap-1 mb-4">
             {[1,2,3,4,5].map(i => <Star key={i} size={28} className="fill-prime-gold text-prime-gold" />)}
         </div>
-        <p className="text-slate-500 font-medium">Real words from real buyers who trusted us with one of the most important decisions of their lives.</p>
+        <p className="text-slate-500 font-medium">{t.reviews.description}</p>
       </div>
 
       {/* Elfsight Placeholder - Styled */}
@@ -30,7 +33,7 @@ export const Reviews: React.FC = () => {
 
       <div className="text-center reveal-on-scroll">
         <Link to="/blog">
-          <Button variant="outline">Read All Reviews</Button>
+          <Button variant="outline">{t.reviews.cta}</Button>
         </Link>
       </div>
     </Section>
@@ -38,17 +41,19 @@ export const Reviews: React.FC = () => {
 };
 
 export const BlogTeaser: React.FC = () => {
+  const { t } = useTranslation();
+  
   return (
     <Section background="white">
       <div className="flex flex-col md:flex-row justify-between items-end mb-16 reveal-on-scroll">
         <div>
-          <span className="text-prime-gold font-bold uppercase tracking-widest text-xs mb-3 block">Knowledge Base</span>
-          <h2 className="text-4xl font-serif font-bold text-prime-900 mb-4">Insights & Guides for Foreign Buyers</h2>
-          <p className="text-slate-600 font-light text-lg max-w-2xl">Learn more about taxes, legal processes, market trends, and everything you need to make a safe and well-informed decision.</p>
+          <span className="text-prime-gold font-bold uppercase tracking-widest text-xs mb-3 block">{t.blogTeaser.eyebrow}</span>
+          <h2 className="text-4xl font-serif font-bold text-prime-900 mb-4">{t.blogTeaser.headline}</h2>
+          <p className="text-slate-600 font-light text-lg max-w-2xl">{t.blogTeaser.description}</p>
         </div>
         <Link to="/blog" className="hidden md:flex">
           <Button variant="ghost" className="text-prime-gold font-bold group">
-            Visit the Blog <ArrowRight size={18} className="ml-2 group-hover:translate-x-1 transition-transform" />
+            {t.blogTeaser.cta} <ArrowRight size={18} className="ml-2 group-hover:translate-x-1 transition-transform" />
           </Button>
         </Link>
       </div>
@@ -66,7 +71,7 @@ export const BlogTeaser: React.FC = () => {
               <h3 className="text-xl font-bold text-prime-900 mb-4 group-hover:text-prime-gold transition-colors cursor-pointer leading-tight">{post.title}</h3>
               <p className="text-slate-600 text-sm mb-6 flex-1 font-light leading-relaxed" style={{ lineHeight: '1.75' }}>{post.excerpt}</p>
               <Link to={`/blog/${post.id}`} className="text-prime-900 font-bold text-sm hover:text-prime-gold transition-colors mt-auto flex items-center gap-2 group/link">
-                Read Article <ArrowRight size={14} className="group-hover/link:translate-x-1 transition-transform" />
+                {t.blogTeaser.readArticle} <ArrowRight size={14} className="group-hover/link:translate-x-1 transition-transform" />
               </Link>
             </div>
           </article>
@@ -76,7 +81,7 @@ export const BlogTeaser: React.FC = () => {
        <div className="mt-12 md:hidden text-center reveal-on-scroll">
         <Link to="/blog">
           <Button variant="ghost" className="text-prime-gold font-bold">
-            Visit the Blog
+            {t.blogTeaser.cta}
           </Button>
         </Link>
       </div>

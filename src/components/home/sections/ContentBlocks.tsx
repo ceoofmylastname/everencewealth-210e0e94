@@ -2,22 +2,27 @@ import React from 'react';
 import { Section } from '../ui/Section';
 import { Button } from '../ui/Button';
 import { Shield, Award, Brain, FileCheck, ArrowRight } from 'lucide-react';
+import { useTranslation } from '../../../i18n';
 
 export const MiniAbout: React.FC = () => {
+  const { t } = useTranslation();
+  
   return (
     <Section background="light" className="pt-24 md:pt-32">
       <div className="max-w-5xl mx-auto text-center reveal-on-scroll animate-fade-in-up">
-        <h2 className="text-3xl md:text-4xl lg:text-5xl font-serif font-bold text-prime-900 mb-6 md:mb-8 leading-tight tracking-tight" style={{ letterSpacing: '-0.02em' }}>Expertise You Can <span className="text-prime-gold underline decoration-prime-gold/30 underline-offset-8">Trust</span></h2>
+        <h2 className="text-3xl md:text-4xl lg:text-5xl font-serif font-bold text-prime-900 mb-6 md:mb-8 leading-tight tracking-tight" style={{ letterSpacing: '-0.02em' }}>
+          {t.miniAbout.headline} <span className="text-prime-gold underline decoration-prime-gold/30 underline-offset-8">{t.miniAbout.headlineHighlight}</span>
+        </h2>
         <p className="text-slate-600 text-base md:text-lg lg:text-xl leading-relaxed mb-8 md:mb-10 max-w-4xl mx-auto font-light" style={{ letterSpacing: '0.01em', lineHeight: '1.75' }}>
-          DelSolPrimeHomes was founded by <strong className="text-prime-900 font-semibold">Hans Beeckman</strong>, <strong className="text-prime-900 font-semibold">Cédric Van Hecke</strong>, and <strong className="text-prime-900 font-semibold">Steven Roberts</strong> — three API-accredited real estate professionals with decades of experience helping international buyers purchase safely on the Costa del Sol.
+          {t.miniAbout.paragraph1}
         </p>
         <p className="text-slate-600 text-base md:text-lg lg:text-xl leading-relaxed mb-8 md:mb-10 max-w-4xl mx-auto font-light" style={{ letterSpacing: '0.01em', lineHeight: '1.75' }}>
-          Together with a multilingual team that earned their reputation at respected agencies across the region, we offer full guidance in English, Dutch, French, German, Finnish, Polish, Danish, Hungarian, Swedish, and Norwegian.
+          {t.miniAbout.paragraph2}
         </p>
         
         <div>
           <Button variant="outline" className="group">
-            Meet the Team <ArrowRight size={18} className="ml-2 group-hover:translate-x-1 transition-transform" />
+            {t.miniAbout.cta} <ArrowRight size={18} className="ml-2 group-hover:translate-x-1 transition-transform" />
           </Button>
         </div>
       </div>
@@ -26,47 +31,32 @@ export const MiniAbout: React.FC = () => {
 };
 
 export const USPSection: React.FC = () => {
-  // Use Components (functions) instead of Elements (JSX) for safer rendering
+  const { t } = useTranslation();
+  
   const usps = [
-    {
-      Icon: Shield,
-      title: "API-Accredited Advisors",
-      desc: "We operate under strict Spanish standards of professionalism, ethics, and legal compliance."
-    },
-    {
-      Icon: Award,
-      title: "35+ Years of Experience",
-      desc: "Our team members have helped hundreds of families and individuals buy safely in Spain, using the expertise they gained at leading real estate offices before joining DelSolPrimeHomes."
-    },
-    {
-      Icon: Brain,
-      title: "AI-Enhanced Property Selection",
-      desc: "We analyse and compare new-build projects between Málaga and Sotogrande using advanced AI tools — so you only see the opportunities that truly fit your needs."
-    },
-    {
-      Icon: FileCheck,
-      title: "Full Legal & Document Support",
-      desc: "We guide you through licences, contracts, payment schedules, and bank guarantees, ensuring clarity and legal security at every step."
-    }
+    { Icon: Shield },
+    { Icon: Award },
+    { Icon: Brain },
+    { Icon: FileCheck }
   ];
 
   return (
     <Section background="white" id="usps" className="relative">
       <div className="text-center mb-16 reveal-on-scroll">
-        <span className="text-prime-gold font-bold uppercase tracking-widest text-xs mb-3 block">Why Choose Us</span>
-        <h2 className="text-4xl md:text-5xl font-serif font-bold text-prime-900">Why Buyers Trust DelSolPrimeHomes</h2>
+        <span className="text-prime-gold font-bold uppercase tracking-widest text-xs mb-3 block">{t.usps.eyebrow}</span>
+        <h2 className="text-4xl md:text-5xl font-serif font-bold text-prime-900">{t.usps.headline}</h2>
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
-        {usps.map((usp, idx) => (
+        {t.usps.items.map((item, idx) => (
           <div key={idx} className={`bg-slate-50 p-6 md:p-8 rounded-2xl border border-slate-100 transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:shadow-slate-200/50 hover:bg-white group reveal-on-scroll stagger-${idx + 1}`}>
             <div className="mb-6 md:mb-8 bg-white w-14 h-14 md:w-16 md:h-16 rounded-2xl rotate-3 flex items-center justify-center group-hover:bg-prime-900 group-hover:rotate-0 group-hover:scale-110 transition-all duration-500 shadow-sm">
               <div className="text-prime-gold group-hover:text-white transition-colors duration-500">
-                <usp.Icon className="w-7 h-7 md:w-8 md:h-8" />
+                {React.createElement(usps[idx].Icon, { className: "w-7 h-7 md:w-8 md:h-8" })}
               </div>
             </div>
-            <h3 className="text-lg md:text-xl font-bold text-prime-900 mb-3 md:mb-4 group-hover:text-prime-goldDark transition-colors tracking-tight">{usp.title}</h3>
-            <p className="text-slate-600 leading-relaxed text-sm font-light" style={{ lineHeight: '1.75' }}>{usp.desc}</p>
+            <h3 className="text-lg md:text-xl font-bold text-prime-900 mb-3 md:mb-4 group-hover:text-prime-goldDark transition-colors tracking-tight">{item.title}</h3>
+            <p className="text-slate-600 leading-relaxed text-sm font-light" style={{ lineHeight: '1.75' }}>{item.description}</p>
           </div>
         ))}
       </div>

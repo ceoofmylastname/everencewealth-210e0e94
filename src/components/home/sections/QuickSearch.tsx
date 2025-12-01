@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, ChevronDown, MapPin, Wallet, Home } from 'lucide-react';
-import { LOCATIONS, BUDGET_RANGES } from '../../../constants/home';
+import { LOCATIONS } from '../../../constants/home';
 import { Button } from '../ui/Button';
+import { useTranslation } from '../../../i18n';
 
 export const QuickSearch: React.FC = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [budget, setBudget] = useState('');
   const [location, setLocation] = useState('');
@@ -28,8 +30,8 @@ export const QuickSearch: React.FC = () => {
         
         <div className="mb-8 text-center md:text-left border-b border-slate-100/80 pb-6 flex flex-col md:flex-row justify-between items-end gap-4">
           <div>
-            <h3 className="text-2xl font-serif font-bold text-prime-900">Start With the Right Properties — Not Endless Scrolling</h3>
-            <p className="text-slate-500 mt-2 font-light">We focus exclusively on carefully selected new-build and off-plan developments, matching your lifestyle, your timing, and your long-term goals.</p>
+            <h3 className="text-2xl font-serif font-bold text-prime-900">{t.quickSearch.headline}</h3>
+            <p className="text-slate-500 mt-2 font-light">{t.quickSearch.description}</p>
           </div>
         </div>
 
@@ -38,7 +40,7 @@ export const QuickSearch: React.FC = () => {
           {/* Location */}
           <div className="space-y-2 group">
             <label className="text-xs font-bold uppercase tracking-widest text-slate-400 group-focus-within:text-prime-gold transition-colors flex items-center gap-1">
-              <MapPin size={12} /> Location
+              <MapPin size={12} /> {t.quickSearch.labels.location}
             </label>
             <div className="relative">
               <select 
@@ -46,7 +48,7 @@ export const QuickSearch: React.FC = () => {
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
               >
-                <option value="">Any Location</option>
+                <option value="">{t.quickSearch.placeholders.location}</option>
                 {LOCATIONS.map(loc => <option key={loc.value} value={loc.value}>{loc.label}</option>)}
               </select>
               <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none group-hover:text-prime-gold transition-colors" size={18} />
@@ -56,7 +58,7 @@ export const QuickSearch: React.FC = () => {
           {/* Purpose */}
           <div className="space-y-2 group">
             <label className="text-xs font-bold uppercase tracking-widest text-slate-400 group-focus-within:text-prime-gold transition-colors flex items-center gap-1">
-              <Home size={12} /> Purpose
+              <Home size={12} /> {t.quickSearch.labels.purpose}
             </label>
             <div className="relative">
               <select 
@@ -64,10 +66,10 @@ export const QuickSearch: React.FC = () => {
                 value={purpose}
                 onChange={(e) => setPurpose(e.target.value)}
               >
-                <option value="">Investment & Personal</option>
-                <option value="holiday">Holiday Home</option>
-                <option value="winter">Winter Stay</option>
-                <option value="combination">Combination</option>
+                <option value="">{t.quickSearch.purposes.investmentPersonal}</option>
+                <option value="holiday">{t.quickSearch.purposes.holidayHome}</option>
+                <option value="winter">{t.quickSearch.purposes.winterStay}</option>
+                <option value="combination">{t.quickSearch.purposes.combination}</option>
               </select>
               <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none group-hover:text-prime-gold transition-colors" size={18} />
             </div>
@@ -76,7 +78,7 @@ export const QuickSearch: React.FC = () => {
           {/* Budget */}
           <div className="space-y-2 group">
             <label className="text-xs font-bold uppercase tracking-widest text-slate-400 group-focus-within:text-prime-gold transition-colors flex items-center gap-1">
-              <Wallet size={12} /> Max Budget
+              <Wallet size={12} /> {t.quickSearch.labels.budget}
             </label>
             <div className="relative">
               <select 
@@ -84,11 +86,11 @@ export const QuickSearch: React.FC = () => {
                 value={budget}
                 onChange={(e) => setBudget(e.target.value)}
               >
-                <option value="">Select Range</option>
-                <option value="300-500">€300k - €500k</option>
-                <option value="500-800">€500k - €800k</option>
-                <option value="800-1500">€800k - €1.5M</option>
-                <option value="1500+">€1.5M+</option>
+                <option value="">{t.quickSearch.placeholders.budget}</option>
+                <option value="300-500">{t.quickSearch.budgetRanges.range1}</option>
+                <option value="500-800">{t.quickSearch.budgetRanges.range2}</option>
+                <option value="800-1500">{t.quickSearch.budgetRanges.range3}</option>
+                <option value="1500+">{t.quickSearch.budgetRanges.range4}</option>
               </select>
               <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none group-hover:text-prime-gold transition-colors" size={18} />
             </div>
@@ -96,7 +98,7 @@ export const QuickSearch: React.FC = () => {
 
           {/* Submit */}
           <Button onClick={handleSearch} fullWidth className="h-[58px] shadow-xl shadow-prime-900/10 text-lg" variant="primary">
-            Open the Full Property Finder
+            {t.quickSearch.submit}
           </Button>
 
         </form>
