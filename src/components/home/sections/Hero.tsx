@@ -14,7 +14,7 @@ export const Hero: React.FC = () => {
   }, []);
 
   return (
-    <div className="relative w-full min-h-[100svh] flex items-center justify-center overflow-hidden">
+    <div className="relative z-10 w-full min-h-[100svh] flex items-center justify-center overflow-hidden">
       {/* Video Background */}
       <div className="absolute inset-0 z-0">
         <video
