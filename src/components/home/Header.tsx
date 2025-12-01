@@ -34,7 +34,11 @@ export const Header: React.FC = () => {
           <img 
             src="https://storage.googleapis.com/msgsndr/9m2UBN29nuaCWceOgW2Z/media/6926151522d3b65c0becbaf4.png" 
             alt="DelSolPrimeHomes" 
-            className="h-14 md:h-20 w-auto object-contain transition-all duration-500"
+            className={`h-14 md:h-20 w-auto object-contain transition-all duration-500 ${
+              isScrolled 
+                ? 'brightness-0 sepia saturate-[10] hue-rotate-[15deg]' 
+                : ''
+            }`}
           />
         </div>
 
