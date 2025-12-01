@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
+import { useTranslation } from '../i18n';
 import { Header } from '../components/home/Header';
 import { Footer } from '../components/home/Footer';
 import { Hero } from '../components/home/sections/Hero';
@@ -9,12 +10,10 @@ import { Process } from '../components/home/sections/Process';
 import { Reviews, BlogTeaser } from '../components/home/sections/ReviewsAndBlog';
 import { Section } from '../components/home/ui/Section';
 import { Button } from '../components/home/ui/Button';
-import { Language } from '../types/home';
 import { getStructuredData } from '../constants/home';
 
 function Home() {
-  // State for Language - mimicking routing structure
-  const [lang, setLang] = useState<Language>(Language.EN);
+  const { t } = useTranslation();
 
   // Inject Structured Data (JSON-LD)
   useEffect(() => {
@@ -62,12 +61,12 @@ function Home() {
   return (
     <div className="min-h-screen flex flex-col font-sans text-slate-900 bg-slate-50">
       
-      <Header currentLang={lang} setLang={setLang} />
+      <Header />
 
       <main className="flex-grow">
         
         {/* 1. Hero Section */}
-        <Hero lang={lang} />
+        <Hero />
         
         {/* 2 & 3. Quick Search (overlaps Hero) & Mini About */}
         <div className="relative z-20">
@@ -99,14 +98,14 @@ function Home() {
            <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
            
            <div className="relative z-10 reveal-on-scroll">
-             <h2 className="text-4xl md:text-6xl font-serif font-bold mb-6 text-white tracking-tight">Ready to Find Your <span className="text-prime-gold italic">Dream Home?</span></h2>
+             <h2 className="text-4xl md:text-6xl font-serif font-bold mb-6 text-white tracking-tight">{t.finalCta.headline} <span className="text-prime-gold italic">{t.finalCta.headlineHighlight}</span></h2>
              <p className="text-slate-300 text-lg md:text-xl max-w-2xl mx-auto mb-12 font-light leading-relaxed">
-               Whether you're just starting your search or ready to move forward, our API-accredited advisors are here to guide you — clearly, transparently, and in your language.
+               {t.finalCta.description}
              </p>
              <div className="flex flex-col sm:flex-row justify-center gap-6">
-               <Button variant="secondary" size="lg" className="shadow-lg shadow-prime-gold/20">Book a 1:1 Call</Button>
+               <Button variant="secondary" size="lg" className="shadow-lg shadow-prime-gold/20">{t.finalCta.ctaPrimary}</Button>
                <Button variant="outline" size="lg" className="border-white/30 text-white hover:bg-white hover:text-prime-900">
-                  Tell Us What You're Looking For
+                  {t.finalCta.ctaSecondary}
                </Button>
              </div>
            </div>
