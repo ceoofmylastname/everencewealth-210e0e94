@@ -18,15 +18,18 @@ export const Hero: React.FC<HeroProps> = ({ lang }) => {
 
   return (
     <div className="relative w-full min-h-[100svh] flex items-center justify-center overflow-hidden">
-      {/* Background Image with Parallax Effect */}
+      {/* Video Background */}
       <div className="absolute inset-0 z-0">
-        <div 
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat scale-110"
-          style={{ 
-            backgroundImage: 'url("https://images.unsplash.com/photo-1512917774080-9991f1c4c750?q=80&w=2070&auto=format&fit=crop")',
-            transform: `translateY(${scrollY * 0.5}px)`,
-          }}
-        />
+        <video
+          autoPlay
+          muted
+          loop
+          playsInline
+          poster="https://images.unsplash.com/photo-1512917774080-9991f1c4c750?q=80&w=2070&auto=format&fit=crop"
+          className="absolute inset-0 w-full h-full object-cover scale-110"
+        >
+          <source src="https://storage.googleapis.com/msgsndr/281Nzx90nVL8424QY4Af/media/692ced3382f4c567c43c328f.mp4" type="video/mp4" />
+        </video>
         <div className="absolute inset-0 bg-slate-900/50 mix-blend-multiply" />
         <div className="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-slate-900/40 to-slate-900/30" />
         <div className="absolute inset-0 bg-gradient-to-r from-slate-900/50 to-transparent" />
