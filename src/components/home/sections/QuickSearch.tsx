@@ -26,7 +26,7 @@ export const QuickSearch: React.FC = () => {
 
   return (
     <div className="relative z-30 -mt-32 md:-mt-24 container mx-auto px-4 reveal-on-scroll stagger-2">
-      <div className="glass-panel rounded-2xl shadow-[0_30px_60px_-12px_rgba(0,0,0,0.15)] p-6 md:p-10 max-w-6xl mx-auto bg-white/95">
+      <div className="glass-panel rounded-2xl shadow-[0_30px_60px_-12px_rgba(0,0,0,0.15)] p-6 md:p-10 max-w-6xl mx-auto bg-white">
         
         <div className="mb-8 text-center md:text-left border-b border-slate-100/80 pb-6 flex flex-col md:flex-row justify-between items-end gap-4">
           <div>
