@@ -1,9 +1,11 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Facebook, Instagram, Linkedin, Mail, Phone, MapPin } from 'lucide-react';
-import { Language } from '../../types/home';
+import { useTranslation } from '../../i18n';
 
 export const Footer: React.FC = () => {
+  const { t } = useTranslation();
+  
   return (
     <footer className="bg-prime-900 text-white pt-20 pb-10 border-t-4 border-prime-gold">
       <div className="container mx-auto px-4 md:px-6">
@@ -20,7 +22,7 @@ export const Footer: React.FC = () => {
               />
             </div>
             <p className="text-slate-400 text-sm leading-relaxed mb-6">
-              DelSolPrimeHomes — New-build and off-plan specialists on the Costa del Sol, serving clients in 10 languages.
+              {t.footer.brandDescription}
             </p>
             <div className="flex gap-4">
               <a href="#" className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-prime-gold hover:text-prime-900 transition-colors">
@@ -37,11 +39,11 @@ export const Footer: React.FC = () => {
 
           {/* Contact */}
           <div>
-             <h4 className="font-serif font-bold text-lg mb-6 text-white">Contact Us</h4>
+             <h4 className="font-serif font-bold text-lg mb-6 text-white">{t.footer.contactHeading}</h4>
              <ul className="space-y-4 text-slate-300 text-sm">
                 <li className="flex gap-3">
                   <MapPin size={18} className="text-prime-gold shrink-0" />
-                  <span>Av. Ricardo Soriano, Marbella, <br/>29601, Spain</span>
+                  <span>{t.footer.address}</span>
                 </li>
                 <li className="flex gap-3">
                   <Phone size={18} className="text-prime-gold shrink-0" />
@@ -56,25 +58,25 @@ export const Footer: React.FC = () => {
 
           {/* Quick Links */}
           <div>
-            <h4 className="font-serif font-bold text-lg mb-6 text-white">Navigate</h4>
+            <h4 className="font-serif font-bold text-lg mb-6 text-white">{t.footer.navigateHeading}</h4>
             <ul className="space-y-3 text-slate-300 text-sm">
-              <li><a href="#" className="hover:text-prime-gold transition-colors font-nav">Property Finder</a></li>
-              <li><a href="#" className="hover:text-prime-gold transition-colors font-nav">Featured Areas</a></li>
-              <li><a href="#" className="hover:text-prime-gold transition-colors font-nav">Our Team</a></li>
-              <li><a href="#" className="hover:text-prime-gold transition-colors font-nav">Buyers Guide</a></li>
-              <li><Link to="/blog" className="hover:text-prime-gold transition-colors font-nav">Blog & Insights</Link></li>
+              <li><a href="#" className="hover:text-prime-gold transition-colors font-nav">{t.footer.links.propertyFinder}</a></li>
+              <li><a href="#" className="hover:text-prime-gold transition-colors font-nav">{t.footer.links.featuredAreas}</a></li>
+              <li><a href="#" className="hover:text-prime-gold transition-colors font-nav">{t.footer.links.ourTeam}</a></li>
+              <li><a href="#" className="hover:text-prime-gold transition-colors font-nav">{t.footer.links.buyersGuide}</a></li>
+              <li><Link to="/blog" className="hover:text-prime-gold transition-colors font-nav">{t.footer.links.blogInsights}</Link></li>
             </ul>
           </div>
 
           {/* Legal */}
           <div>
-            <h4 className="font-serif font-bold text-lg mb-6 text-white">Legal</h4>
+            <h4 className="font-serif font-bold text-lg mb-6 text-white">{t.footer.legalHeading}</h4>
             <ul className="space-y-3 text-slate-300 text-sm">
-              <li><a href="#" className="hover:text-prime-gold transition-colors font-nav">Privacy Policy</a></li>
-              <li><a href="#" className="hover:text-prime-gold transition-colors font-nav">Cookie Policy</a></li>
-              <li><a href="#" className="hover:text-prime-gold transition-colors font-nav">Legal Notice</a></li>
-              <li><a href="#" className="hover:text-prime-gold transition-colors font-nav">LPO Information</a></li>
-              <li><a href="#" className="hover:text-prime-gold transition-colors font-nav">GDPR Compliance</a></li>
+              <li><a href="#" className="hover:text-prime-gold transition-colors font-nav">{t.footer.legal.privacy}</a></li>
+              <li><a href="#" className="hover:text-prime-gold transition-colors font-nav">{t.footer.legal.cookies}</a></li>
+              <li><a href="#" className="hover:text-prime-gold transition-colors font-nav">{t.footer.legal.legalNotice}</a></li>
+              <li><a href="#" className="hover:text-prime-gold transition-colors font-nav">{t.footer.legal.lpo}</a></li>
+              <li><a href="#" className="hover:text-prime-gold transition-colors font-nav">{t.footer.legal.gdpr}</a></li>
             </ul>
           </div>
 
@@ -82,10 +84,10 @@ export const Footer: React.FC = () => {
 
         <div className="border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-slate-500 text-xs">
-            © {new Date().getFullYear()} DelSolPrimeHomes. All rights reserved. API Registered.
+            {t.footer.copyright.replace('{year}', new Date().getFullYear().toString())}
           </p>
           <div className="flex items-center gap-2">
-            <span className="text-slate-500 text-xs">Made for Excellence</span>
+            <span className="text-slate-500 text-xs">{t.footer.tagline}</span>
           </div>
         </div>
       </div>

@@ -1,13 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { ShieldCheck, Users, Star } from 'lucide-react';
 import { Button } from '../ui/Button';
-import { Language } from '../../../types/home';
+import { useTranslation } from '../../../i18n';
 
-interface HeroProps {
-  lang: Language;
-}
-
-export const Hero: React.FC<HeroProps> = ({ lang }) => {
+export const Hero: React.FC = () => {
+  const { t } = useTranslation();
   const [scrollY, setScrollY] = useState(0);
 
   useEffect(() => {
@@ -41,43 +38,43 @@ export const Hero: React.FC<HeroProps> = ({ lang }) => {
         <div className="flex flex-wrap items-center justify-center gap-3 md:gap-6 mb-10 reveal-on-scroll">
           <div className="flex items-center gap-2 text-white/90 text-xs md:text-sm font-medium tracking-wide">
              <ShieldCheck size={16} className="text-prime-gold" />
-             <span>API-accredited team</span>
+             <span>{t.hero.trustBadges.api}</span>
           </div>
           <span className="hidden md:inline-block w-1 h-1 rounded-full bg-prime-gold/50"></span>
           <div className="flex items-center gap-2 text-white/90 text-xs md:text-sm font-medium tracking-wide">
              <Star size={16} className="text-prime-gold" />
-             <span>35+ years combined experience</span>
+             <span>{t.hero.trustBadges.experience}</span>
           </div>
           <span className="hidden md:inline-block w-1 h-1 rounded-full bg-prime-gold/50"></span>
           <div className="flex items-center gap-2 text-white/90 text-xs md:text-sm font-medium tracking-wide">
              <Users size={16} className="text-prime-gold" />
-             <span>Hundreds of guided buyers</span>
+             <span>{t.hero.trustBadges.buyers}</span>
           </div>
         </div>
 
         {/* Headline */}
         <h1 className="font-serif text-4xl md:text-6xl lg:text-7xl xl:text-8xl font-bold text-white mb-6 md:mb-8 leading-[1.05] tracking-tight max-w-6xl drop-shadow-2xl reveal-on-scroll stagger-1 animate-zoom-in" style={{ letterSpacing: '-0.02em' }}>
-          Find Your New-Build Home on the <br className="hidden md:block" />
-          <span className="text-gradient-gold italic pr-2">Costa del Sol</span>
+          {t.hero.headline} <br className="hidden md:block" />
+          <span className="text-gradient-gold italic pr-2">{t.hero.headlineHighlight}</span>
         </h1>
 
         {/* Subheadline */}
          <div className="mb-8 md:mb-10 reveal-on-scroll stagger-2 animate-fade-in-up">
             <span className="inline-block text-xl md:text-2xl lg:text-3xl font-light text-white/90 border-b border-prime-gold/50 pb-2 mb-4 md:mb-6">
-              Safely. Transparently. In Your Language.
+              {t.hero.tagline}
             </span>
             <p className="text-slate-300 text-base md:text-lg lg:text-xl max-w-4xl mx-auto font-light leading-relaxed" style={{ letterSpacing: '0.01em', lineHeight: '1.75' }}>
-              DelSolPrimeHomes guides international buyers through high-quality new-build and off-plan real estate from Málaga to Sotogrande — with API-accredited advisors, 35+ years of combined experience, and advanced AI tools to help you make the right decision.
+              {t.hero.description}
             </p>
          </div>
 
         {/* CTAs */}
         <div className="flex flex-col sm:flex-row gap-4 md:gap-5 w-full sm:w-auto reveal-on-scroll stagger-4 animate-slide-in-left">
           <Button variant="secondary" size="lg" className="shadow-2xl shadow-prime-gold/20 min-w-[200px] md:min-w-[240px]">
-            Start Your Property Search
+            {t.hero.ctaPrimary}
           </Button>
           <Button variant="outline" size="lg" className="border-white/30 text-white hover:bg-white hover:text-prime-900 backdrop-blur-sm min-w-[200px] md:min-w-[240px]">
-            Book a Call With an Advisor
+            {t.hero.ctaSecondary}
           </Button>
         </div>
       </div>
