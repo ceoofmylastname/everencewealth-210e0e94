@@ -1,0 +1,165 @@
+export const en = {
+  common: {
+    readMore: "Read More",
+    learnMore: "Learn More",
+    bookCall: "Book a Call",
+    getStarted: "Get Started",
+    exploreAll: "Explore All",
+  },
+  nav: {
+    properties: "Properties",
+    areas: "Areas",
+    aboutUs: "About Us",
+    buyersGuide: "Buyers Guide",
+    blog: "Blog",
+  },
+  hero: {
+    trustBadges: {
+      api: "API-accredited team",
+      experience: "35+ years combined experience",
+      buyers: "Hundreds of guided buyers",
+    },
+    headline: "Find Your New-Build Home on the",
+    headlineHighlight: "Costa del Sol",
+    tagline: "Safely. Transparently. In Your Language.",
+    description: "DelSolPrimeHomes guides international buyers through high-quality new-build and off-plan real estate from Málaga to Sotogrande — with API-accredited advisors, 35+ years of combined experience, and advanced AI tools to help you make the right decision.",
+    ctaPrimary: "Start Your Property Search",
+    ctaSecondary: "Book a Call With an Advisor",
+  },
+  quickSearch: {
+    headline: "Start With the Right Properties — Not Endless Scrolling",
+    description: "We focus exclusively on carefully selected new-build and off-plan developments, matching your lifestyle, your timing, and your long-term goals.",
+    labels: {
+      location: "Location",
+      purpose: "Purpose",
+      budget: "Max Budget",
+    },
+    placeholders: {
+      location: "Any Location",
+      budget: "Select Range",
+    },
+    purposes: {
+      investmentPersonal: "Investment & Personal",
+      holidayHome: "Holiday Home",
+      winterStay: "Winter Stay",
+      combination: "Combination",
+    },
+    budgetRanges: {
+      range1: "€300k - €500k",
+      range2: "€500k - €800k",
+      range3: "€800k - €1.5M",
+      range4: "€1.5M+",
+    },
+    submit: "Open the Full Property Finder",
+  },
+  miniAbout: {
+    headline: "Expertise You Can",
+    headlineHighlight: "Trust",
+    paragraph1: "DelSolPrimeHomes was founded by Hans Beeckman, Cédric Van Hecke, and Steven Roberts — three API-accredited real estate professionals with decades of experience helping international buyers purchase safely on the Costa del Sol.",
+    paragraph2: "Together with a multilingual team that earned their reputation at respected agencies across the region, we offer full guidance in English, Dutch, French, German, Finnish, Polish, Danish, Hungarian, Swedish, and Norwegian.",
+    cta: "Meet the Team",
+  },
+  usps: {
+    eyebrow: "Why Choose Us",
+    headline: "Why Buyers Trust DelSolPrimeHomes",
+    items: [
+      {
+        title: "API-Accredited Advisors",
+        description: "We operate under strict Spanish standards of professionalism, ethics, and legal compliance.",
+      },
+      {
+        title: "35+ Years of Experience",
+        description: "Our team members have helped hundreds of families and individuals buy safely in Spain, using the expertise they gained at leading real estate offices before joining DelSolPrimeHomes.",
+      },
+      {
+        title: "AI-Enhanced Property Selection",
+        description: "We analyse and compare new-build projects between Málaga and Sotogrande using advanced AI tools — so you only see the opportunities that truly fit your needs.",
+      },
+      {
+        title: "Full Legal & Document Support",
+        description: "We guide you through licences, contracts, payment schedules, and bank guarantees, ensuring clarity and legal security at every step.",
+      },
+    ],
+  },
+  featuredAreas: {
+    eyebrow: "Locations",
+    headline: "From Málaga to Sotogrande — Carefully Selected Areas",
+    description: "Each area on the Costa del Sol has its own character, lifestyle, and investment potential. We guide you to the location that fits your vision.",
+    cta: "Explore All Areas",
+    areas: {
+      marbella: "The jewel of the Costa del Sol, famous for its Golden Mile, Puerto Banús, and year-round international community.",
+      estepona: "The Garden of the Costa del Sol — charming Andalusian atmosphere with growing modern infrastructure and excellent value.",
+      sotogrande: "Privacy and prestige. Home to world-class golf, polo, and marina living in one of Europe's most exclusive residential areas.",
+      malaga: "A vibrant cultural hub with museums, universities, and strong capital growth — plus the best flight connections on the coast.",
+    },
+  },
+  process: {
+    eyebrow: "How We Work",
+    headline: "From First Call to Key Handover",
+    steps: [
+      {
+        title: "Discovery Call in Your Language",
+        description: "We begin with a friendly video call to understand your goals, timing, budget, and preferences — completely free and with no pressure.",
+      },
+      {
+        title: "Tailored Shortlist of Developments",
+        description: "Using our AI-powered selection system and market knowledge, we create a shortlist of new-build projects that match your exact criteria.",
+      },
+      {
+        title: "Legal & Financial Clarity",
+        description: "We explain everything: payment plans, bank guarantees, title insurance, community fees, and the full timeline from reservation to completion.",
+      },
+      {
+        title: "Viewing Trip & Logistics",
+        description: "We coordinate your property viewing trip, arrange meetings with developers, and guide you through every site visit.",
+      },
+      {
+        title: "Signing, Monitoring, and Key Handover",
+        description: "From signing the reservation contract to final completion, we stay involved — ensuring every milestone is met and every document is correct.",
+      },
+    ],
+    cta: "View the Buyers Guide",
+  },
+  reviews: {
+    headline: "What Our Clients Say",
+    description: "Real words from real buyers who trusted us to guide their property journey on the Costa del Sol.",
+    cta: "Read All Reviews",
+  },
+  blogTeaser: {
+    eyebrow: "Knowledge Base",
+    headline: "Insights & Guides for Foreign Buyers",
+    description: "Learn more about taxes, legal processes, financing, and life on the Costa del Sol — written by our team and trusted industry partners.",
+    cta: "Visit the Blog",
+    readArticle: "Read Article",
+  },
+  finalCta: {
+    headline: "Ready to Find Your",
+    headlineHighlight: "Dream Home?",
+    description: "Whether you're just starting your search or ready to move forward, our API-accredited advisors are here to guide you — clearly, transparently, and in your language.",
+    ctaPrimary: "Book a 1:1 Call",
+    ctaSecondary: "Tell Us What You're Looking For",
+  },
+  footer: {
+    brandDescription: "DelSolPrimeHomes — New-build and off-plan specialists on the Costa del Sol. API-registered. Multilingual guidance. International expertise.",
+    contactHeading: "Contact Us",
+    navigateHeading: "Navigate",
+    legalHeading: "Legal",
+    copyright: "© {year} DelSolPrimeHomes. All rights reserved. API Registered.",
+    tagline: "Made for Excellence",
+    address: "Calle Example 123, Marbella",
+    links: {
+      propertyFinder: "Property Finder",
+      featuredAreas: "Featured Areas",
+      ourTeam: "Our Team",
+      buyersGuide: "Buyers Guide",
+      blogInsights: "Blog & Insights",
+    },
+    legal: {
+      privacy: "Privacy Policy",
+      cookies: "Cookie Policy",
+      legalNotice: "Legal Notice",
+      lpo: "LPO Information",
+      gdpr: "GDPR Compliance",
+    },
+  },
+};
