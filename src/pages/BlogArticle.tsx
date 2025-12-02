@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -18,11 +18,18 @@ import { FunnelCTA } from "@/components/blog-article/FunnelCTA";
 import { ArticleFooter } from "@/components/blog-article/ArticleFooter";
 import { StickyMobileCTA } from "@/components/blog-article/StickyMobileCTA";
 import { generateAllSchemas } from "@/lib/schemaGenerator";
+import { isFeatureEnabled } from "@/lib/featureFlags";
 import { BlogArticle as BlogArticleType, Author, ExternalCitation, FAQEntity, FunnelStage, InternalLink } from "@/types/blog";
 import { ChatbotWidget } from "@/components/chatbot/ChatbotWidget";
 
 const BlogArticle = () => {
   const { slug } = useParams<{ slug: string }>();
+  const [hreflangEnabled, setHreflangEnabled] = useState(false);
+
+  // Check feature flag on mount
+  useEffect(() => {
+    isFeatureEnabled('enhanced_hreflang').then(setHreflangEnabled);
+  }, []);
 
   const { data: article, isLoading, error } = useQuery({
     queryKey: ["article", slug],
@@ -178,7 +185,7 @@ const BlogArticle = () => {
   const baseUrl = window.location.origin;
   const currentUrl = `${baseUrl}/blog/${article.slug}`;
 
-  // Language to hreflang mapping
+  // Language to hreflang mapping (all 10 supported languages)
   const langToHreflang: Record<string, string> = {
     en: 'en-GB',
     de: 'de-DE',
@@ -192,40 +199,42 @@ const BlogArticle = () => {
     no: 'nb-NO',
   };
 
-  // Generate hreflang tags array
-  const hreflangTags = [];
+  // Generate hreflang tags array - ONLY when feature flag is enabled
+  const hreflangTags: { lang: string; hrefLang: string; href: string }[] = [];
   
-  // 1. Self-referencing hreflang (current page)
-  const currentLangCode = langToHreflang[article.language] || article.language;
-  hreflangTags.push({
-    lang: article.language,
-    hrefLang: currentLangCode,
-    href: currentUrl
-  });
-  
-  // 2. Add translations (only existing translations)
-  if (article.translations && typeof article.translations === 'object') {
-    Object.entries(article.translations).forEach(([lang, slug]) => {
-      if (slug && typeof slug === 'string' && lang !== article.language) {
-        const langCode = langToHreflang[lang] || lang;
-        hreflangTags.push({
-          lang: lang,
-          hrefLang: langCode,
-          href: `${baseUrl}/blog/${slug}`
-        });
-      }
+  if (hreflangEnabled) {
+    // 1. Self-referencing hreflang (current page)
+    const currentLangCode = langToHreflang[article.language] || article.language;
+    hreflangTags.push({
+      lang: article.language,
+      hrefLang: currentLangCode,
+      href: currentUrl
+    });
+    
+    // 2. Add translations (only existing translations)
+    if (article.translations && typeof article.translations === 'object') {
+      Object.entries(article.translations).forEach(([lang, slug]) => {
+        if (slug && typeof slug === 'string' && lang !== article.language) {
+          const langCode = langToHreflang[lang] || lang;
+          hreflangTags.push({
+            lang: lang,
+            hrefLang: langCode,
+            href: `${baseUrl}/blog/${slug}`
+          });
+        }
+      });
+    }
+    
+    // 3. x-default (point to English if exists, otherwise current page)
+    const xDefaultUrl = article.translations?.en 
+      ? `${baseUrl}/blog/${article.translations.en}` 
+      : currentUrl;
+    hreflangTags.push({
+      lang: 'x-default',
+      hrefLang: 'x-default',
+      href: xDefaultUrl
     });
   }
-  
-  // 3. x-default (point to English if exists, otherwise current page)
-  const xDefaultUrl = article.translations?.en 
-    ? `${baseUrl}/blog/${article.translations.en}` 
-    : currentUrl;
-  hreflangTags.push({
-    lang: 'x-default',
-    hrefLang: 'x-default',
-    href: xDefaultUrl
-  });
 
   return (
     <>
@@ -233,7 +242,8 @@ const BlogArticle = () => {
         {/* Basic Meta Tags */}
         <title>{article.meta_title} | Del Sol Prime Homes</title>
         <meta name="description" content={article.meta_description} />
-        <link rel="canonical" href={article.canonical_url || currentUrl} />
+        {/* Canonical always self-referencing (never cross-language) */}
+        <link rel="canonical" href={currentUrl} />
         
         {/* Open Graph Tags */}
         <meta property="og:title" content={article.headline} />
@@ -259,7 +269,7 @@ const BlogArticle = () => {
         <meta name="twitter:description" content={article.meta_description} />
         <meta name="twitter:image" content={article.featured_image_url} />
         
-        {/* Hreflang Tags */}
+        {/* Hreflang Tags - ONLY when feature flag is enabled */}
         {hreflangTags.map((tag) => (
           <link key={tag.lang} rel="alternate" hrefLang={tag.hrefLang} href={tag.href} />
         ))}
