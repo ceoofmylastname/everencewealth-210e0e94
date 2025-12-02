@@ -1,8 +1,16 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { isFeatureEnabled } from "@/lib/featureFlags";
 
 const Sitemap = () => {
+  const [hreflangEnabled, setHreflangEnabled] = useState(false);
+
+  // Check feature flag on mount
+  useEffect(() => {
+    isFeatureEnabled('enhanced_hreflang').then(setHreflangEnabled);
+  }, []);
+
   const { data: articles } = useQuery({
     queryKey: ["sitemap-articles"],
     queryFn: async () => {
@@ -21,66 +29,71 @@ const Sitemap = () => {
     if (articles) {
       const baseUrl = "https://delsolprimehomes.com";
       
+      // All 10 supported languages (no Spanish)
       const langToHreflang: Record<string, string> = {
-        en: 'en-GB', es: 'es-ES', de: 'de-DE', nl: 'nl-NL',
-        fr: 'fr-FR', pl: 'pl-PL', sv: 'sv-SE', da: 'da-DK', hu: 'hu-HU',
+        en: 'en-GB', de: 'de-DE', nl: 'nl-NL',
+        fr: 'fr-FR', pl: 'pl-PL', sv: 'sv-SE', 
+        da: 'da-DK', hu: 'hu-HU', fi: 'fi-FI', no: 'nb-NO',
       };
       
+      // Build sitemap with conditional hreflang based on feature flag
       const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-        xmlns:xhtml="http://www.w3.org/1999/xhtml">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"${hreflangEnabled ? '\n        xmlns:xhtml="http://www.w3.org/1999/xhtml"' : ''}>
   
   <!-- Homepage -->
   <url>
     <loc>${baseUrl}/</loc>
     <changefreq>daily</changefreq>
-    <priority>1.0</priority>
+    <priority>1.0</priority>${hreflangEnabled ? `
     <xhtml:link rel="alternate" hreflang="en-GB" href="${baseUrl}/" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="${baseUrl}/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="${baseUrl}/" />` : ''}
   </url>
   
   <!-- Blog Index -->
   <url>
     <loc>${baseUrl}/blog</loc>
     <changefreq>daily</changefreq>
-    <priority>0.9</priority>
+    <priority>0.9</priority>${hreflangEnabled ? `
     <xhtml:link rel="alternate" hreflang="en-GB" href="${baseUrl}/blog" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="${baseUrl}/blog" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="${baseUrl}/blog" />` : ''}
   </url>
   
   <!-- Blog Articles -->
 ${articles.map(article => {
   const lastmod = article.date_modified || article.date_published || new Date().toISOString();
   const currentUrl = `${baseUrl}/blog/${article.slug}`;
-  const currentLangCode = langToHreflang[article.language] || article.language;
   
-  // Build hreflang links
-  let hreflangLinks = `    <xhtml:link rel="alternate" hreflang="${currentLangCode}" href="${currentUrl}" />`;
+  // Build hreflang links ONLY when feature flag is enabled
+  let hreflangLinks = '';
   
-  // Add translations
-  if (article.translations && typeof article.translations === 'object') {
-    const translationsObj = article.translations as Record<string, unknown>;
-    Object.entries(translationsObj).forEach(([lang, slug]) => {
-      if (slug && typeof slug === 'string' && lang !== article.language) {
-        const langCode = langToHreflang[lang] || lang;
-        hreflangLinks += `\n    <xhtml:link rel="alternate" hreflang="${langCode}" href="${baseUrl}/blog/${slug}" />`;
-      }
-    });
+  if (hreflangEnabled) {
+    const currentLangCode = langToHreflang[article.language] || article.language;
+    hreflangLinks = `\n    <xhtml:link rel="alternate" hreflang="${currentLangCode}" href="${currentUrl}" />`;
+    
+    // Add translations
+    if (article.translations && typeof article.translations === 'object') {
+      const translationsObj = article.translations as Record<string, unknown>;
+      Object.entries(translationsObj).forEach(([lang, slug]) => {
+        if (slug && typeof slug === 'string' && lang !== article.language) {
+          const langCode = langToHreflang[lang] || lang;
+          hreflangLinks += `\n    <xhtml:link rel="alternate" hreflang="${langCode}" href="${baseUrl}/blog/${slug}" />`;
+        }
+      });
+    }
+    
+    // Add x-default
+    const translationsObj = article.translations as Record<string, unknown> | null;
+    const xDefaultUrl = (translationsObj?.en && typeof translationsObj.en === 'string') 
+      ? `${baseUrl}/blog/${translationsObj.en}` 
+      : currentUrl;
+    hreflangLinks += `\n    <xhtml:link rel="alternate" hreflang="x-default" href="${xDefaultUrl}" />`;
   }
-  
-  // Add x-default
-  const translationsObj = article.translations as Record<string, unknown> | null;
-  const xDefaultUrl = (translationsObj?.en && typeof translationsObj.en === 'string') 
-    ? `${baseUrl}/blog/${translationsObj.en}` 
-    : currentUrl;
-  hreflangLinks += `\n    <xhtml:link rel="alternate" hreflang="x-default" href="${xDefaultUrl}" />`;
   
   return `  <url>
     <loc>${currentUrl}</loc>
     <lastmod>${new Date(lastmod).toISOString().split('T')[0]}</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-${hreflangLinks}
+    <priority>0.8</priority>${hreflangLinks}
   </url>`;
 }).join('\n')}
   
@@ -100,7 +113,7 @@ ${hreflangLinks}
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
     }
-  }, [articles]);
+  }, [articles, hreflangEnabled]);
 
   return (
     <div className="container mx-auto p-6">
@@ -108,11 +121,17 @@ ${hreflangLinks}
       <p className="text-muted-foreground mb-4">
         The sitemap has been copied to your clipboard and downloaded as sitemap.xml
       </p>
+      <div className="mb-4 p-3 bg-muted/50 rounded-lg">
+        <p className="text-sm">
+          <strong>Hreflang tags:</strong> {hreflangEnabled ? '✅ Enabled' : '❌ Disabled (feature flag off)'}
+        </p>
+      </div>
       <div className="bg-muted p-4 rounded-lg overflow-auto max-h-96">
         <pre className="text-xs">
           {articles && `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   ${articles.length} published articles included
+  Hreflang: ${hreflangEnabled ? 'ENABLED' : 'DISABLED'}
 </urlset>`}
         </pre>
       </div>

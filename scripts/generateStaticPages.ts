@@ -191,7 +191,12 @@ function sanitizeForHTML(text: string): string {
     .replace(/'/g, '&#039;');
 }
 
-function generateStaticHTML(article: ArticleData): string {
+/**
+ * Generate static HTML for an article
+ * @param article - Article data
+ * @param enhancedHreflang - Whether to include hreflang tags (controlled by feature flag)
+ */
+function generateStaticHTML(article: ArticleData, enhancedHreflang: boolean): string {
   const organizationSchema = generateOrganizationSchema();
   const authorSchema = generateAuthorSchema(article.author);
   const articleSchema = generateArticleSchema(article);
@@ -209,38 +214,43 @@ function generateStaticHTML(article: ArticleData): string {
     faqSchema ? `<script type="application/ld+json" data-schema="faq">${JSON.stringify(faqSchema, null, 2)}</script>` : ''
   ].filter(Boolean).join('\n  ');
 
-  // Build hreflang links for translations
-  const langToHreflang: Record<string, string> = {
-    en: 'en-GB', de: 'de-DE', nl: 'nl-NL',
-    fr: 'fr-FR', pl: 'pl-PL', sv: 'sv-SE', da: 'da-DK', hu: 'hu-HU',
-    fi: 'fi-FI', no: 'nb-NO'
-  };
-
-  const hreflangLinksArray = [];
   const baseUrl = 'https://delsolprimehomes.com';
-  const currentUrl = `${baseUrl}/blog/${article.slug}`;
+  // Canonical always self-referencing (never cross-language)
+  const canonicalUrl = `${baseUrl}/blog/${article.slug}`;
 
-  // 1. Self-referencing
-  const currentLangCode = langToHreflang[article.language] || article.language;
-  hreflangLinksArray.push(`  <link rel="alternate" hreflang="${currentLangCode}" href="${currentUrl}" />`);
+  // Build hreflang links ONLY when feature flag is enabled
+  let hreflangLinks = '';
+  
+  if (enhancedHreflang) {
+    const langToHreflang: Record<string, string> = {
+      en: 'en-GB', de: 'de-DE', nl: 'nl-NL',
+      fr: 'fr-FR', pl: 'pl-PL', sv: 'sv-SE', da: 'da-DK', hu: 'hu-HU',
+      fi: 'fi-FI', no: 'nb-NO'
+    };
 
-  // 2. Translations (only existing translations)
-  if (article.translations && typeof article.translations === 'object') {
-    Object.entries(article.translations).forEach(([lang, slug]) => {
-      if (slug && typeof slug === 'string' && lang !== article.language) {
-        const langCode = langToHreflang[lang] || lang;
-        hreflangLinksArray.push(`  <link rel="alternate" hreflang="${langCode}" href="${baseUrl}/blog/${slug}" />`);
-      }
-    });
+    const hreflangLinksArray = [];
+    const currentUrl = `${baseUrl}/blog/${article.slug}`;
+
+    // 1. Self-referencing
+    const currentLangCode = langToHreflang[article.language] || article.language;
+    hreflangLinksArray.push(`  <link rel="alternate" hreflang="${currentLangCode}" href="${currentUrl}" />`);
+
+    // 2. Translations (only existing translations)
+    if (article.translations && typeof article.translations === 'object') {
+      Object.entries(article.translations).forEach(([lang, slug]) => {
+        if (slug && typeof slug === 'string' && lang !== article.language) {
+          const langCode = langToHreflang[lang] || lang;
+          hreflangLinksArray.push(`  <link rel="alternate" hreflang="${langCode}" href="${baseUrl}/blog/${slug}" />`);
+        }
+      });
+    }
+
+    // 3. x-default (point to English if exists, otherwise current page)
+    const xDefaultSlug = article.translations?.en || article.slug;
+    hreflangLinksArray.push(`  <link rel="alternate" hreflang="x-default" href="${baseUrl}/blog/${xDefaultSlug}" />`);
+
+    hreflangLinks = '\n' + hreflangLinksArray.join('\n');
   }
-
-  // 3. x-default (point to English if exists, otherwise current page)
-  const xDefaultSlug = article.translations?.en || article.slug;
-  hreflangLinksArray.push(`  <link rel="alternate" hreflang="x-default" href="${baseUrl}/blog/${xDefaultSlug}" />`);
-
-  const hreflangLinks = hreflangLinksArray.join('\n');
-
-  const canonicalUrl = article.canonical_url || `https://delsolprimehomes.com/blog/${article.slug}`;
 
   return `<!DOCTYPE html>
 <html lang="${article.language}">
@@ -251,8 +261,7 @@ function generateStaticHTML(article: ArticleData): string {
   <meta name="author" content="${article.author?.name || 'Del Sol Prime Homes'}">
   <title>${sanitizeForHTML(article.meta_title)} | Del Sol Prime Homes</title>
   
-  <link rel="canonical" href="${canonicalUrl}" />
-${hreflangLinks}
+  <link rel="canonical" href="${canonicalUrl}" />${hreflangLinks}
   
   <!-- Open Graph -->
   <meta property="og:type" content="article" />
@@ -320,10 +329,37 @@ ${hreflangLinks}
 </html>`;
 }
 
+/**
+ * Check if a feature flag is enabled
+ */
+async function checkFeatureFlag(flagName: string): Promise<boolean> {
+  try {
+    const { data, error } = await supabase
+      .from('content_settings')
+      .select('setting_value')
+      .eq('setting_key', `feature_${flagName}`)
+      .single();
+
+    if (error) {
+      console.log(`⚠️ Feature flag '${flagName}' not found, defaulting to false`);
+      return false;
+    }
+
+    return data?.setting_value === 'true';
+  } catch (err) {
+    console.error(`❌ Error checking feature flag '${flagName}':`, err);
+    return false;
+  }
+}
+
 export async function generateStaticPages(distDir: string) {
   console.log('🚀 Starting static page generation...');
   
   try {
+    // Check feature flag for enhanced hreflang
+    const enhancedHreflang = await checkFeatureFlag('enhanced_hreflang');
+    console.log(`🏳️ Feature flag 'enhanced_hreflang': ${enhancedHreflang ? 'ENABLED' : 'DISABLED'}`);
+
     // Fetch all published articles with author and reviewer
     const { data: articles, error } = await supabase
       .from('blog_articles')
@@ -351,7 +387,7 @@ export async function generateStaticPages(distDir: string) {
 
     for (const article of articles) {
       try {
-        const html = generateStaticHTML(article as any);
+        const html = generateStaticHTML(article as any, enhancedHreflang);
         const filePath = join(distDir, 'blog', article.slug, 'index.html');
         
         // Create directory if it doesn't exist
