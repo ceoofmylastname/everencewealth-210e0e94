@@ -89,7 +89,8 @@ async function verifyStaticPages(distDir: string): Promise<void> {
       warnings: [],
     };
 
-    const htmlPath = resolve(distDir, 'blog', article.slug, 'index.html');
+    // NEW URL STRUCTURE: /{lang}/{slug}/index.html
+    const htmlPath = resolve(distDir, article.language, article.slug, 'index.html');
 
     // Check if file exists
     if (!existsSync(htmlPath)) {
@@ -243,7 +244,8 @@ async function verifyStaticPages(distDir: string): Promise<void> {
       };
 
       const expectedSelfLang = langToHreflang[article.language] || article.language;
-      const currentUrl = `https://delsolprimehomes.com/blog/${article.slug}`;
+      // NEW URL FORMAT
+      const currentUrl = `https://delsolprimehomes.com/${article.language}/${article.slug}`;
 
       // Check self-referencing hreflang
       result.hasSelfHreflang = hreflangData.some(h => 
@@ -305,7 +307,8 @@ async function verifyStaticPages(distDir: string): Promise<void> {
       const canonicalMatch = html.match(/<link\s+rel="canonical"\s+href="([^"]+)"/);
       if (canonicalMatch) {
         const canonicalUrl = canonicalMatch[1];
-        const expectedCanonical = `https://delsolprimehomes.com/blog/${article.slug}`;
+        // NEW URL FORMAT VALIDATION
+        const expectedCanonical = `https://delsolprimehomes.com/${article.language}/${article.slug}`;
         if (canonicalUrl !== expectedCanonical) {
           result.warnings.push(`Canonical URL mismatch: expected ${expectedCanonical}, got ${canonicalUrl}`);
         }

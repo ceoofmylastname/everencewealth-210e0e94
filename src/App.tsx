@@ -22,8 +22,9 @@ import ApprovedDomains from "./pages/admin/ApprovedDomains";
 import BulkInternalLinks from "./pages/admin/BulkInternalLinks";
 import TranslationLinker from "./pages/admin/TranslationLinker";
 import Auth from "./pages/Auth";
-import BlogArticle from "./pages/BlogArticle";
 import BlogIndex from "./pages/BlogIndex";
+import BlogArticle from "./pages/BlogArticle";
+import LegacyBlogRedirect from "./pages/LegacyBlogRedirect";
 import Sitemap from "./pages/Sitemap";
 import NotFound from "./pages/NotFound";
 import Home from "./pages/Home";
@@ -50,7 +51,13 @@ const App = () => (
           <Route path="/" element={<Home />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/blog" element={<BlogIndex />} />
-          <Route path="/blog/:slug" element={<BlogArticle />} />
+          
+          {/* New language-prefixed routes */}
+          <Route path="/:lang/:slug" element={<BlogArticle />} />
+          
+          {/* Legacy redirect route */}
+          <Route path="/blog/:slug" element={<LegacyBlogRedirect />} />
+          
           <Route path="/sitemap" element={<Sitemap />} />
           <Route path="/property-finder" element={<PropertyFinder />} />
           <Route path="/property/:reference" element={<PropertyDetail />} />
