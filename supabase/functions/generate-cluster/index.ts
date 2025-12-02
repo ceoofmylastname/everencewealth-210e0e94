@@ -2444,6 +2444,34 @@ Return ONLY valid JSON:
         finalStatus = 'partial';
         completionNote = `Multilingual: ${completedLanguages.length}/${languagesQueue.length} languages complete (${completedLanguages.join(', ') || 'none'}). Next: ${remainingLanguages[0]}.`;
         console.log(`[Job ${jobId}] ✅ Progress update. ${remainingLanguages.length} languages remaining. Status: partial`);
+        
+        // AUTO-CONTINUATION: Automatically invoke resume-cluster for next language
+        console.log(`[Job ${jobId}] 🚀 Auto-continuing to next language: ${remainingLanguages[0]}`);
+        try {
+          const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
+          const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
+          
+          // Use fetch to invoke resume-cluster (can't use supabase.functions.invoke from within edge function)
+          const resumeResponse = await fetch(`${supabaseUrl}/functions/v1/resume-cluster`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${supabaseServiceKey}`,
+            },
+            body: JSON.stringify({ jobId }),
+          });
+          
+          if (!resumeResponse.ok) {
+            const errorText = await resumeResponse.text();
+            console.error(`[Job ${jobId}] ⚠️ Auto-resume HTTP error: ${resumeResponse.status} - ${errorText}`);
+            // Status remains 'partial' - user can manually resume
+          } else {
+            console.log(`[Job ${jobId}] ✅ Auto-resume triggered successfully for ${remainingLanguages[0]}`);
+          }
+        } catch (resumeErr) {
+          console.error(`[Job ${jobId}] ⚠️ Auto-resume error:`, resumeErr);
+          // Status remains 'partial' - user can manually resume from UI
+        }
       } else {
         // All languages complete - run translation linking
         console.log(`[Job ${jobId}] 🌍 ALL LANGUAGES COMPLETE! Running translation linking...`);
