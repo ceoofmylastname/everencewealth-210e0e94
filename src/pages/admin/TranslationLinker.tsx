@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
-import { Languages, Link2, Unlink, Save, AlertCircle, CheckCircle2, Search } from "lucide-react";
+import { Languages, Link2, Unlink, Save, AlertCircle, CheckCircle2, Search, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 
 interface Article {
@@ -64,6 +64,22 @@ export default function TranslationLinker() {
       
       if (error) throw error;
       return (data || []) as Article[];
+    },
+  });
+
+  // Auto-link all translations mutation
+  const autoLinkAll = useMutation({
+    mutationFn: async () => {
+      const { data, error } = await supabase.functions.invoke('auto-link-translations');
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["translation-linker-articles"] });
+      toast.success(`Auto-linking complete! Linked ${data.articlesLinked} articles across ${data.clustersProcessed} clusters.`);
+    },
+    onError: (error: Error) => {
+      toast.error(`Auto-linking failed: ${error.message}`);
     },
   });
 
@@ -130,15 +146,16 @@ export default function TranslationLinker() {
     const articlesWithTranslations = articles?.filter(a => 
       a.translations && Object.keys(a.translations).length > 0
     ).length || 0;
-    const completelyLinked = clusters.filter(c => c.completeness === 100).length;
+    const completeClusters = clusters.filter(c => c.completeness === 100).length;
+    const incompleteClusters = clusters.length - completeClusters;
     
     return {
       totalArticles,
       articlesWithTranslations,
       linkedPercentage: totalArticles > 0 ? Math.round((articlesWithTranslations / totalArticles) * 100) : 0,
       totalClusters: clusters.length,
-      completelyLinked,
-      incompleteLinked: clusters.length - completelyLinked,
+      completeClusters,
+      incompleteClusters,
     };
   }, [articles, clusters]);
 
@@ -211,16 +228,27 @@ export default function TranslationLinker() {
               Link articles across languages for hreflang SEO
             </p>
           </div>
-          {pendingUpdates.size > 0 && (
-            <Button 
-              onClick={() => saveMutation.mutate()}
-              disabled={saveMutation.isPending}
-              size="lg"
+          <div className="flex gap-2">
+            <Button
+              onClick={() => autoLinkAll.mutate()}
+              disabled={autoLinkAll.isPending}
+              variant="default"
+              size="sm"
             >
-              <Save className="mr-2 h-5 w-5" />
-              Save {pendingUpdates.size} Update{pendingUpdates.size > 1 ? 's' : ''}
+              <Sparkles className="h-4 w-4 mr-2" />
+              {autoLinkAll.isPending ? 'Auto-Detecting...' : 'Auto-Detect All'}
             </Button>
-          )}
+            {pendingUpdates.size > 0 && (
+              <Button 
+                onClick={() => saveMutation.mutate()}
+                disabled={saveMutation.isPending}
+                size="sm"
+              >
+                <Save className="mr-2 h-4 w-4" />
+                Save {pendingUpdates.size}
+              </Button>
+            )}
+          </div>
         </div>
 
         {/* Statistics Cards */}
@@ -260,11 +288,11 @@ export default function TranslationLinker() {
                   <div className="flex gap-2">
                     <Badge variant="default" className="bg-green-500">
                       <CheckCircle2 className="h-3 w-3 mr-1" />
-                      {stats.completelyLinked}
+                      {stats.completeClusters}
                     </Badge>
                     <Badge variant="secondary">
                       <AlertCircle className="h-3 w-3 mr-1" />
-                      {stats.incompleteLinked}
+                      {stats.incompleteClusters}
                     </Badge>
                   </div>
                 </div>

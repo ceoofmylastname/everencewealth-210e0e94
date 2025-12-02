@@ -22,7 +22,7 @@ import { BlogArticle as BlogArticleType, Author, ExternalCitation, FAQEntity, Fu
 import { ChatbotWidget } from "@/components/chatbot/ChatbotWidget";
 
 const BlogArticle = () => {
-  const { slug } = useParams<{ slug: string }>();
+  const { slug, lang } = useParams<{ slug: string; lang?: string }>();
 
   const { data: article, isLoading, error } = useQuery({
     queryKey: ["article", slug],
@@ -164,7 +164,10 @@ const BlogArticle = () => {
   };
 
   const baseUrl = window.location.origin;
-  const currentUrl = `${baseUrl}/blog/${article.slug}`;
+  
+  // Use lang from URL param if available, otherwise from article
+  const articleLang = lang || article.language;
+  const currentUrl = `${baseUrl}/${articleLang}/${article.slug}`;
 
   // Preview URL detection
   const isPreview = typeof window !== 'undefined' && (
@@ -174,10 +177,9 @@ const BlogArticle = () => {
     window.location.hostname !== 'delsolprimehomes.com'
   );
 
-  // Language to hreflang mapping
+  // Language to hreflang mapping (all 10 languages)
   const langToHreflang: Record<string, string> = {
     en: 'en-GB',
-    es: 'es-ES',
     de: 'de-DE',
     nl: 'nl-NL',
     fr: 'fr-FR',
@@ -189,7 +191,7 @@ const BlogArticle = () => {
     no: 'nb-NO',
   };
 
-  // Generate hreflang tags array
+  // COMPREHENSIVE HREFLANG GENERATION
   const hreflangTags = [];
   
   // 1. Self-referencing hreflang (current page)
@@ -200,28 +202,27 @@ const BlogArticle = () => {
     href: currentUrl
   });
   
-  // 2. Add translations (only existing translations)
+  // 2. Add ALL translation siblings (comprehensive coverage)
   if (article.translations && typeof article.translations === 'object') {
-    Object.entries(article.translations).forEach(([lang, slug]) => {
-      if (slug && typeof slug === 'string' && lang !== article.language) {
-        const langCode = langToHreflang[lang] || lang;
+    Object.entries(article.translations).forEach(([translationLang, translationSlug]) => {
+      if (translationSlug && typeof translationSlug === 'string' && translationLang !== article.language) {
+        const langCode = langToHreflang[translationLang] || translationLang;
         hreflangTags.push({
-          lang: lang,
+          lang: translationLang,
           hrefLang: langCode,
-          href: `${baseUrl}/blog/${slug}`
+          href: `${baseUrl}/${translationLang}/${translationSlug}`
         });
       }
     });
   }
   
   // 3. x-default (point to English if exists, otherwise current page)
-  const xDefaultUrl = article.translations?.en 
-    ? `${baseUrl}/blog/${article.translations.en}` 
-    : currentUrl;
+  const xDefaultLang = article.translations?.en ? 'en' : article.language;
+  const xDefaultSlug = article.translations?.en || article.slug;
   hreflangTags.push({
     lang: 'x-default',
     hrefLang: 'x-default',
-    href: xDefaultUrl
+    href: `${baseUrl}/${xDefaultLang}/${xDefaultSlug}`
   });
 
   return (
