@@ -22,7 +22,7 @@ import { BlogArticle as BlogArticleType, Author, ExternalCitation, FAQEntity, Fu
 import { ChatbotWidget } from "@/components/chatbot/ChatbotWidget";
 
 const BlogArticle = () => {
-  const { slug, lang } = useParams<{ slug: string; lang?: string }>();
+  const { slug } = useParams<{ slug: string }>();
 
   const { data: article, isLoading, error } = useQuery({
     queryKey: ["article", slug],
@@ -164,22 +164,12 @@ const BlogArticle = () => {
   };
 
   const baseUrl = window.location.origin;
-  
-  // Use lang from URL param if available, otherwise from article
-  const articleLang = lang || article.language;
-  const currentUrl = `${baseUrl}/${articleLang}/${article.slug}`;
+  const currentUrl = `${baseUrl}/blog/${article.slug}`;
 
-  // Preview URL detection
-  const isPreview = typeof window !== 'undefined' && (
-    window.location.hostname.includes('lovable.app') ||
-    window.location.hostname.includes('preview') ||
-    window.location.hostname.includes('staging') ||
-    window.location.hostname !== 'delsolprimehomes.com'
-  );
-
-  // Language to hreflang mapping (all 10 languages)
+  // Language to hreflang mapping
   const langToHreflang: Record<string, string> = {
     en: 'en-GB',
+    es: 'es-ES',
     de: 'de-DE',
     nl: 'nl-NL',
     fr: 'fr-FR',
@@ -187,11 +177,9 @@ const BlogArticle = () => {
     sv: 'sv-SE',
     da: 'da-DK',
     hu: 'hu-HU',
-    fi: 'fi-FI',
-    no: 'nb-NO',
   };
 
-  // COMPREHENSIVE HREFLANG GENERATION
+  // Generate hreflang tags array
   const hreflangTags = [];
   
   // 1. Self-referencing hreflang (current page)
@@ -202,45 +190,37 @@ const BlogArticle = () => {
     href: currentUrl
   });
   
-  // 2. Add ALL translation siblings (comprehensive coverage)
+  // 2. Add translations (only existing translations)
   if (article.translations && typeof article.translations === 'object') {
-    Object.entries(article.translations).forEach(([translationLang, translationSlug]) => {
-      if (translationSlug && typeof translationSlug === 'string' && translationLang !== article.language) {
-        const langCode = langToHreflang[translationLang] || translationLang;
+    Object.entries(article.translations).forEach(([lang, slug]) => {
+      if (slug && typeof slug === 'string' && lang !== article.language) {
+        const langCode = langToHreflang[lang] || lang;
         hreflangTags.push({
-          lang: translationLang,
+          lang: lang,
           hrefLang: langCode,
-          href: `${baseUrl}/${translationLang}/${translationSlug}`
+          href: `${baseUrl}/blog/${slug}`
         });
       }
     });
   }
   
   // 3. x-default (point to English if exists, otherwise current page)
-  const xDefaultLang = article.translations?.en ? 'en' : article.language;
-  const xDefaultSlug = article.translations?.en || article.slug;
+  const xDefaultUrl = article.translations?.en 
+    ? `${baseUrl}/blog/${article.translations.en}` 
+    : currentUrl;
   hreflangTags.push({
     lang: 'x-default',
     hrefLang: 'x-default',
-    href: `${baseUrl}/${xDefaultLang}/${xDefaultSlug}`
+    href: xDefaultUrl
   });
 
   return (
     <>
       <Helmet>
-        {/* Preview exclusion - noindex/nofollow for non-production URLs */}
-        {isPreview && (
-          <meta name="robots" content="noindex, nofollow" />
-        )}
-        
         {/* Basic Meta Tags */}
         <title>{article.meta_title} | Del Sol Prime Homes</title>
         <meta name="description" content={article.meta_description} />
-        
-        {/* Canonical - Only on production */}
-        {!isPreview && (
-          <link rel="canonical" href={article.canonical_url || currentUrl} />
-        )}
+        <link rel="canonical" href={article.canonical_url || currentUrl} />
         
         {/* Open Graph Tags */}
         <meta property="og:title" content={article.headline} />
@@ -266,15 +246,13 @@ const BlogArticle = () => {
         <meta name="twitter:description" content={article.meta_description} />
         <meta name="twitter:image" content={article.featured_image_url} />
         
-        {/* Hreflang Tags - Only on production */}
-        {!isPreview && hreflangTags.map((tag) => (
+        {/* Hreflang Tags */}
+        {hreflangTags.map((tag) => (
           <link key={tag.lang} rel="alternate" hrefLang={tag.hrefLang} href={tag.href} />
         ))}
         
         {/* Additional Meta */}
-        {!isPreview && (
-          <meta name="robots" content="index, follow, max-image-preview:large" />
-        )}
+        <meta name="robots" content="index, follow, max-image-preview:large" />
         {author && <meta name="author" content={author.name} />}
         <meta name="language" content={article.language} />
         

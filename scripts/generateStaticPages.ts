@@ -209,7 +209,7 @@ function generateStaticHTML(article: ArticleData): string {
     faqSchema ? `<script type="application/ld+json" data-schema="faq">${JSON.stringify(faqSchema, null, 2)}</script>` : ''
   ].filter(Boolean).join('\n  ');
 
-  // Build hreflang links for translations (NEW URL STRUCTURE)
+  // Build hreflang links for translations
   const langToHreflang: Record<string, string> = {
     en: 'en-GB', de: 'de-DE', nl: 'nl-NL',
     fr: 'fr-FR', pl: 'pl-PL', sv: 'sv-SE', da: 'da-DK', hu: 'hu-HU',
@@ -218,30 +218,29 @@ function generateStaticHTML(article: ArticleData): string {
 
   const hreflangLinksArray = [];
   const baseUrl = 'https://delsolprimehomes.com';
-  const currentUrl = `${baseUrl}/${article.language}/${article.slug}`;
+  const currentUrl = `${baseUrl}/blog/${article.slug}`;
 
-  // 1. Self-referencing (NEW URL FORMAT)
+  // 1. Self-referencing
   const currentLangCode = langToHreflang[article.language] || article.language;
   hreflangLinksArray.push(`  <link rel="alternate" hreflang="${currentLangCode}" href="${currentUrl}" />`);
 
-  // 2. Translations - ALL SIBLINGS (NEW URL FORMAT)
+  // 2. Translations (only existing translations)
   if (article.translations && typeof article.translations === 'object') {
     Object.entries(article.translations).forEach(([lang, slug]) => {
       if (slug && typeof slug === 'string' && lang !== article.language) {
         const langCode = langToHreflang[lang] || lang;
-        hreflangLinksArray.push(`  <link rel="alternate" hreflang="${langCode}" href="${baseUrl}/${lang}/${slug}" />`);
+        hreflangLinksArray.push(`  <link rel="alternate" hreflang="${langCode}" href="${baseUrl}/blog/${slug}" />`);
       }
     });
   }
 
-  // 3. x-default (NEW URL FORMAT)
-  const xDefaultLang = article.translations?.en ? 'en' : article.language;
+  // 3. x-default (point to English if exists, otherwise current page)
   const xDefaultSlug = article.translations?.en || article.slug;
-  hreflangLinksArray.push(`  <link rel="alternate" hreflang="x-default" href="${baseUrl}/${xDefaultLang}/${xDefaultSlug}" />`);
+  hreflangLinksArray.push(`  <link rel="alternate" hreflang="x-default" href="${baseUrl}/blog/${xDefaultSlug}" />`);
 
   const hreflangLinks = hreflangLinksArray.join('\n');
 
-  const canonicalUrl = article.canonical_url || `${baseUrl}/${article.language}/${article.slug}`;
+  const canonicalUrl = article.canonical_url || `https://delsolprimehomes.com/blog/${article.slug}`;
 
   return `<!DOCTYPE html>
 <html lang="${article.language}">
@@ -260,7 +259,7 @@ ${hreflangLinks}
   <meta property="og:title" content="${sanitizeForHTML(article.meta_title)}" />
   <meta property="og:description" content="${sanitizeForHTML(article.meta_description)}" />
   <meta property="og:image" content="${article.featured_image_url}" />
-  <meta property="og:url" content="${currentUrl}" />
+  <meta property="og:url" content="https://delsolprimehomes.com/blog/${article.slug}" />
   
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image" />
@@ -353,8 +352,7 @@ export async function generateStaticPages(distDir: string) {
     for (const article of articles) {
       try {
         const html = generateStaticHTML(article as any);
-        // NEW URL STRUCTURE: /{lang}/{slug}/index.html
-        const filePath = join(distDir, article.language, article.slug, 'index.html');
+        const filePath = join(distDir, 'blog', article.slug, 'index.html');
         
         // Create directory if it doesn't exist
         mkdirSync(dirname(filePath), { recursive: true });
@@ -363,10 +361,10 @@ export async function generateStaticPages(distDir: string) {
         writeFileSync(filePath, html, 'utf-8');
         
         generated++;
-        console.log(`✅ Generated: /${article.language}/${article.slug}`);
+        console.log(`✅ Generated: /blog/${article.slug}`);
       } catch (err) {
         failed++;
-        console.error(`❌ Failed to generate /${article.language}/${article.slug}:`, err);
+        console.error(`❌ Failed to generate /blog/${article.slug}:`, err);
       }
     }
 

@@ -15,17 +15,14 @@ import Export from "./pages/admin/Export";
 import AITools from "./pages/admin/AITools";
 import SystemCheck from "./pages/admin/SystemCheck";
 import ClusterGenerator from "./pages/admin/ClusterGenerator";
-import ClusterCoverage from "./pages/admin/ClusterCoverage";
 import AEOGuide from "./pages/admin/AEOGuide";
 import BatchImageGeneration from "./pages/admin/BatchImageGeneration";
 import CitationHealth from "./pages/admin/CitationHealth";
 import ApprovedDomains from "./pages/admin/ApprovedDomains";
 import BulkInternalLinks from "./pages/admin/BulkInternalLinks";
-import TranslationLinker from "./pages/admin/TranslationLinker";
 import Auth from "./pages/Auth";
-import BlogIndex from "./pages/BlogIndex";
 import BlogArticle from "./pages/BlogArticle";
-import LegacyBlogRedirect from "./pages/LegacyBlogRedirect";
+import BlogIndex from "./pages/BlogIndex";
 import Sitemap from "./pages/Sitemap";
 import NotFound from "./pages/NotFound";
 import Home from "./pages/Home";
@@ -52,13 +49,7 @@ const App = () => (
           <Route path="/" element={<Home />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/blog" element={<BlogIndex />} />
-          
-          {/* New language-prefixed routes */}
-          <Route path="/:lang/:slug" element={<BlogArticle />} />
-          
-          {/* Legacy redirect route */}
-          <Route path="/blog/:slug" element={<LegacyBlogRedirect />} />
-          
+          <Route path="/blog/:slug" element={<BlogArticle />} />
           <Route path="/sitemap" element={<Sitemap />} />
           <Route path="/property-finder" element={<PropertyFinder />} />
           <Route path="/property/:reference" element={<PropertyDetail />} />
@@ -73,14 +64,12 @@ const App = () => (
           <Route path="/admin/export" element={<ProtectedRoute><Export /></ProtectedRoute>} />
           <Route path="/admin/ai-tools" element={<ProtectedRoute><AITools /></ProtectedRoute>} />
           <Route path="/admin/cluster-generator" element={<ProtectedRoute><ClusterGenerator /></ProtectedRoute>} />
-          <Route path="/admin/cluster-coverage" element={<ProtectedRoute><ClusterCoverage /></ProtectedRoute>} />
           <Route path="/admin/system-check" element={<ProtectedRoute><SystemCheck /></ProtectedRoute>} />
           <Route path="/admin/tools/batch-image-generation" element={<ProtectedRoute><BatchImageGeneration /></ProtectedRoute>} />
           <Route path="/admin/citation-health" element={<ProtectedRoute><CitationHealth /></ProtectedRoute>} />
           <Route path="/admin/docs/aeo-sge-guide" element={<ProtectedRoute><AEOGuide /></ProtectedRoute>} />
           <Route path="/admin/approved-domains" element={<ProtectedRoute><ApprovedDomains /></ProtectedRoute>} />
           <Route path="/admin/bulk-internal-links" element={<ProtectedRoute><BulkInternalLinks /></ProtectedRoute>} />
-          <Route path="/admin/translation-linker" element={<ProtectedRoute><TranslationLinker /></ProtectedRoute>} />
           
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
