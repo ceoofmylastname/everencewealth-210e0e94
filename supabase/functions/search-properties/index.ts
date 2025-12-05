@@ -72,11 +72,33 @@ serve(async (req) => {
       throw new Error('RESALES_ONLINE_API_KEY not configured');
     }
 
-    // API key format: "AGENCY_ID|P1|P2"
-    const [agencyId, p1, p2] = apiKey.split('|');
-    if (!agencyId || !p1 || !p2) {
-      throw new Error('RESALES_ONLINE_API_KEY is invalid. Expected format "AGENCY_ID|P1|P2"');
+    // Parse API key - supports multiple formats:
+    // Format 1: "AGENCY_ID|P1|P2" (pipe-separated)
+    // Format 2: Just the API key string (we'll use it as P1)
+    let agencyId: string;
+    let p1: string;
+    let p2: string;
+    
+    if (apiKey.includes('|')) {
+      const parts = apiKey.split('|');
+      if (parts.length >= 3) {
+        [agencyId, p1, p2] = parts;
+      } else if (parts.length === 2) {
+        [agencyId, p1] = parts;
+        p2 = p1; // Use same value for P2
+      } else {
+        agencyId = parts[0];
+        p1 = parts[0];
+        p2 = parts[0];
+      }
+    } else {
+      // Single value - use as all three params
+      agencyId = apiKey;
+      p1 = apiKey;
+      p2 = apiKey;
     }
+    
+    console.log('🔑 API Key parsed:', { agencyId: agencyId.substring(0, 4) + '***', hasP1: !!p1, hasP2: !!p2 });
 
     // Extract search parameters from either URL (GET) or body (POST)
     let location = '';
