@@ -1,9 +1,17 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { Section } from '../ui/Section';
 import { FEATURED_AREAS } from '../../../constants/home';
 import { Button } from '../ui/Button';
 import { ArrowRight, MapPin } from 'lucide-react';
 import { useTranslation } from '../../../i18n';
+
+const AREA_LOCATION_MAP: Record<string, string> = {
+  'marbella': 'Marbella',
+  'estepona': 'Estepona',
+  'sotogrande': 'Sotogrande',
+  'malaga': 'Málaga'
+};
 
 export const FeaturedAreas: React.FC = () => {
   const { t } = useTranslation();
@@ -25,14 +33,20 @@ export const FeaturedAreas: React.FC = () => {
             {t.featuredAreas.description}
           </p>
         </div>
-        <Button variant="ghost" className="hidden md:flex text-prime-gold font-bold hover:bg-white/50 group">
-          {t.featuredAreas.cta} <ArrowRight size={18} className="ml-2 group-hover:translate-x-1 transition-transform" />
-        </Button>
+        <Link to="/property-finder">
+          <Button variant="ghost" className="hidden md:flex text-prime-gold font-bold hover:bg-white/50 group">
+            {t.featuredAreas.cta} <ArrowRight size={18} className="ml-2 group-hover:translate-x-1 transition-transform" />
+          </Button>
+        </Link>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 md:gap-6">
         {FEATURED_AREAS.map((area, idx) => (
-          <div key={area.id} className={`group relative overflow-hidden rounded-2xl cursor-pointer shadow-lg hover:shadow-2xl hover:shadow-slate-900/20 hover:-translate-y-2 transition-all duration-500 aspect-[3/4] reveal-on-scroll stagger-${idx + 1}`}>
+          <Link 
+            to={`/property-finder?location=${encodeURIComponent(AREA_LOCATION_MAP[area.id] || area.name)}`}
+            key={area.id} 
+            className={`group relative overflow-hidden rounded-2xl cursor-pointer shadow-lg hover:shadow-2xl hover:shadow-slate-900/20 hover:-translate-y-2 transition-all duration-500 aspect-[3/4] reveal-on-scroll stagger-${idx + 1}`}
+          >
             <img 
               src={area.image} 
               alt={area.name} 
@@ -57,14 +71,16 @@ export const FeaturedAreas: React.FC = () => {
                 <ArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
               </div>
             </div>
-          </div>
+          </Link>
         ))}
       </div>
 
       <div className="mt-12 md:hidden text-center reveal-on-scroll">
-        <Button variant="ghost" className="text-prime-gold font-bold">
-          {t.featuredAreas.cta}
-        </Button>
+        <Link to="/property-finder">
+          <Button variant="ghost" className="text-prime-gold font-bold">
+            {t.featuredAreas.cta}
+          </Button>
+        </Link>
       </div>
     </Section>
   );

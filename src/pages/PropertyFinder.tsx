@@ -96,9 +96,15 @@ const PropertyFinder = () => {
       
       <main className="flex-1 container mx-auto px-4 pt-28 pb-8">
         <div className="mb-8">
-          <h1 className="text-4xl font-display font-bold mb-2">Find Your Dream Property</h1>
+          <h1 className="text-4xl font-display font-bold mb-2">
+            {searchParams.get("location") 
+              ? `Properties in ${searchParams.get("location")}` 
+              : "Find Your Dream Property"}
+          </h1>
           <p className="text-muted-foreground">
-            Browse exclusive properties on Costa del Sol
+            {searchParams.get("location")
+              ? `Explore exclusive real estate in ${searchParams.get("location")}, Costa del Sol`
+              : "Browse exclusive properties on Costa del Sol"}
           </p>
         </div>
 
