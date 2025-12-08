@@ -92,9 +92,9 @@ const PropertyFinder = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <Header />
+      <Header variant="solid" />
       
-      <main className="flex-1 container mx-auto px-4 py-8">
+      <main className="flex-1 container mx-auto px-4 pt-28 pb-8">
         <div className="mb-8">
           <h1 className="text-4xl font-display font-bold mb-2">Find Your Dream Property</h1>
           <p className="text-muted-foreground">
