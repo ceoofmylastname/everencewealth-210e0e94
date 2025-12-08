@@ -6,9 +6,16 @@ import { LANGUAGE_NAMES } from '../../constants/home';
 import { Button } from './ui/Button';
 import { useTranslation } from '../../i18n';
 
-export const Header: React.FC = () => {
+interface HeaderProps {
+  variant?: 'transparent' | 'solid';
+}
+
+export const Header: React.FC<HeaderProps> = ({ variant = 'transparent' }) => {
   const { t, currentLanguage, setLanguage } = useTranslation();
   const [isScrolled, setIsScrolled] = useState(false);
+  
+  // Use solid styling when variant is 'solid' OR when scrolled
+  const isLightBackground = variant === 'solid' || isScrolled;
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isLangMenuOpen, setIsLangMenuOpen] = useState(false);
 
@@ -23,58 +30,58 @@ export const Header: React.FC = () => {
   return (
     <header 
       className={`fixed top-0 w-full z-50 transition-all duration-500 border-b ${
-        isScrolled 
+        isLightBackground 
           ? 'glass-nav py-3 border-slate-200/50 shadow-sm' 
           : 'bg-transparent py-6 border-transparent'
       }`}
     >
       <div className="container mx-auto px-4 md:px-6 flex items-center justify-between">
-        {/* Logo */}
-        <div className="flex items-center gap-2.5 z-50">
+        {/* Logo - Clickable Home Button */}
+        <Link to="/" className="flex items-center gap-2.5 z-50">
           <img 
             src="https://storage.googleapis.com/msgsndr/9m2UBN29nuaCWceOgW2Z/media/6926151522d3b65c0becbaf4.png" 
             alt="DelSolPrimeHomes" 
             className={`h-14 md:h-20 w-auto object-contain transition-all duration-500 ${
-              isScrolled 
+              isLightBackground 
                 ? 'brightness-0 sepia saturate-[10] hue-rotate-[15deg]' 
                 : ''
             }`}
           />
-        </div>
+        </Link>
 
         {/* Desktop Nav */}
         <nav className="hidden lg:flex items-center gap-10">
           <Link 
             to="/property-finder"
-            className={`text-sm font-medium hover:text-prime-gold transition-colors duration-300 relative group font-nav ${isScrolled ? 'text-slate-700' : 'text-white/90'}`}
+            className={`text-sm font-medium hover:text-prime-gold transition-colors duration-300 relative group font-nav ${isLightBackground ? 'text-slate-700' : 'text-white/90'}`}
           >
             {t.nav.properties}
             <span className="absolute -bottom-1 left-0 w-0 h-px bg-prime-gold transition-all duration-300 group-hover:w-full"></span>
           </Link>
           <a 
             href="#areas"
-            className={`text-sm font-medium hover:text-prime-gold transition-colors duration-300 relative group font-nav ${isScrolled ? 'text-slate-700' : 'text-white/90'}`}
+            className={`text-sm font-medium hover:text-prime-gold transition-colors duration-300 relative group font-nav ${isLightBackground ? 'text-slate-700' : 'text-white/90'}`}
           >
             {t.nav.areas}
             <span className="absolute -bottom-1 left-0 w-0 h-px bg-prime-gold transition-all duration-300 group-hover:w-full"></span>
           </a>
           <a 
             href="#about"
-            className={`text-sm font-medium hover:text-prime-gold transition-colors duration-300 relative group font-nav ${isScrolled ? 'text-slate-700' : 'text-white/90'}`}
+            className={`text-sm font-medium hover:text-prime-gold transition-colors duration-300 relative group font-nav ${isLightBackground ? 'text-slate-700' : 'text-white/90'}`}
           >
             {t.nav.aboutUs}
             <span className="absolute -bottom-1 left-0 w-0 h-px bg-prime-gold transition-all duration-300 group-hover:w-full"></span>
           </a>
           <a 
             href="#guide"
-            className={`text-sm font-medium hover:text-prime-gold transition-colors duration-300 relative group font-nav ${isScrolled ? 'text-slate-700' : 'text-white/90'}`}
+            className={`text-sm font-medium hover:text-prime-gold transition-colors duration-300 relative group font-nav ${isLightBackground ? 'text-slate-700' : 'text-white/90'}`}
           >
             {t.nav.buyersGuide}
             <span className="absolute -bottom-1 left-0 w-0 h-px bg-prime-gold transition-all duration-300 group-hover:w-full"></span>
           </a>
           <Link 
             to="/blog"
-            className={`text-sm font-medium hover:text-prime-gold transition-colors duration-300 relative group font-nav ${isScrolled ? 'text-slate-700' : 'text-white/90'}`}
+            className={`text-sm font-medium hover:text-prime-gold transition-colors duration-300 relative group font-nav ${isLightBackground ? 'text-slate-700' : 'text-white/90'}`}
           >
             {t.nav.blog}
             <span className="absolute -bottom-1 left-0 w-0 h-px bg-prime-gold transition-all duration-300 group-hover:w-full"></span>
@@ -87,7 +94,7 @@ export const Header: React.FC = () => {
           <div className="relative">
             <button 
               onClick={() => setIsLangMenuOpen(!isLangMenuOpen)}
-              className={`flex items-center gap-1.5 text-sm font-medium transition-colors duration-300 ${isScrolled ? 'text-slate-700 hover:text-prime-900' : 'text-white hover:text-prime-gold'}`}
+              className={`flex items-center gap-1.5 text-sm font-medium transition-colors duration-300 ${isLightBackground ? 'text-slate-700 hover:text-prime-900' : 'text-white hover:text-prime-gold'}`}
             >
               {currentLanguage} <ChevronDown size={14} className={`transition-transform duration-300 ${isLangMenuOpen ? 'rotate-180' : ''}`} />
             </button>
@@ -110,7 +117,7 @@ export const Header: React.FC = () => {
             )}
           </div>
 
-          <Button variant={isScrolled ? 'primary' : 'secondary'} size="sm" className={!isScrolled ? 'shadow-lg shadow-black/10' : ''}>
+          <Button variant={isLightBackground ? 'primary' : 'secondary'} size="sm" className={!isLightBackground ? 'shadow-lg shadow-black/10' : ''}>
             {t.common.bookCall}
           </Button>
         </div>
@@ -118,7 +125,7 @@ export const Header: React.FC = () => {
         {/* Mobile Toggle */}
         <button 
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          className={`lg:hidden z-50 transition-colors duration-300 ${isScrolled || isMobileMenuOpen ? 'text-slate-900' : 'text-white'}`}
+          className={`lg:hidden z-50 transition-colors duration-300 ${isLightBackground || isMobileMenuOpen ? 'text-slate-900' : 'text-white'}`}
         >
           {isMobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
         </button>
