@@ -97,18 +97,28 @@ Return ONLY JSON: { "featuredImageAlt": "..." }`;
         break;
 
       case 'speakable':
-        prompt = `Regenerate the speakable answer (voice assistant response) for:
+        const speakableLanguageNames: Record<string, string> = {
+          'en': 'English', 'de': 'German', 'nl': 'Dutch', 'fr': 'French',
+          'pl': 'Polish', 'sv': 'Swedish', 'da': 'Danish', 'hu': 'Hungarian',
+          'fi': 'Finnish', 'no': 'Norwegian'
+        };
+        const speakableLangName = speakableLanguageNames[articleData.language] || 'English';
+        
+        prompt = `Regenerate the speakable answer (voice assistant response) IN ${speakableLangName.toUpperCase()} for:
 Headline: ${articleData.headline}
 Current answer: ${articleData.speakable_answer}
-Language: ${articleData.language}
+Language: ${speakableLangName} (${articleData.language})
 
 Requirements:
-- Conversational, natural tone
+- MUST be written entirely in ${speakableLangName}, NOT English (unless article is English)
+- Conversational, natural tone (use "you" and "your" equivalent in ${speakableLangName})
 - 50-80 words
 - Directly answers the main question
 - Includes key information
 
-Return ONLY JSON: { "speakableAnswer": "..." }`;
+CRITICAL: The response MUST be in ${speakableLangName}. Do not write in English unless the article language IS English.
+
+Return ONLY JSON: { "speakableAnswer": "..." } with the answer in ${speakableLangName}`;
         break;
 
       case 'meta_title':
