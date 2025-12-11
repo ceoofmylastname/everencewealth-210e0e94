@@ -1580,140 +1580,193 @@ Return ONLY the HTML content, no JSON wrapper, no markdown code blocks.`;
       console.log(`   Funnel Stage: ${plan.funnelStage}`);
       console.log(`   Topic: ${articleTopic}`);
       console.log(`   Location: ${location}`);
+      console.log(`   Language: ${currentLanguage}`);
+      console.log(`   Multilingual Mode: ${isMultilingual}`);
       console.log(`========================================\n`);
+      
+      // Language name mapping for alt text generation
+      const languageNames: Record<string, string> = {
+        'en': 'English',
+        'de': 'German',
+        'nl': 'Dutch',
+        'fr': 'French',
+        'pl': 'Polish',
+        'sv': 'Swedish',
+        'da': 'Danish',
+        'hu': 'Hungarian',
+        'fi': 'Finnish',
+        'no': 'Norwegian'
+      };
+      const languageName = languageNames[currentLanguage] || 'English';
       
       // FIX #2: Comprehensive error handling for image generation
       try {
-        console.log(`🎨 [Job ${jobId}] Article ${i + 1} - Generating image...`);
-        console.log(`   Prompt: ${imagePrompt.substring(0, 100)}...`);
-        
-        const imageResponse = await supabase.functions.invoke('generate-image', {
-          body: {
-            prompt: imagePrompt,
-            headline: plan.headline,
-          },
-        });
-
-        console.log('📸 Image response error:', imageResponse.error);
-        console.log('📸 Image response data:', JSON.stringify(imageResponse.data));
-
         let featuredImageUrl = '';
         let featuredImageAlt = '';
-
-        if (imageResponse.error) {
-          console.error('❌ Edge function returned error:', imageResponse.error);
-          throw new Error(`Edge function error: ${JSON.stringify(imageResponse.error)}`);
+        let imageReused = false;
+        
+        // ============= IMAGE SHARING FOR MULTILINGUAL CLUSTERS =============
+        // For non-English languages, try to reuse image from English sibling
+        if (isMultilingual && currentLanguage !== 'en') {
+          console.log(`🔄 [Job ${jobId}] Article ${i + 1} - Checking for English sibling image to reuse...`);
+          
+          const { data: englishSibling } = await supabase
+            .from('blog_articles')
+            .select('featured_image_url')
+            .eq('cluster_id', jobId)
+            .eq('cluster_number', i + 1)
+            .eq('language', 'en')
+            .maybeSingle();
+          
+          if (englishSibling?.featured_image_url && 
+              !englishSibling.featured_image_url.includes('unsplash.com')) {
+            featuredImageUrl = englishSibling.featured_image_url;
+            imageReused = true;
+            console.log(`✅ [Job ${jobId}] Reusing image from English sibling: ${featuredImageUrl}`);
+          } else {
+            console.log(`⚠️ [Job ${jobId}] No English sibling image found, will generate new one`);
+          }
         }
+        
+        // Generate new image only if not reused
+        if (!imageReused) {
+          console.log(`🎨 [Job ${jobId}] Article ${i + 1} - Generating new image...`);
+          console.log(`   Prompt: ${imagePrompt.substring(0, 100)}...`);
+          
+          const imageResponse = await supabase.functions.invoke('generate-image', {
+            body: {
+              prompt: imagePrompt,
+              headline: plan.headline,
+            },
+          });
 
-        if (imageResponse.data?.error) {
-          console.error('❌ FAL.ai API error:', imageResponse.data.error);
-          throw new Error(`FAL.ai error: ${imageResponse.data.error}`);
-        }
+          console.log('📸 Image response error:', imageResponse.error);
+          console.log('📸 Image response data:', JSON.stringify(imageResponse.data));
 
-        if (imageResponse.data?.images?.[0]?.url) {
-          const tempImageUrl = imageResponse.data.images[0].url;
-          console.log('✅ Image generated successfully from FAL.ai:', tempImageUrl);
-
-          // Download image from FAL.ai and persist to Supabase Storage
-          try {
-            console.log('📥 Downloading image from FAL.ai...');
-            const imageResponse = await fetch(tempImageUrl);
-            if (!imageResponse.ok) throw new Error(`Failed to download image: ${imageResponse.status}`);
-            
-            const imageBlob = await imageResponse.blob();
-            const fileName = `cluster-${jobId}-article-${i + 1}.jpg`;
-            
-            console.log(`📤 Uploading to Supabase Storage: ${fileName}`);
-            const { data: uploadData, error: uploadError } = await supabase.storage
-              .from('article-images')
-              .upload(fileName, imageBlob, {
-                contentType: 'image/jpeg',
-                upsert: true
-              });
-
-            if (uploadError) {
-              console.error('❌ Failed to upload image to storage:', uploadError);
-              featuredImageUrl = tempImageUrl; // Fallback to FAL.ai URL
-            } else {
-              // Get permanent public URL
-              const { data: publicUrlData } = supabase.storage
-                .from('article-images')
-                .getPublicUrl(fileName);
-              
-              featuredImageUrl = publicUrlData.publicUrl;
-              console.log('✅ Image persisted to Supabase Storage:', featuredImageUrl);
-            }
-          } catch (storageError) {
-            console.error('❌ Storage operation failed:', storageError);
-            featuredImageUrl = tempImageUrl; // Fallback to FAL.ai URL
+          if (imageResponse.error) {
+            console.error('❌ Edge function returned error:', imageResponse.error);
+            throw new Error(`Edge function error: ${JSON.stringify(imageResponse.error)}`);
           }
 
-          // Generate SEO-optimized alt text
-          const funnelIntent = plan.funnelStage === 'TOFU' ? 'awareness/lifestyle' : plan.funnelStage === 'MOFU' ? 'consideration/comparison' : 'decision/action';
-          const funnelStyle = plan.funnelStage === 'TOFU' ? 'inspiring lifestyle' : plan.funnelStage === 'MOFU' ? 'detailed comparison' : 'professional consultation';
-          
-          const altPrompt = `Create SEO-optimized alt text for this image:
+          if (imageResponse.data?.error) {
+            console.error('❌ FAL.ai API error:', imageResponse.data.error);
+            throw new Error(`FAL.ai error: ${imageResponse.data.error}`);
+          }
 
-Article: ${plan.headline}
+          if (imageResponse.data?.images?.[0]?.url) {
+            const tempImageUrl = imageResponse.data.images[0].url;
+            console.log('✅ Image generated successfully from FAL.ai:', tempImageUrl);
+
+            // Download image from FAL.ai and persist to Supabase Storage
+            try {
+              console.log('📥 Downloading image from FAL.ai...');
+              const imgFetchResponse = await fetch(tempImageUrl);
+              if (!imgFetchResponse.ok) throw new Error(`Failed to download image: ${imgFetchResponse.status}`);
+              
+              const imageBlob = await imgFetchResponse.blob();
+              // Use cluster_number in filename (shared across languages)
+              const fileName = `cluster-${jobId}-pos-${i + 1}.jpg`;
+              
+              console.log(`📤 Uploading to Supabase Storage: ${fileName}`);
+              const { data: uploadData, error: uploadError } = await supabase.storage
+                .from('article-images')
+                .upload(fileName, imageBlob, {
+                  contentType: 'image/jpeg',
+                  upsert: true
+                });
+
+              if (uploadError) {
+                console.error('❌ Failed to upload image to storage:', uploadError);
+                featuredImageUrl = tempImageUrl; // Fallback to FAL.ai URL
+              } else {
+                // Get permanent public URL
+                const { data: publicUrlData } = supabase.storage
+                  .from('article-images')
+                  .getPublicUrl(fileName);
+                
+                featuredImageUrl = publicUrlData.publicUrl;
+                console.log('✅ Image persisted to Supabase Storage:', featuredImageUrl);
+              }
+            } catch (storageError) {
+              console.error('❌ Storage operation failed:', storageError);
+              featuredImageUrl = tempImageUrl; // Fallback to FAL.ai URL
+            }
+          } else {
+            console.warn('⚠️ No images in response');
+            throw new Error('No images returned from FAL.ai');
+          }
+        }
+
+        // ============= LANGUAGE-AWARE ALT TEXT GENERATION =============
+        // Always generate alt text in the article's language
+        console.log(`🏷️ [Job ${jobId}] Generating alt text in ${languageName}...`);
+        
+        const funnelIntent = plan.funnelStage === 'TOFU' ? 'awareness/lifestyle' : plan.funnelStage === 'MOFU' ? 'consideration/comparison' : 'decision/action';
+        const funnelStyle = plan.funnelStage === 'TOFU' ? 'inspiring lifestyle' : plan.funnelStage === 'MOFU' ? 'detailed comparison' : 'professional consultation';
+        
+        const altPrompt = `Create SEO-optimized alt text IN ${languageName.toUpperCase()} for this image:
+
+Article Title: ${plan.headline}
+Article Language: ${languageName} (${currentLanguage})
 Funnel Stage: ${plan.funnelStage} (${funnelIntent})
 Article Topic: ${articleTopic}
 Target Keyword: ${plan.targetKeyword}
 Image shows: ${imagePrompt}
 
 Requirements:
+- MUST be written entirely in ${languageName}, NOT English
 - Include primary keyword "${plan.targetKeyword}"
 - Reflect the ${plan.funnelStage} intent (${funnelStyle})
 - Describe what's visible in the image accurately
 - Max 125 characters
 - Natural, descriptive (not keyword stuffed)
 
-Return only the alt text, no quotes, no JSON.`;
+IMPORTANT: Return ONLY the alt text in ${languageName}, no quotes, no JSON, no English.`;
 
-          const altResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              model: 'google/gemini-2.5-flash',
-              max_tokens: 256,
-              messages: [{ role: 'user', content: altPrompt }],
-            }),
-          });
+        const altResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'google/gemini-2.5-flash',
+            max_tokens: 256,
+            messages: [{ role: 'user', content: altPrompt }],
+          }),
+        });
 
-          if (!altResponse.ok && (altResponse.status === 429 || altResponse.status === 402)) {
-            throw new Error(`Lovable AI error: ${altResponse.status}`);
-          }
+        if (!altResponse.ok && (altResponse.status === 429 || altResponse.status === 402)) {
+          throw new Error(`Lovable AI error: ${altResponse.status}`);
+        }
 
-          let altData;
-          try {
-            const rawText = await altResponse.text();
-            altData = JSON.parse(rawText);
-          } catch (parseError) {
-            const errorMsg = parseError instanceof Error ? parseError.message : String(parseError);
-            console.error(`[Job ${jobId}] ❌ JSON parse error for image alt text:`, errorMsg);
-            throw new Error(`Failed to parse alt text response: ${errorMsg}`);
-          }
+        let altData;
+        try {
+          const rawText = await altResponse.text();
+          altData = JSON.parse(rawText);
+        } catch (parseError) {
+          const errorMsg = parseError instanceof Error ? parseError.message : String(parseError);
+          console.error(`[Job ${jobId}] ❌ JSON parse error for image alt text:`, errorMsg);
+          throw new Error(`Failed to parse alt text response: ${errorMsg}`);
+        }
 
-          if (!altData.choices?.[0]?.message?.content) {
-            throw new Error('Invalid alt text response from AI');
-          }
-          featuredImageAlt = altData.choices[0].message.content.trim();
-          
-          console.log(`✅ Contextual image generated:
+        if (!altData.choices?.[0]?.message?.content) {
+          throw new Error('Invalid alt text response from AI');
+        }
+        featuredImageAlt = altData.choices[0].message.content.trim();
+        
+        console.log(`✅ Image ${imageReused ? 'REUSED' : 'generated'} with ${languageName} alt text:
   - Funnel-appropriate style: ${funnelStyle}
   - Topic match: ${articleTopic}
   - Image URL: ${featuredImageUrl}
-  - Alt text: ${featuredImageAlt}`);
-        } else {
-          console.warn('⚠️ No images in response');
-          throw new Error('No images returned from FAL.ai');
-        }
+  - Alt text (${languageName}): ${featuredImageAlt}`);
 
         article.featured_image_url = featuredImageUrl;
         article.featured_image_alt = featuredImageAlt;
-        article.featured_image_caption = featuredImageUrl ? `${plan.headline} - Luxury real estate in Costa del Sol` : null;
+        // Generate caption in the article's language
+        article.featured_image_caption = currentLanguage === 'en' 
+          ? `${plan.headline} - Luxury real estate in Costa del Sol`
+          : featuredImageAlt; // Use the localized alt text as caption for non-English
       } catch (error) {
         console.error('❌ IMAGE GENERATION FAILED:', error);
         console.error('Error type:', error instanceof Error ? error.constructor.name : typeof error);

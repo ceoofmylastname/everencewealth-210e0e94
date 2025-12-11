@@ -752,73 +752,131 @@ Return ONLY the HTML content.`;
         const detailedContent = contentData.choices[0].message.content.trim();
         article.detailed_content = detailedContent;
 
-        // 7. FEATURED IMAGE
+        // 7. FEATURED IMAGE (with language-aware alt text and image reuse)
         const imagePrompt = `Professional Costa del Sol real estate photography:
 ${plan.funnelStage === 'TOFU' ? 'Inspirational lifestyle scene' : plan.funnelStage === 'MOFU' ? 'Detailed property showcase' : 'Professional consultation scene'}
 Ultra-realistic, 8k resolution, ${plan.headline}`;
 
-        try {
-          const imageResponse = await supabase.functions.invoke('generate-image', {
-            body: {
-              prompt: imagePrompt,
-              headline: plan.headline,
-            },
-          });
+        // Language name mapping for alt text generation
+        const languageNames: Record<string, string> = {
+          'en': 'English',
+          'de': 'German',
+          'nl': 'Dutch',
+          'fr': 'French',
+          'pl': 'Polish',
+          'sv': 'Swedish',
+          'da': 'Danish',
+          'hu': 'Hungarian',
+          'fi': 'Finnish',
+          'no': 'Norwegian'
+        };
+        const currentLanguage = job.language || 'en';
+        const languageName = languageNames[currentLanguage] || 'English';
 
+        try {
           let featuredImageUrl = '';
           let featuredImageAlt = '';
+          let imageReused = false;
 
-          if (imageResponse.data?.images?.[0]?.url) {
-            const tempImageUrl = imageResponse.data.images[0].url;
+          // Check for existing sibling image to reuse (for multilingual clusters)
+          if (job.is_multilingual && currentLanguage !== 'en') {
+            console.log(`🔄 [Resume ${jobId}] Article ${index + 1} - Checking for English sibling image...`);
             
-            try {
-              const imageBlob = await (await fetch(tempImageUrl)).blob();
-              const fileName = `cluster-${jobId}-article-${index + 1}.jpg`;
-              
-              const { data: uploadData, error: uploadError } = await supabase.storage
-                .from('article-images')
-                .upload(fileName, imageBlob, {
-                  contentType: 'image/jpeg',
-                  upsert: true
-                });
-
-              if (uploadError) {
-                featuredImageUrl = tempImageUrl;
-              } else {
-                const { data: publicUrlData } = supabase.storage
-                  .from('article-images')
-                  .getPublicUrl(fileName);
-                
-                featuredImageUrl = publicUrlData.publicUrl;
-              }
-            } catch (storageError) {
-              featuredImageUrl = tempImageUrl;
+            const { data: englishSibling } = await supabase
+              .from('blog_articles')
+              .select('featured_image_url')
+              .eq('cluster_id', jobId)
+              .eq('cluster_number', index + 1)
+              .eq('language', 'en')
+              .maybeSingle();
+            
+            if (englishSibling?.featured_image_url && 
+                !englishSibling.featured_image_url.includes('unsplash.com')) {
+              featuredImageUrl = englishSibling.featured_image_url;
+              imageReused = true;
+              console.log(`✅ [Resume ${jobId}] Reusing image from English sibling`);
             }
+          }
 
-            const altPrompt = `Create SEO-optimized alt text for: ${plan.headline}. Include keyword "${plan.targetKeyword}". Max 125 characters.`;
-            const altResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-              method: 'POST',
-              headers: {
-                'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-                'Content-Type': 'application/json',
+          // Generate new image only if not reused
+          if (!imageReused) {
+            const imageResponse = await supabase.functions.invoke('generate-image', {
+              body: {
+                prompt: imagePrompt,
+                headline: plan.headline,
               },
-              body: JSON.stringify({
-                model: 'google/gemini-2.5-flash',
-                max_tokens: 256,
-                messages: [{ role: 'user', content: altPrompt }],
-              }),
             });
 
-            const altData = JSON.parse(await altResponse.text());
-            featuredImageAlt = altData.choices[0].message.content.trim();
-          } else {
-            featuredImageUrl = 'https://images.unsplash.com/photo-1582268611958-ebfd161ef9cf?w=1200';
-            featuredImageAlt = `${plan.headline} - Costa del Sol luxury real estate`;
+            if (imageResponse.data?.images?.[0]?.url) {
+              const tempImageUrl = imageResponse.data.images[0].url;
+              
+              try {
+                const imageBlob = await (await fetch(tempImageUrl)).blob();
+                // Use cluster_number in filename (shared across languages)
+                const fileName = `cluster-${jobId}-pos-${index + 1}.jpg`;
+                
+                const { data: uploadData, error: uploadError } = await supabase.storage
+                  .from('article-images')
+                  .upload(fileName, imageBlob, {
+                    contentType: 'image/jpeg',
+                    upsert: true
+                  });
+
+                if (uploadError) {
+                  featuredImageUrl = tempImageUrl;
+                } else {
+                  const { data: publicUrlData } = supabase.storage
+                    .from('article-images')
+                    .getPublicUrl(fileName);
+                  
+                  featuredImageUrl = publicUrlData.publicUrl;
+                }
+              } catch (storageError) {
+                featuredImageUrl = tempImageUrl;
+              }
+            } else {
+              featuredImageUrl = 'https://images.unsplash.com/photo-1582268611958-ebfd161ef9cf?w=1200';
+            }
           }
+
+          // Generate language-aware alt text
+          const altPrompt = `Create SEO-optimized alt text IN ${languageName.toUpperCase()} for this image:
+
+Article: ${plan.headline}
+Language: ${languageName} (${currentLanguage})
+Target Keyword: ${plan.targetKeyword}
+
+Requirements:
+- MUST be written in ${languageName}, NOT English
+- Include keyword "${plan.targetKeyword}"
+- Max 125 characters
+- Natural, descriptive
+
+Return ONLY the alt text in ${languageName}, no quotes, no JSON.`;
+
+          const altResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              model: 'google/gemini-2.5-flash',
+              max_tokens: 256,
+              messages: [{ role: 'user', content: altPrompt }],
+            }),
+          });
+
+          const altData = JSON.parse(await altResponse.text());
+          featuredImageAlt = altData.choices[0]?.message?.content?.trim() || `${plan.headline} - Costa del Sol`;
 
           article.featured_image_url = featuredImageUrl;
           article.featured_image_alt = featuredImageAlt;
-          article.featured_image_caption = `${plan.headline} - Luxury real estate in Costa del Sol`;
+          article.featured_image_caption = currentLanguage === 'en' 
+            ? `${plan.headline} - Luxury real estate in Costa del Sol`
+            : featuredImageAlt;
+            
+          console.log(`✅ [Resume ${jobId}] Image ${imageReused ? 'REUSED' : 'generated'} with ${languageName} alt text`);
         } catch (error) {
           console.error('[Resume] Image generation failed:', error);
           article.featured_image_url = 'https://images.unsplash.com/photo-1582268611958-ebfd161ef9cf?w=1200';
