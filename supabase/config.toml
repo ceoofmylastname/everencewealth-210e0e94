@@ -71,3 +71,6 @@ verify_jwt = false
 
 [functions.search-properties]
 verify_jwt = false
+
+[functions.regenerate-speakable-bulk]
+verify_jwt = false

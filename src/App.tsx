@@ -21,6 +21,7 @@ import BatchImageGeneration from "./pages/admin/BatchImageGeneration";
 import CitationHealth from "./pages/admin/CitationHealth";
 import ApprovedDomains from "./pages/admin/ApprovedDomains";
 import BulkInternalLinks from "./pages/admin/BulkInternalLinks";
+import BulkSpeakableRegeneration from "./pages/admin/BulkSpeakableRegeneration";
 import Auth from "./pages/Auth";
 import BlogArticle from "./pages/BlogArticle";
 import BlogIndex from "./pages/BlogIndex";
@@ -68,6 +69,7 @@ const App = () => (
           <Route path="/admin/cluster-generator" element={<ProtectedRoute><ClusterGenerator /></ProtectedRoute>} />
           <Route path="/admin/system-check" element={<ProtectedRoute><SystemCheck /></ProtectedRoute>} />
           <Route path="/admin/tools/batch-image-generation" element={<ProtectedRoute><BatchImageGeneration /></ProtectedRoute>} />
+          <Route path="/admin/tools/bulk-speakable-regeneration" element={<ProtectedRoute><BulkSpeakableRegeneration /></ProtectedRoute>} />
           <Route path="/admin/citation-health" element={<ProtectedRoute><CitationHealth /></ProtectedRoute>} />
           <Route path="/admin/docs/aeo-sge-guide" element={<ProtectedRoute><AEOGuide /></ProtectedRoute>} />
           <Route path="/admin/approved-domains" element={<ProtectedRoute><ApprovedDomains /></ProtectedRoute>} />
