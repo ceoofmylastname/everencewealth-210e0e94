@@ -28,7 +28,8 @@ serve(async (req) => {
   }
 
   try {
-    const { action, articleIds, threshold = 0.60, batchSize = 50, offset = 0 } = await req.json();
+    const body = await req.json();
+    const { action, articleIds, threshold = 0.60, batchSize = 50, offset = 0, articles, clusters, rollbackKey } = body;
     
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -67,7 +68,7 @@ serve(async (req) => {
       const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
       if (!LOVABLE_API_KEY) throw new Error('LOVABLE_API_KEY not configured');
 
-      const { articles } = await req.json();
+      // articles already extracted from body above
       
       if (!articles || articles.length === 0) {
         return new Response(JSON.stringify({ clusters: [] }), {
@@ -185,7 +186,7 @@ If no clear matches exist, return an empty array: []`;
 
     if (action === 'apply') {
       // Apply cluster assignments to database
-      const { clusters } = await req.json();
+      // clusters already extracted from body above
       
       if (!clusters || clusters.length === 0) {
         return new Response(JSON.stringify({ success: true, updated: 0 }), {
@@ -262,7 +263,7 @@ If no clear matches exist, return an empty array: []`;
     }
 
     if (action === 'rollback') {
-      const { rollbackKey } = await req.json();
+      // rollbackKey already extracted from body above
       
       const { data: setting } = await supabase
         .from('content_settings')
