@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/select";
 import { LOCATIONS, PROPERTY_TYPES } from "@/constants/home";
 import type { PropertySearchParams } from "@/types/property";
-import { Search, RotateCcw, MapPin, Home, DollarSign, Bed, Bath, Sparkles } from "lucide-react";
+import { Search, RotateCcw, MapPin, Home, DollarSign, Bed, Bath, Sparkles, ShoppingCart } from "lucide-react";
 
 interface PropertyFiltersProps {
   onSearch: (params: PropertySearchParams) => void;
@@ -20,6 +20,7 @@ interface PropertyFiltersProps {
 
 export const PropertyFilters = ({ onSearch, initialParams }: PropertyFiltersProps) => {
   const [location, setLocation] = useState(initialParams?.location || "");
+  const [transactionType, setTransactionType] = useState<'sale' | 'rent'>(initialParams?.transactionType || "sale");
   const [propertyType, setPropertyType] = useState(initialParams?.propertyType || "");
   const [priceMin, setPriceMin] = useState(initialParams?.priceMin?.toString() || "");
   const [priceMax, setPriceMax] = useState(initialParams?.priceMax?.toString() || "");
@@ -29,6 +30,7 @@ export const PropertyFilters = ({ onSearch, initialParams }: PropertyFiltersProp
   const handleSearch = () => {
     const params: PropertySearchParams = {
       location: location || undefined,
+      transactionType, // Always include - defaults to 'sale'
       propertyType: propertyType || undefined,
       priceMin: priceMin ? parseInt(priceMin) : undefined,
       priceMax: priceMax ? parseInt(priceMax) : undefined,
@@ -40,12 +42,13 @@ export const PropertyFilters = ({ onSearch, initialParams }: PropertyFiltersProp
 
   const handleReset = () => {
     setLocation("");
+    setTransactionType("sale"); // Reset to default 'sale'
     setPropertyType("");
     setPriceMin("");
     setPriceMax("");
     setBedrooms("");
     setBathrooms("");
-    onSearch({});
+    onSearch({ transactionType: 'sale' }); // Always send 'sale' on reset
   };
 
   return (
@@ -71,6 +74,23 @@ export const PropertyFilters = ({ onSearch, initialParams }: PropertyFiltersProp
       </div>
 
       <div className="p-6 space-y-5">
+        {/* Transaction Type (Buy/Rent) */}
+        <div className="space-y-2">
+          <Label className="flex items-center gap-2 text-sm font-medium text-foreground">
+            <ShoppingCart className="w-4 h-4 text-primary" />
+            Transaction Type
+          </Label>
+          <Select value={transactionType} onValueChange={(val) => setTransactionType(val as 'sale' | 'rent')}>
+            <SelectTrigger className="h-12 rounded-xl border-slate-200 bg-slate-50/50 hover:bg-slate-50 focus:bg-white transition-colors">
+              <SelectValue placeholder="Buy / Investment" />
+            </SelectTrigger>
+            <SelectContent className="rounded-xl border-slate-200">
+              <SelectItem value="sale" className="rounded-lg">Buy / Investment</SelectItem>
+              <SelectItem value="rent" className="rounded-lg">Rent</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
         {/* Location */}
         <div className="space-y-2">
           <Label className="flex items-center gap-2 text-sm font-medium text-foreground">
