@@ -1,27 +1,37 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronRight, Phone } from 'lucide-react';
+import { ChevronRight, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { CityBrochureData } from '@/constants/brochures';
-import { useTranslation } from '@/i18n';
 
 interface BrochureHeroProps {
-  city: CityBrochureData;
+  city: {
+    id?: string;
+    slug: string;
+    name: string;
+    heroImage: string;
+    hero_headline?: string | null;
+    hero_subtitle?: string | null;
+  };
+  onViewBrochure?: () => void;
+  onChat?: () => void;
 }
 
-export const BrochureHero: React.FC<BrochureHeroProps> = ({ city }) => {
-  const { t } = useTranslation();
-  const brochureT = (t.brochures as any)?.[city.slug] || (t.brochures as any)?.marbella || {};
-  const heroT = brochureT?.hero || {};
+export const BrochureHero: React.FC<BrochureHeroProps> = ({ 
+  city, 
+  onViewBrochure,
+  onChat,
+}) => {
+  const headline = city.hero_headline || `Luxury Living in ${city.name}`;
+  const subtitle = city.hero_subtitle || 'Where Luxury Meets the Mediterranean';
 
   return (
-    <section className="relative min-h-[100svh] flex items-center justify-center overflow-hidden">
-      {/* Background Image with Parallax */}
+    <section className="brochure-hero relative min-h-[85vh] flex items-center justify-center overflow-hidden">
+      {/* Background Image */}
       <div className="absolute inset-0 z-0">
         <img
           src={city.heroImage}
           alt={`${city.name} luxury real estate`}
-          className="absolute inset-0 w-full h-full object-cover scale-105"
+          className="absolute inset-0 w-full h-full object-cover"
         />
         <div className="absolute inset-0 bg-prime-950/60 mix-blend-multiply" />
         <div className="absolute inset-0 bg-gradient-to-t from-prime-950/95 via-prime-950/40 to-prime-950/20" />
@@ -34,7 +44,7 @@ export const BrochureHero: React.FC<BrochureHeroProps> = ({ city }) => {
           <nav className="flex items-center gap-2 text-sm text-white/70">
             <Link to="/" className="hover:text-white transition-colors">Home</Link>
             <ChevronRight size={14} />
-            <Link to="/location/marbella" className="hover:text-white transition-colors">Locations</Link>
+            <Link to="/brochure/marbella" className="hover:text-white transition-colors">Locations</Link>
             <ChevronRight size={14} />
             <span className="text-prime-gold font-medium">{city.name}</span>
           </nav>
@@ -46,47 +56,38 @@ export const BrochureHero: React.FC<BrochureHeroProps> = ({ city }) => {
         {/* Eyebrow */}
         <div className="mb-6 animate-fade-in">
           <span className="inline-block px-4 py-2 bg-prime-gold/20 border border-prime-gold/30 rounded-full text-prime-goldLight text-sm font-nav tracking-wider uppercase">
-            {heroT.eyebrow || 'Costa del Sol'}
+            Costa del Sol
           </span>
         </div>
 
-        {/* City Name - Main Headline */}
-        <h1 className="font-serif text-5xl md:text-7xl lg:text-8xl xl:text-9xl font-bold text-white mb-6 leading-[1.0] tracking-tight animate-zoom-in">
-          {city.name}
+        {/* Headline */}
+        <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-white mb-6 leading-[1.1] tracking-tight animate-zoom-in">
+          {headline}
         </h1>
 
-        {/* Tagline */}
-        <p className="text-xl md:text-2xl lg:text-3xl font-light text-white/90 mb-4 animate-fade-in-up font-serif italic">
-          {heroT.tagline || 'Where Luxury Meets the Mediterranean'}
-        </p>
-
-        {/* Value Statement */}
-        <p className="text-base md:text-lg text-white/70 max-w-3xl mx-auto mb-10 leading-relaxed animate-fade-in-up">
-          {heroT.description || `Discover exceptional investment opportunities and lifestyle properties in ${city.name}. Premium real estate with expert guidance.`}
+        {/* Subtitle */}
+        <p className="text-xl md:text-2xl lg:text-3xl font-light text-white/90 mb-10 animate-fade-in-up font-serif italic max-w-3xl mx-auto">
+          {subtitle}
         </p>
 
         {/* CTAs */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center animate-slide-in-up">
           <Button
-            asChild
+            onClick={onViewBrochure}
             size="lg"
             className="bg-prime-gold hover:bg-prime-goldDark text-prime-950 font-nav font-semibold px-8 py-6 text-base shadow-2xl shadow-prime-gold/30 hover:shadow-prime-gold/50 transition-all duration-300"
           >
-            <Link to={`/property-finder?location=${city.name}`}>
-              Explore Properties in {city.name}
-              <ChevronRight className="ml-2" size={18} />
-            </Link>
+            View Brochure
+            <ChevronRight className="ml-2" size={18} />
           </Button>
           <Button
-            asChild
+            onClick={onChat}
             variant="outline"
             size="lg"
             className="border-prime-gold/50 text-prime-gold hover:bg-prime-gold hover:text-prime-950 backdrop-blur-sm font-nav font-semibold px-8 py-6 text-base transition-all duration-300"
           >
-            <a href="tel:+34600000000">
-              <Phone className="mr-2" size={18} />
-              Speak to a Local Advisor
-            </a>
+            <MessageCircle className="mr-2" size={18} />
+            Chat With Us
           </Button>
         </div>
 
