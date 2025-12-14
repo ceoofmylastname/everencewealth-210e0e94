@@ -37,6 +37,7 @@ serve(async (req) => {
     const body = await req.json();
     const {
       location = '',
+      transactionType = 'sale', // DEFAULT TO SALE - never undefined
       priceMin,
       priceMax,
       propertyType = '',
@@ -46,13 +47,14 @@ serve(async (req) => {
       limit = 20
     } = body;
 
-    console.log('🔍 Searching properties via proxy:', { location, priceMin, priceMax, propertyType, bedrooms, bathrooms, page });
+    console.log('🔍 Searching properties via proxy:', { location, transactionType, priceMin, priceMax, propertyType, bedrooms, bathrooms, page });
 
     // Call the proxy server
     const proxyUrl = 'http://188.34.164.137:3000/search';
     
     const proxyPayload = {
       location,
+      transactionType, // Always included - 'sale' or 'rent'
       priceMin,
       priceMax,
       propertyType,
@@ -109,13 +111,10 @@ serve(async (req) => {
                        prop.Picture?.MainImage || prop.Pictures?.[0]?.PictureURL || 
                        prop.pictures?.[0]?.url || prop.images?.Picture?.[0]?.PictureURL || '';
 
-      // Extract price from various fields (sale price or rental price)
-      const price = parseFloat(
-        prop.Price || prop.price || 
-        prop.SalePrice || prop.CurrentPrice ||
-        prop.RentalPrice1 || prop.RentalPrice2 || 
-        '0'
-      ) || 0;
+      // Extract price based on transaction type (prioritize correct price field)
+      const price = transactionType === 'rent'
+        ? parseFloat(prop.RentalPrice1 || prop.RentalPrice2 || prop.Price || prop.price || '0') || 0
+        : parseFloat(prop.Price || prop.price || prop.SalePrice || prop.CurrentPrice || '0') || 0;
 
       // Generate title from available data
       const title = prop.Title || prop.Name || prop.PropertyName || 

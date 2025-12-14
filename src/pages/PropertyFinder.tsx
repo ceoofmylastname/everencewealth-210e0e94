@@ -19,9 +19,10 @@ const PropertyFinder = () => {
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
 
-  // Parse initial params from URL
+  // Parse initial params from URL - default transactionType to 'sale'
   const getInitialParams = (): PropertySearchParams => ({
     location: searchParams.get("location") || undefined,
+    transactionType: (searchParams.get("transactionType") as 'sale' | 'rent') || 'sale',
     priceMin: searchParams.get("priceMin") ? parseInt(searchParams.get("priceMin")!) : undefined,
     priceMax: searchParams.get("priceMax") ? parseInt(searchParams.get("priceMax")!) : undefined,
     propertyType: searchParams.get("propertyType") || undefined,
@@ -35,6 +36,7 @@ const PropertyFinder = () => {
       const { data, error } = await supabase.functions.invoke("search-properties", {
         body: {
           location: params.location,
+          transactionType: params.transactionType || 'sale', // Always send, default to 'sale'
           priceMin: params.priceMin,
           priceMax: params.priceMax,
           propertyType: params.propertyType,
@@ -52,6 +54,7 @@ const PropertyFinder = () => {
 
       // Update URL params for shareable links
       const queryParams = new URLSearchParams();
+      queryParams.append("transactionType", params.transactionType || 'sale'); // Always include
       if (params.location) queryParams.append("location", params.location);
       if (params.priceMin) queryParams.append("priceMin", params.priceMin.toString());
       if (params.priceMax) queryParams.append("priceMax", params.priceMax.toString());

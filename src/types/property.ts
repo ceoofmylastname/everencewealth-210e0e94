@@ -25,6 +25,7 @@ export interface PropertySearchParams {
   priceMin?: number;
   priceMax?: number;
   propertyType?: string;
+  transactionType?: 'sale' | 'rent';
   bedrooms?: number;
   bathrooms?: number;
   page?: number;

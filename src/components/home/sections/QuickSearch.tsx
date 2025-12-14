@@ -25,7 +25,7 @@ export const QuickSearch: React.FC = () => {
   const navigate = useNavigate();
   const [budget, setBudget] = useState('');
   const [location, setLocation] = useState('');
-  const [purpose, setPurpose] = useState('');
+  const [transactionType, setTransactionType] = useState<'sale' | 'rent'>('sale');
   const [properties, setProperties] = useState<Property[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
@@ -39,9 +39,10 @@ export const QuickSearch: React.FC = () => {
       setHasSearched(true);
       
       try {
-        const params: Record<string, string | number> = {};
+        const params: Record<string, string | number> = {
+          transactionType, // Always send - defaults to 'sale'
+        };
         if (location) params.location = location;
-        if (purpose) params.propertyType = purpose;
         if (budget) {
           const [min, max] = budget.split('-');
           if (min) params.priceMin = parseInt(min) * 1000;
@@ -66,12 +67,12 @@ export const QuickSearch: React.FC = () => {
 
     const debounce = setTimeout(fetchProperties, 500);
     return () => clearTimeout(debounce);
-  }, [location, budget, purpose]);
+  }, [location, budget, transactionType]);
 
   const handleSearch = () => {
     const params = new URLSearchParams();
+    params.append("transactionType", transactionType); // Always include
     if (location) params.append("location", location);
-    if (purpose) params.append("propertyType", purpose);
     if (budget) {
       const [min, max] = budget.split("-");
       if (min) params.append("priceMin", min);
@@ -119,7 +120,7 @@ export const QuickSearch: React.FC = () => {
             </div>
           </div>
 
-          {/* Purpose */}
+          {/* Transaction Type (Buy/Rent) */}
           <div className="space-y-2 group">
             <label className="text-xs font-bold uppercase tracking-widest text-slate-400 group-focus-within:text-prime-gold transition-colors flex items-center gap-1">
               <Home size={12} /> {t.quickSearch.labels.purpose}
@@ -127,13 +128,11 @@ export const QuickSearch: React.FC = () => {
             <div className="relative">
               <select 
                 className="w-full appearance-none bg-slate-50 hover:bg-white border border-slate-200 hover:border-prime-gold/50 rounded-xl px-5 py-4 text-slate-700 font-medium focus:outline-none focus:ring-2 focus:ring-prime-gold/20 focus:border-prime-gold transition-all duration-300 cursor-pointer shadow-sm"
-                value={purpose}
-                onChange={(e) => setPurpose(e.target.value)}
+                value={transactionType}
+                onChange={(e) => setTransactionType(e.target.value as 'sale' | 'rent')}
               >
-                <option value="">{t.quickSearch.purposes.investmentPersonal}</option>
-                <option value="holiday">{t.quickSearch.purposes.holidayHome}</option>
-                <option value="winter">{t.quickSearch.purposes.winterStay}</option>
-                <option value="combination">{t.quickSearch.purposes.combination}</option>
+                <option value="sale">Buy / Investment</option>
+                <option value="rent">Rent</option>
               </select>
               <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none group-hover:text-prime-gold transition-colors" size={18} />
             </div>
