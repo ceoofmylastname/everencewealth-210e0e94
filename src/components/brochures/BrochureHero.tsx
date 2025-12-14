@@ -70,7 +70,7 @@ export const BrochureHero: React.FC<BrochureHeroProps> = ({ city }) => {
           <Button
             asChild
             size="lg"
-            className="bg-prime-gold hover:bg-prime-goldDark text-white font-nav font-semibold px-8 py-6 text-base shadow-2xl shadow-prime-gold/30 hover:shadow-prime-gold/50 transition-all duration-300"
+            className="bg-prime-gold hover:bg-prime-goldDark text-prime-950 font-nav font-semibold px-8 py-6 text-base shadow-2xl shadow-prime-gold/30 hover:shadow-prime-gold/50 transition-all duration-300"
           >
             <Link to={`/property-finder?location=${city.name}`}>
               Explore Properties in {city.name}
@@ -81,7 +81,7 @@ export const BrochureHero: React.FC<BrochureHeroProps> = ({ city }) => {
             asChild
             variant="outline"
             size="lg"
-            className="border-white/30 text-white hover:bg-white hover:text-prime-950 backdrop-blur-sm font-nav font-semibold px-8 py-6 text-base transition-all duration-300"
+            className="border-prime-gold/50 text-prime-gold hover:bg-prime-gold hover:text-prime-950 backdrop-blur-sm font-nav font-semibold px-8 py-6 text-base transition-all duration-300"
           >
             <a href="tel:+34600000000">
               <Phone className="mr-2" size={18} />
