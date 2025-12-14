@@ -23,6 +23,7 @@ import ApprovedDomains from "./pages/admin/ApprovedDomains";
 import BulkInternalLinks from "./pages/admin/BulkInternalLinks";
 import BulkSpeakableRegeneration from "./pages/admin/BulkSpeakableRegeneration";
 import BulkArticleLinker from "./pages/admin/BulkArticleLinker";
+import BrochureManager from "./pages/admin/BrochureManager";
 import Auth from "./pages/Auth";
 import BlogArticle from "./pages/BlogArticle";
 import BlogIndex from "./pages/BlogIndex";
@@ -58,7 +59,7 @@ const App = () => (
           <Route path="/sitemap" element={<Sitemap />} />
           <Route path="/property-finder" element={<PropertyFinder />} />
           <Route path="/property/:reference" element={<PropertyDetail />} />
-          <Route path="/location/:citySlug" element={<CityBrochure />} />
+          <Route path="/brochure/:citySlug" element={<CityBrochure />} />
           
           {/* Protected Admin Routes */}
           <Route path="/admin" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
@@ -78,6 +79,7 @@ const App = () => (
           <Route path="/admin/docs/aeo-sge-guide" element={<ProtectedRoute><AEOGuide /></ProtectedRoute>} />
           <Route path="/admin/approved-domains" element={<ProtectedRoute><ApprovedDomains /></ProtectedRoute>} />
           <Route path="/admin/bulk-internal-links" element={<ProtectedRoute><BulkInternalLinks /></ProtectedRoute>} />
+          <Route path="/admin/brochures" element={<ProtectedRoute><BrochureManager /></ProtectedRoute>} />
           
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

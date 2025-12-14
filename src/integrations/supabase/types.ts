@@ -1018,6 +1018,57 @@ export type Database = {
           },
         ]
       }
+      city_brochures: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          features: Json | null
+          gallery_images: Json | null
+          hero_headline: string | null
+          hero_image: string | null
+          hero_subtitle: string | null
+          id: string
+          is_published: boolean | null
+          meta_description: string | null
+          meta_title: string | null
+          name: string
+          slug: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          features?: Json | null
+          gallery_images?: Json | null
+          hero_headline?: string | null
+          hero_image?: string | null
+          hero_subtitle?: string | null
+          id?: string
+          is_published?: boolean | null
+          meta_description?: string | null
+          meta_title?: string | null
+          name: string
+          slug: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          features?: Json | null
+          gallery_images?: Json | null
+          hero_headline?: string | null
+          hero_image?: string | null
+          hero_subtitle?: string | null
+          id?: string
+          is_published?: boolean | null
+          meta_description?: string | null
+          meta_title?: string | null
+          name?: string
+          slug?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       cluster_article_chunks: {
         Row: {
           article_data: Json | null

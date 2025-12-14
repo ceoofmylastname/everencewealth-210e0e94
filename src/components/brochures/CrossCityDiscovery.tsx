@@ -33,7 +33,7 @@ export const CrossCityDiscovery: React.FC<CrossCityDiscoveryProps> = ({ currentC
           {otherCities.map((city, index) => (
             <Link
               key={city.id}
-              to={`/location/${city.slug}`}
+              to={`/brochure/${city.slug}`}
               className="group relative overflow-hidden rounded-2xl aspect-[4/3] reveal-on-scroll"
               style={{ transitionDelay: `${index * 100}ms` }}
             >
