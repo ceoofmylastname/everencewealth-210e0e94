@@ -6,11 +6,11 @@ import { Button } from '../ui/Button';
 import { ArrowRight, MapPin } from 'lucide-react';
 import { useTranslation } from '../../../i18n';
 
-const AREA_LOCATION_MAP: Record<string, string> = {
-  'marbella': 'Marbella',
-  'estepona': 'Estepona',
-  'sotogrande': 'Sotogrande',
-  'malaga': 'Málaga'
+const AREA_SLUG_MAP: Record<string, string> = {
+  'marbella': 'marbella',
+  'estepona': 'estepona',
+  'sotogrande': 'sotogrande',
+  'malaga': 'malaga-city'
 };
 
 export const FeaturedAreas: React.FC = () => {
@@ -43,7 +43,7 @@ export const FeaturedAreas: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 md:gap-6">
         {FEATURED_AREAS.map((area, idx) => (
           <Link 
-            to={`/property-finder?location=${encodeURIComponent(AREA_LOCATION_MAP[area.id] || area.name)}`}
+            to={`/brochures/${AREA_SLUG_MAP[area.id] || area.id}`}
             key={area.id} 
             className={`group relative overflow-hidden rounded-2xl cursor-pointer shadow-lg hover:shadow-2xl hover:shadow-slate-900/20 hover:-translate-y-2 transition-all duration-500 aspect-[3/4] reveal-on-scroll stagger-${idx + 1}`}
           >
