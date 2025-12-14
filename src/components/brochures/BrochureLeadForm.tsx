@@ -60,7 +60,7 @@ export const BrochureLeadForm: React.FC<BrochureLeadFormProps> = ({ city }) => {
             <Button
               onClick={() => setIsSubmitted(false)}
               variant="outline"
-              className="border-white/30 text-white hover:bg-white hover:text-prime-950"
+              className="border-prime-gold/50 text-prime-gold hover:bg-prime-gold hover:text-prime-950"
             >
               Submit Another Inquiry
             </Button>
@@ -172,11 +172,11 @@ export const BrochureLeadForm: React.FC<BrochureLeadFormProps> = ({ city }) => {
                 <Button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full bg-prime-gold hover:bg-prime-goldDark text-white font-nav font-semibold py-6 text-base shadow-xl shadow-prime-gold/30"
+                  className="w-full bg-prime-gold hover:bg-prime-goldDark text-prime-950 font-nav font-semibold py-6 text-base shadow-xl shadow-prime-gold/30"
                 >
                   {isSubmitting ? (
                     <span className="flex items-center gap-2">
-                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      <div className="w-5 h-5 border-2 border-prime-950/30 border-t-prime-950 rounded-full animate-spin" />
                       Sending...
                     </span>
                   ) : (
