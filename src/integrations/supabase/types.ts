@@ -1029,7 +1029,9 @@ export type Database = {
           hero_subtitle: string | null
           hero_video_url: string | null
           id: string
+          investment_stats: Json | null
           is_published: boolean | null
+          lifestyle_features: Json | null
           meta_description: string | null
           meta_title: string | null
           name: string
@@ -1046,7 +1048,9 @@ export type Database = {
           hero_subtitle?: string | null
           hero_video_url?: string | null
           id?: string
+          investment_stats?: Json | null
           is_published?: boolean | null
+          lifestyle_features?: Json | null
           meta_description?: string | null
           meta_title?: string | null
           name: string
@@ -1063,7 +1067,9 @@ export type Database = {
           hero_subtitle?: string | null
           hero_video_url?: string | null
           id?: string
+          investment_stats?: Json | null
           is_published?: boolean | null
+          lifestyle_features?: Json | null
           meta_description?: string | null
           meta_title?: string | null
           name?: string
