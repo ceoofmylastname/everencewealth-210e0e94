@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
-import { Save, ExternalLink, Plus, X, Loader2, Image as ImageIcon } from 'lucide-react';
+import { Save, ExternalLink, Plus, X, Loader2, Image as ImageIcon, Video } from 'lucide-react';
 
 interface GalleryItem {
   title: string;
@@ -22,6 +22,7 @@ interface CityBrochure {
   slug: string;
   name: string;
   hero_image: string | null;
+  hero_video_url: string | null;
   hero_headline: string | null;
   hero_subtitle: string | null;
   description: string | null;
@@ -91,6 +92,7 @@ const BrochureManager: React.FC = () => {
         .from('city_brochures')
         .update({
           hero_image: data.hero_image,
+          hero_video_url: data.hero_video_url,
           hero_headline: data.hero_headline,
           hero_subtitle: data.hero_subtitle,
           description: data.description,
@@ -275,7 +277,36 @@ const BrochureManager: React.FC = () => {
                       </div>
 
                       <div className="space-y-2">
-                        <Label>Hero Image URL</Label>
+                        <Label className="flex items-center gap-2">
+                          <Video className="w-4 h-4" />
+                          Hero Video URL
+                        </Label>
+                        <Input
+                          value={editData.hero_video_url || ''}
+                          onChange={(e) =>
+                            setEditData({ ...editData, hero_video_url: e.target.value })
+                          }
+                          placeholder="https://... (YouTube, Vimeo, or direct video URL)"
+                        />
+                        {editData.hero_video_url && (
+                          <div className="mt-2 rounded-lg overflow-hidden border">
+                            <video
+                              src={editData.hero_video_url}
+                              controls
+                              className="w-full h-48 object-cover"
+                              poster={editData.hero_image || undefined}
+                            >
+                              Your browser does not support the video tag.
+                            </video>
+                          </div>
+                        )}
+                        <p className="text-xs text-muted-foreground">
+                          Upload a sales video to display in the hero section. Leave empty to use the hero image instead.
+                        </p>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label>Hero Image URL (fallback/poster)</Label>
                         <Input
                           value={editData.hero_image || ''}
                           onChange={(e) =>
@@ -290,6 +321,9 @@ const BrochureManager: React.FC = () => {
                             className="w-full h-48 object-cover rounded-lg mt-2"
                           />
                         )}
+                        <p className="text-xs text-muted-foreground">
+                          Used as video poster image and fallback when no video is set.
+                        </p>
                       </div>
 
                       <div className="space-y-2">

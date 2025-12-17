@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronRight, MessageCircle } from 'lucide-react';
+import { ChevronRight, MessageCircle, Play, Pause } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface BrochureHeroProps {
@@ -9,6 +9,7 @@ interface BrochureHeroProps {
     slug: string;
     name: string;
     heroImage: string;
+    heroVideoUrl?: string | null;
     hero_headline?: string | null;
     hero_subtitle?: string | null;
   };
@@ -23,10 +24,25 @@ export const BrochureHero: React.FC<BrochureHeroProps> = ({
 }) => {
   const headline = city.hero_headline || `Luxury Living in ${city.name}`;
   const subtitle = city.hero_subtitle || 'Where Luxury Meets the Mediterranean';
+  const hasVideo = !!city.heroVideoUrl;
+  
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+
+  const togglePlay = () => {
+    if (videoRef.current) {
+      if (isPlaying) {
+        videoRef.current.pause();
+      } else {
+        videoRef.current.play();
+      }
+      setIsPlaying(!isPlaying);
+    }
+  };
 
   return (
     <section className="brochure-hero relative min-h-[85vh] flex items-center justify-center overflow-hidden">
-      {/* Background Image */}
+      {/* Background Image (always present for overlay effect) */}
       <div className="absolute inset-0 z-0">
         <img
           src={city.heroImage}
@@ -66,9 +82,42 @@ export const BrochureHero: React.FC<BrochureHeroProps> = ({
         </h1>
 
         {/* Subtitle */}
-        <p className="text-xl md:text-2xl lg:text-3xl font-light text-white/90 mb-10 animate-fade-in-up font-serif italic max-w-3xl mx-auto">
+        <p className="text-xl md:text-2xl lg:text-3xl font-light text-white/90 mb-8 animate-fade-in-up font-serif italic max-w-3xl mx-auto">
           {subtitle}
         </p>
+
+        {/* Video Player (when video URL exists) */}
+        {hasVideo && (
+          <div className="max-w-4xl mx-auto mb-10 animate-fade-in-up">
+            <div className="relative rounded-2xl overflow-hidden shadow-2xl shadow-black/50 border border-white/10">
+              <video
+                ref={videoRef}
+                src={city.heroVideoUrl!}
+                poster={city.heroImage}
+                className="w-full aspect-video object-cover"
+                onEnded={() => setIsPlaying(false)}
+                playsInline
+              >
+                Your browser does not support the video tag.
+              </video>
+              
+              {/* Play/Pause Overlay Button */}
+              <button
+                onClick={togglePlay}
+                className="absolute inset-0 flex items-center justify-center bg-black/30 hover:bg-black/40 transition-colors group"
+                aria-label={isPlaying ? 'Pause video' : 'Play video'}
+              >
+                <div className={`w-20 h-20 rounded-full bg-prime-gold/90 hover:bg-prime-gold flex items-center justify-center shadow-2xl shadow-prime-gold/30 transition-all duration-300 ${isPlaying ? 'opacity-0 group-hover:opacity-100' : 'opacity-100'}`}>
+                  {isPlaying ? (
+                    <Pause className="w-8 h-8 text-prime-950" />
+                  ) : (
+                    <Play className="w-8 h-8 text-prime-950 ml-1" />
+                  )}
+                </div>
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* CTAs */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center animate-slide-in-up">
