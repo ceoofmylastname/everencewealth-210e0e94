@@ -260,84 +260,6 @@ const CRITICAL_CSS = `
     to { opacity: 1; }
   }
   
-  /* Static Header - Enhanced with logo */
-  .static-header {
-    background: hsl(var(--prime-950));
-    padding: 1rem 0;
-    border-bottom: 1px solid hsl(var(--prime-gold) / 0.3);
-    position: sticky;
-    top: 0;
-    z-index: 100;
-  }
-  
-  .static-header-inner {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 1.5rem;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 2rem;
-  }
-  
-  .static-logo-link {
-    display: flex;
-    align-items: center;
-    text-decoration: none;
-  }
-  
-  .static-logo-img {
-    height: 40px;
-    width: auto;
-    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
-  }
-  
-  .static-logo-text {
-    color: hsl(var(--prime-gold));
-    font-family: 'Playfair Display', Georgia, serif;
-    font-size: 1.25rem;
-    font-weight: 700;
-    text-decoration: none;
-  }
-  
-  .static-nav {
-    display: flex;
-    gap: 1.5rem;
-    align-items: center;
-  }
-  
-  .static-nav a {
-    color: rgba(255,255,255,0.8);
-    text-decoration: none;
-    font-family: 'Raleway', sans-serif;
-    font-size: 0.875rem;
-    font-weight: 500;
-    transition: color 0.2s;
-  }
-  
-  .static-nav a:hover,
-  .static-nav a.active { 
-    color: hsl(var(--prime-gold)); 
-  }
-  
-  .static-cta {
-    display: inline-block;
-    background: hsl(var(--prime-gold));
-    color: hsl(var(--prime-950));
-    padding: 0.625rem 1.25rem;
-    border-radius: 0.375rem;
-    font-family: 'Raleway', sans-serif;
-    font-weight: 600;
-    font-size: 0.875rem;
-    text-decoration: none;
-    transition: opacity 0.2s, transform 0.2s;
-  }
-  
-  .static-cta:hover { 
-    opacity: 0.9;
-    transform: translateY(-1px);
-  }
-  
   /* Article Layout */
   .static-article {
     max-width: 800px;
@@ -690,23 +612,6 @@ function generateStaticHTML(article: ArticleData, enhancedHreflang: boolean, pro
   ${schemaScripts}
 </head>
 <body>
-  <!-- Static Header - Always visible, even without JS -->
-  <header class="static-header">
-    <div class="static-header-inner">
-      <a href="/" class="static-logo-link">
-        <img src="/assets/logo-new.png" alt="Del Sol Prime Homes" class="static-logo-img" onerror="this.style.display='none';this.nextElementSibling.style.display='block';" />
-        <span class="static-logo-text" style="display:none;">Del Sol Prime Homes</span>
-      </a>
-      <nav class="static-nav">
-        <a href="/">Home</a>
-        <a href="/blog" class="active">Blog</a>
-        <a href="/property-finder">Properties</a>
-        <a href="/faq">FAQ</a>
-      </nav>
-      <a href="/#contact" class="static-cta">Book a Call</a>
-    </div>
-  </header>
-
   <div id="root">
     <!-- Pre-rendered content for SEO, AI crawlers, and no-JS browsers -->
     <article class="static-article static-content" data-article-id="${article.id}">
