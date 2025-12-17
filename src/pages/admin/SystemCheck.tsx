@@ -189,9 +189,16 @@ export default function SystemCheck() {
       const hasHreflang = (translations && Object.keys(translations).length > 0) || !!article.cluster_id;
       if (!hasHreflang) issues.push('No hreflang/translation links');
 
-      // Check hasCanonical
-      const hasCanonical = !!article.canonical_url;
-      if (!hasCanonical) issues.push('Missing canonical URL');
+      // Check hasCanonical - must have correct www format
+      const correctCanonicalFormat = `https://www.delsolprimehomes.com/blog/${article.slug}`;
+      const hasCanonical = article.canonical_url === correctCanonicalFormat;
+      if (!hasCanonical) {
+        if (!article.canonical_url) {
+          issues.push('Missing canonical URL');
+        } else {
+          issues.push('Incorrect canonical URL format (missing www)');
+        }
+      }
 
       // Check hasSchema (needs author for proper schema)
       const hasSchema = !!article.author_id;
@@ -291,15 +298,16 @@ export default function SystemCheck() {
 
   // Bulk fix functions
   const fixCanonicalUrls = async () => {
-    const articlesNeedingCanonical = validationResults.filter(r => !r.hasCanonical);
-    if (articlesNeedingCanonical.length === 0) {
-      toast.info('All articles already have canonical URLs');
+    // Find articles missing canonical OR with incorrect format (non-www)
+    const articlesNeedingFix = validationResults.filter(r => !r.hasCanonical);
+    if (articlesNeedingFix.length === 0) {
+      toast.info('All articles already have correct canonical URLs');
       return;
     }
 
     setIsFixingCanonicals(true);
     try {
-      const updates = articlesNeedingCanonical.map(article => ({
+      const updates = articlesNeedingFix.map(article => ({
         id: article.id,
         canonical_url: `https://www.delsolprimehomes.com/blog/${article.slug}`
       }));
@@ -312,7 +320,7 @@ export default function SystemCheck() {
         if (error) throw error;
       }
 
-      toast.success(`Set canonical URLs for ${updates.length} articles`);
+      toast.success(`Fixed canonical URLs for ${updates.length} articles`);
       await refetchArticles();
       runValidation();
     } catch (error) {
