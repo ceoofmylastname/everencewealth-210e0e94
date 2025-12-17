@@ -1027,6 +1027,7 @@ export type Database = {
           hero_headline: string | null
           hero_image: string | null
           hero_subtitle: string | null
+          hero_video_url: string | null
           id: string
           is_published: boolean | null
           meta_description: string | null
@@ -1043,6 +1044,7 @@ export type Database = {
           hero_headline?: string | null
           hero_image?: string | null
           hero_subtitle?: string | null
+          hero_video_url?: string | null
           id?: string
           is_published?: boolean | null
           meta_description?: string | null
@@ -1059,6 +1061,7 @@ export type Database = {
           hero_headline?: string | null
           hero_image?: string | null
           hero_subtitle?: string | null
+          hero_video_url?: string | null
           id?: string
           is_published?: boolean | null
           meta_description?: string | null

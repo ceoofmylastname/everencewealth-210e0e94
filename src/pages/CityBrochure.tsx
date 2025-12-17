@@ -42,6 +42,7 @@ interface CityBrochureData {
   slug: string;
   name: string;
   hero_image: string | null;
+  hero_video_url: string | null;
   hero_headline: string | null;
   hero_subtitle: string | null;
   description: string | null;
@@ -166,6 +167,7 @@ const CityBrochure: React.FC = () => {
             slug: city.slug,
             name: city.name,
             heroImage: heroImage,
+            heroVideoUrl: city.hero_video_url,
             hero_headline: city.hero_headline,
             hero_subtitle: city.hero_subtitle,
           }}
