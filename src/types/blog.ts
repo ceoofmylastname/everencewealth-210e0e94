@@ -94,3 +94,31 @@ export interface BlogArticle {
   created_at: string;
   updated_at: string;
 }
+
+export type FAQType = 'core' | 'decision';
+
+export interface FAQPage {
+  id: string;
+  source_article_id: string;
+  language: Language;
+  faq_type: FAQType;
+  title: string;
+  slug: string;
+  question_main: string;
+  answer_main: string;
+  related_faqs: FAQEntity[];
+  speakable_answer: string;
+  meta_title: string;
+  meta_description: string;
+  canonical_url?: string;
+  featured_image_url: string;
+  featured_image_alt: string;
+  featured_image_caption?: string;
+  translations: Record<string, string>;
+  source_article_slug?: string;
+  internal_links: InternalLink[];
+  author_id?: string;
+  status: ArticleStatus;
+  created_at: string;
+  updated_at: string;
+}
