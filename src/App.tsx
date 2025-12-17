@@ -33,6 +33,9 @@ import Home from "./pages/Home";
 import PropertyFinder from "./pages/PropertyFinder";
 import PropertyDetail from "./pages/PropertyDetail";
 import CityBrochure from "./pages/CityBrochure";
+import FAQIndex from "./pages/FAQIndex";
+import FAQPage from "./pages/FAQPage";
+import FAQGenerator from "./pages/admin/FAQGenerator";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -60,6 +63,8 @@ const App = () => (
           <Route path="/property-finder" element={<PropertyFinder />} />
           <Route path="/property/:reference" element={<PropertyDetail />} />
           <Route path="/brochure/:citySlug" element={<CityBrochure />} />
+          <Route path="/faq" element={<FAQIndex />} />
+          <Route path="/faq/:slug" element={<FAQPage />} />
           
           {/* Protected Admin Routes */}
           <Route path="/admin" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
@@ -80,6 +85,7 @@ const App = () => (
           <Route path="/admin/approved-domains" element={<ProtectedRoute><ApprovedDomains /></ProtectedRoute>} />
           <Route path="/admin/bulk-internal-links" element={<ProtectedRoute><BulkInternalLinks /></ProtectedRoute>} />
           <Route path="/admin/brochures" element={<ProtectedRoute><BrochureManager /></ProtectedRoute>} />
+          <Route path="/admin/faq-generator" element={<ProtectedRoute><FAQGenerator /></ProtectedRoute>} />
           
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

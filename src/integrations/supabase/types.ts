@@ -1512,6 +1512,166 @@ export type Database = {
         }
         Relationships: []
       }
+      faq_generation_jobs: {
+        Row: {
+          article_ids: string[] | null
+          article_status: Json | null
+          completed_at: string | null
+          created_at: string | null
+          error: string | null
+          generated_faq_pages: number | null
+          id: string
+          languages: string[] | null
+          mode: string
+          processed_articles: number | null
+          results: Json | null
+          started_at: string | null
+          status: string
+          total_articles: number | null
+          total_faq_pages: number | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          article_ids?: string[] | null
+          article_status?: Json | null
+          completed_at?: string | null
+          created_at?: string | null
+          error?: string | null
+          generated_faq_pages?: number | null
+          id?: string
+          languages?: string[] | null
+          mode?: string
+          processed_articles?: number | null
+          results?: Json | null
+          started_at?: string | null
+          status?: string
+          total_articles?: number | null
+          total_faq_pages?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          article_ids?: string[] | null
+          article_status?: Json | null
+          completed_at?: string | null
+          created_at?: string | null
+          error?: string | null
+          generated_faq_pages?: number | null
+          id?: string
+          languages?: string[] | null
+          mode?: string
+          processed_articles?: number | null
+          results?: Json | null
+          started_at?: string | null
+          status?: string
+          total_articles?: number | null
+          total_faq_pages?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      faq_pages: {
+        Row: {
+          answer_main: string
+          author_id: string | null
+          canonical_url: string | null
+          created_at: string | null
+          faq_type: string
+          featured_image_alt: string
+          featured_image_caption: string | null
+          featured_image_url: string
+          id: string
+          internal_links: Json | null
+          language: string
+          meta_description: string
+          meta_title: string
+          question_main: string
+          related_faqs: Json | null
+          slug: string
+          source_article_id: string
+          source_article_slug: string | null
+          speakable_answer: string
+          status: string
+          title: string
+          translations: Json | null
+          updated_at: string | null
+        }
+        Insert: {
+          answer_main: string
+          author_id?: string | null
+          canonical_url?: string | null
+          created_at?: string | null
+          faq_type: string
+          featured_image_alt: string
+          featured_image_caption?: string | null
+          featured_image_url: string
+          id?: string
+          internal_links?: Json | null
+          language: string
+          meta_description: string
+          meta_title: string
+          question_main: string
+          related_faqs?: Json | null
+          slug: string
+          source_article_id: string
+          source_article_slug?: string | null
+          speakable_answer: string
+          status?: string
+          title: string
+          translations?: Json | null
+          updated_at?: string | null
+        }
+        Update: {
+          answer_main?: string
+          author_id?: string | null
+          canonical_url?: string | null
+          created_at?: string | null
+          faq_type?: string
+          featured_image_alt?: string
+          featured_image_caption?: string | null
+          featured_image_url?: string
+          id?: string
+          internal_links?: Json | null
+          language?: string
+          meta_description?: string
+          meta_title?: string
+          question_main?: string
+          related_faqs?: Json | null
+          slug?: string
+          source_article_id?: string
+          source_article_slug?: string | null
+          speakable_answer?: string
+          status?: string
+          title?: string
+          translations?: Json | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "faq_pages_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "authors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "faq_pages_source_article_id_fkey"
+            columns: ["source_article_id"]
+            isOneToOne: false
+            referencedRelation: "blog_articles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "faq_pages_source_article_id_fkey"
+            columns: ["source_article_id"]
+            isOneToOne: false
+            referencedRelation: "content_freshness_report"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       internal_link_suggestions: {
         Row: {
           applied_at: string | null
