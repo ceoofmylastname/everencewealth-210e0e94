@@ -1,6 +1,6 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronRight, MessageCircle, Play, Pause } from 'lucide-react';
+import { ChevronRight, MessageCircle, Play, Pause, Shield, Award, Users, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface BrochureHeroProps {
@@ -17,6 +17,12 @@ interface BrochureHeroProps {
   onChat?: () => void;
 }
 
+const TRUST_SIGNALS = [
+  { icon: Shield, text: 'API Registered' },
+  { icon: Award, text: '20+ Years Experience' },
+  { icon: Users, text: '1000+ Happy Buyers' },
+];
+
 export const BrochureHero: React.FC<BrochureHeroProps> = ({ 
   city, 
   onViewBrochure,
@@ -28,6 +34,11 @@ export const BrochureHero: React.FC<BrochureHeroProps> = ({
   
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  useEffect(() => {
+    setIsLoaded(true);
+  }, []);
 
   const togglePlay = () => {
     if (videoRef.current) {
@@ -40,24 +51,57 @@ export const BrochureHero: React.FC<BrochureHeroProps> = ({
     }
   };
 
+  const scrollToContent = () => {
+    window.scrollTo({ top: window.innerHeight * 0.85, behavior: 'smooth' });
+  };
+
   return (
-    <section className="brochure-hero relative min-h-[85vh] flex items-center justify-center overflow-hidden">
-      {/* Background Image (always present for overlay effect) */}
+    <section className="brochure-hero relative min-h-screen flex items-center justify-center overflow-hidden">
+      {/* Background Image with Parallax Effect */}
       <div className="absolute inset-0 z-0">
-        <img
-          src={city.heroImage}
-          alt={`${city.name} luxury real estate`}
-          className="absolute inset-0 w-full h-full object-cover"
+        <div 
+          className="absolute inset-0 w-full h-[120%] -top-[10%] bg-cover bg-center transform transition-transform duration-1000"
+          style={{ 
+            backgroundImage: `url(${city.heroImage})`,
+            transform: isLoaded ? 'scale(1.05)' : 'scale(1.1)'
+          }}
         />
-        <div className="absolute inset-0 bg-prime-950/60 mix-blend-multiply" />
-        <div className="absolute inset-0 bg-gradient-to-t from-prime-950/95 via-prime-950/40 to-prime-950/20" />
-        <div className="absolute inset-0 bg-gradient-to-r from-prime-950/60 to-transparent" />
+        {/* Gradient Overlays for Depth */}
+        <div className="absolute inset-0 bg-prime-950/50" />
+        <div className="absolute inset-0 bg-gradient-to-t from-prime-950 via-prime-950/40 to-prime-950/20" />
+        <div className="absolute inset-0 bg-gradient-to-r from-prime-950/70 via-transparent to-prime-950/30" />
+        
+        {/* Animated Particles/Dots */}
+        <div className="absolute inset-0 opacity-30">
+          <div className="absolute inset-0" style={{
+            backgroundImage: `radial-gradient(circle at 2px 2px, rgba(212, 175, 55, 0.3) 1px, transparent 0)`,
+            backgroundSize: '60px 60px'
+          }} />
+        </div>
+      </div>
+
+      {/* Trust Signals Bar - Top */}
+      <div className={`absolute top-20 left-0 right-0 z-20 transition-all duration-700 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4'}`}>
+        <div className="container mx-auto px-4">
+          <div className="flex flex-wrap items-center justify-center gap-6 md:gap-10">
+            {TRUST_SIGNALS.map((signal, index) => (
+              <div 
+                key={index} 
+                className="flex items-center gap-2 text-white/80 text-sm font-nav"
+                style={{ transitionDelay: `${index * 100}ms` }}
+              >
+                <signal.icon size={16} className="text-prime-gold" />
+                <span>{signal.text}</span>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
 
       {/* Breadcrumb */}
-      <div className="absolute top-24 left-0 right-0 z-20">
+      <div className={`absolute top-32 left-0 right-0 z-20 transition-all duration-700 delay-200 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}>
         <div className="container mx-auto px-4">
-          <nav className="flex items-center gap-2 text-sm text-white/70">
+          <nav className="flex items-center gap-2 text-sm text-white/60">
             <Link to="/" className="hover:text-white transition-colors">Home</Link>
             <ChevronRight size={14} />
             <Link to="/brochure/marbella" className="hover:text-white transition-colors">Locations</Link>
@@ -67,86 +111,106 @@ export const BrochureHero: React.FC<BrochureHeroProps> = ({
         </div>
       </div>
 
-      {/* Content */}
-      <div className="relative z-10 container mx-auto px-4 text-center pt-32 pb-24">
-        {/* Eyebrow */}
-        <div className="mb-6 animate-fade-in">
-          <span className="inline-block px-4 py-2 bg-prime-gold/20 border border-prime-gold/30 rounded-full text-prime-goldLight text-sm font-nav tracking-wider uppercase">
-            Costa del Sol
+      {/* Main Content */}
+      <div className="relative z-10 container mx-auto px-4 text-center pt-40 pb-32">
+        {/* Eyebrow Badge */}
+        <div className={`mb-8 transition-all duration-700 delay-300 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+          <span className="inline-flex items-center gap-2 px-5 py-2.5 bg-prime-gold/10 border border-prime-gold/30 rounded-full text-prime-goldLight text-sm font-nav tracking-wider uppercase backdrop-blur-sm">
+            <span className="w-2 h-2 bg-prime-gold rounded-full animate-pulse" />
+            Costa del Sol, Spain
           </span>
         </div>
 
-        {/* Headline */}
-        <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-white mb-6 leading-[1.1] tracking-tight animate-zoom-in">
-          {headline}
+        {/* Headline with Animated Reveal */}
+        <h1 className={`font-serif text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-white mb-6 leading-[1.1] tracking-tight transition-all duration-1000 delay-400 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+          <span className="block">{headline}</span>
         </h1>
 
-        {/* Subtitle */}
-        <p className="text-xl md:text-2xl lg:text-3xl font-light text-white/90 mb-8 animate-fade-in-up font-serif italic max-w-3xl mx-auto">
-          {subtitle}
-        </p>
+        {/* Subtitle with Decorative Elements */}
+        <div className={`max-w-3xl mx-auto mb-10 transition-all duration-1000 delay-500 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+          <div className="flex items-center justify-center gap-4 mb-4">
+            <div className="h-px w-12 bg-gradient-to-r from-transparent to-prime-gold/50" />
+            <span className="text-prime-gold text-lg">✦</span>
+            <div className="h-px w-12 bg-gradient-to-l from-transparent to-prime-gold/50" />
+          </div>
+          <p className="text-xl md:text-2xl lg:text-3xl font-light text-white/90 font-serif italic">
+            {subtitle}
+          </p>
+        </div>
 
-        {/* Video Player (when video URL exists) */}
+        {/* Video Player - Magazine Style */}
         {hasVideo && (
-          <div className="max-w-4xl mx-auto mb-10 animate-fade-in-up">
-            <div className="relative rounded-2xl overflow-hidden shadow-2xl shadow-black/50 border border-white/10">
-              <video
-                ref={videoRef}
-                src={city.heroVideoUrl!}
-                poster={city.heroImage}
-                className="w-full aspect-video object-cover"
-                onEnded={() => setIsPlaying(false)}
-                playsInline
-              >
-                Your browser does not support the video tag.
-              </video>
+          <div className={`max-w-4xl mx-auto mb-12 transition-all duration-1000 delay-600 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+            <div className="relative rounded-2xl overflow-hidden shadow-2xl shadow-black/50 border border-white/10 group">
+              {/* Video Glow Effect */}
+              <div className="absolute -inset-1 bg-gradient-to-r from-prime-gold/30 via-white/10 to-prime-gold/30 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
               
-              {/* Play/Pause Overlay Button */}
-              <button
-                onClick={togglePlay}
-                className="absolute inset-0 flex items-center justify-center bg-black/30 hover:bg-black/40 transition-colors group"
-                aria-label={isPlaying ? 'Pause video' : 'Play video'}
-              >
-                <div className={`w-20 h-20 rounded-full bg-prime-gold/90 hover:bg-prime-gold flex items-center justify-center shadow-2xl shadow-prime-gold/30 transition-all duration-300 ${isPlaying ? 'opacity-0 group-hover:opacity-100' : 'opacity-100'}`}>
-                  {isPlaying ? (
-                    <Pause className="w-8 h-8 text-prime-950" />
-                  ) : (
-                    <Play className="w-8 h-8 text-prime-950 ml-1" />
-                  )}
-                </div>
-              </button>
+              <div className="relative bg-black rounded-2xl overflow-hidden">
+                <video
+                  ref={videoRef}
+                  src={city.heroVideoUrl!}
+                  poster={city.heroImage}
+                  className="w-full aspect-video object-cover"
+                  onEnded={() => setIsPlaying(false)}
+                  playsInline
+                />
+                
+                {/* Play/Pause Button */}
+                <button
+                  onClick={togglePlay}
+                  className="absolute inset-0 flex items-center justify-center bg-black/20 hover:bg-black/30 transition-colors"
+                  aria-label={isPlaying ? 'Pause video' : 'Play video'}
+                >
+                  <div className={`w-20 h-20 md:w-24 md:h-24 rounded-full bg-prime-gold/90 hover:bg-prime-gold flex items-center justify-center shadow-2xl shadow-prime-gold/30 transition-all duration-300 hover:scale-110 ${isPlaying ? 'opacity-0 group-hover:opacity-100' : 'opacity-100'}`}>
+                    {isPlaying ? (
+                      <Pause className="w-8 h-8 md:w-10 md:h-10 text-prime-950" />
+                    ) : (
+                      <Play className="w-8 h-8 md:w-10 md:h-10 text-prime-950 ml-1" />
+                    )}
+                  </div>
+                </button>
+              </div>
             </div>
           </div>
         )}
 
         {/* CTAs */}
-        <div className="flex flex-col sm:flex-row gap-4 justify-center animate-slide-in-up">
+        <div className={`flex flex-col sm:flex-row gap-4 justify-center transition-all duration-1000 delay-700 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
           <Button
             onClick={onViewBrochure}
             size="lg"
-            className="bg-prime-gold hover:bg-prime-goldDark text-prime-950 font-nav font-semibold px-8 py-6 text-base shadow-2xl shadow-prime-gold/30 hover:shadow-prime-gold/50 transition-all duration-300"
+            className="group bg-prime-gold hover:bg-prime-goldDark text-prime-950 font-nav font-semibold px-10 py-7 text-base shadow-2xl shadow-prime-gold/30 hover:shadow-prime-gold/50 transition-all duration-300 hover:-translate-y-1"
           >
-            View Brochure
-            <ChevronRight className="ml-2" size={18} />
+            <span>Download Brochure</span>
+            <ChevronRight className="ml-2 group-hover:translate-x-1 transition-transform" size={18} />
           </Button>
           <Button
             onClick={onChat}
             variant="outline"
             size="lg"
-            className="border-prime-gold/50 text-prime-gold hover:bg-prime-gold hover:text-prime-950 backdrop-blur-sm font-nav font-semibold px-8 py-6 text-base transition-all duration-300"
+            className="border-2 border-white/30 bg-white/5 text-white hover:bg-white hover:text-prime-950 backdrop-blur-sm font-nav font-semibold px-10 py-7 text-base transition-all duration-300 hover:-translate-y-1"
           >
             <MessageCircle className="mr-2" size={18} />
-            Chat With Us
+            <span>Speak With Expert</span>
           </Button>
         </div>
+      </div>
 
-        {/* Scroll Indicator */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-float">
-          <div className="w-6 h-10 border-2 border-white/30 rounded-full flex items-start justify-center p-2">
-            <div className="w-1 h-2 bg-prime-gold rounded-full animate-bounce" />
+      {/* Scroll Indicator */}
+      <button 
+        onClick={scrollToContent}
+        className={`absolute bottom-10 left-1/2 -translate-x-1/2 z-20 transition-all duration-1000 delay-1000 hover:scale-110 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
+      >
+        <div className="flex flex-col items-center gap-2 text-white/50 hover:text-white transition-colors">
+          <span className="text-xs font-nav tracking-widest uppercase">Explore</span>
+          <div className="w-8 h-12 border-2 border-current rounded-full flex items-start justify-center p-2">
+            <ChevronDown className="w-4 h-4 animate-bounce" />
           </div>
         </div>
-      </div>
+      </button>
+
+      {/* Bottom Gradient Fade */}
+      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-background to-transparent z-10" />
     </section>
   );
 };

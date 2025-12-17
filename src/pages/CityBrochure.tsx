@@ -7,11 +7,14 @@ import { Header } from '@/components/home/Header';
 import { Footer } from '@/components/home/Footer';
 import { BrochureHero } from '@/components/brochures/BrochureHero';
 import { BrochureDescription } from '@/components/brochures/BrochureDescription';
+import { InvestmentHighlights } from '@/components/brochures/InvestmentHighlights';
+import { LifestyleFeatures } from '@/components/brochures/LifestyleFeatures';
 import { BrochureGallery } from '@/components/brochures/BrochureGallery';
 import { BrochureOptInForm } from '@/components/brochures/BrochureOptInForm';
+import { CrossCityDiscovery } from '@/components/brochures/CrossCityDiscovery';
 import { BrochureChatbot } from '@/components/brochures/BrochureChatbot';
 import NotFound from './NotFound';
-import { Loader2 } from 'lucide-react';
+import { Loader2, ArrowUp } from 'lucide-react';
 
 // Fallback images from existing assets
 import marbellaHero from '@/assets/brochures/marbella-hero.jpg';
@@ -53,20 +56,12 @@ interface CityBrochureData {
   is_published: boolean;
 }
 
-// Parse gallery_images from database (handles both old string[] and new GalleryItem[] format)
 const parseGalleryImages = (data: unknown): GalleryItem[] => {
   if (!data || !Array.isArray(data)) return [];
-  
   return data.map((item) => {
-    if (typeof item === 'string') {
-      // Legacy format: convert string URL to GalleryItem
-      return { title: '', image: item };
-    }
+    if (typeof item === 'string') return { title: '', image: item };
     if (typeof item === 'object' && item !== null) {
-      return {
-        title: (item as GalleryItem).title || '',
-        image: (item as GalleryItem).image || '',
-      };
+      return { title: (item as GalleryItem).title || '', image: (item as GalleryItem).image || '' };
     }
     return { title: '', image: '' };
   });
@@ -76,13 +71,20 @@ const CityBrochure: React.FC = () => {
   const { citySlug } = useParams<{ citySlug: string }>();
   const formRef = useRef<HTMLElement>(null);
   const [chatOpen, setChatOpen] = useState(false);
+  const [showBackToTop, setShowBackToTop] = useState(false);
 
-  // Scroll to top on mount
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [citySlug]);
 
-  // Fetch city brochure data from database
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowBackToTop(window.scrollY > 800);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   const { data: city, isLoading, error } = useQuery({
     queryKey: ['city-brochure', citySlug],
     queryFn: async () => {
@@ -99,13 +101,9 @@ const CityBrochure: React.FC = () => {
     enabled: !!citySlug,
   });
 
-  const scrollToForm = () => {
-    formRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  const toggleChat = () => {
-    setChatOpen(!chatOpen);
-  };
+  const scrollToForm = () => formRef.current?.scrollIntoView({ behavior: 'smooth' });
+  const toggleChat = () => setChatOpen(!chatOpen);
+  const scrollToTop = () => window.scrollTo({ top: 0, behavior: 'smooth' });
 
   if (isLoading) {
     return (
@@ -119,76 +117,54 @@ const CityBrochure: React.FC = () => {
     );
   }
 
-  // 404 if invalid city or not published
-  if (!city || error) {
-    return <NotFound />;
-  }
+  if (!city || error) return <NotFound />;
 
-  // Get hero image with fallback
   const heroImage = city.hero_image || FALLBACK_IMAGES[city.slug] || FALLBACK_IMAGES.marbella;
   const galleryImages = parseGalleryImages(city.gallery_images);
   const features = city.features || [];
   const description = city.description || `Discover exceptional real estate opportunities in ${city.name}.`;
-
   const BASE_URL = 'https://www.delsolprimehomes.com';
 
   return (
     <>
       <Helmet>
         <title>{city.meta_title || `Luxury Properties in ${city.name} | Del Sol Prime Homes`}</title>
-        <meta
-          name="description"
-          content={city.meta_description || `Discover exceptional luxury properties in ${city.name} on the Costa del Sol.`}
-        />
+        <meta name="description" content={city.meta_description || `Discover exceptional luxury properties in ${city.name} on the Costa del Sol.`} />
         <link rel="canonical" href={`${BASE_URL}/brochure/${city.slug}`} />
-
-        {/* Open Graph */}
         <meta property="og:type" content="website" />
         <meta property="og:title" content={city.hero_headline || `Luxury Properties in ${city.name}`} />
         <meta property="og:description" content={city.meta_description || description} />
         <meta property="og:image" content={heroImage} />
         <meta property="og:url" content={`${BASE_URL}/brochure/${city.slug}`} />
-        <meta property="og:site_name" content="Del Sol Prime Homes" />
-
-        {/* Twitter */}
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content={city.hero_headline || `Luxury Properties in ${city.name}`} />
-        <meta name="twitter:description" content={city.meta_description || description} />
-        <meta name="twitter:image" content={heroImage} />
       </Helmet>
 
       <Header variant="transparent" />
 
-      <main>
-        {/* 1. Hero Section */}
+      <main className="overflow-hidden">
         <BrochureHero
-          city={{
-            id: city.id,
-            slug: city.slug,
-            name: city.name,
-            heroImage: heroImage,
-            heroVideoUrl: city.hero_video_url,
-            hero_headline: city.hero_headline,
-            hero_subtitle: city.hero_subtitle,
-          }}
+          city={{ id: city.id, slug: city.slug, name: city.name, heroImage, heroVideoUrl: city.hero_video_url, hero_headline: city.hero_headline, hero_subtitle: city.hero_subtitle }}
           onViewBrochure={scrollToForm}
           onChat={toggleChat}
         />
-
-        {/* 2. City/Property Description */}
-        <BrochureDescription description={description} />
-
-        {/* 3. Image Gallery with Features */}
+        <BrochureDescription description={description} cityName={city.name} />
+        <InvestmentHighlights cityName={city.name} />
+        <LifestyleFeatures cityName={city.name} />
         <BrochureGallery images={galleryImages} features={features} cityName={city.name} />
-
-        {/* 4. Brochure Opt-In Form */}
         <BrochureOptInForm ref={formRef} cityName={city.name} citySlug={city.slug} />
+        <CrossCityDiscovery currentCity={city.slug} />
       </main>
 
       <Footer />
-
-      {/* Floating Chatbot */}
       <BrochureChatbot cityName={city.name} isOpen={chatOpen} onToggle={toggleChat} />
+
+      {/* Back to Top Button */}
+      <button
+        onClick={scrollToTop}
+        className={`fixed bottom-24 right-6 z-40 p-3 bg-prime-gold text-prime-950 rounded-full shadow-lg transition-all duration-300 hover:bg-prime-goldDark hover:scale-110 ${showBackToTop ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}`}
+        aria-label="Back to top"
+      >
+        <ArrowUp className="w-5 h-5" />
+      </button>
     </>
   );
 };
