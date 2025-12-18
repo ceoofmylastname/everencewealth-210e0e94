@@ -27,13 +27,22 @@ import {
   TrendingDown, TrendingUp, XCircle, Clock, ArrowRight, ThumbsUp, ThumbsDown, Play, Undo2
 } from "lucide-react";
 import { toast } from "sonner";
-import { useState } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { formatDistanceToNow } from "date-fns";
 import { ChangePreviewModal } from "@/components/admin/ChangePreviewModal";
 import { BulkReplacementDialog } from "@/components/admin/BulkReplacementDialog";
 import { CitationHealthAnalysis } from "@/components/admin/CitationHealthAnalysis";
 import { ApprovedDomainsTab } from "@/components/admin/ApprovedDomainsTab";
 import { Progress } from "@/components/ui/progress";
+
+// Debounce helper
+function debounce<T extends (...args: any[]) => any>(func: T, wait: number): T {
+  let timeout: NodeJS.Timeout;
+  return ((...args: Parameters<T>) => {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func(...args), wait);
+  }) as T;
+}
 
 interface CitationHealth {
   id: string;
@@ -79,7 +88,37 @@ const CitationHealth = () => {
   const [bulkResults, setBulkResults] = useState<any[]>([]);
   const [batchSize, setBatchSize] = useState<number>(5);
 
-  const { data: healthData, isLoading } = useQuery({
+  // Debounced refetch to avoid excessive updates
+  const debouncedRefetch = useMemo(
+    () => debounce(() => {
+      queryClient.refetchQueries({ queryKey: ["citation-health"] });
+    }, 500),
+    [queryClient]
+  );
+
+  // Real-time subscription for automatic updates
+  useEffect(() => {
+    const channel = supabase
+      .channel('citation-health-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'external_citation_health'
+        },
+        () => {
+          debouncedRefetch();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [debouncedRefetch]);
+
+  const { data: healthData, isLoading, isFetching } = useQuery({
     queryKey: ["citation-health"],
     queryFn: async () => {
       const { data, error } = await supabase.from("external_citation_health").select("*").order("last_checked_at", { ascending: false });
@@ -154,7 +193,7 @@ const CitationHealth = () => {
           description: `Found ${data.healthy || 0} healthy, ${problemCount} broken links.` 
         });
       }
-      queryClient.invalidateQueries({ queryKey: ["citation-health"] });
+      queryClient.refetchQueries({ queryKey: ["citation-health"] });
     },
     onError: (error: Error) => {
       toast.error(`Health check failed: ${error.message}`);
@@ -361,9 +400,17 @@ const CitationHealth = () => {
     <AdminLayout>
       <div className="container mx-auto p-6 space-y-6">
         <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold">Citation Health</h1>
-            <p className="text-muted-foreground">Monitor external citations and manage replacements</p>
+          <div className="flex items-center gap-3">
+            <div>
+              <h1 className="text-3xl font-bold">Citation Health</h1>
+              <p className="text-muted-foreground">Monitor external citations and manage replacements</p>
+            </div>
+            {isFetching && !isLoading && (
+              <div className="flex items-center gap-2 text-muted-foreground animate-pulse">
+                <RefreshCw className="h-4 w-4 animate-spin" />
+                <span className="text-sm">Updating...</span>
+              </div>
+            )}
           </div>
           <div className="flex gap-2">
             <Button 
