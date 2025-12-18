@@ -2416,6 +2416,7 @@ export type Database = {
           status: string
         }[]
       }
+      get_citation_health_stats: { Args: never; Returns: Json }
       get_database_triggers: {
         Args: never
         Returns: {

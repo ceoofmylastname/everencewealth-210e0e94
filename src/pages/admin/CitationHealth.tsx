@@ -92,6 +92,7 @@ const CitationHealth = () => {
   const debouncedRefetch = useMemo(
     () => debounce(() => {
       queryClient.refetchQueries({ queryKey: ["citation-health"] });
+      queryClient.refetchQueries({ queryKey: ["citation-health-stats"] });
     }, 500),
     [queryClient]
   );
@@ -118,10 +119,25 @@ const CitationHealth = () => {
     };
   }, [debouncedRefetch]);
 
+  // Server-side stats for accurate counts (bypasses 1000 row limit)
+  const { data: statsData, isLoading: statsLoading } = useQuery({
+    queryKey: ["citation-health-stats"],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("get_citation_health_stats");
+      if (error) throw error;
+      return data as { total: number; healthy: number; broken: number; unchecked: number };
+    },
+  });
+
+  // Table data with corrected ordering (checked items first)
   const { data: healthData, isLoading, isFetching } = useQuery({
     queryKey: ["citation-health"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("external_citation_health").select("*").order("last_checked_at", { ascending: false });
+      const { data, error } = await supabase
+        .from("external_citation_health")
+        .select("*")
+        .order("status", { ascending: true, nullsFirst: false })
+        .order("last_checked_at", { ascending: false });
       if (error) throw error;
       return data as CitationHealth[];
     },
@@ -166,7 +182,8 @@ const CitationHealth = () => {
       toast.success(
         `Sync complete! Removed ${data.staleEntriesDeleted} stale entries, added ${data.newHealthRecordsCreated} new records.`
       );
-      queryClient.invalidateQueries({ queryKey: ['citation-health'] });
+      queryClient.refetchQueries({ queryKey: ['citation-health'] });
+      queryClient.refetchQueries({ queryKey: ['citation-health-stats'] });
       queryClient.invalidateQueries({ queryKey: ['dead-link-replacements'] });
     },
     onError: (error: Error) => {
@@ -194,6 +211,7 @@ const CitationHealth = () => {
         });
       }
       queryClient.refetchQueries({ queryKey: ["citation-health"] });
+      queryClient.refetchQueries({ queryKey: ["citation-health-stats"] });
     },
     onError: (error: Error) => {
       toast.error(`Health check failed: ${error.message}`);
@@ -376,13 +394,8 @@ const CitationHealth = () => {
     }
   };
 
-  const stats = healthData?.reduce((acc, item) => {
-    acc.total++;
-    if (item.status === null) acc.unchecked++;
-    else if (item.status === 'healthy') acc.healthy++;
-    else if (item.status === 'broken' || item.status === 'unreachable') acc.broken++;
-    return acc;
-  }, { total: 0, healthy: 0, broken: 0, unchecked: 0 }) || { total: 0, healthy: 0, broken: 0, unchecked: 0 };
+  // Use server-side stats for accurate counts
+  const stats = statsData || { total: 0, healthy: 0, broken: 0, unchecked: 0 };
 
   const checkedCount = stats.total - stats.unchecked;
   const healthPercentage = checkedCount > 0 ? Math.round((stats.healthy / checkedCount) * 100) : 0;
@@ -394,7 +407,7 @@ const CitationHealth = () => {
     return <Badge variant="secondary">{status}</Badge>;
   };
 
-  if (isLoading) return <AdminLayout><div className="container mx-auto p-6"><Loader2 className="h-8 w-8 animate-spin" /></div></AdminLayout>;
+  if (isLoading || statsLoading) return <AdminLayout><div className="container mx-auto p-6"><Loader2 className="h-8 w-8 animate-spin" /></div></AdminLayout>;
 
   return (
     <AdminLayout>
