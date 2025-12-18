@@ -16,8 +16,8 @@ interface CitationHealth {
   id: string;
   url: string;
   source_name: string;
-  last_checked_at: string;
-  status: 'healthy' | 'broken' | 'redirected' | 'slow' | 'unreachable';
+  last_checked_at: string | null;
+  status: 'healthy' | 'broken' | 'redirected' | 'slow' | 'unreachable' | null;
   http_status_code: number | null;
   response_time_ms: number;
   redirect_url: string | null;
@@ -67,11 +67,13 @@ const StatCard = ({
 
 export const CitationHealthAnalysis = ({ healthData, onFindReplacement }: CitationHealthAnalysisProps) => {
   const stats = healthData.reduce((acc, item) => {
-    acc[item.status] = (acc[item.status] || 0) + 1;
+    const key = item.status || 'unchecked';
+    acc[key] = (acc[key] || 0) + 1;
     return acc;
   }, {} as Record<string, number>);
 
   const getStatusBadge = (status: CitationHealth['status']) => {
+    if (status === null) return <Badge variant="outline"><Clock className="mr-1 h-3 w-3" />Unchecked</Badge>;
     const badges = {
       healthy: <Badge className="bg-green-600"><CheckCircle2 className="mr-1 h-3 w-3" />Healthy</Badge>,
       broken: <Badge variant="destructive"><XCircle className="mr-1 h-3 w-3" />Broken</Badge>,
@@ -89,7 +91,14 @@ export const CitationHealthAnalysis = ({ healthData, onFindReplacement }: Citati
           <CardTitle>Citation Health Breakdown</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
+            <StatCard 
+              label="Unchecked" 
+              count={stats.unchecked || 0}
+              icon="⏳"
+              description="Never verified - run health check"
+              variant="default"
+            />
             <StatCard 
               label="Healthy" 
               count={stats.healthy || 0}
@@ -189,7 +198,9 @@ export const CitationHealthAnalysis = ({ healthData, onFindReplacement }: Citati
                     </Badge>
                   </TableCell>
                   <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
-                    {formatDistanceToNow(new Date(health.last_checked_at), { addSuffix: true })}
+                    {health.last_checked_at 
+                      ? formatDistanceToNow(new Date(health.last_checked_at), { addSuffix: true })
+                      : 'Never checked'}
                   </TableCell>
                   <TableCell>
                     {(health.status === 'broken' || health.status === 'unreachable') && (

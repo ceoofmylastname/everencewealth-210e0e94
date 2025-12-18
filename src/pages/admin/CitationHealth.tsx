@@ -39,8 +39,8 @@ interface CitationHealth {
   id: string;
   url: string;
   source_name: string;
-  last_checked_at: string;
-  status: 'healthy' | 'broken' | 'redirected' | 'slow' | 'unreachable';
+  last_checked_at: string | null;
+  status: 'healthy' | 'broken' | 'redirected' | 'slow' | 'unreachable' | null;
   http_status_code: number | null;
   response_time_ms: number;
   redirect_url: string | null;
@@ -353,14 +353,17 @@ const CitationHealth = () => {
 
   const stats = healthData?.reduce((acc, item) => {
     acc.total++;
-    if (item.status === 'healthy') acc.healthy++;
+    if (item.status === null) acc.unchecked++;
+    else if (item.status === 'healthy') acc.healthy++;
     else if (item.status === 'broken' || item.status === 'unreachable') acc.broken++;
     return acc;
-  }, { total: 0, healthy: 0, broken: 0 }) || { total: 0, healthy: 0, broken: 0 };
+  }, { total: 0, healthy: 0, broken: 0, unchecked: 0 }) || { total: 0, healthy: 0, broken: 0, unchecked: 0 };
 
-  const healthPercentage = stats.total > 0 ? Math.round((stats.healthy / stats.total) * 100) : 0;
+  const checkedCount = stats.total - stats.unchecked;
+  const healthPercentage = checkedCount > 0 ? Math.round((stats.healthy / checkedCount) * 100) : 0;
 
   const getStatusBadge = (status: CitationHealth['status']) => {
+    if (status === null) return <Badge variant="outline"><Clock className="mr-1 h-3 w-3" />Unchecked</Badge>;
     if (status === 'healthy') return <Badge className="bg-green-600"><CheckCircle2 className="mr-1 h-3 w-3" />Healthy</Badge>;
     if (status === 'broken') return <Badge variant="destructive"><XCircle className="mr-1 h-3 w-3" />Broken</Badge>;
     return <Badge variant="secondary">{status}</Badge>;
@@ -441,9 +444,20 @@ const CitationHealth = () => {
           </Card>
         )}
 
-        <div className="grid gap-4 md:grid-cols-3">
-          <Card><CardHeader><CardTitle className="text-sm">Total Citations</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold">{stats.total}</div></CardContent></Card>
-          <Card><CardHeader><CardTitle className="text-sm">Health Score</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold text-green-600">{healthPercentage}%</div><p className="text-xs text-muted-foreground mt-1">{stats.healthy} healthy citations</p></CardContent></Card>
+        {stats.unchecked > 0 && (
+          <Alert>
+            <Clock className="h-4 w-4" />
+            <AlertTitle>Citations Need Health Check</AlertTitle>
+            <AlertDescription>
+              {stats.unchecked.toLocaleString()} citations have never been verified. Click "Run Health Check" to verify their status.
+            </AlertDescription>
+          </Alert>
+        )}
+
+        <div className="grid gap-4 md:grid-cols-4">
+          <Card><CardHeader><CardTitle className="text-sm">Total Citations</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold">{stats.total.toLocaleString()}</div></CardContent></Card>
+          <Card><CardHeader><CardTitle className="text-sm">Unchecked</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold text-amber-600">{stats.unchecked.toLocaleString()}</div><p className="text-xs text-muted-foreground mt-1">Never verified</p></CardContent></Card>
+          <Card><CardHeader><CardTitle className="text-sm">Health Score</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold text-green-600">{healthPercentage}%</div><p className="text-xs text-muted-foreground mt-1">{stats.healthy.toLocaleString()} of {checkedCount.toLocaleString()} checked</p></CardContent></Card>
           <Card><CardHeader><CardTitle className="text-sm">Needs Attention</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold text-red-600">{stats.broken}</div><p className="text-xs text-muted-foreground mt-1">Broken or unreachable</p></CardContent></Card>
         </div>
 
