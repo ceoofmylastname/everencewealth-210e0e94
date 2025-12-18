@@ -409,7 +409,7 @@ VALIDATION BEFORE RESPONDING:
       p_article_id: articleId
     });
 
-    // Step 13: Update citation health
+    // Step 13: Update citation health for new URL
     await supabase
       .from('external_citation_health')
       .upsert({
@@ -420,6 +420,29 @@ VALIDATION BEFORE RESPONDING:
         last_checked_at: new Date().toISOString(),
         times_verified: 1
       }, { onConflict: 'url' });
+
+    // Step 14: Clean up old broken URL if no other articles use it
+    const { data: otherArticles } = await supabase.rpc('find_articles_with_citation', {
+      citation_url: brokenUrl,
+      published_only: false
+    });
+
+    // If no other articles use this broken URL, remove it from health tracking
+    if (!otherArticles || otherArticles.length === 0) {
+      console.log(`No other articles use ${brokenUrl}, removing from citation health tracking`);
+      
+      await supabase
+        .from('external_citation_health')
+        .delete()
+        .eq('url', brokenUrl);
+        
+      await supabase
+        .from('dead_link_replacements')
+        .delete()
+        .eq('original_url', brokenUrl);
+    } else {
+      console.log(`${otherArticles.length} other article(s) still use ${brokenUrl}, keeping in citation health`);
+    }
 
     const result: ReplacementResult = {
       success: true,

@@ -389,7 +389,8 @@ const CitationHealth = () => {
       });
 
       // Refresh data - including article content
-      queryClient.invalidateQueries({ queryKey: ['citation-health'] });
+        queryClient.invalidateQueries({ queryKey: ['citation-health'] });
+        queryClient.invalidateQueries({ queryKey: ['citation-health-stats'] });
       queryClient.invalidateQueries({ queryKey: ['domain-usage'] });
       queryClient.invalidateQueries({ queryKey: ['blog-articles'] });
       queryClient.invalidateQueries({ queryKey: ['article-revisions'] });
