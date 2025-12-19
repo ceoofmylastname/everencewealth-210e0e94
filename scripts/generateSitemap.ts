@@ -52,6 +52,13 @@ async function checkFeatureFlag(flagName: string): Promise<boolean> {
   }
 }
 
+interface QAPageData {
+  slug: string;
+  language: string;
+  updated_at: string | null;
+  created_at: string | null;
+}
+
 // Main sitemap generation function
 export async function generateSitemap(outputDir?: string): Promise<void> {
   console.log('\n🗺️ Starting sitemap generation...');
@@ -74,14 +81,22 @@ export async function generateSitemap(outputDir?: string): Promise<void> {
   
   console.log(`📝 Found ${articles?.length || 0} published articles`);
   
-  if (!articles || articles.length === 0) {
-    console.warn('⚠️ No published articles found!');
-    return;
+  // 3. Fetch ALL published QA pages
+  const { data: qaPages, error: qaError } = await supabase
+    .from('qa_pages')
+    .select('slug, language, updated_at, created_at')
+    .eq('status', 'published')
+    .order('updated_at', { ascending: false });
+  
+  if (qaError) {
+    console.error('❌ Failed to fetch QA pages:', qaError);
   }
   
-  // 3. Group articles by cluster_id for hreflang siblings
+  console.log(`🔍 Found ${qaPages?.length || 0} published QA pages`);
+  
+  // 4. Group articles by cluster_id for hreflang siblings
   const clusterMap = new Map<string, ArticleData[]>();
-  articles.forEach((article: ArticleData) => {
+  (articles || []).forEach((article: ArticleData) => {
     if (article.cluster_id) {
       const existing = clusterMap.get(article.cluster_id) || [];
       existing.push(article);
@@ -91,7 +106,7 @@ export async function generateSitemap(outputDir?: string): Promise<void> {
   
   console.log(`🔗 Found ${clusterMap.size} clusters with siblings`);
   
-  // 4. Generate XML
+  // 5. Generate XML
   const baseUrl = 'https://www.delsolprimehomes.com';
   const xmlNamespace = hreflangEnabled 
     ? `xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
@@ -99,7 +114,7 @@ export async function generateSitemap(outputDir?: string): Promise<void> {
     : `xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"`;
   
   // Build article URLs with hreflang
-  const articleUrls = articles.map((article: ArticleData) => {
+  const articleUrls = (articles || []).map((article: ArticleData) => {
     const lastmod = article.date_modified || article.date_published || new Date().toISOString();
     const lastmodFormatted = new Date(lastmod).toISOString().split('T')[0];
     const currentUrl = `${baseUrl}/blog/${article.slug}`;
@@ -138,6 +153,27 @@ export async function generateSitemap(outputDir?: string): Promise<void> {
   </url>`;
   }).join('\n');
   
+  // Build QA page URLs
+  const qaUrls = (qaPages || []).map((qa: QAPageData) => {
+    const lastmod = qa.updated_at || qa.created_at || new Date().toISOString();
+    const lastmodFormatted = new Date(lastmod).toISOString().split('T')[0];
+    const currentUrl = `${baseUrl}/qa/${qa.slug}`;
+    
+    let hreflangLinks = '';
+    if (hreflangEnabled) {
+      const currentLangCode = langToHreflang[qa.language] || qa.language;
+      hreflangLinks = `\n    <xhtml:link rel="alternate" hreflang="${currentLangCode}" href="${currentUrl}" />`;
+      hreflangLinks += `\n    <xhtml:link rel="alternate" hreflang="x-default" href="${currentUrl}" />`;
+    }
+    
+    return `  <url>
+    <loc>${currentUrl}</loc>
+    <lastmod>${lastmodFormatted}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>${hreflangLinks}
+  </url>`;
+  }).join('\n');
+  
   // Homepage hreflang
   const homepageHreflang = hreflangEnabled ? `
     <xhtml:link rel="alternate" hreflang="en-GB" href="${baseUrl}/" />
@@ -147,6 +183,14 @@ export async function generateSitemap(outputDir?: string): Promise<void> {
   const blogIndexHreflang = hreflangEnabled ? `
     <xhtml:link rel="alternate" hreflang="en-GB" href="${baseUrl}/blog" />
     <xhtml:link rel="alternate" hreflang="x-default" href="${baseUrl}/blog" />` : '';
+  
+  // QA index hreflang
+  const qaIndexHreflang = hreflangEnabled ? `
+    <xhtml:link rel="alternate" hreflang="en-GB" href="${baseUrl}/qa" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="${baseUrl}/qa" />` : '';
+  
+  const articleCount = articles?.length || 0;
+  const qaCount = qaPages?.length || 0;
   
   // Full sitemap XML
   const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
@@ -166,12 +210,22 @@ export async function generateSitemap(outputDir?: string): Promise<void> {
     <priority>0.9</priority>${blogIndexHreflang}
   </url>
   
-  <!-- Blog Articles (${articles.length} total) -->
+  <!-- Q&A Index -->
+  <url>
+    <loc>${baseUrl}/qa</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.85</priority>${qaIndexHreflang}
+  </url>
+  
+  <!-- Blog Articles (${articleCount} total) -->
 ${articleUrls}
+  
+  <!-- Q&A Pages (${qaCount} total) -->
+${qaUrls}
   
 </urlset>`;
 
-  // 5. Write to public/sitemap.xml
+  // 6. Write to public/sitemap.xml
   const outputPath = outputDir 
     ? join(outputDir, 'sitemap.xml')
     : join(process.cwd(), 'public', 'sitemap.xml');
@@ -179,7 +233,7 @@ ${articleUrls}
   writeFileSync(outputPath, sitemap, 'utf-8');
   
   console.log(`✅ Sitemap generated successfully!`);
-  console.log(`📊 Total URLs: ${articles.length + 2} (${articles.length} articles + homepage + blog index)`);
+  console.log(`📊 Total URLs: ${articleCount + qaCount + 3} (${articleCount} articles + ${qaCount} QA pages + homepage + blog index + QA index)`);
   console.log(`📍 Output: ${outputPath}`);
   
   // Show sample with hreflang if enabled
