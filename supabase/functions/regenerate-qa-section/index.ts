@@ -25,16 +25,16 @@ serve(async (req) => {
   }
 
   try {
-    const { faqPageId, section } = await req.json();
+    const { qaPageId, section } = await req.json();
 
-    if (!faqPageId || !section) {
-      return new Response(JSON.stringify({ error: 'faqPageId and section are required' }), {
+    if (!qaPageId || !section) {
+      return new Response(JSON.stringify({ error: 'qaPageId and section are required' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    const validSections = ['answer', 'speakable', 'meta', 'related_faqs'];
+    const validSections = ['answer', 'speakable', 'meta', 'related_qas'];
     if (!validSections.includes(section)) {
       return new Response(JSON.stringify({ error: `Invalid section. Must be one of: ${validSections.join(', ')}` }), {
         status: 400,
@@ -47,22 +47,22 @@ serve(async (req) => {
     const lovableApiKey = Deno.env.get('LOVABLE_API_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Get FAQ page
-    const { data: faqPage, error: faqError } = await supabase
-      .from('faq_pages')
+    // Get Q&A page
+    const { data: qaPage, error: qaError } = await supabase
+      .from('qa_pages')
       .select('*, blog_articles!source_article_id(headline, detailed_content)')
-      .eq('id', faqPageId)
+      .eq('id', qaPageId)
       .single();
 
-    if (faqError || !faqPage) {
-      return new Response(JSON.stringify({ error: 'FAQ page not found' }), {
+    if (qaError || !qaPage) {
+      return new Response(JSON.stringify({ error: 'Q&A page not found' }), {
         status: 404,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    const languageName = LANGUAGE_NAMES[faqPage.language] || 'English';
-    const article = faqPage.blog_articles;
+    const languageName = LANGUAGE_NAMES[qaPage.language] || 'English';
+    const article = qaPage.blog_articles;
 
     let prompt = '';
     let updateFields: Record<string, any> = {};
@@ -71,7 +71,7 @@ serve(async (req) => {
       case 'answer':
         prompt = `CRITICAL: Write the answer ENTIRELY in ${languageName}. No English unless target language IS English.
 
-Based on this question: "${faqPage.question_main}"
+Based on this question: "${qaPage.question_main}"
 And this article context: ${article?.detailed_content?.substring(0, 2000) || ''}
 
 Generate a comprehensive, helpful, citeable answer in HTML format (300-500 words) in ${languageName}.
@@ -81,8 +81,8 @@ Return ONLY the HTML answer text, no JSON, no markdown code blocks.`;
       case 'speakable':
         prompt = `CRITICAL: Write the answer ENTIRELY in ${languageName}. No English unless target language IS English.
 
-Based on this question: "${faqPage.question_main}"
-And this answer: ${faqPage.answer_main.substring(0, 1000)}
+Based on this question: "${qaPage.question_main}"
+And this answer: ${qaPage.answer_main.substring(0, 1000)}
 
 Generate a short, citation-ready voice answer (50-80 words) suitable for voice assistants in ${languageName}.
 Return ONLY the speakable text, no JSON, no markdown.`;
@@ -91,9 +91,9 @@ Return ONLY the speakable text, no JSON, no markdown.`;
       case 'meta':
         prompt = `CRITICAL: Write ENTIRELY in ${languageName}. No English unless target language IS English.
 
-Based on this FAQ page:
-Title: ${faqPage.title}
-Question: ${faqPage.question_main}
+Based on this Q&A page:
+Title: ${qaPage.title}
+Question: ${qaPage.question_main}
 
 Generate SEO meta tags in ${languageName}:
 1. meta_title: ≤60 characters
@@ -102,13 +102,13 @@ Generate SEO meta tags in ${languageName}:
 Return JSON only: {"meta_title": "...", "meta_description": "..."}`;
         break;
 
-      case 'related_faqs':
+      case 'related_qas':
         prompt = `CRITICAL: Write ENTIRELY in ${languageName}. No English unless target language IS English.
 
-Based on this main question: "${faqPage.question_main}"
+Based on this main question: "${qaPage.question_main}"
 And article context: ${article?.detailed_content?.substring(0, 2000) || ''}
 
-Generate 2-3 related FAQ questions and answers in ${languageName}.
+Generate 2-3 related Q&A questions and answers in ${languageName}.
 Each answer should be 50-100 words.
 
 Return JSON array only: [{"question": "...", "answer": "..."}, ...]`;
@@ -150,17 +150,17 @@ Return JSON array only: [{"question": "...", "answer": "..."}, ...]`;
         updateFields.meta_title = metaData.meta_title?.substring(0, 60);
         updateFields.meta_description = metaData.meta_description?.substring(0, 160);
         break;
-      case 'related_faqs':
-        updateFields.related_faqs = JSON.parse(content);
+      case 'related_qas':
+        updateFields.related_qas = JSON.parse(content);
         break;
     }
 
     updateFields.updated_at = new Date().toISOString();
 
-    const { data: updatedFaq, error: updateError } = await supabase
-      .from('faq_pages')
+    const { data: updatedQa, error: updateError } = await supabase
+      .from('qa_pages')
       .update(updateFields)
-      .eq('id', faqPageId)
+      .eq('id', qaPageId)
       .select()
       .single();
 
@@ -168,13 +168,13 @@ Return JSON array only: [{"question": "...", "answer": "..."}, ...]`;
 
     return new Response(JSON.stringify({
       success: true,
-      faqPage: updatedFaq,
+      qaPage: updatedQa,
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
   } catch (error) {
-    console.error('Error in regenerate-faq-section:', error);
+    console.error('Error in regenerate-qa-section:', error);
     return new Response(JSON.stringify({
       error: error instanceof Error ? error.message : 'Unknown error',
     }), {
