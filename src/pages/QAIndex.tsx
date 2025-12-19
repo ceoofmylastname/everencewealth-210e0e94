@@ -34,17 +34,17 @@ const CATEGORY_CONFIG: Record<string, { icon: React.ComponentType<any>; color: s
   'Property Management': { icon: Building, color: 'bg-cyan-500' },
 };
 
-export default function FAQIndex() {
+export default function QAIndex() {
   const [searchTerm, setSearchTerm] = useState('');
   const [languageFilter, setLanguageFilter] = useState<string>('all');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [isFocused, setIsFocused] = useState(false);
 
-  const { data: faqPages = [], isLoading } = useQuery({
-    queryKey: ['published-faq-pages', languageFilter],
+  const { data: qaPages = [], isLoading } = useQuery({
+    queryKey: ['published-qa-pages', languageFilter],
     queryFn: async () => {
       let query = supabase
-        .from('faq_pages')
+        .from('qa_pages')
         .select('*')
         .eq('status', 'published')
         .order('created_at', { ascending: false });
@@ -59,55 +59,55 @@ export default function FAQIndex() {
     },
   });
 
-  // Get unique categories from FAQs
+  // Get unique categories from Q&As
   const categories = useMemo(() => {
-    const cats = [...new Set(faqPages.map((faq: any) => faq.category).filter(Boolean))];
+    const cats = [...new Set(qaPages.map((qa: any) => qa.category).filter(Boolean))];
     return cats.sort();
-  }, [faqPages]);
+  }, [qaPages]);
 
-  // Filter FAQs by search and category
-  const filteredFaqs = useMemo(() => {
-    return faqPages.filter((faq: any) => {
+  // Filter Q&As by search and category
+  const filteredQas = useMemo(() => {
+    return qaPages.filter((qa: any) => {
       const matchesSearch = 
-        faq.question_main.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        faq.title.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesCategory = categoryFilter === 'all' || faq.category === categoryFilter;
+        qa.question_main.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        qa.title.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesCategory = categoryFilter === 'all' || qa.category === categoryFilter;
       return matchesSearch && matchesCategory;
     });
-  }, [faqPages, searchTerm, categoryFilter]);
+  }, [qaPages, searchTerm, categoryFilter]);
 
-  // Group FAQs by category
-  const faqsByCategory = useMemo(() => {
+  // Group Q&As by category
+  const qasByCategory = useMemo(() => {
     const grouped: Record<string, any[]> = {};
-    filteredFaqs.forEach((faq: any) => {
-      const cat = faq.category || 'Uncategorized';
+    filteredQas.forEach((qa: any) => {
+      const cat = qa.category || 'Uncategorized';
       if (!grouped[cat]) grouped[cat] = [];
-      grouped[cat].push(faq);
+      grouped[cat].push(qa);
     });
     return grouped;
-  }, [filteredFaqs]);
+  }, [filteredQas]);
 
   // Get category counts
   const categoryCounts = useMemo(() => {
-    const counts: Record<string, number> = { all: faqPages.length };
-    faqPages.forEach((faq: any) => {
-      const cat = faq.category || 'Uncategorized';
+    const counts: Record<string, number> = { all: qaPages.length };
+    qaPages.forEach((qa: any) => {
+      const cat = qa.category || 'Uncategorized';
       counts[cat] = (counts[cat] || 0) + 1;
     });
     return counts;
-  }, [faqPages]);
+  }, [qaPages]);
 
   const stripHtml = (html: string) => html.replace(/<[^>]*>/g, '');
 
   return (
     <>
       <Helmet>
-        <title>Frequently Asked Questions | Del Sol Prime Homes</title>
+        <title>Questions & Answers | Del Sol Prime Homes</title>
         <meta
           name="description"
           content="Find answers to common questions about buying property in Costa del Sol, Spain. Expert advice on real estate, legal processes, and lifestyle."
         />
-        <link rel="canonical" href="https://www.delsolprimehomes.com/faq" />
+        <link rel="canonical" href="https://www.delsolprimehomes.com/qa" />
       </Helmet>
 
       <Header variant="transparent" />
@@ -128,7 +128,7 @@ export default function FAQIndex() {
             <nav className="flex items-center text-sm text-white/60 mb-8 animate-fade-in">
               <Link to="/" className="hover:text-prime-gold transition-colors">Home</Link>
               <ChevronRight className="h-4 w-4 mx-2 text-prime-gold/50" />
-              <span className="text-white">FAQ</span>
+              <span className="text-white">Q&A</span>
             </nav>
 
             <div className="text-center max-w-3xl mx-auto">
@@ -138,8 +138,8 @@ export default function FAQIndex() {
               </div>
 
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-display font-bold text-white mb-6 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
-                Frequently Asked
-                <span className="block text-prime-gold">Questions</span>
+                Questions &
+                <span className="block text-prime-gold">Answers</span>
               </h1>
               
               <p className="text-lg md:text-xl text-white/70 mb-10 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
@@ -231,7 +231,7 @@ export default function FAQIndex() {
           </div>
         </section>
 
-        {/* FAQ Cards by Category */}
+        {/* Q&A Cards by Category */}
         <section className="py-16 md:py-20">
           <div className="container mx-auto px-4">
             {isLoading ? (
@@ -247,18 +247,18 @@ export default function FAQIndex() {
                   </Card>
                 ))}
               </div>
-            ) : filteredFaqs.length === 0 ? (
+            ) : filteredQas.length === 0 ? (
               <div className="text-center py-20">
                 <div className="w-20 h-20 bg-muted rounded-full flex items-center justify-center mx-auto mb-6">
                   <Sparkles className="h-10 w-10 text-muted-foreground" />
                 </div>
-                <h3 className="text-xl font-display font-semibold mb-2">No FAQs Found</h3>
+                <h3 className="text-xl font-display font-semibold mb-2">No Q&As Found</h3>
                 <p className="text-muted-foreground">Try adjusting your search or filter to find what you're looking for.</p>
               </div>
             ) : categoryFilter === 'all' ? (
               // Show grouped by category when "All" is selected
               <div className="space-y-16">
-                {Object.entries(faqsByCategory).map(([category, faqs]) => {
+                {Object.entries(qasByCategory).map(([category, qas]) => {
                   const config = CATEGORY_CONFIG[category] || { icon: HelpCircle, color: 'bg-gray-500' };
                   const Icon = config.icon;
                   return (
@@ -273,15 +273,15 @@ export default function FAQIndex() {
                             {category}
                           </h2>
                           <p className="text-muted-foreground text-sm">
-                            {faqs.length} question{faqs.length !== 1 ? 's' : ''}
+                            {qas.length} question{qas.length !== 1 ? 's' : ''}
                           </p>
                         </div>
                       </div>
 
-                      {/* FAQ Cards Grid */}
+                      {/* Q&A Cards Grid */}
                       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
-                        {faqs.map((faq: any, index: number) => (
-                          <FAQCard key={faq.id} faq={faq} index={index} stripHtml={stripHtml} />
+                        {qas.map((qa: any, index: number) => (
+                          <QACard key={qa.id} qa={qa} index={index} stripHtml={stripHtml} />
                         ))}
                       </div>
                     </div>
@@ -291,8 +291,8 @@ export default function FAQIndex() {
             ) : (
               // Show flat grid when specific category is selected
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
-                {filteredFaqs.map((faq: any, index: number) => (
-                  <FAQCard key={faq.id} faq={faq} index={index} stripHtml={stripHtml} />
+                {filteredQas.map((qa: any, index: number) => (
+                  <QACard key={qa.id} qa={qa} index={index} stripHtml={stripHtml} />
                 ))}
               </div>
             )}
@@ -305,20 +305,20 @@ export default function FAQIndex() {
   );
 }
 
-// Extracted FAQ Card component for reuse
-function FAQCard({ faq, index, stripHtml }: { faq: any; index: number; stripHtml: (html: string) => string }) {
+// Extracted Q&A Card component for reuse
+function QACard({ qa, index, stripHtml }: { qa: any; index: number; stripHtml: (html: string) => string }) {
   return (
     <Link 
-      to={`/faq/${faq.slug}`}
+      to={`/qa/${qa.slug}`}
       className="animate-fade-in-up"
       style={{ animationDelay: `${index * 0.05}s` }}
     >
       <Card className="overflow-hidden h-full border-0 bg-white shadow-[0_4px_20px_rgba(0,0,0,0.06)] hover:shadow-[0_12px_40px_rgba(0,0,0,0.12)] transition-all duration-500 hover:-translate-y-2 group">
-        {faq.featured_image_url && (
+        {qa.featured_image_url && (
           <div className="relative h-52 overflow-hidden">
             <img
-              src={faq.featured_image_url}
-              alt={faq.featured_image_alt || faq.title}
+              src={qa.featured_image_url}
+              alt={qa.featured_image_alt || qa.title}
               className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
             />
             {/* Gradient Overlay */}
@@ -327,24 +327,24 @@ function FAQCard({ faq, index, stripHtml }: { faq: any; index: number; stripHtml
             {/* Badges */}
             <div className="absolute top-4 left-4 flex gap-2">
               <Badge className="bg-white/95 backdrop-blur-sm text-prime-950 border-0 shadow-sm px-3 py-1 font-nav text-xs font-semibold">
-                {faq.language.toUpperCase()}
+                {qa.language.toUpperCase()}
               </Badge>
               <Badge
                 className={`backdrop-blur-sm border-0 shadow-sm px-3 py-1 font-nav text-xs font-semibold ${
-                  faq.faq_type === 'core' 
+                  qa.qa_type === 'core' 
                     ? 'bg-prime-gold text-prime-950' 
                     : 'bg-white/95 text-prime-950'
                 }`}
               >
-                {faq.faq_type === 'core' ? 'Guide' : 'Tips'}
+                {qa.qa_type === 'core' ? 'Guide' : 'Tips'}
               </Badge>
             </div>
 
             {/* Category Badge */}
-            {faq.category && (
+            {qa.category && (
               <div className="absolute bottom-4 left-4">
                 <Badge className="bg-prime-950/80 backdrop-blur-sm text-white border-0 shadow-sm px-3 py-1 font-nav text-xs">
-                  {faq.category}
+                  {qa.category}
                 </Badge>
               </div>
             )}
@@ -352,10 +352,10 @@ function FAQCard({ faq, index, stripHtml }: { faq: any; index: number; stripHtml
         )}
         <CardContent className="p-6">
           <h2 className="font-display font-bold text-lg text-foreground mb-3 line-clamp-2 group-hover:text-prime-gold transition-colors duration-300">
-            {faq.question_main}
+            {qa.question_main}
           </h2>
           <p className="text-sm text-muted-foreground line-clamp-3 leading-relaxed mb-5">
-            {stripHtml(faq.answer_main).substring(0, 150)}...
+            {stripHtml(qa.answer_main).substring(0, 150)}...
           </p>
           <div className="flex items-center text-prime-gold text-sm font-nav font-semibold group-hover:translate-x-1 transition-transform duration-300">
             Read Answer

@@ -10,8 +10,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { ChevronRight, Calendar, ExternalLink, Sparkles } from 'lucide-react';
 import { format } from 'date-fns';
-import { generateAllFAQSchemas } from '@/lib/faqPageSchemaGenerator';
-import { Author, FAQEntity } from '@/types/blog';
+import { generateAllQASchemas } from '@/lib/qaPageSchemaGenerator';
+import { Author, QAEntity } from '@/types/blog';
 
 const LANGUAGE_CODE_MAP: Record<string, string> = {
   en: 'en-GB',
@@ -28,14 +28,14 @@ const LANGUAGE_CODE_MAP: Record<string, string> = {
 
 const BASE_URL = 'https://www.delsolprimehomes.com';
 
-export default function FAQPage() {
+export default function QAPage() {
   const { slug } = useParams<{ slug: string }>();
 
-  const { data: faqPage, isLoading, error } = useQuery({
-    queryKey: ['faq-page', slug],
+  const { data: qaPage, isLoading, error } = useQuery({
+    queryKey: ['qa-page', slug],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('faq_pages')
+        .from('qa_pages')
         .select('*, authors!author_id(*)')
         .eq('slug', slug)
         .eq('status', 'published')
@@ -49,20 +49,20 @@ export default function FAQPage() {
 
   // Fetch sibling translations
   const { data: siblings = [] } = useQuery({
-    queryKey: ['faq-siblings', faqPage?.translations],
+    queryKey: ['qa-siblings', qaPage?.translations],
     queryFn: async () => {
-      if (!faqPage?.translations || Object.keys(faqPage.translations).length === 0) {
+      if (!qaPage?.translations || Object.keys(qaPage.translations).length === 0) {
         return [];
       }
-      const slugs = Object.values(faqPage.translations) as string[];
+      const slugs = Object.values(qaPage.translations) as string[];
       const { data } = await supabase
-        .from('faq_pages')
+        .from('qa_pages')
         .select('slug, language, title')
         .in('slug', slugs)
         .eq('status', 'published');
       return data || [];
     },
-    enabled: !!faqPage?.translations,
+    enabled: !!qaPage?.translations,
   });
 
   if (isLoading) {
@@ -92,7 +92,7 @@ export default function FAQPage() {
     );
   }
 
-  if (error || !faqPage) {
+  if (error || !qaPage) {
     return (
       <>
         <Helmet>
@@ -105,13 +105,13 @@ export default function FAQPage() {
               <div className="w-20 h-20 bg-prime-gold/10 rounded-full flex items-center justify-center mx-auto mb-6">
                 <Sparkles className="h-10 w-10 text-prime-gold" />
               </div>
-              <h1 className="text-3xl font-display font-bold mb-4">FAQ Not Found</h1>
-              <p className="text-muted-foreground mb-8">The FAQ page you're looking for doesn't exist or has been moved.</p>
+              <h1 className="text-3xl font-display font-bold mb-4">Q&A Not Found</h1>
+              <p className="text-muted-foreground mb-8">The Q&A page you're looking for doesn't exist or has been moved.</p>
               <Link 
-                to="/faq" 
+                to="/qa" 
                 className="inline-flex items-center px-6 py-3 bg-prime-gold text-prime-950 font-nav font-semibold rounded-lg hover:bg-prime-goldLight transition-all duration-300 hover:shadow-lg hover:shadow-prime-gold/20"
               >
-                Browse all FAQs
+                Browse all Q&As
                 <ChevronRight className="h-4 w-4 ml-2" />
               </Link>
             </div>
@@ -122,41 +122,41 @@ export default function FAQPage() {
     );
   }
 
-  const author: Author | null = faqPage.authors || null;
-  const relatedFaqs: FAQEntity[] = (faqPage.related_faqs as unknown as FAQEntity[]) || [];
-  const schemas = generateAllFAQSchemas(faqPage as any, author);
-  const langCode = LANGUAGE_CODE_MAP[faqPage.language] || faqPage.language;
+  const author: Author | null = qaPage.authors || null;
+  const relatedQas: QAEntity[] = (qaPage.related_qas as unknown as QAEntity[]) || [];
+  const schemas = generateAllQASchemas(qaPage as any, author);
+  const langCode = LANGUAGE_CODE_MAP[qaPage.language] || qaPage.language;
 
   return (
     <>
       <Helmet>
         <html lang={langCode} />
-        <title>{faqPage.meta_title}</title>
-        <meta name="description" content={faqPage.meta_description} />
-        <link rel="canonical" href={`${BASE_URL}/faq/${faqPage.slug}`} />
+        <title>{qaPage.meta_title}</title>
+        <meta name="description" content={qaPage.meta_description} />
+        <link rel="canonical" href={`${BASE_URL}/qa/${qaPage.slug}`} />
         
         {/* Hreflang for translations */}
-        <link rel="alternate" hrefLang={langCode} href={`${BASE_URL}/faq/${faqPage.slug}`} />
+        <link rel="alternate" hrefLang={langCode} href={`${BASE_URL}/qa/${qaPage.slug}`} />
         {siblings.map((sibling: any) => (
           <link
             key={sibling.language}
             rel="alternate"
             hrefLang={LANGUAGE_CODE_MAP[sibling.language] || sibling.language}
-            href={`${BASE_URL}/faq/${sibling.slug}`}
+            href={`${BASE_URL}/qa/${sibling.slug}`}
           />
         ))}
-        <link rel="alternate" hrefLang="x-default" href={`${BASE_URL}/faq/${faqPage.slug}`} />
+        <link rel="alternate" hrefLang="x-default" href={`${BASE_URL}/qa/${qaPage.slug}`} />
 
         {/* Open Graph */}
-        <meta property="og:title" content={faqPage.meta_title} />
-        <meta property="og:description" content={faqPage.meta_description} />
-        <meta property="og:url" content={`${BASE_URL}/faq/${faqPage.slug}`} />
+        <meta property="og:title" content={qaPage.meta_title} />
+        <meta property="og:description" content={qaPage.meta_description} />
+        <meta property="og:url" content={`${BASE_URL}/qa/${qaPage.slug}`} />
         <meta property="og:type" content="article" />
-        {faqPage.featured_image_url && (
-          <meta property="og:image" content={faqPage.featured_image_url} />
+        {qaPage.featured_image_url && (
+          <meta property="og:image" content={qaPage.featured_image_url} />
         )}
 
-        {/* JSON-LD */}
+        {/* JSON-LD - uses FAQPage schema type for SEO */}
         <script type="application/ld+json">{JSON.stringify(schemas)}</script>
       </Helmet>
 
@@ -165,10 +165,10 @@ export default function FAQPage() {
       <main className="min-h-screen bg-background">
         {/* Parallax Hero Section */}
         <section className="relative h-[50vh] min-h-[400px] overflow-hidden">
-          {faqPage.featured_image_url ? (
+          {qaPage.featured_image_url ? (
             <div 
               className="absolute inset-0 bg-cover bg-center bg-fixed"
-              style={{ backgroundImage: `url(${faqPage.featured_image_url})` }}
+              style={{ backgroundImage: `url(${qaPage.featured_image_url})` }}
             />
           ) : (
             <div className="absolute inset-0 bg-gradient-to-br from-prime-950 via-prime-900 to-prime-800" />
@@ -185,30 +185,30 @@ export default function FAQPage() {
               <nav className="flex items-center text-sm text-white/70 mb-6 animate-fade-in">
                 <Link to="/" className="hover:text-prime-gold transition-colors">Home</Link>
                 <ChevronRight className="h-4 w-4 mx-2 text-prime-gold/50" />
-                <Link to="/faq" className="hover:text-prime-gold transition-colors">FAQ</Link>
+                <Link to="/qa" className="hover:text-prime-gold transition-colors">Q&A</Link>
                 <ChevronRight className="h-4 w-4 mx-2 text-prime-gold/50" />
-                <span className="text-white truncate max-w-[200px]">{faqPage.title}</span>
+                <span className="text-white truncate max-w-[200px]">{qaPage.title}</span>
               </nav>
 
               {/* Badges */}
               <div className="flex items-center gap-3 mb-4 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
                 <Badge 
                   className={`${
-                    faqPage.faq_type === 'core' 
+                    qaPage.qa_type === 'core' 
                       ? 'bg-prime-gold text-prime-950' 
                       : 'bg-white/10 backdrop-blur-sm text-white border border-white/20'
                   } px-4 py-1.5 text-sm font-nav font-medium`}
                 >
-                  {faqPage.faq_type === 'core' ? 'Essential Guide' : 'Expert Tips'}
+                  {qaPage.qa_type === 'core' ? 'Essential Guide' : 'Expert Tips'}
                 </Badge>
                 <Badge className="bg-white/10 backdrop-blur-sm text-white border border-white/20 px-4 py-1.5 text-sm font-nav">
-                  {faqPage.language.toUpperCase()}
+                  {qaPage.language.toUpperCase()}
                 </Badge>
               </div>
 
               {/* Main Question (H1) */}
               <h1 className="text-3xl md:text-4xl lg:text-5xl font-display font-bold text-white leading-tight max-w-4xl animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-                {faqPage.question_main}
+                {qaPage.question_main}
               </h1>
             </div>
           </div>
@@ -225,7 +225,7 @@ export default function FAQPage() {
                 <span className="text-sm font-nav font-semibold text-prime-gold uppercase tracking-wider">Quick Answer</span>
               </div>
               <p className="speakable-answer text-foreground text-lg leading-relaxed font-sans">
-                {faqPage.speakable_answer}
+                {qaPage.speakable_answer}
               </p>
             </CardContent>
           </Card>
@@ -246,7 +246,7 @@ export default function FAQPage() {
               </div>
               <div className="flex items-center text-sm text-muted-foreground bg-white/50 px-4 py-2 rounded-full">
                 <Calendar className="h-4 w-4 mr-2 text-prime-gold" />
-                {format(new Date(faqPage.updated_at), 'MMMM d, yyyy')}
+                {format(new Date(qaPage.updated_at), 'MMMM d, yyyy')}
               </div>
             </div>
           )}
@@ -255,11 +255,11 @@ export default function FAQPage() {
           <article
             className="prose prose-lg max-w-none mb-14 prose-headings:font-display prose-headings:text-foreground prose-p:text-muted-foreground prose-a:text-prime-gold prose-a:no-underline hover:prose-a:underline prose-strong:text-foreground animate-fade-in-up"
             style={{ animationDelay: '0.5s' }}
-            dangerouslySetInnerHTML={{ __html: faqPage.answer_main }}
+            dangerouslySetInnerHTML={{ __html: qaPage.answer_main }}
           />
 
-          {/* Related FAQs */}
-          {relatedFaqs.length > 0 && (
+          {/* Related Q&As */}
+          {relatedQas.length > 0 && (
             <section className="mb-14 animate-fade-in-up" style={{ animationDelay: '0.6s' }}>
               <div className="flex items-center gap-3 mb-6">
                 <div className="h-px flex-1 bg-gradient-to-r from-transparent via-border to-transparent" />
@@ -268,17 +268,17 @@ export default function FAQPage() {
               </div>
               
               <Accordion type="single" collapsible className="space-y-3">
-                {relatedFaqs.map((faq, index) => (
+                {relatedQas.map((qa, index) => (
                   <AccordionItem 
                     key={index} 
-                    value={`faq-${index}`}
+                    value={`qa-${index}`}
                     className="border border-border/50 rounded-xl px-5 bg-white/50 data-[state=open]:bg-white data-[state=open]:shadow-lg data-[state=open]:border-prime-gold/30 transition-all duration-300"
                   >
                     <AccordionTrigger className="text-left py-5 font-display font-semibold text-foreground hover:text-prime-gold hover:no-underline transition-colors [&[data-state=open]]:text-prime-gold">
-                      {faq.question}
+                      {qa.question}
                     </AccordionTrigger>
                     <AccordionContent className="text-muted-foreground pb-5 leading-relaxed">
-                      {faq.answer}
+                      {qa.answer}
                     </AccordionContent>
                   </AccordionItem>
                 ))}
@@ -287,7 +287,7 @@ export default function FAQPage() {
           )}
 
           {/* Source Article Link */}
-          {faqPage.source_article_slug && (
+          {qaPage.source_article_slug && (
             <Card className="mb-14 border-0 overflow-hidden shadow-[0_4px_20px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.1)] transition-all duration-300 group animate-fade-in-up" style={{ animationDelay: '0.7s' }}>
               <CardContent className="p-0">
                 <div className="flex flex-col sm:flex-row">
@@ -300,9 +300,9 @@ export default function FAQPage() {
                     </div>
                   </div>
                   <div className="flex-1 p-6 flex flex-col justify-center">
-                    <p className="text-sm text-muted-foreground mb-2">This FAQ is based on our comprehensive guide:</p>
+                    <p className="text-sm text-muted-foreground mb-2">This Q&A is based on our comprehensive guide:</p>
                     <Link
-                      to={`/blog/${faqPage.source_article_slug}`}
+                      to={`/blog/${qaPage.source_article_slug}`}
                       className="inline-flex items-center text-lg font-display font-semibold text-foreground group-hover:text-prime-gold transition-colors"
                     >
                       Read the full article
@@ -320,11 +320,11 @@ export default function FAQPage() {
               <p className="text-sm text-muted-foreground mb-4 font-nav uppercase tracking-wider">Available in other languages:</p>
               <div className="flex flex-wrap gap-3">
                 {siblings
-                  .filter((s: any) => s.slug !== faqPage.slug)
+                  .filter((s: any) => s.slug !== qaPage.slug)
                   .map((sibling: any) => (
                     <Link
                       key={sibling.slug}
-                      to={`/faq/${sibling.slug}`}
+                      to={`/qa/${sibling.slug}`}
                       className="inline-flex items-center px-5 py-2.5 bg-white border border-border/50 rounded-full text-sm font-nav font-medium text-foreground hover:border-prime-gold hover:text-prime-gold hover:shadow-md hover:shadow-prime-gold/10 transition-all duration-300"
                     >
                       {sibling.language.toUpperCase()}

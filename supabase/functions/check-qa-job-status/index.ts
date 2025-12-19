@@ -26,7 +26,7 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const { data: job, error } = await supabase
-      .from('faq_generation_jobs')
+      .from('qa_generation_jobs')
       .select('*')
       .eq('id', jobId)
       .maybeSingle();
@@ -42,19 +42,19 @@ serve(async (req) => {
       });
     }
 
-    // Get generated FAQ pages if completed
-    let faqPages: any[] = [];
+    // Get generated Q&A pages if completed
+    let qaPages: any[] = [];
     if (job.status === 'completed' && job.results?.length > 0) {
-      const faqPageIds = job.results
-        .filter((r: any) => r.faq_page_id)
-        .map((r: any) => r.faq_page_id);
+      const qaPageIds = job.results
+        .filter((r: any) => r.qa_page_id)
+        .map((r: any) => r.qa_page_id);
 
-      if (faqPageIds.length > 0) {
+      if (qaPageIds.length > 0) {
         const { data } = await supabase
-          .from('faq_pages')
+          .from('qa_pages')
           .select('*')
-          .in('id', faqPageIds);
-        faqPages = data || [];
+          .in('id', qaPageIds);
+        qaPages = data || [];
       }
     }
 
@@ -67,17 +67,17 @@ serve(async (req) => {
       progress,
       processedArticles: job.processed_articles,
       totalArticles: job.total_articles,
-      generatedFaqPages: job.generated_faq_pages,
-      totalFaqPages: job.total_faq_pages,
+      generatedQaPages: job.generated_faq_pages,
+      totalQaPages: job.total_faq_pages,
       results: job.results,
-      faqPages,
+      qaPages,
       error: job.error,
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
   } catch (error) {
-    console.error('Error in check-faq-job-status:', error);
+    console.error('Error in check-qa-job-status:', error);
     return new Response(JSON.stringify({
       error: error instanceof Error ? error.message : 'Unknown error',
     }), {

@@ -39,10 +39,13 @@ export interface ExternalCitation {
   verified?: boolean;
 }
 
-export interface FAQEntity {
+export interface QAEntity {
   question: string;
   answer: string;
 }
+
+// Backwards compatibility alias
+export type FAQEntity = QAEntity;
 
 export interface BlogArticle {
   id: string;
@@ -86,8 +89,8 @@ export interface BlogArticle {
   // Translations
   translations: Record<string, string>;
   
-  // FAQ
-  faq_entities?: FAQEntity[];
+  // Q&A
+  qa_entities?: QAEntity[];
   
   // Status
   status: ArticleStatus;
@@ -95,18 +98,21 @@ export interface BlogArticle {
   updated_at: string;
 }
 
-export type FAQType = 'core' | 'decision';
+export type QAType = 'core' | 'decision';
 
-export interface FAQPage {
+// Backwards compatibility alias
+export type FAQType = QAType;
+
+export interface QAPage {
   id: string;
   source_article_id: string;
   language: Language;
-  faq_type: FAQType;
+  qa_type: QAType;
   title: string;
   slug: string;
   question_main: string;
   answer_main: string;
-  related_faqs: FAQEntity[];
+  related_qas: QAEntity[];
   speakable_answer: string;
   meta_title: string;
   meta_description: string;
@@ -122,3 +128,6 @@ export interface FAQPage {
   created_at: string;
   updated_at: string;
 }
+
+// Backwards compatibility alias
+export type FAQPage = QAPage;
