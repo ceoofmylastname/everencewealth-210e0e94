@@ -1,41 +1,57 @@
-import React from "react";
+import React, { Suspense, lazy } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { LanguageProvider } from "@/i18n";
 import { ScrollToTop } from "@/components/ScrollToTop";
-import Dashboard from "./pages/admin/Dashboard";
-import Articles from "./pages/admin/Articles";
-import Authors from "./pages/admin/Authors";
-import Settings from "./pages/admin/Settings";
-import ArticleEditor from "./pages/admin/ArticleEditor";
-import Export from "./pages/admin/Export";
-import AITools from "./pages/admin/AITools";
-import SystemCheck from "./pages/admin/SystemCheck";
-import ClusterGenerator from "./pages/admin/ClusterGenerator";
-import AEOGuide from "./pages/admin/AEOGuide";
-import BatchImageGeneration from "./pages/admin/BatchImageGeneration";
-import CitationHealth from "./pages/admin/CitationHealth";
-import ApprovedDomains from "./pages/admin/ApprovedDomains";
-import BulkInternalLinks from "./pages/admin/BulkInternalLinks";
-import BulkSpeakableRegeneration from "./pages/admin/BulkSpeakableRegeneration";
-import BulkArticleLinker from "./pages/admin/BulkArticleLinker";
-import BrochureManager from "./pages/admin/BrochureManager";
-import Auth from "./pages/Auth";
-import BlogArticle from "./pages/BlogArticle";
-import BlogIndex from "./pages/BlogIndex";
-import Sitemap from "./pages/Sitemap";
-import NotFound from "./pages/NotFound";
+
+// Eager load critical pages (landing pages)
 import Home from "./pages/Home";
-import PropertyFinder from "./pages/PropertyFinder";
-import PropertyDetail from "./pages/PropertyDetail";
-import CityBrochure from "./pages/CityBrochure";
+import BlogIndex from "./pages/BlogIndex";
 import QAIndex from "./pages/QAIndex";
-import QAPage from "./pages/QAPage";
-import QAGenerator from "./pages/admin/QAGenerator";
+import Auth from "./pages/Auth";
+import NotFound from "./pages/NotFound";
+
+// Lazy load heavy public pages
+const BlogArticle = lazy(() => import("./pages/BlogArticle"));
+const QAPage = lazy(() => import("./pages/QAPage"));
+const PropertyFinder = lazy(() => import("./pages/PropertyFinder"));
+const PropertyDetail = lazy(() => import("./pages/PropertyDetail"));
+const CityBrochure = lazy(() => import("./pages/CityBrochure"));
+const Sitemap = lazy(() => import("./pages/Sitemap"));
+
+// Lazy load ALL admin pages (rarely accessed, heavy components)
+const Dashboard = lazy(() => import("./pages/admin/Dashboard"));
+const Articles = lazy(() => import("./pages/admin/Articles"));
+const ArticleEditor = lazy(() => import("./pages/admin/ArticleEditor"));
+const Authors = lazy(() => import("./pages/admin/Authors"));
+const Settings = lazy(() => import("./pages/admin/Settings"));
+const Export = lazy(() => import("./pages/admin/Export"));
+const AITools = lazy(() => import("./pages/admin/AITools"));
+const SystemCheck = lazy(() => import("./pages/admin/SystemCheck"));
+const ClusterGenerator = lazy(() => import("./pages/admin/ClusterGenerator"));
+const AEOGuide = lazy(() => import("./pages/admin/AEOGuide"));
+const BatchImageGeneration = lazy(() => import("./pages/admin/BatchImageGeneration"));
+const CitationHealth = lazy(() => import("./pages/admin/CitationHealth"));
+const ApprovedDomains = lazy(() => import("./pages/admin/ApprovedDomains"));
+const BulkInternalLinks = lazy(() => import("./pages/admin/BulkInternalLinks"));
+const BulkSpeakableRegeneration = lazy(() => import("./pages/admin/BulkSpeakableRegeneration"));
+const BulkArticleLinker = lazy(() => import("./pages/admin/BulkArticleLinker"));
+const BrochureManager = lazy(() => import("./pages/admin/BrochureManager"));
+const QAGenerator = lazy(() => import("./pages/admin/QAGenerator"));
+
+// Loading fallback component
+const PageLoader = () => (
+  <div className="min-h-screen flex items-center justify-center bg-background">
+    <div className="flex flex-col items-center gap-4">
+      <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+      <p className="text-muted-foreground text-sm">Loading...</p>
+    </div>
+  </div>
+);
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -54,43 +70,48 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <ScrollToTop />
-          <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/auth" element={<Auth />} />
-          <Route path="/blog" element={<BlogIndex />} />
-          <Route path="/blog/:slug" element={<BlogArticle />} />
-          <Route path="/sitemap" element={<Sitemap />} />
-          <Route path="/property-finder" element={<PropertyFinder />} />
-          <Route path="/property/:reference" element={<PropertyDetail />} />
-          <Route path="/brochure/:citySlug" element={<CityBrochure />} />
-          <Route path="/qa" element={<QAIndex />} />
-          <Route path="/qa/:slug" element={<QAPage />} />
-          
-          {/* Protected Admin Routes */}
-          <Route path="/admin" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-          <Route path="/admin/articles" element={<ProtectedRoute><Articles /></ProtectedRoute>} />
-          <Route path="/admin/articles/new" element={<ProtectedRoute><ArticleEditor /></ProtectedRoute>} />
-          <Route path="/admin/articles/:id/edit" element={<ProtectedRoute><ArticleEditor /></ProtectedRoute>} />
-          <Route path="/admin/authors" element={<ProtectedRoute><Authors /></ProtectedRoute>} />
-          <Route path="/admin/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
-          <Route path="/admin/export" element={<ProtectedRoute><Export /></ProtectedRoute>} />
-          <Route path="/admin/ai-tools" element={<ProtectedRoute><AITools /></ProtectedRoute>} />
-          <Route path="/admin/cluster-generator" element={<ProtectedRoute><ClusterGenerator /></ProtectedRoute>} />
-          <Route path="/admin/system-check" element={<ProtectedRoute><SystemCheck /></ProtectedRoute>} />
-          <Route path="/admin/tools/batch-image-generation" element={<ProtectedRoute><BatchImageGeneration /></ProtectedRoute>} />
-          <Route path="/admin/tools/bulk-speakable-regeneration" element={<ProtectedRoute><BulkSpeakableRegeneration /></ProtectedRoute>} />
-          <Route path="/admin/tools/bulk-article-linker" element={<ProtectedRoute><BulkArticleLinker /></ProtectedRoute>} />
-          <Route path="/admin/citation-health" element={<ProtectedRoute><CitationHealth /></ProtectedRoute>} />
-          <Route path="/admin/docs/aeo-sge-guide" element={<ProtectedRoute><AEOGuide /></ProtectedRoute>} />
-          <Route path="/admin/approved-domains" element={<ProtectedRoute><ApprovedDomains /></ProtectedRoute>} />
-          <Route path="/admin/bulk-internal-links" element={<ProtectedRoute><BulkInternalLinks /></ProtectedRoute>} />
-          <Route path="/admin/brochures" element={<ProtectedRoute><BrochureManager /></ProtectedRoute>} />
-          <Route path="/admin/qa-generator" element={<ProtectedRoute><QAGenerator /></ProtectedRoute>} />
-          
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
+          <Suspense fallback={<PageLoader />}>
+            <Routes>
+              {/* Eager-loaded critical pages */}
+              <Route path="/" element={<Home />} />
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/blog" element={<BlogIndex />} />
+              <Route path="/qa" element={<QAIndex />} />
+              
+              {/* Lazy-loaded public pages */}
+              <Route path="/blog/:slug" element={<BlogArticle />} />
+              <Route path="/sitemap" element={<Sitemap />} />
+              <Route path="/property-finder" element={<PropertyFinder />} />
+              <Route path="/property/:reference" element={<PropertyDetail />} />
+              <Route path="/brochure/:citySlug" element={<CityBrochure />} />
+              <Route path="/qa/:slug" element={<QAPage />} />
+              
+              {/* Protected Admin Routes - All lazy loaded */}
+              <Route path="/admin" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+              <Route path="/admin/articles" element={<ProtectedRoute><Articles /></ProtectedRoute>} />
+              <Route path="/admin/articles/new" element={<ProtectedRoute><ArticleEditor /></ProtectedRoute>} />
+              <Route path="/admin/articles/:id/edit" element={<ProtectedRoute><ArticleEditor /></ProtectedRoute>} />
+              <Route path="/admin/authors" element={<ProtectedRoute><Authors /></ProtectedRoute>} />
+              <Route path="/admin/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+              <Route path="/admin/export" element={<ProtectedRoute><Export /></ProtectedRoute>} />
+              <Route path="/admin/ai-tools" element={<ProtectedRoute><AITools /></ProtectedRoute>} />
+              <Route path="/admin/cluster-generator" element={<ProtectedRoute><ClusterGenerator /></ProtectedRoute>} />
+              <Route path="/admin/system-check" element={<ProtectedRoute><SystemCheck /></ProtectedRoute>} />
+              <Route path="/admin/tools/batch-image-generation" element={<ProtectedRoute><BatchImageGeneration /></ProtectedRoute>} />
+              <Route path="/admin/tools/bulk-speakable-regeneration" element={<ProtectedRoute><BulkSpeakableRegeneration /></ProtectedRoute>} />
+              <Route path="/admin/tools/bulk-article-linker" element={<ProtectedRoute><BulkArticleLinker /></ProtectedRoute>} />
+              <Route path="/admin/citation-health" element={<ProtectedRoute><CitationHealth /></ProtectedRoute>} />
+              <Route path="/admin/docs/aeo-sge-guide" element={<ProtectedRoute><AEOGuide /></ProtectedRoute>} />
+              <Route path="/admin/approved-domains" element={<ProtectedRoute><ApprovedDomains /></ProtectedRoute>} />
+              <Route path="/admin/bulk-internal-links" element={<ProtectedRoute><BulkInternalLinks /></ProtectedRoute>} />
+              <Route path="/admin/brochures" element={<ProtectedRoute><BrochureManager /></ProtectedRoute>} />
+              <Route path="/admin/qa-generator" element={<ProtectedRoute><QAGenerator /></ProtectedRoute>} />
+              
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </Suspense>
+        </BrowserRouter>
       </TooltipProvider>
     </LanguageProvider>
   </QueryClientProvider>

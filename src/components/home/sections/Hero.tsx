@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { ShieldCheck, Users, Star } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { useTranslation } from '../../../i18n';
@@ -6,24 +6,49 @@ import { useTranslation } from '../../../i18n';
 export const Hero: React.FC = () => {
   const { t } = useTranslation();
   const [scrollY, setScrollY] = useState(0);
+  const [videoLoaded, setVideoLoaded] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
     const handleScroll = () => setScrollY(window.scrollY);
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Load video after initial paint for better LCP
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (videoRef.current) {
+        videoRef.current.load();
+        setVideoLoaded(true);
+      }
+    }, 100);
+    return () => clearTimeout(timer);
   }, []);
 
   return (
     <div className="relative z-10 w-full min-h-[100svh] flex items-center justify-center overflow-hidden">
       {/* Video Background */}
       <div className="absolute inset-0 z-0">
+        {/* High-priority poster image for LCP */}
+        <img
+          src="https://images.unsplash.com/photo-1512917774080-9991f1c4c750?q=80&w=2070&auto=format&fit=crop"
+          alt=""
+          fetchPriority="high"
+          loading="eager"
+          decoding="async"
+          className={`absolute inset-0 w-full h-full object-cover scale-110 transition-opacity duration-700 ${videoLoaded ? 'opacity-0' : 'opacity-100'}`}
+        />
         <video
+          ref={videoRef}
           autoPlay
           muted
           loop
           playsInline
+          preload="none"
           poster="https://images.unsplash.com/photo-1512917774080-9991f1c4c750?q=80&w=2070&auto=format&fit=crop"
-          className="absolute inset-0 w-full h-full object-cover scale-110"
+          className={`absolute inset-0 w-full h-full object-cover scale-110 transition-opacity duration-700 ${videoLoaded ? 'opacity-100' : 'opacity-0'}`}
+          onCanPlay={() => setVideoLoaded(true)}
         >
           <source src="https://storage.googleapis.com/msgsndr/9m2UBN29nuaCWceOgW2Z/media/692d1c5b82f4c5ebf1442f43.mp4" type="video/mp4" />
         </video>
