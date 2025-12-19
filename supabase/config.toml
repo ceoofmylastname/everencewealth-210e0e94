@@ -92,3 +92,15 @@ verify_jwt = false
 
 [functions.apply-bulk-approved]
 verify_jwt = false
+
+[functions.generate-qa-pages]
+verify_jwt = false
+
+[functions.check-qa-job-status]
+verify_jwt = false
+
+[functions.regenerate-qa-section]
+verify_jwt = false
+
+[functions.ping-sitemaps]
+verify_jwt = false
