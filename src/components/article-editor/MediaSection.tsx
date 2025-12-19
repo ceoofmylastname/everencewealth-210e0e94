@@ -86,6 +86,11 @@ export const MediaSection = ({
 
       onImageChange(publicUrlData.publicUrl, `${headline} - Costa del Sol real estate`);
       
+      // Auto-populate caption when generating with AI
+      if (!featuredImageCaption) {
+        onFeaturedImageCaptionChange(`${headline} - Luxury real estate in Costa del Sol`);
+      }
+      
       toast({
         title: "Image Generated",
         description: "AI-generated image added successfully",
@@ -150,12 +155,15 @@ export const MediaSection = ({
         )}
 
         <div>
-          <Label htmlFor="featuredImageCaption">Featured Image Caption (Optional)</Label>
+          <Label htmlFor="featuredImageCaption">
+            Featured Image Caption
+            <span className="text-muted-foreground text-xs ml-2">(Recommended for SEO)</span>
+          </Label>
           <Input
             id="featuredImageCaption"
             value={featuredImageCaption}
             onChange={(e) => onFeaturedImageCaptionChange(e.target.value)}
-            placeholder="Optional caption for the image"
+            placeholder="Describe the image for search engines (e.g., 'Luxury villa with sea views in Marbella')"
           />
         </div>
 

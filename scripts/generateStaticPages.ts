@@ -164,7 +164,11 @@ function generateSpeakableSchema(article: ArticleData) {
     "cssSelector": [".speakable-answer", ".article-intro"],
     "associatedMedia": {
       "@type": "ImageObject",
-      "url": article.featured_image_url
+      "url": article.featured_image_url,
+      "contentUrl": article.featured_image_url,
+      "caption": article.featured_image_caption || article.headline,
+      "description": article.featured_image_alt || article.meta_description,
+      "representativeOfPage": true
     }
   };
 }
