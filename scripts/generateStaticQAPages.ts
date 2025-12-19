@@ -461,6 +461,224 @@ function generateStaticHTML(qa: QAPageData, enhancedHreflang: boolean, productio
 </html>`;
 }
 
+/**
+ * Generate static QA Index page with ItemList + CollectionPage schema
+ */
+function generateQAIndexHTML(qaPages: QAPageData[], productionAssets: ProductionAssets): string {
+  const baseUrl = 'https://www.delsolprimehomes.com';
+  
+  // Generate comprehensive schema for QA index
+  const indexSchema = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "CollectionPage",
+        "@id": `${baseUrl}/qa#collectionpage`,
+        "name": "Questions & Answers",
+        "description": "Expert answers to common questions about buying property in Costa del Sol, Spain",
+        "url": `${baseUrl}/qa`,
+        "isPartOf": { "@id": `${baseUrl}/#website` },
+        "about": { "@type": "Thing", "name": "Costa del Sol Real Estate" },
+        "mainEntity": {
+          "@type": "ItemList",
+          "@id": `${baseUrl}/qa#itemlist`,
+          "name": "Costa del Sol Property Q&A",
+          "description": "Expert answers to common questions about buying property in Costa del Sol, Spain",
+          "numberOfItems": qaPages.length,
+          "itemListElement": qaPages.slice(0, 100).map((qa, index) => ({
+            "@type": "ListItem",
+            "position": index + 1,
+            "name": qa.question_main,
+            "url": `${baseUrl}/qa/${qa.slug}`
+          }))
+        }
+      },
+      {
+        "@type": "BreadcrumbList",
+        "@id": `${baseUrl}/qa#breadcrumb`,
+        "itemListElement": [
+          { "@type": "ListItem", "position": 1, "name": "Home", "item": `${baseUrl}/` },
+          { "@type": "ListItem", "position": 2, "name": "Q&A", "item": `${baseUrl}/qa` }
+        ]
+      },
+      {
+        "@type": "WebPage",
+        "@id": `${baseUrl}/qa#webpage`,
+        "url": `${baseUrl}/qa`,
+        "name": "Questions & Answers | Del Sol Prime Homes",
+        "description": "Find answers to common questions about buying property in Costa del Sol, Spain. Expert advice on real estate, legal processes, and lifestyle.",
+        "isPartOf": { "@id": `${baseUrl}/#website` },
+        "inLanguage": "en-GB"
+      },
+      generateOrganizationSchema()
+    ]
+  };
+
+  // Group QAs by category for static display
+  const qasByCategory: Record<string, QAPageData[]> = {};
+  qaPages.forEach(qa => {
+    const cat = (qa as any).category || 'General';
+    if (!qasByCategory[cat]) qasByCategory[cat] = [];
+    qasByCategory[cat].push(qa);
+  });
+
+  const cssLinks = productionAssets.css.map(href => 
+    `<link rel="stylesheet" href="${href}" />`
+  ).join('\n  ');
+  
+  const jsScripts = productionAssets.js.map(src => 
+    `<script type="module" src="${src}"></script>`
+  ).join('\n  ');
+
+  const qaListHtml = Object.entries(qasByCategory).map(([category, qas]) => `
+    <section class="qa-category-section">
+      <h2 class="qa-category-title">${sanitizeForHTML(category)}</h2>
+      <div class="qa-list">
+        ${qas.slice(0, 20).map(qa => `
+        <a href="/qa/${qa.slug}" class="qa-list-item">
+          <h3 class="qa-item-question">${sanitizeForHTML(qa.question_main)}</h3>
+          <p class="qa-item-preview">${sanitizeForHTML(qa.speakable_answer?.substring(0, 120) || '')}...</p>
+        </a>
+        `).join('')}
+      </div>
+    </section>
+  `).join('');
+
+  const indexCss = `
+    ${CRITICAL_CSS}
+    
+    .qa-index-page {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 3rem 1.5rem 4rem;
+    }
+    
+    .qa-index-hero {
+      text-align: center;
+      padding: 4rem 0 3rem;
+    }
+    
+    .qa-index-hero h1 {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: clamp(2rem, 5vw, 3rem);
+      font-weight: 700;
+      color: hsl(var(--foreground));
+      margin-bottom: 1rem;
+    }
+    
+    .qa-index-hero p {
+      font-size: 1.125rem;
+      color: hsl(var(--muted-foreground));
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    
+    .qa-category-section {
+      margin-bottom: 3rem;
+    }
+    
+    .qa-category-title {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: hsl(var(--foreground));
+      margin-bottom: 1.5rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 2px solid hsl(var(--prime-gold) / 0.3);
+    }
+    
+    .qa-list {
+      display: grid;
+      gap: 1rem;
+    }
+    
+    .qa-list-item {
+      display: block;
+      padding: 1.25rem;
+      background: hsl(var(--prime-gold) / 0.05);
+      border-radius: 0.5rem;
+      border-left: 3px solid hsl(var(--prime-gold));
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+    
+    .qa-list-item:hover {
+      background: hsl(var(--prime-gold) / 0.1);
+      transform: translateX(4px);
+    }
+    
+    .qa-item-question {
+      font-size: 1.125rem;
+      font-weight: 600;
+      color: hsl(var(--foreground));
+      margin-bottom: 0.5rem;
+    }
+    
+    .qa-item-preview {
+      font-size: 0.9rem;
+      color: hsl(var(--muted-foreground));
+      line-height: 1.5;
+    }
+    
+    @media (min-width: 768px) {
+      .qa-list {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+  `;
+
+  return `<!DOCTYPE html>
+<html lang="en" data-static="true">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Find answers to common questions about buying property in Costa del Sol, Spain. Expert advice on real estate, legal processes, and lifestyle.">
+  <title>Questions & Answers | Del Sol Prime Homes</title>
+  
+  <link rel="canonical" href="${baseUrl}/qa" />
+  
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="apple-touch-icon" href="/favicon.png">
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;600;700&family=Playfair+Display:wght@400;500;600;700&family=Raleway:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <style>${indexCss}</style>
+  
+  ${cssLinks}
+  
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Questions & Answers | Del Sol Prime Homes" />
+  <meta property="og:description" content="Find answers to common questions about buying property in Costa del Sol, Spain." />
+  <meta property="og:url" content="${baseUrl}/qa" />
+  <meta property="og:site_name" content="Del Sol Prime Homes" />
+  
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Questions & Answers | Del Sol Prime Homes" />
+  <meta name="twitter:description" content="Find answers to common questions about buying property in Costa del Sol, Spain." />
+  
+  <script type="application/ld+json" data-schema="qa-index">
+${JSON.stringify(indexSchema, null, 2)}
+  </script>
+</head>
+<body>
+  <div id="root">
+    <main class="qa-index-page static-content">
+      <div class="qa-index-hero">
+        <h1>Questions & Answers</h1>
+        <p>Expert answers to your questions about Costa del Sol real estate, property buying, and Mediterranean lifestyle.</p>
+      </div>
+      
+      ${qaListHtml}
+    </main>
+  </div>
+  
+  ${jsScripts}
+</body>
+</html>`;
+}
+
 async function checkFeatureFlag(flagName: string): Promise<boolean> {
   try {
     const { data, error } = await supabase
@@ -531,8 +749,19 @@ export async function generateStaticQAPages(distDir: string) {
       }
     }
 
+    // Generate QA Index page with ItemList schema
+    try {
+      const indexHtml = generateQAIndexHTML(qaPages as any[], productionAssets);
+      const indexPath = join(distDir, 'qa', 'index.html');
+      mkdirSync(dirname(indexPath), { recursive: true });
+      writeFileSync(indexPath, indexHtml, 'utf-8');
+      console.log(`✅ Generated QA index page with ItemList schema`);
+    } catch (err) {
+      console.error(`❌ Failed to generate QA index page:`, err);
+    }
+
     console.log(`\n✨ Static QA generation complete!`);
-    console.log(`   ✅ Generated: ${generated} QA pages`);
+    console.log(`   ✅ Generated: ${generated} QA pages + index`);
     if (failed > 0) {
       console.log(`   ❌ Failed: ${failed} pages`);
     }
