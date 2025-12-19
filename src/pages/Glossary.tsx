@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { Helmet } from "react-helmet";
 import { Link } from "react-router-dom";
-import { Search, Book, ChevronRight, ExternalLink } from "lucide-react";
+import { Search, Book, ChevronRight, ExternalLink, Award, CheckCircle2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -40,6 +40,8 @@ const categoryIcons: Record<string, string> = {
   location: "📍",
   process: "📋"
 };
+
+const BASE_URL = "https://www.delsolprimehomes.com";
 
 const Glossary: React.FC = () => {
   const [glossaryData, setGlossaryData] = useState<GlossaryData | null>(null);
@@ -122,17 +124,67 @@ const Glossary: React.FC = () => {
   }
 
   const schemaData = generateAllGlossarySchemas(glossaryData);
+  const canonicalUrl = `${BASE_URL}/glossary`;
+  const ogImageUrl = `${BASE_URL}/assets/logo-new.png`;
+  const pageTitle = "Costa del Sol Real Estate Glossary | Spanish Property Terms Explained";
+  const pageDescription = "Complete glossary of 65+ Spanish real estate, tax, and legal terms. Essential definitions for NIE, IBI, Golden Visa, and more when buying property on the Costa del Sol.";
 
   return (
     <>
       <Helmet>
-        <title>Costa del Sol Real Estate Glossary | Spanish Property Terms Explained</title>
-        <meta 
-          name="description" 
-          content="Complete glossary of 65+ Spanish real estate, tax, and legal terms. Essential definitions for NIE, IBI, Golden Visa, and more when buying property on the Costa del Sol." 
-        />
-        <meta name="keywords" content="Spanish property glossary, NIE definition, IBI tax, Golden Visa Spain, Spanish real estate terms, Costa del Sol buying guide" />
-        <link rel="canonical" href="https://www.delsolprimehomes.com/glossary" />
+        {/* Primary Meta Tags */}
+        <title>{pageTitle}</title>
+        <meta name="title" content={pageTitle} />
+        <meta name="description" content={pageDescription} />
+        <meta name="keywords" content="Spanish property glossary, NIE definition, IBI tax, Golden Visa Spain, Spanish real estate terms, Costa del Sol buying guide, escritura, plusvalia, notario" />
+        <meta name="author" content="Del Sol Prime Homes" />
+        <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+        
+        {/* Canonical URL */}
+        <link rel="canonical" href={canonicalUrl} />
+        
+        {/* Open Graph / Facebook */}
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content={canonicalUrl} />
+        <meta property="og:title" content={pageTitle} />
+        <meta property="og:description" content={pageDescription} />
+        <meta property="og:image" content={ogImageUrl} />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:image:alt" content="Costa del Sol Real Estate Glossary - Spanish Property Terms" />
+        <meta property="og:site_name" content="Del Sol Prime Homes" />
+        <meta property="og:locale" content="en_US" />
+        
+        {/* Twitter Card */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:url" content={canonicalUrl} />
+        <meta name="twitter:title" content={pageTitle} />
+        <meta name="twitter:description" content={pageDescription} />
+        <meta name="twitter:image" content={ogImageUrl} />
+        <meta name="twitter:image:alt" content="Costa del Sol Real Estate Glossary - Spanish Property Terms" />
+        
+        {/* Article Metadata */}
+        <meta property="article:published_time" content="2024-01-15T00:00:00Z" />
+        <meta property="article:modified_time" content={glossaryData.last_updated} />
+        <meta property="article:section" content="Real Estate" />
+        <meta property="article:tag" content="Spanish Property" />
+        <meta property="article:tag" content="Real Estate Glossary" />
+        <meta property="article:tag" content="Costa del Sol" />
+        
+        {/* Hreflang for multilingual SEO */}
+        <link rel="alternate" hrefLang="en" href={canonicalUrl} />
+        <link rel="alternate" hrefLang="x-default" href={canonicalUrl} />
+        <link rel="alternate" hrefLang="de" href={`${BASE_URL}/de/glossary`} />
+        <link rel="alternate" hrefLang="nl" href={`${BASE_URL}/nl/glossary`} />
+        <link rel="alternate" hrefLang="fr" href={`${BASE_URL}/fr/glossary`} />
+        <link rel="alternate" hrefLang="sv" href={`${BASE_URL}/sv/glossary`} />
+        <link rel="alternate" hrefLang="no" href={`${BASE_URL}/no/glossary`} />
+        <link rel="alternate" hrefLang="da" href={`${BASE_URL}/da/glossary`} />
+        <link rel="alternate" hrefLang="fi" href={`${BASE_URL}/fi/glossary`} />
+        <link rel="alternate" hrefLang="pl" href={`${BASE_URL}/pl/glossary`} />
+        <link rel="alternate" hrefLang="hu" href={`${BASE_URL}/hu/glossary`} />
+        
+        {/* JSON-LD Schema */}
         <script type="application/ld+json">
           {JSON.stringify(schemaData)}
         </script>
@@ -155,10 +207,11 @@ const Glossary: React.FC = () => {
                   <Book className="h-6 w-6 text-prime-gold" />
                 </div>
                 <Badge className="bg-prime-gold/20 text-prime-gold border-prime-gold/30 hover:bg-prime-gold/30">
-                  65+ Terms Explained
+                  {glossaryData.total_terms}+ Terms Explained
                 </Badge>
               </div>
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-serif font-bold text-white mb-6 tracking-tight">
+              {/* Speakable H1 - glossary-category-title class for voice assistants */}
+              <h1 className="glossary-category-title text-4xl md:text-5xl lg:text-6xl font-serif font-bold text-white mb-6 tracking-tight">
                 Costa del Sol Real Estate <span className="text-prime-gold italic">Glossary</span>
               </h1>
               <p className="text-lg text-slate-300 mb-10 font-light leading-relaxed max-w-2xl mx-auto">
@@ -175,14 +228,37 @@ const Glossary: React.FC = () => {
                   className="pl-14 h-14 text-lg rounded-full border-2 border-white/20 bg-white/10 backdrop-blur-sm text-white placeholder:text-slate-400 focus:border-prime-gold focus:bg-white/20 transition-all"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
+                  aria-label="Search glossary terms"
                 />
               </div>
             </div>
           </div>
         </section>
 
+        {/* E-E-A-T Trust Signals - Expert Attribution */}
+        <section className="bg-white border-b border-slate-200 py-6">
+          <div className="container mx-auto px-4">
+            <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-slate-600">
+              <div className="flex items-center gap-2">
+                <Award className="h-5 w-5 text-prime-gold" />
+                <span>Compiled by <strong className="text-prime-900">Licensed Real Estate Experts</strong></span>
+              </div>
+              <div className="h-4 w-px bg-slate-300 hidden sm:block" />
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="h-5 w-5 text-green-600" />
+                <span>Last updated: <time dateTime={glossaryData.last_updated}>{new Date(glossaryData.last_updated).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</time></span>
+              </div>
+              <div className="h-4 w-px bg-slate-300 hidden sm:block" />
+              <div className="flex items-center gap-2">
+                <Book className="h-5 w-5 text-prime-700" />
+                <span><strong>{glossaryData.total_terms}</strong> verified definitions</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* Alphabet Navigation - Glassmorphism */}
-        <nav className="sticky top-0 z-40 bg-white/80 backdrop-blur-lg border-b border-slate-200 shadow-sm">
+        <nav className="sticky top-0 z-40 bg-white/80 backdrop-blur-lg border-b border-slate-200 shadow-sm" aria-label="Alphabet navigation">
           <div className="container mx-auto px-4 py-4">
             <div className="flex flex-wrap justify-center gap-1">
               {alphabet.map(letter => {
@@ -191,6 +267,7 @@ const Glossary: React.FC = () => {
                   <a
                     key={letter}
                     href={hasTerms ? `#letter-${letter}` : undefined}
+                    aria-label={hasTerms ? `Jump to terms starting with ${letter}` : `No terms starting with ${letter}`}
                     className={`w-9 h-9 flex items-center justify-center rounded-lg text-sm font-bold transition-all duration-200
                       ${hasTerms 
                         ? "hover:bg-prime-gold hover:text-white cursor-pointer text-prime-900 hover:scale-110 hover:shadow-lg hover:shadow-prime-gold/20" 
@@ -206,7 +283,7 @@ const Glossary: React.FC = () => {
         </nav>
 
         {/* Category Tabs */}
-        <section className="container mx-auto px-4 py-10">
+        <section className="container mx-auto px-4 py-10" aria-label="Glossary categories">
           <Tabs value={activeCategory} onValueChange={setActiveCategory}>
             <TabsList className="flex flex-wrap h-auto gap-2 bg-transparent justify-center mb-10 reveal-on-scroll">
               <TabsTrigger 
@@ -219,7 +296,7 @@ const Glossary: React.FC = () => {
                 <TabsTrigger 
                   key={key} 
                   value={key}
-                  className="data-[state=active]:bg-prime-gold data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-prime-gold/20 rounded-full px-5 py-2 font-medium transition-all"
+                  className="glossary-category-title data-[state=active]:bg-prime-gold data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-prime-gold/20 rounded-full px-5 py-2 font-medium transition-all"
                 >
                   {categoryIcons[key]} {category.title} ({category.terms.length})
                 </TabsTrigger>
@@ -242,7 +319,8 @@ const Glossary: React.FC = () => {
                     
                     return (
                       <div key={letter} id={`letter-${letter}`} className="scroll-mt-28 reveal-on-scroll">
-                        <h2 className="text-4xl font-serif font-bold text-prime-gold mb-8 pb-3 border-b-2 border-prime-100">
+                        {/* Letter heading with speakable class */}
+                        <h2 className="glossary-category-title text-4xl font-serif font-bold text-prime-gold mb-8 pb-3 border-b-2 border-prime-100">
                           {letter}
                         </h2>
                         <div className="grid gap-6 md:grid-cols-2">
@@ -255,7 +333,8 @@ const Glossary: React.FC = () => {
                               <CardHeader className="pb-3">
                                 <div className="flex items-start justify-between gap-3">
                                   <div>
-                                    <CardTitle className="text-xl font-bold text-prime-900 group-hover:text-prime-gold transition-colors">
+                                    {/* Term name with speakable class for voice assistants */}
+                                    <CardTitle className="glossary-term-name text-xl font-bold text-prime-900 group-hover:text-prime-gold transition-colors">
                                       {term.term}
                                     </CardTitle>
                                     {term.full_name !== term.term && (
@@ -270,7 +349,8 @@ const Glossary: React.FC = () => {
                                 </div>
                               </CardHeader>
                               <CardContent className="space-y-4">
-                                <p className="text-slate-700 leading-relaxed">
+                                {/* Definition with speakable class for voice assistants */}
+                                <p className="glossary-term-definition text-slate-700 leading-relaxed">
                                   {term.definition}
                                 </p>
                                 
