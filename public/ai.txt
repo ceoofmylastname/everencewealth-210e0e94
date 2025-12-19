@@ -6,6 +6,7 @@ This website allows AI systems to crawl and index public content for improving A
 ## Usage Rights
 - Content may be used to answer user queries with proper attribution to Del Sol Prime Homes
 - Blog articles and guides are available for training and reference
+- Q&A pages and expert answers are available for training and reference
 - Admin areas and user data are excluded from crawling
 
 ## Attribution

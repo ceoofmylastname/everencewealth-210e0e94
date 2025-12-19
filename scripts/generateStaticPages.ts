@@ -28,7 +28,7 @@ interface ArticleData {
   date_modified?: string;
   read_time?: number;
   external_citations: any[];
-  faq_entities?: any[];
+  qa_entities?: any[];
   translations: Record<string, string>;
   author?: any;
   reviewer?: any;
@@ -198,7 +198,7 @@ function generateBreadcrumbSchema(article: ArticleData) {
 }
 
 function generateFAQSchema(article: ArticleData) {
-  if (!article.faq_entities || article.faq_entities.length === 0) {
+  if (!article.qa_entities || article.qa_entities.length === 0) {
     return null;
   }
 
@@ -207,12 +207,12 @@ function generateFAQSchema(article: ArticleData) {
     "@type": "FAQPage",
     "@id": `https://www.delsolprimehomes.com/blog/${article.slug}#faq`,
     "inLanguage": article.language,
-    "mainEntity": article.faq_entities.map((faq: any) => ({
+    "mainEntity": article.qa_entities.map((qa: any) => ({
       "@type": "Question",
-      "name": faq.question,
+      "name": qa.question,
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": faq.answer
+        "text": qa.answer
       }
     }))
   };
@@ -647,13 +647,13 @@ function generateStaticHTML(article: ArticleData, enhancedHreflang: boolean, pro
         ${article.detailed_content}
       </div>
       
-      ${article.faq_entities && article.faq_entities.length > 0 ? `
+      ${article.qa_entities && article.qa_entities.length > 0 ? `
       <section class="faq-section">
         <h2>Frequently Asked Questions</h2>
-        ${article.faq_entities.map((faq: any) => `
+        ${article.qa_entities.map((qa: any) => `
         <div class="faq-item">
-          <h3>${sanitizeForHTML(faq.question)}</h3>
-          <p>${sanitizeForHTML(faq.answer)}</p>
+          <h3>${sanitizeForHTML(qa.question)}</h3>
+          <p>${sanitizeForHTML(qa.answer)}</p>
         </div>
         `).join('')}
       </section>
