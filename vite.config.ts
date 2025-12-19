@@ -30,13 +30,15 @@ function sitemapGenerator(): Plugin {
     name: "sitemap-generator",
     async buildStart() {
       // Generate sitemap before build so it's included in dist
-      console.log('\n🗺️ Generating sitemap...');
+      console.log('\n🗺️ Generating multi-sitemap structure...');
       try {
         const { generateSitemap } = await import('./scripts/generateSitemap');
         await generateSitemap();
+        console.log('✅ Sitemap generation complete');
       } catch (err) {
-        console.error('Failed to generate sitemap:', err);
-        // Don't fail the build if sitemap generation fails
+        console.error('❌ Failed to generate sitemap:', err);
+        console.log('⚠️ Falling back to static sitemap files in public/');
+        // The static sitemap files in public/ will be used as fallback
       }
     }
   };
