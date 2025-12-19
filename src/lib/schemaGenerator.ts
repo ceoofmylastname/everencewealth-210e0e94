@@ -248,6 +248,9 @@ export function validateSchemaRequirements(article: BlogArticle): SchemaValidati
   if (!article.featured_image_alt) {
     errors.push({ field: "featured_image_alt", message: "Alt text improves accessibility and SEO", severity: "warning" });
   }
+  if (!article.featured_image_caption) {
+    errors.push({ field: "featured_image_caption", message: "Image caption enhances AI/image search discoverability", severity: "warning" });
+  }
   
   // FAQ schema validation (if FAQ is enabled)
   if (article.qa_entities && article.qa_entities.length > 0) {
