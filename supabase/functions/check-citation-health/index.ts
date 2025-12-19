@@ -6,8 +6,9 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const BATCH_SIZE = 25; // Process 25 URLs per run to avoid timeout
-const DELAY_MS = 200; // 200ms between requests
+const BATCH_SIZE = 15; // Reduced batch size for reliability
+const DELAY_MS = 300; // Slightly longer delay between requests
+const TIMEOUT_MS = 8000; // 8 second timeout per URL
 
 interface CitationHealthResult {
   url: string;
@@ -24,59 +25,100 @@ async function checkCitationHealth(url: string): Promise<CitationHealthResult> {
   
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout per URL
+    const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
     
     const response = await fetch(url, {
       method: 'HEAD',
       signal: controller.signal,
-      redirect: 'follow',
+      redirect: 'manual', // Handle redirects manually to avoid max redirect errors
       headers: {
-        'User-Agent': 'Mozilla/5.0 (compatible; DelSolPrimeBot/1.0; +https://www.delsolprimehomes.com)'
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
       }
     });
     
     clearTimeout(timeoutId);
     const responseTimeMs = Date.now() - startTime;
     
-    // If HEAD fails, try GET (some servers don't support HEAD)
-    let pageTitle: string | null = null;
-    if (response.status === 405 || response.status === 403) {
-      try {
-        const getResponse = await fetch(url, {
-          method: 'GET',
-          redirect: 'follow',
-          signal: AbortSignal.timeout(10000),
-          headers: {
-            'User-Agent': 'Mozilla/5.0 (compatible; DelSolPrimeBot/1.0; +https://www.delsolprimehomes.com)'
-          }
-        });
-        
-        if (getResponse.ok) {
-          const html = await getResponse.text();
-          const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i);
-          pageTitle = titleMatch ? titleMatch[1].trim() : null;
+    // Handle redirects manually
+    let finalUrl = url;
+    let redirectUrl: string | null = null;
+    
+    if (response.status >= 300 && response.status < 400) {
+      const location = response.headers.get('location');
+      if (location) {
+        // Resolve relative URLs
+        try {
+          finalUrl = new URL(location, url).href;
+          redirectUrl = finalUrl;
+        } catch {
+          redirectUrl = location;
         }
-      } catch (e) {
-        console.log('GET request failed after HEAD:', e);
       }
     }
     
-    const finalUrl = response.url;
-    const isRedirected = finalUrl !== url;
+    const isRedirected = redirectUrl !== null;
     
     let status: CitationHealthResult['status'];
     if (response.status >= 200 && response.status < 300) {
       if (responseTimeMs > 5000) {
         status = 'slow';
-      } else if (isRedirected) {
-        status = 'redirected';
       } else {
         status = 'healthy';
       }
+    } else if (response.status >= 300 && response.status < 400) {
+      status = 'redirected';
     } else if (response.status >= 400) {
       status = 'broken';
     } else {
       status = 'unreachable';
+    }
+    
+    // If HEAD returns 405/403, try GET with reduced timeout
+    let pageTitle: string | null = null;
+    if (response.status === 405 || response.status === 403) {
+      try {
+        const getController = new AbortController();
+        const getTimeoutId = setTimeout(() => getController.abort(), 5000);
+        
+        const getResponse = await fetch(url, {
+          method: 'GET',
+          redirect: 'manual',
+          signal: getController.signal,
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+          }
+        });
+        
+        clearTimeout(getTimeoutId);
+        
+        if (getResponse.ok) {
+          // Only read first 50KB to get title
+          const reader = getResponse.body?.getReader();
+          if (reader) {
+            let html = '';
+            let bytesRead = 0;
+            const maxBytes = 50000;
+            
+            while (bytesRead < maxBytes) {
+              const { done, value } = await reader.read();
+              if (done) break;
+              html += new TextDecoder().decode(value);
+              bytesRead += value.length;
+              
+              // Check if we have the title already
+              const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i);
+              if (titleMatch) {
+                pageTitle = titleMatch[1].trim().substring(0, 200);
+                break;
+              }
+            }
+            reader.cancel();
+          }
+          status = 'healthy';
+        }
+      } catch {
+        // Ignore GET errors, keep HEAD result
+      }
     }
     
     return {
@@ -84,23 +126,39 @@ async function checkCitationHealth(url: string): Promise<CitationHealthResult> {
       status,
       httpStatusCode: response.status,
       responseTimeMs,
-      redirectUrl: isRedirected ? finalUrl : null,
+      redirectUrl,
       pageTitle,
       error: null,
     };
     
   } catch (error) {
     const responseTimeMs = Date.now() - startTime;
-    console.error(`Error checking ${url}:`, error);
+    const errorMessage = error instanceof Error ? error.message : 'Network error';
+    
+    // Categorize specific error types
+    let status: CitationHealthResult['status'] = 'unreachable';
+    
+    if (errorMessage.includes('AbortError') || errorMessage.includes('aborted')) {
+      // Timeout - mark as slow/unreachable
+      status = 'unreachable';
+    } else if (errorMessage.includes('certificate') || errorMessage.includes('SSL') || errorMessage.includes('TLS')) {
+      // SSL errors - still might be accessible via browser
+      status = 'unreachable';
+    } else if (errorMessage.includes('redirect')) {
+      // Too many redirects
+      status = 'broken';
+    }
+    
+    console.log(`⚠️ ${url}: ${errorMessage.substring(0, 100)}`);
     
     return {
       url,
-      status: 'unreachable',
+      status,
       httpStatusCode: null,
       responseTimeMs,
       redirectUrl: null,
       pageTitle: null,
-      error: error instanceof Error ? error.message : 'Network error',
+      error: errorMessage.substring(0, 500),
     };
   }
 }
@@ -111,144 +169,111 @@ serve(async (req) => {
   }
 
   try {
-    console.log('🔍 Starting citation health check (batch mode)...');
+    console.log('🔍 Starting citation health check...');
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // First, check how many unchecked citations exist
+    // Get count of unchecked citations
     const { count: uncheckedCount } = await supabase
       .from('external_citation_health')
       .select('*', { count: 'exact', head: true })
       .is('status', null);
 
-    console.log(`📊 Total unchecked citations: ${uncheckedCount || 0}`);
+    console.log(`📊 Unchecked citations: ${uncheckedCount || 0}`);
 
-    // Fetch batch of unchecked citations from external_citation_health table
+    // Fetch batch of unchecked citations
     const { data: citations, error: fetchError } = await supabase
       .from('external_citation_health')
-      .select('url, source_name')
+      .select('url')
       .is('status', null)
       .limit(BATCH_SIZE);
 
     if (fetchError) throw fetchError;
 
     if (!citations || citations.length === 0) {
-      console.log('✅ No unchecked citations remaining');
       return new Response(
         JSON.stringify({ 
           success: true, 
           checked: 0, 
           remaining: 0,
-          message: 'All citations have been checked' 
+          message: 'All citations checked' 
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log(`🔄 Processing batch of ${citations.length} citations...`);
+    console.log(`🔄 Processing ${citations.length} citations...`);
 
-    let healthyCount = 0;
-    let brokenCount = 0;
-    let redirectedCount = 0;
-    let slowCount = 0;
-    let unreachableCount = 0;
+    const stats = { healthy: 0, broken: 0, redirected: 0, slow: 0, unreachable: 0 };
 
-    // Check each URL in the batch
+    // Process each URL
     for (const citation of citations) {
-      const healthResult = await checkCitationHealth(citation.url);
-      
-      // Fetch existing record to get current counter values
-      const { data: existingHealth } = await supabase
-        .from('external_citation_health')
-        .select('times_verified, times_failed')
-        .eq('url', healthResult.url)
-        .maybeSingle();
+      try {
+        const result = await checkCitationHealth(citation.url);
+        
+        // Update the record
+        const { error: updateError } = await supabase
+          .from('external_citation_health')
+          .update({
+            last_checked_at: new Date().toISOString(),
+            status: result.status,
+            http_status_code: result.httpStatusCode,
+            response_time_ms: result.responseTimeMs,
+            redirect_url: result.redirectUrl,
+            page_title: result.pageTitle,
+            times_verified: result.status === 'healthy' || result.status === 'redirected' ? 1 : 0,
+            times_failed: result.status === 'broken' || result.status === 'unreachable' ? 1 : 0,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('url', citation.url);
 
-      // Calculate new counter values
-      const isSuccessful = healthResult.status === 'healthy' || healthResult.status === 'redirected';
-      const isFailed = healthResult.status === 'broken' || healthResult.status === 'unreachable';
-      
-      const newTimesVerified = (existingHealth?.times_verified || 0) + (isSuccessful ? 1 : 0);
-      const newTimesFailed = (existingHealth?.times_failed || 0) + (isFailed ? 1 : 0);
-      
-      // Update the record with health status
-      const { error: updateError } = await supabase
-        .from('external_citation_health')
-        .update({
-          last_checked_at: new Date().toISOString(),
-          status: healthResult.status,
-          http_status_code: healthResult.httpStatusCode,
-          response_time_ms: healthResult.responseTimeMs,
-          redirect_url: healthResult.redirectUrl,
-          page_title: healthResult.pageTitle,
-          times_verified: newTimesVerified,
-          times_failed: newTimesFailed,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('url', healthResult.url);
-
-      if (updateError) {
-        console.error(`Error updating health for ${citation.url}:`, updateError);
-      } else {
-        console.log(`✓ ${healthResult.status}: ${citation.url}`);
+        if (!updateError) {
+          stats[result.status]++;
+          console.log(`✓ ${result.status}: ${citation.url.substring(0, 60)}...`);
+        }
+      } catch (err) {
+        console.error(`Error processing ${citation.url}:`, err);
+        // Mark as unreachable on processing error
+        await supabase
+          .from('external_citation_health')
+          .update({
+            status: 'unreachable',
+            last_checked_at: new Date().toISOString(),
+            times_failed: 1,
+          })
+          .eq('url', citation.url);
+        stats.unreachable++;
       }
 
-      // Track counts
-      switch (healthResult.status) {
-        case 'healthy': healthyCount++; break;
-        case 'broken': brokenCount++; break;
-        case 'unreachable': unreachableCount++; break;
-        case 'redirected': redirectedCount++; break;
-        case 'slow': slowCount++; break;
-      }
-
-      // Rate limiting between requests
+      // Rate limiting
       await new Promise(resolve => setTimeout(resolve, DELAY_MS));
     }
 
-    const remainingUnchecked = (uncheckedCount || 0) - citations.length;
+    const remaining = Math.max(0, (uncheckedCount || 0) - citations.length);
 
-    console.log('✅ Batch health check complete');
-    console.log(`   Checked: ${citations.length}`);
-    console.log(`   Healthy: ${healthyCount}`);
-    console.log(`   Broken: ${brokenCount}`);
-    console.log(`   Unreachable: ${unreachableCount}`);
-    console.log(`   Redirected: ${redirectedCount}`);
-    console.log(`   Slow: ${slowCount}`);
-    console.log(`   Remaining unchecked: ${remainingUnchecked}`);
+    console.log(`✅ Done: ${citations.length} checked, ${remaining} remaining`);
 
     return new Response(
       JSON.stringify({
         success: true,
         checked: citations.length,
-        healthy: healthyCount,
-        broken: brokenCount,
-        unreachable: unreachableCount,
-        redirected: redirectedCount,
-        slow: slowCount,
-        remaining: remainingUnchecked,
+        ...stats,
+        remaining,
         timestamp: new Date().toISOString(),
       }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200,
-      }
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
   } catch (error) {
-    console.error('❌ Citation health check failed:', error);
-
+    console.error('❌ Error:', error);
     return new Response(
       JSON.stringify({
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error',
       }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 500,
-      }
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
     );
   }
 });
