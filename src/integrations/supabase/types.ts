@@ -1886,6 +1886,7 @@ export type Database = {
           final_summary: string | null
           headline: string
           id: string
+          image_prompt: string | null
           intent_type: string
           internal_links: Json | null
           language: string
@@ -1918,6 +1919,7 @@ export type Database = {
           final_summary?: string | null
           headline: string
           id?: string
+          image_prompt?: string | null
           intent_type: string
           internal_links?: Json | null
           language?: string
@@ -1950,6 +1952,7 @@ export type Database = {
           final_summary?: string | null
           headline?: string
           id?: string
+          image_prompt?: string | null
           intent_type?: string
           internal_links?: Json | null
           language?: string
