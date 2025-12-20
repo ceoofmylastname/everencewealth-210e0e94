@@ -9,6 +9,7 @@ export const pl = {
   nav: {
     properties: "Nieruchomości",
     areas: "Obszary",
+    locations: "Lokalizacje",
     aboutUs: "O Nas",
     buyersGuide: "Przewodnik Kupującego",
     blog: "Blog",

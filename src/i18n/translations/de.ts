@@ -9,6 +9,7 @@ export const de = {
   nav: {
     properties: "Immobilien",
     areas: "Gebiete",
+    locations: "Standorte",
     aboutUs: "Über Uns",
     buyersGuide: "Käuferhandbuch",
     blog: "Blog",

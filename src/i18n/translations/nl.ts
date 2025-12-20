@@ -9,6 +9,7 @@ export const nl = {
   nav: {
     properties: "Woningen",
     areas: "Gebieden",
+    locations: "Locaties",
     aboutUs: "Over Ons",
     buyersGuide: "Kopershandleiding",
     blog: "Blog",

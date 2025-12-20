@@ -83,6 +83,13 @@ export const Header: React.FC<HeaderProps> = ({ variant = 'transparent' }) => {
             {t.nav.areas}
             <span className={getUnderlineClasses(isAnchorActive('#areas'))}></span>
           </a>
+          <Link 
+            to="/locations"
+            className={getNavLinkClasses(isActive('/locations'))}
+          >
+            {t.nav.locations}
+            <span className={getUnderlineClasses(isActive('/locations'))}></span>
+          </Link>
           <a 
             href="#about"
             className={getNavLinkClasses(isAnchorActive('#about'))}
@@ -179,6 +186,13 @@ export const Header: React.FC<HeaderProps> = ({ variant = 'transparent' }) => {
         >
           {t.nav.areas}
         </a>
+        <Link 
+          to="/locations"
+          onClick={() => setIsMobileMenuOpen(false)}
+          className={`text-2xl font-serif font-medium border-b border-slate-100 pb-4 font-nav transition-colors ${isActive('/locations') ? 'text-prime-gold' : 'text-slate-800'}`}
+        >
+          {t.nav.locations}
+        </Link>
         <a 
           href="#about"
           onClick={() => setIsMobileMenuOpen(false)}

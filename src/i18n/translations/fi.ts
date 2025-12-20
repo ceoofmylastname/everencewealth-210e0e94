@@ -9,6 +9,7 @@ export const fi = {
   nav: {
     properties: "Kiinteistöt",
     areas: "Alueet",
+    locations: "Sijainnit",
     aboutUs: "Tietoa Meistä",
     buyersGuide: "Ostajan Opas",
     blog: "Blogi",

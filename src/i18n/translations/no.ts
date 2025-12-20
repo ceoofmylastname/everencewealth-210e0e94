@@ -9,6 +9,7 @@ export const no = {
   nav: {
     properties: "Eiendommer",
     areas: "Områder",
+    locations: "Steder",
     aboutUs: "Om Oss",
     buyersGuide: "Kjøperguide",
     blog: "Blogg",

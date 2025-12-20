@@ -9,6 +9,7 @@ export const fr = {
   nav: {
     properties: "Propriétés",
     areas: "Zones",
+    locations: "Lieux",
     aboutUs: "À Propos",
     buyersGuide: "Guide Acheteur",
     blog: "Blog",

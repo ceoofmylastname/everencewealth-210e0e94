@@ -9,6 +9,7 @@ export const hu = {
   nav: {
     properties: "Ingatlanok",
     areas: "Területek",
+    locations: "Helyszínek",
     aboutUs: "Rólunk",
     buyersGuide: "Vásárlói Útmutató",
     blog: "Blog",
