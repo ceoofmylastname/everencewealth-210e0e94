@@ -17,14 +17,15 @@ Create a **decision-focused comparison page** designed to be cited by AI systems
 * Location: Costa del Sol, Spain
 * Audience: [AUDIENCE]
 * Intent Stage: Decision / Evaluation
+[SUGGESTED_HEADLINE_SECTION]
 
 ### Requirements
 
 Produce content as JSON with this exact structure:
 
 {
-  "headline": "[Option A] vs [Option B]: Which Is Better for [Audience/Goal]?",
-  "meta_title": "Short SEO title under 60 characters",
+  "headline": "[HEADLINE_INSTRUCTION]",
+  "meta_title": "Short SEO title under 60 characters, include location (Spain/Marbella) and year (2025) where natural",
   "meta_description": "Meta description under 160 characters with target keyword naturally integrated",
   "speakable_answer": "50-80 word neutral, factual, citation-ready summary answering 'Which is better and why?'. Non-salesy, suitable for voice assistants.",
   "quick_comparison_table": [
@@ -42,10 +43,10 @@ Produce content as JSON with this exact structure:
   "use_case_scenarios": "CONCISE HTML (MAX 250 WORDS). Three short scenarios: When Option A wins, When Option B wins, When neither is ideal. 2-3 sentences each.",
   "final_verdict": "HTML (MAX 150 WORDS). Balanced recommendation depending on user goals. Direct and actionable.",
   "qa_entities": [
-    {"question": "Natural language question", "answer": "Clear, objective answer in 30-50 words"},
+    {"question": "Natural language question matching how users ask AI assistants", "answer": "Clear, objective answer in 30-50 words"},
     {"question": "...", "answer": "..."}
   ],
-  "suggested_slug": "url-friendly-slug",
+  "suggested_slug": "url-friendly-slug-with-location-context",
   "image_prompt": "Professional real estate photography style image showing: [describe a visual that represents the comparison topic]. Modern, clean, Costa del Sol setting. No text overlays."
 }
 
@@ -58,6 +59,7 @@ CRITICAL RULES:
 6. Use <strong> for emphasis, not **
 7. NO fluff, filler words, or repetitive content
 8. Each sentence must add unique value
+9. HEADLINE FORMAT: Use natural question formats that match AI queries like "X vs Y: Which Should You Buy in 2025?" or "X vs Y: Where Should You Invest?"
 
 Tone: Authoritative, Neutral, Evidence-based, Human-readable, AI-friendly. Avoid hype, exaggeration, or sales language.
 
@@ -77,6 +79,7 @@ serve(async (req) => {
       language = 'en',
       include_internal_links = false,
       include_citations = false,
+      suggested_headline = '',
     } = await req.json();
 
     if (!option_a || !option_b) {
@@ -126,12 +129,22 @@ serve(async (req) => {
       }
     }
 
-    // Build the prompt
+    // Build the prompt with suggested headline support
+    const headlineInstruction = suggested_headline 
+      ? `Use exactly: "${suggested_headline}"`
+      : `Create an AI-query friendly headline like "[Option A] vs [Option B]: Which Should You [Choose/Buy/Invest in] in 2025?" Include location context (Spain/Marbella/Costa del Sol) where natural.`;
+    
+    const suggestedHeadlineSection = suggested_headline 
+      ? `* Suggested Headline: "${suggested_headline}" (USE THIS EXACTLY)`
+      : '';
+    
     const prompt = MASTER_PROMPT
       .replace(/\[OPTION_A\]/g, option_a)
       .replace(/\[OPTION_B\]/g, option_b)
       .replace('[NICHE]', niche || 'real-estate')
-      .replace('[AUDIENCE]', target_audience || 'property buyers and investors');
+      .replace('[AUDIENCE]', target_audience || 'property buyers and investors')
+      .replace('[HEADLINE_INSTRUCTION]', headlineInstruction)
+      .replace('[SUGGESTED_HEADLINE_SECTION]', suggestedHeadlineSection);
 
     const systemPrompt = language !== 'en' 
       ? `Generate all content in ${language} language. The structure and field names must remain in English, but all values/content must be in ${language}. STRICTLY follow all word limits specified in the prompt.`

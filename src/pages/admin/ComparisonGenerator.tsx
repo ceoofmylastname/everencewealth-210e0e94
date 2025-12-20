@@ -29,23 +29,22 @@ const LANGUAGES = [
 ];
 
 const SUGGESTED_COMPARISONS = [
-  { a: 'Buying Off-Plan', b: 'Resale Property' },
-  { a: 'New Build', b: 'Renovation' },
-  { a: 'Local Agent', b: 'International Broker' },
-  { a: 'Marbella', b: 'Estepona' },
-  { a: 'Golden Visa', b: 'Standard Residency' },
-  { a: 'Freehold', b: 'Leasehold' },
-  { a: 'Beachfront Property', b: 'Golf Course Property' },
-  { a: 'Holiday Home', b: 'Investment Property' },
-  { a: 'Cash Purchase', b: 'Mortgage' },
-  { a: 'Urban Apartment', b: 'Rural Villa' },
+  { a: 'Off-Plan Property', b: 'Resale Property', context: 'Which Should You Buy in Spain?' },
+  { a: 'New Build', b: 'Renovation Project', context: 'Which Is Better for Investment?' },
+  { a: 'Local Agent', b: 'International Broker', context: 'Who Should You Choose in Spain?' },
+  { a: 'Marbella', b: 'Estepona', context: 'Where to Buy Property on Costa del Sol?' },
+  { a: 'Golden Visa', b: 'Standard Residency', context: 'Which Path to Spanish Residency?' },
+  { a: 'Beachfront Property', b: 'Golf Property', context: 'Best Lifestyle Investment in Spain' },
+  { a: 'Holiday Home', b: 'Investment Property', context: 'What Should You Buy in Spain?' },
+  { a: 'Cash Purchase', b: 'Spanish Mortgage', context: 'How Should You Finance Property?' },
 ];
 
-// Phase 3 MOFU Comparisons with internal linking keywords
+// Phase 3 MOFU Comparisons with AI-query friendly titles
 const PHASE3_MOFU_COMPARISONS = [
   {
-    optionA: 'New-Build Property',
+    optionA: 'New-Build',
     optionB: 'Resale Property',
+    aiHeadline: 'New-Build vs Resale Property in Spain: Which Should You Buy in 2025?',
     targetAudience: 'first-time buyers and investors comparing property types in Costa del Sol',
     niche: 'real-estate',
     relatedKeywords: ['property buying costs', 'Spanish mortgage', 'NIE number'],
@@ -54,6 +53,7 @@ const PHASE3_MOFU_COMPARISONS = [
   {
     optionA: 'Golden Mile',
     optionB: 'Nueva Andalucía',
+    aiHeadline: 'Golden Mile vs Nueva Andalucía: Where Should You Buy Property in Marbella?',
     targetAudience: 'luxury property buyers comparing premium Marbella neighborhoods',
     niche: 'real-estate',
     relatedKeywords: ['golden visa', 'property investment', 'Marbella real estate'],
@@ -62,6 +62,7 @@ const PHASE3_MOFU_COMPARISONS = [
   {
     optionA: 'Costa del Sol',
     optionB: 'Algarve Portugal',
+    aiHeadline: 'Costa del Sol vs Algarve: Best Mediterranean Property Investment for 2025',
     targetAudience: 'international property investors comparing Mediterranean destinations',
     niche: 'real-estate',
     relatedKeywords: ['golden visa spain', 'property buying costs', 'tax comparison'],
@@ -108,7 +109,7 @@ export default function ComparisonGenerator() {
 
   // Generate comparison with internal links and citations
   const generateMutation = useMutation({
-    mutationFn: async (params?: { optionA: string; optionB: string; targetAudience: string; niche: string }) => {
+    mutationFn: async (params?: { optionA: string; optionB: string; targetAudience: string; niche: string; suggestedHeadline?: string }) => {
       const opts = params || { optionA, optionB, targetAudience, niche };
       const { data, error } = await supabase.functions.invoke('generate-comparison', {
         body: { 
@@ -116,6 +117,7 @@ export default function ComparisonGenerator() {
           option_b: opts.optionB, 
           niche: opts.niche, 
           target_audience: opts.targetAudience, 
+          suggested_headline: opts.suggestedHeadline,
           language,
           include_internal_links: true,
           include_citations: true,
@@ -221,6 +223,7 @@ export default function ComparisonGenerator() {
             option_b: mofu.optionB, 
             niche: mofu.niche, 
             target_audience: mofu.targetAudience, 
+            suggested_headline: mofu.aiHeadline,
             language: 'en',
             include_internal_links: true,
             include_citations: true,
@@ -314,7 +317,7 @@ export default function ComparisonGenerator() {
                         <div className="flex items-center justify-between">
                           <div>
                             <h3 className="font-semibold flex items-center gap-2">
-                              {mofu.optionA} vs {mofu.optionB}
+                              {mofu.aiHeadline || `${mofu.optionA} vs ${mofu.optionB}`}
                               {exists && <CheckCircle className="h-4 w-4 text-green-600" />}
                             </h3>
                             <p className="text-sm text-muted-foreground">{mofu.description}</p>
@@ -336,7 +339,8 @@ export default function ComparisonGenerator() {
                                   optionA: mofu.optionA, 
                                   optionB: mofu.optionB, 
                                   targetAudience: mofu.targetAudience, 
-                                  niche: mofu.niche 
+                                  niche: mofu.niche,
+                                  suggestedHeadline: mofu.aiHeadline,
                                 });
                               }}
                               disabled={generateMutation.isPending}
