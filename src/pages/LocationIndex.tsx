@@ -84,7 +84,7 @@ const LocationIndex = () => {
         <link rel="canonical" href={`https://www.delsolprimehomes.com/locations/${citySlug}`} />
       </Helmet>
 
-      <Header />
+      <Header variant="solid" />
       
       <main className="min-h-screen">
         {/* Immersive City Hero */}
