@@ -38,35 +38,35 @@ interface BOFUTemplate {
 const BOFU_TEMPLATES: BOFUTemplate[] = [
   {
     id: 'golden-visa',
-    title: 'Golden Visa Spain Guide',
-    description: 'Complete guide covering €500K investment, 10-step process, benefits, and comparison with Portugal',
+    title: 'Golden Visa Spain 2025: Requirements, Costs & Process',
+    description: '€500K investment threshold, 10-step process, Portugal comparison, family inclusion, path to permanent residency',
     icon: <Landmark className="h-5 w-5" />,
-    targetKeyword: 'golden visa spain',
+    targetKeyword: 'golden visa spain requirements',
     category: 'Legal & Regulations',
     estimatedTime: '~2 min'
   },
   {
     id: 'property-costs',
-    title: 'Property Buying Costs Calculator',
-    description: 'Detailed breakdown of taxes, fees, legal costs with worked examples at different price points',
+    title: 'Property Buying Costs in Spain: Complete Breakdown for 2025',
+    description: 'ITP 7%, notary fees, legal costs, worked examples at €300K/€500K/€1M, annual ongoing costs',
     icon: <Calculator className="h-5 w-5" />,
-    targetKeyword: 'costa del sol property buying costs',
+    targetKeyword: 'property buying costs spain',
     category: 'Buying Guide',
     estimatedTime: '~2 min'
   },
   {
     id: 'nie-number',
-    title: 'NIE Number Application Guide',
-    description: 'Step-by-step guide for obtaining Spanish tax ID, documents needed, timelines, and tips',
+    title: 'How to Get an NIE Number in Spain (Step-by-Step)',
+    description: 'EX-15 form, Cita Previa booking, €9.84 fee, 2-6 week processing, consulate vs police station',
     icon: <FileCheck className="h-5 w-5" />,
-    targetKeyword: 'nie number spain',
+    targetKeyword: 'nie number spain how to get',
     category: 'Legal & Regulations',
     estimatedTime: '~2 min'
   },
   {
     id: 'spanish-mortgage',
-    title: 'Spanish Mortgage for Non-Residents',
-    description: 'LTV ratios, bank options, documentation, and complete mortgage process for foreign buyers',
+    title: 'Spanish Mortgages for Non-Residents: Rates, Banks & Requirements',
+    description: '60-70% LTV, current rates 3.5-5%, Sabadell/Santander/BBVA comparison, income requirements',
     icon: <Landmark className="h-5 w-5" />,
     targetKeyword: 'spanish mortgage non residents',
     category: 'Financing',
