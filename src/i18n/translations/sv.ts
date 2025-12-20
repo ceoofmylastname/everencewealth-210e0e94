@@ -9,6 +9,7 @@ export const sv = {
   nav: {
     properties: "Fastigheter",
     areas: "Områden",
+    locations: "Platser",
     aboutUs: "Om Oss",
     buyersGuide: "Köparguide",
     blog: "Blogg",
