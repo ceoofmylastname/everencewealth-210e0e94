@@ -81,7 +81,7 @@ const LocationHub = () => {
         <link rel="canonical" href="https://www.delsolprimehomes.com/locations" />
       </Helmet>
 
-      <Header />
+      <Header variant="solid" />
       
       <main className="min-h-screen">
         {/* Immersive Hero Section */}

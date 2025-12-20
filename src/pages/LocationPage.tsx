@@ -165,7 +165,7 @@ const LocationPage = () => {
         {schemas.faq && <script type="application/ld+json">{JSON.stringify(schemas.faq)}</script>}
       </Helmet>
 
-      <Header />
+      <Header variant="solid" />
       
       <main className="min-h-screen">
         <LocationHero
