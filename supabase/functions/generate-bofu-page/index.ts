@@ -31,7 +31,7 @@ function calculateReadTime(content: string): number {
   return Math.max(5, Math.ceil(wordCount / 200));
 }
 
-// BOFU Page Templates
+// BOFU Page Templates - AI-Query Friendly Titles
 const BOFU_TEMPLATES: Record<string, {
   topic: string;
   targetKeyword: string;
@@ -41,71 +41,79 @@ const BOFU_TEMPLATES: Record<string, {
   contentFocus: string[];
 }> = {
   'golden-visa': {
-    topic: 'Golden Visa Spain Complete Guide 2025',
-    targetKeyword: 'golden visa spain',
+    topic: 'Golden Visa Spain 2025: Requirements, Costs & Process',
+    targetKeyword: 'golden visa spain requirements',
     category: 'Legal & Regulations',
     targetAudience: 'Non-EU investors seeking Spanish residency through property investment',
     pageType: 'comprehensive-guide',
     contentFocus: [
-      'Investment thresholds (€500K minimum property investment)',
-      '10-step application process with timelines',
-      'Required documents checklist',
-      'Benefits (residency, Schengen travel, path to citizenship)',
-      'Comparison with Portugal Golden Visa changes',
-      'Family inclusion options',
-      'Tax implications for Golden Visa holders',
-      'Common mistakes to avoid'
+      '€500,000 minimum investment threshold (current 2025 requirement)',
+      '10-step application process with exact timelines',
+      'Required documents checklist with official forms',
+      'Benefits: residency, Schengen travel, path to permanent residency (5 years)',
+      'Comparison with Portugal Golden Visa (now closed to property)',
+      'Family inclusion rules (spouse, children, dependents)',
+      'Tax implications for Golden Visa holders (Beckham Law eligibility)',
+      'Common mistakes to avoid and rejection reasons',
+      'Processing times by consulate/region',
+      'Renewal process and citizenship pathway'
     ]
   },
   'property-costs': {
-    topic: 'Costa del Sol Property Buying Costs Complete Breakdown',
-    targetKeyword: 'costa del sol property buying costs',
+    topic: 'Property Buying Costs in Spain: Complete Breakdown for 2025',
+    targetKeyword: 'property buying costs spain',
     category: 'Buying Guide',
-    targetAudience: 'International buyers planning property purchase on Costa del Sol',
+    targetAudience: 'International buyers planning property purchase in Spain',
     pageType: 'calculator-guide',
     contentFocus: [
-      'Purchase taxes (ITP 7-10% for resale, VAT 10% for new builds)',
-      'Notary fees (€600-€1,200)',
+      'Purchase taxes by region (Andalucía ITP: 7%, new builds VAT: 10%)',
+      'Notary fees breakdown (€600-€1,200 typical range)',
       'Land registry fees (€400-€800)',
       'Legal fees (1-1.5% of purchase price)',
-      'Mortgage arrangement fees if applicable',
-      'Property survey costs',
+      'Mortgage arrangement fees if applicable (1-2%)',
+      'Property survey and valuation costs',
       'Worked examples at €300K, €500K, and €1M price points',
-      'Annual ownership costs overview'
+      'Annual ongoing costs (IBI property tax, community fees, basura)',
+      'Non-resident tax implications (IRNR)',
+      'Total cost calculator with all fees included'
     ]
   },
   'nie-number': {
-    topic: 'NIE Number Spain Complete Application Guide',
-    targetKeyword: 'nie number spain',
+    topic: 'How to Get an NIE Number in Spain (Step-by-Step Guide)',
+    targetKeyword: 'nie number spain how to get',
     category: 'Legal & Regulations',
     targetAudience: 'Anyone needing Spanish tax identification for property purchase or business',
     pageType: 'process-guide',
     contentFocus: [
-      'What is NIE and who needs it',
-      'Required documents list',
-      'Application methods (in Spain at police station, via consulate abroad)',
-      'Online booking system for appointments',
-      'Processing timelines (2-4 weeks typical)',
-      'Costs (€10-15 for the form)',
+      'What is NIE and who needs it (required for all property transactions)',
+      'EX-15 form: exact document reference and where to download',
+      'Required documents list with specifications',
+      'Application methods (in Spain at police station, via Spanish consulate abroad)',
+      'Online booking system for appointments (Cita Previa)',
+      'Processing timelines (2-6 weeks typical)',
+      'Fees: approximately €9.84 (Tasa 790 code 012)',
       'Common rejection reasons and how to avoid them',
-      'Difference between NIE and TIE'
+      'Difference between NIE and TIE (residency card)',
+      'Using a gestor vs DIY application'
     ]
   },
   'spanish-mortgage': {
-    topic: 'Spanish Mortgage for Non-Residents Complete Guide',
+    topic: 'Spanish Mortgages for Non-Residents: Rates, Banks & Requirements',
     targetKeyword: 'spanish mortgage non residents',
     category: 'Financing',
     targetAudience: 'Non-resident international buyers seeking mortgage financing in Spain',
     pageType: 'comprehensive-guide',
     contentFocus: [
-      'LTV ratios for non-residents (typically 60-70%)',
-      'Income requirements and documentation',
-      'Interest rates comparison (fixed vs variable)',
-      'Spanish bank options for non-residents',
-      'Required documents checklist',
-      'Step-by-step mortgage application process',
-      'Mortgage costs and fees',
-      'Currency considerations for non-Euro earners'
+      'LTV ratios for non-residents (60-70% typical maximum)',
+      'Current interest rates 2025 (fixed: 3.5-4.5%, variable: Euribor + 1-2%)',
+      'Bank comparison: Sabadell, Santander, BBVA, CaixaBank, Bankinter',
+      'Income requirements and documentation (3x gross salary rule)',
+      'Required documents checklist for non-residents',
+      'Step-by-step mortgage application process (6-8 weeks typical)',
+      'Mortgage costs and fees (1-2% arrangement, valuation, AJD tax)',
+      'Currency considerations for non-Euro earners (GBP, USD, SEK)',
+      'Self-employed vs employed requirements',
+      'Age limits and maximum term (typically to age 70-75)'
     ]
   }
 };
