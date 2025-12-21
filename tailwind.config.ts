@@ -178,6 +178,42 @@ export default {
           "0%": { opacity: "0", transform: "translateY(60px)" },
           "100%": { opacity: "1", transform: "translateY(0)" },
         },
+        "ken-burns": {
+          "0%": { transform: "scale(1)" },
+          "100%": { transform: "scale(1.15)" },
+        },
+        "counter-pop": {
+          "0%": { transform: "scale(0.5)", opacity: "0" },
+          "50%": { transform: "scale(1.2)" },
+          "100%": { transform: "scale(1)", opacity: "1" },
+        },
+        "hero-badge-enter": {
+          "0%": { opacity: "0", transform: "translateY(-20px) scale(0.9)" },
+          "100%": { opacity: "1", transform: "translateY(0) scale(1)" },
+        },
+        "hero-title-reveal": {
+          "0%": { opacity: "0", transform: "translateY(40px)", filter: "blur(10px)" },
+          "100%": { opacity: "1", transform: "translateY(0)", filter: "blur(0)" },
+        },
+        "stat-card-enter": {
+          "0%": { opacity: "0", transform: "translateY(30px) scale(0.9)" },
+          "60%": { transform: "translateY(-5px) scale(1.02)" },
+          "100%": { opacity: "1", transform: "translateY(0) scale(1)" },
+        },
+        "glow-border-pulse": {
+          "0%, 100%": { borderColor: "rgba(197, 160, 89, 0.3)", boxShadow: "0 0 20px rgba(197, 160, 89, 0.1)" },
+          "50%": { borderColor: "rgba(197, 160, 89, 0.8)", boxShadow: "0 0 40px rgba(197, 160, 89, 0.3)" },
+        },
+        "float-particle": {
+          "0%, 100%": { transform: "translateY(0) translateX(0)", opacity: "0.2" },
+          "25%": { transform: "translateY(-30px) translateX(10px)", opacity: "0.6" },
+          "50%": { transform: "translateY(-15px) translateX(-5px)", opacity: "0.4" },
+          "75%": { transform: "translateY(-40px) translateX(15px)", opacity: "0.8" },
+        },
+        "number-slot": {
+          "0%": { transform: "translateY(100%)" },
+          "100%": { transform: "translateY(0)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -201,6 +237,14 @@ export default {
         "card-hover-glow": "card-hover-glow 0.3s ease forwards",
         "text-shimmer": "text-shimmer 3s linear infinite",
         "reveal-up": "reveal-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards",
+        "ken-burns": "ken-burns 30s ease-out forwards",
+        "counter-pop": "counter-pop 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards",
+        "hero-badge-enter": "hero-badge-enter 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards",
+        "hero-title-reveal": "hero-title-reveal 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards",
+        "stat-card-enter": "stat-card-enter 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards",
+        "glow-border-pulse": "glow-border-pulse 3s ease-in-out infinite",
+        "float-particle": "float-particle 8s ease-in-out infinite",
+        "number-slot": "number-slot 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards",
       },
     },
   },
