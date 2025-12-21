@@ -95,7 +95,7 @@ export const WhyChooseUs = ({ content }: WhyChooseUsProps) => {
           {/* Markdown content */}
           <div className="max-w-3xl mx-auto">
             <div 
-              className="prose prose-invert prose-lg prose-headings:font-serif prose-headings:text-white prose-h2:text-2xl prose-h3:text-xl prose-p:text-white/90 prose-li:text-white/90 prose-a:text-prime-gold prose-strong:text-white max-w-none"
+              className="prose prose-lg max-w-none [&_h1]:text-white [&_h2]:text-white [&_h3]:text-white [&_h4]:text-white [&_p]:text-white [&_li]:text-white [&_strong]:text-white [&_a]:text-prime-gold [&_a:hover]:text-prime-gold/80 [&_h2]:text-2xl [&_h3]:text-xl [&_h2]:font-serif [&_h3]:font-serif [&_ul]:list-disc [&_ul]:ml-6"
               dangerouslySetInnerHTML={{ __html: parseMarkdown(content) }}
             />
           </div>
