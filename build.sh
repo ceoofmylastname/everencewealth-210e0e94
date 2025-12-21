@@ -13,6 +13,18 @@ npx tsx scripts/generateStaticPages.ts
 echo "🔍 Generating static QA pages..."
 npx tsx scripts/generateStaticQAPages.ts
 
+# Generate static comparison pages
+echo "⚖️ Generating static comparison pages..."
+npx tsx scripts/generateStaticComparisonPages.ts
+
+# Generate static location pages
+echo "📍 Generating static location pages..."
+npx tsx scripts/generateStaticLocationPages.ts
+
+# Generate static about page
+echo "👤 Generating static about page..."
+npx tsx scripts/generateStaticAboutPage.ts
+
 # Generate sitemap with all pages
 echo "🗺️ Generating sitemap..."
 npx tsx scripts/generateSitemap.ts
