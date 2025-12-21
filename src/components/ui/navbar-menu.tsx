@@ -39,11 +39,11 @@ export const MenuItem = ({
             exit={{ opacity: 0, scale: 0.85, y: 10 }}
             transition={transition}
           >
-            <div className="absolute top-[calc(100%_+_1.2rem)] left-1/2 transform -translate-x-1/2 pt-4">
+            <div className="absolute top-[calc(100%_+_1.2rem)] left-1/2 transform -translate-x-1/2 pt-4 z-[60]">
               <motion.div
                 transition={transition}
                 layoutId="active"
-                className="bg-white/98 backdrop-blur-xl rounded-2xl overflow-hidden border border-prime-gold/20 shadow-2xl shadow-prime-900/20"
+                className="bg-white rounded-2xl overflow-hidden border border-prime-gold/20 shadow-2xl shadow-prime-900/20"
               >
                 <motion.div layout className="w-max h-full p-4">
                   {children}
