@@ -134,37 +134,83 @@ For EACH Q&A page, return a JSON object with these exact fields:
 
 Return a JSON array with exactly 2 objects. No markdown, no explanation, just valid JSON.`;
 
-          const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${lovableApiKey}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              model: 'google/gemini-2.5-flash',
-              messages: [
-                { role: 'system', content: 'You are an expert SEO content generator and translator. Return only valid JSON, no markdown or explanation.' },
-                { role: 'user', content: prompt }
-              ],
-            }),
-          });
+          const MAX_RETRIES = 2;
+          let qaPagesData;
+          let lastError;
 
-          if (!aiResponse.ok) {
-            const errorText = await aiResponse.text();
-            console.error('AI API error:', errorText);
-            throw new Error(`AI API error: ${aiResponse.status}`);
+          for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+            try {
+              const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                  'Authorization': `Bearer ${lovableApiKey}`,
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  model: 'google/gemini-2.5-flash',
+                  messages: [
+                    { role: 'system', content: 'You are an expert SEO content generator and translator. Return only valid JSON, no markdown or explanation.' },
+                    { role: 'user', content: prompt }
+                  ],
+                }),
+              });
+
+              if (!aiResponse.ok) {
+                const errorText = await aiResponse.text();
+                console.error('AI API error:', errorText);
+                throw new Error(`AI API error: ${aiResponse.status}`);
+              }
+
+              const aiData = await aiResponse.json();
+              let content = aiData.choices?.[0]?.message?.content || '';
+              
+              // Robust JSON cleanup
+              content = content
+                .replace(/```json\n?/g, '')
+                .replace(/```\n?/g, '')
+                .replace(/^\s+|\s+$/g, '')           // Aggressive whitespace trim
+                .replace(/,\s*]/g, ']')               // Remove trailing commas before ]
+                .replace(/,\s*}/g, '}')               // Remove trailing commas before }
+                .replace(/[\u200B-\u200D\uFEFF]/g, '') // Remove invisible unicode chars
+                .replace(/[\x00-\x1F\x7F]/g, '');     // Remove control characters
+
+              // Try parsing with fallback to extract JSON array manually
+              try {
+                qaPagesData = JSON.parse(content);
+              } catch {
+                // Fallback: Find the array bounds and try again
+                const start = content.indexOf('[');
+                const end = content.lastIndexOf(']');
+                if (start !== -1 && end !== -1 && end > start) {
+                  const extracted = content.slice(start, end + 1);
+                  qaPagesData = JSON.parse(extracted);
+                  console.log(`Fallback JSON extraction succeeded for article ${article.id}`);
+                } else {
+                  console.error('JSON parse failed - Content length:', content.length);
+                  console.error('First 200 chars:', content.substring(0, 200));
+                  console.error('Last 200 chars:', content.substring(Math.max(0, content.length - 200)));
+                  throw new Error('Failed to parse AI response as JSON');
+                }
+              }
+
+              // Validate the parsed data is an array with items
+              if (!Array.isArray(qaPagesData) || qaPagesData.length === 0) {
+                throw new Error('AI response is not a valid array of QA pages');
+              }
+
+              break; // Success, exit retry loop
+
+            } catch (error) {
+              lastError = error;
+              if (attempt < MAX_RETRIES) {
+                console.log(`Retry attempt ${attempt + 1} for article ${article.id}, lang ${lang}`);
+                await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1))); // Exponential backoff
+              }
+            }
           }
 
-          const aiData = await aiResponse.json();
-          let qaPagesData;
-          
-          try {
-            let content = aiData.choices?.[0]?.message?.content || '';
-            content = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-            qaPagesData = JSON.parse(content);
-          } catch (parseError) {
-            console.error('Failed to parse AI response:', aiData.choices?.[0]?.message?.content);
-            throw new Error('Failed to parse AI response as JSON');
+          if (!qaPagesData) {
+            throw lastError || new Error('Failed to generate QA pages after retries');
           }
 
           // Save each Q&A page
