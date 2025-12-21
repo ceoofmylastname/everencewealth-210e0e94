@@ -14,7 +14,7 @@ import { Progress } from '@/components/ui/progress';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
-import { Search, FileQuestion, Loader2, CheckCircle, XCircle, RefreshCw, Eye, Edit, Trash2, Upload, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, FileQuestion, Loader2, CheckCircle, XCircle, RefreshCw, Eye, Edit, Trash2, Upload, ChevronLeft, ChevronRight, MapPin, Building } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { format } from 'date-fns';
 
@@ -31,6 +31,19 @@ const LANGUAGES = [
   { code: 'no', name: 'Norwegian' },
 ];
 
+const CITY_OPTIONS = [
+  { slug: 'marbella', name: 'Marbella' },
+  { slug: 'estepona', name: 'Estepona' },
+  { slug: 'sotogrande', name: 'Sotogrande' },
+  { slug: 'malaga-city', name: 'Málaga City' },
+  { slug: 'fuengirola', name: 'Fuengirola' },
+  { slug: 'benalmadena', name: 'Benalmádena' },
+  { slug: 'mijas', name: 'Mijas' },
+  { slug: 'casares', name: 'Casares' },
+  { slug: 'manilva', name: 'Manilva' },
+  { slug: 'torremolinos', name: 'Torremolinos' },
+];
+
 const ITEMS_PER_PAGE = 50;
 
 export default function FAQGenerator() {
@@ -44,6 +57,11 @@ export default function FAQGenerator() {
   const [jobId, setJobId] = useState<string | null>(null);
   const [editingFaq, setEditingFaq] = useState<any | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  
+  // City Q&A state
+  const [selectedCities, setSelectedCities] = useState<string[]>([]);
+  const [cityLanguages, setCityLanguages] = useState<string[]>(['en']);
+  const [cityJobId, setCityJobId] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Fetch published articles
@@ -84,7 +102,7 @@ export default function FAQGenerator() {
     },
   });
 
-  // Poll job status
+  // Poll job status (article-based QA)
   useEffect(() => {
     if (!jobId) return;
     
@@ -109,7 +127,32 @@ export default function FAQGenerator() {
     return () => clearInterval(interval);
   }, [jobId, refetchQaPages]);
 
-  // Generate QA pages mutation
+  // Poll city job status
+  useEffect(() => {
+    if (!cityJobId) return;
+    
+    const interval = setInterval(async () => {
+      const response = await supabase.functions.invoke('check-qa-job-status', {
+        body: { jobId: cityJobId },
+      });
+      
+      if (response.data?.status === 'completed') {
+        clearInterval(interval);
+        toast.success(`Generated ${response.data.generatedQaPages} city Q&A pages!`);
+        setCityJobId(null);
+        setActiveTab('results');
+        refetchQaPages();
+      } else if (response.data?.status === 'failed') {
+        clearInterval(interval);
+        toast.error(response.data.error || 'City Q&A generation failed');
+        setCityJobId(null);
+      }
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [cityJobId, refetchQaPages]);
+
+  // Generate QA pages mutation (article-based)
   const generateMutation = useMutation({
     mutationFn: async () => {
       const response = await supabase.functions.invoke('generate-qa-pages', {
@@ -129,6 +172,28 @@ export default function FAQGenerator() {
     },
     onError: (error) => {
       toast.error(`Failed to start generation: ${error.message}`);
+    },
+  });
+
+  // Generate City Q&A pages mutation
+  const generateCityQaMutation = useMutation({
+    mutationFn: async () => {
+      const response = await supabase.functions.invoke('generate-city-qa-pages', {
+        body: {
+          citySlugs: selectedCities,
+          languages: cityLanguages.includes('all') ? ['all'] : cityLanguages,
+        },
+      });
+      if (response.error) throw response.error;
+      return response.data;
+    },
+    onSuccess: (data) => {
+      setCityJobId(data.jobId);
+      setActiveTab('progress');
+      toast.info('City Q&A generation started...');
+    },
+    onError: (error) => {
+      toast.error(`Failed to start city Q&A generation: ${error.message}`);
     },
   });
 
@@ -277,6 +342,31 @@ export default function FAQGenerator() {
     }
   };
 
+  // City Q&A helper functions
+  const toggleCity = (slug: string) => {
+    setSelectedCities((prev) =>
+      prev.includes(slug) ? prev.filter((c) => c !== slug) : [...prev, slug]
+    );
+  };
+
+  const selectAllCities = () => {
+    setSelectedCities(CITY_OPTIONS.map((c) => c.slug));
+  };
+
+  const toggleCityLanguage = (code: string) => {
+    if (code === 'all') {
+      setCityLanguages(['all']);
+    } else {
+      setCityLanguages((prev) => {
+        const without = prev.filter((l) => l !== 'all' && l !== code);
+        if (prev.includes(code)) {
+          return without.length === 0 ? ['en'] : without;
+        }
+        return [...without, code];
+      });
+    }
+  };
+
   return (
     <AdminLayout>
       <div className="space-y-6">
@@ -292,8 +382,12 @@ export default function FAQGenerator() {
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList>
             <TabsTrigger value="select">Select Articles</TabsTrigger>
-            <TabsTrigger value="progress" disabled={!jobId}>
-              Progress {jobId && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
+            <TabsTrigger value="city-qa">
+              <MapPin className="mr-1 h-4 w-4" />
+              City Q&A
+            </TabsTrigger>
+            <TabsTrigger value="progress" disabled={!jobId && !cityJobId}>
+              Progress {(jobId || cityJobId) && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
             </TabsTrigger>
             <TabsTrigger value="results">Generated QAs ({qaPages.length})</TabsTrigger>
           </TabsList>
@@ -548,6 +642,121 @@ export default function FAQGenerator() {
             </Card>
           </TabsContent>
 
+          {/* City Q&A Tab */}
+          <TabsContent value="city-qa" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Building className="h-5 w-5" />
+                  Generate Hyper-Specific City Q&A Pages
+                </CardTitle>
+                <CardDescription>
+                  Create AI-ready Q&A pages for each Costa del Sol city. Each city generates 8-10 questions
+                  covering walkability, remote work suitability, family/retiree living, safety, cost of living, and more.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* City Selection */}
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <label className="text-sm font-medium">Select Cities</label>
+                    <Button variant="outline" size="sm" onClick={selectAllCities}>
+                      Select All 10 Cities
+                    </Button>
+                  </div>
+                  <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                    {CITY_OPTIONS.map((city) => (
+                      <div
+                        key={city.slug}
+                        className={`p-3 border rounded-lg cursor-pointer transition-all ${
+                          selectedCities.includes(city.slug)
+                            ? 'border-primary bg-primary/5 ring-1 ring-primary'
+                            : 'border-border hover:border-primary/50'
+                        }`}
+                        onClick={() => toggleCity(city.slug)}
+                      >
+                        <div className="flex items-center gap-2">
+                          <Checkbox
+                            checked={selectedCities.includes(city.slug)}
+                            onCheckedChange={() => toggleCity(city.slug)}
+                          />
+                          <span className="text-sm font-medium">{city.name}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Language Selection */}
+                <div className="bg-muted/50 p-4 rounded-lg">
+                  <p className="text-sm font-medium mb-3">Generate Q&A pages for languages:</p>
+                  <div className="flex flex-wrap gap-2">
+                    <Badge
+                      variant={cityLanguages.includes('all') ? 'default' : 'outline'}
+                      className="cursor-pointer"
+                      onClick={() => toggleCityLanguage('all')}
+                    >
+                      All 10 Languages
+                    </Badge>
+                    {LANGUAGES.map((lang) => (
+                      <Badge
+                        key={lang.code}
+                        variant={cityLanguages.includes(lang.code) ? 'default' : 'outline'}
+                        className="cursor-pointer"
+                        onClick={() => toggleCityLanguage(lang.code)}
+                      >
+                        {lang.name}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Expected Output */}
+                {selectedCities.length > 0 && (
+                  <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
+                    <p className="text-sm text-blue-800">
+                      <strong>Expected output:</strong>{' '}
+                      {selectedCities.length} cities × 10 questions × {
+                        cityLanguages.includes('all') ? 10 : cityLanguages.length
+                      } language(s) = ~{
+                        selectedCities.length * 10 * (cityLanguages.includes('all') ? 10 : cityLanguages.length)
+                      } Q&A pages
+                    </p>
+                    <p className="text-xs text-blue-600 mt-1">
+                      Questions include: walkability, remote work, families, retirees, safety, cost of living, healthcare, transport, and city-specific topics
+                    </p>
+                  </div>
+                )}
+
+                {/* Generate Button */}
+                <div className="flex items-center justify-between pt-4 border-t">
+                  <p className="text-sm text-muted-foreground">
+                    {selectedCities.length} city/cities selected
+                  </p>
+                  <div className="flex gap-2">
+                    {selectedCities.length > 0 && (
+                      <Button variant="outline" onClick={() => setSelectedCities([])}>
+                        Clear Selection
+                      </Button>
+                    )}
+                    <Button
+                      onClick={() => generateCityQaMutation.mutate()}
+                      disabled={selectedCities.length === 0 || generateCityQaMutation.isPending}
+                      className="bg-prime-gold hover:bg-prime-gold/90 text-prime-950"
+                    >
+                      {generateCityQaMutation.isPending ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      ) : (
+                        <MapPin className="mr-2 h-4 w-4" />
+                      )}
+                      Generate City Q&A Pages
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
           <TabsContent value="progress">
             <Card>
               <CardHeader>
@@ -557,9 +766,11 @@ export default function FAQGenerator() {
                 <div className="flex items-center gap-4">
                   <Loader2 className="h-8 w-8 animate-spin text-primary" />
                   <div className="flex-1">
-                    <p className="font-medium">Generating FAQ pages...</p>
+                    <p className="font-medium">
+                      {cityJobId ? 'Generating City Q&A pages...' : 'Generating FAQ pages...'}
+                    </p>
                     <p className="text-sm text-muted-foreground">
-                      This may take a few minutes depending on the number of articles
+                      This may take a few minutes depending on the number of {cityJobId ? 'cities and languages' : 'articles'}
                     </p>
                   </div>
                 </div>
