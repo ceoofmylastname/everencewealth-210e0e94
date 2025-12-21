@@ -210,7 +210,7 @@ export const Header: React.FC<HeaderProps> = ({ variant = 'transparent' }) => {
           <div className="relative">
             <button 
               onClick={() => setIsLangMenuOpen(!isLangMenuOpen)}
-              className={`flex items-center gap-1.5 text-sm font-medium transition-colors duration-300 ${isLightBackground ? 'text-foreground hover:text-primary' : 'text-white hover:text-primary'}`}
+              className={`flex items-center gap-1.5 text-sm font-nav font-medium tracking-wide transition-colors duration-300 ${isLightBackground ? 'text-prime-900 hover:text-prime-gold' : 'text-white hover:text-prime-gold'}`}
             >
               {currentLanguage} <ChevronDown size={14} className={`transition-transform duration-300 ${isLangMenuOpen ? 'rotate-180' : ''}`} />
             </button>
@@ -221,7 +221,7 @@ export const Header: React.FC<HeaderProps> = ({ variant = 'transparent' }) => {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 10 }}
-                  className="absolute top-full right-0 mt-4 w-48 bg-card rounded-xl shadow-2xl shadow-black/10 py-2 border border-border overflow-hidden"
+                  className="absolute top-full right-0 mt-4 w-48 bg-white rounded-xl shadow-2xl shadow-prime-900/15 py-2 border border-prime-gold/20 overflow-hidden"
                 >
                   {Object.values(Language).map((lang) => (
                     <button
@@ -230,7 +230,7 @@ export const Header: React.FC<HeaderProps> = ({ variant = 'transparent' }) => {
                         setLanguage(lang);
                         setIsLangMenuOpen(false);
                       }}
-                      className={`px-4 py-2.5 w-full text-left text-sm hover:bg-muted transition-colors ${currentLanguage === lang ? 'text-primary font-bold bg-muted/50' : 'text-muted-foreground'}`}
+                      className={`px-4 py-2.5 w-full text-left text-sm font-nav hover:bg-prime-gold/10 transition-colors ${currentLanguage === lang ? 'text-prime-gold font-bold bg-prime-gold/5' : 'text-prime-900/70'}`}
                     >
                       {LANGUAGE_NAMES[lang]}
                     </button>
@@ -240,7 +240,7 @@ export const Header: React.FC<HeaderProps> = ({ variant = 'transparent' }) => {
             </AnimatePresence>
           </div>
 
-          <Button variant={isLightBackground ? 'primary' : 'secondary'} size="sm" className={!isLightBackground ? 'shadow-lg shadow-black/10' : ''}>
+          <Button variant={isLightBackground ? 'primary' : 'secondary'} size="sm" className={`font-nav tracking-wide ${!isLightBackground ? 'bg-prime-gold hover:bg-prime-gold/90 text-prime-900 shadow-lg shadow-prime-gold/20 border-none' : 'bg-prime-gold hover:bg-prime-gold/90 text-prime-900'}`}>
             {t.common.bookCall}
           </Button>
         </div>
