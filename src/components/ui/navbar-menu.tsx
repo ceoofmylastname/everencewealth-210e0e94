@@ -27,7 +27,7 @@ export const MenuItem = ({
     <div onMouseEnter={() => setActive(item)} className="relative">
       <motion.p
         transition={{ duration: 0.3 }}
-        className="cursor-pointer text-foreground/80 hover:text-foreground font-medium text-sm"
+        className="cursor-pointer text-white/90 hover:text-prime-gold font-nav font-medium text-sm tracking-wide transition-colors"
       >
         {item}
       </motion.p>
@@ -43,7 +43,7 @@ export const MenuItem = ({
               <motion.div
                 transition={transition}
                 layoutId="active"
-                className="bg-card/95 backdrop-blur-xl rounded-2xl overflow-hidden border border-border/50 shadow-2xl shadow-black/10"
+                className="bg-white/98 backdrop-blur-xl rounded-2xl overflow-hidden border border-prime-gold/20 shadow-2xl shadow-prime-900/20"
               >
                 <motion.div layout className="w-max h-full p-4">
                   {children}
@@ -67,7 +67,7 @@ export const Menu = ({
   return (
     <nav
       onMouseLeave={() => setActive(null)}
-      className="relative rounded-full border border-border/50 bg-card/80 backdrop-blur-xl shadow-lg flex justify-center space-x-8 px-8 py-4"
+      className="relative rounded-full border border-prime-gold/30 bg-prime-900/95 backdrop-blur-xl shadow-lg shadow-prime-gold/5 flex justify-center space-x-8 px-8 py-4 font-nav"
     >
       {children}
     </nav>
@@ -105,13 +105,13 @@ export const ProductItem = ({
         height={80}
         alt={title}
         onError={handleError}
-        className="shrink-0 rounded-lg shadow-md object-cover w-[140px] h-[80px] group-hover:shadow-lg transition-shadow"
+        className="shrink-0 rounded-lg shadow-md object-cover w-[140px] h-[80px] group-hover:shadow-xl group-hover:shadow-prime-gold/10 border border-transparent group-hover:border-prime-gold/30 transition-all duration-300"
       />
       <div className="flex flex-col justify-center">
-        <h4 className="text-sm font-bold mb-1 text-foreground group-hover:text-primary transition-colors">
+        <h4 className="text-sm font-bold mb-1 text-prime-900 group-hover:text-prime-gold font-nav transition-colors">
           {title}
         </h4>
-        <p className="text-muted-foreground text-xs max-w-[160px] leading-relaxed">
+        <p className="text-prime-900/60 text-xs max-w-[160px] leading-relaxed">
           {description}
         </p>
       </div>
@@ -138,7 +138,7 @@ export const HoveredLink = ({
         href={href}
         target={isExternal ? "_blank" : undefined}
         rel={isExternal ? "noopener noreferrer" : undefined}
-        className="text-muted-foreground hover:text-foreground transition-colors text-sm py-2 block"
+        className="text-prime-900/70 hover:text-prime-gold transition-colors text-sm py-2 block font-nav border-l-2 border-transparent hover:border-prime-gold/50 hover:pl-2"
         {...rest}
       >
         {children}
@@ -149,7 +149,7 @@ export const HoveredLink = ({
   return (
     <Link
       to={href}
-      className="text-muted-foreground hover:text-foreground transition-colors text-sm py-2 block"
+      className="text-prime-900/70 hover:text-prime-gold transition-colors text-sm py-2 block font-nav border-l-2 border-transparent hover:border-prime-gold/50 hover:pl-2"
       {...rest}
     >
       {children}
