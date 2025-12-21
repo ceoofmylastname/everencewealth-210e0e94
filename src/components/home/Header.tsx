@@ -32,35 +32,35 @@ export const Header: React.FC<HeaderProps> = ({ variant = 'transparent' }) => {
   // Supabase Storage base URL for navbar images
   const storageBaseUrl = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/navbar-images`;
 
-  // Featured cities for the Explore dropdown - using Supabase Storage URLs with Unsplash fallbacks
+  // Featured cities for the Explore dropdown - using Supabase Storage URLs with verified Unsplash fallbacks
   const featuredCities = [
     {
       title: "Marbella",
       description: "Luxury living on the Golden Mile",
       href: "/brochure/marbella",
       src: `${storageBaseUrl}/marbella-navbar.jpg`,
-      fallback: "https://images.unsplash.com/photo-1555990538-18a20f2e7ef8?w=400&h=300&fit=crop&q=80"
+      fallback: "https://images.unsplash.com/photo-1540541338287-41700207dee6?w=400&h=300&fit=crop&q=80"
     },
     {
       title: "Estepona",
       description: "Charming old town & beaches",
       href: "/brochure/estepona",
       src: `${storageBaseUrl}/estepona-navbar.jpg`,
-      fallback: "https://images.unsplash.com/photo-1509840841025-9088ba78a826?w=400&h=300&fit=crop&q=80"
+      fallback: "https://images.unsplash.com/photo-1559128010-7c1ad6e1b6a5?w=400&h=300&fit=crop&q=80"
     },
     {
       title: "Málaga",
       description: "Culture, cuisine & coastline",
       href: "/brochure/malaga",
       src: `${storageBaseUrl}/malaga-navbar.jpg`,
-      fallback: "https://images.unsplash.com/photo-1591706988498-5e28a3c0bd27?w=400&h=300&fit=crop&q=80"
+      fallback: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=300&fit=crop&q=80"
     },
     {
       title: "Sotogrande",
       description: "Exclusive marina lifestyle",
       href: "/brochure/sotogrande",
       src: `${storageBaseUrl}/sotogrande-navbar.jpg`,
-      fallback: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=400&h=300&fit=crop&q=80"
+      fallback: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400&h=300&fit=crop&q=80"
     },
   ];
 
