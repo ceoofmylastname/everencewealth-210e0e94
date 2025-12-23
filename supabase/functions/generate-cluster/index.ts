@@ -7,13 +7,14 @@ const corsHeaders = {
 };
 
 // Helper function to link translations for multilingual clusters
+// Enhanced to assign hreflang_group_id and set source_language
 async function linkTranslations(supabase: any, clusterId: string) {
   console.log(`[Link Translations] Starting for cluster ${clusterId}...`);
   
   // Fetch all articles with this cluster_id
   const { data: articles, error } = await supabase
     .from('blog_articles')
-    .select('id, language, slug, cluster_number')
+    .select('id, language, slug, cluster_number, hreflang_group_id')
     .eq('cluster_id', clusterId)
     .order('cluster_number', { ascending: true });
   
@@ -30,21 +31,49 @@ async function linkTranslations(supabase: any, clusterId: string) {
   console.log(`[Link Translations] Found ${articles.length} articles to link`);
   
   // Group by cluster_number (article position in cluster)
-  const groups: Record<number, Record<string, string>> = {};
+  const groups: Record<number, Record<string, { id: string; slug: string; hreflang_group_id?: string }>> = {};
   for (const article of articles) {
     if (!groups[article.cluster_number]) {
       groups[article.cluster_number] = {};
     }
-    groups[article.cluster_number][article.language] = article.slug;
+    groups[article.cluster_number][article.language] = {
+      id: article.id,
+      slug: article.slug,
+      hreflang_group_id: article.hreflang_group_id
+    };
   }
   
   console.log(`[Link Translations] Grouped into ${Object.keys(groups).length} article sets`);
   
+  // Generate hreflang_group_id for each cluster_number group and assign to articles
+  for (const [clusterNum, langMap] of Object.entries(groups)) {
+    // Check if any article in this group already has an hreflang_group_id
+    const existingGroupId = Object.values(langMap).find(a => a.hreflang_group_id)?.hreflang_group_id;
+    const groupId = existingGroupId || crypto.randomUUID();
+    
+    console.log(`[Link Translations] Assigning hreflang_group_id ${groupId} to cluster_number ${clusterNum}`);
+    
+    // Update all articles in this group with the shared hreflang_group_id
+    const articleIds = Object.values(langMap).map(a => a.id);
+    const { error: groupError } = await supabase
+      .from('blog_articles')
+      .update({ hreflang_group_id: groupId })
+      .in('id', articleIds);
+    
+    if (groupError) {
+      console.error(`[Link Translations] Error assigning hreflang_group_id to cluster ${clusterNum}:`, groupError);
+    }
+  }
+  
   // Update each article with its siblings' translations
   let updateCount = 0;
   for (const article of articles) {
-    const siblings = { ...groups[article.cluster_number] };
-    delete siblings[article.language]; // Remove self
+    const siblings: Record<string, string> = {};
+    for (const [lang, data] of Object.entries(groups[article.cluster_number])) {
+      if (lang !== article.language) {
+        siblings[lang] = data.slug;
+      }
+    }
     
     const { error: updateError } = await supabase
       .from('blog_articles')
@@ -59,7 +88,7 @@ async function linkTranslations(supabase: any, clusterId: string) {
     }
   }
   
-  console.log(`[Link Translations] ✅ Complete: ${updateCount}/${articles.length} articles updated with translation links`);
+  console.log(`[Link Translations] ✅ Complete: ${updateCount}/${articles.length} articles updated with translation links + hreflang_group_id`);
 }
 
 // Helper function to remove citation links from HTML for blocked domains
@@ -2177,6 +2206,7 @@ Return ONLY valid JSON with questions and answers in ${faqLanguageName}:
             category: article.category,
             funnel_stage: article.funnel_stage,
             language: article.language,
+            source_language: 'en', // English-first strategy: all content originates from English
             status: 'draft',
             detailed_content: article.detailed_content,
             speakable_answer: article.speakable_answer,
