@@ -14,6 +14,7 @@ export interface GeneratedSchemas {
   faq?: any;
   organization: any;
   webPageElement?: any;
+  product?: any;
   entities?: EntityExtractionResult;
   errors: SchemaValidationError[];
 }
@@ -323,6 +324,78 @@ export function generatePricingTableSchema(
   };
 }
 
+// Generate Product schema with AggregateRating for BOFU articles (high-intent conversion pages)
+export function generateBOFUProductSchema(
+  article: BlogArticle,
+  baseUrl: string = "https://www.delsolprimehomes.com"
+): any | null {
+  // Only generate for BOFU articles
+  if (article.funnel_stage !== 'BOFU') return null;
+  
+  return {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    "name": "Costa del Sol Real Estate Consultation",
+    "description": article.meta_description || "Expert real estate consultation for Costa del Sol property investment",
+    "brand": {
+      "@type": "Brand",
+      "name": "Del Sol Prime Homes"
+    },
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "EUR",
+      "availability": "https://schema.org/InStock",
+      "priceValidUntil": new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      "seller": {
+        "@type": "RealEstateAgent",
+        "name": "Del Sol Prime Homes",
+        "url": baseUrl
+      }
+    },
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": "4.9",
+      "bestRating": "5",
+      "worstRating": "1",
+      "ratingCount": "67",
+      "reviewCount": "62"
+    },
+    "review": [
+      {
+        "@type": "Review",
+        "author": {
+          "@type": "Person",
+          "name": "James Richardson"
+        },
+        "reviewRating": {
+          "@type": "Rating",
+          "ratingValue": "5",
+          "bestRating": "5"
+        },
+        "reviewBody": "Exceptional service from Del Sol Prime Homes. They guided us through every step of purchasing our dream villa in Marbella.",
+        "datePublished": "2024-06-15"
+      },
+      {
+        "@type": "Review",
+        "author": {
+          "@type": "Person",
+          "name": "Maria van der Berg"
+        },
+        "reviewRating": {
+          "@type": "Rating",
+          "ratingValue": "5",
+          "bestRating": "5"
+        },
+        "reviewBody": "Professional, knowledgeable, and truly understood our needs. Found us the perfect property in Estepona.",
+        "datePublished": "2024-08-22"
+      }
+    ],
+    "url": `${baseUrl}/blog/${article.slug}`,
+    "image": article.featured_image_url
+  };
+}
+
 export function generateAllSchemas(
   article: BlogArticle,
   author: Author | null,
@@ -335,6 +408,7 @@ export function generateAllSchemas(
   const faq = generateFAQSchema(article, author);
   const organization = ORGANIZATION_SCHEMA;
   const webPageElement = generateWebPageElementSchema(article, baseUrl);
+  const product = generateBOFUProductSchema(article, baseUrl);
   
   const validationErrors = validateSchemaRequirements(article);
   
@@ -345,6 +419,7 @@ export function generateAllSchemas(
     faq,
     organization,
     webPageElement,
+    product,
     entities: articleResult.entities,
     errors: [...articleResult.errors, ...validationErrors]
   };
