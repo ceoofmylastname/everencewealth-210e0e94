@@ -3,17 +3,28 @@ import { useParams, Link } from "react-router-dom";
 import { Header } from "@/components/home/Header";
 import { Footer } from "@/components/home/Footer";
 import { PropertyGallery } from "@/components/property/PropertyGallery";
+import { PropertyHreflangTags } from "@/components/PropertyHreflangTags";
 import { Button } from "@/components/ui/button";
 import { Loader2, Bed, Bath, Maximize2, MapPin, ArrowLeft, Mail, Phone } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import type { Property } from "@/types/property";
+import { Language, AVAILABLE_LANGUAGES } from "@/types/home";
 
 const PropertyDetail = () => {
-  const { reference } = useParams<{ reference: string }>();
+  const { reference, lang } = useParams<{ reference: string; lang?: string }>();
   const { toast } = useToast();
   const [property, setProperty] = useState<Property | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Validate and get current language
+  const validLangCodes = AVAILABLE_LANGUAGES.map(l => l.code as string);
+  const currentLanguage = (lang && validLangCodes.includes(lang) ? lang : Language.EN) as Language;
+  
+  // Build the back link based on language
+  const propertiesLink = lang && validLangCodes.includes(lang) 
+    ? `/${lang}/properties` 
+    : '/en/properties';
 
   useEffect(() => {
     const fetchProperty = async () => {
@@ -23,7 +34,7 @@ const PropertyDetail = () => {
       try {
         // Use POST with reference in body for single property lookup
         const { data, error } = await supabase.functions.invoke("search-properties", {
-          body: { reference },
+          body: { reference, lang: currentLanguage },
         });
 
         if (error) throw error;
@@ -51,7 +62,7 @@ const PropertyDetail = () => {
     };
 
     fetchProperty();
-  }, [reference, toast]);
+  }, [reference, currentLanguage, toast]);
 
   if (isLoading) {
     return (
@@ -72,7 +83,7 @@ const PropertyDetail = () => {
         <main className="flex-1 container mx-auto px-4 py-8">
           <div className="text-center py-20">
             <h1 className="text-2xl font-display font-bold mb-4">Property Not Found</h1>
-            <Link to="/property-finder">
+            <Link to={propertiesLink}>
               <Button>
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Back to Property Search
@@ -95,10 +106,11 @@ const PropertyDetail = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
+      <PropertyHreflangTags reference={reference!} currentLanguage={currentLanguage} />
       <Header />
 
       <main className="flex-1 container mx-auto px-4 py-8">
-        <Link to="/property-finder" className="inline-flex items-center text-primary hover:underline mb-6">
+        <Link to={propertiesLink} className="inline-flex items-center text-primary hover:underline mb-6">
           <ArrowLeft className="w-4 h-4 mr-2" />
           Back to Search
         </Link>

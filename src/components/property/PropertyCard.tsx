@@ -1,12 +1,14 @@
 import { Link } from "react-router-dom";
 import { Bed, Bath, Maximize2, MapPin, ArrowRight } from "lucide-react";
 import type { Property } from "@/types/property";
+import { Language } from "@/types/home";
 
 interface PropertyCardProps {
   property: Property;
+  lang?: Language | string;
 }
 
-export const PropertyCard = ({ property }: PropertyCardProps) => {
+export const PropertyCard = ({ property, lang = Language.EN }: PropertyCardProps) => {
   const formatPrice = (price: number, currency: string) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -15,9 +17,12 @@ export const PropertyCard = ({ property }: PropertyCardProps) => {
     }).format(price);
   };
 
+  // Build the property link with language prefix
+  const propertyLink = `/${lang}/property/${property.reference}`;
+
   return (
     <Link 
-      to={`/property/${property.reference}`}
+      to={propertyLink}
       className="group block bg-white rounded-2xl overflow-hidden 
         border border-slate-100
         shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05),0_10px_25px_-5px_rgba(0,0,0,0.08)]

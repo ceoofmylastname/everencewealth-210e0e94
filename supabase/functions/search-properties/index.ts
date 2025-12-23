@@ -181,7 +181,8 @@ serve(async (req) => {
       bedrooms,
       bathrooms,
       page = 1,
-      limit = 20
+      limit = 20,
+      lang = 'en'
     } = body;
 
     // Call the proxy server
@@ -196,7 +197,8 @@ serve(async (req) => {
       bedrooms,
       bathrooms,
       page,
-      limit
+      limit,
+      lang // Forward language for translated content
     };
 
     if (isDebugMode) {

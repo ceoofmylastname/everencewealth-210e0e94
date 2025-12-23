@@ -1,16 +1,19 @@
 import { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useParams } from "react-router-dom";
 import { Header } from "@/components/home/Header";
 import { Footer } from "@/components/home/Footer";
 import { PropertyCard } from "@/components/property/PropertyCard";
 import { PropertyFilters } from "@/components/property/PropertyFilters";
+import { PropertyFinderHreflangTags } from "@/components/PropertyHreflangTags";
 import { Button } from "@/components/ui/button";
 import { Grid3x3, List, MapPin, ChevronLeft, ChevronRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import type { Property, PropertySearchParams } from "@/types/property";
+import { Language, AVAILABLE_LANGUAGES } from "@/types/home";
 
 const PropertyFinder = () => {
+  const { lang } = useParams<{ lang?: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
   const { toast } = useToast();
   const [properties, setProperties] = useState<Property[]>([]);
@@ -18,6 +21,10 @@ const PropertyFinder = () => {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
+
+  // Validate and get current language
+  const validLangCodes = AVAILABLE_LANGUAGES.map(l => l.code as string);
+  const currentLanguage = (lang && validLangCodes.includes(lang) ? lang : Language.EN) as Language;
 
   // Parse initial params from URL - default transactionType to 'sale'
   const getInitialParams = (): PropertySearchParams => ({
@@ -43,6 +50,7 @@ const PropertyFinder = () => {
           bedrooms: params.bedrooms,
           bathrooms: params.bathrooms,
           page: pageNum,
+          lang: currentLanguage,
         },
       });
 
@@ -96,6 +104,10 @@ const PropertyFinder = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-slate-50 to-white">
+      <PropertyFinderHreflangTags 
+        currentLanguage={currentLanguage} 
+        searchParams={searchParams.toString()} 
+      />
       <Header variant="solid" />
       
       {/* Hero Section with Gradient */}
@@ -263,7 +275,7 @@ const PropertyFinder = () => {
                       className="animate-fade-in"
                       style={{ animationDelay: `${index * 75}ms` }}
                     >
-                      <PropertyCard property={property} />
+                      <PropertyCard property={property} lang={currentLanguage} />
                     </div>
                   ))}
                 </div>
