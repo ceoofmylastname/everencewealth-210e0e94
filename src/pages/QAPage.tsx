@@ -1,4 +1,4 @@
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, Navigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Helmet } from 'react-helmet';
@@ -33,18 +33,36 @@ const BASE_URL = 'https://www.delsolprimehomes.com';
 export default function QAPage() {
   const { slug, lang = 'en' } = useParams<{ slug: string; lang: string }>();
 
+  // Fetch Q&A by slug AND language to ensure correct content for the URL
   const { data: qaPage, isLoading, error } = useQuery({
-    queryKey: ['qa-page', slug],
+    queryKey: ['qa-page', lang, slug],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // First try to find by slug + language (correct match)
+      const { data: exactMatch, error: exactError } = await supabase
+        .from('qa_pages')
+        .select('*, authors!author_id(*)')
+        .eq('slug', slug)
+        .eq('language', lang)
+        .eq('status', 'published')
+        .single();
+      
+      if (exactMatch) return exactMatch;
+      
+      // If not found, try slug only to find the actual language
+      const { data: anyMatch, error: anyError } = await supabase
         .from('qa_pages')
         .select('*, authors!author_id(*)')
         .eq('slug', slug)
         .eq('status', 'published')
         .single();
       
-      if (error) throw error;
-      return data;
+      if (anyMatch) {
+        // Mark that we need to redirect (language mismatch)
+        return { ...anyMatch, _needsRedirect: true };
+      }
+      
+      if (exactError || anyError) throw exactError || anyError;
+      return null;
     },
     enabled: !!slug,
   });
@@ -94,6 +112,11 @@ export default function QAPage() {
     );
   }
 
+  // If Q&A exists but in wrong language folder, redirect to correct one
+  if (qaPage && (qaPage as any)._needsRedirect && qaPage.language !== lang) {
+    return <Navigate to={`/${qaPage.language}/qa/${qaPage.slug}`} replace />;
+  }
+
   if (error || !qaPage) {
     return (
       <>
@@ -110,7 +133,7 @@ export default function QAPage() {
               <h1 className="text-3xl font-display font-bold mb-4">Q&A Not Found</h1>
               <p className="text-muted-foreground mb-8">The Q&A page you're looking for doesn't exist or has been moved.</p>
               <Link 
-                to="/qa" 
+                to={`/${lang}/qa`}
                 className="inline-flex items-center px-6 py-3 bg-prime-gold text-prime-950 font-nav font-semibold rounded-lg hover:bg-prime-goldLight transition-all duration-300 hover:shadow-lg hover:shadow-prime-gold/20"
               >
                 Browse all Q&As
@@ -223,7 +246,7 @@ export default function QAPage() {
               <nav className="flex items-center text-sm text-white/70 mb-6 animate-fade-in">
                 <Link to="/" className="hover:text-prime-gold transition-colors">Home</Link>
                 <ChevronRight className="h-4 w-4 mx-2 text-prime-gold/50" />
-                <Link to="/qa" className="hover:text-prime-gold transition-colors">Q&A</Link>
+                <Link to={`/${qaPage.language}/qa`} className="hover:text-prime-gold transition-colors">Q&A</Link>
                 <ChevronRight className="h-4 w-4 mx-2 text-prime-gold/50" />
                 <span className="text-white truncate max-w-[200px]">{qaPage.title}</span>
               </nav>
@@ -385,7 +408,7 @@ export default function QAPage() {
                   .map((sibling: any) => (
                     <Link
                       key={sibling.slug}
-                      to={`/qa/${sibling.slug}`}
+                      to={`/${sibling.language}/qa/${sibling.slug}`}
                       className="inline-flex items-center px-5 py-2.5 bg-white border border-border/50 rounded-full text-sm font-nav font-medium text-foreground hover:border-prime-gold hover:text-prime-gold hover:shadow-md hover:shadow-prime-gold/10 transition-all duration-300"
                     >
                       {sibling.language.toUpperCase()}
