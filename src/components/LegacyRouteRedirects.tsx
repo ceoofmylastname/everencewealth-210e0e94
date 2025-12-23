@@ -1,8 +1,10 @@
 import { Navigate, useParams } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 /**
  * Redirect components for legacy URLs without language prefix
- * These redirect to the English (/en/) version of each page
+ * Q&A redirect looks up the actual language from DB to redirect correctly
  */
 
 // Redirect /blog/:slug -> /en/blog/:slug
@@ -11,10 +13,30 @@ export const BlogRedirect = () => {
   return <Navigate to={`/en/blog/${slug}`} replace />;
 };
 
-// Redirect /qa/:slug -> /en/qa/:slug
+// Redirect /qa/:slug -> /{actual-language}/qa/:slug (looks up correct language)
 export const QARedirect = () => {
   const { slug } = useParams<{ slug: string }>();
-  return <Navigate to={`/en/qa/${slug}`} replace />;
+  
+  const { data: qaPage, isLoading } = useQuery({
+    queryKey: ['qa-redirect', slug],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('qa_pages')
+        .select('slug, language')
+        .eq('slug', slug)
+        .eq('status', 'published')
+        .single();
+      return data;
+    },
+    enabled: !!slug,
+  });
+
+  // While loading, show nothing (brief flash)
+  if (isLoading) return null;
+  
+  // Redirect to correct language folder, fallback to /en/ if not found
+  const targetLang = qaPage?.language || 'en';
+  return <Navigate to={`/${targetLang}/qa/${slug}`} replace />;
 };
 
 // Redirect /compare/:slug -> /en/compare/:slug

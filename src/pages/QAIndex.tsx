@@ -409,11 +409,11 @@ export default function QAIndex() {
   );
 }
 
-// Extracted Q&A Card component for reuse
+// Extracted Q&A Card component for reuse - uses qa.language for correct folder
 function QACard({ qa, index, stripHtml }: { qa: any; index: number; stripHtml: (html: string) => string }) {
   return (
     <Link 
-      to={`/qa/${qa.slug}`}
+      to={`/${qa.language}/qa/${qa.slug}`}
       className="animate-fade-in-up"
       style={{ animationDelay: `${index * 0.05}s` }}
     >
