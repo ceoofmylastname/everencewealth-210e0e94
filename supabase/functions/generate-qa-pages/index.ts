@@ -21,6 +21,11 @@ const LANGUAGE_NAMES: Record<string, string> = {
 
 const ALL_SUPPORTED_LANGUAGES = ['en', 'de', 'nl', 'fr', 'pl', 'sv', 'da', 'hu', 'fi', 'no'];
 
+// Generate shared hreflang_group_id for Q&A pages from same source article and type
+function generateHreflangGroupId(): string {
+  return crypto.randomUUID();
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -87,6 +92,11 @@ serve(async (req) => {
         for (const lang of targetLanguages) {
           const targetLanguageName = LANGUAGE_NAMES[lang] || 'English';
           const isTranslation = lang !== article.language;
+          
+          // Generate hreflang_group_id for this article + qa_type combination
+          // This ID will be shared across all language versions of the same Q&A
+          const hreflangGroupIdCore = generateHreflangGroupId();
+          const hreflangGroupIdDecision = generateHreflangGroupId();
           
           // Build the translation instruction if needed
           const translationInstruction = isTranslation 
@@ -236,6 +246,8 @@ Return a JSON array with exactly 2 objects. No markdown, no explanation, just va
               .insert({
                 source_article_id: article.id,
                 language: lang,
+                source_language: 'en', // English-first strategy
+                hreflang_group_id: qaData.qa_type === 'core' ? hreflangGroupIdCore : hreflangGroupIdDecision,
                 qa_type: qaData.qa_type,
                 title: qaData.title,
                 slug,
