@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { LanguageProvider } from "@/i18n";
 import { ScrollToTop } from "@/components/ScrollToTop";
@@ -96,7 +96,12 @@ const App = () => (
               <Route path="/blog/:slug" element={<BlogArticle />} />
               <Route path="/sitemap" element={<Sitemap />} />
               <Route path="/glossary" element={<Glossary />} />
-              <Route path="/property-finder" element={<PropertyFinder />} />
+              {/* Language-prefixed property routes */}
+              <Route path="/:lang/properties" element={<PropertyFinder />} />
+              <Route path="/:lang/property/:reference" element={<PropertyDetail />} />
+              
+              {/* Legacy routes - redirect to English versions */}
+              <Route path="/property-finder" element={<Navigate to="/en/properties" replace />} />
               <Route path="/property/:reference" element={<PropertyDetail />} />
               <Route path="/brochure/:citySlug" element={<CityBrochure />} />
               <Route path="/qa/:slug" element={<QAPage />} />
