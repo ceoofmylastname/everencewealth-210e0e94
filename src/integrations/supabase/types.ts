@@ -314,6 +314,7 @@ export type Database = {
           cluster_id: string | null
           cluster_number: number | null
           cluster_theme: string | null
+          content_type: string | null
           created_at: string
           cta_article_ids: string[] | null
           date_modified: string | null
@@ -330,6 +331,7 @@ export type Database = {
           funnel_stage: string
           has_dead_citations: boolean | null
           headline: string
+          hreflang_group_id: string | null
           id: string
           internal_links: Json | null
           is_primary: boolean
@@ -347,6 +349,7 @@ export type Database = {
           related_cluster_articles: Json | null
           reviewer_id: string | null
           slug: string
+          source_language: string | null
           speakable_answer: string
           status: string
           translations: Json | null
@@ -362,6 +365,7 @@ export type Database = {
           cluster_id?: string | null
           cluster_number?: number | null
           cluster_theme?: string | null
+          content_type?: string | null
           created_at?: string
           cta_article_ids?: string[] | null
           date_modified?: string | null
@@ -378,6 +382,7 @@ export type Database = {
           funnel_stage: string
           has_dead_citations?: boolean | null
           headline: string
+          hreflang_group_id?: string | null
           id?: string
           internal_links?: Json | null
           is_primary?: boolean
@@ -395,6 +400,7 @@ export type Database = {
           related_cluster_articles?: Json | null
           reviewer_id?: string | null
           slug: string
+          source_language?: string | null
           speakable_answer: string
           status?: string
           translations?: Json | null
@@ -410,6 +416,7 @@ export type Database = {
           cluster_id?: string | null
           cluster_number?: number | null
           cluster_theme?: string | null
+          content_type?: string | null
           created_at?: string
           cta_article_ids?: string[] | null
           date_modified?: string | null
@@ -426,6 +433,7 @@ export type Database = {
           funnel_stage?: string
           has_dead_citations?: boolean | null
           headline?: string
+          hreflang_group_id?: string | null
           id?: string
           internal_links?: Json | null
           is_primary?: boolean
@@ -443,6 +451,7 @@ export type Database = {
           related_cluster_articles?: Json | null
           reviewer_id?: string | null
           slug?: string
+          source_language?: string | null
           speakable_answer?: string
           status?: string
           translations?: Json | null
@@ -1290,6 +1299,7 @@ export type Database = {
           canonical_url: string | null
           category: string | null
           comparison_topic: string
+          content_type: string | null
           created_at: string | null
           date_modified: string | null
           date_published: string | null
@@ -1299,6 +1309,7 @@ export type Database = {
           featured_image_url: string | null
           final_verdict: string | null
           headline: string
+          hreflang_group_id: string | null
           id: string
           internal_links: Json | null
           language: string | null
@@ -1314,6 +1325,7 @@ export type Database = {
           reviewer_id: string | null
           side_by_side_breakdown: string | null
           slug: string
+          source_language: string | null
           speakable_answer: string
           status: string | null
           target_audience: string | null
@@ -1325,6 +1337,7 @@ export type Database = {
           canonical_url?: string | null
           category?: string | null
           comparison_topic: string
+          content_type?: string | null
           created_at?: string | null
           date_modified?: string | null
           date_published?: string | null
@@ -1334,6 +1347,7 @@ export type Database = {
           featured_image_url?: string | null
           final_verdict?: string | null
           headline: string
+          hreflang_group_id?: string | null
           id?: string
           internal_links?: Json | null
           language?: string | null
@@ -1349,6 +1363,7 @@ export type Database = {
           reviewer_id?: string | null
           side_by_side_breakdown?: string | null
           slug: string
+          source_language?: string | null
           speakable_answer: string
           status?: string | null
           target_audience?: string | null
@@ -1360,6 +1375,7 @@ export type Database = {
           canonical_url?: string | null
           category?: string | null
           comparison_topic?: string
+          content_type?: string | null
           created_at?: string | null
           date_modified?: string | null
           date_published?: string | null
@@ -1369,6 +1385,7 @@ export type Database = {
           featured_image_url?: string | null
           final_verdict?: string | null
           headline?: string
+          hreflang_group_id?: string | null
           id?: string
           internal_links?: Json | null
           language?: string | null
@@ -1384,6 +1401,7 @@ export type Database = {
           reviewer_id?: string | null
           side_by_side_breakdown?: string | null
           slug?: string
+          source_language?: string | null
           speakable_answer?: string
           status?: string | null
           target_audience?: string | null
@@ -1947,6 +1965,7 @@ export type Database = {
           best_areas: Json | null
           city_name: string
           city_slug: string
+          content_type: string | null
           cost_breakdown: Json | null
           country: string
           created_at: string | null
@@ -1960,6 +1979,7 @@ export type Database = {
           featured_image_width: number | null
           final_summary: string | null
           headline: string
+          hreflang_group_id: string | null
           id: string
           image_prompt: string | null
           intent_type: string
@@ -1972,6 +1992,7 @@ export type Database = {
           qa_entities: Json | null
           region: string
           reviewer_id: string | null
+          source_language: string | null
           speakable_answer: string
           status: string
           topic_slug: string
@@ -1983,6 +2004,7 @@ export type Database = {
           best_areas?: Json | null
           city_name: string
           city_slug: string
+          content_type?: string | null
           cost_breakdown?: Json | null
           country?: string
           created_at?: string | null
@@ -1996,6 +2018,7 @@ export type Database = {
           featured_image_width?: number | null
           final_summary?: string | null
           headline: string
+          hreflang_group_id?: string | null
           id?: string
           image_prompt?: string | null
           intent_type: string
@@ -2008,6 +2031,7 @@ export type Database = {
           qa_entities?: Json | null
           region?: string
           reviewer_id?: string | null
+          source_language?: string | null
           speakable_answer: string
           status?: string
           topic_slug: string
@@ -2019,6 +2043,7 @@ export type Database = {
           best_areas?: Json | null
           city_name?: string
           city_slug?: string
+          content_type?: string | null
           cost_breakdown?: Json | null
           country?: string
           created_at?: string | null
@@ -2032,6 +2057,7 @@ export type Database = {
           featured_image_width?: number | null
           final_summary?: string | null
           headline?: string
+          hreflang_group_id?: string | null
           id?: string
           image_prompt?: string | null
           intent_type?: string
@@ -2044,6 +2070,7 @@ export type Database = {
           qa_entities?: Json | null
           region?: string
           reviewer_id?: string | null
+          source_language?: string | null
           speakable_answer?: string
           status?: string
           topic_slug?: string
@@ -2166,10 +2193,12 @@ export type Database = {
           author_id: string | null
           canonical_url: string | null
           category: string | null
+          content_type: string | null
           created_at: string | null
           featured_image_alt: string
           featured_image_caption: string | null
           featured_image_url: string
+          hreflang_group_id: string | null
           id: string
           internal_links: Json | null
           language: string
@@ -2181,6 +2210,7 @@ export type Database = {
           slug: string
           source_article_id: string
           source_article_slug: string | null
+          source_language: string | null
           speakable_answer: string
           status: string
           title: string
@@ -2192,10 +2222,12 @@ export type Database = {
           author_id?: string | null
           canonical_url?: string | null
           category?: string | null
+          content_type?: string | null
           created_at?: string | null
           featured_image_alt: string
           featured_image_caption?: string | null
           featured_image_url: string
+          hreflang_group_id?: string | null
           id?: string
           internal_links?: Json | null
           language: string
@@ -2207,6 +2239,7 @@ export type Database = {
           slug: string
           source_article_id: string
           source_article_slug?: string | null
+          source_language?: string | null
           speakable_answer: string
           status?: string
           title: string
@@ -2218,10 +2251,12 @@ export type Database = {
           author_id?: string | null
           canonical_url?: string | null
           category?: string | null
+          content_type?: string | null
           created_at?: string | null
           featured_image_alt?: string
           featured_image_caption?: string | null
           featured_image_url?: string
+          hreflang_group_id?: string | null
           id?: string
           internal_links?: Json | null
           language?: string
@@ -2233,6 +2268,7 @@ export type Database = {
           slug?: string
           source_article_id?: string
           source_article_slug?: string | null
+          source_language?: string | null
           speakable_answer?: string
           status?: string
           title?: string
@@ -2701,6 +2737,17 @@ export type Database = {
           total_uses: number | null
           trust_score: number | null
           usage_status: string | null
+        }
+        Relationships: []
+      }
+      hreflang_siblings: {
+        Row: {
+          content_type: string | null
+          hreflang_group_id: string | null
+          id: string | null
+          language: string | null
+          slug: string | null
+          url_path: string | null
         }
         Relationships: []
       }
