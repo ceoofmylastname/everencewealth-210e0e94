@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Menu as MenuIcon, X, ChevronDown, MapPin, BookOpen, Scale, Building2, FileText, HelpCircle, Users, Phone, Home, Map, Landmark, GraduationCap, Newspaper, MessageCircleQuestion, GitCompare, BookMarked, Info } from 'lucide-react';
-import { Language } from '../../types/home';
-import { LANGUAGE_NAMES } from '../../constants/home';
+import { Menu as MenuIcon, X, ChevronDown, MapPin, Scale, Users, Phone, Home, Map, Landmark, GraduationCap, Newspaper, MessageCircleQuestion, GitCompare, BookMarked, Info } from 'lucide-react';
 import { Button } from './ui/Button';
 import { useTranslation } from '../../i18n';
 import { Menu, MenuItem, ProductItem, HoveredLink } from '../ui/navbar-menu';
+import { LanguageSwitcher } from '../LanguageSwitcher';
 
 interface HeaderProps {
   variant?: 'transparent' | 'solid';
@@ -17,7 +16,6 @@ export const Header: React.FC<HeaderProps> = ({ variant = 'transparent' }) => {
   const [active, setActive] = useState<string | null>(null);
   const isLightBackground = variant === 'solid' || isScrolled;
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isLangMenuOpen, setIsLangMenuOpen] = useState(false);
   const [mobileSubmenu, setMobileSubmenu] = useState<string | null>(null);
 
   useEffect(() => {
@@ -206,36 +204,10 @@ export const Header: React.FC<HeaderProps> = ({ variant = 'transparent' }) => {
         {/* Actions */}
         <div className="hidden lg:flex items-center gap-6">
           {/* Language Selector */}
-          <div className="relative">
-            <button 
-              onClick={() => setIsLangMenuOpen(!isLangMenuOpen)}
-              className={`flex items-center gap-1.5 text-sm font-nav font-medium tracking-wide transition-colors duration-300 ${isLightBackground ? 'text-prime-900 hover:text-prime-gold' : 'text-white hover:text-prime-gold'}`}
-            >
-              {currentLanguage} <ChevronDown size={14} className={`transition-transform duration-300 ${isLangMenuOpen ? 'rotate-180' : ''}`} />
-            </button>
-            
-            {/* Language Dropdown - CSS animated */}
-            <div 
-              className={`absolute top-full right-0 mt-4 w-48 bg-white rounded-xl shadow-2xl shadow-prime-900/15 py-2 border border-prime-gold/20 overflow-hidden transition-all duration-200 ${
-                isLangMenuOpen 
-                  ? 'opacity-100 translate-y-0 pointer-events-auto' 
-                  : 'opacity-0 -translate-y-2 pointer-events-none'
-              }`}
-            >
-              {Object.values(Language).map((lang) => (
-                <button
-                  key={lang}
-                  onClick={() => {
-                    setLanguage(lang);
-                    setIsLangMenuOpen(false);
-                  }}
-                  className={`px-4 py-2.5 w-full text-left text-sm font-nav hover:bg-prime-gold/10 transition-colors ${currentLanguage === lang ? 'text-prime-gold font-bold bg-prime-gold/5' : 'text-prime-900/70'}`}
-                >
-                  {LANGUAGE_NAMES[lang]}
-                </button>
-              ))}
-            </div>
-          </div>
+          <LanguageSwitcher 
+            variant="compact" 
+            className={isLightBackground ? '' : 'border-white/30 text-white [&_button]:text-white'}
+          />
 
           <Button variant={isLightBackground ? 'primary' : 'secondary'} size="sm" className={`font-nav tracking-wide ${!isLightBackground ? 'bg-prime-gold hover:bg-prime-gold/90 text-prime-900 shadow-lg shadow-prime-gold/20 border-none' : 'bg-prime-gold hover:bg-prime-gold/90 text-prime-900'}`}>
             {t.common.bookCall}
@@ -333,20 +305,7 @@ export const Header: React.FC<HeaderProps> = ({ variant = 'transparent' }) => {
         {/* Language Selector */}
         <div className="flex flex-col gap-3 mt-6 pt-6 border-t border-border">
           <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Language</span>
-          <div className="grid grid-cols-3 gap-2">
-            {Object.values(Language).map((lang) => (
-              <button
-                key={lang}
-                onClick={() => {
-                  setLanguage(lang);
-                  setIsMobileMenuOpen(false);
-                }}
-                className={`px-3 py-2 text-sm rounded-lg border transition-colors ${currentLanguage === lang ? 'border-primary bg-primary text-primary-foreground' : 'border-border text-muted-foreground'}`}
-              >
-                {LANGUAGE_NAMES[lang]}
-              </button>
-            ))}
-          </div>
+          <LanguageSwitcher variant="default" className="w-full" />
         </div>
         
         <Button fullWidth onClick={() => setIsMobileMenuOpen(false)} className="mt-auto mb-8">
