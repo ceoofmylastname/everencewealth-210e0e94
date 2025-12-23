@@ -1948,3 +1948,225 @@ export async function testPhase20(): Promise<TestResult[]> {
 
   return results;
 }
+
+// Phase 21: BOFU Schema & IndexNow Validation
+export async function testPhase21(): Promise<TestResult[]> {
+  const results: TestResult[] = [];
+
+  // Test 1: Check BOFU articles have Product schema requirements
+  try {
+    const { data: bofuArticles, error } = await supabase
+      .from('blog_articles')
+      .select('id, headline, slug, funnel_stage, author_id, featured_image_url, meta_description')
+      .eq('status', 'published')
+      .eq('funnel_stage', 'BOFU');
+    
+    if (error) throw error;
+    
+    const missingReqs = (bofuArticles || []).filter(article => 
+      !article.author_id || !article.featured_image_url || !article.meta_description
+    );
+    
+    if (missingReqs.length > 0) {
+      results.push({
+        name: 'BOFU Product Schema Requirements',
+        status: 'warning',
+        message: `⚠ ${missingReqs.length} BOFU article(s) missing Product schema requirements`,
+        details: missingReqs.slice(0, 5).map(a => 
+          `• "${a.headline}" - Missing: ${[
+            !a.author_id && 'author',
+            !a.featured_image_url && 'image',
+            !a.meta_description && 'description'
+          ].filter(Boolean).join(', ')}`
+        ).join('\n')
+      });
+    } else {
+      results.push({
+        name: 'BOFU Product Schema Requirements',
+        status: 'pass',
+        message: `✓ All ${bofuArticles?.length || 0} BOFU articles have Product schema requirements`,
+        details: 'Each BOFU article has: author, featured image, meta description'
+      });
+    }
+  } catch (error: any) {
+    results.push({
+      name: 'BOFU Product Schema Requirements',
+      status: 'fail',
+      message: '✗ Failed to check BOFU articles',
+      details: error.message
+    });
+  }
+
+  // Test 2: Validate generateBOFUProductSchema function exists
+  try {
+    const { generateBOFUProductSchema } = await import('@/lib/schemaGenerator');
+    
+    const testArticle: any = {
+      headline: 'Test BOFU Article',
+      meta_description: 'Test description for BOFU',
+      slug: 'test-bofu-article',
+      funnel_stage: 'BOFU',
+      featured_image_url: 'https://example.com/image.jpg'
+    };
+    
+    const productSchema = generateBOFUProductSchema(testArticle);
+    
+    const hasRequired = productSchema && 
+      productSchema['@type'] === 'Product' &&
+      productSchema.aggregateRating?.ratingValue &&
+      productSchema.aggregateRating?.ratingCount &&
+      productSchema.offers;
+    
+    results.push({
+      name: 'BOFU Product Schema Generation',
+      status: hasRequired ? 'pass' : 'fail',
+      message: hasRequired 
+        ? '✓ Product schema with aggregateRating generates correctly'
+        : '✗ Product schema missing required fields',
+      details: hasRequired
+        ? `Rating: ${productSchema.aggregateRating.ratingValue}/5 (${productSchema.aggregateRating.ratingCount} ratings)`
+        : 'Missing: @type, aggregateRating, or offers'
+    });
+  } catch (error: any) {
+    results.push({
+      name: 'BOFU Product Schema Generation',
+      status: 'fail',
+      message: '✗ Failed to test Product schema generation',
+      details: error.message
+    });
+  }
+
+  // Test 3: Check IndexNow edge function exists
+  try {
+    const response = await fetch(
+      `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ping-indexnow`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`
+        },
+        body: JSON.stringify({ urls: [] })
+      }
+    );
+    
+    // 400 is expected for empty URLs (means function exists and validates)
+    // 200/202 means it worked (unlikely without API key)
+    const functionExists = response.status === 400 || response.status === 200 || response.status === 202;
+    
+    const data = await response.json().catch(() => ({}));
+    
+    results.push({
+      name: 'IndexNow Edge Function',
+      status: functionExists ? 'pass' : 'warning',
+      message: functionExists 
+        ? '✓ IndexNow edge function is deployed and responding'
+        : `⚠ IndexNow function returned unexpected status: ${response.status}`,
+      details: data.skipped 
+        ? 'Note: INDEXNOW_API_KEY not configured yet'
+        : `Status: ${response.status}`
+    });
+  } catch (error: any) {
+    results.push({
+      name: 'IndexNow Edge Function',
+      status: 'fail',
+      message: '✗ Cannot reach IndexNow edge function',
+      details: error.message
+    });
+  }
+
+  // Test 4: Validate hreflang tag count (should be 11 per page)
+  try {
+    const { data: articles, error } = await supabase
+      .from('blog_articles')
+      .select('id, headline, slug, language, translations, hreflang_group_id')
+      .eq('status', 'published')
+      .not('translations', 'is', null)
+      .limit(5);
+    
+    if (error) throw error;
+    
+    const expectedLanguages = 11; // en, nl, de, fr, pl, sv, da, hu, fi, no + x-default
+    const incompleteArticles: string[] = [];
+    
+    (articles || []).forEach(article => {
+      const translations = article.translations as Record<string, string> | null;
+      const langCount = 1 + Object.keys(translations || {}).length; // Current + translations
+      
+      if (langCount < 10) { // Less than 10 languages linked
+        incompleteArticles.push(`• "${article.headline}" (${article.language}): ${langCount} hreflang links`);
+      }
+    });
+    
+    if (incompleteArticles.length > 0) {
+      results.push({
+        name: 'Hreflang Coverage',
+        status: 'warning',
+        message: `⚠ ${incompleteArticles.length} article(s) have incomplete hreflang coverage`,
+        details: incompleteArticles.join('\n') + `\n\nExpected: ${expectedLanguages} hreflang tags per page`
+      });
+    } else if (articles && articles.length > 0) {
+      results.push({
+        name: 'Hreflang Coverage',
+        status: 'pass',
+        message: '✓ Sampled articles have adequate hreflang coverage',
+        details: `Checked ${articles.length} articles with translations`
+      });
+    } else {
+      results.push({
+        name: 'Hreflang Coverage',
+        status: 'warning',
+        message: '⚠ No articles with translations found to validate',
+        details: 'Ensure articles have translations linked for hreflang tags'
+      });
+    }
+  } catch (error: any) {
+    results.push({
+      name: 'Hreflang Coverage',
+      status: 'fail',
+      message: '✗ Failed to check hreflang coverage',
+      details: error.message
+    });
+  }
+
+  // Test 5: Q&A pages source language validation
+  try {
+    const { data: qaPages, error } = await supabase
+      .from('qa_pages')
+      .select('id, slug, question_main, source_language, language')
+      .eq('status', 'published');
+    
+    if (error) throw error;
+    
+    const nonEnglishSource = (qaPages || []).filter(qa => 
+      qa.source_language && qa.source_language !== 'en'
+    );
+    
+    if (nonEnglishSource.length > 0) {
+      results.push({
+        name: 'Q&A Source Language',
+        status: 'warning',
+        message: `⚠ ${nonEnglishSource.length} Q&A page(s) have non-English source`,
+        details: nonEnglishSource.slice(0, 5).map(qa => 
+          `• "${qa.question_main?.substring(0, 50)}..." (source: ${qa.source_language})`
+        ).join('\n') + '\n\nRecommendation: Generate Q&A content in English first, then translate'
+      });
+    } else {
+      results.push({
+        name: 'Q&A Source Language',
+        status: 'pass',
+        message: `✓ All ${qaPages?.length || 0} Q&A pages have English source (or no source set)`,
+        details: 'English-first content strategy enforced for Q&A'
+      });
+    }
+  } catch (error: any) {
+    results.push({
+      name: 'Q&A Source Language',
+      status: 'fail',
+      message: '✗ Failed to check Q&A source languages',
+      details: error.message
+    });
+  }
+
+  return results;
+}

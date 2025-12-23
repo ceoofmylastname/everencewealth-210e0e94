@@ -110,3 +110,6 @@ verify_jwt = false
 
 [functions.generate-city-qa-pages]
 verify_jwt = false
+
+[functions.ping-indexnow]
+verify_jwt = false
