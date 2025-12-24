@@ -42,7 +42,7 @@ export const LOCATIONS = [
 ];
 
 export const PROPERTY_TYPES = [
-  { label: 'All Residential', value: '' },
+  { label: 'All Residential', value: 'all' },
   { label: 'Villa', value: 'Villa' },
   { label: 'Detached Villa', value: 'Detached Villa' },
   { label: 'Apartment', value: 'Apartment' },
