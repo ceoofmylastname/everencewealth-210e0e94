@@ -32,7 +32,7 @@ export const PropertyFilters = ({ onSearch, initialParams }: PropertyFiltersProp
     const params: PropertySearchParams = {
       location: location || undefined,
       transactionType: 'sale', // HARD-LOCKED: Sales only
-      propertyType: propertyType || undefined,
+      propertyType: propertyType && propertyType !== 'all' ? propertyType : undefined,
       priceMin: priceMin ? parseInt(priceMin) : undefined,
       priceMax: priceMax ? parseInt(priceMax) : undefined,
       bedrooms: bedrooms ? parseInt(bedrooms) : undefined,
