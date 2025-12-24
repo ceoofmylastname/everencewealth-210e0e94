@@ -91,14 +91,28 @@ export async function onRequest(context) {
     }
     
     const contentType = seoResponse.headers.get('content-type') || '';
-    console.log(`[SEO Middleware] Edge function returned content-type: ${contentType}`);
     
-    // If edge function returned full HTML, serve it directly
-    if (contentType.includes('text/html')) {
-      const html = await seoResponse.text();
-      console.log(`[SEO Middleware] Serving edge function HTML (${html.length} bytes)`);
+    // Get the response body first to check its content
+    const responseBody = await seoResponse.text();
+    const trimmedBody = responseBody.trim();
+    
+    // Check if it's HTML based on content (not just Content-Type header)
+    // Supabase Edge Functions may return HTML with text/plain content-type
+    const isHtmlContent = trimmedBody.startsWith('<!DOCTYPE html>') || 
+                          trimmedBody.startsWith('<!doctype html>') ||
+                          trimmedBody.startsWith('<html');
+    
+    if (CONFIG.DEBUG) {
+      console.log(`[SEO Middleware] Edge function content-type: ${contentType}`);
+      console.log(`[SEO Middleware] Response body starts with: ${trimmedBody.substring(0, 50)}...`);
+      console.log(`[SEO Middleware] Detected as HTML: ${isHtmlContent}`);
+    }
+    
+    // If response contains HTML content, serve it directly (regardless of Content-Type header)
+    if (isHtmlContent) {
+      console.log(`[SEO Middleware] Serving edge function HTML (${responseBody.length} bytes)`);
       
-      return new Response(html, {
+      return new Response(responseBody, {
         status: 200,
         headers: {
           'Content-Type': 'text/html; charset=utf-8',
@@ -108,7 +122,8 @@ export async function onRequest(context) {
           'X-SEO-Source': 'edge-function',
           'X-SEO-Matched-Path': path,
           'X-Content-Language': lang,
-          'X-Edge-Content-Type': contentType
+          'X-Edge-Content-Type': contentType,
+          'X-HTML-Detected': 'body-inspection'
         }
       });
     }
