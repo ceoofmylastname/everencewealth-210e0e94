@@ -54,7 +54,7 @@ const containerVariants = {
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.08,
+      staggerChildren: 0.06,
     },
   },
 };
@@ -94,18 +94,18 @@ export const PropertyFeatures = ({
   if (allFeatures.length === 0) return null;
 
   return (
-    <section className="py-16">
+    <section className="py-8 md:py-12 lg:py-16">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
         transition={{ duration: 0.6 }}
-        className="mb-10"
+        className="mb-6 md:mb-10"
       >
-        <h2 className="text-3xl md:text-4xl font-display font-bold text-foreground accent-line-gold">
+        <h2 className="text-2xl sm:text-3xl md:text-4xl font-display font-bold text-foreground accent-line-gold">
           Property Features
         </h2>
-        <p className="text-muted-foreground mt-4 text-lg">
+        <p className="text-muted-foreground mt-2 md:mt-4 text-sm md:text-lg">
           Discover the exceptional amenities this property has to offer
         </p>
       </motion.div>
@@ -115,7 +115,7 @@ export const PropertyFeatures = ({
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, margin: "-50px" }}
-        className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"
+        className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3 md:gap-4"
       >
         {allFeatures.map((feature, index) => {
           const IconComponent = getFeatureIcon(feature.name);
@@ -124,7 +124,7 @@ export const PropertyFeatures = ({
             <motion.div
               key={index}
               variants={itemVariants}
-              className="group relative glass-luxury rounded-2xl p-5 overflow-hidden card-3d cursor-default"
+              className="group relative glass-luxury rounded-xl md:rounded-2xl p-3 sm:p-4 md:p-5 overflow-hidden card-3d cursor-default touch-manipulation active:scale-[0.98]"
             >
               {/* Hover Glow Effect */}
               <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
@@ -132,16 +132,16 @@ export const PropertyFeatures = ({
               </div>
               
               {/* Content */}
-              <div className="relative z-10 flex items-start gap-4">
-                <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 group-hover:scale-110 transition-all duration-300">
-                  <IconComponent className="w-6 h-6 text-primary" />
+              <div className="relative z-10 flex items-start gap-3 md:gap-4">
+                <div className="flex-shrink-0 w-10 h-10 md:w-12 md:h-12 rounded-lg md:rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 group-hover:scale-110 transition-all duration-300">
+                  <IconComponent className="w-5 h-5 md:w-6 md:h-6 text-primary" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors truncate">
+                  <h3 className="font-semibold text-sm md:text-base text-foreground group-hover:text-primary transition-colors truncate">
                     {feature.name}
                   </h3>
                   {feature.value && (
-                    <p className="text-sm text-muted-foreground mt-0.5 capitalize">
+                    <p className="text-xs md:text-sm text-muted-foreground mt-0.5 capitalize truncate">
                       {feature.value}
                     </p>
                   )}

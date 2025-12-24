@@ -58,15 +58,15 @@ const StatItem = ({ icon, value, suffix = "", label, delay }: StatItemProps) => 
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.5, delay: delay / 1000 }}
-      className="stat-card-premium glass-luxury rounded-2xl p-6 text-center group hover:scale-105 transition-all duration-300"
+      className="stat-card-premium glass-luxury rounded-xl md:rounded-2xl p-4 md:p-6 text-center group hover:scale-105 active:scale-[0.98] transition-all duration-300 touch-manipulation"
     >
-      <div className="w-12 h-12 mx-auto mb-3 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+      <div className="w-10 h-10 md:w-12 md:h-12 mx-auto mb-2 md:mb-3 rounded-lg md:rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
         {icon}
       </div>
-      <div className="text-3xl font-display font-bold text-foreground mb-1">
+      <div className="text-xl sm:text-2xl md:text-3xl font-display font-bold text-foreground mb-0.5 md:mb-1">
         {hasStarted ? formattedValue : "0" + suffix}
       </div>
-      <div className="text-sm text-muted-foreground uppercase tracking-wider">
+      <div className="text-xs md:text-sm text-muted-foreground uppercase tracking-wider">
         {label}
       </div>
     </motion.div>
@@ -86,15 +86,15 @@ const TextStatItem = ({ icon, value, label, delay }: TextStatItemProps) => (
     whileInView={{ opacity: 1, y: 0 }}
     viewport={{ once: true }}
     transition={{ duration: 0.5, delay: delay / 1000 }}
-    className="stat-card-premium glass-luxury rounded-2xl p-6 text-center group hover:scale-105 transition-all duration-300"
+    className="stat-card-premium glass-luxury rounded-xl md:rounded-2xl p-4 md:p-6 text-center group hover:scale-105 active:scale-[0.98] transition-all duration-300 touch-manipulation"
   >
-    <div className="w-12 h-12 mx-auto mb-3 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+    <div className="w-10 h-10 md:w-12 md:h-12 mx-auto mb-2 md:mb-3 rounded-lg md:rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
       {icon}
     </div>
-    <div className="text-xl font-display font-bold text-foreground mb-1 capitalize">
+    <div className="text-base sm:text-lg md:text-xl font-display font-bold text-foreground mb-0.5 md:mb-1 capitalize truncate">
       {value}
     </div>
-    <div className="text-sm text-muted-foreground uppercase tracking-wider">
+    <div className="text-xs md:text-sm text-muted-foreground uppercase tracking-wider">
       {label}
     </div>
   </motion.div>
@@ -109,49 +109,49 @@ export const PropertyStats = ({
   views,
 }: PropertyStatsProps) => {
   return (
-    <div className="relative -mt-20 z-20 px-4 md:px-8">
+    <div className="relative -mt-12 md:-mt-16 lg:-mt-20 z-20 px-3 sm:px-4 md:px-8">
       <div className="max-w-6xl mx-auto">
         {/* Floating Stats Bar */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-3 md:gap-4">
           <StatItem
-            icon={<Bed className="w-6 h-6 text-primary" />}
+            icon={<Bed className="w-5 h-5 md:w-6 md:h-6 text-primary" />}
             value={bedrooms}
-            label="Bedrooms"
+            label="Beds"
             delay={0}
           />
           <StatItem
-            icon={<Bath className="w-6 h-6 text-primary" />}
+            icon={<Bath className="w-5 h-5 md:w-6 md:h-6 text-primary" />}
             value={bathrooms}
-            label="Bathrooms"
+            label="Baths"
             delay={100}
           />
           <StatItem
-            icon={<Maximize2 className="w-6 h-6 text-primary" />}
+            icon={<Maximize2 className="w-5 h-5 md:w-6 md:h-6 text-primary" />}
             value={builtArea}
             suffix="m²"
-            label="Built Area"
+            label="Built"
             delay={200}
           />
           {plotArea && (
             <StatItem
-              icon={<Grid3X3 className="w-6 h-6 text-primary" />}
+              icon={<Grid3X3 className="w-5 h-5 md:w-6 md:h-6 text-primary" />}
               value={plotArea}
               suffix="m²"
-              label="Plot Area"
+              label="Plot"
               delay={300}
             />
           )}
           {orientation && (
             <TextStatItem
-              icon={<Compass className="w-6 h-6 text-primary" />}
+              icon={<Compass className="w-5 h-5 md:w-6 md:h-6 text-primary" />}
               value={orientation}
-              label="Orientation"
+              label="Facing"
               delay={400}
             />
           )}
           {views && (
             <TextStatItem
-              icon={<Eye className="w-6 h-6 text-primary" />}
+              icon={<Eye className="w-5 h-5 md:w-6 md:h-6 text-primary" />}
               value={views}
               label="Views"
               delay={500}
