@@ -14,6 +14,26 @@ import {
   LocationIndexRedirect,
   LocationPageRedirect,
 } from "@/components/LegacyRouteRedirects";
+import { SUPPORTED_LANGUAGES } from "@/types/hreflang";
+
+// Language-prefixed homepage wrapper - validates lang param and renders Home or NotFound
+const LanguageHome = () => {
+  const { lang } = useParams<{ lang: string }>();
+  
+  // If lang is 'en', redirect to root to avoid duplicate URLs
+  if (lang === 'en') {
+    return <Navigate to="/" replace />;
+  }
+  
+  // Check if it's a valid language code (excluding 'en' which redirects above)
+  const isValidLang = lang && SUPPORTED_LANGUAGES.includes(lang as typeof SUPPORTED_LANGUAGES[number]);
+  
+  if (!isValidLang) {
+    return <NotFound />;
+  }
+  
+  return <Home />;
+};
 
 // Eager load critical pages (landing pages)
 import Home from "./pages/Home";
@@ -108,6 +128,9 @@ const App = () => (
               {/* ========================================== */}
               {/* LANGUAGE-PREFIXED ROUTES (Phase 2)        */}
               {/* ========================================== */}
+              
+              {/* Language-prefixed homepage */}
+              <Route path="/:lang" element={<LanguageHome />} />
               
               {/* Blog routes with language prefix */}
               <Route path="/:lang/blog" element={<BlogIndex />} />
