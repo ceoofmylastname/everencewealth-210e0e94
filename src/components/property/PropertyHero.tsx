@@ -173,7 +173,7 @@ export const PropertyHero = ({ images, title, location, price, reference, bedroo
             {/* Location Tag */}
             <div className="inline-flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 rounded-full glass-luxury mb-3 md:mb-4">
               <span className="w-1.5 h-1.5 md:w-2 md:h-2 bg-primary rounded-full animate-pulse" />
-              <span className="text-white/90 text-xs md:text-sm font-medium">{location}</span>
+              <span className="text-black text-xs md:text-sm font-medium">{location}</span>
             </div>
 
             {/* Title */}
@@ -200,19 +200,19 @@ export const PropertyHero = ({ images, title, location, price, reference, bedroo
                 {bedrooms && (
                   <div className="inline-flex items-center gap-1.5 md:gap-2 px-3 py-1.5 md:px-4 md:py-2 rounded-full glass-luxury border border-white/10 hover:border-primary/30 transition-colors">
                     <Bed className="w-3.5 h-3.5 md:w-4 md:h-4 text-primary" />
-                    <span className="text-primary text-xs md:text-sm font-medium">{bedrooms} Beds</span>
+                    <span className="text-black text-xs md:text-sm font-medium">{bedrooms} Beds</span>
                   </div>
                 )}
                 {bathrooms && (
                   <div className="inline-flex items-center gap-1.5 md:gap-2 px-3 py-1.5 md:px-4 md:py-2 rounded-full glass-luxury border border-white/10 hover:border-primary/30 transition-colors">
                     <Bath className="w-3.5 h-3.5 md:w-4 md:h-4 text-primary" />
-                    <span className="text-primary text-xs md:text-sm font-medium">{bathrooms} Baths</span>
+                    <span className="text-black text-xs md:text-sm font-medium">{bathrooms} Baths</span>
                   </div>
                 )}
                 {builtArea && (
                   <div className="inline-flex items-center gap-1.5 md:gap-2 px-3 py-1.5 md:px-4 md:py-2 rounded-full glass-luxury border border-white/10 hover:border-primary/30 transition-colors">
                     <Maximize2 className="w-3.5 h-3.5 md:w-4 md:h-4 text-primary" />
-                    <span className="text-primary text-xs md:text-sm font-medium">{builtArea}m²</span>
+                    <span className="text-black text-xs md:text-sm font-medium">{builtArea}m²</span>
                   </div>
                 )}
               </motion.div>
@@ -246,7 +246,7 @@ export const PropertyHero = ({ images, title, location, price, reference, bedroo
             {images.length > 5 && (
               <button
                 onClick={() => setIsLightboxOpen(true)}
-                className="flex-shrink-0 w-14 h-10 md:w-20 md:h-14 rounded-lg glass-luxury flex items-center justify-center text-white text-xs md:text-sm font-medium touch-manipulation"
+                className="flex-shrink-0 w-14 h-10 md:w-20 md:h-14 rounded-lg glass-luxury flex items-center justify-center text-black text-xs md:text-sm font-medium touch-manipulation"
               >
                 +{images.length - 5}
               </button>
