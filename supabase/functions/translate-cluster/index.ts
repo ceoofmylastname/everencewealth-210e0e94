@@ -21,183 +21,318 @@ const LANGUAGE_NAMES: Record<string, string> = {
 const TARGET_LANGUAGES = ['de', 'nl', 'fr', 'pl', 'sv', 'da', 'hu', 'fi', 'no'];
 
 const MAX_RUNTIME = 4.5 * 60 * 1000; // 4.5 minutes
+const MAX_RETRIES = 2;
 
 /**
- * Translates an English article to target language using AI
+ * Clean HTML content - remove markdown fences and normalize
  */
-async function translateArticle(
-  englishArticle: any,
-  targetLanguage: string,
-  lovableApiKey: string
+function cleanHtmlContent(html: string): string {
+  if (!html) return '';
+  return html
+    .replace(/```html\n?/gi, '')
+    .replace(/```\n?/g, '')
+    .trim();
+}
+
+/**
+ * Safely parse JSON from AI response
+ */
+function safeJsonParse(text: string, context: string): any {
+  let cleanText = text.trim();
+  
+  // Remove markdown code fences
+  cleanText = cleanText.replace(/```json\n?/gi, '').replace(/```\n?/g, '').trim();
+  
+  try {
+    return JSON.parse(cleanText);
+  } catch (e1) {
+    // Try to extract JSON object
+    const jsonMatch = cleanText.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      try {
+        return JSON.parse(jsonMatch[0]);
+      } catch (e2) {
+        throw new Error(`[${context}] JSON parse failed. First 500 chars: ${jsonMatch[0].slice(0, 500)}`);
+      }
+    }
+    throw new Error(`[${context}] No valid JSON found. First 500 chars: ${cleanText.slice(0, 500)}`);
+  }
+}
+
+/**
+ * Call AI gateway with better error handling
+ */
+async function callAI(
+  prompt: string,
+  apiKey: string,
+  options: { maxTokens?: number; tools?: any[]; toolChoice?: any } = {}
 ): Promise<any> {
-  const targetLanguageName = LANGUAGE_NAMES[targetLanguage] || targetLanguage;
-
-  console.log(`[Translation] Translating "${englishArticle.headline}" to ${targetLanguageName}...`);
-
-  const translationPrompt = `You are a professional translator specializing in luxury real estate content.
-
-TASK: Translate this article from English to ${targetLanguageName}.
-
-CRITICAL REQUIREMENTS:
-- Translate EVERYTHING (headline, content, meta tags, FAQs, speakable answer)
-- Keep ALL HTML tags intact (<h2>, <p>, <strong>, <a>, etc.)
-- Maintain the same structure and formatting
-- Keep tone professional and natural in ${targetLanguageName}
-- Do NOT add or remove content
-- Keep all links and citations as-is (just translate surrounding text)
-- Keep proper nouns like "Costa del Sol" unchanged
-- Keep brand names unchanged
-
-ENGLISH ARTICLE TO TRANSLATE:
-
-**Headline:**
-${englishArticle.headline}
-
-**Meta Title:**
-${englishArticle.meta_title}
-
-**Meta Description:**
-${englishArticle.meta_description}
-
-**Speakable Answer (50-80 words):**
-${englishArticle.speakable_answer}
-
-**Main Content (HTML):**
-${englishArticle.detailed_content}
-
-**FAQs:**
-${JSON.stringify(englishArticle.qa_entities || [], null, 2)}
-
-**Featured Image Alt Text:**
-${englishArticle.featured_image_alt}
-
-**Featured Image Caption:**
-${englishArticle.featured_image_caption || ''}
-
----
-
-RESPOND IN JSON FORMAT ONLY (no markdown code blocks):
-{
-  "headline": "translated headline",
-  "meta_title": "translated meta title (max 60 chars)",
-  "meta_description": "translated meta description (max 160 chars)",
-  "speakable_answer": "translated speakable answer (50-80 words)",
-  "detailed_content": "translated HTML content (keep all tags and links)",
-  "qa_entities": [
-    {"question": "translated question", "answer": "translated answer"}
-  ],
-  "featured_image_alt": "translated alt text",
-  "featured_image_caption": "translated caption"
-}`;
+  const { maxTokens = 4000, tools, toolChoice } = options;
+  
+  const body: any = {
+    model: 'google/gemini-2.5-flash',
+    messages: [{ role: 'user', content: prompt }],
+    max_tokens: maxTokens,
+  };
+  
+  if (tools && tools.length > 0) {
+    body.tools = tools;
+    if (toolChoice) {
+      body.tool_choice = toolChoice;
+    }
+  }
 
   const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${lovableApiKey}`,
+      'Authorization': `Bearer ${apiKey}`,
     },
-    body: JSON.stringify({
-      model: 'google/gemini-2.5-flash',
-      messages: [{ role: 'user', content: translationPrompt }],
-      // Force the model to return strict JSON to avoid intermittent parse failures
-      response_format: { type: 'json_object' },
-      max_tokens: 16000,
-    }),
+    body: JSON.stringify(body),
   });
 
+  // Read response as text first for better error handling
+  const responseText = await response.text();
+  
   if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`Translation API error (${response.status}): ${errorText}`);
+    throw new Error(`AI API error (${response.status}): ${responseText.slice(0, 500)}`);
   }
-
-  const data = await response.json();
-  const translatedTextRaw = data?.choices?.[0]?.message?.content;
-
-  if (!translatedTextRaw) {
-    throw new Error(
-      `Translation API returned empty content. Raw response (first 1000 chars): ${JSON.stringify(data).slice(0, 1000)}`
-    );
-  }
-
-  let translatedText = String(translatedTextRaw).trim();
-
-  // Remove markdown code fences if present
-  translatedText = translatedText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-
-  let translated;
+  
+  let data;
   try {
-    translated = JSON.parse(translatedText);
+    data = JSON.parse(responseText);
   } catch (e) {
-    const jsonMatch = translatedText.match(/\{[\s\S]*\}/);
+    throw new Error(`AI response is not valid JSON. Status: ${response.status}. First 500 chars: ${responseText.slice(0, 500)}`);
+  }
+  
+  return data;
+}
 
-    if (!jsonMatch) {
-      throw new Error(
-        `Failed to parse translation response as JSON. Raw (first 1000 chars): ${translatedText.slice(0, 1000)}`
-      );
-    }
+/**
+ * STEP 1: Translate metadata using tool calling (structured output)
+ */
+async function translateMetadata(
+  englishArticle: any,
+  targetLanguage: string,
+  apiKey: string
+): Promise<{
+  headline: string;
+  meta_title: string;
+  meta_description: string;
+  speakable_answer: string;
+  featured_image_alt: string;
+  featured_image_caption: string;
+  qa_entities: any[];
+}> {
+  const targetLanguageName = LANGUAGE_NAMES[targetLanguage] || targetLanguage;
 
-    try {
-      translated = JSON.parse(jsonMatch[0]);
-    } catch (e2) {
-      throw new Error(
-        `Failed to parse translation JSON. Raw (first 1000 chars): ${jsonMatch[0].slice(0, 1000)}`
-      );
+  const prompt = `Translate the following article metadata from English to ${targetLanguageName}.
+
+Keep proper nouns like "Costa del Sol" unchanged. Keep brand names unchanged.
+Translate naturally and professionally for a luxury real estate audience.
+
+ENGLISH METADATA:
+- Headline: ${englishArticle.headline}
+- Meta Title: ${englishArticle.meta_title}
+- Meta Description: ${englishArticle.meta_description}
+- Speakable Answer: ${englishArticle.speakable_answer}
+- Featured Image Alt: ${englishArticle.featured_image_alt}
+- Featured Image Caption: ${englishArticle.featured_image_caption || 'N/A'}
+- FAQs: ${JSON.stringify(englishArticle.qa_entities || [])}
+
+Call the translate_metadata function with your translations.`;
+
+  const tools = [{
+    type: "function",
+    function: {
+      name: "translate_metadata",
+      description: "Store the translated article metadata",
+      parameters: {
+        type: "object",
+        properties: {
+          headline: { type: "string", description: "Translated headline" },
+          meta_title: { type: "string", description: "Translated meta title (max 60 chars)" },
+          meta_description: { type: "string", description: "Translated meta description (max 160 chars)" },
+          speakable_answer: { type: "string", description: "Translated speakable answer (50-80 words)" },
+          featured_image_alt: { type: "string", description: "Translated alt text" },
+          featured_image_caption: { type: "string", description: "Translated caption" },
+          qa_entities: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                question: { type: "string" },
+                answer: { type: "string" }
+              },
+              required: ["question", "answer"]
+            },
+            description: "Translated FAQ items"
+          }
+        },
+        required: ["headline", "meta_title", "meta_description", "speakable_answer", "featured_image_alt", "qa_entities"]
+      }
     }
+  }];
+
+  const data = await callAI(prompt, apiKey, {
+    maxTokens: 3000,
+    tools,
+    toolChoice: { type: "function", function: { name: "translate_metadata" } }
+  });
+
+  // Extract tool call arguments
+  const toolCall = data?.choices?.[0]?.message?.tool_calls?.[0];
+  if (!toolCall?.function?.arguments) {
+    // Fallback: try to parse from content
+    const content = data?.choices?.[0]?.message?.content;
+    if (content) {
+      return safeJsonParse(content, 'metadata-fallback');
+    }
+    throw new Error(`No tool call response. Raw: ${JSON.stringify(data).slice(0, 500)}`);
   }
 
-  // Generate slug from translated headline
-  const slug = translated.headline
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
-
-  // Truncate fields to meet database constraints
-  const truncatedMetaDescription = String(translated.meta_description ?? '')
-    .replace(/\s+/g, ' ')
-    .trim()
-    .slice(0, 160);
-  const truncatedMetaTitle = String(translated.meta_title ?? '')
-    .replace(/\s+/g, ' ')
-    .trim()
-    .slice(0, 70);
+  const args = typeof toolCall.function.arguments === 'string'
+    ? JSON.parse(toolCall.function.arguments)
+    : toolCall.function.arguments;
 
   return {
-    language: targetLanguage,
-    headline: translated.headline,
-    slug: slug,
-    meta_title: truncatedMetaTitle,
-    meta_description: truncatedMetaDescription,
-    speakable_answer: translated.speakable_answer,
-    detailed_content: translated.detailed_content,
-    qa_entities: translated.qa_entities,
-    featured_image_alt: translated.featured_image_alt,
-    featured_image_caption: translated.featured_image_caption || englishArticle.featured_image_caption,
-    
-    // Keep same images
-    featured_image_url: englishArticle.featured_image_url,
-    diagram_url: englishArticle.diagram_url,
-    diagram_description: englishArticle.diagram_description,
-    diagram_alt: englishArticle.diagram_alt,
-    diagram_caption: englishArticle.diagram_caption,
-    
-    // Set proper metadata
-    source_language: 'en',
-    is_primary: false,
-    hreflang_group_id: englishArticle.hreflang_group_id,
-    cluster_id: englishArticle.cluster_id,
-    cluster_number: englishArticle.cluster_number,
-    cluster_theme: englishArticle.cluster_theme,
-    funnel_stage: englishArticle.funnel_stage,
-    category: englishArticle.category,
-    content_type: englishArticle.content_type,
-    read_time: englishArticle.read_time,
-    author_id: englishArticle.author_id,
-    reviewer_id: englishArticle.reviewer_id,
-    external_citations: englishArticle.external_citations,
-    internal_links: [],
+    headline: args.headline || englishArticle.headline,
+    meta_title: args.meta_title || englishArticle.meta_title,
+    meta_description: args.meta_description || englishArticle.meta_description,
+    speakable_answer: args.speakable_answer || englishArticle.speakable_answer,
+    featured_image_alt: args.featured_image_alt || englishArticle.featured_image_alt,
+    featured_image_caption: args.featured_image_caption || englishArticle.featured_image_caption || '',
+    qa_entities: args.qa_entities || englishArticle.qa_entities || []
   };
+}
+
+/**
+ * STEP 2: Translate HTML content separately (plain text output, no JSON wrapper)
+ */
+async function translateHtmlContent(
+  englishHtml: string,
+  targetLanguage: string,
+  apiKey: string
+): Promise<string> {
+  const targetLanguageName = LANGUAGE_NAMES[targetLanguage] || targetLanguage;
+  const cleanedHtml = cleanHtmlContent(englishHtml);
+
+  const prompt = `Translate the following HTML content from English to ${targetLanguageName}.
+
+CRITICAL REQUIREMENTS:
+- Keep ALL HTML tags intact (<h2>, <p>, <strong>, <a href="...">, <ul>, <li>, etc.)
+- Keep all links (href attributes) unchanged
+- Keep proper nouns like "Costa del Sol" unchanged
+- Translate naturally for a luxury real estate audience
+- Do NOT wrap your response in code fences or JSON
+- Return ONLY the translated HTML, nothing else
+
+HTML TO TRANSLATE:
+${cleanedHtml}`;
+
+  const data = await callAI(prompt, apiKey, { maxTokens: 12000 });
+
+  const content = data?.choices?.[0]?.message?.content;
+  if (!content) {
+    throw new Error(`Empty HTML translation response`);
+  }
+
+  // Clean any accidental code fences from response
+  return cleanHtmlContent(content);
+}
+
+/**
+ * Translate article with retry logic
+ */
+async function translateArticleWithRetry(
+  englishArticle: any,
+  targetLanguage: string,
+  apiKey: string,
+  retryCount = 0
+): Promise<any> {
+  const targetLanguageName = LANGUAGE_NAMES[targetLanguage] || targetLanguage;
+
+  console.log(`[Translation] Translating "${englishArticle.headline}" to ${targetLanguageName} (attempt ${retryCount + 1})...`);
+
+  try {
+    // Step 1: Translate metadata via tool calling
+    const metadata = await translateMetadata(englishArticle, targetLanguage, apiKey);
+    
+    // Step 2: Translate HTML content separately
+    const translatedHtml = await translateHtmlContent(
+      englishArticle.detailed_content,
+      targetLanguage,
+      apiKey
+    );
+
+    // Generate slug from translated headline
+    const slug = metadata.headline
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 80);
+
+    // Add random suffix for uniqueness
+    const uniqueSlug = `${slug}-${englishArticle.cluster_number || 0}-${Math.random().toString(36).slice(2, 6)}`;
+
+    // Truncate fields
+    const truncatedMetaDescription = String(metadata.meta_description ?? '')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .slice(0, 160);
+    const truncatedMetaTitle = String(metadata.meta_title ?? '')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .slice(0, 70);
+
+    return {
+      language: targetLanguage,
+      headline: metadata.headline,
+      slug: uniqueSlug,
+      meta_title: truncatedMetaTitle,
+      meta_description: truncatedMetaDescription,
+      speakable_answer: metadata.speakable_answer,
+      detailed_content: translatedHtml,
+      qa_entities: metadata.qa_entities,
+      featured_image_alt: metadata.featured_image_alt,
+      featured_image_caption: metadata.featured_image_caption || englishArticle.featured_image_caption,
+      
+      // Keep same images
+      featured_image_url: englishArticle.featured_image_url,
+      diagram_url: englishArticle.diagram_url,
+      diagram_description: englishArticle.diagram_description,
+      diagram_alt: englishArticle.diagram_alt,
+      diagram_caption: englishArticle.diagram_caption,
+      
+      // Set proper metadata
+      source_language: 'en',
+      is_primary: false,
+      hreflang_group_id: englishArticle.hreflang_group_id,
+      cluster_id: englishArticle.cluster_id,
+      cluster_number: englishArticle.cluster_number,
+      cluster_theme: englishArticle.cluster_theme,
+      funnel_stage: englishArticle.funnel_stage,
+      category: englishArticle.category,
+      content_type: englishArticle.content_type,
+      read_time: englishArticle.read_time,
+      author_id: englishArticle.author_id,
+      reviewer_id: englishArticle.reviewer_id,
+      external_citations: englishArticle.external_citations,
+      internal_links: [],
+    };
+  } catch (error: any) {
+    console.error(`[Translation] Attempt ${retryCount + 1} failed:`, error.message);
+    
+    if (retryCount < MAX_RETRIES) {
+      console.log(`[Translation] Retrying in 2 seconds...`);
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      return translateArticleWithRetry(englishArticle, targetLanguage, apiKey, retryCount + 1);
+    }
+    
+    throw error;
+  }
 }
 
 // Link translations together
@@ -247,12 +382,40 @@ async function linkTranslations(supabase: any, clusterId: string) {
   console.log(`[Link Translations] ✅ Complete: ${articles.length} articles linked`);
 }
 
+/**
+ * Update job progress with error info
+ */
+async function updateJobError(supabase: any, jobId: string, error: string, context: { language?: string; articleIndex?: number }) {
+  const errorInfo = {
+    last_error: error.slice(0, 500),
+    failed_at: new Date().toISOString(),
+    failed_language: context.language,
+    failed_article_index: context.articleIndex,
+  };
+  
+  await supabase
+    .from('cluster_generations')
+    .update({
+      status: 'partial',
+      progress: {
+        message: `❌ Failed: ${error.slice(0, 100)}...`,
+        error_info: errorInfo,
+      },
+      error: error.slice(0, 500),
+      updated_at: new Date().toISOString()
+    })
+    .eq('id', jobId);
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   const FUNCTION_START_TIME = Date.now();
+  let currentJobId = '';
+  let currentLanguage = '';
+  let currentArticleIndex = 0;
 
   try {
     const { jobId, targetLanguage } = await req.json();
@@ -260,6 +423,7 @@ serve(async (req) => {
     if (!jobId) {
       throw new Error('jobId is required');
     }
+    currentJobId = jobId;
 
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
@@ -302,7 +466,7 @@ serve(async (req) => {
     const languageStatus = { ...(job.language_status || {}) };
 
     // Find next language to translate
-    let currentLanguage = targetLanguage;
+    currentLanguage = targetLanguage || '';
     if (!currentLanguage) {
       for (const lang of languagesQueue) {
         if (lang === 'en') continue;
@@ -329,6 +493,7 @@ serve(async (req) => {
         .from('cluster_generations')
         .update({
           status: 'completed',
+          error: null,
           progress: {
             current_step: 16,
             total_steps: 16,
@@ -379,6 +544,7 @@ serve(async (req) => {
       .from('cluster_generations')
       .update({
         status: 'generating',
+        error: null,
         language_status: languageStatus,
         progress: {
           message: `Translating to ${LANGUAGE_NAMES[currentLanguage] || currentLanguage}...`,
@@ -393,6 +559,8 @@ serve(async (req) => {
 
     // Translate all English articles
     for (let i = 0; i < englishArticles.length; i++) {
+      currentArticleIndex = i + 1;
+      
       // Check timeout
       if (Date.now() - FUNCTION_START_TIME > MAX_RUNTIME) {
         console.log(`[translate-cluster] ⚠️ Timeout approaching, stopping at ${i} articles`);
@@ -415,7 +583,7 @@ serve(async (req) => {
           `[translate-cluster] Translating article ${i + 1}/${expectedCount}: ${englishArticle.headline}`
         );
 
-        const translated = await translateArticle(englishArticle, currentLanguage, LOVABLE_API_KEY);
+        const translated = await translateArticleWithRetry(englishArticle, currentLanguage, LOVABLE_API_KEY);
 
         // Save to database
         const { data: savedArticle, error: saveError } = await supabase
@@ -511,6 +679,13 @@ serve(async (req) => {
 
       } catch (error: any) {
         console.error(`[translate-cluster] Error translating article ${i + 1}:`, error);
+        
+        // Log error to job for visibility in UI
+        await updateJobError(supabase, jobId, error.message || String(error), {
+          language: currentLanguage,
+          articleIndex: i + 1
+        });
+        
         throw error;
       }
     }
@@ -554,6 +729,7 @@ serve(async (req) => {
       .from('cluster_generations')
       .update({
         status: isComplete ? 'completed' : 'partial',
+        error: null,
         language_status: languageStatus,
         completed_languages: completedLanguages,
         progress: {
@@ -604,6 +780,23 @@ serve(async (req) => {
           : (error && typeof error === 'object' && 'message' in (error as any))
             ? String((error as any).message)
             : JSON.stringify(error);
+
+    // Try to update job with error if we have jobId
+    if (currentJobId) {
+      try {
+        const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
+        const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+        if (SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY) {
+          const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+          await updateJobError(supabase, currentJobId, errorMessage, {
+            language: currentLanguage,
+            articleIndex: currentArticleIndex
+          });
+        }
+      } catch (e) {
+        console.error('[translate-cluster] Failed to update job error:', e);
+      }
+    }
 
     return new Response(
       JSON.stringify({ success: false, error: errorMessage }),

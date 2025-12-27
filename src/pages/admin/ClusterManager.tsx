@@ -32,6 +32,8 @@ interface ClusterData {
   created_at: string;
   job_status?: string;
   languages_queue?: string[] | null;
+  job_error?: string | null;
+  job_progress?: any;
 }
 
 // Backend default translation languages (English + these = 10 languages total)
@@ -78,7 +80,7 @@ const ClusterManager = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("cluster_generations")
-        .select("id, status, topic, created_at, languages_queue");
+        .select("id, status, topic, created_at, languages_queue, error, progress");
       
       if (error) throw error;
       return data;
@@ -138,6 +140,8 @@ const ClusterManager = () => {
       if (job) {
         cluster.job_status = job.status;
         cluster.languages_queue = job.languages_queue ?? null;
+        cluster.job_error = job.error ?? null;
+        cluster.job_progress = job.progress ?? null;
       }
     });
 
@@ -459,6 +463,29 @@ const ClusterManager = () => {
                   </div>
                 </CardHeader>
                 <CardContent>
+                  {/* Error display for failed/partial jobs */}
+                  {(cluster.job_status === "partial" || cluster.job_status === "failed") && cluster.job_error && (
+                    <div className="mb-4 p-3 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-md">
+                      <p className="text-sm text-red-700 dark:text-red-300 font-medium">
+                        ❌ Translation failed
+                      </p>
+                      <p className="text-xs text-red-600 dark:text-red-400 mt-1 break-words">
+                        {cluster.job_error.length > 150 
+                          ? `${cluster.job_error.slice(0, 150)}...` 
+                          : cluster.job_error}
+                      </p>
+                      {cluster.job_progress?.error_info && (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Failed on {cluster.job_progress.error_info.failed_language?.toUpperCase() || "unknown"} 
+                          {cluster.job_progress.error_info.failed_article_index 
+                            ? ` article #${cluster.job_progress.error_info.failed_article_index}` 
+                            : ""}
+                          {" — click Complete Translations to retry"}
+                        </p>
+                      )}
+                    </div>
+                  )}
+
                   {/* Language breakdown */}
                   <div className="flex flex-wrap gap-2 mb-4">
                     {Object.entries(cluster.languages).map(([lang, stats]) => (
