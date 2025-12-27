@@ -241,7 +241,7 @@ const ClusterManager = () => {
         body: { 
           articleIds,
           languages: ['all'],
-          mode: 'batch'
+          mode: 'bulk'
         },
       });
       
