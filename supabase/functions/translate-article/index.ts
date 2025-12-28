@@ -17,9 +17,8 @@ const LANGUAGE_NAMES: Record<string, string> = {
   'no': 'Norwegian'
 };
 
-const MAX_CONTENT_LENGTH = 6000; // Characters before chunking (reduced for reliability)
-const REQUEST_TIMEOUT_MS = 45000; // 45 seconds per chunk (edge functions timeout at 60s)
-const FUNCTION_START_TIME = Date.now();
+const MAX_CONTENT_LENGTH = 6000; // Characters before chunking
+const REQUEST_TIMEOUT_MS = 45000; // 45 seconds per chunk
 const FUNCTION_TIMEOUT_MS = 55000; // 55 seconds total function time limit
 
 /**
@@ -110,11 +109,12 @@ async function translateContentChunk(
   chunk: string,
   targetLanguageName: string,
   apiKey: string,
-  chunkIndex: number = 0,
-  totalChunks: number = 1
+  chunkIndex: number,
+  totalChunks: number,
+  functionStartTime: number
 ): Promise<string> {
   // Check if we're approaching function timeout
-  const elapsed = Date.now() - FUNCTION_START_TIME;
+  const elapsed = Date.now() - functionStartTime;
   if (elapsed > FUNCTION_TIMEOUT_MS - 15000) {
     throw new Error(`Approaching function timeout (${Math.round(elapsed/1000)}s elapsed), aborting at chunk ${chunkIndex + 1}/${totalChunks}`);
   }
@@ -169,7 +169,8 @@ Respond with ONLY the translated HTML, no explanations.`;
 async function translateArticle(
   englishArticle: any,
   targetLanguage: string,
-  apiKey: string
+  apiKey: string,
+  functionStartTime: number
 ): Promise<any> {
   const targetLanguageName = LANGUAGE_NAMES[targetLanguage] || targetLanguage;
   const contentLength = englishArticle.detailed_content?.length || 0;
@@ -185,7 +186,7 @@ async function translateArticle(
     const translatedChunks: string[] = [];
     
     for (let i = 0; i < chunks.length; i++) {
-      const elapsed = Date.now() - FUNCTION_START_TIME;
+      const elapsed = Date.now() - functionStartTime;
       console.log(`[Translation] Translating chunk ${i + 1}/${chunks.length}... (${Math.round(elapsed/1000)}s elapsed)`);
       
       // Check function-level timeout before each chunk
@@ -193,12 +194,12 @@ async function translateArticle(
         throw new Error(`Function timeout approaching (${Math.round(elapsed/1000)}s), completed ${i}/${chunks.length} chunks`);
       }
       
-      const translated = await translateContentChunk(chunks[i], targetLanguageName, apiKey, i, chunks.length);
+      const translated = await translateContentChunk(chunks[i], targetLanguageName, apiKey, i, chunks.length, functionStartTime);
       translatedChunks.push(translated);
     }
     
     translatedContent = translatedChunks.join('\n');
-    console.log(`[Translation] All ${chunks.length} chunks translated successfully in ${Math.round((Date.now() - FUNCTION_START_TIME)/1000)}s`);
+    console.log(`[Translation] All ${chunks.length} chunks translated successfully in ${Math.round((Date.now() - functionStartTime)/1000)}s`);
   }
 
   // Now translate metadata (smaller payload, more reliable)
@@ -232,6 +233,12 @@ RESPOND IN JSON ONLY (no markdown):
   let translated: any = null;
 
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+    // Check function timeout before each retry
+    const elapsed = Date.now() - functionStartTime;
+    if (elapsed > FUNCTION_TIMEOUT_MS - 10000) {
+      throw new Error(`Function timeout approaching during metadata translation (${Math.round(elapsed/1000)}s)`);
+    }
+
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
@@ -275,7 +282,7 @@ RESPOND IN JSON ONLY (no markdown):
       clearTimeout(timeout);
       
       if (error instanceof Error && error.name === 'AbortError') {
-        lastError = new Error('Request timed out after 55 seconds');
+        lastError = new Error('Request timed out after 45 seconds');
         console.error(`[Translation] Attempt ${attempt} timed out`);
       } else {
         lastError = error instanceof Error ? error : new Error(String(error));
@@ -352,6 +359,9 @@ RESPOND IN JSON ONLY (no markdown):
 }
 
 serve(async (req) => {
+  // CRITICAL: Set function start time PER REQUEST, not at module level
+  const functionStartTime = Date.now();
+
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -370,24 +380,27 @@ serve(async (req) => {
 
     console.log(`[translate-article] Translating to ${targetLanguage}...`);
 
-    const translatedArticle = await translateArticle(englishArticle, targetLanguage, OPENAI_API_KEY);
+    const translatedArticle = await translateArticle(englishArticle, targetLanguage, OPENAI_API_KEY, functionStartTime);
 
-    console.log(`[translate-article] ✅ Translation complete: ${translatedArticle.headline}`);
+    const totalTime = Math.round((Date.now() - functionStartTime) / 1000);
+    console.log(`[translate-article] ✅ Translation complete in ${totalTime}s: ${translatedArticle.headline}`);
 
     return new Response(
       JSON.stringify({ 
         success: true, 
         article: translatedArticle,
-        translatedArticle: translatedArticle 
+        translatedArticle: translatedArticle,
+        duration: `${totalTime}s`
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
   } catch (error) {
-    console.error('[translate-article] Error:', error);
+    const totalTime = Math.round((Date.now() - functionStartTime) / 1000);
+    console.error(`[translate-article] Error after ${totalTime}s:`, error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return new Response(
-      JSON.stringify({ success: false, error: errorMessage }),
+      JSON.stringify({ success: false, error: errorMessage, duration: `${totalTime}s` }),
       {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
