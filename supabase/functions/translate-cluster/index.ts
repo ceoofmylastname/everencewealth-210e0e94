@@ -454,20 +454,28 @@ serve(async (req) => {
       .single();
 
     // If job not found, check if this is a valid cluster_id with articles
+    let sourceLanguage = 'en';
+    
     if (jobError || !job) {
       console.log(`[translate-cluster] Job record not found, checking for cluster articles...`);
       
-      // Try to find English articles with this cluster_id
+      // Find ANY article in this cluster (not just English)
       const { data: clusterArticles, error: clusterError } = await supabase
         .from('blog_articles')
-        .select('id, cluster_theme, cluster_id')
+        .select('id, cluster_theme, cluster_id, language')
         .eq('cluster_id', jobId)
-        .eq('language', 'en')
         .limit(1);
       
       if (clusterError || !clusterArticles?.length) {
         throw new Error(`No job or cluster found: ${jobId}`);
       }
+      
+      // Use the found article's language as source
+      sourceLanguage = clusterArticles[0].language || 'en';
+      console.log(`[translate-cluster] Found cluster with source language: ${sourceLanguage}`);
+      
+      // Filter target languages to exclude source language
+      const filteredTargetLanguages = TARGET_LANGUAGES.filter(lang => lang !== sourceLanguage);
       
       // Create a job record for this cluster
       console.log(`[translate-cluster] Creating job record for existing cluster...`);
@@ -478,10 +486,10 @@ serve(async (req) => {
           topic: clusterArticles[0].cluster_theme || 'Translation Job',
           primary_keyword: clusterArticles[0].cluster_theme || 'translation',
           target_audience: 'Property buyers',
-          language: 'en',
+          language: sourceLanguage,
           status: 'translating',
           progress: { message: 'Starting translations...' },
-          languages_queue: TARGET_LANGUAGES,
+          languages_queue: filteredTargetLanguages,
           language_status: {},
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
@@ -496,22 +504,25 @@ serve(async (req) => {
       
       job = newJob;
       console.log(`[translate-cluster] Created job record for cluster ${jobId}`);
+    } else {
+      // Job exists, use its language as source
+      sourceLanguage = job.language || 'en';
     }
 
-    // Fetch English articles for this cluster
-    const { data: englishArticles, error: articlesError } = await supabase
+    // Fetch source articles for this cluster
+    const { data: sourceArticles, error: articlesError } = await supabase
       .from('blog_articles')
       .select('*')
       .eq('cluster_id', jobId)
-      .eq('language', 'en')
+      .eq('language', sourceLanguage)
       .order('cluster_number', { ascending: true });
 
-    if (articlesError || !englishArticles?.length) {
-      throw new Error('No English articles found for this cluster. Generate English first.');
+    if (articlesError || !sourceArticles?.length) {
+      throw new Error(`No ${sourceLanguage.toUpperCase()} articles found for this cluster.`);
     }
 
-    console.log(`[translate-cluster] Found ${englishArticles.length} English articles to translate`);
-    const expectedCount = englishArticles.length;
+    console.log(`[translate-cluster] Found ${sourceArticles.length} ${sourceLanguage.toUpperCase()} articles to translate`);
+    const expectedCount = sourceArticles.length;
 
     // Determine which language to translate
     const languagesQueue = job.languages_queue || TARGET_LANGUAGES;
@@ -521,7 +532,7 @@ serve(async (req) => {
     currentLanguage = targetLanguage || '';
     if (!currentLanguage) {
       for (const lang of languagesQueue) {
-        if (lang === 'en') continue;
+        if (lang === sourceLanguage) continue;
 
         // Check if this language is already done
         const { count } = await supabase
@@ -609,8 +620,8 @@ serve(async (req) => {
     let translatedCount = 0;
     const translatedArticles: any[] = [];
 
-    // Translate all English articles
-    for (let i = 0; i < englishArticles.length; i++) {
+    // Translate all source articles
+    for (let i = 0; i < sourceArticles.length; i++) {
       currentArticleIndex = i + 1;
       
       // Check timeout
@@ -619,8 +630,8 @@ serve(async (req) => {
         break;
       }
 
-      const englishArticle = englishArticles[i];
-      const clusterNumber = englishArticle.cluster_number;
+      const sourceArticle = sourceArticles[i];
+      const clusterNumber = sourceArticle.cluster_number;
 
       // Skip if already translated for this language (safe resume)
       if (typeof clusterNumber === 'number' && existingClusterNumbers.has(clusterNumber)) {
@@ -632,10 +643,10 @@ serve(async (req) => {
 
       try {
         console.log(
-          `[translate-cluster] Translating article ${i + 1}/${expectedCount}: ${englishArticle.headline}`
+          `[translate-cluster] Translating article ${i + 1}/${expectedCount}: ${sourceArticle.headline}`
         );
 
-        const translated = await translateArticleWithRetry(englishArticle, currentLanguage, OPENAI_API_KEY);
+        const translated = await translateArticleWithRetry(sourceArticle, currentLanguage, OPENAI_API_KEY);
 
         // Save to database
         const { data: savedArticle, error: saveError } = await supabase
