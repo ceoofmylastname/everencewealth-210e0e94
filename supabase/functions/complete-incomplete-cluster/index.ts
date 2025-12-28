@@ -216,15 +216,21 @@ serve(async (req) => {
     if (missingLanguages.length > 0) {
       console.log(`[complete-incomplete-cluster] Translating to ${missingLanguages.length} languages...`);
       
-      // Get all English articles in this cluster
-      const { data: englishArticles } = await supabase
+      // Re-fetch all English articles in this cluster (including newly generated ones)
+      const { data: englishArticles, error: enFetchError } = await supabase
         .from('blog_articles')
         .select('*')
         .eq('cluster_id', clusterId)
         .eq('language', 'en')
         .eq('status', 'published');
 
+      if (enFetchError) {
+        console.error(`[complete-incomplete-cluster] Failed to fetch English articles: ${enFetchError.message}`);
+      }
+
       if (englishArticles && englishArticles.length > 0) {
+        console.log(`[complete-incomplete-cluster] Found ${englishArticles.length} English articles to translate`);
+        
         let successCount = 0;
         let errorCount = 0;
         
@@ -233,6 +239,9 @@ serve(async (req) => {
           
           for (const article of englishArticles) {
             try {
+              // Ensure article has hreflang_group_id
+              const groupId = article.hreflang_group_id || article.id;
+              
               const translateResponse = await fetch(`${supabaseUrl}/functions/v1/translate-article`, {
                 method: 'POST',
                 headers: {
@@ -240,15 +249,24 @@ serve(async (req) => {
                   'Authorization': `Bearer ${supabaseKey}`
                 },
                 body: JSON.stringify({
-                  englishArticle: article,
+                  englishArticle: { ...article, hreflang_group_id: groupId },
                   targetLanguage: targetLang
                 })
               });
 
               if (translateResponse.ok) {
-                const { translatedArticle } = await translateResponse.json();
+                const responseData = await translateResponse.json();
+                // translate-article returns { success: true, article: {...} }
+                const translatedArticle = responseData.article;
                 
-                // Save translated article
+                if (!translatedArticle) {
+                  console.error(`[complete-incomplete-cluster] No article in translation response for ${targetLang}`);
+                  errorCount++;
+                  continue;
+                }
+                
+                // Save translated article with canonical URL
+                const translatedSlug = translatedArticle.slug || article.slug;
                 const { error: insertError } = await supabase
                   .from('blog_articles')
                   .insert({
@@ -257,18 +275,26 @@ serve(async (req) => {
                     language: targetLang,
                     status: 'published',
                     date_published: new Date().toISOString(),
-                    hreflang_group_id: article.hreflang_group_id || clusterId,
-                    source_language: 'en'
+                    date_modified: new Date().toISOString(),
+                    hreflang_group_id: groupId,
+                    source_language: 'en',
+                    canonical_url: `https://www.delsolprimehomes.com/${targetLang}/blog/${translatedSlug}`
                   });
 
                 if (insertError) {
-                  console.error(`[complete-incomplete-cluster] Failed to save ${targetLang} article: ${insertError.message}`);
-                  errorCount++;
+                  // Check for duplicate slug error
+                  if (insertError.message.includes('duplicate') || insertError.code === '23505') {
+                    console.log(`[complete-incomplete-cluster] Skipping duplicate ${targetLang} article`);
+                  } else {
+                    console.error(`[complete-incomplete-cluster] Failed to save ${targetLang} article: ${insertError.message}`);
+                    errorCount++;
+                  }
                 } else {
                   successCount++;
                 }
               } else {
-                console.error(`[complete-incomplete-cluster] Translation to ${targetLang} failed for article ${article.id}`);
+                const errText = await translateResponse.text();
+                console.error(`[complete-incomplete-cluster] Translation to ${targetLang} failed: ${errText}`);
                 errorCount++;
               }
             } catch (translateError) {
@@ -280,6 +306,8 @@ serve(async (req) => {
         
         console.log(`[complete-incomplete-cluster] Translation complete: ${successCount} success, ${errorCount} errors`);
         translatedCount = successCount;
+      } else {
+        console.warn(`[complete-incomplete-cluster] No English articles found to translate`);
       }
     }
 
