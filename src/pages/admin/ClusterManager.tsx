@@ -17,7 +17,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Search, Eye, Trash2, CheckCircle, HelpCircle, Copy, Loader2, FolderOpen, RefreshCw, Globe, Languages, Shield } from "lucide-react";
+import { Search, Eye, Trash2, CheckCircle, HelpCircle, Copy, Loader2, FolderOpen, RefreshCw, Globe, Languages, Shield, Link } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -49,6 +49,7 @@ const ClusterManager = () => {
   const [clusterToTranslate, setClusterToTranslate] = useState<string | null>(null);
   const [translatingCluster, setTranslatingCluster] = useState<string | null>(null);
   const [translationProgress, setTranslationProgress] = useState<{ current: string; remaining: number } | null>(null);
+  const [regeneratingLinks, setRegeneratingLinks] = useState<string | null>(null);
 
   const getAllExpectedLanguages = (cluster?: Pick<ClusterData, "languages_queue">) => {
     const queue =
@@ -367,6 +368,29 @@ const ClusterManager = () => {
     },
   });
 
+  // Regenerate strategic internal links for cluster
+  const regenerateLinksMutation = useMutation({
+    mutationFn: async (clusterId: string) => {
+      setRegeneratingLinks(clusterId);
+      const { data, error } = await supabase.functions.invoke('regenerate-cluster-links', {
+        body: { clusterId, dryRun: false }
+      });
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data) => {
+      toast.success(`Regenerated links for ${data.summary?.totalArticles || 0} articles`, {
+        description: `Strategic funnel-based linking applied (max 3 links per article)`
+      });
+      setRegeneratingLinks(null);
+      queryClient.invalidateQueries({ queryKey: ["cluster-articles"] });
+    },
+    onError: (error: any) => {
+      toast.error(`Failed to regenerate links: ${error.message}`);
+      setRegeneratingLinks(null);
+    }
+  });
+
   const getMissingLanguages = (cluster: ClusterData) => {
     const existingLanguages = new Set(Object.keys(cluster.languages));
     return getAllExpectedLanguages(cluster).filter((lang) => !existingLanguages.has(lang));
@@ -623,6 +647,24 @@ const ClusterManager = () => {
                     >
                       <HelpCircle className="mr-2 h-4 w-4" />
                       {generateQAMutation.isPending ? "Starting..." : "Generate QA"}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => regenerateLinksMutation.mutate(cluster.cluster_id)}
+                      disabled={regenerateLinksMutation.isPending || regeneratingLinks === cluster.cluster_id}
+                    >
+                      {regeneratingLinks === cluster.cluster_id ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Regenerating...
+                        </>
+                      ) : (
+                        <>
+                          <Link className="mr-2 h-4 w-4" />
+                          Regenerate Links
+                        </>
+                      )}
                     </Button>
                     <Button
                       variant="outline"
