@@ -200,7 +200,12 @@ serve(async (req) => {
     console.log(`[translate-article] ✅ Translation complete: ${translatedArticle.headline}`);
 
     return new Response(
-      JSON.stringify({ success: true, article: translatedArticle }),
+      JSON.stringify({ 
+        success: true, 
+        article: translatedArticle,
+        // Also include as translatedArticle for backwards compatibility
+        translatedArticle: translatedArticle 
+      }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
