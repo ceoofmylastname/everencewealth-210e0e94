@@ -57,6 +57,10 @@ interface TranslationState {
   results: { success: boolean; headline?: string; error?: string }[];
   error: string | null;
   duration?: string;
+  mode?: 'direct' | 'queue';
+  jobsCreated?: number;
+  jobsSkipped?: number;
+  queueUrl?: string;
 }
 
 const LANGUAGE_INFO: Record<string, { name: string; flag: string }> = {
@@ -157,7 +161,7 @@ const CompleteIncompleteClusters = () => {
     }
   });
 
-  // Translate to specific language mutation
+  // Translate to specific language mutation (now queue-based)
   const translateMutation = useMutation({
     mutationFn: async ({ clusterId, targetLanguage }: { clusterId: string; targetLanguage: string }) => {
       const { data, error } = await supabase.functions.invoke('translate-cluster-to-language', {
@@ -167,19 +171,24 @@ const CompleteIncompleteClusters = () => {
       return data;
     },
     onSuccess: (data) => {
+      // Handle queue-based response
       setTranslationState(prev => ({
         ...prev,
         isTranslating: false,
-        progress: { current: data.articlesTranslated + data.articlesSkipped, total: data.totalEnglishArticles || 6 },
+        progress: { current: data.jobsCreated || 0, total: data.totalEnglishArticles || 6 },
         results: data.results || [],
         error: null,
         duration: data.duration,
+        mode: data.mode || 'queue',
+        jobsCreated: data.jobsCreated || 0,
+        jobsSkipped: data.jobsSkipped || 0,
+        queueUrl: data.queueUrl || '/admin/translation-queue',
       }));
       
-      if (data.articlesFailed > 0) {
-        toast.warning(`Translation completed with ${data.articlesFailed} error(s)`);
-      } else {
-        toast.success(`${data.languageFlag} ${data.articlesTranslated} articles translated to ${data.languageName}`);
+      if (data.jobsCreated > 0) {
+        toast.success(`${data.languageFlag} ${data.jobsCreated} jobs queued for ${data.languageName}`);
+      } else if (data.jobsSkipped > 0) {
+        toast.info(`All articles already translated to ${data.languageName}`);
       }
       
       queryClient.invalidateQueries({ queryKey: ['cluster-completion-status'] });
@@ -190,7 +199,7 @@ const CompleteIncompleteClusters = () => {
         isTranslating: false,
         error: error.message,
       }));
-      toast.error(`Translation failed: ${error.message}`);
+      toast.error(`Failed: ${error.message}`);
     }
   });
 
@@ -603,6 +612,10 @@ const CompleteIncompleteClusters = () => {
         results={translationState.results}
         error={translationState.error}
         duration={translationState.duration}
+        mode={translationState.mode}
+        jobsCreated={translationState.jobsCreated}
+        jobsSkipped={translationState.jobsSkipped}
+        queueUrl={translationState.queueUrl}
         onRetry={() => {
           if (translationState.clusterId && translationState.targetLanguage) {
             translateMutation.mutate({

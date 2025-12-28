@@ -1,7 +1,8 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import { CheckCircle2, XCircle, Clock, AlertCircle } from "lucide-react";
+import { CheckCircle2, XCircle, Clock, AlertCircle, ListTodo, ExternalLink } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 interface TranslationResult {
   success: boolean;
@@ -26,6 +27,11 @@ interface TranslationProgressModalProps {
   error?: string | null;
   duration?: string;
   onRetry?: () => void;
+  // New queue-based props
+  mode?: 'direct' | 'queue';
+  jobsCreated?: number;
+  jobsSkipped?: number;
+  queueUrl?: string;
 }
 
 export function TranslationProgressModal({
@@ -41,15 +47,29 @@ export function TranslationProgressModal({
   error = null,
   duration,
   onRetry,
+  mode = 'direct',
+  jobsCreated = 0,
+  jobsSkipped = 0,
+  queueUrl,
 }: TranslationProgressModalProps) {
+  const navigate = useNavigate();
+  
   const progressPercent = progress.total > 0 
     ? Math.round((progress.current / progress.total) * 100) 
     : 0;
 
   const successCount = results.filter(r => r.success).length;
   const failCount = results.filter(r => !r.success).length;
-  const isComplete = !isTranslating && results.length > 0;
+  const isComplete = !isTranslating && (results.length > 0 || mode === 'queue');
   const hasErrors = failCount > 0 || error;
+
+  // Queue mode: jobs were created successfully
+  const isQueueMode = mode === 'queue' && jobsCreated > 0;
+
+  const handleGoToQueue = () => {
+    onClose();
+    navigate(queueUrl || '/admin/translation-queue');
+  };
 
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
@@ -58,10 +78,12 @@ export function TranslationProgressModal({
           <DialogTitle className="flex items-center gap-2">
             <span className="text-2xl">{languageFlag}</span>
             {isTranslating 
-              ? `Translating to ${languageName}...` 
-              : hasErrors 
-                ? 'Translation Completed with Errors'
-                : 'Translation Complete!'}
+              ? `Queuing ${languageName} translations...`
+              : isQueueMode
+                ? 'Jobs Queued Successfully!'
+                : hasErrors 
+                  ? 'Translation Completed with Errors'
+                  : 'Translation Complete!'}
           </DialogTitle>
           <DialogDescription className="truncate">
             {clusterTheme}
@@ -69,8 +91,68 @@ export function TranslationProgressModal({
         </DialogHeader>
 
         <div className="space-y-4">
-          {/* Progress Section */}
+          {/* Loading/Queuing indicator */}
           {isTranslating && (
+            <>
+              <div className="flex items-center justify-center py-4">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              </div>
+              <p className="text-center text-sm text-muted-foreground">
+                Creating translation jobs...
+              </p>
+            </>
+          )}
+
+          {/* Queue Mode Success */}
+          {isQueueMode && isComplete && (
+            <div className="space-y-4">
+              <div className="p-4 rounded-lg bg-green-500/10 border border-green-500/20">
+                <div className="flex items-center gap-2">
+                  <ListTodo className="w-5 h-5 text-green-500" />
+                  <span className="font-medium text-green-700 dark:text-green-400">
+                    {jobsCreated} translation job{jobsCreated !== 1 ? 's' : ''} queued
+                  </span>
+                </div>
+                {jobsSkipped > 0 && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {jobsSkipped} article{jobsSkipped !== 1 ? 's' : ''} already translated (skipped)
+                  </p>
+                )}
+                {duration && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Completed in {duration}
+                  </p>
+                )}
+              </div>
+
+              <div className="p-3 rounded-lg bg-muted">
+                <p className="text-sm">
+                  <strong>Next step:</strong> Go to Translation Queue to process these jobs one at a time. 
+                  This prevents timeout errors.
+                </p>
+              </div>
+
+              <Button onClick={handleGoToQueue} className="w-full">
+                <ExternalLink className="w-4 h-4 mr-2" />
+                Open Translation Queue
+              </Button>
+            </div>
+          )}
+
+          {/* All already translated */}
+          {mode === 'queue' && jobsCreated === 0 && jobsSkipped > 0 && isComplete && (
+            <div className="p-4 rounded-lg bg-blue-500/10 border border-blue-500/20">
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-5 h-5 text-blue-500" />
+                <span className="font-medium text-blue-700 dark:text-blue-400">
+                  All {jobsSkipped} articles already translated to {languageName}
+                </span>
+              </div>
+            </div>
+          )}
+
+          {/* Direct Mode Progress (legacy fallback) */}
+          {mode === 'direct' && isTranslating && (
             <>
               <Progress value={progressPercent} className="w-full" />
               <div className="flex justify-between text-sm">
@@ -91,10 +173,9 @@ export function TranslationProgressModal({
             </>
           )}
 
-          {/* Results Section */}
-          {isComplete && (
+          {/* Direct Mode Results (legacy) */}
+          {mode === 'direct' && isComplete && results.length > 0 && (
             <div className="space-y-3">
-              {/* Summary */}
               <div className={`p-3 rounded-lg ${hasErrors ? 'bg-yellow-500/10' : 'bg-green-500/10'}`}>
                 <div className="flex items-center gap-2">
                   {hasErrors ? (
@@ -114,7 +195,6 @@ export function TranslationProgressModal({
                 )}
               </div>
 
-              {/* Detailed Results */}
               <div className="max-h-48 overflow-y-auto space-y-1">
                 {results.map((result, i) => (
                   <div 
@@ -136,6 +216,8 @@ export function TranslationProgressModal({
                             ? '⏱️ Translation timed out - article may be too long'
                             : result.error.includes('too long')
                             ? '📏 Article content exceeds translation limit'
+                            : result.error.includes('Failed to send') || result.error.includes('Failed to fetch')
+                            ? '🔌 Backend request timed out - use Translation Queue instead'
                             : result.error}
                         </p>
                       )}
@@ -151,25 +233,46 @@ export function TranslationProgressModal({
             <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20">
               <div className="flex items-center gap-2 text-destructive">
                 <XCircle className="w-5 h-5" />
-                <span className="font-medium">Translation Failed</span>
+                <span className="font-medium">
+                  {error.includes('Failed to send') || error.includes('Failed to fetch')
+                    ? 'Request Timed Out'
+                    : 'Translation Failed'}
+                </span>
               </div>
-              <p className="text-sm text-destructive mt-1">{error}</p>
+              <p className="text-sm text-destructive mt-1">
+                {error.includes('Failed to send') || error.includes('Failed to fetch')
+                  ? 'The request took too long. Translation jobs may have been created - check the Translation Queue.'
+                  : error}
+              </p>
+              {(error.includes('Failed to send') || error.includes('Failed to fetch')) && (
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={handleGoToQueue}
+                  className="mt-2"
+                >
+                  <ExternalLink className="w-3 h-3 mr-1" />
+                  Check Translation Queue
+                </Button>
+              )}
             </div>
           )}
 
           {/* Actions */}
           <div className="flex justify-end gap-2 pt-2">
-            {hasErrors && onRetry && (
+            {mode === 'direct' && hasErrors && onRetry && (
               <Button variant="outline" onClick={onRetry}>
                 Retry Failed
               </Button>
             )}
-            <Button 
-              onClick={onClose}
-              disabled={isTranslating}
-            >
-              {isTranslating ? 'Please wait...' : 'Close'}
-            </Button>
+            {!isQueueMode && (
+              <Button 
+                onClick={onClose}
+                disabled={isTranslating}
+              >
+                {isTranslating ? 'Please wait...' : 'Close'}
+              </Button>
+            )}
           </div>
         </div>
       </DialogContent>
