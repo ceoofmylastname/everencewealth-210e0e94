@@ -26,7 +26,7 @@ export const BASE_URL = typeof window !== 'undefined'
 
 /**
  * Supported language codes derived from SUPPORTED_LANGUAGES constant.
- * Results in: 'en' | 'nl' | 'es' | 'de' | 'fr' | 'sv' | 'pl' | 'no' | 'fi' | 'da'
+ * Results in: 'en' | 'nl' | 'hu' | 'de' | 'fr' | 'sv' | 'pl' | 'no' | 'fi' | 'da'
  */
 export type SupportedLanguage = typeof SUPPORTED_LANGUAGES[number];
 
