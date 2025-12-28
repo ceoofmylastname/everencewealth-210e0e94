@@ -22,6 +22,40 @@ function getLanguageName(code: string): string {
   return names[code] || 'English';
 }
 
+// Strategic funnel-based internal linking configuration
+const FUNNEL_LINK_STRATEGY: Record<string, {
+  maxWithinCluster: number;
+  targetStages: string[];
+  description: string;
+  linkingRules: string;
+}> = {
+  TOFU: {
+    maxWithinCluster: 3,
+    targetStages: ['MOFU', 'TOFU'],
+    description: 'Link to MOFU for funnel progression, 1 sibling TOFU for related topics',
+    linkingRules: `1. Link to 1-2 MOFU articles (funnel progression to deeper content)
+2. Link to 1 related TOFU article (sibling topic for broad coverage)
+PRIORITY: MOFU links are more important than TOFU siblings`
+  },
+  MOFU: {
+    maxWithinCluster: 3,
+    targetStages: ['TOFU', 'BOFU', 'MOFU'],
+    description: 'Link to TOFU for context, BOFU for conversion, sibling MOFU for comparison',
+    linkingRules: `1. Link to 1 TOFU article (provide background context)
+2. Link to 1 BOFU article (conversion path - CRITICAL for funnel)
+3. Link to 1 other MOFU article (comparison/related topic)
+PRIORITY: BOFU link is most important for conversion`
+  },
+  BOFU: {
+    maxWithinCluster: 3,
+    targetStages: ['MOFU', 'TOFU'],
+    description: 'Link to MOFU for supporting evidence, TOFU for foundation',
+    linkingRules: `1. Link to 2 MOFU articles (supporting evidence/comparisons)
+2. Link to 1 TOFU article (foundational context)
+PRIORITY: MOFU links provide decision-support evidence`
+  }
+};
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -37,7 +71,7 @@ serve(async (req) => {
     }
 
     // Single mode (existing functionality)
-    const { content, headline, currentArticleId, language = 'en', funnelStage, availableArticles } = requestData;
+    const { content, headline, currentArticleId, language = 'en', funnelStage = 'TOFU', availableArticles } = requestData;
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -75,31 +109,36 @@ serve(async (req) => {
       );
     }
 
-    console.log(`Finding internal links for: ${headline} (${articles.length} available articles)`);
+    console.log(`[Strategic Linking] Finding internal links for: ${headline}`);
+    console.log(`[Strategic Linking] Funnel stage: ${funnelStage}, Available articles: ${articles.length}`);
 
     const languageName = getLanguageName(language);
+    const strategy = FUNNEL_LINK_STRATEGY[funnelStage] || FUNNEL_LINK_STRATEGY.TOFU;
 
-    // Use Perplexity for intelligent link discovery
-    const analysisPrompt = `Find the 5-8 most relevant internal links for this ${languageName} article:
+    // Strategic funnel-aware prompt
+    const analysisPrompt = `Find STRATEGIC internal links for this ${languageName} ${funnelStage} article.
 
 Current Article (Language: ${language.toUpperCase()}):
-Headline: ${headline}
-Funnel Stage: ${funnelStage || 'TOFU'}
-Content: ${content.substring(0, 2000)}
+- Headline: ${headline}
+- Funnel Stage: ${funnelStage}
+- Content Preview: ${content.substring(0, 1500)}
 
-Available Articles (ALL in ${language.toUpperCase()}):
+Available Cluster Articles (ALL in ${language.toUpperCase()}):
 ${articles.map((a: any, i: number) => 
-  `${i+1}. "${a.headline}" (${a.funnel_stage}) - ${a.speakable_answer?.substring(0, 100) || 'No description'}`
+  `${i+1}. [${a.funnel_stage}] "${a.headline}" - ${a.speakable_answer?.substring(0, 80) || 'No description'}`
 ).join('\n')}
 
-CRITICAL REQUIREMENTS:
-- Return MINIMUM 5 links, ideally 5-8 links
-- ALL articles and anchor text MUST be in ${languageName}
-- Mix of funnel stages (include TOFU, MOFU, BOFU for better content flow)
-- High topical relevance to the current article's topic
-- Natural anchor text phrases IN ${languageName} that fit contextually
-- Identify WHERE in the content to place each link (which section/heading)
-- Only suggest links that add real value to the reader
+🎯 STRATEGIC LINKING RULES FOR ${funnelStage} ARTICLES:
+${strategy.description}
+
+${strategy.linkingRules}
+
+⚠️ CRITICAL CONSTRAINTS:
+- Maximum ${strategy.maxWithinCluster} links total - NO MORE!
+- Follow funnel progression: ${strategy.targetStages.join(' → ')}
+- Each link must serve a specific purpose in the user journey
+- DO NOT link to all available articles - be strategic!
+- Anchor text MUST be in ${languageName}
 
 Return ONLY valid JSON in this exact format:
 {
@@ -107,8 +146,8 @@ Return ONLY valid JSON in this exact format:
     {
       "articleNumber": 5,
       "anchorText": "[anchor text in ${languageName}]",
-      "contextInArticle": "Why this link is relevant here",
-      "insertAfterHeading": "Section Name",
+      "purpose": "funnel_progression|context|related_topic|evidence|conversion",
+      "targetFunnelStage": "TOFU|MOFU|BOFU",
       "relevanceScore": 9
     }
   ]
@@ -125,7 +164,12 @@ Return ONLY valid JSON in this exact format:
         messages: [
           {
             role: 'system',
-            content: `You are an SEO expert finding relevant internal links for ${languageName} content strategy. ALL suggested anchor text MUST be in ${languageName}. Return only valid JSON.`
+            content: `You are an SEO expert specializing in strategic internal linking for content funnels. You understand that:
+- TOFU (Top of Funnel) = Awareness content
+- MOFU (Middle of Funnel) = Consideration content  
+- BOFU (Bottom of Funnel) = Decision/conversion content
+
+Your goal is to create strategic links that guide users through the buyer's journey, NOT to link everything to everything. Quality over quantity. ALL anchor text must be in ${languageName}.`
           },
           {
             role: 'user',
@@ -133,7 +177,7 @@ Return ONLY valid JSON in this exact format:
           }
         ],
         temperature: 0.3,
-        max_tokens: 2000,
+        max_tokens: 1500,
       }),
     });
 
@@ -146,7 +190,7 @@ Return ONLY valid JSON in this exact format:
     const aiData = await aiResponse.json();
     const aiContent = aiData.choices[0].message.content;
     
-    console.log('Perplexity response:', aiContent);
+    console.log('[Strategic Linking] Perplexity response:', aiContent);
 
     // Parse JSON response
     let suggestions = [];
@@ -166,9 +210,9 @@ Return ONLY valid JSON in this exact format:
         if (index < 0 || index >= articles.length) return false;
         
         const article = articles[index];
-        // Double-check language match (should already be filtered, but extra safety)
+        // Double-check language match
         if (article.language !== language) {
-          console.warn(`Filtered out mismatched language link: ${article.headline} (${article.language} != ${language})`);
+          console.warn(`[Strategic Linking] Filtered out mismatched language: ${article.headline} (${article.language} != ${language})`);
           return false;
         }
         
@@ -185,26 +229,29 @@ Return ONLY valid JSON in this exact format:
           funnelStage: article.funnel_stage,
           category: article.category,
           language: article.language,
-          contextInArticle: suggestion.contextInArticle || '',
-          insertAfterHeading: suggestion.insertAfterHeading || '',
+          purpose: suggestion.purpose || 'related_topic',
           relevanceScore: suggestion.relevanceScore || 5
         };
       });
 
-    // Sort by relevance
+    // Sort by relevance score
     enrichedLinks.sort((a: any, b: any) => b.relevanceScore - a.relevanceScore);
 
-    // Ensure minimum 5 links (or all available if less)
-    const finalLinks = enrichedLinks.slice(0, Math.max(8, enrichedLinks.length));
+    // ENFORCE STRATEGIC LIMIT - max 3 within-cluster links
+    const maxLinks = strategy.maxWithinCluster;
+    const strategicLinks = enrichedLinks.slice(0, maxLinks);
     
-    if (finalLinks.length < 5) {
-      console.warn(`Only found ${finalLinks.length} internal links (minimum 5 recommended)`);
-    }
-
-    console.log(`Found ${finalLinks.length} internal links`);
+    console.log(`[Strategic Linking] ${funnelStage} article: ${strategicLinks.length}/${enrichedLinks.length} links (max: ${maxLinks})`);
+    
+    // Log link distribution by purpose
+    const purposeCount: Record<string, number> = {};
+    strategicLinks.forEach((link: any) => {
+      purposeCount[link.purpose] = (purposeCount[link.purpose] || 0) + 1;
+    });
+    console.log(`[Strategic Linking] Link purposes:`, purposeCount);
 
     return new Response(
-      JSON.stringify({ links: finalLinks }),
+      JSON.stringify({ links: strategicLinks }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
@@ -276,17 +323,26 @@ async function handleBatchMode(requestData: any) {
       }
 
       const languageName = getLanguageName(article.language);
-      const prompt = `Find the 5-8 most relevant internal links for this ${languageName} article:
+      const funnelStage = article.funnel_stage || 'TOFU';
+      const strategy = FUNNEL_LINK_STRATEGY[funnelStage] || FUNNEL_LINK_STRATEGY.TOFU;
+      
+      // Strategic funnel-aware batch prompt
+      const prompt = `Find STRATEGIC internal links for this ${languageName} ${funnelStage} article.
 
 Current Article:
-Headline: ${article.headline}
-Funnel Stage: ${article.funnel_stage}
-Content: ${article.detailed_content.substring(0, 2000)}...
+- Headline: ${article.headline}
+- Funnel Stage: ${funnelStage}
+- Content Preview: ${article.detailed_content.substring(0, 1500)}...
 
 Available Articles (ALL in ${article.language.toUpperCase()}):
 ${availableArticles.map((a: any, i: number) => 
-  `${i+1}. "${a.headline}" (${a.funnel_stage}) - ${a.speakable_answer?.substring(0, 100) || ''}`
+  `${i+1}. [${a.funnel_stage}] "${a.headline}" - ${a.speakable_answer?.substring(0, 80) || ''}`
 ).join('\n')}
+
+🎯 STRATEGIC LINKING RULES FOR ${funnelStage} ARTICLES:
+${strategy.linkingRules}
+
+Maximum ${strategy.maxWithinCluster} links. Follow funnel progression priority.
 
 Return ONLY valid JSON:
 {
@@ -294,6 +350,7 @@ Return ONLY valid JSON:
     {
       "articleNumber": 5,
       "anchorText": "[anchor text in ${languageName}]",
+      "purpose": "funnel_progression|context|related_topic|evidence|conversion",
       "relevanceScore": 9
     }
   ]
@@ -308,11 +365,14 @@ Return ONLY valid JSON:
         body: JSON.stringify({
           model: 'sonar-pro',
           messages: [
-            { role: 'system', content: `You are an SEO expert. Return only valid JSON.` },
+            { 
+              role: 'system', 
+              content: `You are an SEO expert specializing in strategic funnel-based internal linking. Maximum ${strategy.maxWithinCluster} links per article. Quality over quantity. Return only valid JSON.` 
+            },
             { role: 'user', content: prompt }
           ],
           temperature: 0.3,
-          max_tokens: 2000,
+          max_tokens: 1500,
         }),
       });
 
@@ -328,6 +388,7 @@ Return ONLY valid JSON:
         suggestions = [];
       }
 
+      // Enrich and enforce strategic limit
       const enrichedLinks = suggestions
         .filter((s: any) => {
           const index = s.articleNumber - 1;
@@ -338,12 +399,17 @@ Return ONLY valid JSON:
           return {
             text: s.anchorText,
             url: `/blog/${targetArticle.slug}`,
-            title: targetArticle.headline
+            title: targetArticle.headline,
+            purpose: s.purpose || 'related_topic',
+            relevanceScore: s.relevanceScore || 5
           };
         })
-        .slice(0, 8);
+        .sort((a: any, b: any) => b.relevanceScore - a.relevanceScore)
+        .slice(0, strategy.maxWithinCluster); // ENFORCE MAX 3 LINKS
 
-      const confidenceScore = enrichedLinks.length >= 5 ? 85 : 60;
+      const confidenceScore = enrichedLinks.length >= 2 ? 85 : 60;
+
+      console.log(`[Batch Strategic Linking] ${funnelStage} article "${article.headline}": ${enrichedLinks.length} links (max: ${strategy.maxWithinCluster})`);
 
       // Store in database
       await supabase.from('internal_link_suggestions').insert({
@@ -355,9 +421,11 @@ Return ONLY valid JSON:
 
       results.push({
         articleId: article.id,
+        funnelStage,
         success: true,
         links: enrichedLinks,
         linkCount: enrichedLinks.length,
+        maxAllowed: strategy.maxWithinCluster,
         confidenceScore
       });
 
@@ -371,8 +439,21 @@ Return ONLY valid JSON:
     }
   }
 
+  // Log summary
+  const summary = results.reduce((acc: any, r: any) => {
+    if (r.success) {
+      const stage = r.funnelStage || 'UNKNOWN';
+      if (!acc[stage]) acc[stage] = { count: 0, totalLinks: 0 };
+      acc[stage].count++;
+      acc[stage].totalLinks += r.linkCount;
+    }
+    return acc;
+  }, {});
+  
+  console.log(`[Batch Strategic Linking] Summary:`, summary);
+
   return new Response(
-    JSON.stringify({ mode: 'batch', results }),
+    JSON.stringify({ mode: 'batch', results, summary }),
     { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
   );
 }
