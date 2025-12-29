@@ -164,26 +164,42 @@ const VARIED_INTRO_STYLES = [
   'common_misconception', // Address misconception then correct
 ] as const;
 
+// Language-specific minimum word counts
+// Inflected/agglutinative languages express meaning in fewer words
+const LANGUAGE_WORD_COUNTS: Record<string, { min: number; max: number }> = {
+  'en': { min: 350, max: 800 },
+  'de': { min: 300, max: 750 },
+  'nl': { min: 300, max: 750 },
+  'fr': { min: 320, max: 780 },
+  'pl': { min: 250, max: 700 },  // Polish is highly inflected
+  'sv': { min: 280, max: 750 },
+  'da': { min: 280, max: 750 },
+  'hu': { min: 220, max: 650 },  // Hungarian is agglutinative
+  'fi': { min: 200, max: 600 },  // Finnish is highly agglutinative
+  'no': { min: 280, max: 750 },
+};
+
 /**
  * Validate Q&A content meets AI-citation specifications
- * - Word count: 450-700 words
+ * - Word count: Language-specific thresholds (inflected languages need fewer words)
  * - No CTAs or marketing language
  * - No links
  */
-function validateQAContent(qaData: any): { valid: boolean; reason?: string; wordCount?: number } {
+function validateQAContent(qaData: any, language: string = 'en'): { valid: boolean; reason?: string; wordCount?: number } {
   if (!qaData.answer_main || !qaData.question_main) {
     return { valid: false, reason: 'missing_required_fields' };
   }
 
   const wordCount = qaData.answer_main.split(/\s+/).filter((w: string) => w.length > 0).length;
+  const thresholds = LANGUAGE_WORD_COUNTS[language] || LANGUAGE_WORD_COUNTS['en'];
   
-  if (wordCount < 350) {
-    console.warn(`[Validation] Q&A too short: ${wordCount} words (min 350 for lenient mode)`);
+  if (wordCount < thresholds.min) {
+    console.warn(`[Validation] Q&A too short: ${wordCount} words (min ${thresholds.min} for ${language})`);
     return { valid: false, reason: 'too_short', wordCount };
   }
   
-  if (wordCount > 800) {
-    console.warn(`[Validation] Q&A too long: ${wordCount} words (max 800 for lenient mode)`);
+  if (wordCount > thresholds.max) {
+    console.warn(`[Validation] Q&A too long: ${wordCount} words (max ${thresholds.max} for ${language})`);
     return { valid: false, reason: 'too_long', wordCount };
   }
   
@@ -477,8 +493,9 @@ async function generateEnglishQAPages(
           }
         }
         
-        // Validate content
-        const validation = validateQAContent(qaData);
+        // Validate content with language-aware word count thresholds
+        const articleLanguage = article.language || 'en';
+        const validation = validateQAContent(qaData, articleLanguage);
         if (!validation.valid) {
           console.warn(`[Generate] Validation failed for ${qaType} (attempt ${attempt + 1}): ${validation.reason}`);
           if (attempt < MAX_RETRIES) {
@@ -492,7 +509,6 @@ async function generateEnglishQAPages(
         }
         
         // Language validation for non-English content
-        const articleLanguage = article.language || 'en';
         if (articleLanguage !== 'en' && !validateQALanguage(qaData, articleLanguage)) {
           console.warn(`[Generate] Language validation failed for ${qaType} in ${articleLanguage} (attempt ${attempt + 1})`);
           if (attempt < MAX_RETRIES) {
