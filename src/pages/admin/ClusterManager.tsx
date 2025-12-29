@@ -415,9 +415,9 @@ const ClusterManager = () => {
     }
   }, [queryClient]);
 
-  // Generate QAs for next pending language in cluster (one at a time, with continuation support)
+  // Generate QAs for next pending language in cluster (one at a time, with pagination/continuation support)
   const generateNextLanguageQAMutation = useMutation({
-    mutationFn: async ({ clusterId, language, articleIds }: { clusterId: string; language: string; articleIds: string[] }) => {
+    mutationFn: async ({ clusterId, language, articleIds, offset = 0 }: { clusterId: string; language: string; articleIds: string[]; offset?: number }) => {
       setGeneratingQALanguage({ clusterId, lang: language });
       
       const { data, error } = await supabase.functions.invoke("generate-qa-pages", {
@@ -426,6 +426,7 @@ const ClusterManager = () => {
           singleLanguageMode: true,
           targetLanguage: language,
           clusterId,
+          offset, // Pass offset for pagination
         },
       });
       
@@ -433,7 +434,7 @@ const ClusterManager = () => {
       return { ...data, clusterId, language, articleIds };
     },
     onSuccess: (result) => {
-      const { language, generatedPages, skippedPages, failedPages, needsContinuation, articlesProcessed, totalArticlesInLanguage, message, clusterId, articleIds } = result;
+      const { language, generatedPages, skippedPages, failedPages, needsContinuation, articlesProcessed, totalArticlesInLanguage, nextOffset, remainingArticles, clusterId, articleIds } = result;
       
       // Check for failures first
       if (failedPages && failedPages > 0) {
@@ -444,22 +445,26 @@ const ClusterManager = () => {
         }
       } else if (generatedPages > 0) {
         if (needsContinuation) {
-          toast.info(`Generated ${generatedPages} QAs for ${language.toUpperCase()} (${articlesProcessed}/${totalArticlesInLanguage} articles). Click again to continue.`);
+          toast.info(`Generated ${generatedPages} QAs for ${language.toUpperCase()} (${nextOffset}/${totalArticlesInLanguage} articles done, ${remainingArticles} left)`);
         } else {
           toast.success(`Generated ${generatedPages} QA pages for ${language.toUpperCase()}`);
         }
       } else if (skippedPages > 0) {
-        toast.info(`${language.toUpperCase()} already complete (${skippedPages} pages exist)`);
+        if (needsContinuation) {
+          toast.info(`Skipped ${skippedPages} existing QAs. Continuing to next batch...`);
+        } else {
+          toast.info(`${language.toUpperCase()} already complete (${skippedPages} pages exist)`);
+        }
       }
       
       queryClient.invalidateQueries({ queryKey: ["cluster-qa-pages"] });
       setGeneratingQALanguage(null);
       
-      // Auto-continue if there are more articles to process (with a small delay)
-      if (needsContinuation && clusterId && articleIds) {
+      // Auto-continue with nextOffset if there are more articles to process
+      if (needsContinuation && clusterId && articleIds && nextOffset !== undefined) {
         setTimeout(() => {
-          toast.info(`Continuing ${language.toUpperCase()} QA generation...`);
-          generateNextLanguageQAMutation.mutate({ clusterId, language, articleIds });
+          toast.info(`Continuing ${language.toUpperCase()} QA generation (batch ${Math.floor(nextOffset / 3) + 1})...`);
+          generateNextLanguageQAMutation.mutate({ clusterId, language, articleIds, offset: nextOffset });
         }, 1500);
       }
     },
