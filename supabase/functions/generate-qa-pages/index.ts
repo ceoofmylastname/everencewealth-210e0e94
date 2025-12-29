@@ -920,8 +920,9 @@ serve(async (req) => {
       clusterId,
       backgroundMode = false,
       resumeJobId, // Resume a stalled job
-      singleLanguageMode = false, // NEW: Process one language at a time to prevent timeouts
-      targetLanguage // NEW: Which language to process in singleLanguageMode
+      singleLanguageMode = false, // Process one language at a time to prevent timeouts
+      targetLanguage, // Which language to process in singleLanguageMode
+      nativeLanguageMode = false // NEW: Generate Q&As in each article's native language
     } = body;
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
@@ -1233,8 +1234,10 @@ serve(async (req) => {
 
     // Determine target languages
     const isAllLanguages = languages.includes('all') || languages[0] === 'all';
-    const targetLanguages = isAllLanguages ? ALL_SUPPORTED_LANGUAGES : languages;
-    const effectiveLanguageCount = targetLanguages.length;
+    const isNativeMode = languages.includes('native') || nativeLanguageMode;
+    // In native mode, we'll determine target language per article (later)
+    const targetLanguages = isNativeMode ? ['native'] : (isAllLanguages ? ALL_SUPPORTED_LANGUAGES : languages);
+    const effectiveLanguageCount = isNativeMode ? 1 : targetLanguages.length; // 1 per article in native mode
 
     // BACKGROUND MODE: Return immediately and process in background
     if (completeMissing && backgroundMode) {
@@ -1544,17 +1547,22 @@ serve(async (req) => {
 
     if (checkError) throw checkError;
 
-    const nonEnglishArticles = (articlesToCheck || []).filter((a: any) => a.language !== 'en');
-    if (nonEnglishArticles.length > 0) {
-      const nonEnglishHeadlines = nonEnglishArticles.map((a: any) => `${a.headline} (${a.language})`);
-      return new Response(JSON.stringify({
-        success: false,
-        error: 'Q&A generation requires English source articles only. Non-English articles detected.',
-        nonEnglishArticles: nonEnglishHeadlines,
-      }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+    // NATIVE LANGUAGE MODE: Skip non-English check when generating in article's native language
+    if (!nativeLanguageMode) {
+      const nonEnglishArticles = (articlesToCheck || []).filter((a: any) => a.language !== 'en');
+      if (nonEnglishArticles.length > 0) {
+        const nonEnglishHeadlines = nonEnglishArticles.map((a: any) => `${a.headline} (${a.language})`);
+        return new Response(JSON.stringify({
+          success: false,
+          error: 'Q&A generation requires English source articles only. Non-English articles detected. Use nativeLanguageMode for non-English articles.',
+          nonEnglishArticles: nonEnglishHeadlines,
+        }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+    } else {
+      console.log(`[Main] Native language mode: Processing ${articlesToCheck?.length || 0} articles in their native languages`);
     }
 
     let jobId = existingJobId;
@@ -1669,7 +1677,9 @@ serve(async (req) => {
     }
 
     // Legacy processOneArticle function for non-background mode
-    const result = await processOneArticleLegacy(supabase, article, targetLanguages, openaiApiKey, jobId);
+    // In native mode, use the article's own language
+    const articleTargetLanguages = isNativeMode ? [article.language] : targetLanguages;
+    const result = await processOneArticleLegacy(supabase, article, articleTargetLanguages, openaiApiKey, jobId);
     
     currentIndex++;
     const { data: jobData } = await supabase
@@ -1803,57 +1813,79 @@ async function processOneArticleLegacy(
       return { success: true, generatedPages: 0 };
     }
 
-    let englishQAPages: any[] = [];
+    // NATIVE LANGUAGE MODE: If article is non-English and we're generating for its language,
+    // generate Q&As directly in that language (not English->translate)
+    const articleLanguage = article.language;
+    const isNativeLanguageGeneration = languagesToGenerate.length === 1 && languagesToGenerate[0] === articleLanguage;
     
-    if (languagesToGenerate.includes('en')) {
-      englishQAPages = await generateEnglishQAPages(article, lovableApiKey);
-    } else {
-      const { data: existingEnglish } = await supabase
-        .from('qa_pages')
-        .select('*')
-        .eq('source_article_id', article.id)
-        .eq('language', 'en');
+    let allQAPages: any[] = [];
+    
+    if (isNativeLanguageGeneration && articleLanguage !== 'en') {
+      // Generate Q&As directly in the article's native language
+      console.log(`[Process] Generating Q&As NATIVELY in ${articleLanguage} for: ${article.headline}`);
+      const nativeQAPages = await generateEnglishQAPages(article, lovableApiKey, ALL_QA_TYPES);
       
-      if (existingEnglish && existingEnglish.length > 0) {
-        englishQAPages = existingEnglish;
-      } else {
-        englishQAPages = await generateEnglishQAPages(article, lovableApiKey);
-      }
-    }
-
-    const allQAPages: any[] = [];
-
-    if (languagesToGenerate.includes('en')) {
-      for (const englishQA of englishQAPages) {
+      for (const nativeQA of nativeQAPages) {
         allQAPages.push({
-          ...englishQA,
-          hreflang_group_id: englishQA.qa_type === 'core' ? hreflangGroupCore : hreflangGroupDecision,
+          ...nativeQA,
+          language: articleLanguage, // Ensure language is set correctly
+          hreflang_group_id: nativeQA.qa_type === 'core' ? hreflangGroupCore : hreflangGroupDecision,
           tracking_id: trackingId,
         });
       }
-      existingLanguages.push('en');
-    }
-
-    const translationLanguages = languagesToGenerate.filter((lang: string) => lang !== 'en');
-    
-    for (const targetLang of translationLanguages) {
-      for (const englishQA of englishQAPages) {
-        try {
-          const translatedQA = await translateQAPage(englishQA, targetLang, lovableApiKey);
-          
-          allQAPages.push({
-            ...translatedQA,
-            hreflang_group_id: translatedQA.qa_type === 'core' ? hreflangGroupCore : hreflangGroupDecision,
-            tracking_id: trackingId,
-            source_article_id: article.id,
-            source_article_slug: article.slug,
-          });
-        } catch (error) {
-          console.error(`[Process] Failed to translate ${englishQA.qa_type} to ${targetLang}:`, error);
+      existingLanguages.push(articleLanguage);
+    } else {
+      // Standard mode: Generate English first, then translate
+      let englishQAPages: any[] = [];
+      
+      if (languagesToGenerate.includes('en')) {
+        englishQAPages = await generateEnglishQAPages(article, lovableApiKey);
+      } else {
+        const { data: existingEnglish } = await supabase
+          .from('qa_pages')
+          .select('*')
+          .eq('source_article_id', article.id)
+          .eq('language', 'en');
+        
+        if (existingEnglish && existingEnglish.length > 0) {
+          englishQAPages = existingEnglish;
+        } else {
+          englishQAPages = await generateEnglishQAPages(article, lovableApiKey);
         }
       }
+
+      if (languagesToGenerate.includes('en')) {
+        for (const englishQA of englishQAPages) {
+          allQAPages.push({
+            ...englishQA,
+            hreflang_group_id: englishQA.qa_type === 'core' ? hreflangGroupCore : hreflangGroupDecision,
+            tracking_id: trackingId,
+          });
+        }
+        existingLanguages.push('en');
+      }
+
+      const translationLanguages = languagesToGenerate.filter((lang: string) => lang !== 'en');
       
-      existingLanguages.push(targetLang);
+      for (const targetLang of translationLanguages) {
+        for (const englishQA of englishQAPages) {
+          try {
+            const translatedQA = await translateQAPage(englishQA, targetLang, lovableApiKey);
+            
+            allQAPages.push({
+              ...translatedQA,
+              hreflang_group_id: translatedQA.qa_type === 'core' ? hreflangGroupCore : hreflangGroupDecision,
+              tracking_id: trackingId,
+              source_article_id: article.id,
+              source_article_slug: article.slug,
+            });
+          } catch (error) {
+            console.error(`[Process] Failed to translate ${englishQA.qa_type} to ${targetLang}:`, error);
+          }
+        }
+        
+        existingLanguages.push(targetLang);
+      }
     }
 
     for (const qaData of allQAPages) {
