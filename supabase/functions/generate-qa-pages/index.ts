@@ -644,6 +644,7 @@ serve(async (req) => {
   }
 
   try {
+    const body = await req.json();
     const { 
       articleIds, 
       mode = 'single', 
@@ -652,8 +653,81 @@ serve(async (req) => {
       resumeFromIndex = 0, 
       completeMissing = false,
       clusterId,
-      backgroundMode = false 
-    } = await req.json();
+      backgroundMode = false,
+      resumeJobId // New: Resume a stalled job
+    } = body;
+
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const openaiApiKey = Deno.env.get('OPENAI_API_KEY')!;
+    
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    // RESUME MODE: Resume a stalled job
+    if (resumeJobId) {
+      console.log(`[Resume] Resuming stalled job ${resumeJobId}`);
+      
+      // Get the stalled job
+      const { data: stalledJob, error: stalledError } = await supabase
+        .from('qa_generation_jobs')
+        .select('*')
+        .eq('id', resumeJobId)
+        .single();
+      
+      if (stalledError || !stalledJob) {
+        return new Response(JSON.stringify({ 
+          success: false, 
+          error: 'Job not found' 
+        }), {
+          status: 404,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      
+      // Sync counter with actual pages
+      const { data: actualPages } = await supabase
+        .from('qa_pages')
+        .select('id')
+        .in('source_article_id', stalledJob.article_ids || []);
+      
+      const actualCount = actualPages?.length || 0;
+      
+      // Update job to running status with synced counter
+      await supabase
+        .from('qa_generation_jobs')
+        .update({
+          status: 'running',
+          generated_faq_pages: actualCount,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', resumeJobId);
+      
+      // Start background processing from where it left off
+      // @ts-ignore - EdgeRuntime.waitUntil is a Deno Deploy feature
+      EdgeRuntime.waitUntil(
+        processAllMissingQAs(
+          supabase, 
+          resumeJobId, 
+          stalledJob.article_ids || [], 
+          stalledJob.languages || ALL_SUPPORTED_LANGUAGES, 
+          openaiApiKey, 
+          stalledJob.cluster_id,
+          stalledJob.resume_from_article_index || 0,
+          stalledJob.resume_from_language
+        )
+      );
+      
+      return new Response(JSON.stringify({
+        success: true,
+        jobId: resumeJobId,
+        status: 'running',
+        message: `Resumed job from article ${stalledJob.resume_from_article_index || 0}`,
+        actualPages: actualCount,
+        totalExpected: stalledJob.total_faq_pages,
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
 
     if (!articleIds || !Array.isArray(articleIds) || articleIds.length === 0) {
       return new Response(JSON.stringify({ 
@@ -664,12 +738,6 @@ serve(async (req) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
-
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const openaiApiKey = Deno.env.get('OPENAI_API_KEY')!;
-    
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     // Determine target languages
     const isAllLanguages = languages.includes('all') || languages[0] === 'all';
