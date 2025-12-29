@@ -36,6 +36,8 @@ interface ClusterData {
   job_progress?: any;
   qa_pages: Record<string, number>;
   total_qa_pages: number;
+  expected_qa_pages: number; // articles × 4 QAs per article
+  qa_completion_percent: number;
 }
 
 // Backend default translation languages (English + these = 10 languages total)
@@ -53,6 +55,8 @@ const ClusterManager = () => {
   const [translationProgress, setTranslationProgress] = useState<{ current: string; remaining: number } | null>(null);
   const [regeneratingLinks, setRegeneratingLinks] = useState<string | null>(null);
   const [regeneratingAllLinks, setRegeneratingAllLinks] = useState(false);
+  const [generatingQALanguage, setGeneratingQALanguage] = useState<{ clusterId: string; lang: string } | null>(null);
+  const [generatingAllQAs, setGeneratingAllQAs] = useState<string | null>(null);
 
   const getAllExpectedLanguages = (cluster?: Pick<ClusterData, "languages_queue">) => {
     const queue =
@@ -125,6 +129,8 @@ const ClusterManager = () => {
           created_at: article.created_at,
           qa_pages: {},
           total_qa_pages: 0,
+          expected_qa_pages: 0,
+          qa_completion_percent: 0,
         });
       }
 
@@ -173,6 +179,14 @@ const ClusterManager = () => {
         cluster.qa_pages[qa.language] = (cluster.qa_pages[qa.language] || 0) + 1;
         cluster.total_qa_pages++;
       }
+    });
+
+    // Calculate expected QA pages (4 QAs per article) and completion percent
+    clustersArray.forEach((cluster) => {
+      cluster.expected_qa_pages = cluster.total_articles * 4;
+      cluster.qa_completion_percent = cluster.expected_qa_pages > 0 
+        ? Math.round((cluster.total_qa_pages / cluster.expected_qa_pages) * 100)
+        : 0;
     });
 
     // Sort by created_at descending
@@ -280,9 +294,118 @@ const ClusterManager = () => {
     },
     onSuccess: (count) => {
       toast.success(`QA generation started for ${count} articles`);
+      queryClient.invalidateQueries({ queryKey: ["cluster-qa-pages"] });
     },
     onError: (error) => {
       toast.error(`Failed to start QA generation: ${error.message}`);
+    },
+  });
+
+  // Generate QAs for specific language in cluster
+  const generateQAsForLanguageMutation = useMutation({
+    mutationFn: async ({ clusterId, language }: { clusterId: string; language: string }) => {
+      setGeneratingQALanguage({ clusterId, lang: language });
+      
+      // Get articles in this cluster and language (both draft and published)
+      const { data: clusterArticles, error: fetchError } = await supabase
+        .from("blog_articles")
+        .select("id")
+        .eq("cluster_id", clusterId)
+        .eq("language", language)
+        .in("status", ["draft", "published"]);
+      
+      if (fetchError) throw fetchError;
+      if (!clusterArticles || clusterArticles.length === 0) {
+        throw new Error(`No ${language.toUpperCase()} articles found in this cluster`);
+      }
+      
+      let totalGenerated = 0;
+      
+      // For each article, call completeMissing mode to fill in gaps
+      for (const article of clusterArticles) {
+        try {
+          const { data, error } = await supabase.functions.invoke("generate-qa-pages", {
+            body: { 
+              articleIds: [article.id],
+              languages: [language],
+              completeMissing: true
+            },
+          });
+          
+          if (error) {
+            console.error(`Failed to generate QAs for article ${article.id}:`, error);
+          } else {
+            totalGenerated += data?.generatedPages || 0;
+          }
+        } catch (err) {
+          console.error(`Error generating QAs for article ${article.id}:`, err);
+        }
+      }
+      
+      return { language, totalGenerated, articleCount: clusterArticles.length };
+    },
+    onSuccess: ({ language, totalGenerated }) => {
+      toast.success(`Generated ${totalGenerated} QA pages for ${language.toUpperCase()}`);
+      queryClient.invalidateQueries({ queryKey: ["cluster-qa-pages"] });
+      setGeneratingQALanguage(null);
+    },
+    onError: (error) => {
+      toast.error(`Failed to generate QAs: ${error.message}`);
+      setGeneratingQALanguage(null);
+    },
+  });
+
+  // Generate ALL missing QAs for entire cluster
+  const generateAllMissingQAsMutation = useMutation({
+    mutationFn: async (clusterId: string) => {
+      setGeneratingAllQAs(clusterId);
+      
+      // Get all English articles in cluster
+      const { data: englishArticles, error: fetchError } = await supabase
+        .from("blog_articles")
+        .select("id")
+        .eq("cluster_id", clusterId)
+        .eq("language", "en")
+        .in("status", ["draft", "published"]);
+      
+      if (fetchError) throw fetchError;
+      if (!englishArticles || englishArticles.length === 0) {
+        throw new Error("No English articles found in this cluster");
+      }
+      
+      let totalGenerated = 0;
+      
+      // For each English article, generate all missing QAs across all languages
+      for (const article of englishArticles) {
+        try {
+          const { data, error } = await supabase.functions.invoke("generate-qa-pages", {
+            body: { 
+              articleIds: [article.id],
+              languages: ['all'],
+              completeMissing: true
+            },
+          });
+          
+          if (error) {
+            console.error(`Failed to generate QAs for article ${article.id}:`, error);
+          } else {
+            totalGenerated += data?.generatedPages || 0;
+          }
+        } catch (err) {
+          console.error(`Error generating QAs for article ${article.id}:`, err);
+        }
+      }
+      
+      return { totalGenerated, articleCount: englishArticles.length };
+    },
+    onSuccess: ({ totalGenerated, articleCount }) => {
+      toast.success(`Generated ${totalGenerated} QA pages for ${articleCount} articles`);
+      queryClient.invalidateQueries({ queryKey: ["cluster-qa-pages"] });
+      setGeneratingAllQAs(null);
+    },
+    onError: (error) => {
+      toast.error(`Failed to generate QAs: ${error.message}`);
+      setGeneratingAllQAs(null);
     },
   });
 
@@ -680,11 +803,17 @@ const ClusterManager = () => {
                         <span className="text-muted-foreground">
                           • {cluster.total_articles} articles
                         </span>
-                        {cluster.total_qa_pages > 0 && (
-                          <span className="text-purple-600 dark:text-purple-400">
-                            • {cluster.total_qa_pages} QA pages
-                          </span>
-                        )}
+                        {/* QA Progress: show expected vs actual */}
+                        <span className={`font-medium ${
+                          cluster.qa_completion_percent === 100 
+                            ? 'text-green-600 dark:text-green-400' 
+                            : cluster.qa_completion_percent > 0 
+                              ? 'text-amber-600 dark:text-amber-400' 
+                              : 'text-muted-foreground'
+                        }`}>
+                          • QAs: {cluster.total_qa_pages}/{cluster.expected_qa_pages} ({cluster.qa_completion_percent}%)
+                          {cluster.qa_completion_percent === 100 ? ' ✅' : cluster.qa_completion_percent > 0 ? ' ⚠️' : ' ❌'}
+                        </span>
                         <span className="text-muted-foreground">
                           • Created {new Date(cluster.created_at).toLocaleDateString()}
                         </span>
@@ -716,23 +845,53 @@ const ClusterManager = () => {
                     </div>
                   )}
 
-                  {/* Language breakdown */}
+                  {/* Language breakdown with QA counts */}
                   <div className="flex flex-wrap gap-2 mb-4">
-                    {Object.entries(cluster.languages).map(([lang, stats]) => (
-                      <Badge key={lang} variant="outline" className="text-sm">
-                        {getLanguageFlag(lang)} {stats.total}
-                        {cluster.qa_pages[lang] > 0 && (
-                          <span className="text-purple-600 dark:text-purple-400 ml-1">
-                            +{cluster.qa_pages[lang]}Q
-                          </span>
-                        )}
-                        {stats.draft > 0 && stats.published > 0 && (
-                          <span className="text-muted-foreground ml-1">
-                            ({stats.published}✓ {stats.draft}○)
-                          </span>
-                        )}
-                      </Badge>
-                    ))}
+                    {Object.entries(cluster.languages).map(([lang, stats]) => {
+                      const expectedQAs = stats.total * 4;
+                      const actualQAs = cluster.qa_pages[lang] || 0;
+                      const missingQAs = expectedQAs - actualQAs;
+                      const langPercent = expectedQAs > 0 ? Math.round((actualQAs / expectedQAs) * 100) : 0;
+                      const isGenerating = generatingQALanguage?.clusterId === cluster.cluster_id && generatingQALanguage?.lang === lang;
+                      
+                      return (
+                        <div key={lang} className="flex items-center gap-1">
+                          <Badge variant="outline" className="text-sm">
+                            {getLanguageFlag(lang)} {stats.total}
+                            <span className={`ml-1 ${
+                              langPercent === 100 
+                                ? 'text-green-600 dark:text-green-400' 
+                                : langPercent > 0 
+                                  ? 'text-amber-600 dark:text-amber-400' 
+                                  : 'text-muted-foreground'
+                            }`}>
+                              | {actualQAs}/{expectedQAs}Q
+                              {langPercent === 100 ? ' ✅' : langPercent > 0 ? ' ⚠️' : ''}
+                            </span>
+                            {stats.draft > 0 && stats.published > 0 && (
+                              <span className="text-muted-foreground ml-1">
+                                ({stats.published}✓ {stats.draft}○)
+                              </span>
+                            )}
+                          </Badge>
+                          {missingQAs > 0 && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-6 px-2 text-xs text-purple-600 hover:text-purple-700 hover:bg-purple-50 dark:text-purple-400 dark:hover:bg-purple-950"
+                              onClick={() => generateQAsForLanguageMutation.mutate({ clusterId: cluster.cluster_id, language: lang })}
+                              disabled={isGenerating || generatingAllQAs === cluster.cluster_id}
+                            >
+                              {isGenerating ? (
+                                <Loader2 className="h-3 w-3 animate-spin" />
+                              ) : (
+                                `+${missingQAs}`
+                              )}
+                            </Button>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
 
                   <div className="flex flex-wrap gap-2">
@@ -812,15 +971,35 @@ const ClusterManager = () => {
                         </Button>
                       );
                     })()}
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => generateQAMutation.mutate(cluster.cluster_id)}
-                      disabled={generateQAMutation.isPending}
-                    >
-                      <HelpCircle className="mr-2 h-4 w-4" />
-                      {generateQAMutation.isPending ? "Starting..." : "Generate QA"}
-                    </Button>
+                    {/* Generate All Missing QAs Button */}
+                    {(() => {
+                      const missingQAs = cluster.expected_qa_pages - cluster.total_qa_pages;
+                      const isGenerating = generatingAllQAs === cluster.cluster_id;
+                      
+                      if (missingQAs <= 0) return null;
+                      
+                      return (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="text-purple-600 border-purple-300 hover:bg-purple-50 dark:text-purple-400 dark:border-purple-700 dark:hover:bg-purple-950"
+                          onClick={() => generateAllMissingQAsMutation.mutate(cluster.cluster_id)}
+                          disabled={isGenerating || generateAllMissingQAsMutation.isPending}
+                        >
+                          {isGenerating ? (
+                            <>
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              Generating QAs...
+                            </>
+                          ) : (
+                            <>
+                              <HelpCircle className="mr-2 h-4 w-4" />
+                              Generate All QAs ({missingQAs} needed)
+                            </>
+                          )}
+                        </Button>
+                      );
+                    })()}
                     <Button
                       variant="outline"
                       size="sm"

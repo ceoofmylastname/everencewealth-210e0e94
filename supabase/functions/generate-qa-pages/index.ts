@@ -156,35 +156,50 @@ Respond in JSON format ONLY:
 }
 
 /**
- * Generate English Q&A pages for an article
+ * Generate English Q&A pages for an article - NOW 4 TYPES
  */
 async function generateEnglishQAPages(
   article: any,
-  lovableApiKey: string
+  lovableApiKey: string,
+  specificTypes?: string[]
 ): Promise<any[]> {
   console.log(`[Generate] Creating English Q&A pages for: ${article.headline}`);
 
-  const prompt = `You are generating 2 standalone Q&A pages derived from this blog article:
+  // If specific types requested, only generate those
+  const typesToGenerate = specificTypes || ['core', 'decision', 'practical', 'problem'];
+  const typeCount = typesToGenerate.length;
+
+  const prompt = `You are generating ${typeCount} standalone Q&A pages derived from this blog article:
 
 ARTICLE TITLE: ${article.headline}
 ARTICLE CONTENT: ${article.detailed_content?.substring(0, 4000)}
 LANGUAGE: English
 
-Generate exactly 2 Q&A pages with DIFFERENT angles:
+Generate exactly ${typeCount} Q&A pages with DIFFERENT angles:
 
-Q&A PAGE #1 (TYPE: "core"):
+${typesToGenerate.includes('core') ? `Q&A PAGE (TYPE: "core"):
 - Focus: Core explanation, how-to, educational
 - Main question should be "What is..." or "How to..." style
 - Answer should be comprehensive, helpful, structured
 
-Q&A PAGE #2 (TYPE: "decision"):  
-- Focus: Decision-making, comparison, common mistakes
-- Main question should be "Should I...", "What to avoid...", "Best way to..." style
+` : ''}${typesToGenerate.includes('decision') ? `Q&A PAGE (TYPE: "decision"):  
+- Focus: Decision-making, comparison, best approaches
+- Main question should be "Should I...", "Best way to...", "Which is better..." style
 - Answer should help readers make informed decisions
 
-For EACH Q&A page, return a JSON object with these exact fields:
+` : ''}${typesToGenerate.includes('practical') ? `Q&A PAGE (TYPE: "practical"):
+- Focus: Step-by-step guides, practical tips, timing
+- Main question should be "When should I...", "How do I...", "What steps..." style
+- Answer should provide actionable, practical guidance
+
+` : ''}${typesToGenerate.includes('problem') ? `Q&A PAGE (TYPE: "problem"):
+- Focus: Common mistakes, problems to avoid, troubleshooting
+- Main question should be "What mistakes...", "What problems...", "How to avoid..." style
+- Answer should help readers avoid common pitfalls
+
+` : ''}For EACH Q&A page, return a JSON object with these exact fields:
 {
-  "qa_type": "core" or "decision",
+  "qa_type": "${typesToGenerate.join('" or "')}",
   "title": "Full page title (50-60 chars)",
   "slug": "url-friendly-slug",
   "question_main": "The primary question",
@@ -198,7 +213,7 @@ For EACH Q&A page, return a JSON object with these exact fields:
   "meta_description": "SEO description ≤160 chars"
 }
 
-Return a JSON array with exactly 2 objects. No markdown, no explanation, just valid JSON.`;
+Return a JSON array with exactly ${typeCount} objects. No markdown, no explanation, just valid JSON.`;
 
   const MAX_RETRIES = 2;
   
@@ -574,17 +589,20 @@ serve(async (req) => {
     const targetLanguages = isAllLanguages ? ALL_SUPPORTED_LANGUAGES : languages;
     const effectiveLanguageCount = targetLanguages.length;
 
+    // All 4 QA types
+    const ALL_QA_TYPES = ['core', 'decision', 'practical', 'problem'];
+
     // COMPLETE MISSING MODE: Find and generate only missing language/qa_type combinations
     if (completeMissing && articleIds.length === 1) {
       const articleId = articleIds[0];
       console.log(`[CompleteMissing] Finding missing pages for article ${articleId}`);
       
-      // Get article data
+      // Get article data (include both draft and published)
       const { data: article, error: articleError } = await supabase
         .from('blog_articles')
         .select('id, headline, detailed_content, meta_description, language, featured_image_url, featured_image_alt, featured_image_caption, slug, author_id, cluster_id, category')
         .eq('id', articleId)
-        .eq('status', 'published')
+        .in('status', ['draft', 'published'])
         .single();
       
       if (articleError || !article) {
@@ -602,18 +620,29 @@ serve(async (req) => {
       // Build set of existing combinations
       const existingCombos = new Set((existingPages || []).map(p => `${p.language}_${p.qa_type}`));
       
-      // Get hreflang groups from existing pages
+      // Get hreflang groups from existing pages (now 4 types)
       let hreflangGroupCore = existingPages?.find(p => p.qa_type === 'core')?.hreflang_group_id || crypto.randomUUID();
       let hreflangGroupDecision = existingPages?.find(p => p.qa_type === 'decision')?.hreflang_group_id || crypto.randomUUID();
+      let hreflangGroupPractical = existingPages?.find(p => p.qa_type === 'practical')?.hreflang_group_id || crypto.randomUUID();
+      let hreflangGroupProblem = existingPages?.find(p => p.qa_type === 'problem')?.hreflang_group_id || crypto.randomUUID();
       
-      // Find missing combinations
+      const getHreflangGroup = (qaType: string) => {
+        switch (qaType) {
+          case 'core': return hreflangGroupCore;
+          case 'decision': return hreflangGroupDecision;
+          case 'practical': return hreflangGroupPractical;
+          case 'problem': return hreflangGroupProblem;
+          default: return crypto.randomUUID();
+        }
+      };
+      
+      // Find missing combinations for all 4 QA types
       const missingCombos: { language: string; qaType: string }[] = [];
       for (const lang of targetLanguages) {
-        if (!existingCombos.has(`${lang}_core`)) {
-          missingCombos.push({ language: lang, qaType: 'core' });
-        }
-        if (!existingCombos.has(`${lang}_decision`)) {
-          missingCombos.push({ language: lang, qaType: 'decision' });
+        for (const qaType of ALL_QA_TYPES) {
+          if (!existingCombos.has(`${lang}_${qaType}`)) {
+            missingCombos.push({ language: lang, qaType });
+          }
         }
       }
 
@@ -631,13 +660,24 @@ serve(async (req) => {
       // Use English-first workflow for missing pages too
       let englishQAPages: any[] = [];
       
-      // Check if we have English pages, if not generate them
-      const hasEnglishCore = existingCombos.has('en_core');
-      const hasEnglishDecision = existingCombos.has('en_decision');
+      // Find which English QA types are missing
+      const missingEnglishTypes = ALL_QA_TYPES.filter(t => !existingCombos.has(`en_${t}`));
       
-      if (!hasEnglishCore || !hasEnglishDecision) {
-        englishQAPages = await generateEnglishQAPages(article, openaiApiKey);
+      // Check if we have all English pages, if not generate missing ones
+      if (missingEnglishTypes.length > 0) {
+        // Generate only the missing English types
+        const newEnglishPages = await generateEnglishQAPages(article, openaiApiKey, missingEnglishTypes);
+        
+        // Also fetch existing English pages
+        const { data: existingEnglish } = await supabase
+          .from('qa_pages')
+          .select('*')
+          .eq('source_article_id', articleId)
+          .eq('language', 'en');
+        
+        englishQAPages = [...(existingEnglish || []), ...newEnglishPages];
       } else {
+        // Fetch all existing English pages
         const { data: existingEnglish } = await supabase
           .from('qa_pages')
           .select('*')
@@ -692,9 +732,10 @@ serve(async (req) => {
               .from('qa_pages')
               .insert({
                 source_article_id: article.id,
+                cluster_id: article.cluster_id || null,
                 language: 'en',
                 source_language: 'en',
-                hreflang_group_id: englishQA.qa_type === 'core' ? hreflangGroupCore : hreflangGroupDecision,
+                hreflang_group_id: getHreflangGroup(englishQA.qa_type),
                 tracking_id: trackingId,
                 qa_type: englishQA.qa_type,
                 title: englishQA.title,
@@ -730,9 +771,10 @@ serve(async (req) => {
                 .from('qa_pages')
                 .insert({
                   source_article_id: article.id,
+                  cluster_id: article.cluster_id || null,
                   language: lang,
                   source_language: 'en',
-                  hreflang_group_id: translatedQA.qa_type === 'core' ? hreflangGroupCore : hreflangGroupDecision,
+                  hreflang_group_id: getHreflangGroup(translatedQA.qa_type),
                   tracking_id: trackingId,
                   qa_type: translatedQA.qa_type,
                   title: translatedQA.title,
@@ -772,7 +814,7 @@ serve(async (req) => {
           .from('qa_article_tracking')
           .update({
             languages_generated: languagesGenerated,
-            total_qa_pages: languagesGenerated.length * 2,
+            total_qa_pages: languagesGenerated.length * 4, // Now 4 QAs per language
             status: 'completed',
           })
           .eq('id', trackingId);
