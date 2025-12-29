@@ -747,8 +747,11 @@ serve(async (req) => {
     }
 
     // SINGLE LANGUAGE MODE: Process QAs for one language only (prevents timeouts)
+    // Accept offset for pagination between calls
+    const offset = body.offset ?? 0;
+    
     if (singleLanguageMode && targetLanguage) {
-      console.log(`[SingleLang] Processing QAs for language: ${targetLanguage}`);
+      console.log(`[SingleLang] Processing QAs for language: ${targetLanguage}, offset: ${offset}`);
       
       // Start timeout guard - must return before 55 seconds to avoid connection close
       const startTime = Date.now();
@@ -770,13 +773,14 @@ serve(async (req) => {
         });
       }
 
-      // Fetch all articles for this cluster in the target language
+      // Fetch all articles for this cluster in the target language WITH consistent ordering
       const { data: langArticles, error: langError } = await supabase
         .from('blog_articles')
         .select('id, headline, detailed_content, meta_description, language, featured_image_url, featured_image_alt, featured_image_caption, slug, author_id, cluster_id, category, funnel_stage')
         .in('id', articleIds)
         .eq('language', targetLanguage)
-        .in('status', ['draft', 'published']);
+        .in('status', ['draft', 'published'])
+        .order('id'); // Consistent ordering for pagination!
       
       if (langError) {
         console.error('[SingleLang] Error fetching articles:', langError);
@@ -794,21 +798,25 @@ serve(async (req) => {
           skippedPages: 0,
           language: targetLanguage,
           complete: true,
+          nextOffset: 0,
         }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
 
-      console.log(`[SingleLang] Found ${langArticles.length} articles for ${targetLanguage}, processing max ${MAX_ARTICLES_PER_BATCH}`);
+      // Apply offset to skip already-processed articles
+      const articlesToProcess = langArticles.slice(offset);
+      console.log(`[SingleLang] Found ${langArticles.length} total articles, processing from offset ${offset} (${articlesToProcess.length} remaining), max ${MAX_ARTICLES_PER_BATCH} per batch`);
 
       let totalGenerated = 0;
       let totalSkipped = 0;
       let totalFailed = 0;
       let articlesProcessed = 0;
       let timedOut = false;
+      let reachedBatchLimit = false;
       const results: any[] = [];
 
-      for (const article of langArticles) {
+      for (const article of articlesToProcess) {
         // Check timeout before processing each article
         if (checkTimeout()) {
           console.log(`[SingleLang] Timeout approaching after ${articlesProcessed} articles, stopping early`);
@@ -816,10 +824,10 @@ serve(async (req) => {
           break;
         }
         
-        // Limit batch size to prevent timeouts
+        // Limit batch size to prevent timeouts (separate from timeout flag)
         if (articlesProcessed >= MAX_ARTICLES_PER_BATCH) {
-          console.log(`[SingleLang] Reached batch limit of ${MAX_ARTICLES_PER_BATCH} articles, stopping`);
-          timedOut = true;
+          console.log(`[SingleLang] Reached batch limit of ${MAX_ARTICLES_PER_BATCH} articles, stopping for continuation`);
+          reachedBatchLimit = true;
           break;
         }
         
@@ -931,10 +939,11 @@ serve(async (req) => {
       }
 
       const totalArticlesInLanguage = langArticles.length;
-      const remainingArticles = totalArticlesInLanguage - articlesProcessed;
-      const isComplete = remainingArticles <= 0 && !timedOut;
+      const nextOffset = offset + articlesProcessed;
+      const remainingArticles = totalArticlesInLanguage - nextOffset;
+      const isComplete = remainingArticles <= 0 && !timedOut && !reachedBatchLimit;
       
-      console.log(`[SingleLang] Completed: ${totalGenerated} generated, ${totalFailed} failed, ${totalSkipped} skipped, ${articlesProcessed}/${totalArticlesInLanguage} articles processed, timedOut: ${timedOut}`);
+      console.log(`[SingleLang] Completed: ${totalGenerated} generated, ${totalFailed} failed, ${totalSkipped} skipped, ${articlesProcessed} articles in batch, offset: ${offset} -> ${nextOffset}, remaining: ${remainingArticles}, timedOut: ${timedOut}, batchLimit: ${reachedBatchLimit}`);
 
       // Return with accurate success status and continuation info
       const hasFailures = totalFailed > 0;
@@ -943,20 +952,20 @@ serve(async (req) => {
         language: targetLanguage,
         totalArticlesInLanguage,
         articlesProcessed,
+        nextOffset, // Tell client where to continue from
         remainingArticles,
         generatedPages: totalGenerated,
         failedPages: totalFailed,
         skippedPages: totalSkipped,
         complete: isComplete,
         timedOut,
-        needsContinuation: timedOut || remainingArticles > 0,
+        reachedBatchLimit,
+        needsContinuation: !isComplete && (timedOut || reachedBatchLimit || remainingArticles > 0),
         results,
         warnings: hasFailures ? [`${totalFailed} QA pages failed to insert - check logs for details`] : undefined,
-        message: timedOut 
-          ? `Processed ${articlesProcessed}/${totalArticlesInLanguage} articles. Click again to continue.`
-          : isComplete 
-            ? `Completed all ${totalArticlesInLanguage} articles for ${targetLanguage}`
-            : `Processed ${articlesProcessed} articles`,
+        message: isComplete 
+          ? `Completed all ${totalArticlesInLanguage} articles for ${targetLanguage}`
+          : `Processed ${articlesProcessed} articles (${nextOffset}/${totalArticlesInLanguage}). ${remainingArticles} remaining.`,
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
