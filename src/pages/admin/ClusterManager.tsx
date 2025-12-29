@@ -415,7 +415,7 @@ const ClusterManager = () => {
     }
   }, [queryClient]);
 
-  // Generate QAs for next pending language in cluster (one at a time)
+  // Generate QAs for next pending language in cluster (one at a time, with continuation support)
   const generateNextLanguageQAMutation = useMutation({
     mutationFn: async ({ clusterId, language, articleIds }: { clusterId: string; language: string; articleIds: string[] }) => {
       setGeneratingQALanguage({ clusterId, lang: language });
@@ -430,10 +430,10 @@ const ClusterManager = () => {
       });
       
       if (error) throw error;
-      return { ...data, clusterId, language };
+      return { ...data, clusterId, language, articleIds };
     },
-    onSuccess: ({ language, generatedPages, skippedPages, failedPages, warnings, clusterId }) => {
-      const total = (generatedPages || 0) + (skippedPages || 0);
+    onSuccess: (result) => {
+      const { language, generatedPages, skippedPages, failedPages, needsContinuation, articlesProcessed, totalArticlesInLanguage, message, clusterId, articleIds } = result;
       
       // Check for failures first
       if (failedPages && failedPages > 0) {
@@ -443,13 +443,25 @@ const ClusterManager = () => {
           toast.error(`Failed to generate QAs for ${language.toUpperCase()} (${failedPages} failed) - check constraint or logs`);
         }
       } else if (generatedPages > 0) {
-        toast.success(`Generated ${generatedPages} QA pages for ${language.toUpperCase()}`);
+        if (needsContinuation) {
+          toast.info(`Generated ${generatedPages} QAs for ${language.toUpperCase()} (${articlesProcessed}/${totalArticlesInLanguage} articles). Click again to continue.`);
+        } else {
+          toast.success(`Generated ${generatedPages} QA pages for ${language.toUpperCase()}`);
+        }
       } else if (skippedPages > 0) {
         toast.info(`${language.toUpperCase()} already complete (${skippedPages} pages exist)`);
       }
       
       queryClient.invalidateQueries({ queryKey: ["cluster-qa-pages"] });
       setGeneratingQALanguage(null);
+      
+      // Auto-continue if there are more articles to process (with a small delay)
+      if (needsContinuation && clusterId && articleIds) {
+        setTimeout(() => {
+          toast.info(`Continuing ${language.toUpperCase()} QA generation...`);
+          generateNextLanguageQAMutation.mutate({ clusterId, language, articleIds });
+        }, 1500);
+      }
     },
     onError: (error) => {
       toast.error(`Failed to generate QAs: ${error.message}`);

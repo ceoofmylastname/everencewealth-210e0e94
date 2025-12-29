@@ -750,6 +750,16 @@ serve(async (req) => {
     if (singleLanguageMode && targetLanguage) {
       console.log(`[SingleLang] Processing QAs for language: ${targetLanguage}`);
       
+      // Start timeout guard - must return before 55 seconds to avoid connection close
+      const startTime = Date.now();
+      const TIMEOUT_MS = 55000; // 55 seconds - leave 5s buffer before edge function timeout
+      const MAX_ARTICLES_PER_BATCH = 3; // Process max 3 articles per call to stay safe
+      
+      const checkTimeout = () => {
+        const elapsed = Date.now() - startTime;
+        return elapsed > TIMEOUT_MS;
+      };
+      
       if (!articleIds || !Array.isArray(articleIds) || articleIds.length === 0) {
         return new Response(JSON.stringify({ 
           success: false, 
@@ -783,19 +793,36 @@ serve(async (req) => {
           generatedPages: 0,
           skippedPages: 0,
           language: targetLanguage,
+          complete: true,
         }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
 
-      console.log(`[SingleLang] Found ${langArticles.length} articles for ${targetLanguage}`);
+      console.log(`[SingleLang] Found ${langArticles.length} articles for ${targetLanguage}, processing max ${MAX_ARTICLES_PER_BATCH}`);
 
       let totalGenerated = 0;
       let totalSkipped = 0;
       let totalFailed = 0;
+      let articlesProcessed = 0;
+      let timedOut = false;
       const results: any[] = [];
 
       for (const article of langArticles) {
+        // Check timeout before processing each article
+        if (checkTimeout()) {
+          console.log(`[SingleLang] Timeout approaching after ${articlesProcessed} articles, stopping early`);
+          timedOut = true;
+          break;
+        }
+        
+        // Limit batch size to prevent timeouts
+        if (articlesProcessed >= MAX_ARTICLES_PER_BATCH) {
+          console.log(`[SingleLang] Reached batch limit of ${MAX_ARTICLES_PER_BATCH} articles, stopping`);
+          timedOut = true;
+          break;
+        }
+        
         try {
           // Check which QA types already exist for this article
           const { data: existingQAs } = await supabase
@@ -810,6 +837,7 @@ serve(async (req) => {
           if (missingTypes.length === 0) {
             console.log(`[SingleLang] Article ${article.id} already has all QA types, skipping`);
             totalSkipped += 4;
+            articlesProcessed++;
             continue;
           }
 
@@ -878,6 +906,8 @@ serve(async (req) => {
             }
           }
 
+          articlesProcessed++;
+          
           results.push({
             articleId: article.id,
             headline: article.headline,
@@ -888,6 +918,7 @@ serve(async (req) => {
 
         } catch (err) {
           console.error(`[SingleLang] Error processing article ${article.id}:`, err);
+          articlesProcessed++;
           // Estimate 4 failed QAs when we can't determine exact missing types
           totalFailed += ALL_QA_TYPES.length;
           results.push({
@@ -899,19 +930,33 @@ serve(async (req) => {
         }
       }
 
-      console.log(`[SingleLang] Completed: ${totalGenerated} generated, ${totalFailed} failed, ${totalSkipped} skipped`);
+      const totalArticlesInLanguage = langArticles.length;
+      const remainingArticles = totalArticlesInLanguage - articlesProcessed;
+      const isComplete = remainingArticles <= 0 && !timedOut;
+      
+      console.log(`[SingleLang] Completed: ${totalGenerated} generated, ${totalFailed} failed, ${totalSkipped} skipped, ${articlesProcessed}/${totalArticlesInLanguage} articles processed, timedOut: ${timedOut}`);
 
-      // Return with accurate success status
+      // Return with accurate success status and continuation info
       const hasFailures = totalFailed > 0;
       return new Response(JSON.stringify({
         success: !hasFailures || totalGenerated > 0, // Partial success if some worked
         language: targetLanguage,
-        articlesProcessed: langArticles.length,
+        totalArticlesInLanguage,
+        articlesProcessed,
+        remainingArticles,
         generatedPages: totalGenerated,
         failedPages: totalFailed,
         skippedPages: totalSkipped,
+        complete: isComplete,
+        timedOut,
+        needsContinuation: timedOut || remainingArticles > 0,
         results,
         warnings: hasFailures ? [`${totalFailed} QA pages failed to insert - check logs for details`] : undefined,
+        message: timedOut 
+          ? `Processed ${articlesProcessed}/${totalArticlesInLanguage} articles. Click again to continue.`
+          : isComplete 
+            ? `Completed all ${totalArticlesInLanguage} articles for ${targetLanguage}`
+            : `Processed ${articlesProcessed} articles`,
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
