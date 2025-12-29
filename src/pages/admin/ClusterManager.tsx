@@ -476,6 +476,13 @@ const ClusterManager = () => {
     };
   };
 
+  // Detect languages with incomplete translations (1-5 articles instead of 6)
+  const getIncompleteLanguages = (cluster: ClusterData) => {
+    return Object.entries(cluster.languages)
+      .filter(([lang, stats]) => stats.total > 0 && stats.total < 6)
+      .map(([lang, stats]) => ({ lang, count: stats.total }));
+  };
+
   const copyClusterId = (id: string) => {
     navigator.clipboard.writeText(id);
     toast.success("Cluster ID copied to clipboard");
@@ -720,12 +727,28 @@ const ClusterManager = () => {
                     {(() => {
                       const sourceInfo = getSourceLanguageInfo(cluster);
                       const missingLangs = getMissingLanguages(cluster);
-                      const showButton = sourceInfo.needsMoreSource || missingLangs.length > 0 || cluster.job_status === "partial";
+                      const incompleteLangs = getIncompleteLanguages(cluster);
+                      const showButton = sourceInfo.needsMoreSource || missingLangs.length > 0 || incompleteLangs.length > 0 || cluster.job_status === "partial";
                       
                       if (!showButton) return null;
                       
                       // Show "Complete Cluster" if source articles < 6, otherwise "Complete Translations"
                       const isCompleteCluster = sourceInfo.needsMoreSource;
+                      
+                      // Build label for incomplete languages
+                      const getButtonLabel = () => {
+                        if (isCompleteCluster) {
+                          return `Complete Cluster (${sourceInfo.sourceCount}/6 ${getLanguageFlag(sourceInfo.sourceLanguage)})`;
+                        }
+                        if (missingLangs.length > 0) {
+                          return `Complete Translations (${missingLangs.length} missing)`;
+                        }
+                        if (incompleteLangs.length > 0) {
+                          const incompleteInfo = incompleteLangs.map(l => `${getLanguageFlag(l.lang)}${l.count}/6`).join(", ");
+                          return `Complete Translations (${incompleteInfo})`;
+                        }
+                        return "Complete Translations";
+                      };
                       
                       return (
                         <Button
@@ -742,15 +765,10 @@ const ClusterManager = () => {
                               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                               {isCompleteCluster ? "Completing..." : "Translating..."}
                             </>
-                          ) : isCompleteCluster ? (
-                            <>
-                              <Globe className="mr-2 h-4 w-4" />
-                              Complete Cluster ({sourceInfo.sourceCount}/6 {getLanguageFlag(sourceInfo.sourceLanguage)})
-                            </>
                           ) : (
                             <>
-                              <Languages className="mr-2 h-4 w-4" />
-                              Complete Translations ({missingLangs.length} remaining)
+                              {isCompleteCluster ? <Globe className="mr-2 h-4 w-4" /> : <Languages className="mr-2 h-4 w-4" />}
+                              {getButtonLabel()}
                             </>
                           )}
                         </Button>
