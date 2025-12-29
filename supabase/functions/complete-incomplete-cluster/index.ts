@@ -34,7 +34,7 @@ serve(async (req) => {
       .from('blog_articles')
       .select('id, headline, language, funnel_stage, status, detailed_content, meta_title, meta_description, speakable_answer, qa_entities, featured_image_url, featured_image_alt, category, cluster_id, hreflang_group_id')
       .eq('cluster_id', clusterId)
-      .eq('status', 'published');
+      .in('status', ['draft', 'published']);
 
     if (fetchError) {
       throw new Error(`Failed to fetch articles: ${fetchError.message}`);
@@ -184,7 +184,7 @@ serve(async (req) => {
       .select('*')
       .eq('cluster_id', clusterId)
       .eq('language', sourceLanguage)
-      .eq('status', 'published');
+      .in('status', ['draft', 'published']);
 
     if (srcFetchError) {
       console.error(`[complete-incomplete-cluster] Failed to fetch ${sourceLanguage} articles: ${srcFetchError.message}`);
@@ -199,7 +199,7 @@ serve(async (req) => {
       .select('hreflang_group_id, language')
       .eq('cluster_id', clusterId)
       .neq('language', sourceLanguage)
-      .eq('status', 'published');
+      .in('status', ['draft', 'published']);
 
     const existingTranslationMap = new Set(
       (existingTranslations || []).map(t => `${t.hreflang_group_id}-${t.language}`)
@@ -299,7 +299,7 @@ serve(async (req) => {
       .from('blog_articles')
       .select('id', { count: 'exact', head: true })
       .eq('cluster_id', clusterId)
-      .eq('status', 'published');
+      .in('status', ['draft', 'published']);
 
     // Mark as completed
     await supabase
