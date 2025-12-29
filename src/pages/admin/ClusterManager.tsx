@@ -395,11 +395,20 @@ const ClusterManager = () => {
       
       if (job.status === 'completed' || job.status === 'failed') {
         queryClient.invalidateQueries({ queryKey: ["cluster-qa-pages"] });
+        queryClient.invalidateQueries({ queryKey: ["stalled-qa-jobs"] });
         if (job.status === 'completed') {
           toast.success(`Generated ${job.generated_faq_pages} QA pages!`);
         } else {
           toast.error(`QA generation failed: ${job.error || 'Unknown error'}`);
         }
+        setTimeout(() => setQaJobProgress(null), 3000);
+        return;
+      }
+      
+      // Detect stalled job (no update for 2+ minutes)
+      if (job.status === 'stalled') {
+        queryClient.invalidateQueries({ queryKey: ["stalled-qa-jobs"] });
+        toast.warning(`QA generation stalled. Click "Resume Job" to continue.`);
         setTimeout(() => setQaJobProgress(null), 3000);
         return;
       }
@@ -455,6 +464,54 @@ const ClusterManager = () => {
     },
     onError: (error) => {
       toast.error(`Failed to start QA generation: ${error.message}`);
+    },
+  });
+
+  // Query for stalled QA jobs
+  const { data: stalledQAJobs } = useQuery({
+    queryKey: ["stalled-qa-jobs"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("qa_generation_jobs")
+        .select("id, cluster_id, status, generated_faq_pages, total_faq_pages, current_article_headline, resume_from_article_index")
+        .eq("status", "stalled")
+        .order("updated_at", { ascending: false });
+      
+      if (error) throw error;
+      return data || [];
+    },
+    refetchInterval: 30000, // Check every 30 seconds
+  });
+
+  // Resume stalled QA job mutation
+  const resumeQAJobMutation = useMutation({
+    mutationFn: async (jobId: string) => {
+      const { data, error } = await supabase.functions.invoke("generate-qa-pages", {
+        body: { resumeJobId: jobId },
+      });
+      
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data) => {
+      toast.success(`Resumed job from article ${data.resumeFromArticle || 0}`);
+      queryClient.invalidateQueries({ queryKey: ["stalled-qa-jobs"] });
+      
+      setQaJobProgress({
+        jobId: data.jobId,
+        clusterId: data.clusterId || '',
+        status: 'running',
+        processedArticles: data.resumeFromArticle || 0,
+        totalArticles: 6,
+        generatedPages: data.actualPages || 0,
+        totalExpected: data.totalExpected || 240,
+        currentArticle: 'Resuming...',
+      });
+      
+      pollQAJobStatus(data.jobId, data.clusterId || '');
+    },
+    onError: (error) => {
+      toast.error(`Failed to resume job: ${error.message}`);
     },
   });
 
@@ -802,6 +859,46 @@ const ClusterManager = () => {
             </div>
           </CardContent>
         </Card>
+
+        {/* Stalled QA Jobs Alert */}
+        {stalledQAJobs && stalledQAJobs.length > 0 && (
+          <Card className="border-amber-300 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-700">
+            <CardContent className="py-4">
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <StopCircle className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                  <div>
+                    <p className="font-medium text-amber-800 dark:text-amber-300">
+                      {stalledQAJobs.length} stalled QA generation job{stalledQAJobs.length > 1 ? 's' : ''}
+                    </p>
+                    <p className="text-sm text-amber-600 dark:text-amber-400">
+                      {stalledQAJobs[0].generated_faq_pages}/{stalledQAJobs[0].total_faq_pages} pages generated before timeout
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  variant="default"
+                  size="sm"
+                  className="bg-amber-600 hover:bg-amber-700 text-white"
+                  onClick={() => resumeQAJobMutation.mutate(stalledQAJobs[0].id)}
+                  disabled={resumeQAJobMutation.isPending}
+                >
+                  {resumeQAJobMutation.isPending ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Resuming...
+                    </>
+                  ) : (
+                    <>
+                      <RefreshCw className="mr-2 h-4 w-4" />
+                      Resume Job
+                    </>
+                  )}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Cluster List */}
         {isLoading ? (

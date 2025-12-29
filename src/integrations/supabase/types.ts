@@ -2376,6 +2376,8 @@ export type Database = {
           mode: string
           processed_articles: number | null
           results: Json | null
+          resume_from_article_index: number | null
+          resume_from_language: string | null
           started_at: string | null
           status: string
           total_articles: number | null
@@ -2398,6 +2400,8 @@ export type Database = {
           mode?: string
           processed_articles?: number | null
           results?: Json | null
+          resume_from_article_index?: number | null
+          resume_from_language?: string | null
           started_at?: string | null
           status?: string
           total_articles?: number | null
@@ -2420,6 +2424,8 @@ export type Database = {
           mode?: string
           processed_articles?: number | null
           results?: Json | null
+          resume_from_article_index?: number | null
+          resume_from_language?: string | null
           started_at?: string | null
           status?: string
           total_articles?: number | null
