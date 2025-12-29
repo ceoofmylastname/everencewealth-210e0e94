@@ -15,34 +15,35 @@ const LANGUAGE_CODE_MAP: Record<string, string> = {
   no: 'nb-NO',
 };
 
-// Note: We still use FAQPage schema type for SEO purposes as it's a recognized schema.org type
-export function generateFAQPageSchema(qaPage: QAPage) {
+/**
+ * Generates QAPage schema (not FAQPage) for single Q&A pages.
+ * QAPage is the correct schema type for a single question with an answer.
+ * The content MUST be in the same language as the page (no English fallback).
+ */
+export function generateQAPageSchema(qaPage: QAPage) {
   const lang = qaPage.language || 'en';
-  const mainEntity = [
-    {
-      '@type': 'Question',
-      name: qaPage.question_main,
-      acceptedAnswer: {
-        '@type': 'Answer',
-        text: qaPage.answer_main.replace(/<[^>]*>/g, ''),
-      },
-    },
-    ...(qaPage.related_qas || []).map((qa) => ({
-      '@type': 'Question',
-      name: qa.question,
-      acceptedAnswer: {
-        '@type': 'Answer',
-        text: qa.answer,
-      },
-    })),
-  ];
-
+  const langCode = LANGUAGE_CODE_MAP[lang] || lang;
+  const pageUrl = qaPage.canonical_url || `${BASE_URL}/${lang}/qa/${qaPage.slug}`;
+  
+  // Single QAPage schema - uses the actual page content language
   const schema: Record<string, any> = {
     '@context': 'https://schema.org',
-    '@type': 'FAQPage', // Keep FAQPage for SEO - it's a recognized schema.org type
-    '@id': `${BASE_URL}/${lang}/qa/${qaPage.slug}#faq`,
-    mainEntity,
-    inLanguage: LANGUAGE_CODE_MAP[qaPage.language] || qaPage.language,
+    '@type': 'QAPage',
+    '@id': `${pageUrl}#qapage`,
+    'headline': qaPage.question_main, // Must be in page's language (e.g., French for FR page)
+    'inLanguage': langCode,
+    'url': pageUrl,
+    'mainEntity': {
+      '@type': 'Question',
+      'name': qaPage.question_main, // In page's language
+      'text': qaPage.question_main,
+      'answerCount': 1,
+      'acceptedAnswer': {
+        '@type': 'Answer',
+        'text': qaPage.speakable_answer || qaPage.answer_main?.replace(/<[^>]*>/g, '').slice(0, 500),
+        'inLanguage': langCode,
+      },
+    },
   };
 
   // Add reference to source blog article for AI discoverability
@@ -52,13 +53,15 @@ export function generateFAQPageSchema(qaPage: QAPage) {
       '@id': `${BASE_URL}/${lang}/blog/${qaPage.source_article_slug}`,
       'url': `${BASE_URL}/${lang}/blog/${qaPage.source_article_slug}`,
     };
-    schema.about = {
-      '@type': 'Article',
-      '@id': `${BASE_URL}/${lang}/blog/${qaPage.source_article_slug}`,
-    };
   }
 
   return schema;
+}
+
+// Keep FAQPage for backwards compatibility but deprecated
+/** @deprecated Use generateQAPageSchema instead */
+export function generateFAQPageSchema(qaPage: QAPage) {
+  return generateQAPageSchema(qaPage);
 }
 
 // Organization schema with expertise signals for E-E-A-T
@@ -174,26 +177,21 @@ export function generateQABreadcrumbSchema(qaPage: QAPage) {
   };
 }
 
-export function generateQASpeakableSchema(qaPage: QAPage) {
-  return {
-    '@context': 'https://schema.org',
-    '@type': 'WebPage',
-    speakable: {
-      '@type': 'SpeakableSpecification',
-      cssSelector: ['.speakable-answer', '.qa-question-main'],
-    },
-    inLanguage: LANGUAGE_CODE_MAP[qaPage.language] || qaPage.language,
-  };
+// Speakable removed - limited practical impact and may reference non-existent selectors
+// Keeping function for backwards compatibility but returns null
+export function generateQASpeakableSchema(_qaPage: QAPage) {
+  return null;
 }
 
 export function generateAllQASchemas(qaPage: QAPage, author: Author | null) {
+  // Only include QAPage schema (not FAQPage) for single Q&A pages
+  // Remove speakable as it has limited impact
   const graphItems: any[] = [
-    generateFAQPageSchema(qaPage),
+    generateQAPageSchema(qaPage),
     generateWebPageSchema(qaPage, author),
     generateQABreadcrumbSchema(qaPage),
-    generateQASpeakableSchema(qaPage),
     generateOrganizationSchema(),
-  ];
+  ].filter(Boolean); // Remove null items
 
   return {
     '@context': 'https://schema.org',

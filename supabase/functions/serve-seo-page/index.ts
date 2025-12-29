@@ -201,71 +201,82 @@ function generateHreflangTags(siblings: HreflangSibling[], currentLang: string, 
     availableLanguages.set(sibling.language, sibling)
   })
 
-  // Find English version for fallback
+  // Find English version for fallback (required for missing languages)
   const englishVersion = availableLanguages.get('en')
+  const currentVersion = siblings.find(s => s.language === currentLang)
+  const fallbackVersion = englishVersion || currentVersion || siblings[0]
   
-  // Generate tags for all supported languages
+  // Generate tags for ALL 10 supported languages (with fallback to English if missing)
   const tags: string[] = []
   
   SUPPORTED_LANGUAGES.forEach(lang => {
     const sibling = availableLanguages.get(lang)
     if (sibling) {
+      // Language version exists - use it
       const url = sibling.canonical_url || `${BASE_URL}/${lang}/${pathPrefix}/${sibling.slug}`
       tags.push(`  <link rel="alternate" hreflang="${lang}" href="${url}" />`)
-    } else if (englishVersion) {
-      // Fallback to English version
-      const url = englishVersion.canonical_url || `${BASE_URL}/en/${pathPrefix}/${englishVersion.slug}`
+    } else if (fallbackVersion) {
+      // Language version missing - fallback to English/source version
+      const fallbackLang = englishVersion ? 'en' : (fallbackVersion.language || 'en')
+      const url = fallbackVersion.canonical_url || `${BASE_URL}/${fallbackLang}/${pathPrefix}/${fallbackVersion.slug}`
       tags.push(`  <link rel="alternate" hreflang="${lang}" href="${url}" />`)
     }
   })
 
-  // Add x-default (points to English or current)
-  const xDefaultUrl = englishVersion 
-    ? (englishVersion.canonical_url || `${BASE_URL}/en/${pathPrefix}/${englishVersion.slug}`)
+  // Add x-default (points to English or fallback)
+  const xDefaultLang = englishVersion ? 'en' : (fallbackVersion?.language || 'en')
+  const xDefaultUrl = fallbackVersion 
+    ? (fallbackVersion.canonical_url || `${BASE_URL}/${xDefaultLang}/${pathPrefix}/${fallbackVersion.slug}`)
     : `${BASE_URL}/en/${pathPrefix}/${siblings[0]?.slug || ''}`
   tags.push(`  <link rel="alternate" hreflang="x-default" href="${xDefaultUrl}" />`)
 
   return tags.join('\n')
 }
 
-function generateFAQSchema(metadata: PageMetadata): string {
-  const faqs = metadata.qa_entities || []
-  
-  if (faqs.length === 0 && metadata.headline && metadata.speakable_answer) {
-    // Use main Q&A as FAQ
-    faqs.push({
-      question: metadata.headline,
-      answer: metadata.speakable_answer
-    })
-  }
+// Removed FAQPage schema generation - QAPage schema is sufficient for single Q&A pages
+// FAQPage was causing redundancy with QAPage
 
-  if (faqs.length === 0) return ''
-
+function generateQAPageSchema(metadata: PageMetadata): string {
+  // For QA pages, use QAPage schema (not FAQPage)
+  // Content must be in the page's language (no hardcoded English)
   const schema = {
     "@context": "https://schema.org",
-    "@type": "FAQPage",
-    "mainEntity": faqs.slice(0, 10).map((qa: any) => ({
+    "@type": "QAPage",
+    "@id": `${metadata.canonical_url}#qapage`,
+    "headline": metadata.headline, // This comes from question_main in the DB (in page's language)
+    "inLanguage": LOCALE_MAP[metadata.language] || metadata.language,
+    "url": metadata.canonical_url,
+    "mainEntity": {
       "@type": "Question",
-      "name": qa.question || qa.q,
+      "name": metadata.headline, // In page's language
+      "text": metadata.headline,
+      "answerCount": 1,
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": qa.answer || qa.a
+        "text": metadata.speakable_answer?.replace(/<[^>]*>/g, '').slice(0, 500) || '',
+        "inLanguage": LOCALE_MAP[metadata.language] || metadata.language,
       }
-    }))
+    }
   }
 
   return `<script type="application/ld+json">${JSON.stringify(schema)}</script>`
 }
 
 function generateArticleSchema(metadata: PageMetadata): string {
+  // Only generate Article schema for blog content, not QA pages (which use QAPage)
+  if (metadata.content_type === 'qa') {
+    return '' // QA pages use QAPage schema instead
+  }
+  
   const schema = {
     "@context": "https://schema.org",
-    "@type": metadata.content_type === 'qa' ? "QAPage" : "Article",
+    "@type": "Article",
     "headline": metadata.headline,
     "description": metadata.meta_description,
     "image": metadata.featured_image_url || `${BASE_URL}/assets/logo-new.png`,
     "datePublished": metadata.date_published || new Date().toISOString(),
     "dateModified": metadata.date_modified || new Date().toISOString(),
+    "inLanguage": LOCALE_MAP[metadata.language] || metadata.language,
     "publisher": {
       "@type": "Organization",
       "name": "Del Sol Prime Homes",
@@ -283,20 +294,10 @@ function generateArticleSchema(metadata: PageMetadata): string {
   return `<script type="application/ld+json">${JSON.stringify(schema)}</script>`
 }
 
-function generateSpeakableSchema(metadata: PageMetadata): string {
-  if (!metadata.speakable_answer) return ''
-
-  const schema = {
-    "@context": "https://schema.org",
-    "@type": "WebPage",
-    "speakable": {
-      "@type": "SpeakableSpecification",
-      "cssSelector": [".speakable-summary", ".quick-summary"]
-    },
-    "url": metadata.canonical_url
-  }
-
-  return `<script type="application/ld+json">${JSON.stringify(schema)}</script>`
+// Speakable schema removed - limited practical impact and selectors may not exist
+// Keeping function stub for backwards compatibility
+function generateSpeakableSchema(_metadata: PageMetadata): string {
+  return ''
 }
 
 function escapeHtml(text: string | null | undefined): string {
@@ -313,10 +314,9 @@ function generateFullHtml(metadata: PageMetadata, hreflangTags: string, baseHtml
   const locale = LOCALE_MAP[metadata.language] || 'en_GB'
   const escapedTitle = escapeHtml(metadata.meta_title || metadata.headline || 'Del Sol Prime Homes')
   const escapedDescription = escapeHtml(metadata.meta_description || '')
-  const escapedHeadline = escapeHtml(metadata.headline || metadata.meta_title || '')
   
-  // Generate all schemas
-  const faqSchema = generateFAQSchema(metadata)
+  // Generate schemas - QA pages use QAPage, others use Article
+  const qaSchema = metadata.content_type === 'qa' ? generateQAPageSchema(metadata) : ''
   const articleSchema = generateArticleSchema(metadata)
   const speakableSchema = generateSpeakableSchema(metadata)
 
@@ -357,9 +357,9 @@ ${hreflangTags}
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="/favicon.png" />
   
-  <!-- Schema.org JSON-LD -->
+  <!-- Schema.org JSON-LD (no duplicates) -->
+  ${qaSchema}
   ${articleSchema}
-  ${faqSchema}
   ${speakableSchema}
 `
 

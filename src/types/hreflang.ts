@@ -183,27 +183,17 @@ export function buildContentUrl(content: HreflangContent, lang: SupportedLanguag
 // =============================================================================
 
 /**
- * Generates hreflang tags ONLY for existing language versions plus x-default.
- * Does NOT output tags for languages that don't have actual content.
- * x-default points to English if available, otherwise to source_language.
- * 
- * This approach prevents invalid hreflang signals where tags point to 
- * non-existent URLs, which can cause indexing issues.
+ * Generates hreflang tags for ALL 10 supported languages plus x-default.
+ * Languages without existing content fall back to English version.
+ * This ensures complete hreflang coverage for proper SEO signals.
  * 
  * @param currentContent - The content item being displayed
  * @param siblings - Array of all language versions of this content
- * @returns Array of HreflangTag objects (only for existing languages + x-default)
+ * @returns Array of 11 HreflangTag objects (10 languages + x-default)
  * 
  * @example
- * // If content exists in en, de, fr only:
  * const tags = generateHreflangTags(article, siblings);
- * // Returns:
- * // [
- * //   { hreflang: 'en', href: 'https://delsolprimehomes.com/en/blog/...' },
- * //   { hreflang: 'de', href: 'https://delsolprimehomes.com/de/blog/...' },
- * //   { hreflang: 'fr', href: 'https://delsolprimehomes.com/fr/blog/...' },
- * //   { hreflang: 'x-default', href: 'https://delsolprimehomes.com/en/blog/...' }
- * // ]
+ * // Returns 11 tags - one for each language with fallback to EN for missing
  */
 export function generateHreflangTags(
   currentContent: HreflangContent,
@@ -220,29 +210,36 @@ export function generateHreflangTags(
     }
   }
   
-  // Determine x-default version using fallback hierarchy:
-  // 1. English version (preferred)
-  // 2. Source language version (original content language)
-  // 3. Current content (last resort)
+  // Find English version for fallback
   const englishVersion = languageMap.get('en');
   const sourceLanguageVersion = languageMap.get(currentContent.source_language);
-  const defaultVersion = englishVersion || sourceLanguageVersion || currentContent;
-  const defaultLang = englishVersion ? 'en' : (sourceLanguageVersion ? currentContent.source_language : currentContent.language);
+  const fallbackVersion = englishVersion || sourceLanguageVersion || currentContent;
+  const fallbackLang: SupportedLanguage = englishVersion ? 'en' : (sourceLanguageVersion ? currentContent.source_language : currentContent.language);
   
-  // Generate tags ONLY for languages that have actual content
+  // Generate tags for ALL 10 supported languages (with fallback to English if missing)
   const tags: HreflangTag[] = [];
   
-  for (const [lang, version] of languageMap.entries()) {
-    tags.push({
-      hreflang: lang,
-      href: buildContentUrl(version, lang),
-    });
+  for (const lang of SUPPORTED_LANGUAGES) {
+    const version = languageMap.get(lang);
+    if (version) {
+      // Language version exists - use it
+      tags.push({
+        hreflang: lang,
+        href: buildContentUrl(version, lang),
+      });
+    } else {
+      // Language version missing - fallback to English
+      tags.push({
+        hreflang: lang,
+        href: buildContentUrl(fallbackVersion, fallbackLang),
+      });
+    }
   }
   
   // Add x-default pointing to English or source language
   tags.push({
     hreflang: 'x-default',
-    href: buildContentUrl(defaultVersion, defaultLang),
+    href: buildContentUrl(fallbackVersion, fallbackLang),
   });
   
   return tags;
