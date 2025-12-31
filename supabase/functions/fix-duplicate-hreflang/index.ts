@@ -12,6 +12,7 @@ interface QAPage {
   slug: string;
   hreflang_group_id: string | null;
   canonical_url: string | null;
+  translations: Record<string, string> | null;
   created_at: string;
 }
 
@@ -33,7 +34,7 @@ Deno.serve(async (req) => {
     // Fetch all Q&A pages with their hreflang groups
     const { data: qaPages, error: qaError } = await supabase
       .from('qa_pages')
-      .select('id, language, qa_type, slug, hreflang_group_id, canonical_url, created_at')
+      .select('id, language, qa_type, slug, hreflang_group_id, canonical_url, translations, created_at')
       .eq('status', 'published')
       .not('hreflang_group_id', 'is', null)
       .order('created_at', { ascending: true });
@@ -59,7 +60,6 @@ Deno.serve(async (req) => {
     }[] = [];
 
     for (const [groupId, qas] of groupMap) {
-      // Count languages
       const languageCounts = qas.reduce((acc, qa) => {
         acc[qa.language] = acc[qa.language] || [];
         acc[qa.language].push(qa);
@@ -90,30 +90,56 @@ Deno.serve(async (req) => {
 
     // Process each group with duplicates
     const updates: { id: string; hreflang_group_id: string; translations: Record<string, string> }[] = [];
-    const kept: { id: string; language: string; reason: string }[] = [];
-    const moved: { id: string; language: string; old_group: string; new_group: string }[] = [];
+    const kept: { id: string; slug: string; language: string; reason: string }[] = [];
+    const moved: { id: string; slug: string; language: string; old_group: string; new_group: string }[] = [];
 
     for (const { groupId, duplicates } of groupsWithDuplicates) {
       const allQAsInGroup = groupMap.get(groupId) || [];
       
       for (const { language, qas } of duplicates) {
-        // Sort by: has canonical_url first, then by created_at (oldest first)
+        // NEW LOGIC: Check which Q&A slug is referenced by OTHER languages' translations
+        // The one that matches what other languages point to is the "correct" one
+        
+        const otherLanguageQAs = allQAsInGroup.filter(qa => qa.language !== language);
+        const slugReferenceCounts = new Map<string, number>();
+        
+        for (const qa of qas) {
+          slugReferenceCounts.set(qa.slug, 0);
+        }
+        
+        // Count how many other languages reference each slug
+        for (const otherQA of otherLanguageQAs) {
+          if (otherQA.translations && typeof otherQA.translations === 'object') {
+            const referencedSlug = otherQA.translations[language];
+            if (referencedSlug && slugReferenceCounts.has(referencedSlug)) {
+              slugReferenceCounts.set(referencedSlug, slugReferenceCounts.get(referencedSlug)! + 1);
+            }
+          }
+        }
+        
+        // Sort by: most references first, then has canonical, then oldest
         const sorted = [...qas].sort((a, b) => {
+          const aRefs = slugReferenceCounts.get(a.slug) || 0;
+          const bRefs = slugReferenceCounts.get(b.slug) || 0;
+          if (aRefs !== bRefs) return bRefs - aRefs; // More references = better
           if (a.canonical_url && !b.canonical_url) return -1;
           if (!a.canonical_url && b.canonical_url) return 1;
           return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
         });
 
-        // Keep the first one, move the rest to their own groups
         const [keepQA, ...moveQAs] = sorted;
+        const keepReason = (slugReferenceCounts.get(keepQA.slug) || 0) > 0 
+          ? 'referenced_by_translations' 
+          : (keepQA.canonical_url ? 'has_canonical' : 'oldest');
         
         kept.push({
           id: keepQA.id,
+          slug: keepQA.slug,
           language: keepQA.language,
-          reason: keepQA.canonical_url ? 'has_canonical' : 'oldest'
+          reason: keepReason
         });
 
-        // Move duplicates to their own groups
+        // Move duplicates to their own isolated groups
         for (const moveQA of moveQAs) {
           const newGroupId = crypto.randomUUID();
           
@@ -125,6 +151,7 @@ Deno.serve(async (req) => {
 
           moved.push({
             id: moveQA.id,
+            slug: moveQA.slug,
             language: moveQA.language,
             old_group: groupId,
             new_group: newGroupId
@@ -142,7 +169,7 @@ Deno.serve(async (req) => {
         newTranslations[qa.language] = qa.slug;
       }
 
-      // Update remaining QAs with new translations
+      // Update remaining QAs with corrected translations
       for (const qa of remainingQAs) {
         const existingUpdate = updates.find(u => u.id === qa.id);
         if (!existingUpdate) {
@@ -165,12 +192,12 @@ Deno.serve(async (req) => {
           qas_to_move: moved.length,
           total_updates: updates.length
         },
-        kept: kept.slice(0, 10),
-        moved: moved.slice(0, 20),
-        sample_updates: updates.slice(0, 5).map(u => ({
+        kept,
+        moved,
+        sample_updates: updates.slice(0, 10).map(u => ({
           id: u.id,
           hreflang_group_id: u.hreflang_group_id.substring(0, 8) + '...',
-          translations_count: Object.keys(u.translations).length
+          translations: u.translations
         }))
       }, null, 2), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -215,8 +242,8 @@ Deno.serve(async (req) => {
         updates_applied: successCount,
         errors: errorCount
       },
-      kept: kept,
-      moved: moved
+      kept,
+      moved
     }, null, 2), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });

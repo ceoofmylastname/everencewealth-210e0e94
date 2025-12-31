@@ -194,3 +194,6 @@ verify_jwt = false
 
 [functions.repair-blog-hreflang-groups]
 verify_jwt = false
+
+[functions.repair-comparison-hreflang-groups]
+verify_jwt = false
