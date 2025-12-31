@@ -7,6 +7,7 @@ import {
   fetchHreflangSiblings,
   generateHreflangTags,
   isSupportedLanguage,
+  BASE_URL,
 } from '@/types/hreflang';
 
 /**
@@ -25,6 +26,8 @@ interface ComparisonHreflangTagsProps {
   canonical_url: string | null;
   /** Source language of the original content (defaults to 'en') */
   source_language?: string;
+  /** Translations JSONB from the comparison (fallback when hreflang_group_id is missing) */
+  translations?: Record<string, string> | null;
 }
 
 /**
@@ -39,32 +42,51 @@ export const ComparisonHreflangTags = ({
   slug,
   canonical_url,
   source_language,
+  translations,
 }: ComparisonHreflangTagsProps) => {
   const [siblings, setSiblings] = useState<HreflangContent[]>([]);
 
-  // Warn if missing hreflang_group_id
-  useEffect(() => {
-    if (!hreflang_group_id) {
-      console.warn(
-        `ComparisonHreflangTags: Comparison page "${slug}" is missing hreflang_group_id. Hreflang tags will use fallback behavior.`
-      );
-    }
-  }, [hreflang_group_id, slug]);
-
   // Fetch siblings when hreflang_group_id changes
   useEffect(() => {
-    if (!hreflang_group_id) {
-      setSiblings([]);
-      return;
-    }
-
     const fetchSiblings = async () => {
-      const results = await fetchHreflangSiblings(supabase, hreflang_group_id, 'comparison');
-      setSiblings(results);
+      // If we have hreflang_group_id, use it
+      if (hreflang_group_id) {
+        const results = await fetchHreflangSiblings(supabase, hreflang_group_id, 'comparison');
+        setSiblings(results);
+        return;
+      }
+
+      // Fallback: use translations JSONB to find siblings by slug
+      if (translations && Object.keys(translations).length > 0) {
+        const translationSlugs = Object.values(translations);
+        const { data, error } = await supabase
+          .from('comparison_pages')
+          .select('id, hreflang_group_id, language, slug, canonical_url, source_language, content_type, status')
+          .in('slug', translationSlugs)
+          .eq('status', 'published');
+
+        if (!error && data) {
+          const mappedSiblings: HreflangContent[] = data.map((item: any) => ({
+            id: item.id,
+            hreflang_group_id: item.hreflang_group_id || item.id,
+            language: (isSupportedLanguage(item.language) ? item.language : 'en') as SupportedLanguage,
+            slug: item.slug,
+            canonical_url: item.canonical_url || `${BASE_URL}/${item.language}/compare/${item.slug}`,
+            source_language: (isSupportedLanguage(item.source_language) ? item.source_language : 'en') as SupportedLanguage,
+            content_type: 'comparison',
+            status: item.status as 'draft' | 'published',
+          }));
+          setSiblings(mappedSiblings);
+          return;
+        }
+      }
+
+      // No siblings found
+      setSiblings([]);
     };
 
     fetchSiblings();
-  }, [hreflang_group_id]);
+  }, [hreflang_group_id, translations]);
 
   // Create current comparison page as HreflangContent
   const validSourceLang = (isSupportedLanguage(source_language || 'en') ? (source_language || 'en') : 'en') as SupportedLanguage;
@@ -73,7 +95,7 @@ export const ComparisonHreflangTags = ({
     hreflang_group_id: hreflang_group_id || id,
     language: (isSupportedLanguage(language) ? language : 'en') as SupportedLanguage,
     slug,
-    canonical_url: canonical_url || '',
+    canonical_url: canonical_url || `${BASE_URL}/${language}/compare/${slug}`,
     source_language: validSourceLang,
     content_type: 'comparison',
     status: 'published' as const,

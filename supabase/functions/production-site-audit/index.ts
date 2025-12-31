@@ -7,7 +7,32 @@ const corsHeaders = {
 };
 
 const PRODUCTION_URL = 'https://www.delsolprimehomes.com';
-const SUPPORTED_LANGUAGES = ['en', 'de', 'es', 'fr', 'nl', 'pl', 'hu', 'sv', 'da', 'fi'];
+const SUPPORTED_LANGUAGES = ['en', 'de', 'fr', 'nl', 'pl', 'hu', 'sv', 'da', 'fi', 'no'];
+
+// Normalize language code (e.g., en-GB, en_GB, en_US all become 'en')
+// Special case: 'nb' (Norwegian Bokmål) normalizes to 'no'
+function normalizeLanguageCode(lang: string | null): string | null {
+  if (!lang) return null;
+  // Take first part before hyphen or underscore, lowercase
+  const baseLang = lang.split(/[-_]/)[0].toLowerCase();
+  // Norwegian Bokmål (nb) should be treated as Norwegian (no)
+  if (baseLang === 'nb' || baseLang === 'nn') return 'no';
+  return baseLang;
+}
+
+// Domains to ignore in external link checks (CDN, fonts, analytics, preconnect hints)
+const IGNORED_EXTERNAL_DOMAINS = [
+  'fonts.googleapis.com',
+  'fonts.gstatic.com',
+  'cdn.jsdelivr.net',
+  'cdnjs.cloudflare.com',
+  'www.googletagmanager.com',
+  'www.google-analytics.com',
+  'unpkg.com',
+  'maps.googleapis.com',
+  'supabase.co', // Ignore Supabase storage URLs
+  'images.unsplash.com', // Ignore Unsplash (often returns 400 for direct HEAD requests)
+];
 
 interface Issue {
   page: string;
@@ -154,14 +179,19 @@ function extractInternalLinks(html: string): string[] {
   return [...new Set(links)];
 }
 
-// Extract external links from content
+// Extract external links from content (excluding CDN/font/preconnect hints)
 function extractExternalLinks(html: string): string[] {
   const links: string[] = [];
   const regex = /href=["'](https?:\/\/(?!www\.delsolprimehomes\.com)[^"']+)["']/gi;
   let match;
   
   while ((match = regex.exec(html)) !== null) {
-    links.push(match[1]);
+    const url = match[1];
+    // Skip ignored domains (CDN, fonts, analytics)
+    const isIgnored = IGNORED_EXTERNAL_DOMAINS.some(domain => url.includes(domain));
+    if (!isIgnored) {
+      links.push(url);
+    }
   }
   
   return [...new Set(links)];
@@ -169,7 +199,7 @@ function extractExternalLinks(html: string): string[] {
 
 // Get language from URL path
 function getLanguageFromUrl(url: string): string | null {
-  const match = url.match(/\/(en|de|es|fr|nl|pl|hu|sv|da|fi)\//);
+  const match = url.match(/\/(en|de|fr|nl|pl|hu|sv|da|fi|no)\//);
   return match ? match[1] : null;
 }
 
@@ -382,17 +412,17 @@ async function auditLanguageConsistency(pages: { url: string; html: string; type
   
   for (const page of pages) {
     const urlLang = getLanguageFromUrl(page.url);
-    const htmlLang = extractHtmlLang(page.html);
+    const htmlLang = normalizeLanguageCode(extractHtmlLang(page.html));
     const canonical = extractCanonical(page.html);
     const canonicalLang = canonical ? getLanguageFromUrl(canonical) : null;
-    const ogLocale = extractOgLocale(page.html);
+    const ogLocale = normalizeLanguageCode(extractOgLocale(page.html));
     
     // Extract inLanguage from JSON-LD
     const schemas = extractSchemas(page.html);
     let schemaLang: string | null = null;
     for (const schema of schemas) {
       if (schema.inLanguage) {
-        schemaLang = schema.inLanguage.split('-')[0].toLowerCase();
+        schemaLang = normalizeLanguageCode(schema.inLanguage);
         break;
       }
     }
@@ -404,19 +434,20 @@ async function auditLanguageConsistency(pages: { url: string; html: string; type
       return tagUrlLang === urlLang;
     });
     
+    // Normalize all indicators to base language codes
     const indicators = {
       url: urlLang,
       html_lang: htmlLang,
       canonical: canonicalLang,
       og_locale: ogLocale,
       schema_inLanguage: schemaLang,
-      hreflang_self: selfHreflang?.lang
+      hreflang_self: selfHreflang?.lang ? normalizeLanguageCode(selfHreflang.lang) : null
     };
     
-    // Check consistency
+    // Check consistency - compare normalized values
     const nonNullIndicators = Object.entries(indicators)
       .filter(([_, v]) => v !== null && v !== undefined)
-      .map(([k, v]) => ({ key: k, value: v }));
+      .map(([k, v]) => ({ key: k, value: normalizeLanguageCode(v as string) }));
     
     const uniqueValues = [...new Set(nonNullIndicators.map(i => i.value))];
     
@@ -497,16 +528,19 @@ async function auditSchema(pages: { url: string; html: string; type: string }[])
       }
     }
     
-    // Check for valid JSON and language consistency
+    // Check for valid JSON and language consistency (using normalized comparison)
     const pageLang = getLanguageFromUrl(page.url);
     for (const schema of schemas) {
-      if (schema.inLanguage && schema.inLanguage.split('-')[0].toLowerCase() !== pageLang) {
-        issues.push({
-          page: page.url,
-          problem: 'schema_language_mismatch',
-          details: `Schema inLanguage (${schema.inLanguage}) doesn't match page (${pageLang})`,
-          severity: 'warning'
-        });
+      if (schema.inLanguage) {
+        const schemaBaseLang = normalizeLanguageCode(schema.inLanguage);
+        if (schemaBaseLang !== pageLang) {
+          issues.push({
+            page: page.url,
+            problem: 'schema_language_mismatch',
+            details: `Schema inLanguage (${schema.inLanguage}) doesn't match page (${pageLang})`,
+            severity: 'warning'
+          });
+        }
       }
     }
   }

@@ -325,6 +325,7 @@ const BlogArticle = () => {
           canonical_url={article.canonical_url || null}
           content_type={article.content_type || null}
           source_language={article.source_language || 'en'}
+          translations={article.translations as Record<string, string> | null}
         />
       )}
       
