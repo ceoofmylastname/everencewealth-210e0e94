@@ -212,3 +212,9 @@ verify_jwt = false
 
 [functions.translate-comparison]
 verify_jwt = false
+
+[functions.generate-comparison-batch]
+verify_jwt = false
+
+[functions.backfill-comparison-languages]
+verify_jwt = false
