@@ -18,6 +18,35 @@ export interface ScanResult {
   blocked: CitationClassification[];
 }
 
+export interface ClusterScanResult {
+  totalArticles: number;
+  totalCitations: number;
+  byLanguage: Record<string, {
+    articleCount: number;
+    citationCount: number;
+    competitorCount: number;
+    lowValueCount: number;
+    approvedCount: number;
+    competitors: Array<{
+      articleId: string;
+      articleHeadline: string;
+      citation: CitationClassification;
+    }>;
+  }>;
+  allCompetitors: Array<{
+    articleId: string;
+    articleHeadline: string;
+    language: string;
+    citation: CitationClassification;
+  }>;
+  allLowValue: Array<{
+    articleId: string;
+    articleHeadline: string;
+    language: string;
+    citation: CitationClassification;
+  }>;
+}
+
 // Known real estate competitor domains
 const COMPETITOR_DOMAINS = [
   'immoabroad.com',
@@ -304,4 +333,78 @@ export function removeCitations(
 ): Array<{ url: string; source?: string; text?: string }> {
   const removeSet = new Set(urlsToRemove.map(u => u.toLowerCase()));
   return currentCitations.filter(c => !removeSet.has(c.url.toLowerCase()));
+}
+
+/**
+ * Scan all articles in a cluster for competitor citations
+ */
+export function scanClusterForCompetitors(
+  articles: Array<{
+    id: string;
+    headline: string;
+    language: string;
+    external_citations: Array<{ url: string; source?: string; text?: string }> | null;
+  }>
+): ClusterScanResult {
+  const result: ClusterScanResult = {
+    totalArticles: articles.length,
+    totalCitations: 0,
+    byLanguage: {},
+    allCompetitors: [],
+    allLowValue: [],
+  };
+
+  for (const article of articles) {
+    const citations = article.external_citations || [];
+    const scanResult = scanCitationsForCompetitors(citations);
+    
+    result.totalCitations += scanResult.totalCitations;
+    
+    // Initialize language bucket if needed
+    if (!result.byLanguage[article.language]) {
+      result.byLanguage[article.language] = {
+        articleCount: 0,
+        citationCount: 0,
+        competitorCount: 0,
+        lowValueCount: 0,
+        approvedCount: 0,
+        competitors: [],
+      };
+    }
+    
+    const langBucket = result.byLanguage[article.language];
+    langBucket.articleCount += 1;
+    langBucket.citationCount += scanResult.totalCitations;
+    langBucket.competitorCount += scanResult.competitors.length;
+    langBucket.lowValueCount += scanResult.lowValue.length;
+    langBucket.approvedCount += scanResult.approved.length;
+    
+    // Track competitors with article context
+    for (const competitor of scanResult.competitors) {
+      const competitorEntry = {
+        articleId: article.id,
+        articleHeadline: article.headline,
+        language: article.language,
+        citation: competitor,
+      };
+      langBucket.competitors.push({
+        articleId: article.id,
+        articleHeadline: article.headline,
+        citation: competitor,
+      });
+      result.allCompetitors.push(competitorEntry);
+    }
+    
+    // Track low-value citations
+    for (const lowValue of scanResult.lowValue) {
+      result.allLowValue.push({
+        articleId: article.id,
+        articleHeadline: article.headline,
+        language: article.language,
+        citation: lowValue,
+      });
+    }
+  }
+
+  return result;
 }
