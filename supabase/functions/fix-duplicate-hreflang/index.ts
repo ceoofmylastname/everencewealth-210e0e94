@@ -22,22 +22,28 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { dryRun = true } = await req.json().catch(() => ({ dryRun: true }));
+    const { dryRun = true, cluster_id } = await req.json().catch(() => ({ dryRun: true }));
 
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    console.log(`Starting duplicate hreflang fix (dryRun: ${dryRun})`);
+    console.log(`Starting duplicate hreflang fix (dryRun: ${dryRun}${cluster_id ? `, cluster: ${cluster_id}` : ''})`);
 
-    // Fetch all Q&A pages with their hreflang groups
-    const { data: qaPages, error: qaError } = await supabase
+    // Fetch Q&A pages with their hreflang groups (optionally filtered by cluster)
+    let query = supabase
       .from('qa_pages')
-      .select('id, language, qa_type, slug, hreflang_group_id, canonical_url, translations, created_at')
+      .select('id, language, qa_type, slug, hreflang_group_id, canonical_url, translations, created_at, cluster_id')
       .eq('status', 'published')
-      .not('hreflang_group_id', 'is', null)
-      .order('created_at', { ascending: true });
+      .not('hreflang_group_id', 'is', null);
+    
+    if (cluster_id) {
+      query = query.eq('cluster_id', cluster_id);
+      console.log(`🎯 Filtering to cluster: ${cluster_id}`);
+    }
+    
+    const { data: qaPages, error: qaError } = await query.order('created_at', { ascending: true });
 
     if (qaError) {
       throw new Error(`Failed to fetch Q&A pages: ${qaError.message}`);

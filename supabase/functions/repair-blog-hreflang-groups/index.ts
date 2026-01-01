@@ -26,16 +26,22 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    const { dryRun = true } = await req.json().catch(() => ({ dryRun: true }));
+    const { dryRun = true, cluster_id } = await req.json().catch(() => ({ dryRun: true }));
 
-    console.log(`🔧 Starting blog hreflang repair (dryRun: ${dryRun})`);
+    console.log(`🔧 Starting blog hreflang repair (dryRun: ${dryRun}${cluster_id ? `, cluster: ${cluster_id}` : ''})`);
 
-    // Fetch all published blog articles
-    const { data: articles, error: fetchError } = await supabase
+    // Fetch blog articles (optionally filtered by cluster)
+    let query = supabase
       .from('blog_articles')
       .select('id, slug, language, cluster_id, hreflang_group_id, translations, status')
-      .eq('status', 'published')
-      .order('cluster_id', { ascending: true });
+      .eq('status', 'published');
+    
+    if (cluster_id) {
+      query = query.eq('cluster_id', cluster_id);
+      console.log(`🎯 Filtering to cluster: ${cluster_id}`);
+    }
+    
+    const { data: articles, error: fetchError } = await query.order('cluster_id', { ascending: true });
 
     if (fetchError) {
       throw new Error(`Failed to fetch articles: ${fetchError.message}`);
