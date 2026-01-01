@@ -24,7 +24,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Search, Eye, Trash2, CheckCircle, HelpCircle, Copy, Loader2, FolderOpen, RefreshCw, Globe, Languages, Shield, Link, Link2, StopCircle, AlertTriangle, PlayCircle, FileCheck, XCircle, CheckCircle2 } from "lucide-react";
+import { Search, Eye, Trash2, CheckCircle, HelpCircle, Copy, Loader2, FolderOpen, RefreshCw, Globe, Languages, Shield, Link, Link2, StopCircle, AlertTriangle, PlayCircle, FileCheck, XCircle, CheckCircle2, Wrench } from "lucide-react";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useNavigate } from "react-router-dom";
@@ -104,6 +105,13 @@ interface ClusterSEOAuditResult {
   audited_at: string;
 }
 
+interface DryRunPreview {
+  type: 'blog' | 'qa';
+  clusterId: string;
+  clusterTheme: string;
+  result: any;
+}
+
 // Backend default translation languages (English + these = 10 languages total)
 const DEFAULT_TRANSLATION_LANGUAGES = ["de", "nl", "fr", "pl", "sv", "da", "hu", "fi", "no"];
 
@@ -126,6 +134,11 @@ const ClusterManager = () => {
   const [auditingCluster, setAuditingCluster] = useState<string | null>(null);
   const [seoAuditResult, setSeoAuditResult] = useState<ClusterSEOAuditResult | null>(null);
   const [showSeoAuditModal, setShowSeoAuditModal] = useState(false);
+  
+  // Dry-run preview state for SEO fixes
+  const [dryRunPreview, setDryRunPreview] = useState<DryRunPreview | null>(null);
+  const [showDryRunModal, setShowDryRunModal] = useState(false);
+  const [applyingFix, setApplyingFix] = useState(false);
   const getAllExpectedLanguages = (cluster?: Pick<ClusterData, "languages_queue">) => {
     const queue =
       cluster?.languages_queue && cluster.languages_queue.length > 0
@@ -389,6 +402,105 @@ const ClusterManager = () => {
       setAuditingCluster(null);
     },
   });
+
+  // Dry-run blog hreflang fix
+  const blogDryRunMutation = useMutation({
+    mutationFn: async ({ clusterId, clusterTheme }: { clusterId: string; clusterTheme: string }) => {
+      const { data, error } = await supabase.functions.invoke('repair-blog-hreflang-groups', {
+        body: { dryRun: true, cluster_id: clusterId }
+      });
+      if (error) throw error;
+      return { result: data, clusterId, clusterTheme };
+    },
+    onSuccess: ({ result, clusterId, clusterTheme }) => {
+      setDryRunPreview({ type: 'blog', clusterId, clusterTheme, result });
+      setShowDryRunModal(true);
+    },
+    onError: (error) => {
+      toast.error(`Blog dry-run failed: ${error.message}`);
+    },
+  });
+
+  // Dry-run Q&A duplicate fix
+  const qaDryRunMutation = useMutation({
+    mutationFn: async ({ clusterId, clusterTheme }: { clusterId: string; clusterTheme: string }) => {
+      const { data, error } = await supabase.functions.invoke('fix-duplicate-hreflang', {
+        body: { dryRun: true, cluster_id: clusterId }
+      });
+      if (error) throw error;
+      return { result: data, clusterId, clusterTheme };
+    },
+    onSuccess: ({ result, clusterId, clusterTheme }) => {
+      setDryRunPreview({ type: 'qa', clusterId, clusterTheme, result });
+      setShowDryRunModal(true);
+    },
+    onError: (error) => {
+      toast.error(`Q&A dry-run failed: ${error.message}`);
+    },
+  });
+
+  // Apply blog hreflang fix (after dry-run)
+  const applyBlogFixMutation = useMutation({
+    mutationFn: async (clusterId: string) => {
+      setApplyingFix(true);
+      const { data, error } = await supabase.functions.invoke('repair-blog-hreflang-groups', {
+        body: { dryRun: false, cluster_id: clusterId }
+      });
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (result) => {
+      setApplyingFix(false);
+      setShowDryRunModal(false);
+      setDryRunPreview(null);
+      toast.success(`Fixed ${result.stats?.fixed || 0} blog articles`);
+      // Re-run SEO audit to show updated health
+      if (seoAuditResult?.cluster_id) {
+        seoAuditMutation.mutate(seoAuditResult.cluster_id);
+      }
+    },
+    onError: (error) => {
+      setApplyingFix(false);
+      toast.error(`Blog fix failed: ${error.message}`);
+    },
+  });
+
+  // Apply Q&A duplicate fix (after dry-run)
+  const applyQAFixMutation = useMutation({
+    mutationFn: async (clusterId: string) => {
+      setApplyingFix(true);
+      const { data, error } = await supabase.functions.invoke('fix-duplicate-hreflang', {
+        body: { dryRun: false, cluster_id: clusterId }
+      });
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (result) => {
+      setApplyingFix(false);
+      setShowDryRunModal(false);
+      setDryRunPreview(null);
+      toast.success(`Fixed ${result.summary?.updates_applied || 0} Q&A pages`);
+      // Re-run SEO audit to show updated health
+      if (seoAuditResult?.cluster_id) {
+        seoAuditMutation.mutate(seoAuditResult.cluster_id);
+      }
+    },
+    onError: (error) => {
+      setApplyingFix(false);
+      toast.error(`Q&A fix failed: ${error.message}`);
+    },
+  });
+
+  // Handle apply fix from dry-run modal
+  const handleApplyFix = () => {
+    if (!dryRunPreview) return;
+    if (dryRunPreview.type === 'blog') {
+      applyBlogFixMutation.mutate(dryRunPreview.clusterId);
+    } else {
+      applyQAFixMutation.mutate(dryRunPreview.clusterId);
+    }
+  };
+
 
   const generateQAMutation = useMutation({
     mutationFn: async (clusterId: string) => {
@@ -1877,6 +1989,28 @@ const ClusterManager = () => {
                           </p>
                         </div>
                       )}
+
+                      {/* Quick Fix Button for Blog Issues */}
+                      {(seoAuditResult.blog_audit.missing_hreflang_group.length > 0 || 
+                        seoAuditResult.blog_audit.missing_translations.length > 0) && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="mt-3 text-amber-600 border-amber-300 hover:bg-amber-50 dark:hover:bg-amber-950/30"
+                          onClick={() => blogDryRunMutation.mutate({ 
+                            clusterId: seoAuditResult.cluster_id, 
+                            clusterTheme: seoAuditResult.cluster_theme 
+                          })}
+                          disabled={blogDryRunMutation.isPending}
+                        >
+                          {blogDryRunMutation.isPending ? (
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          ) : (
+                            <Wrench className="mr-2 h-4 w-4" />
+                          )}
+                          Preview Blog Hreflang Fix ({seoAuditResult.blog_audit.missing_hreflang_group.length + seoAuditResult.blog_audit.missing_translations.length} issues)
+                        </Button>
+                      )}
                     </CardContent>
                   </Card>
 
@@ -1955,8 +2089,230 @@ const ClusterManager = () => {
                           </p>
                         </div>
                       )}
+
+                      {/* Quick Fix Button for Q&A Duplicates */}
+                      {seoAuditResult.qa_audit.duplicate_language_groups.length > 0 && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="mt-3 text-amber-600 border-amber-300 hover:bg-amber-50 dark:hover:bg-amber-950/30"
+                          onClick={() => qaDryRunMutation.mutate({ 
+                            clusterId: seoAuditResult.cluster_id, 
+                            clusterTheme: seoAuditResult.cluster_theme 
+                          })}
+                          disabled={qaDryRunMutation.isPending}
+                        >
+                          {qaDryRunMutation.isPending ? (
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          ) : (
+                            <Wrench className="mr-2 h-4 w-4" />
+                          )}
+                          Preview Q&A Duplicate Fix ({seoAuditResult.qa_audit.duplicate_language_groups.length} groups)
+                        </Button>
+                      )}
                     </CardContent>
                   </Card>
+                </div>
+              </ScrollArea>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Dry-Run Preview Modal */}
+        <Dialog open={showDryRunModal} onOpenChange={setShowDryRunModal}>
+          <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden flex flex-col">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-3">
+                <Wrench className="h-5 w-5 text-amber-600" />
+                {dryRunPreview?.type === 'blog' ? 'Blog Hreflang Fix Preview' : 'Q&A Duplicate Fix Preview'}
+              </DialogTitle>
+              <DialogDescription>
+                {dryRunPreview?.clusterTheme || 'Unknown Cluster'} • Review changes before applying
+              </DialogDescription>
+            </DialogHeader>
+
+            {dryRunPreview && (
+              <ScrollArea className="flex-1 pr-4">
+                <div className="space-y-4">
+                  {/* Summary Cards */}
+                  <div className="grid grid-cols-3 gap-4">
+                    {dryRunPreview.type === 'blog' ? (
+                      <>
+                        <Card className="border-blue-200 bg-blue-50 dark:bg-blue-950/30">
+                          <CardContent className="pt-4 text-center">
+                            <div className="text-2xl font-bold text-blue-600">
+                              {dryRunPreview.result?.stats?.updatesNeeded || 0}
+                            </div>
+                            <div className="text-sm text-muted-foreground">Articles to Update</div>
+                          </CardContent>
+                        </Card>
+                        <Card>
+                          <CardContent className="pt-4 text-center">
+                            <div className="text-2xl font-bold">
+                              {dryRunPreview.result?.stats?.articlesWithNullGroupId || 0}
+                            </div>
+                            <div className="text-sm text-muted-foreground">Missing Group IDs</div>
+                          </CardContent>
+                        </Card>
+                        <Card>
+                          <CardContent className="pt-4 text-center">
+                            <div className="text-2xl font-bold">
+                              {dryRunPreview.result?.stats?.orphanArticles || 0}
+                            </div>
+                            <div className="text-sm text-muted-foreground">Orphan Articles</div>
+                          </CardContent>
+                        </Card>
+                      </>
+                    ) : (
+                      <>
+                        <Card className="border-blue-200 bg-blue-50 dark:bg-blue-950/30">
+                          <CardContent className="pt-4 text-center">
+                            <div className="text-2xl font-bold text-blue-600">
+                              {dryRunPreview.result?.summary?.total_updates || 0}
+                            </div>
+                            <div className="text-sm text-muted-foreground">Q&As to Update</div>
+                          </CardContent>
+                        </Card>
+                        <Card className="border-green-200 bg-green-50 dark:bg-green-950/30">
+                          <CardContent className="pt-4 text-center">
+                            <div className="text-2xl font-bold text-green-600">
+                              {dryRunPreview.result?.summary?.qas_to_keep || 0}
+                            </div>
+                            <div className="text-sm text-muted-foreground">Q&As to Keep</div>
+                          </CardContent>
+                        </Card>
+                        <Card className="border-amber-200 bg-amber-50 dark:bg-amber-950/30">
+                          <CardContent className="pt-4 text-center">
+                            <div className="text-2xl font-bold text-amber-600">
+                              {dryRunPreview.result?.summary?.qas_to_move || 0}
+                            </div>
+                            <div className="text-sm text-muted-foreground">Q&As to Move</div>
+                          </CardContent>
+                        </Card>
+                      </>
+                    )}
+                  </div>
+
+                  {/* Detailed Changes Table */}
+                  <Card>
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-lg">
+                        {dryRunPreview.type === 'blog' ? 'Sample Articles to Update' : 'Q&As to Keep/Move'}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      {dryRunPreview.type === 'blog' ? (
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Slug</TableHead>
+                              <TableHead>Language</TableHead>
+                              <TableHead>Old Group ID</TableHead>
+                              <TableHead>New Group ID</TableHead>
+                              <TableHead>New Translations</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {(dryRunPreview.result?.sampleAffected || []).map((item: any, idx: number) => (
+                              <TableRow key={idx}>
+                                <TableCell className="font-mono text-xs">{item.slug?.substring(0, 30)}...</TableCell>
+                                <TableCell>{item.language?.toUpperCase()}</TableCell>
+                                <TableCell className="text-red-600 font-mono text-xs">
+                                  {item.oldGroupId?.substring(0, 8) || 'NULL'}...
+                                </TableCell>
+                                <TableCell className="text-green-600 font-mono text-xs">
+                                  {item.newGroupId?.substring(0, 8)}...
+                                </TableCell>
+                                <TableCell className="text-xs">
+                                  {Object.keys(item.newTranslations || {}).length} languages
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      ) : (
+                        <div className="space-y-4">
+                          {/* Q&As to Keep */}
+                          {(dryRunPreview.result?.kept || []).length > 0 && (
+                            <div>
+                              <p className="text-sm font-medium text-green-700 dark:text-green-400 mb-2">
+                                <CheckCircle2 className="h-4 w-4 inline mr-1" />
+                                Q&As to Keep ({dryRunPreview.result?.kept?.length || 0})
+                              </p>
+                              <div className="text-xs text-muted-foreground space-y-1">
+                                {(dryRunPreview.result?.kept || []).slice(0, 5).map((item: any, idx: number) => (
+                                  <div key={idx}>
+                                    {item.language?.toUpperCase()}: {item.slug?.substring(0, 40)}... ({item.reason})
+                                  </div>
+                                ))}
+                                {(dryRunPreview.result?.kept?.length || 0) > 5 && (
+                                  <div className="text-muted-foreground">
+                                    +{(dryRunPreview.result?.kept?.length || 0) - 5} more...
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          )}
+                          
+                          {/* Q&As to Move */}
+                          {(dryRunPreview.result?.moved || []).length > 0 && (
+                            <div>
+                              <p className="text-sm font-medium text-amber-700 dark:text-amber-400 mb-2">
+                                <AlertTriangle className="h-4 w-4 inline mr-1" />
+                                Q&As to Move to New Groups ({dryRunPreview.result?.moved?.length || 0})
+                              </p>
+                              <div className="text-xs text-muted-foreground space-y-1">
+                                {(dryRunPreview.result?.moved || []).slice(0, 5).map((item: any, idx: number) => (
+                                  <div key={idx}>
+                                    {item.language?.toUpperCase()}: {item.slug?.substring(0, 40)}...
+                                  </div>
+                                ))}
+                                {(dryRunPreview.result?.moved?.length || 0) > 5 && (
+                                  <div className="text-muted-foreground">
+                                    +{(dryRunPreview.result?.moved?.length || 0) - 5} more...
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+
+                  {/* Action Buttons */}
+                  <div className="flex justify-end gap-3 pt-4 border-t">
+                    <Button 
+                      variant="outline" 
+                      onClick={() => {
+                        setShowDryRunModal(false);
+                        setDryRunPreview(null);
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      onClick={handleApplyFix}
+                      disabled={applyingFix}
+                      className="bg-green-600 hover:bg-green-700"
+                    >
+                      {applyingFix ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Applying...
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircle2 className="mr-2 h-4 w-4" />
+                          Apply Fix ({
+                            dryRunPreview?.type === 'blog' 
+                              ? dryRunPreview?.result?.stats?.updatesNeeded || 0
+                              : dryRunPreview?.result?.summary?.total_updates || 0
+                          } updates)
+                        </>
+                      )}
+                    </Button>
+                  </div>
                 </div>
               </ScrollArea>
             )}
