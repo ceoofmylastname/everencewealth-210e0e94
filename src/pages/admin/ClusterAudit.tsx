@@ -34,8 +34,10 @@ import {
 } from '@/components/ui/dialog';
 import { 
   scanCitationsForCompetitors, 
+  scanClusterForCompetitors,
   removeCitations, 
   type ScanResult, 
+  type ClusterScanResult,
   type CitationClassification 
 } from '@/lib/competitorDetection';
 
@@ -85,6 +87,12 @@ export default function ClusterAudit() {
   const [scanResult, setScanResult] = useState<ScanResult | null>(null);
   const [showScanModal, setShowScanModal] = useState(false);
   const [isRemovingCompetitors, setIsRemovingCompetitors] = useState(false);
+  
+  // Cluster-wide scanner state
+  const [isClusterScanning, setIsClusterScanning] = useState(false);
+  const [clusterScanResult, setClusterScanResult] = useState<ClusterScanResult | null>(null);
+  const [showClusterScanModal, setShowClusterScanModal] = useState(false);
+  const [isRemovingClusterCompetitors, setIsRemovingClusterCompetitors] = useState(false);
 
   // Auto-audit on load
   useEffect(() => {
@@ -472,7 +480,154 @@ export default function ClusterAudit() {
     }
   };
 
-  // Group articles by language
+  // Cluster-Wide Competitor Scanner
+  const handleScanAllForCompetitors = async () => {
+    if (!clusterId) return;
+    
+    setIsClusterScanning(true);
+    
+    try {
+      const { data: clusterArticles, error } = await supabase
+        .from('blog_articles')
+        .select('id, headline, language, external_citations')
+        .eq('cluster_id', clusterId);
+      
+      if (error) throw error;
+      
+      if (!clusterArticles || clusterArticles.length === 0) {
+        toast.info('No articles found in cluster');
+        setIsClusterScanning(false);
+        return;
+      }
+      
+      const result = scanClusterForCompetitors(clusterArticles as any);
+      setClusterScanResult(result);
+      setShowClusterScanModal(true);
+      
+      const logEntry = `[${new Date().toLocaleTimeString()}] Cluster scan: ${result.totalArticles} articles, ${result.totalCitations} citations, ${result.allCompetitors.length} competitors found`;
+      setProcessingLog(prev => [...prev, logEntry]);
+      
+      if (result.allCompetitors.length > 0) {
+        toast.warning(`Found ${result.allCompetitors.length} competitor citations across ${Object.keys(result.byLanguage).filter(l => result.byLanguage[l].competitorCount > 0).length} languages`);
+      } else {
+        toast.success('No competitor citations found!');
+      }
+      
+    } catch (error: any) {
+      toast.error(`Cluster scan failed: ${error.message}`);
+    } finally {
+      setIsClusterScanning(false);
+    }
+  };
+
+  const handleRemoveAllClusterCompetitors = async () => {
+    if (!clusterScanResult || clusterScanResult.allCompetitors.length === 0) return;
+    
+    setIsRemovingClusterCompetitors(true);
+    
+    try {
+      // Group competitors by article ID
+      const competitorsByArticle = clusterScanResult.allCompetitors.reduce((acc, comp) => {
+        if (!acc[comp.articleId]) acc[comp.articleId] = [];
+        acc[comp.articleId].push(comp.citation.url);
+        return acc;
+      }, {} as Record<string, string[]>);
+      
+      let totalRemoved = 0;
+      let articlesUpdated = 0;
+      
+      // Update each article
+      for (const [articleId, urlsToRemove] of Object.entries(competitorsByArticle)) {
+        const { data: articleData, error: fetchError } = await supabase
+          .from('blog_articles')
+          .select('external_citations')
+          .eq('id', articleId)
+          .single();
+        
+        if (fetchError) continue;
+        
+        const currentCitations = (articleData?.external_citations as any[]) || [];
+        const updatedCitations = removeCitations(currentCitations, urlsToRemove);
+        
+        const { error: updateError } = await supabase
+          .from('blog_articles')
+          .update({ 
+            external_citations: updatedCitations,
+            last_citation_check_at: new Date().toISOString()
+          })
+          .eq('id', articleId);
+        
+        if (!updateError) {
+          totalRemoved += urlsToRemove.length;
+          articlesUpdated += 1;
+        }
+      }
+      
+      // Refresh articles state
+      await handleAudit();
+      
+      const logEntry = `✅ Removed ${totalRemoved} competitor citations from ${articlesUpdated} articles`;
+      setProcessingLog(prev => [...prev, logEntry]);
+      
+      toast.success(`Removed ${totalRemoved} competitors from ${articlesUpdated} articles`);
+      setShowClusterScanModal(false);
+      setClusterScanResult(null);
+      
+    } catch (error: any) {
+      toast.error(`Failed to remove: ${error.message}`);
+    } finally {
+      setIsRemovingClusterCompetitors(false);
+    }
+  };
+
+  const handleRemoveClusterCitation = async (competitor: { articleId: string; citation: CitationClassification }) => {
+    try {
+      const { data: articleData, error: fetchError } = await supabase
+        .from('blog_articles')
+        .select('external_citations')
+        .eq('id', competitor.articleId)
+        .single();
+      
+      if (fetchError) throw fetchError;
+      
+      const currentCitations = (articleData?.external_citations as any[]) || [];
+      const updatedCitations = removeCitations(currentCitations, [competitor.citation.url]);
+      
+      const { error: updateError } = await supabase
+        .from('blog_articles')
+        .update({ 
+          external_citations: updatedCitations,
+          last_citation_check_at: new Date().toISOString()
+        })
+        .eq('id', competitor.articleId);
+      
+      if (updateError) throw updateError;
+      
+      // Update cluster scan result to remove the citation
+      if (clusterScanResult) {
+        const newResult = { ...clusterScanResult };
+        newResult.allCompetitors = newResult.allCompetitors.filter(
+          c => !(c.articleId === competitor.articleId && c.citation.url === competitor.citation.url)
+        );
+        
+        // Update byLanguage counts
+        for (const lang of Object.keys(newResult.byLanguage)) {
+          newResult.byLanguage[lang].competitors = newResult.byLanguage[lang].competitors.filter(
+            c => !(c.articleId === competitor.articleId && c.citation.url === competitor.citation.url)
+          );
+          newResult.byLanguage[lang].competitorCount = newResult.byLanguage[lang].competitors.length;
+        }
+        
+        setClusterScanResult(newResult);
+      }
+      
+      toast.success(`Removed: ${competitor.citation.domain}`);
+      
+    } catch (error: any) {
+      toast.error(`Failed: ${error.message}`);
+    }
+  };
+
   const articlesByLanguage = articles.reduce((acc, article) => {
     if (!acc[article.language]) acc[article.language] = [];
     acc[article.language].push(article);
@@ -537,18 +692,33 @@ export default function ClusterAudit() {
             )}
           </Button>
 
-          {/* Competitor Scanner Button */}
+          {/* Competitor Scanner Buttons */}
           {currentArticle && currentArticle.citationCount > 0 && (
             <Button 
               variant="outline" 
               onClick={handleScanForCompetitors} 
-              disabled={isScanning || isFixing}
+              disabled={isScanning || isFixing || isClusterScanning}
               className="border-amber-500/50 text-amber-600 hover:bg-amber-500/10"
             >
               {isScanning ? (
                 <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Scanning...</>
               ) : (
-                <><ShieldAlert className="mr-2 h-4 w-4" />Scan for Competitors</>
+                <><ShieldAlert className="mr-2 h-4 w-4" />Scan Current</>
+              )}
+            </Button>
+          )}
+          
+          {/* Cluster-Wide Scan Button */}
+          {articles.length > 0 && (
+            <Button 
+              onClick={handleScanAllForCompetitors} 
+              disabled={isClusterScanning || isFixing || isScanning}
+              className="bg-amber-500 hover:bg-amber-600 text-white"
+            >
+              {isClusterScanning ? (
+                <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Scanning All...</>
+              ) : (
+                <><ShieldAlert className="mr-2 h-4 w-4" />Scan All ({articles.length})</>
               )}
             </Button>
           )}
@@ -732,6 +902,160 @@ export default function ClusterAudit() {
                     </Button>
                   )}
                   <Button variant="outline" onClick={() => setShowScanModal(false)}>
+                    Close
+                  </Button>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Cluster-Wide Competitor Scan Modal */}
+        <Dialog open={showClusterScanModal} onOpenChange={setShowClusterScanModal}>
+          <DialogContent className="max-w-3xl max-h-[85vh] overflow-hidden flex flex-col">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <ShieldAlert className="h-5 w-5 text-amber-500" />
+                Cluster-Wide Competitor Scan
+              </DialogTitle>
+              <DialogDescription>
+                Scanning all {clusterScanResult?.totalArticles || 0} articles across {Object.keys(clusterScanResult?.byLanguage || {}).length} languages
+              </DialogDescription>
+            </DialogHeader>
+            
+            {clusterScanResult && (
+              <div className="flex-1 overflow-y-auto space-y-4">
+                {/* Summary */}
+                <div className="grid grid-cols-4 gap-3">
+                  <div className="text-center p-3 bg-muted rounded-lg">
+                    <div className="text-2xl font-bold">{clusterScanResult.totalArticles}</div>
+                    <div className="text-xs text-muted-foreground">Articles</div>
+                  </div>
+                  <div className="text-center p-3 bg-muted rounded-lg">
+                    <div className="text-2xl font-bold">{clusterScanResult.totalCitations}</div>
+                    <div className="text-xs text-muted-foreground">Citations</div>
+                  </div>
+                  <div className="text-center p-3 bg-red-500/10 rounded-lg border border-red-500/20">
+                    <div className="text-2xl font-bold text-red-600">{clusterScanResult.allCompetitors.length}</div>
+                    <div className="text-xs text-red-600">Competitors</div>
+                  </div>
+                  <div className="text-center p-3 bg-amber-500/10 rounded-lg border border-amber-500/20">
+                    <div className="text-2xl font-bold text-amber-600">{clusterScanResult.allLowValue.length}</div>
+                    <div className="text-xs text-amber-600">Low-Value</div>
+                  </div>
+                </div>
+
+                {/* By Language Summary */}
+                <div className="space-y-2">
+                  <h4 className="font-semibold text-sm">By Language</h4>
+                  <div className="grid grid-cols-5 gap-2">
+                    {Object.entries(clusterScanResult.byLanguage)
+                      .sort(([a], [b]) => a.localeCompare(b))
+                      .map(([lang, data]) => (
+                        <div 
+                          key={lang} 
+                          className={`p-2 rounded-lg text-center ${
+                            data.competitorCount > 0 
+                              ? 'bg-red-500/10 border border-red-500/20' 
+                              : 'bg-green-500/10 border border-green-500/20'
+                          }`}
+                        >
+                          <div className="text-lg">{getLanguageFlag(lang)}</div>
+                          <div className="text-xs font-medium">{lang.toUpperCase()}</div>
+                          <div className={`text-xs ${data.competitorCount > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                            {data.competitorCount > 0 ? `${data.competitorCount} ❌` : '✓'}
+                          </div>
+                        </div>
+                      ))}
+                  </div>
+                </div>
+
+                {/* Competitors Section */}
+                {clusterScanResult.allCompetitors.length > 0 && (
+                  <div className="space-y-2">
+                    <h4 className="font-semibold text-red-600 flex items-center gap-2">
+                      <XCircle className="h-4 w-4" />
+                      All Competitors ({clusterScanResult.allCompetitors.length})
+                    </h4>
+                    <ScrollArea className="h-64">
+                      <div className="space-y-2 pr-4">
+                        {Object.entries(clusterScanResult.byLanguage)
+                          .filter(([, data]) => data.competitorCount > 0)
+                          .map(([lang, data]) => (
+                            <div key={lang} className="space-y-2">
+                              <div className="flex items-center gap-2 sticky top-0 bg-background py-1">
+                                <span className="text-lg">{getLanguageFlag(lang)}</span>
+                                <span className="font-medium text-sm">{lang.toUpperCase()}</span>
+                                <Badge variant="destructive" className="text-xs">{data.competitorCount}</Badge>
+                              </div>
+                              {data.competitors.map((c, i) => (
+                                <div 
+                                  key={`${c.articleId}-${i}`} 
+                                  className="flex items-start justify-between p-2 bg-red-500/5 border border-red-500/20 rounded-md ml-6"
+                                >
+                                  <div className="min-w-0 flex-1">
+                                    <div className="font-mono text-sm text-red-600">{c.citation.domain}</div>
+                                    <div className="text-xs text-muted-foreground truncate">
+                                      {c.articleHeadline.substring(0, 50)}...
+                                    </div>
+                                    <div className="text-xs text-muted-foreground">{c.citation.reason}</div>
+                                  </div>
+                                  <div className="flex gap-2 shrink-0">
+                                    <Button 
+                                      size="sm" 
+                                      variant="ghost" 
+                                      className="h-7 px-2"
+                                      onClick={() => window.open(c.citation.url, '_blank')}
+                                    >
+                                      <Eye className="h-3 w-3" />
+                                    </Button>
+                                    <Button 
+                                      size="sm" 
+                                      variant="destructive" 
+                                      className="h-7 px-2"
+                                      onClick={() => handleRemoveClusterCitation({ 
+                                        articleId: c.articleId, 
+                                        citation: c.citation 
+                                      })}
+                                    >
+                                      <Trash2 className="h-3 w-3" />
+                                    </Button>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          ))}
+                      </div>
+                    </ScrollArea>
+                  </div>
+                )}
+
+                {/* No Issues */}
+                {clusterScanResult.allCompetitors.length === 0 && (
+                  <Alert>
+                    <CheckCircle2 className="h-4 w-4 text-green-600" />
+                    <AlertDescription className="text-green-600">
+                      No competitor citations found across the entire cluster! All {clusterScanResult.totalCitations} citations are clean.
+                    </AlertDescription>
+                  </Alert>
+                )}
+
+                {/* Bulk Actions */}
+                <div className="flex gap-3 pt-4 border-t">
+                  {clusterScanResult.allCompetitors.length > 0 && (
+                    <Button 
+                      variant="destructive" 
+                      onClick={handleRemoveAllClusterCompetitors}
+                      disabled={isRemovingClusterCompetitors}
+                    >
+                      {isRemovingClusterCompetitors ? (
+                        <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Removing...</>
+                      ) : (
+                        <><Trash2 className="mr-2 h-4 w-4" />Remove All Competitors ({clusterScanResult.allCompetitors.length})</>
+                      )}
+                    </Button>
+                  )}
+                  <Button variant="outline" onClick={() => setShowClusterScanModal(false)}>
                     Close
                   </Button>
                 </div>
