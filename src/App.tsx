@@ -88,12 +88,7 @@ const SEOMonitor = lazy(() => import("./pages/admin/SEOMonitor"));
 const SystemHealth = lazy(() => import("./pages/admin/SystemHealth"));
 const SchemaHealth = lazy(() => import("./pages/admin/SchemaHealth"));
 const ClusterManager = lazy(() => import("./pages/admin/ClusterManager"));
-const ClusterAudit = lazy(() => import("./pages/admin/ClusterAudit"));
-const ClusterPriorities = lazy(() => import("./pages/admin/ClusterPriorities"));
-const CompleteIncompleteClusters = lazy(() => import("./pages/admin/CompleteIncompleteClusters"));
-const TranslationQueue = lazy(() => import("./pages/admin/TranslationQueue"));
 const DuplicateImageFixer = lazy(() => import("./pages/admin/DuplicateImageFixer"));
-const QALanguageAudit = lazy(() => import("./pages/admin/QALanguageAudit"));
 const SystemAudit = lazy(() => import("./pages/admin/SystemAudit"));
 const ProductionAudit = lazy(() => import("./pages/admin/ProductionAudit"));
 
@@ -170,12 +165,7 @@ const App = () => (
               <Route path="/admin/system-health" element={<ProtectedRoute><SystemHealth /></ProtectedRoute>} />
               <Route path="/admin/schema-health" element={<ProtectedRoute><SchemaHealth /></ProtectedRoute>} />
               <Route path="/admin/clusters" element={<ProtectedRoute><ClusterManager /></ProtectedRoute>} />
-              <Route path="/admin/clusters/:clusterId/audit" element={<ProtectedRoute><ClusterAudit /></ProtectedRoute>} />
-              <Route path="/admin/cluster-priorities" element={<ProtectedRoute><ClusterPriorities /></ProtectedRoute>} />
-              <Route path="/admin/complete-incomplete-clusters" element={<ProtectedRoute><CompleteIncompleteClusters /></ProtectedRoute>} />
-              <Route path="/admin/translation-queue" element={<ProtectedRoute><TranslationQueue /></ProtectedRoute>} />
               <Route path="/admin/duplicate-images" element={<ProtectedRoute><DuplicateImageFixer /></ProtectedRoute>} />
-              <Route path="/admin/qa-language-audit" element={<ProtectedRoute><QALanguageAudit /></ProtectedRoute>} />
               <Route path="/admin/system-audit" element={<ProtectedRoute><SystemAudit /></ProtectedRoute>} />
               <Route path="/admin/production-audit" element={<ProtectedRoute><ProductionAudit /></ProtectedRoute>} />
               

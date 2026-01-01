@@ -917,25 +917,26 @@ const ClusterManager = () => {
               <ClusterCard
                 key={cluster.cluster_id}
                 cluster={cluster}
-                onPublishArticles={() => setClusterToPublish(cluster.cluster_id)}
-                onDeleteCluster={() => setClusterToDelete(cluster.cluster_id)}
+                onPublish={() => setClusterToPublish(cluster.cluster_id)}
+                onDelete={() => setClusterToDelete(cluster.cluster_id)}
                 onPublishQAs={() => setClusterToPublishQAs(cluster.cluster_id)}
-                onCompleteTranslations={() => setClusterToTranslate(cluster.cluster_id)}
+                onTranslate={() => setClusterToTranslate(cluster.cluster_id)}
                 onRegenerateLinks={() => regenerateLinksMutation.mutate(cluster.cluster_id)}
-                onGenerateQAs={(language: string, articleIds: string[]) => 
-                  generateNextLanguageQAMutation.mutate({ 
-                    clusterId: cluster.cluster_id, 
-                    language, 
-                    articleIds 
-                  })
-                }
-                isRegeneratingLinks={regeneratingLinks === cluster.cluster_id}
+                onSEOAudit={() => {}}
+                onGenerateQAs={(clusterId: string, lang: string) => {
+                  const clusterArticles = articles?.filter(a => a.cluster_id === clusterId && a.language === lang) || [];
+                  const articleIds = clusterArticles.map(a => a.id);
+                  if (articleIds.length > 0) {
+                    generateNextLanguageQAMutation.mutate({ clusterId, language: lang, articleIds });
+                  }
+                }}
+                isPublishing={clusterToPublish === cluster.cluster_id && publishMutation.isPending}
+                isDeleting={clusterToDelete === cluster.cluster_id && deleteMutation.isPending}
                 isTranslating={translatingCluster === cluster.cluster_id}
-                isGeneratingQA={generatingQALanguage?.clusterId === cluster.cluster_id ? generatingQALanguage.lang : null}
-                isPublishingQAs={publishingQAs === cluster.cluster_id}
-                getNextPendingQALanguage={getNextPendingQALanguage}
-                getQALanguageStatus={getQALanguageStatus}
-                copyClusterId={copyClusterId}
+                isRegeneratingLinks={regeneratingLinks === cluster.cluster_id}
+                isAuditing={false}
+                generatingQALanguage={generatingQALanguage?.clusterId === cluster.cluster_id ? generatingQALanguage : null}
+                publishingQAs={publishingQAs === cluster.cluster_id ? cluster.cluster_id : null}
               />
             ))}
           </div>
