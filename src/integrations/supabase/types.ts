@@ -350,6 +350,7 @@ export type Database = {
       }
       blog_articles: {
         Row: {
+          author_bio_localized: string | null
           author_id: string | null
           canonical_url: string | null
           category: string
@@ -402,6 +403,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          author_bio_localized?: string | null
           author_id?: string | null
           canonical_url?: string | null
           category: string
@@ -454,6 +456,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          author_bio_localized?: string | null
           author_id?: string | null
           canonical_url?: string | null
           category?: string
