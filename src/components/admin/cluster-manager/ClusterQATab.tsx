@@ -1,8 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { CheckCircle, HelpCircle, Loader2, PlayCircle, AlertTriangle, FileText, RotateCcw, XCircle } from "lucide-react";
+import { CheckCircle, HelpCircle, Loader2, PlayCircle, AlertTriangle, FileText, RotateCcw, XCircle, Wrench } from "lucide-react";
 import { ClusterData, getLanguageFlag, getAllExpectedLanguages } from "./types";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -42,6 +42,13 @@ const EXPECTED_QAS_PER_CLUSTER = EXPECTED_QAS_PER_LANGUAGE * TOTAL_LANGUAGES; //
 // Stalled threshold: 5 minutes without update
 const STALLED_THRESHOLD_MS = 5 * 60 * 1000;
 
+interface MismatchInfo {
+  hasMismatch: boolean;
+  maxCount: number;
+  mismatched: { lang: string; actual: number; missing: number }[];
+  total: number;
+}
+
 export const ClusterQATab = ({
   cluster,
   onPublishQAs,
@@ -53,6 +60,7 @@ export const ClusterQATab = ({
   const [isStartingJob, setIsStartingJob] = useState(false);
   const [isResumingJob, setIsResumingJob] = useState(false);
   const [isCancellingJob, setIsCancellingJob] = useState(false);
+  const [isRepairing, setIsRepairing] = useState(false);
   
   const isPublishing = publishingQAs === cluster.cluster_id;
   const isGenerating = generatingQALanguage?.clusterId === cluster.cluster_id;
@@ -242,6 +250,75 @@ export const ClusterQATab = ({
 
   const draftQAsCount = cluster.total_qa_pages - cluster.total_qa_published;
 
+  // Detect Q&A count mismatches between languages
+  const mismatchInfo = useMemo((): MismatchInfo => {
+    const languageCounts: { lang: string; actual: number; expected: number }[] = [];
+    
+    // Get counts for all languages that have articles
+    expectedLanguages.forEach((lang) => {
+      const status = getQAStatusForLanguage(lang);
+      if (status.articleCount > 0) {
+        languageCounts.push({
+          lang,
+          actual: status.actualQAs,
+          expected: status.expectedQAs,
+        });
+      }
+    });
+    
+    if (languageCounts.length === 0) {
+      return { hasMismatch: false, maxCount: 0, mismatched: [], total: 0 };
+    }
+    
+    // Find the maximum actual count (reference point)
+    const maxActual = Math.max(...languageCounts.map(l => l.actual));
+    
+    // Find languages that are behind the leader (only when there are Q&As generated)
+    const mismatched = languageCounts
+      .filter(l => l.actual < maxActual && maxActual > 0)
+      .map(l => ({
+        lang: l.lang,
+        actual: l.actual,
+        missing: maxActual - l.actual,
+      }));
+    
+    return {
+      hasMismatch: mismatched.length > 0,
+      maxCount: maxActual,
+      mismatched,
+      total: languageCounts.length,
+    };
+  }, [expectedLanguages, cluster.qa_pages, cluster.languages]);
+
+  // Handle repair of missing Q&As
+  const handleRepairMissingQAs = async () => {
+    if (!mismatchInfo.hasMismatch) return;
+    
+    setIsRepairing(true);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('repair-missing-qas', {
+        body: { 
+          clusterId: cluster.cluster_id,
+          languages: mismatchInfo.mismatched.map(m => m.lang),
+        },
+      });
+
+      if (error) throw error;
+
+      toast.success(`Repaired ${data?.repaired || 0} missing Q&As`);
+      
+      // Trigger a page reload to refresh data
+      window.location.reload();
+      
+    } catch (error) {
+      console.error('Error repairing Q&As:', error);
+      toast.error('Failed to repair missing Q&As');
+    } finally {
+      setIsRepairing(false);
+    }
+  };
+
   return (
     <div className="space-y-4">
       {/* Summary Stats */}
@@ -390,18 +467,65 @@ export const ClusterQATab = ({
         </div>
       )}
 
+      {/* Q&A Count Mismatch Warning */}
+      {mismatchInfo.hasMismatch && !isJobRunning && !isJobStalled && (
+        <div className="p-4 bg-orange-50 border border-orange-300 rounded-lg dark:bg-orange-950/30 dark:border-orange-700">
+          <div className="flex items-center gap-2 mb-2">
+            <AlertTriangle className="h-5 w-5 text-orange-600" />
+            <span className="font-medium text-orange-800 dark:text-orange-300">
+              Q&A Count Mismatch Detected
+            </span>
+          </div>
+          
+          <p className="text-sm text-orange-700 dark:text-orange-400 mb-2">
+            Some languages have fewer Q&As than others. Expected {mismatchInfo.maxCount} per language:
+          </p>
+          
+          <div className="flex flex-wrap gap-2 mb-3">
+            {mismatchInfo.mismatched.map(({ lang, actual, missing }) => (
+              <Badge 
+                key={lang} 
+                variant="outline" 
+                className="border-orange-400 text-orange-700 dark:text-orange-300"
+              >
+                {getLanguageFlag(lang)} {lang.toUpperCase()}: {actual}/{mismatchInfo.maxCount} 
+                (missing {missing})
+              </Badge>
+            ))}
+          </div>
+          
+          <Button
+            variant="outline"
+            size="sm"
+            className="border-orange-400 text-orange-700 hover:bg-orange-100 dark:hover:bg-orange-900/30"
+            onClick={handleRepairMissingQAs}
+            disabled={isRepairing}
+          >
+            {isRepairing ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <Wrench className="mr-2 h-4 w-4" />
+            )}
+            Repair Missing Q&As
+          </Button>
+        </div>
+      )}
+
       {/* Language-by-Language Q&A Status */}
       <div className="space-y-2">
         <h4 className="text-sm font-medium">Q&As by Language (expected: 24 per language)</h4>
         <div className="grid grid-cols-5 gap-2">
           {expectedLanguages.map((lang) => {
             const status = getQAStatusForLanguage(lang);
+            const isMismatched = mismatchInfo.mismatched.some(m => m.lang === lang);
 
             return (
               <div
                 key={lang}
                 className={`p-2 rounded-lg border text-center relative ${
-                  status.allPublished
+                  isMismatched
+                    ? "bg-orange-50 border-orange-400 border-2 dark:bg-orange-950/30"
+                    : status.allPublished
                     ? "bg-green-50 border-green-200 dark:bg-green-950/30"
                     : status.isComplete
                     ? "bg-blue-50 border-blue-200 dark:bg-blue-950/30"
@@ -422,6 +546,9 @@ export const ClusterQATab = ({
                 {/* Status indicator */}
                 {status.isComplete && status.allPublished && (
                   <CheckCircle className="absolute -top-1 -right-1 h-4 w-4 text-green-500" />
+                )}
+                {isMismatched && (
+                  <AlertTriangle className="absolute -top-1 -right-1 h-4 w-4 text-orange-500" />
                 )}
               </div>
             );
