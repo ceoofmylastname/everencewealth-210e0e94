@@ -286,10 +286,112 @@ async function translateAltText(altText: string, language: string): Promise<stri
 }
 
 /**
+ * Update job progress and trigger next article if needed
+ */
+async function updateJobAndContinue(
+  supabase: any,
+  jobId: string,
+  articleIndex: number,
+  articleResult: any,
+  dryRun: boolean
+) {
+  // Get current job state
+  const { data: job, error: jobError } = await supabase
+    .from('qa_generation_jobs')
+    .select('*')
+    .eq('id', jobId)
+    .single();
+
+  if (jobError || !job) {
+    console.error('[Continue] Failed to fetch job:', jobError);
+    return;
+  }
+
+  const articleResults = [...(job.article_results || []), articleResult];
+  const articlesCompleted = job.articles_completed + 1;
+  const totalQAsCreated = job.total_qas_created + (articleResult.created || 0);
+  const totalQAsFailed = job.total_qas_failed + (articleResult.failed || 0);
+  const totalArticles = job.total_articles;
+  const articleIds = job.article_ids || [];
+
+  const isComplete = articlesCompleted >= totalArticles;
+  const expectedTotal = totalArticles * 40;
+  const completionPercent = Math.round((totalQAsCreated / expectedTotal) * 100);
+
+  console.log(`[Continue] Job ${jobId}: ${articlesCompleted}/${totalArticles} articles, ${totalQAsCreated} Q&As`);
+
+  // Update job with progress
+  await supabase
+    .from('qa_generation_jobs')
+    .update({
+      articles_completed: articlesCompleted,
+      total_qas_created: totalQAsCreated,
+      total_qas_failed: totalQAsFailed,
+      article_results: articleResults,
+      completion_percent: completionPercent,
+      updated_at: new Date().toISOString(),
+      ...(isComplete ? {
+        status: 'completed',
+        completed_at: new Date().toISOString(),
+      } : {}),
+    })
+    .eq('id', jobId);
+
+  if (isComplete) {
+    console.log(`[Continue] ✅ Job ${jobId} COMPLETED! ${totalQAsCreated}/${expectedTotal} Q&As`);
+    return;
+  }
+
+  // Trigger next article (self-continuation)
+  const nextIndex = articleIndex + 1;
+  const nextArticleId = articleIds[nextIndex];
+
+  if (!nextArticleId) {
+    console.error(`[Continue] No article at index ${nextIndex}`);
+    return;
+  }
+
+  console.log(`[Continue] Firing article ${nextIndex + 1}/${totalArticles}...`);
+
+  // Update job to show next article
+  await supabase
+    .from('qa_generation_jobs')
+    .update({
+      current_article_index: nextIndex,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', jobId);
+
+  // Small delay before next article
+  await new Promise(r => setTimeout(r, 3000));
+
+  // Fire-and-forget next article
+  fetch(
+    `${Deno.env.get('SUPABASE_URL')}/functions/v1/generate-article-qas`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
+      },
+      body: JSON.stringify({
+        englishArticleId: nextArticleId,
+        jobId: jobId,
+        articleIndex: nextIndex,
+        dryRun,
+      }),
+    }
+  ).catch(err => {
+    console.error('[Continue] Fire-and-forget error (ignored):', err);
+  });
+}
+
+/**
  * Main handler - English-first workflow:
  * 1. Generate 4 English Q&As (original content)
  * 2. Translate each to 9 languages
  * 3. Link each translation to its language's source article
+ * 4. If jobId provided, update progress and trigger next article
  */
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -297,7 +399,7 @@ serve(async (req) => {
   }
 
   try {
-    const { englishArticleId, dryRun = false } = await req.json();
+    const { englishArticleId, jobId, articleIndex = 0, dryRun = false } = await req.json();
     
     if (!englishArticleId) {
       return new Response(JSON.stringify({ error: 'englishArticleId required' }), {
@@ -312,6 +414,9 @@ serve(async (req) => {
     );
 
     console.log(`[Generate] Starting English-first Q&A generation for: ${englishArticleId}`);
+    if (jobId) {
+      console.log(`[Generate] Part of job ${jobId}, article index ${articleIndex}`);
+    }
 
     // Get English article as source
     const { data: englishArticle, error: articleError } = await supabase
@@ -322,6 +427,10 @@ serve(async (req) => {
       .single();
 
     if (articleError || !englishArticle) {
+      const errorResult = { articleId: englishArticleId, success: false, error: 'Article not found', created: 0, failed: 40 };
+      if (jobId) {
+        await updateJobAndContinue(supabase, jobId, articleIndex, errorResult, dryRun);
+      }
       return new Response(JSON.stringify({ 
         error: 'English article not found',
         englishArticleId 
@@ -333,6 +442,17 @@ serve(async (req) => {
 
     console.log(`[Generate] Source: ${englishArticle.headline}`);
     console.log(`[Generate] Cluster: ${englishArticle.cluster_id}`);
+
+    // Update job with current article headline
+    if (jobId) {
+      await supabase
+        .from('qa_generation_jobs')
+        .update({
+          current_article_headline: englishArticle.headline,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', jobId);
+    }
 
     // Get ALL sibling articles in all languages for this article's hreflang group
     const articlesByLang: Record<string, any> = { en: englishArticle };
@@ -551,6 +671,23 @@ serve(async (req) => {
 
     console.log(`\n[Generate] ===== Complete! =====`);
     console.log(`[Generate] Created: ${results.created}, Skipped: ${results.skipped}, Failed: ${results.failed}`);
+
+    // If part of a job, update progress and trigger next article
+    if (jobId) {
+      const articleResult = {
+        articleId: englishArticle.id,
+        headline: englishArticle.headline,
+        success: true,
+        created: results.created,
+        skipped: results.skipped,
+        failed: results.failed,
+        hreflangGroups: results.hreflangGroups,
+      };
+      
+      // Use background processing to trigger next article
+      // @ts-ignore
+      EdgeRuntime.waitUntil(updateJobAndContinue(supabase, jobId, articleIndex, articleResult, dryRun));
+    }
 
     return new Response(JSON.stringify({
       success: true,
