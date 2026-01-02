@@ -115,7 +115,7 @@ Return ONLY valid JSON:
         'Authorization': `Bearer ${Deno.env.get('LOVABLE_API_KEY')}`,
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
+        model: 'gpt-4o-mini',
         messages: [
           { 
             role: 'system', 
@@ -196,7 +196,7 @@ Return ONLY valid JSON:
         'Authorization': `Bearer ${Deno.env.get('LOVABLE_API_KEY')}`,
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
+        model: 'gpt-4o-mini',
         messages: [
           { 
             role: 'system', 
@@ -268,7 +268,7 @@ async function translateAltText(altText: string, language: string): Promise<stri
         'Authorization': `Bearer ${Deno.env.get('LOVABLE_API_KEY')}`,
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash-lite',
+        model: 'gpt-4o-mini',
         messages: [
           { role: 'system', content: `Translate to ${LANGUAGE_NAMES[language]}. Return ONLY the translation.` },
           { role: 'user', content: altText }
