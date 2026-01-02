@@ -170,8 +170,10 @@ const ClusterManager = () => {
       }
     });
 
-    // Calculate expected QA pages (4 QAs per article) and completion percent
+    // Calculate expected QA pages (4 QAs per article per language)
+    // Correct: Each article gets 4 Q&A types, so total = articles × 4
     clustersArray.forEach((cluster) => {
+      // Total expected = sum of (articles per language × 4)
       cluster.expected_qa_pages = cluster.total_articles * 4;
       cluster.qa_completion_percent = cluster.expected_qa_pages > 0 
         ? Math.round((cluster.total_qa_pages / cluster.expected_qa_pages) * 100)
@@ -279,55 +281,44 @@ const ClusterManager = () => {
     },
   });
 
-  // Generate QAs for specific language in cluster
-  const generateQAsForLanguageMutation = useMutation({
-    mutationFn: async ({ clusterId, language }: { clusterId: string; language: string }) => {
-      setGeneratingQALanguage({ clusterId, lang: language });
+  // Generate QAs for article using new generate-article-qas function
+  // This generates 40 Q&As per article (4 types × 10 languages)
+  const generateQAsForArticleMutation = useMutation({
+    mutationFn: async ({ clusterId, englishArticleId }: { clusterId: string; englishArticleId?: string }) => {
+      setGeneratingQALanguage({ clusterId, lang: 'all' });
       
-      // Get articles in this cluster and language
-      const { data: clusterArticles, error: fetchError } = await supabase
-        .from("blog_articles")
-        .select("id")
-        .eq("cluster_id", clusterId)
-        .eq("language", language)
-        .in("status", ["draft", "published"]);
-      
-      if (fetchError) throw fetchError;
-      if (!clusterArticles || clusterArticles.length === 0) {
-        throw new Error(`No ${language.toUpperCase()} articles found in this cluster`);
+      if (englishArticleId) {
+        // Generate for a single article
+        const { data, error } = await supabase.functions.invoke("generate-article-qas", {
+          body: { englishArticleId },
+        });
+        
+        if (error) throw error;
+        return { ...data, mode: 'single' };
+      } else {
+        // Generate for entire cluster using orchestrator
+        const { data, error } = await supabase.functions.invoke("generate-cluster-qas", {
+          body: { clusterId },
+        });
+        
+        if (error) throw error;
+        return { ...data, mode: 'cluster' };
       }
-      
-      let totalGenerated = 0;
-      
-      for (const article of clusterArticles) {
-        try {
-          const { data, error } = await supabase.functions.invoke("generate-qa-pages", {
-            body: { 
-              articleIds: [article.id],
-              languages: [language],
-              completeMissing: true
-            },
-          });
-          
-          if (error) {
-            console.error(`Failed to generate QAs for article ${article.id}:`, error);
-          } else {
-            totalGenerated += data?.generatedPages || 0;
-          }
-        } catch (err) {
-          console.error(`Error generating QAs for article ${article.id}:`, err);
+    },
+    onSuccess: (result) => {
+      if (result.mode === 'single') {
+        toast.success(`Generated ${result.created} Q&As for article: ${result.articleHeadline}`);
+      } else {
+        toast.success(`Generated ${result.totalQAsCreated}/${result.expectedTotal} Q&As for cluster`);
+        if (result.totalQAsFailed > 0) {
+          toast.warning(`${result.totalQAsFailed} Q&As failed to generate`);
         }
       }
-      
-      return { language, totalGenerated, articleCount: clusterArticles.length };
-    },
-    onSuccess: ({ language, totalGenerated }) => {
-      toast.success(`Generated ${totalGenerated} QA pages for ${language.toUpperCase()}`);
       queryClient.invalidateQueries({ queryKey: ["cluster-qa-pages"] });
       setGeneratingQALanguage(null);
     },
     onError: (error) => {
-      toast.error(`Failed to generate QAs: ${error.message}`);
+      toast.error(`Failed to generate Q&As: ${error.message}`);
       setGeneratingQALanguage(null);
     },
   });
@@ -923,12 +914,8 @@ const ClusterManager = () => {
                 onTranslate={() => setClusterToTranslate(cluster.cluster_id)}
                 onRegenerateLinks={() => regenerateLinksMutation.mutate(cluster.cluster_id)}
                 onSEOAudit={() => {}}
-                onGenerateQAs={(clusterId: string, lang: string) => {
-                  const clusterArticles = articles?.filter(a => a.cluster_id === clusterId && a.language === lang) || [];
-                  const articleIds = clusterArticles.map(a => a.id);
-                  if (articleIds.length > 0) {
-                    generateNextLanguageQAMutation.mutate({ clusterId, language: lang, articleIds });
-                  }
+                onGenerateQAs={() => {
+                  generateQAsForArticleMutation.mutate({ clusterId: cluster.cluster_id });
                 }}
                 isPublishing={clusterToPublish === cluster.cluster_id && publishMutation.isPending}
                 isDeleting={clusterToDelete === cluster.cluster_id && deleteMutation.isPending}
