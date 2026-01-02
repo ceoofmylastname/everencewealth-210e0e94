@@ -466,29 +466,40 @@ serve(async (req) => {
       console.error(`[TranslateQAs] Error updating progress:`, error);
     }
 
+    // Get the ACTUAL count from database after all operations
+    const { count: actualCount } = await supabase
+      .from('qa_pages')
+      .select('*', { count: 'exact', head: true })
+      .eq('cluster_id', clusterId)
+      .eq('language', targetLanguage);
+
     const duration = ((Date.now() - startTime) / 1000).toFixed(1);
     const isPartial = articlesRemaining > 0;
+    const currentCount = actualCount || 0;
+    const remaining = 24 - currentCount;
     
     if (isPartial) {
-      console.log(`[TranslateQAs] ✅ Batch complete in ${duration}s: ${translatedQAs.length} Q&As translated (${articlesRemaining} articles remaining)`);
+      console.log(`[TranslateQAs] ✅ Batch complete in ${duration}s: ${translatedQAs.length} Q&As translated, now at ${currentCount}/24 (${remaining} remaining)`);
     } else {
-      console.log(`[TranslateQAs] ✅ All done in ${duration}s: ${translatedQAs.length} Q&As translated to ${targetLanguage}`);
+      console.log(`[TranslateQAs] ✅ All done in ${duration}s: ${currentCount}/24 Q&As in ${targetLanguage}`);
     }
 
     return new Response(JSON.stringify({
       success: true,
-      partial: isPartial,
+      partial: isPartial || remaining > 0,
       targetLanguage,
       translated: translatedQAs.length,
+      actualCount: currentCount,
+      remaining,
       articlesRemaining,
       totalArticles,
       skipped: skippedCount,
       resumed: skippedCount > 0,
       errors: errors.length > 0 ? errors : undefined,
       durationSeconds: parseFloat(duration),
-      message: isPartial 
-        ? `Translated ${translatedQAs.length} Q&As (${totalArticles - articlesRemaining}/${totalArticles} articles). Click again to continue.`
-        : `Completed! All ${translatedQAs.length + skippedCount} Q&As translated to ${LANGUAGE_NAMES[targetLanguage]}`,
+      message: remaining > 0 
+        ? `Now at ${currentCount}/24 Q&As. ${remaining} remaining.`
+        : `Completed! All 24 Q&As translated to ${LANGUAGE_NAMES[targetLanguage]}`,
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
