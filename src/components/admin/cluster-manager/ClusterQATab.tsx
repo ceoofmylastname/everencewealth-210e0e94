@@ -153,7 +153,7 @@ export const ClusterQATab = ({
               {languagesNeedingQAs.map((l) => l.toUpperCase()).join(", ")}
             </span>
             <div className="text-xs text-amber-600 mt-1">
-              Use "Generate Q&As" to create Q&As for each English article (40 Q&As per article across all languages)
+              Generate English Q&As first, then auto-translate to 9 languages (4 types × 10 languages = 40 per article)
             </div>
           </div>
         </div>
@@ -188,7 +188,7 @@ export const ClusterQATab = ({
             ) : (
               <FileText className="mr-2 h-4 w-4" />
             )}
-            Generate Q&As (40 per article)
+            Generate & Translate Q&As
           </Button>
         )}
       </div>
@@ -197,7 +197,7 @@ export const ClusterQATab = ({
         <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg dark:bg-blue-950/30">
           <div className="flex items-center gap-2 text-sm text-blue-700 dark:text-blue-300">
             <Loader2 className="h-4 w-4 animate-spin" />
-            <span>Generating Q&As... This may take several minutes per article.</span>
+            <span>Generating English Q&As and translating to 9 languages... This may take several minutes.</span>
           </div>
         </div>
       )}
