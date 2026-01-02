@@ -260,9 +260,19 @@ serve(async (req) => {
 
     console.log(`[TranslateQAs] Processing ${articleGroups.size} article batches (4 Q&As each)`);
 
-    let batchIndex = 0;
+  const TIMEOUT_GUARD_MS = 50000; // 50 seconds - leave buffer before Edge Function timeout
+  let timedOut = false;
+  
+  let batchIndex = 0;
     for (const [articleId, qaGroup] of articleGroups) {
       batchIndex++;
+      
+      // Check if we're approaching timeout
+      if (Date.now() - startTime > TIMEOUT_GUARD_MS) {
+        console.log(`[TranslateQAs] ⏱️ Approaching timeout at ${((Date.now() - startTime) / 1000).toFixed(1)}s, saving progress...`);
+        timedOut = true;
+        break;
+      }
       
       try {
         console.log(`[TranslateQAs] Batch ${batchIndex}/${articleGroups.size}: Translating ${qaGroup.length} Q&As for article ${articleId}`);
@@ -428,18 +438,30 @@ serve(async (req) => {
     }
 
     const duration = ((Date.now() - startTime) / 1000).toFixed(1);
-    console.log(`[TranslateQAs] Complete in ${duration}s: ${translatedQAs.length}/${qasToTranslate.length} translated to ${targetLanguage}`);
+    const remaining = qasToTranslate.length - translatedQAs.length;
+    
+    if (timedOut) {
+      console.log(`[TranslateQAs] ⏱️ Partial completion in ${duration}s: ${translatedQAs.length}/${qasToTranslate.length} translated (${remaining} remaining)`);
+    } else {
+      console.log(`[TranslateQAs] ✅ Complete in ${duration}s: ${translatedQAs.length}/${qasToTranslate.length} translated to ${targetLanguage}`);
+    }
 
     return new Response(JSON.stringify({
       success: true,
+      partial: timedOut,
       targetLanguage,
       translated: translatedQAs.length,
       expected: qasToTranslate.length,
+      remaining: remaining,
       skipped: skippedCount,
       resumed: skippedCount > 0,
-      batchesProcessed: articleGroups.size,
+      batchesProcessed: batchIndex,
+      totalBatches: articleGroups.size,
       errors: errors.length > 0 ? errors : undefined,
       durationSeconds: parseFloat(duration),
+      message: timedOut 
+        ? `Translated ${translatedQAs.length} Q&As. ${remaining} remaining - click again to continue.`
+        : `Successfully translated all ${translatedQAs.length} Q&As to ${targetLanguage}`,
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
