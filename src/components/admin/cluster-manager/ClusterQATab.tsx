@@ -286,19 +286,26 @@ export const ClusterQATab = ({
       if (error) throw error;
 
       if (data?.success) {
-        const msg = data.resumed 
-          ? `${targetLanguage.toUpperCase()}: Resumed! ${data.translated} new, ${data.skipped} skipped`
-          : `${targetLanguage.toUpperCase()}: ${data.translated}/24 Q&As translated`;
+        // Use actualCount from response if available, otherwise fetch from DB
+        let newCount = data.actualCount ?? null;
+        
+        if (newCount === null) {
+          // Fallback: fetch actual count from database
+          const { count: dbCount } = await supabase
+            .from('qa_pages')
+            .select('*', { count: 'exact', head: true })
+            .eq('cluster_id', cluster.cluster_id)
+            .eq('language', targetLanguage);
+          newCount = dbCount || 0;
+        }
+        
+        const remaining = 24 - newCount;
+        
+        const msg = remaining > 0
+          ? `${targetLanguage.toUpperCase()}: Now at ${newCount}/24 (${remaining} remaining)`
+          : `${targetLanguage.toUpperCase()}: ✅ Complete! 24/24 Q&As`;
         toast.success(msg);
         
-        // Fetch actual count from database instead of adding (fixes phantom count bug)
-        const { count: actualCount } = await supabase
-          .from('qa_pages')
-          .select('*', { count: 'exact', head: true })
-          .eq('cluster_id', cluster.cluster_id)
-          .eq('language', targetLanguage);
-
-        const newCount = actualCount || 0;
         setLanguageQACounts(prev => ({
           ...prev,
           [targetLanguage]: newCount,
