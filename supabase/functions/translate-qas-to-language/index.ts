@@ -122,7 +122,6 @@ Return a JSON object with "translations" array containing each translated Q&A wi
         { role: 'user', content: prompt }
       ],
       max_tokens: 6000,
-      temperature: 0.3,
     }),
   }, 120000);
 
@@ -152,6 +151,65 @@ Return a JSON object with "translations" array containing each translated Q&A wi
 
   const parsed = JSON.parse(jsonContent);
   return parsed.translations || [];
+}
+
+// Rephrase a question to make it unique when collision is detected
+async function rephraseQuestion(
+  originalQuestion: string,
+  existingQuestions: string[],
+  targetLanguage: string,
+  qaType: string,
+  articleHeadline?: string
+): Promise<string> {
+  const languageName = LANGUAGE_NAMES[targetLanguage] || targetLanguage;
+  
+  const prompt = `You need to rephrase this ${languageName} question to be UNIQUE while keeping the same meaning.
+
+ORIGINAL QUESTION (must rephrase):
+"${originalQuestion}"
+
+EXISTING QUESTIONS (the rephrased version must NOT match any of these):
+${existingQuestions.map((q, i) => `${i + 1}. "${q}"`).join('\n')}
+
+Q&A TYPE: ${qaType}
+${articleHeadline ? `ARTICLE CONTEXT: ${articleHeadline}` : ''}
+
+Requirements:
+- Keep the same core meaning and intent
+- Make it clearly different from the existing questions
+- Use different phrasing, word order, or synonyms
+- Stay natural and SEO-friendly in ${languageName}
+- Return ONLY the rephrased question, nothing else`;
+
+  const response = await fetchWithTimeout('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${Deno.env.get('LOVABLE_API_KEY')}`,
+    },
+    body: JSON.stringify({
+      model: 'google/gemini-2.5-flash',
+      messages: [
+        { role: 'system', content: `You are a ${languageName} language expert. Rephrase questions to be unique while preserving meaning.` },
+        { role: 'user', content: prompt }
+      ],
+      max_tokens: 500,
+    }),
+  }, 30000);
+
+  if (!response.ok) {
+    throw new Error(`Rephrase API error: ${response.status}`);
+  }
+
+  const data = await response.json();
+  const rephrased = data.choices?.[0]?.message?.content?.trim();
+  
+  if (!rephrased) {
+    throw new Error('No rephrased content returned');
+  }
+
+  // Clean up any quotes or extra formatting
+  return rephrased.replace(/^["']|["']$/g, '').trim();
 }
 
 serve(async (req) => {
@@ -330,49 +388,87 @@ serve(async (req) => {
           source_article_slug: targetArticle.slug,
         };
 
-        // Check if a Q&A with same question already exists
-        // Only adopt/update if it's a true orphan (null hreflang) or already belongs to this group
-        const { data: existingByQuestion } = await supabase
+        // Fetch ALL existing question_main texts for this cluster/language to check for collisions
+        const { data: allExistingQAs } = await supabase
           .from('qa_pages')
-          .select('id, hreflang_group_id')
+          .select('id, hreflang_group_id, question_main')
           .eq('cluster_id', clusterId)
-          .eq('language', targetLanguage)
-          .eq('question_main', translation.question);
+          .eq('language', targetLanguage);
 
-        const safeToAdopt = existingByQuestion?.find(q => 
+        const existingQuestionTexts = new Set((allExistingQAs || []).map(q => q.question_main));
+        
+        // Check if this specific question already exists
+        const existingByQuestion = (allExistingQAs || []).filter(q => q.question_main === translation.question);
+        
+        const safeToAdopt = existingByQuestion.find(q => 
           q.hreflang_group_id === null || 
           q.hreflang_group_id === englishQA.hreflang_group_id
         );
-        const belongsToDifferentGroup = existingByQuestion?.find(q => 
+        const belongsToDifferentGroup = existingByQuestion.find(q => 
           q.hreflang_group_id && q.hreflang_group_id !== englishQA.hreflang_group_id
         );
 
+        // Determine final question text (may need rephrasing if collision)
+        let finalQuestion = translation.question;
+        
         if (belongsToDifferentGroup && !safeToAdopt) {
-          // Same question text exists but belongs to a DIFFERENT hreflang group
-          // Insert a new record instead of stealing/updating the other one
-          console.log(`[TranslateQAs] ⚠️ Same-question collision detected. Q&A ${belongsToDifferentGroup.id} belongs to group ${belongsToDifferentGroup.hreflang_group_id}, but we need group ${englishQA.hreflang_group_id}. Inserting new record.`);
+          // Collision detected: same question text belongs to a DIFFERENT hreflang group
+          // We need to REPHRASE the question to make it unique
+          console.log(`[TranslateQAs] ⚠️ Question collision detected! "${translation.question}" already exists for group ${belongsToDifferentGroup.hreflang_group_id}, but we need group ${englishQA.hreflang_group_id}`);
           
-          const { data: insertedQA, error: insertError } = await supabase
-            .from('qa_pages')
-            .insert(translatedQARecord)
-            .select('id')
-            .single();
-
-          if (insertError) {
-            console.error(`[TranslateQAs] Insert error (collision case):`, insertError);
-            errors.push(`${englishQA.qa_type}: ${insertError.message}`);
-            continue;
+          const MAX_REPHRASE_ATTEMPTS = 3;
+          let rephraseAttempt = 0;
+          let rephrased = false;
+          
+          while (rephraseAttempt < MAX_REPHRASE_ATTEMPTS && !rephrased) {
+            rephraseAttempt++;
+            console.log(`[TranslateQAs] 🔄 Rephrase attempt ${rephraseAttempt}/${MAX_REPHRASE_ATTEMPTS}...`);
+            
+            try {
+              const newQuestion = await rephraseQuestion(
+                translation.question,
+                Array.from(existingQuestionTexts),
+                targetLanguage,
+                englishQA.qa_type,
+                englishQA.question_main // English headline as context
+              );
+              
+              if (!existingQuestionTexts.has(newQuestion)) {
+                console.log(`[TranslateQAs] ✅ Rephrased successfully: "${newQuestion}"`);
+                finalQuestion = newQuestion;
+                rephrased = true;
+              } else {
+                console.log(`[TranslateQAs] ⚠️ Rephrased question still collides: "${newQuestion}"`);
+              }
+            } catch (rephraseError) {
+              console.error(`[TranslateQAs] Rephrase attempt ${rephraseAttempt} failed:`, rephraseError);
+            }
           }
+          
+          // If rephrasing failed, add deterministic suffix
+          if (!rephrased) {
+            const suffix = ` (${englishQA.qa_type})`;
+            finalQuestion = translation.question + suffix;
+            console.log(`[TranslateQAs] ⚠️ Rephrasing failed, using fallback suffix: "${finalQuestion}"`);
+            
+            // If STILL colliding, add UUID fragment
+            if (existingQuestionTexts.has(finalQuestion)) {
+              const uuidFragment = englishQA.hreflang_group_id.substring(0, 8);
+              finalQuestion = translation.question + ` [${uuidFragment}]`;
+              console.log(`[TranslateQAs] ⚠️ Still colliding, using UUID suffix: "${finalQuestion}"`);
+            }
+          }
+        }
 
-          console.log(`[TranslateQAs] ✅ Created NEW ${targetLanguage} Q&A (collision): ${slug}`);
-          translatedQAs.push(insertedQA.id);
-        } else if (safeToAdopt) {
+        if (safeToAdopt) {
           // Update existing orphan record with correct hreflang_group_id
-          console.log(`[TranslateQAs] Adopting orphan Q&A ${safeToAdopt.id}`);
+          console.log(`[TranslateQAs] Adopting orphan Q&A ${safeToAdopt.id} for group ${englishQA.hreflang_group_id}`);
           const { error: updateError } = await supabase
             .from('qa_pages')
             .update({
               ...translatedQARecord,
+              question_main: finalQuestion,
+              title: finalQuestion,
               hreflang_group_id: englishQA.hreflang_group_id,
             })
             .eq('id', safeToAdopt.id);
@@ -386,20 +482,36 @@ serve(async (req) => {
           console.log(`[TranslateQAs] ✅ Adopted existing ${targetLanguage} Q&A: ${slug}`);
           translatedQAs.push(safeToAdopt.id);
         } else {
-          // Insert new record (no existing match at all)
+          // Insert new record (either no collision, or we rephrased to avoid it)
+          const recordToInsert = {
+            ...translatedQARecord,
+            question_main: finalQuestion,
+            title: finalQuestion,
+          };
+          
           const { data: insertedQA, error: insertError } = await supabase
             .from('qa_pages')
-            .insert(translatedQARecord)
+            .insert(recordToInsert)
             .select('id')
             .single();
 
           if (insertError) {
-            console.error(`[TranslateQAs] Insert error:`, insertError);
-            errors.push(`${englishQA.qa_type}: ${insertError.message}`);
+            // Check if it's a unique constraint violation
+            const isUniqueViolation = insertError.code === '23505' || 
+              insertError.message?.includes('unique') || 
+              insertError.message?.includes('duplicate');
+            
+            if (isUniqueViolation) {
+              console.error(`[TranslateQAs] ❌ Unique constraint violation even after rephrasing! Question: "${finalQuestion}"`);
+              errors.push(`${englishQA.qa_type}: Duplicate question - ${insertError.message}`);
+            } else {
+              console.error(`[TranslateQAs] Insert error:`, insertError);
+              errors.push(`${englishQA.qa_type}: ${insertError.message}`);
+            }
             continue;
           }
 
-          console.log(`[TranslateQAs] ✅ Created ${targetLanguage} Q&A: ${slug}`);
+          console.log(`[TranslateQAs] ✅ Created ${targetLanguage} Q&A: ${slug} (group: ${englishQA.hreflang_group_id})`);
           translatedQAs.push(insertedQA.id);
         }
       }
