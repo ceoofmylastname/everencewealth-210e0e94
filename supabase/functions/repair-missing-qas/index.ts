@@ -114,12 +114,12 @@ serve(async (req) => {
       const { source_article_id, qa_type, hreflang_group_id } = englishQA;
 
       for (const targetLang of targetLanguages) {
-        // Check if this Q&A exists in target language
+        // Check if this Q&A exists in target language using hreflang_group_id
         const existingQA = (qasByLanguage[targetLang] || []).find(
-          qa => qa.source_article_id === source_article_id && qa.qa_type === qa_type
+          qa => qa.hreflang_group_id === hreflang_group_id
         );
 
-        if (existingQA) continue; // Already exists
+        if (existingQA) continue; // Already exists in this hreflang group
 
         // Need to find the translated article for source_article_id
         const { data: englishArticle } = await supabase
