@@ -26,7 +26,7 @@ const LocationPage = () => {
   const { citySlug, topicSlug, lang = 'en' } = useParams<{ citySlug: string; topicSlug: string; lang: string }>();
 
   const { data: page, isLoading, error } = useQuery({
-    queryKey: ['location-page', citySlug, topicSlug],
+    queryKey: ['location-page', citySlug, topicSlug, lang],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('location_pages')
@@ -37,13 +37,14 @@ const LocationPage = () => {
         `)
         .eq('city_slug', citySlug)
         .eq('topic_slug', topicSlug)
+        .eq('language', lang)
         .eq('status', 'published')
         .single();
 
       if (error) throw error;
       return data;
     },
-    enabled: !!citySlug && !!topicSlug,
+    enabled: !!citySlug && !!topicSlug && !!lang,
   });
 
   if (isLoading) {

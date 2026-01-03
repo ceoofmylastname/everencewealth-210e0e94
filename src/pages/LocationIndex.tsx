@@ -42,19 +42,20 @@ const LocationIndex = () => {
   }, []);
 
   const { data: pages, isLoading, error } = useQuery({
-    queryKey: ['location-pages', citySlug],
+    queryKey: ['location-pages', citySlug, lang],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('location_pages')
         .select('*')
         .eq('city_slug', citySlug)
+        .eq('language', lang)
         .eq('status', 'published')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
       return data;
     },
-    enabled: !!citySlug,
+    enabled: !!citySlug && !!lang,
   });
 
   const cityName = pages?.[0]?.city_name || citySlug?.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');

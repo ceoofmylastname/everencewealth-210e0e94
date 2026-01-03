@@ -377,7 +377,7 @@ const LocationPages = () => {
                             <Button 
                               size="sm" 
                               variant="ghost"
-                              onClick={() => window.open(`/locations/${page.city_slug}/${page.topic_slug}`, '_blank')}
+                              onClick={() => window.open(`/${page.language}/locations/${page.city_slug}/${page.topic_slug}`, '_blank')}
                             >
                               <Eye className="h-4 w-4" />
                             </Button>
