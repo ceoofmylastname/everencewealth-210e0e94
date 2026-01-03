@@ -2,6 +2,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, ChevronLeft, ChevronRight, Images, Expand } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { getHighResImageUrl } from "@/lib/imageUrlTransformer";
 
 interface PropertyGalleryGridProps {
   images: string[];
@@ -218,13 +219,13 @@ export const PropertyGalleryGrid = ({ images, title }: PropertyGalleryGridProps)
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
               transition={{ duration: 0.3 }}
-              className="relative max-w-[90vw] max-h-[85vh]"
+              className="relative w-[95vw] h-[85vh] flex items-center justify-center"
               onClick={(e) => e.stopPropagation()}
             >
               <img
-                src={images[currentIndex]}
+                src={getHighResImageUrl(images[currentIndex], 'lightbox')}
                 alt={`${title} - Photo ${currentIndex + 1}`}
-                className="max-w-full max-h-[85vh] object-contain rounded-lg"
+                className="max-w-full max-h-full w-auto h-auto object-contain rounded-lg"
               />
             </motion.div>
 

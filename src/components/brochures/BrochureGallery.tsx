@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { X, ChevronLeft, ChevronRight, Maximize2, Check } from 'lucide-react';
+import { getHighResImageUrl } from "@/lib/imageUrlTransformer";
 
 interface GalleryItem {
   title: string;
@@ -201,13 +202,13 @@ export const BrochureGallery: React.FC<BrochureGalleryProps> = ({ images, featur
 
           {/* Image */}
           <div 
-            className="max-w-6xl max-h-[85vh] px-4"
+            className="w-[95vw] h-[90vh] flex flex-col items-center justify-center px-4"
             onClick={(e) => e.stopPropagation()}
           >
             <img
-              src={validImages[lightboxIndex].image}
+              src={getHighResImageUrl(validImages[lightboxIndex].image, 'lightbox')}
               alt={validImages[lightboxIndex].title || ''}
-              className="max-w-full max-h-[80vh] object-contain rounded-lg"
+              className="max-w-full max-h-[85vh] w-auto h-auto object-contain rounded-lg"
             />
             {validImages[lightboxIndex].title && (
               <p className="text-center text-white/80 mt-4 font-serif text-xl">

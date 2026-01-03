@@ -10,7 +10,19 @@ export function getHighResImageUrl(
 ): string {
   if (!url) return '/placeholder.svg';
   
-  // CDN only supports w400 - return original URL
-  // Browser handles scaling via CSS object-cover
-  return url;
+  // Map size context to CDN width parameter
+  const sizeMap = {
+    thumbnail: 'w400',
+    card: 'w800',
+    hero: 'w1600',
+    lightbox: 'w1920'
+  };
+  
+  const targetWidth = sizeMap[size];
+  
+  // Replace any existing width parameter (w400, w800, etc.) with the target
+  // CDN format: .../w400/... or similar patterns
+  const transformed = url.replace(/\/w\d+\//g, `/${targetWidth}/`);
+  
+  return transformed;
 }

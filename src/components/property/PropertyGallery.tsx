@@ -114,11 +114,13 @@ export const PropertyGallery = ({ images, title }: PropertyGalleryProps) => {
             <ChevronLeft className="w-8 h-8" />
           </Button>
 
-          <img
-            src={getHighResImageUrl(images[currentIndex], 'lightbox')}
-            alt={`${title} - Image ${currentIndex + 1}`}
-            className="max-w-[90vw] max-h-[90vh] object-contain"
-          />
+          <div className="w-[95vw] h-[90vh] flex items-center justify-center">
+            <img
+              src={getHighResImageUrl(images[currentIndex], 'lightbox')}
+              alt={`${title} - Image ${currentIndex + 1}`}
+              className="max-w-full max-h-full w-auto h-auto object-contain"
+            />
+          </div>
 
           <Button
             variant="ghost"
