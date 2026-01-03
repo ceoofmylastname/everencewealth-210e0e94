@@ -67,6 +67,17 @@ interface GeneratedImage {
   height: number;
 }
 
+// Check if a string is a valid UUID v4
+const isValidUUID = (str: string): boolean => {
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  return uuidRegex.test(str);
+};
+
+// Generate a proper UUID v4
+const generateUUID = (): string => {
+  return crypto.randomUUID();
+};
+
 const LocationGenerator = () => {
   const navigate = useNavigate();
   const [city, setCity] = useState("");
@@ -248,11 +259,22 @@ const LocationGenerator = () => {
     try {
       const now = new Date().toISOString();
       
+      // Fix invalid hreflang_group_id if needed (legacy format like loc_xxx)
+      let sharedGroupId: string | null = null;
+      if (pagesToPublish.length > 0 && pagesToPublish[0].hreflang_group_id) {
+        if (!isValidUUID(pagesToPublish[0].hreflang_group_id)) {
+          sharedGroupId = generateUUID();
+          console.log(`Fixed invalid hreflang_group_id: ${pagesToPublish[0].hreflang_group_id} → ${sharedGroupId}`);
+        }
+      }
+      
       for (const page of pagesToPublish) {
         const { error } = await supabase
           .from('location_pages')
           .upsert({
             ...page,
+            // Use fixed UUID if the original was invalid
+            hreflang_group_id: sharedGroupId || page.hreflang_group_id,
             status: 'published',
             date_published: page.date_published || now,
             date_modified: now,
