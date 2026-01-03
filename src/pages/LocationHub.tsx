@@ -40,12 +40,13 @@ const LocationHub = () => {
   }, []);
 
   const { data: cities, isLoading } = useQuery({
-    queryKey: ['location-cities'],
+    queryKey: ['location-cities', lang],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('location_pages')
         .select('id, city_slug, city_name, region, topic_slug, featured_image_url, featured_image_alt')
-        .eq('status', 'published');
+        .eq('status', 'published')
+        .eq('language', lang);
 
       if (error) throw error;
 
