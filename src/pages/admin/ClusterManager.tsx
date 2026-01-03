@@ -16,9 +16,10 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Search, Loader2, FolderOpen, RefreshCw, Link2, AlertTriangle, PlayCircle } from "lucide-react";
+import { Search, Loader2, FolderOpen, RefreshCw, Link2, AlertTriangle, PlayCircle, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { ClusterCard } from "@/components/admin/cluster-manager/ClusterCard";
+import { CreateClusterDialog } from "@/components/admin/cluster-manager/CreateClusterDialog";
 import { 
   ClusterData, 
   QAJobProgress,
@@ -44,6 +45,7 @@ const ClusterManager = () => {
   const [generatingQALanguage, setGeneratingQALanguage] = useState<{ clusterId: string; lang: string } | null>(null);
   const [qaJobProgress, setQaJobProgress] = useState<QAJobProgress | null>(null);
   const [publishingQAs, setPublishingQAs] = useState<string | null>(null);
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
 
   // Fetch articles grouped by cluster
   const { data: articles, isLoading } = useQuery({
@@ -757,6 +759,10 @@ const ClusterManager = () => {
             </p>
           </div>
           <div className="flex gap-2">
+            <Button onClick={() => setShowCreateDialog(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              Create New Cluster
+            </Button>
             <Button 
               variant="outline"
               onClick={() => regenerateAllLinksMutation.mutate()}
@@ -1050,6 +1056,16 @@ const ClusterManager = () => {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+
+        {/* Create Cluster Dialog */}
+        <CreateClusterDialog 
+          open={showCreateDialog}
+          onOpenChange={setShowCreateDialog}
+          onClusterCreated={() => {
+            queryClient.invalidateQueries({ queryKey: ["cluster-articles"] });
+            queryClient.invalidateQueries({ queryKey: ["cluster-jobs"] });
+          }}
+        />
       </div>
     </AdminLayout>
   );

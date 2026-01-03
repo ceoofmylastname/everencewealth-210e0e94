@@ -5,3 +5,4 @@ export * from "./ClusterQATab";
 export * from "./ClusterCitationsTab";
 export * from "./ClusterSEOTab";
 export * from "./ClusterHreflangTab";
+export * from "./CreateClusterDialog";
