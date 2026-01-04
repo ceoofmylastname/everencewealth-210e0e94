@@ -19,19 +19,19 @@ import { SUPPORTED_LANGUAGES } from "@/types/hreflang";
 // Language-prefixed homepage wrapper - validates lang param and renders Home or NotFound
 const LanguageHome = () => {
   const { lang } = useParams<{ lang: string }>();
-  
+
   // If lang is 'en', redirect to root to avoid duplicate URLs
   if (lang === 'en') {
     return <Navigate to="/" replace />;
   }
-  
+
   // Check if it's a valid language code (excluding 'en' which redirects above)
   const isValidLang = lang && SUPPORTED_LANGUAGES.includes(lang as typeof SUPPORTED_LANGUAGES[number]);
-  
+
   if (!isValidLang) {
     return <NotFound />;
   }
-  
+
   return <Home />;
 };
 
@@ -93,6 +93,18 @@ const SystemAudit = lazy(() => import("./pages/admin/SystemAudit"));
 const ProductionAudit = lazy(() => import("./pages/admin/ProductionAudit"));
 const AEOAnswerFixer = lazy(() => import("./pages/admin/AEOAnswerFixer"));
 
+// Landing Pages (Paid Traffic)
+const LandingEn = lazy(() => import("./pages/landing/en"));
+const LandingNl = lazy(() => import("./pages/landing/nl"));
+const LandingFr = lazy(() => import("./pages/landing/fr"));
+const LandingDe = lazy(() => import("./pages/landing/de"));
+const LandingFi = lazy(() => import("./pages/landing/fi"));
+const LandingPl = lazy(() => import("./pages/landing/pl"));
+const LandingDa = lazy(() => import("./pages/landing/da"));
+const LandingHu = lazy(() => import("./pages/landing/hu"));
+const LandingSv = lazy(() => import("./pages/landing/sv"));
+const LandingNo = lazy(() => import("./pages/landing/no"));
+
 // Loading fallback component
 const PageLoader = () => (
   <div className="min-h-screen flex items-center justify-center bg-background">
@@ -132,7 +144,7 @@ const App = () => (
               <Route path="/" element={<Home />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/login" element={<Navigate to="/auth" replace />} />
-              
+
               {/* ========================================== */}
               {/* PROTECTED ADMIN ROUTES (MUST BE BEFORE /:lang) */}
               {/* ========================================== */}
@@ -170,75 +182,88 @@ const App = () => (
               <Route path="/admin/system-audit" element={<ProtectedRoute><SystemAudit /></ProtectedRoute>} />
               <Route path="/admin/production-audit" element={<ProtectedRoute><ProductionAudit /></ProtectedRoute>} />
               <Route path="/admin/aeo-fixer" element={<ProtectedRoute><AEOAnswerFixer /></ProtectedRoute>} />
-              
+
               {/* ========================================== */}
               {/* OTHER PUBLIC ROUTES (no language prefix)  */}
               {/* MUST BE BEFORE /:lang dynamic route       */}
               {/* ========================================== */}
               <Route path="/sitemap" element={<Sitemap />} />
               <Route path="/glossary" element={<Glossary />} />
-{/* Legacy redirect for brochures - redirect to English */}
+
+              {/* Landing Pages (Paid Traffic) */}
+              <Route path="/en/landing" element={<LandingEn />} />
+              <Route path="/nl/landing" element={<LandingNl />} />
+              <Route path="/fr/landing" element={<LandingFr />} />
+              <Route path="/de/landing" element={<LandingDe />} />
+              <Route path="/fi/landing" element={<LandingFi />} />
+              <Route path="/pl/landing" element={<LandingPl />} />
+              <Route path="/da/landing" element={<LandingDa />} />
+              <Route path="/hu/landing" element={<LandingHu />} />
+              <Route path="/sv/landing" element={<LandingSv />} />
+              <Route path="/no/landing" element={<LandingNo />} />
+
+              {/* Legacy redirect for brochures - redirect to English */}
               <Route path="/brochure/:citySlug" element={<Navigate to={window.location.pathname.replace('/brochure/', '/en/brochure/')} replace />} />
               {/* Language-prefixed brochure routes */}
               <Route path="/:lang/brochure/:citySlug" element={<CityBrochure />} />
               <Route path="/about" element={<About />} />
               <Route path="/buyers-guide" element={<Navigate to="/en/buyers-guide" replace />} />
               <Route path="/:lang/buyers-guide" element={<BuyersGuide />} />
-              
+
               {/* ========================================== */}
               {/* LANGUAGE-PREFIXED ROUTES (Phase 2)        */}
               {/* ========================================== */}
-              
+
               {/* Language-prefixed homepage */}
               <Route path="/:lang" element={<LanguageHome />} />
-              
+
               {/* Blog routes with language prefix */}
               <Route path="/:lang/blog" element={<BlogIndex />} />
               <Route path="/:lang/blog/:slug" element={<BlogArticle />} />
-              
+
               {/* Q&A routes with language prefix */}
               <Route path="/:lang/qa" element={<QAIndex />} />
               <Route path="/:lang/qa/:slug" element={<QAPage />} />
-              
+
               {/* Comparison routes with language prefix */}
               <Route path="/:lang/compare" element={<ComparisonIndex />} />
               <Route path="/:lang/compare/:slug" element={<ComparisonPage />} />
-              
+
               {/* Location routes with language prefix */}
               <Route path="/:lang/locations" element={<LocationHub />} />
               <Route path="/:lang/locations/:citySlug" element={<LocationIndex />} />
               <Route path="/:lang/locations/:citySlug/:topicSlug" element={<LocationPage />} />
-              
+
               {/* Property routes with language prefix */}
               <Route path="/:lang/properties" element={<PropertyFinder />} />
               <Route path="/:lang/property/:reference" element={<PropertyDetail />} />
-              
+
               {/* ========================================== */}
               {/* LEGACY ROUTES -> REDIRECT TO /en/...      */}
               {/* ========================================== */}
-              
+
               {/* Blog legacy redirects */}
               <Route path="/blog" element={<Navigate to="/en/blog" replace />} />
               <Route path="/blog/:slug" element={<BlogRedirect />} />
-              
+
               {/* Q&A legacy redirects */}
               <Route path="/qa" element={<Navigate to="/en/qa" replace />} />
               <Route path="/qa/:slug" element={<QARedirect />} />
-              
+
               {/* Comparison legacy redirects */}
               <Route path="/compare" element={<Navigate to="/en/compare" replace />} />
               <Route path="/compare/:slug" element={<ComparisonRedirect />} />
-              
+
               {/* Location legacy redirects */}
               <Route path="/locations" element={<Navigate to="/en/locations" replace />} />
               <Route path="/locations/:citySlug" element={<LocationIndexRedirect />} />
               <Route path="/locations/:citySlug/:topicSlug" element={<LocationPageRedirect />} />
-              
+
               {/* Property legacy redirects */}
               <Route path="/properties" element={<Navigate to="/en/properties" replace />} />
               <Route path="/property-finder" element={<Navigate to="/en/properties" replace />} />
               <Route path="/property/:reference" element={<PropertyRedirect />} />
-              
+
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

@@ -1,0 +1,89 @@
+{
+    "hero": {
+        "headline": "FEDEZZE FEL A LUXUS ÉLETÉRZÉST A COSTA DEL SOLON",
+        "subheadline": "Tapasztalja meg a személyre szabott és stresszmentes megközelítést álmai otthonának megtalálásához Dél-Spanyolországban.",
+        "videoCTA": "Nézze meg rövid bemutatónkat",
+        "emmaCTA": "Kezdje Emmával"
+    },
+    "emma": {
+        "headline": "Tegye fel kérdéseit. Ossza meg igényeit.",
+        "subheadline": "Kapjon egy első, személyre szabott válogatást 24 órán belül.",
+        "status": "Online most - Kérdezzen bármit!",
+        "greeting": "Szia! Miben segíthetek ma?",
+        "quickActions": {
+            "question": "Kérdés feltevése",
+            "criteria": "Kritériumok megosztása",
+            "explore": "Apartmanok vagy villák felfedezése"
+        },
+        "placeholder": "Írja be üzenetét..."
+    },
+    "testimonials": [
+        {
+            "text": "Emma igazán megértette az igényeinket, és világos választási lehetőségeket kínált.",
+            "author": "— Peter & Anne, Hollandia"
+        },
+        {
+            "text": "A folyamat zökkenőmentes volt, és soha nem éreztünk nyomást.",
+            "author": "— Lars & Ingrid, Svédország"
+        },
+        {
+            "text": "Erősen ajánlott mindenkinek, aki irányított ingatlankeresést szeretne.",
+            "author": "— Thomas & Marie, Franciaország"
+        }
+    ],
+    "properties": {
+        "types": {
+            "apartments": "Apartmanok & Penthouse-ok",
+            "villas": "Sorházak & Villák"
+        },
+        "moreInfo": "További információ",
+        "list": {
+            "panorama-bay": {
+                "title": "Panorama Bay",
+                "description": "Modern apartmanok panorámás kilátással a tengerre"
+            },
+            "villa-amalfi": {
+                "title": "Villa Amalfi",
+                "description": "Luxus villa privát medencével és kerttel"
+            },
+            "sunset-residences": {
+                "title": "Sunset Residences",
+                "description": "Kortárs apartmanok nagy teraszokkal"
+            },
+            "green-valley-gardens": {
+                "title": "Green Valley Gardens",
+                "description": "Stílusos penthouse-ok kilátással a golfpályára"
+            },
+            "la-perla-marina": {
+                "title": "La Perla Marina",
+                "description": "Exkluzív fejlesztés a tengerparton"
+            },
+            "aqua-blu-oasis": {
+                "title": "Aqua Blu Oasis",
+                "description": "Modern életvitel üdülőhelyi stílusú kényelemmel"
+            },
+            "elevate-suites": {
+                "title": "Elevate Suites",
+                "description": "Magas színvonalú apartmanok luxuslétesítményekkel"
+            }
+        }
+    },
+    "form": {
+        "title": "Töltse ki az űrlapot további információkért",
+        "fields": {
+            "fullName": "Teljes Név",
+            "phone": "Telefonszáma",
+            "comment": "Megjegyzés (opcionális)"
+        },
+        "consent": "Hozzájárulok, hogy releváns információkat és utánkövetést kapjak a DelSolPrimeHomes-tól.",
+        "submit": "WhatsApp / SMS Infó Kérése",
+        "recaptcha": "Ezt az oldalt a reCAPTCHA védi, és a Google Adatvédelmi Irányelvei és Szolgáltatási Feltételei érvényesek.",
+        "success": "Köszönjük! 24 órán belül felvesszük Önnel a kapcsolatot.",
+        "error": "Valami hiba történt. Kérjük, próbálja újra."
+    },
+    "footer": {
+        "copyright": "© 2024 DelSolPrimeHomes. Minden jog fenntartva.",
+        "privacy": "Adatvédelmi Irányelvek",
+        "terms": "Szolgáltatási Feltételek"
+    }
+}

@@ -1,0 +1,89 @@
+{
+    "hero": {
+        "headline": "LÖYDÄ YLELLISTÄ ASUMISTA AURINKORANNIKOLTA",
+        "subheadline": "Koe henkilökohtainen ja stressitön tapa löytää unelmiesi koti Etelä-Espanjasta.",
+        "videoCTA": "Katso lyhyt esittelymme",
+        "emmaCTA": "Aloita Emman kanssa"
+    },
+    "emma": {
+        "headline": "Kysy kysymyksiä. Jaa toiveesi.",
+        "subheadline": "Saat ensimmäisen räätälöidyn valikoiman 24 tunnin kuluessa.",
+        "status": "Paikalla nyt - Kysy minulta mitä vain!",
+        "greeting": "Hei! Miten voin auttaa sinua tänään?",
+        "quickActions": {
+            "question": "Kysy kysymys",
+            "criteria": "Jaa kriteerisi",
+            "explore": "Selaa asuntoja tai huviloita"
+        },
+        "placeholder": "Kirjoita viestisi..."
+    },
+    "testimonials": [
+        {
+            "text": "Emma ymmärsi tarpeemme todella hyvin ja tarjosi selkeitä vaihtoehtoja.",
+            "author": "— Peter & Anne, Alankomaat"
+        },
+        {
+            "text": "Prosessi oli sujuva, emmekä koskaan tunteneet painostusta.",
+            "author": "— Lars & Ingrid, Ruotsi"
+        },
+        {
+            "text": "Suosittelen lämpimästi kaikille, jotka haluavat ohjatun asunnonhaun.",
+            "author": "— Thomas & Marie, Ranska"
+        }
+    ],
+    "properties": {
+        "types": {
+            "apartments": "Asunnot & Katolhuoneistot",
+            "villas": "Kaupunkitalot & Huvilat"
+        },
+        "moreInfo": "Lisätietoja",
+        "list": {
+            "panorama-bay": {
+                "title": "Panorama Bay",
+                "description": "Moderneja asuntoja panoraamanäköalalla merelle"
+            },
+            "villa-amalfi": {
+                "title": "Villa Amalfi",
+                "description": "Luksushuvila yksityisellä uima-altaalla ja puutarhalla"
+            },
+            "sunset-residences": {
+                "title": "Sunset Residences",
+                "description": "Nykytaikaisia asuntoja suurilla terasseilla"
+            },
+            "green-valley-gardens": {
+                "title": "Green Valley Gardens",
+                "description": "Tyylikkäitä kattohuoneistoja golfnäkymillä"
+            },
+            "la-perla-marina": {
+                "title": "La Perla Marina",
+                "description": "Eksklusiivinen kehityshanke rannalla"
+            },
+            "aqua-blu-oasis": {
+                "title": "Aqua Blu Oasis",
+                "description": "Modernia asumista lomakeskustyylisillä mukavuuksilla"
+            },
+            "elevate-suites": {
+                "title": "Elevate Suites",
+                "description": "Korkeatasoisia asuntoja luksuspalveluilla"
+            }
+        }
+    },
+    "form": {
+        "title": "Täytä lomake saadaksesi lisätietoja",
+        "fields": {
+            "fullName": "Koko Nimi",
+            "phone": "Puhelinnumerosi",
+            "comment": "Kommentti (valinnainen)"
+        },
+        "consent": "Suostun vastaanottamaan asiaankuuluvaa tietoa ja seurantaa DelSolPrimeHomesilta.",
+        "submit": "Pyydä WhatsApp / SMS -tiedot",
+        "recaptcha": "Tätä sivustoa suojaa reCAPTCHA, ja Google tietosuojakäytäntö ja käyttöehdot ovat voimassa.",
+        "success": "Kiitos! Otamme sinuun yhteyttä 24 tunnin kuluessa.",
+        "error": "Jokin meni pieleen. Yritä uudelleen."
+    },
+    "footer": {
+        "copyright": "© 2024 DelSolPrimeHomes. Kaikki oikeudet pidätetään.",
+        "privacy": "Tietosuojakäytäntö",
+        "terms": "Käyttöehdot"
+    }
+}
