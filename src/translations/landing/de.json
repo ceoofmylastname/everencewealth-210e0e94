@@ -1,0 +1,89 @@
+{
+    "hero": {
+        "headline": "ENTDECKEN SIE LUXUSLEBEN AN DER COSTA DEL SOL",
+        "subheadline": "Erleben Sie einen persönlichen und stressfreien Ansatz, um Ihr Traumhaus in Südspanien zu finden.",
+        "videoCTA": "Unser kurzes Intro ansehen",
+        "emmaCTA": "Starten mit Emma"
+    },
+    "emma": {
+        "headline": "Stellen Sie Ihre Fragen. Teilen Sie Ihre Kriterien.",
+        "subheadline": "Erhalten Sie innerhalb von 24 Stunden eine erste maßgeschneiderte Auswahl.",
+        "status": "Jetzt online - Fragen Sie mich alles!",
+        "greeting": "Hallo! Wie kann ich Ihnen heute helfen?",
+        "quickActions": {
+            "question": "Eine Frage stellen",
+            "criteria": "Kriterien teilen",
+            "explore": "Apartments oder Villen erkunden"
+        },
+        "placeholder": "Geben Sie Ihre Nachricht ein..."
+    },
+    "testimonials": [
+        {
+            "text": "Emma hat unsere Bedürfnisse wirklich verstanden und uns klare Entscheidungen geboten.",
+            "author": "— Peter & Anne, Niederlande"
+        },
+        {
+            "text": "Der Prozess verlief reibungslos und wir fühlten uns nie unter Druck gesetzt.",
+            "author": "— Lars & Ingrid, Schweden"
+        },
+        {
+            "text": "Sehr empfehlenswert für alle, die eine geführte Immobiliensuche wünschen.",
+            "author": "— Thomas & Marie, Frankreich"
+        }
+    ],
+    "properties": {
+        "types": {
+            "apartments": "Apartments & Penthouses",
+            "villas": "Reihenhäuser & Villen"
+        },
+        "moreInfo": "Mehr Informationen",
+        "list": {
+            "panorama-bay": {
+                "title": "Panorama Bay",
+                "description": "Moderne Apartments mit Panoramablick auf das Meer"
+            },
+            "villa-amalfi": {
+                "title": "Villa Amalfi",
+                "description": "Luxusvilla mit privatem Pool und Garten"
+            },
+            "sunset-residences": {
+                "title": "Sunset Residences",
+                "description": "Zeitgenössische Apartments mit großen Terrassen"
+            },
+            "green-valley-gardens": {
+                "title": "Green Valley Gardens",
+                "description": "Stilvolle Penthouses mit Golfblick"
+            },
+            "la-perla-marina": {
+                "title": "La Perla Marina",
+                "description": "Exklusive Entwicklung am Strand"
+            },
+            "aqua-blu-oasis": {
+                "title": "Aqua Blu Oasis",
+                "description": "Modernes Wohnen mit Resort-Annehmlichkeiten"
+            },
+            "elevate-suites": {
+                "title": "Elevate Suites",
+                "description": "High-Design-Apartments mit Luxuseinrichtungen"
+            }
+        }
+    },
+    "form": {
+        "title": "Füllen Sie das Formular aus, um weitere Informationen zu erhalten",
+        "fields": {
+            "fullName": "Vollständiger Name",
+            "phone": "Ihre Telefonnummer",
+            "comment": "Kommentar (optional)"
+        },
+        "consent": "Ich stimme zu, relevante Informationen und Follow-ups von DelSolPrimeHomes zu erhalten.",
+        "submit": "WhatsApp / SMS Info anfordern",
+        "recaptcha": "Diese Seite ist durch reCAPTCHA geschützt und es gelten die Google-Datenschutzerklärung und Nutzungsbedingungen.",
+        "success": "Danke! Wir werden Sie innerhalb von 24 Stunden kontaktieren.",
+        "error": "Etwas ist schief gelaufen. Bitte versuchen Sie es erneut."
+    },
+    "footer": {
+        "copyright": "© 2024 DelSolPrimeHomes. Alle Rechte vorbehalten.",
+        "privacy": "Datenschutzerklärung",
+        "terms": "Nutzungsbedingungen"
+    }
+}

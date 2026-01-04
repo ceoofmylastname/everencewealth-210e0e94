@@ -1,0 +1,89 @@
+{
+    "hero": {
+        "headline": "OPPDAG LUKSUSLIVET PÅ COSTA DEL SOL",
+        "subheadline": "Opplev en personlig og stressfri tilnærming for å finne drømmeboligen i Sør-Spania.",
+        "videoCTA": "Se vår korte intro",
+        "emmaCTA": "Start med Emma"
+    },
+    "emma": {
+        "headline": "Still dine spørsmål. Del dine ønsker.",
+        "subheadline": "Motta et første skreddersydd utvalg innen 24 timer.",
+        "status": "Online nå - Spør meg om hva som helst!",
+        "greeting": "Hei! Hvordan kan jeg hjelpe deg i dag?",
+        "quickActions": {
+            "question": "Still et spørsmål",
+            "criteria": "Del dine kriterier",
+            "explore": "Utforsk leiligheter eller villaer"
+        },
+        "placeholder": "Skriv din melding..."
+    },
+    "testimonials": [
+        {
+            "text": "Emma forsto virkelig våre behov og tilbød oss klare valg.",
+            "author": "— Peter & Anne, Nederland"
+        },
+        {
+            "text": "Prosessen gikk smertefritt og vi følte oss aldri presset.",
+            "author": "— Lars & Ingrid, Sverige"
+        },
+        {
+            "text": "Anbefales på det varmeste for alle som ønsker et veiledet boligsøk.",
+            "author": "— Thomas & Marie, Frankrike"
+        }
+    ],
+    "properties": {
+        "types": {
+            "apartments": "Leiligheter & Penthouse",
+            "villas": "Rekkehus & Villaer"
+        },
+        "moreInfo": "Mer informasjon",
+        "list": {
+            "panorama-bay": {
+                "title": "Panorama Bay",
+                "description": "Moderne leiligheter med panoram utsikt over havet"
+            },
+            "villa-amalfi": {
+                "title": "Villa Amalfi",
+                "description": "Luksusvilla med privat basseng og hage"
+            },
+            "sunset-residences": {
+                "title": "Sunset Residences",
+                "description": "Tidsriktige leiligheter med store terrasser"
+            },
+            "green-valley-gardens": {
+                "title": "Green Valley Gardens",
+                "description": "Stilige toppleiligheter med golfutsikt"
+            },
+            "la-perla-marina": {
+                "title": "La Perla Marina",
+                "description": "Eksklusiv utvikling ved stranden"
+            },
+            "aqua-blu-oasis": {
+                "title": "Aqua Blu Oasis",
+                "description": "Moderne livsstil med resort-fasiliteter"
+            },
+            "elevate-suites": {
+                "title": "Elevate Suites",
+                "description": "Høydesignet leiligheter med luksusfasiliteter"
+            }
+        }
+    },
+    "form": {
+        "title": "Fyll ut skjemaet for å motta mer informasjon",
+        "fields": {
+            "fullName": "Fullt Navn",
+            "phone": "Ditt Telefonnummer",
+            "comment": "Kommentar (valgfritt)"
+        },
+        "consent": "Jeg samtykker til å motta relevant informasjon og oppfølging fra DelSolPrimeHomes.",
+        "submit": "Be om WhatsApp / SMS Info",
+        "recaptcha": "Dette nettstedet er beskyttet av reCAPTCHA og Googles personvernregler og vilkår for bruk gjelder.",
+        "success": "Takk! Vi kontakter deg innen 24 timer.",
+        "error": "Noe gikk galt. Vennligst prøv igjen."
+    },
+    "footer": {
+        "copyright": "© 2024 DelSolPrimeHomes. Alle rettigheter forbeholdt.",
+        "privacy": "Personvernerklæring",
+        "terms": "Vilkår for Bruk"
+    }
+}

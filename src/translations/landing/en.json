@@ -1,0 +1,89 @@
+{
+  "hero": {
+    "headline": "DISCOVER LUXURY LIVING ON THE COSTA DEL SOL",
+    "subheadline": "Experience a personalized and stress-free approach to finding your dream home in Southern Spain.",
+    "videoCTA": "Watch Our Short Intro",
+    "emmaCTA": "Start with Emma"
+  },
+  "emma": {
+    "headline": "Ask your questions. Share your criteria.",
+    "subheadline": "Receive a first tailored selection within 24 hours.",
+    "status": "Online now - Ask me anything!",
+    "greeting": "Hi! How can I help you today?",
+    "quickActions": {
+      "question": "Ask a question",
+      "criteria": "Share your criteria",
+      "explore": "Explore apartments or villas"
+    },
+    "placeholder": "Type your message..."
+  },
+  "testimonials": [
+    {
+      "text": "Emma really understood our needs and offered us clear choices.",
+      "author": "— Peter & Anne, Netherlands"
+    },
+    {
+      "text": "The process was smooth and we never felt pressured.",
+      "author": "— Lars & Ingrid, Sweden"
+    },
+    {
+      "text": "Highly recommended for anyone wanting a guided property search.",
+      "author": "— Thomas & Marie, France"
+    }
+  ],
+  "properties": {
+    "types": {
+      "apartments": "Apartments & Penthouses",
+      "villas": "Townhouses & Villas"
+    },
+    "moreInfo": "More information",
+    "list": {
+      "panorama-bay": {
+        "title": "Panorama Bay",
+        "description": "Modern apartments with panoramic sea views"
+      },
+      "villa-amalfi": {
+        "title": "Villa Amalfi",
+        "description": "Luxury villa with private pool and garden"
+      },
+      "sunset-residences": {
+        "title": "Sunset Residences",
+        "description": "Contemporary apartments with large terraces"
+      },
+      "green-valley-gardens": {
+        "title": "Green Valley Gardens",
+        "description": "Stylish penthouses with golf views"
+      },
+      "la-perla-marina": {
+        "title": "La Perla Marina",
+        "description": "Exclusive development by the beach"
+      },
+      "aqua-blu-oasis": {
+        "title": "Aqua Blu Oasis",
+        "description": "Modern living with resort-style amenities"
+      },
+       "elevate-suites": {
+        "title": "Elevate Suites",
+        "description": "High design apartments with luxury facilities"
+      }
+    }
+  },
+  "form": {
+    "title": "Fill out the form to receive more information",
+    "fields": {
+      "fullName": "Full Name",
+      "phone": "Your Phone Number",
+      "comment": "Comment (optional)"
+    },
+    "consent": "I agree to receive relevant information and follow-up from DelSolPrimeHomes.",
+    "submit": "Request WhatsApp / SMS Info",
+    "recaptcha": "This site is protected by reCAPTCHA and the Google Privacy Policy and Terms of Service apply.",
+    "success": "Thank you! We'll contact you within 24 hours.",
+    "error": "Something went wrong. Please try again."
+  },
+  "footer": {
+    "copyright": "© 2024 DelSolPrimeHomes. All rights reserved.",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service"
+  }
+}

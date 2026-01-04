@@ -1,0 +1,89 @@
+{
+    "hero": {
+        "headline": "ONTDEK LUXE WONEN AAN DE COSTA DEL SOL",
+        "subheadline": "Ervaar een persoonlijke en stressvrije aanpak bij het vinden van uw droomhuis in Zuid-Spanje.",
+        "videoCTA": "Bekijk Onze Korte Intro",
+        "emmaCTA": "Start met Emma"
+    },
+    "emma": {
+        "headline": "Stel uw vragen. Deel uw wensen.",
+        "subheadline": "Ontvang binnen 24 uur een eerste selectie op maat.",
+        "status": "Nu online - Vraag me alles!",
+        "greeting": "Hoi! Waarmee kan ik u helpen vandaag?",
+        "quickActions": {
+            "question": "Stel een vraag",
+            "criteria": "Deel uw criteria",
+            "explore": "Bekijk appartementen of villa's"
+        },
+        "placeholder": "Typ uw bericht..."
+    },
+    "testimonials": [
+        {
+            "text": "Emma begreep onze behoeften echt en bood ons duidelijke keuzes.",
+            "author": "— Peter & Anne, Nederland"
+        },
+        {
+            "text": "Het proces verliep soepel en we voelden ons nooit onder druk gezet.",
+            "author": "— Lars & Ingrid, Zweden"
+        },
+        {
+            "text": "Een aanrader voor iedereen die begeleiding zoekt bij het kopen van een huis.",
+            "author": "— Thomas & Marie, Frankrijk"
+        }
+    ],
+    "properties": {
+        "types": {
+            "apartments": "Appartementen & Penthouses",
+            "villas": "Herenhuizen & Villa's"
+        },
+        "moreInfo": "Meer informatie",
+        "list": {
+            "panorama-bay": {
+                "title": "Panorama Bay",
+                "description": "Moderne appartementen met panoramisch zeezicht"
+            },
+            "villa-amalfi": {
+                "title": "Villa Amalfi",
+                "description": "Luxe villa met privézwembad en tuin"
+            },
+            "sunset-residences": {
+                "title": "Sunset Residences",
+                "description": "Eigentijdse appartementen met grote terrassen"
+            },
+            "green-valley-gardens": {
+                "title": "Green Valley Gardens",
+                "description": "Stijlvolle penthouses met uitzicht op de golfbaan"
+            },
+            "la-perla-marina": {
+                "title": "La Perla Marina",
+                "description": "Exclusief project aan het strand"
+            },
+            "aqua-blu-oasis": {
+                "title": "Aqua Blu Oasis",
+                "description": "Modern wonen met resort-faciliteiten"
+            },
+            "elevate-suites": {
+                "title": "Elevate Suites",
+                "description": "High-design appartementen met luxe faciliteiten"
+            }
+        }
+    },
+    "form": {
+        "title": "Vul het formulier in voor meer informatie",
+        "fields": {
+            "fullName": "Volledige Naam",
+            "phone": "Uw Telefoonnummer",
+            "comment": "Opmerking (optioneel)"
+        },
+        "consent": "Ik ga akkoord met het ontvangen van relevante informatie en follow-up van DelSolPrimeHomes.",
+        "submit": "Vraag WhatsApp / SMS Info Aan",
+        "recaptcha": "Deze site wordt beschermd door reCAPTCHA en het Google Privacybeleid en de Servicevoorwaarden zijn van toepassing.",
+        "success": "Bedankt! We nemen binnen 24 uur contact met u op.",
+        "error": "Er is iets misgegaan. Probeer het opnieuw."
+    },
+    "footer": {
+        "copyright": "© 2024 DelSolPrimeHomes. Alle rechten voorbehouden.",
+        "privacy": "Privacybeleid",
+        "terms": "Algemene Voorwaarden"
+    }
+}

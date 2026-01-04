@@ -1,0 +1,89 @@
+{
+    "hero": {
+        "headline": "ODKRYJ LUKSUSOWE ŻYCIE NA COSTA DEL SOL",
+        "subheadline": "Doświadcz spersonalizowanego i bezstresowego podejścia do znalezienia wymarzonego domu w południowej Hiszpanii.",
+        "videoCTA": "Obejrzyj nasze krótkie wprowadzenie",
+        "emmaCTA": "Zacznij z Emmą"
+    },
+    "emma": {
+        "headline": "Zadaj pytania. Podziel się kryteriami.",
+        "subheadline": "Otrzymaj pierwszą dopasowaną ofertę w ciągu 24 godzin.",
+        "status": "Online teraz - Zapytaj mnie o cokolwiek!",
+        "greeting": "Cześć! Jak mogę Ci dzisiaj pomóc?",
+        "quickActions": {
+            "question": "Zadaj pytanie",
+            "criteria": "Podziel się kryteriami",
+            "explore": "Przeglądaj apartamenty lub wille"
+        },
+        "placeholder": "Wpisz swoją wiadomość..."
+    },
+    "testimonials": [
+        {
+            "text": "Emma naprawdę zrozumiała nasze potrzeby i zaoferowała jasne wybory.",
+            "author": "— Peter & Anne, Holandia"
+        },
+        {
+            "text": "Proces przebiegł gładko i nigdy nie czuliśmy presji.",
+            "author": "— Lars & Ingrid, Szwecja"
+        },
+        {
+            "text": "Gorąco polecam każdemu, kto chce prowadzonego poszukiwania nieruchomości.",
+            "author": "— Thomas & Marie, Francja"
+        }
+    ],
+    "properties": {
+        "types": {
+            "apartments": "Apartamenty & Penthousy",
+            "villas": "Domy Szeregowe & Wille"
+        },
+        "moreInfo": "Więcej informacji",
+        "list": {
+            "panorama-bay": {
+                "title": "Panorama Bay",
+                "description": "Nowoczesne apartamenty z panoramicznym widokiem na morze"
+            },
+            "villa-amalfi": {
+                "title": "Villa Amalfi",
+                "description": "Luksusowa willa z prywatnym basenem i ogrodem"
+            },
+            "sunset-residences": {
+                "title": "Sunset Residences",
+                "description": "Współczesne apartamenty z dużymi tarasami"
+            },
+            "green-valley-gardens": {
+                "title": "Green Valley Gardens",
+                "description": "Stylowe penthousy z widokiem na pole golfowe"
+            },
+            "la-perla-marina": {
+                "title": "La Perla Marina",
+                "description": "Ekskluzywna inwestycja przy plaży"
+            },
+            "aqua-blu-oasis": {
+                "title": "Aqua Blu Oasis",
+                "description": "Nowoczesne życie z udogodnieniami w stylu kurortu"
+            },
+            "elevate-suites": {
+                "title": "Elevate Suites",
+                "description": "Apartamenty o wysokim standardzie z luksusowymi udogodnieniami"
+            }
+        }
+    },
+    "form": {
+        "title": "Wypełnij formularz, aby otrzymać więcej informacji",
+        "fields": {
+            "fullName": "Pełne Imię i Nazwisko",
+            "phone": " Twój Numer Telefonu",
+            "comment": "Komentarz (opcjonalnie)"
+        },
+        "consent": "Wyrażam zgodę na otrzymywanie istotnych informacji i kontakty od DelSolPrimeHomes.",
+        "submit": "Poproś o informacje przez WhatsApp / SMS",
+        "recaptcha": "Ta strona jest chroniona przez reCAPTCHA i obowiązują Polityka Prywatności i Warunki Usługi Google.",
+        "success": "Dziękujemy! Skontaktujemy się z Tobą w ciągu 24 godzin.",
+        "error": "Coś poszło nie tak. Spróbuj ponownie."
+    },
+    "footer": {
+        "copyright": "© 2024 DelSolPrimeHomes. Wszelkie prawa zastrzeżone.",
+        "privacy": "Polityka Prywatności",
+        "terms": "Warunki Usługi"
+    }
+}
