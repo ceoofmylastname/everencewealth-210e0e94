@@ -2,92 +2,61 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { LanguageCode } from '@/utils/landing/languageDetection';
 
-export interface Property {
-    id: string;
-    images: [string, string, string];
-    price: number;
-    type: 'apartment' | 'villa';
-    titleKey: string; // Key for translation map
-}
+
 
 interface PropertyCardProps {
-    property: Property;
-    translations: {
-        title: string;
-        description: string;
-    };
+    id: string;
+    image: string;
+    title: string;
+    price: string;
+    description: string;
     moreInfoText: string;
-    language: LanguageCode;
     onSelect: (id: string) => void;
 }
 
 const PropertyCard: React.FC<PropertyCardProps> = ({
-    property,
-    translations,
+    id,
+    image,
+    title,
+    price,
+    description,
     moreInfoText,
     onSelect
 }) => {
-    const [currentImageIndex, setCurrentImageIndex] = React.useState(0);
-    const hoverTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
-
-    const handleMouseEnter = () => {
-        // Immediate transition to image 2 (index 1)
-        setCurrentImageIndex(1);
-
-        // Delayed transition to image 3 (index 2)
-        hoverTimeoutRef.current = setTimeout(() => {
-            setCurrentImageIndex(2);
-        }, 1200);
-    };
-
-    const handleMouseLeave = () => {
-        if (hoverTimeoutRef.current) {
-            clearTimeout(hoverTimeoutRef.current);
-        }
-        setCurrentImageIndex(0);
-    };
-
     return (
-        <div
-            className="group bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 property-card"
-            onMouseEnter={handleMouseEnter}
-            onMouseLeave={handleMouseLeave}
-        >
-            {/* Image Container */}
-            <div className="relative aspect-[3/2] overflow-hidden bg-gray-200">
-                {property.images.map((img, index) => (
-                    <img
-                        key={index}
-                        src={img}
-                        alt={translations.title}
-                        className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ease-in-out ${index === currentImageIndex ? 'opacity-100' : 'opacity-0'
-                            }`}
-                        loading="lazy"
-                    />
-                ))}
-
-                {/* Price Tag */}
-                <div className="absolute bottom-4 left-4 bg-white/90 backdrop-blur-sm px-3 py-1 text-sm font-semibold text-[#1A2332] rounded-sm">
-                    From €{property.price.toLocaleString()}
-                </div>
+        <div className="group flex flex-col items-center text-center space-y-4">
+            {/* Image */}
+            <div className="w-full aspect-[4/3] overflow-hidden rounded-sm shadow-md mb-2">
+                <img
+                    src={image}
+                    alt={title}
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                    loading="lazy"
+                />
             </div>
 
             {/* Content */}
-            <div className="p-6 text-center space-y-4">
-                <h3 className="text-xl font-serif text-[#1A2332]">
-                    {translations.title}
+            <div className="space-y-3 px-2">
+                <h3 className="text-2xl font-serif text-[#1A2332]">
+                    {title}
                 </h3>
-                <p className="text-sm text-gray-500 font-light min-h-[40px]">
-                    {translations.description}
+
+                <p className="text-[#1A2332] font-medium tracking-wide">
+                    {price}
                 </p>
 
-                <Button
-                    onClick={() => onSelect(property.id)}
-                    variant="outline"
-                    className="w-full border-[#C4A053] text-[#C4A053] hover:bg-[#C4A053] hover:text-white transition-colors"
-                >
-                    {moreInfoText}
-                </Button>
+                <p className="text-sm text-gray-500 font-light max-w-xs mx-auto">
+                    {description}
+                </p>
+
+                <div className="pt-2">
+                    <Button
+                        onClick={() => onSelect(id)}
+                        className="bg-[#C4A053] hover:bg-[#B39043] text-white rounded-none px-6 py-2 text-sm font-medium tracking-wide shadow-sm hover:shadow-md transition-all"
+                    >
+                        {moreInfoText}
+                    </Button>
+                </div>
             </div>
         </div>
     );

@@ -33,40 +33,98 @@
   ],
   "properties": {
     "types": {
-      "apartments": "Apartments & Penthouses",
-      "villas": "Townhouses & Villas"
+      "apartments": {
+        "title": "Apartments & Penthouses",
+        "subtitle": "Modern developments with amenities, views and resort lifestyle",
+        "cta": "View Apartment Projects >"
+      },
+      "villas": {
+        "title": "Townhouses & Villas",
+        "subtitle": "Private homes with space, privacy and architectural character",
+        "cta": "View Villas & Houses >"
+      }
     },
-    "moreInfo": "More information",
-    "list": {
-      "panorama-bay": {
+    "moreInfo": "More information >",
+    "header": {
+      "title": "This is a small curated selection.",
+      "subtitle": "A wider range is available based on your criteria."
+    },
+    "apartments": [
+      {
+        "id": "panorama-bay",
         "title": "Panorama Bay",
+        "price": "From €385,000",
         "description": "Modern apartments with panoramic sea views"
       },
-      "villa-amalfi": {
-        "title": "Villa Amalfi",
-        "description": "Luxury villa with private pool and garden"
-      },
-      "sunset-residences": {
+      {
+        "id": "sunset-residences",
         "title": "Sunset Residences",
+        "price": "From €420,000",
         "description": "Contemporary apartments with large terraces"
       },
-      "green-valley-gardens": {
+      {
+        "id": "green-valley-gardens",
         "title": "Green Valley Gardens",
+        "price": "From €450,000",
         "description": "Stylish penthouses with golf views"
       },
-      "la-perla-marina": {
+      {
+        "id": "la-perla-marina",
         "title": "La Perla Marina",
+        "price": "From €510,000",
         "description": "Exclusive development by the beach"
       },
-      "aqua-blu-oasis": {
+      {
+        "id": "aqua-blu-oasis",
         "title": "Aqua Blu Oasis",
+        "price": "From €393,000",
         "description": "Modern living with resort-style amenities"
       },
-       "elevate-suites": {
+      {
+        "id": "elevate-suites",
         "title": "Elevate Suites",
+        "price": "From €440,000",
         "description": "High design apartments with luxury facilities"
       }
-    }
+    ],
+    "villas": [
+      {
+        "id": "villa-amalfi",
+        "title": "Villa Amalfi",
+        "price": "From €790,000",
+        "description": "Elegant Mediterranean villa with sea views"
+      },
+      {
+        "id": "sierra-blanca",
+        "title": "Sierra Blanca Townhouses",
+        "price": "From €699,000",
+        "description": "Luxury townhouses in an exclusive area"
+      },
+      {
+        "id": "los-arcos",
+        "title": "Los Arcos Estate",
+        "price": "From €1,950,000",
+        "description": "Refined villa with Spanish architecture"
+      },
+      {
+        "id": "monte-verde",
+        "title": "Monte Verde Villa",
+        "price": "From €835,000",
+        "description": "Modern villa with panoramic views"
+      },
+      {
+        "id": "horizon-hills",
+        "title": "Horizon Hills Villas",
+        "price": "From €1,150,000",
+        "description": "Contemporary design with extensive grounds"
+      },
+      {
+        "id": "la-terraza",
+        "title": "La Terraza Residences",
+        "price": "From €720,000",
+        "description": "Townhouses with private pools and terraces"
+      }
+    ]
   },
   "form": {
     "title": "Fill out the form to receive more information",

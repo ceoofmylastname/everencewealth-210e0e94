@@ -3,6 +3,7 @@ import { Helmet } from 'react-helmet';
 import Hero from './Hero';
 import EmmaChat from './EmmaChat';
 import TestimonialSection from './TestimonialSection';
+import PropertyTypeSelector from './PropertyTypeSelector';
 import PropertyCarousel from './PropertyCarousel';
 import Footer from './Footer';
 import LanguageSelector from './LanguageSelector';
@@ -61,32 +62,58 @@ const LandingLayout: React.FC<LandingLayoutProps> = ({ language, translations })
                 <link rel="canonical" href={`https://www.delsolprimehomes.com/${language}/landing`} />
             </Helmet>
 
-            {/* Navigation Overlay */}
-            <div className="absolute top-0 left-0 w-full z-50 p-6 flex justify-between items-center bg-gradient-to-b from-black/50 to-transparent">
-                <div className="w-48">
-                    {/* Logo placeholder - replace with actual logo path */}
-                    <img src="/logo.png" alt="DelSolPrimeHomes" className="h-12 w-auto object-contain brightness-0 invert" onError={(e) => e.currentTarget.style.display = 'none'} />
-                    <span className="text-white font-serif text-xl font-bold tracking-widest hidden md:inline ml-2">DELSOLPRIMEHOMES</span>
+            {/* Navigation Header */}
+            <header className="fixed top-0 left-0 w-full z-50 bg-white shadow-sm transition-all duration-300">
+                <div className="container mx-auto px-4 md:px-6 h-20 flex justify-between items-center">
+                    {/* Left Links */}
+                    <div className="hidden lg:flex items-center gap-6 text-[#2C3E50] text-sm font-medium tracking-wide font-serif italic">
+                        <span>Apartments & Penthouses</span>
+                        <span className="text-[#C4A053]">|</span>
+                        <span>Townhouses & Villas</span>
+                    </div>
+
+                    {/* Center Logo */}
+                    <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                        {/* Replace with actual colored logo if available, or use text for now matching the image style */}
+                        <div className="flex flex-col items-center">
+                            {/* Simple text representation of the logo in the image if file not present */}
+                            <span className="text-[#C4A053] font-serif text-2xl font-bold tracking-widest whitespace-nowrap">DELSOLPRIMEHOMES</span>
+                        </div>
+                    </div>
+
+                    {/* Right Actions */}
+                    <div className="flex items-center gap-6">
+                        <a href="tel:+34951123456" className="text-[#2C3E50] hidden md:block hover:text-[#C4A053] transition-colors font-medium text-sm">
+                            +34 951 123 456
+                        </a>
+
+                        <div className="flex items-center gap-3">
+                            <LanguageSelector currentLang={language} />
+                            <button
+                                onClick={() => setIsFormOpen(true)}
+                                className="bg-[#C4A053] text-white px-6 py-2 rounded-none hover:bg-[#B39043] transition-colors text-sm font-medium uppercase tracking-wide"
+                            >
+                                Contact
+                            </button>
+                        </div>
+                    </div>
                 </div>
-                <div className="flex items-center gap-4">
-                    <a href="tel:+34951123456" className="text-white hidden md:block hover:text-[#C4A053] transition-colors font-medium">
-                        +34 951 123 456
-                    </a>
-                    <LanguageSelector currentLang={language} />
-                    <button
-                        onClick={() => setIsFormOpen(true)}
-                        className="bg-[#C4A053] text-white px-5 py-2 rounded shadow hover:bg-[#D4B063] transition-colors text-sm font-semibold"
-                    >
-                        Contact
-                    </button>
-                </div>
-            </div>
+            </header>
 
             <Hero content={translations.hero} language={language} />
 
             <EmmaChat content={translations.emma} language={language} />
 
             <TestimonialSection testimonials={translations.testimonials} />
+
+            <PropertyTypeSelector
+                translations={translations.properties.types}
+                onSelect={(type) => {
+                    // Scroll to property section
+                    const element = document.getElementById('properties-section');
+                    element?.scrollIntoView({ behavior: 'smooth' });
+                }}
+            />
 
             <PropertyCarousel
                 language={language}
