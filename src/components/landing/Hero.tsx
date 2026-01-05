@@ -33,7 +33,7 @@ const Hero: React.FC<HeroProps> = ({ content, onStartChat }) => {
             </div>
 
             {/* Content Container */}
-            <div className="relative z-10 container mx-auto px-4 pt-32 pb-12 flex flex-col items-center justify-center min-h-screen text-center space-y-8">
+            <div className="relative z-10 container mx-auto px-4 pt-20 flex flex-col items-center justify-center min-h-screen text-center space-y-8">
 
                 {/* Text Content */}
                 <div className="space-y-6 max-w-4xl mx-auto animate-fade-in-up">
@@ -45,26 +45,50 @@ const Hero: React.FC<HeroProps> = ({ content, onStartChat }) => {
                     </p>
                 </div>
 
-                {/* Watch Intro Button */}
-                <div className="animate-fade-in-up delay-100">
+                {/* Buttons Container */}
+                <div className="flex flex-col items-center space-y-4 animate-fade-in-up delay-100 w-full max-w-md">
                     <Button
                         onClick={() => setIsVideoOpen(true)}
-                        className="bg-[#C4A053] hover:bg-[#B39043] text-white px-8 py-6 text-lg rounded-sm uppercase tracking-wider font-medium shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300"
+                        className="w-full sm:w-auto bg-[#C4A053] hover:bg-[#B39043] text-white px-8 py-6 text-lg rounded-sm uppercase tracking-wider font-medium shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300"
                     >
                         {content.videoCTA}
                     </Button>
+
+                    <Button
+                        onClick={onStartChat}
+                        className="w-full sm:w-auto bg-[#2C5282] hover:bg-[#1A365D] text-white px-10 py-6 text-lg rounded-sm shadow-xl font-medium uppercase tracking-wide hover:shadow-2xl hover:-translate-y-0.5 transition-all duration-300"
+                    >
+                        {content.emmaCTA}
+                    </Button>
                 </div>
 
-                {/* Video Preview Container */}
+                {/* Video Preview Container - Resized and positioned */}
                 <div
-                    className="relative w-full max-w-3xl aspect-video bg-black/20 backdrop-blur-sm rounded-lg overflow-hidden border border-white/20 shadow-2xl cursor-pointer group animate-fade-in-up delay-200 mt-8"
+                    className="relative w-full max-w-[600px] aspect-video bg-black/20 backdrop-blur-sm rounded-lg overflow-hidden border border-white/20 shadow-2xl cursor-pointer group animate-fade-in-up delay-200 mt-8 mb-8"
                     onClick={() => setIsVideoOpen(true)}
                 >
-                    <Play className="absolute inset-0 m-auto w-16 h-16 text-white/80 group-hover:text-white transition-colors" />
+                    {/* Placeholder image for video preview */}
+                    <div className="absolute inset-0 bg-black/40 group-hover:bg-black/30 transition-colors" />
+
+                    {/* Play Button Interface */}
+                    <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="w-16 h-16 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/50 group-hover:scale-110 transition-transform duration-300">
+                            <Play className="w-6 h-6 text-white fill-white ml-1" />
+                        </div>
+                    </div>
+
+                    {/* Video UI Chrome elements */}
+                    <div className="absolute bottom-4 left-4 right-4 flex justify-between text-white text-xs font-medium tracking-wider">
+                        <div className="flex items-center gap-2">
+                            <Play className="w-3 h-3 fill-white" />
+                            <span>0:00 / 2:15</span>
+                        </div>
+                    </div>
                 </div>
 
-                <VideoModal isOpen={isVideoOpen} onClose={() => setIsVideoOpen(false)} />
             </div>
+
+            <VideoModal isOpen={isVideoOpen} onClose={() => setIsVideoOpen(false)} />
         </div>
     );
 };
