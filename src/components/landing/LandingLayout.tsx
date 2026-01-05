@@ -90,12 +90,7 @@ const LandingLayout: React.FC<LandingLayoutProps> = ({ language, translations })
 
                         <div className="flex items-center gap-3">
                             <LanguageSelector currentLang={language} />
-                            <button
-                                onClick={() => setIsEmmaOpen(true)}
-                                className="bg-[#C4A053] text-white px-6 py-2 rounded-none hover:bg-[#B39043] transition-colors text-sm font-medium uppercase tracking-wide"
-                            >
-                                Contact
-                            </button>
+
                         </div>
                     </div>
                 </div>
