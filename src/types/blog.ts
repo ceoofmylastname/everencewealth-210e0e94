@@ -64,24 +64,24 @@ export interface BlogArticle {
   language: Language;
   category: string;
   funnel_stage: FunnelStage;
-  
+
   // Cluster Fields
   cluster_id?: string;
   cluster_number?: number;
   cluster_theme?: string;
   is_primary: boolean;
-  
+
   // Hreflang Fields
   hreflang_group_id?: string;
   source_language?: string;
   content_type?: string;
-  
+
   // SEO Fields
   headline: string;
   meta_title: string;
   meta_description: string;
   canonical_url?: string;
-  
+
   // Content Fields
   speakable_answer: string;
   detailed_content: string;
@@ -90,7 +90,7 @@ export interface BlogArticle {
   featured_image_caption?: string;
   diagram_url?: string;
   diagram_description?: string;
-  
+
   // E-E-A-T Fields
   author_id?: string;
   reviewer_id?: string;
@@ -98,24 +98,35 @@ export interface BlogArticle {
   date_published?: string;
   date_modified?: string;
   read_time?: number;
-  
+
   // Linking Fields
   internal_links: InternalLink[];
   external_citations: ExternalCitation[];
   related_article_ids: string[];
   cta_article_ids: string[];
-  
+
   // Translations
   translations: Record<string, string>;
-  
+
   // Q&A
   qa_entities?: QAEntity[];
   generated_qa_page_ids?: string[];
-  
+
+  // Authority Blocks
+  expert_insight?: string;
+  decision_snapshot?: DecisionSnapshot;
+
   // Status
   status: ArticleStatus;
   created_at: string;
   updated_at: string;
+}
+
+export interface DecisionSnapshot {
+  bestSuitedIf: string[];
+  lessSuitableIf: string[];
+  commonMistake: string;
+  relatedQALink?: string;
 }
 
 export type QAType = 'core' | 'decision';

@@ -20,6 +20,8 @@ import { FunnelCTA } from "@/components/blog-article/FunnelCTA";
 import { ArticleFooter } from "@/components/blog-article/ArticleFooter";
 import { StickyMobileCTA } from "@/components/blog-article/StickyMobileCTA";
 import { BlogArticle as BlogArticleType, Author, ExternalCitation, QAEntity, FunnelStage, InternalLink } from "@/types/blog";
+import { ExpertInsight } from "@/components/blog-article/ExpertInsight";
+import { DecisionSnapshot } from "@/components/blog-article/DecisionSnapshot";
 import { ChatbotWidget } from "@/components/chatbot/ChatbotWidget";
 
 const BlogArticle = () => {
@@ -211,6 +213,15 @@ const BlogArticle = () => {
               }
             />
 
+            {/* Authority Blocks */}
+            {article.expert_insight && (
+              <ExpertInsight insight={article.expert_insight} />
+            )}
+
+            {article.decision_snapshot && (
+              <DecisionSnapshot snapshot={article.decision_snapshot} />
+            )}
+
             <TableOfContents content={article.detailed_content} />
 
             <InternalLinksSection links={article.internal_links as InternalLink[]} />
@@ -222,8 +233,8 @@ const BlogArticle = () => {
             />
 
             {article.qa_entities && (
-              <QASection 
-                faqs={article.qa_entities as QAEntity[]} 
+              <QASection
+                faqs={article.qa_entities as QAEntity[]}
                 topic={article.headline}
                 language={article.language}
               />
