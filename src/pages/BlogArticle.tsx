@@ -23,6 +23,9 @@ import { BlogArticle as BlogArticleType, Author, ExternalCitation, QAEntity, Fun
 import { ExpertInsight } from "@/components/blog-article/ExpertInsight";
 import { DecisionSnapshot } from "@/components/blog-article/DecisionSnapshot";
 import { ChatbotWidget } from "@/components/chatbot/ChatbotWidget";
+import PersonSchema from '@/components/schema/PersonSchema';
+import ArticleSchema from '@/components/schema/ArticleSchema';
+import AuthorByline from '@/components/blog-article/AuthorByline';
 
 const BlogArticle = () => {
   const { slug, lang = 'en' } = useParams<{ slug: string; lang: string }>();
@@ -173,17 +176,37 @@ const BlogArticle = () => {
 
   return (
     <>
+      {/* Schema Markup */}
+      <PersonSchema context="blog" />
+      <ArticleSchema
+        headline={article.headline}
+        description={article.meta_description}
+        datePublished={article.date_published || article.created_at}
+        dateModified={article.date_modified || article.updated_at}
+        articleUrl={`https://www.delsolprimehomes.com/blog/${article.slug}`}
+        imageUrl={article.featured_image_url}
+        context="blog"
+      />
+
       {/* SEO tags are handled by server/edge - no Helmet needed for published articles */}
       <div className="min-h-screen py-8 md:py-12">
         <div className="flex flex-col">
           {/* Mobile-first single column with max-width for readability */}
           <div className="max-w-4xl mx-auto w-full px-5 sm:px-6 space-y-12 md:space-y-16">
-            <ArticleHeader
-              article={article}
-              author={author || null}
-              reviewer={reviewer || null}
-              translations={article.translations as Record<string, string | { id: string; slug: string }>}
-            />
+            <div>
+              <ArticleHeader
+                article={article}
+                author={author || null}
+                reviewer={reviewer || null}
+                translations={article.translations as Record<string, string | { id: string; slug: string }>}
+              />
+
+              <AuthorByline
+                datePublished={article.date_published || article.created_at}
+                dateModified={article.date_modified}
+                context="blog"
+              />
+            </div>
 
             <SpeakableBox answer={article.speakable_answer} language={article.language} />
 

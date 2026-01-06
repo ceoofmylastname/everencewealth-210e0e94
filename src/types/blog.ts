@@ -92,11 +92,8 @@ export interface BlogArticle {
   diagram_description?: string;
 
   // E-E-A-T Fields
-  author_id?: string;
   reviewer_id?: string;
   author_bio_localized?: string;
-  date_published?: string;
-  date_modified?: string;
   read_time?: number;
 
   // Linking Fields
@@ -115,6 +112,12 @@ export interface BlogArticle {
   // Authority Blocks
   expert_insight?: string;
   decision_snapshot?: DecisionSnapshot;
+
+  // Date & Author Authority
+  date_published: string;  // ISO 8601 timestamp
+  date_modified: string;   // ISO 8601 timestamp
+  author_id: string;       // Always 'hans-beeckman'
+  author_photo_context: 'blog' | 'qa';
 
   // Status
   status: ArticleStatus;
