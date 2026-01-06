@@ -221,7 +221,8 @@ serve(async (req) => {
         const hreflangGroupId = crypto.randomUUID();
         const slug = generateSlug(qaContent.question, qaType.id);
 
-        // Build Q&A record
+        // Build Q&A record with authority signals (Hans' E-E-A-T requirements)
+        const now = new Date().toISOString();
         const qaRecord = {
           source_article_id: articleId,
           cluster_id: article.cluster_id,
@@ -244,6 +245,10 @@ serve(async (req) => {
           funnel_stage: article.funnel_stage,
           status: 'published',
           source_article_slug: article.slug,
+          // Authority signals for AI ranking
+          author_id: '738c1e24-025b-4f15-ac7c-541bb8a5dade', // Hans Beeckman
+          date_published: now,
+          date_modified: now,
         };
 
         // Insert the Q&A

@@ -41,10 +41,10 @@ import BlogIndex from "./pages/BlogIndex";
 import QAIndex from "./pages/QAIndex";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
+import ThankYou from "./pages/ThankYou";
 
 // Lazy load heavy public pages
 const BlogArticle = lazy(() => import("./pages/BlogArticle"));
-const ThankYou = lazy(() => import("./pages/ThankYou"));
 const QAPage = lazy(() => import("./pages/QAPage"));
 const PropertyFinder = lazy(() => import("./pages/PropertyFinder"));
 const PropertyDetail = lazy(() => import("./pages/PropertyDetail"));
@@ -58,6 +58,8 @@ const LocationIndex = lazy(() => import("./pages/LocationIndex"));
 const LocationPage = lazy(() => import("./pages/LocationPage"));
 const About = lazy(() => import("./pages/About"));
 const BuyersGuide = lazy(() => import("./pages/BuyersGuide"));
+const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
+const TermsOfService = lazy(() => import("./pages/TermsOfService"));
 
 // Lazy load ALL admin pages (rarely accessed, heavy components)
 const Dashboard = lazy(() => import("./pages/admin/Dashboard"));
@@ -190,8 +192,11 @@ const App = () => (
               {/* OTHER PUBLIC ROUTES (no language prefix)  */}
               {/* MUST BE BEFORE /:lang dynamic route       */}
               {/* ========================================== */}
+              <Route path="/thank-you" element={<ThankYou />} />
               <Route path="/sitemap" element={<Sitemap />} />
               <Route path="/glossary" element={<Glossary />} />
+              <Route path="/privacy" element={<PrivacyPolicy />} />
+              <Route path="/terms" element={<TermsOfService />} />
 
               {/* Landing Pages (Paid Traffic) */}
               <Route path="/en/landing" element={<LandingEn />} />

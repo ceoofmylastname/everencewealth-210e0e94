@@ -188,6 +188,7 @@ export const hu = {
     },
     legal: {
       privacy: "Adatvédelmi Irányelvek",
+      terms: "Szolgáltatási Feltételek",
       cookies: "Cookie Szabályzat",
       legalNotice: "Jogi Nyilatkozat",
       lpo: "LPO Információ",

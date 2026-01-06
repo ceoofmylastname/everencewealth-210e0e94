@@ -434,7 +434,7 @@ function truncateAtSentence(text: string, maxChars: number = 800): string {
 }
 
 function generateQAPageSchema(metadata: PageMetadata): string {
-  // For QA pages, use QAPage schema (not FAQPage)
+  // For QA pages, use QAPage schema with full authority signals (Hans' E-E-A-T requirements)
   // Content must be in the page's language (no hardcoded English)
   const schema = {
     "@context": "https://schema.org",
@@ -443,6 +443,15 @@ function generateQAPageSchema(metadata: PageMetadata): string {
     "headline": metadata.headline, // This comes from question_main in the DB (in page's language)
     "inLanguage": LOCALE_MAP[metadata.language] || metadata.language,
     "url": metadata.canonical_url,
+    "datePublished": metadata.date_published || new Date().toISOString(),
+    "dateModified": metadata.date_modified || metadata.date_published || new Date().toISOString(),
+    "author": {
+      "@type": "Person",
+      "@id": `${BASE_URL}/#hans-beeckman`,
+      "name": "Hans Beeckman",
+      "jobTitle": "Senior Real Estate Advisor"
+    },
+    "publisher": ORGANIZATION_SCHEMA,
     "mainEntity": {
       "@type": "Question",
       "name": metadata.headline, // In page's language
@@ -452,6 +461,10 @@ function generateQAPageSchema(metadata: PageMetadata): string {
         "@type": "Answer",
         "text": truncateAtSentence(metadata.speakable_answer?.replace(/<[^>]*>/g, '') || '', 600),
         "inLanguage": LOCALE_MAP[metadata.language] || metadata.language,
+        "author": {
+          "@type": "Person",
+          "@id": `${BASE_URL}/#hans-beeckman`
+        }
       }
     }
   }

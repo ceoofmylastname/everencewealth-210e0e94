@@ -188,6 +188,7 @@ export const da = {
     },
     legal: {
       privacy: "Privatlivspolitik",
+      terms: "Servicevilkår",
       cookies: "Cookie Politik",
       legalNotice: "Juridisk Meddelelse",
       lpo: "LPO Information",

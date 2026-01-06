@@ -101,7 +101,7 @@ const ClusterManager = () => {
       if (!clusterMap.has(article.cluster_id)) {
         clusterMap.set(article.cluster_id, {
           cluster_id: article.cluster_id,
-          cluster_theme: article.cluster_theme,
+          cluster_theme: article.cluster_theme || null,
           languages: {},
           total_articles: 0,
           all_draft: true,
@@ -116,6 +116,12 @@ const ClusterManager = () => {
       }
 
       const cluster = clusterMap.get(article.cluster_id)!;
+      
+      // Pick first non-null cluster_theme from any article
+      if (!cluster.cluster_theme && article.cluster_theme) {
+        cluster.cluster_theme = article.cluster_theme;
+      }
+      
       cluster.total_articles++;
 
       if (!cluster.languages[article.language]) {
@@ -214,15 +220,28 @@ const ClusterManager = () => {
   // Publish all articles in cluster
   const publishMutation = useMutation({
     mutationFn: async (clusterId: string) => {
-      const { error } = await supabase
+      const now = new Date().toISOString();
+      
+      // Phase 1: Update articles that DON'T have date_published yet
+      const { error: error1 } = await supabase
         .from("blog_articles")
         .update({ 
           status: "published", 
-          date_published: new Date().toISOString() 
+          date_published: now 
         })
-        .eq("cluster_id", clusterId);
+        .eq("cluster_id", clusterId)
+        .is("date_published", null);
       
-      if (error) throw error;
+      if (error1) throw error1;
+      
+      // Phase 2: Update articles that ALREADY have date_published (only set status)
+      const { error: error2 } = await supabase
+        .from("blog_articles")
+        .update({ status: "published" })
+        .eq("cluster_id", clusterId)
+        .not("date_published", "is", null);
+      
+      if (error2) throw error2;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["cluster-articles"] });
@@ -258,18 +277,34 @@ const ClusterManager = () => {
   const publishQAsMutation = useMutation({
     mutationFn: async (clusterId: string) => {
       setPublishingQAs(clusterId);
-      const { data, error } = await supabase
+      const now = new Date().toISOString();
+      
+      // Phase 1: Update Q&As that DON'T have date_published yet
+      const { data: data1, error: error1 } = await supabase
         .from("qa_pages")
         .update({ 
           status: "published", 
-          date_published: new Date().toISOString() 
+          date_published: now 
         })
         .eq("cluster_id", clusterId)
         .eq("status", "draft")
+        .is("date_published", null)
         .select("id");
       
-      if (error) throw error;
-      return data?.length || 0;
+      if (error1) throw error1;
+      
+      // Phase 2: Update Q&As that ALREADY have date_published (only set status)
+      const { data: data2, error: error2 } = await supabase
+        .from("qa_pages")
+        .update({ status: "published" })
+        .eq("cluster_id", clusterId)
+        .eq("status", "draft")
+        .not("date_published", "is", null)
+        .select("id");
+      
+      if (error2) throw error2;
+      
+      return (data1?.length || 0) + (data2?.length || 0);
     },
     onSuccess: (count) => {
       queryClient.invalidateQueries({ queryKey: ["cluster-qa-pages"] });
@@ -591,30 +626,35 @@ const ClusterManager = () => {
     return () => clearInterval(interval);
   }, []);
 
-  // Poll job status after network disconnect
-  const pollJobStatus = async (clusterId: string, maxAttempts = 15): Promise<{ status: string; error?: string; progress?: any; languages_queue?: string[]; completed_languages?: string[] }> => {
-    for (let i = 0; i < maxAttempts; i++) {
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      const { data: job } = await supabase
-        .from("cluster_generations")
-        .select("status, error, progress, languages_queue, completed_languages")
-        .eq("id", clusterId)
-        .single();
-      
-      if (job) {
-        if (job.status === "completed") {
-          return { status: "completed", progress: job.progress, languages_queue: job.languages_queue, completed_languages: job.completed_languages };
-        }
-        if (job.status === "partial" || job.status === "generating" || job.status === "failed") {
-          return { status: job.status, error: job.error, progress: job.progress, languages_queue: job.languages_queue, completed_languages: job.completed_languages };
-        }
-      }
+  // Poll job status with quick intervals for responsive UI
+  const pollJobStatus = async (clusterId: string): Promise<{ 
+    status: string; 
+    error?: string; 
+    progress?: any; 
+    languages_queue?: string[]; 
+    completed_languages?: string[];
+    updated_at?: string;
+  }> => {
+    const { data: job } = await supabase
+      .from("cluster_generations")
+      .select("status, error, progress, languages_queue, completed_languages, updated_at")
+      .eq("id", clusterId)
+      .single();
+    
+    if (job) {
+      return { 
+        status: job.status, 
+        error: job.error, 
+        progress: job.progress, 
+        languages_queue: job.languages_queue, 
+        completed_languages: job.completed_languages,
+        updated_at: job.updated_at 
+      };
     }
-    return { status: "timeout", error: "Job status check timed out" };
+    return { status: "unknown" };
   };
 
-  // Complete translations for cluster
+  // Complete translations with robust polling-based approach
   const completeTranslationsMutation = useMutation({
     mutationFn: async (clusterId: string) => {
       setTranslatingCluster(clusterId);
@@ -630,39 +670,121 @@ const ClusterManager = () => {
         ? { clusterId, dryRun: false }
         : { jobId: clusterId };
 
-      try {
-        const { data, error } = await supabase.functions.invoke(functionName, {
-          body: bodyParam,
-        });
+      const MAX_ELAPSED_MS = 30 * 60 * 1000; // 30 minutes max
+      const MAX_INVOCATIONS = 300; // Safety limit
+      const POLL_INTERVAL_MS = 3000; // Poll every 3 seconds when waiting
+      const STUCK_THRESHOLD_MS = 2 * 60 * 1000; // 2 minutes - consider stuck
+      
+      const startTime = Date.now();
+      let invocations = 0;
+      let lastResult: any = null;
 
-        if (error) {
-          const errorMsg = error.message || String(error);
-          if (errorMsg.includes("Failed to fetch") || errorMsg.includes("network") || errorMsg.includes("timeout")) {
-            toast.info("Connection lost — checking job status...");
-            const polledResult = await pollJobStatus(clusterId);
-            
-            if (polledResult.status === "completed") {
-              return { status: "completed", totalArticles: polledResult.progress?.generated_articles };
-            } else if (polledResult.status === "partial" || polledResult.status === "generating") {
-              return { 
-                status: "partial", 
-                language: polledResult.progress?.current_language,
-                remainingLanguages: polledResult.languages_queue?.filter((l: string) => !polledResult.completed_languages?.includes(l)),
-                totalArticles: polledResult.progress?.generated_articles 
-              };
-            } else if (polledResult.status === "failed") {
-              throw new Error(polledResult.error || "Translation job failed");
-            } else {
-              throw new Error("Connection lost and job status unclear. Try again.");
-            }
-          }
-          throw error;
+      // Main loop: invoke function, then poll until ready for next invoke
+      while (Date.now() - startTime < MAX_ELAPSED_MS && invocations < MAX_INVOCATIONS) {
+        invocations++;
+        
+        // Check current status before invoking
+        const currentStatus = await pollJobStatus(clusterId);
+        
+        // If completed, we're done
+        if (currentStatus.status === "completed") {
+          console.log(`[Translation] Already completed!`);
+          return { status: "completed", totalArticles: currentStatus.progress?.generated_articles || 60 };
         }
+        
+        // If generating and recently updated, wait and poll instead of invoking
+        if (currentStatus.status === "generating" && currentStatus.updated_at) {
+          const timeSinceUpdate = Date.now() - new Date(currentStatus.updated_at).getTime();
+          if (timeSinceUpdate < STUCK_THRESHOLD_MS) {
+            console.log(`[Translation] Job generating (${Math.round(timeSinceUpdate / 1000)}s ago), polling...`);
+            setTranslationProgress({ 
+              current: currentStatus.progress?.current_language?.toUpperCase() || 'Processing', 
+              remaining: currentStatus.languages_queue?.filter((l: string) => 
+                !currentStatus.completed_languages?.includes(l)
+              ).length || 0
+            });
+            await new Promise(resolve => setTimeout(resolve, POLL_INTERVAL_MS));
+            continue;
+          }
+        }
+        
+        // Invoke the translation function
+        try {
+          console.log(`[Translation] Invoking ${functionName} (invocation ${invocations})...`);
+          const { data, error } = await supabase.functions.invoke(functionName, {
+            body: bodyParam,
+          });
 
-        return data;
-      } catch (err: any) {
-        throw err;
+          if (error) {
+            const errorMsg = error.message || String(error);
+            if (errorMsg.includes("Failed to fetch") || errorMsg.includes("network") || errorMsg.includes("timeout") || errorMsg.includes("shutdown")) {
+              // Network error - wait and poll status
+              console.log(`[Translation] Network error, polling status...`);
+              toast.info(`Connection issue — checking status... (${invocations})`);
+              await new Promise(resolve => setTimeout(resolve, POLL_INTERVAL_MS));
+              continue;
+            }
+            throw error;
+          }
+
+          lastResult = data;
+          console.log(`[Translation] Response:`, data?.status, data?.message);
+          
+          // Handle response status
+          if (data.status === "completed") {
+            return data;
+          }
+          
+          if (data.status === "generating") {
+            // Backend said it's already running - poll and wait
+            console.log(`[Translation] Backend says already running, polling...`);
+            await new Promise(resolve => setTimeout(resolve, POLL_INTERVAL_MS));
+            continue;
+          }
+          
+          if (data.status === "partial") {
+            // More work to do - update progress and continue
+            const remaining = data.remainingLanguages || [];
+            setTranslationProgress({ 
+              current: data.language?.toUpperCase() || 'Processing', 
+              remaining: remaining.length 
+            });
+            
+            if (remaining.length === 0) {
+              // Actually complete
+              return { ...data, status: "completed" };
+            }
+            
+            // Brief delay before next invoke
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            continue;
+          }
+          
+          // Unknown status - poll and continue
+          await new Promise(resolve => setTimeout(resolve, POLL_INTERVAL_MS));
+          
+        } catch (err: any) {
+          const errorMsg = err.message || String(err);
+          if (errorMsg.includes("Failed to fetch") || errorMsg.includes("network") || errorMsg.includes("timeout") || errorMsg.includes("shutdown")) {
+            // Network error - wait and continue
+            console.log(`[Translation] Caught network error, polling...`);
+            await new Promise(resolve => setTimeout(resolve, POLL_INTERVAL_MS));
+            continue;
+          }
+          throw err;
+        }
       }
+      
+      // Time or invocation limit reached - check final status
+      const finalStatus = await pollJobStatus(clusterId);
+      if (finalStatus.status === "completed") {
+        return { status: "completed", totalArticles: finalStatus.progress?.generated_articles || 60 };
+      }
+      
+      return lastResult || { 
+        status: "partial", 
+        message: `Stopped after ${invocations} invocations / ${Math.round((Date.now() - startTime) / 60000)} min. Click again to continue.` 
+      };
     },
     onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ["cluster-articles"] });
@@ -670,6 +792,7 @@ const ClusterManager = () => {
       
       if (result.status === "completed") {
         toast.success(`All translations completed! Total: ${result.totalArticles || 60} articles`);
+        setTranslationProgress(null);
       } else if (result.status === "partial" || result.language) {
         const remaining = result.remainingLanguages || [];
         toast.success(`Translated ${result.language?.toUpperCase() || 'language'}`, {
@@ -682,9 +805,12 @@ const ClusterManager = () => {
             current: result.language?.toUpperCase() || 'Unknown', 
             remaining: remaining.length 
           });
+        } else {
+          setTranslationProgress(null);
         }
       } else {
         toast.success("Translation batch completed");
+        setTranslationProgress(null);
       }
       
       setTranslatingCluster(null);

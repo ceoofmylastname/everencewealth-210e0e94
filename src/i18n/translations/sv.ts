@@ -188,6 +188,7 @@ export const sv = {
     },
     legal: {
       privacy: "Integritetspolicy",
+      terms: "Användarvillkor",
       cookies: "Cookie Policy",
       legalNotice: "Juridiskt Meddelande",
       lpo: "LPO Information",

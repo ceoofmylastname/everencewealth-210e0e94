@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
-import { CheckCircle, Globe, Link2, Loader2, AlertTriangle, ExternalLink, Search, Eye, Edit, Sparkles, Plus, Trash2 } from "lucide-react";
+import { CheckCircle, Globe, Link2, Loader2, AlertTriangle, ExternalLink, Search, Eye, Edit, Sparkles, Plus, Trash2, RefreshCw } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Link } from "react-router-dom";
 import { ClusterData, getLanguageFlag } from "./types";
@@ -55,12 +55,21 @@ export const ClusterArticlesTab = ({
   // Generate missing articles state
   const [isGeneratingMissing, setIsGeneratingMissing] = useState(false);
   
+  // Regenerate article state
+  const [regeneratingArticle, setRegeneratingArticle] = useState<string | null>(null);
+  
   // Delete article state
   const [articleToDelete, setArticleToDelete] = useState<any>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
   const totalExpected = 60; // 6 articles × 10 languages
   const completionPercent = Math.round((cluster.total_articles / totalExpected) * 100);
+
+  // Helper to count words in HTML content
+  const countWords = (html: string): number => {
+    const text = (html || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+    return text.split(/\s+/).filter(w => w.length > 0).length;
+  };
 
   // Fetch actual articles for this cluster
   const { data: articles = [] } = useQuery({
@@ -77,6 +86,15 @@ export const ClusterArticlesTab = ({
       return data || [];
     },
   });
+
+  // Calculate word count stats for articles
+  const wordCountStats = articles.reduce((acc, article) => {
+    const wordCount = countWords(article.detailed_content || '');
+    if (wordCount < 1500) acc.tooShort++;
+    else if (wordCount > 2500) acc.tooLong++;
+    else acc.inRange++;
+    return acc;
+  }, { tooShort: 0, inRange: 0, tooLong: 0 });
 
   // Filter articles
   const filteredArticles = articles.filter(article => {
@@ -191,18 +209,54 @@ export const ClusterArticlesTab = ({
       
       if (error) throw error;
       
-      if (data.success) {
+      // Check for successful generation
+      if (data.generated > 0) {
         toast.success(`Generated ${data.generated} missing article(s)!`);
         queryClient.invalidateQueries({ queryKey: ['cluster-articles', cluster.cluster_id] });
         queryClient.invalidateQueries({ queryKey: ['clusters-unified'] });
-      } else {
-        toast.error(data.error || "Failed to generate missing articles");
+      } else if (data.success && data.generated === 0 && !data.errors) {
+        // No articles needed - cluster is already complete
+        toast.info(data.message || "All required articles already exist");
+      } else if (data.errors && data.errors.length > 0) {
+        // Show the first error with details
+        const firstError = data.errors[0];
+        toast.error(`Generation failed: ${firstError}`, { duration: 8000 });
+        console.error('Generate missing errors:', data.errors);
+      } else if (!data.success) {
+        toast.error(data.message || data.error || "Failed to generate missing articles");
       }
     } catch (error: any) {
       console.error('Generate missing failed:', error);
       toast.error(`Failed: ${error.message}`);
     } finally {
       setIsGeneratingMissing(false);
+    }
+  };
+
+  const handleRegenerateArticle = async (article: any) => {
+    const wordCount = countWords(article.detailed_content || '');
+    setRegeneratingArticle(article.id);
+    
+    toast.info(`Regenerating "${article.headline}"... This may take 1-2 minutes.`);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('regenerate-article', {
+        body: { articleId: article.id }
+      });
+      
+      if (error) throw error;
+      
+      if (data.success) {
+        toast.success(`Regenerated! ${data.oldWordCount}w → ${data.newWordCount}w`);
+        queryClient.invalidateQueries({ queryKey: ['cluster-articles', cluster.cluster_id] });
+      } else {
+        toast.error(data.error || 'Regeneration failed');
+      }
+    } catch (error: any) {
+      console.error('Regenerate failed:', error);
+      toast.error(`Failed: ${error.message}`);
+    } finally {
+      setRegeneratingArticle(null);
     }
   };
 
@@ -250,8 +304,13 @@ export const ClusterArticlesTab = ({
           <div className="text-xs text-muted-foreground">Draft</div>
         </div>
         <div className="text-center p-3 bg-muted/50 rounded-lg">
-          <div className="text-2xl font-bold">{Object.keys(cluster.languages).length}/10</div>
-          <div className="text-xs text-muted-foreground">Languages</div>
+          <div className={`text-2xl font-bold ${
+            wordCountStats.tooShort > 0 ? 'text-red-600' : 
+            wordCountStats.tooLong > 0 ? 'text-amber-600' : 'text-green-600'
+          }`}>
+            {articles.length > 0 ? Math.round((wordCountStats.inRange / articles.length) * 100) : 0}%
+          </div>
+          <div className="text-xs text-muted-foreground">Word Count OK</div>
         </div>
       </div>
 
@@ -324,13 +383,28 @@ export const ClusterArticlesTab = ({
       {filteredArticles.length > 0 && (
         <ScrollArea className="h-[200px] border rounded-lg">
           <div className="p-2 space-y-1">
-            {filteredArticles.map((article) => (
+            {filteredArticles.map((article) => {
+              const wordCount = countWords(article.detailed_content || '');
+              const wordCountStatus = wordCount < 1500 ? 'short' : wordCount > 2500 ? 'long' : 'ok';
+              
+              return (
               <div
                 key={article.id}
                 className="flex items-center gap-2 p-2 hover:bg-muted/50 rounded-md group"
               >
                 <span className="text-lg shrink-0">{getLanguageFlag(article.language)}</span>
                 <span className="flex-1 text-sm truncate">{article.headline}</span>
+                <Badge 
+                  variant="outline" 
+                  className={`shrink-0 text-xs ${
+                    wordCountStatus === 'short' ? 'bg-red-100 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-300' :
+                    wordCountStatus === 'long' ? 'bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-300' :
+                    'bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-300'
+                  }`}
+                  title={`${wordCount} words (target: 1500-2500)`}
+                >
+                  {wordCount}w
+                </Badge>
                 <Badge variant="outline" className="shrink-0 text-xs">
                   {article.funnel_stage}
                 </Badge>
@@ -364,6 +438,20 @@ export const ClusterArticlesTab = ({
                       <Sparkles className="h-3.5 w-3.5" />
                     )}
                   </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className={`h-7 w-7 ${wordCountStatus === 'short' ? 'text-amber-600 hover:text-amber-700 hover:bg-amber-100' : ''}`}
+                    onClick={() => handleRegenerateArticle(article)}
+                    disabled={regeneratingArticle === article.id}
+                    title={wordCountStatus === 'short' ? `Regenerate (${wordCount}w → 1500-2500w)` : 'Regenerate Content'}
+                  >
+                    {regeneratingArticle === article.id ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <RefreshCw className="h-3.5 w-3.5" />
+                    )}
+                  </Button>
                   <Link to={`/admin/articles/${article.id}`}>
                     <Button variant="ghost" size="icon" className="h-7 w-7">
                       <Edit className="h-3.5 w-3.5" />
@@ -390,7 +478,7 @@ export const ClusterArticlesTab = ({
                   </Button>
                 </div>
               </div>
-            ))}
+            )})}
           </div>
         </ScrollArea>
       )}

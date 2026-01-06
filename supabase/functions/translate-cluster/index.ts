@@ -20,8 +20,10 @@ const LANGUAGE_NAMES: Record<string, string> = {
 
 const TARGET_LANGUAGES = ['de', 'nl', 'fr', 'pl', 'sv', 'da', 'hu', 'fi', 'no'];
 
-const MAX_RUNTIME = 4.5 * 60 * 1000; // 4.5 minutes
+const MAX_RUNTIME = 50 * 1000; // 50 seconds - keep requests short
+const MAX_ARTICLES_PER_RUN = 2; // Translate at most 2 articles per invocation to avoid timeouts
 const MAX_RETRIES = 2;
+const RECENT_LOCK_MS = 90 * 1000; // 90 seconds - if job updated recently, don't start another run
 
 /**
  * Clean HTML content - remove markdown fences and normalize
@@ -446,6 +448,42 @@ serve(async (req) => {
 
     console.log(`[translate-cluster] Starting translation for job ${jobId}`);
 
+    // ===== PHASE 1: Check for recent lock (prevent overlapping runs) =====
+    const { data: lockCheck } = await supabase
+      .from('cluster_generations')
+      .select('status, updated_at, progress')
+      .eq('id', jobId)
+      .single();
+    
+    if (lockCheck?.status === 'generating') {
+      const lastUpdate = new Date(lockCheck.updated_at).getTime();
+      const timeSinceUpdate = Date.now() - lastUpdate;
+      
+      if (timeSinceUpdate < RECENT_LOCK_MS) {
+        console.log(`[translate-cluster] Job is actively running (updated ${Math.round(timeSinceUpdate / 1000)}s ago). Skipping.`);
+        return new Response(
+          JSON.stringify({ 
+            success: true, 
+            status: 'generating', 
+            message: `Already running. Last update ${Math.round(timeSinceUpdate / 1000)}s ago.`,
+            progress: lockCheck.progress
+          }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      } else {
+        // Stale "generating" - reset to partial so we can continue
+        console.log(`[translate-cluster] Job stuck in generating for ${Math.round(timeSinceUpdate / 1000)}s, resetting to partial...`);
+        await supabase
+          .from('cluster_generations')
+          .update({ 
+            status: 'partial', 
+            progress: { ...(lockCheck.progress || {}), message: 'Resuming from stale state...' },
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', jobId);
+      }
+    }
+
     // Fetch job details - first try cluster_generations
     let { data: job, error: jobError } = await supabase
       .from('cluster_generations')
@@ -619,14 +657,53 @@ serve(async (req) => {
 
     let translatedCount = 0;
     const translatedArticles: any[] = [];
+    let stoppedEarly = false;
 
-    // Translate all source articles
+    // Translate source articles (max MAX_ARTICLES_PER_RUN per invocation)
     for (let i = 0; i < sourceArticles.length; i++) {
       currentArticleIndex = i + 1;
       
-      // Check timeout
+      // Check if we've hit our per-run article limit
+      if (translatedCount >= MAX_ARTICLES_PER_RUN) {
+        console.log(`[translate-cluster] ⏸️ Hit max articles per run (${MAX_ARTICLES_PER_RUN}). Returning partial.`);
+        stoppedEarly = true;
+        
+        await supabase
+          .from('cluster_generations')
+          .update({
+            status: 'partial',
+            progress: {
+              message: `Translated ${translatedCount} articles. ${expectedCount - initialExistingCount - translatedCount} more for ${LANGUAGE_NAMES[currentLanguage] || currentLanguage}.`,
+              current_language: currentLanguage,
+              articles_translated: initialExistingCount + translatedCount,
+              articles_this_run: translatedCount,
+            },
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', jobId);
+        
+        break;
+      }
+      
+      // Check timeout - set status to partial immediately so frontend knows to retry
       if (Date.now() - FUNCTION_START_TIME > MAX_RUNTIME) {
-        console.log(`[translate-cluster] ⚠️ Timeout approaching, stopping at ${i} articles`);
+        console.log(`[translate-cluster] ⚠️ Timeout approaching at ${translatedCount} articles`);
+        stoppedEarly = true;
+        
+        await supabase
+          .from('cluster_generations')
+          .update({
+            status: 'partial',
+            progress: {
+              message: `Timeout at ${LANGUAGE_NAMES[currentLanguage] || currentLanguage} article ${i + 1}/${expectedCount}. Resumable.`,
+              current_language: currentLanguage,
+              articles_translated: initialExistingCount + translatedCount,
+              timeout_at_article: i + 1,
+            },
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', jobId);
+        
         break;
       }
 

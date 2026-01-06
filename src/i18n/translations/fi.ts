@@ -188,6 +188,7 @@ export const fi = {
     },
     legal: {
       privacy: "Tietosuojakäytäntö",
+      terms: "Käyttöehdot",
       cookies: "Evästekäytäntö",
       legalNotice: "Oikeudellinen Ilmoitus",
       lpo: "LPO Tiedot",

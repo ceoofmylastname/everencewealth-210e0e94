@@ -1,5 +1,37 @@
+import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.1';
+
+// Helper to safely extract JSON from response
+function extractJsonFromResponse(text: string): any {
+  // Try direct parse first
+  try {
+    return JSON.parse(text);
+  } catch (e) {
+    // Try to extract from markdown code blocks
+    const jsonMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/);
+    if (jsonMatch) {
+      try {
+        return JSON.parse(jsonMatch[1].trim());
+      } catch (e2) {
+        // Continue to other methods
+      }
+    }
+    
+    // Try to find JSON object boundaries
+    const firstBrace = text.indexOf('{');
+    const lastBrace = text.lastIndexOf('}');
+    if (firstBrace !== -1 && lastBrace > firstBrace) {
+      try {
+        return JSON.parse(text.substring(firstBrace, lastBrace + 1));
+      } catch (e3) {
+        // Continue
+      }
+    }
+    
+    throw new Error('Could not extract valid JSON from response');
+  }
+}
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -63,58 +95,61 @@ async function filterCitations(
   return { filtered, blocked };
 }
 
-// Content quality validation
-function validateContentQuality(article: any, plan: any): { isValid: boolean; issues: string[]; score: number } {
+// Count words in HTML content
+function countWords(html: string): number {
+  const text = (html || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+  return text.split(/\s+/).filter(w => w.length > 0).length;
+}
+
+// Content quality validation with strict word count enforcement
+function validateContentQuality(article: any, plan: any): { isValid: boolean; issues: string[]; score: number; wordCount: number } {
   const issues: string[] = [];
   let score = 100;
-
+  
   const headlineWords = plan.headline.toLowerCase().split(/\s+/).filter((w: string) => w.length > 3);
   const contentLower = article.detailed_content.toLowerCase();
   const mentionedWords = headlineWords.filter((w: string) => contentLower.includes(w)).length;
-
+  
   if (mentionedWords < headlineWords.length * 0.5) {
     issues.push('Content may not fully address headline topic');
     score -= 15;
   }
-
+  
   if (plan.targetKeyword && !contentLower.includes(plan.targetKeyword.toLowerCase())) {
     issues.push('Target keyword not found in content');
     score -= 10;
   }
-
+  
   const h2Count = (article.detailed_content.match(/<h2>/gi) || []).length;
   if (h2Count < 4) {
     issues.push('Insufficient content structure (need 4+ H2 headings)');
     score -= 10;
   }
-
-  const wordCount = article.detailed_content.replace(/<[^>]*>/g, ' ').trim().split(/\s+/).length;
+  
+  const wordCount = countWords(article.detailed_content);
+  
+  // HARD FAIL: Articles under 1200 words are always invalid
+  if (wordCount < 1200) {
+    issues.push(`CRITICAL: Content severely under minimum (${wordCount} words, need 1500+)`);
+    return { isValid: false, issues, score: 0, wordCount };
+  }
+  
   if (wordCount < 1500) {
     issues.push(`Content too short (${wordCount} words, minimum 1500)`);
-    score -= 20;
+    score -= 40; // Increased penalty
   } else if (wordCount > 2500) {
     issues.push(`Content too long (${wordCount} words, maximum 2500)`);
-    score -= 5;
-  }
-
-  // Validate Speakable Answer (40-60 words)
-  const speakableCount = article.speakable_answer ? article.speakable_answer.trim().split(/\s+/).length : 0;
-  if (speakableCount < 40) {
-    issues.push(`Speakable answer too short (${speakableCount} words, minimum 40)`);
-    score -= 10;
-  } else if (speakableCount > 60) {
-    issues.push(`Speakable answer too long (${speakableCount} words, maximum 60)`);
     score -= 10;
   }
-
+  
   if (article.qa_entities && Array.isArray(article.qa_entities)) {
     if (article.qa_entities.length < 5) {
       issues.push(`Too few FAQs: ${article.qa_entities.length} (need 5-8)`);
       score -= 10;
     }
   }
-
-  return { isValid: score >= 60, issues, score };
+  
+  return { isValid: score >= 60, issues, score, wordCount };
 }
 
 // Generate a single article
@@ -128,12 +163,13 @@ async function generateSingleArticle(
   language: string,
   masterPrompt: string,
   authors: any[],
-  categories: any[]
+  categories: any[],
+  clusterTopic: string
 ): Promise<{ articleId: string | null; error: string | null }> {
   const OPENAI_API_KEY = openaiKey;
-
+  
   console.log(`\n[Chunk ${jobId}] Generating article ${articleIndex + 1}: "${plan.headline}"`);
-
+  
   try {
     const article: any = {
       funnel_stage: plan.funnelStage,
@@ -143,16 +179,18 @@ async function generateSingleArticle(
       slug: plan.headline.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''),
     };
 
-    // 1. CATEGORY SELECTION
+    // 1. CATEGORY SELECTION with JSON mode
     const validCategoryNames = (categories || []).map(c => c.name);
-    const categoryPrompt = `Select the most appropriate category for this article from this EXACT list:
+    const categoryPrompt = `Select the most appropriate category for this article.
+
+Available categories:
 ${validCategoryNames.map((name, i) => `${i + 1}. ${name}`).join('\n')}
 
 Article: ${plan.headline}
 Keyword: ${plan.targetKeyword}
 Funnel Stage: ${plan.funnelStage}
 
-Return ONLY the category name exactly as shown above.`;
+Respond with JSON: { "category": "exact category name from the list" }`;
 
     const categoryResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -160,6 +198,7 @@ Return ONLY the category name exactly as shown above.`;
       body: JSON.stringify({
         model: 'gpt-4o-mini',
         max_tokens: 256,
+        response_format: { type: 'json_object' },
         messages: [{ role: 'user', content: categoryPrompt }],
       }),
     });
@@ -167,128 +206,185 @@ Return ONLY the category name exactly as shown above.`;
     let finalCategory = 'Buying Property';
     if (categoryResponse.ok) {
       const categoryData = await categoryResponse.json();
-      const aiCategory = categoryData.choices?.[0]?.message?.content?.trim();
-      const matchedCategory = validCategoryNames.find(
-        name => name.toLowerCase() === aiCategory?.toLowerCase()
-      );
-      finalCategory = matchedCategory || 'Buying Property';
+      try {
+        const categoryJson = extractJsonFromResponse(categoryData.choices?.[0]?.message?.content || '{}');
+        const aiCategory = categoryJson.category;
+        const matchedCategory = validCategoryNames.find(
+          name => name.toLowerCase() === aiCategory?.toLowerCase()
+        );
+        finalCategory = matchedCategory || 'Buying Property';
+      } catch (e) {
+        console.warn(`[Chunk ${jobId}] Category parse failed, using default`);
+      }
     }
     article.category = finalCategory;
 
-    // 2. MAIN CONTENT GENERATION
+    // 2. MAIN CONTENT GENERATION with JSON mode and word count enforcement
     const languageName = { 'en': 'English', 'de': 'German', 'nl': 'Dutch', 'fr': 'French', 'pl': 'Polish', 'sv': 'Swedish', 'da': 'Danish', 'hu': 'Hungarian', 'fi': 'Finnish', 'no': 'Norwegian' }[language] || 'English';
 
-    // Retry logic for content generation
-    let contentJson: any = {};
-    let attempts = 0;
-    const maxAttempts = 3;
-    let lastError = "";
-
-    while (attempts < maxAttempts) {
-      attempts++;
-      console.log(`[Chunk ${jobId}] content generation attempt ${attempts}/${maxAttempts}...`);
-
-      const emphasis = attempts === 1
-        ? "IMPORTANT"
-        : attempts === 2
-          ? "CRITICAL - PREVIOUS ATTEMPT FAILED"
-          : "FINAL ATTEMPT - MUST MEET REQUIREMENTS";
-
-      const retryContext = lastError ? `PREVIOUS ERROR: ${lastError}. Fix this.` : "";
-
-      const basePrompt = masterPrompt
-        ? masterPrompt
+    // Build base prompt from master prompt
+    let basePrompt = masterPrompt 
+      ? masterPrompt
           .replace(/\{\{headline\}\}/g, plan.headline)
           .replace(/\{\{targetKeyword\}\}/g, plan.targetKeyword || '')
           .replace(/\{\{contentAngle\}\}/g, plan.contentAngle || '')
           .replace(/\{\{funnelStage\}\}/g, plan.funnelStage || '')
           .replace(/\{\{language\}\}/g, language)
           .replace(/\{\{languageName\}\}/g, languageName)
-        : `Write a comprehensive article about "${plan.headline}" targeting the keyword "${plan.targetKeyword}". 
-         
-         CRITICAL REQUIREMENTS - MUST FOLLOW:
-         1. WORD COUNT: Your response MUST be between 1500-2500 words. Count every word.
-         2. SPEAKABLE ANSWER: EXACTLY 40-60 words.
-         3. This is NON-NEGOTIABLE.
-         
-         CONTENT STRUCTURE:
-         1. Introduction: 150-200 words
-         2. Main Content: 1200-2000 words (4-5 H2 sections with deep detail)
-         3. FAQ Section: 200-300 words (4-5 questions)
-         4. Conclusion: 100-150 words
-         
-         Return valid JSON with keys: detailed_content, meta_title, meta_description, speakable_answer, qa_entities.`;
+      : `Write a comprehensive article about "${plan.headline}" targeting the keyword "${plan.targetKeyword}".`;
 
-      const finalPrompt = `${emphasis}: You MUST write exactly 1500-2500 words. ${retryContext}\n\n${basePrompt}\n\nBEFORE SUBMITTING: Count your words. If not 1500-2500, ADD MORE CONTENT or TRIM. Speakable answer MUST be 40-60 words.`;
+    // ALWAYS wrap in JSON requirements with STRICT word count
+    const contentPrompt = `${basePrompt}
 
+CRITICAL WORD COUNT REQUIREMENT: The article MUST be between 1,500 and 2,500 words. Count your words carefully.
+- Minimum: 1,500 words (articles under this will be REJECTED)
+- Target: 1,800-2,000 words (ideal range)
+- Maximum: 2,500 words
+
+You MUST respond with a valid JSON object with this exact structure:
+{
+  "detailed_content": "<div class='article-content'>...full HTML article content (MINIMUM 1500 words, target 1800-2000)...</div>",
+  "meta_title": "SEO title (50-60 characters)",
+  "meta_description": "SEO meta description (150-160 characters)", 
+  "speakable_answer": "40-60 word summary answering the main question directly",
+  "qa_entities": [
+    {"question": "FAQ question 1?", "answer": "Detailed answer (80-120 words, single paragraph, no lists)"},
+    {"question": "FAQ question 2?", "answer": "Detailed answer (80-120 words, single paragraph, no lists)"}
+  ]
+}
+
+Include 5-8 FAQ questions in qa_entities. Each answer must be 80-120 words in a single paragraph (no bullet points or lists).
+The detailed_content must be proper HTML with at least 6 H2 headings, detailed paragraphs, examples, and expert insights.
+REMEMBER: Minimum 1,500 words in detailed_content is MANDATORY.`;
+
+    // Generate content with retry loop for word count enforcement (3 attempts with escalating prompts)
+    let contentJson: any = null;
+    let attempts = 0;
+    const maxAttempts = 3;
+    let lastWordCount = 0;
+    
+    while (attempts < maxAttempts) {
+      attempts++;
+      console.log(`[Chunk ${jobId}] Content generation attempt ${attempts}/${maxAttempts}...`);
+      
+      let currentPrompt = contentPrompt;
+      let systemPrompt = `You are an expert real estate content writer specializing in Costa del Sol, Spain.
+
+CRITICAL REQUIREMENTS:
+1. You MUST respond with valid JSON only
+2. Articles MUST be between 1,500 and 2,500 words - this is NON-NEGOTIABLE
+3. Include at least 8 H2 sections, each with 3+ detailed paragraphs (150-200 words per section)
+4. Before finalizing, mentally count your words - if under 1,500, ADD MORE CONTENT`;
+
+      if (attempts === 2 && contentJson) {
+        const prevWordCount = countWords(contentJson.detailed_content || '');
+        systemPrompt = `You are an expert real estate content writer. Your previous response was ONLY ${prevWordCount} words - this is UNACCEPTABLE.
+
+MANDATORY: This response MUST be at least 1,500 words. 
+STRATEGY: Write 8 sections of 200+ words each = 1,600+ words minimum.
+DO NOT submit anything under 1,500 words.`;
+
+        currentPrompt = `${contentPrompt}
+
+⚠️ PREVIOUS ATTEMPT FAILED: Only ${prevWordCount} words generated.
+
+You MUST write a MUCH LONGER article. Use this structure:
+1. Introduction (150+ words)
+2. Section 1 - Overview (200+ words)
+3. Section 2 - Key Considerations (200+ words)
+4. Section 3 - Process Details (200+ words)
+5. Section 4 - Costs & Fees (200+ words)
+6. Section 5 - Legal Requirements (200+ words)
+7. Section 6 - Common Mistakes (200+ words)
+8. Section 7 - Expert Tips (200+ words)
+9. Conclusion (150+ words)
+
+This structure gives you 1,700+ words. Follow it exactly.`;
+      } else if (attempts === 3 && contentJson) {
+        const prevWordCount = countWords(contentJson.detailed_content || '');
+        systemPrompt = `FINAL ATTEMPT. Previous responses were too short (${prevWordCount} words).
+
+You are a verbose, detailed writer. EVERY paragraph must be 80-100 words minimum.
+Include specific examples, statistics, expert quotes, and regional details for EVERY point.
+If in doubt, ADD MORE DETAIL. Err on the side of being too long.`;
+
+        currentPrompt = `${contentPrompt}
+
+🚨 FINAL ATTEMPT - MUST REACH 1,500 WORDS 🚨
+
+Your previous ${attempts - 1} attempts produced only ${prevWordCount} words. This is your LAST chance.
+
+MANDATORY EXPANSION TECHNIQUES:
+• Add specific Costa del Sol examples (Marbella, Estepona, Mijas, etc.)
+• Include 2-3 sentences of explanation for EVERY claim
+• Add "For example..." or "In practice, this means..." phrases
+• Include relevant statistics and timeframes
+• Mention both advantages AND disadvantages of each point
+• Add expert insights like "Experienced agents recommend..."
+
+SECTION WORD COUNTS (strict minimums):
+- Introduction: 200 words
+- Each of 6-8 body sections: 200+ words  
+- FAQ section: 5-8 questions with 100-word answers each
+- Conclusion: 150 words
+
+TOTAL MINIMUM: 1,800 words. Do NOT submit under 1,500.`;
+      }
+      
       const contentResponse = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${OPENAI_API_KEY}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
           model: 'gpt-4o',
-          max_tokens: 8192,
+          max_tokens: 12000,
+          response_format: { type: 'json_object' },
           messages: [
-            { role: 'system', content: 'You are an expert real estate content writer. Return only valid JSON.' },
-            { role: 'user', content: finalPrompt }
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: currentPrompt }
           ],
         }),
       });
 
       if (!contentResponse.ok) {
+        const errorText = await contentResponse.text();
+        console.error(`[Chunk ${jobId}] Content API error:`, errorText.substring(0, 500));
         throw new Error(`Content generation failed: ${contentResponse.status}`);
       }
 
       const contentData = await contentResponse.json();
       const contentText = contentData.choices?.[0]?.message?.content || '';
 
-      // Parse content JSON
+      if (!contentText.trim()) {
+        throw new Error('OpenAI returned empty content response');
+      }
+
       try {
-        const cleaned = contentText.replace(/```json\n?|\n?```|```\n?/g, '').trim();
-        contentJson = JSON.parse(cleaned.match(/\{[\s\S]*\}/)?.[0] || cleaned);
+        contentJson = extractJsonFromResponse(contentText);
       } catch (e) {
-        console.warn(`[Chunk ${jobId}] Failed to parse JSON on attempt ${attempts}: ${e}`);
-        lastError = "Invalid JSON format";
-        continue;
+        console.error(`[Chunk ${jobId}] Content parse failed:`, e);
+        console.error(`[Chunk ${jobId}] Raw content (first 500 chars):`, contentText.substring(0, 500));
+        throw new Error(`Failed to parse content JSON: ${e instanceof Error ? e.message : String(e)}`);
       }
 
-      // Validate word count
-      const mainContent = contentJson.detailed_content || contentJson.content || '';
-      const wc = mainContent.replace(/<[^>]*>/g, ' ').trim().split(/\s+/).length;
-
-      const speakableAnswer = contentJson.speakable_answer || '';
-      const swc = speakableAnswer.trim().split(/\s+/).length;
-
-      let isValid = true;
-      let errors = [];
-
-      if (wc < 1500) {
-        isValid = false;
-        errors.push(`Content too short: ${wc} words (min 1500)`);
+      lastWordCount = countWords(contentJson.detailed_content || '');
+      console.log(`[Chunk ${jobId}] ━━━ Attempt ${attempts}: ${lastWordCount} words ━━━`);
+      
+      if (lastWordCount >= 1500) {
+        console.log(`[Chunk ${jobId}] ✅ Word count requirement met!`);
+        break;
       }
-      if (wc > 2500) {
-        isValid = false;
-        errors.push(`Content too long: ${wc} words (max 2500)`);
-      }
-      if (swc < 40) {
-        isValid = false;
-        errors.push(`Speakable answer too short: ${swc} words (min 40)`);
-      }
-      if (swc > 60) {
-        isValid = false;
-        errors.push(`Speakable answer too long: ${swc} words (max 60)`);
-      }
-
-      if (isValid) {
-        console.log(`[Chunk ${jobId}] ✅ Validated content (Attempt ${attempts}): ${wc} words, Speakable: ${swc} words`);
-        break; // Success!
+      
+      if (attempts < maxAttempts) {
+        console.warn(`[Chunk ${jobId}] ⚠️ Word count ${lastWordCount} below 1500, will retry...`);
+        await new Promise(resolve => setTimeout(resolve, 1500));
       } else {
-        console.warn(`[Chunk ${jobId}] ❌ Validation failed (Attempt ${attempts}): ${errors.join(", ")}`);
-        lastError = errors.join(", ");
-
-        if (attempts === maxAttempts) {
-          console.error(`[Chunk ${jobId}] Max attempts reached. Saving best effort.`);
-        }
+        console.error(`[Chunk ${jobId}] ❌ Failed to reach 1500 words after ${maxAttempts} attempts (final: ${lastWordCount})`);
       }
+    }
+
+    // HARD FAIL: If still under 1200 words, reject the article
+    if (lastWordCount < 1200) {
+      throw new Error(`Article generation failed: Could not reach minimum word count after ${maxAttempts} attempts (only ${lastWordCount} words). Article rejected.`);
     }
 
     article.detailed_content = contentJson.detailed_content || contentJson.content || '';
@@ -296,10 +392,11 @@ Return ONLY the category name exactly as shown above.`;
     article.meta_description = (contentJson.meta_description || '').substring(0, 160);
     article.speakable_answer = contentJson.speakable_answer || '';
     article.qa_entities = contentJson.qa_entities || contentJson.faqs || [];
+    article.cluster_theme = clusterTopic || '';
 
     // 3. FEATURED IMAGE
     const imagePrompt = `Professional real estate photo: ${plan.headline}. Costa del Sol, Spain. High quality, natural lighting.`;
-
+    
     const imageResponse = await fetch('https://api.openai.com/v1/images/generations', {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${OPENAI_API_KEY}`, 'Content-Type': 'application/json' },
@@ -450,7 +547,8 @@ serve(async (req) => {
         job.language || 'en',
         masterPrompt,
         authors || [],
-        categories || []
+        categories || [],
+        job.topic || ''
       );
 
       if (result.articleId) {
@@ -489,7 +587,7 @@ serve(async (req) => {
     // Fire next chunk if needed (fire-and-forget)
     if (hasMoreChunks) {
       console.log(`[Chunk] 🔥 Firing chunk ${nextChunkIndex + 1}...`);
-
+      
       fetch(`${SUPABASE_URL}/functions/v1/generate-cluster-chunk`, {
         method: 'POST',
         headers: {
@@ -519,7 +617,7 @@ serve(async (req) => {
     console.log(`[Chunk] 🎉 All chunks complete! Finalizing job...`);
 
     const finalStatus = allSavedArticles.length === articleStructures.length ? 'completed' : 'partial';
-
+    
     await supabase
       .from('cluster_generations')
       .update({
@@ -530,7 +628,7 @@ serve(async (req) => {
           total_steps: articleStructures.length + 2,
           current_article: articleStructures.length,
           total_articles: articleStructures.length,
-          message: finalStatus === 'completed'
+          message: finalStatus === 'completed' 
             ? `✅ Cluster complete: ${allSavedArticles.length} articles generated.`
             : `⚠️ Partial: ${allSavedArticles.length}/${articleStructures.length} articles.`,
           chunked: true,
@@ -553,8 +651,8 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('[Chunk] Error:', error);
-    return new Response(JSON.stringify({
-      error: error instanceof Error ? error.message : String(error)
+    return new Response(JSON.stringify({ 
+      error: error instanceof Error ? error.message : String(error) 
     }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

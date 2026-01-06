@@ -381,6 +381,8 @@ serve(async (req) => {
 
         const slug = generateSlug(translation.question, englishQA.qa_type, targetLanguage);
 
+        // Build translated Q&A record with authority signals (Hans' E-E-A-T requirements)
+        const now = new Date().toISOString();
         const translatedQARecord = {
           source_article_id: targetArticle.id,
           cluster_id: clusterId,
@@ -403,6 +405,10 @@ serve(async (req) => {
           funnel_stage: englishQA.funnel_stage,
           status: 'published',
           source_article_slug: targetArticle.slug,
+          // Authority signals for AI ranking
+          author_id: '738c1e24-025b-4f15-ac7c-541bb8a5dade', // Hans Beeckman
+          date_published: now,
+          date_modified: now,
         };
 
         // Fetch ALL existing question_main texts for this cluster/language to check for collisions
