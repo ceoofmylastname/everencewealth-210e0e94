@@ -1,5 +1,6 @@
+import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.1';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -12,13 +13,44 @@ const EXPECTED_STRUCTURE = [
   { funnelStage: 'BOFU', count: 1 },
 ];
 
+// Helper to safely extract JSON from response
+function extractJsonFromResponse(text: string): any {
+  // Try direct parse first
+  try {
+    return JSON.parse(text);
+  } catch (e) {
+    // Try to extract from markdown code blocks
+    const jsonMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/);
+    if (jsonMatch) {
+      try {
+        return JSON.parse(jsonMatch[1].trim());
+      } catch (e2) {
+        // Continue to other methods
+      }
+    }
+    
+    // Try to find JSON object boundaries
+    const firstBrace = text.indexOf('{');
+    const lastBrace = text.lastIndexOf('}');
+    if (firstBrace !== -1 && lastBrace > firstBrace) {
+      try {
+        return JSON.parse(text.substring(firstBrace, lastBrace + 1));
+      } catch (e3) {
+        // Continue
+      }
+    }
+    
+    throw new Error('Could not extract valid JSON from response');
+  }
+}
+
 // Content quality validation
 function validateContentQuality(article: any, plan: any): { isValid: boolean; issues: string[]; score: number } {
   const issues: string[] = [];
   let score = 100;
   
   const headlineWords = plan.headline.toLowerCase().split(/\s+/).filter((w: string) => w.length > 3);
-  const contentLower = article.detailed_content.toLowerCase();
+  const contentLower = (article.detailed_content || '').toLowerCase();
   const mentionedWords = headlineWords.filter((w: string) => contentLower.includes(w)).length;
   
   if (mentionedWords < headlineWords.length * 0.5) {
@@ -26,13 +58,13 @@ function validateContentQuality(article: any, plan: any): { isValid: boolean; is
     score -= 15;
   }
   
-  const h2Count = (article.detailed_content.match(/<h2>/gi) || []).length;
+  const h2Count = (article.detailed_content?.match(/<h2>/gi) || []).length;
   if (h2Count < 4) {
     issues.push('Insufficient content structure (need 4+ H2 headings)');
     score -= 10;
   }
   
-  const wordCount = article.detailed_content.replace(/<[^>]*>/g, ' ').trim().split(/\s+/).length;
+  const wordCount = (article.detailed_content || '').replace(/<[^>]*>/g, ' ').trim().split(/\s+/).length;
   if (wordCount < 1500) {
     issues.push(`Content too short (${wordCount} words, minimum 1500)`);
     score -= 20;
@@ -91,27 +123,42 @@ serve(async (req) => {
     const sourceLanguage = cluster.language || 'en';
     const { data: existingArticles, error: articlesError } = await supabase
       .from('blog_articles')
-      .select('id, funnel_stage, headline')
+      .select('id, funnel_stage, headline, cluster_number')
       .eq('cluster_id', clusterId)
       .eq('language', sourceLanguage);
 
     if (articlesError) throw articlesError;
 
-    // Analyze what's missing
+    // Analyze what's missing AND track used cluster_numbers
     const existingByStage: Record<string, number> = {
       'TOFU': 0,
       'MOFU': 0,
-      'BOFU': 0,
+      'BOFO': 0,
     };
+
+    const usedClusterNumbers = new Set<number>();
 
     for (const article of existingArticles || []) {
       const stage = article.funnel_stage?.toUpperCase() || 'TOFU';
       existingByStage[stage] = (existingByStage[stage] || 0) + 1;
+      if (article.cluster_number) {
+        usedClusterNumbers.add(article.cluster_number);
+      }
+    }
+
+    // Calculate missing cluster_numbers (should fill gaps 1-6)
+    const missingClusterNumbers: number[] = [];
+    for (let i = 1; i <= 6; i++) {
+      if (!usedClusterNumbers.has(i)) {
+        missingClusterNumbers.push(i);
+      }
     }
 
     console.log(`[Missing] Existing articles by stage:`, existingByStage);
+    console.log(`[Missing] Used cluster_numbers: [${Array.from(usedClusterNumbers).sort((a,b) => a-b).join(', ')}]`);
+    console.log(`[Missing] Missing cluster_numbers: [${missingClusterNumbers.join(', ')}]`);
 
-    // Determine missing articles
+    // Determine missing articles by funnel stage
     const missingArticles: { funnelStage: string; count: number }[] = [];
     for (const expected of EXPECTED_STRUCTURE) {
       const have = existingByStage[expected.funnelStage] || 0;
@@ -128,6 +175,7 @@ serve(async (req) => {
         success: true,
         message: 'No missing articles found. Cluster has all 6 source articles.',
         existing: existingByStage,
+        generated: 0,
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
@@ -150,16 +198,24 @@ serve(async (req) => {
     const validCategoryNames = (categories || []).map(c => c.name);
     const savedArticles: string[] = [];
     const errors: string[] = [];
+    let clusterNumberIndex = 0;
 
     // Generate missing articles
     for (const missing of missingArticles) {
       for (let i = 0; i < missing.count; i++) {
-        const articleNum = (existingArticles?.length || 0) + savedArticles.length + 1;
+        // Get next available cluster_number from the gaps
+        const nextClusterNumber = missingClusterNumbers[clusterNumberIndex];
+        if (nextClusterNumber === undefined) {
+          console.error(`[Missing] No available cluster_number slot!`);
+          errors.push(`No available cluster_number slot for ${missing.funnelStage} article ${i + 1}`);
+          continue;
+        }
+        clusterNumberIndex++;
         
-        console.log(`\n[Missing] Generating ${missing.funnelStage} article ${i + 1}/${missing.count}...`);
+        console.log(`\n[Missing] Generating ${missing.funnelStage} article ${i + 1}/${missing.count} (cluster_number: ${nextClusterNumber})...`);
 
         try {
-          // Generate article plan
+          // Generate article plan with JSON mode
           const planPrompt = `Generate a single article plan for a ${missing.funnelStage} (${
             missing.funnelStage === 'TOFU' ? 'top-of-funnel, awareness' :
             missing.funnelStage === 'MOFU' ? 'middle-of-funnel, consideration' :
@@ -171,7 +227,13 @@ ${(existingArticles || []).map(a => `- ${a.funnel_stage}: ${a.headline}`).join('
 
 Generate a NEW, UNIQUE article that complements the existing ones without duplicating topics.
 
-Return JSON: { "headline": "...", "targetKeyword": "...", "contentAngle": "...", "funnelStage": "${missing.funnelStage}" }`;
+You MUST respond with a valid JSON object:
+{
+  "headline": "Compelling article headline",
+  "targetKeyword": "primary target keyword",
+  "contentAngle": "unique angle for this article",
+  "funnelStage": "${missing.funnelStage}"
+}`;
 
           const planResponse = await fetch('https://api.openai.com/v1/chat/completions', {
             method: 'POST',
@@ -179,6 +241,7 @@ Return JSON: { "headline": "...", "targetKeyword": "...", "contentAngle": "...",
             body: JSON.stringify({
               model: 'gpt-4o-mini',
               max_tokens: 512,
+              response_format: { type: 'json_object' },
               messages: [{ role: 'user', content: planPrompt }],
             }),
           });
@@ -194,13 +257,14 @@ Return JSON: { "headline": "...", "targetKeyword": "...", "contentAngle": "...",
           if (!planText.trim()) {
             throw new Error('OpenAI returned empty plan response');
           }
-          const planCleaned = planText.replace(/```json\n?|\n?```|```\n?/g, '').trim();
-          const planMatch = planCleaned.match(/\{[\s\S]*\}/);
-          if (!planMatch) {
-            console.error(`[Missing] Plan response not JSON:`, planText.substring(0, 500));
-            throw new Error('Plan response did not contain valid JSON');
+          
+          let plan;
+          try {
+            plan = extractJsonFromResponse(planText);
+          } catch (parseError) {
+            console.error(`[Missing] Plan parse error:`, parseError);
+            throw new Error(`Plan response did not contain valid JSON`);
           }
-          const plan = JSON.parse(planMatch[0]);
 
           console.log(`[Missing] Plan: ${plan.headline}`);
           
@@ -215,15 +279,17 @@ Return JSON: { "headline": "...", "targetKeyword": "...", "contentAngle": "...",
             slug: plan.headline.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''),
           };
 
-          // Category selection
-          const categoryPrompt = `Select the most appropriate category for this article from this EXACT list:
+          // Category selection with JSON mode
+          const categoryPrompt = `Select the most appropriate category for this article.
+
+Available categories:
 ${validCategoryNames.map((name, idx) => `${idx + 1}. ${name}`).join('\n')}
 
 Article: ${plan.headline}
 Keyword: ${plan.targetKeyword}
 Funnel Stage: ${missing.funnelStage}
 
-Return ONLY the category name exactly as shown above.`;
+Respond with JSON: { "category": "exact category name from the list" }`;
 
           const categoryResponse = await fetch('https://api.openai.com/v1/chat/completions', {
             method: 'POST',
@@ -231,6 +297,7 @@ Return ONLY the category name exactly as shown above.`;
             body: JSON.stringify({
               model: 'gpt-4o-mini',
               max_tokens: 256,
+              response_format: { type: 'json_object' },
               messages: [{ role: 'user', content: categoryPrompt }],
             }),
           });
@@ -238,15 +305,20 @@ Return ONLY the category name exactly as shown above.`;
           let finalCategory = 'Buying Property';
           if (categoryResponse.ok) {
             const categoryData = await categoryResponse.json();
-            const aiCategory = categoryData.choices?.[0]?.message?.content?.trim();
-            const matchedCategory = validCategoryNames.find(
-              name => name.toLowerCase() === aiCategory?.toLowerCase()
-            );
-            finalCategory = matchedCategory || 'Buying Property';
+            try {
+              const categoryJson = extractJsonFromResponse(categoryData.choices?.[0]?.message?.content || '{}');
+              const aiCategory = categoryJson.category;
+              const matchedCategory = validCategoryNames.find(
+                name => name.toLowerCase() === aiCategory?.toLowerCase()
+              );
+              finalCategory = matchedCategory || 'Buying Property';
+            } catch (e) {
+              console.warn('[Missing] Category parse failed, using default');
+            }
           }
           article.category = finalCategory;
 
-          // Main content generation
+          // Main content generation with JSON mode
           const languageNameMap: Record<string, string> = { 
             'en': 'English', 'de': 'German', 'nl': 'Dutch', 'fr': 'French', 
             'pl': 'Polish', 'sv': 'Swedish', 'da': 'Danish', 'hu': 'Hungarian', 
@@ -254,7 +326,8 @@ Return ONLY the category name exactly as shown above.`;
           };
           const languageName = languageNameMap[sourceLanguage] || 'English';
 
-          const contentPrompt = masterPrompt 
+          // Build content prompt - ALWAYS wrap in JSON requirements
+          let basePrompt = masterPrompt 
             ? masterPrompt
                 .replace(/\{\{headline\}\}/g, plan.headline)
                 .replace(/\{\{targetKeyword\}\}/g, plan.targetKeyword || '')
@@ -262,10 +335,24 @@ Return ONLY the category name exactly as shown above.`;
                 .replace(/\{\{funnelStage\}\}/g, missing.funnelStage)
                 .replace(/\{\{language\}\}/g, sourceLanguage)
                 .replace(/\{\{languageName\}\}/g, languageName)
-            : `Write a comprehensive article about "${plan.headline}" targeting the keyword "${plan.targetKeyword}". 
-               Include 5-8 FAQs with detailed answers (80-120 words each, no lists).
-               Content should be 1,500-2,000 words with proper H2 structure.
-               Return valid JSON with: detailed_content, meta_title, meta_description, speakable_answer, qa_entities.`;
+            : `Write a comprehensive article about "${plan.headline}" targeting the keyword "${plan.targetKeyword}".`;
+
+          const contentPrompt = `${basePrompt}
+
+CRITICAL: You MUST respond with a valid JSON object with this exact structure:
+{
+  "detailed_content": "<div class='article-content'>...full HTML article content here (1500-2000 words)...</div>",
+  "meta_title": "SEO title (50-60 characters)",
+  "meta_description": "SEO meta description (150-160 characters)", 
+  "speakable_answer": "80-120 word summary answering the main question",
+  "qa_entities": [
+    {"question": "FAQ question 1?", "answer": "Detailed answer (80-120 words, single paragraph, no lists)"},
+    {"question": "FAQ question 2?", "answer": "Detailed answer (80-120 words, single paragraph, no lists)"}
+  ]
+}
+
+Include 5-8 FAQ questions in qa_entities. Each answer must be 80-120 words in a single paragraph (no bullet points or lists).
+The detailed_content must be proper HTML with H2 headings, paragraphs, and be 1,500-2,000 words.`;
 
           const contentResponse = await fetch('https://api.openai.com/v1/chat/completions', {
             method: 'POST',
@@ -273,8 +360,9 @@ Return ONLY the category name exactly as shown above.`;
             body: JSON.stringify({
               model: 'gpt-4o',
               max_tokens: 8192,
+              response_format: { type: 'json_object' },
               messages: [
-                { role: 'system', content: 'You are an expert real estate content writer. Return only valid JSON.' },
+                { role: 'system', content: 'You are an expert real estate content writer. You MUST respond with valid JSON only.' },
                 { role: 'user', content: contentPrompt }
               ],
             }),
@@ -293,21 +381,12 @@ Return ONLY the category name exactly as shown above.`;
             throw new Error('OpenAI returned empty content response');
           }
           
-          // Validate JSON-like response before parsing
-          const contentCleaned = contentText.replace(/```json\n?|\n?```|```\n?/g, '').trim();
-          const contentMatch = contentCleaned.match(/\{[\s\S]*\}/);
-          
-          if (!contentMatch) {
-            console.error(`[Missing] Content response not JSON (first 500 chars):`, contentText.substring(0, 500));
-            throw new Error('Content response did not contain valid JSON object');
-          }
-          
           let contentJson;
           try {
-            contentJson = JSON.parse(contentMatch[0]);
+            contentJson = extractJsonFromResponse(contentText);
           } catch (parseError) {
-            console.error(`[Missing] JSON parse failed:`, parseError);
-            console.error(`[Missing] Raw content (first 1000 chars):`, contentMatch[0].substring(0, 1000));
+            console.error(`[Missing] Content parse error:`, parseError);
+            console.error(`[Missing] Raw content (first 500 chars):`, contentText.substring(0, 500));
             throw new Error(`Failed to parse content JSON: ${parseError instanceof Error ? parseError.message : String(parseError)}`);
           }
 
@@ -349,9 +428,10 @@ Return ONLY the category name exactly as shown above.`;
           article.author_id = randomAuthor.id;
           article.reviewer_id = randomReviewer.id;
 
-          // Cluster metadata
+          // Cluster metadata - USE THE GAP-FILLING cluster_number
           article.cluster_id = clusterId;
-          article.cluster_number = articleNum;
+          article.cluster_number = nextClusterNumber;
+          article.cluster_theme = cluster.topic;
           article.date_published = new Date().toISOString();
           article.date_modified = new Date().toISOString();
 
@@ -369,9 +449,12 @@ Return ONLY the category name exactly as shown above.`;
             .select('id')
             .single();
 
-          if (saveError) throw new Error(`Failed to save article: ${saveError.message}`);
+          if (saveError) {
+            console.error(`[Missing] DB insert error:`, saveError);
+            throw new Error(`Failed to save article: ${saveError.message}`);
+          }
 
-          console.log(`[Missing] ✅ Article saved: ${savedArticle.id}`);
+          console.log(`[Missing] ✅ Article saved: ${savedArticle.id} (cluster_number: ${nextClusterNumber})`);
           savedArticles.push(savedArticle.id);
 
         } catch (error) {
@@ -415,20 +498,31 @@ Return ONLY the category name exactly as shown above.`;
       }
     }
 
+    // Return success: false if nothing was generated but errors occurred
+    const success = savedArticles.length > 0 || errors.length === 0;
+
     return new Response(JSON.stringify({
-      success: true,
+      success,
+      message: savedArticles.length > 0 
+        ? `Generated ${savedArticles.length} article(s)` 
+        : errors.length > 0 
+          ? `Failed to generate articles: ${errors[0]}`
+          : 'No articles needed',
       generated: savedArticles.length,
       articleIds: savedArticles,
       errors: errors.length > 0 ? errors : undefined,
       existing: existingByStage,
     }), {
+      status: success ? 200 : 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
   } catch (error) {
-    console.error('[Missing] Error:', error);
+    console.error('[Missing] Unexpected error:', error);
     return new Response(JSON.stringify({ 
-      error: error instanceof Error ? error.message : String(error) 
+      success: false, 
+      error: error instanceof Error ? error.message : String(error),
+      generated: 0,
     }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

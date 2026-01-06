@@ -191,12 +191,21 @@ export const ClusterArticlesTab = ({
       
       if (error) throw error;
       
-      if (data.success) {
+      // Check for successful generation
+      if (data.generated > 0) {
         toast.success(`Generated ${data.generated} missing article(s)!`);
         queryClient.invalidateQueries({ queryKey: ['cluster-articles', cluster.cluster_id] });
         queryClient.invalidateQueries({ queryKey: ['clusters-unified'] });
-      } else {
-        toast.error(data.error || "Failed to generate missing articles");
+      } else if (data.success && data.generated === 0 && !data.errors) {
+        // No articles needed - cluster is already complete
+        toast.info(data.message || "All required articles already exist");
+      } else if (data.errors && data.errors.length > 0) {
+        // Show the first error with details
+        const firstError = data.errors[0];
+        toast.error(`Generation failed: ${firstError}`, { duration: 8000 });
+        console.error('Generate missing errors:', data.errors);
+      } else if (!data.success) {
+        toast.error(data.message || data.error || "Failed to generate missing articles");
       }
     } catch (error: any) {
       console.error('Generate missing failed:', error);

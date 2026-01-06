@@ -1,5 +1,37 @@
+import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.1';
+
+// Helper to safely extract JSON from response
+function extractJsonFromResponse(text: string): any {
+  // Try direct parse first
+  try {
+    return JSON.parse(text);
+  } catch (e) {
+    // Try to extract from markdown code blocks
+    const jsonMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/);
+    if (jsonMatch) {
+      try {
+        return JSON.parse(jsonMatch[1].trim());
+      } catch (e2) {
+        // Continue to other methods
+      }
+    }
+    
+    // Try to find JSON object boundaries
+    const firstBrace = text.indexOf('{');
+    const lastBrace = text.lastIndexOf('}');
+    if (firstBrace !== -1 && lastBrace > firstBrace) {
+      try {
+        return JSON.parse(text.substring(firstBrace, lastBrace + 1));
+      } catch (e3) {
+        // Continue
+      }
+    }
+    
+    throw new Error('Could not extract valid JSON from response');
+  }
+}
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -133,16 +165,18 @@ async function generateSingleArticle(
       slug: plan.headline.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''),
     };
 
-    // 1. CATEGORY SELECTION
+    // 1. CATEGORY SELECTION with JSON mode
     const validCategoryNames = (categories || []).map(c => c.name);
-    const categoryPrompt = `Select the most appropriate category for this article from this EXACT list:
+    const categoryPrompt = `Select the most appropriate category for this article.
+
+Available categories:
 ${validCategoryNames.map((name, i) => `${i + 1}. ${name}`).join('\n')}
 
 Article: ${plan.headline}
 Keyword: ${plan.targetKeyword}
 Funnel Stage: ${plan.funnelStage}
 
-Return ONLY the category name exactly as shown above.`;
+Respond with JSON: { "category": "exact category name from the list" }`;
 
     const categoryResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -150,6 +184,7 @@ Return ONLY the category name exactly as shown above.`;
       body: JSON.stringify({
         model: 'gpt-4o-mini',
         max_tokens: 256,
+        response_format: { type: 'json_object' },
         messages: [{ role: 'user', content: categoryPrompt }],
       }),
     });
@@ -157,18 +192,24 @@ Return ONLY the category name exactly as shown above.`;
     let finalCategory = 'Buying Property';
     if (categoryResponse.ok) {
       const categoryData = await categoryResponse.json();
-      const aiCategory = categoryData.choices?.[0]?.message?.content?.trim();
-      const matchedCategory = validCategoryNames.find(
-        name => name.toLowerCase() === aiCategory?.toLowerCase()
-      );
-      finalCategory = matchedCategory || 'Buying Property';
+      try {
+        const categoryJson = extractJsonFromResponse(categoryData.choices?.[0]?.message?.content || '{}');
+        const aiCategory = categoryJson.category;
+        const matchedCategory = validCategoryNames.find(
+          name => name.toLowerCase() === aiCategory?.toLowerCase()
+        );
+        finalCategory = matchedCategory || 'Buying Property';
+      } catch (e) {
+        console.warn(`[Chunk ${jobId}] Category parse failed, using default`);
+      }
     }
     article.category = finalCategory;
 
-    // 2. MAIN CONTENT GENERATION
+    // 2. MAIN CONTENT GENERATION with JSON mode
     const languageName = { 'en': 'English', 'de': 'German', 'nl': 'Dutch', 'fr': 'French', 'pl': 'Polish', 'sv': 'Swedish', 'da': 'Danish', 'hu': 'Hungarian', 'fi': 'Finnish', 'no': 'Norwegian' }[language] || 'English';
 
-    const contentPrompt = masterPrompt 
+    // Build base prompt from master prompt
+    let basePrompt = masterPrompt 
       ? masterPrompt
           .replace(/\{\{headline\}\}/g, plan.headline)
           .replace(/\{\{targetKeyword\}\}/g, plan.targetKeyword || '')
@@ -176,10 +217,25 @@ Return ONLY the category name exactly as shown above.`;
           .replace(/\{\{funnelStage\}\}/g, plan.funnelStage || '')
           .replace(/\{\{language\}\}/g, language)
           .replace(/\{\{languageName\}\}/g, languageName)
-      : `Write a comprehensive article about "${plan.headline}" targeting the keyword "${plan.targetKeyword}". 
-         Include 5-8 FAQs with detailed answers (80-120 words each, no lists).
-         Content should be 1,500-2,000 words with proper H2 structure.
-         Return valid JSON with: detailed_content, meta_title, meta_description, speakable_answer, qa_entities.`;
+      : `Write a comprehensive article about "${plan.headline}" targeting the keyword "${plan.targetKeyword}".`;
+
+    // ALWAYS wrap in JSON requirements for reliable parsing
+    const contentPrompt = `${basePrompt}
+
+CRITICAL: You MUST respond with a valid JSON object with this exact structure:
+{
+  "detailed_content": "<div class='article-content'>...full HTML article content here (1500-2000 words)...</div>",
+  "meta_title": "SEO title (50-60 characters)",
+  "meta_description": "SEO meta description (150-160 characters)", 
+  "speakable_answer": "80-120 word summary answering the main question",
+  "qa_entities": [
+    {"question": "FAQ question 1?", "answer": "Detailed answer (80-120 words, single paragraph, no lists)"},
+    {"question": "FAQ question 2?", "answer": "Detailed answer (80-120 words, single paragraph, no lists)"}
+  ]
+}
+
+Include 5-8 FAQ questions in qa_entities. Each answer must be 80-120 words in a single paragraph (no bullet points or lists).
+The detailed_content must be proper HTML with H2 headings, paragraphs, and be 1,500-2,000 words.`;
 
     const contentResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -187,27 +243,35 @@ Return ONLY the category name exactly as shown above.`;
       body: JSON.stringify({
         model: 'gpt-4o',
         max_tokens: 8192,
+        response_format: { type: 'json_object' },
         messages: [
-          { role: 'system', content: 'You are an expert real estate content writer. Return only valid JSON.' },
+          { role: 'system', content: 'You are an expert real estate content writer. You MUST respond with valid JSON only.' },
           { role: 'user', content: contentPrompt }
         ],
       }),
     });
 
     if (!contentResponse.ok) {
+      const errorText = await contentResponse.text();
+      console.error(`[Chunk ${jobId}] Content API error:`, errorText.substring(0, 500));
       throw new Error(`Content generation failed: ${contentResponse.status}`);
     }
 
     const contentData = await contentResponse.json();
     const contentText = contentData.choices?.[0]?.message?.content || '';
 
-    // Parse content JSON
+    if (!contentText.trim()) {
+      throw new Error('OpenAI returned empty content response');
+    }
+
+    // Parse content JSON with robust extraction
     let contentJson;
     try {
-      const cleaned = contentText.replace(/```json\n?|\n?```|```\n?/g, '').trim();
-      contentJson = JSON.parse(cleaned.match(/\{[\s\S]*\}/)?.[0] || cleaned);
+      contentJson = extractJsonFromResponse(contentText);
     } catch (e) {
-      throw new Error(`Failed to parse content JSON: ${e}`);
+      console.error(`[Chunk ${jobId}] Content parse failed:`, e);
+      console.error(`[Chunk ${jobId}] Raw content (first 500 chars):`, contentText.substring(0, 500));
+      throw new Error(`Failed to parse content JSON: ${e instanceof Error ? e.message : String(e)}`);
     }
 
     article.detailed_content = contentJson.detailed_content || contentJson.content || '';
@@ -215,6 +279,7 @@ Return ONLY the category name exactly as shown above.`;
     article.meta_description = (contentJson.meta_description || '').substring(0, 160);
     article.speakable_answer = contentJson.speakable_answer || '';
     article.qa_entities = contentJson.qa_entities || contentJson.faqs || [];
+    article.cluster_theme = plan.clusterTopic || '';
 
     // 3. FEATURED IMAGE
     const imagePrompt = `Professional real estate photo: ${plan.headline}. Costa del Sol, Spain. High quality, natural lighting.`;
