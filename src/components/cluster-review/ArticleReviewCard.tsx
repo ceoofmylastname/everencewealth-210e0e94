@@ -24,19 +24,19 @@ interface ArticleReviewCardProps {
   article: Partial<BlogArticle>;
   allArticles?: any[];
   categories?: Array<{ id: string; name: string }>;
-  authors?: Array<{ 
-    id: string; 
-    name: string; 
-    job_title: string; 
-    photo_url: string; 
-    bio: string; 
-    credentials: string[]; 
+  authors?: Array<{
+    id: string;
+    name: string;
+    job_title: string;
+    photo_url: string;
+    bio: string;
+    credentials: string[];
     years_experience: number;
   }>;
-  publishedArticles?: Array<{ 
-    id: string; 
-    headline: string; 
-    category: string; 
+  publishedArticles?: Array<{
+    id: string;
+    headline: string;
+    category: string;
     funnel_stage: string;
   }>;
   onRegenerate: (field: string) => Promise<void>;
@@ -72,9 +72,9 @@ export const ArticleReviewCard = ({
       toast.error('Article must be saved before generating QA pages');
       return;
     }
-    
+
     setIsGeneratingQA(true);
-    
+
     try {
       const { data, error } = await supabase.functions.invoke('generate-qa-pages', {
         body: {
@@ -87,14 +87,14 @@ export const ArticleReviewCard = ({
       if (error) throw error;
 
       toast.success('QA pages generated successfully!');
-      
+
       // Refetch article to get updated QA page IDs
       const { data: updatedArticle } = await supabase
         .from('blog_articles')
         .select('generated_qa_page_ids')
         .eq('id', article.id)
         .single();
-      
+
       if (updatedArticle) {
         setQAPageCount(updatedArticle.generated_qa_page_ids?.length || 0);
       }
@@ -115,14 +115,14 @@ export const ArticleReviewCard = ({
       const { error } = await supabase.storage
         .from('article-images')
         .upload(fileName, file);
-      
+
       if (error) throw error;
-      
+
       const { data: { publicUrl } } = supabase.storage
         .from('article-images')
         .getPublicUrl(fileName);
-      
-      onEdit({ 
+
+      onEdit({
         featured_image_url: publicUrl,
         featured_image_alt: article.headline || ''
       });
@@ -134,10 +134,7 @@ export const ArticleReviewCard = ({
   };
 
   const getWordCountColor = (count: number) => {
-    if (count < 1500) return 'text-destructive';
-    if (count < 2000) return 'text-amber-600';
-    if (count <= 2500) return 'text-green-600';
-    if (count <= 3000) return 'text-amber-600';
+    if (count >= 1500 && count <= 2500) return 'text-green-600';
     return 'text-destructive';
   };
 
@@ -168,7 +165,7 @@ export const ArticleReviewCard = ({
           </div>
         </div>
       )}
-      
+
       {citationStatus === 'verified' && (
         <div className="bg-green-50 border border-green-200 rounded-lg p-3">
           <div className="flex items-center gap-2">
@@ -179,7 +176,7 @@ export const ArticleReviewCard = ({
           </div>
         </div>
       )}
-      
+
       <Accordion type="multiple" defaultValue={["seo", "image", "content", "links"]} className="space-y-4">
         {/* SEO Section */}
         <AccordionItem value="seo" className="border rounded-lg">
@@ -191,12 +188,12 @@ export const ArticleReviewCard = ({
             <div className="space-y-2">
               <Label>Headline</Label>
               <div className="flex gap-2">
-                <Input 
+                <Input
                   value={article.headline || ''}
                   onChange={(e) => onEdit({ headline: e.target.value })}
                   className="flex-1"
                 />
-                <Button 
+                <Button
                   onClick={() => onRegenerate('headline')}
                   size="icon"
                   variant="outline"
@@ -230,7 +227,7 @@ export const ArticleReviewCard = ({
             {/* Slug */}
             <div className="space-y-2">
               <Label>Slug</Label>
-              <Input 
+              <Input
                 value={article.slug || ''}
                 onChange={(e) => onEdit({ slug: e.target.value })}
               />
@@ -243,13 +240,13 @@ export const ArticleReviewCard = ({
             <div className="space-y-2">
               <Label>Meta Title</Label>
               <div className="flex gap-2">
-                <Input 
+                <Input
                   value={article.meta_title || ''}
                   onChange={(e) => onEdit({ meta_title: e.target.value })}
                   maxLength={60}
                   className="flex-1"
                 />
-                <Button 
+                <Button
                   onClick={() => onRegenerate('meta_title')}
                   size="icon"
                   variant="outline"
@@ -265,14 +262,14 @@ export const ArticleReviewCard = ({
             <div className="space-y-2">
               <Label>Meta Description</Label>
               <div className="flex gap-2">
-                <Textarea 
+                <Textarea
                   value={article.meta_description || ''}
                   onChange={(e) => onEdit({ meta_description: e.target.value })}
                   maxLength={160}
                   rows={3}
                   className="flex-1"
                 />
-                <Button 
+                <Button
                   onClick={() => onRegenerate('meta_description')}
                   size="icon"
                   variant="outline"
@@ -287,7 +284,7 @@ export const ArticleReviewCard = ({
             {/* Google Preview */}
             <div className="space-y-2">
               <Label>Google Search Preview</Label>
-              <GooglePreview 
+              <GooglePreview
                 title={article.meta_title || ''}
                 description={article.meta_description || ''}
                 slug={article.slug || ''}
@@ -306,14 +303,14 @@ export const ArticleReviewCard = ({
               headline={article.headline || ''}
               imageUrl={article.featured_image_url || ''}
               imageAlt={article.featured_image_alt || ''}
-              onImageChange={(url, alt) => onEdit({ 
-                featured_image_url: url, 
-                featured_image_alt: alt 
+              onImageChange={(url, alt) => onEdit({
+                featured_image_url: url,
+                featured_image_alt: alt
               })}
               onImageUpload={handleImageUpload}
               imageUploading={imageUploading}
             />
-            
+
             <div className="space-y-2">
               <Label>Image Caption (Optional)</Label>
               <Input
@@ -442,7 +439,7 @@ export const ArticleReviewCard = ({
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Label>Speakable Answer</Label>
-                <Button 
+                <Button
                   onClick={() => onRegenerate('speakable')}
                   size="sm"
                   variant="outline"
@@ -455,7 +452,7 @@ export const ArticleReviewCard = ({
               <div className="p-4 bg-gradient-to-r from-primary/10 to-secondary/10 rounded-lg border">
                 <div className="flex items-start gap-3">
                   <span className="text-2xl">🎙️</span>
-                  <Textarea 
+                  <Textarea
                     value={article.speakable_answer || ''}
                     onChange={(e) => onEdit({ speakable_answer: e.target.value })}
                     rows={3}
@@ -464,7 +461,7 @@ export const ArticleReviewCard = ({
                 </div>
               </div>
               <p className="text-xs text-muted-foreground">
-                {countWords(article.speakable_answer || '')} words (target: 50-80)
+                {countWords(article.speakable_answer || '')} words (target: 40-60)
               </p>
             </div>
 
@@ -479,14 +476,14 @@ export const ArticleReviewCard = ({
                   <Badge variant="secondary">{Math.ceil(contentWords / 200)} min read</Badge>
                 </div>
               </div>
-              
+
               {expandedContent ? (
                 <div className="space-y-2">
                   <LazyRichTextEditor
                     content={article.detailed_content || ''}
                     onChange={(content) => onEdit({ detailed_content: content })}
                   />
-                  <Button 
+                  <Button
                     onClick={() => setExpandedContent(false)}
                     variant="outline"
                     size="sm"
@@ -496,11 +493,11 @@ export const ArticleReviewCard = ({
                 </div>
               ) : (
                 <div className="space-y-2">
-                  <div 
+                  <div
                     className="p-4 border rounded-lg bg-muted/30 prose prose-sm max-w-none line-clamp-6"
                     dangerouslySetInnerHTML={{ __html: article.detailed_content?.substring(0, 1000) + '...' || '' }}
                   />
-                  <Button 
+                  <Button
                     onClick={() => setExpandedContent(true)}
                     variant="outline"
                     size="sm"
@@ -518,7 +515,7 @@ export const ArticleReviewCard = ({
           <AccordionTrigger className="px-6 hover:no-underline">
             <div className="flex items-center justify-between w-full pr-4">
               <h3 className="text-lg font-semibold">🔗 Internal & External Links</h3>
-              <Button 
+              <Button
                 onClick={(e) => {
                   e.stopPropagation();
                   onRegenerate('links');
@@ -583,7 +580,7 @@ export const ArticleReviewCard = ({
       {/* Accept Button */}
       <Card className="border-2 border-primary/20">
         <CardContent className="p-6">
-          <Button 
+          <Button
             onClick={onAccept}
             size="lg"
             className="w-full"

@@ -51,10 +51,12 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
 
                 <div className="pt-2">
                     <Button
-                        onClick={() => onSelect(id)}
-                        className="bg-[#C4A053] hover:bg-[#B39043] text-white rounded-none px-6 py-2 text-sm font-medium tracking-wide shadow-sm hover:shadow-md transition-all"
+                        asChild
+                        className="bg-[#C4A053] hover:bg-[#B39043] text-white rounded-none px-6 py-2 text-sm font-medium tracking-wide shadow-sm hover:shadow-md transition-all cursor-pointer"
                     >
-                        {moreInfoText}
+                        <a href={`/optin?project=${encodeURIComponent(id)}`}>
+                            {moreInfoText}
+                        </a>
                     </Button>
                 </div>
             </div>

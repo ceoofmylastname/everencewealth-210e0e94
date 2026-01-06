@@ -67,43 +67,53 @@ async function filterCitations(
 function validateContentQuality(article: any, plan: any): { isValid: boolean; issues: string[]; score: number } {
   const issues: string[] = [];
   let score = 100;
-  
+
   const headlineWords = plan.headline.toLowerCase().split(/\s+/).filter((w: string) => w.length > 3);
   const contentLower = article.detailed_content.toLowerCase();
   const mentionedWords = headlineWords.filter((w: string) => contentLower.includes(w)).length;
-  
+
   if (mentionedWords < headlineWords.length * 0.5) {
     issues.push('Content may not fully address headline topic');
     score -= 15;
   }
-  
+
   if (plan.targetKeyword && !contentLower.includes(plan.targetKeyword.toLowerCase())) {
     issues.push('Target keyword not found in content');
     score -= 10;
   }
-  
+
   const h2Count = (article.detailed_content.match(/<h2>/gi) || []).length;
   if (h2Count < 4) {
     issues.push('Insufficient content structure (need 4+ H2 headings)');
     score -= 10;
   }
-  
+
   const wordCount = article.detailed_content.replace(/<[^>]*>/g, ' ').trim().split(/\s+/).length;
   if (wordCount < 1500) {
     issues.push(`Content too short (${wordCount} words, minimum 1500)`);
     score -= 20;
-  } else if (wordCount > 2300) {
-    issues.push(`Content too long (${wordCount} words, maximum 2300)`);
+  } else if (wordCount > 2500) {
+    issues.push(`Content too long (${wordCount} words, maximum 2500)`);
     score -= 5;
   }
-  
+
+  // Validate Speakable Answer (40-60 words)
+  const speakableCount = article.speakable_answer ? article.speakable_answer.trim().split(/\s+/).length : 0;
+  if (speakableCount < 40) {
+    issues.push(`Speakable answer too short (${speakableCount} words, minimum 40)`);
+    score -= 10;
+  } else if (speakableCount > 60) {
+    issues.push(`Speakable answer too long (${speakableCount} words, maximum 60)`);
+    score -= 10;
+  }
+
   if (article.qa_entities && Array.isArray(article.qa_entities)) {
     if (article.qa_entities.length < 5) {
       issues.push(`Too few FAQs: ${article.qa_entities.length} (need 5-8)`);
       score -= 10;
     }
   }
-  
+
   return { isValid: score >= 60, issues, score };
 }
 
@@ -121,9 +131,9 @@ async function generateSingleArticle(
   categories: any[]
 ): Promise<{ articleId: string | null; error: string | null }> {
   const OPENAI_API_KEY = openaiKey;
-  
+
   console.log(`\n[Chunk ${jobId}] Generating article ${articleIndex + 1}: "${plan.headline}"`);
-  
+
   try {
     const article: any = {
       funnel_stage: plan.funnelStage,
@@ -168,46 +178,117 @@ Return ONLY the category name exactly as shown above.`;
     // 2. MAIN CONTENT GENERATION
     const languageName = { 'en': 'English', 'de': 'German', 'nl': 'Dutch', 'fr': 'French', 'pl': 'Polish', 'sv': 'Swedish', 'da': 'Danish', 'hu': 'Hungarian', 'fi': 'Finnish', 'no': 'Norwegian' }[language] || 'English';
 
-    const contentPrompt = masterPrompt 
-      ? masterPrompt
+    // Retry logic for content generation
+    let contentJson: any = {};
+    let attempts = 0;
+    const maxAttempts = 3;
+    let lastError = "";
+
+    while (attempts < maxAttempts) {
+      attempts++;
+      console.log(`[Chunk ${jobId}] content generation attempt ${attempts}/${maxAttempts}...`);
+
+      const emphasis = attempts === 1
+        ? "IMPORTANT"
+        : attempts === 2
+          ? "CRITICAL - PREVIOUS ATTEMPT FAILED"
+          : "FINAL ATTEMPT - MUST MEET REQUIREMENTS";
+
+      const retryContext = lastError ? `PREVIOUS ERROR: ${lastError}. Fix this.` : "";
+
+      const basePrompt = masterPrompt
+        ? masterPrompt
           .replace(/\{\{headline\}\}/g, plan.headline)
           .replace(/\{\{targetKeyword\}\}/g, plan.targetKeyword || '')
           .replace(/\{\{contentAngle\}\}/g, plan.contentAngle || '')
           .replace(/\{\{funnelStage\}\}/g, plan.funnelStage || '')
           .replace(/\{\{language\}\}/g, language)
           .replace(/\{\{languageName\}\}/g, languageName)
-      : `Write a comprehensive article about "${plan.headline}" targeting the keyword "${plan.targetKeyword}". 
-         Include 5-8 FAQs with detailed answers (80-120 words each, no lists).
-         Content should be 1,500-2,000 words with proper H2 structure.
-         Return valid JSON with: detailed_content, meta_title, meta_description, speakable_answer, qa_entities.`;
+        : `Write a comprehensive article about "${plan.headline}" targeting the keyword "${plan.targetKeyword}". 
+         
+         CRITICAL REQUIREMENTS - MUST FOLLOW:
+         1. WORD COUNT: Your response MUST be between 1500-2500 words. Count every word.
+         2. SPEAKABLE ANSWER: EXACTLY 40-60 words.
+         3. This is NON-NEGOTIABLE.
+         
+         CONTENT STRUCTURE:
+         1. Introduction: 150-200 words
+         2. Main Content: 1200-2000 words (4-5 H2 sections with deep detail)
+         3. FAQ Section: 200-300 words (4-5 questions)
+         4. Conclusion: 100-150 words
+         
+         Return valid JSON with keys: detailed_content, meta_title, meta_description, speakable_answer, qa_entities.`;
 
-    const contentResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: { 'Authorization': `Bearer ${OPENAI_API_KEY}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'gpt-4o',
-        max_tokens: 8192,
-        messages: [
-          { role: 'system', content: 'You are an expert real estate content writer. Return only valid JSON.' },
-          { role: 'user', content: contentPrompt }
-        ],
-      }),
-    });
+      const finalPrompt = `${emphasis}: You MUST write exactly 1500-2500 words. ${retryContext}\n\n${basePrompt}\n\nBEFORE SUBMITTING: Count your words. If not 1500-2500, ADD MORE CONTENT or TRIM. Speakable answer MUST be 40-60 words.`;
 
-    if (!contentResponse.ok) {
-      throw new Error(`Content generation failed: ${contentResponse.status}`);
-    }
+      const contentResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${OPENAI_API_KEY}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'gpt-4o',
+          max_tokens: 8192,
+          messages: [
+            { role: 'system', content: 'You are an expert real estate content writer. Return only valid JSON.' },
+            { role: 'user', content: finalPrompt }
+          ],
+        }),
+      });
 
-    const contentData = await contentResponse.json();
-    const contentText = contentData.choices?.[0]?.message?.content || '';
+      if (!contentResponse.ok) {
+        throw new Error(`Content generation failed: ${contentResponse.status}`);
+      }
 
-    // Parse content JSON
-    let contentJson;
-    try {
-      const cleaned = contentText.replace(/```json\n?|\n?```|```\n?/g, '').trim();
-      contentJson = JSON.parse(cleaned.match(/\{[\s\S]*\}/)?.[0] || cleaned);
-    } catch (e) {
-      throw new Error(`Failed to parse content JSON: ${e}`);
+      const contentData = await contentResponse.json();
+      const contentText = contentData.choices?.[0]?.message?.content || '';
+
+      // Parse content JSON
+      try {
+        const cleaned = contentText.replace(/```json\n?|\n?```|```\n?/g, '').trim();
+        contentJson = JSON.parse(cleaned.match(/\{[\s\S]*\}/)?.[0] || cleaned);
+      } catch (e) {
+        console.warn(`[Chunk ${jobId}] Failed to parse JSON on attempt ${attempts}: ${e}`);
+        lastError = "Invalid JSON format";
+        continue;
+      }
+
+      // Validate word count
+      const mainContent = contentJson.detailed_content || contentJson.content || '';
+      const wc = mainContent.replace(/<[^>]*>/g, ' ').trim().split(/\s+/).length;
+
+      const speakableAnswer = contentJson.speakable_answer || '';
+      const swc = speakableAnswer.trim().split(/\s+/).length;
+
+      let isValid = true;
+      let errors = [];
+
+      if (wc < 1500) {
+        isValid = false;
+        errors.push(`Content too short: ${wc} words (min 1500)`);
+      }
+      if (wc > 2500) {
+        isValid = false;
+        errors.push(`Content too long: ${wc} words (max 2500)`);
+      }
+      if (swc < 40) {
+        isValid = false;
+        errors.push(`Speakable answer too short: ${swc} words (min 40)`);
+      }
+      if (swc > 60) {
+        isValid = false;
+        errors.push(`Speakable answer too long: ${swc} words (max 60)`);
+      }
+
+      if (isValid) {
+        console.log(`[Chunk ${jobId}] ✅ Validated content (Attempt ${attempts}): ${wc} words, Speakable: ${swc} words`);
+        break; // Success!
+      } else {
+        console.warn(`[Chunk ${jobId}] ❌ Validation failed (Attempt ${attempts}): ${errors.join(", ")}`);
+        lastError = errors.join(", ");
+
+        if (attempts === maxAttempts) {
+          console.error(`[Chunk ${jobId}] Max attempts reached. Saving best effort.`);
+        }
+      }
     }
 
     article.detailed_content = contentJson.detailed_content || contentJson.content || '';
@@ -218,7 +299,7 @@ Return ONLY the category name exactly as shown above.`;
 
     // 3. FEATURED IMAGE
     const imagePrompt = `Professional real estate photo: ${plan.headline}. Costa del Sol, Spain. High quality, natural lighting.`;
-    
+
     const imageResponse = await fetch('https://api.openai.com/v1/images/generations', {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${OPENAI_API_KEY}`, 'Content-Type': 'application/json' },
@@ -408,7 +489,7 @@ serve(async (req) => {
     // Fire next chunk if needed (fire-and-forget)
     if (hasMoreChunks) {
       console.log(`[Chunk] 🔥 Firing chunk ${nextChunkIndex + 1}...`);
-      
+
       fetch(`${SUPABASE_URL}/functions/v1/generate-cluster-chunk`, {
         method: 'POST',
         headers: {
@@ -438,7 +519,7 @@ serve(async (req) => {
     console.log(`[Chunk] 🎉 All chunks complete! Finalizing job...`);
 
     const finalStatus = allSavedArticles.length === articleStructures.length ? 'completed' : 'partial';
-    
+
     await supabase
       .from('cluster_generations')
       .update({
@@ -449,7 +530,7 @@ serve(async (req) => {
           total_steps: articleStructures.length + 2,
           current_article: articleStructures.length,
           total_articles: articleStructures.length,
-          message: finalStatus === 'completed' 
+          message: finalStatus === 'completed'
             ? `✅ Cluster complete: ${allSavedArticles.length} articles generated.`
             : `⚠️ Partial: ${allSavedArticles.length}/${articleStructures.length} articles.`,
           chunked: true,
@@ -472,8 +553,8 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('[Chunk] Error:', error);
-    return new Response(JSON.stringify({ 
-      error: error instanceof Error ? error.message : String(error) 
+    return new Response(JSON.stringify({
+      error: error instanceof Error ? error.message : String(error)
     }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

@@ -3,7 +3,9 @@
     "headline": "DISCOVER LUXURY LIVING ON THE COSTA DEL SOL",
     "subheadline": "Experience a personalized and stress-free approach to finding your dream home in Southern Spain.",
     "videoCTA": "Watch Our Short Intro",
-    "emmaCTA": "Start with Emma"
+    "emmaCTA": "Start with Emma",
+    "primaryCTA": "Get your private, pressure-free property shortlist",
+    "secondaryCTA": "Watch our 60-second introduction"
   },
   "emma": {
     "headline": "Ask your questions. Share your criteria.",
@@ -15,7 +17,10 @@
       "criteria": "Share your criteria",
       "explore": "Explore apartments or villas"
     },
-    "placeholder": "Type your message..."
+    "placeholder": "Type your message...",
+    "title": "Emma",
+    "subtitle": "Your Property Assistant",
+    "intro": "Emma answers your questions and prepares a clear overview of your criteria for our team."
   },
   "testimonials": [
     {
@@ -124,7 +129,12 @@
         "price": "From €720,000",
         "description": "Townhouses with private pools and terraces"
       }
-    ]
+    ],
+    "heading": "Featured Properties",
+    "from": "From",
+    "beds": "Beds",
+    "baths": "Baths",
+    "viewDetails": "View Details"
   },
   "form": {
     "title": "Fill out the form to receive more information",
@@ -133,15 +143,38 @@
       "phone": "Your Phone Number",
       "comment": "Comment (optional)"
     },
-    "consent": "I agree to receive relevant information and follow-up from DelSolPrimeHomes.",
+    "consent": "I agree to receive relevant information and follow-up messages from DelSolPrimeHomes via WhatsApp and/or SMS.",
     "submit": "Request WhatsApp / SMS Info",
     "recaptcha": "This site is protected by reCAPTCHA and the Google Privacy Policy and Terms of Service apply.",
     "success": "Thank you! We'll contact you within 24 hours.",
-    "error": "Something went wrong. Please try again."
+    "error": "Something went wrong. Please try again.",
+    "contactField": "WhatsApp / SMS number",
+    "contactFieldAlt": "Where can we message you? (WhatsApp/SMS)"
   },
   "footer": {
     "copyright": "© 2024 DelSolPrimeHomes. All rights reserved.",
     "privacy": "Privacy Policy",
     "terms": "Terms of Service"
+  },
+  "stickyButton": {
+    "main": "Erhalten Sie klare Antworten und eine persönliche Auswahl",
+    "micro": "In 2 Minuten vorbereitet · Unverbindlich"
+  },
+  "video": {
+    "heading": "How our guided, pressure-free approach works",
+    "subtext": "Emma answers your questions and carefully records your criteria."
+  },
+  "reviews": {
+    "heading": "A calm, pressure-free experience — according to our clients"
+  },
+  "bridging": {
+    "statement": "Get clear answers to all your questions — and have your criteria carefully recorded, so we can guide you properly from the very first step."
+  },
+  "preProperties": {
+    "cta": "Get clarity & a personal shortlist with Emma",
+    "micro": "Ask questions · Share your preferences · No obligation"
+  },
+  "categories": {
+    "viewVillas": "View Villas & Townhouses"
   }
 }

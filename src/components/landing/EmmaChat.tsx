@@ -74,39 +74,30 @@ const EmmaChat: React.FC<EmmaChatProps> = ({ content, language, isOpen, onClose 
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-            {/* Backdrop */}
-            <div
-                className="absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity duration-300"
-                onClick={onClose}
-            />
+        <div className="fixed inset-0 z-[60] flex items-end md:items-center md:justify-end p-4 bg-black/20 backdrop-blur-sm">
+            {/* Modal - not fullscreen on mobile */}
+            <div className="bg-white rounded-t-3xl md:rounded-3xl w-full md:w-[400px] max-h-[80vh] md:max-h-[600px] shadow-2xl flex flex-colanimate-fade-in-up transform transition-all duration-300">
 
-            {/* Modal Card */}
-            <div className="relative w-full max-w-[500px] bg-white rounded-xl shadow-2xl overflow-hidden animate-fade-in-up transform transition-all duration-300 scale-100">
-
-                {/* Chat Header */}
-                <div className="bg-[#FAF9F6] p-4 flex items-center justify-between border-b border-gray-100">
-                    <div className="flex items-center gap-3">
-                        <div className="relative">
-                            <img
-                                src="/images/emma-profile.png"
-                                alt="Emma"
-                                className="w-12 h-12 rounded-full object-cover border-2 border-white shadow-sm"
-                            />
-                            <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
-                        </div>
-                        <div>
-                            <h4 className="font-serif font-bold text-[#1A2332]">Emma</h4>
-                            <p className="text-xs text-green-600 font-medium">{content.status || "Online now"}</p>
-                        </div>
+                {/* Header */}
+                <div className="flex items-center justify-between p-4 border-b">
+                    <div>
+                        <h3 className="font-semibold text-lg">{content.title || "Emma"}</h3>
+                        <p className="text-sm text-gray-600">{content.subtitle || "Your Property Assistant"}</p>
                     </div>
-                    <div className="flex gap-2 text-gray-400">
-                        <X className="w-6 h-6 cursor-pointer hover:text-gray-600 transition-colors" onClick={onClose} />
-                    </div>
+                    <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full">
+                        <X className="w-5 h-5" />
+                    </button>
                 </div>
 
-                {/* Chat Body */}
-                <div className="p-6 bg-[#ffffff] space-y-6">
+                {/* Static Intro Text */}
+                <div className="p-6 bg-gray-50 border-b">
+                    <p className="text-sm text-gray-700">
+                        {content.intro || "Emma answers your questions and prepares a clear overview of your criteria for our team."}
+                    </p>
+                </div>
+
+                {/* Chat Content */}
+                <div className="flex-1 overflow-y-auto p-4 space-y-6">
                     {/* Emma 'Message' */}
                     <div className="bg-gray-50 p-4 rounded-2xl rounded-tl-none shadow-sm border border-gray-100 max-w-[90%]">
                         <p className="text-[#2C3E50] text-sm md:text-base leading-relaxed">
@@ -144,9 +135,11 @@ const EmmaChat: React.FC<EmmaChatProps> = ({ content, language, isOpen, onClose 
                             <span>{content.quickActions.explore}</span>
                         </button>
                     </div>
+                </div>
 
-                    {/* Input Area */}
-                    <div className="flex items-center gap-2 mt-4 pt-4 border-t border-gray-100">
+                {/* Input Area */}
+                <div className="p-4 border-t border-gray-100 bg-white">
+                    <div className="flex items-center gap-2">
                         <Input
                             value={message}
                             onChange={(e) => setMessage(e.target.value)}

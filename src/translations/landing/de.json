@@ -1,147 +1,180 @@
 {
-    "hero": {
-        "headline": "ENTDECKEN SIE LUXUSLEBEN AN DER COSTA DEL SOL",
-        "subheadline": "Erleben Sie einen persönlichen und stressfreien Ansatz, um Ihr Traumhaus in Südspanien zu finden.",
-        "videoCTA": "Unser kurzes Intro ansehen",
-        "emmaCTA": "Starten mit Emma"
+  "hero": {
+    "headline": "ENTDECKEN SIE LUXUSLEBEN AN DER COSTA DEL SOL",
+    "subheadline": "Erleben Sie einen persönlichen und stressfreien Ansatz, um Ihr Traumhaus in Südspanien zu finden.",
+    "videoCTA": "Unser kurzes Intro ansehen",
+    "emmaCTA": "Starten mit Emma",
+    "primaryCTA": "Get your private, pressure-free property shortlist",
+    "secondaryCTA": "Watch our 60-second introduction"
+  },
+  "emma": {
+    "headline": "Stellen Sie Ihre Fragen. Teilen Sie Ihre Kriterien.",
+    "subheadline": "Erhalten Sie innerhalb von 24 Stunden eine erste maßgeschneiderte Auswahl.",
+    "status": "Jetzt online - Fragen Sie mich alles!",
+    "greeting": "Hallo! Wie kann ich Ihnen heute helfen?",
+    "quickActions": {
+      "question": "Eine Frage stellen",
+      "criteria": "Kriterien teilen",
+      "explore": "Apartments oder Villen entdecken"
     },
-    "emma": {
-        "headline": "Stellen Sie Ihre Fragen. Teilen Sie Ihre Kriterien.",
-        "subheadline": "Erhalten Sie innerhalb von 24 Stunden eine erste maßgeschneiderte Auswahl.",
-        "status": "Jetzt online - Fragen Sie mich alles!",
-        "greeting": "Hallo! Wie kann ich Ihnen heute helfen?",
-        "quickActions": {
-            "question": "Eine Frage stellen",
-            "criteria": "Kriterien teilen",
-            "explore": "Apartments oder Villen entdecken"
-        },
-        "placeholder": "Geben Sie Ihre Nachricht ein..."
+    "placeholder": "Geben Sie Ihre Nachricht ein...",
+    "title": "Emma",
+    "subtitle": "Your Property Assistant",
+    "intro": "Emma answers your questions and prepares a clear overview of your criteria for our team."
+  },
+  "testimonials": [
+    {
+      "text": "Emma hat unsere Bedürfnisse wirklich verstanden und uns klare Optionen geboten.",
+      "author": "— Peter & Anne, Niederlande"
     },
-    "testimonials": [
-        {
-            "text": "Emma hat unsere Bedürfnisse wirklich verstanden und uns klare Optionen geboten.",
-            "author": "— Peter & Anne, Niederlande"
-        },
-        {
-            "text": "Der Prozess verlief reibungslos und wir fühlten uns nie unter Druck gesetzt.",
-            "author": "— Lars & Ingrid, Schweden"
-        },
-        {
-            "text": "Sehr empfehlenswert für alle, die eine geführte Immobiliensuche wünschen.",
-            "author": "— Thomas & Marie, Frankreich"
-        }
-    ],
-    "properties": {
-        "types": {
-            "apartments": {
-                "title": "Apartments & Penthouses",
-                "subtitle": "Moderne Entwicklungen mit Annehmlichkeiten, Aussicht und Resort-Lebensstil",
-                "cta": "Apartment-Projekte ansehen >"
-            },
-            "villas": {
-                "title": "Stadthäuser & Villen",
-                "subtitle": "Privathäuser mit Platz, Privatsphäre und architektonischem Charakter",
-                "cta": "Villen & Häuser ansehen >"
-            }
-        },
-        "moreInfo": "Mehr Informationen >",
-        "header": {
-            "title": "Dies ist eine kleine kuratierte Auswahl.",
-            "subtitle": "Ein breiteres Angebot ist basierend auf Ihren Kriterien verfügbar."
-        },
-        "apartments": [
-            {
-                "id": "panorama-bay",
-                "title": "Panorama Bay",
-                "price": "From €385,000",
-                "description": "Moderne Apartments mit Panoramablick auf das Meer"
-            },
-            {
-                "id": "sunset-residences",
-                "title": "Sunset Residences",
-                "price": "From €420,000",
-                "description": "Zeitgenössische Apartments mit großen Terrassen"
-            },
-            {
-                "id": "green-valley-gardens",
-                "title": "Green Valley Gardens",
-                "price": "From €450,000",
-                "description": "Stilvolle Penthouses mit Golfblick"
-            },
-            {
-                "id": "la-perla-marina",
-                "title": "La Perla Marina",
-                "price": "From €510,000",
-                "description": "Exklusive Entwicklung am Strand"
-            },
-            {
-                "id": "aqua-blu-oasis",
-                "title": "Aqua Blu Oasis",
-                "price": "From €393,000",
-                "description": "Modernes Wohnen mit Resort-Annehmlichkeiten"
-            },
-            {
-                "id": "elevate-suites",
-                "title": "Elevate Suites",
-                "price": "From €440,000",
-                "description": "Hochwertige Design-Apartments mit Luxusausstattung"
-            }
-        ],
-        "villas": [
-            {
-                "id": "villa-amalfi",
-                "title": "Villa Amalfi",
-                "price": "From €790,000",
-                "description": "Elegante mediterrane Villa mit Meerblick"
-            },
-            {
-                "id": "sierra-blanca",
-                "title": "Sierra Blanca Townhouses",
-                "price": "From €699,000",
-                "description": "Luxus-Stadthäuser in exklusiver Lage"
-            },
-            {
-                "id": "los-arcos",
-                "title": "Los Arcos Estate",
-                "price": "From €1,950,000",
-                "description": "Raffinierte Villa mit spanischer Architektur"
-            },
-            {
-                "id": "monte-verde",
-                "title": "Monte Verde Villa",
-                "price": "From €835,000",
-                "description": "Moderne Villa mit Panoramablick"
-            },
-            {
-                "id": "horizon-hills",
-                "title": "Horizon Hills Villas",
-                "price": "From €1,150,000",
-                "description": "Zeitgenössisches Design mit weitläufigen Grundstücken"
-            },
-            {
-                "id": "la-terraza",
-                "title": "La Terraza Residences",
-                "price": "From €720,000",
-                "description": "Stadthäuser mit privaten Pools und Terrassen"
-            }
-        ]
+    {
+      "text": "Der Prozess verlief reibungslos und wir fühlten uns nie unter Druck gesetzt.",
+      "author": "— Lars & Ingrid, Schweden"
     },
-    "form": {
-        "title": "Füllen Sie das Formular aus, um weitere Informationen zu erhalten",
-        "fields": {
-            "fullName": "Vollständiger Name",
-            "phone": "Ihre Telefonnummer",
-            "comment": "Kommentar (optional)"
-        },
-        "consent": "Ich stimme zu, relevante Informationen und Follow-ups von DelSolPrimeHomes zu erhalten.",
-        "submit": "WhatsApp / SMS Info anfordern",
-        "recaptcha": "Diese Website ist durch reCAPTCHA geschützt und es gelten die Google-Datenschutzerklärung und Nutzungsbedingungen.",
-        "success": "Danke! Wir melden uns innerhalb von 24 Stunden.",
-        "error": "Etwas ist schief gelaufen. Bitte versuchen Sie es erneut."
-    },
-    "footer": {
-        "copyright": "© 2024 DelSolPrimeHomes. Alle Rechte vorbehalten.",
-        "privacy": "Datenschutzerklärung",
-        "terms": "Nutzungsbedingungen"
+    {
+      "text": "Sehr empfehlenswert für alle, die eine geführte Immobiliensuche wünschen.",
+      "author": "— Thomas & Marie, Frankreich"
     }
+  ],
+  "properties": {
+    "types": {
+      "apartments": {
+        "title": "Apartments & Penthouses",
+        "subtitle": "Moderne Entwicklungen mit Annehmlichkeiten, Aussicht und Resort-Lebensstil",
+        "cta": "Apartment-Projekte ansehen >"
+      },
+      "villas": {
+        "title": "Stadthäuser & Villen",
+        "subtitle": "Privathäuser mit Platz, Privatsphäre und architektonischem Charakter",
+        "cta": "Villen & Häuser ansehen >"
+      }
+    },
+    "moreInfo": "Mehr Informationen >",
+    "header": {
+      "title": "Dies ist eine kleine kuratierte Auswahl.",
+      "subtitle": "Ein breiteres Angebot ist basierend auf Ihren Kriterien verfügbar."
+    },
+    "apartments": [
+      {
+        "id": "panorama-bay",
+        "title": "Panorama Bay",
+        "price": "From €385,000",
+        "description": "Moderne Apartments mit Panoramablick auf das Meer"
+      },
+      {
+        "id": "sunset-residences",
+        "title": "Sunset Residences",
+        "price": "From €420,000",
+        "description": "Zeitgenössische Apartments mit großen Terrassen"
+      },
+      {
+        "id": "green-valley-gardens",
+        "title": "Green Valley Gardens",
+        "price": "From €450,000",
+        "description": "Stilvolle Penthouses mit Golfblick"
+      },
+      {
+        "id": "la-perla-marina",
+        "title": "La Perla Marina",
+        "price": "From €510,000",
+        "description": "Exklusive Entwicklung am Strand"
+      },
+      {
+        "id": "aqua-blu-oasis",
+        "title": "Aqua Blu Oasis",
+        "price": "From €393,000",
+        "description": "Modernes Wohnen mit Resort-Annehmlichkeiten"
+      },
+      {
+        "id": "elevate-suites",
+        "title": "Elevate Suites",
+        "price": "From €440,000",
+        "description": "Hochwertige Design-Apartments mit Luxusausstattung"
+      }
+    ],
+    "villas": [
+      {
+        "id": "villa-amalfi",
+        "title": "Villa Amalfi",
+        "price": "From €790,000",
+        "description": "Elegante mediterrane Villa mit Meerblick"
+      },
+      {
+        "id": "sierra-blanca",
+        "title": "Sierra Blanca Townhouses",
+        "price": "From €699,000",
+        "description": "Luxus-Stadthäuser in exklusiver Lage"
+      },
+      {
+        "id": "los-arcos",
+        "title": "Los Arcos Estate",
+        "price": "From €1,950,000",
+        "description": "Raffinierte Villa mit spanischer Architektur"
+      },
+      {
+        "id": "monte-verde",
+        "title": "Monte Verde Villa",
+        "price": "From €835,000",
+        "description": "Moderne Villa mit Panoramablick"
+      },
+      {
+        "id": "horizon-hills",
+        "title": "Horizon Hills Villas",
+        "price": "From €1,150,000",
+        "description": "Zeitgenössisches Design mit weitläufigen Grundstücken"
+      },
+      {
+        "id": "la-terraza",
+        "title": "La Terraza Residences",
+        "price": "From €720,000",
+        "description": "Stadthäuser mit privaten Pools und Terrassen"
+      }
+    ],
+    "heading": "Featured Properties",
+    "from": "Ab",
+    "beds": "Beds",
+    "baths": "Baths",
+    "viewDetails": "View Details"
+  },
+  "form": {
+    "title": "Füllen Sie das Formular aus, um weitere Informationen zu erhalten",
+    "fields": {
+      "fullName": "Vollständiger Name",
+      "phone": "Ihre Telefonnummer",
+      "comment": "Kommentar (optional)"
+    },
+    "consent": "I agree to receive relevant information and follow-up messages from DelSolPrimeHomes via WhatsApp and/or SMS.",
+    "submit": "WhatsApp / SMS Info anfordern",
+    "recaptcha": "Diese Website ist durch reCAPTCHA geschützt und es gelten die Google-Datenschutzerklärung und Nutzungsbedingungen.",
+    "success": "Danke! Wir melden uns innerhalb von 24 Stunden.",
+    "error": "Etwas ist schief gelaufen. Bitte versuchen Sie es erneut.",
+    "contactField": "WhatsApp / SMS number",
+    "contactFieldAlt": "Where can we message you? (WhatsApp/SMS)"
+  },
+  "footer": {
+    "copyright": "© 2024 DelSolPrimeHomes. Alle Rechte vorbehalten.",
+    "privacy": "Datenschutzerklärung",
+    "terms": "Nutzungsbedingungen"
+  },
+  "stickyButton": {
+    "main": "Erhalten Sie klare Antworten und eine persönliche Auswahl",
+    "micro": "In 2 Minuten vorbereitet · Unverbindlich"
+  },
+  "video": {
+    "heading": "How our guided, pressure-free approach works",
+    "subtext": "Emma answers your questions and carefully records your criteria."
+  },
+  "reviews": {
+    "heading": "A calm, pressure-free experience — according to our clients"
+  },
+  "bridging": {
+    "statement": "Get clear answers to all your questions — and have your criteria carefully recorded, so we can guide you properly from the very first step."
+  },
+  "preProperties": {
+    "cta": "Get clarity & a personal shortlist with Emma",
+    "micro": "Ask questions · Share your preferences · No obligation"
+  },
+  "categories": {
+    "viewVillas": "View Villas & Townhouses"
+  }
 }

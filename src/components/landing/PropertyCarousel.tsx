@@ -9,6 +9,8 @@ interface PropertyCarouselProps {
     onPropertySelect: (id: string, type: 'apartment' | 'villa') => void;
 }
 
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
+
 // Reusable Property Section Component
 const PropertySection = ({ title, subtitle, properties, moreInfoText, onSelect, activeType, language }: any) => (
     <div className="mb-20">
@@ -24,7 +26,33 @@ const PropertySection = ({ title, subtitle, properties, moreInfoText, onSelect, 
             <div className="w-24 h-0.5 bg-[#C4A053] mx-auto opacity-30 mt-6"></div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-12">
+        {/* Mobile: Carousel */}
+        <div className="md:hidden">
+            <Carousel opts={{ loop: true }}>
+                <CarouselContent>
+                    {properties.map((property: any) => (
+                        <CarouselItem key={property.id}>
+                            <PropertyCard
+                                id={property.id}
+                                image={activeType === 'apartment' ? '/images/apartment-type.png' : '/images/villa-type.png'}
+                                title={property.title}
+                                price={property.price}
+                                description={property.description}
+                                moreInfoText={moreInfoText}
+                                onSelect={(id) => onSelect(id, activeType)}
+                            />
+                        </CarouselItem>
+                    ))}
+                </CarouselContent>
+                <div className="flex justify-center gap-2 mt-6 relative">
+                    <CarouselPrevious className="static translate-y-0" />
+                    <CarouselNext className="static translate-y-0" />
+                </div>
+            </Carousel>
+        </div>
+
+        {/* Desktop: Grid */}
+        <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-12">
             {properties.map((property: any) => (
                 <PropertyCard
                     key={property.id}

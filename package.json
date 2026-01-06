@@ -9,7 +9,8 @@
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
     "preview": "vite preview",
-    "verify-ssg": "tsx scripts/verifySsgDeployment.ts"
+    "verify-ssg": "tsx scripts/verifySsgDeployment.ts",
+    "generate-thank-you-images": "tsx scripts/generateThankYouImages.ts"
   },
   "dependencies": {
     "@fal-ai/serverless-client": "^0.15.0",

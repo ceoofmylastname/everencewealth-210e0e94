@@ -8,6 +8,9 @@ import PropertyCarousel from './PropertyCarousel';
 import Footer from './Footer';
 import LanguageSelector from './LanguageSelector';
 import LeadCaptureForm from './LeadCaptureForm';
+import StickyActionButton from './StickyActionButton';
+import PrePropertiesAction from './PrePropertiesAction';
+import BridgingStatement from './BridgingStatement';
 import { LanguageCode } from '@/utils/landing/languageDetection';
 import { trackPageView } from '@/utils/landing/analytics';
 
@@ -102,14 +105,13 @@ const LandingLayout: React.FC<LandingLayoutProps> = ({ language, translations })
                 onStartChat={() => setIsEmmaOpen(true)}
             />
 
-            <EmmaChat
-                content={translations.emma}
-                language={language}
-                isOpen={isEmmaOpen}
-                onClose={() => setIsEmmaOpen(false)}
-            />
-
             <TestimonialSection testimonials={translations.testimonials} />
+
+            <BridgingStatement />
+
+            <PrePropertiesAction
+                onOpenChat={() => setIsEmmaOpen(true)}
+            />
 
             <PropertyTypeSelector
                 translations={translations.properties.types}
@@ -127,6 +129,17 @@ const LandingLayout: React.FC<LandingLayoutProps> = ({ language, translations })
             />
 
             <Footer content={translations.footer} />
+
+            <StickyActionButton
+                onOpenChat={() => setIsEmmaOpen(true)}
+            />
+
+            <EmmaChat
+                content={translations.emma}
+                language={language}
+                isOpen={isEmmaOpen}
+                onClose={() => setIsEmmaOpen(false)}
+            />
 
             <LeadCaptureForm
                 isOpen={isFormOpen}

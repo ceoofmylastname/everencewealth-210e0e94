@@ -10,6 +10,8 @@ interface HeroProps {
         subheadline: string;
         videoCTA: string;
         emmaCTA: string;
+        primaryCTA?: string;
+        secondaryCTA?: string;
     };
     language: LanguageCode;
     onStartChat?: () => void;
@@ -77,19 +79,26 @@ const Hero: React.FC<HeroProps> = ({ content, language, onStartChat }) => {
                 </div>
 
                 {/* Buttons Container */}
-                <div className="flex flex-col items-center space-y-4 animate-fade-in-up delay-100 w-full max-w-md">
-                    <Button
-                        onClick={() => setIsVideoOpen(true)}
-                        className="w-full sm:w-auto bg-[#C4A053] hover:bg-[#B39043] text-white px-8 py-6 text-lg rounded-sm uppercase tracking-wider font-medium shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300"
-                    >
-                        {content.videoCTA}
-                    </Button>
-
+                <div className="flex flex-col items-center space-y-4 animate-fade-in-up delay-100 w-full max-w-md px-4">
+                    {/* PRIMARY CTA - Outcome-focused */}
                     <Button
                         onClick={onStartChat}
-                        className="w-full sm:w-auto bg-[#2C5282] hover:bg-[#1A365D] text-white px-10 py-6 text-lg rounded-sm shadow-xl font-medium uppercase tracking-wide hover:shadow-2xl hover:-translate-y-0.5 transition-all duration-300"
+                        size="lg"
+                        className="w-full bg-primary hover:bg-primary/90 text-white px-8 py-6 text-lg rounded-lg shadow-xl font-medium"
                     >
-                        {content.emmaCTA}
+                        <span className="mr-2">👉</span>
+                        {content.primaryCTA || content.emmaCTA}
+                    </Button>
+
+                    {/* SECONDARY CTA - Video */}
+                    <Button
+                        onClick={() => setIsVideoOpen(true)}
+                        size="lg"
+                        variant="outline"
+                        className="w-full border-2 border-white text-white hover:bg-white hover:text-primary px-8 py-6 text-lg rounded-lg font-medium backdrop-blur-sm bg-white/10"
+                    >
+                        <span className="mr-2">👉</span>
+                        {content.secondaryCTA || content.videoCTA}
                     </Button>
                 </div>
 

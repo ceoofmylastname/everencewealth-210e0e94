@@ -105,6 +105,7 @@ const LandingDa = lazy(() => import("./pages/landing/da"));
 const LandingHu = lazy(() => import("./pages/landing/hu"));
 const LandingSv = lazy(() => import("./pages/landing/sv"));
 const LandingNo = lazy(() => import("./pages/landing/no"));
+const OptIn = lazy(() => import("./pages/OptIn"));
 
 // Loading fallback component
 const PageLoader = () => (
@@ -203,6 +204,8 @@ const App = () => (
               <Route path="/hu/landing" element={<LandingHu />} />
               <Route path="/sv/landing" element={<LandingSv />} />
               <Route path="/no/landing" element={<LandingNo />} />
+              <Route path="/optin" element={<OptIn />} />
+              <Route path="/:lang/optin" element={<OptIn />} />
 
               {/* Legacy redirect for brochures - redirect to English */}
               <Route path="/brochure/:citySlug" element={<Navigate to={window.location.pathname.replace('/brochure/', '/en/brochure/')} replace />} />

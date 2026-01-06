@@ -1,147 +1,180 @@
 {
-    "hero": {
-        "headline": "UPPTÄCK LYXBOENDE PÅ COSTA DEL SOL",
-        "subheadline": "Upplev ett personligt och stressfritt sätt att hitta ditt drömhem i södra Spanien.",
-        "videoCTA": "Se vår korta intro",
-        "emmaCTA": "Börja med Emma"
+  "hero": {
+    "headline": "UPPTÄCK LYXBOENDE PÅ COSTA DEL SOL",
+    "subheadline": "Upplev ett personligt och stressfritt sätt att hitta ditt drömhem i södra Spanien.",
+    "videoCTA": "Se vår korta intro",
+    "emmaCTA": "Börja med Emma",
+    "primaryCTA": "Get your private, pressure-free property shortlist",
+    "secondaryCTA": "Watch our 60-second introduction"
+  },
+  "emma": {
+    "headline": "Ställ dina frågor. Dela dina kriterier.",
+    "subheadline": "Få ett första skräddarsytt urval inom 24 timmar.",
+    "status": "Online nu - Fråga mig vad som helst!",
+    "greeting": "Hej! Hur kan jag hjälpa dig idag?",
+    "quickActions": {
+      "question": "Ställ en fråga",
+      "criteria": "Dela dina kriterier",
+      "explore": "Utforska lägenheter eller villor"
     },
-    "emma": {
-        "headline": "Ställ dina frågor. Dela dina kriterier.",
-        "subheadline": "Få ett första skräddarsytt urval inom 24 timmar.",
-        "status": "Online nu - Fråga mig vad som helst!",
-        "greeting": "Hej! Hur kan jag hjälpa dig idag?",
-        "quickActions": {
-            "question": "Ställ en fråga",
-            "criteria": "Dela dina kriterier",
-            "explore": "Utforska lägenheter eller villor"
-        },
-        "placeholder": "Skriv ditt meddelande..."
+    "placeholder": "Skriv ditt meddelande...",
+    "title": "Emma",
+    "subtitle": "Your Property Assistant",
+    "intro": "Emma answers your questions and prepares a clear overview of your criteria for our team."
+  },
+  "testimonials": [
+    {
+      "text": "Emma förstod verkligen våra behov och erbjöd oss tydliga val.",
+      "author": "— Peter & Anne, Nederländerna"
     },
-    "testimonials": [
-        {
-            "text": "Emma förstod verkligen våra behov och erbjöd oss tydliga val.",
-            "author": "— Peter & Anne, Nederländerna"
-        },
-        {
-            "text": "Processen var smidig och vi kände oss aldrig pressade.",
-            "author": "— Lars & Ingrid, Sverige"
-        },
-        {
-            "text": "Rekommenderas varmt för alla som vill ha en guidad bostadssökning.",
-            "author": "— Thomas & Marie, Frankrike"
-        }
-    ],
-    "properties": {
-        "types": {
-            "apartments": {
-                "title": "Lägenheter & Penthouses",
-                "subtitle": "Moderna utvecklingar med bekvämligheter, utsikt och resort-livsstil",
-                "cta": "Se Lägenhetsprojekt >"
-            },
-            "villas": {
-                "title": "Radhus & Villor",
-                "subtitle": "Privata hem med utrymme, avskildhet och arkitektonisk karaktär",
-                "cta": "Se Villor & Hus >"
-            }
-        },
-        "moreInfo": "Mer information >",
-        "header": {
-            "title": "Detta är ett litet kurerat urval.",
-            "subtitle": "Ett bredare utbud finns tillgängligt baserat på dina kriterier."
-        },
-        "apartments": [
-            {
-                "id": "panorama-bay",
-                "title": "Panorama Bay",
-                "price": "From €385,000",
-                "description": "Moderna lägenheter med panoramautsikt över havet"
-            },
-            {
-                "id": "sunset-residences",
-                "title": "Sunset Residences",
-                "price": "From €420,000",
-                "description": "Nutida lägenheter med stora terrasser"
-            },
-            {
-                "id": "green-valley-gardens",
-                "title": "Green Valley Gardens",
-                "price": "From €450,000",
-                "description": "Stiliga penthouses med golfutsikt"
-            },
-            {
-                "id": "la-perla-marina",
-                "title": "La Perla Marina",
-                "price": "From €510,000",
-                "description": "Exklusiv utveckling vid stranden"
-            },
-            {
-                "id": "aqua-blu-oasis",
-                "title": "Aqua Blu Oasis",
-                "price": "From €393,000",
-                "description": "Modernt boende med resort-bekvämligheter"
-            },
-            {
-                "id": "elevate-suites",
-                "title": "Elevate Suites",
-                "price": "From €440,000",
-                "description": "Högdesignade lägenheter med lyxfaciliteter"
-            }
-        ],
-        "villas": [
-            {
-                "id": "villa-amalfi",
-                "title": "Villa Amalfi",
-                "price": "From €790,000",
-                "description": "Elegant medelhavsvilla med havsutsikt"
-            },
-            {
-                "id": "sierra-blanca",
-                "title": "Sierra Blanca Townhouses",
-                "price": "From €699,000",
-                "description": "Lyxiga radhus i exklusivt område"
-            },
-            {
-                "id": "los-arcos",
-                "title": "Los Arcos Estate",
-                "price": "From €1,950,000",
-                "description": "Raffinerad villa med spansk arkitektur"
-            },
-            {
-                "id": "monte-verde",
-                "title": "Monte Verde Villa",
-                "price": "From €835,000",
-                "description": "Modern villa med panoramautsikt"
-            },
-            {
-                "id": "horizon-hills",
-                "title": "Horizon Hills Villas",
-                "price": "From €1,150,000",
-                "description": "Nutida design med stora tomter"
-            },
-            {
-                "id": "la-terraza",
-                "title": "La Terraza Residences",
-                "price": "From €720,000",
-                "description": "Radhus med privata pooler och terrasser"
-            }
-        ]
+    {
+      "text": "Processen var smidig och vi kände oss aldrig pressade.",
+      "author": "— Lars & Ingrid, Sverige"
     },
-    "form": {
-        "title": "Fyll i formuläret för att få mer information",
-        "fields": {
-            "fullName": "Fullständigt Namn",
-            "phone": "Ditt Telefonnummer",
-            "comment": "Kommentar (valfritt)"
-        },
-        "consent": "Jag samtycker till att ta emot relevant information och uppföljning från DelSolPrimeHomes.",
-        "submit": "Begär WhatsApp / SMS Info",
-        "recaptcha": "Denna webbplats skyddas av reCAPTCHA och Googles integritetspolicy och användarvillkor gäller.",
-        "success": "Tack! Vi kontaktar dig inom 24 timmar.",
-        "error": "Något gick fel. Försök igen."
-    },
-    "footer": {
-        "copyright": "© 2024 DelSolPrimeHomes. Alla rättigheter förbehållna.",
-        "privacy": "Integritetspolicy",
-        "terms": "Användarvillkor"
+    {
+      "text": "Rekommenderas varmt för alla som vill ha en guidad bostadssökning.",
+      "author": "— Thomas & Marie, Frankrike"
     }
+  ],
+  "properties": {
+    "types": {
+      "apartments": {
+        "title": "Lägenheter & Penthouses",
+        "subtitle": "Moderna utvecklingar med bekvämligheter, utsikt och resort-livsstil",
+        "cta": "Se Lägenhetsprojekt >"
+      },
+      "villas": {
+        "title": "Radhus & Villor",
+        "subtitle": "Privata hem med utrymme, avskildhet och arkitektonisk karaktär",
+        "cta": "Se Villor & Hus >"
+      }
+    },
+    "moreInfo": "Mer information >",
+    "header": {
+      "title": "Detta är ett litet kurerat urval.",
+      "subtitle": "Ett bredare utbud finns tillgängligt baserat på dina kriterier."
+    },
+    "apartments": [
+      {
+        "id": "panorama-bay",
+        "title": "Panorama Bay",
+        "price": "From €385,000",
+        "description": "Moderna lägenheter med panoramautsikt över havet"
+      },
+      {
+        "id": "sunset-residences",
+        "title": "Sunset Residences",
+        "price": "From €420,000",
+        "description": "Nutida lägenheter med stora terrasser"
+      },
+      {
+        "id": "green-valley-gardens",
+        "title": "Green Valley Gardens",
+        "price": "From €450,000",
+        "description": "Stiliga penthouses med golfutsikt"
+      },
+      {
+        "id": "la-perla-marina",
+        "title": "La Perla Marina",
+        "price": "From €510,000",
+        "description": "Exklusiv utveckling vid stranden"
+      },
+      {
+        "id": "aqua-blu-oasis",
+        "title": "Aqua Blu Oasis",
+        "price": "From €393,000",
+        "description": "Modernt boende med resort-bekvämligheter"
+      },
+      {
+        "id": "elevate-suites",
+        "title": "Elevate Suites",
+        "price": "From €440,000",
+        "description": "Högdesignade lägenheter med lyxfaciliteter"
+      }
+    ],
+    "villas": [
+      {
+        "id": "villa-amalfi",
+        "title": "Villa Amalfi",
+        "price": "From €790,000",
+        "description": "Elegant medelhavsvilla med havsutsikt"
+      },
+      {
+        "id": "sierra-blanca",
+        "title": "Sierra Blanca Townhouses",
+        "price": "From €699,000",
+        "description": "Lyxiga radhus i exklusivt område"
+      },
+      {
+        "id": "los-arcos",
+        "title": "Los Arcos Estate",
+        "price": "From €1,950,000",
+        "description": "Raffinerad villa med spansk arkitektur"
+      },
+      {
+        "id": "monte-verde",
+        "title": "Monte Verde Villa",
+        "price": "From €835,000",
+        "description": "Modern villa med panoramautsikt"
+      },
+      {
+        "id": "horizon-hills",
+        "title": "Horizon Hills Villas",
+        "price": "From €1,150,000",
+        "description": "Nutida design med stora tomter"
+      },
+      {
+        "id": "la-terraza",
+        "title": "La Terraza Residences",
+        "price": "From €720,000",
+        "description": "Radhus med privata pooler och terrasser"
+      }
+    ],
+    "heading": "Featured Properties",
+    "from": "From",
+    "beds": "Beds",
+    "baths": "Baths",
+    "viewDetails": "View Details"
+  },
+  "form": {
+    "title": "Fyll i formuläret för att få mer information",
+    "fields": {
+      "fullName": "Fullständigt Namn",
+      "phone": "Ditt Telefonnummer",
+      "comment": "Kommentar (valfritt)"
+    },
+    "consent": "I agree to receive relevant information and follow-up messages from DelSolPrimeHomes via WhatsApp and/or SMS.",
+    "submit": "Begär WhatsApp / SMS Info",
+    "recaptcha": "Denna webbplats skyddas av reCAPTCHA och Googles integritetspolicy och användarvillkor gäller.",
+    "success": "Tack! Vi kontaktar dig inom 24 timmar.",
+    "error": "Något gick fel. Försök igen.",
+    "contactField": "WhatsApp / SMS number",
+    "contactFieldAlt": "Where can we message you? (WhatsApp/SMS)"
+  },
+  "footer": {
+    "copyright": "© 2024 DelSolPrimeHomes. Alla rättigheter förbehållna.",
+    "privacy": "Integritetspolicy",
+    "terms": "Användarvillkor"
+  },
+  "stickyButton": {
+    "main": "Krijg duidelijke antwoorden en een persoonlijke woningselectie",
+    "micro": "Voorbereid in 2 minuten · Geen verplichting"
+  },
+  "video": {
+    "heading": "How our guided, pressure-free approach works",
+    "subtext": "Emma answers your questions and carefully records your criteria."
+  },
+  "reviews": {
+    "heading": "A calm, pressure-free experience — according to our clients"
+  },
+  "bridging": {
+    "statement": "Get clear answers to all your questions — and have your criteria carefully recorded, so we can guide you properly from the very first step."
+  },
+  "preProperties": {
+    "cta": "Get clarity & a personal shortlist with Emma",
+    "micro": "Ask questions · Share your preferences · No obligation"
+  },
+  "categories": {
+    "viewVillas": "View Villas & Townhouses"
+  }
 }

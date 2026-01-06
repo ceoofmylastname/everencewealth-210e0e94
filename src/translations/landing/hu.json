@@ -1,147 +1,180 @@
 {
-    "hero": {
-        "headline": "FEDEZZE FEL A LUXUS ÉLETSTÍLUST A COSTA DEL SOLON",
-        "subheadline": "Tapasztalja meg a személyre szabott és stresszmentes megközelítést álmai otthonának megtalálásához Dél-Spanyolországban.",
-        "videoCTA": "Nézze meg rövid bemutatkozónkat",
-        "emmaCTA": "Kezdés Emmával"
+  "hero": {
+    "headline": "FEDEZZE FEL A LUXUS ÉLETSTÍLUST A COSTA DEL SOLON",
+    "subheadline": "Tapasztalja meg a személyre szabott és stresszmentes megközelítést álmai otthonának megtalálásához Dél-Spanyolországban.",
+    "videoCTA": "Nézze meg rövid bemutatkozónkat",
+    "emmaCTA": "Kezdés Emmával",
+    "primaryCTA": "Get your private, pressure-free property shortlist",
+    "secondaryCTA": "Watch our 60-second introduction"
+  },
+  "emma": {
+    "headline": "Tegye fel kérdéseit. Ossza meg szempontjait.",
+    "subheadline": "Kapjon egy első, személyre szabott válogatást 24 órán belül.",
+    "status": "Online most - Kérdezzen bármit!",
+    "greeting": "Szia! Miben segíthetek ma?",
+    "quickActions": {
+      "question": "Kérdezzen egyet",
+      "criteria": "Ossza meg szempontjait",
+      "explore": "Fedezze fel az apartmanokat vagy villákat"
     },
-    "emma": {
-        "headline": "Tegye fel kérdéseit. Ossza meg szempontjait.",
-        "subheadline": "Kapjon egy első, személyre szabott válogatást 24 órán belül.",
-        "status": "Online most - Kérdezzen bármit!",
-        "greeting": "Szia! Miben segíthetek ma?",
-        "quickActions": {
-            "question": "Kérdezzen egyet",
-            "criteria": "Ossza meg szempontjait",
-            "explore": "Fedezze fel az apartmanokat vagy villákat"
-        },
-        "placeholder": "Írja be üzenetét..."
+    "placeholder": "Írja be üzenetét...",
+    "title": "Emma",
+    "subtitle": "Your Property Assistant",
+    "intro": "Emma answers your questions and prepares a clear overview of your criteria for our team."
+  },
+  "testimonials": [
+    {
+      "text": "Emma igazán megértette az igényeinket, és világos választási lehetőségeket kínált.",
+      "author": "— Peter & Anne, Hollandia"
     },
-    "testimonials": [
-        {
-            "text": "Emma igazán megértette az igényeinket, és világos választási lehetőségeket kínált.",
-            "author": "— Peter & Anne, Hollandia"
-        },
-        {
-            "text": "A folyamat zökkenőmentes volt, és soha nem éreztünk nyomást.",
-            "author": "— Lars & Ingrid, Svédország"
-        },
-        {
-            "text": "Erősen ajánlott mindenkinek, aki vezetett ingatlankeresést szeretne.",
-            "author": "— Thomas & Marie, Franciaország"
-        }
-    ],
-    "properties": {
-        "types": {
-            "apartments": {
-                "title": "Apartmanok & Penthouse-ok",
-                "subtitle": "Modern fejlesztések kényelmi szolgáltatásokkal, kilátással és üdülőhellyel",
-                "cta": "Apartman Projektek Megtekintése >"
-            },
-            "villas": {
-                "title": "Sorházak & Villák",
-                "subtitle": "Magánlakások térrel, magánélettel és építészeti karakterrel",
-                "cta": "Villák & Házak Megtekintése >"
-            }
-        },
-        "moreInfo": "További információ >",
-        "header": {
-            "title": "Ez egy kis válogatott kínálat.",
-            "subtitle": "Szélesebb választék áll rendelkezésre az Ön kritériumai alapján."
-        },
-        "apartments": [
-            {
-                "id": "panorama-bay",
-                "title": "Panorama Bay",
-                "price": "From €385,000",
-                "description": "Modern apartmanok panorámás kilátással a tengerre"
-            },
-            {
-                "id": "sunset-residences",
-                "title": "Sunset Residences",
-                "price": "From €420,000",
-                "description": "Kortárs apartmanok nagy teraszokkal"
-            },
-            {
-                "id": "green-valley-gardens",
-                "title": "Green Valley Gardens",
-                "price": "From €450,000",
-                "description": "Stílusos penthouse-ok kilátással a golfpályára"
-            },
-            {
-                "id": "la-perla-marina",
-                "title": "La Perla Marina",
-                "price": "From €510,000",
-                "description": "Exkluzív fejlesztés a tengerparton"
-            },
-            {
-                "id": "aqua-blu-oasis",
-                "title": "Aqua Blu Oasis",
-                "price": "From €393,000",
-                "description": "Modern életvitel üdülőhelyi kényelmi szolgáltatásokkal"
-            },
-            {
-                "id": "elevate-suites",
-                "title": "Elevate Suites",
-                "price": "From €440,000",
-                "description": "Magas színvonalú design apartmanok luxus felszereltséggel"
-            }
-        ],
-        "villas": [
-            {
-                "id": "villa-amalfi",
-                "title": "Villa Amalfi",
-                "price": "From €790,000",
-                "description": "Elegáns mediterrán villa tengerre néző kilátással"
-            },
-            {
-                "id": "sierra-blanca",
-                "title": "Sierra Blanca Townhouses",
-                "price": "From €699,000",
-                "description": "Luxus sorházak exkluzív területen"
-            },
-            {
-                "id": "los-arcos",
-                "title": "Los Arcos Estate",
-                "price": "From €1,950,000",
-                "description": "Kifinomult villa spanyol építészettel"
-            },
-            {
-                "id": "monte-verde",
-                "title": "Monte Verde Villa",
-                "price": "From €835,000",
-                "description": "Modern villa panorámás kilátással"
-            },
-            {
-                "id": "horizon-hills",
-                "title": "Horizon Hills Villas",
-                "price": "From €1,150,000",
-                "description": "Kortárs design kiterjedt telkekkel"
-            },
-            {
-                "id": "la-terraza",
-                "title": "La Terraza Residences",
-                "price": "From €720,000",
-                "description": "Sorházak saját medencével és terasszal"
-            }
-        ]
+    {
+      "text": "A folyamat zökkenőmentes volt, és soha nem éreztünk nyomást.",
+      "author": "— Lars & Ingrid, Svédország"
     },
-    "form": {
-        "title": "Töltse ki az ürlapot további információkért",
-        "fields": {
-            "fullName": "Teljes Név",
-            "phone": "Telefonszáma",
-            "comment": "Megjegyzés (opcionális)"
-        },
-        "consent": "Hozzájárulok, hogy releváns információkat és megkereséseket kapjak a DelSolPrimeHomes-tól.",
-        "submit": "WhatsApp / SMS Infó Kérése",
-        "recaptcha": "Ezt az oldalt a reCAPTCHA védi, és a Google Adatvédelmi Irányelvei és Szolgáltatási Feltételei érvényesek.",
-        "success": "Köszönjük! 24 órán belül felvesszük Önnel a kapcsolatot.",
-        "error": "Valami hiba történt. Kérjük, próbálja újra."
-    },
-    "footer": {
-        "copyright": "© 2024 DelSolPrimeHomes. Minden jog fenntartva.",
-        "privacy": "Adatvédelmi Irányelvek",
-        "terms": "Szolgáltatási Feltételek"
+    {
+      "text": "Erősen ajánlott mindenkinek, aki vezetett ingatlankeresést szeretne.",
+      "author": "— Thomas & Marie, Franciaország"
     }
+  ],
+  "properties": {
+    "types": {
+      "apartments": {
+        "title": "Apartmanok & Penthouse-ok",
+        "subtitle": "Modern fejlesztések kényelmi szolgáltatásokkal, kilátással és üdülőhellyel",
+        "cta": "Apartman Projektek Megtekintése >"
+      },
+      "villas": {
+        "title": "Sorházak & Villák",
+        "subtitle": "Magánlakások térrel, magánélettel és építészeti karakterrel",
+        "cta": "Villák & Házak Megtekintése >"
+      }
+    },
+    "moreInfo": "További információ >",
+    "header": {
+      "title": "Ez egy kis válogatott kínálat.",
+      "subtitle": "Szélesebb választék áll rendelkezésre az Ön kritériumai alapján."
+    },
+    "apartments": [
+      {
+        "id": "panorama-bay",
+        "title": "Panorama Bay",
+        "price": "From €385,000",
+        "description": "Modern apartmanok panorámás kilátással a tengerre"
+      },
+      {
+        "id": "sunset-residences",
+        "title": "Sunset Residences",
+        "price": "From €420,000",
+        "description": "Kortárs apartmanok nagy teraszokkal"
+      },
+      {
+        "id": "green-valley-gardens",
+        "title": "Green Valley Gardens",
+        "price": "From €450,000",
+        "description": "Stílusos penthouse-ok kilátással a golfpályára"
+      },
+      {
+        "id": "la-perla-marina",
+        "title": "La Perla Marina",
+        "price": "From €510,000",
+        "description": "Exkluzív fejlesztés a tengerparton"
+      },
+      {
+        "id": "aqua-blu-oasis",
+        "title": "Aqua Blu Oasis",
+        "price": "From €393,000",
+        "description": "Modern életvitel üdülőhelyi kényelmi szolgáltatásokkal"
+      },
+      {
+        "id": "elevate-suites",
+        "title": "Elevate Suites",
+        "price": "From €440,000",
+        "description": "Magas színvonalú design apartmanok luxus felszereltséggel"
+      }
+    ],
+    "villas": [
+      {
+        "id": "villa-amalfi",
+        "title": "Villa Amalfi",
+        "price": "From €790,000",
+        "description": "Elegáns mediterrán villa tengerre néző kilátással"
+      },
+      {
+        "id": "sierra-blanca",
+        "title": "Sierra Blanca Townhouses",
+        "price": "From €699,000",
+        "description": "Luxus sorházak exkluzív területen"
+      },
+      {
+        "id": "los-arcos",
+        "title": "Los Arcos Estate",
+        "price": "From €1,950,000",
+        "description": "Kifinomult villa spanyol építészettel"
+      },
+      {
+        "id": "monte-verde",
+        "title": "Monte Verde Villa",
+        "price": "From €835,000",
+        "description": "Modern villa panorámás kilátással"
+      },
+      {
+        "id": "horizon-hills",
+        "title": "Horizon Hills Villas",
+        "price": "From €1,150,000",
+        "description": "Kortárs design kiterjedt telkekkel"
+      },
+      {
+        "id": "la-terraza",
+        "title": "La Terraza Residences",
+        "price": "From €720,000",
+        "description": "Sorházak saját medencével és terasszal"
+      }
+    ],
+    "heading": "Featured Properties",
+    "from": "From",
+    "beds": "Beds",
+    "baths": "Baths",
+    "viewDetails": "View Details"
+  },
+  "form": {
+    "title": "Töltse ki az ürlapot további információkért",
+    "fields": {
+      "fullName": "Teljes Név",
+      "phone": "Telefonszáma",
+      "comment": "Megjegyzés (opcionális)"
+    },
+    "consent": "I agree to receive relevant information and follow-up messages from DelSolPrimeHomes via WhatsApp and/or SMS.",
+    "submit": "WhatsApp / SMS Infó Kérése",
+    "recaptcha": "Ezt az oldalt a reCAPTCHA védi, és a Google Adatvédelmi Irányelvei és Szolgáltatási Feltételei érvényesek.",
+    "success": "Köszönjük! 24 órán belül felvesszük Önnel a kapcsolatot.",
+    "error": "Valami hiba történt. Kérjük, próbálja újra.",
+    "contactField": "WhatsApp / SMS number",
+    "contactFieldAlt": "Where can we message you? (WhatsApp/SMS)"
+  },
+  "footer": {
+    "copyright": "© 2024 DelSolPrimeHomes. Minden jog fenntartva.",
+    "privacy": "Adatvédelmi Irányelvek",
+    "terms": "Szolgáltatási Feltételek"
+  },
+  "stickyButton": {
+    "main": "Obtenez des réponses claires et une sélection personnalisée",
+    "micro": "Préparé en 2 minutes · Sans engagement"
+  },
+  "video": {
+    "heading": "How our guided, pressure-free approach works",
+    "subtext": "Emma answers your questions and carefully records your criteria."
+  },
+  "reviews": {
+    "heading": "A calm, pressure-free experience — according to our clients"
+  },
+  "bridging": {
+    "statement": "Get clear answers to all your questions — and have your criteria carefully recorded, so we can guide you properly from the very first step."
+  },
+  "preProperties": {
+    "cta": "Get clarity & a personal shortlist with Emma",
+    "micro": "Ask questions · Share your preferences · No obligation"
+  },
+  "categories": {
+    "viewVillas": "View Villas & Townhouses"
+  }
 }

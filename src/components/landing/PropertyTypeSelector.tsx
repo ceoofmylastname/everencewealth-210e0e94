@@ -13,7 +13,10 @@ const PropertyTypeSelector: React.FC<PropertyTypeSelectorProps> = ({ translation
             <div className="container mx-auto px-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-6xl mx-auto">
                     {/* Apartments Card */}
-                    <div className="group relative h-[500px] overflow-hidden rounded-sm shadow-xl cursor-pointer" onClick={() => onSelect('apartment')}>
+                    <div className="group relative h-[500px] overflow-hidden rounded-sm shadow-xl cursor-pointer" onClick={() => {
+                        onSelect('apartment');
+                        document.getElementById('properties-section')?.scrollIntoView({ behavior: 'smooth' });
+                    }}>
                         <div className="absolute inset-0">
                             <img
                                 src="/images/apartment-type.png"
@@ -35,6 +38,7 @@ const PropertyTypeSelector: React.FC<PropertyTypeSelectorProps> = ({ translation
                                 onClick={(e) => {
                                     e.stopPropagation();
                                     onSelect('apartment');
+                                    document.getElementById('properties-section')?.scrollIntoView({ behavior: 'smooth' });
                                 }}
                             >
                                 {translations.apartments.cta}
@@ -43,7 +47,10 @@ const PropertyTypeSelector: React.FC<PropertyTypeSelectorProps> = ({ translation
                     </div>
 
                     {/* Villas Card */}
-                    <div className="group relative h-[500px] overflow-hidden rounded-sm shadow-xl cursor-pointer" onClick={() => onSelect('villa')}>
+                    <div className="group relative h-[500px] overflow-hidden rounded-sm shadow-xl cursor-pointer" onClick={() => {
+                        onSelect('villa');
+                        document.getElementById('properties-section')?.scrollIntoView({ behavior: 'smooth' });
+                    }}>
                         <div className="absolute inset-0">
                             <img
                                 src="/images/villa-type.png"
@@ -65,6 +72,7 @@ const PropertyTypeSelector: React.FC<PropertyTypeSelectorProps> = ({ translation
                                 onClick={(e) => {
                                     e.stopPropagation();
                                     onSelect('villa');
+                                    document.getElementById('properties-section')?.scrollIntoView({ behavior: 'smooth' });
                                 }}
                             >
                                 {translations.villas.cta}
