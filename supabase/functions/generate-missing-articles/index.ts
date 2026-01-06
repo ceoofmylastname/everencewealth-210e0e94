@@ -50,7 +50,7 @@ function countWords(html: string): number {
   return text.split(/\s+/).filter(w => w.length > 0).length;
 }
 
-// Content quality validation
+// Content quality validation with strict word count enforcement
 function validateContentQuality(article: any, plan: any): { isValid: boolean; issues: string[]; score: number; wordCount: number } {
   const issues: string[] = [];
   let score = 100;
@@ -71,9 +71,16 @@ function validateContentQuality(article: any, plan: any): { isValid: boolean; is
   }
   
   const wordCount = countWords(article.detailed_content || '');
+  
+  // HARD FAIL: Articles under 1200 words are always invalid
+  if (wordCount < 1200) {
+    issues.push(`CRITICAL: Content severely under minimum (${wordCount} words, need 1500+)`);
+    return { isValid: false, issues, score: 0, wordCount };
+  }
+  
   if (wordCount < 1500) {
     issues.push(`Content too short (${wordCount} words, minimum 1500)`);
-    score -= 25;
+    score -= 40; // Increased penalty
   } else if (wordCount > 2500) {
     issues.push(`Content too long (${wordCount} words, maximum 2500)`);
     score -= 10;
@@ -366,26 +373,78 @@ Include 5-8 FAQ questions in qa_entities. Each answer must be 80-120 words in a 
 The detailed_content must be proper HTML with at least 6 H2 headings, detailed paragraphs, examples, and expert insights.
 REMEMBER: Minimum 1,500 words in detailed_content is MANDATORY.`;
 
-          // Generate content with retry loop for word count enforcement
+          // Generate content with retry loop for word count enforcement (3 attempts with escalating prompts)
           let contentJson: any = null;
           let attempts = 0;
-          const maxAttempts = 2;
+          const maxAttempts = 3;
+          let lastWordCount = 0;
           
           while (attempts < maxAttempts) {
             attempts++;
+            console.log(`[Missing] Content generation attempt ${attempts}/${maxAttempts}...`);
             
             let currentPrompt = contentPrompt;
-            if (attempts > 1 && contentJson) {
+            let systemPrompt = `You are an expert real estate content writer specializing in Costa del Sol, Spain.
+
+CRITICAL REQUIREMENTS:
+1. You MUST respond with valid JSON only
+2. Articles MUST be between 1,500 and 2,500 words - this is NON-NEGOTIABLE
+3. Include at least 8 H2 sections, each with 3+ detailed paragraphs (150-200 words per section)
+4. Before finalizing, mentally count your words - if under 1,500, ADD MORE CONTENT`;
+
+            if (attempts === 2 && contentJson) {
               const prevWordCount = countWords(contentJson.detailed_content || '');
+              systemPrompt = `You are an expert real estate content writer. Your previous response was ONLY ${prevWordCount} words - this is UNACCEPTABLE.
+
+MANDATORY: This response MUST be at least 1,500 words. 
+STRATEGY: Write 8 sections of 200+ words each = 1,600+ words minimum.
+DO NOT submit anything under 1,500 words.`;
+
               currentPrompt = `${contentPrompt}
 
-IMPORTANT: Your previous response was only ${prevWordCount} words. This is TOO SHORT.
-You MUST expand the article to AT LEAST 1,500 words. Add more:
-- Detailed explanations and examples
-- Expert insights and statistics
-- Practical tips and considerations
-- Regional specifics for Costa del Sol
-Keep all existing content but EXPAND significantly.`;
+⚠️ PREVIOUS ATTEMPT FAILED: Only ${prevWordCount} words generated.
+
+You MUST write a MUCH LONGER article. Use this structure:
+1. Introduction (150+ words)
+2. Section 1 - Overview (200+ words)
+3. Section 2 - Key Considerations (200+ words)
+4. Section 3 - Process Details (200+ words)
+5. Section 4 - Costs & Fees (200+ words)
+6. Section 5 - Legal Requirements (200+ words)
+7. Section 6 - Common Mistakes (200+ words)
+8. Section 7 - Expert Tips (200+ words)
+9. Conclusion (150+ words)
+
+This structure gives you 1,700+ words. Follow it exactly.`;
+            } else if (attempts === 3 && contentJson) {
+              const prevWordCount = countWords(contentJson.detailed_content || '');
+              systemPrompt = `FINAL ATTEMPT. Previous responses were too short (${prevWordCount} words).
+
+You are a verbose, detailed writer. EVERY paragraph must be 80-100 words minimum.
+Include specific examples, statistics, expert quotes, and regional details for EVERY point.
+If in doubt, ADD MORE DETAIL. Err on the side of being too long.`;
+
+              currentPrompt = `${contentPrompt}
+
+🚨 FINAL ATTEMPT - MUST REACH 1,500 WORDS 🚨
+
+Your previous ${attempts - 1} attempts produced only ${prevWordCount} words. This is your LAST chance.
+
+MANDATORY EXPANSION TECHNIQUES:
+• Add specific Costa del Sol examples (Marbella, Estepona, Mijas, etc.)
+• Include 2-3 sentences of explanation for EVERY claim
+• Add "For example..." or "In practice, this means..." phrases
+• Include relevant statistics and timeframes
+• Mention both advantages AND disadvantages of each point
+• Add expert insights like "Experienced agents recommend..."
+
+SECTION WORD COUNTS (strict minimums):
+- Introduction: 200 words
+- Each of 6-8 body sections: 200+ words  
+- FAQ section: 5-8 questions with 100-word answers each
+- Conclusion: 150 words
+
+TOTAL MINIMUM: 1,800 words. Do NOT submit under 1,500.`;
             }
 
             const contentResponse = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -393,10 +452,10 @@ Keep all existing content but EXPAND significantly.`;
               headers: { 'Authorization': `Bearer ${OPENAI_API_KEY}`, 'Content-Type': 'application/json' },
               body: JSON.stringify({
                 model: 'gpt-4o',
-                max_tokens: 8192,
+                max_tokens: 12000,
                 response_format: { type: 'json_object' },
                 messages: [
-                  { role: 'system', content: 'You are an expert real estate content writer. You MUST respond with valid JSON only. Articles MUST be 1500-2500 words.' },
+                  { role: 'system', content: systemPrompt },
                   { role: 'user', content: currentPrompt }
                 ],
               }),
@@ -423,19 +482,26 @@ Keep all existing content but EXPAND significantly.`;
               throw new Error(`Failed to parse content JSON: ${parseError instanceof Error ? parseError.message : String(parseError)}`);
             }
 
-            const wordCount = countWords(contentJson.detailed_content || '');
-            console.log(`[Missing] Attempt ${attempts}: ${wordCount} words`);
+            lastWordCount = countWords(contentJson.detailed_content || '');
+            console.log(`[Missing] ━━━ Attempt ${attempts}: ${lastWordCount} words ━━━`);
             
-            if (wordCount >= 1500) {
-              break; // Word count OK, exit retry loop
+            if (lastWordCount >= 1500) {
+              console.log(`[Missing] ✅ Word count requirement met!`);
+              break;
             }
             
             if (attempts < maxAttempts) {
-              console.warn(`[Missing] Word count ${wordCount} too low, retrying...`);
-              await new Promise(resolve => setTimeout(resolve, 1000));
+              console.warn(`[Missing] ⚠️ Word count ${lastWordCount} below 1500, will retry...`);
+              await new Promise(resolve => setTimeout(resolve, 1500));
+            } else {
+              console.error(`[Missing] ❌ Failed to reach 1500 words after ${maxAttempts} attempts (final: ${lastWordCount})`);
             }
           }
 
+          // HARD FAIL: If still under 1200 words, reject the article
+          if (lastWordCount < 1200) {
+            throw new Error(`Article generation failed: Could not reach minimum word count after ${maxAttempts} attempts (only ${lastWordCount} words). Article rejected.`);
+          }
           article.detailed_content = contentJson.detailed_content || contentJson.content || '';
           article.meta_title = (contentJson.meta_title || plan.headline).substring(0, 60);
           article.meta_description = (contentJson.meta_description || '').substring(0, 160);
