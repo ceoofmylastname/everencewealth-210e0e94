@@ -62,6 +62,12 @@ export const ClusterArticlesTab = ({
   const totalExpected = 60; // 6 articles × 10 languages
   const completionPercent = Math.round((cluster.total_articles / totalExpected) * 100);
 
+  // Helper to count words in HTML content
+  const countWords = (html: string): number => {
+    const text = (html || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+    return text.split(/\s+/).filter(w => w.length > 0).length;
+  };
+
   // Fetch actual articles for this cluster
   const { data: articles = [] } = useQuery({
     queryKey: ['cluster-articles', cluster.cluster_id],
@@ -77,6 +83,15 @@ export const ClusterArticlesTab = ({
       return data || [];
     },
   });
+
+  // Calculate word count stats for articles
+  const wordCountStats = articles.reduce((acc, article) => {
+    const wordCount = countWords(article.detailed_content || '');
+    if (wordCount < 1500) acc.tooShort++;
+    else if (wordCount > 2500) acc.tooLong++;
+    else acc.inRange++;
+    return acc;
+  }, { tooShort: 0, inRange: 0, tooLong: 0 });
 
   // Filter articles
   const filteredArticles = articles.filter(article => {
@@ -259,8 +274,13 @@ export const ClusterArticlesTab = ({
           <div className="text-xs text-muted-foreground">Draft</div>
         </div>
         <div className="text-center p-3 bg-muted/50 rounded-lg">
-          <div className="text-2xl font-bold">{Object.keys(cluster.languages).length}/10</div>
-          <div className="text-xs text-muted-foreground">Languages</div>
+          <div className={`text-2xl font-bold ${
+            wordCountStats.tooShort > 0 ? 'text-red-600' : 
+            wordCountStats.tooLong > 0 ? 'text-amber-600' : 'text-green-600'
+          }`}>
+            {articles.length > 0 ? Math.round((wordCountStats.inRange / articles.length) * 100) : 0}%
+          </div>
+          <div className="text-xs text-muted-foreground">Word Count OK</div>
         </div>
       </div>
 
@@ -333,13 +353,28 @@ export const ClusterArticlesTab = ({
       {filteredArticles.length > 0 && (
         <ScrollArea className="h-[200px] border rounded-lg">
           <div className="p-2 space-y-1">
-            {filteredArticles.map((article) => (
+            {filteredArticles.map((article) => {
+              const wordCount = countWords(article.detailed_content || '');
+              const wordCountStatus = wordCount < 1500 ? 'short' : wordCount > 2500 ? 'long' : 'ok';
+              
+              return (
               <div
                 key={article.id}
                 className="flex items-center gap-2 p-2 hover:bg-muted/50 rounded-md group"
               >
                 <span className="text-lg shrink-0">{getLanguageFlag(article.language)}</span>
                 <span className="flex-1 text-sm truncate">{article.headline}</span>
+                <Badge 
+                  variant="outline" 
+                  className={`shrink-0 text-xs ${
+                    wordCountStatus === 'short' ? 'bg-red-100 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-300' :
+                    wordCountStatus === 'long' ? 'bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-300' :
+                    'bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-300'
+                  }`}
+                  title={`${wordCount} words (target: 1500-2500)`}
+                >
+                  {wordCount}w
+                </Badge>
                 <Badge variant="outline" className="shrink-0 text-xs">
                   {article.funnel_stage}
                 </Badge>
@@ -399,7 +434,7 @@ export const ClusterArticlesTab = ({
                   </Button>
                 </div>
               </div>
-            ))}
+            )})}
           </div>
         </ScrollArea>
       )}

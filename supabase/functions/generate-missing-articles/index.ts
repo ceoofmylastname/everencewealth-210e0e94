@@ -44,8 +44,14 @@ function extractJsonFromResponse(text: string): any {
   }
 }
 
+// Count words in HTML content
+function countWords(html: string): number {
+  const text = (html || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+  return text.split(/\s+/).filter(w => w.length > 0).length;
+}
+
 // Content quality validation
-function validateContentQuality(article: any, plan: any): { isValid: boolean; issues: string[]; score: number } {
+function validateContentQuality(article: any, plan: any): { isValid: boolean; issues: string[]; score: number; wordCount: number } {
   const issues: string[] = [];
   let score = 100;
   
@@ -64,13 +70,13 @@ function validateContentQuality(article: any, plan: any): { isValid: boolean; is
     score -= 10;
   }
   
-  const wordCount = (article.detailed_content || '').replace(/<[^>]*>/g, ' ').trim().split(/\s+/).length;
+  const wordCount = countWords(article.detailed_content || '');
   if (wordCount < 1500) {
     issues.push(`Content too short (${wordCount} words, minimum 1500)`);
-    score -= 20;
-  } else if (wordCount > 2300) {
-    issues.push(`Content too long (${wordCount} words, maximum 2300)`);
-    score -= 5;
+    score -= 25;
+  } else if (wordCount > 2500) {
+    issues.push(`Content too long (${wordCount} words, maximum 2500)`);
+    score -= 10;
   }
   
   if (article.qa_entities && Array.isArray(article.qa_entities)) {
@@ -80,7 +86,7 @@ function validateContentQuality(article: any, plan: any): { isValid: boolean; is
     }
   }
   
-  return { isValid: score >= 60, issues, score };
+  return { isValid: score >= 60, issues, score, wordCount };
 }
 
 serve(async (req) => {
@@ -326,7 +332,7 @@ Respond with JSON: { "category": "exact category name from the list" }`;
           };
           const languageName = languageNameMap[sourceLanguage] || 'English';
 
-          // Build content prompt - ALWAYS wrap in JSON requirements
+          // Build content prompt with STRICT word count requirements
           let basePrompt = masterPrompt 
             ? masterPrompt
                 .replace(/\{\{headline\}\}/g, plan.headline)
@@ -339,12 +345,17 @@ Respond with JSON: { "category": "exact category name from the list" }`;
 
           const contentPrompt = `${basePrompt}
 
-CRITICAL: You MUST respond with a valid JSON object with this exact structure:
+CRITICAL WORD COUNT REQUIREMENT: The article MUST be between 1,500 and 2,500 words. Count your words carefully.
+- Minimum: 1,500 words (articles under this will be REJECTED)
+- Target: 1,800-2,000 words (ideal range)
+- Maximum: 2,500 words
+
+You MUST respond with a valid JSON object with this exact structure:
 {
-  "detailed_content": "<div class='article-content'>...full HTML article content here (1500-2000 words)...</div>",
+  "detailed_content": "<div class='article-content'>...full HTML article content (MINIMUM 1500 words, target 1800-2000)...</div>",
   "meta_title": "SEO title (50-60 characters)",
   "meta_description": "SEO meta description (150-160 characters)", 
-  "speakable_answer": "80-120 word summary answering the main question",
+  "speakable_answer": "40-60 word summary answering the main question directly",
   "qa_entities": [
     {"question": "FAQ question 1?", "answer": "Detailed answer (80-120 words, single paragraph, no lists)"},
     {"question": "FAQ question 2?", "answer": "Detailed answer (80-120 words, single paragraph, no lists)"}
@@ -352,42 +363,77 @@ CRITICAL: You MUST respond with a valid JSON object with this exact structure:
 }
 
 Include 5-8 FAQ questions in qa_entities. Each answer must be 80-120 words in a single paragraph (no bullet points or lists).
-The detailed_content must be proper HTML with H2 headings, paragraphs, and be 1,500-2,000 words.`;
+The detailed_content must be proper HTML with at least 6 H2 headings, detailed paragraphs, examples, and expert insights.
+REMEMBER: Minimum 1,500 words in detailed_content is MANDATORY.`;
 
-          const contentResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-            method: 'POST',
-            headers: { 'Authorization': `Bearer ${OPENAI_API_KEY}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              model: 'gpt-4o',
-              max_tokens: 8192,
-              response_format: { type: 'json_object' },
-              messages: [
-                { role: 'system', content: 'You are an expert real estate content writer. You MUST respond with valid JSON only.' },
-                { role: 'user', content: contentPrompt }
-              ],
-            }),
-          });
-
-          if (!contentResponse.ok) {
-            const errorText = await contentResponse.text();
-            console.error(`[Missing] Content API error (${contentResponse.status}):`, errorText.substring(0, 500));
-            throw new Error(`Content generation failed: ${contentResponse.status}`);
-          }
-
-          const contentData = await contentResponse.json();
-          const contentText = contentData.choices?.[0]?.message?.content || '';
+          // Generate content with retry loop for word count enforcement
+          let contentJson: any = null;
+          let attempts = 0;
+          const maxAttempts = 2;
           
-          if (!contentText.trim()) {
-            throw new Error('OpenAI returned empty content response');
-          }
-          
-          let contentJson;
-          try {
-            contentJson = extractJsonFromResponse(contentText);
-          } catch (parseError) {
-            console.error(`[Missing] Content parse error:`, parseError);
-            console.error(`[Missing] Raw content (first 500 chars):`, contentText.substring(0, 500));
-            throw new Error(`Failed to parse content JSON: ${parseError instanceof Error ? parseError.message : String(parseError)}`);
+          while (attempts < maxAttempts) {
+            attempts++;
+            
+            let currentPrompt = contentPrompt;
+            if (attempts > 1 && contentJson) {
+              const prevWordCount = countWords(contentJson.detailed_content || '');
+              currentPrompt = `${contentPrompt}
+
+IMPORTANT: Your previous response was only ${prevWordCount} words. This is TOO SHORT.
+You MUST expand the article to AT LEAST 1,500 words. Add more:
+- Detailed explanations and examples
+- Expert insights and statistics
+- Practical tips and considerations
+- Regional specifics for Costa del Sol
+Keep all existing content but EXPAND significantly.`;
+            }
+
+            const contentResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+              method: 'POST',
+              headers: { 'Authorization': `Bearer ${OPENAI_API_KEY}`, 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                model: 'gpt-4o',
+                max_tokens: 8192,
+                response_format: { type: 'json_object' },
+                messages: [
+                  { role: 'system', content: 'You are an expert real estate content writer. You MUST respond with valid JSON only. Articles MUST be 1500-2500 words.' },
+                  { role: 'user', content: currentPrompt }
+                ],
+              }),
+            });
+
+            if (!contentResponse.ok) {
+              const errorText = await contentResponse.text();
+              console.error(`[Missing] Content API error (${contentResponse.status}):`, errorText.substring(0, 500));
+              throw new Error(`Content generation failed: ${contentResponse.status}`);
+            }
+
+            const contentData = await contentResponse.json();
+            const contentText = contentData.choices?.[0]?.message?.content || '';
+            
+            if (!contentText.trim()) {
+              throw new Error('OpenAI returned empty content response');
+            }
+            
+            try {
+              contentJson = extractJsonFromResponse(contentText);
+            } catch (parseError) {
+              console.error(`[Missing] Content parse error:`, parseError);
+              console.error(`[Missing] Raw content (first 500 chars):`, contentText.substring(0, 500));
+              throw new Error(`Failed to parse content JSON: ${parseError instanceof Error ? parseError.message : String(parseError)}`);
+            }
+
+            const wordCount = countWords(contentJson.detailed_content || '');
+            console.log(`[Missing] Attempt ${attempts}: ${wordCount} words`);
+            
+            if (wordCount >= 1500) {
+              break; // Word count OK, exit retry loop
+            }
+            
+            if (attempts < maxAttempts) {
+              console.warn(`[Missing] Word count ${wordCount} too low, retrying...`);
+              await new Promise(resolve => setTimeout(resolve, 1000));
+            }
           }
 
           article.detailed_content = contentJson.detailed_content || contentJson.content || '';
