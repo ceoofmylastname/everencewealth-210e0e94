@@ -58,6 +58,8 @@ const LocationIndex = lazy(() => import("./pages/LocationIndex"));
 const LocationPage = lazy(() => import("./pages/LocationPage"));
 const About = lazy(() => import("./pages/About"));
 const BuyersGuide = lazy(() => import("./pages/BuyersGuide"));
+const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
+const TermsOfService = lazy(() => import("./pages/TermsOfService"));
 
 // Lazy load ALL admin pages (rarely accessed, heavy components)
 const Dashboard = lazy(() => import("./pages/admin/Dashboard"));
@@ -192,6 +194,8 @@ const App = () => (
               <Route path="/thank-you" element={<ThankYou />} />
               <Route path="/sitemap" element={<Sitemap />} />
               <Route path="/glossary" element={<Glossary />} />
+              <Route path="/privacy" element={<PrivacyPolicy />} />
+              <Route path="/terms" element={<TermsOfService />} />
 
               {/* Landing Pages (Paid Traffic) */}
               <Route path="/en/landing" element={<LandingEn />} />
