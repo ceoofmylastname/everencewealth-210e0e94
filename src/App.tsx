@@ -44,6 +44,7 @@ import NotFound from "./pages/NotFound";
 
 // Lazy load heavy public pages
 const BlogArticle = lazy(() => import("./pages/BlogArticle"));
+const ThankYou = lazy(() => import("./pages/ThankYou"));
 const QAPage = lazy(() => import("./pages/QAPage"));
 const PropertyFinder = lazy(() => import("./pages/PropertyFinder"));
 const PropertyDetail = lazy(() => import("./pages/PropertyDetail"));
@@ -144,6 +145,7 @@ const App = () => (
               <Route path="/" element={<Home />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/login" element={<Navigate to="/auth" replace />} />
+              <Route path="/thank-you" element={<ThankYou />} />
 
               {/* ========================================== */}
               {/* PROTECTED ADMIN ROUTES (MUST BE BEFORE /:lang) */}
