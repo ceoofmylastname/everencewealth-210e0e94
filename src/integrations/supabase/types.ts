@@ -2671,6 +2671,8 @@ export type Database = {
           cluster_id: string | null
           content_type: string | null
           created_at: string | null
+          date_modified: string | null
+          date_published: string | null
           featured_image_alt: string
           featured_image_caption: string | null
           featured_image_url: string
@@ -2703,6 +2705,8 @@ export type Database = {
           cluster_id?: string | null
           content_type?: string | null
           created_at?: string | null
+          date_modified?: string | null
+          date_published?: string | null
           featured_image_alt: string
           featured_image_caption?: string | null
           featured_image_url: string
@@ -2735,6 +2739,8 @@ export type Database = {
           cluster_id?: string | null
           content_type?: string | null
           created_at?: string | null
+          date_modified?: string | null
+          date_published?: string | null
           featured_image_alt?: string
           featured_image_caption?: string | null
           featured_image_url?: string
