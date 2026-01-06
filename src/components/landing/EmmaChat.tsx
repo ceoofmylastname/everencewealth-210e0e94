@@ -46,15 +46,9 @@ const EmmaChat: React.FC<EmmaChatProps> = ({ content, language, isOpen, onClose 
             language
         });
 
-        // Open lead form as fallback/next step
         const event = new CustomEvent('openLeadForm', { detail: { interest: 'chat', message } });
         window.dispatchEvent(event);
         setMessage('');
-        onClose(); // Optional: close chat modal after sending? Or keep open? "Start with Emma" usually implies starting a flow. Let's keep it open or close it? The lead form opens on top. Better to close this one or let the lead form take over.
-        // User pattern: Click send -> Lead Form (capture details) -> Success.
-        // Lead capture form is another modal. Having two modals might be messy.
-        // The previous logic opened lead form. Let's stick to that pattern.
-        // Probably best to close this chat modal when the lead form opens to avoid double backdrop.
         onClose();
     };
 
@@ -74,30 +68,56 @@ const EmmaChat: React.FC<EmmaChatProps> = ({ content, language, isOpen, onClose 
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-[60] flex items-end md:items-center md:justify-end p-4 bg-black/20 backdrop-blur-sm">
-            {/* Modal - not fullscreen on mobile */}
-            <div className="bg-white rounded-t-3xl md:rounded-3xl w-full md:w-[400px] max-h-[80vh] md:max-h-[600px] shadow-2xl flex flex-colanimate-fade-in-up transform transition-all duration-300">
+        <>
+            {/* Backdrop */}
+            <div
+                className="fixed inset-0 bg-black/20 backdrop-blur-sm z-[60]"
+                onClick={onClose}
+            />
+
+            {/* Panel */}
+            <div className={`
+                fixed z-[70] bg-white shadow-2xl flex flex-col transition-transform duration-300
+                
+                /* Mobile: Bottom sheet */
+                bottom-0 left-0 right-0 rounded-t-3xl max-h-[85vh]
+                md:hidden
+                ${isOpen ? 'translate-y-0' : 'translate-y-full'}
+
+                /* Desktop: Right-side panel */
+                md:top-0 md:right-0 md:bottom-0 md:left-auto md:rounded-none md:max-h-none
+                md:w-[450px] lg:w-[500px] md:translate-y-0
+                md:block
+                ${isOpen ? 'md:translate-x-0' : 'md:translate-x-full'}
+            `}>
 
                 {/* Header */}
-                <div className="flex items-center justify-between p-4 border-b">
+                <div className="flex items-center justify-between p-6 border-b bg-primary/5">
                     <div>
-                        <h3 className="font-semibold text-lg">{content.title || "Emma"}</h3>
-                        <p className="text-sm text-gray-600">{content.subtitle || "Your Property Assistant"}</p>
+                        <h3 className="text-xl font-semibold text-gray-900">
+                            {content.title || "Emma"}
+                        </h3>
+                        <p className="text-sm text-gray-600 mt-1">
+                            {content.subtitle || "Your Property Assistant"}
+                        </p>
                     </div>
-                    <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full">
-                        <X className="w-5 h-5" />
+                    <button
+                        onClick={onClose}
+                        className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                    >
+                        <X className="w-5 h-5 text-gray-600" />
                     </button>
                 </div>
 
-                {/* Static Intro Text */}
+                {/* Static Intro */}
                 <div className="p-6 bg-gray-50 border-b">
-                    <p className="text-sm text-gray-700">
+                    <p className="text-sm text-gray-700 leading-relaxed">
                         {content.intro || "Emma answers your questions and prepares a clear overview of your criteria for our team."}
                     </p>
                 </div>
 
                 {/* Chat Content */}
-                <div className="flex-1 overflow-y-auto p-4 space-y-6">
+                <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-6">
                     {/* Emma 'Message' */}
                     <div className="bg-gray-50 p-4 rounded-2xl rounded-tl-none shadow-sm border border-gray-100 max-w-[90%]">
                         <p className="text-[#2C3E50] text-sm md:text-base leading-relaxed">
@@ -106,7 +126,7 @@ const EmmaChat: React.FC<EmmaChatProps> = ({ content, language, isOpen, onClose 
                     </div>
 
                     {/* Quick Actions */}
-                    <div className="space-y-2.5">
+                    <div className="space-y-3">
                         <button
                             className="w-full text-left px-4 py-3 bg-white hover:bg-gray-50 border border-gray-100 hover:border-[#C4A053]/30 rounded-lg text-[#2C3E50] text-sm font-medium transition-all flex items-center gap-3 shadow-sm hover:shadow-md group"
                             onClick={() => handleQuickAction('question')}
@@ -138,7 +158,7 @@ const EmmaChat: React.FC<EmmaChatProps> = ({ content, language, isOpen, onClose 
                 </div>
 
                 {/* Input Area */}
-                <div className="p-4 border-t border-gray-100 bg-white">
+                <div className="p-6 border-t border-gray-100 bg-white">
                     <div className="flex items-center gap-2">
                         <Input
                             value={message}
@@ -158,7 +178,7 @@ const EmmaChat: React.FC<EmmaChatProps> = ({ content, language, isOpen, onClose 
                     </div>
                 </div>
             </div>
-        </div>
+        </>
     );
 };
 

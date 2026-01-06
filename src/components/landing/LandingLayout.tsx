@@ -11,6 +11,7 @@ import LeadCaptureForm from './LeadCaptureForm';
 import StickyActionButton from './StickyActionButton';
 import PrePropertiesAction from './PrePropertiesAction';
 import BridgingStatement from './BridgingStatement';
+import PropertyCategories from './PropertyCategories';
 import { LanguageCode } from '@/utils/landing/languageDetection';
 import { trackPageView } from '@/utils/landing/analytics';
 
@@ -78,22 +79,25 @@ const LandingLayout: React.FC<LandingLayoutProps> = ({ language, translations })
 
                     {/* Center Logo */}
                     <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                        {/* Replace with actual colored logo if available, or use text for now matching the image style */}
                         <div className="flex flex-col items-center">
-                            {/* Simple text representation of the logo in the image if file not present */}
-                            <span className="text-[#C4A053] font-serif text-2xl font-bold tracking-widest whitespace-nowrap">DELSOLPRIMEHOMES</span>
+                            <span className="text-[#C4A053] font-serif text-2xl font-bold tracking-widest whitespace-nowrap cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+                                DELSOLPRIMEHOMES
+                            </span>
                         </div>
                     </div>
 
                     {/* Right Actions */}
                     <div className="flex items-center gap-6">
-                        <a href="tel:+34951123456" className="text-[#2C3E50] hidden md:block hover:text-[#C4A053] transition-colors font-medium text-sm">
-                            +34 951 123 456
-                        </a>
+                        {/* Desktop Header CTA */}
+                        <button
+                            onClick={() => setIsEmmaOpen(true)}
+                            className="hidden md:block bg-primary hover:bg-primary/90 text-white px-5 py-2 rounded-lg text-sm font-medium shadow-md transition-all"
+                        >
+                            {translations.header?.cta || "Get your private shortlist"}
+                        </button>
 
                         <div className="flex items-center gap-3">
                             <LanguageSelector currentLang={language} />
-
                         </div>
                     </div>
                 </div>
@@ -103,6 +107,14 @@ const LandingLayout: React.FC<LandingLayoutProps> = ({ language, translations })
                 content={translations.hero}
                 language={language}
                 onStartChat={() => setIsEmmaOpen(true)}
+                onOpenVideo={() => {
+                    // If we had a specific video element to scroll to or open logic
+                    // For now, Hero handles its own video, or we can scroll to a video section if existing
+                    // But Hero has the video button.
+                    // Let's assume this prop is handled inside Hero mostly, or if we need to scroll:
+                    // const video = document.getElementById('explainer-video');
+                    // video?.scrollIntoView({ behavior: 'smooth' });
+                }}
             />
 
             <TestimonialSection testimonials={translations.testimonials} />
@@ -113,14 +125,25 @@ const LandingLayout: React.FC<LandingLayoutProps> = ({ language, translations })
                 onOpenChat={() => setIsEmmaOpen(true)}
             />
 
-            <PropertyTypeSelector
-                translations={translations.properties.types}
-                onSelect={(type) => {
-                    // Scroll to property section
-                    const element = document.getElementById('properties-section');
-                    element?.scrollIntoView({ behavior: 'smooth' });
-                }}
-            />
+            <PropertyCategories />
+
+            {/* Note: This logic keeps PropertyTypeSelector for mobile via display classes in component or we should hide it?
+                The PropertyCategories component is 'hidden md:block'.
+                The PropertyTypeSelector might be redundant on Desktop now.
+                Let's hide PropertyTypeSelector on desktop if possible, or keep it as sticky nav.
+                For now, keeping it but it might look crowded.
+                Actually, PropertyCategories sends to #apartments-section.
+                Let's keep PropertyTypeSelector for mobile mostly.
+            */}
+            <div className="md:hidden">
+                <PropertyTypeSelector
+                    translations={translations.properties.types}
+                    onSelect={(type) => {
+                        const element = document.getElementById('properties-section');
+                        element?.scrollIntoView({ behavior: 'smooth' });
+                    }}
+                />
+            </div>
 
             <PropertyCarousel
                 language={language}
