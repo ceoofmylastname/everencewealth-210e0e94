@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 interface FooterProps {
     content: {
@@ -19,8 +20,8 @@ const Footer: React.FC<FooterProps> = ({ content }) => {
                     </div>
 
                     <div className="flex gap-6 text-sm text-gray-400">
-                        <a href="#" className="hover:text-[#C4A053] transition-colors">{content.privacy}</a>
-                        <a href="#" className="hover:text-[#C4A053] transition-colors">{content.terms}</a>
+                        <Link to="/privacy" className="hover:text-[#C4A053] transition-colors">{content.privacy}</Link>
+                        <Link to="/terms" className="hover:text-[#C4A053] transition-colors">{content.terms}</Link>
                     </div>
                 </div>
             </div>

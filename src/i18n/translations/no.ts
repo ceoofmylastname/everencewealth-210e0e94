@@ -188,6 +188,7 @@ export const no = {
     },
     legal: {
       privacy: "Personvernerklæring",
+      terms: "Tjenestevilkår",
       cookies: "Informasjonskapselpolicy",
       legalNotice: "Juridisk Merknad",
       lpo: "LPO Informasjon",

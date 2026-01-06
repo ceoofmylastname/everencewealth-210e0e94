@@ -188,6 +188,7 @@ export const en = {
     },
     legal: {
       privacy: "Privacy Policy",
+      terms: "Terms of Service",
       cookies: "Cookie Policy",
       legalNotice: "Legal Notice",
       lpo: "LPO Information",

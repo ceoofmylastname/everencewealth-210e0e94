@@ -74,10 +74,10 @@ export const Footer: React.FC = () => {
           <div>
             <h4 className="font-serif font-bold text-lg mb-6 text-white">{t.footer.legalHeading}</h4>
             <ul className="space-y-3 text-slate-300 text-sm">
-              <li><a href="#" className="hover:text-prime-gold transition-colors font-nav">{t.footer.legal.privacy}</a></li>
+              <li><Link to="/privacy" className="hover:text-prime-gold transition-colors font-nav">{t.footer.legal.privacy}</Link></li>
+              <li><Link to="/terms" className="hover:text-prime-gold transition-colors font-nav">{t.footer.legal.terms || "Terms of Service"}</Link></li>
               <li><a href="#" className="hover:text-prime-gold transition-colors font-nav">{t.footer.legal.cookies}</a></li>
               <li><a href="#" className="hover:text-prime-gold transition-colors font-nav">{t.footer.legal.legalNotice}</a></li>
-              <li><a href="#" className="hover:text-prime-gold transition-colors font-nav">{t.footer.legal.lpo}</a></li>
               <li><a href="#" className="hover:text-prime-gold transition-colors font-nav">{t.footer.legal.gdpr}</a></li>
             </ul>
           </div>
