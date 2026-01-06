@@ -12,8 +12,8 @@ const AuthorByline: React.FC<AuthorBylineProps> = ({
     context
 }) => {
     const photoUrl = context === 'blog'
-        ? '/images/hans-blog.jpg'
-        : '/images/hans-qa.jpg';
+        ? '/images/hans-blog.jpg?v=2'
+        : '/images/hans-qa.jpg?v=2';
 
     const formatDate = (dateString: string) => {
         const date = new Date(dateString);
