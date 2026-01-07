@@ -150,6 +150,7 @@ const LandingLayout: React.FC<LandingLayoutProps> = ({ language, translations })
 
             <StickyActionButton
                 onOpenChat={() => setIsEmmaOpen(true)}
+                language={language}
             />
 
             <EmmaChat

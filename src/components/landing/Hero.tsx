@@ -171,13 +171,13 @@ const Hero: React.FC<HeroProps> = ({ onStartChat, onOpenVideo }) => {
     const currentAlt = altTexts[lang as keyof typeof altTexts] || altTexts.en;
 
     return (
-        <section className="relative min-h-[600px] md:min-h-[700px] bg-gradient-to-br from-gray-50 to-white overflow-hidden">
+        <section className="relative min-h-[600px] md:min-h-[700px] pt-24 md:pt-12 bg-gradient-to-br from-gray-50 to-white overflow-hidden">
             <div className="container mx-auto px-4 py-12 md:py-20 relative z-10">
                 <div className="flex flex-col lg:flex-row items-center gap-12">
 
                     {/* Left Column - Text Content */}
                     <div className="flex-1 space-y-6 md:space-y-8">
-                        <h1 className="text-4xl md:text-5xl lg:text-6xl font-serif text-gray-900 leading-tight">
+                        <h1 className="text-3xl md:text-5xl lg:text-6xl font-serif text-gray-900 leading-tight mt-4 md:mt-0">
                             {currentContent.headline}
                         </h1>
 
