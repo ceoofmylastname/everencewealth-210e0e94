@@ -183,18 +183,39 @@ serve(async (req) => {
       }
     }
 
-    if (missingArticles.length === 0) {
+    // Calculate total missing count
+    const totalMissing = missingArticles.reduce((sum, m) => sum + m.count, 0);
+
+    if (missingArticles.length === 0 || totalMissing === 0) {
       return new Response(JSON.stringify({
         success: true,
         message: 'No missing articles found. Cluster has all 6 source articles.',
         existing: existingByStage,
         generated: 0,
+        remaining: 0,
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    console.log(`[Missing] Need to generate:`, missingArticles);
+    console.log(`[Missing] Need to generate: ${totalMissing} articles total`, missingArticles);
+
+    // CHUNKED ARCHITECTURE: Generate only ONE article per invocation
+    // Get the first missing article to generate
+    const firstMissing = missingArticles[0];
+    const nextClusterNumber = missingClusterNumbers[0];
+    
+    if (nextClusterNumber === undefined) {
+      console.error(`[Missing] No available cluster_number slot!`);
+      return new Response(JSON.stringify({
+        success: false,
+        error: 'No available cluster_number slot',
+        generated: 0,
+        remaining: totalMissing,
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
 
     // Fetch authors and categories
     const { data: authors } = await supabase.from('authors').select('*');
@@ -209,31 +230,16 @@ serve(async (req) => {
     const masterPrompt = promptData?.setting_value || '';
 
     const validCategoryNames = (categories || []).map(c => c.name);
-    const savedArticles: string[] = [];
-    const errors: string[] = [];
-    let clusterNumberIndex = 0;
 
-    // Generate missing articles
-    for (const missing of missingArticles) {
-      for (let i = 0; i < missing.count; i++) {
-        // Get next available cluster_number from the gaps
-        const nextClusterNumber = missingClusterNumbers[clusterNumberIndex];
-        if (nextClusterNumber === undefined) {
-          console.error(`[Missing] No available cluster_number slot!`);
-          errors.push(`No available cluster_number slot for ${missing.funnelStage} article ${i + 1}`);
-          continue;
-        }
-        clusterNumberIndex++;
-        
-        console.log(`\n[Missing] Generating ${missing.funnelStage} article ${i + 1}/${missing.count} (cluster_number: ${nextClusterNumber})...`);
-
-        try {
-          // Generate article plan with JSON mode
-          const planPrompt = `Generate a single article plan for a ${missing.funnelStage} (${
-            missing.funnelStage === 'TOFU' ? 'top-of-funnel, awareness' :
-            missing.funnelStage === 'MOFU' ? 'middle-of-funnel, consideration' :
-            'bottom-of-funnel, decision/purchase'
-          }) article about "${cluster.topic}" targeting "${cluster.primary_keyword}".
+    // Generate ONE article (chunked architecture - one per invocation)
+    console.log(`\n[Missing] Generating ${firstMissing.funnelStage} article (cluster_number: ${nextClusterNumber})...`);
+    
+    // Generate article plan with JSON mode
+    const planPrompt = `Generate a single article plan for a ${firstMissing.funnelStage} (${
+      firstMissing.funnelStage === 'TOFU' ? 'top-of-funnel, awareness' :
+      firstMissing.funnelStage === 'MOFU' ? 'middle-of-funnel, consideration' :
+      'bottom-of-funnel, decision/purchase'
+    }) article about "${cluster.topic}" targeting "${cluster.primary_keyword}".
 
 The cluster already has these articles:
 ${(existingArticles || []).map(a => `- ${a.funnel_stage}: ${a.headline}`).join('\n')}
@@ -245,112 +251,112 @@ You MUST respond with a valid JSON object:
   "headline": "Compelling article headline",
   "targetKeyword": "primary target keyword",
   "contentAngle": "unique angle for this article",
-  "funnelStage": "${missing.funnelStage}"
+  "funnelStage": "${firstMissing.funnelStage}"
 }`;
 
-          const planResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-            method: 'POST',
-            headers: { 'Authorization': `Bearer ${OPENAI_API_KEY}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              model: 'gpt-4o-mini',
-              max_tokens: 512,
-              response_format: { type: 'json_object' },
-              messages: [{ role: 'user', content: planPrompt }],
-            }),
-          });
+    const planResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${OPENAI_API_KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        max_tokens: 512,
+        response_format: { type: 'json_object' },
+        messages: [{ role: 'user', content: planPrompt }],
+      }),
+    });
 
-          if (!planResponse.ok) {
-            const errorText = await planResponse.text();
-            console.error(`[Missing] Plan API error (${planResponse.status}):`, errorText.substring(0, 500));
-            throw new Error(`Plan generation failed: ${planResponse.status}`);
-          }
+    if (!planResponse.ok) {
+      const errorText = await planResponse.text();
+      console.error(`[Missing] Plan API error (${planResponse.status}):`, errorText.substring(0, 500));
+      throw new Error(`Plan generation failed: ${planResponse.status}`);
+    }
 
-          const planData = await planResponse.json();
-          const planText = planData.choices?.[0]?.message?.content || '';
-          if (!planText.trim()) {
-            throw new Error('OpenAI returned empty plan response');
-          }
-          
-          let plan;
-          try {
-            plan = extractJsonFromResponse(planText);
-          } catch (parseError) {
-            console.error(`[Missing] Plan parse error:`, parseError);
-            throw new Error(`Plan response did not contain valid JSON`);
-          }
+    const planData = await planResponse.json();
+    const planText = planData.choices?.[0]?.message?.content || '';
+    if (!planText.trim()) {
+      throw new Error('OpenAI returned empty plan response');
+    }
+    
+    let plan;
+    try {
+      plan = extractJsonFromResponse(planText);
+    } catch (parseError) {
+      console.error(`[Missing] Plan parse error:`, parseError);
+      throw new Error(`Plan response did not contain valid JSON`);
+    }
 
-          console.log(`[Missing] Plan: ${plan.headline}`);
-          
-          // Small delay to avoid rate limits
-          await new Promise(resolve => setTimeout(resolve, 1000));
+    console.log(`[Missing] Plan: ${plan.headline}`);
+    
+    // Small delay to avoid rate limits
+    await new Promise(resolve => setTimeout(resolve, 1000));
 
-          const article: any = {
-            funnel_stage: missing.funnelStage,
-            language: sourceLanguage,
-            status: 'draft',
-            headline: plan.headline,
-            slug: plan.headline.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''),
-          };
+    const article: any = {
+      funnel_stage: firstMissing.funnelStage,
+      language: sourceLanguage,
+      status: 'draft',
+      headline: plan.headline,
+      slug: plan.headline.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''),
+    };
 
-          // Category selection with JSON mode
-          const categoryPrompt = `Select the most appropriate category for this article.
+    // Category selection with JSON mode
+    const categoryPrompt = `Select the most appropriate category for this article.
 
 Available categories:
 ${validCategoryNames.map((name, idx) => `${idx + 1}. ${name}`).join('\n')}
 
 Article: ${plan.headline}
 Keyword: ${plan.targetKeyword}
-Funnel Stage: ${missing.funnelStage}
+Funnel Stage: ${firstMissing.funnelStage}
 
 Respond with JSON: { "category": "exact category name from the list" }`;
 
-          const categoryResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-            method: 'POST',
-            headers: { 'Authorization': `Bearer ${OPENAI_API_KEY}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              model: 'gpt-4o-mini',
-              max_tokens: 256,
-              response_format: { type: 'json_object' },
-              messages: [{ role: 'user', content: categoryPrompt }],
-            }),
-          });
+    const categoryResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${OPENAI_API_KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        max_tokens: 256,
+        response_format: { type: 'json_object' },
+        messages: [{ role: 'user', content: categoryPrompt }],
+      }),
+    });
 
-          let finalCategory = 'Buying Property';
-          if (categoryResponse.ok) {
-            const categoryData = await categoryResponse.json();
-            try {
-              const categoryJson = extractJsonFromResponse(categoryData.choices?.[0]?.message?.content || '{}');
-              const aiCategory = categoryJson.category;
-              const matchedCategory = validCategoryNames.find(
-                name => name.toLowerCase() === aiCategory?.toLowerCase()
-              );
-              finalCategory = matchedCategory || 'Buying Property';
-            } catch (e) {
-              console.warn('[Missing] Category parse failed, using default');
-            }
-          }
-          article.category = finalCategory;
+    let finalCategory = 'Buying Property';
+    if (categoryResponse.ok) {
+      const categoryData = await categoryResponse.json();
+      try {
+        const categoryJson = extractJsonFromResponse(categoryData.choices?.[0]?.message?.content || '{}');
+        const aiCategory = categoryJson.category;
+        const matchedCategory = validCategoryNames.find(
+          name => name.toLowerCase() === aiCategory?.toLowerCase()
+        );
+        finalCategory = matchedCategory || 'Buying Property';
+      } catch (e) {
+        console.warn('[Missing] Category parse failed, using default');
+      }
+    }
+    article.category = finalCategory;
 
-          // Main content generation with JSON mode
-          const languageNameMap: Record<string, string> = { 
-            'en': 'English', 'de': 'German', 'nl': 'Dutch', 'fr': 'French', 
-            'pl': 'Polish', 'sv': 'Swedish', 'da': 'Danish', 'hu': 'Hungarian', 
-            'fi': 'Finnish', 'no': 'Norwegian' 
-          };
-          const languageName = languageNameMap[sourceLanguage] || 'English';
+    // Main content generation with JSON mode
+    const languageNameMap: Record<string, string> = { 
+      'en': 'English', 'de': 'German', 'nl': 'Dutch', 'fr': 'French', 
+      'pl': 'Polish', 'sv': 'Swedish', 'da': 'Danish', 'hu': 'Hungarian', 
+      'fi': 'Finnish', 'no': 'Norwegian' 
+    };
+    const languageName = languageNameMap[sourceLanguage] || 'English';
 
-          // Build content prompt with STRICT word count requirements
-          let basePrompt = masterPrompt 
-            ? masterPrompt
-                .replace(/\{\{headline\}\}/g, plan.headline)
-                .replace(/\{\{targetKeyword\}\}/g, plan.targetKeyword || '')
-                .replace(/\{\{contentAngle\}\}/g, plan.contentAngle || '')
-                .replace(/\{\{funnelStage\}\}/g, missing.funnelStage)
-                .replace(/\{\{language\}\}/g, sourceLanguage)
-                .replace(/\{\{languageName\}\}/g, languageName)
-            : `Write a comprehensive article about "${plan.headline}" targeting the keyword "${plan.targetKeyword}".`;
+    // Build content prompt with STRICT word count requirements
+    let basePrompt = masterPrompt 
+      ? masterPrompt
+          .replace(/\{\{headline\}\}/g, plan.headline)
+          .replace(/\{\{targetKeyword\}\}/g, plan.targetKeyword || '')
+          .replace(/\{\{contentAngle\}\}/g, plan.contentAngle || '')
+          .replace(/\{\{funnelStage\}\}/g, firstMissing.funnelStage)
+          .replace(/\{\{language\}\}/g, sourceLanguage)
+          .replace(/\{\{languageName\}\}/g, languageName)
+      : `Write a comprehensive article about "${plan.headline}" targeting the keyword "${plan.targetKeyword}".`;
 
-          const contentPrompt = `${basePrompt}
+    const contentPrompt = `${basePrompt}
 
 CRITICAL WORD COUNT REQUIREMENT: The article MUST be between 1,500 and 2,500 words. Count your words carefully.
 - Minimum: 1,500 words (articles under this will be REJECTED)
@@ -373,18 +379,18 @@ Include 5-8 FAQ questions in qa_entities. Each answer must be 80-120 words in a 
 The detailed_content must be proper HTML with at least 6 H2 headings, detailed paragraphs, examples, and expert insights.
 REMEMBER: Minimum 1,500 words in detailed_content is MANDATORY.`;
 
-          // Generate content with retry loop for word count enforcement (3 attempts with escalating prompts)
-          let contentJson: any = null;
-          let attempts = 0;
-          const maxAttempts = 3;
-          let lastWordCount = 0;
-          
-          while (attempts < maxAttempts) {
-            attempts++;
-            console.log(`[Missing] Content generation attempt ${attempts}/${maxAttempts}...`);
-            
-            let currentPrompt = contentPrompt;
-            let systemPrompt = `You are an expert real estate content writer specializing in Costa del Sol, Spain.
+    // Generate content with retry loop for word count enforcement (3 attempts with escalating prompts)
+    let contentJson: any = null;
+    let attempts = 0;
+    const maxAttempts = 3;
+    let lastWordCount = 0;
+    
+    while (attempts < maxAttempts) {
+      attempts++;
+      console.log(`[Missing] Content generation attempt ${attempts}/${maxAttempts}...`);
+      
+      let currentPrompt = contentPrompt;
+      let systemPrompt = `You are an expert real estate content writer specializing in Costa del Sol, Spain.
 
 CRITICAL REQUIREMENTS:
 1. You MUST respond with valid JSON only
@@ -392,15 +398,15 @@ CRITICAL REQUIREMENTS:
 3. Include at least 8 H2 sections, each with 3+ detailed paragraphs (150-200 words per section)
 4. Before finalizing, mentally count your words - if under 1,500, ADD MORE CONTENT`;
 
-            if (attempts === 2 && contentJson) {
-              const prevWordCount = countWords(contentJson.detailed_content || '');
-              systemPrompt = `You are an expert real estate content writer. Your previous response was ONLY ${prevWordCount} words - this is UNACCEPTABLE.
+      if (attempts === 2 && contentJson) {
+        const prevWordCount = countWords(contentJson.detailed_content || '');
+        systemPrompt = `You are an expert real estate content writer. Your previous response was ONLY ${prevWordCount} words - this is UNACCEPTABLE.
 
 MANDATORY: This response MUST be at least 1,500 words. 
 STRATEGY: Write 8 sections of 200+ words each = 1,600+ words minimum.
 DO NOT submit anything under 1,500 words.`;
 
-              currentPrompt = `${contentPrompt}
+        currentPrompt = `${contentPrompt}
 
 ⚠️ PREVIOUS ATTEMPT FAILED: Only ${prevWordCount} words generated.
 
@@ -416,15 +422,15 @@ You MUST write a MUCH LONGER article. Use this structure:
 9. Conclusion (150+ words)
 
 This structure gives you 1,700+ words. Follow it exactly.`;
-            } else if (attempts === 3 && contentJson) {
-              const prevWordCount = countWords(contentJson.detailed_content || '');
-              systemPrompt = `FINAL ATTEMPT. Previous responses were too short (${prevWordCount} words).
+      } else if (attempts === 3 && contentJson) {
+        const prevWordCount = countWords(contentJson.detailed_content || '');
+        systemPrompt = `FINAL ATTEMPT. Previous responses were too short (${prevWordCount} words).
 
 You are a verbose, detailed writer. EVERY paragraph must be 80-100 words minimum.
 Include specific examples, statistics, expert quotes, and regional details for EVERY point.
 If in doubt, ADD MORE DETAIL. Err on the side of being too long.`;
 
-              currentPrompt = `${contentPrompt}
+        currentPrompt = `${contentPrompt}
 
 🚨 FINAL ATTEMPT - MUST REACH 1,500 WORDS 🚨
 
@@ -445,187 +451,171 @@ SECTION WORD COUNTS (strict minimums):
 - Conclusion: 150 words
 
 TOTAL MINIMUM: 1,800 words. Do NOT submit under 1,500.`;
-            }
+      }
 
-            const contentResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-              method: 'POST',
-              headers: { 'Authorization': `Bearer ${OPENAI_API_KEY}`, 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                model: 'gpt-4o',
-                max_tokens: 12000,
-                response_format: { type: 'json_object' },
-                messages: [
-                  { role: 'system', content: systemPrompt },
-                  { role: 'user', content: currentPrompt }
-                ],
-              }),
-            });
+      const contentResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${OPENAI_API_KEY}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'gpt-4o',
+          max_tokens: 12000,
+          response_format: { type: 'json_object' },
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: currentPrompt }
+          ],
+        }),
+      });
 
-            if (!contentResponse.ok) {
-              const errorText = await contentResponse.text();
-              console.error(`[Missing] Content API error (${contentResponse.status}):`, errorText.substring(0, 500));
-              throw new Error(`Content generation failed: ${contentResponse.status}`);
-            }
+      if (!contentResponse.ok) {
+        const errorText = await contentResponse.text();
+        console.error(`[Missing] Content API error (${contentResponse.status}):`, errorText.substring(0, 500));
+        throw new Error(`Content generation failed: ${contentResponse.status}`);
+      }
 
-            const contentData = await contentResponse.json();
-            const contentText = contentData.choices?.[0]?.message?.content || '';
-            
-            if (!contentText.trim()) {
-              throw new Error('OpenAI returned empty content response');
-            }
-            
-            try {
-              contentJson = extractJsonFromResponse(contentText);
-            } catch (parseError) {
-              console.error(`[Missing] Content parse error:`, parseError);
-              console.error(`[Missing] Raw content (first 500 chars):`, contentText.substring(0, 500));
-              throw new Error(`Failed to parse content JSON: ${parseError instanceof Error ? parseError.message : String(parseError)}`);
-            }
+      const contentData = await contentResponse.json();
+      const contentText = contentData.choices?.[0]?.message?.content || '';
+      
+      if (!contentText.trim()) {
+        throw new Error('OpenAI returned empty content response');
+      }
+      
+      try {
+        contentJson = extractJsonFromResponse(contentText);
+      } catch (parseError) {
+        console.error(`[Missing] Content parse error:`, parseError);
+        console.error(`[Missing] Raw content (first 500 chars):`, contentText.substring(0, 500));
+        throw new Error(`Failed to parse content JSON: ${parseError instanceof Error ? parseError.message : String(parseError)}`);
+      }
 
-            lastWordCount = countWords(contentJson.detailed_content || '');
-            console.log(`[Missing] ━━━ Attempt ${attempts}: ${lastWordCount} words ━━━`);
-            
-            if (lastWordCount >= 1500) {
-              console.log(`[Missing] ✅ Word count requirement met!`);
-              break;
-            }
-            
-            if (attempts < maxAttempts) {
-              console.warn(`[Missing] ⚠️ Word count ${lastWordCount} below 1500, will retry...`);
-              await new Promise(resolve => setTimeout(resolve, 1500));
-            } else {
-              console.error(`[Missing] ❌ Failed to reach 1500 words after ${maxAttempts} attempts (final: ${lastWordCount})`);
-            }
-          }
-
-          // HARD FAIL: If still under 1200 words, reject the article
-          if (lastWordCount < 1200) {
-            throw new Error(`Article generation failed: Could not reach minimum word count after ${maxAttempts} attempts (only ${lastWordCount} words). Article rejected.`);
-          }
-          article.detailed_content = contentJson.detailed_content || contentJson.content || '';
-          article.meta_title = (contentJson.meta_title || plan.headline).substring(0, 60);
-          article.meta_description = (contentJson.meta_description || '').substring(0, 160);
-          article.speakable_answer = contentJson.speakable_answer || '';
-          article.qa_entities = contentJson.qa_entities || contentJson.faqs || [];
-          
-          // Small delay before image generation
-          await new Promise(resolve => setTimeout(resolve, 1500));
-
-          // Featured image
-          const imagePrompt = `Professional real estate photo: ${plan.headline}. Costa del Sol, Spain. High quality, natural lighting.`;
-          
-          const imageResponse = await fetch('https://api.openai.com/v1/images/generations', {
-            method: 'POST',
-            headers: { 'Authorization': `Bearer ${OPENAI_API_KEY}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              model: 'dall-e-3',
-              prompt: imagePrompt,
-              n: 1,
-              size: '1792x1024',
-              quality: 'standard',
-            }),
-          });
-
-          if (imageResponse.ok) {
-            const imageData = await imageResponse.json();
-            article.featured_image_url = imageData.data?.[0]?.url || 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9';
-          } else {
-            article.featured_image_url = 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9';
-          }
-          article.featured_image_alt = `${plan.headline} - Costa del Sol real estate`;
-
-          // Author & Reviewer
-          const randomAuthor = authors?.[Math.floor(Math.random() * (authors?.length || 1))] || { id: null };
-          const randomReviewer = authors?.filter(a => a.id !== randomAuthor.id)?.[0] || randomAuthor;
-          article.author_id = randomAuthor.id;
-          article.reviewer_id = randomReviewer.id;
-
-          // Cluster metadata - USE THE GAP-FILLING cluster_number
-          article.cluster_id = clusterId;
-          article.cluster_number = nextClusterNumber;
-          article.cluster_theme = cluster.topic;
-          article.date_published = new Date().toISOString();
-          article.date_modified = new Date().toISOString();
-
-          // Quality validation
-          const quality = validateContentQuality(article, plan);
-          console.log(`[Missing] Article quality: ${quality.score}/100`);
-          if (quality.issues.length > 0) {
-            console.warn(`[Missing] Quality issues:`, quality.issues);
-          }
-
-          // Save to database
-          const { data: savedArticle, error: saveError } = await supabase
-            .from('blog_articles')
-            .insert(article)
-            .select('id')
-            .single();
-
-          if (saveError) {
-            console.error(`[Missing] DB insert error:`, saveError);
-            throw new Error(`Failed to save article: ${saveError.message}`);
-          }
-
-          console.log(`[Missing] ✅ Article saved: ${savedArticle.id} (cluster_number: ${nextClusterNumber})`);
-          savedArticles.push(savedArticle.id);
-
-        } catch (error) {
-          const errorMsg = error instanceof Error ? error.message : String(error);
-          console.error(`[Missing] ❌ Failed to generate ${missing.funnelStage} article:`, errorMsg);
-          errors.push(`${missing.funnelStage}: ${errorMsg}`);
-        }
+      lastWordCount = countWords(contentJson.detailed_content || '');
+      console.log(`[Missing] ━━━ Attempt ${attempts}: ${lastWordCount} words ━━━`);
+      
+      if (lastWordCount >= 1500) {
+        console.log(`[Missing] ✅ Word count requirement met!`);
+        break;
+      }
+      
+      if (attempts < maxAttempts) {
+        console.warn(`[Missing] ⚠️ Word count ${lastWordCount} below 1500, will retry...`);
+        await new Promise(resolve => setTimeout(resolve, 1500));
+      } else {
+        console.error(`[Missing] ❌ Failed to reach 1500 words after ${maxAttempts} attempts (final: ${lastWordCount})`);
       }
     }
 
-    console.log(`\n[Missing] ✅ Complete! Generated ${savedArticles.length} articles, ${errors.length} errors`);
+    // HARD FAIL: If still under 1200 words, reject the article
+    if (lastWordCount < 1200) {
+      throw new Error(`Article generation failed: Could not reach minimum word count after ${maxAttempts} attempts (only ${lastWordCount} words). Article rejected.`);
+    }
+    
+    article.detailed_content = contentJson.detailed_content || contentJson.content || '';
+    article.meta_title = (contentJson.meta_title || plan.headline).substring(0, 60);
+    article.meta_description = (contentJson.meta_description || '').substring(0, 160);
+    article.speakable_answer = contentJson.speakable_answer || '';
+    article.qa_entities = contentJson.qa_entities || contentJson.faqs || [];
+    
+    // Small delay before image generation
+    await new Promise(resolve => setTimeout(resolve, 1500));
+
+    // Featured image
+    const imagePrompt = `Professional real estate photo: ${plan.headline}. Costa del Sol, Spain. High quality, natural lighting.`;
+    
+    const imageResponse = await fetch('https://api.openai.com/v1/images/generations', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${OPENAI_API_KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'dall-e-3',
+        prompt: imagePrompt,
+        n: 1,
+        size: '1792x1024',
+        quality: 'standard',
+      }),
+    });
+
+    if (imageResponse.ok) {
+      const imageData = await imageResponse.json();
+      article.featured_image_url = imageData.data?.[0]?.url || 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9';
+    } else {
+      article.featured_image_url = 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9';
+    }
+    article.featured_image_alt = `${plan.headline} - Costa del Sol real estate`;
+
+    // Author & Reviewer
+    const randomAuthor = authors?.[Math.floor(Math.random() * (authors?.length || 1))] || { id: null };
+    const randomReviewer = authors?.filter(a => a.id !== randomAuthor.id)?.[0] || randomAuthor;
+    article.author_id = randomAuthor.id;
+    article.reviewer_id = randomReviewer.id;
+
+    // Cluster metadata - USE THE GAP-FILLING cluster_number
+    article.cluster_id = clusterId;
+    article.cluster_number = nextClusterNumber;
+    article.cluster_theme = cluster.topic;
+    article.date_published = new Date().toISOString();
+    article.date_modified = new Date().toISOString();
+
+    // Quality validation
+    const quality = validateContentQuality(article, plan);
+    console.log(`[Missing] Article quality: ${quality.score}/100`);
+    if (quality.issues.length > 0) {
+      console.warn(`[Missing] Quality issues:`, quality.issues);
+    }
+
+    // Save to database
+    const { data: savedArticle, error: saveError } = await supabase
+      .from('blog_articles')
+      .insert(article)
+      .select('id')
+      .single();
+
+    if (saveError) {
+      console.error(`[Missing] DB insert error:`, saveError);
+      throw new Error(`Failed to save article: ${saveError.message}`);
+    }
+
+    console.log(`[Missing] ✅ Article saved: ${savedArticle.id} (cluster_number: ${nextClusterNumber})`);
 
     // Check if cluster is now complete (6 source articles) and update status
-    if (savedArticles.length > 0) {
-      const { count: finalCount } = await supabase
-        .from('blog_articles')
-        .select('id', { count: 'exact', head: true })
-        .eq('cluster_id', clusterId)
-        .eq('language', sourceLanguage);
+    const { count: finalCount } = await supabase
+      .from('blog_articles')
+      .select('id', { count: 'exact', head: true })
+      .eq('cluster_id', clusterId)
+      .eq('language', sourceLanguage);
 
-      console.log(`[Missing] Final article count for source language: ${finalCount}`);
+    console.log(`[Missing] Final article count for source language: ${finalCount}`);
 
-      if (finalCount && finalCount >= 6) {
-        const { error: updateError } = await supabase
-          .from('cluster_generations')
-          .update({ 
-            status: 'completed',
-            progress: {
-              saved_articles: finalCount,
-              timeout_stopped: false,
-              message: 'Cluster complete (recovered via Generate Missing)'
-            }
-          })
-          .eq('id', clusterId);
+    if (finalCount && finalCount >= 6) {
+      const { error: updateError } = await supabase
+        .from('cluster_generations')
+        .update({ 
+          status: 'completed',
+          progress: {
+            saved_articles: finalCount,
+            timeout_stopped: false,
+            message: 'Cluster complete (recovered via Generate Missing)'
+          }
+        })
+        .eq('id', clusterId);
 
-        if (updateError) {
-          console.error(`[Missing] Failed to update cluster status:`, updateError);
-        } else {
-          console.log(`[Missing] ✅ Updated cluster status to 'completed'`);
-        }
+      if (updateError) {
+        console.error(`[Missing] Failed to update cluster status:`, updateError);
+      } else {
+        console.log(`[Missing] ✅ Updated cluster status to 'completed'`);
       }
     }
 
-    // Return success: false if nothing was generated but errors occurred
-    const success = savedArticles.length > 0 || errors.length === 0;
+    // CHUNKED RESPONSE: Return remaining count so frontend knows to call again
+    const remaining = totalMissing - 1;
 
     return new Response(JSON.stringify({
-      success,
-      message: savedArticles.length > 0 
-        ? `Generated ${savedArticles.length} article(s)` 
-        : errors.length > 0 
-          ? `Failed to generate articles: ${errors[0]}`
-          : 'No articles needed',
-      generated: savedArticles.length,
-      articleIds: savedArticles,
-      errors: errors.length > 0 ? errors : undefined,
+      success: true,
+      message: `Generated 1 article. ${remaining} remaining.`,
+      generated: 1,
+      remaining: remaining,
+      articleId: savedArticle.id,
+      articleHeadline: article.headline,
       existing: existingByStage,
     }), {
-      status: success ? 200 : 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
@@ -635,6 +625,7 @@ TOTAL MINIMUM: 1,800 words. Do NOT submit under 1,500.`;
       success: false, 
       error: error instanceof Error ? error.message : String(error),
       generated: 0,
+      remaining: 0,
     }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
