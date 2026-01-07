@@ -1875,6 +1875,7 @@ export type Database = {
         Row: {
           conversation_id: string
           created_at: string
+          custom_fields: Json | null
           id: string
           language: string
           messages: Json
@@ -1887,6 +1888,7 @@ export type Database = {
         Insert: {
           conversation_id: string
           created_at?: string
+          custom_fields?: Json | null
           id?: string
           language?: string
           messages?: Json
@@ -1899,6 +1901,7 @@ export type Database = {
         Update: {
           conversation_id?: string
           created_at?: string
+          custom_fields?: Json | null
           id?: string
           language?: string
           messages?: Json
