@@ -82,7 +82,8 @@ const ClusterManager = () => {
       const { data, error } = await supabase
         .from("qa_pages")
         .select("cluster_id, language, status")
-        .not("cluster_id", "is", null);
+        .not("cluster_id", "is", null)
+        .limit(10000); // Override default 1000 row limit to fetch all Q&As
       
       if (error) throw error;
       return data;
