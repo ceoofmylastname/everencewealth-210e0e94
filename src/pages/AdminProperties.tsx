@@ -2,13 +2,18 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Plus, Edit, Trash2, Home, Building2 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { AdminLayout } from "@/components/AdminLayout";
 
 const AdminProperties: React.FC = () => {
     const navigate = useNavigate();
     const [properties, setProperties] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+
+    // DEBUG
+    console.log('=== AdminProperties Component Loaded ===');
+    console.log('useNavigate available:', typeof navigate);
+    console.log('Current location:', window.location.href);
 
     useEffect(() => {
         fetchProperties();
@@ -24,6 +29,20 @@ const AdminProperties: React.FC = () => {
 
         if (data) setProperties(data);
         setLoading(false);
+    };
+
+    const handleAddPropertyClick = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('🔴 ADD PROPERTY BUTTON CLICKED!');
+        console.log('Attempting to navigate to: /admin/properties/new');
+
+        try {
+            navigate('/admin/properties/new');
+            console.log('✅ Navigate called successfully');
+        } catch (error) {
+            console.error('❌ Navigation error:', error);
+        }
     };
 
     const handleDelete = async (id: string) => {
@@ -54,16 +73,26 @@ const AdminProperties: React.FC = () => {
                                     Manage properties across all 10 languages · Auto-translation enabled
                                 </p>
                             </div>
+
+                            {/* METHOD 1: Using onClick */}
                             <Button
-                                className="bg-primary hover:bg-primary/90"
-                                onClick={() => {
-                                    console.log('Navigating to /admin/properties/new');
-                                    navigate('/admin/properties/new');
-                                }}
+                                onClick={handleAddPropertyClick}
+                                className="bg-primary hover:bg-primary/90 text-white"
+                                type="button"
                             >
                                 <Plus className="w-4 h-4 mr-2" />
                                 Add New Property
                             </Button>
+
+                            {/* METHOD 2: Using Link (backup if onClick doesn't work) */}
+                            {/* Uncomment this if onClick method fails:
+                            <Button asChild className="bg-primary hover:bg-primary/90">
+                              <Link to="/admin/properties/new">
+                                <Plus className="w-4 h-4 mr-2" />
+                                Add New Property
+                              </Link>
+                            </Button>
+                            */}
                         </div>
                     </div>
 
@@ -81,10 +110,8 @@ const AdminProperties: React.FC = () => {
                             </p>
                             <Button
                                 className="bg-primary"
-                                onClick={() => {
-                                    console.log('Navigating to /admin/properties/new');
-                                    navigate('/admin/properties/new');
-                                }}
+                                onClick={handleAddPropertyClick}
+                                type="button"
                             >
                                 <Plus className="w-4 h-4 mr-2" />
                                 Add Property
@@ -112,6 +139,9 @@ const AdminProperties: React.FC = () => {
                                                     src={property.images[0]}
                                                     alt={property.internal_name}
                                                     className="w-24 h-24 object-cover rounded-lg"
+                                                    onError={(e) => {
+                                                        e.currentTarget.src = 'https://placehold.co/100x100?text=No+Image';
+                                                    }}
                                                 />
                                             )}
 
@@ -153,6 +183,7 @@ const AdminProperties: React.FC = () => {
                                                 variant="outline"
                                                 size="sm"
                                                 onClick={() => navigate(`/admin/properties/edit/${property.id}`)}
+                                                type="button"
                                             >
                                                 <Edit className="w-4 h-4" />
                                             </Button>
@@ -160,6 +191,7 @@ const AdminProperties: React.FC = () => {
                                                 variant="outline"
                                                 size="sm"
                                                 onClick={() => handleDelete(property.id)}
+                                                type="button"
                                             >
                                                 <Trash2 className="w-4 h-4 text-red-600" />
                                             </Button>
