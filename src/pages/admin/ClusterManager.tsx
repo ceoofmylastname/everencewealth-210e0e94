@@ -75,18 +75,14 @@ const ClusterManager = () => {
     },
   });
 
-  // Fetch QA pages grouped by cluster and language with status
-  const { data: qaPages } = useQuery({
-    queryKey: ["cluster-qa-pages"],
+  // Fetch QA counts aggregated by cluster and language (server-side aggregation)
+  const { data: qaCounts } = useQuery({
+    queryKey: ["cluster-qa-counts"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("qa_pages")
-        .select("cluster_id, language, status")
-        .not("cluster_id", "is", null)
-        .limit(10000); // Override default 1000 row limit to fetch all Q&As
+      const { data, error } = await supabase.rpc("get_cluster_qa_counts");
       
       if (error) throw error;
-      return data;
+      return data as { cluster_id: string; language: string; total_count: number; published_count: number }[];
     },
   });
 
@@ -159,23 +155,20 @@ const ClusterManager = () => {
       }
     });
 
-    // Add QA page counts per cluster per language with status breakdown
-    qaPages?.forEach((qa) => {
+    // Add QA page counts per cluster per language from pre-aggregated data
+    qaCounts?.forEach((qa) => {
       if (!qa.cluster_id) return;
       const cluster = clusterMap.get(qa.cluster_id);
       if (cluster) {
-        if (!cluster.qa_pages[qa.language]) {
-          cluster.qa_pages[qa.language] = { total: 0, published: 0, draft: 0 };
-        }
-        cluster.qa_pages[qa.language].total++;
-        cluster.total_qa_pages++;
-        
-        if (qa.status === 'published') {
-          cluster.qa_pages[qa.language].published++;
-          cluster.total_qa_published++;
-        } else {
-          cluster.qa_pages[qa.language].draft++;
-        }
+        const total = Number(qa.total_count);
+        const published = Number(qa.published_count);
+        cluster.qa_pages[qa.language] = { 
+          total, 
+          published, 
+          draft: total - published 
+        };
+        cluster.total_qa_pages += total;
+        cluster.total_qa_published += published;
       }
     });
 
@@ -193,7 +186,7 @@ const ClusterManager = () => {
     return clustersArray.sort((a, b) => 
       new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
     );
-  }, [articles, clusterJobs, qaPages]);
+  }, [articles, clusterJobs, qaCounts]);
 
   // Filter clusters
   const filteredClusters = useMemo(() => {
