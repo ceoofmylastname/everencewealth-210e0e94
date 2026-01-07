@@ -1,31 +1,33 @@
 import React from 'react';
-import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Building2, Home } from 'lucide-react';
 
 const PropertyCategories: React.FC = () => {
-    const { t } = useTranslation('landing');
-
     const handleCategoryClick = (category: 'apartments' | 'villas') => {
-        const section = document.getElementById(`${category}-section`);
+        const sectionId = category === 'apartments'
+            ? 'apartments-section'
+            : 'villas-section';
+
+        const section = document.getElementById(sectionId);
+
         if (section) {
-            section.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        } else {
-            // Fallback for when we might navigate to a filtered properties page in future
-            console.warn('Section not found:', category);
+            section.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
         }
     };
 
     return (
         <section className="hidden md:block py-16 md:py-24 bg-white">
             <div className="container mx-auto px-4">
-                {/* Section Heading */}
+                {/* Section Heading - HARDCODED */}
                 <div className="text-center mb-12 md:mb-16">
                     <h2 className="text-3xl md:text-4xl lg:text-5xl font-serif text-gray-900 mb-4">
-                        {t('properties.heading')}
+                        A small curated selection of projects
                     </h2>
                     <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-                        {t('properties.subheading')}
+                        Choose a category below — we only present developments that meet our quality criteria.
                     </p>
                 </div>
 
@@ -39,15 +41,15 @@ const PropertyCategories: React.FC = () => {
                                 <Building2 className="w-10 h-10 text-primary" />
                             </div>
                             <h3 className="text-2xl md:text-3xl font-serif text-gray-900">
-                                {t('properties.types.apartments.title')}
+                                Apartments & Penthouses
                             </h3>
                             <p className="text-gray-700">
-                                {t('properties.types.apartments.description')}
+                                Modern developments with amenities, views and resort lifestyle
                             </p>
                             <Button
                                 className="bg-primary hover:bg-primary/90 text-white px-8 py-3 rounded-lg"
                             >
-                                {t('properties.types.apartments.cta')}
+                                View apartments
                             </Button>
                         </div>
                     </div>
@@ -60,15 +62,15 @@ const PropertyCategories: React.FC = () => {
                                 <Home className="w-10 h-10 text-primary" />
                             </div>
                             <h3 className="text-2xl md:text-3xl font-serif text-gray-900">
-                                {t('properties.types.villas.title')}
+                                Townhouses & Villas
                             </h3>
                             <p className="text-gray-700">
-                                {t('properties.types.villas.description')}
+                                Private homes with space, privacy and architectural character
                             </p>
                             <Button
                                 className="bg-primary hover:bg-primary/90 text-white px-8 py-3 rounded-lg"
                             >
-                                {t('properties.types.villas.cta')}
+                                View villas & houses
                             </Button>
                         </div>
                     </div>

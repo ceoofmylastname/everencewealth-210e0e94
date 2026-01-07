@@ -92,28 +92,34 @@ const Hero: React.FC<HeroProps> = ({ content, language, onStartChat, onOpenVideo
                     <div className="flex-1 space-y-6 md:space-y-8 text-center md:text-left">
                         {/* H1 - Primary Headline */}
                         <h1 className="text-4xl md:text-5xl lg:text-7xl font-serif text-white md:text-gray-900 font-light tracking-wide leading-tight drop-shadow-md md:drop-shadow-none">
-                            {content.headline}
+                            Living on the Costa del Sol — guided, personal and pressure-free
                         </h1>
 
                         {/* Subheadline */}
                         <p className="text-lg md:text-xl text-white/95 md:text-gray-700 font-light max-w-2xl mx-auto md:mx-0 drop-shadow-sm md:drop-shadow-none leading-relaxed">
-                            {content.subheadline}
+                            A curated selection of new-build apartments and villas, matched to your lifestyle, budget and long-term plans — with independent guidance from first conversation to key handover.
                         </p>
 
                         {/* Value Clarifiers - Desktop only, 3 bullets */}
                         <div className="hidden md:flex flex-col gap-3">
-                            {[
-                                content.bullet1,
-                                content.bullet2,
-                                content.bullet3
-                            ].filter(Boolean).map((bullet, i) => (
-                                <div key={i} className="flex items-center gap-3">
-                                    <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                                        <Check className="w-3 h-3 text-primary" />
-                                    </div>
-                                    <span className="text-gray-700">{bullet}</span>
+                            <div className="flex items-center gap-3">
+                                <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                                    <Check className="w-3 h-3 text-primary" />
                                 </div>
-                            ))}
+                                <span className="text-gray-700">Independent project selection</span>
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                                    <Check className="w-3 h-3 text-primary" />
+                                </div>
+                                <span className="text-gray-700">No pressure · No obligation</span>
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                                    <Check className="w-3 h-3 text-primary" />
+                                </div>
+                                <span className="text-gray-700">Service fully paid by developers</span>
+                            </div>
                         </div>
 
                         {/* CTAs */}
@@ -126,10 +132,10 @@ const Hero: React.FC<HeroProps> = ({ content, language, onStartChat, onOpenVideo
                                     className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-white px-8 py-6 text-lg rounded-lg shadow-xl font-medium"
                                 >
                                     <span className="mr-2">👉</span>
-                                    {content.primaryCTA || content.emmaCTA}
+                                    Get your private, pressure-free property shortlist
                                 </Button>
                                 <p className="text-sm text-white md:text-gray-600 mt-2 text-center md:text-left drop-shadow-sm md:drop-shadow-none">
-                                    {content.primaryMicro}
+                                    Prepared in 2 minutes · No obligation
                                 </p>
                             </div>
 
@@ -141,7 +147,7 @@ const Hero: React.FC<HeroProps> = ({ content, language, onStartChat, onOpenVideo
                                 className="w-full sm:w-auto border-2 border-white md:border-primary text-white md:text-primary hover:bg-white hover:text-primary px-8 py-6 text-lg rounded-lg font-medium backdrop-blur-sm bg-white/10 md:bg-transparent"
                             >
                                 <Play className="w-5 h-5 mr-2" />
-                                {content.secondaryCTA || content.videoCTA}
+                                Watch our 60-second introduction
                             </Button>
                         </div>
                     </div>

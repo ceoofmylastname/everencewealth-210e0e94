@@ -245,7 +245,7 @@ const PropertySection = ({ id, title, subtitle, properties, lang }: { id: string
     </section>
 );
 
-const PropertyCarousel: React.FC<PropertyCarouselProps> = ({ language, translations }) => {
+const PropertyCarousel: React.FC<PropertyCarouselProps> = ({ language }) => {
     return (
         <div className="py-24 bg-[#FAFAFA]" id="properties-section">
             <div className="container mx-auto px-4">
@@ -253,17 +253,17 @@ const PropertyCarousel: React.FC<PropertyCarouselProps> = ({ language, translati
                 {/* Header Copy */}
                 <div className="text-center mb-20 space-y-3">
                     <h3 className="text-xl md:text-2xl font-serif text-[#1A2332] tracking-wide">
-                        {translations.header?.title}
+                        Find Your Perfect Home
                     </h3>
                     <p className="text-gray-500 font-light italic text-lg">
-                        {translations.header?.subtitle}
+                        Browse our hand-picked selection of premium properties on the Costa del Sol
                     </p>
                 </div>
 
                 {/* Apartments Section */}
                 <PropertySection
                     id="apartments-section"
-                    title={translations.types?.apartments?.title || "Apartments & Penthouses"}
+                    title="Apartments & Penthouses"
                     properties={apartments}
                     lang={language}
                 />
@@ -271,7 +271,7 @@ const PropertyCarousel: React.FC<PropertyCarouselProps> = ({ language, translati
                 {/* Villas Section */}
                 <PropertySection
                     id="villas-section"
-                    title={translations.types?.villas?.title || "Townhouses & Villas"}
+                    title="Townhouses & Villas"
                     properties={villas}
                     lang={language}
                 />
