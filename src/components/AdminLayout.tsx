@@ -1,25 +1,26 @@
 import { ReactNode } from "react";
 import { NavLink } from "react-router-dom";
-import { 
-  LayoutDashboard, 
-  FileText, 
-  Users, 
-  Settings, 
-  Menu, 
-  Bot, 
-  Download, 
-  Activity, 
-  MapPin, 
-  Scale, 
-  Map, 
-  Globe2, 
-  HeartPulse, 
-  Database, 
+import {
+  LayoutDashboard,
+  FileText,
+  Users,
+  Settings,
+  Menu,
+  Bot,
+  Download,
+  Activity,
+  MapPin,
+  Scale,
+  Map,
+  Globe2,
+  HeartPulse,
+  Database,
   FolderKanban,
   Shield,
   BookOpen,
   Link2,
   Image,
+  Home,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -33,29 +34,30 @@ interface AdminLayoutProps {
 const navigation = [
   // Core
   { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
+  { name: "Properties", href: "/admin/properties", icon: Home },
   { name: "Cluster Manager", href: "/admin/clusters", icon: FolderKanban },
   { name: "Articles", href: "/admin/articles", icon: FileText },
   { name: "Authors", href: "/admin/authors", icon: Users },
-  
+
   // Content Generators (non-cluster)
   { name: "Comparison Generator", href: "/admin/comparison-generator", icon: Scale },
   { name: "Location Pages", href: "/admin/location-pages", icon: MapPin },
   { name: "Brochures", href: "/admin/brochures", icon: Map },
-  
+
   // Health & Monitoring
   { name: "SEO Monitor", href: "/admin/seo-monitor", icon: Globe2 },
   { name: "Citation Health", href: "/admin/citation-health", icon: Activity },
   { name: "System Health", href: "/admin/system-health", icon: HeartPulse },
   { name: "Schema Health", href: "/admin/schema-health", icon: Database },
   { name: "Production Audit", href: "/admin/production-audit", icon: Shield },
-  
+
   // Tools
   { name: "Approved Domains", href: "/admin/approved-domains", icon: Shield },
   { name: "AI Tools", href: "/admin/ai-tools", icon: Bot },
   { name: "Bulk Internal Links", href: "/admin/bulk-internal-links", icon: Link2 },
   { name: "Batch Images", href: "/admin/tools/batch-image-generation", icon: Image },
   { name: "AEO Guide", href: "/admin/docs/aeo-sge-guide", icon: BookOpen },
-  
+
   // Settings
   { name: "Export", href: "/admin/export", icon: Download },
   { name: "Settings", href: "/admin/settings", icon: Settings },
@@ -70,10 +72,9 @@ export const AdminLayout = ({ children }: AdminLayoutProps) => {
           to={item.href}
           end={item.href === "/admin"}
           className={({ isActive }) =>
-            `flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
-              isActive
-                ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground hover:bg-muted hover:text-foreground"
+            `flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${isActive
+              ? "bg-primary text-primary-foreground"
+              : "text-muted-foreground hover:bg-muted hover:text-foreground"
             }`
           }
         >
