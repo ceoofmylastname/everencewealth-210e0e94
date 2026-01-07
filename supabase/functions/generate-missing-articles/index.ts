@@ -358,10 +358,10 @@ Respond with JSON: { "category": "exact category name from the list" }`;
 
     const contentPrompt = `${basePrompt}
 
-CRITICAL WORD COUNT REQUIREMENT: The article MUST be between 1,500 and 2,500 words. Count your words carefully.
-- Minimum: 1,500 words (articles under this will be REJECTED)
-- Target: 1,800-2,000 words (ideal range)
-- Maximum: 2,500 words
+CRITICAL WORD COUNT REQUIREMENT: The article MUST be between 1,200 and 2,000 words.
+- Minimum: 1,200 words (articles under this will be REJECTED)
+- Target: 1,400-1,600 words (ideal range)
+- Maximum: 2,000 words
 
 You MUST respond with a valid JSON object with this exact structure:
 {
@@ -382,7 +382,7 @@ REMEMBER: Minimum 1,500 words in detailed_content is MANDATORY.`;
     // Generate content with retry loop for word count enforcement (3 attempts with escalating prompts)
     let contentJson: any = null;
     let attempts = 0;
-    const maxAttempts = 3;
+    const maxAttempts = 2;
     let lastWordCount = 0;
     
     while (attempts < maxAttempts) {
@@ -491,21 +491,21 @@ TOTAL MINIMUM: 1,800 words. Do NOT submit under 1,500.`;
       lastWordCount = countWords(contentJson.detailed_content || '');
       console.log(`[Missing] ━━━ Attempt ${attempts}: ${lastWordCount} words ━━━`);
       
-      if (lastWordCount >= 1500) {
+      if (lastWordCount >= 1200) {
         console.log(`[Missing] ✅ Word count requirement met!`);
         break;
       }
       
       if (attempts < maxAttempts) {
-        console.warn(`[Missing] ⚠️ Word count ${lastWordCount} below 1500, will retry...`);
-        await new Promise(resolve => setTimeout(resolve, 1500));
+        console.warn(`[Missing] ⚠️ Word count ${lastWordCount} below 1200, will retry...`);
+        await new Promise(resolve => setTimeout(resolve, 500));
       } else {
-        console.error(`[Missing] ❌ Failed to reach 1500 words after ${maxAttempts} attempts (final: ${lastWordCount})`);
+        console.error(`[Missing] ❌ Failed to reach 1200 words after ${maxAttempts} attempts (final: ${lastWordCount})`);
       }
     }
 
-    // HARD FAIL: If still under 1200 words, reject the article
-    if (lastWordCount < 1200) {
+    // HARD FAIL: If still under 1000 words, reject the article
+    if (lastWordCount < 1000) {
       throw new Error(`Article generation failed: Could not reach minimum word count after ${maxAttempts} attempts (only ${lastWordCount} words). Article rejected.`);
     }
     
@@ -515,30 +515,9 @@ TOTAL MINIMUM: 1,800 words. Do NOT submit under 1,500.`;
     article.speakable_answer = contentJson.speakable_answer || '';
     article.qa_entities = contentJson.qa_entities || contentJson.faqs || [];
     
-    // Small delay before image generation
-    await new Promise(resolve => setTimeout(resolve, 1500));
-
-    // Featured image
-    const imagePrompt = `Professional real estate photo: ${plan.headline}. Costa del Sol, Spain. High quality, natural lighting.`;
-    
-    const imageResponse = await fetch('https://api.openai.com/v1/images/generations', {
-      method: 'POST',
-      headers: { 'Authorization': `Bearer ${OPENAI_API_KEY}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'dall-e-3',
-        prompt: imagePrompt,
-        n: 1,
-        size: '1792x1024',
-        quality: 'standard',
-      }),
-    });
-
-    if (imageResponse.ok) {
-      const imageData = await imageResponse.json();
-      article.featured_image_url = imageData.data?.[0]?.url || 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9';
-    } else {
-      article.featured_image_url = 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9';
-    }
+    // Use placeholder image (DALL-E takes too long and causes edge function timeout)
+    console.log(`[Missing] Using placeholder image to avoid timeout`);
+    article.featured_image_url = 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=1792&h=1024&fit=crop';
     article.featured_image_alt = `${plan.headline} - Costa del Sol real estate`;
 
     // Author & Reviewer
