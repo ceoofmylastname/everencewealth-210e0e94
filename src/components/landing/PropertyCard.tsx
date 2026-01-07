@@ -1,126 +1,251 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { useTranslation } from 'react-i18next';
-import { MapPin, ArrowRight } from 'lucide-react';
-
-export interface Property {
-    id: string;
-    refNumber: string;
-    name: string;
-    location: string;
-    description: string;
-    price: number;
-    beds: number;
-    maxBeds?: number;
-    baths: number;
-    size: number;
-    image: string;
-    imageNumbers?: number[];
-    category: 'apartment' | 'villa';
-}
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface PropertyCardProps {
-    property: Property;
+    property: {
+        id: string;
+        category: 'apartment' | 'villa';
+        location: string;
+        beds_min: number;
+        beds_max?: number;
+        baths: number;
+        size_sqm: number;
+        price_eur: number;
+        images: string[];
+        description: string;
+    };
+    lang: string;
 }
 
-const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
-    const { t, i18n } = useTranslation('landing');
+const PropertyCard: React.FC<PropertyCardProps> = ({ property, lang }) => {
+    const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
     const formatPrice = (price: number) => {
-        const formatted = new Intl.NumberFormat(i18n.language, {
+        return new Intl.NumberFormat(lang, {
             style: 'currency',
             currency: 'EUR',
             minimumFractionDigits: 0,
             maximumFractionDigits: 0
         }).format(price);
-
-        return `${t('properties.from', 'From')} ${formatted}`;
     };
 
     const formatBeds = () => {
-        if (property.maxBeds && property.maxBeds !== property.beds) {
-            return `${property.beds}-${property.maxBeds} ${t('properties.beds', 'Beds')}`;
+        if (property.beds_max && property.beds_max !== property.beds_min) {
+            return `${property.beds_min}-${property.beds_max}`;
         }
-        return `${property.beds} ${t('properties.beds', 'Beds')}`;
+        return `${property.beds_min}`;
     };
 
+    const nextImage = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        setCurrentImageIndex((prev) =>
+            prev === property.images.length - 1 ? 0 : prev + 1
+        );
+    };
+
+    const prevImage = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        setCurrentImageIndex((prev) =>
+            prev === 0 ? property.images.length - 1 : prev - 1
+        );
+    };
+
+    // COMPLETE TRANSLATION LABELS - ALL 10 LANGUAGES
+    const labels = {
+        en: {
+            from: 'From',
+            beds: 'Beds',
+            baths: 'Baths',
+            moreInfo: 'More Info',
+            apartmentTitle: 'New Luxury Apartments',
+            villaTitle: 'Exclusive Villas'
+        },
+        nl: {
+            from: 'Vanaf',
+            beds: 'Slaapkamers',
+            baths: 'Badkamers',
+            moreInfo: 'Meer Info',
+            apartmentTitle: 'Nieuwe Luxe Appartementen',
+            villaTitle: 'Exclusieve Villa\'s'
+        },
+        fr: {
+            from: 'À partir de',
+            beds: 'Chambres',
+            baths: 'Salles de bain',
+            moreInfo: 'Plus d\'info',
+            apartmentTitle: 'Nouveaux Appartements de Luxe',
+            villaTitle: 'Villas Exclusives'
+        },
+        de: {
+            from: 'Ab',
+            beds: 'Schlafzimmer',
+            baths: 'Badezimmer',
+            moreInfo: 'Mehr Info',
+            apartmentTitle: 'Neue Luxuswohnungen',
+            villaTitle: 'Exklusive Villen'
+        },
+        pl: {
+            from: 'Od',
+            beds: 'Sypialnie',
+            baths: 'Łazienki',
+            moreInfo: 'Więcej Info',
+            apartmentTitle: 'Nowe Luksusowe Apartamenty',
+            villaTitle: 'Ekskluzywne Wille'
+        },
+        sv: {
+            from: 'Från',
+            beds: 'Sovrum',
+            baths: 'Badrum',
+            moreInfo: 'Mer Info',
+            apartmentTitle: 'Nya Lyxlägenheter',
+            villaTitle: 'Exklusiva Villor'
+        },
+        da: {
+            from: 'Fra',
+            beds: 'Soveværelser',
+            baths: 'Badeværelser',
+            moreInfo: 'Mere Info',
+            apartmentTitle: 'Nye Luksuslejligheder',
+            villaTitle: 'Eksklusive Villaer'
+        },
+        fi: {
+            from: 'Alkaen',
+            beds: 'Makuuhuoneet',
+            baths: 'Kylpyhuoneet',
+            moreInfo: 'Lisätietoja',
+            apartmentTitle: 'Uudet Luksushuoneistot',
+            villaTitle: 'Yksinomaiset Huvilat'
+        },
+        hu: {
+            from: 'Től',
+            beds: 'Hálószobák',
+            baths: 'Fürdőszobák',
+            moreInfo: 'Több Info',
+            apartmentTitle: 'Új Luxus Apartmanok',
+            villaTitle: 'Exkluzív Villák'
+        },
+        no: {
+            from: 'Fra',
+            beds: 'Soverom',
+            baths: 'Baderom',
+            moreInfo: 'Mer Info',
+            apartmentTitle: 'Nye Luksusleiligheter',
+            villaTitle: 'Eksklusive Villaer'
+        }
+    };
+
+    const currentLabels = labels[lang as keyof typeof labels] || labels.en;
+
     return (
-        <div className="group bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 h-full flex flex-col border border-gray-100">
-            {/* Image Container */}
-            <div className="relative h-64 overflow-hidden">
+        <div className="bg-white rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300 h-full flex flex-col">
+
+            {/* IMAGE CAROUSEL */}
+            <div className="relative h-64 overflow-hidden group">
+                {/* Current Image */}
                 <img
-                    src={property.image}
-                    alt={property.name}
-                    className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700"
-                    loading="lazy"
+                    src={property.images[currentImageIndex]}
+                    alt={`Property in ${property.location}`}
+                    className="w-full h-full object-cover"
                     onError={(e) => {
                         e.currentTarget.src = '/images/properties/placeholder.jpg';
                     }}
                 />
 
-                {/* Reference Number Badge */}
-                {property.refNumber && (
-                    <div className="absolute top-4 right-4 bg-white/95 backdrop-blur-sm px-3 py-1.5 rounded-lg text-xs font-bold text-[#1A2332] shadow-sm tracking-wide">
-                        {property.refNumber}
+                {/* Image Counter */}
+                {property.images.length > 1 && (
+                    <div className="absolute top-4 right-4 bg-black/60 text-white px-3 py-1 rounded-full text-sm font-medium">
+                        {currentImageIndex + 1} / {property.images.length}
                     </div>
                 )}
 
-                {/* Overlay Gradient on Hover */}
-                <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                {/* Navigation Arrows */}
+                {property.images.length > 1 && (
+                    <>
+                        {/* Previous Arrow */}
+                        <button
+                            onClick={prevImage}
+                            className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white p-2 rounded-full shadow-lg transition-all opacity-100 md:opacity-0 md:group-hover:opacity-100"
+                            aria-label="Previous image"
+                        >
+                            <ChevronLeft className="w-5 h-5 text-gray-800" />
+                        </button>
+
+                        {/* Next Arrow */}
+                        <button
+                            onClick={nextImage}
+                            className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white p-2 rounded-full shadow-lg transition-all opacity-100 md:opacity-0 md:group-hover:opacity-100"
+                            aria-label="Next image"
+                        >
+                            <ChevronRight className="w-5 h-5 text-gray-800" />
+                        </button>
+                    </>
+                )}
+
+                {/* Dots Indicator */}
+                {property.images.length > 1 && (
+                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+                        {property.images.map((_, index) => (
+                            <button
+                                key={index}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    setCurrentImageIndex(index);
+                                }}
+                                className={`h-2 rounded-full transition-all ${index === currentImageIndex
+                                        ? 'bg-white w-6'
+                                        : 'bg-white/60 hover:bg-white/80 w-2'
+                                    }`}
+                                aria-label={`Go to image ${index + 1}`}
+                            />
+                        ))}
+                    </div>
+                )}
             </div>
 
-            {/* Content */}
+            {/* CONTENT */}
             <div className="p-6 flex-1 flex flex-col">
-                <div className="flex justify-between items-start mb-2">
-                    <h3 className="text-2xl font-serif text-[#1A2332] leading-tight group-hover:text-[#C4A053] transition-colors">
-                        {property.name}
-                    </h3>
-                </div>
 
-                <div className="flex items-center gap-2 text-gray-500 mb-4 text-sm font-medium">
-                    <MapPin className="w-4 h-4 text-[#C4A053]" />
+                {/* GENERIC TITLE - NO PROPERTY NAME - TRANSLATED */}
+                <h3 className="text-2xl font-serif text-gray-900 mb-2">
+                    {property.category === 'apartment'
+                        ? currentLabels.apartmentTitle
+                        : currentLabels.villaTitle
+                    }
+                </h3>
+
+                {/* Location */}
+                <p className="text-gray-600 mb-4 flex items-center gap-2">
+                    <span className="text-primary">📍</span>
                     {property.location}
-                </div>
+                </p>
 
-                <p className="text-sm text-gray-600 mb-6 line-clamp-3 leading-relaxed flex-1">
+                {/* Description */}
+                <p className="text-sm text-gray-700 mb-4 line-clamp-3 flex-1">
                     {property.description}
                 </p>
 
-                {/* Details Grid */}
-                <div className="grid grid-cols-3 gap-2 text-xs text-gray-500 mb-6 py-4 border-t border-b border-gray-50">
-                    <div className="text-center font-medium">
-                        <span className="block text-[#1A2332] text-sm mb-1">{formatBeds().split(' ')[0]}</span>
-                        {t('properties.beds', 'Beds')}
-                    </div>
-                    <div className="text-center font-medium border-l border-gray-100">
-                        <span className="block text-[#1A2332] text-sm mb-1">{property.baths}</span>
-                        {t('properties.baths', 'Baths')}
-                    </div>
-                    <div className="text-center font-medium border-l border-gray-100">
-                        <span className="block text-[#1A2332] text-sm mb-1">{property.size}</span>
-                        m²
-                    </div>
+                {/* Details - TRANSLATED LABELS */}
+                <div className="flex justify-between text-sm text-gray-700 mb-4 pb-4 border-b">
+                    <span>{formatBeds()} {currentLabels.beds}</span>
+                    <span>{property.baths} {currentLabels.baths}</span>
+                    <span>{property.size_sqm}m²</span>
                 </div>
 
-                {/* Price and CTA */}
-                <div className="flex items-end justify-between gap-4">
-                    <div className="flex flex-col">
-                        <span className="text-xs text-gray-400 font-medium uppercase tracking-wider mb-1">Price</span>
-                        <span className="text-xl font-bold text-[#C4A053]">
-                            {formatPrice(property.price)}
-                        </span>
-                    </div>
+                {/* Price - TRANSLATED "FROM" */}
+                <p className="text-2xl font-semibold text-primary mb-4">
+                    {currentLabels.from} {formatPrice(property.price_eur)}
+                </p>
 
-                    <Button
-                        asChild
-                        className="bg-[#1A2332] hover:bg-[#C4A053] text-white rounded-lg px-4 py-2 text-sm font-medium shadow-sm hover:shadow-md transition-all shrink-0"
-                    >
-                        <a href={`/optin?project=${encodeURIComponent(property.id)}&ref=${property.refNumber}`}>
-                            {t('properties.moreInfo', 'More Info')}
-                            <ArrowRight className="w-4 h-4 ml-2" />
-                        </a>
-                    </Button>
-                </div>
+                {/* CTA - TRANSLATED */}
+                <Button
+                    asChild
+                    className="w-full bg-primary hover:bg-primary/90 text-white"
+                >
+                    <a href={`/${lang}/optin?property=${property.id}`}>
+                        {currentLabels.moreInfo}
+                    </a>
+                </Button>
             </div>
         </div>
     );

@@ -63,6 +63,7 @@ const TermsOfService = lazy(() => import("./pages/TermsOfService"));
 
 // Lazy load ALL admin pages (rarely accessed, heavy components)
 const Dashboard = lazy(() => import("./pages/admin/Dashboard"));
+const AdminProperties = lazy(() => import("./pages/AdminProperties"));
 const Articles = lazy(() => import("./pages/admin/Articles"));
 const ArticleEditor = lazy(() => import("./pages/admin/ArticleEditor"));
 const Authors = lazy(() => import("./pages/admin/Authors"));
@@ -154,6 +155,7 @@ const App = () => (
               {/* PROTECTED ADMIN ROUTES (MUST BE BEFORE /:lang) */}
               {/* ========================================== */}
               <Route path="/admin" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+              <Route path="/admin/properties" element={<ProtectedRoute><AdminProperties /></ProtectedRoute>} />
               <Route path="/admin/articles" element={<ProtectedRoute><Articles /></ProtectedRoute>} />
               <Route path="/admin/articles/new" element={<ProtectedRoute><ArticleEditor /></ProtectedRoute>} />
               <Route path="/admin/articles/:id/edit" element={<ProtectedRoute><ArticleEditor /></ProtectedRoute>} />
