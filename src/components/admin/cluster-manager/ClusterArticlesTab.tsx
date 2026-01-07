@@ -198,38 +198,65 @@ export const ClusterArticlesTab = ({
     return 6 - sourceArticles.length;
   };
 
+  // Track generation progress for UI
+  const [generationProgress, setGenerationProgress] = useState<{ current: number; total: number } | null>(null);
+
   const handleGenerateMissing = async () => {
     setIsGeneratingMissing(true);
+    let totalGenerated = 0;
+    
     try {
-      toast.info("Generating missing article(s)... This may take 1-2 minutes.");
+      // First call to check how many are needed
+      toast.info("Checking for missing articles...");
       
-      const { data, error } = await supabase.functions.invoke('generate-missing-articles', {
-        body: { clusterId: cluster.cluster_id }
-      });
+      let remaining = 1; // Assume work needed initially
       
-      if (error) throw error;
+      while (remaining > 0) {
+        setGenerationProgress({ current: totalGenerated + 1, total: totalGenerated + remaining });
+        toast.info(`Generating article ${totalGenerated + 1}... (this takes 1-2 min)`);
+        
+        const { data, error } = await supabase.functions.invoke('generate-missing-articles', {
+          body: { clusterId: cluster.cluster_id }
+        });
+        
+        if (error) throw error;
+        
+        if (data.generated > 0) {
+          totalGenerated += data.generated;
+          remaining = data.remaining || 0;
+          
+          toast.success(`✅ Generated "${data.articleHeadline?.substring(0, 40)}..." (${remaining} remaining)`);
+          
+          // Refresh data so UI updates
+          queryClient.invalidateQueries({ queryKey: ['cluster-articles', cluster.cluster_id] });
+        } else if (data.success && data.generated === 0) {
+          // No more articles to generate
+          remaining = 0;
+          if (totalGenerated === 0) {
+            toast.info(data.message || "All required articles already exist");
+          }
+        } else if (!data.success) {
+          // Error occurred
+          toast.error(data.error || data.message || "Generation failed");
+          break;
+        }
+        
+        // Small delay between calls to avoid overwhelming the API
+        if (remaining > 0) {
+          await new Promise(r => setTimeout(r, 2000));
+        }
+      }
       
-      // Check for successful generation
-      if (data.generated > 0) {
-        toast.success(`Generated ${data.generated} missing article(s)!`);
-        queryClient.invalidateQueries({ queryKey: ['cluster-articles', cluster.cluster_id] });
-        queryClient.invalidateQueries({ queryKey: ['clusters-unified'] });
-      } else if (data.success && data.generated === 0 && !data.errors) {
-        // No articles needed - cluster is already complete
-        toast.info(data.message || "All required articles already exist");
-      } else if (data.errors && data.errors.length > 0) {
-        // Show the first error with details
-        const firstError = data.errors[0];
-        toast.error(`Generation failed: ${firstError}`, { duration: 8000 });
-        console.error('Generate missing errors:', data.errors);
-      } else if (!data.success) {
-        toast.error(data.message || data.error || "Failed to generate missing articles");
+      if (totalGenerated > 0) {
+        toast.success(`🎉 Generated all ${totalGenerated} missing articles!`);
       }
     } catch (error: any) {
       console.error('Generate missing failed:', error);
-      toast.error(`Failed: ${error.message}`);
+      toast.error(`Failed after generating ${totalGenerated} articles: ${error.message}`);
     } finally {
       setIsGeneratingMissing(false);
+      setGenerationProgress(null);
+      queryClient.invalidateQueries({ queryKey: ['clusters-unified'] });
     }
   };
 
@@ -526,11 +553,18 @@ export const ClusterArticlesTab = ({
             className="bg-amber-600 hover:bg-amber-700"
           >
             {isGeneratingMissing ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                {generationProgress 
+                  ? `Generating ${generationProgress.current}/${generationProgress.current + (generationProgress.total - generationProgress.current)}...`
+                  : 'Generating...'}
+              </>
             ) : (
-              <Plus className="mr-2 h-4 w-4" />
+              <>
+                <Plus className="mr-2 h-4 w-4" />
+                Generate Missing ({getMissingCount()})
+              </>
             )}
-            Generate Missing ({getMissingCount()})
           </Button>
         )}
 
