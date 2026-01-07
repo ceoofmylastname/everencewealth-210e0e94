@@ -140,32 +140,36 @@ const Hero: React.FC<HeroProps> = ({ onStartChat, onOpenVideo }) => {
 
     // Curated luxury Costa del Sol images
     const heroImages = {
-        en: 'https://images.unsplash.com/photo-1582268611958-ebfd161ef9cf?w=1200&q=80',
-        nl: 'https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=1200&q=80',
-        fr: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=1200&q=80',
-        de: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=1200&q=80',
-        pl: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1200&q=80',
-        sv: 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=1200&q=80',
-        da: 'https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=1200&q=80',
-        fi: 'https://images.unsplash.com/photo-1600607687644-c7171b42498f?w=1200&q=80',
-        hu: 'https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?w=1200&q=80',
-        no: 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=1200&q=80'
+        en: 'https://storage.googleapis.com/msgsndr/9m2UBN29nuaCWceOgW2Z/media/6934d754e0f09226e30f51a8.jpg',
+        nl: 'https://storage.googleapis.com/msgsndr/9m2UBN29nuaCWceOgW2Z/media/6934d754e0f09226e30f51a8.jpg',
+        fr: 'https://storage.googleapis.com/msgsndr/9m2UBN29nuaCWceOgW2Z/media/6934d754e0f09226e30f51a8.jpg',
+        de: 'https://storage.googleapis.com/msgsndr/9m2UBN29nuaCWceOgW2Z/media/6934d754e0f09226e30f51a8.jpg',
+        pl: 'https://storage.googleapis.com/msgsndr/9m2UBN29nuaCWceOgW2Z/media/6934d754e0f09226e30f51a8.jpg',
+        sv: 'https://storage.googleapis.com/msgsndr/9m2UBN29nuaCWceOgW2Z/media/6934d754e0f09226e30f51a8.jpg',
+        da: 'https://storage.googleapis.com/msgsndr/9m2UBN29nuaCWceOgW2Z/media/6934d754e0f09226e30f51a8.jpg',
+        fi: 'https://storage.googleapis.com/msgsndr/9m2UBN29nuaCWceOgW2Z/media/6934d754e0f09226e30f51a8.jpg',
+        hu: 'https://storage.googleapis.com/msgsndr/9m2UBN29nuaCWceOgW2Z/media/6934d754e0f09226e30f51a8.jpg',
+        no: 'https://storage.googleapis.com/msgsndr/9m2UBN29nuaCWceOgW2Z/media/6934d754e0f09226e30f51a8.jpg',
+        es: 'https://storage.googleapis.com/msgsndr/9m2UBN29nuaCWceOgW2Z/media/6934d754e0f09226e30f51a8.jpg',
+        ar: 'https://storage.googleapis.com/msgsndr/9m2UBN29nuaCWceOgW2Z/media/6934d754e0f09226e30f51a8.jpg'
     };
 
     const currentImage = heroImages[lang as keyof typeof heroImages] || heroImages.en;
 
     // Translations for alt text
     const altTexts = {
-        en: 'Luxury coastal living on Costa del Sol',
-        nl: 'Luxe kustleven aan de Costa del Sol',
-        fr: 'Vie côtière de luxe sur la Costa del Sol',
-        de: 'Luxuriöses Küstenleben an der Costa del Sol',
-        pl: 'Luksusowe życie nadmorskie na Costa del Sol',
-        sv: 'Lyxigt kustliv på Costa del Sol',
-        da: 'Luksus kystliv på Costa del Sol',
-        fi: 'Ylellinen rannikkoelämä Costa del Solilla',
-        hu: 'Luxus tengerparti élet a Costa del Solon',
-        no: 'Luksuriøst kystliv på Costa del Sol'
+        en: 'Luxury Costa del Sol villa with pool and modern design',
+        nl: 'Luxe Costa del Sol villa met zwembad en modern design',
+        fr: 'Villa de luxe sur la Costa del Sol avec piscine et design moderne',
+        de: 'Luxus Villa an der Costa del Sol mit Pool und modernem Design',
+        pl: 'Luksusowa willa na Costa del Sol z basenem i nowoczesnym designem',
+        sv: 'Lyxvilla på Costa del Sol med pool och modern design',
+        da: 'Luksusvilla på Costa del Sol med pool og moderne design',
+        fi: 'Luksushuvila Costa del Solilla uima-altaalla ja modernilla suunnittelulla',
+        hu: 'Luxus villa a Costa del Solon medencével és modern dizájnnal',
+        no: 'Luksusvilla på Costa del Sol med basseng og moderne design',
+        es: 'Villa de lujo en Costa del Sol con piscina y diseño moderno',
+        ar: 'فيلا فاخرة في كوستا ديل سول مع حمام سباحة وتصميم عصري'
     };
 
     const currentAlt = altTexts[lang as keyof typeof altTexts] || altTexts.en;
