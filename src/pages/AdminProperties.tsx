@@ -1,19 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Button } from '@/components/ui/button';
 import { Plus, Edit, Trash2, Home, Building2 } from 'lucide-react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { AdminLayout } from "@/components/AdminLayout";
 
 const AdminProperties: React.FC = () => {
+    // navigate is still used for other potential client-side needs or legacy code, but not for the main Add buttons
     const navigate = useNavigate();
     const [properties, setProperties] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
-
-    // DEBUG
-    console.log('=== AdminProperties Component Loaded ===');
-    console.log('useNavigate available:', typeof navigate);
-    console.log('Current location:', window.location.href);
 
     useEffect(() => {
         fetchProperties();
@@ -21,41 +16,36 @@ const AdminProperties: React.FC = () => {
 
     const fetchProperties = async () => {
         setLoading(true);
-        // @ts-ignore - properties table not yet in types
-        const { data, error } = await (supabase as any)
-            .from('properties')
-            .select('*')
-            .order('display_order', { ascending: true });
-
-        if (data) setProperties(data);
-        setLoading(false);
-    };
-
-    const handleAddPropertyClick = (e: React.MouseEvent) => {
-        e.preventDefault();
-        e.stopPropagation();
-        console.log('🔴 ADD PROPERTY BUTTON CLICKED!');
-        console.log('Attempting to navigate to: /admin/properties/new');
-
         try {
-            navigate('/admin/properties/new');
-            console.log('✅ Navigate called successfully');
+            // @ts-ignore - properties table not yet in types
+            const { data, error } = await (supabase as any)
+                .from('properties')
+                .select('*')
+                .order('display_order', { ascending: true });
+
+            if (error) throw error;
+            if (data) setProperties(data);
         } catch (error) {
-            console.error('❌ Navigation error:', error);
+            console.error('Error fetching properties:', error);
+        } finally {
+            setLoading(false);
         }
     };
 
     const handleDelete = async (id: string) => {
         if (!confirm('Are you sure you want to delete this property?')) return;
 
-        // @ts-ignore - properties table not yet in types
-        const { error } = await (supabase as any)
-            .from('properties')
-            .delete()
-            .eq('id', id);
+        try {
+            // @ts-ignore - properties table not yet in types
+            const { error } = await (supabase as any)
+                .from('properties')
+                .delete()
+                .eq('id', id);
 
-        if (!error) {
+            if (error) throw error;
             fetchProperties();
+        } catch (error) {
+            console.error('Error deleting:', error);
         }
     };
 
@@ -74,29 +64,18 @@ const AdminProperties: React.FC = () => {
                                 </p>
                             </div>
 
-                            {/* METHOD 1: Using onClick */}
-                            <Button
-                                onClick={handleAddPropertyClick}
-                                className="bg-primary hover:bg-primary/90 text-white"
-                                type="button"
+                            {/* DIRECT LINK - HEADER BUTTON */}
+                            <a
+                                href="/admin/properties/new"
+                                className="inline-flex items-center gap-2 px-6 py-3 bg-primary hover:bg-primary/90 text-white font-medium rounded-lg transition-colors shadow-sm"
                             >
-                                <Plus className="w-4 h-4 mr-2" />
+                                <Plus className="w-4 h-4" />
                                 Add New Property
-                            </Button>
-
-                            {/* METHOD 2: Using Link (backup if onClick doesn't work) */}
-                            {/* Uncomment this if onClick method fails:
-                            <Button asChild className="bg-primary hover:bg-primary/90">
-                              <Link to="/admin/properties/new">
-                                <Plus className="w-4 h-4 mr-2" />
-                                Add New Property
-                              </Link>
-                            </Button>
-                            */}
+                            </a>
                         </div>
                     </div>
 
-                    {/* Properties Grid */}
+                    {/* Properties List or Empty State */}
                     {loading ? (
                         <div className="text-center py-12">
                             <p className="text-gray-600">Loading properties...</p>
@@ -108,14 +87,15 @@ const AdminProperties: React.FC = () => {
                             <p className="text-gray-600 mb-6">
                                 Start by adding your first property. It will automatically appear on all 10 language landing pages.
                             </p>
-                            <Button
-                                className="bg-primary"
-                                onClick={handleAddPropertyClick}
-                                type="button"
+
+                            {/* DIRECT LINK - EMPTY STATE BUTTON */}
+                            <a
+                                href="/admin/properties/new"
+                                className="inline-flex items-center gap-2 px-6 py-3 bg-primary hover:bg-primary/90 text-white font-medium rounded-lg transition-colors shadow-sm"
                             >
-                                <Plus className="w-4 h-4 mr-2" />
+                                <Plus className="w-4 h-4" />
                                 Add Property
-                            </Button>
+                            </a>
                         </div>
                     ) : (
                         <div className="grid gap-4">
@@ -162,10 +142,10 @@ const AdminProperties: React.FC = () => {
                                                     )}
                                                 </div>
                                                 <p className="text-sm text-gray-600 mt-1">
-                                                    {property.location} · Ref: {property.internal_ref}
+                                                    {property.location} · Ref: {property.internal_ref || 'N/A'}
                                                 </p>
                                                 <p className="text-sm font-semibold text-primary mt-1">
-                                                    From €{property.price_eur.toLocaleString()}
+                                                    From €{property.price_eur?.toLocaleString() || '0'}
                                                 </p>
                                                 <div className="flex gap-3 mt-2 text-xs text-gray-500">
                                                     <span>{property.beds_min}{property.beds_max && property.beds_max !== property.beds_min ? `-${property.beds_max}` : ''} beds</span>
@@ -179,22 +159,18 @@ const AdminProperties: React.FC = () => {
 
                                         {/* Actions */}
                                         <div className="flex gap-2">
-                                            <Button
-                                                variant="outline"
-                                                size="sm"
-                                                onClick={() => navigate(`/admin/properties/edit/${property.id}`)}
-                                                type="button"
+                                            <a
+                                                href={`/admin/properties/edit/${property.id}`}
+                                                className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
                                             >
-                                                <Edit className="w-4 h-4" />
-                                            </Button>
-                                            <Button
-                                                variant="outline"
-                                                size="sm"
+                                                <Edit className="w-4 h-4 text-gray-600" />
+                                            </a>
+                                            <button
                                                 onClick={() => handleDelete(property.id)}
-                                                type="button"
+                                                className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
                                             >
                                                 <Trash2 className="w-4 h-4 text-red-600" />
-                                            </Button>
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
