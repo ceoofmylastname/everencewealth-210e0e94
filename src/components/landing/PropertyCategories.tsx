@@ -4,7 +4,10 @@ import { Button } from '@/components/ui/button';
 import { Building2, Home } from 'lucide-react';
 
 const PropertyCategories: React.FC = () => {
-    const { lang } = useParams();
+    const params = useParams();
+    const lang = params.lang || window.location.pathname.split('/')[1] || 'en';
+
+    console.log('PropertyCategories - Language detected:', lang);
 
     const content = {
         en: {

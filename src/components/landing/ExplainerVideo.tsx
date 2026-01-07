@@ -2,7 +2,10 @@ import React from 'react';
 import { useParams } from 'react-router-dom';
 
 const ExplainerVideo: React.FC = () => {
-    const { lang } = useParams();
+    const params = useParams();
+    const lang = params.lang || window.location.pathname.split('/')[1] || 'en';
+
+    console.log('ExplainerVideo - Language detected:', lang);
 
     const content = {
         en: {

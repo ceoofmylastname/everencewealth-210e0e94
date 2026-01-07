@@ -8,7 +8,10 @@ interface PrePropertiesActionProps {
 }
 
 const PrePropertiesAction: React.FC<PrePropertiesActionProps> = ({ onOpenChat }) => {
-    const { lang } = useParams();
+    const params = useParams();
+    const lang = params.lang || window.location.pathname.split('/')[1] || 'en';
+
+    console.log('PrePropertiesAction - Language detected:', lang);
 
     const content = {
         en: {

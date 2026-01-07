@@ -247,7 +247,10 @@ const PropertySection = ({ id, title, subtitle, properties, lang }: { id: string
 );
 
 const PropertyCarousel: React.FC = () => {
-    const { lang } = useParams();
+    const params = useParams();
+    const lang = params.lang || window.location.pathname.split('/')[1] || 'en';
+
+    console.log('PropertyCarousel - Language detected:', lang);
 
     const sectionHeadings = {
         en: {

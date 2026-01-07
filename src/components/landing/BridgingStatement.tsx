@@ -2,7 +2,10 @@ import React from 'react';
 import { useParams } from 'react-router-dom';
 
 const BridgingStatement: React.FC = () => {
-    const { lang } = useParams();
+    const params = useParams();
+    const lang = params.lang || window.location.pathname.split('/')[1] || 'en';
+
+    console.log('BridgingStatement - Language detected:', lang);
 
     const content = {
         en: "Get clear answers to all your questions — and have your criteria carefully recorded, so we can guide you properly from the very first step.",

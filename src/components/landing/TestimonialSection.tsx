@@ -3,7 +3,10 @@ import { useParams } from 'react-router-dom';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 
 const TestimonialSection: React.FC = () => {
-    const { lang } = useParams();
+    const params = useParams();
+    const lang = params.lang || window.location.pathname.split('/')[1] || 'en';
+
+    console.log('TestimonialSection - Language detected:', lang);
 
     const content = {
         en: {

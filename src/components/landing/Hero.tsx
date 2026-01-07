@@ -9,7 +9,10 @@ interface HeroProps {
 }
 
 const Hero: React.FC<HeroProps> = ({ onStartChat, onOpenVideo }) => {
-    const { lang } = useParams();
+    const params = useParams();
+    const lang = params.lang || window.location.pathname.split('/')[1] || 'en';
+
+    console.log('Hero - Language detected:', lang);
 
     const content = {
         en: {
