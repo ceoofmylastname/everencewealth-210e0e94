@@ -619,16 +619,31 @@ serve(async (req) => {
 
     console.log(`[Generate] Found sibling articles in: ${Object.keys(articlesByLang).join(', ')}`);
 
-    // Check for existing Q&As for this article to enable continuation
+    // Check for existing Q&As across ALL languages for this cluster + article's Q&A types
+    // This ensures we only skip Q&A types that are FULLY translated (all 10 languages)
+    const allSiblingArticleIds = Object.values(articlesByLang).map(a => a.id);
     const { data: existingQAs } = await supabase
       .from('qa_pages')
-      .select('qa_type, language')
-      .eq('source_article_id', englishArticle.id);
+      .select('qa_type, language, hreflang_group_id, source_article_id')
+      .eq('cluster_id', englishArticle.cluster_id)
+      .in('source_article_id', allSiblingArticleIds);
     
-    const existingSet = new Set(
-      (existingQAs || []).map(qa => `${qa.qa_type}:${qa.language}`)
-    );
-    console.log(`[Generate] Found ${existingQAs?.length || 0} existing Q&As for this article`);
+    // Build a map: qa_type -> { langs: Set, hreflangGroupId }
+    const existingByType: Record<string, { langs: Set<string>; hreflangGroupId: string | null }> = {};
+    for (const qa of existingQAs || []) {
+      if (!existingByType[qa.qa_type]) {
+        existingByType[qa.qa_type] = { langs: new Set(), hreflangGroupId: null };
+      }
+      existingByType[qa.qa_type].langs.add(qa.language);
+      // Capture hreflang_group_id from any sibling (they should all match)
+      if (qa.hreflang_group_id) {
+        existingByType[qa.qa_type].hreflangGroupId = qa.hreflang_group_id;
+      }
+    }
+    
+    console.log(`[Generate] Found existing Q&As: ${JSON.stringify(Object.fromEntries(
+      Object.entries(existingByType).map(([k, v]) => [k, { langs: Array.from(v.langs), groupId: v.hreflangGroupId?.slice(0, 8) }])
+    ))}`);
 
     const sourceContent = {
       headline: englishArticle.headline,
@@ -646,6 +661,7 @@ serve(async (req) => {
 
     // Determine which Q&A types to process (for resume support)
     let startProcessing = !resumeFromQAType;
+    const ALL_LANGUAGES = ['en', 'de', 'nl', 'fr', 'pl', 'sv', 'da', 'hu', 'fi', 'no'];
 
     // Process 4 Q&A types
     for (const qaType of QA_TYPES) {
@@ -686,70 +702,123 @@ serve(async (req) => {
         });
       }
       
-      // Check if English Q&A for this type already exists
-      if (existingSet.has(`${qaType.id}:en`)) {
-        console.log(`[Generate] Skipping ${qaType.id} - already exists for this article`);
+      // Check if ALL 10 languages exist for this Q&A type (only then skip completely)
+      const existingInfo = existingByType[qaType.id];
+      const existingLangs = existingInfo?.langs || new Set<string>();
+      const allLangsComplete = existingLangs.size >= 10 && ALL_LANGUAGES.every(l => existingLangs.has(l));
+
+      if (allLangsComplete) {
+        console.log(`[Generate] Skipping ${qaType.id} - all 10 languages already exist`);
         results.skipped += 10;
         continue;
       }
       
+      // Determine missing languages for this Q&A type
+      const missingLangs = ALL_LANGUAGES.filter(l => !existingLangs.has(l));
+      console.log(`[Generate] ${qaType.id}: ${existingLangs.size}/10 exist, missing: ${missingLangs.join(', ')}`);
+      
       console.log(`\n[Generate] ===== Starting ${qaType.id} =====`);
       
-      // Step 1: Generate English Q&A (original content)
-      const englishQA = await generateEnglishQA(sourceContent, qaType, '');
-      
-      if (!englishQA) {
-        console.error(`[Generate] Failed to generate English ${qaType.id}`);
-        results.failed += 10; // All 10 languages fail if English fails
-        continue;
-      }
-
-      console.log(`[Generate] ✅ English ${qaType.id} generated: "${englishQA.question_main?.substring(0, 50)}..."`);
-
-      // Create shared hreflang_group_id for this Q&A type
-      const hreflangGroupId = crypto.randomUUID();
-      results.hreflangGroups.push(hreflangGroupId);
-
       const languageSlugs: Record<string, string> = {};
       const createdPages: any[] = [];
+      let englishQA: any = null;
+      let hreflangGroupId: string = '';
 
-      // Step 2: Create English page with UNIQUE slug (UUID suffix prevents collisions)
-      const englishUniqueId = crypto.randomUUID().slice(0, 8);
-      const englishSlug = `${englishQA.slug || qaType.id}-en-${englishUniqueId}`.replace(/--+/g, '-').substring(0, 80);
-      languageSlugs['en'] = englishSlug;
-
-      const englishPageData = {
-        source_article_id: englishArticle.id,
-        source_article_slug: englishArticle.slug,
-        cluster_id: englishArticle.cluster_id,
-        language: 'en',
-        source_language: 'en',
-        hreflang_group_id: hreflangGroupId,
-        qa_type: qaType.id,
-        title: englishQA.title || englishQA.question_main,
-        slug: englishSlug,
-        canonical_url: `https://www.delsolprimehomes.com/en/qa/${englishSlug}`,
-        question_main: englishQA.question_main,
-        answer_main: englishQA.answer_main,
-        related_qas: [],
-        speakable_answer: englishQA.speakable_answer,
-        meta_title: (englishQA.meta_title || '').substring(0, 60),
-        meta_description: (englishQA.meta_description || '').substring(0, 160),
-        featured_image_url: englishArticle.featured_image_url || 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=1200',
-        featured_image_alt: englishArticle.featured_image_alt || 'Costa del Sol property',
-        category: englishArticle.category || 'Real Estate',
-        status: 'published',
-        translations: {},
-      };
+      // Check if English already exists - if so, fetch it and reuse
+      if (existingLangs.has('en')) {
+        // Reuse existing hreflang_group_id
+        hreflangGroupId = existingInfo!.hreflangGroupId || crypto.randomUUID();
+        
+        // Fetch existing English Q&A to use as translation source
+        const { data: existingEnglishQA } = await supabase
+          .from('qa_pages')
+          .select('*')
+          .eq('cluster_id', englishArticle.cluster_id)
+          .eq('qa_type', qaType.id)
+          .eq('language', 'en')
+          .eq('hreflang_group_id', hreflangGroupId)
+          .single();
+        
+        if (existingEnglishQA) {
+          console.log(`[Generate] Using existing English ${qaType.id}: "${existingEnglishQA.question_main?.substring(0, 50)}..."`);
+          englishQA = {
+            question_main: existingEnglishQA.question_main,
+            answer_main: existingEnglishQA.answer_main,
+            meta_title: existingEnglishQA.meta_title,
+            meta_description: existingEnglishQA.meta_description,
+            speakable_answer: existingEnglishQA.speakable_answer,
+            slug: existingEnglishQA.slug?.replace(/-en-[a-f0-9]+$/, '') || qaType.id,
+          };
+          languageSlugs['en'] = existingEnglishQA.slug;
+          results.skipped += 1; // English already exists
+        } else {
+          console.warn(`[Generate] English marked as existing but not found, regenerating...`);
+          existingLangs.delete('en'); // Remove from existing set
+        }
+        
+        results.hreflangGroups.push(hreflangGroupId);
+      }
       
-      createdPages.push(englishPageData);
-      results.created++;
+      // Generate English Q&A if it doesn't exist yet
+      if (!englishQA) {
+        englishQA = await generateEnglishQA(sourceContent, qaType, '');
+        
+        if (!englishQA) {
+          console.error(`[Generate] Failed to generate English ${qaType.id}`);
+          results.failed += missingLangs.length; // Only count missing languages as failed
+          continue;
+        }
+
+        console.log(`[Generate] ✅ English ${qaType.id} generated: "${englishQA.question_main?.substring(0, 50)}..."`);
+
+        // Create new hreflang_group_id for this Q&A type
+        hreflangGroupId = crypto.randomUUID();
+        results.hreflangGroups.push(hreflangGroupId);
+
+        // Create English page with UNIQUE slug (UUID suffix prevents collisions)
+        const englishUniqueId = crypto.randomUUID().slice(0, 8);
+        const englishSlug = `${englishQA.slug || qaType.id}-en-${englishUniqueId}`.replace(/--+/g, '-').substring(0, 80);
+        languageSlugs['en'] = englishSlug;
+
+        const englishPageData = {
+          source_article_id: englishArticle.id,
+          source_article_slug: englishArticle.slug,
+          cluster_id: englishArticle.cluster_id,
+          language: 'en',
+          source_language: 'en',
+          hreflang_group_id: hreflangGroupId,
+          qa_type: qaType.id,
+          title: englishQA.title || englishQA.question_main,
+          slug: englishSlug,
+          canonical_url: `https://www.delsolprimehomes.com/en/qa/${englishSlug}`,
+          question_main: englishQA.question_main,
+          answer_main: englishQA.answer_main,
+          related_qas: [],
+          speakable_answer: englishQA.speakable_answer,
+          meta_title: (englishQA.meta_title || '').substring(0, 60),
+          meta_description: (englishQA.meta_description || '').substring(0, 160),
+          featured_image_url: englishArticle.featured_image_url || 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=1200',
+          featured_image_alt: englishArticle.featured_image_alt || 'Costa del Sol property',
+          category: englishArticle.category || 'Real Estate',
+          status: 'published',
+          translations: {},
+        };
+        
+        createdPages.push(englishPageData);
+        results.created++;
+      }
 
       // Rate limiting delay
       await new Promise(r => setTimeout(r, 1000));
 
-      // Step 3: Translate to 9 other languages (with retry)
+      // Step 3: Translate to 9 other languages (only missing ones)
       for (const lang of NON_ENGLISH_LANGUAGES) {
+        // Skip languages that already have Q&As for this type
+        if (existingLangs.has(lang)) {
+          console.log(`[Generate] Skipping ${lang} - already exists for ${qaType.id}`);
+          results.skipped += 1;
+          continue;
+        }
         // Check timeout before each translation
         const translationElapsed = Date.now() - startTime;
         if (translationElapsed > TIMEOUT_THRESHOLD_MS && jobId) {
