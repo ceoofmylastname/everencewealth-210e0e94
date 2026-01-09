@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { LanguageCode } from '@/utils/landing/languageDetection';
 import LeadForm from './LeadForm';
 
@@ -7,7 +7,7 @@ interface LeadCaptureFormProps {
     isOpen: boolean;
     onClose: () => void;
     language: LanguageCode;
-    translations: any; // Using any to match JSON
+    translations: any;
     propertyId?: string;
     source?: string;
 }
@@ -32,12 +32,16 @@ const LeadCaptureForm: React.FC<LeadCaptureFormProps> = ({
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                    <DialogTitle className="text-xl font-serif text-[#1A2332]">
-                        {isSuccess ? 'Success!' : translations.title}
+            <DialogContent className="sm:max-w-[500px] bg-white border-0 shadow-2xl p-8 md:p-10">
+                <DialogHeader className="mb-6">
+                    <DialogTitle className="text-2xl font-serif text-landing-navy text-center">
+                        {isSuccess ? 'Response Received' : (translations.title || "Request Information")}
                     </DialogTitle>
-                    {isSuccess && <DialogDescription className="text-green-600 font-medium">{translations.success}</DialogDescription>}
+                    {isSuccess && (
+                        <p className="text-center text-landing-gold mt-2 font-medium">
+                            {translations.success || "Thank you! We'll be in touch shortly."}
+                        </p>
+                    )}
                 </DialogHeader>
 
                 {!isSuccess && (
@@ -47,7 +51,7 @@ const LeadCaptureForm: React.FC<LeadCaptureFormProps> = ({
                         propertyId={propertyId}
                         source={source}
                         onSuccess={handleSuccess}
-                        className="mt-4"
+                        className="space-y-6"
                     />
                 )}
             </DialogContent>

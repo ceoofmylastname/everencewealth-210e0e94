@@ -1,140 +1,85 @@
 {
   "hero": {
-    "headline": "DISCOVER LUXURY LIVING ON THE COSTA DEL SOL",
-    "subheadline": "Experience a personalized and stress-free approach to finding your dream home in Southern Spain.",
-    "videoCTA": "Watch Our Short Intro",
-    "emmaCTA": "Start with Emma",
-    "primaryCTA": "Get your private, pressure-free property shortlist",
-    "secondaryCTA": "Watch our 60-second introduction"
+    "headline": "Discover Your Costa del Sol Investment",
+    "subheadline": "Curated luxury properties for discerning international investors",
+    "cta": "Begin Your Private Property Search"
   },
-  "emma": {
-    "headline": "Ask your questions. Share your criteria.",
-    "subheadline": "Receive a first tailored selection within 24 hours.",
-    "status": "Online now - Ask me anything!",
-    "greeting": "Hi! How can I help you today?",
-    "quickActions": {
-      "question": "Ask a question",
-      "criteria": "Share your criteria",
-      "explore": "Explore apartments or villas"
-    },
-    "placeholder": "Type your message...",
-    "title": "Emma",
-    "subtitle": "Your Property Assistant",
-    "intro": "Emma answers your questions and prepares a clear overview of your criteria for our team."
+  "valueProp": {
+    "headline": "A Guided, Pressure-Free Approach",
+    "pillars": [
+      {
+        "title": "Curated Selection",
+        "description": "Hand-picked properties matching your specific criteria and investment goals."
+      },
+      {
+        "title": "Market Expertise",
+        "description": "15+ years of specialized knowledge in Costa del Sol's luxury real estate market."
+      },
+      {
+        "title": "Discretion Assured",
+        "description": "Confidential, professional consultations with zero pressure tactics."
+      }
+    ]
   },
-  "testimonials": [
-    {
-      "text": "Emma really understood our needs and offered us clear choices.",
-      "author": "— Peter & Anne, Netherlands"
-    },
-    {
-      "text": "The process was smooth and we never felt pressured.",
-      "author": "— Lars & Ingrid, Sweden"
-    },
-    {
-      "text": "Highly recommended for anyone wanting a guided property search.",
-      "author": "— Thomas & Marie, France"
-    }
-  ],
+  "process": {
+    "headline": "Your Journey to Costa del Sol Ownership",
+    "steps": [
+      {
+        "title": "Discovery Call",
+        "description": "Share your investment goals and preferences with Emma, our dedicated specialist."
+      },
+      {
+        "title": "Curated Shortlist",
+        "description": "Receive a personalized selection of properties within 24 hours."
+      },
+      {
+        "title": "Exclusive Viewings",
+        "description": "Schedule private, accompanied tours of the properties that match your vision."
+      }
+    ]
+  },
   "properties": {
-    "types": {
-      "apartments": {
-        "title": "Apartments & Penthouses",
-        "subtitle": "Modern developments with amenities, views and resort lifestyle",
-        "cta": "View Apartment Projects >"
-      },
-      "villas": {
-        "title": "Townhouses & Villas",
-        "subtitle": "Private homes with space, privacy and architectural character",
-        "cta": "View Villas & Houses >"
-      }
-    },
-    "moreInfo": "More information >",
-    "header": {
-      "title": "This is a small curated selection.",
-      "subtitle": "A wider range is available based on your criteria."
-    },
-    "apartments": [
-      {
-        "id": "panorama-bay",
-        "title": "Panorama Bay",
-        "price": "From €385,000",
-        "description": "Modern apartments with panoramic sea views"
-      },
-      {
-        "id": "sunset-residences",
-        "title": "Sunset Residences",
-        "price": "From €420,000",
-        "description": "Contemporary apartments with large terraces"
-      },
-      {
-        "id": "green-valley-gardens",
-        "title": "Green Valley Gardens",
-        "price": "From €450,000",
-        "description": "Stylish penthouses with golf views"
-      },
-      {
-        "id": "la-perla-marina",
-        "title": "La Perla Marina",
-        "price": "From €510,000",
-        "description": "Exclusive development by the beach"
-      },
-      {
-        "id": "aqua-blu-oasis",
-        "title": "Aqua Blu Oasis",
-        "price": "From €393,000",
-        "description": "Modern living with resort-style amenities"
-      },
-      {
-        "id": "elevate-suites",
-        "title": "Elevate Suites",
-        "price": "From €440,000",
-        "description": "High design apartments with luxury facilities"
-      }
-    ],
-    "villas": [
-      {
-        "id": "villa-amalfi",
-        "title": "Villa Amalfi",
-        "price": "From €790,000",
-        "description": "Elegant Mediterranean villa with sea views"
-      },
-      {
-        "id": "sierra-blanca",
-        "title": "Sierra Blanca Townhouses",
-        "price": "From €699,000",
-        "description": "Luxury townhouses in an exclusive area"
-      },
-      {
-        "id": "los-arcos",
-        "title": "Los Arcos Estate",
-        "price": "From €1,950,000",
-        "description": "Refined villa with Spanish architecture"
-      },
-      {
-        "id": "monte-verde",
-        "title": "Monte Verde Villa",
-        "price": "From €835,000",
-        "description": "Modern villa with panoramic views"
-      },
-      {
-        "id": "horizon-hills",
-        "title": "Horizon Hills Villas",
-        "price": "From €1,150,000",
-        "description": "Contemporary design with extensive grounds"
-      },
-      {
-        "id": "la-terraza",
-        "title": "La Terraza Residences",
-        "price": "From €720,000",
-        "description": "Townhouses with private pools and terraces"
-      }
-    ],
-    "heading": "Featured Properties",
-    "from": "From",
+    "featured": "Featured Properties",
+    "apartmentsTitle": "Apartments & Penthouses",
+    "villasTitle": "Townhouses & Villas",
+    "viewDetails": "View Details",
     "beds": "Beds",
     "baths": "Baths",
-    "viewDetails": "View Details"
+    "sqm": "m²",
+    "location": "Location"
+  },
+  "video": {
+    "headline": "See How We Work",
+    "cta": "Ready to Start?"
+  },
+  "testimonials": {
+    "headline": "Trusted by International Investors",
+    "reviews": [
+      {
+        "quote": "Emma really understood our needs and offered us clear choices without any pressure.",
+        "author": "Peter & Anne",
+        "country": "Netherlands"
+      },
+      {
+        "quote": "The process was smooth, professional, and completely tailored to our schedule.",
+        "author": "Lars & Ingrid",
+        "country": "Sweden"
+      },
+      {
+        "quote": "Highly recommended for anyone wanting a discreet, guided property search.",
+        "author": "Thomas & Marie",
+        "country": "France"
+      }
+    ]
+  },
+  "finalCTA": {
+    "headline": "Begin Your Property Search Today",
+    "subtext": "Speak with Emma to receive your curated selection",
+    "button": "Start Conversation"
+  },
+  "footer": {
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service"
   },
   "form": {
     "title": "Fill out the form to receive more information",
@@ -151,30 +96,9 @@
     "contactField": "WhatsApp / SMS number",
     "contactFieldAlt": "Where can we message you? (WhatsApp/SMS)"
   },
-  "footer": {
-    "copyright": "© 2024 DelSolPrimeHomes. All rights reserved.",
-    "privacy": "Privacy Policy",
-    "terms": "Terms of Service"
-  },
-  "stickyButton": {
-    "main": "Erhalten Sie klare Antworten und eine persönliche Auswahl",
-    "micro": "In 2 Minuten vorbereitet · Unverbindlich"
-  },
-  "video": {
-    "heading": "How our guided, pressure-free approach works",
-    "subtext": "Emma answers your questions and carefully records your criteria."
-  },
-  "reviews": {
-    "heading": "A calm, pressure-free experience — according to our clients"
-  },
-  "bridging": {
-    "statement": "Get clear answers to all your questions — and have your criteria carefully recorded, so we can guide you properly from the very first step."
-  },
-  "preProperties": {
-    "cta": "Get clarity & a personal shortlist with Emma",
-    "micro": "Ask questions · Share your preferences · No obligation"
-  },
-  "categories": {
-    "viewVillas": "View Villas & Townhouses"
+  "header": {
+    "apartments": "Apartments & Penthouses",
+    "villas": "Townhouses & Villas",
+    "cta": "Speak with Emma"
   }
 }

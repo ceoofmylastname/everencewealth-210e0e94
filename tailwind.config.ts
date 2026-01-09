@@ -20,6 +20,15 @@ export default {
         nav: ['Raleway', 'sans-serif'],
       },
       colors: {
+        landing: {
+          navy: '#1A2332',
+          gold: '#C4A053',
+          text: {
+            primary: '#2C3E50',
+            secondary: '#6B7280',
+          },
+          divider: '#E5E7EB',
+        },
         prime: {
           950: '#020617',
           900: '#0f172a',

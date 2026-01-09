@@ -1,92 +1,52 @@
-import React from 'react';
-import { useParams } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Play, X } from 'lucide-react';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 
 const ExplainerVideo: React.FC = () => {
-    const params = useParams();
-    const lang = params.lang || window.location.pathname.split('/')[1] || 'en';
-
-    console.log('ExplainerVideo - Language detected:', lang);
-
-    const content = {
-        en: {
-            heading: "How our guided, pressure-free approach works",
-            subheading: "In 60 seconds, you'll understand our process and what happens next.",
-            microcopy: "Emma answers your questions and carefully records your criteria — before any call takes place."
-        },
-        nl: {
-            heading: "Hoe onze begeleide, ongedwongen aanpak werkt",
-            subheading: "In 60 seconden begrijpt u ons proces en wat er daarna gebeurt.",
-            microcopy: "Emma beantwoordt uw vragen en legt uw criteria zorgvuldig vast — voordat er een telefoongesprek plaatsvindt."
-        },
-        fr: {
-            heading: "Comment fonctionne notre approche guidée et sans pression",
-            subheading: "En 60 secondes, vous comprendrez notre processus et ce qui se passe ensuite.",
-            microcopy: "Emma répond à vos questions et enregistre soigneusement vos critères — avant tout appel."
-        },
-        de: {
-            heading: "Wie unser geführter, druckfreier Ansatz funktioniert",
-            subheading: "In 60 Sekunden verstehen Sie unseren Prozess und was als nächstes passiert.",
-            microcopy: "Emma beantwortet Ihre Fragen und zeichnet sorgfältig Ihre Kriterien auf — bevor ein Anruf stattfindet."
-        },
-        pl: {
-            heading: "Jak działa nasze kierowane, pozbawione presji podejście",
-            subheading: "W 60 sekund zrozumiesz nasz proces i co się dzieje dalej.",
-            microcopy: "Emma odpowiada na Twoje pytania i starannie zapisuje Twoje kryteria — zanim odbędzie się jakikolwiek telefon."
-        },
-        sv: {
-            heading: "Hur vårt vägledda, tryckfria tillvägagångssätt fungerar",
-            subheading: "På 60 sekunder förstår du vår process och vad som händer härnäst.",
-            microcopy: "Emma svarar på dina frågor och registrerar noggrant dina kriterier — innan något samtal äger rum."
-        },
-        da: {
-            heading: "Sådan fungerer vores vejledede, trykfri tilgang",
-            subheading: "På 60 sekunder forstår du vores proces og hvad der sker næste gang.",
-            microcopy: "Emma besvarer dine spørgsmål og registrerer omhyggeligt dine kriterier — før der finder et opkald sted."
-        },
-        fi: {
-            heading: "Miten ohjattu, paineeton lähestymistapamme toimii",
-            subheading: "60 sekunnissa ymmärrät prosessimme ja mitä tapahtuu seuraavaksi.",
-            microcopy: "Emma vastaa kysymyksiisi ja tallentaa huolellisesti kriteerisi — ennen kuin yhtään puhelua tapahtuu."
-        },
-        hu: {
-            heading: "Hogyan működik vezetett, nyomásmentes megközelítésünk",
-            subheading: "60 másodperc alatt megérted folyamatunkat és mi történik ezután.",
-            microcopy: "Emma válaszol kérdéseire és gondosan rögzíti kritériumait — mielőtt bármilyen hívás megtörténne."
-        },
-        no: {
-            heading: "Slik fungerer vår veiledede, trykkfrie tilnærming",
-            subheading: "På 60 sekunder forstår du vår prosess og hva som skjer neste gang.",
-            microcopy: "Emma svarer på spørsmålene dine og registrerer nøye kriteriene dine — før noen samtale finner sted."
-        }
-    };
-
-    const currentContent = content[lang as keyof typeof content] || content.en;
+    const [isOpen, setIsOpen] = useState(false);
 
     return (
-        <section id="explainer-video" className="py-16 md:py-24 bg-white">
-            <div className="container mx-auto px-4">
-                <div className="max-w-4xl mx-auto">
-                    <div className="text-center mb-8">
-                        <h2 className="text-3xl md:text-4xl font-serif text-gray-900 mb-4">
-                            {currentContent.heading}
-                        </h2>
-                        <p className="text-gray-600">
-                            {currentContent.subheading}
-                        </p>
-                    </div>
+        <section id="explainer-video" className="py-24 bg-landing-navy relative overflow-hidden">
+            <div className="container mx-auto px-4 text-center">
+                <h2 className="text-3xl lg:text-4xl font-serif text-white mb-16">
+                    See How We Work
+                </h2>
 
-                    <div className="relative rounded-3xl overflow-hidden shadow-2xl bg-gray-900 aspect-video">
-                        <video className="w-full h-full" controls poster="/images/video-poster.jpg">
-                            <source src="/videos/intro-video.mp4" type="video/mp4" />
-                            Your browser does not support the video tag.
-                        </video>
-                    </div>
+                <div className="relative max-w-5xl mx-auto aspect-video rounded-xl overflow-hidden bg-black/20 shadow-2xl group cursor-pointer" onClick={() => setIsOpen(true)}>
+                    {/* Thumbnail / Placeholder */}
+                    <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=1600&q=80')] bg-cover bg-center opacity-60 group-hover:opacity-40 transition-opacity duration-500" />
 
-                    <p className="text-sm text-gray-600 text-center mt-6">
-                        {currentContent.microcopy}
-                    </p>
+                    {/* Play Button */}
+                    <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-white/10 backdrop-blur-sm border border-white/30 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                            <div className="w-16 h-16 bg-landing-gold rounded-full flex items-center justify-center shadow-lg pl-1">
+                                <Play className="text-white fill-white" size={32} />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="mt-12">
+                    <button onClick={() => window.dispatchEvent(new CustomEvent('openLeadForm'))} className="text-white/80 hover:text-white border-b border-white/30 hover:border-white pb-1 transition-colors">
+                        Ready to Start?
+                    </button>
                 </div>
             </div>
+
+            <Dialog open={isOpen} onOpenChange={setIsOpen}>
+                <DialogContent className="max-w-6xl p-0 bg-black border-none overflow-hidden aspect-video">
+                    <button onClick={() => setIsOpen(false)} className="absolute top-4 right-4 z-50 text-white/50 hover:text-white p-2 bg-black/50 rounded-full">
+                        <X size={24} />
+                    </button>
+                    <div className="w-full h-full flex items-center justify-center text-white/50">
+                        {/* Replace with actual video embed/iframe */}
+                        <div className="text-center">
+                            <p>Video Player Placeholder</p>
+                            <p className="text-sm">(Embed YouTube/Vimeo/Self-hosted here)</p>
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
         </section>
     );
 };
