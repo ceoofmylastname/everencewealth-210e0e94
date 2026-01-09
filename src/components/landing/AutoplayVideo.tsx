@@ -10,7 +10,7 @@ interface AutoplayVideoProps {
 const VIDEO_URLS: Record<string, string> = {
     en: 'https://storage.googleapis.com/msgsndr/281Nzx90nVL8424QY4Af/media/695ecf9f49ed6234a3447f3c.mp4',
     nl: 'https://storage.googleapis.com/msgsndr/281Nzx90nVL8424QY4Af/media/695ecf9f49ed6234cc447f3d.mp4',
-    fr: 'https://storage.googleapis.com/msgsndr/281Nzx90nVL8424QY4Af/media/695ecfbf80b2a06663d73352.mp4',
+    fr: 'https://storage.googleapis.com/msgsndr/281Nzx90nVL8424QY4Af/media/695ecf9f80b2a00fb8d72ee9.mp4',
     de: 'https://storage.googleapis.com/msgsndr/281Nzx90nVL8424QY4Af/media/695ecf9f3561606f2e54e89b.mp4',
     fi: 'https://storage.googleapis.com/msgsndr/281Nzx90nVL8424QY4Af/media/695ecf9fd461d43a1ff58bc6.mp4',
     pl: 'https://storage.googleapis.com/msgsndr/281Nzx90nVL8424QY4Af/media/695ecfbf80b2a06663d73352.mp4',
