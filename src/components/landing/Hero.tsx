@@ -34,7 +34,7 @@ const Hero: React.FC<HeroProps> = ({ onStartChat, translations }) => {
             <div
                 className="absolute inset-0 bg-cover bg-center animate-ken-burns"
                 style={{
-                    backgroundImage: "url('https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=2000&q=90')"
+                    backgroundImage: "url('https://storage.googleapis.com/msgsndr/TLhrYb7SRrWrly615tCI/media/69614adb5edd53f331f3d6b7.png')"
                 }}
             />
 
