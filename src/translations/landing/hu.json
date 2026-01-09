@@ -1,180 +1,104 @@
 {
   "hero": {
-    "headline": "FEDEZZE FEL A LUXUS ÉLETSTÍLUST A COSTA DEL SOLON",
-    "subheadline": "Tapasztalja meg a személyre szabott és stresszmentes megközelítést álmai otthonának megtalálásához Dél-Spanyolországban.",
-    "videoCTA": "Nézze meg rövid bemutatkozónkat",
-    "emmaCTA": "Kezdés Emmával",
-    "primaryCTA": "Get your private, pressure-free property shortlist",
-    "secondaryCTA": "Watch our 60-second introduction"
+    "headline": "Discover Your Costa del Sol Investment",
+    "subheadline": "Curated luxury properties for discerning international investors",
+    "cta": "Begin Your Private Property Search"
   },
-  "emma": {
-    "headline": "Tegye fel kérdéseit. Ossza meg szempontjait.",
-    "subheadline": "Kapjon egy első, személyre szabott válogatást 24 órán belül.",
-    "status": "Online most - Kérdezzen bármit!",
-    "greeting": "Szia! Miben segíthetek ma?",
-    "quickActions": {
-      "question": "Kérdezzen egyet",
-      "criteria": "Ossza meg szempontjait",
-      "explore": "Fedezze fel az apartmanokat vagy villákat"
-    },
-    "placeholder": "Írja be üzenetét...",
-    "title": "Emma",
-    "subtitle": "Your Property Assistant",
-    "intro": "Emma answers your questions and prepares a clear overview of your criteria for our team."
+  "valueProp": {
+    "headline": "A Guided, Pressure-Free Approach",
+    "pillars": [
+      {
+        "title": "Curated Selection",
+        "description": "Hand-picked properties matching your specific criteria and investment goals."
+      },
+      {
+        "title": "Market Expertise",
+        "description": "15+ years of specialized knowledge in Costa del Sol's luxury real estate market."
+      },
+      {
+        "title": "Discretion Assured",
+        "description": "Confidential, professional consultations with zero pressure tactics."
+      }
+    ]
   },
-  "testimonials": [
-    {
-      "text": "Emma igazán megértette az igényeinket, és világos választási lehetőségeket kínált.",
-      "author": "— Peter & Anne, Hollandia"
-    },
-    {
-      "text": "A folyamat zökkenőmentes volt, és soha nem éreztünk nyomást.",
-      "author": "— Lars & Ingrid, Svédország"
-    },
-    {
-      "text": "Erősen ajánlott mindenkinek, aki vezetett ingatlankeresést szeretne.",
-      "author": "— Thomas & Marie, Franciaország"
-    }
-  ],
+  "process": {
+    "headline": "Your Journey to Costa del Sol Ownership",
+    "steps": [
+      {
+        "title": "Discovery Call",
+        "description": "Share your investment goals and preferences with Emma, our dedicated specialist."
+      },
+      {
+        "title": "Curated Shortlist",
+        "description": "Receive a personalized selection of properties within 24 hours."
+      },
+      {
+        "title": "Exclusive Viewings",
+        "description": "Schedule private, accompanied tours of the properties that match your vision."
+      }
+    ]
+  },
   "properties": {
-    "types": {
-      "apartments": {
-        "title": "Apartmanok & Penthouse-ok",
-        "subtitle": "Modern fejlesztések kényelmi szolgáltatásokkal, kilátással és üdülőhellyel",
-        "cta": "Apartman Projektek Megtekintése >"
-      },
-      "villas": {
-        "title": "Sorházak & Villák",
-        "subtitle": "Magánlakások térrel, magánélettel és építészeti karakterrel",
-        "cta": "Villák & Házak Megtekintése >"
-      }
-    },
-    "moreInfo": "További információ >",
-    "header": {
-      "title": "Ez egy kis válogatott kínálat.",
-      "subtitle": "Szélesebb választék áll rendelkezésre az Ön kritériumai alapján."
-    },
-    "apartments": [
-      {
-        "id": "panorama-bay",
-        "title": "Panorama Bay",
-        "price": "From €385,000",
-        "description": "Modern apartmanok panorámás kilátással a tengerre"
-      },
-      {
-        "id": "sunset-residences",
-        "title": "Sunset Residences",
-        "price": "From €420,000",
-        "description": "Kortárs apartmanok nagy teraszokkal"
-      },
-      {
-        "id": "green-valley-gardens",
-        "title": "Green Valley Gardens",
-        "price": "From €450,000",
-        "description": "Stílusos penthouse-ok kilátással a golfpályára"
-      },
-      {
-        "id": "la-perla-marina",
-        "title": "La Perla Marina",
-        "price": "From €510,000",
-        "description": "Exkluzív fejlesztés a tengerparton"
-      },
-      {
-        "id": "aqua-blu-oasis",
-        "title": "Aqua Blu Oasis",
-        "price": "From €393,000",
-        "description": "Modern életvitel üdülőhelyi kényelmi szolgáltatásokkal"
-      },
-      {
-        "id": "elevate-suites",
-        "title": "Elevate Suites",
-        "price": "From €440,000",
-        "description": "Magas színvonalú design apartmanok luxus felszereltséggel"
-      }
-    ],
-    "villas": [
-      {
-        "id": "villa-amalfi",
-        "title": "Villa Amalfi",
-        "price": "From €790,000",
-        "description": "Elegáns mediterrán villa tengerre néző kilátással"
-      },
-      {
-        "id": "sierra-blanca",
-        "title": "Sierra Blanca Townhouses",
-        "price": "From €699,000",
-        "description": "Luxus sorházak exkluzív területen"
-      },
-      {
-        "id": "los-arcos",
-        "title": "Los Arcos Estate",
-        "price": "From €1,950,000",
-        "description": "Kifinomult villa spanyol építészettel"
-      },
-      {
-        "id": "monte-verde",
-        "title": "Monte Verde Villa",
-        "price": "From €835,000",
-        "description": "Modern villa panorámás kilátással"
-      },
-      {
-        "id": "horizon-hills",
-        "title": "Horizon Hills Villas",
-        "price": "From €1,150,000",
-        "description": "Kortárs design kiterjedt telkekkel"
-      },
-      {
-        "id": "la-terraza",
-        "title": "La Terraza Residences",
-        "price": "From €720,000",
-        "description": "Sorházak saját medencével és terasszal"
-      }
-    ],
-    "heading": "Featured Properties",
-    "from": "From",
+    "featured": "Featured Properties",
+    "apartmentsTitle": "Apartments & Penthouses",
+    "villasTitle": "Townhouses & Villas",
+    "viewDetails": "View Details",
     "beds": "Beds",
     "baths": "Baths",
-    "viewDetails": "View Details"
+    "sqm": "m²",
+    "location": "Location"
+  },
+  "video": {
+    "headline": "See How We Work",
+    "cta": "Ready to Start?"
+  },
+  "testimonials": {
+    "headline": "Trusted by International Investors",
+    "reviews": [
+      {
+        "quote": "Emma really understood our needs and offered us clear choices without any pressure.",
+        "author": "Peter & Anne",
+        "country": "Netherlands"
+      },
+      {
+        "quote": "The process was smooth, professional, and completely tailored to our schedule.",
+        "author": "Lars & Ingrid",
+        "country": "Sweden"
+      },
+      {
+        "quote": "Highly recommended for anyone wanting a discreet, guided property search.",
+        "author": "Thomas & Marie",
+        "country": "France"
+      }
+    ]
+  },
+  "finalCTA": {
+    "headline": "Begin Your Property Search Today",
+    "subtext": "Speak with Emma to receive your curated selection",
+    "button": "Start Conversation"
+  },
+  "footer": {
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service"
   },
   "form": {
-    "title": "Töltse ki az ürlapot további információkért",
+    "title": "Fill out the form to receive more information",
     "fields": {
-      "fullName": "Teljes Név",
-      "phone": "Telefonszáma",
-      "comment": "Megjegyzés (opcionális)"
+      "fullName": "Full Name",
+      "phone": "Your Phone Number",
+      "comment": "Comment (optional)"
     },
     "consent": "I agree to receive relevant information and follow-up messages from DelSolPrimeHomes via WhatsApp and/or SMS.",
-    "submit": "WhatsApp / SMS Infó Kérése",
-    "recaptcha": "Ezt az oldalt a reCAPTCHA védi, és a Google Adatvédelmi Irányelvei és Szolgáltatási Feltételei érvényesek.",
-    "success": "Köszönjük! 24 órán belül felvesszük Önnel a kapcsolatot.",
-    "error": "Valami hiba történt. Kérjük, próbálja újra.",
+    "submit": "Request WhatsApp / SMS Info",
+    "recaptcha": "This site is protected by reCAPTCHA and the Google Privacy Policy and Terms of Service apply.",
+    "success": "Thank you! We'll contact you within 24 hours.",
+    "error": "Something went wrong. Please try again.",
     "contactField": "WhatsApp / SMS number",
     "contactFieldAlt": "Where can we message you? (WhatsApp/SMS)"
   },
-  "footer": {
-    "copyright": "© 2024 DelSolPrimeHomes. Minden jog fenntartva.",
-    "privacy": "Adatvédelmi Irányelvek",
-    "terms": "Szolgáltatási Feltételek"
-  },
-  "stickyButton": {
-    "main": "Obtenez des réponses claires et une sélection personnalisée",
-    "micro": "Préparé en 2 minutes · Sans engagement"
-  },
-  "video": {
-    "heading": "How our guided, pressure-free approach works",
-    "subtext": "Emma answers your questions and carefully records your criteria."
-  },
-  "reviews": {
-    "heading": "A calm, pressure-free experience — according to our clients"
-  },
-  "bridging": {
-    "statement": "Get clear answers to all your questions — and have your criteria carefully recorded, so we can guide you properly from the very first step."
-  },
-  "preProperties": {
-    "cta": "Get clarity & a personal shortlist with Emma",
-    "micro": "Ask questions · Share your preferences · No obligation"
-  },
-  "categories": {
-    "viewVillas": "View Villas & Townhouses"
+  "header": {
+    "apartments": "Apartments & Penthouses",
+    "villas": "Townhouses & Villas",
+    "cta": "Speak with Emma"
   }
 }

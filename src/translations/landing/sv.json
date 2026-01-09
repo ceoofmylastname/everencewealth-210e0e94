@@ -1,180 +1,104 @@
 {
   "hero": {
-    "headline": "UPPTÄCK LYXBOENDE PÅ COSTA DEL SOL",
-    "subheadline": "Upplev ett personligt och stressfritt sätt att hitta ditt drömhem i södra Spanien.",
-    "videoCTA": "Se vår korta intro",
-    "emmaCTA": "Börja med Emma",
-    "primaryCTA": "Get your private, pressure-free property shortlist",
-    "secondaryCTA": "Watch our 60-second introduction"
+    "headline": "Discover Your Costa del Sol Investment",
+    "subheadline": "Curated luxury properties for discerning international investors",
+    "cta": "Begin Your Private Property Search"
   },
-  "emma": {
-    "headline": "Ställ dina frågor. Dela dina kriterier.",
-    "subheadline": "Få ett första skräddarsytt urval inom 24 timmar.",
-    "status": "Online nu - Fråga mig vad som helst!",
-    "greeting": "Hej! Hur kan jag hjälpa dig idag?",
-    "quickActions": {
-      "question": "Ställ en fråga",
-      "criteria": "Dela dina kriterier",
-      "explore": "Utforska lägenheter eller villor"
-    },
-    "placeholder": "Skriv ditt meddelande...",
-    "title": "Emma",
-    "subtitle": "Your Property Assistant",
-    "intro": "Emma answers your questions and prepares a clear overview of your criteria for our team."
+  "valueProp": {
+    "headline": "A Guided, Pressure-Free Approach",
+    "pillars": [
+      {
+        "title": "Curated Selection",
+        "description": "Hand-picked properties matching your specific criteria and investment goals."
+      },
+      {
+        "title": "Market Expertise",
+        "description": "15+ years of specialized knowledge in Costa del Sol's luxury real estate market."
+      },
+      {
+        "title": "Discretion Assured",
+        "description": "Confidential, professional consultations with zero pressure tactics."
+      }
+    ]
   },
-  "testimonials": [
-    {
-      "text": "Emma förstod verkligen våra behov och erbjöd oss tydliga val.",
-      "author": "— Peter & Anne, Nederländerna"
-    },
-    {
-      "text": "Processen var smidig och vi kände oss aldrig pressade.",
-      "author": "— Lars & Ingrid, Sverige"
-    },
-    {
-      "text": "Rekommenderas varmt för alla som vill ha en guidad bostadssökning.",
-      "author": "— Thomas & Marie, Frankrike"
-    }
-  ],
+  "process": {
+    "headline": "Your Journey to Costa del Sol Ownership",
+    "steps": [
+      {
+        "title": "Discovery Call",
+        "description": "Share your investment goals and preferences with Emma, our dedicated specialist."
+      },
+      {
+        "title": "Curated Shortlist",
+        "description": "Receive a personalized selection of properties within 24 hours."
+      },
+      {
+        "title": "Exclusive Viewings",
+        "description": "Schedule private, accompanied tours of the properties that match your vision."
+      }
+    ]
+  },
   "properties": {
-    "types": {
-      "apartments": {
-        "title": "Lägenheter & Penthouses",
-        "subtitle": "Moderna utvecklingar med bekvämligheter, utsikt och resort-livsstil",
-        "cta": "Se Lägenhetsprojekt >"
-      },
-      "villas": {
-        "title": "Radhus & Villor",
-        "subtitle": "Privata hem med utrymme, avskildhet och arkitektonisk karaktär",
-        "cta": "Se Villor & Hus >"
-      }
-    },
-    "moreInfo": "Mer information >",
-    "header": {
-      "title": "Detta är ett litet kurerat urval.",
-      "subtitle": "Ett bredare utbud finns tillgängligt baserat på dina kriterier."
-    },
-    "apartments": [
-      {
-        "id": "panorama-bay",
-        "title": "Panorama Bay",
-        "price": "From €385,000",
-        "description": "Moderna lägenheter med panoramautsikt över havet"
-      },
-      {
-        "id": "sunset-residences",
-        "title": "Sunset Residences",
-        "price": "From €420,000",
-        "description": "Nutida lägenheter med stora terrasser"
-      },
-      {
-        "id": "green-valley-gardens",
-        "title": "Green Valley Gardens",
-        "price": "From €450,000",
-        "description": "Stiliga penthouses med golfutsikt"
-      },
-      {
-        "id": "la-perla-marina",
-        "title": "La Perla Marina",
-        "price": "From €510,000",
-        "description": "Exklusiv utveckling vid stranden"
-      },
-      {
-        "id": "aqua-blu-oasis",
-        "title": "Aqua Blu Oasis",
-        "price": "From €393,000",
-        "description": "Modernt boende med resort-bekvämligheter"
-      },
-      {
-        "id": "elevate-suites",
-        "title": "Elevate Suites",
-        "price": "From €440,000",
-        "description": "Högdesignade lägenheter med lyxfaciliteter"
-      }
-    ],
-    "villas": [
-      {
-        "id": "villa-amalfi",
-        "title": "Villa Amalfi",
-        "price": "From €790,000",
-        "description": "Elegant medelhavsvilla med havsutsikt"
-      },
-      {
-        "id": "sierra-blanca",
-        "title": "Sierra Blanca Townhouses",
-        "price": "From €699,000",
-        "description": "Lyxiga radhus i exklusivt område"
-      },
-      {
-        "id": "los-arcos",
-        "title": "Los Arcos Estate",
-        "price": "From €1,950,000",
-        "description": "Raffinerad villa med spansk arkitektur"
-      },
-      {
-        "id": "monte-verde",
-        "title": "Monte Verde Villa",
-        "price": "From €835,000",
-        "description": "Modern villa med panoramautsikt"
-      },
-      {
-        "id": "horizon-hills",
-        "title": "Horizon Hills Villas",
-        "price": "From €1,150,000",
-        "description": "Nutida design med stora tomter"
-      },
-      {
-        "id": "la-terraza",
-        "title": "La Terraza Residences",
-        "price": "From €720,000",
-        "description": "Radhus med privata pooler och terrasser"
-      }
-    ],
-    "heading": "Featured Properties",
-    "from": "From",
+    "featured": "Featured Properties",
+    "apartmentsTitle": "Apartments & Penthouses",
+    "villasTitle": "Townhouses & Villas",
+    "viewDetails": "View Details",
     "beds": "Beds",
     "baths": "Baths",
-    "viewDetails": "View Details"
+    "sqm": "m²",
+    "location": "Location"
+  },
+  "video": {
+    "headline": "See How We Work",
+    "cta": "Ready to Start?"
+  },
+  "testimonials": {
+    "headline": "Trusted by International Investors",
+    "reviews": [
+      {
+        "quote": "Emma really understood our needs and offered us clear choices without any pressure.",
+        "author": "Peter & Anne",
+        "country": "Netherlands"
+      },
+      {
+        "quote": "The process was smooth, professional, and completely tailored to our schedule.",
+        "author": "Lars & Ingrid",
+        "country": "Sweden"
+      },
+      {
+        "quote": "Highly recommended for anyone wanting a discreet, guided property search.",
+        "author": "Thomas & Marie",
+        "country": "France"
+      }
+    ]
+  },
+  "finalCTA": {
+    "headline": "Begin Your Property Search Today",
+    "subtext": "Speak with Emma to receive your curated selection",
+    "button": "Start Conversation"
+  },
+  "footer": {
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service"
   },
   "form": {
-    "title": "Fyll i formuläret för att få mer information",
+    "title": "Fill out the form to receive more information",
     "fields": {
-      "fullName": "Fullständigt Namn",
-      "phone": "Ditt Telefonnummer",
-      "comment": "Kommentar (valfritt)"
+      "fullName": "Full Name",
+      "phone": "Your Phone Number",
+      "comment": "Comment (optional)"
     },
     "consent": "I agree to receive relevant information and follow-up messages from DelSolPrimeHomes via WhatsApp and/or SMS.",
-    "submit": "Begär WhatsApp / SMS Info",
-    "recaptcha": "Denna webbplats skyddas av reCAPTCHA och Googles integritetspolicy och användarvillkor gäller.",
-    "success": "Tack! Vi kontaktar dig inom 24 timmar.",
-    "error": "Något gick fel. Försök igen.",
+    "submit": "Request WhatsApp / SMS Info",
+    "recaptcha": "This site is protected by reCAPTCHA and the Google Privacy Policy and Terms of Service apply.",
+    "success": "Thank you! We'll contact you within 24 hours.",
+    "error": "Something went wrong. Please try again.",
     "contactField": "WhatsApp / SMS number",
     "contactFieldAlt": "Where can we message you? (WhatsApp/SMS)"
   },
-  "footer": {
-    "copyright": "© 2024 DelSolPrimeHomes. Alla rättigheter förbehållna.",
-    "privacy": "Integritetspolicy",
-    "terms": "Användarvillkor"
-  },
-  "stickyButton": {
-    "main": "Krijg duidelijke antwoorden en een persoonlijke woningselectie",
-    "micro": "Voorbereid in 2 minuten · Geen verplichting"
-  },
-  "video": {
-    "heading": "How our guided, pressure-free approach works",
-    "subtext": "Emma answers your questions and carefully records your criteria."
-  },
-  "reviews": {
-    "heading": "A calm, pressure-free experience — according to our clients"
-  },
-  "bridging": {
-    "statement": "Get clear answers to all your questions — and have your criteria carefully recorded, so we can guide you properly from the very first step."
-  },
-  "preProperties": {
-    "cta": "Get clarity & a personal shortlist with Emma",
-    "micro": "Ask questions · Share your preferences · No obligation"
-  },
-  "categories": {
-    "viewVillas": "View Villas & Townhouses"
+  "header": {
+    "apartments": "Apartments & Penthouses",
+    "villas": "Townhouses & Villas",
+    "cta": "Speak with Emma"
   }
 }
