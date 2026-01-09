@@ -59,55 +59,75 @@ const PropertiesShowcase: React.FC = () => {
                 </div>
             </div>
 
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10">
-                {items.map((property) => (
-                    <div
-                        key={property.id}
-                        className="group cursor-pointer bg-white"
-                        onClick={() => {
-                            const event = new CustomEvent('openLeadForm', { detail: { interest: property.id } });
-                            window.dispatchEvent(event);
-                        }}
-                    >
-                        <div className="relative aspect-[16/10] overflow-hidden rounded-sm mb-6 bg-gray-100">
-                            <img
-                                src={property.images?.[0] || 'https://images.unsplash.com/photo-1600596542815-2495db9dc2c3?w=800'}
-                                alt={property.title}
-                                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                            />
-                            <div className="absolute top-4 right-4 bg-white px-3 py-1.5 text-sm font-bold text-landing-navy shadow-sm">
-                                {formatPrice(property.price_eur)}
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {items.map((property) => {
+                    const displayTitle = property.title || `${property.category === 'apartment' ? 'Luxury Apartment' : 'Exclusive Villa'}`;
+                    return (
+                        <div
+                            key={property.id}
+                            className="group relative overflow-hidden rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-500 bg-white"
+                        >
+                            {/* IMAGE CONTAINER - ENFORCED 16:9 ASPECT RATIO */}
+                            <div className="relative w-full aspect-[16/9] overflow-hidden">
+                                <img
+                                    src={property.images?.[0] || 'https://images.unsplash.com/photo-1600596542815-2495db9dc2c3?w=800'}
+                                    alt={displayTitle}
+                                    className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                                />
+
+                                {/* Gradient Overlay */}
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-60 group-hover:opacity-40 transition-opacity" />
+
+                                {/* Price Badge */}
+                                <div className="absolute top-4 right-4 px-4 py-2 bg-white/90 backdrop-blur-md rounded-full shadow-lg">
+                                    <p className="font-bold text-landing-navy">{formatPrice(property.price_eur)}</p>
+                                </div>
+                            </div>
+
+                            {/* CONTENT SECTION */}
+                            <div className="p-6">
+                                {/* Location */}
+                                <div className="flex items-center gap-2 text-sm text-gray-500 mb-3">
+                                    <MapPin size={16} className="text-landing-gold" />
+                                    <span>{property.location}</span>
+                                </div>
+
+                                {/* Title */}
+                                <h3 className="text-xl font-bold text-landing-navy mb-4 group-hover:text-landing-gold transition-colors line-clamp-1">
+                                    {displayTitle}
+                                </h3>
+
+                                {/* Features */}
+                                <div className="flex items-center gap-6 text-sm text-gray-600 mb-6">
+                                    <div className="flex items-center gap-2">
+                                        <Bed size={18} className="text-gray-400" />
+                                        <span>{property.beds_min} beds</span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <Bath size={18} className="text-gray-400" />
+                                        <span>{property.baths} baths</span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <Square size={18} className="text-gray-400" />
+                                        <span>{property.size_sqm}m²</span>
+                                    </div>
+                                </div>
+
+                                {/* CTA Button */}
+                                <button
+                                    onClick={() => {
+                                        const event = new CustomEvent('openLeadForm', { detail: { interest: property.id } });
+                                        window.dispatchEvent(event);
+                                    }}
+                                    className="w-full py-3 bg-gradient-to-r from-landing-navy to-landing-navy/90 text-white rounded-xl font-semibold hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex items-center justify-center gap-2"
+                                >
+                                    View Details
+                                    <ArrowRight size={18} />
+                                </button>
                             </div>
                         </div>
-
-                        <div>
-                            <div className="flex items-center gap-2 text-landing-text-secondary text-xs uppercase tracking-wider mb-2">
-                                <MapPin size={14} className="text-landing-gold" />
-                                <span>{property.location}</span>
-                            </div>
-
-                            <h4 className="text-xl font-bold text-landing-navy mb-4 group-hover:text-landing-gold transition-colors line-clamp-1">
-                                {property.title || `${property.category === 'apartment' ? 'Luxury Apartment' : 'Exclusive Villa'}`}
-                            </h4>
-
-                            <div className="flex items-center gap-6 text-sm text-landing-text-secondary mb-6 border-t border-dashed border-gray-200 pt-4">
-                                <div className="flex items-center gap-1.5">
-                                    <Bed size={16} /> <span>{property.beds_min}</span>
-                                </div>
-                                <div className="flex items-center gap-1.5">
-                                    <Bath size={16} /> <span>{property.baths}</span>
-                                </div>
-                                <div className="flex items-center gap-1.5">
-                                    <Square size={16} /> <span>{property.size_sqm} m²</span>
-                                </div>
-                            </div>
-
-                            <button className="text-landing-navy font-bold text-sm tracking-wide border-b-2 border-landing-gold/30 pb-0.5 hover:border-landing-gold transition-colors flex items-center gap-2">
-                                VIEW DETAILS <ArrowRight size={14} />
-                            </button>
-                        </div>
-                    </div>
-                ))}
+                    );
+                })}
             </div>
         </div>
     );
