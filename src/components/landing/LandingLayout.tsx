@@ -2,17 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet';
 import Hero from './Hero';
 import EmmaChat from './EmmaChat';
-import TestimonialSection from './TestimonialSection';
-import PropertyTypeSelector from './PropertyTypeSelector';
-import PropertyCarousel from './PropertyCarousel';
+import Features from './Features'; // [NEW]
+import PropertiesShowcase from './PropertiesShowcase'; // [NEW]
+import ExplainerVideo from './ExplainerVideo';
 import Footer from './Footer';
 import LanguageSelector from './LanguageSelector';
 import LeadCaptureForm from './LeadCaptureForm';
 import StickyActionButton from './StickyActionButton';
-import PrePropertiesAction from './PrePropertiesAction';
-import BridgingStatement from './BridgingStatement';
-import PropertyCategories from './PropertyCategories';
-import ExplainerVideo from './ExplainerVideo';
 import { LanguageCode } from '@/utils/landing/languageDetection';
 import { trackPageView } from '@/utils/landing/analytics';
 
@@ -104,6 +100,8 @@ const LandingLayout: React.FC<LandingLayoutProps> = ({ language, translations })
                 </div>
             </header>
 
+
+
             <Hero
                 onStartChat={() => setIsEmmaOpen(true)}
                 onOpenVideo={() => {
@@ -114,39 +112,15 @@ const LandingLayout: React.FC<LandingLayoutProps> = ({ language, translations })
                 }}
             />
 
+            <Features language={language} />
+
             <ExplainerVideo />
 
-            <TestimonialSection />
-
-            <BridgingStatement />
-
-            <PrePropertiesAction
-                onOpenChat={() => setIsEmmaOpen(true)}
-            />
-
-            <PropertyCategories />
-
-            {/* Note: This logic keeps PropertyTypeSelector for mobile via display classes in component or we should hide it?
-                The PropertyCategories component is 'hidden md:block'.
-                The PropertyTypeSelector might be redundant on Desktop now.
-                Let's hide PropertyTypeSelector on desktop if possible, or keep it as sticky nav.
-                For now, keeping it but it might look crowded.
-                Actually, PropertyCategories sends to #apartments-section.
-                Let's keep PropertyTypeSelector for mobile mostly.
-            */}
-            <div className="md:hidden">
-                <PropertyTypeSelector
-                    translations={translations.properties.types}
-                    onSelect={(type) => {
-                        const element = document.getElementById('properties-section');
-                        element?.scrollIntoView({ behavior: 'smooth' });
-                    }}
-                />
-            </div>
-
-            <PropertyCarousel />
+            <PropertiesShowcase />
 
             <Footer content={translations.footer} />
+
+
 
             <StickyActionButton
                 onOpenChat={() => setIsEmmaOpen(true)}
