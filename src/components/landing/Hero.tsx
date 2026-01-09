@@ -31,7 +31,7 @@ const Hero: React.FC<HeroProps> = ({ onStartChat, translations }) => {
     };
 
     return (
-        <section className="relative min-h-[100svh] pt-14 sm:pt-16 lg:pt-20 flex items-center justify-center overflow-hidden">
+        <section className="relative min-h-[100svh] pt-14 sm:pt-16 lg:pt-20 flex items-start md:items-center justify-center overflow-hidden">
             {/* Background Image - Desktop */}
             <div
                 className="absolute inset-0 bg-cover bg-center animate-ken-burns hidden md:block"
@@ -52,7 +52,7 @@ const Hero: React.FC<HeroProps> = ({ onStartChat, translations }) => {
             <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/30" />
 
             {/* Hero Content */}
-            <div className="container mx-auto px-5 sm:px-6 relative z-10 text-white py-8 sm:py-12">
+            <div className="container mx-auto px-5 sm:px-6 relative z-10 text-white pt-20 pb-8 sm:py-12">
                 <div className="max-w-4xl opacity-0 animate-hero-title-reveal mx-auto lg:mx-0" style={{ animationDelay: '0.2s' }}>
 
                     {/* H1 Headline - Mobile optimized */}
@@ -65,7 +65,7 @@ const Hero: React.FC<HeroProps> = ({ onStartChat, translations }) => {
                         {t.subheadline || "Independent, pressure-free guidance for new-build property on the Costa del Sol."}
                     </p>
 
-                    <div className="flex flex-col items-center lg:items-start gap-4 sm:gap-6">
+                    <div className="flex flex-col items-center lg:items-start gap-3 sm:gap-6">
                         {/* Primary CTA Button - Mobile responsive */}
                         <button
                             onClick={scrollToVideo}
