@@ -157,16 +157,44 @@ Return ONLY a JSON object (no markdown, no code blocks):
       jsonContent = jsonContent.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '');
     }
 
-    const parsed = JSON.parse(jsonContent);
-    console.log(`[TranslateSingle] ✅ Translated ${qa.qa_type} successfully`);
-    return parsed;
+    // ROBUST JSON PARSING: Handle malformed JSON with retry
+    try {
+      const parsed = JSON.parse(jsonContent);
+      console.log(`[TranslateSingle] ✅ Translated ${qa.qa_type} successfully`);
+      return parsed;
+    } catch (parseError) {
+      console.error(`[TranslateSingle] ⚠️ JSON parse failed, content length: ${content.length}`);
+      console.error(`[TranslateSingle] Content preview: ${content.substring(0, 200)}...`);
+      
+      // Try to extract JSON from malformed response
+      const jsonMatch = content.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        try {
+          const extracted = JSON.parse(jsonMatch[0]);
+          console.log(`[TranslateSingle] ✅ Extracted JSON successfully`);
+          return extracted;
+        } catch {
+          // Fall through to retry
+        }
+      }
+      
+      // Treat malformed JSON as retryable
+      if (retryCount < MAX_RETRIES) {
+        console.log(`[TranslateSingle] ⚠️ Malformed JSON, retry ${retryCount + 1}/${MAX_RETRIES}...`);
+        await sleep(RETRY_DELAYS[retryCount]);
+        return translateSingleQA(qa, targetLanguage, retryCount + 1);
+      }
+      
+      throw new Error(`Malformed JSON response after ${MAX_RETRIES} retries`);
+    }
     
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     const isRetryable = errorMessage.includes('timeout') || 
                         errorMessage.includes('503') || 
                         errorMessage.includes('network') ||
-                        errorMessage.includes('connect');
+                        errorMessage.includes('connect') ||
+                        errorMessage.includes('Unexpected end of JSON');
     
     if (isRetryable && retryCount < MAX_RETRIES) {
       console.log(`[TranslateSingle] ⚠️ ${errorMessage}, retry ${retryCount + 1}/${MAX_RETRIES} in ${RETRY_DELAYS[retryCount]}ms...`);
@@ -363,11 +391,59 @@ serve(async (req) => {
     const translatedQAs: string[] = [];
     const errors: string[] = [];
     const failedQAIds: string[] = [];
+    const missingArticleLinks: string[] = []; // Track which EN articles have no hreflang link
+
+    // PHASE 2.1: PRE-CHECK all Q&As for article linking BEFORE any AI calls
+    // This prevents wasted AI calls on Q&As that can't be inserted
+    console.log(`[TranslateQAs] 🔍 Pre-checking article linking for ${qasToTranslate.length} Q&As...`);
+    
+    const validQAs: typeof qasToTranslate = [];
+    for (const englishQA of qasToTranslate) {
+      const englishArticleHreflang = englishArticleHreflangMap.get(englishQA.source_article_id);
+      const targetArticle = englishArticleHreflang ? articlesByHreflang.get(englishArticleHreflang) : null;
+      
+      if (!targetArticle) {
+        const enHreflang = englishArticleHreflang || 'NULL';
+        console.warn(`[TranslateQAs] ⚠️ Skipping ${englishQA.qa_type}: EN article ${englishQA.source_article_id} has hreflang=${enHreflang}, no ${targetLanguage} article found`);
+        missingArticleLinks.push(englishQA.source_article_id);
+        failedQAIds.push(englishQA.id);
+        errors.push(`Missing hreflang-linked ${targetLanguage} article for ${englishQA.qa_type}`);
+      } else {
+        validQAs.push(englishQA);
+      }
+    }
+
+    // BLOCKED RESPONSE: If no Q&As can be processed due to missing article links
+    if (validQAs.length === 0 && missingArticleLinks.length > 0) {
+      console.error(`[TranslateQAs] ❌ BLOCKED: All ${qasToTranslate.length} Q&As blocked due to missing article hreflang links`);
+      
+      // Get unique missing article IDs
+      const uniqueMissingIds = [...new Set(missingArticleLinks)];
+      
+      return new Response(JSON.stringify({
+        success: false,
+        blocked: true,
+        blockedReason: 'missing_article_linking',
+        message: `Cannot translate: ${uniqueMissingIds.length} English articles missing hreflang links to ${targetLanguage} articles. Click "Fix Article Linking" to repair.`,
+        missingEnglishArticleIds: uniqueMissingIds,
+        targetLanguage,
+        skipped: skippedCount,
+        failed: failedQAIds.length,
+        translated: 0,
+        actualCount: skippedCount,
+        remaining: 24 - skippedCount,
+      }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    console.log(`[TranslateQAs] ✅ Pre-check passed: ${validQAs.length} Q&As ready, ${missingArticleLinks.length} blocked`);
 
     // BULLETPROOF: Process Q&As ONE AT A TIME with retry logic
     const BATCH_SIZE = 6; // Process 6 Q&As per function invocation (safe limit)
-    const qaGroup = qasToTranslate.slice(0, BATCH_SIZE);
-    const qasRemaining = qasToTranslate.length - qaGroup.length;
+    const qaGroup = validQAs.slice(0, BATCH_SIZE);
+    const qasRemaining = validQAs.length - qaGroup.length;
     
     console.log(`[TranslateQAs] Processing ${qaGroup.length} Q&As one-at-a-time (${qasRemaining} remaining after this batch)`);
 
@@ -378,6 +454,18 @@ serve(async (req) => {
       console.log(`[TranslateQAs] ━━━ Q&A ${qaIndex}/24: ${englishQA.qa_type} ━━━`);
 
       try {
+        // STRICT MATCHING: Find target article via hreflang link FIRST (before AI call)
+        const englishArticleHreflang = englishArticleHreflangMap.get(englishQA.source_article_id);
+        const targetArticle = englishArticleHreflang ? articlesByHreflang.get(englishArticleHreflang) : null;
+
+        // This should not happen since we pre-checked, but double-check anyway
+        if (!targetArticle) {
+          console.error(`[TranslateQAs] ❌ No ${targetLanguage} article linked via hreflang to English article ${englishQA.source_article_id}`);
+          errors.push(`Missing hreflang-linked ${targetLanguage} article for Q&A ${englishQA.qa_type} (English article: ${englishQA.source_article_id})`);
+          failedQAIds.push(englishQA.id);
+          continue;
+        }
+
         // Prepare Q&A content for translation
         const qaContent: QAContent = {
           id: englishQA.id,
@@ -390,20 +478,8 @@ serve(async (req) => {
           qa_type: englishQA.qa_type,
         };
 
-        // BULLETPROOF: Translate single Q&A with retry
+        // BULLETPROOF: Translate single Q&A with retry (AFTER confirming target article exists)
         const translation = await translateSingleQA(qaContent, targetLanguage);
-
-        // STRICT MATCHING: Find target article via hreflang link (NO FALLBACK)
-        const englishArticleHreflang = englishArticleHreflangMap.get(englishQA.source_article_id);
-        const targetArticle = englishArticleHreflang ? articlesByHreflang.get(englishArticleHreflang) : null;
-
-        // STRICT: Require exact hreflang match - no fallback to prevent collisions
-        if (!targetArticle) {
-          console.error(`[TranslateQAs] ❌ No ${targetLanguage} article linked via hreflang to English article ${englishQA.source_article_id}`);
-          errors.push(`Missing hreflang-linked ${targetLanguage} article for Q&A ${englishQA.qa_type} (English article: ${englishQA.source_article_id})`);
-          failedQAIds.push(englishQA.id);
-          continue;
-        }
 
         const slug = generateSlug(translation.question, englishQA.qa_type, targetLanguage);
 
