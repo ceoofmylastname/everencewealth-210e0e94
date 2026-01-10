@@ -89,8 +89,6 @@ const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({ language }) =
                         pagination={{
                             clickable: true,
                             dynamicBullets: true,
-                            bulletActiveClass: 'bg-[#C4A053] opacity-100',
-                            bulletClass: 'swiper-pagination-bullet bg-gray-300 opacity-100' // Custom styling needed via global css often better
                         }}
                         className="pb-12"
                     >
@@ -100,10 +98,19 @@ const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({ language }) =
                             </SwiperSlide>
                         ))}
                     </Swiper>
-                    {/* Custom styles for swiper bullets if not working directly via classes */}
+                    {/* Custom styles for swiper bullets */}
                     <style>{`
+            .swiper-pagination-bullet {
+              background-color: #D1D5DB;
+              opacity: 1;
+              width: 10px;
+              height: 10px;
+              margin: 0 6px !important;
+            }
             .swiper-pagination-bullet-active {
               background-color: #C4A053 !important;
+              width: 30px;
+              border-radius: 5px;
             }
           `}</style>
                 </div>
