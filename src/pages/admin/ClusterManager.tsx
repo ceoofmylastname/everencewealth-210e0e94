@@ -1175,12 +1175,18 @@ setTranslationProgress({
                     <p>• Each click translates 1 language (6 articles)</p>
                     <p>• Takes approximately 3-5 minutes per language</p>
                   </div>
+                  
+                  {completeTranslationsMutation.isPending && (
+                    <div className="p-2 rounded bg-blue-500/10 border border-blue-500/20 text-sm text-blue-700 dark:text-blue-300">
+                      Translation is running in the background. You can close this dialog and check the Articles tab for progress.
+                    </div>
+                  )}
                 </div>
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel disabled={completeTranslationsMutation.isPending}>
-                Cancel
+              <AlertDialogCancel>
+                {completeTranslationsMutation.isPending ? 'Hide (continues in background)' : 'Cancel'}
               </AlertDialogCancel>
               <AlertDialogAction
                 onClick={() => clusterToTranslate && completeTranslationsMutation.mutate(clusterToTranslate)}
@@ -1190,7 +1196,11 @@ setTranslationProgress({
                 {completeTranslationsMutation.isPending ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Translating...
+                    {translationProgress ? (
+                      `Translating ${translationProgress.current}... (${translationProgress.articlesCompleted || 0}/${translationProgress.totalArticles || 60})`
+                    ) : (
+                      'Starting translation...'
+                    )}
                   </>
                 ) : (
                   "Start Translation"
