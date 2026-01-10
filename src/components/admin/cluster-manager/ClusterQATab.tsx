@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CheckCircle, HelpCircle, Loader2, PlayCircle, AlertTriangle, FileText, RotateCcw, XCircle, Wrench, RefreshCw, Globe, Languages, Rocket, ShieldCheck } from "lucide-react";
+import { CheckCircle, HelpCircle, Loader2, PlayCircle, AlertTriangle, FileText, RotateCcw, XCircle, Wrench, RefreshCw, Globe, Languages, Rocket, ShieldCheck, Link2 } from "lucide-react";
 import { ClusterData, getLanguageFlag, getAllExpectedLanguages } from "./types";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -95,6 +95,10 @@ export const ClusterQATab = ({
   const [translationProgress, setTranslationProgress] = useState<Record<string, { current: number; total: number }>>({}); // Real-time progress
   const [languagePublishedCounts, setLanguagePublishedCounts] = useState<Record<string, number>>({});
   const [languageArticleCounts, setLanguageArticleCounts] = useState<Record<string, number>>({}); // Track articles per language
+  
+  // PHASE 3: No-progress detection and fix linking state
+  const [blockedLanguages, setBlockedLanguages] = useState<Record<string, { reason: string; missingArticleIds?: string[] }>>({});
+  const [isFixingLinking, setIsFixingLinking] = useState(false);
   
   // ENHANCEMENT 5: Verification
   const [isVerifying, setIsVerifying] = useState(false);
@@ -394,6 +398,13 @@ export const ClusterQATab = ({
       return false;
     }
     
+    // Clear any previous blocked state for this language
+    setBlockedLanguages(prev => {
+      const next = { ...prev };
+      delete next[targetLanguage];
+      return next;
+    });
+    
     setTranslatingLanguages(prev => new Set([...prev, targetLanguage]));
     // Initialize progress tracking
     const startCount = languageQACounts[targetLanguage] || 0;
@@ -408,6 +419,8 @@ export const ClusterQATab = ({
       
       let batchCount = 0;
       const MAX_BATCHES = 10; // Safety limit (10 batches × 6 = 60 max)
+      let lastCount = currentCount;
+      let noProgressCount = 0;
       
       while (batchCount < MAX_BATCHES) {
         batchCount++;
@@ -428,12 +441,58 @@ export const ClusterQATab = ({
           break;
         }
 
+        // PHASE 3: Handle blocked response with clear messaging
+        if (data?.blocked) {
+          console.log(`[TranslateQAs UI] BLOCKED: ${data.blockedReason}`);
+          setBlockedLanguages(prev => ({
+            ...prev,
+            [targetLanguage]: {
+              reason: data.blockedReason || 'unknown',
+              missingArticleIds: data.missingEnglishArticleIds,
+            }
+          }));
+          toast.error(`${targetLanguage.toUpperCase()}: Blocked - article linking missing. Click "Fix Linking" to repair.`);
+          break;
+        }
+
         if (data?.success) {
           const newCount = data.actualCount ?? 0;
           const remaining = data.remaining ?? (24 - newCount);
           
           // Update real-time progress indicator
           setTranslationProgress(prev => ({ ...prev, [targetLanguage]: { current: newCount, total: 24 } }));
+          
+          // PHASE 3: No-progress detection - stop if we're spinning
+          if (newCount === lastCount && data.translated === 0) {
+            noProgressCount++;
+            console.warn(`[TranslateQAs UI] No progress detected (attempt ${noProgressCount})`);
+            
+            if (noProgressCount >= 2) {
+              // Check if there were errors that indicate blocking
+              if (data.errors && data.errors.length > 0) {
+                const hasLinkingError = data.errors.some((e: string) => 
+                  e.includes('hreflang') || e.includes('Missing') || e.includes('article')
+                );
+                if (hasLinkingError) {
+                  setBlockedLanguages(prev => ({
+                    ...prev,
+                    [targetLanguage]: {
+                      reason: 'missing_article_linking',
+                    }
+                  }));
+                  toast.error(`${targetLanguage.toUpperCase()}: Stalled - article linking incomplete. Click "Fix Linking".`);
+                  break;
+                }
+              }
+              
+              toast.warning(`${targetLanguage.toUpperCase()}: No progress after ${noProgressCount} batches. Stopping.`);
+              break;
+            }
+          } else {
+            noProgressCount = 0; // Reset if we made progress
+          }
+          
+          lastCount = newCount;
           
           // Check if complete
           if (remaining <= 0 || !data.partial) {
@@ -474,6 +533,41 @@ export const ClusterQATab = ({
         delete next[targetLanguage];
         return next;
       });
+    }
+  };
+
+  // PHASE 3: Fix article hreflang linking for the cluster
+  const handleFixArticleLinking = async () => {
+    setIsFixingLinking(true);
+    try {
+      toast.info('Repairing article hreflang linking...');
+      
+      const { data, error } = await supabase.functions.invoke('repair-cluster-article-hreflang', {
+        body: { 
+          clusterId: cluster.cluster_id,
+          dryRun: false,
+        },
+      });
+
+      if (error) throw error;
+
+      if (data?.success) {
+        toast.success(`Fixed ${data.articlesUpdated} articles across ${data.groupsRepaired} groups`);
+        
+        // Clear all blocked states after repair
+        setBlockedLanguages({});
+        
+        // Refresh counts
+        await fetchQACounts();
+        await queryClient.invalidateQueries({ queryKey: ['cluster-generations'] });
+      } else {
+        throw new Error(data?.error || 'Unknown error');
+      }
+    } catch (error) {
+      console.error('Error fixing article linking:', error);
+      toast.error(`Failed to fix linking: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setIsFixingLinking(false);
     }
   };
 
@@ -1002,6 +1096,41 @@ export const ClusterQATab = ({
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Language Translation Grid - using local state for real-time updates */}
+          {/* Fix Article Linking Button - show when any language is blocked */}
+          {Object.keys(blockedLanguages).length > 0 && (
+            <div className="p-3 bg-orange-50 dark:bg-orange-950/30 border border-orange-200 dark:border-orange-800 rounded-lg">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-orange-700 dark:text-orange-400">
+                    ⚠️ Article linking incomplete
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {Object.keys(blockedLanguages).length} language(s) blocked. Fix article hreflang links to continue.
+                  </p>
+                </div>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleFixArticleLinking}
+                  disabled={isFixingLinking}
+                  className="border-orange-400 text-orange-700 hover:bg-orange-100"
+                >
+                  {isFixingLinking ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                      Fixing...
+                    </>
+                  ) : (
+                    <>
+                      <Link2 className="h-4 w-4 mr-1" />
+                      Fix Article Linking
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+          )}
+
           <div className="grid grid-cols-3 gap-3">
             {TARGET_LANGUAGES.map((lang) => {
               // Use local state for real-time updates, fallback to cluster prop for initial load
@@ -1011,6 +1140,7 @@ export const ClusterQATab = ({
               const isCompleted = count >= 24;
               const isTranslating = translatingLanguages.has(lang);
               const canStartMore = translatingLanguages.size < MAX_PARALLEL_TRANSLATIONS;
+              const isBlocked = blockedLanguages[lang] !== undefined;
               const isDisabled = !isPhase1Complete || isTranslating || (!canStartMore && !isCompleted) || isGeneratingAll || !hasEnoughArticles;
               const isPartial = count > 0 && count < 24;
               
@@ -1021,7 +1151,9 @@ export const ClusterQATab = ({
                 <div 
                   key={lang}
                   className={`p-3 rounded-lg border ${
-                    !hasEnoughArticles
+                    isBlocked
+                      ? 'bg-orange-50 border-orange-300 dark:bg-orange-950/30 dark:border-orange-700'
+                      : !hasEnoughArticles
                       ? 'bg-red-50 border-red-200 dark:bg-red-950/30 dark:border-red-800'
                       : isCompleted 
                       ? 'bg-green-50 border-green-200 dark:bg-green-950/30 dark:border-green-800'
@@ -1035,9 +1167,16 @@ export const ClusterQATab = ({
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-lg">{getLanguageFlag(lang)}</span>
                     <div className="text-right">
-                      <span className={`font-bold ${isCompleted ? 'text-green-600' : isTranslating ? 'text-purple-600' : isPartial ? 'text-amber-600' : 'text-muted-foreground'}`}>
+                      <span className={`font-bold ${
+                        isBlocked ? 'text-orange-600' :
+                        isCompleted ? 'text-green-600' : 
+                        isTranslating ? 'text-purple-600' : 
+                        isPartial ? 'text-amber-600' : 
+                        'text-muted-foreground'
+                      }`}>
                         {isTranslating && progress ? `${progress.current}/${progress.total}` : `${count}/24`}
                         {isCompleted && ' ✅'}
+                        {isBlocked && ' ⚠️'}
                       </span>
                       {!hasEnoughArticles && (
                         <div className="text-xs text-red-600 dark:text-red-400">
@@ -1057,6 +1196,13 @@ export const ClusterQATab = ({
                     </div>
                   )}
                   
+                  {/* Blocked status indicator */}
+                  {isBlocked && !isTranslating && (
+                    <div className="text-xs text-center text-orange-600 dark:text-orange-400 py-1 font-medium">
+                      Blocked: fix linking
+                    </div>
+                  )}
+                  
                   {!hasEnoughArticles ? (
                     <div className="text-xs text-center text-red-600 dark:text-red-400 py-2 font-medium">
                       ⚠️ Translate articles first
@@ -1070,6 +1216,8 @@ export const ClusterQATab = ({
                       className={`w-full ${
                         isCompleted 
                           ? 'border-green-400 text-green-700' 
+                          : isBlocked
+                          ? 'bg-orange-500 hover:bg-orange-600'
                           : isTranslating
                           ? 'bg-purple-600 hover:bg-purple-700'
                           : isPartial
@@ -1087,6 +1235,8 @@ export const ClusterQATab = ({
                           <CheckCircle className="h-4 w-4 mr-1" />
                           Complete
                         </>
+                      ) : isBlocked ? (
+                        `Retry ${lang.toUpperCase()}`
                       ) : isPartial ? (
                         `Resume ${lang.toUpperCase()} (${count}/24)`
                       ) : (

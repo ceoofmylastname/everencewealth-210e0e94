@@ -269,3 +269,6 @@ verify_jwt = false
 
 [functions.fix-cluster-canonicals]
 verify_jwt = false
+
+[functions.repair-cluster-article-hreflang]
+verify_jwt = false
