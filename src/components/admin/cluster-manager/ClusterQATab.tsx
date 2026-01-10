@@ -97,8 +97,9 @@ export const ClusterQATab = ({
   const [languageArticleCounts, setLanguageArticleCounts] = useState<Record<string, number>>({}); // Track articles per language
   
   // PHASE 3: No-progress detection and fix linking state
-  const [blockedLanguages, setBlockedLanguages] = useState<Record<string, { reason: string; missingArticleIds?: string[] }>>({});
+  const [blockedLanguages, setBlockedLanguages] = useState<Record<string, { reason: string; missingArticleIds?: string[]; mismatchCount?: number }>>({});
   const [isFixingLinking, setIsFixingLinking] = useState(false);
+  const [isFixingQALinking, setIsFixingQALinking] = useState(false);
   
   // ENHANCEMENT 5: Verification
   const [isVerifying, setIsVerifying] = useState(false);
@@ -464,9 +465,14 @@ export const ClusterQATab = ({
             [targetLanguage]: {
               reason: data.blockedReason || 'unknown',
               missingArticleIds: data.missingEnglishArticleIds,
+              mismatchCount: data.mismatchCount,
             }
           }));
-          toast.error(`${targetLanguage.toUpperCase()}: Blocked - article linking missing. Click "Fix Linking" to repair.`);
+          
+          const message = data.blockedReason === 'qa_linking_mismatch' 
+            ? `${targetLanguage.toUpperCase()}: Q&A linking mismatch. Click "Fix Q&A Linking" to repair.`
+            : `${targetLanguage.toUpperCase()}: Article linking missing. Click "Fix Article Linking" to repair.`;
+          toast.error(message);
           break;
         }
 
@@ -567,10 +573,19 @@ export const ClusterQATab = ({
       if (error) throw error;
 
       if (data?.success) {
-        toast.success(`Fixed ${data.articlesUpdated} articles across ${data.groupsRepaired} groups`);
+        const groupsMsg = data.groupsRepaired > 0 ? ` (${data.groupsRepaired} new groups)` : ' (groups already linked)';
+        toast.success(`Fixed ${data.articlesUpdated} articles${groupsMsg}`);
         
-        // Clear all blocked states after repair
-        setBlockedLanguages({});
+        // Clear blocking states with 'missing_article_linking' reason
+        setBlockedLanguages(prev => {
+          const next = { ...prev };
+          for (const lang of Object.keys(next)) {
+            if (next[lang].reason === 'missing_article_linking') {
+              delete next[lang];
+            }
+          }
+          return next;
+        });
         
         // Refresh counts
         await fetchQACounts();
@@ -583,6 +598,50 @@ export const ClusterQATab = ({
       toast.error(`Failed to fix linking: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setIsFixingLinking(false);
+    }
+  };
+
+  // PHASE 3b: Fix Q&A → Article linking for the cluster
+  const handleFixQALinking = async (targetLanguage?: string) => {
+    setIsFixingQALinking(true);
+    try {
+      toast.info('Repairing Q&A → Article linking...');
+      
+      const { data, error } = await supabase.functions.invoke('repair-cluster-qa-article-linking', {
+        body: { 
+          clusterId: cluster.cluster_id,
+          targetLanguage,
+          dryRun: false,
+        },
+      });
+
+      if (error) throw error;
+
+      if (data?.success) {
+        toast.success(`Fixed ${data.qasFixed} Q&A article links`);
+        
+        // Clear blocking states with 'qa_linking_mismatch' reason
+        setBlockedLanguages(prev => {
+          const next = { ...prev };
+          for (const lang of Object.keys(next)) {
+            if (next[lang].reason === 'qa_linking_mismatch') {
+              delete next[lang];
+            }
+          }
+          return next;
+        });
+        
+        // Refresh counts
+        await fetchQACounts();
+        await queryClient.invalidateQueries({ queryKey: ['cluster-generations'] });
+      } else {
+        throw new Error(data?.error || 'Unknown error');
+      }
+    } catch (error) {
+      console.error('Error fixing Q&A linking:', error);
+      toast.error(`Failed to fix Q&A linking: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setIsFixingQALinking(false);
     }
   };
 
@@ -1111,38 +1170,74 @@ export const ClusterQATab = ({
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Language Translation Grid - using local state for real-time updates */}
-          {/* Fix Article Linking Button - show when any language is blocked */}
+          {/* Fix Linking Buttons - show when any language is blocked */}
           {Object.keys(blockedLanguages).length > 0 && (
-            <div className="p-3 bg-orange-50 dark:bg-orange-950/30 border border-orange-200 dark:border-orange-800 rounded-lg">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-orange-700 dark:text-orange-400">
-                    ⚠️ Article linking incomplete
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {Object.keys(blockedLanguages).length} language(s) blocked. Fix article hreflang links to continue.
-                  </p>
+            <div className="p-3 bg-orange-50 dark:bg-orange-950/30 border border-orange-200 dark:border-orange-800 rounded-lg space-y-3">
+              {/* Show article linking issue if any blocked with that reason */}
+              {Object.values(blockedLanguages).some(b => b.reason === 'missing_article_linking') && (
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-orange-700 dark:text-orange-400">
+                      ⚠️ Article hreflang links missing
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      English articles need hreflang_group_id linking to target language articles.
+                    </p>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={handleFixArticleLinking}
+                    disabled={isFixingLinking || isFixingQALinking}
+                    className="border-orange-400 text-orange-700 hover:bg-orange-100"
+                  >
+                    {isFixingLinking ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                        Fixing...
+                      </>
+                    ) : (
+                      <>
+                        <Link2 className="h-4 w-4 mr-1" />
+                        Fix Article Linking
+                      </>
+                    )}
+                  </Button>
                 </div>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={handleFixArticleLinking}
-                  disabled={isFixingLinking}
-                  className="border-orange-400 text-orange-700 hover:bg-orange-100"
-                >
-                  {isFixingLinking ? (
-                    <>
-                      <Loader2 className="h-4 w-4 mr-1 animate-spin" />
-                      Fixing...
-                    </>
-                  ) : (
-                    <>
-                      <Link2 className="h-4 w-4 mr-1" />
-                      Fix Article Linking
-                    </>
-                  )}
-                </Button>
-              </div>
+              )}
+              
+              {/* Show Q&A linking issue if any blocked with that reason */}
+              {Object.values(blockedLanguages).some(b => b.reason === 'qa_linking_mismatch') && (
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-orange-700 dark:text-orange-400">
+                      ⚠️ Q&A → Article mapping incorrect
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Some Q&As are attached to wrong articles. Fix to continue translation.
+                    </p>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleFixQALinking()}
+                    disabled={isFixingLinking || isFixingQALinking}
+                    className="border-orange-400 text-orange-700 hover:bg-orange-100"
+                  >
+                    {isFixingQALinking ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                        Fixing...
+                      </>
+                    ) : (
+                      <>
+                        <Wrench className="h-4 w-4 mr-1" />
+                        Fix Q&A Linking
+                      </>
+                    )}
+                  </Button>
+                </div>
+              )}
             </div>
           )}
 
