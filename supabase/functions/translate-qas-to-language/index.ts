@@ -388,6 +388,22 @@ serve(async (req) => {
           
           console.log(`[TranslateQAs] Using fallback article: ${fallbackArticle.id}`);
           
+          // CHECK: Does a Q&A already exist for this (source_article_id, qa_type, language) combination?
+          const { data: existingFallbackQA } = await supabase
+            .from('qa_pages')
+            .select('id')
+            .eq('source_article_id', fallbackArticle.id)
+            .eq('qa_type', englishQA.qa_type)
+            .eq('language', targetLanguage)
+            .neq('status', 'archived')
+            .limit(1)
+            .maybeSingle();
+          
+          if (existingFallbackQA) {
+            console.log(`[TranslateQAs] ⚠️ Skipping - Q&A already exists for fallback article (${englishQA.qa_type}/${targetLanguage})`);
+            continue; // Skip, don't count as error
+          }
+          
           // Use fallback article
           const slug = generateSlug(translation.question, englishQA.qa_type, targetLanguage);
           
