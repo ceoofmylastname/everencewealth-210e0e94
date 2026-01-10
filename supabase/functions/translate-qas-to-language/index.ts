@@ -392,10 +392,26 @@ serve(async (req) => {
     const errors: string[] = [];
     const failedQAIds: string[] = [];
     const missingArticleLinks: string[] = []; // Track which EN articles have no hreflang link
+    const qaLinkingMismatches: { qaId: string; currentArticle: string; correctArticle: string }[] = [];
 
     // PHASE 2.1: PRE-CHECK all Q&As for article linking BEFORE any AI calls
     // This prevents wasted AI calls on Q&As that can't be inserted
     console.log(`[TranslateQAs] 🔍 Pre-checking article linking for ${qasToTranslate.length} Q&As...`);
+    
+    // Also fetch existing target-language Q&As to check for mismatch
+    const { data: existingTargetQAs } = await supabase
+      .from('qa_pages')
+      .select('id, source_article_id, qa_type, hreflang_group_id')
+      .eq('cluster_id', clusterId)
+      .eq('language', targetLanguage);
+
+    // Build map: (source_article_id, qa_type) -> existing Q&A
+    type ExistingQA = { id: string; source_article_id: string; qa_type: string; hreflang_group_id: string | null };
+    const existingQAByArticleAndType = new Map<string, ExistingQA>();
+    for (const qa of existingTargetQAs || []) {
+      const key = `${qa.source_article_id}:${qa.qa_type}`;
+      existingQAByArticleAndType.set(key, qa as ExistingQA);
+    }
     
     const validQAs: typeof qasToTranslate = [];
     for (const englishQA of qasToTranslate) {
@@ -409,6 +425,21 @@ serve(async (req) => {
         failedQAIds.push(englishQA.id);
         errors.push(`Missing hreflang-linked ${targetLanguage} article for ${englishQA.qa_type}`);
       } else {
+        // PHASE 2.2: Check if a Q&A already exists for this (article, qa_type) but with WRONG hreflang_group_id
+        const existingKey = `${targetArticle.id}:${englishQA.qa_type}`;
+        const existingQA = existingQAByArticleAndType.get(existingKey);
+        
+        if (existingQA && existingQA.hreflang_group_id !== englishQA.hreflang_group_id) {
+          // This existing Q&A is attached to the correct article but has wrong hreflang group
+          // OR: another existing Q&A from different group occupies this slot
+          console.warn(`[TranslateQAs] ⚠️ Conflict: ${englishQA.qa_type} slot on article ${targetArticle.id} occupied by Q&A with different hreflang group`);
+          qaLinkingMismatches.push({
+            qaId: existingQA.id,
+            currentArticle: existingQA.source_article_id,
+            correctArticle: targetArticle.id,
+          });
+        }
+        
         validQAs.push(englishQA);
       }
     }
@@ -438,7 +469,29 @@ serve(async (req) => {
       });
     }
 
-    console.log(`[TranslateQAs] ✅ Pre-check passed: ${validQAs.length} Q&As ready, ${missingArticleLinks.length} blocked`);
+    // BLOCKED RESPONSE: If Q&A linking mismatches detected (wrong Q&As occupying slots)
+    if (qaLinkingMismatches.length > 0 && validQAs.length > 0) {
+      console.error(`[TranslateQAs] ❌ BLOCKED: ${qaLinkingMismatches.length} Q&As have incorrect article linking`);
+      
+      return new Response(JSON.stringify({
+        success: false,
+        blocked: true,
+        blockedReason: 'qa_linking_mismatch',
+        message: `Cannot translate: ${qaLinkingMismatches.length} existing Q&As are linked to wrong articles. Click "Fix Q&A Linking" to repair.`,
+        mismatchCount: qaLinkingMismatches.length,
+        targetLanguage,
+        skipped: skippedCount,
+        failed: 0,
+        translated: 0,
+        actualCount: skippedCount,
+        remaining: 24 - skippedCount,
+      }), {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    console.log(`[TranslateQAs] ✅ Pre-check passed: ${validQAs.length} Q&As ready, ${missingArticleLinks.length} blocked, ${qaLinkingMismatches.length} mismatches`);
 
     // BULLETPROOF: Process Q&As ONE AT A TIME with retry logic
     const BATCH_SIZE = 6; // Process 6 Q&As per function invocation (safe limit)
