@@ -7,16 +7,18 @@ const corsHeaders = {
 };
 
 /**
- * repair-cluster-qa-hreflang-unification
+ * repair-cluster-qa-hreflang-unification (v2 - Article Prerequisite Check)
  * 
- * Purpose: Unify "orphaned" non-English Q&As that have isolated hreflang_group_id values
- * with their correct English counterparts based on:
- * 1. Same qa_type (process, costs, legal, pitfalls)
- * 2. Source article's hreflang_group_id matches (linking translated articles together)
+ * Purpose: Unify "orphaned" non-English Q&As with their correct English counterparts.
  * 
- * This fixes the issue where non-English Q&As were created with NEW hreflang_group_ids
- * instead of inheriting from the English source Q&A, causing them to appear as "orphaned"
- * and counting incorrectly in the UI.
+ * KEY IMPROVEMENT: Now returns explicit diagnostic when articles aren't properly linked,
+ * guiding users to run "Fix Article Linking" FIRST before attempting Q&A unification.
+ * 
+ * Matching Strategy:
+ * 1. Get each Q&A's source article's hreflang_group_id
+ * 2. Find the English article with the same hreflang_group_id  
+ * 3. Find the English Q&A linked to that article with the same qa_type
+ * 4. Update the non-English Q&A to share the English Q&A's hreflang_group_id
  */
 
 interface QAPage {
@@ -48,7 +50,7 @@ serve(async (req) => {
       throw new Error('clusterId is required');
     }
 
-    console.log(`[QAUnification] Starting for cluster ${clusterId} (dryRun: ${dryRun})`);
+    console.log(`[QAUnification v2] Starting for cluster ${clusterId} (dryRun: ${dryRun})`);
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -57,25 +59,29 @@ serve(async (req) => {
     // Fetch all Q&As for this cluster
     const { data: allQAs, error: qaError } = await supabase
       .from('qa_pages')
-      .select('id, language, slug, qa_type, source_article_id, hreflang_group_id, translations')
+      .select('id, language, slug, qa_type, source_article_id, hreflang_group_id, translations, status')
       .eq('cluster_id', clusterId);
 
     if (qaError) {
       throw new Error(`Failed to fetch Q&As: ${qaError.message}`);
     }
 
-    if (!allQAs || allQAs.length === 0) {
+    // Filter to only published/draft (non-archived status if any)
+    const activeQAs = (allQAs || []).filter(qa => qa.status !== 'archived');
+
+    if (activeQAs.length === 0) {
       return new Response(JSON.stringify({
         success: true,
         message: 'No Q&As found in cluster',
         orphansFound: 0,
         unified: 0,
+        articleLinkingRequired: false,
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    console.log(`[QAUnification] Found ${allQAs.length} Q&As`);
+    console.log(`[QAUnification v2] Found ${activeQAs.length} active Q&As`);
 
     // Fetch all articles to get their hreflang mappings
     const { data: allArticles, error: articleError } = await supabase
@@ -88,78 +94,100 @@ serve(async (req) => {
       throw new Error(`Failed to fetch articles: ${articleError.message}`);
     }
 
-    // Build article lookup by ID
+    // Build article lookups
     const articlesById = new Map<string, Article>();
-    const articlesByHreflangGroup = new Map<string, Article[]>();
+    const englishArticlesByGroup = new Map<string, Article>();
+    const englishArticleGroupIds = new Set<string>();
     
     for (const article of (allArticles || [])) {
       articlesById.set(article.id, article as Article);
       
-      if (article.hreflang_group_id) {
-        if (!articlesByHreflangGroup.has(article.hreflang_group_id)) {
-          articlesByHreflangGroup.set(article.hreflang_group_id, []);
-        }
-        articlesByHreflangGroup.get(article.hreflang_group_id)!.push(article as Article);
+      if (article.language === 'en' && article.hreflang_group_id) {
+        englishArticlesByGroup.set(article.hreflang_group_id, article as Article);
+        englishArticleGroupIds.add(article.hreflang_group_id);
       }
+    }
+
+    // PREREQUISITE CHECK: Are non-English articles properly linked to English group IDs?
+    const nonEnglishArticles = (allArticles || []).filter(a => a.language !== 'en');
+    const articlesWithBadGroups = nonEnglishArticles.filter(a => 
+      !a.hreflang_group_id || !englishArticleGroupIds.has(a.hreflang_group_id)
+    );
+
+    if (articlesWithBadGroups.length > 0) {
+      const uniqueBadGroups = new Set(articlesWithBadGroups.map(a => a.hreflang_group_id).filter(Boolean));
+      console.log(`[QAUnification v2] BLOCKED: ${articlesWithBadGroups.length} articles have group IDs not in English set`);
+      
+      return new Response(JSON.stringify({
+        success: false,
+        articleLinkingRequired: true,
+        message: `Cannot unify Q&As: ${articlesWithBadGroups.length} articles have mismatched hreflang groups. Run "Fix Article Linking" first.`,
+        articlesWithBadGroups: articlesWithBadGroups.length,
+        badGroupIds: Array.from(uniqueBadGroups).slice(0, 10),
+        affectedLanguages: [...new Set(articlesWithBadGroups.map(a => a.language))],
+        orphansFound: 0,
+        unified: 0,
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
     // Separate English and non-English Q&As
-    const englishQAs = allQAs.filter(qa => qa.language === 'en') as QAPage[];
-    const nonEnglishQAs = allQAs.filter(qa => qa.language !== 'en') as QAPage[];
+    const englishQAs = activeQAs.filter(qa => qa.language === 'en') as QAPage[];
+    const nonEnglishQAs = activeQAs.filter(qa => qa.language !== 'en') as QAPage[];
 
-    console.log(`[QAUnification] ${englishQAs.length} English Q&As, ${nonEnglishQAs.length} non-English Q&As`);
+    console.log(`[QAUnification v2] ${englishQAs.length} English Q&As, ${nonEnglishQAs.length} non-English Q&As`);
 
-    // Build lookup for English Q&As by article_hreflang_group + qa_type
-    // This is the canonical source of truth for hreflang_group_id
+    // Build English Q&A lookup by (article_hreflang_group + qa_type)
+    // This is the canonical source of truth
     const englishQAByArticleGroupAndType = new Map<string, QAPage>();
+    const englishQAGroupIds = new Set<string>();
     
     for (const enQA of englishQAs) {
       const sourceArticle = articlesById.get(enQA.source_article_id);
-      if (sourceArticle?.hreflang_group_id) {
+      if (sourceArticle?.hreflang_group_id && enQA.hreflang_group_id) {
         const key = `${sourceArticle.hreflang_group_id}:${enQA.qa_type}`;
         englishQAByArticleGroupAndType.set(key, enQA);
+        englishQAGroupIds.add(enQA.hreflang_group_id);
       }
     }
 
-    // Find orphaned non-English Q&As and determine their correct English counterpart
+    // Find orphaned Q&As and categorize them
     const orphans: { qa: QAPage; correctEnglishQA: QAPage; correctGroupId: string }[] = [];
     const alreadyCorrect: QAPage[] = [];
-    const noMatchFound: QAPage[] = [];
+    const noMatchFound: { qa: QAPage; reason: string }[] = [];
 
     for (const nonEnQA of nonEnglishQAs) {
-      // Get the article this Q&A is linked to
       const sourceArticle = articlesById.get(nonEnQA.source_article_id);
       
-      if (!sourceArticle?.hreflang_group_id) {
-        console.log(`[QAUnification] Q&A ${nonEnQA.id} (${nonEnQA.language}): Source article has no hreflang_group_id`);
-        noMatchFound.push(nonEnQA);
+      if (!sourceArticle) {
+        noMatchFound.push({ qa: nonEnQA, reason: 'source_article_not_found' });
+        continue;
+      }
+
+      if (!sourceArticle.hreflang_group_id) {
+        noMatchFound.push({ qa: nonEnQA, reason: 'source_article_no_group' });
         continue;
       }
 
       // Find the English Q&A that should be this Q&A's counterpart
-      // The English Q&A should have:
-      // 1. Same qa_type
-      // 2. Source article that shares the same hreflang_group_id
       const key = `${sourceArticle.hreflang_group_id}:${nonEnQA.qa_type}`;
       const correctEnglishQA = englishQAByArticleGroupAndType.get(key);
 
       if (!correctEnglishQA) {
-        console.log(`[QAUnification] Q&A ${nonEnQA.id} (${nonEnQA.language}, ${nonEnQA.qa_type}): No matching English Q&A found`);
-        noMatchFound.push(nonEnQA);
+        noMatchFound.push({ qa: nonEnQA, reason: 'no_english_qa_for_type' });
         continue;
       }
 
       if (!correctEnglishQA.hreflang_group_id) {
-        console.log(`[QAUnification] Q&A ${nonEnQA.id} (${nonEnQA.language}): English Q&A has no hreflang_group_id`);
-        noMatchFound.push(nonEnQA);
+        noMatchFound.push({ qa: nonEnQA, reason: 'english_qa_no_group' });
         continue;
       }
 
-      // Check if this Q&A is already correctly linked
+      // Check if already correctly linked
       if (nonEnQA.hreflang_group_id === correctEnglishQA.hreflang_group_id) {
         alreadyCorrect.push(nonEnQA);
       } else {
-        // This Q&A has a wrong hreflang_group_id - it's orphaned
         orphans.push({
           qa: nonEnQA,
           correctEnglishQA,
@@ -168,121 +196,108 @@ serve(async (req) => {
       }
     }
 
-    console.log(`[QAUnification] Found ${orphans.length} orphaned Q&As, ${alreadyCorrect.length} already correct, ${noMatchFound.length} no match`);
+    console.log(`[QAUnification v2] ${orphans.length} orphaned, ${alreadyCorrect.length} correct, ${noMatchFound.length} no match`);
+
+    // Aggregate no-match reasons
+    const noMatchReasons: Record<string, number> = {};
+    for (const { reason } of noMatchFound) {
+      noMatchReasons[reason] = (noMatchReasons[reason] || 0) + 1;
+    }
 
     if (dryRun) {
-      // Group orphans by their correct group for preview
-      const orphansByGroup = new Map<string, typeof orphans>();
-      for (const orphan of orphans) {
-        if (!orphansByGroup.has(orphan.correctGroupId)) {
-          orphansByGroup.set(orphan.correctGroupId, []);
-        }
-        orphansByGroup.get(orphan.correctGroupId)!.push(orphan);
-      }
-
       return new Response(JSON.stringify({
         success: true,
         dryRun: true,
+        articleLinkingRequired: false,
         message: `Found ${orphans.length} orphaned Q&As to unify`,
-        totalQAs: allQAs.length,
+        totalQAs: activeQAs.length,
         englishQAs: englishQAs.length,
         nonEnglishQAs: nonEnglishQAs.length,
         orphansFound: orphans.length,
         alreadyCorrect: alreadyCorrect.length,
         noMatchFound: noMatchFound.length,
-        groupsAffected: orphansByGroup.size,
+        noMatchReasons,
+        groupsAffected: new Set(orphans.map(o => o.correctGroupId)).size,
         preview: orphans.slice(0, 20).map(o => ({
           qaId: o.qa.id,
           language: o.qa.language,
           qaType: o.qa.qa_type,
           currentGroupId: o.qa.hreflang_group_id,
           correctGroupId: o.correctGroupId,
-          englishQAId: o.correctEnglishQA.id,
         })),
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    // Apply fixes: Update orphaned Q&As with correct hreflang_group_id
+    // Apply fixes
     let unified = 0;
     const errors: string[] = [];
 
     for (const orphan of orphans) {
       const { error: updateError } = await supabase
         .from('qa_pages')
-        .update({
-          hreflang_group_id: orphan.correctGroupId,
-        })
+        .update({ hreflang_group_id: orphan.correctGroupId })
         .eq('id', orphan.qa.id);
 
       if (updateError) {
-        console.error(`[QAUnification] Error updating Q&A ${orphan.qa.id}:`, updateError);
+        console.error(`[QAUnification v2] Error updating ${orphan.qa.id}:`, updateError);
         errors.push(`${orphan.qa.id}: ${updateError.message}`);
       } else {
         unified++;
       }
     }
 
-    console.log(`[QAUnification] Unified ${unified} orphaned Q&As`);
+    console.log(`[QAUnification v2] Unified ${unified} orphaned Q&As`);
 
-    // Step 2: Rebuild translations JSONB for all affected groups
-    // Collect all unique group IDs that were modified
+    // Rebuild translations JSONB for affected groups
     const affectedGroupIds = new Set(orphans.map(o => o.correctGroupId));
     
     let translationsRebuilt = 0;
     for (const groupId of affectedGroupIds) {
-      // Fetch all Q&As in this group now
       const { data: groupQAs, error: groupError } = await supabase
         .from('qa_pages')
         .select('id, language, slug')
         .eq('hreflang_group_id', groupId);
 
-      if (groupError || !groupQAs) {
-        console.error(`[QAUnification] Error fetching group ${groupId}:`, groupError);
-        continue;
-      }
+      if (groupError || !groupQAs) continue;
 
-      // Build translations map
       const translations: Record<string, string> = {};
       for (const qa of groupQAs) {
         translations[qa.language] = qa.slug;
       }
 
-      // Update all Q&As in this group with the complete translations map
       for (const qa of groupQAs) {
         const { error: updateError } = await supabase
           .from('qa_pages')
           .update({ translations })
           .eq('id', qa.id);
 
-        if (updateError) {
-          console.error(`[QAUnification] Error updating translations for ${qa.id}:`, updateError);
-        } else {
-          translationsRebuilt++;
-        }
+        if (!updateError) translationsRebuilt++;
       }
     }
 
-    console.log(`[QAUnification] Rebuilt translations for ${translationsRebuilt} Q&As across ${affectedGroupIds.size} groups`);
+    console.log(`[QAUnification v2] Rebuilt translations for ${translationsRebuilt} Q&As`);
 
     return new Response(JSON.stringify({
       success: errors.length === 0,
+      articleLinkingRequired: false,
       message: `Unified ${unified} orphaned Q&As across ${affectedGroupIds.size} groups`,
-      totalQAs: allQAs.length,
+      totalQAs: activeQAs.length,
       orphansFound: orphans.length,
       unified,
       translationsRebuilt,
       groupsAffected: affectedGroupIds.size,
       alreadyCorrect: alreadyCorrect.length,
       noMatchFound: noMatchFound.length,
+      noMatchReasons,
       errors: errors.length > 0 ? errors : undefined,
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
   } catch (error) {
-    console.error('[QAUnification] Fatal error:', error);
+    console.error('[QAUnification v2] Fatal error:', error);
     return new Response(JSON.stringify({
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',

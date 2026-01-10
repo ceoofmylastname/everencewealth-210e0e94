@@ -569,11 +569,11 @@ export const ClusterQATab = ({
     }
   };
 
-  // PHASE 3: Fix article hreflang linking for the cluster
+  // PHASE 3: Fix article hreflang linking for the cluster (v2 - English-truth positional matching)
   const handleFixArticleLinking = async () => {
     setIsFixingLinking(true);
     try {
-      toast.info('Repairing article hreflang linking...');
+      toast.info('Repairing article hreflang linking using positional matching...');
       
       const { data, error } = await supabase.functions.invoke('repair-cluster-article-hreflang', {
         body: { 
@@ -585,10 +585,12 @@ export const ClusterQATab = ({
       if (error) throw error;
 
       if (data?.success) {
-        const groupsMsg = data.groupsRepaired > 0 ? ` (${data.groupsRepaired} new groups)` : ' (groups already linked)';
-        toast.success(`Fixed ${data.articlesUpdated} articles${groupsMsg}`);
+        const fixedMsg = data.articlesFixed > 0 
+          ? `Fixed ${data.articlesFixed} articles (${data.englishFixed || 0} EN, ${data.nonEnglishFixed || 0} non-EN)` 
+          : 'All articles already correctly linked';
+        toast.success(fixedMsg);
         
-        // Clear blocking states with 'missing_article_linking' reason
+        // Clear ALL blocking states related to article linking
         setBlockedLanguages(prev => {
           const next = { ...prev };
           for (const lang of Object.keys(next)) {
@@ -599,9 +601,22 @@ export const ClusterQATab = ({
           return next;
         });
         
-        // Refresh counts
+        // Reset orphaned Q&A count - they should now be fixable
+        // The next "Unify Orphaned Q&As" click will properly resolve them
+        
+        // Refresh counts immediately
         await fetchQACounts();
         await queryClient.invalidateQueries({ queryKey: ['cluster-generations'] });
+        await queryClient.invalidateQueries({ queryKey: ['cluster-qa-pages'] });
+        
+        // Auto-run Q&A unification if orphans were detected
+        if (orphanedQACount > 0) {
+          toast.info('Articles fixed. Now unifying orphaned Q&As...');
+          // Small delay to let state update
+          setTimeout(() => {
+            handleUnifyOrphanedQAs();
+          }, 500);
+        }
       } else {
         throw new Error(data?.error || 'Unknown error');
       }
@@ -673,6 +688,12 @@ export const ClusterQATab = ({
 
       if (dryRunError) throw dryRunError;
 
+      // Check if article linking is required first
+      if (dryRunData?.articleLinkingRequired) {
+        toast.warning(`Cannot unify Q&As: ${dryRunData.articlesWithBadGroups || 'some'} articles have mismatched hreflang groups. Click "Fix Article Linking" first.`);
+        return;
+      }
+
       if (dryRunData?.orphansFound === 0) {
         toast.info('No orphaned Q&As found - all correctly linked!');
         setOrphanedQACount(0);
@@ -690,6 +711,12 @@ export const ClusterQATab = ({
       });
 
       if (error) throw error;
+
+      // Handle articleLinkingRequired from actual run too
+      if (data?.articleLinkingRequired) {
+        toast.warning(`Articles need fixing first. Click "Fix Article Linking" before unifying Q&As.`);
+        return;
+      }
 
       if (data?.success) {
         toast.success(`Unified ${data.unified} orphaned Q&As across ${data.groupsAffected} groups`);
