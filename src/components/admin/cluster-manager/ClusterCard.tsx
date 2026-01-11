@@ -121,6 +121,20 @@ export const ClusterCard = ({
                       </h3>
                       {getStatusBadge()}
                       {getJobStatusBadge(cluster.job_status)}
+                      {cluster.image_health !== undefined && (
+                        <Badge 
+                          variant="outline" 
+                          className={`text-xs ${
+                            cluster.image_health >= 95 
+                              ? 'bg-green-50 border-green-300 text-green-700 dark:bg-green-950/30' 
+                              : cluster.image_health >= 50 
+                              ? 'bg-amber-50 border-amber-300 text-amber-700 dark:bg-amber-950/30' 
+                              : 'bg-red-50 border-red-300 text-red-700 dark:bg-red-950/30'
+                          }`}
+                        >
+                          🖼️ {cluster.image_health}%
+                        </Badge>
+                      )}
                     </div>
                     <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
                       <span className="font-mono text-xs">{cluster.cluster_id.slice(0, 8)}...</span>

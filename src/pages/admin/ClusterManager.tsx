@@ -16,10 +16,11 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Search, Loader2, FolderOpen, RefreshCw, Link2, AlertTriangle, PlayCircle, Plus } from "lucide-react";
+import { Search, Loader2, FolderOpen, RefreshCw, Link2, AlertTriangle, PlayCircle, Plus, ImageIcon } from "lucide-react";
 import { toast } from "sonner";
 import { ClusterCard } from "@/components/admin/cluster-manager/ClusterCard";
 import { CreateClusterDialog } from "@/components/admin/cluster-manager/CreateClusterDialog";
+import { BulkImageRegenerationDialog } from "@/components/admin/cluster-manager/BulkImageRegenerationDialog";
 import { 
   ClusterData, 
   QAJobProgress,
@@ -51,6 +52,7 @@ const ClusterManager = () => {
   const [qaJobProgress, setQaJobProgress] = useState<QAJobProgress | null>(null);
   const [publishingQAs, setPublishingQAs] = useState<string | null>(null);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [showBulkImageDialog, setShowBulkImageDialog] = useState(false);
   
   // Realtime subscription ref
   const realtimeChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
@@ -91,6 +93,16 @@ const ClusterManager = () => {
       
       if (error) throw error;
       return data as { cluster_id: string; language: string; total_count: number; published_count: number }[];
+    },
+  });
+
+  // Fetch image health data per cluster
+  const { data: imageHealthData } = useQuery({
+    queryKey: ["cluster-image-health"],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("get_cluster_image_health");
+      if (error) throw error;
+      return data as { cluster_id: string; unique_images: number; total_images: number; health_percent: number }[];
     },
   });
 
@@ -190,11 +202,21 @@ const ClusterManager = () => {
         : 0;
     });
 
+    // Add image health data
+    imageHealthData?.forEach((health) => {
+      const cluster = clusterMap.get(health.cluster_id);
+      if (cluster) {
+        cluster.image_health = health.health_percent;
+        cluster.unique_images = Number(health.unique_images);
+        cluster.total_images = Number(health.total_images);
+      }
+    });
+
     // Sort by created_at descending
     return clustersArray.sort((a, b) => 
       new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
     );
-  }, [articles, clusterJobs, qaCounts]);
+  }, [articles, clusterJobs, qaCounts, imageHealthData]);
 
   // Filter clusters
   const filteredClusters = useMemo(() => {
@@ -957,10 +979,17 @@ setTranslationProgress({
               Manage article clusters ({clusters.length} clusters, {articles?.length || 0} total articles)
             </p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             <Button onClick={() => setShowCreateDialog(true)}>
               <Plus className="mr-2 h-4 w-4" />
               Create New Cluster
+            </Button>
+            <Button 
+              variant="outline"
+              onClick={() => setShowBulkImageDialog(true)}
+            >
+              <ImageIcon className="mr-2 h-4 w-4" />
+              Bulk Regenerate Images
             </Button>
             <Button 
               variant="outline"
@@ -1275,6 +1304,14 @@ setTranslationProgress({
             queryClient.invalidateQueries({ queryKey: ["cluster-articles"] });
             queryClient.invalidateQueries({ queryKey: ["cluster-jobs"] });
           }}
+        />
+
+        {/* Bulk Image Regeneration Dialog */}
+        <BulkImageRegenerationDialog
+          open={showBulkImageDialog}
+          onOpenChange={setShowBulkImageDialog}
+          clusters={clusters}
+          imageHealthData={imageHealthData}
         />
       </div>
     </AdminLayout>
