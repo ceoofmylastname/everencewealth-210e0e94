@@ -94,6 +94,7 @@ const SystemHealth = lazy(() => import("./pages/admin/SystemHealth"));
 const SchemaHealth = lazy(() => import("./pages/admin/SchemaHealth"));
 const ClusterManager = lazy(() => import("./pages/admin/ClusterManager"));
 const DuplicateImageFixer = lazy(() => import("./pages/admin/DuplicateImageFixer"));
+const ImageHealthDashboard = lazy(() => import("./pages/admin/ImageHealthDashboard"));
 const SystemAudit = lazy(() => import("./pages/admin/SystemAudit"));
 const ProductionAudit = lazy(() => import("./pages/admin/ProductionAudit"));
 const AEOAnswerFixer = lazy(() => import("./pages/admin/AEOAnswerFixer"));
@@ -192,6 +193,7 @@ const App = () => (
               <Route path="/admin/schema-health" element={<ProtectedRoute><SchemaHealth /></ProtectedRoute>} />
               <Route path="/admin/clusters" element={<ProtectedRoute><ClusterManager /></ProtectedRoute>} />
               <Route path="/admin/duplicate-images" element={<ProtectedRoute><DuplicateImageFixer /></ProtectedRoute>} />
+              <Route path="/admin/image-health" element={<ProtectedRoute><ImageHealthDashboard /></ProtectedRoute>} />
               <Route path="/admin/system-audit" element={<ProtectedRoute><SystemAudit /></ProtectedRoute>} />
               <Route path="/admin/production-audit" element={<ProtectedRoute><ProductionAudit /></ProtectedRoute>} />
               <Route path="/admin/aeo-fixer" element={<ProtectedRoute><AEOAnswerFixer /></ProtectedRoute>} />
