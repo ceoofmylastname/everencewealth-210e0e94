@@ -283,9 +283,13 @@ export default function ImageHealthDashboard() {
   const [counts, setCounts] = useState<IssueCounts>({ duplicates: 0, textIssues: 0, expiredUrls: 0, total: 0, fixed: 0 });
   const [loading, setLoading] = useState(true);
   const [scanning, setScanning] = useState(false);
-  const [regeneratingId, setRegeneratingId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('duplicates');
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  
+  // Sequential regeneration queue system
+  const [regenerationQueue, setRegenerationQueue] = useState<string[]>([]);
+  const [currentlyRegenerating, setCurrentlyRegenerating] = useState<string | null>(null);
+  const [completedRegenerations, setCompletedRegenerations] = useState<Set<string>>(new Set());
 
   const fetchIssues = async () => {
     setLoading(true);
@@ -361,6 +365,73 @@ export default function ImageHealthDashboard() {
     fetchIssues();
   }, []);
 
+  // Process the regeneration queue sequentially
+  useEffect(() => {
+    const processQueue = async () => {
+      // If already processing or queue is empty, do nothing
+      if (currentlyRegenerating || regenerationQueue.length === 0) return;
+      
+      // Get next item from queue
+      const nextId = regenerationQueue[0];
+      const issue = issues.find(i => i.article_id === nextId);
+      
+      if (!issue?.article) {
+        // Remove invalid item and continue
+        setRegenerationQueue(prev => prev.slice(1));
+        return;
+      }
+      
+      // Start processing
+      setCurrentlyRegenerating(nextId);
+      const originalUrl = issue.article.featured_image_url;
+      
+      try {
+        const { data, error } = await supabase.functions.invoke('regenerate-article-image', {
+          body: { articleId: nextId }
+        });
+
+        if (error) throw error;
+
+        // Mark issue as resolved with original URL in details
+        const updatedDetails = {
+          ...issue.details,
+          original_url: originalUrl
+        };
+        
+        await supabase
+          .from('article_image_issues')
+          .update({ 
+            resolved_at: new Date().toISOString(),
+            resolved_by: 'regeneration',
+            details: updatedDetails
+          })
+          .eq('id', issue.id);
+
+        toast.success(`✅ Completed: "${issue.article.headline.substring(0, 40)}..."`);
+        setCompletedRegenerations(prev => new Set([...prev, nextId]));
+        
+      } catch (error) {
+        console.error('Regeneration failed:', error);
+        toast.error(`Failed: "${issue.article.headline.substring(0, 40)}..."`);
+      } finally {
+        // Remove from queue and clear current
+        setRegenerationQueue(prev => prev.slice(1));
+        setCurrentlyRegenerating(null);
+      }
+    };
+    
+    processQueue();
+  }, [regenerationQueue, currentlyRegenerating, issues]);
+
+  // Refresh data when queue is fully processed
+  useEffect(() => {
+    if (regenerationQueue.length === 0 && !currentlyRegenerating && completedRegenerations.size > 0) {
+      // All done - refresh the data
+      fetchIssues();
+      setCompletedRegenerations(new Set());
+    }
+  }, [regenerationQueue, currentlyRegenerating, completedRegenerations.size]);
+
   const handleScanAll = async () => {
     setScanning(true);
     try {
@@ -380,69 +451,42 @@ export default function ImageHealthDashboard() {
     }
   };
 
-  const handleRegenerate = async (issue: ImageIssue) => {
+  // Add to queue when clicking regenerate
+  const handleAddToQueue = (issue: ImageIssue) => {
     if (!issue.article) return;
     
-    // Store original URL before regeneration
-    const originalUrl = issue.article.featured_image_url;
-    
-    setRegeneratingId(issue.article_id);
-    try {
-      const { data, error } = await supabase.functions.invoke('regenerate-article-image', {
-        body: { articleId: issue.article_id }
-      });
-
-      if (error) throw error;
-
-      // Mark issue as resolved with original URL in details
-      const updatedDetails = {
-        ...issue.details,
-        original_url: originalUrl
-      };
-      
-      await supabase
-        .from('article_image_issues')
-        .update({ 
-          resolved_at: new Date().toISOString(),
-          resolved_by: 'regeneration',
-          details: updatedDetails
-        })
-        .eq('id', issue.id);
-
-      // Fetch updated article data for audit preview
-      const { data: updatedArticle } = await supabase
-        .from('blog_articles')
-        .select('featured_image_url, featured_image_alt, featured_image_caption')
-        .eq('id', issue.article_id)
-        .single();
-
-      if (updatedArticle) {
-        toast.success(
-          <div className="space-y-1">
-            <p className="font-medium">Image regenerated successfully!</p>
-            {updatedArticle.featured_image_alt && (
-              <p className="text-xs opacity-80">
-                ✅ Alt: {updatedArticle.featured_image_alt.substring(0, 50)}...
-              </p>
-            )}
-            {updatedArticle.featured_image_caption && (
-              <p className="text-xs opacity-80">
-                ✅ Caption: {updatedArticle.featured_image_caption.substring(0, 50)}...
-              </p>
-            )}
-          </div>
-        );
-      } else {
-        toast.success(`Image regenerated for "${issue.article.headline.substring(0, 50)}..."`);
-      }
-
-      await fetchIssues();
-    } catch (error) {
-      console.error('Regeneration failed:', error);
-      toast.error('Failed to regenerate image');
-    } finally {
-      setRegeneratingId(null);
+    // Don't add if already in queue, currently processing, or completed
+    if (regenerationQueue.includes(issue.article_id) || 
+        currentlyRegenerating === issue.article_id ||
+        completedRegenerations.has(issue.article_id)) {
+      return;
     }
+    
+    setRegenerationQueue(prev => [...prev, issue.article_id]);
+    
+    const queuePosition = regenerationQueue.length + 1;
+    if (queuePosition === 1 && !currentlyRegenerating) {
+      toast.info(`Starting regeneration for "${issue.article.headline.substring(0, 30)}..."`);
+    } else {
+      toast.info(`Added to queue`, {
+        description: `Position: #${queuePosition}`
+      });
+    }
+  };
+
+  // Get button state for regenerate buttons
+  const getRegenerateButtonState = (articleId: string) => {
+    if (currentlyRegenerating === articleId) {
+      return { label: 'Regenerating...', IconComponent: Loader2, disabled: true, spinning: true, variant: 'default' as const };
+    }
+    if (completedRegenerations.has(articleId)) {
+      return { label: 'Completed!', IconComponent: CheckCircle2, disabled: true, spinning: false, variant: 'outline' as const };
+    }
+    const queuePosition = regenerationQueue.indexOf(articleId);
+    if (queuePosition >= 0) {
+      return { label: `Queued (#${queuePosition + 1})`, IconComponent: Clock, disabled: true, spinning: false, variant: 'secondary' as const };
+    }
+    return { label: 'Regenerate', IconComponent: Wand2, disabled: false, spinning: false, variant: 'default' as const };
   };
 
   const getSeverityBadge = (severity: string) => {
@@ -576,6 +620,29 @@ export default function ImageHealthDashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Queue Progress Indicator */}
+      {(regenerationQueue.length > 0 || currentlyRegenerating) && (
+        <Card className="border-blue-500/20 bg-blue-50/50 dark:bg-blue-950/30">
+          <CardContent className="py-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Loader2 className="h-5 w-5 animate-spin text-blue-600" />
+                <div>
+                  <p className="font-medium text-sm">Processing Regeneration Queue</p>
+                  <p className="text-xs text-muted-foreground">
+                    {currentlyRegenerating ? 'Regenerating 1 image' : ''} 
+                    {regenerationQueue.length > 0 ? ` • ${regenerationQueue.length} waiting` : ''}
+                  </p>
+                </div>
+              </div>
+              <Badge variant="secondary" className="bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300">
+                {completedRegenerations.size} completed
+              </Badge>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Issues Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -716,28 +783,23 @@ export default function ImageHealthDashboard() {
                           )} />
 
                           {/* Actions - only show for unresolved issues */}
-                          {!isFixed && (
-                            <Button
-                              size="sm"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleRegenerate(issue);
-                              }}
-                              disabled={regeneratingId === issue.article_id}
-                            >
-                              {regeneratingId === issue.article_id ? (
-                                <>
-                                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                  Regenerating...
-                                </>
-                              ) : (
-                                <>
-                                  <Wand2 className="mr-2 h-4 w-4" />
-                                  Regenerate
-                                </>
-                              )}
-                            </Button>
-                          )}
+                          {!isFixed && (() => {
+                            const state = getRegenerateButtonState(issue.article_id);
+                            return (
+                              <Button
+                                size="sm"
+                                variant={state.variant}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleAddToQueue(issue);
+                                }}
+                                disabled={state.disabled}
+                              >
+                                <state.IconComponent className={cn("mr-2 h-4 w-4", state.spinning && "animate-spin")} />
+                                {state.label}
+                              </Button>
+                            );
+                          })()}
                         </div>
                       </CollapsibleTrigger>
 
@@ -791,25 +853,20 @@ export default function ImageHealthDashboard() {
                                 </a>
                               </Button>
                             )}
-                            {!isFixed && (
-                              <Button 
-                                size="sm"
-                                onClick={() => handleRegenerate(issue)}
-                                disabled={regeneratingId === issue.article_id}
-                              >
-                                {regeneratingId === issue.article_id ? (
-                                  <>
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                    Regenerating...
-                                  </>
-                                ) : (
-                                  <>
-                                    <Wand2 className="mr-2 h-4 w-4" />
-                                    Regenerate Image
-                                  </>
-                                )}
-                              </Button>
-                            )}
+                            {!isFixed && (() => {
+                              const state = getRegenerateButtonState(issue.article_id);
+                              return (
+                                <Button 
+                                  size="sm"
+                                  variant={state.variant}
+                                  onClick={() => handleAddToQueue(issue)}
+                                  disabled={state.disabled}
+                                >
+                                  <state.IconComponent className={cn("mr-2 h-4 w-4", state.spinning && "animate-spin")} />
+                                  {state.label}
+                                </Button>
+                              );
+                            })()}
                           </div>
                         </div>
                       </CollapsibleContent>

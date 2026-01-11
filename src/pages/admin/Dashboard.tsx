@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { BlogArticle } from "@/types/blog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { FileText, TrendingUp, Globe, Plus, AlertCircle, CheckCircle2, Shield, RefreshCw, Rocket, Link2 } from "lucide-react";
+import { FileText, TrendingUp, Globe, Plus, AlertCircle, CheckCircle2, Shield, RefreshCw, Rocket, Link2, ImageIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { AdminLayout } from "@/components/AdminLayout";
 import { validateSchemaRequirements } from "@/lib/schemaGenerator";
@@ -48,6 +48,23 @@ const Dashboard = () => {
           return acc;
         }, {})
       };
+    }
+  });
+
+  const { data: imageHealthStats } = useQuery({
+    queryKey: ["image-health-stats"],
+    queryFn: async () => {
+      const { count: issuesCount } = await supabase
+        .from("article_image_issues")
+        .select("*", { count: "exact", head: true })
+        .is("resolved_at", null);
+      
+      const { count: fixedCount } = await supabase
+        .from("article_image_issues")
+        .select("*", { count: "exact", head: true })
+        .not("resolved_at", "is", null);
+      
+      return { issues: issuesCount || 0, fixed: fixedCount || 0 };
     }
   });
 
@@ -387,6 +404,44 @@ const Dashboard = () => {
               >
                 <Link2 className="mr-2 h-4 w-4" />
                 {(linkingStats?.total || 0) > 0 ? 'Fix Linking Issues' : 'Manage Links'}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Image Health */}
+        <Card className="border-2 border-purple-500/20 bg-gradient-to-br from-purple-50/50 to-pink-50/50 dark:from-purple-950/30 dark:to-pink-950/30">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Image Health</CardTitle>
+            <ImageIcon className="h-4 w-4 text-purple-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              <div className="flex items-baseline gap-2">
+                <div className={`text-2xl font-bold ${
+                  (imageHealthStats?.issues || 0) === 0 ? 'text-green-600' : 
+                  (imageHealthStats?.issues || 0) <= 10 ? 'text-amber-600' : 
+                  'text-red-600'
+                }`}>
+                  {imageHealthStats?.issues || 0}
+                </div>
+                <span className="text-xs text-muted-foreground">issues found</span>
+              </div>
+              
+              {imageHealthStats && imageHealthStats.fixed > 0 && (
+                <div className="text-xs text-green-600">
+                  ✅ {imageHealthStats.fixed} images fixed
+                </div>
+              )}
+              
+              <Button 
+                onClick={() => navigate('/admin/image-health')}
+                size="sm"
+                className="w-full"
+                variant={(imageHealthStats?.issues || 0) > 0 ? "default" : "outline"}
+              >
+                <ImageIcon className="mr-2 h-4 w-4" />
+                {(imageHealthStats?.issues || 0) > 0 ? 'Fix Image Issues' : 'View Image Health'}
               </Button>
             </div>
           </CardContent>
