@@ -3392,6 +3392,15 @@ export type Database = {
         }[]
       }
       get_citation_health_stats: { Args: never; Returns: Json }
+      get_cluster_image_health: {
+        Args: never
+        Returns: {
+          cluster_id: string
+          health_percent: number
+          total_images: number
+          unique_images: number
+        }[]
+      }
       get_cluster_qa_counts: {
         Args: never
         Returns: {

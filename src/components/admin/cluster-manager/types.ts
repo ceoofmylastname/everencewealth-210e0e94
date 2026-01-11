@@ -17,6 +17,10 @@ export interface ClusterData {
   total_qa_published: number;
   expected_qa_pages: number;
   qa_completion_percent: number;
+  // Image health metrics
+  image_health?: number;
+  unique_images?: number;
+  total_images?: number;
 }
 
 export interface QAJobProgress {
