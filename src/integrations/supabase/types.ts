@@ -152,6 +152,57 @@ export type Database = {
         }
         Relationships: []
       }
+      article_image_issues: {
+        Row: {
+          analyzed_at: string | null
+          article_id: string
+          created_at: string | null
+          details: Json | null
+          id: string
+          issue_type: string
+          resolved_at: string | null
+          resolved_by: string | null
+          severity: string
+        }
+        Insert: {
+          analyzed_at?: string | null
+          article_id: string
+          created_at?: string | null
+          details?: Json | null
+          id?: string
+          issue_type: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity: string
+        }
+        Update: {
+          analyzed_at?: string | null
+          article_id?: string
+          created_at?: string | null
+          details?: Json | null
+          id?: string
+          issue_type?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "article_image_issues_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "blog_articles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "article_image_issues_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "content_freshness_report"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       article_link_patterns: {
         Row: {
           article_id: string

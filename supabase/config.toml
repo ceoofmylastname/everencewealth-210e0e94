@@ -287,3 +287,9 @@ verify_jwt = false
 
 [functions.regenerate-article-image]
 verify_jwt = false
+
+[functions.analyze-image-for-text]
+verify_jwt = false
+
+[functions.scan-article-images]
+verify_jwt = false
