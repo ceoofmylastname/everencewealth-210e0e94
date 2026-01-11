@@ -30,6 +30,92 @@ const PropertiesShowcase: React.FC<PropertiesShowcaseProps> = ({ translations })
     const [loading, setLoading] = useState(true);
     const t = translations?.fallback || {};
 
+    // Translations for property showcase labels
+    const labels = {
+        en: { 
+            apartmentSection: "Apartments & Penthouses", 
+            villaSection: "Townhouses & Villas",
+            apartmentTitle: "Luxury Apartment",
+            villaTitle: "Exclusive Villa",
+            view: "View",
+            subtitle: "6 carefully selected new-build projects"
+        },
+        de: { 
+            apartmentSection: "Wohnungen & Penthäuser", 
+            villaSection: "Reihenhäuser & Villen",
+            apartmentTitle: "Luxuswohnung",
+            villaTitle: "Exklusive Villa",
+            view: "Ansehen",
+            subtitle: "6 sorgfältig ausgewählte Neubauprojekte"
+        },
+        nl: { 
+            apartmentSection: "Appartementen & Penthouses", 
+            villaSection: "Townhouses & Villa's",
+            apartmentTitle: "Luxe Appartement",
+            villaTitle: "Exclusieve Villa",
+            view: "Bekijken",
+            subtitle: "6 zorgvuldig geselecteerde nieuwbouwprojecten"
+        },
+        fr: { 
+            apartmentSection: "Appartements & Penthouses", 
+            villaSection: "Maisons de ville & Villas",
+            apartmentTitle: "Appartement de Luxe",
+            villaTitle: "Villa Exclusive",
+            view: "Voir",
+            subtitle: "6 projets neufs soigneusement sélectionnés"
+        },
+        pl: { 
+            apartmentSection: "Apartamenty & Penthousy", 
+            villaSection: "Domy szeregowe & Wille",
+            apartmentTitle: "Luksusowy Apartament",
+            villaTitle: "Ekskluzywna Willa",
+            view: "Zobacz",
+            subtitle: "6 starannie wybranych projektów deweloperskich"
+        },
+        sv: { 
+            apartmentSection: "Lägenheter & Takvåningar", 
+            villaSection: "Radhus & Villor",
+            apartmentTitle: "Lyxlägenhet",
+            villaTitle: "Exklusiv Villa",
+            view: "Visa",
+            subtitle: "6 noggrant utvalda nybyggnadsprojekt"
+        },
+        da: { 
+            apartmentSection: "Lejligheder & Penthouses", 
+            villaSection: "Rækkehuse & Villaer",
+            apartmentTitle: "Luksuslejlighed",
+            villaTitle: "Eksklusiv Villa",
+            view: "Se",
+            subtitle: "6 omhyggeligt udvalgte nybyggeriprojekter"
+        },
+        hu: { 
+            apartmentSection: "Apartmanok & Penthouse-ok", 
+            villaSection: "Sorházak & Villák",
+            apartmentTitle: "Luxus Apartman",
+            villaTitle: "Exkluzív Villa",
+            view: "Megtekintés",
+            subtitle: "6 gondosan kiválasztott új építésű projekt"
+        },
+        fi: { 
+            apartmentSection: "Asunnot & Kattohuoneistot", 
+            villaSection: "Rivitalot & Huvilat",
+            apartmentTitle: "Luksusasunto",
+            villaTitle: "Yksinomainen Huvila",
+            view: "Näytä",
+            subtitle: "6 huolellisesti valittua uudisrakennusprojektia"
+        },
+        no: { 
+            apartmentSection: "Leiligheter & Penthouses", 
+            villaSection: "Rekkehus & Villaer",
+            apartmentTitle: "Luksusleilighet",
+            villaTitle: "Eksklusiv Villa",
+            view: "Se",
+            subtitle: "6 nøye utvalgte nybyggprosjekter"
+        }
+    };
+
+    const currentLabels = labels[lang as keyof typeof labels] || labels.en;
+
     useEffect(() => {
         const fetchProperties = async () => {
             setLoading(true);
@@ -60,7 +146,7 @@ const PropertiesShowcase: React.FC<PropertiesShowcaseProps> = ({ translations })
 
     const PropertyCard = ({ property, index }: { property: Property; index: number }) => {
         const { elementRef, isVisible } = useScrollAnimation({ threshold: 0.05 });
-        const displayTitle = property.title || `${property.category === 'apartment' ? 'Luxury Apartment' : 'Exclusive Villa'}`;
+        const displayTitle = property.title || `${property.category === 'apartment' ? currentLabels.apartmentTitle : currentLabels.villaTitle}`;
 
         // Get localized description (fallback to English if not available)
         const description = property.descriptions?.[lang] || property.descriptions?.en || '';
@@ -123,7 +209,7 @@ const PropertiesShowcase: React.FC<PropertiesShowcaseProps> = ({ translations })
                             }}
                             className="flex items-center gap-1 px-2 py-1 sm:px-3 sm:py-1.5 bg-landing-gold text-white text-[10px] sm:text-xs font-semibold rounded-md hover:bg-landing-gold/90 transition-colors"
                         >
-                            <span>View</span>
+                            <span>{currentLabels.view}</span>
                             <ArrowRight size={10} className="sm:w-3 sm:h-3" />
                         </button>
                     </div>
@@ -134,14 +220,14 @@ const PropertiesShowcase: React.FC<PropertiesShowcaseProps> = ({ translations })
 
     const PropertyGrid = ({ items, sectionType }: { items: Property[], sectionType: 'apartments' | 'villas' }) => {
         const sectionT = t[sectionType] || {};
-        const title = sectionType === 'apartments' ? "Apartments & Penthouses" : "Townhouses & Villas";
+        const title = sectionType === 'apartments' ? currentLabels.apartmentSection : currentLabels.villaSection;
 
         return (
             <div className="mb-12 sm:mb-16 lg:mb-20 last:mb-0">
                 <div className="flex flex-col items-center justify-center mb-5 sm:mb-6 lg:mb-8 gap-2 pb-3 sm:pb-4 border-b border-gray-100">
                     <div className="text-center">
                         <h3 className="text-lg sm:text-xl md:text-2xl font-serif font-bold text-landing-navy/80">{title}</h3>
-                        <p className="text-xs sm:text-sm text-landing-text-secondary mt-0.5 sm:mt-1">{sectionT.subtitle || "6 carefully selected new-build projects"}</p>
+                        <p className="text-xs sm:text-sm text-landing-text-secondary mt-0.5 sm:mt-1">{sectionT.subtitle || currentLabels.subtitle}</p>
                     </div>
                 </div>
 
