@@ -647,6 +647,43 @@ const EmmaChat: React.FC<EmmaChatProps> = ({ isOpen, onClose, language }) => {
         console.log('📤 Preparing to send to GHL webhook...');
         console.log('📤 Raw fields received:', JSON.stringify(fields, null, 2));
 
+        // VALIDATE CRITICAL CONTACT FIELDS BEFORE SENDING
+        const missingFields: string[] = [];
+        if (!fields.first_name && !fields.name) missingFields.push('first_name');
+        if (!fields.last_name && !fields.family_name) missingFields.push('last_name');
+        if (!fields.phone_number && !fields.phone) missingFields.push('phone_number');
+        
+        // If missing critical fields, apply aggressive fallback extraction
+        if (missingFields.length > 0) {
+            console.warn('⚠️ WEBHOOK WARNING: Missing critical contact fields:', missingFields);
+            console.warn('⚠️ GHL may not create contact without phone number');
+            
+            // Apply emergency fallback extraction
+            const extractedContact = extractContactFromHistory(messages);
+            console.log('📋 Emergency fallback extraction result:', JSON.stringify(extractedContact, null, 2));
+            
+            // Merge fallback data (only fill in missing fields)
+            if (!fields.first_name && !fields.name && extractedContact.first_name) {
+                fields.first_name = extractedContact.first_name;
+            }
+            if (!fields.last_name && !fields.family_name && extractedContact.last_name) {
+                fields.last_name = extractedContact.last_name;
+            }
+            if (!fields.phone_number && !fields.phone && extractedContact.phone_number) {
+                fields.phone_number = extractedContact.phone_number;
+            }
+            if (!fields.country_prefix && extractedContact.country_prefix) {
+                fields.country_prefix = extractedContact.country_prefix;
+            }
+            
+            console.log('📋 After emergency fallback:', {
+                first_name: fields.first_name || fields.name,
+                last_name: fields.last_name || fields.family_name,
+                phone_number: fields.phone_number || fields.phone,
+                country_prefix: fields.country_prefix
+            });
+        }
+
         // Determine conversation status
         let conversationStatus = 'in_progress';
         if (fields.intake_complete) {

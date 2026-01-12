@@ -208,13 +208,31 @@ export const upsertEmmaLead = async (data: Partial<EmmaLeadData> & { conversatio
 
     if (error) {
       console.error('❌ PROGRESSIVE SAVE: Failed to upsert lead:', error);
-      return false;
+      console.error('❌ PROGRESSIVE SAVE: Error code:', error.code);
+      console.error('❌ PROGRESSIVE SAVE: Error message:', error.message);
+      console.error('❌ PROGRESSIVE SAVE: Error details:', error.details);
+      console.error('❌ PROGRESSIVE SAVE: Data that failed:', JSON.stringify(leadData, null, 2));
+      
+      // Retry once after 1 second
+      console.log('🔄 PROGRESSIVE SAVE: Retrying in 1 second...');
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      const { error: retryError } = await supabase
+        .from('emma_leads' as any)
+        .upsert(leadData, { onConflict: 'conversation_id' });
+      
+      if (retryError) {
+        console.error('❌ PROGRESSIVE SAVE: Retry also failed:', retryError);
+        return false;
+      }
+      console.log('✅ PROGRESSIVE SAVE: Retry succeeded');
+      return true;
     }
 
     console.log('✅ PROGRESSIVE SAVE: Lead data saved successfully');
     return true;
   } catch (error) {
-    console.error('❌ PROGRESSIVE SAVE: Error:', error);
+    console.error('❌ PROGRESSIVE SAVE: Exception:', error);
     return false;
   }
 };
