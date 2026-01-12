@@ -264,6 +264,9 @@ const EmmaChat: React.FC<EmmaChatProps> = ({ isOpen, onClose, language }) => {
                     detected_language: language,
                     intake_complete: fields.intake_complete || false,
                     declined_selection: fields.declined_selection || false,
+                    closed_early: fields.closed_early || false,
+                    submission_type: fields.intake_complete ? 'complete' : 
+                                     fields.declined_selection ? 'declined' : 'partial',
                     conversation_date: new Date().toISOString()
                 }
             };
@@ -285,6 +288,26 @@ const EmmaChat: React.FC<EmmaChatProps> = ({ isOpen, onClose, language }) => {
         }
     };
 
+    // Handle close with partial lead capture
+    const handleClose = async () => {
+        // If we have any meaningful data and haven't already submitted, send partial lead
+        const hasContactInfo = accumulatedFields.first_name || 
+                               accumulatedFields.name || 
+                               accumulatedFields.phone ||
+                               accumulatedFields.phone_number;
+        
+        if (hasContactInfo && !hasSubmittedLead) {
+            console.log('🚪 CLOSE: Sending partial lead webhook on chat close');
+            setHasSubmittedLead(true);
+            await sendToGHL({
+                ...accumulatedFields,
+                closed_early: true  // Mark as closed before completion
+            });
+        }
+        
+        onClose();
+    };
+
     if (!isOpen) return null;
 
     const currentOnlineText = onlineTexts[language as keyof typeof onlineTexts] || onlineTexts.en;
@@ -295,7 +318,7 @@ const EmmaChat: React.FC<EmmaChatProps> = ({ isOpen, onClose, language }) => {
             {/* Backdrop - warm navy tint */}
             <div
                 className="absolute inset-0 bg-landing-navy/30 backdrop-blur-sm"
-                onClick={onClose}
+                onClick={handleClose}
             />
 
             {/* Chat Window - Luxury styling */}
@@ -335,7 +358,7 @@ const EmmaChat: React.FC<EmmaChatProps> = ({ isOpen, onClose, language }) => {
                             {isMinimized ? <Maximize2 className="w-5 h-5" /> : <Minimize2 className="w-5 h-5" />}
                         </button>
                         <button
-                            onClick={onClose}
+                            onClick={handleClose}
                             className="p-2 hover:bg-landing-gold/20 rounded-full transition-colors"
                             aria-label="Close"
                         >
