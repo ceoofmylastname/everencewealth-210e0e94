@@ -242,6 +242,7 @@ const LandingLayout: React.FC<LandingLayoutProps> = ({ language, translations })
                 <AutoplayVideo
                     language={language}
                     translations={translations}
+                    onOpenEmmaChat={() => setIsEmmaOpen(true)}
                 />
 
                 {/* 3. TESTIMONIALS - Social Proof */}

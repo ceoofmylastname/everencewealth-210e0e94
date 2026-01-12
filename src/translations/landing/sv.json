@@ -14,7 +14,8 @@
       "Mänskliga experter granskar allt",
       "Du bestämmer om och hur du fortsätter"
     ],
-    "reassurance": "Ställ Dina Frågor till Emma"
+    "ctaButton": "Ställ Alla Dina Frågor till Emma",
+    "reassurance": "Du har kontrollen"
   },
   "emma": {
     "statement": "Börja med klarhet, inte listor.",

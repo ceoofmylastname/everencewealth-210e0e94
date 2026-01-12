@@ -14,7 +14,8 @@
       "Menneskelige eksperter gennemgår alt",
       "Du bestemmer, om og hvordan du fortsætter"
     ],
-    "reassurance": "Stil Emma Dine Spørgsmål"
+    "ctaButton": "Stil Emma Alle Dine Spørgsmål",
+    "reassurance": "Du har kontrollen"
   },
   "emma": {
     "statement": "Start med klarhed, ikke fortegnelser.",

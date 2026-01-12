@@ -14,7 +14,8 @@
       "Ihmisasiantuntijat tarkistavat kaiken",
       "Sinä päätät, jatkatko ja miten"
     ],
-    "reassurance": "Kysy Emmalta Kysymyksesi"
+    "ctaButton": "Kysy Emmalta Kaikki Kysymyksesi",
+    "reassurance": "Sinä olet hallinnassa"
   },
   "emma": {
     "statement": "Aloita selkeydestä, ei kohteista.",

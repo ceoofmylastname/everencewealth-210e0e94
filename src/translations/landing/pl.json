@@ -14,7 +14,8 @@
       "Ludzcy eksperci sprawdzają wszystko",
       "Ty decydujesz, czy i jak kontynuować"
     ],
-    "reassurance": "Zadaj Emmy Swoje Pytania"
+    "ctaButton": "Zadaj Emmy Wszystkie Pytania",
+    "reassurance": "Zachowujesz kontrolę"
   },
   "emma": {
     "statement": "Zacznij od jasności, a nie od ofert.",

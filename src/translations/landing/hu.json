@@ -14,7 +14,8 @@
       "Emberi szakértők mindent átnéznek",
       "Te döntöd el, hogy és hogyan folytatsz"
     ],
-    "reassurance": "Tedd Fel Kérdéseidet Emmának"
+    "ctaButton": "Tedd Fel Emma-nak Minden Kérdésedet",
+    "reassurance": "Te irányítasz"
   },
   "emma": {
     "statement": "Kezdd a tisztázással, ne az ajánlatokkal.",

@@ -14,7 +14,8 @@
       "Human experts review everything",
       "You decide if and how to continue"
     ],
-    "reassurance": "Ask Emma Your Questions"
+    "ctaButton": "Ask Emma All Your Questions",
+    "reassurance": "You remain in control"
   },
   "emma": {
     "statement": "Start with clarity, not listings.",

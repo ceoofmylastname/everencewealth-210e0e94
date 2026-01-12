@@ -14,7 +14,8 @@
       "Menselijke experts beoordelen alles",
       "U beslist of en hoe u verder gaat"
     ],
-    "reassurance": "Stel Emma Uw Vragen"
+    "ctaButton": "Stel Emma Al Uw Vragen",
+    "reassurance": "U blijft in controle"
   },
   "emma": {
     "statement": "Begin met duidelijkheid, niet met aanbiedingen.",

@@ -6,6 +6,7 @@ import videoThumbnail from '@/assets/video-thumbnail.jpg';
 interface AutoplayVideoProps {
     language: string;
     translations?: any;
+    onOpenEmmaChat?: () => void;
 }
 
 const VIDEO_URLS: Record<string, string> = {
@@ -21,7 +22,7 @@ const VIDEO_URLS: Record<string, string> = {
     no: 'https://storage.googleapis.com/msgsndr/281Nzx90nVL8424QY4Af/media/695ecf9fc98330759f310a78.mp4'
 };
 
-const AutoplayVideo: React.FC<AutoplayVideoProps> = ({ language, translations }) => {
+const AutoplayVideo: React.FC<AutoplayVideoProps> = ({ language, translations, onOpenEmmaChat }) => {
     const videoRef = useRef<HTMLVideoElement>(null);
     const { elementRef, isVisible } = useScrollAnimation({ threshold: 0.1 });
     const t = translations?.video || {};
@@ -85,13 +86,14 @@ const AutoplayVideo: React.FC<AutoplayVideoProps> = ({ language, translations })
                     </div>
                 </div>
 
-                {/* Bullets - Stack on mobile */}
+                {/* Bullets + Golden CTA */}
                 <div className={`flex flex-col items-center transition-all duration-700 delay-200 ease-out ${
                     isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
                 }`}>
-                    <div className="flex flex-col gap-3 sm:gap-4 md:flex-row md:gap-8 lg:gap-12 mb-6 sm:mb-8">
-                        {bullets.map((bullet: string, idx: number) => (
-                            <div key={idx} className="flex items-center gap-2 sm:gap-3 text-landing-navy/80 text-sm sm:text-base lg:text-lg">
+                    {/* Top checkmarks - 2 only */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-6 max-w-2xl mx-auto mb-6">
+                        {bullets.slice(0, 2).map((bullet: string, idx: number) => (
+                            <div key={idx} className="flex items-center gap-2 sm:gap-3 text-landing-navy/80 text-sm sm:text-base lg:text-lg justify-center sm:justify-start">
                                 <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-landing-gold/20 flex items-center justify-center shrink-0">
                                     <Check size={12} className="text-landing-gold sm:w-[14px] sm:h-[14px]" strokeWidth={3} />
                                 </div>
@@ -100,9 +102,21 @@ const AutoplayVideo: React.FC<AutoplayVideoProps> = ({ language, translations })
                         ))}
                     </div>
 
-                    <p className="text-landing-navy/60 italic text-xs sm:text-sm text-center px-4">
-                        {t.reassurance || "You remain in control at every step."}
-                    </p>
+                    {/* MIDDLE - Prominent Golden Button */}
+                    <button
+                        onClick={onOpenEmmaChat}
+                        className="bg-gradient-to-r from-[#C4A053] to-[#D4B068] text-white font-semibold text-base sm:text-lg px-8 py-3 sm:px-12 sm:py-4 rounded-full shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 mx-auto block my-6 sm:my-8"
+                    >
+                        ✨ {t.ctaButton || "Ask Emma All Your Questions"}
+                    </button>
+
+                    {/* Bottom - Single checkmark */}
+                    <div className="flex items-center justify-center gap-2 text-landing-navy/60 italic text-sm sm:text-base">
+                        <div className="w-5 h-5 rounded-full bg-landing-gold/20 flex items-center justify-center shrink-0">
+                            <Check size={12} className="text-landing-gold" strokeWidth={3} />
+                        </div>
+                        <span>{t.reassurance || "You remain in control"}</span>
+                    </div>
                 </div>
             </div>
         </section>
