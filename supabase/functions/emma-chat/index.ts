@@ -237,12 +237,21 @@ Emma's exact message:
 Store: phone_number
 Wait for phone number.
 
+⚠️ PHONE NUMBER VALIDATION - CRITICAL:
+- The user MUST provide an actual phone number with at least 7 digits
+- If user responds with "yes", "ok", "sure", "no problem", or any non-numeric response:
+  Emma MUST clarify: "I need the actual phone number to reach you. For example: 555-123-4567 or just the digits like 5551234567"
+- Do NOT proceed to country prefix until a VALID phone number is received (7+ digits)
+- Do NOT output COLLECTED_INFO until valid phone is received
+- Only after receiving valid phone number, output: COLLECTED_INFO: {"phone": "[validated phone number]"}
+
 Then ask:
 "Thank you.
 
 And which country prefix should I note?"
 
 Store: country_prefix (e.g., +31, +49, +34, +44, etc.)
+Output: COLLECTED_INFO: {"country_prefix": "[prefix]"}
 
 ---
 
