@@ -174,7 +174,16 @@ const EmmaChat: React.FC<EmmaChatProps> = ({ isOpen, onClose, language }) => {
                         console.log('⚠️ Contact info missing from COLLECTED_INFO, using fallback extraction...');
                         const extractedContact = extractContactFromHistory([...messages, assistantMessage]);
                         newAccumulatedFields = { ...newAccumulatedFields, ...extractedContact };
-                        console.log('📊 Fields after fallback extraction:', JSON.stringify(newAccumulatedFields, null, 2));
+                        console.log('📊 Fields after contact fallback:', JSON.stringify(newAccumulatedFields, null, 2));
+                    }
+                    
+                    // FALLBACK: If Q&A is missing, extract from conversation history
+                    const hasQA = newAccumulatedFields.question_1 || newAccumulatedFields.answer_1;
+                    if (!hasQA) {
+                        console.log('⚠️ Q&A missing from CUSTOM_FIELDS, using fallback extraction...');
+                        const extractedQA = extractQAFromHistory([...messages, assistantMessage]);
+                        newAccumulatedFields = { ...newAccumulatedFields, ...extractedQA };
+                        console.log('📊 Fields after Q&A fallback:', JSON.stringify(newAccumulatedFields, null, 2));
                     }
                     
                     // Also merge userData if available (from database record)
@@ -383,6 +392,74 @@ const EmmaChat: React.FC<EmmaChatProps> = ({ isOpen, onClose, language }) => {
         return contact;
     };
 
+    // FALLBACK: Extract Q&A from conversation history when CUSTOM_FIELDS doesn't include them
+    const extractQAFromHistory = (msgs: Message[]): Record<string, string> => {
+        const qa: Record<string, string> = {};
+        
+        // Patterns that indicate content phase transition (after contact, before property criteria)
+        const contentPhaseStartPatterns = [
+            'what is currently the main thing on your mind',
+            'what would you like to know',
+            'i can now handle your questions',
+            'wat houdt je momenteel het meest bezig',
+            'ich kann jetzt ihre fragen bearbeiten',
+            'je peux maintenant traiter vos questions'
+        ];
+        
+        const transitionPatterns = [
+            'to avoid staying too general',
+            'switching to a more focused approach',
+            'personalized selection',
+            'om te voorkomen dat we te algemeen blijven',
+            'um nicht zu allgemein zu bleiben',
+            'pour éviter de rester trop général'
+        ];
+        
+        let questionCount = 0;
+        let inContentPhase = false;
+        
+        for (let i = 0; i < msgs.length; i++) {
+            const msg = msgs[i];
+            const content = msg.content.toLowerCase();
+            
+            // Detect content phase start
+            if (msg.role === 'assistant' && contentPhaseStartPatterns.some(p => content.includes(p))) {
+                inContentPhase = true;
+                console.log('📋 Q&A FALLBACK: Detected content phase start');
+                continue;
+            }
+            
+            // Detect transition out of content phase
+            if (msg.role === 'assistant' && transitionPatterns.some(p => content.includes(p))) {
+                console.log('📋 Q&A FALLBACK: Detected transition out of content phase');
+                break;
+            }
+            
+            // In content phase, capture user questions followed by Emma's answers
+            if (inContentPhase && msg.role === 'user' && questionCount < 3) {
+                const nextMsg = msgs[i + 1];
+                if (nextMsg && nextMsg.role === 'assistant') {
+                    questionCount++;
+                    const qKey = `question_${questionCount}`;
+                    const aKey = `answer_${questionCount}`;
+                    
+                    qa[qKey] = msg.content.trim().substring(0, 300);
+                    qa[aKey] = nextMsg.content.trim().substring(0, 300);
+                    
+                    console.log(`📋 Q&A FALLBACK: Stored ${qKey}="${qa[qKey].substring(0, 50)}..."`);
+                    i++; // Skip the answer message we just processed
+                }
+            }
+        }
+        
+        if (questionCount > 0) {
+            qa.questions_answered = questionCount.toString();
+            console.log(`📋 Q&A FALLBACK: Total questions extracted: ${questionCount}`);
+        }
+        
+        return qa;
+    };
+
     // Send lead data to GoHighLevel webhook with ALL 24 fields
     const sendToGHL = async (fields: Record<string, any>) => {
         console.log('📤 Preparing to send to GHL webhook...');
@@ -478,6 +555,14 @@ const EmmaChat: React.FC<EmmaChatProps> = ({ isOpen, onClose, language }) => {
             console.log('⚠️ CLOSE: Contact info missing, using fallback extraction...');
             const extractedContact = extractContactFromHistory(messages);
             fieldsToSend = { ...fieldsToSend, ...extractedContact };
+        }
+        
+        // FALLBACK: Extract Q&A from conversation history if missing
+        const hasQA = fieldsToSend.question_1 || fieldsToSend.answer_1;
+        if (!hasQA && messages.length > 3) {
+            console.log('⚠️ CLOSE: Q&A missing, using fallback extraction...');
+            const extractedQA = extractQAFromHistory(messages);
+            fieldsToSend = { ...fieldsToSend, ...extractedQA };
         }
         
         // Also merge userData if available
