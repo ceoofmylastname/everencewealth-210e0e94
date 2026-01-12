@@ -100,7 +100,7 @@ serve(async (req) => {
     } else if (table === 'qa_pages') {
       query = supabase
         .from('qa_pages')
-        .select('id, question, featured_image_url, slug')
+        .select('id, title, featured_image_url, slug')
         .ilike('featured_image_url', '%fal.media%')
         .range(offset, offset + batch_size - 1);
     } else if (table === 'location_pages') {
@@ -149,7 +149,7 @@ serve(async (req) => {
 
     for (const record of records) {
       const rec = record as any;
-      const prefix = rec.slug || rec.topic_slug || rec.headline?.substring(0, 30) || 'migrated';
+      const prefix = rec.slug || rec.topic_slug || rec.headline?.substring(0, 30) || rec.title?.substring(0, 30) || 'migrated';
       
       if (dry_run) {
         console.log(`🔍 [DRY RUN] Would migrate: ${record.id} - ${prefix}`);
