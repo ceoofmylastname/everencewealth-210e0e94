@@ -14,7 +14,8 @@
       "Menschliche Experten prüfen alles",
       "Sie entscheiden, ob und wie Sie fortfahren"
     ],
-    "reassurance": "Stellen Sie Emma Ihre Fragen"
+    "ctaButton": "Stellen Sie Emma Alle Ihre Fragen",
+    "reassurance": "Sie behalten die Kontrolle"
   },
   "emma": {
     "statement": "Beginnen Sie mit Klarheit, nicht mit Angeboten.",
