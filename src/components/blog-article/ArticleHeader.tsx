@@ -30,6 +30,8 @@ const LANGUAGE_FLAGS: Record<string, { flag: string; name: string }> = {
   sv: { flag: "🇸🇪", name: "Swedish" },
   da: { flag: "🇩🇰", name: "Danish" },
   hu: { flag: "🇭🇺", name: "Hungarian" },
+  fi: { flag: "🇫🇮", name: "Finnish" },
+  no: { flag: "🇳🇴", name: "Norwegian" },
 };
 
 export const ArticleHeader = ({ article, author, reviewer, translations }: ArticleHeaderProps) => {
@@ -73,17 +75,21 @@ export const ArticleHeader = ({ article, author, reviewer, translations }: Artic
                 </SelectValue>
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value={article.language}>
-                  {currentLang?.flag} {currentLang?.name}
-                </SelectItem>
-                {Object.entries(translations).map(([lang, slug]) => {
-                  const langData = LANGUAGE_FLAGS[lang];
-                  return (
-                    <SelectItem key={lang} value={lang}>
-                      {langData?.flag} {langData?.name}
-                    </SelectItem>
-                  );
-                })}
+                {Object.entries(translations)
+                  .filter(([lang]) => LANGUAGE_FLAGS[lang])
+                  .sort(([a], [b]) => {
+                    if (a === article.language) return -1;
+                    if (b === article.language) return 1;
+                    return a.localeCompare(b);
+                  })
+                  .map(([lang]) => {
+                    const langData = LANGUAGE_FLAGS[lang];
+                    return (
+                      <SelectItem key={lang} value={lang}>
+                        {langData?.flag} {langData?.name}
+                      </SelectItem>
+                    );
+                  })}
               </SelectContent>
             </Select>
           </div>
