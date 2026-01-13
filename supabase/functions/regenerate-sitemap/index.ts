@@ -210,7 +210,7 @@ ${articleUrls}
 function generateLanguageQASitemap(
   qaPages: QAPageData[],
   lang: string,
-  allQAPages: QAPageData[]
+  qaGroupMap: Map<string, QAPageData[]>
 ): string {
   if (qaPages.length === 0) return '';
 
@@ -228,22 +228,22 @@ function generateLanguageQASitemap(
     
     let hreflangLinks = `\n    <xhtml:link rel="alternate" hreflang="${hreflangCode}" href="${currentUrl}" />`;
     
-    // Find siblings by hreflang_group_id
+    // Find siblings by hreflang_group_id using pre-computed map (O(1) lookup)
     if (qa.hreflang_group_id) {
-      const siblings = allQAPages.filter(p => 
-        p.hreflang_group_id === qa.hreflang_group_id && p.language !== lang
-      );
+      const siblings = (qaGroupMap.get(qa.hreflang_group_id) || []).filter(p => p.language !== lang);
+      let englishSlug: string | null = null;
+      
       siblings.forEach((sibling) => {
         const siblingLangCode = langToHreflang[sibling.language] || sibling.language;
         hreflangLinks += `\n    <xhtml:link rel="alternate" hreflang="${siblingLangCode}" href="${BASE_URL}/${sibling.language}/qa/${sibling.slug}" />`;
+        if (sibling.language === 'en') {
+          englishSlug = sibling.slug;
+        }
       });
       
       // x-default to English version or current
-      const englishVersion = allQAPages.find(p => 
-        p.hreflang_group_id === qa.hreflang_group_id && p.language === 'en'
-      );
-      const xDefaultUrl = englishVersion 
-        ? `${BASE_URL}/en/qa/${englishVersion.slug}`
+      const xDefaultUrl = englishSlug 
+        ? `${BASE_URL}/en/qa/${englishSlug}`
         : currentUrl;
       hreflangLinks += `\n    <xhtml:link rel="alternate" hreflang="x-default" href="${xDefaultUrl}" />`;
     } else {
@@ -277,7 +277,7 @@ ${qaUrls}
 function generateLanguageComparisonSitemap(
   comparisons: ComparisonData[],
   lang: string,
-  allComparisons: ComparisonData[]
+  comparisonGroupMap: Map<string, ComparisonData[]>
 ): string {
   if (comparisons.length === 0) return '';
 
@@ -295,19 +295,19 @@ function generateLanguageComparisonSitemap(
     let hreflangLinks = `\n    <xhtml:link rel="alternate" hreflang="${hreflangCode}" href="${currentUrl}" />`;
     
     if (comp.hreflang_group_id) {
-      const siblings = allComparisons.filter(c => 
-        c.hreflang_group_id === comp.hreflang_group_id && c.language !== lang
-      );
+      const siblings = (comparisonGroupMap.get(comp.hreflang_group_id) || []).filter(c => c.language !== lang);
+      let englishSlug: string | null = null;
+      
       siblings.forEach((sibling) => {
         const siblingLangCode = langToHreflang[sibling.language] || sibling.language;
         hreflangLinks += `\n    <xhtml:link rel="alternate" hreflang="${siblingLangCode}" href="${BASE_URL}/${sibling.language}/compare/${sibling.slug}" />`;
+        if (sibling.language === 'en') {
+          englishSlug = sibling.slug;
+        }
       });
       
-      const englishVersion = allComparisons.find(c => 
-        c.hreflang_group_id === comp.hreflang_group_id && c.language === 'en'
-      );
-      const xDefaultUrl = englishVersion 
-        ? `${BASE_URL}/en/compare/${englishVersion.slug}`
+      const xDefaultUrl = englishSlug 
+        ? `${BASE_URL}/en/compare/${englishSlug}`
         : currentUrl;
       hreflangLinks += `\n    <xhtml:link rel="alternate" hreflang="x-default" href="${xDefaultUrl}" />`;
     } else {
@@ -341,7 +341,7 @@ ${compUrls}
 function generateLanguageLocationSitemap(
   locations: LocationData[],
   lang: string,
-  allLocations: LocationData[]
+  locationGroupMap: Map<string, LocationData[]>
 ): string {
   if (locations.length === 0) return '';
 
@@ -359,19 +359,21 @@ function generateLanguageLocationSitemap(
     let hreflangLinks = `\n    <xhtml:link rel="alternate" hreflang="${hreflangCode}" href="${currentUrl}" />`;
     
     if (loc.hreflang_group_id) {
-      const siblings = allLocations.filter(l => 
-        l.hreflang_group_id === loc.hreflang_group_id && l.language !== lang
-      );
+      const siblings = (locationGroupMap.get(loc.hreflang_group_id) || []).filter(l => l.language !== lang);
+      let englishCitySlug: string | null = null;
+      let englishTopicSlug: string | null = null;
+      
       siblings.forEach((sibling) => {
         const siblingLangCode = langToHreflang[sibling.language] || sibling.language;
         hreflangLinks += `\n    <xhtml:link rel="alternate" hreflang="${siblingLangCode}" href="${BASE_URL}/${sibling.language}/locations/${sibling.city_slug}/${sibling.topic_slug}" />`;
+        if (sibling.language === 'en') {
+          englishCitySlug = sibling.city_slug;
+          englishTopicSlug = sibling.topic_slug;
+        }
       });
       
-      const englishVersion = allLocations.find(l => 
-        l.hreflang_group_id === loc.hreflang_group_id && l.language === 'en'
-      );
-      const xDefaultUrl = englishVersion 
-        ? `${BASE_URL}/en/locations/${englishVersion.city_slug}/${englishVersion.topic_slug}`
+      const xDefaultUrl = englishCitySlug && englishTopicSlug 
+        ? `${BASE_URL}/en/locations/${englishCitySlug}/${englishTopicSlug}`
         : currentUrl;
       hreflangLinks += `\n    <xhtml:link rel="alternate" hreflang="x-default" href="${xDefaultUrl}" />`;
     } else {
@@ -583,6 +585,40 @@ Deno.serve(async (req) => {
       locationsByLang.set(loc.language, existing);
     });
 
+    // Pre-compute hreflang group maps for O(1) lookups (prevents CPU timeout)
+    console.log('🔗 Pre-computing hreflang group maps...');
+    
+    const qaGroupMap = new Map<string, QAPageData[]>();
+    (qaPages || []).forEach((qa: QAPageData) => {
+      if (qa.hreflang_group_id) {
+        const existing = qaGroupMap.get(qa.hreflang_group_id) || [];
+        existing.push(qa);
+        qaGroupMap.set(qa.hreflang_group_id, existing);
+      }
+    });
+    console.log(`   Q&A groups: ${qaGroupMap.size}`);
+
+    const comparisonGroupMap = new Map<string, ComparisonData[]>();
+    (comparisonPages || []).forEach((comp: ComparisonData) => {
+      if (comp.hreflang_group_id) {
+        const existing = comparisonGroupMap.get(comp.hreflang_group_id) || [];
+        existing.push(comp);
+        comparisonGroupMap.set(comp.hreflang_group_id, existing);
+      }
+    });
+    console.log(`   Comparison groups: ${comparisonGroupMap.size}`);
+
+    const locationGroupMap = new Map<string, LocationData[]>();
+    (locationPages || []).forEach((loc: LocationData) => {
+      if (loc.hreflang_group_id) {
+        const existing = locationGroupMap.get(loc.hreflang_group_id) || [];
+        existing.push(loc);
+        locationGroupMap.set(loc.hreflang_group_id, existing);
+      }
+    });
+    console.log(`   Location groups: ${locationGroupMap.size}`);
+    console.log('✅ Hreflang maps pre-computed');
+
     // Build content types map and generate XML files
     const languageContentTypes = new Map<string, { type: string; lastmod: string }[]>();
     const sitemapFiles: Record<string, string> = {};
@@ -612,7 +648,7 @@ Deno.serve(async (req) => {
       if (langQA.length > 0) {
         contentTypes.push({ type: 'qa', lastmod: getToday() });
         
-        const qaXml = generateLanguageQASitemap(langQA, lang, qaPages || []);
+        const qaXml = generateLanguageQASitemap(langQA, lang, qaGroupMap);
         sitemapFiles[`sitemaps/${lang}/qa.xml`] = qaXml;
         totalUrls += langQA.length + 1;
       }
@@ -621,7 +657,7 @@ Deno.serve(async (req) => {
       if (langComparisons.length > 0) {
         contentTypes.push({ type: 'comparisons', lastmod: getToday() });
         
-        const compXml = generateLanguageComparisonSitemap(langComparisons, lang, comparisonPages || []);
+        const compXml = generateLanguageComparisonSitemap(langComparisons, lang, comparisonGroupMap);
         sitemapFiles[`sitemaps/${lang}/comparisons.xml`] = compXml;
         totalUrls += langComparisons.length + 1;
       }
@@ -630,7 +666,7 @@ Deno.serve(async (req) => {
       if (langLocations.length > 0) {
         contentTypes.push({ type: 'locations', lastmod: getToday() });
         
-        const locXml = generateLanguageLocationSitemap(langLocations, lang, locationPages || []);
+        const locXml = generateLanguageLocationSitemap(langLocations, lang, locationGroupMap);
         sitemapFiles[`sitemaps/${lang}/locations.xml`] = locXml;
         totalUrls += langLocations.length + 1;
       }
