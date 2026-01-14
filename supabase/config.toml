@@ -305,3 +305,9 @@ verify_jwt = false
 
 [functions.generate-missing-captions]
 verify_jwt = false
+
+[functions.log-server-error]
+verify_jwt = false
+
+[functions.health-check]
+verify_jwt = false
