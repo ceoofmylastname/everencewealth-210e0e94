@@ -12,6 +12,9 @@ const INDEXNOW_ENDPOINTS = [
   'https://yandex.com/indexnow'
 ];
 
+// Google's legacy sitemap ping endpoint (still functional)
+const GOOGLE_PING_URL = 'https://www.google.com/ping?sitemap=';
+
 const BASE_URL = 'https://www.delsolprimehomes.com';
 const API_KEY = Deno.env.get('INDEXNOW_API_KEY') || '8f3a2c1d4e5b6f7a8c9d0e1f2a3b4c5d';
 const KEY_LOCATION = `${BASE_URL}/indexnow-key.txt`;
@@ -74,6 +77,24 @@ async function submitToIndexNow(
   }
   
   return results;
+}
+
+// Ping Google's sitemap endpoint directly
+async function pingGoogleSitemap(): Promise<{ success: boolean; status: number; error?: string }> {
+  const sitemapUrl = `${BASE_URL}/sitemap.xml`;
+  try {
+    console.log(`Pinging Google sitemap: ${sitemapUrl}`);
+    const response = await fetch(`${GOOGLE_PING_URL}${encodeURIComponent(sitemapUrl)}`);
+    console.log(`Google ping response: ${response.status} ${response.statusText}`);
+    return { success: response.ok, status: response.status };
+  } catch (error) {
+    console.error('Google ping error:', error);
+    return { 
+      success: false, 
+      status: 0, 
+      error: error instanceof Error ? error.message : 'Unknown error' 
+    };
+  }
 }
 
 function buildUrlsFromContent(table: string, slug: string): string[] {
@@ -184,23 +205,29 @@ serve(async (req) => {
     // Submit to IndexNow endpoints
     const results = await submitToIndexNow(urlsToSubmit, apiKey);
     
+    // Also ping Google's sitemap endpoint
+    console.log('🔔 Pinging Google sitemap...');
+    const googleResult = await pingGoogleSitemap();
+    
     const successCount = results.filter(r => r.success).length;
-    const overallSuccess = successCount > 0;
+    const overallSuccess = successCount > 0 || googleResult.success;
 
     // Log results
     console.log(`IndexNow submission complete: ${successCount}/${results.length} endpoints successful`);
     results.forEach(r => {
       console.log(`  ${r.endpoint}: ${r.success ? '✓' : '✗'} (${r.status})${r.error ? ` - ${r.error}` : ''}`);
     });
+    console.log(`  Google ping: ${googleResult.success ? '✓' : '✗'} (${googleResult.status})${googleResult.error ? ` - ${googleResult.error}` : ''}`);
 
     return new Response(
       JSON.stringify({
         success: overallSuccess,
         message: overallSuccess 
-          ? `Submitted ${urlsToSubmit.length} URLs to ${successCount} search engines`
+          ? `Submitted ${urlsToSubmit.length} URLs to ${successCount} search engines + Google`
           : 'Failed to submit to any search engine',
         urlCount: urlsToSubmit.length,
         results,
+        googlePing: googleResult,
         submittedUrls: urlsToSubmit.slice(0, 10) // Return first 10 for reference
       }),
       { 
