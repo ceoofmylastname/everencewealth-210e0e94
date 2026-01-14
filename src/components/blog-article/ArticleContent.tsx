@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { OptimizedImage } from "@/components/OptimizedImage";
-import { MermaidPreview } from "@/components/MermaidPreview";
+import { LazyMermaidPreview } from "@/components/LazyMermaidPreview";
 import { ExternalCitation } from "@/types/blog";
 import { injectExternalLinks, addCitationMarkers, processInternalLinks } from "@/lib/linkInjection";
 import { PricingTable, PricingItem, PriceExample } from "@/components/blog-article/PricingTable";
@@ -233,7 +233,7 @@ export const ArticleContent = ({
             diagramUrl.startsWith('gantt') ||
             diagramUrl.startsWith('pie') ||
             diagramUrl.includes('-->')) ? (
-            <MermaidPreview code={diagramUrl} className="w-full rounded-2xl shadow-xl" />
+            <LazyMermaidPreview code={diagramUrl} className="w-full rounded-2xl shadow-xl" />
           ) : (
             <OptimizedImage
               src={diagramUrl}
