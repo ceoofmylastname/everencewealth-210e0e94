@@ -387,32 +387,16 @@ async function translateArticleWithRetry(
       .trim()
       .slice(0, 70);
 
-    // Generate unique image for this language article (NO headline text in prompt to avoid text baked into images)
-    const sceneVariations = [
-      'infinity pool overlooking Mediterranean sea',
-      'panoramic mountain and sea views',
-      'manicured Mediterranean garden with palm trees',
-      'contemporary interior with floor-to-ceiling windows',
-      'beachfront terrace at golden hour',
-      'golf course villa setting',
-      'rooftop terrace with sunset views',
-      'luxury outdoor living space',
-      'modern kitchen with marble countertops',
-      'private courtyard with fountain'
-    ];
-    const randomScene = sceneVariations[Math.floor(Math.random() * sceneVariations.length)];
-    const imagePrompt = `Professional Costa del Sol real estate photograph, luxury Mediterranean villa with ${randomScene}, bright natural lighting, Architectural Digest style, no text, no watermarks, no logos, clean composition, high-end marketing quality, ${targetLanguageName} market aesthetic`;
-    let generatedImageUrl = await generateUniqueImage(imagePrompt, englishArticle.featured_image_url);
-
-    // Upload to Supabase Storage if it's a Fal.ai URL
-    if (generatedImageUrl && generatedImageUrl.includes('fal.media')) {
-      generatedImageUrl = await uploadToStorage(
-        generatedImageUrl,
-        supabase,
-        'article-images',
-        uniqueSlug
-      );
-    }
+    // ============================================
+    // IMAGE SHARING: Non-English translations SHARE the English primary image
+    // This ensures 6 unique images per cluster (not 60)
+    // Alt text and caption are already translated in metadata above
+    // ============================================
+    const generatedImageUrl = englishArticle.featured_image_url;
+    console.log(`📷 Sharing English image for ${targetLanguageName} translation (not generating new)`);
+    
+    // Note: featured_image_alt and featured_image_caption are already translated
+    // in the metadata translation above, so we keep those language-specific values
 
     return {
       language: targetLanguage,

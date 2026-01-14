@@ -91,6 +91,87 @@ async function uploadToStorage(
   }
 }
 
+/**
+ * Generate localized alt text and caption for an image
+ */
+async function generateLocalizedMetadata(
+  article: { headline: string; cluster_theme?: string; language: string },
+  imagePrompt: string,
+  openaiKey: string
+): Promise<{ altText: string; caption: string | null }> {
+  const languageName = LANGUAGE_NAMES[article.language] || 'English';
+
+  const metadataResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${openaiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'gpt-4o-mini',
+      messages: [
+        {
+          role: 'system',
+          content: `You create SEO-optimized image metadata in ${languageName}.
+          
+Output a JSON object with:
+- "altText": Descriptive alt text for accessibility and SEO (100-150 characters). Include location keywords like "Costa del Sol" or specific towns. Describe what's visible in the image.
+- "caption": Engaging caption for display below the image (100-200 characters). Should complement the article and include a subtle call-to-action or interesting fact.
+
+RULES:
+- Write in ${languageName} (not English, unless article is English)
+- Be descriptive and specific
+- Include location references (Costa del Sol, Spain, Mediterranean)
+- No generic placeholder text
+- Caption should add value, not just describe the image
+
+Return ONLY valid JSON, no markdown.`
+        },
+        {
+          role: 'user',
+          content: `Article headline: ${article.headline}
+Article theme: ${article.cluster_theme || 'Costa del Sol Real Estate'}
+Image shows: ${imagePrompt}
+
+Generate alt text and caption in ${languageName}.`
+        }
+      ],
+      max_tokens: 300,
+      temperature: 0.7
+    }),
+  });
+
+  let altText = `Costa del Sol property - ${article.headline}`;
+  let caption: string | null = null;
+
+  if (metadataResponse.ok) {
+    try {
+      const metadataData = await metadataResponse.json();
+      const metadataContent = metadataData.choices?.[0]?.message?.content?.trim();
+      
+      const cleanedContent = metadataContent
+        .replace(/```json\n?/g, '')
+        .replace(/```\n?/g, '')
+        .trim();
+      
+      const metadata = JSON.parse(cleanedContent);
+      
+      if (metadata.altText && metadata.altText.length >= 50) {
+        altText = metadata.altText;
+      }
+      if (metadata.caption && metadata.caption.length >= 50) {
+        caption = metadata.caption;
+      }
+      
+      console.log(`✅ Generated ${languageName} metadata`);
+    } catch (parseError) {
+      console.error('Failed to parse metadata JSON:', parseError);
+    }
+  }
+
+  return { altText, caption };
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -127,10 +208,10 @@ serve(async (req) => {
 
     console.log(`🖼️ Starting image regeneration for article: ${articleId}`);
 
-    // Step 1: Fetch the article
+    // Step 1: Fetch the article with cluster_id and funnel_stage for image sharing
     const { data: article, error: fetchError } = await supabase
       .from('blog_articles')
-      .select('id, headline, meta_description, detailed_content, language, funnel_stage, cluster_theme, slug')
+      .select('id, headline, meta_description, detailed_content, language, funnel_stage, cluster_theme, slug, cluster_id')
       .eq('id', articleId)
       .single();
 
@@ -141,6 +222,72 @@ serve(async (req) => {
     console.log(`📝 Article: "${article.headline}" (${article.language})`);
 
     const languageName = LANGUAGE_NAMES[article.language] || 'English';
+
+    // ============================================
+    // IMAGE SHARING LOGIC: Non-English articles share images from English primary
+    // ============================================
+    if (article.language !== 'en' && article.cluster_id && article.funnel_stage) {
+      console.log(`🔗 Non-English article detected - checking for English primary image...`);
+      
+      // Find the English primary article in the same cluster + funnel stage
+      const { data: englishPrimary, error: primaryError } = await supabase
+        .from('blog_articles')
+        .select('featured_image_url')
+        .eq('cluster_id', article.cluster_id)
+        .eq('funnel_stage', article.funnel_stage)
+        .eq('language', 'en')
+        .eq('status', 'published')
+        .maybeSingle();
+
+      if (!primaryError && englishPrimary?.featured_image_url) {
+        console.log(`✅ Found English primary image - sharing instead of generating new`);
+        
+        // Generate localized metadata only (alt text + caption in article's language)
+        const imagePromptForMetadata = `Costa del Sol real estate, Mediterranean architecture, luxury property`;
+        const { altText, caption } = await generateLocalizedMetadata(
+          article,
+          imagePromptForMetadata,
+          openaiKey
+        );
+
+        // Update article with SHARED image URL + localized metadata
+        const { error: updateError } = await supabase
+          .from('blog_articles')
+          .update({
+            featured_image_url: englishPrimary.featured_image_url,
+            featured_image_alt: altText,
+            featured_image_caption: caption,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', articleId);
+
+        if (updateError) {
+          throw new Error(`Failed to update article: ${updateError.message}`);
+        }
+
+        console.log(`🎉 Successfully shared English image with ${languageName} metadata`);
+
+        return new Response(
+          JSON.stringify({
+            success: true,
+            sharedFromEnglish: true,
+            articleId,
+            headline: article.headline,
+            language: article.language,
+            imageUrl: englishPrimary.featured_image_url,
+            altText,
+            caption
+          }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      
+      console.log(`⚠️ No English primary found - will generate new image`);
+    }
+
+    // ============================================
+    // ENGLISH ARTICLES (or no primary found): Generate NEW unique image
+    // ============================================
 
     // Step 2: Generate content-based image prompt using OpenAI
     console.log(`🧠 Generating content-based image prompt...`);
@@ -215,7 +362,6 @@ ${contentForAnalysis}`
       }
     }) as FalResult;
 
-    // Fixed: Correct response structure - result.images, not result.data.images
     let generatedImageUrl = result.images?.[0]?.url;
 
     if (!generatedImageUrl) {
@@ -236,77 +382,7 @@ ${contentForAnalysis}`
     }
 
     // Step 4: Generate language-matched alt text and caption
-    console.log(`📝 Generating ${languageName} metadata (alt text & caption)...`);
-
-    const metadataResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${openaiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [
-          {
-            role: 'system',
-            content: `You create SEO-optimized image metadata in ${languageName}.
-            
-Output a JSON object with:
-- "altText": Descriptive alt text for accessibility and SEO (100-150 characters). Include location keywords like "Costa del Sol" or specific towns. Describe what's visible in the image.
-- "caption": Engaging caption for display below the image (100-200 characters). Should complement the article and include a subtle call-to-action or interesting fact.
-
-RULES:
-- Write in ${languageName} (not English, unless article is English)
-- Be descriptive and specific
-- Include location references (Costa del Sol, Spain, Mediterranean)
-- No generic placeholder text
-- Caption should add value, not just describe the image
-
-Return ONLY valid JSON, no markdown.`
-          },
-          {
-            role: 'user',
-            content: `Article headline: ${article.headline}
-Article theme: ${article.cluster_theme || 'Costa del Sol Real Estate'}
-Image shows: ${imagePrompt}
-
-Generate alt text and caption in ${languageName}.`
-          }
-        ],
-        max_tokens: 300,
-        temperature: 0.7
-      }),
-    });
-
-    let altText = `Costa del Sol property - ${article.headline}`;
-    let caption = null;
-
-    if (metadataResponse.ok) {
-      try {
-        const metadataData = await metadataResponse.json();
-        const metadataContent = metadataData.choices?.[0]?.message?.content?.trim();
-        
-        // Parse JSON response
-        const cleanedContent = metadataContent
-          .replace(/```json\n?/g, '')
-          .replace(/```\n?/g, '')
-          .trim();
-        
-        const metadata = JSON.parse(cleanedContent);
-        
-        if (metadata.altText && metadata.altText.length >= 50) {
-          altText = metadata.altText;
-        }
-        if (metadata.caption && metadata.caption.length >= 50) {
-          caption = metadata.caption;
-        }
-        
-        console.log(`✅ Generated ${languageName} metadata`);
-      } catch (parseError) {
-        console.error('Failed to parse metadata JSON:', parseError);
-        // Use fallback alt text
-      }
-    }
+    const { altText, caption } = await generateLocalizedMetadata(article, imagePrompt, openaiKey);
 
     // Step 5: Update the article with new image data
     console.log(`💾 Updating article with new image...`);
