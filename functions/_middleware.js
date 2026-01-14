@@ -95,6 +95,61 @@ function matchSEOPath(path) {
   return { lang, type, slug, rawSlug, needsRedirect };
 }
 
+// Supabase config for database lookups
+const SUPABASE_URL = 'https://kazggnufaoicopvmwhdl.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImthemdnbnVmYW9pY29wdm13aGRsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA1MzM0ODEsImV4cCI6MjA3NjEwOTQ4MX0.acQwC_xPXFXvOwwn7IATeg6OwQ2HWlu52x76iqUdhB4';
+const BASE_URL = 'https://www.delsolprimehomes.com';
+
+// Known patterns for dead URLs that should return 410 (add patterns from GSC export)
+const GONE_PATTERNS = [
+  /^\/[a-z]{2}\/uncategorized\//,      // Old uncategorized pages
+  /^\/[a-z]{2}\/draft-/,                // Draft pages leaked
+  /^\/[a-z]{2}\/preview-/,              // Preview pages
+  /^\/uncategorized\//,                 // Old uncategorized (no lang prefix)
+  /^\/draft-/,                          // Draft pages (no lang prefix)
+  /^\/preview-/,                        // Preview pages (no lang prefix)
+];
+
+/**
+ * Helper function to lookup article language from database
+ */
+async function lookupArticleLanguage(table, slug) {
+  try {
+    const response = await fetch(
+      `${SUPABASE_URL}/rest/v1/${table}?slug=eq.${encodeURIComponent(slug)}&status=eq.published&select=language`,
+      { headers: { 'apikey': SUPABASE_ANON_KEY, 'Accept': 'application/json' } }
+    );
+    const data = await response.json();
+    return data?.[0]?.language || 'en';
+  } catch (e) {
+    console.error('[Middleware] Error looking up article language:', e);
+    return 'en'; // Default to English if lookup fails
+  }
+}
+
+/**
+ * Log 410 hit to database for monitoring
+ */
+async function logGoneHit(urlPath, userAgent) {
+  try {
+    await fetch(`${SUPABASE_URL}/rest/v1/gone_url_hits`, {
+      method: 'POST',
+      headers: {
+        'apikey': SUPABASE_ANON_KEY,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({
+        url_path: urlPath,
+        user_agent: userAgent?.substring(0, 500) || null
+      })
+    });
+  } catch (e) {
+    // Non-blocking - don't fail the request if logging fails
+    console.error('[Middleware] Error logging gone hit:', e);
+  }
+}
+
 /**
  * Main middleware handler
  */
@@ -102,6 +157,100 @@ export async function onRequest(context) {
   const { request, next, env } = context;
   const url = new URL(request.url);
   const path = url.pathname;
+  const userAgent = request.headers.get('user-agent') || '';
+  
+  // ============================================================
+  // PRIORITY -2: Handle 410 Gone URLs (permanently removed pages)
+  // ============================================================
+  
+  // Check pattern-based gone URLs first (fast)
+  const matchesGonePattern = GONE_PATTERNS.some(p => p.test(path));
+  if (matchesGonePattern) {
+    console.log(`[Middleware] 410 Gone (pattern match): ${path}`);
+    logGoneHit(path, userAgent); // Non-blocking
+    return new Response('410 Gone - This page has been permanently removed', {
+      status: 410,
+      headers: {
+        'Content-Type': 'text/plain; charset=utf-8',
+        'Cache-Control': 'public, max-age=2592000', // 30 days
+        'X-Robots-Tag': 'noindex',
+        'X-Middleware-Active': 'true',
+        'X-Gone-Reason': 'pattern-match'
+      }
+    });
+  }
+  
+  // Check database for specific gone URLs (slower, but precise)
+  try {
+    const goneResponse = await fetch(
+      `${SUPABASE_URL}/rest/v1/gone_urls?url_path=eq.${encodeURIComponent(path)}&select=url_path,reason`,
+      { headers: { 'apikey': SUPABASE_ANON_KEY, 'Accept': 'application/json' } }
+    );
+    const goneUrls = await goneResponse.json();
+    if (goneUrls && goneUrls.length > 0) {
+      console.log(`[Middleware] 410 Gone (database match): ${path}`);
+      logGoneHit(path, userAgent); // Non-blocking
+      return new Response('410 Gone - This page has been permanently removed', {
+        status: 410,
+        headers: {
+          'Content-Type': 'text/plain; charset=utf-8',
+          'Cache-Control': 'public, max-age=2592000', // 30 days
+          'X-Robots-Tag': 'noindex',
+          'X-Middleware-Active': 'true',
+          'X-Gone-Reason': goneUrls[0].reason || 'database-match'
+        }
+      });
+    }
+  } catch (e) {
+    console.error('[Middleware] Error checking gone_urls:', e);
+  }
+  
+  // ============================================================
+  // PRIORITY -1.5: Handle legacy URLs with 301 redirects (server-side)
+  // This fixes "Alternate page with proper canonical" in GSC
+  // ============================================================
+  
+  // Legacy blog: /blog/:slug → /{lang}/blog/:slug
+  const legacyBlogMatch = path.match(/^\/blog\/([a-z0-9][a-z0-9-]*[a-z0-9])\/?$/);
+  if (legacyBlogMatch) {
+    const [, slug] = legacyBlogMatch;
+    const articleLang = await lookupArticleLanguage('blog_articles', slug);
+    console.log(`[Middleware] 301 redirect: /blog/${slug} → /${articleLang}/blog/${slug}`);
+    return Response.redirect(`${BASE_URL}/${articleLang}/blog/${slug}`, 301);
+  }
+  
+  // Legacy Q&A: /qa/:slug → /{lang}/qa/:slug
+  const legacyQaMatch = path.match(/^\/qa\/([a-z0-9][a-z0-9-]*[a-z0-9])\/?$/);
+  if (legacyQaMatch) {
+    const [, slug] = legacyQaMatch;
+    const qaLang = await lookupArticleLanguage('qa_pages', slug);
+    console.log(`[Middleware] 301 redirect: /qa/${slug} → /${qaLang}/qa/${slug}`);
+    return Response.redirect(`${BASE_URL}/${qaLang}/qa/${slug}`, 301);
+  }
+  
+  // Legacy compare: /compare/:slug → /en/compare/:slug (default to English)
+  const legacyCompareMatch = path.match(/^\/compare\/([a-z0-9][a-z0-9-]*[a-z0-9])\/?$/);
+  if (legacyCompareMatch) {
+    const [, slug] = legacyCompareMatch;
+    console.log(`[Middleware] 301 redirect: /compare/${slug} → /en/compare/${slug}`);
+    return Response.redirect(`${BASE_URL}/en/compare/${slug}`, 301);
+  }
+  
+  // Legacy locations: /locations/:city → /en/locations/:city
+  const legacyLocMatch = path.match(/^\/locations\/([a-z0-9-]+)\/?$/);
+  if (legacyLocMatch) {
+    const [, citySlug] = legacyLocMatch;
+    console.log(`[Middleware] 301 redirect: /locations/${citySlug} → /en/locations/${citySlug}`);
+    return Response.redirect(`${BASE_URL}/en/locations/${citySlug}`, 301);
+  }
+  
+  // Legacy locations with topic: /locations/:city/:topic → /en/locations/:city/:topic
+  const legacyLocTopicMatch = path.match(/^\/locations\/([a-z0-9-]+)\/([a-z0-9-]+)\/?$/);
+  if (legacyLocTopicMatch) {
+    const [, citySlug, topicSlug] = legacyLocTopicMatch;
+    console.log(`[Middleware] 301 redirect: /locations/${citySlug}/${topicSlug} → /en/locations/${citySlug}/${topicSlug}`);
+    return Response.redirect(`${BASE_URL}/en/locations/${citySlug}/${topicSlug}`, 301);
+  }
   
   // PRIORITY -1: Serve sitemaps from Supabase Storage (bypasses Cloudflare cache)
   // This ensures Google always gets fresh sitemap data
