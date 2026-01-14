@@ -35,7 +35,18 @@ const BlogArticle = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("blog_articles")
-        .select("*")
+        .select(`
+          id, slug, headline, meta_description, meta_title, 
+          featured_image_url, featured_image_alt, featured_image_caption,
+          detailed_content, language, funnel_stage, speakable_answer,
+          date_published, date_modified, created_at, updated_at,
+          author_id, reviewer_id, author_bio_localized,
+          external_citations, internal_links, qa_entities,
+          related_article_ids, cta_article_ids, translations,
+          diagram_url, diagram_description, diagram_alt,
+          expert_insight, decision_snapshot, read_time,
+          cluster_id, generated_qa_page_ids, category, canonical_url
+        `)
         .eq("slug", slug)
         .eq("status", "published")
         .maybeSingle();
@@ -46,6 +57,7 @@ const BlogArticle = () => {
       return data as unknown as BlogArticleType;
     },
     enabled: !!slug,
+    staleTime: 15 * 60 * 1000, // 15 minutes - articles don't change often
   });
 
   // Redirect if URL language doesn't match article's actual language
