@@ -2141,6 +2141,57 @@ export type Database = {
         }
         Relationships: []
       }
+      gone_url_hits: {
+        Row: {
+          hit_at: string | null
+          id: string
+          ip_address: string | null
+          url_path: string
+          user_agent: string | null
+        }
+        Insert: {
+          hit_at?: string | null
+          id?: string
+          ip_address?: string | null
+          url_path: string
+          user_agent?: string | null
+        }
+        Update: {
+          hit_at?: string | null
+          id?: string
+          ip_address?: string | null
+          url_path?: string
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
+      gone_urls: {
+        Row: {
+          created_at: string | null
+          id: string
+          marked_gone_at: string | null
+          pattern_match: boolean | null
+          reason: string | null
+          url_path: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          marked_gone_at?: string | null
+          pattern_match?: boolean | null
+          reason?: string | null
+          url_path: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          marked_gone_at?: string | null
+          pattern_match?: boolean | null
+          reason?: string | null
+          url_path?: string
+        }
+        Relationships: []
+      }
       image_regeneration_queue: {
         Row: {
           article_id: string
