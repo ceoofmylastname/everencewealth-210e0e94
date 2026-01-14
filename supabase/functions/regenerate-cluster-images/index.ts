@@ -13,7 +13,7 @@ fal.config({
   credentials: Deno.env.get('FAL_KEY'),
 });
 
-// Scene variations to ensure unique images
+// Scene variations to ensure unique images (6 unique per cluster - one per funnel position)
 const SCENE_VARIATIONS = [
   'infinity pool overlooking Mediterranean sea at golden hour',
   'panoramic mountain and sea views from modern terrace',
@@ -37,18 +37,18 @@ const SCENE_VARIATIONS = [
   'luxury bedroom with sea view balcony'
 ];
 
-// Language-specific aesthetic hints
-const LANGUAGE_AESTHETICS: Record<string, string> = {
-  en: 'international luxury appeal',
-  nl: 'clean Dutch design sensibility',
-  de: 'precision German engineering aesthetic',
-  fr: 'French elegance and sophistication',
-  fi: 'Nordic minimalist warmth',
-  pl: 'Central European classic style',
-  da: 'Danish hygge comfort',
-  hu: 'Hungarian refined taste',
-  sv: 'Swedish modern simplicity',
-  no: 'Norwegian natural harmony'
+// Language names for localized metadata generation
+const LANGUAGE_NAMES: Record<string, string> = {
+  en: 'English',
+  nl: 'Dutch',
+  de: 'German',
+  fr: 'French',
+  fi: 'Finnish',
+  pl: 'Polish',
+  da: 'Danish',
+  hu: 'Hungarian',
+  sv: 'Swedish',
+  no: 'Norwegian'
 };
 
 /**
@@ -128,7 +128,6 @@ async function generateUniqueImage(prompt: string, fallbackUrl: string): Promise
       }
     }) as { images?: Array<{ url?: string }> };
     
-    // Fixed: Correct response structure - result.images, not result.data.images
     if (result.images?.[0]?.url) {
       console.log(`✅ Generated unique image with Nano Banana Pro`);
       return result.images[0].url;
@@ -137,6 +136,77 @@ async function generateUniqueImage(prompt: string, fallbackUrl: string): Promise
     console.error(`⚠️ Image generation failed:`, error);
   }
   return fallbackUrl;
+}
+
+/**
+ * Generate localized alt text and caption for an image
+ */
+async function generateLocalizedMetadata(
+  article: { headline: string; language: string },
+  openaiKey: string
+): Promise<{ altText: string; caption: string | null }> {
+  const languageName = LANGUAGE_NAMES[article.language] || 'English';
+
+  try {
+    const metadataResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${openaiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        messages: [
+          {
+            role: 'system',
+            content: `You create SEO-optimized image metadata in ${languageName}.
+            
+Output a JSON object with:
+- "altText": Descriptive alt text for accessibility and SEO (100-150 characters). Include location keywords like "Costa del Sol" or specific towns.
+- "caption": Engaging caption for display below the image (100-200 characters). Should complement the article.
+
+RULES:
+- Write in ${languageName} (not English, unless article is English)
+- Be descriptive and specific
+- Include location references (Costa del Sol, Spain, Mediterranean)
+
+Return ONLY valid JSON, no markdown.`
+          },
+          {
+            role: 'user',
+            content: `Article headline: ${article.headline}
+Generate alt text and caption in ${languageName}.`
+          }
+        ],
+        max_tokens: 300,
+        temperature: 0.7
+      }),
+    });
+
+    if (metadataResponse.ok) {
+      const metadataData = await metadataResponse.json();
+      const metadataContent = metadataData.choices?.[0]?.message?.content?.trim();
+      
+      const cleanedContent = metadataContent
+        .replace(/```json\n?/g, '')
+        .replace(/```\n?/g, '')
+        .trim();
+      
+      const metadata = JSON.parse(cleanedContent);
+      
+      return {
+        altText: metadata.altText?.length >= 50 ? metadata.altText : `Costa del Sol property - ${article.headline}`,
+        caption: metadata.caption?.length >= 50 ? metadata.caption : null
+      };
+    }
+  } catch (error) {
+    console.error(`Failed to generate ${languageName} metadata:`, error);
+  }
+
+  return {
+    altText: `Costa del Sol property - ${article.headline}`,
+    caption: null
+  };
 }
 
 serve(async (req) => {
@@ -156,6 +226,7 @@ serve(async (req) => {
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const openaiKey = Deno.env.get('OPENAI_API_KEY');
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     console.log(`🔄 Regenerating images for cluster: ${clusterId}`);
@@ -179,15 +250,45 @@ serve(async (req) => {
       );
     }
 
-    console.log(`📊 Found ${articles.length} articles to regenerate images for`);
+    console.log(`📊 Found ${articles.length} articles in cluster`);
+
+    // ============================================
+    // IMAGE SHARING STRATEGY: 
+    // 1. Generate 6 unique images for English articles (one per funnel stage)
+    // 2. Share those images to all non-English translations
+    // 3. Generate localized alt text + caption for each language
+    // ============================================
+
+    // Group articles by funnel_stage
+    const articlesByFunnel: Record<string, { english: any | null; translations: any[] }> = {};
+    
+    for (const article of articles) {
+      const key = article.funnel_stage || 'unknown';
+      if (!articlesByFunnel[key]) {
+        articlesByFunnel[key] = { english: null, translations: [] };
+      }
+      if (article.language === 'en') {
+        articlesByFunnel[key].english = article;
+      } else {
+        articlesByFunnel[key].translations.push(article);
+      }
+    }
+
+    const funnelStages = Object.keys(articlesByFunnel);
+    console.log(`📊 Found ${funnelStages.length} funnel stages: ${funnelStages.join(', ')}`);
 
     if (dryRun) {
+      const englishCount = Object.values(articlesByFunnel).filter(g => g.english).length;
+      const translationCount = Object.values(articlesByFunnel).reduce((sum, g) => sum + g.translations.length, 0);
+      
       return new Response(
         JSON.stringify({ 
           success: true, 
           dryRun: true, 
           articleCount: articles.length,
-          message: `Would regenerate ${articles.length} images` 
+          uniqueImagesNeeded: englishCount,
+          translationsToShare: translationCount,
+          message: `Would generate ${englishCount} unique images, share to ${translationCount} translations` 
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
@@ -195,82 +296,144 @@ serve(async (req) => {
 
     let successCount = 0;
     let failCount = 0;
-    const results: Array<{ id: string; language: string; success: boolean; newUrl?: string }> = [];
+    const results: Array<{ id: string; language: string; success: boolean; newUrl?: string; shared?: boolean }> = [];
+    let sceneIndex = 0;
 
-    // Process each article
-    for (let i = 0; i < articles.length; i++) {
-      const article = articles[i];
+    // Process each funnel stage
+    for (const [funnelStage, group] of Object.entries(articlesByFunnel)) {
+      const { english, translations } = group;
       
-      // Get a unique scene for this article (use index to ensure variety)
-      const sceneIndex = i % SCENE_VARIATIONS.length;
-      const scene = SCENE_VARIATIONS[sceneIndex];
-      const aesthetic = LANGUAGE_AESTHETICS[article.language] || 'international luxury appeal';
-      
-      const imagePrompt = `Professional Costa del Sol real estate photograph, luxury Mediterranean villa with ${scene}, bright natural lighting, Architectural Digest style, no text, no watermarks, no logos, clean composition, high-end marketing quality, ${aesthetic}`;
-      
-      console.log(`[${i + 1}/${articles.length}] Generating image for ${article.language} article: ${article.id.slice(0, 8)}...`);
-      
-      try {
-        let newImageUrl = await generateUniqueImage(
-          imagePrompt, 
-          article.featured_image_url || 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=1200'
-        );
+      console.log(`\n📍 Processing funnel stage: ${funnelStage}`);
+      console.log(`   English article: ${english ? 'Yes' : 'No'}`);
+      console.log(`   Translations: ${translations.length}`);
+
+      let primaryImageUrl: string | null = null;
+
+      // Step 1: Generate NEW image for English article (primary)
+      if (english) {
+        const scene = SCENE_VARIATIONS[sceneIndex % SCENE_VARIATIONS.length];
+        sceneIndex++;
         
-        // Upload to Supabase Storage if it's a Fal.ai URL
-        if (newImageUrl && newImageUrl.includes('fal.media')) {
-          newImageUrl = await uploadToStorage(
-            newImageUrl,
-            supabase,
-            'article-images',
-            `cluster-${article.language}-${article.slug || i}`
+        const imagePrompt = `Professional Costa del Sol real estate photograph, luxury Mediterranean villa with ${scene}, bright natural lighting, Architectural Digest style, no text, no watermarks, no logos, clean composition, high-end marketing quality`;
+        
+        console.log(`🇬🇧 Generating image for English ${funnelStage} article...`);
+        
+        try {
+          let newImageUrl = await generateUniqueImage(
+            imagePrompt, 
+            english.featured_image_url || 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=1200'
           );
-        }
-        
-        // Only update if we got a new URL (not the fallback)
-        if (newImageUrl !== article.featured_image_url) {
+          
+          // Upload to Supabase Storage
+          if (newImageUrl && newImageUrl.includes('fal.media')) {
+            newImageUrl = await uploadToStorage(
+              newImageUrl,
+              supabase,
+              'article-images',
+              `cluster-en-${funnelStage}-${english.slug || english.id.slice(0, 8)}`
+            );
+          }
+          
+          // Generate English metadata
+          const { altText, caption } = openaiKey 
+            ? await generateLocalizedMetadata(english, openaiKey)
+            : { altText: `Costa del Sol property - ${english.headline}`, caption: null };
+          
+          // Update English article
           const { error: updateError } = await supabase
             .from('blog_articles')
             .update({ 
               featured_image_url: newImageUrl,
+              featured_image_alt: altText,
+              featured_image_caption: caption,
               updated_at: new Date().toISOString()
             })
-            .eq('id', article.id);
+            .eq('id', english.id);
           
           if (updateError) {
-            console.error(`❌ Failed to update article ${article.id}:`, updateError);
+            console.error(`❌ Failed to update English article:`, updateError);
             failCount++;
-            results.push({ id: article.id, language: article.language, success: false });
+            results.push({ id: english.id, language: 'en', success: false });
           } else {
-            console.log(`✅ Updated image for ${article.language} article`);
+            console.log(`✅ Updated English article with new image`);
+            primaryImageUrl = newImageUrl;
             successCount++;
-            results.push({ id: article.id, language: article.language, success: true, newUrl: newImageUrl });
+            results.push({ id: english.id, language: 'en', success: true, newUrl: newImageUrl });
           }
-        } else {
-          console.log(`⚠️ Image generation returned fallback for ${article.language} article`);
+        } catch (error) {
+          console.error(`❌ Error generating English image:`, error);
           failCount++;
-          results.push({ id: article.id, language: article.language, success: false });
+          results.push({ id: english.id, language: 'en', success: false });
         }
         
         // Small delay to avoid rate limiting
         await new Promise(resolve => setTimeout(resolve, 500));
+      }
+
+      // Step 2: Share primary image to all translations with localized metadata
+      if (primaryImageUrl && translations.length > 0) {
+        console.log(`🔗 Sharing image to ${translations.length} translations...`);
         
-      } catch (error) {
-        console.error(`❌ Error processing article ${article.id}:`, error);
-        failCount++;
-        results.push({ id: article.id, language: article.language, success: false });
+        for (const translation of translations) {
+          try {
+            // Generate localized metadata
+            const { altText, caption } = openaiKey 
+              ? await generateLocalizedMetadata(translation, openaiKey)
+              : { altText: `Costa del Sol property - ${translation.headline}`, caption: null };
+            
+            // Update translation with SHARED image + localized metadata
+            const { error: updateError } = await supabase
+              .from('blog_articles')
+              .update({ 
+                featured_image_url: primaryImageUrl,
+                featured_image_alt: altText,
+                featured_image_caption: caption,
+                updated_at: new Date().toISOString()
+              })
+              .eq('id', translation.id);
+            
+            if (updateError) {
+              console.error(`❌ Failed to update ${translation.language} translation:`, updateError);
+              failCount++;
+              results.push({ id: translation.id, language: translation.language, success: false });
+            } else {
+              console.log(`✅ Shared image to ${translation.language} with localized metadata`);
+              successCount++;
+              results.push({ id: translation.id, language: translation.language, success: true, newUrl: primaryImageUrl, shared: true });
+            }
+          } catch (error) {
+            console.error(`❌ Error updating ${translation.language} translation:`, error);
+            failCount++;
+            results.push({ id: translation.id, language: translation.language, success: false });
+          }
+        }
+      } else if (!primaryImageUrl && translations.length > 0) {
+        // No English primary - skip translations
+        console.log(`⚠️ No primary image for ${funnelStage}, skipping ${translations.length} translations`);
+        for (const translation of translations) {
+          failCount++;
+          results.push({ id: translation.id, language: translation.language, success: false });
+        }
       }
     }
 
-    console.log(`🎉 Completed: ${successCount} success, ${failCount} failed out of ${articles.length} total`);
+    const uniqueImagesGenerated = Object.values(articlesByFunnel).filter(g => g.english).length;
+    const imagesShared = results.filter(r => r.shared).length;
+
+    console.log(`\n🎉 Completed: ${successCount} success, ${failCount} failed`);
+    console.log(`   Unique images generated: ${uniqueImagesGenerated}`);
+    console.log(`   Images shared to translations: ${imagesShared}`);
 
     return new Response(
       JSON.stringify({
         success: true,
         clusterId,
         totalArticles: articles.length,
+        uniqueImagesGenerated,
+        imagesShared,
         successCount,
         failCount,
-        results: results.slice(0, 20)
+        results: results.slice(0, 30)
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
