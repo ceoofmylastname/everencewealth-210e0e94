@@ -13,11 +13,22 @@ import {
   BookOpen,
   Download,
   FolderDown,
-  AlertCircle
+  AlertCircle,
+  Bell,
+  Search
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import JSZip from "jszip";
+
+interface PingResults {
+  google: { success: boolean; status: number };
+  indexNow: {
+    success: boolean;
+    results?: Array<{ endpoint: string; success: boolean; status: number }>;
+    googlePing?: { success: boolean; status: number };
+  } | null;
+}
 
 interface SitemapData {
   generated_at: string;
@@ -32,6 +43,7 @@ interface SitemapData {
   };
   files_generated?: number;
   file_list?: string[];
+  ping_results?: PingResults;
 }
 
 interface SitemapResponse {
@@ -44,6 +56,7 @@ interface SitemapResponse {
 export function SitemapRegenerator() {
   const [isLoading, setIsLoading] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [isPinging, setIsPinging] = useState(false);
   const [sitemapData, setSitemapData] = useState<SitemapData | null>(null);
   const [triggerSource, setTriggerSource] = useState<"manual" | "publish">("manual");
 
@@ -105,6 +118,38 @@ export function SitemapRegenerator() {
       toast.error("Failed to download sitemaps");
     } finally {
       setIsDownloading(false);
+    }
+  };
+
+  const pingSearchEngines = async () => {
+    setIsPinging(true);
+    try {
+      // Regenerate sitemaps AND ping all search engines
+      const { data, error } = await supabase.functions.invoke<SitemapResponse>('regenerate-sitemap', {
+        body: { trigger_source: 'publish', download_xml: false }
+      });
+
+      if (error) throw error;
+      if (data?.data) {
+        setSitemapData(data.data);
+        
+        const pingResults = data.data.ping_results;
+        const googleSuccess = pingResults?.google?.success;
+        const indexNowSuccess = pingResults?.indexNow?.success;
+        
+        if (googleSuccess && indexNowSuccess) {
+          toast.success("All search engines pinged successfully!");
+        } else if (googleSuccess || indexNowSuccess) {
+          toast.success("Search engines pinged (some may have partial results)");
+        } else {
+          toast.warning("Sitemaps regenerated but pings may have failed");
+        }
+      }
+    } catch (error) {
+      console.error("Ping error:", error);
+      toast.error("Failed to ping search engines");
+    } finally {
+      setIsPinging(false);
     }
   };
 
@@ -175,7 +220,7 @@ export function SitemapRegenerator() {
       </div>
 
       {/* Action Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -189,7 +234,7 @@ export function SitemapRegenerator() {
           <CardContent>
             <Button 
               onClick={regenerateSitemaps} 
-              disabled={isLoading || isDownloading}
+              disabled={isLoading || isDownloading || isPinging}
               size="lg"
               className="w-full"
             >
@@ -202,6 +247,39 @@ export function SitemapRegenerator() {
                 <>
                   <RefreshCw className="h-4 w-4 mr-2" />
                   Regenerate
+                </>
+              )}
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card className="border-green-500/50 bg-green-500/5">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Search className="h-5 w-5 text-green-600" />
+              Force Google Update
+            </CardTitle>
+            <CardDescription>
+              Regenerate + ping Google, Bing & Yandex
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button 
+              onClick={pingSearchEngines} 
+              disabled={isLoading || isDownloading || isPinging}
+              size="lg"
+              variant="default"
+              className="w-full bg-green-600 hover:bg-green-700"
+            >
+              {isPinging ? (
+                <>
+                  <Bell className="h-4 w-4 mr-2 animate-pulse" />
+                  Pinging...
+                </>
+              ) : (
+                <>
+                  <Bell className="h-4 w-4 mr-2" />
+                  Ping Search Engines
                 </>
               )}
             </Button>
@@ -221,7 +299,7 @@ export function SitemapRegenerator() {
           <CardContent>
             <Button 
               onClick={downloadAllSitemaps} 
-              disabled={isLoading || isDownloading}
+              disabled={isLoading || isDownloading || isPinging}
               size="lg"
               variant="default"
               className="w-full"
@@ -241,6 +319,48 @@ export function SitemapRegenerator() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Ping Results */}
+      {sitemapData?.ping_results && (
+        <Card className="border-blue-500/30 bg-blue-500/5">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Bell className="h-4 w-4 text-blue-500" />
+              Search Engine Ping Results
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              {/* Google */}
+              <div className="flex items-center gap-2 p-2 rounded bg-background">
+                <div className={`w-2 h-2 rounded-full ${sitemapData.ping_results.google?.success ? 'bg-green-500' : 'bg-red-500'}`} />
+                <span className="text-sm font-medium">Google</span>
+                <Badge variant={sitemapData.ping_results.google?.success ? "default" : "destructive"} className="ml-auto text-xs">
+                  {sitemapData.ping_results.google?.status || 'N/A'}
+                </Badge>
+              </div>
+              
+              {/* IndexNow endpoints */}
+              {sitemapData.ping_results.indexNow?.results?.map((result, idx) => (
+                <div key={idx} className="flex items-center gap-2 p-2 rounded bg-background">
+                  <div className={`w-2 h-2 rounded-full ${result.success ? 'bg-green-500' : 'bg-red-500'}`} />
+                  <span className="text-sm font-medium truncate">
+                    {result.endpoint.includes('bing') ? 'Bing' : 
+                     result.endpoint.includes('yandex') ? 'Yandex' : 
+                     result.endpoint.includes('indexnow.org') ? 'IndexNow' : 'Other'}
+                  </span>
+                  <Badge variant={result.success ? "default" : "destructive"} className="ml-auto text-xs">
+                    {result.status}
+                  </Badge>
+                </div>
+              ))}
+            </div>
+            <p className="text-xs text-muted-foreground mt-3">
+              Google Search Console typically updates within 24-48 hours after a successful ping.
+            </p>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Results */}
       {sitemapData && (

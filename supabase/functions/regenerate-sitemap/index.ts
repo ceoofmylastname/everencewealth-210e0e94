@@ -783,11 +783,25 @@ Deno.serve(async (req) => {
       storage_url: `${supabaseUrl}/storage/v1/object/public/sitemaps`,
     };
 
+    // Always ping Google directly after sitemap regeneration
+    console.log('🔔 Pinging Google sitemap endpoint...');
+    let googlePingResult = { success: false, status: 0 };
+    try {
+      const googlePingUrl = 'https://www.google.com/ping?sitemap=' + 
+        encodeURIComponent('https://www.delsolprimehomes.com/sitemap.xml');
+      const googleResponse = await fetch(googlePingUrl);
+      googlePingResult = { success: googleResponse.ok, status: googleResponse.status };
+      console.log(`   Google ping: ${googleResponse.status} ${googleResponse.statusText}`);
+    } catch (e) {
+      console.error('   Failed to ping Google:', e);
+    }
+
     // Ping IndexNow if this is a publish event
+    let indexNowResult = null;
     if (trigger_source === 'publish') {
       console.log('🔔 Pinging IndexNow...');
       try {
-        await fetch(`${supabaseUrl}/functions/v1/ping-indexnow`, {
+        const indexNowResponse = await fetch(`${supabaseUrl}/functions/v1/ping-indexnow`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -795,17 +809,24 @@ Deno.serve(async (req) => {
           },
           body: JSON.stringify({ sitemap_update: true }),
         });
+        indexNowResult = await indexNowResponse.json();
       } catch (e) {
         console.error('Failed to ping IndexNow:', e);
       }
     }
+
+    // Add ping results to response
+    const pingResults = {
+      google: googlePingResult,
+      indexNow: indexNowResult,
+    };
 
     // Return XML files if requested
     if (download_xml) {
       return new Response(JSON.stringify({
         success: true,
         message: 'Sitemap XML files generated and uploaded to storage',
-        data: sitemapData,
+        data: { ...sitemapData, ping_results: pingResults },
         xml_files: sitemapFiles,
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -815,7 +836,7 @@ Deno.serve(async (req) => {
     return new Response(JSON.stringify({
       success: true,
       message: 'Sitemap regenerated and uploaded to storage',
-      data: sitemapData,
+      data: { ...sitemapData, ping_results: pingResults },
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
