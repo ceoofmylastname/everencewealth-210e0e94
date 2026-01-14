@@ -3227,6 +3227,48 @@ export type Database = {
           },
         ]
       }
+      server_errors: {
+        Row: {
+          created_at: string | null
+          error_message: string | null
+          error_type: string
+          id: string
+          ip_address: string | null
+          metadata: Json | null
+          referrer: string | null
+          stack_trace: string | null
+          status_code: number | null
+          url_path: string
+          user_agent: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          error_message?: string | null
+          error_type: string
+          id?: string
+          ip_address?: string | null
+          metadata?: Json | null
+          referrer?: string | null
+          stack_trace?: string | null
+          status_code?: number | null
+          url_path: string
+          user_agent?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          error_message?: string | null
+          error_type?: string
+          id?: string
+          ip_address?: string | null
+          metadata?: Json | null
+          referrer?: string | null
+          stack_trace?: string | null
+          status_code?: number | null
+          url_path?: string
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       site_languages: {
         Row: {
           created_at: string | null

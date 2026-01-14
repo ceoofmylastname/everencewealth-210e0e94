@@ -7,6 +7,7 @@ import LoginPage from '../pages/auth/LoginPage';
 import { ResidentHome } from '../pages/resident/Home';
 import { AdminHome } from '../pages/admin/Home';
 import { ProviderHome } from '../pages/provider/Home';
+import ErrorLogs from '../pages/admin/ErrorLogs';
 
 // Placeholder Pages (Temporary inline for speed, normally separate files)
 const Landing = () => (
@@ -39,6 +40,7 @@ export function AppRoutes() {
                     {/* Admin Routes */}
                     <Route element={<RoleGuard allowedRoles={['admin']} />}>
                         <Route path="/admin" element={<AdminHome />} />
+                        <Route path="/admin/error-logs" element={<ErrorLogs />} />
                     </Route>
 
                     {/* Provider Routes */}
