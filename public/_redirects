@@ -61,8 +61,19 @@ http://delsolprimehomes.com/*   https://www.delsolprimehomes.com/:splat  301!
 # SPA routing for blog articles
 /blog/:slug  /blog/:slug/index.html  200
 
-# SPA routing for language-prefixed pages
-/:lang  /index.html  200
+# Language-prefixed homepages - serve SSG HTML (MUST come before SPA fallback)
+/en   /en/index.html  200
+/de   /de/index.html  200
+/nl   /nl/index.html  200
+/fr   /fr/index.html  200
+/pl   /pl/index.html  200
+/sv   /sv/index.html  200
+/da   /da/index.html  200
+/hu   /hu/index.html  200
+/fi   /fi/index.html  200
+/no   /no/index.html  200
+
+# SPA routing for language-prefixed app pages
 /:lang/properties  /index.html  200
 /:lang/property/:reference  /index.html  200
 
