@@ -345,31 +345,35 @@ function generateStaticHTML(qa: QAPageData, enhancedHreflang: boolean, productio
   ].join('\n  ');
 
   const baseUrl = 'https://www.delsolprimehomes.com';
-  const canonicalUrl = qa.canonical_url || `${baseUrl}/qa/${qa.slug}`;
+  // FIXED: Include language prefix in canonical URL
+  const canonicalUrl = qa.canonical_url || `${baseUrl}/${qa.language}/qa/${qa.slug}`;
 
-  // Build hreflang links
+  // Build hreflang links with proper language-prefixed URLs
   let hreflangLinks = '';
   if (enhancedHreflang) {
     const hreflangLinksArray = [];
-    const currentUrl = `${baseUrl}/qa/${qa.slug}`;
+    
+    // FIXED: Include language prefix in self-referencing URL
+    const currentUrl = `${baseUrl}/${qa.language}/qa/${qa.slug}`;
 
     // Self-referencing
     const currentLangCode = langToHreflang[qa.language] || qa.language;
     hreflangLinksArray.push(`  <link rel="alternate" hreflang="${currentLangCode}" href="${currentUrl}" />`);
 
-    // Translations
+    // Translations - FIXED: Include language prefix for each translation
     if (qa.translations && typeof qa.translations === 'object') {
       Object.entries(qa.translations).forEach(([lang, slug]) => {
         if (slug && typeof slug === 'string' && lang !== qa.language) {
           const langCode = langToHreflang[lang] || lang;
-          hreflangLinksArray.push(`  <link rel="alternate" hreflang="${langCode}" href="${baseUrl}/qa/${slug}" />`);
+          hreflangLinksArray.push(`  <link rel="alternate" hreflang="${langCode}" href="${baseUrl}/${lang}/qa/${slug}" />`);
         }
       });
     }
 
-    // x-default
+    // x-default - FIXED: Always point to English version with /en/ prefix
     const xDefaultSlug = (qa.translations as Record<string, string>)?.en || qa.slug;
-    hreflangLinksArray.push(`  <link rel="alternate" hreflang="x-default" href="${baseUrl}/qa/${xDefaultSlug}" />`);
+    const xDefaultLang = (qa.translations as Record<string, string>)?.en ? 'en' : qa.language;
+    hreflangLinksArray.push(`  <link rel="alternate" hreflang="x-default" href="${baseUrl}/${xDefaultLang}/qa/${xDefaultSlug}" />`);
 
     hreflangLinks = '\n' + hreflangLinksArray.join('\n');
   }
@@ -387,6 +391,7 @@ function generateStaticHTML(qa: QAPageData, enhancedHreflang: boolean, productio
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
   <meta name="description" content="${sanitizeForHTML(qa.meta_description)}">
   <meta name="author" content="${qa.author?.name || 'Del Sol Prime Homes'}">
   <title>${sanitizeForHTML(qa.meta_title)} | Del Sol Prime Homes</title>
@@ -408,7 +413,7 @@ function generateStaticHTML(qa: QAPageData, enhancedHreflang: boolean, productio
   <meta property="og:title" content="${sanitizeForHTML(qa.meta_title)}" />
   <meta property="og:description" content="${sanitizeForHTML(qa.meta_description)}" />
   <meta property="og:image" content="${qa.featured_image_url}" />
-  <meta property="og:url" content="${baseUrl}/qa/${qa.slug}" />
+  <meta property="og:url" content="${baseUrl}/${qa.language}/qa/${qa.slug}" />
   <meta property="og:site_name" content="Del Sol Prime Homes" />
   
   <meta name="twitter:card" content="summary_large_image" />

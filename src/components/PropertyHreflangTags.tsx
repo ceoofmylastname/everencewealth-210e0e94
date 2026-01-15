@@ -50,12 +50,13 @@ export const PropertyFinderHreflangTags = ({
   searchParams = '',
   baseUrl = BASE_URL 
 }: PropertyFinderHreflangTagsProps) => {
+  // Note: searchParams kept for hreflang but canonical always clean (no query params)
   const queryString = searchParams ? `?${searchParams}` : '';
   
   return (
     <Helmet>
-      {/* Canonical URL for current language */}
-      <link rel="canonical" href={`${baseUrl}/${currentLanguage}/properties${queryString}`} />
+      {/* Canonical URL for current language - FIXED: Strip query parameters */}
+      <link rel="canonical" href={`${baseUrl}/${currentLanguage}/properties`} />
       
       {/* Hreflang tags for all languages */}
       {AVAILABLE_LANGUAGES.map((lang) => (

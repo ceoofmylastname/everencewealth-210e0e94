@@ -727,6 +727,7 @@ function generateFullHtml(metadata: PageMetadata, hreflangTags: string, baseHtml
   <title>${escapedTitle}</title>
   <meta name="title" content="${escapedTitle}" />
   <meta name="description" content="${escapedDescription}" />
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
   
   <!-- Canonical & Hreflang -->
   <link rel="canonical" href="${metadata.canonical_url}" />
