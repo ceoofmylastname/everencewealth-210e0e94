@@ -2,6 +2,11 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import * as fal from "npm:@fal-ai/serverless-client";
 
+// Declare EdgeRuntime for background tasks
+declare const EdgeRuntime: {
+  waitUntil(promise: Promise<unknown>): void;
+};
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -112,50 +117,23 @@ function getImagePrompts(cityName: string): { type: GeneratedImage['type']; prom
   ];
 }
 
-serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
+/**
+ * Background task to generate all images
+ */
+async function generateAllImagesInBackground(
+  brochureId: string,
+  brochure: any,
+  falKey: string
+) {
+  const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+  const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+  const supabase = createClient(supabaseUrl, supabaseKey);
+
+  const cityName = brochure.name;
+  const citySlug = brochure.slug;
 
   try {
-    const { brochureId, regenerateOnly } = await req.json();
-
-    if (!brochureId) {
-      throw new Error('brochureId is required');
-    }
-
-    const falKey = Deno.env.get('FAL_KEY');
-    if (!falKey) {
-      throw new Error('FAL_KEY is not configured');
-    }
-
     fal.config({ credentials: falKey.trim() });
-
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
-
-    // Fetch the brochure
-    const { data: brochure, error: fetchError } = await supabase
-      .from('city_brochures')
-      .select('*')
-      .eq('id', brochureId)
-      .single();
-
-    if (fetchError || !brochure) {
-      throw new Error(`Brochure not found: ${brochureId}`);
-    }
-
-    const cityName = brochure.name;
-    const citySlug = brochure.slug;
-
-    console.log(`🎨 Starting image generation for ${cityName}`);
-
-    // Update status
-    await supabase
-      .from('city_brochures')
-      .update({ generation_status: 'generating_images' })
-      .eq('id', brochureId);
 
     const imagePrompts = getImagePrompts(cityName);
     const generatedImages: GeneratedImage[] = [];
@@ -203,7 +181,11 @@ serve(async (req) => {
     }
 
     if (generatedImages.length === 0) {
-      throw new Error('Failed to generate any images');
+      await supabase
+        .from('city_brochures')
+        .update({ generation_status: 'failed' })
+        .eq('id', brochureId);
+      return;
     }
 
     // Extract hero image and gallery images
@@ -244,13 +226,67 @@ serve(async (req) => {
 
     console.log(`🏁 Image generation complete for ${cityName}`);
 
+  } catch (error) {
+    console.error('Background image generation error:', error);
+    await supabase
+      .from('city_brochures')
+      .update({ generation_status: 'failed' })
+      .eq('id', brochureId);
+  }
+}
+
+serve(async (req) => {
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  try {
+    const { brochureId } = await req.json();
+
+    if (!brochureId) {
+      throw new Error('brochureId is required');
+    }
+
+    const falKey = Deno.env.get('FAL_KEY');
+    if (!falKey) {
+      throw new Error('FAL_KEY is not configured');
+    }
+
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // Fetch the brochure
+    const { data: brochure, error: fetchError } = await supabase
+      .from('city_brochures')
+      .select('*')
+      .eq('id', brochureId)
+      .single();
+
+    if (fetchError || !brochure) {
+      throw new Error(`Brochure not found: ${brochureId}`);
+    }
+
+    console.log(`🎨 Starting image generation for ${brochure.name}`);
+
+    // Update status immediately
+    await supabase
+      .from('city_brochures')
+      .update({ generation_status: 'generating_images' })
+      .eq('id', brochureId);
+
+    // Start background processing - don't await
+    EdgeRuntime.waitUntil(
+      generateAllImagesInBackground(brochureId, brochure, falKey)
+    );
+
+    // Return immediately
     return new Response(
       JSON.stringify({
         success: true,
-        cityName,
-        heroImage: heroImage?.url,
-        galleryImages: ai_gallery_images,
-        totalImages: generatedImages.length,
+        status: 'started',
+        message: 'Image generation started. Poll database for status.',
+        cityName: brochure.name,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

@@ -1,6 +1,11 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
+// Declare EdgeRuntime for background tasks
+declare const EdgeRuntime: {
+  waitUntil(promise: Promise<unknown>): void;
+};
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -28,17 +33,6 @@ interface BrochureContentResult {
   features: string[];
   meta_title: string;
   meta_description: string;
-}
-
-interface ContentToolCall {
-  suggest_brochure_content: {
-    hero_headline: string;
-    hero_subtitle: string;
-    description: string;
-    features: string[];
-    meta_title: string;
-    meta_description: string;
-  };
 }
 
 /**
@@ -180,7 +174,7 @@ async function updateGenerationStatus(
     generation_status: status,
   };
 
-  if (status === 'complete') {
+  if (status === 'complete' || status === 'content_complete') {
     updateData.content_generated = true;
     updateData.last_generated_at = new Date().toISOString();
   }
@@ -199,47 +193,23 @@ async function updateGenerationStatus(
   }
 }
 
-serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
+/**
+ * Background task to generate all content
+ */
+async function generateAllContentInBackground(
+  brochureId: string,
+  brochure: any,
+  targetLanguages: readonly string[],
+  openaiApiKey: string
+) {
+  const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+  const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+  const supabase = createClient(supabaseUrl, supabaseKey);
+
+  const cityName = brochure.name;
+  const citySlug = brochure.slug;
 
   try {
-    const { brochureId, languages } = await req.json();
-
-    if (!brochureId) {
-      throw new Error('brochureId is required');
-    }
-
-    const openaiApiKey = Deno.env.get('OPENAI_API_KEY');
-    if (!openaiApiKey) {
-      throw new Error('OPENAI_API_KEY is not configured');
-    }
-
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
-
-    // Fetch the brochure
-    const { data: brochure, error: fetchError } = await supabase
-      .from('city_brochures')
-      .select('*')
-      .eq('id', brochureId)
-      .single();
-
-    if (fetchError || !brochure) {
-      throw new Error(`Brochure not found: ${brochureId}`);
-    }
-
-    const cityName = brochure.name;
-    const citySlug = brochure.slug;
-    const targetLanguages = languages || SUPPORTED_LANGUAGES;
-
-    console.log(`🚀 Starting content generation for ${cityName} in ${targetLanguages.length} languages`);
-
-    // Set status to generating
-    await updateGenerationStatus(supabase, brochureId, 'generating');
-
     // Initialize i18n objects (preserve existing content for languages not being regenerated)
     const hero_headline_i18n: Record<string, string> = { ...(brochure.hero_headline_i18n || {}) };
     const hero_subtitle_i18n: Record<string, string> = { ...(brochure.hero_subtitle_i18n || {}) };
@@ -289,7 +259,7 @@ serve(async (req) => {
 
     // Check if all languages succeeded
     const allSucceeded = Object.values(results).every(r => r.success);
-    const finalStatus = allSucceeded ? 'complete' : 'partial';
+    const finalStatus = allSucceeded ? 'content_complete' : 'partial';
 
     // Final update
     await updateGenerationStatus(supabase, brochureId, finalStatus, {
@@ -303,13 +273,69 @@ serve(async (req) => {
 
     console.log(`🏁 Content generation ${finalStatus} for ${cityName}`);
 
+  } catch (error) {
+    console.error('Background content generation error:', error);
+    await supabase
+      .from('city_brochures')
+      .update({ generation_status: 'failed' })
+      .eq('id', brochureId);
+  }
+}
+
+serve(async (req) => {
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  try {
+    const { brochureId, languages } = await req.json();
+
+    if (!brochureId) {
+      throw new Error('brochureId is required');
+    }
+
+    const openaiApiKey = Deno.env.get('OPENAI_API_KEY');
+    if (!openaiApiKey) {
+      throw new Error('OPENAI_API_KEY is not configured');
+    }
+
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // Fetch the brochure
+    const { data: brochure, error: fetchError } = await supabase
+      .from('city_brochures')
+      .select('*')
+      .eq('id', brochureId)
+      .single();
+
+    if (fetchError || !brochure) {
+      throw new Error(`Brochure not found: ${brochureId}`);
+    }
+
+    const targetLanguages = languages || SUPPORTED_LANGUAGES;
+
+    console.log(`🚀 Starting content generation for ${brochure.name} in ${targetLanguages.length} languages`);
+
+    // Set status to generating immediately
+    await supabase
+      .from('city_brochures')
+      .update({ generation_status: 'generating' })
+      .eq('id', brochureId);
+
+    // Start background processing - don't await
+    EdgeRuntime.waitUntil(
+      generateAllContentInBackground(brochureId, brochure, targetLanguages, openaiApiKey)
+    );
+
+    // Return immediately
     return new Response(
       JSON.stringify({
         success: true,
-        cityName,
-        status: finalStatus,
-        results,
-        languagesGenerated: Object.keys(results).filter(k => results[k].success).length,
+        status: 'started',
+        message: 'Content generation started. Poll database for status.',
+        cityName: brochure.name,
         totalLanguages: targetLanguages.length,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
