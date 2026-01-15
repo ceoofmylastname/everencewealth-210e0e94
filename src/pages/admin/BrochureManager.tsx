@@ -181,47 +181,103 @@ const BrochureManager: React.FC = () => {
     },
   });
 
-  // Generate content mutation
+  // Detect generation completion via polling
+  useEffect(() => {
+    if (isGenerating && selectedCity && brochures) {
+      const city = brochures.find(b => b.slug === selectedCity);
+      if (city?.generation_status === 'complete' || city?.generation_status === 'content_complete' || city?.generation_status === 'images_complete') {
+        setIsGenerating(false);
+        setGenerationProgress(100);
+        toast({ 
+          title: 'Generation Complete!', 
+          description: `All content generated for ${city.name}.` 
+        });
+      } else if (city?.generation_status === 'failed') {
+        setIsGenerating(false);
+        toast({ 
+          title: 'Generation Failed', 
+          description: 'Check logs for details.',
+          variant: 'destructive' 
+        });
+      }
+    }
+  }, [brochures, isGenerating, selectedCity]);
+
+  // Generate content mutation - fire and forget
   const generateContentMutation = useMutation({
     mutationFn: async (brochureId: string) => {
       const { data, error } = await supabase.functions.invoke('generate-brochure-content', {
         body: { brochureId }
       });
-      if (error) throw error;
-      return data;
+      // Accept started status or ignore timeout errors
+      if (error && !String(error).includes('FunctionsFetchError')) throw error;
+      return data || { status: 'started' };
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['city-brochures-admin'] });
-      toast({ 
-        title: 'Content Generated', 
-        description: `Generated content in ${data.languagesGenerated}/${data.totalLanguages} languages.` 
-      });
-      setIsGenerating(false);
+      if (data?.status === 'started') {
+        toast({ 
+          title: 'Content Generation Started', 
+          description: 'Generating content for 10 languages. This may take 2-3 minutes.' 
+        });
+        // Keep isGenerating true - polling will detect completion
+      } else {
+        queryClient.invalidateQueries({ queryKey: ['city-brochures-admin'] });
+        toast({ 
+          title: 'Content Generated', 
+          description: `Generated content in ${data?.languagesGenerated || 10} languages.` 
+        });
+        setIsGenerating(false);
+      }
     },
     onError: (error) => {
+      // Ignore timeout errors - function likely still running
+      if (String(error).includes('FunctionsFetchError') || String(error).includes('timeout')) {
+        toast({ 
+          title: 'Generation In Progress', 
+          description: 'Content is being generated. Please wait...' 
+        });
+        return;
+      }
       toast({ title: 'Generation Failed', description: String(error), variant: 'destructive' });
       setIsGenerating(false);
     },
   });
 
-  // Generate images mutation
+  // Generate images mutation - fire and forget
   const generateImagesMutation = useMutation({
     mutationFn: async (brochureId: string) => {
       const { data, error } = await supabase.functions.invoke('generate-brochure-images', {
         body: { brochureId }
       });
-      if (error) throw error;
-      return data;
+      // Accept started status or ignore timeout errors
+      if (error && !String(error).includes('FunctionsFetchError')) throw error;
+      return data || { status: 'started' };
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['city-brochures-admin'] });
-      toast({ 
-        title: 'Images Generated', 
-        description: `Generated ${data.totalImages} images for ${data.cityName}.` 
-      });
-      setIsGenerating(false);
+      if (data?.status === 'started') {
+        toast({ 
+          title: 'Image Generation Started', 
+          description: 'Generating 4 AI images. This may take 2-3 minutes.' 
+        });
+        // Keep isGenerating true - polling will detect completion
+      } else {
+        queryClient.invalidateQueries({ queryKey: ['city-brochures-admin'] });
+        toast({ 
+          title: 'Images Generated', 
+          description: `Generated ${data?.totalImages || 4} images.` 
+        });
+        setIsGenerating(false);
+      }
     },
     onError: (error) => {
+      // Ignore timeout errors - function likely still running
+      if (String(error).includes('FunctionsFetchError') || String(error).includes('timeout')) {
+        toast({ 
+          title: 'Generation In Progress', 
+          description: 'Images are being generated. Please wait...' 
+        });
+        return;
+      }
       toast({ title: 'Image Generation Failed', description: String(error), variant: 'destructive' });
       setIsGenerating(false);
     },
