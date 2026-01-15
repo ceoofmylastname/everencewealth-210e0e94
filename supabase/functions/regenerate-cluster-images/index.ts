@@ -231,13 +231,13 @@ serve(async (req) => {
 
     console.log(`🔄 Regenerating images for cluster: ${clusterId}`);
 
-    // Fetch all articles for this cluster
+    // Fetch all articles for this cluster - include cluster_number for position-based grouping
     const { data: articles, error: fetchError } = await supabase
       .from('blog_articles')
-      .select('id, headline, language, featured_image_url, funnel_stage, slug')
+      .select('id, headline, language, featured_image_url, funnel_stage, slug, cluster_number')
       .eq('cluster_id', clusterId)
-      .order('language')
-      .order('funnel_stage');
+      .order('cluster_number')
+      .order('language');
 
     if (fetchError) {
       throw new Error(`Failed to fetch articles: ${fetchError.message}`);
@@ -253,33 +253,45 @@ serve(async (req) => {
     console.log(`📊 Found ${articles.length} articles in cluster`);
 
     // ============================================
-    // IMAGE SHARING STRATEGY: 
-    // 1. Generate 6 unique images for English articles (one per funnel stage)
-    // 2. Share those images to all non-English translations
-    // 3. Generate localized alt text + caption for each language
+    // IMAGE SHARING STRATEGY (Position-Based):
+    // 1. Group articles by cluster_number (position 1-6), NOT funnel_stage
+    // 2. Each position has 1 English + 9 translations = 10 articles
+    // 3. Preserve/generate image for English at each position
+    // 4. Share that image to all 9 translations at same position
+    // 5. Generate localized alt text + caption for each language
     // ============================================
 
-    // Group articles by funnel_stage
-    const articlesByFunnel: Record<string, { english: any | null; translations: any[] }> = {};
+    // Group articles by cluster_number (position 1-6)
+    const articlesByPosition: Record<number, { 
+      english: any | null; 
+      translations: any[]; 
+      funnel_stage: string;
+      position: number;
+    }> = {};
     
     for (const article of articles) {
-      const key = article.funnel_stage || 'unknown';
-      if (!articlesByFunnel[key]) {
-        articlesByFunnel[key] = { english: null, translations: [] };
+      const position = article.cluster_number || 0;
+      if (!articlesByPosition[position]) {
+        articlesByPosition[position] = { 
+          english: null, 
+          translations: [], 
+          funnel_stage: article.funnel_stage || 'unknown',
+          position 
+        };
       }
       if (article.language === 'en') {
-        articlesByFunnel[key].english = article;
+        articlesByPosition[position].english = article;
       } else {
-        articlesByFunnel[key].translations.push(article);
+        articlesByPosition[position].translations.push(article);
       }
     }
 
-    const funnelStages = Object.keys(articlesByFunnel);
-    console.log(`📊 Found ${funnelStages.length} funnel stages: ${funnelStages.join(', ')}`);
+    const positions = Object.keys(articlesByPosition).sort((a, b) => Number(a) - Number(b));
+    console.log(`📊 Found ${positions.length} positions: ${positions.join(', ')}`);
 
     if (dryRun) {
-      const englishCount = Object.values(articlesByFunnel).filter(g => g.english).length;
-      const translationCount = Object.values(articlesByFunnel).reduce((sum, g) => sum + g.translations.length, 0);
+      const englishCount = Object.values(articlesByPosition).filter(g => g.english).length;
+      const translationCount = Object.values(articlesByPosition).reduce((sum, g) => sum + g.translations.length, 0);
       
       return new Response(
         JSON.stringify({ 
@@ -290,9 +302,10 @@ serve(async (req) => {
           imagesPreserved: preserveEnglishImages ? englishCount : 0,
           translationsToShare: translationCount,
           preserveMode: preserveEnglishImages,
+          positionsFound: positions.length,
           message: preserveEnglishImages 
-            ? `Would preserve ${englishCount} existing images, share to ${translationCount} translations`
-            : `Would generate ${englishCount} unique images, share to ${translationCount} translations` 
+            ? `Would preserve ${englishCount} existing images (${positions.length} positions), share to ${translationCount} translations`
+            : `Would generate ${englishCount} unique images (${positions.length} positions), share to ${translationCount} translations` 
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
@@ -304,11 +317,11 @@ serve(async (req) => {
     const results: Array<{ id: string; language: string; success: boolean; newUrl?: string; shared?: boolean; preserved?: boolean }> = [];
     let sceneIndex = 0;
 
-    // Process each funnel stage
-    for (const [funnelStage, group] of Object.entries(articlesByFunnel)) {
-      const { english, translations } = group;
+    // Process each position (1-6)
+    for (const [positionKey, group] of Object.entries(articlesByPosition)) {
+      const { english, translations, funnel_stage, position } = group;
       
-      console.log(`\n📍 Processing funnel stage: ${funnelStage}`);
+      console.log(`\n📍 Processing position ${position} (${funnel_stage})`);
       console.log(`   English article: ${english ? 'Yes' : 'No'}`);
       console.log(`   Translations: ${translations.length}`);
 
@@ -318,7 +331,7 @@ serve(async (req) => {
       if (english) {
         if (preserveEnglishImages && english.featured_image_url) {
           // PRESERVE MODE: Keep existing English image
-          console.log(`📌 Preserving existing English image for ${funnelStage}`);
+          console.log(`📌 Preserving existing English image for position ${position} (${funnel_stage})`);
           primaryImageUrl = english.featured_image_url;
           
           // Still generate/update English metadata if OpenAI key available
@@ -358,7 +371,7 @@ serve(async (req) => {
           
           const imagePrompt = `Professional Costa del Sol real estate photograph, luxury Mediterranean villa with ${scene}, bright natural lighting, Architectural Digest style, no text, no watermarks, no logos, clean composition, high-end marketing quality`;
           
-          console.log(`🇬🇧 Generating image for English ${funnelStage} article...`);
+          console.log(`🇬🇧 Generating image for English position ${position} (${funnel_stage})...`);
           
           try {
             let newImageUrl = await generateUniqueImage(
@@ -366,13 +379,13 @@ serve(async (req) => {
               english.featured_image_url || 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=1200'
             );
             
-            // Upload to Supabase Storage
+            // Upload to Supabase Storage with position in filename
             if (newImageUrl && newImageUrl.includes('fal.media')) {
               newImageUrl = await uploadToStorage(
                 newImageUrl,
                 supabase,
                 'article-images',
-                `cluster-en-${funnelStage}-${english.slug || english.id.slice(0, 8)}`
+                `cluster-pos-${position}-${funnel_stage}-${english.slug || english.id.slice(0, 8)}`
               );
             }
             
@@ -452,7 +465,7 @@ serve(async (req) => {
         }
       } else if (!primaryImageUrl && translations.length > 0) {
         // No English primary - skip translations
-        console.log(`⚠️ No primary image for ${funnelStage}, skipping ${translations.length} translations`);
+        console.log(`⚠️ No primary image for position ${position} (${funnel_stage}), skipping ${translations.length} translations`);
         for (const translation of translations) {
           failCount++;
           results.push({ id: translation.id, language: translation.language, success: false });
