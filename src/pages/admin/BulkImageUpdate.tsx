@@ -24,7 +24,9 @@ import {
   RefreshCw,
   Clock,
   Layers,
-  ClipboardCheck
+  ClipboardCheck,
+  Focus,
+  X
 } from "lucide-react";
 import { ImageAuditView } from "@/components/admin/ImageAuditView";
 
@@ -72,15 +74,20 @@ const BulkImageUpdate = () => {
   const [startTime, setStartTime] = useState<Date | null>(null);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [preserveEnglishImages, setPreserveEnglishImages] = useState(true);
+  const [focusedClusterIds, setFocusedClusterIds] = useState<string[] | null>(null);
+  const hasPreSelected = useRef(false);
   const abortRef = useRef(false);
 
   // Handle pre-selected cluster from URL param
   useEffect(() => {
-    if (preSelectedCluster && clusters.length > 0 && !processing) {
+    if (preSelectedCluster && clusters.length > 0 && !processing && !hasPreSelected.current) {
       const clusterExists = clusters.some(c => c.id === preSelectedCluster);
       if (clusterExists) {
         setSelected(new Set([preSelectedCluster]));
-        toast.info(`Cluster pre-selected for image fixing`);
+        setFocusedClusterIds([preSelectedCluster]);
+        hasPreSelected.current = true;
+        const cluster = clusters.find(c => c.id === preSelectedCluster);
+        toast.success(`Focused on: ${cluster?.theme || 'cluster'}`);
       }
     }
   }, [preSelectedCluster, clusters, processing]);
@@ -144,11 +151,20 @@ const BulkImageUpdate = () => {
     }
   };
 
-  const filteredClusters = clusters.filter(c => 
-    !searchQuery || 
-    c.theme?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    c.id.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredClusters = clusters.filter(c => {
+    // If in focused mode, only show those specific clusters
+    if (focusedClusterIds && focusedClusterIds.length > 0) {
+      if (!focusedClusterIds.includes(c.id)) return false;
+    }
+    
+    // Then apply search filter
+    if (searchQuery) {
+      return c.theme?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+             c.id.toLowerCase().includes(searchQuery.toLowerCase());
+    }
+    
+    return true;
+  });
 
   const toggleCluster = (id: string) => {
     const newSelected = new Set(selected);
@@ -294,11 +310,18 @@ const BulkImageUpdate = () => {
   // Handle "Fix Selected" from audit view
   const handleFixFromAudit = (clusterIds: string[]) => {
     setSelected(new Set(clusterIds));
+    setFocusedClusterIds(clusterIds); // Enable focused mode
     setPreserveEnglishImages(true); // Auto-enable preserve mode
     setActiveTab("update");
     setDryRunSummary(null);
     setResults([]);
-    toast.info(`${clusterIds.length} clusters selected for fixing`);
+    toast.success(`Focused on ${clusterIds.length} cluster(s) for fixing`);
+  };
+
+  // Clear focused mode
+  const clearFocusedMode = () => {
+    setFocusedClusterIds(null);
+    toast.info('Showing all clusters');
   };
 
   return (
@@ -398,10 +421,33 @@ const BulkImageUpdate = () => {
                   </Button>
                 </CardTitle>
                 <CardDescription>
-                  Choose which clusters to update with shared images
+                  {focusedClusterIds && focusedClusterIds.length > 0 
+                    ? `Focused on ${focusedClusterIds.length} cluster(s) selected for fixing`
+                    : 'Choose which clusters to update with shared images'
+                  }
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
+                {/* Focused Mode Banner */}
+                {focusedClusterIds && focusedClusterIds.length > 0 && (
+                  <div className="flex items-center justify-between p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <Focus className="h-4 w-4 text-amber-600" />
+                      <span className="text-sm text-amber-700">
+                        <strong>Focused Mode:</strong> Showing only {focusedClusterIds.length} cluster(s) to fix
+                      </span>
+                    </div>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={clearFocusedMode}
+                      className="text-amber-700 hover:text-amber-900 hover:bg-amber-100"
+                    >
+                      <X className="h-4 w-4 mr-1" />
+                      Show All
+                    </Button>
+                  </div>
+                )}
                 {/* Search and Select All */}
                 <div className="flex flex-col sm:flex-row gap-4">
                   <div className="relative flex-1">
