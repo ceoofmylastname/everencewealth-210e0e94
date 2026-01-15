@@ -341,8 +341,9 @@ export async function onRequest(context) {
             'Content-Type': 'text/html; charset=utf-8',
             'Cache-Control': 'public, max-age=3600',
             'X-Middleware-Active': 'true',
-            'X-Middleware-Version': '2025-12-31',
+            'X-Middleware-Version': '2026-01-15',
             'X-SSG-Page': 'homepage',
+            'X-Content-Language': 'en',
             'X-Rendering-Method': 'SSG'
           }
         });
@@ -351,6 +352,63 @@ export async function onRequest(context) {
       console.error(`[Middleware] Error serving SSG homepage:`, error);
     }
     return next();
+  }
+  
+  // PRIORITY 0.1: Serve language-prefixed static homepages (/{lang})
+  // Each language has its own pre-generated HTML with correct lang, canonical, hreflang, and localized content
+  const HOMEPAGE_LANGUAGES = ['en', 'de', 'nl', 'fr', 'pl', 'sv', 'da', 'hu', 'fi', 'no'];
+  const langHomeMatch = path.match(/^\/([a-z]{2})\/?$/);
+  if (langHomeMatch) {
+    const [, homeLang] = langHomeMatch;
+    
+    if (HOMEPAGE_LANGUAGES.includes(homeLang)) {
+      try {
+        // Try to serve the pre-generated /{lang}/index.html file
+        const langIndexRequest = new Request(
+          new URL(`/${homeLang}/index.html`, request.url).toString(),
+          { method: 'GET', headers: request.headers }
+        );
+        const assetResponse = await env.ASSETS.fetch(langIndexRequest);
+        
+        if (assetResponse.ok) {
+          const html = await assetResponse.text();
+          return new Response(html, {
+            status: 200,
+            headers: {
+              'Content-Type': 'text/html; charset=utf-8',
+              'Cache-Control': 'public, max-age=3600',
+              'X-Middleware-Active': 'true',
+              'X-Middleware-Version': '2026-01-15',
+              'X-SSG-Page': 'homepage',
+              'X-Content-Language': homeLang,
+              'X-Rendering-Method': 'SSG'
+            }
+          });
+        } else {
+          // Fallback: Serve root index.html (will be replaced once SSG generates lang files)
+          console.log(`[Middleware] Language homepage /${homeLang}/index.html not found, falling back to root`);
+          const rootRequest = new Request(new URL('/index.html', request.url).toString());
+          const rootResponse = await env.ASSETS.fetch(rootRequest);
+          
+          if (rootResponse.ok) {
+            const html = await rootResponse.text();
+            return new Response(html, {
+              status: 200,
+              headers: {
+                'Content-Type': 'text/html; charset=utf-8',
+                'Cache-Control': 'public, max-age=300',
+                'X-Middleware-Active': 'true',
+                'X-SSG-Page': 'homepage-fallback',
+                'X-Content-Language': homeLang
+              }
+            });
+          }
+        }
+      } catch (error) {
+        console.error(`[Middleware] Error serving language homepage /${homeLang}:`, error);
+      }
+      return next();
+    }
   }
   
   // PRIORITY 0.5: Handle About page - serve with SEO metadata
