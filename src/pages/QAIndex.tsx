@@ -345,12 +345,15 @@ export default function QAIndex() {
 // Q&A Card Component with optimized image loading
 function QACard({ qa, lang, stripHtml }: { qa: any; lang: string; stripHtml: (html: string) => string }) {
   // Generate optimized image URL using Supabase transformations
+  // IMPORTANT: Must use /render/image/public/ path for transformations to work
   const getOptimizedImageUrl = (url: string): string => {
     if (!url) return '';
-    // For Supabase storage URLs, add transformation parameters
-    if (url.includes('supabase.co/storage')) {
-      const separator = url.includes('?') ? '&' : '?';
-      return `${url}${separator}width=400&height=200&resize=cover&quality=75`;
+    // For Supabase storage URLs, use the render/image endpoint for transformations
+    if (url.includes('supabase.co/storage') && url.includes('/object/public/')) {
+      // Replace /object/public/ with /render/image/public/ to enable transformations
+      const transformedUrl = url.replace('/object/public/', '/render/image/public/');
+      const separator = transformedUrl.includes('?') ? '&' : '?';
+      return `${transformedUrl}${separator}width=400&height=200&resize=cover&quality=75`;
     }
     return url;
   };
