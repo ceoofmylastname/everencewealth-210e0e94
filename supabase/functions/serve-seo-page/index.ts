@@ -709,11 +709,16 @@ function generateFullHtml(metadata: PageMetadata, hreflangTags: string, baseHtml
   const escapedDescription = escapeHtml(metadata.meta_description || '')
   
   // Generate schemas based on content type
+  // CRITICAL: Blog pages should ONLY have BlogPosting + BreadcrumbList (no standalone Organization/WebSite)
+  // Organization is already embedded within BlogPosting.publisher - no need for separate schema
   const qaSchema = metadata.content_type === 'qa' ? generateQAPageSchema(metadata) : ''
   const blogPostingSchema = generateBlogPostingSchema(metadata)
   const articleSchema = generateArticleSchema(metadata)
   const breadcrumbSchema = generateBreadcrumbSchema(metadata)
-  const orgSchema = generateOrganizationSchema()
+  
+  // REMOVED: Standalone Organization schema was causing Google to think blog pages = homepage
+  // The publisher field within BlogPosting/Article schemas provides sufficient Organization context
+  // const orgSchema = generateOrganizationSchema() -- DO NOT USE ON CONTENT PAGES
   
   // Generate speakable schema for all page types with speakable content
   const speakableSchema = metadata.speakable_answer ? generateSpeakableSchema(metadata) : ''
@@ -755,12 +760,11 @@ ${hreflangTags}
   ${metadata.date_published ? `<meta property="article:published_time" content="${metadata.date_published}" />` : ''}
   ${metadata.date_modified ? `<meta property="article:modified_time" content="${metadata.date_modified}" />` : ''}
   
-  <!-- Schema.org JSON-LD -->
+  <!-- Schema.org JSON-LD (content-type specific - NO standalone Organization schema) -->
   ${qaSchema}
   ${blogPostingSchema}
   ${articleSchema}
   ${breadcrumbSchema}
-  ${orgSchema}
   ${speakableSchema}
   ${comparisonTableSchema}
 `
