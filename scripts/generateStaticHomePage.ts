@@ -727,6 +727,7 @@ function generateStaticHTML(productionAssets: ProductionAssets, language: Langua
 
 export async function generateStaticHomePage(distDir: string) {
   console.log('🏠 Generating static homepages for all 10 languages...');
+  console.log('   ⚠️  NOTE: NOT overwriting dist/index.html to keep it as clean React shell');
   
   try {
     const productionAssets = getProductionAssets(distDir);
@@ -738,10 +739,12 @@ export async function generateStaticHomePage(distDir: string) {
       const html = generateStaticHTML(productionAssets, language);
       
       if (language === 'en') {
-        // English: Write to both root index.html AND /en/index.html for consistency
-        const rootPath = join(distDir, 'index.html');
-        writeFileSync(rootPath, html, 'utf-8');
-        results.push({ lang: 'en (root)', path: rootPath });
+        // English: Write to home.html (NOT index.html!) + /en/index.html
+        // CRITICAL: Do NOT overwrite dist/index.html - it must remain the clean React shell
+        // Middleware will serve home.html for homepage requests
+        const homePath = join(distDir, 'home.html');
+        writeFileSync(homePath, html, 'utf-8');
+        results.push({ lang: 'en (home.html)', path: homePath });
         
         const enDir = join(distDir, 'en');
         mkdirSync(enDir, { recursive: true });
@@ -759,6 +762,7 @@ export async function generateStaticHomePage(distDir: string) {
     }
     
     console.log(`   ✅ Generated ${results.length} static homepage files:`);
+    console.log(`   ✅ dist/index.html preserved as clean React shell`);
     results.forEach(r => console.log(`      - ${r.lang}: ${r.path}`));
     
     return { success: true, results };

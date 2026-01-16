@@ -326,27 +326,49 @@ export async function onRequest(context) {
   }
   
   // PRIORITY 0: Serve SSG homepage for root path
-  // The static index.html contains fully rendered H1, body text, and JSON-LD for bots
+  // CRITICAL: Use home.html (NOT index.html) - index.html is now clean React shell
+  // home.html contains fully rendered H1, body text, and JSON-LD for homepage SEO
   if (path === '/' || path === '') {
     try {
-      const indexRequest = new Request(new URL('/index.html', request.url).toString(), {
+      // Try home.html first (SSG-generated homepage with schemas)
+      const homeRequest = new Request(new URL('/home.html', request.url).toString(), {
         method: 'GET',
         headers: request.headers
       });
-      const assetResponse = await env.ASSETS.fetch(indexRequest);
+      const homeResponse = await env.ASSETS.fetch(homeRequest);
       
-      if (assetResponse.ok) {
-        const html = await assetResponse.text();
+      if (homeResponse.ok) {
+        const html = await homeResponse.text();
         return new Response(html, {
           status: 200,
           headers: {
             'Content-Type': 'text/html; charset=utf-8',
             'Cache-Control': 'public, max-age=3600',
             'X-Middleware-Active': 'true',
-            'X-Middleware-Version': '2026-01-15',
+            'X-Middleware-Version': '2026-01-16',
             'X-SSG-Page': 'homepage',
             'X-Content-Language': 'en',
-            'X-Rendering-Method': 'SSG'
+            'X-Rendering-Method': 'SSG',
+            'X-Homepage-Source': 'home.html'
+          }
+        });
+      }
+      
+      // Fallback to index.html if home.html not found (during transition)
+      console.log('[Middleware] home.html not found, falling back to index.html for homepage');
+      const indexRequest = new Request(new URL('/index.html', request.url).toString());
+      const indexResponse = await env.ASSETS.fetch(indexRequest);
+      
+      if (indexResponse.ok) {
+        const html = await indexResponse.text();
+        return new Response(html, {
+          status: 200,
+          headers: {
+            'Content-Type': 'text/html; charset=utf-8',
+            'Cache-Control': 'public, max-age=3600',
+            'X-Middleware-Active': 'true',
+            'X-SSG-Page': 'homepage-fallback',
+            'X-Content-Language': 'en'
           }
         });
       }
@@ -1006,17 +1028,26 @@ ${hreflangTags}
       console.log(`[SEO Middleware] Detected as HTML: ${isHtmlContent}`);
     }
     
-    // If response contains HTML content, extract SEO tags and inject into real index.html
+    // If response contains HTML content, extract SEO tags and inject into clean app-shell
+    // CRITICAL: Use app-shell.html for content pages (NOT index.html which may have homepage content)
     if (isHtmlContent) {
       console.log(`[SEO Middleware] Extracting SEO from edge function HTML (${responseBody.length} bytes)`);
       
       try {
-        // Get the real index.html (contains React app)
-        const indexRequest = new Request(new URL('/index.html', request.url).toString());
-        const assetResponse = await env.ASSETS.fetch(indexRequest);
+        // Get the clean app-shell.html (NO homepage schemas, NO static content)
+        // This prevents homepage pollution on blog/qa/compare/location pages
+        let shellRequest = new Request(new URL('/app-shell.html', request.url).toString());
+        let shellResponse = await env.ASSETS.fetch(shellRequest);
         
-        if (assetResponse.ok) {
-          let indexHtml = await assetResponse.text();
+        // Fallback to index.html if app-shell.html not found (during transition)
+        if (!shellResponse.ok) {
+          console.log('[SEO Middleware] app-shell.html not found, falling back to index.html');
+          shellRequest = new Request(new URL('/index.html', request.url).toString());
+          shellResponse = await env.ASSETS.fetch(shellRequest);
+        }
+        
+        if (shellResponse.ok) {
+          let shellHtml = await shellResponse.text();
           
           // Extract <head> content from edge function HTML
           const headMatch = responseBody.match(/<head[^>]*>([\s\S]*?)<\/head>/i);
@@ -1026,34 +1057,35 @@ ${hreflangTags}
           const langMatch = responseBody.match(/<html[^>]*lang="([^"]+)"/i);
           const langAttr = langMatch ? langMatch[1] : lang;
           
-          // Update html lang attribute in real index.html
-          indexHtml = indexHtml.replace(/<html[^>]*>/, `<html lang="${langAttr}">`);
+          // Update html lang attribute in shell
+          shellHtml = shellHtml.replace(/<html[^>]*>/, `<html lang="${langAttr}">`);
           
-          // Remove default title from index.html (will be replaced by SEO title)
-          indexHtml = indexHtml.replace(/<title>.*?<\/title>/, '');
+          // Remove default title from shell (will be replaced by SEO title)
+          shellHtml = shellHtml.replace(/<title>.*?<\/title>/, '');
           
           // Remove any existing meta description
-          indexHtml = indexHtml.replace(/<meta\s+name=["']description["'][^>]*>/gi, '');
+          shellHtml = shellHtml.replace(/<meta\s+name=["']description["'][^>]*>/gi, '');
           
           // Inject SEO head content before </head>
-          indexHtml = indexHtml.replace('</head>', `${seoHead}\n</head>`);
+          shellHtml = shellHtml.replace('</head>', `${seoHead}\n</head>`);
           
-          console.log(`[SEO Middleware] Injected SEO into real index.html for: ${path}`);
+          console.log(`[SEO Middleware] Injected SEO into clean app-shell for: ${path}`);
           
-          return new Response(indexHtml, {
+          return new Response(shellHtml, {
             status: 200,
             headers: {
               'Content-Type': 'text/html; charset=utf-8',
               'Cache-Control': `public, max-age=${CONFIG.CACHE_TTL}`,
               'X-Middleware-Active': 'true',
-              'X-Middleware-Version': '2025-12-28',
+              'X-Middleware-Version': '2026-01-16',
               'X-SEO-Source': 'edge-function-injected',
+              'X-SEO-Shell': 'app-shell.html',
               'X-SEO-Matched-Path': path,
               'X-Content-Language': langAttr
             }
           });
         } else {
-          console.error(`[SEO Middleware] Failed to fetch index.html: ${assetResponse.status}`);
+          console.error(`[SEO Middleware] Failed to fetch app-shell.html: ${shellResponse.status}`);
         }
       } catch (injectionError) {
         console.error(`[SEO Middleware] Error injecting SEO:`, injectionError);
