@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Link, useParams } from 'react-router-dom';
@@ -9,8 +9,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Search, ChevronRight, Sparkles, HelpCircle, BookOpen, TrendingUp, Scale, MapPin, BarChart3, Building } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Search, ChevronRight, Sparkles, HelpCircle, BookOpen, TrendingUp, Scale, MapPin, BarChart3, Building, Loader2 } from 'lucide-react';
 import BlogEmmaChat from '@/components/blog-article/BlogEmmaChat';
+
+const PAGE_SIZE = 24; // Optimized batch size for performance
 
 const LANGUAGES = [
   { code: 'en', name: 'English' },
@@ -40,25 +43,33 @@ export default function QAIndex() {
   const [languageFilter, setLanguageFilter] = useState<string>('all');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [isFocused, setIsFocused] = useState(false);
+  const [page, setPage] = useState(1);
 
-  const { data: qaPages = [], isLoading } = useQuery({
-    queryKey: ['published-qa-pages', languageFilter],
+  // Fetch paginated Q&As with only needed columns for performance
+  const { data: qaData, isLoading, isFetching } = useQuery({
+    queryKey: ['published-qa-pages', languageFilter, page],
     queryFn: async () => {
       let query = supabase
         .from('qa_pages')
-        .select('*')
+        .select('id, slug, title, question_main, speakable_answer, featured_image_url, featured_image_alt, category, language, created_at', { count: 'exact' })
         .eq('status', 'published')
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
 
       if (languageFilter !== 'all') {
         query = query.eq('language', languageFilter);
       }
 
-      const { data, error } = await query;
+      const { data, error, count } = await query;
       if (error) throw error;
-      return data || [];
+      return { items: data || [], totalCount: count || 0 };
     },
   });
+
+  const qaPages = qaData?.items || [];
+  const totalCount = qaData?.totalCount || 0;
+  const totalPages = Math.ceil(totalCount / PAGE_SIZE);
+  const hasMore = page < totalPages;
 
   // Get unique categories from Q&As
   const categories = useMemo(() => {
@@ -287,6 +298,38 @@ export default function QAIndex() {
                 ))}
               </div>
             )}
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="flex justify-center items-center gap-4 mt-12 pt-8 border-t border-border">
+                <Button
+                  variant="outline"
+                  onClick={() => setPage(p => Math.max(1, p - 1))}
+                  disabled={page === 1 || isFetching}
+                  className="font-nav"
+                >
+                  Previous
+                </Button>
+                <span className="text-sm text-muted-foreground font-nav">
+                  Page {page} of {totalPages} ({totalCount} Q&As)
+                </span>
+                <Button
+                  variant="outline"
+                  onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                  disabled={!hasMore || isFetching}
+                  className="font-nav"
+                >
+                  {isFetching ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Loading...
+                    </>
+                  ) : (
+                    'Next'
+                  )}
+                </Button>
+              </div>
+            )}
           </div>
         </section>
       </main>
@@ -299,8 +342,19 @@ export default function QAIndex() {
   );
 }
 
-// Q&A Card Component
+// Q&A Card Component with optimized image loading
 function QACard({ qa, lang, stripHtml }: { qa: any; lang: string; stripHtml: (html: string) => string }) {
+  // Generate optimized image URL using Supabase transformations
+  const getOptimizedImageUrl = (url: string): string => {
+    if (!url) return '';
+    // For Supabase storage URLs, add transformation parameters
+    if (url.includes('supabase.co/storage')) {
+      const separator = url.includes('?') ? '&' : '?';
+      return `${url}${separator}width=400&height=200&resize=cover&quality=75`;
+    }
+    return url;
+  };
+
   return (
     <Link
       to={`/${lang}/qa/${qa.slug}`}
@@ -308,10 +362,14 @@ function QACard({ qa, lang, stripHtml }: { qa: any; lang: string; stripHtml: (ht
     >
       <Card className="h-full overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all duration-300 group-hover:-translate-y-1">
         {qa.featured_image_url && (
-          <div className="relative h-48 overflow-hidden">
+          <div className="relative h-48 overflow-hidden bg-muted">
             <img
-              src={qa.featured_image_url}
+              src={getOptimizedImageUrl(qa.featured_image_url)}
               alt={qa.featured_image_alt || qa.question_main}
+              loading="lazy"
+              decoding="async"
+              width={400}
+              height={192}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
@@ -322,7 +380,7 @@ function QACard({ qa, lang, stripHtml }: { qa: any; lang: string; stripHtml: (ht
             {qa.question_main || qa.title}
           </h3>
           <p className="text-muted-foreground text-sm line-clamp-3 mb-4">
-            {stripHtml(qa.speakable_answer || qa.answer_main || '').substring(0, 150)}...
+            {stripHtml(qa.speakable_answer || '').substring(0, 150)}...
           </p>
           <div className="flex items-center gap-2 flex-wrap">
             <Badge variant="secondary" className="text-xs">

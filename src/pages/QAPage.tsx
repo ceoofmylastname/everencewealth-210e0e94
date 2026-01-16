@@ -212,9 +212,13 @@ export default function QAPage() {
         {/* Parallax Hero Section */}
         <section className="relative h-[50vh] min-h-[400px] overflow-hidden">
           {qaPage.featured_image_url ? (
-            <div 
-              className="absolute inset-0 bg-cover bg-center bg-fixed"
-              style={{ backgroundImage: `url(${qaPage.featured_image_url})` }}
+            <img
+              src={qaPage.featured_image_url}
+              alt={qaPage.title || 'Q&A featured image'}
+              loading="eager"
+              fetchPriority="high"
+              decoding="async"
+              className="absolute inset-0 w-full h-full object-cover"
             />
           ) : (
             <div className="absolute inset-0 bg-gradient-to-br from-prime-950 via-prime-900 to-prime-800" />
