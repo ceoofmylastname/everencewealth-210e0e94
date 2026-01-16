@@ -7,7 +7,29 @@ interface OptimizedImageProps extends Omit<ImgHTMLAttributes<HTMLImageElement>, 
   height?: number;
   priority?: boolean;
   className?: string;
+  transformWidth?: number;
+  transformHeight?: number;
 }
+
+/**
+ * Get Supabase Storage URL with image transformations enabled.
+ * IMPORTANT: Must use /render/image/public/ path instead of /object/public/ for transformations to work.
+ */
+const getSupabaseTransformUrl = (url: string, width?: number, height?: number): string => {
+  if (!url || !url.includes('supabase.co/storage') || !url.includes('/object/public/')) {
+    return url;
+  }
+  
+  // Replace /object/public/ with /render/image/public/ to enable transformations
+  const transformedUrl = url.replace('/object/public/', '/render/image/public/');
+  const params = new URLSearchParams();
+  if (width) params.set('width', width.toString());
+  if (height) params.set('height', height.toString());
+  params.set('resize', 'cover');
+  params.set('quality', '75');
+  
+  return `${transformedUrl}?${params.toString()}`;
+};
 
 export const OptimizedImage = ({
   src,
@@ -16,9 +38,16 @@ export const OptimizedImage = ({
   height,
   priority = false,
   className = '',
+  transformWidth,
+  transformHeight,
   ...props
 }: OptimizedImageProps) => {
   const [isLoaded, setIsLoaded] = useState(false);
+  
+  // Apply Supabase transformations if transform dimensions are provided
+  const optimizedSrc = transformWidth || transformHeight 
+    ? getSupabaseTransformUrl(src, transformWidth, transformHeight)
+    : src;
 
   return (
     <div 
@@ -26,7 +55,7 @@ export const OptimizedImage = ({
       style={width && height ? { aspectRatio: `${width}/${height}` } : undefined}
     >
       <img
-        src={src}
+        src={optimizedSrc}
         alt={alt}
         width={width}
         height={height}

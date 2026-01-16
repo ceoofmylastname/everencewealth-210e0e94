@@ -213,7 +213,11 @@ export default function QAPage() {
         <section className="relative h-[50vh] min-h-[400px] overflow-hidden">
           {qaPage.featured_image_url ? (
             <img
-              src={qaPage.featured_image_url}
+              src={
+                qaPage.featured_image_url.includes('supabase.co/storage') && qaPage.featured_image_url.includes('/object/public/')
+                  ? `${qaPage.featured_image_url.replace('/object/public/', '/render/image/public/')}?width=1200&height=600&resize=cover&quality=80`
+                  : qaPage.featured_image_url
+              }
               alt={qaPage.title || 'Q&A featured image'}
               loading="eager"
               fetchPriority="high"
