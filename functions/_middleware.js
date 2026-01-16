@@ -164,6 +164,16 @@ export async function onRequest(context) {
   const userAgent = request.headers.get('user-agent') || '';
   
   // ============================================================
+  // PRIORITY -3: WWW Enforcement (FIRST CHECK - before anything else)
+  // Ensures all traffic goes to www.delsolprimehomes.com
+  // ============================================================
+  if (url.hostname === 'delsolprimehomes.com') {
+    const wwwUrl = `https://www.${url.hostname}${url.pathname}${url.search}`;
+    console.log(`[Middleware] 301 WWW redirect: ${url.href} → ${wwwUrl}`);
+    return Response.redirect(wwwUrl, 301);
+  }
+  
+  // ============================================================
   // PRIORITY -2: Handle 410 Gone URLs (permanently removed pages)
   // ============================================================
   
