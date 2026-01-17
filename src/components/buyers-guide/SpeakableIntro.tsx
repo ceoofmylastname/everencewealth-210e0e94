@@ -33,8 +33,8 @@ export const SpeakableIntro: React.FC = () => {
               </p>
               <p className="text-lg md:text-xl leading-relaxed text-foreground/90">
                 The process takes <strong>3-6 months</strong> from finding your property to receiving the keys. 
-                Non-EU buyers investing €500,000+ qualify for Spain's <strong>Golden Visa</strong>, granting residency 
-                rights throughout the Schengen area.
+                Remote workers and digital nomads can qualify for Spain's <strong>Digital Nomad Visa</strong>, 
+                allowing you to live and work from the beautiful Costa del Sol while maintaining your international career.
               </p>
             </div>
 
