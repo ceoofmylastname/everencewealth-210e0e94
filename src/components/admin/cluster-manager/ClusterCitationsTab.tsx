@@ -13,6 +13,7 @@ import { ClusterData, getLanguageFlag } from "./types";
 import { scanClusterForCompetitors, ClusterScanResult } from "@/lib/competitorDetection";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
+import { Textarea } from "@/components/ui/textarea";
 
 interface DiscoveredCitation {
   url: string;
@@ -102,6 +103,12 @@ export const ClusterCitationsTab = ({ cluster }: ClusterCitationsTabProps) => {
   const [showDiscoveryModal, setShowDiscoveryModal] = useState(false);
   const [selectedCitations, setSelectedCitations] = useState<Map<string, Set<string>>>(new Map());
   const [isApplying, setIsApplying] = useState(false);
+
+  // Bulk add state
+  const [showBulkAddModal, setShowBulkAddModal] = useState(false);
+  const [bulkUrls, setBulkUrls] = useState("");
+  const [isBulkAdding, setIsBulkAdding] = useState(false);
+  const [bulkAddProgress, setBulkAddProgress] = useState(0);
 
   const handleScanCluster = async () => {
     setIsScanning(true);
@@ -295,6 +302,88 @@ export const ClusterCitationsTab = ({ cluster }: ClusterCitationsTabProps) => {
     queryClient.invalidateQueries({ queryKey: ["cluster-articles"] });
   };
 
+  const handleBulkAddCitations = async () => {
+    // Parse URLs from textarea (one per line)
+    const urls = bulkUrls
+      .split('\n')
+      .map(u => u.trim())
+      .filter(u => u.startsWith('http'));
+    
+    if (urls.length === 0) {
+      toast.error("No valid URLs found. Please enter URLs starting with http:// or https://");
+      return;
+    }
+    
+    setIsBulkAdding(true);
+    setBulkAddProgress(0);
+    
+    try {
+      // Fetch all articles in the cluster
+      const { data: articles, error } = await supabase
+        .from("blog_articles")
+        .select("id, headline, external_citations")
+        .eq("cluster_id", cluster.cluster_id);
+      
+      if (error) throw error;
+      if (!articles || articles.length === 0) {
+        toast.error("No articles found in this cluster");
+        return;
+      }
+      
+      let successCount = 0;
+      let totalAdded = 0;
+      
+      // Process each article
+      for (let i = 0; i < articles.length; i++) {
+        const article = articles[i];
+        const existingCitations = (article.external_citations as any[]) || [];
+        const existingUrls = new Set(existingCitations.map(c => c.url));
+        
+        // Filter out duplicates and create new citation objects
+        const newCitations = urls
+          .filter(url => !existingUrls.has(url))
+          .map(url => {
+            let source = "external";
+            try {
+              source = new URL(url).hostname.replace('www.', '');
+            } catch {}
+            return {
+              url,
+              source,
+              text: "Bulk added citation"
+            };
+          });
+        
+        if (newCitations.length > 0) {
+          const { error: updateError } = await supabase
+            .from("blog_articles")
+            .update({ 
+              external_citations: [...existingCitations, ...newCitations] 
+            })
+            .eq("id", article.id);
+          
+          if (!updateError) {
+            successCount++;
+            totalAdded += newCitations.length;
+          }
+        }
+        
+        // Update progress
+        setBulkAddProgress(Math.round(((i + 1) / articles.length) * 100));
+      }
+      
+      toast.success(`Added ${totalAdded} citations across ${successCount} articles`);
+      setShowBulkAddModal(false);
+      setBulkUrls("");
+      queryClient.invalidateQueries({ queryKey: ["cluster-articles"] });
+    } catch (error: any) {
+      toast.error(`Bulk add failed: ${error.message}`);
+    } finally {
+      setIsBulkAdding(false);
+      setBulkAddProgress(0);
+    }
+  };
+
   const totalSelected = Array.from(selectedCitations.values()).reduce((sum, set) => sum + set.size, 0);
 
   return (
@@ -406,6 +495,17 @@ export const ClusterCitationsTab = ({ cluster }: ClusterCitationsTabProps) => {
             <ShieldAlert className="mr-2 h-4 w-4" />
           )}
           Scan for Competitors
+        </Button>
+
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setShowBulkAddModal(true)}
+          disabled={isScanning || isDiscovering || isBulkAdding}
+          className="border-violet-300 text-violet-700 hover:bg-violet-50"
+        >
+          <Plus className="mr-2 h-4 w-4" />
+          Bulk Add
         </Button>
 
         {scanResult && scanResult.allCompetitors.length > 0 && (
@@ -664,6 +764,70 @@ export const ClusterCitationsTab = ({ cluster }: ClusterCitationsTabProps) => {
               </div>
             </ScrollArea>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Bulk Add Modal */}
+      <Dialog open={showBulkAddModal} onOpenChange={setShowBulkAddModal}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Plus className="h-5 w-5 text-violet-600" />
+              Bulk Add Citations
+            </DialogTitle>
+            <DialogDescription>
+              Add citations to all {cluster.total_articles} articles in this cluster.
+              Paste URLs below (one per line). Duplicates will be automatically skipped.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <Textarea
+              placeholder={"https://example.com/article1\nhttps://example.com/article2\nhttps://example.com/article3"}
+              value={bulkUrls}
+              onChange={(e) => setBulkUrls(e.target.value)}
+              rows={6}
+              className="font-mono text-sm"
+              disabled={isBulkAdding}
+            />
+            
+            <div className="text-sm text-muted-foreground">
+              <span className="font-medium">
+                {bulkUrls.split('\n').filter(u => u.trim().startsWith('http')).length}
+              </span> URLs detected → Will add to <span className="font-medium">{cluster.total_articles}</span> articles
+            </div>
+            
+            {isBulkAdding && (
+              <div className="space-y-2">
+                <Progress value={bulkAddProgress} className="h-2" />
+                <p className="text-xs text-center text-muted-foreground">
+                  Processing articles... {bulkAddProgress}%
+                </p>
+              </div>
+            )}
+          </div>
+          
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => setShowBulkAddModal(false)}
+              disabled={isBulkAdding}
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleBulkAddCitations}
+              disabled={isBulkAdding || !bulkUrls.trim()}
+              className="bg-violet-600 hover:bg-violet-700"
+            >
+              {isBulkAdding ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Plus className="mr-2 h-4 w-4" />
+              )}
+              {isBulkAdding ? "Adding..." : "Add to All Articles"}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
