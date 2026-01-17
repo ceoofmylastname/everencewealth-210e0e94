@@ -47,62 +47,96 @@ export interface ClusterScanResult {
   }>;
 }
 
-// Known real estate competitor domains
+// Known real estate competitor domains - COMPREHENSIVE LIST
 const COMPETITOR_DOMAINS = [
-  'immoabroad.com',
-  'terrameridiana.com',
-  'marbellaforsaleblog.com',
-  'drumelia.com',
-  'kyero.com',
-  'idealista.com',
-  'fotocasa.com',
-  'thinkspain.com',
-  'spanishpropertyinsight.com',
-  'rightmove.co.uk',
-  'zoopla.co.uk',
-  'primelocation.com',
-  'onthemarket.com',
-  'propertyguides.com',
-  'aplaceinthesun.com',
-  'spanish-property-choice.com',
-  'propertiesabroadspain.com',
-  'pure-living-properties.com',
-  'mpdunne.com',
-  'lucasfox.com',
-  'engel-voelkers.es',
-  'sothebysrealty.com',
-  'christiesrealestate.com',
-  'knightfrank.com',
-  'savills.es',
+  // International giants
+  'sothebysrealty.com', 'christiesrealestate.com', 'knightfrank.com',
+  'savills.com', 'savills.es', 'engelvoelkers.com', 'engel-voelkers.es',
+  'remax.com', 'remax.es', 'coldwellbanker.com', 'coldwellbanker.es',
+  'century21.com', 'century21.es', 'kellerwilliams.com', 'compass.com',
   'berkshirehathaway.com',
-  'century21.es',
-  'remax.es',
-  'coldwellbanker.es',
+  
+  // US portals
+  'zillow.com', 'trulia.com', 'realtor.com', 'redfin.com', 'apartments.com',
+  
+  // UK portals
+  'rightmove.co.uk', 'zoopla.co.uk', 'onthemarket.com', 'primelocation.com',
+  'propertypal.com', 'mouseprice.com', 'propertyguides.com',
+  
+  // Spanish portals
+  'idealista.com', 'fotocasa.com', 'fotocasa.es', 'pisos.com', 'habitaclia.com',
+  'kyero.com', 'thinkspain.com', 'spanishpropertyinsight.com', 'yaencontre.com',
+  'tucasa.com', 'enalquiler.com', 'milanuncios.com', 'spanish-property-choice.com',
+  'propertiesabroadspain.com', 'spainhouses.net', 'eyeonspain.com',
+  'aplaceinthesun.com', 'spanishpropertychoice.com',
+  
+  // Netherlands
+  'funda.nl', 'huislijn.nl', 'jaap.nl', 'pararius.nl',
+  
+  // Germany
+  'immobilienscout24.de', 'immowelt.de', 'immonet.de',
+  
+  // France
+  'seloger.com', 'pap.fr', 'leboncoin.fr', 'logic-immo.com',
+  
+  // Nordic
+  'hemnet.se', 'boligsiden.dk', 'finn.no', 'etuovi.com',
+  
+  // Other EU
+  'ingatlan.com', 'properstar.com',
+  
+  // Luxury/Costa del Sol specific competitors
+  'lucasfox.com', 'drumelia.com', 'mpdunne.com', 'pure-living-properties.com',
+  'nvoga.com', 'immoabroad.com', 'terrameridiana.com', 'marbellaforsaleblog.com',
+  
   // Malaga-specific competitors
-  'movetomalagaspain.com',
-  'movetomalaga.com',
-  'propertyfindermalaga.com',
+  'movetomalagaspain.com', 'movetomalaga.com', 'propertyfindermalaga.com',
+  'homenetspain.com',
 ];
 
-// Real estate keyword patterns (multi-language)
+// Real estate keyword patterns (multi-language) - EXPANDED
 const COMPETITOR_KEYWORDS = [
-  // English
-  'realestate', 'real-estate', 'realtor', 'property', 'properties', 
-  'homes', 'housing', 'estate', 'estates', 'villas', 'apartments',
-  'condos', 'rentals', 'lettings', 'realty',
+  // Direct real estate terms (English)
+  'realty', 'realtor', 'real-estate', 'realestate', 'estate-agent', 'estate-agents',
+  'property-sales', 'property-agency', 'homes-for-sale', 'house-sales',
+  'luxury-homes', 'property', 'properties', 'homes', 'housing', 'estate', 'estates',
+  'villas', 'apartments', 'condos', 'rentals', 'lettings', 'forsale', 'for-sale',
+  'listing', 'listings', 'broker', 'brokerage', 'realtors',
+  'estate-services', 'property-finder', 'home-finder',
+  
   // Spanish
-  'inmobiliaria', 'inmuebles', 'vivienda', 'viviendas', 'casas', 'pisos',
-  'chalets', 'apartamentos', 'alquileres',
-  // Dutch
-  'makelaar', 'vastgoed', 'woning', 'woningen', 'huizen',
+  'inmobiliaria', 'inmobiliarias', 'inmueble', 'inmuebles', 'vivienda', 'viviendas',
+  'casas', 'pisos', 'chalets', 'apartamentos', 'alquileres', 'propiedades',
+  
   // German
-  'immobilien', 'makler', 'wohnung', 'wohnungen', 'haus',
+  'immobilien', 'makler', 'hauskauf', 'wohnung', 'wohnungen', 'haus',
+  
   // French
-  'immobilier', 'agence', 'maison', 'appartement', 'logement',
+  'immo', 'immobilier', 'agence-immobiliere', 'maison', 'appartement', 'logement',
+  
+  // Dutch
+  'makelaar', 'vastgoed', 'woningen', 'huizen', 'woning',
+  
+  // Finnish
+  'kiinteisto', 'asunto', 'kiinteistot', 'asunnot',
+  
+  // Norwegian
+  'eiendom', 'bolig', 'eiendommer', 'boliger',
+  
+  // Swedish
+  'fastighet', 'bostader', 'fast-egendom', 'bostäder',
+  
+  // Danish
+  'ejendom', 'ejendomme',
+  
+  // Hungarian
+  'ingatlan', 'lakás', 'ingatlanok',
+  
   // Italian
   'immobiliare', 'agenzia', 'case', 'appartamenti',
+  
   // General
-  'immo', 'relocation',
+  'relocation',
 ];
 
 // Low-value domain patterns
@@ -411,4 +445,45 @@ export function scanClusterForCompetitors(
   }
 
   return result;
+}
+
+/**
+ * Check if a URL is a competitor - helper for bulk add validation
+ */
+export function isCompetitorUrl(url: string): boolean {
+  const domain = extractDomain(url);
+  return isCompetitorDomain(domain).isCompetitor;
+}
+
+/**
+ * Analyze citation diversity across a cluster
+ */
+export function analyzeCitationDiversity(
+  articles: Array<{ external_citations: Array<{ url: string }> | null }>
+): { 
+  domainFrequency: Map<string, number>; 
+  overusedDomains: string[]; 
+  totalCitations: number;
+} {
+  const domainFrequency = new Map<string, number>();
+  let totalCitations = 0;
+  
+  articles.forEach(article => {
+    const citations = article.external_citations || [];
+    totalCitations += citations.length;
+    
+    citations.forEach((c) => {
+      try {
+        const domain = extractDomain(c.url);
+        domainFrequency.set(domain, (domainFrequency.get(domain) || 0) + 1);
+      } catch {}
+    });
+  });
+  
+  // Flag domains used more than 10 times
+  const overusedDomains = Array.from(domainFrequency.entries())
+    .filter(([_, count]) => count > 10)
+    .map(([domain, count]) => `${domain} (${count}x)`);
+  
+  return { domainFrequency, overusedDomains, totalCitations };
 }
