@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Section } from '../ui/Section';
 import { Button } from '../ui/Button';
-import { Star, Quote, ArrowRight, Book, Scale, Home, Plane, Wallet } from 'lucide-react';
+import { Star, Quote, ArrowRight, Book, Scale, Home, Laptop, Wallet } from 'lucide-react';
 import { useTranslation } from '../../../i18n';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -144,7 +144,7 @@ export const BlogTeaser: React.FC = () => {
 
 const FEATURED_TERMS = [
   { term: "NIE", icon: Scale, description: "Tax identification number required for all property transactions in Spain." },
-  { term: "Golden Visa", icon: Plane, description: "Residency permit for non-EU investors purchasing property over €500,000." },
+  { term: "Digital Nomad Visa", icon: Laptop, description: "Spanish visa for remote workers earning €2,520+/month from non-Spanish clients." },
   { term: "IBI", icon: Home, description: "Annual property tax (Impuesto sobre Bienes Inmuebles) paid to local councils." },
   { term: "Escritura", icon: Book, description: "Official public deed signed before a notary when purchasing property." },
 ];

@@ -1,42 +1,42 @@
 import React from 'react';
-import { Crown, Globe, Users, Plane, Clock, CheckCircle2, ArrowRight } from 'lucide-react';
+import { Laptop, Globe, Users, TrendingUp, CheckCircle2, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const benefits = [
   {
+    icon: Laptop,
+    title: 'Work Remotely from Spain',
+    description: 'Legally work for non-Spanish companies while living on the Costa del Sol'
+  },
+  {
     icon: Globe,
-    title: 'Schengen Access',
-    description: 'Visa-free travel to all 26 Schengen countries'
+    title: 'Schengen Area Access',
+    description: 'Travel freely across 26 European countries without additional visas'
   },
   {
     icon: Users,
     title: 'Family Inclusion',
-    description: 'Spouse, children, and dependent parents included'
+    description: 'Bring your spouse, children under 18, and dependent parents with you'
   },
   {
-    icon: Plane,
-    title: 'No Minimum Stay',
-    description: 'No requirement to live in Spain full-time'
-  },
-  {
-    icon: Clock,
-    title: 'Path to Citizenship',
-    description: 'Eligible for permanent residency after 5 years'
+    icon: TrendingUp,
+    title: 'Path to Permanent Residency',
+    description: 'Renewable up to 5 years, then eligible for permanent residency'
   }
 ];
 
 const requirements = [
-  'Minimum €500,000 investment in Spanish real estate',
-  'Property must be free from any encumbrances up to €500,000',
-  'Clean criminal record in Spain and country of origin',
-  'Valid health insurance covering Spain',
-  'Sufficient financial means to support yourself and family',
-  'No previous Schengen visa rejections'
+  'Minimum monthly income of €2,520 (or €30,240 annually)',
+  'Remote work contract with non-Spanish company OR 80%+ income from non-Spanish clients',
+  'At least 3 years of professional experience or relevant university degree',
+  'Valid private health insurance covering all medical expenses in Spain',
+  'Clean criminal record certificate from countries of residence (last 5 years)',
+  'Proof of employment contract, freelance agreements, or business registration'
 ];
 
-export const GoldenVisa: React.FC = () => {
+export const DigitalNomadVisa: React.FC = () => {
   return (
-    <section id="golden-visa" className="py-20 md:py-28 bg-background relative overflow-hidden">
+    <section id="digital-nomad-visa" className="py-20 md:py-28 bg-background relative overflow-hidden">
       {/* Background Decoration */}
       <div className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-prime-gold/5 to-transparent pointer-events-none" />
       
@@ -44,14 +44,14 @@ export const GoldenVisa: React.FC = () => {
         {/* Section Header */}
         <div className="text-center mb-16 reveal-on-scroll">
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-prime-gold/10 border border-prime-gold/20 rounded-full mb-6">
-            <Crown className="w-4 h-4 text-prime-gold" />
-            <span className="text-prime-gold text-sm font-medium">Investment Residency</span>
+            <Laptop className="w-4 h-4 text-prime-gold" />
+            <span className="text-prime-gold text-sm font-medium">Remote Work Residency</span>
           </div>
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-serif font-bold text-foreground mb-6">
-            Spain's Golden Visa Program
+            Spain's Digital Nomad Visa
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Invest €500,000 or more in Spanish property and gain residency rights for you and your family.
+            Spain's Digital Nomad Visa allows remote workers and freelancers to live legally in Spain while working for companies outside of Spain. Perfect for those seeking Mediterranean lifestyle while maintaining their international career.
           </p>
         </div>
 
@@ -76,13 +76,13 @@ export const GoldenVisa: React.FC = () => {
               ))}
             </div>
 
-            {/* Investment Highlight */}
+            {/* Income Requirement Highlight */}
             <div className="mt-8 bg-gradient-to-r from-prime-gold/10 to-prime-gold/5 rounded-2xl p-6 border border-prime-gold/20">
               <div className="flex items-center gap-4">
-                <div className="text-4xl font-bold text-prime-gold">€500K</div>
+                <div className="text-4xl font-bold text-prime-gold">€2,520</div>
                 <div>
-                  <p className="font-medium text-foreground">Minimum Investment</p>
-                  <p className="text-sm text-muted-foreground">In Spanish real estate</p>
+                  <p className="font-medium text-foreground">Minimum Monthly Income</p>
+                  <p className="text-sm text-muted-foreground">From non-Spanish employment</p>
                 </div>
               </div>
             </div>
@@ -108,10 +108,10 @@ export const GoldenVisa: React.FC = () => {
               {/* CTA */}
               <div className="mt-8 pt-6 border-t">
                 <Link
-                  to="/blog?search=golden+visa"
+                  to="/blog?search=digital+nomad+visa"
                   className="inline-flex items-center gap-2 text-prime-gold font-medium hover:gap-3 transition-all duration-300"
                 >
-                  Learn more about Golden Visa
+                  Learn more about Digital Nomad Visa
                   <ArrowRight className="w-4 h-4" />
                 </Link>
               </div>
@@ -122,20 +122,20 @@ export const GoldenVisa: React.FC = () => {
               <h4 className="font-bold text-white mb-4">Processing Timeline</h4>
               <div className="space-y-3">
                 <div className="flex justify-between text-sm">
-                  <span className="text-slate-400">Initial application</span>
-                  <span className="text-prime-gold font-medium">2-3 months</span>
+                  <span className="text-slate-400">Application review</span>
+                  <span className="text-prime-gold font-medium">20 working days</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-slate-400">Visa validity</span>
-                  <span className="text-prime-gold font-medium">2 years (renewable)</span>
+                  <span className="text-slate-400">Initial visa validity</span>
+                  <span className="text-prime-gold font-medium">3 years</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-slate-400">Permanent residency</span>
+                  <span className="text-slate-400">Renewal period</span>
+                  <span className="text-prime-gold font-medium">Additional 2 years</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-slate-400">Permanent residency eligibility</span>
                   <span className="text-prime-gold font-medium">After 5 years</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-slate-400">Citizenship eligibility</span>
-                  <span className="text-prime-gold font-medium">After 10 years</span>
                 </div>
               </div>
             </div>
