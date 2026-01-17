@@ -18,7 +18,7 @@ import {
   AlertDialogHeader, 
   AlertDialogTitle 
 } from "@/components/ui/alert-dialog";
-import { Search, Eye, Trash2, Plus, AlertCircle, MapPin } from "lucide-react";
+import { Search, Eye, Trash2, Plus, AlertCircle, MapPin, ImageIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
@@ -204,10 +204,16 @@ const LocationPages = () => {
               Manage location intelligence pages ({filteredPages.length} total)
             </p>
           </div>
-          <Button onClick={() => navigate('/admin/location-generator')} size="lg">
-            <Plus className="mr-2 h-5 w-5" />
-            Generate New
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => navigate('/admin/batch-location-images')}>
+              <ImageIcon className="mr-2 h-5 w-5" />
+              Generate Missing Images
+            </Button>
+            <Button onClick={() => navigate('/admin/location-generator')} size="lg">
+              <Plus className="mr-2 h-5 w-5" />
+              Generate New
+            </Button>
+          </div>
         </div>
 
         {/* Bulk Actions Bar */}

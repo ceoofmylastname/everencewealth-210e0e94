@@ -86,6 +86,7 @@ const QADashboard = lazy(() => import("./pages/admin/QADashboard"));
 const ComparisonGenerator = lazy(() => import("./pages/admin/ComparisonGenerator"));
 const LocationGenerator = lazy(() => import("./pages/admin/LocationGenerator"));
 const LocationPages = lazy(() => import("./pages/admin/LocationPages"));
+const BatchLocationImageGeneration = lazy(() => import("./pages/admin/BatchLocationImageGeneration"));
 const Phase1LinkingTool = lazy(() => import("./pages/admin/Phase1LinkingTool"));
 const BOFUPageGenerator = lazy(() => import("./pages/admin/BOFUPageGenerator"));
 const NavbarImageGenerator = lazy(() => import("./pages/admin/NavbarImageGenerator"));
@@ -190,6 +191,7 @@ const App = () => (
               <Route path="/admin/comparison-generator" element={<ProtectedRoute><ComparisonGenerator /></ProtectedRoute>} />
               <Route path="/admin/location-generator" element={<ProtectedRoute><LocationGenerator /></ProtectedRoute>} />
               <Route path="/admin/location-pages" element={<ProtectedRoute><LocationPages /></ProtectedRoute>} />
+              <Route path="/admin/batch-location-images" element={<ProtectedRoute><BatchLocationImageGeneration /></ProtectedRoute>} />
               <Route path="/admin/phase1-linking" element={<ProtectedRoute><Phase1LinkingTool /></ProtectedRoute>} />
               <Route path="/admin/bofu-generator" element={<ProtectedRoute><BOFUPageGenerator /></ProtectedRoute>} />
               <Route path="/admin/navbar-images" element={<ProtectedRoute><NavbarImageGenerator /></ProtectedRoute>} />
