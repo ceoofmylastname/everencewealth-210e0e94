@@ -10,7 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { ShieldAlert, Loader2, AlertTriangle, CheckCircle2, Trash2, ExternalLink, Search, Plus, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { ClusterData, getLanguageFlag } from "./types";
-import { scanClusterForCompetitors, ClusterScanResult } from "@/lib/competitorDetection";
+import { scanClusterForCompetitors, ClusterScanResult, isCompetitorUrl, analyzeCitationDiversity } from "@/lib/competitorDetection";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
 import { Textarea } from "@/components/ui/textarea";
@@ -304,13 +304,25 @@ export const ClusterCitationsTab = ({ cluster }: ClusterCitationsTabProps) => {
 
   const handleBulkAddCitations = async () => {
     // Parse URLs from textarea (one per line)
-    const urls = bulkUrls
+    const allUrls = bulkUrls
       .split('\n')
       .map(u => u.trim())
       .filter(u => u.startsWith('http'));
     
-    if (urls.length === 0) {
-      toast.error("No valid URLs found. Please enter URLs starting with http:// or https://");
+    // Filter out competitor URLs BEFORE processing
+    const validUrls = allUrls.filter(url => !isCompetitorUrl(url));
+    const blockedUrls = allUrls.filter(url => isCompetitorUrl(url));
+    
+    if (blockedUrls.length > 0) {
+      console.warn("Blocked competitor URLs:", blockedUrls);
+    }
+    
+    if (validUrls.length === 0) {
+      if (blockedUrls.length > 0) {
+        toast.error(`All ${blockedUrls.length} URLs were blocked as competitors. Remove real estate/property company links.`);
+      } else {
+        toast.error("No valid URLs found. Please enter URLs starting with http:// or https://");
+      }
       return;
     }
     
@@ -339,8 +351,8 @@ export const ClusterCitationsTab = ({ cluster }: ClusterCitationsTabProps) => {
         const existingCitations = (article.external_citations as any[]) || [];
         const existingUrls = new Set(existingCitations.map(c => c.url));
         
-        // Filter out duplicates and create new citation objects
-        const newCitations = urls
+        // Filter out duplicates and create new citation objects (use validUrls, not allUrls)
+        const newCitations = validUrls
           .filter(url => !existingUrls.has(url))
           .map(url => {
             let source = "external";
@@ -372,7 +384,11 @@ export const ClusterCitationsTab = ({ cluster }: ClusterCitationsTabProps) => {
         setBulkAddProgress(Math.round(((i + 1) / articles.length) * 100));
       }
       
-      toast.success(`Added ${totalAdded} citations across ${successCount} articles`);
+      let message = `Added ${totalAdded} citations across ${successCount} articles`;
+      if (blockedUrls.length > 0) {
+        message += ` (${blockedUrls.length} competitor URLs blocked)`;
+      }
+      toast.success(message);
       setShowBulkAddModal(false);
       setBulkUrls("");
       queryClient.invalidateQueries({ queryKey: ["cluster-articles"] });
@@ -382,6 +398,14 @@ export const ClusterCitationsTab = ({ cluster }: ClusterCitationsTabProps) => {
       setIsBulkAdding(false);
       setBulkAddProgress(0);
     }
+  };
+
+  // Helper to get URL validation stats for the bulk add modal
+  const getBulkUrlStats = () => {
+    const allUrls = bulkUrls.split('\n').map(u => u.trim()).filter(u => u.startsWith('http'));
+    const validUrls = allUrls.filter(url => !isCompetitorUrl(url));
+    const blockedUrls = allUrls.filter(url => isCompetitorUrl(url));
+    return { total: allUrls.length, valid: validUrls.length, blocked: blockedUrls, blockedCount: blockedUrls.length };
   };
 
   const totalSelected = Array.from(selectedCitations.values()).reduce((sum, set) => sum + set.size, 0);
@@ -777,13 +801,13 @@ export const ClusterCitationsTab = ({ cluster }: ClusterCitationsTabProps) => {
             </DialogTitle>
             <DialogDescription>
               Add citations to all {cluster.total_articles} articles in this cluster.
-              Paste URLs below (one per line). Duplicates will be automatically skipped.
+              Paste URLs below (one per line). Duplicates and competitors will be filtered.
             </DialogDescription>
           </DialogHeader>
           
           <div className="space-y-4">
             <Textarea
-              placeholder={"https://example.com/article1\nhttps://example.com/article2\nhttps://example.com/article3"}
+              placeholder={"https://www.bbc.com/news/business\nhttps://www.gov.uk/property-guide\nhttps://elpais.com/economia"}
               value={bulkUrls}
               onChange={(e) => setBulkUrls(e.target.value)}
               rows={6}
@@ -791,11 +815,51 @@ export const ClusterCitationsTab = ({ cluster }: ClusterCitationsTabProps) => {
               disabled={isBulkAdding}
             />
             
-            <div className="text-sm text-muted-foreground">
-              <span className="font-medium">
-                {bulkUrls.split('\n').filter(u => u.trim().startsWith('http')).length}
-              </span> URLs detected → Will add to <span className="font-medium">{cluster.total_articles}</span> articles
-            </div>
+            {/* Real-time Validation Display */}
+            {bulkUrls.trim() && (() => {
+              const stats = getBulkUrlStats();
+              return (
+                <div className="space-y-2 text-sm">
+                  {/* Valid URLs count */}
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-green-600" />
+                    <span className="text-green-600 font-medium">
+                      {stats.valid} Valid URLs → Will add to {cluster.total_articles} articles
+                    </span>
+                  </div>
+                  
+                  {/* Blocked competitor URLs */}
+                  {stats.blockedCount > 0 && (
+                    <>
+                      <div className="flex items-center gap-2">
+                        <AlertTriangle className="h-4 w-4 text-red-600" />
+                        <span className="text-red-600 font-medium">
+                          {stats.blockedCount} Competitor URLs Blocked
+                        </span>
+                      </div>
+                      
+                      {/* Show blocked URLs */}
+                      <div className="p-2 bg-red-50 border border-red-200 rounded-lg text-xs text-red-700 dark:bg-red-950/30 dark:border-red-900">
+                        <p className="font-medium mb-1">These URLs will be blocked:</p>
+                        <ul className="list-disc pl-4 space-y-0.5">
+                          {stats.blocked.slice(0, 5).map((url, i) => (
+                            <li key={i} className="truncate">{url}</li>
+                          ))}
+                          {stats.blockedCount > 5 && (
+                            <li>...and {stats.blockedCount - 5} more</li>
+                          )}
+                        </ul>
+                      </div>
+                    </>
+                  )}
+                </div>
+              );
+            })()}
+            
+            <p className="text-xs text-muted-foreground">
+              ✓ English and Spanish sources accepted for all languages<br/>
+              ✗ Real estate companies, property portals, and competitors automatically blocked
+            </p>
             
             {isBulkAdding && (
               <div className="space-y-2">
@@ -817,7 +881,7 @@ export const ClusterCitationsTab = ({ cluster }: ClusterCitationsTabProps) => {
             </Button>
             <Button 
               onClick={handleBulkAddCitations}
-              disabled={isBulkAdding || !bulkUrls.trim()}
+              disabled={isBulkAdding || !bulkUrls.trim() || getBulkUrlStats().valid === 0}
               className="bg-violet-600 hover:bg-violet-700"
             >
               {isBulkAdding ? (
@@ -825,7 +889,7 @@ export const ClusterCitationsTab = ({ cluster }: ClusterCitationsTabProps) => {
               ) : (
                 <Plus className="mr-2 h-4 w-4" />
               )}
-              {isBulkAdding ? "Adding..." : "Add to All Articles"}
+              {isBulkAdding ? "Adding..." : `Add ${getBulkUrlStats().valid} to All Articles`}
             </Button>
           </DialogFooter>
         </DialogContent>

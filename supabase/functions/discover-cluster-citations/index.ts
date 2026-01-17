@@ -7,36 +7,93 @@ const corsHeaders = {
 };
 
 // ============================================================================
-// COMPETITOR BLOCKING - Comprehensive list
+// COMPETITOR BLOCKING - Comprehensive list (synced with frontend)
 // ============================================================================
 const BLOCKED_DOMAINS = [
-  // Major Spanish portals
-  'idealista.com', 'fotocasa.com', 'kyero.com', 'pisos.com', 'habitaclia.com',
-  'milanuncios.com', 'yaencontre.com', 'tucasa.com', 'enalquiler.com',
+  // International giants
+  'sothebysrealty.com', 'christiesrealestate.com', 'knightfrank.com',
+  'savills.com', 'savills.es', 'engelvoelkers.com', 'engel-voelkers.com', 'engel-voelkers.es',
+  'remax.com', 'remax.es', 'coldwellbanker.com', 'coldwellbanker.es',
+  'century21.com', 'century21.es', 'kellerwilliams.com', 'compass.com',
+  'berkshirehathaway.com',
   
-  // International portals
+  // US portals
+  'zillow.com', 'trulia.com', 'realtor.com', 'redfin.com', 'apartments.com',
+  
+  // UK portals
   'rightmove.co.uk', 'zoopla.co.uk', 'onthemarket.com', 'primelocation.com',
-  'properstar.com', 'immowelt.de', 'immobilienscout24.de', 'funda.nl',
-  'hemnet.se', 'boligsiden.dk', 'finn.no', 'etuovi.com', 'ingatlan.com',
+  'propertypal.com', 'mouseprice.com', 'propertyguides.com',
   
-  // UK-focused Spain portals
-  'thinkspain.com', 'aplaceinthesun.com', 'spainhouses.net', 'eyeonspain.com',
-  'spanishpropertyinsight.com', 'spanishpropertychoice.com',
+  // Spanish portals
+  'idealista.com', 'fotocasa.com', 'fotocasa.es', 'pisos.com', 'habitaclia.com',
+  'kyero.com', 'thinkspain.com', 'spanishpropertyinsight.com', 'yaencontre.com',
+  'tucasa.com', 'enalquiler.com', 'milanuncios.com', 'spanish-property-choice.com',
+  'propertiesabroadspain.com', 'spainhouses.net', 'eyeonspain.com',
+  'aplaceinthesun.com', 'spanishpropertychoice.com',
   
-  // Luxury agencies
-  'lucasfox.com', 'engel-voelkers.com', 'sothebysrealty.com', 'christiesrealestate.com',
-  'savills.com', 'knightfrank.com', 'drumelia.com', 'mpdunne.com',
-  'pure-living-properties.com', 'nvoga.com',
+  // Netherlands
+  'funda.nl', 'huislijn.nl', 'jaap.nl', 'pararius.nl',
+  
+  // Germany
+  'immobilienscout24.de', 'immowelt.de', 'immonet.de',
+  
+  // France
+  'seloger.com', 'pap.fr', 'leboncoin.fr', 'logic-immo.com',
+  
+  // Nordic
+  'hemnet.se', 'boligsiden.dk', 'finn.no', 'etuovi.com',
+  
+  // Other EU
+  'ingatlan.com', 'properstar.com',
+  
+  // Luxury/Costa del Sol specific competitors
+  'lucasfox.com', 'drumelia.com', 'mpdunne.com', 'pure-living-properties.com',
+  'nvoga.com', 'immoabroad.com', 'terrameridiana.com', 'marbellaforsaleblog.com',
   
   // Malaga-specific competitors
   'movetomalagaspain.com', 'movetomalaga.com', 'propertyfindermalaga.com',
+  'homenetspain.com',
 ];
 
 const BLOCKED_KEYWORDS = [
-  'realestate', 'real-estate', 'realtor', 'property', 'properties', 'homes',
-  'villas', 'apartments', 'condos', 'listing', 'listings', 'forsale', 'for-sale',
-  'inmobiliaria', 'inmueble', 'inmuebles', 'pisos', 'casas', 'viviendas',
-  'makelaar', 'vastgoed', 'woningen', 'huizen', 'immobilien', 'makler',
+  // Direct real estate terms (English)
+  'realty', 'realtor', 'real-estate', 'realestate', 'estate-agent', 'estate-agents',
+  'property-sales', 'property-agency', 'homes-for-sale', 'house-sales',
+  'luxury-homes', 'property', 'properties', 'homes', 'housing', 'estate', 'estates',
+  'villas', 'apartments', 'condos', 'rentals', 'lettings', 'forsale', 'for-sale',
+  'listing', 'listings', 'broker', 'brokerage', 'realtors',
+  'estate-services', 'property-finder', 'home-finder',
+  
+  // Spanish
+  'inmobiliaria', 'inmobiliarias', 'inmueble', 'inmuebles', 'vivienda', 'viviendas',
+  'casas', 'pisos', 'chalets', 'apartamentos', 'alquileres', 'propiedades',
+  
+  // German
+  'immobilien', 'makler', 'hauskauf', 'wohnung', 'wohnungen',
+  
+  // French
+  'immo', 'immobilier', 'agence-immobiliere',
+  
+  // Dutch
+  'makelaar', 'vastgoed', 'woningen', 'huizen', 'woning',
+  
+  // Finnish
+  'kiinteisto', 'asunto',
+  
+  // Norwegian
+  'eiendom', 'bolig',
+  
+  // Swedish
+  'fastighet', 'bostader',
+  
+  // Danish
+  'ejendom',
+  
+  // Hungarian
+  'ingatlan', 'lakás',
+  
+  // Italian
+  'immobiliare',
 ];
 
 // ============================================================================
@@ -130,7 +187,7 @@ async function findCitationsForArticle(
   const langName = languageNames[language] || 'English';
   const domainPrefs = LANG_DOMAIN_PREFERENCES[language] || LANG_DOMAIN_PREFERENCES['en'];
 
-  const prompt = `Find 4-6 authoritative citations for this ${langName} article about Costa del Sol real estate.
+  const prompt = `Find 4-6 authoritative citations for this article about Costa del Sol real estate.
 
 ARTICLE HEADLINE: "${headline}"
 
@@ -139,17 +196,17 @@ ${content.substring(0, 3000)}
 
 CRITICAL REQUIREMENTS:
 1. NEVER include real estate websites, property portals, or inmobiliarias
-2. NEVER include competitor real estate agencies (Kyero, Idealista, Fotocasa, etc.)
-3. ONLY include high-authority sources:
-   - Government websites (${domainPrefs.slice(0, 3).join(', ')})
+2. NEVER include competitor real estate agencies (Kyero, Idealista, Fotocasa, Sotheby's, Knight Frank, Zillow, Rightmove, etc.)
+3. LANGUAGE FLEXIBILITY: Use English OR Spanish sources regardless of article language. Quality over language matching.
+4. PREFER high-authority sources:
+   - Government websites (.gov, .gob.es, .gov.uk, ${domainPrefs.slice(0, 2).join(', ')})
    - Official statistics (INE, Eurostat, national statistics offices)
-   - Major news outlets (Reuters, BBC, El País, Bloomberg, etc.)
+   - Major news outlets (Reuters, BBC, El País, Bloomberg, The Guardian, etc.)
    - Tourism authorities (Spain.info, regional tourism boards)
    - Banking/financial institutions (ECB, Bank of Spain)
-   - Academic institutions
-
-4. For each citation, identify the best sentence in the article where it could be inserted
+   - Academic institutions (.edu)
 5. Each URL must be publicly accessible and working
+6. DIVERSIFY sources - don't repeat the same domain across multiple citations
 
 Return a JSON array with 4-6 citations:
 [{
