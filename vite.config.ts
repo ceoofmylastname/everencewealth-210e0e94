@@ -10,8 +10,10 @@ function staticPageGenerator(): Plugin {
   return {
     name: "static-page-generator",
     async closeBundle() {
-      // Only run in production builds
-      if (process.env.NODE_ENV === 'production') {
+      // Run in production builds OR when not in dev server
+      // Note: Vite sets NODE_ENV=production for `vite build`
+      const isProduction = process.env.NODE_ENV === 'production' || !process.env.VITE_DEV_SERVER;
+      if (isProduction) {
         const distPath = path.resolve(__dirname, 'dist');
         
         // 1. Generate app-shell.html first (needed for dynamic routes)

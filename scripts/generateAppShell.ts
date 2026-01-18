@@ -93,6 +93,9 @@ export function generateAppShell(distDir: string = 'dist'): void {
   console.log(`   - Script tags: ${scripts.length}`);
 }
 
-// Run if executed directly
-const distDir = process.argv[2] || 'dist';
-generateAppShell(distDir);
+// Run if executed directly (not when imported as module)
+const isMainModule = import.meta.url === `file://${process.argv[1]}`;
+if (isMainModule) {
+  const distDir = process.argv[2] || 'dist';
+  generateAppShell(distDir);
+}

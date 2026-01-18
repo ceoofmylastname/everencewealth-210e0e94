@@ -994,6 +994,9 @@ export async function generateStaticPages(distDir: string) {
   }
 }
 
-// Execute when run directly
-const distDir = process.argv[2] || 'dist';
-generateStaticPages(distDir);
+// Execute when run directly (not when imported as module)
+const isMainModule = import.meta.url === `file://${process.argv[1]}`;
+if (isMainModule) {
+  const distDir = process.argv[2] || 'dist';
+  generateStaticPages(distDir);
+}
