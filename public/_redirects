@@ -13,6 +13,9 @@
 /glossary.json  /glossary.json  200
 /pages.json  /pages.json  200
 
+# Pass-through for assets (prevents infinite loop - MUST come before wildcards)
+/assets/*  /assets/:splat  200
+
 # Note: WWW redirect handled by middleware (functions/_middleware.js)
 
 # Legacy property routes - redirect to English versions
@@ -69,9 +72,6 @@
 # SPA routing for language-prefixed app pages (properties only)
 /:lang/properties  /index.html  200
 /:lang/property/:reference  /index.html  200
-
-# Pass-through for assets (prevents infinite loop)
-/assets/*  /assets/:splat  200
 
 # SPA fallback - MUST BE LAST
 /*  /index.html  200
