@@ -25,6 +25,7 @@ import {
   Ban,
   ArrowRightLeft,
   Link2Off,
+  Webhook,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -67,7 +68,8 @@ const navigation = [
   { name: "Batch Images", href: "/admin/tools/batch-image-generation", icon: Image },
   { name: "AEO Guide", href: "/admin/docs/aeo-sge-guide", icon: BookOpen },
 
-  // Settings
+  // Settings & Dev Tools
+  { name: "Webhook Testing", href: "/admin/webhook-testing", icon: Webhook },
   { name: "Export", href: "/admin/export", icon: Download },
   { name: "Settings", href: "/admin/settings", icon: Settings },
 ];
