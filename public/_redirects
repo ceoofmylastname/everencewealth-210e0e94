@@ -72,13 +72,3 @@ http://delsolprimehomes.com/*   https://www.delsolprimehomes.com/:splat  301
 /:lang/properties  /index.html  200
 /:lang/property/:reference  /index.html  200
 
-# Admin, Auth, and Login routes - serve SPA (before final fallback)
-/admin        /index.html  200
-/admin/*      /index.html  200
-/auth         /index.html  200
-/auth/*       /index.html  200
-/login        /index.html  200
-/login/*      /index.html  200
-
-# SPA fallback - MUST come LAST
-/*  /index.html  200
