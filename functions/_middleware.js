@@ -4,6 +4,8 @@
 // Last updated: 2026-01-18
 // ============================================================
 
+// Hardcoded values ensure middleware works in Cloudflare Pages environment
+// (environment variables are NOT available in Pages Functions)
 const SUPABASE_URL = 'https://kazggnufaoicopvmwhdl.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImthemdnbnVmYW9pY29wdm13aGRsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA1MzM0ODEsImV4cCI6MjA3NjEwOTQ4MX0.acQwC_xPXFXvOwwn7IATeg6OwQ2HWlu52x76iqUdhB4';
 
@@ -110,6 +112,9 @@ export async function onRequest(context) {
   if (needsSEO(pathname)) {
     console.log('[Middleware] Routing to SEO edge function:', pathname);
 
+    let seoStatus = 'pending';
+    let seoBody = '';
+
     try {
       // Call Supabase edge function with 10-second timeout
       const controller = new AbortController();
@@ -130,22 +135,24 @@ export async function onRequest(context) {
       );
 
       clearTimeout(timeoutId);
+      seoStatus = String(seoResponse.status);
 
       // Get response body
-      const body = await seoResponse.text();
+      seoBody = await seoResponse.text();
 
       // ============================================================
-      // RULE 2: Handle 410 Gone (empty content) - return immediately
-      // Do NOT fall back to React SPA for 410 responses
+      // RULE 2: Handle 404/410 (empty/missing content) - NEVER fall through
+      // These statuses MUST return immediately with the edge function response
       // ============================================================
-      if (seoResponse.status === 410) {
-        console.log('[Middleware] 410 Gone from edge function:', pathname);
-        return new Response(body, {
-          status: 410,
+      if (seoResponse.status === 410 || seoResponse.status === 404) {
+        console.log(`[Middleware] ${seoResponse.status} from edge function:`, pathname);
+        return new Response(seoBody || `<!DOCTYPE html><html><head><meta name="robots" content="noindex,nofollow"><title>${seoResponse.status} Gone</title></head><body><h1>${seoResponse.status === 410 ? 'Gone' : 'Not Found'}</h1></body></html>`, {
+          status: seoResponse.status,
           headers: {
             'Content-Type': 'text/html; charset=utf-8',
             'X-Robots-Tag': 'noindex',
-            'X-SEO-Source': 'edge-function-410',
+            'X-SEO-Source': `edge-function-${seoResponse.status}`,
+            'X-SEO-Status': seoStatus,
             'X-Middleware-Status': 'Active',
           }
         });
@@ -154,15 +161,16 @@ export async function onRequest(context) {
       // If we got HTML content (check for DOCTYPE or <html), use it
       if (
         seoResponse.ok &&
-        (body.includes('<!DOCTYPE html>') || body.includes('<html'))
+        (seoBody.includes('<!DOCTYPE html>') || seoBody.includes('<html'))
       ) {
         console.log('[Middleware] SEO function returned HTML');
-        return new Response(body, {
+        return new Response(seoBody, {
           status: 200,
           headers: {
             'Content-Type': 'text/html; charset=utf-8',
             'Cache-Control': 'public, max-age=300',
             'X-SEO-Source': 'edge-function',
+            'X-SEO-Status': seoStatus,
             'X-Middleware-Status': 'Active',
           }
         });
@@ -170,11 +178,25 @@ export async function onRequest(context) {
 
       // Edge function didn't return HTML, fall through to React app
       console.log('[Middleware] SEO function did not return HTML, status:', seoResponse.status);
+      seoStatus = `${seoResponse.status}-no-html`;
 
     } catch (error) {
       // Timeout or network error - fall through to React app
       console.error('[Middleware] SEO function error:', error.message);
+      seoStatus = `FetchError:${error.message?.substring(0, 50) || 'unknown'}`;
     }
+
+    // If we reach here, we're falling through to React - add debug header
+    const fallbackResponse = await next();
+    const headers = new Headers(fallbackResponse.headers);
+    headers.set('X-Middleware-Status', 'Active');
+    headers.set('X-SEO-Status', seoStatus);
+    headers.set('X-SEO-Fallback', 'true');
+    return new Response(fallbackResponse.body, {
+      status: fallbackResponse.status,
+      statusText: fallbackResponse.statusText,
+      headers,
+    });
   }
 
   // All other requests - pass through to React SPA
