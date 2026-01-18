@@ -814,6 +814,9 @@ export async function generateStaticQAPages(distDir: string) {
   }
 }
 
-// Run if called directly
-const distDir = join(process.cwd(), 'dist');
-generateStaticQAPages(distDir).catch(console.error);
+// Run if called directly (not when imported as module)
+const isMainModule = import.meta.url === `file://${process.argv[1]}`;
+if (isMainModule) {
+  const distDir = join(process.cwd(), 'dist');
+  generateStaticQAPages(distDir).catch(console.error);
+}

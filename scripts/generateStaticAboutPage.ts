@@ -736,6 +736,9 @@ export async function generateStaticAboutPage(distDir: string) {
   }
 }
 
-// Run if called directly
-const distDir = process.argv[2] || 'dist';
-generateStaticAboutPage(distDir);
+// Run if called directly (not when imported as module)
+const isMainModule = import.meta.url === `file://${process.argv[1]}`;
+if (isMainModule) {
+  const distDir = process.argv[2] || 'dist';
+  generateStaticAboutPage(distDir);
+}
