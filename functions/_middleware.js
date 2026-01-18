@@ -32,8 +32,9 @@ const SEO_ROUTE_PATTERNS = [
 
 // Check if path needs SEO edge function
 function needsSEO(pathname) {
-  // Root homepage
-  if (pathname === '/') return true;
+  // Root homepage should be served as static file, NOT via edge function
+  // The homepage is pre-rendered as home.html during build
+  if (pathname === '/') return false;
   
   // Check against SEO route patterns
   return SEO_ROUTE_PATTERNS.some(pattern => pattern.test(pathname));
