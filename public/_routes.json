@@ -1,11 +1,13 @@
 {
   "version": 1,
-  "description": "Cloudflare Pages routing - serve static files directly, run middleware for all dynamic routes including sitemaps",
+  "description": "Cloudflare Pages routing - serve static files directly, run middleware for dynamic routes",
   "include": ["/*"],
   "exclude": [
     "/assets/*",
-    "/ai-sitemap.xml",
+    "/*.html",
     "/*.txt",
+    "/*.xml",
+    "/*.json",
     "/*.png",
     "/*.ico",
     "/*.jpg",
