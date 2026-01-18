@@ -1,5 +1,13 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
+// ============================================================
+// EMERGENCY BYPASS - Function disabled to prevent database timeouts
+// All requests return 204 immediately, no database calls made
+// Re-enable when database stability is restored
+// Last updated: 2026-01-18
+// ============================================================
+const FUNCTION_DISABLED = true
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -1091,6 +1099,22 @@ Deno.serve(async (req) => {
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
+  }
+
+  // ============================================================
+  // EMERGENCY BYPASS - Return immediately without any DB calls
+  // This prevents 524 timeouts when database is under stress
+  // ============================================================
+  if (FUNCTION_DISABLED) {
+    console.log('[SEO] Function disabled - returning 204 No Content')
+    return new Response(null, { 
+      status: 204,
+      headers: { 
+        ...corsHeaders,
+        'X-SEO-Function': 'disabled',
+        'X-Reason': 'database-stability'
+      }
+    })
   }
 
   // Circuit breaker check - fail fast if DB is repeatedly failing
