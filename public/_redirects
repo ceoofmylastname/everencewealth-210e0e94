@@ -13,9 +13,7 @@
 /glossary.json  /glossary.json  200
 /pages.json  /pages.json  200
 
-# Force all traffic to www version (no ! suffix)
-https://delsolprimehomes.com/*  https://www.delsolprimehomes.com/:splat  301
-http://delsolprimehomes.com/*   https://www.delsolprimehomes.com/:splat  301
+# Note: WWW redirect handled by middleware (functions/_middleware.js)
 
 # Legacy property routes - redirect to English versions
 /property-finder  /en/properties  301
@@ -72,3 +70,5 @@ http://delsolprimehomes.com/*   https://www.delsolprimehomes.com/:splat  301
 /:lang/properties  /index.html  200
 /:lang/property/:reference  /index.html  200
 
+# SPA fallback - MUST BE LAST
+/*  /index.html  200
