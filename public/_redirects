@@ -1,4 +1,7 @@
-# Admin, Auth, and Login routes - serve SPA (MUST come first)
+# Root homepage - serve pre-rendered SEO page (MUST come first)
+/  /home.html  200
+
+# Admin, Auth, and Login routes - serve SPA
 /admin        /index.html  200
 /admin/*      /index.html  200
 /auth         /index.html  200
