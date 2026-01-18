@@ -42,7 +42,7 @@ function needsSEO(pathname) {
 
 // Static file extensions - skip edge function
 const STATIC_EXTENSIONS = [
-  '.js', '.css', '.png', '.jpg', '.jpeg', '.gif', '.svg', 
+  '.html', '.js', '.css', '.png', '.jpg', '.jpeg', '.gif', '.svg', 
   '.ico', '.woff', '.woff2', '.ttf', '.eot', '.webp', '.map',
   '.xml', '.txt', '.json'
 ];
