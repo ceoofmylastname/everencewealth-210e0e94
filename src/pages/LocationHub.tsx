@@ -6,8 +6,9 @@ import { Header } from "@/components/home/Header";
 import { Footer } from "@/components/home/Footer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ChevronRight, Compass, ChevronDown, TrendingUp, Users, Home, MapPin, Globe, BookOpen } from "lucide-react";
+import { ChevronRight, Compass, ChevronDown, TrendingUp, MapPin, Globe, BookOpen } from "lucide-react";
 import { useState, useEffect } from "react";
+import { OptimizedImage } from "@/components/OptimizedImage";
 
 // New components
 import { SpeakableHubIntro } from "@/components/location-hub/SpeakableHubIntro";
@@ -17,16 +18,15 @@ import { HubFAQSection } from "@/components/location-hub/HubFAQSection";
 import { 
   getLocalizedHubContent, 
   generateHubSchemaGraph, 
-  generateHubHreflangTags,
   getHubCanonicalUrl,
   getHubLocale 
 } from "@/lib/locationHubSchemaGenerator";
 
 const STATS = [
-  { icon: MapPin, label: "Cities", value: "8", suffix: "" },
+  { icon: MapPin, label: "Cities", value: "11", suffix: "" },
   { icon: BookOpen, label: "Guides", value: "19+", suffix: "" },
   { icon: Globe, label: "Languages", value: "10", suffix: "" },
-  { icon: TrendingUp, label: "Intent Types", value: "8", suffix: "" },
+  { icon: TrendingUp, label: "Data Points", value: "8", suffix: "" },
 ];
 
 interface CityData {
@@ -124,13 +124,27 @@ const LocationHub = () => {
       <Header variant="solid" />
       
       <main className="min-h-screen">
-        {/* Hero Section */}
-        <section className="relative min-h-[70vh] flex items-center justify-center overflow-hidden">
-          {/* Animated Background */}
+        {/* Hero Section with Background Image */}
+        <section className="relative min-h-[85vh] flex items-center justify-center overflow-hidden">
+          {/* Background Image */}
           <div className="absolute inset-0">
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-background to-secondary/20" />
-            <div className="absolute -top-40 -left-40 w-[600px] h-[600px] rounded-full bg-primary/10 blur-[100px] animate-pulse" />
-            <div className="absolute -bottom-40 -right-40 w-[800px] h-[800px] rounded-full bg-secondary/10 blur-[100px] animate-pulse" style={{ animationDelay: '1s' }} />
+            <OptimizedImage
+              src="https://images.unsplash.com/photo-1555990793-da11153b2473?w=1920&q=80"
+              alt="Aerial view of the Costa del Sol coastline, Spain"
+              className="w-full h-full object-cover"
+            />
+            {/* Gradient Overlay */}
+            <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-background" />
+          </div>
+
+          {/* Speakable Summary - AI-optimized (screen reader accessible) */}
+          <div id="speakable-summary" className="sr-only">
+            Del Sol Prime Homes Location Intelligence Hub provides comprehensive 
+            real estate guides for 11 cities across the Costa del Sol. Explore 
+            data-driven insights on property prices, investment yields, school 
+            zones, safety ratings, and cost of living analysis for Marbella, 
+            Estepona, Fuengirola, and more. Each guide includes expert recommendations
+            tailored to families, investors, retirees, and expats.
           </div>
 
           <div className="container mx-auto px-4 relative z-10 text-center pt-24">
@@ -139,51 +153,51 @@ const LocationHub = () => {
               aria-label="Breadcrumb" 
               className={`mb-8 transition-all duration-700 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
             >
-              <ol className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+              <ol className="flex items-center justify-center gap-2 text-sm text-white/70">
                 <li>
                   <Link to={`/${lang}`} className="hover:text-primary transition-colors">Home</Link>
                 </li>
                 <ChevronRight className="w-4 h-4" />
-                <li className="text-foreground font-medium">Locations</li>
+                <li className="text-white font-medium">Locations</li>
               </ol>
             </nav>
 
             {/* Badge */}
             <div className={`mb-6 transition-all duration-700 delay-100 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-              <Badge className="badge-luxury px-5 py-2.5 text-sm font-medium">
+              <Badge className="bg-white/10 backdrop-blur-md border-white/20 text-white px-5 py-2.5 text-sm font-medium">
                 <Compass className="w-4 h-4 mr-2" />
-                {cities.length} Cities • {totalGuides || '19+'}  Guides • 10 Languages
+                {cities.length || 11} Cities • {totalGuides || '19+'}  Guides • 10 Languages
               </Badge>
             </div>
 
             {/* Main H1 - Speakable */}
             <h1 
-              className={`speakable-answer text-4xl md:text-5xl lg:text-6xl font-serif font-bold text-foreground mb-6 leading-[1.1] transition-all duration-1000 delay-200 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
+              className={`speakable-answer text-4xl md:text-5xl lg:text-7xl font-serif font-bold text-white mb-6 leading-[1.1] transition-all duration-1000 delay-200 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
             >
-              Costa del Sol
-              <span className="block text-gradient-gold">Location Guides</span>
+              Real Estate Intelligence
+              <span className="block text-gradient-gold">for {cities.length || 11} Cities</span>
             </h1>
 
             {/* Subtitle */}
             <p 
-              className={`text-lg md:text-xl text-muted-foreground leading-relaxed max-w-2xl mx-auto mb-12 transition-all duration-1000 delay-300 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
+              className={`text-lg md:text-xl text-white/80 leading-relaxed max-w-2xl mx-auto mb-12 transition-all duration-1000 delay-300 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
             >
               {hubContent.description}
             </p>
 
-            {/* Stats Bar */}
+            {/* Stats Bar - Glass morphism */}
             <div 
-              className={`flex flex-wrap justify-center gap-8 md:gap-12 mb-8 transition-all duration-1000 delay-400 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
+              className={`inline-flex flex-wrap justify-center gap-6 md:gap-10 bg-white/5 backdrop-blur-lg rounded-2xl px-8 py-6 border border-white/10 transition-all duration-1000 delay-400 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
             >
-              {STATS.map((stat, index) => (
+              {STATS.map((stat) => (
                 <div key={stat.label} className="flex flex-col items-center">
-                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-2">
-                    <stat.icon className="w-6 h-6 text-primary" />
+                  <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center mb-2">
+                    <stat.icon className="w-5 h-5 text-primary" />
                   </div>
-                  <span className="text-2xl md:text-3xl font-bold text-foreground">
+                  <span className="text-2xl md:text-3xl font-bold text-white">
                     {stat.value}{stat.suffix}
                   </span>
-                  <span className="text-sm text-muted-foreground">{stat.label}</span>
+                  <span className="text-xs text-white/60 uppercase tracking-wider">{stat.label}</span>
                 </div>
               ))}
             </div>
@@ -192,11 +206,11 @@ const LocationHub = () => {
           {/* Scroll Indicator */}
           <button
             onClick={scrollToContent}
-            className={`absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-muted-foreground hover:text-primary transition-all cursor-pointer group ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
+            className={`absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-white/60 hover:text-primary transition-all cursor-pointer group ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
             aria-label="Scroll to content"
           >
             <span className="text-xs uppercase tracking-widest font-medium">Explore</span>
-            <div className="w-6 h-10 rounded-full border-2 border-border flex items-start justify-center p-2 group-hover:border-primary transition-colors">
+            <div className="w-6 h-10 rounded-full border-2 border-white/30 flex items-start justify-center p-2 group-hover:border-primary transition-colors">
               <ChevronDown className="w-4 h-4 animate-scroll-indicator" />
             </div>
           </button>
@@ -205,13 +219,13 @@ const LocationHub = () => {
         {/* AI-Ready Speakable Section */}
         <SpeakableHubIntro language={lang} cityCount={cities.length} guideCount={totalGuides} />
 
-        {/* What to Expect Section */}
+        {/* Intelligence Grid (E-E-A-T Proof Section) */}
         <WhatToExpectSection language={lang} />
 
-        {/* Featured Cities Grid */}
+        {/* Featured Cities Grid with Metadata */}
         <FeaturedCitiesSection language={lang} cities={cities} isLoading={isLoading} />
 
-        {/* FAQ Section */}
+        {/* FAQ Section - Semantic HTML */}
         <HubFAQSection language={lang} />
 
         {/* CTA Section */}

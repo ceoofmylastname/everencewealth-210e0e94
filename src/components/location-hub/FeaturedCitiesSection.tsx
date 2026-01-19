@@ -20,6 +20,21 @@ interface FeaturedCitiesSectionProps {
   isLoading: boolean;
 }
 
+// City metadata for overlay tags
+const CITY_METADATA: Record<string, { avgPrice: string; bestFor: string; vibe: string }> = {
+  marbella: { avgPrice: 'From €650K', bestFor: 'Luxury & Golf', vibe: 'Glamorous' },
+  estepona: { avgPrice: 'From €350K', bestFor: 'Authentic Spain', vibe: 'Charming' },
+  fuengirola: { avgPrice: 'From €250K', bestFor: 'Families & Expats', vibe: 'Vibrant' },
+  benalmadena: { avgPrice: 'From €280K', bestFor: 'Beach & Nightlife', vibe: 'Lively' },
+  torremolinos: { avgPrice: 'From €220K', bestFor: 'Budget Friendly', vibe: 'Bustling' },
+  malaga: { avgPrice: 'From €300K', bestFor: 'City & Culture', vibe: 'Urban' },
+  casares: { avgPrice: 'From €400K', bestFor: 'Rural Retreat', vibe: 'Peaceful' },
+  mijas: { avgPrice: 'From €320K', bestFor: 'Village Charm', vibe: 'Picturesque' },
+  nerja: { avgPrice: 'From €280K', bestFor: 'Natural Beauty', vibe: 'Relaxed' },
+  'la-cala': { avgPrice: 'From €350K', bestFor: 'Golf & Beach', vibe: 'Exclusive' },
+  benahavis: { avgPrice: 'From €500K', bestFor: 'Mountain Views', vibe: 'Serene' },
+};
+
 const LOCALIZED_CONTENT: Record<string, {
   sectionTitle: string;
   sectionSubtitle: string;
@@ -31,7 +46,7 @@ const LOCALIZED_CONTENT: Record<string, {
 }> = {
   en: {
     sectionTitle: "Explore by City",
-    sectionSubtitle: "Select a city to discover comprehensive guides about property, lifestyle, and investment opportunities.",
+    sectionSubtitle: "Select a city to discover comprehensive guides with property insights, lifestyle data, and investment analysis.",
     guidesLabel: "guides",
     guideLabel: "guide",
     exploreLabel: "Explore Guides",
@@ -40,7 +55,7 @@ const LOCALIZED_CONTENT: Record<string, {
   },
   nl: {
     sectionTitle: "Verken per Stad",
-    sectionSubtitle: "Selecteer een stad om uitgebreide gidsen te ontdekken over vastgoed, levensstijl en investeringsmogelijkheden.",
+    sectionSubtitle: "Selecteer een stad om uitgebreide gidsen te ontdekken met vastgoedinzichten, levensstijldata en investeringsanalyse.",
     guidesLabel: "gidsen",
     guideLabel: "gids",
     exploreLabel: "Gidsen Verkennen",
@@ -49,7 +64,7 @@ const LOCALIZED_CONTENT: Record<string, {
   },
   de: {
     sectionTitle: "Nach Stadt Erkunden",
-    sectionSubtitle: "Wählen Sie eine Stadt, um umfassende Führer über Immobilien, Lebensstil und Investitionsmöglichkeiten zu entdecken.",
+    sectionSubtitle: "Wählen Sie eine Stadt, um umfassende Führer mit Immobilieneinblicken, Lebensstildaten und Investitionsanalysen zu entdecken.",
     guidesLabel: "Führer",
     guideLabel: "Führer",
     exploreLabel: "Führer Erkunden",
@@ -58,12 +73,66 @@ const LOCALIZED_CONTENT: Record<string, {
   },
   fr: {
     sectionTitle: "Explorer par Ville",
-    sectionSubtitle: "Sélectionnez une ville pour découvrir des guides complets sur l'immobilier, le style de vie et les opportunités d'investissement.",
+    sectionSubtitle: "Sélectionnez une ville pour découvrir des guides complets avec des aperçus immobiliers, des données lifestyle et une analyse d'investissement.",
     guidesLabel: "guides",
     guideLabel: "guide",
     exploreLabel: "Explorer les Guides",
     noGuides: "Pas Encore de Guides",
     noGuidesSubtitle: "Les pages d'intelligence de localisation arrivent bientôt. Revenez plus tard."
+  },
+  sv: {
+    sectionTitle: "Utforska per Stad",
+    sectionSubtitle: "Välj en stad för att upptäcka omfattande guider med fastighetsinsikter, livsstilsdata och investeringsanalys.",
+    guidesLabel: "guider",
+    guideLabel: "guide",
+    exploreLabel: "Utforska Guider",
+    noGuides: "Inga Platsguider Ännu",
+    noGuidesSubtitle: "Platsintelligensidor kommer snart. Kom tillbaka senare."
+  },
+  no: {
+    sectionTitle: "Utforsk etter By",
+    sectionSubtitle: "Velg en by for å oppdage omfattende guider med eiendomsinnsikt, livsstilsdata og investeringsanalyse.",
+    guidesLabel: "guider",
+    guideLabel: "guide",
+    exploreLabel: "Utforsk Guider",
+    noGuides: "Ingen Stedsguider Ennå",
+    noGuidesSubtitle: "Stedsintelligensider kommer snart. Kom tilbake senere."
+  },
+  da: {
+    sectionTitle: "Udforsk efter By",
+    sectionSubtitle: "Vælg en by for at opdage omfattende guider med ejendomsindsigt, livsstilsdata og investeringsanalyse.",
+    guidesLabel: "guider",
+    guideLabel: "guide",
+    exploreLabel: "Udforsk Guider",
+    noGuides: "Ingen Stedguider Endnu",
+    noGuidesSubtitle: "Stedintelligensider kommer snart. Kom tilbage senere."
+  },
+  fi: {
+    sectionTitle: "Tutustu Kaupungeittain",
+    sectionSubtitle: "Valitse kaupunki löytääksesi kattavat oppaat kiinteistönäkymillä, elämäntapadatalla ja sijoitusanalyysillä.",
+    guidesLabel: "opasta",
+    guideLabel: "opas",
+    exploreLabel: "Tutustu Oppaisiin",
+    noGuides: "Ei Sijaintioppaita Vielä",
+    noGuidesSubtitle: "Sijaintiälysivut tulossa pian. Tule takaisin myöhemmin."
+  },
+  pl: {
+    sectionTitle: "Przeglądaj według Miasta",
+    sectionSubtitle: "Wybierz miasto, aby odkryć kompleksowe przewodniki z analizą nieruchomości, danymi o stylu życia i analizą inwestycyjną.",
+    guidesLabel: "przewodników",
+    guideLabel: "przewodnik",
+    exploreLabel: "Przeglądaj Przewodniki",
+    noGuides: "Brak Przewodników po Lokalizacjach",
+    noGuidesSubtitle: "Strony inteligencji lokalizacji już wkrótce. Sprawdź później."
+  },
+  hu: {
+    sectionTitle: "Fedezze Fel Városonként",
+    sectionSubtitle: "Válasszon egy várost, hogy átfogó útmutatókat találjon ingatlan-betekintésekkel, életmód-adatokkal és befektetési elemzéssel.",
+    guidesLabel: "útmutató",
+    guideLabel: "útmutató",
+    exploreLabel: "Útmutatók Felfedezése",
+    noGuides: "Még Nincs Helyszín Útmutató",
+    noGuidesSubtitle: "A helyszín intelligencia oldalak hamarosan érkeznek. Nézzen vissza később."
   }
 };
 
@@ -150,17 +219,18 @@ export const FeaturedCitiesSection: React.FC<FeaturedCitiesSectionProps> = ({
           </p>
         </div>
 
-        {/* Featured Cities - Large Cards */}
+        {/* Featured Cities - Large Cards with Metadata */}
         <div className="grid md:grid-cols-3 gap-6 mb-6">
           {featuredCities.map((city, index) => {
             const imageUrl = city.image || CITY_FALLBACK_IMAGES[city.city_slug] || CITY_FALLBACK_IMAGES.marbella;
             const imageAlt = city.imageAlt || `Aerial view of ${city.city_name}, Costa del Sol`;
+            const metadata = CITY_METADATA[city.city_slug] || { avgPrice: 'From €300K', bestFor: 'Lifestyle', vibe: 'Mediterranean' };
 
             return (
               <Link
                 key={city.city_slug}
                 to={`/${language}/locations/${city.city_slug}`}
-                className={`group relative rounded-2xl overflow-hidden card-immersive ${index === 0 ? 'md:row-span-2 md:aspect-auto' : 'aspect-[4/3]'}`}
+                className={`group relative rounded-2xl overflow-hidden card-immersive ${index === 0 ? 'md:row-span-2 md:aspect-auto min-h-[400px]' : 'aspect-[4/3]'}`}
                 style={{ animationDelay: `${index * 100}ms` }}
               >
                 {/* Background Image */}
@@ -171,19 +241,32 @@ export const FeaturedCitiesSection: React.FC<FeaturedCitiesSectionProps> = ({
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                   />
                   {/* Overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/10" />
                 </div>
 
                 {/* Content */}
-                <div className="absolute inset-0 p-6 flex flex-col justify-end">
-                  {/* Badge */}
-                  <Badge className="absolute top-4 right-4 bg-white/10 backdrop-blur-md border-white/20 text-white">
-                    <BookOpen className="w-3 h-3 mr-1" />
-                    {city.count} {city.count === 1 ? content.guideLabel : content.guidesLabel}
-                  </Badge>
+                <div className="absolute inset-0 p-6 flex flex-col justify-between">
+                  {/* Top: Metadata Tags */}
+                  <div className="flex flex-wrap gap-2">
+                    <Badge className="bg-primary/90 text-primary-foreground text-xs font-semibold shadow-lg">
+                      {metadata.avgPrice}
+                    </Badge>
+                    <Badge className="bg-white/20 backdrop-blur-md border-white/30 text-white text-xs">
+                      {metadata.bestFor}
+                    </Badge>
+                    <Badge className="bg-black/40 backdrop-blur-md border-white/10 text-white/90 text-xs">
+                      {metadata.vibe}
+                    </Badge>
+                  </div>
 
-                  {/* City Info */}
+                  {/* Bottom: City Info */}
                   <div>
+                    {/* Guide Count Badge */}
+                    <Badge className="mb-3 bg-white/10 backdrop-blur-md border-white/20 text-white">
+                      <BookOpen className="w-3 h-3 mr-1" />
+                      {city.count} {city.count === 1 ? content.guideLabel : content.guidesLabel}
+                    </Badge>
+
                     <h3 className={`font-serif font-bold text-white mb-1 group-hover:text-primary transition-colors ${index === 0 ? 'text-3xl md:text-4xl' : 'text-2xl'}`}>
                       {city.city_name}
                     </h3>
@@ -212,6 +295,7 @@ export const FeaturedCitiesSection: React.FC<FeaturedCitiesSectionProps> = ({
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
             {otherCities.map((city, index) => {
               const imageUrl = city.image || CITY_FALLBACK_IMAGES[city.city_slug] || CITY_FALLBACK_IMAGES.marbella;
+              const metadata = CITY_METADATA[city.city_slug] || { avgPrice: 'From €300K', bestFor: 'Lifestyle', vibe: 'Mediterranean' };
 
               return (
                 <Link
@@ -227,17 +311,25 @@ export const FeaturedCitiesSection: React.FC<FeaturedCitiesSectionProps> = ({
                       alt={`${city.city_name}, Costa del Sol`}
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
                   </div>
 
                   {/* Content */}
-                  <div className="absolute inset-0 p-4 flex flex-col justify-end">
-                    <Badge className="absolute top-2 right-2 bg-white/10 backdrop-blur-sm border-white/20 text-white text-xs">
-                      {city.count}
+                  <div className="absolute inset-0 p-3 flex flex-col justify-between">
+                    {/* Top: Price badge */}
+                    <Badge className="self-start bg-primary/80 text-primary-foreground text-[10px] px-2 py-0.5">
+                      {metadata.avgPrice}
                     </Badge>
-                    <h3 className="text-lg font-semibold text-white group-hover:text-primary transition-colors">
-                      {city.city_name}
-                    </h3>
+
+                    {/* Bottom */}
+                    <div>
+                      <Badge className="mb-1 bg-white/10 backdrop-blur-sm border-white/20 text-white text-xs px-1.5 py-0.5">
+                        {city.count} {city.count === 1 ? content.guideLabel : content.guidesLabel}
+                      </Badge>
+                      <h3 className="text-base font-semibold text-white group-hover:text-primary transition-colors">
+                        {city.city_name}
+                      </h3>
+                    </div>
                   </div>
                 </Link>
               );
