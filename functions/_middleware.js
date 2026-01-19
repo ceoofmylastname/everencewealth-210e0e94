@@ -18,6 +18,8 @@ const LANG_PATTERN = LANGUAGES.join('|');
 // NOTE: Language homepages (/en, /de, etc.) are NOT included here
 // They are served as pre-rendered static files via public/_redirects
 const SEO_ROUTE_PATTERNS = [
+  // Location Hub (must be BEFORE location pages pattern) - e.g., /en/locations
+  new RegExp(`^/(${LANG_PATTERN})/locations/?$`),
   // Blog articles
   new RegExp(`^/(${LANG_PATTERN})/blog/[^/]+$`),
   // Q&A pages
