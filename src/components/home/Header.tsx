@@ -5,12 +5,21 @@ import { Button } from './ui/Button';
 import { useTranslation } from '../../i18n';
 import { Menu, MenuItem, ProductItem, HoveredLink } from '../ui/navbar-menu';
 import { LanguageSwitcher } from '../LanguageSwitcher';
+import { ContentLanguageSwitcher } from '../ContentLanguageSwitcher';
+
+interface ContentContext {
+  type: 'blog' | 'qa' | 'location' | 'comparison';
+  hreflangGroupId: string | null;
+  currentSlug: string;
+  currentLanguage: string;
+}
 
 interface HeaderProps {
   variant?: 'transparent' | 'solid';
+  contentContext?: ContentContext;
 }
 
-export const Header: React.FC<HeaderProps> = ({ variant = 'transparent' }) => {
+export const Header: React.FC<HeaderProps> = ({ variant = 'transparent', contentContext }) => {
   const { t, currentLanguage, setLanguage } = useTranslation();
   const [isScrolled, setIsScrolled] = useState(false);
   const [active, setActive] = useState<string | null>(null);
@@ -191,11 +200,21 @@ export const Header: React.FC<HeaderProps> = ({ variant = 'transparent' }) => {
 
         {/* Actions */}
         <div className="hidden lg:flex items-center gap-6">
-          {/* Language Selector */}
-          <LanguageSwitcher 
-            variant="compact" 
-            className={isLightBackground ? '' : 'border-white/30 text-white [&_button]:text-white'}
-          />
+          {/* Language Selector - Content-aware or generic */}
+          {contentContext ? (
+            <ContentLanguageSwitcher
+              currentLanguage={contentContext.currentLanguage}
+              hreflangGroupId={contentContext.hreflangGroupId}
+              contentType={contentContext.type}
+              currentSlug={contentContext.currentSlug}
+              variant="default"
+            />
+          ) : (
+            <LanguageSwitcher 
+              variant="compact" 
+              className={isLightBackground ? '' : 'border-white/30 text-white [&_button]:text-white'}
+            />
+          )}
 
           <Button variant={isLightBackground ? 'primary' : 'secondary'} size="sm" className={`font-nav tracking-wide ${!isLightBackground ? 'bg-prime-gold hover:bg-prime-gold/90 text-prime-900 shadow-lg shadow-prime-gold/20 border-none' : 'bg-prime-gold hover:bg-prime-gold/90 text-prime-900'}`}>
             {t.common.bookCall}
@@ -287,7 +306,17 @@ export const Header: React.FC<HeaderProps> = ({ variant = 'transparent' }) => {
         {/* Language Selector */}
         <div className="flex flex-col gap-3 mt-6 pt-6 border-t border-border">
           <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Language</span>
-          <LanguageSwitcher variant="default" className="w-full" />
+          {contentContext ? (
+            <ContentLanguageSwitcher
+              currentLanguage={contentContext.currentLanguage}
+              hreflangGroupId={contentContext.hreflangGroupId}
+              contentType={contentContext.type}
+              currentSlug={contentContext.currentSlug}
+              variant="default"
+            />
+          ) : (
+            <LanguageSwitcher variant="default" className="w-full" />
+          )}
         </div>
         
         <Button fullWidth onClick={() => setIsMobileMenuOpen(false)} className="mt-auto mb-8">

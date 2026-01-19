@@ -67,7 +67,15 @@ const LocationPage = () => {
   return (
     <>
       {/* SEO tags are handled by server/edge - no Helmet needed */}
-      <Header variant="solid" />
+      <Header 
+        variant="solid" 
+        contentContext={{
+          type: 'location',
+          hreflangGroupId: page.hreflang_group_id,
+          currentSlug: `${page.city_slug}/${page.topic_slug}`,
+          currentLanguage: page.language || 'en'
+        }}
+      />
       
       <main className="min-h-screen">
         <LocationHero
@@ -79,7 +87,6 @@ const LocationPage = () => {
           featuredImageAlt={page.featured_image_alt}
           featuredImageCaption={(page as any).featured_image_caption}
           currentLanguage={page.language || 'en'}
-          hreflangGroupId={page.hreflang_group_id}
         />
 
         <div className="container mx-auto px-4 py-12 md:py-16 space-y-12 md:space-y-16">
