@@ -3,7 +3,6 @@ import { ChevronRight, MapPin, ChevronDown, Sparkles } from "lucide-react";
 import { OptimizedImage } from "@/components/OptimizedImage";
 import { Badge } from "@/components/ui/badge";
 import { useEffect, useState } from "react";
-import { ContentLanguageSwitcher } from "@/components/ContentLanguageSwitcher";
 
 interface LocationHeroProps {
   headline: string;
@@ -14,7 +13,6 @@ interface LocationHeroProps {
   featuredImageAlt?: string;
   featuredImageCaption?: string;
   currentLanguage: string;
-  hreflangGroupId?: string | null;
 }
 
 // Floating particles for luxury effect
@@ -46,7 +44,6 @@ export function LocationHero({
   featuredImageAlt,
   featuredImageCaption,
   currentLanguage,
-  hreflangGroupId,
 }: LocationHeroProps) {
   const [scrollY, setScrollY] = useState(0);
   const [isLoaded, setIsLoaded] = useState(false);
@@ -101,9 +98,8 @@ export function LocationHero({
       <FloatingParticles />
 
       <div className="container mx-auto px-4 relative z-10 pt-24 md:pt-28">
-        {/* Top bar with Breadcrumbs and Language Switcher */}
-        <div className={`flex items-start justify-between gap-4 mb-8 transition-all duration-700 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-          {/* Breadcrumbs - Glass Style */}
+        {/* Breadcrumbs */}
+        <div className={`mb-8 transition-all duration-700 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
           <nav aria-label="Breadcrumb">
             <ol className="flex items-center gap-2 text-sm flex-wrap">
               <li>
@@ -138,15 +134,6 @@ export function LocationHero({
               </li>
             </ol>
           </nav>
-
-          {/* Language Switcher */}
-          <ContentLanguageSwitcher
-            currentLanguage={currentLanguage}
-            hreflangGroupId={hreflangGroupId}
-            contentType="location"
-            currentSlug={`${citySlug}/${topicSlug}`}
-            variant="hero"
-          />
         </div>
 
         {/* Main Content */}
