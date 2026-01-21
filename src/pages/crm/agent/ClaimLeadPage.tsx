@@ -214,15 +214,34 @@ export default function ClaimLeadPage() {
     );
   }
 
+  // Determine if this is an escalated lead
+  const isEscalated = (lead?.current_round || 1) > 1;
+
   return (
     <div className="max-w-5xl mx-auto space-y-6">
       {/* Header with Countdown */}
       <Card className={cn(
         "overflow-hidden",
         claimResult === "success" && "border-green-500 bg-green-50",
-        claimResult === "failed" && "border-destructive bg-destructive/5"
+        claimResult === "failed" && "border-destructive bg-destructive/5",
+        isEscalated && !claimResult && "border-orange-400"
       )}>
         <CardContent className="p-6">
+          {/* Round Indicator */}
+          {isEscalated && !claimResult && (
+            <div className="mb-4 p-3 bg-orange-50 border border-orange-200 rounded-lg flex items-center gap-3">
+              <AlertCircle className="w-5 h-5 text-orange-600" />
+              <div>
+                <p className="font-medium text-orange-800">
+                  Round {lead.current_round} - Escalated Lead
+                </p>
+                <p className="text-sm text-orange-600">
+                  This lead was not claimed in previous round(s). Claim now before it escalates again!
+                </p>
+              </div>
+            </div>
+          )}
+
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
             <div className="flex items-center gap-4">
               <Button
@@ -233,7 +252,19 @@ export default function ClaimLeadPage() {
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Back
               </Button>
-              <h1 className="text-2xl font-bold">Claim Lead</h1>
+              <div>
+                <h1 className="text-2xl font-bold">Claim Lead</h1>
+                <div className="flex items-center gap-2 mt-1">
+                  <Badge variant="outline" className={cn(
+                    isEscalated ? "bg-orange-100 text-orange-700 border-orange-300" : ""
+                  )}>
+                    Round {lead?.current_round || 1}
+                  </Badge>
+                  {lead?.current_round === 1 && (
+                    <span className="text-sm text-muted-foreground">First opportunity</span>
+                  )}
+                </div>
+              </div>
             </div>
 
             <div className="flex items-center gap-6">
@@ -269,7 +300,12 @@ export default function ClaimLeadPage() {
                     size="lg"
                     onClick={handleClaim}
                     disabled={claimMutation.isPending}
-                    className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg hover:shadow-xl transition-all transform hover:scale-105"
+                    className={cn(
+                      "shadow-lg hover:shadow-xl transition-all transform hover:scale-105",
+                      isEscalated 
+                        ? "bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600"
+                        : "bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
+                    )}
                   >
                     {claimMutation.isPending ? (
                       <>

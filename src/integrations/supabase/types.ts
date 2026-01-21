@@ -2120,6 +2120,7 @@ export type Database = {
           country_prefix: string | null
           created_at: string | null
           current_lead_score: number | null
+          current_round: number | null
           days_since_last_contact: number | null
           email: string | null
           exit_point: string | null
@@ -2153,6 +2154,8 @@ export type Database = {
           qa_pairs: Json | null
           questions_answered: number | null
           referrer: string | null
+          round_broadcast_at: string | null
+          round_escalated_at: string | null
           routing_rule_id: string | null
           sea_view_importance: string | null
           timeframe: string | null
@@ -2177,6 +2180,7 @@ export type Database = {
           country_prefix?: string | null
           created_at?: string | null
           current_lead_score?: number | null
+          current_round?: number | null
           days_since_last_contact?: number | null
           email?: string | null
           exit_point?: string | null
@@ -2210,6 +2214,8 @@ export type Database = {
           qa_pairs?: Json | null
           questions_answered?: number | null
           referrer?: string | null
+          round_broadcast_at?: string | null
+          round_escalated_at?: string | null
           routing_rule_id?: string | null
           sea_view_importance?: string | null
           timeframe?: string | null
@@ -2234,6 +2240,7 @@ export type Database = {
           country_prefix?: string | null
           created_at?: string | null
           current_lead_score?: number | null
+          current_round?: number | null
           days_since_last_contact?: number | null
           email?: string | null
           exit_point?: string | null
@@ -2267,6 +2274,8 @@ export type Database = {
           qa_pairs?: Json | null
           questions_answered?: number | null
           referrer?: string | null
+          round_broadcast_at?: string | null
+          round_escalated_at?: string | null
           routing_rule_id?: string | null
           sea_view_importance?: string | null
           timeframe?: string | null
@@ -2425,6 +2434,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      crm_round_robin_config: {
+        Row: {
+          agent_ids: string[]
+          claim_window_minutes: number | null
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          is_admin_fallback: boolean | null
+          language: string
+          round_number: number
+          updated_at: string | null
+        }
+        Insert: {
+          agent_ids: string[]
+          claim_window_minutes?: number | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_admin_fallback?: boolean | null
+          language: string
+          round_number: number
+          updated_at?: string | null
+        }
+        Update: {
+          agent_ids?: string[]
+          claim_window_minutes?: number | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_admin_fallback?: boolean | null
+          language?: string
+          round_number?: number
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       crm_routing_rules: {
         Row: {
@@ -4466,6 +4511,10 @@ export type Database = {
           replacement_url: string
         }[]
       }
+      escalate_lead_to_next_round: {
+        Args: { p_lead_id: string }
+        Returns: Json
+      }
       find_articles_with_citation: {
         Args: { citation_url: string; published_only?: boolean }
         Returns: {
@@ -4522,6 +4571,21 @@ export type Database = {
       get_missing_languages: {
         Args: { p_article_id: string }
         Returns: string[]
+      }
+      get_next_round_config: {
+        Args: { p_current_round: number; p_language: string }
+        Returns: {
+          agent_ids: string[]
+          claim_window_minutes: number
+          is_admin_fallback: boolean
+          round_number: number
+        }[]
+      }
+      get_round_agents: {
+        Args: { p_language: string; p_round: number }
+        Returns: {
+          agent_id: string
+        }[]
       }
       get_table_columns: {
         Args: { table_name: string }
