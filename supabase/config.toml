@@ -341,3 +341,6 @@ verify_jwt = false
 
 [functions.crm-test-lead]
 verify_jwt = false
+
+[functions.send-reminder-emails]
+verify_jwt = false

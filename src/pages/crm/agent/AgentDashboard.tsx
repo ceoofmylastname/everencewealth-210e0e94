@@ -23,6 +23,9 @@ import {
   formatStatus,
   getLanguageFlag,
   PRIORITY_CONFIG,
+  getExtendedUrgency,
+  EXTENDED_URGENCY_STYLES,
+  REMINDER_TYPE_CONFIG,
 } from "@/lib/crm-conditional-styles";
 
 export default function AgentDashboard() {
@@ -277,27 +280,55 @@ export default function AgentDashboard() {
               </p>
             ) : (
               <div className="space-y-3">
-                {reminders.map((reminder: any) => (
-                  <div
-                    key={reminder.id}
-                    className="flex items-center justify-between p-3 rounded-lg border"
-                  >
-                    <div>
-                      <p className="font-medium">{reminder.title}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {reminder.crm_leads?.first_name}{" "}
-                        {reminder.crm_leads?.last_name} •{" "}
-                        {formatDistanceToNow(new Date(reminder.reminder_datetime), {
-                          addSuffix: true,
-                        })}
-                      </p>
-                    </div>
-                    <Badge variant="outline">
-                      <Phone className="w-3 h-3 mr-1" />
-                      {reminder.reminder_type}
-                    </Badge>
-                  </div>
-                ))}
+                {reminders.map((reminder: any) => {
+                  const urgency = getExtendedUrgency(reminder.reminder_datetime);
+                  const styles = EXTENDED_URGENCY_STYLES[urgency];
+                  const typeConfig = REMINDER_TYPE_CONFIG[reminder.reminder_type as keyof typeof REMINDER_TYPE_CONFIG] || {
+                    icon: "🔔",
+                    label: reminder.reminder_type,
+                    color: "bg-gray-100 text-gray-700",
+                  };
+
+                  return (
+                    <Link
+                      key={reminder.id}
+                      to="/crm/agent/calendar"
+                      className={cn(
+                        "flex items-center justify-between p-3 rounded-lg border-l-4 transition-all hover:shadow-md",
+                        styles.bg,
+                        urgency === "overdue" && "animate-pulse"
+                      )}
+                      style={{ borderLeftColor: styles.hex }}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div
+                          className={cn(
+                            "w-8 h-8 rounded-full flex items-center justify-center text-sm",
+                            styles.badge
+                          )}
+                        >
+                          {typeConfig.icon}
+                        </div>
+                        <div>
+                          <p className="font-medium">{reminder.title}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {reminder.crm_leads?.first_name}{" "}
+                            {reminder.crm_leads?.last_name} •{" "}
+                            {formatDistanceToNow(new Date(reminder.reminder_datetime), {
+                              addSuffix: true,
+                            })}
+                          </p>
+                        </div>
+                      </div>
+                      <Badge
+                        variant="outline"
+                        className={cn(styles.badge, "text-xs")}
+                      >
+                        {typeConfig.label}
+                      </Badge>
+                    </Link>
+                  );
+                })}
               </div>
             )}
           </CardContent>
