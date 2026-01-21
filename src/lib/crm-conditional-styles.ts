@@ -142,6 +142,7 @@ export const REMINDER_TYPE_CONFIG = {
   follow_up: { icon: '📧', label: 'Follow-up', color: 'bg-purple-100 text-purple-700' },
   viewing: { icon: '🏠', label: 'Viewing', color: 'bg-green-100 text-green-700' },
   meeting: { icon: '🤝', label: 'Meeting', color: 'bg-amber-100 text-amber-700' },
+  appointment: { icon: '📅', label: 'Appointment', color: 'bg-indigo-100 text-indigo-700' },
   deadline: { icon: '⏰', label: 'Deadline', color: 'bg-red-100 text-red-700' },
 } as const;
 

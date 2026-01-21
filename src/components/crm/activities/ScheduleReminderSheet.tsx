@@ -58,6 +58,7 @@ const REMINDER_TYPES = [
   { value: "callback", label: "📞 Callback" },
   { value: "follow_up", label: "🔄 Follow-up" },
   { value: "viewing", label: "🏠 Viewing" },
+  { value: "appointment", label: "📅 Appointment" },
   { value: "deadline", label: "⏰ Deadline" },
 ];
 
