@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
 import { useScrollAnimation } from '@/hooks/useScrollAnimation';
 import { sendFormToGHL, getPageMetadata, parseFullName } from '@/lib/webhookHandler';
+import { registerCrmLead } from '@/utils/crm/registerCrmLead';
 
 interface ClassicOptinProps {
     language: string;
@@ -81,9 +82,26 @@ const ClassicOptin: React.FC<ClassicOptinProps> = ({ language, translations }) =
                 pageTitle: pageMetadata.pageTitle,
                 referrer: pageMetadata.referrer,
                 timestamp: pageMetadata.timestamp,
-                initialLeadScore: 20
+            initialLeadScore: 20
             });
             console.log('[Classic Optin] GHL webhook sent');
+
+            // Register in CRM system for agent dashboard
+            await registerCrmLead({
+                firstName,
+                lastName,
+                phone: formData.phone,
+                leadSource: 'Landing Form',
+                leadSourceDetail: `landing_classic_${pageMetadata.language}`,
+                pageType: pageMetadata.pageType,
+                pageUrl: pageMetadata.pageUrl,
+                pageTitle: pageMetadata.pageTitle,
+                language: language,
+                referrer: pageMetadata.referrer,
+                timestamp: pageMetadata.timestamp,
+                initialLeadScore: 20
+            });
+            console.log('[Classic Optin] CRM registration sent');
 
             setIsSuccess(true);
             toast({
