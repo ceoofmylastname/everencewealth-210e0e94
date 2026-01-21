@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { sendFormToGHL, getPageMetadata } from "@/lib/webhookHandler";
+import { registerCrmLead } from "@/utils/crm/registerCrmLead";
 
 interface PropertyContactProps {
   reference: string;
@@ -68,6 +69,27 @@ export const PropertyContact = ({ reference, price, propertyType }: PropertyCont
         initialLeadScore: 20
       });
       console.log('[Property Contact] GHL webhook sent');
+
+      // Register in CRM system for agent dashboard
+      await registerCrmLead({
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        phone: formData.phone,
+        leadSource: 'Property Inquiry',
+        leadSourceDetail: `property_detail_${pageMetadata.language}`,
+        pageType: 'property_detail',
+        pageUrl: pageMetadata.pageUrl,
+        pageTitle: pageMetadata.pageTitle,
+        language: pageMetadata.language,
+        propertyRef: reference,
+        propertyType,
+        message: formData.message,
+        referrer: pageMetadata.referrer,
+        timestamp: pageMetadata.timestamp,
+        initialLeadScore: 25
+      });
+      console.log('[Property Contact] CRM registration sent');
 
       setIsSuccess(true);
       toast({

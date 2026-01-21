@@ -2,6 +2,7 @@ import { LanguageCode } from './languageDetection';
 import { captureUTM } from './analytics';
 import { supabase } from '@/integrations/supabase/client';
 import { sendFormToGHL, getPageMetadata, parseFullName } from '@/lib/webhookHandler';
+import { registerCrmLead } from '@/utils/crm/registerCrmLead';
 
 export interface LeadData {
     fullName: string;
@@ -71,6 +72,27 @@ export const submitLeadFunction = async (data: LeadData): Promise<boolean> => {
     });
     
     console.log('[Lead Submission] GHL webhook sent');
+    
+    // Register in CRM system for agent dashboard
+    await registerCrmLead({
+        firstName,
+        lastName,
+        email: data.email,
+        phone: `${data.countryCode}${data.phone}`,
+        countryPrefix: data.countryCode,
+        leadSource: 'Landing Form',
+        leadSourceDetail: `${pageMetadata.pageType}_${pageMetadata.language}`,
+        pageType: pageMetadata.pageType,
+        pageUrl: pageMetadata.pageUrl,
+        pageTitle: pageMetadata.pageTitle,
+        language: data.language,
+        message: data.comment,
+        referrer: pageMetadata.referrer,
+        timestamp: pageMetadata.timestamp,
+        initialLeadScore: 20
+    });
+    
+    console.log('[Lead Submission] CRM registration sent');
     
     return true;
 };

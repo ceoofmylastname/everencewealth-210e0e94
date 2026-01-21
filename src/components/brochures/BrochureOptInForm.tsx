@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { CheckCircle, BookOpen, Download, ArrowRight, Star, Quote } from 'lucide-react';
 import { sendFormToGHL, getPageMetadata } from '@/lib/webhookHandler';
+import { registerCrmLead } from '@/utils/crm/registerCrmLead';
 
 interface BrochureOptInFormProps {
   cityName: string;
@@ -100,6 +101,26 @@ export const BrochureOptInForm = forwardRef<HTMLElement, BrochureOptInFormProps>
           initialLeadScore: 20
         });
         console.log('[Brochure Form] GHL webhook sent');
+
+        // Register in CRM system for agent dashboard
+        await registerCrmLead({
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          email: formData.email,
+          phone: `${formData.countryCode}${formData.phone}`,
+          countryPrefix: formData.countryCode,
+          leadSource: 'Brochure Download',
+          leadSourceDetail: `brochure_${citySlug}_${pageMetadata.language}`,
+          pageType: 'brochure_page',
+          pageUrl: pageMetadata.pageUrl,
+          pageTitle: pageMetadata.pageTitle,
+          language: pageMetadata.language,
+          message: formData.message,
+          referrer: pageMetadata.referrer,
+          timestamp: pageMetadata.timestamp,
+          initialLeadScore: 20
+        });
+        console.log('[Brochure Form] CRM registration sent');
 
         setIsSubmitted(true);
         toast({
