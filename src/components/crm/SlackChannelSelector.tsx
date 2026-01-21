@@ -25,10 +25,19 @@ export function SlackChannelSelector({
   const { data: channels = [], isLoading: isLoadingChannels } = useSlackChannels();
   const syncChannels = useSyncSlackChannels();
   const [localSelected, setLocalSelected] = useState<string[]>(selectedChannelIds);
+  const [initialized, setInitialized] = useState(false);
 
+  // Only sync from parent to local on initial load or when parent IDs meaningfully change
   useEffect(() => {
-    setLocalSelected(selectedChannelIds);
-  }, [selectedChannelIds]);
+    const parentStr = JSON.stringify([...selectedChannelIds].sort());
+    const localStr = JSON.stringify([...localSelected].sort());
+    
+    // Only update if this is the first load or if parent changed externally
+    if (!initialized || parentStr !== localStr) {
+      setLocalSelected(selectedChannelIds);
+      setInitialized(true);
+    }
+  }, [selectedChannelIds]); // intentionally exclude localSelected to prevent loop
 
   const handleToggleChannel = (channelId: string) => {
     const updated = localSelected.includes(channelId)
