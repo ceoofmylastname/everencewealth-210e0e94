@@ -19,6 +19,91 @@ interface CreateAgentRequest {
   timezone: string;
 }
 
+function generateWelcomeEmailHtml(data: {
+  firstName: string;
+  email: string;
+  password: string;
+  loginUrl: string;
+  languages: string[];
+}): string {
+  const languageNames: Record<string, string> = {
+    en: "English",
+    fr: "French",
+    nl: "Dutch",
+    fi: "Finnish",
+    pl: "Polish",
+    de: "German",
+    es: "Spanish",
+  };
+  
+  const formattedLanguages = data.languages
+    .map(code => languageNames[code] || code.toUpperCase())
+    .join(", ");
+
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: #1a365d; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
+        .header h1 { margin: 0; font-size: 24px; }
+        .content { padding: 30px 20px; }
+        .credentials { background: #f7fafc; border: 1px solid #e2e8f0; padding: 20px; margin: 20px 0; border-radius: 8px; }
+        .credentials h3 { margin-top: 0; color: #1a365d; }
+        .credentials p { margin: 8px 0; }
+        .button { display: inline-block; background: #3182ce; color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; font-weight: bold; }
+        .button:hover { background: #2c5282; }
+        .warning { background: #fef3c7; border: 1px solid #f59e0b; padding: 12px; border-radius: 6px; margin: 20px 0; }
+        .footer { font-size: 12px; color: #718096; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1>🏠 Welcome to Del Sol Prime Homes CRM</h1>
+        </div>
+        
+        <div class="content">
+          <p>Hi ${data.firstName},</p>
+          
+          <p>Your CRM agent account has been created! You can now log in and start managing leads assigned to you.</p>
+          
+          <div class="credentials">
+            <h3>🔐 Your Login Credentials</h3>
+            <p><strong>Email:</strong> ${data.email}</p>
+            <p><strong>Password:</strong> ${data.password}</p>
+            <p><strong>Assigned Languages:</strong> ${formattedLanguages}</p>
+          </div>
+          
+          <p style="text-align: center; margin: 30px 0;">
+            <a href="${data.loginUrl}" class="button">Log In to CRM Dashboard</a>
+          </p>
+          
+          <div class="warning">
+            <strong>🔒 Security Reminder:</strong> Please change your password after your first login for security purposes.
+          </div>
+          
+          <h3>What's Next?</h3>
+          <ul>
+            <li>Log in to your dashboard</li>
+            <li>Review your notification preferences</li>
+            <li>Wait for new leads to be assigned based on your language skills</li>
+            <li>Claim leads quickly - you have a 15-minute window!</li>
+          </ul>
+        </div>
+        
+        <div class="footer">
+          <p>If you have questions, contact your administrator.</p>
+          <p>© Del Sol Prime Homes - Real Estate CRM</p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -219,8 +304,47 @@ Deno.serve(async (req) => {
 
     console.log("Agent created successfully:", agent.id);
 
+    // Send welcome email using Resend
+    const resendApiKey = Deno.env.get("RESEND_API_KEY");
+    let emailSent = false;
+    
+    if (resendApiKey) {
+      try {
+        const loginUrl = "https://blog-knowledge-vault.lovable.app/crm/login";
+        
+        const emailResponse = await fetch("https://api.resend.com/emails", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${resendApiKey}`,
+          },
+          body: JSON.stringify({
+            from: "Del Sol Prime Homes CRM <onboarding@resend.dev>",
+            to: [body.email],
+            subject: "Welcome to Del Sol Prime Homes CRM - Your Account is Ready",
+            html: generateWelcomeEmailHtml({
+              firstName: body.first_name,
+              email: body.email,
+              password: body.password,
+              loginUrl,
+              languages: body.languages || ["en"],
+            }),
+          }),
+        });
+        
+        emailSent = emailResponse.ok;
+        const emailResult = await emailResponse.json();
+        console.log("Welcome email result:", emailSent ? "sent successfully" : "failed", emailResult);
+      } catch (emailError) {
+        console.error("Failed to send welcome email:", emailError);
+        // Don't fail the agent creation if email fails
+      }
+    } else {
+      console.warn("RESEND_API_KEY not configured - skipping welcome email");
+    }
+
     return new Response(
-      JSON.stringify({ success: true, agent, agentId: agent.id }),
+      JSON.stringify({ success: true, agent, agentId: agent.id, emailSent }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error: unknown) {
