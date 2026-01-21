@@ -23,24 +23,36 @@ export default function CrmLogin() {
 
   useEffect(() => {
     const checkExistingSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        const { data: agent } = await supabase
-          .from("crm_agents")
-          .select("*")
-          .eq("id", session.user.id)
-          .single();
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error("Session check error:", error);
+          return;
+        }
+        
+        if (session) {
+          const { data: agent } = await supabase
+            .from("crm_agents")
+            .select("*")
+            .eq("id", session.user.id)
+            .single();
 
-        if (agent?.is_active) {
-          const role = (agent as unknown as { role: string }).role;
-          if (role === "admin") {
-            navigate("/crm/admin/dashboard", { replace: true });
-          } else {
-            navigate("/crm/agent/dashboard", { replace: true });
+          if (agent?.is_active) {
+            const role = (agent as unknown as { role: string }).role;
+            if (role === "admin") {
+              navigate("/crm/admin/dashboard", { replace: true });
+            } else {
+              navigate("/crm/agent/dashboard", { replace: true });
+            }
+            return;
           }
         }
+      } catch (error) {
+        console.error("Session check failed:", error);
+      } finally {
+        setCheckingSession(false);
       }
-      setCheckingSession(false);
     };
 
     checkExistingSession();
