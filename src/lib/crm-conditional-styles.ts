@@ -315,11 +315,24 @@ export const getLeadRowStyle = (lead: {
 
 // Priority icon configurations
 export const PRIORITY_CONFIG = {
-  urgent: { icon: 'Flame', color: 'text-red-500', animation: 'animate-pulse', bg: 'bg-red-50' },
-  high: { icon: 'Star', color: 'text-orange-500', animation: '', bg: 'bg-orange-50' },
-  medium: { icon: 'Circle', color: 'text-yellow-500', animation: '', bg: 'bg-yellow-50' },
-  low: { icon: 'Minus', color: 'text-gray-400', animation: '', bg: 'bg-gray-50' },
+  urgent: { icon: 'Flame', color: 'text-red-500', animation: 'animate-pulse', bg: 'bg-red-50', variant: 'destructive', label: 'Urgent' },
+  high: { icon: 'Star', color: 'text-orange-500', animation: '', bg: 'bg-orange-50', variant: 'default', label: 'High' },
+  medium: { icon: 'Circle', color: 'text-yellow-500', animation: '', bg: 'bg-yellow-50', variant: 'secondary', label: 'Medium' },
+  low: { icon: 'Minus', color: 'text-gray-400', animation: '', bg: 'bg-gray-50', variant: 'outline', label: 'Low' },
 } as const;
+
+// Helper function to get priority config
+export const getPriorityConfig = (priority: string) => {
+  return PRIORITY_CONFIG[priority as keyof typeof PRIORITY_CONFIG] || PRIORITY_CONFIG.medium;
+};
+
+// Helper function to get segment variant for Badge component
+export const getSegmentVariant = (segment: string): string => {
+  if (segment.includes('Hot')) return 'destructive';
+  if (segment.includes('Warm')) return 'default';
+  if (segment.includes('Cool')) return 'secondary';
+  return 'outline';
+};
 
 // Status badge styling with proper colors
 export const getStatusBadgeClass = (status: string): string => {
