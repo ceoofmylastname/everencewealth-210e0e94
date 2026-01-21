@@ -85,13 +85,14 @@ export function EditAgentModal({ agent, open, onOpenChange }: EditAgentModalProp
     }
   }, [agent, open, reset]);
 
-  // Load agent's assigned Slack channels
+  // Load agent's assigned Slack channels - use JSON string to avoid infinite loop
   useEffect(() => {
-    if (agentChannels.length > 0) {
-      setSelectedSlackChannels(agentChannels.map((c) => c.channel_id));
-    } else {
-      setSelectedSlackChannels([]);
-    }
+    const channelIds = agentChannels.map((c) => c.channel_id);
+    setSelectedSlackChannels((prev) => {
+      const prevStr = JSON.stringify(prev.sort());
+      const newStr = JSON.stringify(channelIds.sort());
+      return prevStr === newStr ? prev : channelIds;
+    });
   }, [agentChannels]);
 
   const toggleLanguage = (code: string) => {
