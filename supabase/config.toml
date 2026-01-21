@@ -344,3 +344,6 @@ verify_jwt = false
 
 [functions.send-reminder-emails]
 verify_jwt = false
+
+[functions.check-unclaimed-leads]
+verify_jwt = false

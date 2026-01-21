@@ -348,9 +348,19 @@ serve(async (req) => {
     const score = calculateLeadScore(payload);
     const segment = calculateSegment(score);
     const priority = calculatePriority(score, payload.timeframe);
-    const claimWindowMinutes = 15;
 
-    // 1. Create lead in database
+    // Check for round robin config for this language
+    const { data: roundConfig } = await supabase
+      .from("crm_round_robin_config")
+      .select("*")
+      .eq("language", language)
+      .eq("round_number", 1)
+      .eq("is_active", true)
+      .single();
+
+    const claimWindowMinutes = roundConfig?.claim_window_minutes || 15;
+
+    // 1. Create lead in database with round tracking
     const { data: lead, error: leadError } = await supabase
       .from("crm_leads")
       .insert({
@@ -386,6 +396,8 @@ serve(async (req) => {
         lead_priority: priority,
         lead_status: "new",
         lead_claimed: false,
+        current_round: 1,
+        round_broadcast_at: new Date().toISOString(),
         claim_window_expires_at: new Date(Date.now() + claimWindowMinutes * 60 * 1000).toISOString(),
       })
       .select()
@@ -427,23 +439,52 @@ serve(async (req) => {
       }
     }
 
-    // 3. TIER 2: No rule matched or fallback - Broadcast to eligible agents
-    const { data: eligibleAgents, error: agentsError } = await supabase
-      .from("crm_agents")
-      .select("*")
-      .contains("languages", [language])
-      .eq("is_active", true)
-      .eq("accepts_new_leads", true);
+    // 3. TIER 2: No rule matched or fallback - Use round robin config if available
+    let availableAgents: any[] = [];
 
-    if (agentsError) {
-      console.error("[register-crm-lead] Error fetching agents:", agentsError);
+    if (roundConfig && roundConfig.agent_ids?.length > 0) {
+      // Use round robin config for Round 1
+      console.log(`[register-crm-lead] Using round robin config for ${language} Round 1`);
+      
+      const { data: roundAgents, error: agentsError } = await supabase
+        .from("crm_agents")
+        .select("*")
+        .in("id", roundConfig.agent_ids)
+        .eq("is_active", true)
+        .eq("accepts_new_leads", true);
+
+      if (agentsError) {
+        console.error("[register-crm-lead] Error fetching round agents:", agentsError);
+      }
+
+      // Filter agents who are under capacity
+      availableAgents = (roundAgents || []).filter(
+        (agent: { current_lead_count: number; max_active_leads: number }) => 
+          agent.current_lead_count < agent.max_active_leads
+      );
+
+      console.log(`[register-crm-lead] Round 1 agents: ${availableAgents.length} available of ${roundConfig.agent_ids.length} configured`);
+    } else {
+      // No round config - fall back to all language-matched agents
+      console.log(`[register-crm-lead] No round robin config for ${language}, using language match`);
+      
+      const { data: eligibleAgents, error: agentsError } = await supabase
+        .from("crm_agents")
+        .select("*")
+        .contains("languages", [language])
+        .eq("is_active", true)
+        .eq("accepts_new_leads", true);
+
+      if (agentsError) {
+        console.error("[register-crm-lead] Error fetching agents:", agentsError);
+      }
+
+      // Filter agents who are under capacity
+      availableAgents = (eligibleAgents || []).filter(
+        (agent: { current_lead_count: number; max_active_leads: number }) => 
+          agent.current_lead_count < agent.max_active_leads
+      );
     }
-
-    // Filter agents who are under capacity
-    const availableAgents = (eligibleAgents || []).filter(
-      (agent: { current_lead_count: number; max_active_leads: number }) => 
-        agent.current_lead_count < agent.max_active_leads
-    );
 
     console.log(`[register-crm-lead] Found ${availableAgents.length} eligible agents for ${language}`);
 

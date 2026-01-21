@@ -13,6 +13,7 @@ import {
   Building2,
   Shield,
   Route,
+  RefreshCcw,
 } from "lucide-react";
 
 const navigation = [
@@ -20,6 +21,7 @@ const navigation = [
   { name: "Agents", href: "/crm/admin/agents", icon: Users },
   { name: "Leads Overview", href: "/crm/admin/leads", icon: ClipboardList },
   { name: "Routing Rules", href: "/crm/admin/routing-rules", icon: Route },
+  { name: "Round Robin", href: "/crm/admin/round-robin", icon: RefreshCcw },
   { name: "Verification", href: "/crm/admin/verification", icon: Shield },
   { name: "Settings", href: "/crm/admin/settings", icon: Settings },
 ];
