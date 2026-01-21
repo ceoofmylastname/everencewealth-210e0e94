@@ -323,3 +323,18 @@ verify_jwt = false
 
 [functions.translate-property-description]
 verify_jwt = false
+
+[functions.create-crm-agent]
+verify_jwt = false
+
+[functions.delete-crm-agent]
+verify_jwt = false
+
+[functions.register-crm-lead]
+verify_jwt = false
+
+[functions.claim-lead]
+verify_jwt = false
+
+[functions.send-lead-notification]
+verify_jwt = false

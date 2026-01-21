@@ -1993,6 +1993,7 @@ export type Database = {
           last_name: string
           max_active_leads: number | null
           phone: string | null
+          role: string
           slack_channel_id: string | null
           slack_user_id: string | null
           timezone: string | null
@@ -2012,6 +2013,7 @@ export type Database = {
           last_name: string
           max_active_leads?: number | null
           phone?: string | null
+          role?: string
           slack_channel_id?: string | null
           slack_user_id?: string | null
           timezone?: string | null
@@ -2031,6 +2033,7 @@ export type Database = {
           last_name?: string
           max_active_leads?: number | null
           phone?: string | null
+          role?: string
           slack_channel_id?: string | null
           slack_user_id?: string | null
           timezone?: string | null
@@ -4351,6 +4354,10 @@ export type Database = {
       check_stuck_citation_jobs: { Args: never; Returns: undefined }
       check_stuck_cluster_jobs: { Args: never; Returns: undefined }
       check_stuck_qa_jobs: { Args: never; Returns: undefined }
+      claim_lead: {
+        Args: { p_agent_id: string; p_lead_id: string }
+        Returns: Json
+      }
       cleanup_duplicate_replacements: {
         Args: never
         Returns: {
@@ -4442,6 +4449,10 @@ export type Database = {
       normalize_url: {
         Args: { domain_only?: boolean; strip_query?: boolean; url: string }
         Returns: string
+      }
+      notify_lead_claimed: {
+        Args: { p_claiming_agent_id: string; p_lead_id: string }
+        Returns: undefined
       }
       replace_citation_tracking: {
         Args: {
