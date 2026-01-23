@@ -16,7 +16,7 @@ import {
   LayoutDashboard,
   Users,
   Calendar,
-  Settings,
+  User,
   LogOut,
   Search,
   Command,
@@ -97,7 +97,7 @@ export function CrmAgentLayout() {
         .select("id", { count: "exact", head: true })
         .eq("assigned_agent_id", agent.id)
         .eq("lead_status", "new")
-        .eq("is_archived", false);
+        .eq("archived", false);
       return count || 0;
     },
     enabled: !!agent?.id,
@@ -253,9 +253,9 @@ export function CrmAgentLayout() {
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => navigate("/crm/agent/settings")}>
-                    <Settings className="w-4 h-4 mr-2" />
-                    Settings
+                  <DropdownMenuItem onClick={() => navigate("/crm/agent/profile")}>
+                    <User className="w-4 h-4 mr-2" />
+                    My Profile
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => setCommandOpen(true)}>
                     <Command className="w-4 h-4 mr-2" />
