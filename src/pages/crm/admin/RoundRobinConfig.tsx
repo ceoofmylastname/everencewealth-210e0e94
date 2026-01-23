@@ -61,6 +61,7 @@ interface RoundConfig {
   is_admin_fallback: boolean;
   is_active: boolean;
   created_at: string;
+  fallback_admin_id: string | null;
 }
 
 interface Agent {
@@ -97,6 +98,7 @@ export default function RoundRobinConfig() {
     claim_window_minutes: 5,
     is_admin_fallback: false,
     is_active: true,
+    fallback_admin_id: null as string | null,
   });
   
   // Manual automation controls state
@@ -147,6 +149,7 @@ export default function RoundRobinConfig() {
             claim_window_minutes: data.claim_window_minutes,
             is_admin_fallback: data.is_admin_fallback,
             is_active: data.is_active,
+            fallback_admin_id: data.is_admin_fallback ? data.fallback_admin_id : null,
           })
           .eq("id", data.id);
 
@@ -162,6 +165,7 @@ export default function RoundRobinConfig() {
             claim_window_minutes: data.claim_window_minutes,
             is_admin_fallback: data.is_admin_fallback,
             is_active: data.is_active,
+            fallback_admin_id: data.is_admin_fallback ? data.fallback_admin_id : null,
           });
 
         if (error) throw error;
@@ -206,6 +210,7 @@ export default function RoundRobinConfig() {
       claim_window_minutes: 5,
       is_admin_fallback: false,
       is_active: true,
+      fallback_admin_id: null,
     });
   };
 
@@ -218,9 +223,15 @@ export default function RoundRobinConfig() {
       claim_window_minutes: config.claim_window_minutes,
       is_admin_fallback: config.is_admin_fallback,
       is_active: config.is_active,
+      fallback_admin_id: config.fallback_admin_id || null,
     });
     setIsDialogOpen(true);
   };
+
+  // Get selected agents who are admins (for fallback admin dropdown)
+  const selectedAdminAgents = agents?.filter(
+    (agent) => formData.agent_ids.includes(agent.id) && agent.role === "admin"
+  ) || [];
 
   const handleSubmit = () => {
     if (!formData.language) {
@@ -230,6 +241,20 @@ export default function RoundRobinConfig() {
     if (formData.agent_ids.length === 0) {
       toast.error("Please select at least one agent");
       return;
+    }
+
+    // If admin fallback is enabled, require a fallback admin to be selected
+    if (formData.is_admin_fallback && !formData.fallback_admin_id) {
+      // If only one admin is selected, auto-select them
+      if (selectedAdminAgents.length === 1) {
+        formData.fallback_admin_id = selectedAdminAgents[0].id;
+      } else if (selectedAdminAgents.length === 0) {
+        toast.error("Please select at least one admin agent for fallback rounds");
+        return;
+      } else {
+        toast.error("Please select which admin will receive fallback leads");
+        return;
+      }
     }
 
     // Check for duplicate when creating new (not editing)
@@ -539,19 +564,70 @@ export default function RoundRobinConfig() {
 
               <Separator />
 
-              <div className="flex items-center justify-between">
-                <div>
-                  <Label>Admin Fallback Round</Label>
-                  <p className="text-sm text-muted-foreground">
-                    If enabled, leads are auto-assigned here (no competition)
-                  </p>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label>Admin Fallback Round</Label>
+                    <p className="text-sm text-muted-foreground">
+                      If enabled, leads are auto-assigned here (no competition)
+                    </p>
+                  </div>
+                  <Switch
+                    checked={formData.is_admin_fallback}
+                    onCheckedChange={(checked) =>
+                      setFormData((prev) => ({ 
+                        ...prev, 
+                        is_admin_fallback: checked,
+                        fallback_admin_id: checked ? prev.fallback_admin_id : null,
+                      }))
+                    }
+                  />
                 </div>
-                <Switch
-                  checked={formData.is_admin_fallback}
-                  onCheckedChange={(checked) =>
-                    setFormData((prev) => ({ ...prev, is_admin_fallback: checked }))
-                  }
-                />
+
+                {/* Fallback Admin Selector - only shown when admin fallback is enabled */}
+                {formData.is_admin_fallback && (
+                  <div className="ml-4 p-3 border rounded-lg bg-orange-50 dark:bg-orange-950/20 border-orange-200 dark:border-orange-800">
+                    <Label className="text-orange-800 dark:text-orange-200">Fallback Admin</Label>
+                    <p className="text-xs text-orange-600 dark:text-orange-400 mb-2">
+                      Select who receives unclaimed leads for this language
+                    </p>
+                    {selectedAdminAgents.length === 0 ? (
+                      <div className="flex items-center gap-2 text-orange-700 dark:text-orange-300 text-sm">
+                        <AlertTriangle className="w-4 h-4" />
+                        No admin agents selected. Please select at least one admin agent above.
+                      </div>
+                    ) : selectedAdminAgents.length === 1 ? (
+                      <div className="flex items-center gap-2 text-orange-700 dark:text-orange-300 text-sm">
+                        <Shield className="w-4 h-4" />
+                        <span className="font-medium">
+                          {selectedAdminAgents[0].first_name} {selectedAdminAgents[0].last_name}
+                        </span>
+                        will receive all fallback leads (only admin selected)
+                      </div>
+                    ) : (
+                      <Select
+                        value={formData.fallback_admin_id || ""}
+                        onValueChange={(value) =>
+                          setFormData((prev) => ({ ...prev, fallback_admin_id: value }))
+                        }
+                      >
+                        <SelectTrigger className="bg-white dark:bg-background">
+                          <SelectValue placeholder="Select fallback admin..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {selectedAdminAgents.map((admin) => (
+                            <SelectItem key={admin.id} value={admin.id}>
+                              <div className="flex items-center gap-2">
+                                <Shield className="w-3 h-3 text-orange-600" />
+                                {admin.first_name} {admin.last_name}
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  </div>
+                )}
               </div>
 
               <div className="flex items-center justify-between">

@@ -100,17 +100,20 @@ serve(async (req) => {
       // 2. Find the language-specific admin from round robin config
       const { data: adminConfig } = await supabase
         .from("crm_round_robin_config")
-        .select("agent_ids")
+        .select("agent_ids, fallback_admin_id")
         .eq("language", lead.language)
         .eq("is_admin_fallback", true)
         .eq("is_active", true)
         .single();
 
-      let adminAgentId = adminConfig?.agent_ids?.[0];
+      // Prioritize explicit fallback_admin_id, then first agent in list
+      let adminAgentId = adminConfig?.fallback_admin_id || adminConfig?.agent_ids?.[0];
+      console.log(`[check-sla-breaches] Found admin config for ${lead.language}: fallback_admin_id=${adminConfig?.fallback_admin_id}, agent_ids=${JSON.stringify(adminConfig?.agent_ids)}`);
 
       // Fallback to default admin if no language-specific admin found
       if (!adminAgentId) {
         adminAgentId = slaSettings?.value?.admin_id || "95808453-dde1-421c-85ba-52fe534ef288";
+        console.log(`[check-sla-breaches] Using fallback default admin: ${adminAgentId}`);
       }
 
       // Get admin agent details

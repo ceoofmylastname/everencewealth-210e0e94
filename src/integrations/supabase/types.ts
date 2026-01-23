@@ -2452,6 +2452,7 @@ export type Database = {
           agent_ids: string[]
           claim_window_minutes: number | null
           created_at: string | null
+          fallback_admin_id: string | null
           id: string
           is_active: boolean | null
           is_admin_fallback: boolean | null
@@ -2463,6 +2464,7 @@ export type Database = {
           agent_ids: string[]
           claim_window_minutes?: number | null
           created_at?: string | null
+          fallback_admin_id?: string | null
           id?: string
           is_active?: boolean | null
           is_admin_fallback?: boolean | null
@@ -2474,6 +2476,7 @@ export type Database = {
           agent_ids?: string[]
           claim_window_minutes?: number | null
           created_at?: string | null
+          fallback_admin_id?: string | null
           id?: string
           is_active?: boolean | null
           is_admin_fallback?: boolean | null
@@ -2481,7 +2484,15 @@ export type Database = {
           round_number?: number
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "crm_round_robin_config_fallback_admin_id_fkey"
+            columns: ["fallback_admin_id"]
+            isOneToOne: false
+            referencedRelation: "crm_agents"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       crm_routing_rules: {
         Row: {
