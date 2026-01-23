@@ -1364,12 +1364,12 @@ async function handleRequest(req: Request): Promise<Response> {
   } else if (contentType === 'compare') {
     const { data } = await supabase
       .from('comparison_pages')
-      .select('detailed_comparison, verdict')
+      .select('final_verdict, speakable_answer, side_by_side_breakdown')
       .eq('slug', slug)
       .eq('status', 'published')
       .maybeSingle()
-    hasEmptyContent = isEmptyContent(data?.detailed_comparison) && isEmptyContent(data?.verdict)
-    contentField = 'detailed_comparison/verdict'
+    hasEmptyContent = isEmptyContent(data?.final_verdict) && isEmptyContent(data?.speakable_answer) && isEmptyContent(data?.side_by_side_breakdown)
+    contentField = 'final_verdict/speakable_answer/side_by_side_breakdown'
   } else if (contentType === 'locations') {
     // Location pages use city_slug/topic_slug format
     const slugParts = slug.split('/')
