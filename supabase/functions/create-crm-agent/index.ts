@@ -24,6 +24,7 @@ function generateWelcomeEmailHtml(data: {
   password: string;
   loginUrl: string;
   languages: string[];
+  role: string;
 }): string {
   const languageNames: Record<string, string> = {
     en: "English",
@@ -39,6 +40,26 @@ function generateWelcomeEmailHtml(data: {
     .map(code => languageNames[code] || code.toUpperCase())
     .join(", ");
 
+  const isAdmin = data.role === 'admin';
+  const roleLabel = isAdmin ? '👑 Administrator' : '👤 Agent';
+  const roleMessage = isAdmin 
+    ? 'Your CRM <strong>administrator</strong> account has been created! You have full access to manage agents, leads, and system settings.'
+    : 'Your CRM <strong>agent</strong> account has been created! You can now log in and start managing leads assigned to you.';
+  
+  const nextSteps = isAdmin 
+    ? `<ul>
+            <li>Log in to your admin dashboard</li>
+            <li>Review and configure system settings</li>
+            <li>Add and manage team agents</li>
+            <li>Monitor lead distribution and performance</li>
+          </ul>`
+    : `<ul>
+            <li>Log in to your dashboard</li>
+            <li>Review your notification preferences</li>
+            <li>Wait for new leads to be assigned based on your language skills</li>
+            <li>Claim leads quickly - you have a 15-minute window!</li>
+          </ul>`;
+
   return `
     <!DOCTYPE html>
     <html>
@@ -52,6 +73,7 @@ function generateWelcomeEmailHtml(data: {
         .credentials { background: #f7fafc; border: 1px solid #e2e8f0; padding: 20px; margin: 20px 0; border-radius: 8px; }
         .credentials h3 { margin-top: 0; color: #1a365d; }
         .credentials p { margin: 8px 0; }
+        .role-badge { display: inline-block; background: ${isAdmin ? '#805ad5' : '#3182ce'}; color: white; padding: 4px 12px; border-radius: 12px; font-size: 14px; font-weight: bold; }
         .button { display: inline-block; background: #3182ce; color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; font-weight: bold; }
         .button:hover { background: #2c5282; }
         .warning { background: #fef3c7; border: 1px solid #f59e0b; padding: 12px; border-radius: 6px; margin: 20px 0; }
@@ -67,12 +89,13 @@ function generateWelcomeEmailHtml(data: {
         <div class="content">
           <p>Hi ${data.firstName},</p>
           
-          <p>Your CRM agent account has been created! You can now log in and start managing leads assigned to you.</p>
+          <p>${roleMessage}</p>
           
           <div class="credentials">
             <h3>🔐 Your Login Credentials</h3>
             <p><strong>Email:</strong> ${data.email}</p>
             <p><strong>Password:</strong> ${data.password}</p>
+            <p><strong>Role:</strong> <span class="role-badge">${roleLabel}</span></p>
             <p><strong>Assigned Languages:</strong> ${formattedLanguages}</p>
           </div>
           
@@ -85,12 +108,7 @@ function generateWelcomeEmailHtml(data: {
           </div>
           
           <h3>What's Next?</h3>
-          <ul>
-            <li>Log in to your dashboard</li>
-            <li>Review your notification preferences</li>
-            <li>Wait for new leads to be assigned based on your language skills</li>
-            <li>Claim leads quickly - you have a 15-minute window!</li>
-          </ul>
+          ${nextSteps}
         </div>
         
         <div class="footer">
@@ -308,7 +326,12 @@ Deno.serve(async (req) => {
     
     if (resendApiKey) {
       try {
-        const loginUrl = "https://blog-knowledge-vault.lovable.app/crm/login";
+        const appUrl = Deno.env.get("APP_URL") || "https://www.delsolprimehomes.com";
+        const loginUrl = `${appUrl}/crm/login`;
+        const isAdmin = body.role === 'admin';
+        const subjectLine = isAdmin 
+          ? "Welcome to Del Sol Prime Homes CRM - Your Admin Account is Ready"
+          : "Welcome to Del Sol Prime Homes CRM - Your Account is Ready";
         
         const emailResponse = await fetch("https://api.resend.com/emails", {
           method: "POST",
@@ -317,15 +340,16 @@ Deno.serve(async (req) => {
             Authorization: `Bearer ${resendApiKey}`,
           },
           body: JSON.stringify({
-            from: "Del Sol Prime Homes CRM <onboarding@resend.dev>",
+            from: "Del Sol Prime Homes CRM <crm@notifications.delsolprimehomes.com>",
             to: [body.email],
-            subject: "Welcome to Del Sol Prime Homes CRM - Your Account is Ready",
+            subject: subjectLine,
             html: generateWelcomeEmailHtml({
               firstName: body.first_name,
               email: body.email,
               password: body.password,
               loginUrl,
               languages: body.languages || ["en"],
+              role: body.role || "agent",
             }),
           }),
         });
