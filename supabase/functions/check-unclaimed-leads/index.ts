@@ -122,13 +122,19 @@ serve(async (req) => {
           // No more rounds - assign to admin
           assignedToAdmin++;
 
-          // Get admin agent(s)
+          // Get admin agent - prioritize fallback_admin_id if set
           let adminAgentId = null;
           
-          if (result.admin_agent_ids?.length > 0) {
+          // First try the explicit fallback_admin_id
+          if (result.fallback_admin_id) {
+            adminAgentId = result.fallback_admin_id;
+            console.log(`[check-unclaimed-leads] Using explicit fallback_admin_id: ${adminAgentId}`);
+          } else if (result.admin_agent_ids?.length > 0) {
+            // Fall back to first admin in the list
             adminAgentId = result.admin_agent_ids[0];
+            console.log(`[check-unclaimed-leads] Using first admin_agent_id: ${adminAgentId}`);
           } else {
-            // Find any admin
+            // Find any admin as last resort
             const { data: admins } = await supabase
               .from("crm_agents")
               .select("id")
@@ -137,6 +143,7 @@ serve(async (req) => {
               .limit(1);
 
             adminAgentId = admins?.[0]?.id;
+            console.log(`[check-unclaimed-leads] Using fallback system admin: ${adminAgentId}`);
           }
 
           if (adminAgentId) {
