@@ -400,53 +400,13 @@ export function useBulkDeleteLeads() {
       leadIds: string[];
       adminId: string;
     }) => {
-      // Get leads with their current agents to decrement counts
-      const { data: leads } = await supabase
-        .from("crm_leads")
-        .select("id, assigned_agent_id")
-        .in("id", leadIds);
-
-      // Collect agents to decrement
-      const agentCounts = new Map<string, number>();
-      leads?.forEach(l => {
-        if (l.assigned_agent_id) {
-          agentCounts.set(
-            l.assigned_agent_id,
-            (agentCounts.get(l.assigned_agent_id) || 0) + 1
-          );
-        }
+      // Call edge function with service role to handle cascading deletes
+      const { data, error } = await supabase.functions.invoke("bulk-delete-leads", {
+        body: { leadIds, adminId },
       });
 
-      // Decrement agent lead counts
-      for (const [agentId, count] of agentCounts) {
-        await updateAgentLeadCount(agentId, -count);
-      }
-
-      // Delete related activities first
-      await supabase
-        .from("crm_activities")
-        .delete()
-        .in("lead_id", leadIds);
-
-      // Delete related notes
-      await supabase
-        .from("crm_lead_notes")
-        .delete()
-        .in("lead_id", leadIds);
-
-      // Delete related notifications
-      await supabase
-        .from("crm_notifications")
-        .delete()
-        .in("lead_id", leadIds);
-
-      // Delete the leads
-      const { error } = await supabase
-        .from("crm_leads")
-        .delete()
-        .in("id", leadIds);
-
       if (error) throw error;
+      if (data?.error) throw new Error(data.error);
 
       return { success: true, count: leadIds.length };
     },
