@@ -19,14 +19,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useUpdateAgent, CrmAgent } from "@/hooks/useCrmAgents";
+import { useUpdateAgent, useUpdateAgentPassword, CrmAgent } from "@/hooks/useCrmAgents";
 import {
   editAgentFormSchema,
   EditAgentFormData,
   SUPPORTED_LANGUAGES,
   TIMEZONES,
 } from "@/lib/crm-validations";
-import { Loader2 } from "lucide-react";
+import { Loader2, Eye, EyeOff } from "lucide-react";
 
 interface EditAgentModalProps {
   agent: CrmAgent | null;
@@ -36,9 +36,12 @@ interface EditAgentModalProps {
 
 export function EditAgentModal({ agent, open, onOpenChange }: EditAgentModalProps) {
   const updateAgent = useUpdateAgent();
+  const updatePassword = useUpdateAgentPassword();
   
   const [selectedLanguages, setSelectedLanguages] = useState<string[]>([]);
   const [urgentEmailsEnabled, setUrgentEmailsEnabled] = useState(true);
+  const [newPassword, setNewPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const initKeyRef = useRef<string | null>(null);
 
   const {
@@ -117,7 +120,32 @@ export function EditAgentModal({ agent, open, onOpenChange }: EditAgentModalProp
       };
 
       await updateAgent.mutateAsync({ id: agent.id, data: updateData });
+
+      // Update password if provided
+      if (newPassword && newPassword.length >= 8) {
+        await updatePassword.mutateAsync({ 
+          agentId: agent.id, 
+          newPassword: newPassword 
+        });
+        setNewPassword("");
+      }
+
       onOpenChange(false);
+    } catch (error) {
+      // Error handled by mutation
+    }
+  };
+
+  const handlePasswordReset = async () => {
+    if (!agent || !newPassword || newPassword.length < 8) return;
+    
+    try {
+      await updatePassword.mutateAsync({ 
+        agentId: agent.id, 
+        newPassword: newPassword 
+      });
+      setNewPassword("");
+      setShowPassword(false);
     } catch (error) {
       // Error handled by mutation
     }
@@ -271,6 +299,57 @@ export function EditAgentModal({ agent, open, onOpenChange }: EditAgentModalProp
                 checked={urgentEmailsEnabled}
                 onCheckedChange={setUrgentEmailsEnabled}
               />
+            </div>
+          </div>
+
+          {/* Password Reset Section */}
+          <div className="space-y-4 pt-2 border-t">
+            <h4 className="font-medium text-sm">Reset Password</h4>
+            <div className="space-y-2">
+              <Label htmlFor="new_password">New Password</Label>
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <Input
+                    id="new_password"
+                    type={showPassword ? "text" : "password"}
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="Enter new password (min 8 chars)"
+                    className="pr-10"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4 text-muted-foreground" />
+                    ) : (
+                      <Eye className="h-4 w-4 text-muted-foreground" />
+                    )}
+                  </Button>
+                </div>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={handlePasswordReset}
+                  disabled={!newPassword || newPassword.length < 8 || updatePassword.isPending}
+                >
+                  {updatePassword.isPending ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    "Reset"
+                  )}
+                </Button>
+              </div>
+              {newPassword && newPassword.length > 0 && newPassword.length < 8 && (
+                <p className="text-sm text-destructive">Password must be at least 8 characters</p>
+              )}
+              <p className="text-xs text-muted-foreground">
+                Leave empty to keep current password. Click "Reset" to update immediately.
+              </p>
             </div>
           </div>
 
