@@ -224,20 +224,19 @@ serve(async (req) => {
     console.log('✅ Emma lead conversation saved to emma_leads table');
 
     // Step 2: Register in CRM for round robin routing (same as form leads)
-    // Only if we have a phone number - required for agent contact
+    // Always register - incomplete leads (no phone) will be marked accordingly
     let crmResult: { success: boolean; leadId?: string; error?: string } = { 
       success: false, 
-      error: 'No phone number provided' 
+      error: 'Registration failed' 
     };
     
-    if (payload.contact_info.phone_number?.trim()) {
-      crmResult = await registerInCRM(supabaseUrl, supabaseKey, payload);
-      
-      if (!crmResult.success) {
-        console.error('⚠️ CRM registration failed, but conversation is saved');
-      }
+    crmResult = await registerInCRM(supabaseUrl, supabaseKey, payload);
+    
+    if (!crmResult.success) {
+      console.error('⚠️ CRM registration failed, but conversation is saved');
     } else {
-      console.log('⚠️ Skipping CRM registration - no phone number provided. Lead saved to emma_leads only.');
+      const hasPhone = !!payload.contact_info.phone_number?.trim();
+      console.log(`✅ CRM registration successful (contact_complete: ${hasPhone})`);
     }
 
     return new Response(JSON.stringify({ 

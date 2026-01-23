@@ -45,6 +45,7 @@ import {
   Zap,
   Phone,
   Mail,
+  PhoneOff,
 } from "lucide-react";
 import { formatDistanceToNow, differenceInHours } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
@@ -165,6 +166,10 @@ export default function LeadsOverview() {
             <Clock className="h-3 w-3 text-red-500" />
             {stats?.slaBreaches || 0} SLA Breach
           </Badge>
+          <Badge variant="outline" className="gap-1">
+            <PhoneOff className="h-3 w-3 text-orange-500" />
+            {stats?.incomplete || 0} Incomplete
+          </Badge>
           <Button variant="outline" size="sm" onClick={() => refetch()}>
             <RefreshCw className="h-4 w-4 mr-1" />
             Refresh
@@ -193,6 +198,7 @@ export default function LeadsOverview() {
                 <SelectItem value="all">All Leads</SelectItem>
                 <SelectItem value="unclaimed">⚠️ Unclaimed</SelectItem>
                 <SelectItem value="claimed">✅ Claimed</SelectItem>
+                <SelectItem value="incomplete">📵 Incomplete (No Contact)</SelectItem>
                 <SelectItem value="sla_breach">🔥 SLA Breach</SelectItem>
                 <SelectItem value="expired_claim">⏰ Expired Claims</SelectItem>
               </SelectContent>
@@ -278,6 +284,7 @@ export default function LeadsOverview() {
               ) : (
                 filteredLeads.map((lead) => {
                   const isUnclaimed = !lead.lead_claimed && !lead.assigned_agent_id;
+                  const isIncomplete = (lead as any).contact_complete === false;
                   const isSLABreach = lead.assigned_at &&
                     differenceInHours(new Date(), new Date(lead.assigned_at)) > 24 &&
                     !lead.last_contact_at;
@@ -287,7 +294,7 @@ export default function LeadsOverview() {
                   return (
                     <TableRow
                       key={lead.id}
-                      className={isUnclaimed ? "bg-amber-50/50" : isSLABreach ? "bg-red-50/50" : ""}
+                      className={isIncomplete ? "bg-orange-50/50" : isUnclaimed ? "bg-amber-50/50" : isSLABreach ? "bg-red-50/50" : ""}
                     >
                       <TableCell>
                         <Checkbox
@@ -312,10 +319,17 @@ export default function LeadsOverview() {
                       </TableCell>
                       <TableCell>
                         <div className="space-y-1">
-                          <div className="flex items-center gap-1 text-sm">
-                            <Phone className="h-3 w-3" />
-                            {lead.phone_number}
-                          </div>
+                          {lead.phone_number ? (
+                            <div className="flex items-center gap-1 text-sm">
+                              <Phone className="h-3 w-3" />
+                              {lead.phone_number}
+                            </div>
+                          ) : (
+                            <Badge variant="outline" className="text-orange-600 border-orange-300">
+                              <PhoneOff className="h-3 w-3 mr-1" />
+                              No Phone
+                            </Badge>
+                          )}
                           {lead.email && (
                             <div className="flex items-center gap-1 text-xs text-muted-foreground">
                               <Mail className="h-3 w-3" />

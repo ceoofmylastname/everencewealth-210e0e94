@@ -412,13 +412,20 @@ serve(async (req) => {
     const payload: LeadPayload = await req.json();
     console.log("[register-crm-lead] Received lead:", payload.firstName, payload.lastName);
 
-    // Validate required fields
-    if (!payload.firstName?.trim() || !payload.lastName?.trim() || !payload.phone?.trim()) {
+    // Validate required fields - phone is now optional for incomplete leads
+    if (!payload.firstName?.trim() || !payload.lastName?.trim()) {
       return new Response(
-        JSON.stringify({ error: "Missing required fields: firstName, lastName, phone" }),
+        JSON.stringify({ error: "Missing required fields: firstName, lastName" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+
+    // Determine if lead has complete contact info
+    const hasPhone = !!payload.phone?.trim();
+    const hasEmail = !!payload.email?.trim();
+    const contactComplete = hasPhone || hasEmail;
+    
+    console.log(`[register-crm-lead] Contact complete: ${contactComplete} (phone: ${hasPhone}, email: ${hasEmail})`);
 
     const language = payload.language?.toLowerCase() || "en";
     const score = calculateLeadScore(payload);
@@ -442,7 +449,7 @@ serve(async (req) => {
       .insert({
         first_name: payload.firstName.trim(),
         last_name: payload.lastName.trim(),
-        phone_number: payload.phone.trim(),
+        phone_number: payload.phone?.trim() || null, // Now nullable for incomplete leads
         country_prefix: payload.countryPrefix || "",
         email: payload.email?.trim() || null,
         language,
@@ -472,11 +479,12 @@ serve(async (req) => {
         initial_lead_score: score,
         current_lead_score: score,
         lead_priority: priority,
-        lead_status: "new",
+        lead_status: contactComplete ? "new" : "incomplete", // Mark incomplete leads
         lead_claimed: false,
-        current_round: 1,
-        round_broadcast_at: new Date().toISOString(),
-        claim_window_expires_at: new Date(Date.now() + claimWindowMinutes * 60 * 1000).toISOString(),
+        contact_complete: contactComplete, // New field
+        current_round: contactComplete ? 1 : null, // No round robin for incomplete
+        round_broadcast_at: contactComplete ? new Date().toISOString() : null,
+        claim_window_expires_at: contactComplete ? new Date(Date.now() + claimWindowMinutes * 60 * 1000).toISOString() : null,
         // Initialize new SLA tracking fields
         is_night_held: false,
         sla_breached: false,
@@ -492,7 +500,24 @@ serve(async (req) => {
 
     console.log("[register-crm-lead] Lead created:", lead.id);
 
-    // 2. CHECK BUSINESS HOURS - Night Hold Logic
+    // INCOMPLETE LEAD: Skip all routing - admin review required
+    if (!contactComplete) {
+      console.log(`[register-crm-lead] INCOMPLETE LEAD: ${lead.id} - No routing, admin review required`);
+      return new Response(
+        JSON.stringify({
+          success: true,
+          leadId: lead.id,
+          segment,
+          score,
+          contactComplete: false,
+          assignmentMethod: "incomplete_no_routing",
+          message: "Lead saved but requires admin review - no contact info provided",
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // 2. CHECK BUSINESS HOURS - Night Hold Logic (only for complete leads)
     const { isBusinessHours, nextOpenTime, config } = await isWithinBusinessHours(supabase);
 
     if (!isBusinessHours) {
