@@ -28,6 +28,7 @@ export interface AdminLead {
   last_contact_at: string | null;
   days_since_last_contact: number | null;
   archived: boolean;
+  contact_complete?: boolean;
   agent?: {
     id: string;
     first_name: string;
@@ -38,7 +39,7 @@ export interface AdminLead {
 
 export interface AdminLeadFilters {
   includeArchived?: boolean;
-  filterStatus?: "all" | "unclaimed" | "claimed" | "sla_breach" | "expired_claim";
+  filterStatus?: "all" | "unclaimed" | "claimed" | "incomplete" | "sla_breach" | "expired_claim";
   filterLanguage?: string;
   filterSegment?: string;
   filterPriority?: string;
@@ -89,6 +90,8 @@ export function useAdminLeads(filters: AdminLeadFilters = {}) {
         leads = leads.filter(l => !l.lead_claimed && !l.assigned_agent_id);
       } else if (filters.filterStatus === "claimed") {
         leads = leads.filter(l => l.lead_claimed && l.assigned_agent_id);
+      } else if (filters.filterStatus === "incomplete") {
+        leads = leads.filter(l => l.contact_complete === false);
       } else if (filters.filterStatus === "sla_breach") {
         leads = leads.filter(l => {
           if (!l.assigned_at) return false;
@@ -520,7 +523,7 @@ export function useAdminStats() {
       const [leadsResult, agentsResult] = await Promise.all([
         supabase
           .from("crm_leads")
-          .select("id, lead_claimed, assigned_agent_id, assigned_at, last_contact_at, claim_window_expires_at, archived")
+          .select("id, lead_claimed, assigned_agent_id, assigned_at, last_contact_at, claim_window_expires_at, archived, contact_complete")
           .eq("archived", false),
         supabase
           .from("crm_agents")
@@ -548,6 +551,8 @@ export function useAdminStats() {
 
       const activeAgents = agents.filter(a => a.is_active && a.accepts_new_leads).length;
       const totalAgents = agents.filter(a => a.is_active).length;
+      
+      const incomplete = leads.filter(l => (l as any).contact_complete === false).length;
 
       return {
         unclaimed,
@@ -556,6 +561,7 @@ export function useAdminStats() {
         activeAgents,
         totalAgents,
         totalLeads: leads.length,
+        incomplete,
       };
     },
   });

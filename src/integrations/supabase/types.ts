@@ -2117,6 +2117,7 @@ export type Database = {
           claim_broadcast_sent: boolean | null
           claim_window_expires_at: string | null
           claimed_by: string | null
+          contact_complete: boolean | null
           conversation_duration: string | null
           country_prefix: string | null
           created_at: string | null
@@ -2149,7 +2150,7 @@ export type Database = {
           page_title: string | null
           page_type: string | null
           page_url: string
-          phone_number: string
+          phone_number: string | null
           property_price: string | null
           property_purpose: string | null
           property_ref: string | null
@@ -2182,6 +2183,7 @@ export type Database = {
           claim_broadcast_sent?: boolean | null
           claim_window_expires_at?: string | null
           claimed_by?: string | null
+          contact_complete?: boolean | null
           conversation_duration?: string | null
           country_prefix?: string | null
           created_at?: string | null
@@ -2214,7 +2216,7 @@ export type Database = {
           page_title?: string | null
           page_type?: string | null
           page_url: string
-          phone_number: string
+          phone_number?: string | null
           property_price?: string | null
           property_purpose?: string | null
           property_ref?: string | null
@@ -2247,6 +2249,7 @@ export type Database = {
           claim_broadcast_sent?: boolean | null
           claim_window_expires_at?: string | null
           claimed_by?: string | null
+          contact_complete?: boolean | null
           conversation_duration?: string | null
           country_prefix?: string | null
           created_at?: string | null
@@ -2279,7 +2282,7 @@ export type Database = {
           page_title?: string | null
           page_type?: string | null
           page_url?: string
-          phone_number?: string
+          phone_number?: string | null
           property_price?: string | null
           property_purpose?: string | null
           property_ref?: string | null
