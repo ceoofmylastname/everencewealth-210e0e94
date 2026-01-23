@@ -152,12 +152,12 @@ Deno.serve(async (req) => {
     } else if (contentType === 'compare') {
       const { data } = await supabase
         .from('comparison_pages')
-        .select('language, status, detailed_comparison, verdict, canonical_url')
+        .select('language, status, final_verdict, speakable_answer, side_by_side_breakdown, canonical_url')
         .eq('slug', slug)
         .maybeSingle()
       record = data
-      contentField = 'detailed_comparison/verdict'
-      contentValue = data?.detailed_comparison || data?.verdict
+      contentField = 'final_verdict/speakable_answer/side_by_side_breakdown'
+      contentValue = data?.final_verdict || data?.speakable_answer || data?.side_by_side_breakdown
     } else if (contentType === 'locations') {
       const slugParts = slug.split('/')
       if (slugParts.length >= 2) {
