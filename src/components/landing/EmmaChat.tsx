@@ -190,12 +190,123 @@ const EmmaChat: React.FC<EmmaChatProps> = ({ isOpen, onClose, language }) => {
         scrollToBottom();
     }, [messages]);
 
+    // Track if lead was submitted via ref for beforeunload (state not accessible in event handlers)
+    const hasSubmittedLeadRef = useRef(false);
+    const accumulatedFieldsRef = useRef<Record<string, any>>({});
+    
+    // Keep refs in sync with state
+    useEffect(() => {
+        hasSubmittedLeadRef.current = hasSubmittedLead;
+    }, [hasSubmittedLead]);
+    
+    useEffect(() => {
+        accumulatedFieldsRef.current = accumulatedFields;
+    }, [accumulatedFields]);
+
+    // BROWSER CLOSE HANDLER - Uses sendBeacon for reliable delivery
+    useEffect(() => {
+        const handleBeforeUnload = () => {
+            const fields = accumulatedFieldsRef.current;
+            const hasAnyData = Object.keys(fields).length > 0;
+            
+            console.log('🚨 BEFOREUNLOAD: Browser closing, hasData:', hasAnyData, 'submitted:', hasSubmittedLeadRef.current);
+            
+            if (hasAnyData && !hasSubmittedLeadRef.current && conversationId) {
+                console.log('🚨 BEFOREUNLOAD: Sending lead via navigator.sendBeacon...');
+                
+                // Build minimal payload for sendBeacon (sync operation)
+                const pageContext = emmaOpenedContext || {
+                    pageType: detectPageType(window.location.pathname),
+                    language: detectLanguage(window.location.pathname),
+                    pageUrl: window.location.href,
+                    pageTitle: document.title,
+                    referrer: document.referrer || 'Direct',
+                    openedAt: Date.now()
+                };
+                
+                const beaconPayload = {
+                    conversation_id: conversationId,
+                    contact_info: {
+                        first_name: fields.name || fields.first_name || '',
+                        last_name: fields.family_name || fields.last_name || '',
+                        phone_number: fields.phone || fields.phone_number || '',
+                        country_prefix: fields.country_prefix || ''
+                    },
+                    content_phase: {
+                        question_1: fields.question_1 || '',
+                        answer_1: fields.answer_1 || '',
+                        question_2: fields.question_2 || '',
+                        answer_2: fields.answer_2 || '',
+                        question_3: fields.question_3 || '',
+                        answer_3: fields.answer_3 || '',
+                        questions_answered: (fields.question_1 ? 1 : 0) + (fields.question_2 ? 1 : 0) + (fields.question_3 ? 1 : 0)
+                    },
+                    property_criteria: {
+                        location_preference: Array.isArray(fields.location_preference) 
+                            ? fields.location_preference 
+                            : (fields.location_preference ? [fields.location_preference] : []),
+                        sea_view_importance: fields.sea_view_importance || '',
+                        budget_range: fields.budget_range || '',
+                        bedrooms_desired: fields.bedrooms_desired || '',
+                        property_type: Array.isArray(fields.property_type)
+                            ? fields.property_type
+                            : (fields.property_type ? [fields.property_type] : []),
+                        property_purpose: fields.purpose || fields.property_purpose || '',
+                        timeframe: fields.timeframe || ''
+                    },
+                    system_data: {
+                        detected_language: language.toUpperCase() || 'English',
+                        intake_complete: false,
+                        declined_selection: false,
+                        conversation_date: new Date().toISOString(),
+                        conversation_status: 'abandoned_browser_close',
+                        exit_point: 'browser_close'
+                    },
+                    page_context: {
+                        page_type: pageContext.pageType,
+                        page_url: pageContext.pageUrl,
+                        page_title: pageContext.pageTitle,
+                        referrer: pageContext.referrer,
+                        language: pageContext.language,
+                        lead_source: 'Emma Chatbot',
+                        lead_source_detail: `emma_chat_${pageContext.language}`,
+                        lead_segment: calculateLeadSegment(
+                            fields.timeframe || 'Not sure',
+                            fields.purpose || fields.property_purpose || 'General'
+                        ),
+                        initial_lead_score: fields.phone || fields.phone_number ? 20 : 15,
+                        conversation_duration: calculateDuration(pageContext.openedAt)
+                    }
+                };
+                
+                // Use sendBeacon for reliable delivery on page unload
+                const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+                const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+                const url = `${supabaseUrl}/functions/v1/send-emma-lead`;
+                
+                const success = navigator.sendBeacon(
+                    url,
+                    new Blob([JSON.stringify(beaconPayload)], { type: 'application/json' })
+                );
+                
+                console.log('🚨 BEFOREUNLOAD: sendBeacon result:', success ? 'SUCCESS' : 'FAILED');
+            }
+        };
+        
+        window.addEventListener('beforeunload', handleBeforeUnload);
+        
+        return () => {
+            window.removeEventListener('beforeunload', handleBeforeUnload);
+        };
+    }, [conversationId, language, emmaOpenedContext]);
+
     // 120-SECOND INACTIVITY TRIGGER (Trigger 3) - True Dormancy Only
     useEffect(() => {
         // Clear any existing timer when messages change
         if (inactivityTimer) {
             clearTimeout(inactivityTimer);
             setInactivityTimer(null);
+            console.log('⏱️ DEBUG: Inactivity timer cleared (messages changed or new state)');
         }
 
         // Only start timer if:
@@ -206,6 +317,15 @@ const EmmaChat: React.FC<EmmaChatProps> = ({ isOpen, onClose, language }) => {
         // - Not recovering from an error (prevents premature firing during retries)
         const hasData = Object.keys(accumulatedFields).length > 0;
         const conversationStarted = messages.length > 1;
+
+        console.log('⏱️ DEBUG: Timer conditions check:', {
+            hasData,
+            conversationStarted,
+            hasSubmittedLead,
+            isLoading,
+            isRecovering,
+            shouldStartTimer: hasData && !hasSubmittedLead && conversationStarted && !isLoading && !isRecovering
+        });
 
         if (hasData && !hasSubmittedLead && conversationStarted && !isLoading && !isRecovering) {
             console.log('⏱️ Starting 120-second inactivity timer (true dormancy)');
