@@ -145,6 +145,36 @@ export function useUpdateAgent() {
   });
 }
 
+export function useUpdateAgentPassword() {
+  return useMutation({
+    mutationFn: async ({
+      agentId,
+      newPassword,
+    }: {
+      agentId: string;
+      newPassword: string;
+    }) => {
+      const { data, error } = await supabase.functions.invoke("update-agent-password", {
+        body: { agent_id: agentId, new_password: newPassword },
+      });
+
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      return data;
+    },
+    onSuccess: (data) => {
+      toast({ title: data?.message || "Password updated successfully" });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error updating password",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+}
+
 export function useCreateAgent() {
   const queryClient = useQueryClient();
 
