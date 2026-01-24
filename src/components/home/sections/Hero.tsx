@@ -46,50 +46,48 @@ export const Hero: React.FC = () => {
           muted
           loop
           playsInline
-          preload="metadata"
+          preload="auto"
           poster="https://images.unsplash.com/photo-1512917774080-9991f1c4c750?q=80&w=2070&auto=format&fit=crop"
           className={`absolute inset-0 w-full h-full object-cover scale-110 transition-opacity duration-700 ${videoLoaded ? 'opacity-100' : 'opacity-0'}`}
           onCanPlay={() => setVideoLoaded(true)}
         >
           <source src="https://storage.googleapis.com/msgsndr/9m2UBN29nuaCWceOgW2Z/media/692d1c5b82f4c5ebf1442f43.mp4" type="video/mp4" />
         </video>
-        <div className="absolute inset-0 bg-slate-900/50 mix-blend-multiply" />
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-slate-900/40 to-slate-900/30" />
-        <div className="absolute inset-0 bg-gradient-to-r from-slate-900/50 to-transparent" />
+        {/* No overlay - full video brightness */}
       </div>
 
       <div className="relative z-10 container mx-auto px-4 flex flex-col items-center text-center pt-24 md:pt-32 pb-32 md:pb-40">
         
         {/* Trust Line */}
-        <div className="flex flex-wrap items-center justify-center gap-3 md:gap-6 mb-10 reveal-on-scroll">
-          <div className="flex items-center gap-2 text-white/90 text-xs md:text-sm font-medium tracking-wide">
-             <ShieldCheck size={16} className="text-prime-gold" />
+        <div className="flex flex-wrap items-center justify-center gap-3 md:gap-6 mb-10 reveal-on-scroll [text-shadow:_0_2px_12px_rgb(0_0_0_/_80%)]">
+          <div className="flex items-center gap-2 text-white text-xs md:text-sm font-medium tracking-wide">
+             <ShieldCheck size={16} className="text-prime-gold drop-shadow-lg" />
              <span>{t.hero.trustBadges.api}</span>
           </div>
           <span className="hidden md:inline-block w-1 h-1 rounded-full bg-prime-gold/50"></span>
-          <div className="flex items-center gap-2 text-white/90 text-xs md:text-sm font-medium tracking-wide">
-             <Star size={16} className="text-prime-gold" />
+          <div className="flex items-center gap-2 text-white text-xs md:text-sm font-medium tracking-wide">
+             <Star size={16} className="text-prime-gold drop-shadow-lg" />
              <span>{t.hero.trustBadges.experience}</span>
           </div>
           <span className="hidden md:inline-block w-1 h-1 rounded-full bg-prime-gold/50"></span>
-          <div className="flex items-center gap-2 text-white/90 text-xs md:text-sm font-medium tracking-wide">
-             <Users size={16} className="text-prime-gold" />
+          <div className="flex items-center gap-2 text-white text-xs md:text-sm font-medium tracking-wide">
+             <Users size={16} className="text-prime-gold drop-shadow-lg" />
              <span>{t.hero.trustBadges.buyers}</span>
           </div>
         </div>
 
         {/* Headline */}
-        <h1 className="font-serif text-4xl md:text-6xl lg:text-7xl xl:text-8xl font-bold text-white mb-6 md:mb-8 leading-[1.05] tracking-tight max-w-6xl drop-shadow-2xl reveal-on-scroll stagger-1 animate-zoom-in" style={{ letterSpacing: '-0.02em' }}>
+        <h1 className="font-serif text-4xl md:text-6xl lg:text-7xl xl:text-8xl font-bold text-white mb-6 md:mb-8 leading-[1.05] tracking-tight max-w-6xl reveal-on-scroll stagger-1 animate-zoom-in [text-shadow:_0_4px_24px_rgb(0_0_0_/_90%),_0_2px_8px_rgb(0_0_0_/_70%)]" style={{ letterSpacing: '-0.02em' }}>
           {t.hero.headline} <br className="hidden md:block" />
-          <span className="text-gradient-gold italic pr-2">{t.hero.headlineHighlight}</span>
+          <span className="text-gradient-gold italic pr-2 drop-shadow-2xl">{t.hero.headlineHighlight}</span>
         </h1>
 
         {/* Subheadline */}
-         <div className="mb-8 md:mb-10 reveal-on-scroll stagger-2 animate-fade-in-up">
-            <span className="inline-block text-xl md:text-2xl lg:text-3xl font-light text-white/90 border-b border-prime-gold/50 pb-2 mb-4 md:mb-6">
+         <div className="mb-8 md:mb-10 reveal-on-scroll stagger-2 animate-fade-in-up [text-shadow:_0_2px_16px_rgb(0_0_0_/_80%)]">
+            <span className="inline-block text-xl md:text-2xl lg:text-3xl font-light text-white border-b border-prime-gold/50 pb-2 mb-4 md:mb-6">
               {t.hero.tagline}
             </span>
-            <p className="text-slate-300 text-base md:text-lg lg:text-xl max-w-4xl mx-auto font-light leading-relaxed" style={{ letterSpacing: '0.01em', lineHeight: '1.75' }}>
+            <p className="text-white text-base md:text-lg lg:text-xl max-w-4xl mx-auto font-light leading-relaxed [text-shadow:_0_2px_12px_rgb(0_0_0_/_70%)]" style={{ letterSpacing: '0.01em', lineHeight: '1.75' }}>
               {t.hero.description}
             </p>
          </div>
