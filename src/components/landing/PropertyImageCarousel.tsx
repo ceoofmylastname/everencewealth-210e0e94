@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import useEmblaCarousel from 'embla-carousel-react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { getHighResImageUrl } from '@/lib/imageUrlTransformer';
 
 interface PropertyImageCarouselProps {
   images: string[];
@@ -51,7 +52,7 @@ export const PropertyImageCarousel: React.FC<PropertyImageCarouselProps> = ({ im
   if (images.length === 1) {
     return (
       <img
-        src={images[0]}
+        src={getHighResImageUrl(images[0], 'card')}
         alt={alt}
         className="absolute inset-0 w-full h-full object-cover"
         loading="lazy"
@@ -67,7 +68,7 @@ export const PropertyImageCarousel: React.FC<PropertyImageCarouselProps> = ({ im
           {images.map((src, idx) => (
             <div key={idx} className="flex-[0_0_100%] min-w-0 h-full">
               <img
-                src={src}
+                src={getHighResImageUrl(src, 'card')}
                 alt={`${alt} ${idx + 1}`}
                 className="w-full h-full object-cover"
                 loading="lazy"

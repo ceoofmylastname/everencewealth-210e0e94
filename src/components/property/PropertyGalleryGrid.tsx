@@ -64,7 +64,7 @@ export const PropertyGalleryGrid = ({ images, title }: PropertyGalleryGridProps)
             onClick={() => openLightbox(0)}
           >
             <img
-              src={displayImages[0]}
+              src={getHighResImageUrl(displayImages[0], 'hero')}
               alt={`${title} - Main view`}
               className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
             />
@@ -88,7 +88,7 @@ export const PropertyGalleryGrid = ({ images, title }: PropertyGalleryGridProps)
               onClick={() => openLightbox(index + 1)}
             >
               <img
-                src={image}
+                src={getHighResImageUrl(image, 'card')}
                 alt={`${title} - View ${index + 2}`}
                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
               />
@@ -120,7 +120,7 @@ export const PropertyGalleryGrid = ({ images, title }: PropertyGalleryGridProps)
               >
                 <div className="relative w-[280px] h-[200px] rounded-xl overflow-hidden cursor-pointer">
                   <img
-                    src={image}
+                    src={getHighResImageUrl(image, 'card')}
                     alt={`${title} - View ${index + 1}`}
                     className="w-full h-full object-cover"
                   />
@@ -252,7 +252,7 @@ export const PropertyGalleryGrid = ({ images, title }: PropertyGalleryGridProps)
                   }`}
                 >
                   <img
-                    src={image}
+                    src={getHighResImageUrl(image, 'thumbnail')}
                     alt={`Thumbnail ${index + 1}`}
                     className="w-full h-full object-cover"
                   />
