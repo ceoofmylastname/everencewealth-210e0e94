@@ -326,7 +326,7 @@ export const PropertyHero = ({ images, title, location, price, reference, bedroo
                   }`}
                 >
                   <img
-                    src={image}
+                    src={getHighResImageUrl(image, 'thumbnail')}
                     alt={`Thumbnail ${index + 1}`}
                     className="w-full h-full object-cover"
                   />

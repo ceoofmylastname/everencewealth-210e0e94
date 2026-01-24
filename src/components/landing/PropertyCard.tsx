@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { getHighResImageUrl } from '@/lib/imageUrlTransformer';
 
 interface PropertyCardProps {
     property: {
@@ -144,7 +145,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property, lang }) => {
             <div className="relative h-64 overflow-hidden group">
                 {/* Current Image */}
                 <img
-                    src={property.images[currentImageIndex]}
+                    src={getHighResImageUrl(property.images[currentImageIndex], 'card')}
                     alt={`Property in ${property.location}`}
                     className="w-full h-full object-cover"
                     onError={(e) => {
