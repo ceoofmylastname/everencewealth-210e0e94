@@ -58,15 +58,20 @@ function extractPropertyType(prop: any): string {
  * Extracts main image URL from various response structures
  */
 function extractMainImage(prop: any): string {
-  return prop.MainImage || 
+  const imageUrl = prop.MainImage || 
          prop.mainImage ||
          prop.MainImageUrl || 
+         prop.BigPictureURL ||
+         prop.LargePictureURL ||
+         prop.OriginalPictureURL ||
          prop.Pictures?.Picture?.[0]?.PictureURL ||
          prop.Picture?.MainImage || 
          prop.Pictures?.[0]?.PictureURL || 
          prop.pictures?.[0]?.url || 
          prop.images?.Picture?.[0]?.PictureURL || 
          '';
+  
+  return imageUrl;
 }
 
 /**
@@ -334,11 +339,56 @@ serve(async (req) => {
     
     console.log('📥 Response data keys:', Object.keys(responseData));
 
-    // The proxy returns: { success: true, data: { Property: [...], QueryInfo: {...} } }
-    // So we need to access responseData.data.Property
+    // === DIAGNOSTIC LOGGING FOR IMAGE RESOLUTION ANALYSIS ===
     const data = responseData.data || responseData;
-    
     console.log('📥 Inner data keys:', Object.keys(data));
+    
+    if (data.Property?.[0]) {
+      const firstProp = data.Property[0];
+      console.log('📸 IMAGE DIAGNOSTIC - First property raw data:');
+      console.log('  Reference:', firstProp.Reference);
+      console.log('  MainImage:', firstProp.MainImage);
+      console.log('  BigPictureURL:', firstProp.BigPictureURL);
+      console.log('  LargePictureURL:', firstProp.LargePictureURL);
+      console.log('  OriginalPictureURL:', firstProp.OriginalPictureURL);
+      
+      // Log all image-related keys
+      const imageKeys = Object.keys(firstProp).filter(k => 
+        k.toLowerCase().includes('image') || 
+        k.toLowerCase().includes('picture') || 
+        k.toLowerCase().includes('photo')
+      );
+      console.log('  All image-related keys:', imageKeys);
+      
+      // Log Pictures structure
+      if (firstProp.Pictures) {
+        console.log('  Pictures type:', typeof firstProp.Pictures);
+        console.log('  Pictures is array:', Array.isArray(firstProp.Pictures));
+        if (firstProp.Pictures.Picture?.[0]) {
+          const pic = firstProp.Pictures.Picture[0];
+          console.log('  First Picture entry keys:', Object.keys(pic));
+          console.log('  First Picture URLs:', {
+            PictureURL: pic.PictureURL,
+            BigPictureURL: pic.BigPictureURL,
+            LargePictureURL: pic.LargePictureURL,
+            OriginalPictureURL: pic.OriginalPictureURL,
+            MediumPictureURL: pic.MediumPictureURL,
+            ThumbnailURL: pic.ThumbnailURL,
+          });
+        }
+      }
+      
+      // Log the URL pattern
+      const sampleUrl = firstProp.MainImage || firstProp.Pictures?.Picture?.[0]?.PictureURL;
+      if (sampleUrl) {
+        console.log('📸 URL Pattern Analysis:');
+        console.log('  Full URL:', sampleUrl);
+        console.log('  Contains /w400/:', sampleUrl.includes('/w400/'));
+        console.log('  Contains /w800/:', sampleUrl.includes('/w800/'));
+        console.log('  Contains /w1200/:', sampleUrl.includes('/w1200/'));
+      }
+    }
+    // === END DIAGNOSTIC LOGGING ===
 
     // Get raw properties from response - check all possible paths
     let rawProperties: any[] = [];
