@@ -262,6 +262,7 @@ const App = () => (
                 <Route path="agents" element={<CrmAgentManagement />} />
                 <Route path="agents/:id" element={<CrmAgentDetails />} />
                 <Route path="leads" element={<CrmLeadsOverview />} />
+                <Route path="leads/:id" element={<LeadDetailPage />} />
                 <Route path="routing-rules" element={<CrmRoutingRules />} />
                 <Route path="round-robin" element={<CrmRoundRobinConfig />} />
                 <Route path="verification" element={<CrmSystemVerification />} />
