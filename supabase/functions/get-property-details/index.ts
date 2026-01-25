@@ -24,48 +24,47 @@ serve(async (req) => {
     const langNum = LANGUAGE_MAP[lang] || 1;
     console.log(`🏠 Fetching PropertyDetails for: ${reference} (lang: ${lang}/${langNum})`);
 
-    // Try PropertyDetails endpoint on proxy - the proxy should have a /property/{reference} endpoint
-    const endpoints = [
-      `http://188.34.164.137:3000/property/${reference}?lang=${langNum}`,
-      `http://188.34.164.137:3000/property-details?reference=${reference}&lang=${langNum}`,
-      `http://188.34.164.137:3000/details/${reference}?lang=${langNum}`,
-    ];
+    // Try the property details endpoint first (GET /property/:reference)
+    const propertyUrl = `http://188.34.164.137:3000/property/${reference}?lang=${langNum}`;
+    console.log(`📡 Calling property endpoint: ${propertyUrl}`);
 
     let propertyData = null;
     let usedEndpoint = '';
 
-    for (const endpoint of endpoints) {
-      console.log(`📡 Trying endpoint: ${endpoint}`);
-      try {
-        const response = await fetch(endpoint, {
-          method: 'GET',
-          headers: { 'Accept': 'application/json' },
-        });
+    try {
+      const response = await fetch(propertyUrl, {
+        method: 'GET',
+        headers: { 'Accept': 'application/json' },
+      });
 
-        console.log(`📥 Response status: ${response.status}`);
+      console.log(`📥 Response status: ${response.status}`);
 
-        if (response.ok) {
-          const data = await response.json();
-          console.log(`📥 Response keys:`, Object.keys(data));
-          
-          if (data && (data.Property || data.property || data.data)) {
-            propertyData = data;
-            usedEndpoint = endpoint;
-            console.log(`✅ Found property data from: ${endpoint}`);
-            break;
-          }
+      if (response.ok) {
+        const data = await response.json();
+        console.log(`📥 Response keys:`, Object.keys(data));
+        
+        if (data && (data.Property || data.property || data.data)) {
+          propertyData = data;
+          usedEndpoint = propertyUrl;
+          console.log(`✅ Found property data from property endpoint`);
         }
-      } catch (e) {
-        const errorMessage = e instanceof Error ? e.message : 'Unknown error';
-        console.log(`❌ Endpoint ${endpoint} failed:`, errorMessage);
       }
+    } catch (e) {
+      const errorMessage = e instanceof Error ? e.message : 'Unknown error';
+      console.log(`❌ Property endpoint failed:`, errorMessage);
     }
-    // Fallback to search if no PropertyDetails endpoint works
+
+    // Fallback to search if property endpoint doesn't work
     if (!propertyData) {
-      console.log('⚠️ No PropertyDetails endpoint found, falling back to search');
-      const searchUrl = `http://188.34.164.137:3000/search?reference=${reference}&lang=${langNum}`;
+      console.log('⚠️ Property endpoint failed, falling back to search (POST)');
+      const searchUrl = `http://188.34.164.137:3000/search`;
       console.log(`📡 Fallback search URL: ${searchUrl}`);
-      const searchResponse = await fetch(searchUrl);
+      
+      const searchResponse = await fetch(searchUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reference, lang: langNum })
+      });
       
       if (!searchResponse.ok) {
         throw new Error(`Search fallback failed: ${searchResponse.status}`);
@@ -78,6 +77,7 @@ serve(async (req) => {
     // Extract the property from response
     const rawProp = propertyData?.data?.Property?.[0] || 
                     propertyData?.Property?.[0] || 
+                    propertyData?.properties?.[0] ||  // Handle proxy format
                     propertyData?.property ||
                     propertyData?.data?.[0] ||
                     null;

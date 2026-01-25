@@ -318,13 +318,31 @@ serve(async (req) => {
     const langNum = LANGUAGE_MAP[lang] || 1;
     params.append('lang', String(langNum));
 
-    const proxyUrl = `http://188.34.164.137:3000/search?${params.toString()}`;
+    const proxyUrl = `http://188.34.164.137:3000/search`;
+
+    // Build request body for POST
+    const requestBody = {
+      location: location || undefined,
+      sublocation: sublocation || undefined,
+      propertyType: params.get('propertyType') || undefined,
+      bedrooms: bedrooms || undefined,
+      bathrooms: bathrooms || undefined,
+      minPrice: priceMin || undefined,
+      maxPrice: priceMax || undefined,
+      newDevs: newDevs || undefined,
+      reference: reference || undefined,
+      pageSize: limit,
+      pageNo: page,
+      lang: langNum
+    };
 
     console.log('📡 Calling proxy URL:', proxyUrl);
+    console.log('📡 Request body:', JSON.stringify(requestBody));
 
     const response = await fetch(proxyUrl, {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' }
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(requestBody)
     });
 
     console.log('📥 Proxy response status:', response.status);
