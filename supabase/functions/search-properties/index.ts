@@ -13,6 +13,22 @@ const LANGUAGE_MAP: Record<string, number> = {
 function normalizeProperty(raw: any) {
   const propertyType = raw.PropertyType?.NameType || raw.PropertyType?.Type || 'Property';
   
+  // Extract main image - try multiple paths
+  const mainImage = 
+    raw.Pictures?.Picture?.[0]?.PictureURL ||
+    raw.MainImage ||
+    raw.Pictures?.[0]?.PictureURL ||
+    raw.Pictures?.[0] ||
+    '';
+  
+  // Extract images array - handle nested Picture structure
+  let images: string[] = [];
+  if (raw.Pictures?.Picture && Array.isArray(raw.Pictures.Picture)) {
+    images = raw.Pictures.Picture.map((p: any) => p.PictureURL || p).filter(Boolean);
+  } else if (Array.isArray(raw.Pictures)) {
+    images = raw.Pictures.map((p: any) => typeof p === 'string' ? p : p.PictureURL || p).filter(Boolean);
+  }
+  
   return {
     reference: raw.Reference || '',
     price: parseInt(raw.Price) || 0,
@@ -28,8 +44,8 @@ function normalizeProperty(raw: any) {
     builtAreaMax: raw.BuiltMax ? parseInt(raw.BuiltMax) : undefined,
     plotArea: raw.GardenPlot ? parseInt(raw.GardenPlot) : undefined,
     propertyType: propertyType,
-    mainImage: raw.MainImage || '',
-    images: raw.Pictures || [],
+    mainImage: mainImage,
+    images: images,
     description: raw.Description || '',
     features: extractFeatures(raw.PropertyFeatures),
     pool: raw.Pool ? 'Yes' : undefined,
