@@ -72,11 +72,23 @@ const PropertyDetail = () => {
   }, [reference, currentLanguage, toast]);
 
   const formatPrice = (price: number | string, priceMax: number | undefined, currency: string) => {
-    const formatter = new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency,
-      maximumFractionDigits: 0,
-    });
+    const safeCurrency = currency || 'EUR';
+    let formatter: Intl.NumberFormat;
+    
+    try {
+      formatter = new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: safeCurrency,
+        maximumFractionDigits: 0,
+      });
+    } catch (error) {
+      // Fallback formatter if currency code is invalid
+      formatter = new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: "EUR",
+        maximumFractionDigits: 0,
+      });
+    }
     
     const priceStr = String(price);
     
