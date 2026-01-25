@@ -16,11 +16,23 @@ export const PropertyCard = ({ property, lang = Language.EN }: PropertyCardProps
   const [imageLoaded, setImageLoaded] = useState(false);
 
   const formatPrice = (price: number | string, priceMax: number | undefined, currency: string) => {
-    const formatter = new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency,
-      maximumFractionDigits: 0,
-    });
+    const safeCurrency = currency || 'EUR';
+    let formatter: Intl.NumberFormat;
+    
+    try {
+      formatter = new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: safeCurrency,
+        maximumFractionDigits: 0,
+      });
+    } catch (error) {
+      // Fallback formatter if currency code is invalid
+      formatter = new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'EUR',
+        maximumFractionDigits: 0,
+      });
+    }
     
     // Convert price to string for analysis
     const priceStr = String(price);
