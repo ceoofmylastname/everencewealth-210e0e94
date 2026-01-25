@@ -64,6 +64,26 @@ function extractFeatureValue(propertyFeatures: any, typeName: string): string | 
   return undefined;
 }
 
+// Commercial keywords to exclude
+const EXCLUDED_KEYWORDS = ['garage', 'parking', 'storage', 'commercial', 'plot', 'land', 'office', 'warehouse'];
+
+// Filter to only include residential properties
+function isResidentialProperty(property: any): boolean {
+  const typeId = property.PropertyType?.TypeId || '';
+  const typeName = (property.PropertyType?.NameType || '').toLowerCase();
+  const subtype = (property.PropertyType?.Subtype1 || '').toLowerCase();
+  
+  // Must start with 1- (Apartments) or 2- (Houses)
+  const isResidentialType = typeId.startsWith('1-') || typeId.startsWith('2-');
+  
+  // Exclude if name contains commercial keywords
+  const hasExcludedKeyword = EXCLUDED_KEYWORDS.some(keyword => 
+    typeName.includes(keyword) || subtype.includes(keyword)
+  );
+  
+  return isResidentialType && !hasExcludedKeyword;
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -76,8 +96,15 @@ serve(async (req) => {
     const { lang = 'en', page = 1, limit = 20, ...filters } = body;
     const langNum = LANGUAGE_MAP[lang] || 1;
     
+    // Set default minimum price for New Developments
+    const effectiveFilters = { ...filters };
+    if (filters.newDevs === 'only' && !filters.priceMin) {
+      effectiveFilters.priceMin = 500000;
+      console.log('💰 Applied default minPrice: €500,000 for New Developments');
+    }
+    
     const postBody = {
-      ...filters,
+      ...effectiveFilters,
       pageSize: limit,
       pageNo: page,
       lang: langNum
@@ -99,15 +126,16 @@ serve(async (req) => {
     const data = await response.json();
     const rawProperties = data.properties || [];
     
-    // Normalize all properties from PascalCase to camelCase
-    const properties = rawProperties.map(normalizeProperty);
+    // Filter to residential only and normalize
+    const residentialProperties = rawProperties.filter(isResidentialProperty);
+    const properties = residentialProperties.map(normalizeProperty);
     
-    console.log(`✅ Returning ${properties.length} normalized properties`);
+    console.log(`✅ Filtered ${rawProperties.length} → ${properties.length} residential properties`);
     
     return new Response(
       JSON.stringify({
         properties,
-        total: data.total || properties.length,
+        total: properties.length,
         page,
         pageSize: limit,
       }),
