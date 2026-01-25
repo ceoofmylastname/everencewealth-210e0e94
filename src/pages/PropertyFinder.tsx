@@ -108,10 +108,7 @@ const PropertyFinder = () => {
 
   useEffect(() => {
     const params = getInitialParams();
-    // Default to New Developments if no newDevs param in URL
-    if (!params.newDevs) {
-      params.newDevs = "only";
-    }
+    // Load ALL properties by default - user can filter via UI
     searchProperties(params);
   }, []);
 
