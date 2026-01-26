@@ -868,27 +868,38 @@ ${xDefaultTag}
   <meta name="twitter:description" content="${content.description}">
   <meta name="twitter:image" content="https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=1200&q=80">
   
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Lato:wght@400;700&family=Raleway:wght@400;500;600;700&display=swap">
+  
+  <!-- Critical inline CSS for initial render -->
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: 'Lato', sans-serif; margin: 0; padding: 0; background: #fff; color: #1a1a1a; }
+    .seo-content { max-width: 800px; margin: 4rem auto; padding: 0 1.5rem; text-align: center; }
+    h1 { font-family: 'Playfair Display', serif; font-size: 2.5rem; line-height: 1.2; margin-bottom: 1rem; color: #1a1a1a; }
+    .seo-content p { font-size: 1.125rem; line-height: 1.7; color: #4a4a4a; margin-bottom: 1rem; }
+    #speakable-summary { font-size: 1rem; color: #666; max-width: 600px; margin: 0 auto 2rem; }
+  </style>
+  
   <!-- JSON-LD Structured Data -->
   <script type="application/ld+json">
   ${JSON.stringify(schemaGraph, null, 2)}
   </script>
-  
-  <!-- Redirect to React app for hydration -->
-  <meta http-equiv="refresh" content="0;url=/${lang}/buyers-guide">
 </head>
 <body>
-  <!-- Speakable summary for AI/voice assistants -->
-  <div id="speakable-summary">
-    ${content.description}
+  <div id="root">
+    <!-- Static SEO content - React will hydrate this -->
+    <main class="seo-content">
+      <h1>${content.headline}</h1>
+      <p>${content.subheadline}</p>
+      <p id="speakable-summary">${content.description}</p>
+    </main>
   </div>
   
-  <h1>${content.headline}</h1>
-  <p>${content.subheadline}</p>
-  
-  <script>window.location.href='/${lang}/buyers-guide';</script>
-  <noscript>
-    <p>Loading <a href="/${lang}/buyers-guide">${content.title}</a>...</p>
-  </noscript>
+  <!-- React bootstrap - loads the full app -->
+  <script type="module" src="/src/main.tsx"></script>
 </body>
 </html>`
 }
