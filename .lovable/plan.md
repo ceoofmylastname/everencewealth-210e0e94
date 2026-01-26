@@ -1,221 +1,136 @@
 
-# Static Site Generation for Buyers Guide Pages
+# Fix Missing Translations in Location Hub Speakable Section
 
-## Overview
+## Problem Summary
 
-This plan implements SSG (Static Site Generation) for the Buyers Guide pages across all 10 languages. This ensures perfect SEO compliance with server-rendered metadata in the raw HTML source, matching the pattern used for Homepage, Location Hub, Blog, and other content pillars.
+The "Quick Answer / AI-Ready Summary" (speakable) section in the Location Hub shows English text for 6 out of 10 languages. Only EN, NL, DE, and FR are translated. Swedish, Norwegian, Danish, Finnish, Polish, and Hungarian users see English content.
 
-## Current State
+## Files to Update
 
-| Aspect | Status |
-|--------|--------|
-| Route handling | SPA fallback via `index.html` |
-| `<html lang="">` | Set by inline JS (client-side) |
-| Meta title/description | Client-side via React Helmet |
-| Canonical URL | Client-side via React Helmet |
-| Hreflang tags | Client-side via React Helmet |
-| JSON-LD schema | Not implemented |
-| View-source SEO | Incomplete - crawlers see generic template |
+| File | Action |
+|------|--------|
+| `src/components/location-hub/SpeakableHubIntro.tsx` | Add 6 missing translations |
 
-## Target State
+## Implementation
 
-| Aspect | After SSG |
-|--------|-----------|
-| Route handling | Static HTML files served directly |
-| `<html lang="">` | Correct in raw HTML (e.g., `lang="de"`) |
-| Meta title/description | Localized in raw HTML |
-| Canonical URL | Self-referencing in raw HTML |
-| Hreflang tags | All 11 tags in raw HTML |
-| JSON-LD schema | WebPage + BreadcrumbList + SpeakableSpecification |
-| View-source SEO | 100% compliant for all crawlers |
+Add complete translations for the 6 missing languages to the `LOCALIZED_CONTENT` object:
 
----
-
-## Implementation Plan
-
-### Step 1: Create SSG Script
-
-**New file**: `scripts/generateStaticBuyersGuide.ts`
-
-This script will:
-1. Read production assets (CSS/JS hashes) from `dist/index.html`
-2. Import localized content from `src/i18n/translations/buyersGuide/`
-3. Generate 10 static HTML files with complete SEO metadata
-
-**Key functions**:
-- `getProductionAssets()` - Extract hashed asset paths from build
-- `generateHreflangTags()` - Create all 11 hreflang link tags
-- `generateJsonLdSchema()` - Create WebPage + Breadcrumb + Speakable JSON-LD
-- `generateStaticHTML()` - Combine everything into complete HTML document
-
-**Output structure**:
-```text
-dist/
-├── en/buyers-guide/index.html  ← Static HTML with lang="en"
-├── de/buyers-guide/index.html  ← Static HTML with lang="de"
-├── nl/buyers-guide/index.html  ← Static HTML with lang="nl"
-├── fr/buyers-guide/index.html  ← Static HTML with lang="fr"
-├── sv/buyers-guide/index.html  ← Static HTML with lang="sv"
-├── no/buyers-guide/index.html  ← Static HTML with lang="no"
-├── da/buyers-guide/index.html  ← Static HTML with lang="da"
-├── fi/buyers-guide/index.html  ← Static HTML with lang="fi"
-├── pl/buyers-guide/index.html  ← Static HTML with lang="pl"
-└── hu/buyers-guide/index.html  ← Static HTML with lang="hu"
-```
-
-### Step 2: HTML Template Structure
-
-Each generated file will contain:
-
-```html
-<!DOCTYPE html>
-<html lang="de">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
-  <!-- Primary Meta Tags -->
-  <title>Kompletter Käuferleitfaden für Costa del Sol Immobilien | Del Sol Prime Homes</title>
-  <meta name="description" content="Ihr umfassender Leitfaden..." />
-  
-  <!-- Canonical URL -->
-  <link rel="canonical" href="https://www.delsolprimehomes.com/de/buyers-guide" />
-  
-  <!-- Hreflang Tags (11 total) -->
-  <link rel="alternate" hreflang="en" href="https://www.delsolprimehomes.com/en/buyers-guide" />
-  <link rel="alternate" hreflang="de" href="https://www.delsolprimehomes.com/de/buyers-guide" />
-  <!-- ... 8 more languages ... -->
-  <link rel="alternate" hreflang="x-default" href="https://www.delsolprimehomes.com/en/buyers-guide" />
-  
-  <!-- Open Graph -->
-  <meta property="og:type" content="website" />
-  <meta property="og:locale" content="de_DE" />
-  <meta property="og:title" content="..." />
-  <meta property="og:url" content="https://www.delsolprimehomes.com/de/buyers-guide" />
-  
-  <!-- JSON-LD Schema -->
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@graph": [
-      { "@type": "WebPage", "inLanguage": "de", ... },
-      { "@type": "BreadcrumbList", ... },
-      { "@type": "SpeakableSpecification", ... }
-    ]
-  }
-  </script>
-  
-  <!-- Production Assets (hashed) -->
-  <link rel="stylesheet" href="/assets/index-KtEB6bPX.css" />
-</head>
-<body>
-  <div id="root">
-    <!-- Static content for SEO crawlers -->
-    <main class="static-buyers-guide">
-      <h1>Kompletter Leitfaden zum Immobilienkauf an der Costa del Sol</h1>
-      <p class="speakable-intro">...</p>
-      <!-- Key sections rendered as static HTML -->
-    </main>
-  </div>
-  <script type="module" src="/assets/index-BkQTAGQh.js"></script>
-</body>
-</html>
-```
-
-### Step 3: Update Build Pipeline
-
-**File**: `build.sh`
-
-Add the SSG script execution after other static page generators:
-
-```bash
-# Generate static buyers guide pages
-echo "📖 Generating static buyers guide pages..."
-npx tsx scripts/generateStaticBuyersGuide.ts dist
-```
-
-### Step 4: Update Redirects
-
-**File**: `public/_redirects`
-
-Add explicit rules to serve static HTML files for buyers-guide routes (before the SPA fallback):
-
-```text
-# Buyers Guide - serve SSG HTML
-/:lang/buyers-guide  /:lang/buyers-guide/index.html  200
-```
-
----
-
-## JSON-LD Schema Structure
-
-Each page will include a complete `@graph` with:
-
-1. **WebPage** - Main page entity with `speakable` specification
-2. **BreadcrumbList** - Home → Buyers Guide navigation
-3. **HowTo** - Step-by-step buying process (8 steps)
-4. **FAQPage** - Common questions section
-
----
-
-## Technical Notes
-
-### Translation Import Strategy
-
-The script will import translations directly from the TypeScript source files using `tsx` runtime, avoiding the need for separate JSON files.
-
-### Asset Path Extraction
-
-Following the established pattern from `generateStaticLocationHub.ts`:
+### Swedish (sv)
 ```typescript
-function getProductionAssets(distDir: string): ProductionAssets {
-  const indexHtml = readFileSync(join(distDir, 'index.html'), 'utf-8');
-  const css = indexHtml.match(/href="(\/assets\/[^"]+\.css)"/g);
-  const js = indexHtml.match(/src="(\/assets\/[^"]+\.js)"/g);
-  return { css, js };
+sv: {
+  badge: "AI-redo Sammanfattning",
+  title: "Snabbt Svar",
+  intro: "Våra Costa del Sol platsguider är omfattande resurser som täcker städer i hela regionen. Varje guide behandlar specifika köparbehov inklusive familjeflytt, pensionsplanering, fastighetsinvesteringar och levnadskostnadsanalys. Varje sida innehåller expertinsikter, områdesbeskrivningar, prisjämförelser och handlingsbara rekommendationer för välgrundade fastighetsbeslu t.",
+  highlights: [
+    "8 stora städer",
+    "8 tematyper per stad",
+    "Tillgänglig på 10 språk",
+    "Uppdateras kvartalsvis"
+  ],
+  footer: "Optimerad för röstassistenter och AI-sökning"
 }
 ```
 
-### Locale Mapping
-
-Standard OG locale codes:
+### Norwegian (no)
 ```typescript
-const LOCALE_MAP = {
-  en: 'en_GB', de: 'de_DE', fr: 'fr_FR', nl: 'nl_NL',
-  sv: 'sv_SE', no: 'nb_NO', da: 'da_DK', fi: 'fi_FI',
-  pl: 'pl_PL', hu: 'hu_HU'
-};
+no: {
+  badge: "AI-klar Sammendrag",
+  title: "Raskt Svar",
+  intro: "Våre Costa del Sol stedsguider er omfattende ressurser som dekker byer i hele regionen. Hver guide tar for seg spesifikke kjøperbehov inkludert familieflytting, pensjonsplanlegging, eiendomsinvesteringer og levekostnadsanalyse. Hver side inneholder ekspertinnsikt, områdebeskrivelser, prissammenligninger og handlingsrettede anbefalinger for informerte eiendomsbeslutninger.",
+  highlights: [
+    "8 store byer",
+    "8 tematyper per by",
+    "Tilgjengelig på 10 språk",
+    "Oppdateres kvartalsvis"
+  ],
+  footer: "Optimalisert for stemmeassistenter og AI-søk"
+}
 ```
 
----
+### Danish (da)
+```typescript
+da: {
+  badge: "AI-klar Resumé",
+  title: "Hurtigt Svar",
+  intro: "Vores Costa del Sol stedguider er omfattende ressourcer, der dækker byer i hele regionen. Hver guide adresserer specifikke køberbehov, herunder familieflytning, pensionsplanlægning, ejendomsinvesteringer og leveomkostningsanalyse. Hver side indeholder ekspertindsigt, områdebeskrivelser, prissammenligninger og handlingsrettede anbefalinger.",
+  highlights: [
+    "8 store byer",
+    "8 tematyper per by",
+    "Tilgængelig på 10 sprog",
+    "Opdateres kvartalsvis"
+  ],
+  footer: "Optimeret til stemmeassistenter og AI-søgning"
+}
+```
 
-## Validation Checklist
+### Finnish (fi)
+```typescript
+fi: {
+  badge: "AI-valmis Yhteenveto",
+  title: "Nopea Vastaus",
+  intro: "Costa del Sol -sijaintioppaamme ovat kattavia resursseja, jotka kattavat alueen kaupungit. Jokainen opas käsittelee tiettyjä ostajien tarpeita, kuten perheen muuttoa, eläkesuunnittelua, kiinteistösijoituksia ja elinkustannusanalyysiä. Jokainen sivu sisältää asiantuntijatietoa, aluekuvauksia, hintavertailuja ja toimintakelpoisia suosituksia tietoisiin kiinteistöpäätöksiin.",
+  highlights: [
+    "8 suurta kaupunkia",
+    "8 tematyyppiä per kaupunki",
+    "Saatavilla 10 kielellä",
+    "Päivitetään neljännesvuosittain"
+  ],
+  footer: "Optimoitu ääniavustajille ja AI-haulle"
+}
+```
 
-After deployment, verify each language version:
+### Polish (pl)
+```typescript
+pl: {
+  badge: "Podsumowanie Gotowe dla AI",
+  title: "Szybka Odpowiedź",
+  intro: "Nasze przewodniki po lokalizacjach Costa del Sol to kompleksowe zasoby obejmujące miasta w całym regionie. Każdy przewodnik odpowiada na konkretne potrzeby kupujących, w tym przeprowadzkę rodzinną, planowanie emerytury, inwestycje w nieruchomości i analizę kosztów życia. Każda strona zawiera eksperckie spostrzeżenia, opisy dzielnic, porównania cen i praktyczne rekomendacje.",
+  highlights: [
+    "8 dużych miast",
+    "8 typów tematów na miasto",
+    "Dostępne w 10 językach",
+    "Aktualizowane kwartalnie"
+  ],
+  footer: "Zoptymalizowane dla asystentów głosowych i wyszukiwania AI"
+}
+```
 
-- [ ] `curl -s https://www.delsolprimehomes.com/de/buyers-guide | head -20` shows `<html lang="de">`
-- [ ] View-source contains all 11 hreflang tags
-- [ ] View-source contains localized meta title/description
-- [ ] View-source contains self-referencing canonical URL
-- [ ] View-source contains JSON-LD schema with correct `inLanguage`
-- [ ] React hydration works (page is interactive)
-- [ ] Language switcher navigates correctly
+### Hungarian (hu)
+```typescript
+hu: {
+  badge: "AI-kész Összefoglaló",
+  title: "Gyors Válasz",
+  intro: "Costa del Sol helyszín útmutatóink átfogó források, amelyek a régió városait fedik le. Minden útmutató konkrét vásárlói igényekre válaszol, beleértve a családi költözést, nyugdíjtervezést, ingatlan befektetéseket és megélhetési költségek elemzését. Minden oldal szakértői betekintést, környékleírásokat, árösszehasonlításokat és gyakorlati ajánlásokat tartalmaz.",
+  highlights: [
+    "8 nagyobb város",
+    "8 téma típus városonként",
+    "Elérhető 10 nyelven",
+    "Negyedévente frissítve"
+  ],
+  footer: "Optimalizálva hangasszisztensekhez és AI kereséshez"
+}
+```
 
----
+## Validation
 
-## Files to Create/Modify
+After implementation, verify all 10 language versions display localized content:
 
-| File | Action | Purpose |
-|------|--------|---------|
-| `scripts/generateStaticBuyersGuide.ts` | Create | SSG script |
-| `build.sh` | Modify | Add script execution |
-| `public/_redirects` | Modify | Add static file routing |
+| URL | Quick Answer Language |
+|-----|----------------------|
+| `/en/locations` | English ✅ |
+| `/nl/locations` | Dutch ✅ |
+| `/de/locations` | German ✅ |
+| `/fr/locations` | French ✅ |
+| `/sv/locations` | Swedish ✅ (fixed) |
+| `/no/locations` | Norwegian ✅ (fixed) |
+| `/da/locations` | Danish ✅ (fixed) |
+| `/fi/locations` | Finnish ✅ (fixed) |
+| `/pl/locations` | Polish ✅ (fixed) |
+| `/hu/locations` | Hungarian ✅ (fixed) |
 
----
+## Technical Notes
 
-## Rollback Plan
-
-If issues occur:
-1. Remove the `npx tsx scripts/generateStaticBuyersGuide.ts` line from `build.sh`
-2. Remove the `/:lang/buyers-guide` rule from `_redirects`
-3. Buyers Guide falls back to SPA routing (current state)
+- The `locationHubSchemaGenerator.ts` already has all 10 translations for the hero and meta content
+- The other hub components (`WhatToExpectSection`, `HubFAQSection`, `FeaturedCitiesSection`) already have all 10 translations
+- Only `SpeakableHubIntro.tsx` is incomplete
+- This fix ensures 100% localization parity for the speakable/AI-citation-ready content
