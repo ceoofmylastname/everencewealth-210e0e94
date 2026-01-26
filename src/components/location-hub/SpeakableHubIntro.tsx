@@ -61,6 +61,78 @@ const LOCALIZED_CONTENT: Record<string, {
       "Mis à jour trimestriellement"
     ],
     footer: "Optimisé pour les assistants vocaux et la recherche IA"
+  },
+  sv: {
+    badge: "AI-redo Sammanfattning",
+    title: "Snabbt Svar",
+    intro: "Våra Costa del Sol platsguider är omfattande resurser som täcker städer i hela regionen. Varje guide behandlar specifika köparbehov inklusive familjeflytt, pensionsplanering, fastighetsinvesteringar och levnadskostnadsanalys. Varje sida innehåller expertinsikter, områdesbeskrivningar, prisjämförelser och handlingsbara rekommendationer för välgrundade fastighetsbeslut.",
+    highlights: [
+      "8 stora städer",
+      "8 tematyper per stad",
+      "Tillgänglig på 10 språk",
+      "Uppdateras kvartalsvis"
+    ],
+    footer: "Optimerad för röstassistenter och AI-sökning"
+  },
+  no: {
+    badge: "AI-klar Sammendrag",
+    title: "Raskt Svar",
+    intro: "Våre Costa del Sol stedsguider er omfattende ressurser som dekker byer i hele regionen. Hver guide tar for seg spesifikke kjøperbehov inkludert familieflytting, pensjonsplanlegging, eiendomsinvesteringer og levekostnadsanalyse. Hver side inneholder ekspertinnsikt, områdebeskrivelser, prissammenligninger og handlingsrettede anbefalinger for informerte eiendomsbeslutninger.",
+    highlights: [
+      "8 store byer",
+      "8 tematyper per by",
+      "Tilgjengelig på 10 språk",
+      "Oppdateres kvartalsvis"
+    ],
+    footer: "Optimalisert for stemmeassistenter og AI-søk"
+  },
+  da: {
+    badge: "AI-klar Resumé",
+    title: "Hurtigt Svar",
+    intro: "Vores Costa del Sol stedguider er omfattende ressourcer, der dækker byer i hele regionen. Hver guide adresserer specifikke køberbehov, herunder familieflytning, pensionsplanlægning, ejendomsinvesteringer og leveomkostningsanalyse. Hver side indeholder ekspertindsigt, områdebeskrivelser, prissammenligninger og handlingsrettede anbefalinger.",
+    highlights: [
+      "8 store byer",
+      "8 tematyper per by",
+      "Tilgængelig på 10 sprog",
+      "Opdateres kvartalsvis"
+    ],
+    footer: "Optimeret til stemmeassistenter og AI-søgning"
+  },
+  fi: {
+    badge: "AI-valmis Yhteenveto",
+    title: "Nopea Vastaus",
+    intro: "Costa del Sol -sijaintioppaamme ovat kattavia resursseja, jotka kattavat alueen kaupungit. Jokainen opas käsittelee tiettyjä ostajien tarpeita, kuten perheen muuttoa, eläkesuunnittelua, kiinteistösijoituksia ja elinkustannusanalyysiä. Jokainen sivu sisältää asiantuntijatietoa, aluekuvauksia, hintavertailuja ja toimintakelpoisia suosituksia tietoisiin kiinteistöpäätöksiin.",
+    highlights: [
+      "8 suurta kaupunkia",
+      "8 tematyyppiä per kaupunki",
+      "Saatavilla 10 kielellä",
+      "Päivitetään neljännesvuosittain"
+    ],
+    footer: "Optimoitu ääniavustajille ja AI-haulle"
+  },
+  pl: {
+    badge: "Podsumowanie Gotowe dla AI",
+    title: "Szybka Odpowiedź",
+    intro: "Nasze przewodniki po lokalizacjach Costa del Sol to kompleksowe zasoby obejmujące miasta w całym regionie. Każdy przewodnik odpowiada na konkretne potrzeby kupujących, w tym przeprowadzkę rodzinną, planowanie emerytury, inwestycje w nieruchomości i analizę kosztów życia. Każda strona zawiera eksperckie spostrzeżenia, opisy dzielnic, porównania cen i praktyczne rekomendacje.",
+    highlights: [
+      "8 dużych miast",
+      "8 typów tematów na miasto",
+      "Dostępne w 10 językach",
+      "Aktualizowane kwartalnie"
+    ],
+    footer: "Zoptymalizowane dla asystentów głosowych i wyszukiwania AI"
+  },
+  hu: {
+    badge: "AI-kész Összefoglaló",
+    title: "Gyors Válasz",
+    intro: "Costa del Sol helyszín útmutatóink átfogó források, amelyek a régió városait fedik le. Minden útmutató konkrét vásárlói igényekre válaszol, beleértve a családi költözést, nyugdíjtervezést, ingatlan befektetéseket és megélhetési költségek elemzését. Minden oldal szakértői betekintést, környékleírásokat, árösszehasonlításokat és gyakorlati ajánlásokat tartalmaz.",
+    highlights: [
+      "8 nagyobb város",
+      "8 téma típus városonként",
+      "Elérhető 10 nyelven",
+      "Negyedévente frissítve"
+    ],
+    footer: "Optimalizálva hangasszisztensekhez és AI kereséshez"
   }
 };
 
