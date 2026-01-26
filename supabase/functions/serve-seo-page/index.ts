@@ -699,6 +699,200 @@ ${xDefaultTag}
 </html>`
 }
 
+// ============================================================
+// BUYERS GUIDE SEO TRANSLATIONS - All 10 languages
+// ============================================================
+const BUYERS_GUIDE_META: Record<string, { 
+  title: string; 
+  description: string;
+  headline: string;
+  subheadline: string;
+}> = {
+  en: {
+    title: "Complete Buyers Guide to Costa del Sol Property | Del Sol Prime Homes",
+    description: "Your comprehensive guide to buying property on the Costa del Sol. Step-by-step process, costs, legal requirements, and expert advice.",
+    headline: "The Complete Guide to Buying Property on Costa del Sol",
+    subheadline: "Everything you need to know about buying your dream home in Spain's most desirable region."
+  },
+  nl: {
+    title: "Complete Gids voor het Kopen van Vastgoed aan de Costa del Sol | Del Sol Prime Homes",
+    description: "Uw uitgebreide gids voor het kopen van onroerend goed aan de Costa del Sol. Stap-voor-stap proces, kosten, juridische vereisten en deskundig advies.",
+    headline: "De Complete Gids voor het Kopen van Vastgoed aan de Costa del Sol",
+    subheadline: "Alles wat u moet weten over het kopen van uw droomhuis in de meest gewilde regio van Spanje."
+  },
+  de: {
+    title: "Vollständiger Käuferleitfaden für Immobilien an der Costa del Sol | Del Sol Prime Homes",
+    description: "Ihr umfassender Leitfaden zum Immobilienkauf an der Costa del Sol. Schritt-für-Schritt-Prozess, Kosten, rechtliche Anforderungen und Expertenberatung.",
+    headline: "Der Komplette Leitfaden zum Immobilienkauf an der Costa del Sol",
+    subheadline: "Alles, was Sie über den Kauf Ihres Traumhauses in Spaniens begehrtester Region wissen müssen."
+  },
+  fr: {
+    title: "Guide Complet pour Acheter une Propriété sur la Costa del Sol | Del Sol Prime Homes",
+    description: "Votre guide complet pour l'achat immobilier sur la Costa del Sol. Processus étape par étape, coûts, exigences légales et conseils d'experts.",
+    headline: "Le Guide Complet pour Acheter une Propriété sur la Costa del Sol",
+    subheadline: "Tout ce que vous devez savoir sur l'achat de votre maison de rêve dans la région la plus convoitée d'Espagne."
+  },
+  sv: {
+    title: "Komplett Köparguide för Fastigheter på Costa del Sol | Del Sol Prime Homes",
+    description: "Din kompletta guide till fastighetsköp på Costa del Sol. Steg-för-steg-process, kostnader, juridiska krav och expertråd.",
+    headline: "Den Kompletta Guiden till att Köpa Fastighet på Costa del Sol",
+    subheadline: "Allt du behöver veta om att köpa ditt drömhem i Spaniens mest eftertraktade region."
+  },
+  no: {
+    title: "Komplett Kjøperguide for Eiendom på Costa del Sol | Del Sol Prime Homes",
+    description: "Din komplette guide til eiendomskjøp på Costa del Sol. Steg-for-steg-prosess, kostnader, juridiske krav og ekspertråd.",
+    headline: "Den Komplette Guiden til å Kjøpe Eiendom på Costa del Sol",
+    subheadline: "Alt du trenger å vite om å kjøpe drømmeboligen din i Spanias mest ettertraktede region."
+  },
+  da: {
+    title: "Komplet Køberguide til Ejendom på Costa del Sol | Del Sol Prime Homes",
+    description: "Din komplette guide til ejendomskøb på Costa del Sol. Trin-for-trin-proces, omkostninger, juridiske krav og ekspertrådgivning.",
+    headline: "Den Komplette Guide til at Købe Ejendom på Costa del Sol",
+    subheadline: "Alt hvad du behøver at vide om at købe dit drømmehjem i Spaniens mest eftertragtede region."
+  },
+  fi: {
+    title: "Täydellinen Ostajan Opas Costa del Sol Kiinteistöihin | Del Sol Prime Homes",
+    description: "Kattava oppaasi kiinteistön ostamiseen Costa del Solilta. Vaiheittainen prosessi, kustannukset, oikeudelliset vaatimukset ja asiantuntijaneuvot.",
+    headline: "Täydellinen Opas Kiinteistön Ostamiseen Costa del Solilta",
+    subheadline: "Kaikki mitä sinun tarvitsee tietää unelmiesi kodin ostamisesta Espanjan halutuimmalta alueelta."
+  },
+  pl: {
+    title: "Kompletny Przewodnik Kupującego Nieruchomości na Costa del Sol | Del Sol Prime Homes",
+    description: "Twój kompleksowy przewodnik po zakupie nieruchomości na Costa del Sol. Proces krok po kroku, koszty, wymogi prawne i porady ekspertów.",
+    headline: "Kompletny Przewodnik po Zakupie Nieruchomości na Costa del Sol",
+    subheadline: "Wszystko, co musisz wiedzieć o zakupie wymarzonego domu w najbardziej pożądanym regionie Hiszpanii."
+  },
+  hu: {
+    title: "Teljes Vásárlói Útmutató Costa del Sol Ingatlanokhoz | Del Sol Prime Homes",
+    description: "Átfogó útmutatója ingatlanvásárláshoz a Costa del Solon. Lépésről lépésre folyamat, költségek, jogi követelmények és szakértői tanácsok.",
+    headline: "A Teljes Útmutató Ingatlanvásárláshoz a Costa del Solon",
+    subheadline: "Minden, amit tudnia kell álmai otthonának megvásárlásáról Spanyolország legkeresettebb régiójában."
+  }
+}
+
+/**
+ * Generate full SEO HTML for Buyers Guide pages (e.g., /{lang}/buyers-guide)
+ * Includes all metadata, hreflang tags, and JSON-LD schema
+ */
+function generateBuyersGuidePageHtml(lang: string): string {
+  const locale = LOCALE_MAP[lang] || 'en_GB'
+  const canonicalUrl = `${BASE_URL}/${lang}/buyers-guide`
+  const content = BUYERS_GUIDE_META[lang] || BUYERS_GUIDE_META.en
+  
+  // Generate hreflang tags for all 10 languages + x-default
+  const hreflangTags = SUPPORTED_LANGUAGES.map(langCode => 
+    `  <link rel="alternate" hreflang="${langCode}" href="${BASE_URL}/${langCode}/buyers-guide" />`
+  ).join('\n')
+  const xDefaultTag = `  <link rel="alternate" hreflang="x-default" href="${BASE_URL}/en/buyers-guide" />`
+  
+  // Generate JSON-LD schema with WebPage and HowTo types
+  const schemaGraph = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": `${BASE_URL}/#organization`,
+        "name": "Del Sol Prime Homes",
+        "url": BASE_URL,
+        "logo": {
+          "@type": "ImageObject",
+          "url": `${BASE_URL}/assets/logo-new.png`
+        }
+      },
+      {
+        "@type": "WebPage",
+        "@id": `${canonicalUrl}#webpage`,
+        "url": canonicalUrl,
+        "name": content.title,
+        "description": content.description,
+        "inLanguage": locale,
+        "isPartOf": { "@id": `${BASE_URL}/#website` },
+        "speakable": {
+          "@type": "SpeakableSpecification",
+          "cssSelector": ["#speakable-summary", ".speakable-answer"]
+        }
+      },
+      {
+        "@type": "HowTo",
+        "@id": `${canonicalUrl}#howto`,
+        "name": content.headline,
+        "description": content.description,
+        "inLanguage": locale,
+        "totalTime": "P3M",
+        "estimatedCost": {
+          "@type": "MonetaryAmount",
+          "currency": "EUR",
+          "value": "10-13%",
+          "description": "Additional costs on top of purchase price"
+        }
+      },
+      {
+        "@type": "BreadcrumbList",
+        "@id": `${canonicalUrl}#breadcrumb`,
+        "itemListElement": [
+          { "@type": "ListItem", "position": 1, "name": "Home", "item": `${BASE_URL}/${lang}` },
+          { "@type": "ListItem", "position": 2, "name": "Buyers Guide", "item": canonicalUrl }
+        ]
+      }
+    ]
+  }
+  
+  return `<!DOCTYPE html>
+<html lang="${lang}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${content.title}</title>
+  <meta name="description" content="${content.description}">
+  
+  <!-- Canonical -->
+  <link rel="canonical" href="${canonicalUrl}">
+  
+  <!-- Hreflang tags - 10 languages + x-default -->
+${hreflangTags}
+${xDefaultTag}
+  
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="${canonicalUrl}">
+  <meta property="og:title" content="${content.title}">
+  <meta property="og:description" content="${content.description}">
+  <meta property="og:locale" content="${locale}">
+  <meta property="og:site_name" content="Del Sol Prime Homes">
+  <meta property="og:image" content="https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=1200&q=80">
+  <meta property="og:image:alt" content="${content.headline}">
+  
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="${content.title}">
+  <meta name="twitter:description" content="${content.description}">
+  <meta name="twitter:image" content="https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=1200&q=80">
+  
+  <!-- JSON-LD Structured Data -->
+  <script type="application/ld+json">
+  ${JSON.stringify(schemaGraph, null, 2)}
+  </script>
+  
+  <!-- Redirect to React app for hydration -->
+  <meta http-equiv="refresh" content="0;url=/${lang}/buyers-guide">
+</head>
+<body>
+  <!-- Speakable summary for AI/voice assistants -->
+  <div id="speakable-summary">
+    ${content.description}
+  </div>
+  
+  <h1>${content.headline}</h1>
+  <p>${content.subheadline}</p>
+  
+  <script>window.location.href='/${lang}/buyers-guide';</script>
+  <noscript>
+    <p>Loading <a href="/${lang}/buyers-guide">${content.title}</a>...</p>
+  </noscript>
+</body>
+</html>`
+}
+
 // Removed FAQPage schema generation - QAPage schema is sufficient for single Q&A pages
 // FAQPage was causing redundancy with QAPage
 
@@ -1425,6 +1619,29 @@ async function handleRequest(req: Request): Promise<Response> {
         'Content-Type': 'text/html; charset=utf-8',
         'Cache-Control': 'public, max-age=3600',
         'X-SEO-Source': 'edge-function-hub'
+      }
+    })
+  }
+
+  // ============================================================
+  // BUYERS GUIDE PAGE DETECTION: Handle /{lang}/buyers-guide
+  // Must come BEFORE the content slug parsing
+  // ============================================================
+  const buyersGuideMatch = path.match(/^\/(\w{2})\/buyers-guide\/?$/)
+  if (buyersGuideMatch) {
+    const [, lang] = buyersGuideMatch
+    console.log(`[SEO] Detected Buyers Guide page: lang=${lang}`)
+    
+    // Generate full SEO HTML for buyers guide page
+    const buyersGuideHtml = generateBuyersGuidePageHtml(lang)
+    
+    return new Response(buyersGuideHtml, {
+      status: 200,
+      headers: {
+        ...corsHeaders,
+        'Content-Type': 'text/html; charset=utf-8',
+        'Cache-Control': 'public, max-age=3600',
+        'X-SEO-Source': 'edge-function-buyers-guide'
       }
     })
   }
