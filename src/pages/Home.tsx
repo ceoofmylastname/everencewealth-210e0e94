@@ -12,9 +12,10 @@ import { Process } from '../components/home/sections/Process';
 import { Reviews, BlogTeaser, GlossaryTeaser } from '../components/home/sections/ReviewsAndBlog';
 import { Section } from '../components/home/ui/Section';
 import { Button } from '../components/home/ui/Button';
+import BlogEmmaChat from '../components/blog-article/BlogEmmaChat';
 
 function Home() {
-  const { t } = useTranslation();
+  const { t, currentLanguage } = useTranslation();
 
   // Intersection Observer for Animations
   useEffect(() => {
@@ -126,6 +127,7 @@ function Home() {
 
       <Footer />
       <LanguageSuggestionBanner />
+      <BlogEmmaChat language={currentLanguage} />
     </div>
     </>
   );

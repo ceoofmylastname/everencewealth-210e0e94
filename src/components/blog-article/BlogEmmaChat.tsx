@@ -15,9 +15,12 @@ const BlogEmmaChat: React.FC<BlogEmmaChatProps> = ({ language }) => {
       setIsOpen(true);
     };
     
+    // Listen for both event names for compatibility
     window.addEventListener('openChatbot', handleOpenChatbot);
+    window.addEventListener('openEmmaChat', handleOpenChatbot);
     return () => {
       window.removeEventListener('openChatbot', handleOpenChatbot);
+      window.removeEventListener('openEmmaChat', handleOpenChatbot);
     };
   }, []);
   
