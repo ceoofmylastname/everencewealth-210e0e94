@@ -329,9 +329,9 @@ export const buyersGuideNl = {
       author: "Michael & Sarah Thompson"
     },
     form: {
-      title: "Boek Uw Gratis Consult",
+      title: "Start Uw Gratis Consult",
       description: "Bespreek uw wensen met onze vastgoedexperts. Geen verplichting, geen druk — alleen deskundig advies.",
-      schedule: "Plan een Gesprek",
+      schedule: "Chat met Emma",
       browse: "Bekijk Beschikbare Woningen",
       download: "Download PDF Gids",
       secure: "Uw informatie is veilig en wordt nooit gedeeld",

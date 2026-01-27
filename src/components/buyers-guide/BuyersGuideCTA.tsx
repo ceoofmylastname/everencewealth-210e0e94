@@ -149,14 +149,14 @@ export const BuyersGuideCTA: React.FC = () => {
                   </p>
 
                   <div className="space-y-4">
-                    <Link
-                      to="/#contact"
+                    <button
+                      onClick={() => window.dispatchEvent(new CustomEvent('openEmmaChat'))}
                       className="group flex items-center justify-center gap-2 w-full py-4 px-6 bg-prime-gold text-white font-semibold rounded-xl hover:bg-prime-gold/90 transition-all duration-300 shadow-lg shadow-prime-gold/30 hover:shadow-xl hover:shadow-prime-gold/40"
                     >
                       <Calendar className="w-5 h-5" />
                       {t.cta.form.schedule}
                       <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                    </Link>
+                    </button>
 
                     <Link
                       to="/property-finder"

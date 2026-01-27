@@ -211,19 +211,40 @@ export const PropertyContact = ({ reference, price, propertyType }: PropertyCont
             </DialogContent>
           </Dialog>
           
-          <Button variant="outline" className="w-full h-12 md:h-14 text-sm md:text-base font-semibold rounded-xl border-2 hover:bg-primary/5 hover:border-primary hover:scale-[1.02] transition-all" size="lg">
-            <Phone className="w-4 h-4 md:w-5 md:h-5 mr-2 md:mr-3" />
-            Call Now
+          <Button 
+            variant="outline" 
+            className="w-full h-12 md:h-14 text-sm md:text-base font-semibold rounded-xl border-2 hover:bg-primary/5 hover:border-primary hover:scale-[1.02] transition-all" 
+            size="lg"
+            asChild
+          >
+            <a href="tel:+34630039090">
+              <Phone className="w-4 h-4 md:w-5 md:h-5 mr-2 md:mr-3" />
+              Call Now
+            </a>
           </Button>
 
           <div className="grid grid-cols-2 gap-2 md:gap-3">
-            <Button variant="outline" className="h-10 md:h-12 text-sm font-medium rounded-xl border-2 hover:bg-primary/5 hover:border-primary transition-all">
+            <Button 
+              variant="outline" 
+              className="h-10 md:h-12 text-sm font-medium rounded-xl border-2 hover:bg-primary/5 hover:border-primary transition-all"
+              onClick={() => window.dispatchEvent(new CustomEvent('openEmmaChat'))}
+            >
               <Calendar className="w-4 h-4 mr-1.5 md:mr-2" />
               Schedule
             </Button>
-            <Button variant="outline" className="h-10 md:h-12 text-sm font-medium rounded-xl border-2 hover:bg-primary/5 hover:border-primary transition-all">
-              <MessageCircle className="w-4 h-4 mr-1.5 md:mr-2" />
-              WhatsApp
+            <Button 
+              variant="outline" 
+              className="h-10 md:h-12 text-sm font-medium rounded-xl border-2 hover:bg-primary/5 hover:border-primary transition-all"
+              asChild
+            >
+              <a 
+                href={`https://wa.me/34630039090?text=${encodeURIComponent(`Hi, I'm interested in property ${reference}. Please contact me with more information.`)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <MessageCircle className="w-4 h-4 mr-1.5 md:mr-2" />
+                WhatsApp
+              </a>
             </Button>
           </div>
         </div>
@@ -264,13 +285,18 @@ export const PropertyContactMobile = ({ reference, price }: { reference: string;
           <span className="font-bold text-primary truncate">{price}</span>
         </div>
         <div className="flex flex-1 gap-2 sm:gap-3">
-          <Button className="flex-1 h-12 sm:h-14 font-semibold rounded-xl text-sm sm:text-base touch-manipulation">
+          <Button 
+            className="flex-1 h-12 sm:h-14 font-semibold rounded-xl text-sm sm:text-base touch-manipulation"
+            onClick={() => window.dispatchEvent(new CustomEvent('openEmmaChat'))}
+          >
             <Mail className="w-4 h-4 sm:w-5 sm:h-5 mr-1.5 sm:mr-2" />
             Inquire
           </Button>
-          <Button variant="outline" className="flex-1 h-12 sm:h-14 font-semibold rounded-xl border-2 text-sm sm:text-base touch-manipulation">
-            <Phone className="w-4 h-4 sm:w-5 sm:h-5 mr-1.5 sm:mr-2" />
-            Call
+          <Button variant="outline" className="flex-1 h-12 sm:h-14 font-semibold rounded-xl border-2 text-sm sm:text-base touch-manipulation" asChild>
+            <a href="tel:+34630039090">
+              <Phone className="w-4 h-4 sm:w-5 sm:h-5 mr-1.5 sm:mr-2" />
+              Call
+            </a>
           </Button>
         </div>
       </div>

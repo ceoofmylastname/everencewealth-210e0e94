@@ -101,8 +101,20 @@ function Home() {
                {t.finalCta.description}
              </p>
              <div className="flex flex-col sm:flex-row justify-center gap-6">
-               <Button variant="secondary" size="lg" className="shadow-lg shadow-prime-gold/20">{t.finalCta.ctaPrimary}</Button>
-               <Button variant="outline" size="lg" className="border-white/30 text-white hover:bg-white hover:text-prime-900">
+               <Button 
+                 variant="secondary" 
+                 size="lg" 
+                 className="shadow-lg shadow-prime-gold/20"
+                 onClick={() => window.dispatchEvent(new CustomEvent('openEmmaChat'))}
+               >
+                 {t.finalCta.ctaPrimary}
+               </Button>
+               <Button 
+                 variant="outline" 
+                 size="lg" 
+                 className="border-white/30 text-white hover:bg-white hover:text-prime-900"
+                 onClick={() => window.dispatchEvent(new CustomEvent('openEmmaChat'))}
+               >
                   {t.finalCta.ctaSecondary}
                </Button>
              </div>
