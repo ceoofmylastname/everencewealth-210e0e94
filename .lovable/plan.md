@@ -1,22 +1,22 @@
 
 
-# Urgent Fix: Revert Image Transformer to Restore Images
+# Careful Upgrade: Property Card Images to w800 Resolution
 
-## Problem
+## Overview
 
-Property card images are showing placeholder icons instead of actual property photos. The current `imageUrlTransformer.ts` is replacing `/w400/` with `/w800/` and `/w1200/` in CDN URLs, but these higher resolution paths may not exist on the Resales Online CDN, causing 404 errors that trigger the `onError` fallback to `/placeholder.svg`.
+This is a targeted, minimal change to upgrade only property card images from w400 to w800 resolution. All other image types (hero, lightbox, thumbnail) remain at w400 for safety.
 
-## Root Cause
+## Current State
 
-The CDN URL pattern `https://cdn.resales-online.com/public/{hash}/properties/{id}/w400/{filename}.jpg` works with `/w400/`, but the transformed paths (`/w800/`, `/w1200/`) may not be available for all properties.
+The image transformer is currently in safe pass-through mode:
+```typescript
+if (!url) return '/placeholder.svg';
+return url; // Return original URL unchanged
+```
 
-## Solution
+## Proposed Change
 
-Revert the image transformer to a simple pass-through function that returns the original URL unchanged. This will restore visibility of all property images at their original w400 resolution.
-
-## Implementation
-
-### Single File Change
+### Single File Update
 
 **File: `src/lib/imageUrlTransformer.ts`**
 
@@ -26,43 +26,71 @@ Replace the current implementation with:
 /**
  * Image URL utility for Resales Online CDN
  * 
- * Currently returns URLs unchanged. High-resolution upgrade 
- * should only be re-enabled after verifying CDN support.
+ * Upgrades card images to w800 for better quality.
+ * Other sizes remain at original resolution for safety.
  */
 export function getHighResImageUrl(
   url: string | undefined | null, 
   size: 'thumbnail' | 'card' | 'hero' | 'lightbox' = 'hero'
 ): string {
+  // Return placeholder if no URL
   if (!url) return '/placeholder.svg';
-  return url; // Return original URL unchanged
+  
+  // Only transform URLs that contain /w400/
+  if (!url.includes('/w400/')) {
+    return url;
+  }
+  
+  // Upgrade card images to w800 ONLY
+  if (size === 'card') {
+    return url.replace('/w400/', '/w800/');
+  }
+  
+  // Keep everything else at w400 for now (safe)
+  return url;
 }
 ```
 
-## Why This Works
+## Why This Is Safe
 
-1. The original `/w400/` URLs from the API are known to work (verified in network requests showing successful property data with w400 image URLs)
-2. The function signature remains the same, so all 8 files that import it will continue to work without modification
-3. Images will display at 400px resolution (may appear blurry on larger displays, but visible)
+| Aspect | Safety Measure |
+|--------|----------------|
+| Scope | Only affects `size === 'card'` - all other sizes unchanged |
+| Fallback | If URL doesn't contain `/w400/`, returns original |
+| Components affected | PropertyCard components that pass `'card'` as size parameter |
+| Easy revert | If broken, change line 17 to `return url;` |
 
-## Files Affected
+## Components That Use 'card' Size
 
-| File | Change |
-|------|--------|
-| `src/lib/imageUrlTransformer.ts` | Revert to pass-through mode |
+Based on the codebase, these components will get w800 images:
+- `src/components/property/PropertyCard.tsx` - Main property listing cards
+- `src/components/landing/PropertyCard.tsx` - Landing page property cards
 
 ## Verification Steps
 
 After deployment:
-
 1. Navigate to `/en/properties?transactionType=sale&newDevs=only`
-2. Confirm property cards show actual property photos (not placeholder icons)
-3. Click on a property to verify detail page images also work
+2. Open browser DevTools > Network tab
+3. Filter by "Images" to see loaded images
+4. Confirm image URLs now contain `/w800/` instead of `/w400/`
+5. Verify images display correctly (not placeholders)
+6. Confirm images appear sharper than before
 
-## Next Steps (After Images Are Restored)
+## Rollback Plan
 
-Once images are confirmed working:
+If images break, immediately change line 17-19:
+```typescript
+// FROM:
+if (size === 'card') {
+  return url.replace('/w400/', '/w800/');
+}
 
-1. Use browser Network tab to test if `/w800/` or `/w1200/` paths exist for a sample property
-2. If high-res paths work, re-implement with proper error handling
-3. Consider adding `onError` fallback to original URL before showing placeholder
+// TO:
+// Disabled - w800 not supported
+// if (size === 'card') {
+//   return url.replace('/w400/', '/w800/');
+// }
+```
+
+Or simply revert the entire function to `return url;`
 
