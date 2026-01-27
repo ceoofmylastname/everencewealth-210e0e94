@@ -329,9 +329,9 @@ export const buyersGuideEn = {
       author: "Michael & Sarah Thompson"
     },
     form: {
-      title: "Book Your Free Consultation",
+      title: "Start Your Free Consultation",
       description: "Discuss your requirements with our property experts. No obligation, no pressure—just expert advice.",
-      schedule: "Schedule a Call",
+      schedule: "Chat with Emma",
       browse: "Browse Available Properties",
       download: "Download PDF Guide",
       secure: "Your information is secure and will never be shared",

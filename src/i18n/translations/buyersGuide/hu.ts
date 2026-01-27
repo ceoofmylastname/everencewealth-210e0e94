@@ -329,9 +329,9 @@ export const buyersGuideHu = {
       author: "Michael & Sarah Thompson"
     },
     form: {
-      title: "Foglaljon Ingyenes Konzultációt",
+      title: "Indítsa el Ingyenes Konzultációját",
       description: "Beszélje meg igényeit ingatlan-szakértőinkkel. Nincs kötelezettség, nincs nyomás — csak szakértői tanácsok.",
-      schedule: "Időpont Egyeztetése",
+      schedule: "Csevegj Emmával",
       browse: "Elérhető Ingatlanok Böngészése",
       download: "PDF Útmutató Letöltése",
       secure: "Adatai biztonságban vannak és soha nem kerülnek megosztásra",

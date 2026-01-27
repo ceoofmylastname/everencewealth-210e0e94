@@ -329,9 +329,9 @@ export const buyersGuideFr = {
       author: "Michael & Sarah Thompson"
     },
     form: {
-      title: "Réservez Votre Consultation Gratuite",
+      title: "Démarrez Votre Consultation Gratuite",
       description: "Discutez de vos besoins avec nos experts immobiliers. Sans engagement, sans pression — juste des conseils d'experts.",
-      schedule: "Planifier un Appel",
+      schedule: "Chattez avec Emma",
       browse: "Parcourir les Biens Disponibles",
       download: "Télécharger le Guide PDF",
       secure: "Vos informations sont sécurisées et ne seront jamais partagées",

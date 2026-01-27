@@ -25,13 +25,13 @@ export const Footer: React.FC = () => {
               {t.footer.brandDescription}
             </p>
             <div className="flex gap-4">
-              <a href="#" className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-prime-gold hover:text-prime-900 transition-colors">
+              <a href="https://facebook.com/delsolprimehomes" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-prime-gold hover:text-prime-900 transition-colors">
                 <Facebook size={18} />
               </a>
-              <a href="#" className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-prime-gold hover:text-prime-900 transition-colors">
+              <a href="https://instagram.com/delsolprimehomes" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-prime-gold hover:text-prime-900 transition-colors">
                 <Instagram size={18} />
               </a>
-              <a href="#" className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-prime-gold hover:text-prime-900 transition-colors">
+              <a href="https://linkedin.com/company/delsolprimehomes" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-prime-gold hover:text-prime-900 transition-colors">
                 <Linkedin size={18} />
               </a>
             </div>
@@ -77,9 +77,9 @@ export const Footer: React.FC = () => {
             <ul className="space-y-3 text-slate-300 text-sm">
               <li><Link to="/privacy" className="hover:text-prime-gold transition-colors font-nav">{t.footer.legal.privacy}</Link></li>
               <li><Link to="/terms" className="hover:text-prime-gold transition-colors font-nav">{t.footer.legal.terms || "Terms of Service"}</Link></li>
-              <li><a href="#" className="hover:text-prime-gold transition-colors font-nav">{t.footer.legal.cookies}</a></li>
-              <li><a href="#" className="hover:text-prime-gold transition-colors font-nav">{t.footer.legal.legalNotice}</a></li>
-              <li><a href="#" className="hover:text-prime-gold transition-colors font-nav">{t.footer.legal.gdpr}</a></li>
+              <li><Link to="/privacy" className="hover:text-prime-gold transition-colors font-nav">{t.footer.legal.cookies}</Link></li>
+              <li><Link to="/terms" className="hover:text-prime-gold transition-colors font-nav">{t.footer.legal.legalNotice}</Link></li>
+              <li><Link to="/privacy" className="hover:text-prime-gold transition-colors font-nav">{t.footer.legal.gdpr}</Link></li>
             </ul>
           </div>
 

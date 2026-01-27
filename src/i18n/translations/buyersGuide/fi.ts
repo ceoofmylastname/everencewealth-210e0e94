@@ -329,9 +329,9 @@ export const buyersGuideFi = {
       author: "Michael & Sarah Thompson"
     },
     form: {
-      title: "Varaa Ilmainen Konsultaatiosi",
+      title: "Aloita Ilmainen Konsultaatiosi",
       description: "Keskustele vaatimuksistasi kiinteistöasiantuntijoidemme kanssa. Ei velvoitteita, ei painetta — vain asiantuntijaneuvoja.",
-      schedule: "Varaa Puhelu",
+      schedule: "Keskustele Emman kanssa",
       browse: "Selaa Saatavilla Olevia Kiinteistöjä",
       download: "Lataa PDF-opas",
       secure: "Tietosi ovat turvassa eikä niitä jaeta koskaan",

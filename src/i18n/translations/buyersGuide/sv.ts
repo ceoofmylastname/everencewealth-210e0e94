@@ -150,6 +150,6 @@ export const buyersGuideSv = {
     phone: { label: "Ring eller WhatsApp", number: "+34 630 03 90 90" },
     email: { label: "Maila oss", address: "info@delsolprimehomes.com" },
     testimonial: { quote: "Del Sol Prime Homes gjorde vår dröm om ett hem i Spanien till verklighet.", author: "Michael & Sarah Thompson" },
-    form: { title: "Boka Din Kostnadsfria Konsultation", description: "Diskutera dina krav med våra fastighetsexperter.", schedule: "Boka ett Samtal", browse: "Bläddra Tillgängliga Fastigheter", download: "Ladda ner PDF Guide", secure: "Din information är säker", freeConsultation: "Kostnadsfri Konsultation" }
+    form: { title: "Starta Din Kostnadsfria Konsultation", description: "Diskutera dina krav med våra fastighetsexperter.", schedule: "Chatta med Emma", browse: "Bläddra Tillgängliga Fastigheter", download: "Ladda ner PDF Guide", secure: "Din information är säker", freeConsultation: "Kostnadsfri Konsultation" }
   }
 };

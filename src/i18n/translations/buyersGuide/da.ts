@@ -329,9 +329,9 @@ export const buyersGuideDa = {
       author: "Michael & Sarah Thompson"
     },
     form: {
-      title: "Book Din Gratis Konsultation",
+      title: "Start Din Gratis Konsultation",
       description: "Diskuter dine ønsker med vores ejendomseksperter. Ingen forpligtelse, intet pres — kun ekspertrådgivning.",
-      schedule: "Planlæg et Opkald",
+      schedule: "Chat med Emma",
       browse: "Gennemse Tilgængelige Ejendomme",
       download: "Download PDF-guide",
       secure: "Din information er sikker og vil aldrig blive delt",

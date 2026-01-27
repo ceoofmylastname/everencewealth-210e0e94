@@ -1,13 +1,23 @@
 import React, { useEffect, useState, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ShieldCheck, Users, Star, ChevronDown } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { useTranslation } from '../../../i18n';
 
 export const Hero: React.FC = () => {
-  const { t } = useTranslation();
+  const { t, currentLanguage } = useTranslation();
+  const navigate = useNavigate();
   const [scrollY, setScrollY] = useState(0);
   const [videoLoaded, setVideoLoaded] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
+
+  const openEmmaChat = () => {
+    window.dispatchEvent(new CustomEvent('openEmmaChat'));
+  };
+
+  const goToPropertyFinder = () => {
+    navigate(`/${currentLanguage}/properties`);
+  };
 
   useEffect(() => {
     const handleScroll = () => setScrollY(window.scrollY);
@@ -115,6 +125,7 @@ export const Hero: React.FC = () => {
             variant="secondary" 
             size="lg" 
             className="h-12 md:h-14 px-6 md:px-8 bg-prime-gold hover:bg-[#C19A2E] text-prime-900 font-semibold rounded-lg shadow-[0_4px_12px_rgb(0_0_0_/_15%)] transition-all duration-300"
+            onClick={goToPropertyFinder}
           >
             {t.hero.ctaPrimary}
           </Button>
@@ -122,6 +133,7 @@ export const Hero: React.FC = () => {
             variant="outline" 
             size="lg" 
             className="h-12 md:h-14 px-6 md:px-8 bg-transparent border-2 border-white text-white hover:bg-white/10 font-semibold rounded-lg transition-all duration-300"
+            onClick={openEmmaChat}
           >
             {t.hero.ctaSecondary}
           </Button>

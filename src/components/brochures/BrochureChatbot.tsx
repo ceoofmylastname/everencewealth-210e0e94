@@ -58,7 +58,7 @@ export const BrochureChatbot: React.FC<BrochureChatbotProps> = ({
     setTimeout(() => {
       const botMessage: Message = {
         id: (Date.now() + 1).toString(),
-        text: `Thank you for your interest in ${cityName}! Our team of local experts can help you find the perfect property. Would you like to schedule a consultation call, or would you prefer to receive our detailed brochure first?`,
+        text: `Thank you for your interest in ${cityName}! Our team of local experts can help you find the perfect property. Would you like to chat with Emma for personalized guidance, or would you prefer to receive our detailed brochure first?`,
         sender: 'bot',
         timestamp: new Date(),
       };
