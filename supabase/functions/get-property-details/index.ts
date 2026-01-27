@@ -395,9 +395,12 @@ function normalizeProperty(prop: any) {
     completionDate: prop.CompletionDate || prop.Completion || '',
     buildingLicense: prop.BuildingLicense || '',
     
-    // Energy certificates
-    energyRating: prop.EnergyRating || prop.EnergyCertificate || '',
-    co2Rating: prop.CO2Rating || prop.CO2Emissions || '',
+    // Energy certificates - handle nested EnergyCertificate object
+    energyRating: prop.EnergyRating || 
+                  (typeof prop.EnergyCertificate === 'object' ? prop.EnergyCertificate?.EnergyRated : prop.EnergyCertificate) || '',
+    co2Rating: prop.CO2Rating || 
+               (typeof prop.EnergyCertificate === 'object' ? prop.EnergyCertificate?.CO2Rated : null) ||
+               prop.CO2Emissions || '',
     
     // Associated costs
     communityFees: parseNumeric(prop.CommunityFees || prop.Community_Fees_Year),
