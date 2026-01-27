@@ -2,7 +2,7 @@ export const nl = {
   common: {
     readMore: "Lees Meer",
     learnMore: "Meer Informatie",
-    bookCall: "Boek een Gesprek",
+    chatWithEmma: "Chat met Emma",
     getStarted: "Begin Nu",
     exploreAll: "Verken Alles",
   },
@@ -52,7 +52,7 @@ export const nl = {
     tagline: "Veilig. Transparant. In Uw Taal.",
     description: "DelSolPrimeHomes begeleidt internationale kopers door hoogwaardige nieuwbouw- en off-plan vastgoed van Málaga tot Sotogrande — met API-geaccrediteerde adviseurs, 35+ jaar gecombineerde ervaring en geavanceerde AI-tools om u te helpen de juiste beslissing te nemen.",
     ctaPrimary: "Start Uw Woningzoektocht",
-    ctaSecondary: "Boek een Gesprek met een Adviseur",
+    ctaSecondary: "Chat met Emma",
   },
   whyChooseUs: {
     eyebrow: "Waarom Ons Kiezen",
@@ -193,7 +193,7 @@ export const nl = {
     headline: "Klaar om Uw",
     headlineHighlight: "Droomhuis te Vinden?",
     description: "Of u nu net begint met zoeken of klaar bent om verder te gaan, onze API-geaccrediteerde adviseurs zijn er om u te begeleiden — duidelijk, transparant en in uw taal.",
-    ctaPrimary: "Boek een 1-op-1 Gesprek",
+    ctaPrimary: "Chat met Emma",
     ctaSecondary: "Vertel Ons Waar U Naar Zoekt",
   },
   footer: {

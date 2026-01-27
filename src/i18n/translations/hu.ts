@@ -2,7 +2,7 @@ export const hu = {
   common: {
     readMore: "Tovább Olvasom",
     learnMore: "Tudj Meg Többet",
-    bookCall: "Hívás Foglalása",
+    chatWithEmma: "Csevegj Emmával",
     getStarted: "Kezdd El",
     exploreAll: "Fedezd Fel Mindet",
   },
@@ -52,7 +52,7 @@ export const hu = {
     tagline: "Biztonságosan. Átláthatóan. A Te Nyelvededen.",
     description: "A DelSolPrimeHomes nemzetközi vásárlókat vezet át magas minőségű új építésű és tervezett ingatlanok között Málagától Sotograndéig — API-akkreditált tanácsadókkal, 35+ év kombinált tapasztalattal és fejlett AI eszközökkel, hogy segítsen a helyes döntés meghozatalában.",
     ctaPrimary: "Kezdd El az Ingatlankeresést",
-    ctaSecondary: "Foglalj Hívást Tanácsadóval",
+    ctaSecondary: "Csevegj Emmával",
   },
   whyChooseUs: {
     eyebrow: "Miért Minket",
@@ -193,7 +193,7 @@ export const hu = {
     headline: "Készen Állsz Megtalálni",
     headlineHighlight: "Álmaid Otthonát?",
     description: "Akár most kezded a keresést, akár készen állsz a továbblépésre, API-akkreditált tanácsadóink itt vannak, hogy vezessenek — világosan, átláthatóan és a te nyelveden.",
-    ctaPrimary: "Foglalj 1:1 Hívást",
+    ctaPrimary: "Csevegj Emmával",
     ctaSecondary: "Mondd El, Mit Keresel",
   },
   footer: {

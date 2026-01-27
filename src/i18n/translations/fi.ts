@@ -2,7 +2,7 @@ export const fi = {
   common: {
     readMore: "Lue Lisää",
     learnMore: "Lisätietoja",
-    bookCall: "Varaa Puhelu",
+    chatWithEmma: "Keskustele Emman kanssa",
     getStarted: "Aloita",
     exploreAll: "Tutustu Kaikkiin",
   },
@@ -52,7 +52,7 @@ export const fi = {
     tagline: "Turvallisesti. Läpinäkyvästi. Omalla Kielelläsi.",
     description: "DelSolPrimeHomes ohjaa kansainvälisiä ostajia korkealaatuisten uudiskohteiden ja pohjapiirustuksella myytävien kiinteistöjen pariin Málagasta Sotograndeen — API-akkreditoidut neuvonantajat, 35+ vuoden yhdistetty kokemus ja edistyneet tekoälytyökalut auttavat sinua tekemään oikean päätöksen.",
     ctaPrimary: "Aloita Kiinteistöhaku",
-    ctaSecondary: "Varaa Puhelu Neuvonantajan Kanssa",
+    ctaSecondary: "Keskustele Emman kanssa",
   },
   whyChooseUs: {
     eyebrow: "Miksi Valita Meidät",
@@ -193,7 +193,7 @@ export const fi = {
     headline: "Valmis Löytämään",
     headlineHighlight: "Unelmiesi Kodin?",
     description: "Olitpa vasta aloittamassa hakuasi tai valmis etenemään, API-akkreditoidut neuvonantajamme ovat täällä ohjaamassa sinua — selkeästi, läpinäkyvästi ja omalla kielelläsi.",
-    ctaPrimary: "Varaa 1:1 Puhelu",
+    ctaPrimary: "Keskustele Emman kanssa",
     ctaSecondary: "Kerro Meille, Mitä Etsit",
   },
   footer: {

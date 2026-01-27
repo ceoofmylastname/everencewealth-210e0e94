@@ -222,8 +222,13 @@ export const Header: React.FC<HeaderProps> = ({ variant = 'transparent', content
             />
           )}
 
-          <Button variant={isLightBackground ? 'primary' : 'secondary'} size="sm" className={`font-nav tracking-wide ${!isLightBackground ? 'bg-prime-gold hover:bg-prime-gold/90 text-prime-900 shadow-lg shadow-prime-gold/20 border-none' : 'bg-prime-gold hover:bg-prime-gold/90 text-prime-900'}`}>
-            {t.common.bookCall}
+          <Button 
+            variant={isLightBackground ? 'primary' : 'secondary'} 
+            size="sm" 
+            className={`font-nav tracking-wide ${!isLightBackground ? 'bg-prime-gold hover:bg-prime-gold/90 text-prime-900 shadow-lg shadow-prime-gold/20 border-none' : 'bg-prime-gold hover:bg-prime-gold/90 text-prime-900'}`}
+            onClick={() => window.dispatchEvent(new CustomEvent('openEmmaChat'))}
+          >
+            {t.common.chatWithEmma}
           </Button>
         </div>
 
@@ -328,8 +333,8 @@ export const Header: React.FC<HeaderProps> = ({ variant = 'transparent', content
           )}
         </div>
         
-        <Button fullWidth onClick={() => setIsMobileMenuOpen(false)} className="mt-auto mb-8">
-          {t.common.bookCall}
+        <Button fullWidth onClick={() => { setIsMobileMenuOpen(false); window.dispatchEvent(new CustomEvent('openEmmaChat')); }} className="mt-auto mb-8">
+          {t.common.chatWithEmma}
         </Button>
       </div>
     </header>

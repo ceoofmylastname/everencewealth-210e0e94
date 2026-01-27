@@ -42,9 +42,10 @@ export const AboutCTA = () => {
               size="lg" 
               variant="outline" 
               className="border-white/30 text-white hover:bg-white/10 px-8"
+              onClick={() => window.dispatchEvent(new CustomEvent('openEmmaChat'))}
             >
               <Phone className="w-4 h-4 mr-2" />
-              Schedule a Call
+              Chat with Emma
             </Button>
           </div>
 

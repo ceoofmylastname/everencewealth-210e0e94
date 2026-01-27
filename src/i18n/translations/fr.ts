@@ -2,7 +2,7 @@ export const fr = {
   common: {
     readMore: "Lire Plus",
     learnMore: "En Savoir Plus",
-    bookCall: "Réserver un Appel",
+    chatWithEmma: "Discuter avec Emma",
     getStarted: "Commencer",
     exploreAll: "Explorer Tout",
   },
@@ -52,7 +52,7 @@ export const fr = {
     tagline: "En Sécurité. Transparence. Dans Votre Langue.",
     description: "DelSolPrimeHomes guide les acheteurs internationaux à travers l'immobilier neuf et sur plan de haute qualité de Málaga à Sotogrande — avec des conseillers accrédités API, 35+ ans d'expérience combinée et des outils d'IA avancés pour vous aider à prendre la bonne décision.",
     ctaPrimary: "Commencez Votre Recherche",
-    ctaSecondary: "Réservez un Appel avec un Conseiller",
+    ctaSecondary: "Discuter avec Emma",
   },
   whyChooseUs: {
     eyebrow: "Pourquoi Nous Choisir",
@@ -193,7 +193,7 @@ export const fr = {
     headline: "Prêt à Trouver Votre",
     headlineHighlight: "Maison de Rêve?",
     description: "Que vous commenciez tout juste votre recherche ou que vous soyez prêt à avancer, nos conseillers accrédités API sont là pour vous guider — clairement, en toute transparence et dans votre langue.",
-    ctaPrimary: "Réserver un Appel 1:1",
+    ctaPrimary: "Discuter avec Emma",
     ctaSecondary: "Dites-Nous Ce Que Vous Cherchez",
   },
   footer: {
