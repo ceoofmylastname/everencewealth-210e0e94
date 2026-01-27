@@ -2,7 +2,7 @@ export const de = {
   common: {
     readMore: "Mehr Lesen",
     learnMore: "Mehr Erfahren",
-    bookCall: "Gespräch Buchen",
+    chatWithEmma: "Mit Emma chatten",
     getStarted: "Loslegen",
     exploreAll: "Alles Erkunden",
   },
@@ -52,7 +52,7 @@ export const de = {
     tagline: "Sicher. Transparent. In Ihrer Sprache.",
     description: "DelSolPrimeHomes begleitet internationale Käufer durch hochwertige Neubau- und Off-Plan-Immobilien von Málaga bis Sotogrande — mit API-akkreditierten Beratern, 35+ Jahren kombinierter Erfahrung und fortschrittlichen KI-Tools, die Ihnen helfen, die richtige Entscheidung zu treffen.",
     ctaPrimary: "Ihre Immobiliensuche Starten",
-    ctaSecondary: "Gespräch mit Berater Buchen",
+    ctaSecondary: "Mit Emma chatten",
   },
   whyChooseUs: {
     eyebrow: "Warum Wir",
@@ -193,7 +193,7 @@ export const de = {
     headline: "Bereit, Ihr",
     headlineHighlight: "Traumhaus zu Finden?",
     description: "Ob Sie gerade erst mit Ihrer Suche beginnen oder bereit sind, voranzukommen, unsere API-akkreditierten Berater sind hier, um Sie zu begleiten — klar, transparent und in Ihrer Sprache.",
-    ctaPrimary: "1:1 Gespräch Buchen",
+    ctaPrimary: "Mit Emma chatten",
     ctaSecondary: "Sagen Sie Uns, Wonach Sie Suchen",
   },
   footer: {

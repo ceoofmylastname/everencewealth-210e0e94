@@ -2,7 +2,7 @@ export const pl = {
   common: {
     readMore: "Czytaj Więcej",
     learnMore: "Dowiedz Się Więcej",
-    bookCall: "Umów Rozmowę",
+    chatWithEmma: "Czatuj z Emmą",
     getStarted: "Rozpocznij",
     exploreAll: "Odkryj Wszystko",
   },
@@ -52,7 +52,7 @@ export const pl = {
     tagline: "Bezpiecznie. Przejrzyście. W Twoim Języku.",
     description: "DelSolPrimeHomes prowadzi międzynarodowych kupujących przez wysokiej jakości nieruchomości nowo budowane i w planie od Málagi do Sotogrande — z doradcami akredytowanymi przez API, 35+ latami łącznego doświadczenia i zaawansowanymi narzędziami AI, aby pomóc Ci podjąć właściwą decyzję.",
     ctaPrimary: "Rozpocznij Poszukiwanie Nieruchomości",
-    ctaSecondary: "Umów Rozmowę z Doradcą",
+    ctaSecondary: "Czatuj z Emmą",
   },
   whyChooseUs: {
     eyebrow: "Dlaczego My",
@@ -193,7 +193,7 @@ export const pl = {
     headline: "Gotowy Znaleźć Swój",
     headlineHighlight: "Dom Marzeń?",
     description: "Niezależnie od tego, czy dopiero zaczynasz poszukiwania, czy jesteś gotowy do działania, nasi doradcy akredytowani przez API są tutaj, aby Cię poprowadzić — jasno, przejrzyście i w Twoim języku.",
-    ctaPrimary: "Umów Rozmowę 1:1",
+    ctaPrimary: "Czatuj z Emmą",
     ctaSecondary: "Powiedz Nam, Czego Szukasz",
   },
   footer: {

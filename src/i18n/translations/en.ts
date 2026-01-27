@@ -2,7 +2,7 @@ export const en = {
   common: {
     readMore: "Read More",
     learnMore: "Learn More",
-    bookCall: "Book a Call",
+    chatWithEmma: "Chat with Emma",
     getStarted: "Get Started",
     exploreAll: "Explore All",
   },
@@ -52,7 +52,7 @@ export const en = {
     tagline: "Safely. Transparently. In Your Language.",
     description: "DelSolPrimeHomes guides international buyers through high-quality new-build and off-plan real estate from Málaga to Sotogrande — with API-accredited advisors, 35+ years of combined experience, and advanced AI tools to help you make the right decision.",
     ctaPrimary: "Start Your Property Search",
-    ctaSecondary: "Book a Call With an Advisor",
+    ctaSecondary: "Chat with Emma",
   },
   whyChooseUs: {
     eyebrow: "Why Choose Us",
@@ -193,7 +193,7 @@ export const en = {
     headline: "Ready to Find Your",
     headlineHighlight: "Dream Home?",
     description: "Whether you're just starting your search or ready to move forward, our API-accredited advisors are here to guide you — clearly, transparently, and in your language.",
-    ctaPrimary: "Book a 1:1 Call",
+    ctaPrimary: "Chat with Emma",
     ctaSecondary: "Tell Us What You're Looking For",
   },
   footer: {

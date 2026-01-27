@@ -2,7 +2,7 @@ export const tr = {
   common: {
     readMore: "Devamını Oku",
     learnMore: "Daha Fazla Bilgi",
-    bookCall: "Görüşme Ayarla",
+    chatWithEmma: "Emma ile Sohbet Et",
     getStarted: "Başla",
     exploreAll: "Tümünü Keşfet",
   },
@@ -47,7 +47,7 @@ export const tr = {
     tagline: "Güvenle. Şeffaflıkla. Sizin Dilinizde.",
     description: "DelSolPrimeHomes, uluslararası alıcıları Malaga'dan Sotogrande'ye kadar yüksek kaliteli yeni inşaat ve proje gayrimenkulleri konusunda yönlendirir — API akrediteli danışmanlar, 35+ yıl birleşik deneyim ve gelişmiş AI araçlarıyla.",
     ctaPrimary: "Mülk Aramanızı Başlatın",
-    ctaSecondary: "Danışmanla Görüşme Ayarlayın",
+    ctaSecondary: "Emma ile Sohbet Et",
   },
   quickSearch: {
     headline: "Doğru Mülklerle Başlayın — Sonsuz Kaydırma Değil",
@@ -166,7 +166,7 @@ export const tr = {
     headline: "Hayalinizdeki Evi Bulmaya",
     headlineHighlight: "Hazır mısınız?",
     description: "İster aramanıza yeni başlıyor olun ister ilerlemeye hazır olun, API akrediteli danışmanlarımız size rehberlik etmek için burada — açıkça, şeffaf bir şekilde ve sizin dilinizde.",
-    ctaPrimary: "1:1 Görüşme Ayarla",
+    ctaPrimary: "Emma ile Sohbet Et",
     ctaSecondary: "Ne Aradığınızı Söyleyin",
   },
   footer: {

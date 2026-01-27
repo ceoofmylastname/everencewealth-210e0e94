@@ -2,7 +2,7 @@ export const it = {
   common: {
     readMore: "Leggi di più",
     learnMore: "Scopri di più",
-    bookCall: "Prenota una chiamata",
+    chatWithEmma: "Chatta con Emma",
     getStarted: "Inizia",
     exploreAll: "Esplora tutto",
   },
@@ -47,7 +47,7 @@ export const it = {
     tagline: "In sicurezza. Trasparenza. Nella tua lingua.",
     description: "DelSolPrimeHomes guida gli acquirenti internazionali attraverso immobili di nuova costruzione e su piano di alta qualità da Malaga a Sotogrande — con consulenti accreditati API, oltre 35 anni di esperienza combinata e strumenti AI avanzati.",
     ctaPrimary: "Inizia la ricerca della proprietà",
-    ctaSecondary: "Prenota una chiamata con un consulente",
+    ctaSecondary: "Chatta con Emma",
   },
   quickSearch: {
     headline: "Inizia con le proprietà giuste — Non con lo scrolling infinito",
@@ -166,7 +166,7 @@ export const it = {
     headline: "Pronto a trovare la tua",
     headlineHighlight: "Casa dei Sogni?",
     description: "Che tu stia iniziando la ricerca o sia pronto ad andare avanti, i nostri consulenti accreditati API sono qui per guidarti — in modo chiaro, trasparente e nella tua lingua.",
-    ctaPrimary: "Prenota chiamata 1:1",
+    ctaPrimary: "Chatta con Emma",
     ctaSecondary: "Dicci cosa cerchi",
   },
   footer: {

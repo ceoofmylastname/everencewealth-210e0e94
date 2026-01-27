@@ -2,7 +2,7 @@ export const no = {
   common: {
     readMore: "Les Mer",
     learnMore: "Lær Mer",
-    bookCall: "Bestill en Samtale",
+    chatWithEmma: "Chat med Emma",
     getStarted: "Kom I Gang",
     exploreAll: "Utforsk Alt",
   },
@@ -52,7 +52,7 @@ export const no = {
     tagline: "Trygt. Transparent. På Ditt Språk.",
     description: "DelSolPrimeHomes veileder internasjonale kjøpere gjennom høykvalitets nybygg og off-plan eiendommer fra Málaga til Sotogrande — med API-akkrediterte rådgivere, 35+ års kombinert erfaring og avanserte AI-verktøy for å hjelpe deg med å ta rett beslutning.",
     ctaPrimary: "Start Ditt Eiendomssøk",
-    ctaSecondary: "Bestill en Samtale Med en Rådgiver",
+    ctaSecondary: "Chat med Emma",
   },
   whyChooseUs: {
     eyebrow: "Hvorfor Oss",
@@ -193,7 +193,7 @@ export const no = {
     headline: "Klar til å Finne Ditt",
     headlineHighlight: "Drømmehjem?",
     description: "Enten du nettopp har startet søket ditt eller er klar til å gå videre, er våre API-akkrediterte rådgivere her for å veilede deg — tydelig, transparent og på ditt språk.",
-    ctaPrimary: "Bestill en 1:1 Samtale",
+    ctaPrimary: "Chat med Emma",
     ctaSecondary: "Fortell Oss Hva Du Leter Etter",
   },
   footer: {
