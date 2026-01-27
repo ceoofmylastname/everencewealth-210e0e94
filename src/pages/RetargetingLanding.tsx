@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
   RetargetingHero,
@@ -11,18 +12,46 @@ import {
 } from "@/components/retargeting";
 
 const RetargetingLanding = () => {
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 50);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   return (
     <div className="min-h-screen bg-white">
-      {/* Minimal Header - Just Logo */}
-      <header className="absolute top-0 left-0 right-0 z-50 py-6 px-6">
-        <div className="max-w-6xl mx-auto">
-          <Link to="/en" className="inline-block">
-            <span className="text-[#1a1f2e] text-lg md:text-xl tracking-widest font-light">
-              DEL
-              <span className="text-[#c9a962]">SOL</span>
-              PRIMEHOMES
-            </span>
-          </Link>
+      {/* Glassmorphism Header - Fixed */}
+      <header
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+          scrolled
+            ? "bg-white/95 backdrop-blur-md shadow-sm border-b border-gray-100/50"
+            : "bg-transparent"
+        }`}
+      >
+        <div className="max-w-6xl mx-auto py-4 md:py-5 px-6">
+          <div className="flex items-center justify-center">
+            <Link to="/en" className="inline-block">
+              <span
+                className={`text-lg md:text-xl tracking-widest font-light transition-colors duration-300 ${
+                  scrolled ? "text-landing-navy" : "text-white"
+                }`}
+                style={
+                  !scrolled
+                    ? { textShadow: "0 2px 10px rgba(0,0,0,0.3)" }
+                    : undefined
+                }
+              >
+                DEL
+                <span className="text-landing-gold">SOL</span>
+                PRIMEHOMES
+              </span>
+            </Link>
+          </div>
         </div>
       </header>
 

@@ -23,8 +23,12 @@ const testimonials = [
 
 export const RetargetingTestimonials = () => {
   return (
-    <section className="bg-white py-20 md:py-24 lg:py-28">
-      <div className="max-w-6xl mx-auto px-6">
+    <section className="relative bg-gradient-to-br from-white via-gray-50/30 to-white py-20 md:py-24 lg:py-28 overflow-hidden">
+      {/* Decorative blur circles */}
+      <div className="absolute top-10 right-20 w-80 h-80 bg-landing-gold/5 rounded-full blur-3xl" />
+      <div className="absolute bottom-10 left-20 w-64 h-64 bg-landing-navy/5 rounded-full blur-3xl" />
+
+      <div className="relative z-10 max-w-6xl mx-auto px-6">
         {/* Section Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -33,14 +37,14 @@ export const RetargetingTestimonials = () => {
           transition={{ duration: 0.6 }}
           className="text-center mb-14 md:mb-16"
         >
-          <h2 className="text-2xl md:text-[32px] lg:text-[36px] font-medium text-[#1a1f2e] mb-4">
+          <h2 className="text-2xl md:text-[32px] lg:text-[36px] font-medium text-landing-navy mb-4">
             Why people start with us — before looking at property
           </h2>
-          <p className="text-[#6b7280] text-base md:text-lg max-w-2xl mx-auto">
+          <p className="text-landing-navy/60 text-base md:text-lg max-w-2xl mx-auto">
             Experiences from people who wanted clarity before taking the next step.
           </p>
         </motion.div>
-        
+
         {/* Testimonial Cards */}
         <div className="grid md:grid-cols-3 gap-6 md:gap-8">
           {testimonials.map((testimonial, index) => (
@@ -50,28 +54,28 @@ export const RetargetingTestimonials = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-50px" }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
-              className="bg-white rounded-lg p-6 md:p-8 shadow-[0_2px_20px_rgba(0,0,0,0.06)] border border-slate-100"
+              className="group bg-white/80 backdrop-blur-sm rounded-2xl p-6 md:p-8 shadow-lg hover:shadow-xl border border-gray-100 hover:border-landing-gold/20 transition-all duration-300 hover:scale-[1.02]"
             >
-              {/* Quote mark */}
-              <div className="text-[#c9a962] text-5xl font-serif leading-none mb-4">"</div>
-              
+              {/* Quote mark with gold accent */}
+              <div className="text-landing-gold text-5xl font-serif leading-none mb-4 opacity-80 group-hover:opacity-100 transition-opacity">"</div>
+
               {/* Quote text */}
-              <p className="text-[#1a1f2e] text-base leading-relaxed mb-6">
+              <p className="text-landing-navy text-base leading-relaxed mb-6">
                 {testimonial.quote}
               </p>
-              
+
               {/* Attribution */}
               <div className="flex items-center gap-3">
                 <img
                   src={testimonial.flag}
                   alt={testimonial.country}
-                  className="w-6 h-4 object-cover rounded-sm"
+                  className="w-8 h-5 object-cover rounded shadow-sm"
                 />
                 <div>
-                  <p className="font-medium text-[#1a1f2e] text-sm">
+                  <p className="font-medium text-landing-navy text-sm">
                     {testimonial.name}
                   </p>
-                  <p className="text-[#6b7280] text-sm">
+                  <p className="text-landing-navy/60 text-sm">
                     {testimonial.country}
                   </p>
                 </div>
