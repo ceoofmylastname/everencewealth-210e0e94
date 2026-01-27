@@ -23,6 +23,39 @@ export interface Property {
   parking?: string;
   orientation?: string;
   views?: string;
+  
+  // Additional size measurements (for new developments)
+  interiorSize?: number;
+  interiorSizeMax?: number;
+  terraceSize?: number;
+  terraceSizeMax?: number;
+  totalSize?: number;
+  totalSizeMax?: number;
+  
+  // Development info
+  developmentName?: string;
+  newDevelopment?: boolean;
+  status?: string;
+  
+  // Construction details
+  completionDate?: string;
+  buildingLicense?: string;
+  
+  // Energy certificates
+  energyRating?: string;
+  co2Rating?: string;
+  
+  // Associated costs
+  communityFees?: number;
+  ibi?: number;
+  garbageTax?: number;
+  
+  // Payment terms
+  reservationAmount?: number;
+  vatPercentage?: number;
+  
+  // Grouped features by category
+  featureCategories?: Record<string, string[]>;
 }
 
 export interface PropertySearchParams {

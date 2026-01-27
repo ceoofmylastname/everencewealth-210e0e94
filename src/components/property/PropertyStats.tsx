@@ -1,5 +1,5 @@
 import { useRef, useEffect, useState } from "react";
-import { Bed, Bath, Maximize2, Grid3X3, Compass, Eye } from "lucide-react";
+import { Bed, Bath, Maximize2, Grid3X3, Compass, Eye, Home, LayoutDashboard, Square } from "lucide-react";
 import { motion } from "framer-motion";
 import { useCountUp } from "@/hooks/useCountUp";
 
@@ -14,6 +14,13 @@ interface PropertyStatsProps {
   plotAreaMax?: number;
   orientation?: string;
   views?: string;
+  // Additional sizes for new developments
+  interiorSize?: number;
+  interiorSizeMax?: number;
+  terraceSize?: number;
+  terraceSizeMax?: number;
+  totalSize?: number;
+  totalSizeMax?: number;
 }
 
 interface StatItemProps {
@@ -113,8 +120,19 @@ interface RangeStatItemProps {
   delay: number;
 }
 
+/**
+ * Formats a range value exactly like Resales Online
+ * Examples: "1 - 3", "65 m² - 138 m²"
+ */
+const formatRange = (min: number, max?: number, suffix: string = ""): string => {
+  if (max && max > min) {
+    return `${min} ${suffix} - ${max} ${suffix}`.trim();
+  }
+  return `${min}${suffix}`;
+};
+
 const RangeStatItem = ({ icon, min, max, suffix = "", label, delay }: RangeStatItemProps) => {
-  const displayValue = max && max > min ? `${min} - ${max}` : `${min}`;
+  const displayValue = formatRange(min, max, suffix);
   
   return (
     <motion.div
@@ -127,8 +145,8 @@ const RangeStatItem = ({ icon, min, max, suffix = "", label, delay }: RangeStatI
       <div className="w-10 h-10 md:w-12 md:h-12 mx-auto mb-2 md:mb-3 rounded-lg md:rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
         {icon}
       </div>
-      <div className="text-xl sm:text-2xl md:text-3xl font-display font-bold text-foreground mb-0.5 md:mb-1">
-        {displayValue}{suffix}
+      <div className="text-lg sm:text-xl md:text-2xl font-display font-bold text-foreground mb-0.5 md:mb-1">
+        {displayValue}
       </div>
       <div className="text-xs md:text-sm text-muted-foreground uppercase tracking-wider">
         {label}
@@ -148,6 +166,12 @@ export const PropertyStats = ({
   plotAreaMax,
   orientation,
   views,
+  interiorSize,
+  interiorSizeMax,
+  terraceSize,
+  terraceSizeMax,
+  totalSize,
+  totalSizeMax,
 }: PropertyStatsProps) => {
   // Check if this is a New Development (has range values)
   const hasRanges = bedroomsMax || bathroomsMax || builtAreaMax;
@@ -155,8 +179,8 @@ export const PropertyStats = ({
   return (
     <div className="relative mt-6 md:mt-8 z-20 px-3 sm:px-4 md:px-8">
       <div className="max-w-6xl mx-auto">
-        {/* Floating Stats Bar */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-3 md:gap-4">
+        {/* Main Stats Bar */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-2 sm:gap-3 md:gap-4">
           {hasRanges ? (
             <>
               <RangeStatItem
@@ -205,7 +229,9 @@ export const PropertyStats = ({
               />
             </>
           )}
-          {plotArea && (
+          
+          {/* Plot Area */}
+          {plotArea !== undefined && plotArea > 0 && (
             hasRanges ? (
               <RangeStatItem
                 icon={<Grid3X3 className="w-5 h-5 md:w-6 md:h-6 text-primary" />}
@@ -225,20 +251,60 @@ export const PropertyStats = ({
               />
             )
           )}
+          
+          {/* Interior Size (New Developments) */}
+          {interiorSize !== undefined && interiorSize > 0 && (
+            <RangeStatItem
+              icon={<Home className="w-5 h-5 md:w-6 md:h-6 text-primary" />}
+              min={interiorSize}
+              max={interiorSizeMax}
+              suffix="m²"
+              label="Interior"
+              delay={350}
+            />
+          )}
+          
+          {/* Terrace Size (New Developments) */}
+          {terraceSize !== undefined && terraceSize > 0 && (
+            <RangeStatItem
+              icon={<Square className="w-5 h-5 md:w-6 md:h-6 text-primary" />}
+              min={terraceSize}
+              max={terraceSizeMax}
+              suffix="m²"
+              label="Terrace"
+              delay={400}
+            />
+          )}
+          
+          {/* Total Size (New Developments) */}
+          {totalSize !== undefined && totalSize > 0 && (
+            <RangeStatItem
+              icon={<LayoutDashboard className="w-5 h-5 md:w-6 md:h-6 text-primary" />}
+              min={totalSize}
+              max={totalSizeMax}
+              suffix="m²"
+              label="Total"
+              delay={450}
+            />
+          )}
+          
+          {/* Orientation */}
           {orientation && (
             <TextStatItem
               icon={<Compass className="w-5 h-5 md:w-6 md:h-6 text-primary" />}
               value={orientation}
               label="Facing"
-              delay={400}
+              delay={500}
             />
           )}
+          
+          {/* Views */}
           {views && (
             <TextStatItem
               icon={<Eye className="w-5 h-5 md:w-6 md:h-6 text-primary" />}
               value={views}
               label="Views"
-              delay={500}
+              delay={550}
             />
           )}
         </div>

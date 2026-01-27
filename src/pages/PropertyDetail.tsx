@@ -8,6 +8,7 @@ import { PropertyStats } from "@/components/property/PropertyStats";
 import { PropertyFeatures } from "@/components/property/PropertyFeatures";
 import { PropertyContact, PropertyContactMobile } from "@/components/property/PropertyContact";
 import { PropertyDescription } from "@/components/property/PropertyDescription";
+import { PropertyCosts } from "@/components/property/PropertyCosts";
 import { PropertyHreflangTags } from "@/components/PropertyHreflangTags";
 import { Button } from "@/components/ui/button";
 import { Loader2, ArrowLeft } from "lucide-react";
@@ -48,6 +49,7 @@ const PropertyDetail = () => {
         if (data.property) {
           console.log('📸 Image resolution:', data.imageResolution);
           console.log('📸 Data source:', data.source);
+          console.log('📸 Property data:', data.property);
           setProperty(data.property);
         } else {
           toast({
@@ -71,6 +73,10 @@ const PropertyDetail = () => {
     fetchProperty();
   }, [reference, currentLanguage, toast]);
 
+  /**
+   * Formats price for display, handling ranges for new developments
+   * Examples: "€ 215,000", "€ 215,000 - € 558,000"
+   */
   const formatPrice = (price: number | string, priceMax: number | undefined, currency: string) => {
     const safeCurrency = currency || 'EUR';
     let formatter: Intl.NumberFormat;
@@ -90,53 +96,14 @@ const PropertyDetail = () => {
       });
     }
     
-    const priceStr = String(price);
+    const numPrice = typeof price === 'number' ? price : parseInt(String(price).replace(/[^0-9]/g, '')) || 0;
     
-    // CASE 1: Check if priceMax is already provided and valid
-    if (priceMax && typeof priceMax === 'number' && priceMax > 0) {
-      const numPrice = typeof price === 'number' ? price : parseInt(priceStr.replace(/[^0-9]/g, ''));
-      if (priceMax > numPrice) {
-        return `From ${formatter.format(numPrice)}`;
-      }
+    // Check if priceMax is provided and valid for range display
+    if (priceMax && typeof priceMax === 'number' && priceMax > numPrice) {
+      return `${formatter.format(numPrice)} - ${formatter.format(priceMax)}`;
     }
     
-    // CASE 2: Detect dash range format "175000 - 749000"
-    if (priceStr.includes(' - ') || priceStr.includes('-')) {
-      const dashSplit = priceStr.split(/\s*[-–—]\s*/);
-      if (dashSplit.length >= 2) {
-        const min = parseInt(dashSplit[0].replace(/[^0-9]/g, '')) || 0;
-        const max = parseInt(dashSplit[1].replace(/[^0-9]/g, '')) || 0;
-        if (min > 0 && max > min) {
-          return `From ${formatter.format(min)}`;
-        }
-      }
-    }
-    
-    // CASE 3: Detect concatenated number (too many digits)
-    const numericPrice = parseInt(priceStr.replace(/[^0-9]/g, '')) || 0;
-    if (numericPrice > 100000000) {
-      const priceDigits = String(numericPrice);
-      const midpoint = Math.floor(priceDigits.length / 2);
-      const possibleMin = parseInt(priceDigits.substring(0, midpoint)) || 0;
-      const possibleMax = parseInt(priceDigits.substring(midpoint)) || 0;
-      
-      if (possibleMin > 10000 && possibleMax > possibleMin) {
-        return `From ${formatter.format(possibleMin)}`;
-      }
-    }
-    
-    // CASE 4: Detect decimal format "175000.749000"
-    if (priceStr.includes('.')) {
-      const parts = priceStr.split('.');
-      const beforeDecimal = parseInt(parts[0].replace(/[^0-9]/g, '')) || 0;
-      const afterDecimal = parts[1] ? parseInt(parts[1].replace(/[^0-9]/g, '')) : 0;
-      
-      if (parts[1] && parts[1].length >= 5 && afterDecimal > 10000) {
-        return `From ${formatter.format(beforeDecimal)}`;
-      }
-    }
-    
-    return formatter.format(numericPrice);
+    return formatter.format(numPrice);
   };
 
   if (isLoading) {
@@ -176,7 +143,12 @@ const PropertyDetail = () => {
   }
 
   const formattedPrice = formatPrice(property.price, property.priceMax, property.currency);
-  const allImages = [property.mainImage, ...property.images];
+  const allImages = [property.mainImage, ...property.images].filter(Boolean);
+  
+  // Build title with development name if available
+  const pageTitle = property.developmentName 
+    ? `${property.developmentName} - ${property.propertyType} in ${property.location}`
+    : `${property.propertyType} in ${property.location}`;
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -208,14 +180,19 @@ const PropertyDetail = () => {
           {/* Property Header */}
           <div className="mb-6 md:mb-8">
             <PropertyHeader
-              title={`${property.propertyType} in ${property.location}`}
+              title={pageTitle}
               location={property.location}
               province={property.province}
               price={formattedPrice}
               reference={property.reference}
               bedrooms={property.bedrooms}
+              bedroomsMax={property.bedroomsMax}
               bathrooms={property.bathrooms}
+              bathroomsMax={property.bathroomsMax}
               builtArea={property.builtArea}
+              builtAreaMax={property.builtAreaMax}
+              developmentName={property.developmentName}
+              newDevelopment={property.newDevelopment}
             />
           </div>
 
@@ -223,7 +200,7 @@ const PropertyDetail = () => {
           <div className="mb-8 md:mb-12">
             <PropertyGalleryGrid
               images={allImages}
-              title={`${property.propertyType} in ${property.location}`}
+              title={pageTitle}
             />
           </div>
 
@@ -240,6 +217,12 @@ const PropertyDetail = () => {
               plotAreaMax={property.plotAreaMax}
               orientation={property.orientation}
               views={property.views}
+              interiorSize={property.interiorSize}
+              interiorSizeMax={property.interiorSizeMax}
+              terraceSize={property.terraceSize}
+              terraceSizeMax={property.terraceSizeMax}
+              totalSize={property.totalSize}
+              totalSizeMax={property.totalSizeMax}
             />
           </div>
 
@@ -254,7 +237,7 @@ const PropertyDetail = () => {
                 location={property.location}
               />
 
-              {/* Features Section */}
+              {/* Features Section (with grouped categories) */}
               <PropertyFeatures
                 features={property.features}
                 pool={property.pool}
@@ -262,6 +245,21 @@ const PropertyDetail = () => {
                 parking={property.parking}
                 orientation={property.orientation}
                 views={property.views}
+                featureCategories={property.featureCategories}
+              />
+
+              {/* Costs & Details Section */}
+              <PropertyCosts
+                reservationAmount={property.reservationAmount}
+                vatPercentage={property.vatPercentage}
+                communityFees={property.communityFees}
+                ibi={property.ibi}
+                garbageTax={property.garbageTax}
+                completionDate={property.completionDate}
+                buildingLicense={property.buildingLicense}
+                energyRating={property.energyRating}
+                co2Rating={property.co2Rating}
+                currency={property.currency}
               />
             </div>
 

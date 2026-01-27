@@ -33,17 +33,35 @@ async function callProxyPropertyDetails(reference: string, langNum: number): Pro
   const data = await response.json();
   console.log('✅ Proxy response received');
   console.log('📦 Raw response keys:', Object.keys(data));
-  console.log('📦 Property array?:', data.Property?.length);
-  console.log('📦 Has property?:', !!data.property);
+  console.log('📦 Property type:', typeof data.Property);
+  console.log('📦 Property is array?:', Array.isArray(data.Property));
   
-  // Handle all possible proxy response formats
-  const rawProp = data.Property?.[0] || 
-                  data.property?.[0] ||
-                  data.property || 
-                  (data.Reference ? data : null);
+  // CRITICAL FIX: Handle BOTH object and array responses from proxy
+  // The API returns Property as a direct object for single queries, not an array
+  let rawProp = null;
+  
+  if (data.Property) {
+    if (Array.isArray(data.Property)) {
+      rawProp = data.Property[0];
+      console.log('📦 Extracted from Property array');
+    } else if (typeof data.Property === 'object') {
+      rawProp = data.Property;
+      console.log('📦 Extracted from Property object directly');
+    }
+  } else if (data.property) {
+    rawProp = Array.isArray(data.property) ? data.property[0] : data.property;
+    console.log('📦 Extracted from lowercase property');
+  } else if (data.Reference) {
+    rawProp = data;
+    console.log('📦 Data is the property itself');
+  }
   
   if (rawProp) {
-    console.log('📦 Raw property Pictures structure:', typeof rawProp.Pictures, rawProp.Pictures ? Object.keys(rawProp.Pictures) : 'none');
+    console.log('📦 Property Reference:', rawProp.Reference);
+    console.log('📦 Property keys:', Object.keys(rawProp).slice(0, 15));
+    console.log('📦 Pictures structure:', typeof rawProp.Pictures, rawProp.Pictures ? Object.keys(rawProp.Pictures) : 'none');
+  } else {
+    console.log('❌ Could not extract property from response');
   }
   
   return rawProp;
@@ -74,7 +92,7 @@ function extractImages(raw: any): string[] {
 }
 
 /**
- * Extracts features from property data
+ * Extracts features from property data as flat list
  */
 function extractFeatures(prop: any): string[] {
   const features: string[] = [];
@@ -132,7 +150,57 @@ function extractFeatures(prop: any): string[] {
 }
 
 /**
- * Normalizes property data to a consistent format
+ * Extracts feature categories from PropertyFeatures structure
+ */
+function extractFeatureCategories(propertyFeatures: any): Record<string, string[]> {
+  if (!propertyFeatures) return {};
+  
+  const categories: Record<string, string[]> = {};
+  
+  // Handle PropertyFeatures.Category array structure
+  if (propertyFeatures.Category && Array.isArray(propertyFeatures.Category)) {
+    for (const cat of propertyFeatures.Category) {
+      if (cat.Type && cat.Value) {
+        const values = Array.isArray(cat.Value) ? cat.Value : [cat.Value];
+        categories[cat.Type] = values.filter(Boolean);
+      }
+    }
+  }
+  
+  // Also handle flat feature object structure
+  if (propertyFeatures.Setting) {
+    categories['Setting'] = Array.isArray(propertyFeatures.Setting) ? propertyFeatures.Setting : [propertyFeatures.Setting];
+  }
+  if (propertyFeatures.Pool) {
+    categories['Pool'] = Array.isArray(propertyFeatures.Pool) ? propertyFeatures.Pool : [propertyFeatures.Pool];
+  }
+  if (propertyFeatures.Views) {
+    categories['Views'] = Array.isArray(propertyFeatures.Views) ? propertyFeatures.Views : [propertyFeatures.Views];
+  }
+  if (propertyFeatures.Kitchen) {
+    categories['Kitchen'] = Array.isArray(propertyFeatures.Kitchen) ? propertyFeatures.Kitchen : [propertyFeatures.Kitchen];
+  }
+  if (propertyFeatures.Security) {
+    categories['Security'] = Array.isArray(propertyFeatures.Security) ? propertyFeatures.Security : [propertyFeatures.Security];
+  }
+  if (propertyFeatures.Garden) {
+    categories['Garden'] = Array.isArray(propertyFeatures.Garden) ? propertyFeatures.Garden : [propertyFeatures.Garden];
+  }
+  if (propertyFeatures.Parking) {
+    categories['Parking'] = Array.isArray(propertyFeatures.Parking) ? propertyFeatures.Parking : [propertyFeatures.Parking];
+  }
+  if (propertyFeatures.Climate) {
+    categories['Climate Control'] = Array.isArray(propertyFeatures.Climate) ? propertyFeatures.Climate : [propertyFeatures.Climate];
+  }
+  if (propertyFeatures.Features) {
+    categories['Features'] = Array.isArray(propertyFeatures.Features) ? propertyFeatures.Features : [propertyFeatures.Features];
+  }
+  
+  return categories;
+}
+
+/**
+ * Normalizes property data to a consistent format with all fields
  */
 function normalizeProperty(prop: any) {
   // Parse numeric values
@@ -160,33 +228,84 @@ function normalizeProperty(prop: any) {
     console.log(`✅ Images extracted: mainImage=${mainImage ? 'yes' : 'no'}, images count=${images.length}`);
   }
 
+  // Extract feature categories
+  const featureCategories = extractFeatureCategories(prop.PropertyFeatures);
+  console.log('📦 Feature categories:', Object.keys(featureCategories));
+
   return {
+    // Basic info
     reference: prop.Reference || prop.reference || '',
     propertyType: prop.PropertyType?.Type || prop.Type || prop.PropertyType || 'Property',
     location,
     province,
+    
+    // Price
     price: parseNumeric(prop.Price || prop.CurrentPrice || 0),
     priceMax: parseNumeric(prop.PriceMax || prop.PriceTo || 0),
     currency: prop.Currency || 'EUR',
+    
+    // Bedrooms/Bathrooms (with ranges for new developments)
     bedrooms: parseNumeric(prop.Bedrooms || prop.BedroomsFrom || 0),
     bedroomsMax: parseNumeric(prop.BedroomsMax || prop.BedroomsTo || 0),
     bathrooms: parseNumeric(prop.Bathrooms || prop.BathroomsFrom || 0),
     bathroomsMax: parseNumeric(prop.BathroomsMax || prop.BathroomsTo || 0),
+    
+    // Built/Plot area (with ranges)
     builtArea: parseNumeric(prop.Built || prop.BuiltArea || prop.BuiltM2 || 0),
     builtAreaMax: parseNumeric(prop.BuiltMax || prop.BuiltTo || 0),
     plotArea: parseNumeric(prop.Plot || prop.PlotArea || prop.PlotM2 || 0),
     plotAreaMax: parseNumeric(prop.PlotMax || prop.PlotTo || 0),
+    
+    // Additional size measurements
+    interiorSize: parseNumeric(prop.InteriorFloorSpace || prop.Interior || 0),
+    interiorSizeMax: parseNumeric(prop.InteriorMax || 0),
+    terraceSize: parseNumeric(prop.TerraceArea || prop.Terrace || 0),
+    terraceSizeMax: parseNumeric(prop.TerraceMax || 0),
+    totalSize: parseNumeric(prop.TotalBuiltArea || 0),
+    totalSizeMax: parseNumeric(prop.TotalBuiltAreaMax || 0),
+    
+    // Images
     mainImage,
     images,
+    
+    // Description
     description: prop.Description || prop.FullDescription || prop.LongDescription || '',
+    
+    // Features (flat list and categorized)
     features: extractFeatures(prop),
-    pool: prop.HasPool === 'Yes' || prop.Pool === 'Yes' || prop.CommunityPool === 'Yes',
-    garden: prop.HasGarden === 'Yes' || prop.Garden === 'Yes',
-    parking: prop.Parking !== undefined && prop.Parking !== 'None' && prop.Parking !== '0',
+    featureCategories,
+    
+    // Amenities
+    pool: prop.HasPool === 'Yes' || prop.Pool === 'Yes' || prop.CommunityPool === 'Yes' ? 
+          (prop.CommunityPool === 'Yes' ? 'Communal' : 'Private') : undefined,
+    garden: prop.HasGarden === 'Yes' || prop.Garden === 'Yes' ?
+            (prop.CommunityGarden === 'Yes' ? 'Communal' : 'Private') : undefined,
+    parking: prop.Parking !== undefined && prop.Parking !== 'None' && prop.Parking !== '0' ?
+             prop.Parking : undefined,
     orientation: prop.Orientation || '',
     views: prop.Views || '',
+    
+    // Development info
+    developmentName: prop.DevelopmentName || prop.Development || prop.ResortName || '',
     newDevelopment: prop.NewDevelopment === 'Yes' || prop.OffPlan === 'Yes',
     status: prop.Status || 'Available',
+    
+    // Construction details
+    completionDate: prop.CompletionDate || prop.Completion || '',
+    buildingLicense: prop.BuildingLicense || '',
+    
+    // Energy certificates
+    energyRating: prop.EnergyRating || prop.EnergyCertificate || '',
+    co2Rating: prop.CO2Rating || prop.CO2Emissions || '',
+    
+    // Associated costs
+    communityFees: parseNumeric(prop.CommunityFees || 0),
+    ibi: parseNumeric(prop.IBI || prop.IBIFees || 0),
+    garbageTax: parseNumeric(prop.GarbageTax || 0),
+    
+    // Payment terms
+    reservationAmount: parseNumeric(prop.ReservationAmount || 0),
+    vatPercentage: parseNumeric(prop.VAT || prop.IVA || 10),
   };
 }
 
@@ -220,9 +339,10 @@ serve(async (req) => {
     const property = normalizeProperty(rawProp);
 
     console.log(`✅ Property ${reference} normalized successfully`);
+    console.log(`📊 Price: ${property.price} - ${property.priceMax}, Built: ${property.builtArea} - ${property.builtAreaMax}`);
 
     return new Response(
-      JSON.stringify({ property }),
+      JSON.stringify({ property, imageResolution: 'w400', source: 'proxy' }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
