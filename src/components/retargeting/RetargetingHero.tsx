@@ -4,6 +4,7 @@ import { Play, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { RetargetingVideoModal } from "./RetargetingVideoModal";
 import { getRetargetingTranslations } from "@/lib/retargetingTranslations";
+import { getWelcomeBackVideoUrl } from "@/config/retargetingWelcomeBackVideos";
 import heroDesktop from "@/assets/hero-landing-desktop.jpg";
 import heroMobile from "@/assets/hero-landing-mobile.jpg";
 
@@ -14,6 +15,10 @@ interface RetargetingHeroProps {
 export const RetargetingHero = ({ language = "en" }: RetargetingHeroProps) => {
   const [isVideoOpen, setIsVideoOpen] = useState(false);
   const t = getRetargetingTranslations(language);
+  
+  // Get language-specific video URL
+  const videoUrl = getWelcomeBackVideoUrl(language);
+  const hasVideo = Boolean(videoUrl);
 
   const scrollToContent = () => {
     window.scrollTo({ top: window.innerHeight, behavior: "smooth" });
@@ -90,15 +95,18 @@ export const RetargetingHero = ({ language = "en" }: RetargetingHeroProps) => {
           transition={{ duration: 0.8, delay: 0.6, ease: "easeOut" }}
           className="flex flex-col items-center gap-4"
         >
-          <Button
-            variant="default"
-            size="lg"
-            className="bg-gradient-to-r from-landing-gold to-[#d4b563] hover:from-[#b8994f] hover:to-landing-gold text-white px-8 py-6 text-base font-medium rounded-xl transition-all duration-300 shadow-[0_10px_40px_rgba(196,160,83,0.3)] hover:shadow-[0_15px_50px_rgba(196,160,83,0.4)] hover:scale-[1.02]"
-            onClick={() => setIsVideoOpen(true)}
-          >
-            <Play className="w-4 h-4 mr-2" />
-            {t.heroButton}
-          </Button>
+          {/* Video button - only show if video exists for this language */}
+          {hasVideo && (
+            <Button
+              variant="default"
+              size="lg"
+              className="bg-gradient-to-r from-landing-gold to-[#d4b563] hover:from-[#b8994f] hover:to-landing-gold text-white px-8 py-6 text-base font-medium rounded-xl transition-all duration-300 shadow-[0_10px_40px_rgba(196,160,83,0.3)] hover:shadow-[0_15px_50px_rgba(196,160,83,0.4)] hover:scale-[1.02]"
+              onClick={() => setIsVideoOpen(true)}
+            >
+              <Play className="w-4 h-4 mr-2" />
+              {t.heroButton}
+            </Button>
+          )}
           
           {/* Secondary CTA */}
           <button
@@ -118,12 +126,14 @@ export const RetargetingHero = ({ language = "en" }: RetargetingHeroProps) => {
           </p>
         </motion.div>
 
-        {/* Video Modal */}
-        <RetargetingVideoModal
-          isOpen={isVideoOpen}
-          onClose={() => setIsVideoOpen(false)}
-          videoUrl="https://storage.googleapis.com/msgsndr/281Nzx90nVL8424QY4Af/media/697548eb59a77b4486da126b.mp4"
-        />
+        {/* Video Modal - only render if video URL exists */}
+        {hasVideo && videoUrl && (
+          <RetargetingVideoModal
+            isOpen={isVideoOpen}
+            onClose={() => setIsVideoOpen(false)}
+            videoUrl={videoUrl}
+          />
+        )}
       </div>
 
       {/* Scroll Indicator */}
