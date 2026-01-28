@@ -3,24 +3,11 @@ import { motion } from "framer-motion";
 import { Play, Pause, Check, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getRetargetingTranslations } from "@/lib/retargetingTranslations";
+import { getWelcomeBackVideoUrl, RETARGETING_VIDEO_THUMBNAIL } from "@/config/retargetingWelcomeBackVideos";
 
 interface RetargetingAutoplayVideoProps {
   language?: string;
 }
-
-// Language-specific video URLs (same as landing page)
-const videoUrls: Record<string, string> = {
-  en: "https://storage.googleapis.com/msgsndr/281Nzx90nVL8424QY4Af/media/697548eb59a77b4486da126b.mp4",
-  nl: "https://storage.googleapis.com/msgsndr/281Nzx90nVL8424QY4Af/media/6831c23259a77be7c4f3e18f.mp4",
-  de: "https://storage.googleapis.com/msgsndr/281Nzx90nVL8424QY4Af/media/6831c51bbaf1a4287eee3000.mp4",
-  fr: "https://storage.googleapis.com/msgsndr/281Nzx90nVL8424QY4Af/media/6831c52eda8bdc5bf83a9a44.mp4",
-  pl: "https://storage.googleapis.com/msgsndr/281Nzx90nVL8424QY4Af/media/6831d1bbc6104f3eb91b5f09.mp4",
-  sv: "https://storage.googleapis.com/msgsndr/281Nzx90nVL8424QY4Af/media/6831d1eb59a77be7b7f3f71a.mp4",
-  da: "https://storage.googleapis.com/msgsndr/281Nzx90nVL8424QY4Af/media/6831d1c759a77b0d36f3f715.mp4",
-  hu: "https://storage.googleapis.com/msgsndr/281Nzx90nVL8424QY4Af/media/6831d1d759a77b6f2af3f717.mp4",
-  fi: "https://storage.googleapis.com/msgsndr/281Nzx90nVL8424QY4Af/media/6831d1d2baf1a40c17ee3628.mp4",
-  no: "https://storage.googleapis.com/msgsndr/281Nzx90nVL8424QY4Af/media/6831d1f659a77b9a97f3f71c.mp4",
-};
 
 export const RetargetingAutoplayVideo = ({ language = "en" }: RetargetingAutoplayVideoProps) => {
   const t = getRetargetingTranslations(language);
@@ -28,7 +15,7 @@ export const RetargetingAutoplayVideo = ({ language = "en" }: RetargetingAutopla
   const [isPlaying, setIsPlaying] = useState(true);
   const [hasInteracted, setHasInteracted] = useState(false);
 
-  const videoUrl = videoUrls[language] || videoUrls.en;
+  const videoUrl = getWelcomeBackVideoUrl(language);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -100,7 +87,8 @@ export const RetargetingAutoplayVideo = ({ language = "en" }: RetargetingAutopla
         >
           <video
             ref={videoRef}
-            src={videoUrl}
+            src={videoUrl || undefined}
+            poster={RETARGETING_VIDEO_THUMBNAIL}
             className="w-full aspect-video object-cover"
             loop
             muted

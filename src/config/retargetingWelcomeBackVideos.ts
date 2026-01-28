@@ -1,3 +1,10 @@
+import retargetingVideoThumbnail from "@/assets/retargeting-video-thumbnail.jpg";
+
+/**
+ * Video thumbnail for retargeting pages - beautiful Costa del Sol luxury view
+ */
+export const RETARGETING_VIDEO_THUMBNAIL = retargetingVideoThumbnail;
+
 /**
  * Language-specific welcome-back video URLs for the retargeting hero section.
  * These videos play in a modal when users click "Watch Video" on /{lang}/welcome-back pages.
