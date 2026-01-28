@@ -1,93 +1,51 @@
 
-# Add Language-Specific Welcome-Back Videos to Retargeting Hero
+# Sync Retargeting Video Section with Language-Specific Videos + Generate Thumbnail
 
-## Current State
+## Problem
 
-The retargeting pages have **two** video components:
+Looking at the Polish retargeting page (`/pl/witamy-ponownie`), there are two issues:
 
-| Component | Location | Current Behavior |
-|-----------|----------|-----------------|
-| `RetargetingHero` | Above the fold | Video modal with **hardcoded English URL** on line 125 |
-| `RetargetingAutoplayVideo` | Below hero | Already has language-specific videos (different set) |
+1. **Video Not Loading in Inline Section**: The autoplay video section below the hero shows a gray placeholder instead of the actual video
+2. **Different Video Sets**: The hero modal uses the new welcome-back videos (from `retargetingWelcomeBackVideos.ts`), but the inline autoplay section uses a different hardcoded set of videos
+3. **No Poster Image**: Unlike the landing page, the retargeting video has no `poster` attribute, so users see a gray box while loading
 
-The Hero's "Watch Video" button opens a modal with this hardcoded URL:
+## Solution
+
+### 1. Unify Video Sources
+
+Update `RetargetingAutoplayVideo.tsx` to use the same video configuration as the hero section:
+
+| Before | After |
+|--------|-------|
+| Hardcoded URLs in component (lines 12-23) | Import from `retargetingWelcomeBackVideos.ts` |
+| Different videos for hero vs inline | Same videos used consistently |
+
+### 2. Generate Costa del Sol Thumbnail
+
+Create a new edge function to generate a beautiful thumbnail using Nano Banana Pro:
+
+**Prompt for AI image generation:**
+```
+Stunning aerial view of Costa del Sol luxury beachfront villa with infinity pool overlooking the Mediterranean Sea. 
+Golden hour lighting, whitewashed Spanish architecture, palm trees, turquoise water, 
+pristine beach. Modern luxury real estate photography style, 16:9 aspect ratio, 
+professional drone shot, warm sunset tones, high-end lifestyle magazine quality.
+```
+
+The generated image will be:
+- Uploaded to Supabase storage
+- Saved as a permanent asset for video thumbnails
+
+### 3. Add Poster Attribute to Video
+
+Update the video element to show the thumbnail while loading:
+
 ```tsx
-videoUrl="https://storage.googleapis.com/msgsndr/281Nzx90nVL8424QY4Af/media/697548eb59a77b4486da126b.mp4"
+<video
+  poster={thumbnailUrl}
+  // ... other attributes
+>
 ```
-
-## Implementation Plan
-
-### 1. Create Video Configuration File
-
-Create a centralized config for the new welcome-back videos:
-
-**File:** `src/config/retargetingWelcomeBackVideos.ts`
-
-```typescript
-export const RETARGETING_WELCOME_BACK_VIDEOS: Record<string, string> = {
-  en: '', // Pending - component will gracefully hide button
-  nl: 'https://storage.googleapis.com/msgsndr/281Nzx90nVL8424QY4Af/media/69754915c1fa0c27e56bed08.mp4',
-  de: 'https://storage.googleapis.com/msgsndr/281Nzx90nVL8424QY4Af/media/697548ebd4fb90e7cab25cba.mp4',
-  fr: 'https://storage.googleapis.com/msgsndr/281Nzx90nVL8424QY4Af/media/697548eb59a77b05d5da126c.mp4',
-  es: '', // Pending - component will gracefully hide button
-  pl: 'https://storage.googleapis.com/msgsndr/281Nzx90nVL8424QY4Af/media/697548eb59a77b9fa4da126d.mp4',
-  sv: 'https://storage.googleapis.com/msgsndr/281Nzx90nVL8424QY4Af/media/697548ebc1fa0c2ca16bde41.mp4',
-  da: 'https://storage.googleapis.com/msgsndr/281Nzx90nVL8424QY4Af/media/69754915a87beb1d53acc836.mp4',
-  hu: 'https://storage.googleapis.com/msgsndr/281Nzx90nVL8424QY4Af/media/697548ebeb392bd9da2c924e.mp4',
-  fi: 'https://storage.googleapis.com/msgsndr/281Nzx90nVL8424QY4Af/media/697548ebeb392b6d632c924d.mp4',
-  no: 'https://storage.googleapis.com/msgsndr/281Nzx90nVL8424QY4Af/media/697548eba87beb06f5acbadc.mp4',
-};
-
-export const getWelcomeBackVideoUrl = (language: string): string | null => {
-  const url = RETARGETING_WELCOME_BACK_VIDEOS[language];
-  return url || null; // Return null if no video for this language
-};
-```
-
-### 2. Update RetargetingHero Component
-
-Modify `src/components/retargeting/RetargetingHero.tsx` to:
-
-1. Import the new config
-2. Get language-specific video URL
-3. Conditionally show video button only if video exists
-4. Pass dynamic URL to modal
-
-**Key changes:**
-
-```typescript
-// Add import
-import { getWelcomeBackVideoUrl } from "@/config/retargetingWelcomeBackVideos";
-
-// Inside component
-const videoUrl = getWelcomeBackVideoUrl(language);
-const hasVideo = Boolean(videoUrl);
-
-// Conditionally render video button
-{hasVideo && (
-  <Button
-    onClick={() => setIsVideoOpen(true)}
-    ...
-  >
-    <Play className="w-4 h-4 mr-2" />
-    {t.heroButton}
-  </Button>
-)}
-
-// Pass dynamic URL to modal
-<RetargetingVideoModal
-  isOpen={isVideoOpen}
-  onClose={() => setIsVideoOpen(false)}
-  videoUrl={videoUrl || ''}
-/>
-```
-
-### 3. Handle Missing Videos Gracefully
-
-For English and Spanish (pending videos):
-- Hide the "Watch Video" button entirely
-- Keep the secondary CTA ("Or talk to Emma") visible
-- No error states or broken UI
 
 ---
 
@@ -95,33 +53,92 @@ For English and Spanish (pending videos):
 
 | File | Action | Changes |
 |------|--------|---------|
-| `src/config/retargetingWelcomeBackVideos.ts` | **CREATE** | Video URL configuration with helper function |
-| `src/components/retargeting/RetargetingHero.tsx` | **MODIFY** | Import config, use dynamic URL, conditionally show button |
+| `supabase/functions/generate-retargeting-thumbnail/index.ts` | **CREATE** | New edge function using Nano Banana Pro to generate Costa del Sol thumbnail |
+| `src/config/retargetingWelcomeBackVideos.ts` | **MODIFY** | Add thumbnail URL export |
+| `src/components/retargeting/RetargetingAutoplayVideo.tsx` | **MODIFY** | Import video config, add poster attribute |
 
 ---
 
-## Testing Checklist
+## Technical Implementation
 
-After implementation, verify:
+### Step 1: Create Thumbnail Generation Edge Function
 
-| Language | Path | Expected Behavior |
-|----------|------|-------------------|
-| Dutch | `/nl/welkom-terug` | Dutch video plays in modal |
-| German | `/de/willkommen-zurueck` | German video plays in modal |
-| French | `/fr/bienvenue` | French video plays in modal |
-| Polish | `/pl/witamy-ponownie` | Polish video plays in modal |
-| Swedish | `/sv/valkommen-tillbaka` | Swedish video plays in modal |
-| Danish | `/da/velkommen-tilbage` | Danish video plays in modal |
-| Hungarian | `/hu/udvozoljuk-ujra` | Hungarian video plays in modal |
-| Finnish | `/fi/tervetuloa-takaisin` | Finnish video plays in modal |
-| Norwegian | `/no/velkommen-tilbake` | Norwegian video plays in modal |
-| English | `/en/welcome-back` | Video button hidden (no crash) |
-| Spanish | `/es/bienvenido` | Video button hidden (no crash) |
+```typescript
+// supabase/functions/generate-retargeting-thumbnail/index.ts
+
+const prompt = `Stunning aerial view of Costa del Sol luxury beachfront villa with infinity pool 
+overlooking the Mediterranean Sea. Golden hour lighting, whitewashed Spanish architecture, 
+palm trees, turquoise water, pristine beach. Modern luxury real estate photography style, 
+16:9 aspect ratio, professional drone shot, warm sunset tones, high-end lifestyle magazine quality. 
+No text, no logos, no people.`;
+
+// Use google/gemini-3-pro-image-preview (Nano Banana Pro)
+// Upload to Supabase storage: retargeting/video-thumbnail.jpg
+// Return public URL
+```
+
+### Step 2: Update Video Configuration
+
+```typescript
+// src/config/retargetingWelcomeBackVideos.ts
+
+// Add thumbnail URL (will be populated after generation)
+export const RETARGETING_VIDEO_THUMBNAIL = 
+  "https://kazggnufaoicopvmwhdl.supabase.co/storage/v1/object/public/article-images/retargeting/video-thumbnail.png";
+```
+
+### Step 3: Update Autoplay Video Component
+
+```typescript
+// src/components/retargeting/RetargetingAutoplayVideo.tsx
+
+import { 
+  getWelcomeBackVideoUrl, 
+  RETARGETING_VIDEO_THUMBNAIL 
+} from "@/config/retargetingWelcomeBackVideos";
+
+// Inside component:
+const videoUrl = getWelcomeBackVideoUrl(language);
+
+// In JSX - add poster:
+<video
+  ref={videoRef}
+  src={videoUrl || undefined}
+  poster={RETARGETING_VIDEO_THUMBNAIL}
+  className="w-full aspect-video object-cover"
+  loop
+  muted
+  playsInline
+  preload="auto"
+/>
+```
 
 ---
 
-## Notes
+## Graceful Handling
 
-- The existing `RetargetingAutoplayVideo` component uses a **different set of videos** and remains unchanged
-- This implementation separates concerns: config file for URLs, component for rendering
-- When English/Spanish videos are added later, simply add URLs to the config file
+For languages without videos (English, Spanish):
+- Video element still renders with poster thumbnail visible
+- Play button shows but clicking does nothing harmful
+- Alternative: Hide the entire section if no video exists
+
+---
+
+## Expected Result
+
+| Language | Video in Hero Modal | Video in Autoplay Section | Thumbnail |
+|----------|---------------------|---------------------------|-----------|
+| Polish | ✅ Polish video | ✅ Same Polish video | ✅ Costa del Sol image |
+| Dutch | ✅ Dutch video | ✅ Same Dutch video | ✅ Costa del Sol image |
+| German | ✅ German video | ✅ Same German video | ✅ Costa del Sol image |
+| English | Hidden button | Poster only (no video) | ✅ Costa del Sol image |
+
+---
+
+## Workflow
+
+1. Create and deploy thumbnail generation edge function
+2. Run the function once to generate and store the thumbnail
+3. Update the config file with the stored thumbnail URL
+4. Update RetargetingAutoplayVideo to use unified video config + poster
+5. Test across all language pages
