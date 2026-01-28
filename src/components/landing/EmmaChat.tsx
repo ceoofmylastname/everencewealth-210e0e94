@@ -1070,6 +1070,7 @@ const EmmaChat: React.FC<EmmaChatProps> = ({ isOpen, onClose, language }) => {
             if (msg.role === 'user' && nextMsg.role === 'assistant') {
                 const userQuestion = msg.content.trim();
                 const emmaAnswer = nextMsg.content.trim();
+                const emmaAnswerLower = emmaAnswer.toLowerCase();
                 
                 // Skip short confirmations from user (like "yes", "ok", "yes it does")
                 if (isShortConfirmation(userQuestion)) {
@@ -1084,6 +1085,12 @@ const EmmaChat: React.FC<EmmaChatProps> = ({ isOpen, onClose, language }) => {
                 
                 // Skip if Emma's answer is too short (acknowledgments)
                 if (emmaAnswer.length < 50) {
+                    continue;
+                }
+                
+                // CRITICAL: Skip if Emma's answer is a setup/transition message (not actual content)
+                if (setupPhasePatterns.some(p => emmaAnswerLower.includes(p))) {
+                    console.log(`📋 Q&A: Skipping Emma setup response: "${emmaAnswer.substring(0, 50)}..."`);
                     continue;
                 }
                 
