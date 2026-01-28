@@ -931,7 +931,7 @@ const EmmaChat: React.FC<EmmaChatProps> = ({ isOpen, onClose, language }) => {
             'real estate, or other practical topics',
             'is that correct?',
             'is that correct',
-            // English setup patterns - existing
+            // English setup patterns - name/phone collection
             'before we go into your questions',
             'i first need a few details',
             'is that okay for you',
@@ -949,11 +949,14 @@ const EmmaChat: React.FC<EmmaChatProps> = ({ isOpen, onClose, language }) => {
             'i am emma',
             'welcome to',
             'hello and welcome',
-            // Catch "Thank you" prefix intro messages
-            'thank you.',
-            'thank you,',
-            'thank you\n',
-            'thank you!',
+            // SPECIFIC setup-related Thank you phrases (NOT generic "thank you")
+            // Only skip "thank you" when followed by setup/name/phone collection phrases
+            'and for a correct record, what is your family name',
+            'and for a correct record, what is your last name',
+            'for a correct record, what is your',
+            'what is your family name',
+            'what is your last name',
+            // Transition phrases that indicate we're still in setup
             'before we',
             'to avoid incomplete',
             'to do this correctly',
@@ -963,6 +966,13 @@ const EmmaChat: React.FC<EmmaChatProps> = ({ isOpen, onClose, language }) => {
             'will contact you',
             'is that okay',
             'is this okay',
+            // Phone number request patterns - more specific
+            'in case additional clarification',
+            'case additional clarification or a quick',
+            'what phone number may',
+            'which phone number',
+            'what is your phone number',
+            'need the actual phone number',
             // Dutch setup patterns
             'hoe mag ik je noemen',
             'wat is je naam',
@@ -970,6 +980,7 @@ const EmmaChat: React.FC<EmmaChatProps> = ({ isOpen, onClose, language }) => {
             'landcode',
             'welkom bij',
             'ik ben emma',
+            'wat is je achternaam',
             // German setup patterns
             'wie darf ich sie nennen',
             'wie heißen sie',
@@ -977,6 +988,7 @@ const EmmaChat: React.FC<EmmaChatProps> = ({ isOpen, onClose, language }) => {
             'ländervorwahl',
             'willkommen bei',
             'ich bin emma',
+            'was ist ihr nachname',
             // French setup patterns
             'comment puis-je vous appeler',
             'quel est votre nom',
