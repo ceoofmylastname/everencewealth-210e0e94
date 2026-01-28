@@ -1,112 +1,130 @@
 
-# Fix: Update Admin Dashboard to Show Accurate Article Counts
+# Fix: Improve Cluster Image Fix Resilience and Error Handling
 
-## Problem
-The Admin Dashboard currently shows "Published Articles: 1000" because the query fetches all articles using `.select("*")`, which is capped at 1000 rows by Supabase's default limit. The actual count is 3,271+ published articles.
+## Problem Summary
+The "Fix Images" action in Cluster Manager is reporting failure despite 59/60 articles being successfully processed. The issue is:
+1. **Network transience**: One Finnish translation failed due to a connection reset
+2. **No retry logic**: Failed requests aren't retried
+3. **Poor error messaging**: UI shows generic failure instead of partial success
 
 ## Solution
-Replace the current approach of fetching all articles and counting client-side with efficient COUNT queries using Supabase's `{ count: "exact", head: true }` feature.
 
----
+### 1. Add Retry Logic to Edge Function
 
-## Implementation
+**File: `supabase/functions/regenerate-cluster-images/index.ts`**
 
-### Changes to `src/pages/admin/Dashboard.tsx`
+Add a retry wrapper function for database updates:
 
-**1. Add new COUNT query for accurate stats:**
-
-Replace the current query that fetches all articles:
 ```typescript
-// BEFORE (capped at 1000)
-const { data: articles } = useQuery({
-  queryKey: ["articles-stats"],
-  queryFn: async () => {
-    const { data } = await supabase.from("blog_articles").select("*");
-    return data;
-  },
-});
-const stats = {
-  published: articles?.filter(a => a.status === 'published').length || 0,
-  // ...
-};
+async function retryableUpdate(
+  supabase: any,
+  id: string,
+  updates: Record<string, any>,
+  maxRetries: number = 3
+): Promise<{ success: boolean; error?: any }> {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      const { error } = await supabase
+        .from('blog_articles')
+        .update(updates)
+        .eq('id', id);
+      
+      if (!error) {
+        return { success: true };
+      }
+      
+      console.warn(`⚠️ Attempt ${attempt}/${maxRetries} failed:`, error.message);
+      
+      if (attempt < maxRetries) {
+        // Exponential backoff: 500ms, 1s, 2s
+        await new Promise(r => setTimeout(r, 500 * Math.pow(2, attempt - 1)));
+      }
+    } catch (err) {
+      console.warn(`⚠️ Attempt ${attempt}/${maxRetries} threw:`, err);
+      if (attempt < maxRetries) {
+        await new Promise(r => setTimeout(r, 500 * Math.pow(2, attempt - 1)));
+      }
+    }
+  }
+  return { success: false, error: 'Max retries exceeded' };
+}
 ```
 
-With efficient COUNT queries:
+Replace direct `supabase.from().update()` calls with this retryable version.
+
+### 2. Improve UI Error Handling
+
+**File: `src/pages/admin/ClusterManager.tsx`**
+
+Update the mutation's `onError` handler to distinguish between:
+- Complete failure (0 successes)
+- Partial success (some succeeded)
+- Network timeout (connection closed)
+
 ```typescript
-// AFTER (accurate counts)
-const { data: articleStats, isLoading } = useQuery({
-  queryKey: ["dashboard-article-counts"],
-  queryFn: async () => {
-    const [draftCount, publishedCount, archivedCount, tofuCount, mofuCount, bofuCount] = await Promise.all([
-      supabase.from("blog_articles").select("id", { count: "exact", head: true }).eq("status", "draft"),
-      supabase.from("blog_articles").select("id", { count: "exact", head: true }).eq("status", "published"),
-      supabase.from("blog_articles").select("id", { count: "exact", head: true }).eq("status", "archived"),
-      supabase.from("blog_articles").select("id", { count: "exact", head: true }).eq("funnel_stage", "TOFU"),
-      supabase.from("blog_articles").select("id", { count: "exact", head: true }).eq("funnel_stage", "MOFU"),
-      supabase.from("blog_articles").select("id", { count: "exact", head: true }).eq("funnel_stage", "BOFU"),
-    ]);
-    return {
-      draft: draftCount.count || 0,
-      published: publishedCount.count || 0,
-      archived: archivedCount.count || 0,
-      tofu: tofuCount.count || 0,
-      mofu: mofuCount.count || 0,
-      bofu: bofuCount.count || 0,
-      total: (draftCount.count || 0) + (publishedCount.count || 0) + (archivedCount.count || 0),
-    };
-  },
-});
+onError: (error) => {
+  if (imageFixIntervalRef.current) {
+    clearInterval(imageFixIntervalRef.current);
+    imageFixIntervalRef.current = null;
+  }
+  
+  // Check if this is a partial success disguised as error
+  const errorMsg = error.message || '';
+  if (errorMsg.includes('connection closed') || errorMsg.includes('connection reset')) {
+    toast.warning('Connection interrupted - some images may have been fixed. Refreshing data...');
+    queryClient.invalidateQueries({ queryKey: ["cluster-image-health"] });
+  } else {
+    toast.error(`Failed to fix images: ${error.message}`);
+  }
+  
+  setImageFixProgress(null);
+  setClusterToFixImages(null);
+}
 ```
 
-**2. Add language distribution query:**
+### 3. Add Partial Success Messaging
+
+Update `onSuccess` handler to show more detail:
+
 ```typescript
-const { data: languageStats } = useQuery({
-  queryKey: ["dashboard-language-counts"],
-  queryFn: async () => {
-    const languages = ['en', 'es', 'de', 'nl', 'fr', 'pl', 'sv', 'da', 'hu'];
-    const counts = await Promise.all(
-      languages.map(async (lang) => {
-        const { count } = await supabase
-          .from("blog_articles")
-          .select("id", { count: "exact", head: true })
-          .eq("language", lang);
-        return { lang, count: count || 0 };
-      })
+onSuccess: (data) => {
+  if (imageFixIntervalRef.current) {
+    clearInterval(imageFixIntervalRef.current);
+    imageFixIntervalRef.current = null;
+  }
+  
+  if (data.failCount > 0) {
+    toast.warning(
+      `Partially complete: ${data.successCount}/${data.totalArticles} updated. ` +
+      `${data.failCount} failed - you can retry.`
     );
-    return counts.reduce((acc, { lang, count }) => {
-      acc[lang] = count;
-      return acc;
-    }, {} as Record<string, number>);
-  },
-});
+  } else {
+    toast.success(`✅ Fixed! ${data.imagesPreserved || 6} preserved, ${data.imagesShared || 54} shared`);
+  }
+  
+  queryClient.invalidateQueries({ queryKey: ["cluster-image-health"] });
+  queryClient.invalidateQueries({ queryKey: ["cluster-articles"] });
+  
+  setTimeout(() => {
+    setImageFixProgress(null);
+    setClusterToFixImages(null);
+  }, 1500);
+}
 ```
 
-**3. Update stats display to use new data:**
+### 4. Add "Retry Failed" Capability (Optional Enhancement)
+
+Track failed article IDs in the response and add a "Retry Failed" button:
+
 ```typescript
-// Use articleStats instead of calculated stats
-<div className="text-2xl font-bold text-green-600">{articleStats?.published || 0}</div>
+// In edge function response, include:
+failedArticleIds: results.filter(r => !r.success).map(r => r.id)
+
+// In UI, when failCount > 0, show:
+<Button onClick={() => retryFailed(data.failedArticleIds)}>
+  Retry {data.failCount} Failed
+</Button>
 ```
-
----
-
-## Expected Results
-
-| Stat | Before (Capped) | After (Accurate) |
-|------|-----------------|------------------|
-| Draft Articles | 0 | Actual count |
-| Published Articles | 1,000 | 3,271 |
-| Archived Articles | 0 | Actual count |
-| TOFU/MOFU/BOFU | Capped | Accurate |
-| Language counts | Capped | Accurate |
-
----
-
-## Technical Benefits
-
-1. **Performance**: COUNT queries with `head: true` don't transfer row data - just the count
-2. **Accuracy**: No more 1000 row limit issues
-3. **Efficiency**: Parallel queries using `Promise.all()` for fast loading
-4. **Consistency**: Matches the approach used in the Sitemap page
 
 ---
 
@@ -114,15 +132,24 @@ const { data: languageStats } = useQuery({
 
 | File | Change |
 |------|--------|
-| `src/pages/admin/Dashboard.tsx` | Replace article fetch with COUNT queries; update stats display |
+| `supabase/functions/regenerate-cluster-images/index.ts` | Add retry wrapper with exponential backoff |
+| `src/pages/admin/ClusterManager.tsx` | Improve error/success messaging for partial success |
 
 ---
 
-## Schema Health Consideration
+## Expected Results
 
-The Schema Health calculation currently validates each article individually. Since we can't efficiently do this with COUNT queries, we have two options:
+| Scenario | Before | After |
+|----------|--------|-------|
+| 59/60 success | "Failed to fix images" | "Partially complete: 59/60 updated. 1 failed - you can retry" |
+| Connection timeout | Generic error | "Connection interrupted - some images may have been fixed" |
+| All success | Works | Works (unchanged) |
 
-1. **Keep approximate**: Sample first 1000 articles for schema health (acceptable for dashboard overview)
-2. **Separate detailed view**: Link to a dedicated schema audit page for full analysis
+---
 
-I recommend Option 1 for the dashboard with a note that it's based on a sample, and keep the detailed validation in the existing schema audit tools.
+## Technical Notes
+
+1. **Retry Logic**: Uses exponential backoff (500ms → 1s → 2s) to handle transient network issues
+2. **Idempotency**: Image updates are idempotent, so retries are safe
+3. **No Data Loss**: The 59 successful updates are already committed to the database
+4. **Timeout Handling**: Edge function timeout (60s) should be sufficient with 3 retries per article
