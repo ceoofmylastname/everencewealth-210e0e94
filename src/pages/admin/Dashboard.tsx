@@ -1,72 +1,58 @@
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { BlogArticle } from "@/types/blog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { FileText, TrendingUp, Globe, Plus, AlertCircle, CheckCircle2, Shield, RefreshCw, Rocket, Link2, ImageIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { AdminLayout } from "@/components/AdminLayout";
-import { validateSchemaRequirements } from "@/lib/schemaGenerator";
 import { toast } from "sonner";
 import { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useDashboardStats } from "@/hooks/useDashboardStats";
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const [isRebuilding, setIsRebuilding] = useState(false);
+  
+  const {
+    articleStats,
+    languageStats,
+    linkingStats,
+    imageHealthStats,
+    schemaHealthStats,
+    isLoading,
+    error,
+  } = useDashboardStats();
 
-  const { data: articles, isLoading, error } = useQuery({
-    queryKey: ["articles-stats"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("blog_articles")
-        .select("*");
+  const languageNames: Record<string, string> = {
+    en: 'English', es: 'Spanish', de: 'German', nl: 'Dutch',
+    fr: 'French', pl: 'Polish', sv: 'Swedish', da: 'Danish', hu: 'Hungarian'
+  };
+
+  // Calculate schema health score from sample
+  const schemaHealthScore = schemaHealthStats && schemaHealthStats.sampleSize > 0
+    ? Math.round((schemaHealthStats.valid / schemaHealthStats.sampleSize) * 100)
+    : 0;
+
+  const handleRebuildSite = async () => {
+    setIsRebuilding(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('trigger-rebuild');
       
       if (error) throw error;
-      if (!data) return [];
-
-      return data as unknown as BlogArticle[];
-    },
-  });
-
-  const { data: linkingStats } = useQuery({
-    queryKey: ["linking-stats"],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("blog_articles")
-        .select("id, language, internal_links, status")
-        .eq("status", "published");
       
-      const needsLinks = data?.filter((a: any) => 
-        !a.internal_links || 
-        (Array.isArray(a.internal_links) && a.internal_links.length < 5)
-      ) || [];
+      toast.success('Site rebuild triggered!', {
+        description: 'Static pages will regenerate in 5-10 minutes',
+      });
       
-      return {
-        total: needsLinks.length,
-        byLanguage: needsLinks.reduce((acc: Record<string, number>, a: any) => {
-          acc[a.language] = (acc[a.language] || 0) + 1;
-          return acc;
-        }, {})
-      };
+      console.log('Rebuild response:', data);
+    } catch (error) {
+      console.error('Rebuild error:', error);
+      toast.error('Failed to trigger rebuild', {
+        description: error instanceof Error ? error.message : 'Unknown error occurred',
+      });
+    } finally {
+      setIsRebuilding(false);
     }
-  });
-
-  const { data: imageHealthStats } = useQuery({
-    queryKey: ["image-health-stats"],
-    queryFn: async () => {
-      const { count: issuesCount } = await supabase
-        .from("article_image_issues")
-        .select("*", { count: "exact", head: true })
-        .is("resolved_at", null);
-      
-      const { count: fixedCount } = await supabase
-        .from("article_image_issues")
-        .select("*", { count: "exact", head: true })
-        .not("resolved_at", "is", null);
-      
-      return { issues: issuesCount || 0, fixed: fixedCount || 0 };
-    }
-  });
+  };
 
   if (isLoading) {
     return (
@@ -120,62 +106,6 @@ const Dashboard = () => {
     );
   }
 
-  // Calculate statistics
-  const stats = {
-    draft: articles?.filter(a => a.status === 'draft').length || 0,
-    published: articles?.filter(a => a.status === 'published').length || 0,
-    archived: articles?.filter(a => a.status === 'archived').length || 0,
-    tofu: articles?.filter(a => a.funnel_stage === 'TOFU').length || 0,
-    mofu: articles?.filter(a => a.funnel_stage === 'MOFU').length || 0,
-    bofu: articles?.filter(a => a.funnel_stage === 'BOFU').length || 0,
-  };
-
-  // Count by language
-  const languageCounts = articles?.reduce((acc, article) => {
-    acc[article.language] = (acc[article.language] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
-
-  const languageNames: Record<string, string> = {
-    en: 'English', es: 'Spanish', de: 'German', nl: 'Dutch',
-    fr: 'French', pl: 'Polish', sv: 'Swedish', da: 'Danish', hu: 'Hungarian'
-  };
-
-  // Calculate schema health
-  const schemaHealth = articles?.reduce((acc, article) => {
-    const validationErrors = validateSchemaRequirements(article);
-    const hasErrors = validationErrors.some(e => e.severity === 'error');
-    if (!hasErrors) acc.valid++;
-    else acc.needsAttention++;
-    return acc;
-  }, { valid: 0, needsAttention: 0 });
-
-  const schemaHealthScore = articles && articles.length > 0
-    ? Math.round((schemaHealth!.valid / articles.length) * 100)
-    : 0;
-
-  const handleRebuildSite = async () => {
-    setIsRebuilding(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('trigger-rebuild');
-      
-      if (error) throw error;
-      
-      toast.success('Site rebuild triggered!', {
-        description: 'Static pages will regenerate in 5-10 minutes',
-      });
-      
-      console.log('Rebuild response:', data);
-    } catch (error) {
-      console.error('Rebuild error:', error);
-      toast.error('Failed to trigger rebuild', {
-        description: error instanceof Error ? error.message : 'Unknown error occurred',
-      });
-    } finally {
-      setIsRebuilding(false);
-    }
-  };
-
   return (
     <AdminLayout>
       <div className="container mx-auto p-6 space-y-6">
@@ -202,7 +132,7 @@ const Dashboard = () => {
           <CardContent className="space-y-3">
             <div className="flex items-baseline gap-2">
               <div className="text-2xl font-bold text-primary">
-                {stats.published}
+                {articleStats?.published || 0}
               </div>
               <span className="text-xs text-muted-foreground">static pages</span>
             </div>
@@ -238,7 +168,7 @@ const Dashboard = () => {
               <FileText className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.draft}</div>
+              <div className="text-2xl font-bold">{articleStats?.draft || 0}</div>
               <p className="text-xs text-muted-foreground">Work in progress</p>
             </CardContent>
           </Card>
@@ -249,7 +179,7 @@ const Dashboard = () => {
               <TrendingUp className="h-4 w-4 text-green-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-green-600">{stats.published}</div>
+              <div className="text-2xl font-bold text-green-600">{articleStats?.published || 0}</div>
               <p className="text-xs text-muted-foreground">Live content</p>
             </CardContent>
           </Card>
@@ -260,7 +190,7 @@ const Dashboard = () => {
               <FileText className="h-4 w-4 text-red-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-red-600">{stats.archived}</div>
+              <div className="text-2xl font-bold text-red-600">{articleStats?.archived || 0}</div>
               <p className="text-xs text-muted-foreground">Old content</p>
             </CardContent>
           </Card>
@@ -284,8 +214,8 @@ const Dashboard = () => {
                 )}
               </div>
               <p className="text-xs text-muted-foreground mt-1">
-                {schemaHealth?.needsAttention ? (
-                  <>{schemaHealth.needsAttention} article{schemaHealth.needsAttention !== 1 ? 's' : ''} need{schemaHealth.needsAttention === 1 ? 's' : ''} attention</>
+                {schemaHealthStats?.needsAttention ? (
+                  <>Based on sample of {schemaHealthStats.sampleSize} articles</>
                 ) : (
                   'All schemas valid'
                 )}
@@ -304,12 +234,12 @@ const Dashboard = () => {
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium">TOFU (Top of Funnel)</span>
-                  <span className="text-2xl font-bold text-blue-600">{stats.tofu}</span>
+                  <span className="text-2xl font-bold text-blue-600">{articleStats?.tofu || 0}</span>
                 </div>
                 <div className="h-2 bg-blue-100 rounded-full overflow-hidden">
                   <div 
                     className="h-full bg-blue-600 rounded-full"
-                    style={{ width: `${articles ? (stats.tofu / articles.length) * 100 : 0}%` }}
+                    style={{ width: `${articleStats?.total ? ((articleStats.tofu || 0) / articleStats.total) * 100 : 0}%` }}
                   />
                 </div>
               </div>
@@ -317,12 +247,12 @@ const Dashboard = () => {
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium">MOFU (Middle of Funnel)</span>
-                  <span className="text-2xl font-bold text-amber-600">{stats.mofu}</span>
+                  <span className="text-2xl font-bold text-amber-600">{articleStats?.mofu || 0}</span>
                 </div>
                 <div className="h-2 bg-amber-100 rounded-full overflow-hidden">
                   <div 
                     className="h-full bg-amber-600 rounded-full"
-                    style={{ width: `${articles ? (stats.mofu / articles.length) * 100 : 0}%` }}
+                    style={{ width: `${articleStats?.total ? ((articleStats.mofu || 0) / articleStats.total) * 100 : 0}%` }}
                   />
                 </div>
               </div>
@@ -330,12 +260,12 @@ const Dashboard = () => {
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium">BOFU (Bottom of Funnel)</span>
-                  <span className="text-2xl font-bold text-green-600">{stats.bofu}</span>
+                  <span className="text-2xl font-bold text-green-600">{articleStats?.bofu || 0}</span>
                 </div>
                 <div className="h-2 bg-green-100 rounded-full overflow-hidden">
                   <div 
                     className="h-full bg-green-600 rounded-full"
-                    style={{ width: `${articles ? (stats.bofu / articles.length) * 100 : 0}%` }}
+                    style={{ width: `${articleStats?.total ? ((articleStats.bofu || 0) / articleStats.total) * 100 : 0}%` }}
                   />
                 </div>
               </div>
@@ -353,13 +283,13 @@ const Dashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="grid gap-3 md:grid-cols-3">
-              {languageCounts && Object.entries(languageCounts).map(([lang, count]) => (
+              {languageStats && Object.entries(languageStats).map(([lang, count]) => (
                 <div key={lang} className="flex items-center justify-between p-3 border rounded-lg">
                   <span className="font-medium">{languageNames[lang] || lang.toUpperCase()}</span>
                   <span className="text-lg font-bold text-primary">{count}</span>
                 </div>
               ))}
-              {(!languageCounts || Object.keys(languageCounts).length === 0) && (
+              {(!languageStats || Object.keys(languageStats).length === 0) && (
                 <p className="text-sm text-muted-foreground col-span-3">No articles yet</p>
               )}
             </div>
