@@ -1,155 +1,123 @@
 
-# Fix: Improve Cluster Image Fix Resilience and Error Handling
+# Replace Placeholder Visual with AI-Generated Image in RetargetingVisualContext
 
-## Problem Summary
-The "Fix Images" action in Cluster Manager is reporting failure despite 59/60 articles being successfully processed. The issue is:
-1. **Network transience**: One Finnish translation failed due to a connection reset
-2. **No retry logic**: Failed requests aren't retried
-3. **Poor error messaging**: UI shows generic failure instead of partial success
+## Current State
+The `RetargetingVisualContext` component (lines 32-77) currently displays a **placeholder abstract visual** made of CSS elements:
+- 3 fake "document cards" with gray bars simulating text
+- A search icon
+- Decorative blur circles
 
-## Solution
+This looks generic and doesn't convey the premium "Research & Clarity" message effectively.
 
-### 1. Add Retry Logic to Edge Function
+## Solution: Pre-Generate AI Image Using Nano Banana Pro
 
-**File: `supabase/functions/regenerate-cluster-images/index.ts`**
+Instead of generating images at runtime (which would add latency and cost per visitor), I'll:
 
-Add a retry wrapper function for database updates:
-
-```typescript
-async function retryableUpdate(
-  supabase: any,
-  id: string,
-  updates: Record<string, any>,
-  maxRetries: number = 3
-): Promise<{ success: boolean; error?: any }> {
-  for (let attempt = 1; attempt <= maxRetries; attempt++) {
-    try {
-      const { error } = await supabase
-        .from('blog_articles')
-        .update(updates)
-        .eq('id', id);
-      
-      if (!error) {
-        return { success: true };
-      }
-      
-      console.warn(`⚠️ Attempt ${attempt}/${maxRetries} failed:`, error.message);
-      
-      if (attempt < maxRetries) {
-        // Exponential backoff: 500ms, 1s, 2s
-        await new Promise(r => setTimeout(r, 500 * Math.pow(2, attempt - 1)));
-      }
-    } catch (err) {
-      console.warn(`⚠️ Attempt ${attempt}/${maxRetries} threw:`, err);
-      if (attempt < maxRetries) {
-        await new Promise(r => setTimeout(r, 500 * Math.pow(2, attempt - 1)));
-      }
-    }
-  }
-  return { success: false, error: 'Max retries exceeded' };
-}
-```
-
-Replace direct `supabase.from().update()` calls with this retryable version.
-
-### 2. Improve UI Error Handling
-
-**File: `src/pages/admin/ClusterManager.tsx`**
-
-Update the mutation's `onError` handler to distinguish between:
-- Complete failure (0 successes)
-- Partial success (some succeeded)
-- Network timeout (connection closed)
-
-```typescript
-onError: (error) => {
-  if (imageFixIntervalRef.current) {
-    clearInterval(imageFixIntervalRef.current);
-    imageFixIntervalRef.current = null;
-  }
-  
-  // Check if this is a partial success disguised as error
-  const errorMsg = error.message || '';
-  if (errorMsg.includes('connection closed') || errorMsg.includes('connection reset')) {
-    toast.warning('Connection interrupted - some images may have been fixed. Refreshing data...');
-    queryClient.invalidateQueries({ queryKey: ["cluster-image-health"] });
-  } else {
-    toast.error(`Failed to fix images: ${error.message}`);
-  }
-  
-  setImageFixProgress(null);
-  setClusterToFixImages(null);
-}
-```
-
-### 3. Add Partial Success Messaging
-
-Update `onSuccess` handler to show more detail:
-
-```typescript
-onSuccess: (data) => {
-  if (imageFixIntervalRef.current) {
-    clearInterval(imageFixIntervalRef.current);
-    imageFixIntervalRef.current = null;
-  }
-  
-  if (data.failCount > 0) {
-    toast.warning(
-      `Partially complete: ${data.successCount}/${data.totalArticles} updated. ` +
-      `${data.failCount} failed - you can retry.`
-    );
-  } else {
-    toast.success(`✅ Fixed! ${data.imagesPreserved || 6} preserved, ${data.imagesShared || 54} shared`);
-  }
-  
-  queryClient.invalidateQueries({ queryKey: ["cluster-image-health"] });
-  queryClient.invalidateQueries({ queryKey: ["cluster-articles"] });
-  
-  setTimeout(() => {
-    setImageFixProgress(null);
-    setClusterToFixImages(null);
-  }, 1500);
-}
-```
-
-### 4. Add "Retry Failed" Capability (Optional Enhancement)
-
-Track failed article IDs in the response and add a "Retry Failed" button:
-
-```typescript
-// In edge function response, include:
-failedArticleIds: results.filter(r => !r.success).map(r => r.id)
-
-// In UI, when failCount > 0, show:
-<Button onClick={() => retryFailed(data.failedArticleIds)}>
-  Retry {data.failCount} Failed
-</Button>
-```
+1. **Create an edge function** to generate a high-quality image using Nano Banana Pro (`google/gemini-3-pro-image-preview` via Lovable AI gateway)
+2. **Upload to Supabase Storage** for permanent hosting
+3. **Update the component** to display the AI-generated image with proper alt text
 
 ---
 
-## Files to Modify
+## Implementation Steps
 
-| File | Change |
+### Step 1: Create Edge Function to Generate Visual Context Image
+
+**New file: `supabase/functions/generate-retargeting-visual/index.ts`**
+
+This function will:
+- Use `LOVABLE_API_KEY` to call Nano Banana Pro via the Lovable AI gateway
+- Generate a professional, educational-themed image that matches the "Research & Clarity" concept
+- Upload the result to `article-images` storage bucket
+- Return the permanent Supabase Storage URL
+
+**Prompt concept** (aligned with the retargeting page's "educational intent" from memory):
+```
+Professional, calm educational scene: A person thoughtfully reviewing 
+real estate research documents in a bright, modern home office. 
+Natural light streams through Mediterranean-style windows. 
+Documents, laptop, and a coffee cup on a clean wooden desk. 
+Costa del Sol landscape visible through window. 
+No logos, no text. Peaceful, contemplative mood. 
+4:3 aspect ratio, warm natural lighting, lifestyle photography.
+```
+
+### Step 2: Add Image URL to Retargeting Translations
+
+**File: `src/lib/retargetingTranslations.ts`**
+
+Add a new field for each language:
+```typescript
+visualImageUrl: "https://kazggnufaoicopvmwhdl.supabase.co/storage/v1/object/public/article-images/retargeting-visual-en.png",
+visualImageAlt: "Person reviewing Costa del Sol property research documents in a bright home office"
+```
+
+### Step 3: Update RetargetingVisualContext Component
+
+**File: `src/components/retargeting/RetargetingVisualContext.tsx`**
+
+Replace the placeholder CSS visual (lines 32-77) with:
+```tsx
+<div className="aspect-[4/3] rounded-xl overflow-hidden">
+  <img 
+    src={t.visualImageUrl}
+    alt={t.visualImageAlt}
+    className="w-full h-full object-cover"
+    loading="lazy"
+  />
+</div>
+```
+
+Keep the glassmorphism container and floating badge intact.
+
+---
+
+## Technical Details
+
+### Edge Function Architecture
+
+```text
+POST /generate-retargeting-visual
+  ↓
+  Call Lovable AI Gateway (google/gemini-3-pro-image-preview)
+  ↓
+  Receive base64 image
+  ↓
+  Upload to Supabase Storage (article-images bucket)
+  ↓
+  Return permanent URL
+```
+
+### Image Specifications
+- **Aspect ratio**: 4:3 (matches current container)
+- **Quality**: High-end lifestyle/editorial photography
+- **Tone**: Calm, educational, professional (per retargeting design memory)
+- **Model**: `google/gemini-3-pro-image-preview` (Nano Banana Pro via Lovable AI)
+
+---
+
+## Files to Create/Modify
+
+| File | Action |
 |------|--------|
-| `supabase/functions/regenerate-cluster-images/index.ts` | Add retry wrapper with exponential backoff |
-| `src/pages/admin/ClusterManager.tsx` | Improve error/success messaging for partial success |
+| `supabase/functions/generate-retargeting-visual/index.ts` | **Create** - Edge function for AI image generation |
+| `src/lib/retargetingTranslations.ts` | **Modify** - Add `visualImageUrl` and `visualImageAlt` fields for all 10 languages |
+| `src/components/retargeting/RetargetingVisualContext.tsx` | **Modify** - Replace CSS placeholder with `<img>` element |
+| `supabase/config.toml` | **Modify** - Add function configuration |
 
 ---
 
-## Expected Results
+## Execution Plan
 
-| Scenario | Before | After |
-|----------|--------|-------|
-| 59/60 success | "Failed to fix images" | "Partially complete: 59/60 updated. 1 failed - you can retry" |
-| Connection timeout | Generic error | "Connection interrupted - some images may have been fixed" |
-| All success | Works | Works (unchanged) |
+1. Create the edge function with proper CORS and storage upload logic
+2. Deploy the function
+3. Run the function once to generate and store the image
+4. Update translations with the generated image URL and localized alt text
+5. Update the component to use the real image
+6. Test the result on the `/en/welcome-back` page
 
 ---
 
-## Technical Notes
+## Expected Result
 
-1. **Retry Logic**: Uses exponential backoff (500ms → 1s → 2s) to handle transient network issues
-2. **Idempotency**: Image updates are idempotent, so retries are safe
-3. **No Data Loss**: The 59 successful updates are already committed to the database
-4. **Timeout Handling**: Edge function timeout (60s) should be sufficient with 3 retries per article
+The "Research & Clarity" section will display a professional AI-generated image showing a calm, educational scene that reinforces the page's intent: "We start with explanation, not listings." The image will be permanently hosted on Supabase Storage, eliminating runtime generation costs.
