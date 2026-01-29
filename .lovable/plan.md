@@ -1,111 +1,113 @@
 
+# Add Click Interactivity to Founders Section on About Page
 
-# Replace Team Member Placeholder Photos with Real Photos
+## Problem
+The "Meet The Founders" section on the About page displays founder cards, but clicking on them does nothing. Users expect to click a card to see more details (similar to how the Team page works).
 
-## Overview
-
-The site currently displays placeholder initials (SR, CVH, HB) because the photo URLs in the database either point to non-existent files or generic Unsplash images. This plan updates both data sources with the real team member photos.
-
----
-
-## Current State Analysis
-
-| Data Source | Current Photo Values | Used By |
-|-------------|---------------------|---------|
-| `team_members` table | Unsplash placeholder images | Team page, Team Modal |
-| `about_page_content.founders` JSONB | Local paths like `/team/steven-roberts.jpg` (not working) | About page |
-
----
-
-## Photo URLs to Apply
-
-| Team Member | New Photo URL |
-|-------------|---------------|
-| Steven Roberts | `https://storage.googleapis.com/msgsndr/281Nzx90nVL8424QY4Af/media/697beb629c63bc054fc8ea90.jpeg` |
-| Cédric Van Hecke | `https://storage.googleapis.com/msgsndr/281Nzx90nVL8424QY4Af/media/697beb6aa74ce61b82a73c2d.jpeg` |
-| Hans Beeckman | `https://storage.googleapis.com/msgsndr/281Nzx90nVL8424QY4Af/media/697beb72a74ce63b64a73ded.jpeg` |
+## Solution
+Add click handling and modal functionality to the `FounderProfiles.tsx` component, reusing the existing `TeamMemberModal` component for consistency.
 
 ---
 
 ## Implementation Steps
 
-### Step 1: Update `team_members` Table
+### Step 1: Update FounderProfiles Component
 
-Execute SQL to update photo URLs for all three founders:
+Add state management and click handlers to make founder cards interactive:
 
-```sql
-UPDATE team_members 
-SET photo_url = 'https://storage.googleapis.com/msgsndr/281Nzx90nVL8424QY4Af/media/697beb629c63bc054fc8ea90.jpeg' 
-WHERE name ILIKE '%Steven%Roberts%';
+- Import `useState` from React
+- Import the existing `TeamMemberModal` component  
+- Add `selectedFounder` state to track which founder was clicked
+- Add `onClick` handler to each founder card
+- Add cursor pointer styling to indicate cards are clickable
+- Render `TeamMemberModal` at the bottom of the component
 
-UPDATE team_members 
-SET photo_url = 'https://storage.googleapis.com/msgsndr/281Nzx90nVL8424QY4Af/media/697beb6aa74ce61b82a73c2d.jpeg' 
-WHERE name ILIKE '%Cédric%' OR name ILIKE '%Cedric%';
+### Step 2: Transform Founder Data for Modal
 
-UPDATE team_members 
-SET photo_url = 'https://storage.googleapis.com/msgsndr/281Nzx90nVL8424QY4Af/media/697beb72a74ce63b64a73ded.jpeg' 
-WHERE name ILIKE '%Hans%';
+The `FounderProfiles` component uses a simpler `Founder` interface than the `TeamMember` interface expected by `TeamMemberModal`. Need to map the founder data to match:
+
+| Founder Field | Maps To TeamMember Field |
+|--------------|-------------------------|
+| `name` | `name` |
+| `role` | `role` |
+| `bio` | `bio` |
+| `photo_url` | `photo_url` |
+| `linkedin_url` | `linkedin_url` |
+| `languages` | `languages_spoken` |
+| `credentials` | `credentials` |
+| `years_experience` | `years_experience` |
+| `specialization` | `specializations` (as array) |
+
+### Step 3: Add Visual Click Affordance
+
+Make it clear the cards are clickable:
+- Add `cursor-pointer` class to cards
+- Add hover effect enhancement (slight scale or lift)
+- Keep the existing hover shadow effect
+
+---
+
+## Files to Modify
+
+| File | Changes |
+|------|---------|
+| `src/components/about/FounderProfiles.tsx` | Add state, click handler, modal, data transformation |
+
+---
+
+## Technical Details
+
+```text
+Component Flow:
+┌─────────────────────────────────────────┐
+│         FounderProfiles                 │
+│  ┌──────────┐ ┌──────────┐ ┌──────────┐ │
+│  │  Card 1  │ │  Card 2  │ │  Card 3  │ │
+│  │  onClick │ │  onClick │ │  onClick │ │
+│  └────┬─────┘ └────┬─────┘ └────┬─────┘ │
+│       │            │            │       │
+│       └────────────┼────────────┘       │
+│                    ▼                    │
+│          setSelectedFounder(founder)    │
+│                    │                    │
+│                    ▼                    │
+│            TeamMemberModal              │
+│         (reused from Team page)         │
+└─────────────────────────────────────────┘
 ```
 
-**Affected pages:** Team page (`/team`), Team member modal popups
-
----
-
-### Step 2: Update `about_page_content.founders` JSONB
-
-Update the embedded founder data with real photo URLs:
-
-```sql
-UPDATE about_page_content 
-SET founders = (
-  SELECT jsonb_agg(
-    CASE 
-      WHEN elem->>'name' = 'Steven Roberts' 
-        THEN jsonb_set(elem, '{photo_url}', '"https://storage.googleapis.com/msgsndr/281Nzx90nVL8424QY4Af/media/697beb629c63bc054fc8ea90.jpeg"')
-      WHEN elem->>'name' = 'Cédric Van Hecke' 
-        THEN jsonb_set(elem, '{photo_url}', '"https://storage.googleapis.com/msgsndr/281Nzx90nVL8424QY4Af/media/697beb6aa74ce61b82a73c2d.jpeg"')
-      WHEN elem->>'name' = 'Hans Beeckman' 
-        THEN jsonb_set(elem, '{photo_url}', '"https://storage.googleapis.com/msgsndr/281Nzx90nVL8424QY4Af/media/697beb72a74ce63b64a73ded.jpeg"')
-      ELSE elem
-    END
-  )
-  FROM jsonb_array_elements(founders) AS elem
-)
-WHERE slug = 'main';
+The transformation creates a compatible TeamMember object:
+```typescript
+const transformedMember = {
+  id: founder.name.toLowerCase().replace(/\s+/g, '-'),
+  name: founder.name,
+  role: founder.role,
+  bio: founder.bio,
+  photo_url: founder.photo_url,
+  linkedin_url: founder.linkedin_url,
+  languages_spoken: founder.languages,
+  credentials: founder.credentials,
+  years_experience: founder.years_experience,
+  specializations: [founder.specialization],
+  is_founder: true,
+  // Nullable fields
+  role_translations: null,
+  bio_translations: null,
+  email: null,
+  phone: null,
+  whatsapp: null,
+  areas_of_expertise: null
+};
 ```
 
-**Affected pages:** About page (`/about`)
-
 ---
 
-## No Code Changes Required
+## Expected Result
 
-The existing components already handle photo display correctly:
-
-- **`FounderProfiles.tsx`**: Uses `<AvatarImage src={founder.photo_url}>` with fallback to initials
-- **`TeamMemberCard.tsx`**: Uses `<AvatarImage src={member.photo_url}>` with fallback to initials
-- **`TeamMemberModal.tsx`**: Uses `<AvatarImage src={member.photo_url}>` with fallback to initials
-
-All components have proper `object-cover` styling and circular frames with golden borders already in place.
-
----
-
-## Pages Affected
-
-| Page | Component | Status After Update |
-|------|-----------|---------------------|
-| `/en/about` (all languages) | `FounderProfiles.tsx` | ✅ Real photos |
-| `/en/team` (all languages) | `TeamMemberCard.tsx` | ✅ Real photos |
-| Team member modal | `TeamMemberModal.tsx` | ✅ Real photos |
-
----
-
-## Testing Checklist
-
-After updates:
-- [ ] Verify photos appear on About page (3 founders)
-- [ ] Verify photos appear on Team page (3 founders)  
-- [ ] Verify photos appear in team member modal when clicked
-- [ ] Check all 10 language versions display photos correctly
-- [ ] Confirm fallback initials still work if image fails to load
-
+After implementation:
+- Clicking any founder card opens a modal with full details
+- Modal shows the founder's photo, bio, languages, credentials
+- Modal has WhatsApp, Email, and Call buttons
+- LinkedIn button in modal links to their profile
+- Contact form available in modal
+- Clicking outside modal or X button closes it
