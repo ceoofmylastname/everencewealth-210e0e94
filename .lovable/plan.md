@@ -1,225 +1,305 @@
 
-# Fix and Optimize Sitemap Generation System
+
+# Comprehensive Internal Admin Dashboard Implementation Plan
 
 ## Executive Summary
 
-The project already has a **robust sitemap system** with:
-- **Edge function** (`regenerate-sitemap`) that generates XML dynamically from database
-- **Build script** (`scripts/generateSitemap.ts`) for static generation during deployment
-- **Admin UI** (`SitemapRegenerator.tsx`) with regeneration, download, and IndexNow ping
-- **Database triggers** (`notify_sitemap_ping`) that auto-ping IndexNow on publish
-- **Storage integration** uploading to `sitemaps` bucket
-- **Gone URL filtering** to exclude 410 pages
+The project already has a solid admin infrastructure with:
+- **Existing Dashboard** at `/admin` showing blog article stats, schema health, image health, and internal linking
+- **CRM Admin Dashboard** at `/crm/admin/dashboard` with agent/lead management
+- **Multiple specialized admin pages** for content, SEO, and system health
 
-### Current Content Volume
-| Content Type | Published Count |
-|-------------|-----------------|
-| Blog Articles | 3,271 |
-| Q&A Pages | 9,600 |
-| Comparison Pages | 47 |
-| Location Pages | 198 |
-| Properties | 12 |
-| City Brochures | 10 |
-| **Total** | **~13,138** |
-
-### Current Structure
-```
-/sitemap-index.xml (master)
-├── /sitemaps/en/blog.xml
-├── /sitemaps/en/qa.xml
-├── /sitemaps/en/locations.xml
-├── /sitemaps/en/comparisons.xml
-├── ... (×10 languages)
-├── /sitemaps/glossary.xml
-└── /sitemaps/brochures.xml
-```
-
-### What's Missing (per requirements)
-1. **Properties sitemap** with image extensions
-2. **Static pages sitemap** with hreflang for 10 languages (home, about, contact, buyers-guide)
-3. **New-builds sitemap** (if applicable)
-4. **Enhanced admin dashboard** with validation status and per-sitemap regeneration
-5. **Automatic caching** with 6-hour TTL
-6. **Robots.txt update** - currently points to `/sitemap-index.xml` not `/sitemap.xml`
+The task requires creating a **new unified admin dashboard** that consolidates all data sources (properties, leads, content, SEO) into a single command center at `/admin/dashboard`.
 
 ---
 
-## Phase 1: Rename Master Sitemap to /sitemap.xml
+## Current State Analysis
 
-### Current Issue
-- `robots.txt` references `/sitemap-index.xml`
-- Google standard expects `/sitemap.xml`
+| Feature | Status | Location |
+|---------|--------|----------|
+| Article statistics | Exists | `/admin` via `useDashboardStats` |
+| CRM lead/agent stats | Exists | `/crm/admin/dashboard` via `useAdminStats` |
+| Properties management | Exists | `/admin/properties` (basic list) |
+| Team activity feed | Exists | `TeamActivityFeed` component |
+| Role-based access | Exists | `user_roles` table + `has_role()` function |
+| Dark mode | Not implemented | N/A |
+| CSV export | Partial | `/admin/export` page exists |
+| Real-time updates | Exists | CRM uses Supabase Realtime |
 
-### Fix
-Update both generation scripts and `robots.txt` to consistently use `/sitemap.xml` as the primary entry point (currently already copies to both, but naming needs standardization).
+### Database Tables Available
 
-**Files to modify:**
-- `public/robots.txt` - Change `Sitemap: .../sitemap-index.xml` to `Sitemap: .../sitemap.xml`
+| Table | Purpose |
+|-------|---------|
+| `blog_articles` | 3,271 articles with status, language, funnel_stage |
+| `crm_leads` | Leads with source, language, status, agent assignment |
+| `crm_agents` | Active agents with lead counts |
+| `crm_activities` | Activity log for leads |
+| `properties` | Property listings (12 active) |
+| `qa_pages` | 9,600 Q&A pages |
+| `comparison_pages` | 47 comparison pages |
+| `location_pages` | 198 location pages |
+| `external_citation_health` | Citation status tracking |
+| `article_image_issues` | Image health tracking |
+| `user_roles` | Role-based permissions |
 
 ---
 
-## Phase 2: Add Properties Sitemap with Image Extensions
+## Phase 1: Create Unified Dashboard Hook
 
-### New sitemap: `/sitemaps/properties.xml`
+### New file: `src/hooks/useUnifiedDashboardStats.ts`
 
-```xml
-<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
-  <url>
-    <loc>https://www.delsolprimehomes.com/properties/{internal_ref}</loc>
-    <lastmod>2026-01-29</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-    <image:image>
-      <image:loc>https://.../image1.jpg</image:loc>
-      <image:title>Property Title - Image 1</image:title>
-    </image:image>
-    <!-- More images -->
-  </url>
-</urlset>
+Consolidates all statistics into a single hook:
+
+```typescript
+interface UnifiedDashboardStats {
+  // Properties
+  totalProperties: number;
+  propertiesByStatus: { active: number; pending: number; sold: number };
+  propertiesByLocation: Record<string, number>;
+  
+  // Leads
+  totalLeads: number;
+  leadsToday: number;
+  leadsThisWeek: number;
+  leadsThisMonth: number;
+  leadsTrend: number; // percentage vs last week
+  leadsBySource: { source: string; count: number }[];
+  leadsByLanguage: { language: string; count: number }[];
+  leadsByStatus: { status: string; count: number }[];
+  leadAssignmentsByAgent: { agentId: string; name: string; count: number }[];
+  
+  // Content
+  articlesByStatus: { draft: number; published: number; archived: number };
+  articlesByLanguage: Record<string, number>;
+  articlesMissingTranslations: number;
+  articlesMissingImages: number;
+  articlesMissingCitations: number;
+  
+  // Agents
+  activeAgents: number;
+  totalAgents: number;
+  
+  // SEO
+  citationHealthScore: number;
+  brokenCitations: number;
+  imageIssues: number;
+}
 ```
 
-**Implementation:**
-- Query `properties` table where `is_active = true`
-- Extract images from `images` JSONB column
-- Generate image sitemap extension for each property
-
-**Files to modify:**
-- `scripts/generateSitemap.ts` - Add `generatePropertiesSitemap()` function
-- `supabase/functions/regenerate-sitemap/index.ts` - Add properties generation
+**Queries:**
+- Use `count: 'exact'` for efficient counting
+- Parallel `Promise.all()` for multiple queries
+- 30-second stale time for dashboard freshness
 
 ---
 
-## Phase 3: Add Static Pages Sitemap with Hreflang
+## Phase 2: Dashboard Layout Components
 
-### New sitemap: `/sitemaps/pages.xml`
+### New file: `src/components/admin/dashboard/DashboardOverviewCards.tsx`
 
-Static pages need hreflang for all 10 languages:
-- Homepage: `/`, `/{lang}/`
-- About: `/about`, `/{lang}/about-us`
-- Contact: `/{lang}/contact`
-- Buyers Guide: `/guide`, `/{lang}/buyers-guide`
-- Team: `/{lang}/team`
-- Glossary: `/glossary`, `/{lang}/glossary`
+Top row of 5 key metric cards:
 
-```xml
-<url>
-  <loc>https://www.delsolprimehomes.com/en</loc>
-  <lastmod>2026-01-29</lastmod>
-  <changefreq>daily</changefreq>
-  <priority>1.0</priority>
-  <xhtml:link rel="alternate" hreflang="en-GB" href="https://www.delsolprimehomes.com/en" />
-  <xhtml:link rel="alternate" hreflang="de-DE" href="https://www.delsolprimehomes.com/de" />
-  <xhtml:link rel="alternate" hreflang="nl-NL" href="https://www.delsolprimehomes.com/nl" />
-  <!-- ... all 10 languages + x-default -->
-</url>
+```text
++------------------+------------------+------------------+------------------+------------------+
+| Total Properties | Total Leads      | Blog Articles    | Active Agents    | Pending Tasks    |
+| 12               | 847 (+12% ↑)     | 3,271            | 4                | 8                |
++------------------+------------------+------------------+------------------+------------------+
 ```
 
-**Files to modify:**
-- `scripts/generateSitemap.ts` - Add `generateStaticPagesSitemap()` 
-- `supabase/functions/regenerate-sitemap/index.ts` - Add static pages generation
+Features:
+- Trend indicator for leads (vs last week)
+- Color-coded based on thresholds
+- Click to navigate to detail page
+
+### New file: `src/components/admin/dashboard/LeadsSection.tsx`
+
+Leads management panel with:
+- Time-based lead counts (today/week/month)
+- Source distribution pie chart (Emma, organic, paid, referral)
+- Language distribution bar chart
+- Status breakdown (new, contacted, qualified, converted, lost)
+- Agent assignment table
+- Quick actions: Assign Lead, Change Status, Add Note buttons
+
+### New file: `src/components/admin/dashboard/ContentSection.tsx`
+
+Content overview with:
+- Articles by status cards
+- Language distribution pie chart (using recharts - already installed)
+- Content health alerts (missing translations, images, citations)
+- Quick link to Cluster Manager
+
+### New file: `src/components/admin/dashboard/PropertiesSection.tsx`
+
+Properties panel with:
+- Status breakdown (active/pending/sold)
+- Location distribution
+- Properties needing updates alert
+
+### New file: `src/components/admin/dashboard/SEOHealthSection.tsx`
+
+SEO metrics combining existing health checks:
+- Citation health score (from `external_citation_health`)
+- Image issues count
+- Broken links count
+- Link to SEO Monitor page
+
+### New file: `src/components/admin/dashboard/ActivityLogSection.tsx`
+
+Recent activity feed:
+- Uses existing `crm_activities` table
+- Shows admin actions, lead activities, content changes
+- Real-time updates via Supabase Realtime
+- Filterable by activity type
 
 ---
 
-## Phase 4: Enhanced Admin Dashboard
+## Phase 3: Enhanced AdminLayout with Collapsible Sidebar
 
-### Current UI
-The `SitemapRegenerator.tsx` shows:
-- Total URLs, content counts, language breakdown
-- Regenerate button, Download ZIP, Ping IndexNow
+### Modify `src/components/AdminLayout.tsx`
 
-### Enhancements Required
-1. **Per-sitemap table with details:**
-   - File name, URL count, last modified, size
-   - Individual "Regenerate" button per sitemap
-   - Validation status (✅ Valid / ⚠️ Issues)
+Reorganize navigation into grouped sections with collapsible categories:
 
-2. **Validation panel:**
-   - Check for 404/410/redirect URLs in sitemap
-   - Flag URLs exceeding 50,000 limit per file
-   - XML syntax validation
+```text
+DASHBOARD
+  └─ Overview
 
-3. **Quick actions:**
-   - "Validate All" button
-   - "Submit to GSC" links (external to Google Search Console)
-   - Last ping timestamps per search engine
+LEADS & CRM
+  └─ Leads Management (link to /crm/admin/leads)
+  └─ Team Activity
 
-**Files to modify:**
-- `src/components/admin/SitemapRegenerator.tsx` - Add per-sitemap table with actions
+PROPERTIES
+  └─ Properties
+  └─ New Builds (if applicable)
 
----
+CONTENT
+  ├─ Blog Articles
+  ├─ Cluster Manager
+  ├─ Q&A Pages
+  └─ Location Pages
 
-## Phase 5: Add Caching with 6-Hour TTL
+PAGES
+  ├─ Comparison Pages
+  ├─ Retargeting Pages
+  └─ City Brochures
 
-### Current State
-- Build script generates static files during deployment
-- Edge function regenerates on demand and uploads to storage
-- `_headers` sets 5-minute cache (`max-age=300`)
+TEAM
+  └─ Agents (link to /crm/admin/agents)
 
-### Enhancement
-1. **Storage-based caching:**
-   - Store `last_regenerated_at` timestamp in `content_settings` table
-   - Edge function checks timestamp; if < 6 hours old, serve from storage
-   - Force regeneration option bypasses cache
+SEO & HEALTH
+  ├─ SEO Monitor
+  ├─ Citation Health
+  ├─ Image Health
+  └─ System Health
 
-2. **Auto-regeneration trigger:**
-   - Already exists via `notify_sitemap_ping` database trigger
-   - Enhance to batch updates (debounce multiple publishes within 5 minutes)
-
-**Files to modify:**
-- `supabase/functions/regenerate-sitemap/index.ts` - Add cache check logic
-- Database: Store regeneration timestamp
-
----
-
-## Phase 6: Update robots.txt
-
-### Current
+SETTINGS
+  └─ Settings
+  └─ Export
 ```
-Sitemap: https://www.delsolprimehomes.com/sitemap-index.xml
-```
 
-### Updated (Single Entry)
-```
-Sitemap: https://www.delsolprimehomes.com/sitemap.xml
-```
-
-Remove redundant per-language sitemap references (Google follows the index automatically).
-
-**Files to modify:**
-- `public/robots.txt`
+Use existing `Collapsible` component for sections.
 
 ---
 
-## Phase 7: Ensure Valid XML Generation
+## Phase 4: Role-Based Access Control
 
-### Validation Requirements
-1. **Escape special characters** in URLs (already handled)
-2. **No 404/410/redirect URLs** (already filtered via `gone_urls` table)
-3. **UTF-8 encoding** (already specified in XML header)
-4. **Max 50,000 URLs per sitemap** (needs check for Q&A pages - currently 9,600, safe)
+### Modify `src/components/ProtectedRoute.tsx` or create `src/components/AdminProtectedRoute.tsx`
 
-### URL Limit Check
-| Sitemap | Current Count | Safe? |
-|---------|---------------|-------|
-| EN Blog | ~440 | ✅ |
-| EN Q&A | ~960 | ✅ |
-| All Q&A | 9,600 | ✅ (split by language) |
+Check user roles using existing `has_role()` database function:
 
-No pagination needed as largest per-language sitemap is well under 50,000.
+```typescript
+// Check if user has admin role
+const { data: isAdmin } = await supabase.rpc('is_admin', { _user_id: userId });
+
+// Check for specific roles
+const { data: hasRole } = await supabase.rpc('has_role', { 
+  _user_id: userId, 
+  _role: 'content_manager' 
+});
+```
+
+**Access Levels:**
+| Role | Dashboard Access | Leads | Content | Properties | Settings |
+|------|------------------|-------|---------|------------|----------|
+| admin | Full | Full | Full | Full | Full |
+| agent | Overview only | Own leads | View only | View only | No |
+| content_manager | Content section | No | Full | No | No |
 
 ---
 
-## Files to Modify
+## Phase 5: Date Range Filters
 
-| File | Changes |
-|------|---------|
-| `scripts/generateSitemap.ts` | Add `generatePropertiesSitemap()`, `generateStaticPagesSitemap()` |
-| `supabase/functions/regenerate-sitemap/index.ts` | Add properties, static pages, cache check |
-| `src/components/admin/SitemapRegenerator.tsx` | Add per-sitemap table, validation panel |
-| `public/robots.txt` | Simplify to single sitemap entry |
-| `public/_headers` | Optionally increase cache to 6 hours for sitemaps |
+### New file: `src/components/admin/dashboard/DashboardFilters.tsx`
+
+Filter component with:
+- Date range selector (Today, 7 days, 30 days, Custom)
+- Language filter (for leads/content)
+- Export to CSV button
+
+State management via URL params for shareable links.
+
+---
+
+## Phase 6: Real-time Updates
+
+Leverage existing Supabase Realtime patterns from CRM:
+
+```typescript
+// Subscribe to changes
+const channel = supabase
+  .channel('dashboard-updates')
+  .on('postgres_changes', 
+    { event: '*', schema: 'public', table: 'crm_leads' },
+    () => queryClient.invalidateQueries(['dashboard-stats'])
+  )
+  .subscribe();
+```
+
+Apply to:
+- Lead counts (new leads appear instantly)
+- Activity log
+- Properties (if added/modified)
+
+---
+
+## Phase 7: Dark Mode Support
+
+### New file: `src/components/ThemeProvider.tsx`
+
+Use `next-themes` (already in dependencies):
+
+```typescript
+import { ThemeProvider as NextThemesProvider } from "next-themes";
+
+export function ThemeProvider({ children }: { children: React.ReactNode }) {
+  return (
+    <NextThemesProvider attribute="class" defaultTheme="light" enableSystem>
+      {children}
+    </NextThemesProvider>
+  );
+}
+```
+
+### Add theme toggle to AdminLayout header
+
+```typescript
+const { theme, setTheme } = useTheme();
+// Toggle button in header
+```
+
+---
+
+## Phase 8: CSV Export Enhancement
+
+### Modify `src/pages/admin/Export.tsx`
+
+Add dashboard-specific exports:
+- Leads export with all fields
+- Content audit export
+- Properties export
+- Activity log export
+
+Use existing `useLeadsExport` hook pattern.
 
 ---
 
@@ -227,139 +307,73 @@ No pagination needed as largest per-language sitemap is well under 50,000.
 
 | File | Purpose |
 |------|---------|
-| `src/components/admin/SitemapValidationPanel.tsx` | Validation results display |
-| `src/components/admin/SitemapFileTable.tsx` | Per-sitemap management table |
+| `src/hooks/useUnifiedDashboardStats.ts` | Consolidated statistics hook |
+| `src/components/admin/dashboard/DashboardOverviewCards.tsx` | Top metrics cards |
+| `src/components/admin/dashboard/LeadsSection.tsx` | Leads management panel |
+| `src/components/admin/dashboard/ContentSection.tsx` | Content overview |
+| `src/components/admin/dashboard/PropertiesSection.tsx` | Properties panel |
+| `src/components/admin/dashboard/SEOHealthSection.tsx` | SEO metrics |
+| `src/components/admin/dashboard/ActivityLogSection.tsx` | Activity feed |
+| `src/components/admin/dashboard/DashboardFilters.tsx` | Date/filter controls |
+| `src/components/admin/dashboard/index.ts` | Barrel export |
+| `src/components/ThemeProvider.tsx` | Dark mode provider |
+| `src/components/ThemeToggle.tsx` | Theme toggle button |
+
+---
+
+## Files to Modify
+
+| File | Changes |
+|------|---------|
+| `src/pages/admin/Dashboard.tsx` | Complete rewrite with new sections |
+| `src/components/AdminLayout.tsx` | Reorganized sidebar, add theme toggle |
+| `src/App.tsx` | Wrap with ThemeProvider |
+| `index.html` or `src/index.css` | Add dark mode class support |
+
+---
+
+## Mobile Responsiveness
+
+The dashboard already uses Tailwind's responsive utilities:
+- Grid cols: `grid-cols-1 md:grid-cols-2 lg:grid-cols-4`
+- Sidebar collapses on mobile (Sheet component)
+- Cards stack vertically on small screens
+
+---
+
+## Performance Optimizations
+
+1. **Parallel queries** via `Promise.all()` in the unified hook
+2. **Count-only queries** using `{ count: 'exact', head: true }`
+3. **Stale-while-revalidate** with 30-second staleTime
+4. **Lazy loading** for chart components
+5. **Memoization** of expensive calculations
 
 ---
 
 ## Implementation Order
 
-1. **Phase 1**: Update `robots.txt` to use `/sitemap.xml`
-2. **Phase 2**: Add properties sitemap with image extensions
-3. **Phase 3**: Add static pages sitemap with hreflang
-4. **Phase 6**: Update master index to include new sitemaps
-5. **Phase 4**: Enhance admin dashboard with per-sitemap management
-6. **Phase 5**: Add caching mechanism
-
----
-
-## Technical Details
-
-### Properties Sitemap Generator Function
-
-```typescript
-function generatePropertiesSitemap(properties: PropertyData[]): string {
-  const urls = properties.map(prop => {
-    const images = (prop.images as { url: string }[]) || [];
-    const imageXml = images.slice(0, 10).map(img => `
-    <image:image>
-      <image:loc>${escapeXml(img.url)}</image:loc>
-      <image:title>${escapeXml(prop.internal_name)}</image:title>
-    </image:image>`).join('');
-    
-    return `  <url>
-    <loc>${BASE_URL}/properties/${prop.internal_ref}</loc>
-    <lastmod>${formatDate(prop.updated_at)}</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>${imageXml}
-  </url>`;
-  }).join('\n');
-
-  return `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
-${urls}
-</urlset>`;
-}
-```
-
-### Static Pages Sitemap Generator
-
-```typescript
-function generateStaticPagesSitemap(): string {
-  const STATIC_PAGES = [
-    { path: '', priority: 1.0, changefreq: 'daily' },      // homepage
-    { path: 'about-us', priority: 0.8, changefreq: 'monthly' },
-    { path: 'contact', priority: 0.7, changefreq: 'monthly' },
-    { path: 'buyers-guide', priority: 0.9, changefreq: 'weekly' },
-    { path: 'team', priority: 0.7, changefreq: 'monthly' },
-    { path: 'glossary', priority: 0.7, changefreq: 'monthly' },
-  ];
-
-  const urls = STATIC_PAGES.flatMap(page => {
-    return SUPPORTED_LANGUAGES.map(lang => {
-      const url = page.path ? `${BASE_URL}/${lang}/${page.path}` : `${BASE_URL}/${lang}`;
-      const hreflangLinks = SUPPORTED_LANGUAGES.map(l => {
-        const href = page.path ? `${BASE_URL}/${l}/${page.path}` : `${BASE_URL}/${l}`;
-        return `<xhtml:link rel="alternate" hreflang="${langToHreflang[l]}" href="${href}" />`;
-      }).join('\n    ');
-      
-      return `  <url>
-    <loc>${url}</loc>
-    <lastmod>${getToday()}</lastmod>
-    <changefreq>${page.changefreq}</changefreq>
-    <priority>${page.priority}</priority>
-    ${hreflangLinks}
-    <xhtml:link rel="alternate" hreflang="x-default" href="${page.path ? `${BASE_URL}/en/${page.path}` : `${BASE_URL}/en`}" />
-  </url>`;
-    });
-  }).join('\n');
-
-  return `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-        xmlns:xhtml="http://www.w3.org/1999/xhtml">
-${urls}
-</urlset>`;
-}
-```
-
----
-
-## Updated Master Sitemap Index
-
-```xml
-<?xml version="1.0" encoding="UTF-8"?>
-<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <!-- Static Pages (all languages) -->
-  <sitemap><loc>https://www.delsolprimehomes.com/sitemaps/pages.xml</loc></sitemap>
-  
-  <!-- Properties with images -->
-  <sitemap><loc>https://www.delsolprimehomes.com/sitemaps/properties.xml</loc></sitemap>
-  
-  <!-- Blog per language -->
-  <sitemap><loc>https://www.delsolprimehomes.com/sitemaps/en/blog.xml</loc></sitemap>
-  <!-- ... other languages -->
-  
-  <!-- Q&A per language -->
-  <sitemap><loc>https://www.delsolprimehomes.com/sitemaps/en/qa.xml</loc></sitemap>
-  <!-- ... other languages -->
-  
-  <!-- Locations per language -->
-  <sitemap><loc>https://www.delsolprimehomes.com/sitemaps/en/locations.xml</loc></sitemap>
-  
-  <!-- Comparisons per language -->
-  <sitemap><loc>https://www.delsolprimehomes.com/sitemaps/en/comparisons.xml</loc></sitemap>
-  
-  <!-- Brochures -->
-  <sitemap><loc>https://www.delsolprimehomes.com/sitemaps/brochures.xml</loc></sitemap>
-  
-  <!-- Glossary -->
-  <sitemap><loc>https://www.delsolprimehomes.com/sitemaps/glossary.xml</loc></sitemap>
-</sitemapindex>
-```
+1. **Phase 1**: Create `useUnifiedDashboardStats` hook
+2. **Phase 2**: Create dashboard section components
+3. **Phase 3**: Update Dashboard.tsx with new layout
+4. **Phase 4**: Reorganize AdminLayout sidebar
+5. **Phase 5**: Add date range filters
+6. **Phase 6**: Add real-time subscriptions
+7. **Phase 7**: Implement dark mode
+8. **Phase 8**: Enhance CSV export
 
 ---
 
 ## Testing Checklist
 
-- [ ] Master sitemap at `/sitemap.xml` is valid XML
-- [ ] Properties sitemap includes image extensions
-- [ ] Static pages sitemap has 11 hreflang tags per URL
-- [ ] All URLs return 200 (no 404/410/redirects)
-- [ ] No sitemap exceeds 50,000 URLs
-- [ ] Admin dashboard shows per-sitemap details
-- [ ] "Regenerate" button per sitemap works
-- [ ] Validation panel detects issues
-- [ ] robots.txt points to correct sitemap
-- [ ] Auto-regeneration triggers on publish
-- [ ] IndexNow ping fires after regeneration
+- [ ] All stat cards show real data from database
+- [ ] Lead trends calculate correctly (this week vs last week)
+- [ ] Charts render with proper data
+- [ ] Activity log updates in real-time
+- [ ] Mobile layout works correctly
+- [ ] Dark mode toggle works
+- [ ] CSV export downloads correct data
+- [ ] Navigation sidebar groups expand/collapse
+- [ ] Role-based access restricts content correctly
+- [ ] Date filters affect all sections
+
