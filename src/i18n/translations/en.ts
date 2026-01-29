@@ -338,4 +338,63 @@ export const en = {
       },
     },
   },
+  team: {
+    meta: {
+      title: "Meet Our Team | Del Sol Prime Homes",
+      description: "Meet the expert real estate professionals at Del Sol Prime Homes. Multilingual team with 35+ years combined experience on the Costa del Sol."
+    },
+    hero: {
+      badge: "Our Team",
+      headline: "Meet Our Expert Team",
+      subheadline: "Dedicated professionals ready to help you find your perfect Costa del Sol property",
+      badges: {
+        languages: "10+ Languages",
+        experience: "35+ Years Combined"
+      }
+    },
+    filters: {
+      all: "All Team Members",
+      founders: "Founders"
+    },
+    empty: "No team members found",
+    card: {
+      founder: "Founder",
+      yearsExperience: "yrs",
+      viewProfile: "View Profile"
+    },
+    modal: {
+      founder: "Founder",
+      whatsapp: "WhatsApp",
+      email: "Email",
+      call: "Call",
+      about: "About",
+      languages: "Languages",
+      specializations: "Specializations",
+      expertise: "Areas of Expertise",
+      credentials: "Credentials",
+      sendMessage: "Send a Message"
+    },
+    form: {
+      name: "Your Name",
+      email: "Email Address",
+      message: "Your Message",
+      messagePlaceholder: "How can I help you?",
+      submit: "Send Message",
+      sending: "Sending...",
+      success: "Message sent successfully!",
+      error: "Failed to send message. Please try again.",
+      successTitle: "Message Sent!",
+      successDescription: "We'll get back to you soon."
+    }
+  },
+  aboutUs: {
+    meta: {
+      title: "About Del Sol Prime Homes | Costa del Sol Real Estate Experts",
+      description: "Learn about our expert team with 35+ years experience helping international buyers find property on the Costa del Sol."
+    },
+    cta: {
+      meetTeam: "Meet Our Team",
+      contactUs: "Contact Us"
+    }
+  }
 };

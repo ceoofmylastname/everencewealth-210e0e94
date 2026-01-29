@@ -350,4 +350,25 @@ export const sv = {
       propertyTypes: { title: "Fastighetstyper i Mijas", types: { newDevelopments: "Nya Utvecklingar", luxuryVillas: "Lyxvillor", beachfrontApartments: "Strandlägenheter", golfProperties: "Golffastigheter", penthouses: "Takvåningar" } },
     },
   },
+  team: {
+    meta: {
+      title: "Möt Vårt Team | Del Sol Prime Homes",
+      description: "Möt fastighetsexperterna på Del Sol Prime Homes. Flerspråkigt team med 35+ års kombinerad erfarenhet på Costa del Sol."
+    },
+    hero: {
+      badge: "Vårt Team",
+      headline: "Möt Vårt Expertteam",
+      subheadline: "Engagerade proffs redo att hjälpa dig hitta din perfekta fastighet på Costa del Sol",
+      badges: { languages: "10+ Språk", experience: "35+ År Kombinerat" }
+    },
+    filters: { all: "Alla Teammedlemmar", founders: "Grundare" },
+    empty: "Inga teammedlemmar hittades",
+    card: { founder: "Grundare", yearsExperience: "år", viewProfile: "Visa Profil" },
+    modal: { founder: "Grundare", whatsapp: "WhatsApp", email: "E-post", call: "Ring", about: "Om", languages: "Språk", specializations: "Specialiseringar", expertise: "Expertområden", credentials: "Meriter", sendMessage: "Skicka Meddelande" },
+    form: { name: "Ditt Namn", email: "E-postadress", message: "Ditt Meddelande", messagePlaceholder: "Hur kan jag hjälpa dig?", submit: "Skicka Meddelande", sending: "Skickar...", success: "Meddelande skickat!", error: "Kunde inte skicka. Försök igen.", successTitle: "Meddelande Skickat!", successDescription: "Vi hör av oss snart." }
+  },
+  aboutUs: {
+    meta: { title: "Om Del Sol Prime Homes | Costa del Sol Fastighetsexperter", description: "Lär känna vårt expertteam med 35+ års erfarenhet av att hjälpa internationella köpare hitta fastigheter på Costa del Sol." },
+    cta: { meetTeam: "Möt Vårt Team", contactUs: "Kontakta Oss" }
+  }
 };

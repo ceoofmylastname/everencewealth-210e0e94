@@ -350,4 +350,25 @@ export const hu = {
       propertyTypes: { title: "Ingatlantípusok Mijasban", types: { newDevelopments: "Új Fejlesztések", luxuryVillas: "Luxusvillák", beachfrontApartments: "Tengerparti Apartmanok", golfProperties: "Golf Ingatlanok", penthouses: "Penthouse-ok" } },
     },
   },
+  team: {
+    meta: {
+      title: "Ismerje Meg Csapatunkat | Del Sol Prime Homes",
+      description: "Ismerje meg a Del Sol Prime Homes ingatlanszakértőit. Többnyelvű csapat több mint 35 év együttes tapasztalattal a Costa del Solon."
+    },
+    hero: {
+      badge: "Csapatunk",
+      headline: "Ismerje Meg Szakértő Csapatunkat",
+      subheadline: "Elkötelezett szakemberek, akik segítenek megtalálni a tökéletes ingatlant a Costa del Solon",
+      badges: { languages: "10+ Nyelv", experience: "35+ Év Együttesen" }
+    },
+    filters: { all: "Minden Csapattag", founders: "Alapítók" },
+    empty: "Nem található csapattag",
+    card: { founder: "Alapító", yearsExperience: "év", viewProfile: "Profil Megtekintése" },
+    modal: { founder: "Alapító", whatsapp: "WhatsApp", email: "E-mail", call: "Hívás", about: "Rólam", languages: "Nyelvek", specializations: "Specializációk", expertise: "Szakterületek", credentials: "Képesítések", sendMessage: "Üzenet Küldése" },
+    form: { name: "Név", email: "E-mail Cím", message: "Üzenet", messagePlaceholder: "Miben segíthetek?", submit: "Üzenet Küldése", sending: "Küldés...", success: "Üzenet elküldve!", error: "Küldés sikertelen. Próbálja újra.", successTitle: "Üzenet Elküldve!", successDescription: "Hamarosan felvesszük Önnel a kapcsolatot." }
+  },
+  aboutUs: {
+    meta: { title: "A Del Sol Prime Homes-ról | Costa del Sol Ingatlanszakértők", description: "Ismerje meg szakértő csapatunkat, több mint 35 év tapasztalattal a nemzetközi vásárlók támogatásában ingatlankeresés során a Costa del Solon." },
+    cta: { meetTeam: "Ismerje Meg Csapatunkat", contactUs: "Kapcsolat" }
+  }
 };

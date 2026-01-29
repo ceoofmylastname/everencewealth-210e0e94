@@ -11,9 +11,11 @@ import { sv } from './sv';
 import { no } from './no';
 
 // Use a flexible type that allows for optional properties across languages
-type TranslationBase = Omit<typeof en, 'brochures' | 'whyChooseUs'> & { 
+type TranslationBase = Omit<typeof en, 'brochures' | 'whyChooseUs' | 'team' | 'aboutUs'> & { 
   brochures: Record<string, unknown>;
   whyChooseUs?: typeof en.whyChooseUs;
+  team?: typeof en.team;
+  aboutUs?: typeof en.aboutUs;
 };
 
 export const translations: Record<Language, TranslationBase> = {

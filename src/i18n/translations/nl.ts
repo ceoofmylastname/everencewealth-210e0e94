@@ -350,4 +350,63 @@ export const nl = {
       propertyTypes: { title: "Woningtypes in Mijas", types: { newDevelopments: "Nieuwe Ontwikkelingen", luxuryVillas: "Luxe Villa's", beachfrontApartments: "Appartementen aan Zee", golfProperties: "Golf Woningen", penthouses: "Penthouses" } },
     },
   },
+  team: {
+    meta: {
+      title: "Maak Kennis met Ons Team | Del Sol Prime Homes",
+      description: "Ontmoet de vastgoedexperts van Del Sol Prime Homes. Meertalig team met 35+ jaar gecombineerde ervaring aan de Costa del Sol."
+    },
+    hero: {
+      badge: "Ons Team",
+      headline: "Maak Kennis met Ons Expertteam",
+      subheadline: "Toegewijde professionals die u helpen uw perfecte woning aan de Costa del Sol te vinden",
+      badges: {
+        languages: "10+ Talen",
+        experience: "35+ Jaar Gecombineerd"
+      }
+    },
+    filters: {
+      all: "Alle Teamleden",
+      founders: "Oprichters"
+    },
+    empty: "Geen teamleden gevonden",
+    card: {
+      founder: "Oprichter",
+      yearsExperience: "jaar",
+      viewProfile: "Bekijk Profiel"
+    },
+    modal: {
+      founder: "Oprichter",
+      whatsapp: "WhatsApp",
+      email: "E-mail",
+      call: "Bellen",
+      about: "Over",
+      languages: "Talen",
+      specializations: "Specialisaties",
+      expertise: "Expertisegebieden",
+      credentials: "Referenties",
+      sendMessage: "Stuur een Bericht"
+    },
+    form: {
+      name: "Uw Naam",
+      email: "E-mailadres",
+      message: "Uw Bericht",
+      messagePlaceholder: "Hoe kan ik u helpen?",
+      submit: "Verstuur Bericht",
+      sending: "Verzenden...",
+      success: "Bericht succesvol verzonden!",
+      error: "Verzenden mislukt. Probeer het opnieuw.",
+      successTitle: "Bericht Verzonden!",
+      successDescription: "We nemen spoedig contact met u op."
+    }
+  },
+  aboutUs: {
+    meta: {
+      title: "Over Del Sol Prime Homes | Costa del Sol Vastgoedexperts",
+      description: "Leer over ons expertteam met 35+ jaar ervaring in het helpen van internationale kopers bij het vinden van vastgoed aan de Costa del Sol."
+    },
+    cta: {
+      meetTeam: "Ontmoet Ons Team",
+      contactUs: "Neem Contact Op"
+    }
+  }
 };

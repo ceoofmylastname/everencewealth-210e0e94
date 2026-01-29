@@ -57,6 +57,7 @@ const LocationHub = lazy(() => import("./pages/LocationHub"));
 const LocationIndex = lazy(() => import("./pages/LocationIndex"));
 const LocationPage = lazy(() => import("./pages/LocationPage"));
 const About = lazy(() => import("./pages/About"));
+const Team = lazy(() => import("./pages/Team"));
 const BuyersGuide = lazy(() => import("./pages/BuyersGuide"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const TermsOfService = lazy(() => import("./pages/TermsOfService"));
@@ -316,7 +317,15 @@ const App = () => (
               <Route path="/brochure/:citySlug" element={<Navigate to={window.location.pathname.replace('/brochure/', '/en/brochure/')} replace />} />
               {/* Language-prefixed brochure routes */}
               <Route path="/:lang/brochure/:citySlug" element={<CityBrochure />} />
-              <Route path="/about" element={<About />} />
+              {/* About page */}
+              <Route path="/about" element={<Navigate to="/en/about-us" replace />} />
+              <Route path="/:lang/about" element={<About />} />
+              <Route path="/:lang/about-us" element={<About />} />
+              
+              {/* Team page */}
+              <Route path="/team" element={<Navigate to="/en/team" replace />} />
+              <Route path="/:lang/team" element={<Team />} />
+              
               <Route path="/buyers-guide" element={<Navigate to="/en/buyers-guide" replace />} />
               <Route path="/:lang/buyers-guide" element={<BuyersGuide />} />
               
