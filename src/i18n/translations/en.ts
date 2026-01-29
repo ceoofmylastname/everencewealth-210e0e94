@@ -241,6 +241,67 @@ export const en = {
     keyTakeaways: "Key takeaways for buyers",
   },
   brochures: {
+    ui: {
+      // Hero Section
+      downloadBrochure: "Download Brochure",
+      speakWithExpert: "Speak With Expert",
+      explore: "Explore",
+      costaDelSolSpain: "Costa del Sol, Spain",
+      // Breadcrumbs
+      home: "Home",
+      locations: "Locations",
+      // Trust Signals
+      apiRegistered: "API Registered",
+      yearsExperience: "{years}+ Years Experience",
+      happyBuyers: "{count}+ Happy Buyers",
+      // Investment Section
+      investmentPotential: "Investment Potential",
+      whyInvestIn: "Why Invest in {city}?",
+      investmentDescription: "Discover the compelling numbers behind one of Europe's most sought-after property markets.",
+      rentalYield: "Rental Yield",
+      daysOfSunshine: "Days of Sunshine",
+      averagePrice: "Average Price",
+      valueGrowth: "Value Growth 2024",
+      // Lifestyle Section
+      theLifestyle: "The Lifestyle",
+      liveTheDream: "Live The {city} Dream",
+      lifestyleDescription: "Experience a lifestyle where every day feels like a vacation. From world-class amenities to natural beauty, discover what makes this destination truly exceptional.",
+      // Form Section
+      exclusiveGuide: "Exclusive Guide",
+      getYourFree: "Get Your Free",
+      brochure: "{city} Brochure",
+      discoverExclusive: "Discover exclusive property insights, investment opportunities, and lifestyle guides for {city}.",
+      propertyGuide: "{city} Property Guide 2024",
+      instantPdfDownload: "Instant PDF Download",
+      pagesOfInsights: "40+ Pages of Insights",
+      testimonialQuote: "The brochure gave us incredible insights into {city}. Within weeks of our inquiry, we found our dream villa!",
+      testimonialAuthor: "— James & Sarah, UK",
+      firstName: "First Name",
+      lastName: "Last Name",
+      emailAddress: "Email Address",
+      phoneNumber: "Phone Number",
+      tellUsRequirements: "Tell us about your requirements (Optional)",
+      requirementsPlaceholder: "Budget, property type, timeline...",
+      privacyConsent: "I agree to the Privacy Policy and consent to Del Sol Prime Homes processing my data.",
+      marketingConsent: "I'd like to receive exclusive property alerts and market insights.",
+      downloadFreeBrochure: "Download Free Brochure",
+      processing: "Processing...",
+      instantAccess: "Instant access • No spam • Unsubscribe anytime",
+      thankYou: "Thank You!",
+      brochureOnWay: "Your {city} brochure is on its way! Our property specialists will be in touch within 24 hours.",
+      meanwhileExplore: "Meanwhile, explore our latest listings in {city}",
+      // Cross City Discovery
+      exploreMore: "Explore More",
+      otherPrimeLocations: "Other Prime Locations",
+      swipeToExplore: "Swipe to explore more →",
+      exploreCity: "Explore {city}",
+      // Chatbot
+      chatAbout: "Chat About {city}",
+      askUsAnything: "Ask us anything about properties in {city}",
+      clickToStart: "Click send to start the conversation",
+      typeMessage: "Type your message...",
+      interestedIn: "Hi, I'm interested in properties in {city}",
+    },
     marbella: {
       hero: {
         eyebrow: 'Costa del Sol',

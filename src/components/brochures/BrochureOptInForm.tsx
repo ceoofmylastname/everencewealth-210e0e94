@@ -127,6 +127,11 @@ export const BrochureOptInForm = forwardRef<HTMLElement, BrochureOptInFormProps>
           title: 'Thank you!',
           description: 'Your brochure request has been received.',
         });
+
+        // Trigger Emma chat after successful submission
+        setTimeout(() => {
+          window.dispatchEvent(new CustomEvent('openEmmaChat'));
+        }, 2000);
       } catch (error) {
         console.error('Form submission error:', error);
         toast({

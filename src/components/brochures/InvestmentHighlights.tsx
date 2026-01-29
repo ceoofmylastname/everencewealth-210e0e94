@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { TrendingUp, Sun, Home, BarChart3 } from 'lucide-react';
+import { useTranslation } from '@/i18n';
 
 interface InvestmentStat {
   value: string;
@@ -12,13 +13,6 @@ interface InvestmentHighlightsProps {
   cityName: string;
   stats?: InvestmentStat[];
 }
-
-const DEFAULT_STATS: InvestmentStat[] = [
-  { value: '8.5', suffix: '%', label: 'Rental Yield', icon: 'yield' },
-  { value: '320', suffix: '+', label: 'Days of Sunshine', icon: 'sun' },
-  { value: '1.2', suffix: 'M€', label: 'Average Price', icon: 'price' },
-  { value: '12', suffix: '%', label: 'Value Growth 2024', icon: 'growth' },
-];
 
 const ICONS = {
   yield: TrendingUp,
@@ -73,8 +67,19 @@ const AnimatedNumber: React.FC<{ value: string; suffix?: string; isVisible: bool
 
 export const InvestmentHighlights: React.FC<InvestmentHighlightsProps> = ({ 
   cityName, 
-  stats = DEFAULT_STATS 
+  stats
 }) => {
+  const { t } = useTranslation();
+  const ui = (t.brochures as any)?.ui || {};
+
+  const DEFAULT_STATS: InvestmentStat[] = [
+    { value: '8.5', suffix: '%', label: ui.rentalYield || 'Rental Yield', icon: 'yield' },
+    { value: '320', suffix: '+', label: ui.daysOfSunshine || 'Days of Sunshine', icon: 'sun' },
+    { value: '1.2', suffix: 'M€', label: ui.averagePrice || 'Average Price', icon: 'price' },
+    { value: '12', suffix: '%', label: ui.valueGrowth || 'Value Growth 2024', icon: 'growth' },
+  ];
+
+  const displayStats = stats || DEFAULT_STATS;
   const sectionRef = useRef<HTMLElement>(null);
   const [isVisible, setIsVisible] = useState(false);
   
@@ -117,19 +122,19 @@ export const InvestmentHighlights: React.FC<InvestmentHighlightsProps> = ({
         {/* Header */}
         <div className="text-center max-w-3xl mx-auto mb-16">
           <span className="inline-block px-4 py-2 bg-prime-gold/20 border border-prime-gold/30 rounded-full text-prime-goldLight text-sm font-nav tracking-wider uppercase mb-6">
-            Investment Potential
+            {ui.investmentPotential || 'Investment Potential'}
           </span>
           <h2 className="font-serif text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-6 leading-tight">
-            Why Invest in {cityName}?
+            {(ui.whyInvestIn || 'Why Invest in {city}?').replace('{city}', cityName)}
           </h2>
           <p className="text-lg text-white/70 leading-relaxed">
-            Discover the compelling numbers behind one of Europe's most sought-after property markets.
+            {ui.investmentDescription || "Discover the compelling numbers behind one of Europe's most sought-after property markets."}
           </p>
         </div>
         
         {/* Stats Grid */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
-          {stats.map((stat, index) => {
+          {displayStats.map((stat, index) => {
             const Icon = ICONS[stat.icon] || TrendingUp;
             return (
               <div

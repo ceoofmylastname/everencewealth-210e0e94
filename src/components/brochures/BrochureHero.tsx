@@ -2,7 +2,8 @@ import React, { useRef, useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronRight, MessageCircle, Play, Pause, Shield, Award, Users, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { COMPANY_DISPLAY, COMPANY_FACTS } from '@/constants/company';
+import { COMPANY_DISPLAY, COMPANY_FACTS, COMPANY_CONTACT } from '@/constants/company';
+import { useTranslation } from '@/i18n';
 
 interface BrochureHeroProps {
   city: {
@@ -18,17 +19,14 @@ interface BrochureHeroProps {
   onChat?: () => void;
 }
 
-const TRUST_SIGNALS = [
-  { icon: Shield, text: 'API Registered' },
-  { icon: Award, text: `${COMPANY_FACTS.yearsExperience}+ Years Experience` },
-  { icon: Users, text: `${COMPANY_FACTS.happyClients}+ Happy Buyers` },
-];
-
 export const BrochureHero: React.FC<BrochureHeroProps> = ({ 
   city, 
   onViewBrochure,
   onChat,
 }) => {
+  const { t, currentLanguage } = useTranslation();
+  const ui = (t.brochures as any)?.ui || {};
+  
   const headline = city.hero_headline || `Luxury Living in ${city.name}`;
   const subtitle = city.hero_subtitle || 'Where Luxury Meets the Mediterranean';
   const hasVideo = !!city.heroVideoUrl;
@@ -36,6 +34,13 @@ export const BrochureHero: React.FC<BrochureHeroProps> = ({
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
+
+  // Build trust signals with translations
+  const TRUST_SIGNALS = [
+    { icon: Shield, text: ui.apiRegistered || 'API Registered' },
+    { icon: Award, text: (ui.yearsExperience || '{years}+ Years Experience').replace('{years}', String(COMPANY_FACTS.yearsExperience)) },
+    { icon: Users, text: (ui.happyBuyers || '{count}+ Happy Buyers').replace('{count}', String(COMPANY_FACTS.happyClients)) },
+  ];
 
   useEffect(() => {
     setIsLoaded(true);
@@ -54,6 +59,17 @@ export const BrochureHero: React.FC<BrochureHeroProps> = ({
 
   const scrollToContent = () => {
     window.scrollTo({ top: window.innerHeight * 0.85, behavior: 'smooth' });
+  };
+
+  const handleWhatsAppClick = () => {
+    // Track WhatsApp click
+    if (typeof window !== 'undefined' && (window as any).gtag) {
+      (window as any).gtag('event', 'whatsapp_click', { 
+        category: 'Contact', 
+        location: 'brochure_hero',
+        city: city.name
+      });
+    }
   };
 
   return (
@@ -103,9 +119,13 @@ export const BrochureHero: React.FC<BrochureHeroProps> = ({
       <div className={`absolute top-32 left-0 right-0 z-20 transition-all duration-700 delay-200 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}>
         <div className="container mx-auto px-4">
           <nav className="flex items-center gap-2 text-sm text-white/60">
-            <Link to="/" className="hover:text-white transition-colors">Home</Link>
+            <Link to={`/${currentLanguage}`} className="hover:text-white transition-colors">
+              {ui.home || 'Home'}
+            </Link>
             <ChevronRight size={14} />
-            <Link to="/brochure/marbella" className="hover:text-white transition-colors">Locations</Link>
+            <Link to={`/${currentLanguage}/properties`} className="hover:text-white transition-colors">
+              {ui.locations || 'Locations'}
+            </Link>
             <ChevronRight size={14} />
             <span className="text-prime-gold font-medium">{city.name}</span>
           </nav>
@@ -118,7 +138,7 @@ export const BrochureHero: React.FC<BrochureHeroProps> = ({
         <div className={`mb-8 transition-all duration-700 delay-300 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
           <span className="inline-flex items-center gap-2 px-5 py-2.5 bg-prime-gold/10 border border-prime-gold/30 rounded-full text-prime-goldLight text-sm font-nav tracking-wider uppercase backdrop-blur-sm">
             <span className="w-2 h-2 bg-prime-gold rounded-full animate-pulse" />
-            Costa del Sol, Spain
+            {ui.costaDelSolSpain || 'Costa del Sol, Spain'}
           </span>
         </div>
 
@@ -182,18 +202,24 @@ export const BrochureHero: React.FC<BrochureHeroProps> = ({
             size="lg"
             className="group bg-prime-gold hover:bg-prime-goldDark text-prime-950 font-nav font-semibold px-10 py-7 text-base shadow-2xl shadow-prime-gold/30 hover:shadow-prime-gold/50 transition-all duration-300 hover:-translate-y-1"
           >
-            <span>Download Brochure</span>
+            <span>{ui.downloadBrochure || 'Download Brochure'}</span>
             <ChevronRight className="ml-2 group-hover:translate-x-1 transition-transform" size={18} />
           </Button>
-          <Button
-            onClick={onChat}
-            variant="outline"
-            size="lg"
-            className="border-2 border-white/30 bg-white/5 text-white hover:bg-white hover:text-prime-950 backdrop-blur-sm font-nav font-semibold px-10 py-7 text-base transition-all duration-300 hover:-translate-y-1"
+          <a
+            href={COMPANY_CONTACT.whatsappWithMessage(`Hi, I'm interested in properties in ${city.name}. Can you help?`)}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={handleWhatsAppClick}
           >
-            <MessageCircle className="mr-2" size={18} />
-            <span>Speak With Expert</span>
-          </Button>
+            <Button
+              variant="outline"
+              size="lg"
+              className="border-2 border-white/30 bg-white/5 text-white hover:bg-white hover:text-prime-950 backdrop-blur-sm font-nav font-semibold px-10 py-7 text-base transition-all duration-300 hover:-translate-y-1 w-full sm:w-auto"
+            >
+              <MessageCircle className="mr-2" size={18} />
+              <span>{ui.speakWithExpert || 'Speak With Expert'}</span>
+            </Button>
+          </a>
         </div>
       </div>
 
@@ -203,7 +229,7 @@ export const BrochureHero: React.FC<BrochureHeroProps> = ({
         className={`absolute bottom-10 left-1/2 -translate-x-1/2 z-20 transition-all duration-1000 delay-1000 hover:scale-110 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
       >
         <div className="flex flex-col items-center gap-2 text-white/50 hover:text-white transition-colors">
-          <span className="text-xs font-nav tracking-widest uppercase">Explore</span>
+          <span className="text-xs font-nav tracking-widest uppercase">{ui.explore || 'Explore'}</span>
           <div className="w-8 h-12 border-2 border-current rounded-full flex items-start justify-center p-2">
             <ChevronDown className="w-4 h-4 animate-bounce" />
           </div>

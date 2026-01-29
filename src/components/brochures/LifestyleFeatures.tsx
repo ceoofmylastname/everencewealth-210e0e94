@@ -4,6 +4,7 @@ import {
   GraduationCap, Plane, Shield, Mountain,
   Utensils, ShoppingBag, Sailboat, Trophy
 } from 'lucide-react';
+import { useTranslation } from '@/i18n';
 
 interface LifestyleFeature {
   icon: string;
@@ -16,34 +17,29 @@ interface LifestyleFeaturesProps {
   features?: LifestyleFeature[];
 }
 
-const DEFAULT_FEATURES: LifestyleFeature[] = [
-  { icon: 'golf', title: 'World-Class Golf', description: 'Over 70 championship courses within 30 minutes' },
-  { icon: 'beach', title: 'Mediterranean Beaches', description: 'Crystal-clear waters and golden sand coastlines' },
-  { icon: 'dining', title: 'Michelin Dining', description: 'Award-winning restaurants and vibrant culinary scene' },
-  { icon: 'marina', title: 'Luxury Marinas', description: 'Premier yacht clubs and nautical lifestyle' },
-  { icon: 'wellness', title: 'Wellness & Spa', description: 'World-renowned wellness retreats and thermal spas' },
-  { icon: 'shopping', title: 'Designer Shopping', description: 'Boutiques, galleries, and luxury retail experiences' },
-];
-
-const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
-  golf: Trophy,
-  beach: Palmtree,
-  dining: Utensils,
-  marina: Sailboat,
-  wellness: Heart,
-  shopping: ShoppingBag,
-  waves: Waves,
-  wine: Wine,
-  education: GraduationCap,
-  airport: Plane,
-  security: Shield,
-  nature: Mountain,
-};
-
 export const LifestyleFeatures: React.FC<LifestyleFeaturesProps> = ({ 
   cityName, 
-  features = DEFAULT_FEATURES 
+  features
 }) => {
+  const { t } = useTranslation();
+  const ui = (t.brochures as any)?.ui || {};
+
+  const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
+    golf: Trophy, beach: Palmtree, dining: Utensils, marina: Sailboat,
+    wellness: Heart, shopping: ShoppingBag, waves: Waves, wine: Wine,
+    education: GraduationCap, airport: Plane, security: Shield, nature: Mountain,
+  };
+
+  const DEFAULT_FEATURES: LifestyleFeature[] = [
+    { icon: 'golf', title: 'World-Class Golf', description: 'Over 70 championship courses within 30 minutes' },
+    { icon: 'beach', title: 'Mediterranean Beaches', description: 'Crystal-clear waters and golden sand coastlines' },
+    { icon: 'dining', title: 'Michelin Dining', description: 'Award-winning restaurants and vibrant culinary scene' },
+    { icon: 'marina', title: 'Luxury Marinas', description: 'Premier yacht clubs and nautical lifestyle' },
+    { icon: 'wellness', title: 'Wellness & Spa', description: 'World-renowned wellness retreats and thermal spas' },
+    { icon: 'shopping', title: 'Designer Shopping', description: 'Boutiques, galleries, and luxury retail experiences' },
+  ];
+
+  const displayFeatures = features || DEFAULT_FEATURES;
   return (
     <section className="py-20 md:py-28 bg-gradient-to-b from-background to-muted/30 relative overflow-hidden">
       {/* Decorative Elements */}
@@ -54,19 +50,19 @@ export const LifestyleFeatures: React.FC<LifestyleFeaturesProps> = ({
         {/* Header */}
         <div className="text-center max-w-3xl mx-auto mb-16 reveal-on-scroll">
           <span className="inline-block text-prime-gold font-nav text-sm tracking-wider uppercase mb-4">
-            The Lifestyle
+            {ui.theLifestyle || 'The Lifestyle'}
           </span>
           <h2 className="font-serif text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-6 leading-tight">
-            Live The {cityName} Dream
+            {(ui.liveTheDream || 'Live The {city} Dream').replace('{city}', cityName)}
           </h2>
           <p className="text-lg text-muted-foreground leading-relaxed">
-            Experience a lifestyle where every day feels like a vacation. From world-class amenities to natural beauty, discover what makes this destination truly exceptional.
+            {ui.lifestyleDescription || 'Experience a lifestyle where every day feels like a vacation. From world-class amenities to natural beauty, discover what makes this destination truly exceptional.'}
           </p>
         </div>
         
         {/* Features Grid */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-          {features.map((feature, index) => {
+          {displayFeatures.map((feature, index) => {
             const Icon = ICON_MAP[feature.icon] || Heart;
             return (
               <div

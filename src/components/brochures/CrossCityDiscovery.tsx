@@ -10,7 +10,8 @@ interface CrossCityDiscoveryProps {
 }
 
 export const CrossCityDiscovery: React.FC<CrossCityDiscoveryProps> = ({ currentCity }) => {
-  const { currentLanguage } = useTranslation();
+  const { currentLanguage, t } = useTranslation();
+  const ui = (t.brochures as any)?.ui || {};
   const otherCities = getOtherCities(currentCity);
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -34,10 +35,10 @@ export const CrossCityDiscovery: React.FC<CrossCityDiscoveryProps> = ({ currentC
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-12 reveal-on-scroll">
           <div>
             <span className="inline-block text-prime-gold font-nav text-sm tracking-wider uppercase mb-4">
-              Explore More
+              {ui.exploreMore || 'Explore More'}
             </span>
             <h2 className="font-serif text-3xl md:text-4xl lg:text-5xl font-bold text-foreground leading-tight">
-              Other Prime Locations
+              {ui.otherPrimeLocations || 'Other Prime Locations'}
             </h2>
           </div>
           
@@ -109,7 +110,7 @@ export const CrossCityDiscovery: React.FC<CrossCityDiscoveryProps> = ({ currentC
                   
                   {/* CTA */}
                   <div className="flex items-center gap-2 text-prime-gold font-nav text-sm group-hover:gap-3 transition-all">
-                    <span>Explore {city.name}</span>
+                    <span>{(ui.exploreCity || 'Explore {city}').replace('{city}', city.name)}</span>
                     <ChevronRight size={16} className="group-hover:translate-x-1 transition-transform" />
                   </div>
                 </div>
@@ -123,7 +124,7 @@ export const CrossCityDiscovery: React.FC<CrossCityDiscoveryProps> = ({ currentC
         
         {/* Mobile Scroll Hint */}
         <div className="flex justify-center mt-6 md:hidden">
-          <p className="text-sm text-muted-foreground">Swipe to explore more →</p>
+          <p className="text-sm text-muted-foreground">{ui.swipeToExplore || 'Swipe to explore more →'}</p>
         </div>
       </div>
     </section>
