@@ -1,209 +1,219 @@
 
+# Fix Translation Issues Across the Site
 
-# Fix Buyer's Guide - Correct Step Order
+## Analysis Summary
 
-## Problem Summary
+### Current Translation Architecture
+The site uses a well-structured i18n system with:
+- **10 supported languages**: EN, NL, DE, FR, FI, PL, DA, HU, SV, NO
+- **Translation files**: `src/i18n/translations/[lang].ts` for main content
+- **Specialized modules**: `buyersGuide/` and `propertyFinder/` subfolders
+- **Language context**: `LanguageContext.tsx` manages language state and URL synchronization
+- **Translation hook**: `useTranslation.ts` provides access to translations
 
-The current Buyer's Guide has steps in the wrong order based on actual Spanish property buying practice. Hans has provided the **correct order** that reflects real-world workflow where the lawyer handles NIE and bank account setup on your behalf.
+### Identified Issues
 
-**Current (Incorrect) Order:**
-1. Define Your Requirements
-2. Get Your NIE Number ❌
-3. Open a Spanish Bank Account ❌
-4. Property Search & Viewings
-5. Make an Offer & Reservation
-6. Legal Due Diligence
-7. Sign Private Purchase Contract
-8. Complete at the Notary
+| Issue | Location | Status |
+|-------|----------|--------|
+| "Ready to Explore {city}?" | `LocationCTASection.tsx` line 48 | Hardcoded English |
+| "Call Us Now" | `LocationCTASection.tsx` line 76 | Should be "Contact via WhatsApp" |
+| "Expert Guidance Available" | `LocationCTASection.tsx` line 43 | Hardcoded English |
+| "Quick Response" | `LocationCTASection.tsx` line 85 | Hardcoded English |
+| "Licensed Agents" | `LocationCTASection.tsx` line 89 | Hardcoded English |
+| "10+ Languages" | `LocationCTASection.tsx` line 93 | Hardcoded English |
+| "About {city}" | `LocationPage.tsx` line 110 | Hardcoded English |
+| "Local insights and overview" | `LocationPage.tsx` line 113 | Hardcoded English |
+| "Market Overview" | `LocationPage.tsx` line 146 | Hardcoded English |
+| "Summary & Recommendations" | `LocationPage.tsx` line 200 | Hardcoded English |
 
-**Correct Order (Hans's):**
-1. Define Your Requirements
-2. Property Search
-3. Reservation
-4. Appoint a Lawyer (Power of Attorney)
-5. Lawyer Gets Your NIE Number
-6. Lawyer Opens Bank Account
-7. Private Purchase Contract
-8. Complete at Notary
+---
+
+## Implementation Plan
+
+### Phase 1: Add Location Page Translations to All 10 Languages
+
+**Files to modify:**
+- `src/i18n/translations/en.ts`
+- `src/i18n/translations/nl.ts`
+- `src/i18n/translations/de.ts`
+- `src/i18n/translations/fr.ts`
+- `src/i18n/translations/sv.ts`
+- `src/i18n/translations/no.ts`
+- `src/i18n/translations/da.ts`
+- `src/i18n/translations/fi.ts`
+- `src/i18n/translations/pl.ts`
+- `src/i18n/translations/hu.ts`
+
+**New translation keys to add (locationGuides section):**
+
+```typescript
+locationGuides: {
+  readyToExplore: "Ready to explore {city}?",
+  contactWhatsApp: "Contact via WhatsApp",
+  expertGuidance: "Expert Guidance Available",
+  quickResponse: "Quick Response",
+  licensedAgents: "Licensed Agents",
+  multipleLanguages: "10+ Languages",
+  connectWithExperts: "Connect with our local experts who can help you find your perfect property",
+  andAnswerQuestions: "and answer all your questions about {topic}",
+  inCity: "in {city}",
+  chatWithEmma: "Chat with EMMA",
+  aboutCity: "About {city}",
+  localInsights: "Local insights and overview",
+  marketOverview: "Market Overview",
+  marketTrends: "Current trends and pricing data",
+  summaryRecommendations: "Summary & Recommendations",
+  keyTakeaways: "Key takeaways for buyers",
+},
+```
+
+### Phase 2: Translations for All 10 Languages
+
+| Key | EN | NL | DE |
+|-----|----|----|-----|
+| readyToExplore | Ready to explore {city}? | Klaar om {city} te verkennen? | Bereit, {city} zu erkunden? |
+| contactWhatsApp | Contact via WhatsApp | Contact via WhatsApp | Kontakt über WhatsApp |
+| expertGuidance | Expert Guidance Available | Deskundige Begeleiding Beschikbaar | Expertenberatung Verfügbar |
+| quickResponse | Quick Response | Snelle Reactie | Schnelle Antwort |
+| licensedAgents | Licensed Agents | Gediplomeerde Agenten | Lizenzierte Makler |
+| multipleLanguages | 10+ Languages | 10+ Talen | 10+ Sprachen |
+| aboutCity | About {city} | Over {city} | Über {city} |
+| marketOverview | Market Overview | Marktoverzicht | Marktübersicht |
+
+| Key | FR | SV | NO |
+|-----|----|----|-----|
+| readyToExplore | Prêt à explorer {city}? | Redo att utforska {city}? | Klar til å utforske {city}? |
+| contactWhatsApp | Contact via WhatsApp | Kontakta via WhatsApp | Kontakt via WhatsApp |
+| expertGuidance | Conseil Expert Disponible | Expertguidning Tillgänglig | Ekspertveiledning Tilgjengelig |
+| quickResponse | Réponse Rapide | Snabbt Svar | Rask Respons |
+| licensedAgents | Agents Agréés | Licensierade Mäklare | Lisensierte Agenter |
+| multipleLanguages | 10+ Langues | 10+ Språk | 10+ Språk |
+
+| Key | DA | FI | PL | HU |
+|-----|----|----|-----|-----|
+| readyToExplore | Klar til at udforske {city}? | Valmis tutkimaan {city}? | Gotowy do odkrywania {city}? | Készen áll {city} felfedezésére? |
+| contactWhatsApp | Kontakt via WhatsApp | Ota yhteyttä WhatsAppilla | Kontakt przez WhatsApp | Kapcsolat WhatsApp-on |
+| expertGuidance | Ekspertvejledning Tilgængelig | Asiantuntijaohjaus Saatavilla | Fachowe Doradztwo Dostępne | Szakértői Tanácsadás Elérhető |
+
+### Phase 3: Update Components to Use Translations
+
+**File: `src/components/location/LocationCTASection.tsx`**
+
+```typescript
+// Add language prop and translation hook
+interface LocationCTASectionProps {
+  cityName: string;
+  topicName?: string;
+  language?: string;
+}
+
+export function LocationCTASection({ cityName, topicName, language = 'en' }: LocationCTASectionProps) {
+  const { t } = useTranslation();
+  
+  // Replace hardcoded strings:
+  // Line 43: "Expert Guidance Available" → t.locationGuides.expertGuidance
+  // Line 48: "Ready to Explore {city}?" → t.locationGuides.readyToExplore.replace('{city}', cityName)
+  // Line 52-53: Connect with experts text → t.locationGuides.connectWithExperts + conditional topic text
+  // Line 76: "Call Us Now" → t.locationGuides.contactWhatsApp
+  // Line 85: "Quick Response" → t.locationGuides.quickResponse
+  // Line 89: "Licensed Agents" → t.locationGuides.licensedAgents
+  // Line 93: "10+ Languages" → t.locationGuides.multipleLanguages
+}
+```
+
+**File: `src/pages/LocationPage.tsx`**
+
+```typescript
+// Add translation usage for section headings
+// Line 110: "About {city}" → t.locationGuides.aboutCity.replace('{city}', page.city_name)
+// Line 113: "Local insights..." → t.locationGuides.localInsights
+// Line 146: "Market Overview" → t.locationGuides.marketOverview
+// Line 200: "Summary & Recommendations" → t.locationGuides.summaryRecommendations
+```
+
+### Phase 4: Create Admin Translation Audit Interface (Future Enhancement)
+
+Create a new admin page at `/admin/translation-audit` with:
+
+1. **Translation Coverage Dashboard**
+   - Progress bars showing completion % per language
+   - Missing keys highlighted in red
+   - One-click navigation to edit
+
+2. **Key Comparison View**
+   - Side-by-side comparison of English vs target language
+   - Empty/missing translations flagged
+   - Bulk export to JSON/CSV
+
+3. **AI Translation Helper**
+   - "Translate Missing" button using Gemini API
+   - Review & approve workflow
+   - Batch processing capability
+
+### Phase 5: Translation Fallback System
+
+**File: `src/i18n/useTranslation.ts`**
+
+Add fallback logic:
+```typescript
+export const useTranslation = () => {
+  const { currentLanguage } = context;
+  const t = translations[currentLanguage];
+  const fallback = translations[Language.EN];
+  
+  // Create proxy that falls back to English for missing keys
+  const tWithFallback = new Proxy(t, {
+    get: (target, prop) => {
+      return target[prop] ?? fallback[prop];
+    }
+  });
+  
+  return { t: tWithFallback, currentLanguage };
+};
+```
 
 ---
 
 ## Files to Modify
 
-| File | Change |
-|------|--------|
-| `src/i18n/translations/buyersGuide/en.ts` | Rewrite process.steps with correct order and new content |
-| `src/i18n/translations/buyersGuide/nl.ts` | Translate new step order |
-| `src/i18n/translations/buyersGuide/de.ts` | Translate new step order |
-| `src/i18n/translations/buyersGuide/fr.ts` | Translate new step order |
-| `src/i18n/translations/buyersGuide/sv.ts` | Translate new step order |
-| `src/i18n/translations/buyersGuide/no.ts` | Translate new step order |
-| `src/i18n/translations/buyersGuide/da.ts` | Translate new step order |
-| `src/i18n/translations/buyersGuide/fi.ts` | Translate new step order |
-| `src/i18n/translations/buyersGuide/pl.ts` | Translate new step order |
-| `src/i18n/translations/buyersGuide/hu.ts` | Translate new step order |
-| `src/components/buyers-guide/ProcessTimeline.tsx` | Update icons to match new steps |
-| `src/components/buyers-guide/BuyersGuideHero.tsx` | Update timeline stat (6-12 weeks instead of 3-6 months) |
+| File | Change Type |
+|------|-------------|
+| `src/i18n/translations/en.ts` | Add `locationGuides` section |
+| `src/i18n/translations/nl.ts` | Add `locationGuides` section (Dutch) |
+| `src/i18n/translations/de.ts` | Add `locationGuides` section (German) |
+| `src/i18n/translations/fr.ts` | Add `locationGuides` section (French) |
+| `src/i18n/translations/sv.ts` | Add `locationGuides` section (Swedish) |
+| `src/i18n/translations/no.ts` | Add `locationGuides` section (Norwegian) |
+| `src/i18n/translations/da.ts` | Add `locationGuides` section (Danish) |
+| `src/i18n/translations/fi.ts` | Add `locationGuides` section (Finnish) |
+| `src/i18n/translations/pl.ts` | Add `locationGuides` section (Polish) |
+| `src/i18n/translations/hu.ts` | Add `locationGuides` section (Hungarian) |
+| `src/components/location/LocationCTASection.tsx` | Replace hardcoded strings with translation keys |
+| `src/pages/LocationPage.tsx` | Replace hardcoded section headings with translations |
 
 ---
 
-## Implementation Details
+## Priority Order
 
-### 1. English Translation - New Step Content
+1. **Immediate (This Session):**
+   - Add `locationGuides` translations to all 10 language files
+   - Update `LocationCTASection.tsx` to use translations
+   - Update `LocationPage.tsx` section headings
+   - Change "Call Us Now" to "Contact via WhatsApp" in all languages
 
-```typescript
-// New correct process.steps for en.ts
-steps: [
-  {
-    title: "Define Your Requirements",
-    description: "Establish your budget range, property type (apartment, penthouse, townhouse, villa), location preferences, and must-haves versus nice-to-haves. Consider your timeline for purchase.",
-    documents: [],
-    cta: { text: "Start with our Property Finder", link: "/en/find-property" }
-  },
-  {
-    title: "Property Search",
-    description: "Work with Del Sol Prime Homes to view suitable properties. We offer virtual tours, in-person viewings, and area familiarization trips to help you find your perfect home.",
-    documents: [],
-    cta: { text: "Search Properties", link: "/en/find-property" }
-  },
-  {
-    title: "Reservation",
-    description: "Once you've found your property, make an offer. Upon acceptance, sign a reservation agreement and pay a deposit (typically €6,000-€10,000) to secure the property for 2-4 weeks.",
-    documents: ["Reservation agreement", "Passport copy", "Proof of funds"]
-  },
-  {
-    title: "Appoint a Lawyer (Power of Attorney)",
-    description: "Engage a Spanish lawyer who will represent your interests. Grant them Power of Attorney (Poder Notarial) so they can handle the legal process on your behalf—even if you're not in Spain.",
-    documents: ["Power of Attorney document", "Passport copy", "Lawyer engagement letter"]
-  },
-  {
-    title: "Obtain Your NIE Number",
-    description: "Your lawyer obtains your NIE (Número de Identificación de Extranjero)—the Spanish tax ID required for all property transactions. This typically takes 1-3 weeks.",
-    documents: ["Passport copy", "NIE application form (EX-15)", "Reason for application"]
-  },
-  {
-    title: "Open Spanish Bank Account",
-    description: "Your lawyer arranges a Spanish bank account in your name—required for the property purchase and ongoing payments. This can be done remotely with your Power of Attorney.",
-    documents: ["NIE number", "Passport copy", "Proof of address", "Proof of income"]
-  },
-  {
-    title: "Private Purchase Contract",
-    description: "Sign the Contrato Privado de Compraventa. Pay 10% of the purchase price (minus the reservation deposit). The contract sets the completion date and binds both parties legally.",
-    documents: ["Contrato Privado", "10% deposit", "Due diligence report from lawyer"]
-  },
-  {
-    title: "Complete at Notary",
-    description: "Sign the Escritura (title deed) at the notary's office, pay the final balance, and receive your keys! The notary registers the property in your name at the Land Registry.",
-    documents: ["Escritura", "Final payment", "All previous documentation"]
-  }
-]
-```
-
-### 2. Update Hero Section
-
-```typescript
-// Update hero stats in en.ts
-stats: {
-  steps: { value: "8", label: "Simple Steps" },
-  timeline: { value: "6-12", label: "Week Timeline" },  // Changed from 3-6 months
-  locations: { value: "15+", label: "Prime Locations" },
-  languages: { value: "10+", label: "Languages" }
-}
-```
-
-### 3. Update ProcessTimeline Icons
-
-```typescript
-// New icons matching the updated steps
-import { 
-  ClipboardList,  // Step 1: Define Requirements
-  Search,         // Step 2: Property Search  
-  CalendarCheck,  // Step 3: Reservation
-  Scale,          // Step 4: Lawyer/POA
-  FileText,       // Step 5: NIE Number
-  Building2,      // Step 6: Bank Account
-  FileSignature,  // Step 7: Private Contract
-  Key             // Step 8: Completion
-} from 'lucide-react';
-
-const stepIcons = [ClipboardList, Search, CalendarCheck, Scale, FileText, Building2, FileSignature, Key];
-```
-
-### 4. All 10 Language Translations
-
-Each language file will be updated with the new 8 steps in the correct order:
-
-| Language | Step 4 Title (New) | Key Translation Note |
-|----------|-------------------|----------------------|
-| English | Appoint a Lawyer (Power of Attorney) | Base version |
-| Dutch | Schakel een Advocaat in (Volmacht) | "Volmacht" = Power of Attorney |
-| German | Beauftragen Sie einen Anwalt (Vollmacht) | "Vollmacht" = Power of Attorney |
-| French | Engagez un Avocat (Procuration) | "Procuration" = Power of Attorney |
-| Swedish | Anlita en Advokat (Fullmakt) | "Fullmakt" = Power of Attorney |
-| Norwegian | Engasjer en Advokat (Fullmakt) | "Fullmakt" = Power of Attorney |
-| Danish | Ansæt en Advokat (Fuldmagt) | "Fuldmagt" = Power of Attorney |
-| Finnish | Palkkaa Asianajaja (Valtakirja) | "Valtakirja" = Power of Attorney |
-| Polish | Zatrudnij Prawnika (Pełnomocnictwo) | "Pełnomocnictwo" = Power of Attorney |
-| Hungarian | Bízzon meg egy Ügyvédet (Meghatalmazás) | "Meghatalmazás" = Power of Attorney |
+2. **Follow-up:**
+   - Create admin translation audit interface
+   - Implement translation fallback system
+   - Add URL path translations (e.g., `/nl/locaties`)
 
 ---
 
-## Key Messaging Changes
+## Testing Checklist
 
-The fundamental narrative shift is:
-
-| Aspect | Before | After |
-|--------|--------|-------|
-| NIE/Bank | "You get these first" | "Your lawyer handles this for you" |
-| Lawyer Role | Just "Legal Due Diligence" | Central role with Power of Attorney |
-| Timeline Position | NIE before property search | NIE after reservation |
-| Remote Buying | Not emphasized | Emphasized (POA enables remote purchase) |
-
----
-
-## Visual Diagram of New Flow
-
-```text
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                        PROPERTY BUYING JOURNEY                              │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                             │
-│  PHASE 1: DISCOVERY          PHASE 2: COMMITMENT        PHASE 3: LEGAL     │
-│  ─────────────────           ─────────────────          ───────────────     │
-│  ┌───────────────┐          ┌───────────────┐          ┌───────────────┐   │
-│  │ 1. DEFINE     │          │ 3. RESERVATION│          │ 4. APPOINT    │   │
-│  │    REQUIREMENTS│    ──►   │    €6-10k     │    ──►   │    LAWYER     │   │
-│  └───────────────┘          │    deposit    │          │    + POA      │   │
-│         │                   └───────────────┘          └───────────────┘   │
-│         ▼                                                     │            │
-│  ┌───────────────┐                                           ▼            │
-│  │ 2. PROPERTY   │          ┌───────────────────────────────────────────┐ │
-│  │    SEARCH     │          │  LAWYER HANDLES (on your behalf):         │ │
-│  │    & VIEWINGS │          │  ┌─────────┐  ┌─────────┐  ┌─────────┐   │ │
-│  └───────────────┘          │  │ 5. NIE  │  │ 6. BANK │  │   DUE   │   │ │
-│                             │  │ NUMBER  │  │ ACCOUNT │  │DILIGENCE│   │ │
-│                             │  └─────────┘  └─────────┘  └─────────┘   │ │
-│                             └───────────────────────────────────────────┘ │
-│                                                                   │       │
-│  PHASE 4: COMPLETION                                              ▼       │
-│  ───────────────────                                                      │
-│  ┌───────────────┐          ┌───────────────┐                            │
-│  │ 8. NOTARY     │    ◄──   │ 7. PRIVATE    │                            │
-│  │    COMPLETION │          │    CONTRACT   │                            │
-│  │    🎉 KEYS!   │          │    10% deposit│                            │
-│  └───────────────┘          └───────────────┘                            │
-│                                                                           │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
-
----
-
-## Summary of Changes
-
-1. **Reorder steps** in all 10 language translation files to match Hans's correct order
-2. **New Step 4** content: "Appoint a Lawyer (Power of Attorney)" - completely new step
-3. **Modified Steps 5 & 6**: Emphasize that the lawyer handles NIE and bank account
-4. **Update hero timeline**: Change from "3-6 Month Timeline" to "6-12 Week Timeline"
-5. **Update ProcessTimeline icons**: New icon set to match the updated step meanings
-6. **Maintain SEO structure**: Keep all existing JSON-LD schema patterns, FAQ section, and costs breakdown unchanged
-
+After implementation:
+- [ ] Visit `/en/locations/marbella/overview` - verify English text
+- [ ] Visit `/nl/locations/marbella/overview` - verify Dutch text
+- [ ] Visit `/de/locations/marbella/overview` - verify German text
+- [ ] Check all 10 languages show correct translations
+- [ ] Verify "Contact via WhatsApp" replaces "Call Us Now"
+- [ ] Confirm no English text appears when viewing in other languages
