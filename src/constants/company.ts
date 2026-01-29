@@ -38,6 +38,15 @@ export const COMPANY_HOURS = {
 } as const;
 
 /**
+ * Company information
+ */
+export const COMPANY_INFO = {
+  name: 'Del Sol Prime Homes',
+  legalName: 'Del Sol Prime Homes S.L.',
+  tagline: 'Your Costa del Sol Property Experts',
+} as const;
+
+/**
  * Centralized company facts and statistics.
  * Update these values in one place to reflect across the entire site.
  */
@@ -65,6 +74,9 @@ export const COMPANY_FACTS = {
   
   /** Number of properties in portfolio */
   propertiesInPortfolio: 7000,
+  
+  /** Number of team members */
+  teamMembers: 3,
 } as const;
 
 /**

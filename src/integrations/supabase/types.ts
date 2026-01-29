@@ -4406,6 +4406,78 @@ export type Database = {
         }
         Relationships: []
       }
+      team_members: {
+        Row: {
+          active: boolean | null
+          areas_of_expertise: string[] | null
+          bio: string | null
+          bio_translations: Json | null
+          created_at: string | null
+          credentials: string[] | null
+          display_order: number | null
+          email: string | null
+          id: string
+          is_founder: boolean | null
+          languages_spoken: string[] | null
+          linkedin_url: string | null
+          name: string
+          phone: string | null
+          photo_url: string | null
+          role: string
+          role_translations: Json | null
+          specializations: string[] | null
+          updated_at: string | null
+          whatsapp: string | null
+          years_experience: number | null
+        }
+        Insert: {
+          active?: boolean | null
+          areas_of_expertise?: string[] | null
+          bio?: string | null
+          bio_translations?: Json | null
+          created_at?: string | null
+          credentials?: string[] | null
+          display_order?: number | null
+          email?: string | null
+          id?: string
+          is_founder?: boolean | null
+          languages_spoken?: string[] | null
+          linkedin_url?: string | null
+          name: string
+          phone?: string | null
+          photo_url?: string | null
+          role: string
+          role_translations?: Json | null
+          specializations?: string[] | null
+          updated_at?: string | null
+          whatsapp?: string | null
+          years_experience?: number | null
+        }
+        Update: {
+          active?: boolean | null
+          areas_of_expertise?: string[] | null
+          bio?: string | null
+          bio_translations?: Json | null
+          created_at?: string | null
+          credentials?: string[] | null
+          display_order?: number | null
+          email?: string | null
+          id?: string
+          is_founder?: boolean | null
+          languages_spoken?: string[] | null
+          linkedin_url?: string | null
+          name?: string
+          phone?: string | null
+          photo_url?: string | null
+          role?: string
+          role_translations?: Json | null
+          specializations?: string[] | null
+          updated_at?: string | null
+          whatsapp?: string | null
+          years_experience?: number | null
+        }
+        Relationships: []
+      }
       translation_audit_log: {
         Row: {
           affected_language: string

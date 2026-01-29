@@ -350,4 +350,63 @@ export const fr = {
       propertyTypes: { title: "Types de Propriétés à Mijas", types: { newDevelopments: "Nouveaux Développements", luxuryVillas: "Villas de Luxe", beachfrontApartments: "Appartements en Bord de Mer", golfProperties: "Propriétés Golf", penthouses: "Penthouses" } },
     },
   },
+  team: {
+    meta: {
+      title: "Rencontrez Notre Équipe | Del Sol Prime Homes",
+      description: "Rencontrez les experts immobiliers de Del Sol Prime Homes. Équipe multilingue avec 35+ ans d'expérience combinée sur la Costa del Sol."
+    },
+    hero: {
+      badge: "Notre Équipe",
+      headline: "Rencontrez Notre Équipe d'Experts",
+      subheadline: "Des professionnels dévoués prêts à vous aider à trouver votre propriété parfaite sur la Costa del Sol",
+      badges: {
+        languages: "10+ Langues",
+        experience: "35+ Ans Combinés"
+      }
+    },
+    filters: {
+      all: "Tous les Membres",
+      founders: "Fondateurs"
+    },
+    empty: "Aucun membre trouvé",
+    card: {
+      founder: "Fondateur",
+      yearsExperience: "ans",
+      viewProfile: "Voir le Profil"
+    },
+    modal: {
+      founder: "Fondateur",
+      whatsapp: "WhatsApp",
+      email: "E-mail",
+      call: "Appeler",
+      about: "À Propos",
+      languages: "Langues",
+      specializations: "Spécialisations",
+      expertise: "Domaines d'Expertise",
+      credentials: "Références",
+      sendMessage: "Envoyer un Message"
+    },
+    form: {
+      name: "Votre Nom",
+      email: "Adresse E-mail",
+      message: "Votre Message",
+      messagePlaceholder: "Comment puis-je vous aider?",
+      submit: "Envoyer le Message",
+      sending: "Envoi en cours...",
+      success: "Message envoyé avec succès!",
+      error: "Échec de l'envoi. Veuillez réessayer.",
+      successTitle: "Message Envoyé!",
+      successDescription: "Nous vous contacterons bientôt."
+    }
+  },
+  aboutUs: {
+    meta: {
+      title: "À Propos de Del Sol Prime Homes | Experts Immobiliers Costa del Sol",
+      description: "Découvrez notre équipe d'experts avec 35+ ans d'expérience pour aider les acheteurs internationaux à trouver des propriétés sur la Costa del Sol."
+    },
+    cta: {
+      meetTeam: "Rencontrez Notre Équipe",
+      contactUs: "Contactez-Nous"
+    }
+  }
 };

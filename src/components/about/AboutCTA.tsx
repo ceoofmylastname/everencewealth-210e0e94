@@ -1,9 +1,12 @@
 import { motion } from "framer-motion";
-import { ArrowRight, Phone, Mail, MapPin } from "lucide-react";
+import { ArrowRight, Phone, Mail, MapPin, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
+import { useTranslation } from "@/i18n";
 
 export const AboutCTA = () => {
+  const { t, currentLanguage } = useTranslation();
+  
   return (
     <section className="py-20 bg-gradient-to-br from-prime-900 via-prime-800 to-prime-900 text-white relative overflow-hidden">
       {/* Decorative elements */}
@@ -33,9 +36,9 @@ export const AboutCTA = () => {
               className="bg-prime-gold hover:bg-prime-gold/90 text-prime-900 font-semibold px-8"
               asChild
             >
-              <Link to="/property-finder">
-                Explore Properties
-                <ArrowRight className="w-4 h-4 ml-2" />
+              <Link to={`/${currentLanguage}/team`}>
+                <Users className="w-4 h-4 mr-2" />
+                {t.aboutUs?.cta?.meetTeam || "Meet Our Team"}
               </Link>
             </Button>
             <Button 

@@ -350,4 +350,25 @@ export const pl = {
       propertyTypes: { title: "Typy Nieruchomości w Mijas", types: { newDevelopments: "Nowe Inwestycje", luxuryVillas: "Luksusowe Wille", beachfrontApartments: "Apartamenty przy Plaży", golfProperties: "Nieruchomości Golfowe", penthouses: "Penthousy" } },
     },
   },
+  team: {
+    meta: {
+      title: "Poznaj Nasz Zespół | Del Sol Prime Homes",
+      description: "Poznaj ekspertów od nieruchomości Del Sol Prime Homes. Wielojęzyczny zespół z ponad 35-letnim łącznym doświadczeniem na Costa del Sol."
+    },
+    hero: {
+      badge: "Nasz Zespół",
+      headline: "Poznaj Nasz Zespół Ekspertów",
+      subheadline: "Oddani profesjonaliści gotowi pomóc Ci znaleźć idealną nieruchomość na Costa del Sol",
+      badges: { languages: "10+ Języków", experience: "35+ Lat Łącznie" }
+    },
+    filters: { all: "Wszyscy Członkowie", founders: "Założyciele" },
+    empty: "Nie znaleziono członków zespołu",
+    card: { founder: "Założyciel", yearsExperience: "lat", viewProfile: "Zobacz Profil" },
+    modal: { founder: "Założyciel", whatsapp: "WhatsApp", email: "E-mail", call: "Zadzwoń", about: "O", languages: "Języki", specializations: "Specjalizacje", expertise: "Obszary Ekspertyzy", credentials: "Kwalifikacje", sendMessage: "Wyślij Wiadomość" },
+    form: { name: "Twoje Imię", email: "Adres E-mail", message: "Twoja Wiadomość", messagePlaceholder: "Jak mogę Ci pomóc?", submit: "Wyślij Wiadomość", sending: "Wysyłanie...", success: "Wiadomość wysłana!", error: "Nie udało się wysłać. Spróbuj ponownie.", successTitle: "Wiadomość Wysłana!", successDescription: "Skontaktujemy się wkrótce." }
+  },
+  aboutUs: {
+    meta: { title: "O Del Sol Prime Homes | Eksperci Nieruchomości Costa del Sol", description: "Poznaj nasz zespół ekspertów z ponad 35-letnim doświadczeniem w pomaganiu międzynarodowym nabywcom w znalezieniu nieruchomości na Costa del Sol." },
+    cta: { meetTeam: "Poznaj Nasz Zespół", contactUs: "Skontaktuj się" }
+  }
 };

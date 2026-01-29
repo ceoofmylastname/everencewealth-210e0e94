@@ -350,4 +350,25 @@ export const fi = {
       propertyTypes: { title: "Kiinteistötyypit Mijasissa", types: { newDevelopments: "Uudiskohteet", luxuryVillas: "Luksushuvilat", beachfrontApartments: "Rantahuoneistot", golfProperties: "Golfkiinteistöt", penthouses: "Kattohuoneistot" } },
     },
   },
+  team: {
+    meta: {
+      title: "Tapaa Tiimimme | Del Sol Prime Homes",
+      description: "Tapaa Del Sol Prime Homesin kiinteistöasiantuntijat. Monikielinen tiimi yli 35 vuoden yhteisellä kokemuksella Costa del Solilta."
+    },
+    hero: {
+      badge: "Tiimimme",
+      headline: "Tapaa Asiantuntijatiimimme",
+      subheadline: "Omistautuneet ammattilaiset valmiina auttamaan sinua löytämään täydellisen kiinteistösi Costa del Solilta",
+      badges: { languages: "10+ Kieltä", experience: "35+ Vuotta Yhteensä" }
+    },
+    filters: { all: "Kaikki Tiimin Jäsenet", founders: "Perustajat" },
+    empty: "Tiimin jäseniä ei löytynyt",
+    card: { founder: "Perustaja", yearsExperience: "v", viewProfile: "Näytä Profiili" },
+    modal: { founder: "Perustaja", whatsapp: "WhatsApp", email: "Sähköposti", call: "Soita", about: "Tietoja", languages: "Kielet", specializations: "Erikoisalat", expertise: "Osaamisalueet", credentials: "Pätevyydet", sendMessage: "Lähetä Viesti" },
+    form: { name: "Nimesi", email: "Sähköpostiosoite", message: "Viestisi", messagePlaceholder: "Miten voin auttaa?", submit: "Lähetä Viesti", sending: "Lähetetään...", success: "Viesti lähetetty!", error: "Lähetys epäonnistui. Yritä uudelleen.", successTitle: "Viesti Lähetetty!", successDescription: "Olemme pian yhteydessä." }
+  },
+  aboutUs: {
+    meta: { title: "Tietoja Del Sol Prime Homesista | Costa del Sol Kiinteistöasiantuntijat", description: "Tutustu asiantuntijatiimiimme, jolla on yli 35 vuoden kokemus kansainvälisten ostajien auttamisesta löytämään kiinteistöjä Costa del Solilta." },
+    cta: { meetTeam: "Tapaa Tiimimme", contactUs: "Ota Yhteyttä" }
+  }
 };
