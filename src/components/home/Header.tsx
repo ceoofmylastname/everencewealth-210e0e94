@@ -193,7 +193,7 @@ export const Header: React.FC<HeaderProps> = ({ variant = 'transparent', content
                     Our Team
                   </span>
                 </HoveredLink>
-                <HoveredLink href={`/${currentLanguage}/#contact`}>
+                <HoveredLink href={`/${currentLanguage}/contact`}>
                   <span className="flex items-center gap-2">
                     <Phone className="w-4 h-4" />
                     Contact
@@ -312,7 +312,7 @@ export const Header: React.FC<HeaderProps> = ({ variant = 'transparent', content
           <MobileLink to={`/${currentLanguage}/team`} onClick={() => setIsMobileMenuOpen(false)} icon={<Users className="w-5 h-5" />}>
             Our Team
           </MobileLink>
-          <MobileLink href={`/${currentLanguage}/#contact`} onClick={() => setIsMobileMenuOpen(false)} icon={<Phone className="w-5 h-5" />}>
+          <MobileLink to={`/${currentLanguage}/contact`} onClick={() => setIsMobileMenuOpen(false)} icon={<Phone className="w-5 h-5" />}>
             Contact
           </MobileLink>
         </MobileMenuSection>
