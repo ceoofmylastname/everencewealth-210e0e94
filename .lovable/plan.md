@@ -1,470 +1,410 @@
 
-# Create Comprehensive Contact Page
 
-## Overview
+# Create About Us and Team Pages - Implementation Plan
 
-This plan creates a fully-featured Contact page with WhatsApp as the primary contact method, full translations for all 10 languages, lead capture integration, and complete SEO optimization.
+## Executive Summary
 
----
+The project already has a well-developed About page (`/about`) with founder profiles, but it lacks:
+1. **Language-prefixed URLs** (`/{lang}/about-us`, `/{lang}/team`)
+2. **Dedicated Team page** with full team member grid and modals
+3. **Database table** for team members (currently founders are in JSONB)
+4. **Admin interface** for team management
+5. **Full translations** for all 10 languages
 
-## Current State
-
-| Item | Status |
-|------|--------|
-| Contact page exists | No - needs to be created |
-| Route defined | No - needs to be added to App.tsx |
-| Translations | No - need to add contact section to all 10 language files |
-| Leads table | Exists and supports full contact submissions |
-| Webhook integration | Exists in webhookHandler.ts |
-| CRM integration | Exists via registerCrmLead utility |
+This plan extends the existing About architecture while creating a new Team page and admin system.
 
 ---
 
-## Implementation Summary
+## Current State Analysis
 
-### New Files to Create
-
-| File | Purpose |
-|------|---------|
-| `src/pages/Contact.tsx` | Main Contact page |
-| `src/components/contact/ContactHero.tsx` | Hero section with headline |
-| `src/components/contact/ContactOptions.tsx` | 3-column contact options grid |
-| `src/components/contact/ContactForm.tsx` | Full contact form with validation |
-| `src/components/contact/OfficeInfo.tsx` | Office hours, map, and address |
-| `src/components/contact/ContactFAQ.tsx` | FAQ accordion section |
-
-### Files to Modify
-
-| File | Changes |
-|------|---------|
-| `src/App.tsx` | Add route `/:lang/contact` and legacy redirect |
-| `src/i18n/translations/*.ts` | Add `contact` section to all 10 languages |
-| `src/components/home/Footer.tsx` | Add Contact link to navigation |
-| `src/constants/company.ts` | Add office hours and address constant |
+| Component | Status | Notes |
+|-----------|--------|-------|
+| About page (`/about`) | ✅ Exists | Has hero, mission, story, founders, why choose us, credentials, FAQ, CTA |
+| `about_page_content` table | ✅ Exists | Stores founders in JSONB, has full content |
+| FounderProfiles component | ✅ Exists | Displays 3 founders from JSONB |
+| Language-prefixed route | ❌ Missing | Only `/about` exists, no `/:lang/about-us` |
+| Team page | ❌ Missing | Need new page |
+| Team members table | ❌ Missing | Need new database table |
+| Admin team management | ❌ Missing | Need new admin page |
 
 ---
 
-## Phase 1: Add Company Constants
+## Phase 1: Database Schema
 
-**File: `src/constants/company.ts`**
+### Create `team_members` Table
 
-Add office hours and address to centralized constants:
+```sql
+CREATE TABLE public.team_members (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL,
+  role TEXT NOT NULL,
+  role_translations JSONB DEFAULT '{}', -- {en: "Sales Director", nl: "Verkoopdirecteur", de: "Verkaufsleiter", ...}
+  bio TEXT,
+  bio_translations JSONB DEFAULT '{}', -- {en: "...", nl: "...", de: "...", ...}
+  photo_url TEXT,
+  email TEXT,
+  phone TEXT,
+  whatsapp TEXT,
+  linkedin_url TEXT,
+  languages_spoken TEXT[] DEFAULT '{}', -- ['English', 'Spanish', 'Dutch']
+  specializations TEXT[] DEFAULT '{}', -- ['Marbella', 'Golf Properties', 'New Builds']
+  areas_of_expertise TEXT[] DEFAULT '{}', -- ['Luxury Villas', 'Off-Plan', 'Investment']
+  years_experience INTEGER DEFAULT 0,
+  credentials TEXT[] DEFAULT '{}', -- ['API Licensed', 'RICS Affiliate']
+  is_founder BOOLEAN DEFAULT false,
+  display_order INTEGER DEFAULT 0,
+  active BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
 
-```typescript
-export const COMPANY_ADDRESS = {
-  street: 'C. Alfonso XIII, 6',
-  building: 'ED SAN FERNAN',
-  floor: '1 OFICINA',
-  postalCode: '29640',
-  city: 'Fuengirola',
-  province: 'Málaga',
-  country: 'Spain',
-  full: 'ED SAN FERNAN, C. Alfonso XIII, 6, 1 OFICINA, 29640 Fuengirola, Málaga, Spain',
-  googleMapsUrl: 'https://goo.gl/maps/YOUR_MAP_ID',
-  googleMapsEmbed: 'https://www.google.com/maps/embed?pb=!1m18!...'
-} as const;
+-- Enable RLS
+ALTER TABLE public.team_members ENABLE ROW LEVEL SECURITY;
 
-export const COMPANY_HOURS = {
-  weekdays: { open: '09:00', close: '18:00' },
-  saturday: { open: '10:00', close: '14:00' },
-  sunday: null, // Closed
-  timezone: 'CET (Central European Time)'
-} as const;
+-- Public read policy (team members are public info)
+CREATE POLICY "Team members are publicly readable"
+  ON public.team_members
+  FOR SELECT
+  TO anon, authenticated
+  USING (active = true);
+
+-- Admin write policy
+CREATE POLICY "Admins can manage team members"
+  ON public.team_members
+  FOR ALL
+  TO authenticated
+  USING (public.has_role(auth.uid(), 'admin'));
+
+-- Create updated_at trigger
+CREATE TRIGGER update_team_members_updated_at
+  BEFORE UPDATE ON public.team_members
+  FOR EACH ROW
+  EXECUTE FUNCTION public.update_updated_at_column();
 ```
 
+### Seed with Existing Founders
+
+Migrate the 3 founders from the existing `about_page_content.founders` JSONB into the new table.
+
 ---
 
-## Phase 2: Add Contact Translations to All 10 Languages
+## Phase 2: Translation Updates
 
-Add new `contact` section to each translation file:
-
-### English (`en.ts`):
+### Add to all 10 language files (`src/i18n/translations/*.ts`)
 
 ```typescript
-contact: {
+aboutUs: {
   meta: {
-    title: "Contact Del Sol Prime Homes | Costa del Sol Real Estate",
-    description: "Get in touch with our expert real estate team. WhatsApp, email, or call us for personalized property guidance on the Costa del Sol."
+    title: "About Del Sol Prime Homes | Costa del Sol Real Estate Experts",
+    description: "Learn about our expert team with 35+ years experience helping international buyers find property on the Costa del Sol."
   },
   hero: {
-    headline: "Get in Touch",
-    subheadline: "We're here to help you find your perfect Costa del Sol property"
+    headline: "35 Years of Excellence in Costa del Sol Real Estate",
+    subheadline: "Three founders, one mission: making your Spanish property dreams a reality."
   },
-  options: {
-    whatsapp: {
-      title: "Chat on WhatsApp",
-      description: "Get instant responses from our team",
-      cta: "Open WhatsApp",
-      prefill: "Hi, I'm interested in Costa del Sol properties. Can you help me?"
-    },
-    email: {
-      title: "Send Us an Email",
-      description: "We'll respond within 24 hours",
-      cta: "Send Email"
-    },
-    phone: {
-      title: "Call Our Office",
-      description: "Speak directly with an advisor",
-      cta: "Call Now"
+  story: {
+    title: "Our Story",
+    subtitle: "From three individual journeys to one shared mission"
+  },
+  mission: {
+    title: "Our Mission",
+    statement: "We believe everyone deserves expert guidance when making one of life's biggest investments."
+  },
+  whyChoose: {
+    title: "Why Choose Us",
+    items: {
+      experience: { title: "35+ Years Experience", description: "Combined expertise in Costa del Sol real estate" },
+      multilingual: { title: "10 Languages", description: "Communicate in your preferred language" },
+      local: { title: "Local Expertise", description: "Deep knowledge of every neighborhood" },
+      endToEnd: { title: "End-to-End Service", description: "From search to after-sales support" }
     }
   },
-  form: {
-    headline: "Send Us a Message",
-    subheadline: "Fill out the form and we'll get back to you shortly",
-    fields: {
-      fullName: "Full Name",
-      email: "Email Address",
-      phone: "Phone Number (Optional)",
-      language: "Preferred Language",
-      subject: "Subject",
-      message: "Your Message",
-      referral: "How did you hear about us? (Optional)",
-      privacy: "I agree to the Privacy Policy and consent to processing of my data."
-    },
-    subjects: {
-      general: "General Inquiry",
-      property: "Property Inquiry",
-      selling: "Selling My Property",
-      viewing: "Schedule a Viewing",
-      other: "Other"
-    },
-    referrals: {
-      google: "Google Search",
-      socialMedia: "Social Media",
-      referral: "Friend/Family Referral",
-      advertisement: "Online Advertisement",
-      other: "Other"
-    },
-    submit: "Send Message",
-    submitting: "Sending...",
-    success: {
-      title: "Message Sent!",
-      description: "Thank you for contacting us. We'll respond within 24 hours."
+  values: {
+    title: "Our Values",
+    items: {
+      integrity: { title: "Integrity", description: "Honest, transparent dealings" },
+      clientFirst: { title: "Client-First", description: "Your interests always come first" },
+      expertise: { title: "Expertise", description: "Knowledge you can trust" },
+      transparency: { title: "Transparency", description: "No hidden fees, no surprises" }
     }
   },
-  office: {
-    headline: "Visit Our Office",
-    hours: {
-      title: "Office Hours",
-      weekdays: "Monday - Friday",
-      saturday: "Saturday",
-      sunday: "Sunday",
-      closed: "Closed",
-      timezone: "Central European Time (CET)"
-    },
-    directions: "Get Directions"
+  stats: {
+    yearsInBusiness: "Years Experience",
+    propertiesSold: "Properties Sold",
+    happyClients: "Happy Clients",
+    languages: "Languages",
+    teamMembers: "Team Members"
   },
-  faq: {
-    headline: "Frequently Asked Questions",
-    items: [
-      {
-        question: "How quickly will you respond?",
-        answer: "We aim to respond to all inquiries within 24 hours during business days. WhatsApp messages typically receive faster responses."
-      },
-      {
-        question: "Do you speak my language?",
-        answer: "Yes! Our team speaks 10+ languages including English, Dutch, German, French, Swedish, Norwegian, Danish, Finnish, Polish, and Hungarian."
-      },
-      {
-        question: "Can I schedule a video call?",
-        answer: "Absolutely! Contact us via WhatsApp or email to arrange a convenient time for a video consultation with one of our property experts."
-      },
-      {
-        question: "What areas do you cover?",
-        answer: "We specialize in the entire Costa del Sol region, from Málaga to Sotogrande, including Marbella, Estepona, Fuengirola, Benalmádena, and Mijas."
-      }
-    ]
+  cta: {
+    meetTeam: "Meet Our Team",
+    contactUs: "Contact Us"
+  }
+},
+team: {
+  meta: {
+    title: "Meet Our Team | Del Sol Prime Homes",
+    description: "Meet the expert real estate professionals at Del Sol Prime Homes. Multilingual team with 35+ years combined experience."
   },
-  emma: {
-    callout: "Prefer instant answers?",
-    cta: "Chat with Emma, our AI assistant"
+  hero: {
+    headline: "Meet Our Expert Team",
+    subheadline: "Dedicated professionals ready to help you find your perfect Costa del Sol property"
+  },
+  card: {
+    yearsExperience: "years experience",
+    languages: "Languages",
+    specializations: "Specializations",
+    contact: "Contact",
+    viewProfile: "View Profile"
+  },
+  modal: {
+    about: "About",
+    expertise: "Areas of Expertise",
+    credentials: "Credentials",
+    contact: "Contact",
+    sendMessage: "Send Message",
+    whatsapp: "WhatsApp",
+    email: "Email",
+    call: "Call"
+  },
+  filters: {
+    all: "All Team Members",
+    founders: "Founders"
   }
 }
 ```
 
-### Translations for other languages
-
-Similar structure with translated content for:
-- Dutch (`nl.ts`)
-- German (`de.ts`) 
-- French (`fr.ts`)
-- Swedish (`sv.ts`)
-- Norwegian (`no.ts`)
-- Danish (`da.ts`)
-- Finnish (`fi.ts`)
-- Polish (`pl.ts`)
-- Hungarian (`hu.ts`)
+Repeat with translations for: NL, DE, FR, SV, NO, DA, FI, PL, HU
 
 ---
 
-## Phase 3: Create Contact Page Components
+## Phase 3: New Components
 
-### Component 1: ContactHero.tsx
+### Create Team Page Components
 
-Simple hero with headline, subheadline, and gradient background.
+| Component | Purpose |
+|-----------|---------|
+| `src/components/team/TeamHero.tsx` | Hero section with headline |
+| `src/components/team/TeamGrid.tsx` | Grid of team member cards |
+| `src/components/team/TeamMemberCard.tsx` | Individual card with photo, name, role, languages, specializations |
+| `src/components/team/TeamMemberModal.tsx` | Full profile modal with bio, contact options, send message form |
+| `src/components/team/TeamMemberContactForm.tsx` | Contact form within modal |
 
-### Component 2: ContactOptions.tsx
+### Update About Page Components
 
-3-column grid with:
-- **WhatsApp** (PRIMARY - most prominent, green accent)
-- **Email** (Secondary)
-- **Phone** (Tertiary)
-
-Each with icon, description, and CTA button.
-
-**WhatsApp link:**
-```typescript
-const whatsappUrl = COMPANY_CONTACT.whatsappWithMessage(t.contact.options.whatsapp.prefill);
-```
-
-**Analytics tracking:**
-```typescript
-onClick={() => {
-  if (typeof window !== 'undefined' && (window as any).gtag) {
-    (window as any).gtag('event', 'whatsapp_click', {
-      category: 'Contact',
-      location: 'contact_page_options'
-    });
-  }
-}}
-```
-
-### Component 3: ContactForm.tsx
-
-Full form with:
-- Full Name (required)
-- Email (required, validated)
-- Phone (optional)
-- Preferred Language (dropdown, 10 options)
-- Subject (dropdown, 5 options)
-- Message (textarea, required)
-- How did you hear about us? (dropdown, optional)
-- Privacy checkbox (required)
-
-**Form submission flow:**
-1. Validate all fields with Zod schema
-2. Save to leads table via Supabase
-3. Send to GHL webhook via `sendFormToGHL()`
-4. Register in CRM via `registerCrmLead()`
-5. Track `generate_lead` event in GA4
-6. Show success message
-7. Trigger Emma chat after 2 seconds
-
-### Component 4: OfficeInfo.tsx
-
-- Google Maps embed iframe
-- Office address display
-- "Get Directions" button (opens Google Maps)
-- Office hours table
-- Timezone note
-
-### Component 5: ContactFAQ.tsx
-
-Accordion component using existing `Accordion` UI component with FAQ items from translations.
+| Component | Changes |
+|-----------|---------|
+| `AboutHero.tsx` | Add translations support, accept language prop |
+| `FounderProfiles.tsx` | Fetch from `team_members` table, add link to Team page |
+| `AboutCTA.tsx` | Add "Meet Our Team" button linking to `/{lang}/team` |
 
 ---
 
-## Phase 4: Create Main Contact Page
+## Phase 4: Create Team Page
 
-**File: `src/pages/Contact.tsx`**
+### File: `src/pages/Team.tsx`
 
 Structure:
 ```
 <Header />
 <main>
-  <ContactHero />
-  <ContactOptions />
-  <ContactForm />
-  <OfficeInfo />
-  <ContactFAQ />
-  <EmmaCallout />
+  <TeamHero />
+  <TeamGrid />  {/* Fetches from team_members table */}
 </main>
 <Footer />
+<TeamMemberModal />  {/* Opens when card clicked */}
 ```
 
-SEO elements:
-- LocalBusiness JSON-LD schema
-- Consistent NAP (Name, Address, Phone)
-- Language-specific meta tags
+Features:
+- Fetch team members from database with `active = true`
+- Sort by `display_order`
+- Filter option: All / Founders only
+- Responsive grid: 3 cols desktop, 2 tablet, 1 mobile
+- Click card → opens modal with full profile
+- Modal has WhatsApp, Email, Call buttons + Send Message form
 
 ---
 
-## Phase 5: Add Routes
+## Phase 5: Update Routes
 
-**File: `src/App.tsx`**
+### Modify `src/App.tsx`
 
-Add lazy import:
 ```typescript
-const Contact = lazy(() => import("./pages/Contact"));
-```
+// Add lazy import
+const Team = lazy(() => import("./pages/Team"));
 
-Add routes (before the `/:lang` catch-all):
-```typescript
-{/* Contact page with language prefix */}
-<Route path="/:lang/contact" element={<Contact />} />
+// Add routes (near existing About route)
+{/* About Us - language prefixed */}
+<Route path="/:lang/about-us" element={<About />} />
+<Route path="/:lang/about" element={<Navigate to="/:lang/about-us" replace />} />
+<Route path="/about" element={<Navigate to="/en/about-us" replace />} />
 
-{/* Legacy redirect */}
-<Route path="/contact" element={<Navigate to="/en/contact" replace />} />
+{/* Team page - language prefixed */}
+<Route path="/:lang/team" element={<Team />} />
+<Route path="/team" element={<Navigate to="/en/team" replace />} />
 ```
 
 ---
 
-## Phase 6: Update Footer Navigation
+## Phase 6: Admin Team Management
 
-**File: `src/components/home/Footer.tsx`**
+### Create `src/pages/admin/TeamMembers.tsx`
 
-Add Contact link to Quick Links section:
+Features:
+- List all team members (active and inactive)
+- Add new team member button
+- Edit/Delete buttons per member
+- Drag-and-drop reordering for `display_order`
+- Toggle active/inactive status
+- Photo upload to storage bucket
+- Multi-language bio/role editor (tabs for each language)
+
+### Create `src/components/admin/TeamMemberDialog.tsx`
+
+Form fields:
+- Name (text)
+- Role (text + translations tabs)
+- Bio (textarea + translations tabs)
+- Photo upload
+- Email, Phone, WhatsApp
+- LinkedIn URL
+- Languages spoken (multi-select)
+- Specializations (tags input)
+- Areas of expertise (tags input)
+- Years experience (number)
+- Credentials (tags input)
+- Is Founder (checkbox)
+- Display Order (number)
+- Active (toggle)
+
+---
+
+## Phase 7: SEO & Schema
+
+### JSON-LD for About Page
+
 ```typescript
-<li>
-  <Link to={`/${currentLanguage}/contact`} className="hover:text-prime-gold transition-colors font-nav">
-    {t.footer.links.contact || "Contact"}
-  </Link>
-</li>
-```
-
-Add translation key to all 10 language files:
-```typescript
-footer: {
-  links: {
-    contact: "Contact",
-    // ... other links
-  }
+// Organization schema (already exists, enhance)
+{
+  "@context": "https://schema.org",
+  "@type": "RealEstateAgent",
+  "name": "Del Sol Prime Homes",
+  "description": "...",
+  "founder": [...team members with is_founder=true],
+  "employee": [...all team members],
+  "numberOfEmployees": { "@type": "QuantitativeValue", "value": X }
 }
 ```
 
----
-
-## Phase 7: Mobile-Specific Features
-
-### Sticky WhatsApp Button
+### JSON-LD for Team Page
 
 ```typescript
-<div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 glass-luxury border-t border-border" 
-     style={{ paddingBottom: 'max(env(safe-area-inset-bottom), 16px)' }}>
-  <div className="flex items-center gap-3 p-4">
-    <a href={whatsappUrl} className="flex-1">
-      <Button className="w-full h-14 bg-green-600 hover:bg-green-700">
-        <MessageCircle className="w-5 h-5 mr-2" />
-        Chat on WhatsApp
-      </Button>
-    </a>
-    <a href={`tel:${COMPANY_CONTACT.phoneClean}`}>
-      <Button variant="outline" className="h-14 w-14">
-        <Phone className="w-5 h-5" />
-      </Button>
-    </a>
-  </div>
-</div>
+// Each team member as Person schema
+{
+  "@context": "https://schema.org",
+  "@type": "Person",
+  "name": "...",
+  "jobTitle": "...",
+  "description": "...",
+  "image": "...",
+  "sameAs": ["linkedin_url"],
+  "worksFor": { "@id": "delsolprimehomes.com/#organization" },
+  "knowsLanguage": [...],
+  "hasOccupation": { "@type": "Occupation", "name": "Real Estate Agent" }
+}
 ```
 
-### Touch-Friendly Form
+### Hreflang Tags
 
-- All inputs with `h-12` minimum height
-- 44px minimum tap targets
-- `touch-manipulation` class on buttons
-- Simplified layout on mobile (single column)
+Both pages include 10 language hreflang tags + x-default.
 
 ---
 
-## Phase 8: Analytics Tracking
+## Phase 8: URL Structure
 
-Track all contact interactions:
+| Language | About Us URL | Team URL |
+|----------|--------------|----------|
+| EN | `/en/about-us` | `/en/team` |
+| NL | `/nl/over-ons` | `/nl/team` |
+| DE | `/de/uber-uns` | `/de/team` |
+| FR | `/fr/a-propos` | `/fr/equipe` |
+| SV | `/sv/om-oss` | `/sv/team` |
+| NO | `/no/om-oss` | `/no/team` |
+| DA | `/da/om-os` | `/da/team` |
+| FI | `/fi/meista` | `/fi/tiimi` |
+| PL | `/pl/o-nas` | `/pl/zespol` |
+| HU | `/hu/rolunk` | `/hu/csapat` |
 
-| Event | Trigger |
-|-------|---------|
-| `whatsapp_click` | WhatsApp button clicked |
-| `email_click` | Email link clicked |
-| `phone_click` | Phone link clicked |
-| `generate_lead` | Form submitted successfully |
-| `map_directions_click` | Get Directions clicked |
-| `emma_open` | Emma chat callout clicked |
-
----
-
-## Database Integration
-
-Uses existing `leads` table structure:
-- `full_name` ← Form full name
-- `email` ← Form email
-- `phone` ← Form phone
-- `comment` ← Form message
-- `language` ← Selected language
-- `source` ← 'contact_page'
-- `page_url` ← Current URL
-- `user_agent` ← Browser info
-- UTM parameters ← From URL
+**Note**: Implementing localized slugs requires additional routing logic. For Phase 1, use consistent `/about-us` and `/team` slugs with language prefix only.
 
 ---
 
-## Files Summary
+## Files to Create
 
-### New Files (6)
+| File | Purpose |
+|------|---------|
+| `src/pages/Team.tsx` | Team page |
+| `src/components/team/TeamHero.tsx` | Hero section |
+| `src/components/team/TeamGrid.tsx` | Team member grid |
+| `src/components/team/TeamMemberCard.tsx` | Individual card |
+| `src/components/team/TeamMemberModal.tsx` | Profile modal |
+| `src/components/team/TeamMemberContactForm.tsx` | Contact form in modal |
+| `src/pages/admin/TeamMembers.tsx` | Admin team management |
+| `src/components/admin/TeamMemberDialog.tsx` | Add/edit team member form |
+| `src/lib/teamSchemaGenerator.ts` | JSON-LD schema generators |
 
-| File | Lines |
-|------|-------|
-| `src/pages/Contact.tsx` | ~200 |
-| `src/components/contact/ContactHero.tsx` | ~50 |
-| `src/components/contact/ContactOptions.tsx` | ~150 |
-| `src/components/contact/ContactForm.tsx` | ~300 |
-| `src/components/contact/OfficeInfo.tsx` | ~100 |
-| `src/components/contact/ContactFAQ.tsx` | ~60 |
+---
 
-### Modified Files (12)
+## Files to Modify
 
 | File | Changes |
 |------|---------|
-| `src/App.tsx` | Add Contact route + redirect |
-| `src/constants/company.ts` | Add address + hours constants |
-| `src/components/home/Footer.tsx` | Add Contact link |
-| `src/i18n/translations/en.ts` | Add contact section |
-| `src/i18n/translations/nl.ts` | Add contact section |
-| `src/i18n/translations/de.ts` | Add contact section |
-| `src/i18n/translations/fr.ts` | Add contact section |
-| `src/i18n/translations/sv.ts` | Add contact section |
-| `src/i18n/translations/no.ts` | Add contact section |
-| `src/i18n/translations/da.ts` | Add contact section |
-| `src/i18n/translations/fi.ts` | Add contact section |
-| `src/i18n/translations/pl.ts` | Add contact section |
-| `src/i18n/translations/hu.ts` | Add contact section |
+| `src/App.tsx` | Add Team import and routes |
+| `src/pages/About.tsx` | Update to use language prefix, fetch from team_members |
+| `src/components/about/FounderProfiles.tsx` | Fetch from team_members table |
+| `src/components/about/AboutCTA.tsx` | Add "Meet Our Team" button |
+| `src/i18n/translations/en.ts` | Add aboutUs and team sections |
+| `src/i18n/translations/nl.ts` | Add aboutUs and team sections |
+| `src/i18n/translations/de.ts` | Add aboutUs and team sections |
+| `src/i18n/translations/fr.ts` | Add aboutUs and team sections |
+| `src/i18n/translations/sv.ts` | Add aboutUs and team sections |
+| `src/i18n/translations/no.ts` | Add aboutUs and team sections |
+| `src/i18n/translations/da.ts` | Add aboutUs and team sections |
+| `src/i18n/translations/fi.ts` | Add aboutUs and team sections |
+| `src/i18n/translations/pl.ts` | Add aboutUs and team sections |
+| `src/i18n/translations/hu.ts` | Add aboutUs and team sections |
+| `src/components/home/Footer.tsx` | Update About link to use language prefix |
+| `src/components/home/Header.tsx` | Update About link to use language prefix |
+
+---
+
+## Implementation Order
+
+1. **Database**: Create `team_members` table with RLS
+2. **Seed Data**: Migrate existing founders to new table
+3. **Translations**: Add aboutUs/team sections to all 10 languages
+4. **Team Components**: Create TeamHero, TeamGrid, TeamMemberCard, TeamMemberModal
+5. **Team Page**: Create Team.tsx page
+6. **Routes**: Update App.tsx with language-prefixed routes
+7. **About Updates**: Enhance About page to use new team_members table
+8. **Admin Interface**: Create TeamMembers.tsx admin page
+9. **SEO**: Add JSON-LD schemas and hreflang tags
+10. **Testing**: Verify all languages and functionality
 
 ---
 
 ## Testing Checklist
 
-After implementation:
-- [ ] Visit `/en/contact` - verify all English text
-- [ ] Visit `/nl/contact` - verify Dutch translations
-- [ ] Visit `/de/contact` - verify German translations
-- [ ] Test all 10 language versions
+- [ ] Visit `/en/about-us` - verify content loads
+- [ ] Visit `/nl/about-us` - verify Dutch translations
+- [ ] Visit all 10 language versions of About
+- [ ] Visit `/en/team` - verify team grid displays
+- [ ] Click team member card - modal opens with full profile
 - [ ] WhatsApp button opens WhatsApp with pre-filled message
-- [ ] Email link opens email client with subject
-- [ ] Phone link initiates call on mobile
-- [ ] Form submission saves to leads table
-- [ ] Form submission triggers GHL webhook
-- [ ] Form submission registers in CRM
-- [ ] Success message displays after submission
-- [ ] Emma chat opens after form submission
-- [ ] Google Maps embed displays correctly
-- [ ] "Get Directions" opens Google Maps
-- [ ] FAQ accordion expands/collapses
-- [ ] Mobile sticky WhatsApp bar appears on mobile
-- [ ] All buttons have 44px minimum tap targets
-- [ ] Analytics events fire correctly
+- [ ] Send Message form submits to leads table
+- [ ] Admin: Add new team member
+- [ ] Admin: Edit existing team member
+- [ ] Admin: Reorder team members
+- [ ] Admin: Toggle active/inactive
+- [ ] SEO: Check JSON-LD schemas in page source
+- [ ] Mobile: Verify responsive layouts
 
----
-
-## URL Structure
-
-| Language | URL |
-|----------|-----|
-| English | `/en/contact` |
-| Dutch | `/nl/contact` |
-| German | `/de/contact` |
-| French | `/fr/contact` |
-| Swedish | `/sv/contact` |
-| Norwegian | `/no/contact` |
-| Danish | `/da/contact` |
-| Finnish | `/fi/contact` |
-| Polish | `/pl/contact` |
-| Hungarian | `/hu/contact` |
-| Legacy | `/contact` → redirects to `/en/contact` |
