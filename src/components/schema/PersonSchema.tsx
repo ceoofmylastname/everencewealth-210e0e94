@@ -15,7 +15,7 @@ const PersonSchema: React.FC<PersonSchemaProps> = ({ context }) => {
         "@id": "https://www.delsolprimehomes.com/#hans-beeckman",
         "name": "Hans Beeckman",
         "jobTitle": "Senior Real Estate Advisor",
-        "description": "Expert in Costa del Sol luxury real estate with over 15 years of experience helping international clients find their dream properties in Southern Spain.",
+        "description": "Expert in Costa del Sol luxury real estate with over 35 years of experience helping international clients find their dream properties in Southern Spain.",
         "image": photoUrl,
         "sameAs": [
             "https://www.linkedin.com/in/hans-beeckman-delsolprimehomes/"

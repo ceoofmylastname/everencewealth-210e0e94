@@ -663,7 +663,7 @@ function generateStaticHTML(productionAssets: ProductionAssets, language: Langua
           <h2>Why Choose Del Sol Prime Homes?</h2>
           <div class="usp-grid">
             <div class="usp-item">
-              <h3>15+ Years Experience</h3>
+              <h3>35+ Years Experience</h3>
               <p>Deep local knowledge and established relationships with developers, lawyers, and notaries.</p>
             </div>
             <div class="usp-item">
