@@ -112,6 +112,7 @@ const WebhookTesting = lazy(() => import("./pages/admin/WebhookTesting"));
 const SEOStatusChecker = lazy(() => import("./pages/admin/SEOStatusChecker"));
 const DuplicateDetector = lazy(() => import("./pages/admin/DuplicateDetector"));
 const CanonicalBackfill = lazy(() => import("./pages/admin/CanonicalBackfill"));
+const NotFoundResolver = lazy(() => import("./pages/admin/NotFoundResolver"));
 
 // CRM Pages
 const AgentLogin = lazy(() => import("./pages/crm/AgentLogin"));
@@ -244,6 +245,7 @@ const App = () => (
               <Route path="/admin/seo-status" element={<ProtectedRoute><SEOStatusChecker /></ProtectedRoute>} />
               <Route path="/admin/duplicate-detector" element={<ProtectedRoute><DuplicateDetector /></ProtectedRoute>} />
               <Route path="/admin/canonical-backfill" element={<ProtectedRoute><CanonicalBackfill /></ProtectedRoute>} />
+              <Route path="/admin/404-resolver" element={<ProtectedRoute><NotFoundResolver /></ProtectedRoute>} />
 
               {/* Standalone Property Management Page */}
               <Route path="/add-property" element={<ProtectedRoute><AddProperty /></ProtectedRoute>} />
