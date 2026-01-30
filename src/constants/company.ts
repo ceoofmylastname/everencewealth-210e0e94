@@ -91,3 +91,10 @@ export const COMPANY_DISPLAY = {
   propertiesInPortfolio: `${COMPANY_FACTS.propertiesInPortfolio.toLocaleString()}+`,
   clientSatisfaction: `${COMPANY_FACTS.clientSatisfaction}%`,
 } as const;
+
+/**
+ * Centralized company resources and downloadable content URLs.
+ */
+export const COMPANY_RESOURCES = {
+  buyersGuideUrl: 'https://gamma.app/docs/The-Complete-Costa-del-Sol-Property-Buyers-Guide-2026-xatxssoipntjvc5',
+} as const;
