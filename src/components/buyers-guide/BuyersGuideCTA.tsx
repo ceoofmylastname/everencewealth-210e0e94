@@ -3,6 +3,7 @@ import { ArrowRight, Phone, Mail, Calendar, Download, Shield, Award, Users, Star
 import { Link } from 'react-router-dom';
 import ctaBackground from '@/assets/buyers-guide/luxury-villa-cta.jpg';
 import { useBuyersGuideTranslation } from '@/hooks/useBuyersGuideTranslation';
+import { COMPANY_RESOURCES } from '@/constants/company';
 
 const trustIcons = [Shield, Award, Users];
 
@@ -165,12 +166,15 @@ export const BuyersGuideCTA: React.FC = () => {
                       {t.cta.form.browse}
                     </Link>
 
-                    <button
+                    <a
+                      href={COMPANY_RESOURCES.buyersGuideUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="flex items-center justify-center gap-2 w-full py-4 px-6 border-2 border-prime-900 text-prime-900 font-semibold rounded-xl hover:bg-prime-900 hover:text-white transition-all duration-300"
                     >
                       <Download className="w-5 h-5" />
                       {t.cta.form.download}
-                    </button>
+                    </a>
                   </div>
 
                   {/* Trust Note */}
