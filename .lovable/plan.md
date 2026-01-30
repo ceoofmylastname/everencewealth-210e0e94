@@ -1,77 +1,112 @@
 
-# Update Founder Credentials: API Licensed vs API Degree
+# Update Experience from 15 Years to 35 Years Site-Wide
 
-## Current State
+## Summary of Changes Required
 
-The credentials are stored in **two locations** that need to be synchronized:
-
-| Location | Steven Roberts | Cédric Van Hecke | Hans Beeckman |
-|----------|---------------|------------------|---------------|
-| `about_page_content.founders` | API Licensed Agent (2025) | API Licensed Agent (2025) | API Licensed Agent (2025) |
-| `team_members.credentials` | API Licensed, RICS Affiliate | API Licensed, Property Investment Certified | AI Specialist, Digital Marketing Expert |
-
-## Required Changes
-
-Based on legal requirements:
-- **Cédric Van Hecke** → Keep "API Licensed" (he is the only licensed agent)
-- **Steven Roberts** → Change to "API Degree" 
-- **Hans Beeckman** → Change to "API Degree"
+The "15 years of experience" claim appears in **multiple locations** (database and code files) that need to be updated to "35 years" for consistency with `COMPANY_FACTS.yearsExperience = 35`.
 
 ---
 
-## Database Updates
+## Location 1: Database - `about_page_content` Table
 
-### 1. Update `about_page_content.founders` (About Page)
+**Current values** (slug = 'main'):
 
-Update the credentials array for each founder in the JSONB:
+| Field | Current | Updated |
+|-------|---------|---------|
+| `meta_description` | "15+ years experience helping..." | "35+ years experience helping..." |
+| `speakable_summary` | "...With over 15 years of combined experience..." | "...With over 35 years of combined experience..." |
 
-| Founder | Current | New |
-|---------|---------|-----|
-| Steven Roberts | `["API Licensed Agent (2025)", "Sentinel Estates Founder"]` | `["API Degree", "Sentinel Estates Founder"]` |
-| Cédric Van Hecke | `["API Licensed Agent (2025)", "Certified Negotiation Expert"]` | `["API Licensed", "Certified Negotiation Expert"]` ← Keep licensed |
-| Hans Beeckman | `["API Licensed Agent (2025)", "AI Technology Specialist (2024)"]` | `["API Degree", "AI Technology Specialist (2024)"]` |
-
-### 2. Update `team_members.credentials` (Team Page)
-
-| Name | Current | New |
-|------|---------|-----|
-| Steven Roberts | `["API Licensed", "RICS Affiliate"]` | `["API Degree", "RICS Affiliate"]` |
-| Cédric Van Hecke | `["API Licensed", "Property Investment Certified"]` | `["API Licensed", "Property Investment Certified"]` ← No change |
-| Hans Beeckman | `["AI Specialist", "Digital Marketing Expert"]` | `["API Degree", "AI Specialist"]` |
+**SQL Update:**
+```sql
+UPDATE about_page_content 
+SET 
+  meta_description = 'Meet the founders of Del Sol Prime Homes. 35+ years experience helping international buyers find their perfect property in Marbella, Estepona, and the Costa del Sol.',
+  speakable_summary = 'Del Sol Prime Homes is a premier real estate agency on the Costa del Sol, founded by Hans Beeckman, Cédric Van Hecke, and Steven Roberts. With over 35 years of combined experience, we have helped more than 500 clients find their dream properties in Marbella, Estepona, Benalmádena, and surrounding areas. We specialize in guiding international buyers through every step of the Spanish property purchase process.'
+WHERE slug = 'main';
+```
 
 ---
 
-## Regarding Multi-Language Support
+## Location 2: Code File - `PersonSchema.tsx`
 
-Currently, the About page content exists only in English (`language: 'en'`). The Team page uses a single `team_members` table with translation columns (`role_translations`, `bio_translations`).
+**File:** `src/components/schema/PersonSchema.tsx`
 
-### Current Architecture
-- About page: Single English record in `about_page_content`
-- Team page: Single records per member with JSONB translation columns
-- Both pages: No separate language versions in database
+**Line 18 - Current:**
+```tsx
+"description": "Expert in Costa del Sol luxury real estate with over 15 years of experience..."
+```
 
-### To Implement Full 10-Language Support with Canonical/Hreflang
-
-This would require a larger architectural change:
-
-1. **Create 10 language variants** in `about_page_content` table (one row per language)
-2. **Add `hreflang_group_id`** column to link translations together
-3. **Update About page routing** to use `/:lang/about` pattern
-4. **Create `AboutHreflangTags` component** similar to existing `PropertyHreflangTags`
-5. **Translate all founder bios and page content** into 10 languages
-
-This is a significant expansion beyond the credentials fix. I recommend:
-1. **Phase 1 (Now)**: Fix the credentials in the database
-2. **Phase 2 (Follow-up)**: Full multilingual About page architecture
+**Updated:**
+```tsx
+"description": "Expert in Costa del Sol luxury real estate with over 35 years of experience..."
+```
 
 ---
 
-## Implementation Summary
+## Location 3: Code File - `generateStaticHomePage.ts`
 
-| Step | Action |
-|------|--------|
-| 1 | Update `about_page_content.founders` JSONB to change credentials |
-| 2 | Update `team_members` table credentials for Steven and Hans |
+**File:** `scripts/generateStaticHomePage.ts`
 
-Both updates will immediately reflect on the About and Team pages without code changes.
+**Line 666 - Current:**
+```tsx
+<h3>15+ Years Experience</h3>
+```
 
+**Updated:**
+```tsx
+<h3>35+ Years Experience</h3>
+```
+
+---
+
+## Location 4: Code File - `generateStaticAboutPage.ts`
+
+**File:** `scripts/generateStaticAboutPage.ts`
+
+**Lines 96-111 - Current:**
+- Steven Roberts: `years_experience: 20`
+- Hans Beeckman: bio says "15+ years", `years_experience: 15`
+- Cédric Van Hecke: `years_experience: 12`
+
+**Updated:**
+- Keep individual years as-is (20+15+12 = 47 years combined, rounded to 35+ total)
+- Update Hans bio: "35+ years guiding international clients..."
+
+---
+
+## Location 5: Code File - `aboutSchemaGenerator.ts`
+
+**File:** `src/lib/aboutSchemaGenerator.ts`
+
+Same changes as `generateStaticAboutPage.ts` - update Hans Beeckman's bio from "15+ years" to "35+ years".
+
+---
+
+## Location 6: Database - `team_members` Table (if applicable)
+
+Check if Hans Beeckman's bio in `team_members` table mentions "15 years" and update accordingly.
+
+---
+
+## Technical Details
+
+| Location | File/Table | Line/Field | Change |
+|----------|------------|------------|--------|
+| Database | `about_page_content` | `meta_description` | 15+ → 35+ |
+| Database | `about_page_content` | `speakable_summary` | 15 → 35 |
+| Code | `PersonSchema.tsx` | Line 18 | 15 → 35 |
+| Code | `generateStaticHomePage.ts` | Line 666 | 15+ → 35+ |
+| Code | `generateStaticAboutPage.ts` | Line 107 (bio) | 15+ → 35+ |
+| Code | `aboutSchemaGenerator.ts` | Line 63 (bio) | 15+ → 35+ |
+
+---
+
+## Implementation Order
+
+1. Update database `about_page_content` table (meta_description, speakable_summary)
+2. Update `src/components/schema/PersonSchema.tsx`
+3. Update `scripts/generateStaticHomePage.ts`
+4. Update `scripts/generateStaticAboutPage.ts`
+5. Update `src/lib/aboutSchemaGenerator.ts`
+
+All changes ensure consistency with the centralized `COMPANY_FACTS.yearsExperience = 35` in `src/constants/company.ts`.
