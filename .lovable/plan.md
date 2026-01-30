@@ -1,80 +1,100 @@
 
-
-# Localize LocationIndex Page - Full Translation Implementation
+# Localize Lifestyle Feature Cards in City Brochures
 
 ## Problem Identified
 
-The Location Index pages (e.g., `/de/locations/benalmádena`) display English text in the hero section even when the page language is German. The screenshot shows:
-- **English (should be German):** "Property & Lifestyle Guides", "Everything you need to know about living, investing, and buying property in..."
-- **Correctly German:** The guide cards below show German content
+The City Brochure pages (e.g., `/nl/brochure/marbella`) show mixed languages in the "Lifestyle" section:
 
-## Hardcoded English Strings Found
+| Element | Status | Example |
+|---------|--------|---------|
+| Section Label | ✅ Dutch | "DE LEVENSSTIJL" |
+| Headline | ✅ Dutch | "Leef de Marbella Droom" |
+| Description | ✅ Dutch | "Ervaar een levensstijl waar elke dag..." |
+| Feature Cards | ❌ English | "World-Class Golf", "Over 70 championship courses..." |
 
-In `src/pages/LocationIndex.tsx`:
+The `DEFAULT_FEATURES` array in `LifestyleFeatures.tsx` (lines 33-40) is hardcoded in English.
 
-| Line | Current English Text | Purpose |
-|------|---------------------|---------|
-| 70 | `"Loading guides..."` | Loading state |
-| 132 | `"Home"` | Breadcrumb |
-| 136 | `"Locations"` | Breadcrumb |
-| 149 | `"Expert Guide"` / `"Guides"` | Badge text |
-| 159 | `"Property & Lifestyle Guides"` | Hero subtitle |
-| 167 | `"Everything you need to know about..."` | Hero description |
-| 25-35 | Intent labels object | Card category badges |
-| 216 | `"5 min read"` | Read time |
-| 220 | `"Read Guide"` | Card CTA |
+---
 
-## Solution Overview
+## Solution
 
-### Step 1: Add Missing Translation Keys (All 10 Languages)
+### Step 1: Add Lifestyle Feature Translations (All 10 Languages)
 
-Add new keys to the `locationGuides` object in each translation file:
+Add a new `lifestyleFeatures` object inside `brochures.ui` for each language file:
 
-**New keys to add:**
+**Structure to add:**
 
 ```typescript
-locationGuides: {
-  // Existing keys...
-  
-  // NEW KEYS:
-  loadingGuides: "Loading guides...",
-  home: "Home",
-  locations: "Locations",
-  expertGuide: "Expert Guide",
-  expertGuides: "Expert Guides",
-  propertyLifestyleGuides: "Property & Lifestyle Guides",
-  heroDescription: "Everything you need to know about living, investing, and buying property in {city}, Costa del Sol.",
-  minRead: "min read",
-  readGuide: "Read Guide",
-  
-  // Intent type labels
-  intentLabels: {
-    buyingProperty: "Buying Guide",
-    bestAreasFamilies: "Best Areas for Families",
-    bestAreasInvestors: "Investment Areas",
-    bestAreasExpats: "Expat Guide",
-    bestAreasRetirees: "Retirement Guide",
-    costOfLiving: "Cost of Living",
-    costOfProperty: "Property Prices",
-    investmentGuide: "Investment Guide",
-    relocationGuide: "Relocation Guide",
+brochures: {
+  ui: {
+    // ...existing keys
+    lifestyleFeatures: {
+      golf: { title: "World-Class Golf", description: "Over 70 championship courses within 30 minutes" },
+      beach: { title: "Mediterranean Beaches", description: "Crystal-clear waters and golden sand coastlines" },
+      dining: { title: "Michelin Dining", description: "Award-winning restaurants and vibrant culinary scene" },
+      marina: { title: "Luxury Marinas", description: "Premier yacht clubs and nautical lifestyle" },
+      wellness: { title: "Wellness & Spa", description: "World-renowned wellness retreats and thermal spas" },
+      shopping: { title: "Designer Shopping", description: "Boutiques, galleries, and luxury retail experiences" },
+    }
   }
 }
 ```
 
-### Step 2: Update LocationIndex.tsx
+**Example translations:**
 
-1. Import `useTranslation` hook
-2. Replace all hardcoded strings with translation keys
-3. Use dynamic string replacement for `{city}` placeholders
+| Key | English | Dutch | German |
+|-----|---------|-------|--------|
+| golf.title | World-Class Golf | Wereldklasse Golf | Weltklasse-Golf |
+| golf.description | Over 70 championship courses within 30 minutes | Meer dan 70 kampioenschapsbanen binnen 30 minuten | Über 70 Meisterschaftsplätze in 30 Minuten |
+| beach.title | Mediterranean Beaches | Mediterrane Stranden | Mediterrane Strände |
+| dining.title | Michelin Dining | Michelin Restaurants | Michelin-Restaurants |
+| marina.title | Luxury Marinas | Luxe Jachthavens | Luxus-Jachthäfen |
+| wellness.title | Wellness & Spa | Wellness & Spa | Wellness & Spa |
+| shopping.title | Designer Shopping | Designer Shopping | Designer-Shopping |
 
-### Files to Modify
+---
+
+### Step 2: Update LifestyleFeatures.tsx Component
+
+Modify the component to use translations instead of hardcoded English:
+
+**Current (lines 33-40):**
+```typescript
+const DEFAULT_FEATURES: LifestyleFeature[] = [
+  { icon: 'golf', title: 'World-Class Golf', description: 'Over 70 championship courses within 30 minutes' },
+  { icon: 'beach', title: 'Mediterranean Beaches', description: 'Crystal-clear waters and golden sand coastlines' },
+  // ...more hardcoded English
+];
+```
+
+**New:**
+```typescript
+const lifestyleFeatures = ui.lifestyleFeatures || {};
+
+const DEFAULT_FEATURES: LifestyleFeature[] = [
+  { 
+    icon: 'golf', 
+    title: lifestyleFeatures.golf?.title || 'World-Class Golf', 
+    description: lifestyleFeatures.golf?.description || 'Over 70 championship courses within 30 minutes' 
+  },
+  { 
+    icon: 'beach', 
+    title: lifestyleFeatures.beach?.title || 'Mediterranean Beaches', 
+    description: lifestyleFeatures.beach?.description || 'Crystal-clear waters and golden sand coastlines' 
+  },
+  // ...continue for all 6 features
+];
+```
+
+---
+
+## Files to Modify
 
 | File | Changes |
 |------|---------|
-| `src/i18n/translations/en.ts` | Add new locationGuides keys |
-| `src/i18n/translations/de.ts` | Add German translations |
+| `src/i18n/translations/en.ts` | Add `lifestyleFeatures` object in `brochures.ui` |
 | `src/i18n/translations/nl.ts` | Add Dutch translations |
+| `src/i18n/translations/de.ts` | Add German translations |
 | `src/i18n/translations/fr.ts` | Add French translations |
 | `src/i18n/translations/fi.ts` | Add Finnish translations |
 | `src/i18n/translations/pl.ts` | Add Polish translations |
@@ -82,94 +102,16 @@ locationGuides: {
 | `src/i18n/translations/hu.ts` | Add Hungarian translations |
 | `src/i18n/translations/sv.ts` | Add Swedish translations |
 | `src/i18n/translations/no.ts` | Add Norwegian translations |
-| `src/pages/LocationIndex.tsx` | Use translations instead of hardcoded strings |
-
----
-
-## Technical Details
-
-### Translation Additions for Each Language
-
-**German (de.ts) example:**
-```typescript
-locationGuides: {
-  // ...existing keys
-  loadingGuides: "Guides werden geladen...",
-  home: "Startseite",
-  locations: "Standorte",
-  expertGuide: "Experten-Leitfaden",
-  expertGuides: "Experten-Leitfäden",
-  propertyLifestyleGuides: "Immobilien- & Lifestyle-Guides",
-  heroDescription: "Alles, was Sie über Leben, Investieren und Immobilienkauf in {city}, Costa del Sol, wissen müssen.",
-  minRead: "Min. Lesezeit",
-  readGuide: "Leitfaden Lesen",
-  intentLabels: {
-    buyingProperty: "Kaufleitfaden",
-    bestAreasFamilies: "Beste Gebiete für Familien",
-    bestAreasInvestors: "Investitionsgebiete",
-    bestAreasExpats: "Expat-Leitfaden",
-    bestAreasRetirees: "Ruhestandsleitfaden",
-    costOfLiving: "Lebenshaltungskosten",
-    costOfProperty: "Immobilienpreise",
-    investmentGuide: "Investitionsleitfaden",
-    relocationGuide: "Umzugsleitfaden",
-  }
-}
-```
-
-### LocationIndex.tsx Code Changes
-
-```typescript
-// Add import
-import { useTranslation } from "@/i18n/useTranslation";
-
-// Inside component
-const { t } = useTranslation();
-
-// Replace hardcoded intentLabels (lines 25-35)
-// Use: t.locationGuides.intentLabels
-
-// Loading state (line 70)
-// Change: "Loading guides..." 
-// To: {t.locationGuides.loadingGuides}
-
-// Breadcrumbs (lines 132, 136)
-// Change: "Home" → {t.locationGuides.home}
-// Change: "Locations" → {t.locationGuides.locations}
-
-// Badge (line 149)
-// Change: {pages.length === 1 ? 'Guide' : 'Guides'}
-// To: {pages.length === 1 ? t.locationGuides.expertGuide : t.locationGuides.expertGuides}
-
-// Hero subtitle (line 159)
-// Change: "Property & Lifestyle Guides"
-// To: {t.locationGuides.propertyLifestyleGuides}
-
-// Hero description (line 167)
-// Change: "Everything you need to know about..."
-// To: {t.locationGuides.heroDescription.replace('{city}', cityName)}
-
-// Card labels (line 196)
-// Use: t.locationGuides.intentLabels[intentKey] with proper mapping
-
-// Read time (line 216)
-// Change: "5 min read"
-// To: `5 ${t.locationGuides.minRead}`
-
-// Read Guide CTA (line 220)
-// Change: "Read Guide"
-// To: {t.locationGuides.readGuide}
-```
+| `src/components/brochures/LifestyleFeatures.tsx` | Use translations with fallbacks |
 
 ---
 
 ## Result
 
 After implementation:
-- The Location Index page at `/de/locations/benalmádena` will display:
-  - **German breadcrumbs:** "Startseite > Standorte > Benalmádena"
-  - **German hero:** "Benalmádena - Immobilien- & Lifestyle-Guides"
-  - **German description:** "Alles, was Sie über Leben, Investieren und Immobilienkauf..."
-  - **German badges:** "Kaufleitfaden", "Lebenshaltungskosten", etc.
+- `/nl/brochure/marbella` will show:
+  - "Wereldklasse Golf" instead of "World-Class Golf"
+  - "Meer dan 70 kampioenschapsbanen binnen 30 minuten" instead of the English description
+  - All 6 feature cards fully translated
 - Full parity across all 10 supported languages
-
+- Fallback to English if translations are missing (graceful degradation)
