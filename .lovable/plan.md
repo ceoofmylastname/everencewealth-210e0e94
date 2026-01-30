@@ -1,91 +1,86 @@
 
-# Unified Form Submission System with Admin Email Notifications
+# Fix Blog Article Count to Show Actual Amount
 
-## ✅ COMPLETED
+## Problem Identified
 
-All forms on the site now send data to the CRM lead routing system with admin email notifications.
+The dashboard shows "1,000" for Blog Articles because:
 
----
+1. **Supabase has a default limit of 1000 rows per query**
+2. The current code on line 125 of `useUnifiedDashboardStats.ts` fetches all articles to count them:
+   ```typescript
+   supabase.from('blog_articles').select('status, language, featured_image_url, external_citations, translations')
+   ```
+3. This returns only the first 1,000 rows, so all counts are capped
 
-## Changes Made
-
-### 1. TeamMemberContactForm.tsx
-- Added import for `registerCrmLead` utility
-- After saving to legacy `leads` table, now also calls `registerCrmLead` with:
-  - `leadSource`: "Website Form"
-  - `leadSourceDetail`: "team_member_contact_{memberName}_{language}"
-  - `pageType`: "team_page"
-  - `interest`: Team member being contacted
-
-### 2. useChatbot.ts
-- Added import for `registerCrmLead` utility  
-- After saving to `chatbot_conversations`, now also calls `registerCrmLead` with:
-  - `leadSource`: "Emma Chatbot"
-  - `leadSourceDetail`: "chatbot_embedded_{articleSlug}_{language}"
-  - `pageType`: "blog_article"
-  - `interest`: Conversation summary (property type, budget, area)
-
-### 3. send-lead-notification Edge Function
-- Added new notification type: `form_submission_alert`
-- Added `generateFormSubmissionAlertEmailHtml()` function
-- Template includes:
-  - Form name, page URL, language
-  - Contact details (name, phone, email)
-  - Form-specific data (budget, property type, locations, etc.)
-  - Source tracking (UTM parameters)
-  - Link to admin dashboard
-
-### 4. register-crm-lead Edge Function
-- Now sends admin form submission alert for ALL new leads
-- Gets all active admin agents and sends them form_submission_alert emails
-- Includes form metadata (name, data, UTM tracking)
-- Non-blocking - errors don't stop lead routing
+**Actual count in database: 3,271 articles** (all published)
 
 ---
 
-## Email Template: Form Submission Alert
+## Solution
 
+Replace full-row fetches with efficient `COUNT` queries using `{ count: 'exact', head: true }` which bypasses the 1000-row limit.
+
+---
+
+## Changes to `useUnifiedDashboardStats.ts`
+
+### Replace Article Data Fetching
+
+**Before:**
+```typescript
+// Articles by status
+supabase.from('blog_articles').select('status, language, featured_image_url, external_citations, translations'),
+
+// Articles by language count
+supabase.from('blog_articles').select('language').eq('status', 'published'),
 ```
-📬 NEW FORM SUBMISSION
-Form: {form_name}
-Page: {page_url}
-Language: {flag} {language}
-Time: {timestamp}
 
-Contact: {name} | {phone} | {email}
-Form Data: budget, property_type, locations, interest, message
+**After:**
+```typescript
+// Total articles count
+supabase.from('blog_articles').select('id', { count: 'exact', head: true }),
 
-Source Tracking: UTM Source, UTM Campaign
+// Article status counts
+supabase.from('blog_articles').select('id', { count: 'exact', head: true }).eq('status', 'published'),
+supabase.from('blog_articles').select('id', { count: 'exact', head: true }).eq('status', 'draft'),
+supabase.from('blog_articles').select('id', { count: 'exact', head: true }).eq('status', 'archived'),
 
-[📋 View in Admin Dashboard]
+// Content health counts
+supabase.from('blog_articles').select('id', { count: 'exact', head: true }).is('featured_image_url', null),
+supabase.from('blog_articles').select('id', { count: 'exact', head: true }).or('external_citations.is.null,external_citations.eq.[]'),
+
+// Language counts (one query per language)
+// Use efficient COUNT queries for each supported language
 ```
 
 ---
 
-## CRM Lead Data Fields
+## Implementation Summary
 
-All forms now send these standardized fields:
-
-| Field | Description |
-|-------|-------------|
-| `leadSource` | Category: "Website Form", "Emma Chatbot", "Landing Form" |
-| `leadSourceDetail` | Specific: "team_member_steven_en", "chatbot_embedded_slug_de" |
-| `pageType` | "team_page", "blog_article", "contact_page", "property_page" |
-| `pageUrl` | Full URL where form was submitted |
-| `pageTitle` | Document title of the page |
-| `language` | User's language code |
-| `referrer` | Previous page URL |
-| `message` | User's message/notes |
-| `interest` | Context: property name, team member, conversation summary |
+| Query | Before | After |
+|-------|--------|-------|
+| Total Articles | `select *` (capped at 1000) | `select id, count: exact, head: true` (no limit) |
+| By Status | Process 1000 rows client-side | Separate COUNT per status |
+| Missing Images | Process 1000 rows client-side | COUNT with `is('featured_image_url', null)` |
+| Missing Citations | Process 1000 rows client-side | COUNT with null/empty check |
+| By Language | `select language` (capped at 1000) | COUNT per language |
 
 ---
 
-## Verification Checklist
+## File to Modify
 
-After implementation, all these forms now:
-1. ✅ Team Member Contact Form → CRM lead + admin email
-2. ✅ Chatbot embedded form → CRM lead + admin email
-3. ✅ Contact Page form → CRM lead + admin email (already working)
-4. ✅ Landing page forms → CRM lead + admin email (already working)
-5. ✅ Property inquiry forms → CRM lead + admin email (already working)
-6. ✅ Brochure download forms → CRM lead + admin email (already working)
+| File | Changes |
+|------|---------|
+| `src/hooks/useUnifiedDashboardStats.ts` | Replace row-fetching queries with COUNT queries |
+
+---
+
+## Verification
+
+After fix, the dashboard will show:
+- **Blog Articles: 3,271** (actual count)
+- Correct status breakdown
+- Correct language distribution
+- Accurate content health metrics
+
+All counts will update in real-time as content is added/modified.
