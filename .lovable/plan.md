@@ -1,83 +1,200 @@
 
-Goal: Fix the mobile navbar overlay so it always opens in front of the page (especially on the Location Guides page), and ensure the language dropdown stays clickable and visible above the overlay.
 
-What’s happening (based on your screenshots + code review)
-- The mobile menu is rendered inside `src/components/home/Header.tsx` as a `position: fixed` element.
-- On some mobile browsers (commonly iOS/Safari, and sometimes Chrome with certain CSS effects), a “fixed” element can incorrectly behave like it’s constrained to an ancestor when that ancestor (or a nearby ancestor) has effects like `backdrop-filter` / “glass” styling.
-- Result: the menu appears “behind” / doesn’t cover the full page, even though the close (X) button shows.
+# Mobile UI Optimization for Brochure Pages
 
-Why the previous z-index tweak wasn’t enough
-- We changed `z-40 → z-[45]`, but the screenshots show the menu still not fully overlaying the page.
-- This strongly suggests a “fixed positioning containing block / stacking context” issue (not just z-index).
+## Issues Identified
 
-Implementation approach (robust fix)
-We’ll move the Mobile Menu overlay out of the header DOM tree by rendering it in a portal attached to `document.body`. This avoids browser quirks where “fixed” gets constrained by an ancestor with blur/filter/backdrop effects.
+Based on your screenshots, I can clearly see the text overlap problem on the Marbella brochure page:
 
-Files to change
-1) `src/components/home/Header.tsx`
-2) `src/components/LanguageSwitcher.tsx` (small improvement to dropdown z-index/background so it remains usable above overlays)
-3) `src/components/ContentLanguageSwitcher.tsx` (same improvement for its dropdown)
+| Element | Current Position | Problem |
+|---------|------------------|---------|
+| Trust Signals (API Registered, 35+ Years, 1000+ Buyers) | `top-20` (80px) | Renders on same vertical space as breadcrumb on mobile |
+| Breadcrumb (Home > Locations > Marbella) | `top-32` (128px) | Only 48px gap from trust signals - too close on small screens |
+| Trust signals wrap to 2 lines on narrow screens | - | Creates overlap with breadcrumb below |
 
-Step-by-step changes
+The Header component is `position: fixed` and takes approximately 80px of height. On mobile, the trust signals start at 80px from top, but the breadcrumb is only 48px below - when trust signals wrap to multiple lines, they overlap.
 
-A) Render the mobile overlay using a React Portal (Header.tsx)
-- Import `createPortal` from `react-dom`.
-- Replace the current inline “Mobile Menu - CSS animated” `<div className="fixed inset-0 ...">` with a component that returns a portal:
-  - `createPortal(<div className="fixed inset-0 ...">...</div>, document.body)`
-- Add a defensive guard for environments where `document` doesn’t exist:
-  - if `typeof document === 'undefined'`, render nothing (or render inline fallback).
+---
 
-B) Adjust layering (z-index) so it always sits above page content
-- Keep the header itself on top so the hamburger/X remains tappable:
-  - Header root: change `z-50` → `z-[100]`
-  - Mobile overlay: use something like `z-[90]`
-- This ensures:
-  - Overlay covers all page content
-  - Header stays above overlay controls (if we keep the close button in the header)
+## Solution: Mobile-Optimized Brochure Hero
 
-C) Ensure overlay is fully opaque (not see-through)
-- Keep `bg-card` (it maps to a solid color via CSS variables) or switch to `bg-background`.
-- Avoid using transparent backgrounds on the full-screen overlay.
-- If we want a slightly “premium” look, we can do `bg-background/95 backdrop-blur` but only if you explicitly want a semi-transparent overlay. For your issue, we’ll keep it opaque.
+### 1. Fix Trust Signals & Breadcrumb Overlap
 
-D) Prevent the underlying page from scrolling when the menu is open
-- Add a `useEffect` tied to `isMobileMenuOpen`:
-  - when open: `document.body.style.overflow = 'hidden'`
-  - when closed/cleanup: restore `document.body.style.overflow = ''`
-- This makes the menu feel “native” and prevents accidental page scrolling behind it.
+**File:** `src/components/brochures/BrochureHero.tsx`
 
-E) Make language dropdowns reliably appear above everything (Language switcher improvements)
-This is important once the overlay has a higher z-index. Some dropdown components render in a portal and use `z-50` by default; if our overlay is `z-[90]`, the dropdown could appear behind it unless we raise dropdown z-index.
+- Hide trust signals on mobile (they already appear in the header area site-wide)
+- On mobile, only show the breadcrumb positioned lower to avoid header overlap
+- Keep trust signals visible on desktop (`md:flex`)
 
-- `src/components/LanguageSwitcher.tsx`
-  - Add an explicit class to `SelectContent`, e.g.:
-    - `className="bg-popover border border-border z-[120]"`
-  - This also addresses the “dropdowns becoming see-through” issue.
+**Current (lines 100-116):**
+```tsx
+<div className={`absolute top-20 left-0 right-0 z-20 ...`}>
+  <div className="flex flex-wrap items-center justify-center gap-6 md:gap-10">
+```
 
-- `src/components/ContentLanguageSwitcher.tsx`
-  - Its `DropdownMenuContent` already sets `bg-popover ... z-50`
-  - Increase to `z-[120]` to ensure it always appears above the overlay.
+**Change to:**
+```tsx
+<div className={`absolute top-24 left-0 right-0 z-20 ... hidden md:block`}>
+  <div className="flex items-center justify-center gap-10">
+```
 
-How we’ll confirm it’s fixed (acceptance checks)
-1) On mobile, go to `/en/locations`
-   - Tap hamburger
-   - Menu should cover the entire viewport (no page visible behind it)
-   - You can scroll the menu if needed
-   - Tap X to close
+- Add `hidden md:block` to hide trust signals on mobile
+- Increase desktop top position to `top-24` for better spacing below header
 
-2) Repeat on a few other pages (like `/en/properties`, blog, brochure pages)
-   - Confirm consistent behavior
+### 2. Fix Breadcrumb Mobile Positioning
 
-3) Language switching
-   - Open mobile menu → open Language dropdown → pick another language
-   - Confirm it routes correctly (e.g. `/en/locations` → `/<newlang>/locations`)
-   - Confirm dropdown is visible and clickable (not behind anything)
+**File:** `src/components/brochures/BrochureHero.tsx` (lines 118-133)
 
-Notes / edge cases we’ll handle
-- If `createPortal` is unavailable or `document` is undefined, we’ll fail gracefully.
-- We’ll keep the change scoped to the site header (won’t affect CRM/admin layouts).
-- We’ll keep dropdowns with solid backgrounds and high z-index to avoid transparency/stacking issues.
+**Current:**
+```tsx
+<div className={`absolute top-32 left-0 right-0 z-20 ...`}>
+```
 
-Scope summary
-- Primary fix: portal-based mobile menu overlay + z-index layering + scroll lock
-- Secondary reliability: raise language dropdown z-index so it always works “perfectly” on mobile even when overlays are open
+**Change to:**
+```tsx
+<div className={`absolute top-20 md:top-36 left-0 right-0 z-20 ...`}>
+```
+
+- Mobile: `top-20` (80px) - right below header
+- Desktop: `top-36` (144px) - below trust signals bar
+
+### 3. Improve Main Content Mobile Padding
+
+**File:** `src/components/brochures/BrochureHero.tsx` (line 136)
+
+**Current:**
+```tsx
+<div className="relative z-10 container mx-auto px-4 text-center pt-40 pb-32">
+```
+
+**Change to:**
+```tsx
+<div className="relative z-10 container mx-auto px-4 text-center pt-32 md:pt-48 pb-24 md:pb-32">
+```
+
+- Reduce mobile top padding since we removed the trust signals bar
+- Reduce mobile bottom padding for better proportions
+
+### 4. Optimize Hero Headline Font Sizes
+
+**File:** `src/components/brochures/BrochureHero.tsx` (line 146)
+
+**Current:**
+```tsx
+<h1 className="font-serif text-4xl md:text-5xl lg:text-6xl xl:text-7xl ...">
+```
+
+**Change to:**
+```tsx
+<h1 className="font-serif text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl ...">
+```
+
+- Add smaller base size (`text-3xl`) for narrow mobile screens
+- Add intermediate `sm:text-4xl` breakpoint
+
+### 5. Optimize CTA Buttons for Mobile
+
+**File:** `src/components/brochures/BrochureHero.tsx` (lines 199-223)
+
+**Current:**
+```tsx
+<div className="flex flex-col sm:flex-row gap-4 ...">
+  <Button ... className="... px-10 py-7 ...">
+```
+
+**Change to:**
+```tsx
+<div className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full sm:w-auto max-w-md mx-auto sm:max-w-none ...">
+  <Button ... className="... px-6 sm:px-10 py-5 sm:py-7 w-full sm:w-auto text-sm sm:text-base ...">
+```
+
+- Constrain button width on mobile with `max-w-md`
+- Reduce padding on mobile
+- Smaller font size on mobile
+
+---
+
+## Additional Mobile Optimizations
+
+### 6. Investment Highlights Stats - Better Mobile Grid
+
+**File:** `src/components/brochures/InvestmentHighlights.tsx` (line 136)
+
+**Current:**
+```tsx
+<div className="grid grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
+```
+
+**Change to:**
+```tsx
+<div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 lg:gap-8">
+```
+
+- Tighter gaps on mobile for better fit
+
+### 7. Investment Stats - Smaller Mobile Values
+
+**File:** `src/components/brochures/InvestmentHighlights.tsx` (line 157)
+
+**Current:**
+```tsx
+<div className="text-4xl md:text-5xl font-serif font-bold ...">
+```
+
+**Change to:**
+```tsx
+<div className="text-3xl sm:text-4xl md:text-5xl font-serif font-bold ...">
+```
+
+- Smaller stat values on narrow mobile screens
+
+### 8. Lifestyle Features - Better Mobile Padding
+
+**File:** `src/components/brochures/LifestyleFeatures.tsx` (line 73)
+
+**Current:**
+```tsx
+<div className="h-full p-8 rounded-2xl ...">
+```
+
+**Change to:**
+```tsx
+<div className="h-full p-5 sm:p-6 md:p-8 rounded-xl sm:rounded-2xl ...">
+```
+
+- Reduced padding on mobile
+- Smaller border radius on mobile
+
+### 9. Opt-in Form - Mobile Responsiveness
+
+**File:** `src/components/brochures/BrochureOptInForm.tsx** (line 249)
+
+**Current:**
+```tsx
+<form ... className="... p-8 md:p-10 ...">
+```
+
+**Change to:**
+```tsx
+<form ... className="... p-5 sm:p-8 md:p-10 ...">
+```
+
+- Reduced form padding on small mobile screens
+
+---
+
+## Summary of Changes
+
+| File | Changes |
+|------|---------|
+| `BrochureHero.tsx` | Hide trust signals on mobile, fix breadcrumb positioning, optimize headline sizes, improve CTA buttons |
+| `InvestmentHighlights.tsx` | Smaller gaps and font sizes on mobile |
+| `LifestyleFeatures.tsx` | Reduced padding on mobile |
+| `BrochureOptInForm.tsx` | Reduced form padding on mobile |
+
+These changes will:
+1. **Eliminate the text overlap** between trust signals and breadcrumb
+2. **Improve readability** with appropriately sized text
+3. **Better touch targets** with properly sized buttons
+4. **Better spacing** throughout the page on mobile devices
+
