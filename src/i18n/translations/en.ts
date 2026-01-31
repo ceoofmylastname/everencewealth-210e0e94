@@ -422,6 +422,117 @@ export const en = {
       successDescription: "We'll get back to you soon."
     }
   },
+  contact: {
+    meta: {
+      title: "Contact Del Sol Prime Homes | Costa del Sol Real Estate",
+      description: "Get in touch with our expert real estate team. WhatsApp, email, or call us for personalized property guidance on the Costa del Sol."
+    },
+    hero: {
+      headline: "Get in Touch",
+      subheadline: "We're here to help you find your perfect Costa del Sol property"
+    },
+    options: {
+      fastestResponse: "Fastest Response",
+      whatsapp: {
+        title: "Chat on WhatsApp",
+        description: "Get instant responses from our team",
+        cta: "Open WhatsApp",
+        prefill: "Hi, I'm interested in Costa del Sol properties. Can you help me?"
+      },
+      email: {
+        title: "Send Us an Email",
+        description: "We'll respond within 24 hours",
+        cta: "Send Email"
+      },
+      phone: {
+        title: "Call Our Office",
+        description: "Speak directly with an advisor",
+        cta: "Call Now"
+      }
+    },
+    form: {
+      headline: "Send Us a Message",
+      subheadline: "Fill out the form and we'll get back to you shortly",
+      fields: {
+        fullName: "Full Name",
+        email: "Email Address",
+        phone: "Phone Number (Optional)",
+        language: "Preferred Language",
+        subject: "Subject",
+        message: "Your Message",
+        referral: "How did you hear about us? (Optional)",
+        privacy: "I agree to the Privacy Policy and consent to processing of my data.",
+        privacyLink: "Privacy Policy"
+      },
+      subjects: {
+        general: "General Inquiry",
+        property: "Property Inquiry",
+        selling: "Selling My Property",
+        viewing: "Schedule a Viewing",
+        other: "Other"
+      },
+      referrals: {
+        google: "Google Search",
+        socialMedia: "Social Media",
+        referral: "Friend/Family Referral",
+        advertisement: "Online Advertisement",
+        other: "Other"
+      },
+      submit: "Send Message",
+      submitting: "Sending...",
+      validation: {
+        requiredFields: "Please fill in all required fields"
+      },
+      error: {
+        title: "Something went wrong",
+        description: "Please try again or contact us via WhatsApp."
+      },
+      success: {
+        title: "Message Sent!",
+        description: "Thank you for contacting us. We'll respond within 24 hours."
+      }
+    },
+    office: {
+      headline: "Visit Our Office",
+      addressTitle: "Office Address",
+      hours: {
+        title: "Office Hours",
+        weekdays: "Monday - Friday",
+        saturday: "Saturday",
+        sunday: "Sunday",
+        closed: "Closed",
+        timezone: "Central European Time (CET)"
+      },
+      directions: "Get Directions"
+    },
+    faq: {
+      headline: "Frequently Asked Questions",
+      items: [
+        {
+          question: "How quickly will you respond?",
+          answer: "We aim to respond to all inquiries within 24 hours during business days. WhatsApp messages typically receive faster responses."
+        },
+        {
+          question: "Do you speak my language?",
+          answer: "Yes! Our team speaks 10+ languages including English, Dutch, German, French, Swedish, Norwegian, Danish, Finnish, Polish, and Hungarian."
+        },
+        {
+          question: "Can I schedule a video call?",
+          answer: "Absolutely! Contact us via WhatsApp or email to arrange a convenient time for a video consultation with one of our property experts."
+        },
+        {
+          question: "What areas do you cover?",
+          answer: "We specialize in the entire Costa del Sol region, from Málaga to Sotogrande, including Marbella, Estepona, Fuengirola, Benalmádena, and Mijas."
+        }
+      ]
+    },
+    emma: {
+      badge: "AI-Powered",
+      callout: "Prefer instant answers?",
+      cta: "Chat with Emma, our AI assistant",
+      buttonText: "Chat with Emma"
+    }
+  },
   aboutUs: {
     meta: {
       title: "About Del Sol Prime Homes | Costa del Sol Real Estate Experts",

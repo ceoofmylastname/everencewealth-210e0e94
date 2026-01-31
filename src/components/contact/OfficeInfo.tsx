@@ -7,6 +7,7 @@ import { COMPANY_ADDRESS, COMPANY_HOURS } from '@/constants/company';
 interface OfficeTranslations {
   office: {
     headline: string;
+    addressTitle?: string;
     hours: {
       title: string;
       weekdays: string;
@@ -81,7 +82,9 @@ export const OfficeInfo: React.FC<OfficeInfoProps> = ({ t }) => {
                   <MapPin className="w-6 h-6 text-primary" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-foreground text-lg mb-2">Office Address</h3>
+                  <h3 className="font-semibold text-foreground text-lg mb-2">
+                    {t.office.addressTitle || 'Office Address'}
+                  </h3>
                   <p className="text-muted-foreground leading-relaxed">
                     {COMPANY_ADDRESS.building}<br />
                     {COMPANY_ADDRESS.street}, {COMPANY_ADDRESS.floor}<br />

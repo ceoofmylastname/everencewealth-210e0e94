@@ -6,6 +6,7 @@ import { COMPANY_CONTACT } from '@/constants/company';
 
 interface ContactOptionsTranslations {
   options: {
+    fastestResponse?: string;
     whatsapp: {
       title: string;
       description: string;
@@ -57,7 +58,7 @@ export const ContactOptions: React.FC<ContactOptionsProps> = ({ t }) => {
               {/* Primary badge */}
               <div className="absolute -top-3 left-1/2 -translate-x-1/2">
                 <span className="bg-green-500 text-white text-xs font-semibold px-3 py-1 rounded-full">
-                  Fastest Response
+                  {t.options.fastestResponse || 'Fastest Response'}
                 </span>
               </div>
               

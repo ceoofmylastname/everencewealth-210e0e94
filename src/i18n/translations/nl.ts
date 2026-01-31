@@ -434,6 +434,117 @@ export const nl = {
       successDescription: "We nemen spoedig contact met u op."
     }
   },
+  contact: {
+    meta: {
+      title: "Contact Del Sol Prime Homes | Costa del Sol Vastgoed",
+      description: "Neem contact op met ons deskundige vastgoedteam. WhatsApp, e-mail of bel ons voor persoonlijk vastgoedadvies aan de Costa del Sol."
+    },
+    hero: {
+      headline: "Neem Contact Op",
+      subheadline: "Wij helpen u graag bij het vinden van uw perfecte woning aan de Costa del Sol"
+    },
+    options: {
+      fastestResponse: "Snelste Reactie",
+      whatsapp: {
+        title: "Chat op WhatsApp",
+        description: "Ontvang direct antwoord van ons team",
+        cta: "Open WhatsApp",
+        prefill: "Hallo, ik ben geïnteresseerd in woningen aan de Costa del Sol. Kunt u mij helpen?"
+      },
+      email: {
+        title: "Stuur Ons een E-mail",
+        description: "Wij reageren binnen 24 uur",
+        cta: "Verstuur E-mail"
+      },
+      phone: {
+        title: "Bel Ons Kantoor",
+        description: "Spreek direct met een adviseur",
+        cta: "Bel Nu"
+      }
+    },
+    form: {
+      headline: "Stuur Ons een Bericht",
+      subheadline: "Vul het formulier in en wij nemen spoedig contact met u op",
+      fields: {
+        fullName: "Volledige Naam",
+        email: "E-mailadres",
+        phone: "Telefoonnummer (Optioneel)",
+        language: "Voorkeurstaal",
+        subject: "Onderwerp",
+        message: "Uw Bericht",
+        referral: "Hoe heeft u ons gevonden? (Optioneel)",
+        privacy: "Ik ga akkoord met het Privacybeleid en geef toestemming voor de verwerking van mijn gegevens.",
+        privacyLink: "Privacybeleid"
+      },
+      subjects: {
+        general: "Algemene Vraag",
+        property: "Vastgoedvraag",
+        selling: "Mijn Woning Verkopen",
+        viewing: "Bezichtiging Plannen",
+        other: "Anders"
+      },
+      referrals: {
+        google: "Google Zoeken",
+        socialMedia: "Sociale Media",
+        referral: "Vrienden/Familie Aanbeveling",
+        advertisement: "Online Advertentie",
+        other: "Anders"
+      },
+      submit: "Verstuur Bericht",
+      submitting: "Verzenden...",
+      validation: {
+        requiredFields: "Vul alle verplichte velden in"
+      },
+      error: {
+        title: "Er is iets misgegaan",
+        description: "Probeer het opnieuw of neem contact met ons op via WhatsApp."
+      },
+      success: {
+        title: "Bericht Verzonden!",
+        description: "Bedankt voor uw bericht. Wij reageren binnen 24 uur."
+      }
+    },
+    office: {
+      headline: "Bezoek Ons Kantoor",
+      addressTitle: "Kantooradres",
+      hours: {
+        title: "Openingstijden",
+        weekdays: "Maandag - Vrijdag",
+        saturday: "Zaterdag",
+        sunday: "Zondag",
+        closed: "Gesloten",
+        timezone: "Midden-Europese Tijd (CET)"
+      },
+      directions: "Route Plannen"
+    },
+    faq: {
+      headline: "Veelgestelde Vragen",
+      items: [
+        {
+          question: "Hoe snel reageert u?",
+          answer: "Wij streven ernaar alle vragen binnen 24 uur te beantwoorden op werkdagen. WhatsApp-berichten krijgen doorgaans een snellere reactie."
+        },
+        {
+          question: "Spreekt u mijn taal?",
+          answer: "Ja! Ons team spreekt meer dan 10 talen waaronder Engels, Nederlands, Duits, Frans, Zweeds, Noors, Deens, Fins, Pools en Hongaars."
+        },
+        {
+          question: "Kan ik een videogesprek plannen?",
+          answer: "Absoluut! Neem contact met ons op via WhatsApp of e-mail om een geschikt moment af te spreken voor een videoconsult met een van onze vastgoedexperts."
+        },
+        {
+          question: "Welke gebieden bedienen jullie?",
+          answer: "Wij zijn gespecialiseerd in de hele Costa del Sol regio, van Málaga tot Sotogrande, inclusief Marbella, Estepona, Fuengirola, Benalmádena en Mijas."
+        }
+      ]
+    },
+    emma: {
+      badge: "AI-Aangedreven",
+      callout: "Liever direct antwoord?",
+      cta: "Chat met Emma, onze AI-assistent",
+      buttonText: "Chat met Emma"
+    }
+  },
   aboutUs: {
     meta: {
       title: "Over Del Sol Prime Homes | Costa del Sol Vastgoedexperts",
