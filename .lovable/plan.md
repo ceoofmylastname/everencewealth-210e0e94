@@ -1,179 +1,137 @@
 
-# Fix Property Pagination - Show All 421 Properties
+# Fix Price Filtering for New Development Properties
 
-## Problem Analysis
+## Problem Identified
 
-The property search has mismatched pagination:
-- **Edge Function**: Requests `pageSize: 500` from the API
-- **Frontend UI**: Displays pagination assuming 20 items per page
-- **Result**: Only showing the first batch of properties, no way to see all 421
+The Resales Online API uses **overlapping range matching** for New Development properties. When filtering for €500,000 - €750,000:
 
-The current pagination buttons exist but are broken because:
-1. They calculate pages based on 20-item pages
-2. Clicking "Next" triggers a new API call that **replaces** all properties instead of **appending**
-3. The API is already returning all properties in one 500-item page, but they're all being displayed
+- **API returns** properties where **any unit** falls in that range
+- **Display shows** the **minimum** starting price (e.g., €215,000)
+- **Result**: Properties appear with prices below the user's selected minimum
 
-After reviewing the code, the actual issue is that the frontend is displaying all properties from the response array. The pagination is purely visual but broken. Users should be able to see all 421 properties either by:
-- Option A: "Load More" button (progressive loading)
-- Option B: Display all properties at once (simple fix)
-
-Since we're already fetching up to 500 properties per request and the API total is 421, we can display all at once.
+### Example:
+Property R5074729:
+- Range: €215,000 - €558,000
+- Matches filter because €558,000 ≤ €750,000
+- But displays as "From €215,000" which confuses users
 
 ---
 
-## Changes Overview
+## Solution: Add Frontend Price Validation
 
-### 1. Edge Function: Return QueryId for Multi-Page Support
+Apply strict price filtering on the frontend to only show properties where the **displayed price** meets the user's criteria.
+
+### Logic:
+```text
+For each property:
+  displayedPrice = property.price (the minimum/starting price)
+  
+  If user set priceMin:
+    - For new developments: check if priceMax >= priceMin (any unit available in range)
+    - For resales: check if price >= priceMin
+  
+  If user set priceMax:
+    - Check if displayedPrice <= priceMax (starting price within budget)
+```
+
+---
+
+## Changes Required
+
+### 1. Update `PropertyFinder.tsx` - Add Price Filter After API Response
+
+**File**: `src/pages/PropertyFinder.tsx`
+
+Add a filter function after receiving properties from the API:
+
+```typescript
+// After receiving properties from API
+const filterPropertiesByDisplayedPrice = (
+  properties: Property[], 
+  filters: { priceMin?: number; priceMax?: number }
+) => {
+  return properties.filter(property => {
+    const minPrice = property.price; // Starting/displayed price
+    const maxPrice = property.priceMax || property.price; // Highest price in range
+    
+    // If user set a minimum price filter
+    if (filters.priceMin) {
+      // For developments with price ranges: at least one unit must be >= priceMin
+      // This means the maxPrice must be >= priceMin
+      if (maxPrice < filters.priceMin) {
+        return false;
+      }
+    }
+    
+    // If user set a maximum price filter
+    if (filters.priceMax) {
+      // The starting price must be <= priceMax (user can afford at least the entry unit)
+      if (minPrice > filters.priceMax) {
+        return false;
+      }
+    }
+    
+    return true;
+  });
+};
+```
+
+**Apply the filter in searchProperties function** (around line 125-150):
+
+```typescript
+// After: const properties = data.properties || [];
+// Add:
+const filteredProperties = filterPropertiesByDisplayedPrice(properties, {
+  priceMin: params.priceMin,
+  priceMax: params.priceMax,
+});
+
+// Use filteredProperties instead of properties
+setProperties(filteredProperties);
+setTotal(data.total); // Keep original total for transparency
+```
+
+---
+
+### 2. Update Edge Function to Pass Through priceMax Properly
 
 **File**: `supabase/functions/search-properties/index.ts`
 
-Capture and return `QueryId` from API response for future pagination:
+Ensure `priceMax` is extracted from API response (already done in `normalizeProperty`):
 
-```javascript
-// In callProxySearch function, also return queryId
-return {
-  properties: data.Property || data.properties || [],
-  total: data.QueryInfo?.PropertyCount || data.total || 0,
-  queryId: data.QueryInfo?.QueryId || null,
-};
-
-// In response, include queryId
-return new Response(
-  JSON.stringify({
-    properties,
-    total: total,
-    page,
-    pageSize: limit,
-    queryId: queryId,
-  }),
-  ...
-);
+```typescript
+priceMax: raw.PriceMax ? parseInt(raw.PriceMax) : undefined,
 ```
+
+This is already implemented correctly.
 
 ---
 
-### 2. Frontend: Implement "Load More" Button
+### 3. Update Property Card to Show Relevant Price Info
 
-**File**: `src/pages/PropertyFinder.tsx`
+**File**: `src/components/property/PropertyCard.tsx`
 
-Replace the broken page-based pagination with a "Load More" button that appends results:
+Enhance `formatPrice` to show price ranges more clearly:
 
-#### State Changes:
-```javascript
-const [properties, setProperties] = useState<Property[]>([]);
-const [isLoadingMore, setIsLoadingMore] = useState(false);
-const [hasMore, setHasMore] = useState(false);
-const [currentQueryId, setCurrentQueryId] = useState<string | null>(null);
-```
-
-#### New loadMore Function:
-```javascript
-const loadMoreProperties = async () => {
-  if (!hasMore || isLoadingMore) return;
+```typescript
+const formatPrice = (price: number, priceMax: number | undefined, currency: string) => {
+  const formatter = new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: currency || 'EUR',
+    maximumFractionDigits: 0,
+  });
   
-  setIsLoadingMore(true);
-  try {
-    const params = getInitialParams();
-    const nextPage = page + 1;
-    
-    const { data, error } = await supabase.functions.invoke("search-properties", {
-      body: {
-        ...params,
-        page: nextPage,
-        queryId: currentQueryId,
-        lang: validCurrentLanguage,
-      },
-    });
-    
-    if (error) throw error;
-    
-    // APPEND to existing properties
-    setProperties(prev => [...prev, ...(data.properties || [])]);
-    setPage(nextPage);
-    setHasMore(properties.length + data.properties.length < total);
-  } catch (error) {
-    console.error("Error loading more properties:", error);
-  } finally {
-    setIsLoadingMore(false);
+  // If there's a price range (new development)
+  if (priceMax && priceMax > price) {
+    return `From ${formatter.format(price)}`;
   }
-};
-```
-
-#### Update searchProperties to Set hasMore:
-```javascript
-const searchProperties = async (params: PropertySearchParams, pageNum: number = 1) => {
-  // ... existing code ...
   
-  // After setting properties:
-  setHasMore(data.properties.length < data.total);
-  setCurrentQueryId(data.queryId || null);
+  // Single price (resale)
+  return formatter.format(price);
 };
 ```
 
----
-
-### 3. Replace Pagination UI with "Load More" Button
-
-**File**: `src/pages/PropertyFinder.tsx`
-
-Replace the pagination section (lines 397-460) with:
-
-```jsx
-{/* Load More Button */}
-{hasMore && !isLoading && (
-  <motion.div 
-    initial={{ opacity: 0, y: 20 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ delay: 0.3 }}
-    className="flex flex-col items-center gap-4 mt-12"
-  >
-    <p className="text-sm text-muted-foreground">
-      {t.results.showing} {properties.length} {t.results.of} {total.toLocaleString()} {t.results.properties}
-    </p>
-    <Button
-      onClick={loadMoreProperties}
-      disabled={isLoadingMore}
-      className="rounded-xl px-8 py-3 bg-gradient-to-r from-primary to-amber-600 hover:from-primary/90 hover:to-amber-600/90 text-primary-foreground font-semibold shadow-lg shadow-primary/25"
-    >
-      {isLoadingMore ? (
-        <span className="flex items-center gap-2">
-          <span className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
-          Loading...
-        </span>
-      ) : (
-        `Load More Properties (${total - properties.length} remaining)`
-      )}
-    </Button>
-  </motion.div>
-)}
-
-{/* All Loaded State */}
-{!hasMore && properties.length > 0 && (
-  <div className="text-center mt-12">
-    <p className="text-sm text-muted-foreground">
-      ✓ Showing all {properties.length.toLocaleString()} {t.results.properties}
-    </p>
-  </div>
-)}
-```
-
----
-
-### 4. Add Translation Keys for Load More
-
-**File**: `src/i18n/translations/propertyFinder/en.ts` (and all language files)
-
-Add to `pagination` section:
-```javascript
-pagination: {
-  previous: "Previous",
-  next: "Next",
-  page: "Page",
-  loadMore: "Load More Properties",
-  remaining: "remaining",
-  showingAll: "Showing all"
-}
-```
+This is already implemented - no changes needed.
 
 ---
 
@@ -181,17 +139,27 @@ pagination: {
 
 | File | Change |
 |------|--------|
-| `search-properties/index.ts` | Return queryId for pagination continuity |
-| `PropertyFinder.tsx` | Add Load More logic, replace page navigation |
-| `src/i18n/translations/propertyFinder/*.ts` | Add loadMore translation keys |
+| `PropertyFinder.tsx` | Add `filterPropertiesByDisplayedPrice()` function to filter properties client-side based on displayed price |
+| `search-properties/index.ts` | No changes needed - already passes `priceMax` |
+| `PropertyCard.tsx` | No changes needed - already displays "From €X" for ranges |
 
 ---
 
 ## Expected Behavior After Changes
 
-1. **Initial load** shows first batch of properties (up to 500)
-2. **"Load More" button** appears if total > loaded count
-3. Clicking "Load More" **appends** more properties to the list
-4. **Progress indicator** shows "Showing X of Y properties"
-5. When all loaded, shows "Showing all 421 properties"
-6. Users can now access all 421 available properties
+| Scenario | Before | After |
+|----------|--------|-------|
+| Filter €500k-€750k | Shows €215k properties | Only shows properties where starting price ≤ €750k AND ending price ≥ €500k |
+| Property R5074729 | ❌ Shows (confusing) | ❌ Hidden (starting price €215k < €500k filter, but max €558k would need display) |
+| Property with €480k-€700k | Shows "From €480k" | Shows "From €480k" (max €700k ≥ €500k) |
+
+---
+
+## Alternative Approach (For Consideration)
+
+Instead of hiding properties, we could **show the relevant price range** within the user's filter:
+
+- Property with €215k - €558k, filter €500k - €750k
+- Display: "€500,000 - €558,000 available" (intersection of ranges)
+
+This would require more complex UI changes but provides better transparency. Let me know if you'd prefer this approach.
