@@ -58,43 +58,44 @@ export const RetargetingHero = ({ language = "en" }: RetargetingHeroProps) => {
       <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-white/5 rounded-full blur-3xl" />
 
       {/* Content */}
-      <div className="relative z-10 max-w-[900px] mx-auto px-6 text-center">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
-        >
-          <h1 
-            className="font-serif text-[32px] md:text-[48px] lg:text-[56px] leading-tight text-white mb-6"
-            style={{ 
-              textShadow: "0 0 10px rgb(0 0 0), 0 0 30px rgb(0 0 0), 0 0 60px rgb(0 0 0 / 80%), 0 4px 4px rgb(0 0 0)" 
-            }}
+      <div className="relative z-10 container mx-auto px-5 sm:px-6 text-white">
+        <div className="max-w-4xl mx-auto lg:mx-0">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
           >
-            {t.heroH1}
-          </h1>
-        </motion.div>
-        
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.4, ease: "easeOut" }}
-        >
-          <p 
-            className="text-lg md:text-xl text-white/90 font-light mb-10 max-w-[700px] mx-auto leading-relaxed"
-            style={{ 
-              textShadow: "0 2px 10px rgb(0 0 0 / 50%)" 
-            }}
+            <h1 
+              className="font-serif text-2xl sm:text-3xl md:text-5xl lg:text-[64px] font-bold leading-tight text-white mb-4 sm:mb-6 drop-shadow-xl text-center lg:text-left"
+              style={{ 
+                textShadow: "0 0 10px rgb(0 0 0), 0 0 30px rgb(0 0 0), 0 0 60px rgb(0 0 0 / 80%), 0 4px 4px rgb(0 0 0)" 
+              }}
+            >
+              {t.heroH1}
+            </h1>
+          </motion.div>
+          
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.4, ease: "easeOut" }}
           >
-            {t.heroSubheadline}
-          </p>
-        </motion.div>
-        
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.6, ease: "easeOut" }}
-          className="flex flex-col items-center gap-4"
-        >
+            <p 
+              className="text-base sm:text-lg md:text-xl lg:text-2xl text-white/95 font-light mb-8 sm:mb-10 leading-relaxed max-w-2xl text-center lg:text-left drop-shadow-md mx-auto lg:mx-0"
+              style={{ 
+                textShadow: "0 2px 10px rgb(0 0 0 / 50%)" 
+              }}
+            >
+              {t.heroSubheadline}
+            </p>
+          </motion.div>
+          
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.6, ease: "easeOut" }}
+            className="flex flex-col items-center lg:items-start gap-3 sm:gap-6"
+          >
           {/* Video button - only show if video exists for this language */}
           {hasVideo && (
             <Button
@@ -126,14 +127,15 @@ export const RetargetingHero = ({ language = "en" }: RetargetingHeroProps) => {
           </p>
         </motion.div>
 
-        {/* Video Modal - only render if video URL exists */}
-        {hasVideo && videoUrl && (
-          <RetargetingVideoModal
-            isOpen={isVideoOpen}
-            onClose={() => setIsVideoOpen(false)}
-            videoUrl={videoUrl}
-          />
-        )}
+          {/* Video Modal - only render if video URL exists */}
+          {hasVideo && videoUrl && (
+            <RetargetingVideoModal
+              isOpen={isVideoOpen}
+              onClose={() => setIsVideoOpen(false)}
+              videoUrl={videoUrl}
+            />
+          )}
+        </div>
       </div>
 
       {/* Scroll Indicator */}
