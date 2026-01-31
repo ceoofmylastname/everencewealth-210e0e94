@@ -1,151 +1,71 @@
 
 
-# Fix Default Property Filter: New Developments First
+# Fix New Developments Filter - Correct API Parameter
 
-## Problem Summary
+## Problem Root Cause
 
-Currently, the Property Finder page loads with a default "Sales" filter showing all resales + new developments mixed together. The requirement is:
+The proxy server is ignoring the `newDevelopment=true` parameter because:
 
-1. **Default to "New Developments Only"** when the page loads
-2. **Add "All Properties" option** so users can switch between:
-   - New Developments (default)
-   - Resales
-   - All Properties
-3. **Show cheapest new developments first** (~€180k-€200k) when no filters applied
+1. **Official Resales Online API parameter**: `p_new_devs` with values `'exclude'`, `'include'`, or `'only'`
+2. **Current edge function sends**: `newDevelopment=true` (wrong parameter name and wrong value format)
+3. **Result**: Proxy/API ignores it and returns all properties
 
-## Current Flow Analysis
+## Solution
 
-| Component | Current Behavior | Required Behavior |
-|-----------|------------------|-------------------|
-| `PropertyFinder.tsx` | `newDevs: undefined` by default | `newDevs: "only"` by default |
-| `PropertyFilters.tsx` | Status defaults to "sales" | Status defaults to "new-developments" |
-| `QuickSearch.tsx` | Status defaults to "sales" | Status defaults to "new-developments" |
-| Status Options | Only "Sales" and "New Developments" | Add "All Properties" option |
+Update the edge function to send the correct parameter name and value format that matches the official Resales Online WebAPI V6 specification.
 
-## Changes Required
+## Technical Changes
 
-### 1. PropertyFinder.tsx - Set Default newDevs Parameter
+### File: `supabase/functions/search-properties/index.ts`
 
-**File**: `src/pages/PropertyFinder.tsx`
-
-Update `getInitialParams()` to default to new developments when no URL parameter exists:
-
+**Current Code (line 126):**
 ```typescript
-const getInitialParams = (): PropertySearchParams => ({
-  // ... existing params
-  newDevs: searchParams.get("newDevs") === "only" ? "only" 
-         : searchParams.get("newDevs") === "" ? undefined  // User explicitly chose "All"
-         : "only", // Default to new developments
-});
+if (filters.newDevs === 'only') proxyParams.newDevelopment = 'true';
 ```
 
-Also update the URL parameter handling to include newDevs in the default search.
-
-### 2. PropertyFilters.tsx - Update Status Options and Default
-
-**File**: `src/components/property/PropertyFilters.tsx`
-
-Add "All Properties" option and change default:
-
+**Updated Code:**
 ```typescript
-// Add third status option
-const STATUS_OPTIONS = [
-  { label: t.filters.newDevelopments, value: "new-developments" },
-  { label: t.filters.resales, value: "resales" },
-  { label: t.filters.allProperties, value: "all" },
-];
-
-// Default to new-developments
-const [status, setStatus] = useState(
-  initialParams.newDevs === "only" ? "new-developments" 
-  : initialParams.newDevs === "" ? "all"
-  : "new-developments" // Default
-);
-
-// Update handleSearch to handle all three cases
-if (status === "new-developments") params.newDevs = "only";
-else if (status === "resales") params.newDevs = ""; // Explicitly no new devs
-else params.newDevs = undefined; // All properties
-```
-
-### 3. QuickSearch.tsx - Update Status Default
-
-**File**: `src/components/home/sections/QuickSearch.tsx`
-
-Update the home page quick search to match:
-
-```typescript
-const STATUS_OPTIONS = [
-  { label: "New Developments", value: "new-developments" },
-  { label: "Resales", value: "resales" },
-  { label: "All Properties", value: "all" },
-];
-
-// Change default from "sales" to "new-developments"
-const [status, setStatus] = useState("new-developments");
-
-// Update handleSearch for three cases
-if (status === "new-developments") params.append("newDevs", "only");
-else if (status === "resales") params.append("newDevs", "");
-// "all" - don't append anything
-```
-
-### 4. Add Translations for New Options
-
-**Files**: All translation files in `src/i18n/translations/propertyFinder/`
-
-Add new translation keys:
-
-```typescript
-filters: {
-  // ... existing
-  sales: "Sales",           // Keep for backward compatibility
-  resales: "Resales",       // NEW
-  newDevelopments: "New Developments",
-  allProperties: "All Properties",  // NEW
-}
-```
-
-### 5. Edge Function - Handle Resales-Only Filter
-
-**File**: `supabase/functions/search-properties/index.ts`
-
-Currently the backend only handles `newDevs === 'only'`. For "Resales Only", we may need to explicitly exclude new developments:
-
-```typescript
-// Handle different newDevs modes
+// Handle new development filter per Resales Online API V6 spec
+// p_new_devs values: 'exclude' (resales only), 'include' (all), 'only' (new devs only)
 if (filters.newDevs === 'only') {
-  proxyParams.newDevelopment = 'true';
-} else if (filters.newDevs === '') {
-  // Resales only - exclude new developments
-  proxyParams.newDevelopment = 'false';
+  proxyParams.p_new_devs = 'only';
+} else if (filters.newDevs === 'resales') {
+  proxyParams.p_new_devs = 'exclude';
 }
-// else: all properties (don't pass newDevelopment param)
+// else: default 'include' - don't send parameter (API default is include)
 ```
 
-Note: This depends on how the proxy server/API handles the parameter. If the API doesn't support excluding new developments, the "Resales" option would show the same as "All Properties".
+## API Parameter Reference (from official docs)
 
-## Implementation Summary
+| Parameter | Values | Meaning |
+|-----------|--------|---------|
+| `p_new_devs` | `'only'` | Return only New Development properties |
+| `p_new_devs` | `'exclude'` | Return only Resale properties |
+| `p_new_devs` | `'include'` | Return both (default) |
 
-| File | Change |
-|------|--------|
-| `PropertyFinder.tsx` | Default `newDevs` to `"only"` in `getInitialParams()` |
-| `PropertyFilters.tsx` | Add "All Properties" option, default to "new-developments" |
-| `QuickSearch.tsx` | Add "All Properties" option, default to "new-developments" |
-| Translation files (10) | Add `resales` and `allProperties` keys |
-| `search-properties/index.ts` | Handle resales-only filter if API supports it |
+## Expected Request URLs After Fix
 
-## Expected Behavior After Changes
+| Filter Selection | Request URL |
+|-----------------|-------------|
+| New Developments | `...&p_new_devs=only` |
+| Resales | `...&p_new_devs=exclude` |
+| All Properties | (no p_new_devs parameter) |
 
-| Scenario | Before | After |
-|----------|--------|-------|
-| Page load (no params) | Shows all sales mixed | Shows only new developments |
-| User selects "Resales" | N/A | Shows only resale properties |
-| User selects "All Properties" | N/A | Shows both resales and new developments |
-| URL: `?newDevs=only` | New developments | New developments |
-| URL: no newDevs param | All sales | New developments (default) |
+## Testing Plan
 
-## Price Ordering
+1. **Default page load** (`/en/properties?transactionType=sale&newDevs=only`):
+   - Verify request includes `p_new_devs=only`
+   - Verify only New Development properties appear (should show price ranges, development names)
 
-The backend already returns properties sorted by price ascending when no specific sort is requested, so the cheapest new developments (~€180k-€200k) will appear first automatically with the default €180k minimum price filter.
+2. **Switch to Resales**:
+   - Verify request includes `p_new_devs=exclude`
+   - Verify only resale properties appear (individual listings, no price ranges)
+
+3. **Switch to All Properties**:
+   - Verify request has no `p_new_devs` parameter
+   - Verify mixed results appear
+
+## Assumption
+
+This fix assumes the proxy server at `http://188.34.164.137:3000` will pass through the `p_new_devs` parameter to the Resales Online API. If the proxy requires different parameter mapping, the proxy server code would need to be updated instead.
 
