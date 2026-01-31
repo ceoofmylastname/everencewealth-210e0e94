@@ -103,6 +103,32 @@ function isResidentialProperty(property: any): boolean {
   return isResidentialType && !hasExcludedKeyword;
 }
 
+// Call proxy server for single property by reference
+async function callProxyPropertyByReference(reference: string, langNum: number): Promise<any> {
+  const requestUrl = `${PROXY_BASE_URL}/property/${encodeURIComponent(reference)}?lang=${langNum}`;
+
+  console.log('🔄 Calling Proxy Server (GET) - /property/:reference');
+  console.log('📤 Request URL:', requestUrl);
+
+  const response = await fetch(requestUrl, { method: 'GET' });
+
+  if (!response.ok) {
+    if (response.status === 404) {
+      console.log('⚠️ Property not found for reference:', reference);
+      return null;
+    }
+    const errorText = await response.text();
+    console.error('❌ Proxy error:', response.status, errorText);
+    throw new Error(`Proxy error: ${response.status} ${errorText}`.trim());
+  }
+
+  const data = await response.json();
+  console.log('✅ Property found for reference:', reference);
+  
+  // Extract property from various response formats
+  return data.Property || data.property || (data.Reference ? data : null);
+}
+
 // Call proxy server for property search
 async function callProxySearch(filters: any, langNum: number, limit: number, page: number): Promise<any> {
   // Build query parameters for proxy
@@ -171,6 +197,45 @@ serve(async (req) => {
     
     const { lang = 'en', page = 1, limit = 500, ...filters } = body;
     const langNum = LANGUAGE_MAP[lang] || 1;
+    
+    // If reference is provided, use property lookup endpoint instead of search
+    if (filters.reference && filters.reference.trim()) {
+      console.log('🔍 Reference search detected, using /property/:reference endpoint');
+      const rawProperty = await callProxyPropertyByReference(filters.reference.trim(), langNum);
+      
+      if (rawProperty) {
+        // Verify it's a residential property
+        if (isResidentialProperty(rawProperty)) {
+          const property = normalizeProperty(rawProperty);
+          console.log('✅ Found residential property for reference:', filters.reference);
+          return new Response(
+            JSON.stringify({
+              properties: [property],
+              total: 1,
+              page: 1,
+              pageSize: 1,
+              queryId: null,
+            }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        } else {
+          console.log('⚠️ Property found but not residential:', filters.reference);
+        }
+      }
+      
+      // Reference not found or not residential
+      console.log('⚠️ No matching residential property for reference:', filters.reference);
+      return new Response(
+        JSON.stringify({
+          properties: [],
+          total: 0,
+          page: 1,
+          pageSize: 0,
+          queryId: null,
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
     
     const effectiveFilters = { ...filters };
     
