@@ -32,6 +32,7 @@ interface ContactFormTranslations {
       message: string;
       referral: string;
       privacy: string;
+      privacyLink?: string;
     };
     subjects: {
       general: string;
@@ -49,6 +50,13 @@ interface ContactFormTranslations {
     };
     submit: string;
     submitting: string;
+    validation?: {
+      requiredFields?: string;
+    };
+    error?: {
+      title?: string;
+      description?: string;
+    };
     success: {
       title: string;
       description: string;
@@ -94,7 +102,7 @@ export const ContactForm: React.FC<ContactFormProps> = ({ t, language }) => {
     
     if (!formData.fullName || !formData.email || !formData.message || !formData.privacy) {
       toast({
-        title: 'Please fill in all required fields',
+        title: t.form.validation?.requiredFields || 'Please fill in all required fields',
         variant: 'destructive',
       });
       return;
@@ -168,8 +176,8 @@ export const ContactForm: React.FC<ContactFormProps> = ({ t, language }) => {
     } catch (error) {
       console.error('Form submission error:', error);
       toast({
-        title: 'Something went wrong',
-        description: 'Please try again or contact us via WhatsApp.',
+        title: t.form.error?.title || 'Something went wrong',
+        description: t.form.error?.description || 'Please try again or contact us via WhatsApp.',
         variant: 'destructive',
       });
     } finally {
@@ -364,7 +372,7 @@ export const ContactForm: React.FC<ContactFormProps> = ({ t, language }) => {
               <Label htmlFor="privacy" className="text-sm text-muted-foreground leading-relaxed cursor-pointer">
                 {t.form.fields.privacy}{' '}
                 <Link to="/privacy" className="text-primary hover:underline">
-                  Privacy Policy
+                  {t.form.fields.privacyLink || 'Privacy Policy'}
                 </Link>
               </Label>
             </div>

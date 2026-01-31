@@ -434,6 +434,117 @@ export const fr = {
       successDescription: "Nous vous contacterons bientôt."
     }
   },
+  contact: {
+    meta: {
+      title: "Contact Del Sol Prime Homes | Immobilier Costa del Sol",
+      description: "Contactez notre équipe d'experts immobiliers. WhatsApp, e-mail ou appelez-nous pour un accompagnement immobilier personnalisé sur la Costa del Sol."
+    },
+    hero: {
+      headline: "Contactez-Nous",
+      subheadline: "Nous sommes là pour vous aider à trouver votre propriété idéale sur la Costa del Sol"
+    },
+    options: {
+      fastestResponse: "Réponse la Plus Rapide",
+      whatsapp: {
+        title: "Chattez sur WhatsApp",
+        description: "Obtenez des réponses instantanées de notre équipe",
+        cta: "Ouvrir WhatsApp",
+        prefill: "Bonjour, je suis intéressé par les propriétés de la Costa del Sol. Pouvez-vous m'aider?"
+      },
+      email: {
+        title: "Envoyez-Nous un E-mail",
+        description: "Nous répondrons sous 24 heures",
+        cta: "Envoyer un E-mail"
+      },
+      phone: {
+        title: "Appelez Notre Bureau",
+        description: "Parlez directement à un conseiller",
+        cta: "Appeler Maintenant"
+      }
+    },
+    form: {
+      headline: "Envoyez-Nous un Message",
+      subheadline: "Remplissez le formulaire et nous vous répondrons rapidement",
+      fields: {
+        fullName: "Nom Complet",
+        email: "Adresse E-mail",
+        phone: "Numéro de Téléphone (Optionnel)",
+        language: "Langue Préférée",
+        subject: "Sujet",
+        message: "Votre Message",
+        referral: "Comment nous avez-vous trouvé? (Optionnel)",
+        privacy: "J'accepte la Politique de Confidentialité et consens au traitement de mes données.",
+        privacyLink: "Politique de Confidentialité"
+      },
+      subjects: {
+        general: "Demande Générale",
+        property: "Demande Immobilière",
+        selling: "Vendre Ma Propriété",
+        viewing: "Planifier une Visite",
+        other: "Autre"
+      },
+      referrals: {
+        google: "Recherche Google",
+        socialMedia: "Réseaux Sociaux",
+        referral: "Recommandation Amis/Famille",
+        advertisement: "Publicité en Ligne",
+        other: "Autre"
+      },
+      submit: "Envoyer le Message",
+      submitting: "Envoi en cours...",
+      validation: {
+        requiredFields: "Veuillez remplir tous les champs obligatoires"
+      },
+      error: {
+        title: "Une erreur s'est produite",
+        description: "Veuillez réessayer ou nous contacter via WhatsApp."
+      },
+      success: {
+        title: "Message Envoyé!",
+        description: "Merci de nous avoir contactés. Nous répondrons sous 24 heures."
+      }
+    },
+    office: {
+      headline: "Visitez Notre Bureau",
+      addressTitle: "Adresse du Bureau",
+      hours: {
+        title: "Heures d'Ouverture",
+        weekdays: "Lundi - Vendredi",
+        saturday: "Samedi",
+        sunday: "Dimanche",
+        closed: "Fermé",
+        timezone: "Heure d'Europe Centrale (CET)"
+      },
+      directions: "Obtenir l'Itinéraire"
+    },
+    faq: {
+      headline: "Questions Fréquemment Posées",
+      items: [
+        {
+          question: "À quelle vitesse répondez-vous?",
+          answer: "Nous visons à répondre à toutes les demandes dans les 24 heures pendant les jours ouvrables. Les messages WhatsApp reçoivent généralement des réponses plus rapides."
+        },
+        {
+          question: "Parlez-vous ma langue?",
+          answer: "Oui! Notre équipe parle plus de 10 langues dont l'anglais, le néerlandais, l'allemand, le français, le suédois, le norvégien, le danois, le finnois, le polonais et le hongrois."
+        },
+        {
+          question: "Puis-je planifier un appel vidéo?",
+          answer: "Absolument! Contactez-nous via WhatsApp ou e-mail pour organiser un moment convenable pour une consultation vidéo avec l'un de nos experts immobiliers."
+        },
+        {
+          question: "Quelles zones couvrez-vous?",
+          answer: "Nous sommes spécialisés dans toute la région de la Costa del Sol, de Málaga à Sotogrande, y compris Marbella, Estepona, Fuengirola, Benalmádena et Mijas."
+        }
+      ]
+    },
+    emma: {
+      badge: "Propulsé par l'IA",
+      callout: "Préférez des réponses instantanées?",
+      cta: "Discutez avec Emma, notre assistante IA",
+      buttonText: "Discuter avec Emma"
+    }
+  },
   aboutUs: {
     meta: {
       title: "À Propos de Del Sol Prime Homes | Experts Immobiliers Costa del Sol",

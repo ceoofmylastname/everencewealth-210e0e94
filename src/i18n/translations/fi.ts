@@ -402,6 +402,117 @@ export const fi = {
     modal: { founder: "Perustaja", whatsapp: "WhatsApp", email: "Sähköposti", call: "Soita", about: "Tietoja", languages: "Kielet", specializations: "Erikoisalat", expertise: "Osaamisalueet", credentials: "Pätevyydet", sendMessage: "Lähetä Viesti" },
     form: { name: "Nimesi", email: "Sähköpostiosoite", message: "Viestisi", messagePlaceholder: "Miten voin auttaa?", submit: "Lähetä Viesti", sending: "Lähetetään...", success: "Viesti lähetetty!", error: "Lähetys epäonnistui. Yritä uudelleen.", successTitle: "Viesti Lähetetty!", successDescription: "Olemme pian yhteydessä." }
   },
+  contact: {
+    meta: {
+      title: "Ota Yhteyttä Del Sol Prime Homes | Costa del Sol Kiinteistöt",
+      description: "Ota yhteyttä asiantuntevaan kiinteistötiimimme. WhatsApp, sähköposti tai soita meille henkilökohtaista kiinteistöopastusta varten Costa del Solilla."
+    },
+    hero: {
+      headline: "Ota Yhteyttä",
+      subheadline: "Olemme täällä auttamassa sinua löytämään täydellisen Costa del Sol -kiinteistösi"
+    },
+    options: {
+      fastestResponse: "Nopein Vastaus",
+      whatsapp: {
+        title: "Keskustele WhatsAppissa",
+        description: "Saat välittömät vastaukset tiimiltämme",
+        cta: "Avaa WhatsApp",
+        prefill: "Hei, olen kiinnostunut Costa del Solin kiinteistöistä. Voitteko auttaa?"
+      },
+      email: {
+        title: "Lähetä Sähköpostia",
+        description: "Vastaamme 24 tunnin kuluessa",
+        cta: "Lähetä Sähköposti"
+      },
+      phone: {
+        title: "Soita Toimistoomme",
+        description: "Puhu suoraan neuvonantajan kanssa",
+        cta: "Soita Nyt"
+      }
+    },
+    form: {
+      headline: "Lähetä Meille Viesti",
+      subheadline: "Täytä lomake ja otamme sinuun pian yhteyttä",
+      fields: {
+        fullName: "Koko Nimi",
+        email: "Sähköpostiosoite",
+        phone: "Puhelinnumero (Valinnainen)",
+        language: "Ensisijainen Kieli",
+        subject: "Aihe",
+        message: "Viestisi",
+        referral: "Miten kuulit meistä? (Valinnainen)",
+        privacy: "Hyväksyn tietosuojakäytännön ja suostun tietojeni käsittelyyn.",
+        privacyLink: "Tietosuojakäytäntö"
+      },
+      subjects: {
+        general: "Yleinen Tiedustelu",
+        property: "Kiinteistötiedustelu",
+        selling: "Kiinteistöni Myynti",
+        viewing: "Varaa Näyttö",
+        other: "Muu"
+      },
+      referrals: {
+        google: "Google-haku",
+        socialMedia: "Sosiaalinen Media",
+        referral: "Ystävän/Perheen Suositus",
+        advertisement: "Verkkomainos",
+        other: "Muu"
+      },
+      submit: "Lähetä Viesti",
+      submitting: "Lähetetään...",
+      validation: {
+        requiredFields: "Täytä kaikki pakolliset kentät"
+      },
+      error: {
+        title: "Jokin meni pieleen",
+        description: "Yritä uudelleen tai ota yhteyttä WhatsAppilla."
+      },
+      success: {
+        title: "Viesti Lähetetty!",
+        description: "Kiitos yhteydenotostasi. Vastaamme 24 tunnin kuluessa."
+      }
+    },
+    office: {
+      headline: "Käy Toimistollamme",
+      addressTitle: "Toimiston Osoite",
+      hours: {
+        title: "Aukioloajat",
+        weekdays: "Maanantai - Perjantai",
+        saturday: "Lauantai",
+        sunday: "Sunnuntai",
+        closed: "Suljettu",
+        timezone: "Keski-Euroopan Aika (CET)"
+      },
+      directions: "Hae Reittiohjeet"
+    },
+    faq: {
+      headline: "Usein Kysytyt Kysymykset",
+      items: [
+        {
+          question: "Kuinka nopeasti vastaatte?",
+          answer: "Pyrimme vastaamaan kaikkiin tiedusteluihin 24 tunnin kuluessa arkipäivisin. WhatsApp-viestit saavat yleensä nopeamman vastauksen."
+        },
+        {
+          question: "Puhutteko kieltäni?",
+          answer: "Kyllä! Tiimimme puhuu yli 10 kieltä, mukaan lukien englanti, hollanti, saksa, ranska, ruotsi, norja, tanska, suomi, puola ja unkari."
+        },
+        {
+          question: "Voinko varata videopuhelun?",
+          answer: "Ehdottomasti! Ota yhteyttä WhatsAppilla tai sähköpostilla sopiaksesi sopivan ajan videokonsultaatioon yhden kiinteistöasiantuntijamme kanssa."
+        },
+        {
+          question: "Mitä alueita katatte?",
+          answer: "Erikoistumme koko Costa del Solin alueeseen, Málagasta Sotograndeen, mukaan lukien Marbella, Estepona, Fuengirola, Benalmádena ja Mijas."
+        }
+      ]
+    },
+    emma: {
+      badge: "Tekoälykäyttöinen",
+      callout: "Haluatko välittömiä vastauksia?",
+      cta: "Keskustele Emman kanssa, tekoälyavustajamme",
+      buttonText: "Keskustele Emman Kanssa"
+    }
+  },
   aboutUs: {
     meta: { title: "Tietoja Del Sol Prime Homesista | Costa del Sol Kiinteistöasiantuntijat", description: "Tutustu asiantuntijatiimiimme, jolla on yli 35 vuoden kokemus kansainvälisten ostajien auttamisesta löytämään kiinteistöjä Costa del Solilta." },
     cta: { meetTeam: "Tapaa Tiimimme", contactUs: "Ota Yhteyttä" },

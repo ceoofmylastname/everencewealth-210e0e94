@@ -5,8 +5,10 @@ import { Button } from '@/components/ui/button';
 
 interface EmmaCalloutTranslations {
   emma: {
+    badge?: string;
     callout: string;
     cta: string;
+    buttonText?: string;
   };
 }
 
@@ -37,7 +39,7 @@ export const EmmaCallout: React.FC<EmmaCalloutProps> = ({ t }) => {
         >
           <div className="inline-flex items-center gap-2 bg-prime-gold/20 text-prime-gold px-4 py-2 rounded-full text-sm font-medium mb-6">
             <Sparkles className="w-4 h-4" />
-            AI-Powered
+            {t.emma.badge || 'AI-Powered'}
           </div>
           
           <h2 className="text-2xl md:text-3xl font-serif font-bold text-white mb-4">
@@ -54,7 +56,7 @@ export const EmmaCallout: React.FC<EmmaCalloutProps> = ({ t }) => {
             className="h-14 px-8 bg-prime-gold hover:bg-prime-gold/90 text-prime-900 font-semibold"
           >
             <MessageCircle className="w-5 h-5 mr-2" />
-            Chat with Emma
+            {t.emma.buttonText || 'Chat with Emma'}
           </Button>
         </motion.div>
       </div>

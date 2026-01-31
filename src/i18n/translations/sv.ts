@@ -402,6 +402,117 @@ export const sv = {
     modal: { founder: "Grundare", whatsapp: "WhatsApp", email: "E-post", call: "Ring", about: "Om", languages: "Språk", specializations: "Specialiseringar", expertise: "Expertområden", credentials: "Meriter", sendMessage: "Skicka Meddelande" },
     form: { name: "Ditt Namn", email: "E-postadress", message: "Ditt Meddelande", messagePlaceholder: "Hur kan jag hjälpa dig?", submit: "Skicka Meddelande", sending: "Skickar...", success: "Meddelande skickat!", error: "Kunde inte skicka. Försök igen.", successTitle: "Meddelande Skickat!", successDescription: "Vi hör av oss snart." }
   },
+  contact: {
+    meta: {
+      title: "Kontakt Del Sol Prime Homes | Costa del Sol Fastigheter",
+      description: "Kontakta vårt expertteam inom fastigheter. WhatsApp, e-post eller ring oss för personlig fastighetsrådgivning på Costa del Sol."
+    },
+    hero: {
+      headline: "Kontakta Oss",
+      subheadline: "Vi är här för att hjälpa dig hitta din perfekta fastighet på Costa del Sol"
+    },
+    options: {
+      fastestResponse: "Snabbaste Svar",
+      whatsapp: {
+        title: "Chatta på WhatsApp",
+        description: "Få omedelbara svar från vårt team",
+        cta: "Öppna WhatsApp",
+        prefill: "Hej, jag är intresserad av fastigheter på Costa del Sol. Kan ni hjälpa mig?"
+      },
+      email: {
+        title: "Skicka E-post",
+        description: "Vi svarar inom 24 timmar",
+        cta: "Skicka E-post"
+      },
+      phone: {
+        title: "Ring Vårt Kontor",
+        description: "Prata direkt med en rådgivare",
+        cta: "Ring Nu"
+      }
+    },
+    form: {
+      headline: "Skicka Ett Meddelande",
+      subheadline: "Fyll i formuläret så kontaktar vi dig snart",
+      fields: {
+        fullName: "Fullständigt Namn",
+        email: "E-postadress",
+        phone: "Telefonnummer (Valfritt)",
+        language: "Föredraget Språk",
+        subject: "Ämne",
+        message: "Ditt Meddelande",
+        referral: "Hur hörde du om oss? (Valfritt)",
+        privacy: "Jag godkänner Integritetspolicyn och samtycker till behandling av mina uppgifter.",
+        privacyLink: "Integritetspolicy"
+      },
+      subjects: {
+        general: "Allmän Förfrågan",
+        property: "Fastighetsförfrågan",
+        selling: "Sälja Min Fastighet",
+        viewing: "Boka Visning",
+        other: "Annat"
+      },
+      referrals: {
+        google: "Google-sökning",
+        socialMedia: "Sociala Medier",
+        referral: "Vänner/Familj Rekommendation",
+        advertisement: "Online-annons",
+        other: "Annat"
+      },
+      submit: "Skicka Meddelande",
+      submitting: "Skickar...",
+      validation: {
+        requiredFields: "Vänligen fyll i alla obligatoriska fält"
+      },
+      error: {
+        title: "Något gick fel",
+        description: "Vänligen försök igen eller kontakta oss via WhatsApp."
+      },
+      success: {
+        title: "Meddelande Skickat!",
+        description: "Tack för att du kontaktade oss. Vi svarar inom 24 timmar."
+      }
+    },
+    office: {
+      headline: "Besök Vårt Kontor",
+      addressTitle: "Kontorsadress",
+      hours: {
+        title: "Öppettider",
+        weekdays: "Måndag - Fredag",
+        saturday: "Lördag",
+        sunday: "Söndag",
+        closed: "Stängt",
+        timezone: "Centraleuropeisk Tid (CET)"
+      },
+      directions: "Få Vägbeskrivning"
+    },
+    faq: {
+      headline: "Vanliga Frågor",
+      items: [
+        {
+          question: "Hur snabbt svarar ni?",
+          answer: "Vi strävar efter att svara på alla förfrågningar inom 24 timmar på vardagar. WhatsApp-meddelanden får vanligtvis snabbare svar."
+        },
+        {
+          question: "Talar ni mitt språk?",
+          answer: "Ja! Vårt team talar mer än 10 språk inklusive engelska, nederländska, tyska, franska, svenska, norska, danska, finska, polska och ungerska."
+        },
+        {
+          question: "Kan jag boka ett videosamtal?",
+          answer: "Absolut! Kontakta oss via WhatsApp eller e-post för att boka en lämplig tid för en videokonsultation med en av våra fastighetsexperter."
+        },
+        {
+          question: "Vilka områden täcker ni?",
+          answer: "Vi specialiserar oss på hela Costa del Sol-regionen, från Málaga till Sotogrande, inklusive Marbella, Estepona, Fuengirola, Benalmádena och Mijas."
+        }
+      ]
+    },
+    emma: {
+      badge: "AI-Driven",
+      callout: "Föredrar du omedelbara svar?",
+      cta: "Chatta med Emma, vår AI-assistent",
+      buttonText: "Chatta med Emma"
+    }
+  },
   aboutUs: {
     meta: { title: "Om Del Sol Prime Homes | Costa del Sol Fastighetsexperter", description: "Lär känna vårt expertteam med 35+ års erfarenhet av att hjälpa internationella köpare hitta fastigheter på Costa del Sol." },
     cta: { meetTeam: "Möt Vårt Team", contactUs: "Kontakta Oss" },

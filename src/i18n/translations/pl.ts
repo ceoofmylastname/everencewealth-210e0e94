@@ -402,6 +402,117 @@ export const pl = {
     modal: { founder: "Założyciel", whatsapp: "WhatsApp", email: "E-mail", call: "Zadzwoń", about: "O", languages: "Języki", specializations: "Specjalizacje", expertise: "Obszary Ekspertyzy", credentials: "Kwalifikacje", sendMessage: "Wyślij Wiadomość" },
     form: { name: "Twoje Imię", email: "Adres E-mail", message: "Twoja Wiadomość", messagePlaceholder: "Jak mogę Ci pomóc?", submit: "Wyślij Wiadomość", sending: "Wysyłanie...", success: "Wiadomość wysłana!", error: "Nie udało się wysłać. Spróbuj ponownie.", successTitle: "Wiadomość Wysłana!", successDescription: "Skontaktujemy się wkrótce." }
   },
+  contact: {
+    meta: {
+      title: "Kontakt Del Sol Prime Homes | Nieruchomości Costa del Sol",
+      description: "Skontaktuj się z naszym zespołem ekspertów nieruchomości. WhatsApp, e-mail lub zadzwoń do nas po spersonalizowane doradztwo nieruchomości na Costa del Sol."
+    },
+    hero: {
+      headline: "Skontaktuj się z Nami",
+      subheadline: "Jesteśmy tu, aby pomóc Ci znaleźć idealną nieruchomość na Costa del Sol"
+    },
+    options: {
+      fastestResponse: "Najszybsza Odpowiedź",
+      whatsapp: {
+        title: "Czat na WhatsApp",
+        description: "Otrzymaj natychmiastowe odpowiedzi od naszego zespołu",
+        cta: "Otwórz WhatsApp",
+        prefill: "Cześć, interesuję się nieruchomościami na Costa del Sol. Czy możecie mi pomóc?"
+      },
+      email: {
+        title: "Wyślij Nam E-mail",
+        description: "Odpowiemy w ciągu 24 godzin",
+        cta: "Wyślij E-mail"
+      },
+      phone: {
+        title: "Zadzwoń do Biura",
+        description: "Porozmawiaj bezpośrednio z doradcą",
+        cta: "Zadzwoń Teraz"
+      }
+    },
+    form: {
+      headline: "Wyślij Nam Wiadomość",
+      subheadline: "Wypełnij formularz, a skontaktujemy się z Tobą wkrótce",
+      fields: {
+        fullName: "Imię i Nazwisko",
+        email: "Adres E-mail",
+        phone: "Numer Telefonu (Opcjonalny)",
+        language: "Preferowany Język",
+        subject: "Temat",
+        message: "Twoja Wiadomość",
+        referral: "Jak o nas usłyszałeś? (Opcjonalne)",
+        privacy: "Zgadzam się z Polityką Prywatności i wyrażam zgodę na przetwarzanie moich danych.",
+        privacyLink: "Polityka Prywatności"
+      },
+      subjects: {
+        general: "Ogólne Zapytanie",
+        property: "Zapytanie o Nieruchomość",
+        selling: "Sprzedaż Mojej Nieruchomości",
+        viewing: "Umów Prezentację",
+        other: "Inne"
+      },
+      referrals: {
+        google: "Wyszukiwarka Google",
+        socialMedia: "Media Społecznościowe",
+        referral: "Polecenie Znajomych/Rodziny",
+        advertisement: "Reklama Online",
+        other: "Inne"
+      },
+      submit: "Wyślij Wiadomość",
+      submitting: "Wysyłanie...",
+      validation: {
+        requiredFields: "Wypełnij wszystkie wymagane pola"
+      },
+      error: {
+        title: "Coś poszło nie tak",
+        description: "Spróbuj ponownie lub skontaktuj się z nami przez WhatsApp."
+      },
+      success: {
+        title: "Wiadomość Wysłana!",
+        description: "Dziękujemy za kontakt. Odpowiemy w ciągu 24 godzin."
+      }
+    },
+    office: {
+      headline: "Odwiedź Nasze Biuro",
+      addressTitle: "Adres Biura",
+      hours: {
+        title: "Godziny Otwarcia",
+        weekdays: "Poniedziałek - Piątek",
+        saturday: "Sobota",
+        sunday: "Niedziela",
+        closed: "Zamknięte",
+        timezone: "Czas Środkowoeuropejski (CET)"
+      },
+      directions: "Pokaż Trasę"
+    },
+    faq: {
+      headline: "Często Zadawane Pytania",
+      items: [
+        {
+          question: "Jak szybko odpowiadacie?",
+          answer: "Staramy się odpowiadać na wszystkie zapytania w ciągu 24 godzin w dni robocze. Wiadomości WhatsApp zazwyczaj otrzymują szybsze odpowiedzi."
+        },
+        {
+          question: "Czy mówicie w moim języku?",
+          answer: "Tak! Nasz zespół mówi w ponad 10 językach, w tym angielski, holenderski, niemiecki, francuski, szwedzki, norweski, duński, fiński, polski i węgierski."
+        },
+        {
+          question: "Czy mogę umówić rozmowę wideo?",
+          answer: "Absolutnie! Skontaktuj się z nami przez WhatsApp lub e-mail, aby umówić dogodny termin na wideokonferencję z jednym z naszych ekspertów od nieruchomości."
+        },
+        {
+          question: "Jakie obszary obsługujecie?",
+          answer: "Specjalizujemy się w całym regionie Costa del Sol, od Malagi po Sotogrande, w tym Marbella, Estepona, Fuengirola, Benalmádena i Mijas."
+        }
+      ]
+    },
+    emma: {
+      badge: "Napędzane AI",
+      callout: "Wolisz natychmiastowe odpowiedzi?",
+      cta: "Porozmawiaj z Emmą, naszą asystentką AI",
+      buttonText: "Porozmawiaj z Emmą"
+    }
+  },
   aboutUs: {
     meta: { title: "O Del Sol Prime Homes | Eksperci Nieruchomości Costa del Sol", description: "Poznaj nasz zespół ekspertów z ponad 35-letnim doświadczeniem w pomaganiu międzynarodowym nabywcom w znalezieniu nieruchomości na Costa del Sol." },
     cta: { meetTeam: "Poznaj Nasz Zespół", contactUs: "Skontaktuj się" },

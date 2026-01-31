@@ -402,6 +402,117 @@ export const hu = {
     modal: { founder: "Alapító", whatsapp: "WhatsApp", email: "E-mail", call: "Hívás", about: "Rólam", languages: "Nyelvek", specializations: "Specializációk", expertise: "Szakterületek", credentials: "Képesítések", sendMessage: "Üzenet Küldése" },
     form: { name: "Név", email: "E-mail Cím", message: "Üzenet", messagePlaceholder: "Miben segíthetek?", submit: "Üzenet Küldése", sending: "Küldés...", success: "Üzenet elküldve!", error: "Küldés sikertelen. Próbálja újra.", successTitle: "Üzenet Elküldve!", successDescription: "Hamarosan felvesszük Önnel a kapcsolatot." }
   },
+  contact: {
+    meta: {
+      title: "Kapcsolat Del Sol Prime Homes | Costa del Sol Ingatlanok",
+      description: "Lépjen kapcsolatba szakértő ingatlancsapatunkkal. WhatsApp, e-mail vagy hívjon minket személyre szabott ingatlantanácsadásért a Costa del Solon."
+    },
+    hero: {
+      headline: "Lépjen Kapcsolatba Velünk",
+      subheadline: "Itt vagyunk, hogy segítsünk megtalálni tökéletes Costa del Sol-i ingatlanát"
+    },
+    options: {
+      fastestResponse: "Leggyorsabb Válasz",
+      whatsapp: {
+        title: "Chat WhatsAppon",
+        description: "Azonnali válaszokat kaphat csapatunktól",
+        cta: "WhatsApp Megnyitása",
+        prefill: "Szia, érdekelnek a Costa del Sol-i ingatlanok. Tudnátok segíteni?"
+      },
+      email: {
+        title: "Küldjön E-mailt",
+        description: "24 órán belül válaszolunk",
+        cta: "E-mail Küldése"
+      },
+      phone: {
+        title: "Hívja Irodánkat",
+        description: "Beszéljen közvetlenül tanácsadóval",
+        cta: "Hívás Most"
+      }
+    },
+    form: {
+      headline: "Küldjön Üzenetet",
+      subheadline: "Töltse ki az űrlapot, és hamarosan felvesszük Önnel a kapcsolatot",
+      fields: {
+        fullName: "Teljes Név",
+        email: "E-mail Cím",
+        phone: "Telefonszám (Opcionális)",
+        language: "Preferált Nyelv",
+        subject: "Tárgy",
+        message: "Üzenete",
+        referral: "Hogyan hallott rólunk? (Opcionális)",
+        privacy: "Elfogadom az Adatvédelmi Irányelveket és hozzájárulok adataim feldolgozásához.",
+        privacyLink: "Adatvédelmi Irányelvek"
+      },
+      subjects: {
+        general: "Általános Érdeklődés",
+        property: "Ingatlanérdeklődés",
+        selling: "Ingatlanom Eladása",
+        viewing: "Megtekintés Ütemezése",
+        other: "Egyéb"
+      },
+      referrals: {
+        google: "Google Keresés",
+        socialMedia: "Közösségi Média",
+        referral: "Barátok/Család Ajánlása",
+        advertisement: "Online Hirdetés",
+        other: "Egyéb"
+      },
+      submit: "Üzenet Küldése",
+      submitting: "Küldés...",
+      validation: {
+        requiredFields: "Kérjük, töltse ki az összes kötelező mezőt"
+      },
+      error: {
+        title: "Valami hiba történt",
+        description: "Kérjük, próbálja újra, vagy lépjen kapcsolatba velünk WhatsAppon."
+      },
+      success: {
+        title: "Üzenet Elküldve!",
+        description: "Köszönjük, hogy kapcsolatba lépett velünk. 24 órán belül válaszolunk."
+      }
+    },
+    office: {
+      headline: "Látogasson El Irodánkba",
+      addressTitle: "Iroda Címe",
+      hours: {
+        title: "Nyitvatartás",
+        weekdays: "Hétfő - Péntek",
+        saturday: "Szombat",
+        sunday: "Vasárnap",
+        closed: "Zárva",
+        timezone: "Közép-Európai Idő (CET)"
+      },
+      directions: "Útvonaltervezés"
+    },
+    faq: {
+      headline: "Gyakran Ismételt Kérdések",
+      items: [
+        {
+          question: "Milyen gyorsan válaszolnak?",
+          answer: "Arra törekszünk, hogy minden megkeresésre 24 órán belül válaszoljunk munkanapokon. A WhatsApp üzenetek általában gyorsabb választ kapnak."
+        },
+        {
+          question: "Beszélik a nyelvemet?",
+          answer: "Igen! Csapatunk több mint 10 nyelven beszél, beleértve az angolt, hollandot, németet, franciát, svédet, norvégot, dánt, finnt, lengyelt és magyart."
+        },
+        {
+          question: "Beütemezhetok videohívást?",
+          answer: "Természetesen! Lépjen kapcsolatba velünk WhatsAppon vagy e-mailben, hogy megbeszéljünk egy megfelelő időpontot videókonzultációra egyik ingatlanszakértőnkkel."
+        },
+        {
+          question: "Milyen területeket szolgálnak ki?",
+          answer: "Az egész Costa del Sol régióra specializálódtunk, Málagától Sotogrande-ig, beleértve Marbellát, Esteponát, Fuengirolát, Benalmádenát és Mijast."
+        }
+      ]
+    },
+    emma: {
+      badge: "AI-Hajtású",
+      callout: "Azonnali válaszokat szeretne?",
+      cta: "Csevegjen Emmával, AI asszisztensünkkel",
+      buttonText: "Csevegés Emmával"
+    }
+  },
   aboutUs: {
     meta: { title: "A Del Sol Prime Homes-ról | Costa del Sol Ingatlanszakértők", description: "Ismerje meg szakértő csapatunkat, több mint 35 év tapasztalattal a nemzetközi vásárlók támogatásában ingatlankeresés során a Costa del Solon." },
     cta: { meetTeam: "Ismerje Meg Csapatunkat", contactUs: "Kapcsolat" },
