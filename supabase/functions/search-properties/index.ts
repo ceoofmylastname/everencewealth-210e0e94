@@ -123,7 +123,14 @@ async function callProxySearch(filters: any, langNum: number, limit: number, pag
   if (filters.bedrooms) proxyParams.beds = String(filters.bedrooms);
   if (filters.bathrooms) proxyParams.baths = String(filters.bathrooms);
   if (filters.reference) proxyParams.reference = filters.reference;
-  if (filters.newDevs === 'only') proxyParams.newDevelopment = 'true';
+  // Handle new development filter per Resales Online API V6 spec
+  // p_new_devs values: 'exclude' (resales only), 'include' (all), 'only' (new devs only)
+  if (filters.newDevs === 'only') {
+    proxyParams.p_new_devs = 'only';
+  } else if (filters.newDevs === 'resales') {
+    proxyParams.p_new_devs = 'exclude';
+  }
+  // else: default 'include' - don't send parameter (API default is include)
 
   const queryString = new URLSearchParams(proxyParams).toString();
   const requestUrl = `${PROXY_BASE_URL}/search?${queryString}`;
