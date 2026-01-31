@@ -1,122 +1,250 @@
 
+# Full Localization of Home Page Property Search Tool
 
-# Fix Sound Button to Not Cover Video Subtitles
+## Problem Identified
 
-## Problem
+The QuickSearch property finder tool on the home page (`src/components/home/sections/QuickSearch.tsx`) displays **100% English content** regardless of the selected language:
 
-When sound is **on**, the "Sound on" button is the same large size as the "Click for sound" button, covering the video subtitles (typically centered at the bottom of the video).
-
-**Current behavior (both states):**
-- Large pill button: `px-4 py-2.5` with icon + text
-- Position: `bottom-4 right-4` (bottom-right corner)
-- This covers subtitles when sound is on
-
-## Solution
-
-Make the button **state-aware** with two distinct appearances:
-
-| State | Size | Position | Content |
-|-------|------|----------|---------|
-| **Sound OFF** (muted) | Large pill (`px-4 py-2.5`) | Bottom-right | Icon + "Click for sound" text |
-| **Sound ON** (unmuted) | Small circle (`w-8 h-8`) | Bottom-left | Icon only (no text) |
-
-This ensures:
-- The CTA is prominent when users need to enable sound
-- The button is minimal and out of the way when sound is on
-- Subtitles remain fully visible
+| Element | Current (Hardcoded English) | Should Be (German Example) |
+|---------|----------------------------|---------------------------|
+| Reference label | "Reference" | "Referenz" |
+| Location label | "Location" | "Standort" |
+| Property Type label | "Property Type" | "Immobilientyp" |
+| Bedrooms label | "Bedrooms" | "Schlafzimmer" |
+| Min. Price label | "Min. Price" | "Min. Preis" |
+| Max. Price label | "Max. Price" | "Max. Preis" |
+| Status label | "Status" | "Status" |
+| Reference placeholder | "e.g. R5014453" | "z.B. R5014453" |
+| Any Location | "Any Location" | "Beliebiger Standort" |
+| Any Type | "Any Type" | "Beliebiger Typ" |
+| Any | "Any" | "Beliebig" |
+| Loading... | "Loading..." | "Wird geladen..." |
+| New Developments | "New Developments" | "Neubauprojekte" |
+| Resales | "Resales" | "Wiederverkäufe" |
+| All Properties | "All Properties" | "Alle Immobilien" |
+| Search Properties | "Search Properties" | "Immobilien Suchen" |
+| Clear All | "Clear All" | "Alles Löschen" |
 
 ---
 
-## Technical Implementation
+## Solution: Expand quickSearch i18n Object
 
-### File: `src/components/retargeting/RetargetingAutoplayVideo.tsx`
+### New Translation Structure
 
-**Change:** Update the button at lines 102-126 to use conditional styling based on `isMuted` state.
+Add a `propertySearch` subsection to the existing `quickSearch` object in all 10 translation files:
 
-**Before (lines 102-126):**
-```tsx
-<button
-  onClick={toggleSound}
-  className="absolute bottom-4 right-4 z-10 flex items-center gap-2 
-    bg-white/90 backdrop-blur-md rounded-full 
-    px-4 py-2.5 shadow-lg
-    hover:bg-white hover:scale-105
-    transition-all duration-300 ease-out
-    border border-white/50"
->
-  {isMuted ? (
-    <>
-      <VolumeX className="w-5 h-5 text-landing-navy" />
-      <span className="text-sm font-medium text-landing-navy">
-        {t.videoUnmuteButton || "Click for sound"}
-      </span>
-    </>
-  ) : (
-    <>
-      <Volume2 className="w-5 h-5 text-landing-gold" />
-      <span className="text-sm font-medium text-landing-navy">
-        {t.videoMuteButton || "Sound on"}
-      </span>
-    </>
-  )}
-</button>
+```text
+quickSearch: {
+  // ... existing keys (headline, description, labels, etc.)
+  
+  propertySearch: {
+    labels: {
+      reference: "Reference",
+      location: "Location",
+      propertyType: "Property Type",
+      bedrooms: "Bedrooms",
+      minPrice: "Min. Price",
+      maxPrice: "Max. Price",
+      status: "Status",
+    },
+    placeholders: {
+      reference: "e.g. R5014453",
+      anyLocation: "Any Location",
+      anyType: "Any Type",
+      any: "Any",
+      loading: "Loading...",
+    },
+    status: {
+      newDevelopments: "New Developments",
+      resales: "Resales",
+      allProperties: "All Properties",
+    },
+    buttons: {
+      search: "Search Properties",
+      clearAll: "Clear All",
+    },
+  },
+}
 ```
-
-**After:**
-```tsx
-<button
-  onClick={toggleSound}
-  className={`absolute z-10 flex items-center justify-center
-    bg-white/90 backdrop-blur-md rounded-full shadow-lg
-    hover:bg-white hover:scale-105
-    transition-all duration-300 ease-out
-    border border-white/50
-    ${isMuted 
-      ? 'bottom-4 right-4 px-4 py-2.5 gap-2'  // Large pill, bottom-right
-      : 'bottom-4 left-4 w-8 h-8'              // Small circle, bottom-left
-    }`}
-  aria-label={isMuted ? "Enable sound" : "Mute sound"}
->
-  {isMuted ? (
-    <>
-      <VolumeX className="w-5 h-5 text-landing-navy" />
-      <span className="text-sm font-medium text-landing-navy">
-        {t.videoUnmuteButton || "Click for sound"}
-      </span>
-    </>
-  ) : (
-    <Volume2 className="w-4 h-4 text-landing-gold" />
-  )}
-</button>
-```
-
----
-
-## Key Changes
-
-1. **Conditional positioning**: `right-4` when muted → `left-4` when unmuted
-2. **Conditional size**: `px-4 py-2.5` pill → `w-8 h-8` circle
-3. **No text when unmuted**: Removes the "Sound on" label entirely
-4. **Smaller icon when unmuted**: `w-5 h-5` → `w-4 h-4`
-5. **Added `aria-label`**: Maintains accessibility when text is hidden
-6. **Added `justify-center`**: Centers the icon in the small circle state
-
----
-
-## Visual Result
-
-| Before | After |
-|--------|-------|
-| Sound OFF: Large pill, bottom-right ✓ | Same ✓ |
-| Sound ON: Large pill, bottom-right ✗ | Small icon, bottom-left ✓ |
-
-The subtitles will remain fully visible when sound is enabled, as the small mute button is now in the bottom-left corner, away from typical subtitle placement.
 
 ---
 
 ## Files to Modify
 
-| File | Change |
-|------|--------|
-| `src/components/retargeting/RetargetingAutoplayVideo.tsx` | Update button with conditional styling based on `isMuted` state |
+### Part 1: Translation Files (Add `propertySearch` to `quickSearch`)
 
+| File | Language |
+|------|----------|
+| `src/i18n/translations/en.ts` | English |
+| `src/i18n/translations/de.ts` | German |
+| `src/i18n/translations/fi.ts` | Finnish |
+| `src/i18n/translations/nl.ts` | Dutch |
+| `src/i18n/translations/fr.ts` | French |
+| `src/i18n/translations/pl.ts` | Polish |
+| `src/i18n/translations/da.ts` | Danish |
+| `src/i18n/translations/hu.ts` | Hungarian |
+| `src/i18n/translations/sv.ts` | Swedish |
+| `src/i18n/translations/no.ts` | Norwegian |
+
+### Part 2: Component Update
+
+| File | Changes |
+|------|---------|
+| `src/components/home/sections/QuickSearch.tsx` | Import `useTranslation`, replace all hardcoded strings with i18n keys |
+
+---
+
+## Sample Translations
+
+### English (en.ts)
+```text
+propertySearch: {
+  labels: {
+    reference: "Reference",
+    location: "Location",
+    propertyType: "Property Type",
+    bedrooms: "Bedrooms",
+    minPrice: "Min. Price",
+    maxPrice: "Max. Price",
+    status: "Status",
+  },
+  placeholders: {
+    reference: "e.g. R5014453",
+    anyLocation: "Any Location",
+    anyType: "Any Type",
+    any: "Any",
+    loading: "Loading...",
+  },
+  status: {
+    newDevelopments: "New Developments",
+    resales: "Resales",
+    allProperties: "All Properties",
+  },
+  buttons: {
+    search: "Search Properties",
+    clearAll: "Clear All",
+  },
+}
+```
+
+### German (de.ts)
+```text
+propertySearch: {
+  labels: {
+    reference: "Referenz",
+    location: "Standort",
+    propertyType: "Immobilientyp",
+    bedrooms: "Schlafzimmer",
+    minPrice: "Min. Preis",
+    maxPrice: "Max. Preis",
+    status: "Status",
+  },
+  placeholders: {
+    reference: "z.B. R5014453",
+    anyLocation: "Beliebiger Standort",
+    anyType: "Beliebiger Typ",
+    any: "Beliebig",
+    loading: "Wird geladen...",
+  },
+  status: {
+    newDevelopments: "Neubauprojekte",
+    resales: "Wiederverkäufe",
+    allProperties: "Alle Immobilien",
+  },
+  buttons: {
+    search: "Immobilien Suchen",
+    clearAll: "Alles Löschen",
+  },
+}
+```
+
+### Finnish (fi.ts)
+```text
+propertySearch: {
+  labels: {
+    reference: "Viite",
+    location: "Sijainti",
+    propertyType: "Kiinteistötyyppi",
+    bedrooms: "Makuuhuoneet",
+    minPrice: "Min. Hinta",
+    maxPrice: "Max. Hinta",
+    status: "Tila",
+  },
+  placeholders: {
+    reference: "esim. R5014453",
+    anyLocation: "Mikä tahansa sijainti",
+    anyType: "Mikä tahansa tyyppi",
+    any: "Mikä tahansa",
+    loading: "Ladataan...",
+  },
+  status: {
+    newDevelopments: "Uudiskohteet",
+    resales: "Jälleenmyynti",
+    allProperties: "Kaikki kiinteistöt",
+  },
+  buttons: {
+    search: "Hae Kiinteistöjä",
+    clearAll: "Tyhjennä Kaikki",
+  },
+}
+```
+
+---
+
+## Component Changes
+
+### QuickSearch.tsx Updates
+
+**Import translation hook:**
+```tsx
+import { useTranslation } from '@/i18n';
+```
+
+**Get translations:**
+```tsx
+const { t, currentLanguage } = useTranslation();
+const ps = t.quickSearch.propertySearch;
+```
+
+**Replace hardcoded strings:**
+```tsx
+// Labels
+<label>{ps.labels.reference}</label>
+<label>{ps.labels.location}</label>
+<label>{ps.labels.propertyType}</label>
+
+// Placeholders
+<Input placeholder={ps.placeholders.reference} ... />
+<SelectValue placeholder={ps.placeholders.anyLocation} />
+
+// Status options - convert from static array to dynamic
+const statusOptions = [
+  { label: ps.status.newDevelopments, value: "new-developments" },
+  { label: ps.status.resales, value: "resales" },
+  { label: ps.status.allProperties, value: "all" },
+];
+
+// Buttons
+<Button>{ps.buttons.search}</Button>
+<Button>{ps.buttons.clearAll}</Button>
+```
+
+**Fix navigation to use current language:**
+```tsx
+// Current (hardcoded /en/)
+navigate(`/en/properties?${params.toString()}`);
+
+// Fixed (uses current language)
+navigate(`/${currentLanguage}/properties?${params.toString()}`);
+```
+
+---
+
+## Expected Result
+
+After implementation:
+- Property search tool on `/de/` will show 100% German labels and text
+- Property search tool on `/fi/` will show 100% Finnish labels and text
+- All 10 language versions will display fully localized search tools
+- Navigation will correctly go to the language-specific property finder page
+- No English "bleeding" on non-English home pages
