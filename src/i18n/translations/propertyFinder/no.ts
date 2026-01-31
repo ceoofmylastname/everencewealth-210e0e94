@@ -36,7 +36,9 @@ export const propertyFinderNo = {
     bathrooms: "Bad",
     status: "Status",
     sales: "Til Salgs",
+    resales: "Videresalg",
     newDevelopments: "Nybygg",
+    allProperties: "Alle Eiendommer",
     reset: "Tilbakestill",
     any: "Alle",
     loading: "Laster..."

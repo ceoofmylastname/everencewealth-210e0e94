@@ -69,15 +69,22 @@ export const PropertyFilters = ({
   const [bathrooms, setBathrooms] = useState(initialParams.bathrooms?.toString() || "");
   const [priceMin, setPriceMin] = useState(initialParams.priceMin?.toString() || "");
   const [priceMax, setPriceMax] = useState(initialParams.priceMax?.toString() || "");
-  // Default to Sales (all residential properties)
-  const [status, setStatus] = useState(
-    initialParams.newDevs === "only" ? "new-developments" : "sales"
-  );
+  // Default to New Developments
+  const getStatusFromParams = (newDevs?: string) => {
+    if (newDevs === "only") return "new-developments";
+    // Check URL for explicit resales/all selection
+    const urlNewDevs = new URLSearchParams(window.location.search).get("newDevs");
+    if (urlNewDevs === "resales") return "resales";
+    if (urlNewDevs === "all") return "all";
+    return "new-developments"; // Default
+  };
+  const [status, setStatus] = useState(getStatusFromParams(initialParams.newDevs));
 
-  // Status options with translations
+  // Status options with translations - New Developments first (default)
   const STATUS_OPTIONS = [
-    { label: t.filters.sales, value: "sales" },
     { label: t.filters.newDevelopments, value: "new-developments" },
+    { label: t.filters.resales || "Resales", value: "resales" },
+    { label: t.filters.allProperties || "All Properties", value: "all" },
   ];
 
   useEffect(() => {
@@ -89,7 +96,7 @@ export const PropertyFilters = ({
     setBathrooms(initialParams.bathrooms?.toString() || "");
     setPriceMin(initialParams.priceMin?.toString() || "");
     setPriceMax(initialParams.priceMax?.toString() || "");
-    setStatus(initialParams.newDevs === "only" ? "new-developments" : "sales");
+    setStatus(getStatusFromParams(initialParams.newDevs as string));
   }, [initialParams]);
 
   const handleSearch = () => {
@@ -105,7 +112,12 @@ export const PropertyFilters = ({
     if (bathrooms && bathrooms !== "any") params.bathrooms = parseInt(bathrooms);
     if (priceMin && priceMin !== "any") params.priceMin = parseInt(priceMin);
     if (priceMax && priceMax !== "any") params.priceMax = parseInt(priceMax);
-    if (status === "new-developments") params.newDevs = "only";
+    
+    // Handle status options
+    if (status === "new-developments") {
+      params.newDevs = "only";
+    }
+    // For "resales" and "all", newDevs stays undefined - backend handles appropriately
 
     onSearch(params);
   };
@@ -119,8 +131,8 @@ export const PropertyFilters = ({
     setBathrooms("");
     setPriceMin("");
     setPriceMax("");
-    setStatus("sales");
-    onSearch({ transactionType: "sale" });
+    setStatus("new-developments"); // Reset to default (new developments)
+    onSearch({ transactionType: "sale", newDevs: "only" }); // Default to new developments
   };
 
   const isLoading = locationsLoading || typesLoading;
