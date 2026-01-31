@@ -614,7 +614,27 @@ export const nl = {
       heading: "Maak Kennis met de Oprichters",
       subheading: "Drie ervaren professionals verenigd door een passie om klanten te helpen hun perfecte Spaanse huis te vinden",
       specialization: "Specialisatie",
-      viewProfile: "Bekijk Profiel"
+      viewProfile: "Bekijk Profiel",
+      profiles: [
+        {
+          name: "Steven Roberts",
+          role: "Medeoprichter & Directeur",
+          bio: "Steven kwam in 1997 naar Spanje en begon zijn vastgoedcarrière in 2010. In 2016 richtte hij Sentinel Estates op, dat uitgroeide tot Del Sol Prime Homes. Als geboren Schot brengt Steven decennia aan ervaring op de Costa del Sol markt mee.",
+          specialization: "Nieuwbouwprojecten en Internationale Kopers"
+        },
+        {
+          name: "Cédric Van Hecke",
+          role: "Medeoprichter & Verkoopdirecteur",
+          bio: "Cédric verhuisde in 1998 van België naar de Costa del Sol. Samen met Steven Roberts richtte hij het bureau op en brengt uitgebreide kennis van de lokale markt mee. Zijn meertaligheid maakt hem onmisbaar voor Europese kopers.",
+          specialization: "Nieuwbouwprojecten en Europese Kopers"
+        },
+        {
+          name: "Hans Beeckman",
+          role: "Vastgoedexpert & Technologie Manager",
+          bio: "Hans kwam in 2020 naar de Costa del Sol en trad toe als Vastgoedexpert. In 2024 begon Hans een intensieve cursus Kunstmatige Intelligentie en brengt geavanceerde technologieoplossingen om de vastgoedzoektocht te verbeteren.",
+          specialization: "Technologie en AI-ondersteunde Vastgoedmatching"
+        }
+      ]
     },
     whyChoose: {
       heading: "Waarom Voor Ons Kiezen",

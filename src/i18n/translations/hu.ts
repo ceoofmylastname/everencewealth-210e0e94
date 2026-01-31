@@ -576,7 +576,27 @@ export const hu = {
       heading: "Ismerje Meg Az Alapítókat",
       subheading: "Három tapasztalt szakember, akiket az ügyfelek tökéletes spanyol otthonának megtalálása iránti szenvedély egyesít",
       specialization: "Specializáció",
-      viewProfile: "Profil Megtekintése"
+      viewProfile: "Profil Megtekintése",
+      profiles: [
+        {
+          name: "Steven Roberts",
+          role: "Társalapító & Igazgató",
+          bio: "Steven 1997-ben érkezett Spanyolországba, és 2010-ben kezdte ingatlankarrierjét. 2016-ban megalapította a Sentinel Estates-t, amelyből Del Sol Prime Homes lett. Skót származású Steven évtizedes tapasztalatot hoz a Costa del Sol piacáról.",
+          specialization: "Új Építésű Ingatlanok és Nemzetközi Vásárlók"
+        },
+        {
+          name: "Cédric Van Hecke",
+          role: "Társalapító & Értékesítési Igazgató",
+          bio: "Cédric 1998-ban költözött Belgiumból a Costa del Solra. Steven Robertsszel közösen alapította az ügynökséget, és kiterjedt helyi piaci ismereteket hoz. Többnyelvű képességei felbecsülhetetlenné teszik az európai vásárlók számára.",
+          specialization: "Új Építésű Ingatlanok és Európai Vásárlók"
+        },
+        {
+          name: "Hans Beeckman",
+          role: "Ingatlanszakértő & Technológiai Vezető",
+          bio: "Hans 2020-ban érkezett a Costa del Solra és Ingatlanszakértőként csatlakozott. 2024-ben Hans intenzív Mesterséges Intelligencia képzést kezdett, élvonalbeli technológiai megoldásokat hozva az ingatlankeresési élmény javítására.",
+          specialization: "Technológia és AI-támogatott Ingatlan Párosítás"
+        }
+      ]
     },
     whyChoose: {
       heading: "Miért Válasszon Minket",

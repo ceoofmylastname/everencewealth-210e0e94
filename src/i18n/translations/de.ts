@@ -614,7 +614,27 @@ export const de = {
       heading: "Lernen Sie Die Gründer Kennen",
       subheading: "Drei erfahrene Fachleute, vereint durch die Leidenschaft, Kunden bei der Suche nach ihrem perfekten spanischen Zuhause zu helfen",
       specialization: "Spezialisierung",
-      viewProfile: "Profil Anzeigen"
+      viewProfile: "Profil Anzeigen",
+      profiles: [
+        {
+          name: "Steven Roberts",
+          role: "Mitgründer & Geschäftsführer",
+          bio: "Steven kam 1997 nach Spanien und begann 2010 seine Immobilienkarriere. 2016 gründete er Sentinel Estates, das sich zu Del Sol Prime Homes entwickelte. Als gebürtiger Schotte bringt Steven jahrzehntelange Erfahrung auf dem Costa del Sol Markt mit.",
+          specialization: "Neubauprojekte und Internationale Käufer"
+        },
+        {
+          name: "Cédric Van Hecke",
+          role: "Mitgründer & Vertriebsleiter",
+          bio: "Cédric zog 1998 von Belgien an die Costa del Sol. Zusammen mit Steven Roberts gründete er die Agentur und bringt umfassende Kenntnisse des lokalen Marktes mit. Seine Mehrsprachigkeit macht ihn für europäische Käufer unentbehrlich.",
+          specialization: "Neubauprojekte und Europäische Käufer"
+        },
+        {
+          name: "Hans Beeckman",
+          role: "Immobilienexperte & Technologie-Leiter",
+          bio: "Hans kam 2020 an die Costa del Sol und trat als Immobilienexperte bei. 2024 begann Hans einen intensiven Kurs in Künstlicher Intelligenz und bringt modernste Technologielösungen zur Verbesserung der Immobiliensuche ein.",
+          specialization: "Technologie und KI-gestützte Immobilienvermittlung"
+        }
+      ]
     },
     whyChoose: {
       heading: "Warum Wir",
