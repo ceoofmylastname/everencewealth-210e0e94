@@ -34,8 +34,9 @@ const BEDROOM_OPTIONS = [
 ];
 
 const STATUS_OPTIONS = [
-  { label: "Sales", value: "sales" },
   { label: "New Developments", value: "new-developments" },
+  { label: "Resales", value: "resales" },
+  { label: "All Properties", value: "all" },
 ];
 
 export const QuickSearch: React.FC = () => {
@@ -49,7 +50,7 @@ export const QuickSearch: React.FC = () => {
   const [bedrooms, setBedrooms] = useState("");
   const [priceMin, setPriceMin] = useState("");
   const [priceMax, setPriceMax] = useState("");
-  const [status, setStatus] = useState("sales");
+  const [status, setStatus] = useState("new-developments");
 
   const handleSearch = () => {
     const params = new URLSearchParams();
@@ -61,7 +62,15 @@ export const QuickSearch: React.FC = () => {
     if (bedrooms && bedrooms !== "any") params.append("bedrooms", bedrooms);
     if (priceMin && priceMin !== "any") params.append("priceMin", priceMin);
     if (priceMax && priceMax !== "any") params.append("priceMax", priceMax);
-    if (status === "new-developments") params.append("newDevs", "only");
+    
+    // Handle status options
+    if (status === "new-developments") {
+      params.append("newDevs", "only");
+    } else if (status === "resales") {
+      params.append("newDevs", "resales");
+    } else if (status === "all") {
+      params.append("newDevs", "all");
+    }
 
     navigate(`/en/properties?${params.toString()}`);
   };
@@ -73,7 +82,7 @@ export const QuickSearch: React.FC = () => {
     setBedrooms("");
     setPriceMin("");
     setPriceMax("");
-    setStatus("sales");
+    setStatus("new-developments"); // Reset to default (new developments)
   };
 
   const isLoading = locationsLoading || typesLoading;

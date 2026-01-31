@@ -36,7 +36,9 @@ export const propertyFinderFi = {
     bathrooms: "Kylpyhuoneet",
     status: "Tila",
     sales: "Myytävänä",
+    resales: "Jälleenmyynti",
     newDevelopments: "Uudiskohteet",
+    allProperties: "Kaikki Kiinteistöt",
     reset: "Nollaa",
     any: "Kaikki",
     loading: "Ladataan..."

@@ -36,7 +36,9 @@ export const propertyFinderFr = {
     bathrooms: "Salles de Bain",
     status: "Statut",
     sales: "Ventes",
+    resales: "Reventes",
     newDevelopments: "Programmes Neufs",
+    allProperties: "Toutes les Propriétés",
     reset: "Réinitialiser",
     any: "Tous",
     loading: "Chargement..."

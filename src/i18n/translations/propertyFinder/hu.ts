@@ -36,7 +36,9 @@ export const propertyFinderHu = {
     bathrooms: "Fürdőszobák",
     status: "Státusz",
     sales: "Eladó",
+    resales: "Viszonteladás",
     newDevelopments: "Új Építésű",
+    allProperties: "Összes Ingatlan",
     reset: "Visszaállítás",
     any: "Összes",
     loading: "Betöltés..."

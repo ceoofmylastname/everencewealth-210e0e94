@@ -35,18 +35,32 @@ const PropertyFinder = () => {
   const validLangCodes = AVAILABLE_LANGUAGES.map(l => l.code as string);
   const validCurrentLanguage = (lang && validLangCodes.includes(lang) ? lang : Language.EN) as Language;
 
-  const getInitialParams = (): PropertySearchParams => ({
-    reference: searchParams.get("reference") || undefined,
-    location: searchParams.get("location") || undefined,
-    sublocation: searchParams.get("sublocation") || undefined,
-    transactionType: (searchParams.get("transactionType") as 'sale' | 'rent') || 'sale',
-    priceMin: searchParams.get("priceMin") ? parseInt(searchParams.get("priceMin")!) : undefined,
-    priceMax: searchParams.get("priceMax") ? parseInt(searchParams.get("priceMax")!) : undefined,
-    propertyType: searchParams.get("propertyType") || undefined,
-    bedrooms: searchParams.get("bedrooms") ? parseInt(searchParams.get("bedrooms")!) : undefined,
-    bathrooms: searchParams.get("bathrooms") ? parseInt(searchParams.get("bathrooms")!) : undefined,
-    newDevs: searchParams.get("newDevs") === "only" ? "only" : undefined,
-  });
+  const getInitialParams = (): PropertySearchParams => {
+    // Check if newDevs param is explicitly set in URL
+    const newDevsParam = searchParams.get("newDevs");
+    // Default to "only" (new developments) unless explicitly set to something else
+    let newDevs: "only" | undefined = "only"; // Default to new developments
+    if (newDevsParam === "only") {
+      newDevs = "only";
+    } else if (newDevsParam === "resales") {
+      newDevs = undefined; // Resales only (handled in backend)
+    } else if (newDevsParam === "all") {
+      newDevs = undefined; // All properties
+    }
+    
+    return {
+      reference: searchParams.get("reference") || undefined,
+      location: searchParams.get("location") || undefined,
+      sublocation: searchParams.get("sublocation") || undefined,
+      transactionType: (searchParams.get("transactionType") as 'sale' | 'rent') || 'sale',
+      priceMin: searchParams.get("priceMin") ? parseInt(searchParams.get("priceMin")!) : undefined,
+      priceMax: searchParams.get("priceMax") ? parseInt(searchParams.get("priceMax")!) : undefined,
+      propertyType: searchParams.get("propertyType") || undefined,
+      bedrooms: searchParams.get("bedrooms") ? parseInt(searchParams.get("bedrooms")!) : undefined,
+      bathrooms: searchParams.get("bathrooms") ? parseInt(searchParams.get("bathrooms")!) : undefined,
+      newDevs,
+    };
+  };
 
   // ============ Price Range Parsing & Filtering Helpers ============
 
@@ -329,7 +343,7 @@ const PropertyFinder = () => {
 
   useEffect(() => {
     const params = getInitialParams();
-    // Show all residential properties by default (no newDevs filter)
+    // Default to new developments only
     searchProperties(params);
   }, []);
 

@@ -36,7 +36,9 @@ export const propertyFinderEn = {
     bathrooms: "Bathrooms",
     status: "Status",
     sales: "Sales",
+    resales: "Resales",
     newDevelopments: "New Developments",
+    allProperties: "All Properties",
     reset: "Reset",
     any: "Any",
     loading: "Loading..."
