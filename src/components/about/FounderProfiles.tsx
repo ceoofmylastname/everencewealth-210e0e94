@@ -45,13 +45,42 @@ const transformFounderToTeamMember = (founder: Founder) => ({
   is_founder: true,
 });
 
+interface LocalizedProfile {
+  name: string;
+  role: string;
+  bio: string;
+  specialization: string;
+}
+
+interface FoundersSection {
+  badge?: string;
+  heading?: string;
+  subheading?: string;
+  specialization?: string;
+  viewProfile?: string;
+  profiles?: LocalizedProfile[];
+}
+
 export const FounderProfiles = ({ founders }: FounderProfilesProps) => {
   const [selectedFounder, setSelectedFounder] = useState<Founder | null>(null);
   const { t } = useTranslation();
   const aboutUs = t.aboutUs as Record<string, unknown> | undefined;
-  const foundersSection = aboutUs?.founders as { badge?: string; heading?: string; subheading?: string; specialization?: string; viewProfile?: string } | undefined;
+  const foundersSection = aboutUs?.founders as FoundersSection | undefined;
 
   if (!founders || founders.length === 0) return null;
+
+  // Merge i18n translations with database founder data
+  const getLocalizedFounder = (founder: Founder, index: number): Founder => {
+    const localizedProfile = foundersSection?.profiles?.[index];
+    if (!localizedProfile) return founder;
+    
+    return {
+      ...founder,
+      role: localizedProfile.role || founder.role,
+      bio: localizedProfile.bio || founder.bio,
+      specialization: localizedProfile.specialization || founder.specialization,
+    };
+  };
 
   const handleCardClick = (founder: Founder) => {
     setSelectedFounder(founder);
@@ -84,7 +113,9 @@ export const FounderProfiles = ({ founders }: FounderProfilesProps) => {
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {founders.map((founder, index) => (
+            {founders.map((founder, index) => {
+              const localizedFounder = getLocalizedFounder(founder, index);
+              return (
               <motion.div
                 key={founder.name}
                 initial={{ opacity: 0, y: 30 }}
@@ -94,7 +125,7 @@ export const FounderProfiles = ({ founders }: FounderProfilesProps) => {
               >
                 <Card 
                   className="h-full border-0 shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group cursor-pointer hover:scale-[1.02]"
-                  onClick={() => handleCardClick(founder)}
+                  onClick={() => handleCardClick(localizedFounder)}
                 >
                   {/* Header with gradient */}
                   <div className="bg-gradient-to-br from-prime-900 to-prime-800 p-6 text-center relative">
@@ -115,7 +146,7 @@ export const FounderProfiles = ({ founders }: FounderProfilesProps) => {
                       {founder.name}
                     </h3>
                     <p className="text-prime-gold text-sm font-medium relative z-10">
-                      {founder.role}
+                      {localizedFounder.role}
                     </p>
                     
                     {/* Experience badge */}
@@ -127,13 +158,13 @@ export const FounderProfiles = ({ founders }: FounderProfilesProps) => {
                   <CardContent className="p-6">
                     {/* Bio */}
                     <p className="text-slate-600 text-sm leading-relaxed mb-4">
-                      {founder.bio}
+                      {localizedFounder.bio}
                     </p>
 
                     {/* Specialization */}
                     <div className="mb-4">
                       <span className="text-xs uppercase tracking-wider text-slate-500 font-semibold">{foundersSection?.specialization || "Specialization"}</span>
-                      <p className="text-prime-800 font-medium text-sm mt-1">{founder.specialization}</p>
+                      <p className="text-prime-800 font-medium text-sm mt-1">{localizedFounder.specialization}</p>
                     </div>
 
                     {/* Languages */}
@@ -169,7 +200,8 @@ export const FounderProfiles = ({ founders }: FounderProfilesProps) => {
                   </CardContent>
                 </Card>
               </motion.div>
-            ))}
+              );
+            })}
           </div>
         </motion.div>
       </div>
