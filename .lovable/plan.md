@@ -1,182 +1,298 @@
 
 
-# Fix React Hydration Errors - Static File Priority
+# Graceful Handling of Invalid Language/Slug Combinations
 
-## Problem Analysis
+## Problem Summary
 
-The issue is two-fold:
+When a user visits a URL like `/sv/blog/evaluating-property-design...` (Swedish prefix + English slug), the system shows a blank page instead of:
+1. Redirecting to the correct localized URL, or
+2. Showing a helpful 404 page with language alternatives
 
-### Issue 1: Location Pages Missing Language Prefix in File Path
+The `translations` JSONB column already contains all sibling slugs, making intelligent redirects possible.
 
-| Page Type | Static File Path | URL Pattern | Match? |
-|-----------|------------------|-------------|--------|
-| Blog | `/dist/{lang}/blog/{slug}/index.html` | `/{lang}/blog/{slug}` | ✅ |
-| Q&A | `/dist/{lang}/qa/{slug}/index.html` | `/{lang}/qa/{slug}` | ✅ |
-| Comparison | `/dist/{lang}/compare/{slug}/index.html` | `/{lang}/compare/{slug}` | ✅ |
-| **Location** | `/dist/locations/{city}/{topic}/index.html` | `/{lang}/locations/{city}/{topic}` | ❌ |
+## Database Asset: The `translations` Column
 
-The location page generator writes to `/dist/locations/...` (no language prefix), but URLs are `/{lang}/locations/...`. This means Cloudflare can't find the static file, so it falls through to the middleware which calls the edge function.
+Each article already has a mapping of all available translations:
 
-### Issue 2: Edge Function SSR Conflicts with React
-
-When the edge function returns complete HTML (with `<html>`, `<head>`, `<body>`), React throws Error #300 because:
-1. The SSR HTML contains a `<div id="root">...</div>` with content inside
-2. React tries to hydrate into `#root` but the DOM structure doesn't match what React expects
-3. React crashes with "Target container is not a DOM element" or hydration mismatch errors
-
-## Solution Overview
-
-Two changes needed:
-
-1. **Fix location pages static generator** - Add language prefix to output path
-2. **Remove location pages from middleware** - Let Cloudflare serve static files directly
-
-## Files to Modify
-
-| File | Change |
-|------|--------|
-| `scripts/generateStaticLocationPages.ts` | Fix file output path to include language prefix |
-| `functions/_middleware.js` | Remove location routes from SEO_ROUTE_PATTERNS |
-
----
-
-## Detailed Implementation
-
-### Change 1: Fix Static Location Page Generator
-
-**File:** `scripts/generateStaticLocationPages.ts`
-
-**Current (Line 704):**
-```typescript
-const filePath = join(distDir, 'locations', location.city_slug, location.topic_slug, 'index.html');
+```json
+{
+  "en": "evaluating-property-design-impact-on-value...",
+  "sv": "navigera-i-den-arkitektoniska-landskapet...",
+  "nl": "navigeren-door-het-architecturale-landschap...",
+  ...
+}
 ```
 
-**Fixed:**
-```typescript
-const filePath = join(distDir, location.language, 'locations', location.city_slug, location.topic_slug, 'index.html');
-```
+This data enables smart cross-language redirects.
 
-This changes the output from:
-- `/dist/locations/mijas/best-areas-mijas-families/index.html`
-
-To:
-- `/dist/en/locations/mijas/best-areas-mijas-families/index.html`
-- `/dist/nl/locations/mijas/beste-gebieden-mijas-gezinnen/index.html`
-- etc.
-
-### Change 2: Remove Location Routes from Middleware
-
-**File:** `functions/_middleware.js`
-
-**Current (Lines 20-29):**
-```javascript
-const SEO_ROUTE_PATTERNS = [
-  // Location Hub (must be BEFORE location pages pattern) - e.g., /en/locations
-  new RegExp(`^/(${LANG_PATTERN})/locations/?$`),
-  // Q&A pages - use edge function SSR
-  new RegExp(`^/(${LANG_PATTERN})/qa/[^/]+$`),
-  // Comparison pages - use edge function SSR
-  new RegExp(`^/(${LANG_PATTERN})/compare/[^/]+$`),
-  // Location pages (city index and topic pages) - use edge function SSR
-  new RegExp(`^/(${LANG_PATTERN})/locations/[^/]+(/[^/]+)?$`),
-];
-```
-
-**Fixed:**
-```javascript
-const SEO_ROUTE_PATTERNS = [
-  // NOTE: All content pages (blog, QA, compare, locations) are now pre-rendered
-  // as static HTML files during build. The middleware should NOT intercept them.
-  // Static files contain full branding + all SEO metadata (hreflang, canonical, schemas).
-  // Edge function is ONLY for truly dynamic routes or fallback scenarios.
-  
-  // Location Hub ONLY - the hub index pages need edge function
-  // Individual location pages are served as static files
-  new RegExp(`^/(${LANG_PATTERN})/locations/?$`),
-];
-```
-
-This removes:
-- Q&A page routes (static files exist at `/{lang}/qa/{slug}/index.html`)
-- Comparison page routes (static files exist at `/{lang}/compare/{slug}/index.html`)
-- Location topic page routes (will exist at `/{lang}/locations/{city}/{topic}/index.html` after fix)
-
-The Location Hub (`/en/locations`) remains in the middleware because it's a dynamic index page.
-
----
-
-## Why This Works
+## Solution Architecture
 
 ```text
-Current Flow (BROKEN):
-User visits /en/locations/mijas/best-areas-mijas-families
-  ↓
-Cloudflare looks for /en/locations/mijas/best-areas-mijas-families/index.html
-  ↓
-File doesn't exist (it's at /locations/mijas/... without /en/)
-  ↓
-Falls through to middleware
-  ↓
-Middleware matches SEO_ROUTE_PATTERNS
-  ↓
-Calls edge function → Returns SSR HTML
-  ↓
-React tries to hydrate → ERROR #300 → Blank page
-
-Fixed Flow (WORKS):
-User visits /en/locations/mijas/best-areas-mijas-families
-  ↓
-Cloudflare looks for /en/locations/mijas/best-areas-mijas-families/index.html
-  ↓
-File EXISTS (after generator fix) → Serves static HTML
-  ↓
-Full branding, all SEO metadata, no React hydration issues
+User visits /sv/blog/english-slug
+            ↓
+┌───────────────────────────────────────┐
+│ Step 1: Check if slug exists for /sv/ │
+│         → Query: slug + language=sv   │
+└───────────────────────────────────────┘
+            ↓
+       NOT FOUND
+            ↓
+┌───────────────────────────────────────┐
+│ Step 2: Search slug in ANY language   │
+│         → Query: slug + status=pub    │
+└───────────────────────────────────────┘
+            ↓
+       FOUND in English (en)
+            ↓
+┌───────────────────────────────────────┐
+│ Step 3: Check translations JSONB      │
+│         → Does Swedish sibling exist? │
+└───────────────────────────────────────┘
+            ↓
+       YES: sv → "navigera-i-den..."
+            ↓
+┌───────────────────────────────────────┐
+│ Step 4: 301 Redirect to correct URL   │
+│         → /sv/blog/navigera-i-den...  │
+└───────────────────────────────────────┘
 ```
 
----
+If no translation exists for the requested language, show a branded 404 page with links to available translations.
 
-## Static Files Include Everything Needed
+## Implementation Plan
 
-The static HTML files already contain:
-- ✅ Full Del Sol Prime Homes branding
-- ✅ Playfair Display + Lato fonts
-- ✅ Gold accent colors and premium styling
-- ✅ Hreflang tags for all 10 languages
-- ✅ Canonical URLs
-- ✅ JSON-LD schemas (Place, RealEstateAgent, FAQPage, BreadcrumbList, WebPage)
-- ✅ Open Graph and Twitter Card meta tags
-- ✅ Production CSS and JS assets
-- ✅ No React hydration conflicts (static content loads before React)
+### 1. Create Language Mismatch Handler Component
 
----
+**File:** `src/components/LanguageMismatchHandler.tsx`
 
-## Verification After Deployment
+Creates a reusable component that:
+- Looks up the slug in any language
+- Checks the `translations` JSONB for the requested language
+- Either redirects or shows available alternatives
 
-1. **Rebuild the project** - This regenerates static files with correct paths
+```typescript
+interface LanguageMismatchHandlerProps {
+  slug: string;
+  requestedLang: string;
+  contentType: 'blog' | 'qa' | 'compare' | 'locations';
+}
 
-2. **Test location pages**:
-   - https://www.delsolprimehomes.com/en/locations/mijas/best-areas-mijas-families
-   - Should show full branding, no blank page
+// Logic:
+// 1. Query: Find article by slug (any language)
+// 2. If found, check translations[requestedLang]
+// 3. If sibling exists → Navigate to correct URL
+// 4. If no sibling → Show branded 404 with alternatives
+```
 
-3. **Check response headers**:
-   - Should NOT have `X-SEO-Source: edge-function`
-   - Should be served as static file
+### 2. Update BlogArticle.tsx
 
-4. **View page source**:
-   - Should show complete HTML with hreflang tags
-   - Should have JSON-LD schemas
+**File:** `src/pages/BlogArticle.tsx`
 
-5. **Console check**:
-   - No React Error #300
-   - No hydration mismatch errors
+Replace the current simple "not found" message with the smart handler:
 
----
+**Before (lines 63-80):**
+```typescript
+if (article && article.language !== lang) {
+  return (
+    <>
+      <Helmet>
+        <meta name="robots" content="noindex, nofollow" />
+        <title>Article Not Found | Del Sol Prime Homes</title>
+      </Helmet>
+      <div className="container mx-auto px-4 py-12">
+        <div className="max-w-4xl mx-auto text-center">
+          <h1 className="text-3xl font-bold mb-4">Article Not Found</h1>
+          <p className="text-muted-foreground">This article is not available in this language.</p>
+        </div>
+      </div>
+    </>
+  );
+}
+```
 
-## Summary
+**After:**
+```typescript
+if (article && article.language !== lang) {
+  // Check if translation exists for requested language
+  const translations = article.translations as Record<string, string>;
+  const correctSlug = translations?.[lang];
+  
+  if (correctSlug) {
+    // Redirect to the correct localized URL
+    return <Navigate to={`/${lang}/blog/${correctSlug}`} replace />;
+  }
+  
+  // No translation available - show helpful 404 with alternatives
+  return <LanguageMismatchNotFound 
+    requestedLang={lang}
+    actualLang={article.language}
+    slug={slug}
+    translations={translations}
+    contentType="blog"
+  />;
+}
+```
 
-| Change | Before | After |
-|--------|--------|-------|
-| Location page file path | `/dist/locations/{city}/{topic}/index.html` | `/dist/{lang}/locations/{city}/{topic}/index.html` |
-| Middleware routing | Intercepts all content routes | Only intercepts location hub |
-| React hydration | Error #300, blank pages | No errors, static content loads first |
+### 3. Create Branded 404 Component for Mismatches
+
+**File:** `src/components/LanguageMismatchNotFound.tsx`
+
+Creates a Del Sol Prime Homes branded 404 page that:
+- Uses the brand colors (gold accents, Playfair Display headings)
+- Shows the article title
+- Lists available language versions with clickable links
+- Provides navigation back to blog index
+
+```typescript
+interface Props {
+  requestedLang: string;
+  actualLang: string;
+  slug: string;
+  translations: Record<string, string>;
+  contentType: 'blog' | 'qa' | 'compare' | 'locations';
+}
+
+// Example output:
+// ┌────────────────────────────────────────────┐
+// │  🌐 Article Not Available in Swedish       │
+// │                                            │
+// │  This article is available in:             │
+// │  • English (Original)                      │
+// │  • Dutch                                   │
+// │  • German                                  │
+// │  • French                                  │
+// │                                            │
+// │  [View in English]  [Browse Swedish Blog]  │
+// └────────────────────────────────────────────┘
+```
+
+### 4. Apply Same Pattern to Q&A and Comparison Pages
+
+**Files to update:**
+- `src/pages/QAPage.tsx` - Add language mismatch detection
+- `src/pages/ComparisonPage.tsx` - Add language mismatch detection
+
+Same logic: check `translations` JSONB, redirect if sibling exists, show alternatives if not.
+
+### 5. Update Edge Function for SSR Fallback
+
+**File:** `supabase/functions/serve-seo-page/index.ts`
+
+Add language mismatch detection to the edge function for cases where static files don't exist:
+
+```typescript
+// In fetchBlogMetadata function:
+async function fetchBlogMetadata(supabase: any, slug: string, lang: string) {
+  // First try: exact match (slug + language)
+  const { data: exactMatch } = await supabase
+    .from('blog_articles')
+    .select('*')
+    .eq('slug', slug)
+    .eq('language', lang)
+    .eq('status', 'published')
+    .maybeSingle();
+  
+  if (exactMatch) return exactMatch;
+  
+  // Second try: find by slug alone
+  const { data: anyLangMatch } = await supabase
+    .from('blog_articles')
+    .select('id, language, translations, slug')
+    .eq('slug', slug)
+    .eq('status', 'published')
+    .maybeSingle();
+  
+  if (anyLangMatch) {
+    // Check if translation exists for requested language
+    const correctSlug = anyLangMatch.translations?.[lang];
+    if (correctSlug) {
+      // Return 301 redirect to correct URL
+      return { redirect: `/${lang}/blog/${correctSlug}` };
+    }
+  }
+  
+  return null;
+}
+```
+
+## Files to Create/Modify
+
+| File | Action | Purpose |
+|------|--------|---------|
+| `src/components/LanguageMismatchNotFound.tsx` | Create | Branded 404 with language alternatives |
+| `src/pages/BlogArticle.tsx` | Modify | Add smart redirect logic |
+| `src/pages/QAPage.tsx` | Modify | Add smart redirect logic |
+| `src/pages/ComparisonPage.tsx` | Modify | Add smart redirect logic |
+| `supabase/functions/serve-seo-page/index.ts` | Modify | Add SSR redirect for edge cases |
+
+## User Experience Flow
+
+**Scenario 1: Translation exists**
+```
+User clicks: /sv/blog/english-slug
+     ↓
+System finds English article with slug
+     ↓
+System checks translations["sv"] → "swedish-slug"
+     ↓
+301 Redirect → /sv/blog/swedish-slug ✓
+```
+
+**Scenario 2: No translation for requested language**
+```
+User clicks: /hu/blog/english-slug
+     ↓
+System finds English article
+     ↓
+System checks translations["hu"] → null (not translated yet)
+     ↓
+Show branded 404:
+  "This article is not yet available in Hungarian"
+  Available in: [EN] [NL] [DE] [FR] [SV]
+  [View in English] [Browse Hungarian Blog]
+```
+
+## Technical Details
+
+### Redirect Headers
+
+For SEO, use 301 (permanent) redirects to signal search engines:
+- The English slug URL is not canonical
+- The localized slug is the correct destination
+
+### Noindex for 404 Pages
+
+The language mismatch 404 page should include:
+```html
+<meta name="robots" content="noindex, nofollow">
+```
+
+### Language Name Mapping
+
+Use localized language names for the available translations list:
+```typescript
+const LANGUAGE_NAMES: Record<string, Record<string, string>> = {
+  en: { en: 'English', nl: 'Dutch', de: 'German', ... },
+  sv: { en: 'Engelska', nl: 'Nederländska', de: 'Tyska', ... },
+  // etc.
+}
+```
+
+## Verification After Implementation
+
+1. **Test redirect case:**
+   - Visit `/sv/blog/evaluating-property-design-impact-on-value-and-investor-appeal-in-costa-del-sol`
+   - Should 301 redirect to `/sv/blog/navigera-i-den-arkitektoniska-landskapet...`
+
+2. **Test 404 with alternatives:**
+   - Visit a URL where no translation exists
+   - Should show branded 404 with available language links
+
+3. **Check redirect headers:**
+   - Network tab should show `301 Moved Permanently`
+   - Response should include `Location: /sv/blog/correct-slug`
+
+4. **Verify SEO:**
+   - 404 pages should have `noindex`
+   - Redirect pages should pass PageSpeed/Lighthouse
 
