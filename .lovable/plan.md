@@ -1,40 +1,99 @@
 
-
-# Update German Testimonials Widget ID
+# Remove Project Names from Retargeting Property Cards
 
 ## Problem
-The German language pages are displaying the wrong testimonials widget. The current German widget ID (`aa95873f-40c9-4b8a-a930-c887d6afb4c4`) needs to be replaced with the correct German widget.
+The retargeting property cards currently display specific project names like "MORASOL", "SAVIA", "360", "BENJAMINS DERAM", "TERRA NOVA HILLS", and "ALURA LIVING". These names should be removed from all retargeting pages.
+
+## Current State
+Project names appear in **two files**:
+
+| File | Location | Current Display |
+|------|----------|-----------------|
+| `RetargetingProjects.tsx` | Line 179-181 | `<h3>{property.internal_name}</h3>` |
+| `RetargetingPropertyModal.tsx` | Line 215-217 | `<h3>{property.internal_name}</h3>` |
 
 ## Solution
-Update the `WIDGET_IDS` mapping in the centralized `ElfsightGoogleReviews` component. This single change will automatically apply to **all German pages** across the site (homepage, landing pages, retargeting pages, etc.) because they all use this shared component.
+Replace the project name with a **generic, localized title** based on the property type (apartment/villa). This follows the same pattern already used in `PropertyCard.tsx` for the main landing pages.
 
-## Change Required
+### Display Logic
 
-**File:** `src/components/reviews/ElfsightGoogleReviews.tsx`
+| Property Category | English Display | Finnish Example | German Example |
+|-------------------|-----------------|-----------------|----------------|
+| `apartment` | "New Luxury Apartments" | "Uudet Luksushuoneistot" | "Neue Luxuswohnungen" |
+| `villa` | "Exclusive Villas" | "Yksinomaiset Huvilat" | "Exklusive Villen" |
 
-| Language | Current Widget ID | New Widget ID |
-|----------|-------------------|---------------|
-| `de` (German) | `aa95873f-40c9-4b8a-a930-c887d6afb4c4` | `3c8586b9-ec6b-4bc3-94fe-c278e8e284bd` |
+## Files to Modify
 
-**Code change (line 11):**
+### 1. `src/lib/retargetingTranslations.ts`
+Add two new translation keys for the generic property titles:
+
 ```typescript
-// FROM:
-de: 'aa95873f-40c9-4b8a-a930-c887d6afb4c4',
-
-// TO:
-de: '3c8586b9-ec6b-4bc3-94fe-c278e8e284bd',
+cardTitleApartment: "New Luxury Apartments",
+cardTitleVilla: "Exclusive Villas",
 ```
 
-## Note About Dutch (nl)
-Currently Dutch (`nl`) shares the same widget as German with a comment `// Uses same widget as German`. After this update, Dutch will still point to the **old** German widget ID. 
+These keys need to be added to all 10 language translations within this file.
 
-**Question:** Should Dutch also be updated to use the new German widget, or should it have its own dedicated widget ID?
+### 2. `src/components/retargeting/RetargetingProjects.tsx`
+**Line 179-181** - Replace the project name heading with a generic localized title:
 
-## Pages Affected
-This single change will update all German (`/de/...`) pages including:
-- `/de` (Homepage)
-- `/de/about` (About page)
-- `/de/landing` (Landing page)
-- `/de/willkommen-zurueck` (Retargeting page)
-- Any other page using the `ElfsightGoogleReviews` component
+```typescript
+// FROM:
+<h3 className="text-lg font-medium text-landing-navy mb-2 line-clamp-1">
+  {property.internal_name}
+</h3>
 
+// TO:
+<h3 className="text-lg font-medium text-landing-navy mb-2 line-clamp-1">
+  {property.category === 'apartment' ? t.cardTitleApartment : t.cardTitleVilla}
+</h3>
+```
+
+### 3. `src/components/retargeting/RetargetingPropertyModal.tsx`
+**Line 215-217** - Replace the project name in the modal property info box:
+
+```typescript
+// FROM:
+<h3 className="font-semibold text-gray-900 text-base mb-1">
+  {property.internal_name}
+</h3>
+
+// TO:
+<h3 className="font-semibold text-gray-900 text-base mb-1">
+  {property.category === 'apartment' ? t.cardTitleApartment : t.cardTitleVilla}
+</h3>
+```
+
+**Note:** The modal component needs to:
+1. Import the retargeting translations
+2. Accept `category` in the property interface
+3. Pass `category` when calling from RetargetingProjects
+
+## Translation Values to Add
+
+| Language | `cardTitleApartment` | `cardTitleVilla` |
+|----------|----------------------|------------------|
+| `en` | New Luxury Apartments | Exclusive Villas |
+| `de` | Neue Luxuswohnungen | Exklusive Villen |
+| `nl` | Nieuwe Luxe Appartementen | Exclusieve Villa's |
+| `fr` | Nouveaux Appartements de Luxe | Villas Exclusives |
+| `pl` | Nowe Luksusowe Apartamenty | Ekskluzywne Wille |
+| `sv` | Nya Lyxlägenheter | Exklusiva Villor |
+| `da` | Nye Luksuslejligheder | Eksklusive Villaer |
+| `fi` | Uudet Luksushuoneistot | Yksinomaiset Huvilat |
+| `hu` | Új Luxus Apartmanok | Exkluzív Villák |
+| `no` | Nye Luksusleiligheter | Eksklusive Villaer |
+
+## CRM Note
+The `internal_name` is still passed to the CRM in line 134 for lead tracking purposes:
+```typescript
+interest: `${property.internal_name} - ${data.interest || "both"}`,
+```
+This will remain unchanged so the sales team knows which specific project the lead was interested in.
+
+## Expected Result
+After implementation:
+- All retargeting property cards show generic titles like "New Luxury Apartments" or "Exclusive Villas"
+- Titles are fully localized based on the page language
+- Location, price, beds/baths, and descriptions remain unchanged
+- CRM lead tracking still captures the specific project name internally
