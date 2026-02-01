@@ -14,20 +14,17 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const LANGUAGES = ['en', 'nl', 'fr', 'de', 'fi', 'pl', 'da', 'hu', 'sv', 'no'];
 const LANG_PATTERN = LANGUAGES.join('|');
 
-// SEO content routes that need edge function
-// NOTE: Language homepages (/en, /de, etc.) are NOT included here
-// They are served as pre-rendered static files via public/_redirects
+// SEO content routes that need edge function SSR
+// NOTE: Blog articles are NOT included - they are pre-rendered as static HTML files
+// during build (3,271 pages) and served directly by Cloudflare for full branding
 const SEO_ROUTE_PATTERNS = [
   // Location Hub (must be BEFORE location pages pattern) - e.g., /en/locations
   new RegExp(`^/(${LANG_PATTERN})/locations/?$`),
-  // Buyers Guide removed — now handled by React SPA routing (client-side Helmet tags)
-  // Blog articles
-  new RegExp(`^/(${LANG_PATTERN})/blog/[^/]+$`),
-  // Q&A pages
+  // Q&A pages - use edge function SSR
   new RegExp(`^/(${LANG_PATTERN})/qa/[^/]+$`),
-  // Comparison pages
+  // Comparison pages - use edge function SSR
   new RegExp(`^/(${LANG_PATTERN})/compare/[^/]+$`),
-  // Location pages (city index and topic pages)
+  // Location pages (city index and topic pages) - use edge function SSR
   new RegExp(`^/(${LANG_PATTERN})/locations/[^/]+(/[^/]+)?$`),
 ];
 
