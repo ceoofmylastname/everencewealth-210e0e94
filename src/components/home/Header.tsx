@@ -55,28 +55,28 @@ export const Header: React.FC<HeaderProps> = ({ variant = 'transparent', content
   const featuredCities = [
     {
       title: "Marbella",
-      description: "Luxury living on the Golden Mile",
+      description: t.header?.cities?.marbella || "Luxury living on the Golden Mile",
       href: `/${currentLanguage}/brochure/marbella`,
       src: `${storageBaseUrl}/marbella-navbar.jpg`,
       fallback: "https://images.unsplash.com/photo-1722600522832-c7ebd5ea1ace?w=400&h=300&fit=crop&q=80"
     },
     {
       title: "Estepona",
-      description: "Charming old town & beaches",
+      description: t.header?.cities?.estepona || "Charming old town & beaches",
       href: `/${currentLanguage}/brochure/estepona`,
       src: `${storageBaseUrl}/estepona-navbar.jpg`,
       fallback: "https://images.unsplash.com/photo-1624361141205-e0fd424dd800?w=400&h=300&fit=crop&q=80"
     },
     {
       title: "Málaga",
-      description: "Culture, cuisine & coastline",
+      description: t.header?.cities?.malaga || "Culture, cuisine & coastline",
       href: `/${currentLanguage}/brochure/malaga-city`,
       src: `${storageBaseUrl}/malaga-navbar.jpg`,
       fallback: "https://images.unsplash.com/photo-1550152428-4fbab75a3b0e?w=400&h=300&fit=crop&q=80"
     },
     {
       title: "Sotogrande",
-      description: "Exclusive marina lifestyle",
+      description: t.header?.cities?.sotogrande || "Exclusive marina lifestyle",
       href: `/${currentLanguage}/brochure/sotogrande`,
       src: `${storageBaseUrl}/sotogrande-navbar.jpg`,
       fallback: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=400&h=300&fit=crop&q=80"
@@ -94,75 +94,75 @@ export const Header: React.FC<HeaderProps> = ({ variant = 'transparent', content
     >
       {/* Explore Section */}
       <MobileMenuSection 
-        title="Explore" 
+        title={t.header?.menus?.explore || "Explore"} 
         isOpen={mobileSubmenu === 'explore'}
         onToggle={() => setMobileSubmenu(mobileSubmenu === 'explore' ? null : 'explore')}
       >
         <MobileLink to={`/${currentLanguage}/properties`} onClick={() => setIsMobileMenuOpen(false)} icon={<Home className="w-5 h-5" />}>
-          Property Finder
+          {t.header?.items?.propertyFinder || "Property Finder"}
         </MobileLink>
         <MobileLink to={`/${currentLanguage}/brochure/marbella`} onClick={() => setIsMobileMenuOpen(false)} icon={<Landmark className="w-5 h-5" />}>
-          City Brochures
+          {t.header?.items?.cityBrochures || "City Brochures"}
         </MobileLink>
         <MobileLink to={`/${currentLanguage}/locations`} onClick={() => setIsMobileMenuOpen(false)} icon={<MapPin className="w-5 h-5" />}>
-          Location Guides
+          {t.header?.items?.locationGuides || "Location Guides"}
         </MobileLink>
       </MobileMenuSection>
 
       {/* Learn Section */}
       <MobileMenuSection 
-        title="Learn" 
+        title={t.header?.menus?.learn || "Learn"} 
         isOpen={mobileSubmenu === 'learn'}
         onToggle={() => setMobileSubmenu(mobileSubmenu === 'learn' ? null : 'learn')}
       >
         <MobileLink to={`/${currentLanguage}/blog`} onClick={() => setIsMobileMenuOpen(false)} icon={<Newspaper className="w-5 h-5" />}>
-          Blog & Insights
+          {t.header?.items?.blogInsights || "Blog & Insights"}
         </MobileLink>
         <MobileLink to={`/${currentLanguage}/qa`} onClick={() => setIsMobileMenuOpen(false)} icon={<MessageCircleQuestion className="w-5 h-5" />}>
-          Q&A Center
+          {t.header?.items?.qaCenter || "Q&A Center"}
         </MobileLink>
         <MobileLink to={`/${currentLanguage}/glossary`} onClick={() => setIsMobileMenuOpen(false)} icon={<BookMarked className="w-5 h-5" />}>
-          Property Glossary
+          {t.header?.items?.propertyGlossary || "Property Glossary"}
         </MobileLink>
         <MobileLink to={`/${currentLanguage}/buyers-guide`} onClick={() => setIsMobileMenuOpen(false)} icon={<GraduationCap className="w-5 h-5" />}>
-          Buyer's Guide
+          {t.header?.items?.buyersGuide || "Buyer's Guide"}
         </MobileLink>
       </MobileMenuSection>
 
       {/* Compare Section */}
       <MobileMenuSection 
-        title="Compare" 
+        title={t.header?.menus?.compare || "Compare"} 
         isOpen={mobileSubmenu === 'compare'}
         onToggle={() => setMobileSubmenu(mobileSubmenu === 'compare' ? null : 'compare')}
       >
         <MobileLink to={`/${currentLanguage}/compare`} onClick={() => setIsMobileMenuOpen(false)} icon={<GitCompare className="w-5 h-5" />}>
-          Comparison Index
+          {t.header?.items?.comparisonIndex || "Comparison Index"}
         </MobileLink>
         <MobileLink to={`/${currentLanguage}/compare`} onClick={() => setIsMobileMenuOpen(false)} icon={<Scale className="w-5 h-5" />}>
-          City vs City
+          {t.header?.items?.cityVsCity || "City vs City"}
         </MobileLink>
       </MobileMenuSection>
 
       {/* About Section */}
       <MobileMenuSection 
-        title="About" 
+        title={t.header?.menus?.about || "About"} 
         isOpen={mobileSubmenu === 'about'}
         onToggle={() => setMobileSubmenu(mobileSubmenu === 'about' ? null : 'about')}
       >
         <MobileLink to={`/${currentLanguage}/about`} onClick={() => setIsMobileMenuOpen(false)} icon={<Info className="w-5 h-5" />}>
-          About Us
+          {t.header?.items?.aboutUs || "About Us"}
         </MobileLink>
         <MobileLink to={`/${currentLanguage}/team`} onClick={() => setIsMobileMenuOpen(false)} icon={<Users className="w-5 h-5" />}>
-          Our Team
+          {t.header?.items?.ourTeam || "Our Team"}
         </MobileLink>
         <MobileLink to={`/${currentLanguage}/contact`} onClick={() => setIsMobileMenuOpen(false)} icon={<Phone className="w-5 h-5" />}>
-          Contact
+          {t.header?.items?.contact || "Contact"}
         </MobileLink>
       </MobileMenuSection>
       
       {/* Language Selector */}
       <div className="flex flex-col gap-3 mt-6 pt-6 border-t border-border">
-        <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Language</span>
+        <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">{t.header?.language || "Language"}</span>
         {contentContext ? (
           <ContentLanguageSwitcher
             currentLanguage={contentContext.currentLanguage}
@@ -213,7 +213,7 @@ export const Header: React.FC<HeaderProps> = ({ variant = 'transparent', content
         <div className="hidden lg:flex items-center justify-center">
           <Menu setActive={setActive}>
             {/* Explore Menu */}
-            <MenuItem setActive={setActive} active={active} item="Explore">
+            <MenuItem setActive={setActive} active={active} item={t.header?.menus?.explore || "Explore"}>
               <div className="flex flex-col gap-4">
                 <div className="grid grid-cols-2 gap-4 pb-4 border-b border-border/50">
                   {featuredCities.map((city) => (
@@ -224,19 +224,19 @@ export const Header: React.FC<HeaderProps> = ({ variant = 'transparent', content
                   <HoveredLink href={`/${currentLanguage}/properties`}>
                     <span className="flex items-center gap-2">
                       <Home className="w-4 h-4" />
-                      Property Finder
+                      {t.header?.items?.propertyFinder || "Property Finder"}
                     </span>
                   </HoveredLink>
                   <HoveredLink href={`/${currentLanguage}/brochure/marbella`}>
                     <span className="flex items-center gap-2">
                       <Landmark className="w-4 h-4" />
-                      City Brochures
+                      {t.header?.items?.cityBrochures || "City Brochures"}
                     </span>
                   </HoveredLink>
                   <HoveredLink href={`/${currentLanguage}/locations`}>
                     <span className="flex items-center gap-2">
                       <MapPin className="w-4 h-4" />
-                      Location Guides
+                      {t.header?.items?.locationGuides || "Location Guides"}
                     </span>
                   </HoveredLink>
                 </div>
@@ -244,72 +244,72 @@ export const Header: React.FC<HeaderProps> = ({ variant = 'transparent', content
             </MenuItem>
 
             {/* Learn Menu */}
-            <MenuItem setActive={setActive} active={active} item="Learn">
+            <MenuItem setActive={setActive} active={active} item={t.header?.menus?.learn || "Learn"}>
               <div className="flex flex-col gap-1 min-w-[200px]">
                 <HoveredLink href={`/${currentLanguage}/blog`}>
                   <span className="flex items-center gap-2">
                     <Newspaper className="w-4 h-4" />
-                    Blog & Insights
+                    {t.header?.items?.blogInsights || "Blog & Insights"}
                   </span>
                 </HoveredLink>
                 <HoveredLink href={`/${currentLanguage}/qa`}>
                   <span className="flex items-center gap-2">
                     <MessageCircleQuestion className="w-4 h-4" />
-                    Q&A Center
+                    {t.header?.items?.qaCenter || "Q&A Center"}
                   </span>
                 </HoveredLink>
                 <HoveredLink href={`/${currentLanguage}/glossary`}>
                   <span className="flex items-center gap-2">
                     <BookMarked className="w-4 h-4" />
-                    Property Glossary
+                    {t.header?.items?.propertyGlossary || "Property Glossary"}
                   </span>
                 </HoveredLink>
                 <HoveredLink href={`/${currentLanguage}/buyers-guide`}>
                   <span className="flex items-center gap-2">
                     <GraduationCap className="w-4 h-4" />
-                    Buyer's Guide
+                    {t.header?.items?.buyersGuide || "Buyer's Guide"}
                   </span>
                 </HoveredLink>
               </div>
             </MenuItem>
 
             {/* Compare Menu */}
-            <MenuItem setActive={setActive} active={active} item="Compare">
+            <MenuItem setActive={setActive} active={active} item={t.header?.menus?.compare || "Compare"}>
               <div className="flex flex-col gap-1 min-w-[200px]">
                 <HoveredLink href={`/${currentLanguage}/compare`}>
                   <span className="flex items-center gap-2">
                     <GitCompare className="w-4 h-4" />
-                    Comparison Index
+                    {t.header?.items?.comparisonIndex || "Comparison Index"}
                   </span>
                 </HoveredLink>
                 <HoveredLink href={`/${currentLanguage}/compare`}>
                   <span className="flex items-center gap-2">
                     <Scale className="w-4 h-4" />
-                    City vs City
+                    {t.header?.items?.cityVsCity || "City vs City"}
                   </span>
                 </HoveredLink>
               </div>
             </MenuItem>
 
             {/* About Menu */}
-            <MenuItem setActive={setActive} active={active} item="About">
+            <MenuItem setActive={setActive} active={active} item={t.header?.menus?.about || "About"}>
               <div className="flex flex-col gap-1 min-w-[200px]">
                 <HoveredLink href={`/${currentLanguage}/about`}>
                   <span className="flex items-center gap-2">
                     <Info className="w-4 h-4" />
-                    About Us
+                    {t.header?.items?.aboutUs || "About Us"}
                   </span>
                 </HoveredLink>
                 <HoveredLink href={`/${currentLanguage}/team`}>
                   <span className="flex items-center gap-2">
                     <Users className="w-4 h-4" />
-                    Our Team
+                    {t.header?.items?.ourTeam || "Our Team"}
                   </span>
                 </HoveredLink>
                 <HoveredLink href={`/${currentLanguage}/contact`}>
                   <span className="flex items-center gap-2">
                     <Phone className="w-4 h-4" />
-                    Contact
+                    {t.header?.items?.contact || "Contact"}
                   </span>
                 </HoveredLink>
               </div>

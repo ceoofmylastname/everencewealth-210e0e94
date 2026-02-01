@@ -1,4 +1,33 @@
 export const nl = {
+  header: {
+    menus: {
+      explore: "Verkennen",
+      learn: "Leren",
+      compare: "Vergelijken",
+      about: "Over Ons",
+    },
+    items: {
+      propertyFinder: "Woningzoeker",
+      cityBrochures: "Stadsbrochures",
+      locationGuides: "Locatiegidsen",
+      blogInsights: "Blog & Inzichten",
+      qaCenter: "Q&A Centrum",
+      propertyGlossary: "Vastgoedwoordenlijst",
+      buyersGuide: "Koopgids",
+      comparisonIndex: "Vergelijkingsindex",
+      cityVsCity: "Stad vs Stad",
+      aboutUs: "Over Ons",
+      ourTeam: "Ons Team",
+      contact: "Contact",
+    },
+    cities: {
+      marbella: "Luxe wonen aan de Golden Mile",
+      estepona: "Charmante oude stad & stranden",
+      malaga: "Cultuur, keuken & kust",
+      sotogrande: "Exclusieve marina-levensstijl",
+    },
+    language: "Taal",
+  },
   common: {
     readMore: "Lees Meer",
     learnMore: "Meer Informatie",

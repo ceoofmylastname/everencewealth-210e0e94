@@ -1,4 +1,33 @@
 export const pl = {
+  header: {
+    menus: {
+      explore: "Odkrywaj",
+      learn: "Ucz się",
+      compare: "Porównaj",
+      about: "O Nas",
+    },
+    items: {
+      propertyFinder: "Wyszukiwarka Nieruchomości",
+      cityBrochures: "Broszury Miast",
+      locationGuides: "Przewodniki Lokalizacji",
+      blogInsights: "Blog & Porady",
+      qaCenter: "Centrum Q&A",
+      propertyGlossary: "Słownik Nieruchomości",
+      buyersGuide: "Przewodnik Kupującego",
+      comparisonIndex: "Indeks Porównawczy",
+      cityVsCity: "Miasto vs Miasto",
+      aboutUs: "O Nas",
+      ourTeam: "Nasz Zespół",
+      contact: "Kontakt",
+    },
+    cities: {
+      marbella: "Luksusowe życie na Golden Mile",
+      estepona: "Urokliwe stare miasto i plaże",
+      malaga: "Kultura, kuchnia i wybrzeże",
+      sotogrande: "Ekskluzywny styl życia przy marinie",
+    },
+    language: "Język",
+  },
   common: {
     readMore: "Czytaj Więcej",
     learnMore: "Dowiedz Się Więcej",

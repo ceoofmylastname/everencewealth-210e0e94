@@ -1,4 +1,33 @@
 export const fi = {
+  header: {
+    menus: {
+      explore: "Tutustu",
+      learn: "Opi",
+      compare: "Vertaa",
+      about: "Tietoa Meistä",
+    },
+    items: {
+      propertyFinder: "Kiinteistöhaku",
+      cityBrochures: "Kaupunkiesitteet",
+      locationGuides: "Sijaintioppaat",
+      blogInsights: "Blogi & Näkemykset",
+      qaCenter: "Q&A Keskus",
+      propertyGlossary: "Kiinteistösanasto",
+      buyersGuide: "Ostajan Opas",
+      comparisonIndex: "Vertailuindeksi",
+      cityVsCity: "Kaupunki vs Kaupunki",
+      aboutUs: "Tietoa Meistä",
+      ourTeam: "Tiimimme",
+      contact: "Yhteystiedot",
+    },
+    cities: {
+      marbella: "Luksusasumista Golden Milella",
+      estepona: "Viehättävä vanha kaupunki & rannat",
+      malaga: "Kulttuuri, ruoka & rannikko",
+      sotogrande: "Eksklusiivinen venesatama-elämäntyyli",
+    },
+    language: "Kieli",
+  },
   common: {
     readMore: "Lue Lisää",
     learnMore: "Lisätietoja",

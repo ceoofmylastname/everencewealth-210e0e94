@@ -1,4 +1,33 @@
 export const hu = {
+  header: {
+    menus: {
+      explore: "Felfedezés",
+      learn: "Tanulás",
+      compare: "Összehasonlítás",
+      about: "Rólunk",
+    },
+    items: {
+      propertyFinder: "Ingatlankereső",
+      cityBrochures: "Város Brosúrák",
+      locationGuides: "Helyszín Útmutatók",
+      blogInsights: "Blog & Betekintések",
+      qaCenter: "Q&A Központ",
+      propertyGlossary: "Ingatlan Szószedet",
+      buyersGuide: "Vásárlói Útmutató",
+      comparisonIndex: "Összehasonlító Index",
+      cityVsCity: "Város vs Város",
+      aboutUs: "Rólunk",
+      ourTeam: "Csapatunk",
+      contact: "Kapcsolat",
+    },
+    cities: {
+      marbella: "Luxus élet a Golden Mile-on",
+      estepona: "Bájos óváros & strandok",
+      malaga: "Kultúra, konyha & tengerpart",
+      sotogrande: "Exkluzív kikötői életstílus",
+    },
+    language: "Nyelv",
+  },
   common: {
     readMore: "Tovább Olvasom",
     learnMore: "Tudj Meg Többet",
