@@ -1,4 +1,33 @@
 export const da = {
+  header: {
+    menus: {
+      explore: "Udforsk",
+      learn: "Lær",
+      compare: "Sammenlign",
+      about: "Om Os",
+    },
+    items: {
+      propertyFinder: "Ejendomssøger",
+      cityBrochures: "Bybroschurer",
+      locationGuides: "Lokationsguider",
+      blogInsights: "Blog & Indsigter",
+      qaCenter: "Q&A Center",
+      propertyGlossary: "Ejendomsordliste",
+      buyersGuide: "Køberguide",
+      comparisonIndex: "Sammenligningsindeks",
+      cityVsCity: "By vs By",
+      aboutUs: "Om Os",
+      ourTeam: "Vores Team",
+      contact: "Kontakt",
+    },
+    cities: {
+      marbella: "Luksusliv på Golden Mile",
+      estepona: "Charmerende gammel by & strande",
+      malaga: "Kultur, køkken & kyst",
+      sotogrande: "Eksklusiv marina-livsstil",
+    },
+    language: "Sprog",
+  },
   common: {
     readMore: "Læs Mere",
     learnMore: "Lær Mere",
