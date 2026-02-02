@@ -362,3 +362,6 @@ verify_jwt = false
 
 [functions.backfill-citations-bulk]
 verify_jwt = false
+
+[functions.cleanup-citation-markers]
+verify_jwt = false
