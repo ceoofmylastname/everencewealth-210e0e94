@@ -1,96 +1,191 @@
 
+# Salestrail Call Tracking UI for Lead Detail Page
 
-# Fix Salestrail Webhook Field Mapping
+## Overview
 
-## Problem
+Add a dedicated UI section to display incoming webhook call data from Salestrail on the Lead Detail page (`/crm/admin/leads/:id`). This will show call history with phone number matching, call direction indicators, duration, recording playback, and auto-logged badges.
 
-The webhook is failing because Salestrail sends camelCase field names, but our function expects snake_case:
+## Current State
 
-| Salestrail Sends | Current Code Expects |
-|------------------|---------------------|
-| `callId` | `call_id` |
-| `userEmail` | `agent_email` |
-| `userPhone` | `agent_phone` |
-| `formattedNumber` / `number` | `phone_number` |
-| `inbound` (boolean) | `direction` (string) |
-| `startTime` | `started_at` |
-| `endTime` | `ended_at` |
-| `recordingUrl` | `recording_url` |
-
-## Solution
-
-Update the field extraction to support **both formats** (Salestrail camelCase and manual test snake_case) using fallback logic.
+- **Webhook**: `supabase/functions/salestrail-webhook/index.ts` is configured and logs calls to `crm_activities`
+- **Database fields available**:
+  - `salestrail_call_id` - Unique Salestrail call identifier
+  - `salestrail_recording_url` - Audio recording URL
+  - `salestrail_metadata` - Full webhook payload as JSON
+  - `salestrail_transcription` - Call transcription (if available)
+  - `call_direction` - "inbound" or "outbound"
+  - `call_answered` - Boolean
+  - `call_duration` - Seconds
+- **UI Gap**: The Activity Timeline shows basic call data but doesn't display Salestrail-specific fields (recordings, direction badges, auto-logged indicators)
 
 ---
 
-## Implementation
+## Implementation Plan
 
-### File: `supabase/functions/salestrail-webhook/index.ts`
+### 1. Create SalestrailCallsCard Component
 
-**Replace lines 34-46** (field extraction) with dual-format support:
+**New file**: `src/components/crm/detail/SalestrailCallsCard.tsx`
 
-```typescript
-// Support both Salestrail format (camelCase) and test format (snake_case)
-const callId = payload.callId || payload.call_id;
-const userEmail = payload.userEmail || payload.agent_email;
-const userPhone = payload.userPhone || payload.agent_phone;
-const phoneNumber = payload.formattedNumber || payload.number || payload.phone_number;
-const { duration, answered } = payload;
-const direction = payload.inbound !== undefined 
-  ? (payload.inbound ? 'inbound' : 'outbound')
-  : payload.direction;
-const startTime = payload.startTime || payload.started_at;
-const endTime = payload.endTime || payload.ended_at;
-const recordingUrl = payload.recordingUrl || payload.recording_url;
+A dedicated card component to display Salestrail-logged calls with:
+
+- **Header**: "Call History" with phone icon and Salestrail badge
+- **Call List**: Chronological list of calls with:
+  - Direction badge (Inbound/Outbound with arrow icons)
+  - Answered/Missed status indicator
+  - Duration display (formatted as mm:ss)
+  - Recording playback button (if URL exists)
+  - Auto-logged indicator badge
+  - Timestamp
+
+```text
++----------------------------------------+
+|  Phone  Call History  [Salestrail]     |
++----------------------------------------+
+|  [->] Outbound | Answered | 2m 34s     |
+|  [Play] Recording available            |
+|  [Auto-logged via Salestrail]          |
+|  5 minutes ago                         |
+|----------------------------------------|
+|  [<-] Inbound | Missed | 0s            |
+|  No recording                          |
+|  [Auto-logged via Salestrail]          |
+|  2 hours ago                           |
++----------------------------------------+
 ```
 
-**Update all references throughout the function:**
+### 2. Update ActivityTimeline Component
 
-| Old Variable | New Variable |
-|-------------|-------------|
-| `call_id` | `callId` |
-| `agent_email` | `userEmail` |
-| `agent_phone` | `userPhone` |
-| `phone_number` | `phoneNumber` |
-| `direction` | `direction` (computed from `inbound`) |
-| `started_at` | `startTime` |
-| `ended_at` | `endTime` |
-| `recording_url` | `recordingUrl` |
+**File**: `src/components/crm/detail/ActivityTimeline.tsx`
+
+Enhance the existing timeline to show Salestrail-specific data for call activities:
+
+- Add direction badge (incoming/outgoing arrow icon)
+- Add recording playback inline if `salestrail_recording_url` exists
+- Add "Auto-logged" badge for activities with `salestrail_call_id`
+- Show call answered/missed status more prominently
+
+### 3. Create Audio Player Component
+
+**New file**: `src/components/crm/detail/CallRecordingPlayer.tsx`
+
+A small audio player component for playing Salestrail recordings:
+
+- Play/Pause button
+- Progress bar
+- Duration display
+- Download button
+
+### 4. Update LeadDetailPage Layout
+
+**File**: `src/pages/crm/agent/LeadDetailPage.tsx`
+
+Add the SalestrailCallsCard to the right column sidebar, positioned below Admin Controls and above Lead Source:
+
+```text
++------------------+------------------+
+|  Left Column     |  Right Column    |
+|  (2/3 width)     |  (1/3 width)     |
+|------------------|------------------|
+|  Contact Info    |  Admin Controls  |
+|  Property        |  [NEW] Salestrail|
+|  Emma Chat       |  Lead Source     |
+|  Form Submission |  Assignment      |
+|  Activity        |  Quick Notes     |
++------------------+------------------+
+```
+
+### 5. Create useSalestrailCalls Hook
+
+**New file**: `src/hooks/useSalestrailCalls.ts`
+
+A dedicated hook to fetch Salestrail-logged calls for a lead:
+
+- Query `crm_activities` where `salestrail_call_id IS NOT NULL`
+- Filter by `lead_id`
+- Include real-time subscription for new calls
+- Return calls, loading state, and count
 
 ---
 
-## Changes Summary
+## Technical Details
 
-1. **Lines 34-46**: Replace destructuring with dual-format fallback logic
-2. **Lines 51-57**: Update validation to check `callId` instead of `call_id`
-3. **Lines 59-65**: Update validation to check `userEmail`/`userPhone` instead of `agent_email`/`agent_phone`
-4. **Lines 72-78**: Update agent query to use `userEmail`/`userPhone`
-5. **Line 87**: Update log message to use `userEmail`/`userPhone`
-6. **Lines 101-125**: Update lead matching to use `phoneNumber`
-7. **Lines 143-148**: Update activity data to use new variable names
-8. **Line 160**: Update duplicate log to use `callId`
-9. **Line 180**: Update SLA timestamp to use `startTime`
-10. **Lines 203-204**: Update notification message to use `direction`
+### New Component: SalestrailCallsCard.tsx
+
+```typescript
+interface SalestrailCallsCardProps {
+  leadId: string;
+  phoneNumber?: string;
+}
+
+// Features:
+// - Filter activities by salestrail_call_id presence
+// - Display direction with PhoneIncoming/PhoneOutgoing icons
+// - Show call_answered status with color coding
+// - Audio player for salestrail_recording_url
+// - Collapsible to show/hide older calls
+// - "No calls yet" empty state
+```
+
+### ActivityTimeline Enhancements
+
+```typescript
+// Add to ActivityTimelineItem:
+{activity.salestrail_call_id && (
+  <>
+    {/* Direction badge */}
+    <Badge variant="outline" className="text-xs">
+      {activity.call_direction === 'inbound' 
+        ? <PhoneIncoming className="w-3 h-3 mr-1" />
+        : <PhoneOutgoing className="w-3 h-3 mr-1" />}
+      {activity.call_direction}
+    </Badge>
+    
+    {/* Auto-logged indicator */}
+    <Badge variant="outline" className="text-xs bg-purple-50">
+      Auto-logged
+    </Badge>
+    
+    {/* Recording player */}
+    {activity.salestrail_recording_url && (
+      <CallRecordingPlayer url={activity.salestrail_recording_url} />
+    )}
+  </>
+)}
+```
 
 ---
 
-## Expected Behavior After Fix
+## File Changes Summary
 
-| Scenario | Before | After |
-|----------|--------|-------|
-| Salestrail webhook | Fails with "Missing call_id" | Successfully logs call |
-| Manual curl test (snake_case) | Works | Still works (backward compatible) |
-| Agent matching | Never reached | Matches by userEmail |
-| Lead matching | Never reached | Matches by formattedNumber |
+| File | Action | Description |
+|------|--------|-------------|
+| `src/components/crm/detail/SalestrailCallsCard.tsx` | Create | Dedicated Salestrail call history card |
+| `src/components/crm/detail/CallRecordingPlayer.tsx` | Create | Audio player for call recordings |
+| `src/components/crm/detail/ActivityTimeline.tsx` | Modify | Add direction badges, auto-logged indicators, recording player |
+| `src/hooks/useSalestrailCalls.ts` | Create | Hook to fetch Salestrail calls with real-time updates |
+| `src/pages/crm/agent/LeadDetailPage.tsx` | Modify | Add SalestrailCallsCard to sidebar |
 
 ---
 
-## Verification
+## UI Features
 
-After deployment, existing Salestrail webhooks should:
-1. Parse `callId` correctly
-2. Match agent by `userEmail`
-3. Derive `direction` from `inbound` boolean
-4. Insert activity with correct timestamps
-5. Return `{success: true, activity_id: "..."}`
+### Call Direction Indicators
+- Inbound calls: Blue badge with incoming arrow icon
+- Outbound calls: Green badge with outgoing arrow icon
 
+### Call Status
+- Answered: Green checkmark, shows duration
+- Missed/No Answer: Amber warning icon, 0s duration
+
+### Recording Playback
+- Play button appears if recording URL exists
+- Inline audio player with controls
+- Download option for recordings
+
+### Auto-logged Badge
+- Purple "Auto-logged via Salestrail" badge
+- Distinguishes automatic logs from manual entries
+
+### Phone Number Matching
+- Display matched lead phone number confirmation
+- Show "Call from: +1702..." when phone differs from lead's stored number
