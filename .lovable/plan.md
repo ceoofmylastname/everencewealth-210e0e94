@@ -1,100 +1,147 @@
 
 
-# Add Claim Timer to Lead Registration
+# Add Contact Timer to Lead Claiming
 
 ## Overview
 
-Update the `register-crm-lead` edge function to automatically start the 5-minute claim window timer when a new lead is created, populating the new dual-stage SLA tracking fields.
+Update the `claim-lead` edge function to automatically start the 5-minute contact window timer (Stage 2 SLA) when an agent successfully claims a lead, completing the dual-stage SLA tracking system.
 
 ---
 
-## Current State
+## Current Flow
 
-The lead insert (lines 454-500) already has some timing fields:
-- `claim_window_expires_at` - existing field (line 495)
-- `sla_breached`, `first_action_completed`, `is_night_held` - existing fields (lines 497-499)
+```text
+1. Agent claims lead via RPC claim_lead()
+2. Notification marked as read
+3. Other agents notified
+4. Full lead data returned
+```
 
-But the **new dual-stage SLA fields** from our migration are NOT being set:
-- `claim_timer_started_at` - NEW
-- `claim_timer_expires_at` - NEW  
-- `claim_sla_breached` - NEW
+## New Flow
+
+```text
+1. Agent claims lead via RPC claim_lead()
+2. ✅ NEW: Start 5-minute contact timer
+3. ✅ NEW: Clear claim timer (no longer needed)
+4. ✅ NEW: Log activity for audit trail
+5. Notification marked as read
+6. Other agents notified
+7. Full lead data returned
+```
 
 ---
 
 ## Changes Required
 
-### File: `supabase/functions/register-crm-lead/index.ts`
+### File: `supabase/functions/claim-lead/index.ts`
 
-**Location**: Lines 454-500 (lead insert statement)
+### Location: After successful claim (line 56), before notification handling
 
-**Add these fields to the insert:**
-
-```typescript
-// Calculate claim timer values (5 minutes)
-const claimTimerStart = new Date();
-const claimTimerExpiry = new Date(claimTimerStart.getTime() + 5 * 60 * 1000);
-
-// In the insert:
-claim_timer_started_at: contactComplete ? claimTimerStart.toISOString() : null,
-claim_timer_expires_at: contactComplete ? claimTimerExpiry.toISOString() : null,
-claim_sla_breached: false,
-```
-
-**Add logging after lead creation (line 509):**
+### New Code Block
 
 ```typescript
-if (contactComplete) {
-  console.log(`[register-crm-lead] Claim timer started for lead ${lead.id}`);
-  console.log(`[register-crm-lead] Claim window expires at: ${claimTimerExpiry.toISOString()}`);
+// NEW: Start contact window timer (5 minutes for first contact)
+const now = new Date();
+const contactWindowExpiry = new Date(now.getTime() + 5 * 60 * 1000); // 5 minutes
+
+const { error: timerError } = await supabase
+  .from("crm_leads")
+  .update({
+    contact_timer_started_at: now.toISOString(),
+    contact_timer_expires_at: contactWindowExpiry.toISOString(),
+    contact_sla_breached: false,
+    // Clear claim timer since lead is now claimed
+    claim_timer_expires_at: null,
+  })
+  .eq("id", leadId);
+
+if (timerError) {
+  console.error("[claim-lead] Failed to start contact timer:", timerError);
+} else {
+  console.log(`[claim-lead] Contact timer started for lead ${leadId}`);
+  console.log(`[claim-lead] Contact window expires at: ${contactWindowExpiry.toISOString()}`);
 }
-```
 
-**Night Hold handling (lines 589-597):**
-
-Also clear the new claim timer fields during night hold:
-
-```typescript
-claim_timer_started_at: null,
-claim_timer_expires_at: null,
+// Log activity for audit trail
+await supabase.from("crm_activities").insert({
+  lead_id: leadId,
+  agent_id: agentId,
+  activity_type: "note",
+  notes: "Lead claimed - 5-minute contact window started",
+  created_at: now.toISOString(),
+});
 ```
 
 ---
 
-## Technical Details
+## Timer Behavior
 
-### Timer Logic
+| Field | Before Claim | After Claim |
+|-------|--------------|-------------|
+| `claim_timer_started_at` | Set | Unchanged |
+| `claim_timer_expires_at` | Set | **Cleared (null)** |
+| `claim_sla_breached` | false | Unchanged |
+| `contact_timer_started_at` | null | **NOW()** |
+| `contact_timer_expires_at` | null | **NOW() + 5 min** |
+| `contact_sla_breached` | false | false |
 
-| Field | Value | Condition |
-|-------|-------|-----------|
-| `claim_timer_started_at` | `NOW()` | Only if `contactComplete = true` |
-| `claim_timer_expires_at` | `NOW() + 5 minutes` | Only if `contactComplete = true` |
-| `claim_sla_breached` | `false` | Always default to false |
+---
 
-### Why 5 Minutes?
+## Dual-Stage SLA Flow
 
-The dual-stage SLA system uses a fixed 5-minute claim window (Stage 1), separate from the existing configurable `claim_window_expires_at` which can vary per round-robin config.
-
-### Edge Cases
-
-- **Incomplete leads** (no phone/email): Timers set to `null`, no SLA tracking
-- **Night held leads**: Timers cleared during night hold, will be set when released
-- **Rule-based assignments**: Contact timer will start when claimed via routing rule
+```text
+┌─────────────────────────────────────────────────────────────────────┐
+│                         LEAD CREATED                                 │
+│                    claim_timer_started_at = NOW()                    │
+│                    claim_timer_expires_at = NOW() + 5 min           │
+└───────────────────────────────┬─────────────────────────────────────┘
+                                │
+                    ┌───────────▼───────────┐
+                    │    STAGE 1: CLAIM     │
+                    │    5-minute window    │
+                    └───────────┬───────────┘
+                                │
+              ┌─────────────────┼─────────────────┐
+              │                 │                 │
+        ┌─────▼─────┐    ┌──────▼──────┐   ┌─────▼─────┐
+        │  CLAIMED  │    │   EXPIRED   │   │  EXPIRED  │
+        │  (success)│    │  (breach)   │   │(reassign) │
+        └─────┬─────┘    └─────────────┘   └───────────┘
+              │
+              │ claim_timer_expires_at = null
+              │ contact_timer_started_at = NOW()
+              │ contact_timer_expires_at = NOW() + 5 min
+              │
+    ┌─────────▼─────────┐
+    │   STAGE 2: CALL   │
+    │   5-minute window │
+    └─────────┬─────────┘
+              │
+        ┌─────▼─────┐
+        │  CALLED   │ → first_action_completed = true
+        │  (success)│   contact_timer_expires_at = null
+        └───────────┘
+```
 
 ---
 
 ## Verification Steps
 
-1. Create a new lead via Emma chatbot or contact form
-2. Query the database to verify:
+1. Claim a lead as an agent
+2. Query database to verify:
    ```sql
-   SELECT id, first_name, 
+   SELECT id, 
           claim_timer_started_at, 
           claim_timer_expires_at,
-          claim_sla_breached
+          contact_timer_started_at, 
+          contact_timer_expires_at,
+          contact_sla_breached
    FROM crm_leads 
-   ORDER BY created_at DESC 
-   LIMIT 1;
+   WHERE id = '<lead-id>';
    ```
-3. Confirm `claim_timer_expires_at` is exactly 5 minutes after `claim_timer_started_at`
-4. Confirm `claim_sla_breached` is `false`
+3. Confirm:
+   - `claim_timer_expires_at` is `NULL`
+   - `contact_timer_started_at` is set
+   - `contact_timer_expires_at` is 5 minutes after `contact_timer_started_at`
+   - Activity log shows "Lead claimed - 5-minute contact window started"
 
