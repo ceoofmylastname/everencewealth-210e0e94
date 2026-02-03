@@ -31,35 +31,34 @@ serve(async (req) => {
     const payload = await req.json();
     console.log("[salestrail-webhook] Received:", JSON.stringify(payload, null, 2));
 
-    // Extract fields from Salestrail payload
-    const {
-      call_id,
-      phone_number,
-      direction,
-      duration,
-      answered,
-      started_at,
-      ended_at,
-      recording_url,
-      agent_email,
-      agent_phone
-    } = payload;
+    // Support both Salestrail format (camelCase) and test format (snake_case)
+    const callId = payload.callId || payload.call_id;
+    const userEmail = payload.userEmail || payload.agent_email;
+    const userPhone = payload.userPhone || payload.agent_phone;
+    const phoneNumber = payload.formattedNumber || payload.number || payload.phone_number;
+    const { duration, answered } = payload;
+    const direction = payload.inbound !== undefined 
+      ? (payload.inbound ? 'inbound' : 'outbound')
+      : payload.direction;
+    const startTime = payload.startTime || payload.started_at;
+    const endTime = payload.endTime || payload.ended_at;
+    const recordingUrl = payload.recordingUrl || payload.recording_url;
 
     // ============================================
     // STEP 1: Validate required fields
     // ============================================
-    if (!call_id) {
-      console.warn("[salestrail-webhook] Missing call_id");
+    if (!callId) {
+      console.warn("[salestrail-webhook] Missing callId");
       return new Response(
-        JSON.stringify({ success: false, error: "Missing call_id" }),
+        JSON.stringify({ success: false, error: "Missing callId" }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    if (!agent_email && !agent_phone) {
-      console.warn("[salestrail-webhook] Missing agent identifier (need email or phone)");
+    if (!userEmail && !userPhone) {
+      console.warn("[salestrail-webhook] Missing agent identifier (need userEmail or userPhone)");
       return new Response(
-        JSON.stringify({ success: false, error: "Missing agent_email or agent_phone" }),
+        JSON.stringify({ success: false, error: "Missing userEmail or userPhone" }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -69,12 +68,12 @@ serve(async (req) => {
     // ============================================
     let agentQuery = supabase.from("crm_agents").select("*");
     
-    if (agent_email && agent_phone) {
-      agentQuery = agentQuery.or(`email.eq.${agent_email},phone.eq.${agent_phone}`);
-    } else if (agent_email) {
-      agentQuery = agentQuery.eq("email", agent_email);
+    if (userEmail && userPhone) {
+      agentQuery = agentQuery.or(`email.eq.${userEmail},phone.eq.${userPhone}`);
+    } else if (userEmail) {
+      agentQuery = agentQuery.eq("email", userEmail);
     } else {
-      agentQuery = agentQuery.eq("phone", agent_phone);
+      agentQuery = agentQuery.eq("phone", userPhone);
     }
 
     const { data: agent, error: agentError } = await agentQuery.maybeSingle();
@@ -84,7 +83,7 @@ serve(async (req) => {
     }
 
     if (!agent) {
-      console.warn("[salestrail-webhook] Agent not matched. Email:", agent_email, "Phone:", agent_phone);
+      console.warn("[salestrail-webhook] Agent not matched. Email:", userEmail, "Phone:", userPhone);
       return new Response(
         JSON.stringify({ success: false, message: "Agent not matched" }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -98,10 +97,10 @@ serve(async (req) => {
     // Only match leads assigned to this agent
     // ============================================
     let lead = null;
-    if (phone_number) {
-      const { normalized, last9 } = normalizePhone(phone_number);
+    if (phoneNumber) {
+      const { normalized, last9 } = normalizePhone(phoneNumber);
       
-      console.log(`[salestrail-webhook] Searching for lead with phone: ${phone_number} (normalized: ${normalized}, last9: ${last9})`);
+      console.log(`[salestrail-webhook] Searching for lead with phone: ${phoneNumber} (normalized: ${normalized}, last9: ${last9})`);
       
       const { data: matchedLead, error: leadError } = await supabase
         .from("crm_leads")
@@ -121,7 +120,7 @@ serve(async (req) => {
       if (lead) {
         console.log(`[salestrail-webhook] Matched lead: ${lead.first_name} ${lead.last_name} (${lead.id})`);
       } else {
-        console.warn("[salestrail-webhook] No matching lead found for phone:", phone_number);
+        console.warn("[salestrail-webhook] No matching lead found for phone:", phoneNumber);
       }
     }
 
@@ -140,12 +139,12 @@ serve(async (req) => {
       outcome: answered ? "answered" : "no_answer",
       call_duration: durationSeconds,
       notes: `Salestrail auto-logged call - ${direction || "unknown"} - ${answered ? "Answered" : "No Answer"}${durationStr}`,
-      salestrail_call_id: call_id,
-      salestrail_recording_url: recording_url || null,
+      salestrail_call_id: callId,
+      salestrail_recording_url: recordingUrl || null,
       call_direction: direction || null,
       call_answered: answered ?? null,
       salestrail_metadata: payload,
-      created_at: started_at || new Date().toISOString(),
+      created_at: startTime || new Date().toISOString(),
     };
 
     const { data: activity, error: activityError } = await supabase
@@ -157,7 +156,7 @@ serve(async (req) => {
     if (activityError) {
       // Check for duplicate (unique constraint violation on salestrail_call_id)
       if (activityError.code === "23505") {
-        console.log("[salestrail-webhook] Duplicate call already logged:", call_id);
+        console.log("[salestrail-webhook] Duplicate call already logged:", callId);
         return new Response(
           JSON.stringify({ success: true, duplicate: true, message: "Call already logged" }),
           { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -177,7 +176,7 @@ serve(async (req) => {
     // STEP 5: Update SLA (if lead matched and no prior first contact)
     // ============================================
     if (lead && !lead.first_contact_at) {
-      const contactTime = started_at || new Date().toISOString();
+      const contactTime = startTime || new Date().toISOString();
       
       const { error: slaError } = await supabase
         .from("crm_leads")
