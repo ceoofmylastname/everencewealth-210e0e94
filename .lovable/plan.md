@@ -1,161 +1,215 @@
 
 
-# Create Contact Window Expiry Monitoring Cron Job
+# Create Lead Reassignment Edge Function
 
 ## Overview
 
-Create a new edge function `check-contact-window-expiry` that monitors Stage 2 SLA (contact timer) and sends admin notifications when agents claim leads but fail to make contact within 5 minutes. This completes the dual-stage SLA monitoring system.
+Create a new edge function `reassign-lead` that enables admins to reassign leads from one agent to another, with automatic access revocation, timer management, and email notifications. This completes the admin workflow for handling SLA breaches.
 
 ---
 
 ## Architecture Context
 
-The CRM has a dual-stage SLA system:
+The reassignment function is the final step in the SLA monitoring workflow:
 
 ```text
-Stage 1: CLAIM WINDOW (5 min)      Stage 2: CONTACT WINDOW (5 min)
-┌──────────────────────────┐       ┌──────────────────────────┐
-│ claim_timer_expires_at   │  -->  │ contact_timer_expires_at │
-│ claim_sla_breached       │       │ contact_sla_breached     │
-└──────────────────────────┘       └──────────────────────────┘
-         │                                   │
-         ▼                                   ▼
-  check-claim-window-expiry           check-contact-window-expiry
-       (deployed)                           (NEW)
+Lead Unclaimed (Stage 1)     Lead No Contact (Stage 2)
+         │                            │
+         ▼                            ▼
+  check-claim-window-expiry    check-contact-window-expiry
+         │                            │
+         └────────────┬───────────────┘
+                      │
+                      ▼
+              Admin Notified
+                      │
+                      ▼
+              Admin Reassigns Lead
+                      │
+                      ▼
+              reassign-lead (NEW)
+                      │
+           ┌──────────┼──────────┐
+           │          │          │
+           ▼          ▼          ▼
+      Revoke Old   Reset     Email New
+      Agent Access  Timers    Agent
+```
+
+---
+
+## Database Prerequisites
+
+### Existing Schema (Already Available)
+
+The following already exist:
+- `crm_leads` columns: `reassignment_count`, `previous_agent_id`, `reassignment_reason`, `reassigned_at`
+- `crm_lead_reassignments` table with columns: `id`, `lead_id`, `from_agent_id`, `to_agent_id`, `reassigned_by`, `reason`, `stage`, `notes`, `created_at`
+- `decrement_agent_lead_count(p_agent_id UUID)` function
+
+### Required Migration
+
+Need to create the missing `increment_agent_lead_count` function:
+
+```sql
+CREATE OR REPLACE FUNCTION increment_agent_lead_count(p_agent_id UUID)
+RETURNS VOID AS $$
+BEGIN
+  UPDATE crm_agents
+  SET current_lead_count = COALESCE(current_lead_count, 0) + 1
+  WHERE id = p_agent_id;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
 ```
 
 ---
 
 ## Deliverables
 
-### 1. New Edge Function
+### 1. Database Migration
 
-**File**: `supabase/functions/check-contact-window-expiry/index.ts`
+Create the `increment_agent_lead_count` function to match the existing decrement function.
+
+### 2. New Edge Function
+
+**File**: `supabase/functions/reassign-lead/index.ts`
 
 The function will:
-- Query leads where `contact_timer_expires_at < NOW()` and `contact_sla_breached = false` and `lead_claimed = true` and `first_action_completed = false`
-- Mark each lead as `contact_sla_breached = true`
-- Get the assigned agent's details
-- Look up the language-specific fallback admin from `crm_round_robin_config`
-- Send email notification via Resend with lead and agent details
-- Create in-app notification for the admin
+- Accept: `lead_id`, `to_agent_id`, `reason`, `notes`, `reassigned_by_id`
+- Validate inputs and permissions
+- Update lead assignment with timer management based on reason
+- Record reassignment history in `crm_lead_reassignments`
+- Update agent lead counts (decrement old, increment new)
+- Revoke old agent's notifications (mark as read)
+- Create new notification for target agent
 - Log activity for audit trail
+- Send email to new agent via Resend
 
-Key query:
-```typescript
-const { data: expiredLeads } = await supabase
-  .from("crm_leads")
-  .select("*")
-  .lt("contact_timer_expires_at", new Date().toISOString())
-  .eq("lead_claimed", true)
-  .eq("first_action_completed", false)
-  .eq("contact_sla_breached", false)
-  .eq("archived", false);
-```
-
-### 2. Config.toml Update
+### 3. Config.toml Update
 
 Add new function configuration:
 ```toml
-[functions.check-contact-window-expiry]
+[functions.reassign-lead]
 verify_jwt = false
 ```
 
-### 3. Cron Job SQL
+---
 
-Add to `supabase/cron_jobs.sql`:
-```sql
-SELECT cron.schedule(
-  'check-contact-window-expiry',
-  '* * * * *',
-  $$
-  SELECT net.http_post(
-    url := 'https://kazggnufaoicopvmwhdl.supabase.co/functions/v1/check-contact-window-expiry',
-    headers := '{"Content-Type": "application/json", "Authorization": "Bearer <anon_key>"}'::jsonb,
-    body := '{"triggered_by": "cron"}'::jsonb
-  ) AS request_id;
-  $$
-);
-```
+## Function Logic
+
+### Input Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `lead_id` | UUID | Yes | The lead to reassign |
+| `to_agent_id` | UUID | Yes | Target agent |
+| `reason` | String | Yes | 'unclaimed' \| 'no_contact' \| 'manual' |
+| `notes` | String | No | Admin notes |
+| `reassigned_by_id` | UUID | Yes | Admin performing reassignment |
+
+### Timer Handling by Reason
+
+| Reason | Timer Actions |
+|--------|---------------|
+| `unclaimed` | Mark as claimed, clear claim timer, start new 5-min contact timer |
+| `no_contact` | Reset contact timer to new 5-min window, clear contact_sla_breached |
+| `manual` | No timer changes (standard reassignment) |
+
+### Data Updates
+
+**crm_leads table:**
+- `assigned_agent_id` → new agent
+- `previous_agent_id` → old agent
+- `reassignment_count` → increment
+- `reassignment_reason` → reason
+- `reassigned_at` → now
+- Timer fields based on reason
+
+**crm_lead_reassignments table:**
+- Insert new record with full history
+
+**crm_agents table:**
+- Decrement old agent's `current_lead_count`
+- Increment new agent's `current_lead_count`
 
 ---
 
-## Function Flow
+## Email Notification
+
+The new agent receives an email with:
+- Lead details (name, phone, email, source)
+- Reason for reassignment
+- Warning about 5-minute timer (for unclaimed/no_contact reasons)
+- Direct link to lead detail page
+
+---
+
+## Implementation Flow
 
 ```text
-check-contact-window-expiry (runs every 1 minute)
+reassign-lead called
          │
          ▼
-    Query: contact_timer_expires_at < NOW()
-           AND lead_claimed = true
-           AND first_action_completed = false
-           AND contact_sla_breached = false
+    Validate inputs
          │
          ▼
-    For each expired lead:
+    Fetch lead + old agent details
          │
-    ┌────┴────────────────────────────────────┐
-    │                                          │
-    ▼                                          ▼
-  Update lead:                          Get agent + admin details
-  contact_sla_breached = true           from crm_agents + round_robin_config
-                                               │
-                                               ▼
-                                        Send email via Resend
-                                        Create notification
-                                        Log activity
+         ▼
+    Fetch new agent details
+         │
+         ▼
+    Update lead assignment + timers
+         │
+         ▼
+    Insert reassignment record
+         │
+         ▼
+    Update agent lead counts
+         │
+         ▼
+    Mark old agent notifications as read
+         │
+         ▼
+    Create notification for new agent
+         │
+         ▼
+    Log activity
+         │
+         ▼
+    Send email to new agent
+         │
+         ▼
+    Return success response
 ```
-
----
-
-## Difference from Stage 1 (Claim Window)
-
-| Aspect | Stage 1 (Claim) | Stage 2 (Contact) |
-|--------|-----------------|-------------------|
-| Timer Field | `claim_timer_expires_at` | `contact_timer_expires_at` |
-| Breach Field | `claim_sla_breached` | `contact_sla_breached` |
-| Condition | `lead_claimed = false` | `lead_claimed = true` + `first_action_completed = false` |
-| Issue | No agent claimed | Agent claimed but didn't call |
-| Email Subject | "Lead Unclaimed" | "Agent Claimed But No Contact" |
-| Agent Info | N/A | Included in email |
-
----
-
-## Email Template
-
-The admin email will include:
-
-- Lead details (name, phone, email, language)
-- Agent details (name, email, when claimed)
-- Elapsed time since claim
-- Clear situation summary
-- Direct link to admin leads page for reassignment
-
----
-
-## Technical Details
-
-### Pattern Match
-
-Following the same robust pattern as `check-claim-window-expiry`:
-- CORS headers for manual triggering
-- Separate queries for round-robin config and agent details
-- Error handling per lead (continue on individual failures)
-- Comprehensive logging
-
-### Dependencies
-
-- `RESEND_API_KEY` - already configured
-- `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` - auto-provided
-- `APP_URL` - for email links (fallback: production URL)
 
 ---
 
 ## Files to Create/Modify
 
-1. **Create**: `supabase/functions/check-contact-window-expiry/index.ts`
+1. **Create**: `supabase/functions/reassign-lead/index.ts`
 2. **Modify**: `supabase/config.toml` - add function config
-3. **Modify**: `supabase/cron_jobs.sql` - add cron schedule
+3. **Database**: Create `increment_agent_lead_count` function via migration
+
+---
+
+## Error Handling
+
+The function handles:
+- Missing required fields (400)
+- Lead not found (404)
+- Target agent not found (404)
+- Database update failures (500)
+- Email send failures (logged but non-blocking)
+
+---
+
+## Security
+
+- Uses service role key for database operations
+- Admin authentication should be verified by the calling frontend
+- CORS headers enabled for browser access
+- No JWT verification (admin operations)
 
 ---
 
@@ -164,12 +218,22 @@ Following the same robust pattern as `check-claim-window-expiry`:
 After deployment:
 
 1. Deploy the edge function
-2. Run the cron SQL in Cloud View > Run SQL
-3. Claim a test lead but don't make any calls
-4. Wait 5+ minutes
-5. Verify:
-   - `contact_sla_breached` becomes `true`
-   - Admin receives email notification with agent details
-   - In-app notification created in `crm_notifications`
-   - Activity logged in `crm_activities`
+2. Test via admin UI or direct API call:
+```json
+{
+  "lead_id": "<uuid>",
+  "to_agent_id": "<uuid>",
+  "reason": "unclaimed",
+  "notes": "Test reassignment",
+  "reassigned_by_id": "<admin-uuid>"
+}
+```
+3. Verify:
+   - Lead `assigned_agent_id` updated
+   - `previous_agent_id` set correctly
+   - `reassignment_count` incremented
+   - Timer fields updated based on reason
+   - Record in `crm_lead_reassignments`
+   - New agent receives email
+   - Activity logged
 
