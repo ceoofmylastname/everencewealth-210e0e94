@@ -1,65 +1,27 @@
 
 
-# Create Escalating Alarms Edge Function
+# Schedule send-escalating-alarms Cron Job
 
 ## Overview
 
-Create a new edge function `send-escalating-alarms` that runs every minute via cron job and sends escalating email notifications (levels 1-4) during the claim window. This complements the existing alarm system:
-
-- **Level 0**: Initial "New Lead" email (already sent by `register-crm-lead`)
-- **Levels 1-4**: Escalating alarms sent by this new function (1, 2, 3, 4 minutes after creation)
-- **Level 5+**: Admin escalation (handled by existing `check-claim-window-expiry`)
+The `send-escalating-alarms` edge function has been deployed, but the cron job to trigger it every minute is not yet scheduled in the database. This needs to be set up manually via the Cloud View > Run SQL interface.
 
 ---
 
-## Alarm Timeline
+## Current Status
 
-```text
-T+0: Lead Created → Initial broadcast email (alarm level 0) ✓ [existing]
-T+1: 1 minute passed → "⏰ 1 MIN PASSED" email (alarm level 1) [NEW]
-T+2: 2 minutes passed → "⚠️ 2 MIN PASSED" email (alarm level 2) [NEW]
-T+3: 3 minutes passed → "🚨 3 MIN PASSED" email (alarm level 3) [NEW]
-T+4: 4 minutes passed → "🔥 4 MIN PASSED - FINAL WARNING" email (alarm level 4) [NEW]
-T+5: 5 minutes passed → Admin escalation [existing check-claim-window-expiry]
-```
+| Component | Status |
+|-----------|--------|
+| Edge function deployed | ✅ Complete |
+| Cron job documented in cron_jobs.sql | ✅ Complete |
+| Cron job scheduled in database | ❌ **Not scheduled** |
 
 ---
 
-## Implementation
+## Action Required
 
-### 1. Create Edge Function
+You need to run the following SQL in **Cloud View > Run SQL** to schedule the cron job:
 
-**File**: `supabase/functions/send-escalating-alarms/index.ts`
-
-The function will:
-1. Query leads where `last_alarm_level` < target level AND enough time has passed
-2. For each lead needing an alarm:
-   - Get all agents for the lead's language from `crm_round_robin_config`
-   - Send escalating email with level-specific styling (⏰/⚠️/🚨/🔥)
-   - Update `last_alarm_level` to the new level
-   - Log activity for audit trail
-
-Key features:
-- Uses level-specific emojis for Gmail filter support
-- Final warning (level 4) includes prominent admin escalation warning
-- Matches existing email template patterns from `send-lead-notification`
-- Queries agents via `crm_round_robin_config.agent_ids` array
-
-### 2. Register in Config
-
-**File**: `supabase/config.toml`
-
-Add configuration for the new function:
-```toml
-[functions.send-escalating-alarms]
-verify_jwt = false
-```
-
-### 3. Schedule Cron Job
-
-**File**: `supabase/cron_jobs.sql` (updated for documentation)
-
-SQL to run manually:
 ```sql
 SELECT cron.schedule(
   'send-escalating-alarms',
@@ -76,73 +38,48 @@ SELECT cron.schedule(
 
 ---
 
-## Email Template Design
+## How to Schedule
 
-Each level has unique styling for easy identification:
-
-| Level | Emoji | Subject Pattern | Header Color |
-|-------|-------|-----------------|--------------|
-| 1 | ⏰ | 1 MIN PASSED | Yellow (#EAB308) |
-| 2 | ⚠️ | 2 MIN PASSED | Orange (#F97316) |
-| 3 | 🚨 | 3 MIN PASSED | Red-Orange (#EA580C) |
-| 4 | 🔥 | 4 MIN PASSED - FINAL WARNING | Red (#DC2626) |
-
-Example subject: `⚠️ 2 MIN PASSED - NEW LEAD EN #abc12345`
+1. Open **Cloud View** in Lovable
+2. Navigate to **Run SQL**
+3. Paste the SQL above
+4. Click **Run**
+5. You should see a success message with a job ID returned
 
 ---
 
-## Files Changed
+## Verification
 
-| File | Change |
-|------|--------|
-| `supabase/functions/send-escalating-alarms/index.ts` | New edge function |
-| `supabase/config.toml` | Add function configuration |
-| `supabase/cron_jobs.sql` | Document new cron job |
+After scheduling, run this query to confirm:
 
----
-
-## Technical Details
-
-### Query Logic
-
-For each alarm level (1-4), the function queries:
 ```sql
-SELECT * FROM crm_leads
-WHERE lead_claimed = FALSE
-  AND claim_sla_breached = FALSE
-  AND archived = FALSE
-  AND last_alarm_level = [level - 1]
-  AND claim_timer_started_at <= NOW() - INTERVAL '[level] minutes'
+SELECT jobid, jobname, schedule, active 
+FROM cron.job 
+WHERE jobname = 'send-escalating-alarms';
 ```
 
-### Agent Resolution
-
-The function resolves agents by:
-1. Finding `crm_round_robin_config` for the lead's language
-2. Querying `crm_agents` using the `agent_ids` array
-3. Filtering to only active agents with valid emails
-
-### Email Content
-
-- Includes lead details: name, phone, email, language, source
-- Shows elapsed time since creation
-- Prominent "CLAIM THIS LEAD NOW" CTA button
-- Level 4 includes explicit admin escalation warning
-
-### Duplicate Prevention
-
-- Each lead only receives each alarm level once (tracked by `last_alarm_level`)
-- Alarm level is updated immediately after successful email send
-- Index on `(last_alarm_level, claim_timer_started_at)` optimizes queries
+Expected result:
+- **jobname**: send-escalating-alarms
+- **schedule**: * * * * *
+- **active**: true
 
 ---
 
-## Testing Plan
+## What This Cron Job Does
 
-After deployment:
-1. Create a test lead via Emma chatbot
-2. Monitor edge function logs for alarm processing
-3. Check `crm_leads.last_alarm_level` increments correctly
-4. Verify emails are received at T+1, T+2, T+3, T+4
-5. Confirm admin escalation triggers at T+5 (existing flow)
+```text
+Every 1 minute:
+├── Calls send-escalating-alarms edge function
+├── Function checks for unclaimed leads needing alarm levels 1-4
+├── Sends escalating emails if leads are past their time threshold
+└── Updates last_alarm_level to prevent duplicate sends
+```
+
+---
+
+## Notes
+
+- This cron job cannot be scheduled automatically by me - it requires manual SQL execution
+- The SQL is already documented in `supabase/cron_jobs.sql` for reference
+- The function returns quickly (processed: 0) when no leads need alarms, so running every minute has minimal overhead
 
