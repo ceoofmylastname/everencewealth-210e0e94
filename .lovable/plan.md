@@ -1,239 +1,116 @@
 
 
-# Create Lead Reassignment Edge Function
+# Add Alarm Level Tracking to CRM Leads
 
 ## Overview
 
-Create a new edge function `reassign-lead` that enables admins to reassign leads from one agent to another, with automatic access revocation, timer management, and email notifications. This completes the admin workflow for handling SLA breaches.
+Add a new column `last_alarm_level` to the `crm_leads` table to support escalating email alerts during the claim window. This enables a 5-alarm notification system (0-4) before admin escalation triggers at T+5 minutes.
 
 ---
 
-## Architecture Context
-
-The reassignment function is the final step in the SLA monitoring workflow:
+## Alarm System Context
 
 ```text
-Lead Unclaimed (Stage 1)     Lead No Contact (Stage 2)
-         │                            │
-         ▼                            ▼
-  check-claim-window-expiry    check-contact-window-expiry
-         │                            │
-         └────────────┬───────────────┘
-                      │
-                      ▼
-              Admin Notified
-                      │
-                      ▼
-              Admin Reassigns Lead
-                      │
-                      ▼
-              reassign-lead (NEW)
-                      │
-           ┌──────────┼──────────┐
-           │          │          │
-           ▼          ▼          ▼
-      Revoke Old   Reset     Email New
-      Agent Access  Timers    Agent
+T+0: Lead Created → Initial "New Lead" email (alarm level 0)
+T+1: 1 minute passed → "1 Min Passed" email (alarm level 1)
+T+2: 2 minutes passed → "2 Min Passed" email (alarm level 2)
+T+3: 3 minutes passed → "3 Min Passed" email (alarm level 3)
+T+4: 4 minutes passed → "4 Min Passed" email (alarm level 4)
+T+5: 5 minutes passed → Admin escalation (existing logic)
 ```
+
+The `last_alarm_level` column allows the cron job to determine which alarm to send next by comparing the current time against `claim_timer_started_at` and the stored alarm level.
 
 ---
 
-## Database Prerequisites
+## Database Changes
 
-### Existing Schema (Already Available)
-
-The following already exist:
-- `crm_leads` columns: `reassignment_count`, `previous_agent_id`, `reassignment_reason`, `reassigned_at`
-- `crm_lead_reassignments` table with columns: `id`, `lead_id`, `from_agent_id`, `to_agent_id`, `reassigned_by`, `reason`, `stage`, `notes`, `created_at`
-- `decrement_agent_lead_count(p_agent_id UUID)` function
-
-### Required Migration
-
-Need to create the missing `increment_agent_lead_count` function:
+### 1. Add Column
 
 ```sql
-CREATE OR REPLACE FUNCTION increment_agent_lead_count(p_agent_id UUID)
-RETURNS VOID AS $$
-BEGIN
-  UPDATE crm_agents
-  SET current_lead_count = COALESCE(current_lead_count, 0) + 1
-  WHERE id = p_agent_id;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
+ALTER TABLE crm_leads
+ADD COLUMN IF NOT EXISTS last_alarm_level INTEGER DEFAULT 0;
 ```
 
----
+Column specifications:
+- Type: INTEGER
+- Default: 0 (new leads start at alarm level 0)
+- NOT NULL: No (default handles this)
+- Purpose: Tracks which escalation email was last sent (0-4)
 
-## Deliverables
+### 2. Add Comment
 
-### 1. Database Migration
-
-Create the `increment_agent_lead_count` function to match the existing decrement function.
-
-### 2. New Edge Function
-
-**File**: `supabase/functions/reassign-lead/index.ts`
-
-The function will:
-- Accept: `lead_id`, `to_agent_id`, `reason`, `notes`, `reassigned_by_id`
-- Validate inputs and permissions
-- Update lead assignment with timer management based on reason
-- Record reassignment history in `crm_lead_reassignments`
-- Update agent lead counts (decrement old, increment new)
-- Revoke old agent's notifications (mark as read)
-- Create new notification for target agent
-- Log activity for audit trail
-- Send email to new agent via Resend
-
-### 3. Config.toml Update
-
-Add new function configuration:
-```toml
-[functions.reassign-lead]
-verify_jwt = false
+```sql
+COMMENT ON COLUMN crm_leads.last_alarm_level IS 
+'Tracks which alarm level was last sent (0-4). Used for escalating email notifications during claim window. 0 = initial alarm, 4 = final alarm before admin escalation at T+5.';
 ```
 
----
+### 3. Create Performance Index
 
-## Function Logic
-
-### Input Parameters
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `lead_id` | UUID | Yes | The lead to reassign |
-| `to_agent_id` | UUID | Yes | Target agent |
-| `reason` | String | Yes | 'unclaimed' \| 'no_contact' \| 'manual' |
-| `notes` | String | No | Admin notes |
-| `reassigned_by_id` | UUID | Yes | Admin performing reassignment |
-
-### Timer Handling by Reason
-
-| Reason | Timer Actions |
-|--------|---------------|
-| `unclaimed` | Mark as claimed, clear claim timer, start new 5-min contact timer |
-| `no_contact` | Reset contact timer to new 5-min window, clear contact_sla_breached |
-| `manual` | No timer changes (standard reassignment) |
-
-### Data Updates
-
-**crm_leads table:**
-- `assigned_agent_id` → new agent
-- `previous_agent_id` → old agent
-- `reassignment_count` → increment
-- `reassignment_reason` → reason
-- `reassigned_at` → now
-- Timer fields based on reason
-
-**crm_lead_reassignments table:**
-- Insert new record with full history
-
-**crm_agents table:**
-- Decrement old agent's `current_lead_count`
-- Increment new agent's `current_lead_count`
-
----
-
-## Email Notification
-
-The new agent receives an email with:
-- Lead details (name, phone, email, source)
-- Reason for reassignment
-- Warning about 5-minute timer (for unclaimed/no_contact reasons)
-- Direct link to lead detail page
-
----
-
-## Implementation Flow
-
-```text
-reassign-lead called
-         │
-         ▼
-    Validate inputs
-         │
-         ▼
-    Fetch lead + old agent details
-         │
-         ▼
-    Fetch new agent details
-         │
-         ▼
-    Update lead assignment + timers
-         │
-         ▼
-    Insert reassignment record
-         │
-         ▼
-    Update agent lead counts
-         │
-         ▼
-    Mark old agent notifications as read
-         │
-         ▼
-    Create notification for new agent
-         │
-         ▼
-    Log activity
-         │
-         ▼
-    Send email to new agent
-         │
-         ▼
-    Return success response
+```sql
+CREATE INDEX IF NOT EXISTS idx_crm_leads_alarm_level 
+ON crm_leads(last_alarm_level, claim_timer_started_at) 
+WHERE lead_claimed = FALSE AND claim_timer_expires_at IS NOT NULL;
 ```
 
----
-
-## Files to Create/Modify
-
-1. **Create**: `supabase/functions/reassign-lead/index.ts`
-2. **Modify**: `supabase/config.toml` - add function config
-3. **Database**: Create `increment_agent_lead_count` function via migration
+This partial index optimizes queries for the cron job that checks unclaimed leads with pending alarms.
 
 ---
 
-## Error Handling
+## How It Will Be Used
 
-The function handles:
-- Missing required fields (400)
-- Lead not found (404)
-- Target agent not found (404)
-- Database update failures (500)
-- Email send failures (logged but non-blocking)
+The cron job will query leads like this:
 
----
-
-## Security
-
-- Uses service role key for database operations
-- Admin authentication should be verified by the calling frontend
-- CORS headers enabled for browser access
-- No JWT verification (admin operations)
-
----
-
-## Verification Steps
-
-After deployment:
-
-1. Deploy the edge function
-2. Test via admin UI or direct API call:
-```json
-{
-  "lead_id": "<uuid>",
-  "to_agent_id": "<uuid>",
-  "reason": "unclaimed",
-  "notes": "Test reassignment",
-  "reassigned_by_id": "<admin-uuid>"
-}
+```sql
+SELECT * FROM crm_leads
+WHERE lead_claimed = FALSE
+  AND claim_timer_expires_at IS NOT NULL
+  AND last_alarm_level < 5
+  AND EXTRACT(EPOCH FROM (NOW() - claim_timer_started_at))/60 > last_alarm_level;
 ```
-3. Verify:
-   - Lead `assigned_agent_id` updated
-   - `previous_agent_id` set correctly
-   - `reassignment_count` incremented
-   - Timer fields updated based on reason
-   - Record in `crm_lead_reassignments`
-   - New agent receives email
-   - Activity logged
+
+This finds leads where:
+- Not yet claimed
+- Claim timer is active
+- Haven't sent all 5 alarms yet
+- Enough time has passed to send the next alarm
+
+---
+
+## Key Points
+
+| Aspect | Detail |
+|--------|--------|
+| Migration Type | Additive only (no existing columns modified) |
+| Default Value | 0 (new leads auto-start at alarm level 0) |
+| Nullable | Not needed (DEFAULT ensures value exists) |
+| Index Purpose | Optimize cron job queries on unclaimed leads |
+| Backward Compatible | Yes, existing leads get default value of 0 |
+
+---
+
+## Files Changed
+
+1. **Database Migration**: Create new migration to add column and index
+
+---
+
+## Technical Details
+
+### SQL Migration
+
+```sql
+-- Add alarm level tracking column
+ALTER TABLE crm_leads
+ADD COLUMN IF NOT EXISTS last_alarm_level INTEGER DEFAULT 0;
+
+-- Add documentation
+COMMENT ON COLUMN crm_leads.last_alarm_level IS 
+'Tracks which alarm level was last sent (0-4). Used for escalating email notifications during claim window. 0 = initial alarm, 4 = final alarm before admin escalation at T+5.';
+
+-- Create partial index for efficient querying by cron job
+CREATE INDEX IF NOT EXISTS idx_crm_leads_alarm_level 
+ON crm_leads(last_alarm_level, claim_timer_started_at) 
+WHERE lead_claimed = FALSE AND claim_timer_expires_at IS NOT NULL;
+```
 
