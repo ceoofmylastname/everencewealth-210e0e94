@@ -1,81 +1,61 @@
 
-# Update Initial Lead Notification Email to Match Escalating Alarm Format
 
-## Overview
+# Fix Language Casing Bug in Escalating Alarms
 
-The initial lead notification email (sent at T+0) needs to use a consistent subject format that matches the escalating alarm system. This enables agents to set up a single Gmail filter that catches all alarm levels (0-4) for any language.
+## Problem
+
+The `send-escalating-alarms` function cannot find agents because it queries the database with uppercase language codes (`"EN"`) while the `crm_round_robin_config` table stores them in lowercase (`"en"`).
+
+**Current Code (line 69):**
+```typescript
+const language = (lead.language || "EN").toUpperCase();
+```
+
+**Database stores:**
+| language |
+|----------|
+| en |
+| es |
+| de |
+| fr |
+| nl |
+| fi |
+
+**Result:** Query `.eq("language", "EN")` returns nothing → No agents found → No emails sent
 
 ---
 
-## Current State
+## Fix Required
 
-### Subject Line (line 364)
+### Line 69 - Query Language (MUST FIX)
+
+**Before:**
 ```typescript
-emailSubject = `${flag} New ${normalizedLead.language?.toUpperCase()} Lead: ${lead.first_name} ${lead.last_name}`;
+const language = (lead.language || "EN").toUpperCase();
 ```
-**Example**: `🇬🇧 New EN Lead: John Smith`
 
-### Email Body (line 98)
-Already mentions: `⏱️ You have ${claimWindowMinutes} minutes to claim this lead`
-**Missing**: Information about escalating reminders at 1, 2, 3, 4 minutes
+**After:**
+```typescript
+const language = (lead.language || "en").toLowerCase();
+```
+
+### Line 120 - Email Subject Language Code (KEEP AS-IS)
+
+The code on line 120 is used for the email subject display:
+```typescript
+const langCode = (lead.language || "EN").toUpperCase();
+```
+
+This should remain **uppercase** because email subjects should show `NEW LEAD EN #12345678` (not `en`).
 
 ---
 
-## Changes Required
+## Summary of Changes
 
-### 1. Update Subject Line Format (line 364)
-
-**Before**:
-```typescript
-emailSubject = `${flag} New ${normalizedLead.language?.toUpperCase()} Lead: ${lead.first_name} ${lead.last_name}`;
-```
-
-**After**:
-```typescript
-const langCode = (normalizedLead.language || "EN").toUpperCase();
-emailSubject = `🔔 NEW LEAD ${langCode} #${lead.id.slice(0, 8)}`;
-```
-
-This matches the escalating alarm format:
-- T+0: `🔔 NEW LEAD EN #12345678`
-- T+1: `⏰ 1 MIN PASSED - NEW LEAD EN #12345678`
-- T+2: `⚠️ 2 MIN PASSED - NEW LEAD EN #12345678`
-- etc.
-
-### 2. Update Email Body - Add Escalation Warning (line 98)
-
-Insert after the existing claim window banner a new escalation info section:
-
-```html
-<div style="background: #fef3c7; border-left: 4px solid #f59e0b; padding: 12px; margin: 20px 0;">
-  <p style="margin: 0; color: #92400e; font-weight: bold;">📧 Escalating Reminders</p>
-  <p style="margin: 5px 0 0 0; color: #92400e; font-size: 14px;">
-    You will receive reminder emails at 1, 2, 3, and 4 minutes if this lead remains unclaimed.
-  </p>
-</div>
-```
-
-### 3. Add Logging for Alarm Level 0 (around line 402)
-
-Add console.log to indicate this is the initial alarm:
-```typescript
-console.log(`[send-lead-notification] Sending initial alarm (level 0) for lead ${lead.id}`);
-console.log(`[send-lead-notification] Subject: ${emailSubject}`);
-```
-
----
-
-## Subject Format Summary (for Gmail Filter Setup)
-
-| Time | Emoji | Subject Pattern |
-|------|-------|-----------------|
-| T+0 | 🔔 | `NEW LEAD EN #12345678` |
-| T+1 | ⏰ | `1 MIN PASSED - NEW LEAD EN #12345678` |
-| T+2 | ⚠️ | `2 MIN PASSED - NEW LEAD EN #12345678` |
-| T+3 | 🚨 | `3 MIN PASSED - NEW LEAD EN #12345678` |
-| T+4 | 🔥 | `4 MIN PASSED - FINAL WARNING - NEW LEAD EN #12345678` |
-
-**Gmail Filter Example**: Subject contains `NEW LEAD EN` catches all 5 alarm levels for English leads.
+| Line | Current | Change To | Purpose |
+|------|---------|-----------|---------|
+| 69 | `toUpperCase()` + `"EN"` | `toLowerCase()` + `"en"` | Match database query |
+| 120 | Keep as-is | No change | Display uppercase in email subject |
 
 ---
 
@@ -83,15 +63,15 @@ console.log(`[send-lead-notification] Subject: ${emailSubject}`);
 
 | File | Change |
 |------|--------|
-| `supabase/functions/send-lead-notification/index.ts` | Update subject line format, add escalation warning to email body, add logging |
+| `supabase/functions/send-escalating-alarms/index.ts` | Fix line 69 to use lowercase for database query |
 
 ---
 
 ## Verification
 
-After implementation:
+After deployment:
 1. Create a new test lead
-2. Check email inbox
-3. Subject should be: `🔔 NEW LEAD [LANG] #[ID]`
-4. Body should mention escalating reminders at 1, 2, 3, 4 minutes
-5. Logs should show "Sending initial alarm (level 0)"
+2. Wait 1 minute → T+1 email should arrive
+3. Check logs: `"Found X agents for language en"` (not `"No round robin config for language EN"`)
+4. Subsequent T+2, T+3, T+4 emails should follow at 1-minute intervals
+
