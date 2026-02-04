@@ -2302,6 +2302,7 @@ export type Database = {
           interest: string | null
           is_night_held: boolean | null
           language: string
+          last_alarm_level: number | null
           last_contact_at: string | null
           last_name: string
           lead_claimed: boolean | null
@@ -2379,6 +2380,7 @@ export type Database = {
           interest?: string | null
           is_night_held?: boolean | null
           language: string
+          last_alarm_level?: number | null
           last_contact_at?: string | null
           last_name: string
           lead_claimed?: boolean | null
@@ -2456,6 +2458,7 @@ export type Database = {
           interest?: string | null
           is_night_held?: boolean | null
           language?: string
+          last_alarm_level?: number | null
           last_contact_at?: string | null
           last_name?: string
           lead_claimed?: boolean | null
