@@ -1,85 +1,84 @@
 
-
-# Schedule send-escalating-alarms Cron Job
+# Update claim-lead to Cancel Escalating Alarms
 
 ## Overview
 
-The `send-escalating-alarms` edge function has been deployed, but the cron job to trigger it every minute is not yet scheduled in the database. This needs to be set up manually via the Cloud View > Run SQL interface.
+When an agent claims a lead, we need to stop any remaining escalating alarms (levels 1-4) from being sent. This prevents agents from receiving alarm emails after someone has already claimed the lead.
 
 ---
 
-## Current Status
+## Current State
 
-| Component | Status |
-|-----------|--------|
-| Edge function deployed | ✅ Complete |
-| Cron job documented in cron_jobs.sql | ✅ Complete |
-| Cron job scheduled in database | ❌ **Not scheduled** |
+The contact timer update (lines 62-71) currently sets:
+- `contact_timer_started_at`
+- `contact_timer_expires_at`
+- `contact_sla_breached: false`
+- `claim_timer_expires_at: null`
+
+The activity log (lines 81-87) notes: "Lead claimed - 5-minute contact window started"
 
 ---
 
-## Action Required
+## Changes Required
 
-You need to run the following SQL in **Cloud View > Run SQL** to schedule the cron job:
+### 1. Add Alarm Cancellation to Timer Update (lines 64-70)
 
-```sql
-SELECT cron.schedule(
-  'send-escalating-alarms',
-  '* * * * *',
-  $$
-  SELECT net.http_post(
-    url := 'https://kazggnufaoicopvmwhdl.supabase.co/functions/v1/send-escalating-alarms',
-    headers := '{"Content-Type": "application/json", "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImthemdnbnVmYW9pY29wdm13aGRsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA1MzM0ODEsImV4cCI6MjA3NjEwOTQ4MX0.acQwC_xPXFXvOwwn7IATeg6OwQ2HWlu52x76iqUdhB4"}'::jsonb,
-    body := '{"triggered_by": "cron"}'::jsonb
-  ) AS request_id;
-  $$
-);
+Add `last_alarm_level: 99` to stop the escalation sequence:
+
+```typescript
+.update({
+  contact_timer_started_at: now.toISOString(),
+  contact_timer_expires_at: contactWindowExpiry.toISOString(),
+  contact_sla_breached: false,
+  claim_timer_expires_at: null,
+  // Stop escalating alarms - set to 99 so cron job ignores this lead
+  last_alarm_level: 99,
+})
+```
+
+### 2. Add Alarm Cancellation Logging (after line 77)
+
+Add a log message confirming alarms are cancelled:
+
+```typescript
+console.log(`[claim-lead] Escalating alarms cancelled - lead claimed by agent`);
+```
+
+### 3. Update Activity Log Message (line 85)
+
+Update the notes to reflect alarm cancellation:
+
+```typescript
+notes: "Lead claimed - 5-minute contact window started - escalating alarms cancelled",
 ```
 
 ---
 
-## How to Schedule
+## How It Works
 
-1. Open **Cloud View** in Lovable
-2. Navigate to **Run SQL**
-3. Paste the SQL above
-4. Click **Run**
-5. You should see a success message with a job ID returned
+```text
+Escalating Alarm Cron Job Query:
+└── Looks for: last_alarm_level = 0, 1, 2, or 3
+
+After Lead Claimed:
+└── last_alarm_level = 99 → No longer matches query → No more alarms sent
+```
+
+The value 99 is used as a "sentinel value" meaning "alarms complete/stopped".
+
+---
+
+## Files Changed
+
+| File | Change |
+|------|--------|
+| `supabase/functions/claim-lead/index.ts` | Add `last_alarm_level: 99`, update logging and activity note |
 
 ---
 
 ## Verification
 
-After scheduling, run this query to confirm:
-
-```sql
-SELECT jobid, jobname, schedule, active 
-FROM cron.job 
-WHERE jobname = 'send-escalating-alarms';
-```
-
-Expected result:
-- **jobname**: send-escalating-alarms
-- **schedule**: * * * * *
-- **active**: true
-
----
-
-## What This Cron Job Does
-
-```text
-Every 1 minute:
-├── Calls send-escalating-alarms edge function
-├── Function checks for unclaimed leads needing alarm levels 1-4
-├── Sends escalating emails if leads are past their time threshold
-└── Updates last_alarm_level to prevent duplicate sends
-```
-
----
-
-## Notes
-
-- This cron job cannot be scheduled automatically by me - it requires manual SQL execution
-- The SQL is already documented in `supabase/cron_jobs.sql` for reference
-- The function returns quickly (processed: 0) when no leads need alarms, so running every minute has minimal overhead
-
+After implementation:
+1. Claim a test lead
+2. Query: `SELECT last_alarm_level FROM crm_leads WHERE id = 'lead-id'` → should be 99
+3. Wait 1+ minutes → no escalating emails should arrive for that lead
