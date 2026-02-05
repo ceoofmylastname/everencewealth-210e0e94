@@ -1,62 +1,57 @@
 
-
-## Fix Escalating Email CTA Button Link
+## Update About Us Page LinkedIn Links
 
 ### Problem Identified
-The "CLAIM THIS LEAD NOW" button in escalating alarm emails (1 min, 2 min, 3 min, 4 min reminders) links to an **incorrect URL** that results in a 404 error:
-- **Current URL:** `/crm/leads/${lead.id}` (does not exist)
-- **Correct URL:** `/crm/agent/leads/${lead.id}/claim` (the ClaimLeadPage route)
+The LinkedIn URLs in the `about_page_content.founders` JSONB column are incorrect. The FounderProfiles component reads `linkedin_url` from this data, causing the wrong links to appear.
 
-### Why This Matters
-Agents receiving escalating reminder emails cannot claim leads because the CTA button takes them to a broken page. This defeats the purpose of the entire escalating alarm system.
+### Current State vs Required State
 
-### The Fix
+| Founder | Current (Broken) | Required (Correct) |
+|---------|------------------|-------------------|
+| Cédric Van Hecke | `https://linkedin.com/in/cedricvanhecke` | `https://www.linkedin.com/company/delsolprimehomes/` |
+| Steven Roberts | `https://linkedin.com/in/stevenroberts` | `https://www.linkedin.com/company/delsolprimehomes/` |
+| Hans Beeckman | `https://linkedin.com/in/hansbeeckman` | `https://www.linkedin.com/in/hansbeeckman/` |
 
-**File to modify:** `supabase/functions/send-escalating-alarms/index.ts`
+### Solution
+Update the `founders` JSONB array in the `about_page_content` table to use the correct LinkedIn URLs.
 
-**Current code (Line 197):**
-```typescript
-<a href="${APP_URL}/crm/leads/${lead.id}"
+### Technical Details
+
+**Database Change Required:**
+Run an UPDATE query on `about_page_content` table to fix the `linkedin` field in the founders JSONB array.
+
+**SQL to Execute:**
+```sql
+UPDATE about_page_content
+SET founders = jsonb_set(
+  jsonb_set(
+    jsonb_set(
+      founders,
+      '{0,linkedin}', '"https://www.linkedin.com/company/delsolprimehomes/"'
+    ),
+    '{1,linkedin}', '"https://www.linkedin.com/company/delsolprimehomes/"'
+  ),
+  '{2,linkedin}', '"https://www.linkedin.com/in/hansbeeckman/"'
+)
+WHERE slug = 'main';
 ```
 
-**Updated code:**
-```typescript
-<a href="${APP_URL}/crm/agent/leads/${lead.id}/claim"
-```
+**Note:** The founders array order is:
+- Index 0: Steven Roberts → Company page
+- Index 1: Cédric Van Hecke → Company page  
+- Index 2: Hans Beeckman → Personal profile
 
-### Already Handled: Lead Already Claimed Scenario
+### Already Correct
+- The `team_members` database table has the correct URLs
+- The hardcoded `FOUNDERS_DATA` in `aboutSchemaGenerator.ts` has the correct URLs
 
-The existing `ClaimLeadPage.tsx` already handles the case when an agent clicks the link but the lead was already claimed by another agent:
-
-```text
-+-------------------------------------------+
-|     ⚠️  (amber warning icon)              |
-|                                           |
-|     Lead Already Claimed                  |
-|                                           |
-|     Another agent claimed this lead       |
-|     first. Don't worry — new leads        |
-|     are assigned regularly. Check your    |
-|     dashboard for other opportunities.    |
-|                                           |
-|     [Go to Dashboard]                     |
-+-------------------------------------------+
-```
-
-This means no additional code changes are needed to handle the "missed opportunity" scenario.
-
-### Technical Summary
-
-| Item | Details |
-|------|---------|
-| File | `supabase/functions/send-escalating-alarms/index.ts` |
-| Line | 197 |
-| Change | Update href from `/crm/leads/` to `/crm/agent/leads/.../claim` |
-| Deployment | Edge function will auto-deploy |
-
-### After Implementation
-
-When agents click "CLAIM THIS LEAD NOW" from escalating emails:
-1. **If lead is unclaimed** - They see the ClaimLeadPage with countdown timer and claim button
-2. **If lead was already claimed** - They see a friendly message explaining another agent claimed it first, with a button to return to dashboard
-
+### Testing Checklist
+1. Visit the About Us page in any language
+2. Verify all three LinkedIn buttons are visible on founder cards
+3. Click each button and confirm correct destination:
+   - Steven Roberts → Company page opens
+   - Cédric Van Hecke → Company page opens
+   - Hans Beeckman → Personal profile opens
+4. Confirm all links open in a new tab
+5. Test on desktop and mobile views
+6. Verify consistency across multiple language versions
