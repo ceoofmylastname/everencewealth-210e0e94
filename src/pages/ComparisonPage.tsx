@@ -32,15 +32,33 @@ export default function ComparisonPage() {
   const { data: comparison, isLoading, error } = useQuery({
     queryKey: ['comparison', lang, slug],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // First try: exact match (slug + language)
+      const { data: exactMatch } = await supabase
         .from('comparison_pages')
         .select('*')
         .eq('slug', slug)
+        .eq('language', lang)
+        .eq('status', 'published')
         .single();
       
-      if (error) throw error;
+      if (exactMatch) {
+        return exactMatch as unknown as ComparisonPageType;
+      }
       
-      return data as unknown as ComparisonPageType;
+      // Second try: find by slug only (language mismatch case)
+      const { data: anyMatch } = await supabase
+        .from('comparison_pages')
+        .select('*')
+        .eq('slug', slug)
+        .eq('status', 'published')
+        .maybeSingle();
+      
+      if (anyMatch) {
+        // Mark that we need to redirect (language mismatch)
+        return { ...anyMatch, _needsRedirect: true } as unknown as ComparisonPageType & { _needsRedirect?: boolean };
+      }
+      
+      return null;
     },
     enabled: !!slug,
   });
@@ -80,10 +98,10 @@ export default function ComparisonPage() {
     );
   }
 
-  // Smart language mismatch handling:
+  // Smart language mismatch handling (only when _needsRedirect flag is set):
   // 1. If translation exists for requested language → redirect to correct URL
   // 2. If no translation → show branded 404 with alternatives
-  if (comparison.language !== lang) {
+  if (comparison && (comparison as any)._needsRedirect && comparison.language !== lang) {
     const compTranslations = (comparison as any).translations as Record<string, string> | null;
     
     // Check if the requested language has a translation
