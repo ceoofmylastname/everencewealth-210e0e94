@@ -1,77 +1,62 @@
 
 
-# Fix Language Casing Bug in Escalating Alarms
+## Fix Escalating Email CTA Button Link
 
-## Problem
+### Problem Identified
+The "CLAIM THIS LEAD NOW" button in escalating alarm emails (1 min, 2 min, 3 min, 4 min reminders) links to an **incorrect URL** that results in a 404 error:
+- **Current URL:** `/crm/leads/${lead.id}` (does not exist)
+- **Correct URL:** `/crm/agent/leads/${lead.id}/claim` (the ClaimLeadPage route)
 
-The `send-escalating-alarms` function cannot find agents because it queries the database with uppercase language codes (`"EN"`) while the `crm_round_robin_config` table stores them in lowercase (`"en"`).
+### Why This Matters
+Agents receiving escalating reminder emails cannot claim leads because the CTA button takes them to a broken page. This defeats the purpose of the entire escalating alarm system.
 
-**Current Code (line 69):**
+### The Fix
+
+**File to modify:** `supabase/functions/send-escalating-alarms/index.ts`
+
+**Current code (Line 197):**
 ```typescript
-const language = (lead.language || "EN").toUpperCase();
+<a href="${APP_URL}/crm/leads/${lead.id}"
 ```
 
-**Database stores:**
-| language |
-|----------|
-| en |
-| es |
-| de |
-| fr |
-| nl |
-| fi |
-
-**Result:** Query `.eq("language", "EN")` returns nothing → No agents found → No emails sent
-
----
-
-## Fix Required
-
-### Line 69 - Query Language (MUST FIX)
-
-**Before:**
+**Updated code:**
 ```typescript
-const language = (lead.language || "EN").toUpperCase();
+<a href="${APP_URL}/crm/agent/leads/${lead.id}/claim"
 ```
 
-**After:**
-```typescript
-const language = (lead.language || "en").toLowerCase();
+### Already Handled: Lead Already Claimed Scenario
+
+The existing `ClaimLeadPage.tsx` already handles the case when an agent clicks the link but the lead was already claimed by another agent:
+
+```text
++-------------------------------------------+
+|     ⚠️  (amber warning icon)              |
+|                                           |
+|     Lead Already Claimed                  |
+|                                           |
+|     Another agent claimed this lead       |
+|     first. Don't worry — new leads        |
+|     are assigned regularly. Check your    |
+|     dashboard for other opportunities.    |
+|                                           |
+|     [Go to Dashboard]                     |
++-------------------------------------------+
 ```
 
-### Line 120 - Email Subject Language Code (KEEP AS-IS)
+This means no additional code changes are needed to handle the "missed opportunity" scenario.
 
-The code on line 120 is used for the email subject display:
-```typescript
-const langCode = (lead.language || "EN").toUpperCase();
-```
+### Technical Summary
 
-This should remain **uppercase** because email subjects should show `NEW LEAD EN #12345678` (not `en`).
+| Item | Details |
+|------|---------|
+| File | `supabase/functions/send-escalating-alarms/index.ts` |
+| Line | 197 |
+| Change | Update href from `/crm/leads/` to `/crm/agent/leads/.../claim` |
+| Deployment | Edge function will auto-deploy |
 
----
+### After Implementation
 
-## Summary of Changes
-
-| Line | Current | Change To | Purpose |
-|------|---------|-----------|---------|
-| 69 | `toUpperCase()` + `"EN"` | `toLowerCase()` + `"en"` | Match database query |
-| 120 | Keep as-is | No change | Display uppercase in email subject |
-
----
-
-## Files Changed
-
-| File | Change |
-|------|--------|
-| `supabase/functions/send-escalating-alarms/index.ts` | Fix line 69 to use lowercase for database query |
-
----
-
-## Verification
-
-After deployment:
-1. Create a new test lead
-2. Wait 1 minute → T+1 email should arrive
-3. Check logs: `"Found X agents for language en"` (not `"No round robin config for language EN"`)
-4. Subsequent T+2, T+3, T+4 emails should follow at 1-minute intervals
+When agents click "CLAIM THIS LEAD NOW" from escalating emails:
+1. **If lead is unclaimed** - They see the ClaimLeadPage with countdown timer and claim button
+2. **If lead was already claimed** - They see a friendly message explaining another agent claimed it first, with a button to return to dashboard
 
