@@ -104,7 +104,7 @@ async function countLanguageMismatches(goneUrls: GoneUrl[]): Promise<number> {
   // Parse URLs to extract language and slug
   const parsed = goneUrls
     .map(u => {
-      const match = u.url_path.match(/^\/([a-z]{2})\/(blog|qa)\/(.+)$/);
+      const match = u.url_path.match(/^\/([a-z]{2})\/(blog|qa|compare)\/(.+)$/);
       if (!match) return null;
       return {
         id: u.id,
@@ -168,6 +168,26 @@ async function countLanguageMismatches(goneUrls: GoneUrl[]): Promise<number> {
     }
   }
 
+  // Check comparison pages
+  const compareSlugs = parsed.filter(p => p.content_type === "compare").map(p => p.slug);
+  if (compareSlugs.length > 0) {
+    const uniqueCompareSlugs = [...new Set(compareSlugs)];
+    const { data: comparisonPages } = await supabase
+      .from("comparison_pages")
+      .select("slug, language")
+      .in("slug", uniqueCompareSlugs.slice(0, 500))
+      .eq("status", "published");
+
+    const compareMap = new Map(comparisonPages?.map(c => [c.slug, c.language]) || []);
+    
+    for (const p of parsed.filter(p => p.content_type === "compare")) {
+      const actualLang = compareMap.get(p.slug);
+      if (actualLang && actualLang !== p.url_lang) {
+        mismatchCount++;
+      }
+    }
+  }
+
   return mismatchCount;
 }
 
@@ -194,8 +214,8 @@ export function useLanguageMismatches() {
 
       const parsed = goneUrls
         .map(u => {
-          const match = u.url_path.match(/^\/([a-z]{2})\/(blog|qa)\/(.+)$/);
-          if (!match) return null;
+        const match = u.url_path.match(/^\/([a-z]{2})\/(blog|qa|compare)\/(.+)$/);
+        if (!match) return null;
           return {
             id: u.id,
             url_path: u.url_path,
@@ -263,6 +283,29 @@ export function useLanguageMismatches() {
         }
       }
 
+      // Check comparison pages
+      const compareSlugs = [...new Set(parsed.filter(p => p.content_type === "compare").map(p => p.slug))];
+      if (compareSlugs.length > 0) {
+        const { data: comparisonPages } = await supabase
+          .from("comparison_pages")
+          .select("slug, language")
+          .in("slug", compareSlugs.slice(0, 500))
+          .eq("status", "published");
+
+        const compareMap = new Map(comparisonPages?.map(c => [c.slug, c.language]) || []);
+        
+        for (const p of parsed.filter(p => p.content_type === "compare")) {
+          const actualLang = compareMap.get(p.slug);
+          if (actualLang && actualLang !== p.url_lang) {
+            results.push({
+              ...p,
+              actual_language: actualLang,
+              correct_url: `/${actualLang}/compare/${p.slug}`,
+            });
+          }
+        }
+      }
+
       return results;
     },
   });
@@ -282,7 +325,7 @@ export function useConfirmedGoneUrls() {
       // Get language mismatch IDs to exclude
       const parsed = goneUrls
         .map(u => {
-          const match = u.url_path.match(/^\/([a-z]{2})\/(blog|qa)\/(.+)$/);
+          const match = u.url_path.match(/^\/([a-z]{2})\/(blog|qa|compare)\/(.+)$/);
           if (!match) return null;
           return {
             id: u.id,
@@ -331,6 +374,25 @@ export function useConfirmedGoneUrls() {
         
         for (const p of parsed.filter(p => p.content_type === "qa")) {
           const actualLang = qaMap.get(p.slug);
+          if (actualLang && actualLang !== p.url_lang) {
+            mismatchIds.add(p.id);
+          }
+        }
+      }
+
+      // Check comparison pages
+      const compareSlugs = [...new Set(parsed.filter(p => p.content_type === "compare").map(p => p.slug))];
+      if (compareSlugs.length > 0) {
+        const { data: comparisonPages } = await supabase
+          .from("comparison_pages")
+          .select("slug, language")
+          .in("slug", compareSlugs.slice(0, 500))
+          .eq("status", "published");
+
+        const compareMap = new Map(comparisonPages?.map(c => [c.slug, c.language]) || []);
+        
+        for (const p of parsed.filter(p => p.content_type === "compare")) {
+          const actualLang = compareMap.get(p.slug);
           if (actualLang && actualLang !== p.url_lang) {
             mismatchIds.add(p.id);
           }
