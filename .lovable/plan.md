@@ -1,125 +1,81 @@
 
+# Fix: URL Length Limit Causing Language Mismatch Detection to Fail
 
-# Fix: Language Mismatch Detection in 404 Resolver Dashboard
+## Root Cause Identified
 
-## Problem Summary
+The 404 Resolution Dashboard shows **0 language mismatches** because the database query to `qa_pages` is failing with a **400 Bad Request** error. The cause is that the Supabase query URL exceeds the browser's URL length limit.
 
-The 404 Resolution Dashboard at `/admin/404-resolver` currently shows **0 language mismatches**, but the database contains:
-- **111 Q&A mismatches** - URLs like `/de/qa/swedish-slug` where content exists in Swedish
-- **36 comparison mismatches** - URLs like `/fr/compare/english-slug` where content exists in English
+### Evidence
+- Network request to `qa_pages` returns **400 Bad Request**
+- The URL contains ~500 slugs as query parameters, resulting in a URL over 15KB
+- Browser/Supabase URL limit is approximately 8KB
 
-**Total: 147 URLs that should be fixable with redirects**
-
-## Root Cause Analysis
-
-The `useNotFoundAnalysis.ts` hook has two bugs:
-
-### Bug 1: Missing Comparison Pages
-The regex pattern only matches `blog|qa`:
-```typescript
-// Line 107 & 197
-const match = u.url_path.match(/^\/([a-z]{2})\/(blog|qa)\/(.+)$/);
-```
-This completely ignores the 36 comparison page mismatches.
-
-### Bug 2: Query Logic May Be Failing
-The current approach:
-1. Fetches all `gone_urls` rows (947 URLs)
-2. Parses them client-side to extract slugs
-3. Queries `blog_articles` and `qa_pages` tables with `IN (slugs)` clause
-4. Compares URL language prefix to database language
-
-Potential issues:
-- The 500-slug limit may be truncating results
-- The join logic may have edge cases with slug encoding/decoding
+### Database Verification
+- There ARE **111 QA language mismatches** in the database (e.g., `/de/qa/swedish-slug` where content exists in Swedish)
+- There are **0 blog mismatches** and **0 comparison mismatches** (all those URLs are truly gone)
+- The total of **911 gone URLs** with 111 being fixable mismatches
 
 ## Solution
 
-Update `useNotFoundAnalysis.ts` to:
-1. Add `compare` to the regex pattern
-2. Add comparison page lookup alongside blog and Q&A
-3. Increase batch sizes or optimize the query approach
+Batch the slug queries into smaller chunks (50 slugs per request) to stay within URL length limits.
 
----
+### File to Modify
 
-## Technical Implementation
+`src/hooks/useNotFoundAnalysis.ts`
 
-### File: `src/hooks/useNotFoundAnalysis.ts`
+### Changes Required
 
-#### Change 1: Update regex to include comparisons (Lines 107, 197, 285)
-
-Replace:
-```typescript
-const match = u.url_path.match(/^\/([a-z]{2})\/(blog|qa)\/(.+)$/);
-```
-
-With:
-```typescript
-const match = u.url_path.match(/^\/([a-z]{2})\/(blog|qa|compare)\/(.+)$/);
-```
-
-#### Change 2: Add comparison page detection
-
-In `countLanguageMismatches()` (around line 150) and `useLanguageMismatches()` (around line 245), add:
+1. **Create a helper function for batched slug lookups**
 
 ```typescript
-// Extract comparison slugs
-const compareSlugs = parsed.filter(p => p.content_type === "compare").map(p => p.slug);
-
-// Check comparison pages
-if (compareSlugs.length > 0) {
-  const uniqueCompareSlugs = [...new Set(compareSlugs)];
-  const { data: comparisonPages } = await supabase
-    .from("comparison_pages")
-    .select("slug, language")
-    .in("slug", uniqueCompareSlugs.slice(0, 500))
-    .eq("status", "published");
-
-  const compareMap = new Map(comparisonPages?.map(c => [c.slug, c.language]) || []);
+// Helper to batch slugs into chunks and query in parallel
+async function batchedSlugLookup(
+  table: "blog_articles" | "qa_pages" | "comparison_pages",
+  slugs: string[],
+  batchSize: number = 50
+): Promise<Map<string, string>> {
+  const resultMap = new Map<string, string>();
+  const uniqueSlugs = [...new Set(slugs)];
   
-  for (const p of parsed.filter(p => p.content_type === "compare")) {
-    const actualLang = compareMap.get(p.slug);
-    if (actualLang && actualLang !== p.url_lang) {
-      // Add to results or increment count
-    }
+  // Process in batches
+  for (let i = 0; i < uniqueSlugs.length; i += batchSize) {
+    const batch = uniqueSlugs.slice(i, i + batchSize);
+    const { data } = await supabase
+      .from(table)
+      .select("slug, language")
+      .in("slug", batch)
+      .eq("status", "published");
+    
+    data?.forEach(row => resultMap.set(row.slug, row.language));
   }
+  
+  return resultMap;
 }
 ```
 
-#### Change 3: Update `useConfirmedGoneUrls()` to exclude comparison mismatches
+2. **Update countLanguageMismatches() to use batched lookup**
 
-Same pattern - add comparison page lookup to the mismatch exclusion set.
+Replace the individual table queries with calls to the batched helper function.
 
----
+3. **Update useLanguageMismatches() to use batched lookup**
 
-## Files to Modify
+Same pattern - use the batched helper instead of single large queries.
 
-| File | Changes |
-|------|---------|
-| `src/hooks/useNotFoundAnalysis.ts` | Add comparison support to all three functions |
+4. **Update useConfirmedGoneUrls() to use batched lookup**
 
----
+Same pattern for the exclusion logic.
 
 ## Expected Result
 
-After this fix, the 404 Resolution Dashboard will show:
-- **Language Mismatches: 147** (instead of 0)
-  - 111 Q&A pages
-  - 36 comparison pages
-- **Confirmed 410s: 800** (947 - 147 = 800)
+After this fix:
+- The dashboard will show **~111 Language Mismatches** (all QA pages)
+- Users can click "Fix All" to remove these from `gone_urls`
+- The smart redirect system will then handle these URLs automatically
+- The "Confirmed 410s" count will decrease from 911 to ~800
 
-Users can then click "Fix All" to remove these 147 URLs from `gone_urls`, allowing the smart redirect system to handle them properly.
+## Technical Notes
 
----
-
-## Verification Steps
-
-After implementation:
-1. Navigate to `/admin/404-resolver`
-2. Click "Refresh" button
-3. Verify "Language Mismatches" card shows **147** (or close to it)
-4. Click "Language Mismatches" tab to see the list
-5. Verify comparison pages appear with `compare` badge
-6. Click "Fix All" to remove them from `gone_urls`
-7. Test a sample URL to confirm redirect works
-
+- Current code: `.in("slug", uniqueSlugs.slice(0, 500))` creates a URL over 15KB
+- Fixed code: Batches of 50 slugs creates URLs of ~2KB each
+- Trade-off: Slightly more network requests but all will succeed
+- Alternative: Could use Postgres function, but batching is simpler
