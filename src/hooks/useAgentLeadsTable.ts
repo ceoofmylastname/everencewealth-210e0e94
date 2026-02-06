@@ -30,6 +30,10 @@ export interface AgentLead {
   qa_pairs: any[] | null;
   archived: boolean;
   archived_at: string | null;
+  country_name: string | null;
+  country_code: string | null;
+  country_flag: string | null;
+  country_prefix: string | null;
 }
 
 export interface FilterState {

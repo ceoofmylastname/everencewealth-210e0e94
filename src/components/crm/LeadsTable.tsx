@@ -343,11 +343,21 @@ export function LeadsTable({
                   {/* Language */}
                   {visibleColumns.language && (
                     <TableCell onClick={() => navigate(`/crm/agent/leads/${lead.id}`)}>
-                      <div className="flex items-center gap-1">
-                        <span>{getLanguageFlag(lead.language)}</span>
-                        <span className="text-xs font-medium">
-                          {lead.language.toUpperCase()}
-                        </span>
+                      <div className="flex flex-col gap-0.5">
+                        {/* Country badge - if available */}
+                        {lead.country_flag && lead.country_name && (
+                          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                            <span>{lead.country_flag}</span>
+                            <span>{lead.country_name}</span>
+                          </div>
+                        )}
+                        {/* Language */}
+                        <div className="flex items-center gap-1">
+                          <span>{getLanguageFlag(lead.language)}</span>
+                          <span className="text-xs font-medium">
+                            {lead.language.toUpperCase()}
+                          </span>
+                        </div>
                       </div>
                     </TableCell>
                   )}

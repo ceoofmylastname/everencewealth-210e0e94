@@ -168,6 +168,24 @@ export function ContactInfoCard({
             )}
           </div>
 
+          {/* Country/Origin */}
+          <div>
+            <dt className="text-xs text-muted-foreground mb-1">Country/Origin</dt>
+            <dd className="flex items-center gap-2 text-sm font-medium">
+              {lead.country_name && lead.country_name !== 'Unknown' ? (
+                <>
+                  <span className="text-lg">{lead.country_flag || '🌍'}</span>
+                  {lead.country_name}
+                  {lead.country_prefix && (
+                    <span className="text-muted-foreground">({lead.country_prefix})</span>
+                  )}
+                </>
+              ) : (
+                <span className="text-muted-foreground">Not specified</span>
+              )}
+            </dd>
+          </div>
+
           {/* Language */}
           <div>
             <dt className="text-xs text-muted-foreground mb-1">Language</dt>
