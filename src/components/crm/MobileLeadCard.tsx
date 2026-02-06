@@ -110,6 +110,10 @@ export interface MobileLeadCardProps {
     created_at: string;
     interest?: string | null;
     property_ref?: string | null;
+    country_name?: string | null;
+    country_code?: string | null;
+    country_flag?: string | null;
+    country_prefix?: string | null;
   };
   isSelected: boolean;
   onToggleSelect: (id: string) => void;
@@ -223,6 +227,11 @@ export function MobileLeadCard({
             </h3>
           </div>
           <div className="flex items-center gap-2 text-sm text-muted-foreground flex-wrap">
+            {lead.country_flag && lead.country_name && (
+              <span className="bg-muted px-1.5 py-0.5 rounded text-xs">
+                {lead.country_flag} {lead.country_name}
+              </span>
+            )}
             <span>{languageFlag} {(lead.language || "en").toUpperCase()}</span>
             <span>•</span>
             <span className="capitalize">{lead.property_type || "Property"}</span>

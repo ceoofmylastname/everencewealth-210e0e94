@@ -131,9 +131,18 @@ export function LeadDetailHeader({
               </Avatar>
 
               <div>
-                <h1 className="text-xl font-bold flex items-center gap-2">
+                <h1 className="text-xl font-bold flex items-center gap-2 flex-wrap">
                   {lead.first_name} {lead.last_name}
-                  <span className="text-lg">{getLanguageFlag(lead.language)}</span>
+                  {/* Country badge */}
+                  {lead.country_flag && lead.country_name && (
+                    <Badge variant="secondary" className="text-sm font-normal">
+                      {lead.country_flag} {lead.country_name}
+                    </Badge>
+                  )}
+                  {/* Language badge */}
+                  <Badge variant="outline" className="text-sm font-normal">
+                    {getLanguageFlag(lead.language)} {lead.language.toUpperCase()}
+                  </Badge>
                 </h1>
                 <p className="text-sm text-muted-foreground">
                   Created{" "}
