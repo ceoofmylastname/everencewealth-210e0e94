@@ -42,6 +42,9 @@ interface LeadPayload {
     last_name: string;
     phone_number: string;
     country_prefix: string;
+    country_name?: string;
+    country_code?: string;
+    country_flag?: string;
   };
   content_phase: ContentPhase;
   property_criteria: {
@@ -114,6 +117,9 @@ async function updateLeadRecord(
     last_name: payload.contact_info.last_name,
     phone_number: payload.contact_info.phone_number,
     country_prefix: payload.contact_info.country_prefix,
+    country_name: payload.contact_info.country_name || null,
+    country_code: payload.contact_info.country_code || null,
+    country_flag: payload.contact_info.country_flag || null,
     // Q&A pairs 1-10
     question_1: payload.content_phase.question_1,
     answer_1: payload.content_phase.answer_1,
@@ -200,6 +206,9 @@ const crmPayload = {
     lastName: payload.contact_info.last_name,
     phone: payload.contact_info.phone_number,
     countryPrefix: payload.contact_info.country_prefix,
+    countryName: payload.contact_info.country_name || "Unknown",
+    countryCode: payload.contact_info.country_code || "XX",
+    countryFlag: payload.contact_info.country_flag || "🌍",
     
     // Source tracking
     leadSource: 'Emma Chatbot',

@@ -254,7 +254,10 @@ const EmmaChat: React.FC<EmmaChatProps> = ({ isOpen, onClose, language, property
                         first_name: fields.name || fields.first_name || '',
                         last_name: fields.family_name || fields.last_name || '',
                         phone_number: fields.phone || fields.phone_number || '',
-                        country_prefix: fields.country_prefix || ''
+                        country_prefix: fields.country_prefix || '',
+                        country_name: fields.country_name || '',
+                        country_code: fields.country_code || '',
+                        country_flag: fields.country_flag || ''
                     },
                     content_phase: {
                         question_1: fields.question_1 || '',
@@ -1271,7 +1274,10 @@ const EmmaChat: React.FC<EmmaChatProps> = ({ isOpen, onClose, language, property
                     first_name: fields.name || fields.first_name || '',
                     last_name: fields.family_name || fields.last_name || '',
                     phone_number: fields.phone || fields.phone_number || '',
-                    country_prefix: fields.country_prefix || ''
+                    country_prefix: fields.country_prefix || '',
+                    country_name: fields.country_name || '',
+                    country_code: fields.country_code || '',
+                    country_flag: fields.country_flag || ''
                 },
                 content_phase: buildContentPhasePayload(fields),
                 property_criteria: {
