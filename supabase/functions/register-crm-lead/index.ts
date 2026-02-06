@@ -19,6 +19,9 @@ interface LeadPayload {
   phone: string;
   email?: string;
   countryPrefix?: string;
+  countryName?: string;      // Country name from phone prefix: "Belgium", "France"
+  countryCode?: string;      // ISO 2-letter code: "BE", "FR"
+  countryFlag?: string;      // Flag emoji: "🇧🇪", "🇫🇷"
   
   // Source tracking
   leadSource: string;
@@ -462,6 +465,9 @@ serve(async (req) => {
         last_name: payload.lastName.trim(),
         phone_number: payload.phone?.trim() || null, // Now nullable for incomplete leads
         country_prefix: payload.countryPrefix || "",
+        country_name: payload.countryName || "Unknown",
+        country_code: payload.countryCode || "XX",
+        country_flag: payload.countryFlag || "🌍",
         email: payload.email?.trim() || null,
         language,
         lead_source: payload.leadSource || "Website",
