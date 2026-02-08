@@ -7,7 +7,13 @@ import { useTranslation } from '../../../i18n';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
+import { enUS, nl, de, fr, pl, sv, da, hu, fi, nb } from 'date-fns/locale';
 import { ElfsightGoogleReviews } from '@/components/reviews/ElfsightGoogleReviews';
+import type { Locale } from 'date-fns';
+
+const dateLocales: Record<string, Locale> = {
+  en: enUS, nl, de, fr, pl, sv, da, hu, fi, no: nb
+};
 
 export const Reviews: React.FC = () => {
   const { t, currentLanguage } = useTranslation();
@@ -44,17 +50,31 @@ export const Reviews: React.FC = () => {
 export const BlogTeaser: React.FC = () => {
   const { t, currentLanguage } = useTranslation();
   
-  // Fetch 3 most recent published English articles
+  // Fetch 3 most recent published articles in current language with English fallback
   const { data: articles, isLoading } = useQuery({
-    queryKey: ['homepage-blog-articles'],
+    queryKey: ['homepage-blog-articles', currentLanguage],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // First try current language
+      let { data, error } = await supabase
         .from('blog_articles')
         .select('id, slug, headline, meta_description, featured_image_url, date_published')
         .eq('status', 'published')
-        .eq('language', 'en')
+        .eq('language', currentLanguage)
         .order('date_published', { ascending: false })
         .limit(3);
+      
+      // Fallback to English if no articles in current language
+      if (!error && (!data || data.length === 0) && currentLanguage !== 'en') {
+        const fallback = await supabase
+          .from('blog_articles')
+          .select('id, slug, headline, meta_description, featured_image_url, date_published')
+          .eq('status', 'published')
+          .eq('language', 'en')
+          .order('date_published', { ascending: false })
+          .limit(3);
+        data = fallback.data;
+        error = fallback.error;
+      }
       
       if (error) throw error;
       return data;
@@ -64,7 +84,9 @@ export const BlogTeaser: React.FC = () => {
   const formatDate = (dateString: string | null) => {
     if (!dateString) return '';
     try {
-      return format(new Date(dateString), 'MMM dd, yyyy');
+      return format(new Date(dateString), 'MMM dd, yyyy', {
+        locale: dateLocales[currentLanguage] || enUS
+      });
     } catch {
       return '';
     }
