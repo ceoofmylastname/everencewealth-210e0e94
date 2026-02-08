@@ -1,51 +1,98 @@
 
-# Fix: All Three LinkedIn Buttons Link to Company Page
+# Add Video Timeline Controls to Retargeting Videos
 
-## Current State
+## Current Issue
 
-Looking at the database and code, the LinkedIn buttons currently redirect to:
+The videos on the retargeting page (`/{lang}/welcome-back`) are missing visible timeline controls, making it impossible for users to see their progress or scrub through the video.
 
-| Founder | Current URL | Status |
-|---------|-------------|--------|
-| Steven Roberts | `https://www.linkedin.com/company/delsolprimehomes/` | Correct |
-| Cédric Van Hecke | `https://www.linkedin.com/company/delsolprimehomes/` | Correct |
-| Hans Beeckman | `https://www.linkedin.com/in/hansbeeckman/` | **Needs updating** |
+| Component | Current State | Issue |
+|-----------|---------------|-------|
+| `RetargetingAutoplayVideo` | No `controls` attribute | No timeline visible |
+| `RetargetingVideoModal` | Has `controls` attribute | Timeline should work, but styling may hide it |
 
 ---
 
-## Changes Required
+## Solution
 
-### 1. Database Update
+Add the `controls` attribute to the autoplay video section so users can see the native browser video controls, including the progress timeline.
 
-Update the `founders` JSONB in `about_page_content` table to change Hans Beeckman's LinkedIn URL from his personal profile to the company page.
+---
 
-```sql
-UPDATE about_page_content 
-SET founders = jsonb_set(
-  founders,
-  '{2,linkedin}',  -- Index 2 = Hans Beeckman (third founder)
-  '"https://www.linkedin.com/company/delsolprimehomes/"'
-)
-WHERE slug = 'main';
+## Technical Changes
+
+### File: `src/components/retargeting/RetargetingAutoplayVideo.tsx`
+
+**Change 1: Add `controls` attribute to video element**
+
+Update line 90-98:
+
+```tsx
+// Before
+<video
+  ref={videoRef}
+  src={videoUrl || undefined}
+  poster={RETARGETING_VIDEO_THUMBNAIL}
+  className="w-full aspect-video object-cover"
+  loop
+  muted
+  playsInline
+  preload="auto"
+/>
+
+// After
+<video
+  ref={videoRef}
+  src={videoUrl || undefined}
+  poster={RETARGETING_VIDEO_THUMBNAIL}
+  className="w-full aspect-video object-cover"
+  loop
+  muted
+  playsInline
+  preload="auto"
+  controls
+/>
 ```
 
-### 2. Code Update (SEO Fallback)
+This single change adds the native video controls including:
+- Play/Pause button
+- **Progress timeline** (scrubbing bar)
+- Volume control
+- Fullscreen toggle
+- Current time / Duration display
 
-Update `src/lib/aboutSchemaGenerator.ts` to change Hans Beeckman's `linkedin_url` in the `FOUNDERS_DATA` constant from his personal profile to the company page.
+---
 
-| File | Line | Change |
-|------|------|--------|
-| `src/lib/aboutSchemaGenerator.ts` | Line 65 | Change `https://www.linkedin.com/in/hansbeeckman/` → `https://www.linkedin.com/company/delsolprimehomes/` |
+## Video Modal Already Has Controls
+
+The `RetargetingVideoModal.tsx` component already includes `controls` on line 106:
+```tsx
+<video
+  src={videoUrl}
+  className="w-full h-full object-cover"
+  controls  // <-- Already present
+  autoPlay
+  muted
+  playsInline
+/>
+```
+
+This modal opens when users click the play button in the Hero section and already displays the timeline.
 
 ---
 
 ## Result
 
-After implementation, all three "View Profile" buttons will redirect to:
-**https://www.linkedin.com/company/delsolprimehomes/**
+After this change:
+- Users on all 10 language versions of `/welcome-back` will see the video timeline
+- They can scrub through the video to any point
+- Native browser controls will display time elapsed and total duration
+- Works consistently across all browsers
 
 ---
 
-## Memory Update
+## Summary
 
-The memory note `company/founder-linkedin-links` should also be updated to reflect that all three founders now link to the company page (no longer a split between personal and company profiles).
+| Location | Change |
+|----------|--------|
+| `RetargetingAutoplayVideo.tsx` | Add `controls` attribute to `<video>` element |
+| `RetargetingVideoModal.tsx` | No changes needed (already has controls) |
