@@ -244,6 +244,13 @@ export const pl = {
     description: "Z pewnością poruszaj się w procesie zakupu. Nasz słownik wyjaśnia numery NIE, podatki, terminy prawne i wszystko, co musisz wiedzieć.",
     cta: "Przeglądaj Pełny Słownik",
     featuredTerms: "Popularne Terminy",
+    learnMore: "Dowiedz się więcej",
+    terms: {
+      nie: "Numer identyfikacji podatkowej wymagany do wszystkich transakcji nieruchomościowych w Hiszpanii.",
+      digitalNomadVisa: "Hiszpańska wiza dla pracowników zdalnych zarabiających ponad €2,520/miesiąc od klientów spoza Hiszpanii.",
+      ibi: "Roczny podatek od nieruchomości (Impuesto sobre Bienes Inmuebles) płacony na rzecz lokalnych rad.",
+      escritura: "Oficjalny akt notarialny podpisany przed notariuszem przy zakupie nieruchomości.",
+    },
   },
   finalCta: {
     headline: "Gotowy Znaleźć Swój",

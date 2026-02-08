@@ -244,6 +244,13 @@ export const de = {
     description: "Navigieren Sie mit Vertrauen durch den Kaufprozess. Unser Glossar erklärt NIE-Nummern, Steuern, rechtliche Begriffe und alles, was Sie wissen müssen.",
     cta: "Vollständiges Glossar Erkunden",
     featuredTerms: "Beliebte Begriffe",
+    learnMore: "Mehr erfahren",
+    terms: {
+      nie: "Steueridentifikationsnummer, die für alle Immobilientransaktionen in Spanien erforderlich ist.",
+      digitalNomadVisa: "Spanisches Visum für Fernarbeiter mit einem Einkommen von €2.520+/Monat von nicht-spanischen Kunden.",
+      ibi: "Jährliche Grundsteuer (Impuesto sobre Bienes Inmuebles), die an lokale Gemeinden gezahlt wird.",
+      escritura: "Offizielle notarielle Urkunde, die beim Immobilienkauf vor einem Notar unterzeichnet wird.",
+    },
   },
   finalCta: {
     headline: "Bereit, Ihr",

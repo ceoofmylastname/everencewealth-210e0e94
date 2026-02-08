@@ -244,6 +244,13 @@ export const en = {
     description: "Navigate the buying process with confidence. Our glossary explains NIE numbers, taxes, legal terms, and everything you need to know.",
     cta: "Explore Full Glossary",
     featuredTerms: "Popular Terms",
+    learnMore: "Learn more",
+    terms: {
+      nie: "Tax identification number required for all property transactions in Spain.",
+      digitalNomadVisa: "Spanish visa for remote workers earning €2,520+/month from non-Spanish clients.",
+      ibi: "Annual property tax (Impuesto sobre Bienes Inmuebles) paid to local councils.",
+      escritura: "Official public deed signed before a notary when purchasing property.",
+    },
   },
   finalCta: {
     headline: "Ready to Find Your",
