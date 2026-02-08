@@ -1,100 +1,136 @@
 
 
-# Fix: Phone Number Display Showing "XX XX+" on Lead Dashboards
+# Create Email Tracking Database Tables
 
-## Problem Identified
+## Overview
 
-The display shows `XX XX+17027678743` because of **corrupted data in the database**:
+Create two new database tables for bidirectional email tracking (incoming + outgoing) to support Gmail/Outlook email sync for agents.
 
-| Field | Expected Value | Actual Value |
-|-------|----------------|--------------|
-| `phone_number` | `+17027678743` | `XX+17027678743` |
-| `country_prefix` | `+1` | `XX` |
-| `country_flag` | `🇺🇸` | `null` |
-| `country_name` | `United States` | `null` |
+## Important Correction
 
-The "4 X's" come from:
-1. `country_prefix` = "XX" (first two X's)
-2. `phone_number` starts with "XX" (second two X's)
+The provided SQL references `agents(id)` but the correct table name in your database is `crm_agents(id)`. I'll fix this in the migration.
 
----
+## Tables to Create
 
-## Root Cause
+### 1. `email_tracking` Table
 
-The Emma chatbot's `extractCountryFromPrefix()` function only works when the phone starts with `+`. If someone enters `XX+17027678743` or any non-standard format, the country extraction fails and defaults to "XX".
+Tracks all incoming and outgoing emails synced from agent email accounts:
 
----
+| Column | Type | Description |
+|--------|------|-------------|
+| `id` | UUID | Primary key |
+| `lead_id` | UUID | Optional link to CRM lead |
+| `agent_id` | UUID | Required - references `crm_agents` |
+| `agent_email` | TEXT | Agent's email address |
+| `direction` | TEXT | 'incoming' or 'outgoing' |
+| `from_email` | TEXT | Sender email |
+| `to_email` | TEXT | Recipient email |
+| `cc_emails` | TEXT[] | CC recipients |
+| `subject` | TEXT | Email subject |
+| `body_text` | TEXT | Plain text body |
+| `body_html` | TEXT | HTML body |
+| `received_at` | TIMESTAMPTZ | When email was received |
+| `read_at` | TIMESTAMPTZ | When agent read it in CRM |
+| `created_at` | TIMESTAMPTZ | Record creation time |
+| `updated_at` | TIMESTAMPTZ | Last update time |
 
-## Two-Part Solution
+### 2. `email_webhook_logs` Table
 
-### Part 1: Clean Existing Bad Data (Database Fix)
+Debug table for webhook troubleshooting:
 
-Update leads that have malformed phone numbers with "XX" prefix:
+| Column | Type | Description |
+|--------|------|-------------|
+| `id` | UUID | Primary key |
+| `raw_payload` | JSONB | Raw webhook data |
+| `success` | BOOLEAN | Processing success |
+| `error_message` | TEXT | Error details |
+| `created_at` | TIMESTAMPTZ | When received |
+
+## Security (RLS Policies)
+
+### `email_tracking` Table:
+- **SELECT**: Agents can only view their own emails
+- **UPDATE**: Agents can only update their own emails (mark as read)
+- **INSERT**: Service role only (edge functions)
+- **Admin access**: Admins can view all emails
+
+### `email_webhook_logs` Table:
+- **SELECT**: Admin-only access using `is_admin()` function
+
+## Performance Indexes
+
+- `idx_email_tracking_lead_id` - Fast lead-based lookups
+- `idx_email_tracking_agent_id` - Fast agent-based lookups
+- `idx_email_tracking_direction` - Filter by incoming/outgoing
+- `idx_email_tracking_received_at` - Sort by date (DESC)
+
+## Technical Details
+
+### SQL Migration
 
 ```sql
--- Fix leads where phone_number starts with "XX+"
-UPDATE crm_leads
-SET 
-  phone_number = REGEXP_REPLACE(phone_number, '^XX\+', '+'),
-  country_prefix = REGEXP_REPLACE(phone_number, '^XX(\+\d{1,4}).*', '\1'),
-  country_code = CASE 
-    WHEN phone_number LIKE 'XX+1%' THEN 'US'
-    WHEN phone_number LIKE 'XX+34%' THEN 'ES'
-    WHEN phone_number LIKE 'XX+31%' THEN 'NL'
-    -- etc.
-  END,
-  country_flag = CASE 
-    WHEN phone_number LIKE 'XX+1%' THEN '🇺🇸'
-    WHEN phone_number LIKE 'XX+34%' THEN '🇪🇸'
-    WHEN phone_number LIKE 'XX+31%' THEN '🇳🇱'
-    -- etc.
-  END,
-  country_name = CASE 
-    WHEN phone_number LIKE 'XX+1%' THEN 'United States'
-    WHEN phone_number LIKE 'XX+34%' THEN 'Spain'
-    WHEN phone_number LIKE 'XX+31%' THEN 'Netherlands'
-    -- etc.
-  END
-WHERE phone_number LIKE 'XX+%';
+-- Email tracking table for bidirectional email sync
+CREATE TABLE email_tracking (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  lead_id UUID REFERENCES crm_leads(id) ON DELETE CASCADE,
+  agent_id UUID REFERENCES crm_agents(id) NOT NULL,  -- FIXED: crm_agents not agents
+  agent_email TEXT NOT NULL,
+  direction TEXT NOT NULL CHECK (direction IN ('incoming', 'outgoing')),
+  from_email TEXT NOT NULL,
+  to_email TEXT NOT NULL,
+  cc_emails TEXT[],
+  subject TEXT,
+  body_text TEXT,
+  body_html TEXT,
+  received_at TIMESTAMPTZ NOT NULL,
+  read_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- Indexes for performance
+CREATE INDEX idx_email_tracking_lead_id ON email_tracking(lead_id);
+CREATE INDEX idx_email_tracking_agent_id ON email_tracking(agent_id);
+CREATE INDEX idx_email_tracking_direction ON email_tracking(direction);
+CREATE INDEX idx_email_tracking_received_at ON email_tracking(received_at DESC);
+
+-- RLS
+ALTER TABLE email_tracking ENABLE ROW LEVEL SECURITY;
+
+-- Agent policies
+CREATE POLICY "Agents view own emails"
+  ON email_tracking FOR SELECT
+  USING (agent_id = auth.uid() OR public.is_admin(auth.uid()));
+
+CREATE POLICY "Agents update own emails"
+  ON email_tracking FOR UPDATE
+  USING (agent_id = auth.uid())
+  WITH CHECK (agent_id = auth.uid());
+
+CREATE POLICY "System can insert emails"
+  ON email_tracking FOR INSERT
+  WITH CHECK (true);
+
+-- Webhook logs table
+CREATE TABLE email_webhook_logs (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  raw_payload JSONB,
+  success BOOLEAN,
+  error_message TEXT,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+ALTER TABLE email_webhook_logs ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Only admins view logs"
+  ON email_webhook_logs FOR SELECT
+  USING (public.is_admin(auth.uid()));
 ```
 
-### Part 2: Defensive UI Display
+## What This Does NOT Change
 
-Update the UI to:
-1. Not display "XX" as a country prefix (it's not valid)
-2. Strip "XX" from phone number display if present
-3. Only show country flag/prefix when they're actually valid
-
-```typescript
-// In LeadsOverview.tsx - only show prefix if it starts with "+"
-{(lead as any).country_prefix && (lead as any).country_prefix.startsWith('+') && (
-  <span className="font-medium">{(lead as any).country_prefix}</span>
-)}
-
-// Strip any leading "XX" from phone display
-{lead.phone_number?.replace(/^XX\+?/, '+')}
-```
-
----
-
-## Files to Modify
-
-| File | Change |
-|------|--------|
-| Database migration | Clean up existing bad data |
-| `src/pages/crm/admin/LeadsOverview.tsx` | Defensive display - hide invalid "XX" prefix, clean phone display |
-| `src/components/crm/LeadsTable.tsx` | Same defensive display logic |
-| `src/components/crm/MobileLeadCard.tsx` | Same defensive display logic |
-| `supabase/functions/emma-chat/index.ts` | (Optional) Add validation to strip "XX" from phone input before processing |
-
----
-
-## Expected Result
-
-| Before | After |
-|--------|-------|
-| `XX XX+17027678743` | `+1 7027678743` or just `+17027678743` |
-| No flag visible | 🇺🇸 (after data cleanup) |
-
-The fix ensures both existing bad data is corrected AND future displays gracefully handle any edge cases.
+- No modifications to existing `crm_email_logs` table
+- No modifications to existing edge functions
+- No frontend code changes
+- Purely database schema addition
 
