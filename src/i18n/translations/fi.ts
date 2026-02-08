@@ -244,6 +244,13 @@ export const fi = {
     description: "Navigoi ostoprosessissa luottavaisesti. Sanastomme selittää NIE-numerot, verot, oikeudelliset termit ja kaiken mitä sinun tulee tietää.",
     cta: "Tutustu Koko Sanastoon",
     featuredTerms: "Suosittuja Termejä",
+    learnMore: "Lue lisää",
+    terms: {
+      nie: "Verotunnistenumero, joka vaaditaan kaikkiin kiinteistökauppoihin Espanjassa.",
+      digitalNomadVisa: "Espanjalainen viisumi etätyöntekijöille, jotka ansaitsevat €2.520+/kk ei-espanjalaisilta asiakkailta.",
+      ibi: "Vuotuinen kiinteistövero (Impuesto sobre Bienes Inmuebles), joka maksetaan paikallisille kunnille.",
+      escritura: "Virallinen notaariasiakirja, joka allekirjoitetaan notaarin edessä kiinteistöä ostettaessa.",
+    },
   },
   finalCta: {
     headline: "Valmis Löytämään",

@@ -244,6 +244,13 @@ export const nl = {
     description: "Navigeer met vertrouwen door het aankoopproces. Onze woordenlijst legt NIE-nummers, belastingen, juridische termen en alles wat u moet weten uit.",
     cta: "Verken Volledige Woordenlijst",
     featuredTerms: "Populaire Termen",
+    learnMore: "Meer informatie",
+    terms: {
+      nie: "Belastingidentificatienummer vereist voor alle vastgoedtransacties in Spanje.",
+      digitalNomadVisa: "Spaans visum voor telewerkers die €2.520+/maand verdienen van niet-Spaanse klanten.",
+      ibi: "Jaarlijkse onroerendgoedbelasting (Impuesto sobre Bienes Inmuebles) betaald aan lokale gemeenten.",
+      escritura: "Officiële notariële akte ondertekend voor een notaris bij aankoop van vastgoed.",
+    },
   },
   finalCta: {
     headline: "Klaar om Uw",

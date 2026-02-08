@@ -244,6 +244,13 @@ export const hu = {
     description: "Navigálj magabiztosan a vásárlási folyamatban. Szószedetünk elmagyarázza a NIE-számokat, adókat, jogi kifejezéseket és mindent, amit tudnod kell.",
     cta: "Fedezd Fel a Teljes Szószedetet",
     featuredTerms: "Népszerű Kifejezések",
+    learnMore: "Tudj meg többet",
+    terms: {
+      nie: "Adóazonosító szám, amely minden spanyolországi ingatlantranzakcióhoz szükséges.",
+      digitalNomadVisa: "Spanyol vízum távmunkásoknak, akik havi €2.520+ jövedelmet keresnek nem spanyol ügyfelektől.",
+      ibi: "Éves ingatlanadó (Impuesto sobre Bienes Inmuebles), amelyet a helyi önkormányzatoknak fizetnek.",
+      escritura: "Hivatalos közjegyzői okirat, amelyet ingatlanvásárláskor közjegyző előtt írnak alá.",
+    },
   },
   finalCta: {
     headline: "Készen Állsz Megtalálni",

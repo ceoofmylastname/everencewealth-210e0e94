@@ -142,10 +142,10 @@ export const BlogTeaser: React.FC = () => {
 };
 
 const FEATURED_TERMS = [
-  { term: "NIE", icon: Scale, description: "Tax identification number required for all property transactions in Spain." },
-  { term: "Digital Nomad Visa", icon: Laptop, description: "Spanish visa for remote workers earning €2,520+/month from non-Spanish clients." },
-  { term: "IBI", icon: Home, description: "Annual property tax (Impuesto sobre Bienes Inmuebles) paid to local councils." },
-  { term: "Escritura", icon: Book, description: "Official public deed signed before a notary when purchasing property." },
+  { term: "NIE", icon: Scale, key: "nie" as const },
+  { term: "Digital Nomad Visa", icon: Laptop, key: "digitalNomadVisa" as const },
+  { term: "IBI", icon: Home, key: "ibi" as const },
+  { term: "Escritura", icon: Book, key: "escritura" as const },
 ];
 
 export const GlossaryTeaser: React.FC = () => {
@@ -185,10 +185,10 @@ export const GlossaryTeaser: React.FC = () => {
                   {item.term}
                 </h3>
                 <p className="text-slate-600 text-sm font-light leading-relaxed">
-                  {item.description}
+                  {t.glossaryTeaser?.terms?.[item.key] || ""}
                 </p>
                 <div className="mt-4 flex items-center gap-1 text-prime-gold text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity">
-                  Learn more <ArrowRight size={14} />
+                  {t.glossaryTeaser?.learnMore || "Learn more"} <ArrowRight size={14} />
                 </div>
               </Link>
             );

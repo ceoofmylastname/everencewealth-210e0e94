@@ -244,6 +244,13 @@ export const sv = {
     description: "Navigera köpprocessen med tillförsikt. Vår ordlista förklarar NIE-nummer, skatter, juridiska termer och allt du behöver veta.",
     cta: "Utforska Hela Ordlistan",
     featuredTerms: "Populära Termer",
+    learnMore: "Läs mer",
+    terms: {
+      nie: "Skatteidentifikationsnummer som krävs för alla fastighetstransaktioner i Spanien.",
+      digitalNomadVisa: "Spanskt visum för distansarbetare som tjänar €2.520+/månad från icke-spanska kunder.",
+      ibi: "Årlig fastighetsskatt (Impuesto sobre Bienes Inmuebles) som betalas till lokala kommuner.",
+      escritura: "Officiell notariehandling som undertecknas inför notarie vid fastighetsköp.",
+    },
   },
   finalCta: {
     headline: "Redo att Hitta Ditt",

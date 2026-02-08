@@ -244,6 +244,13 @@ export const fr = {
     description: "Naviguez dans le processus d'achat en toute confiance. Notre glossaire explique les numéros NIE, les taxes, les termes juridiques et tout ce que vous devez savoir.",
     cta: "Explorer le Glossaire Complet",
     featuredTerms: "Termes Populaires",
+    learnMore: "En savoir plus",
+    terms: {
+      nie: "Numéro d'identification fiscale requis pour toutes les transactions immobilières en Espagne.",
+      digitalNomadVisa: "Visa espagnol pour les travailleurs à distance gagnant €2.520+/mois auprès de clients non espagnols.",
+      ibi: "Taxe foncière annuelle (Impuesto sobre Bienes Inmuebles) payée aux conseils locaux.",
+      escritura: "Acte notarié officiel signé devant un notaire lors de l'achat d'une propriété.",
+    },
   },
   finalCta: {
     headline: "Prêt à Trouver Votre",

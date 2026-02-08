@@ -244,6 +244,13 @@ export const no = {
     description: "Naviger i kjøpsprosessen med tillit. Vår ordliste forklarer NIE-numre, skatter, juridiske begreper og alt du trenger å vite.",
     cta: "Utforsk Full Ordliste",
     featuredTerms: "Populære Begreper",
+    learnMore: "Les mer",
+    terms: {
+      nie: "Skatteidentifikasjonsnummer påkrevd for alle eiendomstransaksjoner i Spania.",
+      digitalNomadVisa: "Spansk visum for fjernarbeidere som tjener €2.520+/måned fra ikke-spanske kunder.",
+      ibi: "Årlig eiendomsskatt (Impuesto sobre Bienes Inmuebles) betalt til lokale kommuner.",
+      escritura: "Offisielt notardokument signert foran en notar ved eiendomskjøp.",
+    },
   },
   finalCta: {
     headline: "Klar til å Finne Ditt",
