@@ -2016,9 +2016,12 @@ export type Database = {
           email: string
           email_notifications: boolean | null
           first_name: string
+          gmail_access_token: string | null
+          gmail_refresh_token: string | null
           id: string
           is_active: boolean | null
           languages: string[]
+          last_gmail_sync: string | null
           last_login: string | null
           last_name: string
           max_active_leads: number | null
@@ -2036,9 +2039,12 @@ export type Database = {
           email: string
           email_notifications?: boolean | null
           first_name: string
+          gmail_access_token?: string | null
+          gmail_refresh_token?: string | null
           id: string
           is_active?: boolean | null
           languages?: string[]
+          last_gmail_sync?: string | null
           last_login?: string | null
           last_name: string
           max_active_leads?: number | null
@@ -2056,9 +2062,12 @@ export type Database = {
           email?: string
           email_notifications?: boolean | null
           first_name?: string
+          gmail_access_token?: string | null
+          gmail_refresh_token?: string | null
           id?: string
           is_active?: boolean | null
           languages?: string[]
+          last_gmail_sync?: string | null
           last_login?: string | null
           last_name?: string
           max_active_leads?: number | null
