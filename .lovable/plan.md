@@ -1,100 +1,127 @@
 
-# Plan: Give Admins Access to Their Agent Dashboard
+# Plan: Add "Back to Admin Dashboard" Button for Admins
 
 ## Current Situation
 
-| Route | Who Can Access |
-|-------|----------------|
-| `/crm/agent/*` | Any active user in `crm_agents` table |
-| `/crm/admin/*` | Only users where `role = 'admin'` |
+When an admin clicks "My Dashboard", "My Leads", or "My Calendar" from the admin sidebar, they navigate to the agent dashboard. However, there's no visible way to return to the admin dashboard - they would need to manually type the URL or use browser back.
 
-The good news: The `CrmAgentRoute` component already allows admins to access agent routes because it only checks if the user exists in `crm_agents` and is active - it doesn't check their role.
-
-The problem: There's no navigation link for admins to reach their agent dashboard.
+| Current State | Issue |
+|---------------|-------|
+| Admin visits `/crm/agent/dashboard` | No button to return to admin area |
+| Regular agents visit same route | Should NOT see any admin button |
 
 ---
 
 ## Solution
 
-Add a prominent "My Agent Dashboard" link in the admin layout sidebar that navigates to `/crm/agent/dashboard`. This gives admins quick access to:
-- Their personally assigned leads
-- Their calendar and reminders
-- The same agent experience their team uses
+Add a prominent "Back to Admin Dashboard" button in the `CrmAgentLayout` header that:
+- Only appears when the logged-in user has `role === "admin"`
+- Provides quick navigation back to `/crm/admin/dashboard`
+- Uses distinctive styling (shield icon + different color) to stand out
 
 ---
 
 ## Implementation
 
-### File: `src/components/crm/CrmAdminLayout.tsx`
+### File to Modify
 
-Add a new navigation section that links to the agent dashboard:
+**`src/components/crm/CrmAgentLayout.tsx`**
 
-| Change | Details |
-|--------|---------|
-| Add new nav item | "My Leads" with a link to `/crm/agent/dashboard` |
-| Visual separator | Add a divider between admin tools and personal agent view |
-| Icon | Use `Briefcase` or `UserCircle` to differentiate from admin items |
+### Changes
+
+1. **Check the agent's role** - The component already fetches the full agent record including `role`
+
+2. **Add conditional button** - Display "Admin Dashboard" button only when `agent?.role === "admin"`
+
+3. **Button placement** - Add it in the header navigation area, visible on both desktop and mobile
+
+4. **Icon** - Use `Shield` icon (consistent with admin verification in sidebar)
 
 ---
 
-## Updated Sidebar Structure
+## Visual Placement
+
+### Desktop Header
 
 ```text
-┌─────────────────────────────┐
-│ Del Sol Prime - Agent CRM   │
-├─────────────────────────────┤
-│ ADMIN TOOLS                 │
-│ ├─ Dashboard                │
-│ ├─ Analytics                │
-│ ├─ Agents                   │
-│ ├─ Leads Overview           │
-│ ├─ Call Logs                │
-│ ├─ Routing Rules            │
-│ ├─ Round Robin              │
-│ ├─ Email Logs               │
-│ ├─ Verification             │
-│ └─ Settings                 │
-├─────────────────────────────┤
-│ MY AGENT VIEW (NEW)         │
-│ ├─ My Dashboard             │
-│ ├─ My Leads                 │
-│ └─ My Calendar              │
-├─────────────────────────────┤
-│ Signed in as [Admin Name]   │
-│ [Sign Out]                  │
-└─────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────┐
+│ [Logo] Del Sol CRM │ Dashboard │ My Leads │ Calendar │ [Admin ↩] │ [...] │ [Profile] │
+└─────────────────────────────────────────────────────────────────────┘
+                                                           ▲
+                                                    New button here
+                                                    (only for admins)
+```
+
+### Mobile
+
+- The button will appear in the header actions area
+- Also accessible via the profile dropdown menu
+
+---
+
+## Code Changes
+
+### 1. Add Shield import
+```tsx
+import { Shield } from "lucide-react";
+```
+
+### 2. Add conditional admin button in header (desktop)
+After the desktop nav items, before the search:
+```tsx
+{agent?.role === "admin" && (
+  <Link to="/crm/admin/dashboard">
+    <Button variant="outline" size="sm" className="gap-2 border-amber-500 text-amber-600 hover:bg-amber-50">
+      <Shield className="w-4 h-4" />
+      Admin Dashboard
+    </Button>
+  </Link>
+)}
+```
+
+### 3. Add to profile dropdown menu
+Add an "Admin Dashboard" menu item that only appears for admins:
+```tsx
+{agent?.role === "admin" && (
+  <>
+    <DropdownMenuItem onClick={() => navigate("/crm/admin/dashboard")}>
+      <Shield className="w-4 h-4 mr-2" />
+      Admin Dashboard
+    </DropdownMenuItem>
+    <DropdownMenuSeparator />
+  </>
+)}
+```
+
+### 4. Add to mobile tablet menu
+In the slide-down menu for tablets, add the admin link:
+```tsx
+{agent?.role === "admin" && (
+  <Link to="/crm/admin/dashboard">
+    <Button variant="outline" className="w-full justify-start gap-2 h-12 border-amber-500 text-amber-600">
+      <Shield className="w-5 h-5" />
+      Admin Dashboard
+    </Button>
+  </Link>
+)}
 ```
 
 ---
 
-## Technical Details
+## Security Consideration
 
-### Modified File
-
-**`src/components/crm/CrmAdminLayout.tsx`**:
-1. Add a new `agentNavigation` array with links to:
-   - `/crm/agent/dashboard` (My Dashboard)
-   - `/crm/agent/leads` (My Leads)
-   - `/crm/agent/calendar` (My Calendar)
-
-2. Update the `NavLinks` component to render:
-   - A "Admin Tools" label
-   - Existing admin navigation items
-   - A separator
-   - A "My Agent View" label
-   - New agent navigation items
-
-3. Apply appropriate icons:
-   - `LayoutDashboard` for My Dashboard
-   - `Users` for My Leads  
-   - `Calendar` for My Calendar
+The button visibility is controlled by checking `agent?.role === "admin"`. This is safe because:
+- The role comes from the database query
+- Even if someone manipulates the UI, the admin routes are protected by `CrmAdminRoute` which validates server-side
+- Regular agents cannot access admin routes regardless of what the UI shows
 
 ---
 
 ## Summary
 
-After implementation:
-- Admins will see a new "My Agent View" section in their sidebar
-- Clicking any link takes them to the agent dashboard with their personal leads
-- Each admin's agent dashboard shows only leads assigned to them (filtered by `assigned_agent_id`)
-- No changes needed to route guards - admins are already valid agents
+| User Type | Sees Button? | Can Access Admin Routes? |
+|-----------|--------------|--------------------------|
+| Admin | Yes | Yes |
+| Regular Agent | No | No (blocked by route guard) |
+
+After implementation, admins will have a clear, prominent way to switch back to their admin dashboard from anywhere in the agent view.
