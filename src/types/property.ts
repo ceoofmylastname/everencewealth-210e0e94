@@ -68,7 +68,7 @@ export interface PropertySearchParams {
   transactionType?: 'sale' | 'rent';
   bedrooms?: number;
   bathrooms?: number;
-  newDevs?: 'only' | '';
+  newDevs?: 'only' | 'resales' | 'all' | '';
   page?: number;
   limit?: number;
 }
