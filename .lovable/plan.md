@@ -1,115 +1,91 @@
 
-# Default Property Search: New Developments, No Price Minimum, Sorted Low-High
+# Default Property Search: New Developments + €250,000 Minimum + Price Low-High
 
 ## Summary
 
-Update the property search to show **all new developments** (no price filter) sorted by **price ascending** on page load. This will display all ~421 new development properties starting from the cheapest available.
+Update the property search defaults to show **New Developments Only** with a **€250,000 minimum price** sorted by **price ascending** on page load. This filters out all resale properties and lower-priced homes by default.
 
 ---
 
 ## Changes Required
 
-### 1. Remove €400,000 Price Minimum Default
+### 1. Set Default priceMin to €250,000
 
-**Files to update:**
-
-| File | Change |
-|------|--------|
-| `src/pages/PropertyFinder.tsx` (Line 56) | Remove `400000` default, use `undefined` |
-| `src/components/property/PropertyFilters.tsx` (Lines 70, 97) | Remove `"400000"` default, use empty string `""` |
-| `supabase/functions/search-properties/index.ts` (Line 145) | Remove hardcoded fallback, only pass minPrice if provided |
-
-### 2. Set Default Sort to Price Low-High
-
-**File:** `src/pages/PropertyFinder.tsx` (Line 33)
+**Frontend - PropertyFinder.tsx** (Line 56)
 
 ```typescript
-// Before
-const [sortBy, setSortBy] = useState("newest");
+// Current
+priceMin: searchParams.get("priceMin") ? parseInt(searchParams.get("priceMin")!) : undefined,
 
-// After
-const [sortBy, setSortBy] = useState("price-asc");
+// Change to
+priceMin: searchParams.get("priceMin") ? parseInt(searchParams.get("priceMin")!) : 250000,
 ```
 
-### 3. Implement Client-Side Sorting Logic
-
-Currently, the `sortBy` dropdown exists but doesn't actually sort the properties. We need to add sorting logic.
-
-**File:** `src/pages/PropertyFinder.tsx`
-
-Add a `useMemo` hook to sort properties based on the selected sort option:
+**Frontend - PropertyFilters.tsx** (Lines 70, 97)
 
 ```typescript
-import { useMemo } from "react";
+// Current (Line 70)
+const [priceMin, setPriceMin] = useState(initialParams.priceMin?.toString() || "");
 
-// Add after properties state
-const sortedProperties = useMemo(() => {
-  const sorted = [...properties];
-  switch (sortBy) {
-    case "price-asc":
-      return sorted.sort((a, b) => a.price - b.price);
-    case "price-desc":
-      return sorted.sort((a, b) => b.price - a.price);
-    case "beds":
-      return sorted.sort((a, b) => (b.bedrooms || 0) - (a.bedrooms || 0));
-    case "newest":
-    default:
-      return sorted; // API returns in default order
-  }
-}, [properties, sortBy]);
+// Change to
+const [priceMin, setPriceMin] = useState(initialParams.priceMin?.toString() || "250000");
+
+// Current (Line 97)
+setPriceMin(initialParams.priceMin?.toString() || "");
+
+// Change to
+setPriceMin(initialParams.priceMin?.toString() || "250000");
 ```
 
-Then use `sortedProperties` instead of `properties` in the render loop.
-
----
-
-## Detailed Changes
-
-### `src/pages/PropertyFinder.tsx`
-
-| Line | Current | New |
-|------|---------|-----|
-| 33 | `useState("newest")` | `useState("price-asc")` |
-| 56 | `priceMin: ... : 400000` | `priceMin: ... : undefined` |
-| New | - | Add `sortedProperties` memo |
-| 616 | `properties.map(...)` | `sortedProperties.map(...)` |
-
-### `src/components/property/PropertyFilters.tsx`
-
-| Line | Current | New |
-|------|---------|-----|
-| 70 | `\|\| "400000"` | `\|\| ""` |
-| 97 | `\|\| "400000"` | `\|\| ""` |
-
-### `supabase/functions/search-properties/index.ts`
-
-| Line | Current | New |
-|------|---------|-----|
-| 145 | `filters.priceMin ? ... : '400000'` | Only include if `filters.priceMin` is truthy |
+**Backend - search-properties Edge Function** (Line 145)
 
 ```typescript
-// Before
-proxyParams.minPrice = filters.priceMin ? String(filters.priceMin) : '400000';
-
-// After
+// Current
 if (filters.priceMin) proxyParams.minPrice = String(filters.priceMin);
+
+// Change to
+proxyParams.minPrice = filters.priceMin ? String(filters.priceMin) : '250000';
 ```
+
+### 2. Verify Existing Defaults (Already Correct)
+
+These settings are already in place from the previous update:
+
+- **Sort by price-asc**: Line 33 in PropertyFinder.tsx has `useState("price-asc")` ✅
+- **New Developments Only**: Lines 42-49 default to `newDevs: "only"` ✅
+- **Client-side sorting**: The `sortedProperties` useMemo is already implemented ✅
 
 ---
 
-## Result
+## Summary of Changes
 
-When users first visit `/:lang/properties`:
+| File | Line(s) | Current | New |
+|------|---------|---------|-----|
+| `PropertyFinder.tsx` | 56 | `undefined` fallback | `250000` fallback |
+| `PropertyFilters.tsx` | 70 | `""` fallback | `"250000"` fallback |
+| `PropertyFilters.tsx` | 97 | `""` fallback | `"250000"` fallback |
+| `search-properties/index.ts` | 145 | Only pass if set | Default to `'250000'` |
 
-| Setting | Default |
-|---------|---------|
-| Property Status | New Developments Only |
-| Minimum Price | None (shows all prices) |
+---
+
+## Default Page Load State
+
+| Setting | Value |
+|---------|-------|
+| Property Type Filter | New Developments Only |
+| Minimum Price | €250,000 |
 | Maximum Price | €10,000,000 |
 | Sort Order | Price: Low to High |
-| Expected Results | ~421 new developments, cheapest first |
+| Expected Results | ~421 new development properties |
 
-Users can still:
-- Switch between New Developments / All Properties / Resales
-- Add their own min/max price filters
-- Change the sort order to Newest, Price High-Low, or Most Bedrooms
+---
+
+## User Controls Preserved
+
+Users can still manually:
+- Switch to "All Properties" or "Resales Only" using the status dropdown
+- Change minimum price to lower/higher amounts
+- Adjust maximum price, bedrooms, bathrooms, location, etc.
+- Change sort order (Newest, Price High-Low, Most Bedrooms)
+
+The search button count will update to reflect these default filters applied.
