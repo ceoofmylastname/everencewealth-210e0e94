@@ -380,3 +380,6 @@ verify_jwt = false
 
 [functions.send-escalating-alarms]
 verify_jwt = false
+
+[functions.sync-gmail-emails]
+verify_jwt = false
