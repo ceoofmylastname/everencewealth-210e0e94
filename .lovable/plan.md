@@ -1,81 +1,73 @@
 
+# Fix: Agent Deletion vs. Re-creation Conflict
 
-# Fix: Gmail OAuth "Error Page" on Connect
+## Problem Summary
 
-## Root Cause Identified
-
-The `gmail-auth-url` edge function is working correctly. The error page you're seeing is **from Google**, not from your app. This happens because the **redirect URI** being used is not authorized in Google Cloud Console.
-
-**What's happening:**
-1. Agent clicks "Connect Gmail"
-2. Edge function generates OAuth URL with `redirect_uri=https://8cbd0f4b-f95f-4e66-b71d-a9cc047a12e7.lovableproject.com/auth/gmail/callback`
-3. User is redirected to Google
-4. Google rejects the request because this redirect URI is not in the authorized list
-5. Google shows an error page
+The agent with email `info@delsolprimehomes.com` still exists in the database with `is_active: false`. The current "delete" function only performs a **soft delete**, but the "create" function blocks any email that already exists, regardless of active status.
 
 ---
 
-## The Fix
+## Solution
 
-There are **TWO required changes**:
+Update the `create-crm-agent` edge function to handle inactive agents properly. Two options:
 
-### Part 1: Add Redirect URIs in Google Cloud Console (Manual Step)
+### Option A: Allow Reactivation of Inactive Agents (Recommended)
 
-You need to authorize these redirect URIs in Google Cloud Console:
-
-**OAuth Consent Configuration → Credentials → Web Client → Authorized redirect URIs:**
-
-```
-https://8cbd0f4b-f95f-4e66-b71d-a9cc047a12e7.lovableproject.com/auth/gmail/callback
-https://id-preview--8cbd0f4b-f95f-4e66-b71d-a9cc047a12e7.lovable.app/auth/gmail/callback
-https://blog-knowledge-vault.lovable.app/auth/gmail/callback
-https://www.delsolprimehomes.com/auth/gmail/callback
-```
-
-**Steps:**
-1. Go to [Google Cloud Console](https://console.cloud.google.com)
-2. Select your project
-3. Navigate to **APIs & Services → Credentials**
-4. Click on your OAuth 2.0 Client ID (Web application)
-5. Under **Authorized redirect URIs**, add all URLs above
-6. Click **Save**
-
-### Part 2: Code Improvement (Recommended)
-
-Update the `ConnectGmail` component to use the **production domain** instead of `window.location.origin`. This ensures a consistent redirect URI is used regardless of which domain the agent is currently on.
+When creating an agent with an email that exists but is inactive, **reactivate** the existing record instead of blocking.
 
 | File | Change |
 |------|--------|
-| `src/components/crm/ConnectGmail.tsx` | Use production URL for redirect |
+| `supabase/functions/create-crm-agent/index.ts` | Update duplicate check to only block **active** agents, and reactivate inactive ones |
 
-**Before:**
+**Logic:**
 ```typescript
-const redirectUrl = `${window.location.origin}/auth/gmail/callback`;
+// Check if agent record already exists
+const { data: existingAgent } = await supabaseAdmin
+  .from("crm_agents")
+  .select("id, is_active")
+  .eq("email", body.email)
+  .single();
+
+if (existingAgent) {
+  if (existingAgent.is_active) {
+    // Block if already active
+    return error "An agent with this email already exists"
+  } else {
+    // Reactivate the inactive agent with new data
+    UPDATE the existing record with new values and set is_active: true
+    // Optionally update their auth password
+  }
+}
 ```
 
-**After:**
-```typescript
-// Use production domain for consistent OAuth redirect
-const redirectUrl = `https://www.delsolprimehomes.com/auth/gmail/callback`;
-```
+### Option B: Hard Delete Inactive Agents First
 
-This way, you only need to authorize ONE redirect URI in Google Cloud Console.
+Before checking for duplicates, delete any inactive agent with the same email.
 
 ---
 
-## Summary
+## Implementation Details
 
-| Action | Type | Who |
-|--------|------|-----|
-| Add redirect URIs to Google Cloud Console | Manual | You |
-| Update ConnectGmail to use production URL | Code | I'll do this |
+**Changes to `create-crm-agent/index.ts`:**
+
+1. Modify the existing agent check to include `is_active` in the select
+2. If an agent exists but is inactive:
+   - Update the existing record with new details (name, phone, role, etc.)
+   - Set `is_active: true`
+   - Update or create auth user with new password
+   - Send welcome email
+3. If an agent exists and is active: block as before
 
 ---
 
-## Technical Notes
+## Immediate Fix (Optional)
 
-- The edge functions are working correctly (verified from network logs)
-- The GmailCallback page route is correctly set up at `/auth/gmail/callback`
-- The OAuth state parameter is correctly encoding the agentId
-- Only the redirect URI authorization is missing
+For the current `info@delsolprimehomes.com` issue, I can also run a database query to hard-delete the inactive record so you can create a fresh agent.
 
+---
+
+## Files to Modify
+
+| File | Action |
+|------|--------|
+| `supabase/functions/create-crm-agent/index.ts` | Update to handle inactive agents |
