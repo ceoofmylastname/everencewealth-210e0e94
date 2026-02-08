@@ -1,105 +1,64 @@
 
-# Improve Logo Visibility on White Backgrounds
+# Make Logo Bigger Across Entire Website
 
-## Problem
+## Overview
 
-The gold-colored logo is difficult to see on white/light backgrounds on the Landing and Retargeting pages. The screenshot shows the logo appearing faint against the light footer area.
-
-## Solution
-
-Add a subtle shadow effect to the logo on white backgrounds across all affected pages. This will create visual separation without changing the logo itself.
+Increase the logo size consistently across all pages of the website for better brand visibility and visual impact.
 
 ---
 
-## Technical Approach
+## Current Logo Sizes
 
-We have two options:
+| Location | Current Size | File |
+|----------|--------------|------|
+| **Main Header** | `h-12 md:h-14` | `src/components/home/Header.tsx` |
+| **Main Footer** | `h-16 md:h-24` | `src/components/home/Footer.tsx` |
+| **Landing Header (Mobile)** | `h-8 sm:h-10` | `src/components/landing/LandingLayout.tsx` |
+| **Landing Header (Desktop)** | `h-12 md:h-14` | `src/components/landing/LandingLayout.tsx` |
+| **Landing Footer** | `h-10 sm:h-12` | `src/components/landing/Footer.tsx` |
+| **Retargeting Header** | `h-10 md:h-12` | `src/pages/RetargetingLanding.tsx` |
+| **Retargeting Footer** | `h-12 md:h-14` | `src/components/retargeting/RetargetingFooter.tsx` |
+| **Admin Layout** (3 places) | `h-12` | `src/components/AdminLayout.tsx` |
+| **CRM Login** | `h-20 md:h-24` | `src/pages/crm/CrmLogin.tsx` |
+| **Agent Login** | `h-16 md:h-20` | `src/pages/crm/AgentLogin.tsx` |
 
-### Option A: Drop Shadow (Recommended)
-Add a subtle drop shadow using Tailwind's `drop-shadow` filter:
-```tsx
-className="... drop-shadow-[0_2px_4px_rgba(0,0,0,0.15)]"
-```
+---
 
-### Option B: Background Container
-Wrap the logo in a subtle container with a very light navy/dark background for contrast.
+## Proposed New Sizes
 
-**Recommendation**: Option A (Drop Shadow) is cleaner and maintains the current design aesthetic while improving visibility.
+All logos increased by approximately 25% for better visibility:
+
+| Location | Before | After |
+|----------|--------|-------|
+| **Main Header** | `h-12 md:h-14` | `h-14 md:h-16` |
+| **Main Footer** | `h-16 md:h-24` | `h-20 md:h-28` |
+| **Landing Header (Mobile)** | `h-8 sm:h-10` | `h-10 sm:h-12` |
+| **Landing Header (Desktop)** | `h-12 md:h-14` | `h-14 md:h-16` |
+| **Landing Footer** | `h-10 sm:h-12` | `h-12 sm:h-14` |
+| **Retargeting Header** | `h-10 md:h-12` | `h-12 md:h-14` |
+| **Retargeting Footer** | `h-12 md:h-14` | `h-14 md:h-16` |
+| **Admin Layout** | `h-12` | `h-14` |
+| **CRM Login** | `h-20 md:h-24` | `h-24 md:h-28` |
+| **Agent Login** | `h-16 md:h-20` | `h-20 md:h-24` |
 
 ---
 
 ## Files to Update
 
-| File | Location | Change |
-|------|----------|--------|
-| `src/pages/RetargetingLanding.tsx` | Line 115 | Add drop-shadow to logo |
-| `src/components/retargeting/RetargetingFooter.tsx` | Line 28 | Add drop-shadow to logo |
-| `src/components/landing/LandingLayout.tsx` | Lines 200, 212 | Add drop-shadow to both mobile and desktop logos |
-| `src/components/landing/Footer.tsx` | Line 21 | Add drop-shadow to footer logo |
+| File | Changes |
+|------|---------|
+| `src/components/home/Header.tsx` | Line 200: Update height classes |
+| `src/components/home/Footer.tsx` | Line 21: Update height classes |
+| `src/components/landing/LandingLayout.tsx` | Lines 200, 212: Update both mobile and desktop heights |
+| `src/components/landing/Footer.tsx` | Line 21: Update height classes |
+| `src/pages/RetargetingLanding.tsx` | Line 115: Update height classes |
+| `src/components/retargeting/RetargetingFooter.tsx` | Line 28: Update height classes |
+| `src/components/AdminLayout.tsx` | Lines 169, 189, 196: Update all 3 logo heights |
+| `src/pages/crm/CrmLogin.tsx` | Line 223: Update height classes |
+| `src/pages/crm/AgentLogin.tsx` | Line 157: Update height classes |
 
 ---
 
-## Code Changes
+## Summary
 
-### 1. Retargeting Header (`src/pages/RetargetingLanding.tsx`)
-
-**Line 115**:
-```tsx
-// Before
-className="h-10 md:h-12 w-auto object-contain"
-
-// After
-className="h-10 md:h-12 w-auto object-contain drop-shadow-[0_2px_4px_rgba(0,0,0,0.2)]"
-```
-
-### 2. Retargeting Footer (`src/components/retargeting/RetargetingFooter.tsx`)
-
-**Line 28**:
-```tsx
-// Before
-className="h-12 md:h-14 w-auto object-contain"
-
-// After
-className="h-12 md:h-14 w-auto object-contain drop-shadow-[0_2px_4px_rgba(0,0,0,0.2)]"
-```
-
-### 3. Landing Layout Header (`src/components/landing/LandingLayout.tsx`)
-
-**Mobile Logo - Line 200**:
-```tsx
-// Before
-className="h-8 sm:h-10 w-auto object-contain"
-
-// After
-className="h-8 sm:h-10 w-auto object-contain drop-shadow-[0_2px_4px_rgba(0,0,0,0.2)]"
-```
-
-**Desktop Logo - Line 212**:
-```tsx
-// Before
-className="h-12 md:h-14 w-auto object-contain"
-
-// After
-className="h-12 md:h-14 w-auto object-contain drop-shadow-[0_2px_4px_rgba(0,0,0,0.2)]"
-```
-
-### 4. Landing Footer (`src/components/landing/Footer.tsx`)
-
-**Line 21**:
-```tsx
-// Before
-className="h-10 sm:h-12 w-auto object-contain"
-
-// After
-className="h-10 sm:h-12 w-auto object-contain drop-shadow-[0_2px_4px_rgba(0,0,0,0.2)]"
-```
-
----
-
-## Result
-
-The subtle drop shadow (20% opacity black) will:
-- Create visual depth and separation from light backgrounds
-- Make the gold logo "pop" without being too dramatic
-- Maintain the premium, elegant aesthetic of the site
-- Work consistently across all screen sizes and browsers
+This change increases all logo sizes across **9 files** and **12 logo instances** for a more prominent brand presence throughout the entire website.
