@@ -1,79 +1,110 @@
 
 
-# Fix: Hans Missing from user_roles Table
+# Fix: Localize Glossary Term Cards on Homepage
 
 ## Problem Identified
 
-The edge function `create-crm-agent` uses the `is_admin()` RPC function to verify admin status. This function checks the `user_roles` table, but Hans (and Steven) were set as admins in `crm_agents.role` without corresponding entries in `user_roles`.
+The Polish homepage (`/pl/`) displays **English text** on the glossary term cards. The section headers are correctly translated, but the **term descriptions inside the cards are hardcoded in English**.
 
-| Admin Email | crm_agents.role | user_roles entry |
-|-------------|-----------------|------------------|
-| hans@delsolprimehomes.com | admin | ❌ **MISSING** |
-| steven@delsolprimehomes.com | admin | ❌ **MISSING** |
-| info@yenomai.com | admin | ✅ Present |
-| info@delsolprimehomes.com | admin | ✅ Present |
+| Element | Current State | 
+|---------|---------------|
+| Section eyebrow | ✅ Translated ("Podstawowe Terminy") |
+| Section headline | ✅ Translated ("Zrozum Hiszpańską Terminologię...") |
+| Section description | ✅ Translated |
+| CTA button | ✅ Translated ("Przeglądaj Pełny Słownik") |
+| **Term card titles** | ⚠️ Keep as-is (Spanish legal terms: NIE, IBI, etc.) |
+| **Term card descriptions** | ❌ **HARDCODED ENGLISH** |
+| "Learn more" link text | ❌ **HARDCODED ENGLISH** |
+
+## Root Cause
+
+In `src/components/home/sections/ReviewsAndBlog.tsx` (lines 144-149), the `FEATURED_TERMS` array has hardcoded English descriptions:
+
+```typescript
+const FEATURED_TERMS = [
+  { term: "NIE", icon: Scale, description: "Tax identification number required..." },
+  { term: "Digital Nomad Visa", icon: Laptop, description: "Spanish visa for remote workers..." },
+  // ... all in English
+];
+```
 
 ## Solution
 
-### 1. Add Missing user_roles Entries (Database Migration)
+### 1. Add Term Descriptions to All 10 Language Translation Files
 
-Insert the missing admin entries for Hans and Steven:
+Add a `terms` object inside `glossaryTeaser` with localized descriptions for each term:
 
-```sql
-INSERT INTO public.user_roles (user_id, role, granted_at, notes)
-VALUES 
-  ('95808453-dde1-421c-85ba-52fe534ef288', 'admin', NOW(), 'Hans - CRM admin sync'),
-  -- Steven's ID needs to be looked up
-ON CONFLICT (user_id, role) DO NOTHING;
+```typescript
+// Example for pl.ts
+glossaryTeaser: {
+  eyebrow: "Podstawowe Terminy",
+  headline: "Zrozum Hiszpańską Terminologię Nieruchomości",
+  // ... existing fields
+  learnMore: "Dowiedz się więcej",  // NEW
+  terms: {  // NEW
+    nie: "Numer identyfikacji podatkowej wymagany do wszystkich transakcji nieruchomościowych w Hiszpanii.",
+    digitalNomadVisa: "Hiszpańska wiza dla pracowników zdalnych zarabiających ponad €2,520/miesiąc od klientów spoza Hiszpanii.",
+    ibi: "Roczny podatek od nieruchomości (Impuesto sobre Bienes Inmuebles) płacony na rzecz lokalnych rad.",
+    escritura: "Oficjalny akt notarialny podpisany przed notariuszem przy zakupie nieruchomości.",
+  },
+},
 ```
 
-### 2. Create a Database Trigger for Future Sync (Recommended)
+### 2. Update the GlossaryTeaser Component
 
-To prevent this from happening again, create a trigger that automatically syncs `crm_agents.role` changes to `user_roles`:
+Modify `ReviewsAndBlog.tsx` to read term descriptions from translations:
 
-```sql
-CREATE OR REPLACE FUNCTION sync_crm_agent_role_to_user_roles()
-RETURNS TRIGGER AS $$
-BEGIN
-  -- If role is admin, ensure user_roles entry exists
-  IF NEW.role = 'admin' THEN
-    INSERT INTO public.user_roles (user_id, role, granted_at, notes)
-    VALUES (NEW.id, 'admin', NOW(), 'Auto-synced from CRM agent role')
-    ON CONFLICT (user_id, role) DO NOTHING;
-  ELSE
-    -- If role changed away from admin, remove the user_roles entry
-    DELETE FROM public.user_roles 
-    WHERE user_id = NEW.id AND role = 'admin';
-  END IF;
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+```typescript
+const FEATURED_TERMS = [
+  { term: "NIE", icon: Scale, key: "nie" },
+  { term: "Digital Nomad Visa", icon: Laptop, key: "digitalNomadVisa" },
+  { term: "IBI", icon: Home, key: "ibi" },
+  { term: "Escritura", icon: Book, key: "escritura" },
+];
 
-CREATE TRIGGER sync_agent_role_trigger
-AFTER INSERT OR UPDATE OF role ON public.crm_agents
-FOR EACH ROW
-EXECUTE FUNCTION sync_crm_agent_role_to_user_roles();
+// In the component render:
+<p className="text-slate-600 text-sm font-light leading-relaxed">
+  {t.glossaryTeaser?.terms?.[item.key] || item.fallbackDescription}
+</p>
+
+// And for "Learn more":
+<div className="...">
+  {t.glossaryTeaser?.learnMore || "Learn more"} <ArrowRight size={14} />
+</div>
 ```
 
-## Technical Details
+## Files to Modify
 
-### Why This Happened
+| File | Changes |
+|------|---------|
+| `src/i18n/translations/en.ts` | Add `learnMore` and `terms` object |
+| `src/i18n/translations/pl.ts` | Add Polish `learnMore` and `terms` |
+| `src/i18n/translations/de.ts` | Add German `learnMore` and `terms` |
+| `src/i18n/translations/nl.ts` | Add Dutch `learnMore` and `terms` |
+| `src/i18n/translations/fr.ts` | Add French `learnMore` and `terms` |
+| `src/i18n/translations/sv.ts` | Add Swedish `learnMore` and `terms` |
+| `src/i18n/translations/da.ts` | Add Danish `learnMore` and `terms` |
+| `src/i18n/translations/hu.ts` | Add Hungarian `learnMore` and `terms` |
+| `src/i18n/translations/fi.ts` | Add Finnish `learnMore` and `terms` |
+| `src/i18n/translations/no.ts` | Add Norwegian `learnMore` and `terms` |
+| `src/components/home/sections/ReviewsAndBlog.tsx` | Update component to use translations |
 
-The CRM was set up with two separate admin concepts:
-1. `crm_agents.role = 'admin'` - Used for UI display and CRM-specific permissions
-2. `user_roles.role = 'admin'` - Used by security-definer functions for RLS and edge function authorization
+## Term Translations (All 10 Languages)
 
-When Hans was made an admin in the CRM, only the `crm_agents.role` column was updated. The `user_roles` table was not populated.
+| Term | English | Polish |
+|------|---------|--------|
+| NIE | Tax identification number required for all property transactions in Spain. | Numer identyfikacji podatkowej wymagany do wszystkich transakcji nieruchomościowych w Hiszpanii. |
+| Digital Nomad Visa | Spanish visa for remote workers earning €2,520+/month from non-Spanish clients. | Hiszpańska wiza dla pracowników zdalnych zarabiających ponad €2,520/miesiąc od klientów spoza Hiszpanii. |
+| IBI | Annual property tax (Impuesto sobre Bienes Inmuebles) paid to local councils. | Roczny podatek od nieruchomości (Impuesto sobre Bienes Inmuebles) płacony na rzecz lokalnych rad. |
+| Escritura | Official public deed signed before a notary when purchasing property. | Oficjalny akt notarialny podpisany przed notariuszem przy zakupie nieruchomości. |
+| Learn more | Learn more | Dowiedz się więcej |
 
-### Files to Update
+*(Full translations for all 10 languages will be added)*
 
-No code changes needed - this is a data issue. The database migration will:
-1. Add missing `user_roles` entries for Hans and Steven
-2. Create a sync trigger to prevent future mismatches
+## Result After Implementation
 
-## Immediate Fix Steps
-
-1. Run database migration to add Hans and Steven to `user_roles`
-2. Add the sync trigger for future-proofing
-3. Verify Hans can create agents after the migration
+- All glossary term cards will display localized descriptions
+- Spanish legal terms (NIE, IBI, Escritura) remain untranslated as per project standards
+- "Learn more" link text will be translated
+- 100% localization integrity on the Polish homepage (and all other language versions)
 
