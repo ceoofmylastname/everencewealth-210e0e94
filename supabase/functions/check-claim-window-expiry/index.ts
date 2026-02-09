@@ -115,7 +115,7 @@ serve(async (req) => {
             body: JSON.stringify({
               from: "CRM Alerts <crm@notifications.delsolprimehomes.com>",
               to: [adminEmail],
-              subject: `🚨 Lead Unclaimed - ${lead.first_name} ${lead.last_name} (${lead.language.toUpperCase()})`,
+              subject: `CRM_ADMIN_NO_CLAIM_${lead.language.toUpperCase()} | No agent claimed lead within 5 minutes`,
               html: `
                 <!DOCTYPE html>
                 <html>
