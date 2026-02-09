@@ -1,139 +1,58 @@
 
 
-# Localize Blog Teaser by Current Language
+# Update Escalating Alarm Subject Lines
 
-## Problem Identified
+## What Changes
 
-The homepage Blog Teaser section is **hardcoded to fetch only English articles** regardless of which language the user is viewing. 
+Two surgical edits to `supabase/functions/send-escalating-alarms/index.ts`:
 
-Looking at line 55 of `src/components/home/sections/ReviewsAndBlog.tsx`:
-```typescript
-.eq('language', 'en')  // ❌ Always English
+### Edit 1: Replace ALARM_CONFIG (lines 13-18)
+
+Add a `subjectTemplate` function to each level while keeping existing `emoji`, `text`, and `color` properties intact (those are still used in email body HTML).
+
+**Old:**
 ```
-
-This means French visitors (on `/fr/`) see English blog posts, Dutch visitors (on `/nl/`) see English blog posts, etc.
-
-## Current State
-
-| Element | Status |
-|---------|--------|
-| Section headers (eyebrow, headline) | ✅ Translated |
-| "Visit Blog" button text | ✅ Translated |
-| "Read Article" link text | ✅ Translated |
-| **Blog article content** | ❌ **Always English** |
-| Article date format | ⚠️ Always English format |
-
-## Database Availability
-
-All 10 languages have published articles available:
-- English: 440 articles
-- Dutch: 337 articles  
-- German: 334 articles
-- Polish: 324 articles
-- Swedish: 323 articles
-- French: 315 articles
-- Hungarian: 311 articles
-- Danish: 309 articles
-- Norwegian: 298 articles
-- Finnish: 280 articles
-
-## Solution
-
-### 1. Update Query to Use Current Language
-
-Modify the `BlogTeaser` component to filter articles by `currentLanguage`:
-
-```typescript
-// Before
-.eq('language', 'en')
-
-// After  
-.eq('language', currentLanguage)
-```
-
-### 2. Update Query Key to Include Language
-
-Ensure React Query refetches when language changes:
-
-```typescript
-// Before
-queryKey: ['homepage-blog-articles']
-
-// After
-queryKey: ['homepage-blog-articles', currentLanguage]
-```
-
-### 3. Add Fallback to English (Optional Safety)
-
-If no articles exist for the current language, fall back to English articles:
-
-```typescript
-const { data: articles, isLoading } = useQuery({
-  queryKey: ['homepage-blog-articles', currentLanguage],
-  queryFn: async () => {
-    // First try current language
-    let { data, error } = await supabase
-      .from('blog_articles')
-      .select('...')
-      .eq('status', 'published')
-      .eq('language', currentLanguage)
-      .order('date_published', { ascending: false })
-      .limit(3);
-    
-    // Fallback to English if no articles in current language
-    if (!error && (!data || data.length === 0) && currentLanguage !== 'en') {
-      const fallback = await supabase
-        .from('blog_articles')
-        .select('...')
-        .eq('status', 'published')
-        .eq('language', 'en')
-        .order('date_published', { ascending: false })
-        .limit(3);
-      data = fallback.data;
-    }
-    
-    if (error) throw error;
-    return data;
-  },
-});
-```
-
-### 4. Add Localized Date Formatting (Enhancement)
-
-Format dates in the user's language using date-fns locales:
-
-```typescript
-import { 
-  enUS, nl, de, fr, pl, sv, da, hu, fi, nb 
-} from 'date-fns/locale';
-
-const dateLocales: Record<string, Locale> = {
-  en: enUS, nl, de, fr, pl, sv, da, hu, fi, no: nb
-};
-
-const formatDate = (dateString: string | null) => {
-  if (!dateString) return '';
-  try {
-    return format(new Date(dateString), 'MMM dd, yyyy', {
-      locale: dateLocales[currentLanguage] || enUS
-    });
-  } catch {
-    return '';
-  }
+const ALARM_CONFIG: Record<number, { emoji: string; text: string; color: string }> = {
+  1: { emoji: "...", text: "1 MIN PASSED", color: "#EAB308" },
+  ...
 };
 ```
 
-## Files to Modify
+**New:**
+```
+const ALARM_CONFIG: Record<number, { 
+  emoji: string; text: string; color: string;
+  subjectTemplate: (lang: string) => string;
+}> = {
+  1: { emoji: "...", ..., subjectTemplate: (lang) => `CRM_NEW_LEAD_${lang}_T1 | Reminder 1 – lead not claimed (1 min)` },
+  2: { ..., subjectTemplate: (lang) => `CRM_NEW_LEAD_${lang}_T2 | Reminder 2 – SLA running (2 min)` },
+  3: { ..., subjectTemplate: (lang) => `CRM_NEW_LEAD_${lang}_T3 | Reminder 3 – URGENT (3 min)` },
+  4: { ..., subjectTemplate: (lang) => `CRM_NEW_LEAD_${lang}_T4 | FINAL reminder – fallback in 1 minute` },
+};
+```
 
-| File | Changes |
-|------|---------|
-| `src/components/home/sections/ReviewsAndBlog.tsx` | Update query filter, query key, add fallback logic, and localized date formatting |
+### Edit 2: Update subject line (line 121)
 
-## Result After Implementation
+**Old:** ``const subject = `${config.emoji} ${config.text} - NEW LEAD ${langCode} #${lead.id.slice(0,8)}`;``
 
-- French homepage → French blog articles
-- Dutch homepage → Dutch blog articles  
-- All other languages → Articles in matching language
-- Fallback → English articles if none exist in user's language
-- Dates formatted in the user's language (e.g., "Jan 13, 2026" → "13 janv. 2026" in French)
+**New:** `const subject = config.subjectTemplate(langCode);`
+
+## What Does NOT Change
+
+- Query logic (last_alarm_level state machine)
+- Agent lookup via crm_round_robin_config
+- Email body HTML (still uses config.emoji, config.text, config.color)
+- Activity logging
+- langCode is already uppercase on line 120
+
+## New Subject Line Format
+
+| Level | Old Subject | New Subject |
+|-------|------------|-------------|
+| T+1 | ⏰ 1 MIN PASSED - NEW LEAD EN #abc12345 | CRM_NEW_LEAD_EN_T1 \| Reminder 1 -- lead not claimed (1 min) |
+| T+2 | ⚠️ 2 MIN PASSED - NEW LEAD EN #abc12345 | CRM_NEW_LEAD_EN_T2 \| Reminder 2 -- SLA running (2 min) |
+| T+3 | 🚨 3 MIN PASSED - NEW LEAD EN #abc12345 | CRM_NEW_LEAD_EN_T3 \| Reminder 3 -- URGENT (3 min) |
+| T+4 | 🔥 4 MIN PASSED - FINAL WARNING - NEW LEAD EN #abc12345 | CRM_NEW_LEAD_EN_T4 \| FINAL reminder -- fallback in 1 minute |
+
+This aligns with the T+0 broadcast subject updated previously (`CRM_NEW_LEAD_${langCode} | New ${langName} lead -- call immediately`), creating a consistent `CRM_NEW_LEAD_` prefix for Gmail filtering.
 
