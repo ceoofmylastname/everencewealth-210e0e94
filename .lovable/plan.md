@@ -1,70 +1,73 @@
 
 
-# Add Missing Language Configurations to crm_round_robin_config
+# Create CRM Email Subject Line Test Plan Document
 
-## Current Blocker
+## Overview
 
-The database is returning connection timeout errors. This plan will be executed once the database recovers.
+Create a comprehensive markdown test plan document at `docs/CRM_EMAIL_SUBJECT_TEST_PLAN.md` covering all 7 notification tiers across multiple languages, with SQL queries for creating test leads and monitoring results.
 
-## Step 1: Get Steven Roberts' Agent ID
+## File to Create
 
-```text
-SELECT id, email, name 
-FROM crm_agents 
-WHERE email = 'steven@delsolprimehomes.com';
-```
+**`docs/CRM_EMAIL_SUBJECT_TEST_PLAN.md`**
 
-## Step 2: Check Existing Languages
+Contents will include the following sections, all verified against actual edge function code:
 
-```text
-SELECT language 
-FROM crm_round_robin_config 
-ORDER BY language;
-```
+### 1. Test Environment Setup
+- Prerequisites (database connectivity, Resend API key active, cron jobs running)
+- Instructions to use `crm-test-lead` edge function for generating test leads
+- Real-time monitoring setup
 
-This confirms which of ES, SV, DA, HU, NO are truly missing (to avoid duplicate key errors).
+### 2. Test Matrix (5 tests)
 
-## Step 3: Insert Missing Language Rows
+**TEST 1: French Lead Full Escalation (Unclaimed)**
+- T+0 through T+5, recipients: cedric/nathalie/augustin for T+0-T+4, steven for T+5
+- Critical verify: Hans does NOT appear in any French notification
 
-Using Steven's UUID from Step 1:
+**TEST 2: Finnish Lead Full Escalation (Unclaimed)**
+- T+0 through T+5, recipients: juho/eetu for T+0-T+4, hans for T+5
+- Verify: Hans correctly receives T+5 admin escalation for Finnish
 
-```text
-INSERT INTO crm_round_robin_config 
-  (language, agent_ids, fallback_admin_id, claim_window_minutes, is_active)
-VALUES
-  ('es', ARRAY['<steven_id>']::uuid[], '<steven_id>', 5, true),
-  ('sv', ARRAY['<steven_id>']::uuid[], '<steven_id>', 5, true),
-  ('da', ARRAY['<steven_id>']::uuid[], '<steven_id>', 5, true),
-  ('hu', ARRAY['<steven_id>']::uuid[], '<steven_id>', 5, true),
-  ('no', ARRAY['<steven_id>']::uuid[], '<steven_id>', 5, true);
-```
+**TEST 3: Polish Lead Claimed But Not Called**
+- T+0 to artur, artur claims, then T+5 contact breach to hans
+- Verify: T+1 through T+4 do NOT fire after claim (last_alarm_level set to 99)
 
-If any of these languages already exist, they will be skipped or handled individually.
+**TEST 4: Email Body Verification**
+- HTML body unchanged, claim buttons functional, emojis present in body
 
-## Step 4: Verify Complete Table
+**TEST 5: Other Notification Types (Unchanged)**
+- Verify these retain original emoji-based subjects:
+  - `form_submission_alert`: `📬 Form Submission: ...`
+  - `night_hold_alert`: `🌙 After-Hours Lead: ...`
+  - `sla_warning`: `⚠️ SLA Warning: ...`
+  - `admin_unclaimed`: `🚨 UNCLAIMED: ...`
+  - `test_urgent`: `🔥 URGENT LEAD: ...`
 
-```text
-SELECT rr.language, rr.agent_ids, rr.fallback_admin_id, rr.claim_window_minutes, rr.is_active,
-  (SELECT email FROM crm_agents WHERE id = rr.fallback_admin_id) as admin_email
-FROM crm_round_robin_config rr
-ORDER BY rr.language;
-```
+### 3. SQL Monitoring Queries
+- Real-time activity log monitoring (crm_activities)
+- Lead state verification (crm_leads alarm levels, SLA flags)
+- Round robin config verification
 
-## What This Enables
+### 4. Test Lead Creation
+- curl commands calling the `crm-test-lead` edge function for each language
+- Manual SQL insert alternative
 
-- Leads arriving in ES, SV, DA, HU, NO will now match a `crm_round_robin_config` row
-- The `send-escalating-alarms` cron (every 1 min) will find these leads and send T+0 through T+4 notifications to Steven
-- The `check-claim-window-expiry` cron will send T+5 admin escalation to Steven (as fallback_admin_id)
-- `claim_window_minutes: 5` matches the existing standard across all languages
+### 5. Success Criteria Checklist
+- All broadcast subjects match `CRM_NEW_LEAD_[LANG]`
+- All escalation subjects match `CRM_NEW_LEAD_[LANG]_T[1-4]`
+- All admin subjects match `CRM_ADMIN_*`
+- Hans routing verified for FI/PL only
+- Email bodies unchanged
+- Other notification types unchanged
 
-## What Does NOT Change
+### 6. Complete Subject Line Reference Table
+All 7 tiers documented with function source, recipient logic, and exact format string from code.
 
-- No code changes to any edge functions
-- No schema changes
-- Existing language configurations (EN, DE, NL, FR, FI, PL) are untouched
-- Steven's agent record remains unchanged
+## Technical Details
 
-## Note
-
-The UUIDs must be looked up live from `crm_agents` before inserting. This plan executes as soon as the database connection is stable.
-
+- Single new file creation: `docs/CRM_EMAIL_SUBJECT_TEST_PLAN.md`
+- No code changes to any edge functions or application code
+- All subject lines verified against actual code in:
+  - `supabase/functions/send-lead-notification/index.ts` (lines 417-437)
+  - `supabase/functions/send-escalating-alarms/index.ts` (lines 21-39)
+  - `supabase/functions/check-claim-window-expiry/index.ts` (line 118)
+  - `supabase/functions/check-contact-window-expiry/index.ts` (line 136)
