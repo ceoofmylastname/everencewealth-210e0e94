@@ -1,46 +1,87 @@
 
-# Update Admin Notification for Claimed Leads with No Contact
 
-## Change
+# Fix Hans's Role in CRM Routing Configuration
 
-One single-line edit in `supabase/functions/check-contact-window-expiry/index.ts` at line 136.
+## Current Blocker
 
-**Old (line 136):**
-```
-subject: `⚠️ No Contact Made - ${agentName} claimed ${lead.first_name} ${lead.last_name}`
+The database is returning connection timeout errors on all queries. This plan requires two sequential steps that depend on live data, so it cannot be fully executed until the database recovers.
+
+## Step 1: Query Agent IDs
+
+Once the database is available, run:
+
+```text
+SELECT id, email, name 
+FROM crm_agents 
+WHERE email IN (
+  'steven@delsolprimehomes.com',
+  'hans@delsolprimehomes.com',
+  'nederlands@delsolprimehomes.com',
+  'cindy@delsolprimehomes.com',
+  'cedric@delsolprimehomes.com',
+  'nathalie@delsolprimehomes.com',
+  'augustin@delsolprimehomes.com',
+  'juho@delsolprimehomes.com',
+  'eetu@delsolprimehomes.com',
+  'artur@delsolprimehomes.com'
+);
 ```
 
-**New (line 136):**
+And query the current config:
+
+```text
+SELECT id, language, agent_ids, fallback_admin_id 
+FROM crm_round_robin_config 
+ORDER BY language;
 ```
-subject: `CRM_ADMIN_CLAIMED_NOT_CALLED_${lead.language.toUpperCase()} | Lead claimed but not called (SLA breach)`
+
+## Step 2: Update Each Language Row
+
+Using the UUIDs from Step 1, execute 6 UPDATE statements (one per language). The template for each:
+
+| Language | agent_ids | fallback_admin_id |
+|----------|-----------|-------------------|
+| en | `{steven_id}` | `steven_id` |
+| de | `{}` (empty array) | `steven_id` |
+| nl | `{nederlands_id, cindy_id}` | `steven_id` |
+| fr | `{cedric_id, nathalie_id, augustin_id}` | `steven_id` |
+| fi | `{juho_id, eetu_id}` | `hans_id` |
+| pl | `{artur_id}` | `hans_id` |
+
+```text
+-- Template (IDs filled after Step 1):
+UPDATE crm_round_robin_config SET agent_ids = '{...}', fallback_admin_id = '...' WHERE language = 'en';
+UPDATE crm_round_robin_config SET agent_ids = '{...}', fallback_admin_id = '...' WHERE language = 'de';
+UPDATE crm_round_robin_config SET agent_ids = '{...}', fallback_admin_id = '...' WHERE language = 'nl';
+UPDATE crm_round_robin_config SET agent_ids = '{...}', fallback_admin_id = '...' WHERE language = 'fr';
+UPDATE crm_round_robin_config SET agent_ids = '{...}', fallback_admin_id = '...' WHERE language = 'fi';
+UPDATE crm_round_robin_config SET agent_ids = '{...}', fallback_admin_id = '...' WHERE language = 'pl';
 ```
+
+## Step 3: Verify
+
+```text
+SELECT rr.language, rr.agent_ids, rr.fallback_admin_id,
+  (SELECT email FROM crm_agents WHERE id = rr.fallback_admin_id) as admin_email
+FROM crm_round_robin_config rr
+ORDER BY rr.language;
+```
+
+## What Changes
+
+- Hans is removed from `agent_ids` for EN, DE, NL, FR (no more T+0 to T+4 alerts for those languages)
+- Hans remains as `fallback_admin_id` for FI and PL only (T+5 admin escalation)
+- Any unknown agents ("John Melvin", "bryd mel") are removed from all arrays
+- Steven becomes `fallback_admin_id` for EN, DE, NL, FR
 
 ## What Does NOT Change
 
-- Recipient: still sends to `adminEmail` resolved from `fallback_admin_id` (line 135)
-- `contact_sla_breached` flag update (line 108)
-- Email body HTML (lines 137-230)
-- In-app notification creation (lines 237-247)
-- Activity log entry (lines 250-258)
+- No code changes to any edge functions
+- No schema changes
+- Agent records in `crm_agents` table remain untouched
+- Routing logic in `register-crm-lead` and alarm functions stays the same
 
-## Context (lines 133-137 after change)
+## Note
 
-```typescript
-            body: JSON.stringify({
-              from: "CRM Alerts <crm@notifications.delsolprimehomes.com>",
-              to: [adminEmail],
-              subject: `CRM_ADMIN_CLAIMED_NOT_CALLED_${lead.language.toUpperCase()} | Lead claimed but not called (SLA breach)`,
-              html: `
-```
+This plan will be implemented as soon as the database connection recovers. The UUIDs must be looked up live — they cannot be hardcoded without verification.
 
-## Complete Subject Line Sequence
-
-| Timer | Function | Subject Format |
-|-------|----------|---------------|
-| T+0 | send-lead-notification | `CRM_NEW_LEAD_EN \| New English lead -- call immediately` |
-| T+1 | send-escalating-alarms | `CRM_NEW_LEAD_EN_T1 \| Reminder 1 -- lead not claimed (1 min)` |
-| T+2 | send-escalating-alarms | `CRM_NEW_LEAD_EN_T2 \| Reminder 2 -- SLA running (2 min)` |
-| T+3 | send-escalating-alarms | `CRM_NEW_LEAD_EN_T3 \| Reminder 3 -- URGENT (3 min)` |
-| T+4 | send-escalating-alarms | `CRM_NEW_LEAD_EN_T4 \| FINAL reminder -- fallback in 1 minute` |
-| T+5 (unclaimed) | check-claim-window-expiry | `CRM_ADMIN_NO_CLAIM_EN \| No agent claimed lead within 5 minutes` |
-| T+5 (claimed, no call) | check-contact-window-expiry | `CRM_ADMIN_CLAIMED_NOT_CALLED_EN \| Lead claimed but not called (SLA breach)` |
