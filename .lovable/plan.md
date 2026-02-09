@@ -1,58 +1,47 @@
 
+# Update T+5 Admin Notification Subject
 
-# Update Escalating Alarm Subject Lines
+## Change
 
-## What Changes
+One single-line edit in `supabase/functions/check-claim-window-expiry/index.ts` at line 118.
 
-Two surgical edits to `supabase/functions/send-escalating-alarms/index.ts`:
-
-### Edit 1: Replace ALARM_CONFIG (lines 13-18)
-
-Add a `subjectTemplate` function to each level while keeping existing `emoji`, `text`, and `color` properties intact (those are still used in email body HTML).
-
-**Old:**
+**Old (line 118):**
 ```
-const ALARM_CONFIG: Record<number, { emoji: string; text: string; color: string }> = {
-  1: { emoji: "...", text: "1 MIN PASSED", color: "#EAB308" },
-  ...
-};
+subject: `🚨 Lead Unclaimed - ${lead.first_name} ${lead.last_name} (${lead.language.toUpperCase()})`
 ```
 
-**New:**
+**New (line 118):**
 ```
-const ALARM_CONFIG: Record<number, { 
-  emoji: string; text: string; color: string;
-  subjectTemplate: (lang: string) => string;
-}> = {
-  1: { emoji: "...", ..., subjectTemplate: (lang) => `CRM_NEW_LEAD_${lang}_T1 | Reminder 1 – lead not claimed (1 min)` },
-  2: { ..., subjectTemplate: (lang) => `CRM_NEW_LEAD_${lang}_T2 | Reminder 2 – SLA running (2 min)` },
-  3: { ..., subjectTemplate: (lang) => `CRM_NEW_LEAD_${lang}_T3 | Reminder 3 – URGENT (3 min)` },
-  4: { ..., subjectTemplate: (lang) => `CRM_NEW_LEAD_${lang}_T4 | FINAL reminder – fallback in 1 minute` },
-};
+subject: `CRM_ADMIN_NO_CLAIM_${lead.language.toUpperCase()} | No agent claimed lead within 5 minutes`
 ```
-
-### Edit 2: Update subject line (line 121)
-
-**Old:** ``const subject = `${config.emoji} ${config.text} - NEW LEAD ${langCode} #${lead.id.slice(0,8)}`;``
-
-**New:** `const subject = config.subjectTemplate(langCode);`
 
 ## What Does NOT Change
 
-- Query logic (last_alarm_level state machine)
-- Agent lookup via crm_round_robin_config
-- Email body HTML (still uses config.emoji, config.text, config.color)
-- Activity logging
-- langCode is already uppercase on line 120
+- Recipient: still sends to `adminEmail` resolved from `fallback_admin_id` (line 117)
+- `claim_sla_breached` flag update (line 93)
+- Email body HTML (lines 119-196)
+- In-app notification creation (lines 206-218)
+- Activity log entry (lines 221-229)
+- `lead.language.toUpperCase()` is already used in the existing line
 
-## New Subject Line Format
+## Context (lines 115-120 after change)
 
-| Level | Old Subject | New Subject |
-|-------|------------|-------------|
-| T+1 | ⏰ 1 MIN PASSED - NEW LEAD EN #abc12345 | CRM_NEW_LEAD_EN_T1 \| Reminder 1 -- lead not claimed (1 min) |
-| T+2 | ⚠️ 2 MIN PASSED - NEW LEAD EN #abc12345 | CRM_NEW_LEAD_EN_T2 \| Reminder 2 -- SLA running (2 min) |
-| T+3 | 🚨 3 MIN PASSED - NEW LEAD EN #abc12345 | CRM_NEW_LEAD_EN_T3 \| Reminder 3 -- URGENT (3 min) |
-| T+4 | 🔥 4 MIN PASSED - FINAL WARNING - NEW LEAD EN #abc12345 | CRM_NEW_LEAD_EN_T4 \| FINAL reminder -- fallback in 1 minute |
+```typescript
+            body: JSON.stringify({
+              from: "CRM Alerts <crm@notifications.delsolprimehomes.com>",
+              to: [adminEmail],
+              subject: `CRM_ADMIN_NO_CLAIM_${lead.language.toUpperCase()} | No agent claimed lead within 5 minutes`,
+              html: `
+                <!DOCTYPE html>
+```
 
-This aligns with the T+0 broadcast subject updated previously (`CRM_NEW_LEAD_${langCode} | New ${langName} lead -- call immediately`), creating a consistent `CRM_NEW_LEAD_` prefix for Gmail filtering.
+## Full Subject Line Sequence (after all updates)
 
+| Timer | Function | Subject Format |
+|-------|----------|---------------|
+| T+0 | send-lead-notification | `CRM_NEW_LEAD_EN \| New English lead -- call immediately` |
+| T+1 | send-escalating-alarms | `CRM_NEW_LEAD_EN_T1 \| Reminder 1 -- lead not claimed (1 min)` |
+| T+2 | send-escalating-alarms | `CRM_NEW_LEAD_EN_T2 \| Reminder 2 -- SLA running (2 min)` |
+| T+3 | send-escalating-alarms | `CRM_NEW_LEAD_EN_T3 \| Reminder 3 -- URGENT (3 min)` |
+| T+4 | send-escalating-alarms | `CRM_NEW_LEAD_EN_T4 \| FINAL reminder -- fallback in 1 minute` |
+| T+5 | check-claim-window-expiry | `CRM_ADMIN_NO_CLAIM_EN \| No agent claimed lead within 5 minutes` |
