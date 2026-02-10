@@ -5,9 +5,13 @@ import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Users,
   Phone,
+  PhoneIncoming,
+  PhoneOutgoing,
+  PhoneMissed,
   Clock,
   TrendingUp,
   Calendar,
@@ -16,6 +20,7 @@ import {
   CheckCircle2,
   Flame,
 } from "lucide-react";
+import { useAllSalestrailCalls } from "@/hooks/useAllSalestrailCalls";
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
 import {
@@ -86,6 +91,12 @@ export default function AgentDashboard() {
         .limit(5);
       return data || [];
     },
+    enabled: !!agentId,
+  });
+
+  // Fetch Salestrail calls for this agent
+  const { calls: salestrailCalls, stats: callStats, isLoading: callsLoading } = useAllSalestrailCalls({
+    agentId: agentId || undefined,
     enabled: !!agentId,
   });
 
@@ -387,6 +398,127 @@ export default function AgentDashboard() {
                 </Link>
               ))}
             </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Call Activity */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <CardTitle className="text-lg flex items-center gap-2">
+            <Phone className="w-5 h-5 text-primary" />
+            Call Activity
+            {callStats.total > 0 && (
+              <Badge variant="secondary" className="ml-1">{callStats.total}</Badge>
+            )}
+          </CardTitle>
+          <div className="flex items-center gap-3 text-sm text-muted-foreground">
+            <span className="flex items-center gap-1">
+              <PhoneOutgoing className="w-3.5 h-3.5 text-green-600" />
+              {callStats.outbound}
+            </span>
+            <span className="flex items-center gap-1">
+              <PhoneIncoming className="w-3.5 h-3.5 text-blue-600" />
+              {callStats.inbound}
+            </span>
+            <span className="flex items-center gap-1">
+              <PhoneMissed className="w-3.5 h-3.5 text-amber-600" />
+              {callStats.missed}
+            </span>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {callsLoading ? (
+            <div className="space-y-3">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="flex items-start gap-3 animate-pulse">
+                  <div className="w-8 h-8 rounded-full bg-muted" />
+                  <div className="flex-1 space-y-2">
+                    <div className="h-4 bg-muted rounded w-3/4" />
+                    <div className="h-3 bg-muted rounded w-1/2" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : salestrailCalls.length === 0 ? (
+            <p className="text-muted-foreground text-sm text-center py-6">
+              No calls recorded yet. Calls are logged automatically via Salestrail.
+            </p>
+          ) : (
+            <ScrollArea className="h-[300px] pr-4">
+              <div className="space-y-3">
+                {salestrailCalls.slice(0, 20).map((call) => {
+                  const isInbound = call.call_direction === "inbound";
+                  const isAnswered = call.call_answered;
+                  const leadName = call.lead
+                    ? `${call.lead.first_name} ${call.lead.last_name}`
+                    : "Unknown Lead";
+                  const durationMins = call.call_duration ? Math.floor(call.call_duration / 60) : 0;
+                  const durationSecs = call.call_duration ? call.call_duration % 60 : 0;
+                  const durationStr = call.call_duration
+                    ? durationMins > 0
+                      ? `${durationMins}m ${durationSecs}s`
+                      : `${durationSecs}s`
+                    : null;
+
+                  return (
+                    <div
+                      key={call.id}
+                      className="flex items-center gap-3 p-3 rounded-lg border hover:bg-muted/50 transition-colors"
+                    >
+                      <div
+                        className={cn(
+                          "w-8 h-8 rounded-full flex items-center justify-center",
+                          isAnswered
+                            ? isInbound
+                              ? "bg-blue-100 text-blue-600"
+                              : "bg-green-100 text-green-600"
+                            : "bg-amber-100 text-amber-600"
+                        )}
+                      >
+                        {isAnswered ? (
+                          isInbound ? (
+                            <PhoneIncoming className="w-4 h-4" />
+                          ) : (
+                            <PhoneOutgoing className="w-4 h-4" />
+                          )
+                        ) : (
+                          <PhoneMissed className="w-4 h-4" />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium text-sm truncate">{leadName}</span>
+                          <Badge
+                            variant="outline"
+                            className={cn(
+                              "text-xs",
+                              isInbound ? "bg-blue-50 text-blue-700" : "bg-green-50 text-green-700"
+                            )}
+                          >
+                            {isInbound ? "In" : "Out"}
+                          </Badge>
+                          {!isAnswered && (
+                            <Badge variant="outline" className="text-xs bg-amber-50 text-amber-700">
+                              Missed
+                            </Badge>
+                          )}
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          {formatDistanceToNow(new Date(call.created_at), { addSuffix: true })}
+                          {durationStr && ` · ${durationStr}`}
+                        </p>
+                      </div>
+                      {call.salestrail_recording_url && (
+                        <Badge variant="outline" className="text-xs shrink-0">
+                          🎙️
+                        </Badge>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </ScrollArea>
           )}
         </CardContent>
       </Card>
