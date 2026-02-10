@@ -144,17 +144,21 @@ export async function onRequest({ request, next, env }) {
       !staticBody.includes('<div id="root"></div>') &&
       staticBody.length > 5000;
 
-    if (isSubstantialHTML) {
-      console.log(`[Middleware] Q&A static file served: ${pathname}`);
-      const headers = new Headers(staticResponse.headers);
-      headers.set('X-Middleware-Status', 'Active');
-      headers.set('X-SEO-Source', 'static');
-      return new Response(staticBody, {
-        status: staticResponse.status,
-        statusText: staticResponse.statusText,
-        headers,
-      });
-    }
+      if (isSubstantialHTML) {
+        console.log(`[Middleware] Q&A static file served: ${pathname}`);
+        const headers = new Headers(staticResponse.headers);
+        headers.set('X-Middleware-Status', 'Active');
+        headers.set('X-SEO-Source', 'static');
+        headers.set('Cache-Control', 'public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400');
+        headers.set('CDN-Cache-Control', 'max-age=3600');
+        headers.set('Cloudflare-CDN-Cache-Control', 'max-age=3600');
+        headers.set('Vary', 'Accept-Encoding');
+        return new Response(staticBody, {
+          status: staticResponse.status,
+          statusText: staticResponse.statusText,
+          headers,
+        });
+      }
 
     // 3. Static file missing/thin — call serve-seo-page edge function
     console.log(`[Middleware] Q&A static missing for ${pathname}, trying SSR fallback`);
@@ -185,7 +189,10 @@ export async function onRequest({ request, next, env }) {
           status: 200,
           headers: {
             'Content-Type': 'text/html; charset=utf-8',
-            'Cache-Control': 'public, max-age=3600, s-maxage=3600',
+            'Cache-Control': 'public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400',
+            'CDN-Cache-Control': 'max-age=3600',
+            'Cloudflare-CDN-Cache-Control': 'max-age=3600',
+            'Vary': 'Accept-Encoding',
             'X-SEO-Source': 'edge-function-ssr',
             'X-Robots-Tag': 'all',
             'X-Middleware-Status': 'Active',
@@ -198,10 +205,13 @@ export async function onRequest({ request, next, env }) {
       console.error(`[Middleware] Q&A SSR fallback error for ${pathname}:`, err?.message);
     }
 
-    // 4. Both failed — serve original SPA response
+    // 4. Both failed — serve original SPA response with short cache
     const headers = new Headers(staticResponse.headers);
     headers.set('X-Middleware-Status', 'Active');
     headers.set('X-SEO-Source', 'spa-fallback');
+    headers.set('Cache-Control', 'public, max-age=300, s-maxage=300, stale-while-revalidate=3600');
+    headers.set('CDN-Cache-Control', 'max-age=300');
+    headers.set('Vary', 'Accept-Encoding');
     return new Response(staticBody, {
       status: staticResponse.status,
       statusText: staticResponse.statusText,
