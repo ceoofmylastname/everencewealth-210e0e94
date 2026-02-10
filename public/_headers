@@ -27,9 +27,10 @@
 /llm.txt
   Content-Type: text/plain; charset=utf-8
 
-# Q&A pages - caching and crawler headers
+# Q&A pages - aggressive CDN caching + crawler headers
 /*/qa/*
-  Cache-Control: public, max-age=3600, s-maxage=3600, stale-while-revalidate=300
+  Cache-Control: public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400
+  CDN-Cache-Control: max-age=3600
   X-Robots-Tag: all
   X-Content-Type-Options: nosniff
 
