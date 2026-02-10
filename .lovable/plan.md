@@ -1,49 +1,50 @@
 
-# Crawlability Test Admin Page
 
-## Overview
-Create an admin tool at `/admin/crawlability-test` that lets you input any Q&A URL, fetch the page as Googlebot would see it (raw HTML, no JavaScript), and display a color-coded report of SEO element presence.
+# Fix: Serve Pre-rendered Q&A Static HTML via Cloudflare Routing
 
-## Architecture
-Since browsers can't fetch external pages due to CORS, we need a backend function to act as a proxy that fetches the target URL with a Googlebot user-agent and returns the raw HTML.
+## Root Cause
+The build script (`scripts/generateStaticQAPages.ts`) generates static HTML files at `dist/{lang}/qa/{slug}/index.html` with full SEO content. However, `public/_redirects` has **zero rules** for Q&A paths. Every Q&A request falls through to the final catch-all (`/* /index.html 200`), which serves the empty React SPA shell. Googlebot sees no content.
+
+Compare with blog pages which DO have a rule on line 62:
+```
+/blog/:slug  /blog/:slug/index.html  200
+```
+
+Q&A pages have no equivalent.
 
 ## Changes
 
-### 1. New backend function: `supabase/functions/crawlability-test/index.ts`
-- Accepts a `url` query parameter
-- Fetches the URL using a Googlebot user-agent string (no JS execution)
-- Returns the raw HTML plus parsed checks:
-  - Meta title (text + present boolean)
-  - Meta description (text + present boolean)
-  - H1 tags (text + present boolean)
-  - Body text word count
-  - Whether main content keywords appear
-  - Robots meta tag value
-  - Canonical URL
+### 1. `public/_redirects` -- Add Q&A static file rules
 
-### 2. New page: `src/pages/admin/CrawlabilityTest.tsx`
-- Input field for URL (pre-filled with `https://www.delsolprimehomes.com/`)
-- Quick-test buttons for sample Q&A paths
-- "Test Crawlability" button that calls the edge function
-- Results panel with color-coded checks (green checkmark / red X):
-  - Meta title present and content
-  - Meta description present and content
-  - H1 tag present and content
-  - Word count (green if 300+, yellow if 100-299, red if under 100)
-  - Robots directive (green if "index", red if "noindex")
-  - Canonical URL present
-- Collapsible raw HTML source viewer
-- Follows existing admin page patterns (AdminLayout, Card components, Badge, toast)
+Insert before the SPA fallback section (before line 82), add rules to serve the pre-rendered static HTML for both individual Q&A pages and Q&A index pages:
 
-### 3. Route registration: `src/App.tsx`
-- Add route: `/admin/crawlability-test` pointing to the new page
+```
+# Q&A pages - serve pre-rendered static HTML (MUST come before SPA fallback)
+/:lang/qa/:slug  /:lang/qa/:slug/index.html  200
+/:lang/qa  /:lang/qa/index.html  200
+```
 
-### 4. Navigation: `src/components/AdminLayout.tsx`
-- Add "Crawlability Test" link under the "SEO and Health" nav group with an appropriate icon
+This mirrors the existing pattern used for blog articles and buyers-guide pages.
 
-## Technical Details
-- The edge function uses `Deno.fetch` with `User-Agent: Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)` to simulate how Google crawls the page
-- HTML parsing done server-side using regex/string matching (lightweight, no dependencies needed in Deno)
-- Word count calculated by stripping HTML tags and counting whitespace-delimited tokens in the body
-- No database changes required
-- No new npm dependencies required
+### 2. `public/_headers` -- Add Q&A caching and crawler headers
+
+Append Q&A-specific headers for caching and crawler signals:
+
+```
+/*/qa/*
+  Cache-Control: public, max-age=3600, s-maxage=3600, stale-while-revalidate=300
+  X-Robots-Tag: all
+  X-Content-Type-Options: nosniff
+```
+
+## What This Fixes
+- Crawlers (Googlebot, Bingbot, etc.) will receive the full pre-rendered HTML with all SEO metadata, JSON-LD schemas, and content -- instead of an empty React shell
+- The `200` status code with the file path tells Cloudflare Pages to serve the static file directly
+- Regular users also benefit from faster initial page loads (static HTML hydrates into the React app)
+
+## What Does NOT Change
+- No middleware changes needed (it already excludes Q&A from edge function routing)
+- No build script changes
+- No database changes
+- No component changes
+
