@@ -1,36 +1,49 @@
 
+# Crawlability Test Admin Page
 
-# Emergency Crawlability Fix: Add Client-Side Meta Tags to Q&A Pages
+## Overview
+Create an admin tool at `/admin/crawlability-test` that lets you input any Q&A URL, fetch the page as Googlebot would see it (raw HTML, no JavaScript), and display a color-coded report of SEO element presence.
 
-## Problem
-All 9,600 Q&A pages have substantial content (666-3,458 chars) in the database, but Google Search Console flags them as "thin content." The root cause: `QAPage.tsx` is the **only** major content page without client-side `<Helmet>` meta tags. Every other content page (BlogArticle, Glossary, LocationHub, ComparisonPage, BuyersGuide, Contact) already uses `react-helmet` for SEO metadata. The comment on line 211 ("SEO tags are handled by server/edge") is misleading -- even if SSR exists, a client-side fallback is essential.
+## Architecture
+Since browsers can't fetch external pages due to CORS, we need a backend function to act as a proxy that fetches the target URL with a Googlebot user-agent and returns the raw HTML.
 
-## What Changes
+## Changes
 
-**Single file modification: `src/pages/QAPage.tsx`**
+### 1. New backend function: `supabase/functions/crawlability-test/index.ts`
+- Accepts a `url` query parameter
+- Fetches the URL using a Googlebot user-agent string (no JS execution)
+- Returns the raw HTML plus parsed checks:
+  - Meta title (text + present boolean)
+  - Meta description (text + present boolean)
+  - H1 tags (text + present boolean)
+  - Body text word count
+  - Whether main content keywords appear
+  - Robots meta tag value
+  - Canonical URL
 
-Replace the comment on line 211 with a full `<Helmet>` block that includes:
+### 2. New page: `src/pages/admin/CrawlabilityTest.tsx`
+- Input field for URL (pre-filled with `https://www.delsolprimehomes.com/`)
+- Quick-test buttons for sample Q&A paths
+- "Test Crawlability" button that calls the edge function
+- Results panel with color-coded checks (green checkmark / red X):
+  - Meta title present and content
+  - Meta description present and content
+  - H1 tag present and content
+  - Word count (green if 300+, yellow if 100-299, red if under 100)
+  - Robots directive (green if "index", red if "noindex")
+  - Canonical URL present
+- Collapsible raw HTML source viewer
+- Follows existing admin page patterns (AdminLayout, Card components, Badge, toast)
 
-1. **Title tag** -- uses `meta_title` with fallback to `question_main`
-2. **Meta description** -- uses `meta_description` with fallback to first 160 chars of `speakable_answer`
-3. **Open Graph tags** -- title, description, type ("article"), image (featured image)
-4. **Canonical URL** -- `https://www.delsolprimehomes.com/{language}/qa/{slug}`
-5. **Hreflang tags** -- generated from the `translations` JSONB column, plus x-default pointing to the English version
-6. **Robots meta** -- standard "index, follow" (no noindex needed since all content is substantial)
+### 3. Route registration: `src/App.tsx`
+- Add route: `/admin/crawlability-test` pointing to the new page
+
+### 4. Navigation: `src/components/AdminLayout.tsx`
+- Add "Crawlability Test" link under the "SEO and Health" nav group with an appropriate icon
 
 ## Technical Details
-
-- Import `Helmet` from `react-helmet` (already installed and used across the project)
-- Place the `<Helmet>` block inside the successful render path (after line 209, replacing the comment on line 211)
-- Follow the exact same pattern used in `BlogArticle.tsx` and `ComparisonPage.tsx` for consistency
-- Use `BASE_URL` constant (already defined on line 18) for canonical and hreflang URLs
-- The translations object is already available as `qaPage.translations` (Record of lang to slug)
-
-## What Does NOT Change
-
-- No database changes
-- No new dependencies
-- No edge function changes
-- No sitemap changes
-- Loading and error states remain unchanged (Helmet only renders when content is available)
-
+- The edge function uses `Deno.fetch` with `User-Agent: Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)` to simulate how Google crawls the page
+- HTML parsing done server-side using regex/string matching (lightweight, no dependencies needed in Deno)
+- Word count calculated by stripping HTML tags and counting whitespace-delimited tokens in the body
+- No database changes required
+- No new npm dependencies required
