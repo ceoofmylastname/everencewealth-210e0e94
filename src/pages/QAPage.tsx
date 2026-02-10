@@ -14,6 +14,7 @@ import { Author, QAEntity } from '@/types/blog';
 import { translations } from '@/i18n/translations';
 import BlogEmmaChat from '@/components/blog-article/BlogEmmaChat';
 import { LanguageMismatchNotFound } from '@/components/LanguageMismatchNotFound';
+import { Helmet } from 'react-helmet';
 
 const BASE_URL = 'https://www.delsolprimehomes.com';
 
@@ -208,7 +209,22 @@ export default function QAPage() {
 
   return (
     <>
-      {/* SEO tags are handled by server/edge - no Helmet needed */}
+      <Helmet>
+        <title>{qaPage.meta_title || qaPage.question_main}</title>
+        <meta name="description" content={qaPage.meta_description || (qaPage.speakable_answer ? qaPage.speakable_answer.substring(0, 160) : '')} />
+        <meta name="robots" content="index, follow" />
+        <meta property="og:title" content={qaPage.meta_title || qaPage.question_main} />
+        <meta property="og:description" content={qaPage.meta_description || (qaPage.speakable_answer ? qaPage.speakable_answer.substring(0, 160) : '')} />
+        <meta property="og:type" content="article" />
+        {qaPage.featured_image_url && <meta property="og:image" content={qaPage.featured_image_url} />}
+        <link rel="canonical" href={`${BASE_URL}/${qaPage.language}/qa/${qaPage.slug}`} />
+        {qaPage.translations && Object.entries(qaPage.translations as Record<string, string>).map(([lang, slug]) => (
+          <link key={lang} rel="alternate" hrefLang={lang} href={`${BASE_URL}/${lang}/qa/${slug}`} />
+        ))}
+        {qaPage.translations && (qaPage.translations as Record<string, string>)['en'] && (
+          <link rel="alternate" hrefLang="x-default" href={`${BASE_URL}/en/qa/${(qaPage.translations as Record<string, string>)['en']}`} />
+        )}
+      </Helmet>
       <Header variant="transparent" />
 
       <main className="min-h-screen bg-background">
