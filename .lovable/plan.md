@@ -1,55 +1,87 @@
 
 
-# Add Database Logging for T+1-T+4 Escalating Alarm Emails
+# Fix Admin Email Routing with Smart Fallback Logic
 
-## What This Does
+## Overview
 
-Currently, T+1 through T+4 escalating alarm emails are sent via Resend and logged to the console, but not recorded in the `crm_email_logs` table. This means the database audit trail has a gap -- T+0 and T+5 emails are logged, but the 4 intermediate reminders are invisible in the database.
+Two edge functions need modification to filter admins out of broadcast/escalation emails while falling back to admins when no regular agents exist for a language (e.g., Polish).
 
-This change adds a `crm_email_logs` insert after each successful Resend API call, giving you a complete 6-row audit trail per unclaimed lead.
+## Changes
+
+### File 1: `supabase/functions/register-crm-lead/index.ts`
+
+**Location A (Lines 713-728):** Round robin agent fetch
+
+- Fetch all configured agents as before
+- After the capacity filter (line 725-728), add smart admin filtering:
+  - Split `availableAgents` into non-admin vs all
+  - If non-admin agents exist, use only those
+  - If zero non-admin agents, fall back to all (including admins)
+  - Add console logging indicating which path was taken
+
+**Location B (Lines 735-750):** Language match fallback
+
+- Same pattern: fetch all, filter capacity, then smart admin split
+- If non-admin agents exist, use only those
+- If zero, fall back to admins
+
+### File 2: `supabase/functions/send-escalating-alarms/index.ts`
+
+**Location (Lines 107-118):** Agent fetch for escalation emails
+
+- Add `role` to the select fields
+- After fetching, split into non-admin vs all
+- If non-admin agents exist, use only those
+- If zero non-admin agents, use all (admin fallback)
+- **Bug fix:** Currently when no agents are found (line 113-116), the function does `continue` which skips updating `last_alarm_level`. This must be fixed so the state machine still progresses to T+5 even with zero recipients.
+
+### Files NOT Modified (verified correct)
+
+- `check-claim-window-expiry/index.ts` -- sends to `fallback_admin_id` only
+- `check-contact-window-expiry/index.ts` -- sends to admins only
+- Form/night-hold alerts in `register-crm-lead` -- already filter `role = 'admin'` explicitly
 
 ## Technical Details
 
-**File:** `supabase/functions/send-escalating-alarms/index.ts`
+### Smart Fallback Logic (applied in all 3 locations)
 
-**Change location:** After line 275 (where Resend ID is logged), insert email log entries for each agent recipient.
+```text
+allAgents = fetch from DB (active, accepts_new_leads)
+nonAdminAgents = allAgents.filter(role != 'admin')
 
-**Table schema alignment:** The `crm_email_logs` table requires these NOT NULL columns:
-- `recipient_email` (text)
-- `subject` (text)
-- `template_type` (text) -- will use `escalating_alarm_t{level}`
-- `triggered_by` (text) -- will use `system`
-- `status` (text) -- will use `sent`
-- `sent_at` (timestamptz)
+if (nonAdminAgents.length > 0):
+    use nonAdminAgents          -- normal path
+else:
+    use allAgents               -- admin fallback
+    log warning
+```
 
-Plus optional columns: `lead_id`, `agent_id`, `resend_message_id`, `trigger_reason`.
+### Language Routing After Fix
 
-**Code to add** (after line 275, before the catch block):
+| Language | Configured Agents | After Filter | Fallback? |
+|----------|------------------|--------------|-----------|
+| FI | Juho, Eetu, John, Hans(admin) | Juho, Eetu, John | No |
+| NL | Cindy, Nederlands, Hans(admin) | Cindy, Nederlands | No |
+| FR | Cedric, Nathalie, Augustin | Cedric, Nathalie, Augustin | No |
+| PL | Hans(admin) only | ZERO | Yes - Hans gets emails |
+| EN, DE, ES, SV, DA, HU, NO | Steven(agent) + Hans(admin) | Steven | No |
 
+### Escalation State Machine Bug Fix
+
+Current code at lines 113-116:
 ```typescript
-// Log to crm_email_logs for audit trail
-const emailLogEntries = agents.map(agent => ({
-  lead_id: lead.id,
-  agent_id: agent.id,
-  recipient_email: agent.email,
-  recipient_name: `${agent.first_name || ''} ${agent.last_name || ''}`.trim() || null,
-  subject: subject,
-  template_type: `escalating_alarm_t${targetLevel}`,
-  triggered_by: 'system',
-  trigger_reason: `Escalating alarm level ${targetLevel} - ${config.text}`,
-  status: 'sent',
-  resend_message_id: emailResult.id,
-  sent_at: now.toISOString(),
-}));
-
-const { error: logError } = await supabase
-  .from("crm_email_logs")
-  .insert(emailLogEntries);
-
-if (logError) {
-  console.error(`[send-escalating-alarms] Email log insert failed for lead ${lead.id} level ${targetLevel}:`, logError);
+if (agentsError || !agents?.length) {
+    console.warn(...);
+    continue;  // BUG: skips alarm level update
 }
 ```
 
-No other files or database changes are needed.
+Fix: When zero agents remain after filtering AND the admin fallback also yields zero (e.g., all inactive), still update `last_alarm_level` before continuing, so T+5 breach alert fires correctly.
 
+## Expected Outcome
+
+- Hans's inbox: ~100+ emails/day reduced to ~10-20/day
+- Polish leads: Hans still receives all notifications (only person available)
+- All other languages: only agents receive T+0 through T+4
+- T+5 breach alerts: unchanged, admins only
+- Form submissions and night holds: unchanged, admins only
