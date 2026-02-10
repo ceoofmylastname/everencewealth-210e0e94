@@ -124,6 +124,91 @@ export async function onRequest({ request, next, env }) {
     return withMiddlewareStatus(await next());
   }
 
+  // ============================================================
+  // Q&A SSR FALLBACK: Try static file first, then edge function
+  // Ensures crawlers always get full HTML even if static files
+  // are missing from deployment.
+  // ============================================================
+  const qaMatch = pathname.match(/^\/([a-z]{2})\/qa\/(.+)/);
+  if (qaMatch) {
+    const [, lang, slug] = qaMatch;
+
+    // 1. Try static file via next() (_redirects may resolve it)
+    const staticResponse = await next();
+    const staticClone = staticResponse.clone();
+    const staticBody = await staticClone.text();
+
+    // 2. Check if response is substantial HTML (not the empty SPA shell)
+    const isSubstantialHTML =
+      staticBody.includes('<!DOCTYPE html>') &&
+      !staticBody.includes('<div id="root"></div>') &&
+      staticBody.length > 5000;
+
+    if (isSubstantialHTML) {
+      console.log(`[Middleware] Q&A static file served: ${pathname}`);
+      const headers = new Headers(staticResponse.headers);
+      headers.set('X-Middleware-Status', 'Active');
+      headers.set('X-SEO-Source', 'static');
+      return new Response(staticBody, {
+        status: staticResponse.status,
+        statusText: staticResponse.statusText,
+        headers,
+      });
+    }
+
+    // 3. Static file missing/thin — call serve-seo-page edge function
+    console.log(`[Middleware] Q&A static missing for ${pathname}, trying SSR fallback`);
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 12000);
+
+      const ssrResponse = await fetch(
+        `${SUPABASE_URL}/functions/v1/serve-seo-page?path=${encodeURIComponent(pathname)}&html=true`,
+        {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+            'Content-Type': 'application/json',
+            'X-Original-URL': url.toString(),
+            'X-Forwarded-Host': url.host,
+          },
+          signal: controller.signal,
+        }
+      );
+      clearTimeout(timeoutId);
+
+      const ssrBody = await ssrResponse.text();
+
+      if (ssrResponse.ok && ssrBody.includes('<!DOCTYPE html>') && ssrBody.length > 1000) {
+        console.log(`[Middleware] Q&A SSR fallback success: ${pathname}`);
+        return new Response(ssrBody, {
+          status: 200,
+          headers: {
+            'Content-Type': 'text/html; charset=utf-8',
+            'Cache-Control': 'public, max-age=3600, s-maxage=3600',
+            'X-SEO-Source': 'edge-function-ssr',
+            'X-Robots-Tag': 'all',
+            'X-Middleware-Status': 'Active',
+          },
+        });
+      }
+
+      console.log(`[Middleware] Q&A SSR returned ${ssrResponse.status}, falling through to SPA`);
+    } catch (err) {
+      console.error(`[Middleware] Q&A SSR fallback error for ${pathname}:`, err?.message);
+    }
+
+    // 4. Both failed — serve original SPA response
+    const headers = new Headers(staticResponse.headers);
+    headers.set('X-Middleware-Status', 'Active');
+    headers.set('X-SEO-Source', 'spa-fallback');
+    return new Response(staticBody, {
+      status: staticResponse.status,
+      statusText: staticResponse.statusText,
+      headers,
+    });
+  }
+
   // Check if this route needs SEO
   if (needsSEO(pathname)) {
     console.log('[Middleware] Routing to SEO edge function:', pathname);
