@@ -722,12 +722,20 @@ serve(async (req) => {
       }
 
       // Filter agents who are under capacity
-      availableAgents = (roundAgents || []).filter(
+      const capacityFiltered = (roundAgents || []).filter(
         (agent: { current_lead_count: number; max_active_leads: number }) => 
           agent.current_lead_count < agent.max_active_leads
       );
 
-      console.log(`[register-crm-lead] Round 1 agents: ${availableAgents.length} available of ${roundConfig.agent_ids.length} configured`);
+      // Smart admin filtering: exclude admins unless they're the only ones available
+      const nonAdminAgents = capacityFiltered.filter((agent: { role: string }) => agent.role !== 'admin');
+      if (nonAdminAgents.length > 0) {
+        availableAgents = nonAdminAgents;
+        console.log(`[register-crm-lead] Round 1: Using ${nonAdminAgents.length} non-admin agents for ${language} lead`);
+      } else {
+        availableAgents = capacityFiltered;
+        console.warn(`[register-crm-lead] Round 1: No non-admin agents available for ${language}. Falling back to admins (${capacityFiltered.length}) to ensure notification.`);
+      }
     } else {
       // No round config - fall back to all language-matched agents
       console.log(`[register-crm-lead] No round robin config for ${language}, using language match`);
@@ -744,10 +752,20 @@ serve(async (req) => {
       }
 
       // Filter agents who are under capacity
-      availableAgents = (eligibleAgents || []).filter(
+      const capacityFiltered = (eligibleAgents || []).filter(
         (agent: { current_lead_count: number; max_active_leads: number }) => 
           agent.current_lead_count < agent.max_active_leads
       );
+
+      // Smart admin filtering: exclude admins unless they're the only ones available
+      const nonAdminAgents = capacityFiltered.filter((agent: { role: string }) => agent.role !== 'admin');
+      if (nonAdminAgents.length > 0) {
+        availableAgents = nonAdminAgents;
+        console.log(`[register-crm-lead] Language match: Using ${nonAdminAgents.length} non-admin agents for ${language}`);
+      } else {
+        availableAgents = capacityFiltered;
+        console.warn(`[register-crm-lead] Language match: No non-admin agents for ${language}. Falling back to admins (${capacityFiltered.length}).`);
+      }
     }
 
     console.log(`[register-crm-lead] Found ${availableAgents.length} eligible agents for ${language}`);

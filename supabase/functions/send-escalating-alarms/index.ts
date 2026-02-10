@@ -104,15 +104,31 @@ serve(async (req) => {
         }
 
         // Get agent details
-        const { data: agents, error: agentsError } = await supabase
+        const { data: allAgents, error: agentsError } = await supabase
           .from("crm_agents")
-          .select("id, email, first_name, last_name")
+          .select("id, email, first_name, last_name, role")
           .in("id", config.agent_ids)
           .eq("is_active", true);
 
-        if (agentsError || !agents?.length) {
-          console.warn(`[send-escalating-alarms] No active agents found for lead ${lead.id}`);
+        if (agentsError || !allAgents?.length) {
+          console.warn(`[send-escalating-alarms] No active agents found for lead ${lead.id}. Updating alarm level to ensure T+5 fires.`);
+          // Still update alarm level so escalation state machine progresses to T+5 breach
+          await supabase
+            .from("crm_leads")
+            .update({ last_alarm_level: level })
+            .eq("id", lead.id);
           continue;
+        }
+
+        // Smart admin filtering: exclude admins unless they're the only ones available
+        const nonAdminAgents = allAgents.filter((a) => a.role !== 'admin');
+        let agents;
+        if (nonAdminAgents.length > 0) {
+          agents = nonAdminAgents;
+          console.log(`[send-escalating-alarms] T+${level} for lead ${lead.id}: sending to ${agents.length} non-admin agents`);
+        } else {
+          agents = allAgents;
+          console.warn(`[send-escalating-alarms] T+${level} for lead ${lead.id}: No non-admin agents. Falling back to admins (${agents.length}).`);
         }
 
         alarmsToSend.push({ lead, targetLevel: level, agents });
