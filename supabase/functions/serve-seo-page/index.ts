@@ -12,7 +12,7 @@ const corsHeaders = {
 // TIMEOUT & CIRCUIT BREAKER CONFIGURATION
 // Prevents 504/524 errors from hanging database queries
 // ============================================================
-const QUERY_TIMEOUT = 10000 // 10 seconds max per database query
+const QUERY_TIMEOUT = 6000 // 6 seconds max per database query (reduced to force faster failures)
 const TOTAL_REQUEST_TIMEOUT = 20000 // 20 seconds max for entire request
 
 // Simple in-memory cache to reduce DB load (5-minute TTL)
@@ -94,8 +94,12 @@ function generateFallbackHTML(url: URL): string {
   const baseUrl = url.origin;
   const pathname = url.pathname;
   
+  // Extract language from URL path instead of hardcoding "en"
+  const langMatch = pathname.match(/^\/([a-z]{2})\//);
+  const lang = langMatch ? langMatch[1] : 'en';
+  
   return `<!DOCTYPE html>
-<html lang="en">
+<html lang="${lang}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -2430,13 +2434,19 @@ async function handleRequest(req: Request): Promise<Response> {
     hasEmptyContent = isEmptyContent(data?.detailed_content)
     contentField = 'detailed_content'
   } else if (contentType === 'qa') {
-    const { data } = await supabase
-      .from('qa_pages')
-      .select('answer_main')
-      .eq('slug', slug)
-      .eq('status', 'published')
-      .maybeSingle()
-    hasEmptyContent = isEmptyContent(data?.answer_main)
+    // Optimization: if metadata already has answer_main (from fetchQAMetadata),
+    // skip the redundant DB query to eliminate one round-trip
+    if (metadata?.answer_main !== undefined) {
+      hasEmptyContent = isEmptyContent(metadata.answer_main)
+    } else {
+      const { data } = await supabase
+        .from('qa_pages')
+        .select('answer_main')
+        .eq('slug', slug)
+        .eq('status', 'published')
+        .maybeSingle()
+      hasEmptyContent = isEmptyContent(data?.answer_main)
+    }
     contentField = 'answer_main'
   } else if (contentType === 'compare') {
     const { data } = await supabase
@@ -2591,7 +2601,7 @@ Deno.serve(async (req) => {
     // Wrap the request with 8-second timeout protection
     const result = await withTimeout(
       handleRequest(req),
-      8000, // 8 second timeout
+      15000, // 15 second timeout (increased from 8s for cold starts + multiple DB queries)
       fallbackResponse
     )
 
