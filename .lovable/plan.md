@@ -1,97 +1,166 @@
 
 
-# Phase 2: Night Release Triggers T+0 Broadcast
+# Phase 3: Blind Claiming -- Hide Lead Details Until Claimed
 
-## What Changes
+## Overview
 
-**File:** `supabase/functions/release-night-held-leads/index.ts`
+Three email templates need to be modified to remove personal lead information, replacing it with language/country-only info and a "claim to reveal" message. Two admin templates remain unchanged.
 
-The function already has most of the structure (per-lead loop, round robin config lookup, agent fetching, email sending). The changes are:
+## Templates to Modify
 
-### Change 1: Add claim timer fields to lead update (lines 75-82)
+### 1. T+0 Broadcast Template (send-lead-notification/index.ts)
 
-Add `claim_timer_started_at`, `last_alarm_level: 0`, and rename/add the correct claim expiry field. This enables the escalation state machine (T+1 through T+5) to kick in automatically via existing cron jobs.
+**Function:** `generateEmailHtml` (lines 97-112)
 
-**Before:**
-```typescript
-is_night_held: false,
-scheduled_release_at: null,
-lead_status: "new",
-current_round: 1,
-round_broadcast_at: new Date().toISOString(),
-claim_window_expires_at: new Date(Date.now() + claimWindowMinutes * 60 * 1000).toISOString(),
+**Current:** Shows name, phone, budget, country, location, timeframe, source, segment.
+
+**New template will show:**
+- Language badge (e.g., "FI") and country flag
+- Country/origin (flag + country name only, no phone prefix)
+- Lead segment badge (Hot/Warm/Cool)
+- "Claim this lead to view contact details" message
+- Claim button
+
+**Will NOT show:** Name, phone, email, budget, location, timeframe, source, message.
+
+### 2. T+1 through T+4 Escalation Template (send-escalating-alarms/index.ts)
+
+**Location:** Lines 168-262 (inline HTML in the main handler)
+
+**Current:** Shows name, phone, email, language, source, time elapsed.
+
+**New template will show:**
+- Alarm level header with urgency color (unchanged)
+- Language and country flag
+- Time elapsed and time remaining
+- "Claim to see full lead details" message
+- Claim button
+- Final warning banner at T+4 (unchanged text)
+
+**Will NOT show:** Name, phone, email, source.
+
+### 3. Form Submission Alert (send-lead-notification/index.ts)
+
+**Function:** `generateFormSubmissionAlertEmailHtml` (lines 206-258)
+
+**Current:** Shows name, phone, email, country, form data, UTM tracking to admins.
+
+**Decision:** This goes to admins only. Per the plan's guidance, admin emails should keep full details for oversight. However, the subject line currently contains the lead's name: `Form Submission: John Smith (Landing page fi) - FI`. This leaks the name.
+
+**Change:** Remove the lead name from the subject line only. Template body stays as-is since it goes to admins.
+
+**New subject:** `Form Submission (Landing page fi) - FI` (no name)
+
+### 4. Broadcast Subject Line (send-lead-notification/index.ts, line 439)
+
+Already generic: `CRM_NEW_LEAD_FI | New Finnish lead - call immediately`. No change needed.
+
+### 5. Urgent Template Subject (line 428)
+
+Currently: `URGENT LEAD: John Smith - Budget`. This leaks the name.
+
+**New subject:** `CRM_URGENT_LEAD_{LANG} | Urgent {LangName} lead - action required`
+
+## Templates NOT Modified (Admin-Only)
+
+- `generateAdminUnclaimedEmailHtml` -- T+5 breach, keeps all details
+- `generateSlaWarningEmailHtml` -- Contact SLA breach, keeps all details
+- `generateNightHoldAlertEmailHtml` -- Dead code after Phase 1, no change needed
+
+## Detailed Changes
+
+### File 1: supabase/functions/send-lead-notification/index.ts
+
+**Change A -- Replace `generateEmailHtml` function (lines 97-112)**
+
+New function generates a clean "blind claim" template showing only:
+- Gold header: "{flag} New Lead Available!"
+- Claim window timer bar
+- Escalating reminders notice
+- Greeting with agent name
+- Info box with: Language badge, country flag/name, segment badge
+- Warning box: "Claim this lead now to view contact details"
+- Gold CTA button: "Claim This Lead Now"
+- Footer explanation about blind claiming
+
+**Change B -- Update urgent email subject (line 428)**
+
+Remove lead name and budget from subject. Use deterministic format matching the CRM standard.
+
+**Change C -- Update form submission subject (line 418)**
+
+Remove lead name from subject line.
+
+### File 2: supabase/functions/send-escalating-alarms/index.ts
+
+**Change D -- Replace lead details table in email HTML (lines 196-223)**
+
+Replace the 6-row details table (Name, Phone, Email, Language, Source, Time Elapsed) with a 3-row table (Language, Country, Time Elapsed). Remove name, phone, email, and source.
+
+## What Agents Will See
+
+**T+0 Broadcast email:**
+```
+Subject: CRM_NEW_LEAD_FI | New Finnish lead - call immediately
+
+[Gold Header]
+New Lead Available!
+Claim this lead before it's gone
+
+[Timer Bar]
+You have 5 minutes to claim this lead
+
+[Body]
+Hi Juho,
+
+A new FI lead matching your profile is available for claiming:
+
+  Language: FI
+  Country: Finland
+  Segment: New
+
+  Claim this lead now to view contact details and get started!
+  Lead details will be revealed after you claim it.
+
+  [CLAIM THIS LEAD NOW]
+
+  First agent to claim gets the lead.
+  Personal information is only shown after claiming.
 ```
 
-**After:**
-```typescript
-is_night_held: false,
-scheduled_release_at: null,
-lead_status: "new",
-current_round: 1,
-round_broadcast_at: new Date().toISOString(),
-claim_window_expires_at: new Date(Date.now() + claimWindowMinutes * 60 * 1000).toISOString(),
-claim_timer_started_at: new Date().toISOString(),
-last_alarm_level: 0,
+**T+2 Escalation email:**
+```
+Subject: CRM_NEW_LEAD_FI_T2 | Reminder 2 - SLA running (2 min)
+
+[Orange Header]
+WARNING - 2 MIN PASSED
+Lead still unclaimed after 2 minutes!
+
+[Body]
+  Language: FI
+  Country: Finland
+  Time Elapsed: 2 minutes
+
+  [CLAIM THIS LEAD NOW]
+
+  Time remaining: 3 minutes
 ```
 
-### Change 2: Add smart admin filtering to agent selection (lines 93-118)
+## Summary of All Edits
 
-Apply the same smart fallback logic from Phase 1: filter out admins unless they are the only agents available. This affects both the round-robin path and the language-match fallback path.
-
-**Round-robin path (lines 101-104):** After the capacity filter, split into non-admin vs all, use non-admins if available.
-
-**Language-match fallback (lines 114-117):** Same pattern.
-
-### Change 3: Update email payload to use broadcast format (lines 136-148)
-
-The current call passes `{ lead, agents, claimWindowMinutes, isNightRelease: true }` which doesn't set `notification_type`, so it defaults to `broadcast` -- this is actually correct. However, to be explicit:
-
-**Before:**
-```typescript
-body: JSON.stringify({
-  lead,
-  agents: availableAgents,
-  claimWindowMinutes,
-  isNightRelease: true,
-}),
-```
-
-**After:**
-```typescript
-body: JSON.stringify({
-  lead,
-  agents: availableAgents,
-  claimWindowMinutes,
-  notification_type: "broadcast",
-}),
-```
-
-This ensures the deterministic subject line `CRM_NEW_LEAD_FI | New Finnish lead - call immediately` is used instead of a night-release specific format.
+| File | Lines | Change |
+|------|-------|--------|
+| send-lead-notification/index.ts | 97-112 | Replace `generateEmailHtml` with blind-claim template |
+| send-lead-notification/index.ts | 418 | Remove lead name from form submission subject |
+| send-lead-notification/index.ts | 428 | Remove lead name/budget from urgent subject |
+| send-escalating-alarms/index.ts | 196-223 | Remove name/phone/email/source from escalation email body |
 
 ## What Stays the Same
 
-- The query to find held leads (lines 34-39) -- unchanged
-- The round robin config lookup per lead (lines 62-68) -- unchanged
-- The in-app notification creation (lines 122-132) -- unchanged
-- The activity log entry (lines 158-165) -- unchanged
-- The overall per-lead loop structure -- unchanged
+- All subject line formats for T+0 broadcast and T+1-T+4 escalations (already generic)
+- Admin breach alert emails (T+5 unclaimed and contact SLA) keep full details
+- Form submission alert email body keeps full details (admin-only)
+- Night hold alert template (dead code, no change)
+- Claim URL logic and CRM dashboard (already shows full details after claiming)
+- Email logging and audit trail
 
-## Summary of All Modifications
-
-| Line Range | Change |
-|---|---|
-| 75-82 | Add `claim_timer_started_at` and `last_alarm_level: 0` to update |
-| 101-104 | Smart admin filtering on round-robin agents |
-| 114-117 | Smart admin filtering on language-match agents |
-| 142-147 | Set `notification_type: "broadcast"` explicitly, remove `isNightRelease` |
-
-## Expected Behavior
-
-After-hours lead arrives at 22:00 and is silently held (Phase 1). At 09:00, the cron job:
-
-1. Sets `claim_timer_started_at = 09:00`, `last_alarm_level = 0`
-2. Sends T+0 broadcast email with subject `CRM_NEW_LEAD_FI | New Finnish lead - call immediately`
-3. Existing `send-escalating-alarms` cron picks up leads with `last_alarm_level = 0` at 09:01 and fires T+1, then T+2, T+3, T+4 automatically
-4. If unclaimed by 09:05, `check-claim-window-expiry` fires T+5 admin breach alert
-
-Multiple held leads all release and broadcast simultaneously at 09:00.
