@@ -123,6 +123,12 @@ const LinkAudit = lazy(() => import("./pages/admin/LinkAudit"));
 const CrawlabilityTest = lazy(() => import("./pages/admin/CrawlabilityTest"));
 const ApartmentsPageContent = lazy(() => import("./pages/admin/ApartmentsPageContent"));
 const ApartmentsProperties = lazy(() => import("./pages/admin/ApartmentsProperties"));
+const ApartmentsEditorManager = lazy(() => import("./pages/admin/ApartmentsEditorManager"));
+const ApartmentsAuth = lazy(() => import("./pages/ApartmentsAuth"));
+
+// Inner components for apartments editor layout (no AdminLayout wrapper)
+import { ApartmentsPageContentInner } from "./pages/admin/ApartmentsPageContent";
+import { ApartmentsPropertiesInner } from "./pages/admin/ApartmentsProperties";
 
 // CRM Pages
 const AgentLogin = lazy(() => import("./pages/crm/AgentLogin"));
@@ -139,6 +145,8 @@ import { CrmAgentLayout } from "@/components/crm/CrmAgentLayout";
 import { CrmAgentRoute } from "@/components/crm/CrmAgentRoute";
 import { CrmAdminRoute } from "@/components/crm/CrmAdminRoute";
 import { CrmAdminLayout } from "@/components/crm/CrmAdminLayout";
+import { ApartmentsEditorRoute } from "@/components/ApartmentsEditorRoute";
+import { ApartmentsEditorLayout } from "@/components/ApartmentsEditorLayout";
 const CrmDashboard = lazy(() => import("./pages/crm/admin/CrmDashboard"));
 const CrmAnalytics = lazy(() => import("./pages/crm/admin/CrmAnalytics"));
 const CrmAgentManagement = lazy(() => import("./pages/crm/admin/AgentManagement"));
@@ -264,6 +272,17 @@ const App = () => (
               <Route path="/admin/crawlability-test" element={<ProtectedRoute><CrawlabilityTest /></ProtectedRoute>} />
               <Route path="/admin/apartments-content" element={<ProtectedRoute><ApartmentsPageContent /></ProtectedRoute>} />
               <Route path="/admin/apartments-properties" element={<ProtectedRoute><ApartmentsProperties /></ProtectedRoute>} />
+              <Route path="/admin/apartments-editors" element={<ProtectedRoute><ApartmentsEditorManager /></ProtectedRoute>} />
+
+              {/* Apartments Editor Login (public) */}
+              <Route path="/apartments/login" element={<ApartmentsAuth />} />
+
+              {/* Apartments Editor Protected Routes */}
+              <Route path="/apartments/dashboard" element={<ApartmentsEditorRoute><ApartmentsEditorLayout /></ApartmentsEditorRoute>}>
+                <Route path="content" element={<ApartmentsPageContentInner />} />
+                <Route path="properties" element={<ApartmentsPropertiesInner />} />
+                <Route index element={<Navigate to="content" replace />} />
+              </Route>
 
               {/* Standalone Property Management Page */}
               <Route path="/add-property" element={<ProtectedRoute><AddProperty /></ProtectedRoute>} />

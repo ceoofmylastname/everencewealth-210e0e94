@@ -68,6 +68,7 @@ const navGroups = [
     items: [
       { name: "Page Content", href: "/admin/apartments-content", icon: FileText },
       { name: "Properties", href: "/admin/apartments-properties", icon: Building2 },
+      { name: "Editors", href: "/admin/apartments-editors", icon: Users },
     ],
   },
   {
