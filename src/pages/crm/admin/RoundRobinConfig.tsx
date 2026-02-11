@@ -81,7 +81,7 @@ const LANGUAGES = [
   { code: "fi", name: "Finnish" },
   { code: "pl", name: "Polish" },
   { code: "de", name: "German" },
-  { code: "es", name: "Spanish" },
+  { code: "no", name: "Norwegian" },
   { code: "sv", name: "Swedish" },
   { code: "da", name: "Danish" },
   { code: "hu", name: "Hungarian" },
