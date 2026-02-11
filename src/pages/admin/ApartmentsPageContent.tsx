@@ -48,7 +48,7 @@ const emptyContent = (lang: string): PageContent => ({
   is_published: false,
 });
 
-const ApartmentsPageContent = () => {
+export const ApartmentsPageContentInner = () => {
   const [selectedLang, setSelectedLang] = useState("en");
   const [content, setContent] = useState<PageContent>(emptyContent("en"));
   const [loading, setLoading] = useState(false);
@@ -127,93 +127,94 @@ const ApartmentsPageContent = () => {
   };
 
   return (
-    <AdminLayout>
-      <div className="p-6 space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold">Apartments Page Content</h1>
-          <Button onClick={handleSave} disabled={saving}>
-            {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
-            Save
-          </Button>
-        </div>
-
-        <Tabs value={selectedLang} onValueChange={setSelectedLang}>
-          <TabsList className="flex-wrap">
-            {LANGUAGES.map(lang => (
-              <TabsTrigger key={lang} value={lang}>{lang.toUpperCase()}</TabsTrigger>
-            ))}
-          </TabsList>
-
-          {LANGUAGES.map(lang => (
-            <TabsContent key={lang} value={lang}>
-              {loading ? (
-                <div className="flex justify-center py-12"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground" /></div>
-              ) : (
-                <div className="grid gap-6">
-                  {/* Hero Section */}
-                  <Card>
-                    <CardHeader><CardTitle>Hero Section</CardTitle></CardHeader>
-                    <CardContent className="space-y-4">
-                      <div><Label>Headline</Label><Input value={content.headline} onChange={e => update("headline", e.target.value)} /></div>
-                      <div><Label>Subheadline</Label><Textarea value={content.subheadline} onChange={e => update("subheadline", e.target.value)} /></div>
-                      <div><Label>CTA Text</Label><Input value={content.cta_text} onChange={e => update("cta_text", e.target.value)} /></div>
-                      <div><Label>Hero Image URL</Label><Input value={content.hero_image_url} onChange={e => update("hero_image_url", e.target.value)} /></div>
-                      {content.hero_image_url && (
-                        <img src={content.hero_image_url} alt="Preview" className="h-32 rounded-lg object-cover" />
-                      )}
-                      <div><Label>Hero Image Alt</Label><Input value={content.hero_image_alt} onChange={e => update("hero_image_alt", e.target.value)} /></div>
-                    </CardContent>
-                  </Card>
-
-                  {/* Video Section */}
-                  <Card>
-                    <CardHeader><CardTitle>Video Section</CardTitle></CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="flex items-center gap-2">
-                        <Switch checked={content.video_enabled} onCheckedChange={v => update("video_enabled", v)} />
-                        <Label>Video Enabled</Label>
-                      </div>
-                      <div><Label>Video URL</Label><Input value={content.video_url} onChange={e => update("video_url", e.target.value)} /></div>
-                      <div><Label>Video Thumbnail URL</Label><Input value={content.video_thumbnail_url} onChange={e => update("video_thumbnail_url", e.target.value)} /></div>
-                    </CardContent>
-                  </Card>
-
-                  {/* Reviews Section */}
-                  <Card>
-                    <CardHeader><CardTitle>Reviews Section</CardTitle></CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="flex items-center gap-2">
-                        <Switch checked={content.reviews_enabled} onCheckedChange={v => update("reviews_enabled", v)} />
-                        <Label>Reviews Enabled</Label>
-                      </div>
-                      <div><Label>Elfsight Widget ID</Label><Input value={content.elfsight_widget_id} onChange={e => update("elfsight_widget_id", e.target.value)} /></div>
-                    </CardContent>
-                  </Card>
-
-                  {/* SEO Section */}
-                  <Card>
-                    <CardHeader><CardTitle>SEO</CardTitle></CardHeader>
-                    <CardContent className="space-y-4">
-                      <div><Label>Meta Title</Label><Input value={content.meta_title} onChange={e => update("meta_title", e.target.value)} /></div>
-                      <div><Label>Meta Description</Label><Textarea value={content.meta_description} onChange={e => update("meta_description", e.target.value)} /></div>
-                    </CardContent>
-                  </Card>
-
-                  {/* Publish */}
-                  <Card>
-                    <CardContent className="pt-6">
-                      <div className="flex items-center gap-2">
-                        <Switch checked={content.is_published} onCheckedChange={v => update("is_published", v)} />
-                        <Label>Published</Label>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              )}
-            </TabsContent>
-          ))}
-        </Tabs>
+    <div className="p-6 space-y-6">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold">Apartments Page Content</h1>
+        <Button onClick={handleSave} disabled={saving}>
+          {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
+          Save
+        </Button>
       </div>
+
+      <Tabs value={selectedLang} onValueChange={setSelectedLang}>
+        <TabsList className="flex-wrap">
+          {LANGUAGES.map(lang => (
+            <TabsTrigger key={lang} value={lang}>{lang.toUpperCase()}</TabsTrigger>
+          ))}
+        </TabsList>
+
+        {LANGUAGES.map(lang => (
+          <TabsContent key={lang} value={lang}>
+            {loading ? (
+              <div className="flex justify-center py-12"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground" /></div>
+            ) : (
+              <div className="grid gap-6">
+                <Card>
+                  <CardHeader><CardTitle>Hero Section</CardTitle></CardHeader>
+                  <CardContent className="space-y-4">
+                    <div><Label>Headline</Label><Input value={content.headline} onChange={e => update("headline", e.target.value)} /></div>
+                    <div><Label>Subheadline</Label><Textarea value={content.subheadline} onChange={e => update("subheadline", e.target.value)} /></div>
+                    <div><Label>CTA Text</Label><Input value={content.cta_text} onChange={e => update("cta_text", e.target.value)} /></div>
+                    <div><Label>Hero Image URL</Label><Input value={content.hero_image_url} onChange={e => update("hero_image_url", e.target.value)} /></div>
+                    {content.hero_image_url && (
+                      <img src={content.hero_image_url} alt="Preview" className="h-32 rounded-lg object-cover" />
+                    )}
+                    <div><Label>Hero Image Alt</Label><Input value={content.hero_image_alt} onChange={e => update("hero_image_alt", e.target.value)} /></div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader><CardTitle>Video Section</CardTitle></CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex items-center gap-2">
+                      <Switch checked={content.video_enabled} onCheckedChange={v => update("video_enabled", v)} />
+                      <Label>Video Enabled</Label>
+                    </div>
+                    <div><Label>Video URL</Label><Input value={content.video_url} onChange={e => update("video_url", e.target.value)} /></div>
+                    <div><Label>Video Thumbnail URL</Label><Input value={content.video_thumbnail_url} onChange={e => update("video_thumbnail_url", e.target.value)} /></div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader><CardTitle>Reviews Section</CardTitle></CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex items-center gap-2">
+                      <Switch checked={content.reviews_enabled} onCheckedChange={v => update("reviews_enabled", v)} />
+                      <Label>Reviews Enabled</Label>
+                    </div>
+                    <div><Label>Elfsight Widget ID</Label><Input value={content.elfsight_widget_id} onChange={e => update("elfsight_widget_id", e.target.value)} /></div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader><CardTitle>SEO</CardTitle></CardHeader>
+                  <CardContent className="space-y-4">
+                    <div><Label>Meta Title</Label><Input value={content.meta_title} onChange={e => update("meta_title", e.target.value)} /></div>
+                    <div><Label>Meta Description</Label><Textarea value={content.meta_description} onChange={e => update("meta_description", e.target.value)} /></div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardContent className="pt-6">
+                    <div className="flex items-center gap-2">
+                      <Switch checked={content.is_published} onCheckedChange={v => update("is_published", v)} />
+                      <Label>Published</Label>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+          </TabsContent>
+        ))}
+      </Tabs>
+    </div>
+  );
+};
+
+const ApartmentsPageContent = () => {
+  return (
+    <AdminLayout>
+      <ApartmentsPageContentInner />
     </AdminLayout>
   );
 };

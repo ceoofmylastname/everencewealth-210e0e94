@@ -59,7 +59,7 @@ const emptyProperty = (lang: string): Omit<Property, "id" | "views" | "inquiries
   featured: false,
 });
 
-const ApartmentsProperties = () => {
+export const ApartmentsPropertiesInner = () => {
   const [lang, setLang] = useState("en");
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(false);
@@ -166,152 +166,158 @@ const ApartmentsProperties = () => {
   const fmt = (n: number) => new Intl.NumberFormat("de-DE", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(n);
 
   return (
-    <AdminLayout>
-      <div className="p-6 space-y-6">
-        <div className="flex items-center justify-between flex-wrap gap-4">
-          <h1 className="text-2xl font-bold">Apartments Properties</h1>
-          <div className="flex items-center gap-3">
-            <Select value={lang} onValueChange={setLang}>
-              <SelectTrigger className="w-24"><SelectValue /></SelectTrigger>
-              <SelectContent>{LANGUAGES.map(l => <SelectItem key={l} value={l}>{l.toUpperCase()}</SelectItem>)}</SelectContent>
-            </Select>
-            <Button onClick={openAdd}><Plus className="h-4 w-4 mr-2" />Add Property</Button>
-          </div>
+    <div className="p-6 space-y-6">
+      <div className="flex items-center justify-between flex-wrap gap-4">
+        <h1 className="text-2xl font-bold">Apartments Properties</h1>
+        <div className="flex items-center gap-3">
+          <Select value={lang} onValueChange={setLang}>
+            <SelectTrigger className="w-24"><SelectValue /></SelectTrigger>
+            <SelectContent>{LANGUAGES.map(l => <SelectItem key={l} value={l}>{l.toUpperCase()}</SelectItem>)}</SelectContent>
+          </Select>
+          <Button onClick={openAdd}><Plus className="h-4 w-4 mr-2" />Add Property</Button>
         </div>
+      </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-3 gap-4">
-          <Card><CardContent className="pt-6 text-center"><p className="text-sm text-muted-foreground">Properties</p><p className="text-2xl font-bold">{properties.length}</p></CardContent></Card>
-          <Card><CardContent className="pt-6 text-center"><p className="text-sm text-muted-foreground">Total Views</p><p className="text-2xl font-bold flex items-center justify-center gap-1"><Eye className="h-4 w-4" />{totalViews}</p></CardContent></Card>
-          <Card><CardContent className="pt-6 text-center"><p className="text-sm text-muted-foreground">Total Inquiries</p><p className="text-2xl font-bold flex items-center justify-center gap-1"><MessageCircle className="h-4 w-4" />{totalInquiries}</p></CardContent></Card>
-        </div>
+      {/* Stats */}
+      <div className="grid grid-cols-3 gap-4">
+        <Card><CardContent className="pt-6 text-center"><p className="text-sm text-muted-foreground">Properties</p><p className="text-2xl font-bold">{properties.length}</p></CardContent></Card>
+        <Card><CardContent className="pt-6 text-center"><p className="text-sm text-muted-foreground">Total Views</p><p className="text-2xl font-bold flex items-center justify-center gap-1"><Eye className="h-4 w-4" />{totalViews}</p></CardContent></Card>
+        <Card><CardContent className="pt-6 text-center"><p className="text-sm text-muted-foreground">Total Inquiries</p><p className="text-2xl font-bold flex items-center justify-center gap-1"><MessageCircle className="h-4 w-4" />{totalInquiries}</p></CardContent></Card>
+      </div>
 
-        {/* Table */}
-        {loading ? (
-          <div className="flex justify-center py-12"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground" /></div>
-        ) : (
-          <Card>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Title</TableHead>
-                  <TableHead>Location</TableHead>
-                  <TableHead>Price</TableHead>
-                  <TableHead>Beds</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Visible</TableHead>
-                  <TableHead>Views</TableHead>
-                  <TableHead>Inquiries</TableHead>
-                  <TableHead>Actions</TableHead>
+      {/* Table */}
+      {loading ? (
+        <div className="flex justify-center py-12"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground" /></div>
+      ) : (
+        <Card>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Title</TableHead>
+                <TableHead>Location</TableHead>
+                <TableHead>Price</TableHead>
+                <TableHead>Beds</TableHead>
+                <TableHead>Type</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Visible</TableHead>
+                <TableHead>Views</TableHead>
+                <TableHead>Inquiries</TableHead>
+                <TableHead>Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {properties.length === 0 ? (
+                <TableRow><TableCell colSpan={10} className="text-center text-muted-foreground py-8">No properties for {lang.toUpperCase()}</TableCell></TableRow>
+              ) : properties.map(p => (
+                <TableRow key={p.id}>
+                  <TableCell className="font-medium">{p.title}</TableCell>
+                  <TableCell>{p.location}</TableCell>
+                  <TableCell>{fmt(p.price)}</TableCell>
+                  <TableCell>{p.bedrooms}</TableCell>
+                  <TableCell>{p.property_type}</TableCell>
+                  <TableCell>{p.status}</TableCell>
+                  <TableCell><Switch checked={p.visible} onCheckedChange={() => toggleVisible(p.id, p.visible)} /></TableCell>
+                  <TableCell>{p.views || 0}</TableCell>
+                  <TableCell>{p.inquiries || 0}</TableCell>
+                  <TableCell className="flex gap-1">
+                    <Button size="icon" variant="ghost" onClick={() => openEdit(p)}><Pencil className="h-4 w-4" /></Button>
+                    <Button size="icon" variant="ghost" onClick={() => setDeleteId(p.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                  </TableCell>
                 </TableRow>
-              </TableHeader>
-              <TableBody>
-                {properties.length === 0 ? (
-                  <TableRow><TableCell colSpan={10} className="text-center text-muted-foreground py-8">No properties for {lang.toUpperCase()}</TableCell></TableRow>
-                ) : properties.map(p => (
-                  <TableRow key={p.id}>
-                    <TableCell className="font-medium">{p.title}</TableCell>
-                    <TableCell>{p.location}</TableCell>
-                    <TableCell>{fmt(p.price)}</TableCell>
-                    <TableCell>{p.bedrooms}</TableCell>
-                    <TableCell>{p.property_type}</TableCell>
-                    <TableCell>{p.status}</TableCell>
-                    <TableCell><Switch checked={p.visible} onCheckedChange={() => toggleVisible(p.id, p.visible)} /></TableCell>
-                    <TableCell>{p.views || 0}</TableCell>
-                    <TableCell>{p.inquiries || 0}</TableCell>
-                    <TableCell className="flex gap-1">
-                      <Button size="icon" variant="ghost" onClick={() => openEdit(p)}><Pencil className="h-4 w-4" /></Button>
-                      <Button size="icon" variant="ghost" onClick={() => setDeleteId(p.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </Card>
-        )}
+              ))}
+            </TableBody>
+          </Table>
+        </Card>
+      )}
 
-        {/* Add/Edit Dialog */}
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
-            <DialogHeader><DialogTitle>{editingId ? "Edit Property" : "Add Property"}</DialogTitle></DialogHeader>
-            <div className="grid gap-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div><Label>Title *</Label><Input value={form.title} onChange={e => updateForm("title", e.target.value)} /></div>
-                <div><Label>Slug</Label><Input value={form.slug} onChange={e => updateForm("slug", e.target.value)} /></div>
+      {/* Add/Edit Dialog */}
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader><DialogTitle>{editingId ? "Edit Property" : "Add Property"}</DialogTitle></DialogHeader>
+          <div className="grid gap-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div><Label>Title *</Label><Input value={form.title} onChange={e => updateForm("title", e.target.value)} /></div>
+              <div><Label>Slug</Label><Input value={form.slug} onChange={e => updateForm("slug", e.target.value)} /></div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div><Label>Location *</Label><Input value={form.location} onChange={e => updateForm("location", e.target.value)} /></div>
+              <div><Label>Price (€)</Label><Input type="number" value={form.price} onChange={e => updateForm("price", Number(e.target.value))} /></div>
+            </div>
+            <div className="grid grid-cols-3 gap-4">
+              <div><Label>Bedrooms</Label><Input type="number" value={form.bedrooms} onChange={e => updateForm("bedrooms", Number(e.target.value))} /></div>
+              <div><Label>Bathrooms</Label><Input type="number" value={form.bathrooms} onChange={e => updateForm("bathrooms", Number(e.target.value))} /></div>
+              <div><Label>SQM</Label><Input type="number" value={form.sqm} onChange={e => updateForm("sqm", Number(e.target.value))} /></div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Property Type</Label>
+                <Select value={form.property_type} onValueChange={v => updateForm("property_type", v)}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="apartment">Apartment</SelectItem>
+                    <SelectItem value="penthouse">Penthouse</SelectItem>
+                    <SelectItem value="studio">Studio</SelectItem>
+                    <SelectItem value="duplex">Duplex</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div><Label>Location *</Label><Input value={form.location} onChange={e => updateForm("location", e.target.value)} /></div>
-                <div><Label>Price (€)</Label><Input type="number" value={form.price} onChange={e => updateForm("price", Number(e.target.value))} /></div>
-              </div>
-              <div className="grid grid-cols-3 gap-4">
-                <div><Label>Bedrooms</Label><Input type="number" value={form.bedrooms} onChange={e => updateForm("bedrooms", Number(e.target.value))} /></div>
-                <div><Label>Bathrooms</Label><Input type="number" value={form.bathrooms} onChange={e => updateForm("bathrooms", Number(e.target.value))} /></div>
-                <div><Label>SQM</Label><Input type="number" value={form.sqm} onChange={e => updateForm("sqm", Number(e.target.value))} /></div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label>Property Type</Label>
-                  <Select value={form.property_type} onValueChange={v => updateForm("property_type", v)}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="apartment">Apartment</SelectItem>
-                      <SelectItem value="penthouse">Penthouse</SelectItem>
-                      <SelectItem value="studio">Studio</SelectItem>
-                      <SelectItem value="duplex">Duplex</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label>Status</Label>
-                  <Select value={form.status} onValueChange={v => updateForm("status", v)}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="available">Available</SelectItem>
-                      <SelectItem value="reserved">Reserved</SelectItem>
-                      <SelectItem value="sold">Sold</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <div><Label>Short Description</Label><Input value={form.short_description} onChange={e => updateForm("short_description", e.target.value)} /></div>
-              <div><Label>Description</Label><Textarea value={form.description} onChange={e => updateForm("description", e.target.value)} rows={4} /></div>
-              <div className="grid grid-cols-2 gap-4">
-                <div><Label>Featured Image URL</Label><Input value={form.featured_image_url} onChange={e => updateForm("featured_image_url", e.target.value)} /></div>
-                <div><Label>Image Alt</Label><Input value={form.featured_image_alt} onChange={e => updateForm("featured_image_alt", e.target.value)} /></div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div><Label>Display Order</Label><Input type="number" value={form.display_order} onChange={e => updateForm("display_order", Number(e.target.value))} /></div>
-              </div>
-              <div className="flex gap-6">
-                <div className="flex items-center gap-2"><Switch checked={form.visible} onCheckedChange={v => updateForm("visible", v)} /><Label>Visible</Label></div>
-                <div className="flex items-center gap-2"><Switch checked={form.featured} onCheckedChange={v => updateForm("featured", v)} /><Label>Featured</Label></div>
+              <div>
+                <Label>Status</Label>
+                <Select value={form.status} onValueChange={v => updateForm("status", v)}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="available">Available</SelectItem>
+                    <SelectItem value="reserved">Reserved</SelectItem>
+                    <SelectItem value="sold">Sold</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
-              <Button onClick={handleSave} disabled={saving}>
-                {saving && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
-                {editingId ? "Update" : "Create"}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+            <div><Label>Short Description</Label><Input value={form.short_description} onChange={e => updateForm("short_description", e.target.value)} /></div>
+            <div><Label>Description</Label><Textarea value={form.description} onChange={e => updateForm("description", e.target.value)} rows={4} /></div>
+            <div className="grid grid-cols-2 gap-4">
+              <div><Label>Featured Image URL</Label><Input value={form.featured_image_url} onChange={e => updateForm("featured_image_url", e.target.value)} /></div>
+              <div><Label>Image Alt</Label><Input value={form.featured_image_alt} onChange={e => updateForm("featured_image_alt", e.target.value)} /></div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div><Label>Display Order</Label><Input type="number" value={form.display_order} onChange={e => updateForm("display_order", Number(e.target.value))} /></div>
+            </div>
+            <div className="flex gap-6">
+              <div className="flex items-center gap-2"><Switch checked={form.visible} onCheckedChange={v => updateForm("visible", v)} /><Label>Visible</Label></div>
+              <div className="flex items-center gap-2"><Switch checked={form.featured} onCheckedChange={v => updateForm("featured", v)} /><Label>Featured</Label></div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
+            <Button onClick={handleSave} disabled={saving}>
+              {saving && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+              {editingId ? "Update" : "Create"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
-        {/* Delete Confirmation */}
-        <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Delete Property?</AlertDialogTitle>
-              <AlertDialogDescription>This action cannot be undone.</AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={handleDelete}>Delete</AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      </div>
+      {/* Delete Confirmation */}
+      <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Property?</AlertDialogTitle>
+            <AlertDialogDescription>This action cannot be undone.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete}>Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  );
+};
+
+const ApartmentsProperties = () => {
+  return (
+    <AdminLayout>
+      <ApartmentsPropertiesInner />
     </AdminLayout>
   );
 };
