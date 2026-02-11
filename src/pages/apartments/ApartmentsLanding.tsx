@@ -5,7 +5,7 @@ import ApartmentsHero from '@/components/apartments/ApartmentsHero';
 import ApartmentsPropertiesSection from '@/components/apartments/ApartmentsPropertiesSection';
 import ApartmentsLeadFormModal from '@/components/apartments/ApartmentsLeadFormModal';
 import ExplainerVideo from '@/components/landing/ExplainerVideo';
-import Footer from '@/components/landing/Footer';
+import { Footer } from '@/components/home/Footer';
 import LanguageSelector from '@/components/landing/LanguageSelector';
 import { LanguageCode } from '@/utils/landing/languageDetection';
 import { supabase } from '@/integrations/supabase/client';
