@@ -269,6 +269,7 @@ interface PageMetadata {
   location_overview?: string     // Location pages
   read_time?: number             // For blogs
   author_bio?: string            // Author info
+  internal_links?: Array<{ text: string; url: string; title?: string; funnelStage?: string }>
 }
 
 // Result type for metadata with potential redirect (language mismatch handling)
@@ -300,7 +301,7 @@ async function fetchQAMetadata(supabase: any, slug: string, lang: string): Promi
   // First try: exact match (slug + language)
   const { data: exactMatch, error: exactError } = await supabase
     .from('qa_pages')
-    .select('language, slug, question_main, answer_main, speakable_answer, meta_title, meta_description, canonical_url, featured_image_url, featured_image_alt, date_published, date_modified, hreflang_group_id, related_qas, translations, title')
+    .select('language, slug, question_main, answer_main, speakable_answer, meta_title, meta_description, canonical_url, featured_image_url, featured_image_alt, date_published, date_modified, hreflang_group_id, related_qas, translations, title, internal_links')
     .eq('slug', slug)
     .eq('language', lang)
     .eq('status', 'published')
@@ -323,6 +324,7 @@ async function fetchQAMetadata(supabase: any, slug: string, lang: string): Promi
         qa_entities: exactMatch.related_qas,
         content_type: 'qa',
         answer_main: exactMatch.answer_main,
+        internal_links: exactMatch.internal_links,
       }
     }
   }
@@ -383,6 +385,7 @@ async function fetchBlogMetadata(supabase: any, slug: string, lang: string): Pro
         detailed_content: exactMatch.detailed_content,
         read_time: exactMatch.read_time,
         author_bio: exactMatch.author_bio_localized,
+        internal_links: exactMatch.internal_links,
       }
     }
   }
@@ -1646,6 +1649,44 @@ function generateSSRStyles(): string {
         line-height: 1.7;
       }
       
+      /* Internal Links Section */
+      .internal-links-section {
+        margin: 2rem 0;
+        padding: 1.5rem 2rem;
+        border: 1px solid hsl(220 15% 85%);
+        border-radius: 12px;
+        background: hsl(220 20% 97%);
+      }
+      .internal-links-section h3 {
+        font-size: 1.15rem;
+        font-weight: 600;
+        margin: 0 0 1rem 0;
+        color: hsl(220 25% 20%);
+      }
+      .internal-links-section ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+      .internal-links-section li a {
+        color: hsl(var(--prime-700, 210 70% 45%));
+        text-decoration: none;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+      }
+      .internal-links-section li a::before {
+        content: '→';
+        font-size: 0.9em;
+      }
+      .internal-links-section li a:hover {
+        text-decoration: underline;
+      }
+
       /* CTA Section */
       .cta-section { 
         background: linear-gradient(135deg, hsl(var(--prime-950)) 0%, hsl(220 25% 15%) 100%);
@@ -1873,6 +1914,15 @@ function generateArticleBody(metadata: PageMetadata): string {
         ${metadata.content_type === 'qa' ? '</div>' : ''}
         
         ${faqSection}
+        
+        ${metadata.internal_links && Array.isArray(metadata.internal_links) && metadata.internal_links.length > 0 ? `
+        <nav class="internal-links-section" aria-label="Related articles">
+          <h3>${metadata.language === 'es' ? 'Lectura relacionada' : metadata.language === 'fi' ? 'Aiheeseen liittyvää' : metadata.language === 'sv' ? 'Relaterad läsning' : metadata.language === 'de' ? 'Weiterführende Artikel' : metadata.language === 'fr' ? 'Articles connexes' : metadata.language === 'nl' ? 'Gerelateerde artikelen' : metadata.language === 'da' ? 'Relateret læsning' : metadata.language === 'nb' ? 'Relatert lesning' : metadata.language === 'ru' ? 'Похожие статьи' : metadata.language === 'pt' ? 'Leitura relacionada' : 'Related Reading'}</h3>
+          <ul>
+            ${metadata.internal_links.map((link: any) => `<li><a href="${escapeHtml(link.url)}"${link.title ? ` title="${escapeHtml(link.title)}"` : ''}>${escapeHtml(link.text)}</a></li>`).join('\n            ')}
+          </ul>
+        </nav>
+        ` : ''}
         
         <div class="cta-section">
           <h3>${cta.title}</h3>
