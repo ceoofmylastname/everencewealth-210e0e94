@@ -1,80 +1,87 @@
 
+# Fix: Route Blog and Q&A Pages Through SSR Edge Function
 
-# Backfill Internal Links — Phased Approach
+## Root Cause
 
-## Current State
-- **Blog articles**: 3,271 published, all have `cluster_id`, only 518 have `internal_links` populated
-- **Q&A pages**: 9,600 published, all have `source_article_id`, zero have `internal_links`
+The internal links ARE in the database (confirmed: 3 links on the test article) and the `serve-seo-page` edge function DOES render them correctly (confirmed via direct call). The problem is the **routing layer**:
 
-## Key Discovery
-The existing `regenerate-all-cluster-links` edge function already implements your full TOFU/MOFU/BOFU funnel linking strategy for blog articles. It groups articles by cluster + language and generates up to 3 strategic links per article. **We just need to run it.**
+- **Blog articles**: No SSR routing exists at all. They hit the SPA catch-all (`/* /index.html`) and crawlers get an empty `<div id="root"></div>`.
+- **Q&A articles**: Have SSR fallback, but static HTML files were pre-rendered BEFORE the internal links backfill. The middleware prefers static files, so crawlers get the old HTML without internal links.
 
----
+## Solution: Add Blog SSR Fallback to Middleware
 
-## Phase 1: Test Blog Backfill (10 articles)
+Add the same "try static first, fallback to SSR" pattern that Q&A pages already use (lines 132-220 of `_middleware.js`) for blog articles as well.
 
-Run the existing function in **dry-run mode** first to verify output, then run it with a small batch to confirm database writes.
+### File: `functions/_middleware.js`
 
-1. Call `regenerate-all-cluster-links` with `{ "dryRun": true, "batchSize": 10 }` to preview results
-2. Verify the summary shows correct funnel stage distribution
-3. Call it again with `{ "dryRun": false, "batchSize": 10 }` to apply a small batch
-4. Query 10 updated articles to inspect the generated links
+**Change 1: Add blog route matching (after Q&A block, before `needsSEO` check)**
 
-**No code changes needed** — the function already exists and is deployed.
+Add a new block that matches `/{lang}/blog/{slug}` routes and applies the same logic as Q&A:
+1. Try to serve the static file via `next()`
+2. Check if it's "substantial HTML" (has DOCTYPE, no empty SPA shell, > 5000 bytes)
+3. Additionally check if it contains the `internal-links-section` nav element
+4. If static file is missing, thin, or lacks internal links -- call `serve-seo-page` edge function as fallback
+5. If SSR also fails, fall through to SPA
 
-## Phase 2: Full Blog Backfill (all 3,271 articles)
+This ensures crawlers always get full SSR HTML with internal links, while users with JavaScript still get the React SPA experience.
 
-Run the same function at scale:
-- Call with `{ "dryRun": false, "batchSize": 50 }`
-- This processes all clusters and all languages in one pass
-- Built-in 100ms delay between batches prevents rate limiting
-- Expected result: ~3,271 articles updated with 2-3 links each
+**Change 2: Update Q&A static check to also verify internal links presence**
 
-## Phase 3: Q&A Page Backfill (9,600 pages)
+For Q&A pages, add an extra check: even if the static file is "substantial", if it doesn't contain internal links but the SSR version would, prefer the SSR version. This handles the stale static files from before the backfill.
 
-Create a **new** edge function `backfill-qa-internal-links` that:
+### Implementation Detail
 
-1. Fetches all published Q&A pages with their `source_article_id` and `language`
-2. For each Q&A page, looks up the source blog article's `cluster_id`
-3. Finds sibling blog articles in the same cluster + language
-4. Generates 2-3 links per Q&A page:
-   - 1 link back to the source blog article (context)
-   - 1-2 links to related cluster articles (funnel progression)
-5. Updates Q&A pages in batches of 50
-
-### Q&A Linking Strategy
-- Link back to the parent blog article (always — provides context)
-- Link to 1-2 other blog articles in the same cluster/language (funnel progression)
-- Max 3 links per Q&A page
-- URL format: `/{language}/blog/{slug}` for blog targets
-
-## Phase 4: Verification
-
-After each phase, spot-check by:
-1. Querying 20 random updated articles across languages
-2. Calling the `serve-seo-page` edge function to confirm links appear in raw HTML
-3. Monitoring Google Search Console for crawl rate changes
-
----
-
-## Technical Details
-
-### Files to Create
-- `supabase/functions/backfill-qa-internal-links/index.ts` — New function for Q&A pages
-
-### Files Unchanged
-- `supabase/functions/regenerate-all-cluster-links/index.ts` — Already handles all blog articles correctly
-
-### Execution Order
-1. Run existing blog function (dry run) — verify output
-2. Run existing blog function (live) — backfill 3,271 blog articles
-3. Deploy new QA function — backfill 9,600 QA pages
-4. Spot-check SSR rendering across languages
-
-### Q&A Function Schema
 ```text
-Input:  { batchSize?: number, dryRun?: boolean, limit?: number }
-Output: { success: true, summary: { total, updated, byLanguage, errors } }
+// Blog SSR fallback (new block, same pattern as Q&A lines 132-220)
+const blogMatch = pathname.match(/^\/([a-z]{2})\/blog\/(.+)/);
+if (blogMatch) {
+  const staticResponse = await next();
+  const staticBody = await staticResponse.clone().text();
+  
+  // Check if static file has full content WITH internal links
+  const isComplete = 
+    staticBody.includes('<!DOCTYPE html>') &&
+    !staticBody.includes('<div id="root"></div>') &&
+    staticBody.length > 5000 &&
+    staticBody.includes('internal-links-section');
+  
+  if (isComplete) {
+    // Serve static with cache headers
+    return staticResponse;
+  }
+  
+  // Fallback to SSR edge function
+  const ssrResponse = await fetch(serve-seo-page?path=...&html=true);
+  if (ssrResponse.ok) return ssrResponse;
+  
+  // Last resort: SPA shell
+  return staticResponse;
+}
 ```
 
-The QA function will use the same batch-and-delay pattern as the existing blog function for reliability.
+### File: `functions/_middleware.js` -- Summary of edits
+
+1. Add blog route matching block (~40 lines, mirrors Q&A pattern)
+2. Update Q&A substantial check to also verify `internal-links-section` presence
+3. No changes to `_redirects`, `serve-seo-page`, or any other file
+
+### Why This Works
+
+- The edge function already renders internal links correctly (verified)
+- The database already has all links populated (verified: 3,271 blog + 8,881 Q&A)
+- We just need the middleware to route blog pages through the edge function instead of serving the empty SPA shell
+- For Q&A pages with stale static files, adding the internal links check forces a refresh via SSR
+
+### What Crawlers Will See After Fix
+
+- Full HTML with article content
+- `<nav class="internal-links-section">` with 2-3 funnel links
+- Proper hreflang tags, canonical URLs, structured data
+- All of this in the raw HTML source (no JavaScript required)
+
+### Risk Assessment
+
+- Low risk: follows exact same pattern already proven for Q&A pages
+- No database changes
+- No edge function changes
+- Only the Cloudflare middleware routing logic is updated
