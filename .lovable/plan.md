@@ -1,77 +1,80 @@
 
-# Add Internal Links to SSR HTML Output
 
-## Diagnosis
+# Backfill Internal Links — Phased Approach
 
-Internal links are **client-side only** -- they are rendered by React components (`InternalLinksSection` in `BlogArticle.tsx`) after JavaScript loads. The SSR edge function (`serve-seo-page/index.ts`) that serves HTML to search engine crawlers does NOT include internal links at all:
+## Current State
+- **Blog articles**: 3,271 published, all have `cluster_id`, only 518 have `internal_links` populated
+- **Q&A pages**: 9,600 published, all have `source_article_id`, zero have `internal_links`
 
-1. **PageMetadata interface** (line 250) has no `internal_links` field
-2. **Blog metadata mapping** (lines 369-386) fetches `select('*')` but never maps `internal_links` to metadata
-3. **Q&A metadata query** (line 303) explicitly lists columns and excludes `internal_links`
-4. **HTML template** (lines 1835-1884) has no rendering logic for internal links
+## Key Discovery
+The existing `regenerate-all-cluster-links` edge function already implements your full TOFU/MOFU/BOFU funnel linking strategy for blog articles. It groups articles by cluster + language and generates up to 3 strategic links per article. **We just need to run it.**
 
-This means Google, Bing, and AI crawlers see zero internal links on every page.
+---
 
-## Solution
+## Phase 1: Test Blog Backfill (10 articles)
 
-Add internal links to the SSR HTML output in `supabase/functions/serve-seo-page/index.ts` for both blog and Q&A pages.
+Run the existing function in **dry-run mode** first to verify output, then run it with a small batch to confirm database writes.
 
-### Changes (single file: `supabase/functions/serve-seo-page/index.ts`)
+1. Call `regenerate-all-cluster-links` with `{ "dryRun": true, "batchSize": 10 }` to preview results
+2. Verify the summary shows correct funnel stage distribution
+3. Call it again with `{ "dryRun": false, "batchSize": 10 }` to apply a small batch
+4. Query 10 updated articles to inspect the generated links
 
-**1. Add `internal_links` to the `PageMetadata` interface**
+**No code changes needed** — the function already exists and is deployed.
 
-Add an optional field:
-```typescript
-internal_links?: Array<{ text: string; url: string; title?: string; funnelStage?: string }>;
+## Phase 2: Full Blog Backfill (all 3,271 articles)
+
+Run the same function at scale:
+- Call with `{ "dryRun": false, "batchSize": 50 }`
+- This processes all clusters and all languages in one pass
+- Built-in 100ms delay between batches prevents rate limiting
+- Expected result: ~3,271 articles updated with 2-3 links each
+
+## Phase 3: Q&A Page Backfill (9,600 pages)
+
+Create a **new** edge function `backfill-qa-internal-links` that:
+
+1. Fetches all published Q&A pages with their `source_article_id` and `language`
+2. For each Q&A page, looks up the source blog article's `cluster_id`
+3. Finds sibling blog articles in the same cluster + language
+4. Generates 2-3 links per Q&A page:
+   - 1 link back to the source blog article (context)
+   - 1-2 links to related cluster articles (funnel progression)
+5. Updates Q&A pages in batches of 50
+
+### Q&A Linking Strategy
+- Link back to the parent blog article (always — provides context)
+- Link to 1-2 other blog articles in the same cluster/language (funnel progression)
+- Max 3 links per Q&A page
+- URL format: `/{language}/blog/{slug}` for blog targets
+
+## Phase 4: Verification
+
+After each phase, spot-check by:
+1. Querying 20 random updated articles across languages
+2. Calling the `serve-seo-page` edge function to confirm links appear in raw HTML
+3. Monitoring Google Search Console for crawl rate changes
+
+---
+
+## Technical Details
+
+### Files to Create
+- `supabase/functions/backfill-qa-internal-links/index.ts` — New function for Q&A pages
+
+### Files Unchanged
+- `supabase/functions/regenerate-all-cluster-links/index.ts` — Already handles all blog articles correctly
+
+### Execution Order
+1. Run existing blog function (dry run) — verify output
+2. Run existing blog function (live) — backfill 3,271 blog articles
+3. Deploy new QA function — backfill 9,600 QA pages
+4. Spot-check SSR rendering across languages
+
+### Q&A Function Schema
+```text
+Input:  { batchSize?: number, dryRun?: boolean, limit?: number }
+Output: { success: true, summary: { total, updated, byLanguage, errors } }
 ```
 
-**2. Map `internal_links` in `fetchBlogMetadata`**
-
-In the metadata return object (line 386), add:
-```typescript
-internal_links: exactMatch.internal_links,
-```
-
-**3. Add `internal_links` to the Q&A select query and metadata mapping**
-
-In `fetchQAMetadata` (line 303), add `internal_links` to the select string. In the metadata return (around line 325), add:
-```typescript
-internal_links: exactMatch.internal_links,
-```
-
-**4. Render internal links in the HTML template**
-
-After the article content div and before the CTA section (around line 1875), add a new section that renders internal links as a simple styled `<nav>` block with anchor tags:
-
-```html
-<nav class="internal-links-section" aria-label="Related articles">
-  <h3>Related Reading</h3>
-  <ul>
-    <li><a href="/fi/blog/slug" title="Title text">Anchor text</a></li>
-    ...
-  </ul>
-</nav>
-```
-
-This will be conditionally rendered only when `metadata.internal_links` exists and has items.
-
-**5. Add CSS for the internal links section**
-
-Add minimal styling within the existing `<style>` block to match the page design:
-- A bordered card-like container
-- Clean list of links with arrow indicators
-- Responsive layout
-
-## What This Achieves
-
-- All internal links will appear in the raw HTML source served to crawlers
-- Google can crawl the TOFU/MOFU/BOFU funnel link structure
-- No visual changes needed for client-side users (React already renders them)
-- Links include proper `title` attributes for SEO
-- Works for both blog articles and Q&A pages
-
-## Files Modified
-- `supabase/functions/serve-seo-page/index.ts` (4 edits: interface, blog metadata, QA metadata, HTML template)
-
-## Verification
-After deployment, view page source on any blog or Q&A URL and search for the internal link URLs -- they should now appear in the raw HTML.
+The QA function will use the same batch-and-delay pattern as the existing blog function for reliability.
