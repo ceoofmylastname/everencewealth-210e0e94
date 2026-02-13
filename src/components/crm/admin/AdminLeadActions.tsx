@@ -104,52 +104,24 @@ export function AdminLeadActions({ leadId, currentAgentId, onLeadUpdated }: Admi
   // 3. Force Transfer Lead
   const forceTransfer = useMutation({
     mutationFn: async (targetAgentId: string) => {
-      // Get target agent info
-      const { data: targetAgent } = await supabase
-        .from("crm_agents")
-        .select("first_name, last_name, current_lead_count")
-        .eq("id", targetAgentId)
-        .single();
-
-      if (!targetAgent) throw new Error("Target agent not found");
-
-      // Update lead assignment directly (bypassing rules)
-      const { error: updateError } = await supabase
-        .from("crm_leads")
-        .update({
-          assigned_agent_id: targetAgentId,
-          assigned_at: new Date().toISOString(),
-          assignment_method: "admin_force_transfer",
-          lead_claimed: true,
-        })
-        .eq("id", leadId);
-
-      if (updateError) throw updateError;
-
-      // Decrement old agent count if applicable
-      if (currentAgentId && currentAgentId !== targetAgentId) {
-        await supabase.rpc("decrement_agent_lead_count", { p_agent_id: currentAgentId });
-      }
-
-      // Increment new agent count
-      await supabase
-        .from("crm_agents")
-        .update({ current_lead_count: (targetAgent.current_lead_count || 0) + 1 })
-        .eq("id", targetAgentId);
-
-      // Log activity
       const { data: { session } } = await supabase.auth.getSession();
-      await supabase.from("crm_activities").insert({
-        lead_id: leadId,
-        agent_id: session?.user?.id || targetAgentId,
-        activity_type: "note",
-        notes: `⚠️ Lead force-transferred by Admin to ${targetAgent.first_name} ${targetAgent.last_name}`,
+      if (!session?.user?.id) throw new Error("Not authenticated");
+
+      const { data, error } = await supabase.functions.invoke("reassign-lead", {
+        body: {
+          lead_id: leadId,
+          to_agent_id: targetAgentId,
+          reason: "manual",
+          notes: "Force transfer by admin",
+          reassigned_by_id: session.user.id,
+        },
       });
 
-      return { targetAgent };
+      if (error) throw error;
+      return data;
     },
     onSuccess: (data) => {
-      toast.success(`Lead transferred to ${data.targetAgent?.first_name}`);
+      toast.success(data?.message || "Lead transferred successfully");
       queryClient.invalidateQueries({ queryKey: ["lead-detail", leadId] });
       queryClient.invalidateQueries({ queryKey: ["leads"] });
       setForceTransferAgent("");

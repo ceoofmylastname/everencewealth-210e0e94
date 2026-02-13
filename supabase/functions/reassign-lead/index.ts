@@ -243,7 +243,7 @@ serve(async (req) => {
       body: JSON.stringify({
         from: "CRM Assignments <crm@notifications.delsolprimehomes.com>",
         to: [toAgent.email],
-        subject: `🔄 Lead Reassigned: ${lead.first_name} ${lead.last_name}`,
+        subject: `CRM_LEAD_REASSIGNED_${(lead.language || 'en').toUpperCase()} | Lead reassigned to you`,
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
             <div style="background: #1E40AF; color: white; padding: 20px; border-radius: 8px 8px 0 0;">
