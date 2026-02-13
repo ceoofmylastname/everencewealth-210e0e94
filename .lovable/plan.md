@@ -1,87 +1,38 @@
 
-# Fix: Route Blog and Q&A Pages Through SSR Edge Function
 
-## Root Cause
+# Create Gmail Filter Setup Guide
 
-The internal links ARE in the database (confirmed: 3 links on the test article) and the `serve-seo-page` edge function DOES render them correctly (confirmed via direct call). The problem is the **routing layer**:
+## What
+Create a single documentation file `docs/CRM_GMAIL_FILTER_SETUP_COMPLETE.md` containing the complete Gmail filter configuration guide mapped to the 6 existing label categories.
 
-- **Blog articles**: No SSR routing exists at all. They hit the SPA catch-all (`/* /index.html`) and crawlers get an empty `<div id="root"></div>`.
-- **Q&A articles**: Have SSR fallback, but static HTML files were pre-rendered BEFORE the internal links backfill. The middleware prefers static files, so crawlers get the old HTML without internal links.
+## File to Create
+- `docs/CRM_GMAIL_FILTER_SETUP_COMPLETE.md`
 
-## Solution: Add Blog SSR Fallback to Middleware
+## Content Structure
+The document will contain all 6 filter definitions exactly as specified in your message:
 
-Add the same "try static first, fallback to SSR" pattern that Q&A pages already use (lines 132-220 of `_middleware.js`) for blog articles as well.
+1. **CRM/Urgent** -- T+0 new leads (all 11 languages, excluding T1-T4)
+2. **CRM/Reminders/10-Min** -- T+1 and T+2 early reminders
+3. **CRM/Reminders/1-Hour** -- T+3 urgent reminders
+4. **CRM/Admin/Stage-1-Breach** -- T+4 final warnings
+5. **CRM/Admin/Stage-2-Breach** -- T+5 admin escalations (unclaimed + not called)
+6. **CRM/Admin/Form-Submissions** -- Website form submissions
 
-### File: `functions/_middleware.js`
+Each filter section includes: Gmail search query (copy-pasteable), filter actions checklist, example subjects, and mobile notification guidance.
 
-**Change 1: Add blog route matching (after Q&A block, before `needsSEO` check)**
+Also includes: step-by-step filter creation instructions, mobile setup for Android/iOS, verification checklist, and quick-reference subject-to-label mapping table.
 
-Add a new block that matches `/{lang}/blog/{slug}` routes and applies the same logic as Q&A:
-1. Try to serve the static file via `next()`
-2. Check if it's "substantial HTML" (has DOCTYPE, no empty SPA shell, > 5000 bytes)
-3. Additionally check if it contains the `internal-links-section` nav element
-4. If static file is missing, thin, or lacks internal links -- call `serve-seo-page` edge function as fallback
-5. If SSR also fails, fall through to SPA
+## Technical Note
+One adjustment needed: Gmail does not support wildcard (`*`) in subject filters. Filters 2, 3, and 4 (which use `CRM_NEW_LEAD_*_T1` etc.) will be rewritten to explicitly list all 11 language codes, matching the pattern used in Filter 1. This ensures the filters actually work in Gmail.
 
-This ensures crawlers always get full SSR HTML with internal links, while users with JavaScript still get the React SPA experience.
-
-**Change 2: Update Q&A static check to also verify internal links presence**
-
-For Q&A pages, add an extra check: even if the static file is "substantial", if it doesn't contain internal links but the SSR version would, prefer the SSR version. This handles the stale static files from before the backfill.
-
-### Implementation Detail
-
-```text
-// Blog SSR fallback (new block, same pattern as Q&A lines 132-220)
-const blogMatch = pathname.match(/^\/([a-z]{2})\/blog\/(.+)/);
-if (blogMatch) {
-  const staticResponse = await next();
-  const staticBody = await staticResponse.clone().text();
-  
-  // Check if static file has full content WITH internal links
-  const isComplete = 
-    staticBody.includes('<!DOCTYPE html>') &&
-    !staticBody.includes('<div id="root"></div>') &&
-    staticBody.length > 5000 &&
-    staticBody.includes('internal-links-section');
-  
-  if (isComplete) {
-    // Serve static with cache headers
-    return staticResponse;
-  }
-  
-  // Fallback to SSR edge function
-  const ssrResponse = await fetch(serve-seo-page?path=...&html=true);
-  if (ssrResponse.ok) return ssrResponse;
-  
-  // Last resort: SPA shell
-  return staticResponse;
-}
+For example, Filter 2 becomes:
+```
+subject:(CRM_NEW_LEAD_EN_T1 | CRM_NEW_LEAD_NL_T1 | CRM_NEW_LEAD_FR_T1 | ... | CRM_NEW_LEAD_EN_T2 | CRM_NEW_LEAD_NL_T2 | ...)
 ```
 
-### File: `functions/_middleware.js` -- Summary of edits
-
-1. Add blog route matching block (~40 lines, mirrors Q&A pattern)
-2. Update Q&A substantial check to also verify `internal-links-section` presence
-3. No changes to `_redirects`, `serve-seo-page`, or any other file
-
-### Why This Works
-
-- The edge function already renders internal links correctly (verified)
-- The database already has all links populated (verified: 3,271 blog + 8,881 Q&A)
-- We just need the middleware to route blog pages through the edge function instead of serving the empty SPA shell
-- For Q&A pages with stale static files, adding the internal links check forces a refresh via SSR
-
-### What Crawlers Will See After Fix
-
-- Full HTML with article content
-- `<nav class="internal-links-section">` with 2-3 funnel links
-- Proper hreflang tags, canonical URLs, structured data
-- All of this in the raw HTML source (no JavaScript required)
-
-### Risk Assessment
-
-- Low risk: follows exact same pattern already proven for Q&A pages
+## No Other Changes
 - No database changes
 - No edge function changes
-- Only the Cloudflare middleware routing logic is updated
+- No code changes
+- Documentation only
+
