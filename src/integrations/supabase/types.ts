@@ -180,11 +180,14 @@ export type Database = {
           featured_image_alt: string | null
           featured_image_url: string | null
           features: Json | null
+          gallery_images: string[] | null
           id: string
           images: Json | null
           inquiries: number | null
           language: string
           location: string
+          partner_logo: string | null
+          partner_source: string | null
           price: number
           property_group_id: string | null
           property_type: string | null
@@ -210,11 +213,14 @@ export type Database = {
           featured_image_alt?: string | null
           featured_image_url?: string | null
           features?: Json | null
+          gallery_images?: string[] | null
           id?: string
           images?: Json | null
           inquiries?: number | null
           language: string
           location: string
+          partner_logo?: string | null
+          partner_source?: string | null
           price: number
           property_group_id?: string | null
           property_type?: string | null
@@ -240,11 +246,14 @@ export type Database = {
           featured_image_alt?: string | null
           featured_image_url?: string | null
           features?: Json | null
+          gallery_images?: string[] | null
           id?: string
           images?: Json | null
           inquiries?: number | null
           language?: string
           location?: string
+          partner_logo?: string | null
+          partner_source?: string | null
           price?: number
           property_group_id?: string | null
           property_type?: string | null
