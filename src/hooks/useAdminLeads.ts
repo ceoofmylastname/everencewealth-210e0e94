@@ -201,27 +201,7 @@ export function getSuggestedAgent(agents: EligibleAgent[], language: string): El
   );
 }
 
-// Helper to update agent lead count directly
-async function updateAgentLeadCount(agentId: string, delta: number) {
-  const { data: agent, error: fetchError } = await supabase
-    .from("crm_agents")
-    .select("current_lead_count")
-    .eq("id", agentId)
-    .single();
-
-  if (fetchError) throw fetchError;
-
-  const newCount = Math.max(0, (agent?.current_lead_count || 0) + delta);
-
-  const { error: updateError } = await supabase
-    .from("crm_agents")
-    .update({ current_lead_count: newCount })
-    .eq("id", agentId);
-
-  if (updateError) throw updateError;
-}
-
-// Manual assignment mutation
+// Manual assignment mutation — delegates to reassign-lead edge function
 export function useAssignLead() {
   const queryClient = useQueryClient();
 
@@ -239,39 +219,20 @@ export function useAssignLead() {
       adminId: string;
       previousAgentId?: string | null;
     }) => {
-      // Decrement previous agent's count if reassigning
-      if (previousAgentId) {
-        await updateAgentLeadCount(previousAgentId, -1);
-      }
+      const edgeReason = previousAgentId ? 'manual' : 'unclaimed';
 
-      // Update lead
-      const { error: leadError } = await supabase
-        .from("crm_leads")
-        .update({
-          assigned_agent_id: agentId,
-          assigned_at: new Date().toISOString(),
-          assignment_method: "admin_assigned",
-          lead_claimed: true,
-        })
-        .eq("id", leadId);
-
-      if (leadError) throw leadError;
-
-      // Increment new agent's count
-      await updateAgentLeadCount(agentId, 1);
-
-      // Log activity
-      const activityNote = previousAgentId
-        ? `Lead reassigned by admin from previous agent. Reason: ${reason || "Not specified"}`
-        : `Lead manually assigned by admin. Reason: ${reason || "Not specified"}`;
-
-      await supabase.from("crm_activities").insert({
-        lead_id: leadId,
-        agent_id: agentId,
-        activity_type: "note",
-        notes: activityNote,
-        created_at: new Date().toISOString(),
+      const { data, error } = await supabase.functions.invoke("reassign-lead", {
+        body: {
+          lead_id: leadId,
+          to_agent_id: agentId,
+          reason: edgeReason,
+          notes: reason || 'Assigned by admin',
+          reassigned_by_id: adminId,
+        },
       });
+
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
 
       return { success: true };
     },
@@ -307,7 +268,7 @@ export function useBulkAssignLeads() {
       reason?: string;
       adminId: string;
     }) => {
-      // Get agent capacity
+      // Pre-check agent capacity
       const { data: agent } = await supabase
         .from("crm_agents")
         .select("current_lead_count, max_active_leads, first_name, last_name")
@@ -323,58 +284,44 @@ export function useBulkAssignLeads() {
         );
       }
 
-      // Get leads with their current agents
+      // Get leads to determine reason codes
       const { data: leads } = await supabase
         .from("crm_leads")
         .select("id, assigned_agent_id")
         .in("id", leadIds);
 
-      // Collect previous agents to decrement
-      const previousAgentCounts = new Map<string, number>();
-      leads?.forEach(l => {
-        if (l.assigned_agent_id) {
-          previousAgentCounts.set(
-            l.assigned_agent_id,
-            (previousAgentCounts.get(l.assigned_agent_id) || 0) + 1
-          );
-        }
-      });
+      // Process each lead through edge function
+      let successCount = 0;
+      for (const lead of leads || []) {
+        const edgeReason = lead.assigned_agent_id ? 'manual' : 'unclaimed';
+        const { data, error } = await supabase.functions.invoke("reassign-lead", {
+          body: {
+            lead_id: lead.id,
+            to_agent_id: agentId,
+            reason: edgeReason,
+            notes: reason || 'Bulk assigned by admin',
+            reassigned_by_id: adminId,
+          },
+        });
 
-      // Decrement previous agents
-      for (const [prevAgentId, count] of previousAgentCounts) {
-        await updateAgentLeadCount(prevAgentId, -count);
+        if (error) {
+          console.error(`[bulk-assign] Failed for lead ${lead.id}:`, error);
+          continue;
+        }
+        if (data?.error) {
+          console.error(`[bulk-assign] Edge fn error for lead ${lead.id}:`, data.error);
+          continue;
+        }
+        successCount++;
       }
 
-      // Update all leads
-      const { error: leadError } = await supabase
-        .from("crm_leads")
-        .update({
-          assigned_agent_id: agentId,
-          assigned_at: new Date().toISOString(),
-          assignment_method: "admin_bulk_assigned",
-          lead_claimed: true,
-        })
-        .in("id", leadIds);
-
-      if (leadError) throw leadError;
-
-      // Increment agent's count
-      await updateAgentLeadCount(agentId, leadIds.length);
-
-      // Log activities
-      const activities = leadIds.map(leadId => ({
-        lead_id: leadId,
-        agent_id: agentId,
-        activity_type: "note" as const,
-        notes: `Lead bulk-assigned by admin. Reason: ${reason || "Bulk assignment"}`,
-        created_at: new Date().toISOString(),
-      }));
-
-      await supabase.from("crm_activities").insert(activities);
+      if (successCount === 0) {
+        throw new Error("Failed to assign any leads");
+      }
 
       return { 
         success: true, 
-        count: leadIds.length,
+        count: successCount,
         agentName: `${agent.first_name} ${agent.last_name}` 
       };
     },
@@ -453,7 +400,7 @@ export function useRestartRoundRobin() {
 
       // Decrement old agent's count if assigned
       if (lead?.assigned_agent_id) {
-        await updateAgentLeadCount(lead.assigned_agent_id, -1);
+        await supabase.rpc('decrement_agent_lead_count', { p_agent_id: lead.assigned_agent_id });
       }
 
       // Reset lead to unclaimed state
@@ -521,7 +468,7 @@ export function useArchiveLead() {
 
       // If archiving and has agent, decrement count
       if (archive && lead?.assigned_agent_id) {
-        await updateAgentLeadCount(lead.assigned_agent_id, -1);
+        await supabase.rpc('decrement_agent_lead_count', { p_agent_id: lead.assigned_agent_id });
       }
 
       const { error } = await supabase

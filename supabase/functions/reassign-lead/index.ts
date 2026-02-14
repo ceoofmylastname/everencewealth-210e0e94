@@ -116,10 +116,14 @@ serve(async (req) => {
       leadUpdate.assignment_method = 'admin_reassignment';
       console.log("[reassign-lead] No contact reason: Resetting contact timer");
     } else {
-      // Manual reassignment - no timer changes
+      // Manual reassignment - still monitor with contact timer
+      leadUpdate.contact_timer_started_at = now.toISOString();
+      leadUpdate.contact_timer_expires_at = contactWindowExpiry.toISOString();
+      leadUpdate.contact_sla_breached = false;
+      leadUpdate.first_action_completed = false;
       leadUpdate.assigned_at = now.toISOString();
       leadUpdate.assignment_method = 'admin_reassignment';
-      console.log("[reassign-lead] Manual reason: No timer changes");
+      console.log("[reassign-lead] Manual reason: Starting contact timer for monitoring");
     }
 
     // Update lead
