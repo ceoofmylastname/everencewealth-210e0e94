@@ -1,30 +1,33 @@
 
 
-# Fix Fallback Admin for All Languages
+# Add 2-Second Rate Limiting + Agent Randomization
 
-## Problem
-6 out of 10 languages have Steven Roberts as the fallback admin instead of Hans. This caused the French lead failure -- Hans never received the T+5 notification because Steven was configured as the fallback.
+## What This Fixes
+Resend's rate limit (2 req/sec) causes ~33% email failures when 3+ emails fire simultaneously. This adds a 2-second delay between sends and randomizes agent order for fairness.
 
-**Current state in database:**
-- Hans (correct): da, de, fi, pl
-- Steven (wrong): en, fr, hu, nl, no, sv
+## Changes
 
-## Fix
+**Single file:** `supabase/functions/send-lead-notification/index.ts`
 
-### Step 1: Update all 6 configs to Hans
-Run a single UPDATE to set `fallback_admin_id` to Hans's UUID (`95808453-dde1-421c-85ba-52fe534ef288`) on all rows where it's currently Steven's UUID (`288f9795-c3c5-47c2-8aae-e2cd408e862a`).
+1. **Add sleep helper** (top of file, after imports):
+   - Simple `sleep(ms)` promise-based utility
 
-```sql
-UPDATE crm_round_robin_config 
-SET fallback_admin_id = '95808453-dde1-421c-85ba-52fe534ef288'
-WHERE fallback_admin_id = '288f9795-c3c5-47c2-8aae-e2cd408e862a';
-```
+2. **Replace the agent loop** (line 331):
+   - Shuffle agents randomly before iterating
+   - Convert `for...of` to index-based `for` loop
+   - Add `await sleep(2000)` before each email send (skipping the first)
+   - Add console logging for rate limit delays
 
-### Step 2: Verify
-Query all configs to confirm every language now shows Hans as fallback.
+## Timing Impact
 
-### Step 3: Investigate UI save bug
-Review the `RoundRobinConfig.tsx` save logic to check if there's a condition that could revert the `fallback_admin_id` back to Steven when saving (e.g., the `is_admin_fallback` conditional on line 152 that nulls out `fallback_admin_id` when the toggle is off).
+| Agents | Extra Time | Within 150s Timeout? |
+|--------|-----------|---------------------|
+| 1      | 0s        | Yes                 |
+| 3      | 4s        | Yes                 |
+| 5      | 8s        | Yes                 |
+| 10     | 18s       | Yes                 |
 
-## Result
-After this fix, Hans will receive ALL T+5 admin escalation emails for every language, including French.
+## No Other Files Need Changes
+- `send-escalating-alarms` already batches recipients in a single API call
+- `register-crm-lead` calls are sequential and will inherit the per-agent throttling
+
