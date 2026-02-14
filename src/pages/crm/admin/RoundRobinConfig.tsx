@@ -149,7 +149,7 @@ export default function RoundRobinConfig() {
             claim_window_minutes: data.claim_window_minutes,
             is_admin_fallback: data.is_admin_fallback,
             is_active: data.is_active,
-            fallback_admin_id: data.is_admin_fallback ? data.fallback_admin_id : null,
+            fallback_admin_id: data.fallback_admin_id || null,
           })
           .eq("id", data.id);
 
@@ -165,7 +165,7 @@ export default function RoundRobinConfig() {
             claim_window_minutes: data.claim_window_minutes,
             is_admin_fallback: data.is_admin_fallback,
             is_active: data.is_active,
-            fallback_admin_id: data.is_admin_fallback ? data.fallback_admin_id : null,
+            fallback_admin_id: data.fallback_admin_id || null,
           });
 
         if (error) throw error;
