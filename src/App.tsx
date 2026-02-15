@@ -159,15 +159,6 @@ const CrmRoundRobinConfig = lazy(() => import("./pages/crm/admin/RoundRobinConfi
 const CrmEmailLogs = lazy(() => import("./pages/crm/admin/EmailLogs"));
 const CrmSalestrailCallLogs = lazy(() => import("./pages/crm/admin/SalestrailCallLogs"));
 const LandingEn = lazy(() => import("./pages/landing/en"));
-const LandingNl = lazy(() => import("./pages/landing/nl"));
-const LandingFr = lazy(() => import("./pages/landing/fr"));
-const LandingDe = lazy(() => import("./pages/landing/de"));
-const LandingFi = lazy(() => import("./pages/landing/fi"));
-const LandingPl = lazy(() => import("./pages/landing/pl"));
-const LandingDa = lazy(() => import("./pages/landing/da"));
-const LandingHu = lazy(() => import("./pages/landing/hu"));
-const LandingSv = lazy(() => import("./pages/landing/sv"));
-const LandingNo = lazy(() => import("./pages/landing/no"));
 const OptIn = lazy(() => import("./pages/OptIn"));
 const RetargetingLanding = lazy(() => import("./pages/RetargetingLanding"));
 
@@ -333,28 +324,10 @@ const App = () => (
 
               {/* Landing Pages (Paid Traffic) */}
               <Route path="/en/landing" element={<LandingEn />} />
-              <Route path="/nl/landing" element={<LandingNl />} />
-              <Route path="/fr/landing" element={<LandingFr />} />
-              <Route path="/de/landing" element={<LandingDe />} />
-              <Route path="/fi/landing" element={<LandingFi />} />
-              <Route path="/pl/landing" element={<LandingPl />} />
-              <Route path="/da/landing" element={<LandingDa />} />
-              <Route path="/hu/landing" element={<LandingHu />} />
-              <Route path="/sv/landing" element={<LandingSv />} />
-              <Route path="/no/landing" element={<LandingNo />} />
               
-              {/* Retargeting Landing Pages (All 11 Languages) */}
+              {/* Retargeting Landing Pages (EN + ES) */}
               <Route path="/en/welcome-back" element={<RetargetingLanding />} />
-              <Route path="/nl/welkom-terug" element={<RetargetingLanding />} />
-              <Route path="/de/willkommen-zurueck" element={<RetargetingLanding />} />
-              <Route path="/fr/bienvenue" element={<RetargetingLanding />} />
               <Route path="/es/bienvenido" element={<RetargetingLanding />} />
-              <Route path="/pl/witamy-ponownie" element={<RetargetingLanding />} />
-              <Route path="/sv/valkommen-tillbaka" element={<RetargetingLanding />} />
-              <Route path="/da/velkommen-tilbage" element={<RetargetingLanding />} />
-              <Route path="/hu/udvozoljuk-ujra" element={<RetargetingLanding />} />
-              <Route path="/fi/tervetuloa-takaisin" element={<RetargetingLanding />} />
-              <Route path="/no/velkommen-tilbake" element={<RetargetingLanding />} />
               
               <Route path="/optin" element={<OptIn />} />
               <Route path="/:lang/optin" element={<OptIn />} />

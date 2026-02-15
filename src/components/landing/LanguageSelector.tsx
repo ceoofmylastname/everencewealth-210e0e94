@@ -7,29 +7,13 @@ interface LanguageSelectorProps {
 }
 
 const LANGUAGE_FLAGS: Record<LanguageCode, string> = {
-    en: '🇬🇧',
-    nl: '🇳🇱',
-    fr: '🇫🇷',
-    de: '🇩🇪',
-    fi: '🇫🇮',
-    pl: '🇵🇱',
-    da: '🇩🇰',
-    hu: '🇭🇺',
-    sv: '🇸🇪',
-    no: '🇳🇴'
+    en: '🇺🇸',
+    es: '🇪🇸',
 };
 
 const LANGUAGE_NAMES: Record<LanguageCode, string> = {
     en: 'English',
-    nl: 'Nederlands',
-    fr: 'Français',
-    de: 'Deutsch',
-    fi: 'Suomi',
-    pl: 'Polski',
-    da: 'Dansk',
-    hu: 'Magyar',
-    sv: 'Svenska',
-    no: 'Norsk'
+    es: 'Español',
 };
 
 const LanguageSelector: React.FC<LanguageSelectorProps> = ({ currentLang }) => {
@@ -48,7 +32,7 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({ currentLang }) => {
 
     return (
         <div className="relative group z-50">
-            <button className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-landing-navy opacity-70 hover:opacity-100 transition-opacity">
+            <button className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-foreground opacity-70 hover:opacity-100 transition-opacity">
                 <span className="text-base">{LANGUAGE_FLAGS[currentLang]}</span>
                 <span className="uppercase">{currentLang}</span>
             </button>
@@ -59,7 +43,7 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({ currentLang }) => {
                         <button
                             key={lang}
                             onClick={() => handleLanguageChange(lang)}
-                            className={`flex items-center gap-2 w-full text-left px-5 py-2.5 text-sm hover:bg-gray-50 transition-colors ${currentLang === lang ? 'font-bold text-landing-gold' : 'text-landing-navy'
+                            className={`flex items-center gap-2 w-full text-left px-5 py-2.5 text-sm hover:bg-gray-50 transition-colors ${currentLang === lang ? 'font-bold text-primary' : 'text-foreground'
                                 }`}
                         >
                             <span>{LANGUAGE_FLAGS[lang]}</span>

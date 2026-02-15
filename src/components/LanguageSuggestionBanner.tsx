@@ -10,17 +10,7 @@ const LANGUAGE_PREFERENCE_KEY = 'preferredLanguage';
 // Map browser language codes to our supported languages
 const BROWSER_LANG_MAP: Record<string, Language> = {
   'en': Language.EN,
-  'nl': Language.NL,
-  'fr': Language.FR,
-  'de': Language.DE,
-  'fi': Language.FI,
-  'pl': Language.PL,
-  'da': Language.DA,
-  'hu': Language.HU,
-  'sv': Language.SV,
-  'no': Language.NO,
-  'nb': Language.NO, // Norwegian Bokmål
-  'nn': Language.NO, // Norwegian Nynorsk
+  'es': Language.ES,
 };
 
 function getLanguageFromPath(pathname: string): Language | null {
@@ -35,7 +25,6 @@ function getLanguageFromPath(pathname: string): Language | null {
 }
 
 function detectBrowserLanguage(): Language | null {
-  // Get browser language (e.g., "en-US", "nl", "de-DE")
   const browserLang = navigator.language.split('-')[0].toLowerCase();
   return BROWSER_LANG_MAP[browserLang] || null;
 }
@@ -47,12 +36,10 @@ export const LanguageSuggestionBanner: React.FC = () => {
   const location = useLocation();
 
   useEffect(() => {
-    // Don't show if already dismissed
     if (localStorage.getItem(BANNER_DISMISSED_KEY)) {
       return;
     }
 
-    // Don't show if user already has a language preference
     if (localStorage.getItem(LANGUAGE_PREFERENCE_KEY)) {
       return;
     }
@@ -60,7 +47,6 @@ export const LanguageSuggestionBanner: React.FC = () => {
     const currentLang = getLanguageFromPath(location.pathname) || Language.EN;
     const detectedLang = detectBrowserLanguage();
 
-    // Show banner if detected language is different from current and is supported
     if (detectedLang && detectedLang !== currentLang && detectedLang !== Language.EN) {
       setSuggestedLanguage(detectedLang);
       setShowBanner(true);
@@ -70,21 +56,17 @@ export const LanguageSuggestionBanner: React.FC = () => {
   const handleSwitchLanguage = () => {
     if (!suggestedLanguage) return;
 
-    // Store preference
     localStorage.setItem(LANGUAGE_PREFERENCE_KEY, suggestedLanguage);
     localStorage.setItem(BANNER_DISMISSED_KEY, 'true');
     
-    // Navigate to the suggested language version
     const currentPath = location.pathname;
     const urlLang = getLanguageFromPath(currentPath);
     
     let newPath: string;
     if (urlLang) {
-      // Replace existing language prefix
       const pathWithoutLang = currentPath.replace(`/${urlLang}`, '');
       newPath = `/${suggestedLanguage}${pathWithoutLang || ''}`;
     } else {
-      // Add language prefix
       newPath = `/${suggestedLanguage}${currentPath}`;
     }
     

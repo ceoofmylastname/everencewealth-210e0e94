@@ -1,14 +1,6 @@
 export enum Language {
   EN = 'en',
-  NL = 'nl',
-  FR = 'fr',
-  DE = 'de',
-  FI = 'fi',
-  PL = 'pl',
-  DA = 'da',
-  HU = 'hu',
-  SV = 'sv',
-  NO = 'no',
+  ES = 'es',
 }
 
 export interface LanguageInfo {
@@ -19,21 +11,13 @@ export interface LanguageInfo {
 }
 
 export const AVAILABLE_LANGUAGES: LanguageInfo[] = [
-  { code: Language.EN, name: 'English', flag: '🇬🇧', nativeName: 'English' },
-  { code: Language.NL, name: 'Dutch', flag: '🇳🇱', nativeName: 'Nederlands' },
-  { code: Language.FR, name: 'French', flag: '🇫🇷', nativeName: 'Français' },
-  { code: Language.DE, name: 'German', flag: '🇩🇪', nativeName: 'Deutsch' },
-  { code: Language.FI, name: 'Finnish', flag: '🇫🇮', nativeName: 'Suomi' },
-  { code: Language.PL, name: 'Polish', flag: '🇵🇱', nativeName: 'Polski' },
-  { code: Language.DA, name: 'Danish', flag: '🇩🇰', nativeName: 'Dansk' },
-  { code: Language.HU, name: 'Hungarian', flag: '🇭🇺', nativeName: 'Magyar' },
-  { code: Language.SV, name: 'Swedish', flag: '🇸🇪', nativeName: 'Svenska' },
-  { code: Language.NO, name: 'Norwegian', flag: '🇳🇴', nativeName: 'Norsk' },
+  { code: Language.EN, name: 'English', flag: '🇺🇸', nativeName: 'English' },
+  { code: Language.ES, name: 'Spanish', flag: '🇪🇸', nativeName: 'Español' },
 ];
 
 export interface NavLink {
   label: string;
-  href: string; // Relative path, e.g., '/property-finder'
+  href: string;
 }
 
 export interface Area {
