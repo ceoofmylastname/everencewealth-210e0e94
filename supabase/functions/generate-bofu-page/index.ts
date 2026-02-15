@@ -40,80 +40,80 @@ const BOFU_TEMPLATES: Record<string, {
   pageType: string;
   contentFocus: string[];
 }> = {
-  'digital-nomad-visa': {
-    topic: 'Digital Nomad Visa Spain 2026: Requirements, Process & Complete Guide',
-    targetKeyword: 'digital nomad visa spain requirements',
-    category: 'Legal & Immigration',
-    targetAudience: 'Remote workers, freelancers, and digital nomads seeking Spanish residency',
+  'whole-life-insurance': {
+    topic: 'Whole Life Insurance 2026: Benefits, Costs & Complete Guide',
+    targetKeyword: 'whole life insurance benefits costs',
+    category: 'Insurance Products',
+    targetAudience: 'Families and individuals seeking permanent life insurance with cash value growth',
     pageType: 'comprehensive-guide',
     contentFocus: [
-      '€2,520 minimum monthly income requirement (€30,240 annually)',
-      'Remote work for non-Spanish companies OR 80%+ income from non-Spanish clients',
-      '3-year initial visa validity, renewable for additional 2 years',
-      'Family inclusion: spouse, children under 18, dependent parents',
-      'Required documents checklist (work contracts, bank statements, insurance)',
-      'Application process: 20 working days processing time',
-      'Beckham Law tax benefits eligibility (24% flat rate up to €600,000)',
-      'Healthcare and private insurance requirements',
-      'Path to permanent residency after 5 years',
-      'Comparison with Non-Lucrative Visa and Standard Residency'
+      'Guaranteed death benefit that never decreases',
+      'Cash value accumulation with guaranteed minimum interest rate',
+      'Policy loan options and how to access cash value',
+      'Dividend participation in mutual insurance companies',
+      'Premium payment structures (limited pay vs lifetime)',
+      'Comparison with term life insurance',
+      'Tax advantages of cash value growth',
+      'Living benefits and accelerated death benefit riders',
+      'Estate planning applications',
+      'How to choose between whole life carriers'
     ]
   },
-  'property-costs': {
-    topic: 'Property Buying Costs in Spain: Complete Breakdown for 2025',
-    targetKeyword: 'property buying costs spain',
-    category: 'Buying Guide',
-    targetAudience: 'International buyers planning property purchase in Spain',
+  'retirement-income': {
+    topic: 'Retirement Income Planning: Complete Strategy Guide for 2026',
+    targetKeyword: 'retirement income planning strategy',
+    category: 'Retirement Planning',
+    targetAudience: 'Pre-retirees and retirees planning sustainable income streams',
     pageType: 'calculator-guide',
     contentFocus: [
-      'Purchase taxes by region (Andalucía ITP: 7%, new builds VAT: 10%)',
-      'Notary fees breakdown (€600-€1,200 typical range)',
-      'Land registry fees (€400-€800)',
-      'Legal fees (1-1.5% of purchase price)',
-      'Mortgage arrangement fees if applicable (1-2%)',
-      'Property survey and valuation costs',
-      'Worked examples at €300K, €500K, and €1M price points',
-      'Annual ongoing costs (IBI property tax, community fees, basura)',
-      'Non-resident tax implications (IRNR)',
-      'Total cost calculator with all fees included'
+      'The 4% withdrawal rule and its limitations',
+      'Social Security optimization strategies',
+      'Annuity types and guaranteed income options',
+      'Tax-efficient withdrawal sequencing (Roth, Traditional, Brokerage)',
+      'Required Minimum Distributions (RMDs) planning',
+      'Healthcare cost projections in retirement',
+      'Inflation protection strategies',
+      'Bucket strategy for retirement income',
+      'Pension maximization techniques',
+      'Longevity risk and planning for 30+ year retirements'
     ]
   },
-  'nie-number': {
-    topic: 'How to Get an NIE Number in Spain (Step-by-Step Guide)',
-    targetKeyword: 'nie number spain how to get',
-    category: 'Legal & Regulations',
-    targetAudience: 'Anyone needing Spanish tax identification for property purchase or business',
+  'iul-guide': {
+    topic: 'Indexed Universal Life Insurance (IUL): How It Works & Who It\'s For',
+    targetKeyword: 'indexed universal life insurance how it works',
+    category: 'Insurance Products',
+    targetAudience: 'High-income individuals seeking tax-advantaged growth with downside protection',
     pageType: 'process-guide',
     contentFocus: [
-      'What is NIE and who needs it (required for all property transactions)',
-      'EX-15 form: exact document reference and where to download',
-      'Required documents list with specifications',
-      'Application methods (in Spain at police station, via Spanish consulate abroad)',
-      'Online booking system for appointments (Cita Previa)',
-      'Processing timelines (2-6 weeks typical)',
-      'Fees: approximately €9.84 (Tasa 790 code 012)',
-      'Common rejection reasons and how to avoid them',
-      'Difference between NIE and TIE (residency card)',
-      'Using a gestor vs DIY application'
+      'How index-linked crediting works (S&P 500, participation rates, caps)',
+      'Floor protection - 0% minimum guarantees',
+      'Flexible premium payments and death benefit options',
+      'Cash value accumulation vs traditional investments',
+      'Tax-free policy loans for retirement income',
+      'Cost of insurance charges and their impact',
+      'Illustration regulations and realistic expectations',
+      'IUL vs 401(k) and Roth IRA comparison',
+      'Suitability considerations and who should avoid IUL',
+      'How to evaluate IUL illustrations from different carriers'
     ]
   },
-  'spanish-mortgage': {
-    topic: 'Spanish Mortgages for Non-Residents: Rates, Banks & Requirements',
-    targetKeyword: 'spanish mortgage non residents',
-    category: 'Financing',
-    targetAudience: 'Non-resident international buyers seeking mortgage financing in Spain',
+  'estate-planning': {
+    topic: 'Estate Planning with Life Insurance: Strategies for Wealth Transfer',
+    targetKeyword: 'estate planning life insurance strategies',
+    category: 'Wealth Management',
+    targetAudience: 'High-net-worth individuals and families planning wealth transfer',
     pageType: 'comprehensive-guide',
     contentFocus: [
-      'LTV ratios for non-residents (60-70% typical maximum)',
-      'Current interest rates 2025 (fixed: 3.5-4.5%, variable: Euribor + 1-2%)',
-      'Bank comparison: Sabadell, Santander, BBVA, CaixaBank, Bankinter',
-      'Income requirements and documentation (3x gross salary rule)',
-      'Required documents checklist for non-residents',
-      'Step-by-step mortgage application process (6-8 weeks typical)',
-      'Mortgage costs and fees (1-2% arrangement, valuation, AJD tax)',
-      'Currency considerations for non-Euro earners (GBP, USD, SEK)',
-      'Self-employed vs employed requirements',
-      'Age limits and maximum term (typically to age 70-75)'
+      'Irrevocable Life Insurance Trusts (ILITs)',
+      'Estate tax exemption thresholds and planning',
+      'Generation-skipping transfer strategies',
+      'Survivorship (second-to-die) life insurance',
+      'Premium financing for large policies',
+      'Charitable giving with life insurance',
+      'Business succession planning',
+      'Key person insurance for business owners',
+      'Buy-sell agreement funding with life insurance',
+      'State-specific estate tax considerations'
     ]
   }
 };
@@ -181,7 +181,7 @@ serve(async (req) => {
 
         const topic = customTopic || template.topic;
         const targetKeyword = customKeyword || template?.targetKeyword || topic.toLowerCase();
-        const targetAudience = customAudience || template?.targetAudience || 'International property buyers';
+        const targetAudience = customAudience || template?.targetAudience || 'Retirement planning clients';
         const category = template?.category || 'Buying Guide';
         const contentFocus = template?.contentFocus || [];
 
@@ -207,7 +207,7 @@ serve(async (req) => {
         }
 
         // Generate the BOFU page content
-        const prompt = `You are an expert real estate content writer specializing in Spain's Costa del Sol property market. Create a comprehensive BOFU (Bottom of Funnel) guide that is optimized for AI citation and voice search.
+        const prompt = `You are an expert insurance and wealth management content writer. Create a comprehensive BOFU (Bottom of Funnel) guide that is optimized for AI citation and voice search.
 
 TOPIC: ${topic}
 TARGET KEYWORD: ${targetKeyword}
@@ -269,7 +269,7 @@ Return ONLY valid JSON, no markdown code blocks.`;
           body: JSON.stringify({
             model: 'gpt-4o',
             messages: [
-              { role: 'system', content: 'You are a professional real estate content writer. Return only valid JSON.' },
+              { role: 'system', content: 'You are a professional insurance and financial planning content writer. Return only valid JSON.' },
               { role: 'user', content: prompt }
             ],
             temperature: 0.7,

@@ -517,7 +517,7 @@ async function generateCluster(
       .single();
 
     const enableMultilingual = flagData?.setting_value === 'true';
-    const SUPPORTED_LANGUAGES = ['en', 'de', 'nl', 'fr', 'pl', 'sv', 'da', 'hu', 'fi', 'no'];
+    const SUPPORTED_LANGUAGES = ['en', 'es'];
     
     console.log(`[Job ${jobId}] 🌍 Multilingual feature flag: ${enableMultilingual ? 'ENABLED' : 'DISABLED'}`);
     
@@ -648,12 +648,10 @@ async function generateCluster(
 
     // Language name mapping for structure generation
     const structureLanguageName = {
-      'en': 'English', 'de': 'German', 'nl': 'Dutch', 'fr': 'French',
-      'pl': 'Polish', 'sv': 'Swedish', 'da': 'Danish', 'hu': 'Hungarian',
-      'fi': 'Finnish', 'no': 'Norwegian'
+      'en': 'English', 'es': 'Spanish',
     }[language] || 'English';
 
-    const structurePrompt = `You are an expert SEO content strategist for a luxury real estate agency in Costa del Sol, Spain.
+    const structurePrompt = `You are an expert SEO content strategist for a fiduciary insurance and wealth management firm in the United States.
 
 Create a content cluster structure for the topic: "${topic}"
 Language: ${language} (${structureLanguageName})
@@ -667,8 +665,6 @@ Generate 6 article titles following this funnel structure:
 - 2 MOFU (Middle of Funnel) - Consideration stage, comparison, detailed guides
 - 1 BOFU (Bottom of Funnel) - Decision stage, action-oriented
 
-Each article must include the location "Costa del Sol" in the headline (keep "Costa del Sol" as-is, it's a proper noun).
-
 CRITICAL: You MUST return ONLY a valid JSON object with this EXACT structure. Do NOT include markdown code blocks, explanations, or any other text.
 CRITICAL: All text content (headline, targetKeyword, contentAngle) MUST be in ${structureLanguageName}.
 
@@ -676,7 +672,7 @@ CRITICAL: All text content (headline, targetKeyword, contentAngle) MUST be in ${
   "articles": [
     {
       "funnelStage": "TOFU",
-      "headline": "Headline in ${structureLanguageName} with Costa del Sol",
+      "headline": "Headline in ${structureLanguageName}",
       "targetKeyword": "keyword phrase in ${structureLanguageName}",
       "searchIntent": "informational",
       "contentAngle": "Content angle description in ${structureLanguageName}"
@@ -699,7 +695,7 @@ Return ONLY the JSON object above, nothing else. No markdown, no explanations, n
             model: 'gpt-4o',
             max_tokens: 4096,
             messages: [
-              { role: 'system', content: 'You are an SEO expert specializing in real estate content strategy. Return only valid JSON.' },
+              { role: 'system', content: 'You are an SEO expert specializing in insurance and wealth management content strategy. Return only valid JSON.' },
               { role: 'user', content: structurePrompt }
             ],
           }),
