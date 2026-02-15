@@ -5,8 +5,8 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-const SUPPORTED_LANGUAGES = ['en', 'nl', 'hu', 'de', 'fr', 'sv', 'pl', 'no', 'fi', 'da']
-const BASE_URL = 'https://www.delsolprimehomes.com'
+const SUPPORTED_LANGUAGES = ['en', 'es']
+const BASE_URL = 'https://www.everencewealth.com'
 
 /**
  * Checks if content is empty/placeholder (should trigger 410 Gone)

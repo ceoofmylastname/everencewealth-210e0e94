@@ -40,9 +40,9 @@ const navigationLinks = [
   { url: '/privacy', type: 'internal', source: 'footer' },
   { url: '/terms', type: 'internal', source: 'footer' },
   // Social links
-  { url: 'https://www.facebook.com/delsolprimehomes', type: 'external', source: 'social' },
-  { url: 'https://www.instagram.com/delsolprimehomes', type: 'external', source: 'social' },
-  { url: 'https://www.linkedin.com/company/delsolprimehomes', type: 'external', source: 'social' },
+  { url: 'https://www.facebook.com/everencewealth', type: 'external', source: 'social' },
+  { url: 'https://www.instagram.com/everencewealth', type: 'external', source: 'social' },
+  { url: 'https://www.linkedin.com/company/everencewealth', type: 'external', source: 'social' },
 ];
 
 serve(async (req) => {
@@ -290,7 +290,7 @@ function extractExternalLinks(content: string): string[] {
 
   while ((match = linkRegex.exec(content)) !== null) {
     const url = match[1];
-    if (url.startsWith('http') && !url.includes('delsolprimehomes.com')) {
+    if (url.startsWith('http') && !url.includes('everencewealth.com')) {
       links.push(url);
     }
   }

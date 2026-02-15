@@ -12,7 +12,7 @@ const INDEXNOW_ENDPOINTS = [
   'https://yandex.com/indexnow'
 ];
 
-const BASE_URL = 'https://www.delsolprimehomes.com';
+const BASE_URL = 'https://www.everencewealth.com';
 const API_KEY = Deno.env.get('INDEXNOW_API_KEY') || '8f3a2c1d4e5b6f7a8c9d0e1f2a3b4c5d';
 const KEY_LOCATION = `${BASE_URL}/indexnow-key.txt`;
 
@@ -39,7 +39,7 @@ async function submitToIndexNow(
   for (const endpoint of INDEXNOW_ENDPOINTS) {
     try {
       const body = {
-        host: 'www.delsolprimehomes.com',
+        host: 'www.everencewealth.com',
         key: apiKey,
         keyLocation: KEY_LOCATION,
         urlList: urls

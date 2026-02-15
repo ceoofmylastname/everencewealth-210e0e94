@@ -50,7 +50,7 @@ serve(async (req) => {
             content: [
               {
                 type: 'text',
-                text: `Analyze this real estate/property image carefully. Look for ANY visible text, words, letters, watermarks, logos, or gibberish characters that appear baked into the image (not natural signs in the scene).
+                text: `Analyze this financial services/insurance image carefully. Look for ANY visible text, words, letters, watermarks, logos, or gibberish characters that appear baked into the image (not natural signs in the scene).
 
 Focus on detecting:
 1. AI-generated gibberish text (random letters, distorted words, fake text)

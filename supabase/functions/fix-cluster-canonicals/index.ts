@@ -5,7 +5,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-const BASE_URL = 'https://www.delsolprimehomes.com'
+const BASE_URL = 'https://www.everencewealth.com'
 
 type ContentType = 'blog' | 'qa' | 'location' | 'comparison' | 'all'
 
@@ -20,10 +20,10 @@ interface FixResult {
  * Batch fix missing canonical URLs for all content types.
  * 
  * Patterns:
- * - Blog: https://www.delsolprimehomes.com/{lang}/blog/{slug}
- * - Q&A:  https://www.delsolprimehomes.com/{lang}/qa/{slug}
- * - Location: https://www.delsolprimehomes.com/{lang}/locations/{city_slug}/{topic_slug}
- * - Comparison: https://www.delsolprimehomes.com/{lang}/compare/{slug}
+ * - Blog: https://www.everencewealth.com/{lang}/blog/{slug}
+ * - Q&A:  https://www.everencewealth.com/{lang}/qa/{slug}
+ * - Location: https://www.everencewealth.com/{lang}/locations/{city_slug}/{topic_slug}
+ * - Comparison: https://www.everencewealth.com/{lang}/compare/{slug}
  */
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {

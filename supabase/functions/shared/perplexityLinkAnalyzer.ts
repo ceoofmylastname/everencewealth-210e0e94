@@ -90,7 +90,7 @@ For EACH link, provide:
     headers: {
       'Authorization': `Bearer ${perplexityApiKey}`,
       'Accept': 'application/json',
-      'User-Agent': 'LovableCitationBot/1.0 (https://delsolprimehomes.com)',
+      'User-Agent': 'LovableCitationBot/1.0 (https://everencewealth.com)',
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
@@ -196,7 +196,7 @@ Return ONLY a JSON array of URLs:
     headers: {
       'Authorization': `Bearer ${perplexityApiKey}`,
       'Accept': 'application/json',
-      'User-Agent': 'LovableCitationBot/1.0 (https://delsolprimehomes.com)',
+      'User-Agent': 'LovableCitationBot/1.0 (https://everencewealth.com)',
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({

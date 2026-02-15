@@ -35,124 +35,65 @@ const ALLOWED_DATA_PATHS = [
 // COMPETITOR AGENCIES - ALWAYS BLOCKED (All Tiers)
 // ═══════════════════════════════════════════════════════════════════
 const COMPETITOR_AGENCIES = [
-  // Marbella/Costa del Sol agencies (HIGH PRIORITY - direct competitors)
-  'panoramamarbella.com',
-  'panoramaproperties.com',
-  'christopherclover.com',
-  'drumelia.com',
-  'landmar.com',
-  'crystal-shore.com',
-  'marbella-hills.com',
-  'marbellaproperties.com',
-  'costadelsolproperties.com',
-  'inmobiliaria-marbella.com',
-  'viva-estates.com',
-  'inmogolf.com',
-  'habitat-marbella.com',
-  
-  // MALAGA/COSTA DEL SOL SPECIFIC COMPETITORS (CRITICAL)
-  'homenetspain.com',
-  'movetomalagaspain.com',
-  'movetomalaga.com',
-  'propertyfindermalaga.com',
-  'malagaproperty.com',
-  'costadelsolhomes.com',
-  'marbellabanus.com',
-  'spanishpropertychoice.com',
-  'propertyforsalespain.com',
-  'spainpropertyforsale.com',
-  'buypropertyspain.com',
-  'livinginspain.com',
-  'expatliving.es',
-  'relocatespain.com',
-  'movingtomalaga.com',
-  'malagarelocation.com',
-  'costadelsolliving.com',
-  'marbellaliving.com',
-  'sunnyspainproperty.com',
-  'spanishsunshine.com',
-  'propertiesinspain.com',
-  'spainhousesforsale.com',
-  'andaluciaproperty.com',
-  'andaluciahouses.com',
-  'estepona-property.com',
-  'benalmadena-property.com',
-  'fuengirola-property.com',
-  'mijas-property.com',
-  'nerja-property.com',
-  'torremolinosproperties.com',
-  
-  // International luxury agencies
-  'engel-voelkers.com',
-  'sothebysrealty.com',
-  'knightfrank.com',
-  'savills.com',
-  'christiesrealestate.com',
-  'lucasfox.com',
-  'coldwellbanker.com',
-  'century21.es',
-  're-max.es',
-  'remax.es',
-  'berkshirehathaway.com',
-  'compass.com',
-  'kw.com',
-  'kellerwilliams.com',
-  
-  // Spanish agency chains
-  'gilmar.es',
-  'promora.es',
-  'solvia.es',
-  'oi-realtor.com',
-  'housers.com',
-  
-  // Property investment sites
-  'propertyinvestment.com',
-  'buyspanishproperty.com',
-  'investinspain.com',
-  'spanish-property-investment.com',
-  
-  // UK/International portals focused on listings
-  'aplaceinthesun.com',
-  'kyero.com',
-  'thinkspain.com',
-  'spanish-property.com',
-  'propertyguides.com',
-  'spainhouses.net',
-  'spanishproperties.com',
-  'spanishhomes.com',
-  'spanish-property-centre.com',
-  'primeinvest.es',
-  
-  // Additional relocation/expat property sites
-  'expatica.com',
-  'internations.org',
-  'justlanded.com',
+  // Competing insurance agencies & brokers
+  'statefarm.com',
+  'allstate.com',
+  'libertymutual.com',
+  'progressive.com',
+  'geico.com',
+  'nationwide.com',
+  'farmers.com',
+  'erieinsurance.com',
+  'travelers.com',
+  'hartfordinsurance.com',
+
+  // Competing wealth management / financial advisory firms
+  'edwardjones.com',
+  'ameriprise.com',
+  'raymondjames.com',
+  'stifel.com',
+  'janney.com',
+  'waddell.com',
+  'lpl.com',
+  'northwesternmutual.com',
+  'massmutual.com',
+  'newyorklife.com',
+  'primerica.com',
+  'transamerica.com',
+  'pacificlife.com',
+  'lincolnfinancial.com',
+  'principal.com',
+  'prudential.com',
+  'metlife.com',
+  'aig.com',
+
+  // Insurance comparison / lead-gen portals
+  'policygenius.com',
+  'insurify.com',
+  'thezebra.com',
+  'gabi.com',
+  'selectquote.com',
+  'zander.com',
+  'quotewizard.com',
+  'netquote.com',
+  'insurance.com',
+  'ehealthinsurance.com',
 ];
 
 // ═══════════════════════════════════════════════════════════════════
 // AGGRESSIVE KEYWORD BLOCKING - Block ANY domain containing these terms
 // ═══════════════════════════════════════════════════════════════════
 const BLOCKED_DOMAIN_KEYWORDS = [
-  // English terms
-  'property', 'properties', 'realestate', 'real-estate', 'estate-agent',
-  'homes', 'villas', 'apartments', 'condos', 'realtor', 'broker',
-  'listing', 'listings', 'forsale', 'for-sale',
+  // Competing insurance terms
+  'insurancequote', 'insurance-quote', 'getaquote', 'cheapinsurance',
+  'autoinsurance', 'carinsurance', 'homeinsurance',
   
-  // Spanish terms
-  'inmobiliaria', 'inmobiliarias', 'casas', 'pisos', 'viviendas',
-  'alquiler', 'venta', 'comprar', 'vender',
+  // Competing financial advisory terms
+  'financialadvisor', 'financial-advisor', 'wealthadvisor',
+  'investmentadvisor', 'stockbroker',
   
-  // Dutch/Belgian terms
-  'makelaar', 'makelaardij', 'vastgoed', 'woning', 'huizen',
-  
-  // German terms
-  'immobilien', 'makler',
-  
-  // French terms
-  'immobilier', 'agence',
-  
-  // General real estate terms
-  'immo', 'estate', 'housing',
+  // Lead-gen / comparison sites
+  'compare-insurance', 'insurancecompare', 'ratecompare',
 ];
 
 // Research paths that are OK even from agencies (Savills/Knight Frank research divisions)
@@ -442,17 +383,15 @@ async function verifyNotCompetitor(
   const prompt = `Analyze this website domain: ${domain}
 
 Is this company/website involved in ANY of the following businesses?
-- Selling or renting real estate/properties
-- Real estate brokerage or agency services
-- Property listing portals or platforms
-- Property investment advisory
-- Relocation services focused on property sales/rentals
-- Estate agent services
-- Property consulting or brokerage
+- Selling insurance policies directly (agent/broker)
+- Insurance brokerage or agency services
+- Insurance comparison or lead-generation portals
+- Competing financial advisory or wealth management firms
+- Competing retirement planning services
 
 ANSWER ONLY with JSON in this exact format:
 {
-  "isRealEstateCompany": true or false,
+  "isCompetitor": true or false,
   "businessType": "brief description of what the company actually does",
   "confidence": 1-10 (how confident are you in this assessment)
 }
@@ -466,7 +405,7 @@ Return ONLY the JSON, nothing else.`;
       headers: {
         'Authorization': `Bearer ${PERPLEXITY_API_KEY}`,
         'Accept': 'application/json',
-        'User-Agent': 'LovableCitationBot/1.0 (https://delsolprimehomes.com)',
+        'User-Agent': 'LovableCitationBot/1.0 (https://everencewealth.com)',
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -474,7 +413,7 @@ Return ONLY the JSON, nothing else.`;
         messages: [
           {
             role: 'system',
-            content: 'You are a business analysis assistant. Respond only with valid JSON. Be accurate and objective in determining if a company is involved in real estate sales/brokerage.'
+            content: 'You are a business analysis assistant. Respond only with valid JSON. Be accurate and objective in determining if a company is a competing insurance or financial advisory firm.'
           },
           {
             role: 'user',

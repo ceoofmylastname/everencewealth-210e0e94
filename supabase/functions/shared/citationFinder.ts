@@ -263,7 +263,7 @@ Return ONLY the JSON, nothing else.`;
       headers: {
         'Authorization': `Bearer ${perplexityApiKey}`,
         'Accept': 'application/json',
-        'User-Agent': 'LovableCitationBot/1.0 (https://delsolprimehomes.com)',
+        'User-Agent': 'LovableCitationBot/1.0 (https://everencewealth.com)',
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -562,7 +562,7 @@ Return only the JSON array, nothing else.`;
       headers: {
         'Authorization': `Bearer ${perplexityApiKey}`,
         'Accept': 'application/json',
-        'User-Agent': 'LovableCitationBot/1.0 (https://delsolprimehomes.com)',
+        'User-Agent': 'LovableCitationBot/1.0 (https://everencewealth.com)',
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({

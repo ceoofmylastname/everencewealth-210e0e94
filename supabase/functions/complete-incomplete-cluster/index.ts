@@ -262,7 +262,7 @@ serve(async (req) => {
                   date_modified: new Date().toISOString(),
                   hreflang_group_id: groupId,
                   source_language: sourceLanguage,
-                  canonical_url: `https://www.delsolprimehomes.com${langPrefix}/blog/${translatedSlug}`
+                  canonical_url: `https://www.everencewealth.com${langPrefix}/blog/${translatedSlug}`
                 })
                 .select('id, slug')
                 .single();

@@ -291,10 +291,10 @@ serve(async (req) => {
       const translatedSlug = `${generateSlug(translatedQA.question)}-${uuidSuffix}`;
 
       // FIX 2: Use article's existing image alt instead of calling AI
-      const imageAlt = translatedArticle.featured_image_alt || englishQA.featured_image_alt || 'Q&A about Costa del Sol real estate';
+      const imageAlt = translatedArticle.featured_image_alt || englishQA.featured_image_alt || 'Q&A about insurance and wealth management';
       const imageUrl = translatedArticle.featured_image_url || englishQA.featured_image_url || 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=1200';
 
-      const canonicalUrl = `https://www.delsolprimehomes.com/${targetLang}/qa/${translatedSlug}`;
+      const canonicalUrl = `https://www.everencewealth.com/${targetLang}/qa/${translatedSlug}`;
 
       // Insert new Q&A
       const { error: insertError } = await supabase

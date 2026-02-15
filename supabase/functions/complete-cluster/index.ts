@@ -327,7 +327,7 @@ Return ONLY the HTML content.`;
         meta_description: metaDescription,
         speakable_answer: speakableAnswer,
         detailed_content: detailedContent,
-        canonical_url: `https://www.delsolprimehomes.com/en/blog/${slug}`,
+        canonical_url: `https://www.everencewealth.com/en/blog/${slug}`,
         featured_image_url: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1200&q=80',
         featured_image_alt: plan.headline,
         author_id: randomAuthor?.id || null,

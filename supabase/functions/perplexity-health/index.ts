@@ -8,7 +8,7 @@ const corsHeaders = {
 // Standardized headers for all Perplexity API calls
 const PERPLEXITY_HEADERS = {
   'Accept': 'application/json',
-  'User-Agent': 'LovableCitationBot/1.0 (https://delsolprimehomes.com)',
+  'User-Agent': 'LovableCitationBot/1.0 (https://everencewealth.com)',
   'Content-Type': 'application/json',
 };
 

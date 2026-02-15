@@ -98,9 +98,7 @@ Return ONLY JSON: { "featuredImageAlt": "..." }`;
 
       case 'speakable':
         const speakableLanguageNames: Record<string, string> = {
-          'en': 'English', 'de': 'German', 'nl': 'Dutch', 'fr': 'French',
-          'pl': 'Polish', 'sv': 'Swedish', 'da': 'Danish', 'hu': 'Hungarian',
-          'fi': 'Finnish', 'no': 'Norwegian'
+          'en': 'English', 'es': 'Spanish'
         };
         const speakableLangName = speakableLanguageNames[articleData.language] || 'English';
         

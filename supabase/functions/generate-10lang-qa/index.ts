@@ -452,7 +452,7 @@ serve(async (req) => {
             qa_type: currentQaType,
             title: qaData.title,
             slug: finalSlug,
-            canonical_url: `https://www.delsolprimehomes.com/${lang}/qa/${finalSlug}`,
+            canonical_url: `https://www.everencewealth.com/${lang}/qa/${finalSlug}`,
             question_main: qaData.question_main,
             answer_main: qaData.answer_main,
             related_qas: [],

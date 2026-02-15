@@ -11,19 +11,11 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const SUPPORTED_LANGUAGES = ['en', 'de', 'nl', 'fr', 'pl', 'sv', 'da', 'hu', 'fi', 'no'] as const;
+const SUPPORTED_LANGUAGES = ['en', 'es'] as const;
 
 const LANGUAGE_NAMES: Record<string, string> = {
   en: 'English',
-  de: 'German',
-  nl: 'Dutch',
-  fr: 'French',
-  pl: 'Polish',
-  sv: 'Swedish',
-  da: 'Danish',
-  hu: 'Hungarian',
-  fi: 'Finnish',
-  no: 'Norwegian',
+  es: 'Spanish',
 };
 
 interface BrochureContentResult {
@@ -46,11 +38,11 @@ async function generateContentForLanguage(
 ): Promise<BrochureContentResult> {
   const languageName = LANGUAGE_NAMES[language] || 'English';
   
-  const systemPrompt = `You are an expert luxury real estate copywriter specializing in Costa del Sol, Spain. 
-Generate premium, aspirational content that targets high-net-worth international buyers seeking luxury properties.
-Your content should be sophisticated, confident, and emphasize exclusivity, lifestyle, and investment value.`;
+  const systemPrompt = `You are an expert insurance and wealth management copywriter. 
+Generate premium, trust-building content that targets individuals and families seeking financial security through insurance and retirement planning.
+Your content should be sophisticated, confident, and emphasize protection, growth, and long-term financial wellness.`;
 
-  const userPrompt = `Generate brochure content for ${cityName} on the Costa del Sol, Spain.
+  const userPrompt = `Generate brochure content for the service area: ${cityName}.
 
 TARGET LANGUAGE: ${languageName} (${language})
 Write ALL content ONLY in ${languageName}. Do not use English if the target language is not English.

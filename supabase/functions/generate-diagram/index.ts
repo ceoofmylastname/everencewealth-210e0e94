@@ -24,7 +24,7 @@ serve(async (req) => {
       throw new Error('Content parameter is required and must be a string');
     }
 
-    const prompt = `Analyze this real estate article and create a ${type} diagram in Mermaid syntax.
+    const prompt = `Analyze this insurance and wealth management article and create a ${type} diagram in Mermaid syntax.
 
 Article: "${headline}"
 Content: ${content.substring(0, 2000)}
