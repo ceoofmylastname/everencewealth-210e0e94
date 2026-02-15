@@ -4,6 +4,7 @@ import { Header } from '../components/home/Header';
 import { Footer } from '../components/home/Footer';
 import { LanguageSuggestionBanner } from '../components/LanguageSuggestionBanner';
 import { Hero } from '../components/home/sections/Hero';
+import { WakeUpCall } from '../components/homepage/WakeUpCall';
 import { WhyChooseUs } from '../components/home/sections/WhyChooseUs';
 import { QuickSearch } from '../components/home/sections/QuickSearch';
 import { MiniAbout, USPSection } from '../components/home/sections/ContentBlocks';
@@ -55,8 +56,11 @@ function Home() {
         
         {/* 1. Hero Section */}
         <Hero />
+
+        {/* 1.5. Wake-Up Call — contrarian hook */}
+        <WakeUpCall />
         
-        {/* 2. Why Choose Us - Moved content from Hero */}
+        {/* 2. Why Choose Us */}
         <WhyChooseUs />
         
         {/* 3 & 4. Quick Search & Mini About */}
