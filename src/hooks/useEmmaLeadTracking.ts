@@ -43,7 +43,7 @@ export interface EmmaLeadData {
   product_interest?: string[];
   goal?: string;
   timeframe?: string;
-  // Legacy property fields (kept for DB compatibility)
+  // Legacy fields (kept for DB compatibility)
   location_preference?: string[];
   sea_view_importance?: string;
   bedrooms_desired?: string;
@@ -63,7 +63,7 @@ export interface EmmaLeadData {
 }
 
 // Extract financial criteria from conversation history
-export const extractPropertyCriteriaFromHistory = (messages: Array<{ role: string; content: string }>): Partial<EmmaLeadData> => {
+export const extractFinancialCriteriaFromHistory = (messages: Array<{ role: string; content: string }>): Partial<EmmaLeadData> => {
   const criteria: Partial<EmmaLeadData> = {};
   
   // Risk tolerance patterns

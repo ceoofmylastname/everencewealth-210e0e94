@@ -10,48 +10,38 @@ interface QuickSummaryProps {
 
 const labelTranslations: Record<string, { title: string; bottomLineLabel: string; readTimeLabel: string }> = {
   en: { title: "Quick Summary", bottomLineLabel: "Bottom Line", readTimeLabel: "min read" },
-  de: { title: "Kurzübersicht", bottomLineLabel: "Fazit", readTimeLabel: "Min. Lesezeit" },
-  nl: { title: "Samenvatting", bottomLineLabel: "Conclusie", readTimeLabel: "min lezen" },
-  fr: { title: "Résumé Rapide", bottomLineLabel: "Conclusion", readTimeLabel: "min de lecture" },
-  pl: { title: "Podsumowanie", bottomLineLabel: "Konkluzja", readTimeLabel: "min czytania" },
-  sv: { title: "Snabbsammanfattning", bottomLineLabel: "Slutsats", readTimeLabel: "min läsning" },
-  da: { title: "Hurtig Oversigt", bottomLineLabel: "Konklusion", readTimeLabel: "min læsning" },
-  hu: { title: "Gyors Összefoglaló", bottomLineLabel: "Végkövetkeztetés", readTimeLabel: "perc olvasás" },
-  fi: { title: "Nopea Yhteenveto", bottomLineLabel: "Johtopäätös", readTimeLabel: "min lukuaika" },
-  no: { title: "Rask Sammendrag", bottomLineLabel: "Konklusjon", readTimeLabel: "min lesning" }
+  es: { title: "Resumen Rápido", bottomLineLabel: "Conclusión", readTimeLabel: "min de lectura" },
 };
 
-// Extract key takeaways from headline/content if not provided
 function extractKeyTakeaways(headline: string, bottomLine: string): string[] {
-  // Default takeaways based on common BOFU patterns
   const takeaways: string[] = [];
   
-  // Add headline-derived takeaway
-  if (headline.toLowerCase().includes('digital nomad') || 
-      headline.toLowerCase().includes('remote work visa')) {
-    takeaways.push('€2,520/month minimum income requirement for Digital Nomad Visa');
-    takeaways.push('Work remotely for non-Spanish companies or 80%+ non-Spanish clients');
-    takeaways.push('3-year initial visa, renewable for additional 2 years');
-    takeaways.push('Family members (spouse, children, dependents) can be included');
-  } else if (headline.toLowerCase().includes('cost') || headline.toLowerCase().includes('tax')) {
-    takeaways.push('Budget 10-15% for purchase costs beyond property price');
-    takeaways.push('Transfer tax (ITP) ranges from 7-10% depending on region');
-    takeaways.push('Notary, registry, and legal fees add 2-3%');
-  } else if (headline.toLowerCase().includes('lawyer') || headline.toLowerCase().includes('legal')) {
-    takeaways.push('Always use an independent Spanish property lawyer');
-    takeaways.push('Legal fees typically 1-1.5% of purchase price');
-    takeaways.push('Lawyer handles NIE, due diligence, and contracts');
-  } else if (headline.toLowerCase().includes('uk') || headline.toLowerCase().includes('british')) {
-    takeaways.push('Post-Brexit: 90-day limit without visa');
-    takeaways.push('Non-resident tax implications to consider');
-    takeaways.push('Currency exchange timing can save thousands');
+  if (headline.toLowerCase().includes('retirement') || 
+      headline.toLowerCase().includes('401k') ||
+      headline.toLowerCase().includes('ira')) {
+    takeaways.push('Maximize employer-matched 401(k) contributions first');
+    takeaways.push('Consider Roth IRA for tax-free growth potential');
+    takeaways.push('Coordinate Social Security timing for optimal benefits');
+    takeaways.push('Diversify across all three tax buckets');
+  } else if (headline.toLowerCase().includes('iul') || headline.toLowerCase().includes('life insurance')) {
+    takeaways.push('IUL provides tax-free retirement income potential');
+    takeaways.push('Market-linked growth with downside protection (0% floor)');
+    takeaways.push('Living benefits can cover long-term care expenses');
+    takeaways.push('Policy loans are generally income tax-free');
+  } else if (headline.toLowerCase().includes('tax') || headline.toLowerCase().includes('estate')) {
+    takeaways.push('Proper planning can significantly reduce tax burden');
+    takeaways.push('Estate planning protects assets for future generations');
+    takeaways.push('Annual gift exclusion and trust strategies available');
+  } else if (headline.toLowerCase().includes('annuit') || headline.toLowerCase().includes('income')) {
+    takeaways.push('Guaranteed income streams for retirement security');
+    takeaways.push('Tax-deferred growth until withdrawal');
+    takeaways.push('Multiple payout options to fit your needs');
   }
   
-  // Fallback if no specific pattern matched
   if (takeaways.length === 0) {
-    takeaways.push('Expert guidance for Spanish property purchase');
-    takeaways.push('Up-to-date information for 2025');
-    takeaways.push('Step-by-step process explained');
+    takeaways.push('Expert guidance for wealth management decisions');
+    takeaways.push('Up-to-date information for 2026');
+    takeaways.push('Step-by-step strategy explained');
   }
   
   return takeaways.slice(0, 4);
@@ -72,7 +62,6 @@ export const QuickSummary = ({
 
   return (
     <div className="quick-summary my-8 md:my-12 rounded-2xl bg-gradient-to-br from-accent/10 via-background to-primary/5 border border-border shadow-md overflow-hidden">
-      {/* Header */}
       <div className="flex items-center justify-between px-6 py-4 bg-accent/20 border-b border-border">
         <div className="flex items-center gap-3">
           <div className="p-2 rounded-lg bg-primary/10">
@@ -87,7 +76,6 @@ export const QuickSummary = ({
         )}
       </div>
       
-      {/* Key Takeaways */}
       <div className="px-6 py-5 space-y-3">
         <ul className="space-y-2.5">
           {takeaways.map((takeaway, index) => (
@@ -99,7 +87,6 @@ export const QuickSummary = ({
         </ul>
       </div>
       
-      {/* Bottom Line */}
       <div className="px-6 py-4 bg-primary/5 border-t border-border">
         <div className="flex items-start gap-3">
           <span className="text-sm font-semibold uppercase tracking-wide text-primary whitespace-nowrap">

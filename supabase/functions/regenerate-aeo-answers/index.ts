@@ -8,9 +8,7 @@ const corsHeaders = {
 };
 
 const LANGUAGE_NAMES: Record<string, string> = {
-  en: 'English', de: 'German', nl: 'Dutch', fr: 'French',
-  pl: 'Polish', sv: 'Swedish', da: 'Danish', hu: 'Hungarian',
-  fi: 'Finnish', no: 'Norwegian',
+  en: 'English', es: 'Spanish',
 };
 
 // Anti-patterns that indicate bad formatting (Hans' AEO rules)
@@ -53,8 +51,8 @@ HANS' AEO RULES (MANDATORY):
 - Max 800 characters
 - Directly answers the question as a verdict/conclusion
 
-WRONG: "There are 5 key steps: 1. Get an NIE 2. Find a lawyer 3. Open bank account..."
-RIGHT: "Purchasing property in Costa del Sol involves obtaining a Spanish NIE, appointing an independent lawyer for due diligence, opening a Spanish bank account, signing a private purchase agreement with deposit, and finalizing the sale before a notary through the public deed of sale, after which the property is registered in the Land Registry."
+WRONG: "There are 5 key steps: 1. Set up a 401(k) 2. Open a Roth IRA 3. Get life insurance..."
+RIGHT: "Building a tax-efficient retirement strategy involves maximizing employer-matched 401(k) contributions, establishing a Roth IRA for tax-free growth, securing an indexed universal life policy for supplemental income, creating a systematic withdrawal plan across tax buckets, and coordinating Social Security timing to optimize lifetime benefits."
 
 Return ONLY the rewritten answer in ${languageName}. No JSON, no formatting, no quotes.`;
 

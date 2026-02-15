@@ -155,298 +155,287 @@ export const en = {
   miniAbout: {
     headline: "Expertise You Can",
     headlineHighlight: "Trust",
-    paragraph1: "DelSolPrimeHomes was founded by Hans Beeckman, Cédric Van Hecke, and Steven Roberts — three API-accredited real estate professionals with decades of experience helping international buyers purchase safely on the Costa del Sol.",
-    paragraph2: "Together with a multilingual team that earned their reputation at respected agencies across the region, we offer full guidance in English, Dutch, French, German, Finnish, Polish, Danish, Hungarian, Swedish, and Norwegian.",
+    paragraph1: "Everence Wealth was founded by a team of fiduciary advisors with 35+ years of combined experience helping Americans build tax-efficient retirement strategies and protect their wealth.",
+    paragraph2: "Our bilingual team provides expert guidance in English and Spanish, specializing in indexed universal life, annuities, estate planning, and comprehensive wealth management.",
     cta: "Meet the Team",
   },
   usps: {
     eyebrow: "Why Choose Us",
-    headline: "Why Buyers Trust DelSolPrimeHomes",
+    headline: "Why Clients Trust Everence Wealth",
     items: [
       {
-        title: "API-Accredited Advisors",
-        description: "We operate under strict Spanish standards of professionalism, ethics, and legal compliance.",
+        title: "Fiduciary Standard",
+        description: "We operate under a strict fiduciary duty, always putting your financial interests first.",
       },
       {
         title: "35+ Years of Experience",
-        description: "Our team members have helped hundreds of families and individuals buy safely in Spain, using the expertise they gained at leading real estate offices before joining DelSolPrimeHomes.",
+        description: "Our advisors have helped hundreds of families and individuals build secure retirement strategies using the expertise gained across decades in financial services.",
       },
       {
-        title: "AI-Enhanced Property Selection",
-        description: "We analyse and compare new-build projects between Málaga and Sotogrande using advanced AI tools — so you only see the opportunities that truly fit your needs.",
+        title: "AI-Enhanced Analysis",
+        description: "We analyze and compare insurance products and retirement strategies using advanced AI tools — so you only see the opportunities that truly fit your needs.",
       },
       {
-        title: "Full Legal & Document Support",
-        description: "We guide you through licences, contracts, payment schedules, and bank guarantees, ensuring clarity and legal security at every step.",
+        title: "Full Tax & Estate Support",
+        description: "We guide you through tax optimization, estate planning, trust structures, and beneficiary designations, ensuring clarity and legal security at every step.",
       },
     ],
   },
   featuredAreas: {
-    eyebrow: "Locations",
-    headline: "From Málaga to Sotogrande — Carefully Selected Areas",
-    description: "Each area on the Costa del Sol has its own character, lifestyle, and investment potential. We guide you to the location that fits your vision.",
-    cta: "Explore All Areas",
+    eyebrow: "Strategies",
+    headline: "From Retirement Income to Legacy Planning",
+    description: "Each financial strategy has its own strengths, tax advantages, and ideal use case. We guide you to the approach that fits your vision.",
+    cta: "Explore All Strategies",
     areas: {
-      marbella: "The jewel of the Costa del Sol, famous for its Golden Mile, Puerto Banús, and year-round international community.",
-      estepona: "The Garden of the Costa del Sol — charming Andalusian atmosphere with growing modern infrastructure and excellent value.",
-      fuengirola: "Family-friendly beach town with a vibrant promenade, excellent amenities, and strong year-round community.",
-      benalmadena: "Marina lifestyle and hillside charm with stunning coastal panoramas, theme parks, and cable car access.",
-      mijas: "Authentic white village with panoramic views and traditional Andalusian character, blending mountain serenity with coastal access.",
-      sotogrande: "Privacy and prestige. Home to world-class golf, polo, and marina living in one of Europe's most exclusive residential areas.",
-      malaga: "A vibrant cultural hub with museums, universities, and strong capital growth — plus the best flight connections on the coast.",
-      casares: "Traditional pueblo blanco perched on a hillside with breathtaking valley views and unspoiled Andalusian charm.",
-      manilva: "Marina and vineyard lifestyle where the mountains meet the Mediterranean, offering excellent value and authentic character.",
-      torremolinos: "Classic beach promenade destination with a vibrant entertainment scene, excellent dining, and convenient airport proximity.",
+      marbella: "Indexed Universal Life (IUL) — tax-free retirement income with market-linked growth and downside protection.",
+      estepona: "Fixed & Indexed Annuities — guaranteed income streams for retirement security with tax-deferred growth.",
+      fuengirola: "Roth IRA strategies — tax-free growth and withdrawal for long-term retirement planning.",
+      benalmadena: "Estate planning — protecting your legacy with trusts, beneficiary designations, and wealth transfer strategies.",
+      mijas: "Long-term care planning — asset protection strategies to preserve your wealth against healthcare costs.",
+      sotogrande: "Tax bucket diversification — optimizing across pre-tax, after-tax, and tax-free accounts for maximum efficiency.",
+      malaga: "Social Security optimization — timing strategies to maximize your lifetime benefits.",
+      casares: "Asset protection — shielding your wealth with proper structures and insurance solutions.",
+      manilva: "Business succession planning — strategies for owners transitioning out of their businesses.",
+      torremolinos: "Charitable giving strategies — tax-efficient ways to support causes you care about.",
     },
   },
   process: {
     eyebrow: "How We Work",
-    headline: "From First Call to Key Handover",
+    headline: "From First Call to Financial Clarity",
     steps: [
       {
-        title: "Discovery Call in Your Language",
-        description: "We begin with a friendly video call to understand your goals, timing, budget, and preferences — completely free and with no pressure.",
+        title: "Discovery Call",
+        description: "We begin with a friendly video call to understand your goals, timeline, risk tolerance, and current financial picture — completely free and with no pressure.",
       },
       {
-        title: "Tailored Shortlist of Developments",
-        description: "Using our AI-powered selection system and market knowledge, we create a shortlist of new-build projects that match your exact criteria.",
+        title: "Tailored Strategy Analysis",
+        description: "Using our AI-powered analysis tools and market knowledge, we create a personalized strategy that addresses your specific retirement and wealth goals.",
       },
       {
-        title: "Legal & Financial Clarity",
-        description: "We explain everything: payment plans, bank guarantees, title insurance, community fees, and the full timeline from reservation to completion.",
+        title: "Tax & Legal Clarity",
+        description: "We explain everything: tax implications, estate structures, beneficiary designations, and the full timeline from planning to implementation.",
       },
       {
-        title: "Viewing Trip & Logistics",
-        description: "We coordinate your property viewing trip, arrange meetings with developers, and guide you through every site visit.",
+        title: "Product Comparison & Selection",
+        description: "We compare products from 75+ carriers to find the best fit, presenting clear side-by-side comparisons of costs, benefits, and guarantees.",
       },
       {
-        title: "Signing, Monitoring, and Key Handover",
-        description: "From signing the reservation contract to final completion, we stay involved — ensuring every milestone is met and every document is correct.",
+        title: "Implementation & Ongoing Review",
+        description: "From signing applications to annual reviews, we stay involved — ensuring every milestone is met and your strategy adapts as life changes.",
       },
     ],
-    cta: "View the Buyers Guide",
+    cta: "View the Client Guide",
   },
   reviews: {
     headline: "What Our Clients Say",
-    description: "Real words from real buyers who trusted us to guide their property journey on the Costa del Sol.",
+    description: "Real words from real clients who trusted us to guide their retirement and wealth journey.",
     cta: "Read All Reviews",
   },
   blogTeaser: {
     eyebrow: "Knowledge Base",
-    headline: "Insights & Guides for Foreign Buyers",
-    description: "Learn more about taxes, legal processes, financing, and life on the Costa del Sol — written by our team and trusted industry partners.",
+    headline: "Insights & Guides for Financial Success",
+    description: "Learn more about tax strategies, retirement planning, insurance options, and wealth management — written by our team and trusted industry partners.",
     cta: "Visit the Blog",
     readArticle: "Read Article",
   },
   glossaryTeaser: {
     eyebrow: "Essential Terms",
-    headline: "Understand Spanish Property Terminology",
-    description: "Navigate the buying process with confidence. Our glossary explains NIE numbers, taxes, legal terms, and everything you need to know.",
+    headline: "Understand Financial Terminology",
+    description: "Navigate the planning process with confidence. Our glossary explains IUL, RMDs, fiduciary duty, and everything you need to know.",
     cta: "Explore Full Glossary",
     featuredTerms: "Popular Terms",
     learnMore: "Learn more",
     terms: {
-      nie: "Tax identification number required for all property transactions in Spain.",
-      digitalNomadVisa: "Spanish visa for remote workers earning €2,520+/month from non-Spanish clients.",
-      ibi: "Annual property tax (Impuesto sobre Bienes Inmuebles) paid to local councils.",
-      escritura: "Official public deed signed before a notary when purchasing property.",
+      nie: "Indexed Universal Life (IUL) — a permanent life insurance policy with cash value growth linked to market indices.",
+      digitalNomadVisa: "Required Minimum Distribution (RMD) — mandatory annual withdrawal from tax-deferred retirement accounts after age 73.",
+      ibi: "Fiduciary — a financial advisor legally obligated to act in the client's best interest at all times.",
+      escritura: "Annuity — a contract with an insurance company providing guaranteed income payments for a specified period or lifetime.",
     },
   },
   finalCta: {
-    headline: "Ready to Find Your",
-    headlineHighlight: "Dream Home?",
-    description: "Whether you're just starting your search or ready to move forward, our API-accredited advisors are here to guide you — clearly, transparently, and in your language.",
-    ctaPrimary: "Chat with Emma",
-    ctaSecondary: "Contact via WhatsApp",
+    headline: "Ready to Secure Your",
+    headlineHighlight: "Financial Future?",
+    description: "Whether you're just starting to plan or ready to take action, our fiduciary advisors are here to guide you — clearly, transparently, and in your language.",
+    ctaPrimary: "Chat with Everence AI",
+    ctaSecondary: "Contact via Phone",
   },
   footer: {
-    brandDescription: "DelSolPrimeHomes — New-build and off-plan specialists on the Costa del Sol. API-registered. Multilingual guidance. International expertise.",
+    brandDescription: "Everence Wealth — Independent fiduciary wealth architects specializing in tax-efficient retirement strategies. Licensed professionals. Bilingual guidance.",
     contactHeading: "Contact Us",
     navigateHeading: "Navigate",
     legalHeading: "Legal",
-    copyright: "© {year} DelSolPrimeHomes. All rights reserved. API Registered.",
+    copyright: "© {year} Everence Wealth. All rights reserved. Licensed & Insured.",
     tagline: "Made for Excellence",
-    address: "ED SAN FERNAN, C. Alfonso XIII, 6, 1 OFICINA, 29640 Fuengirola, Málaga",
+    address: "One Embarcadero Center, Suite 500, San Francisco, CA 94111",
     links: {
-      propertyFinder: "Property Finder",
-      featuredAreas: "Featured Areas",
-      ourTeam: "Our Team",
-      buyersGuide: "Buyers Guide",
-      blogInsights: "Blog & Insights",
-      glossary: "Property Glossary",
+      propertyFinder: "Strategy Finder",
+      featuredAreas: "Strategies",
+      ourTeam: "Our Advisors",
+      buyersGuide: "Client Guide",
+      blogInsights: "Education & Insights",
+      glossary: "Financial Terms",
       comparisons: "Comparisons",
-      contact: "Contact",
+      contact: "Get Started",
     },
     legal: {
       privacy: "Privacy Policy",
       terms: "Terms of Service",
       cookies: "Cookie Policy",
       legalNotice: "Legal Notice",
-      lpo: "LPO Information",
-      gdpr: "GDPR Compliance",
+      lpo: "Licensing Information",
+      gdpr: "Data Protection",
     },
   },
   locationGuides: {
     readyToExplore: "Ready to explore {city}?",
-    contactWhatsApp: "Contact via WhatsApp",
+    contactWhatsApp: "Contact via Phone",
     expertGuidance: "Expert Guidance Available",
     quickResponse: "Quick Response",
-    licensedAgents: "Licensed Agents",
-    multipleLanguages: "10+ Languages",
-    connectWithExperts: "Connect with our local experts who can help you find your perfect property",
+    licensedAgents: "Licensed Advisors",
+    multipleLanguages: "EN/ES",
+    connectWithExperts: "Connect with our expert advisors who can help you build your financial strategy",
     andAnswerQuestions: "and answer all your questions about {topic}",
     inCity: "in {city}",
-    chatWithEmma: "Chat with EMMA",
+    chatWithEmma: "Chat with Everence AI",
     aboutCity: "About {city}",
-    localInsights: "Local insights and overview",
+    localInsights: "State-specific insights and overview",
     marketOverview: "Market Overview",
-    marketTrends: "Current trends and pricing data",
+    marketTrends: "Current trends and data",
     summaryRecommendations: "Summary & Recommendations",
-    keyTakeaways: "Key takeaways for buyers",
-    // LocationIndex page translations
+    keyTakeaways: "Key takeaways for clients",
     loadingGuides: "Loading guides...",
     home: "Home",
-    locations: "Locations",
+    locations: "States",
     expertGuide: "Expert Guide",
     expertGuides: "Expert Guides",
-    propertyLifestyleGuides: "Property & Lifestyle Guides",
-    heroDescription: "Everything you need to know about living, investing, and buying property in {city}, Costa del Sol.",
+    propertyLifestyleGuides: "Financial Planning Guides",
+    heroDescription: "Everything you need to know about retirement planning, tax strategies, and wealth management in {city}.",
     minRead: "min read",
     readGuide: "Read Guide",
     intentLabels: {
-      'buying-property': "Buying Guide",
-      'best-areas-families': "Best Areas for Families",
-      'best-areas-investors': "Investment Areas",
-      'best-areas-expats': "Expat Guide",
+      'buying-property': "Planning Guide",
+      'best-areas-families': "Family Planning",
+      'best-areas-investors': "Investment Strategies",
+      'best-areas-expats': "Relocation Guide",
       'best-areas-retirees': "Retirement Guide",
-      'cost-of-living': "Cost of Living",
-      'cost-of-property': "Property Prices",
+      'cost-of-living': "Cost Analysis",
+      'cost-of-property': "Tax Comparison",
       'investment-guide': "Investment Guide",
       'relocation-guide': "Relocation Guide",
     },
   },
   brochures: {
     ui: {
-      // Hero Section
-      downloadBrochure: "Download Brochure",
-      speakWithExpert: "Speak With Expert",
+      downloadBrochure: "Download Guide",
+      speakWithExpert: "Speak With Advisor",
       explore: "Explore",
-      costaDelSolSpain: "Costa del Sol, Spain",
-      // Breadcrumbs
+      costaDelSolSpain: "United States",
       home: "Home",
-      locations: "Locations",
-      // Trust Signals
-      apiRegistered: "API Registered",
+      locations: "States",
+      apiRegistered: "Licensed & Insured",
       yearsExperience: "{years}+ Years Experience",
-      happyBuyers: "{count}+ Happy Buyers",
-      // Investment Section
-      investmentPotential: "Investment Potential",
-      whyInvestIn: "Why Invest in {city}?",
-      investmentDescription: "Discover the compelling numbers behind one of Europe's most sought-after property markets.",
-      rentalYield: "Rental Yield",
-      daysOfSunshine: "Days of Sunshine",
-      averagePrice: "Average Price",
-      valueGrowth: "Value Growth 2026",
-      // Lifestyle Section
-      theLifestyle: "The Lifestyle",
-      liveTheDream: "Live The {city} Dream",
-      lifestyleDescription: "Experience a lifestyle where every day feels like a vacation. From world-class amenities to natural beauty, discover what makes this destination truly exceptional.",
-      // Form Section
+      happyBuyers: "{count}+ Happy Clients",
+      investmentPotential: "Growth Potential",
+      whyInvestIn: "Why Plan in {city}?",
+      investmentDescription: "Discover the compelling numbers behind state-specific financial planning strategies.",
+      rentalYield: "Tax Savings",
+      daysOfSunshine: "State Tax Rate",
+      averagePrice: "Average Premium",
+      valueGrowth: "Growth Projection 2026",
+      theLifestyle: "The Opportunity",
+      liveTheDream: "Plan for {city}",
+      lifestyleDescription: "Every state has unique tax advantages, regulations, and planning opportunities. Discover what makes this state ideal for your financial goals.",
       exclusiveGuide: "Exclusive Guide",
       getYourFree: "Get Your Free",
-      brochure: "{city} Brochure",
-      discoverExclusive: "Discover exclusive property insights, investment opportunities, and lifestyle guides for {city}.",
-      propertyGuide: "{city} Property Guide 2026",
+      brochure: "{city} Guide",
+      discoverExclusive: "Discover exclusive financial planning insights, tax strategies, and retirement guides for {city}.",
+      propertyGuide: "{city} Financial Planning Guide 2026",
       instantPdfDownload: "Instant PDF Download",
       pagesOfInsights: "40+ Pages of Insights",
-      testimonialQuote: "The brochure gave us incredible insights into {city}. Within weeks of our inquiry, we found our dream villa!",
-      testimonialAuthor: "— James & Sarah, UK",
+      testimonialQuote: "The guide gave us incredible insights into planning in {city}. Within weeks, we had a comprehensive retirement strategy!",
+      testimonialAuthor: "— James & Sarah, CA",
       firstName: "First Name",
       lastName: "Last Name",
       emailAddress: "Email Address",
       phoneNumber: "Phone Number",
       tellUsRequirements: "Tell us about your requirements (Optional)",
-      requirementsPlaceholder: "Budget, property type, timeline...",
-      privacyConsent: "I agree to the Privacy Policy and consent to Del Sol Prime Homes processing my data.",
-      marketingConsent: "I'd like to receive exclusive property alerts and market insights.",
-      downloadFreeBrochure: "Download Free Brochure",
+      requirementsPlaceholder: "Goals, timeline, coverage needs...",
+      privacyConsent: "I agree to the Privacy Policy and consent to Everence Wealth processing my data.",
+      marketingConsent: "I'd like to receive exclusive financial insights and planning updates.",
+      downloadFreeBrochure: "Download Free Guide",
       processing: "Processing...",
       instantAccess: "Instant access • No spam • Unsubscribe anytime",
       thankYou: "Thank You!",
-      brochureOnWay: "Your {city} brochure is on its way! Our property specialists will be in touch within 24 hours.",
-      meanwhileExplore: "Meanwhile, explore our latest listings in {city}",
-      // Cross City Discovery
+      brochureOnWay: "Your {city} guide is on its way! Our advisors will be in touch within 24 hours.",
+      meanwhileExplore: "Meanwhile, explore our latest strategies for {city}",
       exploreMore: "Explore More",
-      otherPrimeLocations: "Other Prime Locations",
+      otherPrimeLocations: "Other Key States",
       swipeToExplore: "Swipe to explore more →",
       exploreCity: "Explore {city}",
-      // Chatbot
       chatAbout: "Chat About {city}",
-      askUsAnything: "Ask us anything about properties in {city}",
+      askUsAnything: "Ask us anything about planning in {city}",
       clickToStart: "Click send to start the conversation",
       typeMessage: "Type your message...",
-      interestedIn: "Hi, I'm interested in properties in {city}",
-      // Toast messages
+      interestedIn: "Hi, I'm interested in financial planning in {city}",
       privacyRequired: "Privacy consent required",
       privacyRequiredDesc: "Please agree to the privacy policy to continue.",
       somethingWentWrong: "Something went wrong",
       tryAgainLater: "Please try again later.",
-      // Lifestyle Features
       lifestyleFeatures: {
-        golf: { title: "World-Class Golf", description: "Over 70 championship courses within 30 minutes" },
-        beach: { title: "Mediterranean Beaches", description: "Crystal-clear waters and golden sand coastlines" },
-        dining: { title: "Michelin Dining", description: "Award-winning restaurants and vibrant culinary scene" },
-        marina: { title: "Luxury Marinas", description: "Premier yacht clubs and nautical lifestyle" },
-        wellness: { title: "Wellness & Spa", description: "World-renowned wellness retreats and thermal spas" },
-        shopping: { title: "Designer Shopping", description: "Boutiques, galleries, and luxury retail experiences" },
+        golf: { title: "Tax Advantages", description: "State-specific tax benefits and deductions" },
+        beach: { title: "Retirement Communities", description: "Top-rated retirement destinations and communities" },
+        dining: { title: "Healthcare Access", description: "Quality healthcare facilities and Medicare coverage" },
+        marina: { title: "Estate Planning", description: "State-specific trust and estate regulations" },
+        wellness: { title: "Long-term Care", description: "State Medicaid programs and care options" },
+        shopping: { title: "Cost of Living", description: "Affordable living with high quality of life" },
       },
     },
     marbella: {
       hero: {
-        eyebrow: 'Costa del Sol',
-        tagline: 'Where Luxury Meets the Mediterranean',
-        description: 'Discover exceptional investment opportunities and lifestyle properties in Marbella. Premium real estate with expert guidance from API-accredited advisors.',
+        eyebrow: 'California',
+        tagline: 'Where Innovation Meets Financial Planning',
+        description: 'Discover exceptional retirement and wealth strategies tailored for California residents. Expert guidance from fiduciary advisors.',
       },
       lifestyle: {
-        eyebrow: 'The Lifestyle',
-        headline: 'Experience Life in Marbella',
-        paragraph1: 'Marbella offers a unique blend of Mediterranean charm and international sophistication. Here, world-class amenities meet authentic Andalusian culture, creating an unparalleled quality of life.',
-        paragraph2: 'From sunrise beach walks to sunset dinners overlooking the sea, every day brings new experiences. The international community welcomes newcomers while preserving the warmth of Spanish hospitality.',
-        paragraph3: 'Whether you\'re seeking year-round sunshine, exceptional dining, world-class golf, or simply a more relaxed pace of life — Marbella delivers on every front.',
+        eyebrow: 'The Opportunity',
+        headline: 'Financial Planning in California',
+        paragraph1: 'California offers unique tax considerations and planning opportunities. With one of the highest state income tax rates, strategic planning is essential for maximizing retirement income.',
+        paragraph2: 'From Roth conversions to tax-free IUL strategies, California residents benefit most from comprehensive tax-bucket diversification.',
+        paragraph3: 'Whether you\'re seeking tax-efficient retirement income, estate protection, or business succession planning — our California-focused strategies deliver results.',
       },
       investment: {
-        eyebrow: 'Investment Opportunity',
-        headline: 'Why Investors Choose Marbella',
-        description: 'Marbella combines lifestyle appeal with solid investment fundamentals. Discover why discerning buyers consistently choose this exceptional destination.',
+        eyebrow: 'Strategy Overview',
+        headline: 'Why Californians Choose Everence Wealth',
+        description: 'California\'s high-tax environment demands sophisticated planning. Discover why discerning clients consistently choose our fiduciary approach.',
       },
       propertyTypes: {
-        eyebrow: 'Property Types',
-        headline: 'What You\'ll Find in Marbella',
-        description: 'From contemporary apartments to sprawling villas, Marbella offers exceptional properties to match every lifestyle and investment goal.',
+        eyebrow: 'Strategy Types',
+        headline: 'What We Offer in California',
+        description: 'From IUL policies to indexed annuities, we offer comprehensive financial products to match every goal and risk tolerance.',
       },
       gallery: {
-        eyebrow: 'Visual Journey',
-        headline: 'Discover Marbella',
-        description: 'Experience the beauty and lifestyle that awaits you in Marbella through our carefully curated visual gallery.',
+        eyebrow: 'Success Stories',
+        headline: 'California Client Outcomes',
+        description: 'See how our strategies have helped California families achieve financial security and peace of mind.',
       },
       leadForm: {
         eyebrow: 'Start Your Journey',
-        headline: 'Receive Curated Properties in Marbella',
-        description: 'Tell us about your vision. Our Marbella specialists will prepare a personalized selection of properties that match your lifestyle and investment goals.',
+        headline: 'Get a Personalized California Strategy',
+        description: 'Tell us about your goals. Our California specialists will prepare a personalized strategy that addresses your unique tax and retirement needs.',
       },
     },
   },
   team: {
     meta: {
-      title: "Meet Our Team | Del Sol Prime Homes",
-      description: "Meet the expert real estate professionals at Del Sol Prime Homes. Multilingual team with 35+ years combined experience on the Costa del Sol."
+      title: "Meet Our Advisors | Everence Wealth",
+      description: "Meet the expert fiduciary advisors at Everence Wealth. Bilingual team with 35+ years combined experience in wealth management and insurance."
     },
     hero: {
-      badge: "Our Team",
+      badge: "Our Advisors",
       headline: "Meet Our Expert Team",
-      subheadline: "Dedicated professionals ready to help you find your perfect Costa del Sol property",
+      subheadline: "Dedicated fiduciary professionals ready to help you build and protect your wealth",
       badges: {
-        languages: "10+ Languages",
+        languages: "EN/ES",
         experience: "35+ Years Combined"
       }
     },
@@ -487,20 +476,20 @@ export const en = {
   },
   contact: {
     meta: {
-      title: "Contact Del Sol Prime Homes | Costa del Sol Real Estate",
-      description: "Get in touch with our expert real estate team. WhatsApp, email, or call us for personalized property guidance on the Costa del Sol."
+      title: "Contact Everence Wealth | Retirement & Wealth Planning",
+      description: "Get in touch with our fiduciary advisory team. Call, email, or schedule a consultation for personalized wealth management guidance."
     },
     hero: {
       headline: "Get in Touch",
-      subheadline: "We're here to help you find your perfect Costa del Sol property"
+      subheadline: "We're here to help you plan your financial future"
     },
     options: {
       fastestResponse: "Fastest Response",
       whatsapp: {
-        title: "Chat on WhatsApp",
-        description: "Get instant responses from our team",
-        cta: "Open WhatsApp",
-        prefill: "Hi, I'm interested in Costa del Sol properties. Can you help me?"
+        title: "Call Us",
+        description: "Get instant answers from our team",
+        cta: "Call Now",
+        prefill: "Hi, I'm interested in retirement planning. Can you help me?"
       },
       email: {
         title: "Send Us an Email",
@@ -508,9 +497,9 @@ export const en = {
         cta: "Send Email"
       },
       phone: {
-        title: "Call Our Office",
+        title: "Schedule a Call",
         description: "Speak directly with an advisor",
-        cta: "Call Now"
+        cta: "Schedule Now"
       }
     },
     form: {
@@ -529,9 +518,9 @@ export const en = {
       },
       subjects: {
         general: "General Inquiry",
-        property: "Property Inquiry",
-        selling: "Selling My Property",
-        viewing: "Schedule a Viewing",
+        property: "Strategy Inquiry",
+        selling: "Insurance Quote",
+        viewing: "Schedule a Consultation",
         other: "Other"
       },
       referrals: {
@@ -548,7 +537,7 @@ export const en = {
       },
       error: {
         title: "Something went wrong",
-        description: "Please try again or contact us via WhatsApp."
+        description: "Please try again or call us directly."
       },
       success: {
         title: "Message Sent!",
@@ -564,7 +553,7 @@ export const en = {
         saturday: "Saturday",
         sunday: "Sunday",
         closed: "Closed",
-        timezone: "Central European Time (CET)"
+        timezone: "Pacific Time (PT)"
       },
       directions: "Get Directions"
     },
@@ -573,41 +562,41 @@ export const en = {
       items: [
         {
           question: "How quickly will you respond?",
-          answer: "We aim to respond to all inquiries within 24 hours during business days. WhatsApp messages typically receive faster responses."
+          answer: "We aim to respond to all inquiries within 24 hours during business days. Phone calls typically receive the fastest response."
         },
         {
-          question: "Do you speak my language?",
-          answer: "Yes! Our team speaks 10+ languages including English, Dutch, German, French, Swedish, Norwegian, Danish, Finnish, Polish, and Hungarian."
+          question: "What languages do you support?",
+          answer: "Our team provides full guidance in English and Spanish."
         },
         {
           question: "Can I schedule a video call?",
-          answer: "Absolutely! Contact us via WhatsApp or email to arrange a convenient time for a video consultation with one of our property experts."
+          answer: "Absolutely! Contact us via phone or email to arrange a convenient time for a video consultation with one of our fiduciary advisors."
         },
         {
-          question: "What areas do you cover?",
-          answer: "We specialize in the entire Costa del Sol region, from Málaga to Sotogrande, including Marbella, Estepona, Fuengirola, Benalmádena, and Mijas."
+          question: "What states do you serve?",
+          answer: "We serve clients across all 50 states, with specialized expertise in California, Texas, Florida, New York, and other high-population states."
         }
       ]
     },
     emma: {
       badge: "AI-Powered",
       callout: "Prefer instant answers?",
-      cta: "Chat with Emma, our AI assistant",
-      buttonText: "Chat with Emma"
+      cta: "Chat with Everence AI, our intelligent assistant",
+      buttonText: "Chat with Everence AI"
     }
   },
   aboutUs: {
     meta: {
-      title: "About Del Sol Prime Homes | Costa del Sol Real Estate Experts",
-      description: "Learn about our expert team with 35+ years experience helping international buyers find property on the Costa del Sol."
+      title: "About Everence Wealth | Fiduciary Wealth Architects",
+      description: "Learn about our fiduciary advisory team with 35+ years experience helping Americans build tax-efficient retirement strategies."
     },
     cta: {
-      meetTeam: "Meet Our Team",
-      contactUs: "Contact Us"
+      meetTeam: "Meet Our Advisors",
+      contactUs: "Get Started"
     },
     hero: {
-      headline: "Your Trusted Partners in Costa del Sol Real Estate",
-      subheadline: "Three founders, 35+ years of expertise, and one mission: making your Spanish property dreams a reality.",
+      headline: "Your Trusted Partners in Wealth Management",
+      subheadline: "Fiduciary advisors with 35+ years of expertise and one mission: securing your financial future.",
       breadcrumbHome: "Home",
       breadcrumbAbout: "About Us",
       statsYears: "Years Experience",
@@ -617,91 +606,79 @@ export const en = {
     mission: {
       heading: "Our Mission",
       summaryLabel: "About Us",
-      content: "We believe everyone deserves expert guidance when making one of life's biggest investments. Our mission is to provide transparent, personalized real estate services that put your interests first.",
-      speakableContent: "Del Sol Prime Homes is a premier real estate agency on the Costa del Sol, founded by experienced professionals with over 35 years of combined experience helping international buyers find their dream properties in Marbella, Estepona, and the Costa del Sol."
+      content: "We believe everyone deserves expert guidance when making life's most important financial decisions. Our mission is to provide transparent, personalized wealth management services that put your interests first.",
+      speakableContent: "Everence Wealth is an independent fiduciary advisory firm specializing in tax-efficient retirement strategies, founded by experienced professionals with over 35 years of combined experience helping Americans build, protect, and transfer wealth."
     },
     story: {
       heading: "Our Story",
-      subheading: "From three individual journeys to one shared mission",
+      subheading: "From individual expertise to a unified fiduciary mission",
       timelineHeading: "Our Journey",
-      narrativeHeading: "A Journey of Passion and Expertise",
-      narrativeContent: "## A Journey of Passion and Expertise\n\nOur story begins with three individuals who fell in love with the Costa del Sol and made it their home.\n\n**Steven Roberts** arrived in Spain in 1997, drawn by the Mediterranean lifestyle. Over the years, he built deep expertise in new developments and international buyer guidance.\n\n**Cédric Van Hecke** relocated to the Costa del Sol in 1998. His API credentials and legal expertise make him invaluable for navigating Spanish property transactions.\n\n**Hans Beeckman** joined our mission in 2020, bringing fresh energy and multilingual capabilities to serve our diverse international clientele.\n\nTogether, we combine over 35 years of experience to offer you unmatched guidance on your property journey.",
+      narrativeHeading: "A Journey of Purpose and Expertise",
+      narrativeContent: "## A Journey of Purpose and Expertise\n\nOur story begins with experienced financial professionals who saw a better way to serve clients.\n\nAfter decades in the financial services industry, our founders recognized that most Americans lacked access to truly independent, fiduciary advice. Too many families were sold products rather than given strategies.\n\nWe built Everence Wealth to change that. By combining deep expertise in insurance, tax planning, and wealth management with cutting-edge AI analysis, we deliver institutional-quality strategies to everyday families.\n\nToday, we serve clients across the United States, helping them bridge the retirement gap and protect what matters most.",
       timeline: [
-        { year: "1997", event: "Steven Roberts arrives in Spain" },
-        { year: "1998", event: "Cédric Van Hecke relocates to Costa del Sol" },
-        { year: "2016", event: "Steven founds Sentinel Estates" },
-        { year: "2020", event: "Hans Beeckman joins the team" }
+        { year: "1991", event: "Founding advisors begin financial careers" },
+        { year: "2010", event: "Team expands to multi-state practice" },
+        { year: "2020", event: "AI-enhanced analysis tools adopted" },
+        { year: "2024", event: "Everence Wealth formally established" }
       ]
     },
     founders: {
       badge: "Expert Team",
       heading: "Meet The Founders",
-      subheading: "Three experienced professionals united by a passion for helping clients find their perfect Spanish home",
+      subheading: "Experienced fiduciary professionals united by a passion for helping clients secure their financial future",
       specialization: "Specialization",
       viewProfile: "View Profile",
       profiles: [
         {
-          name: "Steven Roberts",
-          role: "Co-Founder & Director",
-          bio: "Steven arrived in Spain in 1997 and began his real estate career in 2010. In 2016, he founded Sentinel Estates, which evolved into Del Sol Prime Homes. A Scottish native, Steven brings decades of experience in the Costa del Sol market.",
-          specialization: "New Developments and International Buyers"
-        },
-        {
-          name: "Cédric Van Hecke",
-          role: "Co-Founder & Sales Director",
-          bio: "Cédric relocated from Belgium to the Costa del Sol in 1998. Together with Steven Roberts, he co-founded the agency and brings extensive knowledge of the local market. His multilingual capabilities make him invaluable for European buyers.",
-          specialization: "New developments and European buyers"
-        },
-        {
-          name: "Hans Beeckman",
-          role: "Property Expert & Technology Lead",
-          bio: "Hans arrived at the Costa del Sol in 2020 and joined as a Property Expert. In 2024, Hans began an intensive course in Artificial Intelligence, bringing cutting-edge technology solutions to enhance the property search experience.",
-          specialization: "Technology and AI-enhanced property matching"
+          name: "Advisory Team",
+          role: "Fiduciary Advisors",
+          bio: "Our team of licensed fiduciary advisors brings 35+ years of combined experience in retirement planning, insurance, and wealth management. Each advisor holds relevant industry credentials and maintains a strict fiduciary standard.",
+          specialization: "Retirement Planning and Tax-Efficient Strategies"
         }
       ]
     },
     whyChoose: {
       heading: "Why Choose Us",
-      subheading: "We don't just help you find a property—we help you find a home",
+      subheading: "We don't just sell products — we architect comprehensive financial strategies",
       features: [
-        { title: "Local Expertise", description: "40+ combined years living on the Costa del Sol" },
-        { title: "End-to-End Service", description: "From property search to after-sales support" },
-        { title: "Licensed & Certified", description: "API registered and fully compliant" },
+        { title: "Fiduciary Standard", description: "Legally obligated to act in your best interest" },
+        { title: "End-to-End Service", description: "From strategy design to ongoing portfolio reviews" },
+        { title: "Licensed & Certified", description: "Fully licensed and insured professionals" },
         { title: "Responsive Support", description: "Available when you need us most" },
-        { title: "Client-First Approach", description: "Your needs drive every decision" },
+        { title: "Client-First Approach", description: "Your goals drive every recommendation" },
         { title: "Transparent Process", description: "No hidden fees, no surprises" }
       ],
-      content: "## Why Clients Choose Us\n\nWhen it comes to finding your dream property on the Costa del Sol, you need a partner who understands both the market and your needs.\n\n### Local Expertise\n\nOur team has spent over 40 combined years living and working on the Costa del Sol. We know every neighborhood, every development, and every opportunity.\n\n### End-to-End Service\n\nFrom your first inquiry to the moment you receive your keys, we're with you every step of the way."
+      content: "## Why Clients Choose Us\n\nWhen it comes to planning your financial future, you need a partner who understands both the products and your needs.\n\n### Fiduciary Expertise\n\nOur team operates under a strict fiduciary standard, meaning we are legally obligated to put your interests first — always.\n\n### End-to-End Service\n\nFrom your first consultation to annual portfolio reviews, we're with you every step of the way."
     },
     credentials: {
       heading: "Our Credentials",
       subheading: "Licensed, certified, and committed to the highest professional standards",
       citationsLabel: "Verified By Official Sources",
       items: [
-        { name: "API Licensed", description: "Registered with Agentes de la Propiedad Inmobiliaria" },
-        { name: "RICS Affiliated", description: "Royal Institution of Chartered Surveyors standards" },
-        { name: "AML Compliant", description: "Full Anti-Money Laundering compliance" },
-        { name: "GDPR Certified", description: "EU data protection standards" }
+        { name: "State Licensed", description: "Licensed in all 50 states for insurance and financial products" },
+        { name: "Fiduciary Standard", description: "Bound by legal duty to act in client's best interest" },
+        { name: "E&O Insured", description: "Full Errors & Omissions professional liability coverage" },
+        { name: "CCPA Compliant", description: "California Consumer Privacy Act compliance" }
       ]
     },
     faq: {
       heading: "Frequently Asked Questions",
-      subheading: "Common questions about Del Sol Prime Homes",
+      subheading: "Common questions about Everence Wealth",
       items: [
-        { question: "Who founded Del Sol Prime Homes?", answer: "Del Sol Prime Homes was founded by Steven Roberts, Cédric Van Hecke, and Hans Beeckman — three experienced real estate professionals with 35+ combined years on the Costa del Sol." },
-        { question: "Are your agents licensed?", answer: "Yes, all our agents hold the API (Agente de la Propiedad Inmobiliaria) license, the official Spanish real estate credential ensuring professional standards and legal compliance." },
-        { question: "What languages do you speak?", answer: "Our multilingual team offers full guidance in English, Dutch, French, German, Finnish, Polish, Danish, Hungarian, Swedish, and Norwegian." },
-        { question: "How long have you been in the Costa del Sol?", answer: "Our founders have deep roots in the Costa del Sol, with the earliest arriving in 1997. Together we bring 35+ years of combined local experience." }
+        { question: "What is a fiduciary advisor?", answer: "A fiduciary advisor is legally obligated to act in your best interest at all times. Unlike commission-based agents, we recommend strategies based solely on what's best for you." },
+        { question: "Are your advisors licensed?", answer: "Yes, all our advisors are fully licensed and insured, holding relevant state and industry credentials for insurance and financial products." },
+        { question: "What languages do you support?", answer: "Our bilingual team provides full guidance in English and Spanish." },
+        { question: "What states do you serve?", answer: "We serve clients across all 50 states, with specialized expertise in California, Texas, Florida, New York, Illinois, and other key markets." }
       ]
     },
     ctaSection: {
-      heading: "Ready to Find Your Dream Property?",
-      subheading: "Let's start your Costa del Sol journey together. Our team is ready to help you every step of the way.",
-      chatWithEmma: "Chat with Emma",
+      heading: "Ready to Secure Your Financial Future?",
+      subheading: "Let's start your wealth-building journey together. Our team is ready to help you every step of the way.",
+      chatWithEmma: "Chat with Everence AI",
       callUs: "Call Us",
       emailUs: "Email Us",
       visitUs: "Visit Us",
-      location: "Marbella, Spain"
+      location: "San Francisco, CA"
     }
   }
 };
