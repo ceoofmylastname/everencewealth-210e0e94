@@ -9,8 +9,7 @@ const corsHeaders = {
 // Get language flag emoji
 function getLanguageFlag(language: string): string {
   const flags: Record<string, string> = {
-    fr: "🇫🇷", fi: "🇫🇮", pl: "🇵🇱", en: "🇬🇧", nl: "🇳🇱",
-    de: "🇩🇪", es: "🇪🇸", sv: "🇸🇪", da: "🇩🇰", hu: "🇭🇺",
+    en: "🇺🇸", es: "🇪🇸",
   };
   return flags[language?.toLowerCase()] || "🌍";
 }

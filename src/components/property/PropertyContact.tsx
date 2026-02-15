@@ -76,7 +76,7 @@ export const PropertyContact = ({ reference, price, propertyType }: PropertyCont
         lastName: formData.lastName,
         email: formData.email,
         phone: formData.phone,
-        leadSource: 'Property Inquiry',
+        leadSource: 'Product Inquiry',
         leadSourceDetail: `property_detail_${pageMetadata.language}`,
         pageType: 'property_detail',
         pageUrl: pageMetadata.pageUrl,

@@ -62,10 +62,10 @@ export function ExpandedLeadRow({
             </Card>
           )}
 
-          {/* Property Criteria */}
+          {/* Client Criteria */}
           <Card>
             <CardContent className="p-4">
-              <h4 className="font-semibold text-sm mb-3">Property Criteria</h4>
+              <h4 className="font-semibold text-sm mb-3">Client Criteria</h4>
               <dl className="space-y-2 text-sm">
                 <div className="flex justify-between">
                   <dt className="text-muted-foreground flex items-center gap-1">
@@ -87,7 +87,7 @@ export function ExpandedLeadRow({
                 <div>
                   <dt className="text-muted-foreground flex items-center gap-1 mb-1">
                     <MapPin className="w-3 h-3" />
-                    Preferred Locations
+                    Preferred States
                   </dt>
                   <dd className="flex flex-wrap gap-1">
                     {lead.location_preference?.length ? (
@@ -97,14 +97,14 @@ export function ExpandedLeadRow({
                         </Badge>
                       ))
                     ) : (
-                      <span className="text-muted-foreground">Any location</span>
+                      <span className="text-muted-foreground">Any state</span>
                     )}
                   </dd>
                 </div>
                 <div>
                   <dt className="text-muted-foreground flex items-center gap-1 mb-1">
                     <Home className="w-3 h-3" />
-                    Property Types
+                    Product Types
                   </dt>
                   <dd className="flex flex-wrap gap-1">
                     {lead.property_type?.length ? (

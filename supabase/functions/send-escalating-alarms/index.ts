@@ -2,7 +2,7 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY")!;
-const APP_URL = Deno.env.get("APP_URL") || "https://www.delsolprimehomes.com";
+const APP_URL = Deno.env.get("APP_URL") || "https://www.everencewealth.com";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -242,7 +242,7 @@ serve(async (req) => {
           <tr>
             <td style="padding: 16px; background-color: #f9fafb; text-align: center;">
               <p style="margin: 0; color: #9ca3af; font-size: 12px;">
-                Del Sol Prime Homes CRM - Escalating Alarm Level ${targetLevel}
+                Everence Wealth CRM - Escalating Alarm Level ${targetLevel}
               </p>
             </td>
           </tr>
@@ -262,7 +262,7 @@ serve(async (req) => {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            from: "CRM Alerts <crm@notifications.delsolprimehomes.com>",
+            from: "CRM Alerts <crm@notifications.everencewealth.com>",
             to: agentEmails,
             subject: subject,
             html: emailHtml,

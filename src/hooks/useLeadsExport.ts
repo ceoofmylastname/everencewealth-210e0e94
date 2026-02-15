@@ -19,7 +19,7 @@ export function useLeadsExport() {
       "Priority",
       "Budget",
       "Location",
-      "Property Type",
+      "Product Type",
       "Timeframe",
       "Source",
       "Score",

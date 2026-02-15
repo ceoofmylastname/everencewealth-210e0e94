@@ -6,7 +6,7 @@ export interface CrmLeadData {
   email?: string;
   phone: string;
   countryPrefix?: string;
-  leadSource: 'Landing Form' | 'Property Inquiry' | 'Brochure Download' | 'Emma Chatbot' | 'Website Form';
+  leadSource: 'Landing Form' | 'Product Inquiry' | 'Brochure Download' | 'Emma Chatbot' | 'Website Form';
   leadSourceDetail: string;
   pageType: string;
   pageUrl: string;

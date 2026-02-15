@@ -42,7 +42,7 @@ function generateTestLastName(): string {
 }
 
 function generateTestPhone(): string {
-  return `+34 6${Math.floor(10000000 + Math.random() * 90000000)}`;
+  return `+1 ${Math.floor(1000000000 + Math.random() * 9000000000).toString().substring(0,3)}-${Math.floor(100 + Math.random() * 900)}-${Math.floor(1000 + Math.random() * 9000)}`;
 }
 
 function generateTestEmail(firstName: string, lastName: string): string {
@@ -51,12 +51,12 @@ function generateTestEmail(firstName: string, lastName: string): string {
 
 function generateEmmaQAPairs(questionsAnswered: number): Array<{ question: string; answer: string }> {
   const allQAs = [
-    { question: "What type of property are you looking for?", answer: "Villa with pool and sea views" },
-    { question: "What's your preferred location?", answer: "Marbella or Estepona area" },
-    { question: "What's your budget range?", answer: "Between €800,000 and €1.5 million" },
-    { question: "How many bedrooms do you need?", answer: "At least 4 bedrooms" },
-    { question: "Is this for primary residence or investment?", answer: "Holiday home with rental potential" },
-    { question: "When are you looking to purchase?", answer: "Within the next 6 months" },
+    { question: "What type of coverage are you looking for?", answer: "Life insurance with investment component" },
+    { question: "What's your primary financial goal?", answer: "Retirement income and estate planning" },
+    { question: "What's your budget range for premiums?", answer: "Between $500 and $1,500 per month" },
+    { question: "How many dependents do you have?", answer: "Spouse and 2 children" },
+    { question: "Is this for protection or wealth building?", answer: "Both - protection now with wealth accumulation" },
+    { question: "When do you plan to retire?", answer: "Within the next 10-15 years" },
   ];
   return allQAs.slice(0, Math.min(questionsAnswered, allQAs.length));
 }
@@ -78,9 +78,9 @@ serve(async (req) => {
     const {
       source = "form",
       language = "en",
-      budgetRange = "€500K-€1M",
+      budgetRange = "$500-$1,500/mo",
       timeframe = "within_1_year",
-      locationPreference = ["Marbella"],
+      locationPreference = ["California"],
       questionsAnswered = 4,
       intakeComplete = true,
       skipNotifications = false,
@@ -99,22 +99,22 @@ serve(async (req) => {
       lastName,
       phone,
       email,
-      countryPrefix: "+34",
+      countryPrefix: "+1",
       language,
       leadSource: source === "emma" ? "Emma Chatbot" : "Landing Form",
       leadSourceDetail: source === "emma" 
         ? `emma_chat_${language}_test_${Date.now()}`
         : `form_landing_${language}_test_${Date.now()}`,
-      pageUrl: `https://delsolprimehomes.com/${language}/landing`,
+      pageUrl: `https://everencewealth.com/${language}/landing`,
       pageType: "landing",
-      pageTitle: `Costa del Sol Properties - ${language.toUpperCase()}`,
+      pageTitle: `Insurance & Wealth Planning - ${language.toUpperCase()}`,
       referrer: "https://google.com",
       budgetRange,
       timeframe,
       locationPreference,
-      propertyType: ["villa", "apartment"],
-      propertyPurpose: "holiday_home",
-      bedroomsDesired: "3+",
+      propertyType: ["whole_life", "iul"],
+      propertyPurpose: "retirement_planning",
+      bedroomsDesired: undefined,
       seaViewImportance: "preferred",
     };
 
@@ -129,7 +129,7 @@ serve(async (req) => {
       }
     } else {
       // Form-specific fields
-      payload.propertyRef = `DSP-TEST-${Math.floor(Math.random() * 10000)}`;
+      payload.propertyRef = `EW-TEST-${Math.floor(Math.random() * 10000)}`;
       payload.message = "This is a test lead generated for verification purposes.";
       payload.cityName = locationPreference[0] || "Marbella";
     }

@@ -2,7 +2,7 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY")!;
-const APP_URL = Deno.env.get("APP_URL") || "https://www.delsolprimehomes.com";
+const APP_URL = Deno.env.get("APP_URL") || "https://www.everencewealth.com";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -245,7 +245,7 @@ serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: "CRM Assignments <crm@notifications.delsolprimehomes.com>",
+        from: "CRM Assignments <crm@notifications.everencewealth.com>",
         to: [toAgent.email],
         subject: `CRM_LEAD_REASSIGNED_${(lead.language || 'en').toUpperCase()} | Lead reassigned to you`,
         html: `
@@ -289,7 +289,7 @@ serve(async (req) => {
               </div>
               
               <p style="color: #6B7280; font-size: 12px; margin-top: 30px; text-align: center;">
-                Del Sol Prime Homes CRM - Automated Assignment Notification
+                Everence Wealth CRM - Automated Assignment Notification
               </p>
             </div>
           </div>

@@ -41,22 +41,14 @@ interface Lead {
 }
 
 const LANGUAGE_FLAGS: Record<string, string> = {
-  en: "🇬🇧",
+  en: "🇺🇸",
   es: "🇪🇸",
-  de: "🇩🇪",
-  fr: "🇫🇷",
-  nl: "🇳🇱",
-  ru: "🇷🇺",
-  sv: "🇸🇪",
-  no: "🇳🇴",
-  da: "🇩🇰",
-  fi: "🇫🇮",
 };
 
 const REMINDER_TYPE_ICONS: Record<string, string> = {
   callback: "📞",
   follow_up: "🔄",
-  viewing: "🏠",
+  viewing: "📊",
   meeting: "👥",
   appointment: "📅",
   deadline: "⏰",
@@ -144,7 +136,7 @@ function generateEmailHtml(
     : "";
 
   const headerTitle = isUrgentReminder ? "Final Reminder" : "Reminder";
-  const headerSubtitle = isUrgentReminder ? "Your appointment is about to start!" : "Del Sol Prime Homes CRM";
+  const headerSubtitle = isUrgentReminder ? "Your appointment is about to start!" : "Everence Wealth CRM";
 
   return `
 <!DOCTYPE html>
@@ -217,7 +209,7 @@ function generateEmailHtml(
           <tr>
             <td style="background: #F9FAFB; padding: 16px 24px; text-align: center; border-top: 1px solid #E5E7EB;">
               <p style="margin: 0; font-size: 12px; color: #9CA3AF;">
-                Del Sol Prime Homes • Agent CRM System<br>
+                Everence Wealth • Advisor CRM System<br>
                 You received this because you have email reminders enabled.
               </p>
             </td>
@@ -319,7 +311,7 @@ async function processReminders(
         : `🔔 Reminder: ${reminder.title}`;
 
       const { error: emailError } = await resend.emails.send({
-        from: "Del Sol Prime Homes <crm@notifications.delsolprimehomes.com>",
+        from: "Everence Wealth <crm@notifications.everencewealth.com>",
         to: [agent.email],
         subject,
         html,
