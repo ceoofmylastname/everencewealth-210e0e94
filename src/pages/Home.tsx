@@ -7,6 +7,7 @@ import { Hero } from '../components/home/sections/Hero';
 import { WakeUpCall } from '../components/homepage/WakeUpCall';
 import { SilentKillers } from '../components/homepage/SilentKillers';
 import { TaxBuckets } from '../components/homepage/TaxBuckets';
+import { IndexedAdvantage } from '../components/homepage/IndexedAdvantage';
 import { WhyChooseUs } from '../components/home/sections/WhyChooseUs';
 import { QuickSearch } from '../components/home/sections/QuickSearch';
 import { MiniAbout, USPSection } from '../components/home/sections/ContentBlocks';
@@ -67,6 +68,9 @@ function Home() {
 
         {/* 1.7. Tax Buckets Strategy */}
         <TaxBuckets />
+
+        {/* 1.8. Indexed Advantage — IUL explainer */}
+        <IndexedAdvantage />
         
         {/* 2. Why Choose Us */}
         <WhyChooseUs />
