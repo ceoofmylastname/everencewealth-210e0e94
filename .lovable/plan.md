@@ -1,54 +1,57 @@
 
-
-# Phase 9.1.8 -- Homepage About Component
+# Phase 9.1.10 -- Testimonials Component
 
 ## Overview
-Create a new `HomepageAbout.tsx` component (named to avoid collision with the existing `src/pages/About.tsx` page) that provides a brief Everence Wealth origin story. Positioned after `FiduciaryDifference` and before `WhyChooseUs` on the homepage.
+Create a `Testimonials.tsx` component featuring a client testimonials carousel using `embla-carousel-react` (already installed). Positioned after `HomepageAbout` and before `WhyChooseUs` on the homepage.
 
 ## Design
-- Cream background (`bg-[#F0F2F1]`) for contrast after the dark evergreen FiduciaryDifference section
-- Two-column layout: text left, decorative image placeholder right (stacks on mobile)
-- Evergreen accent on key facts
-- Testimonial quote overlay on the right column
+- White background (`bg-white`) for contrast after the cream About section
+- Embla carousel with autoplay (`embla-carousel-autoplay`, already installed)
+- Large evergreen decorative quote marks
+- 5-star rating display using Lucide `Star` icons
+- Client avatar circles with initials
+- Dot indicators for carousel navigation
+- Scroll-triggered fade-in animation via framer-motion
 
 ## Technical Details
 
-### New File: `src/components/homepage/HomepageAbout.tsx`
+### New File: `src/components/homepage/Testimonials.tsx`
 
 **Structure:**
-1. Section wrapper: `bg-[#F0F2F1]`, responsive padding, `max-w-6xl` container
-2. Two-column grid (`grid-cols-1 lg:grid-cols-2 gap-12`):
+1. Section wrapper: `bg-white`, responsive padding, `max-w-6xl` container
+2. Centered headline: "What Our Clients Say" (serif, evergreen)
+3. Embla carousel with autoplay plugin (4s delay):
+   - Each slide contains:
+     - Large decorative open-quote character in evergreen (`text-[#1A4D3E]/20`, `text-6xl`, serif)
+     - Testimonial text (serif, italic, `text-slate-700`)
+     - 5 gold star icons (`Star` from lucide-react, filled)
+     - Client initials avatar circle (`bg-[#1A4D3E]`, white text)
+     - Client name and location
+4. Dot indicators below the carousel (active dot in evergreen)
 
-**Left Column -- Story**
-- Headline: "Everence Wealth: Built on Independence" (serif, evergreen)
-- Two paragraphs of origin story text (as specified in the brief)
-- Four key facts in a 2x2 grid below the text, each with:
-  - Bold value ("Since 1998", "75+", etc.)
-  - Descriptor label below
-  - Left border accent in evergreen (`border-l-2 border-[#1A4D3E] pl-4`)
+**Testimonial Data (hardcoded array of 4):**
 
-**Right Column -- Visual**
-- Rounded placeholder card with `bg-[#1A4D3E]/10` and a subtle gradient, representing where a team photo or SF skyline would go
-- Overlaid testimonial quote at the bottom of the card:
-  - Italic serif text in a semi-transparent white card
-  - Attribution line
+| Quote | Attribution |
+|-------|------------|
+| "Michael helped us uncover $80K in hidden 401k fees..." | Sarah and Tom K., San Francisco |
+| "I never understood how much I was losing to taxes until Everence showed me the three-bucket strategy..." | David R., Los Angeles |
+| "As a small business owner, I needed someone who understood both my personal and business finances..." | Jennifer L., San Diego |
+| "The indexed strategy they recommended has given us peace of mind..." | Robert and Maria S., Sacramento |
 
-**Key Facts Data:**
+**Carousel Setup:**
 ```
-Since 1998 | Founded
-75+        | Carrier Partnerships
-Fiduciary  | Independent Advisor
-San Francisco, CA | Headquarters
+useEmblaCarousel({ loop: true, align: 'center' }, [Autoplay({ delay: 4000 })])
 ```
 
-**Animation:** Same `containerVariants`/`cardVariants` framer-motion stagger pattern. Left column fades from left, right column fades from right.
+Track `selectedIndex` via embla API `on('select')` for dot indicators.
 
-**Dependencies (all installed):** `framer-motion`, `lucide-react` (`MapPin`, `Building2`, `Calendar`, `Users`)
+**Animation:** `containerVariants` framer-motion fade-in with `useInView`.
+
+**Dependencies (all installed):** `embla-carousel-react`, `embla-carousel-autoplay`, `framer-motion`, `lucide-react` (`Star`, `Quote`)
 
 ### Integration into `src/pages/Home.tsx`
-- Import `HomepageAbout` from `../components/homepage/HomepageAbout`
-- Insert `<HomepageAbout />` after `<FiduciaryDifference />` (line 81) and before `<WhyChooseUs />` (line 83)
-- Add comment: `{/* 1.11. About — origin story */}`
+- Import `Testimonials` from `../components/homepage/Testimonials`
+- Insert `<Testimonials />` after `<HomepageAbout />` (line 85) and before `<WhyChooseUs />` (line 88)
+- Add comment: `{/* 1.12. Testimonials — client stories */}`
 
 ### No database, edge function, or translation changes required
-
