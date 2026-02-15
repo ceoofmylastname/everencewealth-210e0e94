@@ -5,6 +5,7 @@ import { Footer } from '../components/home/Footer';
 import { LanguageSuggestionBanner } from '../components/LanguageSuggestionBanner';
 import { Hero } from '../components/home/sections/Hero';
 import { WakeUpCall } from '../components/homepage/WakeUpCall';
+import { SilentKillers } from '../components/homepage/SilentKillers';
 import { WhyChooseUs } from '../components/home/sections/WhyChooseUs';
 import { QuickSearch } from '../components/home/sections/QuickSearch';
 import { MiniAbout, USPSection } from '../components/home/sections/ContentBlocks';
@@ -59,6 +60,9 @@ function Home() {
 
         {/* 1.5. Wake-Up Call — contrarian hook */}
         <WakeUpCall />
+
+        {/* 1.6. Silent Killers — Fees, Volatility, Taxes */}
+        <SilentKillers />
         
         {/* 2. Why Choose Us */}
         <WhyChooseUs />
