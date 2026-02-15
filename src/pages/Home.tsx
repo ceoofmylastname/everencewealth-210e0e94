@@ -10,6 +10,7 @@ import { TaxBuckets } from '../components/homepage/TaxBuckets';
 import { IndexedAdvantage } from '../components/homepage/IndexedAdvantage';
 import { WealthPhilosophy } from '../components/homepage/WealthPhilosophy';
 import { FiduciaryDifference } from '../components/homepage/FiduciaryDifference';
+import { HomepageAbout } from '../components/homepage/HomepageAbout';
 import { WhyChooseUs } from '../components/home/sections/WhyChooseUs';
 import { QuickSearch } from '../components/home/sections/QuickSearch';
 import { MiniAbout, USPSection } from '../components/home/sections/ContentBlocks';
@@ -79,6 +80,9 @@ function Home() {
 
         {/* 1.10. Fiduciary Difference — trust builder */}
         <FiduciaryDifference />
+
+        {/* 1.11. About — origin story */}
+        <HomepageAbout />
         
         {/* 2. Why Choose Us */}
         <WhyChooseUs />
