@@ -1,20 +1,12 @@
 // Sitemap generation utilities for properties and static pages
 
-export const BASE_URL = 'https://www.delsolprimehomes.com';
+export const BASE_URL = 'https://www.everencewealth.com';
 
-export const SUPPORTED_LANGUAGES = ['en', 'nl', 'de', 'fr', 'pl', 'sv', 'da', 'hu', 'fi', 'no'];
+export const SUPPORTED_LANGUAGES = ['en', 'es'];
 
 export const langToHreflang: Record<string, string> = {
-  en: 'en-GB',
-  de: 'de-DE',
-  nl: 'nl-NL',
-  fr: 'fr-FR',
-  pl: 'pl-PL',
-  sv: 'sv-SE',
-  da: 'da-DK',
-  hu: 'hu-HU',
-  fi: 'fi-FI',
-  no: 'nb-NO'
+  en: 'en-US',
+  es: 'es-US'
 };
 
 // Static pages that exist for all languages

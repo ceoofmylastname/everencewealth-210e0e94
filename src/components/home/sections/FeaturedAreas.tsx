@@ -129,7 +129,7 @@ export const FeaturedAreas: React.FC = () => {
                 >
                   <img 
                     src={area.image} 
-                    alt={`${area.name} - Costa del Sol property area`}
+                    alt={`${area.name} wealth strategy area`}
                     width={400}
                     height={533}
                     loading="lazy"
@@ -143,7 +143,7 @@ export const FeaturedAreas: React.FC = () => {
                   <div className="absolute bottom-0 left-0 p-6 md:p-8 w-full transform transition-all duration-500 translate-y-4 group-hover:translate-y-0">
                     <div className="flex items-center gap-2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-500 -translate-y-2 group-hover:translate-y-0">
                       <MapPin size={14} className="text-prime-gold" />
-                      <span className="text-xs text-prime-gold uppercase tracking-widest font-bold">Costa del Sol</span>
+                      <span className="text-xs text-prime-gold uppercase tracking-widest font-bold">Everence Wealth</span>
                     </div>
                     <h3 className="text-2xl md:text-3xl font-serif font-bold text-white mb-3 group-hover:text-prime-goldLight transition-colors tracking-tight">{area.name}</h3>
                     <div className="h-0 group-hover:h-auto overflow-hidden transition-all duration-500">

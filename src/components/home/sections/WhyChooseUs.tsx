@@ -8,29 +8,29 @@ const benefits = [
     icon: ShieldCheck,
     titleKey: 'apiAccredited',
     descKey: 'apiAccreditedDesc',
-    fallbackTitle: 'API-Accredited Advisors',
-    fallbackDesc: 'We operate under strict Spanish standards of professionalism, ethics, and legal compliance.',
+    fallbackTitle: 'Fiduciary Standard',
+    fallbackDesc: 'We operate under a strict fiduciary duty, always putting your financial interests first.',
   },
   {
     icon: Star,
     titleKey: 'experience',
     descKey: 'experienceDesc',
     fallbackTitle: `${COMPANY_FACTS.yearsExperience}+ Years Experience`,
-    fallbackDesc: 'Our team has helped hundreds of families buy safely in Spain.',
+    fallbackDesc: 'Our team has helped hundreds of families build tax-efficient retirement strategies.',
   },
   {
     icon: Sparkles,
     titleKey: 'aiTools',
     descKey: 'aiToolsDesc',
-    fallbackTitle: 'AI-Enhanced Selection',
-    fallbackDesc: 'Advanced AI tools to match you with the perfect property.',
+    fallbackTitle: 'AI-Enhanced Analysis',
+    fallbackDesc: 'Advanced AI tools to optimize your wealth strategy and retirement projections.',
   },
   {
     icon: Globe,
     titleKey: 'multilingual',
     descKey: 'multilingualDesc',
-    fallbackTitle: '10 Languages Supported',
-    fallbackDesc: 'Full guidance in English, Dutch, French, German, and 6 more languages.',
+    fallbackTitle: 'English & Spanish',
+    fallbackDesc: 'Full guidance in English and Spanish for all your wealth planning needs.',
   },
 ];
 
@@ -49,7 +49,7 @@ export const WhyChooseUs: React.FC = () => {
             {whyChooseUs.eyebrow || 'Why Choose Us'}
           </span>
           <h2 className="font-serif text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4">
-            {whyChooseUs.headline || 'Why DelSolPrimeHomes?'}
+            {whyChooseUs.headline || 'Why Everence Wealth?'}
           </h2>
           <p className="text-muted-foreground text-base md:text-lg max-w-3xl mx-auto leading-relaxed">
             {t.hero.description}

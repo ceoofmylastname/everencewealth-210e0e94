@@ -10,18 +10,16 @@ import { useTranslation } from '@/i18n';
 
 const PRICE_OPTIONS = [
   { label: "Any", value: "" },
-  { label: "€100,000", value: "100000" },
-  { label: "€180,000", value: "180000" },
-  { label: "€250,000", value: "250000" },
-  { label: "€300,000", value: "300000" },
-  { label: "€400,000", value: "400000" },
-  { label: "€500,000", value: "500000" },
-  { label: "€750,000", value: "750000" },
-  { label: "€1,000,000", value: "1000000" },
-  { label: "€2,000,000", value: "2000000" },
-  { label: "€3,000,000", value: "3000000" },
-  { label: "€5,000,000", value: "5000000" },
-  { label: "€10,000,000", value: "10000000" },
+  { label: "$100/mo", value: "100" },
+  { label: "$250/mo", value: "250" },
+  { label: "$500/mo", value: "500" },
+  { label: "$750/mo", value: "750" },
+  { label: "$1,000/mo", value: "1000" },
+  { label: "$1,500/mo", value: "1500" },
+  { label: "$2,000/mo", value: "2000" },
+  { label: "$2,500/mo", value: "2500" },
+  { label: "$5,000/mo", value: "5000" },
+  { label: "$10,000/mo", value: "10000" },
 ];
 
 const BEDROOM_OPTIONS = [

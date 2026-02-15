@@ -17,17 +17,17 @@ import { COMPANY_FACTS } from "@/constants/company";
 import BlogEmmaChat from '@/components/blog-article/BlogEmmaChat';
 import { useTranslation } from "@/i18n";
 
-const BASE_URL = "https://www.delsolprimehomes.com";
+const BASE_URL = "https://www.everencewealth.com";
 
 // Default content fallback
 const defaultContent: AboutPageContent = {
-  meta_title: "About Del Sol Prime Homes | Expert Real Estate Agents Costa del Sol",
-  meta_description: `Meet the founders of Del Sol Prime Homes. ${COMPANY_FACTS.yearsExperience}+ years experience helping international buyers find their perfect property in Marbella, Estepona, and the Costa del Sol.`,
+  meta_title: "About Everence Wealth | Independent Fiduciary Wealth Architects",
+  meta_description: `Meet the founders of Everence Wealth. ${COMPANY_FACTS.yearsExperience}+ years experience helping families build tax-efficient retirement strategies and asset protection plans.`,
   canonical_url: `${BASE_URL}/about`,
-  speakable_summary: `Del Sol Prime Homes is a premier real estate agency on the Costa del Sol, founded by experienced professionals with over ${COMPANY_FACTS.yearsExperience} years of combined experience helping international buyers find their dream properties.`,
-  hero_headline: "Your Trusted Partners in Costa del Sol Real Estate",
-  hero_subheadline: `Three founders, ${COMPANY_FACTS.yearsExperience}+ years of expertise, and one mission: making your Spanish property dreams a reality.`,
-  mission_statement: "We believe everyone deserves expert guidance when making one of life's biggest investments. Our mission is to provide transparent, personalized real estate services that put your interests first.",
+  speakable_summary: `Everence Wealth is an independent fiduciary wealth management firm, founded by experienced professionals with over ${COMPANY_FACTS.yearsExperience} years of combined experience helping families secure their financial future.`,
+  hero_headline: "Your Trusted Fiduciary Wealth Architects",
+  hero_subheadline: `Three founders, ${COMPANY_FACTS.yearsExperience}+ years of expertise, and one mission: building tax-efficient wealth strategies that protect what matters most.`,
+  mission_statement: "We believe everyone deserves fiduciary guidance when making critical financial decisions. Our mission is to provide transparent, personalized wealth strategies that put your interests first.",
   years_in_business: COMPANY_FACTS.yearsExperience,
   properties_sold: COMPANY_FACTS.propertiesSold,
   client_satisfaction_percent: COMPANY_FACTS.clientSatisfaction,

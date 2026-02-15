@@ -16,7 +16,7 @@ import { useBuyersGuideTranslation } from '@/hooks/useBuyersGuideTranslation';
 import BlogEmmaChat from '@/components/blog-article/BlogEmmaChat';
 import { Language, AVAILABLE_LANGUAGES } from '@/types/home';
 
-const BASE_URL = 'https://www.delsolprimehomes.com';
+const BASE_URL = 'https://www.everencewealth.com';
 
 const BuyersGuide: React.FC = () => {
   const { lang = 'en' } = useParams<{ lang: string }>();
@@ -29,7 +29,6 @@ const BuyersGuide: React.FC = () => {
         <meta name="description" content={t.meta.description} />
         <link rel="canonical" href={`${BASE_URL}/${currentLanguage}/buyers-guide`} />
         
-        {/* Hreflang tags for all languages */}
         {AVAILABLE_LANGUAGES.map((langInfo) => (
           <link
             key={langInfo.code}
@@ -40,7 +39,6 @@ const BuyersGuide: React.FC = () => {
         ))}
         <link rel="alternate" hrefLang="x-default" href={`${BASE_URL}/en/buyers-guide`} />
         
-        {/* Open Graph */}
         <meta property="og:title" content={t.meta.title} />
         <meta property="og:description" content={t.meta.description} />
         <meta property="og:locale" content={currentLanguage} />
