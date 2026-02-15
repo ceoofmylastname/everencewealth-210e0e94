@@ -8,25 +8,17 @@ const corsHeaders = {
 
 const LANGUAGE_NAMES: Record<string, string> = {
   en: 'English',
-  de: 'German',
-  nl: 'Dutch',
-  fr: 'French',
-  pl: 'Polish',
-  sv: 'Swedish',
-  da: 'Danish',
-  hu: 'Hungarian',
-  fi: 'Finnish',
-  no: 'Norwegian',
+  es: 'Spanish',
 };
 
-const NON_ENGLISH_LANGUAGES = ['de', 'nl', 'fr', 'pl', 'sv', 'da', 'hu', 'fi', 'no'];
+const NON_ENGLISH_LANGUAGES = ['es'];
 
-// 4 Q&A types per article - realistic buyer questions
+// 4 Q&A types per article - realistic client questions
 const QA_TYPES = [
-  { id: 'pitfalls', prompt: 'PITFALLS question - What common mistakes, pitfalls, or traps should buyers avoid?' },
-  { id: 'costs', prompt: 'HIDDEN COSTS question - What unexpected or hidden costs should buyers know about?' },
-  { id: 'process', prompt: 'PROCESS question - How does the buying/application process work step by step?' },
-  { id: 'legal', prompt: 'LEGAL/REGULATORY question - What legal requirements, regulations, or documentation is needed?' },
+  { id: 'pitfalls', prompt: 'PITFALLS question - What common mistakes, pitfalls, or traps should clients avoid?' },
+  { id: 'costs', prompt: 'HIDDEN COSTS question - What unexpected or hidden costs should clients know about?' },
+  { id: 'process', prompt: 'PROCESS question - How does the application/enrollment process work step by step?' },
+  { id: 'legal', prompt: 'LEGAL/REGULATORY question - What legal requirements, regulations, or compliance considerations are needed?' },
 ];
 
 // Timeout threshold - save progress before edge function times out (2.5 min with 30s buffer)
@@ -120,7 +112,7 @@ async function generateEnglishQA(
   qaType: { id: string; prompt: string },
   apiKey: string
 ): Promise<any | null> {
-  const prompt = `Generate a Q&A page in English about Costa del Sol real estate.
+  const prompt = `Generate a Q&A page in English about insurance, retirement planning, and wealth management.
 
 Q&A TYPE: ${qaType.prompt}
 
@@ -135,7 +127,7 @@ REQUIREMENTS:
 - NO links, NO bullet points in short answer
 - Question must be specific to the article topic
 
-CRITICAL - HANS' AEO RULES FOR speakable_answer:
+CRITICAL - AEO RULES FOR speakable_answer:
 - Write as a SINGLE PARAGRAPH verdict/conclusion (80-120 words, max 150)
 - NO lists, NO bullets, NO numbered points, NO line breaks
 - Complete sentences ending with period
@@ -144,8 +136,8 @@ CRITICAL - HANS' AEO RULES FOR speakable_answer:
 - Max 800 characters
 - Directly answers the question in summary form
 
-WRONG: "There are 5 key steps: 1. Get an NIE 2. Find a lawyer..."
-RIGHT: "Purchasing property in Costa del Sol involves obtaining a Spanish NIE, appointing an independent lawyer for due diligence, opening a Spanish bank account, and finalizing the sale before a notary."
+WRONG: "There are 5 key steps: 1. Get a quote 2. Find an advisor..."
+RIGHT: "Selecting the right life insurance policy involves assessing your coverage needs based on income replacement, consulting a fiduciary advisor for unbiased recommendations, comparing quotes from multiple carriers, and reviewing policy riders for living benefits."
 
 Return ONLY valid JSON:
 {
@@ -170,7 +162,7 @@ Return ONLY valid JSON:
         messages: [
           { 
             role: 'system', 
-            content: 'You are an expert Q&A content generator for Costa del Sol real estate. Write in English. Return valid JSON only.' 
+            content: 'You are an expert Q&A content generator for insurance, retirement planning, and wealth management. Write in English. Return valid JSON only.' 
           },
           { role: 'user', content: prompt }
         ],
@@ -661,7 +653,7 @@ serve(async (req) => {
 
     // Determine which Q&A types to process (for resume support)
     let startProcessing = !resumeFromQAType;
-    const ALL_LANGUAGES = ['en', 'de', 'nl', 'fr', 'pl', 'sv', 'da', 'hu', 'fi', 'no'];
+    const ALL_LANGUAGES = ['en', 'es'];
 
     // Process 4 Q&A types
     for (const qaType of QA_TYPES) {
@@ -790,7 +782,7 @@ serve(async (req) => {
           qa_type: qaType.id,
           title: englishQA.title || englishQA.question_main,
           slug: englishSlug,
-          canonical_url: `https://www.delsolprimehomes.com/en/qa/${englishSlug}`,
+          canonical_url: `https://www.everencewealth.com/en/qa/${englishSlug}`,
           question_main: englishQA.question_main,
           answer_main: englishQA.answer_main,
           related_qas: [],
@@ -798,8 +790,8 @@ serve(async (req) => {
           meta_title: (englishQA.meta_title || '').substring(0, 60),
           meta_description: (englishQA.meta_description || '').substring(0, 160),
           featured_image_url: englishArticle.featured_image_url || 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=1200',
-          featured_image_alt: englishArticle.featured_image_alt || 'Costa del Sol property',
-          category: englishArticle.category || 'Real Estate',
+           featured_image_alt: englishArticle.featured_image_alt || 'Financial planning strategy',
+          category: englishArticle.category || 'Financial Planning',
           status: 'published',
           translations: {},
         };
@@ -887,7 +879,7 @@ serve(async (req) => {
           languageSlugs[lang] = finalSlug;
 
           // Use article's existing translated alt text (no AI call needed - 50% reduction!)
-          const translatedAlt = langArticle?.featured_image_alt || englishArticle.featured_image_alt || 'Costa del Sol property';
+          const translatedAlt = langArticle?.featured_image_alt || englishArticle.featured_image_alt || 'Financial planning strategy';
 
           const pageData = {
             source_article_id: langArticle?.id || englishArticle.id,
@@ -899,7 +891,7 @@ serve(async (req) => {
             qa_type: qaType.id,
             title: translatedQA.question_main,
             slug: finalSlug,
-            canonical_url: `https://www.delsolprimehomes.com/${lang}/qa/${finalSlug}`,
+            canonical_url: `https://www.everencewealth.com/${lang}/qa/${finalSlug}`,
             question_main: translatedQA.question_main,
             answer_main: translatedQA.answer_main,
             related_qas: [],
@@ -908,7 +900,7 @@ serve(async (req) => {
             meta_description: (translatedQA.meta_description || '').substring(0, 160),
             featured_image_url: langArticle?.featured_image_url || englishArticle.featured_image_url || 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=1200',
             featured_image_alt: translatedAlt,
-            category: englishArticle.category || 'Real Estate',
+            category: englishArticle.category || 'Financial Planning',
             status: 'published',
             translations: {},
           };

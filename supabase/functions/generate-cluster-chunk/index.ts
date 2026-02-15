@@ -212,7 +212,7 @@ Respond with JSON: { "category": "exact category name from the list" }`;
         const matchedCategory = validCategoryNames.find(
           name => name.toLowerCase() === aiCategory?.toLowerCase()
         );
-        finalCategory = matchedCategory || 'Buying Property';
+        finalCategory = matchedCategory || 'Retirement Planning';
       } catch (e) {
         console.warn(`[Chunk ${jobId}] Category parse failed, using default`);
       }
@@ -220,7 +220,7 @@ Respond with JSON: { "category": "exact category name from the list" }`;
     article.category = finalCategory;
 
     // 2. MAIN CONTENT GENERATION with JSON mode and word count enforcement
-    const languageName = { 'en': 'English', 'de': 'German', 'nl': 'Dutch', 'fr': 'French', 'pl': 'Polish', 'sv': 'Swedish', 'da': 'Danish', 'hu': 'Hungarian', 'fi': 'Finnish', 'no': 'Norwegian' }[language] || 'English';
+    const languageName = { 'en': 'English', 'es': 'Spanish' }[language] || 'English';
 
     // Build base prompt from master prompt
     let basePrompt = masterPrompt 
@@ -268,7 +268,7 @@ REMEMBER: Minimum 1,500 words in detailed_content is MANDATORY.`;
       console.log(`[Chunk ${jobId}] Content generation attempt ${attempts}/${maxAttempts}...`);
       
       let currentPrompt = contentPrompt;
-      let systemPrompt = `You are an expert real estate content writer specializing in Costa del Sol, Spain.
+      let systemPrompt = `You are an expert insurance and wealth management content writer.
 
 CRITICAL REQUIREMENTS:
 1. You MUST respond with valid JSON only
@@ -278,7 +278,7 @@ CRITICAL REQUIREMENTS:
 
       if (attempts === 2 && contentJson) {
         const prevWordCount = countWords(contentJson.detailed_content || '');
-        systemPrompt = `You are an expert real estate content writer. Your previous response was ONLY ${prevWordCount} words - this is UNACCEPTABLE.
+        systemPrompt = `You are an expert insurance and wealth management content writer. Your previous response was ONLY ${prevWordCount} words - this is UNACCEPTABLE.
 
 MANDATORY: This response MUST be at least 1,500 words. 
 STRATEGY: Write 8 sections of 200+ words each = 1,600+ words minimum.
@@ -315,7 +315,7 @@ If in doubt, ADD MORE DETAIL. Err on the side of being too long.`;
 Your previous ${attempts - 1} attempts produced only ${prevWordCount} words. This is your LAST chance.
 
 MANDATORY EXPANSION TECHNIQUES:
-• Add specific Costa del Sol examples (Marbella, Estepona, Mijas, etc.)
+• Add specific examples relevant to the topic
 • Include 2-3 sentences of explanation for EVERY claim
 • Add "For example..." or "In practice, this means..." phrases
 • Include relevant statistics and timeframes
@@ -396,8 +396,8 @@ TOTAL MINIMUM: 1,800 words. Do NOT submit under 1,500.`;
 
     // 3. FEATURED IMAGE - Use placeholder to ensure completion within timeout
     // DALL-E image generation is skipped for reliability (can be regenerated later)
-    article.featured_image_url = 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=1792&h=1024&fit=crop';
-    article.featured_image_alt = `${plan.headline} - Costa del Sol real estate`;
+    article.featured_image_url = 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=1792&h=1024&fit=crop';
+    article.featured_image_alt = `${plan.headline} - Everence Wealth`;
     console.log(`[Chunk ${jobId}] Using placeholder image (DALL-E skipped for reliability)`);
 
     // 4. AUTHOR & REVIEWER

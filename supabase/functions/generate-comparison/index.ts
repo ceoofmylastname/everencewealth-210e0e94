@@ -6,19 +6,11 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const ALL_SUPPORTED_LANGUAGES = ['en', 'de', 'nl', 'fr', 'pl', 'sv', 'da', 'hu', 'fi', 'no'];
+const ALL_SUPPORTED_LANGUAGES = ['en', 'es'];
 
 const LANGUAGE_NAMES: Record<string, string> = {
   en: 'English',
-  de: 'German',
-  nl: 'Dutch',
-  fr: 'French',
-  pl: 'Polish',
-  sv: 'Swedish',
-  da: 'Danish',
-  hu: 'Hungarian',
-  fi: 'Finnish',
-  no: 'Norwegian',
+  es: 'Spanish',
 };
 
 const MASTER_PROMPT = `You are an expert comparison content strategist and answer-engine optimizer.
@@ -30,7 +22,7 @@ Create a **decision-focused comparison page** designed to be cited by AI systems
 
 ### Context
 * Industry/Niche: [NICHE]
-* Location: Costa del Sol, Spain
+* Location: United States
 * Audience: [AUDIENCE]
 * Intent Stage: Decision / Evaluation
 [SUGGESTED_HEADLINE_SECTION]
@@ -41,14 +33,14 @@ Produce content as JSON with this exact structure:
 
 {
   "headline": "[HEADLINE_INSTRUCTION]",
-  "meta_title": "Short SEO title under 60 characters, include location (Spain/Marbella) and year (2025) where natural",
+  "meta_title": "Short SEO title under 60 characters, include relevant context and year (2025) where natural",
   "meta_description": "Meta description under 160 characters with target keyword naturally integrated",
   "speakable_answer": "50-80 word neutral, factual, citation-ready summary answering 'Which is better and why?'. Non-salesy, suitable for voice assistants.",
   "quick_comparison_table": [
     {"criterion": "Cost", "option_a_value": "Brief 10-15 word summary", "option_b_value": "Brief 10-15 word summary"},
     {"criterion": "Pros", "option_a_value": "2-3 key benefits, comma-separated", "option_b_value": "2-3 key benefits, comma-separated"},
     {"criterion": "Cons", "option_a_value": "1-2 drawbacks, brief", "option_b_value": "1-2 drawbacks, brief"},
-    {"criterion": "Best for", "option_a_value": "One-liner ideal buyer type", "option_b_value": "One-liner ideal buyer type"},
+    {"criterion": "Best for", "option_a_value": "One-liner ideal client type", "option_b_value": "One-liner ideal client type"},
     {"criterion": "Risks", "option_a_value": "Main risk in 5-10 words", "option_b_value": "Main risk in 5-10 words"},
     {"criterion": "Time to results", "option_a_value": "Brief timeline", "option_b_value": "Brief timeline"},
     {"criterion": "Flexibility", "option_a_value": "Brief flexibility note", "option_b_value": "Brief flexibility note"}
@@ -62,8 +54,8 @@ Produce content as JSON with this exact structure:
     {"question": "Natural language question matching how users ask AI assistants", "answer": "Clear, objective answer in 30-50 words"},
     {"question": "...", "answer": "..."}
   ],
-  "suggested_slug": "url-friendly-slug-with-location-context",
-  "image_prompt": "Professional real estate photography style image showing: [describe a visual that represents the comparison topic]. Modern, clean, Costa del Sol setting. No text overlays."
+  "suggested_slug": "url-friendly-slug-with-context",
+  "image_prompt": "Professional financial services photography style image showing: [describe a visual that represents the comparison topic]. Modern, clean, professional setting. No text overlays."
 }
 
 CRITICAL RULES:
@@ -75,7 +67,7 @@ CRITICAL RULES:
 6. Use <strong> for emphasis, not **
 7. NO fluff, filler words, or repetitive content
 8. Each sentence must add unique value
-9. HEADLINE FORMAT: Use natural question formats that match AI queries like "X vs Y: Which Should You Buy in 2025?" or "X vs Y: Where Should You Invest?"
+9. HEADLINE FORMAT: Use natural question formats that match AI queries like "X vs Y: Which Should You Choose in 2025?" or "X vs Y: Which Is Better for Retirement?"
 
 Tone: Authoritative, Neutral, Evidence-based, Human-readable, AI-friendly. Avoid hype, exaggeration, or sales language.
 
@@ -288,7 +280,7 @@ Return ONLY valid JSON with all content in ${languageName}, no markdown, no expl
       const internalLinks: any[] = [];
       if (include_internal_links && bofuArticles.length > 0) {
         const langArticles = bofuArticles.filter(a => a.language === lang);
-        const topicKeywords = [option_a.toLowerCase(), option_b.toLowerCase(), 'property', 'investment', 'spain', 'costa del sol'];
+        const topicKeywords = [option_a.toLowerCase(), option_b.toLowerCase(), 'insurance', 'retirement', 'wealth', 'financial'];
         
         langArticles.forEach(article => {
           const headline = article.headline?.toLowerCase() || '';
@@ -335,8 +327,8 @@ Return ONLY valid JSON with all content in ${languageName}, no markdown, no expl
         option_a,
         option_b,
         comparison_topic: `${option_a} vs ${option_b}`,
-        niche: niche || 'real-estate',
-        target_audience: target_audience || 'property buyers and investors',
+        niche: niche || 'insurance-wealth-management',
+        target_audience: target_audience || 'retirement planning clients',
         language: lang,
         source_language: 'en', // English-first strategy
         hreflang_group_id: hreflangGroupId,
