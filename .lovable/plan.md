@@ -1,91 +1,65 @@
 
 
-# Phase 9.2 + 9.3 -- Hero Section Update and Navbar Update
+# Phase 9.4 -- Footer Update
 
 ## Overview
-Two changes in one phase:
-1. **Hero**: Replace the current property-search-oriented hero with a wealth management hero featuring a dark gradient background, new copy, two CTAs, and three trust badges.
-2. **Navbar**: Replace all Costa del Sol navigation items with Everence Wealth menu structure (Philosophy, Strategies, Education, About, Get Started, Portal Login).
+Rewrite the existing `src/components/home/Footer.tsx` to replace all real-estate-oriented columns and links with the Everence Wealth footer structure: Company, Strategies, Resources, Connect, plus an updated bottom bar.
 
----
+## Changes
 
-## 9.2 -- Hero Section Update
-
-### File: `src/components/home/sections/Hero.tsx` (rewrite)
+### File: `src/components/home/Footer.tsx` (rewrite)
 
 **Remove:**
-- Video background and poster image (Unsplash photo)
-- `videoRef`, `videoLoaded` state, video load timeout effect
-- Old trust badge content (API, Experience, Buyers references from translations)
-- Old CTA buttons pointing to properties and Emma chat
+- Brand column with logo and description paragraph
+- Contact column (address/phone/email with icons)
+- Quick Links column (property finder, locations, buyer's guide, glossary, comparisons, dashboard)
+- Legal column (privacy, terms, cookies, legal notice, GDPR)
+- Facebook and Instagram social icons
+- All `t.footer.*` translation references (hardcode English strings, matching the convention established in 9.2/9.3)
 
-**New Background:**
-- Dark gradient: `bg-gradient-to-br from-[#1A4D3E] via-[#0F2E25] to-black`
-- Subtle animated mesh gradient overlay using CSS radial gradients with a slow animation (keyframe-based opacity/position shift)
-- Remove the `<video>` and `<img>` elements entirely
+**New Four-Column Grid (`grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12`):**
 
-**New Content:**
-- Headline: "Bridge the Retirement Gap" (serif, white, large)
-- Subhead: "Tax-efficient wealth strategies. Fiduciary guidance. Zero Wall Street games." (white/90, lighter weight)
-- Two CTAs using existing `Button` component:
-  - Primary: "Schedule Assessment" -- navigates to `/{lang}/contact`
-  - Secondary (outline): "Our Philosophy" -- navigates to `/{lang}/philosophy`
-- Three trust badges below CTAs (same pill style, updated content):
-  - ShieldCheck icon: "Independent Fiduciary"
-  - Users icon: "75+ Carriers"
-  - Calendar icon: "Since 1998"
+**Column 1: Company**
+- About Us -> `/{lang}/about`
+- Our Philosophy -> `/{lang}/philosophy`
+- Our Team -> `/{lang}/team`
+- Careers -> `/{lang}/careers`
 
-**Simplified state:** Remove `scrollY`, `videoLoaded`, `videoRef`. Keep `useNavigate` and `useTranslation`. Add `Calendar` to lucide imports.
+**Column 2: Strategies**
+- Indexed Universal Life -> `/{lang}/strategies/iul`
+- Whole Life -> `/{lang}/strategies/whole-life`
+- Tax-Free Retirement -> `/{lang}/strategies/tax-free-retirement`
+- Asset Protection -> `/{lang}/strategies/asset-protection`
 
----
+**Column 3: Resources**
+- Blog -> `/{lang}/blog`
+- Q&A -> `/{lang}/qa`
+- Financial Terms -> `/{lang}/glossary`
+- Tax Bucket Guide -> `/{lang}/tax-bucket-guide`
+- Retirement Gap Calculator -> `/{lang}/calculator`
 
-## 9.3 -- Navbar Update
+**Column 4: Connect**
+- Schedule Assessment -> `/{lang}/contact` (with `Calendar` icon)
+- Contact Us -> `/{lang}/contact` (with `Mail` icon)
+- Client Portal Login -> `/portal/login` (with `LogIn` icon)
+- Phone: (415) 555-0100 (with `Phone` icon)
+- Email: info@everencewealth.com (with `Mail` icon)
 
-### File: `src/components/home/Header.tsx` (rewrite menu structure)
+**Above the grid:** Logo image (keep existing URL) with tagline "Independent fiduciary serving families since 1998." below it.
 
-**Remove:**
-- `featuredCities` array and all Supabase storage URL references
-- "Explore" menu with city brochures, property finder, location guides
-- "Compare" menu with comparison index, city vs city
-- "Learn" menu items: Property Glossary, Buyer's Guide
-- Old icon imports no longer needed: `Home`, `Landmark`, `GitCompare`, `Scale`, `MapPin`
+**Bottom Bar (below border-t):**
+- Left: "Copyright 2025 Everence Wealth. Independent fiduciary serving families since 1998."
+- Center: Privacy Policy | Terms | Disclosures (links to `/privacy`, `/terms`, `/disclosures`)
+- Right: Social icons -- LinkedIn, Twitter (`X` icon not in lucide, use `Twitter`), YouTube
+- Below center: Address "455 Market St Ste 1940, San Francisco, CA 94105"
 
-**New Desktop Menu Structure (inside `<Menu>`):**
+**Updated imports:**
+- Keep: `Link`, `Linkedin`, `Mail`, `Phone`, `MapPin`
+- Add: `Calendar`, `LogIn`, `Twitter`, `Youtube`
+- Remove: `Facebook`, `Instagram`
+- Remove: `useTranslation` import (use `useParams` or `window.location` for lang, matching Header pattern)
 
-1. **Philosophy** -- simple link (no dropdown), navigates to `/{lang}/philosophy`
-2. **Strategies** dropdown:
-   - Indexed Universal Life -- `/{lang}/strategies/iul`
-   - Whole Life -- `/{lang}/strategies/whole-life`
-   - Tax-Free Retirement -- `/{lang}/strategies/tax-free-retirement`
-   - Asset Protection -- `/{lang}/strategies/asset-protection`
-3. **Education** dropdown:
-   - Blog -- `/{lang}/blog`
-   - Q&A -- `/{lang}/qa`
-   - Financial Terms -- `/{lang}/glossary`
-4. **About** dropdown:
-   - Our Team -- `/{lang}/team`
-   - Why Fiduciary -- `/{lang}/about`
-   - Client Stories -- `/{lang}/client-stories`
+**Styling:** Keep existing dark background (`bg-prime-900`), `border-t-4 border-prime-gold` top accent, and hover color (`hover:text-prime-gold`). Column headings remain serif bold white.
 
-**Right side actions:**
-- Language switcher (EN | ES) -- keep existing `LanguageSwitcher` component
-- "Get Started" button -- navigates to `/{lang}/contact` (replaces "Chat with Emma")
-- "Portal Login" link/button -- navigates to `/portal/login`
-
-**New Mobile Menu Structure:**
-Mirror the desktop structure with four collapsible sections:
-1. Philosophy (direct link, no submenu)
-2. Strategies (4 items)
-3. Education (3 items)
-4. About (3 items)
-Bottom: Language switcher + "Get Started" button + "Portal Login" link
-
-**New icon imports:** `Shield`, `TrendingUp`, `Umbrella`, `Lock` (for strategy items). Remove unused icons.
-
-### Files Modified
-- `src/components/home/sections/Hero.tsx` -- full rewrite
-- `src/components/home/Header.tsx` -- menu structure rewrite
-
-### No database, edge function, or translation changes required
-Hardcoded English strings with fallback pattern (matching existing convention).
+### No other files modified. No database or edge function changes.
 
