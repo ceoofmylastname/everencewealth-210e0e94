@@ -213,7 +213,7 @@ function normalizeSlug(rawSlug: string): string {
   // Remove newlines, carriage returns, tabs, null bytes
   clean = clean.replace(/[\r\n\t\x00]/g, '')
   // Remove accidentally appended domain (common copy-paste error)
-  clean = clean.replace(/delsolprimehomes\.com.*$/i, '')
+  clean = clean.replace(/everencewealth\.com.*$/i, '')
   // Trim whitespace
   clean = clean.trim()
   // Remove trailing slashes
@@ -1184,7 +1184,7 @@ const FOUNDERS_SCHEMAS = [
     "@id": `${BASE_URL}/#steven-roberts`,
     "name": "Steven Roberts",
     "jobTitle": "Managing Director",
-    "sameAs": "https://www.linkedin.com/company/delsolprimehomes/",
+    "sameAs": "https://www.linkedin.com/company/everencewealth/",
     "worksFor": { "@id": `${BASE_URL}/#organization` }
   },
   {
@@ -1200,7 +1200,7 @@ const FOUNDERS_SCHEMAS = [
     "@id": `${BASE_URL}/#cedric-van-hecke`,
     "name": "Cédric Van Hecke",
     "jobTitle": "Marketing Director",
-    "sameAs": "https://www.linkedin.com/company/delsolprimehomes/",
+    "sameAs": "https://www.linkedin.com/company/everencewealth/",
     "worksFor": { "@id": `${BASE_URL}/#organization` }
   }
 ]

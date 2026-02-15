@@ -167,7 +167,7 @@ export function MobileLeadCard({
     if (phone) {
       const cleanPhone = phone.replace(/[^0-9]/g, "");
       const message = encodeURIComponent(
-        `Hello ${lead.first_name}, I wanted to follow up on your property inquiry.`
+        `Hello ${lead.first_name}, I wanted to follow up on your inquiry.`
       );
       window.open(`https://wa.me/${cleanPhone}?text=${message}`, "_blank");
     }
@@ -235,7 +235,7 @@ export function MobileLeadCard({
             )}
             <span>{languageFlag} {(lead.language || "en").toUpperCase()}</span>
             <span>•</span>
-            <span className="capitalize">{lead.property_type || "Property"}</span>
+            <span className="capitalize">{lead.property_type || "General"}</span>
             {budget && (
               <>
                 <span>•</span>
@@ -243,10 +243,10 @@ export function MobileLeadCard({
               </>
             )}
           </div>
-          {/* Property Interest - Show if available */}
+          {/* Interest - Show if available */}
           {lead.interest && (
             <div className="mt-1 text-xs text-muted-foreground bg-muted/50 rounded px-2 py-0.5 inline-block">
-              🏠 {lead.interest}
+              💼 {lead.interest}
             </div>
           )}
         </div>

@@ -60,7 +60,7 @@ serve(async (req) => {
     const tokens = await tokenResponse.json();
     console.log(`[gmail-auth-callback] Token exchange successful`);
 
-    // Get user's email to verify it's a @delsolprimehomes.com account
+    // Get user's email to verify it's a @everencewealth.com account
     const userInfoResponse = await fetch(
       "https://www.googleapis.com/oauth2/v2/userinfo",
       {
@@ -76,10 +76,10 @@ serve(async (req) => {
     console.log(`[gmail-auth-callback] User email: ${userInfo.email}`);
 
     // Verify email domain
-    if (!userInfo.email?.endsWith("@delsolprimehomes.com")) {
+    if (!userInfo.email?.endsWith("@everencewealth.com")) {
       console.error(`[gmail-auth-callback] Invalid domain: ${userInfo.email}`);
       throw new Error(
-        "Only @delsolprimehomes.com Gmail accounts are allowed. Please use your company email."
+        "Only @everencewealth.com Gmail accounts are allowed. Please use your company email."
       );
     }
 

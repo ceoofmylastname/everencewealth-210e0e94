@@ -172,7 +172,7 @@ export function FormSubmissionCard({ lead }: FormSubmissionCardProps) {
         <dl className="space-y-3 text-sm">
           {lead.property_ref && (
             <div>
-              <dt className="text-xs text-muted-foreground">Property Reference</dt>
+              <dt className="text-xs text-muted-foreground">Reference</dt>
               <dd className="font-medium">{lead.property_ref}</dd>
               {lead.property_price && (
                 <dd className="text-xs text-muted-foreground">
@@ -194,9 +194,9 @@ export function FormSubmissionCard({ lead }: FormSubmissionCardProps) {
 
           {lead.interest && (
             <div>
-              <dt className="text-xs text-muted-foreground">Property Interest</dt>
+              <dt className="text-xs text-muted-foreground">Product Interest</dt>
               <dd className="font-medium text-primary flex items-center gap-1">
-                🏠 {lead.interest}
+                💼 {lead.interest}
               </dd>
             </div>
           )}

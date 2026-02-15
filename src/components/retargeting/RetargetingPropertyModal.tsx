@@ -125,7 +125,7 @@ export const RetargetingPropertyModal = ({
         firstName,
         lastName,
         phone: data.phone,
-        leadSource: "Property Inquiry",
+        leadSource: "Product Inquiry",
         leadSourceDetail: `retargeting_property_card_${language}`,
         pageType: "retargeting",
         pageUrl: window.location.href,

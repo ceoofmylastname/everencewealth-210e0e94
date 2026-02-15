@@ -2,7 +2,7 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY")!;
-const APP_URL = Deno.env.get("APP_URL") || "https://www.delsolprimehomes.com";
+const APP_URL = Deno.env.get("APP_URL") || "https://www.everencewealth.com";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -113,7 +113,7 @@ serve(async (req) => {
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              from: "CRM Alerts <crm@notifications.delsolprimehomes.com>",
+              from: "CRM Alerts <crm@notifications.everencewealth.com>",
               to: [adminEmail],
               subject: `CRM_ADMIN_NO_CLAIM_${lead.language.toUpperCase()} | No agent claimed lead within 5 minutes`,
               html: `
@@ -169,7 +169,7 @@ serve(async (req) => {
                       </center>
                     </div>
                     <div class="footer">
-                      <p>Del Sol Prime Homes CRM - Automated Alert</p>
+                      <p>Everence Wealth CRM - Automated Alert</p>
                       <p>This is an automated message. Please do not reply directly.</p>
                     </div>
                   </div>

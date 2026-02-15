@@ -10,7 +10,7 @@ export const agentFormSchema = z.object({
   languages: z.array(z.string()).min(1, "At least one language is required"),
   max_active_leads: z.number().min(1).max(1000).default(50),
   email_notifications: z.boolean().default(true),
-  timezone: z.string().default("Europe/Madrid"),
+  timezone: z.string().default("America/New_York"),
 });
 
 export const editAgentFormSchema = agentFormSchema.omit({ password: true }).extend({
@@ -21,29 +21,18 @@ export type AgentFormData = z.infer<typeof agentFormSchema>;
 export type EditAgentFormData = z.infer<typeof editAgentFormSchema>;
 
 export const SUPPORTED_LANGUAGES = [
-  { code: "fr", name: "French", flag: "🇫🇷" },
-  { code: "fi", name: "Finnish", flag: "🇫🇮" },
-  { code: "pl", name: "Polish", flag: "🇵🇱" },
-  { code: "en", name: "English", flag: "🇬🇧" },
-  { code: "nl", name: "Dutch", flag: "🇳🇱" },
-  { code: "de", name: "German", flag: "🇩🇪" },
+  { code: "en", name: "English", flag: "🇺🇸" },
   { code: "es", name: "Spanish", flag: "🇪🇸" },
-  { code: "sv", name: "Swedish", flag: "🇸🇪" },
-  { code: "da", name: "Danish", flag: "🇩🇰" },
-  { code: "hu", name: "Hungarian", flag: "🇭🇺" },
 ] as const;
 
 export const TIMEZONES = [
+  "America/New_York",
+  "America/Chicago",
+  "America/Denver",
+  "America/Los_Angeles",
+  "America/Phoenix",
   "Europe/Madrid",
-  "Europe/Paris",
   "Europe/London",
-  "Europe/Helsinki",
-  "Europe/Warsaw",
-  "Europe/Amsterdam",
-  "Europe/Berlin",
-  "Europe/Stockholm",
-  "Europe/Copenhagen",
-  "Europe/Budapest",
 ] as const;
 
 export const getLanguageFlag = (code: string): string => {

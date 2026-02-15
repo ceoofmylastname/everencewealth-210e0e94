@@ -254,12 +254,12 @@ Deno.serve(async (req) => {
       
       if (resendApiKey) {
         try {
-          const appUrl = Deno.env.get("APP_URL") || "https://www.delsolprimehomes.com";
+          const appUrl = Deno.env.get("APP_URL") || "https://www.everencewealth.com";
           const loginUrl = `${appUrl}/crm/login`;
           const isAdmin = body.role === 'admin';
           const subjectLine = isAdmin 
-            ? "Welcome Back to Del Sol Prime Homes CRM - Your Admin Account is Reactivated"
-            : "Welcome Back to Del Sol Prime Homes CRM - Your Account is Reactivated";
+            ? "Welcome Back to Everence Wealth CRM - Your Admin Account is Reactivated"
+            : "Welcome Back to Everence Wealth CRM - Your Account is Reactivated";
           
           const emailResponse = await fetch("https://api.resend.com/emails", {
             method: "POST",
@@ -268,7 +268,7 @@ Deno.serve(async (req) => {
               Authorization: `Bearer ${resendApiKey}`,
             },
             body: JSON.stringify({
-              from: "Del Sol Prime Homes CRM <crm@notifications.delsolprimehomes.com>",
+              from: "Everence Wealth CRM <crm@notifications.everencewealth.com>",
               to: [body.email],
               subject: subjectLine,
               html: generateWelcomeEmailHtml({
@@ -416,12 +416,12 @@ Deno.serve(async (req) => {
     
     if (resendApiKey) {
       try {
-        const appUrl = Deno.env.get("APP_URL") || "https://www.delsolprimehomes.com";
+        const appUrl = Deno.env.get("APP_URL") || "https://www.everencewealth.com";
         const loginUrl = `${appUrl}/crm/login`;
         const isAdmin = body.role === 'admin';
         const subjectLine = isAdmin 
-          ? "Welcome to Del Sol Prime Homes CRM - Your Admin Account is Ready"
-          : "Welcome to Del Sol Prime Homes CRM - Your Account is Ready";
+          ? "Welcome to Everence Wealth CRM - Your Admin Account is Ready"
+          : "Welcome to Everence Wealth CRM - Your Account is Ready";
         
         const emailResponse = await fetch("https://api.resend.com/emails", {
           method: "POST",
@@ -430,7 +430,7 @@ Deno.serve(async (req) => {
             Authorization: `Bearer ${resendApiKey}`,
           },
           body: JSON.stringify({
-            from: "Del Sol Prime Homes CRM <crm@notifications.delsolprimehomes.com>",
+            from: "Everence Wealth CRM <crm@notifications.everencewealth.com>",
             to: [body.email],
             subject: subjectLine,
             html: generateWelcomeEmailHtml({

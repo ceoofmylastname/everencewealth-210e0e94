@@ -213,8 +213,8 @@ serve(async (req) => {
             const messageIdHeader = headers.find(h => h.name.toLowerCase() === 'message-id')?.value || ''
 
             // Determine direction based on sender domain
-            const delsolDomain = '@delsolprimehomes.com'
-            const isOutgoing = fromHeader.toLowerCase().includes(delsolDomain)
+            const companyDomain = '@everencewealth.com'
+            const isOutgoing = fromHeader.toLowerCase().includes(companyDomain)
             const direction = isOutgoing ? 'outgoing' : 'incoming'
 
             // Extract email address from header
