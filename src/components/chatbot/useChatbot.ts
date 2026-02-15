@@ -31,26 +31,26 @@ export interface ChatbotHook {
 
 const TRANSLATIONS = {
   en: {
-    greeting: "👋 Hello! I'm here to help you find your dream property in Costa del Sol.\n\nWhat would you like help with?",
-    scheduleViewing: "📅 Schedule a viewing",
-    discussFinancing: "💰 Discuss financing",
-    learnAbout: "📍 Learn about areas",
+    greeting: "👋 Hello! I'm here to help you explore insurance and wealth strategies tailored to your goals.\n\nWhat would you like help with?",
+    scheduleViewing: "📅 Schedule a consultation",
+    discussFinancing: "💰 Discuss strategies",
+    learnAbout: "📍 Learn about products",
     askQuestion: "❓ Ask a question",
-    propertyTypeQ: "Great! Let me collect some details.\n\nWhat's your preferred property type?",
-    budgetQ: "What's your budget range?",
-    areaQ: "Which area interests you most?",
-    confirmation: "✅ Thank you! Our team will contact you within 24 hours to schedule your viewing. You'll receive a confirmation email shortly.",
+    propertyTypeQ: "Great! Let me collect some details.\n\nWhat type of product are you most interested in?",
+    budgetQ: "What's your annual budget range?",
+    areaQ: "Which area of planning interests you most?",
+    confirmation: "✅ Thank you! Our team will contact you within 24 hours to schedule your consultation. You'll receive a confirmation email shortly.",
   },
   es: {
-    greeting: "👋 ¡Hola! Estoy aquí para ayudarte a encontrar tu propiedad de ensueño en Costa del Sol.\n\n¿En qué te puedo ayudar?",
-    scheduleViewing: "📅 Programar una visita",
-    discussFinancing: "💰 Discutir financiación",
-    learnAbout: "📍 Conocer sobre zonas",
+    greeting: "👋 ¡Hola! Estoy aquí para ayudarte a explorar estrategias de seguros y patrimonio adaptadas a tus objetivos.\n\n¿En qué te puedo ayudar?",
+    scheduleViewing: "📅 Programar una consulta",
+    discussFinancing: "💰 Discutir estrategias",
+    learnAbout: "📍 Conocer sobre productos",
     askQuestion: "❓ Hacer una pregunta",
-    propertyTypeQ: "¡Genial! Permíteme recopilar algunos detalles.\n\n¿Cuál es tu tipo de propiedad preferido?",
-    budgetQ: "¿Cuál es tu rango de presupuesto?",
-    areaQ: "¿Qué zona te interesa más?",
-    confirmation: "✅ ¡Gracias! Nuestro equipo se pondrá en contacto contigo en 24 horas para programar tu visita. Recibirás un correo de confirmación pronto.",
+    propertyTypeQ: "¡Genial! Permíteme recopilar algunos detalles.\n\n¿Qué tipo de producto te interesa más?",
+    budgetQ: "¿Cuál es tu rango de presupuesto anual?",
+    areaQ: "¿Qué área de planificación te interesa más?",
+    confirmation: "✅ ¡Gracias! Nuestro equipo se pondrá en contacto contigo en 24 horas para programar tu consulta. Recibirás un correo de confirmación pronto.",
   },
 };
 
@@ -90,10 +90,10 @@ export const useChatbot = (articleSlug: string, language: string): ChatbotHook =
         if (value === "schedule") {
           setCurrentStep("property_type");
           addMessage(t.propertyTypeQ, true, [
-            { label: "🏡 Villa", value: "villa" },
-            { label: "🏢 Apartment/Penthouse", value: "apartment" },
-            { label: "🏖️ Beachfront", value: "beachfront" },
-            { label: "🏌️ Golf property", value: "golf" },
+            { label: "🛡️ Life Insurance", value: "life_insurance" },
+            { label: "💰 Annuities", value: "annuities" },
+            { label: "📈 Retirement Planning", value: "retirement" },
+            { label: "🏛️ Estate Planning", value: "estate" },
           ]);
         }
         break;
@@ -102,10 +102,10 @@ export const useChatbot = (articleSlug: string, language: string): ChatbotHook =
         setCollectedData((prev) => ({ ...prev, propertyType: value }));
         setCurrentStep("budget");
         addMessage(t.budgetQ, true, [
-          { label: "€500K - €1M", value: "500k-1m" },
-          { label: "€1M - €2M", value: "1m-2m" },
-          { label: "€2M - €5M", value: "2m-5m" },
-          { label: "€5M+", value: "5m+" },
+          { label: "Under $5K/year", value: "under-5k" },
+          { label: "$5K - $15K/year", value: "5k-15k" },
+          { label: "$15K - $50K/year", value: "15k-50k" },
+          { label: "$50K+/year", value: "50k+" },
         ]);
         break;
 
@@ -113,10 +113,10 @@ export const useChatbot = (articleSlug: string, language: string): ChatbotHook =
         setCollectedData((prev) => ({ ...prev, budget: value }));
         setCurrentStep("area");
         addMessage(t.areaQ, true, [
-          { label: "Marbella", value: "marbella" },
-          { label: "Estepona", value: "estepona" },
-          { label: "Fuengirola", value: "fuengirola" },
-          { label: "Other", value: "other" },
+          { label: "Retirement Income", value: "retirement_income" },
+          { label: "Family Protection", value: "family_protection" },
+          { label: "Tax Optimization", value: "tax_optimization" },
+          { label: "Wealth Transfer", value: "wealth_transfer" },
         ]);
         break;
 

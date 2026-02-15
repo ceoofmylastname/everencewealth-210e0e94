@@ -75,79 +75,62 @@ const LandingLayout: React.FC<LandingLayoutProps> = ({ language, translations })
                 <html lang={language} />
 
                 {/* Dynamic Title (Native Language) */}
-                <title>{heroT.headline ? `${heroT.headline} | DelSolPrimeHomes` : 'Del Sol Prime Homes'}</title>
+                <title>{heroT.headline ? `${heroT.headline} | Everence Wealth` : 'Everence Wealth'}</title>
 
                 {/* Dynamic Description (Native Language) */}
-                <meta name="description" content={heroT.subheadline || "Independent guidance for Costa del Sol property"} />
+                <meta name="description" content={heroT.subheadline || "Independent guidance for insurance and wealth management"} />
 
                 {/* SEO: Robots & Discovery */}
                 <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
                 <meta http-equiv="content-language" content={language} />
 
                 {/* HREFLANG TAGS - Perfect Implementation (10 Languages + x-default) */}
-                <link rel="alternate" hrefLang="en" href="https://www.delsolprimehomes.com/en/landing" />
-                <link rel="alternate" hrefLang="nl" href="https://www.delsolprimehomes.com/nl/landing" />
-                <link rel="alternate" hrefLang="de" href="https://www.delsolprimehomes.com/de/landing" />
-                <link rel="alternate" hrefLang="fr" href="https://www.delsolprimehomes.com/fr/landing" />
-                <link rel="alternate" hrefLang="fi" href="https://www.delsolprimehomes.com/fi/landing" />
-                <link rel="alternate" hrefLang="pl" href="https://www.delsolprimehomes.com/pl/landing" />
-                <link rel="alternate" hrefLang="da" href="https://www.delsolprimehomes.com/da/landing" />
-                <link rel="alternate" hrefLang="hu" href="https://www.delsolprimehomes.com/hu/landing" />
-                <link rel="alternate" hrefLang="sv" href="https://www.delsolprimehomes.com/sv/landing" />
-                <link rel="alternate" hrefLang="no" href="https://www.delsolprimehomes.com/no/landing" />
-                <link rel="alternate" hrefLang="x-default" href="https://www.delsolprimehomes.com/en/landing" />
+                <link rel="alternate" hrefLang="en" href="https://www.everencewealth.com/en/landing" />
+                <link rel="alternate" hrefLang="es" href="https://www.everencewealth.com/es/landing" />
+                <link rel="alternate" hrefLang="x-default" href="https://www.everencewealth.com/en/landing" />
 
                 {/* CANONICAL URL - Language-Specific */}
-                <link rel="canonical" href={`https://www.delsolprimehomes.com/${language}/landing`} />
+                <link rel="canonical" href={`https://www.everencewealth.com/${language}/landing`} />
 
                 {/* Geographic Targeting (GEO) */}
-                <meta name="geo.region" content="ES-AN" />
-                <meta name="geo.placename" content="Costa del Sol" />
-                <meta name="geo.position" content="36.5085;-4.8833" />
-                <meta name="ICBM" content="36.5085, -4.8833" />
+                <meta name="geo.region" content="US" />
+                <meta name="geo.placename" content="United States" />
 
                 {/* Open Graph (Social Sharing) */}
-                <meta property="og:title" content={heroT.headline ? `${heroT.headline} | DelSolPrimeHomes` : 'Del Sol Prime Homes'} />
-                <meta property="og:description" content={heroT.subheadline || "Independent guidance for Costa del Sol property"} />
+                <meta property="og:title" content={heroT.headline ? `${heroT.headline} | Everence Wealth` : 'Everence Wealth'} />
+                <meta property="og:description" content={heroT.subheadline || "Independent guidance for insurance and wealth management"} />
                 <meta property="og:type" content="website" />
-                <meta property="og:url" content={`https://www.delsolprimehomes.com/${language}/landing`} />
-                <meta property="og:image" content="https://www.delsolprimehomes.com/og-image.jpg" />
+                <meta property="og:url" content={`https://www.everencewealth.com/${language}/landing`} />
+                <meta property="og:image" content="https://www.everencewealth.com/og-image.jpg" />
                 <meta property="og:locale" content={getLocaleCode(language)} />
 
                 {/* Twitter Card */}
                 <meta name="twitter:card" content="summary_large_image" />
-                <meta name="twitter:title" content={heroT.headline ? `${heroT.headline} | DelSolPrimeHomes` : 'Del Sol Prime Homes'} />
-                <meta name="twitter:description" content={heroT.subheadline || "Independent guidance for Costa del Sol property"} />
-                <meta name="twitter:image" content="https://www.delsolprimehomes.com/og-image.jpg" />
+                <meta name="twitter:title" content={heroT.headline ? `${heroT.headline} | Everence Wealth` : 'Everence Wealth'} />
+                <meta name="twitter:description" content={heroT.subheadline || "Independent guidance for insurance and wealth management"} />
+                <meta name="twitter:image" content="https://www.everencewealth.com/og-image.jpg" />
 
                 {/* AEO: Schema.org JSON-LD (Critical for AI Engines) */}
                 <script type="application/ld+json">
                     {JSON.stringify({
                         "@context": "https://schema.org",
-                        "@type": "RealEstateAgent",
-                        "name": "DelSolPrimeHomes",
-                        "url": `https://www.delsolprimehomes.com/${language}/landing`,
-                        "logo": "https://www.delsolprimehomes.com/logo.png",
-                        "description": heroT.subheadline || "Independent guidance for new-build property on the Costa del Sol",
+                        "@type": "FinancialService",
+                        "name": "Everence Wealth",
+                        "url": `https://www.everencewealth.com/${language}/landing`,
+                        "logo": "https://www.everencewealth.com/logo.png",
+                        "description": heroT.subheadline || "Independent fiduciary guidance for insurance and wealth management",
                         "inLanguage": language,
                         "areaServed": {
-                            "@type": "Place",
-                            "name": "Costa del Sol, Spain",
-                            "geo": {
-                                "@type": "GeoCoordinates",
-                                "latitude": "36.5085",
-                                "longitude": "-4.8833"
-                            }
+                            "@type": "Country",
+                            "name": "United States"
                         },
-                        "priceRange": "€350,000 - €5,000,000+",
                         "address": {
                             "@type": "PostalAddress",
-                            "addressCountry": "ES",
-                            "addressRegion": "Andalusia"
+                            "addressCountry": "US",
+                            "addressRegion": "California"
                         },
                         "sameAs": [
-                            "https://www.facebook.com/delsolprimehomes",
-                            "https://www.instagram.com/delsolprimehomes"
+                            "https://www.linkedin.com/company/everencewealth"
                         ]
                     })}
                 </script>
@@ -242,8 +225,8 @@ const LandingLayout: React.FC<LandingLayoutProps> = ({ language, translations })
                             onClick={() => setIsEmmaOpen(true)}
                             className="bg-landing-gold hover:bg-landing-goldDark text-white px-3 py-1.5 sm:px-4 sm:py-2 lg:px-6 lg:py-2.5 rounded-sm text-xs sm:text-sm font-bold tracking-wide shadow-md transition-all hover:-translate-y-0.5"
                         >
-                            <span className="hidden sm:inline">{t.header?.cta || "Speak with Emma"}</span>
-                            <span className="sm:hidden">Emma</span>
+                            <span className="hidden sm:inline">{t.header?.cta || "Get Started"}</span>
+                            <span className="sm:hidden">Chat</span>
                         </button>
                     </div>
                 </div>
@@ -316,15 +299,7 @@ const LandingLayout: React.FC<LandingLayoutProps> = ({ language, translations })
 function getLocaleCode(language: string): string {
     const localeMap: Record<string, string> = {
         en: 'en_US',
-        nl: 'nl_NL',
-        de: 'de_DE',
-        fr: 'fr_FR',
-        fi: 'fi_FI',
-        pl: 'pl_PL',
-        da: 'da_DK',
-        hu: 'hu_HU',
-        sv: 'sv_SE',
-        no: 'nb_NO'
+        es: 'es_ES',
     };
     return localeMap[language] || 'en_US';
 }
