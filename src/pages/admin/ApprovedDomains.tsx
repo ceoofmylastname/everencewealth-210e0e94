@@ -279,7 +279,7 @@ function ApprovedDomainsTable({
         <CardDescription>
           {type === 'approved' 
             ? 'Authoritative sources approved for citation discovery'
-            : 'Real estate competitors automatically excluded from citation discovery'
+            : 'Industry competitors automatically excluded from citation discovery'
           }
         </CardDescription>
       </CardHeader>

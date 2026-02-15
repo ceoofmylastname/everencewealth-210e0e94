@@ -648,7 +648,7 @@ export const BetterCitationFinder = ({
                           <div>• Portal Listings: {debugInfo.blockingStats.portalListings}</div>
                         )}
                         {debugInfo.blockingStats.unknownRealEstate > 0 && (
-                          <div>• Unknown Real Estate Sites: {debugInfo.blockingStats.unknownRealEstate}</div>
+                          <div>• Unknown Competitor Sites: {debugInfo.blockingStats.unknownRealEstate}</div>
                         )}
                         {debugInfo.blockingStats.heuristicBlocks > 0 && (
                           <div>• Heuristic Blocks: {debugInfo.blockingStats.heuristicBlocks}</div>

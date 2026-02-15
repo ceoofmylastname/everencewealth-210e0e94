@@ -16,48 +16,35 @@ import { OptimizedImage } from "@/components/OptimizedImage";
 
 // Aligned with src/types/hreflang.ts SUPPORTED_LANGUAGES (uses hu not es)
 const SUPPORTED_LANGUAGES = [
-  { code: 'en', label: '🇬🇧 English', name: 'English' },
-  { code: 'nl', label: '🇳🇱 Dutch', name: 'Dutch' },
-  { code: 'hu', label: '🇭🇺 Hungarian', name: 'Hungarian' },
-  { code: 'de', label: '🇩🇪 German', name: 'German' },
-  { code: 'fr', label: '🇫🇷 French', name: 'French' },
-  { code: 'sv', label: '🇸🇪 Swedish', name: 'Swedish' },
-  { code: 'pl', label: '🇵🇱 Polish', name: 'Polish' },
-  { code: 'no', label: '🇳🇴 Norwegian', name: 'Norwegian' },
-  { code: 'fi', label: '🇫🇮 Finnish', name: 'Finnish' },
-  { code: 'da', label: '🇩🇰 Danish', name: 'Danish' },
+  { code: 'en', label: '🇺🇸 English', name: 'English' },
+  { code: 'es', label: '🇪🇸 Spanish', name: 'Spanish' },
 ];
 
-type LanguageCode = 'en' | 'nl' | 'hu' | 'de' | 'fr' | 'sv' | 'pl' | 'no' | 'fi' | 'da';
+type LanguageCode = 'en' | 'es';
 
 const intentOptions = [
-  { value: 'buying-property', label: 'Buying Property' },
-  { value: 'best-areas-families', label: 'Best Areas for Families' },
-  { value: 'best-areas-investors', label: 'Best Areas for Investors' },
-  { value: 'best-areas-expats', label: 'Best Areas for Expats' },
-  { value: 'best-areas-retirees', label: 'Best Areas for Retirees' },
-  { value: 'cost-of-living', label: 'Cost of Living' },
-  { value: 'cost-of-property', label: 'Cost of Property' },
+  { value: 'retirement-planning', label: 'Retirement Planning' },
+  { value: 'tax-advantages', label: 'Tax Advantages' },
+  { value: 'estate-planning', label: 'Estate Planning' },
+  { value: 'wealth-protection', label: 'Wealth Protection' },
+  { value: 'insurance-guide', label: 'Insurance Guide' },
   { value: 'investment-guide', label: 'Investment Guide' },
-  { value: 'relocation-guide', label: 'Relocation Guide' },
+  { value: 'cost-of-living', label: 'Cost of Living' },
 ];
 
 const cityOptions = [
-  'Marbella',
-  'Estepona',
-  'Fuengirola',
-  'Benalmádena',
-  'Mijas',
-  'Sotogrande',
-  'Casares',
-  'Torremolinos',
-  'Manilva',
-  'Málaga',
-  'Nerja',
-  'Vélez-Málaga',
-  'Benahavís',
-  'Monda',
-  'Ojén',
+  'New York',
+  'Los Angeles',
+  'Chicago',
+  'Houston',
+  'Phoenix',
+  'San Diego',
+  'Dallas',
+  'Miami',
+  'San Francisco',
+  'Denver',
+  'Austin',
+  'Seattle',
 ];
 
 interface GeneratedImage {

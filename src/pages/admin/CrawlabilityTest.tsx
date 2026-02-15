@@ -28,10 +28,10 @@ interface CrawlResult {
 }
 
 const SAMPLE_PATHS = [
-  "/en/qa/what-are-property-taxes-in-spain",
-  "/nl/qa/wat-zijn-de-onroerendgoedbelastingen-in-spanje",
-  "/en/qa/how-to-buy-property-in-spain",
-  "/de/qa/wie-kaufe-ich-eine-immobilie-in-spanien",
+  "/en/qa/what-is-whole-life-insurance",
+  "/es/qa/que-es-el-seguro-de-vida-entera",
+  "/en/qa/how-to-plan-for-retirement",
+  "/es/qa/como-planificar-la-jubilacion",
 ];
 
 const StatusIcon = ({ ok }: { ok: boolean }) =>
@@ -50,7 +50,7 @@ const WordCountBadge = ({ count }: { count: number }) => {
 };
 
 export default function CrawlabilityTest() {
-  const [url, setUrl] = useState("https://www.delsolprimehomes.com/");
+  const [url, setUrl] = useState("https://www.everencewealth.com/");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<CrawlResult | null>(null);
   const [showHtml, setShowHtml] = useState(false);
@@ -74,7 +74,7 @@ export default function CrawlabilityTest() {
   };
 
   const quickTest = (path: string) => {
-    setUrl(`https://www.delsolprimehomes.com${path}`);
+    setUrl(`https://www.everencewealth.com${path}`);
   };
 
   return (
@@ -98,7 +98,7 @@ export default function CrawlabilityTest() {
               <Input
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
-                placeholder="https://www.delsolprimehomes.com/en/qa/..."
+                placeholder="https://www.everencewealth.com/en/qa/..."
                 onKeyDown={(e) => e.key === "Enter" && runTest()}
               />
               <Button onClick={runTest} disabled={loading} className="shrink-0">

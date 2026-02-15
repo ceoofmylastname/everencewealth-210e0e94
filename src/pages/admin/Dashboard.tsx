@@ -76,7 +76,7 @@ const Dashboard = () => {
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
             <p className="text-muted-foreground">
-              Command center for properties, leads, and content
+              Command center for strategies, leads, and content
             </p>
           </div>
           <DashboardFilters onRefresh={() => refetch()} isRefreshing={isFetching} />
