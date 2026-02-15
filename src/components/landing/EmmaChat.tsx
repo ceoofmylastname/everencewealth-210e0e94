@@ -121,49 +121,25 @@ const EmmaChat: React.FC<EmmaChatProps> = ({ isOpen, onClose, language, property
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const chatContainerRef = useRef<HTMLDivElement>(null);
 
-    // Emma's avatar image
+    // Everence AI avatar image
     const emmaAvatar = 'https://storage.googleapis.com/msgsndr/9m2UBN29nuaCWceOgW2Z/media/695df9a00597dfcfb07a11d0.jpeg';
 
-    // Initial greeting - EXACT wording per conversation flow (full intro)
-    const greetings = {
-        en: "Hello, nice to meet you.\n\nIf you are here, you probably have questions about lifestyle, locations, legal matters, real estate, or other practical topics related to the Costa del Sol.\n\nIs that correct?",
-        nl: "Hallo, leuk je te ontmoeten.\n\nAls je hier bent, heb je waarschijnlijk vragen over levensstijl, locaties, juridische zaken, vastgoed of andere praktische onderwerpen met betrekking tot de Costa del Sol.\n\nKlopt dat?",
-        fr: "Bonjour, ravi de vous rencontrer.\n\nSi vous êtes ici, vous avez probablement des questions sur le style de vie, les emplacements, les questions juridiques, l'immobilier ou d'autres sujets pratiques liés à la Costa del Sol.\n\nEst-ce correct?",
-        de: "Hallo, schön Sie kennenzulernen.\n\nWenn Sie hier sind, haben Sie wahrscheinlich Fragen zu Lebensstil, Standorten, rechtlichen Angelegenheiten, Immobilien oder anderen praktischen Themen rund um die Costa del Sol.\n\nIst das richtig?",
-        pl: "Cześć, miło Cię poznać.\n\nJeśli tu jesteś, prawdopodobnie masz pytania dotyczące stylu życia, lokalizacji, kwestii prawnych, nieruchomości lub innych praktycznych tematów związanych z Costa del Sol.\n\nCzy to prawda?",
-        sv: "Hej, trevligt att träffas.\n\nOm du är här har du förmodligen frågor om livsstil, platser, juridiska frågor, fastigheter eller andra praktiska ämnen relaterade till Costa del Sol.\n\nStämmer det?",
-        da: "Hej, dejligt at møde dig.\n\nHvis du er her, har du sandsynligvis spørgsmål om livsstil, beliggenhed, juridiske forhold, ejendomme eller andre praktiske emner relateret til Costa del Sol.\n\nEr det rigtigt?",
-        fi: "Hei, hauska tavata.\n\nJos olet täällä, sinulla on todennäköisesti kysymyksiä elämäntavasta, sijainneista, oikeudellisista asioista, kiinteistöistä tai muista Costa del Soliin liittyvistä käytännön aiheista.\n\nOnko näin?",
-        hu: "Helló, örülök, hogy találkozunk.\n\nHa itt vagy, valószínűleg kérdéseid vannak az életstílusról, helyszínekről, jogi ügyekről, ingatlanokról vagy más, a Costa del Solhoz kapcsolódó gyakorlati témákról.\n\nIgaz ez?",
-        no: "Hei, hyggelig å møte deg.\n\nHvis du er her, har du sannsynligvis spørsmål om livsstil, steder, juridiske forhold, eiendom eller andre praktiske emner knyttet til Costa del Sol.\n\nStemmer det?"
+    // Initial greeting
+    const greetings: Record<string, string> = {
+        en: "Hello, nice to meet you.\n\nIf you're here, you probably have questions about retirement planning, insurance options, tax strategies, or protecting your family's financial future.\n\nIs that correct?",
+        es: "Hola, encantado de conocerte.\n\nSi estás aquí, probablemente tienes preguntas sobre planificación de jubilación, opciones de seguros, estrategias fiscales o proteger el futuro financiero de tu familia.\n\n¿Es correcto?"
     };
 
-    // "Online now" status text - MUST match page language
-    const onlineTexts = {
+    // "Online now" status text
+    const onlineTexts: Record<string, string> = {
         en: "Online now - Ask me anything!",
-        nl: "Nu online - Vraag me alles!",
-        fr: "En ligne maintenant - Demandez-moi tout!",
-        de: "Jetzt online - Fragen Sie mich alles!",
-        pl: "Teraz online - Zapytaj mnie o cokolwiek!",
-        sv: "Online nu - Fråga mig vad som helst!",
-        da: "Online nu - Spørg mig om hvad som helst!",
-        fi: "Verkossa nyt - Kysy mitä tahansa!",
-        hu: "Most online - Kérdezz bármit!",
-        no: "På nett nå - Spør meg om hva som helst!"
+        es: "En línea ahora - ¡Pregúntame lo que sea!"
     };
 
-    // Input placeholder - MUST match page language
-    const placeholders = {
+    // Input placeholder
+    const placeholders: Record<string, string> = {
         en: "Type your message...",
-        nl: "Typ uw bericht...",
-        fr: "Tapez votre message...",
-        de: "Geben Sie Ihre Nachricht ein...",
-        pl: "Wpisz swoją wiadomość...",
-        sv: "Skriv ditt meddelande...",
-        da: "Skriv din besked...",
-        fi: "Kirjoita viestisi...",
-        hu: "Írja be üzenetét...",
-        no: "Skriv meldingen din..."
+        es: "Escribe tu mensaje..."
     };
 
     useEffect(() => {
@@ -202,10 +178,10 @@ const EmmaChat: React.FC<EmmaChatProps> = ({ isOpen, onClose, language, property
                 timestamp: new Date()
             }]);
 
-            console.log(`🌍 Emma initialized in ${language.toUpperCase()} language`);
-            console.log(`📍 Emma opened on: ${detectPageType(window.location.pathname)} (${detectLanguage(window.location.pathname)})`);
+            console.log(`🌍 Everence AI initialized in ${language.toUpperCase()} language`);
+            console.log(`📍 AI opened on: ${detectPageType(window.location.pathname)} (${detectLanguage(window.location.pathname)})`);
             if (propertyContext?.propertyRef || urlPropertyRef) {
-                console.log(`🏠 Property context: ref=${propertyContext?.propertyRef || urlPropertyRef}, price=${propertyContext?.propertyPrice}, type=${propertyContext?.propertyType}`);
+                console.log(`💼 Context: ref=${propertyContext?.propertyRef || urlPropertyRef}, price=${propertyContext?.propertyPrice}, type=${propertyContext?.propertyType}`);
             }
         }
     }, [isOpen, language, propertyContext]);
@@ -295,8 +271,8 @@ const EmmaChat: React.FC<EmmaChatProps> = ({ isOpen, onClose, language, property
                         page_title: pageContext.pageTitle,
                         referrer: pageContext.referrer,
                         language: pageContext.language,
-                        lead_source: 'Emma Chatbot',
-                        lead_source_detail: `emma_chat_${pageContext.language}`,
+                        lead_source: 'Everence AI Chatbot',
+                        lead_source_detail: `everence_ai_${pageContext.language}`,
                         lead_segment: calculateLeadSegment(
                             fields.timeframe || 'Not sure',
                             fields.purpose || fields.property_purpose || 'General'
@@ -659,17 +635,9 @@ const EmmaChat: React.FC<EmmaChatProps> = ({ isOpen, onClose, language, property
             }
 
             // Error message in correct language
-            const errorMessages = {
+            const errorMessages: Record<string, string> = {
                 en: "I'm sorry, I'm having trouble connecting right now. Please try again in a moment.",
-                nl: "Het spijt me, ik heb momenteel verbindingsproblemen. Probeer het over een moment opnieuw.",
-                fr: "Je suis désolée, j'ai des problèmes de connexion en ce moment. Veuillez réessayer dans un instant.",
-                de: "Es tut mir leid, ich habe gerade Verbindungsprobleme. Bitte versuchen Sie es in einem Moment erneut.",
-                pl: "Przepraszam, mam teraz problemy z połączeniem. Spróbuj ponownie za chwilę.",
-                sv: "Förlåt, jag har problem med anslutningen just nu. Försök igen om ett ögonblick.",
-                da: "Undskyld, jeg har forbindelsesproblemer lige nu. Prøv igen om et øjeblik.",
-                fi: "Anteeksi, minulla on yhteysongelmia juuri nyt. Yritä uudelleen hetken kuluttua.",
-                hu: "Sajnálom, most csatlakozási problémáim vannak. Kérjük, próbálja újra egy pillanat múlva.",
-                no: "Beklager, jeg har tilkoblingsproblemer akkurat nå. Prøv igjen om et øyeblikk."
+                es: "Lo siento, tengo problemas de conexión en este momento. Por favor, inténtalo de nuevo en un momento."
             };
 
             const errorMessage: Message = {
@@ -1308,10 +1276,10 @@ const EmmaChat: React.FC<EmmaChatProps> = ({ isOpen, onClose, language, property
                     page_title: pageContext.pageTitle,
                     referrer: pageContext.referrer,
                     language: pageContext.language,
-                    lead_source: 'Emma Chatbot',
+                    lead_source: 'Everence AI Chatbot',
                     lead_source_detail: pageContext.propertyRef 
-                        ? `emma_property_${pageContext.propertyRef}_${pageContext.language}`
-                        : `emma_chat_${pageContext.language}`,
+                        ? `everence_ai_${pageContext.propertyRef}_${pageContext.language}`
+                        : `everence_ai_${pageContext.language}`,
                     lead_segment: calculateLeadSegment(
                         fields.timeframe || 'Not sure',
                         fields.purpose || fields.property_purpose || 'General'
@@ -1436,14 +1404,14 @@ const EmmaChat: React.FC<EmmaChatProps> = ({ isOpen, onClose, language, property
                         <div className="relative">
                             <img
                                 src={emmaAvatar}
-                                alt="Emma"
+                                alt="Everence AI"
                                 className="w-12 h-12 rounded-full object-cover border-2 border-landing-gold/80 shadow-lg"
                             />
                             {/* Online indicator - gold */}
                             <div className="absolute bottom-0 right-0 w-3 h-3 bg-landing-gold border-2 border-white rounded-full" />
                         </div>
                         <div>
-                            <h3 className="font-serif text-xl tracking-wide">Emma</h3>
+                            <h3 className="font-serif text-xl tracking-wide">Everence AI</h3>
                             <p className="text-xs text-white/80 font-light">{currentOnlineText}</p>
                         </div>
                     </div>
@@ -1481,7 +1449,7 @@ const EmmaChat: React.FC<EmmaChatProps> = ({ isOpen, onClose, language, property
                                     {message.role === 'assistant' && (
                                         <img
                                             src={emmaAvatar}
-                                            alt="Emma"
+                                            alt="Everence AI"
                                             className="w-8 h-8 rounded-full object-cover flex-shrink-0 border border-landing-gold/30"
                                         />
                                     )}
@@ -1514,7 +1482,7 @@ const EmmaChat: React.FC<EmmaChatProps> = ({ isOpen, onClose, language, property
                                 <div className="flex gap-3 animate-fade-in">
                                     <img
                                         src={emmaAvatar}
-                                        alt="Emma"
+                                        alt="Everence AI"
                                         className="w-8 h-8 rounded-full object-cover border border-landing-gold/30"
                                     />
                                     <div className="bg-white p-4 rounded-2xl rounded-tl-sm shadow-md border border-gray-100/80">

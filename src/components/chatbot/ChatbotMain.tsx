@@ -33,7 +33,7 @@ const ChatbotMain = ({ articleSlug, language }: ChatbotMainProps) => {
         <div className="fixed bottom-6 right-6 w-full max-w-[400px] h-[600px] md:w-[400px] md:h-[600px] bg-background border rounded-lg shadow-2xl flex flex-col z-50 md:max-h-[600px] max-h-screen">
           {/* Header */}
           <div className="flex items-center justify-between p-4 border-b bg-primary text-primary-foreground">
-            <h3 className="font-semibold">Chat with Del Sol Homes Expert</h3>
+            <h3 className="font-semibold">Chat with Everence Wealth Advisor</h3>
             <div className="flex gap-2">
               <Button
                 variant="ghost"

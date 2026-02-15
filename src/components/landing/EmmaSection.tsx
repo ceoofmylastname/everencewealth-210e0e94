@@ -42,12 +42,12 @@ const EmmaSection: React.FC<EmmaSectionProps> = ({ onStartChat, translations }) 
 
                             {/* Headline - Mobile responsive */}
                             <h2 className="text-xl sm:text-2xl md:text-4xl lg:text-5xl font-serif font-bold text-landing-navy mb-4 sm:mb-5 md:mb-6 leading-tight">
-                                {t.statement || "Start with clarity, not listings."}
+                                {t.statement || "Start with clarity, not complexity."}
                             </h2>
 
                             {/* Explanation - Mobile responsive */}
                             <p className="text-sm sm:text-base md:text-lg lg:text-xl text-landing-text-primary/80 mb-8 sm:mb-10 md:mb-12 max-w-2xl mx-auto leading-relaxed">
-                                {t.explanation || "Emma guides you through questions about lifestyle, legal steps, documents, and the buying process — before any projects are discussed."}
+                                {t.explanation || "Our AI assistant guides you through questions about retirement, insurance, tax strategies, and wealth management — before any products are discussed."}
                             </p>
 
                             {/* CTA Button - Full width on mobile */}
@@ -56,12 +56,12 @@ const EmmaSection: React.FC<EmmaSectionProps> = ({ onStartChat, translations }) 
                                     onClick={onStartChat}
                                     className="group relative inline-flex items-center justify-center w-full sm:w-auto px-6 py-3.5 sm:px-8 sm:py-4 md:px-10 md:py-5 bg-landing-navy text-white text-sm sm:text-base md:text-lg font-bold rounded-lg sm:rounded-xl hover:bg-landing-gold transition-colors duration-300 shadow-xl hover:shadow-landing-gold/30 hover:-translate-y-1"
                                 >
-                                    <span>{t.cta || "Get clarity with Emma"}</span>
+                                    <span>{t.cta || "Get clarity with Everence AI"}</span>
                                     <ArrowRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform" />
                                 </button>
 
                                 <span className="text-xs sm:text-sm font-medium text-landing-text-secondary opacity-70">
-                                    {t.microcopy || "Private · Pressure-free"}
+                                    {t.microcopy || "Confidential · No pressure"}
                                 </span>
                             </div>
                         </div>

@@ -49,12 +49,12 @@ const BlogEmmaChat: React.FC<BlogEmmaChatProps> = ({ language }) => {
         <button
           onClick={() => setIsOpen(true)}
           className="fixed bottom-6 right-6 z-50 group"
-          aria-label="Chat with Emma"
+          aria-label="Chat with Everence AI"
         >
           <div className="relative">
             <img
               src={emmaAvatar}
-              alt="Chat with Emma"
+              alt="Chat with Everence AI"
               className="w-16 h-16 rounded-full object-cover border-3 border-landing-gold shadow-2xl 
                          transition-transform group-hover:scale-110"
             />

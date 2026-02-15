@@ -35,14 +35,20 @@ export interface EmmaLeadData {
   question_10?: string;
   answer_10?: string;
   questions_answered?: number;
-  // Property Criteria
+  // Financial Criteria
+  retirement_timeline?: string;
+  risk_tolerance?: string;
+  budget_range?: string;
+  coverage_amount?: string;
+  product_interest?: string[];
+  goal?: string;
+  timeframe?: string;
+  // Legacy property fields (kept for DB compatibility)
   location_preference?: string[];
   sea_view_importance?: string;
-  budget_range?: string;
   bedrooms_desired?: string;
   property_type?: string[];
   property_purpose?: string;
-  timeframe?: string;
   // System Data
   detected_language?: string;
   intake_complete?: boolean;
@@ -56,56 +62,50 @@ export interface EmmaLeadData {
   conversation_transcript?: TranscriptMessage[];
 }
 
-// Extract property criteria from conversation history
+// Extract financial criteria from conversation history
 export const extractPropertyCriteriaFromHistory = (messages: Array<{ role: string; content: string }>): Partial<EmmaLeadData> => {
   const criteria: Partial<EmmaLeadData> = {};
   
-  // Location patterns (common Costa del Sol locations)
-  const locationPatterns = [
-    'marbella', 'benahavís', 'benahavis', 'estepona', 'mijas', 'mijas costa',
-    'fuengirola', 'benalmádena', 'benalmadena', 'torremolinos', 'manilva', 'casares',
-    'sotogrande', 'san pedro', 'nueva andalucia', 'puerto banus', 'la cala'
+  // Risk tolerance patterns
+  const riskPatterns = [
+    { pattern: /conservative|protect what i have|safe|low risk/i, value: 'conservative' },
+    { pattern: /moderate|balanced|middle ground/i, value: 'moderate' },
+    { pattern: /aggressive|maximize growth|high growth/i, value: 'aggressive' }
   ];
   
-  // Sea view patterns
-  const seaViewPatterns = [
-    { pattern: /essential|must have|very important/i, value: 'essential' },
-    { pattern: /depends on price|nice to have|would be nice/i, value: 'depends_on_price' },
-    { pattern: /not important|doesn't matter|no preference/i, value: 'not_important' }
-  ];
-  
-  // Budget patterns
-  // Budget patterns - separators optional to handle "350k500k", "350k-500k", "350 500", etc.
+  // Budget patterns (annual premium)
   const budgetPatterns = [
-    { pattern: /€?350k?\s*[-–]?\s*€?500k?|350,?000|350000|under 500|350\s*500/i, value: '€350k-€500k' },
-    { pattern: /€?500k?\s*[-–]?\s*€?750k?|500,?000|600k?|650k?|700k?|500\s*750/i, value: '€500k-€750k' },
-    { pattern: /€?750k?\s*[-–]?\s*€?1[,.]?0{3}k?|€?1\s*m|800k?|900k?|750\s*1000/i, value: '€750k-€1M' },
-    { pattern: /€?1[,.]?0{3}k?\+?|over 1\s*m|1 million\+?|above 1m|1m\+?/i, value: '€1M+' }
+    { pattern: /under \$?5[,.]?000|less than 5k|under 5k/i, value: 'Under $5K/year' },
+    { pattern: /\$?5[,.]?000.*\$?15[,.]?000|5k.*15k/i, value: '$5K-$15K/year' },
+    { pattern: /\$?15[,.]?000.*\$?50[,.]?000|15k.*50k/i, value: '$15K-$50K/year' },
+    { pattern: /\$?50[,.]?000\+?|over 50k|50k\+/i, value: '$50K+/year' }
   ];
   
-  // Property type patterns
-  const propertyTypePatterns = [
-    { pattern: /\bapartment\b|\bflat\b|\bpiso\b/i, value: 'apartment' },
-    { pattern: /\bpenthouse\b|\bático\b/i, value: 'penthouse' },
-    { pattern: /\btownhouse\b|\badosado\b|\bterrace\b/i, value: 'townhouse' },
-    { pattern: /\bvilla\b|\bchalet\b|\bdetached\b/i, value: 'villa' }
+  // Product interest patterns
+  const productPatterns = [
+    { pattern: /whole life/i, value: 'whole_life' },
+    { pattern: /term life/i, value: 'term_life' },
+    { pattern: /annuit/i, value: 'annuities' },
+    { pattern: /ira|401k|rollover/i, value: 'ira_401k' },
+    { pattern: /estate planning/i, value: 'estate_planning' }
   ];
   
-  // Purpose patterns
-  const purposePatterns = [
-    { pattern: /investment|rental income|rent out|buy to let/i, value: 'investment' },
-    { pattern: /winter stay|overwinter|escape winter|seasonal/i, value: 'winter_stay' },
-    { pattern: /holiday|vacation|holidays|second home/i, value: 'holiday' },
-    { pattern: /combination|both|mix of|all of the above/i, value: 'combination' },
-    { pattern: /primary|permanent|relocate|move|live there/i, value: 'primary_residence' }
+  // Goal patterns
+  const goalPatterns = [
+    { pattern: /retirement income|retire/i, value: 'retirement_income' },
+    { pattern: /family protection|protect my family/i, value: 'family_protection' },
+    { pattern: /tax optim|tax strateg|reduce tax/i, value: 'tax_optimization' },
+    { pattern: /wealth transfer|legacy|inheritance/i, value: 'wealth_transfer' },
+    { pattern: /combination|both|all of/i, value: 'combination' }
   ];
   
   // Timeframe patterns
   const timeframePatterns = [
-    { pattern: /within 6 months|next 6 months|asap|as soon as/i, value: 'within_6_months' },
-    { pattern: /within 1 year|within a year|next year|12 months/i, value: 'within_1_year' },
-    { pattern: /within 2 years|1-2 years|couple of years/i, value: 'within_2_years' },
-    { pattern: /longer|more than 2|2\+ years|no rush/i, value: 'longer_than_2_years' }
+    { pattern: /immediately|right now|ready now|asap/i, value: 'immediately' },
+    { pattern: /within 3 months|next 3 months/i, value: 'within_3_months' },
+    { pattern: /within 6 months|next 6 months/i, value: 'within_6_months' },
+    { pattern: /within 1 year|within a year|next year/i, value: 'within_1_year' },
+    { pattern: /just exploring|no rush|not sure/i, value: 'just_exploring' }
   ];
   
   // Scan messages for criteria
@@ -113,22 +113,11 @@ export const extractPropertyCriteriaFromHistory = (messages: Array<{ role: strin
     if (msg.role !== 'user') continue;
     const content = msg.content.toLowerCase();
     
-    // Extract locations
-    const foundLocations: string[] = [];
-    for (const loc of locationPatterns) {
-      if (content.includes(loc)) {
-        foundLocations.push(loc.charAt(0).toUpperCase() + loc.slice(1));
-      }
-    }
-    if (foundLocations.length > 0 && !criteria.location_preference) {
-      criteria.location_preference = foundLocations;
-    }
-    
-    // Extract sea view importance
-    if (!criteria.sea_view_importance) {
-      for (const pattern of seaViewPatterns) {
+    // Extract risk tolerance
+    if (!criteria.risk_tolerance) {
+      for (const pattern of riskPatterns) {
         if (pattern.pattern.test(content)) {
-          criteria.sea_view_importance = pattern.value;
+          criteria.risk_tolerance = pattern.value;
           break;
         }
       }
@@ -144,89 +133,23 @@ export const extractPropertyCriteriaFromHistory = (messages: Array<{ role: strin
       }
     }
     
-    // Extract bedrooms - context-aware extraction
-    if (!criteria.bedrooms_desired) {
-      // First try: number followed by bedroom word
-      const bedroomMatch = content.match(/(\d+)\s*(?:bed|bedroom|br|dormitor)/i);
-      if (bedroomMatch) {
-        criteria.bedrooms_desired = bedroomMatch[1];
-      } else {
-        // Second try: standalone number if previous message asked about bedrooms
-        const msgIndex = messages.indexOf(msg);
-        if (msgIndex > 0) {
-          const prevMsg = messages[msgIndex - 1];
-          if (prevMsg.role === 'assistant') {
-            const prevContent = prevMsg.content.toLowerCase();
-            // Check if Emma asked about bedrooms (multilingual)
-            const bedroomQuestionPatterns = [
-              'how many bedrooms',
-              'bedrooms are you',
-              'bedrooms do you',
-              'hoeveel slaapkamers',   // Dutch
-              'combien de chambres',    // French
-              'wie viele schlafzimmer', // German
-              'ile sypialni',           // Polish
-              'hur många sovrum',       // Swedish
-              'hvor mange soveværelser',// Danish
-              'kuinka monta makuuhuonetta', // Finnish
-              'hány hálószoba'          // Hungarian
-            ];
-            
-            if (bedroomQuestionPatterns.some(p => prevContent.includes(p))) {
-              // User's response to bedroom question - extract standalone number
-              const standaloneNumber = content.trim().match(/^(\d+)$/);
-              if (standaloneNumber) {
-                criteria.bedrooms_desired = standaloneNumber[1];
-              }
-            }
-          }
-        }
+    // Extract product interests
+    const foundProducts: string[] = [];
+    for (const pattern of productPatterns) {
+      if (pattern.pattern.test(content) && !foundProducts.includes(pattern.value)) {
+        foundProducts.push(pattern.value);
       }
     }
-    
-    // Extract property types
-    const foundTypes: string[] = [];
-    for (const pattern of propertyTypePatterns) {
-      if (pattern.pattern.test(content) && !foundTypes.includes(pattern.value)) {
-        foundTypes.push(pattern.value);
-      }
-    }
-    if (foundTypes.length > 0 && !criteria.property_type) {
-      criteria.property_type = foundTypes;
+    if (foundProducts.length > 0 && !criteria.product_interest) {
+      criteria.product_interest = foundProducts;
     }
     
-    // Extract purpose - context-aware extraction
-    if (!criteria.property_purpose) {
-      // First try existing patterns
-      for (const pattern of purposePatterns) {
+    // Extract goal
+    if (!criteria.goal) {
+      for (const pattern of goalPatterns) {
         if (pattern.pattern.test(content)) {
-          criteria.property_purpose = pattern.value;
+          criteria.goal = pattern.value;
           break;
-        }
-      }
-      
-      // Second try: standalone keywords if Emma asked about purpose
-      if (!criteria.property_purpose) {
-        const msgIndex = messages.indexOf(msg);
-        if (msgIndex > 0 && messages[msgIndex - 1].role === 'assistant') {
-          const prevContent = messages[msgIndex - 1].content.toLowerCase();
-          if (prevContent.includes('primary purpose') || prevContent.includes('purpose of the property') || prevContent.includes('purpose of this property')) {
-            const purposeKeywords = [
-              { pattern: /^winter$/i, value: 'winter_stay' },
-              { pattern: /^holiday$/i, value: 'holiday' },
-              { pattern: /^holidays$/i, value: 'holiday' },
-              { pattern: /^investment$/i, value: 'investment' },
-              { pattern: /^combination$/i, value: 'combination' },
-              { pattern: /^primary$/i, value: 'primary_residence' },
-              { pattern: /^residence$/i, value: 'primary_residence' }
-            ];
-            for (const kw of purposeKeywords) {
-              if (kw.pattern.test(content.trim())) {
-                criteria.property_purpose = kw.value;
-                break;
-              }
-            }
-          }
         }
       }
     }

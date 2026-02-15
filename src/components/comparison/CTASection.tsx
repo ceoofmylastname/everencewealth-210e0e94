@@ -27,7 +27,7 @@ export function CTASection({ optionA, optionB, onChatClick }: CTASectionProps) {
         
         {/* Description */}
         <p className="text-muted-foreground text-lg mb-8 max-w-2xl mx-auto">
-          Chat with <span className="text-primary font-semibold">EMMA</span>, our AI property expert, 
+          Chat with the <span className="text-primary font-semibold">Everence AI Assistant</span>, 
           for personalized guidance based on your specific situation and goals.
         </p>
         
@@ -38,7 +38,7 @@ export function CTASection({ optionA, optionB, onChatClick }: CTASectionProps) {
           className="group gap-2 px-8 py-6 text-lg rounded-full shadow-lg hover:shadow-xl transition-all"
         >
           <MessageCircle className="h-5 w-5 group-hover:scale-110 transition-transform" />
-          Chat with EMMA
+          Chat with Everence AI
         </Button>
         
         {/* Trust indicator */}
