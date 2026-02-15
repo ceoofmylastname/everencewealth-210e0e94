@@ -9,24 +9,16 @@ const SUPPORTED_LANGUAGES = ['en', 'es'];
 const BASE_URL = 'https://www.everencewealth.com';
 
 const langToHreflang: Record<string, string> = {
-  en: 'en-GB',
-  de: 'de-DE',
-  nl: 'nl-NL',
-  fr: 'fr-FR',
-  pl: 'pl-PL',
-  sv: 'sv-SE',
-  da: 'da-DK',
-  hu: 'hu-HU',
-  fi: 'fi-FI',
-  no: 'nb-NO'
+  en: 'en-US',
+  es: 'es-ES',
 };
 
 const LOCATION_CITIES = [
-  'marbella', 'estepona', 'mijas', 'fuengirola', 'benalmadena',
-  'torremolinos', 'malaga', 'sotogrande', 'manilva', 'casares'
+  'new-york', 'los-angeles', 'chicago', 'houston', 'phoenix',
+  'san-francisco', 'dallas', 'denver', 'seattle', 'portland'
 ];
 
-const GLOSSARY_TERMS = ['nie', 'nif', 'tie', 'ibi', 'itp', 'ajd', 'iva', 'plusvalia', 'golden-visa', 'escritura'];
+const GLOSSARY_TERMS = ['iul', 'rmd', 'fiduciary', 'annuity', '401k', 'roth-ira', 'estate-planning', 'long-term-care', 'social-security', 'tax-deferred'];
 
 // Static pages that exist for all languages
 const STATIC_PAGES = [
@@ -228,7 +220,7 @@ function generateEnhancedMasterSitemapIndex(
   return `<?xml version="1.0" encoding="UTF-8"?>
 <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
-  <!-- Master Sitemap Index - Del Sol Prime Homes -->
+  <!-- Master Sitemap Index - Everence Wealth -->
   <!-- Generated: ${new Date().toISOString()} -->
   
 ${entries.join('\n')}

@@ -131,7 +131,7 @@ serve(async (req) => {
     // 4. Generate article plans using AI
     console.log(`[Complete Cluster] Generating article plans...`);
     
-    const planPrompt = `You are an SEO content strategist for a luxury real estate agency in Costa del Sol, Spain.
+    const planPrompt = `You are an SEO content strategist for a fiduciary wealth management and insurance firm in the United States.
 
 The cluster theme is: "${clusterTheme}"
 Category: ${category}
@@ -141,7 +141,7 @@ ${existingArticles.map(a => `- ${a.funnel_stage}: ${a.headline}`).join('\n')}
 Generate ${missingArticles.length} NEW article plans to complete this cluster. The new articles should:
 1. Complement the existing content (don't repeat topics)
 2. Follow the specific funnel stages needed
-3. Include "Costa del Sol" in each headline
+3. Focus on retirement planning, insurance, and wealth management
 4. Be written in English
 
 Required articles:
@@ -152,7 +152,7 @@ Return ONLY valid JSON:
   "articles": [
     {
       "funnelStage": "TOFU",
-      "headline": "Compelling headline with Costa del Sol",
+      "headline": "Compelling headline about wealth management",
       "targetKeyword": "primary keyword phrase",
       "contentAngle": "What makes this article unique"
     }
@@ -210,7 +210,7 @@ Headline: ${plan.headline}
 Keyword: ${plan.targetKeyword}
 
 Requirements:
-- Meta Title: MAXIMUM 55 characters, include keyword and "Costa del Sol"
+- Meta Title: MAXIMUM 55 characters, include keyword and relevant financial topic
 - Meta Description: MAXIMUM 150 characters, include CTA
 
 IMPORTANT: Keep descriptions under 150 characters.
@@ -282,9 +282,9 @@ Content Angle: ${plan.contentAngle}
 
 Requirements:
 1. Structure with H2 and H3 headings
-2. Include specific data points about Costa del Sol
+2. Include specific data points about retirement, insurance, and wealth management
 3. Write for ${plan.funnelStage} stage
-4. Include real examples (Marbella, Estepona, Málaga, etc.)
+4. Include real examples (IUL, 401k, Roth IRA, annuities, etc.)
 5. Natural tone, 8th-grade reading level
 
 Format as HTML with <h2>, <h3>, <p>, <ul>, <li>, <strong>, <table>.

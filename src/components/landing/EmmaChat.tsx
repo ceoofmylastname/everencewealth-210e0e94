@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { X, Send, Minimize2, Maximize2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { markdownToHtml } from '@/lib/markdownToHtml';
-import { upsertEmmaLead, extractPropertyCriteriaFromHistory } from '@/hooks/useEmmaLeadTracking';
+import { upsertEmmaLead, extractFinancialCriteriaFromHistory } from '@/hooks/useEmmaLeadTracking';
 import { 
   calculateLeadSegment, 
   calculateDuration,
@@ -485,11 +485,11 @@ const EmmaChat: React.FC<EmmaChatProps> = ({ isOpen, onClose, language, property
                     newAccumulatedFields = { ...newAccumulatedFields, ...extractedQA };
                 }
             }
-            
-            // Extract property criteria if in that phase
-            const propertyCriteria = extractPropertyCriteriaFromHistory(allMessages.map(m => ({ role: m.role, content: m.content })));
-            if (Object.keys(propertyCriteria).length > 0) {
-                newAccumulatedFields = { ...newAccumulatedFields, ...propertyCriteria };
+            // Extract financial criteria if in that phase
+            const financialCriteria = extractFinancialCriteriaFromHistory(allMessages.map(m => ({ role: m.role, content: m.content })));
+            if (Object.keys(financialCriteria).length > 0) {
+                newAccumulatedFields = { ...newAccumulatedFields, ...financialCriteria };
+                newAccumulatedFields = { ...newAccumulatedFields, ...financialCriteria };
             }
             
             // Debug logging for accumulated fields

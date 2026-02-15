@@ -6,9 +6,8 @@ interface RetargetingHreflangProps {
 }
 
 export const RetargetingHreflang = ({ currentLang }: RetargetingHreflangProps) => {
-  const baseUrl = "https://www.delsolprimehomes.com";
+  const baseUrl = "https://www.everencewealth.com";
 
-  // Find current route for canonical
   const currentRoute = retargetingRoutes.find((r) => r.lang === currentLang);
   const canonicalUrl = currentRoute
     ? `${baseUrl}${currentRoute.path}`
@@ -16,10 +15,7 @@ export const RetargetingHreflang = ({ currentLang }: RetargetingHreflangProps) =
 
   return (
     <Helmet>
-      {/* Canonical */}
       <link rel="canonical" href={canonicalUrl} />
-
-      {/* Hreflang for all languages */}
       {retargetingRoutes.map((route) => (
         <link
           key={route.lang}
@@ -28,8 +24,6 @@ export const RetargetingHreflang = ({ currentLang }: RetargetingHreflangProps) =
           href={`${baseUrl}${route.path}`}
         />
       ))}
-
-      {/* x-default (English) */}
       <link
         rel="alternate"
         hrefLang="x-default"
