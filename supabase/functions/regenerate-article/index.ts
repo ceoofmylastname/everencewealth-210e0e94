@@ -88,7 +88,7 @@ serve(async (req) => {
     const masterPrompt = promptSetting?.setting_value || '';
 
     // Build regeneration prompt - MUCH more explicit about word counts
-    const systemPrompt = `You are an expert real estate content writer.
+    const systemPrompt = `You are an expert insurance and wealth management content writer.
 
 ${masterPrompt}
 

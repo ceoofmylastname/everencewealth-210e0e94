@@ -12,7 +12,7 @@ const corsHeaders = {
 };
 
 // Canonical 10 languages (aligned with src/types/hreflang.ts)
-const SUPPORTED_LANGUAGES = ['en', 'nl', 'hu', 'de', 'fr', 'sv', 'pl', 'no', 'fi', 'da'];
+const SUPPORTED_LANGUAGES = ['en', 'es'];
 
 const MASTER_PROMPT = `You are generating an AI-citation-ready Location Intelligence page.
 
@@ -37,14 +37,14 @@ LOCATION:
 City: [CITY]
 Region: [REGION]
 Country: [COUNTRY]
-Business Type: Real Estate
+Business Type: Insurance & Wealth Management
 
 PRIMARY PAGE INTENT:
 [INTENT_TYPE]
 Examples:
-- Buying Property in [CITY]
-- Best Areas in [CITY] for [GOAL]
-- Cost of Living in [CITY]
+- Retirement Planning in [CITY]
+- Best Insurance Options in [CITY] for [GOAL]
+- Financial Planning Guide for [CITY]
 
 OUTPUT STRUCTURE (STRICT JSON):
 
@@ -75,7 +75,7 @@ OUTPUT STRUCTURE (STRICT JSON):
     {"question": "Another question", "answer": "Another answer"}
   ],
   "suggested_slug": "url-friendly-slug-with-city-and-intent",
-  "image_prompt": "Professional real estate photography style image showing: [describe visual for the city/topic]. Modern, clean, Costa del Sol setting. No text overlays."
+  "image_prompt": "Professional financial services photography style image showing: [describe visual for the city/topic]. Modern, clean, professional setting. No text overlays."
 }
 
 CRITICAL RULES:
@@ -364,15 +364,12 @@ serve(async (req) => {
 
     // Build intent description
     const intentDescriptions: Record<string, string> = {
-      'buying-property': `Buying Property in ${city}`,
-      'best-areas-families': `Best Areas in ${city} for Families`,
-      'best-areas-investors': `Best Areas in ${city} for Investors`,
-      'best-areas-expats': `Best Areas in ${city} for Expats`,
-      'best-areas-retirees': `Best Areas in ${city} for Retirees`,
-      'cost-of-living': `Cost of Living in ${city}`,
-      'cost-of-property': `Cost of Property in ${city}`,
-      'investment-guide': `Investment Guide for ${city}`,
-      'relocation-guide': `Relocation Guide to ${city}`,
+      'retirement-planning': `Retirement Planning in ${city}`,
+      'life-insurance': `Life Insurance Options in ${city}`,
+      'wealth-management': `Wealth Management Services in ${city}`,
+      'estate-planning': `Estate Planning Guide for ${city}`,
+      'tax-advantages': `Tax-Advantaged Strategies in ${city}`,
+      'financial-planning': `Financial Planning Guide for ${city}`,
     };
 
     const intentDescription = intentDescriptions[intent_type] || `${intent_type} in ${city}`;
@@ -383,7 +380,7 @@ serve(async (req) => {
       .replace('[REGION]', region)
       .replace('[COUNTRY]', country)
       .replace('[INTENT_TYPE]', intentDescription)
-      .replace('[GOAL]', goal || 'property buyers');
+      .replace('[GOAL]', goal || 'retirement planning clients');
 
     // Generate shared hreflang_group_id
     const hreflangGroupId = generateHreflangGroupId();

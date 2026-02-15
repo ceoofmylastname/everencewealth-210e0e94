@@ -6,8 +6,8 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const PRODUCTION_URL = 'https://www.delsolprimehomes.com';
-const SUPPORTED_LANGUAGES = ['en', 'de', 'fr', 'nl', 'pl', 'hu', 'sv', 'da', 'fi', 'no'];
+const PRODUCTION_URL = 'https://www.everencewealth.com';
+const SUPPORTED_LANGUAGES = ['en', 'es'];
 
 // Normalize language code (e.g., en-GB, en_GB, en_US all become 'en')
 // Special case: 'nb' (Norwegian Bokmål) normalizes to 'no'
@@ -182,7 +182,7 @@ function extractInternalLinks(html: string): string[] {
 // Extract external links from content (excluding CDN/font/preconnect hints)
 function extractExternalLinks(html: string): string[] {
   const links: string[] = [];
-  const regex = /href=["'](https?:\/\/(?!www\.delsolprimehomes\.com)[^"']+)["']/gi;
+  const regex = /href=["'](https?:\/\/(?!www\.everencewealth\.com)[^"']+)["']/gi;
   let match;
   
   while ((match = regex.exec(html)) !== null) {

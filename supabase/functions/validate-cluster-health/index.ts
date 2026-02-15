@@ -5,8 +5,8 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const SUPPORTED_LANGUAGES = ['en', 'nl', 'de', 'fr', 'pl', 'sv', 'da', 'hu', 'fi', 'no'];
-const BASE_URL = 'https://www.delsolprimehomes.com';
+const SUPPORTED_LANGUAGES = ['en', 'es'];
+const BASE_URL = 'https://www.everencewealth.com';
 
 interface HealthCheckResult {
   hreflang_group_id: string;

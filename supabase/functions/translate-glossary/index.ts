@@ -88,7 +88,7 @@ serve(async (req) => {
     if (fetchError || !englishGlossary) {
       // Try to fetch from public folder via HTTP
       console.log("Fetching English glossary from public folder...");
-      const publicResponse = await fetch("https://www.delsolprimehomes.com/glossary/en.json");
+      const publicResponse = await fetch("https://www.everencewealth.com/glossary/en.json");
       if (!publicResponse.ok) {
         throw new Error("Could not fetch English glossary source");
       }

@@ -21,7 +21,7 @@ const LANGUAGE_NAMES: Record<string, string> = {
   no: 'Norwegian',
 };
 
-const BASE_URL = 'https://www.delsolprimehomes.com';
+const BASE_URL = 'https://www.everencewealth.com';
 
 const MASTER_PROMPT = `You are an expert comparison content strategist and answer-engine optimizer.
 

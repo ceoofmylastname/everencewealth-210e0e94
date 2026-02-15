@@ -242,7 +242,7 @@ async function verifyUrlAccessibility(url: string): Promise<{ accessible: boolea
       method: 'HEAD',
       redirect: 'follow',
       headers: {
-        'User-Agent': 'Mozilla/5.0 (compatible; CitationValidator/1.0; +https://delsolprimehomes.com)',
+        'User-Agent': 'Mozilla/5.0 (compatible; CitationValidator/1.0; +https://everencewealth.com)',
       },
       signal: controller.signal,
     });
@@ -330,7 +330,7 @@ serve(async (req) => {
     // Standardized headers for Perplexity API calls
     const PERPLEXITY_HEADERS = {
       'Accept': 'application/json',
-      'User-Agent': 'LovableCitationBot/1.0 (https://delsolprimehomes.com)',
+      'User-Agent': 'LovableCitationBot/1.0 (https://everencewealth.com)',
       'Content-Type': 'application/json',
     };
 

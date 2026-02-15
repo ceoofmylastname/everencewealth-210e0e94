@@ -102,7 +102,7 @@ function generateFallbackHTML(url: URL): string {
   const isQA = !!qaMatch;
   
   // Generate hreflang tags for all 10 supported languages (even without DB data)
-  const supportedLangs = ['en', 'nl', 'hu', 'de', 'fr', 'sv', 'pl', 'no', 'fi', 'da'];
+  const supportedLangs = ['en', 'es'];
   const contentPath = isQA ? 'qa' : pathname.split('/').filter(Boolean)[1] || '';
   const hreflangTags = isQA && slug
     ? supportedLangs.map(l => 
@@ -111,11 +111,11 @@ function generateFallbackHTML(url: URL): string {
     : '';
   
   const baseTitle = isQA
-    ? 'Real Estate Q&A | Del Sol Prime Homes'
-    : 'Del Sol Prime Homes - Luxury Real Estate Costa del Sol';
+    ? 'Insurance & Wealth Q&A | Everence Wealth'
+    : 'Everence Wealth - Insurance & Retirement Planning';
   const baseDescription = isQA
-    ? 'Expert answers about buying property on the Costa del Sol. Real estate guidance for international buyers.'
-    : 'Discover premium properties and luxury villas on the Costa del Sol. Expert real estate services for international buyers seeking their dream Mediterranean home.';
+    ? 'Expert answers about insurance, retirement planning, and wealth management. Guidance for individuals and families.'
+    : 'Protect your future with life insurance, retirement income strategies, and comprehensive wealth management from Everence Wealth.';
   
   return `<!DOCTYPE html>
 <html lang="${lang}">
@@ -137,7 +137,7 @@ function generateFallbackHTML(url: URL): string {
   <meta property="og:url" content="${BASE_URL}${pathname}">
   <meta property="og:title" content="${baseTitle}">
   <meta property="og:description" content="${baseDescription}">
-  <meta property="og:site_name" content="Del Sol Prime Homes">
+   <meta property="og:site_name" content="Everence Wealth">
   
   <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image">
@@ -148,8 +148,8 @@ function generateFallbackHTML(url: URL): string {
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
-    "@type": "${isQA ? 'QAPage' : 'RealEstateAgent'}",
-    "name": "Del Sol Prime Homes",
+    "@type": "${isQA ? 'QAPage' : 'FinancialService'}",
+    "name": "Everence Wealth",
     "description": "${baseDescription}",
     "url": "${BASE_URL}${pathname}"
   }
@@ -161,10 +161,10 @@ function generateFallbackHTML(url: URL): string {
   </header>
   <main>
     <p>${baseDescription}</p>
-    ${isQA ? '<section><p>Expert real estate Q&amp;A for Costa del Sol property buyers. Our team provides detailed answers about the property purchase process, legal requirements, costs, and lifestyle information.</p></section>' : ''}
+     ${isQA ? '<section><p>Expert insurance &amp; wealth management Q&amp;A. Our team provides detailed answers about life insurance, retirement planning, and financial strategies.</p></section>' : ''}
   </main>
   <footer>
-    <p>&copy; Del Sol Prime Homes - Costa del Sol, Spain</p>
+    <p>&copy; Everence Wealth</p>
   </footer>
 </body>
 </html>`;
@@ -195,21 +195,12 @@ function createTimeoutClient() {
 
 // Language to locale mapping - Only 10 supported languages
 const LOCALE_MAP: Record<string, string> = {
-  en: 'en_GB',
-  de: 'de_DE',
-  fr: 'fr_FR',
-  nl: 'nl_NL',
-  sv: 'sv_SE',
-  no: 'nb_NO',
-  da: 'da_DK',
-  fi: 'fi_FI',
-  pl: 'pl_PL',
-  hu: 'hu_HU',
+  en: 'en_US',
+  es: 'es_US',
 }
 
-// Only the 10 languages we actually support (no es, ru, it, tr)
-const SUPPORTED_LANGUAGES = ['en', 'nl', 'hu', 'de', 'fr', 'sv', 'pl', 'no', 'fi', 'da']
-const BASE_URL = 'https://www.delsolprimehomes.com'
+const SUPPORTED_LANGUAGES = ['en', 'es']
+const BASE_URL = 'https://www.everencewealth.com'
 
 /**
  * Normalize a slug by removing hidden characters, URL-encoded garbage, 

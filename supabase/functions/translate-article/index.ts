@@ -6,15 +6,7 @@ const corsHeaders = {
 };
 
 const LANGUAGE_NAMES: Record<string, string> = {
-  'de': 'German',
-  'nl': 'Dutch',
-  'fr': 'French',
-  'pl': 'Polish',
-  'sv': 'Swedish',
-  'da': 'Danish',
-  'hu': 'Hungarian',
-  'fi': 'Finnish',
-  'no': 'Norwegian'
+  'es': 'Spanish'
 };
 
 const MAX_CONTENT_LENGTH = 6000; // Characters before chunking
@@ -121,7 +113,7 @@ async function translateContentChunk(
 
   const prompt = `Translate this HTML content from English to ${targetLanguageName}.
 Keep ALL HTML tags exactly as-is. Only translate the text content.
-Keep proper nouns like "Costa del Sol" unchanged.
+Keep proper nouns like "Everence Wealth" unchanged.
 
 Content:
 ${chunk}
@@ -203,7 +195,7 @@ async function translateArticle(
   }
 
   // Now translate metadata (smaller payload, more reliable)
-  const metadataPrompt = `You are a professional translator for luxury real estate content.
+  const metadataPrompt = `You are a professional translator for insurance and wealth management content.
 
 Translate these fields from English to ${targetLanguageName}:
 

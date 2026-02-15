@@ -26,7 +26,7 @@ export interface PerplexityResponse<T = any> {
 // These headers reduce the chance of WAF/Cloudflare blocks
 const PERPLEXITY_HEADERS = {
   'Accept': 'application/json',
-  'User-Agent': 'LovableCitationBot/1.0 (https://delsolprimehomes.com)',
+  'User-Agent': 'LovableCitationBot/1.0 (https://everencewealth.com)',
   'Content-Type': 'application/json',
 };
 

@@ -432,7 +432,7 @@ RESPOND IN JSON ONLY (no markdown):
       funnel_stage: englishArticle.funnel_stage,
       author_id: englishArticle.author_id,
       reviewer_id: englishArticle.reviewer_id,
-      canonical_url: `https://www.delsolprimehomes.com/${targetLanguage}/blog/${slug}`,
+      canonical_url: `https://www.everencewealth.com/${targetLanguage}/blog/${slug}`,
       external_citations: englishArticle.external_citations,
       internal_links: [],
       qa_entities: englishArticle.qa_entities, // Keep QA for now, could translate later

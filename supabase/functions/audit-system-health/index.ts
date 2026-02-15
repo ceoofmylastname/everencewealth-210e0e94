@@ -207,9 +207,9 @@ Deno.serve(async (req) => {
       if (qasInGroup && qasInGroup.length > 0) {
         const sampleQA = qasInGroup[0];
         const hreflangTags = qasInGroup.map(qa => 
-          `<link rel="alternate" hreflang="${qa.language}" href="https://www.delsolprimehomes.com/${qa.language}/qa/${qa.slug}" />`
+          `<link rel="alternate" hreflang="${qa.language}" href="https://www.everencewealth.com/${qa.language}/qa/${qa.slug}" />`
         );
-        hreflangTags.push(`<link rel="alternate" hreflang="x-default" href="https://www.delsolprimehomes.com/en/qa/${qasInGroup.find(q => q.language === 'en')?.slug || sampleQA.slug}" />`);
+        hreflangTags.push(`<link rel="alternate" hreflang="x-default" href="https://www.everencewealth.com/en/qa/${qasInGroup.find(q => q.language === 'en')?.slug || sampleQA.slug}" />`);
         
         multiLanguageExample = {
           qa_id: sampleQA.id,
@@ -232,8 +232,8 @@ Deno.serve(async (req) => {
           qa_id: sampleQA.id,
           language: sampleQA.language,
           hreflang_tags: [
-            `<link rel="alternate" hreflang="${sampleQA.language}" href="https://www.delsolprimehomes.com/${sampleQA.language}/qa/${sampleQA.slug}" />`,
-            `<link rel="alternate" hreflang="x-default" href="https://www.delsolprimehomes.com/${sampleQA.language}/qa/${sampleQA.slug}" />`
+            `<link rel="alternate" hreflang="${sampleQA.language}" href="https://www.everencewealth.com/${sampleQA.language}/qa/${sampleQA.slug}" />`,
+            `<link rel="alternate" hreflang="x-default" href="https://www.everencewealth.com/${sampleQA.language}/qa/${sampleQA.slug}" />`
           ]
         };
       }
@@ -248,9 +248,9 @@ Deno.serve(async (req) => {
       const englishQA = qasInGroup?.find(q => q.language === 'en');
       if (englishQA && qasInGroup) {
         const hreflangTags = qasInGroup.map(qa => 
-          `<link rel="alternate" hreflang="${qa.language}" href="https://www.delsolprimehomes.com/${qa.language}/qa/${qa.slug}" />`
+          `<link rel="alternate" hreflang="${qa.language}" href="https://www.everencewealth.com/${qa.language}/qa/${qa.slug}" />`
         );
-        hreflangTags.push(`<link rel="alternate" hreflang="x-default" href="https://www.delsolprimehomes.com/en/qa/${englishQA.slug}" />`);
+        hreflangTags.push(`<link rel="alternate" hreflang="x-default" href="https://www.everencewealth.com/en/qa/${englishQA.slug}" />`);
         
         englishExample = {
           qa_id: englishQA.id,
