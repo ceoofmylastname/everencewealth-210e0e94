@@ -19,30 +19,28 @@ const Contact: React.FC = () => {
   const { t } = useTranslation();
   const language = lang || 'en';
 
-  // Type-safe access to contact translations
   const contactT = (t as any).contact || getDefaultContactTranslations();
 
-  // LocalBusiness JSON-LD schema
   const localBusinessSchema = {
     '@context': 'https://schema.org',
-    '@type': 'RealEstateAgent',
-    name: 'Del Sol Prime Homes',
-    description: contactT.meta?.description || 'Expert real estate services on the Costa del Sol',
-    url: `https://delsolprimehomes.com/${language}/contact`,
+    '@type': 'FinancialService',
+    name: 'Everence Wealth',
+    description: contactT.meta?.description || 'Independent fiduciary wealth management and retirement planning',
+    url: `https://everencewealth.com/${language}/contact`,
     telephone: COMPANY_CONTACT.phone,
     email: COMPANY_CONTACT.email,
     address: {
       '@type': 'PostalAddress',
-      streetAddress: `${COMPANY_ADDRESS.building}, ${COMPANY_ADDRESS.street}, ${COMPANY_ADDRESS.floor}`,
+      streetAddress: COMPANY_ADDRESS.street,
       addressLocality: COMPANY_ADDRESS.city,
       addressRegion: COMPANY_ADDRESS.province,
       postalCode: COMPANY_ADDRESS.postalCode,
-      addressCountry: 'ES'
+      addressCountry: 'US'
     },
     geo: {
       '@type': 'GeoCoordinates',
-      latitude: 36.5432,
-      longitude: -4.6234
+      latitude: 37.7908,
+      longitude: -122.3989
     },
     openingHoursSpecification: [
       {
@@ -64,21 +62,21 @@ const Contact: React.FC = () => {
       reviewCount: COMPANY_FACTS.happyClients
     },
     areaServed: {
-      '@type': 'Place',
-      name: 'Costa del Sol, Spain'
+      '@type': 'Country',
+      name: 'United States'
     }
   };
 
   return (
     <>
       <Helmet>
-        <title>{contactT.meta?.title || 'Contact Del Sol Prime Homes | Costa del Sol Real Estate'}</title>
-        <meta name="description" content={contactT.meta?.description || 'Get in touch with our expert real estate team.'} />
-        <link rel="canonical" href={`https://delsolprimehomes.com/${language}/contact`} />
+        <title>{contactT.meta?.title || 'Contact Everence Wealth | Financial Planning & Wealth Management'}</title>
+        <meta name="description" content={contactT.meta?.description || 'Get in touch with our fiduciary wealth advisors.'} />
+        <link rel="canonical" href={`https://everencewealth.com/${language}/contact`} />
         <meta property="og:title" content={contactT.meta?.title} />
         <meta property="og:description" content={contactT.meta?.description} />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content={`https://delsolprimehomes.com/${language}/contact`} />
+        <meta property="og:url" content={`https://everencewealth.com/${language}/contact`} />
         <script type="application/ld+json">
           {JSON.stringify(localBusinessSchema)}
         </script>
@@ -99,35 +97,32 @@ const Contact: React.FC = () => {
 
       <BlogEmmaChat language={language} />
 
-      {/* Mobile sticky WhatsApp bar */}
       <MobileStickyContact 
-        whatsappMessage={contactT.options?.whatsapp?.prefill || "Hi, I'm interested in Costa del Sol properties. Can you help me?"}
-        whatsappLabel={contactT.options?.whatsapp?.cta || "Open WhatsApp"}
+        whatsappMessage={contactT.options?.whatsapp?.prefill || "Hi, I'm interested in learning about retirement strategies. Can you help me?"}
+        whatsappLabel={contactT.options?.whatsapp?.cta || "Chat With Us"}
       />
 
-      {/* Add bottom padding on mobile for sticky bar */}
       <div className="lg:hidden h-24" />
     </>
   );
 };
 
-// Default translations fallback
 function getDefaultContactTranslations() {
   return {
     meta: {
-      title: "Contact Del Sol Prime Homes | Costa del Sol Real Estate",
-      description: "Get in touch with our expert real estate team. WhatsApp, email, or call us for personalized property guidance on the Costa del Sol."
+      title: "Contact Everence Wealth | Financial Planning & Wealth Management",
+      description: "Get in touch with our fiduciary wealth advisors. Phone, email, or schedule a consultation for personalized retirement and wealth planning guidance."
     },
     hero: {
       headline: "Get in Touch",
-      subheadline: "We're here to help you find your perfect Costa del Sol property"
+      subheadline: "We're here to help you build a tax-efficient retirement strategy"
     },
     options: {
       whatsapp: {
-        title: "Chat on WhatsApp",
+        title: "Chat With Us",
         description: "Get instant responses from our team",
-        cta: "Open WhatsApp",
-        prefill: "Hi, I'm interested in Costa del Sol properties. Can you help me?"
+        cta: "Start Chat",
+        prefill: "Hi, I'm interested in learning about retirement strategies. Can you help me?"
       },
       email: {
         title: "Send Us an Email",
@@ -155,9 +150,9 @@ function getDefaultContactTranslations() {
       },
       subjects: {
         general: "General Inquiry",
-        property: "Property Inquiry",
-        selling: "Selling My Property",
-        viewing: "Schedule a Viewing",
+        property: "Strategy Inquiry",
+        selling: "Retirement Planning",
+        viewing: "Schedule a Consultation",
         other: "Other"
       },
       referrals: {
@@ -182,7 +177,7 @@ function getDefaultContactTranslations() {
         saturday: "Saturday",
         sunday: "Sunday",
         closed: "Closed",
-        timezone: "Central European Time (CET)"
+        timezone: "Pacific Time (PT)"
       },
       directions: "Get Directions"
     },
@@ -191,25 +186,25 @@ function getDefaultContactTranslations() {
       items: [
         {
           question: "How quickly will you respond?",
-          answer: "We aim to respond to all inquiries within 24 hours during business days. WhatsApp messages typically receive faster responses."
+          answer: "We aim to respond to all inquiries within 24 hours during business days. Phone and chat messages typically receive faster responses."
         },
         {
-          question: "Do you speak my language?",
-          answer: "Yes! Our team speaks 10+ languages including English, Dutch, German, French, Swedish, Norwegian, Danish, Finnish, Polish, and Hungarian."
+          question: "What languages do you support?",
+          answer: "Our team provides full service in English and Spanish."
         },
         {
           question: "Can I schedule a video call?",
-          answer: "Absolutely! Contact us via WhatsApp or email to arrange a convenient time for a video consultation with one of our property experts."
+          answer: "Absolutely! Contact us via phone or email to arrange a convenient time for a video consultation with one of our wealth advisors."
         },
         {
-          question: "What areas do you cover?",
-          answer: "We specialize in the entire Costa del Sol region, from Málaga to Sotogrande, including Marbella, Estepona, Fuengirola, Benalmádena, and Mijas."
+          question: "What areas do you serve?",
+          answer: "We serve clients across all 50 US states, specializing in retirement planning, tax-efficient wealth strategies, and asset protection."
         }
       ]
     },
     emma: {
       callout: "Prefer instant answers?",
-      cta: "Chat with Emma, our AI assistant"
+      cta: "Chat with our AI assistant"
     }
   };
 }

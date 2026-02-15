@@ -33,10 +33,10 @@ const ArticleSchema: React.FC<ArticleSchemaProps> = ({
         "datePublished": datePublished,
         "dateModified": dateModified,
         "author": {
-            "@id": "https://www.delsolprimehomes.com/#hans-beeckman"
+            "@id": "https://www.everencewealth.com/#lead-strategist"
         },
         "publisher": {
-            "@id": "https://www.delsolprimehomes.com/#organization"
+            "@id": "https://www.everencewealth.com/#organization"
         },
         "mainEntityOfPage": {
             "@type": "WebPage",

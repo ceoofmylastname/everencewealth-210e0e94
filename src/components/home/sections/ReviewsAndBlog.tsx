@@ -7,12 +7,12 @@ import { useTranslation } from '../../../i18n';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
-import { enUS, nl, de, fr, pl, sv, da, hu, fi, nb } from 'date-fns/locale';
+import { enUS, es } from 'date-fns/locale';
 import { ElfsightGoogleReviews } from '@/components/reviews/ElfsightGoogleReviews';
 import type { Locale } from 'date-fns';
 
 const dateLocales: Record<string, Locale> = {
-  en: enUS, nl, de, fr, pl, sv, da, hu, fi, no: nb
+  en: enUS, es
 };
 
 export const Reviews: React.FC = () => {
@@ -36,7 +36,7 @@ export const Reviews: React.FC = () => {
 
       <div className="text-center reveal-on-scroll">
         <a 
-          href="https://www.google.com/search?sca_esv=ab4b4c8b17b2f68e&rlz=1C1FHFK_esES1176ES1176&sxsrf=ANbL-n6cwHuTgRtfDEJAzE8AcYPESuO9sA:1769744919200&kgmid=/g/11zj8zmh9b&q=DelSolPrimeHomes&shem=bdsle,ptotple,shrtsdl&shndl=30&source=sh/x/loc/uni/m1/1&kgs=3deac8e88e622d63&utm_source=bdsle,ptotple,shrtsdl,sh/x/loc/uni/m1/1"
+          href="https://www.google.com/maps/place/Everence+Wealth"
           target="_blank"
           rel="noopener noreferrer"
         >
@@ -164,10 +164,10 @@ export const BlogTeaser: React.FC = () => {
 };
 
 const FEATURED_TERMS = [
-  { term: "NIE", icon: Scale, key: "nie" as const },
-  { term: "Digital Nomad Visa", icon: Laptop, key: "digitalNomadVisa" as const },
-  { term: "IBI", icon: Home, key: "ibi" as const },
-  { term: "Escritura", icon: Book, key: "escritura" as const },
+  { term: "IUL", icon: Scale, key: "nie" as const },
+  { term: "Fiduciary", icon: Laptop, key: "digitalNomadVisa" as const },
+  { term: "Annuity", icon: Home, key: "ibi" as const },
+  { term: "RMD", icon: Book, key: "escritura" as const },
 ];
 
 export const GlossaryTeaser: React.FC = () => {
@@ -184,10 +184,10 @@ export const GlossaryTeaser: React.FC = () => {
             {t.glossaryTeaser?.eyebrow || "Essential Terms"}
           </span>
           <h2 className="text-4xl font-serif font-bold text-prime-900 mb-4">
-            {t.glossaryTeaser?.headline || "Understand Spanish Property Terminology"}
+            {t.glossaryTeaser?.headline || "Understand Financial Terminology"}
           </h2>
           <p className="text-slate-600 font-light text-lg max-w-2xl mx-auto">
-            {t.glossaryTeaser?.description || "Navigate the buying process with confidence. Our glossary explains NIE numbers, taxes, legal terms, and everything you need to know."}
+            {t.glossaryTeaser?.description || "Navigate wealth planning with confidence. Our glossary explains key financial terms, tax strategies, and everything you need to know."}
           </p>
         </div>
 

@@ -8,51 +8,43 @@ import { useTranslation } from "@/i18n";
 import BlogEmmaChat from '@/components/blog-article/BlogEmmaChat';
 import { COMPANY_INFO } from "@/constants/company";
 
-const BASE_URL = "https://www.delsolprimehomes.com";
+const BASE_URL = "https://www.everencewealth.com";
 
 const Team = () => {
   const { lang } = useParams<{ lang: string }>();
   const { t, currentLanguage } = useTranslation();
 
-  // Scroll to top on mount
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
 
-  // Generate JSON-LD schema for the team
   const organizationSchema = {
     "@context": "https://schema.org",
-    "@type": "RealEstateAgent",
+    "@type": "FinancialService",
     "@id": `${BASE_URL}/#organization`,
     "name": COMPANY_INFO.name,
-    "description": t.team?.meta?.description || "Meet the expert real estate professionals at Del Sol Prime Homes.",
+    "description": t.team?.meta?.description || "Meet the expert wealth advisors at Everence Wealth.",
     "url": BASE_URL,
     "logo": `${BASE_URL}/logo.png`,
     "address": {
       "@type": "PostalAddress",
-      "streetAddress": "C. Alfonso XIII, 6",
-      "addressLocality": "Fuengirola",
-      "postalCode": "29640",
-      "addressRegion": "Málaga",
-      "addressCountry": "ES"
+      "streetAddress": "455 Market St Ste 1940 PMB 350011",
+      "addressLocality": "San Francisco",
+      "postalCode": "94105",
+      "addressRegion": "CA",
+      "addressCountry": "US"
     },
-    "telephone": "+34630039090",
-    "email": "info@delsolprimehomes.com",
+    "telephone": "+1-415-555-0100",
+    "email": "info@everencewealth.com",
     "areaServed": {
-      "@type": "GeoCircle",
-      "geoMidpoint": {
-        "@type": "GeoCoordinates",
-        "latitude": 36.5,
-        "longitude": -4.9
-      },
-      "geoRadius": "100km"
+      "@type": "Country",
+      "name": "United States"
     },
-    "knowsLanguage": ["en", "nl", "de", "fr", "sv", "no", "da", "fi", "pl", "hu"]
+    "knowsLanguage": ["en", "es"]
   };
 
   return (
     <>
-      {/* JSON-LD Schema */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}

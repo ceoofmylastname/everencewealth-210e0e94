@@ -196,7 +196,7 @@ export const Header: React.FC<HeaderProps> = ({ variant = 'transparent', content
         <Link to="/" className="flex items-center gap-2.5 z-50 justify-self-start">
           <img 
             src="https://storage.googleapis.com/msgsndr/9m2UBN29nuaCWceOgW2Z/media/6926151522d3b65c0becbaf4.png" 
-            alt="DelSolPrimeHomes" 
+            alt="Everence Wealth" 
             width={160}
             height={64}
             loading="eager"

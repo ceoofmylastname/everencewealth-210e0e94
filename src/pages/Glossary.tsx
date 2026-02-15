@@ -37,14 +37,14 @@ interface GlossaryData {
 
 const categoryIcons: Record<string, string> = {
   legal_tax: "⚖️",
-  property: "🏠",
+  property: "📊",
   visa_residency: "🛂",
-  financial: "💶",
+  financial: "💰",
   location: "📍",
   process: "📋"
 };
 
-const BASE_URL = "https://www.delsolprimehomes.com";
+const BASE_URL = "https://www.everencewealth.com";
 
 const Glossary: React.FC = () => {
   const { lang } = useParams<{ lang: string }>();
@@ -196,8 +196,8 @@ const Glossary: React.FC = () => {
         <title>{pageTitle}</title>
         <meta name="title" content={pageTitle} />
         <meta name="description" content={pageDescription} />
-        <meta name="keywords" content="Spanish property glossary, NIE definition, IBI tax, Digital Nomad Visa Spain, Spanish real estate terms, Costa del Sol buying guide, escritura, plusvalia, notario, remote work visa Spain" />
-        <meta name="author" content="Del Sol Prime Homes" />
+        <meta name="keywords" content="financial glossary, IUL definition, annuity terms, retirement planning terms, wealth management glossary, tax-efficient investing, fiduciary advisor, estate planning terms" />
+        <meta name="author" content="Everence Wealth" />
         <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
         
         {/* Canonical URL */}
@@ -212,7 +212,7 @@ const Glossary: React.FC = () => {
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
         <meta property="og:image:alt" content={getGlossaryName(currentLang)} />
-        <meta property="og:site_name" content="Del Sol Prime Homes" />
+        <meta property="og:site_name" content="Everence Wealth" />
         <meta property="og:locale" content={ogLocale} />
         
         {/* Twitter Card */}
@@ -226,10 +226,10 @@ const Glossary: React.FC = () => {
         {/* Article Metadata */}
         <meta property="article:published_time" content="2024-01-15T00:00:00Z" />
         <meta property="article:modified_time" content={glossaryData.last_updated} />
-        <meta property="article:section" content="Real Estate" />
-        <meta property="article:tag" content="Spanish Property" />
-        <meta property="article:tag" content="Real Estate Glossary" />
-        <meta property="article:tag" content="Costa del Sol" />
+        <meta property="article:section" content="Financial Planning" />
+        <meta property="article:tag" content="Wealth Management" />
+        <meta property="article:tag" content="Financial Glossary" />
+        <meta property="article:tag" content="Retirement Planning" />
         
         {/* Hreflang - all 10 languages + x-default */}
         {SUPPORTED_LANGUAGES.map(langCode => (

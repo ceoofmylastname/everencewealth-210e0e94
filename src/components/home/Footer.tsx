@@ -17,7 +17,7 @@ export const Footer: React.FC = () => {
             <div className="mb-6">
               <img 
                 src="https://storage.googleapis.com/msgsndr/9m2UBN29nuaCWceOgW2Z/media/6926151522d3b65c0becbaf4.png" 
-                alt="DelSolPrimeHomes" 
+                alt="Everence Wealth" 
                 className="h-20 md:h-28 w-auto object-contain"
               />
             </div>
@@ -25,13 +25,13 @@ export const Footer: React.FC = () => {
               {t.footer.brandDescription}
             </p>
             <div className="flex gap-4">
-              <a href="https://facebook.com/delsolprimehomes" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-prime-gold hover:text-prime-900 transition-colors">
+              <a href="https://facebook.com/everencewealth" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-prime-gold hover:text-prime-900 transition-colors">
                 <Facebook size={18} />
               </a>
-              <a href="https://instagram.com/delsolprimehomes" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-prime-gold hover:text-prime-900 transition-colors">
+              <a href="https://instagram.com/everencewealth" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-prime-gold hover:text-prime-900 transition-colors">
                 <Instagram size={18} />
               </a>
-              <a href="https://linkedin.com/company/delsolprimehomes" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-prime-gold hover:text-prime-900 transition-colors">
+              <a href="https://linkedin.com/company/everencewealth" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-prime-gold hover:text-prime-900 transition-colors">
                 <Linkedin size={18} />
               </a>
             </div>
@@ -47,11 +47,11 @@ export const Footer: React.FC = () => {
                 </li>
                 <li className="flex gap-3">
                   <Phone size={18} className="text-prime-gold shrink-0" />
-                  <span>+34 630 03 90 90</span>
+                  <span>+1 (415) 555-0100</span>
                 </li>
                 <li className="flex gap-3">
                   <Mail size={18} className="text-prime-gold shrink-0" />
-                  <span>info@delsolprimehomes.com</span>
+                  <span>info@everencewealth.com</span>
                 </li>
              </ul>
           </div>
