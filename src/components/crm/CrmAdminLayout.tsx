@@ -120,8 +120,8 @@ export function CrmAdminLayout() {
         <div className="flex h-16 items-center border-b px-6 gap-3">
           <Building2 className="h-8 w-8 text-primary" />
           <div>
-            <p className="font-serif font-semibold text-sm">Del Sol Prime</p>
-            <p className="text-xs text-muted-foreground">Agent CRM</p>
+          <p className="font-serif font-semibold text-sm">Everence Wealth</p>
+            <p className="text-xs text-muted-foreground">Advisor CRM</p>
           </div>
         </div>
         <nav className="flex-1 space-y-1 p-4 overflow-y-auto">
@@ -157,8 +157,8 @@ export function CrmAdminLayout() {
               <div className="flex h-16 items-center px-6 border-b gap-3">
                 <Building2 className="h-8 w-8 text-primary" />
                 <div>
-                  <p className="font-serif font-semibold text-sm">Del Sol Prime</p>
-                  <p className="text-xs text-muted-foreground">Agent CRM</p>
+                  <p className="font-serif font-semibold text-sm">Everence Wealth</p>
+                  <p className="text-xs text-muted-foreground">Advisor CRM</p>
                 </div>
               </div>
               <nav className="flex-1 space-y-1 p-4">
@@ -179,7 +179,7 @@ export function CrmAdminLayout() {
           </Sheet>
           <div className="flex items-center gap-2">
             <Building2 className="h-6 w-6 text-primary" />
-            <span className="font-serif font-semibold">CRM Admin</span>
+            <span className="font-serif font-semibold">Advisor CRM</span>
           </div>
         </header>
 

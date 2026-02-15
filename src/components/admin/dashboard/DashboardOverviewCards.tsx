@@ -12,7 +12,7 @@ export function DashboardOverviewCards({ stats }: DashboardOverviewCardsProps) {
 
   const cards = [
     {
-      title: "Total Properties",
+      title: "Total Strategies",
       value: stats.totalProperties,
       icon: Building2,
       trend: null,
@@ -39,7 +39,7 @@ export function DashboardOverviewCards({ stats }: DashboardOverviewCardsProps) {
       onClick: () => navigate("/admin/articles"),
     },
     {
-      title: "Active Agents",
+      title: "Active Advisors",
       value: stats.activeAgents,
       icon: UserCheck,
       trend: null,

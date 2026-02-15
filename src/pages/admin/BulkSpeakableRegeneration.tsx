@@ -21,17 +21,15 @@ interface ArticleWithIssue {
 }
 
 const LANGUAGE_NAMES: Record<string, string> = {
-  'en': 'English', 'de': 'German', 'nl': 'Dutch', 'fr': 'French',
-  'pl': 'Polish', 'sv': 'Swedish', 'da': 'Danish', 'hu': 'Hungarian',
-  'fi': 'Finnish', 'no': 'Norwegian'
+  'en': 'English', 'es': 'Spanish'
 };
 
 // Common English words that indicate the text is in English
 const ENGLISH_INDICATORS = [
   ' you ', ' your ', ' the ', ' is ', ' are ', ' can ', ' will ', 
   ' with ', ' for ', ' from ', ' have ', ' this ', ' that ',
-  ' discover ', ' explore ', ' find ', ' buy ', ' sell ',
-  ' property ', ' home ', ' house ', ' real estate '
+  ' discover ', ' explore ', ' find ', ' plan ', ' invest ',
+  ' insurance ', ' retirement ', ' wealth ', ' financial '
 ];
 
 function isLikelyEnglish(text: string): boolean {

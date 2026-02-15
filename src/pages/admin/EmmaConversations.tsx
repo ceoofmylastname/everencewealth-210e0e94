@@ -61,7 +61,7 @@ interface EmmaLead {
     question_10: string | null;
     answer_10: string | null;
     questions_answered: number;
-    // Property Criteria
+    // Client Criteria
     location_preference: string[] | null;
     sea_view_importance: string | null;
     budget_range: string | null;
@@ -90,16 +90,8 @@ interface EmmaLead {
 
 // Map language codes to flags/names
 const languageFlags: Record<string, string> = {
-    EN: '🇬🇧 English',
-    NL: '🇳🇱 Dutch',
-    FR: '🇫🇷 French',
-    DE: '🇩🇪 German',
-    PL: '🇵🇱 Polish',
-    SV: '🇸🇪 Swedish',
-    DA: '🇩🇰 Danish',
-    FI: '🇫🇮 Finnish',
-    HU: '🇭🇺 Hungarian',
-    NO: '🇳🇴 Norwegian'
+    EN: '🇺🇸 English',
+    ES: '🇪🇸 Spanish',
 };
 
 const EmmaConversations = () => {
@@ -221,7 +213,7 @@ const EmmaConversations = () => {
                     answer_10: lead.answer_10 || '',
                     questions_answered: lead.questions_answered || 0
                 },
-                property_criteria: {
+                client_criteria: {
                     location_preference: lead.location_preference || [],
                     sea_view_importance: lead.sea_view_importance || '',
                     budget_range: lead.budget_range || '',
@@ -585,11 +577,11 @@ const EmmaConversations = () => {
                                 </div>
                             </div>
 
-                            {/* Property Criteria */}
+                            {/* Client Criteria */}
                             <div className="p-4 border-b">
                                 <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
                                     <Target className="w-4 h-4 text-primary" />
-                                    Property Criteria
+                                    Client Criteria
                                 </h3>
                                 <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                                     <div className="bg-gray-50 rounded-lg p-3 flex items-start gap-2">
@@ -604,7 +596,7 @@ const EmmaConversations = () => {
                                     <div className="bg-gray-50 rounded-lg p-3 flex items-start gap-2">
                                         <Eye className="w-4 h-4 text-blue-500 mt-0.5" />
                                         <div>
-                                            <p className="text-xs text-gray-500">Sea View</p>
+                                            <p className="text-xs text-gray-500">Risk Tolerance</p>
                                             <p className="font-medium text-sm">{selectedLead.sea_view_importance || '-'}</p>
                                         </div>
                                     </div>
@@ -618,14 +610,14 @@ const EmmaConversations = () => {
                                     <div className="bg-gray-50 rounded-lg p-3 flex items-start gap-2">
                                         <Bed className="w-4 h-4 text-purple-500 mt-0.5" />
                                         <div>
-                                            <p className="text-xs text-gray-500">Bedrooms</p>
+                                            <p className="text-xs text-gray-500">Coverage Amount</p>
                                             <p className="font-medium text-sm">{selectedLead.bedrooms_desired || '-'}</p>
                                         </div>
                                     </div>
                                     <div className="bg-gray-50 rounded-lg p-3 flex items-start gap-2">
                                         <Home className="w-4 h-4 text-green-500 mt-0.5" />
                                         <div>
-                                            <p className="text-xs text-gray-500">Property Type</p>
+                                            <p className="text-xs text-gray-500">Product Type</p>
                                             <p className="font-medium text-sm">
                                                 {selectedLead.property_type?.join(', ') || '-'}
                                             </p>
@@ -634,7 +626,7 @@ const EmmaConversations = () => {
                                     <div className="bg-gray-50 rounded-lg p-3 flex items-start gap-2">
                                         <Target className="w-4 h-4 text-indigo-500 mt-0.5" />
                                         <div>
-                                            <p className="text-xs text-gray-500">Purpose</p>
+                                            <p className="text-xs text-gray-500">Goal</p>
                                             <p className="font-medium text-sm">{selectedLead.property_purpose || '-'}</p>
                                         </div>
                                     </div>

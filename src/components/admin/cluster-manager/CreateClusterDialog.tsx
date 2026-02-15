@@ -211,7 +211,7 @@ export function CreateClusterDialog({ open, onOpenChange, onClusterCreated }: Cr
               <Label htmlFor="topic">Topic *</Label>
               <Input
                 id="topic"
-                placeholder="e.g., Costa del Sol Investment Properties"
+                placeholder="e.g., Retirement Income Strategies"
                 value={topic}
                 onChange={(e) => setTopic(e.target.value)}
               />
@@ -221,7 +221,7 @@ export function CreateClusterDialog({ open, onOpenChange, onClusterCreated }: Cr
               <Label htmlFor="keyword">Primary Keyword *</Label>
               <Input
                 id="keyword"
-                placeholder="e.g., buy property costa del sol"
+                placeholder="e.g., retirement income planning"
                 value={primaryKeyword}
                 onChange={(e) => setPrimaryKeyword(e.target.value)}
               />
@@ -231,7 +231,7 @@ export function CreateClusterDialog({ open, onOpenChange, onClusterCreated }: Cr
               <Label htmlFor="audience">Target Audience *</Label>
               <Textarea
                 id="audience"
-                placeholder="e.g., European retirees seeking Spanish property investment"
+                placeholder="e.g., Pre-retirees seeking guaranteed income strategies"
                 value={targetAudience}
                 onChange={(e) => setTargetAudience(e.target.value)}
                 rows={2}
@@ -249,7 +249,7 @@ export function CreateClusterDialog({ open, onOpenChange, onClusterCreated }: Cr
                   <li>• E-E-A-T compliant content</li>
                   <li>• JSON-LD schema markup</li>
                 </ul>
-                <p className="mt-2">Use "Complete Cluster" to translate to 9 additional languages.</p>
+                <p className="mt-2">Use "Complete Cluster" to translate to Spanish.</p>
               </div>
             </div>
           </div>

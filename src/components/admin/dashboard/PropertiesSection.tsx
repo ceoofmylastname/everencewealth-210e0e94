@@ -21,7 +21,7 @@ export function PropertiesSection({ stats }: PropertiesSectionProps) {
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle className="flex items-center gap-2">
           <Building2 className="h-5 w-5" />
-          Properties
+          Strategies
         </CardTitle>
         <div className="flex gap-2">
           <Button variant="outline" size="sm" onClick={() => navigate("/admin/properties/new")}>
@@ -47,7 +47,7 @@ export function PropertiesSection({ stats }: PropertiesSectionProps) {
           </div>
           <div className="p-3 rounded-lg bg-muted/50 text-center">
             <p className="text-2xl font-bold text-muted-foreground">{stats.propertiesByStatus.sold}</p>
-            <p className="text-xs text-muted-foreground">Sold/Inactive</p>
+            <p className="text-xs text-muted-foreground">Closed/Inactive</p>
           </div>
         </div>
 
@@ -71,14 +71,14 @@ export function PropertiesSection({ stats }: PropertiesSectionProps) {
         {stats.totalProperties === 0 && (
           <div className="text-center py-6">
             <Building2 className="h-12 w-12 text-muted-foreground/50 mx-auto mb-2" />
-            <p className="text-sm text-muted-foreground">No properties yet</p>
+            <p className="text-sm text-muted-foreground">No strategies yet</p>
             <Button
               variant="outline"
               size="sm"
               className="mt-2"
               onClick={() => navigate("/admin/properties/new")}
             >
-              Add First Property
+              Add First Strategy
             </Button>
           </div>
         )}
