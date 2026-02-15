@@ -262,6 +262,10 @@ export default {
           "0%": { transform: "translateY(100%)" },
           "100%": { transform: "translateY(0)" },
         },
+        "mesh-shift": {
+          "0%, 100%": { opacity: "0.3", transform: "scale(1) translate(0, 0)" },
+          "50%": { opacity: "0.5", transform: "scale(1.1) translate(2%, -3%)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -297,6 +301,7 @@ export default {
         "glow-border-pulse": "glow-border-pulse 3s ease-in-out infinite",
         "float-particle": "float-particle 8s ease-in-out infinite",
         "number-slot": "number-slot 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards",
+        "mesh-shift": "mesh-shift 8s ease-in-out infinite",
       },
     },
   },

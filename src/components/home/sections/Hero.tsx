@@ -1,142 +1,80 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ShieldCheck, Users, Star, ChevronDown } from 'lucide-react';
+import { ShieldCheck, Users, Calendar, ChevronDown } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { useTranslation } from '../../../i18n';
 
 export const Hero: React.FC = () => {
-  const { t, currentLanguage } = useTranslation();
+  const { currentLanguage } = useTranslation();
   const navigate = useNavigate();
-  const [scrollY, setScrollY] = useState(0);
-  const [videoLoaded, setVideoLoaded] = useState(false);
-  const videoRef = useRef<HTMLVideoElement>(null);
-
-  const openAssistant = () => {
-    window.dispatchEvent(new CustomEvent('openEmmaChat'));
-  };
-
-  const goToStrategyFinder = () => {
-    navigate(`/${currentLanguage}/properties`);
-  };
-
-  useEffect(() => {
-    const handleScroll = () => setScrollY(window.scrollY);
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  // Load video after LCP for better performance - delay increased to prioritize image
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (videoRef.current) {
-        videoRef.current.load();
-      }
-    }, 2000);
-    return () => clearTimeout(timer);
-  }, []);
 
   return (
-    <div className="relative z-10 w-full min-h-[100svh] flex items-center justify-center overflow-hidden">
-      {/* Video Background */}
-      <div className="absolute inset-0 z-0">
-        {/* High-priority poster image for LCP */}
-        <img
-          src="https://images.unsplash.com/photo-1560472355-536de3962603?q=80&w=2070&auto=format&fit=crop"
-          alt="Professional financial advisor consultation"
-          width={2070}
-          height={1380}
-          loading="eager"
-          decoding="sync"
-          className={`absolute inset-0 w-full h-full object-cover scale-110 transition-opacity duration-700 ${videoLoaded ? 'opacity-0' : 'opacity-100'}`}
-          style={{ contentVisibility: 'auto' }}
+    <div className="relative z-10 w-full min-h-[100svh] flex items-center justify-center overflow-hidden bg-gradient-to-br from-[#1A4D3E] via-[#0F2E25] to-black">
+      {/* Animated mesh gradient overlay */}
+      <div className="absolute inset-0 z-0 opacity-30" aria-hidden="true">
+        <div className="absolute inset-0 animate-mesh-shift"
+          style={{
+            background: `
+              radial-gradient(ellipse 80% 60% at 20% 30%, rgba(26,77,62,0.6), transparent),
+              radial-gradient(ellipse 60% 80% at 80% 70%, rgba(15,46,37,0.5), transparent),
+              radial-gradient(ellipse 50% 50% at 50% 50%, rgba(26,77,62,0.3), transparent)
+            `,
+          }}
         />
-        <video
-          ref={videoRef}
-          autoPlay
-          muted
-          loop
-          playsInline
-          preload="auto"
-          poster="https://images.unsplash.com/photo-1560472355-536de3962603?q=80&w=2070&auto=format&fit=crop"
-          aria-label="Everence Wealth financial planning showcase"
-          className={`absolute inset-0 w-full h-full object-cover scale-110 transition-opacity duration-700 ${videoLoaded ? 'opacity-100' : 'opacity-0'}`}
-          onCanPlay={() => setVideoLoaded(true)}
-        >
-          <source src="https://images.unsplash.com/photo-1560472355-536de3962603?q=80&w=2070&auto=format&fit=crop" type="video/mp4" />
-        </video>
-        {/* Subtle gradient overlay for text readability while keeping video visible */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/20 to-black/40" />
       </div>
 
       <div className="relative z-10 container mx-auto px-4 flex flex-col items-center text-center pt-10 md:pt-32 pb-24 md:pb-40">
-        
-        {/* Trust Badges - Desktop: Pill shapes, Mobile: Compact */}
-        <div className="flex flex-wrap items-center justify-center gap-2 md:gap-4 mb-8 md:mb-12 reveal-on-scroll">
-          {/* API Badge */}
-          <div className="flex items-center gap-1.5 md:gap-2 px-3 md:px-4 py-1.5 md:py-2 rounded-full bg-white/15 border border-white/30 backdrop-blur-sm">
-            <ShieldCheck size={16} className="text-primary md:w-5 md:h-5" />
-            <span className="text-white text-xs md:text-sm font-medium [text-shadow:_0_1px_2px_rgb(0_0_0)]">
-              <span className="hidden md:inline">{t.hero.trustBadges.api}</span>
-              <span className="md:hidden">{(t.hero as any).trustBadgesMobile?.api || 'API'}</span>
-            </span>
-          </div>
-          
-          {/* Experience Badge */}
-          <div className="flex items-center gap-1.5 md:gap-2 px-3 md:px-4 py-1.5 md:py-2 rounded-full bg-white/15 border border-white/30 backdrop-blur-sm">
-            <Star size={16} className="text-primary md:w-5 md:h-5" />
-            <span className="text-white text-xs md:text-sm font-medium [text-shadow:_0_1px_2px_rgb(0_0_0)]">
-              <span className="hidden md:inline">{t.hero.trustBadges.experience}</span>
-              <span className="md:hidden">{(t.hero as any).trustBadgesMobile?.experience || '35+'}</span>
-            </span>
-          </div>
-          
-          {/* Buyers Badge */}
-          <div className="flex items-center gap-1.5 md:gap-2 px-3 md:px-4 py-1.5 md:py-2 rounded-full bg-white/15 border border-white/30 backdrop-blur-sm">
-            <Users size={16} className="text-primary md:w-5 md:h-5" />
-            <span className="text-white text-xs md:text-sm font-medium [text-shadow:_0_1px_2px_rgb(0_0_0)]">
-              <span className="hidden md:inline">{t.hero.trustBadges.buyers}</span>
-              <span className="md:hidden">{(t.hero as any).trustBadgesMobile?.buyers || '500+'}</span>
-            </span>
-          </div>
-        </div>
-
         {/* Headline */}
-        <h1 
-          className="font-serif text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-4 md:mb-6 leading-[1.1] max-w-[900px] reveal-on-scroll stagger-1 animate-zoom-in [text-shadow:_2px_2px_8px_rgb(0_0_0_/_50%)]" 
+        <h1
+          className="font-serif text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-4 md:mb-6 leading-[1.1] max-w-[900px]"
           style={{ letterSpacing: '-0.02em' }}
         >
-          {t.hero.headline} <br className="hidden md:block" />
-          <span className="text-primary italic [text-shadow:_2px_2px_8px_rgb(0_0_0_/_50%)]">
-            {t.hero.headlineHighlight}
-          </span>
+          Bridge the{' '}
+          <span className="text-primary italic">Retirement Gap</span>
         </h1>
 
-        {/* Tagline - No description, just the tagline */}
-        <p 
-          className="text-lg md:text-2xl text-white font-normal mb-10 md:mb-12 reveal-on-scroll stagger-2 animate-fade-in-up [text-shadow:_1px_1px_4px_rgb(0_0_0_/_40%)]"
+        {/* Subhead */}
+        <p
+          className="text-lg md:text-2xl text-white/90 font-normal mb-10 md:mb-12 max-w-[700px]"
           style={{ letterSpacing: '0.02em' }}
         >
-          {t.hero.tagline}
+          Tax-efficient wealth strategies. Fiduciary guidance. Zero Wall Street games.
         </p>
 
-        {/* CTAs - Desktop: Side by side, Mobile: Stacked full width */}
-        <div className="flex flex-col md:flex-row gap-3 md:gap-4 w-[90%] md:w-auto reveal-on-scroll stagger-3 animate-slide-in-left">
-          <Button 
-            variant="secondary" 
-            size="lg" 
+        {/* CTAs */}
+        <div className="flex flex-col md:flex-row gap-3 md:gap-4 w-[90%] md:w-auto">
+          <Button
+            variant="secondary"
+            size="lg"
             className="h-12 md:h-14 px-6 md:px-8 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold rounded-lg shadow-[0_4px_12px_rgb(0_0_0_/_15%)] transition-all duration-300"
-            onClick={goToStrategyFinder}
+            onClick={() => navigate(`/${currentLanguage}/contact`)}
           >
-            {t.hero.ctaPrimary}
+            Schedule Assessment
           </Button>
-          <Button 
-            variant="outline" 
-            size="lg" 
+          <Button
+            variant="outline"
+            size="lg"
             className="h-12 md:h-14 px-6 md:px-8 bg-transparent border-2 border-white text-white hover:bg-white/10 font-semibold rounded-lg transition-all duration-300"
-            onClick={openAssistant}
+            onClick={() => navigate(`/${currentLanguage}/philosophy`)}
           >
-            {t.hero.ctaSecondary}
+            Our Philosophy
           </Button>
+        </div>
+
+        {/* Trust Badges */}
+        <div className="flex flex-wrap items-center justify-center gap-2 md:gap-4 mt-10 md:mt-14">
+          <div className="flex items-center gap-1.5 md:gap-2 px-3 md:px-4 py-1.5 md:py-2 rounded-full bg-white/15 border border-white/30 backdrop-blur-sm">
+            <ShieldCheck size={16} className="text-primary md:w-5 md:h-5" />
+            <span className="text-white text-xs md:text-sm font-medium">Independent Fiduciary</span>
+          </div>
+          <div className="flex items-center gap-1.5 md:gap-2 px-3 md:px-4 py-1.5 md:py-2 rounded-full bg-white/15 border border-white/30 backdrop-blur-sm">
+            <Users size={16} className="text-primary md:w-5 md:h-5" />
+            <span className="text-white text-xs md:text-sm font-medium">75+ Carriers</span>
+          </div>
+          <div className="flex items-center gap-1.5 md:gap-2 px-3 md:px-4 py-1.5 md:py-2 rounded-full bg-white/15 border border-white/30 backdrop-blur-sm">
+            <Calendar size={16} className="text-primary md:w-5 md:h-5" />
+            <span className="text-white text-xs md:text-sm font-medium">Since 1998</span>
+          </div>
         </div>
       </div>
 
