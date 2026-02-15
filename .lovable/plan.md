@@ -1,57 +1,91 @@
 
-# Phase 9.1.10 -- Testimonials Component
+
+# Phase 9.2 + 9.3 -- Hero Section Update and Navbar Update
 
 ## Overview
-Create a `Testimonials.tsx` component featuring a client testimonials carousel using `embla-carousel-react` (already installed). Positioned after `HomepageAbout` and before `WhyChooseUs` on the homepage.
+Two changes in one phase:
+1. **Hero**: Replace the current property-search-oriented hero with a wealth management hero featuring a dark gradient background, new copy, two CTAs, and three trust badges.
+2. **Navbar**: Replace all Costa del Sol navigation items with Everence Wealth menu structure (Philosophy, Strategies, Education, About, Get Started, Portal Login).
 
-## Design
-- White background (`bg-white`) for contrast after the cream About section
-- Embla carousel with autoplay (`embla-carousel-autoplay`, already installed)
-- Large evergreen decorative quote marks
-- 5-star rating display using Lucide `Star` icons
-- Client avatar circles with initials
-- Dot indicators for carousel navigation
-- Scroll-triggered fade-in animation via framer-motion
+---
 
-## Technical Details
+## 9.2 -- Hero Section Update
 
-### New File: `src/components/homepage/Testimonials.tsx`
+### File: `src/components/home/sections/Hero.tsx` (rewrite)
 
-**Structure:**
-1. Section wrapper: `bg-white`, responsive padding, `max-w-6xl` container
-2. Centered headline: "What Our Clients Say" (serif, evergreen)
-3. Embla carousel with autoplay plugin (4s delay):
-   - Each slide contains:
-     - Large decorative open-quote character in evergreen (`text-[#1A4D3E]/20`, `text-6xl`, serif)
-     - Testimonial text (serif, italic, `text-slate-700`)
-     - 5 gold star icons (`Star` from lucide-react, filled)
-     - Client initials avatar circle (`bg-[#1A4D3E]`, white text)
-     - Client name and location
-4. Dot indicators below the carousel (active dot in evergreen)
+**Remove:**
+- Video background and poster image (Unsplash photo)
+- `videoRef`, `videoLoaded` state, video load timeout effect
+- Old trust badge content (API, Experience, Buyers references from translations)
+- Old CTA buttons pointing to properties and Emma chat
 
-**Testimonial Data (hardcoded array of 4):**
+**New Background:**
+- Dark gradient: `bg-gradient-to-br from-[#1A4D3E] via-[#0F2E25] to-black`
+- Subtle animated mesh gradient overlay using CSS radial gradients with a slow animation (keyframe-based opacity/position shift)
+- Remove the `<video>` and `<img>` elements entirely
 
-| Quote | Attribution |
-|-------|------------|
-| "Michael helped us uncover $80K in hidden 401k fees..." | Sarah and Tom K., San Francisco |
-| "I never understood how much I was losing to taxes until Everence showed me the three-bucket strategy..." | David R., Los Angeles |
-| "As a small business owner, I needed someone who understood both my personal and business finances..." | Jennifer L., San Diego |
-| "The indexed strategy they recommended has given us peace of mind..." | Robert and Maria S., Sacramento |
+**New Content:**
+- Headline: "Bridge the Retirement Gap" (serif, white, large)
+- Subhead: "Tax-efficient wealth strategies. Fiduciary guidance. Zero Wall Street games." (white/90, lighter weight)
+- Two CTAs using existing `Button` component:
+  - Primary: "Schedule Assessment" -- navigates to `/{lang}/contact`
+  - Secondary (outline): "Our Philosophy" -- navigates to `/{lang}/philosophy`
+- Three trust badges below CTAs (same pill style, updated content):
+  - ShieldCheck icon: "Independent Fiduciary"
+  - Users icon: "75+ Carriers"
+  - Calendar icon: "Since 1998"
 
-**Carousel Setup:**
-```
-useEmblaCarousel({ loop: true, align: 'center' }, [Autoplay({ delay: 4000 })])
-```
+**Simplified state:** Remove `scrollY`, `videoLoaded`, `videoRef`. Keep `useNavigate` and `useTranslation`. Add `Calendar` to lucide imports.
 
-Track `selectedIndex` via embla API `on('select')` for dot indicators.
+---
 
-**Animation:** `containerVariants` framer-motion fade-in with `useInView`.
+## 9.3 -- Navbar Update
 
-**Dependencies (all installed):** `embla-carousel-react`, `embla-carousel-autoplay`, `framer-motion`, `lucide-react` (`Star`, `Quote`)
+### File: `src/components/home/Header.tsx` (rewrite menu structure)
 
-### Integration into `src/pages/Home.tsx`
-- Import `Testimonials` from `../components/homepage/Testimonials`
-- Insert `<Testimonials />` after `<HomepageAbout />` (line 85) and before `<WhyChooseUs />` (line 88)
-- Add comment: `{/* 1.12. Testimonials — client stories */}`
+**Remove:**
+- `featuredCities` array and all Supabase storage URL references
+- "Explore" menu with city brochures, property finder, location guides
+- "Compare" menu with comparison index, city vs city
+- "Learn" menu items: Property Glossary, Buyer's Guide
+- Old icon imports no longer needed: `Home`, `Landmark`, `GitCompare`, `Scale`, `MapPin`
+
+**New Desktop Menu Structure (inside `<Menu>`):**
+
+1. **Philosophy** -- simple link (no dropdown), navigates to `/{lang}/philosophy`
+2. **Strategies** dropdown:
+   - Indexed Universal Life -- `/{lang}/strategies/iul`
+   - Whole Life -- `/{lang}/strategies/whole-life`
+   - Tax-Free Retirement -- `/{lang}/strategies/tax-free-retirement`
+   - Asset Protection -- `/{lang}/strategies/asset-protection`
+3. **Education** dropdown:
+   - Blog -- `/{lang}/blog`
+   - Q&A -- `/{lang}/qa`
+   - Financial Terms -- `/{lang}/glossary`
+4. **About** dropdown:
+   - Our Team -- `/{lang}/team`
+   - Why Fiduciary -- `/{lang}/about`
+   - Client Stories -- `/{lang}/client-stories`
+
+**Right side actions:**
+- Language switcher (EN | ES) -- keep existing `LanguageSwitcher` component
+- "Get Started" button -- navigates to `/{lang}/contact` (replaces "Chat with Emma")
+- "Portal Login" link/button -- navigates to `/portal/login`
+
+**New Mobile Menu Structure:**
+Mirror the desktop structure with four collapsible sections:
+1. Philosophy (direct link, no submenu)
+2. Strategies (4 items)
+3. Education (3 items)
+4. About (3 items)
+Bottom: Language switcher + "Get Started" button + "Portal Login" link
+
+**New icon imports:** `Shield`, `TrendingUp`, `Umbrella`, `Lock` (for strategy items). Remove unused icons.
+
+### Files Modified
+- `src/components/home/sections/Hero.tsx` -- full rewrite
+- `src/components/home/Header.tsx` -- menu structure rewrite
 
 ### No database, edge function, or translation changes required
+Hardcoded English strings with fallback pattern (matching existing convention).
+
