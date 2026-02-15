@@ -186,15 +186,19 @@ export type Database = {
           inquiries: number | null
           language: string
           location: string
+          min_investment: number | null
           partner_logo: string | null
           partner_source: string | null
           price: number
           property_group_id: string | null
           property_type: string | null
+          risk_level: string | null
           short_description: string | null
           slug: string | null
           sqm: number
           status: string | null
+          strategy_type: string | null
+          target_audience: string | null
           title: string
           updated_at: string | null
           updated_by: string | null
@@ -219,15 +223,19 @@ export type Database = {
           inquiries?: number | null
           language: string
           location: string
+          min_investment?: number | null
           partner_logo?: string | null
           partner_source?: string | null
           price: number
           property_group_id?: string | null
           property_type?: string | null
+          risk_level?: string | null
           short_description?: string | null
           slug?: string | null
           sqm: number
           status?: string | null
+          strategy_type?: string | null
+          target_audience?: string | null
           title: string
           updated_at?: string | null
           updated_by?: string | null
@@ -252,15 +260,19 @@ export type Database = {
           inquiries?: number | null
           language?: string
           location?: string
+          min_investment?: number | null
           partner_logo?: string | null
           partner_source?: string | null
           price?: number
           property_group_id?: string | null
           property_type?: string | null
+          risk_level?: string | null
           short_description?: string | null
           slug?: string | null
           sqm?: number
           status?: string | null
+          strategy_type?: string | null
+          target_audience?: string | null
           title?: string
           updated_at?: string | null
           updated_by?: string | null
@@ -930,6 +942,8 @@ export type Database = {
           id: string
           preferred_language: string | null
           property_type: string | null
+          retirement_timeline: string | null
+          strategy_interest: string | null
           user_email: string | null
           user_name: string | null
           user_phone: string | null
@@ -943,6 +957,8 @@ export type Database = {
           id?: string
           preferred_language?: string | null
           property_type?: string | null
+          retirement_timeline?: string | null
+          strategy_interest?: string | null
           user_email?: string | null
           user_name?: string | null
           user_phone?: string | null
@@ -956,6 +972,8 @@ export type Database = {
           id?: string
           preferred_language?: string | null
           property_type?: string | null
+          retirement_timeline?: string | null
+          strategy_interest?: string | null
           user_email?: string | null
           user_name?: string | null
           user_phone?: string | null
@@ -2176,7 +2194,9 @@ export type Database = {
       crm_agents: {
         Row: {
           accepts_new_leads: boolean | null
+          advisor_title: string | null
           created_at: string | null
+          credentials: string[] | null
           current_lead_count: number | null
           email: string
           email_notifications: boolean | null
@@ -2193,13 +2213,16 @@ export type Database = {
           phone: string | null
           role: string
           slack_notifications: boolean | null
+          specialties: string[] | null
           timezone: string | null
           updated_at: string | null
           urgent_emails_enabled: boolean | null
         }
         Insert: {
           accepts_new_leads?: boolean | null
+          advisor_title?: string | null
           created_at?: string | null
+          credentials?: string[] | null
           current_lead_count?: number | null
           email: string
           email_notifications?: boolean | null
@@ -2216,13 +2239,16 @@ export type Database = {
           phone?: string | null
           role?: string
           slack_notifications?: boolean | null
+          specialties?: string[] | null
           timezone?: string | null
           updated_at?: string | null
           urgent_emails_enabled?: boolean | null
         }
         Update: {
           accepts_new_leads?: boolean | null
+          advisor_title?: string | null
           created_at?: string | null
+          credentials?: string[] | null
           current_lead_count?: number | null
           email?: string
           email_notifications?: boolean | null
@@ -2239,6 +2265,7 @@ export type Database = {
           phone?: string | null
           role?: string
           slack_notifications?: boolean | null
+          specialties?: string[] | null
           timezone?: string | null
           updated_at?: string | null
           urgent_emails_enabled?: boolean | null
@@ -2466,6 +2493,7 @@ export type Database = {
           created_at: string | null
           current_lead_score: number | null
           current_round: number | null
+          current_savings_range: string | null
           days_since_last_contact: number | null
           email: string | null
           exit_point: string | null
@@ -2497,6 +2525,7 @@ export type Database = {
           page_url: string
           phone_number: string | null
           previous_agent_id: string | null
+          product_type_interest: string[] | null
           property_interest: string | null
           property_price: string | null
           property_purpose: string | null
@@ -2509,12 +2538,16 @@ export type Database = {
           reassignment_reason: string | null
           referrer: string | null
           referrer_url: string | null
+          retirement_timeline: string | null
+          risk_tolerance: string | null
           round_broadcast_at: string | null
           round_escalated_at: string | null
           routing_rule_id: string | null
           scheduled_release_at: string | null
           sea_view_importance: string | null
           sla_breached: boolean | null
+          strategy_interest: string | null
+          tax_situation: string | null
           timeframe: string | null
           total_contacts: number | null
           updated_at: string | null
@@ -2555,6 +2588,7 @@ export type Database = {
           created_at?: string | null
           current_lead_score?: number | null
           current_round?: number | null
+          current_savings_range?: string | null
           days_since_last_contact?: number | null
           email?: string | null
           exit_point?: string | null
@@ -2586,6 +2620,7 @@ export type Database = {
           page_url: string
           phone_number?: string | null
           previous_agent_id?: string | null
+          product_type_interest?: string[] | null
           property_interest?: string | null
           property_price?: string | null
           property_purpose?: string | null
@@ -2598,12 +2633,16 @@ export type Database = {
           reassignment_reason?: string | null
           referrer?: string | null
           referrer_url?: string | null
+          retirement_timeline?: string | null
+          risk_tolerance?: string | null
           round_broadcast_at?: string | null
           round_escalated_at?: string | null
           routing_rule_id?: string | null
           scheduled_release_at?: string | null
           sea_view_importance?: string | null
           sla_breached?: boolean | null
+          strategy_interest?: string | null
+          tax_situation?: string | null
           timeframe?: string | null
           total_contacts?: number | null
           updated_at?: string | null
@@ -2644,6 +2683,7 @@ export type Database = {
           created_at?: string | null
           current_lead_score?: number | null
           current_round?: number | null
+          current_savings_range?: string | null
           days_since_last_contact?: number | null
           email?: string | null
           exit_point?: string | null
@@ -2675,6 +2715,7 @@ export type Database = {
           page_url?: string
           phone_number?: string | null
           previous_agent_id?: string | null
+          product_type_interest?: string[] | null
           property_interest?: string | null
           property_price?: string | null
           property_purpose?: string | null
@@ -2687,12 +2728,16 @@ export type Database = {
           reassignment_reason?: string | null
           referrer?: string | null
           referrer_url?: string | null
+          retirement_timeline?: string | null
+          risk_tolerance?: string | null
           round_broadcast_at?: string | null
           round_escalated_at?: string | null
           routing_rule_id?: string | null
           scheduled_release_at?: string | null
           sea_view_importance?: string | null
           sla_breached?: boolean | null
+          strategy_interest?: string | null
+          tax_situation?: string | null
           timeframe?: string | null
           total_contacts?: number | null
           updated_at?: string | null
@@ -3358,7 +3403,10 @@ export type Database = {
           question_9: string | null
           questions_answered: number | null
           referrer: string | null
+          retirement_goals: string | null
           sea_view_importance: string | null
+          strategy_interest: string | null
+          tax_concerns: string | null
           timeframe: string | null
           updated_at: string | null
           webhook_attempts: number | null
@@ -3420,7 +3468,10 @@ export type Database = {
           question_9?: string | null
           questions_answered?: number | null
           referrer?: string | null
+          retirement_goals?: string | null
           sea_view_importance?: string | null
+          strategy_interest?: string | null
+          tax_concerns?: string | null
           timeframe?: string | null
           updated_at?: string | null
           webhook_attempts?: number | null
@@ -3482,7 +3533,10 @@ export type Database = {
           question_9?: string | null
           questions_answered?: number | null
           referrer?: string | null
+          retirement_goals?: string | null
           sea_view_importance?: string | null
+          strategy_interest?: string | null
+          tax_concerns?: string | null
           timeframe?: string | null
           updated_at?: string | null
           webhook_attempts?: number | null
@@ -3798,6 +3852,7 @@ export type Database = {
           property_interest: string | null
           source: string | null
           status: string | null
+          strategy_interest: string | null
           updated_at: string | null
           user_agent: string | null
           utm_campaign: string | null
@@ -3822,6 +3877,7 @@ export type Database = {
           property_interest?: string | null
           source?: string | null
           status?: string | null
+          strategy_interest?: string | null
           updated_at?: string | null
           user_agent?: string | null
           utm_campaign?: string | null
@@ -3846,6 +3902,7 @@ export type Database = {
           property_interest?: string | null
           source?: string | null
           status?: string | null
+          strategy_interest?: string | null
           updated_at?: string | null
           user_agent?: string | null
           utm_campaign?: string | null
@@ -4140,6 +4197,7 @@ export type Database = {
           date_modified: string | null
           date_published: string | null
           external_citations: Json | null
+          featured_carriers: string[] | null
           featured_image_alt: string | null
           featured_image_caption: string | null
           featured_image_height: number | null
@@ -4161,10 +4219,13 @@ export type Database = {
           qa_entities: Json | null
           redirect_to: string | null
           region: string
+          regulations_summary: string | null
           reviewer_id: string | null
           source_language: string | null
           speakable_answer: string
+          state_code: string | null
           status: string
+          tax_advantages: string | null
           topic_slug: string
           translations: Json | null
           updated_at: string | null
@@ -4183,6 +4244,7 @@ export type Database = {
           date_modified?: string | null
           date_published?: string | null
           external_citations?: Json | null
+          featured_carriers?: string[] | null
           featured_image_alt?: string | null
           featured_image_caption?: string | null
           featured_image_height?: number | null
@@ -4204,10 +4266,13 @@ export type Database = {
           qa_entities?: Json | null
           redirect_to?: string | null
           region?: string
+          regulations_summary?: string | null
           reviewer_id?: string | null
           source_language?: string | null
           speakable_answer: string
+          state_code?: string | null
           status?: string
+          tax_advantages?: string | null
           topic_slug: string
           translations?: Json | null
           updated_at?: string | null
@@ -4226,6 +4291,7 @@ export type Database = {
           date_modified?: string | null
           date_published?: string | null
           external_citations?: Json | null
+          featured_carriers?: string[] | null
           featured_image_alt?: string | null
           featured_image_caption?: string | null
           featured_image_height?: number | null
@@ -4247,10 +4313,13 @@ export type Database = {
           qa_entities?: Json | null
           redirect_to?: string | null
           region?: string
+          regulations_summary?: string | null
           reviewer_id?: string | null
           source_language?: string | null
           speakable_answer?: string
+          state_code?: string | null
           status?: string
+          tax_advantages?: string | null
           topic_slug?: string
           translations?: Json | null
           updated_at?: string | null
@@ -4311,17 +4380,25 @@ export type Database = {
           baths: number
           beds_max: number | null
           beds_min: number
+          carrier: string | null
+          cash_value_projection: Json | null
           category: string
           created_at: string | null
+          death_benefit: number | null
           descriptions: Json
           display_order: number | null
           id: string
+          illustration_url: string | null
           images: Json
           internal_name: string
           internal_ref: string | null
           is_active: boolean | null
+          living_benefits: string[] | null
           location: string
+          monthly_premium: number | null
           price_eur: number
+          product_highlights: string[] | null
+          product_type: string | null
           size_sqm: number
           updated_at: string | null
         }
@@ -4329,17 +4406,25 @@ export type Database = {
           baths: number
           beds_max?: number | null
           beds_min: number
+          carrier?: string | null
+          cash_value_projection?: Json | null
           category: string
           created_at?: string | null
+          death_benefit?: number | null
           descriptions?: Json
           display_order?: number | null
           id?: string
+          illustration_url?: string | null
           images?: Json
           internal_name: string
           internal_ref?: string | null
           is_active?: boolean | null
+          living_benefits?: string[] | null
           location: string
+          monthly_premium?: number | null
           price_eur: number
+          product_highlights?: string[] | null
+          product_type?: string | null
           size_sqm: number
           updated_at?: string | null
         }
@@ -4347,17 +4432,25 @@ export type Database = {
           baths?: number
           beds_max?: number | null
           beds_min?: number
+          carrier?: string | null
+          cash_value_projection?: Json | null
           category?: string
           created_at?: string | null
+          death_benefit?: number | null
           descriptions?: Json
           display_order?: number | null
           id?: string
+          illustration_url?: string | null
           images?: Json
           internal_name?: string
           internal_ref?: string | null
           is_active?: boolean | null
+          living_benefits?: string[] | null
           location?: string
+          monthly_premium?: number | null
           price_eur?: number
+          product_highlights?: string[] | null
+          product_type?: string | null
           size_sqm?: number
           updated_at?: string | null
         }
