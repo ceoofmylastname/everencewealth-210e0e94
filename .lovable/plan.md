@@ -1,82 +1,62 @@
 
 
-# Phase 9.1.4 -- IndexedAdvantage Component
+# Phase 9.1.5 -- WealthPhilosophy Component
 
 ## Overview
-Create a new `IndexedAdvantage.tsx` component in `src/components/homepage/` that explains indexed strategies (IUL focus) using a two-column layout with an interactive recharts comparison chart on the left and a benefits checklist on the right.
+Create a new `WealthPhilosophy.tsx` component that contrasts the "Traditional Model" against the "Everence Model" in a side-by-side comparison, followed by a Warren Buffett pullquote. Positioned after `IndexedAdvantage` and before `WhyChooseUs` on the homepage.
 
 ## Design
-- White background (`bg-white`) for clean contrast after the cream TaxBuckets section
-- Two-column layout: chart left, benefits right (stacks on mobile)
-- Interactive recharts `AreaChart` comparing S&P 500 vs IUL with floor/cap
-- "Zero is Your Hero" callout box with evergreen accent
-- Scroll-triggered framer-motion animations
-- CTA: "See Indexed Strategy Comparison" linking to `/strategies`
+- Cream background (`bg-[#F0F2F1]`) section with `max-w-6xl` container
+- Centered headline ("From Accumulation to Abundance") and subhead in serif font
+- Two-column grid (`grid-cols-1 md:grid-cols-2 gap-8`) with color-coded cards:
+  - **Left card (Traditional):** `bg-red-50`, `border-red-200` -- six items prefixed with X icons in red
+  - **Right card (Everence):** `bg-emerald-50`, `border-emerald-200` -- six items prefixed with CheckCircle icons in evergreen
+- Pullquote block below the grid with italic serif text, attributed to Warren Buffett, using a left border accent in evergreen
+- Scroll-triggered stagger animations matching the existing `containerVariants`/`cardVariants` pattern from sibling components
 
 ## Technical Details
 
-### New File: `src/components/homepage/IndexedAdvantage.tsx`
+### New File: `src/components/homepage/WealthPhilosophy.tsx`
 
 **Structure:**
-1. Section wrapper: `bg-white`, responsive padding, `max-w-6xl` container
-2. Animated headline: "The Indexed Advantage: Growth Without the Risk" (serif, centered)
-3. Animated subhead: "Participate in market gains. Protected from market losses."
-4. Two-column grid (`grid-cols-1 lg:grid-cols-2 gap-12`):
+1. Section wrapper: `bg-[#F0F2F1]`, responsive padding, `max-w-6xl` container
+2. Animated headline: "From Accumulation to Abundance" (serif, centered)
+3. Animated subhead: "Rethinking the retirement model"
+4. Two cards in `grid grid-cols-1 md:grid-cols-2 gap-8`:
 
-**Left Column -- "How Indexed Universal Life Works"**
-- Small heading explaining IUL mechanics
-- Floor/Cap labels: "Floor: 0% (never lose money)" and "Cap: 10-12% (participation in up years)"
-- Recharts `AreaChart` inside a `ChartContainer` (from `src/components/ui/chart.tsx`) with:
-  - ~10 year data points showing S&P 500 returns (with negatives) vs IUL returns (floored at 0, capped at ~11)
-  - S&P area in semi-transparent red for down years / blue for up
-  - IUL area in evergreen (`#1A4D3E`)
-  - Tooltip via `ChartTooltip` / `ChartTooltipContent`
-  - X-axis (years), Y-axis (% return)
-- Chart data hardcoded as a simple array of objects
+**Left Card -- Traditional Model**
+- Title: "Traditional Model" with red accent
+- Six line items with `X` icon (lucide-react) in red:
+  - Save and wait
+  - Gamble on market timing
+  - Accept volatility as "normal"
+  - Pay fees to middlemen
+  - Hope your nest egg lasts
+  - Stress over RMDs and taxes
 
-**Right Column -- Key Benefits**
-- Six benefit items, each with a `CheckCircle` icon in evergreen and text:
-  - Tax-free death benefit
-  - Tax-free cash value access
-  - Living benefits (chronic/critical/terminal illness)
-  - No RMDs
-  - Asset protection from creditors
-  - Estate planning tool
-- Each item staggers in with framer-motion
-- "Zero is Your Hero" callout box: rounded card with `bg-[#1A4D3E]/5` border, bold headline, and short explanation
+**Right Card -- Everence Model**
+- Title: "Everence Model" with evergreen accent
+- Six line items with `CheckCircle` icon in evergreen:
+  - Build tax-free cash flow
+  - Eliminate sequence-of-returns risk
+  - Protect principal with floor guarantees
+  - Work with a fiduciary, not a salesman
+  - Create generational wealth transfer
+  - Control your tax destiny
 
-**CTA:** Centered button below both columns, links to `/strategies` via `useNavigate`
+**Pullquote:**
+- Centered block below grid with `border-l-4 border-[#1A4D3E]` left accent
+- Italic serif quote: "Warren Buffett's Rule #1: Never lose money. Rule #2: Never forget Rule #1."
+- Attribution line below
 
-**Animation approach:**
-- Headline/subhead: `whileInView` fade-up (same as sibling sections)
-- Left column (chart): fades in from left
-- Right column (benefits): staggered fade-in from right
-- Callout box: slight scale-up on scroll
+**Animation:** Reuses `containerVariants`/`cardVariants` stagger pattern. Pullquote fades in separately with slight delay.
 
-**Dependencies (all installed):**
-- `recharts` + `ChartContainer`/`ChartTooltip` from `src/components/ui/chart.tsx`
-- `framer-motion`
-- `lucide-react` (`CheckCircle`)
-- `react-router-dom` (`useNavigate`)
-
-### Chart Data (hardcoded)
-```
-Year | S&P 500 | IUL
-2014 |   13.7  | 11.0
-2015 |    1.4  |  1.4
-2016 |   12.0  | 11.0
-2017 |   21.8  | 11.0
-2018 |   -4.4  |  0.0
-2019 |   31.5  | 11.0
-2020 |   18.4  | 11.0
-2021 |   28.7  | 11.0
-2022 |  -18.1  |  0.0
-2023 |   26.3  | 11.0
-```
+**Dependencies (all installed):** `framer-motion`, `lucide-react` (`X`, `CheckCircle`)
 
 ### Integration into `src/pages/Home.tsx`
-- Import `IndexedAdvantage` from `@/components/homepage/IndexedAdvantage`
-- Place it after `TaxBuckets` and before `WhyChooseUs`
+- Import `WealthPhilosophy` from `@/components/homepage/WealthPhilosophy`
+- Insert `<WealthPhilosophy />` after `<IndexedAdvantage />` (line 73) and before `<WhyChooseUs />` (line 76)
+- Add comment: `{/* 1.9. Wealth Philosophy — contrarian positioning */}`
 
 ### No database, edge function, or translation changes required
 
