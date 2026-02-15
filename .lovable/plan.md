@@ -1,115 +1,46 @@
 
 
-# Phase 1: Foundation -- Branding, Colors, and Language Reduction
+# Phase 9.1.1 -- WakeUpCall Component
 
-This is the first of ~8-10 phases to transform Del Sol Prime Homes into Everence Wealth. Phase 1 focuses on the structural foundation that everything else builds on.
+## Overview
+Create a new `WakeUpCall.tsx` component in `src/components/homepage/` that serves as a contrarian hook section challenging traditional retirement advice. It will feature animated number counters, scroll-triggered animations, and a CTA linking to `/assessment`.
 
----
+## Design
+- Dark evergreen background (`#1A4D3E`) with white text
+- Three animated stat counters triggered on scroll via Intersection Observer
+- Framer Motion for fade-in animations (already installed)
+- Reuses the existing `useCountUp` / `useAnimatedCounter` hook for number animation
+- Follows existing section patterns (container, responsive padding)
 
-## What Phase 1 Covers
+## Technical Details
 
-1. **Brand colors and CSS variables** -- Replace the gold/navy palette with Evergreen/Slate
-2. **Language reduction** -- Strip 8 of 10 languages, keeping only English and Spanish
-3. **Site title, metadata, and SEO defaults** -- Replace "Del Sol Prime Homes" references
-4. **Navigation labels** -- Rename menu items (Properties to Strategies, etc.)
-5. **Homepage hero content** -- Replace real estate copy with insurance/wealth copy
+### New File: `src/components/homepage/WakeUpCall.tsx`
 
-## What Phase 1 Does NOT Cover (future phases)
+**Structure:**
+1. Section wrapper with `bg-[#1A4D3E]` background, full-width, responsive padding
+2. Headline: "The Retirement Crisis Wall Street Won't Tell You About"
+3. Subhead: "While they promise 8% returns, the math tells a different story"
+4. Three stat cards in a responsive grid (1-col mobile, 3-col desktop):
+   - "67%" -- "of Americans are behind on retirement savings"
+   - "$1.2M" -- "average retirement gap for middle-class families"
+   - "72%" -- "don't understand how taxes will impact retirement income"
+5. CTA button: "See Your Retirement Gap" linking to `/assessment`
 
-- Database schema changes (Phase 2)
-- Edge function prompt updates (Phase 3)
-- CRM terminology updates (Phase 4)
-- Admin CMS label updates (Phase 5)
-- Chatbot personality swap (Phase 6)
-- Content page rewrites (Phase 7)
-- SEO schema and hreflang cleanup (Phase 8)
+**Animation approach:**
+- Use `useAnimatedCounter` from `src/hooks/useCountUp.ts` for each stat (scroll-triggered, already has Intersection Observer built in)
+- Wrap the section content in `framer-motion` `motion.div` with `whileInView` fade-in-up for headline/subhead/CTA
+- Stat cards get staggered entrance using framer-motion `variants` with increasing delay
 
----
+**Dependencies used (all already installed):**
+- `framer-motion` for scroll-triggered fade animations
+- `useAnimatedCounter` hook for number counters
+- `react-router-dom` `useNavigate` for CTA navigation
+- `lucide-react` for optional icon accents (e.g., `TrendingDown`, `AlertTriangle`)
 
-## Detailed Changes
+### Integration into `src/pages/Home.tsx`
+- Import `WakeUpCall` from `@/components/homepage/WakeUpCall`
+- Place it after the `Hero` section and before `WhyChooseUs` to serve as the emotional hook
 
-### 1. Color Palette Update
-
-**File: `src/index.css`** -- Update CSS custom properties:
-
-```text
-Current                          New (HSL)
---primary: 42 58% 60% (gold)    --primary: 160 48% 21% (Evergreen #1A4D3E)
---accent: 42 58% 60% (gold)     --accent: 160 48% 21% (Evergreen)
---background: 40 20% 98%        --background: 100 8% 95% (Cream #F0F2F1)
---secondary: 204 35% 88%        --secondary: 215 10% 35% (Slate #4A5565)
-```
-
-Also update custom colors:
-- `landing-navy` stays similar (dark text)
-- `landing-gold` / `prime-gold` to Evergreen tones
-- Add `everence-green`, `everence-slate`, `everence-cream` utility colors
-
-### 2. Language Reduction (10 to 2)
-
-**Files affected:**
-- `src/types/home.ts` -- Remove 8 enum values, keep EN + ES (add ES to enum)
-- `src/i18n/translations/index.ts` -- Remove 8 imports, keep en + es
-- `src/i18n/translations/en.ts` -- Update content to Everence Wealth
-- `src/i18n/translations/es.ts` -- Update content to Everence Wealth (Spanish)
-- Remove translation files: `nl.ts`, `fr.ts`, `de.ts`, `fi.ts`, `pl.ts`, `da.ts`, `hu.ts`, `sv.ts`, `no.ts`
-- `src/components/landing/LanguageSelector.tsx` -- Only show EN/ES
-- `src/components/retargeting/RetargetingLanguageSelector.tsx` -- Only EN/ES
-- `src/types/hreflang.ts` -- Reduce SUPPORTED_LANGUAGES to ['en', 'es']
-- `src/App.tsx` -- Remove 8 landing page routes, 8 retargeting routes, keep EN/ES only
-- Remove landing page directories: `src/pages/landing/nl/`, `fr/`, `de/`, etc. (keep `en/` and add `es/`)
-
-### 3. Navigation Labels
-
-Update the navigation/header translations:
-
-```text
-Properties     -> Strategies
-Locations      -> States  
-Blog           -> Education
-Buyer's Guide  -> Client Guide
-Glossary       -> Financial Terms
-About          -> Our Philosophy
-Team           -> Our Advisors
-Contact        -> Get Started
-```
-
-### 4. Homepage Hero Content
-
-**File: `src/components/home/sections/Hero.tsx`** and translation files:
-
-- Replace headline: "Your trusted partner in Costa del Sol real estate" with "Bridge the Retirement Gap. Protect What Matters."
-- Replace tagline with wealth management messaging
-- Replace CTAs: "Find Properties" to "Explore Strategies", "Talk to Emma" to "Get Started"
-- Replace trust badges: "API Connected" to "75+ Carriers", "35+ Years" stays, "500+ Buyers" to "Fiduciary Advisors"
-- Replace background video/image with professional financial imagery
-
-### 5. SEO Metadata
-
-Update default site metadata across:
-- Page titles
-- Meta descriptions
-- OG images reference
-- Organization info (San Francisco address)
-
----
-
-## Technical Notes
-
-- The `tailwind.config.lov.json` is auto-generated and should not be edited directly; color changes go through `src/index.css` CSS variables
-- Language enum changes will cause TypeScript errors in many files -- these will be addressed by updating all references from removed languages
-- Landing page routes in App.tsx for removed languages will be deleted
-- The retargeting routes config (`src/lib/retargetingRoutes.ts`) needs to be reduced to EN/ES only
-- ES (Spanish) exists in some files already (retargeting) but needs to be added to the main i18n system
-
----
-
-## Estimated Scope
-
-- ~30 files modified
-- ~10 files deleted (unused language translations and landing pages)
-- Zero database changes
-- Zero edge function changes
-
-This phase creates a clean foundation so all subsequent phases build on the correct brand identity and language configuration.
+### No database, edge function, or translation file changes required
+- Content is hardcoded in English for now (Spanish translation can follow in a separate pass)
 
