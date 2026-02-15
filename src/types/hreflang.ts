@@ -8,7 +8,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
  * Array of exactly 10 supported language codes for hreflang tags.
  * These match the languages available in the CMS content.
  */
-export const SUPPORTED_LANGUAGES = ['en', 'nl', 'hu', 'de', 'fr', 'sv', 'pl', 'no', 'fi', 'da'] as const;
+export const SUPPORTED_LANGUAGES = ['en', 'es'] as const;
 
 /**
  * Base URL for generating canonical URLs and hreflang hrefs.
@@ -17,8 +17,8 @@ export const SUPPORTED_LANGUAGES = ['en', 'nl', 'hu', 'de', 'fr', 'sv', 'pl', 'n
 export const BASE_URL = typeof window !== 'undefined'
   ? (window.location.hostname === 'localhost'
     ? window.location.origin
-    : 'https://www.delsolprimehomes.com')
-  : 'https://www.delsolprimehomes.com';
+    : 'https://www.everencewealth.com')
+  : 'https://www.everencewealth.com';
 
 // =============================================================================
 // TYPES
@@ -85,16 +85,8 @@ export const LANGUAGE_METADATA: Record<SupportedLanguage, {
   nativeName: string; 
   flag: string;
 }> = {
-  en: { name: 'English', nativeName: 'English', flag: '🇬🇧' },
-  nl: { name: 'Dutch', nativeName: 'Nederlands', flag: '🇳🇱' },
-  hu: { name: 'Hungarian', nativeName: 'Magyar', flag: '🇭🇺' },
-  de: { name: 'German', nativeName: 'Deutsch', flag: '🇩🇪' },
-  fr: { name: 'French', nativeName: 'Français', flag: '🇫🇷' },
-  sv: { name: 'Swedish', nativeName: 'Svenska', flag: '🇸🇪' },
-  pl: { name: 'Polish', nativeName: 'Polski', flag: '🇵🇱' },
-  no: { name: 'Norwegian', nativeName: 'Norsk', flag: '🇳🇴' },
-  fi: { name: 'Finnish', nativeName: 'Suomi', flag: '🇫🇮' },
-  da: { name: 'Danish', nativeName: 'Dansk', flag: '🇩🇰' },
+  en: { name: 'English', nativeName: 'English', flag: '🇺🇸' },
+  es: { name: 'Spanish', nativeName: 'Español', flag: '🇪🇸' },
 };
 
 // =============================================================================

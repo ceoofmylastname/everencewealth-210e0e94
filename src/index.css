@@ -14,7 +14,7 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 40 20% 98%;
+    --background: 100 8% 95%;
     --foreground: 215 25% 15%;
 
     --card: 0 0% 100%;
@@ -23,24 +23,24 @@ All colors MUST be HSL.
     --popover: 0 0% 100%;
     --popover-foreground: 215 25% 15%;
 
-    --primary: 42 58% 60%;
+    --primary: 160 48% 21%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 204 35% 88%;
-    --secondary-foreground: 215 25% 15%;
+    --secondary: 215 10% 35%;
+    --secondary-foreground: 0 0% 100%;
 
-    --muted: 40 15% 94%;
-    --muted-foreground: 42 15% 45%;
+    --muted: 100 8% 91%;
+    --muted-foreground: 215 10% 45%;
 
-    --accent: 42 58% 60%;
+    --accent: 160 48% 21%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 40 15% 90%;
-    --input: 40 15% 90%;
-    --ring: 42 58% 60%;
+    --border: 100 8% 88%;
+    --input: 100 8% 88%;
+    --ring: 160 48% 21%;
 
     --radius: 0.75rem;
 
@@ -48,17 +48,17 @@ All colors MUST be HSL.
 
     --sidebar-foreground: 215 25% 15%;
 
-    --sidebar-primary: 42 58% 60%;
+    --sidebar-primary: 160 48% 21%;
 
     --sidebar-primary-foreground: 0 0% 100%;
 
-    --sidebar-accent: 40 15% 94%;
+    --sidebar-accent: 100 8% 91%;
 
     --sidebar-accent-foreground: 215 25% 15%;
 
-    --sidebar-border: 40 15% 90%;
+    --sidebar-border: 100 8% 88%;
 
-    --sidebar-ring: 42 58% 60%;
+    --sidebar-ring: 160 48% 21%;
   }
 
   .dark {
@@ -71,16 +71,16 @@ All colors MUST be HSL.
     --popover: 215 28% 12%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 42 58% 60%;
+    --primary: 160 48% 30%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 204 25% 30%;
+    --secondary: 215 10% 30%;
     --secondary-foreground: 210 40% 98%;
 
     --muted: 217 33% 17%;
-    --muted-foreground: 42 20% 60%;
+    --muted-foreground: 160 15% 55%;
 
-    --accent: 42 58% 60%;
+    --accent: 160 48% 30%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 63% 31%;
@@ -88,15 +88,15 @@ All colors MUST be HSL.
 
     --border: 217 33% 20%;
     --input: 217 33% 20%;
-    --ring: 42 58% 60%;
+    --ring: 160 48% 30%;
     --sidebar-background: 215 28% 10%;
     --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 42 58% 60%;
+    --sidebar-primary: 160 48% 30%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 217 33% 17%;
     --sidebar-accent-foreground: 210 40% 98%;
     --sidebar-border: 217 33% 17%;
-    --sidebar-ring: 42 58% 60%;
+    --sidebar-ring: 160 48% 30%;
   }
 }
 
@@ -204,7 +204,7 @@ All colors MUST be HSL.
 .article-content h2 {
   @apply text-2xl md:text-3xl font-bold mt-20 mb-8 scroll-mt-24;
   font-family: 'Playfair Display', serif;
-  color: hsl(42 58% 45%);
+  color: hsl(160 48% 21%);
   letter-spacing: -0.02em;
 }
 
@@ -223,7 +223,7 @@ All colors MUST be HSL.
 }
 
 .article-content .external-link {
-  @apply text-[hsl(42_40%_55%)] hover:underline;
+  @apply text-[hsl(160_40%_35%)] hover:underline;
 }
 
 .article-content .citation-marker {
@@ -300,13 +300,13 @@ All colors MUST be HSL.
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.7) 100%);
-    border: 1px solid rgba(197, 160, 89, 0.2);
+    border: 1px solid rgba(26, 77, 62, 0.2);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.5);
   }
 
   .dark .glass-luxury {
     background: linear-gradient(135deg, rgba(15, 23, 42, 0.9) 0%, rgba(15, 23, 42, 0.7) 100%);
-    border: 1px solid rgba(197, 160, 89, 0.3);
+    border: 1px solid rgba(26, 77, 62, 0.3);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05);
   }
 
@@ -363,7 +363,7 @@ All colors MUST be HSL.
   }
 
   .hover-glow-luxury:hover {
-    box-shadow: 0 0 40px rgba(197, 160, 89, 0.4), 0 0 80px rgba(197, 160, 89, 0.2);
+    box-shadow: 0 0 40px rgba(26, 77, 62, 0.4), 0 0 80px rgba(26, 77, 62, 0.2);
   }
 
   /* Custom scrollbar */
@@ -442,7 +442,7 @@ All colors MUST be HSL.
 
   /* Text Gradients */
   .text-gradient-gold {
-    background: linear-gradient(135deg, #C5A059 0%, #E5C687 50%, #997B3D 100%);
+    background: linear-gradient(135deg, #1A4D3E 0%, #2D8B73 50%, #134032 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -536,8 +536,8 @@ All colors MUST be HSL.
 
   /* Luxury Badge */
   .badge-luxury {
-    background: linear-gradient(135deg, rgba(197, 160, 89, 0.2) 0%, rgba(197, 160, 89, 0.1) 100%);
-    border: 1px solid rgba(197, 160, 89, 0.3);
+    background: linear-gradient(135deg, rgba(26, 77, 62, 0.2) 0%, rgba(26, 77, 62, 0.1) 100%);
+    border: 1px solid rgba(26, 77, 62, 0.3);
     color: hsl(var(--primary));
   }
 
@@ -565,11 +565,11 @@ All colors MUST be HSL.
 
     0%,
     100% {
-      box-shadow: 0 0 20px rgba(197, 160, 89, 0.4), 0 0 40px rgba(197, 160, 89, 0.2);
+      box-shadow: 0 0 20px rgba(26, 77, 62, 0.4), 0 0 40px rgba(26, 77, 62, 0.2);
     }
 
     50% {
-      box-shadow: 0 0 30px rgba(197, 160, 89, 0.6), 0 0 60px rgba(197, 160, 89, 0.3);
+      box-shadow: 0 0 30px rgba(26, 77, 62, 0.6), 0 0 60px rgba(26, 77, 62, 0.3);
     }
   }
 
@@ -608,9 +608,9 @@ All colors MUST be HSL.
   /* Shimmer overlay effect - for loading states and decorative shimmers */
   .shimmer-overlay {
     background: linear-gradient(90deg,
-        rgba(197, 160, 89, 0) 0%,
-        rgba(197, 160, 89, 0.3) 50%,
-        rgba(197, 160, 89, 0) 100%);
+        rgba(26, 77, 62, 0) 0%,
+        rgba(26, 77, 62, 0.3) 50%,
+        rgba(26, 77, 62, 0) 100%);
     background-size: 200% 100%;
     animation: shimmer 3s ease-in-out infinite;
   }
@@ -693,7 +693,7 @@ All colors MUST be HSL.
 
 /* Gradient Text */
 .text-gradient {
-  background: linear-gradient(135deg, #D4A574 0%, #FF8C42 100%);
+  background: linear-gradient(135deg, #1A4D3E 0%, #2D8B73 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -759,8 +759,8 @@ All colors MUST be HSL.
 
 .landing-form-phone-input:focus-within {
   outline: none;
-  border-color: #D4A853;
-  box-shadow: 0 0 0 2px rgba(212, 168, 83, 0.25);
+  border-color: #1A4D3E;
+  box-shadow: 0 0 0 2px rgba(26, 77, 62, 0.25);
 }
 
 .landing-form-phone-input .PhoneInputInput {

@@ -10,31 +10,13 @@ interface RetargetingLanguageSelectorProps {
 }
 
 const languageFlags: Record<string, string> = {
-  en: "🇬🇧",
-  nl: "🇳🇱",
-  de: "🇩🇪",
-  fr: "🇫🇷",
+  en: "🇺🇸",
   es: "🇪🇸",
-  pl: "🇵🇱",
-  sv: "🇸🇪",
-  da: "🇩🇰",
-  hu: "🇭🇺",
-  fi: "🇫🇮",
-  no: "🇳🇴",
 };
 
 const languageNames: Record<string, string> = {
   en: "English",
-  nl: "Nederlands",
-  de: "Deutsch",
-  fr: "Français",
   es: "Español",
-  pl: "Polski",
-  sv: "Svenska",
-  da: "Dansk",
-  hu: "Magyar",
-  fi: "Suomi",
-  no: "Norsk",
 };
 
 export const RetargetingLanguageSelector = ({
@@ -46,7 +28,6 @@ export const RetargetingLanguageSelector = ({
   const location = useLocation();
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -69,7 +50,7 @@ export const RetargetingLanguageSelector = ({
         onClick={() => setIsOpen(!isOpen)}
         className={`flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
           scrolled
-            ? "text-landing-navy/70 hover:text-landing-navy hover:bg-gray-100"
+            ? "text-foreground/70 hover:text-foreground hover:bg-gray-100"
             : "text-white/80 hover:text-white hover:bg-white/10"
         }`}
         aria-label="Select language"
@@ -98,8 +79,8 @@ export const RetargetingLanguageSelector = ({
                   onClick={() => handleLanguageChange(route.lang)}
                   className={`flex items-center gap-2 w-full text-left px-4 py-2.5 text-sm transition-colors ${
                     currentLang === route.lang
-                      ? "bg-landing-gold/10 text-landing-gold font-medium"
-                      : "text-landing-navy hover:bg-gray-50"
+                      ? "bg-primary/10 text-primary font-medium"
+                      : "text-foreground hover:bg-gray-50"
                   }`}
                 >
                   <span>{languageFlags[route.lang]}</span>

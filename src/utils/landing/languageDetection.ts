@@ -1,13 +1,8 @@
-export type LanguageCode = 'en' | 'nl' | 'fr' | 'de' | 'fi' | 'pl' | 'da' | 'hu' | 'sv' | 'no';
+export type LanguageCode = 'en' | 'es';
 
-export const SUPPORTED_LANGUAGES: LanguageCode[] = ['en', 'nl', 'fr', 'de', 'fi', 'pl', 'da', 'hu', 'sv', 'no'];
+export const SUPPORTED_LANGUAGES: LanguageCode[] = ['en', 'es'];
 
 export const detectUserLanguage = (): LanguageCode => {
-  // Priority order:
-  // 1. URL parameter (?lang=nl) - although we use route params mainly
-  // 2. Browser language (navigator.language)
-  // 3. Fallback to English
-  
   const urlParams = new URLSearchParams(window.location.search);
   const urlLang = urlParams.get('lang');
   
@@ -20,7 +15,7 @@ export const detectUserLanguage = (): LanguageCode => {
     return browserLang as LanguageCode;
   }
   
-  return 'en'; // Default fallback
+  return 'en';
 };
 
 export const getLanguageFromPath = (path: string): LanguageCode => {

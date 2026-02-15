@@ -11,11 +11,11 @@ export const Hero: React.FC = () => {
   const [videoLoaded, setVideoLoaded] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  const openEmmaChat = () => {
+  const openAssistant = () => {
     window.dispatchEvent(new CustomEvent('openEmmaChat'));
   };
 
-  const goToPropertyFinder = () => {
+  const goToStrategyFinder = () => {
     navigate(`/${currentLanguage}/properties`);
   };
 
@@ -41,8 +41,8 @@ export const Hero: React.FC = () => {
       <div className="absolute inset-0 z-0">
         {/* High-priority poster image for LCP */}
         <img
-          src="https://images.unsplash.com/photo-1512917774080-9991f1c4c750?q=80&w=2070&auto=format&fit=crop"
-          alt="Costa del Sol luxury property"
+          src="https://images.unsplash.com/photo-1560472355-536de3962603?q=80&w=2070&auto=format&fit=crop"
+          alt="Professional financial advisor consultation"
           width={2070}
           height={1380}
           loading="eager"
@@ -57,12 +57,12 @@ export const Hero: React.FC = () => {
           loop
           playsInline
           preload="auto"
-          poster="https://images.unsplash.com/photo-1512917774080-9991f1c4c750?q=80&w=2070&auto=format&fit=crop"
-          aria-label="Costa del Sol property showcase video"
+          poster="https://images.unsplash.com/photo-1560472355-536de3962603?q=80&w=2070&auto=format&fit=crop"
+          aria-label="Everence Wealth financial planning showcase"
           className={`absolute inset-0 w-full h-full object-cover scale-110 transition-opacity duration-700 ${videoLoaded ? 'opacity-100' : 'opacity-0'}`}
           onCanPlay={() => setVideoLoaded(true)}
         >
-          <source src="https://storage.googleapis.com/msgsndr/9m2UBN29nuaCWceOgW2Z/media/692d1c5b82f4c5ebf1442f43.mp4" type="video/mp4" />
+          <source src="https://images.unsplash.com/photo-1560472355-536de3962603?q=80&w=2070&auto=format&fit=crop" type="video/mp4" />
         </video>
         {/* Subtle gradient overlay for text readability while keeping video visible */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/20 to-black/40" />
@@ -74,7 +74,7 @@ export const Hero: React.FC = () => {
         <div className="flex flex-wrap items-center justify-center gap-2 md:gap-4 mb-8 md:mb-12 reveal-on-scroll">
           {/* API Badge */}
           <div className="flex items-center gap-1.5 md:gap-2 px-3 md:px-4 py-1.5 md:py-2 rounded-full bg-white/15 border border-white/30 backdrop-blur-sm">
-            <ShieldCheck size={16} className="text-prime-gold md:w-5 md:h-5" />
+            <ShieldCheck size={16} className="text-primary md:w-5 md:h-5" />
             <span className="text-white text-xs md:text-sm font-medium [text-shadow:_0_1px_2px_rgb(0_0_0)]">
               <span className="hidden md:inline">{t.hero.trustBadges.api}</span>
               <span className="md:hidden">{(t.hero as any).trustBadgesMobile?.api || 'API'}</span>
@@ -83,7 +83,7 @@ export const Hero: React.FC = () => {
           
           {/* Experience Badge */}
           <div className="flex items-center gap-1.5 md:gap-2 px-3 md:px-4 py-1.5 md:py-2 rounded-full bg-white/15 border border-white/30 backdrop-blur-sm">
-            <Star size={16} className="text-prime-gold md:w-5 md:h-5" />
+            <Star size={16} className="text-primary md:w-5 md:h-5" />
             <span className="text-white text-xs md:text-sm font-medium [text-shadow:_0_1px_2px_rgb(0_0_0)]">
               <span className="hidden md:inline">{t.hero.trustBadges.experience}</span>
               <span className="md:hidden">{(t.hero as any).trustBadgesMobile?.experience || '35+'}</span>
@@ -92,7 +92,7 @@ export const Hero: React.FC = () => {
           
           {/* Buyers Badge */}
           <div className="flex items-center gap-1.5 md:gap-2 px-3 md:px-4 py-1.5 md:py-2 rounded-full bg-white/15 border border-white/30 backdrop-blur-sm">
-            <Users size={16} className="text-prime-gold md:w-5 md:h-5" />
+            <Users size={16} className="text-primary md:w-5 md:h-5" />
             <span className="text-white text-xs md:text-sm font-medium [text-shadow:_0_1px_2px_rgb(0_0_0)]">
               <span className="hidden md:inline">{t.hero.trustBadges.buyers}</span>
               <span className="md:hidden">{(t.hero as any).trustBadgesMobile?.buyers || '500+'}</span>
@@ -106,7 +106,7 @@ export const Hero: React.FC = () => {
           style={{ letterSpacing: '-0.02em' }}
         >
           {t.hero.headline} <br className="hidden md:block" />
-          <span className="text-prime-gold italic [text-shadow:_2px_2px_8px_rgb(0_0_0_/_50%)]">
+          <span className="text-primary italic [text-shadow:_2px_2px_8px_rgb(0_0_0_/_50%)]">
             {t.hero.headlineHighlight}
           </span>
         </h1>
@@ -124,8 +124,8 @@ export const Hero: React.FC = () => {
           <Button 
             variant="secondary" 
             size="lg" 
-            className="h-12 md:h-14 px-6 md:px-8 bg-prime-gold hover:bg-[#C19A2E] text-prime-900 font-semibold rounded-lg shadow-[0_4px_12px_rgb(0_0_0_/_15%)] transition-all duration-300"
-            onClick={goToPropertyFinder}
+            className="h-12 md:h-14 px-6 md:px-8 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold rounded-lg shadow-[0_4px_12px_rgb(0_0_0_/_15%)] transition-all duration-300"
+            onClick={goToStrategyFinder}
           >
             {t.hero.ctaPrimary}
           </Button>
@@ -133,7 +133,7 @@ export const Hero: React.FC = () => {
             variant="outline" 
             size="lg" 
             className="h-12 md:h-14 px-6 md:px-8 bg-transparent border-2 border-white text-white hover:bg-white/10 font-semibold rounded-lg transition-all duration-300"
-            onClick={openEmmaChat}
+            onClick={openAssistant}
           >
             {t.hero.ctaSecondary}
           </Button>
