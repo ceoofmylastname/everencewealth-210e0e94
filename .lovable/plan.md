@@ -1,61 +1,54 @@
 
 
-# Phase 9.1.6 -- FiduciaryDifference Component
+# Phase 9.1.8 -- Homepage About Component
 
 ## Overview
-Create a new `FiduciaryDifference.tsx` component with a dark evergreen background and white text, featuring a three-column grid of cards explaining the fiduciary advantage. Positioned after `WealthPhilosophy` and before `WhyChooseUs` on the homepage.
+Create a new `HomepageAbout.tsx` component (named to avoid collision with the existing `src/pages/About.tsx` page) that provides a brief Everence Wealth origin story. Positioned after `FiduciaryDifference` and before `WhyChooseUs` on the homepage.
 
 ## Design
-- Dark evergreen background (`bg-[#1A4D3E]`) for strong contrast after the cream WealthPhilosophy section
-- White text throughout
-- Three cards with semi-transparent white backgrounds (`bg-white/10`, `border border-white/20`)
-- Scroll-triggered stagger animations (same `containerVariants`/`cardVariants` pattern)
-- Trust badges row at the bottom (text-based: "Licensed in 50 States", "75+ Carriers", "Fiduciary Standard")
+- Cream background (`bg-[#F0F2F1]`) for contrast after the dark evergreen FiduciaryDifference section
+- Two-column layout: text left, decorative image placeholder right (stacks on mobile)
+- Evergreen accent on key facts
+- Testimonial quote overlay on the right column
 
 ## Technical Details
 
-### New File: `src/components/homepage/FiduciaryDifference.tsx`
+### New File: `src/components/homepage/HomepageAbout.tsx`
 
 **Structure:**
-1. Section wrapper: `bg-[#1A4D3E]`, responsive padding, `max-w-6xl` container
-2. Animated headline: "The Fiduciary Difference" (white, serif, centered)
-3. Animated subhead: "Independent. Objective. In your corner." (white/70)
-4. Three cards in `grid grid-cols-1 md:grid-cols-3 gap-8`:
+1. Section wrapper: `bg-[#F0F2F1]`, responsive padding, `max-w-6xl` container
+2. Two-column grid (`grid-cols-1 lg:grid-cols-2 gap-12`):
 
-**Card 1 -- Independent Broker**
-- Icon: `Building2` (white)
-- Title: "Independent Broker"
-- Three bullet points:
-  - Access to 75+ carriers
-  - Not captive to one company
-  - Shop the market for your best fit
+**Left Column -- Story**
+- Headline: "Everence Wealth: Built on Independence" (serif, evergreen)
+- Two paragraphs of origin story text (as specified in the brief)
+- Four key facts in a 2x2 grid below the text, each with:
+  - Bold value ("Since 1998", "75+", etc.)
+  - Descriptor label below
+  - Left border accent in evergreen (`border-l-2 border-[#1A4D3E] pl-4`)
 
-**Card 2 -- Fiduciary Duty**
-- Icon: `ShieldCheck` (white)
-- Title: "Fiduciary Duty"
-- Three bullet points:
-  - Legally obligated to act in YOUR best interest
-  - No hidden commission conflicts
-  - Transparent fee structure
+**Right Column -- Visual**
+- Rounded placeholder card with `bg-[#1A4D3E]/10` and a subtle gradient, representing where a team photo or SF skyline would go
+- Overlaid testimonial quote at the bottom of the card:
+  - Italic serif text in a semi-transparent white card
+  - Attribution line
 
-**Card 3 -- Holistic Planning**
-- Icon: `Network` (white)
-- Title: "Holistic Planning"
-- Three bullet points:
-  - Retirement gap analysis
-  - Tax bucket optimization
-  - Estate and legacy planning
+**Key Facts Data:**
+```
+Since 1998 | Founded
+75+        | Carrier Partnerships
+Fiduciary  | Independent Advisor
+San Francisco, CA | Headquarters
+```
 
-**Trust Badges:** A row of three text badges below the cards with subtle dividers (`border-t border-white/20`, flex row). Simple text items like "Licensed in 50 States", "75+ Carriers", "Fiduciary Standard" with small icons.
+**Animation:** Same `containerVariants`/`cardVariants` framer-motion stagger pattern. Left column fades from left, right column fades from right.
 
-**Animation:** Same `containerVariants`/`cardVariants` stagger pattern as sibling components.
-
-**Dependencies (all installed):** `framer-motion`, `lucide-react` (`Building2`, `ShieldCheck`, `Network`)
+**Dependencies (all installed):** `framer-motion`, `lucide-react` (`MapPin`, `Building2`, `Calendar`, `Users`)
 
 ### Integration into `src/pages/Home.tsx`
-- Import `FiduciaryDifference` from `../components/homepage/FiduciaryDifference`
-- Insert `<FiduciaryDifference />` after `<WealthPhilosophy />` (line 77) and before `<WhyChooseUs />` (line 79)
-- Add comment: `{/* 1.10. Fiduciary Difference — trust builder */}`
+- Import `HomepageAbout` from `../components/homepage/HomepageAbout`
+- Insert `<HomepageAbout />` after `<FiduciaryDifference />` (line 81) and before `<WhyChooseUs />` (line 83)
+- Add comment: `{/* 1.11. About — origin story */}`
 
 ### No database, edge function, or translation changes required
 
