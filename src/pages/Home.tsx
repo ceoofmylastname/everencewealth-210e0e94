@@ -11,6 +11,7 @@ import { IndexedAdvantage } from '../components/homepage/IndexedAdvantage';
 import { WealthPhilosophy } from '../components/homepage/WealthPhilosophy';
 import { FiduciaryDifference } from '../components/homepage/FiduciaryDifference';
 import { HomepageAbout } from '../components/homepage/HomepageAbout';
+import { Testimonials } from '../components/homepage/Testimonials';
 import { WhyChooseUs } from '../components/home/sections/WhyChooseUs';
 import { QuickSearch } from '../components/home/sections/QuickSearch';
 import { MiniAbout, USPSection } from '../components/home/sections/ContentBlocks';
@@ -83,6 +84,9 @@ function Home() {
 
         {/* 1.11. About — origin story */}
         <HomepageAbout />
+
+        {/* 1.12. Testimonials — client stories */}
+        <Testimonials />
         
         {/* 2. Why Choose Us */}
         <WhyChooseUs />
