@@ -52,8 +52,9 @@ export default function PortalLogin() {
         .maybeSingle();
 
       if (portalError || !portalUser) {
+        const supportCode = authData.user.id.substring(0, 8).toUpperCase();
         await supabase.auth.signOut();
-        setError("You do not have a portal account. Contact your advisor.");
+        setError(`Account setup incomplete. Please contact support with code: ${supportCode}`);
         setLoading(false);
         return;
       }
