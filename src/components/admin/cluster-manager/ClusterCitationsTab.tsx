@@ -558,7 +558,7 @@ export const ClusterCitationsTab = ({ cluster }: ClusterCitationsTabProps) => {
             </DialogDescription>
           </DialogHeader>
 
-          <ScrollArea className="flex-1 pr-4">
+          <ScrollArea className="flex-1 min-h-0 pr-4">
             <div className="space-y-4">
               {discoveryResult?.results.map((result) => (
                 <Card key={result.articleId}>
