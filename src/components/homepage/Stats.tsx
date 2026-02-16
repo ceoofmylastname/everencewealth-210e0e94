@@ -1,37 +1,60 @@
-import React from 'react';
-import { useAnimatedCounter } from '@/hooks/useCountUp';
-import { ScrollReveal } from './ScrollReveal';
+import React, { useState, useEffect, useRef } from 'react';
 
-const metrics = [
-  { value: 27, suffix: '+', label: 'Years of Experience', prefix: '' },
-  { value: 1200, suffix: '+', label: 'Families Served', prefix: '' },
-  { value: 75, suffix: '+', label: 'Insurance Carriers', prefix: '' },
-  { value: 500, suffix: 'M+', label: 'Assets Protected', prefix: '$' },
-];
+interface StatItemProps {
+  value: number;
+  prefix?: string;
+  suffix: string;
+  label: string;
+}
 
-function StatItem({ value, suffix, prefix, label }: { value: number; suffix: string; prefix: string; label: string }) {
-  const counter = useAnimatedCounter(value, { suffix, prefix, duration: 2500 });
+function StatItem({ value, prefix = '', suffix, label }: StatItemProps) {
+  const [count, setCount] = useState(0);
+  const ref = useRef<HTMLDivElement>(null);
+  const hasAnimated = useRef(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      ([e]) => {
+        if (e.isIntersecting && !hasAnimated.current) {
+          hasAnimated.current = true;
+          const duration = 2000;
+          const start = performance.now();
+          const animate = (now: number) => {
+            const progress = Math.min((now - start) / duration, 1);
+            const eased = 1 - Math.pow(1 - progress, 3);
+            setCount(Math.floor(eased * value));
+            if (progress < 1) requestAnimationFrame(animate);
+          };
+          requestAnimationFrame(animate);
+        }
+      },
+      { threshold: 0.3 }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [value]);
 
   return (
-    <div className="flex-1 text-center px-6 py-8" ref={counter.elementRef}>
-      <p className="text-3xl md:text-4xl lg:text-5xl font-serif font-bold text-white mb-2">
-        {counter.formattedValue}
+    <div ref={ref} className="flex-1 text-center px-6 py-10">
+      <p className="text-5xl md:text-7xl font-space font-bold text-evergreen">
+        {prefix}{count}{suffix}
       </p>
-      <p className="text-white/50 text-sm tracking-wide uppercase">{label}</p>
+      <p className="text-muted-foreground text-sm tracking-wide uppercase font-space mt-2">{label}</p>
     </div>
   );
 }
 
 export const Stats: React.FC = () => (
-  <section className="relative py-16 bg-[hsl(160_80%_2%)]">
-    <div className="container mx-auto px-6">
-      <ScrollReveal>
-        <div className="flex flex-col md:flex-row divide-y md:divide-y-0 md:divide-x divide-white/10 border border-white/10 rounded-2xl glass-card">
-          {metrics.map((m) => (
-            <StatItem key={m.label} {...m} />
-          ))}
-        </div>
-      </ScrollReveal>
+  <section className="py-16 px-4 bg-white">
+    <div className="max-w-6xl mx-auto">
+      <div className="flex flex-col md:flex-row divide-y md:divide-y-0 md:divide-x divide-border border border-border rounded-2xl">
+        <StatItem value={500} prefix="$" suffix="M+" label="Assets Protected" />
+        <StatItem value={98} suffix="%" label="Client Satisfaction" />
+        <StatItem value={25} suffix="+" label="Years Experience" />
+        <StatItem value={75} suffix="+" label="Insurance Carriers" />
+      </div>
     </div>
   </section>
 );

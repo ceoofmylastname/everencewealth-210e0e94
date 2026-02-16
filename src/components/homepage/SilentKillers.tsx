@@ -1,169 +1,105 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { TrendingDown, Activity, Receipt } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+
+const killers = [
+  {
+    id: '01',
+    icon: TrendingDown,
+    title: 'Hidden Fees',
+    description: '2% annual fees can cost you $400K+ over 30 years. Most investors never see the true cost buried in fund expense ratios and advisory charges.',
+  },
+  {
+    id: '02',
+    icon: Activity,
+    title: 'Market Volatility',
+    description: 'A 50% loss requires a 100% gain just to break even. Sequence-of-returns risk can devastate portfolios at the worst possible time.',
+  },
+  {
+    id: '03',
+    icon: Receipt,
+    title: 'Tax Drag',
+    description: 'RMDs can push retirees into 35%+ tax brackets. The IRS takes their cut every year, compounding the damage over decades.',
+  },
+];
 
 const containerVariants = {
   hidden: {},
-  visible: {
-    transition: { staggerChildren: 0.15 }
-  }
+  visible: { transition: { staggerChildren: 0.15 } },
 };
 
 const cardVariants = {
   hidden: { opacity: 0, y: 40 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: 'easeOut' as const } }
+  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: 'easeOut' as const } },
 };
 
-const FeesVisual = () => (
-  <div className="mt-6 space-y-3">
-    <div className="flex items-center gap-2 text-xs text-slate-500">
-      <span className="w-16 shrink-0">0.5% fee</span>
-      <motion.div
-        className="h-5 rounded bg-[#1A4D3E]"
-        initial={{ width: 0 }}
-        whileInView={{ width: '100%' }}
-        viewport={{ once: true }}
-        transition={{ duration: 1.2, ease: 'easeOut' }}
-      />
-    </div>
-    <div className="flex items-center gap-2 text-xs text-slate-500">
-      <span className="w-16 shrink-0">2% fee</span>
-      <motion.div
-        className="h-5 rounded bg-red-400"
-        initial={{ width: 0 }}
-        whileInView={{ width: '58%' }}
-        viewport={{ once: true }}
-        transition={{ duration: 1.2, ease: 'easeOut', delay: 0.2 }}
-      />
-    </div>
-    <p className="text-[10px] text-slate-400 mt-1">Portfolio value after 30 years</p>
-  </div>
-);
-
-const VolatilityVisual = () => (
-  <div className="mt-6">
-    <svg viewBox="0 0 200 60" className="w-full h-14" fill="none">
-      <motion.path
-        d="M0,30 L30,30 L50,55 L80,55 L120,10 L160,30 L200,30"
-        stroke="#1A4D3E"
-        strokeWidth="2.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        initial={{ pathLength: 0 }}
-        whileInView={{ pathLength: 1 }}
-        viewport={{ once: true }}
-        transition={{ duration: 1.5, ease: 'easeInOut' }}
-      />
-      <motion.path
-        d="M0,30 L30,30 L50,55 L80,55 L120,10 L160,30 L200,30"
-        stroke="#1A4D3E"
-        strokeWidth="2.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        opacity={0.15}
-      />
-    </svg>
-    <p className="text-[10px] text-slate-400 mt-1">50% loss → needs 100% gain to recover</p>
-  </div>
-);
-
-const TaxesVisual = () => (
-  <div className="mt-6 space-y-2">
-    {[
-      { label: '22%', width: '45%' },
-      { label: '32%', width: '70%' },
-      { label: '35%+', width: '100%' },
-    ].map((bracket, i) => (
-      <div key={bracket.label} className="flex items-center gap-2 text-xs text-slate-500">
-        <span className="w-10 shrink-0 text-right">{bracket.label}</span>
-        <motion.div
-          className="h-4 rounded bg-[#1A4D3E]"
-          style={{ opacity: 0.5 + i * 0.25 }}
-          initial={{ width: 0 }}
-          whileInView={{ width: bracket.width }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8, ease: 'easeOut', delay: i * 0.15 }}
-        />
-      </div>
-    ))}
-    <p className="text-[10px] text-slate-400 mt-1">RMD-driven bracket creep</p>
-  </div>
-);
-
-const killers = [
-  {
-    icon: TrendingDown,
-    label: 'FEES',
-    stat: '2% annual fees can cost you $400K+ over 30 years',
-    example: 'A $500K portfolio with 2% fees vs 0.5% fees',
-    Visual: FeesVisual,
-  },
-  {
-    icon: Activity,
-    label: 'VOLATILITY',
-    stat: 'Market crashes require 100% gains to recover from 50% losses',
-    example: 'The math of recovery time',
-    Visual: VolatilityVisual,
-  },
-  {
-    icon: Receipt,
-    label: 'TAXES',
-    stat: 'RMDs can push retirees into 35%+ tax brackets',
-    example: 'Traditional IRA tax time bomb',
-    Visual: TaxesVisual,
-  },
-];
-
 export const SilentKillers: React.FC = () => {
+  const navigate = useNavigate();
+
   return (
-    <section className="py-16 md:py-24 px-4 md:px-8 bg-slate-50">
-      <div className="max-w-6xl mx-auto">
-        <motion.h2
-          className="text-3xl md:text-5xl font-serif font-bold text-center text-slate-900 mb-4"
-          initial={{ opacity: 0, y: 20 }}
+    <section className="relative py-20 md:py-28 px-4 md:px-8 bg-evergreen text-white overflow-hidden">
+      {/* Background texture */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_hsla(160,48%,30%,0.2),_transparent_60%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_hsla(160,48%,30%,0.1),_transparent_60%)]" />
+
+      <div className="max-w-6xl mx-auto relative z-10">
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
+          viewport={{ once: true, amount: 0.3 }}
+          transition={{ duration: 0.7 }}
+          className="mb-14"
         >
-          The Three Silent Killers Eroding Your Wealth
-        </motion.h2>
-        <motion.p
-          className="text-center text-slate-500 mb-12 max-w-2xl mx-auto"
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-        >
-          Most investors don't realize how much they're losing to these hidden forces — until it's too late.
-        </motion.p>
+          <p className="text-xs font-space font-bold tracking-[0.3em] uppercase text-white/40 mb-4">
+            Wealth Erosion
+          </p>
+          <h2 className="text-3xl md:text-5xl lg:text-6xl font-space font-bold leading-tight max-w-3xl">
+            Three Silent Forces{' '}
+            <span className="text-outline">Attack.</span>
+          </h2>
+        </motion.div>
 
         <motion.div
-          className="grid grid-cols-1 md:grid-cols-3 gap-8"
+          className="grid grid-cols-1 md:grid-cols-3 gap-6"
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, amount: 0.2 }}
         >
-          {killers.map(({ icon: Icon, label, stat, example, Visual }) => (
+          {killers.map(({ id, icon: Icon, title, description }) => (
             <motion.div
-              key={label}
+              key={id}
               variants={cardVariants}
-              className="bg-white rounded-xl border border-[#1A4D3E]/20 p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
+              className="relative glass-card rounded-[60px] p-8 md:p-10 overflow-hidden group"
             >
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-lg bg-[#1A4D3E]/10 flex items-center justify-center">
-                  <Icon className="w-5 h-5 text-[#1A4D3E]" />
-                </div>
-                <span className="text-xs font-semibold tracking-widest text-[#1A4D3E] uppercase">
-                  {label}
-                </span>
+              {/* Watermark number */}
+              <span className="absolute top-6 right-8 text-[80px] font-space font-bold text-white/[0.03] leading-none select-none">
+                {id}
+              </span>
+
+              <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center mb-6">
+                <Icon className="w-6 h-6 text-white/80" />
               </div>
-              <p className="font-semibold text-slate-900 leading-snug mb-2">{stat}</p>
-              <p className="text-sm text-slate-500">{example}</p>
-              <Visual />
+
+              <h3 className="text-xl font-space font-bold text-white mb-3">{title}</h3>
+              <p className="text-white/60 text-sm leading-relaxed">{description}</p>
             </motion.div>
           ))}
         </motion.div>
+
+        {/* Bottom watermark + CTA */}
+        <div className="mt-16 text-center">
+          <p className="text-[6vw] md:text-[4vw] font-space font-bold text-white/[0.04] uppercase tracking-tight leading-none mb-8 select-none">
+            Reclaim Control
+          </p>
+          <button
+            onClick={() => navigate('/contact')}
+            className="px-8 py-4 bg-white text-evergreen font-space font-bold text-sm tracking-wide rounded-xl hover:bg-white/90 transition-colors"
+          >
+            Protect Your Wealth
+          </button>
+        </div>
       </div>
     </section>
   );

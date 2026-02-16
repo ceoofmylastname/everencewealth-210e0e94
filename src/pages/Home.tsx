@@ -8,8 +8,9 @@ import { TaxBuckets } from '../components/homepage/TaxBuckets';
 import { IndexedAdvantage } from '../components/homepage/IndexedAdvantage';
 import { WealthPhilosophy } from '../components/homepage/WealthPhilosophy';
 import { FiduciaryDifference } from '../components/homepage/FiduciaryDifference';
-import { HomepageAbout } from '../components/homepage/HomepageAbout';
 import { TheGap } from '../components/homepage/TheGap';
+import { Services } from '../components/homepage/Services';
+import { HomepageAbout } from '../components/homepage/HomepageAbout';
 import { Stats } from '../components/homepage/Stats';
 import { Assessment } from '../components/homepage/Assessment';
 import { FAQ } from '../components/homepage/FAQ';
@@ -18,7 +19,7 @@ import { CursorGlow } from '../components/CursorGlow';
 
 function Home() {
   return (
-    <div className="min-h-screen flex flex-col font-sans text-white bg-[hsl(160_80%_2%)]">
+    <div className="min-h-screen flex flex-col font-sans text-white bg-dark-bg">
       <Header />
       <CursorGlow />
       <main className="flex-grow">
@@ -30,6 +31,7 @@ function Home() {
         <WealthPhilosophy />
         <FiduciaryDifference />
         <TheGap />
+        <Services />
         <HomepageAbout />
         <Stats />
         <Assessment />

@@ -1,83 +1,99 @@
-import React from 'react';
-import { motion } from 'framer-motion';
+import React, { useRef, useEffect, useState } from 'react';
+import { AlertCircle, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { TrendingDown, AlertTriangle, DollarSign } from 'lucide-react';
-import { useAnimatedCounter } from '@/hooks/useCountUp';
 
-const stats = [
-  { value: 67, suffix: '%', label: 'of Americans are behind on retirement savings', icon: TrendingDown },
-  { value: 1.2, suffix: 'M', prefix: '$', decimals: 1, label: 'average retirement gap for middle-class families', icon: DollarSign },
-  { value: 72, suffix: '%', label: "don't understand how taxes will impact retirement income", icon: AlertTriangle },
-];
-
-function StatCard({ value, suffix, prefix, decimals, label, icon: Icon, delay }: {
-  value: number; suffix: string; prefix?: string; decimals?: number; label: string; icon: React.ElementType; delay: number;
-}) {
-  const counter = useAnimatedCounter(value, { suffix, prefix, decimals, duration: 2500, delay: 0 });
-
-  return (
-    <motion.div
-      ref={counter.elementRef}
-      variants={{ hidden: { opacity: 0, y: 30 }, visible: { opacity: 1, y: 0 } }}
-      initial="hidden"
-      whileInView="visible"
-      viewport={{ once: true, amount: 0.3 }}
-      transition={{ duration: 0.6, delay }}
-      className="text-center p-6 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm"
-    >
-      <Icon className="mx-auto mb-4 h-8 w-8 text-emerald-300/80" />
-      <p className="text-4xl md:text-5xl font-bold text-white mb-3 tracking-tight">
-        {counter.formattedValue}
-      </p>
-      <p className="text-emerald-100/70 text-sm md:text-base leading-relaxed">{label}</p>
-    </motion.div>
-  );
+function useScrollReveal() {
+  const ref = useRef<HTMLDivElement>(null);
+  const [visible, setVisible] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setVisible(true); obs.disconnect(); } }, { threshold: 0.15 });
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+  return { ref, className: `scroll-reveal${visible ? ' visible' : ''}` };
 }
+
+const taxTraps = [
+  'Required Minimum Distributions (RMDs) force taxable withdrawals',
+  'Social Security becomes taxable above modest thresholds',
+  'Medicare premiums increase with higher income (IRMAA)',
+  'Capital gains stack on top of ordinary income',
+  'Estate taxes can claim 40%+ of your legacy',
+];
 
 export const WakeUpCall: React.FC = () => {
   const navigate = useNavigate();
+  const heading = useScrollReveal();
+  const left = useScrollReveal();
+  const right = useScrollReveal();
 
   return (
-    <section className="py-20 md:py-28 px-4 md:px-8 bg-[#1A4D3E] relative overflow-hidden">
-      {/* Subtle radial glow */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_rgba(255,255,255,0.04)_0%,_transparent_70%)]" />
-
-      <div className="max-w-5xl mx-auto relative z-10">
-        <motion.div
-          initial={{ opacity: 0, y: 24 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.3 }}
-          transition={{ duration: 0.7 }}
-          className="text-center mb-14"
-        >
-          <h2 className="text-3xl md:text-5xl font-serif font-bold text-white mb-4 tracking-tight leading-tight">
-            The Retirement Crisis Wall Street Won't Tell You About
+    <section className="py-20 md:py-28 px-4 md:px-8 bg-white">
+      <div className="max-w-6xl mx-auto">
+        {/* Badge + heading */}
+        <div {...heading} className={`${heading.className} mb-14`}>
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center">
+              <AlertCircle className="w-5 h-5 text-destructive" />
+            </div>
+            <span className="text-xs font-space font-bold tracking-[0.2em] uppercase text-destructive">
+              Wake-Up Call
+            </span>
+          </div>
+          <h2 className="text-3xl md:text-5xl lg:text-6xl font-space font-bold text-evergreen leading-tight max-w-3xl">
+            Your Retirement Account Has a Silent Partner:{' '}
+            <span className="text-destructive">The IRS</span>
           </h2>
-          <p className="text-emerald-100/60 text-lg md:text-xl max-w-2xl mx-auto font-light">
-            While they promise 8% returns, the math tells a different story
-          </p>
-        </motion.div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-14">
-          {stats.map((s, i) => (
-            <StatCard key={i} {...s} delay={i * 0.15} />
-          ))}
         </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5, delay: 0.5 }}
-          className="text-center"
-        >
-          <button
-            onClick={() => navigate('/assessment')}
-            className="px-8 py-4 bg-white text-[#1A4D3E] font-semibold rounded-xl hover:bg-emerald-50 transition-colors shadow-lg shadow-black/20 text-base"
-          >
-            See Your Retirement Gap
-          </button>
-        </motion.div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16">
+          {/* Left — copy + quote */}
+          <div {...left} className={left.className}>
+            <p className="text-lg text-muted-foreground leading-relaxed mb-8 max-w-lg">
+              Most Americans don't realize that their 401(k) and Traditional IRA are tax-deferred, not tax-free.
+              The IRS is your silent partner — and they'll collect their share when you need your money most.
+            </p>
+            <div className="bg-evergreen text-white rounded-[40px] p-8 md:p-10">
+              <p className="text-xl md:text-2xl font-serif italic leading-relaxed mb-4">
+                "The question isn't <em>if</em> you'll pay taxes in retirement — it's <em>how much</em>."
+              </p>
+              <p className="text-white/50 text-sm font-space">— Everence Wealth Advisory Team</p>
+            </div>
+          </div>
+
+          {/* Right — tax trap list + stat + CTA */}
+          <div {...right} className={right.className}>
+            <h3 className="text-lg font-space font-bold text-foreground mb-6">
+              The 5 Tax Traps Waiting for You
+            </h3>
+            <ul className="space-y-4 mb-8">
+              {taxTraps.map((trap, i) => (
+                <li key={i} className="flex items-start gap-3">
+                  <span className="mt-1.5 w-2 h-2 rounded-full bg-destructive shrink-0" />
+                  <span className="text-muted-foreground text-sm leading-relaxed">{trap}</span>
+                </li>
+              ))}
+            </ul>
+
+            <div className="bg-muted rounded-2xl p-6 mb-8">
+              <p className="text-5xl md:text-6xl font-space font-bold text-evergreen">
+                80-90%
+              </p>
+              <p className="text-muted-foreground text-sm mt-2">
+                of retirement savings sit in tax-deferred accounts — a ticking tax time bomb
+              </p>
+            </div>
+
+            <button
+              onClick={() => navigate('/contact')}
+              className="inline-flex items-center gap-2 px-6 py-3 bg-evergreen text-white font-space font-semibold text-sm rounded-xl hover:bg-evergreen/90 transition-colors"
+            >
+              Get Your Tax Analysis <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
       </div>
     </section>
   );
