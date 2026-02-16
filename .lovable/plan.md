@@ -1,99 +1,79 @@
 
 
-## Fix Translation System: Images, Hreflang, Canonical URLs, and Legacy Cleanup
+## Update Q&A Tab: EN + ES Only, 48 Total Q&As, Blog Page Integration
 
-### Issues Found
+### Current Problems
 
-I audited both translation edge functions (`translate-cluster` and `process-translation-queue`) and found these problems:
-
----
-
-#### 1. Images: WORKING CORRECTLY in `translate-cluster`, WORKING in `process-translation-queue`
-
-Both functions already copy `featured_image_url` from the English source article to the Spanish translation:
-- `translate-cluster/index.ts` line 395: `const generatedImageUrl = englishArticle.featured_image_url;`
-- `process-translation-queue/index.ts` line 428: `featured_image_url: englishArticle.featured_image_url`
-
-**No changes needed for images.** Both English and Spanish articles share the same image.
-
----
-
-#### 2. Canonical URL: MISSING in `translate-cluster`, CORRECT in `process-translation-queue`
-
-- `process-translation-queue` correctly sets `canonical_url` (line 435): `https://www.everencewealth.com/${targetLanguage}/blog/${slug}`
-- `translate-cluster` does NOT set `canonical_url` at all in the returned object (lines 401-431). This means Spanish articles created via the main translation flow have no canonical URL.
-
-**Fix:** Add `canonical_url` to the `translateArticleWithRetry` return object in `translate-cluster/index.ts`.
-
----
-
-#### 3. Hreflang Group ID: WORKING CORRECTLY
-
-Both functions correctly set `hreflang_group_id` from the English source article, ensuring English and Spanish versions are linked together.
-
----
-
-#### 4. Status: `translate-cluster` saves as `draft`, `process-translation-queue` saves as `published`
-
-- `translate-cluster` inserts with `status: 'draft'` (line 887)
-- `process-translation-queue` inserts with `status: 'published'` (line 141)
-
-This inconsistency means translations via the main cluster flow won't appear on the site until manually published. Both should save as `published`.
-
-**Fix:** Change `status: 'draft'` to `status: 'published'` in `translate-cluster/index.ts` line 887, and add `date_published` and `date_modified`.
-
----
-
-#### 5. Legacy References: Both functions still have old real estate content
-
-- `translate-cluster` line 241: Prompt says "luxury real estate audience"
-- `translate-cluster` line 112-122: `LANGUAGE_NAMES` still lists 9 European languages (German, Dutch, etc.) instead of just Spanish
-- `process-translation-queue` line 9-20: Same legacy `LANGUAGE_NAMES` with 10 European languages
-- `process-translation-queue` line 339-341: Prompt says "luxury real estate content"
-- `process-translation-queue` line 478: Prompt says "Costa del Sol"
-- `process-translation-queue` uses `OPENAI_API_KEY` directly instead of Lovable AI
-
----
-
-#### 6. `translate-cluster` progress messages reference "60 articles"
-
-Lines 520, 717-718, 763, 997-998, 1001, 1006 all reference "60 articles" or "54 translations" -- leftover from the 10-language system. Should be 12 articles / 6 translations.
+The Q&A management tab (`ClusterQATab.tsx`) still operates on the old 10-language system with 240 Q&As per cluster. The edge functions were already updated to EN + ES, but the UI was not. Additionally, Q&A pages need proper SEO metadata and blog article pages should display their 4 related Q&As.
 
 ---
 
 ### Changes
 
-#### File 1: `supabase/functions/translate-cluster/index.ts`
+#### 1. ClusterQATab.tsx -- Major Rewrite (UI Component)
 
-1. Update `LANGUAGE_NAMES` to only include `'es': 'Spanish'`
-2. Update translation prompts from "luxury real estate audience" to "wealth management and financial planning audience" and remove "Costa del Sol" references
-3. Add `canonical_url` to the `translateArticleWithRetry` return object
-4. Change `status: 'draft'` to `status: 'published'` and add `date_published`/`date_modified`
-5. Fix all progress messages from "60 articles" to "12 articles" and "54 translations" to "6 translations"
+**Constants to update:**
+- `TOTAL_LANGUAGES`: 10 --> 2
+- `EXPECTED_QAS_PER_CLUSTER`: 240 --> 48 (24 EN + 24 ES)
+- `TARGET_LANGUAGES`: `['de', 'nl', 'fr', 'pl', 'sv', 'da', 'hu', 'fi', 'no']` --> `['es']`
+- `MAX_PARALLEL_TRANSLATIONS`: 3 --> 1 (only 1 language)
+- `REQUIRED_ARTICLES_PER_LANGUAGE`: remains 6
 
-#### File 2: `supabase/functions/process-translation-queue/index.ts`
+**Phase 2 section simplification:**
+- Remove the 3x3 grid of 9 language cards
+- Replace with a single Spanish translation card/button
+- Update "Generate All" confirmation text from "240 Q&As" and "9 languages" to "48 Q&As" and "Spanish"
+- Update batch logic: instead of 5 batches of 2 languages, just 1 batch of 1 language (`['es']`)
 
-1. Update `LANGUAGE_NAMES` to only `'en': 'English', 'es': 'Spanish'`
-2. Switch from `OPENAI_API_KEY` to Lovable AI gateway (`LOVABLE_API_KEY` + `https://ai.gateway.lovable.dev/v1/chat/completions`)
-3. Update translation prompts from "luxury real estate" to "wealth management and financial planning"
-4. Remove "Costa del Sol" from chunk translation prompt
+**Verification panel:**
+- Update "Complete Groups (10 langs each)" to "Complete Groups (2 langs each)"
+- Update expected total from 240 to 48
+- Update "all 10 languages" JSONB check to "both languages"
+- Update language counts display: only show EN and ES flags
 
-#### Deploy
+**Progress messages:**
+- "Generate all 240 Q&As" --> "Generate all 48 Q&As"
+- "25-35 min" --> "10-15 min"
+- "Translate to all 9 languages" --> "Translate to Spanish"
+- "All 240 Q&As generated" --> "All 48 Q&As generated"
 
-Both edge functions will be redeployed after changes.
+#### 2. QAPage.tsx -- Fix BASE_URL
+
+- Change `const BASE_URL = 'https://www.delsolprimehomes.com'` to `'https://www.everencewealth.com'`
+- The page already has proper JSON-LD schema (`generateAllQASchemas`), canonical URL, hreflang tags, and speakable answer rendering
+- The hreflang output loop already works dynamically from the `translations` JSONB field
+
+#### 3. qaPageSchemaGenerator.ts -- Fix BASE_URL
+
+- Change `const BASE_URL = 'https://www.delsolprimehomes.com'` to `'https://www.everencewealth.com'`
+- Update `LANGUAGE_CODE_MAP` to remove unused European language codes, keep only `en: 'en-US'` (was `en-GB`) and `es: 'es-ES'`
+- Update organization schema: name, URL, `knowsAbout` topics (change from real estate to wealth management), `expertise` list, and `areaServed`
+
+#### 4. RelatedQAPages.tsx on Blog Articles (Already Working)
+
+The `RelatedQAPages` component already fetches 4 Q&As per blog article using the funnel-based pattern. It queries `qa_pages` by `source_article_id` and `cluster_id`. This component is already imported and rendered in `BlogArticle.tsx`. No changes needed here -- it will automatically show Q&As once they are generated and published.
 
 ---
 
-### Summary of What Gets Fixed
+### What Each Published Q&A Page Will Have
 
-| Issue | Before | After |
-|-------|--------|-------|
-| Images shared | Yes (already working) | Yes (no change) |
-| Canonical URL | Missing in main flow | Set correctly for both EN and ES |
-| Hreflang linking | Working | Working (no change) |
-| Article status | Draft (invisible on site) | Published immediately |
-| Prompt context | "luxury real estate" | "wealth management" |
-| Language list | 10 European languages | English + Spanish only |
-| Progress tracking | "60 articles" | "12 articles" |
-| AI provider (queue) | OpenAI direct | Lovable AI gateway |
+Each Q&A gets its own dedicated page at `/{lang}/qa/{slug}` with:
+- **JSON-LD**: QAPage schema, WebPage schema, BreadcrumbList, Organization (via `generateAllQASchemas`)
+- **Speakable header**: The quick answer box with `speakable-answer` class
+- **Hreflang tags**: Dynamic `<link rel="alternate" hrefLang="...">` for EN and ES versions
+- **Canonical URL**: `<link rel="canonical" href="https://www.everencewealth.com/{lang}/qa/{slug}">`
+- **4 Q&As on each blog page**: The `RelatedQAPages` component already renders them based on funnel stage
+
+### Summary
+
+| Item | Before | After |
+|------|--------|-------|
+| Languages | 10 (EN + 9 European) | 2 (EN + ES) |
+| Total Q&As per cluster | 240 | 48 |
+| Phase 2 grid | 3x3 grid of 9 languages | Single Spanish button |
+| BASE_URL | delsolprimehomes.com | everencewealth.com |
+| English locale | en-GB | en-US |
+| Generate All time | 25-35 min | 10-15 min |
+| Blog page Q&As | Already working | Already working |
+| JSON-LD / hreflang / canonical | Already implemented | Fix URLs only |
 
