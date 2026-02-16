@@ -1,26 +1,39 @@
 
 
-# Fix: "Failed to load master prompt" Error
+# Lower Word Count Threshold and Fix Polling
 
-## Root Cause
-The `content_settings` table is empty -- there is no row where `setting_key = 'master_content_prompt'`. The `MasterPromptEditor` component queries with `.single()`, which throws an error when no matching row exists, triggering the "Failed to load master prompt" toast.
+## Changes
 
-## Fix (2 changes)
+### 1. Edge Function: `generate-cluster-chunk/index.ts`
 
-### 1. Seed the missing row (database migration)
-Insert a default row into `content_settings` so the editor has something to load:
+**Word count threshold changes:**
+- Line 132: Hard fail threshold from `1200` to `600`
+- Line 137: Soft penalty threshold from `1500` to `800`
+- Line 263: `maxAttempts` from `2` to `3`
+- Line 372: Success threshold from `1500` to `800`
+- Lines 239-258, 276-286, 299-331: Update prompt text references from "1,500" to "800" minimum
 
-```sql
-INSERT INTO content_settings (setting_key, setting_value)
-VALUES ('master_content_prompt', '')
-ON CONFLICT DO NOTHING;
-```
+**Prompt updates:**
+- Adjust the system and user prompts to request 800+ words minimum instead of 1,500
+- Keep the target range language (e.g., "target 1,200-1,800 words") reasonable
 
-### 2. Harden `MasterPromptEditor.tsx` against missing data
-Update `loadPrompt` to use `.maybeSingle()` instead of `.single()`, and auto-create the row if it does not exist. This prevents the error from recurring if the row is ever deleted.
+### 2. Frontend: `CreateClusterDialog.tsx`
 
-**Changes in `loadPrompt`:**
-- Replace `.single()` with `.maybeSingle()`
-- If `data` is `null` (no row found), insert a default empty row and set state to empty string
-- Keep existing error handling for actual database errors
+**Polling logic fix (line 83-97):**
+- Add detection for `partial` and `failed` statuses in `pollJobStatus`
+- When `partial` is detected, show a toast like "Cluster partially created with X articles" and stop polling gracefully
+- Close the dialog and refresh the cluster list so the user sees the result
+
+### Technical Details
+
+**Edge function changes (4 key lines):**
+- `validateContentQuality`: Hard fail at 600 words instead of 1,200
+- `validateContentQuality`: Soft penalty at 800 words instead of 1,500
+- `generateSingleArticle`: `maxAttempts = 3` instead of `2`
+- `generateSingleArticle`: Break out of retry loop at 800 words instead of 1,500
+- Hard reject at 600 words instead of 1,200
+
+**Frontend polling changes:**
+- Currently only checks for `completed` and `failed` -- add `partial` status handling
+- On `partial`: toast success with actual count, stop polling, close dialog, trigger refresh
 
