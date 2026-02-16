@@ -72,7 +72,10 @@ Deno.serve(async (req) => {
 
     const adminClient = createClient(supabaseUrl, serviceRoleKey);
 
-    // 1. Create auth user
+    // 1. Create or find auth user
+    let authUserId: string;
+    let isExistingUser = false;
+
     const tempPassword = crypto.randomUUID() + "!Aa1";
     const { data: authUser, error: authError } = await adminClient.auth.admin.createUser({
       email,
@@ -82,13 +85,41 @@ Deno.serve(async (req) => {
     });
 
     if (authError) {
-      return new Response(
-        JSON.stringify({ error: "Failed to create auth user: " + authError.message }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      // If user already exists, look them up instead
+      if (authError.message?.includes("already been registered")) {
+        const { data: usersData } = await adminClient.auth.admin.listUsers();
+        const existingUser = usersData?.users?.find(
+          (u) => u.email?.toLowerCase() === email.toLowerCase()
+        );
+        if (!existingUser) {
+          return new Response(
+            JSON.stringify({ error: "User exists but could not be found" }),
+            { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+        // Check if they already have a portal_users record
+        const { data: existingPortal } = await adminClient
+          .from("portal_users")
+          .select("id")
+          .eq("auth_user_id", existingUser.id)
+          .maybeSingle();
+        if (existingPortal) {
+          return new Response(
+            JSON.stringify({ error: "An agent with this email already exists in the portal" }),
+            { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+        authUserId = existingUser.id;
+        isExistingUser = true;
+      } else {
+        return new Response(
+          JSON.stringify({ error: "Failed to create auth user: " + authError.message }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+    } else {
+      authUserId = authUser.user.id;
     }
-
-    const authUserId = authUser.user.id;
 
     // 2. Create portal_users record
     const { data: portalUser, error: puError } = await adminClient
@@ -106,8 +137,10 @@ Deno.serve(async (req) => {
       .single();
 
     if (puError) {
-      // Cleanup: delete the auth user we just created
-      await adminClient.auth.admin.deleteUser(authUserId);
+      // Cleanup: only delete auth user if we created it
+      if (!isExistingUser) {
+        await adminClient.auth.admin.deleteUser(authUserId);
+      }
       return new Response(
         JSON.stringify({ error: "Failed to create portal user: " + puError.message }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -133,7 +166,9 @@ Deno.serve(async (req) => {
     if (advError) {
       // Cleanup
       await adminClient.from("portal_users").delete().eq("id", portalUser.id);
-      await adminClient.auth.admin.deleteUser(authUserId);
+      if (!isExistingUser) {
+        await adminClient.auth.admin.deleteUser(authUserId);
+      }
       return new Response(
         JSON.stringify({ error: "Failed to create advisor: " + advError.message }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
