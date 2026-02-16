@@ -104,6 +104,116 @@ export type Database = {
         }
         Relationships: []
       }
+      advisors: {
+        Row: {
+          auth_user_id: string
+          bio: string | null
+          created_at: string
+          email: string
+          first_name: string
+          id: string
+          is_active: boolean
+          languages: string[] | null
+          last_name: string
+          license_number: string | null
+          phone: string | null
+          photo_url: string | null
+          portal_user_id: string
+          specializations: string[] | null
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          auth_user_id: string
+          bio?: string | null
+          created_at?: string
+          email: string
+          first_name: string
+          id?: string
+          is_active?: boolean
+          languages?: string[] | null
+          last_name: string
+          license_number?: string | null
+          phone?: string | null
+          photo_url?: string | null
+          portal_user_id: string
+          specializations?: string[] | null
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          auth_user_id?: string
+          bio?: string | null
+          created_at?: string
+          email?: string
+          first_name?: string
+          id?: string
+          is_active?: boolean
+          languages?: string[] | null
+          last_name?: string
+          license_number?: string | null
+          phone?: string | null
+          photo_url?: string | null
+          portal_user_id?: string
+          specializations?: string[] | null
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "advisors_portal_user_id_fkey"
+            columns: ["portal_user_id"]
+            isOneToOne: false
+            referencedRelation: "portal_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agent_resources: {
+        Row: {
+          access_level: string
+          category: string | null
+          content: Json | null
+          created_at: string
+          description: string | null
+          external_url: string | null
+          featured: boolean
+          file_url: string | null
+          id: string
+          resource_type: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          access_level?: string
+          category?: string | null
+          content?: Json | null
+          created_at?: string
+          description?: string | null
+          external_url?: string | null
+          featured?: boolean
+          file_url?: string | null
+          id?: string
+          resource_type: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          access_level?: string
+          category?: string | null
+          content?: Json | null
+          created_at?: string
+          description?: string | null
+          external_url?: string | null
+          featured?: boolean
+          file_url?: string | null
+          id?: string
+          resource_type?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       apartments_page_content: {
         Row: {
           created_at: string | null
@@ -911,6 +1021,51 @@ export type Database = {
         }
         Relationships: []
       }
+      carriers: {
+        Row: {
+          am_best_rating: string | null
+          carrier_logo_url: string | null
+          carrier_name: string
+          commission_structure: Json | null
+          contact_info: Json | null
+          contracting_requirements: string | null
+          created_at: string
+          featured: boolean
+          id: string
+          notes: string | null
+          products_offered: string[] | null
+          updated_at: string
+        }
+        Insert: {
+          am_best_rating?: string | null
+          carrier_logo_url?: string | null
+          carrier_name: string
+          commission_structure?: Json | null
+          contact_info?: Json | null
+          contracting_requirements?: string | null
+          created_at?: string
+          featured?: boolean
+          id?: string
+          notes?: string | null
+          products_offered?: string[] | null
+          updated_at?: string
+        }
+        Update: {
+          am_best_rating?: string | null
+          carrier_logo_url?: string | null
+          carrier_name?: string
+          commission_structure?: Json | null
+          contact_info?: Json | null
+          contracting_requirements?: string | null
+          created_at?: string
+          featured?: boolean
+          id?: string
+          notes?: string | null
+          products_offered?: string[] | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       categories: {
         Row: {
           created_at: string
@@ -1595,6 +1750,59 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      client_invitations: {
+        Row: {
+          accepted_at: string | null
+          advisor_id: string
+          created_at: string
+          email: string
+          expires_at: string
+          first_name: string
+          id: string
+          invitation_token: string
+          last_name: string
+          phone: string | null
+          sent_at: string
+          status: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          advisor_id: string
+          created_at?: string
+          email: string
+          expires_at?: string
+          first_name: string
+          id?: string
+          invitation_token: string
+          last_name: string
+          phone?: string | null
+          sent_at?: string
+          status?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          advisor_id?: string
+          created_at?: string
+          email?: string
+          expires_at?: string
+          first_name?: string
+          id?: string
+          invitation_token?: string
+          last_name?: string
+          phone?: string | null
+          sent_at?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_invitations_advisor_id_fkey"
+            columns: ["advisor_id"]
+            isOneToOne: false
+            referencedRelation: "advisors"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       cluster_article_chunks: {
         Row: {
@@ -4342,6 +4550,47 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          created_at: string
+          id: string
+          link_url: string | null
+          message: string
+          notification_type: string
+          read: boolean
+          title: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          link_url?: string | null
+          message: string
+          notification_type: string
+          read?: boolean
+          title: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          link_url?: string | null
+          message?: string
+          notification_type?: string
+          read?: boolean
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "portal_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       page_translations: {
         Row: {
           created_at: string | null
@@ -4374,6 +4623,204 @@ export type Database = {
           url_slug?: string
         }
         Relationships: []
+      }
+      policies: {
+        Row: {
+          advisor_id: string
+          beneficiaries: Json | null
+          carrier_name: string
+          cash_value: number | null
+          client_id: string
+          created_at: string
+          death_benefit: number | null
+          id: string
+          issue_date: string | null
+          maturity_date: string | null
+          monthly_premium: number | null
+          notes: string | null
+          policy_illustration_url: string | null
+          policy_number: string
+          policy_status: string
+          premium_frequency: string | null
+          product_type: string
+          riders: Json | null
+          updated_at: string
+        }
+        Insert: {
+          advisor_id: string
+          beneficiaries?: Json | null
+          carrier_name: string
+          cash_value?: number | null
+          client_id: string
+          created_at?: string
+          death_benefit?: number | null
+          id?: string
+          issue_date?: string | null
+          maturity_date?: string | null
+          monthly_premium?: number | null
+          notes?: string | null
+          policy_illustration_url?: string | null
+          policy_number: string
+          policy_status?: string
+          premium_frequency?: string | null
+          product_type: string
+          riders?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          advisor_id?: string
+          beneficiaries?: Json | null
+          carrier_name?: string
+          cash_value?: number | null
+          client_id?: string
+          created_at?: string
+          death_benefit?: number | null
+          id?: string
+          issue_date?: string | null
+          maturity_date?: string | null
+          monthly_premium?: number | null
+          notes?: string | null
+          policy_illustration_url?: string | null
+          policy_number?: string
+          policy_status?: string
+          premium_frequency?: string | null
+          product_type?: string
+          riders?: Json | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "policies_advisor_id_fkey"
+            columns: ["advisor_id"]
+            isOneToOne: false
+            referencedRelation: "advisors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "policies_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "portal_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      portal_documents: {
+        Row: {
+          client_id: string
+          created_at: string
+          document_type: string
+          file_name: string
+          file_size: number | null
+          file_url: string
+          id: string
+          is_client_visible: boolean
+          policy_id: string | null
+          updated_at: string
+          uploaded_by: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          document_type?: string
+          file_name: string
+          file_size?: number | null
+          file_url: string
+          id?: string
+          is_client_visible?: boolean
+          policy_id?: string | null
+          updated_at?: string
+          uploaded_by: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          document_type?: string
+          file_name?: string
+          file_size?: number | null
+          file_url?: string
+          id?: string
+          is_client_visible?: boolean
+          policy_id?: string | null
+          updated_at?: string
+          uploaded_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "portal_documents_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "portal_users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "portal_documents_policy_id_fkey"
+            columns: ["policy_id"]
+            isOneToOne: false
+            referencedRelation: "policies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "portal_documents_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "portal_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      portal_users: {
+        Row: {
+          advisor_id: string | null
+          auth_user_id: string
+          avatar_url: string | null
+          created_at: string
+          email: string
+          first_name: string
+          id: string
+          is_active: boolean
+          last_name: string
+          phone: string | null
+          role: string
+          updated_at: string
+        }
+        Insert: {
+          advisor_id?: string | null
+          auth_user_id: string
+          avatar_url?: string | null
+          created_at?: string
+          email: string
+          first_name: string
+          id?: string
+          is_active?: boolean
+          last_name: string
+          phone?: string | null
+          role: string
+          updated_at?: string
+        }
+        Update: {
+          advisor_id?: string | null
+          auth_user_id?: string
+          avatar_url?: string | null
+          created_at?: string
+          email?: string
+          first_name?: string
+          id?: string
+          is_active?: boolean
+          last_name?: string
+          phone?: string | null
+          role?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "portal_users_advisor_id_fkey"
+            columns: ["advisor_id"]
+            isOneToOne: false
+            referencedRelation: "portal_users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       properties: {
         Row: {
@@ -5509,6 +5956,8 @@ export type Database = {
           round_number: number
         }[]
       }
+      get_portal_role: { Args: { _auth_uid: string }; Returns: string }
+      get_portal_user_id: { Args: { _auth_uid: string }; Returns: string }
       get_round_agents: {
         Args: { p_language: string; p_round: number }
         Returns: {
@@ -5542,6 +5991,8 @@ export type Database = {
       }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
       is_crm_agent: { Args: { _user_id: string }; Returns: boolean }
+      is_portal_admin: { Args: { _auth_uid: string }; Returns: boolean }
+      is_portal_advisor: { Args: { _auth_uid: string }; Returns: boolean }
       match_lead_by_phone: {
         Args: { agent_uuid: string; search_digits: string }
         Returns: {

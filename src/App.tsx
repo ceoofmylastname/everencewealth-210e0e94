@@ -131,6 +131,11 @@ import { ApartmentsPageContentInner } from "./pages/admin/ApartmentsPageContent"
 import { ApartmentsPropertiesInner } from "./pages/admin/ApartmentsProperties";
 
 // CRM Pages
+// Portal Pages
+const PortalLogin = lazy(() => import("./pages/portal/PortalLogin"));
+const AdvisorDashboard = lazy(() => import("./pages/portal/advisor/AdvisorDashboard"));
+const ClientDashboard = lazy(() => import("./pages/portal/client/ClientDashboard"));
+
 const AgentLogin = lazy(() => import("./pages/crm/AgentLogin"));
 const CrmLogin = lazy(() => import("./pages/crm/CrmLogin"));
 const AgentDashboard = lazy(() => import("./pages/crm/agent/AgentDashboard"));
@@ -147,6 +152,8 @@ import { CrmAdminRoute } from "@/components/crm/CrmAdminRoute";
 import { CrmAdminLayout } from "@/components/crm/CrmAdminLayout";
 import { ApartmentsEditorRoute } from "@/components/ApartmentsEditorRoute";
 import { ApartmentsEditorLayout } from "@/components/ApartmentsEditorLayout";
+import { AdvisorRoute } from "@/components/portal/AdvisorRoute";
+import { ClientRoute } from "@/components/portal/ClientRoute";
 const CrmDashboard = lazy(() => import("./pages/crm/admin/CrmDashboard"));
 const CrmAnalytics = lazy(() => import("./pages/crm/admin/CrmAnalytics"));
 const CrmAgentManagement = lazy(() => import("./pages/crm/admin/AgentManagement"));
@@ -279,6 +286,17 @@ const App = () => (
 
               {/* Standalone Property Management Page */}
               <Route path="/add-property" element={<ProtectedRoute><AddProperty /></ProtectedRoute>} />
+
+              {/* ========================================== */}
+              {/* PORTAL ROUTES (MUST BE BEFORE /:lang)     */}
+              {/* ========================================== */}
+              <Route path="/portal/login" element={<PortalLogin />} />
+              <Route path="/portal/advisor" element={<AdvisorRoute />}>
+                <Route path="dashboard" element={<AdvisorDashboard />} />
+              </Route>
+              <Route path="/portal/client" element={<ClientRoute />}>
+                <Route path="dashboard" element={<ClientDashboard />} />
+              </Route>
 
               {/* CRM Routes */}
               <Route path="/crm/login" element={<CrmLogin />} />
