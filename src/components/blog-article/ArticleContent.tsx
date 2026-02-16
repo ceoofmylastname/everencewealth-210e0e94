@@ -4,6 +4,7 @@ import { LazyMermaidPreview } from "@/components/LazyMermaidPreview";
 import { ExternalCitation } from "@/types/blog";
 import { injectExternalLinks, addCitationMarkers, processInternalLinks } from "@/lib/linkInjection";
 import { PricingTable, PricingItem, PriceExample } from "@/components/blog-article/PricingTable";
+import { CitationReferences } from "@/components/blog-article/CitationReferences";
 
 export interface PricingData {
   title: string;
@@ -226,7 +227,6 @@ export const ArticleContent = ({
 
       {diagramUrl && (
         <figure className="my-12 md:my-16">
-          {/* Check if diagramUrl contains Mermaid code (not an actual URL) */}
           {(diagramUrl.startsWith('graph') || 
             diagramUrl.startsWith('flowchart') || 
             diagramUrl.startsWith('sequenceDiagram') ||
@@ -250,6 +250,8 @@ export const ArticleContent = ({
           )}
         </figure>
       )}
+
+      <CitationReferences citations={externalCitations} />
     </article>
   );
 };
