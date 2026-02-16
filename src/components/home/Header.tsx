@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Link, useNavigate } from 'react-router-dom';
-import { Menu as MenuIcon, X, ChevronDown, Users, Shield, TrendingUp, Umbrella, Lock, Newspaper, MessageCircleQuestion, BookMarked, Info, Heart, LogIn } from 'lucide-react';
+import { Menu as MenuIcon, X, ChevronDown, Users, Shield, TrendingUp, Umbrella, Lock, Newspaper, MessageCircleQuestion, BookMarked, Info, Heart, LogIn, Scale } from 'lucide-react';
 import { Button } from './ui/Button';
 import { useTranslation } from '../../i18n';
 import { NavigationPill } from '../ui/3d-adaptive-navigation-bar';
@@ -73,6 +73,7 @@ export const Header: React.FC<HeaderProps> = ({ variant = 'transparent', content
         <MobileLink to={`/${currentLanguage}/blog`} onClick={closeMobile} icon={<Newspaper className="w-5 h-5" />}>{nav.blog}</MobileLink>
         <MobileLink to={`/${currentLanguage}/qa`} onClick={closeMobile} icon={<MessageCircleQuestion className="w-5 h-5" />}>{nav.qa}</MobileLink>
         <MobileLink to={`/${currentLanguage}/glossary`} onClick={closeMobile} icon={<BookMarked className="w-5 h-5" />}>{nav.glossary}</MobileLink>
+        <MobileLink to={`/${currentLanguage}/compare`} onClick={closeMobile} icon={<Scale className="w-5 h-5" />}>{nav.comparisons || "Comparisons"}</MobileLink>
       </MobileMenuSection>
 
       {/* About */}
