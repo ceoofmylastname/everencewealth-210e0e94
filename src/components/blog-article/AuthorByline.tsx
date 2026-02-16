@@ -4,16 +4,18 @@ interface AuthorBylineProps {
     datePublished: string;
     dateModified?: string;
     context: 'blog' | 'qa';
+    photoUrl?: string;
 }
 
 const AuthorByline: React.FC<AuthorBylineProps> = ({
     datePublished,
     dateModified,
-    context
+    context,
+    photoUrl: externalPhotoUrl
 }) => {
-    const photoUrl = context === 'blog'
+    const photoUrl = externalPhotoUrl || (context === 'blog'
         ? '/images/steven-blog.jpg?v=2'
-        : '/images/steven-qa.jpg?v=2';
+        : '/images/steven-qa.jpg?v=2');
 
     const formatDate = (dateString: string) => {
         const date = new Date(dateString);
