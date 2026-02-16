@@ -26,44 +26,44 @@ const LANGUAGES = [
 type LanguageCode = 'en' | 'es';
 
 const SUGGESTED_COMPARISONS = [
-  { a: 'Off-Plan Property', b: 'Resale Property', context: 'Which Should You Buy in Spain?' },
-  { a: 'New Build', b: 'Renovation Project', context: 'Which Is Better for Investment?' },
-  { a: 'Local Agent', b: 'International Broker', context: 'Who Should You Choose in Spain?' },
-  { a: 'Marbella', b: 'Estepona', context: 'Where to Buy Property on Costa del Sol?' },
-  { a: 'Digital Nomad Visa', b: 'Standard Residency', context: 'Which Path to Spanish Residency?' },
-  { a: 'Beachfront Property', b: 'Golf Property', context: 'Best Lifestyle Investment in Spain' },
-  { a: 'Holiday Home', b: 'Investment Property', context: 'What Should You Buy in Spain?' },
-  { a: 'Cash Purchase', b: 'Spanish Mortgage', context: 'How Should You Finance Property?' },
+  { a: 'Term Life', b: 'Whole Life', context: 'Which Life Insurance Is Right for You?' },
+  { a: 'IUL', b: 'Traditional 401(k)', context: 'Best Retirement Savings Vehicle?' },
+  { a: 'Fixed Annuity', b: 'Variable Annuity', context: 'Which Annuity Fits Your Goals?' },
+  { a: 'ROP Term', b: 'Standard Term', context: 'Is Return of Premium Worth It?' },
+  { a: 'Universal Life', b: 'Indexed Universal Life', context: 'Which UL Policy Should You Choose?' },
+  { a: 'Roth IRA', b: 'Traditional IRA', context: 'Best Tax Strategy for Retirement?' },
+  { a: 'Whole Life', b: 'IUL', context: 'Cash Value Accumulation Comparison' },
+  { a: 'Fixed Index Annuity', b: 'RILA', context: 'Protected Growth Options Compared' },
 ];
 
 // Phase 3 MOFU Comparisons with AI-query friendly titles
 const PHASE3_MOFU_COMPARISONS = [
   {
-    optionA: 'New-Build',
-    optionB: 'Resale Property',
-    aiHeadline: 'New-Build vs Resale Property in Spain: Which Should You Buy in 2025?',
-    targetAudience: 'first-time buyers and investors comparing property types in Costa del Sol',
-    niche: 'real-estate',
-    relatedKeywords: ['property buying costs', 'Spanish mortgage', 'NIE number'],
-    description: 'Comprehensive guide comparing off-plan/new-build vs resale properties',
+    optionA: 'Term Life',
+    optionB: 'Whole Life Insurance',
+    aiHeadline: 'Term Life vs Whole Life Insurance: Which Policy Is Right for You in 2025?',
+    targetAudience: 'individuals and families evaluating life insurance options for financial protection',
+    niche: 'wealth-management',
+    relatedKeywords: ['life insurance comparison', 'cash value', 'death benefit', 'premium costs'],
+    description: 'Comprehensive guide comparing term life and whole life insurance policies',
   },
   {
-    optionA: 'Golden Mile',
-    optionB: 'Nueva Andalucía',
-    aiHeadline: 'Golden Mile vs Nueva Andalucía: Where Should You Buy Property in Marbella?',
-    targetAudience: 'luxury property buyers comparing premium Marbella neighborhoods',
-    niche: 'real-estate',
-    relatedKeywords: ['digital nomad visa', 'property investment', 'Marbella real estate'],
-    description: 'Location comparison for high-end Marbella property seekers',
+    optionA: 'IUL',
+    optionB: '401(k) for Retirement',
+    aiHeadline: 'IUL vs 401(k): Which Retirement Strategy Builds More Wealth?',
+    targetAudience: 'professionals planning for retirement seeking tax-efficient growth strategies',
+    niche: 'wealth-management',
+    relatedKeywords: ['indexed universal life', 'tax-free retirement', 'market-linked growth', 'employer match'],
+    description: 'Retirement vehicle comparison for tax-efficient wealth accumulation',
   },
   {
-    optionA: 'Costa del Sol',
-    optionB: 'Algarve Portugal',
-    aiHeadline: 'Costa del Sol vs Algarve: Best Mediterranean Property Investment for 2025',
-    targetAudience: 'international property investors comparing Mediterranean destinations',
-    niche: 'real-estate',
-    relatedKeywords: ['digital nomad visa spain', 'property buying costs', 'tax comparison'],
-    description: 'Destination comparison for European property investors',
+    optionA: 'Fixed Annuity',
+    optionB: 'Variable Annuity',
+    aiHeadline: 'Fixed Annuity vs Variable Annuity: Which Provides Better Retirement Income?',
+    targetAudience: 'pre-retirees and retirees comparing guaranteed vs market-linked income options',
+    niche: 'wealth-management',
+    relatedKeywords: ['guaranteed income', 'annuity rates', 'market risk', 'retirement income planning'],
+    description: 'Annuity comparison for retirement income planning',
   },
 ];
 
@@ -81,8 +81,8 @@ export default function ComparisonGenerator() {
   
   const [optionA, setOptionA] = useState('');
   const [optionB, setOptionB] = useState('');
-  const [niche, setNiche] = useState('real-estate');
-  const [targetAudience, setTargetAudience] = useState('property buyers and investors');
+  const [niche, setNiche] = useState('wealth-management');
+  const [targetAudience, setTargetAudience] = useState('individuals planning for retirement and financial protection');
   const [suggestedHeadline, setSuggestedHeadline] = useState('');
   const [generatedComparison, setGeneratedComparison] = useState<any>(null);
   const [bulkGenerating, setBulkGenerating] = useState(false);
@@ -517,7 +517,7 @@ export default function ComparisonGenerator() {
           <Scale className="h-8 w-8 text-primary" />
           <div>
             <h1 className="text-2xl font-bold">Comparison Generator</h1>
-            <p className="text-muted-foreground">Create AI-citation optimized comparison pages in all 10 languages</p>
+            <p className="text-muted-foreground">Create AI-citation optimized comparison pages in all 2 languages</p>
           </div>
         </div>
 
@@ -556,7 +556,7 @@ export default function ComparisonGenerator() {
                       <Input
                         value={optionA}
                         onChange={(e) => setOptionA(e.target.value)}
-                        placeholder="e.g., Buying Off-Plan"
+                        placeholder="e.g., Term Life Insurance"
                         disabled={batchProgress.isGenerating}
                       />
                     </div>
@@ -565,7 +565,7 @@ export default function ComparisonGenerator() {
                       <Input
                         value={optionB}
                         onChange={(e) => setOptionB(e.target.value)}
-                        placeholder="e.g., Resale Property"
+                        placeholder="e.g., Whole Life Insurance"
                         disabled={batchProgress.isGenerating}
                       />
                     </div>
@@ -576,7 +576,7 @@ export default function ComparisonGenerator() {
                     <Textarea
                       value={targetAudience}
                       onChange={(e) => setTargetAudience(e.target.value)}
-                      placeholder="e.g., property buyers and investors"
+                      placeholder="e.g., individuals planning for retirement"
                       rows={2}
                       disabled={batchProgress.isGenerating}
                     />
@@ -587,7 +587,7 @@ export default function ComparisonGenerator() {
                     <Input
                       value={suggestedHeadline}
                       onChange={(e) => setSuggestedHeadline(e.target.value)}
-                      placeholder="e.g., Off-Plan vs Resale: Which Should You Buy in 2025?"
+                      placeholder="e.g., Term Life vs Whole Life: Which Policy Is Right for You?"
                       disabled={batchProgress.isGenerating}
                     />
                   </div>
@@ -597,7 +597,7 @@ export default function ComparisonGenerator() {
                     <Input
                       value={niche}
                       onChange={(e) => setNiche(e.target.value)}
-                      placeholder="e.g., real-estate"
+                      placeholder="e.g., wealth-management"
                       disabled={batchProgress.isGenerating}
                     />
                   </div>
