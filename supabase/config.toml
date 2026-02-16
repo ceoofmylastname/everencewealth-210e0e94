@@ -2,3 +2,6 @@ project_id = "zbzrmpmqijvmjbhctfoe"
 
 [functions.send-portal-invitation]
 verify_jwt = false
+
+[functions.generate-homepage-images]
+verify_jwt = false

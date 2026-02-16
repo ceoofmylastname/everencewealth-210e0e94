@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { PiggyBank, Shield, Users, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from '@/i18n/useTranslation';
+import { useHomepageImages } from '@/hooks/useHomepageImages';
 
 const serviceIcons = [PiggyBank, Shield, Users];
 const serviceLinks = ['/strategies/tax-free-retirement', '/strategies/asset-protection', '/strategies/whole-life'];
@@ -21,6 +22,7 @@ export const Services: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const sv = t.homepage.services;
+  const images = useHomepageImages();
 
   return (
     <section className="py-20 md:py-28 px-4 md:px-8 bg-white">
@@ -39,6 +41,24 @@ export const Services: React.FC = () => {
             {sv.headline}
           </h2>
         </motion.div>
+
+        {images.services && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="relative rounded-[30px] overflow-hidden mb-14 aspect-[16/6]"
+          >
+            <img
+              src={images.services}
+              alt="Premium wealth management office"
+              className="w-full h-full object-cover"
+              loading="lazy"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+          </motion.div>
+        )}
 
         <motion.div
           className="grid grid-cols-1 md:grid-cols-3 gap-6"

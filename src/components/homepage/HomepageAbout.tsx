@@ -2,6 +2,7 @@ import React from 'react';
 import { motion, useInView } from 'framer-motion';
 import { Calendar, Building2, Users, MapPin } from 'lucide-react';
 import { useTranslation } from '@/i18n/useTranslation';
+import { useHomepageImages } from '@/hooks/useHomepageImages';
 
 const containerVariants = {
   hidden: {},
@@ -25,6 +26,7 @@ export function HomepageAbout() {
   const inView = useInView(ref, { once: true, margin: '-80px' });
   const { t } = useTranslation();
   const ha = t.homepage.homepageAbout;
+  const images = useHomepageImages();
 
   return (
     <section ref={ref} className="bg-[#F0F2F1] py-20 md:py-28 px-4 md:px-8">
@@ -62,9 +64,18 @@ export function HomepageAbout() {
         </motion.div>
 
         <motion.div variants={rightVariants} className="relative">
-          <div className="rounded-2xl bg-gradient-to-br from-[#1A4D3E]/10 to-[#1A4D3E]/5 aspect-[4/3] flex items-center justify-center">
-            <Building2 className="w-16 h-16 text-[#1A4D3E]/20" />
-          </div>
+          {images.about ? (
+            <img
+              src={images.about}
+              alt="Professional financial advisor meeting with clients"
+              className="rounded-2xl aspect-[4/3] object-cover w-full"
+              loading="lazy"
+            />
+          ) : (
+            <div className="rounded-2xl bg-gradient-to-br from-[#1A4D3E]/10 to-[#1A4D3E]/5 aspect-[4/3] flex items-center justify-center">
+              <Building2 className="w-16 h-16 text-[#1A4D3E]/20" />
+            </div>
+          )}
 
           <div className="absolute bottom-4 left-4 right-4 bg-white/80 backdrop-blur-sm rounded-xl p-5 shadow-lg">
             <p className="italic font-serif text-slate-700 text-sm leading-relaxed mb-2">

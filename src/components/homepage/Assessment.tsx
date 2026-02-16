@@ -4,6 +4,7 @@ import { ClipboardList, BarChart3, FileCheck } from 'lucide-react';
 import { ScrollReveal, staggerContainer, staggerItem } from './ScrollReveal';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from '@/i18n/useTranslation';
+import { useHomepageImages } from '@/hooks/useHomepageImages';
 
 const stepIcons = [ClipboardList, BarChart3, FileCheck];
 
@@ -11,9 +12,16 @@ export const Assessment: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const a = t.homepage.assessment;
+  const images = useHomepageImages();
 
   return (
     <section className="relative py-24 md:py-32 bg-[hsl(160_80%_2%)] overflow-hidden">
+      {images.assessment && (
+        <div
+          className="absolute inset-0 bg-cover bg-center opacity-[0.06]"
+          style={{ backgroundImage: `url(${images.assessment})` }}
+        />
+      )}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-primary/5 blur-3xl pointer-events-none" />
 
       <div className="container mx-auto px-6 relative z-10 text-center">

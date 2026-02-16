@@ -3,14 +3,22 @@ import { ScrollReveal } from './ScrollReveal';
 import { useNavigate } from 'react-router-dom';
 import { Phone } from 'lucide-react';
 import { useTranslation } from '@/i18n/useTranslation';
+import { useHomepageImages } from '@/hooks/useHomepageImages';
 
 export const CTA: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const c = t.homepage.cta;
+  const images = useHomepageImages();
 
   return (
     <section className="relative py-24 md:py-32 bg-[hsl(160_80%_2%)] overflow-hidden">
+      {images.cta && (
+        <div
+          className="absolute inset-0 bg-cover bg-center opacity-[0.08]"
+          style={{ backgroundImage: `url(${images.cta})` }}
+        />
+      )}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-primary/8 blur-[120px] rounded-full pointer-events-none" />
 
       <div className="container mx-auto px-6 relative z-10 text-center">
