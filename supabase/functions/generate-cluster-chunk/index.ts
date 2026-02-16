@@ -128,14 +128,14 @@ function validateContentQuality(article: any, plan: any): { isValid: boolean; is
   
   const wordCount = countWords(article.detailed_content);
   
-  // HARD FAIL: Articles under 1200 words are always invalid
-  if (wordCount < 1200) {
-    issues.push(`CRITICAL: Content severely under minimum (${wordCount} words, need 1500+)`);
+  // HARD FAIL: Articles under 600 words are always invalid
+  if (wordCount < 600) {
+    issues.push(`CRITICAL: Content severely under minimum (${wordCount} words, need 800+)`);
     return { isValid: false, issues, score: 0, wordCount };
   }
   
-  if (wordCount < 1500) {
-    issues.push(`Content too short (${wordCount} words, minimum 1500)`);
+  if (wordCount < 800) {
+    issues.push(`Content too short (${wordCount} words, minimum 800)`);
     score -= 40; // Increased penalty
   } else if (wordCount > 2500) {
     issues.push(`Content too long (${wordCount} words, maximum 2500)`);
@@ -236,14 +236,14 @@ Respond with JSON: { "category": "exact category name from the list" }`;
     // ALWAYS wrap in JSON requirements with STRICT word count
     const contentPrompt = `${basePrompt}
 
-CRITICAL WORD COUNT REQUIREMENT: The article MUST be between 1,500 and 2,500 words. Count your words carefully.
-- Minimum: 1,500 words (articles under this will be REJECTED)
-- Target: 1,800-2,000 words (ideal range)
+CRITICAL WORD COUNT REQUIREMENT: The article MUST be between 800 and 2,500 words. Count your words carefully.
+- Minimum: 800 words (articles under this will be REJECTED)
+- Target: 1,200-1,800 words (ideal range)
 - Maximum: 2,500 words
 
 You MUST respond with a valid JSON object with this exact structure:
 {
-  "detailed_content": "<div class='article-content'>...full HTML article content (MINIMUM 1500 words, target 1800-2000)...</div>",
+  "detailed_content": "<div class='article-content'>...full HTML article content (MINIMUM 800 words, target 1200-1800)...</div>",
   "meta_title": "SEO title (50-60 characters)",
   "meta_description": "SEO meta description (150-160 characters)", 
   "speakable_answer": "40-60 word summary answering the main question directly",
@@ -255,12 +255,12 @@ You MUST respond with a valid JSON object with this exact structure:
 
 Include 5-8 FAQ questions in qa_entities. Each answer must be 80-120 words in a single paragraph (no bullet points or lists).
 The detailed_content must be proper HTML with at least 6 H2 headings, detailed paragraphs, examples, and expert insights.
-REMEMBER: Minimum 1,500 words in detailed_content is MANDATORY.`;
+REMEMBER: Minimum 800 words in detailed_content is MANDATORY.`;
 
     // Generate content with retry loop for word count enforcement (3 attempts with escalating prompts)
     let contentJson: any = null;
     let attempts = 0;
-    const maxAttempts = 2; // Reduced retries to stay within timeout
+    const maxAttempts = 3; // 3 retries for better success rate
     let lastWordCount = 0;
     
     while (attempts < maxAttempts) {
@@ -272,17 +272,17 @@ REMEMBER: Minimum 1,500 words in detailed_content is MANDATORY.`;
 
 CRITICAL REQUIREMENTS:
 1. You MUST respond with valid JSON only
-2. Articles MUST be between 1,500 and 2,500 words - this is NON-NEGOTIABLE
-3. Include at least 8 H2 sections, each with 3+ detailed paragraphs (150-200 words per section)
-4. Before finalizing, mentally count your words - if under 1,500, ADD MORE CONTENT`;
+2. Articles MUST be between 800 and 2,500 words - this is NON-NEGOTIABLE
+3. Include at least 6 H2 sections, each with 2+ detailed paragraphs
+4. Before finalizing, mentally count your words - if under 800, ADD MORE CONTENT`;
 
       if (attempts === 2 && contentJson) {
         const prevWordCount = countWords(contentJson.detailed_content || '');
-        systemPrompt = `You are an expert insurance and wealth management content writer. Your previous response was ONLY ${prevWordCount} words - this is UNACCEPTABLE.
+        systemPrompt = `You are an expert insurance and wealth management content writer. Your previous response was ONLY ${prevWordCount} words - this is below our minimum.
 
-MANDATORY: This response MUST be at least 1,500 words. 
-STRATEGY: Write 8 sections of 200+ words each = 1,600+ words minimum.
-DO NOT submit anything under 1,500 words.`;
+MANDATORY: This response MUST be at least 800 words. 
+STRATEGY: Write 6+ sections of 150+ words each = 900+ words minimum.
+DO NOT submit anything under 800 words.`;
 
         currentPrompt = `${contentPrompt}
 
@@ -304,13 +304,13 @@ This structure gives you 1,700+ words. Follow it exactly.`;
         const prevWordCount = countWords(contentJson.detailed_content || '');
         systemPrompt = `FINAL ATTEMPT. Previous responses were too short (${prevWordCount} words).
 
-You are a verbose, detailed writer. EVERY paragraph must be 80-100 words minimum.
-Include specific examples, statistics, expert quotes, and regional details for EVERY point.
-If in doubt, ADD MORE DETAIL. Err on the side of being too long.`;
+You are a detailed writer. EVERY paragraph must be 60-80 words minimum.
+Include specific examples, statistics, and expert insights.
+If in doubt, ADD MORE DETAIL.`;
 
         currentPrompt = `${contentPrompt}
 
-🚨 FINAL ATTEMPT - MUST REACH 1,500 WORDS 🚨
+🚨 FINAL ATTEMPT - MUST REACH 800 WORDS 🚨
 
 Your previous ${attempts - 1} attempts produced only ${prevWordCount} words. This is your LAST chance.
 
@@ -319,16 +319,14 @@ MANDATORY EXPANSION TECHNIQUES:
 • Include 2-3 sentences of explanation for EVERY claim
 • Add "For example..." or "In practice, this means..." phrases
 • Include relevant statistics and timeframes
-• Mention both advantages AND disadvantages of each point
-• Add expert insights like "Experienced agents recommend..."
 
 SECTION WORD COUNTS (strict minimums):
-- Introduction: 200 words
-- Each of 6-8 body sections: 200+ words  
-- FAQ section: 5-8 questions with 100-word answers each
-- Conclusion: 150 words
+- Introduction: 100 words
+- Each of 6 body sections: 100+ words  
+- FAQ section: 5-8 questions with 80-word answers each
+- Conclusion: 100 words
 
-TOTAL MINIMUM: 1,800 words. Do NOT submit under 1,500.`;
+TOTAL MINIMUM: 1,000 words. Do NOT submit under 800.`;
       }
       
       const contentResponse = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -369,21 +367,21 @@ TOTAL MINIMUM: 1,800 words. Do NOT submit under 1,500.`;
       lastWordCount = countWords(contentJson.detailed_content || '');
       console.log(`[Chunk ${jobId}] ━━━ Attempt ${attempts}: ${lastWordCount} words ━━━`);
       
-      if (lastWordCount >= 1500) {
+      if (lastWordCount >= 800) {
         console.log(`[Chunk ${jobId}] ✅ Word count requirement met!`);
         break;
       }
       
       if (attempts < maxAttempts) {
-        console.warn(`[Chunk ${jobId}] ⚠️ Word count ${lastWordCount} below 1500, will retry...`);
+        console.warn(`[Chunk ${jobId}] ⚠️ Word count ${lastWordCount} below 800, will retry...`);
         await new Promise(resolve => setTimeout(resolve, 1500));
       } else {
-        console.error(`[Chunk ${jobId}] ❌ Failed to reach 1500 words after ${maxAttempts} attempts (final: ${lastWordCount})`);
+        console.error(`[Chunk ${jobId}] ❌ Failed to reach 800 words after ${maxAttempts} attempts (final: ${lastWordCount})`);
       }
     }
 
-    // HARD FAIL: If still under 1200 words, reject the article
-    if (lastWordCount < 1200) {
+    // HARD FAIL: If still under 600 words, reject the article
+    if (lastWordCount < 600) {
       throw new Error(`Article generation failed: Could not reach minimum word count after ${maxAttempts} attempts (only ${lastWordCount} words). Article rejected.`);
     }
 
