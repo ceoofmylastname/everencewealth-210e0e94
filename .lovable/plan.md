@@ -1,55 +1,36 @@
 
 
-# Phase 9.9.2 -- Hero Visual Match to Reference Screenshot
+# Phase 9.9.3 -- Hero Section UI Polish
 
-## Overview
-Restyle the hero section to match the uploaded screenshot while keeping all existing stage-based animations, particles, mesh gradients, and scan line intact.
+## Issues Identified
 
-## Visual Differences from Current
+1. **"RETIREMENT" glow is too intense** -- the `hero-glow` text-shadow creates an overpowering green rectangle behind the text, drowning out the letters
+2. **"GAP" is barely visible** -- the 2px outline stroke at 15% white opacity is too faint against the dark background
+3. **Vertical spacing is too loose** -- there's too much gap between "BRIDGE the", "RETIREMENT", and "GAP", making the composition feel disconnected
+4. **HUD panel is cut off** -- the bottom panel is partially hidden below the viewport fold
 
-The reference screenshot shows several layout and content changes:
+## Fixes
 
-### 1. Top Badge (NEW)
-- Rounded pill/capsule at the top center: "ESTABLISHED 1998 · INDEPENDENT FIDUCIARY"
-- Bordered, semi-transparent background, uppercase tracking
-- Appears at stage 1
+### 1. src/index.css -- Reduce hero-glow intensity
+- Current: `text-shadow: 0 0 60px ..., 0 0 120px ..., 0 0 200px ...` with high alpha values (0.6, 0.35, 0.15)
+- Fix: Reduce blur radii and alpha values significantly: `0 0 30px hsla(160,60%,30%,0.3), 0 0 80px hsla(160,48%,21%,0.15)` -- subtle ambient glow instead of a green spotlight
 
-### 2. Typography Layout Change
-- **"BRIDGE"** and **"the"** are on the SAME line (not stacked)
-- "BRIDGE" is massive bold white (~12vw), "the" is smaller and lighter beside it
-- Currently they're combined as "BRIDGE the" in one span -- needs to be split so "BRIDGE" is bolder/larger
+### 2. src/index.css -- Make text-outline more visible
+- Current: `2px rgba(255,255,255,0.15)` -- nearly invisible
+- Fix: Increase to `2px rgba(255,255,255,0.25)` for better contrast while keeping the outlined aesthetic
 
-### 3. Subline Content Change
-- Replace the dot-separated tagline with a two-line message:
-  - Line 1: "Stop funding Wall Street's wealth." (white, normal weight)
-  - Line 2: "Start building yours." (italic, emerald/primary color)
-- Below that, small caps text: "YOU'VE BEEN SOLD A MYTH. SAVE AND HOPE? THAT'S A GAMBLE. WE RECLAIM CONTROL."
+### 3. src/components/home/sections/Hero.tsx -- Tighten vertical spacing
+- Reduce `space-y-0` wrapper and add negative margins between the three text blocks to pull them closer together, creating a cohesive stacked typographic lockup
+- Reduce `pt-24 md:pt-32` to `pt-20 md:pt-24` and `pb-32 md:pb-40` to `pb-24 md:pb-32` to pull content up and make room for the HUD panel
+- Reduce `mt-8` on the subline to `mt-4`
 
-### 4. Bottom HUD Panel Redesign
-- Three-column layout instead of current two-part layout
-- Left: "SYSTEM STATUS" label + "ANALYSIS ACTIVE" with green dot
-- Center: "CURRENT PROTOCOL" label + "Tax-Free Bucket Optimization" (bold)
-- Right: "BEGIN ASSESSMENT" button (dark bg, bordered, not filled green)
-- Wider panel (max-w-4xl instead of max-w-2xl)
+### 4. src/components/home/sections/Hero.tsx -- Fix HUD panel visibility
+- Change `bottom-8 md:bottom-12` to `bottom-4 md:bottom-8` so it doesn't get cut off
 
-### 5. Corner Decorations
-- Bottom-left: "01" in small muted text
-- Top-right: "2028" in small emerald text
-- Both appear at stage 4
+## Files Modified
 
-### 6. Remove Scroll Indicator
-- The chevron scroll indicator is not present in the reference -- remove it
-
-## Technical Changes
-
-### File: `src/components/home/sections/Hero.tsx`
-- Split "BRIDGE the" into two separate motion spans on the same line -- "BRIDGE" at ~12vw bold, "the" at ~4vw lighter
-- Add a top badge pill element gated on stage >= 1
-- Replace subline with the two-line "Stop funding..." message + small caps manifesto line
-- Redesign HUD panel to 3-column grid with labels
-- Change CTA button to bordered/outline style with "BEGIN ASSESSMENT" text
-- Add "01" bottom-left and "2028" top-right corner text
-- Remove the ChevronDown scroll indicator
-
-### No other files need changes -- all animations, CSS utilities, fonts, and tailwind config remain as-is.
+| File | Change |
+|------|--------|
+| `src/index.css` | Reduce hero-glow intensity, increase text-outline opacity |
+| `src/components/home/sections/Hero.tsx` | Tighten vertical spacing, fix HUD panel position |
 
