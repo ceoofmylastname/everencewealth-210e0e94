@@ -1,32 +1,34 @@
 
-
-## Add Bulk Publish and Status Change to Articles Page
+## Add Blog Preview Section to Homepage
 
 ### Current State
-The `/admin/articles` page has checkbox selection and a bulk actions bar, but only supports **Bulk Delete**. There is no way to publish, archive, or change the status of multiple articles at once.
+The homepage (`src/pages/Home.tsx`) has no blog section. There is an existing `BlogTeaser` component in `src/components/home/sections/ReviewsAndBlog.tsx` from an older layout, but it is not used on the current homepage and follows the old real-estate styling (white backgrounds, slate colors) -- not the dark "tactical institutional" aesthetic used by the current homepage sections.
 
 ### What Will Change
-Add bulk status change actions (Publish, Archive, Revert to Draft) to the existing bulk actions bar so you can select articles and change their status in one click.
+Create a new `BlogPreview` component in `src/components/homepage/` that matches the dark homepage aesthetic, fetches the 3 most recent published articles from the database, and displays them in a modern card layout. Add it to `Home.tsx` between the FAQ and CTA sections.
 
-### Implementation Details
-
-**File: `src/pages/admin/Articles.tsx`**
-
-1. Add a new `bulkStatusMutation` (similar to the existing `bulkDeleteMutation`) that updates the `status` column for all selected article IDs in a single database call.
-
-2. Expand the bulk actions bar (the amber card that appears when articles are selected) to include three new buttons:
-   - **Publish Selected** -- sets status to `published`
-   - **Set as Draft** -- sets status to `draft`  
-   - **Archive Selected** -- sets status to `archived`
-
-3. Add a confirmation dialog for the Publish action (similar to the existing delete confirmation) to prevent accidental bulk publishing.
-
-4. After a successful bulk status update, invalidate the article queries so the list refreshes, clear the selection, and show a success toast.
+### Design
+- **Section background**: Deep dark (`bg-[hsl(160_80%_2%)]`) with a subtle radial emerald glow, consistent with other homepage sections
+- **Header**: Gold eyebrow label ("FROM THE BLOG"), serif headline ("Insights for Smarter Wealth"), brief subtitle
+- **3-card grid**: Each card features:
+  - Featured image with hover zoom and a glassmorphic date pill overlay
+  - Article headline (white, serif) that highlights gold on hover
+  - Short meta description excerpt (white/60 opacity)
+  - "Read more" link with animated arrow
+  - Cards have a glass-morphic dark border (`border-white/10`) with hover glow effect
+- **"View All Articles" CTA button** below the grid, linking to `/en/blog`
+- Scroll-reveal animations using existing `ScrollReveal` and stagger variants
+- Loading skeleton state while articles load
+- Fallback message if no published articles exist
 
 ### Technical Details
 
-- New mutation calls `supabase.from("blog_articles").update({ status, updated_at: new Date().toISOString() }).in("id", selectedArticleIds)`
-- Reuses existing selection state (`selectedArticles`) and checkbox UI
-- Buttons will be disabled while any mutation is pending
-- The `updated_at` timestamp will also be refreshed on status change
+**New file: `src/components/homepage/BlogPreview.tsx`**
+- Uses `useQuery` to fetch 3 latest published articles from `blog_articles` table (status = 'published', ordered by `date_published` desc)
+- Uses `ScrollReveal`, `staggerContainer`, `staggerItem` from existing `ScrollReveal.tsx`
+- Uses `framer-motion` for card grid animations
+- Links to `/en/blog/:slug` for individual articles and `/en/blog` for the full index
+- Uses `date-fns` `format()` for date formatting
 
+**Modified file: `src/pages/Home.tsx`**
+- Import and add `<BlogPreview />` between `<FAQ />` and `<CTA />`
