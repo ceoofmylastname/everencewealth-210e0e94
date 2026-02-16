@@ -1,59 +1,96 @@
 
 
-## Add AI-Generated Images to the Homepage with Nano Banana Pro
+## Add AI-Generated Homepage Images with Nano Banana Pro
 
 ### Overview
-Generate 5 professional, high-quality images using Nano Banana Pro (`google/gemini-3-pro-image-preview` via Lovable AI gateway) for key homepage sections. Store them in the `article-images` storage bucket and persist URLs in a new `homepage_images` database table. Each component will gracefully fall back to its current appearance if images haven't been generated yet.
+Generate 5 professional images using the existing fal.ai Nano Banana Pro integration (already configured with `FAL_KEY`) for 5 homepage sections. Store them in the `article-images` bucket, persist URLs in a new `homepage_images` table, and update each component to display them with graceful fallbacks.
 
-### Images to Generate
+### Step 1: Create `homepage_images` Database Table
 
-| Section | Image Concept | Aspect Ratio |
-|---------|--------------|-------------|
-| **HomepageAbout** | Professional financial advisor reviewing plans with a client couple in a modern glass office, warm lighting, editorial style | 4:3 |
-| **Services** | Wide cinematic shot of a premium wealth management office with warm ambient lighting, bookshelves, and city views | 16:9 |
-| **WealthPhilosophy** | Aerial golden-hour cityscape of a financial district skyline, dramatic clouds | 16:9 |
-| **CTA** | Happy retired couple walking on a beach at sunset, lifestyle photography | 16:9 |
-| **Assessment** | Close-up of hands reviewing financial documents on a premium mahogany desk with a pen and glasses | 16:9 |
+SQL migration to create the table with RLS (public read, service_role write):
 
-### Technical Approach
+```sql
+CREATE TABLE public.homepage_images (
+  id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
+  section_key TEXT NOT NULL UNIQUE,
+  image_url TEXT NOT NULL,
+  prompt TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
 
-**1. Database Table: `homepage_images`**
-- `id` (UUID, PK), `section_key` (TEXT, unique), `image_url` (TEXT), `prompt` (TEXT), `created_at` (TIMESTAMPTZ)
-- RLS: public SELECT, service_role full access
+ALTER TABLE public.homepage_images ENABLE ROW LEVEL SECURITY;
 
-**2. Edge Function: `generate-homepage-images`**
-- Uses Lovable AI gateway (`google/gemini-3-pro-image-preview`) -- no extra API key needed
-- Generates 5 images with tailored prompts
-- Extracts base64 image data from the response, uploads each to `article-images` storage bucket
-- Upserts URLs into `homepage_images` table
-- One-time generation -- run once, URLs are permanent
+CREATE POLICY "Anyone can view homepage images"
+  ON public.homepage_images FOR SELECT USING (true);
 
-**3. React Hook: `useHomepageImages`**
-- Fetches from `homepage_images` table via Supabase client
+CREATE POLICY "Service role manages homepage images"
+  ON public.homepage_images FOR ALL USING (auth.role() = 'service_role');
+```
+
+### Step 2: Create Edge Function `generate-homepage-images`
+
+New file: `supabase/functions/generate-homepage-images/index.ts`
+
+- Reuses the exact same fal.ai pattern from `generate-hero-image` (FAL_KEY, `fal-ai/nano-banana-pro`, upload to `article-images` bucket)
+- Generates 5 images with these prompts:
+
+| Key | Prompt Summary | Ratio |
+|-----|---------------|-------|
+| `about` | Professional advisor reviewing plans with client couple in modern glass office, warm golden lighting, editorial photography | 4:3 |
+| `services` | Wide cinematic shot of premium wealth management office, warm ambient lighting, bookshelves, city skyline views | 16:9 |
+| `philosophy` | Aerial golden-hour cityscape of financial district skyline, dramatic clouds, modern skyscrapers | 16:9 |
+| `cta` | Happy retired couple walking on beach at sunset, lifestyle photography, warm tones | 16:9 |
+| `assessment` | Close-up of hands reviewing financial documents on mahogany desk, pen and glasses, professional setting | 16:9 |
+
+- Downloads each fal.ai image, uploads to `article-images` bucket with prefix `homepage-{key}`
+- Upserts all 5 URLs into `homepage_images` table
+- One-time run -- URLs are permanent after generation
+
+### Step 3: Create `useHomepageImages` Hook
+
+New file: `src/hooks/useHomepageImages.ts`
+
+- Queries `homepage_images` table via Supabase client (using `.from()` with type cast since table is new)
 - Returns `Record<string, string>` mapping section_key to image_url
 - Cached with React Query (24h stale time)
+- Returns empty object if no images exist yet (graceful fallback)
 
-**4. Component Updates (5 files)**
+### Step 4: Update 5 Homepage Components
 
-- **HomepageAbout.tsx**: Replace the `Building2` icon placeholder with an `<img>` tag. Keep the testimonial overlay card. Add a subtle parallax hover effect.
-- **Services.tsx**: Add a full-width rounded banner image above the service cards with a gradient overlay.
-- **WealthPhilosophy.tsx**: Replace the Unsplash URL with the generated cityscape at ~8% opacity.
-- **CTA.tsx**: Add a subtle background image with dark gradient overlay to maintain text readability.
-- **Assessment.tsx**: Add a low-opacity background image for atmospheric depth.
+All components import `useHomepageImages` and conditionally render images:
 
-All components fall back gracefully (current appearance) if no image URL is available.
+**HomepageAbout.tsx**
+- Replace the placeholder gradient `div` with `Building2` icon (line 65) with an `<img>` tag showing the `about` image
+- Keep the testimonial overlay card positioned on top
+- Fallback: current gradient placeholder if no image
 
-### Execution Order
-1. Create `homepage_images` database table (migration)
-2. Create `generate-homepage-images` edge function
-3. Create `useHomepageImages` hook
-4. Update 5 homepage components
-5. Deploy edge function and trigger once to generate all images
+**Services.tsx**
+- Add a full-width rounded banner image above the service cards grid (between heading and cards)
+- Gradient overlay on the banner for text contrast
+- Fallback: no banner shown, cards render as before
+
+**WealthPhilosophy.tsx**
+- Replace the Unsplash URL (line 16) with the `philosophy` image URL
+- Increase opacity slightly from 4% to 8% for the generated image
+- Fallback: keep current Unsplash URL
+
+**CTA.tsx**
+- Add a background image layer behind the content with dark gradient overlay
+- Fallback: current gradient-only background
+
+**Assessment.tsx**
+- Add a low-opacity background image for atmospheric depth
+- Fallback: current appearance unchanged
+
+### Step 5: Deploy and Trigger
+
+- Deploy `generate-homepage-images` edge function
+- Call it once to generate all 5 images
+- Images persist permanently in storage and database
 
 ### Design Principles
-- Images use low opacity or gradient overlays on dark sections to maintain text contrast
-- HomepageAbout gets a full, visible image (replacing the placeholder icon)
-- Services gets a prominent banner
-- All other sections use images as subtle atmospheric backgrounds
-- No extra API keys required -- uses the pre-configured Lovable AI gateway
-
+- All background images use low opacity (4-10%) or dark gradient overlays to maintain text readability
+- HomepageAbout gets a fully visible image (replacing placeholder)
+- Services gets a prominent decorative banner
+- Components fall back gracefully to current appearance if images don't exist
+- No new API keys needed -- uses existing `FAL_KEY` and `article-images` bucket
