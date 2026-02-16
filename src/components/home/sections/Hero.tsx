@@ -201,12 +201,12 @@ export const Hero: React.FC = () => {
 
       {/* Bottom HUD panel */}
       <motion.div
-        className="absolute bottom-4 md:bottom-8 left-1/2 -translate-x-1/2 z-20 w-[92%] max-w-4xl"
+        className="absolute bottom-4 md:bottom-8 inset-x-0 z-20 flex justify-center px-4"
         initial={{ opacity: 0, y: 80 }}
         animate={stage >= 4 ? { opacity: 1, y: 0 } : {}}
         transition={{ type: 'spring', stiffness: 120, damping: 18, mass: 1 }}
       >
-        <div className="glass-card rounded-2xl px-6 py-4 md:px-8 md:py-5 grid grid-cols-1 md:grid-cols-3 items-center gap-4 md:gap-6">
+        <div className="glass-card rounded-2xl px-6 py-4 md:px-8 md:py-5 grid grid-cols-1 md:grid-cols-3 items-center gap-4 md:gap-6 w-full max-w-3xl">
           {/* Left */}
           <div className="flex flex-col items-center justify-center text-center">
             <span className="block text-[9px] font-hero font-semibold tracking-[0.25em] uppercase text-white/30 mb-1">System Status</span>
