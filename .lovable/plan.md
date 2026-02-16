@@ -1,40 +1,61 @@
 
-## Fix: Summary Cards Showing 0 Despite Q&As Existing
+## Update Citation Injection for Financial Planning Content
 
 ### Problem
+Citations ARE being stored in the database correctly (the Discover + Apply flow works), but they are NOT appearing in the rendered blog articles because:
 
-The summary cards at the top of the Q&A tab (Total Q&As, Published, Draft, Complete%) all show **0**, even though:
-- English Q&As: 24/24 (green checkmark)
-- The database confirms 48 Q&As exist
+1. **`src/lib/linkInjection.ts`** has hardcoded entity patterns for airlines, airports, and travel entities (Ryanair, easyJet, Malaga Airport, etc.)
+2. **`addCitationMarkers()`** uses travel-specific claim indicators ("flights", "airlines", "routes", etc.)
+3. None of these match financial planning content, so zero citations get injected into the HTML
 
-### Root Cause
+### Solution
 
-The summary cards read from `cluster.total_qa_pages` and `cluster.total_qa_published`, which are computed in the **parent component** (`ClusterManager.tsx`) using a cached RPC call (`get_cluster_qa_counts`). This data is stale -- it was fetched before the Q&As were generated and hasn't been refetched.
+**File: `src/lib/linkInjection.ts`** - Complete overhaul for financial planning domain:
 
-Meanwhile, the per-language counts (the "24/24" tiles) are fetched independently inside `ClusterQATab.tsx` via direct queries, so they show correct data.
+1. **Replace entity patterns** with financial planning entities:
+   - Regulatory bodies: SEC, FINRA, IRS, CFP Board, NAPFA
+   - Financial terms: 401(k), Roth IRA, S&P 500, FDIC, Medicare, Social Security
+   - Institutions: Vanguard, Fidelity, Schwab, Federal Reserve
 
-### Fix
+2. **Replace claim indicators** with financial planning keywords:
+   - "returns", "interest rate", "inflation", "tax", "retirement", "portfolio"
+   - "investment", "fiduciary", "estate planning", "wealth", "fees", "risk"
+   - "compound", "diversification", "annuity", "capital gains"
 
-**File: `src/components/admin/cluster-manager/ClusterQATab.tsx`**
+3. **Improve citation matching logic**:
+   - Instead of only matching by source name, also match by URL domain (e.g., if citation URL contains "irs.gov", link IRS mentions to it)
+   - Add a generic fallback: for citations with a `text` field, try to find that exact text in the article and hyperlink it
 
-Replace the summary card values with the locally-computed values that are already available:
+4. **Update `addCitationMarkers()`**:
+   - Use the new financial claim indicators so superscript markers appear on sentences containing financial facts/claims
 
-1. **Total Q&As**: Change `cluster.total_qa_pages` to `totalQAsCreated` (already computed on line 1111 from `englishQACount + languageQACounts`)
-2. **Published**: Change `cluster.total_qa_published` to the sum of `languagePublishedCounts` values (already tracked in state)
-3. **Draft**: Derive from `totalQAsCreated - totalPublished`
-4. **Completion %**: Derive from `totalQAsCreated / totalExpectedQAs`
-5. **Progress bar**: Same fix for the progress text on line 1140
+### Additional Improvement
 
-This ensures the summary cards use the same real-time data source as the per-language tiles, rather than depending on the parent's cached RPC data.
+**File: `src/components/blog-article/ArticleContent.tsx`** (minor):
+- Add a "Sources" or "References" section at the bottom of articles that lists all external citations with numbered references matching the superscript markers
+
+### How to Use (Workflow)
+
+1. Go to **Admin > Clusters** and select a cluster
+2. Open the **Articles** tab
+3. Click **"Discover Citations"** on any article
+4. Review the AI-suggested citations and select the good ones
+5. Click **Apply** -- they save to the database
+6. The blog article will now render with:
+   - Inline hyperlinks on matching entity names
+   - Superscript citation markers `[1]`, `[2]` on factual claims
+   - A references section at the bottom
 
 ### Technical Details
 
-Lines to update in `ClusterQATab.tsx`:
+Changes to `injectExternalLinks()`:
+- Replace the hardcoded `entityPatterns` array with financial planning patterns
+- Add domain-based matching: extract domain from citation URL and match against content mentions
+- Add text-based matching: use citation `text` field as anchor text search
 
-- **Line ~1009-1014**: Recompute `completionPercent` and `draftQAsCount` using local state
-- **Line 1118**: `cluster.total_qa_pages` -> `totalQAsCreated`  
-- **Line 1123**: `cluster.total_qa_published` -> locally computed published total
-- **Line 1127**: `draftQAsCount` -> `totalQAsCreated - totalPublished`
-- **Line 1140**: Progress bar text uses `totalQAsCreated` instead of `cluster.total_qa_pages`
+Changes to `addCitationMarkers()`:
+- Replace `claimIndicators` array with financial planning terms
+- Keep the same sentence-splitting and superscript injection logic
 
-Additionally, add the English published count to `languagePublishedCounts` (same pattern as the previous fix for `languageQACounts`).
+New addition to `ArticleContent.tsx`:
+- Render a numbered references/sources list below the article content when `externalCitations.length > 0`
