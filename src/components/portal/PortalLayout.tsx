@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import {
   Shield, LogOut, LayoutDashboard, FileText, Users, Send,
   FolderOpen, Menu, X, ChevronRight, MessageSquare,
+  Building2, TrendingUp, Wrench, GraduationCap, Megaphone, Calendar, Newspaper,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { NotificationBell } from "./NotificationBell";
@@ -13,13 +14,13 @@ const advisorNav = [
   { label: "Dashboard", icon: LayoutDashboard, href: "/portal/advisor/dashboard" },
   { label: "Clients", icon: Users, href: "/portal/advisor/clients" },
   { label: "Policies", icon: FileText, href: "/portal/advisor/policies" },
-  { label: "Carriers", icon: Shield, href: "/portal/advisor/carriers" },
-  { label: "News", icon: FileText, href: "/portal/advisor/news" },
-  { label: "Performance", icon: FileText, href: "/portal/advisor/performance" },
-  { label: "Tools", icon: FileText, href: "/portal/advisor/tools" },
-  { label: "Training", icon: FileText, href: "/portal/advisor/training" },
-  { label: "Marketing", icon: FileText, href: "/portal/advisor/marketing" },
-  { label: "Schedule", icon: FileText, href: "/portal/advisor/schedule" },
+  { label: "Carriers", icon: Building2, href: "/portal/advisor/carriers" },
+  { label: "News", icon: Newspaper, href: "/portal/advisor/news" },
+  { label: "Performance", icon: TrendingUp, href: "/portal/advisor/performance" },
+  { label: "Tools", icon: Wrench, href: "/portal/advisor/tools" },
+  { label: "Training", icon: GraduationCap, href: "/portal/advisor/training" },
+  { label: "Marketing", icon: Megaphone, href: "/portal/advisor/marketing" },
+  { label: "Schedule", icon: Calendar, href: "/portal/advisor/schedule" },
   { label: "Compliance", icon: Shield, href: "/portal/advisor/compliance" },
   { label: "Documents", icon: FolderOpen, href: "/portal/advisor/documents" },
   { label: "Invite Client", icon: Send, href: "/portal/advisor/invite" },
