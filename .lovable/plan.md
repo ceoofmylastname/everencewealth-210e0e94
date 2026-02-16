@@ -1,167 +1,96 @@
 
 
-# Phase 9.9 -- Visual Redesign: Apply Uploaded Reference Components
+# Phase 9.9.1 -- Hero Section Upgrade: Cinematic Load Experience
 
 ## Overview
-Replace 8 existing homepage components with the bold, editorial-style designs from the uploaded reference files. This is a major visual overhaul that shifts from the current conservative aesthetic (light backgrounds, serif headers, standard cards) to an aggressive, institutional design language (dark backgrounds, Space Grotesk typography, glass morphism, oversized type, editorial side-text).
+Transform the hero into a cinematic, multi-stage entrance sequence with bolder typography, particle effects, and framer-motion orchestration -- replacing the current simple fade-in with a theatrical reveal.
 
-## What Changes
+---
 
-### New Font: Space Grotesk
-The reference files use `font-space` extensively. We need to add Space Grotesk to the project.
+## Design Concept
 
-**index.html**: Add Google Fonts import for Space Grotesk (alongside existing Sora/Outfit/Playfair).
+The page loads with a brief **dark curtain** that splits open, revealing the hero content in a choreographed sequence:
 
-**tailwind.config.ts**: Add `space: ['Space Grotesk', 'sans-serif']` to `fontFamily`.
+1. **Stage 0 (0-300ms)**: Dark screen with a single pulsing emerald dot in the center
+2. **Stage 1 (300-800ms)**: Dot expands into a radial light burst; "BRIDGE the" slides in from the left with blur-to-sharp
+3. **Stage 2 (800-1400ms)**: "RETIREMENT" assembles letter-by-letter with gradient fill sweeping across
+4. **Stage 3 (1400-1800ms)**: "GAP" slams in from below with a subtle screen-shake and the outline effect
+5. **Stage 4 (1800-2200ms)**: Subline fades up, HUD panel slides from bottom, floating particles begin
 
-### New CSS Utilities
-The reference files use several CSS classes not yet in the project:
+### Typography Upgrade
+- Switch from `font-space` (Space Grotesk) to **Clash Display** via CDN -- a sharp, geometric variable font that commands attention
+- Fallback chain: `'Clash Display', 'Space Grotesk', sans-serif`
+- Massive sizing: "RETIREMENT" at `15vw` on mobile, `9vw` on desktop
+- "GAP" uses a new thicker outline stroke (`2px` instead of `1px`)
 
-**src/index.css** -- add:
-- `.glass` utility (similar to `.glass-card` but without border): `backdrop-filter: blur(16px); background: hsla(0, 0%, 100%, 0.03);`
-- `.text-outline` class: `-webkit-text-stroke: 1px rgba(255,255,255,0.15); color: transparent;`
-- `.hero-glow` text shadow effect
-- `.animate-text-gradient` keyframe for the gradient text animation on "RETIREMENT"
-- `.scroll-reveal` base class (CSS fallback for JS-driven reveals): `opacity: 0; transform: translateY(40px); transition: all 0.7s cubic-bezier(0.16, 1, 0.3, 1);`
+### New Visual Elements
+- **Floating particles**: 8-12 small emerald/gold dots that drift slowly across the viewport using CSS animations with randomized delays
+- **Mesh gradient background**: Animated radial gradients that slowly shift position (using existing `mesh-shift` keyframe)
+- **Horizontal scan line**: A thin semi-transparent line that sweeps vertically once during load
+- **Scroll indicator**: Animated chevron at the bottom that bounces (using existing `scroll-indicator` keyframe)
 
-### New Tailwind Colors
-**tailwind.config.ts** -- add:
-- `slate: '#4A5565'` (used as text color in reference)
-- `light-gray: '#F5F5F0'` (used as section backgrounds)
+---
 
-### Component Replacements (8 files)
+## Technical Changes
 
-**1. Hero** (`src/components/home/sections/Hero.tsx`)
-- Replace the current gradient-bg hero with the uploaded editorial design
-- Full-viewport height with parallax scroll effect
-- Stacked typography: "BRIDGE the RETIREMENT GAP" in oversized vw-based font sizes
-- Gradient text animation on "RETIREMENT"
-- Outline text effect on "GAP"
-- Decorative side text (WEALTH ARCHITECTURE / STRATEGIC FIDUCIARY) on xl screens
-- Bottom "Tactical HUD" glass panel with system status + CTA button
-- Staggered entrance animations via `isLoaded` state
-- Remove `useTranslation`, `useNavigate`, `Button` imports
-- Keep as named export `Hero`
+### 1. index.html
+- Add Clash Display font from CDN: `https://api.fontshare.com/v2/css?f[]=clash-display@200,300,400,500,600,700&display=swap`
+- Add preconnect for `api.fontshare.com`
 
-**2. Header/Navbar** (`src/components/home/Header.tsx`)
-- Add scroll progress bar (2px height, evergreen color with glow shadow)
-- Update text styling: nav links become `text-[10px] font-black uppercase tracking-[0.3em]`
-- Logo text: "EVERENCE" + green "WEALTH" using font-space
-- Update CTA button styling: `bg-evergreen text-white rounded-xl`
-- Mobile menu: full-screen overlay with large font-space text
-- Keep existing dropdown menu structure (Strategies, Education, About) but adapt styling
-- Keep react-router `Link` usage (not plain `a` tags)
+### 2. tailwind.config.ts
+- Add `'Clash Display'` to the front of `fontFamily.space` array so it becomes `['Clash Display', 'Space Grotesk', 'sans-serif']`
+- Add new keyframe `letter-reveal`: staggered opacity + translateY for individual letters
+- Add new keyframe `scan-line`: vertical sweep from top to bottom
+- Add new keyframe `dot-expand`: scale from 0 to 1 with opacity
 
-**3. WakeUpCall** (`src/components/homepage/WakeUpCall.tsx`)
-- Switch from dark evergreen bg to white bg with evergreen text
-- Add AlertCircle icon with red-50 badge
-- Oversized font-space heading: "Your Retirement Account Has a Silent Partner: The IRS"
-- Two-column layout: left = copy + evergreen quote card (rounded-[40px]), right = tax trap list + 80-90% stat + CTA button
-- Replace framer-motion with `scroll-reveal` CSS classes
-- Remove `useAnimatedCounter` stat cards
+### 3. src/index.css
+- Update `.text-outline` stroke width from `1px` to `2px`
+- Add `.hero-particle` class for floating dot animations
+- Add `.scan-line` class for the vertical sweep effect
+- Update `.hero-glow` to include a stronger emerald glow
 
-**4. SilentKillers** (`src/components/homepage/SilentKillers.tsx`)
-- Switch from light slate-50 bg to `bg-evergreen text-white`
-- Add background radial gradient texture
-- Oversized font-space heading with `text-outline` on "Attack."
-- Card design: glass morphism cards with rounded-[60px], large ID numbers (01/02/03) as watermarks
-- Bottom: massive "RECLAIM CONTROL" watermark text + white CTA button
-- Replace inline SVG visuals with simpler icon-based cards
-- Remove FeesVisual/VolatilityVisual/TaxesVisual sub-components
+### 4. src/components/home/sections/Hero.tsx (full rewrite)
+Major changes:
+- Import `motion`, `AnimatePresence` from framer-motion
+- Replace boolean `isLoaded` state with a numeric `stage` state (0-4) controlled by sequential timeouts
+- **Stage-based orchestration**: Each visual element is gated by the current stage number
+- **Letter-by-letter animation** for "RETIREMENT": split into individual `motion.span` elements with staggered delays
+- **"GAP" slam effect**: `motion.span` with `scale: [3, 1]` and `y: [100, 0]` spring transition
+- **Particle layer**: Map over an array of 10 particles, each with randomized position/delay/duration, rendered as small `div` circles with `animate-float-particle`
+- **Mesh gradient**: Two large absolutely-positioned blurred circles that animate with `animate-mesh-shift` at different speeds
+- **Scan line**: A 1px-tall div that animates from `top: 0` to `top: 100%` once on load
+- **Scroll indicator**: Animated down-chevron at the very bottom using `animate-scroll-indicator`
+- Bottom HUD panel stays but enters with a `motion.div` spring from `y: 100`
+- Side text stays but enters with `motion.div` from `x: -40` / `x: 40`
 
-**5. TaxBuckets** (`src/components/homepage/TaxBuckets.tsx`)
-- Switch from cream bg to dark `bg-[#020806] text-white`
-- Add decorative blur gradients in corners
-- Oversized heading with `text-outline` on "Tax Buckets"
-- Cards: glass-card morphism with rounded-[50px], colored accent icons
-- Tax-Free bucket gets `lg:scale-105` highlight with "Strategic Priority" badge
-- Bottom: italic quote + bordered CTA button
-- Replace color-coded light cards with dark glass cards
-
-**6. IndexedAdvantage** (`src/components/homepage/IndexedAdvantage.tsx`)
-- Switch to `bg-white text-evergreen`
-- Remove recharts AreaChart, replace with a styled comparison table inside an evergreen rounded-[50px] card
-- Performance comparison: S&P 500 vs IUL showing +30%, -40%(2008), +25%, -20% vs capped/floored returns
-- "Who This Is For" section with 4 audience types in a grid
-- Large CTA: "Model Your Indexed Strategy"
-- Remove `ChartContainer` and recharts imports
-
-**7. WealthPhilosophy** (`src/components/homepage/WealthPhilosophy.tsx`)
-- Switch from cream bg to dark `bg-[#020806] text-white`
-- Add background image layer (Unsplash architecture photo at 4% opacity)
-- Two major sub-sections: Cash Flow comparison + Human Life Value
-- Cash Flow: "Net Worth Is Vanity" heading with gradient text, side-by-side glass cards (Golden Cage vs Cash Flow Mobility)
-- Human Life Value: "You Are Your Greatest Asset" with income valuation calculator card (white bg, evergreen text)
-- Living Benefits grid with glass icon cards
-- Remove simple Traditional vs Everence comparison and Buffett quote
-
-**8. TheGap** (`src/components/homepage/TheGap.tsx`)
-- Switch from dark bg to `bg-light-gray` (light)
-- Three gap cards (Savings, Income, Tax) with white bg, rounded-[40px], hover shadow
-- Each card: icon, title, description, red stat number
-- Bottom: "The Bridge Strategy" section in evergreen rounded-[60px] card with 5-step grid
-- CTA: "Bridge Your Retirement Gap" white button
-- Remove bar chart visualization
-
-**9. Services** (NEW: `src/components/homepage/Services.tsx`)
-- New section from uploaded reference
-- Three service cards: Retirement Planning, Wealth Protection, Legacy Planning
-- White bg, bordered cards with rounded-[30px], hover lift effect
-- Icon badges that change color on hover (bg-evergreen + white icon)
-- Bullet points with evergreen dots
-- "Learn More" links with chevron
-
-**10. Stats** (`src/components/homepage/Stats.tsx`)
-- Switch from dark bg to white bg
-- Replace glass-card container with simple divided grid
-- Larger counter text: `text-5xl md:text-7xl font-space font-bold text-evergreen`
-- Different metrics: $500M+ AUM, 98% Satisfaction, 25+ Years, 75+ Carriers
-- Use built-in IntersectionObserver counter instead of `useAnimatedCounter` hook
-
-### Updated Home.tsx Section Order
+### Section structure:
 ```
-Header
-CursorGlow
-Hero
-WakeUpCall
-SilentKillers
-TaxBuckets
-IndexedAdvantage
-WealthPhilosophy
-FiduciaryDifference (KEEP as-is)
-TheGap
-Services (NEW)
-HomepageAbout (KEEP as-is)
-Stats
-Assessment (KEEP as-is)
-FAQ (KEEP as-is)
-CTA (KEEP as-is)
-Footer
+<section> (full viewport, dark-bg, overflow-hidden)
+  -- Mesh gradient layer (2 blurred circles, absolute)
+  -- Scan line (absolute, animates once)
+  -- Particle layer (10 floating dots, absolute)
+  -- Side text left (xl only, motion)
+  -- Side text right (xl only, motion)
+  -- Main content container
+      -- "BRIDGE the" (motion.div, blur reveal)
+      -- "RETIREMENT" (letter-by-letter motion.span)
+      -- "GAP" (motion.div, slam + shake)
+      -- Subline (motion.p, fade up)
+  -- Scroll indicator (bottom center, bouncing chevron)
+  -- HUD panel (bottom, motion.div spring)
+</section>
 ```
 
 ---
 
-## Technical Details
+## Files Modified
 
-### Files Created (1):
-- `src/components/homepage/Services.tsx`
+| File | Action |
+|------|--------|
+| `index.html` | Add Clash Display font CDN + preconnect |
+| `tailwind.config.ts` | Add Clash Display to font stack, add 3 new keyframes |
+| `src/index.css` | Update text-outline, add particle/scan-line classes |
+| `src/components/home/sections/Hero.tsx` | Full rewrite with staged framer-motion orchestration |
 
-### Files Modified (11):
-- `src/components/home/sections/Hero.tsx` -- full rewrite to editorial design
-- `src/components/home/Header.tsx` -- add scroll progress bar, update typography
-- `src/components/homepage/WakeUpCall.tsx` -- full rewrite to white/editorial layout
-- `src/components/homepage/SilentKillers.tsx` -- full rewrite to dark glass cards
-- `src/components/homepage/TaxBuckets.tsx` -- full rewrite to dark glass cards
-- `src/components/homepage/IndexedAdvantage.tsx` -- remove recharts, add comparison table
-- `src/components/homepage/WealthPhilosophy.tsx` -- full rewrite with two sub-sections
-- `src/components/homepage/TheGap.tsx` -- rewrite to light 3-card + bridge strategy
-- `src/components/homepage/Stats.tsx` -- switch to white bg, new metrics
-- `src/pages/Home.tsx` -- add Services import, update section order
-- `tailwind.config.ts` -- add Space Grotesk font, slate/light-gray colors
-- `index.html` -- add Space Grotesk font import
-- `src/index.css` -- add glass, text-outline, hero-glow, scroll-reveal, animate-text-gradient utilities
-
-### Dependencies: No new npm packages. Space Grotesk loaded via Google Fonts CDN.
-
-### No database, edge function, or RLS changes required.
+No database, edge function, or dependency changes required. Clash Display is loaded via CDN (Fontshare, free for commercial use).
 
