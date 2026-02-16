@@ -1,54 +1,74 @@
 
 
-## Client Notifications List Page
+## Fix Training and Compliance Tables - Assessment and Plan
 
-### Overview
-Create a full-page notifications view at `/portal/client/notifications` that shows all notifications with filtering, mark-as-read, and delete capabilities. The existing `NotificationBell` popover will also get a "View all" link to this page.
+### Current State: No Missing Tables
 
-### No Database Changes Required
-The `portal_notifications` table already exists with the needed columns: `id`, `user_id`, `title`, `message`, `notification_type`, `link`, `read`, `created_at`. RLS policies are already in place. Delete operations will use the existing RLS rules.
+After investigating the database schema and codebase, here's what I found:
 
-### Files to Create
+**Training Center -- Already Working**
+- The `trainings` table exists with 4 published records and proper columns (title, category, level, duration, video_url, etc.)
+- The `training_progress` table exists with advisor tracking (progress_percent, completed, last_viewed_at)
+- RLS policies are correctly configured for both tables
+- The Training Center page queries these tables and works correctly
 
-**1. `src/pages/portal/client/ClientNotifications.tsx`**
+**Compliance Center -- Static by Design**
+- The page uses hardcoded demo data (not database tables)
+- No code anywhere references `compliance_items` or `compliance_status` tables
+- This was intentionally built as a structural placeholder
 
-Full-page notification center with:
+### Recommended Plan: Make Compliance Center Data-Driven
 
-- **Header**: "Notifications" title with unread count badge, "Mark all as read" button
-- **Filter bar**: Tabs or dropdown to filter by notification type (All, Policy Updates, Documents, Messages, System) -- mapped from `notification_type` column values
-- **Notification list**: Each item shows:
-  - Unread indicator dot
-  - Title and message
-  - Relative timestamp (using `formatDistanceToNow` from date-fns)
-  - Click to navigate if `link` is set, and mark as read
-  - Delete button (trash icon) per notification
-- **Empty state**: Bell icon with "No notifications" message
-- **Bulk actions**: "Mark all as read" and "Delete all read" buttons
+Since no tables are actually missing or broken, the useful work here is to replace the Compliance Center's static demo data with real database tables.
 
-Data fetching -- all notifications (no limit 20 like the bell):
-```typescript
-const { data } = await supabase
-  .from("portal_notifications")
-  .select("*")
-  .eq("user_id", portalUser.id)
-  .order("created_at", { ascending: false });
-```
+### Database Changes
 
-Delete uses:
-```typescript
-await supabase.from("portal_notifications").delete().eq("id", id);
-```
+**1. Create `compliance_documents` table**
+Replaces the hardcoded `requiredDocuments` array.
 
-### Files to Modify
+| Column | Type | Description |
+|--------|------|-------------|
+| id | UUID | Primary key |
+| advisor_id | UUID | FK to advisors |
+| name | TEXT | Document name (e.g. "E&O Insurance Certificate") |
+| status | TEXT | current, expired, pending, not_required |
+| expiry_date | DATE | Optional expiration date |
+| file_url | TEXT | Link to uploaded document |
+| created_at | TIMESTAMPTZ | Auto-set |
+| updated_at | TIMESTAMPTZ | Auto-set |
 
-**2. `src/App.tsx`**
-- Add lazy import: `const ClientNotifications = lazy(() => import("./pages/portal/client/ClientNotifications"));`
-- Add route inside client block (after line 351): `<Route path="notifications" element={<ClientNotifications />} />`
+**2. Create `carrier_contracts` table**
+Replaces the hardcoded `contractingStatus` array.
 
-**3. `src/components/portal/NotificationBell.tsx`**
-- Add a "View all notifications" link at the bottom of the popover that navigates to `/portal/client/notifications`
+| Column | Type | Description |
+|--------|------|-------------|
+| id | UUID | Primary key |
+| advisor_id | UUID | FK to advisors |
+| carrier_name | TEXT | Carrier name |
+| status | TEXT | active, pending, terminated |
+| contracted_date | DATE | When contracted |
+| created_at | TIMESTAMPTZ | Auto-set |
 
-### Styling
-- Follows existing portal patterns: Card components, muted foreground text, consistent spacing
-- Responsive layout with proper mobile support
-- Uses existing UI components (Button, Badge, Tabs)
+**3. RLS Policies**
+- Advisors can view their own compliance documents and carrier contracts
+- Admins can manage all records (using existing `is_portal_admin` function)
+
+### Code Changes
+
+**`src/pages/portal/advisor/ComplianceCenter.tsx`**
+- Remove hardcoded `complianceData`, `requiredDocuments`, and `contractingStatus` constants
+- Fetch data from the new `compliance_documents` and `carrier_contracts` tables filtered by the advisor's ID
+- Compute the compliance score dynamically from real data
+- Keep the same UI layout and styling -- just swap the data source
+- Keep the "Compliance Resources" section as static links (these are reference materials, not per-advisor data)
+
+### What Stays the Same
+- No changes to Training Center (already working)
+- No changes to routing or navigation
+- Same visual design and layout for Compliance Center
+
+### Technical Notes
+- License status and E&O expiry will come from the `compliance_documents` table (filtered by document name/type)
+- The compliance score calculation will use the same formula but with real counts from the database
+- The "Required Trainings" stat will continue to pull from the existing `training_progress` table
+
