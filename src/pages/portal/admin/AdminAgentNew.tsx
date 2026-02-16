@@ -43,10 +43,6 @@ export default function AdminAgentNew() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!form.email.endsWith("@everencewealth.com")) {
-      toast.error("Email must end with @everencewealth.com");
-      return;
-    }
     setSaving(true);
 
     // Create portal_users record
@@ -129,8 +125,7 @@ export default function AdminAgentNew() {
             </div>
             <div className="space-y-2">
               <Label>Email *</Label>
-              <Input type="email" required placeholder="name@everencewealth.com" value={form.email} onChange={(e) => updateField("email", e.target.value)} />
-              <p className="text-xs text-muted-foreground">Must be an @everencewealth.com email</p>
+              <Input type="email" required placeholder="agent@example.com" value={form.email} onChange={(e) => updateField("email", e.target.value)} />
             </div>
             <div className="space-y-2">
               <Label>Phone</Label>
