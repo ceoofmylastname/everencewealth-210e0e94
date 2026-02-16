@@ -104,15 +104,7 @@ async function generateUniqueImage(prompt: string, fallbackUrl: string): Promise
 }
 
 const LANGUAGE_NAMES: Record<string, string> = {
-  de: 'German',
-  nl: 'Dutch',
-  fr: 'French',
-  pl: 'Polish',
-  sv: 'Swedish',
-  da: 'Danish',
-  hu: 'Hungarian',
-  fi: 'Finnish',
-  no: 'Norwegian',
+  es: 'Spanish',
 };
 
 // BULLETPROOF: Retry configuration
@@ -632,19 +624,19 @@ serve(async (req) => {
         
         // Generate unique image for this Q&A
         const sceneVariations = [
-          'luxury villa exterior with pool',
-          'modern apartment interior design',
-          'Mediterranean garden terrace',
-          'beachfront property view',
-          'contemporary living room',
-          'penthouse balcony panorama',
-          'Spanish courtyard with tiles',
-          'golf resort property',
-          'marina view apartment',
-          'mountain backdrop villa'
+          'professional office with financial charts',
+          'modern wealth management consultation',
+          'retirement planning meeting',
+          'family reviewing financial documents',
+          'elegant home office with laptop',
+          'sunset landscape symbolizing retirement',
+          'professional advisor at desk',
+          'secure vault representing wealth protection',
+          'happy retired couple outdoors',
+          'modern financial district skyline'
         ];
         const randomScene = sceneVariations[Math.floor(Math.random() * sceneVariations.length)];
-        const qaImagePrompt = `Professional Costa del Sol real estate photograph, ${randomScene}, bright natural lighting, educational visual style, no text, no watermarks, no logos, clean composition, high-end quality, ${LANGUAGE_NAMES[targetLanguage] || targetLanguage} market aesthetic`;
+        const qaImagePrompt = `Professional wealth management photograph, ${randomScene}, bright natural lighting, educational visual style, no text, no watermarks, no logos, clean composition, high-end quality, ${LANGUAGE_NAMES[targetLanguage] || targetLanguage} market aesthetic`;
         let generatedImageUrl = await generateUniqueImage(qaImagePrompt, englishQA.featured_image_url);
         
         // Upload to Supabase Storage if it's a Fal.ai URL
