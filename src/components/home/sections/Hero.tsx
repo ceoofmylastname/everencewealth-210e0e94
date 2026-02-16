@@ -1,87 +1,99 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { ShieldCheck, Users, Calendar, ChevronDown } from 'lucide-react';
-import { Button } from '../ui/Button';
-import { useTranslation } from '../../../i18n';
+import React, { useState, useEffect } from 'react';
 
 export const Hero: React.FC = () => {
-  const { currentLanguage } = useTranslation();
-  const navigate = useNavigate();
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  useEffect(() => {
+    const t = setTimeout(() => setIsLoaded(true), 100);
+    return () => clearTimeout(t);
+  }, []);
 
   return (
-    <div className="relative z-10 w-full min-h-[100svh] flex items-center justify-center overflow-hidden bg-gradient-to-br from-[#1A4D3E] via-[#0F2E25] to-black">
-      {/* Animated mesh gradient overlay */}
-      <div className="absolute inset-0 z-0 opacity-30" aria-hidden="true">
-        <div className="absolute inset-0 animate-mesh-shift"
-          style={{
-            background: `
-              radial-gradient(ellipse 80% 60% at 20% 30%, rgba(26,77,62,0.6), transparent),
-              radial-gradient(ellipse 60% 80% at 80% 70%, rgba(15,46,37,0.5), transparent),
-              radial-gradient(ellipse 50% 50% at 50% 50%, rgba(26,77,62,0.3), transparent)
-            `,
-          }}
-        />
-      </div>
+    <section className="relative min-h-[100svh] flex items-center justify-center overflow-hidden bg-dark-bg">
+      {/* Background radial glow */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_40%,_hsla(160,48%,21%,0.15),_transparent_70%)]" />
 
-      <div className="relative z-10 container mx-auto px-4 flex flex-col items-center text-center pt-10 md:pt-32 pb-24 md:pb-40">
-        {/* Headline */}
-        <h1
-          className="font-serif text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-4 md:mb-6 leading-[1.1] max-w-[900px]"
-          style={{ letterSpacing: '-0.02em' }}
-        >
-          Bridge the{' '}
-          <span className="text-primary italic">Retirement Gap</span>
-        </h1>
-
-        {/* Subhead */}
+      {/* Decorative side text - xl only */}
+      <div className="hidden xl:block absolute left-8 top-1/2 -translate-y-1/2 z-10">
         <p
-          className="text-lg md:text-2xl text-white/90 font-normal mb-10 md:mb-12 max-w-[700px]"
-          style={{ letterSpacing: '0.02em' }}
+          className={`text-[10px] font-space font-bold tracking-[0.4em] uppercase text-white/20 [writing-mode:vertical-lr] rotate-180 transition-all duration-1000 delay-700 ${
+            isLoaded ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4'
+          }`}
         >
-          Tax-efficient wealth strategies. Fiduciary guidance. Zero Wall Street games.
+          Wealth Architecture
         </p>
-
-        {/* CTAs */}
-        <div className="flex flex-col md:flex-row gap-3 md:gap-4 w-[90%] md:w-auto">
-          <Button
-            variant="secondary"
-            size="lg"
-            className="h-12 md:h-14 px-6 md:px-8 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold rounded-lg shadow-[0_4px_12px_rgb(0_0_0_/_15%)] transition-all duration-300"
-            onClick={() => navigate(`/${currentLanguage}/contact`)}
-          >
-            Schedule Assessment
-          </Button>
-          <Button
-            variant="outline"
-            size="lg"
-            className="h-12 md:h-14 px-6 md:px-8 bg-transparent border-2 border-white text-white hover:bg-white/10 font-semibold rounded-lg transition-all duration-300"
-            onClick={() => navigate(`/${currentLanguage}/philosophy`)}
-          >
-            Our Philosophy
-          </Button>
-        </div>
-
-        {/* Trust Badges */}
-        <div className="flex flex-wrap items-center justify-center gap-2 md:gap-4 mt-10 md:mt-14">
-          <div className="flex items-center gap-1.5 md:gap-2 px-3 md:px-4 py-1.5 md:py-2 rounded-full bg-white/15 border border-white/30 backdrop-blur-sm">
-            <ShieldCheck size={16} className="text-primary md:w-5 md:h-5" />
-            <span className="text-white text-xs md:text-sm font-medium">Independent Fiduciary</span>
-          </div>
-          <div className="flex items-center gap-1.5 md:gap-2 px-3 md:px-4 py-1.5 md:py-2 rounded-full bg-white/15 border border-white/30 backdrop-blur-sm">
-            <Users size={16} className="text-primary md:w-5 md:h-5" />
-            <span className="text-white text-xs md:text-sm font-medium">75+ Carriers</span>
-          </div>
-          <div className="flex items-center gap-1.5 md:gap-2 px-3 md:px-4 py-1.5 md:py-2 rounded-full bg-white/15 border border-white/30 backdrop-blur-sm">
-            <Calendar size={16} className="text-primary md:w-5 md:h-5" />
-            <span className="text-white text-xs md:text-sm font-medium">Since 1998</span>
-          </div>
-        </div>
+      </div>
+      <div className="hidden xl:block absolute right-8 top-1/2 -translate-y-1/2 z-10">
+        <p
+          className={`text-[10px] font-space font-bold tracking-[0.4em] uppercase text-white/20 [writing-mode:vertical-lr] transition-all duration-1000 delay-700 ${
+            isLoaded ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-4'
+          }`}
+        >
+          Strategic Fiduciary
+        </p>
       </div>
 
-      {/* Scroll Indicator */}
-      <div className="absolute bottom-6 md:bottom-8 left-1/2 -translate-x-1/2 z-20 animate-bounce">
-        <ChevronDown size={32} className="text-white/70" />
+      {/* Main content */}
+      <div className="relative z-10 container mx-auto px-4 text-center pt-24 md:pt-32 pb-32 md:pb-40">
+        {/* Stacked typography */}
+        <div className="space-y-0 leading-none">
+          <h1
+            className={`font-space font-bold uppercase tracking-tight transition-all duration-1000 ${
+              isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+            }`}
+          >
+            <span className="block text-[7vw] md:text-[5vw] lg:text-[4vw] text-white/90">
+              BRIDGE the
+            </span>
+            <span
+              className="block text-[12vw] md:text-[9vw] lg:text-[7vw] bg-gradient-to-r from-primary via-emerald-400 to-primary bg-[length:200%_auto] animate-text-gradient bg-clip-text text-transparent hero-glow"
+              style={{ transitionDelay: '200ms' }}
+            >
+              RETIREMENT
+            </span>
+            <span
+              className={`block text-[14vw] md:text-[10vw] lg:text-[8vw] text-outline transition-all duration-1000 delay-300 ${
+                isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+              }`}
+            >
+              GAP
+            </span>
+          </h1>
+        </div>
+
+        {/* Subline */}
+        <p
+          className={`mt-8 text-white/50 font-space text-sm md:text-base tracking-[0.15em] uppercase max-w-xl mx-auto transition-all duration-1000 delay-500 ${
+            isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
+          }`}
+        >
+          Tax-efficient wealth strategies · Fiduciary guidance · Zero Wall Street games
+        </p>
       </div>
-    </div>
+
+      {/* Bottom tactical HUD panel */}
+      <div
+        className={`absolute bottom-8 md:bottom-12 left-1/2 -translate-x-1/2 z-20 w-[90%] max-w-2xl transition-all duration-1000 delay-700 ${
+          isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+        }`}
+      >
+        <div className="glass-card rounded-2xl px-6 py-4 md:px-8 md:py-5 flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-6 text-white/40 text-[10px] font-space tracking-[0.2em] uppercase">
+            <span className="flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+              System Active
+            </span>
+            <span className="hidden md:inline">Independent Fiduciary</span>
+            <span className="hidden md:inline">75+ Carriers</span>
+          </div>
+          <a
+            href="/assessment"
+            className="px-6 py-2.5 bg-primary text-primary-foreground font-space font-semibold text-xs tracking-[0.15em] uppercase rounded-xl hover:bg-primary/90 transition-colors"
+          >
+            Start Assessment
+          </a>
+        </div>
+      </div>
+    </section>
   );
 };

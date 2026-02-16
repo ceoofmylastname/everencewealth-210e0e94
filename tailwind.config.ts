@@ -18,10 +18,12 @@ export default {
         serif: ['Playfair Display', 'Georgia', 'serif'],
         display: ['Outfit', 'Playfair Display', 'Georgia', 'serif'],
         nav: ['Raleway', 'sans-serif'],
+        space: ['Space Grotesk', 'sans-serif'],
       },
       colors: {
         evergreen: '#1A4D3E',
         'dark-bg': '#020806',
+        'light-gray': '#F5F5F0',
         landing: {
           navy: '#1A2332',
           gold: '#C4A053',
@@ -95,6 +97,10 @@ export default {
         'xl': '24px',
       },
       keyframes: {
+        "text-gradient": {
+          "0%, 100%": { backgroundPosition: "0% 50%" },
+          "50%": { backgroundPosition: "100% 50%" },
+        },
         "accordion-down": {
           from: {
             height: "0",
@@ -304,6 +310,7 @@ export default {
         "float-particle": "float-particle 8s ease-in-out infinite",
         "number-slot": "number-slot 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards",
         "mesh-shift": "mesh-shift 8s ease-in-out infinite",
+        "text-gradient": "text-gradient 4s ease infinite",
       },
     },
   },
