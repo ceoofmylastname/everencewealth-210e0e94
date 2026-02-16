@@ -1,121 +1,68 @@
 
 
-## Full Language Audit: Restrict Everything to English and Spanish Only
+## Fix Homepage Translation: Connect All Sections to the i18n System
 
-### Scope of the Problem
-The old real estate platform supported 10 European languages (en, de, nl, fr, pl, sv, da, hu, fi, no). After rebranding to Everence Wealth, only **English (en)** and **Spanish (es)** should exist anywhere. Legacy language references were found in **80+ files** across frontend components, edge functions, types, scripts, and schemas.
+### What's Wrong
 
-### Affected Areas (Organized by Priority)
+I tested the language switcher and found two major issues:
 
----
+1. **Homepage sections are hardcoded in English** -- All 15 homepage components (`Hero`, `WakeUpCall`, `SilentKillers`, `TaxBuckets`, `IndexedAdvantage`, `WealthPhilosophy`, `FiduciaryDifference`, `TheGap`, `Services`, `HomepageAbout`, `Stats`, `Assessment`, `FAQ`, `BlogPreview`, `CTA`) have text written directly in the code. They don't use the translation system at all. When a user switches to Spanish, nothing changes.
 
-### 1. Core Type Definitions
+2. **Spanish translations are outdated** -- The `es.ts` file still contains old real estate content ("DelSolPrimeHomes", "Costa del Sol", "Marbella", apartments, property buying). It was never updated to match the Everence Wealth brand and the new homepage sections.
 
-**`src/types/blog.ts`** (line 3)
-- Change `Language` type from `'en' | 'de' | 'nl' | 'fr' | 'pl' | 'sv' | 'da' | 'hu' | 'fi' | 'no'` to `'en' | 'es'`
+### What Needs to Happen
 
----
+#### Phase 1: Update Spanish Translations (`src/i18n/translations/es.ts`)
+- Completely rewrite the `es.ts` file to match the Everence Wealth brand
+- Add Spanish translations for all new homepage sections that currently only exist as hardcoded English:
+  - `wakeUpCall` (tax traps, retirement gap warnings)
+  - `silentKillers` (hidden fees, tax exposure)
+  - `taxBuckets` (tax-free bucket strategy)
+  - `indexedAdvantage` (indexed strategies explanation)
+  - `wealthPhilosophy` (fiduciary philosophy)
+  - `fiduciaryDifference` (fiduciary vs broker comparison)
+  - `theGap` (retirement gap visualization)
+  - `services` (service offerings)
+  - `homepageAbout` (about section)
+  - `stats` (key statistics)
+  - `assessment` (CTA for assessment)
+  - `faq` (frequently asked questions)
+  - `blogPreview` (blog section)
+  - `cta` (final call to action)
+- Remove all old real estate references (Costa del Sol, Marbella, property finder, etc.)
 
-### 2. User-Facing Components (What visitors see)
+#### Phase 2: Add Translation Keys to English File (`src/i18n/translations/en.ts`)
+- Add matching translation keys for all homepage sections using the current hardcoded English text
+- This ensures both languages use the same key structure
 
-| File | What to fix |
-|------|------------|
-| `src/components/blog-article/ArticleHeader.tsx` | `LANGUAGE_META` object -- remove 8 extra languages, keep en + es |
-| `src/components/comparison/ComparisonLanguageSwitcher.tsx` | `LANGUAGES` array -- reduce to en + es only |
-| `src/components/comparison/ComparisonFilterBar.tsx` | `LANGUAGES` array -- reduce to en + es only |
-| `src/components/chatbot/ContactForm.tsx` | Language `<Select>` options -- remove de, nl, fr, pl, sv, da, hu |
-| `src/components/contact/ContactForm.tsx` | `LANGUAGES` array -- reduce to en + es |
-| `src/pages/QAIndex.tsx` | `LANGUAGES` array -- reduce to en + es |
-| `src/pages/LocationHub.tsx` | Hardcoded "10 languages" text -- change to "2" |
-| `src/pages/apartments/ApartmentsLanding.tsx` | `SUPPORTED_LANGS` -- reduce to en + es |
+#### Phase 3: Connect Homepage Components to Translation System
+Update each of the 15 homepage components to:
+- Import `useTranslation` from the i18n system
+- Replace all hardcoded strings with `t.sectionName.key` references
 
----
+Files to update:
+- `src/components/home/sections/Hero.tsx`
+- `src/components/homepage/WakeUpCall.tsx`
+- `src/components/homepage/SilentKillers.tsx`
+- `src/components/homepage/TaxBuckets.tsx`
+- `src/components/homepage/IndexedAdvantage.tsx`
+- `src/components/homepage/WealthPhilosophy.tsx`
+- `src/components/homepage/FiduciaryDifference.tsx`
+- `src/components/homepage/TheGap.tsx`
+- `src/components/homepage/Services.tsx`
+- `src/components/homepage/HomepageAbout.tsx`
+- `src/components/homepage/Stats.tsx`
+- `src/components/homepage/Assessment.tsx`
+- `src/components/homepage/FAQ.tsx`
+- `src/components/homepage/BlogPreview.tsx`
+- `src/components/homepage/CTA.tsx`
 
-### 3. Admin / Editor Components (What you see in admin panels)
+#### Phase 4: Clean Up Old Real Estate References
+- Remove unused translation keys from `es.ts` (property finder, Costa del Sol areas, brochures, etc.)
+- Ensure the `en.ts` file also has no leftover real estate content in the homepage sections
 
-| File | What to fix |
-|------|------------|
-| `src/components/article-editor/TranslationsSection.tsx` | `LANGUAGES` array -- reduce to en + es |
-| `src/components/article-editor/BasicInfoSection.tsx` | Language `<Select>` -- remove extra languages |
-| `src/components/admin/BulkCaptionGenerator.tsx` | `LANGUAGE_OPTIONS` -- reduce to en + es |
-| `src/components/admin/cluster-manager/AdvancedFilters.tsx` | `LANGUAGES` filter list -- reduce |
-| `src/pages/admin/ComparisonGenerator.tsx` | `LANGUAGES` and `LanguageCode` type -- reduce |
-| `src/pages/admin/QAGenerator.tsx` | `LANGUAGES` array -- reduce |
-| `src/pages/admin/QADashboard.tsx` | `SUPPORTED_LANGUAGES`, `LANGUAGE_FLAGS`, `LANGUAGE_NAMES` -- reduce |
-| `src/pages/admin/LocationPages.tsx` | Language `<Select>` -- reduce |
-| `src/pages/admin/SpeakableTestBench.tsx` | `LANGUAGE_NAMES` -- reduce |
-| `src/pages/admin/ImageHealthDashboard.tsx` | `LANGUAGE_NAMES` -- reduce |
-| `src/pages/admin/BrochureManager.tsx` | `SUPPORTED_LANGUAGES`, `LANGUAGE_LABELS` -- reduce |
+### Additional Issues Found (Logo)
+The logo in the header still shows the old "DELSOL" branding image. This is a separate issue from translations -- it's an external image URL that needs to be replaced with an Everence Wealth logo.
 
----
-
-### 4. CRM Components
-
-| File | What to fix |
-|------|------------|
-| `src/pages/crm/admin/CrmAnalytics.tsx` | `languageChartConfig` -- reduce |
-| `src/pages/crm/admin/LeadsOverview.tsx` | Language filter `<Select>` -- reduce |
-| `src/pages/crm/agent/AgentProfilePage.tsx` | `LANGUAGE_NAMES` -- reduce |
-| `src/hooks/useCrmAnalytics.ts` | `LANGUAGE_LABELS` -- reduce |
-| `src/hooks/useDashboardStats.ts` | `languages` array -- reduce |
-
----
-
-### 5. Schema / SEO Generators
-
-| File | What to fix |
-|------|------------|
-| `src/lib/brochureSchemaGenerator.ts` | `knowsLanguage` array -- reduce to `['en', 'es']` |
-
----
-
-### 6. Edge Functions (Backend)
-
-| Function | What to fix |
-|----------|------------|
-| `generate-qa-pages` | `LANGUAGE_NAMES`, `ALL_SUPPORTED_LANGUAGES`, `TRANSLATION_LANGUAGES`, language patterns, example questions |
-| `generate-10lang-qa` | `ALL_LANGUAGES`, `LANGUAGE_WORD_COUNTS`, language patterns |
-| `generate-city-qa-pages` | `ALL_SUPPORTED_LANGUAGES` |
-| `generate-comparison-batch` | `ALL_SUPPORTED_LANGUAGES`, `LANGUAGE_NAMES` |
-| `translate-cluster` | `TARGET_LANGUAGES` |
-| `translate-cluster-to-language` | `TARGET_LANGUAGES`, `LANGUAGE_INFO` |
-| `translate-qas-to-language` | `LANGUAGE_NAMES` |
-| `translate-glossary` | `SUPPORTED_LANGUAGES`, `LANGUAGE_NAMES` |
-| `populate-translation-queue` | `TARGET_LANGUAGES` |
-| `find-internal-links` | Language name map |
-| `replace-citation-markers` | Language instructions, domain patterns |
-| `ping-indexnow` | `languages` array |
-| `create-crm-agent` | `languageNames` |
-
----
-
-### 7. Scripts
-
-| File | What to fix |
-|------|------------|
-| `scripts/generateStaticHomePage.ts` | `LANGUAGES` array |
-| `scripts/sampleQAPages.ts` | `LANGUAGES` array, `BASE_URL` (still says delsolprimehomes.com) |
-
----
-
-### Implementation Approach
-
-Due to the large number of files (80+), this will be implemented in **batches**:
-
-1. **Batch 1**: Core types + user-facing components (highest impact -- what visitors see)
-2. **Batch 2**: Admin/editor components + CRM components
-3. **Batch 3**: Edge functions (backend)
-4. **Batch 4**: Scripts and schema generators
-
-Every LANGUAGES/SUPPORTED_LANGUAGES array will be reduced to:
-```
-[
-  { code: 'en', name: 'English', flag: '🇺🇸' },
-  { code: 'es', name: 'Spanish', flag: '🇪🇸' },
-]
-```
-
-Every Language type will become `'en' | 'es'`.
-
-All references to German, Dutch, French, Polish, Swedish, Danish, Hungarian, Finnish, and Norwegian will be removed.
-
+### Result
+After this work, switching from EN to ES will translate the entire homepage -- every heading, paragraph, button, badge, and CTA -- into Spanish with Everence Wealth branding.
