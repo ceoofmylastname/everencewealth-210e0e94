@@ -1,54 +1,16 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import * as fal from "https://esm.sh/@fal-ai/serverless-client@0.15.0";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Configure Fal.ai
-fal.config({
-  credentials: Deno.env.get('FAL_KEY'),
-});
-
-// Scene variations to ensure unique images (6 unique per cluster - one per funnel position)
-const SCENE_VARIATIONS = [
-  'financial advisor meeting with retired couple in modern office',
-  'family discussing life insurance options with advisor at desk',
-  'wealth manager reviewing portfolio charts on large screen',
-  'couple planning retirement with advisor showing projections',
-  'professional consultation about estate planning with documents',
-  'tax planning session with accountant reviewing forms',
-  'multigenerational family in estate planning meeting',
-  'advisor presenting investment strategy on whiteboard',
-  'senior couple reviewing pension and annuity options',
-  'young family discussing college savings and protection plans',
-  'financial planning workshop with engaged attendees',
-  'advisor showing insurance coverage comparison on tablet',
-  'retirement lifestyle planning with couple in bright office',
-  'wealth management team in strategy discussion',
-  'client signing financial planning documents with advisor',
-  'advisor explaining Medicare supplement options to seniors',
-  'couple celebrating financial milestone with advisor',
-  'professional reviewing risk assessment charts',
-  'family protection planning meeting in warm office',
-  'financial advisor using technology to show growth projections'
-];
-
-// Language names for localized metadata generation
+// Language names for localized metadata generation (EN + ES only)
 const LANGUAGE_NAMES: Record<string, string> = {
   en: 'English',
-  nl: 'Dutch',
-  de: 'German',
-  fr: 'French',
-  fi: 'Finnish',
-  pl: 'Polish',
-  da: 'Danish',
-  hu: 'Hungarian',
-  sv: 'Swedish',
-  no: 'Norwegian'
+  es: 'Spanish'
 };
 
 /**
@@ -67,14 +29,10 @@ async function retryableUpdate(
         .update(updates)
         .eq('id', id);
       
-      if (!error) {
-        return { success: true };
-      }
+      if (!error) return { success: true };
       
       console.warn(`⚠️ Attempt ${attempt}/${maxRetries} failed for ${id}:`, error.message);
-      
       if (attempt < maxRetries) {
-        // Exponential backoff: 500ms, 1s, 2s
         await new Promise(r => setTimeout(r, 500 * Math.pow(2, attempt - 1)));
       }
     } catch (err) {
@@ -88,130 +46,138 @@ async function retryableUpdate(
 }
 
 /**
- * Upload image from Fal.ai to Supabase Storage
+ * Upload a base64 image to Supabase Storage
  */
-async function uploadToStorage(
-  falImageUrl: string,
+async function uploadBase64ToStorage(
+  base64Data: string,
   supabase: any,
-  bucket: string = 'article-images',
-  prefix: string = 'img'
-): Promise<string> {
+  bucket: string,
+  prefix: string
+): Promise<string | null> {
   try {
-    if (!falImageUrl || !falImageUrl.includes('fal.media')) {
-      return falImageUrl;
+    // Strip data URI prefix if present
+    const raw = base64Data.replace(/^data:image\/\w+;base64,/, '');
+    const binaryStr = atob(raw);
+    const bytes = new Uint8Array(binaryStr.length);
+    for (let i = 0; i < binaryStr.length; i++) {
+      bytes[i] = binaryStr.charCodeAt(i);
     }
 
-    console.log(`📥 Downloading image from Fal.ai...`);
-    const imageResponse = await fetch(falImageUrl);
-    
-    if (!imageResponse.ok) {
-      console.error(`❌ Failed to download image: ${imageResponse.status}`);
-      return falImageUrl;
-    }
-    
-    const imageBuffer = await imageResponse.arrayBuffer();
-    
     const timestamp = Date.now();
     const randomSuffix = Math.random().toString(36).substring(2, 8);
-    const sanitizedPrefix = prefix
-      .toLowerCase()
-      .replace(/[^a-z0-9-]/g, '-')
-      .substring(0, 50);
+    const sanitizedPrefix = prefix.toLowerCase().replace(/[^a-z0-9-]/g, '-').substring(0, 50);
     const filename = `${sanitizedPrefix}-${timestamp}-${randomSuffix}.png`;
-    
-    console.log(`📤 Uploading to Supabase Storage: ${bucket}/${filename}`);
-    const { data: uploadData, error: uploadError } = await supabase.storage
+
+    console.log(`📤 Uploading to storage: ${bucket}/${filename}`);
+    const { error: uploadError } = await supabase.storage
+      .from(bucket)
+      .upload(filename, bytes, {
+        contentType: 'image/png',
+        cacheControl: '31536000',
+        upsert: false
+      });
+
+    if (uploadError) {
+      console.error(`❌ Upload failed:`, uploadError);
+      return null;
+    }
+
+    const { data: publicUrlData } = supabase.storage
+      .from(bucket)
+      .getPublicUrl(filename);
+
+    return publicUrlData?.publicUrl || null;
+  } catch (error) {
+    console.error(`❌ Storage upload error:`, error);
+    return null;
+  }
+}
+
+/**
+ * Upload image from URL to Supabase Storage
+ */
+async function uploadUrlToStorage(
+  imageUrl: string,
+  supabase: any,
+  bucket: string,
+  prefix: string
+): Promise<string> {
+  try {
+    if (!imageUrl) return imageUrl;
+
+    console.log(`📥 Downloading image...`);
+    const imageResponse = await fetch(imageUrl);
+    if (!imageResponse.ok) {
+      console.error(`❌ Failed to download image: ${imageResponse.status}`);
+      return imageUrl;
+    }
+
+    const imageBuffer = await imageResponse.arrayBuffer();
+    const timestamp = Date.now();
+    const randomSuffix = Math.random().toString(36).substring(2, 8);
+    const sanitizedPrefix = prefix.toLowerCase().replace(/[^a-z0-9-]/g, '-').substring(0, 50);
+    const filename = `${sanitizedPrefix}-${timestamp}-${randomSuffix}.png`;
+
+    console.log(`📤 Uploading to storage: ${bucket}/${filename}`);
+    const { error: uploadError } = await supabase.storage
       .from(bucket)
       .upload(filename, imageBuffer, {
         contentType: 'image/png',
         cacheControl: '31536000',
         upsert: false
       });
-    
+
     if (uploadError) {
       console.error(`❌ Upload failed:`, uploadError);
-      return falImageUrl;
+      return imageUrl;
     }
-    
+
     const { data: publicUrlData } = supabase.storage
       .from(bucket)
       .getPublicUrl(filename);
-    
-    const supabaseUrl = publicUrlData?.publicUrl;
-    
-    if (supabaseUrl) {
-      console.log(`✅ Image uploaded to Supabase: ${supabaseUrl}`);
-      return supabaseUrl;
-    }
-    
-    return falImageUrl;
-    
+
+    return publicUrlData?.publicUrl || imageUrl;
   } catch (error) {
     console.error(`❌ Storage upload error:`, error);
-    return falImageUrl;
+    return imageUrl;
   }
-}
-
-async function generateUniqueImage(prompt: string, fallbackUrl: string): Promise<string> {
-  try {
-    const result = await fal.subscribe("fal-ai/nano-banana-pro", {
-      input: {
-        prompt,
-        aspect_ratio: "16:9",
-        resolution: "2K",
-        num_images: 1,
-        output_format: "png"
-      }
-    }) as { images?: Array<{ url?: string }> };
-    
-    if (result.images?.[0]?.url) {
-      console.log(`✅ Generated unique image with Nano Banana Pro`);
-      return result.images[0].url;
-    }
-  } catch (error) {
-    console.error(`⚠️ Image generation failed:`, error);
-  }
-  return fallbackUrl;
 }
 
 /**
- * Generate localized alt text and caption for an image
+ * Use Lovable AI to extract a hyper-specific image prompt from article content
  */
-async function generateLocalizedMetadata(
-  article: { headline: string; language: string },
-  openaiKey: string
-): Promise<{ altText: string; caption: string | null }> {
-  const languageName = LANGUAGE_NAMES[article.language] || 'English';
-
+async function extractImagePrompt(
+  articleContent: string,
+  headline: string,
+  lovableApiKey: string
+): Promise<string> {
   try {
-    const metadataResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${openaiKey}`,
+        'Authorization': `Bearer ${lovableApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'google/gemini-2.5-flash',
         messages: [
-        {
+          {
             role: 'system',
-            content: `You create SEO-optimized image metadata in ${languageName} for Everence Wealth, a financial advisory and insurance planning company.
-            
-Output a JSON object with:
-- "altText": Descriptive alt text for accessibility and SEO (100-150 characters). Include keywords related to financial planning, insurance, or retirement.
-- "caption": Engaging caption for display below the image (100-200 characters). Should complement the article.
+            content: `You create image generation prompts for a financial advisory company (Everence Wealth). 
+Read the article content and create ONE highly specific, visual image prompt that captures the core concept.
 
 RULES:
-- Write in ${languageName} (not English, unless article is English)
-- Be descriptive and specific to financial services
-- Reference Everence Wealth where appropriate
-
-Return ONLY valid JSON, no markdown.`
-        },
+- Focus on the specific financial concept (e.g., "tax-free retirement buckets", "IUL cash value growth curve", "estate planning generational wealth transfer")
+- Include specific visual elements from the article content
+- Professional, modern, clean aesthetic
+- No text, no watermarks, no logos
+- 16:9 aspect ratio, marketing quality
+- Keep prompt under 200 words
+- Return ONLY the prompt text, nothing else`
+          },
           {
             role: 'user',
-            content: `Article headline: ${article.headline}
-Generate alt text and caption in ${languageName}.`
+            content: `Headline: ${headline}\n\nArticle content (first 3000 chars):\n${articleContent.replace(/<[^>]*>/g, ' ').substring(0, 3000)}`
           }
         ],
         max_tokens: 300,
@@ -219,17 +185,124 @@ Generate alt text and caption in ${languageName}.`
       }),
     });
 
-    if (metadataResponse.ok) {
-      const metadataData = await metadataResponse.json();
-      const metadataContent = metadataData.choices?.[0]?.message?.content?.trim();
-      
-      const cleanedContent = metadataContent
+    if (!response.ok) {
+      console.error(`❌ Lovable AI prompt extraction failed: ${response.status}`);
+      return `Professional financial advisory photograph related to ${headline}, bright natural lighting, high-end marketing quality, no text, no watermarks, clean composition`;
+    }
+
+    const data = await response.json();
+    const prompt = data.choices?.[0]?.message?.content?.trim();
+    
+    if (prompt && prompt.length > 20) {
+      console.log(`✅ Extracted content-specific prompt: ${prompt.substring(0, 100)}...`);
+      return prompt;
+    }
+  } catch (error) {
+    console.error(`❌ Prompt extraction error:`, error);
+  }
+
+  return `Professional financial advisory photograph related to ${headline}, bright natural lighting, high-end marketing quality, no text, no watermarks, clean composition`;
+}
+
+/**
+ * Generate image using Fal.ai Nano Banana Pro (via Lovable AI gateway)
+ */
+async function generateContentImage(
+  prompt: string,
+  lovableApiKey: string
+): Promise<string | null> {
+  try {
+    console.log(`🎨 Generating image with Nano Banana Pro...`);
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${lovableApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'google/gemini-3-pro-image-preview',
+        messages: [
+          {
+            role: 'user',
+            content: `Generate a professional 16:9 marketing image: ${prompt}`
+          }
+        ],
+        modalities: ['image', 'text']
+      }),
+    });
+
+    if (!response.ok) {
+      console.error(`❌ Image generation failed: ${response.status}`);
+      return null;
+    }
+
+    const data = await response.json();
+    const imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+    
+    if (imageUrl) {
+      console.log(`✅ Image generated successfully`);
+      return imageUrl;
+    }
+    
+    console.error(`❌ No image in response`);
+    return null;
+  } catch (error) {
+    console.error(`❌ Image generation error:`, error);
+    return null;
+  }
+}
+
+/**
+ * Generate localized alt text and caption using Lovable AI
+ */
+async function generateLocalizedMetadata(
+  article: { headline: string; language: string; detailed_content?: string },
+  lovableApiKey: string
+): Promise<{ altText: string; caption: string | null }> {
+  const languageName = LANGUAGE_NAMES[article.language] || 'English';
+
+  try {
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${lovableApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'google/gemini-2.5-flash-lite',
+        messages: [
+          {
+            role: 'system',
+            content: `You create SEO-optimized image metadata in ${languageName} for Everence Wealth, a financial advisory and insurance planning company.
+
+Output a JSON object with:
+- "altText": Descriptive alt text for accessibility and SEO (100-150 characters). Include keywords related to the article topic.
+- "caption": Engaging caption for display below the image (100-200 characters).
+
+RULES:
+- Write in ${languageName}
+- Be specific to the article's financial topic
+- Reference Everence Wealth where appropriate
+- Return ONLY valid JSON, no markdown.`
+          },
+          {
+            role: 'user',
+            content: `Article headline: ${article.headline}\nGenerate alt text and caption in ${languageName}.`
+          }
+        ],
+        max_tokens: 300,
+        temperature: 0.7
+      }),
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      const content = data.choices?.[0]?.message?.content?.trim()
         .replace(/```json\n?/g, '')
         .replace(/```\n?/g, '')
         .trim();
-      
-      const metadata = JSON.parse(cleanedContent);
-      
+
+      const metadata = JSON.parse(content);
       return {
         altText: metadata.altText?.length >= 50 ? metadata.altText : `${article.headline} - Everence Wealth`,
         caption: metadata.caption?.length >= 50 ? metadata.caption : null
@@ -262,22 +335,27 @@ serve(async (req) => {
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const openaiKey = Deno.env.get('OPENAI_API_KEY');
+    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    console.log(`🔄 Regenerating images for cluster: ${clusterId}`);
+    if (!lovableApiKey) {
+      return new Response(
+        JSON.stringify({ error: 'LOVABLE_API_KEY is not configured', success: false }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
-    // Fetch all articles for this cluster - include cluster_number for position-based grouping
+    console.log(`🔄 Regenerating content-aware images for cluster: ${clusterId}`);
+
+    // Fetch all articles including detailed_content for prompt extraction
     const { data: articles, error: fetchError } = await supabase
       .from('blog_articles')
-      .select('id, headline, language, featured_image_url, funnel_stage, slug, cluster_number')
+      .select('id, headline, language, featured_image_url, funnel_stage, slug, cluster_number, detailed_content')
       .eq('cluster_id', clusterId)
       .order('cluster_number')
       .order('language');
 
-    if (fetchError) {
-      throw new Error(`Failed to fetch articles: ${fetchError.message}`);
-    }
+    if (fetchError) throw new Error(`Failed to fetch articles: ${fetchError.message}`);
 
     if (!articles || articles.length === 0) {
       return new Response(
@@ -288,31 +366,24 @@ serve(async (req) => {
 
     console.log(`📊 Found ${articles.length} articles in cluster`);
 
-    // ============================================
-    // IMAGE SHARING STRATEGY (Position-Based):
-    // 1. Group articles by cluster_number (position 1-6), NOT funnel_stage
-    // 2. Each position has 1 English + 9 translations = 10 articles
-    // 3. Preserve/generate image for English at each position
-    // 4. Share that image to all 9 translations at same position
-    // 5. Generate localized alt text + caption for each language
-    // ============================================
-
     // Group articles by cluster_number (position 1-6)
-    const articlesByPosition: Record<number, { 
-      english: any | null; 
-      translations: any[]; 
+    // Each position: 1 English + 1 Spanish = 2 articles
+    // English gets a unique content-aware image, Spanish shares it with localized metadata
+    const articlesByPosition: Record<number, {
+      english: any | null;
+      translations: any[];
       funnel_stage: string;
       position: number;
     }> = {};
-    
+
     for (const article of articles) {
       const position = article.cluster_number || 0;
       if (!articlesByPosition[position]) {
-        articlesByPosition[position] = { 
-          english: null, 
-          translations: [], 
+        articlesByPosition[position] = {
+          english: null,
+          translations: [],
           funnel_stage: article.funnel_stage || 'unknown',
-          position 
+          position
         };
       }
       if (article.language === 'en') {
@@ -328,20 +399,20 @@ serve(async (req) => {
     if (dryRun) {
       const englishCount = Object.values(articlesByPosition).filter(g => g.english).length;
       const translationCount = Object.values(articlesByPosition).reduce((sum, g) => sum + g.translations.length, 0);
-      
+
       return new Response(
-        JSON.stringify({ 
-          success: true, 
-          dryRun: true, 
+        JSON.stringify({
+          success: true,
+          dryRun: true,
           articleCount: articles.length,
           uniqueImagesNeeded: preserveEnglishImages ? 0 : englishCount,
           imagesPreserved: preserveEnglishImages ? englishCount : 0,
           translationsToShare: translationCount,
           preserveMode: preserveEnglishImages,
           positionsFound: positions.length,
-          message: preserveEnglishImages 
-            ? `Would preserve ${englishCount} existing images (${positions.length} positions), share to ${translationCount} translations`
-            : `Would generate ${englishCount} unique images (${positions.length} positions), share to ${translationCount} translations` 
+          message: preserveEnglishImages
+            ? `Would preserve ${englishCount} existing images, share to ${translationCount} translations`
+            : `Would generate ${englishCount} content-aware images, share to ${translationCount} translations`
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
@@ -351,150 +422,139 @@ serve(async (req) => {
     let failCount = 0;
     let imagesPreserved = 0;
     const results: Array<{ id: string; language: string; success: boolean; newUrl?: string; shared?: boolean; preserved?: boolean }> = [];
-    let sceneIndex = 0;
 
-    // Process each position (1-6)
+    // Process each position
     for (const [positionKey, group] of Object.entries(articlesByPosition)) {
       const { english, translations, funnel_stage, position } = group;
-      
+
       console.log(`\n📍 Processing position ${position} (${funnel_stage})`);
-      console.log(`   English article: ${english ? 'Yes' : 'No'}`);
-      console.log(`   Translations: ${translations.length}`);
 
       let primaryImageUrl: string | null = null;
 
-      // Check if English already has a Supabase image (already fixed)
+      // Check if English already has a Supabase image
       const hasSupabaseImage = english?.featured_image_url?.includes('supabase.co/storage');
-      
+
       if (hasSupabaseImage) {
-        // SKIP: Already has a proper Supabase image - just use it for sharing
         console.log(`⏭️ Skipping position ${position} - already has Supabase image`);
         primaryImageUrl = english.featured_image_url;
-        
-        // Still count as preserved/success
         imagesPreserved++;
         successCount++;
         results.push({ id: english.id, language: 'en', success: true, newUrl: primaryImageUrl || undefined, preserved: true });
       } else if (english) {
-        // Step 1: Handle English article - either preserve or generate new image
         if (preserveEnglishImages && english.featured_image_url) {
-          // PRESERVE MODE: Keep existing English image
-          console.log(`📌 Preserving existing English image for position ${position} (${funnel_stage})`);
+          console.log(`📌 Preserving existing English image for position ${position}`);
           primaryImageUrl = english.featured_image_url;
-          
-          // Still generate/update English metadata if OpenAI key available
-          try {
-            const { altText, caption } = openaiKey 
-              ? await generateLocalizedMetadata(english, openaiKey)
-              : { altText: `${english.headline} - Everence Wealth`, caption: null };
-            
-            const updateResult = await retryableUpdate(supabase, english.id, { 
-              featured_image_alt: altText,
-              featured_image_caption: caption,
-              updated_at: new Date().toISOString()
-            });
-            
-            if (!updateResult.success) {
-              console.error(`❌ Failed to update English metadata after retries`);
-              failCount++;
-              results.push({ id: english.id, language: 'en', success: false });
-            } else {
-              console.log(`✅ Updated English metadata (image preserved)`);
-              imagesPreserved++;
-              successCount++;
-              results.push({ id: english.id, language: 'en', success: true, newUrl: primaryImageUrl || undefined, preserved: true });
-            }
-          } catch (error) {
-            console.error(`❌ Error updating English metadata:`, error);
+
+          const { altText, caption } = await generateLocalizedMetadata(english, lovableApiKey);
+          const updateResult = await retryableUpdate(supabase, english.id, {
+            featured_image_alt: altText,
+            featured_image_caption: caption,
+            updated_at: new Date().toISOString()
+          });
+
+          if (updateResult.success) {
+            imagesPreserved++;
+            successCount++;
+            results.push({ id: english.id, language: 'en', success: true, newUrl: primaryImageUrl || undefined, preserved: true });
+          } else {
             failCount++;
             results.push({ id: english.id, language: 'en', success: false });
           }
         } else {
-          // GENERATE MODE: Create new image
-          const scene = SCENE_VARIATIONS[sceneIndex % SCENE_VARIATIONS.length];
-          sceneIndex++;
-          
-          const imagePrompt = `Professional financial advisory photograph, ${scene}, bright natural lighting, high-end marketing quality, no text, no watermarks, no logos, clean composition`;
-          
-          console.log(`🇬🇧 Generating image for English position ${position} (${funnel_stage})...`);
-          
+          // CONTENT-AWARE GENERATION: Read article content → extract prompt → generate image
+          console.log(`🧠 Extracting content-specific prompt for position ${position}...`);
+
+          const imagePrompt = await extractImagePrompt(
+            english.detailed_content || '',
+            english.headline,
+            lovableApiKey
+          );
+
+          console.log(`🎨 Generating content-aware image for: "${english.headline.substring(0, 50)}..."`);
+
           try {
-            let newImageUrl = await generateUniqueImage(
-              imagePrompt, 
-              english.featured_image_url || 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=1200'
-            );
-            
-            // Upload to Supabase Storage with position in filename
-            if (newImageUrl && newImageUrl.includes('fal.media')) {
-              newImageUrl = await uploadToStorage(
-                newImageUrl,
-                supabase,
-                'article-images',
-                `cluster-pos-${position}-${funnel_stage}-${english.slug || english.id.slice(0, 8)}`
-              );
-            }
-            
-            // Generate English metadata
-            const { altText, caption } = openaiKey 
-              ? await generateLocalizedMetadata(english, openaiKey)
-              : { altText: `${english.headline} - Everence Wealth`, caption: null };
-            
-            // Update English article with retry logic
-            const updateResult = await retryableUpdate(supabase, english.id, { 
-              featured_image_url: newImageUrl,
-              featured_image_alt: altText,
-              featured_image_caption: caption,
-              updated_at: new Date().toISOString()
-            });
-            
-            if (!updateResult.success) {
-              console.error(`❌ Failed to update English article after retries`);
+            const generatedImageData = await generateContentImage(imagePrompt, lovableApiKey);
+
+            if (generatedImageData) {
+              let newImageUrl: string | null;
+              
+              if (generatedImageData.startsWith('data:')) {
+                // Base64 image from Lovable AI
+                newImageUrl = await uploadBase64ToStorage(
+                  generatedImageData,
+                  supabase,
+                  'article-images',
+                  `cluster-pos-${position}-${funnel_stage}-${english.slug || english.id.slice(0, 8)}`
+                );
+              } else {
+                // URL-based image
+                newImageUrl = await uploadUrlToStorage(
+                  generatedImageData,
+                  supabase,
+                  'article-images',
+                  `cluster-pos-${position}-${funnel_stage}-${english.slug || english.id.slice(0, 8)}`
+                );
+              }
+
+              if (newImageUrl) {
+                const { altText, caption } = await generateLocalizedMetadata(english, lovableApiKey);
+
+                const updateResult = await retryableUpdate(supabase, english.id, {
+                  featured_image_url: newImageUrl,
+                  featured_image_alt: altText,
+                  featured_image_caption: caption,
+                  updated_at: new Date().toISOString()
+                });
+
+                if (updateResult.success) {
+                  primaryImageUrl = newImageUrl;
+                  successCount++;
+                  results.push({ id: english.id, language: 'en', success: true, newUrl: newImageUrl });
+                } else {
+                  failCount++;
+                  results.push({ id: english.id, language: 'en', success: false });
+                }
+              } else {
+                failCount++;
+                results.push({ id: english.id, language: 'en', success: false });
+              }
+            } else {
+              console.error(`❌ No image generated for position ${position}`);
               failCount++;
               results.push({ id: english.id, language: 'en', success: false });
-            } else {
-              console.log(`✅ Updated English article with new image`);
-              primaryImageUrl = newImageUrl;
-              successCount++;
-              results.push({ id: english.id, language: 'en', success: true, newUrl: newImageUrl });
             }
           } catch (error) {
-            console.error(`❌ Error generating English image:`, error);
+            console.error(`❌ Error generating image for position ${position}:`, error);
             failCount++;
             results.push({ id: english.id, language: 'en', success: false });
           }
         }
-        
+
         // Small delay to avoid rate limiting
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise(resolve => setTimeout(resolve, 1000));
       }
 
-      // Step 2: Share primary image to all translations with localized metadata
+      // Share primary image to all translations with localized metadata
       if (primaryImageUrl && translations.length > 0) {
-        console.log(`🔗 Sharing image to ${translations.length} translations...`);
-        
+        console.log(`🔗 Sharing image to ${translations.length} translation(s)...`);
+
         for (const translation of translations) {
           try {
-            // Generate localized metadata
-            const { altText, caption } = openaiKey 
-              ? await generateLocalizedMetadata(translation, openaiKey)
-              : { altText: `${translation.headline} - Everence Wealth`, caption: null };
-            
-            // Update translation with SHARED image + localized metadata (with retry)
-            const updateResult = await retryableUpdate(supabase, translation.id, { 
+            const { altText, caption } = await generateLocalizedMetadata(translation, lovableApiKey);
+
+            const updateResult = await retryableUpdate(supabase, translation.id, {
               featured_image_url: primaryImageUrl,
               featured_image_alt: altText,
               featured_image_caption: caption,
               updated_at: new Date().toISOString()
             });
-            
-            if (!updateResult.success) {
-              console.error(`❌ Failed to update ${translation.language} translation after retries`);
-              failCount++;
-              results.push({ id: translation.id, language: translation.language, success: false });
-            } else {
-              console.log(`✅ Shared image to ${translation.language} with localized metadata`);
+
+            if (updateResult.success) {
               successCount++;
               results.push({ id: translation.id, language: translation.language, success: true, newUrl: primaryImageUrl, shared: true });
+            } else {
+              failCount++;
+              results.push({ id: translation.id, language: translation.language, success: false });
             }
           } catch (error) {
             console.error(`❌ Error updating ${translation.language} translation:`, error);
@@ -503,8 +563,6 @@ serve(async (req) => {
           }
         }
       } else if (!primaryImageUrl && translations.length > 0) {
-        // No English primary - skip translations
-        console.log(`⚠️ No primary image for position ${position} (${funnel_stage}), skipping ${translations.length} translations`);
         for (const translation of translations) {
           failCount++;
           results.push({ id: translation.id, language: translation.language, success: false });
@@ -516,7 +574,7 @@ serve(async (req) => {
     const imagesShared = results.filter(r => r.shared).length;
 
     console.log(`\n🎉 Completed: ${successCount} success, ${failCount} failed`);
-    console.log(`   Unique images generated: ${uniqueImagesGenerated}`);
+    console.log(`   Content-aware images generated: ${uniqueImagesGenerated}`);
     console.log(`   Images preserved: ${imagesPreserved}`);
     console.log(`   Images shared to translations: ${imagesShared}`);
 

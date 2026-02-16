@@ -82,7 +82,7 @@ export const ClusterArticlesTab = ({
   // Individual article image regeneration state
   const [regeneratingImageArticle, setRegeneratingImageArticle] = useState<string | null>(null);
 
-  const totalExpected = 60; // 6 articles × 10 languages
+  const totalExpected = 12; // 6 articles × 2 languages (EN + ES)
   const completionPercent = Math.round((cluster.total_articles / totalExpected) * 100);
 
   // Helper to count words in HTML content
@@ -160,7 +160,7 @@ export const ClusterArticlesTab = ({
 
   const handleViewLive = (article: { language: string; slug: string }) => {
     const langPrefix = article.language === 'en' ? '' : `/${article.language}`;
-    window.open(`https://www.delsolprimehomes.com${langPrefix}/blog/${article.slug}`, '_blank');
+    window.open(`https://www.everencewealth.com${langPrefix}/blog/${article.slug}`, '_blank');
   };
 
   const handleDiscoverCitations = async (article: any) => {
