@@ -1006,12 +1006,14 @@ export const ClusterQATab = ({
     (sum, lang) => sum + (lang.total * QAS_PER_ARTICLE), 
     0
   );
+  const totalQAsCreated = englishQACount + TARGET_LANGUAGES.reduce((sum, lang) => sum + (languageQACounts[lang] ?? cluster.qa_pages[lang]?.total ?? 0), 0);
+  const totalPublished = Object.values(languagePublishedCounts).reduce((a, b) => a + b, 0);
   const completionPercent = totalExpectedQAs > 0 
-    ? Math.round((cluster.total_qa_pages / totalExpectedQAs) * 100) 
+    ? Math.round((totalQAsCreated / totalExpectedQAs) * 100) 
     : 0;
 
   const expectedLanguages = getAllExpectedLanguages(cluster);
-  const draftQAsCount = cluster.total_qa_pages - cluster.total_qa_published;
+  const draftQAsCount = totalQAsCreated - totalPublished;
 
   const mismatchInfo = useMemo((): MismatchInfo => {
     const languageCounts: { lang: string; actual: number; expected: number }[] = [];
@@ -1108,19 +1110,19 @@ export const ClusterQATab = ({
   const isPhase1Complete = englishQACount >= 24;
   // Use local state for real-time updates, fallback to cluster prop for initial load
   const isPhase2Complete = TARGET_LANGUAGES.every(lang => (languageQACounts[lang] ?? cluster.qa_pages[lang]?.total ?? 0) >= 24);
-  const totalQAsCreated = englishQACount + TARGET_LANGUAGES.reduce((sum, lang) => sum + (languageQACounts[lang] ?? cluster.qa_pages[lang]?.total ?? 0), 0);
+  // totalQAsCreated moved above for summary cards
 
   return (
     <div className="space-y-6">
       {/* Summary Stats */}
       <div className="grid grid-cols-4 gap-4">
         <div className="text-center p-3 bg-muted/50 rounded-lg">
-          <div className="text-2xl font-bold">{cluster.total_qa_pages}</div>
+          <div className="text-2xl font-bold">{totalQAsCreated}</div>
           <div className="text-xs text-muted-foreground">Total Q&As</div>
           <div className="text-xs text-muted-foreground/70">of {totalExpectedQAs} expected</div>
         </div>
         <div className="text-center p-3 bg-muted/50 rounded-lg">
-          <div className="text-2xl font-bold text-green-600">{cluster.total_qa_published}</div>
+          <div className="text-2xl font-bold text-green-600">{totalPublished}</div>
           <div className="text-xs text-muted-foreground">Published</div>
         </div>
         <div className="text-center p-3 bg-muted/50 rounded-lg">
@@ -1137,7 +1139,7 @@ export const ClusterQATab = ({
       <div className="space-y-2">
         <div className="flex justify-between text-sm">
           <span>Q&A Generation Progress</span>
-          <span className="font-medium">{cluster.total_qa_pages}/{totalExpectedQAs} Q&As</span>
+          <span className="font-medium">{totalQAsCreated}/{totalExpectedQAs} Q&As</span>
         </div>
         <Progress value={completionPercent} className="h-2" />
       </div>
