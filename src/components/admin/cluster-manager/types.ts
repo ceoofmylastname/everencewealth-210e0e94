@@ -95,20 +95,11 @@ export interface DryRunPreview {
 }
 
 // Backend default translation languages (English + these = 10 languages total)
-export const DEFAULT_TRANSLATION_LANGUAGES = ["de", "nl", "fr", "pl", "sv", "da", "hu", "fi", "no"];
+export const DEFAULT_TRANSLATION_LANGUAGES = ["es"];
 
 export const LANGUAGE_FLAGS: Record<string, string> = {
-  en: "🇬🇧",
-  de: "🇩🇪",
-  nl: "🇳🇱",
-  fr: "🇫🇷",
+  en: "🇺🇸",
   es: "🇪🇸",
-  pl: "🇵🇱",
-  sv: "🇸🇪",
-  da: "🇩🇰",
-  hu: "🇭🇺",
-  fi: "🇫🇮",
-  no: "🇳🇴",
 };
 
 export const getLanguageFlag = (lang: string): string => {
