@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { usePortalAuth } from "@/hooks/usePortalAuth";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { FileText } from "lucide-react";
+import { FileText, ChevronRight } from "lucide-react";
 
 interface Policy {
   id: string;
@@ -68,35 +69,40 @@ export default function ClientPolicies() {
       ) : (
         <div className="space-y-3">
           {policies.map((p) => (
-            <Card key={p.id}>
-              <CardContent className="p-5">
-                <div className="flex items-start justify-between gap-3 mb-3">
-                  <div>
-                    <h3 className="font-semibold text-foreground">{p.carrier_name}</h3>
-                    <p className="text-sm text-muted-foreground">#{p.policy_number} • {p.product_type.replace(/_/g, " ")}</p>
+            <Link key={p.id} to={`/portal/client/policies/${p.id}`} className="block group">
+              <Card className="transition-colors group-hover:border-primary/30">
+                <CardContent className="p-5">
+                  <div className="flex items-start justify-between gap-3 mb-3">
+                    <div>
+                      <h3 className="font-semibold text-foreground">{p.carrier_name}</h3>
+                      <p className="text-sm text-muted-foreground">#{p.policy_number} • {p.product_type.replace(/_/g, " ")}</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge className={statusColors[p.policy_status] || ""}>{p.policy_status}</Badge>
+                      <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+                    </div>
                   </div>
-                  <Badge className={statusColors[p.policy_status] || ""}>{p.policy_status}</Badge>
-                </div>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
-                  <div>
-                    <p className="text-muted-foreground">Death Benefit</p>
-                    <p className="font-medium text-foreground">{fmt(p.death_benefit)}</p>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
+                    <div>
+                      <p className="text-muted-foreground">Death Benefit</p>
+                      <p className="font-medium text-foreground">{fmt(p.death_benefit)}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground">Cash Value</p>
+                      <p className="font-medium text-foreground">{fmt(p.cash_value)}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground">Premium</p>
+                      <p className="font-medium text-foreground">{fmt(p.monthly_premium)}/{p.premium_frequency?.replace(/_/g, " ") || "mo"}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground">Issue Date</p>
+                      <p className="font-medium text-foreground">{p.issue_date || "—"}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-muted-foreground">Cash Value</p>
-                    <p className="font-medium text-foreground">{fmt(p.cash_value)}</p>
-                  </div>
-                  <div>
-                    <p className="text-muted-foreground">Premium</p>
-                    <p className="font-medium text-foreground">{fmt(p.monthly_premium)}/{p.premium_frequency?.replace(/_/g, " ") || "mo"}</p>
-                  </div>
-                  <div>
-                    <p className="text-muted-foreground">Issue Date</p>
-                    <p className="font-medium text-foreground">{p.issue_date || "—"}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </Link>
           ))}
         </div>
       )}
