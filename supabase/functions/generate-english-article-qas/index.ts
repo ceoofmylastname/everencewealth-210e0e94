@@ -65,7 +65,7 @@ ${existingQuestions.map((q, i) => `${i + 1}. "${q}"`).join('\n')}
 Your question MUST be unique and NOT duplicate any of the above. Focus on the SPECIFIC angle of this article: "${article.headline}"`
     : '';
 
-  const prompt = `You are an expert real estate content writer. Generate a Q&A page about "${qaType.label}" for this article.
+  const prompt = `You are an expert wealth management content writer. Generate a Q&A page about "${qaType.label}" for this article.
 
 ARTICLE HEADLINE: ${article.headline}
 ARTICLE DESCRIPTION: ${article.meta_description}
@@ -85,7 +85,7 @@ CRITICAL - HANS' AEO RULES FOR speakableAnswer:
 - Directly answers the question in summary form
 
 WRONG: "There are 5 key steps: 1. Get an NIE 2. Find a lawyer..."
-RIGHT: "Purchasing property in Costa del Sol involves obtaining a Spanish NIE, appointing an independent lawyer for due diligence, opening a Spanish bank account, signing a private purchase agreement with deposit, and finalizing the sale before a notary through the public deed of sale, after which the property is registered in the Land Registry."
+RIGHT: "Building a tax-efficient retirement income stream involves maximizing contributions to tax-deferred accounts, strategically converting assets to tax-exempt vehicles like Roth IRAs or properly structured indexed universal life policies, coordinating Social Security timing with other income sources, and establishing a withdrawal sequence that minimizes lifetime tax liability across all three tax buckets."
 
 Return JSON:
 {
@@ -105,7 +105,7 @@ Return JSON:
     body: JSON.stringify({
       model: 'google/gemini-2.5-flash',
       messages: [
-        { role: 'system', content: 'You are an expert real estate content writer. Always respond with valid JSON. Create UNIQUE questions that are specific to the article headline.' },
+        { role: 'system', content: 'You are an expert wealth management content writer. Always respond with valid JSON. Create UNIQUE questions that are specific to the article headline.' },
         { role: 'user', content: prompt }
       ],
       response_format: { type: "json_object" },
@@ -246,7 +246,7 @@ serve(async (req) => {
           status: 'published',
           source_article_slug: article.slug,
           // Authority signals for AI ranking
-          author_id: '738c1e24-025b-4f15-ac7c-541bb8a5dade', // Hans Beeckman
+          author_id: '1a709766-817f-45b4-aea6-06f8e4fc8d6c', // Steven Rosenberg
           date_published: now,
           date_modified: now,
         };

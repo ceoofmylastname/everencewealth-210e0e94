@@ -679,7 +679,7 @@ serve(async (req) => {
           funnel_stage: englishQA.funnel_stage,
           status: 'published',
           source_article_slug: targetArticle.slug,
-          author_id: '738c1e24-025b-4f15-ac7c-541bb8a5dade',
+          author_id: '1a709766-817f-45b4-aea6-06f8e4fc8d6c', // Steven Rosenberg
           date_published: now,
           date_modified: now,
         };
