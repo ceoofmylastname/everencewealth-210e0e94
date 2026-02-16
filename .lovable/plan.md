@@ -1,47 +1,53 @@
 
 
-## Password Reset Flow for Portal
+## Email Verification Fix for Client Signup
 
 ### Overview
-Add a complete password reset flow to the Everence Wealth portal: a "Forgot Password?" link on the login page, a page to request the reset email, and a page to set the new password after clicking the email link.
+Two changes are needed: (1) add a "Resend Verification Email" button on the signup success screen, and (2) set the proper `emailRedirectTo` so the verification link brings the user back to the portal login.
 
-### Files to Create
+### Changes
 
-**1. `src/pages/portal/PortalForgotPassword.tsx`**
-- Matches existing portal dark theme (bg `hsl(215,28%,10%)`, glass card, gold accents)
-- Single email input form
-- Calls `supabase.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin + '/portal/reset-password' })`
-- Shows success message after submission ("Check your email for a reset link")
-- "Back to Sign In" link to `/portal/login`
+**1. `src/pages/portal/ClientSignup.tsx`**
 
-**2. `src/pages/portal/PortalResetPassword.tsx`**
-- Same dark portal styling
-- New password + confirm password inputs with show/hide toggles
-- On mount: listens for `PASSWORD_RECOVERY` event via `supabase.auth.onAuthStateChange`
-- On submit: calls `supabase.auth.updateUser({ password })`
-- Client-side validation: minimum 8 characters, passwords must match
-- On success: redirects to `/portal/login` with a success message
+- **Add `emailRedirectTo` to signup call** (line 93-96): Pass `options: { emailRedirectTo: window.location.origin + '/portal/login' }` so the verification email link redirects users to the portal login page after confirming.
 
-### Files to Modify
+- **Add "Resend Verification Email" button to the success screen** (lines 170-183):
+  - Add state: `resending` (boolean) and `resent` (boolean)
+  - Add a `handleResend` function that calls `supabase.auth.resend({ type: 'signup', email: invitation.email })`
+  - Show a "Resend Verification Email" button below the existing "Go to Login" button
+  - After resending, show a confirmation message ("Verification email sent!") and disable the button for 60 seconds with a countdown to prevent spam
+  - Style consistently with the existing dark portal theme (gold accents, glass card)
 
-**3. `src/pages/portal/PortalLogin.tsx`**
-- Add a "Forgot Password?" link between the password field and the error message area
-- Links to `/portal/forgot-password`
-- Styled as subtle text link (`text-white/50 hover:text-[hsl(42,50%,55%)]`)
+- **Handle unverified login attempt on PortalLogin.tsx** (line 31-35):
+  - When `signInWithPassword` returns an "Email not confirmed" error, show a helpful message: "Please verify your email before signing in. Check your inbox for a verification link."
+  - Optionally include a resend link from the login page as well
 
-**4. `src/App.tsx`**
-- Add two new public routes in the portal routes section (around line 315-316):
-  - `<Route path="/portal/forgot-password" element={<PortalForgotPassword />} />`
-  - `<Route path="/portal/reset-password" element={<PortalResetPassword />} />`
-- Add lazy imports for both new pages
+**2. `src/pages/portal/PortalLogin.tsx`**
 
-### No database changes required
-The password reset is handled entirely by the built-in authentication system.
+- Detect the `?verified=true` query parameter (set by the email redirect) and show a success banner: "Email verified! You can now sign in."
+- Improve the error handling to detect unverified email errors specifically and show a more user-friendly message with instructions
 
-### User Flow
-1. User clicks "Forgot Password?" on login page
-2. Enters email on `/portal/forgot-password`
-3. Receives reset email with link to `/portal/reset-password`
-4. Sets new password and is redirected to login
-5. Signs in with new password
+### Technical Details
+
+The key function calls:
+
+```typescript
+// Signup with redirect
+await supabase.auth.signUp({
+  email: invitation.email,
+  password,
+  options: {
+    emailRedirectTo: `${window.location.origin}/portal/login?verified=true`
+  }
+});
+
+// Resend verification
+await supabase.auth.resend({
+  type: 'signup',
+  email: invitation.email
+});
+```
+
+### No database or backend changes required
+This uses built-in authentication capabilities -- no new tables, edge functions, or secrets needed.
 
