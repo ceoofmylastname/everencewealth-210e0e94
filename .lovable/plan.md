@@ -1,54 +1,58 @@
 
-## Rebrand Blog Hero to Everence Wealth Style
 
-### Problem
-The blog hero still shows a Costa del Sol background image and the headline "LATEST BLOG FOR RENT AND BUY" -- completely mismatched with the Everence Wealth financial brand.
+## Add Professional AI-Generated Images to the Homepage
 
-### Changes
+### Overview
+Create an edge function that generates high-quality images using Nano Banana Pro for 5 key homepage sections, stores them in storage, and update each component to display them. The current homepage is mostly text and icons -- these images will bring it to life while keeping the modern, professional aesthetic.
 
-**File: `src/components/blog-index/BlogHeader.tsx`**
+### Images to Generate
 
-1. **Remove the old background image import** (`costa-del-sol-bg.jpg`) and replace with a CSS gradient background matching the brand palette (Evergreen `#1A4D3E`, Gold `#C5A059`, dark `#020806`), consistent with other hero sections (AboutHero, ContactHero) that use gradient backgrounds rather than photos.
+| Section | Image Concept | Placement |
+|---------|--------------|-----------|
+| **HomepageAbout** | Professional advisor in a modern glass office reviewing financial plans with a client couple | Replace the placeholder gradient/Building2 icon |
+| **Services** | Wide cinematic shot of a modern wealth management office with warm lighting | Banner image above the 3 service cards |
+| **WealthPhilosophy** | Aerial cityscape of a financial district at golden hour | Full-width subtle background replacing the current Unsplash texture |
+| **CTA** | Happy retired couple walking on a beach at sunset, lifestyle shot | Subtle background behind the call-to-action |
+| **Assessment** | Close-up of hands reviewing financial documents on a premium desk | Background accent image |
 
-2. **Update the headline** from "LATEST BLOG FOR RENT AND BUY" to "INSIGHTS & STRATEGIES" with a subheadline "Expert perspectives on retirement, tax efficiency, and wealth protection."
+### Technical Approach
 
-3. **Restyle to match the brand aesthetic**:
-   - Use `bg-gradient-to-br from-[#020806] via-[#1A4D3E] to-[#020806]` as the background
-   - Add decorative gold blur orbs (matching AboutHero/ContactHero pattern)
-   - Add subtle grid pattern overlay
-   - Use the brand's font styling for the headline
-   - Add a gold accent line above the headline
-   - Reduce min-height to match other hero sections (~50-60vh)
-   - Remove the negative margins (`-mx-4 md:-mx-8`) for cleaner layout
+**1. New Edge Function: `generate-homepage-images`**
+- Uses Nano Banana Pro (`fal-ai/nano-banana-pro`) via existing FAL_KEY
+- Generates 5 images with tailored prompts for each section
+- Uploads each to the `article-images` storage bucket with predictable filenames (e.g., `homepage-about.png`, `homepage-services.png`)
+- Returns all URLs in a single response
+- One-time generation -- run once, then URLs are permanent
 
-### Technical Details
+**2. New Database Table: `homepage_images`**
+- Columns: `id`, `section_key` (text, unique), `image_url` (text), `prompt` (text), `created_at`
+- Stores the generated image URLs mapped to section keys
+- No RLS needed (public read, admin write via service role in edge function)
 
-Single file change to `src/components/blog-index/BlogHeader.tsx`:
+**3. New Hook: `useHomepageImages`**
+- Fetches all rows from `homepage_images` table
+- Returns a map of `section_key -> image_url`
+- Cached via React Query with long stale time (images rarely change)
 
-```tsx
-export const BlogHeader = ({ totalCount }: BlogHeaderProps) => {
-  return (
-    <header className="relative w-full min-h-[50vh] md:min-h-[45vh] flex items-center justify-center mb-12 md:mb-16 overflow-hidden bg-gradient-to-br from-[#020806] via-[#1A4D3E] to-[#020806]">
-      {/* Decorative elements */}
-      <div className="absolute inset-0 opacity-10">
-        <div className="absolute top-20 left-10 w-72 h-72 bg-[#C5A059] rounded-full blur-3xl" />
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-[#C5A059] rounded-full blur-3xl" />
-      </div>
-      {/* Grid pattern */}
-      <div className="absolute inset-0 bg-[linear-gradient(...gold grid...)]" />
+**4. Component Updates (5 files)**
 
-      <div className="relative z-10 text-center px-4">
-        <div className="w-16 h-1 bg-[#C5A059] mx-auto mb-6" />
-        <h1 className="font-serif text-3xl sm:text-5xl md:text-6xl font-bold tracking-tight text-white leading-tight">
-          INSIGHTS & STRATEGIES
-        </h1>
-        <p className="mt-4 text-lg text-white/70 max-w-2xl mx-auto">
-          Expert perspectives on retirement, tax efficiency, and wealth protection.
-        </p>
-      </div>
-    </header>
-  );
-};
-```
+- **HomepageAbout.tsx**: Replace the gradient placeholder `div` (line 65) with an `<img>` tag using the `homepage-about` image. Keep the testimonial overlay card.
+- **Services.tsx**: Add a full-width rounded image above the service cards grid with a gradient overlay.
+- **WealthPhilosophy.tsx**: Replace the Unsplash URL (line 16) with the generated cityscape image at slightly higher opacity (~8%).
+- **CTA.tsx**: Add a subtle background image behind the CTA content with a dark gradient overlay to maintain text readability.
+- **Assessment.tsx**: Add a subtle background image with low opacity to add depth.
 
-No image file needed -- the old `costa-del-sol-bg.jpg` import is removed entirely in favor of CSS gradients, matching the pattern used across all other Everence Wealth hero sections.
+### Execution Order
+1. Create `homepage_images` database table
+2. Create `generate-homepage-images` edge function
+3. Create `useHomepageImages` hook
+4. Update all 5 component files to use images from the hook
+5. Deploy edge function and trigger it once to generate all images
+
+### Design Principles
+- Images use low opacity or gradient overlays on dark sections to maintain text contrast
+- The HomepageAbout section gets a full, visible image (replacing the placeholder)
+- Services gets a prominent banner image
+- All other sections use images as subtle atmospheric backgrounds
+- Fallbacks: components render normally if images haven't been generated yet (graceful degradation)
+
