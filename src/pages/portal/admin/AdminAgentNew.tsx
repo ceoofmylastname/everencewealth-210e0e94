@@ -45,56 +45,29 @@ export default function AdminAgentNew() {
     e.preventDefault();
     setSaving(true);
 
-    // Create portal_users record
-    const { data: portalUser, error: puError } = await supabase
-      .from("portal_users")
-      .insert({
-        auth_user_id: crypto.randomUUID(), // placeholder until they sign up
-        role: "advisor" as any,
+    const { data, error } = await supabase.functions.invoke("create-agent", {
+      body: {
         first_name: form.first_name,
         last_name: form.last_name,
         email: form.email,
-        phone: form.phone || null,
-        is_active: true,
-      })
-      .select("id")
-      .single();
+        phone: form.phone,
+        agency_id: form.agency_id,
+        license_number: form.license_number,
+        specializations: form.specializations,
+        send_invitation: sendInvitation,
+      },
+    });
 
-    if (puError) {
-      toast.error("Failed to create portal user: " + puError.message);
+    if (error) {
+      toast.error("Failed to create agent: " + error.message);
       setSaving(false);
       return;
     }
 
-    // Create advisors record
-    const { error: advError } = await supabase
-      .from("advisors")
-      .insert({
-        auth_user_id: crypto.randomUUID(), // placeholder
-        portal_user_id: portalUser.id,
-        first_name: form.first_name,
-        last_name: form.last_name,
-        email: form.email,
-        phone: form.phone || null,
-        agency_id: form.agency_id || null,
-        license_number: form.license_number || null,
-        specializations: form.specializations ? form.specializations.split(",").map((s) => s.trim()) : null,
-        is_active: true,
-      });
-
-    if (advError) {
-      toast.error("Failed to create advisor: " + advError.message);
+    if (data?.error) {
+      toast.error(data.error);
       setSaving(false);
       return;
-    }
-
-    if (sendInvitation) {
-      // Try to invoke the invitation edge function
-      await supabase.functions.invoke("send-portal-invitation", {
-        body: { email: form.email, first_name: form.first_name, role: "advisor" },
-      }).catch(() => {
-        // Non-critical: invitation may not be configured yet
-      });
     }
 
     toast.success("Agent created successfully");
