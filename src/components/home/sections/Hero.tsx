@@ -145,20 +145,19 @@ export const Hero: React.FC = () => {
               <span className="text-[5vw] md:text-[3vw] lg:text-[2.4vw] text-white/40 font-light tracking-normal italic font-serif">the</span>
             </motion.span>
 
-            {/* RETIREMENT — letter by letter with sweep */}
-            <span className="block text-[13vw] md:text-[10vw] lg:text-[8vw] overflow-hidden">
+            {/* RETIREMENT — letter by letter with rounded pill style */}
+            <span className="flex items-center justify-center gap-[0.5vw] md:gap-[0.4vw] overflow-hidden py-2">
               {RETIREMENT_LETTERS.map((letter, i) => (
                 <motion.span
                   key={i}
-                  className="inline-block retirement-sweep hero-glow"
-                  initial={{ opacity: 0, y: 60, rotateX: -90 }}
-                  animate={stage >= 2 ? { opacity: 1, y: 0, rotateX: 0 } : {}}
+                  className="inline-flex items-center justify-center retirement-letter-pill"
+                  initial={{ opacity: 0, y: 60, scale: 0.5 }}
+                  animate={stage >= 2 ? { opacity: 1, y: 0, scale: 1 } : {}}
                   transition={{
                     delay: i * 0.05,
                     duration: 0.5,
                     ease: [0.16, 1, 0.3, 1],
                   }}
-                  style={{ animationDelay: `${i * 0.15}s` }}
                 >
                   {letter}
                 </motion.span>
@@ -209,7 +208,7 @@ export const Hero: React.FC = () => {
       >
         <div className="glass-card rounded-2xl px-6 py-4 md:px-8 md:py-5 grid grid-cols-1 md:grid-cols-3 items-center gap-4 md:gap-6">
           {/* Left */}
-          <div className="flex flex-col items-center md:items-start justify-center">
+          <div className="flex flex-col items-center justify-center text-center">
             <span className="block text-[9px] font-hero font-semibold tracking-[0.25em] uppercase text-white/30 mb-1">System Status</span>
             <span className="flex items-center gap-2 text-[11px] font-hero font-bold tracking-[0.15em] uppercase text-white/50">
               <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
@@ -222,7 +221,7 @@ export const Hero: React.FC = () => {
             <span className="text-[11px] font-hero font-bold tracking-[0.1em] uppercase text-white/60">Tax-Free Bucket Optimization</span>
           </div>
           {/* Right */}
-          <div className="flex items-center justify-center md:justify-end">
+          <div className="flex items-center justify-center">
             <a
               href="/assessment"
               className="inline-block px-6 py-2.5 border border-white/15 bg-white/[0.03] text-white/70 font-hero font-bold text-[11px] tracking-[0.15em] uppercase rounded-xl hover:bg-white/[0.06] hover:border-primary/30 transition-colors"

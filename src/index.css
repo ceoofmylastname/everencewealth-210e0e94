@@ -899,6 +899,50 @@ All colors MUST be HSL.
   animation: retirement-sweep 4s ease-in-out infinite;
 }
 
+/* ── RETIREMENT rounded pill letters ── */
+.retirement-letter-pill {
+  font-size: 10vw;
+  width: 1.1em;
+  height: 1.15em;
+  border-radius: 0.25em;
+  background: linear-gradient(
+    160deg,
+    hsla(160, 48%, 25%, 0.25) 0%,
+    hsla(160, 48%, 35%, 0.12) 100%
+  );
+  border: 1px solid hsla(160, 48%, 40%, 0.15);
+  color: white;
+  font-weight: 900;
+  text-transform: uppercase;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: all 0.3s ease;
+}
+
+.retirement-letter-pill:hover {
+  background: linear-gradient(
+    160deg,
+    hsla(160, 48%, 30%, 0.4) 0%,
+    hsla(160, 48%, 40%, 0.2) 100%
+  );
+  border-color: hsla(160, 48%, 50%, 0.3);
+  transform: translateY(-2px);
+}
+
+@media (min-width: 768px) {
+  .retirement-letter-pill {
+    font-size: 8vw;
+    border-radius: 0.22em;
+  }
+}
+
+@media (min-width: 1024px) {
+  .retirement-letter-pill {
+    font-size: 6.5vw;
+    border-radius: 0.2em;
+  }
+}
+
 /* ── Hero scan line ── */
 @keyframes scan-sweep {
   0% { top: -2px; opacity: 0; }
