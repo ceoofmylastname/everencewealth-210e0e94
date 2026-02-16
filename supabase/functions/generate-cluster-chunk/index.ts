@@ -597,21 +597,32 @@ serve(async (req) => {
     // All chunks complete - finalize job
     console.log(`[Chunk] 🎉 All chunks complete! Finalizing job...`);
 
-    const finalStatus = allSavedArticles.length === articleStructures.length ? 'completed' : 'partial';
+    // Verify actual saved article count from the database (ground truth)
+    const { count: actualSavedCount, error: countError } = await supabase
+      .from('blog_articles')
+      .select('*', { count: 'exact', head: true })
+      .eq('cluster_id', jobId)
+      .eq('language', job.language || 'en');
+
+    const verifiedCount = countError ? allSavedArticles.length : (actualSavedCount || 0);
+    console.log(`[Chunk] 📊 Verified article count from DB: ${verifiedCount} (internal tracking: ${allSavedArticles.length}, expected: ${articleStructures.length})`);
+
+    // Use verified DB count to determine status - if DB has all articles, it's completed
+    const finalStatus = verifiedCount >= articleStructures.length ? 'completed' : 'partial';
     
     await supabase
       .from('cluster_generations')
       .update({
         status: finalStatus,
-        completion_note: `${allSavedArticles.length}/${articleStructures.length} articles generated via chunked processing.`,
+        completion_note: `${verifiedCount}/${articleStructures.length} articles generated via chunked processing (verified from DB).`,
         progress: {
           current_step: articleStructures.length + 2,
           total_steps: articleStructures.length + 2,
           current_article: articleStructures.length,
           total_articles: articleStructures.length,
           message: finalStatus === 'completed' 
-            ? `✅ Cluster complete: ${allSavedArticles.length} articles generated.`
-            : `⚠️ Partial: ${allSavedArticles.length}/${articleStructures.length} articles.`,
+            ? `✅ Cluster complete: ${verifiedCount} articles generated.`
+            : `⚠️ Partial: ${verifiedCount}/${articleStructures.length} articles.`,
           chunked: true,
           total_chunks: Math.ceil(articleStructures.length / CHUNK_SIZE),
         },
