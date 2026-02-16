@@ -45,11 +45,45 @@
 - `/portal/advisor/dashboard`, `/clients`, `/policies`, `/policies/new`, `/policies/:id`, `/policies/:id/edit`, `/documents`, `/invite`
 - `/portal/client/dashboard`, `/policies`, `/documents`
 
-## What is NOT in Phase 2
-- Email sending for invitations (token is generated, but email delivery requires an edge function)
-- Client self-signup via invitation token
-- Notification system UI
-- Agent resources/tools UI
-- Messaging between advisor and client
+# Phase 3: Email Invitations, Client Signup, Notifications, Messaging ✅ COMPLETE
 
-These will be added in Phases 3-4.
+## What Was Built
+
+### 1. Invitation Email (`send-portal-invitation` edge function)
+- Edge function that sends branded HTML invitation emails via Resend
+- Triggered automatically when advisor creates a new invitation
+- Includes signup link with invitation token
+- Updates `sent_at` on the invitation record
+
+### 2. Client Self-Signup (`/portal/signup`)
+- Token-based signup page validates invitation token, expiry, and status
+- Client creates password, Supabase Auth user is created
+- `portal_users` record auto-created with client role and advisor linkage
+- Invitation marked as `accepted` after successful signup
+- Email verification required before login
+
+### 3. Notification System
+- `portal_notifications` table with RLS (users see own notifications only)
+- `NotificationBell` component in portal sidebar and mobile header
+- Real-time notification updates via Supabase Realtime
+- Mark individual or all notifications as read
+- Click-to-navigate for actionable notifications
+
+### 4. Advisor-Client Messaging
+- `portal_conversations` table (unique advisor-client pairs)
+- `portal_messages` table with RLS (conversation participants only)
+- **Advisor Messages** page: multi-conversation view, start new conversations with clients, real-time message delivery
+- **Client Messages** page: single-conversation view with assigned advisor, real-time updates
+- Both views have chat-style UI with sender alignment and timestamps
+- Realtime enabled for instant message delivery
+
+### 5. Routes Added
+- `/portal/signup` — Public client signup with token
+- `/portal/advisor/messages` — Advisor messaging hub
+- `/portal/client/messages` — Client messaging view
+
+## What is NOT in Phase 3
+- Push notifications (browser/mobile)
+- Agent resources/tools UI
+- File attachments in messages
+- Read receipts in messaging UI

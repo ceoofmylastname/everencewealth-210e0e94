@@ -4,9 +4,10 @@ import { usePortalAuth } from "@/hooks/usePortalAuth";
 import { cn } from "@/lib/utils";
 import {
   Shield, LogOut, LayoutDashboard, FileText, Users, Send,
-  FolderOpen, Menu, X, ChevronRight,
+  FolderOpen, Menu, X, ChevronRight, MessageSquare,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { NotificationBell } from "./NotificationBell";
 
 const advisorNav = [
   { label: "Dashboard", icon: LayoutDashboard, href: "/portal/advisor/dashboard" },
@@ -14,12 +15,14 @@ const advisorNav = [
   { label: "Policies", icon: FileText, href: "/portal/advisor/policies" },
   { label: "Documents", icon: FolderOpen, href: "/portal/advisor/documents" },
   { label: "Invite Client", icon: Send, href: "/portal/advisor/invite" },
+  { label: "Messages", icon: MessageSquare, href: "/portal/advisor/messages" },
 ];
 
 const clientNav = [
   { label: "Dashboard", icon: LayoutDashboard, href: "/portal/client/dashboard" },
   { label: "My Policies", icon: FileText, href: "/portal/client/policies" },
   { label: "Documents", icon: FolderOpen, href: "/portal/client/documents" },
+  { label: "Messages", icon: MessageSquare, href: "/portal/client/messages" },
 ];
 
 export function PortalLayout() {
@@ -61,9 +64,12 @@ export function PortalLayout() {
               Everence
             </span>
           </Link>
-          <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setMobileOpen(false)}>
-            <X className="h-4 w-4" />
-          </Button>
+          <div className="flex items-center gap-1">
+            <NotificationBell />
+            <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setMobileOpen(false)}>
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
 
         {/* Nav items */}
@@ -117,9 +123,10 @@ export function PortalLayout() {
           <Button variant="ghost" size="icon" onClick={() => setMobileOpen(true)}>
             <Menu className="h-5 w-5" />
           </Button>
-          <span className="ml-3 font-semibold text-foreground" style={{ fontFamily: "'Playfair Display', serif" }}>
+          <span className="ml-3 font-semibold text-foreground flex-1" style={{ fontFamily: "'Playfair Display', serif" }}>
             {isAdvisor ? "Advisor Portal" : "Client Portal"}
           </span>
+          <NotificationBell />
         </header>
 
         <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">

@@ -60,7 +60,7 @@ export default function ClientInvite() {
     const token = crypto.randomUUID();
     const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
 
-    const { error } = await supabase.from("client_invitations").insert({
+    const { data: inserted, error } = await supabase.from("client_invitations").insert({
       advisor_id: advisorId,
       email: form.email,
       first_name: form.first_name,
@@ -69,12 +69,25 @@ export default function ClientInvite() {
       invitation_token: token,
       expires_at: expiresAt,
       status: "pending",
-    });
+    }).select().single();
 
     if (error) {
       toast.error(error.message);
     } else {
-      toast.success(`Invitation created for ${form.first_name} ${form.last_name}. Share the invitation link with them.`);
+      // Send invitation email
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session && inserted) {
+          await supabase.functions.invoke("send-portal-invitation", {
+            body: { invitation_id: inserted.id },
+          });
+        }
+      } catch (emailErr) {
+        console.error("Email send failed:", emailErr);
+        // Don't block on email failure — invitation is still created
+      }
+
+      toast.success(`Invitation sent to ${form.first_name} ${form.last_name}`);
       setForm({ first_name: "", last_name: "", email: "", phone: "" });
       init();
     }

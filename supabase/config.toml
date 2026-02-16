@@ -1,1 +1,4 @@
 project_id = "zbzrmpmqijvmjbhctfoe"
+
+[functions.send-portal-invitation]
+verify_jwt = false
