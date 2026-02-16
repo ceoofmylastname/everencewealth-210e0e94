@@ -1,28 +1,121 @@
 
 
-## Rebrand Blog Footer and Other Footers to Everence Wealth
+## Full Language Audit: Restrict Everything to English and Spanish Only
 
-### Problem
-The blog footer (`ArticleFooter.tsx`) still displays the old "Del Sol Prime Homes" real estate branding -- Spanish address, Costa del Sol service areas, and real estate tagline. Two other footers also reference the old logo alt text.
+### Scope of the Problem
+The old real estate platform supported 10 European languages (en, de, nl, fr, pl, sv, da, hu, fi, no). After rebranding to Everence Wealth, only **English (en)** and **Spanish (es)** should exist anywhere. Legacy language references were found in **80+ files** across frontend components, edge functions, types, scripts, and schemas.
 
-### Changes
+### Affected Areas (Organized by Priority)
 
-**1. `src/components/blog-article/ArticleFooter.tsx`** -- Complete rebrand of the `COMPANY_INFO` object:
-- **name**: "Del Sol Prime Homes" -> "Everence Wealth"
-- **tagline**: Real estate tagline -> "Independent fiduciary wealth architects specializing in tax-efficient retirement strategies."
-- **phone**: "+34 630 03 90 90" -> "+1-415-555-0100" (from existing schema in constants/home.ts)
-- **email**: "info@delsolprimehomes.com" -> "info@everencewealth.com"
-- **website**: "https://www.delsolprimehomes.com" -> "https://www.everencewealth.com"
-- **address**: Spanish office -> "One Embarcadero Center, Suite 500, San Francisco, CA 94111" (from existing en.ts translations)
-- **serviceAreas**: Remove the Costa del Sol cities section entirely. Replace with "Specialties" listing: Retirement Planning, Tax-Efficient Strategies, Estate Planning, Indexed Universal Life, Annuities, Asset Protection
-- **languages**: Keep English and Spanish only (the two supported languages per project memory)
+---
 
-**2. `src/components/landing/Footer.tsx`** (line 20)
-- Change logo alt text from "DelSolPrimeHomes" to "Everence Wealth"
+### 1. Core Type Definitions
 
-**3. `src/components/retargeting/RetargetingFooter.tsx`** (line 27)
-- Change logo alt text from "DelSolPrimeHomes" to "Everence Wealth"
+**`src/types/blog.ts`** (line 3)
+- Change `Language` type from `'en' | 'de' | 'nl' | 'fr' | 'pl' | 'sv' | 'da' | 'hu' | 'fi' | 'no'` to `'en' | 'es'`
 
-### Result
-All three footer components will reflect the Everence Wealth brand with correct contact info, specialties instead of service areas, and no remaining real estate references.
+---
+
+### 2. User-Facing Components (What visitors see)
+
+| File | What to fix |
+|------|------------|
+| `src/components/blog-article/ArticleHeader.tsx` | `LANGUAGE_META` object -- remove 8 extra languages, keep en + es |
+| `src/components/comparison/ComparisonLanguageSwitcher.tsx` | `LANGUAGES` array -- reduce to en + es only |
+| `src/components/comparison/ComparisonFilterBar.tsx` | `LANGUAGES` array -- reduce to en + es only |
+| `src/components/chatbot/ContactForm.tsx` | Language `<Select>` options -- remove de, nl, fr, pl, sv, da, hu |
+| `src/components/contact/ContactForm.tsx` | `LANGUAGES` array -- reduce to en + es |
+| `src/pages/QAIndex.tsx` | `LANGUAGES` array -- reduce to en + es |
+| `src/pages/LocationHub.tsx` | Hardcoded "10 languages" text -- change to "2" |
+| `src/pages/apartments/ApartmentsLanding.tsx` | `SUPPORTED_LANGS` -- reduce to en + es |
+
+---
+
+### 3. Admin / Editor Components (What you see in admin panels)
+
+| File | What to fix |
+|------|------------|
+| `src/components/article-editor/TranslationsSection.tsx` | `LANGUAGES` array -- reduce to en + es |
+| `src/components/article-editor/BasicInfoSection.tsx` | Language `<Select>` -- remove extra languages |
+| `src/components/admin/BulkCaptionGenerator.tsx` | `LANGUAGE_OPTIONS` -- reduce to en + es |
+| `src/components/admin/cluster-manager/AdvancedFilters.tsx` | `LANGUAGES` filter list -- reduce |
+| `src/pages/admin/ComparisonGenerator.tsx` | `LANGUAGES` and `LanguageCode` type -- reduce |
+| `src/pages/admin/QAGenerator.tsx` | `LANGUAGES` array -- reduce |
+| `src/pages/admin/QADashboard.tsx` | `SUPPORTED_LANGUAGES`, `LANGUAGE_FLAGS`, `LANGUAGE_NAMES` -- reduce |
+| `src/pages/admin/LocationPages.tsx` | Language `<Select>` -- reduce |
+| `src/pages/admin/SpeakableTestBench.tsx` | `LANGUAGE_NAMES` -- reduce |
+| `src/pages/admin/ImageHealthDashboard.tsx` | `LANGUAGE_NAMES` -- reduce |
+| `src/pages/admin/BrochureManager.tsx` | `SUPPORTED_LANGUAGES`, `LANGUAGE_LABELS` -- reduce |
+
+---
+
+### 4. CRM Components
+
+| File | What to fix |
+|------|------------|
+| `src/pages/crm/admin/CrmAnalytics.tsx` | `languageChartConfig` -- reduce |
+| `src/pages/crm/admin/LeadsOverview.tsx` | Language filter `<Select>` -- reduce |
+| `src/pages/crm/agent/AgentProfilePage.tsx` | `LANGUAGE_NAMES` -- reduce |
+| `src/hooks/useCrmAnalytics.ts` | `LANGUAGE_LABELS` -- reduce |
+| `src/hooks/useDashboardStats.ts` | `languages` array -- reduce |
+
+---
+
+### 5. Schema / SEO Generators
+
+| File | What to fix |
+|------|------------|
+| `src/lib/brochureSchemaGenerator.ts` | `knowsLanguage` array -- reduce to `['en', 'es']` |
+
+---
+
+### 6. Edge Functions (Backend)
+
+| Function | What to fix |
+|----------|------------|
+| `generate-qa-pages` | `LANGUAGE_NAMES`, `ALL_SUPPORTED_LANGUAGES`, `TRANSLATION_LANGUAGES`, language patterns, example questions |
+| `generate-10lang-qa` | `ALL_LANGUAGES`, `LANGUAGE_WORD_COUNTS`, language patterns |
+| `generate-city-qa-pages` | `ALL_SUPPORTED_LANGUAGES` |
+| `generate-comparison-batch` | `ALL_SUPPORTED_LANGUAGES`, `LANGUAGE_NAMES` |
+| `translate-cluster` | `TARGET_LANGUAGES` |
+| `translate-cluster-to-language` | `TARGET_LANGUAGES`, `LANGUAGE_INFO` |
+| `translate-qas-to-language` | `LANGUAGE_NAMES` |
+| `translate-glossary` | `SUPPORTED_LANGUAGES`, `LANGUAGE_NAMES` |
+| `populate-translation-queue` | `TARGET_LANGUAGES` |
+| `find-internal-links` | Language name map |
+| `replace-citation-markers` | Language instructions, domain patterns |
+| `ping-indexnow` | `languages` array |
+| `create-crm-agent` | `languageNames` |
+
+---
+
+### 7. Scripts
+
+| File | What to fix |
+|------|------------|
+| `scripts/generateStaticHomePage.ts` | `LANGUAGES` array |
+| `scripts/sampleQAPages.ts` | `LANGUAGES` array, `BASE_URL` (still says delsolprimehomes.com) |
+
+---
+
+### Implementation Approach
+
+Due to the large number of files (80+), this will be implemented in **batches**:
+
+1. **Batch 1**: Core types + user-facing components (highest impact -- what visitors see)
+2. **Batch 2**: Admin/editor components + CRM components
+3. **Batch 3**: Edge functions (backend)
+4. **Batch 4**: Scripts and schema generators
+
+Every LANGUAGES/SUPPORTED_LANGUAGES array will be reduced to:
+```
+[
+  { code: 'en', name: 'English', flag: '🇺🇸' },
+  { code: 'es', name: 'Spanish', flag: '🇪🇸' },
+]
+```
+
+Every Language type will become `'en' | 'es'`.
+
+All references to German, Dutch, French, Polish, Swedish, Danish, Hungarian, Finnish, and Norwegian will be removed.
 
