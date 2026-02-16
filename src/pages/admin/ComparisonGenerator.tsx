@@ -214,18 +214,43 @@ export default function ComparisonGenerator() {
             comparison = data.comparison || data;
           }
 
-          // Save the comparison
-          const { error: saveError } = await supabase
+          // Ensure unique slug before saving
+          let uniqueSlug = comparison.slug;
+          if (uniqueSlug) {
+            const { data: existingSlugs } = await supabase
+              .from('comparison_pages')
+              .select('slug')
+              .like('slug', `${uniqueSlug}%`);
+            if (existingSlugs && existingSlugs.length > 0) {
+              const existingSet = new Set(existingSlugs.map(r => r.slug));
+              if (existingSet.has(uniqueSlug)) {
+                let suffix = 2;
+                while (existingSet.has(`${uniqueSlug}-${suffix}`)) suffix++;
+                uniqueSlug = `${uniqueSlug}-${suffix}`;
+              }
+            }
+          }
+
+          // Save the comparison and get the record back (with id)
+          const { data: savedRecord, error: saveError } = await supabase
             .from('comparison_pages')
             .insert({
               ...comparison,
+              slug: uniqueSlug,
               status: 'draft',
               date_modified: new Date().toISOString(),
-            });
+            })
+            .select()
+            .single();
           
           if (saveError) throw saveError;
+
+          // Update englishComparison with the saved record so .id is available for translations
+          if (lang === 'en' && savedRecord) {
+            englishComparison = savedRecord;
+          }
           
-          results.success.push({ lang, comparison });
+          results.success.push({ lang, comparison: savedRecord });
           setBatchProgress(prev => ({
             ...prev,
             completedLanguages: [...prev.completedLanguages, lang],
