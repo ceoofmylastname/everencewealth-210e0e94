@@ -1,65 +1,87 @@
 
 
-# Phase 9.4 -- Footer Update
+# Phase 9.7 -- Animation and Visual Polish
 
 ## Overview
-Rewrite the existing `src/components/home/Footer.tsx` to replace all real-estate-oriented columns and links with the Everence Wealth footer structure: Company, Strategies, Resources, Connect, plus an updated bottom bar.
+Add consistent scroll-triggered `framer-motion` animations to the remaining homepage sections that currently lack them, and create a subtle cursor glow effect component.
+
+## Current State
+
+Sections already animated with framer-motion (no changes needed):
+- WakeUpCall, SilentKillers, TaxBuckets, IndexedAdvantage, WealthPhilosophy, FiduciaryDifference, HomepageAbout, Testimonials
+
+Sections using older CSS `reveal-on-scroll` class (upgrade to framer-motion):
+- WhyChooseUs -- no animation at all
+- QuickSearch -- no animation at all
+- MiniAbout / USPSection (ContentBlocks.tsx) -- CSS reveal
+- FeaturedAreas -- CSS reveal on header/footer
+- Process -- CSS reveal
+- Reviews / BlogTeaser / GlossaryTeaser (ReviewsAndBlog.tsx) -- CSS reveal
+- Final CTA block in Home.tsx -- CSS reveal
+
+Hero stays as-is (above the fold, no scroll trigger needed).
 
 ## Changes
 
-### File: `src/components/home/Footer.tsx` (rewrite)
+### 1. Shared animation wrapper: `src/components/homepage/ScrollReveal.tsx` (new file)
 
-**Remove:**
-- Brand column with logo and description paragraph
-- Contact column (address/phone/email with icons)
-- Quick Links column (property finder, locations, buyer's guide, glossary, comparisons, dashboard)
-- Legal column (privacy, terms, cookies, legal notice, GDPR)
-- Facebook and Instagram social icons
-- All `t.footer.*` translation references (hardcode English strings, matching the convention established in 9.2/9.3)
+A lightweight wrapper component using framer-motion:
 
-**New Four-Column Grid (`grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12`):**
+```tsx
+<motion.div
+  initial={{ opacity: 0, y: 60 }}
+  whileInView={{ opacity: 1, y: 0 }}
+  viewport={{ once: true, margin: "-100px" }}
+  transition={{ duration: 0.6, ease: "easeOut" }}
+>
+  {children}
+</motion.div>
+```
 
-**Column 1: Company**
-- About Us -> `/{lang}/about`
-- Our Philosophy -> `/{lang}/philosophy`
-- Our Team -> `/{lang}/team`
-- Careers -> `/{lang}/careers`
+Props: `children`, optional `className`, optional `delay` (number).
 
-**Column 2: Strategies**
-- Indexed Universal Life -> `/{lang}/strategies/iul`
-- Whole Life -> `/{lang}/strategies/whole-life`
-- Tax-Free Retirement -> `/{lang}/strategies/tax-free-retirement`
-- Asset Protection -> `/{lang}/strategies/asset-protection`
+### 2. Update sections without framer-motion
 
-**Column 3: Resources**
-- Blog -> `/{lang}/blog`
-- Q&A -> `/{lang}/qa`
-- Financial Terms -> `/{lang}/glossary`
-- Tax Bucket Guide -> `/{lang}/tax-bucket-guide`
-- Retirement Gap Calculator -> `/{lang}/calculator`
+**WhyChooseUs.tsx**: Wrap the section content in `<ScrollReveal>`. Add staggered card animation using `motion.div` with `variants` for each benefit card (0.1s stagger).
 
-**Column 4: Connect**
-- Schedule Assessment -> `/{lang}/contact` (with `Calendar` icon)
-- Contact Us -> `/{lang}/contact` (with `Mail` icon)
-- Client Portal Login -> `/portal/login` (with `LogIn` icon)
-- Phone: (415) 555-0100 (with `Phone` icon)
-- Email: info@everencewealth.com (with `Mail` icon)
+**QuickSearch.tsx**: Wrap the outer container in `<ScrollReveal>`.
 
-**Above the grid:** Logo image (keep existing URL) with tagline "Independent fiduciary serving families since 1998." below it.
+**ContentBlocks.tsx (MiniAbout + USPSection)**: Replace `reveal-on-scroll animate-fade-in-up` CSS classes with `<ScrollReveal>`. Replace `reveal-on-scroll stagger-N` on USP cards with `motion.div` variants (0.1s stagger).
 
-**Bottom Bar (below border-t):**
-- Left: "Copyright 2025 Everence Wealth. Independent fiduciary serving families since 1998."
-- Center: Privacy Policy | Terms | Disclosures (links to `/privacy`, `/terms`, `/disclosures`)
-- Right: Social icons -- LinkedIn, Twitter (`X` icon not in lucide, use `Twitter`), YouTube
-- Below center: Address "455 Market St Ste 1940, San Francisco, CA 94105"
+**FeaturedAreas.tsx**: Replace `reveal-on-scroll animate-fade-in-down` on the header with `<ScrollReveal>`. Replace `reveal-on-scroll` on mobile CTA.
 
-**Updated imports:**
-- Keep: `Link`, `Linkedin`, `Mail`, `Phone`, `MapPin`
-- Add: `Calendar`, `LogIn`, `Twitter`, `Youtube`
-- Remove: `Facebook`, `Instagram`
-- Remove: `useTranslation` import (use `useParams` or `window.location` for lang, matching Header pattern)
+**Process.tsx**: Replace `reveal-on-scroll animate-fade-in-down` on header with `<ScrollReveal>`. Replace `reveal-on-scroll stagger-N` on step cards with `motion.div` variants. Replace `reveal-on-scroll` on bottom CTA.
 
-**Styling:** Keep existing dark background (`bg-prime-900`), `border-t-4 border-prime-gold` top accent, and hover color (`hover:text-prime-gold`). Column headings remain serif bold white.
+**ReviewsAndBlog.tsx**: Replace all `reveal-on-scroll` classes in Reviews, BlogTeaser, and GlossaryTeaser with `<ScrollReveal>`. Blog article cards get staggered `motion.div`.
 
-### No other files modified. No database or edge function changes.
+### 3. Update Final CTA in Home.tsx
+
+Replace `reveal-on-scroll` on the Final CTA `<div>` (inside the contact section) with `<ScrollReveal>`.
+
+### 4. CursorGlow component: `src/components/CursorGlow.tsx` (new file)
+
+A subtle radial glow that follows the cursor on desktop only:
+
+- Listens to `mousemove` on `window`
+- Renders a fixed-position `div` with a radial gradient (evergreen/gold, ~300px diameter, very low opacity ~0.06)
+- Uses `pointer-events: none` so it never interferes with clicks
+- Hidden on touch devices (check `window.matchMedia('(hover: hover)')`)
+- Uses `requestAnimationFrame` for smooth tracking
+
+### 5. Add CursorGlow to Home.tsx
+
+Import and render `<CursorGlow />` inside the `<main>` element.
+
+### Files modified
+- `src/components/homepage/ScrollReveal.tsx` (create)
+- `src/components/CursorGlow.tsx` (create)
+- `src/components/home/sections/WhyChooseUs.tsx` (update)
+- `src/components/home/sections/QuickSearch.tsx` (update)
+- `src/components/home/sections/ContentBlocks.tsx` (update)
+- `src/components/home/sections/FeaturedAreas.tsx` (update)
+- `src/components/home/sections/Process.tsx` (update)
+- `src/components/home/sections/ReviewsAndBlog.tsx` (update)
+- `src/pages/Home.tsx` (update -- Final CTA + CursorGlow)
+
+### No database, edge function, or translation changes required
 
