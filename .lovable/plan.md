@@ -1,42 +1,43 @@
 
 
-# Phase 7.5: Enhanced Quoting Tools Hub
+# Phase 7.6: Enhanced Calculators Tab
 
 ## Overview
-Rebuild the Tools Hub page to focus the Quoting Tools tab with search, type-based filtering via clickable badges, carrier logo display, and login instruction handling. The Calculators tab remains unchanged.
+Enhance the Calculators tab within the existing Tools Hub page with category filter badges, category-aware icons, and improved card layout with a "Use Calculator" button.
 
 ## No Database Migration Needed
-The `quoting_tools` table already has all required columns: `tool_name`, `tool_type`, `tool_url`, `carrier_id`, `description`, `requires_login`, `login_instructions`, `featured`. The carriers join already provides `carrier_name` and `carrier_logo_url`.
+The `calculators` table already has all required columns: `calculator_name`, `category`, `description`, `external_url`, `calculator_type`, `active`, `sort_order`.
 
 ## Changes
 
-### Rebuild Quoting Tools tab in `src/pages/portal/advisor/ToolsHub.tsx`
+### Edit `src/pages/portal/advisor/ToolsHub.tsx`
 
-**Enhanced Quoting Tools tab:**
-- **Search bar** with icon, filtering by tool name or carrier name
-- **Type filter badges**: Clickable pills for All, Quick Quote, Agent Portal, Microsite, Illustration System, Application Portal -- single-select
-- **Tool cards** in a responsive grid (1-2-3 columns) showing:
-  - Carrier logo (from joined `carriers.carrier_logo_url`)
-  - Tool name and carrier name
-  - Tool type badge
-  - Description (truncated)
-  - "Login Required" indicator with lock icon when `requires_login` is true
-  - "Open Tool" button linking to `tool_url`
-  - "Login Instructions" button (if `login_instructions` exists) -- could use a tooltip or dialog
-- **Empty state** when no tools match filters
+**Add to the Calculators tab:**
 
-**Calculators tab**: Kept as-is (no changes).
+1. **Category filter badges** at the top -- clickable pills for All, Cash Flow, Retirement, Life and Income, Tax Planning, Estate Planning (single-select, matching the quoting tools filter pattern)
 
-**Data fetching update**: Expand the carriers join to include `carrier_logo_url`:
-```
-.select("*, carriers(carrier_name, carrier_logo_url)")
-```
+2. **Category icon mapping** -- each category gets a distinct icon:
+   - `cash_flow` -> DollarSign
+   - `retirement` -> Calendar
+   - `life_income` -> TrendingUp
+   - `tax_planning` / `estate_planning` -> Calculator (default)
 
-## Technical Details
+3. **Grouped display** -- categories shown as sections with icon + heading + count badge, only visible categories based on filter
 
-- Filter state: `searchQuery` (string) and `selectedType` (string | null)
-- Filtering is done client-side with `useMemo` or inline
-- Uses existing `Input`, `Badge`, `Button`, `Card`, `Tabs` components
-- Maintains Playfair Display heading and existing loading spinner pattern
-- Login instructions shown via a simple expandable section or tooltip to avoid adding a modal dependency
+4. **Improved calculator cards** -- each card shows:
+   - Category icon (colored)
+   - Calculator name (bold)
+   - Description (truncated)
+   - "Use Calculator" button linking to `external_url` (replaces the small "Open" link)
+
+5. **State**: Add `selectedCategory` (string | null) state for the category filter
+
+### Technical Details
+
+- New state variable: `selectedCategory`
+- New constant: `CALC_CATEGORIES` array with key, label, and icon
+- New import: `DollarSign`, `TrendingUp`, `Calendar` from lucide-react
+- Filter logic: when `selectedCategory` is set, only show that category's section
+- Cards use the existing `Card`/`CardContent` components with the "Use Calculator" `Button`
+- No changes to the Quoting Tools tab or data fetching logic
 
