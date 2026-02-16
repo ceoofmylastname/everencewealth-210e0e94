@@ -32,7 +32,7 @@ const AuthorByline: React.FC<AuthorBylineProps> = ({
             <img
                 src={photoUrl}
                 alt="Steven Rosenberg - Founder & Chief Wealth Strategist"
-                className="w-16 h-16 rounded-full object-cover"
+                className="w-16 h-16 rounded-full object-cover object-top"
             />
 
             {/* Author Info */}
