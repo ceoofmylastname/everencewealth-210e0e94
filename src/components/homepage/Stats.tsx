@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { motion } from 'framer-motion';
 import { useTranslation } from '@/i18n/useTranslation';
 
 interface StatItemProps {
@@ -6,10 +7,12 @@ interface StatItemProps {
   prefix?: string;
   suffix: string;
   label: string;
+  index: number;
 }
 
-function StatItem({ value, prefix = '', suffix, label }: StatItemProps) {
+function StatItem({ value, prefix = '', suffix, label, index }: StatItemProps) {
   const [count, setCount] = useState(0);
+  const [done, setDone] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const hasAnimated = useRef(false);
 
@@ -27,6 +30,7 @@ function StatItem({ value, prefix = '', suffix, label }: StatItemProps) {
             const eased = 1 - Math.pow(1 - progress, 3);
             setCount(Math.floor(eased * value));
             if (progress < 1) requestAnimationFrame(animate);
+            else setDone(true);
           };
           requestAnimationFrame(animate);
         }
@@ -38,12 +42,34 @@ function StatItem({ value, prefix = '', suffix, label }: StatItemProps) {
   }, [value]);
 
   return (
-    <div ref={ref} className="flex-1 text-center px-6 py-10">
-      <p className="text-5xl md:text-7xl font-space font-bold text-evergreen">
+    <motion.div
+      ref={ref}
+      initial={{ opacity: 0, y: 30 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.6, delay: index * 0.1, ease: [0.16, 1, 0.3, 1] }}
+      className="relative bg-white/[0.06] backdrop-blur-xl border border-white/10 rounded-3xl p-8 md:p-10 text-center group hover:-translate-y-1 transition-transform duration-300"
+    >
+      {/* Inner top glow line */}
+      <div className="absolute top-0 left-[10%] right-[10%] h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
+      
+      <p className={`text-5xl md:text-7xl font-space font-bold transition-all duration-300 ${done ? 'text-primary' : 'text-white'}`}
+        style={{ textShadow: done ? '0 0 40px hsl(var(--primary) / 0.4), 0 0 80px hsl(var(--primary) / 0.2)' : 'none' }}
+      >
         {prefix}{count}{suffix}
       </p>
-      <p className="text-muted-foreground text-sm tracking-wide uppercase font-space mt-2">{label}</p>
-    </div>
+      <p className="text-white/50 text-sm tracking-wide uppercase font-space mt-3">{label}</p>
+
+      {/* Sparkle on complete */}
+      {done && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0 }}
+          animate={{ opacity: [0, 1, 0], scale: [0.5, 1.2, 0.8] }}
+          transition={{ duration: 0.8 }}
+          className="absolute top-4 right-4 w-2 h-2 rounded-full bg-primary"
+        />
+      )}
+    </motion.div>
   );
 }
 
@@ -52,16 +78,30 @@ export const Stats: React.FC = () => {
   const stats = t.homepage.stats.items;
 
   return (
-    <section className="py-16 px-4 bg-white">
-      <div className="max-w-6xl mx-auto">
-        <div className="flex flex-col md:flex-row divide-y md:divide-y-0 md:divide-x divide-border border border-border rounded-2xl">
-          {stats.map((stat) => (
+    <section className="relative py-20 md:py-28 px-4 bg-[hsl(160_80%_2%)] overflow-hidden">
+      {/* Animated gradient line at top */}
+      <div className="absolute top-0 left-0 right-0 h-px">
+        <motion.div
+          className="h-full bg-gradient-to-r from-transparent via-primary/40 to-transparent"
+          initial={{ scaleX: 0 }}
+          whileInView={{ scaleX: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+        />
+      </div>
+
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full bg-primary/5 blur-[120px] pointer-events-none" />
+
+      <div className="max-w-6xl mx-auto relative z-10">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {stats.map((stat, i) => (
             <StatItem
               key={stat.label}
               value={stat.value}
               prefix={stat.prefix || ''}
               suffix={stat.suffix}
               label={stat.label}
+              index={i}
             />
           ))}
         </div>

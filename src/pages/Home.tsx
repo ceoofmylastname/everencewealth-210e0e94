@@ -15,10 +15,12 @@ import { FAQ } from '../components/homepage/FAQ';
 import { BlogPreview } from '../components/homepage/BlogPreview';
 import { CTA } from '../components/homepage/CTA';
 import { CursorGlow } from '../components/CursorGlow';
+import { ScrollProgressBar } from '../components/homepage/ScrollProgressBar';
 
 function Home() {
   return (
     <div className="min-h-screen flex flex-col font-sans text-white bg-dark-bg">
+      <ScrollProgressBar />
       <Header />
       <CursorGlow />
       <main className="flex-grow">
