@@ -51,7 +51,7 @@ export const AuthorBio = ({ author, language = 'en', localizedBio }: AuthorBioPr
           {/* Avatar */}
           <div className="flex justify-center md:justify-start mb-6 md:mb-0">
             <Avatar className="h-24 w-24 md:h-28 md:w-28 ring-2 ring-primary/20 shadow-lg">
-              <AvatarImage src={author.photo_url} alt={author.name} className="object-cover" />
+              <AvatarImage src={author.photo_url} alt={author.name} className="object-cover object-top" />
               <AvatarFallback className="text-2xl bg-primary text-primary-foreground">
                 {author.name.charAt(0)}
               </AvatarFallback>
