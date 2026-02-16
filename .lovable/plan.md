@@ -1,27 +1,32 @@
 
 
-## Fix: Add Missing DELETE Policy on portal_notifications
+## Fix: Link Admin Auth Account to Portal
 
 ### Problem
-The `ClientNotifications.tsx` page has delete functionality (individual delete and "Delete read" bulk action), but the `portal_notifications` table has no DELETE RLS policy. This causes all delete operations to silently fail.
-
-### Current Policies on `portal_notifications`
-- SELECT: `user_id = get_portal_user_id(auth.uid())` -- users see own notifications
-- UPDATE: `user_id = get_portal_user_id(auth.uid())` -- users update own notifications
-- INSERT: authenticated users can insert
-- **DELETE: MISSING**
+The email `jrmenterprisegroup@gmail.com` has an authentication account (ID: `431e15bd-...`), but no matching record in the `portal_users` table. The login flow checks `portal_users` for role and access -- without a record, login is denied with "no-portal-account."
 
 ### Fix
-Run a single database migration to add the missing DELETE policy:
+Run a single database migration to insert the admin portal_users record:
 
 ```sql
-CREATE POLICY "Users delete own notifications"
-ON public.portal_notifications
-FOR DELETE
-TO authenticated
-USING (user_id = get_portal_user_id(auth.uid()));
+INSERT INTO public.portal_users (auth_user_id, role, email, first_name, last_name, is_active)
+VALUES (
+  '431e15bd-29b2-46cb-a037-83c9162ae1b5',
+  'admin',
+  'jrmenterprisegroup@gmail.com',
+  'Admin',
+  'User',
+  true
+);
 ```
 
-### No Code Changes Needed
-The frontend code in `ClientNotifications.tsx` already calls `.delete()` correctly -- only the database policy is missing.
+### After This Fix
+1. Go to `/portal/login`
+2. Sign in with `jrmenterprisegroup@gmail.com` and your password
+3. You will be redirected to `/portal/advisor/dashboard` (admins are routed through the advisor/admin check)
+4. You will have access to `/portal/admin/agents`, `/portal/admin/clients`, and all admin pages
+
+### Note
+- The first and last name are set to "Admin User" as placeholders -- these can be updated later from the admin profile
+- No code changes are needed; only the database record is missing
 
