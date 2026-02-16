@@ -161,6 +161,12 @@ const ClientPolicyDetail = lazy(() => import("./pages/portal/client/ClientPolicy
 const ClientNotifications = lazy(() => import("./pages/portal/client/ClientNotifications"));
 const ClientSignup = lazy(() => import("./pages/portal/ClientSignup"));
 
+// Portal Admin Pages
+const AdminAgents = lazy(() => import("./pages/portal/admin/AdminAgents"));
+const AdminAgentNew = lazy(() => import("./pages/portal/admin/AdminAgentNew"));
+const AdminAgentDetail = lazy(() => import("./pages/portal/admin/AdminAgentDetail"));
+const AdminClients = lazy(() => import("./pages/portal/admin/AdminClients"));
+
 const AgentLogin = lazy(() => import("./pages/crm/AgentLogin"));
 const CrmLogin = lazy(() => import("./pages/crm/CrmLogin"));
 const AgentDashboard = lazy(() => import("./pages/crm/agent/AgentDashboard"));
@@ -179,7 +185,9 @@ import { ApartmentsEditorRoute } from "@/components/ApartmentsEditorRoute";
 import { ApartmentsEditorLayout } from "@/components/ApartmentsEditorLayout";
 import { AdvisorRoute } from "@/components/portal/AdvisorRoute";
 import { ClientRoute } from "@/components/portal/ClientRoute";
+import { AdminRoute } from "@/components/portal/AdminRoute";
 import { PortalLayout } from "@/components/portal/PortalLayout";
+import { AdminPortalLayout } from "@/components/portal/AdminPortalLayout";
 const CrmDashboard = lazy(() => import("./pages/crm/admin/CrmDashboard"));
 const CrmAnalytics = lazy(() => import("./pages/crm/admin/CrmAnalytics"));
 const CrmAgentManagement = lazy(() => import("./pages/crm/admin/AgentManagement"));
@@ -351,6 +359,16 @@ const App = () => (
                   <Route path="documents" element={<ClientDocuments />} />
                   <Route path="messages" element={<ClientMessages />} />
                   <Route path="notifications" element={<ClientNotifications />} />
+                </Route>
+              </Route>
+
+              {/* Portal Admin Routes */}
+              <Route path="/portal/admin" element={<AdminRoute />}>
+                <Route element={<AdminPortalLayout />}>
+                  <Route path="agents" element={<AdminAgents />} />
+                  <Route path="agents/new" element={<AdminAgentNew />} />
+                  <Route path="agents/:id" element={<AdminAgentDetail />} />
+                  <Route path="clients" element={<AdminClients />} />
                 </Route>
               </Route>
 
