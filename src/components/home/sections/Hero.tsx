@@ -99,14 +99,6 @@ export const Hero: React.FC = () => {
       </motion.div>
 
       {/* Corner decorations */}
-      <motion.div
-        className="absolute top-6 right-8 z-10"
-        initial={{ opacity: 0 }}
-        animate={stage >= 4 ? { opacity: 1 } : {}}
-        transition={{ duration: 0.5 }}
-      >
-        <span className="text-[11px] font-space font-bold tracking-[0.3em] text-primary">2028</span>
-      </motion.div>
 
       {/* Center dot (stage 0) */}
       <motion.div
