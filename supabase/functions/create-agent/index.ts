@@ -141,63 +141,85 @@ Deno.serve(async (req) => {
     }
 
     // 4. Send invitation via password reset if requested
+    let invitation_sent = false;
+    let invitation_error: string | null = null;
+
     if (send_invitation) {
-      try {
-        const resendApiKey = Deno.env.get("RESEND_API_KEY");
-        if (resendApiKey) {
-          // Generate a password reset link
-          const { data: linkData } = await adminClient.auth.admin.generateLink({
+      const resendApiKey = Deno.env.get("RESEND_API_KEY");
+      if (!resendApiKey) {
+        invitation_error = "RESEND_API_KEY not configured";
+        console.error(invitation_error);
+      } else {
+        try {
+          const appUrl = "https://id-preview--29324b25-4616-48ca-967b-28e362789bf6.lovable.app";
+
+          const { data: linkData, error: linkError } = await adminClient.auth.admin.generateLink({
             type: "recovery",
             email,
             options: {
-              redirectTo: `${supabaseUrl.replace('.supabase.co', '.supabase.co')}/auth/v1/verify?redirect_to=${encodeURIComponent(supabaseUrl.replace('https://zbzrmpmqijvmjbhctfoe.supabase.co', 'https://id-preview--29324b25-4616-48ca-967b-28e362789bf6.lovable.app') + '/portal/reset-password')}`,
+              redirectTo: `${appUrl}/portal/reset-password`,
             },
           });
 
-          const resetLink = linkData?.properties?.action_link;
+          if (linkError) {
+            invitation_error = "Failed to generate reset link: " + linkError.message;
+            console.error(invitation_error);
+          } else {
+            const resetLink = linkData?.properties?.action_link;
 
-          await fetch("https://api.resend.com/emails", {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${resendApiKey}`,
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              from: "Everence Wealth <portal@everencewealth.com>",
-              to: [email],
-              subject: "Welcome to Everence Wealth Portal — Set Your Password",
-              html: `
-                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                  <div style="background-color: #1A4D3E; padding: 24px; text-align: center;">
-                    <h1 style="color: #F0F2F1; margin: 0; font-size: 24px;">Everence Wealth</h1>
-                  </div>
-                  <div style="padding: 32px 24px;">
-                    <p>Hi ${first_name},</p>
-                    <p>You've been invited to join the Everence Wealth advisor portal. Please set your password to get started:</p>
-                    <div style="text-align: center; margin: 32px 0;">
-                      <a href="${resetLink}" style="background-color: #1A4D3E; color: #F0F2F1; padding: 12px 32px; text-decoration: none; border-radius: 6px; font-weight: bold;">
-                        Set Your Password
-                      </a>
+            const resendRes = await fetch("https://api.resend.com/emails", {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${resendApiKey}`,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                from: "Everence Wealth <portal@everencewealth.com>",
+                to: [email],
+                subject: "Welcome to Everence Wealth Portal — Set Your Password",
+                html: `
+                  <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                    <div style="background-color: #1A4D3E; padding: 24px; text-align: center;">
+                      <h1 style="color: #F0F2F1; margin: 0; font-size: 24px;">Everence Wealth</h1>
                     </div>
-                    <p style="color: #4A5565; font-size: 14px;">If the button doesn't work, copy and paste this link into your browser:</p>
-                    <p style="color: #4A5565; font-size: 12px; word-break: break-all;">${resetLink}</p>
+                    <div style="padding: 32px 24px;">
+                      <p>Hi ${first_name},</p>
+                      <p>You've been invited to join the Everence Wealth advisor portal. Please set your password to get started:</p>
+                      <div style="text-align: center; margin: 32px 0;">
+                        <a href="${resetLink}" style="background-color: #1A4D3E; color: #F0F2F1; padding: 12px 32px; text-decoration: none; border-radius: 6px; font-weight: bold;">
+                          Set Your Password
+                        </a>
+                      </div>
+                      <p style="color: #4A5565; font-size: 14px;">If the button doesn't work, copy and paste this link into your browser:</p>
+                      <p style="color: #4A5565; font-size: 12px; word-break: break-all;">${resetLink}</p>
+                    </div>
+                    <div style="background-color: #F0F2F1; padding: 16px 24px; text-align: center; font-size: 12px; color: #4A5565;">
+                      455 Market St Ste 1940 PMB 350011, San Francisco, CA 94105
+                    </div>
                   </div>
-                  <div style="background-color: #F0F2F1; padding: 16px 24px; text-align: center; font-size: 12px; color: #4A5565;">
-                    455 Market St Ste 1940 PMB 350011, San Francisco, CA 94105
-                  </div>
-                </div>
-              `,
-            }),
-          });
+                `,
+              }),
+            });
+
+            const resendBody = await resendRes.json();
+            console.log("Resend API response:", JSON.stringify(resendBody), "status:", resendRes.status);
+
+            if (!resendRes.ok) {
+              invitation_error = resendBody?.message || resendBody?.error || `Resend returned ${resendRes.status}`;
+              console.error("Resend email failed:", invitation_error);
+            } else {
+              invitation_sent = true;
+            }
+          }
+        } catch (e) {
+          invitation_error = e.message || "Unknown email error";
+          console.error("Failed to send invitation email:", e);
         }
-      } catch (_e) {
-        // Non-critical: invitation email failed but agent was created
-        console.error("Failed to send invitation email:", _e);
       }
     }
 
     return new Response(
-      JSON.stringify({ success: true, portal_user_id: portalUser.id }),
+      JSON.stringify({ success: true, portal_user_id: portalUser.id, invitation_sent, invitation_error }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (err) {
