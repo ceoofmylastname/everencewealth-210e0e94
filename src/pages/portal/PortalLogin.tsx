@@ -29,7 +29,11 @@ export default function PortalLogin() {
       });
 
       if (authError) {
-        setError("Invalid email or password.");
+        if (authError.message?.toLowerCase().includes("email not confirmed")) {
+          setError("Please verify your email before signing in. Check your inbox for a verification link.");
+        } else {
+          setError("Invalid email or password.");
+        }
         setLoading(false);
         return;
       }
@@ -134,6 +138,12 @@ export default function PortalLogin() {
                 </button>
               </div>
             </div>
+
+            {searchParams.get("verified") === "true" && (
+              <div className="rounded-lg bg-emerald-500/10 border border-emerald-500/20 p-3 text-sm text-emerald-300">
+                Email verified! You can now sign in.
+              </div>
+            )}
 
             {searchParams.get("reset") === "success" && (
               <div className="rounded-lg bg-emerald-500/10 border border-emerald-500/20 p-3 text-sm text-emerald-300">

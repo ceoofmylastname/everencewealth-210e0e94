@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Shield, Eye, EyeOff, CheckCircle, XCircle } from "lucide-react";
@@ -32,6 +32,9 @@ export default function ClientSignup() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [resending, setResending] = useState(false);
+  const [resent, setResent] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
 
   useEffect(() => {
     if (!token) {
@@ -73,6 +76,29 @@ export default function ClientSignup() {
     }
   }
 
+  const handleResend = useCallback(async () => {
+    if (!invitation || resendCooldown > 0) return;
+    setResending(true);
+    try {
+      await supabase.auth.resend({ type: "signup", email: invitation.email });
+      setResent(true);
+      setResendCooldown(60);
+      const interval = setInterval(() => {
+        setResendCooldown((prev) => {
+          if (prev <= 1) {
+            clearInterval(interval);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    } catch {
+      // silently fail
+    } finally {
+      setResending(false);
+    }
+  }, [invitation, resendCooldown]);
+
   async function handleSignup(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
@@ -93,6 +119,9 @@ export default function ClientSignup() {
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: invitation.email,
         password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/portal/login?verified=true`,
+        },
       });
 
       if (authError) {
@@ -175,9 +204,26 @@ export default function ClientSignup() {
           <h1 className="text-xl font-semibold text-white mb-2">Account Created!</h1>
           <p className="text-white/60 mb-2">Please check your email to verify your account before signing in.</p>
           <p className="text-white/40 text-sm mb-6">Once verified, you can log in to view your policies and documents.</p>
-          <Button onClick={() => navigate("/portal/login")} className="bg-[hsl(160,48%,21%)] hover:bg-[hsl(42,50%,55%)] text-white">
-            Go to Login
-          </Button>
+          <div className="flex flex-col gap-3">
+            <Button onClick={() => navigate("/portal/login")} className="bg-[hsl(160,48%,21%)] hover:bg-[hsl(42,50%,55%)] text-white">
+              Go to Login
+            </Button>
+            <Button
+              onClick={handleResend}
+              disabled={resending || resendCooldown > 0}
+              variant="outline"
+              className="border-white/20 text-white hover:bg-white/10"
+            >
+              {resending
+                ? "Sending..."
+                : resendCooldown > 0
+                ? `Resend in ${resendCooldown}s`
+                : "Resend Verification Email"}
+            </Button>
+          </div>
+          {resent && (
+            <p className="text-emerald-400 text-sm mt-3">Verification email sent!</p>
+          )}
         </div>
       </div>
     );
