@@ -209,20 +209,20 @@ export const Hero: React.FC = () => {
       >
         <div className="glass-card rounded-2xl px-6 py-4 md:px-8 md:py-5 grid grid-cols-1 md:grid-cols-3 items-center gap-4 md:gap-6">
           {/* Left */}
-          <div className="text-center md:text-left">
+          <div className="flex flex-col items-center md:items-start justify-center">
             <span className="block text-[9px] font-hero font-semibold tracking-[0.25em] uppercase text-white/30 mb-1">System Status</span>
-            <span className="flex items-center justify-center md:justify-start gap-2 text-[11px] font-hero font-bold tracking-[0.15em] uppercase text-white/50">
+            <span className="flex items-center gap-2 text-[11px] font-hero font-bold tracking-[0.15em] uppercase text-white/50">
               <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
               Analysis Active
             </span>
           </div>
           {/* Center */}
-          <div className="text-center border-y md:border-y-0 md:border-x border-white/[0.06] py-3 md:py-0 md:px-4">
+          <div className="flex flex-col items-center justify-center border-y md:border-y-0 md:border-x border-white/[0.06] py-3 md:py-0 md:px-4">
             <span className="block text-[9px] font-hero font-semibold tracking-[0.25em] uppercase text-white/30 mb-1">Current Protocol</span>
             <span className="text-[11px] font-hero font-bold tracking-[0.1em] uppercase text-white/60">Tax-Free Bucket Optimization</span>
           </div>
           {/* Right */}
-          <div className="text-center md:text-right">
+          <div className="flex items-center justify-center md:justify-end">
             <a
               href="/assessment"
               className="inline-block px-6 py-2.5 border border-white/15 bg-white/[0.03] text-white/70 font-hero font-bold text-[11px] tracking-[0.15em] uppercase rounded-xl hover:bg-white/[0.06] hover:border-primary/30 transition-colors"
