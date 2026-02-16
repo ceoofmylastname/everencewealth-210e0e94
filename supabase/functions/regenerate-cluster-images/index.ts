@@ -15,26 +15,26 @@ fal.config({
 
 // Scene variations to ensure unique images (6 unique per cluster - one per funnel position)
 const SCENE_VARIATIONS = [
-  'infinity pool overlooking Mediterranean sea at golden hour',
-  'panoramic mountain and sea views from modern terrace',
-  'manicured Mediterranean garden with palm trees and pool',
-  'contemporary interior with floor-to-ceiling windows',
-  'beachfront terrace with white furniture at sunset',
-  'golf course villa with mountain backdrop',
-  'rooftop terrace with 360-degree views',
-  'luxury outdoor living space with fire pit',
-  'modern kitchen with marble island and sea view',
-  'private courtyard with traditional fountain',
-  'infinity edge pool merging with ocean horizon',
-  'Spanish colonial architecture with modern touches',
-  'penthouse balcony overlooking marina',
-  'tropical garden pathway to villa entrance',
-  'sunset view from hillside property',
-  'contemporary white villa against blue sky',
-  'poolside lounge area with cabanas',
-  'open-plan living area flowing to terrace',
-  'Mediterranean-style arched doorways',
-  'luxury bedroom with sea view balcony'
+  'financial advisor meeting with retired couple in modern office',
+  'family discussing life insurance options with advisor at desk',
+  'wealth manager reviewing portfolio charts on large screen',
+  'couple planning retirement with advisor showing projections',
+  'professional consultation about estate planning with documents',
+  'tax planning session with accountant reviewing forms',
+  'multigenerational family in estate planning meeting',
+  'advisor presenting investment strategy on whiteboard',
+  'senior couple reviewing pension and annuity options',
+  'young family discussing college savings and protection plans',
+  'financial planning workshop with engaged attendees',
+  'advisor showing insurance coverage comparison on tablet',
+  'retirement lifestyle planning with couple in bright office',
+  'wealth management team in strategy discussion',
+  'client signing financial planning documents with advisor',
+  'advisor explaining Medicare supplement options to seniors',
+  'couple celebrating financial milestone with advisor',
+  'professional reviewing risk assessment charts',
+  'family protection planning meeting in warm office',
+  'financial advisor using technology to show growth projections'
 ];
 
 // Language names for localized metadata generation
@@ -193,21 +193,21 @@ async function generateLocalizedMetadata(
       body: JSON.stringify({
         model: 'gpt-4o-mini',
         messages: [
-          {
+        {
             role: 'system',
-            content: `You create SEO-optimized image metadata in ${languageName}.
+            content: `You create SEO-optimized image metadata in ${languageName} for Everence Wealth, a financial advisory and insurance planning company.
             
 Output a JSON object with:
-- "altText": Descriptive alt text for accessibility and SEO (100-150 characters). Include location keywords like "Costa del Sol" or specific towns.
+- "altText": Descriptive alt text for accessibility and SEO (100-150 characters). Include keywords related to financial planning, insurance, or retirement.
 - "caption": Engaging caption for display below the image (100-200 characters). Should complement the article.
 
 RULES:
 - Write in ${languageName} (not English, unless article is English)
-- Be descriptive and specific
-- Include location references (Costa del Sol, Spain, Mediterranean)
+- Be descriptive and specific to financial services
+- Reference Everence Wealth where appropriate
 
 Return ONLY valid JSON, no markdown.`
-          },
+        },
           {
             role: 'user',
             content: `Article headline: ${article.headline}
@@ -231,7 +231,7 @@ Generate alt text and caption in ${languageName}.`
       const metadata = JSON.parse(cleanedContent);
       
       return {
-        altText: metadata.altText?.length >= 50 ? metadata.altText : `Costa del Sol property - ${article.headline}`,
+        altText: metadata.altText?.length >= 50 ? metadata.altText : `${article.headline} - Everence Wealth`,
         caption: metadata.caption?.length >= 50 ? metadata.caption : null
       };
     }
@@ -240,7 +240,7 @@ Generate alt text and caption in ${languageName}.`
   }
 
   return {
-    altText: `Costa del Sol property - ${article.headline}`,
+    altText: `${article.headline} - Everence Wealth`,
     caption: null
   };
 }
@@ -386,7 +386,7 @@ serve(async (req) => {
           try {
             const { altText, caption } = openaiKey 
               ? await generateLocalizedMetadata(english, openaiKey)
-              : { altText: `Costa del Sol property - ${english.headline}`, caption: null };
+              : { altText: `${english.headline} - Everence Wealth`, caption: null };
             
             const updateResult = await retryableUpdate(supabase, english.id, { 
               featured_image_alt: altText,
@@ -414,7 +414,7 @@ serve(async (req) => {
           const scene = SCENE_VARIATIONS[sceneIndex % SCENE_VARIATIONS.length];
           sceneIndex++;
           
-          const imagePrompt = `Professional Costa del Sol real estate photograph, luxury Mediterranean villa with ${scene}, bright natural lighting, Architectural Digest style, no text, no watermarks, no logos, clean composition, high-end marketing quality`;
+          const imagePrompt = `Professional financial advisory photograph, ${scene}, bright natural lighting, high-end marketing quality, no text, no watermarks, no logos, clean composition`;
           
           console.log(`🇬🇧 Generating image for English position ${position} (${funnel_stage})...`);
           
@@ -437,7 +437,7 @@ serve(async (req) => {
             // Generate English metadata
             const { altText, caption } = openaiKey 
               ? await generateLocalizedMetadata(english, openaiKey)
-              : { altText: `Costa del Sol property - ${english.headline}`, caption: null };
+              : { altText: `${english.headline} - Everence Wealth`, caption: null };
             
             // Update English article with retry logic
             const updateResult = await retryableUpdate(supabase, english.id, { 
@@ -477,7 +477,7 @@ serve(async (req) => {
             // Generate localized metadata
             const { altText, caption } = openaiKey 
               ? await generateLocalizedMetadata(translation, openaiKey)
-              : { altText: `Costa del Sol property - ${translation.headline}`, caption: null };
+              : { altText: `${translation.headline} - Everence Wealth`, caption: null };
             
             // Update translation with SHARED image + localized metadata (with retry)
             const updateResult = await retryableUpdate(supabase, translation.id, { 

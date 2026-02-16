@@ -84,11 +84,11 @@ export const MediaSection = ({
         .from('article-images')
         .getPublicUrl(fileName);
 
-      onImageChange(publicUrlData.publicUrl, `${headline} - Costa del Sol real estate`);
+      onImageChange(publicUrlData.publicUrl, `${headline} - Everence Wealth`);
       
       // Auto-populate caption when generating with AI
       if (!featuredImageCaption) {
-        onFeaturedImageCaptionChange(`${headline} - Luxury real estate in Costa del Sol`);
+        onFeaturedImageCaptionChange(`${headline} - Everence Wealth`);
       }
       
       toast({
