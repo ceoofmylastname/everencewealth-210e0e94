@@ -118,7 +118,7 @@ Deno.serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: "Everence Wealth <onboarding@resend.dev>",
+        from: "Everence Wealth <notifications@everencewealth.com>",
         to: [invitation.email],
         subject: `${advisorName} has invited you to Everence Wealth Portal`,
         html: emailHtml,

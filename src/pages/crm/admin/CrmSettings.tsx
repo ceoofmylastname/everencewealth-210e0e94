@@ -211,7 +211,7 @@ export default function CrmSettings() {
             <h4 className="text-sm font-medium mb-2">Sender Configuration</h4>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Mail className="h-4 w-4" />
-              <span>From: crm@notifications.delsolprimehomes.com</span>
+              <span>From: crm@notifications.everencewealth.com</span>
             </div>
           </div>
         </CardContent>
