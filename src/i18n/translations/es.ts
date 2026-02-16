@@ -1,8 +1,37 @@
 export const es = {
+  header: {
+    menus: {
+      explore: "Explorar",
+      learn: "Aprender",
+      compare: "Comparar",
+      about: "Acerca de",
+    },
+    items: {
+      propertyFinder: "Buscador de Estrategias",
+      cityBrochures: "Guías de Estrategias",
+      locationGuides: "Guías por Estado",
+      blogInsights: "Educación e Información",
+      qaCenter: "Centro de Preguntas",
+      propertyGlossary: "Términos Financieros",
+      buyersGuide: "Guía del Cliente",
+      comparisonIndex: "Índice de Comparación",
+      cityVsCity: "Estrategia vs Estrategia",
+      aboutUs: "Nuestra Filosofía",
+      ourTeam: "Nuestros Asesores",
+      contact: "Comenzar",
+    },
+    cities: {
+      marbella: "Estrategias de Vida Universal Indexada",
+      estepona: "Ingresos de jubilación libres de impuestos",
+      malaga: "Planificación de protección de activos",
+      sotogrande: "Planificación patrimonial y legado",
+    },
+    language: "Idioma",
+  },
   common: {
     readMore: "Leer más",
     learnMore: "Más información",
-    chatWithEmma: "Chatea con Emma",
+    chatWithEmma: "Hablar con un Asesor",
     getStarted: "Comenzar",
     exploreAll: "Explorar todo",
   },
@@ -13,7 +42,7 @@ export const es = {
     yearsExperience: "Más de {years} años de experiencia combinada en nuestro equipo fundador",
     professionalCredentials: "Credenciales Profesionales",
     linkedinProfile: "Perfil de LinkedIn",
-    whatsappContact: "WhatsApp",
+    whatsappContact: "Agendar una Llamada",
   },
   qa: {
     quickAnswer: "Respuesta Rápida",
@@ -39,8 +68,13 @@ export const es = {
   hero: {
     trustBadges: {
       api: "75+ Aseguradoras",
-      experience: "35+ Años de Experiencia",
+      experience: "35+ Años",
       buyers: "Asesores Fiduciarios",
+    },
+    trustBadgesMobile: {
+      api: "75+",
+      experience: "35+",
+      buyers: "Fiduciario",
     },
     headline: "Cierra la Brecha de Jubilación.",
     headlineHighlight: "Protege lo que Importa.",
@@ -49,9 +83,25 @@ export const es = {
     ctaPrimary: "Explorar Estrategias",
     ctaSecondary: "Comenzar",
   },
+  whyChooseUs: {
+    eyebrow: "Por Qué Elegirnos",
+    headline: "¿Por Qué Everence Wealth?",
+    benefits: {
+      apiAccredited: "75+ Aseguradoras",
+      experience: "35+ Años de Experiencia",
+      aiTools: "Análisis Mejorado con IA",
+      multilingual: "Soporte Bilingüe (EN/ES)",
+    },
+    benefitsDesc: {
+      apiAccreditedDesc: "Como corredores independientes, comparamos más de 75 aseguradoras de primer nivel para encontrar la mejor opción — no solo los productos de una sola compañía.",
+      experienceDesc: "Nuestro equipo ha ayudado a cientos de familias a planificar su jubilación y proteger su patrimonio.",
+      aiToolsDesc: "Herramientas avanzadas de IA para analizar su situación financiera y recomendar estrategias óptimas.",
+      multilingualDesc: "Orientación completa en inglés y español para nuestra diversa base de clientes.",
+    },
+  },
   quickSearch: {
-    headline: "Empieza con las propiedades adecuadas — No con desplazamiento infinito",
-    description: "Nos enfocamos exclusivamente en desarrollos de obra nueva y sobre plano cuidadosamente seleccionados, adaptándonos a tu estilo de vida, tiempo y objetivos a largo plazo.",
+    headline: "Comience con la Estrategia Correcta",
+    description: "Nos enfocamos exclusivamente en estrategias financieras cuidadosamente seleccionadas, adaptándonos a su estilo de vida, tiempo y objetivos a largo plazo.",
     labels: {
       location: "Ubicación",
       purpose: "Propósito",
@@ -63,171 +113,770 @@ export const es = {
     },
     purposes: {
       investmentPersonal: "Inversión y Personal",
-      holidayHome: "Casa de vacaciones",
-      winterStay: "Estancia de invierno",
+      holidayHome: "Jubilación",
+      winterStay: "Protección de Activos",
       combination: "Combinación",
     },
     budgetRanges: {
-      range1: "€300k - €500k",
-      range2: "€500k - €800k",
-      range3: "€800k - €1.5M",
-      range4: "€1.5M+",
+      range1: "$100k - $250k",
+      range2: "$250k - $500k",
+      range3: "$500k - $1M",
+      range4: "$1M+",
     },
     submit: "Abrir el buscador completo",
   },
   miniAbout: {
     headline: "Experiencia en la que puedes",
     headlineHighlight: "Confiar",
-    paragraph1: "DelSolPrimeHomes fue fundada por Hans Beeckman, Cédric Van Hecke y Steven Roberts — tres profesionales inmobiliarios acreditados API con décadas de experiencia ayudando a compradores internacionales a comprar de forma segura en la Costa del Sol.",
-    paragraph2: "Junto con un equipo multilingüe que ganó su reputación en agencias respetadas de toda la región, ofrecemos orientación completa en inglés, holandés, francés, alemán, finlandés, polaco, danés, húngaro, sueco y noruego.",
+    paragraph1: "Everence Wealth fue fundada por un equipo de asesores fiduciarios con más de 35 años de experiencia combinada ayudando a estadounidenses a construir estrategias de jubilación fiscalmente eficientes y proteger su patrimonio.",
+    paragraph2: "Nuestro equipo bilingüe brinda orientación experta en inglés y español, especializándose en vida universal indexada, anualidades, planificación patrimonial y gestión integral de patrimonio.",
     cta: "Conocer al equipo",
   },
   usps: {
-    eyebrow: "Por qué elegirnos",
-    headline: "Por qué los compradores confían en DelSolPrimeHomes",
+    eyebrow: "Por Qué Elegirnos",
+    headline: "Por Qué los Clientes Confían en Everence Wealth",
     items: [
       {
-        title: "Asesores acreditados API",
-        description: "Operamos bajo estrictos estándares españoles de profesionalismo, ética y cumplimiento legal.",
+        title: "Estándar Fiduciario",
+        description: "Operamos bajo un estricto deber fiduciario, siempre poniendo sus intereses financieros primero.",
       },
       {
-        title: "35+ años de experiencia",
-        description: "Los miembros de nuestro equipo han ayudado a cientos de familias e individuos a comprar de forma segura en España.",
+        title: "35+ Años de Experiencia",
+        description: "Nuestros asesores han ayudado a cientos de familias e individuos a construir estrategias de jubilación seguras.",
       },
       {
-        title: "Selección mejorada con IA",
-        description: "Analizamos y comparamos proyectos de obra nueva entre Málaga y Sotogrande usando herramientas avanzadas de IA.",
+        title: "Análisis Mejorado con IA",
+        description: "Analizamos y comparamos productos de seguros y estrategias de jubilación usando herramientas avanzadas de IA.",
       },
       {
-        title: "Soporte legal y documental completo",
-        description: "Te guiamos a través de licencias, contratos, planes de pago y garantías bancarias.",
+        title: "Soporte Fiscal y Patrimonial Completo",
+        description: "Le guiamos a través de optimización fiscal, planificación patrimonial, estructuras de fideicomiso y designaciones de beneficiarios.",
       },
     ],
   },
   featuredAreas: {
-    eyebrow: "Ubicaciones",
-    headline: "De Málaga a Sotogrande — Zonas cuidadosamente seleccionadas",
-    description: "Cada zona de la Costa del Sol tiene su propio carácter, estilo de vida y potencial de inversión. Te guiamos a la ubicación que se ajusta a tu visión.",
-    cta: "Explorar todas las zonas",
+    eyebrow: "Estrategias",
+    headline: "De Ingresos de Jubilación a Planificación de Legado",
+    description: "Cada estrategia financiera tiene sus propias fortalezas, ventajas fiscales y caso de uso ideal. Le guiamos al enfoque que se ajusta a su visión.",
+    cta: "Explorar Todas las Estrategias",
     areas: {
-      marbella: "La joya de la Costa del Sol, famosa por su Milla de Oro, Puerto Banús y comunidad internacional durante todo el año.",
-      estepona: "El Jardín de la Costa del Sol — encanto andaluz con infraestructura moderna en crecimiento y excelente valor.",
-      sotogrande: "Privacidad y prestigio. Hogar de golf de clase mundial, polo y vida de puerto deportivo en una de las zonas residenciales más exclusivas de Europa.",
-      malaga: "Un vibrante centro cultural con museos, universidades y fuerte crecimiento de capital — además de las mejores conexiones de vuelo de la costa.",
+      marbella: "Vida Universal Indexada (IUL) — ingresos de jubilación libres de impuestos con crecimiento vinculado al mercado y protección contra pérdidas.",
+      estepona: "Anualidades Fijas e Indexadas — flujos de ingresos garantizados para seguridad en la jubilación con crecimiento diferido de impuestos.",
+      fuengirola: "Estrategias Roth IRA — crecimiento y retiro libres de impuestos para planificación de jubilación a largo plazo.",
+      benalmadena: "Planificación patrimonial — protegiendo su legado con fideicomisos, designaciones de beneficiarios y estrategias de transferencia de riqueza.",
+      mijas: "Planificación de cuidado a largo plazo — estrategias de protección de activos para preservar su riqueza contra costos de salud.",
+      sotogrande: "Diversificación de cubetas fiscales — optimizando entre cuentas antes de impuestos, después de impuestos y libres de impuestos.",
+      malaga: "Optimización de Seguro Social — estrategias de tiempo para maximizar sus beneficios de por vida.",
+      casares: "Protección de activos — protegiendo su patrimonio con estructuras apropiadas y soluciones de seguros.",
+      manilva: "Planificación de sucesión empresarial — estrategias para propietarios que se retiran de sus negocios.",
+      torremolinos: "Estrategias de donación benéfica — formas fiscalmente eficientes de apoyar las causas que le importan.",
     },
   },
   process: {
-    eyebrow: "Cómo trabajamos",
-    headline: "Desde la primera llamada hasta la entrega de llaves",
+    eyebrow: "Cómo Trabajamos",
+    headline: "De la Primera Llamada a la Claridad Financiera",
     steps: [
       {
-        title: "Llamada de descubrimiento en tu idioma",
-        description: "Comenzamos con una videollamada amigable para entender tus objetivos, tiempos, presupuesto y preferencias — completamente gratis y sin presión.",
+        title: "Llamada de Descubrimiento",
+        description: "Comenzamos con una videollamada amigable para entender sus objetivos, cronograma, tolerancia al riesgo y situación financiera actual — completamente gratis y sin presión.",
       },
       {
-        title: "Lista personalizada de desarrollos",
-        description: "Usando nuestro sistema de selección con IA y conocimiento del mercado, creamos una lista de proyectos de obra nueva que coinciden con tus criterios exactos.",
+        title: "Análisis de Estrategia Personalizada",
+        description: "Usando nuestras herramientas de análisis con IA y conocimiento del mercado, creamos una estrategia personalizada que aborda sus objetivos específicos de jubilación y patrimonio.",
       },
       {
-        title: "Claridad legal y financiera",
-        description: "Te explicamos todo: planes de pago, garantías bancarias, seguro de título, cuotas de comunidad y el cronograma completo.",
+        title: "Claridad Fiscal y Legal",
+        description: "Le explicamos todo: implicaciones fiscales, estructuras patrimoniales, designaciones de beneficiarios y el cronograma completo desde la planificación hasta la implementación.",
       },
       {
-        title: "Viaje de visitas y logística",
-        description: "Coordinamos tu viaje de visitas a propiedades, organizamos reuniones con desarrolladores y te guiamos en cada visita.",
+        title: "Comparación y Selección de Productos",
+        description: "Comparamos productos de más de 75 aseguradoras para encontrar la mejor opción, presentando comparaciones claras lado a lado de costos, beneficios y garantías.",
       },
       {
-        title: "Firma, seguimiento y entrega de llaves",
-        description: "Desde la firma del contrato de reserva hasta la finalización, nos mantenemos involucrados — asegurando que cada hito se cumpla.",
+        title: "Implementación y Revisión Continua",
+        description: "Desde la firma de solicitudes hasta revisiones anuales, nos mantenemos involucrados — asegurando que cada hito se cumpla y su estrategia se adapte según cambie la vida.",
       },
     ],
-    cta: "Ver la Guía del Comprador",
+    cta: "Ver la Guía del Cliente",
   },
   reviews: {
-    headline: "Lo que dicen nuestros clientes",
-    description: "Palabras reales de compradores reales que confiaron en nosotros para guiar su viaje inmobiliario en la Costa del Sol.",
-    cta: "Leer todas las reseñas",
+    headline: "Lo Que Dicen Nuestros Clientes",
+    description: "Palabras reales de clientes reales que confiaron en nosotros para guiar su viaje de jubilación y patrimonio.",
+    cta: "Leer Todas las Reseñas",
   },
   blogTeaser: {
-    eyebrow: "Base de conocimientos",
-    headline: "Información y guías para compradores extranjeros",
-    description: "Aprende más sobre impuestos, procesos legales, financiación y vida en la Costa del Sol — escrito por nuestro equipo y socios de confianza.",
+    eyebrow: "Base de Conocimientos",
+    headline: "Información y Guías para el Éxito Financiero",
+    description: "Aprenda más sobre estrategias fiscales, planificación de jubilación, opciones de seguros y gestión de patrimonio — escrito por nuestro equipo y socios de confianza.",
     cta: "Visitar el Blog",
-    readArticle: "Leer artículo",
+    readArticle: "Leer Artículo",
   },
   glossaryTeaser: {
-    eyebrow: "Términos esenciales",
-    headline: "Entiende la terminología inmobiliaria española",
-    description: "Navega el proceso de compra con confianza. Nuestro glosario explica números NIE, impuestos, términos legales y todo lo que necesitas saber.",
-    cta: "Explorar glosario completo",
-    featuredTerms: "Términos populares",
+    eyebrow: "Términos Esenciales",
+    headline: "Entienda la Terminología Financiera",
+    description: "Navegue el proceso de planificación con confianza. Nuestro glosario explica IUL, RMDs, deber fiduciario y todo lo que necesita saber.",
+    cta: "Explorar Glosario Completo",
+    featuredTerms: "Términos Populares",
+    learnMore: "Más información",
+    terms: {
+      nie: "Vida Universal Indexada (IUL) — una póliza de seguro de vida permanente con crecimiento del valor en efectivo vinculado a índices del mercado.",
+      digitalNomadVisa: "Distribución Mínima Requerida (RMD) — retiro anual obligatorio de cuentas de jubilación con impuestos diferidos después de los 73 años.",
+      ibi: "Fiduciario — un asesor financiero legalmente obligado a actuar en el mejor interés del cliente en todo momento.",
+      escritura: "Anualidad — un contrato con una compañía de seguros que proporciona pagos de ingresos garantizados por un período específico o de por vida.",
+    },
   },
   finalCta: {
-    headline: "¿Listo para encontrar tu",
-    headlineHighlight: "Casa Soñada?",
-    description: "Ya sea que estés comenzando tu búsqueda o listo para avanzar, nuestros asesores acreditados API están aquí para guiarte — de manera clara, transparente y en tu idioma.",
-    ctaPrimary: "Chatea con Emma",
-    ctaSecondary: "Cuéntanos qué buscas",
+    headline: "¿Listo para Asegurar su",
+    headlineHighlight: "Futuro Financiero?",
+    description: "Ya sea que esté comenzando a planificar o listo para actuar, nuestros asesores fiduciarios están aquí para guiarlo — de manera clara, transparente y en su idioma.",
+    ctaPrimary: "Chatear con Everence AI",
+    ctaSecondary: "Contactar por Teléfono",
   },
   footer: {
-    brandDescription: "DelSolPrimeHomes — Especialistas en obra nueva y sobre plano en la Costa del Sol. Registrado API. Orientación multilingüe. Experiencia internacional.",
-    contactHeading: "Contáctanos",
+    brandDescription: "Everence Wealth — Arquitectos fiduciarios independientes de patrimonio especializados en estrategias de jubilación fiscalmente eficientes. Profesionales licenciados. Orientación bilingüe.",
+    contactHeading: "Contáctenos",
     navigateHeading: "Navegar",
     legalHeading: "Legal",
-    copyright: "© {year} DelSolPrimeHomes. Todos los derechos reservados. Registrado API.",
+    copyright: "© {year} Everence Wealth. Todos los derechos reservados. Licenciado y Asegurado.",
     tagline: "Hecho para la Excelencia",
-    address: "ED SAN FERNAN, C. Alfonso XIII, 6, 1 OFICINA, 29640 Fuengirola, Málaga",
+    address: "One Embarcadero Center, Suite 500, San Francisco, CA 94111",
     links: {
-      propertyFinder: "Buscador de propiedades",
-      featuredAreas: "Zonas destacadas",
-      ourTeam: "Nuestro equipo",
-      buyersGuide: "Guía del comprador",
-      blogInsights: "Blog e información",
-      glossary: "Glosario inmobiliario",
+      propertyFinder: "Buscador de Estrategias",
+      featuredAreas: "Estrategias",
+      ourTeam: "Nuestros Asesores",
+      buyersGuide: "Guía del Cliente",
+      blogInsights: "Educación e Información",
+      glossary: "Términos Financieros",
       comparisons: "Comparaciones",
+      contact: "Comenzar",
     },
     legal: {
-      privacy: "Política de privacidad",
-      cookies: "Política de cookies",
-      legalNotice: "Aviso legal",
-      lpo: "Información LPO",
-      gdpr: "Cumplimiento RGPD",
+      privacy: "Política de Privacidad",
+      terms: "Términos de Servicio",
+      cookies: "Política de Cookies",
+      legalNotice: "Aviso Legal",
+      lpo: "Información de Licencias",
+      gdpr: "Protección de Datos",
+    },
+  },
+  locationGuides: {
+    readyToExplore: "¿Listo para explorar {city}?",
+    contactWhatsApp: "Contactar por Teléfono",
+    expertGuidance: "Orientación Experta Disponible",
+    quickResponse: "Respuesta Rápida",
+    licensedAgents: "Asesores Licenciados",
+    multipleLanguages: "EN/ES",
+    connectWithExperts: "Conéctese con nuestros asesores expertos que pueden ayudarle a construir su estrategia financiera",
+    andAnswerQuestions: "y responder todas sus preguntas sobre {topic}",
+    inCity: "en {city}",
+    chatWithEmma: "Chatear con Everence AI",
+    aboutCity: "Acerca de {city}",
+    localInsights: "Información y panorama específico del estado",
+    marketOverview: "Panorama del Mercado",
+    marketTrends: "Tendencias y datos actuales",
+    summaryRecommendations: "Resumen y Recomendaciones",
+    keyTakeaways: "Puntos clave para clientes",
+    loadingGuides: "Cargando guías...",
+    home: "Inicio",
+    locations: "Estados",
+    expertGuide: "Guía Experta",
+    expertGuides: "Guías Expertas",
+    propertyLifestyleGuides: "Guías de Planificación Financiera",
+    heroDescription: "Todo lo que necesita saber sobre planificación de jubilación, estrategias fiscales y gestión de patrimonio en {city}.",
+    minRead: "min de lectura",
+    readGuide: "Leer Guía",
+    intentLabels: {
+      'buying-property': "Guía de Planificación",
+      'best-areas-families': "Planificación Familiar",
+      'best-areas-investors': "Estrategias de Inversión",
+      'best-areas-expats': "Guía de Reubicación",
+      'best-areas-retirees': "Guía de Jubilación",
+      'cost-of-living': "Análisis de Costos",
+      'cost-of-property': "Comparación Fiscal",
+      'investment-guide': "Guía de Inversión",
+      'relocation-guide': "Guía de Reubicación",
     },
   },
   brochures: {
+    ui: {
+      downloadBrochure: "Descargar Guía",
+      speakWithExpert: "Hablar con un Asesor",
+      explore: "Explorar",
+      costaDelSolSpain: "Estados Unidos",
+      home: "Inicio",
+      locations: "Estados",
+      apiRegistered: "Licenciado y Asegurado",
+      yearsExperience: "{years}+ Años de Experiencia",
+      happyBuyers: "{count}+ Clientes Satisfechos",
+      investmentPotential: "Potencial de Crecimiento",
+      whyInvestIn: "¿Por Qué Planificar en {city}?",
+      investmentDescription: "Descubra los números convincentes detrás de las estrategias de planificación financiera específicas del estado.",
+      rentalYield: "Ahorro Fiscal",
+      daysOfSunshine: "Tasa de Impuestos Estatal",
+      averagePrice: "Prima Promedio",
+      valueGrowth: "Proyección de Crecimiento 2026",
+      theLifestyle: "La Oportunidad",
+      liveTheDream: "Planificar para {city}",
+      lifestyleDescription: "Cada estado tiene ventajas fiscales, regulaciones y oportunidades de planificación únicas. Descubra qué hace que este estado sea ideal para sus objetivos financieros.",
+      exclusiveGuide: "Guía Exclusiva",
+      getYourFree: "Obtenga Su",
+      brochure: "Guía de {city}",
+      discoverExclusive: "Descubra información exclusiva sobre planificación financiera, estrategias fiscales y guías de jubilación para {city}.",
+      propertyGuide: "Guía de Planificación Financiera de {city} 2026",
+      instantPdfDownload: "Descarga Instantánea en PDF",
+      pagesOfInsights: "40+ Páginas de Información",
+      testimonialQuote: "La guía nos dio información increíble sobre planificación en {city}. ¡En semanas teníamos una estrategia de jubilación integral!",
+      testimonialAuthor: "— James & Sarah, CA",
+      firstName: "Nombre",
+      lastName: "Apellido",
+      emailAddress: "Correo Electrónico",
+      phoneNumber: "Número de Teléfono",
+      tellUsRequirements: "Cuéntenos sobre sus requisitos (Opcional)",
+      requirementsPlaceholder: "Objetivos, cronograma, necesidades de cobertura...",
+      privacyConsent: "Acepto la Política de Privacidad y consiento que Everence Wealth procese mis datos.",
+      marketingConsent: "Me gustaría recibir información financiera exclusiva y actualizaciones de planificación.",
+      downloadFreeBrochure: "Descargar Guía Gratuita",
+      processing: "Procesando...",
+      instantAccess: "Acceso instantáneo • Sin spam • Cancele en cualquier momento",
+      thankYou: "¡Gracias!",
+      brochureOnWay: "¡Su guía de {city} está en camino! Nuestros asesores se comunicarán dentro de 24 horas.",
+      meanwhileExplore: "Mientras tanto, explore nuestras últimas estrategias para {city}",
+      exploreMore: "Explorar Más",
+      otherPrimeLocations: "Otros Estados Clave",
+      swipeToExplore: "Deslice para explorar más →",
+      exploreCity: "Explorar {city}",
+      chatAbout: "Chatear Sobre {city}",
+      askUsAnything: "Pregúntenos cualquier cosa sobre planificación en {city}",
+      clickToStart: "Haga clic en enviar para iniciar la conversación",
+      typeMessage: "Escriba su mensaje...",
+      interestedIn: "Hola, me interesa la planificación financiera en {city}",
+      privacyRequired: "Consentimiento de privacidad requerido",
+      privacyRequiredDesc: "Por favor acepte la política de privacidad para continuar.",
+      somethingWentWrong: "Algo salió mal",
+      tryAgainLater: "Por favor intente de nuevo más tarde.",
+      lifestyleFeatures: {
+        golf: { title: "Ventajas Fiscales", description: "Beneficios y deducciones fiscales específicos del estado" },
+        beach: { title: "Comunidades de Jubilación", description: "Destinos y comunidades de jubilación mejor calificados" },
+        dining: { title: "Acceso a Salud", description: "Instalaciones de salud de calidad y cobertura de Medicare" },
+        marina: { title: "Planificación Patrimonial", description: "Regulaciones de fideicomisos y patrimonios específicas del estado" },
+        wellness: { title: "Cuidado a Largo Plazo", description: "Programas de Medicaid y opciones de cuidado del estado" },
+        shopping: { title: "Costo de Vida", description: "Vida asequible con alta calidad de vida" },
+      },
+    },
     marbella: {
       hero: {
-        eyebrow: 'Costa del Sol',
-        tagline: 'Donde el lujo se encuentra con el Mediterráneo',
-        description: 'Descubre oportunidades de inversión excepcionales y propiedades de estilo de vida en Marbella. Inmuebles premium con orientación experta de asesores acreditados API.',
+        eyebrow: 'California',
+        tagline: 'Donde la Innovación se Encuentra con la Planificación Financiera',
+        description: 'Descubra estrategias excepcionales de jubilación y patrimonio diseñadas para residentes de California. Orientación experta de asesores fiduciarios.',
       },
       lifestyle: {
-        eyebrow: 'El estilo de vida',
-        headline: 'Experimenta la vida en Marbella',
-        paragraph1: 'Marbella ofrece una mezcla única de encanto mediterráneo y sofisticación internacional.',
-        paragraph2: 'Desde paseos por la playa al amanecer hasta cenas al atardecer con vistas al mar, cada día trae nuevas experiencias.',
-        paragraph3: 'Ya sea que busques sol todo el año, gastronomía excepcional, golf de clase mundial o simplemente un ritmo de vida más relajado — Marbella cumple en todos los frentes.',
+        eyebrow: 'La Oportunidad',
+        headline: 'Planificación Financiera en California',
+        paragraph1: 'California ofrece consideraciones fiscales y oportunidades de planificación únicas.',
+        paragraph2: 'Con una de las tasas de impuestos estatales más altas, la planificación estratégica es esencial para maximizar los ingresos de jubilación.',
+        paragraph3: 'Ya sea que busque ingresos de jubilación fiscalmente eficientes, protección patrimonial o planificación de sucesión empresarial — nuestras estrategias enfocadas en California dan resultados.',
       },
       investment: {
-        eyebrow: 'Oportunidad de inversión',
-        headline: 'Por qué los inversores eligen Marbella',
-        description: 'Marbella combina atractivo de estilo de vida con fundamentos sólidos de inversión.',
+        eyebrow: 'Panorama de Estrategia',
+        headline: 'Por Qué los Californianos Eligen Everence Wealth',
+        description: 'El ambiente de altos impuestos de California exige planificación sofisticada.',
       },
       propertyTypes: {
-        eyebrow: 'Tipos de propiedad',
-        headline: 'Lo que encontrarás en Marbella',
-        description: 'Desde apartamentos contemporáneos hasta amplias villas, Marbella ofrece propiedades excepcionales para cada estilo de vida y objetivo de inversión.',
+        eyebrow: 'Tipos de Estrategia',
+        headline: 'Lo Que Ofrecemos en California',
+        description: 'Desde pólizas IUL hasta anualidades indexadas, ofrecemos productos financieros integrales.',
       },
       gallery: {
-        eyebrow: 'Viaje visual',
-        headline: 'Descubre Marbella',
-        description: 'Experimenta la belleza y el estilo de vida que te espera en Marbella a través de nuestra galería visual cuidadosamente curada.',
+        eyebrow: 'Historias de Éxito',
+        headline: 'Resultados de Clientes en California',
+        description: 'Vea cómo nuestras estrategias han ayudado a familias de California a lograr seguridad financiera.',
       },
       leadForm: {
-        eyebrow: 'Comienza tu viaje',
-        headline: 'Recibe propiedades seleccionadas en Marbella',
-        description: 'Cuéntanos tu visión. Nuestros especialistas en Marbella prepararán una selección personalizada de propiedades.',
+        eyebrow: 'Comience Su Viaje',
+        headline: 'Obtenga una Estrategia Personalizada para California',
+        description: 'Cuéntenos sobre sus objetivos. Nuestros especialistas en California prepararán una estrategia personalizada.',
       },
+    },
+  },
+  team: {
+    meta: {
+      title: "Conozca a Nuestros Asesores | Everence Wealth",
+      description: "Conozca a los asesores fiduciarios expertos de Everence Wealth. Equipo bilingüe con más de 35 años de experiencia combinada."
+    },
+    hero: {
+      badge: "Nuestros Asesores",
+      headline: "Conozca a Nuestro Equipo Experto",
+      subheadline: "Profesionales fiduciarios dedicados listos para ayudarle a construir y proteger su patrimonio",
+      badges: {
+        languages: "EN/ES",
+        experience: "35+ Años Combinados"
+      }
+    },
+    filters: {
+      all: "Todos los Miembros",
+      founders: "Fundadores"
+    },
+    empty: "No se encontraron miembros del equipo",
+    card: {
+      founder: "Fundador",
+      yearsExperience: "años",
+      viewProfile: "Ver Perfil"
+    },
+    modal: {
+      founder: "Fundador",
+      whatsapp: "WhatsApp",
+      email: "Correo",
+      call: "Llamar",
+      about: "Acerca de",
+      languages: "Idiomas",
+      specializations: "Especializaciones",
+      expertise: "Áreas de Experiencia",
+      credentials: "Credenciales",
+      sendMessage: "Enviar un Mensaje"
+    },
+    form: {
+      name: "Su Nombre",
+      email: "Correo Electrónico",
+      message: "Su Mensaje",
+      messagePlaceholder: "¿Cómo puedo ayudarle?",
+      submit: "Enviar Mensaje",
+      sending: "Enviando...",
+      success: "¡Mensaje enviado exitosamente!",
+      error: "Error al enviar el mensaje. Por favor intente de nuevo.",
+      successTitle: "¡Mensaje Enviado!",
+      successDescription: "Nos comunicaremos pronto."
+    }
+  },
+  contact: {
+    meta: {
+      title: "Contacte a Everence Wealth | Planificación de Jubilación y Patrimonio",
+      description: "Comuníquese con nuestro equipo de asesores fiduciarios. Llame, envíe un correo o programe una consulta."
+    },
+    hero: {
+      headline: "Contáctenos",
+      subheadline: "Estamos aquí para ayudarle a planificar su futuro financiero"
+    },
+    options: {
+      fastestResponse: "Respuesta Más Rápida",
+      whatsapp: {
+        title: "Llámenos",
+        description: "Obtenga respuestas instantáneas de nuestro equipo",
+        cta: "Llamar Ahora",
+        prefill: "Hola, me interesa la planificación de jubilación. ¿Pueden ayudarme?"
+      },
+      email: {
+        title: "Envíenos un Correo",
+        description: "Responderemos dentro de 24 horas",
+        cta: "Enviar Correo"
+      },
+      phone: {
+        title: "Agendar una Llamada",
+        description: "Hable directamente con un asesor",
+        cta: "Agendar Ahora"
+      }
+    },
+    form: {
+      headline: "Envíenos un Mensaje",
+      subheadline: "Complete el formulario y nos comunicaremos pronto",
+      fields: {
+        fullName: "Nombre Completo",
+        email: "Correo Electrónico",
+        phone: "Número de Teléfono (Opcional)",
+        language: "Idioma Preferido",
+        subject: "Asunto",
+        message: "Su Mensaje",
+        referral: "¿Cómo se enteró de nosotros? (Opcional)",
+        privacy: "Acepto la Política de Privacidad y consiento el procesamiento de mis datos.",
+        privacyLink: "Política de Privacidad"
+      },
+      subjects: {
+        general: "Consulta General",
+        property: "Consulta de Estrategia",
+        selling: "Cotización de Seguro",
+        viewing: "Agendar una Consulta",
+        other: "Otro"
+      },
+      referrals: {
+        google: "Búsqueda en Google",
+        socialMedia: "Redes Sociales",
+        referral: "Referencia de Amigo/Familia",
+        advertisement: "Publicidad en Línea",
+        other: "Otro"
+      },
+      submit: "Enviar Mensaje",
+      submitting: "Enviando...",
+      validation: {
+        requiredFields: "Por favor complete todos los campos obligatorios"
+      },
+      error: {
+        title: "Algo salió mal",
+        description: "Por favor intente de nuevo o llámenos directamente."
+      },
+      success: {
+        title: "¡Mensaje Enviado!",
+        description: "Gracias por contactarnos. Responderemos dentro de 24 horas."
+      }
+    },
+    office: {
+      headline: "Visite Nuestra Oficina",
+      addressTitle: "Dirección de la Oficina",
+      hours: {
+        title: "Horario de Oficina",
+        weekdays: "Lunes - Viernes",
+        saturday: "Sábado",
+        sunday: "Domingo",
+        closed: "Cerrado",
+        timezone: "Hora del Pacífico (PT)"
+      },
+      directions: "Obtener Direcciones"
+    },
+    faq: {
+      headline: "Preguntas Frecuentes",
+      items: [
+        {
+          question: "¿Qué tan rápido responderán?",
+          answer: "Nuestro objetivo es responder a todas las consultas dentro de 24 horas en días hábiles. Las llamadas telefónicas generalmente reciben la respuesta más rápida."
+        },
+        {
+          question: "¿Qué idiomas admiten?",
+          answer: "Nuestro equipo brinda orientación completa en inglés y español."
+        },
+        {
+          question: "¿Puedo agendar una videollamada?",
+          answer: "¡Absolutamente! Contáctenos por teléfono o correo electrónico para organizar un horario conveniente para una consulta por video con uno de nuestros asesores fiduciarios."
+        },
+        {
+          question: "¿En qué estados brindan servicio?",
+          answer: "Atendemos clientes en los 50 estados, con experiencia especializada en California, Texas, Florida, Nueva York y otros estados de alta población."
+        }
+      ]
+    },
+    emma: {
+      badge: "Impulsado por IA",
+      callout: "¿Prefiere respuestas instantáneas?",
+      cta: "Chatee con Everence AI, nuestro asistente inteligente",
+      buttonText: "Chatear con Everence AI"
+    }
+  },
+  aboutUs: {
+    meta: {
+      title: "Acerca de Everence Wealth | Arquitectos Fiduciarios de Patrimonio",
+      description: "Conozca a nuestro equipo de asesores fiduciarios con más de 35 años de experiencia ayudando a estadounidenses a construir estrategias de jubilación fiscalmente eficientes."
+    },
+    cta: {
+      meetTeam: "Conozca a Nuestros Asesores",
+      contactUs: "Comenzar"
+    },
+    hero: {
+      headline: "Sus Socios de Confianza en Gestión de Patrimonio",
+      subheadline: "Asesores fiduciarios con más de 35 años de experiencia y una misión: asegurar su futuro financiero.",
+      breadcrumbHome: "Inicio",
+      breadcrumbAbout: "Acerca de",
+      statsYears: "Años de Experiencia",
+      statsClients: "Clientes Satisfechos",
+      statsSatisfaction: "Tasa de Satisfacción"
+    },
+    mission: {
+      heading: "Nuestra Misión",
+      summaryLabel: "Acerca de Nosotros",
+      content: "Creemos que todos merecen orientación experta al tomar las decisiones financieras más importantes de la vida. Nuestra misión es proporcionar servicios de gestión de patrimonio transparentes y personalizados que pongan sus intereses primero.",
+      speakableContent: "Everence Wealth es una firma de asesoría fiduciaria independiente especializada en estrategias de jubilación fiscalmente eficientes, fundada por profesionales experimentados con más de 35 años de experiencia combinada."
+    },
+    story: {
+      heading: "Nuestra Historia",
+      subheading: "De experiencia individual a una misión fiduciaria unificada",
+      timelineHeading: "Nuestro Recorrido",
+      narrativeHeading: "Un Recorrido de Propósito y Experiencia",
+      narrativeContent: "## Un Recorrido de Propósito y Experiencia\n\nNuestra historia comienza con profesionales financieros experimentados que vieron una mejor manera de servir a los clientes.\n\nDespués de décadas en la industria de servicios financieros, nuestros fundadores reconocieron que la mayoría de los estadounidenses carecían de acceso a asesoría verdaderamente independiente y fiduciaria.\n\nConstruimos Everence Wealth para cambiar eso. Hoy, servimos a clientes en todo Estados Unidos, ayudándoles a cerrar la brecha de jubilación y proteger lo que más importa.",
+      timeline: [
+        { year: "1991", event: "Los asesores fundadores inician sus carreras financieras" },
+        { year: "2010", event: "El equipo se expande a práctica multi-estatal" },
+        { year: "2020", event: "Se adoptan herramientas de análisis mejoradas con IA" },
+        { year: "2024", event: "Everence Wealth se establece formalmente" }
+      ]
+    },
+    founders: {
+      badge: "Equipo Experto",
+      heading: "Conozca a Los Fundadores",
+      subheading: "Profesionales fiduciarios experimentados unidos por la pasión de ayudar a los clientes a asegurar su futuro financiero",
+      specialization: "Especialización",
+      viewProfile: "Ver Perfil",
+      profiles: [
+        {
+          name: "Equipo de Asesores",
+          role: "Asesores Fiduciarios",
+          bio: "Nuestro equipo de asesores fiduciarios licenciados aporta más de 35 años de experiencia combinada en planificación de jubilación, seguros y gestión de patrimonio.",
+          specialization: "Planificación de Jubilación y Estrategias Fiscalmente Eficientes"
+        }
+      ]
+    },
+    whyChoose: {
+      heading: "Por Qué Elegirnos",
+      subheading: "No solo vendemos productos — diseñamos estrategias financieras integrales",
+      features: [
+        { title: "Estándar Fiduciario", description: "Legalmente obligados a actuar en su mejor interés" },
+        { title: "Servicio Integral", description: "Desde el diseño de estrategia hasta revisiones continuas del portafolio" },
+        { title: "Licenciados y Certificados", description: "Profesionales completamente licenciados y asegurados" },
+        { title: "Soporte Receptivo", description: "Disponibles cuando más nos necesita" },
+        { title: "Enfoque en el Cliente", description: "Sus objetivos impulsan cada recomendación" },
+        { title: "Proceso Transparente", description: "Sin tarifas ocultas, sin sorpresas" }
+      ],
+      content: "## Por Qué los Clientes Nos Eligen\n\nCuando se trata de planificar su futuro financiero, necesita un socio que entienda tanto los productos como sus necesidades.\n\n### Experiencia Fiduciaria\n\nNuestro equipo opera bajo un estricto estándar fiduciario.\n\n### Servicio Integral\n\nDesde su primera consulta hasta revisiones anuales del portafolio, estamos con usted en cada paso."
+    },
+    credentials: {
+      heading: "Nuestras Credenciales",
+      subheading: "Licenciados, certificados y comprometidos con los más altos estándares profesionales",
+      citationsLabel: "Verificado por Fuentes Oficiales",
+      items: [
+        { name: "Licencia Estatal", description: "Licenciados en los 50 estados para productos de seguros y financieros" },
+        { name: "Estándar Fiduciario", description: "Obligados por deber legal de actuar en el mejor interés del cliente" },
+        { name: "Seguro E&O", description: "Cobertura completa de responsabilidad profesional por errores y omisiones" },
+        { name: "Cumplimiento CCPA", description: "Cumplimiento de la Ley de Privacidad del Consumidor de California" }
+      ]
+    },
+    faq: {
+      heading: "Preguntas Frecuentes",
+      subheading: "Preguntas comunes sobre Everence Wealth",
+      items: [
+        { question: "¿Qué es un asesor fiduciario?", answer: "Un asesor fiduciario está legalmente obligado a actuar en su mejor interés en todo momento. A diferencia de los agentes basados en comisiones, recomendamos estrategias basadas únicamente en lo que es mejor para usted." },
+        { question: "¿Sus asesores están licenciados?", answer: "Sí, todos nuestros asesores están completamente licenciados y asegurados, con credenciales relevantes del estado e industria." },
+        { question: "¿Qué idiomas admiten?", answer: "Nuestro equipo bilingüe brinda orientación completa en inglés y español." },
+        { question: "¿En qué estados brindan servicio?", answer: "Atendemos clientes en los 50 estados, con experiencia especializada en California, Texas, Florida, Nueva York, Illinois y otros mercados clave." }
+      ]
+    },
+    ctaSection: {
+      heading: "¿Listo para Asegurar Su Futuro Financiero?",
+      subheading: "Comencemos su viaje de construcción de patrimonio juntos. Nuestro equipo está listo para ayudarle en cada paso.",
+      chatWithEmma: "Chatear con Everence AI",
+      callUs: "Llámenos",
+      emailUs: "Envíe un Correo",
+      visitUs: "Visítenos",
+      location: "San Francisco, CA"
+    }
+  },
+  homepage: {
+    hero: {
+      badge: "Establecidos en 1998 · Fiduciarios Independientes",
+      bridge: "CIERRA",
+      the: "la",
+      gap: "BRECHA",
+      sideLeft: "Arquitectura de Patrimonio",
+      sideRight: "Fiduciario Estratégico",
+      subline1: "Deja de financiar la riqueza de Wall Street.",
+      subline2: "Comienza a construir la tuya.",
+      sublineSmall: "Te han vendido un mito. ¿Ahorrar y esperar? Eso es una apuesta. Nosotros recuperamos el control.",
+      systemStatus: "Estado del Sistema",
+      analysisActive: "Análisis Activo",
+      currentProtocol: "Protocolo Actual",
+      protocolName: "Optimización de Cubetas Libres de Impuestos",
+      beginAssessment: "Iniciar Evaluación",
+    },
+    wakeUpCall: {
+      badge: "Llamada de Atención",
+      headline: "Tu Cuenta de Jubilación Tiene un Socio Silencioso:",
+      headlineHighlight: "El IRS",
+      paragraph: "La mayoría de los estadounidenses no se dan cuenta de que su 401(k) e IRA Tradicional son con impuestos diferidos, no libres de impuestos. El IRS es tu socio silencioso — y cobrarán su parte cuando más necesites tu dinero.",
+      quote: "La pregunta no es <em>si</em> pagarás impuestos en la jubilación — es <em>cuánto</em>.",
+      quoteAuthor: "— Equipo Asesor de Everence Wealth",
+      taxTrapsTitle: "Las 5 Trampas Fiscales que Te Esperan",
+      taxTraps: [
+        "Las Distribuciones Mínimas Requeridas (RMDs) fuerzan retiros gravables",
+        "El Seguro Social se vuelve gravable por encima de umbrales modestos",
+        "Las primas de Medicare aumentan con mayores ingresos (IRMAA)",
+        "Las ganancias de capital se acumulan sobre los ingresos ordinarios",
+        "Los impuestos de herencia pueden reclamar más del 40% de tu legado",
+      ],
+      stat: "80-90%",
+      statLabel: "de los ahorros de jubilación están en cuentas con impuestos diferidos — una bomba fiscal de tiempo",
+      cta: "Obtén Tu Análisis Fiscal",
+    },
+    silentKillers: {
+      badge: "Erosión de Patrimonio",
+      headline: "Tres Fuerzas Silenciosas",
+      headlineHighlight: "Atacan.",
+      watermark: "Recupera el Control",
+      cta: "Protege Tu Patrimonio",
+      killers: [
+        { id: "01", title: "Tarifas Ocultas", description: "Las tarifas anuales del 2% pueden costarte $400K+ en 30 años. La mayoría de los inversores nunca ven el costo real enterrado en los ratios de gastos de fondos y cargos de asesoría." },
+        { id: "02", title: "Volatilidad del Mercado", description: "Una pérdida del 50% requiere una ganancia del 100% solo para recuperarse. El riesgo de secuencia de rendimientos puede devastar carteras en el peor momento posible." },
+        { id: "03", title: "Lastre Fiscal", description: "Los RMDs pueden empujar a los jubilados a tramos fiscales del 35%+. El IRS cobra su parte cada año, acumulando el daño durante décadas." },
+      ],
+    },
+    taxBuckets: {
+      badge: "Posicionamiento Fiscal Estratégico",
+      headline: "Las Tres",
+      headlineHighlight: "Cubetas Fiscales",
+      subtitle: "El posicionamiento estratégico en estas cubetas minimiza la exposición fiscal de por vida",
+      quote: "No es lo que ganas — es lo que conservas después de impuestos.",
+      cta: "Obtén Tu Análisis de Cubetas Fiscales",
+      strategicPriority: "Prioridad Estratégica",
+      buckets: [
+        { label: "GRAVABLE", title: "Gravable", treatment: "Ganancias de capital + ingresos ordinarios en cada ganancia", examples: "Cuentas de corretaje, ahorros, CDs" },
+        { label: "IMPUESTOS DIFERIDOS", title: "Impuestos Diferidos", treatment: "Ingresos ordinarios al retiro + RMDs obligatorios", examples: "401(k), IRA Tradicional, 403(b)" },
+        { label: "LIBRE DE IMPUESTOS", title: "Libre de Impuestos", treatment: "Cero impuestos en distribuciones calificadas", examples: "Roth IRA, Vida Universal Indexada, Bonos municipales" },
+      ],
+    },
+    indexedAdvantage: {
+      badge: "La Ventaja IUL",
+      headline: "Crecimiento Sin el Riesgo",
+      subtitle: "Participa en las ganancias del mercado. Protegido de las pérdidas del mercado. Cero es tu héroe.",
+      tableTitle: "S&P 500 vs Vida Universal Indexada",
+      tableHeaders: { year: "Año", sp500: "S&P 500", iul: "Retorno IUL" },
+      floorBadge: "Piso: 0% — nunca pierdas dinero",
+      capBadge: "Tope: 10-12% — participa en años alcistas",
+      whoTitle: "Para Quién Es Esto",
+      audiences: [
+        { label: "Dueños de Negocios", desc: "Acumulación con ventajas fiscales + protección de activos" },
+        { label: "Altos Ingresos", desc: "Sin límites de ingresos, sin topes de contribución" },
+        { label: "Familias", desc: "Beneficios en vida + planificación de legado en un solo vehículo" },
+        { label: "Pre-Jubilados", desc: "Sin RMDs, sin riesgo de secuencia de rendimientos" },
+      ],
+      cta: "Modela Tu Estrategia Indexada",
+    },
+    wealthPhilosophy: {
+      badge: "Filosofía de Patrimonio",
+      headline1: "El Patrimonio Neto Es Vanidad.",
+      headline2: "El Flujo de Caja Es Cordura.",
+      paragraph: "La planificación de jubilación tradicional se obsesiona con la acumulación. Nosotros nos enfocamos en lo que realmente importa: ingresos libres de impuestos, predecibles, que nunca se agoten.",
+      goldenCage: "La Jaula de Oro",
+      goldenCageTitle: "$2M ahorrados, $50K/año de ingresos",
+      goldenCageItems: ["Ansiedad constante por el mercado", "RMDs forzando retiros gravables", "Regla del 4% → el dinero se agota a los 87", "Un desplome del mercado puede destruir décadas"],
+      cashFlow: "Movilidad de Flujo de Caja",
+      cashFlowTitle: "$800K financiados, $80K/año libre de impuestos",
+      cashFlowItems: ["Cero riesgo de mercado en el capital", "Sin RMDs, sin distribuciones forzadas", "Ingresos de por vida — garantizados", "Beneficios en vida incluidos"],
+      greatestAsset: "Tú Eres Tu",
+      greatestAssetHighlight: "Mayor Activo",
+      hlvParagraph: "Un profesional de 35 años que gana $150K/año tiene un Valor de Vida Humana de $4.5M+. El seguro no es un gasto — es cómo capitalizas tu activo más valioso.",
+      incomeValuation: "Valoración de Ingresos",
+      annualIncome: "Ingreso Anual",
+      yearsToRetirement: "Años hasta la Jubilación",
+      humanLifeValue: "Valor de Vida Humana",
+      livingBenefitsTitle: "Beneficios en Vida",
+      livingBenefits: [
+        { label: "Enfermedad Crónica", desc: "Accede a beneficios si te diagnostican con condición crónica calificada" },
+        { label: "Enfermedad Crítica", desc: "Suma global o beneficio acelerado por infarto, derrame, cáncer" },
+        { label: "Enfermedad Terminal", desc: "Acelera el beneficio por muerte mientras aún vives" },
+        { label: "Cuidado a Largo Plazo", desc: "Financia necesidades de cuidado sin póliza LTC separada" },
+      ],
+    },
+    fiduciaryDifference: {
+      headline: "La Diferencia Fiduciaria",
+      subtitle: "Independientes. Objetivos. De tu lado.",
+      cards: [
+        {
+          title: "Corredor Independiente",
+          items: ["Acceso a 75+ aseguradoras", "No cautivos de una sola compañía", "Compramos en el mercado para tu mejor opción"],
+        },
+        {
+          title: "Deber Fiduciario",
+          items: ["Legalmente obligados a actuar en TU mejor interés", "Sin conflictos de comisiones ocultas", "Estructura de tarifas transparente"],
+        },
+        {
+          title: "Planificación Holística",
+          items: ["Análisis de brecha de jubilación", "Optimización de cubetas fiscales", "Planificación patrimonial y de legado"],
+        },
+      ],
+      badges: ["Licenciados en 50 Estados", "75+ Aseguradoras", "Estándar Fiduciario"],
+    },
+    theGap: {
+      badge: "La Crisis de Jubilación",
+      headline: "Tres Brechas Entre Tú y la",
+      headlineHighlight: "Libertad Financiera",
+      gaps: [
+        { title: "Brecha de Ahorro", description: "El estadounidense promedio ha ahorrado solo el 12% de lo que necesita para una jubilación cómoda.", stat: "$1.2M", statLabel: "déficit promedio" },
+        { title: "Brecha de Ingresos", description: "El Seguro Social reemplaza solo el 40% de los ingresos previos a la jubilación. ¿De dónde viene el otro 60%?", stat: "60%", statLabel: "brecha de ingresos" },
+        { title: "Brecha Fiscal", description: "La mayoría de los jubilados pagan más impuestos de lo esperado debido a RMDs, escalada de tramos y tributación del Seguro Social.", stat: "35%+", statLabel: "tasa fiscal efectiva" },
+      ],
+      bridgeTitle: "La Estrategia Puente",
+      bridgeSteps: [
+        "Evalúa tu brecha actual",
+        "Optimiza el posicionamiento fiscal",
+        "Construye garantías de piso",
+        "Crea ingresos libres de impuestos",
+        "Protege con beneficios en vida",
+      ],
+      cta: "Cierra Tu Brecha de Jubilación",
+    },
+    services: {
+      badge: "Nuestros Servicios",
+      headline: "Cómo Ayudamos",
+      items: [
+        {
+          title: "Planificación de Jubilación",
+          description: "Estrategias fiscalmente eficientes que crean ingresos de jubilación predecibles y libres de impuestos.",
+          points: ["Vida Universal Indexada (IUL)", "Estrategias de distribución libre de impuestos", "Optimización de Seguro Social", "Planificación de evasión de RMDs"],
+        },
+        {
+          title: "Protección de Patrimonio",
+          description: "Proteja sus activos contra la volatilidad del mercado, demandas y eventos inesperados.",
+          points: ["Planificación de protección de activos", "Cobertura de beneficios en vida", "Seguro de persona clave", "Sucesión empresarial"],
+        },
+        {
+          title: "Planificación de Legado",
+          description: "Cree riqueza multigeneracional que se transfiera fiscalmente eficiente a sus herederos.",
+          points: ["Minimización de impuestos de herencia", "Fideicomisos de Seguro de Vida Irrevocables", "Estrategias de donación benéfica", "Planificación dinástica"],
+        },
+      ],
+      learnMore: "Más Información",
+    },
+    homepageAbout: {
+      headline: "Everence Wealth: Construido sobre la Independencia",
+      paragraph1: "Fundada en San Francisco en 1998, Everence Wealth fue construida sobre una creencia simple: las familias merecen orientación independiente y fiduciaria — no discursos de venta disfrazados de asesoría.",
+      paragraph2: "Como corredor independiente con acceso a más de 75 aseguradoras, trabajamos para usted, no para ninguna compañía de seguros o firma de inversión. Nuestra misión es ayudarle a cerrar la brecha de jubilación a través de estrategias fiscalmente eficientes que Wall Street no quiere que conozca.",
+      facts: [
+        { value: "Desde 1998", label: "Fundada" },
+        { value: "75+", label: "Alianzas con Aseguradoras" },
+        { value: "Fiduciario", label: "Asesor Independiente" },
+        { value: "San Francisco, CA", label: "Sede Central" },
+      ],
+      testimonial: "Por primera vez, sentí que mi asesor realmente estaba de mi lado — no vendiéndome algo.",
+      testimonialAuthor: "— Sarah M., Cliente desde 2019",
+    },
+    stats: {
+      items: [
+        { prefix: "$", value: 500, suffix: "M+", label: "Activos Protegidos" },
+        { value: 98, suffix: "%", label: "Satisfacción del Cliente" },
+        { value: 25, suffix: "+", label: "Años de Experiencia" },
+        { value: 75, suffix: "+", label: "Aseguradoras" },
+      ],
+    },
+    assessment: {
+      badge: "Evaluación Gratuita",
+      headline: "Descubra Dónde Se Encuentra",
+      subtitle: "En solo cinco minutos, descubra si su estrategia actual lo llevará a la jubilación — o lo dejará corto.",
+      steps: [
+        { title: "Responda Preguntas", desc: "Un cuestionario rápido de 5 minutos sobre su situación financiera actual." },
+        { title: "Obtenga Su Análisis", desc: "Calculamos su brecha de jubilación usando modelos de grado institucional." },
+        { title: "Vea Su Plan", desc: "Reciba una estrategia personalizada para cerrar la brecha — sin obligación." },
+      ],
+      cta: "Comience Su Evaluación Gratuita",
+    },
+    faq: {
+      badge: "Preguntas Frecuentes",
+      headline: "Preguntas Comunes",
+      items: [
+        { q: "¿Qué significa ser fiduciario?", a: "Un fiduciario está legalmente obligado a actuar en su mejor interés — no ganar comisiones ni impulsar productos propietarios. A diferencia de la mayoría de los corredores, nosotros estamos de su lado." },
+        { q: "¿Qué es el seguro de Vida Universal Indexada (IUL)?", a: "IUL es un producto de seguro de vida permanente que ofrece un beneficio por muerte más crecimiento del valor en efectivo vinculado a índices del mercado — con un piso que lo protege de pérdidas. Puede servir como suplemento de jubilación con ventajas fiscales." },
+        { q: "¿Cómo está estructurada su tarifa?", a: "Somos compensados por las aseguradoras con las que trabajamos — usted no paga nada de su bolsillo por nuestros servicios de asesoría. Divulgamos toda compensación de manera transparente." },
+        { q: "¿Cómo funcionan los ingresos de jubilación libres de impuestos?", a: "Ciertos instrumentos financieros, como las IRA Roth y las pólizas IUL correctamente estructuradas, le permiten retirar fondos libres de impuestos en la jubilación. Le ayudamos a construir una estrategia multi-cubeta para minimizar los impuestos de por vida." },
+        { q: "¿Para quién es más adecuado Everence Wealth?", a: "Atendemos principalmente a familias y profesionales entre 35-60 años que desean proteger su patrimonio, optimizar su situación fiscal y construir ingresos de jubilación confiables que nunca se agoten." },
+        { q: "¿En qué se diferencia Everence Wealth de un asesor financiero tradicional?", a: "Combinamos deber fiduciario con acceso a más de 75 aseguradoras, estrategias optimizadas fiscalmente y planificación de grado institucional — sin los conflictos de interés comunes en el mundo de corretaje." },
+        { q: "¿Qué es la evaluación de brecha de jubilación?", a: "Es un análisis complementario que compara su trayectoria actual contra lo que realmente necesitará en la jubilación. En cinco minutos, verá exactamente dónde se encuentra y qué ajustes podrían cerrar la brecha." },
+      ],
+    },
+    blogPreview: {
+      badge: "Del Blog",
+      headline: "Ideas para un Patrimonio Más Inteligente",
+      subtitle: "Estrategias expertas, análisis de mercado e ideas de planificación de jubilación — entregadas con claridad.",
+      readMore: "Leer más",
+      viewAll: "Ver Todos los Artículos",
+      noArticles: "No hay artículos publicados aún.",
+    },
+    cta: {
+      headline: "Su Jubilación Merece Algo Mejor",
+      subtitle: "Deje de adivinar. Comience a planificar con un fiduciario que pone sus intereses primero — siempre.",
+      primaryCta: "Agendar Evaluación",
+      secondaryCta: "Llámenos Directamente",
     },
   },
 };

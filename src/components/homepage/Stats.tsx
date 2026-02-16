@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useTranslation } from '@/i18n/useTranslation';
 
 interface StatItemProps {
   value: number;
@@ -46,15 +47,25 @@ function StatItem({ value, prefix = '', suffix, label }: StatItemProps) {
   );
 }
 
-export const Stats: React.FC = () => (
-  <section className="py-16 px-4 bg-white">
-    <div className="max-w-6xl mx-auto">
-      <div className="flex flex-col md:flex-row divide-y md:divide-y-0 md:divide-x divide-border border border-border rounded-2xl">
-        <StatItem value={500} prefix="$" suffix="M+" label="Assets Protected" />
-        <StatItem value={98} suffix="%" label="Client Satisfaction" />
-        <StatItem value={25} suffix="+" label="Years Experience" />
-        <StatItem value={75} suffix="+" label="Insurance Carriers" />
+export const Stats: React.FC = () => {
+  const { t } = useTranslation();
+  const stats = t.homepage.stats.items;
+
+  return (
+    <section className="py-16 px-4 bg-white">
+      <div className="max-w-6xl mx-auto">
+        <div className="flex flex-col md:flex-row divide-y md:divide-y-0 md:divide-x divide-border border border-border rounded-2xl">
+          {stats.map((stat) => (
+            <StatItem
+              key={stat.label}
+              value={stat.value}
+              prefix={stat.prefix || ''}
+              suffix={stat.suffix}
+              label={stat.label}
+            />
+          ))}
+        </div>
       </div>
-    </div>
-  </section>
-);
+    </section>
+  );
+};
