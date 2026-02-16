@@ -1,51 +1,82 @@
 
 
-## Redesign "Three Silent Killers" Section
+## Stacking Card Scroll Effect for Three Sections
 
-Elevate the current section with richer animations, glassmorphism, depth, and a more cinematic feel -- matching the brand's tactical institutional aesthetic.
+Transform the three consecutive sections -- **Silent Killers**, **Tax Buckets**, and **Indexed Advantage** -- into scroll-driven stacking cards where each section rises from below to cover the one before it.
 
-### What Changes
+### How It Works
 
-**File: `src/components/homepage/SilentKillers.tsx`**
+Each section becomes a sticky card pinned to the top of the viewport. As the user scrolls, the next card slides up from below and overlaps the previous one, creating a layered "deck of cards" effect. Scrolling back down reverses the animation naturally.
 
-#### Cards
-- Replace flat `glass-card rounded-[60px]` with a deeper glassmorphic style: `bg-white/[0.04] backdrop-blur-xl border border-white/[0.08] rounded-3xl shadow-[0_8px_32px_rgba(0,0,0,0.3)]`
-- Add a subtle inner glow gradient at the top of each card using a pseudo-element (`absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent`)
-- On hover: card lifts (`y: -8`), border brightens (`border-white/15`), and a soft emerald glow appears behind the card via framer-motion `whileHover`
-- The big ghost number (01, 02, 03) gets slightly brighter on hover (`text-white/[0.06]`)
+### Changes
 
-#### Icon Container
-- Change from `bg-white/10 rounded-2xl` to a gradient ring: `bg-gradient-to-br from-white/15 to-white/5 rounded-2xl ring-1 ring-white/10`
-- Add a subtle pulse animation on the icon when the card enters viewport
+**1. New wrapper component: `src/components/homepage/StackingCards.tsx`**
 
-#### Headline Area
-- Add a thin horizontal gold accent line (`w-16 h-[2px] bg-gradient-to-r from-[#C5A059] to-transparent`) above the badge text
-- The "Attack." outline text gets a shimmer animation using a background-clip text gradient that translates on loop
+A container that wraps the three sections and applies the stacking behavior:
+- Each card gets `position: sticky` with `top: 0` so it pins at the top of the viewport
+- Each successive card has a slightly higher `z-index` so it visually covers the previous
+- Cards have `rounded-3xl`, a `shadow-[0_-8px_30px_rgba(0,0,0,0.3)]` (top shadow / backlight), and `overflow: hidden`
+- The wrapper has enough vertical padding/spacing so the scroll distance allows each card to fully cover the previous before the next begins
+- Each card is wrapped in a `div` with `min-height: 100vh` to provide scroll space
 
-#### Watermark + CTA
-- The "RECLAIM CONTROL" watermark gets a slow horizontal drift animation (translateX oscillation)
-- The CTA button gets a gold gradient border on hover with a smooth transition, plus a subtle arrow icon that slides in from the left on hover
+**2. Update `src/pages/Home.tsx`**
 
-#### Background
-- Add floating particle dots (3-4 small circles) that drift slowly using framer-motion infinite animations, colored emerald/gold at very low opacity
-- Add a subtle noise/grain texture overlay at 2-3% opacity for depth
+Replace the three individual section imports with a single `<StackingCards />` component that renders them together:
 
-#### Stagger Timing
-- Increase stagger delay from 0.15s to 0.2s for more dramatic reveal
-- Cards enter with a slight scale-up (`scale: 0.95 -> 1`) in addition to the existing `y` translation
+```
+Before:
+  <SilentKillers />
+  <TaxBuckets />
+  <IndexedAdvantage />
 
-### Technical Details
+After:
+  <StackingCards />
+```
 
-All changes are contained in a single file: `src/components/homepage/SilentKillers.tsx`. The existing `glass-card` CSS class will be replaced with inline Tailwind utilities for more granular control. Framer-motion (already imported) handles all animations. No new dependencies needed.
+**3. Modify each section component slightly**
 
-| Element | Current | New |
-|---|---|---|
-| Card shape | `rounded-[60px]` flat glass | `rounded-3xl` deep glassmorphism with hover lift + glow |
-| Icon box | Plain `bg-white/10` | Gradient ring with pulse |
-| Headline accent | None | Gold gradient bar |
-| "Attack." text | Static outline | Shimmer animation |
-| Watermark | Static | Slow horizontal drift |
-| CTA button | Plain white fill | Gold border hover + slide-in arrow |
-| Background | Two radial gradients | + floating particles + grain overlay |
-| Card entry | Fade + translateY | Fade + translateY + scale |
+- **SilentKillers.tsx**: Remove the outer `<section>` wrapper's top/bottom padding and let the stacking container control layout. Add `rounded-3xl` and the backlight shadow.
+- **TaxBuckets.tsx**: Same treatment -- remove outer section padding, add rounded corners and shadow.
+- **IndexedAdvantage.tsx**: Same treatment.
 
+Each section will accept an optional `className` prop to receive the stacking styles from the parent wrapper.
+
+### Technical Approach
+
+The stacking effect uses pure CSS `position: sticky` -- no JavaScript scroll listeners needed. This is the most performant approach:
+
+```text
++---------------------------+
+|  Section 1 (sticky, z-10) |  <-- pins at top
+|  rounded-3xl + shadow     |
++---------------------------+
+         |
+         v  (user scrolls)
++---------------------------+
+|  Section 2 (sticky, z-20) |  <-- rises up, covers Section 1
+|  rounded-3xl + shadow     |
++---------------------------+
+         |
+         v  (user scrolls more)
++---------------------------+
+|  Section 3 (sticky, z-30) |  <-- rises up, covers Section 2
+|  rounded-3xl + shadow     |
++---------------------------+
+```
+
+### Visual Styling per Card
+
+- **Rounded corners**: `rounded-3xl` (24px radius)
+- **Backlight shadow**: `shadow-[0_-8px_30px_rgba(0,0,0,0.3)]` -- a top-facing shadow creating the "backlit" effect as it slides over the previous card
+- **Glassmorphic edge**: A subtle `border border-white/10` for depth separation
+- **Smooth scroll**: Each card's container provides scroll breathing room via `min-height: 100vh`
+
+### Files to Change
+
+| File | Change |
+|---|---|
+| `src/components/homepage/StackingCards.tsx` | New wrapper with sticky + z-index logic |
+| `src/pages/Home.tsx` | Replace 3 sections with `<StackingCards />` |
+| `src/components/homepage/SilentKillers.tsx` | Accept className prop, remove outer padding |
+| `src/components/homepage/TaxBuckets.tsx` | Accept className prop, remove outer padding |
+| `src/components/homepage/IndexedAdvantage.tsx` | Accept className prop, remove outer padding |
