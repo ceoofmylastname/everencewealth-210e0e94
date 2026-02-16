@@ -12,15 +12,22 @@ const cards = [
 export const StackingCards: React.FC = () => {
   return (
     <div className="relative">
-      {cards.map(({ Component, z }, idx) => (
-        <div key={idx} className="min-h-screen" style={{ zIndex: z, position: 'relative' }}>
-          <div className="sticky top-0">
-            <div className="rounded-3xl overflow-hidden border border-white/10 shadow-[0_-8px_30px_rgba(0,0,0,0.3)]">
-              <Component />
+      {cards.map(({ Component, z }, idx) => {
+        const isLast = idx === cards.length - 1;
+        return (
+          <div
+            key={idx}
+            className={isLast ? 'min-h-screen' : 'min-h-[110vh]'}
+            style={{ zIndex: z, position: 'relative' }}
+          >
+            <div className="sticky top-0">
+              <div className="rounded-3xl overflow-hidden border border-white/10 shadow-[0_-8px_30px_rgba(0,0,0,0.4),0_-4px_20px_rgba(26,77,62,0.3)]">
+                <Component />
+              </div>
             </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 };
