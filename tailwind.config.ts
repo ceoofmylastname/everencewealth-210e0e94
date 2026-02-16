@@ -18,7 +18,7 @@ export default {
         serif: ['Playfair Display', 'Georgia', 'serif'],
         display: ['Outfit', 'Playfair Display', 'Georgia', 'serif'],
         nav: ['Raleway', 'sans-serif'],
-        space: ['Space Grotesk', 'sans-serif'],
+        space: ['Clash Display', 'Space Grotesk', 'sans-serif'],
       },
       colors: {
         evergreen: '#1A4D3E',
