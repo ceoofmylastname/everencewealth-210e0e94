@@ -1,7 +1,7 @@
 import { CityBrochureData } from '@/constants/brochures';
 import { truncateForAEO } from "./aeoUtils";
 
-const BASE_URL = 'https://www.delsolprimehomes.com';
+const BASE_URL = 'https://www.everencewealth.com';
 
 interface BrochureSchemaOptions {
   city: CityBrochureData;
@@ -79,7 +79,7 @@ const generateRealEstateAgentSchema = (city: CityBrochureData) => ({
       name: 'Costa del Sol',
     },
   ],
-  knowsLanguage: ['en', 'de', 'nl', 'fr', 'pl', 'sv', 'da', 'hu', 'fi', 'no'],
+  knowsLanguage: ['en', 'es'],
   hasCredential: {
     '@type': 'EducationalOccupationalCredential',
     credentialCategory: 'API Registration',

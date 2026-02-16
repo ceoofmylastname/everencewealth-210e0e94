@@ -63,15 +63,8 @@ export const ContactForm = ({ chatbot }: ContactFormProps) => {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="en">🇬🇧 English</SelectItem>
+              <SelectItem value="en">🇺🇸 English</SelectItem>
               <SelectItem value="es">🇪🇸 Spanish</SelectItem>
-              <SelectItem value="de">🇩🇪 German</SelectItem>
-              <SelectItem value="nl">🇳🇱 Dutch</SelectItem>
-              <SelectItem value="fr">🇫🇷 French</SelectItem>
-              <SelectItem value="pl">🇵🇱 Polish</SelectItem>
-              <SelectItem value="sv">🇸🇪 Swedish</SelectItem>
-              <SelectItem value="da">🇩🇰 Danish</SelectItem>
-              <SelectItem value="hu">🇭🇺 Hungarian</SelectItem>
             </SelectContent>
           </Select>
         </div>

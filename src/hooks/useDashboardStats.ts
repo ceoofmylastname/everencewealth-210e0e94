@@ -45,7 +45,7 @@ export const useDashboardStats = () => {
   const { data: languageStats, isLoading: isLoadingLanguages } = useQuery({
     queryKey: ["dashboard-language-counts"],
     queryFn: async (): Promise<LanguageStats> => {
-      const languages = ['en', 'es', 'de', 'nl', 'fr', 'pl', 'sv', 'da', 'hu'];
+      const languages = ['en', 'es'];
       const counts = await Promise.all(
         languages.map(async (lang) => {
           const { count } = await supabase

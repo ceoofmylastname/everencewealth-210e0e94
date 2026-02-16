@@ -56,9 +56,7 @@ interface TestResult {
 }
 
 const LANGUAGE_NAMES: Record<string, string> = {
-  en: 'English', de: 'German', nl: 'Dutch', fr: 'French',
-  pl: 'Polish', sv: 'Swedish', da: 'Danish', hu: 'Hungarian',
-  fi: 'Finnish', no: 'Norwegian',
+  en: 'English', es: 'Spanish',
 };
 
 function countWords(text: string): number {

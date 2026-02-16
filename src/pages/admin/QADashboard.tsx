@@ -12,17 +12,14 @@ import { Link } from 'react-router-dom';
 import { ExternalLink, Eye, Languages, FileText, CheckCircle, XCircle, RefreshCw, Plus, BarChart3 } from 'lucide-react';
 import { toast } from 'sonner';
 
-const SUPPORTED_LANGUAGES = ['en', 'nl', 'hu', 'de', 'fr', 'sv', 'pl', 'no', 'fi', 'da'];
+const SUPPORTED_LANGUAGES = ['en', 'es'];
 
 const LANGUAGE_FLAGS: Record<string, string> = {
-  en: '🇬🇧', nl: '🇳🇱', hu: '🇭🇺', de: '🇩🇪', fr: '🇫🇷',
-  sv: '🇸🇪', pl: '🇵🇱', no: '🇳🇴', fi: '🇫🇮', da: '🇩🇰',
+  en: '🇺🇸', es: '🇪🇸',
 };
 
 const LANGUAGE_NAMES: Record<string, string> = {
-  en: 'English', nl: 'Dutch', hu: 'Hungarian', de: 'German',
-  fr: 'French', sv: 'Swedish', pl: 'Polish', no: 'Norwegian',
-  fi: 'Finnish', da: 'Danish',
+  en: 'English', es: 'Spanish',
 };
 
 interface TrackingRecord {

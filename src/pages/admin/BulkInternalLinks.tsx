@@ -89,7 +89,7 @@ export default function BulkInternalLinks() {
       else if (daysSince < 90) score += 10;
     }
     
-    if (article.language === 'fr') score += 15;
+    if (article.language === 'es') score += 15;
     
     return score;
   }

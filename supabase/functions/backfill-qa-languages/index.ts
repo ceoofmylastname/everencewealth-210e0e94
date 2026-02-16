@@ -6,7 +6,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const ALL_LANGUAGES = ['en', 'de', 'nl', 'fr', 'pl', 'sv', 'da', 'hu', 'fi', 'no'];
+const ALL_LANGUAGES = ['en', 'es'];
 const MAX_QA_PER_LANGUAGE = 24;
 
 interface ClusterLanguageStatus {

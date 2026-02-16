@@ -2,16 +2,8 @@ import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
 const LANGUAGES = [
-  { code: 'en', name: 'English', flag: '🇬🇧' },
-  { code: 'de', name: 'German', flag: '🇩🇪' },
-  { code: 'nl', name: 'Dutch', flag: '🇳🇱' },
-  { code: 'fr', name: 'French', flag: '🇫🇷' },
-  { code: 'pl', name: 'Polish', flag: '🇵🇱' },
-  { code: 'sv', name: 'Swedish', flag: '🇸🇪' },
-  { code: 'da', name: 'Danish', flag: '🇩🇰' },
-  { code: 'hu', name: 'Hungarian', flag: '🇭🇺' },
-  { code: 'fi', name: 'Finnish', flag: '🇫🇮' },
-  { code: 'no', name: 'Norwegian', flag: '🇳🇴' },
+  { code: 'en', name: 'English', flag: '🇺🇸' },
+  { code: 'es', name: 'Spanish', flag: '🇪🇸' },
 ];
 
 interface ComparisonLanguageSwitcherProps {

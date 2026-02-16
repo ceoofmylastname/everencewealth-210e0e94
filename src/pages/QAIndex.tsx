@@ -17,15 +17,7 @@ const PAGE_SIZE = 24; // Optimized batch size for performance
 
 const LANGUAGES = [
   { code: 'en', name: 'English' },
-  { code: 'de', name: 'German' },
-  { code: 'nl', name: 'Dutch' },
-  { code: 'fr', name: 'French' },
-  { code: 'pl', name: 'Polish' },
-  { code: 'sv', name: 'Swedish' },
-  { code: 'da', name: 'Danish' },
-  { code: 'hu', name: 'Hungarian' },
-  { code: 'fi', name: 'Finnish' },
-  { code: 'no', name: 'Norwegian' },
+  { code: 'es', name: 'Spanish' },
 ];
 
 const CATEGORY_CONFIG: Record<string, { icon: React.ComponentType<any>; color: string }> = {

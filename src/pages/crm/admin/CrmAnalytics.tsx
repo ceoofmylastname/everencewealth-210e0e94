@@ -14,12 +14,8 @@ export default function CrmAnalytics() {
   const { data: analytics, isLoading } = useCrmAnalytics(dateRange);
 
   const languageChartConfig = {
-    en: { label: "🇬🇧 English", color: "hsl(221, 83%, 53%)" },
-    fr: { label: "🇫🇷 French", color: "hsl(173, 80%, 40%)" },
-    nl: { label: "🇳🇱 Dutch", color: "hsl(25, 95%, 53%)" },
-    de: { label: "🇩🇪 German", color: "hsl(280, 65%, 60%)" },
+    en: { label: "🇺🇸 English", color: "hsl(221, 83%, 53%)" },
     es: { label: "🇪🇸 Spanish", color: "hsl(142, 71%, 45%)" },
-    fi: { label: "🇫🇮 Finnish", color: "hsl(340, 75%, 55%)" },
   };
 
   const sourceChartConfig = {

@@ -36,22 +36,12 @@ export interface CrmAnalytics {
 
 const LANGUAGE_COLORS: Record<string, string> = {
   en: "hsl(221, 83%, 53%)",
-  fr: "hsl(173, 80%, 40%)",
-  nl: "hsl(25, 95%, 53%)",
-  de: "hsl(280, 65%, 60%)",
   es: "hsl(142, 71%, 45%)",
-  fi: "hsl(340, 75%, 55%)",
-  it: "hsl(45, 93%, 47%)",
 };
 
 const LANGUAGE_LABELS: Record<string, string> = {
-  en: "🇬🇧 English",
-  fr: "🇫🇷 French",
-  nl: "🇳🇱 Dutch",
-  de: "🇩🇪 German",
+  en: "🇺🇸 English",
   es: "🇪🇸 Spanish",
-  fi: "🇫🇮 Finnish",
-  it: "🇮🇹 Italian",
 };
 
 const SOURCE_LABELS: Record<string, string> = {

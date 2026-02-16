@@ -11,31 +11,13 @@ import { Loader2, LogOut, Mail, Phone, Globe, Users, CheckCircle, Clock, Trendin
 import { ConnectGmail } from "@/components/crm/ConnectGmail";
 
 const languageFlags: Record<string, string> = {
-  en: "🇬🇧",
+  en: "🇺🇸",
   es: "🇪🇸",
-  de: "🇩🇪",
-  fr: "🇫🇷",
-  nl: "🇳🇱",
-  sv: "🇸🇪",
-  no: "🇳🇴",
-  da: "🇩🇰",
-  fi: "🇫🇮",
-  pl: "🇵🇱",
-  hu: "🇭🇺",
 };
 
 const languageNames: Record<string, string> = {
   en: "English",
   es: "Spanish",
-  de: "German",
-  fr: "French",
-  nl: "Dutch",
-  sv: "Swedish",
-  no: "Norwegian",
-  da: "Danish",
-  fi: "Finnish",
-  pl: "Polish",
-  hu: "Hungarian",
 };
 
 export default function AgentProfilePage() {

@@ -219,11 +219,8 @@ export default function LeadsOverview() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Languages</SelectItem>
-                <SelectItem value="en">🇬🇧 English</SelectItem>
-                <SelectItem value="fr">🇫🇷 French</SelectItem>
-                <SelectItem value="fi">🇫🇮 Finnish</SelectItem>
-                <SelectItem value="de">🇩🇪 German</SelectItem>
-                <SelectItem value="nl">🇳🇱 Dutch</SelectItem>
+                <SelectItem value="en">🇺🇸 English</SelectItem>
+                <SelectItem value="es">🇪🇸 Spanish</SelectItem>
               </SelectContent>
             </Select>
             <Select value={filterSegment} onValueChange={setFilterSegment}>

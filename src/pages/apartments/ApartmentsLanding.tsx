@@ -15,7 +15,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { usePropertyGallery, GalleryProperty } from '@/hooks/usePropertyGallery';
 import { MessageCircle } from 'lucide-react';
 
-const SUPPORTED_LANGS = ['en', 'nl', 'fr', 'de', 'fi', 'pl', 'da', 'hu', 'sv', 'no'];
+const SUPPORTED_LANGS = ['en', 'es'];
 
 interface SelectedProperty {
   id: string;

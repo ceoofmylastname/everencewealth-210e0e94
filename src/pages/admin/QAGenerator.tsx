@@ -22,20 +22,11 @@ import { Link } from 'react-router-dom';
 
 const LANGUAGES = [
   { code: 'en', name: 'English' },
-  { code: 'de', name: 'German' },
-  { code: 'nl', name: 'Dutch' },
-  { code: 'fr', name: 'French' },
-  { code: 'pl', name: 'Polish' },
-  { code: 'sv', name: 'Swedish' },
-  { code: 'da', name: 'Danish' },
-  { code: 'hu', name: 'Hungarian' },
-  { code: 'fi', name: 'Finnish' },
-  { code: 'no', name: 'Norwegian' },
+  { code: 'es', name: 'Spanish' },
 ];
 
 const LANGUAGE_FLAGS: Record<string, string> = {
-  en: '🇬🇧', nl: '🇳🇱', hu: '🇭🇺', de: '🇩🇪', fr: '🇫🇷',
-  sv: '🇸🇪', pl: '🇵🇱', no: '🇳🇴', fi: '🇫🇮', da: '🇩🇰',
+  en: '🇺🇸', es: '🇪🇸',
 };
 
 const CITY_OPTIONS = [

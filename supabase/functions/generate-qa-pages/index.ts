@@ -8,19 +8,11 @@ const corsHeaders = {
 
 const LANGUAGE_NAMES: Record<string, string> = {
   en: 'English',
-  de: 'German',
-  nl: 'Dutch',
-  fr: 'French',
-  pl: 'Polish',
-  sv: 'Swedish',
-  da: 'Danish',
-  hu: 'Hungarian',
-  fi: 'Finnish',
-  no: 'Norwegian',
+  es: 'Spanish',
 };
 
-const ALL_SUPPORTED_LANGUAGES = ['en', 'de', 'nl', 'fr', 'pl', 'sv', 'da', 'hu', 'fi', 'no'];
-const TRANSLATION_LANGUAGES = ['de', 'nl', 'fr', 'pl', 'sv', 'da', 'hu', 'fi', 'no'];
+const ALL_SUPPORTED_LANGUAGES = ['en', 'es'];
+const TRANSLATION_LANGUAGES = ['es'];
 const ALL_QA_TYPES = ['core', 'decision', 'practical', 'problem'];
 
 // HARD CAP: Maximum 24 Q&As per cluster per language (6 articles × 4 types)

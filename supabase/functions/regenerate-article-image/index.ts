@@ -9,9 +9,7 @@ const corsHeaders = {
 };
 
 const LANGUAGE_NAMES: Record<string, string> = {
-  en: 'English', nl: 'Dutch', de: 'German', fr: 'French',
-  fi: 'Finnish', pl: 'Polish', da: 'Danish', hu: 'Hungarian',
-  sv: 'Swedish', no: 'Norwegian'
+  en: 'English', es: 'Spanish'
 };
 
 interface FalResult {

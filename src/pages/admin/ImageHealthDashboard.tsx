@@ -63,15 +63,7 @@ interface AuditItem {
 
 const LANGUAGE_NAMES: Record<string, string> = {
   en: 'English',
-  de: 'German',
-  nl: 'Dutch',
-  fr: 'French',
-  fi: 'Finnish',
-  sv: 'Swedish',
-  da: 'Danish',
-  no: 'Norwegian',
-  pl: 'Polish',
-  hu: 'Hungarian',
+  es: 'Spanish',
   unknown: 'Unknown'
 };
 

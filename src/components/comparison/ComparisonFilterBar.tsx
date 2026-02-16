@@ -15,16 +15,8 @@ interface ComparisonFilterBarProps {
 
 const LANGUAGES = [
   { code: "all", flag: "🌍", name: "All Languages" },
-  { code: "en", flag: "🇬🇧", name: "English" },
-  { code: "de", flag: "🇩🇪", name: "German" },
-  { code: "nl", flag: "🇳🇱", name: "Dutch" },
-  { code: "fr", flag: "🇫🇷", name: "French" },
-  { code: "pl", flag: "🇵🇱", name: "Polish" },
-  { code: "sv", flag: "🇸🇪", name: "Swedish" },
-  { code: "da", flag: "🇩🇰", name: "Danish" },
-  { code: "hu", flag: "🇭🇺", name: "Hungarian" },
-  { code: "fi", flag: "🇫🇮", name: "Finnish" },
-  { code: "no", flag: "🇳🇴", name: "Norwegian" },
+  { code: "en", flag: "🇺🇸", name: "English" },
+  { code: "es", flag: "🇪🇸", name: "Spanish" },
 ];
 
 export const ComparisonFilterBar = ({

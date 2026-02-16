@@ -18,21 +18,12 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Progress } from "@/components/ui/progress";
 
-// Aligned with src/types/hreflang.ts SUPPORTED_LANGUAGES (uses hu not es)
 const LANGUAGES = [
-  { code: 'en', name: 'English', flag: '🇬🇧' },
-  { code: 'de', name: 'German', flag: '🇩🇪' },
-  { code: 'nl', name: 'Dutch', flag: '🇳🇱' },
-  { code: 'fr', name: 'French', flag: '🇫🇷' },
-  { code: 'pl', name: 'Polish', flag: '🇵🇱' },
-  { code: 'sv', name: 'Swedish', flag: '🇸🇪' },
-  { code: 'da', name: 'Danish', flag: '🇩🇰' },
-  { code: 'hu', name: 'Hungarian', flag: '🇭🇺' },
-  { code: 'fi', name: 'Finnish', flag: '🇫🇮' },
-  { code: 'no', name: 'Norwegian', flag: '🇳🇴' },
+  { code: 'en', name: 'English', flag: '🇺🇸' },
+  { code: 'es', name: 'Spanish', flag: '🇪🇸' },
 ];
 
-type LanguageCode = 'en' | 'de' | 'nl' | 'fr' | 'pl' | 'sv' | 'da' | 'hu' | 'fi' | 'no';
+type LanguageCode = 'en' | 'es';
 
 const SUGGESTED_COMPARISONS = [
   { a: 'Off-Plan Property', b: 'Resale Property', context: 'Which Should You Buy in Spain?' },

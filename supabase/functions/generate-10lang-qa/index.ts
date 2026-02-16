@@ -115,20 +115,12 @@ const LANGUAGE_NAMES: Record<string, string> = {
   no: 'Norwegian',
 };
 
-const ALL_LANGUAGES = ['en', 'de', 'nl', 'fr', 'pl', 'sv', 'da', 'hu', 'fi', 'no'];
+const ALL_LANGUAGES = ['en', 'es'];
 const QA_TYPES = ['core', 'decision', 'practical', 'problem'];
 
 const LANGUAGE_WORD_COUNTS: Record<string, { min: number; max: number }> = {
   'en': { min: 300, max: 800 },
-  'de': { min: 250, max: 750 },
-  'nl': { min: 250, max: 750 },
-  'fr': { min: 260, max: 780 },
-  'pl': { min: 220, max: 700 },
-  'sv': { min: 220, max: 750 },
-  'da': { min: 220, max: 750 },
-  'hu': { min: 220, max: 650 },
-  'fi': { min: 200, max: 600 },
-  'no': { min: 220, max: 750 },
+  'es': { min: 260, max: 780 },
 };
 
 /**
