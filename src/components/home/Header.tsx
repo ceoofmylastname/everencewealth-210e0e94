@@ -28,6 +28,7 @@ export const Header: React.FC<HeaderProps> = ({ variant = 'transparent', content
   const isLightBackground = variant === 'solid' || isScrolled;
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [mobileSubmenu, setMobileSubmenu] = useState<string | null>(null);
+  const nav = t.header.nav;
 
   useEffect(() => {
     const handleScroll = () => {
@@ -56,29 +57,29 @@ export const Header: React.FC<HeaderProps> = ({ variant = 'transparent', content
     >
       {/* Philosophy - direct link */}
       <Link to={`/${currentLanguage}/philosophy`} onClick={closeMobile} className="flex items-center py-4 text-lg font-semibold text-foreground border-b border-border">
-        Philosophy
+        {nav.philosophy}
       </Link>
 
       {/* Strategies */}
-      <MobileMenuSection title="Strategies" isOpen={mobileSubmenu === 'strategies'} onToggle={() => setMobileSubmenu(mobileSubmenu === 'strategies' ? null : 'strategies')}>
-        <MobileLink to={`/${currentLanguage}/strategies/iul`} onClick={closeMobile} icon={<TrendingUp className="w-5 h-5" />}>Indexed Universal Life</MobileLink>
-        <MobileLink to={`/${currentLanguage}/strategies/whole-life`} onClick={closeMobile} icon={<Shield className="w-5 h-5" />}>Whole Life</MobileLink>
-        <MobileLink to={`/${currentLanguage}/strategies/tax-free-retirement`} onClick={closeMobile} icon={<Umbrella className="w-5 h-5" />}>Tax-Free Retirement</MobileLink>
-        <MobileLink to={`/${currentLanguage}/strategies/asset-protection`} onClick={closeMobile} icon={<Lock className="w-5 h-5" />}>Asset Protection</MobileLink>
+      <MobileMenuSection title={nav.strategies} isOpen={mobileSubmenu === 'strategies'} onToggle={() => setMobileSubmenu(mobileSubmenu === 'strategies' ? null : 'strategies')}>
+        <MobileLink to={`/${currentLanguage}/strategies/iul`} onClick={closeMobile} icon={<TrendingUp className="w-5 h-5" />}>{nav.iul}</MobileLink>
+        <MobileLink to={`/${currentLanguage}/strategies/whole-life`} onClick={closeMobile} icon={<Shield className="w-5 h-5" />}>{nav.wholeLife}</MobileLink>
+        <MobileLink to={`/${currentLanguage}/strategies/tax-free-retirement`} onClick={closeMobile} icon={<Umbrella className="w-5 h-5" />}>{nav.taxFreeRetirement}</MobileLink>
+        <MobileLink to={`/${currentLanguage}/strategies/asset-protection`} onClick={closeMobile} icon={<Lock className="w-5 h-5" />}>{nav.assetProtection}</MobileLink>
       </MobileMenuSection>
 
       {/* Education */}
-      <MobileMenuSection title="Education" isOpen={mobileSubmenu === 'education'} onToggle={() => setMobileSubmenu(mobileSubmenu === 'education' ? null : 'education')}>
-        <MobileLink to={`/${currentLanguage}/blog`} onClick={closeMobile} icon={<Newspaper className="w-5 h-5" />}>Blog</MobileLink>
-        <MobileLink to={`/${currentLanguage}/qa`} onClick={closeMobile} icon={<MessageCircleQuestion className="w-5 h-5" />}>Q&A</MobileLink>
-        <MobileLink to={`/${currentLanguage}/glossary`} onClick={closeMobile} icon={<BookMarked className="w-5 h-5" />}>Financial Terms</MobileLink>
+      <MobileMenuSection title={nav.education} isOpen={mobileSubmenu === 'education'} onToggle={() => setMobileSubmenu(mobileSubmenu === 'education' ? null : 'education')}>
+        <MobileLink to={`/${currentLanguage}/blog`} onClick={closeMobile} icon={<Newspaper className="w-5 h-5" />}>{nav.blog}</MobileLink>
+        <MobileLink to={`/${currentLanguage}/qa`} onClick={closeMobile} icon={<MessageCircleQuestion className="w-5 h-5" />}>{nav.qa}</MobileLink>
+        <MobileLink to={`/${currentLanguage}/glossary`} onClick={closeMobile} icon={<BookMarked className="w-5 h-5" />}>{nav.glossary}</MobileLink>
       </MobileMenuSection>
 
       {/* About */}
-      <MobileMenuSection title="About" isOpen={mobileSubmenu === 'about'} onToggle={() => setMobileSubmenu(mobileSubmenu === 'about' ? null : 'about')}>
-        <MobileLink to={`/${currentLanguage}/team`} onClick={closeMobile} icon={<Users className="w-5 h-5" />}>Our Team</MobileLink>
-        <MobileLink to={`/${currentLanguage}/about`} onClick={closeMobile} icon={<Info className="w-5 h-5" />}>Why Fiduciary</MobileLink>
-        <MobileLink to={`/${currentLanguage}/client-stories`} onClick={closeMobile} icon={<Heart className="w-5 h-5" />}>Client Stories</MobileLink>
+      <MobileMenuSection title={nav.about} isOpen={mobileSubmenu === 'about'} onToggle={() => setMobileSubmenu(mobileSubmenu === 'about' ? null : 'about')}>
+        <MobileLink to={`/${currentLanguage}/team`} onClick={closeMobile} icon={<Users className="w-5 h-5" />}>{nav.team}</MobileLink>
+        <MobileLink to={`/${currentLanguage}/about`} onClick={closeMobile} icon={<Info className="w-5 h-5" />}>{nav.whyFiduciary}</MobileLink>
+        <MobileLink to={`/${currentLanguage}/client-stories`} onClick={closeMobile} icon={<Heart className="w-5 h-5" />}>{nav.clientStories}</MobileLink>
       </MobileMenuSection>
       
       {/* Language Selector */}
@@ -92,11 +93,8 @@ export const Header: React.FC<HeaderProps> = ({ variant = 'transparent', content
       </div>
 
       <div className="flex flex-col gap-3 mt-auto mb-8">
-        <Button fullWidth onClick={() => { closeMobile(); navigate(`/${currentLanguage}/contact`); }}>
-          Get Started
-        </Button>
         <Link to="/portal/login" onClick={closeMobile} className="flex items-center justify-center gap-2 py-3 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-          <LogIn className="w-4 h-4" /> Portal Login
+          <LogIn className="w-4 h-4" /> {nav.portalLogin}
         </Link>
       </div>
     </div>
@@ -141,7 +139,7 @@ export const Header: React.FC<HeaderProps> = ({ variant = 'transparent', content
             to="/portal/login"
             className={`text-sm font-medium hover:opacity-80 transition-opacity flex items-center gap-1.5 ${isLightBackground ? 'text-foreground' : 'text-white'}`}
           >
-            <LogIn className="w-4 h-4" /> Portal
+            <LogIn className="w-4 h-4" /> {nav.portalLogin}
           </Link>
         </div>
 
