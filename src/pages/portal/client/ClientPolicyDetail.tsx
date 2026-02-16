@@ -5,7 +5,16 @@ import { usePortalAuth } from "@/hooks/usePortalAuth";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, FileText, Download, Users, Shield, Mail, Phone, MessageSquare } from "lucide-react";
+import { FileText, Download, Users, Shield, Mail, Phone, MessageSquare, Calendar } from "lucide-react";
+import {
+  Breadcrumb,
+  BreadcrumbList,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
+import { format } from "date-fns";
 
 interface Policy {
   id: string;
@@ -59,6 +68,9 @@ const formatFileSize = (bytes: number | null) => {
   return `${(bytes / 1048576).toFixed(1)} MB`;
 };
 
+const evergreen = "#1A4D3E";
+const slate = "#4A5565";
+
 export default function ClientPolicyDetail() {
   const { id } = useParams<{ id: string }>();
   const { portalUser } = usePortalAuth();
@@ -96,7 +108,6 @@ export default function ClientPolicyDetail() {
     setPolicy(policyRes.data as Policy | null);
     setDocuments((docsRes.data as Document[]) ?? []);
 
-    // Fetch advisor
     if (portalUser?.advisor_id) {
       const { data: adv } = await supabase
         .from("portal_users")
@@ -119,11 +130,17 @@ export default function ClientPolicyDetail() {
 
   if (!policy) {
     return (
-      <div className="space-y-4">
-        <Link to="/portal/client/policies" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
-          <ArrowLeft className="h-4 w-4" /> Back to Policies
-        </Link>
-        <Card>
+      <div className="space-y-4" style={{ color: slate }}>
+        <Breadcrumb>
+          <BreadcrumbList>
+            <BreadcrumbItem><BreadcrumbLink asChild><Link to="/portal/client/dashboard">Home</Link></BreadcrumbLink></BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem><BreadcrumbLink asChild><Link to="/portal/client/policies">My Policies</Link></BreadcrumbLink></BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem><BreadcrumbPage>Not Found</BreadcrumbPage></BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+        <Card className="bg-white shadow-sm">
           <CardContent className="py-12 text-center">
             <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
             <p className="text-muted-foreground">Policy not found.</p>
@@ -135,80 +152,115 @@ export default function ClientPolicyDetail() {
 
   const beneficiaries = Array.isArray(policy.beneficiaries) ? policy.beneficiaries : [];
   const riders = Array.isArray(policy.riders) ? policy.riders : [];
+  const productLabel = policy.product_type.replace(/_/g, " ");
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" style={{ color: slate }}>
+      {/* Breadcrumb */}
+      <Breadcrumb>
+        <BreadcrumbList>
+          <BreadcrumbItem><BreadcrumbLink asChild><Link to="/portal/client/dashboard">Home</Link></BreadcrumbLink></BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem><BreadcrumbLink asChild><Link to="/portal/client/policies">My Policies</Link></BreadcrumbLink></BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem><BreadcrumbPage className="capitalize">{productLabel}</BreadcrumbPage></BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
+
       {/* Header */}
-      <div>
-        <Link to="/portal/client/policies" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-3">
-          <ArrowLeft className="h-4 w-4" /> Back to Policies
-        </Link>
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground" style={{ fontFamily: "'Playfair Display', serif" }}>
-              {policy.carrier_name}
-            </h1>
-            <p className="text-sm text-muted-foreground">
-              #{policy.policy_number} • {policy.product_type.replace(/_/g, " ")}
-            </p>
-          </div>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold" style={{ color: evergreen, fontFamily: "'Playfair Display', serif" }}>
+            {policy.carrier_name}
+          </h1>
+          <p className="text-sm" style={{ color: slate }}>
+            #{policy.policy_number}
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Badge variant="outline" className="capitalize">{productLabel}</Badge>
           <Badge className={statusColors[policy.policy_status] || ""}>{policy.policy_status}</Badge>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Main content - 2 cols */}
+        {/* Main content */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Policy Overview */}
-          <Card>
+          {/* Policy Overview Card */}
+          <Card className="bg-white shadow-sm">
             <CardContent className="p-5">
-              <h2 className="font-semibold text-foreground mb-4">Policy Overview</h2>
+              <h2 className="font-semibold mb-4" style={{ color: evergreen }}>Policy Overview</h2>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-sm">
                 <div>
-                  <p className="text-muted-foreground">Death Benefit</p>
-                  <p className="font-medium text-foreground">{fmt(policy.death_benefit)}</p>
+                  <p className="text-muted-foreground">Carrier</p>
+                  <p className="font-medium" style={{ color: slate }}>{policy.carrier_name}</p>
                 </div>
                 <div>
-                  <p className="text-muted-foreground">Cash Value</p>
-                  <p className="font-medium text-foreground">{fmt(policy.cash_value)}</p>
-                </div>
-                <div>
-                  <p className="text-muted-foreground">Premium</p>
-                  <p className="font-medium text-foreground">
-                    {fmt(policy.monthly_premium)}/{policy.premium_frequency?.replace(/_/g, " ") || "mo"}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-muted-foreground">Issue Date</p>
-                  <p className="font-medium text-foreground">{policy.issue_date || "—"}</p>
-                </div>
-                <div>
-                  <p className="text-muted-foreground">Maturity Date</p>
-                  <p className="font-medium text-foreground">{policy.maturity_date || "—"}</p>
+                  <p className="text-muted-foreground">Policy Number</p>
+                  <p className="font-medium" style={{ color: slate }}>#{policy.policy_number}</p>
                 </div>
                 <div>
                   <p className="text-muted-foreground">Product Type</p>
-                  <p className="font-medium text-foreground">{policy.product_type.replace(/_/g, " ")}</p>
+                  <p className="font-medium capitalize" style={{ color: slate }}>{productLabel}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Issue Date</p>
+                  <p className="font-medium" style={{ color: slate }}>{policy.issue_date || "—"}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Maturity Date</p>
+                  <p className="font-medium" style={{ color: slate }}>{policy.maturity_date || "—"}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Status</p>
+                  <Badge className={statusColors[policy.policy_status] || ""}>{policy.policy_status}</Badge>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Coverage Details Card */}
+          <Card className="bg-white shadow-sm">
+            <CardContent className="p-5">
+              <h2 className="font-semibold mb-4" style={{ color: evergreen }}>Coverage Details</h2>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-sm">
+                <div>
+                  <p className="text-muted-foreground">Death Benefit</p>
+                  <p className="font-medium" style={{ color: slate }}>{fmt(policy.death_benefit)}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Cash Value</p>
+                  <p className="font-medium" style={{ color: slate }}>{fmt(policy.cash_value)}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Premium</p>
+                  <p className="font-medium" style={{ color: slate }}>
+                    {fmt(policy.monthly_premium)}/{policy.premium_frequency?.replace(/_/g, " ") || "mo"}
+                  </p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
           {/* Beneficiaries */}
-          <Card>
+          <Card className="bg-white shadow-sm">
             <CardContent className="p-5">
               <div className="flex items-center gap-2 mb-4">
-                <Users className="h-4 w-4 text-muted-foreground" />
-                <h2 className="font-semibold text-foreground">Beneficiaries</h2>
+                <Users className="h-4 w-4" style={{ color: evergreen }} />
+                <h2 className="font-semibold" style={{ color: evergreen }}>Beneficiaries</h2>
               </div>
               {beneficiaries.length === 0 ? (
                 <p className="text-sm text-muted-foreground">No beneficiaries listed.</p>
               ) : (
                 <div className="space-y-2">
+                  <div className="grid grid-cols-3 text-xs font-medium text-muted-foreground pb-1 border-b border-border">
+                    <span>Name</span><span>Relationship</span><span className="text-right">Percentage</span>
+                  </div>
                   {beneficiaries.map((b: any, i: number) => (
-                    <div key={i} className="flex items-center justify-between text-sm border-b border-border pb-2 last:border-0 last:pb-0">
-                      <span className="font-medium text-foreground">{b.name || b.Name || `Beneficiary ${i + 1}`}</span>
+                    <div key={i} className="grid grid-cols-3 text-sm border-b border-border pb-2 last:border-0 last:pb-0">
+                      <span className="font-medium" style={{ color: slate }}>{b.name || b.Name || `Beneficiary ${i + 1}`}</span>
                       <span className="text-muted-foreground">{b.relationship || b.Relationship || b.type || ""}</span>
+                      <span className="text-right font-medium" style={{ color: slate }}>{b.percentage || b.Percentage || "—"}</span>
                     </div>
                   ))}
                 </div>
@@ -217,11 +269,11 @@ export default function ClientPolicyDetail() {
           </Card>
 
           {/* Riders */}
-          <Card>
+          <Card className="bg-white shadow-sm">
             <CardContent className="p-5">
               <div className="flex items-center gap-2 mb-4">
-                <Shield className="h-4 w-4 text-muted-foreground" />
-                <h2 className="font-semibold text-foreground">Riders</h2>
+                <Shield className="h-4 w-4" style={{ color: evergreen }} />
+                <h2 className="font-semibold" style={{ color: evergreen }}>Riders & Additional Coverage</h2>
               </div>
               {riders.length === 0 ? (
                 <p className="text-sm text-muted-foreground">No riders on this policy.</p>
@@ -229,7 +281,7 @@ export default function ClientPolicyDetail() {
                 <div className="space-y-2">
                   {riders.map((r: any, i: number) => (
                     <div key={i} className="text-sm border-b border-border pb-2 last:border-0 last:pb-0">
-                      <p className="font-medium text-foreground">{r.name || r.Name || r.rider_name || `Rider ${i + 1}`}</p>
+                      <p className="font-medium" style={{ color: slate }}>{r.name || r.Name || r.rider_name || `Rider ${i + 1}`}</p>
                       {(r.description || r.Description) && (
                         <p className="text-muted-foreground text-xs mt-0.5">{r.description || r.Description}</p>
                       )}
@@ -241,11 +293,11 @@ export default function ClientPolicyDetail() {
           </Card>
 
           {/* Documents */}
-          <Card>
+          <Card className="bg-white shadow-sm">
             <CardContent className="p-5">
               <div className="flex items-center gap-2 mb-4">
-                <FileText className="h-4 w-4 text-muted-foreground" />
-                <h2 className="font-semibold text-foreground">Policy Documents</h2>
+                <FileText className="h-4 w-4" style={{ color: evergreen }} />
+                <h2 className="font-semibold" style={{ color: evergreen }}>Policy Documents</h2>
               </div>
               {documents.length === 0 ? (
                 <p className="text-sm text-muted-foreground">No documents available.</p>
@@ -254,10 +306,11 @@ export default function ClientPolicyDetail() {
                   {documents.map((doc) => (
                     <div key={doc.id} className="flex items-center justify-between text-sm border-b border-border pb-2 last:border-0 last:pb-0">
                       <div>
-                        <p className="font-medium text-foreground">{doc.file_name}</p>
+                        <p className="font-medium" style={{ color: slate }}>{doc.file_name}</p>
                         <p className="text-xs text-muted-foreground">
                           {doc.document_type.replace(/_/g, " ")}
                           {doc.file_size ? ` • ${formatFileSize(doc.file_size)}` : ""}
+                          {doc.created_at ? ` • ${format(new Date(doc.created_at), "MMM d, yyyy")}` : ""}
                         </p>
                       </div>
                       <a href={doc.file_url} target="_blank" rel="noopener noreferrer">
@@ -273,22 +326,22 @@ export default function ClientPolicyDetail() {
           </Card>
         </div>
 
-        {/* Sidebar - advisor card */}
+        {/* Sidebar */}
         <div className="space-y-6">
           {advisor && (
-            <Card>
+            <Card className="bg-white shadow-sm">
               <CardContent className="p-5">
-                <h2 className="font-semibold text-foreground mb-4">Your Advisor</h2>
+                <h2 className="font-semibold mb-4" style={{ color: evergreen }}>Your Advisor</h2>
                 <div className="flex items-center gap-3 mb-4">
                   {advisor.avatar_url ? (
                     <img src={advisor.avatar_url} alt="" className="w-12 h-12 rounded-full object-cover" />
                   ) : (
-                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold">
+                    <div className="w-12 h-12 rounded-full flex items-center justify-center text-white font-semibold" style={{ backgroundColor: evergreen }}>
                       {advisor.first_name?.[0]}{advisor.last_name?.[0]}
                     </div>
                   )}
                   <div>
-                    <p className="font-medium text-foreground">{advisor.first_name} {advisor.last_name}</p>
+                    <p className="font-medium" style={{ color: slate }}>{advisor.first_name} {advisor.last_name}</p>
                   </div>
                 </div>
                 <div className="space-y-2 text-sm">
@@ -304,7 +357,7 @@ export default function ClientPolicyDetail() {
                   )}
                 </div>
                 <Link to="/portal/client/messages" className="block mt-4">
-                  <Button className="w-full" size="sm">
+                  <Button className="w-full text-white" size="sm" style={{ backgroundColor: evergreen }}>
                     <MessageSquare className="h-4 w-4 mr-2" />
                     Message My Advisor
                   </Button>
