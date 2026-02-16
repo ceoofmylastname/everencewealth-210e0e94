@@ -23,7 +23,7 @@ export default function ComparisonIndex() {
     queryFn: async () => {
       let query = supabase
         .from('comparison_pages')
-        .select('id, slug, headline, meta_description, option_a, option_b, category, language')
+        .select('id, slug, headline, meta_description, option_a, option_b, category, language, featured_image_url, featured_image_alt')
         .eq('status', 'published')
         .order('created_at', { ascending: false });
       
@@ -87,9 +87,9 @@ export default function ComparisonIndex() {
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-6">
               <Scale className="h-8 w-8 text-primary" />
             </div>
-            <h1 className="text-4xl font-bold mb-4">Property Comparisons</h1>
+            <h1 className="text-4xl font-bold mb-4">Financial Comparisons</h1>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Expert comparisons to help you make informed decisions about buying property in Costa del Sol
+              Expert side-by-side comparisons to help you make smarter decisions about insurance, retirement, and wealth management
             </p>
           </div>
 
@@ -125,7 +125,17 @@ export default function ComparisonIndex() {
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               {comparisons?.map((comparison) => (
                 <Link key={comparison.id} to={`/${comparison.language}/compare/${comparison.slug}`}>
-                  <Card className="h-full hover:shadow-lg transition-shadow group">
+                  <Card className="h-full hover:shadow-lg transition-shadow group overflow-hidden">
+                    {comparison.featured_image_url && (
+                      <div className="aspect-video w-full overflow-hidden">
+                        <img
+                          src={comparison.featured_image_url}
+                          alt={comparison.featured_image_alt || comparison.headline}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          loading="lazy"
+                        />
+                      </div>
+                    )}
                     <CardHeader>
                       <div className="flex items-center gap-2 mb-2">
                         <Badge variant="secondary" className="text-xs">

@@ -43,6 +43,7 @@ export const en = {
       whyFiduciary: "Why Fiduciary",
       clientStories: "Client Stories",
       portalLogin: "Portal",
+      comparisons: "Comparisons",
     },
   },
   common: {
