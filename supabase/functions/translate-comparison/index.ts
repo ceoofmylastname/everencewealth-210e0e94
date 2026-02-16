@@ -134,7 +134,7 @@ Return ONLY valid JSON with all content in ${languageName}, no markdown, no expl
         messages: [
           { 
             role: 'system', 
-            content: `You are a professional translator specializing in real estate content. Translate all content to ${languageName} while maintaining the exact JSON structure. Preserve HTML formatting.`
+            content: `You are a professional translator specializing in financial planning content. Translate all content to ${languageName} while maintaining the exact JSON structure. Preserve HTML formatting.`
           },
           { role: 'user', content: translationPrompt }
         ],
@@ -224,7 +224,8 @@ Return ONLY valid JSON with all content in ${languageName}, no markdown, no expl
       external_citations: sourceComparison.external_citations || [],
       author_id: sourceComparison.author_id,
       reviewer_id: sourceComparison.reviewer_id,
-      status: 'draft',
+      status: 'published',
+      date_published: new Date().toISOString(),
       date_modified: new Date().toISOString(),
     };
 
