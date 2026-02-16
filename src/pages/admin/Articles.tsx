@@ -20,7 +20,7 @@ import {
   AlertDialogHeader, 
   AlertDialogTitle 
 } from "@/components/ui/alert-dialog";
-import { Search, Edit, Eye, Trash2, Plus, AlertCircle, X, Loader2 } from "lucide-react";
+import { Search, Edit, Eye, Trash2, Plus, AlertCircle, X, Loader2, Send, FileText, Archive } from "lucide-react";
 import { toast } from "sonner";
 
 const Articles = () => {
@@ -40,6 +40,7 @@ const Articles = () => {
   const [selectedArticles, setSelectedArticles] = useState<string[]>([]);
   const [articleToDelete, setArticleToDelete] = useState<string | null>(null);
   const [showBulkDeleteDialog, setShowBulkDeleteDialog] = useState(false);
+  const [showBulkPublishDialog, setShowBulkPublishDialog] = useState(false);
 
   // Debounce search query
   useEffect(() => {
@@ -210,6 +211,31 @@ const Articles = () => {
     },
   });
 
+  // Bulk status change
+  const bulkStatusMutation = useMutation({
+    mutationFn: async ({ articleIds, status }: { articleIds: string[]; status: string }) => {
+      const { error } = await supabase
+        .from("blog_articles")
+        .update({ status, updated_at: new Date().toISOString() })
+        .in("id", articleIds);
+      
+      if (error) throw error;
+      return { count: articleIds.length, status };
+    },
+    onSuccess: ({ count, status }) => {
+      queryClient.invalidateQueries({ queryKey: ["articles"] });
+      queryClient.invalidateQueries({ queryKey: ["articles-count"] });
+      toast.success(`Successfully set ${count} article${count > 1 ? 's' : ''} to "${status}"`);
+      setSelectedArticles([]);
+      setShowBulkPublishDialog(false);
+    },
+    onError: (error) => {
+      toast.error(`Failed to update articles: ${error.message}`);
+    },
+  });
+
+  const isBulkPending = bulkDeleteMutation.isPending || bulkStatusMutation.isPending;
+
   if (error) {
     return (
       <AdminLayout>
@@ -356,15 +382,44 @@ const Articles = () => {
                     Clear Selection
                   </Button>
                 </div>
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={() => setShowBulkDeleteDialog(true)}
-                  disabled={bulkDeleteMutation.isPending}
-                >
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  Delete Selected
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button
+                    size="sm"
+                    onClick={() => setShowBulkPublishDialog(true)}
+                    disabled={isBulkPending}
+                    className="bg-green-600 hover:bg-green-700 text-white"
+                  >
+                    <Send className="mr-2 h-4 w-4" />
+                    Publish Selected
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => bulkStatusMutation.mutate({ articleIds: selectedArticles, status: "draft" })}
+                    disabled={isBulkPending}
+                  >
+                    <FileText className="mr-2 h-4 w-4" />
+                    Set as Draft
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => bulkStatusMutation.mutate({ articleIds: selectedArticles, status: "archived" })}
+                    disabled={isBulkPending}
+                  >
+                    <Archive className="mr-2 h-4 w-4" />
+                    Archive Selected
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => setShowBulkDeleteDialog(true)}
+                    disabled={isBulkPending}
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Delete Selected
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -685,6 +740,28 @@ const Articles = () => {
                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               >
                 {bulkDeleteMutation.isPending ? "Deleting..." : "Delete All"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {/* Bulk Publish Confirmation Dialog */}
+        <AlertDialog open={showBulkPublishDialog} onOpenChange={setShowBulkPublishDialog}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Publish {selectedArticles.length} Articles?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This will set {selectedArticles.length} article{selectedArticles.length > 1 ? 's' : ''} to published status.
+                Make sure the content is ready for public viewing.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => bulkStatusMutation.mutate({ articleIds: selectedArticles, status: "published" })}
+                className="bg-green-600 text-white hover:bg-green-700"
+              >
+                {bulkStatusMutation.isPending ? "Publishing..." : "Publish All"}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
