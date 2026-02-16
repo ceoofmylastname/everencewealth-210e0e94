@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Link, useNavigate } from 'react-router-dom';
-import { Menu as MenuIcon, X, ChevronDown, Users, Phone, Shield, TrendingUp, Umbrella, Lock, Newspaper, MessageCircleQuestion, BookMarked, Info, Heart, LogIn } from 'lucide-react';
+import { Menu as MenuIcon, X, ChevronDown, Users, Shield, TrendingUp, Umbrella, Lock, Newspaper, MessageCircleQuestion, BookMarked, Info, Heart, LogIn } from 'lucide-react';
 import { Button } from './ui/Button';
 import { useTranslation } from '../../i18n';
-import { Menu, MenuItem, HoveredLink } from '../ui/navbar-menu';
+import { NavigationPill } from '../ui/3d-adaptive-navigation-bar';
 import { LanguageSwitcher } from '../LanguageSwitcher';
 import { ContentLanguageSwitcher } from '../ContentLanguageSwitcher';
 
@@ -24,7 +24,7 @@ export const Header: React.FC<HeaderProps> = ({ variant = 'transparent', content
   const { t, currentLanguage } = useTranslation();
   const navigate = useNavigate();
   const [isScrolled, setIsScrolled] = useState(false);
-  const [active, setActive] = useState<string | null>(null);
+  
   const isLightBackground = variant === 'solid' || isScrolled;
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [mobileSubmenu, setMobileSubmenu] = useState<string | null>(null);
@@ -126,64 +126,7 @@ export const Header: React.FC<HeaderProps> = ({ variant = 'transparent', content
 
         {/* Desktop Menu */}
         <div className="hidden lg:flex items-center justify-center">
-          <Menu setActive={setActive}>
-            {/* Philosophy - simple link */}
-            <Link
-              to={`/${currentLanguage}/philosophy`}
-              className={`cursor-pointer hover:opacity-80 text-sm font-medium ${isLightBackground ? 'text-foreground' : 'text-white'}`}
-              onMouseEnter={() => setActive(null)}
-            >
-              Philosophy
-            </Link>
-
-            {/* Strategies */}
-            <MenuItem setActive={setActive} active={active} item="Strategies">
-              <div className="flex flex-col gap-1 min-w-[220px]">
-                <HoveredLink href={`/${currentLanguage}/strategies/iul`}>
-                  <span className="flex items-center gap-2"><TrendingUp className="w-4 h-4" /> Indexed Universal Life</span>
-                </HoveredLink>
-                <HoveredLink href={`/${currentLanguage}/strategies/whole-life`}>
-                  <span className="flex items-center gap-2"><Shield className="w-4 h-4" /> Whole Life</span>
-                </HoveredLink>
-                <HoveredLink href={`/${currentLanguage}/strategies/tax-free-retirement`}>
-                  <span className="flex items-center gap-2"><Umbrella className="w-4 h-4" /> Tax-Free Retirement</span>
-                </HoveredLink>
-                <HoveredLink href={`/${currentLanguage}/strategies/asset-protection`}>
-                  <span className="flex items-center gap-2"><Lock className="w-4 h-4" /> Asset Protection</span>
-                </HoveredLink>
-              </div>
-            </MenuItem>
-
-            {/* Education */}
-            <MenuItem setActive={setActive} active={active} item="Education">
-              <div className="flex flex-col gap-1 min-w-[200px]">
-                <HoveredLink href={`/${currentLanguage}/blog`}>
-                  <span className="flex items-center gap-2"><Newspaper className="w-4 h-4" /> Blog</span>
-                </HoveredLink>
-                <HoveredLink href={`/${currentLanguage}/qa`}>
-                  <span className="flex items-center gap-2"><MessageCircleQuestion className="w-4 h-4" /> Q&A</span>
-                </HoveredLink>
-                <HoveredLink href={`/${currentLanguage}/glossary`}>
-                  <span className="flex items-center gap-2"><BookMarked className="w-4 h-4" /> Financial Terms</span>
-                </HoveredLink>
-              </div>
-            </MenuItem>
-
-            {/* About */}
-            <MenuItem setActive={setActive} active={active} item="About">
-              <div className="flex flex-col gap-1 min-w-[200px]">
-                <HoveredLink href={`/${currentLanguage}/team`}>
-                  <span className="flex items-center gap-2"><Users className="w-4 h-4" /> Our Team</span>
-                </HoveredLink>
-                <HoveredLink href={`/${currentLanguage}/about`}>
-                  <span className="flex items-center gap-2"><Info className="w-4 h-4" /> Why Fiduciary</span>
-                </HoveredLink>
-                <HoveredLink href={`/${currentLanguage}/client-stories`}>
-                  <span className="flex items-center gap-2"><Heart className="w-4 h-4" /> Client Stories</span>
-                </HoveredLink>
-              </div>
-            </MenuItem>
-          </Menu>
+          <NavigationPill isLightBackground={isLightBackground} />
         </div>
 
         {/* Right side actions */}
