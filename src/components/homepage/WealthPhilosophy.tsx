@@ -2,18 +2,20 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Lock, Heart, Shield, Banknote } from 'lucide-react';
 import { useTranslation } from '@/i18n/useTranslation';
+import { useHomepageImages } from '@/hooks/useHomepageImages';
 
 const livingBenefitIcons = [Heart, Shield, Lock, Banknote];
 
 export function WealthPhilosophy() {
   const { t } = useTranslation();
   const wp = t.homepage.wealthPhilosophy;
+  const images = useHomepageImages();
 
   return (
     <section className="relative py-20 md:py-28 px-4 md:px-8 bg-dark-bg text-white overflow-hidden">
       <div
-        className="absolute inset-0 bg-cover bg-center opacity-[0.04]"
-        style={{ backgroundImage: 'url(https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1920&q=20)' }}
+        className="absolute inset-0 bg-cover bg-center opacity-[0.08]"
+        style={{ backgroundImage: `url(${images.philosophy || 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1920&q=20'})` }}
       />
 
       <div className="max-w-6xl mx-auto relative z-10">

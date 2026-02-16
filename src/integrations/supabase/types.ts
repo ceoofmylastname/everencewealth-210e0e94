@@ -4204,6 +4204,30 @@ export type Database = {
         }
         Relationships: []
       }
+      homepage_images: {
+        Row: {
+          created_at: string
+          id: string
+          image_url: string
+          prompt: string | null
+          section_key: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          image_url: string
+          prompt?: string | null
+          section_key: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          image_url?: string
+          prompt?: string | null
+          section_key?: string
+        }
+        Relationships: []
+      }
       image_regeneration_queue: {
         Row: {
           article_id: string
