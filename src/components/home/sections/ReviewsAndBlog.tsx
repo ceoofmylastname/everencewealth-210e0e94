@@ -10,6 +10,8 @@ import { format } from 'date-fns';
 import { enUS, es } from 'date-fns/locale';
 import { ElfsightGoogleReviews } from '@/components/reviews/ElfsightGoogleReviews';
 import type { Locale } from 'date-fns';
+import { motion } from 'framer-motion';
+import { ScrollReveal, staggerContainer, staggerItem } from '@/components/homepage/ScrollReveal';
 
 const dateLocales: Record<string, Locale> = {
   en: enUS, es
@@ -20,29 +22,23 @@ export const Reviews: React.FC = () => {
   
   return (
     <Section className="bg-slate-50 relative">
-      <div className="text-center mb-16 reveal-on-scroll">
+      <ScrollReveal className="text-center mb-16">
         <h2 className="text-4xl font-serif font-bold text-prime-900 mb-6">{t.reviews.headline}</h2>
         <div className="flex justify-center gap-1 mb-4">
-            {[1,2,3,4,5].map(i => <Star key={i} size={28} className="fill-prime-gold text-prime-gold" />)}
+          {[1,2,3,4,5].map(i => <Star key={i} size={28} className="fill-prime-gold text-prime-gold" />)}
         </div>
         <p className="text-slate-500 font-medium">{t.reviews.description}</p>
-      </div>
+      </ScrollReveal>
 
-      {/* Elfsight Google Reviews Widget */}
-      <ElfsightGoogleReviews 
-        language={currentLanguage} 
-        className="max-w-4xl mx-auto mb-10 reveal-on-scroll"
-      />
+      <ScrollReveal>
+        <ElfsightGoogleReviews language={currentLanguage} className="max-w-4xl mx-auto mb-10" />
+      </ScrollReveal>
 
-      <div className="text-center reveal-on-scroll">
-        <a 
-          href="https://www.google.com/maps/place/Everence+Wealth"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
+      <ScrollReveal className="text-center">
+        <a href="https://www.google.com/maps/place/Everence+Wealth" target="_blank" rel="noopener noreferrer">
           <Button variant="outline">{t.reviews.cta}</Button>
         </a>
-      </div>
+      </ScrollReveal>
     </Section>
   );
 };
@@ -50,11 +46,9 @@ export const Reviews: React.FC = () => {
 export const BlogTeaser: React.FC = () => {
   const { t, currentLanguage } = useTranslation();
   
-  // Fetch 3 most recent published articles in current language with English fallback
   const { data: articles, isLoading } = useQuery({
     queryKey: ['homepage-blog-articles', currentLanguage],
     queryFn: async () => {
-      // First try current language
       let { data, error } = await supabase
         .from('blog_articles')
         .select('id, slug, headline, meta_description, featured_image_url, date_published')
@@ -63,7 +57,6 @@ export const BlogTeaser: React.FC = () => {
         .order('date_published', { ascending: false })
         .limit(3);
       
-      // Fallback to English if no articles in current language
       if (!error && (!data || data.length === 0) && currentLanguage !== 'en') {
         const fallback = await supabase
           .from('blog_articles')
@@ -94,22 +87,29 @@ export const BlogTeaser: React.FC = () => {
   
   return (
     <Section background="white">
-      <div className="flex flex-col md:flex-row justify-between items-end mb-16 reveal-on-scroll">
-        <div>
-          <span className="text-prime-gold font-bold uppercase tracking-widest text-xs mb-3 block">{t.blogTeaser.eyebrow}</span>
-          <h2 className="text-4xl font-serif font-bold text-prime-900 mb-4">{t.blogTeaser.headline}</h2>
-          <p className="text-slate-600 font-light text-lg max-w-2xl">{t.blogTeaser.description}</p>
+      <ScrollReveal>
+        <div className="flex flex-col md:flex-row justify-between items-end mb-16">
+          <div>
+            <span className="text-prime-gold font-bold uppercase tracking-widest text-xs mb-3 block">{t.blogTeaser.eyebrow}</span>
+            <h2 className="text-4xl font-serif font-bold text-prime-900 mb-4">{t.blogTeaser.headline}</h2>
+            <p className="text-slate-600 font-light text-lg max-w-2xl">{t.blogTeaser.description}</p>
+          </div>
+          <Link to={`/${currentLanguage}/blog`} className="hidden md:flex">
+            <Button variant="ghost" className="text-prime-gold font-bold group">
+              {t.blogTeaser.cta} <ArrowRight size={18} className="ml-2 group-hover:translate-x-1 transition-transform" />
+            </Button>
+          </Link>
         </div>
-        <Link to={`/${currentLanguage}/blog`} className="hidden md:flex">
-          <Button variant="ghost" className="text-prime-gold font-bold group">
-            {t.blogTeaser.cta} <ArrowRight size={18} className="ml-2 group-hover:translate-x-1 transition-transform" />
-          </Button>
-        </Link>
-      </div>
+      </ScrollReveal>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <motion.div
+        className="grid grid-cols-1 md:grid-cols-3 gap-8"
+        variants={staggerContainer}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: "-100px" }}
+      >
         {isLoading ? (
-          // Loading skeleton
           [1, 2, 3].map((idx) => (
             <div key={idx} className="bg-white rounded-2xl overflow-hidden border border-slate-100 animate-pulse">
               <div className="h-56 bg-slate-200" />
@@ -121,17 +121,10 @@ export const BlogTeaser: React.FC = () => {
             </div>
           ))
         ) : articles && articles.length > 0 ? (
-          articles.map((article, idx) => (
-            <article key={article.id} className={`bg-white rounded-2xl overflow-hidden border border-slate-100 hover:shadow-2xl hover:shadow-slate-200/50 transition-all duration-500 flex flex-col h-full group reveal-on-scroll stagger-${idx + 1}`}>
+          articles.map((article) => (
+            <motion.article key={article.id} variants={staggerItem} className="bg-white rounded-2xl overflow-hidden border border-slate-100 hover:shadow-2xl hover:shadow-slate-200/50 transition-all duration-500 flex flex-col h-full group">
               <div className="h-56 overflow-hidden relative">
-                <img 
-                  src={article.featured_image_url} 
-                  alt={article.headline} 
-                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src = '/placeholder.svg';
-                  }}
-                />
+                <img src={article.featured_image_url} alt={article.headline} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.svg'; }} />
                 <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-md text-xs font-bold text-prime-900 uppercase tracking-wider shadow-sm">
                   {formatDate(article.date_published)}
                 </div>
@@ -143,22 +136,18 @@ export const BlogTeaser: React.FC = () => {
                   {t.blogTeaser.readArticle} <ArrowRight size={14} className="group-hover/link:translate-x-1 transition-transform" />
                 </Link>
               </div>
-            </article>
+            </motion.article>
           ))
         ) : (
-          <div className="col-span-3 text-center py-12 text-slate-500">
-            No articles available yet.
-          </div>
+          <div className="col-span-3 text-center py-12 text-slate-500">No articles available yet.</div>
         )}
-      </div>
+      </motion.div>
       
-       <div className="mt-12 md:hidden text-center reveal-on-scroll">
+      <ScrollReveal className="mt-12 md:hidden text-center">
         <Link to={`/${currentLanguage}/blog`}>
-          <Button variant="ghost" className="text-prime-gold font-bold">
-            {t.blogTeaser.cta}
-          </Button>
+          <Button variant="ghost" className="text-prime-gold font-bold">{t.blogTeaser.cta}</Button>
         </Link>
-      </div>
+      </ScrollReveal>
     </Section>
   );
 };
@@ -175,11 +164,10 @@ export const GlossaryTeaser: React.FC = () => {
   
   return (
     <Section background="light" className="relative overflow-hidden">
-      {/* Subtle background pattern */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,_var(--tw-gradient-stops))] from-prime-100/50 via-transparent to-transparent" />
       
       <div className="relative z-10">
-        <div className="text-center mb-16 reveal-on-scroll">
+        <ScrollReveal className="text-center mb-16">
           <span className="text-prime-gold font-bold uppercase tracking-widest text-xs mb-3 block">
             {t.glossaryTeaser?.eyebrow || "Essential Terms"}
           </span>
@@ -189,42 +177,45 @@ export const GlossaryTeaser: React.FC = () => {
           <p className="text-slate-600 font-light text-lg max-w-2xl mx-auto">
             {t.glossaryTeaser?.description || "Navigate wealth planning with confidence. Our glossary explains key financial terms, tax strategies, and everything you need to know."}
           </p>
-        </div>
+        </ScrollReveal>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-          {FEATURED_TERMS.map((item, idx) => {
+        <motion.div
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12"
+          variants={staggerContainer}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-100px" }}
+        >
+          {FEATURED_TERMS.map((item) => {
             const Icon = item.icon;
             return (
-              <Link 
-                key={item.term} 
-                to={`/${currentLanguage}/glossary#${item.term.toLowerCase().replace(/\s+/g, '-')}`}
-                className={`group bg-white rounded-2xl p-6 border border-slate-100 hover:shadow-2xl hover:shadow-slate-200/50 hover:-translate-y-2 transition-all duration-500 reveal-on-scroll stagger-${idx + 1}`}
-              >
-                <div className="w-12 h-12 rounded-xl bg-prime-50 flex items-center justify-center mb-4 group-hover:bg-prime-gold group-hover:text-white transition-colors duration-300">
-                  <Icon size={24} className="text-prime-gold group-hover:text-white transition-colors" />
-                </div>
-                <h3 className="text-xl font-bold text-prime-900 mb-2 group-hover:text-prime-gold transition-colors">
-                  {item.term}
-                </h3>
-                <p className="text-slate-600 text-sm font-light leading-relaxed">
-                  {t.glossaryTeaser?.terms?.[item.key] || ""}
-                </p>
-                <div className="mt-4 flex items-center gap-1 text-prime-gold text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity">
-                  {t.glossaryTeaser?.learnMore || "Learn more"} <ArrowRight size={14} />
-                </div>
-              </Link>
+              <motion.div key={item.term} variants={staggerItem}>
+                <Link 
+                  to={`/${currentLanguage}/glossary#${item.term.toLowerCase().replace(/\s+/g, '-')}`}
+                  className="group bg-white rounded-2xl p-6 border border-slate-100 hover:shadow-2xl hover:shadow-slate-200/50 hover:-translate-y-2 transition-all duration-500 block"
+                >
+                  <div className="w-12 h-12 rounded-xl bg-prime-50 flex items-center justify-center mb-4 group-hover:bg-prime-gold group-hover:text-white transition-colors duration-300">
+                    <Icon size={24} className="text-prime-gold group-hover:text-white transition-colors" />
+                  </div>
+                  <h3 className="text-xl font-bold text-prime-900 mb-2 group-hover:text-prime-gold transition-colors">{item.term}</h3>
+                  <p className="text-slate-600 text-sm font-light leading-relaxed">{t.glossaryTeaser?.terms?.[item.key] || ""}</p>
+                  <div className="mt-4 flex items-center gap-1 text-prime-gold text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+                    {t.glossaryTeaser?.learnMore || "Learn more"} <ArrowRight size={14} />
+                  </div>
+                </Link>
+              </motion.div>
             );
           })}
-        </div>
+        </motion.div>
 
-        <div className="text-center reveal-on-scroll">
+        <ScrollReveal className="text-center">
           <Link to={`/${currentLanguage}/glossary`}>
             <Button variant="primary" size="lg" className="group">
               {t.glossaryTeaser?.cta || "Explore Full Glossary"} 
               <ArrowRight size={18} className="ml-2 group-hover:translate-x-1 transition-transform" />
             </Button>
           </Link>
-        </div>
+        </ScrollReveal>
       </div>
     </Section>
   );

@@ -21,6 +21,8 @@ import { Reviews, BlogTeaser, GlossaryTeaser } from '../components/home/sections
 import { Section } from '../components/home/ui/Section';
 import { Button } from '../components/home/ui/Button';
 import BlogEmmaChat from '../components/blog-article/BlogEmmaChat';
+import { CursorGlow } from '../components/CursorGlow';
+import { ScrollReveal } from '../components/homepage/ScrollReveal';
 
 function Home() {
   const { t, currentLanguage } = useTranslation();
@@ -59,6 +61,7 @@ function Home() {
     <div className="min-h-screen flex flex-col font-sans text-slate-900 bg-slate-50">
       <Header />
 
+      <CursorGlow />
       <main className="flex-grow">
         
         {/* 1. Hero Section */}
@@ -128,7 +131,7 @@ function Home() {
            <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-prime-800 via-prime-900 to-prime-950 -z-0"></div>
            <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
            
-           <div className="relative z-10 reveal-on-scroll">
+           <ScrollReveal className="relative z-10">
              <h2 className="text-4xl md:text-6xl font-serif font-bold mb-6 text-white tracking-tight">{t.finalCta.headline} <span className="text-prime-gold italic">{t.finalCta.headlineHighlight}</span></h2>
              <p className="text-slate-300 text-lg md:text-xl max-w-2xl mx-auto mb-12 font-light leading-relaxed">
                {t.finalCta.description}
@@ -164,7 +167,7 @@ function Home() {
                   </Button>
                 </a>
              </div>
-           </div>
+           </ScrollReveal>
         </Section>
         </div>
 

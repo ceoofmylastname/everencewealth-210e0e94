@@ -8,6 +8,7 @@ import { Button } from '../ui/Button';
 import { ArrowRight, MapPin, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useTranslation } from '../../../i18n';
 import { cn } from '@/lib/utils';
+import { ScrollReveal } from '@/components/homepage/ScrollReveal';
 
 // Map area IDs to brochure slugs
 const AREA_SLUG_MAP: Record<string, string> = {
@@ -28,19 +29,8 @@ export const FeaturedAreas: React.FC = () => {
   const [selectedIndex, setSelectedIndex] = useState(0);
   
   const [emblaRef, emblaApi] = useEmblaCarousel(
-    { 
-      loop: true, 
-      align: 'start',
-      slidesToScroll: 1,
-      containScroll: 'trimSnaps'
-    },
-    [
-      Autoplay({ 
-        delay: 4000, 
-        stopOnInteraction: false, 
-        stopOnMouseEnter: true 
-      })
-    ]
+    { loop: true, align: 'start', slidesToScroll: 1, containScroll: 'trimSnaps' },
+    [Autoplay({ delay: 4000, stopOnInteraction: false, stopOnMouseEnter: true })]
   );
 
   const scrollPrev = useCallback(() => emblaApi?.scrollPrev(), [emblaApi]);
@@ -62,7 +52,6 @@ export const FeaturedAreas: React.FC = () => {
     };
   }, [emblaApi, onSelect]);
 
-  // Get area description based on area ID
   const getAreaDescription = (areaId: string): string => {
     const descriptionMap: Record<string, string> = {
       'marbella': t.featuredAreas.areas.marbella,
@@ -81,65 +70,39 @@ export const FeaturedAreas: React.FC = () => {
 
   return (
     <Section background="light">
-      <div className="flex flex-col md:flex-row justify-between items-end mb-12 md:mb-16 reveal-on-scroll animate-fade-in-down">
-        <div className="max-w-2xl mb-6 md:mb-0">
-          <span className="text-prime-gold font-bold uppercase tracking-widest text-xs mb-3 block">{t.featuredAreas.eyebrow}</span>
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-serif font-bold text-prime-900 mb-4 md:mb-6 leading-tight tracking-tight" style={{ letterSpacing: '-0.02em' }}>{t.featuredAreas.headline}</h2>
-          <p className="text-slate-600 text-base md:text-lg font-light leading-relaxed" style={{ letterSpacing: '0.01em', lineHeight: '1.75' }}>
-            {t.featuredAreas.description}
-          </p>
+      <ScrollReveal>
+        <div className="flex flex-col md:flex-row justify-between items-end mb-12 md:mb-16">
+          <div className="max-w-2xl mb-6 md:mb-0">
+            <span className="text-prime-gold font-bold uppercase tracking-widest text-xs mb-3 block">{t.featuredAreas.eyebrow}</span>
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-serif font-bold text-prime-900 mb-4 md:mb-6 leading-tight tracking-tight" style={{ letterSpacing: '-0.02em' }}>{t.featuredAreas.headline}</h2>
+            <p className="text-slate-600 text-base md:text-lg font-light leading-relaxed" style={{ letterSpacing: '0.01em', lineHeight: '1.75' }}>
+              {t.featuredAreas.description}
+            </p>
+          </div>
+          <Link to={`/${currentLanguage}/properties`}>
+            <Button variant="ghost" className="hidden md:flex text-prime-gold font-bold hover:bg-white/50 group">
+              {t.featuredAreas.cta} <ArrowRight size={18} className="ml-2 group-hover:translate-x-1 transition-transform" />
+            </Button>
+          </Link>
         </div>
-        <Link to={`/${currentLanguage}/properties`}>
-          <Button variant="ghost" className="hidden md:flex text-prime-gold font-bold hover:bg-white/50 group">
-            {t.featuredAreas.cta} <ArrowRight size={18} className="ml-2 group-hover:translate-x-1 transition-transform" />
-          </Button>
-        </Link>
-      </div>
+      </ScrollReveal>
 
       {/* Carousel Container */}
       <div className="relative group/carousel">
-        {/* Navigation Arrows - Desktop */}
-        <button
-          onClick={scrollPrev}
-          className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-12 h-12 rounded-full bg-white/95 shadow-lg flex items-center justify-center opacity-0 group-hover/carousel:opacity-100 transition-all duration-300 hover:bg-prime-gold hover:text-white -translate-x-1/2 md:-translate-x-6"
-          aria-label="Previous slide"
-        >
+        <button onClick={scrollPrev} className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-12 h-12 rounded-full bg-white/95 shadow-lg flex items-center justify-center opacity-0 group-hover/carousel:opacity-100 transition-all duration-300 hover:bg-prime-gold hover:text-white -translate-x-1/2 md:-translate-x-6" aria-label="Previous slide">
           <ChevronLeft size={24} className="text-prime-900" />
         </button>
-        
-        <button
-          onClick={scrollNext}
-          className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-12 h-12 rounded-full bg-white/95 shadow-lg flex items-center justify-center opacity-0 group-hover/carousel:opacity-100 transition-all duration-300 hover:bg-prime-gold hover:text-white translate-x-1/2 md:translate-x-6"
-          aria-label="Next slide"
-        >
+        <button onClick={scrollNext} className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-12 h-12 rounded-full bg-white/95 shadow-lg flex items-center justify-center opacity-0 group-hover/carousel:opacity-100 transition-all duration-300 hover:bg-prime-gold hover:text-white translate-x-1/2 md:translate-x-6" aria-label="Next slide">
           <ChevronRight size={24} className="text-prime-900" />
         </button>
 
-        {/* Embla Carousel */}
         <div className="overflow-hidden" ref={emblaRef}>
           <div className="flex -ml-4 md:-ml-5">
             {FEATURED_AREAS.map((area) => (
-              <div 
-                key={area.id}
-                className="flex-shrink-0 pl-4 md:pl-5 basis-[85%] sm:basis-[48%] lg:basis-[24%]"
-              >
-                <Link 
-                  to={`/${currentLanguage}/brochure/${AREA_SLUG_MAP[area.id] || area.id}`}
-                  className="group relative overflow-hidden rounded-2xl cursor-pointer shadow-lg hover:shadow-2xl hover:shadow-slate-900/20 hover:-translate-y-2 transition-all duration-500 aspect-[3/4] block"
-                >
-                  <img 
-                    src={area.image} 
-                    alt={`${area.name} wealth strategy area`}
-                    width={400}
-                    height={533}
-                    loading="lazy"
-                    decoding="async"
-                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
-                  />
-                  {/* Gradient Overlay */}
+              <div key={area.id} className="flex-shrink-0 pl-4 md:pl-5 basis-[85%] sm:basis-[48%] lg:basis-[24%]">
+                <Link to={`/${currentLanguage}/brochure/${AREA_SLUG_MAP[area.id] || area.id}`} className="group relative overflow-hidden rounded-2xl cursor-pointer shadow-lg hover:shadow-2xl hover:shadow-slate-900/20 hover:-translate-y-2 transition-all duration-500 aspect-[3/4] block">
+                  <img src={area.image} alt={`${area.name} wealth strategy area`} width={400} height={533} loading="lazy" decoding="async" className="absolute inset-0 w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" />
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/20 to-transparent opacity-80 group-hover:opacity-90 transition-opacity duration-500" />
-                  
-                  {/* Content */}
                   <div className="absolute bottom-0 left-0 p-6 md:p-8 w-full transform transition-all duration-500 translate-y-4 group-hover:translate-y-0">
                     <div className="flex items-center gap-2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-500 -translate-y-2 group-hover:translate-y-0">
                       <MapPin size={14} className="text-prime-gold" />
@@ -165,27 +128,17 @@ export const FeaturedAreas: React.FC = () => {
       {/* Pagination Dots */}
       <div className="flex justify-center gap-2 mt-8">
         {FEATURED_AREAS.map((_, index) => (
-          <button
-            key={index}
-            onClick={() => emblaApi?.scrollTo(index)}
-            className={cn(
-              "h-2 rounded-full transition-all duration-300",
-              index === selectedIndex 
-                ? "bg-prime-gold w-8" 
-                : "bg-slate-300 hover:bg-slate-400 w-2"
-            )}
-            aria-label={`Go to slide ${index + 1}`}
-          />
+          <button key={index} onClick={() => emblaApi?.scrollTo(index)} className={cn("h-2 rounded-full transition-all duration-300", index === selectedIndex ? "bg-prime-gold w-8" : "bg-slate-300 hover:bg-slate-400 w-2")} aria-label={`Go to slide ${index + 1}`} />
         ))}
       </div>
 
-      <div className="mt-12 md:hidden text-center reveal-on-scroll">
+      <ScrollReveal className="mt-12 md:hidden text-center">
         <Link to={`/${currentLanguage}/properties`}>
           <Button variant="ghost" className="text-prime-gold font-bold">
             {t.featuredAreas.cta}
           </Button>
         </Link>
-      </div>
+      </ScrollReveal>
     </Section>
   );
 };
