@@ -7,8 +7,12 @@ import { format } from 'date-fns';
 import { ArrowRight } from 'lucide-react';
 import { ScrollReveal, staggerContainer, staggerItem } from './ScrollReveal';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useTranslation } from '@/i18n/useTranslation';
 
 export const BlogPreview: React.FC = () => {
+  const { t } = useTranslation();
+  const bp = t.homepage.blogPreview;
+
   const { data: articles, isLoading } = useQuery({
     queryKey: ['homepage-blog-preview'],
     queryFn: async () => {
@@ -25,7 +29,6 @@ export const BlogPreview: React.FC = () => {
 
   return (
     <section className="relative py-24 md:py-32 overflow-hidden" style={{ background: 'hsl(160 80% 2%)' }}>
-      {/* Radial glow */}
       <div className="absolute inset-0 pointer-events-none" style={{
         background: 'radial-gradient(ellipse 60% 40% at 50% 60%, hsla(160, 60%, 15%, 0.12), transparent)'
       }} />
@@ -34,13 +37,13 @@ export const BlogPreview: React.FC = () => {
         <ScrollReveal>
           <div className="text-center mb-16">
             <span className="inline-block text-xs tracking-[0.3em] uppercase font-semibold mb-4" style={{ color: '#C5A059' }}>
-              From the Blog
+              {bp.badge}
             </span>
             <h2 className="font-serif text-3xl md:text-5xl font-bold text-white mb-4">
-              Insights for Smarter Wealth
+              {bp.headline}
             </h2>
             <p className="text-white/50 max-w-xl mx-auto text-base md:text-lg">
-              Expert strategies, market analysis, and retirement planning insights — delivered with clarity.
+              {bp.subtitle}
             </p>
           </div>
         </ScrollReveal>
@@ -72,7 +75,6 @@ export const BlogPreview: React.FC = () => {
                   to={`/${article.language || 'en'}/blog/${article.slug}`}
                   className="group block rounded-2xl border border-white/10 overflow-hidden bg-white/[0.03] backdrop-blur-sm transition-all duration-500 hover:border-white/20 hover:shadow-[0_0_40px_-12px_hsla(160,60%,30%,0.15)]"
                 >
-                  {/* Image */}
                   <div className="relative h-52 overflow-hidden">
                     <img
                       src={article.featured_image_url}
@@ -88,7 +90,6 @@ export const BlogPreview: React.FC = () => {
                     )}
                   </div>
 
-                  {/* Content */}
                   <div className="p-6">
                     <span className="text-[11px] tracking-[0.2em] uppercase font-medium text-white/30 mb-2 block">
                       {article.category}
@@ -100,7 +101,7 @@ export const BlogPreview: React.FC = () => {
                       {article.meta_description}
                     </p>
                     <span className="inline-flex items-center gap-1.5 text-xs font-semibold tracking-wide uppercase transition-colors duration-300" style={{ color: '#C5A059' }}>
-                      Read more
+                      {bp.readMore}
                       <ArrowRight className="w-3.5 h-3.5 transition-transform duration-300 group-hover:translate-x-1" />
                     </span>
                   </div>
@@ -109,7 +110,7 @@ export const BlogPreview: React.FC = () => {
             ))}
           </motion.div>
         ) : (
-          <p className="text-center text-white/40 text-sm">No published articles yet.</p>
+          <p className="text-center text-white/40 text-sm">{bp.noArticles}</p>
         )}
 
         <ScrollReveal delay={0.3}>
@@ -127,7 +128,7 @@ export const BlogPreview: React.FC = () => {
                 e.currentTarget.style.borderColor = 'rgba(197,160,89,0.4)';
               }}
             >
-              View All Articles
+              {bp.viewAll}
               <ArrowRight className="w-4 h-4" />
             </Link>
           </div>

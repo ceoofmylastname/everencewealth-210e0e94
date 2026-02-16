@@ -2,6 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Shield, Users, Heart, Clock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from '@/i18n/useTranslation';
 
 const performanceData = [
   { year: '2006', sp500: '+16%', iul: '+11% (cap)' },
@@ -14,15 +15,12 @@ const performanceData = [
   { year: '2023', sp500: '+26%', iul: '+11% (cap)' },
 ];
 
-const audiences = [
-  { icon: Shield, label: 'Business Owners', desc: 'Tax-advantaged accumulation + asset protection' },
-  { icon: Users, label: 'High Earners', desc: 'No income limits, no contribution caps' },
-  { icon: Heart, label: 'Families', desc: 'Living benefits + legacy planning in one vehicle' },
-  { icon: Clock, label: 'Pre-Retirees', desc: 'No RMDs, no sequence-of-returns risk' },
-];
+const audienceIcons = [Shield, Users, Heart, Clock];
 
 export function IndexedAdvantage() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
+  const ia = t.homepage.indexedAdvantage;
 
   return (
     <section className="py-20 md:py-28 px-4 md:px-8 bg-white">
@@ -35,17 +33,16 @@ export function IndexedAdvantage() {
           className="text-center mb-14"
         >
           <p className="text-xs font-space font-bold tracking-[0.3em] uppercase text-evergreen/60 mb-4">
-            The IUL Advantage
+            {ia.badge}
           </p>
           <h2 className="text-3xl md:text-5xl font-space font-bold text-evergreen leading-tight max-w-3xl mx-auto">
-            Growth Without the Risk
+            {ia.headline}
           </h2>
           <p className="text-muted-foreground mt-4 max-w-lg mx-auto">
-            Participate in market gains. Protected from market losses. Zero is your hero.
+            {ia.subtitle}
           </p>
         </motion.div>
 
-        {/* Performance comparison table */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -54,15 +51,15 @@ export function IndexedAdvantage() {
           className="bg-evergreen rounded-[50px] p-8 md:p-12 mb-16 overflow-hidden"
         >
           <h3 className="text-white font-space font-bold text-xl mb-6">
-            S&P 500 vs Indexed Universal Life
+            {ia.tableTitle}
           </h3>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-white/10">
-                  <th className="text-left text-white/40 font-space text-xs tracking-wider uppercase py-3">Year</th>
-                  <th className="text-right text-white/40 font-space text-xs tracking-wider uppercase py-3">S&P 500</th>
-                  <th className="text-right text-white/40 font-space text-xs tracking-wider uppercase py-3">IUL Return</th>
+                  <th className="text-left text-white/40 font-space text-xs tracking-wider uppercase py-3">{ia.tableHeaders.year}</th>
+                  <th className="text-right text-white/40 font-space text-xs tracking-wider uppercase py-3">{ia.tableHeaders.sp500}</th>
+                  <th className="text-right text-white/40 font-space text-xs tracking-wider uppercase py-3">{ia.tableHeaders.iul}</th>
                 </tr>
               </thead>
               <tbody>
@@ -82,15 +79,14 @@ export function IndexedAdvantage() {
           </div>
           <div className="flex flex-wrap gap-4 mt-6 text-xs font-space">
             <span className="px-3 py-1.5 rounded-full bg-white/10 text-white/60">
-              Floor: 0% — never lose money
+              {ia.floorBadge}
             </span>
             <span className="px-3 py-1.5 rounded-full bg-white/10 text-white/60">
-              Cap: 10-12% — participate in up years
+              {ia.capBadge}
             </span>
           </div>
         </motion.div>
 
-        {/* Who This Is For */}
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -98,28 +94,30 @@ export function IndexedAdvantage() {
           transition={{ duration: 0.6, delay: 0.3 }}
         >
           <h3 className="text-xl font-space font-bold text-evergreen mb-8 text-center">
-            Who This Is For
+            {ia.whoTitle}
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-            {audiences.map(({ icon: Icon, label, desc }) => (
-              <div key={label} className="border border-border rounded-2xl p-6 hover:-translate-y-1 transition-transform duration-300">
-                <div className="w-10 h-10 rounded-xl bg-evergreen/10 flex items-center justify-center mb-4">
-                  <Icon className="w-5 h-5 text-evergreen" />
+            {ia.audiences.map((audience, idx) => {
+              const Icon = audienceIcons[idx];
+              return (
+                <div key={audience.label} className="border border-border rounded-2xl p-6 hover:-translate-y-1 transition-transform duration-300">
+                  <div className="w-10 h-10 rounded-xl bg-evergreen/10 flex items-center justify-center mb-4">
+                    <Icon className="w-5 h-5 text-evergreen" />
+                  </div>
+                  <h4 className="font-space font-bold text-foreground mb-1">{audience.label}</h4>
+                  <p className="text-muted-foreground text-sm">{audience.desc}</p>
                 </div>
-                <h4 className="font-space font-bold text-foreground mb-1">{label}</h4>
-                <p className="text-muted-foreground text-sm">{desc}</p>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </motion.div>
 
-        {/* CTA */}
         <div className="text-center">
           <button
             onClick={() => navigate('/strategies/iul')}
             className="px-8 py-4 bg-evergreen text-white font-space font-bold text-sm tracking-wide rounded-xl hover:bg-evergreen/90 transition-colors shadow-lg"
           >
-            Model Your Indexed Strategy
+            {ia.cta}
           </button>
         </div>
       </div>

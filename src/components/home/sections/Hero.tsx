@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-
-const RETIREMENT_LETTERS = 'RETIREMENT'.split('');
+import { useTranslation } from '@/i18n/useTranslation';
 
 const PARTICLES = Array.from({ length: 12 }, (_, i) => ({
   id: i,
@@ -14,6 +13,8 @@ const PARTICLES = Array.from({ length: 12 }, (_, i) => ({
 }));
 
 export const Hero: React.FC = () => {
+  const { t } = useTranslation();
+  const hp = t.homepage.hero;
   const [stage, setStage] = useState(0);
 
   useEffect(() => {
@@ -25,6 +26,8 @@ export const Hero: React.FC = () => {
     ];
     return () => timers.forEach(clearTimeout);
   }, []);
+
+  const RETIREMENT_LETTERS = 'RETIREMENT'.split('');
 
   return (
     <section className="relative min-h-[100svh] flex items-center justify-center overflow-hidden bg-dark-bg">
@@ -84,7 +87,7 @@ export const Hero: React.FC = () => {
         transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
       >
         <p className="text-[10px] font-space font-bold tracking-[0.4em] uppercase text-white/20 [writing-mode:vertical-lr] rotate-180">
-          Wealth Architecture
+          {hp.sideLeft}
         </p>
       </motion.div>
       <motion.div
@@ -94,11 +97,9 @@ export const Hero: React.FC = () => {
         transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
       >
         <p className="text-[10px] font-space font-bold tracking-[0.4em] uppercase text-white/20 [writing-mode:vertical-lr]">
-          Strategic Fiduciary
+          {hp.sideRight}
         </p>
       </motion.div>
-
-      {/* Corner decorations */}
 
       {/* Center dot (stage 0) */}
       <motion.div
@@ -128,7 +129,7 @@ export const Hero: React.FC = () => {
           transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
         >
           <span className="inline-block px-5 py-2 rounded-full border border-white/10 bg-white/[0.03] text-[10px] font-hero font-medium tracking-[0.3em] uppercase text-white/40">
-            Established 1998 · Independent Fiduciary
+            {hp.badge}
           </span>
         </motion.div>
 
@@ -141,8 +142,8 @@ export const Hero: React.FC = () => {
               animate={stage >= 1 ? { opacity: 1, x: 0, filter: 'blur(0px)' } : {}}
               transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
             >
-              <span className="text-[13vw] md:text-[8vw] lg:text-[6.5vw] text-white">BRIDGE</span>
-              <span className="text-[5vw] md:text-[3vw] lg:text-[2.4vw] text-white/40 font-light tracking-normal italic font-serif">the</span>
+              <span className="text-[13vw] md:text-[8vw] lg:text-[6.5vw] text-white">{hp.bridge}</span>
+              <span className="text-[5vw] md:text-[3vw] lg:text-[2.4vw] text-white/40 font-light tracking-normal italic font-serif">{hp.the}</span>
             </motion.span>
 
             {/* RETIREMENT — letter by letter with rounded pill style */}
@@ -176,7 +177,7 @@ export const Hero: React.FC = () => {
                 mass: 1.2,
               }}
             >
-              GAP
+              {hp.gap}
             </motion.span>
           </h1>
         </div>
@@ -189,12 +190,12 @@ export const Hero: React.FC = () => {
           transition={{ duration: 0.6, ease: 'easeOut' }}
         >
           <div className="text-sm md:text-base font-hero font-medium">
-            <span className="text-white/80">Stop funding Wall Street's wealth.</span>
+            <span className="text-white/80">{hp.subline1}</span>
             <br />
-            <span className="text-primary italic">Start building yours.</span>
+            <span className="text-primary italic">{hp.subline2}</span>
           </div>
           <p className="text-[9px] font-hero font-semibold tracking-[0.2em] uppercase text-white/25 max-w-md mx-auto leading-relaxed">
-            You've been sold a myth. Save and hope? That's a gamble. We reclaim control.
+            {hp.sublineSmall}
           </p>
         </motion.div>
       </div>
@@ -209,16 +210,16 @@ export const Hero: React.FC = () => {
         <div className="glass-card rounded-2xl px-6 py-4 md:px-8 md:py-5 grid grid-cols-1 md:grid-cols-3 items-center gap-4 md:gap-6 w-full max-w-3xl">
           {/* Left */}
           <div className="flex flex-col items-center justify-center text-center">
-            <span className="block text-[9px] font-hero font-semibold tracking-[0.25em] uppercase text-white/30 mb-1">System Status</span>
+            <span className="block text-[9px] font-hero font-semibold tracking-[0.25em] uppercase text-white/30 mb-1">{hp.systemStatus}</span>
             <span className="flex items-center gap-2 text-[11px] font-hero font-bold tracking-[0.15em] uppercase text-white/50">
               <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-              Analysis Active
+              {hp.analysisActive}
             </span>
           </div>
           {/* Center */}
           <div className="flex flex-col items-center justify-center border-y md:border-y-0 md:border-x border-white/[0.06] py-3 md:py-0 md:px-4">
-            <span className="block text-[9px] font-hero font-semibold tracking-[0.25em] uppercase text-white/30 mb-1">Current Protocol</span>
-            <span className="text-[11px] font-hero font-bold tracking-[0.1em] uppercase text-white/60">Tax-Free Bucket Optimization</span>
+            <span className="block text-[9px] font-hero font-semibold tracking-[0.25em] uppercase text-white/30 mb-1">{hp.currentProtocol}</span>
+            <span className="text-[11px] font-hero font-bold tracking-[0.1em] uppercase text-white/60">{hp.protocolName}</span>
           </div>
           {/* Right */}
           <div className="flex items-center justify-center">
@@ -226,7 +227,7 @@ export const Hero: React.FC = () => {
               href="/assessment"
               className="inline-block px-6 py-2.5 border border-white/15 bg-white/[0.03] text-white/70 font-hero font-bold text-[11px] tracking-[0.15em] uppercase rounded-xl hover:bg-white/[0.06] hover:border-primary/30 transition-colors"
             >
-              Begin Assessment
+              {hp.beginAssessment}
             </a>
           </div>
         </div>
