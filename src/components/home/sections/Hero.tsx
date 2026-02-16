@@ -141,8 +141,8 @@ export const Hero: React.FC = () => {
               animate={stage >= 1 ? { opacity: 1, x: 0, filter: 'blur(0px)' } : {}}
               transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
             >
-              <span className="text-[13vw] md:text-[8vw] lg:text-[6.5vw] text-white tracking-[-0.04em]">BRIDGE</span>
-              <span className="text-[6vw] md:text-[3.5vw] lg:text-[2.8vw] text-white/50 font-light tracking-normal italic font-serif">the</span>
+              <span className="text-[13vw] md:text-[8vw] lg:text-[6.5vw] text-white">BRIDGE</span>
+              <span className="text-[5vw] md:text-[3vw] lg:text-[2.4vw] text-white/40 font-light tracking-normal italic font-serif">the</span>
             </motion.span>
 
             {/* RETIREMENT — letter by letter with sweep */}
@@ -209,7 +209,7 @@ export const Hero: React.FC = () => {
       >
         <div className="glass-card rounded-2xl px-6 py-4 md:px-8 md:py-5 grid grid-cols-1 md:grid-cols-3 items-center gap-4 md:gap-6">
           {/* Left */}
-          <div className="flex flex-col items-center justify-center text-center">
+          <div className="flex flex-col items-center md:items-start justify-center">
             <span className="block text-[9px] font-hero font-semibold tracking-[0.25em] uppercase text-white/30 mb-1">System Status</span>
             <span className="flex items-center gap-2 text-[11px] font-hero font-bold tracking-[0.15em] uppercase text-white/50">
               <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
@@ -217,12 +217,12 @@ export const Hero: React.FC = () => {
             </span>
           </div>
           {/* Center */}
-          <div className="flex flex-col items-center justify-center text-center border-y md:border-y-0 md:border-x border-white/[0.06] py-3 md:py-0 md:px-4">
+          <div className="flex flex-col items-center justify-center border-y md:border-y-0 md:border-x border-white/[0.06] py-3 md:py-0 md:px-4">
             <span className="block text-[9px] font-hero font-semibold tracking-[0.25em] uppercase text-white/30 mb-1">Current Protocol</span>
             <span className="text-[11px] font-hero font-bold tracking-[0.1em] uppercase text-white/60">Tax-Free Bucket Optimization</span>
           </div>
           {/* Right */}
-          <div className="flex items-center justify-center text-center">
+          <div className="flex items-center justify-center md:justify-end">
             <a
               href="/assessment"
               className="inline-block px-6 py-2.5 border border-white/15 bg-white/[0.03] text-white/70 font-hero font-bold text-[11px] tracking-[0.15em] uppercase rounded-xl hover:bg-white/[0.06] hover:border-primary/30 transition-colors"

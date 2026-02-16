@@ -862,13 +862,13 @@ All colors MUST be HSL.
 
 /* ── Text outline utility ── */
 .text-outline {
-  -webkit-text-stroke: 2.5px rgba(255,255,255,0.3);
+  -webkit-text-stroke: 3px rgba(255,255,255,0.35);
   color: transparent;
 }
 
 /* ── Hero glow text shadow ── */
 .hero-glow {
-  text-shadow: 0 0 25px hsla(160, 60%, 30%, 0.25), 0 0 60px hsla(160, 48%, 21%, 0.12);
+  text-shadow: 0 0 30px hsla(160, 60%, 30%, 0.3), 0 0 80px hsla(160, 48%, 21%, 0.15);
 }
 
 /* ── RETIREMENT sweep animation ── */
