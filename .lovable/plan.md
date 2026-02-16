@@ -1,48 +1,51 @@
 
-# Phase 7.12: Compliance Center
+
+# Phase 7.13: Enhanced Carrier News Feed
 
 ## Overview
-Create a new Compliance Center page for advisors showing compliance score, licensing status, required documents, carrier contracting status, and compliance resources -- all using static/demo data initially (no new database tables needed).
+Rebuild the Carrier News page with stats cards, priority/type filter badges, view tracking, carrier name search, and an improved empty state with a "Clear Filters" button.
+
+## No Database Migration Needed
+The `carrier_news` table already has all required columns including `views`, `article_type`, `priority`, `carrier_id`, and the `carriers` relation provides `carrier_name` and `carrier_logo_url`.
 
 ## Changes
 
-### 1. Create `src/pages/portal/advisor/ComplianceCenter.tsx`
-New page with the following sections:
+### Rebuild `src/pages/portal/advisor/CarrierNews.tsx`
 
-**Header**: "Compliance Center" title with subtitle, Playfair Display heading (matching existing pattern).
+**1. Header:**
+- Title "Carrier News & Updates" with subtitle (Playfair Display heading)
 
-**Compliance Score Card**: A prominent card with a circular-style score display (percentage number) and a Progress bar. Shows an alert if score is below 100%.
+**2. Stats Row** (4 cards):
+- Total Articles (Newspaper icon)
+- Urgent Updates (AlertCircle icon, count of priority=urgent)
+- Rate Updates (TrendingUp icon, count of article_type=rate_update)
+- Product Launches (Star icon, count of article_type=product_launch)
 
-**Stats Row** (3 cards):
-- License Status: Shield icon, status text, expiry date
-- Active Contracts: FileText icon, count of active contracts, pending count
-- Required Trainings: CheckCircle icon, completed/total fraction with progress text
+**3. Search and Filters Card:**
+- Search input with Search icon (searches title, content, and carrier name)
+- Priority filter row: clickable Badge chips for All / low / normal / high / urgent (active state uses primary color)
+- Type filter row: clickable Badge chips for All Types / rate_update / product_launch / general / compliance / promotion (active state uses primary color)
 
-**Required Documents Section**: Card listing documents (E&O Insurance Certificate, State Insurance License, FINRA Registration, W-9 Form, Background Check) each with:
-- FileText icon
-- Document name and expiry date (if applicable)
-- Status badge (Active/green, Pending/yellow, Expired/red, Not Required/gray)
-- Download button
+**4. News Feed:**
+- Each article rendered as a Card with:
+  - Type-specific icon (TrendingUp for rate_update, AlertCircle for compliance, Newspaper default)
+  - Title, carrier name, content preview (line-clamped to 3 lines)
+  - Priority badge (color-coded)
+  - Meta row: Eye icon + view count, published date, article type label
+- On card click: increment `views` count via supabase update
 
-**Carrier Contracting Status Section**: Card listing carriers (Pacific Life, North American, Allianz, American Amicable) each with:
-- Status dot indicator
-- Carrier name and contracted date
-- Status badge
-- "Complete" button for pending items
+**5. Empty/No Results State:**
+- Newspaper icon, "No news articles match your filters" message
+- "Clear Filters" button that resets search, priority, and type selections
 
-**Compliance Resources Section**: Card with linked resource items (State Licensing Requirements Guide, Fiduciary Duty & Best Practices, E&O Insurance Requirements) each with FileText icon and ExternalLink arrow.
-
-**Utility helpers**: `getStatusBadge()` for color-coded badges, `isExpiringWithin30Days()` and `isExpired()` date helpers, `complianceScore` calculation using contracts/trainings/documents ratios.
-
-### 2. Update `src/App.tsx`
-- Add lazy import: `const ComplianceCenter = lazy(() => import("./pages/portal/advisor/ComplianceCenter"))`
-- Add route inside the advisor `PortalLayout` group: `<Route path="compliance" element={<ComplianceCenter />} />`
-
-### 3. Update `src/components/portal/PortalLayout.tsx`
-- Add `{ label: "Compliance", icon: Shield, href: "/portal/advisor/compliance" }` to the `advisorNav` array (after Schedule)
+**6. Loading State:**
+- Existing spinner pattern
 
 ## Technical Details
-- **No database migration** -- uses hardcoded demo data for compliance status, documents, and contracting (matching the reference code pattern)
-- **Auth**: Uses `usePortalAuth` to get the logged-in advisor; fetches advisor record from `advisors` table via `supabase` client for future extensibility
-- **Imports**: Shield, FileText, CheckCircle, AlertCircle, Clock, Download, ExternalLink from lucide-react; Progress component; Badge component; Card/CardContent; toast from sonner
-- **Patterns**: Follows the existing page structure (Playfair Display heading, spinner loading state, Card-based sections, Badge status indicators)
+
+- **State**: `news` (all articles), `searchQuery`, `selectedPriority` (string | null), `selectedType` (string | null), `loading`
+- **Filtering**: `useMemo` to derive `filteredNews` from news array based on searchQuery, selectedPriority, and selectedType
+- **Query**: `carrier_news` select with `*, carriers(carrier_name, carrier_logo_url)` filtered by status=published, ordered by published_at desc
+- **View tracking**: `incrementViews` function updates views column on click
+- **Imports**: Add TrendingUp, AlertCircle, Star, Eye from lucide-react; keep existing Search, Newspaper, Badge, Card, Input imports
+- **No route or nav changes** needed -- the existing route and "News" nav item already point to this page
