@@ -70,7 +70,13 @@ export default function AdminAgentNew() {
       return;
     }
 
-    toast.success("Agent created successfully");
+    if (data?.invitation_sent) {
+      toast.success("Agent created and invitation email sent");
+    } else if (data?.invitation_error) {
+      toast.warning("Agent created but invitation email failed: " + data.invitation_error);
+    } else {
+      toast.success("Agent created successfully");
+    }
     navigate("/portal/admin/agents");
   }
 
