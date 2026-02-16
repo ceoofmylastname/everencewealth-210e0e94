@@ -204,7 +204,7 @@ export default function ComparisonGenerator() {
             // Translate from English for other languages
             const { data, error } = await supabase.functions.invoke('translate-comparison', {
               body: { 
-                source_comparison: englishComparison,
+                comparison_id: englishComparison.id,
                 target_language: lang,
               }
             });
