@@ -158,6 +158,7 @@ const ClientPolicies = lazy(() => import("./pages/portal/client/ClientPolicies")
 const ClientDocuments = lazy(() => import("./pages/portal/client/ClientDocuments"));
 const ClientMessages = lazy(() => import("./pages/portal/client/ClientMessages"));
 const ClientPolicyDetail = lazy(() => import("./pages/portal/client/ClientPolicyDetail"));
+const ClientNotifications = lazy(() => import("./pages/portal/client/ClientNotifications"));
 const ClientSignup = lazy(() => import("./pages/portal/ClientSignup"));
 
 const AgentLogin = lazy(() => import("./pages/crm/AgentLogin"));
@@ -349,6 +350,7 @@ const App = () => (
                   <Route path="policies/:id" element={<ClientPolicyDetail />} />
                   <Route path="documents" element={<ClientDocuments />} />
                   <Route path="messages" element={<ClientMessages />} />
+                  <Route path="notifications" element={<ClientNotifications />} />
                 </Route>
               </Route>
 
