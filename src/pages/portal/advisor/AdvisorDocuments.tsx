@@ -1,0 +1,223 @@
+import { useEffect, useState, useRef } from "react";
+import { useSearchParams } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { usePortalAuth } from "@/hooks/usePortalAuth";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { FolderOpen, Upload, Download, Trash2, Search, FileIcon } from "lucide-react";
+import { toast } from "sonner";
+
+interface Doc {
+  id: string;
+  file_name: string;
+  file_url: string;
+  file_size: number | null;
+  document_type: string;
+  is_client_visible: boolean;
+  client_id: string;
+  policy_id: string | null;
+  created_at: string;
+  client?: { first_name: string; last_name: string };
+}
+
+interface ClientOption { id: string; first_name: string; last_name: string; }
+
+export default function AdvisorDocuments() {
+  const { portalUser } = usePortalAuth();
+  const [searchParams] = useSearchParams();
+  const clientFilter = searchParams.get("client");
+  const [docs, setDocs] = useState<Doc[]>([]);
+  const [clients, setClients] = useState<ClientOption[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const [uploadForm, setUploadForm] = useState({ client_id: clientFilter || "", document_type: "general", is_client_visible: true });
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!portalUser) return;
+    loadData();
+  }, [portalUser, clientFilter]);
+
+  async function loadData() {
+    const { data: clientData } = await supabase
+      .from("portal_users")
+      .select("id, first_name, last_name")
+      .eq("role", "client")
+      .eq("advisor_id", portalUser!.id)
+      .eq("is_active", true)
+      .order("last_name");
+    setClients((clientData as ClientOption[]) ?? []);
+
+    let query = supabase
+      .from("portal_documents")
+      .select("*, client:portal_users!portal_documents_client_id_fkey(first_name, last_name)")
+      .eq("uploaded_by", portalUser!.id)
+      .order("created_at", { ascending: false });
+
+    if (clientFilter) query = query.eq("client_id", clientFilter);
+
+    const { data, error } = await query;
+    if (error) console.error(error);
+    setDocs((data as Doc[]) ?? []);
+    setLoading(false);
+  }
+
+  async function handleUpload() {
+    const file = fileRef.current?.files?.[0];
+    if (!file) { toast.error("Select a file"); return; }
+    if (!uploadForm.client_id) { toast.error("Select a client"); return; }
+
+    setUploading(true);
+    const ext = file.name.split(".").pop();
+    const path = `${portalUser!.id}/${uploadForm.client_id}/${Date.now()}.${ext}`;
+
+    const { error: uploadError } = await supabase.storage.from("portal-documents").upload(path, file);
+    if (uploadError) { toast.error(uploadError.message); setUploading(false); return; }
+
+    const { data: urlData } = supabase.storage.from("portal-documents").getPublicUrl(path);
+
+    const { error: dbError } = await supabase.from("portal_documents").insert({
+      file_name: file.name,
+      file_url: urlData.publicUrl,
+      file_size: file.size,
+      document_type: uploadForm.document_type,
+      is_client_visible: uploadForm.is_client_visible,
+      client_id: uploadForm.client_id,
+      uploaded_by: portalUser!.id,
+    });
+
+    if (dbError) { toast.error(dbError.message); }
+    else {
+      toast.success("Document uploaded");
+      loadData();
+      if (fileRef.current) fileRef.current.value = "";
+    }
+    setUploading(false);
+  }
+
+  async function handleDelete(doc: Doc) {
+    if (!confirm(`Delete "${doc.file_name}"?`)) return;
+    await supabase.from("portal_documents").delete().eq("id", doc.id);
+    // Also delete from storage
+    const urlParts = doc.file_url.split("/portal-documents/");
+    if (urlParts[1]) {
+      await supabase.storage.from("portal-documents").remove([urlParts[1]]);
+    }
+    toast.success("Document deleted");
+    setDocs((prev) => prev.filter((d) => d.id !== doc.id));
+  }
+
+  async function toggleVisibility(doc: Doc) {
+    const { error } = await supabase.from("portal_documents").update({ is_client_visible: !doc.is_client_visible }).eq("id", doc.id);
+    if (error) { toast.error(error.message); return; }
+    setDocs((prev) => prev.map((d) => d.id === doc.id ? { ...d, is_client_visible: !d.is_client_visible } : d));
+  }
+
+  const filtered = docs.filter((d) => d.file_name.toLowerCase().includes(search.toLowerCase()));
+  const fmtSize = (n: number | null) => n ? `${(n / 1024).toFixed(0)} KB` : "";
+
+  return (
+    <div className="space-y-6">
+      <h1 className="text-2xl font-bold text-foreground" style={{ fontFamily: "'Playfair Display', serif" }}>Documents</h1>
+
+      {/* Upload section */}
+      <Card>
+        <CardContent className="p-5 space-y-4">
+          <p className="font-medium text-foreground">Upload Document</p>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <Label>Client</Label>
+              <Select value={uploadForm.client_id} onValueChange={(v) => setUploadForm((f) => ({ ...f, client_id: v }))}>
+                <SelectTrigger><SelectValue placeholder="Select client" /></SelectTrigger>
+                <SelectContent>
+                  {clients.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>{c.first_name} {c.last_name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Type</Label>
+              <Select value={uploadForm.document_type} onValueChange={(v) => setUploadForm((f) => ({ ...f, document_type: v }))}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="general">General</SelectItem>
+                  <SelectItem value="policy_document">Policy Document</SelectItem>
+                  <SelectItem value="application">Application</SelectItem>
+                  <SelectItem value="illustration">Illustration</SelectItem>
+                  <SelectItem value="statement">Statement</SelectItem>
+                  <SelectItem value="id_verification">ID Verification</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Client Visible</Label>
+              <div className="flex items-center gap-2 h-10">
+                <Switch checked={uploadForm.is_client_visible} onCheckedChange={(v) => setUploadForm((f) => ({ ...f, is_client_visible: v }))} />
+                <span className="text-sm text-muted-foreground">{uploadForm.is_client_visible ? "Yes" : "No"}</span>
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <Input type="file" ref={fileRef} className="max-w-sm" />
+            <Button onClick={handleUpload} disabled={uploading}>
+              <Upload className="h-4 w-4 mr-2" />{uploading ? "Uploading..." : "Upload"}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Document list */}
+      <div className="relative max-w-sm">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input placeholder="Search documents..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
+      </div>
+
+      {loading ? (
+        <div className="flex items-center justify-center py-12">
+          <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+        </div>
+      ) : filtered.length === 0 ? (
+        <Card><CardContent className="py-12 text-center">
+          <FolderOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+          <p className="text-muted-foreground">No documents yet.</p>
+        </CardContent></Card>
+      ) : (
+        <div className="space-y-2">
+          {filtered.map((doc) => (
+            <Card key={doc.id}>
+              <CardContent className="p-4 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3 min-w-0">
+                  <FileIcon className="h-5 w-5 text-muted-foreground shrink-0" />
+                  <div className="min-w-0">
+                    <p className="font-medium text-foreground truncate">{doc.file_name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {doc.client ? `${doc.client.first_name} ${doc.client.last_name}` : "—"} • {doc.document_type.replace(/_/g, " ")} • {fmtSize(doc.file_size)}
+                      {doc.is_client_visible ? " • Client visible" : ""}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1 shrink-0">
+                  <Button variant="ghost" size="icon" onClick={() => toggleVisibility(doc)} title={doc.is_client_visible ? "Hide from client" : "Show to client"}>
+                    {doc.is_client_visible ? "👁" : "🔒"}
+                  </Button>
+                  <Button variant="ghost" size="icon" asChild>
+                    <a href={doc.file_url} download target="_blank" rel="noopener"><Download className="h-4 w-4" /></a>
+                  </Button>
+                  <Button variant="ghost" size="icon" onClick={() => handleDelete(doc)}>
+                    <Trash2 className="h-4 w-4 text-destructive" />
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}

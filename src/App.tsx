@@ -134,7 +134,15 @@ import { ApartmentsPropertiesInner } from "./pages/admin/ApartmentsProperties";
 // Portal Pages
 const PortalLogin = lazy(() => import("./pages/portal/PortalLogin"));
 const AdvisorDashboard = lazy(() => import("./pages/portal/advisor/AdvisorDashboard"));
+const AdvisorClients = lazy(() => import("./pages/portal/advisor/AdvisorClients"));
+const AdvisorPolicies = lazy(() => import("./pages/portal/advisor/AdvisorPolicies"));
+const PolicyForm = lazy(() => import("./pages/portal/advisor/PolicyForm"));
+const PolicyDetail = lazy(() => import("./pages/portal/advisor/PolicyDetail"));
+const AdvisorDocuments = lazy(() => import("./pages/portal/advisor/AdvisorDocuments"));
+const ClientInvite = lazy(() => import("./pages/portal/advisor/ClientInvite"));
 const ClientDashboard = lazy(() => import("./pages/portal/client/ClientDashboard"));
+const ClientPolicies = lazy(() => import("./pages/portal/client/ClientPolicies"));
+const ClientDocuments = lazy(() => import("./pages/portal/client/ClientDocuments"));
 
 const AgentLogin = lazy(() => import("./pages/crm/AgentLogin"));
 const CrmLogin = lazy(() => import("./pages/crm/CrmLogin"));
@@ -154,6 +162,7 @@ import { ApartmentsEditorRoute } from "@/components/ApartmentsEditorRoute";
 import { ApartmentsEditorLayout } from "@/components/ApartmentsEditorLayout";
 import { AdvisorRoute } from "@/components/portal/AdvisorRoute";
 import { ClientRoute } from "@/components/portal/ClientRoute";
+import { PortalLayout } from "@/components/portal/PortalLayout";
 const CrmDashboard = lazy(() => import("./pages/crm/admin/CrmDashboard"));
 const CrmAnalytics = lazy(() => import("./pages/crm/admin/CrmAnalytics"));
 const CrmAgentManagement = lazy(() => import("./pages/crm/admin/AgentManagement"));
@@ -292,10 +301,23 @@ const App = () => (
               {/* ========================================== */}
               <Route path="/portal/login" element={<PortalLogin />} />
               <Route path="/portal/advisor" element={<AdvisorRoute />}>
-                <Route path="dashboard" element={<AdvisorDashboard />} />
+                <Route element={<PortalLayout />}>
+                  <Route path="dashboard" element={<AdvisorDashboard />} />
+                  <Route path="clients" element={<AdvisorClients />} />
+                  <Route path="policies" element={<AdvisorPolicies />} />
+                  <Route path="policies/new" element={<PolicyForm />} />
+                  <Route path="policies/:id" element={<PolicyDetail />} />
+                  <Route path="policies/:id/edit" element={<PolicyForm />} />
+                  <Route path="documents" element={<AdvisorDocuments />} />
+                  <Route path="invite" element={<ClientInvite />} />
+                </Route>
               </Route>
               <Route path="/portal/client" element={<ClientRoute />}>
-                <Route path="dashboard" element={<ClientDashboard />} />
+                <Route element={<PortalLayout />}>
+                  <Route path="dashboard" element={<ClientDashboard />} />
+                  <Route path="policies" element={<ClientPolicies />} />
+                  <Route path="documents" element={<ClientDocuments />} />
+                </Route>
               </Route>
 
               {/* CRM Routes */}
