@@ -3,9 +3,7 @@ import { Header } from '../components/home/Header';
 import { Footer } from '../components/home/Footer';
 import { Hero } from '../components/home/sections/Hero';
 import { WakeUpCall } from '../components/homepage/WakeUpCall';
-import { SilentKillers } from '../components/homepage/SilentKillers';
-import { TaxBuckets } from '../components/homepage/TaxBuckets';
-import { IndexedAdvantage } from '../components/homepage/IndexedAdvantage';
+import { StackingCards } from '../components/homepage/StackingCards';
 import { WealthPhilosophy } from '../components/homepage/WealthPhilosophy';
 import { FiduciaryDifference } from '../components/homepage/FiduciaryDifference';
 import { TheGap } from '../components/homepage/TheGap';
@@ -26,9 +24,7 @@ function Home() {
       <main className="flex-grow">
         <Hero />
         <WakeUpCall />
-        <SilentKillers />
-        <TaxBuckets />
-        <IndexedAdvantage />
+        <StackingCards />
         <WealthPhilosophy />
         <FiduciaryDifference />
         <TheGap />
