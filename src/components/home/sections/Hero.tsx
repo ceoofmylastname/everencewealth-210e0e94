@@ -135,7 +135,7 @@ export const Hero: React.FC = () => {
       </motion.div>
 
       {/* Main content */}
-      <div className="relative z-10 container mx-auto px-4 text-center pt-24 md:pt-32 pb-32 md:pb-40">
+      <div className="relative z-10 container mx-auto px-4 text-center pt-20 md:pt-24 pb-24 md:pb-32">
         {/* Top badge */}
         <motion.div
           className="mb-8"
@@ -148,7 +148,7 @@ export const Hero: React.FC = () => {
           </span>
         </motion.div>
 
-        <div className="space-y-0 leading-none">
+        <div className="leading-none -space-y-2 md:-space-y-4">
           <h1 className="font-space font-bold uppercase tracking-tight">
             {/* BRIDGE the — same line */}
             <motion.span
@@ -199,7 +199,7 @@ export const Hero: React.FC = () => {
 
         {/* Subline */}
         <motion.div
-          className="mt-8 max-w-xl mx-auto space-y-4"
+          className="mt-4 max-w-xl mx-auto space-y-3"
           initial={{ opacity: 0, y: 30 }}
           animate={stage >= 4 ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.6, ease: 'easeOut' }}
@@ -217,7 +217,7 @@ export const Hero: React.FC = () => {
 
       {/* Bottom HUD panel */}
       <motion.div
-        className="absolute bottom-8 md:bottom-12 left-1/2 -translate-x-1/2 z-20 w-[92%] max-w-4xl"
+        className="absolute bottom-4 md:bottom-8 left-1/2 -translate-x-1/2 z-20 w-[92%] max-w-4xl"
         initial={{ opacity: 0, y: 80 }}
         animate={stage >= 4 ? { opacity: 1, y: 0 } : {}}
         transition={{ type: 'spring', stiffness: 120, damping: 18, mass: 1 }}
