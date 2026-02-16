@@ -1,44 +1,75 @@
 
 
-## Fix: Duplicate Slug Error in Comparison Generator
+## Revamp Comparison Generator: English-First with AI Images and Full JSON-LD
 
-### Problem
+### Overview
 
-When you generate a "Term Life vs Whole Life" comparison, it produces a deterministic slug like `term-life-vs-whole-life-insurance-2025`. Since you already have comparisons with that slug in the database, the insert fails with a **409 duplicate key** error. This cascades into the Spanish translation also failing because the English comparison was never saved (so there is no `comparison_id` to pass).
+Change the comparison workflow to generate English only, then let you manually translate and publish. Add AI-generated featured images via Nano Banana Pro and enrich the public-facing comparison page with full structured data (JSON-LD).
 
-### Solution
+---
 
-Two changes to make the flow resilient to duplicate slugs:
+### 1. English-Only Generation (Admin Side)
 
-**1. Frontend: Use `upsert` or append a suffix to avoid slug collisions** (`src/pages/admin/ComparisonGenerator.tsx`)
+**File: `src/pages/admin/ComparisonGenerator.tsx`**
 
-- Before inserting, check if the slug already exists in the database
-- If it does, append a numeric suffix (e.g., `-2`, `-3`) to make the slug unique
-- After a successful insert, capture the returned `id` so the translation step has a valid `comparison_id`
-- Use `.insert(...).select().single()` so the saved record (with its `id`) is available for the next step
+- Remove multi-language generation from the "Create Comparison" form -- always generate English only
+- Remove the language selector checkboxes from the generation form
+- After English comparison is saved, immediately generate a featured image using the existing `generate-image` edge function (which already uses Nano Banana Pro and topic-aware prompts)
+- Save the image URL, auto-generated alt text (from headline), and caption to the comparison record
+- Translation happens separately via the existing "Translate" button in the Manage tab (already wired to `translate-comparison` edge function)
+- The publish toggle button already exists in the Manage tab -- no changes needed there
 
-**2. Frontend: Pass the saved English record's `id` to the translate call**
+### 2. AI Image Generation for Comparisons
 
-Currently `englishComparison` is set from the edge function response, which has no `id`. After the DB insert succeeds, update `englishComparison` with the returned record so `.id` is available for the Spanish translation call.
+**File: `src/pages/admin/ComparisonGenerator.tsx` (generation mutation)**
 
-### Technical Details
+After saving the English comparison to the database:
+- Call the existing `generate-image` edge function with the comparison headline
+- Download the temporary Fal.ai URL and upload to the `article-images` storage bucket (same pattern used in `MediaSection.tsx`)
+- Update the comparison record with:
+  - `featured_image_url`: the permanent storage URL
+  - `featured_image_alt`: `"{Option A} vs {Option B} - {headline}"`
+  - `featured_image_caption`: `"{headline} - Everence Wealth"`
 
-**File: `src/pages/admin/ComparisonGenerator.tsx` (lines ~217-228)**
+**File: `supabase/functions/translate-comparison/index.ts`**
 
-- Change the insert to use `.insert({...}).select().single()` to get the saved record back
-- Before inserting, query for existing slugs matching the base slug and generate a unique variant
-- After English insert succeeds, set `englishComparison` to the saved record (which includes `id`)
+Already copies `featured_image_url` from source and translates `featured_image_alt` and `featured_image_caption` -- no changes needed.
 
-```text
-Flow before fix:
-  generate-comparison -> comparison (no id)
-  insert comparison -> 409 FAIL (duplicate slug)
-  translate-comparison(id=undefined) -> 400 FAIL
+### 3. Full JSON-LD Structured Data on Public Page
 
-Flow after fix:
-  generate-comparison -> comparison (no id)
-  check slug exists -> append suffix if needed
-  insert comparison -> SUCCESS, returns record with id
-  translate-comparison(id=saved_record.id) -> SUCCESS
-```
+**File: `src/pages/ComparisonPage.tsx`**
+
+Replace the basic inline Article schema with the full schema set from `comparisonSchemaGenerator.ts` (which already exists but is unused):
+
+- **Article schema** with author, publisher, image object, citations
+- **FAQ schema** from `qa_entities` array
+- **Speakable schema** targeting `.speakable-answer`, `.comparison-summary`, `.final-verdict` CSS selectors
+- **Breadcrumb schema** (Home > Comparisons > Topic)
+- **Image schema** with `url`, `caption`, `description`, `contentUrl`
+- **Table schema** for the quick comparison table
+
+All schemas will be rendered as separate `<script type="application/ld+json">` blocks in the `<Helmet>`.
+
+The existing `generateAllComparisonSchemas()` function handles all of this -- it just needs to be imported and called with the comparison data.
+
+**Update BASE_URL**: The schema generator file currently uses `delsolprimehomes.com` -- update to `everencewealth.com` to match the brand pivot.
+
+### 4. Speakable Header Enhancement
+
+**File: `src/components/comparison/SpeakableBox.tsx`**
+
+Already has the correct CSS classes (`speakable-answer`, `comparison-summary`) that the Speakable schema targets. No changes needed to the component itself.
+
+The Speakable JSON-LD schema (from step 3) will reference these CSS selectors, telling search engines which content is suitable for voice/audio reading.
+
+---
+
+### Technical Summary
+
+| Change | File |
+|---|---|
+| Remove multi-lang from generation form, add image gen after save | `src/pages/admin/ComparisonGenerator.tsx` |
+| Use full schema generator on public page | `src/pages/ComparisonPage.tsx` |
+| Update BASE_URL to everencewealth.com | `src/lib/comparisonSchemaGenerator.ts` |
+| No changes needed | `translate-comparison` edge function, `SpeakableBox.tsx`, Manage tab |
 
