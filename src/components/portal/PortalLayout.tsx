@@ -20,6 +20,7 @@ const advisorNav = [
   { label: "Training", icon: FileText, href: "/portal/advisor/training" },
   { label: "Marketing", icon: FileText, href: "/portal/advisor/marketing" },
   { label: "Schedule", icon: FileText, href: "/portal/advisor/schedule" },
+  { label: "Compliance", icon: Shield, href: "/portal/advisor/compliance" },
   { label: "Documents", icon: FolderOpen, href: "/portal/advisor/documents" },
   { label: "Invite Client", icon: Send, href: "/portal/advisor/invite" },
   { label: "Messages", icon: MessageSquare, href: "/portal/advisor/messages" },
