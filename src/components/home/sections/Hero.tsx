@@ -1,6 +1,5 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown } from 'lucide-react';
 
 const RETIREMENT_LETTERS = 'RETIREMENT'.split('');
 
@@ -99,6 +98,24 @@ export const Hero: React.FC = () => {
         </p>
       </motion.div>
 
+      {/* Corner decorations */}
+      <motion.div
+        className="absolute bottom-6 left-8 z-10"
+        initial={{ opacity: 0 }}
+        animate={stage >= 4 ? { opacity: 1 } : {}}
+        transition={{ duration: 0.5 }}
+      >
+        <span className="text-[11px] font-space font-bold tracking-[0.3em] text-white/15">01</span>
+      </motion.div>
+      <motion.div
+        className="absolute top-6 right-8 z-10"
+        initial={{ opacity: 0 }}
+        animate={stage >= 4 ? { opacity: 1 } : {}}
+        transition={{ duration: 0.5 }}
+      >
+        <span className="text-[11px] font-space font-bold tracking-[0.3em] text-primary">2028</span>
+      </motion.div>
+
       {/* Center dot (stage 0) */}
       <motion.div
         className="absolute z-20"
@@ -119,16 +136,29 @@ export const Hero: React.FC = () => {
 
       {/* Main content */}
       <div className="relative z-10 container mx-auto px-4 text-center pt-24 md:pt-32 pb-32 md:pb-40">
+        {/* Top badge */}
+        <motion.div
+          className="mb-8"
+          initial={{ opacity: 0, y: -20 }}
+          animate={stage >= 1 ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+        >
+          <span className="inline-block px-5 py-2 rounded-full border border-white/10 bg-white/[0.03] text-[10px] font-space font-semibold tracking-[0.3em] uppercase text-white/40">
+            Established 1998 · Independent Fiduciary
+          </span>
+        </motion.div>
+
         <div className="space-y-0 leading-none">
           <h1 className="font-space font-bold uppercase tracking-tight">
-            {/* BRIDGE the */}
+            {/* BRIDGE the — same line */}
             <motion.span
-              className="block text-[7vw] md:text-[5vw] lg:text-[4vw] text-white/90"
+              className="flex items-baseline justify-center gap-3 md:gap-4"
               initial={{ opacity: 0, x: -60, filter: 'blur(12px)' }}
               animate={stage >= 1 ? { opacity: 1, x: 0, filter: 'blur(0px)' } : {}}
               transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
             >
-              BRIDGE the
+              <span className="text-[12vw] md:text-[9vw] lg:text-[7vw] text-white font-bold">BRIDGE</span>
+              <span className="text-[5vw] md:text-[3.5vw] lg:text-[2.8vw] text-white/50 font-light">the</span>
             </motion.span>
 
             {/* RETIREMENT — letter by letter */}
@@ -168,48 +198,53 @@ export const Hero: React.FC = () => {
         </div>
 
         {/* Subline */}
-        <motion.p
-          className="mt-8 text-white/50 font-space text-sm md:text-base tracking-[0.15em] uppercase max-w-xl mx-auto"
+        <motion.div
+          className="mt-8 max-w-xl mx-auto space-y-4"
           initial={{ opacity: 0, y: 30 }}
           animate={stage >= 4 ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.6, ease: 'easeOut' }}
         >
-          Tax-efficient wealth strategies · Fiduciary guidance · Zero Wall Street games
-        </motion.p>
+          <div className="text-base md:text-lg font-space">
+            <span className="text-white/80">Stop funding Wall Street's wealth.</span>
+            <br />
+            <span className="text-primary italic">Start building yours.</span>
+          </div>
+          <p className="text-[10px] font-space font-semibold tracking-[0.2em] uppercase text-white/25 max-w-md mx-auto leading-relaxed">
+            You've been sold a myth. Save and hope? That's a gamble. We reclaim control.
+          </p>
+        </motion.div>
       </div>
-
-      {/* Scroll indicator */}
-      <motion.div
-        className="absolute bottom-[140px] md:bottom-[160px] left-1/2 -translate-x-1/2 z-20"
-        initial={{ opacity: 0 }}
-        animate={stage >= 4 ? { opacity: 1 } : {}}
-        transition={{ delay: 0.3, duration: 0.5 }}
-      >
-        <ChevronDown className="w-5 h-5 text-white/30 animate-scroll-indicator" />
-      </motion.div>
 
       {/* Bottom HUD panel */}
       <motion.div
-        className="absolute bottom-8 md:bottom-12 left-1/2 -translate-x-1/2 z-20 w-[90%] max-w-2xl"
+        className="absolute bottom-8 md:bottom-12 left-1/2 -translate-x-1/2 z-20 w-[92%] max-w-4xl"
         initial={{ opacity: 0, y: 80 }}
         animate={stage >= 4 ? { opacity: 1, y: 0 } : {}}
         transition={{ type: 'spring', stiffness: 120, damping: 18, mass: 1 }}
       >
-        <div className="glass-card rounded-2xl px-6 py-4 md:px-8 md:py-5 flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-6 text-white/40 text-[10px] font-space tracking-[0.2em] uppercase">
-            <span className="flex items-center gap-2">
+        <div className="glass-card rounded-2xl px-6 py-4 md:px-8 md:py-5 grid grid-cols-1 md:grid-cols-3 items-center gap-4 md:gap-6">
+          {/* Left */}
+          <div className="text-center md:text-left">
+            <span className="block text-[9px] font-space font-semibold tracking-[0.25em] uppercase text-white/30 mb-1">System Status</span>
+            <span className="flex items-center justify-center md:justify-start gap-2 text-[11px] font-space font-bold tracking-[0.15em] uppercase text-white/50">
               <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-              System Active
+              Analysis Active
             </span>
-            <span className="hidden md:inline">Independent Fiduciary</span>
-            <span className="hidden md:inline">75+ Carriers</span>
           </div>
-          <a
-            href="/assessment"
-            className="px-6 py-2.5 bg-primary text-primary-foreground font-space font-semibold text-xs tracking-[0.15em] uppercase rounded-xl hover:bg-primary/90 transition-colors"
-          >
-            Start Assessment
-          </a>
+          {/* Center */}
+          <div className="text-center border-y md:border-y-0 md:border-x border-white/[0.06] py-3 md:py-0 md:px-4">
+            <span className="block text-[9px] font-space font-semibold tracking-[0.25em] uppercase text-white/30 mb-1">Current Protocol</span>
+            <span className="text-[11px] font-space font-bold tracking-[0.1em] uppercase text-white/60">Tax-Free Bucket Optimization</span>
+          </div>
+          {/* Right */}
+          <div className="text-center md:text-right">
+            <a
+              href="/assessment"
+              className="inline-block px-6 py-2.5 border border-white/15 bg-white/[0.03] text-white/70 font-space font-semibold text-[11px] tracking-[0.15em] uppercase rounded-xl hover:bg-white/[0.06] hover:border-primary/30 transition-colors"
+            >
+              Begin Assessment
+            </a>
+          </div>
         </div>
       </motion.div>
     </section>
