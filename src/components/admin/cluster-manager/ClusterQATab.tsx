@@ -52,11 +52,11 @@ interface VerificationResults {
 const QAS_PER_ARTICLE = 4;
 const ARTICLES_PER_LANGUAGE = 6;
 const EXPECTED_QAS_PER_LANGUAGE = QAS_PER_ARTICLE * ARTICLES_PER_LANGUAGE;
-const TOTAL_LANGUAGES = 10;
+const TOTAL_LANGUAGES = 2;
 const EXPECTED_QAS_PER_CLUSTER = EXPECTED_QAS_PER_LANGUAGE * TOTAL_LANGUAGES;
 
-const TARGET_LANGUAGES = ['de', 'nl', 'fr', 'pl', 'sv', 'da', 'hu', 'fi', 'no'] as const;
-const MAX_PARALLEL_TRANSLATIONS = 3;
+const TARGET_LANGUAGES = ['es'] as const;
+const MAX_PARALLEL_TRANSLATIONS = 1;
 const REQUIRED_ARTICLES_PER_LANGUAGE = 6;
 
 const STALLED_THRESHOLD_MS = 5 * 60 * 1000;
@@ -768,18 +768,18 @@ export const ClusterQATab = ({
         if (qa.language) {
           languageCounts[qa.language] = (languageCounts[qa.language] || 0) + 1;
         }
-        // Check if translations JSONB has all 10 languages
+        // Check if translations JSONB has both languages
         const translations = qa.translations as Record<string, string> | null;
-        if (!translations || Object.keys(translations).length < 10) {
+        if (!translations || Object.keys(translations).length < 2) {
           missingJsonbCount++;
         }
       });
 
-      // Count complete groups (10 members each)
+      // Count complete groups (2 members each)
       let completeGroups = 0;
       let incompleteGroups = 0;
       groupCounts.forEach(count => {
-        if (count === 10) completeGroups++;
+        if (count === 2) completeGroups++;
         else incompleteGroups++;
       });
 
@@ -849,9 +849,9 @@ export const ClusterQATab = ({
     const confirmed = window.confirm(
       'This will automatically:\n' +
       '1. Generate 24 English Q&As (Phase 1)\n' +
-      '2. Translate to all 9 languages (Phase 2)\n' +
+      '2. Translate to Spanish (Phase 2)\n' +
       '3. Verify completeness\n\n' +
-      `Estimated time: 25-35 minutes\n` +
+      `Estimated time: 10-15 minutes\n` +
       'You can close this browser - progress is saved.\n\n' +
       'Continue?'
     );
@@ -886,13 +886,9 @@ export const ClusterQATab = ({
       // Refresh counts
       await fetchQACounts();
       
-      // Phase 2: Translate to all 9 languages (2 parallel at a time)
+      // Phase 2: Translate to Spanish
       const batches = [
-        ['de', 'nl'],
-        ['fr', 'pl'],
-        ['sv', 'da'],
-        ['hu', 'fi'],
-        ['no'],
+        ['es'],
       ];
 
       for (let batchIdx = 0; batchIdx < batches.length; batchIdx++) {
@@ -919,7 +915,7 @@ export const ClusterQATab = ({
       setGenerateAllProgress('Verifying...');
       await handleVerifyHreflang();
       
-      toast.success('🎉 All 240 Q&As generated and verified!');
+      toast.success('🎉 All 48 Q&As generated and verified!');
       
       // Invalidate parent cluster data to update header badges
       await queryClient.invalidateQueries({ queryKey: ['cluster-generations'] });
@@ -1156,7 +1152,7 @@ export const ClusterQATab = ({
                   Automatic Generation
                 </h3>
                 <p className="text-sm text-muted-foreground">
-                  Generate all 240 Q&As automatically. Progress is saved - you can resume if interrupted.
+                  Generate all 48 Q&As automatically. Progress is saved - you can resume if interrupted.
                 </p>
               </div>
               <Button
@@ -1172,7 +1168,7 @@ export const ClusterQATab = ({
                 ) : (
                   <>
                     <Rocket className="h-4 w-4 mr-2" />
-                    Generate All (25-35 min)
+                    Generate All (10-15 min)
                   </>
                 )}
               </Button>
@@ -1285,15 +1281,10 @@ export const ClusterQATab = ({
             {isPhase2Complete && <CheckCircle className="h-5 w-5 text-green-500" />}
           </CardTitle>
           <p className="text-sm text-muted-foreground">
-            Translate all 24 English Q&As to each language. ~2-3 min per language (batch mode).
+            Translate all 24 English Q&As to Spanish. ~2-3 min.
             {!isPhase1Complete && (
               <span className="text-amber-600 font-medium ml-1">
                 (Complete Phase 1 first: {englishQACount}/24 English Q&As)
-              </span>
-            )}
-            {isPhase1Complete && (
-              <span className="text-blue-600 font-medium ml-1">
-                Up to {MAX_PARALLEL_TRANSLATIONS} languages can run in parallel.
               </span>
             )}
           </p>
@@ -1406,7 +1397,7 @@ export const ClusterQATab = ({
             </div>
           )}
 
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 gap-3 max-w-md">
             {TARGET_LANGUAGES.map((lang) => {
               // Use local state for real-time updates, fallback to cluster prop for initial load
               const count = languageQACounts[lang] ?? (cluster.qa_pages[lang]?.total || 0);
@@ -1568,7 +1559,7 @@ export const ClusterQATab = ({
                   </div>
                 </div>
                 <div className={`p-3 rounded-lg ${verificationResults.incompleteGroups === 0 ? 'bg-green-100 dark:bg-green-950' : 'bg-amber-100 dark:bg-amber-950'}`}>
-                  <div className="text-sm font-medium">Complete Groups (10 langs each)</div>
+                  <div className="text-sm font-medium">Complete Groups (2 langs each)</div>
                   <div className="text-xl font-bold">
                     {verificationResults.completeGroups}/24
                     {verificationResults.incompleteGroups === 0 ? ' ✅' : ` (${verificationResults.incompleteGroups} incomplete)`}
@@ -1707,7 +1698,7 @@ export const ClusterQATab = ({
       {/* Language-by-Language Q&A Status */}
       <div className="space-y-2">
         <h4 className="text-sm font-medium">Q&As by Language (expected: 24 per language)</h4>
-        <div className="grid grid-cols-5 gap-2">
+        <div className="grid grid-cols-2 gap-2 max-w-md">
           {expectedLanguages.map((lang) => {
             const status = getQAStatusForLanguage(lang);
             const isMismatched = mismatchInfo.mismatched.some(m => m.lang === lang);
