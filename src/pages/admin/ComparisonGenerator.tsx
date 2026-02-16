@@ -86,6 +86,10 @@ export default function ComparisonGenerator() {
   
   // Backfill state for "Add All Missing" button
   const [backfillingTopic, setBackfillingTopic] = useState<string | null>(null);
+  
+  // Batch translate all state
+  const [batchTranslating, setBatchTranslating] = useState(false);
+  const [batchTranslateProgress, setBatchTranslateProgress] = useState({ current: 0, total: 0, status: '' });
 
   // Fetch existing comparisons
   const { data: comparisons, isLoading: loadingComparisons } = useQuery({
@@ -828,6 +832,60 @@ export default function ComparisonGenerator() {
                 </div>
               </CardHeader>
               <CardContent>
+                {/* Batch Translate All Button */}
+                {stats.incompleteTopics > 0 && (
+                  <div className="mb-6 p-4 rounded-lg border border-amber-200 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-800">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="font-semibold flex items-center gap-2">
+                          <Languages className="h-4 w-4" />
+                          {stats.incompleteTopics} comparison{stats.incompleteTopics > 1 ? 's' : ''} missing Spanish translation
+                        </h3>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          Translate all remaining English comparisons to Spanish in one click.
+                        </p>
+                      </div>
+                      <Button
+                        onClick={async () => {
+                          setBatchTranslating(true);
+                          setBatchTranslateProgress({ current: 0, total: 0, status: 'Starting batch translation...' });
+                          try {
+                            const { data, error } = await supabase.functions.invoke('batch-translate-comparisons', { body: {} });
+                            if (error) throw error;
+                            if (data.error) throw new Error(data.error);
+                            
+                            toast({
+                              title: "Batch translation complete",
+                              description: data.message,
+                              variant: data.errors?.length > 0 ? 'destructive' : 'default',
+                            });
+                            queryClient.invalidateQueries({ queryKey: ['admin-comparisons'] });
+                          } catch (err: any) {
+                            toast({ title: "Batch translation failed", description: err.message, variant: "destructive" });
+                          } finally {
+                            setBatchTranslating(false);
+                            setBatchTranslateProgress({ current: 0, total: 0, status: '' });
+                          }
+                        }}
+                        disabled={batchTranslating}
+                        className="shrink-0"
+                      >
+                        {batchTranslating ? (
+                          <>
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            Translating...
+                          </>
+                        ) : (
+                          <>
+                            <Languages className="h-4 w-4 mr-2" />
+                            Translate All to Spanish
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                )}
+                
                 {loadingComparisons ? (
                   <div className="flex justify-center py-8">
                     <Loader2 className="h-6 w-6 animate-spin" />
