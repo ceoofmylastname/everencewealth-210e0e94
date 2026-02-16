@@ -1,19 +1,31 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ExternalLink, Calculator, Wrench } from "lucide-react";
+import { ExternalLink, Calculator, Wrench, Search, Lock, ChevronDown, ChevronUp } from "lucide-react";
+
+const TOOL_TYPES = [
+  { key: "quick_quote", label: "Quick Quote" },
+  { key: "agent_portal", label: "Agent Portal" },
+  { key: "microsite", label: "Microsite" },
+  { key: "illustration_system", label: "Illustration System" },
+  { key: "application_portal", label: "Application Portal" },
+];
 
 export default function ToolsHub() {
   const [tools, setTools] = useState<any[]>([]);
   const [calculators, setCalculators] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedType, setSelectedType] = useState<string | null>(null);
+  const [expandedInstructions, setExpandedInstructions] = useState<string | null>(null);
 
   useEffect(() => {
     Promise.all([
-      supabase.from("quoting_tools").select("*, carriers(carrier_name)").order("tool_name"),
+      supabase.from("quoting_tools").select("*, carriers(carrier_name, carrier_logo_url)").order("tool_name"),
       supabase.from("calculators").select("*").eq("active", true).order("sort_order"),
     ]).then(([t, c]) => {
       setTools(t.data ?? []);
@@ -22,14 +34,37 @@ export default function ToolsHub() {
     });
   }, []);
 
-  if (loading) return <div className="flex justify-center py-12"><div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" /></div>;
+  const filteredTools = useMemo(() => {
+    let result = tools;
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      result = result.filter(
+        (t) =>
+          t.tool_name?.toLowerCase().includes(q) ||
+          t.carriers?.carrier_name?.toLowerCase().includes(q)
+      );
+    }
+    if (selectedType) {
+      result = result.filter((t) => t.tool_type === selectedType);
+    }
+    return result;
+  }, [tools, searchQuery, selectedType]);
 
-  const calcCategories = [...new Set(calculators.map(c => c.category))];
+  const calcCategories = [...new Set(calculators.map((c) => c.category))];
+
+  if (loading)
+    return (
+      <div className="flex justify-center py-12">
+        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-foreground" style={{ fontFamily: "'Playfair Display', serif" }}>Tools Hub</h1>
+        <h1 className="text-2xl font-bold text-foreground" style={{ fontFamily: "'Playfair Display', serif" }}>
+          Tools Hub
+        </h1>
         <p className="text-muted-foreground mt-1">Access quoting tools and financial calculators.</p>
       </div>
 
@@ -40,51 +75,156 @@ export default function ToolsHub() {
         </TabsList>
 
         <TabsContent value="quoting" className="mt-4 space-y-4">
-          {tools.length === 0 ? (
-            <p className="text-muted-foreground text-center py-8">No quoting tools available.</p>
-          ) : tools.map(t => (
-            <Card key={t.id}>
-              <CardContent className="p-4 flex items-center justify-between">
-                <div>
-                  <p className="font-medium text-foreground">{t.tool_name}</p>
-                  <div className="flex gap-2 mt-1">
-                    {t.carriers?.carrier_name && <Badge variant="outline" className="text-xs">{t.carriers.carrier_name}</Badge>}
-                    <Badge variant="secondary" className="text-xs capitalize">{t.tool_type?.replace(/_/g, " ")}</Badge>
-                    {t.requires_login && <Badge variant="secondary" className="text-xs">Login Required</Badge>}
-                  </div>
-                  {t.description && <p className="text-xs text-muted-foreground mt-1">{t.description}</p>}
-                </div>
-                <a href={t.tool_url} target="_blank" rel="noopener noreferrer">
-                  <Button variant="outline" size="sm"><ExternalLink className="h-3 w-3 mr-1" />Open</Button>
-                </a>
-              </CardContent>
-            </Card>
-          ))}
+          {/* Search */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search by tool or carrier name…"
+              className="pl-9"
+            />
+          </div>
+
+          {/* Type filter badges */}
+          <div className="flex flex-wrap gap-2">
+            <Badge
+              variant={selectedType === null ? "default" : "outline"}
+              className="cursor-pointer"
+              onClick={() => setSelectedType(null)}
+            >
+              All
+            </Badge>
+            {TOOL_TYPES.map((tt) => (
+              <Badge
+                key={tt.key}
+                variant={selectedType === tt.key ? "default" : "outline"}
+                className="cursor-pointer"
+                onClick={() => setSelectedType(selectedType === tt.key ? null : tt.key)}
+              >
+                {tt.label}
+              </Badge>
+            ))}
+          </div>
+
+          {/* Tools grid */}
+          {filteredTools.length === 0 ? (
+            <div className="text-center py-12">
+              <Search className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+              <p className="text-muted-foreground">No tools match your search.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredTools.map((t) => (
+                <Card key={t.id} className="flex flex-col">
+                  <CardContent className="p-4 flex flex-col flex-1 gap-3">
+                    {/* Logo + name */}
+                    <div className="flex items-center gap-3">
+                      {t.carriers?.carrier_logo_url ? (
+                        <img
+                          src={t.carriers.carrier_logo_url}
+                          alt={t.carriers.carrier_name}
+                          className="h-8 w-8 object-contain rounded"
+                        />
+                      ) : (
+                        <div className="h-8 w-8 rounded bg-muted flex items-center justify-center">
+                          <Wrench className="h-4 w-4 text-muted-foreground" />
+                        </div>
+                      )}
+                      <div className="min-w-0">
+                        <p className="font-medium text-foreground truncate">{t.tool_name}</p>
+                        {t.carriers?.carrier_name && (
+                          <p className="text-xs text-muted-foreground">{t.carriers.carrier_name}</p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Badges */}
+                    <div className="flex flex-wrap gap-1.5">
+                      <Badge variant="secondary" className="text-xs capitalize">
+                        {t.tool_type?.replace(/_/g, " ")}
+                      </Badge>
+                      {t.requires_login && (
+                        <Badge variant="outline" className="text-xs gap-1">
+                          <Lock className="h-3 w-3" /> Login Required
+                        </Badge>
+                      )}
+                    </div>
+
+                    {/* Description */}
+                    {t.description && (
+                      <p className="text-xs text-muted-foreground line-clamp-2">{t.description}</p>
+                    )}
+
+                    {/* Spacer */}
+                    <div className="flex-1" />
+
+                    {/* Login instructions expandable */}
+                    {t.login_instructions && (
+                      <div>
+                        <button
+                          onClick={() =>
+                            setExpandedInstructions(expandedInstructions === t.id ? null : t.id)
+                          }
+                          className="text-xs text-primary flex items-center gap-1 hover:underline"
+                        >
+                          Login Instructions
+                          {expandedInstructions === t.id ? (
+                            <ChevronUp className="h-3 w-3" />
+                          ) : (
+                            <ChevronDown className="h-3 w-3" />
+                          )}
+                        </button>
+                        {expandedInstructions === t.id && (
+                          <p className="text-xs text-muted-foreground mt-1 bg-muted/50 rounded p-2">
+                            {t.login_instructions}
+                          </p>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Open button */}
+                    <a href={t.tool_url} target="_blank" rel="noopener noreferrer">
+                      <Button variant="outline" size="sm" className="w-full">
+                        <ExternalLink className="h-3 w-3 mr-1" /> Open Tool
+                      </Button>
+                    </a>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
         </TabsContent>
 
         <TabsContent value="calculators" className="mt-4 space-y-6">
-          {calcCategories.map(cat => (
+          {calcCategories.map((cat) => (
             <div key={cat}>
-              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">{cat.replace(/_/g, " ")}</h3>
+              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+                {cat.replace(/_/g, " ")}
+              </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {calculators.filter(c => c.category === cat).map(c => (
-                  <Card key={c.id}>
-                    <CardContent className="p-4">
-                      <div className="flex items-start gap-3">
-                        <Calculator className="h-5 w-5 text-primary shrink-0 mt-0.5" />
-                        <div>
-                          <p className="font-medium text-foreground">{c.calculator_name}</p>
-                          <p className="text-xs text-muted-foreground mt-1">{c.description}</p>
-                          {c.external_url && (
-                            <a href={c.external_url} target="_blank" rel="noopener noreferrer">
-                              <Button variant="link" size="sm" className="px-0 mt-1"><ExternalLink className="h-3 w-3 mr-1" />Open</Button>
-                            </a>
-                          )}
+                {calculators
+                  .filter((c) => c.category === cat)
+                  .map((c) => (
+                    <Card key={c.id}>
+                      <CardContent className="p-4">
+                        <div className="flex items-start gap-3">
+                          <Calculator className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                          <div>
+                            <p className="font-medium text-foreground">{c.calculator_name}</p>
+                            <p className="text-xs text-muted-foreground mt-1">{c.description}</p>
+                            {c.external_url && (
+                              <a href={c.external_url} target="_blank" rel="noopener noreferrer">
+                                <Button variant="link" size="sm" className="px-0 mt-1">
+                                  <ExternalLink className="h-3 w-3 mr-1" />Open
+                                </Button>
+                              </a>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                      </CardContent>
+                    </Card>
+                  ))}
               </div>
             </div>
           ))}
