@@ -14,6 +14,7 @@ import { HomepageAbout } from '../components/homepage/HomepageAbout';
 import { Stats } from '../components/homepage/Stats';
 import { Assessment } from '../components/homepage/Assessment';
 import { FAQ } from '../components/homepage/FAQ';
+import { BlogPreview } from '../components/homepage/BlogPreview';
 import { CTA } from '../components/homepage/CTA';
 import { CursorGlow } from '../components/CursorGlow';
 
@@ -36,6 +37,7 @@ function Home() {
         <Stats />
         <Assessment />
         <FAQ />
+        <BlogPreview />
         <CTA />
       </main>
       <Footer />
