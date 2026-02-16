@@ -119,10 +119,10 @@ export const Hero: React.FC = () => {
       </motion.div>
 
       {/* Main content */}
-      <div className="relative z-10 container mx-auto px-4 text-center pt-16 md:pt-20 pb-24 md:pb-32">
+      <div className="relative z-10 container mx-auto px-4 text-center pt-24 md:pt-16 pb-28 md:pb-24 flex flex-col items-center justify-center min-h-[100svh]">
         {/* Top badge */}
         <motion.div
-          className="mb-10"
+          className="mb-6 md:mb-8"
           initial={{ opacity: 0, y: -20 }}
           animate={stage >= 1 ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
@@ -132,7 +132,7 @@ export const Hero: React.FC = () => {
           </span>
         </motion.div>
 
-        <div className="leading-none -space-y-1 md:-space-y-2">
+        <div className="leading-none -space-y-2 md:-space-y-3">
           <h1 className="font-hero font-black uppercase tracking-tighter">
             {/* BRIDGE the — same line */}
             <motion.span
@@ -141,12 +141,12 @@ export const Hero: React.FC = () => {
               animate={stage >= 1 ? { opacity: 1, x: 0, filter: 'blur(0px)' } : {}}
               transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
             >
-              <span className="text-[13vw] md:text-[9vw] lg:text-[7.5vw] text-white">BRIDGE</span>
-              <span className="text-[5vw] md:text-[3.5vw] lg:text-[2.8vw] text-white/40 font-light tracking-normal italic font-serif">the</span>
+              <span className="text-[13vw] md:text-[8vw] lg:text-[6.5vw] text-white">BRIDGE</span>
+              <span className="text-[5vw] md:text-[3vw] lg:text-[2.4vw] text-white/40 font-light tracking-normal italic font-serif">the</span>
             </motion.span>
 
             {/* RETIREMENT — letter by letter with sweep */}
-            <span className="block text-[14vw] md:text-[11vw] lg:text-[9vw] overflow-hidden">
+            <span className="block text-[13vw] md:text-[10vw] lg:text-[8vw] overflow-hidden">
               {RETIREMENT_LETTERS.map((letter, i) => (
                 <motion.span
                   key={i}
@@ -165,9 +165,9 @@ export const Hero: React.FC = () => {
               ))}
             </span>
 
-            {/* GAP — slam, much larger */}
+            {/* GAP — slam */}
             <motion.span
-              className="block text-[28vw] md:text-[20vw] lg:text-[16vw] text-outline leading-[0.85]"
+              className="block text-[22vw] md:text-[16vw] lg:text-[13vw] text-outline leading-[0.8]"
               initial={{ opacity: 0, y: 100, scale: 2.5 }}
               animate={stage >= 3 ? { opacity: 1, y: 0, scale: 1 } : {}}
               transition={{
@@ -184,17 +184,17 @@ export const Hero: React.FC = () => {
 
         {/* Subline */}
         <motion.div
-          className="mt-6 max-w-xl mx-auto space-y-3"
+          className="mt-4 max-w-xl mx-auto space-y-2"
           initial={{ opacity: 0, y: 30 }}
           animate={stage >= 4 ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.6, ease: 'easeOut' }}
         >
-          <div className="text-base md:text-lg font-hero font-medium">
+          <div className="text-sm md:text-base font-hero font-medium">
             <span className="text-white/80">Stop funding Wall Street's wealth.</span>
             <br />
             <span className="text-primary italic">Start building yours.</span>
           </div>
-          <p className="text-[10px] font-hero font-semibold tracking-[0.2em] uppercase text-white/25 max-w-md mx-auto leading-relaxed">
+          <p className="text-[9px] font-hero font-semibold tracking-[0.2em] uppercase text-white/25 max-w-md mx-auto leading-relaxed">
             You've been sold a myth. Save and hope? That's a gamble. We reclaim control.
           </p>
         </motion.div>
