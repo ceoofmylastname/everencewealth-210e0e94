@@ -1,56 +1,33 @@
 
 
-## Enhanced Client Notifications Page
+## Update Portal Invitation Email Branding
 
-### What Already Exists
-The page at `src/pages/portal/client/ClientNotifications.tsx` is already routed at `/portal/client/notifications` and has basic functionality: fetching, filtering by type, mark as read, mark all read, delete, and empty state. The `NotificationBell` component already links to this page.
+### Current State
+- The sender address is **already** `notifications@everencewealth.com` -- no change needed
+- `RESEND_API_KEY` is **already** configured in secrets -- no change needed
+- The email template needs branding updates (logo, colors, footer)
 
-### Enhancements to `src/pages/portal/client/ClientNotifications.tsx`
+### Changes to `supabase/functions/send-portal-invitation/index.ts`
 
-**1. Add Realtime Subscription**
-- Subscribe to `postgres_changes` on `portal_notifications` for `INSERT` events filtered by the client's `user_id`
-- New notifications appear instantly at the top of the list
-- Clean up channel on unmount (same pattern as `NotificationBell`)
+**Update the `emailHtml` template** (lines 83-111):
 
-**2. Add Type-Based Icons**
-- `document` type: FileText icon
-- `message` type: MessageSquare icon
-- `policy` type: Shield icon
-- `system` type: Settings icon
-- Default: Bell icon
-- Each icon gets a colored background circle for visual distinction
+1. **Add logo image** at the top of the email header:
+   - `<img src="https://everencewealth.com/logo-icon.png" alt="Everence Wealth" width="48" height="48" />`
 
-**3. Add "Unread" Filter Tab**
-- Update TYPE_FILTERS to include `{ value: "unread", label: "Unread" }` between "All" and "Documents"
-- Filter logic: when "unread" is selected, show only notifications where `read === false`
+2. **Update brand colors**:
+   - Headings: change `#1a2332` to Evergreen `#1A4D3E`
+   - CTA button: change `#2d5a3d` to `#1A4D3E` for consistency
 
-**4. Add Date Grouping**
-- Group notifications by: Today, Yesterday, This Week, Older
-- Each group gets a sticky date header label
-- Uses `isToday`, `isYesterday`, `isThisWeek` from date-fns
+3. **Add physical address in footer**:
+   - `455 Market St Ste 1940 PMB 350011, San Francisco, CA 94105`
 
-**5. Add Pagination (Load More)**
-- Initial fetch limited to 20 notifications
-- "Load More" button at bottom fetches next 20 using `.range()` offset
-- Button hidden when all notifications are loaded
-- Track `hasMore` state based on whether the fetch returned a full page
+4. **Remove the unused `signupUrl` variable** (line 73) -- only `portalSignupUrl` is used
 
-**6. Apply Everence Brand Styling**
-- Page background: Cream (#F0F2F1) via wrapper div
-- Unread notifications: Light evergreen background (#E8F2EF) instead of generic `bg-primary/5`
-- Read notifications: White background
-- Hover state: border highlight with `hover:border-[#1A4D3E]/20`
-- Page title color: Evergreen (#1A4D3E)
-- Empty state icon: CheckCircle instead of Bell, with "You're all caught up!" message
+### What Does NOT Need to Change
+- Sender email (`notifications@everencewealth.com`) is already correct
+- `RESEND_API_KEY` secret is already set
+- CRM email functions use `crm@notifications.everencewealth.com` which is a separate subdomain and unrelated to this task
 
-### No Changes Needed
-- **NotificationBell**: Already links to `/portal/client/notifications` -- no modifications required
-- **Routing**: Already registered in `App.tsx`
-- **Database**: No schema or RLS changes needed
-
-### Technical Details
-- Imports added: `FileText`, `MessageSquare`, `Shield`, `Settings`, `CheckCircle` from lucide-react
-- Imports added: `isToday`, `isYesterday`, `isThisWeek` from date-fns
-- Realtime channel name: `"client-notifications-page"` (distinct from the bell's channel)
-- Pagination uses Supabase `.range(offset, offset + 19)` for cursor-based loading
+### Domain Verification Note
+For production delivery from `notifications@everencewealth.com`, the domain `everencewealth.com` must be verified in the Resend dashboard. This is an external step outside of Lovable -- you would add DNS records (SPF, DKIM, DMARC) in your domain registrar as directed by Resend's domain verification flow.
 
