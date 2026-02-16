@@ -104,11 +104,130 @@ export type Database = {
         }
         Relationships: []
       }
+      advisor_performance: {
+        Row: {
+          advancement_percent: number | null
+          advisor_id: string
+          appointments_held: number | null
+          appointments_set: number | null
+          clients_closed: number | null
+          comp_level_percent: number | null
+          cost_per_lead: number | null
+          created_at: string | null
+          dials_made: number | null
+          discount_percent: number | null
+          entry_date: string
+          expected_deferred_pay: number | null
+          expected_issue_pay: number | null
+          id: string
+          lead_type: string | null
+          leads_purchased: number | null
+          leads_worked: number | null
+          notes: string | null
+          revenue: number | null
+          total_lead_cost: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          advancement_percent?: number | null
+          advisor_id: string
+          appointments_held?: number | null
+          appointments_set?: number | null
+          clients_closed?: number | null
+          comp_level_percent?: number | null
+          cost_per_lead?: number | null
+          created_at?: string | null
+          dials_made?: number | null
+          discount_percent?: number | null
+          entry_date: string
+          expected_deferred_pay?: number | null
+          expected_issue_pay?: number | null
+          id?: string
+          lead_type?: string | null
+          leads_purchased?: number | null
+          leads_worked?: number | null
+          notes?: string | null
+          revenue?: number | null
+          total_lead_cost?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          advancement_percent?: number | null
+          advisor_id?: string
+          appointments_held?: number | null
+          appointments_set?: number | null
+          clients_closed?: number | null
+          comp_level_percent?: number | null
+          cost_per_lead?: number | null
+          created_at?: string | null
+          dials_made?: number | null
+          discount_percent?: number | null
+          entry_date?: string
+          expected_deferred_pay?: number | null
+          expected_issue_pay?: number | null
+          id?: string
+          lead_type?: string | null
+          leads_purchased?: number | null
+          leads_worked?: number | null
+          notes?: string | null
+          revenue?: number | null
+          total_lead_cost?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "advisor_performance_advisor_id_fkey"
+            columns: ["advisor_id"]
+            isOneToOne: false
+            referencedRelation: "advisors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      advisor_rank_config: {
+        Row: {
+          badge_color: string | null
+          compensation_level_percent: number
+          created_at: string | null
+          id: string
+          min_advisors_recruited: number | null
+          min_ytd_premium: number
+          rank_name: string
+          rank_order: number
+          updated_at: string | null
+        }
+        Insert: {
+          badge_color?: string | null
+          compensation_level_percent: number
+          created_at?: string | null
+          id?: string
+          min_advisors_recruited?: number | null
+          min_ytd_premium: number
+          rank_name: string
+          rank_order: number
+          updated_at?: string | null
+        }
+        Update: {
+          badge_color?: string | null
+          compensation_level_percent?: number
+          created_at?: string | null
+          id?: string
+          min_advisors_recruited?: number | null
+          min_ytd_premium?: number
+          rank_name?: string
+          rank_order?: number
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       advisors: {
         Row: {
+          agency_code: string | null
+          agency_id: string | null
           auth_user_id: string
           bio: string | null
           created_at: string
+          current_zone: string | null
           email: string
           first_name: string
           id: string
@@ -124,9 +243,12 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          agency_code?: string | null
+          agency_id?: string | null
           auth_user_id: string
           bio?: string | null
           created_at?: string
+          current_zone?: string | null
           email: string
           first_name: string
           id?: string
@@ -142,9 +264,12 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          agency_code?: string | null
+          agency_id?: string | null
           auth_user_id?: string
           bio?: string | null
           created_at?: string
+          current_zone?: string | null
           email?: string
           first_name?: string
           id?: string
@@ -161,10 +286,65 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "advisors_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agency_hierarchy"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "advisors_current_zone_fkey"
+            columns: ["current_zone"]
+            isOneToOne: false
+            referencedRelation: "zone_config"
+            referencedColumns: ["zone_key"]
+          },
+          {
             foreignKeyName: "advisors_portal_user_id_fkey"
             columns: ["portal_user_id"]
             isOneToOne: false
             referencedRelation: "portal_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agency_hierarchy: {
+        Row: {
+          agency_code: string
+          agency_name: string
+          compensation_structure: Json | null
+          created_at: string | null
+          id: string
+          manager_names: string[] | null
+          parent_agency_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          agency_code: string
+          agency_name: string
+          compensation_structure?: Json | null
+          created_at?: string | null
+          id?: string
+          manager_names?: string[] | null
+          parent_agency_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          agency_code?: string
+          agency_name?: string
+          compensation_structure?: Json | null
+          created_at?: string | null
+          id?: string
+          manager_names?: string[] | null
+          parent_agency_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agency_hierarchy_parent_agency_id_fkey"
+            columns: ["parent_agency_id"]
+            isOneToOne: false
+            referencedRelation: "agency_hierarchy"
             referencedColumns: ["id"]
           },
         ]
@@ -1020,6 +1200,98 @@ export type Database = {
           total_new_citations?: number | null
         }
         Relationships: []
+      }
+      calculators: {
+        Row: {
+          active: boolean | null
+          calculator_name: string
+          calculator_type: string | null
+          category: string
+          config: Json | null
+          created_at: string | null
+          description: string | null
+          external_url: string | null
+          id: string
+          sort_order: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          active?: boolean | null
+          calculator_name: string
+          calculator_type?: string | null
+          category: string
+          config?: Json | null
+          created_at?: string | null
+          description?: string | null
+          external_url?: string | null
+          id?: string
+          sort_order?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          active?: boolean | null
+          calculator_name?: string
+          calculator_type?: string | null
+          category?: string
+          config?: Json | null
+          created_at?: string | null
+          description?: string | null
+          external_url?: string | null
+          id?: string
+          sort_order?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      carrier_news: {
+        Row: {
+          article_type: string | null
+          carrier_id: string | null
+          content: string
+          created_at: string | null
+          id: string
+          priority: string | null
+          published_at: string | null
+          status: string | null
+          title: string
+          updated_at: string | null
+          views: number | null
+        }
+        Insert: {
+          article_type?: string | null
+          carrier_id?: string | null
+          content: string
+          created_at?: string | null
+          id?: string
+          priority?: string | null
+          published_at?: string | null
+          status?: string | null
+          title: string
+          updated_at?: string | null
+          views?: number | null
+        }
+        Update: {
+          article_type?: string | null
+          carrier_id?: string | null
+          content?: string
+          created_at?: string | null
+          id?: string
+          priority?: string | null
+          published_at?: string | null
+          status?: string | null
+          title?: string
+          updated_at?: string | null
+          views?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "carrier_news_carrier_id_fkey"
+            columns: ["carrier_id"]
+            isOneToOne: false
+            referencedRelation: "carriers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       carriers: {
         Row: {
@@ -4043,6 +4315,51 @@ export type Database = {
           },
         ]
       }
+      lead_products: {
+        Row: {
+          active: boolean | null
+          badge_text: string | null
+          category: string
+          created_at: string | null
+          description: string | null
+          expected_conversion_rate: number | null
+          features: string[] | null
+          id: string
+          minimum_quantity: number | null
+          price_per_lead: number
+          product_name: string
+          updated_at: string | null
+        }
+        Insert: {
+          active?: boolean | null
+          badge_text?: string | null
+          category: string
+          created_at?: string | null
+          description?: string | null
+          expected_conversion_rate?: number | null
+          features?: string[] | null
+          id?: string
+          minimum_quantity?: number | null
+          price_per_lead: number
+          product_name: string
+          updated_at?: string | null
+        }
+        Update: {
+          active?: boolean | null
+          badge_text?: string | null
+          category?: string
+          created_at?: string | null
+          description?: string | null
+          expected_conversion_rate?: number | null
+          features?: string[] | null
+          id?: string
+          minimum_quantity?: number | null
+          price_per_lead?: number
+          product_name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       leads: {
         Row: {
           assigned_to: string | null
@@ -4549,6 +4866,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      marketing_resources: {
+        Row: {
+          category: string
+          created_at: string | null
+          description: string | null
+          download_count: number | null
+          file_url: string | null
+          id: string
+          resource_type: string
+          tags: string[] | null
+          thumbnail_url: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          description?: string | null
+          download_count?: number | null
+          file_url?: string | null
+          id?: string
+          resource_type: string
+          tags?: string[] | null
+          thumbnail_url?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          description?: string | null
+          download_count?: number | null
+          file_url?: string | null
+          id?: string
+          resource_type?: string
+          tags?: string[] | null
+          thumbnail_url?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       notifications: {
         Row: {
@@ -5347,6 +5706,109 @@ export type Database = {
           },
         ]
       }
+      quoting_tools: {
+        Row: {
+          carrier_id: string | null
+          created_at: string | null
+          description: string | null
+          featured: boolean | null
+          id: string
+          login_instructions: string | null
+          requires_login: boolean | null
+          tool_name: string
+          tool_type: string
+          tool_url: string
+          updated_at: string | null
+        }
+        Insert: {
+          carrier_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          featured?: boolean | null
+          id?: string
+          login_instructions?: string | null
+          requires_login?: boolean | null
+          tool_name: string
+          tool_type: string
+          tool_url: string
+          updated_at?: string | null
+        }
+        Update: {
+          carrier_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          featured?: boolean | null
+          id?: string
+          login_instructions?: string | null
+          requires_login?: boolean | null
+          tool_name?: string
+          tool_type?: string
+          tool_url?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quoting_tools_carrier_id_fkey"
+            columns: ["carrier_id"]
+            isOneToOne: false
+            referencedRelation: "carriers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rag_documents: {
+        Row: {
+          carrier_id: string | null
+          created_at: string | null
+          document_title: string
+          document_type: string
+          embeddings_generated: boolean | null
+          file_size: number | null
+          file_url: string
+          id: string
+          processing_error: string | null
+          processing_status: string | null
+          product_type: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          carrier_id?: string | null
+          created_at?: string | null
+          document_title: string
+          document_type: string
+          embeddings_generated?: boolean | null
+          file_size?: number | null
+          file_url: string
+          id?: string
+          processing_error?: string | null
+          processing_status?: string | null
+          product_type?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          carrier_id?: string | null
+          created_at?: string | null
+          document_title?: string
+          document_type?: string
+          embeddings_generated?: boolean | null
+          file_size?: number | null
+          file_url?: string
+          id?: string
+          processing_error?: string | null
+          processing_status?: string | null
+          product_type?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rag_documents_carrier_id_fkey"
+            columns: ["carrier_id"]
+            isOneToOne: false
+            referencedRelation: "carriers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       retargeting_leads: {
         Row: {
           created_at: string | null
@@ -5397,6 +5859,56 @@ export type Database = {
           utm_term?: string | null
         }
         Relationships: []
+      }
+      schedule_events: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          event_date: string
+          event_time: string
+          event_type: string | null
+          id: string
+          is_recurring: boolean | null
+          recurrence_rule: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          event_date: string
+          event_time: string
+          event_type?: string | null
+          id?: string
+          is_recurring?: boolean | null
+          recurrence_rule?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          event_date?: string
+          event_time?: string
+          event_type?: string | null
+          id?: string
+          is_recurring?: boolean | null
+          recurrence_rule?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "schedule_events_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "portal_users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       server_errors: {
         Row: {
@@ -5674,6 +6186,105 @@ export type Database = {
         }
         Relationships: []
       }
+      training_progress: {
+        Row: {
+          advisor_id: string
+          completed: boolean | null
+          completed_at: string | null
+          id: string
+          last_viewed_at: string | null
+          progress_percent: number | null
+          training_id: string
+        }
+        Insert: {
+          advisor_id: string
+          completed?: boolean | null
+          completed_at?: string | null
+          id?: string
+          last_viewed_at?: string | null
+          progress_percent?: number | null
+          training_id: string
+        }
+        Update: {
+          advisor_id?: string
+          completed?: boolean | null
+          completed_at?: string | null
+          id?: string
+          last_viewed_at?: string | null
+          progress_percent?: number | null
+          training_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "training_progress_advisor_id_fkey"
+            columns: ["advisor_id"]
+            isOneToOne: false
+            referencedRelation: "advisors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_progress_training_id_fkey"
+            columns: ["training_id"]
+            isOneToOne: false
+            referencedRelation: "trainings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trainings: {
+        Row: {
+          attachments: Json | null
+          category: string
+          completions: number | null
+          created_at: string | null
+          description: string | null
+          duration_minutes: number | null
+          id: string
+          level: string | null
+          status: string | null
+          thumbnail_url: string | null
+          title: string
+          transcript: string | null
+          updated_at: string | null
+          video_url: string | null
+          views: number | null
+        }
+        Insert: {
+          attachments?: Json | null
+          category: string
+          completions?: number | null
+          created_at?: string | null
+          description?: string | null
+          duration_minutes?: number | null
+          id?: string
+          level?: string | null
+          status?: string | null
+          thumbnail_url?: string | null
+          title: string
+          transcript?: string | null
+          updated_at?: string | null
+          video_url?: string | null
+          views?: number | null
+        }
+        Update: {
+          attachments?: Json | null
+          category?: string
+          completions?: number | null
+          created_at?: string | null
+          description?: string | null
+          duration_minutes?: number | null
+          id?: string
+          level?: string | null
+          status?: string | null
+          thumbnail_url?: string | null
+          title?: string
+          transcript?: string | null
+          updated_at?: string | null
+          video_url?: string | null
+          views?: number | null
+        }
+        Relationships: []
+      }
       translation_audit_log: {
         Row: {
           affected_language: string
@@ -5895,6 +6506,36 @@ export type Database = {
           notes?: string | null
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
+        }
+        Relationships: []
+      }
+      zone_config: {
+        Row: {
+          created_at: string | null
+          criteria: Json | null
+          description: string | null
+          id: string
+          zone_color: string
+          zone_key: string
+          zone_label: string
+        }
+        Insert: {
+          created_at?: string | null
+          criteria?: Json | null
+          description?: string | null
+          id?: string
+          zone_color: string
+          zone_key: string
+          zone_label: string
+        }
+        Update: {
+          created_at?: string | null
+          criteria?: Json | null
+          description?: string | null
+          id?: string
+          zone_color?: string
+          zone_key?: string
+          zone_label?: string
         }
         Relationships: []
       }
