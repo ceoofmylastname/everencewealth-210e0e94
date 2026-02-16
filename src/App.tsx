@@ -133,6 +133,8 @@ import { ApartmentsPropertiesInner } from "./pages/admin/ApartmentsProperties";
 // CRM Pages
 // Portal Pages
 const PortalLogin = lazy(() => import("./pages/portal/PortalLogin"));
+const PortalForgotPassword = lazy(() => import("./pages/portal/PortalForgotPassword"));
+const PortalResetPassword = lazy(() => import("./pages/portal/PortalResetPassword"));
 const AdvisorDashboard = lazy(() => import("./pages/portal/advisor/AdvisorDashboard"));
 const AdvisorClients = lazy(() => import("./pages/portal/advisor/AdvisorClients"));
 const AdvisorPolicies = lazy(() => import("./pages/portal/advisor/AdvisorPolicies"));
@@ -313,6 +315,8 @@ const App = () => (
               {/* PORTAL ROUTES (MUST BE BEFORE /:lang)     */}
               {/* ========================================== */}
               <Route path="/portal/login" element={<PortalLogin />} />
+              <Route path="/portal/forgot-password" element={<PortalForgotPassword />} />
+              <Route path="/portal/reset-password" element={<PortalResetPassword />} />
               <Route path="/portal/signup" element={<ClientSignup />} />
               <Route path="/portal/advisor" element={<AdvisorRoute />}>
                 <Route element={<PortalLayout />}>

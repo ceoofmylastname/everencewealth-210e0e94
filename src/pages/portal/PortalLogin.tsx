@@ -106,7 +106,15 @@ export default function PortalLogin() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-white/80">Password</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="password" className="text-white/80">Password</Label>
+                <a
+                  href="/portal/forgot-password"
+                  className="text-xs text-white/50 hover:text-[hsl(42,50%,55%)] transition-colors"
+                >
+                  Forgot Password?
+                </a>
+              </div>
               <div className="relative">
                 <Input
                   id="password"
@@ -126,6 +134,12 @@ export default function PortalLogin() {
                 </button>
               </div>
             </div>
+
+            {searchParams.get("reset") === "success" && (
+              <div className="rounded-lg bg-emerald-500/10 border border-emerald-500/20 p-3 text-sm text-emerald-300">
+                Password updated successfully. Sign in with your new password.
+              </div>
+            )}
 
             {(error || urlError) && (
               <div className="rounded-lg bg-red-500/10 border border-red-500/20 p-3 text-sm text-red-300">
