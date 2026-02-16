@@ -1,35 +1,26 @@
 
 
-# Phase 7.14: Complete Agent Sidebar Navigation
+# Fix: "Failed to load master prompt" Error
 
-## Overview
-Update the `advisorNav` array in `PortalLayout.tsx` to use the correct, distinct icons for each nav item -- matching the reference sidebar specification. Currently most items use `FileText` as a placeholder icon.
+## Root Cause
+The `content_settings` table is empty -- there is no row where `setting_key = 'master_content_prompt'`. The `MasterPromptEditor` component queries with `.single()`, which throws an error when no matching row exists, triggering the "Failed to load master prompt" toast.
 
-## Changes
+## Fix (2 changes)
 
-### Update `src/components/portal/PortalLayout.tsx`
+### 1. Seed the missing row (database migration)
+Insert a default row into `content_settings` so the editor has something to load:
 
-**1. Update imports** (line 5-8):
-- Add: `Building2`, `TrendingUp`, `Wrench`, `GraduationCap`, `Megaphone`, `Calendar`, `Newspaper`
-- Keep existing: `Shield`, `LogOut`, `LayoutDashboard`, `FileText`, `Users`, `Send`, `FolderOpen`, `Menu`, `X`, `ChevronRight`, `MessageSquare`
+```sql
+INSERT INTO content_settings (setting_key, setting_value)
+VALUES ('master_content_prompt', '')
+ON CONFLICT DO NOTHING;
+```
 
-**2. Update `advisorNav` icon assignments** (lines 12-27):
-| Nav Item | Current Icon | New Icon |
-|---|---|---|
-| Dashboard | LayoutDashboard | LayoutDashboard (no change) |
-| Clients | Users | Users (no change) |
-| Policies | FileText | FileText (no change) |
-| Carriers | Shield | Building2 |
-| News | FileText | Newspaper |
-| Performance | FileText | TrendingUp |
-| Tools | FileText | Wrench |
-| Training | FileText | GraduationCap |
-| Marketing | FileText | Megaphone |
-| Schedule | FileText | Calendar |
-| Compliance | Shield | Shield (no change) |
-| Documents | FolderOpen | FolderOpen (no change) |
-| Invite Client | Send | Send (no change) |
-| Messages | MessageSquare | MessageSquare (no change) |
+### 2. Harden `MasterPromptEditor.tsx` against missing data
+Update `loadPrompt` to use `.maybeSingle()` instead of `.single()`, and auto-create the row if it does not exist. This prevents the error from recurring if the row is ever deleted.
 
-No other structural changes needed -- the layout, brand header, user footer, mobile overlay, and client nav all remain unchanged.
+**Changes in `loadPrompt`:**
+- Replace `.single()` with `.maybeSingle()`
+- If `data` is `null` (no row found), insert a default empty row and set state to empty string
+- Keep existing error handling for actual database errors
 
