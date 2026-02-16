@@ -1,36 +1,33 @@
 
 
-## Fix Q&A Generation: Author ID + Legacy Prompts
+## Fix: English Q&A Count Always Shows 0/24
+
+### Problem
+
+The "Q&As by Language" display shows **0/24** for English even though 24 English Q&As exist in the database. Spanish shows correctly at 24/24.
 
 ### Root Cause
 
-The `generate-english-article-qas` edge function hardcodes `author_id: '738c1e24-025b-4f15-ac7c-541bb8a5dade'` (Hans Beeckman from the old project). Your database only has Steven Rosenberg (`1a709766-817f-45b4-aea6-06f8e4fc8d6c`). Every insert fails with a foreign key violation on `faq_pages_author_id_fkey`.
+In `ClusterQATab.tsx`, the Q&A counting logic (around line 201) explicitly **skips English** Q&As when building the `languageQACounts` dictionary:
 
-The same bad author ID exists in `translate-qas-to-language` (the Spanish Q&A translator), so that would also fail.
+```typescript
+if (qa.language && qa.language !== 'en' && TARGET_LANGUAGES.includes(...))
+```
 
-Additionally, both functions still use "real estate content writer" in prompts instead of wealth management.
+English Q&As are counted separately into `englishQACount` (line 188), but that value is **never written into `languageQACounts`**. So when `getQAStatusForLanguage('en')` checks `languageQACounts['en']` on line 990, it gets `undefined` and falls back to `cluster.qa_pages['en']?.total`, which is also 0.
 
----
+### Fix
 
-### Changes
+**File: `src/components/admin/cluster-manager/ClusterQATab.tsx`**
 
-#### 1. `supabase/functions/generate-english-article-qas/index.ts`
+After line 232 (`setLanguageQACounts(langCounts)`), add English to the counts dictionary **before** setting state:
 
-- **Line 249**: Change `author_id` from `'738c1e24-025b-4f15-ac7c-541bb8a5dade'` to `'1a709766-817f-45b4-aea6-06f8e4fc8d6c'` (Steven Rosenberg)
-- **Line 68**: Change prompt from "expert real estate content writer" to "expert wealth management content writer"
-- **Line 108**: Change system message from "expert real estate content writer" to "expert wealth management content writer"
-- **Line 88**: Update example from "Costa del Sol" property language to retirement/financial planning language
+- Insert `langCounts['en'] = englishQAs.length;` right before the `setLanguageQACounts(langCounts)` call (around line 231-232).
 
-#### 2. `supabase/functions/translate-qas-to-language/index.ts`
+This one-line addition ensures `getQAStatusForLanguage('en')` returns the correct count, and the UI tile turns green with "24/24".
 
-- **Line 682**: Change `author_id` from `'738c1e24-025b-4f15-ac7c-541bb8a5dade'` to `'1a709766-817f-45b4-aea6-06f8e4fc8d6c'` (Steven Rosenberg)
+### Result
 
-#### 3. Deploy both edge functions
-
----
-
-### What This Fixes
-
-- Q&A generation will succeed (no more FK violation)
-- Spanish Q&A translations will also work when you run Phase 2
-- Generated content will use wealth management language instead of real estate
+- English tile: green, showing **24/24** with the green checkmark
+- Spanish tile: unchanged, still **24/24**
+- No more "Q&A Count Mismatch" warning for this cluster
