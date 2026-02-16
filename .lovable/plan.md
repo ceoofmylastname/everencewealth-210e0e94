@@ -1,29 +1,44 @@
 
 
-## Fix: Agent Invitation Email Not Sending
+## Fix: Duplicate Slug Error in Comparison Generator
 
 ### Problem
-The `create-agent` edge function silently ignores email delivery failures:
-1. The Resend API response is never checked for errors (status code, error messages)
-2. Any exception is caught and only logged to console (which doesn't persist well in edge function logs)
-3. The function returns `success: true` even when the email fails
+
+When you generate a "Term Life vs Whole Life" comparison, it produces a deterministic slug like `term-life-vs-whole-life-insurance-2025`. Since you already have comparisons with that slug in the database, the insert fails with a **409 duplicate key** error. This cascades into the Spanish translation also failing because the English comparison was never saved (so there is no `comparison_id` to pass).
 
 ### Solution
 
-**File: `supabase/functions/create-agent/index.ts`**
+Two changes to make the flow resilient to duplicate slugs:
 
-1. **Check the Resend API response** for errors after the fetch call -- if Resend returns a non-2xx status, capture the error details
-2. **Return email status in the response** so the UI can show whether the invitation was sent or failed:
-   - `{ success: true, portal_user_id: "...", invitation_sent: true }` on success
-   - `{ success: true, portal_user_id: "...", invitation_sent: false, invitation_error: "Domain not verified" }` on email failure
-3. **Log the full Resend response** so failures are visible in the function logs
-4. **Fix the redirect URL** on line 153 -- the current code has a convoluted URL replacement that may produce an incorrect reset link
+**1. Frontend: Use `upsert` or append a suffix to avoid slug collisions** (`src/pages/admin/ComparisonGenerator.tsx`)
 
-**File: `src/pages/portal/admin/AdminAgentNew.tsx`**
+- Before inserting, check if the slug already exists in the database
+- If it does, append a numeric suffix (e.g., `-2`, `-3`) to make the slug unique
+- After a successful insert, capture the returned `id` so the translation step has a valid `comparison_id`
+- Use `.insert(...).select().single()` so the saved record (with its `id`) is available for the next step
 
-5. **Show a warning toast** if the agent was created but the invitation email failed, so you know to resend or troubleshoot:
-   - Success + email sent: green toast "Agent created and invitation sent"
-   - Success + email failed: yellow warning toast "Agent created but invitation email failed: [reason]"
+**2. Frontend: Pass the saved English record's `id` to the translate call**
 
-### Why the Email Likely Failed
-The Resend `from` address is `portal@everencewealth.com`. If the `everencewealth.com` domain hasn't been verified in your Resend account, Resend rejects the email silently. The fix will surface this error so you can see exactly what went wrong.
+Currently `englishComparison` is set from the edge function response, which has no `id`. After the DB insert succeeds, update `englishComparison` with the returned record so `.id` is available for the Spanish translation call.
+
+### Technical Details
+
+**File: `src/pages/admin/ComparisonGenerator.tsx` (lines ~217-228)**
+
+- Change the insert to use `.insert({...}).select().single()` to get the saved record back
+- Before inserting, query for existing slugs matching the base slug and generate a unique variant
+- After English insert succeeds, set `englishComparison` to the saved record (which includes `id`)
+
+```text
+Flow before fix:
+  generate-comparison -> comparison (no id)
+  insert comparison -> 409 FAIL (duplicate slug)
+  translate-comparison(id=undefined) -> 400 FAIL
+
+Flow after fix:
+  generate-comparison -> comparison (no id)
+  check slug exists -> append suffix if needed
+  insert comparison -> SUCCESS, returns record with id
+  translate-comparison(id=saved_record.id) -> SUCCESS
+```
+
