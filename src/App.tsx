@@ -141,6 +141,15 @@ const PolicyDetail = lazy(() => import("./pages/portal/advisor/PolicyDetail"));
 const AdvisorDocuments = lazy(() => import("./pages/portal/advisor/AdvisorDocuments"));
 const ClientInvite = lazy(() => import("./pages/portal/advisor/ClientInvite"));
 const AdvisorMessages = lazy(() => import("./pages/portal/advisor/AdvisorMessages"));
+const CarrierDirectory = lazy(() => import("./pages/portal/advisor/CarrierDirectory"));
+const CarrierDetail = lazy(() => import("./pages/portal/advisor/CarrierDetail"));
+const CarrierNewsPage = lazy(() => import("./pages/portal/advisor/CarrierNews"));
+const PerformanceTracker = lazy(() => import("./pages/portal/advisor/PerformanceTracker"));
+const ToolsHub = lazy(() => import("./pages/portal/advisor/ToolsHub"));
+const TrainingCenter = lazy(() => import("./pages/portal/advisor/TrainingCenter"));
+const TrainingDetail = lazy(() => import("./pages/portal/advisor/TrainingDetail"));
+const MarketingResources = lazy(() => import("./pages/portal/advisor/MarketingResources"));
+const SchedulePage = lazy(() => import("./pages/portal/advisor/SchedulePage"));
 const ClientDashboard = lazy(() => import("./pages/portal/client/ClientDashboard"));
 const ClientPolicies = lazy(() => import("./pages/portal/client/ClientPolicies"));
 const ClientDocuments = lazy(() => import("./pages/portal/client/ClientDocuments"));
@@ -315,6 +324,15 @@ const App = () => (
                   <Route path="documents" element={<AdvisorDocuments />} />
                   <Route path="invite" element={<ClientInvite />} />
                   <Route path="messages" element={<AdvisorMessages />} />
+                  <Route path="carriers" element={<CarrierDirectory />} />
+                  <Route path="carriers/:id" element={<CarrierDetail />} />
+                  <Route path="news" element={<CarrierNewsPage />} />
+                  <Route path="performance" element={<PerformanceTracker />} />
+                  <Route path="tools" element={<ToolsHub />} />
+                  <Route path="training" element={<TrainingCenter />} />
+                  <Route path="training/:id" element={<TrainingDetail />} />
+                  <Route path="marketing" element={<MarketingResources />} />
+                  <Route path="schedule" element={<SchedulePage />} />
                 </Route>
               </Route>
               <Route path="/portal/client" element={<ClientRoute />}>
