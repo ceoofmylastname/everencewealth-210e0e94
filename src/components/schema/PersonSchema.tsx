@@ -6,32 +6,32 @@ interface PersonSchemaProps {
 
 const PersonSchema: React.FC<PersonSchemaProps> = ({ context }) => {
     const photoUrl = context === 'blog'
-        ? 'https://www.delsolprimehomes.com/images/hans-blog.jpg'
-        : 'https://www.delsolprimehomes.com/images/hans-qa.jpg';
+        ? 'https://everencewealth.com/images/steven-blog.jpg'
+        : 'https://everencewealth.com/images/steven-qa.jpg';
 
     const personSchema = {
         "@context": "https://schema.org",
         "@type": "Person",
-        "@id": "https://www.delsolprimehomes.com/#hans-beeckman",
-        "name": "Hans Beeckman",
-        "jobTitle": "Senior Real Estate Advisor",
-        "description": "Expert in Costa del Sol luxury real estate with over 35 years of experience helping international clients find their dream properties in Southern Spain.",
+        "@id": "https://everencewealth.com/#steven-rosenberg",
+        "name": "Steven Rosenberg",
+        "jobTitle": "Founder & Chief Wealth Strategist",
+        "description": "Independent fiduciary advisor and founder of Everence Wealth, specializing in tax-efficient indexed retirement strategies. Over 25 years helping 1,200+ families bridge the retirement gap.",
         "image": photoUrl,
         "sameAs": [
-            "https://www.linkedin.com/in/hansbeeckman/"
+            "https://www.linkedin.com/in/stevenrosenberg/"
         ],
         "worksFor": {
             "@type": "Organization",
-            "@id": "https://www.delsolprimehomes.com/#organization",
-            "name": "Del Sol Prime Homes",
-            "url": "https://www.delsolprimehomes.com"
+            "@id": "https://everencewealth.com/#organization",
+            "name": "Everence Wealth",
+            "url": "https://everencewealth.com"
         },
         "knowsAbout": [
-            "Costa del Sol Real Estate",
-            "Luxury Property Sales",
-            "International Property Investment",
-            "Spanish Property Law",
-            "Expat Relocation Services"
+            "Indexed Universal Life Insurance",
+            "Tax-Free Retirement Strategies",
+            "Three Tax Buckets Framework",
+            "Fiduciary Financial Planning",
+            "Retirement Gap Analysis"
         ]
     };
 
