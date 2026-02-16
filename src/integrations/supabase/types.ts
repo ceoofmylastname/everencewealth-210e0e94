@@ -1304,8 +1304,11 @@ export type Database = {
           created_at: string
           featured: boolean
           id: string
+          niches: string[] | null
           notes: string | null
+          portal_url: string | null
           products_offered: string[] | null
+          short_code: string | null
           updated_at: string
         }
         Insert: {
@@ -1318,8 +1321,11 @@ export type Database = {
           created_at?: string
           featured?: boolean
           id?: string
+          niches?: string[] | null
           notes?: string | null
+          portal_url?: string | null
           products_offered?: string[] | null
+          short_code?: string | null
           updated_at?: string
         }
         Update: {
@@ -1332,8 +1338,11 @@ export type Database = {
           created_at?: string
           featured?: boolean
           id?: string
+          niches?: string[] | null
           notes?: string | null
+          portal_url?: string | null
           products_offered?: string[] | null
+          short_code?: string | null
           updated_at?: string
         }
         Relationships: []

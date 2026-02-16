@@ -43,8 +43,20 @@ export default function CarrierDetail() {
           <div className="h-16 w-16 rounded bg-primary/10 flex items-center justify-center"><Shield className="h-8 w-8 text-primary" /></div>
         )}
         <div>
-          <h1 className="text-2xl font-bold text-foreground" style={{ fontFamily: "'Playfair Display', serif" }}>{carrier.carrier_name}</h1>
-          {carrier.am_best_rating && <Badge variant="outline">AM Best: {carrier.am_best_rating}</Badge>}
+          <h1 className="text-2xl font-bold text-foreground" style={{ fontFamily: "'Playfair Display', serif" }}>
+            {carrier.carrier_name}
+            {carrier.short_code && <span className="text-base font-normal text-muted-foreground ml-2">({carrier.short_code})</span>}
+          </h1>
+          <div className="flex items-center gap-2 mt-1">
+            {carrier.am_best_rating && <Badge variant="outline">AM Best: {carrier.am_best_rating}</Badge>}
+            {carrier.portal_url && (
+              <a href={carrier.portal_url} target="_blank" rel="noopener noreferrer">
+                <Button variant="outline" size="sm" className="text-xs h-7">
+                  <ExternalLink className="h-3 w-3 mr-1" /> Agent Portal
+                </Button>
+              </a>
+            )}
+          </div>
         </div>
       </div>
 
@@ -54,6 +66,19 @@ export default function CarrierDetail() {
           <CardContent>
             <div className="flex flex-wrap gap-2">
               {carrier.products_offered.map((p: string) => <Badge key={p} variant="secondary">{p}</Badge>)}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {carrier.niches && carrier.niches.length > 0 && (
+        <Card>
+          <CardHeader><CardTitle className="text-lg">Specialties</CardTitle></CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap gap-2">
+              {carrier.niches.map((n: string) => (
+                <Badge key={n} variant="outline" className="capitalize">{n.replace(/_/g, " ")}</Badge>
+              ))}
             </div>
           </CardContent>
         </Card>
