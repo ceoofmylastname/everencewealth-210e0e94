@@ -1,43 +1,29 @@
 
 
-## Fix Infinite Recursion in Advisors RLS Policy
+## Fix: Agent Invitation Email Not Sending
 
 ### Problem
-The policy "Clients can view their advisor" on the `advisors` table contains this subquery:
-
-```sql
-SELECT a.id FROM advisors a JOIN portal_users pu ON (pu.advisor_id = a.portal_user_id)
-WHERE pu.auth_user_id = auth.uid()
-```
-
-This references the `advisors` table from within its own RLS policy, triggering infinite recursion.
+The `create-agent` edge function silently ignores email delivery failures:
+1. The Resend API response is never checked for errors (status code, error messages)
+2. Any exception is caught and only logged to console (which doesn't persist well in edge function logs)
+3. The function returns `success: true` even when the email fails
 
 ### Solution
 
-1. **Create a SECURITY DEFINER function** that retrieves the current user's advisor ID from `portal_users` without going through `advisors`:
+**File: `supabase/functions/create-agent/index.ts`**
 
-```sql
-CREATE OR REPLACE FUNCTION public.get_my_advisor_id(_auth_uid uuid)
-RETURNS uuid
-LANGUAGE sql STABLE SECURITY DEFINER
-SET search_path = public
-AS $$
-  SELECT advisor_id FROM portal_users
-  WHERE auth_user_id = _auth_uid AND role = 'client'
-  LIMIT 1;
-$$;
-```
+1. **Check the Resend API response** for errors after the fetch call -- if Resend returns a non-2xx status, capture the error details
+2. **Return email status in the response** so the UI can show whether the invitation was sent or failed:
+   - `{ success: true, portal_user_id: "...", invitation_sent: true }` on success
+   - `{ success: true, portal_user_id: "...", invitation_sent: false, invitation_error: "Domain not verified" }` on email failure
+3. **Log the full Resend response** so failures are visible in the function logs
+4. **Fix the redirect URL** on line 153 -- the current code has a convoluted URL replacement that may produce an incorrect reset link
 
-2. **Replace the recursive policy** with one that uses the new function:
+**File: `src/pages/portal/admin/AdminAgentNew.tsx`**
 
-```sql
-DROP POLICY "Clients can view their advisor" ON public.advisors;
+5. **Show a warning toast** if the agent was created but the invitation email failed, so you know to resend or troubleshoot:
+   - Success + email sent: green toast "Agent created and invitation sent"
+   - Success + email failed: yellow warning toast "Agent created but invitation email failed: [reason]"
 
-CREATE POLICY "Clients can view their advisor" ON public.advisors
-FOR SELECT USING (
-  portal_user_id = public.get_my_advisor_id(auth.uid())
-);
-```
-
-This eliminates the self-referencing subquery while preserving the same access logic: clients can only see the advisor assigned to them.
-
+### Why the Email Likely Failed
+The Resend `from` address is `portal@everencewealth.com`. If the `everencewealth.com` domain hasn't been verified in your Resend account, Resend rejects the email silently. The fix will surface this error so you can see exactly what went wrong.
