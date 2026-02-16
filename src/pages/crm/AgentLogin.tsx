@@ -152,8 +152,8 @@ export default function AgentLogin() {
         <CardHeader className="space-y-1 text-center pb-6 pt-8">
           <div className="flex items-center justify-center mb-4">
             <img 
-              src="https://storage.googleapis.com/msgsndr/9m2UBN29nuaCWceOgW2Z/media/6926151522d3b65c0becbaf4.png"
-              alt="Del Sol Prime Homes"
+              src="https://storage.googleapis.com/msgsndr/TLhrYb7SRrWrly615tCI/media/6993ada8dcdadb155342f28e.png"
+              alt="Everence Wealth"
               className="h-20 md:h-24 w-auto object-contain"
             />
           </div>

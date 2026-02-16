@@ -23,7 +23,7 @@ export const RetargetingFooter = ({ language = "en" }: RetargetingFooterProps) =
           {/* Logo */}
           <Link to={`/${language}`} className="inline-block">
             <img 
-              src="https://storage.googleapis.com/msgsndr/9m2UBN29nuaCWceOgW2Z/media/6926151522d3b65c0becbaf4.png"
+              src="https://storage.googleapis.com/msgsndr/TLhrYb7SRrWrly615tCI/media/6993ada8dcdadb155342f28e.png"
               alt="Everence Wealth"
               className="h-14 md:h-16 w-auto object-contain drop-shadow-[0_2px_4px_rgba(0,0,0,0.2)]"
             />
