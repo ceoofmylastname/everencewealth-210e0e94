@@ -1,87 +1,118 @@
 
 
-# Phase 9.7 -- Animation and Visual Polish
+# Phase 9.8 -- Integrate Uploaded Everence Wealth Structure
 
 ## Overview
-Add consistent scroll-triggered `framer-motion` animations to the remaining homepage sections that currently lack them, and create a subtle cursor glow effect component.
+Align the homepage with the uploaded Everence Wealth reference project. This means:
+1. Creating 5 new section components (TheGap, Stats, Assessment, FAQ, CTA)
+2. Removing old real-estate sections from the homepage flow
+3. Updating global styling to match the dark aesthetic (fonts, grain overlay, glass-card utility)
+4. Restructuring the Home.tsx section order
 
-## Current State
+---
 
-Sections already animated with framer-motion (no changes needed):
-- WakeUpCall, SilentKillers, TaxBuckets, IndexedAdvantage, WealthPhilosophy, FiduciaryDifference, HomepageAbout, Testimonials
+## What Changes
 
-Sections using older CSS `reveal-on-scroll` class (upgrade to framer-motion):
-- WhyChooseUs -- no animation at all
-- QuickSearch -- no animation at all
-- MiniAbout / USPSection (ContentBlocks.tsx) -- CSS reveal
-- FeaturedAreas -- CSS reveal on header/footer
-- Process -- CSS reveal
-- Reviews / BlogTeaser / GlossaryTeaser (ReviewsAndBlog.tsx) -- CSS reveal
-- Final CTA block in Home.tsx -- CSS reveal
+### Sections to KEEP (already built):
+- Hero, WakeUpCall, SilentKillers, TaxBuckets, IndexedAdvantage, WealthPhilosophy, FiduciaryDifference, HomepageAbout, Header, Footer, CursorGlow
 
-Hero stays as-is (above the fold, no scroll trigger needed).
+### Sections to REMOVE from homepage (files stay, just unused):
+- WhyChooseUs, QuickSearch, MiniAbout, USPSection, FeaturedAreas, Process, Reviews, BlogTeaser, GlossaryTeaser, Testimonials, Final CTA block
 
-## Changes
+### New Sections to CREATE:
 
-### 1. Shared animation wrapper: `src/components/homepage/ScrollReveal.tsx` (new file)
+**1. TheGap** (`src/components/homepage/TheGap.tsx`)
+- Visual section showing the "retirement gap" concept
+- Split layout: left side with a dramatic stat (e.g., "The average American has a $1.2M retirement shortfall"), right side with a simple line/bar visualization
+- Dark background (#020806), glass-card styling
+- Scroll-triggered animation via ScrollReveal
 
-A lightweight wrapper component using framer-motion:
+**2. Stats** (`src/components/homepage/Stats.tsx`)
+- Social proof / credibility metrics in a horizontal row
+- 4 animated counters: "27+ Years", "1,200+ Families Served", "75+ Carriers", "$500M+ Protected"
+- Uses existing `useAnimatedCounter` hook
+- Dark section with subtle border separators
 
-```tsx
-<motion.div
-  initial={{ opacity: 0, y: 60 }}
-  whileInView={{ opacity: 1, y: 0 }}
-  viewport={{ once: true, margin: "-100px" }}
-  transition={{ duration: 0.6, ease: "easeOut" }}
->
-  {children}
-</motion.div>
+**3. Assessment** (`src/components/homepage/Assessment.tsx`)
+- Call-to-action for the retirement gap assessment tool
+- Headline: "Find Out Where You Stand"
+- Brief 3-step process description (Answer Questions, Get Analysis, See Your Plan)
+- Primary CTA button: "Start Your Free Assessment" linking to /assessment
+- Dark gradient background with glass-card styling
+
+**4. FAQ** (`src/components/homepage/FAQ.tsx`)
+- Accordion-style FAQ section using Radix Accordion (already installed)
+- 6-8 common questions about fiduciary duty, IUL, fees, tax strategies
+- Dark background, white text, evergreen accents
+- Staggered reveal animation
+
+**5. CTA** (`src/components/homepage/CTA.tsx`)
+- Final call-to-action replacing the old Final CTA block
+- Headline: "Your Retirement Deserves Better"
+- Two buttons: "Schedule Assessment" and "Call Us Direct"
+- Dark background with radial glow effect
+- Replaces the old translation-dependent Final CTA
+
+### Updated Home.tsx Section Order:
+```
+Header
+CursorGlow
+Hero
+WakeUpCall
+SilentKillers
+TaxBuckets
+IndexedAdvantage
+WealthPhilosophy
+FiduciaryDifference
+TheGap        (NEW)
+HomepageAbout  (KEEP)
+Stats          (NEW)
+Assessment     (NEW)
+FAQ            (NEW)
+CTA            (NEW)
+Footer
 ```
 
-Props: `children`, optional `className`, optional `delay` (number).
+### Global Styling Updates
 
-### 2. Update sections without framer-motion
+**index.html:**
+- Update `<title>` to "Everence Wealth - Bridge the Retirement Gap"
+- Add Sora and Outfit font imports alongside existing fonts
+- Remove old LCP hero image preload (no longer used)
 
-**WhyChooseUs.tsx**: Wrap the section content in `<ScrollReveal>`. Add staggered card animation using `motion.div` with `variants` for each benefit card (0.1s stagger).
+**tailwind.config.ts:**
+- Add `evergreen: '#1A4D3E'` and `dark-bg: '#020806'` to colors
+- Add Sora to `fontFamily.sans` and Outfit as heading alternative
+- Add `glass-card` plugin utility (backdrop-blur + semi-transparent bg + border)
 
-**QuickSearch.tsx**: Wrap the outer container in `<ScrollReveal>`.
+**src/index.css (or global styles):**
+- Add `.grain-overlay::after` pseudo-element for film grain texture
+- Add `.glass-card` utility class
+- Add `::selection` color override (evergreen)
+- Hide scrollbar styling
 
-**ContentBlocks.tsx (MiniAbout + USPSection)**: Replace `reveal-on-scroll animate-fade-in-up` CSS classes with `<ScrollReveal>`. Replace `reveal-on-scroll stagger-N` on USP cards with `motion.div` variants (0.1s stagger).
+**Home.tsx:**
+- Remove all old real-estate section imports and JSX
+- Remove the legacy `reveal-on-scroll` IntersectionObserver useEffect (already mostly superseded by framer-motion)
+- Remove `useTranslation` import (no longer needed for final CTA)
+- Remove `LanguageSuggestionBanner` and `BlogEmmaChat` imports
+- Import the 5 new components
+- Set root div background to `bg-[#020806]` instead of `bg-slate-50`
 
-**FeaturedAreas.tsx**: Replace `reveal-on-scroll animate-fade-in-down` on the header with `<ScrollReveal>`. Replace `reveal-on-scroll` on mobile CTA.
+---
 
-**Process.tsx**: Replace `reveal-on-scroll animate-fade-in-down` on header with `<ScrollReveal>`. Replace `reveal-on-scroll stagger-N` on step cards with `motion.div` variants. Replace `reveal-on-scroll` on bottom CTA.
+## Technical Details
 
-**ReviewsAndBlog.tsx**: Replace all `reveal-on-scroll` classes in Reviews, BlogTeaser, and GlossaryTeaser with `<ScrollReveal>`. Blog article cards get staggered `motion.div`.
+### Files Created (5):
+- `src/components/homepage/TheGap.tsx`
+- `src/components/homepage/Stats.tsx`
+- `src/components/homepage/Assessment.tsx`
+- `src/components/homepage/FAQ.tsx`
+- `src/components/homepage/CTA.tsx`
 
-### 3. Update Final CTA in Home.tsx
+### Files Modified (3):
+- `src/pages/Home.tsx` -- restructured section order, removed old imports
+- `tailwind.config.ts` -- new colors and font families
+- `index.html` -- updated title, added Sora/Outfit fonts
 
-Replace `reveal-on-scroll` on the Final CTA `<div>` (inside the contact section) with `<ScrollReveal>`.
-
-### 4. CursorGlow component: `src/components/CursorGlow.tsx` (new file)
-
-A subtle radial glow that follows the cursor on desktop only:
-
-- Listens to `mousemove` on `window`
-- Renders a fixed-position `div` with a radial gradient (evergreen/gold, ~300px diameter, very low opacity ~0.06)
-- Uses `pointer-events: none` so it never interferes with clicks
-- Hidden on touch devices (check `window.matchMedia('(hover: hover)')`)
-- Uses `requestAnimationFrame` for smooth tracking
-
-### 5. Add CursorGlow to Home.tsx
-
-Import and render `<CursorGlow />` inside the `<main>` element.
-
-### Files modified
-- `src/components/homepage/ScrollReveal.tsx` (create)
-- `src/components/CursorGlow.tsx` (create)
-- `src/components/home/sections/WhyChooseUs.tsx` (update)
-- `src/components/home/sections/QuickSearch.tsx` (update)
-- `src/components/home/sections/ContentBlocks.tsx` (update)
-- `src/components/home/sections/FeaturedAreas.tsx` (update)
-- `src/components/home/sections/Process.tsx` (update)
-- `src/components/home/sections/ReviewsAndBlog.tsx` (update)
-- `src/pages/Home.tsx` (update -- Final CTA + CursorGlow)
-
-### No database, edge function, or translation changes required
-
+### No database, edge function, or RLS changes required.
