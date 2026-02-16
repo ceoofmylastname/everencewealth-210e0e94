@@ -1243,6 +1243,41 @@ export type Database = {
         }
         Relationships: []
       }
+      carrier_contracts: {
+        Row: {
+          advisor_id: string
+          carrier_name: string
+          contracted_date: string | null
+          created_at: string
+          id: string
+          status: string
+        }
+        Insert: {
+          advisor_id: string
+          carrier_name: string
+          contracted_date?: string | null
+          created_at?: string
+          id?: string
+          status?: string
+        }
+        Update: {
+          advisor_id?: string
+          carrier_name?: string
+          contracted_date?: string | null
+          created_at?: string
+          id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "carrier_contracts_advisor_id_fkey"
+            columns: ["advisor_id"]
+            isOneToOne: false
+            referencedRelation: "advisors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       carrier_news: {
         Row: {
           article_type: string | null
@@ -2499,6 +2534,47 @@ export type Database = {
             columns: ["reviewer_id"]
             isOneToOne: false
             referencedRelation: "authors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      compliance_documents: {
+        Row: {
+          advisor_id: string
+          created_at: string
+          expiry_date: string | null
+          file_url: string | null
+          id: string
+          name: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          advisor_id: string
+          created_at?: string
+          expiry_date?: string | null
+          file_url?: string | null
+          id?: string
+          name: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          advisor_id?: string
+          created_at?: string
+          expiry_date?: string | null
+          file_url?: string | null
+          id?: string
+          name?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "compliance_documents_advisor_id_fkey"
+            columns: ["advisor_id"]
+            isOneToOne: false
+            referencedRelation: "advisors"
             referencedColumns: ["id"]
           },
         ]
