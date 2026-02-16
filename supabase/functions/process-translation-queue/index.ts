@@ -8,15 +8,7 @@ const corsHeaders = {
 
 const LANGUAGE_NAMES: Record<string, string> = {
   en: 'English',
-  de: 'German', 
-  nl: 'Dutch',
-  fr: 'French',
-  pl: 'Polish',
-  sv: 'Swedish',
-  da: 'Danish',
-  hu: 'Hungarian',
-  fi: 'Finnish',
-  no: 'Norwegian'
+  es: 'Spanish'
 };
 
 const MAX_CONTENT_LENGTH = 6000;
@@ -302,9 +294,9 @@ async function updateClusterProgress(supabase: any, clusterId: string, targetLan
 
 // Full translation function that handles chunked content
 async function translateFullArticle(englishArticle: any, targetLanguage: string, functionStartTime: number) {
-  const apiKey = Deno.env.get('OPENAI_API_KEY');
+  const apiKey = Deno.env.get('LOVABLE_API_KEY');
   if (!apiKey) {
-    throw new Error('OPENAI_API_KEY not configured');
+    throw new Error('LOVABLE_API_KEY not configured');
   }
 
   const languageName = LANGUAGE_NAMES[targetLanguage] || targetLanguage;
@@ -336,7 +328,7 @@ async function translateFullArticle(englishArticle: any, targetLanguage: string,
   }
 
   // Translate metadata
-  const metadataPrompt = `You are a professional translator for luxury real estate content.
+  const metadataPrompt = `You are a professional translator for wealth management and financial planning content.
 
 Translate these fields from English to ${languageName}:
 
@@ -363,16 +355,15 @@ RESPOND IN JSON ONLY (no markdown):
   const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
   try {
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'google/gemini-2.5-flash',
         messages: [{ role: 'user', content: metadataPrompt }],
-        temperature: 0.3,
         max_tokens: contentLength > MAX_CONTENT_LENGTH ? 4000 : 16000
       }),
       signal: controller.signal
@@ -477,7 +468,7 @@ function splitContentByHeadings(html: string): string[] {
 async function translateChunk(chunk: string, languageName: string, apiKey: string): Promise<string> {
   const prompt = `Translate this HTML content from English to ${languageName}.
 Keep ALL HTML tags exactly as-is. Only translate the text content.
-Keep proper nouns like "Costa del Sol" unchanged.
+Keep brand names like "Everence Wealth" unchanged.
 
 Content:
 ${chunk}
@@ -488,14 +479,14 @@ Respond with ONLY the translated HTML, no explanations.`;
   const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
   try {
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'google/gemini-2.5-flash',
         messages: [{ role: 'user', content: prompt }],
         max_tokens: 8000,
       }),

@@ -110,15 +110,7 @@ async function generateUniqueImage(prompt: string, fallbackUrl: string): Promise
 }
 
 const LANGUAGE_NAMES: Record<string, string> = {
-  'de': 'German',
-  'nl': 'Dutch',
-  'fr': 'French',
-  'pl': 'Polish',
-  'sv': 'Swedish',
-  'da': 'Danish',
-  'hu': 'Hungarian',
-  'fi': 'Finnish',
-  'no': 'Norwegian'
+  'es': 'Spanish'
 };
 
 const TARGET_LANGUAGES = ['es'];
@@ -238,8 +230,8 @@ async function translateMetadata(
 
   const prompt = `Translate the following article metadata from English to ${targetLanguageName}.
 
-Keep proper nouns like "Costa del Sol" unchanged. Keep brand names unchanged.
-Translate naturally and professionally for a luxury real estate audience.
+Keep brand names like "Everence Wealth" unchanged. Keep financial terms accurate.
+Translate naturally and professionally for a wealth management and financial planning audience.
 
 ENGLISH METADATA:
 - Headline: ${englishArticle.headline}
@@ -329,8 +321,8 @@ async function translateHtmlContent(
 CRITICAL REQUIREMENTS:
 - Keep ALL HTML tags intact (<h2>, <p>, <strong>, <a href="...">, <ul>, <li>, etc.)
 - Keep all links (href attributes) unchanged
-- Keep proper nouns like "Costa del Sol" unchanged
-- Translate naturally for a luxury real estate audience
+- Keep brand names like "Everence Wealth" unchanged
+- Translate naturally for a wealth management and financial planning audience
 - Do NOT wrap your response in code fences or JSON
 - Return ONLY the translated HTML, nothing else
 
@@ -410,6 +402,7 @@ async function translateArticleWithRetry(
       featured_image_alt: metadata.featured_image_alt,
       featured_image_caption: metadata.featured_image_caption || englishArticle.featured_image_caption,
       featured_image_url: generatedImageUrl,
+      canonical_url: `https://www.everencewealth.com/${targetLanguage}/blog/${uniqueSlug}`,
       diagram_url: englishArticle.diagram_url,
       diagram_description: englishArticle.diagram_description,
       diagram_alt: englishArticle.diagram_alt,
@@ -517,7 +510,7 @@ async function updateArticleProgress(
         current_article: articleIndex,
         articles_for_language: expectedCount,
         generated_articles: totalArticlesInDb,
-        total_articles: 60,
+        total_articles: 12,
       },
       updated_at: new Date().toISOString()
     })
@@ -714,9 +707,9 @@ serve(async (req) => {
           progress: {
             current_step: 16,
             total_steps: 16,
-            message: '✅ All 60 articles generated and linked!',
-            generated_articles: 60,
-            total_articles: 60,
+            message: '✅ All 12 articles generated and linked!',
+            generated_articles: 12,
+            total_articles: 12,
           },
           updated_at: new Date().toISOString()
         })
@@ -760,7 +753,7 @@ serve(async (req) => {
           message: `Translating to ${LANGUAGE_NAMES[currentLanguage] || currentLanguage}...`,
           current_language: currentLanguage,
           generated_articles: initialExistingCount,
-          total_articles: 60,
+          total_articles: 12,
         },
         updated_at: new Date().toISOString()
       })
@@ -795,7 +788,7 @@ serve(async (req) => {
               articles_translated: initialExistingCount + translatedCount,
               articles_this_run: translatedCount,
               generated_articles: totalInDb || 0,
-              total_articles: 60,
+              total_articles: 12,
             },
             updated_at: new Date().toISOString()
           })
@@ -824,7 +817,7 @@ serve(async (req) => {
               articles_translated: initialExistingCount + translatedCount,
               timeout_at_article: i + 1,
               generated_articles: totalInDb || 0,
-              total_articles: 60,
+              total_articles: 12,
             },
             updated_at: new Date().toISOString()
           })
@@ -884,7 +877,10 @@ serve(async (req) => {
             is_primary: translated.is_primary,
             source_language: translated.source_language,
             content_type: translated.content_type || 'blog',
-            status: 'draft',
+            canonical_url: translated.canonical_url,
+            status: 'published',
+            date_published: new Date().toISOString(),
+            date_modified: new Date().toISOString(),
           })
           .select()
           .single();
@@ -995,15 +991,15 @@ serve(async (req) => {
           current_step: isComplete ? 16 : 6 + completedLanguages.length,
           total_steps: 16,
           message: isComplete 
-            ? '✅ All 60 articles generated and linked!' 
+            ? '✅ All 12 articles generated and linked!' 
             : `${LANGUAGE_NAMES[currentLanguage] || currentLanguage} complete. ${remainingLanguages.length} languages remaining.`,
           generated_articles: totalCount || 0,
-          total_articles: 60,
+          total_articles: 12,
           current_language: currentLanguage,
           completed_languages: completedLanguages,
         },
         completion_note: isComplete
-          ? 'Multilingual cluster complete: 6 English articles + 54 translations (60 total)'
+          ? 'Bilingual cluster complete: 6 English articles + 6 Spanish translations (12 total)'
           : `${completedLanguages.length + 1}/${languagesQueue.length + 1} languages complete (incl. English). Next: ${remainingLanguages[0] || 'none'}`,
         updated_at: new Date().toISOString()
       })
