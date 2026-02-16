@@ -140,9 +140,12 @@ const PolicyForm = lazy(() => import("./pages/portal/advisor/PolicyForm"));
 const PolicyDetail = lazy(() => import("./pages/portal/advisor/PolicyDetail"));
 const AdvisorDocuments = lazy(() => import("./pages/portal/advisor/AdvisorDocuments"));
 const ClientInvite = lazy(() => import("./pages/portal/advisor/ClientInvite"));
+const AdvisorMessages = lazy(() => import("./pages/portal/advisor/AdvisorMessages"));
 const ClientDashboard = lazy(() => import("./pages/portal/client/ClientDashboard"));
 const ClientPolicies = lazy(() => import("./pages/portal/client/ClientPolicies"));
 const ClientDocuments = lazy(() => import("./pages/portal/client/ClientDocuments"));
+const ClientMessages = lazy(() => import("./pages/portal/client/ClientMessages"));
+const ClientSignup = lazy(() => import("./pages/portal/ClientSignup"));
 
 const AgentLogin = lazy(() => import("./pages/crm/AgentLogin"));
 const CrmLogin = lazy(() => import("./pages/crm/CrmLogin"));
@@ -300,6 +303,7 @@ const App = () => (
               {/* PORTAL ROUTES (MUST BE BEFORE /:lang)     */}
               {/* ========================================== */}
               <Route path="/portal/login" element={<PortalLogin />} />
+              <Route path="/portal/signup" element={<ClientSignup />} />
               <Route path="/portal/advisor" element={<AdvisorRoute />}>
                 <Route element={<PortalLayout />}>
                   <Route path="dashboard" element={<AdvisorDashboard />} />
@@ -310,6 +314,7 @@ const App = () => (
                   <Route path="policies/:id/edit" element={<PolicyForm />} />
                   <Route path="documents" element={<AdvisorDocuments />} />
                   <Route path="invite" element={<ClientInvite />} />
+                  <Route path="messages" element={<AdvisorMessages />} />
                 </Route>
               </Route>
               <Route path="/portal/client" element={<ClientRoute />}>
@@ -317,6 +322,7 @@ const App = () => (
                   <Route path="dashboard" element={<ClientDashboard />} />
                   <Route path="policies" element={<ClientPolicies />} />
                   <Route path="documents" element={<ClientDocuments />} />
+                  <Route path="messages" element={<ClientMessages />} />
                 </Route>
               </Route>
 
