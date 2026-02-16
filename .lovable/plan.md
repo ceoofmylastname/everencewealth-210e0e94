@@ -1,107 +1,98 @@
 
-## Admin Management Panel for Portal
+## Ad-hoc Email Sending for Advisor Portal
 
 ### Overview
-Build a full admin section at `/portal/admin/*` that allows portal administrators to manage agents (advisors), reassign clients, set commission levels, and view global analytics. This uses the existing `portal_users` role system where `role = 'admin'` grants access.
+Add the ability for advisors to compose and send emails directly to their clients from within the portal. This includes an email composition modal, a history log of sent emails, and a reusable email templates library.
 
 ### Database Changes
 
-**1. New table: `advisor_commission_config`**
-
-Stores commission levels per advisor (currently `comp_level_percent` exists on `advisor_performance` per entry, but there's no global default per advisor).
+**1. New table: `portal_advisor_emails`**
+Stores every email sent by an advisor through the portal.
 
 | Column | Type | Description |
 |--------|------|-------------|
 | id | UUID | Primary key |
-| advisor_id | UUID | FK to advisors(id) |
-| default_comp_level | NUMERIC | Default commission % |
-| default_advancement | NUMERIC | Default advancement % |
-| effective_date | DATE | When this rate took effect |
-| notes | TEXT | Optional notes |
+| advisor_id | UUID | FK to portal_users(id) |
+| client_id | UUID | FK to portal_users(id) |
+| to_email | TEXT | Recipient email address |
+| subject | TEXT | Email subject |
+| body_html | TEXT | Email body (HTML) |
+| template_id | UUID | Optional FK to template used |
+| status | TEXT | sent, failed |
+| error_message | TEXT | Error details if failed |
+| sent_at | TIMESTAMPTZ | When sent |
+| created_at | TIMESTAMPTZ | Auto |
+
+RLS: Advisors can read/insert their own emails. Admins can read all.
+
+**2. New table: `portal_email_templates`**
+Reusable email templates advisors can pick from when composing.
+
+| Column | Type | Description |
+|--------|------|-------------|
+| id | UUID | Primary key |
+| name | TEXT | Template name (e.g. "Welcome Email") |
+| subject | TEXT | Default subject line |
+| body_html | TEXT | Template body with placeholders |
+| category | TEXT | welcome, follow_up, policy_update, general |
+| created_by | UUID | FK to portal_users(id), nullable for system templates |
+| is_system | BOOLEAN | System-wide vs advisor-created |
 | created_at | TIMESTAMPTZ | Auto |
 | updated_at | TIMESTAMPTZ | Auto |
 
-RLS: Admins (via `is_portal_admin`) can CRUD; advisors can read their own.
+RLS: All advisors/admins can read. Admins can insert/update/delete. Advisors can manage templates they created.
 
 ### Files to Create
 
-**2. `src/components/portal/AdminRoute.tsx`**
-- Route guard checking `portalUser.role === 'admin'`
-- Redirects to `/portal/advisor/dashboard` if not admin (since admins are also advisors)
-- Same pattern as `AdvisorRoute` and `ClientRoute`
+**3. `supabase/functions/send-portal-email/index.ts`**
+Edge function that:
+- Validates the caller is an advisor (via auth token)
+- Accepts `to_email`, `subject`, `body_html`, `client_id`, optional `template_id`
+- Sends the email via Resend API (already configured with `RESEND_API_KEY`)
+- Inserts a record into `portal_advisor_emails` with status
+- From address: `"Everence Wealth <portal@notifications.everencewealth.com>"`
 
-**3. `src/components/portal/AdminLayout.tsx`**
-- Sidebar layout specifically for admin section
-- Nav items: Dashboard (analytics), Agent Management, Client Reassignment
-- Same visual style as `PortalLayout` but with admin-specific navigation
-- Reuses the brand header, sign-out section, and mobile responsive patterns
+**4. `src/components/portal/advisor/ComposeEmailDialog.tsx`**
+Modal dialog for composing an email:
+- Pre-filled "To" field with client name and email (read-only)
+- Subject input
+- Template selector dropdown (loads from `portal_email_templates`)
+- Rich text body area (Textarea for now, with placeholder substitution for `{{first_name}}`, `{{last_name}}`)
+- Send button that calls the `send-portal-email` edge function
+- Loading/success/error states
 
-**4. `src/pages/portal/admin/AdminDashboard.tsx`**
-- Global analytics overview with cards:
-  - Total advisors (active/inactive)
-  - Total clients
-  - Total policies (active/lapsed/pending)
-  - Total premium volume (sum of monthly_premium from policies)
-- Charts: policies by product type, clients per advisor, premium by advisor
-- Recent activity feed (latest portal_messages, documents, policy changes)
+**5. `src/pages/portal/advisor/AdvisorEmailHistory.tsx`**
+Full-page email log at `/portal/advisor/emails`:
+- Table listing all emails sent by the current advisor
+- Columns: Date, Client, Subject, Status
+- Search and filter by client or status
+- Click to view email content in a detail dialog
 
-**5. `src/pages/portal/admin/AgentManagement.tsx`**
-- Table listing all advisors with columns: Name, Email, Phone, Status, Clients count, Policies count, Commission Level
-- Search/filter bar
-- "Add Agent" button opens a dialog/form
-- Each row has actions: Edit, Activate/Deactivate
-- Clicking a row navigates to agent detail
-
-**6. `src/pages/portal/admin/AgentDetail.tsx`**
-- Full agent profile view with editable fields (name, phone, specializations, languages, license_number, bio)
-- Commission settings section (reads/writes `advisor_commission_config`)
-- Client list for this advisor (from `portal_users` where `advisor_id` = this advisor's portal_user_id)
-- Policy summary for this advisor
-- Toggle active/inactive status
-
-**7. `src/pages/portal/admin/AddAgentDialog.tsx`**
-- Dialog component for creating new advisor accounts
-- Fields: email, first name, last name, phone, password, specializations, languages
-- Creates auth user + portal_users record + advisors record (via an edge function similar to `create-crm-agent`)
-
-**8. `src/pages/portal/admin/ClientReassignment.tsx`**
-- Shows all clients grouped by their current advisor
-- Drag-and-drop or select-based reassignment
-- Select a client, pick a new advisor, confirm
-- Updates `portal_users.advisor_id` and `policies.advisor_id` for all the client's policies
-- Logs the reassignment with a toast confirmation
-
-**9. `supabase/functions/create-portal-agent/index.ts`**
-- Edge function to create a new advisor (needs service role to create auth user)
-- Creates: auth user, portal_users row (role=advisor), advisors row
-- Validates @everencewealth.com domain restriction
+**6. `src/pages/portal/advisor/EmailTemplatesPage.tsx`**
+Template library page at `/portal/advisor/email-templates`:
+- List of available templates (system + personal)
+- Create new template button
+- Edit/delete own templates
+- Preview template content
 
 ### Files to Modify
 
-**10. `src/App.tsx`**
-- Add lazy imports for all new admin pages
-- Import `AdminRoute` and `AdminLayout`
-- Add route block:
-```
-<Route path="/portal/admin" element={<AdminRoute />}>
-  <Route element={<AdminLayout />}>
-    <Route path="dashboard" element={<AdminDashboard />} />
-    <Route path="agents" element={<AgentManagement />} />
-    <Route path="agents/:id" element={<AgentDetail />} />
-    <Route path="clients" element={<ClientReassignment />} />
-  </Route>
-</Route>
-```
+**7. `src/pages/portal/advisor/AdvisorClients.tsx`**
+- Add an "Email" button to each client card (next to Policies/Docs buttons)
+- Clicking opens the `ComposeEmailDialog` with that client pre-selected
 
-**11. `src/components/portal/PortalLayout.tsx`**
-- For admin users, add an "Admin Panel" link in the sidebar nav that links to `/portal/admin/dashboard`
-- Show it with a distinct icon (Settings or ShieldCheck) separated from regular advisor nav
+**8. `src/App.tsx`**
+- Add lazy imports for `AdvisorEmailHistory` and `EmailTemplatesPage`
+- Add routes inside the advisor block:
+  - `<Route path="emails" element={<AdvisorEmailHistory />} />`
+  - `<Route path="email-templates" element={<EmailTemplatesPage />} />`
+
+**9. `src/components/portal/PortalLayout.tsx`**
+- Add "Email History" nav item in the advisor sidebar (using Mail icon)
 
 ### Technical Notes
-
-- The `portal_users` table already supports `role = 'admin'` and the `is_portal_admin()` function exists
-- `AdvisorRoute` already allows `admin` role access (line 23), so admins can see all advisor pages too
-- Client reassignment updates both `portal_users.advisor_id` and iterates through `policies` to update `advisor_id`
-- The edge function for creating agents mirrors the pattern from `create-crm-agent` but targets portal tables
-- Global analytics queries aggregate across all advisors (no advisor_id filter) using admin RLS policies
-- Commission config table is separate from `advisor_performance` to maintain a clean default vs per-entry distinction
+- Resend API key is already configured as a secret
+- Email sending follows the same pattern as `send-portal-invitation` edge function
+- Template placeholders (`{{first_name}}`, `{{last_name}}`) are replaced client-side before sending
+- The compose dialog can be triggered from client cards or from the email history page
+- No client-detail page exists yet -- the "Email Client" button goes directly on the client cards in AdvisorClients
