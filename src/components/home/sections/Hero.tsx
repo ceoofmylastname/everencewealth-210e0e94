@@ -100,14 +100,6 @@ export const Hero: React.FC = () => {
 
       {/* Corner decorations */}
       <motion.div
-        className="absolute bottom-6 left-8 z-10"
-        initial={{ opacity: 0 }}
-        animate={stage >= 4 ? { opacity: 1 } : {}}
-        transition={{ duration: 0.5 }}
-      >
-        <span className="text-[11px] font-space font-bold tracking-[0.3em] text-white/15">01</span>
-      </motion.div>
-      <motion.div
         className="absolute top-6 right-8 z-10"
         initial={{ opacity: 0 }}
         animate={stage >= 4 ? { opacity: 1 } : {}}
