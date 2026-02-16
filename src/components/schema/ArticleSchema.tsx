@@ -46,8 +46,8 @@ const ArticleSchema: React.FC<ArticleSchemaProps> = ({
             "image": {
                 "@type": "ImageObject",
                 "url": imageUrl,
-                ...(imageCaption && { "caption": imageCaption }),
-                ...(imageAlt && { "description": imageAlt })
+                "caption": imageCaption || imageAlt || "",
+                "description": imageAlt || imageCaption || ""
             }
         })
     };
