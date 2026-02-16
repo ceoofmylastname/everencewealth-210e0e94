@@ -325,12 +325,6 @@ const LocationPages = () => {
                   <SelectItem value="all">All Languages</SelectItem>
                   <SelectItem value="en">English</SelectItem>
                   <SelectItem value="es">Spanish</SelectItem>
-                  <SelectItem value="de">German</SelectItem>
-                  <SelectItem value="nl">Dutch</SelectItem>
-                  <SelectItem value="fr">French</SelectItem>
-                  <SelectItem value="pl">Polish</SelectItem>
-                  <SelectItem value="sv">Swedish</SelectItem>
-                  <SelectItem value="da">Danish</SelectItem>
                 </SelectContent>
               </Select>
             </div>

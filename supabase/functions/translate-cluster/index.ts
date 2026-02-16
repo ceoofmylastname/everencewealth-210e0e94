@@ -121,7 +121,7 @@ const LANGUAGE_NAMES: Record<string, string> = {
   'no': 'Norwegian'
 };
 
-const TARGET_LANGUAGES = ['de', 'nl', 'fr', 'pl', 'sv', 'da', 'hu', 'fi', 'no'];
+const TARGET_LANGUAGES = ['es'];
 
 const MAX_RUNTIME = 50 * 1000; // 50 seconds
 const MAX_ARTICLES_PER_RUN = 4; // Increased from 2 - faster AI allows more

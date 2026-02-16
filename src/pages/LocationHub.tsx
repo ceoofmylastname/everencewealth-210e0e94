@@ -93,7 +93,7 @@ const LocationHub = () => {
   const stats = [
     { icon: MapPin, label: hubContent.statsLabels.cities, value: String(cities.length || 11), suffix: "" },
     { icon: BookOpen, label: hubContent.statsLabels.guides, value: `${totalGuides || 19}+`, suffix: "" },
-    { icon: Globe, label: hubContent.statsLabels.languages, value: "10", suffix: "" },
+    { icon: Globe, label: hubContent.statsLabels.languages, value: "2", suffix: "" },
     { icon: TrendingUp, label: hubContent.statsLabels.dataPoints, value: "8", suffix: "" },
   ];
   
@@ -130,7 +130,7 @@ const LocationHub = () => {
         <meta property="og:title" content={hubContent.title} />
         <meta property="og:description" content={hubContent.description} />
         <meta property="og:locale" content={locale} />
-        <meta property="og:site_name" content="Del Sol Prime Homes" />
+        <meta property="og:site_name" content="Everence Wealth" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={hubContent.title} />
         <meta name="twitter:description" content={hubContent.description} />
@@ -182,7 +182,7 @@ const LocationHub = () => {
             <div className={`mb-6 transition-all duration-700 delay-100 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
               <Badge className="bg-white/10 backdrop-blur-md border-white/20 text-white px-5 py-2.5 text-sm font-medium">
                 <Compass className="w-4 h-4 mr-2" />
-                {cities.length || 11} {hubContent.statsLabels.cities} • {totalGuides || '19+'} {hubContent.statsLabels.guides} • 10 {hubContent.statsLabels.languages}
+                {cities.length || 11} {hubContent.statsLabels.cities} • {totalGuides || '19+'} {hubContent.statsLabels.guides} • 2 {hubContent.statsLabels.languages}
               </Badge>
             </div>
 

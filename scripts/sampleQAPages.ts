@@ -9,8 +9,8 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   global: { headers: { 'x-client-info': 'static-build' } }
 });
 
-const BASE_URL = 'https://www.delsolprimehomes.com';
-const LANGUAGES = ['en', 'nl', 'de', 'fr', 'pl', 'sv', 'da', 'hu', 'fi', 'no'];
+const BASE_URL = 'https://www.everencewealth.com';
+const LANGUAGES = ['en', 'es'];
 const GOOGLEBOT_UA = 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)';
 const SAMPLES_PER_LANG = 10;
 

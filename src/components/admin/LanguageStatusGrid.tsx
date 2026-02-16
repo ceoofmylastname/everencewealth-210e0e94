@@ -12,16 +12,8 @@ export interface LanguageStatus {
 }
 
 const ALL_LANGUAGES: LanguageStatus[] = [
-  { code: 'en', name: 'English', flag: '🇬🇧', count: 0, needed: 6, status: 'not_started' },
-  { code: 'de', name: 'German', flag: '🇩🇪', count: 0, needed: 6, status: 'not_started' },
-  { code: 'nl', name: 'Dutch', flag: '🇳🇱', count: 0, needed: 6, status: 'not_started' },
-  { code: 'fr', name: 'French', flag: '🇫🇷', count: 0, needed: 6, status: 'not_started' },
-  { code: 'pl', name: 'Polish', flag: '🇵🇱', count: 0, needed: 6, status: 'not_started' },
-  { code: 'sv', name: 'Swedish', flag: '🇸🇪', count: 0, needed: 6, status: 'not_started' },
-  { code: 'da', name: 'Danish', flag: '🇩🇰', count: 0, needed: 6, status: 'not_started' },
-  { code: 'hu', name: 'Hungarian', flag: '🇭🇺', count: 0, needed: 6, status: 'not_started' },
-  { code: 'fi', name: 'Finnish', flag: '🇫🇮', count: 0, needed: 6, status: 'not_started' },
-  { code: 'no', name: 'Norwegian', flag: '🇳🇴', count: 0, needed: 6, status: 'not_started' },
+  { code: 'en', name: 'English', flag: '🇺🇸', count: 0, needed: 6, status: 'not_started' },
+  { code: 'es', name: 'Spanish', flag: '🇪🇸', count: 0, needed: 6, status: 'not_started' },
 ];
 
 interface LanguageStatusGridProps {

@@ -9,19 +9,11 @@ const corsHeaders = {
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
-const TARGET_LANGUAGES = ['de', 'nl', 'fr', 'pl', 'sv', 'da', 'hu', 'fi', 'no'];
+const TARGET_LANGUAGES = ['es'];
 
 const LANGUAGE_INFO: Record<string, { name: string; flag: string }> = {
-  'en': { name: 'English', flag: '🇬🇧' },
-  'de': { name: 'German', flag: '🇩🇪' },
-  'nl': { name: 'Dutch', flag: '🇳🇱' },
-  'fr': { name: 'French', flag: '🇫🇷' },
-  'pl': { name: 'Polish', flag: '🇵🇱' },
-  'sv': { name: 'Swedish', flag: '🇸🇪' },
-  'da': { name: 'Danish', flag: '🇩🇰' },
-  'hu': { name: 'Hungarian', flag: '🇭🇺' },
-  'fi': { name: 'Finnish', flag: '🇫🇮' },
-  'no': { name: 'Norwegian', flag: '🇳🇴' },
+  'en': { name: 'English', flag: '🇺🇸' },
+  'es': { name: 'Spanish', flag: '🇪🇸' },
 };
 
 serve(async (req) => {

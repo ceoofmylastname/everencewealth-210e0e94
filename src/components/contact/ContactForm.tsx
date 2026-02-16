@@ -71,15 +71,7 @@ interface ContactFormProps {
 
 const LANGUAGES = [
   { code: 'en', name: 'English' },
-  { code: 'nl', name: 'Nederlands' },
-  { code: 'de', name: 'Deutsch' },
-  { code: 'fr', name: 'Français' },
-  { code: 'sv', name: 'Svenska' },
-  { code: 'no', name: 'Norsk' },
-  { code: 'da', name: 'Dansk' },
-  { code: 'fi', name: 'Suomi' },
-  { code: 'pl', name: 'Polski' },
-  { code: 'hu', name: 'Magyar' },
+  { code: 'es', name: 'Español' },
 ];
 
 export const ContactForm: React.FC<ContactFormProps> = ({ t, language }) => {

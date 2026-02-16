@@ -18,33 +18,17 @@ import {
   Sparkles, RefreshCw, ImagePlus, Check, Clock, AlertCircle, Globe
 } from 'lucide-react';
 
-const SUPPORTED_LANGUAGES = ['en', 'de', 'nl', 'fr', 'pl', 'sv', 'da', 'hu', 'fi', 'no'] as const;
+const SUPPORTED_LANGUAGES = ['en', 'es'] as const;
 type Language = typeof SUPPORTED_LANGUAGES[number];
 
 const LANGUAGE_LABELS: Record<Language, string> = {
   en: 'English',
-  de: 'Deutsch',
-  nl: 'Nederlands',
-  fr: 'Français',
-  pl: 'Polski',
-  sv: 'Svenska',
-  da: 'Dansk',
-  hu: 'Magyar',
-  fi: 'Suomi',
-  no: 'Norsk',
+  es: 'Español',
 };
 
 const LANGUAGE_FLAGS: Record<Language, string> = {
-  en: '🇬🇧',
-  de: '🇩🇪',
-  nl: '🇳🇱',
-  fr: '🇫🇷',
-  pl: '🇵🇱',
-  sv: '🇸🇪',
-  da: '🇩🇰',
-  hu: '🇭🇺',
-  fi: '🇫🇮',
-  no: '🇳🇴',
+  en: '🇺🇸',
+  es: '🇪🇸',
 };
 
 interface GalleryItem {

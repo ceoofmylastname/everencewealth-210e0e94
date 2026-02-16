@@ -19,15 +19,7 @@ interface LanguageOption {
 }
 
 const ALL_LANGUAGES: Omit<LanguageOption, 'count' | 'needed' | 'status'>[] = [
-  { code: 'de', name: 'German', flag: '🇩🇪' },
-  { code: 'nl', name: 'Dutch', flag: '🇳🇱' },
-  { code: 'fr', name: 'French', flag: '🇫🇷' },
-  { code: 'pl', name: 'Polish', flag: '🇵🇱' },
-  { code: 'sv', name: 'Swedish', flag: '🇸🇪' },
-  { code: 'da', name: 'Danish', flag: '🇩🇰' },
-  { code: 'hu', name: 'Hungarian', flag: '🇭🇺' },
-  { code: 'fi', name: 'Finnish', flag: '🇫🇮' },
-  { code: 'no', name: 'Norwegian', flag: '🇳🇴' },
+  { code: 'es', name: 'Spanish', flag: '🇪🇸' },
 ];
 
 interface TranslateDropdownProps {

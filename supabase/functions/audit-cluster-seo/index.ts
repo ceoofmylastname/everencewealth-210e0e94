@@ -5,7 +5,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-const SUPPORTED_LANGUAGES = ['en', 'de', 'nl', 'fr', 'pl', 'sv', 'da', 'hu', 'fi', 'no'];
+const SUPPORTED_LANGUAGES = ['en', 'es'];
 const EXPECTED_ARTICLES_PER_LANGUAGE = 6;
 const EXPECTED_QAS_PER_ARTICLE = 4;
 

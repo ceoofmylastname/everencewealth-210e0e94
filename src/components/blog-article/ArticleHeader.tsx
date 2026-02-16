@@ -21,17 +21,8 @@ interface ArticleHeaderProps {
 }
 
 const LANGUAGE_FLAGS: Record<string, { flag: string; name: string }> = {
-  en: { flag: "🇬🇧", name: "English" },
+  en: { flag: "🇺🇸", name: "English" },
   es: { flag: "🇪🇸", name: "Spanish" },
-  de: { flag: "🇩🇪", name: "German" },
-  nl: { flag: "🇳🇱", name: "Dutch" },
-  fr: { flag: "🇫🇷", name: "French" },
-  pl: { flag: "🇵🇱", name: "Polish" },
-  sv: { flag: "🇸🇪", name: "Swedish" },
-  da: { flag: "🇩🇰", name: "Danish" },
-  hu: { flag: "🇭🇺", name: "Hungarian" },
-  fi: { flag: "🇫🇮", name: "Finnish" },
-  no: { flag: "🇳🇴", name: "Norwegian" },
 };
 
 export const ArticleHeader = ({ article, author, reviewer, translations }: ArticleHeaderProps) => {

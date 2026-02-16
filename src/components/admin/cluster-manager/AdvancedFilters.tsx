@@ -20,16 +20,8 @@ interface AdvancedFiltersProps {
 }
 
 const LANGUAGES = [
-  { code: 'en', label: 'English', flag: '🇬🇧' },
-  { code: 'de', label: 'German', flag: '🇩🇪' },
-  { code: 'nl', label: 'Dutch', flag: '🇳🇱' },
-  { code: 'fr', label: 'French', flag: '🇫🇷' },
-  { code: 'pl', label: 'Polish', flag: '🇵🇱' },
-  { code: 'sv', label: 'Swedish', flag: '🇸🇪' },
-  { code: 'da', label: 'Danish', flag: '🇩🇰' },
-  { code: 'hu', label: 'Hungarian', flag: '🇭🇺' },
-  { code: 'fi', label: 'Finnish', flag: '🇫🇮' },
-  { code: 'no', label: 'Norwegian', flag: '🇳🇴' },
+  { code: 'en', label: 'English', flag: '🇺🇸' },
+  { code: 'es', label: 'Spanish', flag: '🇪🇸' },
 ];
 
 export function AdvancedFilters({ 

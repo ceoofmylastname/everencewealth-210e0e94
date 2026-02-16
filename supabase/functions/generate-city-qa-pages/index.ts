@@ -19,7 +19,7 @@ const LANGUAGE_NAMES: Record<string, string> = {
   no: 'Norwegian',
 };
 
-const ALL_SUPPORTED_LANGUAGES = ['en', 'de', 'nl', 'fr', 'pl', 'sv', 'da', 'hu', 'fi', 'no'];
+const ALL_SUPPORTED_LANGUAGES = ['en', 'es'];
 
 // City-specific data for hyper-local Q&A generation
 const CITY_DATA: Record<string, {

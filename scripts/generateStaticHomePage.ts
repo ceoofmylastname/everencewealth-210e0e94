@@ -21,10 +21,10 @@ interface ProductionAssets {
   js: string[];
 }
 
-const BASE_URL = 'https://www.delsolprimehomes.com';
+const BASE_URL = 'https://www.everencewealth.com';
 
-// Official 10 languages as per memory
-const LANGUAGES = ['en', 'de', 'nl', 'fr', 'pl', 'sv', 'da', 'hu', 'fi', 'no'] as const;
+// Official 2 languages
+const LANGUAGES = ['en', 'es'] as const;
 type Language = typeof LANGUAGES[number];
 
 // Language-specific metadata for homepage
@@ -38,94 +38,22 @@ const HOMEPAGE_META: Record<Language, {
   speakableSummary: string;
 }> = {
   en: {
-    title: 'Del Sol Prime Homes | Luxury Costa del Sol Real Estate',
-    description: 'Premium real estate agency specializing in Costa del Sol properties. Expert guidance for buying luxury villas, apartments, and investment properties in Marbella, Estepona, and more.',
-    ogLocale: 'en_GB',
-    heroHeadline: 'Find Your Perfect Home on the',
-    heroHighlight: 'Costa del Sol',
-    heroDescription: 'Premium real estate agency with 35+ years of expertise in Marbella, Estepona, Fuengirola, and the entire Costa del Sol. We guide international buyers through every step of purchasing their dream property in Spain.',
-    speakableSummary: 'Del Sol Prime Homes is a luxury real estate agency on Spain\'s Costa del Sol. We help international buyers find and purchase properties in Marbella, Estepona, Fuengirola, Benalmádena, Mijas, and Sotogrande. Our expert team speaks English, Dutch, French, German, and more. Contact us at +34 630 03 90 90.',
+    title: 'Everence Wealth | Independent Fiduciary Wealth Architects',
+    description: 'Specializing in tax-efficient retirement strategies, estate planning, and asset protection. Serving clients in San Francisco and nationwide.',
+    ogLocale: 'en_US',
+    heroHeadline: 'Architecting Your',
+    heroHighlight: 'Financial Legacy',
+    heroDescription: 'Independent fiduciary wealth architects specializing in tax-efficient retirement strategies. We guide clients through complex financial landscapes to secure their legacy.',
+    speakableSummary: 'Everence Wealth is an independent fiduciary wealth management firm based in San Francisco. We specialize in tax-efficient retirement strategies, estate planning, and asset protection. Contact us at +1-415-555-0100.',
   },
-  de: {
-    title: 'Del Sol Prime Homes | Luxus Costa del Sol Immobilien',
-    description: 'Premium-Immobilienagentur spezialisiert auf Costa del Sol Immobilien. Expertenberatung für den Kauf von Luxusvillen, Apartments und Anlageimmobilien in Marbella, Estepona und mehr.',
-    ogLocale: 'de_DE',
-    heroHeadline: 'Finden Sie Ihr Traumhaus an der',
-    heroHighlight: 'Costa del Sol',
-    heroDescription: 'Premium-Immobilienagentur mit über 35 Jahren Erfahrung in Marbella, Estepona, Fuengirola und der gesamten Costa del Sol. Wir begleiten internationale Käufer bei jedem Schritt zum Kauf ihrer Traumimmobilie in Spanien.',
-    speakableSummary: 'Del Sol Prime Homes ist eine Luxus-Immobilienagentur an Spaniens Costa del Sol. Wir helfen internationalen Käufern beim Kauf von Immobilien in Marbella, Estepona, Fuengirola, Benalmádena, Mijas und Sotogrande. Unser Expertenteam spricht Deutsch, Englisch, Niederländisch und mehr. Kontaktieren Sie uns unter +34 630 03 90 90.',
-  },
-  nl: {
-    title: 'Del Sol Prime Homes | Luxe Costa del Sol Vastgoed',
-    description: 'Premium vastgoedkantoor gespecialiseerd in Costa del Sol eigendommen. Deskundige begeleiding bij de aankoop van luxe villa\'s, appartementen en investeringsvastgoed in Marbella, Estepona en meer.',
-    ogLocale: 'nl_NL',
-    heroHeadline: 'Vind Uw Droomhuis aan de',
-    heroHighlight: 'Costa del Sol',
-    heroDescription: 'Premium vastgoedkantoor met 35+ jaar ervaring in Marbella, Estepona, Fuengirola en de hele Costa del Sol. Wij begeleiden internationale kopers bij elke stap van de aankoop van hun droomwoning in Spanje.',
-    speakableSummary: 'Del Sol Prime Homes is een luxe vastgoedkantoor aan de Spaanse Costa del Sol. Wij helpen internationale kopers bij het vinden en kopen van vastgoed in Marbella, Estepona, Fuengirola, Benalmádena, Mijas en Sotogrande. Ons team spreekt Nederlands, Engels, Frans, Duits en meer. Neem contact op via +34 630 03 90 90.',
-  },
-  fr: {
-    title: 'Del Sol Prime Homes | Immobilier de Luxe Costa del Sol',
-    description: 'Agence immobilière premium spécialisée dans les propriétés Costa del Sol. Conseils experts pour l\'achat de villas de luxe, appartements et biens d\'investissement à Marbella, Estepona et plus.',
-    ogLocale: 'fr_FR',
-    heroHeadline: 'Trouvez Votre Maison de Rêve sur la',
-    heroHighlight: 'Costa del Sol',
-    heroDescription: 'Agence immobilière premium avec plus de 35 ans d\'expertise à Marbella, Estepona, Fuengirola et toute la Costa del Sol. Nous accompagnons les acheteurs internationaux à chaque étape de l\'achat de leur propriété de rêve en Espagne.',
-    speakableSummary: 'Del Sol Prime Homes est une agence immobilière de luxe sur la Costa del Sol en Espagne. Nous aidons les acheteurs internationaux à trouver et acheter des propriétés à Marbella, Estepona, Fuengirola, Benalmádena, Mijas et Sotogrande. Notre équipe parle français, anglais, néerlandais et plus. Contactez-nous au +34 630 03 90 90.',
-  },
-  pl: {
-    title: 'Del Sol Prime Homes | Luksusowe Nieruchomości Costa del Sol',
-    description: 'Premium agencja nieruchomości specjalizująca się w nieruchomościach Costa del Sol. Eksperckie doradztwo przy zakupie luksusowych willi, apartamentów i nieruchomości inwestycyjnych w Marbelli, Esteponie i nie tylko.',
-    ogLocale: 'pl_PL',
-    heroHeadline: 'Znajdź Swój Wymarzony Dom na',
-    heroHighlight: 'Costa del Sol',
-    heroDescription: 'Premium agencja nieruchomości z ponad 35-letnim doświadczeniem w Marbelli, Esteponie, Fuengiroli i całej Costa del Sol. Prowdzimy międzynarodowych nabywców przez każdy etap zakupu ich wymarzonej nieruchomości w Hiszpanii.',
-    speakableSummary: 'Del Sol Prime Homes to luksusowa agencja nieruchomości na hiszpańskiej Costa del Sol. Pomagamy międzynarodowym nabywcom w znalezieniu i zakupie nieruchomości w Marbelli, Esteponie, Fuengiroli, Benalmádenie, Mijas i Sotogrande. Nasz zespół mówi po polsku, angielsku, niemiecku i więcej. Skontaktuj się z nami: +34 630 03 90 90.',
-  },
-  sv: {
-    title: 'Del Sol Prime Homes | Lyxiga Costa del Sol Fastigheter',
-    description: 'Premium fastighetsbyrå specialiserad på Costa del Sol fastigheter. Expertvägledning för köp av lyxvillor, lägenheter och investeringsfastigheter i Marbella, Estepona och mer.',
-    ogLocale: 'sv_SE',
-    heroHeadline: 'Hitta Ditt Drömhem på',
-    heroHighlight: 'Costa del Sol',
-    heroDescription: 'Premium fastighetsbyrå med 35+ års expertis i Marbella, Estepona, Fuengirola och hela Costa del Sol. Vi vägleder internationella köpare genom varje steg i köpet av deras drömfastighet i Spanien.',
-    speakableSummary: 'Del Sol Prime Homes är en lyxig fastighetsbyrå på Spaniens Costa del Sol. Vi hjälper internationella köpare att hitta och köpa fastigheter i Marbella, Estepona, Fuengirola, Benalmádena, Mijas och Sotogrande. Vårt team talar svenska, engelska, tyska och mer. Kontakta oss på +34 630 03 90 90.',
-  },
-  da: {
-    title: 'Del Sol Prime Homes | Luksus Costa del Sol Ejendomme',
-    description: 'Premium ejendomsmæglerbureau specialiseret i Costa del Sol ejendomme. Ekspertvejledning til køb af luksusvillaer, lejligheder og investeringsejendomme i Marbella, Estepona og mere.',
-    ogLocale: 'da_DK',
-    heroHeadline: 'Find Dit Drømmehjem på',
-    heroHighlight: 'Costa del Sol',
-    heroDescription: 'Premium ejendomsmæglerbureau med 35+ års ekspertise i Marbella, Estepona, Fuengirola og hele Costa del Sol. Vi guider internationale købere gennem hvert trin i købet af deres drømmebolig i Spanien.',
-    speakableSummary: 'Del Sol Prime Homes er et luksuriøst ejendomsmæglerbureau på Spaniens Costa del Sol. Vi hjælper internationale købere med at finde og købe ejendomme i Marbella, Estepona, Fuengirola, Benalmádena, Mijas og Sotogrande. Vores team taler dansk, engelsk, tysk og mere. Kontakt os på +34 630 03 90 90.',
-  },
-  hu: {
-    title: 'Del Sol Prime Homes | Luxus Costa del Sol Ingatlanok',
-    description: 'Prémium ingatlaniroda, amely Costa del Sol ingatlanokra specializálódott. Szakértői tanácsadás luxusvillák, apartmanok és befektetési ingatlanok vásárlásához Marbellán, Esteponán és másutt.',
-    ogLocale: 'hu_HU',
-    heroHeadline: 'Találja Meg Álomotthonát a',
-    heroHighlight: 'Costa del Sol-on',
-    heroDescription: 'Prémium ingatlaniroda több mint 35 éves tapasztalattal Marbellán, Esteponán, Fuengirolán és az egész Costa del Sol-on. Nemzetközi vásárlókat kísérünk végig álomingatlanuk megvásárlásának minden lépésén Spanyolországban.',
-    speakableSummary: 'A Del Sol Prime Homes egy luxus ingatlaniroda a spanyol Costa del Sol-on. Segítünk a nemzetközi vásárlóknak ingatlanokat találni és vásárolni Marbellán, Esteponán, Fuengirolán, Benalmádenában, Mijasban és Sotogrande-ban. Csapatunk beszél magyarul, angolul, németül és más nyelveken. Elérhetőség: +34 630 03 90 90.',
-  },
-  fi: {
-    title: 'Del Sol Prime Homes | Luksus Costa del Sol Kiinteistöt',
-    description: 'Premium-kiinteistötoimisto, joka on erikoistunut Costa del Solin kiinteistöihin. Asiantunteva opastus luksushuviloiden, asuntojen ja sijoituskiinteistöjen ostamiseen Marbellassa, Esteponassa ja muualla.',
-    ogLocale: 'fi_FI',
-    heroHeadline: 'Löydä Unelmiesi Koti',
-    heroHighlight: 'Costa del Solilta',
-    heroDescription: 'Premium-kiinteistötoimisto yli 35 vuoden kokemuksella Marbellassa, Esteponassa, Fuengirolassa ja koko Costa del Solilla. Opastamme kansainvälisiä ostajia jokaisen vaiheen läpi unelmakiinteistönsä ostamisessa Espanjassa.',
-    speakableSummary: 'Del Sol Prime Homes on luksuskiinteistötoimisto Espanjan Costa del Solilla. Autamme kansainvälisiä ostajia löytämään ja ostamaan kiinteistöjä Marbellasta, Esteponasta, Fuengirolasta, Benalmádenasta, Mijasista ja Sotograndesta. Tiimimme puhuu suomea, englantia, saksaa ja muita kieliä. Ota yhteyttä: +34 630 03 90 90.',
-  },
-  no: {
-    title: 'Del Sol Prime Homes | Luksus Costa del Sol Eiendommer',
-    description: 'Premium eiendomsmeglerbyrå spesialisert på Costa del Sol eiendommer. Ekspertveiledning for kjøp av luksusvillaer, leiligheter og investeringseiendommer i Marbella, Estepona og mer.',
-    ogLocale: 'nb_NO',
-    heroHeadline: 'Finn Ditt Drømmehjem på',
-    heroHighlight: 'Costa del Sol',
-    heroDescription: 'Premium eiendomsmeglerbyrå med 35+ års ekspertise i Marbella, Estepona, Fuengirola og hele Costa del Sol. Vi veileder internasjonale kjøpere gjennom hvert steg i kjøpet av drømmeeiendommen sin i Spania.',
-    speakableSummary: 'Del Sol Prime Homes er et luksuriøst eiendomsmeglerbyrå på Spanias Costa del Sol. Vi hjelper internasjonale kjøpere med å finne og kjøpe eiendommer i Marbella, Estepona, Fuengirola, Benalmádena, Mijas og Sotogrande. Vårt team snakker norsk, engelsk, tysk og mer. Kontakt oss på +34 630 03 90 90.',
+  es: {
+    title: 'Everence Wealth | Arquitectos Fiduciarios Independientes de Riqueza',
+    description: 'Especializados en estrategias de jubilación fiscalmente eficientes, planificación patrimonial y protección de activos. Sirviendo a clientes en San Francisco y a nivel nacional.',
+    ogLocale: 'es_US',
+    heroHeadline: 'Arquitectando Su',
+    heroHighlight: 'Legado Financiero',
+    heroDescription: 'Arquitectos fiduciarios independientes de riqueza especializados en estrategias de jubilación fiscalmente eficientes. Guiamos a los clientes a través de paisajes financieros complejos para asegurar su legado.',
+    speakableSummary: 'Everence Wealth es una firma independiente de gestión de patrimonio fiduciario con sede en San Francisco. Nos especializamos en estrategias de jubilación fiscalmente eficientes, planificación patrimonial y protección de activos. Contáctenos al +1-415-555-0100.',
   },
 };
 
@@ -169,10 +97,10 @@ function generateStructuredData(language: Language) {
   const canonicalUrl = language === 'en' ? BASE_URL : `${BASE_URL}/${language}`;
   
   const organizationSchema = {
-    "@type": ["Organization", "RealEstateAgent"],
+    "@type": ["Organization", "FinancialService"],
     "@id": `${BASE_URL}/#organization`,
-    "name": "Del Sol Prime Homes",
-    "alternateName": "DSPH",
+    "name": "Everence Wealth",
+    "alternateName": "Everence",
     "url": BASE_URL,
     "logo": {
       "@type": "ImageObject",
@@ -181,38 +109,28 @@ function generateStructuredData(language: Language) {
       "height": 100
     },
     "description": meta.description,
-    "foundingDate": "2010",
-    "slogan": "Your Trusted Partners in Costa del Sol Real Estate",
-    "telephone": "+34 630 03 90 90",
-    "email": "info@delsolprimehomes.com",
+    "foundingDate": "2024",
+    "slogan": "Architecting Your Financial Legacy",
+    "telephone": "+1-415-555-0100",
+    "email": "info@everencewealth.com",
     "address": {
       "@type": "PostalAddress",
-      "streetAddress": "ED SAN FERNAN, C. Alfonso XIII, 6, 1 OFICINA",
-      "addressLocality": "Fuengirola",
-      "addressRegion": "Málaga",
-      "postalCode": "29640",
-      "addressCountry": "ES"
+      "streetAddress": "One Embarcadero Center, Suite 500",
+      "addressLocality": "San Francisco",
+      "addressRegion": "CA",
+      "postalCode": "94111",
+      "addressCountry": "US"
     },
-    "areaServed": [
-      { "@type": "City", "name": "Marbella" },
-      { "@type": "City", "name": "Estepona" },
-      { "@type": "City", "name": "Fuengirola" },
-      { "@type": "City", "name": "Benalmádena" },
-      { "@type": "City", "name": "Mijas" },
-      { "@type": "City", "name": "Sotogrande" },
-      { "@type": "City", "name": "Málaga" }
-    ],
+    "areaServed": { "@type": "Country", "name": "United States" },
     "founders": [
-      { "@type": "Person", "name": "Hans Beeckman" },
-      { "@type": "Person", "name": "Cédric Van Hecke" },
-      { "@type": "Person", "name": "Steven Roberts" }
+      { "@type": "Person", "name": "Steven Rosenberg" }
     ],
     "contactPoint": {
       "@type": "ContactPoint",
       "contactType": "Customer Service",
-      "availableLanguage": ["en", "de", "nl", "fr", "pl", "fi", "sv", "da", "no", "hu"],
-      "telephone": "+34 630 03 90 90",
-      "email": "info@delsolprimehomes.com"
+      "availableLanguage": ["en", "es"],
+      "telephone": "+1-415-555-0100",
+      "email": "info@everencewealth.com"
     },
     "priceRange": "$$$"
   };
@@ -221,8 +139,8 @@ function generateStructuredData(language: Language) {
     "@type": "WebSite",
     "@id": `${BASE_URL}/#website`,
     "url": BASE_URL,
-    "name": "Del Sol Prime Homes",
-    "description": "Luxury Costa del Sol Real Estate",
+    "name": "Everence Wealth",
+    "description": "Independent Fiduciary Wealth Management",
     "publisher": { "@id": `${BASE_URL}/#organization` },
     "inLanguage": language,
     "potentialAction": {
@@ -261,23 +179,23 @@ function generateStructuredData(language: Language) {
   const localBusinessSchema = {
     "@type": "LocalBusiness",
     "@id": `${BASE_URL}/#localbusiness`,
-    "name": "Del Sol Prime Homes",
-    "priceRange": "€€€",
+    "name": "Everence Wealth",
+    "priceRange": "$$$",
     "address": {
       "@type": "PostalAddress",
-      "streetAddress": "ED SAN FERNAN, C. Alfonso XIII, 6, 1 OFICINA",
-      "addressLocality": "Fuengirola",
-      "addressRegion": "Málaga",
-      "postalCode": "29640",
-      "addressCountry": "ES"
+      "streetAddress": "One Embarcadero Center, Suite 500",
+      "addressLocality": "San Francisco",
+      "addressRegion": "CA",
+      "postalCode": "94111",
+      "addressCountry": "US"
     },
     "geo": {
       "@type": "GeoCoordinates",
-      "latitude": 36.5441,
-      "longitude": -4.6261
+      "latitude": 37.7941,
+      "longitude": -122.3998
     },
     "url": BASE_URL,
-    "telephone": "+34 630 03 90 90",
+    "telephone": "+1-415-555-0100",
     "openingHoursSpecification": [
       {
         "@type": "OpeningHoursSpecification",

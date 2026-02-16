@@ -23,15 +23,6 @@ const LANGUAGES = [
   { value: 'all', label: 'All Languages' },
   { value: 'en', label: 'English' },
   { value: 'es', label: 'Spanish' },
-  { value: 'de', label: 'German' },
-  { value: 'nl', label: 'Dutch' },
-  { value: 'fr', label: 'French' },
-  { value: 'sv', label: 'Swedish' },
-  { value: 'no', label: 'Norwegian' },
-  { value: 'da', label: 'Danish' },
-  { value: 'fi', label: 'Finnish' },
-  { value: 'pl', label: 'Polish' },
-  { value: 'hu', label: 'Hungarian' },
 ];
 
 const BATCH_SIZES = [5, 10, 20, 50];
