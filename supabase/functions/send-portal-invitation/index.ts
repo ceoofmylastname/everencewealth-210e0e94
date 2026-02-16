@@ -70,8 +70,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    const signupUrl = `${Deno.env.get("SUPABASE_URL")?.replace(".supabase.co", "").replace("https://", "https://id-preview--")}...lovable.app/portal/signup?token=${invitation.invitation_token}`;
-    
     // Build a simpler URL using the origin from the request
     const origin = req.headers.get("origin") || req.headers.get("referer")?.replace(/\/[^/]*$/, "") || "";
     const portalSignupUrl = `${origin}/portal/signup?token=${invitation.invitation_token}`;
@@ -83,11 +81,12 @@ Deno.serve(async (req) => {
     const emailHtml = `
       <div style="font-family: 'Georgia', serif; max-width: 600px; margin: 0 auto; padding: 40px 20px;">
         <div style="text-align: center; margin-bottom: 32px;">
-          <h1 style="color: #1a2332; font-size: 28px; margin: 0;">Everence Wealth</h1>
+          <img src="https://everencewealth.com/logo-icon.png" alt="Everence Wealth" width="48" height="48" style="margin-bottom: 12px;" />
+          <h1 style="color: #1A4D3E; font-size: 28px; margin: 0;">Everence Wealth</h1>
           <p style="color: #666; font-size: 14px; margin-top: 4px;">Client & Advisor Portal</p>
         </div>
         <div style="background: #f8f9fa; border-radius: 12px; padding: 32px; border: 1px solid #e5e7eb;">
-          <h2 style="color: #1a2332; margin-top: 0;">You're Invited!</h2>
+          <h2 style="color: #1A4D3E; margin-top: 0;">You're Invited!</h2>
           <p style="color: #4b5563; line-height: 1.6;">
             Hi ${invitation.first_name},
           </p>
@@ -97,7 +96,7 @@ Deno.serve(async (req) => {
           </p>
           <div style="text-align: center; margin: 32px 0;">
             <a href="${portalSignupUrl}" 
-               style="display: inline-block; background: #2d5a3d; color: white; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">
+               style="display: inline-block; background: #1A4D3E; color: white; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">
               Create Your Account
             </a>
           </div>
@@ -106,7 +105,8 @@ Deno.serve(async (req) => {
           </p>
         </div>
         <p style="color: #9ca3af; font-size: 12px; text-align: center; margin-top: 24px;">
-          © ${new Date().getFullYear()} Everence Wealth. All rights reserved.
+          © ${new Date().getFullYear()} Everence Wealth. All rights reserved.<br/>
+          455 Market St Ste 1940 PMB 350011, San Francisco, CA 94105
         </p>
       </div>
     `;
