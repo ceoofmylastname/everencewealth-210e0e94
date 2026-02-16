@@ -6,6 +6,7 @@ import {
   Shield, LogOut, LayoutDashboard, FileText, Users, Send,
   FolderOpen, Menu, X, ChevronRight, MessageSquare,
   Building2, TrendingUp, Wrench, GraduationCap, Megaphone, Calendar, Newspaper,
+  Settings,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { NotificationBell } from "./NotificationBell";
@@ -41,7 +42,11 @@ export function PortalLayout() {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const isAdvisor = portalUser?.role === "advisor" || portalUser?.role === "admin";
-  const navItems = isAdvisor ? advisorNav : clientNav;
+  const isAdmin = portalUser?.role === "admin";
+  const baseNav = isAdvisor ? advisorNav : clientNav;
+  const navItems = isAdmin
+    ? [...baseNav, { label: "Admin Panel", icon: Settings, href: "/portal/admin/agents" }]
+    : baseNav;
 
   const handleSignOut = async () => {
     await signOut();
