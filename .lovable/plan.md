@@ -1,44 +1,51 @@
 
 
-## Translate All Remaining English Comparisons to Spanish
+## Redesign "Three Silent Killers" Section
 
-### Current State
+Elevate the current section with richer animations, glassmorphism, depth, and a more cinematic feel -- matching the brand's tactical institutional aesthetic.
 
-4 out of 5 published English comparisons already have Spanish translations. Only one is missing:
-- **Fixed Annuity vs Variable Annuity (retirement-2025)** -- no Spanish version yet
+### What Changes
 
-### Changes
+**File: `src/components/homepage/SilentKillers.tsx`**
 
-**1. Fix the translate-comparison edge function** (`supabase/functions/translate-comparison/index.ts`)
+#### Cards
+- Replace flat `glass-card rounded-[60px]` with a deeper glassmorphic style: `bg-white/[0.04] backdrop-blur-xl border border-white/[0.08] rounded-3xl shadow-[0_8px_32px_rgba(0,0,0,0.3)]`
+- Add a subtle inner glow gradient at the top of each card using a pseudo-element (`absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent`)
+- On hover: card lifts (`y: -8`), border brightens (`border-white/15`), and a soft emerald glow appears behind the card via framer-motion `whileHover`
+- The big ghost number (01, 02, 03) gets slightly brighter on hover (`text-white/[0.06]`)
 
-- Change the system prompt from "real estate content" to "financial planning content" to match the rebrand
-- Change the default status from `'draft'` to `'published'` so translations go live immediately (matching the standard set by the blog translation pipeline)
-- Set `date_published` on the translated record so it appears in feeds
+#### Icon Container
+- Change from `bg-white/10 rounded-2xl` to a gradient ring: `bg-gradient-to-br from-white/15 to-white/5 rounded-2xl ring-1 ring-white/10`
+- Add a subtle pulse animation on the icon when the card enters viewport
 
-**2. Create a batch-translate-comparisons edge function** (`supabase/functions/batch-translate-comparisons/index.ts`)
+#### Headline Area
+- Add a thin horizontal gold accent line (`w-16 h-[2px] bg-gradient-to-r from-[#C5A059] to-transparent`) above the badge text
+- The "Attack." outline text gets a shimmer animation using a background-clip text gradient that translates on loop
 
-A simple function that:
-- Queries all published English comparisons
-- For each, checks if a Spanish translation exists (by `comparison_topic` + `language = 'es'`)
-- Calls the `translate-comparison` function for each missing one
-- Returns a summary of what was translated
+#### Watermark + CTA
+- The "RECLAIM CONTROL" watermark gets a slow horizontal drift animation (translateX oscillation)
+- The CTA button gets a gold gradient border on hover with a smooth transition, plus a subtle arrow icon that slides in from the left on hover
 
-This gives you a one-click way to ensure 100% coverage going forward whenever new English comparisons are added.
+#### Background
+- Add floating particle dots (3-4 small circles) that drift slowly using framer-motion infinite animations, colored emerald/gold at very low opacity
+- Add a subtle noise/grain texture overlay at 2-3% opacity for depth
 
-**3. Wire it into the admin UI** (`src/pages/admin/ComparisonGenerator.tsx`)
-
-Add a "Translate All to Spanish" button in the Manage tab that calls `batch-translate-comparisons`. This button will show:
-- How many are missing translations
-- Progress as each one completes
-- Final summary
+#### Stagger Timing
+- Increase stagger delay from 0.15s to 0.2s for more dramatic reveal
+- Cards enter with a slight scale-up (`scale: 0.95 -> 1`) in addition to the existing `y` translation
 
 ### Technical Details
 
-The batch function will call `translate-comparison` sequentially (not in parallel) to avoid rate limits on the AI gateway. Each translation takes ~10-15 seconds, so for the 1 currently missing it will be quick. For future bulk runs it scales linearly.
+All changes are contained in a single file: `src/components/homepage/SilentKillers.tsx`. The existing `glass-card` CSS class will be replaced with inline Tailwind utilities for more granular control. Framer-motion (already imported) handles all animations. No new dependencies needed.
 
-| File | Change |
-|---|---|
-| `supabase/functions/translate-comparison/index.ts` | Fix "real estate" prompt, set status to published |
-| `supabase/functions/batch-translate-comparisons/index.ts` | New edge function for bulk translation |
-| `src/pages/admin/ComparisonGenerator.tsx` | Add "Translate All to Spanish" button in Manage tab |
+| Element | Current | New |
+|---|---|---|
+| Card shape | `rounded-[60px]` flat glass | `rounded-3xl` deep glassmorphism with hover lift + glow |
+| Icon box | Plain `bg-white/10` | Gradient ring with pulse |
+| Headline accent | None | Gold gradient bar |
+| "Attack." text | Static outline | Shimmer animation |
+| Watermark | Static | Slow horizontal drift |
+| CTA button | Plain white fill | Gold border hover + slide-in arrow |
+| Background | Two radial gradients | + floating particles + grain overlay |
+| Card entry | Fade + translateY | Fade + translateY + scale |
 
