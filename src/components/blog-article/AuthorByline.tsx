@@ -12,8 +12,8 @@ const AuthorByline: React.FC<AuthorBylineProps> = ({
     context
 }) => {
     const photoUrl = context === 'blog'
-        ? '/images/hans-blog.jpg?v=2'
-        : '/images/hans-qa.jpg?v=2';
+        ? '/images/steven-blog.jpg?v=2'
+        : '/images/steven-qa.jpg?v=2';
 
     const formatDate = (dateString: string) => {
         const date = new Date(dateString);
@@ -29,17 +29,18 @@ const AuthorByline: React.FC<AuthorBylineProps> = ({
             {/* Author Photo */}
             <img
                 src={photoUrl}
-                alt="Hans Beeckman - Senior Real Estate Advisor"
+                alt="Steven Rosenberg - Founder & Chief Wealth Strategist"
                 className="w-16 h-16 rounded-full object-cover"
             />
 
             {/* Author Info */}
             <div className="flex-1">
                 <div className="flex items-center gap-2">
-                    <span className="font-semibold text-lg">Hans Beeckman</span>
+                    <span className="font-semibold text-lg">Steven Rosenberg</span>
                     <span className="text-sm text-muted-foreground">•</span>
-                    <span className="text-sm text-muted-foreground">Senior Real Estate Advisor</span>
+                    <span className="text-sm text-muted-foreground">Founder & Chief Wealth Strategist, Everence Wealth</span>
                 </div>
+                <p className="text-xs text-muted-foreground mt-0.5">Independent Fiduciary Advisor | Licensed in 50 States</p>
 
                 {/* Dates */}
                 <div className="flex items-center gap-3 mt-1 text-sm text-muted-foreground">

@@ -1107,7 +1107,7 @@ function truncateAtSentence(text: string, maxChars: number = 800): string {
 }
 
 function generateQAPageSchema(metadata: PageMetadata): string {
-  // For QA pages, use QAPage schema with full authority signals (Hans' E-E-A-T requirements)
+  // For QA pages, use QAPage schema with full authority signals (E-E-A-T requirements)
   // Content must be in the page's language (no hardcoded English)
   const schema = {
     "@context": "https://schema.org",
