@@ -181,9 +181,9 @@ export const ArticleContent = ({
             priority
             className="w-full aspect-[16/9] object-cover rounded-none sm:rounded-3xl shadow-2xl"
           />
-          {featuredImageCaption && featuredImageCaption !== 'N/A' && (
+          {(featuredImageCaption && featuredImageCaption !== 'N/A' || featuredImageAlt) && (
             <figcaption className="text-center text-sm italic text-muted-foreground pt-2 pb-4">
-              {featuredImageCaption}
+              {featuredImageCaption && featuredImageCaption !== 'N/A' ? featuredImageCaption : featuredImageAlt}
             </figcaption>
           )}
         </figure>
