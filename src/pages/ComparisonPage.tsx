@@ -15,14 +15,14 @@ import { CTASection } from "@/components/comparison/CTASection";
 import { TLDRSummary } from "@/components/comparison/TLDRSummary";
 import { ComparisonLanguageSwitcher } from "@/components/comparison/ComparisonLanguageSwitcher";
 import BlogEmmaChat from "@/components/blog-article/BlogEmmaChat";
-import { ComparisonPage as ComparisonPageType } from "@/lib/comparisonSchemaGenerator";
+import { ComparisonPage as ComparisonPageType, generateAllComparisonSchemas } from "@/lib/comparisonSchemaGenerator";
 import { markdownToHtml } from "@/lib/markdownToHtml";
 import { ArrowRight, ArrowLeft, BookOpen, Layers, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { LanguageMismatchNotFound } from "@/components/LanguageMismatchNotFound";
 
-const BASE_URL = "https://www.delsolprimehomes.com";
+const BASE_URL = "https://www.everencewealth.com";
 
 export default function ComparisonPage() {
   const { slug, lang = 'en' } = useParams<{ slug: string; lang: string }>();
@@ -54,7 +54,6 @@ export default function ComparisonPage() {
         .maybeSingle();
       
       if (anyMatch) {
-        // Mark that we need to redirect (language mismatch)
         return { ...anyMatch, _needsRedirect: true } as unknown as ComparisonPageType & { _needsRedirect?: boolean };
       }
       
@@ -63,6 +62,20 @@ export default function ComparisonPage() {
     enabled: !!slug,
   });
 
+  // Fetch author for schema
+  const { data: author } = useQuery({
+    queryKey: ['comparison-author', comparison?.author_id],
+    queryFn: async () => {
+      if (!comparison?.author_id) return null;
+      const { data } = await supabase
+        .from('authors')
+        .select('name, job_title, linkedin_url')
+        .eq('id', comparison.author_id)
+        .single();
+      return data;
+    },
+    enabled: !!comparison?.author_id,
+  });
 
   const handleChatClick = () => {
     window.dispatchEvent(new CustomEvent('openChatbot'));
@@ -98,21 +111,15 @@ export default function ComparisonPage() {
     );
   }
 
-  // Smart language mismatch handling (only when _needsRedirect flag is set):
-  // 1. If translation exists for requested language → redirect to correct URL
-  // 2. If no translation → show branded 404 with alternatives
+  // Smart language mismatch handling
   if (comparison && (comparison as any)._needsRedirect && comparison.language !== lang) {
     const compTranslations = (comparison as any).translations as Record<string, string> | null;
-    
-    // Check if the requested language has a translation
     const correctSlug = compTranslations?.[lang];
     
     if (correctSlug) {
-      // Translation exists → redirect to correct localized URL
       return <Navigate to={`/${lang}/compare/${correctSlug}`} replace />;
     }
     
-    // No translation → show helpful 404 with language alternatives
     return (
       <>
         <Header />
@@ -142,13 +149,11 @@ export default function ComparisonPage() {
   const translations = (comparison as any).translations as Record<string, string> | null;
   const hreflangTags: { lang: string; href: string }[] = [];
   
-  // Add current language (self-referencing)
   hreflangTags.push({
     lang: comparison.language || 'en',
     href: `${BASE_URL}/${comparison.language}/compare/${comparison.slug}`,
   });
   
-  // Add all translations
   if (translations) {
     Object.entries(translations).forEach(([lang, slug]) => {
       if (lang !== comparison.language) {
@@ -160,62 +165,69 @@ export default function ComparisonPage() {
     });
   }
 
-  // Determine x-default (English or current if no English)
   const xDefaultSlug = translations?.en || comparison.slug;
   const xDefaultLang = translations?.en ? 'en' : comparison.language;
 
-  // Build JSON-LD schema with translations
-  const comparisonSchema = {
-    "@context": "https://schema.org",
-    "@type": "Article",
-    "headline": comparison.headline,
-    "description": comparison.meta_description,
-    "inLanguage": comparison.language,
-    "datePublished": comparison.date_published,
-    "dateModified": comparison.date_modified,
-    "publisher": {
-      "@type": "Organization",
-      "name": "Del Sol Prime Homes",
-      "url": BASE_URL,
-    },
-    "isPartOf": {
-      "@type": "WebSite",
-      "name": "Del Sol Prime Homes",
-      "url": BASE_URL,
-    },
-    ...(translations && Object.keys(translations).length > 0 ? {
-      "workTranslation": Object.entries(translations)
-        .filter(([lang]) => lang !== comparison.language)
-        .map(([lang, slug]) => ({
-          "@type": "Article",
-          "inLanguage": lang,
-          "url": `${BASE_URL}/${lang}/compare/${slug}`,
-        })),
-    } : {}),
-  };
+  // Generate full JSON-LD structured data
+  const schemas = generateAllComparisonSchemas(comparison, author);
 
   return (
     <>
       <Helmet>
+        <title>{comparison.meta_title}</title>
+        <meta name="description" content={comparison.meta_description} />
         <link rel="canonical" href={canonicalUrl} />
         
-        {/* Hreflang tags for all translations */}
         {hreflangTags.map(({ lang, href }) => (
           <link key={lang} rel="alternate" hrefLang={lang} href={href} />
         ))}
         
-        {/* x-default points to English or current language */}
         <link rel="alternate" hrefLang="x-default" href={`${BASE_URL}/${xDefaultLang}/compare/${xDefaultSlug}`} />
         
-        {/* JSON-LD Schema */}
+        {/* Article Schema */}
         <script type="application/ld+json">
-          {JSON.stringify(comparisonSchema)}
+          {JSON.stringify(schemas.article)}
         </script>
+        
+        {/* Organization Schema */}
+        <script type="application/ld+json">
+          {JSON.stringify(schemas.organization)}
+        </script>
+        
+        {/* Speakable Schema */}
+        <script type="application/ld+json">
+          {JSON.stringify(schemas.speakable)}
+        </script>
+        
+        {/* Breadcrumb Schema */}
+        <script type="application/ld+json">
+          {JSON.stringify(schemas.breadcrumb)}
+        </script>
+        
+        {/* FAQ Schema */}
+        {schemas.faq && (
+          <script type="application/ld+json">
+            {JSON.stringify(schemas.faq)}
+          </script>
+        )}
+        
+        {/* Table Schema */}
+        {schemas.table && (
+          <script type="application/ld+json">
+            {JSON.stringify(schemas.table)}
+          </script>
+        )}
+        
+        {/* Image Schema */}
+        {schemas.image && (
+          <script type="application/ld+json">
+            {JSON.stringify(schemas.image)}
+          </script>
+        )}
       </Helmet>
       <Header />
       
       <main className="min-h-screen bg-background">
-        {/* Hero Section */}
         <ComparisonHero
           headline={comparison.headline}
           topic={comparison.comparison_topic}
@@ -226,7 +238,6 @@ export default function ComparisonPage() {
           featuredImageCaption={comparison.featured_image_caption}
         />
         
-        {/* Language Switcher */}
         <div className="container mx-auto px-4 -mt-4">
           <ComparisonLanguageSwitcher
             currentLanguage={comparison.language || 'en'}
@@ -236,31 +247,26 @@ export default function ComparisonPage() {
         </div>
 
         <article className="container mx-auto px-4 py-12 max-w-5xl">
-          {/* Speakable Answer - Most important for AI */}
           <SpeakableBox 
             answer={comparison.speakable_answer}
             optionA={comparison.option_a}
             optionB={comparison.option_b}
           />
 
-          {/* TL;DR Summary - Quick extraction point for AI */}
           <TLDRSummary
             optionA={comparison.option_a}
             optionB={comparison.option_b}
             quickComparisonTable={quickComparisonTable}
           />
 
-          {/* FAQ Section - Moved UP for better AI extraction */}
           <ComparisonFAQ faqs={qaEntities} />
 
-          {/* Quick Comparison Table */}
           <ComparisonTable 
             data={quickComparisonTable}
             optionA={comparison.option_a}
             optionB={comparison.option_b}
           />
 
-          {/* Option Overviews - With collapsible details */}
           <div className="grid lg:grid-cols-2 gap-6 mt-12">
             {comparison.option_a_overview && (
               <OptionCard 
@@ -278,7 +284,6 @@ export default function ComparisonPage() {
             )}
           </div>
 
-          {/* Side-by-Side Breakdown - Collapsible for shorter initial load */}
           {comparison.side_by_side_breakdown && (
             <section className="mt-12">
               <button
@@ -313,7 +318,6 @@ export default function ComparisonPage() {
             </section>
           )}
 
-          {/* Use Case Scenarios - Collapsible */}
           {comparison.use_case_scenarios && (
             <section className="mt-6">
               <button
@@ -348,17 +352,14 @@ export default function ComparisonPage() {
             </section>
           )}
 
-          {/* EMMA CTA Section */}
           <CTASection 
             optionA={comparison.option_a}
             optionB={comparison.option_b}
             onChatClick={handleChatClick}
           />
 
-          {/* Final Verdict */}
           <VerdictSection verdict={comparison.final_verdict} />
 
-          {/* Internal Links */}
           {comparison.internal_links && Array.isArray(comparison.internal_links) && comparison.internal_links.length > 0 && (
             <section className="mt-12 pt-8 border-t border-border/50">
               <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
@@ -383,7 +384,6 @@ export default function ComparisonPage() {
 
       <Footer />
       
-      {/* Emma Chat - Same as landing pages */}
       <BlogEmmaChat language={comparison.language || 'en'} />
     </>
   );

@@ -38,29 +38,20 @@ export interface ComparisonPage {
   niche?: string;
 }
 
-const BASE_URL = "https://www.delsolprimehomes.com";
+const BASE_URL = "https://www.everencewealth.com";
 
 const ORGANIZATION_SCHEMA = {
   "@context": "https://schema.org",
-  "@type": "RealEstateAgent",
-  "name": "Del Sol Prime Homes",
-  "description": "Premium real estate agency specializing in Costa del Sol properties",
+  "@type": "FinancialService",
+  "name": "Everence Wealth",
+  "description": "Expert financial advisory helping individuals plan for retirement, life insurance, and wealth management",
   "url": BASE_URL,
   "logo": `${BASE_URL}/assets/logo-new.png`,
-  "address": {
-    "@type": "PostalAddress",
-    "streetAddress": "ED SAN FERNAN, C. Alfonso XIII, 6, 1 OFICINA",
-    "addressLocality": "Fuengirola",
-    "addressRegion": "Málaga",
-    "postalCode": "29640",
-    "addressCountry": "ES"
-  },
   "contactPoint": {
     "@type": "ContactPoint",
     "contactType": "Customer Service",
-    "availableLanguage": ["en", "de", "nl", "fr", "pl", "fi", "sv", "da", "no", "hu"],
-    "telephone": "+34 630 03 90 90",
-    "email": "info@delsolprimehomes.com"
+    "availableLanguage": ["en", "es"],
+    "email": "info@everencewealth.com"
   }
 };
 

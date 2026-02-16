@@ -12,9 +12,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, Scale, Trash2, Eye, CheckCircle, Zap, Link as LinkIcon, Quote, Globe, Languages, RefreshCcw, AlertTriangle, Check } from "lucide-react";
+import { Loader2, Scale, Trash2, Eye, CheckCircle, Zap, Link as LinkIcon, Quote, Globe, Languages, RefreshCcw, AlertTriangle, Check, ImageIcon } from "lucide-react";
 import { Link } from "react-router-dom";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Progress } from "@/components/ui/progress";
 
@@ -67,14 +66,6 @@ const PHASE3_MOFU_COMPARISONS = [
   },
 ];
 
-interface BatchProgress {
-  isGenerating: boolean;
-  currentLanguage: string;
-  completedLanguages: string[];
-  failedLanguages: { code: string; error: string }[];
-  totalCount: number;
-}
-
 export default function ComparisonGenerator() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -90,19 +81,8 @@ export default function ComparisonGenerator() {
   const [translatingId, setTranslatingId] = useState<string | null>(null);
   const [translatingLang, setTranslatingLang] = useState<string | null>(null);
   
-  // Multi-language selection state
-  const [selectedLanguages, setSelectedLanguages] = useState<string[]>(
-    LANGUAGES.map(l => l.code) // All selected by default
-  );
-  
-  // Batch generation progress state
-  const [batchProgress, setBatchProgress] = useState<BatchProgress>({
-    isGenerating: false,
-    currentLanguage: '',
-    completedLanguages: [],
-    failedLanguages: [],
-    totalCount: 0,
-  });
+  // Image generation state
+  const [imageGenerating, setImageGenerating] = useState(false);
   
   // Backfill state for "Add All Missing" button
   const [backfillingTopic, setBackfillingTopic] = useState<string | null>(null);
@@ -131,164 +111,133 @@ export default function ComparisonGenerator() {
     return !exists;
   });
 
-  // Toggle language selection
-  const toggleLanguage = (code: string) => {
-    setSelectedLanguages(prev => 
-      prev.includes(code) 
-        ? prev.filter(l => l !== code)
-        : [...prev, code]
-    );
+  // Helper to generate AI image and upload to storage
+  const generateAndUploadImage = async (savedRecord: any) => {
+    try {
+      setImageGenerating(true);
+      
+      // Call generate-image edge function with headline
+      const { data: imageData, error: imageError } = await supabase.functions.invoke('generate-image', {
+        body: { headline: savedRecord.headline }
+      });
+      
+      if (imageError || !imageData?.images?.[0]?.url) {
+        console.error('Image generation failed:', imageError || 'No image returned');
+        return;
+      }
+      
+      const tempImageUrl = imageData.images[0].url;
+      
+      // Download and re-upload to article-images bucket for permanence
+      const imageResponse = await fetch(tempImageUrl);
+      const imageBlob = await imageResponse.blob();
+      const fileName = `comparison-${savedRecord.id}-${Date.now()}.png`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('article-images')
+        .upload(fileName, imageBlob, { contentType: 'image/png', upsert: true });
+      
+      if (uploadError) {
+        console.error('Image upload failed:', uploadError);
+        return;
+      }
+      
+      const { data: publicUrlData } = supabase.storage
+        .from('article-images')
+        .getPublicUrl(fileName);
+      
+      const permanentUrl = publicUrlData.publicUrl;
+      const altText = `${savedRecord.option_a} vs ${savedRecord.option_b} - ${savedRecord.headline}`;
+      const caption = `${savedRecord.headline} - Everence Wealth`;
+      
+      // Update comparison record with image data
+      await supabase
+        .from('comparison_pages')
+        .update({
+          featured_image_url: permanentUrl,
+          featured_image_alt: altText,
+          featured_image_caption: caption,
+        })
+        .eq('id', savedRecord.id);
+      
+      toast({ title: "Image generated", description: "AI featured image added to comparison." });
+    } catch (err) {
+      console.error('Image generation pipeline error:', err);
+    } finally {
+      setImageGenerating(false);
+    }
   };
 
-  const selectAllLanguages = () => setSelectedLanguages(LANGUAGES.map(l => l.code));
-  const deselectAllLanguages = () => setSelectedLanguages(['en']); // Always keep English
-
-  // Generate comparison for multiple languages
-  const generateMultiLanguageMutation = useMutation({
+  // Generate English-only comparison + AI image
+  const generateMutation = useMutation({
     mutationFn: async (params: { optionA: string; optionB: string; targetAudience: string; niche: string; suggestedHeadline?: string }) => {
-      const langsToGenerate = selectedLanguages.length > 0 ? selectedLanguages : ['en'];
-      
-      setBatchProgress({
-        isGenerating: true,
-        currentLanguage: langsToGenerate[0],
-        completedLanguages: [],
-        failedLanguages: [],
-        totalCount: langsToGenerate.length,
+      // Generate English comparison
+      const { data, error } = await supabase.functions.invoke('generate-comparison', {
+        body: { 
+          option_a: params.optionA, 
+          option_b: params.optionB, 
+          niche: params.niche, 
+          target_audience: params.targetAudience, 
+          suggested_headline: params.suggestedHeadline,
+          language: 'en',
+          include_internal_links: true,
+          include_citations: true,
+        }
       });
+      
+      if (error) throw error;
+      if (data.error) throw new Error(data.error);
+      const comparison = data.comparison;
 
-      const results: { success: any[]; errors: { lang: string; error: string }[] } = {
-        success: [],
-        errors: [],
-      };
-
-      // Generate English first (source for translations)
-      const englishIndex = langsToGenerate.indexOf('en');
-      const orderedLangs = englishIndex > 0 
-        ? ['en', ...langsToGenerate.filter(l => l !== 'en')]
-        : langsToGenerate;
-
-      let englishComparison: any = null;
-
-      for (const lang of orderedLangs) {
-        setBatchProgress(prev => ({
-          ...prev,
-          currentLanguage: lang,
-        }));
-
-        try {
-          let comparison;
-          
-          if (lang === 'en' || !englishComparison) {
-            // Generate fresh for English or if no English source
-            const { data, error } = await supabase.functions.invoke('generate-comparison', {
-              body: { 
-                option_a: params.optionA, 
-                option_b: params.optionB, 
-                niche: params.niche, 
-                target_audience: params.targetAudience, 
-                suggested_headline: params.suggestedHeadline,
-                language: lang,
-                include_internal_links: true,
-                include_citations: true,
-              }
-            });
-            
-            if (error) throw error;
-            if (data.error) throw new Error(data.error);
-            comparison = data.comparison;
-            
-            if (lang === 'en') {
-              englishComparison = comparison;
-            }
-          } else {
-            // Translate from English for other languages
-            const { data, error } = await supabase.functions.invoke('translate-comparison', {
-              body: { 
-                comparison_id: englishComparison.id,
-                target_language: lang,
-              }
-            });
-            
-            if (error) throw error;
-            if (data.error) throw new Error(data.error);
-            comparison = data.comparison || data;
+      // Ensure unique slug before saving
+      let uniqueSlug = comparison.slug;
+      if (uniqueSlug) {
+        const { data: existingSlugs } = await supabase
+          .from('comparison_pages')
+          .select('slug')
+          .like('slug', `${uniqueSlug}%`);
+        if (existingSlugs && existingSlugs.length > 0) {
+          const existingSet = new Set(existingSlugs.map(r => r.slug));
+          if (existingSet.has(uniqueSlug)) {
+            let suffix = 2;
+            while (existingSet.has(`${uniqueSlug}-${suffix}`)) suffix++;
+            uniqueSlug = `${uniqueSlug}-${suffix}`;
           }
-
-          // Ensure unique slug before saving
-          let uniqueSlug = comparison.slug;
-          if (uniqueSlug) {
-            const { data: existingSlugs } = await supabase
-              .from('comparison_pages')
-              .select('slug')
-              .like('slug', `${uniqueSlug}%`);
-            if (existingSlugs && existingSlugs.length > 0) {
-              const existingSet = new Set(existingSlugs.map(r => r.slug));
-              if (existingSet.has(uniqueSlug)) {
-                let suffix = 2;
-                while (existingSet.has(`${uniqueSlug}-${suffix}`)) suffix++;
-                uniqueSlug = `${uniqueSlug}-${suffix}`;
-              }
-            }
-          }
-
-          // Save the comparison and get the record back (with id)
-          const { data: savedRecord, error: saveError } = await supabase
-            .from('comparison_pages')
-            .insert({
-              ...comparison,
-              slug: uniqueSlug,
-              status: 'draft',
-              date_modified: new Date().toISOString(),
-            })
-            .select()
-            .single();
-          
-          if (saveError) throw saveError;
-
-          // Update englishComparison with the saved record so .id is available for translations
-          if (lang === 'en' && savedRecord) {
-            englishComparison = savedRecord;
-          }
-          
-          results.success.push({ lang, comparison: savedRecord });
-          setBatchProgress(prev => ({
-            ...prev,
-            completedLanguages: [...prev.completedLanguages, lang],
-          }));
-        } catch (err: any) {
-          console.error(`Failed to generate ${lang}:`, err);
-          results.errors.push({ lang, error: err.message || 'Unknown error' });
-          setBatchProgress(prev => ({
-            ...prev,
-            failedLanguages: [...prev.failedLanguages, { code: lang, error: err.message }],
-          }));
         }
       }
 
-      return results;
+      // Save and get record with id
+      const { data: savedRecord, error: saveError } = await supabase
+        .from('comparison_pages')
+        .insert({
+          ...comparison,
+          slug: uniqueSlug,
+          status: 'draft',
+          date_modified: new Date().toISOString(),
+        })
+        .select()
+        .single();
+      
+      if (saveError) throw saveError;
+
+      // Generate AI image in background (non-blocking for UX)
+      if (savedRecord) {
+        generateAndUploadImage(savedRecord);
+      }
+
+      return savedRecord;
     },
-    onSuccess: (results) => {
-      setBatchProgress(prev => ({ ...prev, isGenerating: false }));
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-comparisons'] });
-      
-      const successCount = results.success.length;
-      const errorCount = results.errors.length;
-      
       toast({ 
-        title: `Generated ${successCount} language${successCount !== 1 ? 's' : ''}`,
-        description: errorCount > 0 
-          ? `${errorCount} failed: ${results.errors.map(e => e.lang.toUpperCase()).join(', ')}`
-          : 'All comparisons saved as drafts.',
-        variant: errorCount > 0 ? 'destructive' : 'default',
+        title: "Comparison generated!",
+        description: 'English comparison saved as draft. AI image generating...',
       });
-      
-      // Reset form
       setOptionA('');
       setOptionB('');
       setSuggestedHeadline('');
     },
     onError: (error: Error) => {
-      setBatchProgress(prev => ({ ...prev, isGenerating: false }));
       toast({ title: "Generation failed", description: error.message, variant: "destructive" });
     },
   });
@@ -542,7 +491,7 @@ export default function ComparisonGenerator() {
           <Scale className="h-8 w-8 text-primary" />
           <div>
             <h1 className="text-2xl font-bold">Comparison Generator</h1>
-            <p className="text-muted-foreground">Create AI-citation optimized comparison pages in all 2 languages</p>
+            <p className="text-muted-foreground">Create AI-citation optimized comparison pages (English first, then translate)</p>
           </div>
         </div>
 
@@ -550,7 +499,7 @@ export default function ComparisonGenerator() {
           <TabsList>
             <TabsTrigger value="generate" className="flex items-center gap-2">
               <Globe className="h-4 w-4" />
-              Generate Multi-Language
+              Create Comparison
             </TabsTrigger>
             <TabsTrigger value="phase3" className="flex items-center gap-2">
               <Zap className="h-4 w-4" />
@@ -562,226 +511,124 @@ export default function ComparisonGenerator() {
             </TabsTrigger>
           </TabsList>
 
-          {/* Multi-Language Generation Tab */}
+          {/* English-Only Generation Tab */}
           <TabsContent value="generate" className="space-y-6">
-            <div className="grid lg:grid-cols-2 gap-6">
-              {/* Generation Form */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Globe className="h-5 w-5" />
-                    Create Comparison
-                  </CardTitle>
-                  <CardDescription>Generate comparison pages in multiple languages at once</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label>Option A</Label>
-                      <Input
-                        value={optionA}
-                        onChange={(e) => setOptionA(e.target.value)}
-                        placeholder="e.g., Term Life Insurance"
-                        disabled={batchProgress.isGenerating}
-                      />
-                    </div>
-                    <div>
-                      <Label>Option B</Label>
-                      <Input
-                        value={optionB}
-                        onChange={(e) => setOptionB(e.target.value)}
-                        placeholder="e.g., Whole Life Insurance"
-                        disabled={batchProgress.isGenerating}
-                      />
-                    </div>
-                  </div>
-
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Globe className="h-5 w-5" />
+                  Create English Comparison
+                </CardTitle>
+                <CardDescription>Generate an English comparison page with AI image. Translate via the Manage tab.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label>Target Audience</Label>
-                    <Textarea
-                      value={targetAudience}
-                      onChange={(e) => setTargetAudience(e.target.value)}
-                      placeholder="e.g., individuals planning for retirement"
-                      rows={2}
-                      disabled={batchProgress.isGenerating}
-                    />
-                  </div>
-
-                  <div>
-                    <Label>Suggested Headline (Optional)</Label>
+                    <Label>Option A</Label>
                     <Input
-                      value={suggestedHeadline}
-                      onChange={(e) => setSuggestedHeadline(e.target.value)}
-                      placeholder="e.g., Term Life vs Whole Life: Which Policy Is Right for You?"
-                      disabled={batchProgress.isGenerating}
+                      value={optionA}
+                      onChange={(e) => setOptionA(e.target.value)}
+                      placeholder="e.g., Term Life Insurance"
+                      disabled={generateMutation.isPending}
                     />
                   </div>
-
                   <div>
-                    <Label>Niche</Label>
+                    <Label>Option B</Label>
                     <Input
-                      value={niche}
-                      onChange={(e) => setNiche(e.target.value)}
-                      placeholder="e.g., wealth-management"
-                      disabled={batchProgress.isGenerating}
+                      value={optionB}
+                      onChange={(e) => setOptionB(e.target.value)}
+                      placeholder="e.g., Whole Life Insurance"
+                      disabled={generateMutation.isPending}
                     />
                   </div>
+                </div>
 
-                  {/* Suggestions */}
-                  <div className="pt-2">
-                    <Label className="text-xs text-muted-foreground">Quick suggestions:</Label>
-                    <div className="flex flex-wrap gap-2 mt-2">
-                      {SUGGESTED_COMPARISONS.slice(0, 4).map((s, i) => (
-                        <Badge
-                          key={i}
-                          variant="outline"
-                          className="cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors"
-                          onClick={() => handleSuggestionClick(s)}
-                        >
-                          {s.a} vs {s.b}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+                <div>
+                  <Label>Target Audience</Label>
+                  <Textarea
+                    value={targetAudience}
+                    onChange={(e) => setTargetAudience(e.target.value)}
+                    placeholder="e.g., individuals planning for retirement"
+                    rows={2}
+                    disabled={generateMutation.isPending}
+                  />
+                </div>
 
-              {/* Language Selection */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center justify-between">
-                    <span className="flex items-center gap-2">
-                      <Languages className="h-5 w-5" />
-                      Select Languages
-                    </span>
-                    <Badge variant="secondary">
-                      {selectedLanguages.length} / {LANGUAGES.length} selected
-                    </Badge>
-                  </CardTitle>
-                  <CardDescription>
-                    Choose which languages to generate. English is created first, others are translated.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {/* Select/Deselect All */}
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={selectAllLanguages}
-                      disabled={batchProgress.isGenerating}
-                    >
-                      <Check className="h-3 w-3 mr-1" />
-                      Select All
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={deselectAllLanguages}
-                      disabled={batchProgress.isGenerating}
-                    >
-                      Deselect All
-                    </Button>
-                  </div>
+                <div>
+                  <Label>Suggested Headline (Optional)</Label>
+                  <Input
+                    value={suggestedHeadline}
+                    onChange={(e) => setSuggestedHeadline(e.target.value)}
+                    placeholder="e.g., Term Life vs Whole Life: Which Policy Is Right for You?"
+                    disabled={generateMutation.isPending}
+                  />
+                </div>
 
-                  {/* Language Grid */}
-                  <div className="grid grid-cols-2 gap-3">
-                    {LANGUAGES.map(lang => (
-                      <div 
-                        key={lang.code}
-                        className={`flex items-center space-x-3 p-3 rounded-lg border cursor-pointer transition-colors
-                          ${selectedLanguages.includes(lang.code) 
-                            ? 'bg-primary/10 border-primary' 
-                            : 'bg-muted/30 border-border hover:bg-muted/50'
-                          }
-                          ${batchProgress.completedLanguages.includes(lang.code) ? 'bg-green-50 border-green-300' : ''}
-                          ${batchProgress.failedLanguages.some(f => f.code === lang.code) ? 'bg-red-50 border-red-300' : ''}
-                          ${batchProgress.currentLanguage === lang.code ? 'ring-2 ring-primary ring-offset-1' : ''}
-                        `}
-                        onClick={() => !batchProgress.isGenerating && toggleLanguage(lang.code)}
+                <div>
+                  <Label>Niche</Label>
+                  <Input
+                    value={niche}
+                    onChange={(e) => setNiche(e.target.value)}
+                    placeholder="e.g., wealth-management"
+                    disabled={generateMutation.isPending}
+                  />
+                </div>
+
+                {/* Suggestions */}
+                <div className="pt-2">
+                  <Label className="text-xs text-muted-foreground">Quick suggestions:</Label>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {SUGGESTED_COMPARISONS.slice(0, 4).map((s, i) => (
+                      <Badge
+                        key={i}
+                        variant="outline"
+                        className="cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors"
+                        onClick={() => handleSuggestionClick(s)}
                       >
-                        <Checkbox
-                          id={`lang-${lang.code}`}
-                          checked={selectedLanguages.includes(lang.code)}
-                          onCheckedChange={() => toggleLanguage(lang.code)}
-                          disabled={batchProgress.isGenerating}
-                        />
-                        <label 
-                          htmlFor={`lang-${lang.code}`}
-                          className="flex items-center gap-2 cursor-pointer flex-1"
-                        >
-                          <span className="text-lg">{lang.flag}</span>
-                          <span className="text-sm font-medium">{lang.name}</span>
-                          <span className="text-xs text-muted-foreground">({lang.code})</span>
-                        </label>
-                        
-                        {/* Status indicators during generation */}
-                        {batchProgress.isGenerating && (
-                          <>
-                            {batchProgress.completedLanguages.includes(lang.code) && (
-                              <CheckCircle className="h-4 w-4 text-green-600" />
-                            )}
-                            {batchProgress.currentLanguage === lang.code && (
-                              <Loader2 className="h-4 w-4 animate-spin text-primary" />
-                            )}
-                            {batchProgress.failedLanguages.some(f => f.code === lang.code) && (
-                              <AlertTriangle className="h-4 w-4 text-red-600" />
-                            )}
-                          </>
-                        )}
-                      </div>
+                        {s.a} vs {s.b}
+                      </Badge>
                     ))}
                   </div>
+                </div>
 
-                  {/* Batch Progress */}
-                  {batchProgress.isGenerating && (
-                    <div className="space-y-3 pt-4 border-t">
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-muted-foreground">
-                          Generating: {batchProgress.completedLanguages.length} / {batchProgress.totalCount}
-                        </span>
-                        <span className="font-medium">
-                          {LANGUAGES.find(l => l.code === batchProgress.currentLanguage)?.name || batchProgress.currentLanguage}
-                        </span>
-                      </div>
-                      <Progress 
-                        value={(batchProgress.completedLanguages.length / batchProgress.totalCount) * 100} 
-                      />
-                    </div>
+                {/* Generate Button */}
+                <Button
+                  className="w-full"
+                  size="lg"
+                  onClick={() => generateMutation.mutate({ 
+                    optionA, 
+                    optionB, 
+                    targetAudience, 
+                    niche,
+                    suggestedHeadline: suggestedHeadline || undefined,
+                  })}
+                  disabled={!optionA || !optionB || generateMutation.isPending}
+                >
+                  {generateMutation.isPending ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Generating English Comparison...
+                    </>
+                  ) : (
+                    <>
+                      <Globe className="h-4 w-4 mr-2" />
+                      Generate English Comparison
+                    </>
                   )}
+                </Button>
 
-                  {/* Generate Button */}
-                  <Button
-                    className="w-full"
-                    size="lg"
-                    onClick={() => generateMultiLanguageMutation.mutate({ 
-                      optionA, 
-                      optionB, 
-                      targetAudience, 
-                      niche,
-                      suggestedHeadline: suggestedHeadline || undefined,
-                    })}
-                    disabled={!optionA || !optionB || selectedLanguages.length === 0 || batchProgress.isGenerating}
-                  >
-                    {batchProgress.isGenerating ? (
-                      <>
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Generating {batchProgress.completedLanguages.length + 1} of {batchProgress.totalCount}...
-                      </>
-                    ) : (
-                      <>
-                        <Globe className="h-4 w-4 mr-2" />
-                        Generate in {selectedLanguages.length} Language{selectedLanguages.length !== 1 ? 's' : ''}
-                      </>
-                    )}
-                  </Button>
+                {imageGenerating && (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground justify-center">
+                    <ImageIcon className="h-4 w-4 animate-pulse text-primary" />
+                    Generating AI featured image...
+                  </div>
+                )}
 
-                  <p className="text-xs text-muted-foreground text-center">
-                    Comparisons will be saved as drafts for review before publishing
-                  </p>
-                </CardContent>
-              </Card>
-            </div>
+                <p className="text-xs text-muted-foreground text-center">
+                  Comparison saved as draft. Use Manage tab to translate to Spanish and publish.
+                </p>
+              </CardContent>
+            </Card>
 
             {/* Generated Preview (for single generation) */}
             {generatedComparison && (
@@ -867,7 +714,7 @@ export default function ComparisonGenerator() {
                                 setOptionB(mofu.optionB);
                                 setTargetAudience(mofu.targetAudience);
                                 setNiche(mofu.niche);
-                                generateMultiLanguageMutation.mutate({ 
+                                generateMutation.mutate({ 
                                   optionA: mofu.optionA, 
                                   optionB: mofu.optionB, 
                                   targetAudience: mofu.targetAudience, 
@@ -875,7 +722,7 @@ export default function ComparisonGenerator() {
                                   suggestedHeadline: mofu.aiHeadline,
                                 });
                               }}
-                              disabled={generateMultiLanguageMutation.isPending}
+                              disabled={generateMutation.isPending}
                             >
                               Generate
                             </Button>
