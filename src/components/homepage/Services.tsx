@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion, useScroll, useTransform } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { PiggyBank, Shield, Users, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from '@/i18n/useTranslation';
@@ -13,9 +13,6 @@ export const Services: React.FC = () => {
   const { t } = useTranslation();
   const sv = t.homepage.services;
   const images = useHomepageImages();
-  const bannerRef = React.useRef(null);
-  const { scrollYProgress } = useScroll({ target: bannerRef, offset: ['start end', 'end start'] });
-  const imgY = useTransform(scrollYProgress, [0, 1], ['-10%', '10%']);
 
   return (
     <section className="py-20 md:py-28 px-4 md:px-8 bg-white">
@@ -34,18 +31,16 @@ export const Services: React.FC = () => {
         {/* Parallax image banner with glassmorphic overlay */}
         {images.services && (
           <motion.div
-            ref={bannerRef}
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
             className="relative rounded-[30px] overflow-hidden mb-14 aspect-[16/6]"
           >
-            <motion.img
+            <img
               src={images.services}
               alt="Premium wealth management office"
-              className="w-full h-[120%] object-cover absolute top-0 left-0"
-              style={{ y: imgY }}
+              className="w-full h-full object-cover"
               loading="lazy"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/20 to-transparent" />
