@@ -1,38 +1,24 @@
 
 
-## Fix: Translation Fails During Multi-Language Comparison Generation
+## Update Blog Language Filter to English and Spanish Only
 
 ### Problem
-When generating a comparison in multiple languages (e.g., EN + ES), the English version is created successfully, but the Spanish translation fails with:
-```
-"comparison_id and target_language are required"
-```
+The blog filter bar at `/en/blog` currently shows 10+ languages (German, Dutch, French, Polish, etc.) inherited from the previous real estate site. Only English and Spanish are supported.
 
-The client sends `source_comparison` (the full comparison object) instead of `comparison_id` (just the ID string) that the backend function expects.
+### Changes
 
-### Fix
+**File: `src/components/blog-index/FilterBar.tsx`** (lines 16-28)
 
-**File: `src/pages/admin/ComparisonGenerator.tsx`** (lines 205-209)
+Replace the `LANGUAGES` array to only include the three supported options:
 
-Change:
 ```typescript
-body: { 
-  source_comparison: englishComparison,
-  target_language: lang,
-}
+const LANGUAGES = [
+  { code: "all", flag: "🌍", name: "All Languages" },
+  { code: "en", flag: "🇺🇸", name: "English" },
+  { code: "es", flag: "🇪🇸", name: "Spanish" },
+];
 ```
 
-To:
-```typescript
-body: { 
-  comparison_id: englishComparison.id,
-  target_language: lang,
-}
-```
+This also updates the English flag from the British flag to the US flag to match the rest of the site's convention.
 
-### Why This Works
-- The `englishComparison` object already contains the `id` field (assigned when it was inserted into the database on line 198)
-- The `translate-comparison` edge function fetches the full comparison from the database using this ID, so sending the whole object is unnecessary
-- This matches how the same function is correctly called elsewhere in the file (lines 337 and 376)
-
-One line change, single file.
+No other files or logic changes needed -- the filtering query in `BlogIndex.tsx` already correctly filters by the `language` column using whatever code is selected, so categories and language filtering will work perfectly with this reduced set.
