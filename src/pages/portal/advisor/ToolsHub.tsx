@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ExternalLink, Calculator, Wrench, Search, Lock, ChevronDown, ChevronUp } from "lucide-react";
+import { ExternalLink, Calculator, Wrench, Search, Lock, ChevronDown, ChevronUp, DollarSign, TrendingUp, Calendar } from "lucide-react";
 
 const TOOL_TYPES = [
   { key: "quick_quote", label: "Quick Quote" },
@@ -15,6 +15,18 @@ const TOOL_TYPES = [
   { key: "application_portal", label: "Application Portal" },
 ];
 
+const CALC_CATEGORIES = [
+  { key: "cash_flow", label: "Cash Flow", icon: DollarSign },
+  { key: "retirement", label: "Retirement", icon: Calendar },
+  { key: "life_income", label: "Life & Income", icon: TrendingUp },
+  { key: "tax_planning", label: "Tax Planning", icon: Calculator },
+  { key: "estate_planning", label: "Estate Planning", icon: Calculator },
+];
+
+const getCategoryIcon = (category: string) => {
+  return CALC_CATEGORIES.find((c) => c.key === category)?.icon || Calculator;
+};
+
 export default function ToolsHub() {
   const [tools, setTools] = useState<any[]>([]);
   const [calculators, setCalculators] = useState<any[]>([]);
@@ -22,6 +34,7 @@ export default function ToolsHub() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [expandedInstructions, setExpandedInstructions] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
   useEffect(() => {
     Promise.all([
@@ -50,7 +63,7 @@ export default function ToolsHub() {
     return result;
   }, [tools, searchQuery, selectedType]);
 
-  const calcCategories = [...new Set(calculators.map((c) => c.category))];
+  
 
   if (loading)
     return (
@@ -196,38 +209,78 @@ export default function ToolsHub() {
           )}
         </TabsContent>
 
-        <TabsContent value="calculators" className="mt-4 space-y-6">
-          {calcCategories.map((cat) => (
-            <div key={cat}>
-              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-                {cat.replace(/_/g, " ")}
-              </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {calculators
-                  .filter((c) => c.category === cat)
-                  .map((c) => (
-                    <Card key={c.id}>
-                      <CardContent className="p-4">
-                        <div className="flex items-start gap-3">
-                          <Calculator className="h-5 w-5 text-primary shrink-0 mt-0.5" />
-                          <div>
-                            <p className="font-medium text-foreground">{c.calculator_name}</p>
-                            <p className="text-xs text-muted-foreground mt-1">{c.description}</p>
-                            {c.external_url && (
-                              <a href={c.external_url} target="_blank" rel="noopener noreferrer">
-                                <Button variant="link" size="sm" className="px-0 mt-1">
-                                  <ExternalLink className="h-3 w-3 mr-1" />Open
-                                </Button>
-                              </a>
-                            )}
+        <TabsContent value="calculators" className="mt-4 space-y-4">
+          {/* Category filter badges */}
+          <div className="flex flex-wrap gap-2">
+            <Badge
+              variant={selectedCategory === null ? "default" : "outline"}
+              className="cursor-pointer"
+              onClick={() => setSelectedCategory(null)}
+            >
+              All
+            </Badge>
+            {CALC_CATEGORIES.map((cat) => (
+              <Badge
+                key={cat.key}
+                variant={selectedCategory === cat.key ? "default" : "outline"}
+                className="cursor-pointer"
+                onClick={() => setSelectedCategory(selectedCategory === cat.key ? null : cat.key)}
+              >
+                {cat.label}
+              </Badge>
+            ))}
+          </div>
+
+          {/* Grouped calculator sections */}
+          {CALC_CATEGORIES.map((cat) => {
+            const categoryCalcs = calculators.filter((c) => c.category === cat.key);
+            if (selectedCategory && selectedCategory !== cat.key) return null;
+            if (categoryCalcs.length === 0) return null;
+            const Icon = cat.icon;
+
+            return (
+              <div key={cat.key} className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <Icon className="h-4 w-4 text-primary" />
+                  <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+                    {cat.label}
+                  </h3>
+                  <Badge variant="secondary" className="text-xs">
+                    {categoryCalcs.length}
+                  </Badge>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {categoryCalcs.map((c) => {
+                    const CatIcon = getCategoryIcon(c.category);
+                    return (
+                      <Card key={c.id}>
+                        <CardContent className="p-4 flex flex-col gap-3">
+                          <div className="flex items-start gap-3">
+                            <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                              <CatIcon className="h-5 w-5 text-primary" />
+                            </div>
+                            <div className="min-w-0">
+                              <p className="font-medium text-foreground">{c.calculator_name}</p>
+                              {c.description && (
+                                <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{c.description}</p>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
+                          {c.external_url && (
+                            <a href={c.external_url} target="_blank" rel="noopener noreferrer">
+                              <Button variant="outline" size="sm" className="w-full">
+                                <Calculator className="h-3 w-3 mr-1" /> Use Calculator
+                              </Button>
+                            </a>
+                          )}
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </TabsContent>
       </Tabs>
     </div>
