@@ -819,3 +819,43 @@ All colors MUST be HSL.
 .checkbox-animate-in {
   animation: checkmark-pop 0.2s ease-out;
 }
+
+/* ── Glass Card utility ── */
+.glass-card {
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  background: hsla(160, 48%, 21%, 0.08);
+  border: 1px solid hsla(0, 0%, 100%, 0.08);
+}
+
+/* ── Film grain overlay ── */
+.grain-overlay {
+  position: relative;
+}
+
+.grain-overlay::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.04;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  z-index: 1;
+}
+
+/* ── Selection color ── */
+::selection {
+  background: hsl(160 48% 21% / 0.4);
+  color: white;
+}
+
+/* ── Hidden scrollbar for dark sections ── */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
