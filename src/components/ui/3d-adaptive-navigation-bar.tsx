@@ -16,7 +16,7 @@ interface NavigationPillProps {
 }
 
 export const NavigationPill: React.FC<NavigationPillProps> = ({ isLightBackground }) => {
-  const { currentLanguage } = useTranslation();
+  const { currentLanguage, t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
   const [activeSection, setActiveSection] = useState('philosophy');
@@ -27,31 +27,33 @@ export const NavigationPill: React.FC<NavigationPillProps> = ({ isLightBackgroun
   const hoverTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const dropdownTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const nav = t.header.nav;
+
   const navItems: NavItem[] = [
-    { label: 'Philosophy', id: 'philosophy', path: `/${currentLanguage}/philosophy` },
+    { label: nav.philosophy, id: 'philosophy', path: `/${currentLanguage}/philosophy` },
     {
-      label: 'Strategies', id: 'strategies',
+      label: nav.strategies, id: 'strategies',
       children: [
-        { label: 'Indexed Universal Life', path: `/${currentLanguage}/strategies/iul`, icon: <TrendingUp className="w-4 h-4" /> },
-        { label: 'Whole Life', path: `/${currentLanguage}/strategies/whole-life`, icon: <Shield className="w-4 h-4" /> },
-        { label: 'Tax-Free Retirement', path: `/${currentLanguage}/strategies/tax-free-retirement`, icon: <Umbrella className="w-4 h-4" /> },
-        { label: 'Asset Protection', path: `/${currentLanguage}/strategies/asset-protection`, icon: <Lock className="w-4 h-4" /> },
+        { label: nav.iul, path: `/${currentLanguage}/strategies/iul`, icon: <TrendingUp className="w-4 h-4" /> },
+        { label: nav.wholeLife, path: `/${currentLanguage}/strategies/whole-life`, icon: <Shield className="w-4 h-4" /> },
+        { label: nav.taxFreeRetirement, path: `/${currentLanguage}/strategies/tax-free-retirement`, icon: <Umbrella className="w-4 h-4" /> },
+        { label: nav.assetProtection, path: `/${currentLanguage}/strategies/asset-protection`, icon: <Lock className="w-4 h-4" /> },
       ],
     },
     {
-      label: 'Education', id: 'education',
+      label: nav.education, id: 'education',
       children: [
-        { label: 'Blog', path: `/${currentLanguage}/blog`, icon: <Newspaper className="w-4 h-4" /> },
-        { label: 'Q&A', path: `/${currentLanguage}/qa`, icon: <MessageCircleQuestion className="w-4 h-4" /> },
-        { label: 'Financial Terms', path: `/${currentLanguage}/glossary`, icon: <BookMarked className="w-4 h-4" /> },
+        { label: nav.blog, path: `/${currentLanguage}/blog`, icon: <Newspaper className="w-4 h-4" /> },
+        { label: nav.qa, path: `/${currentLanguage}/qa`, icon: <MessageCircleQuestion className="w-4 h-4" /> },
+        { label: nav.glossary, path: `/${currentLanguage}/glossary`, icon: <BookMarked className="w-4 h-4" /> },
       ],
     },
     {
-      label: 'About', id: 'about',
+      label: nav.about, id: 'about',
       children: [
-        { label: 'Our Team', path: `/${currentLanguage}/team`, icon: <Users className="w-4 h-4" /> },
-        { label: 'Why Fiduciary', path: `/${currentLanguage}/about`, icon: <Info className="w-4 h-4" /> },
-        { label: 'Client Stories', path: `/${currentLanguage}/client-stories`, icon: <Heart className="w-4 h-4" /> },
+        { label: nav.team, path: `/${currentLanguage}/team`, icon: <Users className="w-4 h-4" /> },
+        { label: nav.whyFiduciary, path: `/${currentLanguage}/about`, icon: <Info className="w-4 h-4" /> },
+        { label: nav.clientStories, path: `/${currentLanguage}/client-stories`, icon: <Heart className="w-4 h-4" /> },
       ],
     },
   ];
