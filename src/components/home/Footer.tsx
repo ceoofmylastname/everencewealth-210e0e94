@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Linkedin, Mail, Phone, MapPin, Twitter, Youtube, Shield } from 'lucide-react';
+import { Linkedin, Mail, Phone, MapPin, Twitter, Youtube } from 'lucide-react';
 import { FooterBackgroundGradient, TextHoverEffect } from '@/components/ui/hover-footer';
 
 export const Footer: React.FC = () => {
@@ -58,9 +58,12 @@ export const Footer: React.FC = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-12 mb-16">
           {/* Brand */}
           <div className="lg:col-span-1">
-            <div className="flex items-center gap-2 mb-4">
-              <Shield size={24} className="text-prime-gold" />
-              <span className="font-serif font-bold text-xl text-white">Everence</span>
+            <div className="mb-4">
+              <img 
+                src="https://storage.googleapis.com/msgsndr/TLhrYb7SRrWrly615tCI/media/6993ada8dcdadb155342f28e.png"
+                alt="Everence Wealth"
+                className="h-14 md:h-16 w-auto object-contain brightness-0 invert drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]"
+              />
             </div>
             <p className="text-gray-400 text-sm mb-6">
               Independent fiduciary wealth architects helping families bridge the retirement gap since 1998.

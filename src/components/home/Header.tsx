@@ -114,7 +114,7 @@ export const Header: React.FC<HeaderProps> = ({ variant = 'transparent', content
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2.5 z-50 justify-self-start">
           <img 
-            src="https://storage.googleapis.com/msgsndr/9m2UBN29nuaCWceOgW2Z/media/6926151522d3b65c0becbaf4.png" 
+            src="https://storage.googleapis.com/msgsndr/TLhrYb7SRrWrly615tCI/media/6993ada8dcdadb155342f28e.png" 
             alt="Everence Wealth" 
             width={160} height={64} loading="eager" decoding="async"
             className={`h-14 md:h-16 w-auto min-w-[120px] object-contain transition-all duration-500 ${
