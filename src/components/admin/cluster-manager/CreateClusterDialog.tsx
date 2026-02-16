@@ -98,6 +98,16 @@ export function CreateClusterDialog({ open, onOpenChange, onClusterCreated }: Cr
         onOpenChange(false);
         return;
       }
+
+      // Partial: some articles created but generation couldn't finish all
+      if (job.status === 'partial') {
+        toast.success(`Cluster partially created with ${articleCount} article${articleCount !== 1 ? 's' : ''}. You can complete it later.`);
+        setIsGenerating(false);
+        resetForm();
+        onClusterCreated();
+        onOpenChange(false);
+        return;
+      }
       
       if (job.status === 'failed') {
         toast.error(`Generation failed: ${job.error || 'Unknown error'}`);
