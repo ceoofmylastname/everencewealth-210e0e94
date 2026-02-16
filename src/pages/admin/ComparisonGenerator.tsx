@@ -128,9 +128,21 @@ export default function ComparisonGenerator() {
       
       const tempImageUrl = imageData.images[0].url;
       
-      // Download and re-upload to article-images bucket for permanence
-      const imageResponse = await fetch(tempImageUrl);
-      const imageBlob = await imageResponse.blob();
+      // Convert base64 data URL or fetch remote URL, then upload to storage
+      let imageBlob: Blob;
+      if (tempImageUrl.startsWith('data:')) {
+        const base64Data = tempImageUrl.split(',')[1];
+        const byteString = atob(base64Data);
+        const ab = new ArrayBuffer(byteString.length);
+        const ia = new Uint8Array(ab);
+        for (let i = 0; i < byteString.length; i++) {
+          ia[i] = byteString.charCodeAt(i);
+        }
+        imageBlob = new Blob([ab], { type: 'image/png' });
+      } else {
+        const imageResponse = await fetch(tempImageUrl);
+        imageBlob = await imageResponse.blob();
+      }
       const fileName = `comparison-${savedRecord.id}-${Date.now()}.png`;
       
       const { error: uploadError } = await supabase.storage
