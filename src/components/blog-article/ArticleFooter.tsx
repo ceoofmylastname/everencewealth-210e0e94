@@ -2,20 +2,20 @@ import { Mail, Phone, MapPin } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const COMPANY_INFO = {
-  name: "Del Sol Prime Homes",
-  tagline: "Premium real estate agency specializing in Costa del Sol properties",
-  phone: "+34 630 03 90 90",
-  email: "info@delsolprimehomes.com",
-  website: "https://www.delsolprimehomes.com",
+  name: "Everence Wealth",
+  tagline: "Independent fiduciary wealth architects specializing in tax-efficient retirement strategies.",
+  phone: "+1-415-555-0100",
+  email: "info@everencewealth.com",
+  website: "https://www.everencewealth.com",
   address: {
-    street: "ED SAN FERNAN, C. Alfonso XIII, 6, 1 OFICINA",
-    city: "Fuengirola",
-    postalCode: "29640",
-    region: "Málaga",
-    country: "Spain"
+    street: "One Embarcadero Center, Suite 500",
+    city: "San Francisco",
+    postalCode: "94111",
+    region: "CA",
+    country: "United States"
   },
-  serviceAreas: ["Marbella", "Estepona", "Fuengirola", "Benalmádena", "Mijas", "Sotogrande", "Casares", "Torremolinos", "Manilva"],
-  languages: ["English", "German", "Dutch", "French", "Polish", "Finnish", "Swedish", "Danish", "Norwegian", "Hungarian"]
+  specialties: ["Retirement Planning", "Tax-Efficient Strategies", "Estate Planning", "Indexed Universal Life", "Annuities", "Asset Protection"],
+  languages: ["English", "Spanish"]
 };
 
 export const ArticleFooter = () => {
@@ -70,16 +70,16 @@ export const ArticleFooter = () => {
             </div>
           </div>
 
-          {/* Service Areas */}
+          {/* Specialties */}
           <div className="space-y-4">
             <div className="flex items-center gap-2">
               <MapPin className="h-5 w-5 text-primary" />
-              <h4 className="font-semibold text-foreground">Service Areas</h4>
+              <h4 className="font-semibold text-foreground">Specialties</h4>
             </div>
             <ul className="space-y-2">
-              {COMPANY_INFO.serviceAreas.map((area) => (
-                <li key={area} className="text-sm text-muted-foreground">
-                  {area}
+              {COMPANY_INFO.specialties.map((specialty) => (
+                <li key={specialty} className="text-sm text-muted-foreground">
+                  {specialty}
                 </li>
               ))}
             </ul>

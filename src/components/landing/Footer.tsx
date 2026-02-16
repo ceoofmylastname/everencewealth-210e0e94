@@ -17,7 +17,7 @@ const Footer: React.FC<FooterProps> = ({ content }) => {
                     {/* Logo */}
                     <img 
                         src="https://storage.googleapis.com/msgsndr/9m2UBN29nuaCWceOgW2Z/media/6926151522d3b65c0becbaf4.png"
-                        alt="DelSolPrimeHomes"
+                        alt="Everence Wealth"
                         className="h-12 sm:h-14 w-auto object-contain drop-shadow-[0_2px_4px_rgba(0,0,0,0.2)]"
                     />
 
