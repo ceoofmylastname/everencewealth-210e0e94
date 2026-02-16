@@ -23,7 +23,7 @@ export const MasterPromptEditor = () => {
       .from('content_settings')
       .select('setting_value, updated_at')
       .eq('setting_key', 'master_content_prompt')
-      .single();
+      .maybeSingle();
     
     if (error) {
       console.error('Error loading master prompt:', error);
@@ -31,6 +31,12 @@ export const MasterPromptEditor = () => {
     } else if (data) {
       setPrompt(data.setting_value);
       setLastUpdated(data.updated_at);
+    } else {
+      // Row missing — auto-create it
+      await supabase
+        .from('content_settings')
+        .insert({ setting_key: 'master_content_prompt', setting_value: '' });
+      setPrompt('');
     }
     setIsLoading(false);
   };
