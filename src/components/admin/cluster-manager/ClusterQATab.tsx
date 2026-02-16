@@ -228,6 +228,7 @@ export const ClusterQATab = ({
     // Also count English published
     const englishPublished = englishQAs.filter(qa => qa.status === 'published').length;
     langPublishedCounts['en'] = englishPublished;
+    langCounts['en'] = englishQAs.length;
     
     setLanguageQACounts(langCounts);
     setLanguagePublishedCounts(langPublishedCounts);
