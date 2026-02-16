@@ -11,30 +11,20 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
-const complianceData = {
-  licenseStatus: "active",
-  licenseExpiry: "2026-12-31",
-  eoExpiry: "2026-06-30",
-  contractsComplete: 12,
-  contractsPending: 3,
-  requiredTrainingsComplete: 4,
-  requiredTrainingsTotal: 5,
-};
+interface ComplianceDocument {
+  id: string;
+  name: string;
+  status: string;
+  expiry_date: string | null;
+  file_url: string | null;
+}
 
-const requiredDocuments = [
-  { name: "E&O Insurance Certificate", status: "current", expiry: "2026-06-30" },
-  { name: "State Insurance License", status: "current", expiry: "2026-12-31" },
-  { name: "FINRA Registration", status: "not_required", expiry: null },
-  { name: "W-9 Form", status: "current", expiry: null },
-  { name: "Background Check", status: "current", expiry: null },
-];
-
-const contractingStatus = [
-  { carrier: "Pacific Life", status: "active", contracted_date: "2024-01-15" },
-  { carrier: "North American", status: "active", contracted_date: "2024-02-10" },
-  { carrier: "Allianz", status: "pending", contracted_date: null },
-  { carrier: "American Amicable", status: "active", contracted_date: "2024-03-05" },
-];
+interface CarrierContract {
+  id: string;
+  carrier_name: string;
+  status: string;
+  contracted_date: string | null;
+}
 
 function getStatusBadge(status: string) {
   switch (status) {
@@ -52,12 +42,6 @@ function getStatusBadge(status: string) {
   }
 }
 
-function isExpiringWithin30Days(expiryDate: string | null) {
-  if (!expiryDate) return false;
-  const days = Math.floor((new Date(expiryDate).getTime() - Date.now()) / 86400000);
-  return days <= 30 && days >= 0;
-}
-
 function isExpired(expiryDate: string | null) {
   if (!expiryDate) return false;
   return new Date(expiryDate) < new Date();
@@ -67,24 +51,81 @@ export default function ComplianceCenter() {
   const { portalUser } = usePortalAuth();
   const [advisor, setAdvisor] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [documents, setDocuments] = useState<ComplianceDocument[]>([]);
+  const [contracts, setContracts] = useState<CarrierContract[]>([]);
+  const [trainingStats, setTrainingStats] = useState({ complete: 0, total: 0 });
 
   useEffect(() => {
     if (!portalUser) return;
-    supabase
-      .from("advisors")
-      .select("*")
-      .eq("portal_user_id", portalUser.id)
-      .maybeSingle()
-      .then(({ data }) => {
-        setAdvisor(data);
+
+    const fetchAll = async () => {
+      // Get advisor
+      const { data: advisorData } = await supabase
+        .from("advisors")
+        .select("*")
+        .eq("portal_user_id", portalUser.id)
+        .maybeSingle();
+
+      setAdvisor(advisorData);
+
+      if (!advisorData) {
         setLoading(false);
-      });
+        return;
+      }
+
+      // Fetch compliance documents, carrier contracts, and training progress in parallel
+      const [docsRes, contractsRes, trainingsRes, progressRes] = await Promise.all([
+        supabase
+          .from("compliance_documents")
+          .select("id, name, status, expiry_date, file_url")
+          .eq("advisor_id", advisorData.id),
+        supabase
+          .from("carrier_contracts")
+          .select("id, carrier_name, status, contracted_date")
+          .eq("advisor_id", advisorData.id),
+        supabase
+          .from("trainings")
+          .select("id")
+          .eq("status", "published"),
+        supabase
+          .from("training_progress")
+          .select("id, completed")
+          .eq("advisor_id", advisorData.id),
+      ]);
+
+      setDocuments(docsRes.data || []);
+      setContracts(contractsRes.data || []);
+
+      const totalTrainings = trainingsRes.data?.length || 0;
+      const completedTrainings = progressRes.data?.filter((p) => p.completed).length || 0;
+      setTrainingStats({ complete: completedTrainings, total: totalTrainings });
+
+      setLoading(false);
+    };
+
+    fetchAll();
   }, [portalUser]);
 
+  // Compute dynamic stats
+  const activeContracts = contracts.filter((c) => c.status === "active").length;
+  const pendingContracts = contracts.filter((c) => c.status === "pending").length;
+  const currentDocs = documents.filter((d) => d.status === "current").length;
+
+  // Find license and E&O docs for the stats cards
+  const licenseDocs = documents.filter((d) => d.name.toLowerCase().includes("license"));
+  const licenseDoc = licenseDocs.length > 0 ? licenseDocs[0] : null;
+  const eoDocs = documents.filter((d) => d.name.toLowerCase().includes("e&o") || d.name.toLowerCase().includes("insurance"));
+  const eoDoc = eoDocs.length > 0 ? eoDocs[0] : null;
+
+  // Compliance score
+  const totalDocs = documents.length || 1;
+  const totalContracts = contracts.length || 1;
+  const totalTrainings = trainingStats.total || 1;
+
   const complianceScore = Math.round(
-    (complianceData.contractsComplete / (complianceData.contractsComplete + complianceData.contractsPending)) * 30 +
-    (complianceData.requiredTrainingsComplete / complianceData.requiredTrainingsTotal) * 30 +
-    (requiredDocuments.filter((d) => d.status === "current").length / requiredDocuments.length) * 40
+    (activeContracts / totalContracts) * 30 +
+    (trainingStats.complete / totalTrainings) * 30 +
+    (currentDocs / totalDocs) * 40
   );
 
   if (loading) {
@@ -137,10 +178,14 @@ export default function ComplianceCenter() {
               </div>
               <div>
                 <p className="text-sm font-medium text-muted-foreground">License Status</p>
-                <p className="text-lg font-semibold text-foreground capitalize">{complianceData.licenseStatus}</p>
-                <p className="text-xs text-muted-foreground">
-                  Expires: {new Date(complianceData.licenseExpiry).toLocaleDateString()}
+                <p className="text-lg font-semibold text-foreground capitalize">
+                  {licenseDoc ? licenseDoc.status : "N/A"}
                 </p>
+                {licenseDoc?.expiry_date && (
+                  <p className="text-xs text-muted-foreground">
+                    Expires: {new Date(licenseDoc.expiry_date).toLocaleDateString()}
+                  </p>
+                )}
               </div>
             </div>
           </CardContent>
@@ -154,8 +199,8 @@ export default function ComplianceCenter() {
               </div>
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Active Contracts</p>
-                <p className="text-lg font-semibold text-foreground">{complianceData.contractsComplete}</p>
-                <p className="text-xs text-muted-foreground">{complianceData.contractsPending} pending</p>
+                <p className="text-lg font-semibold text-foreground">{activeContracts}</p>
+                <p className="text-xs text-muted-foreground">{pendingContracts} pending</p>
               </div>
             </div>
           </CardContent>
@@ -170,7 +215,7 @@ export default function ComplianceCenter() {
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Required Trainings</p>
                 <p className="text-lg font-semibold text-foreground">
-                  {complianceData.requiredTrainingsComplete}/{complianceData.requiredTrainingsTotal}
+                  {trainingStats.complete}/{trainingStats.total}
                 </p>
                 <p className="text-xs text-muted-foreground">Complete</p>
               </div>
@@ -183,29 +228,37 @@ export default function ComplianceCenter() {
       <Card>
         <CardContent className="pt-6">
           <h2 className="text-lg font-semibold text-foreground mb-4">Required Documents</h2>
-          <div className="divide-y divide-border">
-            {requiredDocuments.map((doc) => (
-              <div key={doc.name} className="flex items-center justify-between py-3">
-                <div className="flex items-center gap-3">
-                  <FileText className="h-4 w-4 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm font-medium text-foreground">{doc.name}</p>
-                    {doc.expiry && (
-                      <p className="text-xs text-muted-foreground">
-                        {isExpired(doc.expiry) ? "Expired" : "Expires"}: {new Date(doc.expiry).toLocaleDateString()}
-                      </p>
+          {documents.length === 0 ? (
+            <p className="text-sm text-muted-foreground py-4">No compliance documents on file yet.</p>
+          ) : (
+            <div className="divide-y divide-border">
+              {documents.map((doc) => (
+                <div key={doc.id} className="flex items-center justify-between py-3">
+                  <div className="flex items-center gap-3">
+                    <FileText className="h-4 w-4 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm font-medium text-foreground">{doc.name}</p>
+                      {doc.expiry_date && (
+                        <p className="text-xs text-muted-foreground">
+                          {isExpired(doc.expiry_date) ? "Expired" : "Expires"}: {new Date(doc.expiry_date).toLocaleDateString()}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {getStatusBadge(doc.status)}
+                    {doc.file_url && (
+                      <Button variant="ghost" size="sm" asChild>
+                        <a href={doc.file_url} target="_blank" rel="noopener noreferrer">
+                          <Download className="h-4 w-4 mr-1" /> Download
+                        </a>
+                      </Button>
                     )}
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  {getStatusBadge(doc.status)}
-                  <Button variant="ghost" size="sm" onClick={() => toast.info("Download not available in demo")}>
-                    <Download className="h-4 w-4 mr-1" /> Download
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -213,35 +266,39 @@ export default function ComplianceCenter() {
       <Card>
         <CardContent className="pt-6">
           <h2 className="text-lg font-semibold text-foreground mb-4">Carrier Contracting Status</h2>
-          <div className="divide-y divide-border">
-            {contractingStatus.map((c) => (
-              <div key={c.carrier} className="flex items-center justify-between py-3">
-                <div className="flex items-center gap-3">
-                  <span
-                    className={`h-2.5 w-2.5 rounded-full ${
-                      c.status === "active" ? "bg-green-500" : c.status === "pending" ? "bg-yellow-500" : "bg-red-500"
-                    }`}
-                  />
-                  <div>
-                    <p className="text-sm font-medium text-foreground">{c.carrier}</p>
-                    {c.contracted_date && (
-                      <p className="text-xs text-muted-foreground">
-                        Contracted: {new Date(c.contracted_date).toLocaleDateString()}
-                      </p>
+          {contracts.length === 0 ? (
+            <p className="text-sm text-muted-foreground py-4">No carrier contracts on file yet.</p>
+          ) : (
+            <div className="divide-y divide-border">
+              {contracts.map((c) => (
+                <div key={c.id} className="flex items-center justify-between py-3">
+                  <div className="flex items-center gap-3">
+                    <span
+                      className={`h-2.5 w-2.5 rounded-full ${
+                        c.status === "active" ? "bg-green-500" : c.status === "pending" ? "bg-yellow-500" : "bg-red-500"
+                      }`}
+                    />
+                    <div>
+                      <p className="text-sm font-medium text-foreground">{c.carrier_name}</p>
+                      {c.contracted_date && (
+                        <p className="text-xs text-muted-foreground">
+                          Contracted: {new Date(c.contracted_date).toLocaleDateString()}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {getStatusBadge(c.status)}
+                    {c.status === "pending" && (
+                      <Button size="sm" variant="outline" onClick={() => toast.info("Contracting workflow coming soon")}>
+                        <FileText className="h-4 w-4 mr-1" /> Complete
+                      </Button>
                     )}
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  {getStatusBadge(c.status)}
-                  {c.status === "pending" && (
-                    <Button size="sm" variant="outline" onClick={() => toast.info("Contracting workflow coming soon")}>
-                      <FileText className="h-4 w-4 mr-1" /> Complete
-                    </Button>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
 
