@@ -240,6 +240,7 @@ const BlogArticle = () => {
                 datePublished={article.date_published || article.created_at}
                 dateModified={article.date_modified}
                 context="blog"
+                photoUrl={author?.photo_url}
               />
             </div>
 
