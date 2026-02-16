@@ -1,65 +1,39 @@
 
 
-# Phase 7.4: Enhanced Carrier Directory
+# Enhanced Carrier Detail Page with Tabs
 
 ## Overview
-Enhance the existing Carrier Directory page with advanced filtering (product badges, specialty/niche filters), visual improvements (AM Best rating colors, featured star, carrier descriptions), and add missing database columns to the `carriers` table.
+Rebuild the Carrier Detail page with a tabbed interface (Overview, Products, Tools, News) using the existing database columns. Several columns from the spec (`founded`, `employees`, `headquarters`, `phone`, `website`, `history`, etc.) do not exist in the `carriers` table. Rather than adding 10+ mostly-empty columns, this plan maps existing data to the tabbed layout and uses `contact_info` (JSONB) and `notes` for the Overview tab.
 
-## Step 1: Database Migration
+## No Database Migration Needed
+All required data is already available:
+- `carrier_name`, `carrier_logo_url`, `am_best_rating`, `short_code`, `featured` -- Header
+- `products_offered`, `niches` -- Products tab
+- `portal_url`, `contact_info` (JSONB, can contain phone/email/website) -- Overview tab
+- `notes`, `contracting_requirements`, `commission_structure` -- Overview tab
+- `quoting_tools` table -- Tools tab
+- `carrier_news` table -- News tab
 
-Add 3 missing columns to the `carriers` table:
+## Changes
 
-| Column | Type | Purpose |
-|---|---|---|
-| `short_code` | TEXT | Carrier abbreviation code (e.g., "PL" for Pacific Life) |
-| `portal_url` | TEXT | Link to carrier's agent portal |
-| `niches` | TEXT[] | Specialty tags (e.g., "senior", "no_exam", "digital") |
+### Rebuild `src/pages/portal/advisor/CarrierDetail.tsx`
 
-The `description` field maps to the existing `notes` column. The `featured` column already exists.
+**Header section** (same as current but polished):
+- Back button, logo/shield icon, carrier name + short code, AM Best badge, featured star, portal link
 
-## Step 2: Rebuild CarrierDirectory.tsx
+**Tabbed layout** using Radix Tabs (already installed):
 
-Replace the current basic carrier directory with the enhanced version from the spec:
+| Tab | Content |
+|---|---|
+| **Overview** | Contact info (parsed from `contact_info` JSONB), notes, contracting requirements, commission structure |
+| **Products** | Products offered badges, niche/specialty badges |
+| **Tools** | Quoting tools list with type badges and open links, portal URL card |
+| **News** | Published carrier news with priority badges and dates |
 
-- **Search bar** filtering by carrier name or description/notes
-- **Product filter badges**: Clickable pills for Term, WL, IUL, FE, Annuity, DI, LTC -- toggleable multi-select
-- **Specialty filter badges**: Clickable pills for niches like senior, no_exam, digital, etc.
-- **Clear All Filters** button when any filters are active
-- **Carrier cards** showing:
-  - Logo + name + short code
-  - Featured star indicator
-  - AM Best rating with color coding (A+ = green, A = blue, B = yellow)
-  - Product badges
-  - Truncated description (from `notes`)
-  - "View Details" link and "Agent Portal" external link (if `portal_url` exists)
-- **Empty state** with icon and "Clear Filters" button
-
-## Step 3: Update CarrierDetail.tsx
-
-Minor enhancement to also display:
-- Short code next to the carrier name
-- Portal URL as an external link button
-- Niche/specialty badges section
-
-## Technical Details
-
-### Migration SQL
-```sql
-ALTER TABLE carriers
-  ADD COLUMN IF NOT EXISTS short_code TEXT,
-  ADD COLUMN IF NOT EXISTS portal_url TEXT,
-  ADD COLUMN IF NOT EXISTS niches TEXT[];
-```
-
-### Component Architecture
-- Stays as a single file page component (consistent with existing pages)
-- Uses existing UI components: `Card`, `CardContent`, `Badge`, `Input`, `Button`
-- Uses `useState` for filter state, `useMemo` or inline filtering for derived data
-- Follows existing Playfair Display heading style
-- Loading spinner pattern matches existing pages
-
-### Filter Logic
-- All three filter dimensions (search, products, niches) are AND-combined
-- Product and niche filters are OR within their group (any match)
-- Clicking a selected filter badge deselects it
+**Key implementation details:**
+- Use `Tabs`, `TabsList`, `TabsTrigger`, `TabsContent` from `@/components/ui/tabs`
+- Parse `contact_info` JSONB for phone, email, website display
+- Use `.maybeSingle()` instead of `.single()` for the carrier query to handle missing data gracefully
+- Show "Carrier not found" with a back link if no data
+- Loading spinner consistent with existing pattern
 
