@@ -150,6 +150,7 @@ const TrainingCenter = lazy(() => import("./pages/portal/advisor/TrainingCenter"
 const TrainingDetail = lazy(() => import("./pages/portal/advisor/TrainingDetail"));
 const MarketingResources = lazy(() => import("./pages/portal/advisor/MarketingResources"));
 const SchedulePage = lazy(() => import("./pages/portal/advisor/SchedulePage"));
+const ComplianceCenter = lazy(() => import("./pages/portal/advisor/ComplianceCenter"));
 const ClientDashboard = lazy(() => import("./pages/portal/client/ClientDashboard"));
 const ClientPolicies = lazy(() => import("./pages/portal/client/ClientPolicies"));
 const ClientDocuments = lazy(() => import("./pages/portal/client/ClientDocuments"));
@@ -333,6 +334,7 @@ const App = () => (
                   <Route path="training/:id" element={<TrainingDetail />} />
                   <Route path="marketing" element={<MarketingResources />} />
                   <Route path="schedule" element={<SchedulePage />} />
+                  <Route path="compliance" element={<ComplianceCenter />} />
                 </Route>
               </Route>
               <Route path="/portal/client" element={<ClientRoute />}>
