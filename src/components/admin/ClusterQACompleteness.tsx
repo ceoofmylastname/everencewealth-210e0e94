@@ -10,8 +10,7 @@ import { Loader2, RefreshCw, Play, CheckCircle, AlertTriangle, XCircle } from 'l
 import { toast } from 'sonner';
 
 const LANGUAGE_FLAGS: Record<string, string> = {
-  en: '🇬🇧', de: '🇩🇪', nl: '🇳🇱', fr: '🇫🇷', pl: '🇵🇱',
-  sv: '🇸🇪', da: '🇩🇰', hu: '🇭🇺', fi: '🇫🇮', no: '🇳🇴',
+  en: '🇺🇸', es: '🇪🇸',
 };
 
 interface ClusterLanguageStatus {

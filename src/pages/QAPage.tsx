@@ -17,7 +17,7 @@ import { LanguageMismatchNotFound } from '@/components/LanguageMismatchNotFound'
 import { Helmet } from 'react-helmet';
 import { generateAllQASchemas } from '@/lib/qaPageSchemaGenerator';
 
-const BASE_URL = 'https://www.delsolprimehomes.com';
+const BASE_URL = 'https://www.everencewealth.com';
 
 /**
  * Normalize a slug by removing hidden characters, URL-encoded garbage, 
@@ -30,7 +30,7 @@ function normalizeSlug(rawSlug: string): string {
   // Remove newlines, carriage returns, tabs
   clean = clean.replace(/[\r\n\t]/g, '');
   // Remove accidentally appended domain (common copy-paste error)
-  clean = clean.replace(/delsolprimehomes\.com.*$/i, '');
+  clean = clean.replace(/everencewealth\.com.*$/i, '');
   // Trim whitespace
   clean = clean.trim();
   // Remove trailing slashes

@@ -1,6 +1,6 @@
 import { QAPage, Author } from '@/types/blog';
 
-const BASE_URL = 'https://www.delsolprimehomes.com';
+const BASE_URL = 'https://www.everencewealth.com';
 
 /**
  * Hans' AEO Rules: Truncate answer at sentence boundary for AI-safe schema
@@ -75,16 +75,8 @@ function truncateAtSentence(text: string, maxChars: number = 800): string {
 }
 
 const LANGUAGE_CODE_MAP: Record<string, string> = {
-  en: 'en-GB',
-  de: 'de-DE',
-  nl: 'nl-NL',
-  fr: 'fr-FR',
-  pl: 'pl-PL',
-  sv: 'sv-SE',
-  da: 'da-DK',
-  hu: 'hu-HU',
-  fi: 'fi-FI',
-  no: 'nb-NO',
+  en: 'en-US',
+  es: 'es-ES',
 };
 
 /**
@@ -142,27 +134,27 @@ export function generateOrganizationSchema() {
     '@context': 'https://schema.org',
     '@type': 'Organization',
     '@id': `${BASE_URL}/#organization`,
-    name: 'Del Sol Prime Homes',
+    name: 'Everence Wealth',
     url: BASE_URL,
     logo: `${BASE_URL}/assets/logo-new.png`,
-    sameAs: ['https://www.linkedin.com/company/del-sol-prime-homes'],
+    sameAs: ['https://www.linkedin.com/company/everence-wealth'],
     knowsAbout: [
-      'Costa del Sol Real Estate',
-      'Spanish Property Law',
-      'Digital Nomad Visa Spain',
-      'Spanish Property Taxes',
-      'NIE Number Application',
-      'Spanish Mortgages for Non-Residents',
+      'Wealth Management',
+      'Financial Planning',
+      'Retirement Planning',
+      'Investment Strategies',
+      'Life Insurance',
+      'Estate Planning',
     ],
     areaServed: {
-      '@type': 'Place',
-      name: 'Costa del Sol, Andalusia, Spain',
+      '@type': 'Country',
+      name: 'United States',
     },
     expertise: [
-      'UK & Irish Buyer Assistance',
-      'Post-Brexit Property Guidance',
-      'Investment Property Analysis',
-      'Legal Due Diligence',
+      'Comprehensive Financial Planning',
+      'Retirement Income Strategies',
+      'Tax-Efficient Investing',
+      'Insurance Solutions',
     ],
   };
 }
