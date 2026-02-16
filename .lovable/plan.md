@@ -1,63 +1,54 @@
 
 
-## Client Profile/Settings Page
+## Client Notifications List Page
 
 ### Overview
-Create a new page at `/portal/client/profile` where clients can manage their personal information, change their password, upload an avatar, and set notification preferences.
+Create a full-page notifications view at `/portal/client/notifications` that shows all notifications with filtering, mark-as-read, and delete capabilities. The existing `NotificationBell` popover will also get a "View all" link to this page.
 
-### Database Changes
-
-**New table: `portal_notification_preferences`**
-- Stores per-user notification settings
-- Columns: `id`, `portal_user_id` (FK to portal_users), `email_notifications` (bool, default true), `policy_updates` (bool, default true), `document_alerts` (bool, default true), `message_alerts` (bool, default true), `created_at`, `updated_at`
-- RLS: users can only read/update their own row
-- A row is auto-created when the profile page is first loaded (upsert pattern)
+### No Database Changes Required
+The `portal_notifications` table already exists with the needed columns: `id`, `user_id`, `title`, `message`, `notification_type`, `link`, `read`, `created_at`. RLS policies are already in place. Delete operations will use the existing RLS rules.
 
 ### Files to Create
 
-**1. `src/pages/portal/client/ClientProfile.tsx`**
+**1. `src/pages/portal/client/ClientNotifications.tsx`**
 
-Four sections in a responsive layout:
+Full-page notification center with:
 
-**Personal Information**
-- Form with first name, last name, phone fields (editable)
-- Email shown as read-only (since it's tied to auth)
-- Save button that updates the `portal_users` table
-- Success/error toast feedback
+- **Header**: "Notifications" title with unread count badge, "Mark all as read" button
+- **Filter bar**: Tabs or dropdown to filter by notification type (All, Policy Updates, Documents, Messages, System) -- mapped from `notification_type` column values
+- **Notification list**: Each item shows:
+  - Unread indicator dot
+  - Title and message
+  - Relative timestamp (using `formatDistanceToNow` from date-fns)
+  - Click to navigate if `link` is set, and mark as read
+  - Delete button (trash icon) per notification
+- **Empty state**: Bell icon with "No notifications" message
+- **Bulk actions**: "Mark all as read" and "Delete all read" buttons
 
-**Change Password**
-- Current password is not required by Supabase's `updateUser`
-- New password + confirm password fields
-- Calls `supabase.auth.updateUser({ password })` 
-- Validation: min 8 chars, passwords must match
+Data fetching -- all notifications (no limit 20 like the bell):
+```typescript
+const { data } = await supabase
+  .from("portal_notifications")
+  .select("*")
+  .eq("user_id", portalUser.id)
+  .order("created_at", { ascending: false });
+```
 
-**Avatar**
-- Display current avatar or initials fallback
-- File upload button that uploads to the `portal-documents` storage bucket (subfolder `avatars/`)
-- On upload: get public URL, update `portal_users.avatar_url`
-- Accept image types only (jpg, png, webp), max 2MB
-
-**Notification Preferences**
-- Toggle switches for: Email Notifications, Policy Updates, Document Alerts, Message Alerts
-- Auto-save on toggle (update `portal_notification_preferences`)
-- Fetches current preferences on load, creates defaults if none exist
+Delete uses:
+```typescript
+await supabase.from("portal_notifications").delete().eq("id", id);
+```
 
 ### Files to Modify
 
 **2. `src/App.tsx`**
-- Add lazy import for `ClientProfile`
-- Add route: `<Route path="profile" element={<ClientProfile />} />` inside client routes
+- Add lazy import: `const ClientNotifications = lazy(() => import("./pages/portal/client/ClientNotifications"));`
+- Add route inside client block (after line 351): `<Route path="notifications" element={<ClientNotifications />} />`
 
-**3. `src/components/portal/PortalLayout.tsx`**
-- Add a "Profile" nav item to `clientNav` array with the `User` icon, linking to `/portal/client/profile`
+**3. `src/components/portal/NotificationBell.tsx`**
+- Add a "View all notifications" link at the bottom of the popover that navigates to `/portal/client/notifications`
 
-### Storage
-- Uses the existing private `portal-documents` bucket
-- Avatar files stored under path: `avatars/{portal_user_id}/{filename}`
-- RLS on `storage.objects` will need a policy allowing authenticated users to upload/read their own avatar files in this path
-
-### Technical Notes
-- Password change uses `supabase.auth.updateUser()` which only requires the new password when the user is already authenticated
-- Avatar upload uses `supabase.storage.from('portal-documents').upload()` with upsert
-- The notification preferences table uses an upsert pattern: fetch on load, insert defaults if missing
-- All styling follows existing portal patterns (Card components, muted foreground text, consistent spacing)
+### Styling
+- Follows existing portal patterns: Card components, muted foreground text, consistent spacing
+- Responsive layout with proper mobile support
+- Uses existing UI components (Button, Badge, Tabs)
