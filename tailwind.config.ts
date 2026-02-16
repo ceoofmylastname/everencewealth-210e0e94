@@ -14,12 +14,14 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ['Lato', 'sans-serif'],
+        sans: ['Sora', 'Lato', 'sans-serif'],
         serif: ['Playfair Display', 'Georgia', 'serif'],
-        display: ['Playfair Display', 'Georgia', 'serif'],
+        display: ['Outfit', 'Playfair Display', 'Georgia', 'serif'],
         nav: ['Raleway', 'sans-serif'],
       },
       colors: {
+        evergreen: '#1A4D3E',
+        'dark-bg': '#020806',
         landing: {
           navy: '#1A2332',
           gold: '#C4A053',
