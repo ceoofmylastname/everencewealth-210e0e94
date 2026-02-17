@@ -3,42 +3,44 @@ import { motion, useScroll, useTransform } from 'framer-motion';
 import { Shield, Lock, Eye, Database, Globe, Mail, ArrowLeft, ChevronDown } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
+const LOGO_URL = 'https://storage.googleapis.com/msgsndr/TLhrYb7SRrWrly615tCI/media/6993ada8dcdadb155342f28e.png';
+
 const sections = [
   {
     id: 'collection',
     icon: Database,
     title: 'Information We Collect',
-    content: `We collect information you provide directly, including your name, email address, phone number, and property preferences when you use our contact forms or chat with Emma, our AI assistant. We also automatically collect technical data such as your IP address, browser type, device information, and browsing patterns to improve our services.`
+    content: `We collect information you provide directly when engaging with our wealth management services, including your name, email address, phone number, financial profile data, risk tolerance assessments, retirement planning inputs, income and asset details, and investment preferences. When you interact with our AI wealth assistant, we collect conversation data to improve advisory accuracy. We also automatically collect technical data such as your IP address, browser type, device information, and browsing patterns to enhance your experience.`
   },
   {
     id: 'usage',
     icon: Eye,
     title: 'How We Use Your Data',
-    content: `Your information helps us match you with your perfect Spanish property. We use it to respond to inquiries, send property recommendations, improve our AI assistant's responses, and provide personalized experiences. We never sell your personal data to third parties.`
+    content: `Your information powers personalized wealth strategies tailored to your financial goals. We use it to generate retirement projections, develop tax-efficient planning recommendations, refine our AI assistant's advisory capabilities, and deliver customized insights on indexed strategies, annuities, and cash-flow optimization. We never sell your personal or financial data to third parties. Your trust as a fiduciary client is our highest obligation.`
   },
   {
     id: 'protection',
     icon: Lock,
     title: 'Data Protection',
-    content: `We employ industry-standard encryption (SSL/TLS) to protect data in transit. Your information is stored on secure servers with restricted access. We regularly audit our security practices and comply with GDPR requirements for EU residents.`
+    content: `We employ industry-standard AES-256 encryption and TLS 1.3 protocols to protect data in transit and at rest. Our infrastructure follows SOC 2 Type II compliance practices, and we align with SEC and FINRA regulatory standards for handling sensitive financial information. Access to client data is strictly limited to authorized personnel, and we conduct regular third-party security audits to ensure the integrity of our systems.`
   },
   {
     id: 'cookies',
     icon: Globe,
     title: 'Cookies & Tracking',
-    content: `We use essential cookies to ensure our website functions properly, analytics cookies to understand user behavior (Google Analytics), and marketing cookies for targeted advertising. You can manage cookie preferences through your browser settings.`
+    content: `We use essential cookies to ensure our platform functions properly, analytics cookies to understand user behavior and improve our services, and preference cookies to remember your settings and personalize your experience. You can manage cookie preferences through your browser settings at any time. We do not use cookies to track your activity across unrelated third-party websites.`
   },
   {
     id: 'rights',
     icon: Shield,
     title: 'Your Rights',
-    content: `Under GDPR, you have the right to access, correct, or delete your personal data. You can request a copy of your data, object to processing, or withdraw consent at any time. Contact us at info@delsolprimehomes.com to exercise these rights.`
+    content: `Under the California Consumer Privacy Act (CCPA) and other applicable US privacy laws, you have the right to know what personal information we collect and how it is used. You may request access to, deletion of, or correction of your data. You also have the right to opt out of the sale of personal information—though we do not sell your data. To exercise any of these rights, contact us at info@everencewealth.com.`
   },
   {
     id: 'contact',
     icon: Mail,
     title: 'Contact Us',
-    content: `For privacy-related inquiries, reach us at info@delsolprimehomes.com or write to: Del Sol Prime Homes, ED SAN FERNAN, C. Alfonso XIII, 6, 1 OFICINA, 29640 Fuengirola, Málaga, Spain. We respond within 30 days.`
+    content: `For privacy-related inquiries, reach us at info@everencewealth.com or write to: Everence Wealth, 101 Montgomery Street, Suite 2400, San Francisco, CA 94104. We are committed to responding to all privacy requests within 30 business days.`
   }
 ];
 
@@ -71,7 +73,7 @@ const PrivacyPolicy: React.FC = () => {
       <motion.div
         className="fixed inset-0 opacity-30 pointer-events-none"
         style={{
-          background: 'radial-gradient(ellipse at 50% 0%, #1a365d 0%, transparent 50%), radial-gradient(ellipse at 80% 50%, #2d3748 0%, transparent 40%), radial-gradient(ellipse at 20% 80%, #1a202c 0%, transparent 50%)',
+          background: 'radial-gradient(ellipse at 50% 0%, #1A4D3E 0%, transparent 50%), radial-gradient(ellipse at 80% 50%, #1a3a2e 0%, transparent 40%), radial-gradient(ellipse at 20% 80%, #0d1a14 0%, transparent 50%)',
           y: backgroundY
         }}
       />
@@ -81,10 +83,10 @@ const PrivacyPolicy: React.FC = () => {
         {[...Array(20)].map((_, i) => (
           <motion.div
             key={i}
-            className="absolute w-1 h-1 bg-[#C4A053]/30 rounded-full"
+            className="absolute w-1 h-1 bg-[#C5A059]/30 rounded-full"
             initial={{
-              x: Math.random() * window.innerWidth,
-              y: Math.random() * window.innerHeight,
+              x: Math.random() * (typeof window !== 'undefined' ? window.innerWidth : 1200),
+              y: Math.random() * (typeof window !== 'undefined' ? window.innerHeight : 800),
             }}
             animate={{
               y: [null, Math.random() * -500],
@@ -105,12 +107,18 @@ const PrivacyPolicy: React.FC = () => {
           <div className="flex items-center justify-between">
             <Link
               to="/"
-              className="flex items-center gap-2 text-gray-400 hover:text-[#C4A053] transition-colors group"
+              className="flex items-center gap-2 text-gray-400 hover:text-[#C5A059] transition-colors group"
             >
               <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
               <span>Back to Home</span>
             </Link>
-            <div className="text-[#C4A053] font-serif text-xl">DEL SOL PRIME HOMES</div>
+            <Link to="/">
+              <img
+                src={LOGO_URL}
+                alt="Everence Wealth"
+                className="h-10 md:h-12 w-auto object-contain brightness-0 invert"
+              />
+            </Link>
           </div>
         </div>
       </header>
@@ -123,14 +131,14 @@ const PrivacyPolicy: React.FC = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
           >
-            <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-[#C4A053] to-[#8B7355] mb-8">
+            <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-[#C5A059] to-[#1A4D3E] mb-8">
               <Shield className="w-10 h-10 text-white" />
             </div>
             <h1 className="text-5xl md:text-7xl font-serif mb-6 bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-transparent">
               Privacy Policy
             </h1>
             <p className="text-xl text-gray-400 max-w-2xl mx-auto">
-              Your trust is our foundation. Learn how we protect and respect your personal information.
+              Your trust is our fiduciary obligation. Learn how we protect and respect your personal and financial information.
             </p>
             <p className="text-sm text-gray-500 mt-4">
               Last updated: January {new Date().getFullYear()}
@@ -143,7 +151,7 @@ const PrivacyPolicy: React.FC = () => {
             transition={{ delay: 0.5, duration: 0.5 }}
             className="mt-12"
           >
-            <ChevronDown className="w-6 h-6 mx-auto text-[#C4A053] animate-bounce" />
+            <ChevronDown className="w-6 h-6 mx-auto text-[#C5A059] animate-bounce" />
           </motion.div>
         </div>
       </section>
@@ -156,7 +164,7 @@ const PrivacyPolicy: React.FC = () => {
             onClick={() => document.getElementById(section.id)?.scrollIntoView({ behavior: 'smooth' })}
             className={`w-3 h-3 rounded-full transition-all duration-300 ${
               activeSection === section.id
-                ? 'bg-[#C4A053] scale-125'
+                ? 'bg-[#C5A059] scale-125'
                 : 'bg-white/20 hover:bg-white/40'
             }`}
             aria-label={section.title}
@@ -178,17 +186,15 @@ const PrivacyPolicy: React.FC = () => {
               className="py-16 border-b border-white/5 last:border-b-0"
             >
               <div className={`flex flex-col ${index % 2 === 0 ? 'lg:flex-row' : 'lg:flex-row-reverse'} items-center gap-12`}>
-                {/* Icon */}
                 <div className="flex-shrink-0">
                   <div className="relative">
-                    <div className="absolute inset-0 bg-[#C4A053]/20 rounded-3xl blur-2xl" />
-                    <div className="relative w-32 h-32 rounded-3xl bg-gradient-to-br from-[#1a2332] to-[#0d1117] border border-white/10 flex items-center justify-center">
-                      <section.icon className="w-16 h-16 text-[#C4A053]" />
+                    <div className="absolute inset-0 bg-[#1A4D3E]/30 rounded-3xl blur-2xl" />
+                    <div className="relative w-32 h-32 rounded-3xl bg-gradient-to-br from-[#1a2e26] to-[#0d1a14] border border-white/10 flex items-center justify-center">
+                      <section.icon className="w-16 h-16 text-[#C5A059]" />
                     </div>
                   </div>
                 </div>
 
-                {/* Content */}
                 <div className="flex-1 text-center lg:text-left">
                   <h2 className="text-3xl md:text-4xl font-serif mb-6 text-white">
                     {section.title}
@@ -204,13 +210,13 @@ const PrivacyPolicy: React.FC = () => {
       </main>
 
       {/* Footer CTA */}
-      <section className="relative z-10 py-20 bg-gradient-to-t from-[#1a2332] to-transparent">
+      <section className="relative z-10 py-20 bg-gradient-to-t from-[#1a2e26] to-transparent">
         <div className="container mx-auto px-6 text-center">
           <h3 className="text-2xl font-serif mb-4 text-white">Questions about your privacy?</h3>
           <p className="text-gray-400 mb-8">We're here to help. Reach out anytime.</p>
           <a
-            href="mailto:info@delsolprimehomes.com"
-            className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-[#C4A053] to-[#8B7355] text-white rounded-full font-medium hover:shadow-lg hover:shadow-[#C4A053]/20 transition-all hover:-translate-y-1"
+            href="mailto:info@everencewealth.com"
+            className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-[#C5A059] to-[#1A4D3E] text-white rounded-full font-medium hover:shadow-lg hover:shadow-[#C5A059]/20 transition-all hover:-translate-y-1"
           >
             <Mail className="w-5 h-5" />
             Contact Us
@@ -222,10 +228,11 @@ const PrivacyPolicy: React.FC = () => {
       <footer className="relative z-10 py-6 border-t border-white/5 bg-[#0a0f1a]">
         <div className="container mx-auto px-6">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-gray-500">
-            <p>© {new Date().getFullYear()} Del Sol Prime Homes. All rights reserved.</p>
+            <p>© {new Date().getFullYear()} Everence Wealth. All rights reserved.</p>
             <div className="flex gap-6">
-              <Link to="/privacy" className="hover:text-[#C4A053] transition-colors">Privacy Policy</Link>
-              <Link to="/terms" className="hover:text-[#C4A053] transition-colors">Terms of Service</Link>
+              <Link to="/privacy" className="hover:text-[#C5A059] transition-colors">Privacy Policy</Link>
+              <Link to="/terms" className="hover:text-[#C5A059] transition-colors">Terms of Service</Link>
+              <Link to="/disclosures" className="hover:text-[#C5A059] transition-colors">Disclosures</Link>
             </div>
           </div>
         </div>
