@@ -31,6 +31,43 @@ export default function ClientDocuments() {
   useEffect(() => {
     if (!portalUser) return;
     loadDocs();
+
+    const channel = supabase
+      .channel('client-documents')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'portal_documents',
+          filter: `client_id=eq.${portalUser.id}`,
+        },
+        (payload) => {
+          if (payload.eventType === 'INSERT') {
+            const newDoc = payload.new as Doc;
+            if ((newDoc as any).is_client_visible) {
+              setDocs((prev) => [newDoc, ...prev]);
+            }
+          } else if (payload.eventType === 'DELETE') {
+            const oldDoc = payload.old as { id: string };
+            setDocs((prev) => prev.filter((d) => d.id !== oldDoc.id));
+          } else if (payload.eventType === 'UPDATE') {
+            const updated = payload.new as Doc & { is_client_visible: boolean };
+            if (updated.is_client_visible) {
+              setDocs((prev) => {
+                const exists = prev.find((d) => d.id === updated.id);
+                if (exists) return prev.map((d) => d.id === updated.id ? updated : d);
+                return [updated, ...prev];
+              });
+            } else {
+              setDocs((prev) => prev.filter((d) => d.id !== updated.id));
+            }
+          }
+        }
+      )
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
   }, [portalUser]);
 
   async function loadDocs() {
