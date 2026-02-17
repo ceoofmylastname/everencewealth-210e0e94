@@ -1,87 +1,106 @@
 
 
-# Build Strategy Page 4: Asset Protection
+# Redesign About Section Pages to Match Homepage Premium Style
 
-## Overview
-Create the fourth and final strategy page at `/:lang/strategies/asset-protection` following the same architecture as IUL, Whole Life, and Tax-Free Retirement pages. Content focuses on protecting wealth from lawsuits, creditors, divorce, and estate taxes using trusts, LLCs, IUL, and annuities.
+## What We're Building
+Three pages under the "About" navigation dropdown, all redesigned with the same cinematic hero reveal, rounded-corner glassmorphism, and Framer Motion animations used on the homepage and strategy pages.
 
-## Page Sections (7 total)
+1. **About Us / Why Fiduciary** (`/:lang/about`) -- full redesign of existing page
+2. **Our Team** (`/:lang/team`) -- full redesign of existing page
+3. **Client Stories** (`/:lang/client-stories`) -- brand new page (currently missing, navbar link is dead)
 
-### Section 1: Hero
-- Same cinematic staged reveal pattern (gold line, badge, headline, subtitle, stat badges, CTAs)
-- Headline: "Protect Everything You've Built"
-- Three stat badges: "Lawsuit-Proof", "Creditor-Protected", "Estate Tax-Free"
-- Primary CTA: "Get Your Protection Plan" / Secondary: "See How It Works"
+---
 
-### Section 2: Speakable Overview
-- GlassCard with educational paragraph about asset protection strategy
-- Same three trust badges (Licensed in 50 States, 75+ Carrier Partners, 1,200+ Families Served)
-- SpeakableSpecification JSON-LD
+## Page 1: About Us / Why Fiduciary (Redesign)
 
-### Section 3: The Threat Landscape (Interactive)
-- 2-column layout
-- Left side: Interactive SVG showing 5 threat vectors as concentric rings around a central "Your Wealth" node -- Lawsuits, Creditors, Divorce, Estate Taxes, Nursing Home Costs
-- Clicking/hovering a ring highlights it and shows the risk percentage / average cost
-- Right side: 5 ProcessSteps explaining each threat -- Frivolous Lawsuits, Business Creditors, Divorce Asset Splitting, Estate Tax Erosion, Long-Term Care Drain
+### Current State
+The existing About page uses an older `prime-900` gradient hero that doesn't match the dark `hsl(160,48%,...)` cinematic style of the homepage and strategy pages.
 
-### Section 4: Protection Vehicles (Animated Layers)
-- Similar to Tax-Free Retirement's Income Stacking but for protection layers
-- Layer 1: Irrevocable Life Insurance Trust (ILIT)
-- Layer 2: Family Limited Partnership (FLP)
-- Layer 3: IUL Cash Value (creditor-protected in most states)
-- Layer 4: Annuities (protected in many states)
-- Each layer is a GlassCard with details, animates in sequentially on scroll
+### What Changes
+- **New Hero**: Replace `AboutHero` with a cinematic hero matching the strategy page pattern -- dark evergreen gradient background, MorphingBlob decorations, gold line + badge + large bold headline + subtitle, StatBadges, scroll indicator, rounded corners
+- **Modernize all sections**: Update `MissionStatement`, `FounderProfiles`, `Credentials`, `AboutFAQ`, `AboutCTA` with glassmorphism cards, rounded-2xl corners, Framer Motion scroll-triggered animations
+- **Page wrapper**: Add the rounded-section spacing layout from `Home.tsx` (`mx-2 md:mx-4 lg:mx-6 space-y-4 rounded-3xl overflow-hidden`)
 
-### Section 5: Protected vs Unprotected Comparison
-- Reuses StrategyComparisonTable shared component
-- Left column: Unprotected (assets in personal name, 401k, taxable accounts)
-- Right column: Protected (ILIT, FLP, IUL, Annuities, LLCs)
-- 8 feature rows
-- Winner badge: "Proper Structure Protects Your Legacy"
+### Components Modified
+- `src/components/about/AboutHero.tsx` -- rewrite with cinematic hero pattern
+- `src/components/about/MissionStatement.tsx` -- glassmorphic card treatment
+- `src/components/about/FounderProfiles.tsx` -- modern card grid
+- `src/components/about/Credentials.tsx` -- glassmorphic badges
+- `src/components/about/AboutFAQ.tsx` -- modern accordion style
+- `src/components/about/AboutCTA.tsx` -- match strategy CTA style
+- `src/pages/About.tsx` -- add rounded-section layout wrapper
 
-### Section 6: Who Should Consider Asset Protection
-- Same pattern as other pages (Perfect For / Not Ideal For grid)
-- Perfect For: Business owners, medical professionals, real estate investors, high-net-worth families, those in litigious professions, estate planners
-- Not Ideal For: Those with minimal assets, early career with low net worth, those already in active litigation (too late), those unwilling to restructure ownership
+---
 
-### Section 7: Final CTA (Lead Capture)
-- Reuses StrategyFormCTA shared component
-- Headline: "Get Your Personalized Asset Protection Blueprint"
+## Page 2: Our Team (Redesign)
 
-## Technical Implementation
+### Current State
+The Team page has a basic gradient hero and plain card grid. It works but doesn't match the premium homepage feel.
+
+### What Changes
+- **New Hero**: Replace `TeamHero` with the cinematic hero pattern (dark background, MorphingBlob, gold line, badge, large headline, StatBadges for "75+ Years Combined", "50 States", "1,200+ Families")
+- **Modernize Grid**: Update `TeamGrid` with glassmorphic member cards, hover tilt effects, rounded-2xl corners
+- **Update TeamMemberCard**: Add glassmorphism overlay, modern rounded styling
+- **Page wrapper**: Add rounded-section spacing
+
+### Components Modified
+- `src/components/team/TeamHero.tsx` -- rewrite with cinematic hero
+- `src/components/team/TeamGrid.tsx` -- modern spacing and layout
+- `src/components/team/TeamMemberCard.tsx` -- glassmorphic card
+- `src/pages/Team.tsx` -- add rounded-section layout wrapper
+
+---
+
+## Page 3: Client Stories (New Page)
+
+### What We're Building
+A brand new page showcasing client success stories / testimonials with the premium design system.
+
+### Sections
+1. **Cinematic Hero** -- "Real Stories. Real Results." headline with StatBadges ("98% Satisfaction", "$2.4B+ Protected", "1,200+ Families")
+2. **Featured Story** -- large glassmorphic card with a highlighted client testimonial, before/after financial outcome
+3. **Stories Grid** -- 6 client story cards with glassmorphism, each showing client type (Business Owner, Physician, etc.), challenge, outcome, and a quote
+4. **By The Numbers** -- animated counter stats section (similar to HomepageAbout's FactCounter)
+5. **CTA** -- "Start Your Success Story" lead capture using the strategy CTA pattern
 
 ### New Files
-- `src/pages/strategies/AssetProtection.tsx` -- page component with SEO/schemas
-- `src/components/strategies/assetprotection/APHero.tsx`
-- `src/components/strategies/assetprotection/APSpeakable.tsx`
-- `src/components/strategies/assetprotection/APThreatLandscape.tsx` (interactive SVG + steps)
-- `src/components/strategies/assetprotection/APProtectionVehicles.tsx` (animated layers)
-- `src/components/strategies/assetprotection/APComparison.tsx`
-- `src/components/strategies/assetprotection/APIdealClient.tsx`
-- `src/components/strategies/assetprotection/APCTA.tsx`
+- `src/pages/ClientStories.tsx` -- page component
+- `src/components/client-stories/CSHero.tsx`
+- `src/components/client-stories/CSFeaturedStory.tsx`
+- `src/components/client-stories/CSStoriesGrid.tsx`
+- `src/components/client-stories/CSStats.tsx`
+- `src/components/client-stories/CSCTA.tsx`
+
+### Route Addition
+- `src/App.tsx` -- add `/:lang/client-stories` and `/:lang/historias-de-clientes` routes
+
+---
+
+## Translations
 
 ### Modified Files
-- `src/App.tsx` -- add routes `/:lang/strategies/asset-protection` and `/:lang/estrategias/proteccion-de-activos`
-- `src/i18n/translations/en.ts` -- add `strategies.assetProtection` block
-- `src/i18n/translations/es.ts` -- add `strategies.assetProtection` block
+- `src/i18n/translations/en.ts` -- add `clientStories` block with all section content
+- `src/i18n/translations/es.ts` -- add `clientStories` block in Spanish
 
-### Reused Components
-- MorphingBlob, GlassCard, StatBadge, TrustBadge, ProcessStep, StrategyComparisonTable, StrategyFormCTA
+---
 
-### SEO and Schemas
-- WebPage, Article, BreadcrumbList, Organization, SpeakableSpecification JSON-LD
-- Hreflang tags (en, es, x-default)
-- Open Graph + Twitter Card meta
-- Canonical URL
+## Technical Details
 
-### Interactive Element: Threat Landscape Visualization
-- SVG with concentric rings representing 5 threat categories
-- Hover/click highlights a ring and displays cost data (e.g., "Average lawsuit: $54K", "Estate tax: 40% over $13.6M")
-- Central node pulses with gold glow when a ring is selected
-- Framer Motion entrance animations
+### Design System (Consistent Across All 3 Pages)
+- **Hero background**: `linear-gradient(135deg, hsl(160,48%,14%) 0%, hsl(160,48%,8%) 60%, hsl(160,48%,5%) 100%)`
+- **MorphingBlob** decorations in hero sections
+- **Gold line + badge** reveal sequence with Framer Motion
+- **StatBadge** shared component for hero metrics
+- **Glass cards**: `bg-white/[0.04] backdrop-blur-md border border-white/10 rounded-2xl`
+- **Font sizes**: `text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight` for hero headlines
+- **Page wrapper**: `mx-2 md:mx-4 lg:mx-6 space-y-4 md:space-y-6 py-4 md:py-6` with `rounded-3xl overflow-hidden` sections
+- **Color palette**: Evergreen (#1A4D3E), Gold (#D4AF37), Cream (#F0F2F1), white/opacity layers
 
-### Design
-- All rounded corners (xl, 2xl, full) per brand standard
-- Same glassmorphism, Framer Motion animations, and color palette (Evergreen, Gold, Cream)
-- No new dependencies needed
+### Shared Components Reused
+- `MorphingBlob` from philosophy
+- `StatBadge` from strategies/shared
+- `GlassCard` pattern (inline styled)
+- Header, Footer
+
+### No New Dependencies Required
 
