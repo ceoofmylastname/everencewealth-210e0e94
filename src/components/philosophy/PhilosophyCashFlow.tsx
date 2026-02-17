@@ -143,7 +143,7 @@ export const PhilosophyCashFlow: React.FC = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: idx * 0.2 }}
-                className={`relative p-8 md:p-10 bg-white border border-black/[0.06] hover:border-[hsla(43,74%,49%,0.2)] transition-all duration-500 group ${
+                className={`relative p-8 md:p-10 rounded-2xl bg-white border border-black/[0.06] hover:border-[hsla(43,74%,49%,0.2)] transition-all duration-500 group ${
                   idx === 1 ? 'shadow-[0_8px_32px_rgba(26,77,62,0.08)] hover:shadow-[0_8px_40px_hsla(43,74%,49%,0.12)]' : ''
                 }`}
               >
@@ -156,7 +156,7 @@ export const PhilosophyCashFlow: React.FC = () => {
                   <div className="absolute inset-0 shadow-[0_0_30px_hsla(43,74%,49%,0.08)] animate-pulse-subtle pointer-events-none" />
                 )}
 
-                <div className={`w-12 h-12 ${approach.accent} flex items-center justify-center mb-6`}>
+                <div className={`w-12 h-12 rounded-xl ${approach.accent} flex items-center justify-center mb-6`}>
                   <Icon className={`w-6 h-6 ${approach.iconColor}`} />
                 </div>
 

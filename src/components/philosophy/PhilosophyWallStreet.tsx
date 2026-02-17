@@ -115,7 +115,7 @@ export const PhilosophyWallStreet: React.FC = () => {
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.7 }}
-              className="bg-slate-900 text-white p-10 md:p-16 relative overflow-hidden"
+              className="bg-slate-900 text-white p-10 md:p-16 rounded-2xl relative overflow-hidden"
             >
               <FloatingParticles direction="down" color="hsla(0,70%,60%,0.15)" />
 
@@ -137,7 +137,7 @@ export const PhilosophyWallStreet: React.FC = () => {
                   ))}
                 </div>
 
-                <div className="mt-10 md:mt-12 backdrop-blur-sm bg-white/5 border border-white/10 p-6 border-l-4 border-l-red-400">
+                <div className="mt-10 md:mt-12 backdrop-blur-sm bg-white/5 border border-white/10 p-6 rounded-xl border-l-4 border-l-red-400">
                   <p className="text-lg font-semibold mb-2">{ws.left.incentiveLabel}</p>
                   <p className="text-white/80">{ws.left.incentiveText}</p>
                 </div>
@@ -150,7 +150,7 @@ export const PhilosophyWallStreet: React.FC = () => {
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.7 }}
-              className="bg-[hsl(90,5%,95%)] p-10 md:p-16 relative overflow-hidden"
+              className="bg-[hsl(90,5%,95%)] p-10 md:p-16 rounded-2xl relative overflow-hidden"
             >
               <FloatingParticles direction="up" color="hsla(150,50%,40%,0.12)" />
 
@@ -172,7 +172,7 @@ export const PhilosophyWallStreet: React.FC = () => {
                   ))}
                 </div>
 
-                <div className="mt-10 md:mt-12 bg-[hsl(var(--evergreen))] text-white p-6">
+                <div className="mt-10 md:mt-12 bg-[hsl(var(--evergreen))] text-white p-6 rounded-xl">
                   <p className="text-lg font-semibold mb-2">{ws.right.incentiveLabel}</p>
                   <p className="text-white/90">{ws.right.incentiveText}</p>
                 </div>

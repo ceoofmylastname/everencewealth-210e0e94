@@ -155,7 +155,7 @@ export const PhilosophyHero: React.FC = () => {
               const killersSection = document.getElementById('philosophy-killers');
               killersSection?.scrollIntoView({ behavior: 'smooth' });
             }}
-            className="group relative overflow-hidden px-8 py-4 bg-white/[0.06] backdrop-blur-sm border border-white/[0.15] text-white font-space font-bold text-sm tracking-wide hover:bg-white/[0.12] transition-all duration-300"
+            className="group relative overflow-hidden px-8 py-4 rounded-xl bg-white/[0.06] backdrop-blur-sm border border-white/[0.15] text-white font-space font-bold text-sm tracking-wide hover:bg-white/[0.12] transition-all duration-300"
           >
             <span className="relative z-10 flex items-center justify-center gap-2">
               {h.ctaPrimary}
@@ -165,7 +165,7 @@ export const PhilosophyHero: React.FC = () => {
           </button>
           <button
             onClick={() => navigate('/contact')}
-            className="group relative overflow-hidden px-8 py-4 bg-[hsl(43,74%,49%)] text-evergreen font-space font-bold text-sm tracking-wide hover:bg-[hsl(43,74%,55%)] transition-all duration-300 hover:shadow-[0_0_30px_hsla(43,74%,49%,0.4)]"
+            className="group relative overflow-hidden px-8 py-4 rounded-xl bg-[hsl(43,74%,49%)] text-evergreen font-space font-bold text-sm tracking-wide hover:bg-[hsl(43,74%,55%)] transition-all duration-300 hover:shadow-[0_0_30px_hsla(43,74%,49%,0.4)]"
           >
             <span className="relative z-10 flex items-center justify-center gap-2">
               {h.ctaSecondary}

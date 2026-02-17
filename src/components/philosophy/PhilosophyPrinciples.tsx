@@ -158,7 +158,7 @@ export const PhilosophyPrinciples: React.FC = () => {
           className="text-center mb-16 md:mb-20"
         >
           <span
-            className="inline-block text-xs font-semibold tracking-[0.2em] uppercase mb-4 px-4 py-1.5"
+            className="inline-block text-xs font-semibold tracking-[0.2em] uppercase mb-4 px-4 py-1.5 rounded-full"
             style={{ color: 'hsl(160,48%,21%)', background: 'hsla(160,48%,21%,0.08)', border: '1px solid hsla(160,48%,21%,0.15)' }}
           >
             {p.badge}
@@ -204,7 +204,7 @@ export const PhilosophyPrinciples: React.FC = () => {
                   </p>
 
                   {/* Chart area */}
-                  <div className="p-5 rounded-sm" style={{ background: 'hsla(160,48%,21%,0.04)' }}>
+                  <div className="p-5 rounded-xl" style={{ background: 'hsla(160,48%,21%,0.04)' }}>
                     <p className="text-sm font-semibold mb-3" style={{ color: 'hsl(160,48%,21%)' }}>
                       {card.chartLabel}
                     </p>

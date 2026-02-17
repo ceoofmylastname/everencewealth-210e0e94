@@ -71,7 +71,7 @@ export const PhilosophyQuote: React.FC = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ delay: 0.5, duration: 0.7 }}
-          className="inline-block bg-white/[0.06] backdrop-blur-md border border-white/[0.1] shadow-[0_8px_40px_rgba(0,0,0,0.2)] px-10 py-8"
+          className="inline-block bg-white/[0.06] backdrop-blur-md border border-white/[0.1] shadow-[0_8px_40px_rgba(0,0,0,0.2)] px-10 py-8 rounded-2xl"
         >
           <div className="flex items-center gap-6">
             {/* Avatar with initials */}

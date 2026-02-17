@@ -81,7 +81,7 @@ export const PhilosophyCTA: React.FC = () => {
             <div className="flex flex-col sm:flex-row gap-4">
               <button
                 onClick={() => navigate('/contact')}
-                className="group relative px-8 py-4 bg-[hsl(43,74%,49%)] text-evergreen font-space font-bold text-sm tracking-wide overflow-hidden hover:shadow-[0_0_30px_hsla(43,74%,49%,0.35)] transition-shadow duration-300"
+                className="group relative px-8 py-4 rounded-xl bg-[hsl(43,74%,49%)] text-evergreen font-space font-bold text-sm tracking-wide overflow-hidden hover:shadow-[0_0_30px_hsla(43,74%,49%,0.35)] transition-shadow duration-300"
               >
                 <span className="relative z-10 flex items-center justify-center gap-2">
                   {c.primaryCta}
@@ -91,7 +91,7 @@ export const PhilosophyCTA: React.FC = () => {
 
               <button
                 onClick={() => navigate('/resources')}
-                className="px-8 py-4 border-2 border-evergreen text-evergreen font-space font-bold text-sm tracking-wide hover:bg-evergreen hover:text-white transition-all duration-300"
+                className="px-8 py-4 rounded-xl border-2 border-evergreen text-evergreen font-space font-bold text-sm tracking-wide hover:bg-evergreen hover:text-white transition-all duration-300"
               >
                 {c.secondaryCta}
               </button>
