@@ -1,27 +1,17 @@
 
 
-## Optimize Stats Cards Layout (Desktop and Mobile)
+## Fix "$500M+" Clipping in Stats Cards
 
-The "$500M+" stat value is getting clipped/cut off inside its glassmorphic card because the large font size (`text-7xl` on desktop) combined with padding doesn't leave enough room for wider values like "$500M+".
+The "+" symbol on the "$500M+" stat is being cut off because of the `overflow-hidden` class on the card combined with text that's slightly too wide for the available space.
 
-### Changes
+### Changes (single file: `src/components/homepage/Stats.tsx`)
 
-**File: `src/components/homepage/Stats.tsx`**
+1. **Remove `overflow-hidden`** from the card container -- it was added as a "safety net" but is actually causing the clipping problem. The `rounded-3xl` already clips children visually via border-radius.
 
-1. **Reduce font size for better fit** -- Change from `text-5xl md:text-7xl` to `text-4xl sm:text-5xl md:text-6xl` so values fit within cards across all breakpoints
-2. **Add `whitespace-nowrap`** to prevent values from wrapping to a second line
-3. **Reduce horizontal padding** on cards from `p-8 md:p-10` to `p-6 md:p-8` to give the text more room
-4. **Improve mobile grid** -- Use `grid-cols-2` on small screens instead of `grid-cols-1` so the 4 stat cards display in a compact 2x2 grid on mobile (matching the desktop feel), then `lg:grid-cols-4` for the full row
-5. **Add `overflow-hidden`** as a safety net so nothing bleeds outside the rounded card
+2. **Scale down font sizes one more step** to ensure all values (especially "$500M+") fit comfortably:
+   - From: `text-4xl sm:text-5xl md:text-6xl`
+   - To: `text-3xl sm:text-4xl md:text-5xl`
 
-### Technical Details
+3. **Add horizontal padding reduction on mobile** (`px-3`) so the text has proportionally more room on smaller screens while keeping the card compact.
 
-| Property | Before | After |
-|---|---|---|
-| Font size | `text-5xl md:text-7xl` | `text-4xl sm:text-5xl md:text-6xl` |
-| Card padding | `p-8 md:p-10` | `p-6 md:p-8` |
-| Grid columns | `grid-cols-1 sm:grid-cols-2 lg:grid-cols-4` | `grid-cols-2 lg:grid-cols-4` |
-| Text wrapping | none | `whitespace-nowrap` |
-
-Single file change, purely visual/layout fix.
-
+These two small CSS tweaks will ensure the full "$500M+" value (including the "+") is visible on both desktop and mobile without any clipping.
