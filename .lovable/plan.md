@@ -1,95 +1,111 @@
 
-
-# Upgrade "Three Silent Killers" Section with Animated Charts and Compound Effect CTA
+# Add "Wall Street vs. Main Street" Split-Screen Section
 
 ## Overview
-Rewrite `PhilosophyKillers.tsx` to feature enhanced glassmorphic cards with richer inline SVG chart animations (bar comparison, volatility line, tax comparison), a "solution" callout per card, and a new dark "Compound Effect" CTA block at the bottom with an animated percentage loss counter and particle-style background.
+Create a new `PhilosophyWallStreet` component featuring an animated split-screen comparison between the Wall Street model (dark side) and the Everence model (light side), with a morphing vertical divider, floating decorative icons, and staggered comparison items.
 
 ## What Changes
 
-### 1. Extend i18n Translation Keys
+### 1. New i18n Translation Keys
+Add a `philosophy.wallStreet` block in both `en.ts` and `es.ts`, inserted between `cashFlow` and `cta`:
 
-Add new fields to the existing `philosophy.killers` block in both `en.ts` and `es.ts`. Existing fields (`badge`, `headline`, `subheadline`, `cards`) remain unchanged. New fields added to each card and a new `compound` object:
-
-**English additions:**
 ```text
-// Each card gets a new "solution" field:
-cards[0].solution: "No ongoing AUM fees. Transparent pricing."
-cards[1].solution: "0% floor. Zero is your hero. Never lose money."
-cards[2].solution: "Tax-exempt withdrawals. No RMDs. Ever."
-
-// New compound effect block:
-compound: {
-  title: "The Compound Effect",
-  description: "These three killers working together can reduce your actual retirement income by 40-60% compared to projections.",
-  punchline: "Eliminate all three. Keep your wealth.",
-  lossLabel: "of projected wealth lost"
+wallStreet: {
+  headline: "Wall Street vs. Main Street",
+  left: {
+    title: "The Wall Street Model",
+    items: [
+      { title: "AUM Fees Forever", description: "1-2% annually whether you make money or not" },
+      { title: "Market Volatility Risk", description: '"Stay the course" through 50% crashes' },
+      { title: "Tax-Deferred Trap", description: "Pay taxes at unknown future rates" },
+      { title: "Proprietary Products", description: "Sell what makes THEM the most money" },
+      { title: "Suitability Standard", description: 'Only required to recommend "suitable" products, not best' },
+    ],
+    incentiveLabel: "Their Incentive:",
+    incentiveText: "Keep your money \"under management\" as long as possible",
+  },
+  right: {
+    title: "The Everence Model",
+    items: [
+      { title: "Transparent Pricing", description: "No ongoing AUM fees. You keep what you earn." },
+      { title: "0% Floor Protection", description: "Participate in growth, protected from losses" },
+      { title: "Tax-Exempt Income", description: "Pay taxes once, withdraw tax-free forever" },
+      { title: "75+ Carrier Partnerships", description: "Independent broker. Best solution for YOU." },
+      { title: "Fiduciary Obligation", description: "Legally required to act in YOUR best interest" },
+    ],
+    incentiveLabel: "Our Incentive:",
+    incentiveText: "Help you achieve financial independence and retire successfully",
+  },
 }
 ```
 
-**Spanish:** equivalent translations.
+Spanish: equivalent translations.
 
-### 2. Rewrite `PhilosophyKillers.tsx`
+### 2. Create New Component
+**File:** `src/components/philosophy/PhilosophyWallStreet.tsx`
 
-**File:** `src/components/philosophy/PhilosophyKillers.tsx`
+**Layout:**
+- Full-width section with white background
+- Centered animated headline (blur-to-sharp reveal, matching other sections)
+- Two-column grid (`grid-cols-1 md:grid-cols-2`) with no gap (edge-to-edge split)
 
-Full rewrite preserving the same section ID (`philosophy-killers`) and overall structure, but with these upgrades:
+**Left column (Wall Street -- dark):**
+- `bg-slate-900 text-white p-12 md:p-16`
+- Floating decorative elements: 6-8 small `motion.div` circles with dollar-sign opacity animation drifting downward (CSS keyframes, no emoji)
+- Red-accented title
+- Five `ComparisonItem` rows, each with a red X icon (`lucide-react`), title, and description, staggered entrance from left
+- Bottom callout: dark glassmorphic card with red left border showing "Their Incentive"
 
-**Section background:**
-- Gradient from cream to white (`bg-gradient-to-br from-[hsl(90,5%,95%)] to-white`)
-- Decorative SVG circular loader element at top-right at very low opacity (pure CSS/SVG animation, no new component file needed)
+**Right column (Everence -- light):**
+- `bg-[hsl(90,5%,95%)] p-12 md:p-16`
+- Floating decorative elements: small circles drifting upward with green tint
+- Evergreen-accented title
+- Five `ComparisonItem` rows with green checkmark icons, staggered entrance from right
+- Bottom callout: solid evergreen card showing "Our Incentive"
 
-**Header:** Same blur-to-sharp reveal pattern (kept from current).
+**Center divider (desktop only):**
+- Absolute positioned `div` at `left-1/2`, full height
+- Gradient line (`from-transparent via-evergreen to-transparent`) animating `scaleY` from 0 to 1 on scroll
 
-**Three-column card grid:**
-Each card becomes a `GlassCard` (replacing the plain white TiltCard) with:
-- Larger icon in a gradient circle
-- Title + description (from existing i18n)
-- Enhanced inline SVG chart specific to each card:
-  - **Card 1 (Fees):** Horizontal bar comparison -- two bars (red "With 1% Fee" shorter, green "With 0% Fee" full width) with amounts ($1.6M vs $2.3M) animating width on scroll
-  - **Card 2 (Volatility):** Line chart with two series -- red dashed "Market" line showing drop-and-partial-recovery, green solid "Protected" line staying flat/growing, drawn via stroke-dashoffset
-  - **Card 3 (Taxes):** Stacked horizontal bar comparison -- 401k bar showing gross broken into federal/state/net segments vs IUL bar showing full net, animating in on scroll
-- New "Solution" callout at bottom of each card: green-tinted background strip with checkmark icon and solution text from i18n
-- Hover lift (`whileHover={{ y: -8 }}`)
-- Existing stat callout preserved at the bottom
+**Inline sub-components:**
+- `ComparisonItem`: accepts `icon`, `title`, `description`, `delay`, renders as a flex row with `motion.div` entrance animation
+- `FloatingParticles`: accepts `direction` ("up" | "down") and `color`, renders 6 small absolute-positioned circles with infinite CSS translate animation
 
-**Compound Effect CTA (new block below the grid):**
-- Dark glassmorphic card (`GlassCard` with `dark` prop) centered at `max-w-4xl`
-- Decorative floating dots (4-6 small `motion.div` circles animating opacity and position, same pattern as homepage SilentKillers particles)
-- Title, description, punchline from i18n
-- Animated percentage: uses `useAnimatedCounter` hook counting from 100 down to 50 (representing wealth lost), displayed as large text with a "%" suffix
-- Gold divider line above punchline
+### 3. Register in Philosophy Page
+**File:** `src/pages/Philosophy.tsx`
 
-**Removed:** `TiltCard` component (replaced by `GlassCard`).
+Import `PhilosophyWallStreet` and place it between `PhilosophyCashFlow` and `PhilosophyCTA`:
 
-### 3. Inline SVG Chart Components (inside PhilosophyKillers.tsx)
+```text
+<PhilosophyCashFlow />
+<PhilosophyWallStreet />   <-- NEW
+<PhilosophyCTA />
+```
 
-Three new chart components replacing the existing `FeesChart`, `VolatilityChart`, `TaxChart`:
-
-- **FeesBarComparison:** Two horizontal SVG rects animating width from 0 to target values. Labels and dollar amounts rendered as SVG text elements. Colors: red (#EF4444) for "with fees", green (#10B981) for "without fees".
-
-- **VolatilityLineChart:** Two SVG polylines with stroke-dashoffset draw animation. Red dashed line: 100 -> 50 -> 75 (market with loss). Green solid line: 100 -> 100 -> 112 (protected with floor). Y-axis inverted to show value. Small circle dots at data points.
-
-- **TaxComparisonChart:** Two horizontal stacked bars. Top bar (401k): shows gross $50K split into federal ($11K red), state ($3.5K orange), net ($35.5K gray). Bottom bar (IUL): full $50K in green. Width animation on scroll.
-
-All triggered by `useInView` with `once: true`.
+## Section Order (updated)
+1. PhilosophyHero
+2. PhilosophySpeakable
+3. PhilosophyPrinciples
+4. PhilosophyKillers
+5. PhilosophyBuckets
+6. PhilosophyCashFlow
+7. **PhilosophyWallStreet** (NEW)
+8. PhilosophyCTA
 
 ## Technical Details
 
-### Files Modified
-- `src/components/philosophy/PhilosophyKillers.tsx` -- full rewrite
-- `src/i18n/translations/en.ts` -- add `solution` to each card + `compound` block in `philosophy.killers`
-- `src/i18n/translations/es.ts` -- same additions in Spanish
+### Files Created
+- `src/components/philosophy/PhilosophyWallStreet.tsx`
 
-### No New Files Created
-Everything stays in `PhilosophyKillers.tsx`.
+### Files Modified
+- `src/pages/Philosophy.tsx` -- add import + render
+- `src/i18n/translations/en.ts` -- add `philosophy.wallStreet` block
+- `src/i18n/translations/es.ts` -- add `philosophy.wallStreet` block
 
 ### No New Dependencies
-Uses existing `framer-motion`, `lucide-react`, `GlassCard`, and `useAnimatedCounter` hook.
+Uses existing `framer-motion`, `lucide-react` (X, Check icons), and `useInView`.
 
-### What Is Preserved
-- Section ID `philosophy-killers`
-- All existing i18n keys (`badge`, `headline`, `subheadline`, `cards` with `id`, `title`, `description`, `stat`, `statLabel`)
-- Section position in Philosophy page (between PhilosophyPrinciples and PhilosophyBuckets)
-- No changes to any other files
-
+### What Is NOT Changed
+- No other Philosophy sections modified
+- All existing i18n keys preserved
+- No routing or SEO changes
