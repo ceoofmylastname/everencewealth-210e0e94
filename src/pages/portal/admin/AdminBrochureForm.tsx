@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { AdminLayout } from "@/components/AdminLayout";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -137,7 +138,7 @@ export default function AdminBrochureForm() {
     },
     onSuccess: () => {
       toast({ title: isEdit ? "Brochure updated" : "Brochure created" });
-      navigate("/portal/admin/brochures");
+      navigate("/admin/brochures");
     },
     onError: (err: Error) => {
       toast({ title: "Error", description: err.message, variant: "destructive" });
@@ -222,9 +223,10 @@ export default function AdminBrochureForm() {
   };
 
   return (
+    <AdminLayout>
     <div className="space-y-6 max-w-4xl">
       <div className="flex items-center gap-3">
-        <Button variant="ghost" size="icon" onClick={() => navigate("/portal/admin/brochures")}>
+        <Button variant="ghost" size="icon" onClick={() => navigate("/admin/brochures")}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <h1 className="text-2xl font-bold text-foreground" style={{ fontFamily: "'Playfair Display', serif" }}>
@@ -464,12 +466,13 @@ export default function AdminBrochureForm() {
 
       {/* Save */}
       <div className="flex justify-end gap-3 pb-8">
-        <Button variant="outline" onClick={() => navigate("/portal/admin/brochures")}>Cancel</Button>
+        <Button variant="outline" onClick={() => navigate("/admin/brochures")}>Cancel</Button>
         <Button onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending}>
           <Save className="h-4 w-4 mr-2" />
           {saveMutation.isPending ? "Saving..." : isEdit ? "Update Brochure" : "Create Brochure"}
         </Button>
       </div>
     </div>
+    </AdminLayout>
   );
 }

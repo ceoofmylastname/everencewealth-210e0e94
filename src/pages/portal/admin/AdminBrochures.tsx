@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { AdminLayout } from "@/components/AdminLayout";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -114,6 +115,7 @@ export default function AdminBrochures() {
   };
 
   return (
+    <AdminLayout>
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
@@ -129,7 +131,7 @@ export default function AdminBrochures() {
             <MapPin className="h-4 w-4 mr-2" /> Generate State Guides
           </Button>
           <Button asChild>
-            <Link to="/portal/admin/brochures/new">
+            <Link to="/admin/brochures/new">
               <Plus className="h-4 w-4 mr-2" /> New Brochure
             </Link>
           </Button>
@@ -205,7 +207,7 @@ export default function AdminBrochures() {
           <BookOpen className="mx-auto h-12 w-12 text-muted-foreground/40" />
           <p className="mt-3 text-muted-foreground">No brochures found</p>
           <Button asChild className="mt-4" variant="outline">
-            <Link to="/portal/admin/brochures/new">Create your first brochure</Link>
+            <Link to="/admin/brochures/new">Create your first brochure</Link>
           </Button>
         </div>
       ) : (
@@ -246,7 +248,7 @@ export default function AdminBrochures() {
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-1">
                       <Button variant="ghost" size="icon" asChild>
-                        <Link to={`/portal/admin/brochures/${b.id}/edit`}>
+                        <Link to={`/admin/brochures/${b.id}/edit`}>
                           <Pencil className="h-4 w-4" />
                         </Link>
                       </Button>
@@ -280,5 +282,6 @@ export default function AdminBrochures() {
         </div>
       )}
     </div>
+    </AdminLayout>
   );
 }

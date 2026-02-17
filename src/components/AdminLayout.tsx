@@ -79,6 +79,7 @@ const navGroups = [
       { name: "Authors", href: "/admin/authors", icon: Users },
       { name: "Location Pages", href: "/admin/location-pages", icon: MapPin },
       { name: "Brochures", href: "/admin/brochures", icon: Map },
+      { name: "State Pages", href: "/admin/state-pages", icon: MapPin },
       { name: "Comparison Generator", href: "/admin/comparison-generator", icon: Scale },
     ],
   },

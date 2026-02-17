@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { AdminLayout } from "@/components/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -255,7 +256,8 @@ const AdminStatePages = () => {
     return matchesSearch && matchesStatus && matchesState;
   }) || [];
 
-  return (
+    return (
+    <AdminLayout>
     <div className="space-y-6">
       {/* Header */}
       <div>
@@ -633,6 +635,7 @@ const AdminStatePages = () => {
         </AlertDialogContent>
       </AlertDialog>
     </div>
+    </AdminLayout>
   );
 };
 
