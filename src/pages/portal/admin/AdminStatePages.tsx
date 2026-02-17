@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import {
   MapPin, Sparkles, Loader2, Eye, Trash2, CheckCircle, Globe,
-  Plus, Search, AlertCircle, Languages,
+  Plus, Search, AlertCircle, Languages, ImageIcon,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -72,6 +72,27 @@ interface LocationPage {
   updated_at: string;
   featured_image_url: string | null;
 }
+
+// Helper to trigger image generation for a state page
+const generateStateImage = async (page: { id: string; city_name: string; city_slug: string; topic_slug: string; state_code: string }) => {
+  const prompt = `Professional aerial photography of ${page.city_name}, USA. Modern cityscape skyline, institutional financial district, wealth management and retirement planning imagery. Ultra high resolution, corporate marketing style, clean professional lighting.`;
+  try {
+    await supabase.functions.invoke("generate-location-image", {
+      body: {
+        location_page_id: page.id,
+        city_name: page.city_name,
+        city_slug: page.city_slug,
+        topic_slug: page.topic_slug,
+        intent_type: "retirement-planning",
+        image_prompt: prompt,
+      },
+    });
+    return true;
+  } catch (err) {
+    console.error("Image generation failed for", page.city_name, err);
+    return false;
+  }
+};
 
 const AdminStatePages = () => {
   const queryClient = useQueryClient();
@@ -172,6 +193,22 @@ const AdminStatePages = () => {
         if (job.status === "completed") {
           toast.success("State page(s) generated successfully!");
           setActiveTab("manage");
+
+          // Trigger image generation for pages without images
+          const { data: pagesWithoutImages } = await supabase
+            .from("location_pages")
+            .select("id, city_name, city_slug, topic_slug, state_code")
+            .not("state_code", "is", null)
+            .is("featured_image_url", null);
+
+          if (pagesWithoutImages && pagesWithoutImages.length > 0) {
+            toast.info(`Generating hero images for ${pagesWithoutImages.length} page(s)...`);
+            for (const p of pagesWithoutImages) {
+              generateStateImage(p as any).then(ok => {
+                if (ok) queryClient.invalidateQueries({ queryKey: ["admin-state-pages"] });
+              });
+            }
+          }
         } else {
           toast.error((job as any).error_message || "Generation failed");
         }
@@ -226,15 +263,30 @@ const AdminStatePages = () => {
       } else if (!batchMode && data?.success) {
         // Single mode — save directly with state_code
         const page = data.locationPage;
-        const { error: insertErr } = await supabase
+        const { data: inserted, error: insertErr } = await supabase
           .from("location_pages")
-          .insert({ ...page, state_code: selectedState, status: "draft" });
+          .insert({ ...page, state_code: selectedState, status: "draft" })
+          .select("id, city_name, city_slug, topic_slug, state_code")
+          .single();
         if (insertErr) throw insertErr;
 
         setIsGenerating(false);
         queryClient.invalidateQueries({ queryKey: ["admin-state-pages"] });
         toast.success(`${state.name} page generated!`);
         setActiveTab("manage");
+
+        // Fire-and-forget image generation
+        if (inserted) {
+          toast.info(`Generating hero image for ${state.name}...`);
+          generateStateImage(inserted as any).then(ok => {
+            if (ok) {
+              toast.success(`Hero image ready for ${state.name}`);
+              queryClient.invalidateQueries({ queryKey: ["admin-state-pages"] });
+            } else {
+              toast.warning(`Hero image failed for ${state.name}. Use the image button to retry.`);
+            }
+          });
+        }
       } else if (data?.error) {
         throw new Error(data.error);
       }
@@ -569,6 +621,29 @@ const AdminStatePages = () => {
                             </td>
                             <td className="px-4 py-3">
                               <div className="flex items-center justify-end gap-1">
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  title={page.featured_image_url ? "Regenerate hero image" : "Generate hero image"}
+                                  onClick={async () => {
+                                    toast.info(`Generating image for ${page.city_name}...`);
+                                    const ok = await generateStateImage({
+                                      id: page.id,
+                                      city_name: page.city_name,
+                                      city_slug: page.city_slug,
+                                      topic_slug: page.topic_slug,
+                                      state_code: page.state_code || "",
+                                    });
+                                    if (ok) {
+                                      toast.success(`Image ready for ${page.city_name}`);
+                                      queryClient.invalidateQueries({ queryKey: ["admin-state-pages"] });
+                                    } else {
+                                      toast.error(`Image failed for ${page.city_name}`);
+                                    }
+                                  }}
+                                >
+                                  <ImageIcon className={`h-4 w-4 ${page.featured_image_url ? "text-primary" : "text-muted-foreground"}`} />
+                                </Button>
                                 <Button
                                   size="sm"
                                   variant="ghost"
