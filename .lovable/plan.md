@@ -1,27 +1,37 @@
 
-# Fix Document Upload and Client View/Download
+
+# Fix Document Upload Constraint and Add Realtime
 
 ## Problem
-1. The Upload button shows "Select a file" error -- the file input ref may not be capturing files reliably in certain environments
-2. Client documents page needs verified download via signed URLs (the bucket is private)
+The `portal_documents` table has a CHECK constraint (`portal_documents_document_type_check`) that only allows: `policy`, `illustration`, `amendment`, `beneficiary-form`, `statement`, `correspondence`, `other`.
 
-## Changes
+The upload form sends: `general`, `policy_document`, `application`, `illustration`, `statement`, `id_verification` -- causing the constraint violation error.
 
-### 1. Fix Upload in `src/pages/portal/advisor/AdvisorDocuments.tsx`
-- Replace the `Input type="file"` + separate Upload button with a hidden native `<input type="file">` and a single "Choose & Upload" flow
-- Add a visible file name display so the advisor can see what they picked
-- Use a native `<input>` element directly (not the shadcn Input wrapper) for the file picker to avoid any ref forwarding issues
-- Keep all existing upload logic (storage upload, DB insert, notification)
+## Solution
 
-### 2. Verify Client Download in `src/pages/portal/client/ClientDocuments.tsx`
-- The existing `handleDownload` function uses `createSignedUrl` which is correct for private buckets
-- Storage RLS already has a "Clients can view their documents" SELECT policy -- this allows `createSignedUrl` to work
-- No changes needed here; the client page is already functional
+### 1. Database Migration
+Drop the old constraint and add one that accepts all form values plus existing ones:
 
-### Technical Details
-- **File**: `src/pages/portal/advisor/AdvisorDocuments.tsx` (lines 189-194)
-  - Replace `<Input type="file" ref={fileRef}>` with a native `<input type="file" ref={fileRef} className="hidden">` 
-  - Add a "Choose File" button that triggers `fileRef.current?.click()`
-  - Show selected file name in a span
-  - Keep the Upload button calling `handleUpload()` as-is
-- No database or storage policy changes needed -- everything is already configured correctly
+```sql
+ALTER TABLE portal_documents DROP CONSTRAINT portal_documents_document_type_check;
+ALTER TABLE portal_documents ADD CONSTRAINT portal_documents_document_type_check 
+  CHECK (document_type = ANY (ARRAY[
+    'general', 'policy', 'policy_document', 'application', 
+    'illustration', 'statement', 'id_verification',
+    'amendment', 'beneficiary-form', 'correspondence', 'other'
+  ]));
+```
+
+### 2. Enable Realtime on portal_documents
+So uploaded documents appear instantly on the client dashboard:
+
+```sql
+ALTER PUBLICATION supabase_realtime ADD TABLE public.portal_documents;
+```
+
+### 3. Add Realtime Subscription in Client Documents Page
+Update `src/pages/portal/client/ClientDocuments.tsx` to subscribe to `portal_documents` changes filtered by the client's ID. When an INSERT event arrives with `is_client_visible = true`, append it to the list. When a DELETE event arrives, remove it. When an UPDATE event changes visibility, add or remove accordingly.
+
+### Files Changed
+- **Database migration** -- constraint fix + realtime publication
+- `src/pages/portal/client/ClientDocuments.tsx` -- add realtime subscription for live updates
