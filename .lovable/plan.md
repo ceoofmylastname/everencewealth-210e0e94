@@ -1,39 +1,95 @@
 
 
-# Fix Agent Invitation Email Button
+# Unify All System Emails with Everence Wealth Branding
 
-## Problem
-When agents receive invitation emails, clicking the "Set Your Password" button does not work. There are two root causes:
+## Overview
+There are **8 edge functions** that send emails via Resend. Currently, they use inconsistent designs -- some have no logo, mismatched color schemes (blue headers, generic Arial fonts), and lack the Everence brand identity. This plan creates a **shared email template** and applies it uniformly across all functions.
 
-1. **Wrong redirect URL**: The `create-agent` backend function has a hardcoded app URL (`id-preview--...lovable.app`) that does not match the actual app domain (`...lovableproject.com`). When agents click the button, the authentication system redirects them to a non-existent or incorrect domain.
+## Current State
 
-2. **Site URL configuration**: The authentication system needs to know the correct site URL to generate proper redirect links.
+| Function | Purpose | Current Design Issues |
+|---|---|---|
+| `create-agent` | Advisor portal invitation | No logo, plain green header, no footer address |
+| `create-crm-agent` | CRM agent welcome | No logo, **navy blue** header (#1a365d), no brand colors |
+| `send-portal-invitation` | Client portal invite | Has logo, good branding (already closest to target) |
+| `reassign-lead` | Lead reassignment notice | No logo, **blue** header (#1E40AF), minimal footer |
+| `send-lead-notification` | New lead broadcast | No logo, **gold gradient** header, no brand header |
+| `send-escalating-alarms` | Escalating reminders | No logo, varies by urgency, generic footer |
+| `send-reminder-emails` | Calendar reminders | No logo, gold gradient, minimal footer |
+| `check-claim-window-expiry` | Admin: unclaimed lead alert | No logo, **red** header, CSS classes (unreliable in email) |
+| `check-contact-window-expiry` | Admin: contact SLA breach | No logo, **amber** header, CSS classes (unreliable in email) |
 
-## Solution
+## Unified Email Template Design
 
-### Step 1: Fix the hardcoded URL in the `create-agent` backend function
-Update `supabase/functions/create-agent/index.ts` to dynamically determine the app URL from the request's `Origin` or `Referer` header, with a sensible fallback. This ensures the recovery link always redirects to the correct domain regardless of which environment (preview, published) is being used.
+Every email will share this common structure:
 
-### Step 2: Add allowed redirect URL configuration
-Ensure the authentication system's redirect URL allowlist includes both the preview and production domains so password reset redirects are not blocked.
-
-### Technical Details
-
-**File: `supabase/functions/create-agent/index.ts`**
-- Replace the hardcoded `appUrl` constant with dynamic origin detection from the request headers
-- Fallback to the preview URL if no origin header is present
-- The `redirectTo` in `generateLink` will then point to the correct domain's `/portal/reset-password` page
-
-**Before:**
-```typescript
-const appUrl = "https://id-preview--29324b25-4616-48ca-967b-28e362789bf6.lovable.app";
+```text
++--------------------------------------------------+
+|  [Logo Icon]  EVERENCE WEALTH                    |
+|  Tagline (varies by email type)                  |
+|  Background: Evergreen #1A4D3E                   |
++--------------------------------------------------+
+|                                                  |
+|  [Content area - specific to each email]         |
+|                                                  |
+|  [CTA Button - Evergreen or contextual color]    |
+|                                                  |
++--------------------------------------------------+
+|  (c) 2026 Everence Wealth. All rights reserved.  |
+|  455 Market St Ste 1940 PMB 350011,              |
+|  San Francisco, CA 94105                         |
++--------------------------------------------------+
 ```
 
-**After:**
-```typescript
-const origin = req.headers.get("origin") || req.headers.get("referer")?.replace(/\/$/, "") || "https://id-preview--29324b25-4616-48ca-967b-28e362789bf6.lovable.app";
-const appUrl = origin;
-```
+**Brand Constants:**
+- Logo: `https://everencewealth.com/logo-icon.png` (48x48)
+- Primary: Evergreen `#1A4D3E`
+- Accent: Gold `#C5A059`
+- Background: Cream `#F0F2F1`
+- Text: Slate `#4A5565`
+- Font: Georgia, serif (matching `send-portal-invitation` template)
 
-This single change ensures that whichever domain the admin is using when they invite the agent, the email link will redirect back to that same domain's reset password page.
+## Implementation Plan
+
+### Step 1: Create shared email wrapper utility
+Create `supabase/functions/shared/email-template.ts` with a `wrapEmailHtml()` function that provides the branded header (with logo) and footer, accepting the inner content and a subtitle string.
+
+### Step 2: Update each edge function (8 functions)
+
+1. **`create-agent/index.ts`** -- Replace the inline HTML with the shared wrapper. Keep the password reset link as the CTA.
+
+2. **`create-crm-agent/index.ts`** -- Rewrite `generateWelcomeEmailHtml()` to use the shared wrapper. Replace the navy blue scheme with Evergreen branding.
+
+3. **`send-portal-invitation/index.ts`** -- Already well-branded; minor alignment to use the shared wrapper for consistency.
+
+4. **`reassign-lead/index.ts`** -- Replace inline blue-themed HTML with the shared wrapper. Keep lead details table.
+
+5. **`send-lead-notification/index.ts`** -- Update `generateEmailHtml()`, `generateUrgentEmailHtml()`, and `generateAdminUnclaimedEmailHtml()` to wrap content with the branded header/footer. Urgent emails will keep their red accent but within the branded frame.
+
+6. **`send-escalating-alarms/index.ts`** -- Add branded header with logo above the existing urgency-level content.
+
+7. **`send-reminder-emails/index.ts`** -- Update `generateEmailHtml()` to use the branded wrapper instead of the plain gold header.
+
+8. **`check-claim-window-expiry/index.ts`** and **`check-contact-window-expiry/index.ts`** -- Replace CSS `<style>` blocks (unreliable in email clients) with inline styles and the branded wrapper.
+
+### Key Design Rules
+- All styles are **inline** (no `<style>` blocks) for maximum email client compatibility
+- Logo image is always present in the header
+- CTA buttons use `border-radius: 8px`, `padding: 14px 32px`, `font-weight: 600`
+- Urgent/alert emails: branded Evergreen header stays, but the content area uses red/amber accent borders to convey urgency
+- Footer always includes copyright year, company name, and full address
+
+### Files to Modify
+- `supabase/functions/shared/email-template.ts` (new)
+- `supabase/functions/create-agent/index.ts`
+- `supabase/functions/create-crm-agent/index.ts`
+- `supabase/functions/send-portal-invitation/index.ts`
+- `supabase/functions/reassign-lead/index.ts`
+- `supabase/functions/send-lead-notification/index.ts`
+- `supabase/functions/send-escalating-alarms/index.ts`
+- `supabase/functions/send-reminder-emails/index.ts`
+- `supabase/functions/check-claim-window-expiry/index.ts`
+- `supabase/functions/check-contact-window-expiry/index.ts`
+
+All 8 edge functions will be redeployed after changes.
 
