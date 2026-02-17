@@ -18,27 +18,30 @@ import { CursorGlow } from '../components/CursorGlow';
 import { ScrollProgressBar } from '../components/homepage/ScrollProgressBar';
 
 function Home() {
+  const sectionClass = "rounded-3xl overflow-hidden";
   return (
-    <div className="min-h-screen flex flex-col font-sans text-white bg-dark-bg">
+    <div className="min-h-screen flex flex-col font-sans text-white bg-white">
       <ScrollProgressBar />
       <Header />
       <CursorGlow />
-      <main className="flex-grow">
-        <Hero />
-        <WakeUpCall />
-        <StackingCards />
-        <WealthPhilosophy />
-        <FiduciaryDifference />
-        <TheGap />
-        <Services />
-        <HomepageAbout />
-        <Stats />
-        <Assessment />
-        <FAQ />
-        <BlogPreview />
-        <CTA />
+      <main className="flex-grow mx-2 md:mx-4 lg:mx-6 space-y-4 md:space-y-6 py-4 md:py-6">
+        <div className={sectionClass}><Hero /></div>
+        <div className={sectionClass}><WakeUpCall /></div>
+        <div className={sectionClass}><StackingCards /></div>
+        <div className={sectionClass}><WealthPhilosophy /></div>
+        <div className={sectionClass}><FiduciaryDifference /></div>
+        <div className={sectionClass}><TheGap /></div>
+        <div className={sectionClass}><Services /></div>
+        <div className={sectionClass}><HomepageAbout /></div>
+        <div className={sectionClass}><Stats /></div>
+        <div className={sectionClass}><Assessment /></div>
+        <div className={sectionClass}><FAQ /></div>
+        <div className={sectionClass}><BlogPreview /></div>
+        <div className={sectionClass}><CTA /></div>
       </main>
-      <Footer />
+      <div className="mx-2 md:mx-4 lg:mx-6 mb-4 md:mb-6 rounded-3xl overflow-hidden">
+        <Footer />
+      </div>
     </div>
   );
 }
