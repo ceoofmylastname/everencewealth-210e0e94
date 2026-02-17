@@ -944,6 +944,11 @@ export const en = {
       paragraph: "We believe financial freedom comes from cash flow, not net worth. From tax-free income, not tax-deferred accumulation. From transparency, not hidden fees.",
       ctaPrimary: "Explore Our Principles",
       ctaSecondary: "Schedule Consultation",
+      stats: [
+        { value: "25+", label: "Years" },
+        { value: "1,200+", label: "Families Served" },
+        { value: "$0", label: "AUM Fees" },
+      ],
     },
     principles: {
       badge: "Our Core Principles",
