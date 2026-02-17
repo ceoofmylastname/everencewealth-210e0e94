@@ -1,48 +1,12 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Check, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
-import { generateCostaDelSolImages } from '@/lib/generateCostaDelSolImages';
 import '../styles/thank-you-animations.css';
 
-interface CostaDelSolImage {
-    url: string;
-    title: string;
-    description: string;
-    alt: string;
-}
-
 const ThankYouPage: React.FC = () => {
-    const [images, setImages] = useState<CostaDelSolImage[]>([]);
-    const [loading, setLoading] = useState(true);
-
-    useEffect(() => {
-        // Generate AI images on component mount
-        async function loadImages() {
-            try {
-                const generatedImages = await generateCostaDelSolImages();
-                setImages(generatedImages);
-            } catch (error) {
-                console.error('Failed to load images:', error);
-            } finally {
-                setLoading(false);
-            }
-        }
-
-        loadImages();
-
-        // Track page view
-        if (typeof window !== 'undefined' && (window as any).gtag) {
-            (window as any).gtag('event', 'thank_you_page_view', {
-                event_category: 'engagement',
-                event_label: 'Landing Page Conversion'
-            });
-        }
-    }, []);
-
     return (
         <div className="min-h-screen bg-white font-sans">
-            {/* Hero Section - Animated Gradient */}
+            {/* Hero Section */}
             <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-br from-primary via-blue-600 to-purple-600 animate-gradient-shift" />
                 <div className="absolute inset-0 opacity-10">
@@ -65,7 +29,7 @@ const ThankYouPage: React.FC = () => {
                     </h1>
 
                     <p className="text-xl md:text-2xl text-white/90 max-w-2xl mx-auto font-light animate-fade-in-up delay-200">
-                        Your journey to Costa del Sol luxury living starts here
+                        Your journey to financial freedom starts here
                     </p>
 
                     {/* Next Steps Card */}
@@ -76,9 +40,9 @@ const ThankYouPage: React.FC = () => {
                             </h2>
                             <div className="space-y-4 text-left">
                                 {[
-                                    { icon: "📧", text: "Check your email for our exclusive Costa del Sol Property Guide" },
-                                    { icon: "📞", text: "Hans will personally reach out within 24 hours" },
-                                    { icon: "🏡", text: "Browse our curated selection of premium properties below" }
+                                    { icon: "📧", text: "Check your email for your personalized wealth strategy guide" },
+                                    { icon: "📞", text: "A wealth strategist will reach out within 24 hours" },
+                                    { icon: "📊", text: "Explore our retirement planning resources below" }
                                 ].map((step, i) => (
                                     <div
                                         key={i}
@@ -95,70 +59,19 @@ const ThankYouPage: React.FC = () => {
                 </div>
             </section>
 
-            {/* Costa del Sol Image Carousel */}
-            <section className="py-24 bg-gradient-to-b from-transparent to-gray-50">
-                <div className="container mx-auto px-4">
-                    <div className="text-center mb-16 animate-fade-in">
-                        <h2 className="text-4xl md:text-6xl font-serif text-gray-900 mb-4">
-                            Your Future Home Awaits
-                        </h2>
-                        <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-                            Experience the breathtaking beauty of Costa del Sol
-                        </p>
-                    </div>
-
-                    {loading ? (
-                        <div className="flex justify-center items-center py-24">
-                            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary" />
-                        </div>
-                    ) : (
-                        <div className="relative">
-                            <Carousel
-                                opts={{ loop: true, align: "center" }}
-                                className="w-full max-w-6xl mx-auto"
-                            >
-                                <CarouselContent>
-                                    {images.map((image, index) => (
-                                        <CarouselItem key={index} className="md:basis-1/2 lg:basis-1/3 pl-4">
-                                            <div className="group relative overflow-hidden rounded-3xl shadow-2xl hover:shadow-3xl transition-all duration-500 animate-scale-in" style={{ animationDelay: `${index * 100}ms` }}>
-                                                <img
-                                                    src={image.url}
-                                                    alt={image.alt}
-                                                    className="w-full h-[400px] object-cover transform group-hover:scale-110 transition-transform duration-700"
-                                                />
-
-                                                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-
-                                                <div className="absolute bottom-0 left-0 right-0 p-6 text-white transform translate-y-full group-hover:translate-y-0 transition-transform duration-500">
-                                                    <h3 className="text-2xl font-serif mb-2">{image.title}</h3>
-                                                    <p className="text-white/80">{image.description}</p>
-                                                </div>
-                                            </div>
-                                        </CarouselItem>
-                                    ))}
-                                </CarouselContent>
-
-                                <CarouselPrevious className="hidden md:flex -left-12 w-12 h-12 rounded-full bg-white shadow-xl hover:bg-primary hover:text-white transition-all" />
-                                <CarouselNext className="hidden md:flex -right-12 w-12 h-12 rounded-full bg-white shadow-xl hover:bg-primary hover:text-white transition-all" />
-                            </Carousel>
-                        </div>
-                    )}
-                </div>
-            </section>
-
             {/* Social Proof */}
             <section className="py-24 bg-white">
                 <div className="container mx-auto px-4">
                     <div className="max-w-4xl mx-auto text-center">
                         <h2 className="text-4xl font-serif text-gray-900 mb-16">
-                            Join 500+ Happy Homeowners
+                            Trusted by Families Nationwide
                         </h2>
 
                         <div className="grid md:grid-cols-3 gap-8 mb-16">
                             {[
-                                { number: "500+", label: "Families Relocated" },
-                                { number: "€2.5B+", label: "Properties Sold" },
-                                { number: "15+", label: "Years Experience" }
+                                { number: "500+", label: "Families Served" },
+                                { number: "25+", label: "Years Experience" },
+                                { number: "50", label: "States Licensed" }
                             ].map((stat, i) => (
                                 <div
                                     key={i}
@@ -185,19 +98,19 @@ const ThankYouPage: React.FC = () => {
                 <div className="container mx-auto px-4 relative z-10">
                     <div className="max-w-3xl mx-auto text-center text-white">
                         <h2 className="text-4xl md:text-5xl font-serif mb-6 animate-fade-in">
-                            Ready to Start Your Journey?
+                            Ready to Secure Your Financial Future?
                         </h2>
                         <p className="text-xl mb-12 opacity-90 animate-fade-in delay-100">
-                            Connect with Hans and discover your perfect Costa del Sol property
+                            Connect with a wealth strategist and discover your path to tax-free retirement income
                         </p>
 
                         <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in delay-200">
                             <Button
                                 size="lg"
                                 className="bg-white text-primary hover:bg-gray-100 text-lg px-8 py-6 rounded-full shadow-xl hover:shadow-2xl transition-all transform hover:scale-105"
-                                onClick={() => window.location.href = '/properties'} // Ideally use navigate() from react-router-dom
+                                onClick={() => window.location.href = '/blog'}
                             >
-                                Browse Properties
+                                Explore Resources
                                 <ArrowRight className="ml-2" />
                             </Button>
 
@@ -205,9 +118,9 @@ const ThankYouPage: React.FC = () => {
                                 size="lg"
                                 variant="outline"
                                 className="border-2 border-white text-white hover:bg-white hover:text-primary text-lg px-8 py-6 rounded-full transition-all transform hover:scale-105"
-                                onClick={() => window.location.href = '/contact'} // Ideally use navigate() from react-router-dom
+                                onClick={() => window.location.href = '/contact'}
                             >
-                                Contact Hans
+                                Schedule a Consultation
                             </Button>
                         </div>
                     </div>

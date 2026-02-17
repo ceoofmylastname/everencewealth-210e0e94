@@ -270,7 +270,7 @@ export const PropertyContact = ({ reference, price, propertyType }: PropertyCont
 
         <div className="mt-4 md:mt-6 pt-4 md:pt-6 border-t border-border/50">
           <p className="text-xs text-muted-foreground text-center">
-            🏆 Del Sol Prime Homes — Your trusted partner in luxury Costa del Sol real estate
+            💼 Everence Wealth — Your independent fiduciary wealth strategist
           </p>
         </div>
       </div>

@@ -71,18 +71,16 @@ export interface ExternalCitation {
 
 const ORGANIZATION_SCHEMA = {
   "@context": "https://schema.org",
-  "@type": "RealEstateAgent",
-  "name": "Del Sol Prime Homes",
-  "description": "Premium real estate agency specializing in Costa del Sol properties",
-  "url": "https://www.delsolprimehomes.com",
-  "logo": "https://www.delsolprimehomes.com/assets/logo-new.png",
+  "@type": "FinancialService",
+  "name": "Everence Wealth",
+  "description": "Independent fiduciary wealth management and retirement planning",
+  "url": "https://www.everencewealth.com",
+  "logo": "https://storage.googleapis.com/msgsndr/TLhrYb7SRrWrly615tCI/media/6993ada8dcdadb155342f28e.png",
   "address": {
     "@type": "PostalAddress",
-    "streetAddress": "ED SAN FERNAN, C. Alfonso XIII, 6, 1 OFICINA",
-    "addressLocality": "Fuengirola",
-    "addressRegion": "Málaga",
-    "postalCode": "29640",
-    "addressCountry": "ES"
+    "addressLocality": "San Diego",
+    "addressRegion": "CA",
+    "addressCountry": "US"
   }
 };
 
@@ -96,7 +94,7 @@ export function generatePlaceSchema(page: LocationPage): any {
       "@type": "PostalAddress",
       "addressLocality": page.city_name,
       "addressRegion": page.region,
-      "addressCountry": page.country === 'Spain' ? 'ES' : page.country
+      "addressCountry": page.country === 'United States' ? 'US' : page.country
     },
     "containedInPlace": {
       "@type": "AdministrativeArea",
@@ -105,12 +103,12 @@ export function generatePlaceSchema(page: LocationPage): any {
   };
 }
 
-export function generateLocalBusinessSchema(page: LocationPage, baseUrl: string = "https://www.delsolprimehomes.com"): any {
+export function generateLocalBusinessSchema(page: LocationPage, baseUrl: string = "https://www.everencewealth.com"): any {
   return {
     "@context": "https://schema.org",
-    "@type": "RealEstateAgent",
-    "name": "Del Sol Prime Homes",
-    "description": `Expert real estate services in ${page.city_name}, Costa del Sol`,
+    "@type": "FinancialService",
+    "name": "Everence Wealth",
+    "description": `Expert wealth management services in ${page.city_name}`,
     "url": `${baseUrl}/locations/${page.city_slug}/${page.topic_slug}`,
     "areaServed": {
       "@type": "Place",
@@ -119,7 +117,7 @@ export function generateLocalBusinessSchema(page: LocationPage, baseUrl: string 
         "@type": "PostalAddress",
         "addressLocality": page.city_name,
         "addressRegion": page.region,
-        "addressCountry": page.country === 'Spain' ? 'ES' : page.country
+        "addressCountry": page.country === 'United States' ? 'US' : page.country
       }
     },
     "parentOrganization": ORGANIZATION_SCHEMA
@@ -131,7 +129,7 @@ export function generateLocationFAQSchema(page: LocationPage, author: Author | n
     return null;
   }
 
-  const baseUrl = 'https://www.delsolprimehomes.com';
+  const baseUrl = 'https://www.everencewealth.com';
 
   return {
     "@context": "https://schema.org",
@@ -162,7 +160,7 @@ export function generateLocationSpeakableSchema(page: LocationPage): any {
 
 export function generateLocationBreadcrumbSchema(
   page: LocationPage,
-  baseUrl: string = "https://www.delsolprimehomes.com"
+  baseUrl: string = "https://www.everencewealth.com"
 ): any {
   return {
     "@context": "https://schema.org",
@@ -199,7 +197,7 @@ export function generateLocationBreadcrumbSchema(
 export function generateLocationWebPageSchema(
   page: LocationPage,
   author: Author | null,
-  baseUrl: string = "https://www.delsolprimehomes.com"
+  baseUrl: string = "https://www.everencewealth.com"
 ): any {
   const pageUrl = `${baseUrl}/locations/${page.city_slug}/${page.topic_slug}`;
 
@@ -212,7 +210,7 @@ export function generateLocationWebPageSchema(
     "inLanguage": page.language,
     "isPartOf": {
       "@type": "WebSite",
-      "name": "Del Sol Prime Homes",
+      "name": "Everence Wealth",
       "url": baseUrl
     },
     "about": {
@@ -246,7 +244,7 @@ export function generateLocationWebPageSchema(
  */
 export function generateLocationImageObjectSchema(
   page: LocationPage,
-  baseUrl: string = "https://www.delsolprimehomes.com"
+  baseUrl: string = "https://www.everencewealth.com"
 ): any {
   const pageUrl = `${baseUrl}/locations/${page.city_slug}/${page.topic_slug}`;
   
@@ -255,8 +253,8 @@ export function generateLocationImageObjectSchema(
     "@id": `${pageUrl}#primaryImage`,
     "url": page.featured_image_url,
     "name": `${page.city_name} - ${page.headline}`,
-    "description": page.featured_image_alt || `Aerial view of ${page.city_name}, Costa del Sol showing Mediterranean coastline and property areas`,
-    "caption": page.featured_image_caption || `${page.city_name}, Costa del Sol - Premium real estate destination in Southern Spain`,
+    "description": page.featured_image_alt || `${page.city_name} - Everence Wealth financial planning services`,
+    "caption": page.featured_image_caption || `${page.city_name} - Expert wealth management and retirement planning by Everence Wealth`,
     "contentLocation": {
       "@type": "Place",
       "name": page.city_name,
@@ -264,11 +262,7 @@ export function generateLocationImageObjectSchema(
         "@type": "PostalAddress",
         "addressLocality": page.city_name,
         "addressRegion": page.region,
-        "addressCountry": page.country === 'Spain' ? 'ES' : page.country
-      },
-      "geo": {
-        "@type": "GeoCoordinates",
-        "addressCountry": "ES"
+        "addressCountry": page.country === 'United States' ? 'US' : page.country
       }
     },
     "width": {
@@ -284,10 +278,10 @@ export function generateLocationImageObjectSchema(
     "representativeOfPage": true,
     "license": "https://creativecommons.org/licenses/by-nc/4.0/",
     "acquireLicensePage": `${baseUrl}/contact`,
-    "creditText": "Del Sol Prime Homes",
+    "creditText": "Everence Wealth",
     "creator": {
       "@type": "Organization",
-      "name": "Del Sol Prime Homes",
+      "name": "Everence Wealth",
       "url": baseUrl
     }
   };
@@ -306,7 +300,7 @@ export interface LocationSchemas {
 export function generateAllLocationSchemas(
   page: LocationPage,
   author: Author | null,
-  baseUrl: string = "https://www.delsolprimehomes.com"
+  baseUrl: string = "https://www.everencewealth.com"
 ): LocationSchemas {
   return {
     place: generatePlaceSchema(page),

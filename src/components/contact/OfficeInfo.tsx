@@ -64,7 +64,7 @@ export const OfficeInfo: React.FC<OfficeInfoProps> = ({ t }) => {
               allowFullScreen
               loading="lazy"
               referrerPolicy="no-referrer-when-downgrade"
-              title="Del Sol Prime Homes Office Location"
+              title="Everence Wealth Office Location"
             />
           </motion.div>
 
