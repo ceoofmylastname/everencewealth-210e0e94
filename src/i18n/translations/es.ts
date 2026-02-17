@@ -44,6 +44,9 @@ export const es = {
       clientStories: "Historias de Clientes",
       portalLogin: "Portal",
       comparisons: "Comparaciones",
+      stateGuides: "Guías Estatales",
+      locations: "Ubicaciones",
+      guidesLibrary: "Biblioteca de Guías",
     },
   },
   common: {
