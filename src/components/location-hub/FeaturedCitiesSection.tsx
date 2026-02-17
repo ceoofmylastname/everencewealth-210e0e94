@@ -34,6 +34,14 @@ const CITY_METADATA: Record<string, { avgPrice: string; bestFor: string; vibe: s
   'san-francisco': { avgPrice: 'From $800K', bestFor: 'Tech & Innovation', vibe: 'Progressive' },
   'denver': { avgPrice: 'From $400K', bestFor: 'Outdoors & Tech', vibe: 'Active' },
   'seattle': { avgPrice: 'From $500K', bestFor: 'Tech & Nature', vibe: 'Green' },
+  'california': { avgPrice: 'From $300K', bestFor: 'Diverse Economy', vibe: 'Golden State' },
+  'texas': { avgPrice: 'From $250K', bestFor: 'Energy & Growth', vibe: 'Big & Bold' },
+  'florida': { avgPrice: 'From $280K', bestFor: 'Tourism & Finance', vibe: 'Sunshine' },
+  'arizona': { avgPrice: 'From $280K', bestFor: 'Retirement & Growth', vibe: 'Desert Sun' },
+  'colorado': { avgPrice: 'From $350K', bestFor: 'Outdoors & Tech', vibe: 'Mountain' },
+  'washington': { avgPrice: 'From $400K', bestFor: 'Tech & Trade', vibe: 'Evergreen' },
+  'illinois': { avgPrice: 'From $200K', bestFor: 'Finance & Industry', vibe: 'Heartland' },
+  'new-york-state': { avgPrice: 'From $350K', bestFor: 'Finance & Culture', vibe: 'Empire' },
 };
 
 const LOCALIZED_CONTENT: Record<string, {
@@ -79,6 +87,14 @@ const CITY_FALLBACK_IMAGES: Record<string, string> = {
   'san-francisco': 'https://images.unsplash.com/photo-1501594907352-04cda38ebc29?w=800&q=80',
   'denver': 'https://images.unsplash.com/photo-1546156929-a4c0ac411f47?w=800&q=80',
   'seattle': 'https://images.unsplash.com/photo-1502175353174-a7a70e73b4c3?w=800&q=80',
+  'california': 'https://images.unsplash.com/photo-1449034446853-66c86144b0ad?w=800&q=80',
+  'texas': 'https://images.unsplash.com/photo-1531218150217-54595bc2b934?w=800&q=80',
+  'florida': 'https://images.unsplash.com/photo-1535498730771-e735b998cd64?w=800&q=80',
+  'arizona': 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80',
+  'colorado': 'https://images.unsplash.com/photo-1546156929-a4c0ac411f47?w=800&q=80',
+  'washington': 'https://images.unsplash.com/photo-1502175353174-a7a70e73b4c3?w=800&q=80',
+  'illinois': 'https://images.unsplash.com/photo-1494522855154-9297ac14b55f?w=800&q=80',
+  'new-york-state': 'https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?w=800&q=80',
 };
 
 export const FeaturedCitiesSection: React.FC<FeaturedCitiesSectionProps> = ({ 
@@ -155,7 +171,7 @@ export const FeaturedCitiesSection: React.FC<FeaturedCitiesSectionProps> = ({
         {/* Featured Cities - Equal Large Cards with Metadata */}
         <div className="grid md:grid-cols-3 gap-6 mb-8">
           {featuredCities.map((city, index) => {
-            const imageUrl = city.image || CITY_FALLBACK_IMAGES[city.city_slug] || CITY_FALLBACK_IMAGES.marbella;
+const imageUrl = city.image || CITY_FALLBACK_IMAGES[city.city_slug] || 'https://images.unsplash.com/photo-1486325212027-8081e485255e?w=800&q=80';
             const imageAlt = city.imageAlt || `Aerial view of ${city.city_name}`;
             const metadata = CITY_METADATA[city.city_slug] || { avgPrice: 'From $300K', bestFor: 'Lifestyle', vibe: 'Modern' };
 
@@ -227,7 +243,7 @@ export const FeaturedCitiesSection: React.FC<FeaturedCitiesSectionProps> = ({
         {otherCities.length > 0 && (
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
             {otherCities.map((city, index) => {
-              const imageUrl = city.image || CITY_FALLBACK_IMAGES[city.city_slug] || CITY_FALLBACK_IMAGES.marbella;
+              const imageUrl = city.image || CITY_FALLBACK_IMAGES[city.city_slug] || 'https://images.unsplash.com/photo-1486325212027-8081e485255e?w=800&q=80';
               const metadata = CITY_METADATA[city.city_slug] || { avgPrice: 'From $300K', bestFor: 'Lifestyle', vibe: 'Modern' };
 
               return (
