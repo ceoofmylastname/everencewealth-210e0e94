@@ -70,13 +70,13 @@ export function LocationHero({
           >
             <OptimizedImage
               src={featuredImageUrl}
-              alt={featuredImageAlt || `Aerial view of ${cityName}, Costa del Sol showing Mediterranean coastline and luxury properties`}
+              alt={featuredImageAlt || `Professional cityscape view of ${cityName}`}
               className="w-full h-full object-cover"
               loading="eager"
               itemProp="contentUrl"
             />
             <meta itemProp="name" content={`${cityName} - ${headline}`} />
-            <meta itemProp="description" content={featuredImageAlt || `View of ${cityName}, Costa del Sol`} />
+            <meta itemProp="description" content={featuredImageAlt || `View of ${cityName}`} />
             {featuredImageCaption && <meta itemProp="caption" content={featuredImageCaption} />}
           </div>
           {/* Sophisticated overlay gradient */}
@@ -161,7 +161,7 @@ export function LocationHero({
           <p 
             className={`text-lg md:text-xl text-white/90 leading-relaxed max-w-2xl mb-8 transition-all duration-1000 delay-300 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
           >
-            Comprehensive guide to {cityName}, Costa del Sol — expert insights on neighborhoods, costs, and lifestyle.
+            Comprehensive guide to {cityName} — expert insights on financial planning, tax strategies, and wealth management.
           </p>
 
           {/* Trust Signals */}
@@ -176,7 +176,7 @@ export function LocationHero({
             </div>
             <div className="flex items-center gap-3 px-4 py-2 rounded-full glass-luxury">
               <MapPin className="w-5 h-5 text-primary" />
-              <span className="text-sm font-medium text-foreground">{cityName}, Costa del Sol</span>
+              <span className="text-sm font-medium text-foreground">{cityName}</span>
             </div>
           </div>
         </div>

@@ -100,19 +100,19 @@ function getImagePrompts(cityName: string): { type: GeneratedImage['type']; prom
   return [
     {
       type: 'hero',
-      prompt: `Photorealistic aerial drone view of ${cityName}, Costa del Sol, Spain at golden hour. Stunning Mediterranean coastal cityscape with luxury modern architecture, pristine sandy beaches, azure blue sea, palm trees, and mountains in the background. High-end real estate photography style, 8K resolution, cinematic lighting with warm golden sun rays, aspirational luxury atmosphere. Wide panoramic establishing shot showing the full beauty of the city and coastline.`
+      prompt: `Photorealistic aerial drone view of ${cityName} at golden hour. Stunning cityscape with modern architecture, professional financial district, clean streets and parks. High-end corporate photography style, 8K resolution, cinematic lighting with warm golden sun rays, aspirational professional atmosphere. Wide panoramic establishing shot.`
     },
     {
       type: 'lifestyle',
-      prompt: `Luxury lifestyle scene in ${cityName}, Costa del Sol. Elegant beachfront restaurant terrace at sunset with sophisticated European diners, Mediterranean Sea views, premium fine dining setup with crystal glasses and white linen tablecloths. Warm golden hour lighting, high-end travel magazine photography style, photorealistic, aspirational luxury living atmosphere.`
+      prompt: `Professional lifestyle scene in ${cityName}. Elegant modern office or upscale restaurant terrace at sunset with sophisticated professionals, premium setting with crystal glasses and fine dining. Warm golden hour lighting, high-end magazine photography style, photorealistic, aspirational atmosphere.`
     },
     {
       type: 'architecture',
-      prompt: `Modern luxury villa exterior in ${cityName}, Costa del Sol. Contemporary Mediterranean architecture with floor-to-ceiling glass windows, infinity pool overlooking the sea, designer outdoor furniture, lush landscaping with palm trees and bougainvillea. Premium real estate photography, bright natural lighting, architectural digest quality, photorealistic detail, aspirational lifestyle.`
+      prompt: `Modern luxury office or residential building exterior in ${cityName}. Contemporary architecture with floor-to-ceiling glass windows, designer landscaping, professional setting. Premium architectural photography, bright natural lighting, architectural digest quality, photorealistic detail.`
     },
     {
       type: 'amenities',
-      prompt: `${cityName} Costa del Sol luxury amenities. Championship golf course with Mediterranean Sea views, or luxury marina with superyachts, or upscale beach club with infinity pools. Sunny Mediterranean atmosphere, vibrant colors, photorealistic high-quality travel photography, welcoming and exclusive feel.`
+      prompt: `${cityName} premium amenities and lifestyle. Upscale country club, modern fitness center, or executive golf course. Sunny atmosphere, vibrant colors, photorealistic high-quality photography, welcoming and exclusive feel.`
     },
   ];
 }

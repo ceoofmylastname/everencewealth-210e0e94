@@ -2,18 +2,9 @@ import React from 'react';
 import { ElfsightGoogleReviews } from '@/components/reviews/ElfsightGoogleReviews';
 
 import en from '../../translations/landing/en.json';
-import nl from '../../translations/landing/nl.json';
-import de from '../../translations/landing/de.json';
-import fr from '../../translations/landing/fr.json';
-import fi from '../../translations/landing/fi.json';
-import pl from '../../translations/landing/pl.json';
-import da from '../../translations/landing/da.json';
-import hu from '../../translations/landing/hu.json';
-import sv from '../../translations/landing/sv.json';
-import no from '../../translations/landing/no.json';
 
 const translations: Record<string, any> = {
-    en, nl, de, fr, fi, pl, da, hu, sv, no
+    en
 };
 
 interface TestimonialsSectionProps {

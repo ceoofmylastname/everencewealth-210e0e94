@@ -55,7 +55,7 @@ const Features: React.FC<FeaturesProps> = ({ language = 'en' }) => {
                         <span className="block sm:inline text-secondary ml-0 sm:ml-3">Starts Here</span>
                     </h2>
                     <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-                        We combine local expertise with cutting-edge technology to find your perfect Costa del Sol property suited to your unique taste.
+                        We combine deep expertise with cutting-edge technology to craft your perfect retirement strategy suited to your unique goals.
                     </p>
                 </div>
 

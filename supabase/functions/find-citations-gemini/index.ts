@@ -35,61 +35,35 @@ const ALLOWED_DATA_PATHS = [
 // COMPETITOR AGENCIES - ALWAYS BLOCKED (All Tiers)
 // ═══════════════════════════════════════════════════════════════════
 const COMPETITOR_AGENCIES = [
-  // Marbella/Costa del Sol agencies (HIGH PRIORITY - direct competitors)
-  'panoramamarbella.com',
-  'panoramaproperties.com',
-  'christopherclover.com',
-  'drumelia.com',
-  'landmar.com',
-  'crystal-shore.com',
-  'marbella-hills.com',
-  'marbellaproperties.com',
-  'costadelsolproperties.com',
-  'inmobiliaria-marbella.com',
-  'viva-estates.com',
-  'inmogolf.com',
-  'habitat-marbella.com',
+  // Competing financial advisory firms
+  'northwesternmutual.com',
+  'edwardjones.com',
+  'ameriprise.com',
+  'primerica.com',
+  'waddell.com',
+  'transamerica.com',
+  'pacificlife.com',
+  'massmutual.com',
+  'newyorklife.com',
+  'prudential.com',
+  'metlife.com',
+  'lincolnfinancial.com',
+  'principal.com',
+  'nationwide.com',
+  'allianzlife.com',
   
-  // International luxury agencies
-  'engel-voelkers.com',
-  'sothebysrealty.com',
-  'knightfrank.com',
-  'savills.com',
-  'christiesrealestate.com',
-  'lucasfox.com',
-  'coldwellbanker.com',
-  'century21.es',
-  're-max.es',
-  'remax.es',
-  'berkshirehathaway.com',
-  'compass.com',
-  'kw.com',
-  'kellerwilliams.com',
+  // Competing wealth management firms
+  'fisherinvestments.com',
+  'personalcapital.com',
+  'betterment.com',
+  'wealthfront.com',
   
-  // Spanish agency chains
-  'gilmar.es',
-  'promora.es',
-  'solvia.es',
-  'oi-realtor.com',
-  'housers.com',
-  
-  // Property investment sites
-  'propertyinvestment.com',
-  'buyspanishproperty.com',
-  'investinspain.com',
-  'spanish-property-investment.com',
-  
-  // UK/International portals focused on listings
-  'aplaceinthesun.com',
-  'kyero.com',
-  'thinkspain.com',
-  'spanish-property.com',
-  'propertyguides.com',
-  'spainhouses.net',
-  'spanishproperties.com',
-  'spanishhomes.com',
-  'spanish-property-centre.com',
-  'primeinvest.es',
+  // Insurance-focused competitors
+  'lifeinsurance.com',
+  'policygenius.com',
+  'haven life.com',
+  'ladderlife.com',
+  'bestow.com',
 ];
 
 // ═══════════════════════════════════════════════════════════════════

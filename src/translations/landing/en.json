@@ -1,7 +1,7 @@
 {
   "hero": {
-    "headline": "Get clarity first — before you look at property.",
-    "subheadline": "Independent, pressure-free guidance for new-build property on the Costa del Sol.",
+    "headline": "Get clarity first — before you plan your future.",
+    "subheadline": "Independent, fiduciary guidance for retirement planning and wealth management.",
     "primaryCTA": "Watch the 60-second introduction",
     "primaryCTAIcon": "play",
     "microcopy": "No pressure · No obligation",
@@ -64,16 +64,16 @@
   "faq": {
     "questions": [
       {
-        "question": "What services does DelSolPrimeHomes offer?",
-        "answer": "We provide independent, pressure-free guidance for finding new-build property on the Costa del Sol. Our service includes property search, legal support, and expert consultation."
+        "question": "What services does Everence Wealth offer?",
+        "answer": "We provide independent, fiduciary wealth management including retirement planning, tax-efficient strategies, indexed universal life, and estate planning."
       },
       {
-        "question": "What areas of Costa del Sol do you cover?",
-        "answer": "We cover all major areas including Marbella, Estepona, Mijas, Benalmádena, Fuengirola, and Sotogrande."
+        "question": "What areas do you serve?",
+        "answer": "We serve clients across all 50 states with a focus on comprehensive retirement planning and wealth management."
       },
       {
-        "question": "What is the price range of properties?",
-        "answer": "Our curated selection ranges from €350,000 to €5,000,000+, focusing on high-quality new-build developments."
+        "question": "How much do your services cost?",
+        "answer": "Our initial consultation is free. Ongoing advisory fees vary based on complexity. We are transparent about all costs with no hidden fees."
       }
     ]
   },

@@ -1,5 +1,5 @@
 // City Brochure Data Constants
-// All 10 Costa del Sol cities with unique content and imagery
+// Strategy guides with location-specific content and imagery
 
 // AI-generated location-specific hero images
 import marbellaHero from '@/assets/brochures/marbella-hero.jpg';

@@ -90,7 +90,7 @@ export const BuyersGuideCTA: React.FC = () => {
               </a>
               
               <a 
-                href="mailto:info@delsolprimehomes.com"
+                href="mailto:info@everencewealth.com"
                 className="group flex items-center gap-4 p-5 bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20 hover:bg-white/15 hover:border-prime-gold/40 transition-all duration-300"
               >
                 <div className="w-14 h-14 rounded-xl bg-prime-gold/20 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">

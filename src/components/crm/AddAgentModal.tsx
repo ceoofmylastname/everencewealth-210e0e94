@@ -130,7 +130,7 @@ export function AddAgentModal({ open, onOpenChange }: AddAgentModalProps) {
               id="email"
               type="email"
               {...register("email")}
-              placeholder="agent@delsolprimehomes.com"
+              placeholder="agent@everencewealth.com"
             />
             {errors.email && (
               <p className="text-sm text-destructive">{errors.email.message}</p>

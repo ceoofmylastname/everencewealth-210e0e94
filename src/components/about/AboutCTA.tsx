@@ -27,10 +27,10 @@ export const AboutCTA = () => {
           className="max-w-4xl mx-auto text-center"
         >
           <h2 className="font-serif text-3xl md:text-4xl lg:text-5xl font-bold mb-6">
-            {ctaSection?.heading || "Ready to Find Your Dream Property?"}
+            {ctaSection?.heading || "Ready to Secure Your Financial Future?"}
           </h2>
           <p className="text-lg md:text-xl text-slate-300 mb-10 max-w-2xl mx-auto">
-            {ctaSection?.subheading || "Let's start your Costa del Sol journey together. Our team is ready to help you every step of the way."}
+            {ctaSection?.subheading || "Let's start your wealth planning journey together. Our team is ready to help you every step of the way."}
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
@@ -69,14 +69,14 @@ export const AboutCTA = () => {
                 <Mail className="w-5 h-5 text-prime-gold" />
               </div>
               <span className="text-sm text-slate-400 mb-1">{ctaSection?.emailUs || "Email Us"}</span>
-              <span className="font-medium">info@delsolprimehomes.com</span>
+              <span className="font-medium">info@everencewealth.com</span>
             </div>
             <div className="flex flex-col items-center">
               <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center mb-3">
                 <MapPin className="w-5 h-5 text-prime-gold" />
               </div>
               <span className="text-sm text-slate-400 mb-1">{ctaSection?.visitUs || "Visit Us"}</span>
-              <span className="font-medium">{ctaSection?.location || "Marbella, Spain"}</span>
+              <span className="font-medium">{ctaSection?.location || "San Francisco, CA"}</span>
             </div>
           </div>
         </motion.div>
