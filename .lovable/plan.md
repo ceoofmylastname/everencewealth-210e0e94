@@ -1,64 +1,87 @@
 
+# Phase 1: Philosophy Page -- Core Build
 
-# Fix Phase 2 Q&A Translation Issues
+## Overview
+Create a dedicated Philosophy page at `/:lang/philosophy` (and `/es/filosofia` alias) with hero, 4 key content sections, full SEO/structured data, and i18n support. This establishes the page skeleton; 3D elements and remaining sections come in Phase 2.
 
-## Problem
-Two bugs prevent smooth Q&A translation:
-1. The `date_published` trigger blocks Q&A updates when adopting existing records
-2. Browser timeouts cause false failure reports
+## What Gets Built
 
-## Fix 1: Remove `date_published` from update path (Edge Function)
+### 1. Page Component: `src/pages/Philosophy.tsx`
+- Uses Header + Footer layout (same as Home, About, etc.)
+- Reads `lang` from URL params
+- Renders Helmet with full SEO meta tags, Open Graph, Twitter Card, hreflang, and JSON-LD schemas (WebPage, Organization, BreadcrumbList)
+- Composes 5 section components below
 
-**File:** `supabase/functions/translate-qas-to-language/index.ts`
+### 2. Sections Built in Phase 1
 
-When building the `translatedQARecord` object (line 652-677), `date_published` is always included. When this record is used in the UPDATE path (adopting orphan Q&As, line 735), the database trigger `protect_qa_date_published` rejects it.
+**Hero Section** (`src/components/philosophy/PhilosophyHero.tsx`)
+- Full viewport height, animated evergreen gradient background
+- Floating geometric shapes (CSS-based in Phase 1, Three.js upgrade in Phase 2)
+- Staggered text fade-in: badge, headline, paragraph, CTAs
+- Scroll indicator at bottom
+- Brand colors: `#1A4D3E` background, `#D4AF37` accent
 
-**Solution:** Remove `date_published` from the shared record and only include it in the INSERT path:
-- Move `date_published` out of `translatedQARecord`
-- Add it only in the `.insert()` call (line 757), not the `.update()` call (line 737)
-- In the update path, only set `date_modified` to the current timestamp
+**Three Silent Killers** (`src/components/philosophy/PhilosophyKillers.tsx`)
+- Reuses the same content framework as the homepage SilentKillers but with expanded detail
+- Three cards (Fees, Volatility, Taxes) with data visualizations using Recharts
+- Scroll-triggered stagger animation
 
-## Fix 2: Fire-and-forget pattern to prevent timeouts (Frontend)
+**Three Tax Buckets** (`src/components/philosophy/PhilosophyBuckets.tsx`)
+- Three columns showing Taxable / Tax-Deferred / Tax-Free buckets
+- Comparison table with pros/cons
+- Highlighted "our recommendation" on Tax-Free bucket
+- Animated on scroll with Framer Motion
 
-**File:** `src/components/admin/cluster-manager/ClusterQATab.tsx`
+**Cash Flow vs Net Worth** (`src/components/philosophy/PhilosophyCashFlow.tsx`)
+- Side-by-side comparison (reuses the Golden Cage vs Cash Flow Mobility concept from WealthPhilosophy homepage section)
+- Animated counter for key stats
+- Visual bar chart comparing the two approaches
 
-The current approach awaits the full edge function response. Since each batch takes 2-4 minutes, the browser connection drops.
+**CTA Section** (`src/components/philosophy/PhilosophyCTA.tsx`)
+- "Schedule Your Strategy Session" with gold button
+- Subtle gradient background
+- Links to `/contact` or Calendly
 
-**Solution:** After calling the function, immediately show a "translating..." status and poll the `qa_pages` table every 10 seconds to track progress, rather than waiting for the HTTP response. When the count reaches 24, mark as complete.
+### 3. i18n Translations
+- Add `philosophy` key to both `src/i18n/translations/en.ts` and `src/i18n/translations/es.ts`
+- Contains all section text: hero, killers, buckets, cashFlow, cta
+
+### 4. Routing
+- Add `/:lang/philosophy` route in `src/App.tsx` (in the language-prefixed public routes block)
+- Add `/philosophy` legacy redirect to `/en/philosophy`
+- Add `/es/filosofia` alias redirecting to `/es/philosophy` for the Spanish-friendly URL
+
+### 5. SEO Implementation
+- Helmet with meta title, description, canonical, hreflang (en + es + x-default)
+- Open Graph and Twitter Card meta tags
+- JSON-LD: WebPage, Organization (FinancialService), BreadcrumbList schemas
+- Speakable CSS class on hero section
+
+## Phase 2 (future message)
+- 3D animated bucket models with React Three Fiber
+- Interactive volatility vs floor protection 3D chart
+- Remaining sections: Fiduciary Difference, Human Life Value, Living Benefits, Steven Rosenberg thought leader section
+- GSAP scroll-driven parallax effects
 
 ## Technical Details
 
-### Edge Function Change
-```
-// BEFORE (line 652-677):
-const translatedQARecord = {
-  ...
-  date_published: now,  // REMOVE THIS
-  date_modified: now,
-};
+### New Files
+- `src/pages/Philosophy.tsx` -- page component with SEO Helmet + section composition
+- `src/components/philosophy/PhilosophyHero.tsx` -- hero with gradient + floating shapes + stagger animations
+- `src/components/philosophy/PhilosophyKillers.tsx` -- 3 wealth destroyer cards with Recharts mini-charts
+- `src/components/philosophy/PhilosophyBuckets.tsx` -- tax bucket comparison columns
+- `src/components/philosophy/PhilosophyCashFlow.tsx` -- net worth vs cash flow side-by-side
+- `src/components/philosophy/PhilosophyCTA.tsx` -- final CTA section
 
-// AFTER:
-const translatedQARecord = {
-  ...
-  date_modified: now,
-  // date_published removed from shared object
-};
+### Modified Files
+- `src/App.tsx` -- add 3 routes (lazy import)
+- `src/i18n/translations/en.ts` -- add `philosophy` translation block
+- `src/i18n/translations/es.ts` -- add `philosophy` translation block
 
-// INSERT path (line 757) - add date_published only here:
-.insert({
-  ...translatedQARecord,
-  date_published: now,  // Only on new inserts
-  question_main: finalQuestion,
-  title: finalQuestion,
-})
-
-// UPDATE path (line 737) - no date_published, just date_modified
-```
-
-### Frontend Polling Change
-- After invoking the edge function, start a polling interval (every 10s)
-- Query: `SELECT count(*) FROM qa_pages WHERE cluster_id = X AND language = 'es'`
-- Update the UI progress counter in real-time (e.g., "5/24 -> 6/24 -> ...")
-- Stop polling when count reaches 24 or after 5 minutes with no change
-- Show success/partial toast based on final count
-
+### Design System
+- Background: `#F0F2F1` (cream) for light sections, `#1A4D3E` (evergreen) for dark sections
+- Accent: `#D4AF37` (gold) used sparingly for highlights and CTAs
+- Typography: existing `font-space` for headings, system sans for body
+- Sharp edges per brand spec (no rounded corners on cards -- using `rounded-none` or minimal rounding)
+- Spacing: 8px system (`p-2, p-4, p-6, p-8, p-12, p-16`)
+- Animations: Framer Motion `whileInView` with `once: true`, stagger children pattern
