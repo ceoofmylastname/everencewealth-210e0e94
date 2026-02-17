@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ChevronRight, Compass, ChevronDown, TrendingUp, MapPin, Globe, BookOpen } from "lucide-react";
 import { useState, useEffect } from "react";
+import usMapHero from "@/assets/us-map-hero.png";
 
 
 // New components
@@ -144,6 +145,10 @@ const LocationHub = () => {
         <section className="relative min-h-[85vh] flex items-center justify-center overflow-hidden">
           {/* Brand Gradient Background */}
           <div className="absolute inset-0 bg-gradient-to-br from-[#0a2a1f] via-[#1A4D3E] to-[#0d1f1a]">
+            {/* US Map Background */}
+            <div className="absolute inset-0 flex items-center justify-center opacity-15">
+              <img src={usMapHero} alt="" aria-hidden="true" className="w-full h-full object-contain max-w-5xl" />
+            </div>
             {/* Decorative Gold Blur Orbs */}
             <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#C5A059]/10 rounded-full blur-3xl" />
             <div className="absolute bottom-1/3 right-1/4 w-80 h-80 bg-[#C5A059]/8 rounded-full blur-3xl" />
