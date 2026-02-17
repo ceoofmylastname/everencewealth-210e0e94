@@ -168,6 +168,7 @@ const AdminAgentDetail = lazy(() => import("./pages/portal/admin/AdminAgentDetai
 const AdminClients = lazy(() => import("./pages/portal/admin/AdminClients"));
 const AdminBrochures = lazy(() => import("./pages/portal/admin/AdminBrochures"));
 const AdminBrochureForm = lazy(() => import("./pages/portal/admin/AdminBrochureForm"));
+const AdminStatePages = lazy(() => import("./pages/portal/admin/AdminStatePages"));
 const GuidesLibrary = lazy(() => import("./pages/GuidesLibrary"));
 const GuidePage = lazy(() => import("./pages/GuidePage"));
 const AgentLogin = lazy(() => import("./pages/crm/AgentLogin"));
@@ -375,6 +376,7 @@ const App = () => (
                   <Route path="brochures" element={<AdminBrochures />} />
                   <Route path="brochures/new" element={<AdminBrochureForm />} />
                   <Route path="brochures/:id/edit" element={<AdminBrochureForm />} />
+                  <Route path="state-pages" element={<AdminStatePages />} />
                 </Route>
               </Route>
 
