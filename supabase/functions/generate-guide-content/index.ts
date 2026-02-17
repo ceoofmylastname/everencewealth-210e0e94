@@ -16,13 +16,16 @@ serve(async (req) => {
   }
 
   try {
-    const { category, topic, target_audience, language = 'en', state } = await req.json();
+    const { category, topic, target_audience, language = 'en', state, generate_cover_image = false } = await req.json();
 
     if (!category || !topic) {
       return new Response(JSON.stringify({ error: 'category and topic are required' }), {
         status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
+
+    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+    if (!LOVABLE_API_KEY) throw new Error('LOVABLE_API_KEY not configured');
 
     const stateContext = state ? ` Focus specifically on ${state} state laws, tax rules, and retirement planning considerations.` : '';
 
@@ -41,6 +44,7 @@ Return ONLY valid JSON with this structure:
   "meta_title": "SEO title under 60 chars",
   "meta_description": "Meta description under 155 chars",
   "speakable_intro": "40-60 word intro paragraph summarizing the guide's value",
+  "cover_image_alt": "Descriptive alt text for the cover image that describes the financial concept visually",
   "tags": ["tag1", "tag2", "tag3"],
   "sections": [
     {
@@ -54,9 +58,6 @@ Return ONLY valid JSON with this structure:
 Generate 5-6 sections. Each section must have substantial HTML content (150-300 words).
 NO markdown. Use only: <p>, <ul>, <li>, <strong>, <em>, <h3>, <h4>
 Return ONLY the JSON object.`;
-
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) throw new Error('LOVABLE_API_KEY not configured');
 
     const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
@@ -73,6 +74,16 @@ Return ONLY the JSON object.`;
 
     if (!aiResponse.ok) {
       const errText = await aiResponse.text();
+      if (aiResponse.status === 429) {
+        return new Response(JSON.stringify({ error: 'Rate limit exceeded, please try again later.' }), {
+          status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      if (aiResponse.status === 402) {
+        return new Response(JSON.stringify({ error: 'Payment required. Please add credits.' }), {
+          status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
       throw new Error(`AI API error: ${aiResponse.status} - ${errText}`);
     }
 
@@ -85,16 +96,22 @@ Return ONLY the JSON object.`;
 
     const parsed = JSON.parse(jsonMatch[0]);
 
-    // Build brochure record
-    const brochure = {
+    // Generate unique slug with random suffix to avoid conflicts
+    const baseSlug = parsed.slug || slugify(parsed.title);
+    const uniqueSuffix = Math.random().toString(36).substring(2, 6);
+    const uniqueSlug = `${baseSlug}-${uniqueSuffix}`;
+
+    // Build brochure data (returned to client, NOT auto-saved)
+    const brochure: Record<string, unknown> = {
       title: parsed.title,
-      slug: parsed.slug || slugify(parsed.title),
+      slug: uniqueSlug,
       category,
       hero_headline: parsed.hero_headline || parsed.title,
       subtitle: parsed.subtitle || null,
       meta_title: parsed.meta_title || parsed.title.substring(0, 60),
       meta_description: parsed.meta_description || '',
       speakable_intro: parsed.speakable_intro || '',
+      cover_image_alt: parsed.cover_image_alt || `${parsed.title} - Everence Wealth`,
       tags: parsed.tags || [],
       sections: parsed.sections || [],
       language,
@@ -103,16 +120,67 @@ Return ONLY the JSON object.`;
       featured: false,
     };
 
-    // Save to database
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-    );
+    // Generate cover image with Nano Banana Pro if requested
+    if (generate_cover_image) {
+      try {
+        const imagePrompt = `Professional, high-quality cover image for a financial educational guide titled "${parsed.title}". 
+The image should convey: ${parsed.cover_image_alt || topic}.
+Style: Clean, modern, professional financial advisory aesthetic. Warm lighting, sophisticated color palette with navy blue and gold accents. 
+NO text or words in the image. Photorealistic quality. Landscape orientation 16:9 aspect ratio.
+Theme: Wealth management, retirement planning, financial security.`;
 
-    const { data, error } = await supabase.from('brochures').insert([brochure]).select('id').single();
-    if (error) throw new Error(`DB insert error: ${error.message}`);
+        const imageResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'google/gemini-3-pro-image-preview',
+            messages: [{ role: 'user', content: imagePrompt }],
+            modalities: ['image', 'text'],
+          }),
+        });
 
-    return new Response(JSON.stringify({ success: true, brochure_id: data.id, brochure }), {
+        if (imageResponse.ok) {
+          const imageData = await imageResponse.json();
+          const base64Image = imageData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+
+          if (base64Image) {
+            // Upload to storage bucket
+            const supabase = createClient(
+              Deno.env.get('SUPABASE_URL')!,
+              Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+            );
+
+            // Extract base64 data
+            const base64Data = base64Image.replace(/^data:image\/\w+;base64,/, '');
+            const imageBytes = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
+            const fileName = `brochure-cover-${uniqueSlug}-${Date.now()}.png`;
+
+            const { error: uploadError } = await supabase.storage
+              .from('article-images')
+              .upload(fileName, imageBytes, { contentType: 'image/png', upsert: true });
+
+            if (!uploadError) {
+              const { data: publicUrlData } = supabase.storage
+                .from('article-images')
+                .getPublicUrl(fileName);
+              brochure.cover_image_url = publicUrlData.publicUrl;
+            } else {
+              console.error('Image upload error:', uploadError.message);
+            }
+          }
+        } else {
+          console.error('Image generation failed:', await imageResponse.text());
+        }
+      } catch (imgErr) {
+        console.error('Cover image generation error:', imgErr);
+        // Non-fatal - continue without image
+      }
+    }
+
+    return new Response(JSON.stringify({ success: true, brochure }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
