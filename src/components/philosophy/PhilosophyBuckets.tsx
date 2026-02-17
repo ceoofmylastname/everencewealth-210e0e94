@@ -1,31 +1,139 @@
-import React from 'react';
-import { motion } from 'framer-motion';
-import { Check, X, Star } from 'lucide-react';
+import React, { useState, useCallback, Suspense, lazy } from 'react';
+import { motion, useInView } from 'framer-motion';
+import { AlertTriangle, CheckCircle } from 'lucide-react';
 import { useTranslation } from '@/i18n/useTranslation';
 import { MorphingBlob } from './MorphingBlob';
 
-const containerVariants = {
-  hidden: {},
-  visible: { transition: { staggerChildren: 0.15 } },
+// Lazy-load 3D canvas
+const BucketCanvas = lazy(() => import('./BucketCanvas'));
+
+/* ── Inline sub-components ── */
+
+const BUCKET_COLORS = ['#EF4444', '#F59E0B', '#10B981'];
+const BORDER_COLORS = [
+  'border-[#EF4444]',
+  'border-[#F59E0B]',
+  'border-[#10B981]',
+];
+const BG_COLORS = [
+  'bg-[#EF4444]',
+  'bg-[#F59E0B]',
+  'bg-[#10B981]',
+];
+
+/** Styled range slider */
+const TaxBucketSlider: React.FC<{
+  label: string;
+  value: number;
+  onChange: (v: number) => void;
+  color: string;
+}> = ({ label, value, onChange, color }) => (
+  <div className="mb-4 last:mb-0">
+    <div className="flex justify-between text-xs font-space mb-1">
+      <span className="text-white/70">{label}</span>
+      <span className="font-bold" style={{ color }}>{value}%</span>
+    </div>
+    <input
+      type="range"
+      min={0}
+      max={100}
+      value={value}
+      onChange={(e) => onChange(Number(e.target.value))}
+      className="w-full h-2 rounded-full appearance-none cursor-pointer"
+      style={{
+        background: `linear-gradient(to right, ${color} ${value}%, rgba(255,255,255,0.15) ${value}%)`,
+      }}
+    />
+  </div>
+);
+
+/** Animated SVG donut badge showing tax rate */
+const TaxRateBadge: React.FC<{
+  rate: number;
+  label: string;
+  color: string;
+}> = ({ rate, label, color }) => {
+  const ref = React.useRef<SVGSVGElement>(null);
+  const inView = useInView(ref as React.RefObject<Element>, { once: true });
+
+  const radius = 18;
+  const circumference = 2 * Math.PI * radius;
+  const offset = circumference - (rate / 100) * circumference;
+
+  return (
+    <div className="flex items-center gap-2">
+      <svg ref={ref} width="48" height="48" viewBox="0 0 48 48" className="shrink-0">
+        <circle
+          cx="24" cy="24" r={radius}
+          fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="4"
+        />
+        <circle
+          cx="24" cy="24" r={radius}
+          fill="none" stroke={color} strokeWidth="4"
+          strokeLinecap="round"
+          strokeDasharray={circumference}
+          strokeDashoffset={inView ? offset : circumference}
+          transform="rotate(-90 24 24)"
+          style={{ transition: 'stroke-dashoffset 1s ease-out' }}
+        />
+        <text
+          x="24" y="24"
+          textAnchor="middle" dominantBaseline="central"
+          className="text-[10px] font-bold fill-white font-space"
+        >
+          {rate}%
+        </text>
+      </svg>
+      <span className="text-xs text-white/60 font-space">{label}</span>
+    </div>
+  );
 };
 
-const colVariants = {
-  hidden: { opacity: 0, y: 40 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: 'easeOut' as const } },
-};
-
-const featureVariants = {
-  hidden: { opacity: 0, y: 12 },
-  visible: (i: number) => ({
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.4, delay: i * 0.05, ease: 'easeOut' as const },
-  }),
-};
+/* ── Main component ── */
 
 export const PhilosophyBuckets: React.FC = () => {
   const { t } = useTranslation();
   const b = t.philosophy.buckets;
+
+  // Slider state: [taxable, deferred, exempt] summing to 100
+  const [levels, setLevels] = useState([30, 60, 10]);
+
+  const handleSliderChange = useCallback(
+    (index: number, newValue: number) => {
+      setLevels((prev) => {
+        const clamped = Math.max(0, Math.min(100, newValue));
+        const remaining = 100 - clamped;
+        const otherIndices = [0, 1, 2].filter((i) => i !== index);
+        const otherSum = otherIndices.reduce((s, i) => s + prev[i], 0);
+        const next = [...prev];
+        next[index] = clamped;
+
+        if (otherSum === 0) {
+          // distribute equally
+          next[otherIndices[0]] = Math.round(remaining / 2);
+          next[otherIndices[1]] = remaining - next[otherIndices[0]];
+        } else {
+          let distributed = 0;
+          otherIndices.forEach((i, idx) => {
+            if (idx === otherIndices.length - 1) {
+              next[i] = remaining - distributed;
+            } else {
+              next[i] = Math.round((prev[i] / otherSum) * remaining);
+              distributed += next[i];
+            }
+          });
+        }
+        return next;
+      });
+    },
+    [],
+  );
+
+  const sliderLabels = [
+    b.explanations?.[0]?.title ?? 'Taxable',
+    b.explanations?.[1]?.title ?? 'Tax-Deferred',
+    b.explanations?.[2]?.title ?? 'Tax-Exempt',
+  ];
 
   return (
     <section className="relative py-20 md:py-28 px-4 md:px-8 bg-evergreen text-white overflow-hidden">
@@ -37,7 +145,8 @@ export const PhilosophyBuckets: React.FC = () => {
         <MorphingBlob colors={['hsl(160,48%,40%)', 'hsl(160,48%,25%)']} morphSpeed={15000} />
       </div>
 
-      <div className="relative z-10 max-w-6xl mx-auto">
+      <div className="relative z-10 max-w-7xl mx-auto">
+        {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -63,81 +172,159 @@ export const PhilosophyBuckets: React.FC = () => {
           </p>
         </motion.div>
 
-        <motion.div
-          className="grid grid-cols-1 md:grid-cols-3 gap-6"
-          variants={containerVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.2 }}
-        >
-          {b.columns.map((col: { id: string; name: string; subtitle: string; recommended: boolean; features: { label: string; included: boolean }[] }) => (
-            <motion.div
-              key={col.id}
-              variants={colVariants}
-              className={`relative p-8 md:p-10 backdrop-blur-md ${
-                col.recommended
-                  ? 'bg-white/[0.1] border border-[hsl(43,74%,49%)]/30 shadow-[0_0_50px_hsla(43,74%,49%,0.1)]'
-                  : 'bg-white/[0.04] border border-white/[0.08]'
-              } hover:bg-white/[0.08] transition-all duration-500 group`}
-            >
-              {/* Recommended shimmer border */}
-              {col.recommended && (
-                <>
-                  <div className="absolute -top-px inset-x-0 h-[3px] overflow-hidden">
-                    <div
-                      className="h-full w-[200%] animate-shimmer"
-                      style={{
-                        background: 'linear-gradient(90deg, transparent 0%, hsl(43,74%,49%) 25%, transparent 50%, hsl(43,74%,49%) 75%, transparent 100%)',
-                        backgroundSize: '200% 100%',
-                      }}
-                    />
+        {/* Two-column layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
+          {/* Left: 3D Canvas + Sliders */}
+          <div className="relative">
+            <div className="relative h-[420px] md:h-[480px] rounded-sm overflow-hidden bg-white/[0.03] border border-white/[0.08]">
+              <Suspense
+                fallback={
+                  <div className="w-full h-full flex items-center justify-center">
+                    <div className="flex gap-8">
+                      {BUCKET_COLORS.map((c, i) => (
+                        <div key={i} className="flex flex-col items-center gap-2">
+                          <div
+                            className="w-16 h-24 rounded-sm border-2 opacity-40"
+                            style={{ borderColor: c }}
+                          />
+                          <span className="text-xs text-white/40 font-space">{levels[i]}%</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2 mb-4">
-                    <Star className="w-4 h-4 text-[hsl(43,74%,49%)]" fill="hsl(43,74%,49%)" />
-                    <span className="text-xs font-space font-bold tracking-[0.2em] uppercase text-[hsl(43,74%,49%)]">
-                      {b.recommended}
-                    </span>
-                  </div>
-                </>
-              )}
-
-              <h3 className="text-2xl font-space font-bold mb-2">{col.name}</h3>
-              <p className="text-white/50 text-sm mb-8">{col.subtitle}</p>
-
-              <motion.ul
-                className="space-y-4"
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true }}
+                }
               >
-                {col.features.map((feat, fi) => (
-                  <motion.li
-                    key={fi}
-                    custom={fi}
-                    variants={featureVariants}
-                    className="flex items-start gap-3"
-                  >
-                    {feat.included ? (
-                      <motion.div
-                        initial={{ scale: 0 }}
-                        whileInView={{ scale: 1 }}
-                        viewport={{ once: true }}
-                        transition={{ type: 'spring', stiffness: 400, delay: fi * 0.05 }}
+                <BucketCanvas levels={levels} />
+              </Suspense>
+            </div>
+
+            {/* Slider overlay */}
+            <div className="mt-4 p-6 backdrop-blur-md bg-white/[0.06] border border-white/[0.08] rounded-sm">
+              <p className="text-xs font-space font-bold tracking-[0.2em] uppercase text-white/50 mb-4">
+                {b.sliderLabel}
+              </p>
+              {sliderLabels.map((lbl, i) => (
+                <TaxBucketSlider
+                  key={i}
+                  label={lbl}
+                  value={levels[i]}
+                  onChange={(v) => handleSliderChange(i, v)}
+                  color={BUCKET_COLORS[i]}
+                />
+              ))}
+
+              {/* Warning when tax-deferred > 50% */}
+              {levels[1] > 50 && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  className="mt-4 p-3 bg-[#EF4444]/10 border-l-4 border-[#EF4444] rounded-sm"
+                >
+                  <div className="flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4 text-[#EF4444] shrink-0" />
+                    <p className="text-xs text-[#EF4444] font-semibold">
+                      {b.warningPrefix} {levels[1]}% {b.warningSuffix}
+                    </p>
+                  </div>
+                </motion.div>
+              )}
+            </div>
+          </div>
+
+          {/* Right: Explanation cards */}
+          <div className="space-y-6">
+            {b.explanations?.map(
+              (
+                exp: {
+                  number: string;
+                  title: string;
+                  description: string;
+                  taxRate: number;
+                  taxLabel: string;
+                  extraBadge?: string;
+                },
+                i: number,
+              ) => (
+                <motion.div
+                  key={exp.number}
+                  initial={{ opacity: 0, x: 50 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5, delay: i * 0.15 }}
+                  className={`p-6 md:p-8 backdrop-blur-md bg-white/[0.05] border border-white/[0.08] border-l-4 ${BORDER_COLORS[i]} hover:bg-white/[0.08] transition-colors duration-300`}
+                >
+                  <div className="flex items-center gap-3 mb-3">
+                    <div
+                      className={`w-10 h-10 ${BG_COLORS[i]} rounded-full flex items-center justify-center shrink-0`}
+                    >
+                      <span className="text-lg font-bold text-white font-space">
+                        {exp.number}
+                      </span>
+                    </div>
+                    <h3 className="text-xl md:text-2xl font-space font-bold">
+                      {exp.title}
+                    </h3>
+                  </div>
+
+                  <p className="text-white/60 text-sm leading-relaxed mb-4">
+                    {exp.description}
+                  </p>
+
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <TaxRateBadge
+                      rate={exp.taxRate}
+                      label={exp.taxLabel}
+                      color={BUCKET_COLORS[i]}
+                    />
+                    {exp.extraBadge && (
+                      <span
+                        className="text-xs font-space font-bold px-2 py-1 rounded-sm"
+                        style={{
+                          backgroundColor: `${BUCKET_COLORS[i]}20`,
+                          color: BUCKET_COLORS[i],
+                        }}
                       >
-                        <Check className="w-4 h-4 text-[hsl(160,48%,50%)] mt-0.5 shrink-0" />
-                      </motion.div>
-                    ) : (
-                      <X className="w-4 h-4 text-white/20 mt-0.5 shrink-0" />
+                        {exp.extraBadge}
+                      </span>
                     )}
-                    <span className={`text-sm leading-relaxed ${feat.included ? 'text-white/80' : 'text-white/30'}`}>
-                      {feat.label}
-                    </span>
-                  </motion.li>
-                ))}
-              </motion.ul>
+                  </div>
+                </motion.div>
+              ),
+            )}
+
+            {/* Recommendation CTA */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.4 }}
+              className="relative p-6 md:p-8 overflow-hidden rounded-sm"
+              style={{
+                background:
+                  'linear-gradient(135deg, hsl(160,48%,18%) 0%, hsl(43,74%,35%) 100%)',
+              }}
+            >
+              {/* Grid pattern */}
+              <div
+                className="absolute inset-0 opacity-[0.06]"
+                style={{
+                  backgroundImage:
+                    'linear-gradient(rgba(255,255,255,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.3) 1px, transparent 1px)',
+                  backgroundSize: '24px 24px',
+                }}
+              />
+              <div className="relative z-10">
+                <CheckCircle className="w-10 h-10 text-white/80 mb-3" />
+                <p className="text-lg font-space font-bold mb-2">
+                  {b.recommendation?.title}
+                </p>
+                <p className="text-white/80 text-sm leading-relaxed">
+                  {b.recommendation?.text}
+                </p>
+              </div>
             </motion.div>
-          ))}
-        </motion.div>
+          </div>
+        </div>
       </div>
     </section>
   );

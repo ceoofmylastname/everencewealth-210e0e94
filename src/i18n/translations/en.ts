@@ -1053,6 +1053,38 @@ export const en = {
           ],
         },
       ],
+      sliderLabel: "Adjust Your Allocation:",
+      warningPrefix: "Warning:",
+      warningSuffix: "in tax-deferred = massive tax exposure in retirement",
+      explanations: [
+        {
+          number: "1",
+          title: "Bucket 1: Taxable",
+          description: "Brokerage accounts, savings, CDs. You paid taxes on deposits, AND you'll pay capital gains on growth. Double taxation.",
+          taxRate: 20,
+          taxLabel: "Capital Gains",
+        },
+        {
+          number: "2",
+          title: "Bucket 2: Tax-Deferred",
+          description: "401k, Traditional IRA, 403b. Tax deduction today, but you'll pay ordinary income tax on EVERY dollar withdrawn. Plus RMDs force withdrawals whether you need them or not.",
+          taxRate: 37,
+          taxLabel: "Ordinary Income",
+          extraBadge: "+ RMDs",
+        },
+        {
+          number: "3",
+          title: "Bucket 3: Tax-Exempt",
+          description: "Roth IRA, Indexed Universal Life, Municipal Bonds. Pay taxes on the seed, never on the harvest. No RMDs. No age restrictions.",
+          taxRate: 0,
+          taxLabel: "Tax-Free Forever",
+          extraBadge: "No RMDs",
+        },
+      ],
+      recommendation: {
+        title: "Everence Wealth Recommendation:",
+        text: "Minimize Bucket 1 (taxable). Maximize Bucket 3 (tax-exempt). Use Bucket 2 (tax-deferred) strategically up to employer match only.",
+      },
     },
     cashFlow: {
       badge: "The Core Shift",
