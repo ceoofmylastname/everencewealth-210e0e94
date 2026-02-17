@@ -6,6 +6,10 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+function brandedEmailWrapper(subtitle: string, innerHtml: string): string {
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head><body style="margin:0;padding:0;background-color:#F0F2F1;font-family:Georgia,serif;"><table width="100%" cellpadding="0" cellspacing="0" style="background-color:#F0F2F1;padding:40px 20px;"><tr><td align="center"><table width="600" cellpadding="0" cellspacing="0" style="background-color:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);"><tr><td style="background-color:#1A4D3E;padding:28px 24px;text-align:center;"><img src="https://everencewealth.com/logo-icon.png" alt="Everence Wealth" width="48" height="48" style="margin-bottom:10px;"/><h1 style="margin:0;color:#F0F2F1;font-size:24px;font-weight:700;font-family:Georgia,serif;">Everence Wealth</h1><p style="margin:6px 0 0;color:#C5A059;font-size:14px;font-family:Georgia,serif;">${subtitle}</p></td></tr><tr><td style="padding:32px 28px;">${innerHtml}</td></tr><tr><td style="background-color:#F0F2F1;padding:20px 24px;text-align:center;border-top:1px solid #e5e7eb;"><p style="margin:0;font-size:12px;color:#4A5565;font-family:Georgia,serif;">&copy; ${new Date().getFullYear()} Everence Wealth. All rights reserved.</p><p style="margin:4px 0 0;font-size:12px;color:#4A5565;font-family:Georgia,serif;">455 Market St Ste 1940 PMB 350011, San Francisco, CA 94105</p></td></tr></table></td></tr></table></body></html>`;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -85,7 +89,6 @@ Deno.serve(async (req) => {
     });
 
     if (authError) {
-      // If user already exists, look them up instead
       if (authError.message?.includes("already been registered")) {
         const { data: usersData } = await adminClient.auth.admin.listUsers();
         const existingUser = usersData?.users?.find(
@@ -97,7 +100,6 @@ Deno.serve(async (req) => {
             { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
           );
         }
-        // Check if they already have a portal_users record
         const { data: existingPortal } = await adminClient
           .from("portal_users")
           .select("id")
@@ -137,7 +139,6 @@ Deno.serve(async (req) => {
       .single();
 
     if (puError) {
-      // Cleanup: only delete auth user if we created it
       if (!isExistingUser) {
         await adminClient.auth.admin.deleteUser(authUserId);
       }
@@ -164,7 +165,6 @@ Deno.serve(async (req) => {
     });
 
     if (advError) {
-      // Cleanup
       await adminClient.from("portal_users").delete().eq("id", portalUser.id);
       if (!isExistingUser) {
         await adminClient.auth.admin.deleteUser(authUserId);
@@ -203,6 +203,16 @@ Deno.serve(async (req) => {
           } else {
             const resetLink = linkData?.properties?.action_link;
 
+            const innerHtml = `
+              <p style="margin:0 0 16px;color:#4A5565;font-size:16px;line-height:1.6;">Hi ${first_name},</p>
+              <p style="margin:0 0 24px;color:#4A5565;font-size:16px;line-height:1.6;">You've been invited to join the Everence Wealth advisor portal. Please set your password to get started.</p>
+              <div style="text-align:center;margin:32px 0;">
+                <a href="${resetLink}" style="display:inline-block;background-color:#1A4D3E;color:#F0F2F1;padding:14px 32px;text-decoration:none;border-radius:8px;font-weight:600;font-size:16px;font-family:Georgia,serif;">Set Your Password</a>
+              </div>
+              <p style="color:#4A5565;font-size:13px;margin:24px 0 0;">If the button doesn't work, copy and paste this link into your browser:</p>
+              <p style="color:#4A5565;font-size:12px;word-break:break-all;margin:4px 0 0;">${resetLink}</p>
+            `;
+
             const resendRes = await fetch("https://api.resend.com/emails", {
               method: "POST",
               headers: {
@@ -213,27 +223,7 @@ Deno.serve(async (req) => {
                 from: "Everence Wealth <portal@everencewealth.com>",
                 to: [email],
                 subject: "Welcome to Everence Wealth Portal — Set Your Password",
-                html: `
-                  <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                    <div style="background-color: #1A4D3E; padding: 24px; text-align: center;">
-                      <h1 style="color: #F0F2F1; margin: 0; font-size: 24px;">Everence Wealth</h1>
-                    </div>
-                    <div style="padding: 32px 24px;">
-                      <p>Hi ${first_name},</p>
-                      <p>You've been invited to join the Everence Wealth advisor portal. Please set your password to get started:</p>
-                      <div style="text-align: center; margin: 32px 0;">
-                        <a href="${resetLink}" style="background-color: #1A4D3E; color: #F0F2F1; padding: 12px 32px; text-decoration: none; border-radius: 6px; font-weight: bold;">
-                          Set Your Password
-                        </a>
-                      </div>
-                      <p style="color: #4A5565; font-size: 14px;">If the button doesn't work, copy and paste this link into your browser:</p>
-                      <p style="color: #4A5565; font-size: 12px; word-break: break-all;">${resetLink}</p>
-                    </div>
-                    <div style="background-color: #F0F2F1; padding: 16px 24px; text-align: center; font-size: 12px; color: #4A5565;">
-                      455 Market St Ste 1940 PMB 350011, San Francisco, CA 94105
-                    </div>
-                  </div>
-                `,
+                html: brandedEmailWrapper("Advisor Portal Invitation", innerHtml),
               }),
             });
 

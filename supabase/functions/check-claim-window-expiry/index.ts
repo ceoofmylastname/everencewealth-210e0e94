@@ -9,6 +9,10 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+function brandedEmailWrapper(subtitle: string, innerHtml: string): string {
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head><body style="margin:0;padding:0;background-color:#F0F2F1;font-family:Georgia,serif;"><table width="100%" cellpadding="0" cellspacing="0" style="background-color:#F0F2F1;padding:40px 20px;"><tr><td align="center"><table width="600" cellpadding="0" cellspacing="0" style="background-color:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);"><tr><td style="background-color:#1A4D3E;padding:28px 24px;text-align:center;"><img src="https://everencewealth.com/logo-icon.png" alt="Everence Wealth" width="48" height="48" style="margin-bottom:10px;"/><h1 style="margin:0;color:#F0F2F1;font-size:24px;font-weight:700;font-family:Georgia,serif;">Everence Wealth</h1><p style="margin:6px 0 0;color:#C5A059;font-size:14px;font-family:Georgia,serif;">${subtitle}</p></td></tr><tr><td style="padding:32px 28px;">${innerHtml}</td></tr><tr><td style="background-color:#F0F2F1;padding:20px 24px;text-align:center;border-top:1px solid #e5e7eb;"><p style="margin:0;font-size:12px;color:#4A5565;font-family:Georgia,serif;">&copy; ${new Date().getFullYear()} Everence Wealth. All rights reserved.</p><p style="margin:4px 0 0;font-size:12px;color:#4A5565;font-family:Georgia,serif;">455 Market St Ste 1940 PMB 350011, San Francisco, CA 94105</p></td></tr></table></td></tr></table></body></html>`;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -22,7 +26,6 @@ serve(async (req) => {
 
     console.log("[check-claim-window-expiry] Starting check...");
 
-    // Find leads where claim window has expired but not yet marked as breached
     const { data: expiredLeads, error: queryError } = await supabase
       .from("crm_leads")
       .select("*")
@@ -51,7 +54,6 @@ serve(async (req) => {
 
     for (const lead of expiredLeads) {
       try {
-        // Get the round robin config for this language to find the fallback admin
         const { data: roundRobinConfig, error: configError } = await supabase
           .from("crm_round_robin_config")
           .select("fallback_admin_id")
@@ -67,7 +69,6 @@ serve(async (req) => {
 
         const fallbackAdminId = roundRobinConfig?.fallback_admin_id;
 
-        // Get admin details if we have a fallback admin
         let adminEmail: string | null = null;
         let adminName: string | null = null;
 
@@ -84,7 +85,6 @@ serve(async (req) => {
           }
         }
 
-        // Mark lead as claim SLA breached
         const { error: updateError } = await supabase
           .from("crm_leads")
           .update({ 
@@ -99,13 +99,41 @@ serve(async (req) => {
           continue;
         }
 
-        // Calculate elapsed time since lead creation
         const createdAt = new Date(lead.created_at);
         const now = new Date();
         const elapsedMinutes = Math.floor((now.getTime() - createdAt.getTime()) / 60000);
 
-        // Send email notification if we have an admin email
         if (adminEmail && RESEND_API_KEY) {
+          const innerHtml = `
+            <p style="margin:0 0 16px;color:#4A5565;font-size:16px;line-height:1.6;">Hi ${adminName},</p>
+            <p style="margin:0 0 24px;color:#4A5565;font-size:16px;line-height:1.6;">A lead went <strong>unclaimed</strong> after the claim window expired and requires your immediate attention.</p>
+            
+            <div style="background:#FEF2F2;border-left:4px solid #DC2626;border-radius:8px;padding:16px;margin:0 0 24px;">
+              <p style="margin:0;color:#DC2626;font-weight:700;font-size:14px;">🚨 Lead Went Unclaimed</p>
+              <p style="margin:6px 0 0;color:#991B1B;font-size:13px;">No agent claimed this lead within the 5-minute window.</p>
+            </div>
+
+            <table width="100%" cellpadding="0" cellspacing="0" style="background:#f9fafb;border-radius:8px;border:1px solid #e5e7eb;margin:0 0 24px;">
+              <tr><td style="padding:20px;">
+                <p style="margin:0 0 12px;font-weight:700;color:#111827;font-size:16px;">Lead Details</p>
+                <table width="100%" cellpadding="0" cellspacing="0">
+                  <tr><td style="padding:6px 0;color:#6b7280;font-size:13px;width:100px;">Name:</td><td style="padding:6px 0;font-weight:600;color:#111827;font-size:14px;">${lead.first_name} ${lead.last_name}</td></tr>
+                  <tr><td style="padding:6px 0;color:#6b7280;font-size:13px;">Phone:</td><td style="padding:6px 0;font-weight:600;color:#111827;font-size:14px;">${lead.phone_number || "Not provided"}</td></tr>
+                  <tr><td style="padding:6px 0;color:#6b7280;font-size:13px;">Email:</td><td style="padding:6px 0;color:#111827;font-size:14px;">${lead.email || "Not provided"}</td></tr>
+                  <tr><td style="padding:6px 0;color:#6b7280;font-size:13px;">Language:</td><td style="padding:6px 0;color:#111827;font-size:14px;">${lead.language?.toUpperCase()}</td></tr>
+                  <tr><td style="padding:6px 0;color:#6b7280;font-size:13px;">Source:</td><td style="padding:6px 0;color:#111827;font-size:14px;">${lead.lead_source || "Unknown"}</td></tr>
+                  <tr><td style="padding:6px 0;color:#6b7280;font-size:13px;">Created:</td><td style="padding:6px 0;color:#111827;font-size:14px;">${elapsedMinutes} minutes ago</td></tr>
+                </table>
+              </td></tr>
+            </table>
+
+            <p style="margin:0 0 24px;color:#4A5565;font-size:15px;"><strong>Action Required:</strong> Please manually reassign this lead to an available agent.</p>
+            
+            <div style="text-align:center;">
+              <a href="${APP_URL}/crm/admin/leads" style="display:inline-block;background-color:#DC2626;color:#ffffff;padding:14px 32px;text-decoration:none;border-radius:8px;font-weight:600;font-size:16px;font-family:Georgia,serif;">View Leads &amp; Reassign</a>
+            </div>
+          `;
+
           const emailResponse = await fetch("https://api.resend.com/emails", {
             method: "POST",
             headers: {
@@ -116,66 +144,7 @@ serve(async (req) => {
               from: "CRM Alerts <crm@notifications.everencewealth.com>",
               to: [adminEmail],
               subject: `CRM_ADMIN_NO_CLAIM_${lead.language.toUpperCase()} | No agent claimed lead within 5 minutes`,
-              html: `
-                <!DOCTYPE html>
-                <html>
-                <head>
-                  <style>
-                    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-                    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-                    .header { background: #dc2626; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
-                    .content { background: #f9fafb; padding: 20px; border: 1px solid #e5e7eb; }
-                    .details { background: white; padding: 15px; border-radius: 8px; margin: 15px 0; }
-                    .details p { margin: 8px 0; }
-                    .label { color: #6b7280; font-size: 12px; text-transform: uppercase; }
-                    .value { font-weight: bold; color: #111827; }
-                    .alert-box { background: #fef2f2; border: 1px solid #fecaca; padding: 15px; border-radius: 8px; margin: 15px 0; }
-                    .cta-button { display: inline-block; background: #dc2626; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; margin-top: 15px; }
-                    .footer { text-align: center; padding: 20px; color: #6b7280; font-size: 12px; }
-                  </style>
-                </head>
-                <body>
-                  <div class="container">
-                    <div class="header">
-                      <h1 style="margin: 0;">🚨 Lead Went Unclaimed</h1>
-                    </div>
-                    <div class="content">
-                      <p>Hi ${adminName},</p>
-                      <p>A lead went <strong>unclaimed</strong> after the claim window expired and requires your immediate attention.</p>
-                      
-                      <div class="details">
-                        <h3 style="margin-top: 0;">Lead Details</h3>
-                        <p><span class="label">Name:</span> <span class="value">${lead.first_name} ${lead.last_name}</span></p>
-                        <p><span class="label">Phone:</span> <span class="value">${lead.phone_number || "Not provided"}</span></p>
-                        <p><span class="label">Email:</span> <span class="value">${lead.email || "Not provided"}</span></p>
-                        <p><span class="label">Language:</span> <span class="value">${lead.language?.toUpperCase()}</span></p>
-                        <p><span class="label">Source:</span> <span class="value">${lead.lead_source || "Unknown"}</span></p>
-                        <p><span class="label">Created:</span> <span class="value">${elapsedMinutes} minutes ago</span></p>
-                      </div>
-
-                      <div class="alert-box">
-                        <h4 style="margin-top: 0; color: #dc2626;">⚠️ Situation</h4>
-                        <ul style="margin: 0; padding-left: 20px;">
-                          <li>Claim window expired after 5 minutes</li>
-                          <li>No agent claimed this lead</li>
-                          <li>Lead is sitting idle and needs reassignment</li>
-                        </ul>
-                      </div>
-
-                      <p><strong>Action Required:</strong> Please manually reassign this lead to an available agent.</p>
-                      
-                      <center>
-                        <a href="${APP_URL}/crm/admin/leads" class="cta-button">View Leads & Reassign</a>
-                      </center>
-                    </div>
-                    <div class="footer">
-                      <p>Everence Wealth CRM - Automated Alert</p>
-                      <p>This is an automated message. Please do not reply directly.</p>
-                    </div>
-                  </div>
-                </body>
-                </html>
-              `,
+              html: brandedEmailWrapper("CRM Alert — Lead Unclaimed", innerHtml),
             }),
           });
 
@@ -189,7 +158,6 @@ serve(async (req) => {
           console.warn(`[check-claim-window-expiry] No admin email available for lead ${lead.id}`);
         }
 
-        // Create in-app notification if we have a fallback admin
         if (fallbackAdminId) {
           const { error: notifError } = await supabase
             .from("crm_notifications")
@@ -208,7 +176,6 @@ serve(async (req) => {
           }
         }
 
-        // Log activity for audit trail
         const { error: activityError } = await supabase
           .from("crm_activities")
           .insert({
