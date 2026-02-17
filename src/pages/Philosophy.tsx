@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet';
 import { useParams } from 'react-router-dom';
 import { Header } from '../components/home/Header';
@@ -15,6 +15,16 @@ const Philosophy: React.FC = () => {
   const currentLang = lang || 'en';
   const { t } = useTranslation();
   const p = t.philosophy;
+  const [scrollProgress, setScrollProgress] = useState(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const total = document.documentElement.scrollHeight - window.innerHeight;
+      setScrollProgress(total > 0 ? (window.scrollY / total) * 100 : 0);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const baseUrl = 'https://everencewealth.com';
   const canonicalUrl = `${baseUrl}/${currentLang === 'es' ? 'es/filosofia' : 'philosophy'}`;
@@ -99,6 +109,14 @@ const Philosophy: React.FC = () => {
         <script type="application/ld+json">{JSON.stringify(organizationSchema)}</script>
         <script type="application/ld+json">{JSON.stringify(breadcrumbSchema)}</script>
       </Helmet>
+
+      {/* Scroll progress bar */}
+      <div className="fixed top-0 left-0 right-0 z-50 h-[3px] bg-transparent pointer-events-none">
+        <div
+          className="h-full bg-gradient-to-r from-[hsl(43,74%,49%)] to-[hsl(43,74%,60%)] shadow-[0_0_8px_hsla(43,74%,49%,0.5)]"
+          style={{ width: `${scrollProgress}%`, transition: 'width 0.1s linear' }}
+        />
+      </div>
 
       <Header />
       <main className="flex-grow">
