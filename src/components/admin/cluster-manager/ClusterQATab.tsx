@@ -404,7 +404,7 @@ export const ClusterQATab = ({
     }
   };
 
-  // Phase 2: Translate all Q&As to a target language (with auto-continuation loop)
+  // Phase 2: Translate all Q&As to a target language (fire-and-forget with polling)
   const handleTranslateToLanguage = async (targetLanguage: string): Promise<boolean> => {
     // PRE-CHECK: Verify articles exist before starting
     const articleCount = languageArticleCounts[targetLanguage] || 0;
@@ -421,7 +421,6 @@ export const ClusterQATab = ({
     });
     
     setTranslatingLanguages(prev => new Set([...prev, targetLanguage]));
-    // Initialize progress tracking
     const startCount = languageQACounts[targetLanguage] || 0;
     setTranslationProgress(prev => ({ ...prev, [targetLanguage]: { current: startCount, total: 24 } }));
     
@@ -432,48 +431,18 @@ export const ClusterQATab = ({
         : `Translating 24 Q&As to ${targetLanguage.toUpperCase()}...`;
       toast.info(message);
       
-      let batchCount = 0;
-      const MAX_BATCHES = 10; // Safety limit (10 batches × 6 = 60 max)
-      let lastCount = currentCount;
-      let noProgressCount = 0;
-      
-      while (batchCount < MAX_BATCHES) {
-        batchCount++;
-        console.log(`[TranslateQAs UI] Batch ${batchCount} for ${targetLanguage}...`);
-        
-        const { data, error } = await supabase.functions.invoke('translate-qas-to-language', {
-          body: { 
-            clusterId: cluster.cluster_id,
-            targetLanguage,
-          },
-        });
-
-        // DEFENSIVE: Check if error contains blocked info (in case of non-200 response)
+      // Fire-and-forget: invoke edge function but don't await the full response
+      supabase.functions.invoke('translate-qas-to-language', {
+        body: { 
+          clusterId: cluster.cluster_id,
+          targetLanguage,
+        },
+      }).then(({ data, error }) => {
+        // Log completion when it finally responds (may be after timeout)
         if (error) {
-          const ctx = (error as any)?.context;
-          if (ctx?.blocked) {
-            setBlockedLanguages(prev => ({
-              ...prev,
-              [targetLanguage]: {
-                reason: ctx.blockedReason || 'unknown',
-                missingArticleIds: ctx.missingEnglishArticleIds,
-              }
-            }));
-            toast.error(`${targetLanguage.toUpperCase()}: Blocked - click "Fix Article Linking" to repair.`);
-            break;
-          }
-          throw error;
-        }
-
-        // Handle missing articles error from edge function
-        if (data?.missingArticles) {
-          toast.error(`${targetLanguage.toUpperCase()}: ${data.error}`);
-          break;
-        }
-
-        // PHASE 3: Handle blocked response with clear messaging (now works with 200 status)
-        if (data?.blocked) {
-          console.log(`[TranslateQAs UI] BLOCKED: ${data.blockedReason}`);
+          console.log(`[TranslateQAs] Edge function returned error (may have completed server-side):`, error.message);
+        } else if (data?.blocked) {
+          console.log(`[TranslateQAs] Blocked:`, data.blockedReason);
           setBlockedLanguages(prev => ({
             ...prev,
             [targetLanguage]: {
@@ -482,71 +451,73 @@ export const ClusterQATab = ({
               mismatchCount: data.mismatchCount,
             }
           }));
-          
-          const message = data.blockedReason === 'qa_linking_mismatch' 
-            ? `${targetLanguage.toUpperCase()}: Q&A linking mismatch. Click "Fix Q&A Linking" to repair.`
-            : `${targetLanguage.toUpperCase()}: Article linking missing. Click "Fix Article Linking" to repair.`;
-          toast.error(message);
-          break;
-        }
-
-        if (data?.success) {
-          const newCount = data.actualCount ?? 0;
-          const remaining = data.remaining ?? (24 - newCount);
-          
-          // Update real-time progress indicator
-          setTranslationProgress(prev => ({ ...prev, [targetLanguage]: { current: newCount, total: 24 } }));
-          
-          // PHASE 3: No-progress detection - stop if we're spinning
-          if (newCount === lastCount && data.translated === 0) {
-            noProgressCount++;
-            console.warn(`[TranslateQAs UI] No progress detected (attempt ${noProgressCount})`);
-            
-            if (noProgressCount >= 2) {
-              // Check if there were errors that indicate blocking
-              if (data.errors && data.errors.length > 0) {
-                const hasLinkingError = data.errors.some((e: string) => 
-                  e.includes('hreflang') || e.includes('Missing') || e.includes('article')
-                );
-                if (hasLinkingError) {
-                  setBlockedLanguages(prev => ({
-                    ...prev,
-                    [targetLanguage]: {
-                      reason: 'missing_article_linking',
-                    }
-                  }));
-                  toast.error(`${targetLanguage.toUpperCase()}: Stalled - article linking incomplete. Click "Fix Linking".`);
-                  break;
-                }
-              }
-              
-              toast.warning(`${targetLanguage.toUpperCase()}: No progress after ${noProgressCount} batches. Stopping.`);
-              break;
-            }
-          } else {
-            noProgressCount = 0; // Reset if we made progress
-          }
-          
-          lastCount = newCount;
-          
-          // Check if complete
-          if (remaining <= 0 || !data.partial) {
-            toast.success(`${targetLanguage.toUpperCase()}: ✅ Complete! ${newCount}/24 Q&As`);
-            break;
-          }
-          
-          // Delay between batches to avoid rate limiting
-          await new Promise(r => setTimeout(r, 1000));
+          toast.error(`${targetLanguage.toUpperCase()}: Translation blocked - ${data.blockedReason}`);
         } else {
-          throw new Error(data?.error || 'Unknown error');
+          console.log(`[TranslateQAs] Edge function completed:`, data);
         }
-      }
+      }).catch(err => {
+        console.log(`[TranslateQAs] Edge function fetch error (server may still be processing):`, err);
+      });
+
+      // Poll the database every 10 seconds for progress
+      let lastPolledCount = startCount;
+      let noProgressTicks = 0;
+      const MAX_NO_PROGRESS_TICKS = 30; // 30 × 10s = 5 minutes with no change
       
-      if (batchCount >= MAX_BATCHES) {
-        toast.warning(`${targetLanguage.toUpperCase()}: Batch limit reached. Click Resume again.`);
-      }
+      await new Promise<void>((resolve) => {
+        const pollInterval = setInterval(async () => {
+          try {
+            const { count, error: countError } = await supabase
+              .from('qa_pages')
+              .select('*', { count: 'exact', head: true })
+              .eq('cluster_id', cluster.cluster_id)
+              .eq('language', targetLanguage);
+            
+            if (countError) {
+              console.error('[TranslateQAs Poll] Error:', countError);
+              return;
+            }
+            
+            const currentPolledCount = count || 0;
+            setTranslationProgress(prev => ({ ...prev, [targetLanguage]: { current: currentPolledCount, total: 24 } }));
+            
+            // Also refresh the main QA counts for UI consistency
+            await fetchQACounts();
+            
+            if (currentPolledCount >= 24) {
+              // Complete!
+              toast.success(`${targetLanguage.toUpperCase()}: ✅ Complete! 24/24 Q&As`);
+              clearInterval(pollInterval);
+              resolve();
+              return;
+            }
+            
+            if (currentPolledCount > lastPolledCount) {
+              // Progress made - reset stall counter
+              noProgressTicks = 0;
+              lastPolledCount = currentPolledCount;
+            } else {
+              noProgressTicks++;
+            }
+            
+            if (noProgressTicks >= MAX_NO_PROGRESS_TICKS) {
+              // 5 minutes with no progress - stop polling
+              if (currentPolledCount > startCount) {
+                toast.warning(`${targetLanguage.toUpperCase()}: ${currentPolledCount}/24 Q&As created. Server may still be processing - click Refresh to check.`);
+              } else {
+                toast.error(`${targetLanguage.toUpperCase()}: No progress detected after 5 minutes.`);
+              }
+              clearInterval(pollInterval);
+              resolve();
+              return;
+            }
+          } catch (pollError) {
+            console.error('[TranslateQAs Poll] Exception:', pollError);
+          }
+        }, 10000); // Poll every 10 seconds
+      });
       
-      // Final refresh - update both QA tab data AND parent cluster data for header badges
+      // Final refresh
       await fetchQACounts();
       await queryClient.refetchQueries({ queryKey: ['cluster-qa-pages'] });
       await queryClient.invalidateQueries({ queryKey: ['cluster-generations'] });
@@ -562,7 +533,6 @@ export const ClusterQATab = ({
         next.delete(targetLanguage);
         return next;
       });
-      // Clear progress on completion
       setTranslationProgress(prev => {
         const next = { ...prev };
         delete next[targetLanguage];

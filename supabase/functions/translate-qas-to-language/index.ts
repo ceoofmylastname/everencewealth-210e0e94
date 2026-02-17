@@ -672,7 +672,6 @@ serve(async (req) => {
           status: 'published',
           source_article_slug: targetArticle.slug,
           author_id: '1a709766-817f-45b4-aea6-06f8e4fc8d6c', // Steven Rosenberg
-          date_published: now,
           date_modified: now,
         };
 
@@ -756,6 +755,7 @@ serve(async (req) => {
             .from('qa_pages')
             .insert({
               ...translatedQARecord,
+              date_published: now,
               question_main: finalQuestion,
               title: finalQuestion,
             })
