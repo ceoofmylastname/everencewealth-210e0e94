@@ -99,7 +99,7 @@ export const WakeUpCall: React.FC = () => {
               <div className="absolute top-0 left-[10%] right-[10%] h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
               
               <p className="text-xl md:text-2xl font-serif italic leading-relaxed mb-4 relative z-10" dangerouslySetInnerHTML={{ __html: `"${w.quote}"` }} />
-              <p className="text-white/50 text-sm font-space relative z-10">{w.quoteAuthor}</p>
+              <p className="text-primary/60 text-sm font-space relative z-10">{w.quoteAuthor}</p>
             </div>
           </motion.div>
 

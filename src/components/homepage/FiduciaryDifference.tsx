@@ -83,7 +83,7 @@ export function FiduciaryDifference() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.1 }}
-          className="text-white/70 text-lg md:text-xl text-center mb-14 max-w-2xl mx-auto"
+          className="text-primary/80 text-lg md:text-xl text-center mb-14 max-w-2xl mx-auto"
         >
           {fd.subtitle}
         </motion.p>
@@ -97,7 +97,7 @@ export function FiduciaryDifference() {
                 <h3 className="text-xl font-bold text-white mb-4">{card.title}</h3>
                 <ul className="space-y-3">
                   {card.items.map((item) => (
-                    <li key={item} className="flex items-start gap-2 text-white/80 text-sm leading-relaxed">
+                    <li key={item} className="flex items-start gap-2 text-primary/80 text-sm leading-relaxed">
                       <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-white/50 shrink-0" />
                       {item}
                     </li>
@@ -125,7 +125,7 @@ export function FiduciaryDifference() {
                 whileInView={{ opacity: 1, scale: [0.8, 1.1, 1] }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: 0.5 + idx * 0.15 }}
-                className="flex items-center gap-2 text-white/60 text-sm"
+                className="flex items-center gap-2 text-primary/70 text-sm"
               >
                 <Icon className="w-4 h-4" />
                 {badge}

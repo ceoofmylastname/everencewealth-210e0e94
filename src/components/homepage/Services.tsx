@@ -83,10 +83,10 @@ export const Services: React.FC = () => {
                 </motion.div>
 
                 <h3 className="text-xl font-space font-bold text-white mb-3">{service.title}</h3>
-                <p className="text-white/50 text-sm mb-6 leading-relaxed">{service.description}</p>
+                <p className="text-primary/60 text-sm mb-6 leading-relaxed">{service.description}</p>
                 <ul className="space-y-2.5 mb-6">
                   {service.points.map((point) => (
-                    <li key={point} className="flex items-center gap-2 text-sm text-white/60">
+                    <li key={point} className="flex items-center gap-2 text-sm text-primary/70">
                       <span className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
                       {point}
                     </li>

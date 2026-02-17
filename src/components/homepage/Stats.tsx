@@ -58,7 +58,7 @@ function StatItem({ value, prefix = '', suffix, label, index }: StatItemProps) {
       >
         {prefix}{count}{suffix}
       </p>
-      <p className="text-white/50 text-sm tracking-wide uppercase font-space mt-3">{label}</p>
+      <p className="text-primary/60 text-sm tracking-wide uppercase font-space mt-3">{label}</p>
 
       {/* Sparkle on complete */}
       {done && (
