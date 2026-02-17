@@ -63,6 +63,7 @@ const StateGuidesIndex = lazy(() => import("./pages/StateGuidesIndex"));
 const StateGuidePage = lazy(() => import("./pages/StateGuidePage"));
 const About = lazy(() => import("./pages/About"));
 const Philosophy = lazy(() => import("./pages/Philosophy"));
+const IndexedUniversalLife = lazy(() => import("./pages/strategies/IndexedUniversalLife"));
 const Team = lazy(() => import("./pages/Team"));
 const BuyersGuide = lazy(() => import("./pages/BuyersGuide"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
@@ -461,6 +462,10 @@ const App = () => (
               <Route path="/philosophy" element={<Navigate to="/en/philosophy" replace />} />
               <Route path="/es/filosofia" element={<Navigate to="/es/philosophy" replace />} />
               <Route path="/:lang/philosophy" element={<Philosophy />} />
+              
+              {/* Strategy pages */}
+              <Route path="/:lang/strategies/iul" element={<IndexedUniversalLife />} />
+              <Route path="/:lang/estrategias/seguro-universal-indexado" element={<IndexedUniversalLife />} />
               
               <Route path="/buyers-guide" element={<Navigate to="/en/buyers-guide" replace />} />
               <Route path="/:lang/buyers-guide" element={<BuyersGuide />} />

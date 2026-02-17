@@ -1150,4 +1150,91 @@ export const es = {
       },
     },
   },
+  strategies: {
+    iul: {
+      seo: {
+        title: 'Seguro de Vida Universal Indexado: Crecimiento Libre de Impuestos con Piso 0% | Everence Wealth',
+        description: 'Descubra cómo el Seguro de Vida Universal Indexado (IUL) combina crecimiento vinculado al mercado, protección contra pérdidas, ingresos libres de impuestos y beneficios en vida.',
+      },
+      hero: {
+        badge: 'Estrategia',
+        title: 'Vida Universal Indexada',
+        subtitle: 'Crecimiento del Mercado Sin Riesgo de Mercado',
+        description: 'El único vehículo financiero que combina crecimiento libre de impuestos, protección de piso 0%, beneficios en vida y un legado—todo en uno.',
+        stats: [
+          { value: 'Vinculado al Mercado', label: 'Potencial de Crecimiento' },
+          { value: 'Piso 0%', label: 'Protección contra Pérdidas' },
+          { value: 'Libre de Impuestos', label: 'Retiros' },
+        ],
+        ctaPrimary: 'Obtener Ilustración Personalizada',
+        ctaSecondary: 'Comparar con 401k',
+      },
+      speakable: {
+        text: 'El Seguro de Vida Universal Indexado (IUL) es una póliza de seguro de vida permanente que acredita intereses basados en el rendimiento de índices bursátiles—típicamente el S&P 500—mientras garantiza que nunca pierde dinero en mercados bajistas con un piso del 0%. A diferencia de las inversiones tradicionales, el IUL ofrece retiros libres de impuestos, beneficios en vida para enfermedades críticas y protección contra acreedores.',
+        badges: ['Licenciado en 50 Estados', '75+ Socios Aseguradores', '1,200+ Familias Atendidas'],
+      },
+      howItWorks: {
+        title: 'Cómo Funciona el IUL: La Mecánica',
+        sliderLabel: 'Ajuste el Rendimiento del Mercado:',
+        resultLabel: 'Valor de su Cuenta IUL:',
+        floorMessage: 'Protección de Piso: Nunca baja de $100,000',
+        steps: [
+          { title: 'Usted Paga la Prima', desc: 'Su prima se divide: parte va al costo del seguro, parte a la cuenta de valor en efectivo.' },
+          { title: 'Método de Acreditación por Índice', desc: 'El valor en efectivo está vinculado al S&P 500 con reinicio anual. Cuando el mercado sube, usted gana intereses (sujeto a un tope, típicamente 10-12%).' },
+          { title: 'Protección de Piso 0%', desc: 'Cuando el mercado cae 20%, 30%, incluso 50%—usted pierde 0%. Su valor de cuenta nunca disminuye por pérdidas del mercado.' },
+          { title: 'Reinicio Anual y Crecimiento Compuesto', desc: 'Las ganancias se bloquean cada año. El crecimiento del próximo año se calcula sobre la nueva base más alta.' },
+          { title: 'Acceso Libre de Impuestos', desc: 'Después de financiar la póliza, tome préstamos libres de impuestos contra el valor en efectivo. Sin impuesto sobre la renta, sin penalidades.' },
+        ],
+      },
+      comparison: {
+        title: 'IUL vs. 401k: Comparación Lado a Lado',
+        winner: 'Ganador: IUL para Jubilación Libre de Impuestos',
+        winnerDesc: 'Combina crecimiento, protección y flexibilidad que el 401k no puede igualar',
+      },
+      livingBenefits: {
+        title: 'Beneficios en Vida: Seguro Mientras Está Vivo',
+        subtitle: 'A diferencia del seguro de vida a término que solo paga cuando usted muere, el IUL proporciona beneficios acelerados que pagan durante su vida.',
+        cards: [
+          { title: 'Enfermedad Crítica', desc: 'Ataque cardíaco, derrame cerebral, cáncer', benefit: 'Reciba 25-100% del beneficio por muerte', example: 'Póliza de $500K → $250K para recuperación' },
+          { title: 'Enfermedad Crónica', desc: 'Incapaz de realizar 2+ Actividades de la Vida Diaria', benefit: 'Pagos mensuales para cuidado a largo plazo', example: 'Póliza de $500K → $4K/mes para asilo' },
+          { title: 'Enfermedad Terminal', desc: 'Expectativa de vida de 12-24 meses o menos', benefit: 'Reciba hasta 100% del beneficio por muerte', example: 'Póliza de $500K → $500K para vivir con dignidad' },
+        ],
+        testimonial: {
+          label: 'Historia Real de Cliente:',
+          text: '"Cuando mi esposo tuvo un derrame cerebral a los 58, nuestro IUL pagó $300,000 inmediatamente. Lo usamos para su rehabilitación, modificamos nuestro hogar y cubrimos ingresos perdidos. El beneficio por muerte sigue intacto. Esto salvó nuestra jubilación."',
+          author: '— María T., San Francisco',
+        },
+      },
+      idealClient: {
+        title: '¿Es el IUL Adecuado para Usted?',
+        perfectTitle: 'Perfecto Para:',
+        notIdealTitle: 'No Ideal Para:',
+        perfect: [
+          'Personas de altos ingresos que maximizan 401k/Roth',
+          'Dueños de negocios que buscan ingresos de jubilación libres de impuestos',
+          'Padres que quieren dejar un legado libre de impuestos',
+          'Cualquiera en estado de altos impuestos (CA, NY, NJ)',
+          'Personas preocupadas por la volatilidad del mercado cerca de la jubilación',
+          'Quienes buscan protección de activos contra demandas',
+        ],
+        notIdeal: [
+          'Quienes necesitan acceso al efectivo en 5-7 años',
+          'Quienes no pueden comprometerse con primas por 10-15 años',
+          'Personas con condiciones de salud serias (pueden no calificar)',
+          'Quienes buscan cobertura de seguro a término puro',
+        ],
+      },
+      cta: {
+        headline: 'Vea Su Ilustración IUL Personalizada',
+        subtitle: 'Obtenga una proyección personalizada que muestre exactamente cómo funcionaría el IUL para su edad, ingresos y metas de jubilación—sin obligación.',
+        submitText: 'Obtener Mi Ilustración IUL',
+        disclaimer: 'Sin spam. Sin ventas de alta presión. Solo números reales para su situación.',
+        namePlaceholder: 'Nombre Completo',
+        emailPlaceholder: 'Correo Electrónico',
+        phonePlaceholder: 'Número de Teléfono',
+        incomePlaceholder: 'Rango de Ingreso Anual',
+        incomeRanges: ['$75K - $150K', '$150K - $250K', '$250K - $500K', '$500K+'],
+      },
+    },
+  },
 };

@@ -1177,4 +1177,91 @@ export const en = {
       },
     },
   },
+  strategies: {
+    iul: {
+      seo: {
+        title: 'Indexed Universal Life Insurance: Tax-Free Growth with 0% Floor | Everence Wealth',
+        description: 'Discover how Indexed Universal Life (IUL) combines market-linked growth, downside protection, tax-free income, and living benefits—the ultimate retirement vehicle.',
+      },
+      hero: {
+        badge: 'Strategy',
+        title: 'Indexed Universal Life',
+        subtitle: 'Market Growth Without Market Risk',
+        description: 'The only financial vehicle that combines tax-free growth, 0% floor protection, living benefits, and a legacy—all in one.',
+        stats: [
+          { value: 'Market-Linked', label: 'Growth Potential' },
+          { value: '0% Floor', label: 'Downside Protection' },
+          { value: 'Tax-Free', label: 'Withdrawals' },
+        ],
+        ctaPrimary: 'Get Personalized Illustration',
+        ctaSecondary: 'Compare to 401k',
+      },
+      speakable: {
+        text: 'Indexed Universal Life (IUL) insurance is a permanent life insurance policy that credits interest based on stock market index performance—typically the S&P 500—while guaranteeing you never lose money in down markets with a 0% floor. Unlike traditional investments, IUL offers tax-free withdrawals, living benefits for critical illness, and creditor protection, making it the cornerstone strategy for tax-efficient retirement planning.',
+        badges: ['Licensed in 50 States', '75+ Carrier Partners', '1,200+ Families Served'],
+      },
+      howItWorks: {
+        title: 'How IUL Works: The Mechanics',
+        sliderLabel: 'Adjust Market Performance:',
+        resultLabel: 'Your IUL Account Value:',
+        floorMessage: 'Floor Protection: You never go below $100,000',
+        steps: [
+          { title: 'You Pay Premium', desc: 'Your premium is split: part goes to insurance cost, part to cash value account.' },
+          { title: 'Index Crediting Method', desc: 'Cash value is linked to S&P 500 with annual reset. When market goes up, you earn interest (subject to cap, typically 10-12%).' },
+          { title: '0% Floor Protection', desc: 'When market drops 20%, 30%, even 50%—you lose 0%. Your account value never decreases due to market losses.' },
+          { title: 'Annual Reset & Compound Growth', desc: 'Gains lock in every year. Next year\'s growth calculated on new higher base. Compounding without volatility drag.' },
+          { title: 'Tax-Free Access', desc: 'After policy is funded, take tax-free loans against cash value. No income tax, no penalties, no age restrictions.' },
+        ],
+      },
+      comparison: {
+        title: 'IUL vs. 401k: Side-by-Side',
+        winner: 'Winner: IUL for Tax-Free Retirement',
+        winnerDesc: 'Combines growth, protection, and flexibility 401k can\'t match',
+      },
+      livingBenefits: {
+        title: 'Living Benefits: Insurance While You\'re Alive',
+        subtitle: 'Unlike term life insurance that only pays when you die, IUL provides accelerated death benefit riders that pay out during your lifetime.',
+        cards: [
+          { title: 'Critical Illness', desc: 'Heart attack, stroke, cancer, organ transplant', benefit: 'Receive 25-100% of death benefit', example: '$500K policy → $250K cash for stroke recovery' },
+          { title: 'Chronic Illness', desc: 'Unable to perform 2+ Activities of Daily Living', benefit: 'Monthly payments for long-term care', example: '$500K policy → $4K/month for nursing home' },
+          { title: 'Terminal Illness', desc: 'Life expectancy 12-24 months or less', benefit: 'Receive up to 100% of death benefit early', example: '$500K policy → $500K to live with dignity' },
+        ],
+        testimonial: {
+          label: 'Real Client Story:',
+          text: '"When my husband had a stroke at 58, our IUL paid out $300,000 immediately. We used it for his rehabilitation, modified our home, and covered lost income. The death benefit is still intact. This saved our retirement."',
+          author: '— Maria T., San Francisco',
+        },
+      },
+      idealClient: {
+        title: 'Is IUL Right for You?',
+        perfectTitle: 'Perfect For:',
+        notIdealTitle: 'Not Ideal For:',
+        perfect: [
+          'High-income earners maxing out 401k/Roth contributions',
+          'Business owners wanting tax-free retirement income',
+          'Parents wanting to leave tax-free legacy to children',
+          'Anyone in high-tax state (CA, NY, NJ) seeking tax shelter',
+          'Individuals worried about market volatility near retirement',
+          'Those wanting asset protection from lawsuits/creditors',
+        ],
+        notIdeal: [
+          'Those needing cash access within 5-7 years',
+          'Anyone unable to commit to premiums for 10-15 years',
+          'Individuals with serious health conditions (may not qualify)',
+          'Those seeking pure term insurance coverage',
+        ],
+      },
+      cta: {
+        headline: 'See Your Personalized IUL Illustration',
+        subtitle: 'Get a custom projection showing exactly how IUL would work for your age, income, and retirement goals—with zero obligation.',
+        submitText: 'Get My Custom IUL Illustration',
+        disclaimer: 'No spam. No high-pressure sales. Just real numbers for your situation.',
+        namePlaceholder: 'Full Name',
+        emailPlaceholder: 'Email Address',
+        phonePlaceholder: 'Phone Number',
+        incomePlaceholder: 'Annual Income Range',
+        incomeRanges: ['$75K - $150K', '$150K - $250K', '$250K - $500K', '$500K+'],
+      },
+    },
+  },
 };
