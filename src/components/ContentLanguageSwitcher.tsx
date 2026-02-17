@@ -19,16 +19,8 @@ interface LanguageOption {
 }
 
 const LANGUAGES: Record<string, { name: string; flag: string }> = {
-  en: { name: 'English', flag: '🇬🇧' },
-  nl: { name: 'Dutch', flag: '🇳🇱' },
-  hu: { name: 'Hungarian', flag: '🇭🇺' },
-  de: { name: 'German', flag: '🇩🇪' },
-  fr: { name: 'French', flag: '🇫🇷' },
-  sv: { name: 'Swedish', flag: '🇸🇪' },
-  pl: { name: 'Polish', flag: '🇵🇱' },
-  no: { name: 'Norwegian', flag: '🇳🇴' },
-  fi: { name: 'Finnish', flag: '🇫🇮' },
-  da: { name: 'Danish', flag: '🇩🇰' },
+  en: { name: 'English', flag: '🇺🇸' },
+  es: { name: 'Spanish', flag: '🇪🇸' },
 };
 
 interface ContentLanguageSwitcherProps {

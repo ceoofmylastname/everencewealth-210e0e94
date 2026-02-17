@@ -1,5 +1,7 @@
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
 
 const LANGUAGES = [
   { code: 'en', name: 'English', flag: '🇺🇸' },
@@ -10,31 +12,51 @@ interface ComparisonLanguageSwitcherProps {
   currentLanguage: string;
   translations: Record<string, string> | null;
   currentSlug: string;
+  comparisonTopic?: string;
 }
 
 export function ComparisonLanguageSwitcher({ 
   currentLanguage, 
   translations,
   currentSlug,
+  comparisonTopic,
 }: ComparisonLanguageSwitcherProps) {
-  // Build available languages map (include current)
-  const availableLanguages: Record<string, string> = {
-    [currentLanguage]: currentSlug,
-    ...(translations || {}),
-  };
+  const [verifiedLanguages, setVerifiedLanguages] = useState<Record<string, string> | null>(null);
 
-  const availableLangCodes = Object.keys(availableLanguages);
-  
-  // Only show if there are translations
-  if (availableLangCodes.length <= 1) {
-    return null;
-  }
+  useEffect(() => {
+    const verify = async () => {
+      if (!comparisonTopic) {
+        setVerifiedLanguages({ [currentLanguage]: currentSlug });
+        return;
+      }
+
+      const { data } = await supabase
+        .from('comparison_pages')
+        .select('language, slug')
+        .eq('comparison_topic', comparisonTopic)
+        .eq('status', 'published');
+
+      if (data && data.length > 0) {
+        const map: Record<string, string> = {};
+        data.forEach(row => { map[row.language] = row.slug; });
+        setVerifiedLanguages(map);
+      } else {
+        setVerifiedLanguages({ [currentLanguage]: currentSlug });
+      }
+    };
+    verify();
+  }, [comparisonTopic, currentLanguage, currentSlug]);
+
+  if (!verifiedLanguages) return null;
+
+  const availableLangCodes = Object.keys(verifiedLanguages);
+  if (availableLangCodes.length <= 1) return null;
 
   return (
     <div className="flex flex-wrap items-center justify-center gap-2 mt-6">
       <span className="text-xs text-muted-foreground mr-2">Available in:</span>
       {LANGUAGES.filter(lang => availableLangCodes.includes(lang.code)).map(lang => {
-        const slug = availableLanguages[lang.code];
+        const slug = verifiedLanguages[lang.code];
         const isActive = lang.code === currentLanguage;
         
         return (
