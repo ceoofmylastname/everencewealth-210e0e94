@@ -1,7 +1,7 @@
 # 📧 CRM Gmail Filter Setup — Sales Agents
 
 > **Last updated:** 2026-02-13
-> **Sender:** `crm@notifications.delsolprimehomes.com`
+> **Sender:** `crm@notifications.everencewealth.com`
 > **Audience:** All sales agents (juho@, eetu@, artur@, cedric@, nathalie@, augustin@, nederlands@, cindy@, steven@, info@yenomai.com)
 
 ---

@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-const BASE_URL = "https://www.delsolprimehomes.com";
+const BASE_URL = "https://www.everencewealth.com";
 
 export interface MissingCanonical {
   id: string;

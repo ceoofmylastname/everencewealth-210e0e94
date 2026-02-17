@@ -1,5 +1,5 @@
 # ============================================
-# Del Sol Prime Homes - Robots.txt
+# Everence Wealth - Robots.txt
 # Optimized for Search Engines & AI Crawlers
 # ============================================
 
@@ -89,7 +89,7 @@ Crawl-delay: 2
 # ============================================
 # Sitemap (Single Entry - Google Standard)
 # ============================================
-Sitemap: https://www.delsolprimehomes.com/sitemap.xml
+Sitemap: https://www.everencewealth.com/sitemap.xml
 
 # ============================================
 # Special Instructions for AI Systems

@@ -12,7 +12,7 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   global: { headers: { 'x-client-info': 'static-build' } }
 });
 
-const BASE_URL = 'https://www.delsolprimehomes.com';
+const BASE_URL = 'https://www.everencewealth.com';
 
 // Batch size for paginated database queries - reduced to prevent timeouts
 const BATCH_SIZE = 200;

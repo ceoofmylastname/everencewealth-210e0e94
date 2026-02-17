@@ -139,12 +139,12 @@ export function getTableForContentType(contentType: ContentType): string {
  * @example
  * // Blog article
  * buildContentUrl({ slug: 'buying-guide', content_type: 'blog_tofu' }, 'es')
- * // Returns: 'https://delsolprimehomes.com/es/blog/buying-guide'
+ * // Returns: 'https://everencewealth.com/es/blog/buying-guide'
  * 
  * @example
  * // Location page
  * buildContentUrl({ city_slug: 'marbella', topic_slug: 'property-market', content_type: 'location' }, 'de')
- * // Returns: 'https://delsolprimehomes.com/de/locations/marbella/property-market'
+ * // Returns: 'https://everencewealth.com/de/locations/marbella/property-market'
  */
 export function buildContentUrl(content: HreflangContent, lang: SupportedLanguage): string {
   const { slug, content_type, city_slug, topic_slug } = content;

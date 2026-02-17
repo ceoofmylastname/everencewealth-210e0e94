@@ -940,7 +940,7 @@ const BrochureManager: React.FC = () => {
                             {editData.meta_title || `${editData.name} | Del Sol Prime Homes`}
                           </p>
                           <p className="text-green-700 dark:text-green-500 text-sm">
-                            www.delsolprimehomes.com › {selectedLanguage} › brochure › {editData.slug}
+                            www.everencewealth.com › {selectedLanguage} › brochure › {editData.slug}
                           </p>
                           <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
                             {editData.meta_description || `Discover luxury properties in ${editData.name} on Spain's Costa del Sol.`}
