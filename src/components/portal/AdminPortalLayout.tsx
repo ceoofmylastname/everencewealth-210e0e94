@@ -43,7 +43,7 @@ export function AdminPortalLayout() {
       >
         <div className="h-16 border-b border-white/10 flex items-center justify-between px-5">
           <Link to="/portal/admin/agents" className="flex items-center gap-2">
-            <img src="https://storage.googleapis.com/msgsndr/TLhrYb7SRrWrly611tCI/media/6993ada8dcdadb155342f28e.png" alt="Everence Wealth" className="h-8 w-auto" />
+            <img src="https://storage.googleapis.com/msgsndr/TLhrYb7SRrWrly615tCI/media/6993ada8dcdadb155342f28e.png" alt="Everence Wealth" className="h-8 w-auto" />
             <div className="flex flex-col leading-tight">
               <span className="font-bold text-lg text-white font-serif leading-none">Everence</span>
               <span className="text-[10px] font-light tracking-[0.2em] uppercase text-white/60">Wealth</span>
@@ -108,7 +108,7 @@ export function AdminPortalLayout() {
             <Menu className="h-5 w-5" />
           </Button>
           <div className="ml-3 flex items-center gap-2 flex-1">
-            <img src="https://storage.googleapis.com/msgsndr/TLhrYb7SRrWrly611tCI/media/6993ada8dcdadb155342f28e.png" alt="Everence Wealth" className="h-6 w-auto" />
+            <img src="https://storage.googleapis.com/msgsndr/TLhrYb7SRrWrly615tCI/media/6993ada8dcdadb155342f28e.png" alt="Everence Wealth" className="h-6 w-auto" />
             <span className="font-semibold text-foreground font-serif">Everence <span className="text-[9px] font-light tracking-[0.2em] uppercase text-muted-foreground">Wealth</span></span>
           </div>
           <NotificationBell />
