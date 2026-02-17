@@ -945,6 +945,37 @@ export const en = {
       ctaPrimary: "Explore Our Principles",
       ctaSecondary: "Schedule Consultation",
     },
+    principles: {
+      badge: "Our Core Principles",
+      headline: "Three Beliefs That Guide Every Recommendation",
+      subheadline: "Three fundamental beliefs that guide every recommendation we make",
+      cards: [
+        {
+          title: "Cash Flow Over Net Worth",
+          description: "Wall Street obsesses over account balances you can't spend. We focus on tax-free income you can actually use.",
+          chartLabel: "The Reality:",
+          chartNote: "$5,000/month tax-free cash flow beats $1M in a 401k you can't touch until age 59½",
+          bars: [
+            { label: "$5K/mo Tax-Free", value: 100 },
+            { label: "$1M in 401k", value: 60 },
+          ],
+        },
+        {
+          title: "Zero is Your Hero",
+          description: "Warren Buffett's Rule #1: Never lose money. We engineer that literally with 0% floor protection.",
+          chartLabel: "The Math:",
+          chartNote: "A 50% loss requires a 100% gain just to break even. Zero is your hero.",
+        },
+        {
+          title: "Fiduciary, Always",
+          description: "We're legally required to act in your best interest — not maximize our commissions.",
+          chartLabel: "The Difference:",
+          chartNote: "Wall Street advisors earn more when you stay invested. We earn nothing if you lose.",
+          centerText: "100%",
+          centerLabel: "Client First",
+        },
+      ],
+    },
     killers: {
       badge: "The Hidden Threats",
       headline: "The Three Silent Killers of Wealth",

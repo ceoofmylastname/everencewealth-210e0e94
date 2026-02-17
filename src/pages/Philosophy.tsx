@@ -5,6 +5,7 @@ import { Header } from '../components/home/Header';
 import { Footer } from '../components/home/Footer';
 import { PhilosophyHero } from '../components/philosophy/PhilosophyHero';
 import { PhilosophySpeakable } from '../components/philosophy/PhilosophySpeakable';
+import { PhilosophyPrinciples } from '../components/philosophy/PhilosophyPrinciples';
 import { PhilosophyKillers } from '../components/philosophy/PhilosophyKillers';
 import { PhilosophyBuckets } from '../components/philosophy/PhilosophyBuckets';
 import { PhilosophyCashFlow } from '../components/philosophy/PhilosophyCashFlow';
@@ -123,6 +124,7 @@ const Philosophy: React.FC = () => {
       <main className="flex-grow">
         <PhilosophyHero />
         <PhilosophySpeakable />
+        <PhilosophyPrinciples />
         <PhilosophyKillers />
         <PhilosophyBuckets />
         <PhilosophyCashFlow />
