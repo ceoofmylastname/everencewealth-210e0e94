@@ -104,7 +104,7 @@ export const Header: React.FC<HeaderProps> = ({ variant = 'transparent', content
   return (
     <>
     <header 
-      className={`fixed top-0 w-full z-[100] transition-all duration-500 ${
+      className={`fixed top-2 md:top-4 lg:top-6 left-0 right-0 mx-2 md:mx-4 lg:mx-6 z-[100] transition-all duration-500 rounded-2xl ${
         isLightBackground 
           ? 'glass-nav py-3 border-b border-border/50 shadow-sm' 
           : 'bg-transparent py-4 border-transparent'
@@ -117,7 +117,7 @@ export const Header: React.FC<HeaderProps> = ({ variant = 'transparent', content
             src="https://storage.googleapis.com/msgsndr/TLhrYb7SRrWrly615tCI/media/6993ada8dcdadb155342f28e.png" 
             alt="Everence Wealth" 
             width={160} height={64} loading="eager" decoding="async"
-            className={`h-14 md:h-16 w-auto min-w-[120px] object-contain transition-all duration-500 ${
+            className={`h-12 md:h-14 w-auto min-w-[120px] object-contain transition-all duration-500 ${
               isLightBackground ? 'brightness-0 sepia saturate-[10] hue-rotate-[15deg]' : ''
             }`}
           />
