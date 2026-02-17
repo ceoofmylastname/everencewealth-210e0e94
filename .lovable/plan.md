@@ -1,33 +1,27 @@
 
-
-# Fix: Policy Product Type Check Constraint Mismatch
+# Fix Document Upload and Client View/Download
 
 ## Problem
-The form in `PolicyForm.tsx` sends product type values like `whole_life`, `term_life`, `indexed_universal_life`, `universal_life`, `variable_life`, `annuity`, `disability`, `long_term_care`. But the database has a CHECK constraint (`policies_product_type_check`) that only allows: `iul`, `wl`, `term`, `annuity`, `ltc`, `disability`.
+1. The Upload button shows "Select a file" error -- the file input ref may not be capturing files reliably in certain environments
+2. Client documents page needs verified download via signed URLs (the bucket is private)
 
-This causes the error: *"new row for relation 'policies' violates check constraint 'policies_product_type_check'"*
+## Changes
 
-## Solution
-Run a database migration to drop the old constraint and add a new one that accepts all the form values.
+### 1. Fix Upload in `src/pages/portal/advisor/AdvisorDocuments.tsx`
+- Replace the `Input type="file"` + separate Upload button with a hidden native `<input type="file">` and a single "Choose & Upload" flow
+- Add a visible file name display so the advisor can see what they picked
+- Use a native `<input>` element directly (not the shadcn Input wrapper) for the file picker to avoid any ref forwarding issues
+- Keep all existing upload logic (storage upload, DB insert, notification)
 
-### Migration SQL
-```sql
-ALTER TABLE policies DROP CONSTRAINT policies_product_type_check;
-ALTER TABLE policies ADD CONSTRAINT policies_product_type_check 
-  CHECK (product_type = ANY (ARRAY[
-    'whole_life', 'term_life', 'universal_life', 'variable_life', 
-    'indexed_universal_life', 'annuity', 'disability', 'long_term_care'
-  ]));
-```
+### 2. Verify Client Download in `src/pages/portal/client/ClientDocuments.tsx`
+- The existing `handleDownload` function uses `createSignedUrl` which is correct for private buckets
+- Storage RLS already has a "Clients can view their documents" SELECT policy -- this allows `createSignedUrl` to work
+- No changes needed here; the client page is already functional
 
-### Existing Data
-Update any existing rows that use the old short codes to the new descriptive values:
-```sql
-UPDATE policies SET product_type = 'indexed_universal_life' WHERE product_type = 'iul';
-UPDATE policies SET product_type = 'whole_life' WHERE product_type = 'wl';
-UPDATE policies SET product_type = 'term_life' WHERE product_type = 'term';
-UPDATE policies SET product_type = 'long_term_care' WHERE product_type = 'ltc';
-```
-
-### No Code Changes Needed
-The form already uses the correct descriptive values. Only the database constraint needs updating.
+### Technical Details
+- **File**: `src/pages/portal/advisor/AdvisorDocuments.tsx` (lines 189-194)
+  - Replace `<Input type="file" ref={fileRef}>` with a native `<input type="file" ref={fileRef} className="hidden">` 
+  - Add a "Choose File" button that triggers `fileRef.current?.click()`
+  - Show selected file name in a span
+  - Keep the Upload button calling `handleUpload()` as-is
+- No database or storage policy changes needed -- everything is already configured correctly
