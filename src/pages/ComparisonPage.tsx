@@ -243,6 +243,7 @@ export default function ComparisonPage() {
             currentLanguage={comparison.language || 'en'}
             translations={translations}
             currentSlug={comparison.slug}
+            comparisonTopic={comparison.comparison_topic}
           />
         </div>
 
