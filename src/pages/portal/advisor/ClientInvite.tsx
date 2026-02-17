@@ -6,8 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Send, Clock, CheckCircle, XCircle } from "lucide-react";
+import { Send, Clock, CheckCircle, XCircle, KeyRound, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
+import { SetClientPasswordDialog } from "@/components/portal/advisor/SetClientPasswordDialog";
 
 interface Invitation {
   id: string;
@@ -27,6 +28,9 @@ export default function ClientInvite() {
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [form, setForm] = useState({ first_name: "", last_name: "", email: "", phone: "" });
+  const [passwordClient, setPasswordClient] = useState<{ email: string; first_name: string; last_name: string; auth_user_id: string } | null>(null);
+  const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
+  const [resendingId, setResendingId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!portalUser) return;
@@ -74,7 +78,6 @@ export default function ClientInvite() {
     if (error) {
       toast.error(error.message);
     } else {
-      // Send invitation email
       try {
         const { data: { session } } = await supabase.auth.getSession();
         if (session && inserted) {
@@ -84,7 +87,6 @@ export default function ClientInvite() {
         }
       } catch (emailErr) {
         console.error("Email send failed:", emailErr);
-        // Don't block on email failure — invitation is still created
       }
 
       toast.success(`Invitation sent to ${form.first_name} ${form.last_name}`);
@@ -92,6 +94,43 @@ export default function ClientInvite() {
       init();
     }
     setSending(false);
+  }
+
+  async function handleResend(inv: Invitation) {
+    setResendingId(inv.id);
+    try {
+      await supabase.functions.invoke("send-portal-invitation", {
+        body: { invitation_id: inv.id },
+      });
+      toast.success(`Invitation resent to ${inv.email}`);
+    } catch (err: any) {
+      toast.error("Failed to resend invitation");
+    } finally {
+      setResendingId(null);
+    }
+  }
+
+  async function handleSetPassword(inv: Invitation) {
+    // Look up the client's auth_user_id from portal_users
+    const { data: clientUser } = await supabase
+      .from("portal_users")
+      .select("auth_user_id")
+      .eq("email", inv.email)
+      .eq("role", "client")
+      .maybeSingle();
+
+    if (!clientUser?.auth_user_id) {
+      toast.error("Client account not found. They may not have signed up yet.");
+      return;
+    }
+
+    setPasswordClient({
+      email: inv.email,
+      first_name: inv.first_name,
+      last_name: inv.last_name,
+      auth_user_id: clientUser.auth_user_id,
+    });
+    setPasswordDialogOpen(true);
   }
 
   const statusIcon = (status: string) => {
@@ -171,15 +210,43 @@ export default function ClientInvite() {
                       {inv.status === "pending" && ` • Expires ${new Date(inv.expires_at).toLocaleDateString()}`}
                     </p>
                   </div>
-                  <Badge className={statusColor(inv.status)}>
-                    <span className="flex items-center gap-1">{statusIcon(inv.status)} {inv.status}</span>
-                  </Badge>
+                  <div className="flex items-center gap-2">
+                    {inv.status === "accepted" && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleSetPassword(inv)}
+                      >
+                        <KeyRound className="h-3.5 w-3.5 mr-1" /> Set Password
+                      </Button>
+                    )}
+                    {inv.status === "pending" && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={resendingId === inv.id}
+                        onClick={() => handleResend(inv)}
+                      >
+                        <RotateCcw className="h-3.5 w-3.5 mr-1" />
+                        {resendingId === inv.id ? "Sending..." : "Resend"}
+                      </Button>
+                    )}
+                    <Badge className={statusColor(inv.status)}>
+                      <span className="flex items-center gap-1">{statusIcon(inv.status)} {inv.status}</span>
+                    </Badge>
+                  </div>
                 </div>
               ))}
             </div>
           )}
         </CardContent>
       </Card>
+
+      <SetClientPasswordDialog
+        open={passwordDialogOpen}
+        onOpenChange={setPasswordDialogOpen}
+        client={passwordClient}
+      />
     </div>
   );
 }
