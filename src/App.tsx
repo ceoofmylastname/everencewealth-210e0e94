@@ -166,7 +166,10 @@ const AdminAgents = lazy(() => import("./pages/portal/admin/AdminAgents"));
 const AdminAgentNew = lazy(() => import("./pages/portal/admin/AdminAgentNew"));
 const AdminAgentDetail = lazy(() => import("./pages/portal/admin/AdminAgentDetail"));
 const AdminClients = lazy(() => import("./pages/portal/admin/AdminClients"));
-
+const AdminBrochures = lazy(() => import("./pages/portal/admin/AdminBrochures"));
+const AdminBrochureForm = lazy(() => import("./pages/portal/admin/AdminBrochureForm"));
+const GuidesLibrary = lazy(() => import("./pages/GuidesLibrary"));
+const GuidePage = lazy(() => import("./pages/GuidePage"));
 const AgentLogin = lazy(() => import("./pages/crm/AgentLogin"));
 const CrmLogin = lazy(() => import("./pages/crm/CrmLogin"));
 const AgentDashboard = lazy(() => import("./pages/crm/agent/AgentDashboard"));
@@ -369,6 +372,9 @@ const App = () => (
                   <Route path="agents/new" element={<AdminAgentNew />} />
                   <Route path="agents/:id" element={<AdminAgentDetail />} />
                   <Route path="clients" element={<AdminClients />} />
+                  <Route path="brochures" element={<AdminBrochures />} />
+                  <Route path="brochures/new" element={<AdminBrochureForm />} />
+                  <Route path="brochures/:id/edit" element={<AdminBrochureForm />} />
                 </Route>
               </Route>
 
@@ -413,6 +419,12 @@ const App = () => (
               <Route path="/:lang/glossary" element={<Glossary />} />
               <Route path="/privacy" element={<PrivacyPolicy />} />
               <Route path="/terms" element={<TermsOfService />} />
+
+              {/* Guides / Brochures */}
+              <Route path="/guides" element={<GuidesLibrary />} />
+              <Route path="/guides/:slug" element={<GuidePage />} />
+              <Route path="/:lang/guides" element={<GuidesLibrary />} />
+              <Route path="/:lang/guides/:slug" element={<GuidePage />} />
 
               {/* Landing Pages (Paid Traffic) */}
               <Route path="/en/landing" element={<LandingEn />} />

@@ -1058,6 +1058,140 @@ export type Database = {
           },
         ]
       }
+      brochure_downloads: {
+        Row: {
+          brochure_id: string | null
+          downloaded_at: string | null
+          id: string
+          ip_address: string | null
+          source_page: string | null
+          user_email: string
+          user_name: string | null
+        }
+        Insert: {
+          brochure_id?: string | null
+          downloaded_at?: string | null
+          id?: string
+          ip_address?: string | null
+          source_page?: string | null
+          user_email: string
+          user_name?: string | null
+        }
+        Update: {
+          brochure_id?: string | null
+          downloaded_at?: string | null
+          id?: string
+          ip_address?: string | null
+          source_page?: string | null
+          user_email?: string
+          user_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "brochure_downloads_brochure_id_fkey"
+            columns: ["brochure_id"]
+            isOneToOne: false
+            referencedRelation: "brochures"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      brochures: {
+        Row: {
+          calculator_type: string | null
+          canonical_url: string | null
+          category: string
+          cover_image_alt: string | null
+          cover_image_url: string | null
+          created_at: string | null
+          download_count: number | null
+          featured: boolean | null
+          gated: boolean | null
+          has_calculator: boolean | null
+          has_worksheet: boolean | null
+          hero_headline: string
+          hreflang_es_url: string | null
+          id: string
+          json_ld_schema: Json | null
+          language: string | null
+          meta_description: string
+          meta_title: string
+          pdf_url: string | null
+          published_at: string | null
+          sections: Json
+          slug: string
+          speakable_intro: string
+          status: string | null
+          subtitle: string | null
+          tags: string[] | null
+          title: string
+          updated_at: string | null
+          worksheet_fields: Json | null
+        }
+        Insert: {
+          calculator_type?: string | null
+          canonical_url?: string | null
+          category: string
+          cover_image_alt?: string | null
+          cover_image_url?: string | null
+          created_at?: string | null
+          download_count?: number | null
+          featured?: boolean | null
+          gated?: boolean | null
+          has_calculator?: boolean | null
+          has_worksheet?: boolean | null
+          hero_headline: string
+          hreflang_es_url?: string | null
+          id?: string
+          json_ld_schema?: Json | null
+          language?: string | null
+          meta_description: string
+          meta_title: string
+          pdf_url?: string | null
+          published_at?: string | null
+          sections?: Json
+          slug: string
+          speakable_intro: string
+          status?: string | null
+          subtitle?: string | null
+          tags?: string[] | null
+          title: string
+          updated_at?: string | null
+          worksheet_fields?: Json | null
+        }
+        Update: {
+          calculator_type?: string | null
+          canonical_url?: string | null
+          category?: string
+          cover_image_alt?: string | null
+          cover_image_url?: string | null
+          created_at?: string | null
+          download_count?: number | null
+          featured?: boolean | null
+          gated?: boolean | null
+          has_calculator?: boolean | null
+          has_worksheet?: boolean | null
+          hero_headline?: string
+          hreflang_es_url?: string | null
+          id?: string
+          json_ld_schema?: Json | null
+          language?: string | null
+          meta_description?: string
+          meta_title?: string
+          pdf_url?: string | null
+          published_at?: string | null
+          sections?: Json
+          slug?: string
+          speakable_intro?: string
+          status?: string | null
+          subtitle?: string | null
+          tags?: string[] | null
+          title?: string
+          updated_at?: string | null
+          worksheet_fields?: Json | null
+        }
+        Relationships: []
+      }
       broken_link_scans: {
         Row: {
           broken_links_found: number | null
