@@ -159,6 +159,8 @@ export const Footer: React.FC = () => {
               <Link to="/terms" className="hover:text-prime-gold transition-colors">Terms</Link>
               <span>|</span>
               <Link to="/disclosures" className="hover:text-prime-gold transition-colors">Disclosures</Link>
+              <span>|</span>
+              <Link to="/portal/login" className="hover:text-prime-gold transition-colors">Advisor Login</Link>
             </div>
           </div>
 
