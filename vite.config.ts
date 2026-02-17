@@ -149,9 +149,10 @@ export default defineConfig(({ mode }) => ({
   plugins: [
     react(), 
     mode === "development" && componentTagger(),
-    sitemapGenerator(),
-    staticPageGenerator(),
-    cloudflareFunctionsCopier(),
+    // SSG plugins disabled — they duplicate build.sh and cause timeouts in Lovable Cloud
+    // sitemapGenerator(),
+    // staticPageGenerator(),
+    // cloudflareFunctionsCopier(),
   ].filter(Boolean),
   resolve: {
     alias: {
