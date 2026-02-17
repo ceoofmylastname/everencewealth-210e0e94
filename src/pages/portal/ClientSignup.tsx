@@ -115,7 +115,8 @@ export default function ClientSignup() {
 
     setLoading(true);
     try {
-      // 1. Create auth user
+      // Create auth user — the database trigger handles creating
+      // the portal_users record and marking the invitation as accepted
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: invitation.email,
         password,
@@ -135,35 +136,6 @@ export default function ClientSignup() {
         setLoading(false);
         return;
       }
-
-      // 2. Create portal_users record
-      const { error: portalError } = await supabase.from("portal_users").insert({
-        auth_user_id: authData.user.id,
-        role: "client",
-        first_name: invitation.first_name,
-        last_name: invitation.last_name,
-        email: invitation.email,
-        phone: invitation.phone,
-        advisor_id: (await supabase
-          .from("advisors")
-          .select("portal_user_id")
-          .eq("id", invitation.advisor_id)
-          .single()
-          .then(r => r.data?.portal_user_id)) || null,
-      });
-
-      if (portalError) {
-        console.error("Portal user creation error:", portalError);
-        setError("Account created but portal setup failed. Please contact your advisor.");
-        setLoading(false);
-        return;
-      }
-
-      // 3. Mark invitation as accepted
-      await supabase
-        .from("client_invitations")
-        .update({ status: "accepted", accepted_at: new Date().toISOString() })
-        .eq("id", invitation.id);
 
       setSuccess(true);
     } catch {
