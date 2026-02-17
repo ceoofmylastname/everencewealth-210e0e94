@@ -1,60 +1,104 @@
 
 
-# Typeform-Style Assessment Page
+# Portal Bug Fixes: 5 Critical and High Issues
 
-## What We're Building
-A modern, full-screen assessment experience at `/assessment` -- similar to Typeform -- that walks visitors through a few questions about their tax-free retirement goals, collects their contact info, then celebrates with confetti and a personalized congratulations banner.
+## Overview
+The audit found 5 actionable issues. This plan fixes them all in one pass.
 
-## User Flow
+## Fix 1: Add UPDATE Policy on `portal_conversations` (Critical)
 
-1. **Slide 1**: "What is your primary retirement concern?" (multiple choice)
-2. **Slide 2**: "What is your current age range?" (multiple choice)  
-3. **Slide 3**: "How familiar are you with tax-free retirement strategies?" (multiple choice)
-4. **Slide 4**: Contact info form -- First Name, Last Name, Email, Phone
-5. **On Submit**: Form disappears, confetti bursts from both sides, and a banner appears: "Congratulations [First Name]! You've completed the assessment. A licensed advisor will contact you shortly."
+**Problem:** Both client and advisor messaging pages call `.update({ last_message_at })` on `portal_conversations` after sending messages. There is no UPDATE RLS policy, so these calls silently fail. Conversation ordering breaks.
 
-## Technical Plan
+**Solution:** Add an UPDATE policy allowing conversation participants to update their conversations.
 
-### 1. Database Table
-Create an `assessment_leads` table to store submissions:
-- `id` (uuid, primary key)
-- `first_name` (text, not null)
-- `last_name` (text, not null)
-- `email` (text, not null)
-- `phone` (text)
-- `retirement_concern` (text)
-- `age_range` (text)
-- `tax_strategy_familiarity` (text)
-- `created_at` (timestamptz)
+```sql
+CREATE POLICY "Participants can update conversations"
+ON public.portal_conversations FOR UPDATE
+TO authenticated
+USING (
+  advisor_id = get_portal_user_id(auth.uid())
+  OR client_id = get_portal_user_id(auth.uid())
+)
+WITH CHECK (
+  advisor_id = get_portal_user_id(auth.uid())
+  OR client_id = get_portal_user_id(auth.uid())
+);
+```
 
-RLS policy: Allow anonymous inserts (public-facing form), restrict reads to authenticated admins only.
+## Fix 2: Fix Document Downloads (Critical)
 
-### 2. New Page: `src/pages/Assessment.tsx`
-- Full-screen, dark glassmorphic background matching the brand aesthetic
-- One question per screen with smooth slide transitions (framer-motion)
-- Progress bar at top showing completion percentage
-- Keyboard-friendly: press Enter or click to advance
-- Back button to revisit previous questions
-- Final slide: validated contact form (zod + react-hook-form)
-- On submit: save to `assessment_leads`, trigger confetti + congratulations banner
+**Problem:** The `portal-documents` storage bucket is private, but `AdvisorDocuments.tsx` stores `getPublicUrl()` results in the database. These URLs return 403 for private buckets. Clients cannot download documents.
 
-### 3. Confetti Effect
-A custom canvas-based confetti animation that fires from both left and right edges of the screen when the form is submitted. No external library needed -- lightweight CSS/JS particle effect.
+**Solution:** 
+- In `AdvisorDocuments.tsx`: store only the **storage path** (not the full public URL) in the `file_url` column
+- In `ClientDocuments.tsx` and `ClientPolicyDetail.tsx`: generate signed URLs on the fly when users click Download
+- In `AdvisorDocuments.tsx` download button: also use signed URLs
 
-### 4. Congratulations Banner
-After confetti, a centered card fades in with:
-- "Congratulations, [First Name]!"
-- "You've completed the assessment"
-- "A licensed advisor will contact you shortly"
-- A button to return to the homepage
+## Fix 3: Enable Realtime on `policies` and `portal_documents` (High)
 
-### 5. Route Registration
-Add `/assessment` route to `src/App.tsx` pointing to the new Assessment page.
+**Problem:** Only `portal_messages` and `portal_notifications` are in the Realtime publication. When an advisor creates a policy or uploads a document, the client's page does not update until they manually refresh.
 
-### 6. Fix Hero Button
-The existing "Begin Assessment" link in the Hero already points to `/assessment` -- it will work automatically once the route exists.
+**Solution:** SQL migration to add these tables to the realtime publication:
+
+```sql
+ALTER PUBLICATION supabase_realtime ADD TABLE public.policies;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.portal_documents;
+```
+
+Note: The client pages don't currently have realtime subscriptions for these tables, but enabling publication is the prerequisite. Adding subscriptions to the client components will follow.
+
+## Fix 4: Add Client Self-Update RLS Policy (High)
+
+**Problem:** `portal_users` has no UPDATE policy for regular users. Clients cannot update their own profile (name, phone, avatar).
+
+**Solution:** Add a self-update policy:
+
+```sql
+CREATE POLICY "Users can update own portal record"
+ON public.portal_users FOR UPDATE
+TO authenticated
+USING (auth_user_id = auth.uid())
+WITH CHECK (auth_user_id = auth.uid());
+```
+
+## Fix 5: Auto-Create Notifications for Policy/Document Actions (High)
+
+**Problem:** When an advisor creates a policy or uploads a visible document, no notification is sent to the client. The notification system exists but is not triggered.
+
+**Solution:** Add a database trigger on `policies` INSERT that creates a notification, and modify the document upload code in `AdvisorDocuments.tsx` to also insert a notification when `is_client_visible = true`.
+
+Trigger for policies:
+```sql
+CREATE OR REPLACE FUNCTION public.notify_client_new_policy()
+RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public' AS $$
+BEGIN
+  INSERT INTO portal_notifications (user_id, title, message, notification_type, link)
+  VALUES (
+    NEW.client_id,
+    'New Policy Added',
+    'A new ' || REPLACE(NEW.product_type, '_', ' ') || ' policy from ' || NEW.carrier_name || ' has been added to your account.',
+    'policy',
+    '/portal/client/policies/' || NEW.id
+  );
+  RETURN NEW;
+END; $$;
+
+CREATE TRIGGER trg_notify_client_new_policy
+AFTER INSERT ON policies
+FOR EACH ROW EXECUTE FUNCTION notify_client_new_policy();
+```
+
+For documents: Add a JS-side notification insert in `AdvisorDocuments.tsx` after successful upload when `is_client_visible = true`.
 
 ## Files Changed
-- **New**: `src/pages/Assessment.tsx` -- the full assessment experience
-- **Modified**: `src/App.tsx` -- add the `/assessment` route
-- **Database**: Create `assessment_leads` table with RLS policies
+
+- **Database migration**: 1 migration with all SQL fixes (UPDATE policy, Realtime, self-update policy, notification trigger)
+- **Modified**: `src/pages/portal/advisor/AdvisorDocuments.tsx` -- fix storage path + add notification on upload
+- **Modified**: `src/pages/portal/client/ClientDocuments.tsx` -- use signed URLs for downloads
+- **Modified**: `src/pages/portal/client/ClientPolicyDetail.tsx` -- use signed URLs for document downloads
+
+## Technical Notes
+
+- The signed URL approach uses `supabase.storage.from('portal-documents').createSignedUrl(path, 3600)` which generates a 1-hour download link
+- The storage path format changes from full URL to relative path: `{advisor_id}/{client_id}/{timestamp}.{ext}`
+- Existing documents with full URLs in `file_url` need backward-compatible handling (check if URL contains the bucket domain or is a relative path)
