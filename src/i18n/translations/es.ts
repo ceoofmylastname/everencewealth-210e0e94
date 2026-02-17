@@ -1116,11 +1116,33 @@ export const es = {
         incentiveText: "Ayudarle a lograr independencia financiera y jubilarse exitosamente",
       },
     },
+    quote: {
+      text: "No trabajamos para Wall Street. No trabajamos para compañías de seguros. Trabajamos para familias que merecen transparencia, protección y un camino claro hacia la independencia financiera. Esa ha sido nuestra misión desde 1998, y nunca cambiará.",
+      author: "Steven Rosenberg",
+      role: "Fundador y Estratega Patrimonial Principal",
+      company: "Everence Wealth, Est. 1998",
+    },
     cta: {
-      headline: "Su Sesión de Estrategia le Espera",
-      subtitle: "Descubra cómo nuestro enfoque contrario puede proteger y hacer crecer su riqueza — sin ninguna obligación.",
-      primaryCta: "Agendar Sesión de Estrategia",
-      secondaryCta: "Llámenos Directamente",
+      headline: "¿Listo para Desafiar el Status Quo?",
+      subtitle: "Programe una Evaluación de Necesidades Financieras gratuita. Pondremos a prueba su plan actual contra comisiones, volatilidad e impuestos — sin ninguna obligación.",
+      primaryCta: "Agendar Evaluación",
+      secondaryCta: "Descargar Guía Gratuita",
+      benefits: [
+        "Sesión de estrategia de 90 minutos",
+        "Análisis completo de brecha de jubilación",
+        "Auditoría de Tres Cubos Fiscales",
+        "Cálculo de exposición a comisiones e impuestos",
+        "Recomendaciones sin compromiso",
+      ],
+      stats: {
+        familiesCount: "1,200+",
+        familiesLabel: "Familias ayudadas a cerrar la brecha de jubilación desde 1998",
+        miniStats: [
+          { value: "$0", label: "Comisiones AUM continuas" },
+          { value: "75+", label: "Asociaciones con aseguradoras" },
+          { value: "0%", label: "Protección de piso" },
+        ],
+      },
     },
   },
 };
