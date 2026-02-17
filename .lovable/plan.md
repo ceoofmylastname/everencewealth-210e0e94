@@ -1,100 +1,57 @@
 
 
-## Build Educational Brochure Library with Email Gate, PDF Downloads, and Related Guides
+## Move Brochures and State Pages to /admin under Content
 
-The database tables (`brochures`, `brochure_downloads`), storage bucket (`brochure-pdfs`), admin CMS (list + form), and public scaffold pages already exist. This plan adds the missing functionality: email gate modal, download tracking with counter increment, AI-powered brochure content generation for states, category filtering on the library page, related guides, sticky download CTA, and share buttons.
-
----
-
-### 1. Email Gate Modal Component (New)
-
-**File: `src/components/guides/EmailGateModal.tsx`**
-
-A Dialog-based modal triggered when users click "Download PDF" on gated brochures:
-- Form fields: Name, Email, Subscribe checkbox ("Send me Everence Wealth's weekly retirement planning insights")
-- On submit:
-  1. Insert into `brochure_downloads` (user_email, user_name, brochure_id, source_page)
-  2. Increment `brochures.download_count` via an RPC function (avoids race conditions)
-  3. If `pdf_url` exists, open it / trigger download
-  4. Show success toast
-- Privacy note at bottom
-- For non-gated brochures, clicking Download PDF just opens the PDF directly
-
-### 2. Database: Add Increment Download Count Function
-
-**Migration**: Create a `SECURITY DEFINER` function `increment_brochure_download_count(p_brochure_id UUID)` that atomically increments `brochures.download_count`. This avoids race conditions when multiple users download simultaneously. The RLS on brochures only allows admin writes, so this function needs to be `SECURITY DEFINER`.
-
-### 3. Enhanced Guide Page (`src/pages/GuidePage.tsx`)
-
-Upgrade the existing scaffold with:
-- **Email gate integration**: Wire "Download PDF" button to the EmailGateModal for gated brochures, or direct download for non-gated
-- **Share buttons**: LinkedIn, Email, Copy Link (in hero section)
-- **Sticky download CTA**: Fixed bottom bar on mobile with download button + download count
-- **Related guides**: Query 3 brochures from same category (excluding current), show as cards at bottom
-- **JSON-LD schema**: Render `json_ld_schema` from brochure data in a `<script>` tag
-- **Proper canonical/meta tags**: Using react-helmet
-
-### 4. Enhanced Guides Library (`src/pages/GuidesLibrary.tsx`)
-
-Upgrade the existing scaffold with:
-- **Category filter sidebar/bar**: Checkboxes or pills for tax_planning, retirement_strategies, iul_education, estate_planning
-- **Tag filter**: Show available tags as clickable pills
-- **Sort options**: Featured, Most Downloaded, Newest
-- **Featured section**: Top 3 featured brochures shown larger at the top with "Staff Pick" badge
-- **Search**: Text search by title
-
-### 5. AI Brochure Content Generator (New Edge Function)
-
-**File: `supabase/functions/generate-guide-content/index.ts`**
-
-An edge function that generates educational brochure content using Lovable AI (no API key needed):
-- Input: `category`, `topic`, `target_audience`, `language`
-- Uses the AI to generate:
-  - title, slug, hero_headline, subtitle, speakable_intro
-  - meta_title, meta_description
-  - 4-6 content sections with rich HTML
-  - Suggested tags
-- Saves directly to `brochures` table as draft
-- Returns the created brochure ID
-
-### 6. Admin: "Generate with AI" Button on Brochure Form
-
-**File: `src/pages/portal/admin/AdminBrochureForm.tsx`**
-
-Add a "Generate with AI" button at the top of the form that:
-- Opens a small dialog asking for topic, category, and target audience
-- Calls the `generate-guide-content` edge function
-- Pre-fills all form fields with the AI-generated content
-- Admin can then review, edit, and save
-
-### 7. Admin: Bulk State Guide Generator
-
-**File: `src/pages/portal/admin/AdminBrochures.tsx`**
-
-Add a "Generate State Guides" button that:
-- Lets admin select multiple states
-- Generates a retirement planning guide brochure for each selected state
-- Uses the edge function with state-specific context
-- Creates drafts in bulk for admin review
+The Brochures and State Pages management currently live under the Portal Admin sidebar (`/portal/admin/brochures`, `/portal/admin/state-pages`). You want them moved to the main admin site (`/admin/...`) under the **Content** navigation group, alongside Articles, Authors, and Location Pages.
 
 ---
 
-### Summary of Files
+### 1. Add New Routes Under /admin
 
-| File | Action |
+Add these routes to the main admin section in `src/App.tsx`:
+
+- `/admin/brochures/new` -- AdminBrochureForm (create)
+- `/admin/brochures/:id/edit` -- AdminBrochureForm (edit)
+- `/admin/state-pages` -- AdminStatePages
+
+The existing `/admin/brochures` route already points to `BrochureManager`. We will **replace** it with the newer `AdminBrochures` component (which has the bulk state guide generator and better UI), and add the sub-routes for create/edit.
+
+### 2. Update AdminLayout Sidebar Navigation
+
+In `src/components/AdminLayout.tsx`, update the "Content" nav group (lines 74-84) to add:
+
+- "State Pages" with MapPin icon at `/admin/state-pages`
+
+"Brochures" is already listed there (line 81), but currently points to the old `BrochureManager`. The route swap handles this automatically.
+
+### 3. Update Internal Links in AdminBrochures and AdminBrochureForm
+
+Update all `/portal/admin/brochures/...` links inside:
+- `src/pages/portal/admin/AdminBrochures.tsx` -- change links to `/admin/brochures/...`
+- `src/pages/portal/admin/AdminBrochureForm.tsx` -- change navigation to `/admin/brochures`
+- `src/pages/portal/admin/AdminStatePages.tsx` -- no portal-specific links to change (uses edge functions directly)
+
+### 4. Remove from Portal Admin
+
+In `src/components/portal/AdminPortalLayout.tsx`, remove the "Brochures" and "State Pages" entries from the `adminNav` array (lines 15-16).
+
+In `src/App.tsx`, remove the portal admin routes for brochures and state-pages (lines 376-379).
+
+### 5. Wrap Pages in AdminLayout
+
+The portal admin pages render inside `AdminPortalLayout` (dark sidebar). The main admin uses `AdminLayout`. The `AdminBrochures`, `AdminBrochureForm`, and `AdminStatePages` components don't wrap themselves in a layout (they rely on the parent `Outlet`), so they will work inside the main admin layout. However, the `/admin/...` routes use `AdminLayout` as a wrapper at the page level (each page wraps itself). We need to wrap these components in `AdminLayout` at the route level or inside the component.
+
+Looking at the pattern: `Articles` wraps itself in `<AdminLayout>`. So `AdminBrochures`, `AdminBrochureForm`, and `AdminStatePages` need to be wrapped similarly. We will create thin wrapper components or wrap them inline at the route level.
+
+---
+
+### Summary of Changes
+
+| File | Change |
 |---|---|
-| `src/components/guides/EmailGateModal.tsx` | Create - email capture modal |
-| `src/pages/GuidePage.tsx` | Rewrite - full feature page with email gate, share, sticky CTA, related guides |
-| `src/pages/GuidesLibrary.tsx` | Rewrite - filters, search, sort, featured section |
-| `supabase/functions/generate-guide-content/index.ts` | Create - AI content generation |
-| `src/pages/portal/admin/AdminBrochureForm.tsx` | Update - add AI generate button |
-| `src/pages/portal/admin/AdminBrochures.tsx` | Update - add bulk state guide generator |
-| Database migration | Create `increment_brochure_download_count` function |
-
-### Technical Notes
-
-- The `brochure_downloads` table already has public INSERT RLS, so anonymous users can submit download records
-- The `brochures` table has public SELECT for published status, admin-only write -- the increment function uses `SECURITY DEFINER` to bypass this
-- The `brochure-pdfs` storage bucket already exists and is public
-- PDF upload is manual for now (admin uploads PDF in the form); automated PDF generation can be added in a future phase
-- The edge function will use Lovable AI (google/gemini-2.5-flash) -- no API key needed
+| `src/App.tsx` | Replace `/admin/brochures` route with `AdminBrochures`, add `/admin/brochures/new`, `/admin/brochures/:id/edit`, `/admin/state-pages`. Remove portal admin brochure/state-page routes. |
+| `src/components/AdminLayout.tsx` | Add "State Pages" to Content nav group |
+| `src/components/portal/AdminPortalLayout.tsx` | Remove Brochures and State Pages from sidebar |
+| `src/pages/portal/admin/AdminBrochures.tsx` | Update all internal links from `/portal/admin/brochures/...` to `/admin/brochures/...`. Wrap content in `AdminLayout`. |
+| `src/pages/portal/admin/AdminBrochureForm.tsx` | Update navigation paths. Wrap in `AdminLayout`. |
+| `src/pages/portal/admin/AdminStatePages.tsx` | Wrap in `AdminLayout`. |
