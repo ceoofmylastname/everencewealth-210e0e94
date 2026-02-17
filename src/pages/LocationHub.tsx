@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ChevronRight, Compass, ChevronDown, TrendingUp, MapPin, Globe, BookOpen } from "lucide-react";
 import { useState, useEffect } from "react";
-import { OptimizedImage } from "@/components/OptimizedImage";
+
 
 // New components
 import { SpeakableHubIntro } from "@/components/location-hub/SpeakableHubIntro";
@@ -140,27 +140,26 @@ const LocationHub = () => {
       <Header variant="solid" />
       
       <main className="min-h-screen">
-        {/* Hero Section with Background Image */}
+        {/* Hero Section with Brand Gradient */}
         <section className="relative min-h-[85vh] flex items-center justify-center overflow-hidden">
-          {/* Background Image */}
-          <div className="absolute inset-0">
-            <OptimizedImage
-              src="https://images.unsplash.com/photo-1555990793-da11153b2473?w=1920&q=80"
-              alt="Aerial view of the Costa del Sol coastline, Spain"
-              className="w-full h-full object-cover"
-            />
-            {/* Gradient Overlay */}
-            <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-background" />
+          {/* Brand Gradient Background */}
+          <div className="absolute inset-0 bg-gradient-to-br from-[#0a2a1f] via-[#1A4D3E] to-[#0d1f1a]">
+            {/* Decorative Gold Blur Orbs */}
+            <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#C5A059]/10 rounded-full blur-3xl" />
+            <div className="absolute bottom-1/3 right-1/4 w-80 h-80 bg-[#C5A059]/8 rounded-full blur-3xl" />
+            <div className="absolute top-1/2 right-1/3 w-64 h-64 bg-emerald-400/5 rounded-full blur-3xl" />
+            {/* Bottom fade to background */}
+            <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-background to-transparent" />
           </div>
 
           {/* Speakable Summary - AI-optimized (screen reader accessible) */}
           <div id="speakable-summary" className="sr-only">
-            Del Sol Prime Homes Location Intelligence Hub provides comprehensive 
-            real estate guides for 11 cities across the Costa del Sol. Explore 
-            data-driven insights on property prices, investment yields, school 
-            zones, safety ratings, and cost of living analysis for Marbella, 
-            Estepona, Fuengirola, and more. Each guide includes expert recommendations
-            tailored to families, investors, retirees, and expats.
+            Everence Wealth Location Intelligence Hub provides comprehensive 
+            financial planning guides for cities across the United States. Explore 
+            data-driven insights on tax strategies, retirement planning, insurance 
+            coverage, estate planning, and cost of living analysis. Each guide 
+            includes expert recommendations tailored to families, retirees, 
+            business owners, and high-net-worth individuals.
           </div>
 
           <div className="container mx-auto px-4 relative z-10 text-center pt-24">
