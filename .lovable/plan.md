@@ -1,46 +1,39 @@
 
-## Add US Map Background Image to Location Hub Hero
 
-Generate a modern, stylized US map image using Lovable AI (Gemini 3 Pro Image) that matches the Everence Wealth brand aesthetic, then place it as a subtle background element in the Location Hub hero section.
+# Fix Agent Invitation Email Button
 
----
+## Problem
+When agents receive invitation emails, clicking the "Set Your Password" button does not work. There are two root causes:
 
-### Step 1: Generate the Map Image
+1. **Wrong redirect URL**: The `create-agent` backend function has a hardcoded app URL (`id-preview--...lovable.app`) that does not match the actual app domain (`...lovableproject.com`). When agents click the button, the authentication system redirects them to a non-existent or incorrect domain.
 
-Use an edge function (or inline AI call) with the `google/gemini-3-pro-image-preview` model to generate a modern, minimalist US map with these brand specs:
-- Deep evergreen (#1A4D3E) and dark (#0a2a1f) tones
-- Gold (#C5A059) accent lines or glowing dots on key city locations
-- Clean, editorial, institutional feel -- no cartoonish elements
-- Semi-transparent / dark enough to work as a background behind white text
+2. **Site URL configuration**: The authentication system needs to know the correct site URL to generate proper redirect links.
 
-Upload the result to the `article-images` storage bucket and get a public URL.
+## Solution
 
-### Step 2: Update `src/pages/LocationHub.tsx` Hero Section
+### Step 1: Fix the hardcoded URL in the `create-agent` backend function
+Update `supabase/functions/create-agent/index.ts` to dynamically determine the app URL from the request's `Origin` or `Referer` header, with a sensible fallback. This ensures the recovery link always redirects to the correct domain regardless of which environment (preview, published) is being used.
 
-Add the generated map image as a background layer within the existing hero gradient:
+### Step 2: Add allowed redirect URL configuration
+Ensure the authentication system's redirect URL allowlist includes both the preview and production domains so password reset redirects are not blocked.
 
-```
-<div className="absolute inset-0 bg-gradient-to-br from-[#0a2a1f] via-[#1A4D3E] to-[#0d1f1a]">
-  {/* US Map Background */}
-  <div className="absolute inset-0 flex items-center justify-center opacity-15">
-    <img src="{MAP_URL}" alt="" aria-hidden="true" className="w-full h-full object-contain max-w-5xl" />
-  </div>
-  {/* Existing gold blur orbs stay on top */}
-  <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#C5A059]/10 rounded-full blur-3xl" />
-  ...
-</div>
+### Technical Details
+
+**File: `supabase/functions/create-agent/index.ts`**
+- Replace the hardcoded `appUrl` constant with dynamic origin detection from the request headers
+- Fallback to the preview URL if no origin header is present
+- The `redirectTo` in `generateLink` will then point to the correct domain's `/portal/reset-password` page
+
+**Before:**
+```typescript
+const appUrl = "https://id-preview--29324b25-4616-48ca-967b-28e362789bf6.lovable.app";
 ```
 
-Key details:
-- The map renders at low opacity (~15%) so it subtly textures the background without competing with headline text
-- `aria-hidden="true"` and empty `alt` since it is decorative
-- Gold blur orbs layer on top for the existing luxury effect
-- The bottom gradient fade to `background` remains unchanged
+**After:**
+```typescript
+const origin = req.headers.get("origin") || req.headers.get("referer")?.replace(/\/$/, "") || "https://id-preview--29324b25-4616-48ca-967b-28e362789bf6.lovable.app";
+const appUrl = origin;
+```
 
-### Files Changed
+This single change ensures that whichever domain the admin is using when they invite the agent, the email link will redirect back to that same domain's reset password page.
 
-| File | Change |
-|---|---|
-| `src/pages/LocationHub.tsx` | Add `<img>` element for the US map inside the hero gradient container, between the gradient div and the gold orbs |
-
-No database changes needed. The image will be generated once and stored as a static asset.
