@@ -1,41 +1,27 @@
 
 
-## Replace All Logos with New Everence Wealth Logo
+## Optimize Stats Cards Layout (Desktop and Mobile)
 
-Swap every instance of the old logo image and the Shield icon placeholder with the new logo across all pages -- headers, footers, login screens, and landing pages.
+The "$500M+" stat value is getting clipped/cut off inside its glassmorphic card because the large font size (`text-7xl` on desktop) combined with padding doesn't leave enough room for wider values like "$500M+".
 
-### New Logo URL
-```
-https://storage.googleapis.com/msgsndr/TLhrYb7SRrWrly615tCI/media/6993ada8dcdadb155342f28e.png
-```
+### Changes
 
-### Files to Update
+**File: `src/components/homepage/Stats.tsx`**
 
-| File | Current Logo | Change |
+1. **Reduce font size for better fit** -- Change from `text-5xl md:text-7xl` to `text-4xl sm:text-5xl md:text-6xl` so values fit within cards across all breakpoints
+2. **Add `whitespace-nowrap`** to prevent values from wrapping to a second line
+3. **Reduce horizontal padding** on cards from `p-8 md:p-10` to `p-6 md:p-8` to give the text more room
+4. **Improve mobile grid** -- Use `grid-cols-2` on small screens instead of `grid-cols-1` so the 4 stat cards display in a compact 2x2 grid on mobile (matching the desktop feel), then `lg:grid-cols-4` for the full row
+5. **Add `overflow-hidden`** as a safety net so nothing bleeds outside the rounded card
+
+### Technical Details
+
+| Property | Before | After |
 |---|---|---|
-| `src/components/home/Header.tsx` | Old GCS image URL | Replace URL with new logo |
-| `src/components/home/Footer.tsx` | Shield icon + "Everence" text | Replace with new logo `<img>` tag, styled for dark background |
-| `src/components/landing/Footer.tsx` | Old GCS image URL | Replace URL |
-| `src/components/landing/LandingLayout.tsx` | Old GCS image URL (2 instances: mobile + desktop) | Replace both URLs |
-| `src/components/retargeting/RetargetingFooter.tsx` | Old GCS image URL | Replace URL |
-| `src/pages/RetargetingLanding.tsx` | Old GCS image URL | Replace URL |
-| `src/pages/crm/CrmLogin.tsx` | Old GCS image URL | Replace URL + update alt text |
-| `src/pages/crm/AgentLogin.tsx` | Old GCS image URL | Replace URL + update alt text |
-| `src/pages/apartments/ApartmentsLanding.tsx` | Old GCS image URL | Replace URL + update alt text |
-| `src/components/ApartmentsEditorLayout.tsx` | Local `logo.png` import | Replace with new logo URL |
+| Font size | `text-5xl md:text-7xl` | `text-4xl sm:text-5xl md:text-6xl` |
+| Card padding | `p-8 md:p-10` | `p-6 md:p-8` |
+| Grid columns | `grid-cols-1 sm:grid-cols-2 lg:grid-cols-4` | `grid-cols-2 lg:grid-cols-4` |
+| Text wrapping | none | `whitespace-nowrap` |
 
-### Styling Approach
-
-- **Light backgrounds** (landing pages, login screens): Logo displayed as-is with a subtle drop shadow
-- **Dark backgrounds** (home Footer on neutral-950): Logo with `brightness-0 invert` filter or displayed naturally if the logo works on dark, with the Shield icon + text block replaced by the actual logo image
-- **Header scroll states**: Maintain the existing brightness filter logic for transparent-to-solid transitions
-- Consistent sizing: `h-14 md:h-16` across most placements for visual harmony
-
-### Details
-
-This is a straightforward find-and-replace of the old URL:
-```
-https://storage.googleapis.com/msgsndr/9m2UBN29nuaCWceOgW2Z/media/6926151522d3b65c0becbaf4.png
-```
-with the new URL in all 10 files listed above. The home Footer additionally requires converting the Shield icon + text into an `<img>` element.
+Single file change, purely visual/layout fix.
 
