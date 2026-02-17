@@ -1026,6 +1026,38 @@ export const es = {
           ],
         },
       ],
+      sliderLabel: "Ajuste Su Asignación:",
+      warningPrefix: "Advertencia:",
+      warningSuffix: "en impuestos diferidos = enorme exposición fiscal en jubilación",
+      explanations: [
+        {
+          number: "1",
+          title: "Cubo 1: Gravable",
+          description: "Cuentas de corretaje, ahorros, CDs. Pagó impuestos sobre los depósitos, Y pagará ganancias de capital sobre el crecimiento. Doble tributación.",
+          taxRate: 20,
+          taxLabel: "Ganancias de Capital",
+        },
+        {
+          number: "2",
+          title: "Cubo 2: Impuestos Diferidos",
+          description: "401k, IRA Tradicional, 403b. Deducción fiscal hoy, pero pagará impuestos sobre ingresos ordinarios en CADA dólar retirado. Además, las RMDs fuerzan retiros lo necesite o no.",
+          taxRate: 37,
+          taxLabel: "Ingreso Ordinario",
+          extraBadge: "+ RMDs",
+        },
+        {
+          number: "3",
+          title: "Cubo 3: Libre de Impuestos",
+          description: "Roth IRA, Seguro de Vida Universal Indexado, Bonos Municipales. Pague impuestos sobre la semilla, nunca sobre la cosecha. Sin RMDs. Sin restricciones de edad.",
+          taxRate: 0,
+          taxLabel: "Libre de Impuestos Para Siempre",
+          extraBadge: "Sin RMDs",
+        },
+      ],
+      recommendation: {
+        title: "Recomendación de Everence Wealth:",
+        text: "Minimice el Cubo 1 (gravable). Maximice el Cubo 3 (libre de impuestos). Use el Cubo 2 (impuestos diferidos) estratégicamente solo hasta el match del empleador.",
+      },
     },
     cashFlow: {
       badge: "El Cambio Fundamental",
