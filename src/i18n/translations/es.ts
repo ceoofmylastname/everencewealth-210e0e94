@@ -1089,6 +1089,33 @@ export const es = {
         ],
       },
     },
+    wallStreet: {
+      headline: "Wall Street vs. Main Street",
+      left: {
+        title: "El Modelo de Wall Street",
+        items: [
+          { title: "Comisiones AUM Eternas", description: "1-2% anual, gane o pierda dinero" },
+          { title: "Riesgo de Volatilidad", description: '"Mantenga el rumbo" a través de caídas del 50%' },
+          { title: "Trampa de Impuestos Diferidos", description: "Pague impuestos a tasas futuras desconocidas" },
+          { title: "Productos Propietarios", description: "Venden lo que les genera MÁS dinero a ELLOS" },
+          { title: "Estándar de Idoneidad", description: 'Solo deben recomendar productos "adecuados", no los mejores' },
+        ],
+        incentiveLabel: "Su Incentivo:",
+        incentiveText: 'Mantener su dinero "bajo gestión" el mayor tiempo posible',
+      },
+      right: {
+        title: "El Modelo Everence",
+        items: [
+          { title: "Precios Transparentes", description: "Sin comisiones AUM continuas. Usted conserva lo que gana." },
+          { title: "Protección de Piso 0%", description: "Participe en el crecimiento, protegido contra pérdidas" },
+          { title: "Ingresos Exentos de Impuestos", description: "Pague impuestos una vez, retire libre de impuestos para siempre" },
+          { title: "75+ Asociaciones con Aseguradoras", description: "Corredor independiente. La mejor solución para USTED." },
+          { title: "Obligación Fiduciaria", description: "Legalmente obligados a actuar en SU mejor interés" },
+        ],
+        incentiveLabel: "Nuestro Incentivo:",
+        incentiveText: "Ayudarle a lograr independencia financiera y jubilarse exitosamente",
+      },
+    },
     cta: {
       headline: "Su Sesión de Estrategia le Espera",
       subtitle: "Descubra cómo nuestro enfoque contrario puede proteger y hacer crecer su riqueza — sin ninguna obligación.",

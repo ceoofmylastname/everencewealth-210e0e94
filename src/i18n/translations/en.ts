@@ -1116,6 +1116,33 @@ export const en = {
         ],
       },
     },
+    wallStreet: {
+      headline: "Wall Street vs. Main Street",
+      left: {
+        title: "The Wall Street Model",
+        items: [
+          { title: "AUM Fees Forever", description: "1-2% annually whether you make money or not" },
+          { title: "Market Volatility Risk", description: '"Stay the course" through 50% crashes' },
+          { title: "Tax-Deferred Trap", description: "Pay taxes at unknown future rates" },
+          { title: "Proprietary Products", description: "Sell what makes THEM the most money" },
+          { title: "Suitability Standard", description: 'Only required to recommend "suitable" products, not best' },
+        ],
+        incentiveLabel: "Their Incentive:",
+        incentiveText: 'Keep your money "under management" as long as possible',
+      },
+      right: {
+        title: "The Everence Model",
+        items: [
+          { title: "Transparent Pricing", description: "No ongoing AUM fees. You keep what you earn." },
+          { title: "0% Floor Protection", description: "Participate in growth, protected from losses" },
+          { title: "Tax-Exempt Income", description: "Pay taxes once, withdraw tax-free forever" },
+          { title: "75+ Carrier Partnerships", description: "Independent broker. Best solution for YOU." },
+          { title: "Fiduciary Obligation", description: "Legally required to act in YOUR best interest" },
+        ],
+        incentiveLabel: "Our Incentive:",
+        incentiveText: "Help you achieve financial independence and retire successfully",
+      },
+    },
     cta: {
       headline: "Your Strategy Session Awaits",
       subtitle: "Discover how our contrarian approach can protect and grow your wealth — with zero obligation.",

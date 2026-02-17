@@ -10,6 +10,7 @@ import { PhilosophyKillers } from '../components/philosophy/PhilosophyKillers';
 import { PhilosophyBuckets } from '../components/philosophy/PhilosophyBuckets';
 import { PhilosophyCashFlow } from '../components/philosophy/PhilosophyCashFlow';
 import { PhilosophyCTA } from '../components/philosophy/PhilosophyCTA';
+import { PhilosophyWallStreet } from '../components/philosophy/PhilosophyWallStreet';
 import { useTranslation } from '@/i18n/useTranslation';
 
 const Philosophy: React.FC = () => {
@@ -128,6 +129,7 @@ const Philosophy: React.FC = () => {
         <PhilosophyKillers />
         <PhilosophyBuckets />
         <PhilosophyCashFlow />
+        <PhilosophyWallStreet />
         <PhilosophyCTA />
       </main>
       <Footer />
