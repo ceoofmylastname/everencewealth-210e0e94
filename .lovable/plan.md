@@ -1,28 +1,37 @@
 
-
-# Fix: California (and other state pages) missing card images
+# Rebrand Location Pages: Remove Real Estate, Align to Financial Services
 
 ## Problem
-The `FeaturedCitiesSection` component uses a fallback image map (`CITY_FALLBACK_IMAGES`) when a location has no `featured_image_url`. The map only contains city-level slugs (los-angeles, austin, etc.) but no state-level slugs (california). The final fallback references `CITY_FALLBACK_IMAGES.marbella` which also does not exist, resulting in an undefined image URL and a blank gray card.
+Several location page components still contain legacy real estate language ("property buyers", "buyer profiles", "housing affordability", "Euro" icon, WhatsApp to a Spanish number, "10+ Languages"). These need to be updated to reflect Everence Wealth's identity as a US-based insurance and financial services firm.
 
-## Solution
-Two changes in `src/components/location-hub/FeaturedCitiesSection.tsx`:
+## Changes
 
-### 1. Add state-level fallback images
-Add entries like `"california"` to the `CITY_FALLBACK_IMAGES` map with appropriate Unsplash images for each state.
+### 1. `src/components/location/BestAreasSection.tsx`
+- Line 32: Change `"Top neighborhoods for property buyers"` to `"Top regions for retirement and wealth planning"`
 
-### 2. Add state-level metadata
-Add entries like `"california"` to the `CITY_METADATA` map so the overlay tags show meaningful data instead of generic defaults.
+### 2. `src/components/location/UseCaseSection.tsx`
+- Line 28: Change `"Ideal scenarios and buyer profiles"` to `"Ideal scenarios and client profiles"`
 
-### 3. Fix the broken final fallback
-Replace the non-existent `CITY_FALLBACK_IMAGES.marbella` reference (lines 158 and 230) with a generic default Unsplash URL, so any location without a specific fallback still gets a visible image.
+### 3. `src/components/location/CostBreakdownSection.tsx`
+- Line 1: Replace `Euro` icon import with `DollarSign`
+- Line 32: Replace `<Euro>` with `<DollarSign>`
+- Line 38: Change `"Current market prices and fees"` to `"Current costs and fee structures"`
 
-## Technical Details
+### 4. `src/components/location/LocationCTASection.tsx`
+- Line 60: The hardcoded fallback `"Connect with our local experts who can help you find your perfect property"` to `"Connect with our expert advisors who can help you build your financial strategy"` (matches the translation files which are already correct)
+- Line 82: Change WhatsApp link from `wa.me/34630039090` (Spanish number) to the Everence Wealth contact page `/contact`
+- Line 84: Change button text fallback from `"Contact via WhatsApp"` to `"Schedule a Consultation"`
+- Line 102: Change `"10+ Languages"` fallback to `"EN/ES"` (matches translation files)
+- Line 98: Change `"Licensed Agents"` fallback to `"Licensed Advisors"` (matches translation files)
 
-**File:** `src/components/location-hub/FeaturedCitiesSection.tsx`
+### 5. `src/components/location-hub/WhatToExpectSection.tsx`
+- Line 49: Change `"housing affordability"` in the Cash Flow card description to `"lifestyle affordability"` (both EN and ES versions)
 
-- Line 69-82: Add `'california': 'https://images.unsplash.com/photo-1449034446853-66c86144b0ad?w=800&q=80'` (or similar California landscape) to `CITY_FALLBACK_IMAGES`.
-- Line 24-37: Add `'california': { avgPrice: 'From $300K', bestFor: 'Diverse Economy', vibe: 'Golden State' }` to `CITY_METADATA`.
-- Lines 158 and 230: Change the fallback from `CITY_FALLBACK_IMAGES.marbella` (which is undefined) to a hardcoded generic cityscape URL like `'https://images.unsplash.com/photo-1486325212027-8081e485255e?w=800&q=80'`.
+### 6. `src/components/location-hub/FeaturedCitiesSection.tsx`
+- Lines 24-44: Change `avgPrice` labels from real estate prices like `"From $500K"` to financial planning context labels like `"High Cost of Living"`, `"Moderate Cost of Living"`, etc. -- these currently read as property prices which is misleading for a financial services firm.
 
-This is a purely cosmetic fix -- no database or backend changes needed. Once the admin generates images for the California state pages using the "Generate Image" button we added earlier, the AI-generated images will automatically replace these fallbacks.
+### 7. `src/pages/LocationPage.tsx`
+- Line 208: Change fallback `"Key takeaways for buyers"` to `"Key takeaways for clients"`
+
+## Summary
+Approximately 10-12 small text/icon swaps across 6 files. No schema changes, no backend changes, no new files.
