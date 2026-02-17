@@ -12,7 +12,7 @@ interface BucketCanvasProps {
 
 const BucketCanvas: React.FC<BucketCanvasProps> = ({ levels }) => (
   <Canvas
-    camera={{ position: [0, 1, 9], fov: 45 }}
+    camera={{ position: [0, 1, 9] as [number, number, number], fov: 45 }}
     dpr={[1, 2]}
     style={{ width: '100%', height: '100%' }}
   >
