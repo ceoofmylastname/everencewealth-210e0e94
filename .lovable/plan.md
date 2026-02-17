@@ -1,34 +1,37 @@
 
-# Fix Mobile Sticky CTA and Chat Button for Everence Wealth Branding
 
-## Problems Identified (from the screenshot)
+# Improve Text Visibility on Dark Sections
 
-1. **"Explore Homes" button** in the sticky mobile CTA bar -- leftover real estate text. Needs to be rebranded to a financial services CTA (e.g., "Get Started" or "Book a Call").
-2. **Emma avatar image** on the floating chat button -- shows a person's photo. Should be replaced with a branded icon (e.g., a `MessageCircle` icon styled with brand colors) instead of a human avatar.
-3. **Colors** -- the sticky bar uses a generic gold gradient; needs to use the Everence brand palette (Evergreen `#1A4D3E`, Gold `#D4AF37`, Slate `#4A5565`).
+## Problem
+Across the homepage, several sections use a near-black background (`#020806`) with extremely low-opacity white text (`text-white/25`, `text-white/30`, `text-white/40`). This makes the copy almost invisible to users -- particularly the Hero subline, badges, labels, and supporting text in the TaxBuckets and WealthPhilosophy sections.
 
-## Changes
+## Solution
+Increase text contrast across all dark-background sections while adding subtle visual enhancements (gradient accents, gold highlights) to maintain the premium editorial look without sacrificing readability.
 
-### 1. `src/components/blog-article/StickyMobileCTA.tsx`
-- Replace "Explore Homes" with "Get Started" and link to `/contact` instead of `/properties`
-- Replace `Home` icon with `Sparkles` or `ArrowRight`
-- Update gradient colors to use Evergreen (`from-[#1A4D3E]`) and Gold (`to-[#D4AF37]`)
-- Update the outline button border/text to use Evergreen
+## Files to Update
 
-### 2. `src/components/blog-article/BlogEmmaChat.tsx`
-- Remove the `emmaAvatar` image URL and the `<img>` tag
-- Replace the floating button with a styled icon-only button using `MessageCircle` inside a circle with Evergreen background and Gold accent (matching the brand, no human photo)
+### 1. `src/components/home/sections/Hero.tsx`
+- **Badge** (`text-white/40`): Bump to `text-white/60` with a subtle gold border accent
+- **"the"** (`text-white/40`): Increase to `text-white/50`
+- **sublineSmall** (`text-white/25` at 9px): Increase to `text-white/50` at `text-[10px]` and add a gold left-border accent or use `text-primary/60` for the gold color to make it pop
+- **Side text** (`text-white/30`): Increase to `text-white/40`
+- **HUD panel labels** (`text-white/30`): Increase to `text-white/45`
+- **HUD panel values** (`text-white/50`, `text-white/60`): Increase to `text-white/65` and `text-white/75`
 
----
+### 2. `src/components/homepage/TaxBuckets.tsx`
+- **Badge** (`text-white/40`): Increase to `text-white/55`
+- **Subtitle** (`text-white/40`): Increase to `text-white/55`
+- **Bucket labels** (`text-white/30`): Increase to `text-white/50`
+- **Bucket descriptions** (`text-white/40`, `text-white/60`): Increase to `text-white/55` and `text-white/70`
+- **Quote** (`text-white/30`): Increase to `text-white/50` with a gold tint via `text-primary/50`
 
-### Technical Details
+### 3. `src/components/homepage/WealthPhilosophy.tsx`
+- **Badge** (`text-white/30`): Increase to `text-white/50`
+- **Paragraph** (`text-white/50`): Increase to `text-white/65`
+- **List items** (`text-white/50`): Increase to `text-white/60`
+- **Living benefit descriptions** (`text-white/40`): Increase to `text-white/55`
+- **HLV paragraph** (`text-white/50`): Increase to `text-white/65`
 
-**StickyMobileCTA.tsx** -- key changes:
-- Import `Sparkles` instead of `Home`
-- Button text: "Get Started" / link: `/contact`
-- Primary button class: `bg-gradient-to-r from-[#1A4D3E] to-[#1A4D3E]/80 text-white shadow-xl shadow-[#1A4D3E]/30`
-- Outline button class: `border-2 border-[#1A4D3E] text-[#1A4D3E]`
+## Design Principle
+The goal is to raise minimum opacity from 25-30% to 45-55% for secondary text, and from 40-50% to 60-70% for body/supporting text, while keeping the visual hierarchy intact (headlines still brightest, labels still subtlest, but all readable).
 
-**BlogEmmaChat.tsx** -- key changes:
-- Remove `emmaAvatar` variable
-- Replace `<img>` with a `<div>` containing a `MessageCircle` icon, styled as a circular button with `bg-[#1A4D3E]` and a gold pulse dot
