@@ -1,87 +1,100 @@
 
 
-# Upgrade Philosophy Hero Section -- Modern, Sleek & Professional
+# Build Strategy Page 1: Indexed Universal Life (IUL)
 
 ## Overview
-Rewrite `PhilosophyHero.tsx` to replace the current glassmorphic card layout with a more modern, open composition featuring a cinematic staged reveal, refined typography hierarchy, horizontal stat ticker, and cleaner visual layering.
+Create the first of 4 premium strategy pages at `/:lang/strategies/iul`. This page will match the Philosophy page's elevated design with glassmorphism, Framer Motion animations, 3D elements, and full i18n/SEO support.
 
-## Current State
-- Full-screen evergreen section with mesh gradient background
-- Three parallax-tracked `MorphingBlob` elements
-- Grain overlay
-- Centered glassmorphic card containing badge, gold divider, headline, paragraph, and two CTA buttons
-- Bouncing scroll indicator at bottom
+## Page Sections (7 total)
 
-## What Changes
+### Section 1: Hero
+- Dark evergreen mesh gradient background with `MorphingBlob` elements
+- Cinematic staged reveal (gold line, badge, headline, subtitle, stat badges, CTAs)
+- Three animated stat badges: "Market-Linked Growth", "0% Floor Protection", "Tax-Free Withdrawals"
+- Primary CTA: "Get Personalized Illustration" + Secondary: "Compare to 401k"
+- Thin pulsing scroll indicator at bottom
 
-### Visual Upgrades
-1. **Remove the glassmorphic card wrapper** -- content floats directly on the background for a cleaner, more editorial feel
-2. **Staged cinematic reveal** -- a multi-step orchestrated animation sequence:
-   - Gold horizontal line draws in from center (0.3s)
-   - Badge fades up (0.5s)
-   - Headline reveals with blur-to-sharp + clip-path wipe (0.7s)
-   - Paragraph slides up with opacity (1.0s)
-   - Stat ticker bar slides up (1.2s)
-   - CTAs scale in (1.4s)
-3. **Horizontal stat ticker** between the paragraph and CTAs -- three key stats ("25+ Years", "1,200+ Families", "$0 AUM Fees") in a row with thin vertical dividers, adding credibility and visual weight
-4. **Refined background** -- keep the mesh gradient layers but reduce to 2 `MorphingBlob`s (cleaner), increase the grain overlay slightly for texture
-5. **Modernized CTAs** -- primary button gets a subtle shimmer/shine animation on hover; secondary button uses a clean outline with arrow reveal
-6. **Scroll indicator** replaced with a sleek thin line that pulses, instead of the chunky chevron
+### Section 2: Speakable Overview
+- White background with subtle grid pattern
+- `GlassCard` containing the speakable paragraph (educational, SEO-rich)
+- Three trust badges below: "Licensed in 50 States", "75+ Carrier Partners", "1,200+ Families Served"
+- JSON-LD SpeakableSpecification schema
 
-### i18n
-Add three stat entries to `philosophy.hero` in both `en.ts` and `es.ts`:
+### Section 3: How It Works (Interactive)
+- Cream background, 2-column layout (left: visual, right: steps)
+- Left side: Animated SVG diagram showing premium flow, index crediting, and floor protection (custom SVG, not React Three Fiber -- lighter weight and more reliable)
+- Interactive slider to simulate market performance (-50% to +50%)
+- Shows account value result with floor protection logic
+- Right side: 5 numbered `ProcessStep` items with staggered entrance animations and Lucide icons
 
-```text
-stats: [
-  { value: "25+", label: "Years" },
-  { value: "1,200+", label: "Families Served" },
-  { value: "$0", label: "AUM Fees" }
-]
-```
+### Section 4: IUL vs 401k Comparison
+- White background, full-width animated comparison table
+- Two columns: 401k (red-tinted) vs IUL (green-tinted)
+- 9 feature rows with staggered scroll reveal
+- Each row shows red X or green checkmark with value text
+- Winner badge at bottom with trophy icon in `GlassCard`
 
-### Component Architecture
-The file stays as a single component (`PhilosophyHero`) with no new sub-components needed. The stat ticker is a simple mapped array inline.
+### Section 5: Living Benefits
+- Cream-to-white gradient background
+- Three `GlassCard` items: Critical Illness, Chronic Illness, Terminal Illness
+- Each card with colored icon, description, benefit amount, real example
+- Hover tilt effect (CSS perspective transform, no R3F needed)
+- Client testimonial callout at bottom in `GlassCard`
 
-## Technical Details
+### Section 6: Who Should Consider IUL
+- White background, 2-column grid
+- Left: "Perfect For" -- green border, 6 items with checkmark icons
+- Right: "Not Ideal For" -- red border, 4 items with X icons
+- Staggered entrance animations
 
-### Files Modified
-- `src/components/philosophy/PhilosophyHero.tsx` -- full rewrite
-- `src/i18n/translations/en.ts` -- add `stats` array to `philosophy.hero`
-- `src/i18n/translations/es.ts` -- add `stats` array to `philosophy.hero`
+### Section 7: Final CTA (Lead Capture)
+- Dark evergreen-to-black gradient with `MorphingBlob`
+- Headline + subtitle
+- Glassmorphic dark form: Name, Email, Phone, Income Range dropdown
+- Submit button with gold styling
+- Privacy disclaimer text
 
-### No New Files or Dependencies
-Uses existing `framer-motion`, `lucide-react`, `MorphingBlob`, and `useTranslation`.
+## Technical Implementation
 
-### Animation Sequence (timeline)
+### New Files
+- `src/pages/strategies/IndexedUniversalLife.tsx` -- page component with SEO/schemas
+- `src/components/strategies/iul/IULHero.tsx`
+- `src/components/strategies/iul/IULSpeakable.tsx`
+- `src/components/strategies/iul/IULHowItWorks.tsx`
+- `src/components/strategies/iul/IULComparison.tsx`
+- `src/components/strategies/iul/IULLivingBenefits.tsx`
+- `src/components/strategies/iul/IULIdealClient.tsx`
+- `src/components/strategies/iul/IULCTA.tsx`
+- `src/components/strategies/shared/ProcessStep.tsx` -- reusable for all strategy pages
+- `src/components/strategies/shared/StatBadge.tsx` -- reusable
+- `src/components/strategies/shared/TrustBadge.tsx` -- reusable
+- `src/components/strategies/shared/ComparisonTable.tsx` -- reusable
+- `src/components/strategies/shared/StrategyFormCTA.tsx` -- reusable lead form
 
-```text
-0.0s ── Gold divider line scales from center
-0.3s ── Badge text fades + slides up
-0.5s ── Headline blur-to-sharp reveal
-0.9s ── Paragraph fades up
-1.1s ── Stats ticker slides up with stagger (each stat 0.1s apart)
-1.4s ── CTA buttons scale in
-```
+### Modified Files
+- `src/App.tsx` -- add route `/:lang/strategies/iul`
+- `src/i18n/translations/en.ts` -- add `strategies.iul` block
+- `src/i18n/translations/es.ts` -- add `strategies.iul` block
 
-### Layout Structure (top to bottom, all centered)
-1. Badge (uppercase tracking text, white/40)
-2. Gold gradient divider line (animated scaleX)
-3. Headline (large, bold, white, blur-to-sharp)
-4. Paragraph (white/60, max-w-2xl)
-5. Stats ticker row (3 stats with vertical dividers)
-6. CTA button pair (ghost + gold)
-7. Scroll indicator (thin animated line at bottom)
+### Reused Existing Components
+- `MorphingBlob` from philosophy
+- `GlassCard` from philosophy
+- `useAnimatedCounter` hook
+- `Header` and `Footer`
+- `Helmet` for SEO
 
-### Background Layers (back to front)
-1. Solid evergreen gradient base
-2. Two radial gradient overlays with `animate-mesh-shift`
-3. Two `MorphingBlob` elements at low opacity
-4. Grain texture overlay at 3% opacity
-5. Content (z-10)
+### SEO & Schemas
+- WebPage, Article, BreadcrumbList, Organization, and SpeakableSpecification JSON-LD
+- Hreflang tags (en, es, x-default)
+- Open Graph + Twitter Card meta
+- Canonical URL
 
-### What Is NOT Changed
-- No other Philosophy sections affected
-- Mouse-move parallax on blobs is preserved
-- All existing i18n keys retained (badge, headline, paragraph, ctaPrimary, ctaSecondary)
-- Section still has `speakable-section` class and `min-h-screen`
+### Design Decisions
+- Using custom SVG animations instead of React Three Fiber for the "How It Works" diagram -- significantly lighter, faster loading, and more reliable
+- The comparison table is a shared component that will be reused on Whole Life, Tax-Free Retirement, and Asset Protection pages
+- All elements use rounded corners (xl, 2xl, full) per the brand standard
+- Form submission will log to console for now (CRM integration can be added later)
+
+### No New Dependencies
+Uses existing `framer-motion`, `lucide-react`, `react-helmet`, and project utilities.
 
