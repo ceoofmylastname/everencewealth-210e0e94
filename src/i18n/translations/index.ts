@@ -3,12 +3,13 @@ import { en } from './en';
 import { es } from './es';
 
 // Use a flexible type that allows for optional properties across languages
-type TranslationBase = Omit<typeof en, 'brochures' | 'whyChooseUs' | 'team' | 'aboutUs' | 'homepage'> & { 
+type TranslationBase = Omit<typeof en, 'brochures' | 'whyChooseUs' | 'team' | 'aboutUs' | 'homepage' | 'philosophy'> & { 
   brochures: Record<string, unknown>;
   whyChooseUs?: typeof en.whyChooseUs;
   team?: typeof en.team;
   aboutUs?: Record<string, unknown>;
   homepage: typeof en.homepage;
+  philosophy: typeof en.philosophy;
 };
 
 export const translations: Record<Language, TranslationBase> = {

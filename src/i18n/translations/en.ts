@@ -927,4 +927,123 @@ export const en = {
       secondaryCta: "Call Us Direct",
     },
   },
+  philosophy: {
+    seo: {
+      title: "Our Philosophy: Contrarian Wealth Building | Everence Wealth",
+      description: "Discover Everence Wealth's contrarian financial philosophy: challenging Wall Street norms through tax-free strategies, 0% floor protection, and fiduciary guidance since 1998.",
+      breadcrumb: "Philosophy",
+    },
+    hero: {
+      badge: "Our Philosophy",
+      headline: "Challenging Wall Street Norms Since 1998",
+      paragraph: "We believe financial freedom comes from cash flow, not net worth. From tax-free income, not tax-deferred accumulation. From transparency, not hidden fees.",
+      ctaPrimary: "Explore Our Principles",
+      ctaSecondary: "Schedule Consultation",
+    },
+    killers: {
+      badge: "The Hidden Threats",
+      headline: "The Three Silent Killers of Wealth",
+      subheadline: "Most families lose 30–50% of their retirement savings to these three forces — and never see it coming.",
+      cards: [
+        {
+          id: "01",
+          title: "Hidden Fees",
+          description: "The average investor pays 2.5% in total annual fees — advisory fees, fund expenses, platform costs, and transaction charges. Over 30 years, this can consume over 40% of your portfolio's growth.",
+          stat: "40%",
+          statLabel: "of growth lost to fees",
+        },
+        {
+          id: "02",
+          title: "Market Volatility",
+          description: "A 50% loss requires a 100% gain just to break even. Sequence-of-returns risk means one major crash near retirement can permanently cut your income by 30% or more.",
+          stat: "100%",
+          statLabel: "gain needed to recover 50% loss",
+        },
+        {
+          id: "03",
+          title: "Tax Erosion",
+          description: "Tax-deferred accounts create a ticking tax bomb. Required Minimum Distributions force withdrawals at potentially the highest tax rates of your life — up to 37% federal.",
+          stat: "37%",
+          statLabel: "max federal rate on RMDs",
+        },
+      ],
+    },
+    buckets: {
+      badge: "Tax Strategy",
+      headline: "The Three Tax Buckets",
+      subheadline: "Every dollar you save falls into one of three tax categories. Understanding this changes everything about retirement planning.",
+      recommended: "Our Recommendation",
+      columns: [
+        {
+          id: "taxable",
+          name: "Taxable",
+          subtitle: "Brokerage accounts, savings, CDs",
+          recommended: false,
+          features: [
+            { label: "Taxed on gains annually", included: false },
+            { label: "Capital gains tax on growth", included: false },
+            { label: "No contribution limits", included: true },
+            { label: "Full liquidity access", included: true },
+            { label: "No tax-free income", included: false },
+            { label: "Estate tax exposure", included: false },
+          ],
+        },
+        {
+          id: "tax-deferred",
+          name: "Tax-Deferred",
+          subtitle: "401(k), Traditional IRA, 403(b)",
+          recommended: false,
+          features: [
+            { label: "Tax deduction on contributions", included: true },
+            { label: "Tax-deferred growth", included: true },
+            { label: "Required Minimum Distributions", included: false },
+            { label: "Taxed at ordinary income rates", included: false },
+            { label: "Early withdrawal penalties", included: false },
+            { label: "Unknown future tax rates", included: false },
+          ],
+        },
+        {
+          id: "tax-free",
+          name: "Tax-Free",
+          subtitle: "Roth IRA, IUL, Municipal Bonds",
+          recommended: true,
+          features: [
+            { label: "Tax-free growth", included: true },
+            { label: "Tax-free income in retirement", included: true },
+            { label: "No Required Minimum Distributions", included: true },
+            { label: "0% floor protection (IUL)", included: true },
+            { label: "Tax-free death benefit", included: true },
+            { label: "Living benefits access", included: true },
+          ],
+        },
+      ],
+    },
+    cashFlow: {
+      badge: "The Core Shift",
+      headline: "Cash Flow Mobility vs Net Worth Illusion",
+      barLabel: "Retirement Income Accessibility",
+      netWorth: {
+        title: "Net Worth Approach",
+        description: "Traditional planning fixates on accumulating a large portfolio — then praying the market cooperates when you need to withdraw. Your wealth is locked in volatile assets subject to taxes and timing.",
+        stats: [
+          { value: 4, prefix: "", suffix: "%", label: "Safe withdrawal rate" },
+          { value: 30, prefix: "", suffix: "%", label: "Potential tax on withdrawals" },
+        ],
+      },
+      cashFlowMobility: {
+        title: "Cash Flow Mobility",
+        description: "Our approach builds guaranteed, tax-free income streams you can never outlive. Your money works for you regardless of market conditions — with a 0% floor that protects against losses.",
+        stats: [
+          { value: 0, prefix: "", suffix: "%", label: "Floor protection" },
+          { value: 100, prefix: "", suffix: "%", label: "Tax-free income" },
+        ],
+      },
+    },
+    cta: {
+      headline: "Your Strategy Session Awaits",
+      subtitle: "Discover how our contrarian approach can protect and grow your wealth — with zero obligation.",
+      primaryCta: "Schedule Strategy Session",
+      secondaryCta: "Call Us Direct",
+    },
+  },
 };
