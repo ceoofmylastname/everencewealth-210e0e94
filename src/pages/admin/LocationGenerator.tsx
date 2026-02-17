@@ -33,18 +33,18 @@ const intentOptions = [
 ];
 
 const cityOptions = [
-  'New York',
-  'Los Angeles',
-  'Chicago',
-  'Houston',
-  'Phoenix',
-  'San Diego',
-  'Dallas',
-  'Miami',
-  'San Francisco',
-  'Denver',
-  'Austin',
-  'Seattle',
+  'Los Angeles, CA',
+  'Austin, TX',
+  'Phoenix, AZ',
+  'New York, NY',
+  'Chicago, IL',
+  'Houston, TX',
+  'San Diego, CA',
+  'Dallas, TX',
+  'Miami, FL',
+  'San Francisco, CA',
+  'Denver, CO',
+  'Seattle, WA',
 ];
 
 interface GeneratedImage {

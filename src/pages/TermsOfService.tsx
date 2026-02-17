@@ -9,14 +9,14 @@ const sections = [
     icon: CheckCircle2,
     title: 'Acceptance of Terms',
     summary: 'By using our services, you agree to these terms.',
-    content: `By accessing and using the Del Sol Prime Homes website and services, you acknowledge that you have read, understood, and agree to be bound by these Terms of Service. If you do not agree with any part of these terms, please do not use our services. We reserve the right to modify these terms at any time, and your continued use constitutes acceptance of such modifications.`
+    content: `By accessing and using the Everence Wealth website and services, you acknowledge that you have read, understood, and agree to be bound by these Terms of Service. If you do not agree with any part of these terms, please do not use our services. We reserve the right to modify these terms at any time, and your continued use constitutes acceptance of such modifications.`
   },
   {
     id: 'services',
     icon: Users,
     title: 'Our Services',
     summary: 'What we offer and how we operate.',
-    content: `Del Sol Prime Homes provides real estate brokerage services on the Costa del Sol, Spain. Our services include property search and matching, consultation and advisory services, property viewing arrangements, negotiation assistance, and transaction coordination. Emma, our AI assistant, provides initial guidance but does not replace professional advice. All property listings are subject to availability and verification.`
+    content: `Everence Wealth provides financial advisory, insurance, and wealth management services across the United States. Our services include retirement planning, insurance solutions, estate planning, tax-advantaged strategies, and investment advisory. Emma, our AI assistant, provides initial guidance but does not replace professional financial advice. All financial products are subject to availability and regulatory approval.`
   },
   {
     id: 'user-conduct',
@@ -30,28 +30,28 @@ const sections = [
     icon: AlertTriangle,
     title: 'Limitation of Liability',
     summary: 'Understanding the scope of our responsibility.',
-    content: `While we strive to provide accurate property information, Del Sol Prime Homes is not liable for inaccuracies in third-party listings, decisions made based on AI assistant responses, market fluctuations affecting property values, delays or interruptions in service, or losses arising from transactions. Our maximum liability is limited to the fees paid for our services. We recommend independent verification of all property details.`
+    content: `While we strive to provide accurate financial information, Everence Wealth is not liable for inaccuracies in third-party data, decisions made based on AI assistant responses, market fluctuations affecting investment values, delays or interruptions in service, or losses arising from financial decisions. Our maximum liability is limited to the fees paid for our services. We recommend independent verification of all financial details and consultation with licensed professionals.`
   },
   {
     id: 'intellectual',
     icon: FileText,
     title: 'Intellectual Property',
     summary: 'Ownership and usage rights of our content.',
-    content: `All content on this website, including text, graphics, logos, images, and software, is the property of Del Sol Prime Homes or its content suppliers and is protected by international copyright laws. You may not reproduce, distribute, modify, or create derivative works without our express written permission. The "Del Sol Prime Homes" name and logo are registered trademarks.`
+    content: `All content on this website, including text, graphics, logos, images, and software, is the property of Everence Wealth or its content suppliers and is protected by United States copyright laws. You may not reproduce, distribute, modify, or create derivative works without our express written permission. The "Everence Wealth" name and logo are registered trademarks.`
   },
   {
     id: 'disputes',
     icon: Gavel,
     title: 'Dispute Resolution',
     summary: 'How we handle disagreements.',
-    content: `Any disputes arising from these Terms or your use of our services shall be governed by Spanish law. We encourage resolution through direct communication first. If unresolved, disputes may be submitted to mediation before pursuing legal action. The courts of Málaga, Spain shall have exclusive jurisdiction. For consumer disputes within the EU, you may also use the Online Dispute Resolution platform.`
+    content: `Any disputes arising from these Terms or your use of our services shall be governed by the laws of the State of California, United States. We encourage resolution through direct communication first. If unresolved, disputes may be submitted to mediation or arbitration before pursuing legal action. The federal and state courts located in the State of California shall have exclusive jurisdiction.`
   },
   {
     id: 'contact',
     icon: HelpCircle,
     title: 'Contact Information',
     summary: 'How to reach us for questions.',
-    content: `For questions about these Terms of Service, please contact us at: Del Sol Prime Homes, ED SAN FERNAN, C. Alfonso XIII, 6, 1 OFICINA, 29640 Fuengirola, Málaga, Spain. Email: info@delsolprimehomes.com. We aim to respond to all inquiries within 2 business days.`
+    content: `For questions about these Terms of Service, please contact us at: Everence Wealth, United States. Email: info@everencewealth.com. We aim to respond to all inquiries within 2 business days.`
   }
 ];
 
@@ -90,7 +90,7 @@ const TermsOfService: React.FC = () => {
               <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
               <span>Back to Home</span>
             </Link>
-            <div className="text-[#C4A053] font-serif text-xl">DEL SOL PRIME HOMES</div>
+            <div className="text-[#C4A053] font-serif text-xl">EVERENCE WEALTH</div>
           </div>
         </div>
       </header>
@@ -198,7 +198,7 @@ const TermsOfService: React.FC = () => {
           <h2 className="text-2xl font-serif mb-8 text-center text-white">Key Points to Remember</h2>
           <div className="grid md:grid-cols-3 gap-6">
             {[
-              { title: 'Your Data', desc: 'Protected under GDPR with your explicit consent' },
+              { title: 'Your Data', desc: 'Protected with your explicit consent' },
               { title: 'Our Commitment', desc: 'Transparent, professional, and ethical service' },
               { title: 'Your Rights', desc: 'Access, modify, or delete your information anytime' }
             ].map((point, i) => (
@@ -229,7 +229,7 @@ const TermsOfService: React.FC = () => {
             Our team is happy to explain any aspect of these terms in plain language.
           </p>
           <a
-            href="mailto:info@delsolprimehomes.com"
+            href="mailto:info@everencewealth.com"
             className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-[#C4A053] to-[#8B7355] text-white rounded-full font-medium hover:shadow-lg hover:shadow-[#C4A053]/20 transition-all hover:-translate-y-1"
           >
             <HelpCircle className="w-5 h-5" />
@@ -242,7 +242,7 @@ const TermsOfService: React.FC = () => {
       <footer className="relative z-10 py-6 border-t border-white/5 bg-[#0a0f1a]">
         <div className="container mx-auto px-6">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-gray-500">
-            <p>© {new Date().getFullYear()} Del Sol Prime Homes. All rights reserved.</p>
+            <p>© {new Date().getFullYear()} Everence Wealth. All rights reserved.</p>
             <div className="flex gap-6">
               <Link to="/privacy" className="hover:text-[#C4A053] transition-colors">Privacy Policy</Link>
               <Link to="/terms" className="hover:text-[#C4A053] transition-colors">Terms of Service</Link>

@@ -22,17 +22,18 @@ interface FeaturedCitiesSectionProps {
 
 // City metadata for overlay tags
 const CITY_METADATA: Record<string, { avgPrice: string; bestFor: string; vibe: string }> = {
-  marbella: { avgPrice: 'From €650K', bestFor: 'Luxury & Golf', vibe: 'Glamorous' },
-  estepona: { avgPrice: 'From €350K', bestFor: 'Authentic Spain', vibe: 'Charming' },
-  fuengirola: { avgPrice: 'From €250K', bestFor: 'Families & Expats', vibe: 'Vibrant' },
-  benalmadena: { avgPrice: 'From €280K', bestFor: 'Beach & Nightlife', vibe: 'Lively' },
-  torremolinos: { avgPrice: 'From €220K', bestFor: 'Budget Friendly', vibe: 'Bustling' },
-  malaga: { avgPrice: 'From €300K', bestFor: 'City & Culture', vibe: 'Urban' },
-  casares: { avgPrice: 'From €400K', bestFor: 'Rural Retreat', vibe: 'Peaceful' },
-  mijas: { avgPrice: 'From €320K', bestFor: 'Village Charm', vibe: 'Picturesque' },
-  nerja: { avgPrice: 'From €280K', bestFor: 'Natural Beauty', vibe: 'Relaxed' },
-  'la-cala': { avgPrice: 'From €350K', bestFor: 'Golf & Beach', vibe: 'Exclusive' },
-  benahavis: { avgPrice: 'From €500K', bestFor: 'Mountain Views', vibe: 'Serene' },
+  'los-angeles': { avgPrice: 'From $500K', bestFor: 'Entertainment & Tech', vibe: 'Dynamic' },
+  'austin': { avgPrice: 'From $350K', bestFor: 'Tech & Music', vibe: 'Vibrant' },
+  'phoenix': { avgPrice: 'From $300K', bestFor: 'Retirement & Growth', vibe: 'Sunny' },
+  'new-york': { avgPrice: 'From $600K', bestFor: 'Finance & Culture', vibe: 'Fast-Paced' },
+  'chicago': { avgPrice: 'From $250K', bestFor: 'Business & Architecture', vibe: 'Urban' },
+  'houston': { avgPrice: 'From $250K', bestFor: 'Energy & Medical', vibe: 'Diverse' },
+  'san-diego': { avgPrice: 'From $550K', bestFor: 'Biotech & Military', vibe: 'Coastal' },
+  'dallas': { avgPrice: 'From $300K', bestFor: 'Business & Sports', vibe: 'Ambitious' },
+  'miami': { avgPrice: 'From $400K', bestFor: 'International Finance', vibe: 'Tropical' },
+  'san-francisco': { avgPrice: 'From $800K', bestFor: 'Tech & Innovation', vibe: 'Progressive' },
+  'denver': { avgPrice: 'From $400K', bestFor: 'Outdoors & Tech', vibe: 'Active' },
+  'seattle': { avgPrice: 'From $500K', bestFor: 'Tech & Nature', vibe: 'Green' },
 };
 
 const LOCALIZED_CONTENT: Record<string, {
@@ -46,106 +47,38 @@ const LOCALIZED_CONTENT: Record<string, {
 }> = {
   en: {
     sectionTitle: "Explore by City",
-    sectionSubtitle: "Select a city to discover comprehensive guides with property insights, lifestyle data, and investment analysis.",
+    sectionSubtitle: "Select a city to discover comprehensive guides with financial insights, lifestyle data, and wealth planning analysis.",
     guidesLabel: "guides",
     guideLabel: "guide",
     exploreLabel: "Explore Guides",
     noGuides: "No Location Guides Yet",
-    noGuidesSubtitle: "Location intelligence pages are coming soon. Check back later for comprehensive guides to Costa del Sol cities."
+    noGuidesSubtitle: "Location intelligence pages are coming soon. Check back later for comprehensive guides."
   },
-  nl: {
-    sectionTitle: "Verken per Stad",
-    sectionSubtitle: "Selecteer een stad om uitgebreide gidsen te ontdekken met vastgoedinzichten, levensstijldata en investeringsanalyse.",
-    guidesLabel: "gidsen",
-    guideLabel: "gids",
-    exploreLabel: "Gidsen Verkennen",
-    noGuides: "Nog Geen Locatiegidsen",
-    noGuidesSubtitle: "Locatie-intelligentiepagina's komen binnenkort. Kom later terug voor uitgebreide gidsen."
-  },
-  de: {
-    sectionTitle: "Nach Stadt Erkunden",
-    sectionSubtitle: "Wählen Sie eine Stadt, um umfassende Führer mit Immobilieneinblicken, Lebensstildaten und Investitionsanalysen zu entdecken.",
-    guidesLabel: "Führer",
-    guideLabel: "Führer",
-    exploreLabel: "Führer Erkunden",
-    noGuides: "Noch Keine Standortführer",
-    noGuidesSubtitle: "Standort-Intelligenzseiten kommen bald. Schauen Sie später für umfassende Führer vorbei."
-  },
-  fr: {
-    sectionTitle: "Explorer par Ville",
-    sectionSubtitle: "Sélectionnez une ville pour découvrir des guides complets avec des aperçus immobiliers, des données lifestyle et une analyse d'investissement.",
-    guidesLabel: "guides",
-    guideLabel: "guide",
-    exploreLabel: "Explorer les Guides",
-    noGuides: "Pas Encore de Guides",
-    noGuidesSubtitle: "Les pages d'intelligence de localisation arrivent bientôt. Revenez plus tard."
-  },
-  sv: {
-    sectionTitle: "Utforska per Stad",
-    sectionSubtitle: "Välj en stad för att upptäcka omfattande guider med fastighetsinsikter, livsstilsdata och investeringsanalys.",
-    guidesLabel: "guider",
-    guideLabel: "guide",
-    exploreLabel: "Utforska Guider",
-    noGuides: "Inga Platsguider Ännu",
-    noGuidesSubtitle: "Platsintelligensidor kommer snart. Kom tillbaka senare."
-  },
-  no: {
-    sectionTitle: "Utforsk etter By",
-    sectionSubtitle: "Velg en by for å oppdage omfattende guider med eiendomsinnsikt, livsstilsdata og investeringsanalyse.",
-    guidesLabel: "guider",
-    guideLabel: "guide",
-    exploreLabel: "Utforsk Guider",
-    noGuides: "Ingen Stedsguider Ennå",
-    noGuidesSubtitle: "Stedsintelligensider kommer snart. Kom tilbake senere."
-  },
-  da: {
-    sectionTitle: "Udforsk efter By",
-    sectionSubtitle: "Vælg en by for at opdage omfattende guider med ejendomsindsigt, livsstilsdata og investeringsanalyse.",
-    guidesLabel: "guider",
-    guideLabel: "guide",
-    exploreLabel: "Udforsk Guider",
-    noGuides: "Ingen Stedguider Endnu",
-    noGuidesSubtitle: "Stedintelligensider kommer snart. Kom tilbage senere."
-  },
-  fi: {
-    sectionTitle: "Tutustu Kaupungeittain",
-    sectionSubtitle: "Valitse kaupunki löytääksesi kattavat oppaat kiinteistönäkymillä, elämäntapadatalla ja sijoitusanalyysillä.",
-    guidesLabel: "opasta",
-    guideLabel: "opas",
-    exploreLabel: "Tutustu Oppaisiin",
-    noGuides: "Ei Sijaintioppaita Vielä",
-    noGuidesSubtitle: "Sijaintiälysivut tulossa pian. Tule takaisin myöhemmin."
-  },
-  pl: {
-    sectionTitle: "Przeglądaj według Miasta",
-    sectionSubtitle: "Wybierz miasto, aby odkryć kompleksowe przewodniki z analizą nieruchomości, danymi o stylu życia i analizą inwestycyjną.",
-    guidesLabel: "przewodników",
-    guideLabel: "przewodnik",
-    exploreLabel: "Przeglądaj Przewodniki",
-    noGuides: "Brak Przewodników po Lokalizacjach",
-    noGuidesSubtitle: "Strony inteligencji lokalizacji już wkrótce. Sprawdź później."
-  },
-  hu: {
-    sectionTitle: "Fedezze Fel Városonként",
-    sectionSubtitle: "Válasszon egy várost, hogy átfogó útmutatókat találjon ingatlan-betekintésekkel, életmód-adatokkal és befektetési elemzéssel.",
-    guidesLabel: "útmutató",
-    guideLabel: "útmutató",
-    exploreLabel: "Útmutatók Felfedezése",
-    noGuides: "Még Nincs Helyszín Útmutató",
-    noGuidesSubtitle: "A helyszín intelligencia oldalak hamarosan érkeznek. Nézzen vissza később."
+  es: {
+    sectionTitle: "Explorar por Ciudad",
+    sectionSubtitle: "Seleccione una ciudad para descubrir guías completas con información financiera y análisis de planificación patrimonial.",
+    guidesLabel: "guías",
+    guideLabel: "guía",
+    exploreLabel: "Explorar Guías",
+    noGuides: "Sin Guías de Ubicación Aún",
+    noGuidesSubtitle: "Las páginas de inteligencia de ubicación están en camino. Vuelva más tarde."
   }
 };
 
 // Fallback images for cities without custom images
 const CITY_FALLBACK_IMAGES: Record<string, string> = {
-  marbella: 'https://images.unsplash.com/photo-1555990793-da11153b2473?w=800&q=80',
-  estepona: 'https://images.unsplash.com/photo-1509840841025-9088ba78a826?w=800&q=80',
-  fuengirola: 'https://images.unsplash.com/photo-1504019347908-b45f9b0b8dd5?w=800&q=80',
-  benalmadena: 'https://images.unsplash.com/photo-1534067783941-51c9c23ecefd?w=800&q=80',
-  malaga: 'https://images.unsplash.com/photo-1585208798174-6cedd86e019a?w=800&q=80',
-  torremolinos: 'https://images.unsplash.com/photo-1583422409516-2895a77efded?w=800&q=80',
-  casares: 'https://images.unsplash.com/photo-1489392191049-fc10c97e64b6?w=800&q=80',
-  mijas: 'https://images.unsplash.com/photo-1504019347908-b45f9b0b8dd5?w=800&q=80'
+  'los-angeles': 'https://images.unsplash.com/photo-1534190760961-74e8c1c5c3da?w=800&q=80',
+  'austin': 'https://images.unsplash.com/photo-1531218150217-54595bc2b934?w=800&q=80',
+  'phoenix': 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80',
+  'new-york': 'https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?w=800&q=80',
+  'chicago': 'https://images.unsplash.com/photo-1494522855154-9297ac14b55f?w=800&q=80',
+  'houston': 'https://images.unsplash.com/photo-1530089711124-9ca31fb9e863?w=800&q=80',
+  'san-diego': 'https://images.unsplash.com/photo-1538097304804-2a1b932466a9?w=800&q=80',
+  'dallas': 'https://images.unsplash.com/photo-1545194445-dddb8f4487c6?w=800&q=80',
+  'miami': 'https://images.unsplash.com/photo-1506966953602-c20cc11f75e3?w=800&q=80',
+  'san-francisco': 'https://images.unsplash.com/photo-1501594907352-04cda38ebc29?w=800&q=80',
+  'denver': 'https://images.unsplash.com/photo-1546156929-a4c0ac411f47?w=800&q=80',
+  'seattle': 'https://images.unsplash.com/photo-1502175353174-a7a70e73b4c3?w=800&q=80',
 };
 
 export const FeaturedCitiesSection: React.FC<FeaturedCitiesSectionProps> = ({ 
@@ -155,9 +88,9 @@ export const FeaturedCitiesSection: React.FC<FeaturedCitiesSectionProps> = ({
 }) => {
   const content = LOCALIZED_CONTENT[language] || LOCALIZED_CONTENT.en;
 
-  // Sort cities: featured first (Marbella, Estepona, Fuengirola), then by guide count
+  // Sort cities: featured first, then by guide count
   const sortedCities = React.useMemo(() => {
-    const featured = ['marbella', 'estepona', 'fuengirola'];
+    const featured = ['los-angeles', 'austin', 'phoenix'];
     return [...cities].sort((a, b) => {
       const aFeatured = featured.indexOf(a.city_slug);
       const bFeatured = featured.indexOf(b.city_slug);
@@ -223,8 +156,8 @@ export const FeaturedCitiesSection: React.FC<FeaturedCitiesSectionProps> = ({
         <div className="grid md:grid-cols-3 gap-6 mb-8">
           {featuredCities.map((city, index) => {
             const imageUrl = city.image || CITY_FALLBACK_IMAGES[city.city_slug] || CITY_FALLBACK_IMAGES.marbella;
-            const imageAlt = city.imageAlt || `Aerial view of ${city.city_name}, Costa del Sol`;
-            const metadata = CITY_METADATA[city.city_slug] || { avgPrice: 'From €300K', bestFor: 'Lifestyle', vibe: 'Mediterranean' };
+            const imageAlt = city.imageAlt || `Aerial view of ${city.city_name}`;
+            const metadata = CITY_METADATA[city.city_slug] || { avgPrice: 'From $300K', bestFor: 'Lifestyle', vibe: 'Modern' };
 
             return (
               <Link
@@ -270,7 +203,7 @@ export const FeaturedCitiesSection: React.FC<FeaturedCitiesSectionProps> = ({
                     <h3 className="text-2xl md:text-3xl font-serif font-bold text-white mb-1 group-hover:text-primary transition-colors">
                       {city.city_name}
                     </h3>
-                    <p className="text-white/70 text-sm mb-3">{city.region}, Spain</p>
+                    <p className="text-white/70 text-sm mb-3">{city.region}</p>
                     
                     {/* CTA */}
                     <div className="flex items-center gap-2 text-primary font-medium text-sm opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300">
@@ -295,7 +228,7 @@ export const FeaturedCitiesSection: React.FC<FeaturedCitiesSectionProps> = ({
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
             {otherCities.map((city, index) => {
               const imageUrl = city.image || CITY_FALLBACK_IMAGES[city.city_slug] || CITY_FALLBACK_IMAGES.marbella;
-              const metadata = CITY_METADATA[city.city_slug] || { avgPrice: 'From €300K', bestFor: 'Lifestyle', vibe: 'Mediterranean' };
+              const metadata = CITY_METADATA[city.city_slug] || { avgPrice: 'From $300K', bestFor: 'Lifestyle', vibe: 'Modern' };
 
               return (
                 <Link
@@ -308,7 +241,7 @@ export const FeaturedCitiesSection: React.FC<FeaturedCitiesSectionProps> = ({
                   <div className="absolute inset-0">
                     <OptimizedImage
                       src={imageUrl}
-                      alt={`${city.city_name}, Costa del Sol`}
+                      alt={city.city_name}
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
