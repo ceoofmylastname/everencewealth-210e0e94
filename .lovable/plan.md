@@ -1,100 +1,85 @@
 
 
-# Build Strategy Page 1: Indexed Universal Life (IUL)
+# Build Strategy Page 2: Whole Life Insurance
 
 ## Overview
-Create the first of 4 premium strategy pages at `/:lang/strategies/iul`. This page will match the Philosophy page's elevated design with glassmorphism, Framer Motion animations, 3D elements, and full i18n/SEO support.
+Create the second strategy page at `/:lang/strategies/whole-life` following the exact same architecture and component patterns established by the IUL page.
 
 ## Page Sections (7 total)
 
 ### Section 1: Hero
-- Dark evergreen mesh gradient background with `MorphingBlob` elements
-- Cinematic staged reveal (gold line, badge, headline, subtitle, stat badges, CTAs)
-- Three animated stat badges: "Market-Linked Growth", "0% Floor Protection", "Tax-Free Withdrawals"
-- Primary CTA: "Get Personalized Illustration" + Secondary: "Compare to 401k"
-- Thin pulsing scroll indicator at bottom
+- Same cinematic staged reveal pattern as IUL (gold line, badge, headline, subtitle, stat badges, CTAs)
+- Three stat badges: "Guaranteed Growth", "Tax-Free Dividends", "Infinite Banking"
+- Primary CTA: "Get Your Whole Life Quote" / Secondary: "Compare to IUL"
 
 ### Section 2: Speakable Overview
-- White background with subtle grid pattern
-- `GlassCard` containing the speakable paragraph (educational, SEO-rich)
-- Three trust badges below: "Licensed in 50 States", "75+ Carrier Partners", "1,200+ Families Served"
-- JSON-LD SpeakableSpecification schema
+- GlassCard with educational paragraph about whole life insurance
+- Same three trust badges (Licensed in 50 States, 75+ Carrier Partners, 1,200+ Families Served)
+- SpeakableSpecification JSON-LD
 
 ### Section 3: How It Works (Interactive)
-- Cream background, 2-column layout (left: visual, right: steps)
-- Left side: Animated SVG diagram showing premium flow, index crediting, and floor protection (custom SVG, not React Three Fiber -- lighter weight and more reliable)
-- Interactive slider to simulate market performance (-50% to +50%)
-- Shows account value result with floor protection logic
-- Right side: 5 numbered `ProcessStep` items with staggered entrance animations and Lucide icons
+- 2-column layout reusing ProcessStep shared component
+- Left side: Interactive SVG showing guaranteed vs. projected cash value growth over time (year slider from 1 to 30)
+- Visualization shows guaranteed cash value line vs. dividend-enhanced projection
+- Right side: 5 steps -- Pay Premium, Guaranteed Cash Value, Dividend Crediting, Policy Loans (Infinite Banking), Death Benefit
 
-### Section 4: IUL vs 401k Comparison
-- White background, full-width animated comparison table
-- Two columns: 401k (red-tinted) vs IUL (green-tinted)
-- 9 feature rows with staggered scroll reveal
-- Each row shows red X or green checkmark with value text
-- Winner badge at bottom with trophy icon in `GlassCard`
+### Section 4: Whole Life vs IUL Comparison
+- Reuses StrategyComparisonTable shared component
+- Left column: IUL (context: variable growth, market-linked)
+- Right column: Whole Life (context: guaranteed, conservative, dividend-paying)
+- Winner badge: "Choose Based on Your Goals"
 
-### Section 5: Living Benefits
-- Cream-to-white gradient background
-- Three `GlassCard` items: Critical Illness, Chronic Illness, Terminal Illness
-- Each card with colored icon, description, benefit amount, real example
-- Hover tilt effect (CSS perspective transform, no R3F needed)
-- Client testimonial callout at bottom in `GlassCard`
+### Section 5: Infinite Banking Concept
+- Replaces the "Living Benefits" section with content unique to whole life
+- Three GlassCards: "Be Your Own Bank", "Recapture Interest", "Generational Wealth"
+- Each with icon, description, and real example
+- Testimonial callout about infinite banking success story
 
-### Section 6: Who Should Consider IUL
-- White background, 2-column grid
-- Left: "Perfect For" -- green border, 6 items with checkmark icons
-- Right: "Not Ideal For" -- red border, 4 items with X icons
-- Staggered entrance animations
+### Section 6: Who Should Consider Whole Life
+- Same pattern as IUL (GlassCard grid, Perfect For / Not Ideal For)
+- Perfect For: Conservative investors, business owners for buy-sell agreements, estate planning, infinite banking enthusiasts, those wanting guaranteed growth, high-net-worth legacy planning
+- Not Ideal For: Those seeking maximum growth potential, budget-conscious (higher premiums), young investors with long time horizon, those prioritizing flexibility over guarantees
 
 ### Section 7: Final CTA (Lead Capture)
-- Dark evergreen-to-black gradient with `MorphingBlob`
-- Headline + subtitle
-- Glassmorphic dark form: Name, Email, Phone, Income Range dropdown
-- Submit button with gold styling
-- Privacy disclaimer text
+- Reuses StrategyFormCTA shared component
+- Headline: "Get Your Personalized Whole Life Illustration"
 
 ## Technical Implementation
 
 ### New Files
-- `src/pages/strategies/IndexedUniversalLife.tsx` -- page component with SEO/schemas
-- `src/components/strategies/iul/IULHero.tsx`
-- `src/components/strategies/iul/IULSpeakable.tsx`
-- `src/components/strategies/iul/IULHowItWorks.tsx`
-- `src/components/strategies/iul/IULComparison.tsx`
-- `src/components/strategies/iul/IULLivingBenefits.tsx`
-- `src/components/strategies/iul/IULIdealClient.tsx`
-- `src/components/strategies/iul/IULCTA.tsx`
-- `src/components/strategies/shared/ProcessStep.tsx` -- reusable for all strategy pages
-- `src/components/strategies/shared/StatBadge.tsx` -- reusable
-- `src/components/strategies/shared/TrustBadge.tsx` -- reusable
-- `src/components/strategies/shared/ComparisonTable.tsx` -- reusable
-- `src/components/strategies/shared/StrategyFormCTA.tsx` -- reusable lead form
+- `src/pages/strategies/WholeLife.tsx` -- page component with SEO/schemas
+- `src/components/strategies/wholelife/WLHero.tsx`
+- `src/components/strategies/wholelife/WLSpeakable.tsx`
+- `src/components/strategies/wholelife/WLHowItWorks.tsx`
+- `src/components/strategies/wholelife/WLComparison.tsx`
+- `src/components/strategies/wholelife/WLInfiniteBanking.tsx`
+- `src/components/strategies/wholelife/WLIdealClient.tsx`
+- `src/components/strategies/wholelife/WLCTA.tsx`
 
 ### Modified Files
-- `src/App.tsx` -- add route `/:lang/strategies/iul`
-- `src/i18n/translations/en.ts` -- add `strategies.iul` block
-- `src/i18n/translations/es.ts` -- add `strategies.iul` block
+- `src/App.tsx` -- add routes `/:lang/strategies/whole-life` and `/:lang/estrategias/seguro-vida-entera`
+- `src/i18n/translations/en.ts` -- add `strategies.wholeLife` block
+- `src/i18n/translations/es.ts` -- add `strategies.wholeLife` block
 
-### Reused Existing Components
-- `MorphingBlob` from philosophy
-- `GlassCard` from philosophy
-- `useAnimatedCounter` hook
-- `Header` and `Footer`
-- `Helmet` for SEO
+### Reused Components
+- MorphingBlob, GlassCard, StatBadge, TrustBadge, ProcessStep, StrategyComparisonTable, StrategyFormCTA (all from IUL build)
+- Header, Footer, Helmet
 
-### SEO & Schemas
-- WebPage, Article, BreadcrumbList, Organization, and SpeakableSpecification JSON-LD
+### SEO and Schemas
+- WebPage, Article, BreadcrumbList, Organization, SpeakableSpecification JSON-LD
 - Hreflang tags (en, es, x-default)
 - Open Graph + Twitter Card meta
 - Canonical URL
 
-### Design Decisions
-- Using custom SVG animations instead of React Three Fiber for the "How It Works" diagram -- significantly lighter, faster loading, and more reliable
-- The comparison table is a shared component that will be reused on Whole Life, Tax-Free Retirement, and Asset Protection pages
-- All elements use rounded corners (xl, 2xl, full) per the brand standard
-- Form submission will log to console for now (CRM integration can be added later)
+### Interactive Element: Cash Value Growth Simulator
+- Year slider (1-30 years) showing guaranteed cash value vs. dividend-projected value
+- SVG line chart with two curves
+- Starting premium of $25,000/year
+- Shows guaranteed values and dividend-enhanced projections
+- Whole life specific: no floor/cap like IUL, instead guaranteed minimums plus non-guaranteed dividends
 
-### No New Dependencies
-Uses existing `framer-motion`, `lucide-react`, `react-helmet`, and project utilities.
+### Design
+- All rounded corners (xl, 2xl, full) per brand standard
+- Same glassmorphism, Framer Motion animations, and color palette
+- No new dependencies needed
 
