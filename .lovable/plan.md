@@ -1,54 +1,46 @@
 
-## Rebrand Location Hub to Everence Wealth
+## Add US Map Background Image to Location Hub Hero
 
-The Location Hub page currently references "Real Estate Intelligence," "Costa del Sol," "Del Sol Prime Homes," property buying, and Mediterranean real estate throughout. This plan replaces all of that with Everence Wealth financial advisory content.
-
----
-
-### Scope of Changes
-
-**4 files** need updates:
-
-### 1. `src/pages/LocationHub.tsx` (Hero Section)
-- Replace the Unsplash coastal image with a professional financial/advisory gradient background (matching the brand's tactical institutional aesthetic -- deep Evergreen gradient with gold accents, no external image needed)
-- Update the hidden speakable summary to reference Everence Wealth financial guides for US cities
-- Remove "Costa del Sol" and "real estate" references
-- Update stats labels context (keep dynamic -- cities/guides/languages/data points are fine)
-
-### 2. `src/lib/locationHubSchemaGenerator.ts` (All Localized Content + Schema)
-- Update `BASE_URL` from `delsolprimehomes.com` to the correct Everence Wealth domain
-- Update `ORGANIZATION_SCHEMA` -- name to "Everence Wealth", address to San Francisco, remove Spanish real estate credential
-- Replace `LOCALE_MAP` -- limit to `en` and `es` (the two supported languages)
-- Update `SUPPORTED_LANGUAGES` to `['en', 'es']`
-- **English content**: Title to "Location Guides | Everence Wealth", description about financial planning guides for US cities, heroTitle to "Financial Intelligence", heroSubtitle to "for {count} Markets", CTA text about scheduling a consultation
-- **Spanish content**: Matching Spanish translations
-- Remove all other languages (nl, de, fr, sv, no, da, fi, pl, hu) -- platform only supports English and Spanish
-- Update FAQs to match the already-rebranded FAQ content (en/es only)
-- Update schema "about" from Costa del Sol/Spain to United States
-
-### 3. `src/components/location-hub/SpeakableHubIntro.tsx`
-- Replace all `LOCALIZED_CONTENT` entries: remove Costa del Sol and real estate references
-- Update English intro to describe Everence Wealth location guides covering US cities with financial planning, retirement, tax strategies, and insurance insights
-- Update highlights to reflect financial advisory topics (e.g., "50 states served", "Bilingual guidance", "Updated quarterly")
-- Keep only `en` and `es` locales, remove all others
-
-### 4. `src/components/location-hub/WhatToExpectSection.tsx`
-- Replace real-estate-focused intelligence cards with financial advisory equivalents:
-  - Price Analysis -> Tax Analysis
-  - School Zones -> Estate Planning
-  - Rental Yields -> Retirement Projections
-  - Safety Data -> Risk Assessment
-  - Healthcare Access -> Insurance Coverage
-  - Lifestyle -> Cash Flow Planning
-  - Transport -> Market Access (local advisor availability)
-  - Legal Guide -> Regulatory Compliance
-- Keep only `en` and `es` locales, remove all others
+Generate a modern, stylized US map image using Lovable AI (Gemini 3 Pro Image) that matches the Everence Wealth brand aesthetic, then place it as a subtle background element in the Location Hub hero section.
 
 ---
 
-### Technical Details
+### Step 1: Generate the Map Image
 
-- The hero background will switch from an Unsplash image to a CSS gradient matching the brand (Evergreen-to-dark with gold blur orbs), consistent with the blog hero pattern already established
-- All schema.org JSON-LD will reference "Everence Wealth" and US geography
-- The `SUPPORTED_LANGUAGES` array reduction to `['en', 'es']` will also reduce hreflang tags output
-- No database changes needed -- this is purely a frontend/content rebrand
+Use an edge function (or inline AI call) with the `google/gemini-3-pro-image-preview` model to generate a modern, minimalist US map with these brand specs:
+- Deep evergreen (#1A4D3E) and dark (#0a2a1f) tones
+- Gold (#C5A059) accent lines or glowing dots on key city locations
+- Clean, editorial, institutional feel -- no cartoonish elements
+- Semi-transparent / dark enough to work as a background behind white text
+
+Upload the result to the `article-images` storage bucket and get a public URL.
+
+### Step 2: Update `src/pages/LocationHub.tsx` Hero Section
+
+Add the generated map image as a background layer within the existing hero gradient:
+
+```
+<div className="absolute inset-0 bg-gradient-to-br from-[#0a2a1f] via-[#1A4D3E] to-[#0d1f1a]">
+  {/* US Map Background */}
+  <div className="absolute inset-0 flex items-center justify-center opacity-15">
+    <img src="{MAP_URL}" alt="" aria-hidden="true" className="w-full h-full object-contain max-w-5xl" />
+  </div>
+  {/* Existing gold blur orbs stay on top */}
+  <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#C5A059]/10 rounded-full blur-3xl" />
+  ...
+</div>
+```
+
+Key details:
+- The map renders at low opacity (~15%) so it subtly textures the background without competing with headline text
+- `aria-hidden="true"` and empty `alt` since it is decorative
+- Gold blur orbs layer on top for the existing luxury effect
+- The bottom gradient fade to `background` remains unchanged
+
+### Files Changed
+
+| File | Change |
+|---|---|
+| `src/pages/LocationHub.tsx` | Add `<img>` element for the US map inside the hero gradient container, between the gradient div and the gold orbs |
+
+No database changes needed. The image will be generated once and stored as a static asset.
