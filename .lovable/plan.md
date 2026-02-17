@@ -1,30 +1,23 @@
 
 
-# Fix: Drop Recursive RLS Policy on Advisors Table
+# Fix: Execute the Advisors RLS Migration (For Real This Time)
 
-## Problem
-The database migration from the previous plan was never executed. The "Clients can view their advisor" policy on the `advisors` table still contains a self-referencing query that causes infinite recursion:
+## The Problem
+The "Advisor record not found" error keeps appearing because the database migration was never executed. The broken RLS policy on the `advisors` table is still causing infinite recursion.
 
-```sql
--- Current broken policy:
-(id IN (
-  SELECT a.id FROM advisors a
-    JOIN portal_users pu ON (pu.advisor_id = a.portal_user_id)
-  WHERE pu.auth_user_id = auth.uid()
-))
+**Current broken policy** (confirmed still active):
+```text
+Clients can view their advisor:
+  id IN (SELECT a.id FROM advisors a JOIN portal_users pu ON pu.advisor_id = a.portal_user_id WHERE pu.auth_user_id = auth.uid())
 ```
+This references the `advisors` table inside its own SELECT policy, causing an infinite loop.
 
-This is why the "Advisor record not found" error keeps appearing -- the query to find the advisor record fails due to infinite recursion in the RLS policy evaluation.
+## The Fix (Database Migration)
 
-## Solution (Database Migration Only)
-
-Run a single migration that:
-
-1. Creates a `SECURITY DEFINER` helper function `get_my_advisor_id_from_portal` that looks up the advisor_id from `portal_users` bypassing RLS
-2. Drops the broken "Clients can view their advisor" policy
-3. Recreates it using the helper function instead of a self-referencing join
+Run this SQL migration:
 
 ```sql
+-- 1. Create helper function that bypasses RLS
 CREATE OR REPLACE FUNCTION public.get_my_advisor_id_from_portal(_auth_uid uuid)
 RETURNS uuid
 LANGUAGE sql STABLE SECURITY DEFINER
@@ -35,8 +28,10 @@ AS $$
   LIMIT 1;
 $$;
 
+-- 2. Drop the broken recursive policy
 DROP POLICY IF EXISTS "Clients can view their advisor" ON advisors;
 
+-- 3. Recreate without recursion
 CREATE POLICY "Clients can view their advisor"
 ON advisors FOR SELECT TO authenticated
 USING (
@@ -45,10 +40,10 @@ USING (
 ```
 
 ## What This Fixes
-- The "Advisor record not found" error on the Invite Client page will be resolved
+- The "Advisor record not found" error will disappear
 - Advisors will be able to create and send client invitations
-- No application code changes are needed -- the existing code is correct
+- No application code changes needed
 
 ## Files Changed
-- No code files changed -- database migration only
+- No code files -- database migration only
 
