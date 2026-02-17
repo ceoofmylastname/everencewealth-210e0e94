@@ -56,7 +56,7 @@ export const MediaSection = ({
     setIsGenerating(true);
     try {
       const { data, error } = await supabase.functions.invoke('generate-image', {
-        body: { headline }
+        body: { headline, content: detailedContent }
       });
 
       if (error) throw error;
