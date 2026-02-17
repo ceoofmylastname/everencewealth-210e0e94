@@ -1,36 +1,64 @@
 
 
-# Rebrand /auth Login Page for Everence Wealth
+# Fix Phase 2 Q&A Translation Issues
 
-## Overview
-Replace the generic white card with "Del Sol Prime Homes CMS" branding with a premium, dark glassmorphic login page matching the Everence Wealth tactical institutional aesthetic used across the CRM and Portal login pages.
+## Problem
+Two bugs prevent smooth Q&A translation:
+1. The `date_published` trigger blocks Q&A updates when adopting existing records
+2. Browser timeouts cause false failure reports
 
-## Design
-- **Background**: Deep evergreen `#0B1F18` with mesh gradient blobs (`#1A4D3E` and `#C5A059/10`) matching the Privacy Policy and Terms pages
-- **Logo**: Everence Wealth logo image (same URL used site-wide) centered above the form
-- **Title**: "Everence Wealth" with subtitle "Content Management System"
-- **Card**: Glassmorphic panel (`bg-white/[0.05] backdrop-blur-xl border border-white/10 rounded-2xl`) -- same style as Portal and CRM login pages
-- **Inputs**: Dark translucent inputs (`bg-white/10 border-white/20 text-white`) with gold focus rings
-- **Tabs**: Custom styled Sign In / Sign Up tabs with gold active indicator
-- **Button**: Gold CTA (`bg-[#C5A059] hover:bg-[#d4b06a] text-[#0B1F18]`) matching the brand
-- **Password toggle**: Eye/EyeOff icon button (matching Portal login)
-- **Footer**: Copyright line "Everence Wealth. All rights reserved."
-- **Animation**: Subtle `framer-motion` fade-in on the card
+## Fix 1: Remove `date_published` from update path (Edge Function)
 
-## Content Changes
-- Remove "Del Sol Prime Homes CMS" -- replace with logo + "Everence Wealth"
-- Remove "Admin Access" -- replace with "Content Management System"
-- Remove the Lock icon circle -- replaced by the brand logo
-- Keep all auth logic (signUp, signIn, session check, redirects) exactly as-is
+**File:** `supabase/functions/translate-qas-to-language/index.ts`
+
+When building the `translatedQARecord` object (line 652-677), `date_published` is always included. When this record is used in the UPDATE path (adopting orphan Q&As, line 735), the database trigger `protect_qa_date_published` rejects it.
+
+**Solution:** Remove `date_published` from the shared record and only include it in the INSERT path:
+- Move `date_published` out of `translatedQARecord`
+- Add it only in the `.insert()` call (line 757), not the `.update()` call (line 737)
+- In the update path, only set `date_modified` to the current timestamp
+
+## Fix 2: Fire-and-forget pattern to prevent timeouts (Frontend)
+
+**File:** `src/components/admin/cluster-manager/ClusterQATab.tsx`
+
+The current approach awaits the full edge function response. Since each batch takes 2-4 minutes, the browser connection drops.
+
+**Solution:** After calling the function, immediately show a "translating..." status and poll the `qa_pages` table every 10 seconds to track progress, rather than waiting for the HTTP response. When the count reaches 24, mark as complete.
 
 ## Technical Details
 
-**File changed:** `src/pages/Auth.tsx`
+### Edge Function Change
+```
+// BEFORE (line 652-677):
+const translatedQARecord = {
+  ...
+  date_published: now,  // REMOVE THIS
+  date_modified: now,
+};
 
-- Add imports: `framer-motion` (motion), `Eye`/`EyeOff` from lucide-react
-- Remove imports: `Card`, `CardContent`, `CardDescription`, `CardHeader`, `CardTitle`, `Lock`
-- Add `showPassword` state for password visibility toggle
-- Replace the entire JSX return with the new branded layout
-- All auth handler functions remain unchanged
-- Use the logo URL: `https://storage.googleapis.com/msgsndr/TLhrYb7SRrWrly615tCI/media/6993ada8dcdadb155342f28e.png`
+// AFTER:
+const translatedQARecord = {
+  ...
+  date_modified: now,
+  // date_published removed from shared object
+};
+
+// INSERT path (line 757) - add date_published only here:
+.insert({
+  ...translatedQARecord,
+  date_published: now,  // Only on new inserts
+  question_main: finalQuestion,
+  title: finalQuestion,
+})
+
+// UPDATE path (line 737) - no date_published, just date_modified
+```
+
+### Frontend Polling Change
+- After invoking the edge function, start a polling interval (every 10s)
+- Query: `SELECT count(*) FROM qa_pages WHERE cluster_id = X AND language = 'es'`
+- Update the UI progress counter in real-time (e.g., "5/24 -> 6/24 -> ...")
+- Stop polling when count reaches 24 or after 5 minutes with no change
+- Show success/partial toast based on final count
 
