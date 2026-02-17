@@ -34,10 +34,10 @@ export const AIImageGenerator = ({
   const { toast } = useToast();
 
   const generateImagePrompt = () => {
-    return `Professional real estate photography: ${headline}. 
-Luxurious Costa del Sol property, Mediterranean architecture, 
-bright natural lighting, high-end interior design, 
-ultra-realistic, 8k resolution, architectural digest style`;
+    return `Professional financial services photography: ${headline}. 
+Modern office environment, wealth management, 
+bright natural lighting, professional setting, 
+ultra-realistic, 8k resolution, corporate photography style`;
   };
 
   const generateAltText = (prompt: string, headline: string): string => {
@@ -47,7 +47,7 @@ ultra-realistic, 8k resolution, architectural digest style`;
     }
     
     // Auto-generate from headline with location context
-    return `${headline} - Professional Costa del Sol real estate photography`.slice(0, 125);
+    return `${headline} - Professional financial services photography`.slice(0, 125);
   };
 
   const handleGenerate = async () => {

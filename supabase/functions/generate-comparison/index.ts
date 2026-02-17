@@ -180,7 +180,7 @@ serve(async (req) => {
       // Build the prompt with suggested headline support
       const headlineInstruction = suggested_headline 
         ? `Use exactly: "${suggested_headline}"`
-        : `Create an AI-query friendly headline like "[Option A] vs [Option B]: Which Should You [Choose/Buy/Invest in] in 2025?" Include location context (Spain/Marbella/Costa del Sol) where natural.`;
+        : `Create an AI-query friendly headline like "[Option A] vs [Option B]: Which Should You Choose in 2025?"`;
       
       const suggestedHeadlineSection = suggested_headline 
         ? `* Suggested Headline: "${suggested_headline}" (USE THIS EXACTLY)`
@@ -189,8 +189,8 @@ serve(async (req) => {
       let prompt = MASTER_PROMPT
         .replace(/\[OPTION_A\]/g, option_a)
         .replace(/\[OPTION_B\]/g, option_b)
-        .replace('[NICHE]', niche || 'real-estate')
-        .replace('[AUDIENCE]', target_audience || 'property buyers and investors')
+        .replace('[NICHE]', niche || 'insurance-wealth-management')
+        .replace('[AUDIENCE]', target_audience || 'retirement planning clients and investors')
         .replace('[HEADLINE_INSTRUCTION]', headlineInstruction)
         .replace('[SUGGESTED_HEADLINE_SECTION]', suggestedHeadlineSection);
 

@@ -10,7 +10,7 @@ export const ExpertInsight: React.FC<ExpertInsightProps> = ({ insight }) => {
     return (
         <section className="mt-12 p-6 bg-gradient-to-r from-primary/5 to-primary/10 rounded-lg border-l-4 border-primary">
             <h2 className="text-2xl font-serif mb-4">
-                Expert Insight from a Costa del Sol Property Specialist
+                Expert Insight from a Wealth Strategist
             </h2>
             <p className="text-lg leading-relaxed">
                 {insight}

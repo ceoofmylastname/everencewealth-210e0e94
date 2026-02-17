@@ -53,7 +53,7 @@ export const ApartmentsEditorLayout = () => {
       {/* Desktop Sidebar */}
       <aside className="hidden lg:flex lg:flex-col lg:w-64 lg:border-r lg:bg-card">
         <div className="flex h-16 items-center justify-between border-b px-4">
-          <img src={logo} alt="Del Sol Prime Homes" className="h-14 drop-shadow-[0_2px_4px_rgba(0,0,0,0.25)]" />
+          <img src={logo} alt="Everence Wealth" className="h-14 drop-shadow-[0_2px_4px_rgba(0,0,0,0.25)]" />
           <ThemeToggle />
         </div>
         <nav className="flex-1 p-4">
@@ -79,7 +79,7 @@ export const ApartmentsEditorLayout = () => {
               </SheetTrigger>
               <SheetContent side="left" className="w-64 p-0">
                 <div className="flex h-16 items-center px-6 border-b justify-center">
-                  <img src={logo} alt="Del Sol Prime Homes" className="h-14 drop-shadow-[0_2px_4px_rgba(0,0,0,0.25)]" />
+                  <img src={logo} alt="Everence Wealth" className="h-14 drop-shadow-[0_2px_4px_rgba(0,0,0,0.25)]" />
                 </div>
                 <nav className="p-4">
                   <p className="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Apartments</p>
@@ -93,7 +93,7 @@ export const ApartmentsEditorLayout = () => {
                 </div>
               </SheetContent>
             </Sheet>
-            <img src={logo} alt="Del Sol Prime Homes" className="h-14 drop-shadow-[0_2px_4px_rgba(0,0,0,0.25)]" />
+            <img src={logo} alt="Everence Wealth" className="h-14 drop-shadow-[0_2px_4px_rgba(0,0,0,0.25)]" />
           </div>
           <ThemeToggle />
         </header>

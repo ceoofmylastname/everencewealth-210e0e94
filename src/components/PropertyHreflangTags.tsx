@@ -7,7 +7,7 @@ interface PropertyHreflangTagsProps {
   baseUrl?: string;
 }
 
-const BASE_URL = 'https://www.delsolprimehomes.com';
+const BASE_URL = 'https://www.everencewealth.com';
 
 export const PropertyHreflangTags = ({ 
   reference, 

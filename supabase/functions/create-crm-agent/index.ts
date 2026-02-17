@@ -28,11 +28,6 @@ function generateWelcomeEmailHtml(data: {
 }): string {
   const languageNames: Record<string, string> = {
     en: "English",
-    fr: "French",
-    nl: "Dutch",
-    fi: "Finnish",
-    pl: "Polish",
-    de: "German",
     es: "Spanish",
   };
   
@@ -83,7 +78,7 @@ function generateWelcomeEmailHtml(data: {
     <body>
       <div class="container">
         <div class="header">
-          <h1>🏠 Welcome to Del Sol Prime Homes CRM</h1>
+          <h1>💼 Welcome to Everence Wealth CRM</h1>
         </div>
         
         <div class="content">
@@ -113,7 +108,7 @@ function generateWelcomeEmailHtml(data: {
         
         <div class="footer">
           <p>If you have questions, contact your administrator.</p>
-          <p>© Del Sol Prime Homes - Real Estate CRM</p>
+          <p>© Everence Wealth CRM</p>
         </div>
       </div>
     </body>

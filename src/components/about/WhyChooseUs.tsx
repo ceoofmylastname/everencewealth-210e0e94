@@ -28,9 +28,9 @@ export const WhyChooseUs = ({ content }: WhyChooseUsProps) => {
   };
 
   const defaultFeatures = [
-    { title: "Local Expertise", description: "40+ combined years living on the Costa del Sol" },
-    { title: "End-to-End Service", description: "From property search to after-sales support" },
-    { title: "Licensed & Certified", description: "API registered and fully compliant" },
+    { title: "Independent & Fiduciary", description: "25+ years of client-first wealth management" },
+    { title: "End-to-End Service", description: "From retirement planning to estate strategies" },
+    { title: "Licensed Nationwide", description: "Series 65 licensed in all 50 states" },
     { title: "Responsive Support", description: "Available when you need us most" },
     { title: "Client-First Approach", description: "Your needs drive every decision" },
     { title: "Transparent Process", description: "No hidden fees, no surprises" }

@@ -45,10 +45,10 @@ export const SEOPreviewSection = ({
           <div className="border rounded-lg p-4 bg-muted/30">
             <div className="space-y-1">
               <div className="text-xs text-muted-foreground">
-                delsol-primehomes.com › article › example-slug
+                everencewealth.com › article › example-slug
               </div>
               <div className="text-blue-600 text-lg font-medium hover:underline cursor-pointer">
-                {metaTitle || "Your Meta Title Here"} | Del Sol Prime Homes
+                {metaTitle || "Your Meta Title Here"} | Everence Wealth
               </div>
               <div className="text-sm text-muted-foreground line-clamp-2">
                 {metaDescription || "Your meta description will appear here. Make it compelling to encourage clicks from search results."}

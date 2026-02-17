@@ -342,7 +342,7 @@ export const BrochureOptInForm = forwardRef<HTMLElement, BrochureOptInFormProps>
                       className="mt-1"
                     />
                     <Label htmlFor="privacy" className="text-sm text-muted-foreground leading-relaxed cursor-pointer">
-                      {ui.privacyConsent || <>I agree to the <a href="/privacy" className="text-prime-gold hover:underline">Privacy Policy</a> and consent to Del Sol Prime Homes processing my data.</>} *
+                      {ui.privacyConsent || <>I agree to the <a href="/privacy" className="text-prime-gold hover:underline">Privacy Policy</a> and consent to Everence Wealth processing my data.</>} *
                     </Label>
                   </div>
 

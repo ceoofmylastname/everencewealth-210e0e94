@@ -425,8 +425,8 @@ INTRO STYLE: ${styleInstructions[introStyle] || styleInstructions['direct_answer
 
 === SOURCE CONTEXT ===
 Article Title: ${article.headline}
-Article Summary: ${article.meta_description || 'Real estate in Costa del Sol, Spain'}
-Cluster Theme: ${article.cluster_theme || 'Spanish property'}
+Article Summary: ${article.meta_description || 'Financial planning and wealth management'}
+Cluster Theme: ${article.cluster_theme || 'Wealth management'}
 Funnel Stage: ${article.funnel_stage || 'TOFU'}
 Language: ${language}
 

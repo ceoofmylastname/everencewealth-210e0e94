@@ -22,10 +22,10 @@ interface FalResult {
 function sanitizeFolderName(name: string): string {
   return name
     .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '') // Remove diacritics
+    .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase()
     .replace(/\s+/g, '-')
-    .replace(/[^a-z0-9-]/g, ''); // Only allow alphanumeric and hyphens
+    .replace(/[^a-z0-9-]/g, '');
 }
 
 // Upload image from URL to Supabase Storage
@@ -51,7 +51,7 @@ async function uploadToStorage(
       .from(bucket)
       .upload(fileName, uint8Array, {
         contentType: 'image/png',
-        cacheControl: '31536000', // 1 year cache
+        cacheControl: '31536000',
         upsert: true
       });
 
@@ -112,11 +112,11 @@ serve(async (req) => {
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
     // Build location-specific image prompt
-    const defaultPrompt = `Professional aerial photography of ${city_name}, Costa del Sol, Spain. 
-Mediterranean coastline with azure waters, luxury villas and apartments, 
-Spanish architecture, palm trees, golden beaches. 
-Ultra high resolution, real estate marketing style, 
-warm Mediterranean sunlight, no text overlays.`;
+    const defaultPrompt = `Professional photography of ${city_name}. 
+Modern financial district, professional office environment, 
+wealth management and financial planning imagery.
+Ultra high resolution, corporate marketing style, 
+clean professional lighting, no text overlays.`;
 
     const finalPrompt = image_prompt 
       ? `${image_prompt}. Ultra high resolution.`
@@ -142,14 +142,13 @@ warm Mediterranean sunlight, no text overlays.`;
           },
           logs: true,
         }) as FalResult;
-        break; // Success, exit loop
+        break;
       } catch (falError) {
         retries++;
         console.error(`Fal.ai attempt ${retries} failed:`, falError);
         if (retries > maxRetries) {
           throw falError;
         }
-        // Wait before retry
         await new Promise(resolve => setTimeout(resolve, 1000));
       }
     }
@@ -176,9 +175,9 @@ warm Mediterranean sunlight, no text overlays.`;
     );
 
     // Generate SEO-optimized alt text and caption
-    const altText = `Aerial view of ${city_name}, Costa del Sol showing Mediterranean coastline, luxury properties, and ${intent_type?.replace(/-/g, ' ') || 'real estate'} opportunities`;
+    const altText = `${city_name} - ${intent_type?.replace(/-/g, ' ') || 'financial planning'} services by Everence Wealth`;
     
-    const caption = `${city_name}, Costa del Sol - Premium real estate destination featuring stunning Mediterranean views, world-class amenities, and exceptional investment opportunities in Southern Spain.`;
+    const caption = `${city_name} - Everence Wealth provides expert financial planning, retirement strategies, and wealth management services.`;
 
     // If location_page_id is provided, update the database
     if (location_page_id) {
@@ -196,7 +195,6 @@ warm Mediterranean sunlight, no text overlays.`;
 
       if (updateError) {
         console.error('Failed to update location page:', updateError);
-        // Don't throw - image was still generated successfully
       } else {
         console.log('Location page updated with new image');
       }

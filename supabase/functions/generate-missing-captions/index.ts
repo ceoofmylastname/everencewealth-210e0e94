@@ -12,15 +12,6 @@ const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
 const languageNames: Record<string, string> = {
   en: 'English',
   es: 'Spanish',
-  de: 'German',
-  nl: 'Dutch',
-  fr: 'French',
-  sv: 'Swedish',
-  no: 'Norwegian',
-  da: 'Danish',
-  fi: 'Finnish',
-  pl: 'Polish',
-  hu: 'Hungarian',
 };
 
 async function generateCaption(
@@ -30,18 +21,17 @@ async function generateCaption(
 ): Promise<string> {
   const langName = languageNames[language] || 'English';
   
-  const prompt = `Generate a compelling, SEO-optimized caption for this Costa del Sol real estate article image.
+  const prompt = `Generate a compelling, SEO-optimized caption for this financial planning article image.
 
 Article Headline: ${headline}
-Theme: ${clusterTheme || 'Costa del Sol real estate'}
+Theme: ${clusterTheme || 'wealth management and financial planning'}
 
 Requirements:
 - 100-150 characters maximum
-- Include a location reference (Costa del Sol, Spain, Mediterranean, or specific cities like Marbella, Málaga)
 - Add value beyond the headline - provide context about the visual
 - Write in ${langName}
 - Do NOT include quotes or special formatting
-- Make it descriptive of what a reader would see in a real estate photo
+- Make it descriptive of what a reader would see in a professional financial services photo
 
 Return ONLY the caption text, nothing else.`;
 
@@ -54,7 +44,7 @@ Return ONLY the caption text, nothing else.`;
     body: JSON.stringify({
       model: 'gpt-4o-mini',
       messages: [
-        { role: 'system', content: 'You are a professional real estate content writer specializing in Costa del Sol properties. Generate concise, engaging image captions.' },
+        { role: 'system', content: 'You are a professional financial services content writer specializing in wealth management and retirement planning. Generate concise, engaging image captions.' },
         { role: 'user', content: prompt }
       ],
       max_tokens: 100,

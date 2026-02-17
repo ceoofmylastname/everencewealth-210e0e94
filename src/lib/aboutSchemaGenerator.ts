@@ -42,140 +42,77 @@ interface AboutPageContent {
   language: string;
 }
 
-const BASE_URL = 'https://www.delsolprimehomes.com';
+const BASE_URL = 'https://www.everencewealth.com';
 
-// Hardcoded founder data with LinkedIn URLs for entity disambiguation
+// Hardcoded founder data
 export const FOUNDERS_DATA: Founder[] = [
   {
-    name: "Steven Roberts",
-    role: "Co-Founder & Director",
-    bio: "British real estate professional with 20+ years experience in Costa del Sol. Specializes in luxury villa sales and new developments.",
-    photo_url: "https://storage.googleapis.com/msgsndr/9m2UBN29nuaCWceOgW2Z/media/steven-roberts.jpg",
-    linkedin_url: "https://www.linkedin.com/company/delsolprimehomes/",
-    credentials: ["API Licensed Agent", "RICS Affiliate"],
-    years_experience: 20,
+    name: "Steven Rosenberg",
+    role: "Founder & Chief Wealth Strategist",
+    bio: "Independent fiduciary advisor with 25+ years experience. Licensed in all 50 states. Specializes in tax-exempt retirement strategies and indexed universal life insurance.",
+    photo_url: "https://storage.googleapis.com/msgsndr/TLhrYb7SRrWrly615tCI/media/6993ada8dcdadb155342f28e.png",
+    linkedin_url: "https://www.linkedin.com/company/everencewealth/",
+    credentials: ["Series 65", "Life & Health Licensed (All 50 States)"],
+    years_experience: 25,
     languages: ["English", "Spanish"],
-    specialization: "Luxury Villas & New Developments"
-  },
-  {
-    name: "Hans Beeckman",
-    role: "Co-Founder & Sales Director",
-    bio: "Belgian real estate expert with deep knowledge of the Dutch and Belgian buyer market. 35+ years guiding international clients through Spanish property purchases.",
-    photo_url: "https://storage.googleapis.com/msgsndr/9m2UBN29nuaCWceOgW2Z/media/hans-beeckman.jpg",
-    linkedin_url: "https://www.linkedin.com/company/delsolprimehomes/",
-    credentials: ["API Licensed Agent", "Property Investment Specialist"],
-    years_experience: 15,
-    languages: ["Dutch", "French", "English", "Spanish"],
-    specialization: "International Buyers & Investment Properties"
-  },
-  {
-    name: "Cédric Van Hecke",
-    role: "Co-Founder & Client Relations",
-    bio: "Belgian real estate consultant specializing in client relations and after-sales support. Expert in helping buyers navigate Spanish bureaucracy.",
-    photo_url: "https://storage.googleapis.com/msgsndr/9m2UBN29nuaCWceOgW2Z/media/cedric-vanhecke.jpg",
-    linkedin_url: "https://www.linkedin.com/company/delsolprimehomes/",
-    credentials: ["API Licensed Agent", "NIE & Residency Specialist"],
-    years_experience: 12,
-    languages: ["Dutch", "French", "English", "Spanish"],
-    specialization: "Client Relations & Legal Coordination"
+    specialization: "Tax-Exempt Retirement Strategies & IUL"
   }
 ];
 
-// API Credential Schema (company-level)
-export function generateAPICredentialSchema() {
-  return {
-    "@type": "EducationalOccupationalCredential",
-    "@id": `${BASE_URL}/#api-credential`,
-    "credentialCategory": "license",
-    "name": "Agente de la Propiedad Inmobiliaria (API)",
-    "description": "Official Spanish real estate agent license issued by the professional college",
-    "recognizedBy": {
-      "@type": "Organization",
-      "name": "Colegio Oficial de Agentes de la Propiedad Inmobiliaria",
-      "url": "https://www.consejocoapis.org/"
-    }
-  };
-}
-
-// Organization Schema (RealEstateAgent type)
+// Organization Schema (FinancialService type)
 export function generateOrganizationSchema(content: AboutPageContent) {
   return {
-    "@type": ["Organization", "RealEstateAgent"],
+    "@type": ["Organization", "FinancialService"],
     "@id": `${BASE_URL}/#organization`,
-    "name": "Del Sol Prime Homes",
-    "alternateName": "DSPH",
+    "name": "Everence Wealth",
     "url": BASE_URL,
     "logo": {
       "@type": "ImageObject",
-      "url": "https://storage.googleapis.com/msgsndr/9m2UBN29nuaCWceOgW2Z/media/6926151522d3b65c0becbaf4.png",
+      "url": "https://storage.googleapis.com/msgsndr/TLhrYb7SRrWrly615tCI/media/6993ada8dcdadb155342f28e.png",
       "width": 400,
       "height": 100
     },
-    "image": "https://storage.googleapis.com/msgsndr/9m2UBN29nuaCWceOgW2Z/media/6926151522d3b65c0becbaf4.png",
+    "image": "https://storage.googleapis.com/msgsndr/TLhrYb7SRrWrly615tCI/media/6993ada8dcdadb155342f28e.png",
     "description": content.speakable_summary,
-    "foundingDate": "2010",
+    "foundingDate": "1998",
     "numberOfEmployees": {
       "@type": "QuantitativeValue",
       "minValue": 3,
       "maxValue": 10
     },
-    "slogan": "Your Trusted Partners in Costa del Sol Real Estate",
+    "slogan": "Your Independent Fiduciary Wealth Strategist",
     "knowsAbout": [
-      "Costa del Sol Real Estate",
-      "Spanish Property Law",
-      "International Property Purchases",
-      "Marbella Properties",
-      "Estepona Real Estate",
-      "NIE Applications",
-      "Golden Visa Spain"
+      "Retirement Planning",
+      "Indexed Universal Life Insurance",
+      "Tax-Exempt Strategies",
+      "Fixed Indexed Annuities",
+      "Estate Planning",
+      "Wealth Management",
+      "Three Tax Buckets Framework"
     ],
-    "areaServed": [
-      { "@type": "City", "name": "Marbella", "containedInPlace": { "@type": "AdministrativeArea", "name": "Málaga" } },
-      { "@type": "City", "name": "Estepona", "containedInPlace": { "@type": "AdministrativeArea", "name": "Málaga" } },
-      { "@type": "City", "name": "Benalmádena", "containedInPlace": { "@type": "AdministrativeArea", "name": "Málaga" } },
-      { "@type": "City", "name": "Fuengirola", "containedInPlace": { "@type": "AdministrativeArea", "name": "Málaga" } },
-      { "@type": "City", "name": "Mijas", "containedInPlace": { "@type": "AdministrativeArea", "name": "Málaga" } },
-      { "@type": "City", "name": "Torremolinos", "containedInPlace": { "@type": "AdministrativeArea", "name": "Málaga" } },
-      { "@type": "City", "name": "Manilva", "containedInPlace": { "@type": "AdministrativeArea", "name": "Málaga" } },
-      { "@type": "City", "name": "Casares", "containedInPlace": { "@type": "AdministrativeArea", "name": "Málaga" } },
-      { "@type": "City", "name": "Sotogrande", "containedInPlace": { "@type": "AdministrativeArea", "name": "Cádiz" } }
-    ],
+    "areaServed": {
+      "@type": "Country",
+      "name": "United States"
+    },
     "address": {
       "@type": "PostalAddress",
-      "streetAddress": "ED SAN FERNAN, C. Alfonso XIII, 6, 1 OFICINA",
-      "addressLocality": "Fuengirola",
-      "postalCode": "29640",
-      "addressRegion": "Málaga",
-      "addressCountry": "ES"
+      "addressLocality": "San Diego",
+      "addressRegion": "CA",
+      "addressCountry": "US"
     },
     "contactPoint": [
       {
         "@type": "ContactPoint",
-        "telephone": "+34 630 03 90 90",
-        "contactType": "sales",
-        "availableLanguage": ["English", "Spanish", "Dutch", "French", "German"]
-      },
-      {
-        "@type": "ContactPoint",
-        "email": "info@delsolprimehomes.com",
-        "contactType": "customer service"
+        "email": "info@everencewealth.com",
+        "contactType": "customer service",
+        "availableLanguage": ["English", "Spanish"]
       }
     ],
     "sameAs": [
-      "https://www.facebook.com/delsolprimehomes",
-      "https://www.instagram.com/delsolprimehomes",
-      "https://www.linkedin.com/company/delsolprimehomes"
+      "https://www.linkedin.com/company/everencewealth"
     ],
-    "aggregateRating": {
-      "@type": "AggregateRating",
-      "ratingValue": "4.9",
-      "reviewCount": content.properties_sold.toString(),
-      "bestRating": "5",
-      "worstRating": "1"
-    },
     "founder": FOUNDERS_DATA.map((f, i) => ({ "@id": `${BASE_URL}/about#founder-${i + 1}` })),
     "employee": FOUNDERS_DATA.map((f, i) => ({ "@id": `${BASE_URL}/about#founder-${i + 1}` })),
-    "hasCredential": { "@id": `${BASE_URL}/#api-credential` }
   };
 }
 
@@ -184,49 +121,16 @@ export function generateLocalBusinessSchema(content: AboutPageContent) {
   return {
     "@type": "LocalBusiness",
     "@id": `${BASE_URL}/#localbusiness`,
-    "name": "Del Sol Prime Homes",
-    "image": "https://storage.googleapis.com/msgsndr/9m2UBN29nuaCWceOgW2Z/media/6926151522d3b65c0becbaf4.png",
-    "priceRange": "€€€",
+    "name": "Everence Wealth",
+    "image": "https://storage.googleapis.com/msgsndr/TLhrYb7SRrWrly615tCI/media/6993ada8dcdadb155342f28e.png",
+    "priceRange": "$$",
     "address": {
       "@type": "PostalAddress",
-      "streetAddress": "Avenida Ricardo Soriano",
-      "addressLocality": "Marbella",
-      "postalCode": "29601",
-      "addressRegion": "Málaga",
-      "addressCountry": "ES"
-    },
-    "geo": {
-      "@type": "GeoCoordinates",
-      "latitude": 36.5090,
-      "longitude": -4.8826
+      "addressLocality": "San Diego",
+      "addressRegion": "CA",
+      "addressCountry": "US"
     },
     "url": BASE_URL,
-    "telephone": "+34 630 03 90 90",
-    "openingHoursSpecification": [
-      {
-        "@type": "OpeningHoursSpecification",
-        "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
-        "opens": "09:00",
-        "closes": "18:00"
-      },
-      {
-        "@type": "OpeningHoursSpecification",
-        "dayOfWeek": "Saturday",
-        "opens": "10:00",
-        "closes": "14:00"
-      }
-    ],
-    "currenciesAccepted": "EUR",
-    "paymentAccepted": "Bank Transfer, Cash",
-    "areaServed": {
-      "@type": "GeoCircle",
-      "geoMidpoint": {
-        "@type": "GeoCoordinates",
-        "latitude": 36.5090,
-        "longitude": -4.8826
-      },
-      "geoRadius": "100 km"
-    }
   };
 }
 
@@ -246,9 +150,9 @@ export function generatePersonSchemas(founders: Founder[]) {
       "@id": `${BASE_URL}/#organization`
     },
     "knowsAbout": [
-      "Costa del Sol Real Estate",
+      "Wealth Management",
       founder.specialization,
-      "Spanish Property Market"
+      "Retirement Planning"
     ],
     "knowsLanguage": founder.languages.map(lang => ({
       "@type": "Language",
@@ -261,17 +165,24 @@ export function generatePersonSchemas(founders: Founder[]) {
     })),
     "hasOccupation": {
       "@type": "Occupation",
-      "name": "Real Estate Agent",
+      "name": "Financial Advisor",
       "occupationLocation": {
-        "@type": "City",
-        "name": "Marbella"
-      },
-      "estimatedSalary": {
-        "@type": "MonetaryAmountDistribution",
-        "currency": "EUR"
+        "@type": "Country",
+        "name": "United States"
       }
     }
   }));
+}
+
+// Generate API Credential Schema
+export function generateAPICredentialSchema() {
+  return {
+    "@type": "EducationalOccupationalCredential",
+    "@id": `${BASE_URL}/#credential`,
+    "credentialCategory": "license",
+    "name": "Series 65 - Uniform Investment Adviser Law Examination",
+    "description": "Fiduciary investment advisor license"
+  };
 }
 
 // FAQPage Schema (AEO)
@@ -327,7 +238,7 @@ export function generateWebPageSchema(content: AboutPageContent) {
       "@type": "WebSite",
       "@id": `${BASE_URL}/#website`,
       "url": BASE_URL,
-      "name": "Del Sol Prime Homes",
+      "name": "Everence Wealth",
       "publisher": {
         "@id": `${BASE_URL}/#organization`
       }
@@ -337,7 +248,7 @@ export function generateWebPageSchema(content: AboutPageContent) {
     },
     "primaryImageOfPage": {
       "@type": "ImageObject",
-      "url": "https://storage.googleapis.com/msgsndr/9m2UBN29nuaCWceOgW2Z/media/6926151522d3b65c0becbaf4.png"
+      "url": "https://storage.googleapis.com/msgsndr/TLhrYb7SRrWrly615tCI/media/6993ada8dcdadb155342f28e.png"
     },
     "speakable": {
       "@type": "SpeakableSpecification",
@@ -372,7 +283,6 @@ export function generateAboutPageSchema(content: AboutPageContent) {
 
 // Generate complete schema graph
 export function generateAllAboutSchemas(content: AboutPageContent): string {
-  // Use hardcoded founders if none provided from database
   const founders = content.founders && content.founders.length > 0 
     ? content.founders 
     : FOUNDERS_DATA;
@@ -380,8 +290,8 @@ export function generateAllAboutSchemas(content: AboutPageContent): string {
   const schemas = [
     generateOrganizationSchema({ ...content, founders }),
     generateLocalBusinessSchema(content),
-    generateAPICredentialSchema(), // API license credential
-    ...generatePersonSchemas(founders), // Person schemas with LinkedIn sameAs
+    generateAPICredentialSchema(),
+    ...generatePersonSchemas(founders),
     generateFAQPageSchema(content.faq_entities || []),
     generateBreadcrumbSchema(),
     generateWebPageSchema(content),

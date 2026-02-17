@@ -26,7 +26,7 @@ export const FunnelCTA = ({ funnelStage, ctaArticles }: FunnelCTAProps) => {
         <div className="text-center space-y-6">
           <h2 className="text-3xl font-bold">Ready to Take the Next Step?</h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Connect with our expert team to find your dream property in Costa del Sol
+            Connect with our expert team to plan your financial future
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" className="gap-2">

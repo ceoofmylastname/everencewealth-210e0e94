@@ -78,7 +78,7 @@ export const PropertyDescription = ({ description, propertyType, location }: Pro
               {location}
             </p>
             <p className="text-xs md:text-sm text-muted-foreground mt-1 md:mt-2">
-              Costa del Sol, Spain
+              {location}
             </p>
           </div>
 

@@ -291,7 +291,7 @@ export function LanguageMismatchNotFound({
     <>
       <Helmet>
         <meta name="robots" content="noindex, nofollow" />
-        <title>{ui.title} | Del Sol Prime Homes</title>
+        <title>{ui.title} | Everence Wealth</title>
       </Helmet>
 
       <div className="min-h-[70vh] flex items-center justify-center bg-gradient-to-b from-background to-muted/30">

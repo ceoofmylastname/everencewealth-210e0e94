@@ -32,10 +32,10 @@ export const OurStory = ({ content }: OurStoryProps) => {
   };
 
   const defaultTimeline = [
-    { year: "1997", event: "Steven Roberts arrives in Spain" },
-    { year: "1998", event: "Cédric Van Hecke relocates to Costa del Sol" },
-    { year: "2016", event: "Steven founds Sentinel Estates" },
-    { year: "2020", event: "Hans Beeckman joins the team" }
+    { year: "1998", event: "Steven Rosenberg founds Everence Wealth" },
+    { year: "2005", event: "Expanded to all 50 states licensing" },
+    { year: "2015", event: "Three Tax Buckets framework developed" },
+    { year: "2024", event: "Digital wealth planning platform launched" }
   ];
 
   const timelineItems = story?.timeline || defaultTimeline;

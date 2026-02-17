@@ -1,5 +1,5 @@
 /**
- * Hans' AEO (Answer Engine Optimization) Rules for acceptedAnswer content
+ * AEO (Answer Engine Optimization) Rules for acceptedAnswer content
  * 
  * These rules ensure AI-quotable, Featured-Snippet-ready answers for:
  * - ChatGPT/Perplexity citations
@@ -50,7 +50,7 @@ Write an 80-120 word speakable answer in ${languageName}.
 
 Question: ${question}
 
-HANS' AEO RULES:
+AEO RULES:
 - Write as a single paragraph VERDICT, not a tutorial
 - NO lists, NO bullets, NO numbered points
 - NO headings or line breaks
@@ -62,7 +62,7 @@ HANS' AEO RULES:
 - Directly answer the question
 
 WRONG: "There are several steps: 1. First... 2. Second..."
-RIGHT: "Buying property in Costa del Sol involves obtaining a Spanish NIE, appointing an independent lawyer, opening a Spanish bank account, signing a private purchase agreement with deposit, and finalizing through a notary public deed."
+RIGHT: "Indexed Universal Life insurance provides tax-advantaged growth linked to market indices with downside protection, making it a core component of a comprehensive retirement income strategy alongside fixed indexed annuities and Roth conversions."
 
 Return ONLY the speakable answer text, no JSON, no formatting.
 `,

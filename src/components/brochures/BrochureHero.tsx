@@ -138,7 +138,7 @@ export const BrochureHero: React.FC<BrochureHeroProps> = ({
         <div className={`mb-8 transition-all duration-700 delay-300 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
           <span className="inline-flex items-center gap-2 px-5 py-2.5 bg-prime-gold/10 border border-prime-gold/30 rounded-full text-prime-goldLight text-sm font-nav tracking-wider uppercase backdrop-blur-sm">
             <span className="w-2 h-2 bg-prime-gold rounded-full animate-pulse" />
-            {ui.costaDelSolSpain || 'Costa del Sol, Spain'}
+            {ui.costaDelSolSpain || 'Everence Wealth'}
           </span>
         </div>
 
