@@ -42,78 +42,14 @@ const PropertiesShowcase: React.FC<PropertiesShowcaseProps> = ({ translations, l
             view: "View",
             subtitle: "6 carefully selected new-build projects"
         },
-        de: { 
-            apartmentSection: "Wohnungen & Penthäuser", 
-            villaSection: "Reihenhäuser & Villen",
-            apartmentTitle: "Luxuswohnung",
-            villaTitle: "Exklusive Villa",
-            view: "Ansehen",
-            subtitle: "6 sorgfältig ausgewählte Neubauprojekte"
+        es: { 
+            apartmentSection: "Apartamentos y Áticos", 
+            villaSection: "Casas Adosadas y Villas",
+            apartmentTitle: "Apartamento de Lujo",
+            villaTitle: "Villa Exclusiva",
+            view: "Ver",
+            subtitle: "6 proyectos de obra nueva cuidadosamente seleccionados"
         },
-        nl: { 
-            apartmentSection: "Appartementen & Penthouses", 
-            villaSection: "Townhouses & Villa's",
-            apartmentTitle: "Luxe Appartement",
-            villaTitle: "Exclusieve Villa",
-            view: "Bekijken",
-            subtitle: "6 zorgvuldig geselecteerde nieuwbouwprojecten"
-        },
-        fr: { 
-            apartmentSection: "Appartements & Penthouses", 
-            villaSection: "Maisons de ville & Villas",
-            apartmentTitle: "Appartement de Luxe",
-            villaTitle: "Villa Exclusive",
-            view: "Voir",
-            subtitle: "6 projets neufs soigneusement sélectionnés"
-        },
-        pl: { 
-            apartmentSection: "Apartamenty & Penthousy", 
-            villaSection: "Domy szeregowe & Wille",
-            apartmentTitle: "Luksusowy Apartament",
-            villaTitle: "Ekskluzywna Willa",
-            view: "Zobacz",
-            subtitle: "6 starannie wybranych projektów deweloperskich"
-        },
-        sv: { 
-            apartmentSection: "Lägenheter & Takvåningar", 
-            villaSection: "Radhus & Villor",
-            apartmentTitle: "Lyxlägenhet",
-            villaTitle: "Exklusiv Villa",
-            view: "Visa",
-            subtitle: "6 noggrant utvalda nybyggnadsprojekt"
-        },
-        da: { 
-            apartmentSection: "Lejligheder & Penthouses", 
-            villaSection: "Rækkehuse & Villaer",
-            apartmentTitle: "Luksuslejlighed",
-            villaTitle: "Eksklusiv Villa",
-            view: "Se",
-            subtitle: "6 omhyggeligt udvalgte nybyggeriprojekter"
-        },
-        hu: { 
-            apartmentSection: "Apartmanok & Penthouse-ok", 
-            villaSection: "Sorházak & Villák",
-            apartmentTitle: "Luxus Apartman",
-            villaTitle: "Exkluzív Villa",
-            view: "Megtekintés",
-            subtitle: "6 gondosan kiválasztott új építésű projekt"
-        },
-        fi: { 
-            apartmentSection: "Asunnot & Kattohuoneistot", 
-            villaSection: "Rivitalot & Huvilat",
-            apartmentTitle: "Luksusasunto",
-            villaTitle: "Yksinomainen Huvila",
-            view: "Näytä",
-            subtitle: "6 huolellisesti valittua uudisrakennusprojektia"
-        },
-        no: { 
-            apartmentSection: "Leiligheter & Penthouses", 
-            villaSection: "Rekkehus & Villaer",
-            apartmentTitle: "Luksusleilighet",
-            villaTitle: "Eksklusiv Villa",
-            view: "Se",
-            subtitle: "6 nøye utvalgte nybyggprosjekter"
-        }
     };
 
     const currentLabels = labels[lang as keyof typeof labels] || labels.en;
@@ -264,7 +200,7 @@ const PropertiesShowcase: React.FC<PropertiesShowcaseProps> = ({ translations, l
                                     interest: categoryName,
                                     propertyName: categoryName,
                                     propertyCategory: sectionType === 'apartments' ? 'apartment' : 'villa',
-                                    propertyLocation: 'Costa del Sol'
+                                    propertyLocation: ''
                                 }
                             }));
                         }}

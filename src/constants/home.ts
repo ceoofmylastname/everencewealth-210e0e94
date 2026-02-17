@@ -56,13 +56,13 @@ export const FEATURED_AREAS: Area[] = [
     id: 'marbella',
     name: 'Marbella',
     image: marbellaHero,
-    description: 'The jewel of the Costa del Sol. Luxury living, golden miles, and exclusive amenities.'
+    description: 'Premier indexed strategies for tax-free retirement income with market-linked growth.'
   },
   {
     id: 'estepona',
     name: 'Estepona',
     image: esteponaHero,
-    description: 'The Garden of the Costa del Sol. Traditional charm meets modern luxury developments.'
+    description: 'Guaranteed income streams for retirement security with tax-deferred growth.'
   },
   {
     id: 'fuengirola',

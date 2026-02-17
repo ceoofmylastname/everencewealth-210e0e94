@@ -54,7 +54,7 @@ export const TeamMemberModal = ({ member, isOpen, onClose }: TeamMemberModalProp
 
   const handleWhatsAppClick = () => {
     const phone = member.whatsapp || COMPANY_CONTACT.phoneClean;
-    const message = encodeURIComponent(`Hi ${member.name}, I'd like to discuss Costa del Sol properties with you.`);
+    const message = encodeURIComponent(`Hi ${member.name}, I'd like to discuss wealth strategies with you.`);
     window.open(`https://wa.me/${phone}?text=${message}`, '_blank');
     
     if (typeof window !== 'undefined' && (window as any).gtag) {
@@ -67,7 +67,7 @@ export const TeamMemberModal = ({ member, isOpen, onClose }: TeamMemberModalProp
 
   const handleEmailClick = () => {
     const email = member.email || COMPANY_CONTACT.email;
-    window.location.href = `mailto:${email}?subject=Property Inquiry - Contact via ${member.name}`;
+    window.location.href = `mailto:${email}?subject=Wealth Planning Inquiry - Contact via ${member.name}`;
     
     if (typeof window !== 'undefined' && (window as any).gtag) {
       (window as any).gtag('event', 'email_click', {

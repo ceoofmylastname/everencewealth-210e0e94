@@ -59,7 +59,7 @@ export const BasicInfoSection = ({
             id="headline"
             value={headline}
             onChange={(e) => onHeadlineChange(e.target.value)}
-            placeholder="How to Buy Property in Costa del Sol?"
+            placeholder="Understanding Tax-Free Retirement Strategies"
             className={errors.headline ? "border-red-500" : ""}
           />
           {errors.headline && (
@@ -76,7 +76,7 @@ export const BasicInfoSection = ({
             id="slug"
             value={slug}
             onChange={(e) => onSlugChange(generateSlug(e.target.value))}
-            placeholder="how-to-buy-property-costa-del-sol"
+            placeholder="understanding-tax-free-retirement-strategies"
             className={errors.slug ? "border-red-500" : ""}
           />
           <p className="text-xs text-muted-foreground mt-1">

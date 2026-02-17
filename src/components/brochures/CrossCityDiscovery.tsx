@@ -95,7 +95,7 @@ export const CrossCityDiscovery: React.FC<CrossCityDiscoveryProps> = ({ currentC
                   {/* Location Badge */}
                   <div className="flex items-center gap-2 text-prime-gold text-sm mb-3">
                     <MapPin size={14} />
-                    <span className="font-nav tracking-wider uppercase">Costa del Sol</span>
+                    <span className="font-nav tracking-wider uppercase">{city.name}</span>
                   </div>
                   
                   {/* City Name */}

@@ -5,27 +5,9 @@ import { useTranslation } from 'react-i18next';
 import LeadForm from '@/components/landing/LeadForm';
 import { LanguageCode, detectUserLanguage } from '@/utils/landing/languageDetection';
 import enTranslations from '@/translations/landing/en.json';
-import nlTranslations from '@/translations/landing/nl.json';
-import frTranslations from '@/translations/landing/fr.json';
-import deTranslations from '@/translations/landing/de.json';
-import daTranslations from '@/translations/landing/da.json';
-import fiTranslations from '@/translations/landing/fi.json';
-import plTranslations from '@/translations/landing/pl.json';
-import huTranslations from '@/translations/landing/hu.json';
-import svTranslations from '@/translations/landing/sv.json';
-import noTranslations from '@/translations/landing/no.json';
 
 const translationsMap: Record<string, any> = {
     en: enTranslations,
-    nl: nlTranslations,
-    fr: frTranslations,
-    de: deTranslations,
-    da: daTranslations,
-    fi: fiTranslations,
-    pl: plTranslations,
-    hu: huTranslations,
-    sv: svTranslations,
-    no: noTranslations
 };
 
 const OptInPage: React.FC = () => {

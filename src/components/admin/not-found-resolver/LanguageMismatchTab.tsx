@@ -195,7 +195,7 @@ export function LanguageMismatchTab() {
                     </TableCell>
                     <TableCell>
                       <a
-                        href={`https://www.delsolprimehomes.com${mismatch.correct_url}`}
+                        href={`https://www.everencewealth.com${mismatch.correct_url}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="flex items-center gap-1 text-sm text-blue-600 hover:underline"

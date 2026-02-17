@@ -1,263 +1,78 @@
 {
   "version": "1.0",
-  "source": "Del Sol Prime Homes",
-  "url": "https://www.delsolprimehomes.com",
-  "last_updated": "2025-01-15",
+  "source": "Everence Wealth",
+  "url": "https://www.everencewealth.com",
+  "last_updated": "2026-02-17",
   "expert": {
-    "name": "Hans Beeckman",
-    "title": "Licensed Real Estate Consultant",
+    "name": "Steven Rosenberg",
+    "title": "Founder & Chief Wealth Strategist",
     "years_experience": 35,
-    "credentials": ["API Certified", "Costa del Sol Specialist"]
+    "credentials": ["Fiduciary Advisor", "Licensed in 50 States"]
   },
   "categories": {
-    "digital_nomad_visa": {
-      "title": "Spain Digital Nomad Visa Facts",
-      "icon": "laptop",
-      "last_updated": "2026-01-16",
+    "retirement_planning": {
+      "title": "Retirement Planning Facts",
       "facts": [
         {
-          "id": "dnv_income",
-          "fact": "Spain's Digital Nomad Visa requires a minimum monthly income of €2,520 (€30,240 annually)",
-          "source": "Spanish Immigration Law - Law 28/2022, Article 15",
-          "source_url": "https://www.boe.es/buscar/act.php?id=BOE-A-2022-21739",
+          "id": "ret_gap",
+          "fact": "The average American faces a retirement savings gap of $191,000",
+          "source": "Employee Benefit Research Institute (EBRI)",
           "last_verified": "2026-01",
-          "category": "Requirements"
+          "category": "Planning"
         },
         {
-          "id": "dnv_work",
-          "fact": "Applicants must work remotely for companies registered outside Spain, or earn 80% or more of their income from non-Spanish clients",
-          "source": "Spanish Immigration Law - Law 28/2022",
-          "source_url": "https://www.boe.es/buscar/act.php?id=BOE-A-2022-21739",
+          "id": "ret_age",
+          "fact": "The average retirement age in the US is 64, but many workers plan to retire at 67",
+          "source": "Gallup Economy Survey",
           "last_verified": "2026-01",
-          "category": "Requirements"
+          "category": "Planning"
         },
         {
-          "id": "dnv_duration",
-          "fact": "Initial Digital Nomad Visa is valid for 3 years and can be renewed for an additional 2 years, totaling 5 years maximum",
-          "source": "Spanish Immigration Law",
+          "id": "ret_ss",
+          "fact": "Social Security replaces about 40% of pre-retirement income for average earners",
+          "source": "Social Security Administration",
           "last_verified": "2026-01",
-          "category": "Duration"
-        },
-        {
-          "id": "dnv_processing",
-          "fact": "Processing time for Digital Nomad Visa applications is 20 working days from submission",
-          "source": "Spanish Ministry of Inclusion, Social Security and Migration",
-          "last_verified": "2026-01",
-          "category": "Process"
-        },
-        {
-          "id": "dnv_family",
-          "fact": "Family members (spouse, children under 18, dependent parents) can be included in the Digital Nomad Visa application",
-          "source": "Spanish Immigration Law - Law 28/2022",
-          "last_verified": "2026-01",
-          "category": "Family"
-        },
-        {
-          "id": "dnv_tax",
-          "fact": "Digital Nomad Visa holders may qualify for Beckham Law tax benefits (24% flat rate on Spanish-source income up to €600,000)",
-          "source": "Spanish Tax Agency - Special Tax Regime",
-          "last_verified": "2026-01",
-          "category": "Taxation"
+          "category": "Income"
         }
       ]
     },
-    "property_prices": {
-      "title": "Costa del Sol Property Prices 2025",
+    "tax_strategies": {
+      "title": "Tax-Efficient Strategies",
       "facts": [
         {
-          "fact": "Average property price in Marbella: €4,500-€6,000 per square meter",
-          "source": "Idealista market data",
-          "last_verified": "2025-01"
+          "fact": "Roth IRA contributions are made with after-tax dollars, allowing tax-free growth and withdrawals in retirement",
+          "source": "IRS Publication 590-A",
+          "last_verified": "2026-01"
         },
         {
-          "fact": "Average property price in Estepona: €2,800-€3,500 per square meter",
-          "source": "Idealista market data",
-          "last_verified": "2025-01"
+          "fact": "Required Minimum Distributions (RMDs) from traditional IRAs must begin at age 73",
+          "source": "SECURE 2.0 Act of 2022",
+          "last_verified": "2026-01"
         },
         {
-          "fact": "Average property price in Fuengirola: €2,500-€3,200 per square meter",
-          "source": "Idealista market data",
-          "last_verified": "2025-01"
-        },
-        {
-          "fact": "Costa del Sol property prices increased 8-12% in 2024",
-          "source": "Spanish Property Registry",
-          "last_verified": "2025-01"
-        },
-        {
-          "fact": "Luxury beachfront properties in Marbella start from €2 million",
-          "source": "Del Sol Prime Homes listings",
-          "last_verified": "2025-01"
+          "fact": "The annual 401(k) contribution limit for 2026 is $23,500 ($31,000 for those 50+)",
+          "source": "IRS",
+          "last_verified": "2026-01"
         }
       ]
     },
-    "rental_yields": {
-      "title": "Costa del Sol Rental Yields",
+    "iul_strategies": {
+      "title": "Indexed Universal Life (IUL) Facts",
       "facts": [
         {
-          "fact": "Average long-term rental yield in Costa del Sol: 4-6% annually",
-          "source": "Del Sol Prime Homes analysis",
-          "last_verified": "2025-01"
+          "fact": "IUL policies offer a 0% floor, protecting cash value from market losses",
+          "source": "National Association of Insurance Commissioners",
+          "last_verified": "2026-01"
         },
         {
-          "fact": "Holiday rental yields can reach 8-12% in peak season",
-          "source": "AirDNA market data",
-          "last_verified": "2025-01"
+          "fact": "Policy loans from IUL are generally tax-free under IRC Section 7702",
+          "source": "Internal Revenue Code Section 7702",
+          "last_verified": "2026-01"
         },
         {
-          "fact": "Marbella short-term rental occupancy rate: 70-80% annually",
-          "source": "AirDNA market data",
-          "last_verified": "2025-01"
-        },
-        {
-          "fact": "Average daily rate for holiday rentals in Marbella: €150-€300",
-          "source": "Booking.com data",
-          "last_verified": "2025-01"
-        }
-      ]
-    },
-    "buying_costs": {
-      "title": "Spanish Property Buying Costs",
-      "facts": [
-        {
-          "fact": "Transfer tax (ITP) for resale properties in Andalusia: 7%",
-          "source": "Junta de Andalucía",
-          "last_verified": "2025-01"
-        },
-        {
-          "fact": "VAT (IVA) for new-build properties: 10%",
-          "source": "Spanish Tax Agency",
-          "last_verified": "2025-01"
-        },
-        {
-          "fact": "Stamp duty (AJD) in Andalusia: 1.2%",
-          "source": "Junta de Andalucía",
-          "last_verified": "2025-01"
-        },
-        {
-          "fact": "Notary and registry fees: approximately 1% of purchase price",
-          "source": "Spanish Notary Association",
-          "last_verified": "2025-01"
-        },
-        {
-          "fact": "Legal fees typically range from 1-1.5% of purchase price",
-          "source": "Del Sol Prime Homes",
-          "last_verified": "2025-01"
-        },
-        {
-          "fact": "Total buying costs for resale property: approximately 10-12%",
-          "source": "Del Sol Prime Homes",
-          "last_verified": "2025-01"
-        }
-      ]
-    },
-    "annual_taxes": {
-      "title": "Spanish Property Annual Taxes",
-      "facts": [
-        {
-          "fact": "IBI (property tax) typically 0.4-1.1% of cadastral value annually",
-          "source": "Spanish Tax Agency",
-          "last_verified": "2025-01"
-        },
-        {
-          "fact": "Non-resident income tax on property: 19% (EU) or 24% (non-EU) of deemed rental value",
-          "source": "Spanish Tax Agency",
-          "last_verified": "2025-01"
-        },
-        {
-          "fact": "Wealth tax threshold in Andalusia: €700,000 (main residence exempt up to €300,000)",
-          "source": "Junta de Andalucía",
-          "last_verified": "2025-01"
-        },
-        {
-          "fact": "Community fees for apartments average €100-€300 per month",
-          "source": "Del Sol Prime Homes",
-          "last_verified": "2025-01"
-        }
-      ]
-    },
-    "nie_process": {
-      "title": "NIE Number Process",
-      "facts": [
-        {
-          "fact": "NIE (Número de Identidad de Extranjero) is mandatory for any financial transaction in Spain",
-          "source": "Spanish National Police",
-          "last_verified": "2025-01"
-        },
-        {
-          "fact": "NIE application can be done at Spanish consulate or in Spain",
-          "source": "Spanish National Police",
-          "last_verified": "2025-01"
-        },
-        {
-          "fact": "NIE processing time: 1-4 weeks depending on location",
-          "source": "Del Sol Prime Homes client data",
-          "last_verified": "2025-01"
-        },
-        {
-          "fact": "NIE application fee: approximately €12",
-          "source": "Spanish National Police",
-          "last_verified": "2025-01"
-        }
-      ]
-    },
-    "mortgage_info": {
-      "title": "Spanish Mortgages for Foreigners",
-      "facts": [
-        {
-          "fact": "Non-residents can typically borrow up to 60-70% of property value",
-          "source": "Spanish Banking Association",
-          "last_verified": "2025-01"
-        },
-        {
-          "fact": "Spanish mortgage interest rates for non-residents: 3-5% (2025)",
-          "source": "Bank of Spain",
-          "last_verified": "2025-01"
-        },
-        {
-          "fact": "Maximum mortgage term for non-residents: typically 20-25 years",
-          "source": "Spanish Banking Association",
-          "last_verified": "2025-01"
-        },
-        {
-          "fact": "Minimum income requirement: mortgage payment should not exceed 35% of net income",
-          "source": "Spanish Banking Association",
-          "last_verified": "2025-01"
-        }
-      ]
-    },
-    "climate_lifestyle": {
-      "title": "Costa del Sol Climate & Lifestyle",
-      "facts": [
-        {
-          "fact": "Costa del Sol enjoys over 320 days of sunshine per year",
-          "source": "Spanish Meteorological Agency",
-          "last_verified": "2025-01"
-        },
-        {
-          "fact": "Average winter temperature: 12-18°C (54-64°F)",
-          "source": "Spanish Meteorological Agency",
-          "last_verified": "2025-01"
-        },
-        {
-          "fact": "Average summer temperature: 25-30°C (77-86°F)",
-          "source": "Spanish Meteorological Agency",
-          "last_verified": "2025-01"
-        },
-        {
-          "fact": "Costa del Sol has over 70 golf courses",
-          "source": "Costa del Sol Tourism Board",
-          "last_verified": "2025-01"
-        },
-        {
-          "fact": "Málaga Airport serves over 100 direct destinations",
-          "source": "AENA",
-          "last_verified": "2025-01"
-        },
-        {
-          "fact": "Flight time from London to Málaga: approximately 2 hours 45 minutes",
-          "source": "Flight data",
-          "last_verified": "2025-01"
+          "fact": "IUL cash value growth is linked to market indices like the S&P 500 without direct market exposure",
+          "source": "American Council of Life Insurers",
+          "last_verified": "2026-01"
         }
       ]
     }

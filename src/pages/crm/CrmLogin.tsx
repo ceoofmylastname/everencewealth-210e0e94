@@ -254,7 +254,7 @@ export default function CrmLogin() {
                 <Input
                   id="email"
                   type="email"
-                  placeholder="agent@delsolprimehomes.com"
+                  placeholder="agent@everencewealth.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   disabled={loading}
@@ -365,7 +365,7 @@ export default function CrmLogin() {
           className="text-center mt-6 text-white/30 text-xs font-nav tracking-wider animate-fade-in"
           style={{ animationDelay: '600ms' }}
         >
-          COSTA DEL SOL LUXURY REAL ESTATE
+          EVERENCE WEALTH MANAGEMENT
         </p>
       </div>
     </div>

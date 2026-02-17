@@ -24,7 +24,6 @@ Create a **decision-focused comparison page** designed to be cited by AI systems
 
 ### Context
 * Industry/Niche: [NICHE]
-* Location: Costa del Sol, Spain
 * Audience: [AUDIENCE]
 * Intent Stage: Decision / Evaluation
 [SUGGESTED_HEADLINE_SECTION]
@@ -35,7 +34,7 @@ Produce content as JSON with this exact structure:
 
 {
   "headline": "[HEADLINE_INSTRUCTION]",
-  "meta_title": "Short SEO title under 60 characters, include location (Spain/Marbella) and year (2025) where natural",
+  "meta_title": "Short SEO title under 60 characters, include year (2025) where natural",
   "meta_description": "Meta description under 160 characters with target keyword naturally integrated",
   "speakable_answer": "SINGLE PARAGRAPH verdict (80-120 words, max 150) answering 'Which is better and why?'. NO lists, NO bullets, NO line breaks. Complete sentences ending with period. Self-contained and AI-quotable. Neutral, factual tone.",
   "quick_comparison_table": [
@@ -57,7 +56,7 @@ Produce content as JSON with this exact structure:
     {"question": "...", "answer": "..."}
   ],
   "suggested_slug": "url-friendly-slug-with-location-context",
-  "image_prompt": "Professional real estate photography style image showing: [describe a visual that represents the comparison topic]. Modern, clean, Costa del Sol setting. No text overlays."
+  "image_prompt": "Professional financial advisory photography style image showing: [describe a visual that represents the comparison topic]. Modern, clean setting. No text overlays."
 }
 
 CRITICAL RULES:
@@ -69,7 +68,7 @@ CRITICAL RULES:
 6. Use <strong> for emphasis, not **
 7. NO fluff, filler words, or repetitive content
 8. Each sentence must add unique value
-9. HEADLINE FORMAT: Use natural question formats that match AI queries like "X vs Y: Which Should You Buy in 2025?" or "X vs Y: Where Should You Invest?"
+9. HEADLINE FORMAT: Use natural question formats that match AI queries like "X vs Y: Which Should You Choose in 2025?" or "X vs Y: Where Should You Invest?"
 
 Tone: Authoritative, Neutral, Evidence-based, Human-readable, AI-friendly. Avoid hype, exaggeration, or sales language.
 
@@ -123,7 +122,7 @@ serve(async (req) => {
     
     const headlineInstruction = suggested_headline 
       ? `Use exactly: "${suggested_headline}"`
-      : `Create an AI-query friendly headline like "[Option A] vs [Option B]: Which Should You [Choose/Buy/Invest in] in 2025?" Include location context (Spain/Marbella/Costa del Sol) where natural.`;
+      : `Create an AI-query friendly headline like "[Option A] vs [Option B]: Which Should You [Choose/Invest in] in 2025?"`;
     
     const suggestedHeadlineSection = suggested_headline 
       ? `* Suggested Headline: "${suggested_headline}" (USE THIS EXACTLY)`
@@ -132,8 +131,8 @@ serve(async (req) => {
     const englishPrompt = MASTER_PROMPT
       .replace(/\[OPTION_A\]/g, option_a)
       .replace(/\[OPTION_B\]/g, option_b)
-      .replace('[NICHE]', niche || 'real-estate')
-      .replace('[AUDIENCE]', target_audience || 'property buyers and investors')
+      .replace('[NICHE]', niche || 'wealth-management')
+      .replace('[AUDIENCE]', target_audience || 'retirement planners and investors')
       .replace('[HEADLINE_INSTRUCTION]', headlineInstruction)
       .replace('[SUGGESTED_HEADLINE_SECTION]', suggestedHeadlineSection);
 
@@ -181,7 +180,7 @@ serve(async (req) => {
 
     // Generate English slug
     const baseSlug = englishContent.suggested_slug || 
-      `${option_a}-vs-${option_b}-costa-del-sol-2025`
+      `${option_a}-vs-${option_b}-2025`
         .toLowerCase()
         .replace(/\s+/g, '-')
         .replace(/[^a-z0-9-]/g, '');
@@ -229,7 +228,7 @@ Return ONLY valid JSON with all content in ${languageName}, no markdown, no expl
             messages: [
               { 
                 role: 'system', 
-                content: `You are a professional translator specializing in real estate content. Translate all content to ${languageName} while maintaining the exact JSON structure. Preserve HTML formatting.`
+                content: `You are a professional translator specializing in financial content. Translate all content to ${languageName} while maintaining the exact JSON structure. Preserve HTML formatting.`
               },
               { role: 'user', content: translationPrompt }
             ],
@@ -323,8 +322,8 @@ Return ONLY valid JSON with all content in ${languageName}, no markdown, no expl
           option_a,
           option_b,
           comparison_topic: comparisonTopic,
-          niche: niche || 'real-estate',
-          target_audience: target_audience || 'property buyers and investors',
+          niche: niche || 'wealth-management',
+          target_audience: target_audience || 'retirement planners and investors',
           language: lang,
           source_language: 'en',
           hreflang_group_id: hreflangGroupId,

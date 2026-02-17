@@ -1,6 +1,6 @@
 /**
  * =============================================================================
- * DEL SOL PRIME HOMES - CLOUDFLARE WORKER FOR SEO METADATA INJECTION
+ * EVERENCE WEALTH - CLOUDFLARE WORKER FOR SEO METADATA INJECTION
  * =============================================================================
  * 
  * This Worker intercepts requests for content pages (Q&A, Blog, Comparisons, 
@@ -14,12 +14,12 @@
  * 1. Go to Cloudflare Dashboard: https://dash.cloudflare.com
  * 2. Select your account → Workers & Pages
  * 3. Click "Create Application" → "Create Worker"
- * 4. Name it: "delsol-seo-router" (or update existing worker)
+ * 4. Name it: "everence-seo-router" (or update existing worker)
  * 5. Paste this entire script
  * 6. Click "Deploy"
- * 7. Go to Workers → delsol-seo-router → Triggers
- * 8. Add Route: delsolprimehomes.com/* (or your domain)
- * 9. Test with: https://delsolprimehomes.com/no/qa/your-slug
+ * 7. Go to Workers → everence-seo-router → Triggers
+ * 8. Add Route: everencewealth.com/* (or your domain)
+ * 9. Test with: https://everencewealth.com/en/qa/your-slug
  * 
  * =============================================================================
  * CONFIGURATION
@@ -31,13 +31,13 @@ const CONFIG = {
   EDGE_FUNCTION_URL: 'https://kazggnufaoicopvmwhdl.supabase.co/functions/v1/serve-seo-page',
   
   // React App origin (Cloudflare Pages or custom)
-  REACT_APP_ORIGIN: 'https://delsolprimehomes.pages.dev',
+  REACT_APP_ORIGIN: 'https://everencewealth.pages.dev',
   
   // Webflow origin for non-React pages
-  WEBFLOW_ORIGIN: 'https://delsolprimehomes.webflow.io',
+  WEBFLOW_ORIGIN: 'https://everencewealth.webflow.io',
   
   // Supported languages (ISO 639-1 codes)
-  SUPPORTED_LANGUAGES: ['en', 'es', 'de', 'fr', 'nl', 'sv', 'no', 'da', 'fi', 'ru'],
+  SUPPORTED_LANGUAGES: ['en', 'es'],
   
   // Content types that need SEO injection
   SEO_CONTENT_TYPES: ['qa', 'blog', 'compare', 'locations'],
@@ -397,21 +397,21 @@ function escapeHtml(text) {
  * TESTING CHECKLIST:
  * 
  * 1. Test SEO page (should get metadata from edge function):
- *    curl -I https://delsolprimehomes.com/no/qa/some-slug
+ *    curl -I https://everencewealth.com/en/qa/some-slug
  *    → Should have X-SEO-Source: edge-function
- *    → Should have X-Content-Language: no
+ *    → Should have X-Content-Language: en
  * 
  * 2. Test React-only page (should go to React app):
- *    curl -I https://delsolprimehomes.com/admin
+ *    curl -I https://everencewealth.com/admin
  *    → Should serve React app
  * 
  * 3. Test English blog (no language prefix):
- *    curl -I https://delsolprimehomes.com/blog/some-article
+ *    curl -I https://everencewealth.com/blog/some-article
  *    → Should serve React app
  * 
  * 4. Test with Googlebot user agent:
- *    curl -H "User-Agent: Googlebot" https://delsolprimehomes.com/no/qa/some-slug
- *    → Should return full HTML with Norwegian metadata
+ *    curl -H "User-Agent: Googlebot" https://everencewealth.com/en/qa/some-slug
+ *    → Should return full HTML with English metadata
  * 
  * 5. Test cache:
  *    - First request: X-SEO-Source: edge-function
