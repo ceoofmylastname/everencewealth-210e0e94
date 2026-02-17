@@ -960,6 +960,7 @@ export const es = {
           description: "El inversionista promedio paga 2.5% en comisiones anuales totales — honorarios de asesoría, gastos de fondos, costos de plataforma y cargos por transacción. En 30 años, esto puede consumir más del 40% del crecimiento de su cartera.",
           stat: "40%",
           statLabel: "del crecimiento perdido en comisiones",
+          solution: "Sin comisiones AUM continuas. Precios transparentes.",
         },
         {
           id: "02",
@@ -967,6 +968,7 @@ export const es = {
           description: "Una pérdida del 50% requiere una ganancia del 100% solo para recuperar lo perdido. El riesgo de secuencia de rendimientos significa que un gran colapso cerca de la jubilación puede reducir permanentemente sus ingresos en un 30% o más.",
           stat: "100%",
           statLabel: "de ganancia necesaria para recuperar pérdida del 50%",
+          solution: "Piso del 0%. El cero es tu héroe. Nunca pierdas dinero.",
         },
         {
           id: "03",
@@ -974,8 +976,15 @@ export const es = {
           description: "Las cuentas con impuestos diferidos crean una bomba fiscal. Las Distribuciones Mínimas Requeridas fuerzan retiros a potencialmente las tasas impositivas más altas de su vida — hasta un 37% federal.",
           stat: "37%",
           statLabel: "tasa federal máxima en RMDs",
+          solution: "Retiros exentos de impuestos. Sin RMDs. Nunca.",
         },
       ],
+      compound: {
+        title: "El Efecto Compuesto",
+        description: "Estos tres asesinos trabajando juntos pueden reducir sus ingresos reales de jubilación en un 40-60% comparado con las proyecciones.",
+        punchline: "Elimina los tres. Conserva tu riqueza.",
+        lossLabel: "de riqueza proyectada perdida",
+      },
     },
     buckets: {
       badge: "Estrategia Fiscal",

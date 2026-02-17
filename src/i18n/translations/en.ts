@@ -987,6 +987,7 @@ export const en = {
           description: "The average investor pays 2.5% in total annual fees — advisory fees, fund expenses, platform costs, and transaction charges. Over 30 years, this can consume over 40% of your portfolio's growth.",
           stat: "40%",
           statLabel: "of growth lost to fees",
+          solution: "No ongoing AUM fees. Transparent pricing.",
         },
         {
           id: "02",
@@ -994,6 +995,7 @@ export const en = {
           description: "A 50% loss requires a 100% gain just to break even. Sequence-of-returns risk means one major crash near retirement can permanently cut your income by 30% or more.",
           stat: "100%",
           statLabel: "gain needed to recover 50% loss",
+          solution: "0% floor. Zero is your hero. Never lose money.",
         },
         {
           id: "03",
@@ -1001,8 +1003,15 @@ export const en = {
           description: "Tax-deferred accounts create a ticking tax bomb. Required Minimum Distributions force withdrawals at potentially the highest tax rates of your life — up to 37% federal.",
           stat: "37%",
           statLabel: "max federal rate on RMDs",
+          solution: "Tax-exempt withdrawals. No RMDs. Ever.",
         },
       ],
+      compound: {
+        title: "The Compound Effect",
+        description: "These three killers working together can reduce your actual retirement income by 40-60% compared to projections.",
+        punchline: "Eliminate all three. Keep your wealth.",
+        lossLabel: "of projected wealth lost",
+      },
     },
     buckets: {
       badge: "Tax Strategy",
