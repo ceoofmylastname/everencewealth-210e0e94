@@ -12,8 +12,6 @@ import { NotificationBell } from "./NotificationBell";
 const adminNav = [
   { label: "Agents", icon: UserCog, href: "/portal/admin/agents" },
   { label: "Clients", icon: Users, href: "/portal/admin/clients" },
-  { label: "Brochures", icon: BookOpen, href: "/portal/admin/brochures" },
-  { label: "State Pages", icon: MapPin, href: "/portal/admin/state-pages" },
   { label: "Advisor Dashboard", icon: LayoutDashboard, href: "/portal/advisor/dashboard" },
 ];
 

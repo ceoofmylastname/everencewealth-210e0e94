@@ -275,7 +275,10 @@ const App = () => (
               <Route path="/admin/docs/aeo-sge-guide" element={<ProtectedRoute><AEOGuide /></ProtectedRoute>} />
               <Route path="/admin/approved-domains" element={<ProtectedRoute><ApprovedDomains /></ProtectedRoute>} />
               <Route path="/admin/bulk-internal-links" element={<ProtectedRoute><BulkInternalLinks /></ProtectedRoute>} />
-              <Route path="/admin/brochures" element={<ProtectedRoute><BrochureManager /></ProtectedRoute>} />
+              <Route path="/admin/brochures" element={<ProtectedRoute><AdminBrochures /></ProtectedRoute>} />
+              <Route path="/admin/brochures/new" element={<ProtectedRoute><AdminBrochureForm /></ProtectedRoute>} />
+              <Route path="/admin/brochures/:id/edit" element={<ProtectedRoute><AdminBrochureForm /></ProtectedRoute>} />
+              <Route path="/admin/state-pages" element={<ProtectedRoute><AdminStatePages /></ProtectedRoute>} />
               <Route path="/admin/qa-generator" element={<ProtectedRoute><QAGenerator /></ProtectedRoute>} />
               <Route path="/admin/qa-dashboard" element={<ProtectedRoute><QADashboard /></ProtectedRoute>} />
               <Route path="/admin/comparison-generator" element={<ProtectedRoute><ComparisonGenerator /></ProtectedRoute>} />
@@ -373,10 +376,6 @@ const App = () => (
                   <Route path="agents/new" element={<AdminAgentNew />} />
                   <Route path="agents/:id" element={<AdminAgentDetail />} />
                   <Route path="clients" element={<AdminClients />} />
-                  <Route path="brochures" element={<AdminBrochures />} />
-                  <Route path="brochures/new" element={<AdminBrochureForm />} />
-                  <Route path="brochures/:id/edit" element={<AdminBrochureForm />} />
-                  <Route path="state-pages" element={<AdminStatePages />} />
                 </Route>
               </Route>
 
