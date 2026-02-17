@@ -1143,11 +1143,33 @@ export const en = {
         incentiveText: "Help you achieve financial independence and retire successfully",
       },
     },
+    quote: {
+      text: "We don't work for Wall Street. We don't work for insurance carriers. We work for families who deserve transparency, protection, and a clear path to financial independence. That's been our mission since 1998, and it will never change.",
+      author: "Steven Rosenberg",
+      role: "Founder & Chief Wealth Strategist",
+      company: "Everence Wealth, Est. 1998",
+    },
     cta: {
-      headline: "Your Strategy Session Awaits",
-      subtitle: "Discover how our contrarian approach can protect and grow your wealth — with zero obligation.",
-      primaryCta: "Schedule Strategy Session",
-      secondaryCta: "Call Us Direct",
+      headline: "Ready to Challenge the Status Quo?",
+      subtitle: "Schedule a complimentary Financial Needs Assessment. We'll stress-test your current plan against fees, volatility, and taxes — with zero obligation.",
+      primaryCta: "Schedule Assessment",
+      secondaryCta: "Download Free Guide",
+      benefits: [
+        "90-minute strategy session",
+        "Complete retirement gap analysis",
+        "Three Tax Buckets audit",
+        "Fee & tax exposure calculation",
+        "No-obligation recommendations",
+      ],
+      stats: {
+        familiesCount: "1,200+",
+        familiesLabel: "Families helped bridge the retirement gap since 1998",
+        miniStats: [
+          { value: "$0", label: "Ongoing AUM fees" },
+          { value: "75+", label: "Carrier partnerships" },
+          { value: "0%", label: "Floor protection" },
+        ],
+      },
     },
   },
 };
