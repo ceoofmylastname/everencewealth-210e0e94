@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, useSpring, AnimatePresence } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { TrendingUp, Shield, Umbrella, Lock, Newspaper, MessageCircleQuestion, BookMarked, Users, Info, Heart, Scale } from 'lucide-react';
+import { TrendingUp, Shield, Umbrella, Lock, Newspaper, MessageCircleQuestion, BookMarked, Users, Info, Heart, Scale, MapPin, Building2, Library } from 'lucide-react';
 import { useTranslation } from '../../i18n';
 
 interface NavItem {
@@ -47,6 +47,9 @@ export const NavigationPill: React.FC<NavigationPillProps> = ({ isLightBackgroun
         { label: nav.qa, path: `/${currentLanguage}/qa`, icon: <MessageCircleQuestion className="w-4 h-4" /> },
         { label: nav.glossary, path: `/${currentLanguage}/glossary`, icon: <BookMarked className="w-4 h-4" /> },
         { label: nav.comparisons || "Comparisons", path: `/${currentLanguage}/compare`, icon: <Scale className="w-4 h-4" /> },
+        { label: nav.stateGuides || "State Guides", path: `/${currentLanguage}/retirement-planning`, icon: <MapPin className="w-4 h-4" /> },
+        { label: nav.locations || "Locations", path: `/${currentLanguage}/locations`, icon: <Building2 className="w-4 h-4" /> },
+        { label: nav.guidesLibrary || "Guides Library", path: `/${currentLanguage}/guides`, icon: <Library className="w-4 h-4" /> },
       ],
     },
     {
@@ -63,7 +66,7 @@ export const NavigationPill: React.FC<NavigationPillProps> = ({ isLightBackgroun
   useEffect(() => {
     const path = location.pathname;
     if (path.includes('/strategies')) setActiveSection('strategies');
-    else if (path.includes('/blog') || path.includes('/qa') || path.includes('/glossary') || path.includes('/compare')) setActiveSection('education');
+    else if (path.includes('/blog') || path.includes('/qa') || path.includes('/glossary') || path.includes('/compare') || path.includes('/retirement-planning') || path.includes('/locations') || path.includes('/guides')) setActiveSection('education');
     else if (path.includes('/team') || path.includes('/about') || path.includes('/client-stories')) setActiveSection('about');
     else if (path.includes('/philosophy')) setActiveSection('philosophy');
   }, [location.pathname]);
