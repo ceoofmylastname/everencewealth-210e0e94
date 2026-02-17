@@ -3,8 +3,8 @@ import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { usePortalAuth } from "@/hooks/usePortalAuth";
 import { cn } from "@/lib/utils";
 import {
-  Shield, LogOut, Users, Menu, X, ChevronRight,
-  LayoutDashboard, UserCog, BookOpen, MapPin,
+  LogOut, Users, Menu, X, ChevronRight,
+  LayoutDashboard, UserCog,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { NotificationBell } from "./NotificationBell";
@@ -43,10 +43,11 @@ export function AdminPortalLayout() {
       >
         <div className="h-16 border-b border-white/10 flex items-center justify-between px-5">
           <Link to="/portal/admin/agents" className="flex items-center gap-2">
-            <Shield className="h-6 w-6 text-white" />
-            <span className="font-bold text-lg text-white" style={{ fontFamily: "'Playfair Display', serif" }}>
-              Everence
-            </span>
+            <img src="https://storage.googleapis.com/msgsndr/TLhrYb7SRrWrly611tCI/media/6993ada8dcdadb155342f28e.png" alt="Everence Wealth" className="h-8 w-auto" />
+            <div className="flex flex-col leading-tight">
+              <span className="font-bold text-lg text-white font-serif leading-none">Everence</span>
+              <span className="text-[10px] font-light tracking-[0.2em] uppercase text-white/60">Wealth</span>
+            </div>
             <span className="ml-1 text-[10px] font-bold uppercase tracking-wider bg-amber-500 text-white px-1.5 py-0.5 rounded">
               Admin
             </span>
@@ -106,9 +107,10 @@ export function AdminPortalLayout() {
           <Button variant="ghost" size="icon" onClick={() => setMobileOpen(true)}>
             <Menu className="h-5 w-5" />
           </Button>
-          <span className="ml-3 font-semibold text-foreground flex-1" style={{ fontFamily: "'Playfair Display', serif" }}>
-            Admin Panel
-          </span>
+          <div className="ml-3 flex items-center gap-2 flex-1">
+            <img src="https://storage.googleapis.com/msgsndr/TLhrYb7SRrWrly611tCI/media/6993ada8dcdadb155342f28e.png" alt="Everence Wealth" className="h-6 w-auto" />
+            <span className="font-semibold text-foreground font-serif">Everence <span className="text-[9px] font-light tracking-[0.2em] uppercase text-muted-foreground">Wealth</span></span>
+          </div>
           <NotificationBell />
         </header>
 

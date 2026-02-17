@@ -74,12 +74,11 @@ export function PortalLayout() {
         {/* Brand */}
         <div className="h-16 border-b border-border flex items-center justify-between px-5">
           <Link to={isAdvisor ? "/portal/advisor/dashboard" : "/portal/client/dashboard"} className="flex items-center gap-2.5">
-            <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
-              <Shield className="h-4 w-4 text-primary-foreground" />
+            <img src="https://storage.googleapis.com/msgsndr/TLhrYb7SRrWrly611tCI/media/6993ada8dcdadb155342f28e.png" alt="Everence Wealth" className="h-8 w-auto" />
+            <div className="flex flex-col leading-tight">
+              <span className="font-bold text-lg text-foreground font-serif leading-none">Everence</span>
+              <span className="text-[10px] font-light tracking-[0.2em] uppercase text-muted-foreground">Wealth</span>
             </div>
-            <span className="font-bold text-lg text-foreground font-serif">
-              Everence
-            </span>
           </Link>
           <div className="flex items-center gap-1">
             <NotificationBell />
@@ -140,9 +139,10 @@ export function PortalLayout() {
           <Button variant="ghost" size="icon" onClick={() => setMobileOpen(true)}>
             <Menu className="h-5 w-5" />
           </Button>
-          <span className="ml-3 font-semibold text-foreground flex-1 font-serif">
-            {isAdvisor ? "Advisor Portal" : "Client Portal"}
-          </span>
+          <div className="ml-3 flex items-center gap-2 flex-1">
+            <img src="https://storage.googleapis.com/msgsndr/TLhrYb7SRrWrly611tCI/media/6993ada8dcdadb155342f28e.png" alt="Everence Wealth" className="h-6 w-auto" />
+            <span className="font-semibold text-foreground font-serif">Everence <span className="text-[9px] font-light tracking-[0.2em] uppercase text-muted-foreground">Wealth</span></span>
+          </div>
           <NotificationBell />
         </header>
 
