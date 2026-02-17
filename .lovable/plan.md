@@ -1,48 +1,68 @@
 
 
-# Agent Client Password Management
+# Fix: Infinite Recursion in Advisors RLS Policy
 
-## What Already Works
-- Invitation email IS sent when "Create Invitation" is clicked -- it emails a branded link to `/portal/signup?token=...`
-- Client creates their own password during signup
-- Client can reset their password via `/portal/forgot-password` (already exists)
-- Agent can change their own password at `/portal/advisor/settings` (already exists)
+## Problem
+The "Advisor record not found" error is misleading. The actual database error is:
 
-## What's Missing (To Build)
+```
+infinite recursion detected in policy for relation "advisors"
+```
 
-### 1. Agent Can Set a Client's Password
-Create a new backend function and UI so agents can set/reset passwords for their own clients (not all clients -- only ones assigned to them).
+This happens because the RLS policy **"Clients can view their advisor"** on the `advisors` table joins back to `portal_users`, and `portal_users` likely has policies that reference `advisors`, creating a circular dependency.
 
-**New file: `supabase/functions/update-portal-client-password/index.ts`**
-- Accepts `portal_user_id` and `new_password`
-- Verifies the caller is an advisor and the client belongs to them (via `advisor_id` match)
-- Uses `admin.updateUserById()` to set the password
+## Current Problematic Policy
+```sql
+-- "Clients can view their advisor" on advisors table:
+(id IN (
+  SELECT a.id FROM advisors a
+    JOIN portal_users pu ON (pu.advisor_id = a.portal_user_id)
+  WHERE pu.auth_user_id = auth.uid()
+))
+```
 
-**UI Update: `src/pages/portal/advisor/ClientInvite.tsx`**
-- Add a "Set Password" button next to each accepted invitation in the history list
-- Opens a dialog (reuse the same pattern as `SetAgentPasswordDialog`) to enter a new password
-- Only visible for invitations with status "accepted" (meaning the client already has an account)
+This self-references the `advisors` table inside its own SELECT policy, and the join to `portal_users` triggers that table's policies which may reference `advisors` again.
 
-### 2. New Component: `SetClientPasswordDialog.tsx`
-- Modal with password + confirm fields
-- Calls the new `update-portal-client-password` edge function
-- Shows success/error feedback via toast
+## Solution
+Replace the recursive policy with a `SECURITY DEFINER` helper function (following the project's existing pattern like `get_my_advisor_id`).
 
-### 3. Fix "Advisor record not found" Issue
-The screenshot shows a toast "Advisor record not found" -- this means the current portal user doesn't have a matching row in the `advisors` table. This is a data issue, not a code bug. However, we can improve the error message to be more helpful.
+### Step 1: Create a helper function
+```sql
+CREATE OR REPLACE FUNCTION public.get_my_advisor_id_from_portal(_auth_uid uuid)
+RETURNS uuid
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = 'public'
+AS $$
+  SELECT advisor_id FROM portal_users
+  WHERE auth_user_id = _auth_uid AND is_active = true
+  LIMIT 1;
+$$;
+```
 
-## Technical Details
+### Step 2: Drop the recursive policy and recreate it
+```sql
+DROP POLICY IF EXISTS "Clients can view their advisor" ON advisors;
 
-### Files to Create
-- `supabase/functions/update-portal-client-password/index.ts` -- backend function for advisor to set client password
-- `src/components/portal/advisor/SetClientPasswordDialog.tsx` -- password dialog component
+CREATE POLICY "Clients can view their advisor"
+ON advisors FOR SELECT TO authenticated
+USING (
+  portal_user_id = get_my_advisor_id_from_portal(auth.uid())
+);
+```
 
-### Files to Modify
-- `src/pages/portal/advisor/ClientInvite.tsx` -- add "Set Password" and "Resend" actions to invitation history items
-- `supabase/config.toml` -- register new edge function
+This breaks the recursion because `SECURITY DEFINER` bypasses RLS when querying `portal_users`.
 
-### Security
-- The backend function verifies the caller is an advisor (via `portal_users` role check)
-- It also verifies the target client's `advisor_id` matches the caller's advisor record, so agents can only set passwords for their own clients
-- Password minimum 8 characters enforced server-side
+### Step 3: Also fix the "Advisors can view own profile" policy
+The current policy uses `auth_user_id = auth.uid()` which is fine on its own, but combined with the recursive client policy it compounds the issue. No change needed here, but worth noting.
+
+## Files Changed
+- Database migration only (no code file changes needed)
+
+## What This Fixes
+- Advisors will be able to load the Invite Client page without errors
+- Clients will still be able to view their advisor's profile
+- The invitation flow (create + email) will work as expected
+- No code changes needed -- the existing `ClientInvite.tsx` logic is correct
 
