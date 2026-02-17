@@ -29,7 +29,7 @@ export function BestAreasSection({ areas, cityName }: BestAreasSectionProps) {
             Best Areas in {cityName}
           </h2>
           <p className="text-muted-foreground mt-1">
-            Top neighborhoods for property buyers
+            Top regions for retirement and wealth planning
           </p>
         </div>
       </div>

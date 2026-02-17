@@ -205,7 +205,7 @@ const LocationPage = () => {
                     {t.locationGuides?.summaryRecommendations || "Summary & Recommendations"}
                   </h2>
                   <p className="text-muted-foreground mt-1">
-                    {t.locationGuides?.keyTakeaways || "Key takeaways for buyers"}
+                    {t.locationGuides?.keyTakeaways || "Key takeaways for clients"}
                   </p>
                 </div>
               </div>

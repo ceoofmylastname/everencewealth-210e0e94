@@ -46,7 +46,7 @@ const LOCALIZED_CONTENT: Record<string, {
       retirementProjections: { title: "Retirement Projections", description: "Cost of living adjusted retirement income needs, Social Security optimization, and pension-friendly state rankings" },
       riskAssessment: { title: "Risk Assessment", description: "Market volatility analysis, economic stability scores, and diversification recommendations by region" },
       insuranceCoverage: { title: "Insurance Coverage", description: "State-specific insurance requirements, carrier availability, premium comparisons, and coverage gap analysis" },
-      cashFlow: { title: "Cash Flow Planning", description: "Cost of living indexes, housing affordability, healthcare costs, and income sustainability projections" },
+      cashFlow: { title: "Cash Flow Planning", description: "Cost of living indexes, lifestyle affordability, healthcare costs, and income sustainability projections" },
       marketAccess: { title: "Market Access", description: "Local advisor availability, financial institution density, and access to specialized wealth management services" },
       regulatoryCompliance: { title: "Regulatory Compliance", description: "State-specific financial regulations, licensing requirements, fiduciary standards, and consumer protection laws" }
     }
@@ -60,7 +60,7 @@ const LOCALIZED_CONTENT: Record<string, {
       retirementProjections: { title: "Proyecciones de Jubilación", description: "Necesidades de ingresos de jubilación ajustadas al costo de vida, optimización del Seguro Social y rankings de estados favorables" },
       riskAssessment: { title: "Evaluación de Riesgos", description: "Análisis de volatilidad del mercado, puntajes de estabilidad económica y recomendaciones de diversificación" },
       insuranceCoverage: { title: "Cobertura de Seguros", description: "Requisitos de seguros estatales, disponibilidad de aseguradoras, comparaciones de primas y análisis de brechas de cobertura" },
-      cashFlow: { title: "Planificación de Flujo de Caja", description: "Índices de costo de vida, accesibilidad de vivienda, costos de salud y proyecciones de sostenibilidad de ingresos" },
+      cashFlow: { title: "Planificación de Flujo de Caja", description: "Índices de costo de vida, accesibilidad del estilo de vida, costos de salud y proyecciones de sostenibilidad de ingresos" },
       marketAccess: { title: "Acceso al Mercado", description: "Disponibilidad de asesores locales, densidad de instituciones financieras y acceso a servicios especializados" },
       regulatoryCompliance: { title: "Cumplimiento Regulatorio", description: "Regulaciones financieras estatales, requisitos de licencia, estándares fiduciarios y leyes de protección al consumidor" }
     }
