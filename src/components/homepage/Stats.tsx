@@ -48,12 +48,12 @@ function StatItem({ value, prefix = '', suffix, label, index }: StatItemProps) {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.6, delay: index * 0.1, ease: [0.16, 1, 0.3, 1] }}
-      className="relative bg-white/[0.06] backdrop-blur-xl border border-white/10 rounded-3xl p-6 md:p-8 text-center group hover:-translate-y-1 transition-transform duration-300 overflow-hidden"
+      className="relative bg-white/[0.06] backdrop-blur-xl border border-white/10 rounded-3xl px-3 py-6 md:p-8 text-center group hover:-translate-y-1 transition-transform duration-300"
     >
       {/* Inner top glow line */}
       <div className="absolute top-0 left-[10%] right-[10%] h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
       
-      <p className={`text-4xl sm:text-5xl md:text-6xl font-space font-bold whitespace-nowrap transition-all duration-300 ${done ? 'text-primary' : 'text-white'}`}
+      <p className={`text-3xl sm:text-4xl md:text-5xl font-space font-bold whitespace-nowrap transition-all duration-300 ${done ? 'text-primary' : 'text-white'}`}
         style={{ textShadow: done ? '0 0 40px hsl(var(--primary) / 0.4), 0 0 80px hsl(var(--primary) / 0.2)' : 'none' }}
       >
         {prefix}{count}{suffix}
