@@ -4,6 +4,7 @@ import { usePortalAuth } from "@/hooks/usePortalAuth";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { FolderOpen, Download, FileIcon } from "lucide-react";
+import { toast } from "sonner";
 
 interface Doc {
   id: string;
@@ -12,6 +13,14 @@ interface Doc {
   file_size: number | null;
   document_type: string;
   created_at: string;
+}
+
+/** Extract the storage path from a file_url (backward-compatible with full URLs). */
+function getStoragePath(fileUrl: string): string {
+  const marker = "/portal-documents/";
+  const idx = fileUrl.indexOf(marker);
+  if (idx !== -1) return fileUrl.substring(idx + marker.length);
+  return fileUrl;
 }
 
 export default function ClientDocuments() {
@@ -35,6 +44,13 @@ export default function ClientDocuments() {
     if (error) console.error(error);
     setDocs((data as Doc[]) ?? []);
     setLoading(false);
+  }
+
+  async function handleDownload(doc: Doc) {
+    const storagePath = getStoragePath(doc.file_url);
+    const { data, error } = await supabase.storage.from("portal-documents").createSignedUrl(storagePath, 3600);
+    if (error || !data?.signedUrl) { toast.error("Failed to generate download link"); return; }
+    window.open(data.signedUrl, "_blank");
   }
 
   const fmtSize = (n: number | null) => n ? `${(n / 1024).toFixed(0)} KB` : "";
@@ -68,10 +84,8 @@ export default function ClientDocuments() {
                     </p>
                   </div>
                 </div>
-                <Button variant="outline" size="sm" asChild>
-                  <a href={doc.file_url} download target="_blank" rel="noopener">
-                    <Download className="h-4 w-4 mr-1" />Download
-                  </a>
+                <Button variant="outline" size="sm" onClick={() => handleDownload(doc)}>
+                  <Download className="h-4 w-4 mr-1" />Download
                 </Button>
               </CardContent>
             </Card>
