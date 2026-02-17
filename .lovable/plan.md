@@ -1,32 +1,59 @@
 
 
-# Fix Document Type Constraint (Take 3) -- HIGH PRIORITY
+# Modernize Client Portal and Advisor Dashboard UI
 
-## Problem
-The database CHECK constraint `portal_documents_document_type_check` still only allows the old values: `policy`, `illustration`, `amendment`, `beneficiary-form`, `statement`, `correspondence`, `other`.
+## Overview
+Redesign the Client Dashboard and Advisor Dashboard to match the clean, modern card-based aesthetic from the reference image -- rounded cards with colored stat banners, clean typography, generous whitespace, and subtle shadows. All existing functionality (data fetching, navigation, links) remains untouched.
 
-The upload form sends these values: `general`, `policy_document`, `application`, `illustration`, `statement`, `id_verification` -- four of which (`general`, `policy_document`, `application`, `id_verification`) are rejected by the constraint, causing the error shown in the screenshot.
+## Design Elements to Adopt (from reference)
+- **Stat cards** with colored left accent or full background tint (using Evergreen palette), rounded-2xl corners, subtle arrow icons
+- **Clean header area** with bold title + subtitle text
+- **Card grid layout** with consistent spacing and rounded-2xl borders
+- **Softer shadows** (shadow-sm to shadow-md on hover) and border-less card styling
+- **Status badges** with colored dots instead of heavy badges
+- **Better visual hierarchy** -- larger stat numbers, smaller labels beneath
 
-Previous migration attempts did not apply successfully.
+## Files to Modify
 
-## Solution
+### 1. Client Dashboard (`src/pages/portal/client/ClientDashboard.tsx`)
+- Redesign stat cards: Add colored background tint (Evergreen for Policies, Amber for Documents) with rounded-2xl, larger numbers (text-3xl), and a subtle "Increased" or count indicator
+- Add a welcome banner card with gradient background using the Evergreen palette
+- Restyle the "Recent Policies" list: Use rounded-xl rows with colored status dots, cleaner layout with more breathing room
+- Add subtle hover animations (scale, shadow transitions)
 
-### Database Migration (single SQL statement)
-Drop the existing constraint and recreate it to accept ALL values used by both the form and any existing data:
+### 2. Advisor Dashboard (`src/pages/portal/advisor/AdvisorDashboard.tsx`)
+- Redesign the 4 stat cards to use colored background fills (like the reference -- first card has green bg, others have light bg with subtle tint)
+- Stat cards get rounded-2xl, larger bold numbers (text-3xl), colored accent icon, and a small trend indicator
+- Rank Banner: More prominent with gradient and rounded-2xl
+- Quick Actions grid: Rounded-2xl buttons with hover scale effect
+- News and Events cards: Cleaner dividers, rounded-2xl containers, dot-style status indicators
+- Add a subtle top search/greeting bar area with the user avatar
 
-```sql
-ALTER TABLE portal_documents DROP CONSTRAINT IF EXISTS portal_documents_document_type_check;
-ALTER TABLE portal_documents ADD CONSTRAINT portal_documents_document_type_check 
-  CHECK (document_type = ANY (ARRAY[
-    'general', 'policy', 'policy_document', 'application', 
-    'illustration', 'statement', 'id_verification',
-    'amendment', 'beneficiary-form', 'correspondence', 'other'
-  ]));
+### 3. Portal Layout (`src/components/portal/PortalLayout.tsx`)
+- Sidebar: Add rounded-xl background for active nav item (filled, not just text color), slightly more padding
+- Add a subtle top bar on desktop (hidden currently) with user greeting + avatar on the right side, matching reference's top-right user info
+- Sidebar brand area: Slightly larger logo area with more polish
+
+## Technical Details
+
+### Styling Approach
+- Use existing Tailwind classes + Evergreen brand colors already in config
+- rounded-2xl on all major cards
+- bg-emerald-50/bg-emerald-600 tints for primary stat cards (maps to Evergreen brand)
+- shadow-sm default, shadow-lg on hover with transition-all duration-200
+- No new dependencies needed
+
+### Cards Pattern (stat card example)
+```
+rounded-2xl border-0 shadow-sm hover:shadow-lg transition-all duration-200
+First card: bg-[#1A4D3E] text-white (filled green)
+Other cards: bg-white border border-border/50
 ```
 
-### No Code Changes Needed
-The frontend form values and upload logic are already correct. This is purely a database constraint fix.
-
-### Verification
-After migration, I will query the constraint again to confirm it was applied before declaring success.
+### What Stays the Same
+- All data fetching logic (useEffect, loadData, loadDashboard)
+- All Supabase queries and state management
+- All routing/navigation links and hrefs
+- PortalLayout sidebar nav items and auth logic
+- Mobile responsive behavior
 
