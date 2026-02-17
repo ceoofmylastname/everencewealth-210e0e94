@@ -1,59 +1,54 @@
 
 
-# Modernize Client Portal and Advisor Dashboard UI
+# Fix Build Errors and Further Modernize Portal Dashboards
 
-## Overview
-Redesign the Client Dashboard and Advisor Dashboard to match the clean, modern card-based aesthetic from the reference image -- rounded cards with colored stat banners, clean typography, generous whitespace, and subtle shadows. All existing functionality (data fetching, navigation, links) remains untouched.
+## Problem
+The build is failing due to unused imports left behind from the previous UI update. Both dashboard files import components that are no longer used in their JSX.
 
-## Design Elements to Adopt (from reference)
-- **Stat cards** with colored left accent or full background tint (using Evergreen palette), rounded-2xl corners, subtle arrow icons
-- **Clean header area** with bold title + subtitle text
-- **Card grid layout** with consistent spacing and rounded-2xl borders
-- **Softer shadows** (shadow-sm to shadow-md on hover) and border-less card styling
-- **Status badges** with colored dots instead of heavy badges
-- **Better visual hierarchy** -- larger stat numbers, smaller labels beneath
+## Phase 1: Fix Build Errors (Unused Imports)
 
-## Files to Modify
+### `src/pages/portal/client/ClientDashboard.tsx`
+- Remove unused imports: `Card`, `CardContent`, `CardHeader`, `CardTitle`, `Badge`, `TrendingUp`
+- These were from the old UI but the new JSX uses plain `div` elements with Tailwind classes
 
-### 1. Client Dashboard (`src/pages/portal/client/ClientDashboard.tsx`)
-- Redesign stat cards: Add colored background tint (Evergreen for Policies, Amber for Documents) with rounded-2xl, larger numbers (text-3xl), and a subtle "Increased" or count indicator
-- Add a welcome banner card with gradient background using the Evergreen palette
-- Restyle the "Recent Policies" list: Use rounded-xl rows with colored status dots, cleaner layout with more breathing room
-- Add subtle hover animations (scale, shadow transitions)
+### `src/pages/portal/advisor/AdvisorDashboard.tsx`  
+- Verify all imports are used (they appear to be)
 
-### 2. Advisor Dashboard (`src/pages/portal/advisor/AdvisorDashboard.tsx`)
-- Redesign the 4 stat cards to use colored background fills (like the reference -- first card has green bg, others have light bg with subtle tint)
-- Stat cards get rounded-2xl, larger bold numbers (text-3xl), colored accent icon, and a small trend indicator
-- Rank Banner: More prominent with gradient and rounded-2xl
-- Quick Actions grid: Rounded-2xl buttons with hover scale effect
-- News and Events cards: Cleaner dividers, rounded-2xl containers, dot-style status indicators
-- Add a subtle top search/greeting bar area with the user avatar
+## Phase 2: Enhanced Dashboard UI (Matching Reference)
 
-### 3. Portal Layout (`src/components/portal/PortalLayout.tsx`)
-- Sidebar: Add rounded-xl background for active nav item (filled, not just text color), slightly more padding
-- Add a subtle top bar on desktop (hidden currently) with user greeting + avatar on the right side, matching reference's top-right user info
-- Sidebar brand area: Slightly larger logo area with more polish
+Based on the Donezo-style reference image, upgrade both dashboards with a more polished, card-based layout:
+
+### Client Dashboard Enhancements
+- Add a **Messages stat card** (3-column grid instead of 2) with message count from existing data
+- Add a **"Your Advisor" sidebar card** in a 2/3 + 1/3 layout showing advisor info
+- Add skeleton loading states using the existing `Skeleton` component instead of a spinner
+- Add staggered fade-in animations on stat cards
+
+### Advisor Dashboard Enhancements  
+- Add skeleton loading states for all sections
+- Improve the stat cards with subtle trend indicators
+- Add a **"Recent Clients" section** showing the latest 5 clients (new query on `portal_users` already available via `clients` count)
+- Refine Quick Actions with slightly larger touch targets
+
+### Portal Layout
+- No changes needed (already modernized)
 
 ## Technical Details
 
-### Styling Approach
-- Use existing Tailwind classes + Evergreen brand colors already in config
-- rounded-2xl on all major cards
-- bg-emerald-50/bg-emerald-600 tints for primary stat cards (maps to Evergreen brand)
-- shadow-sm default, shadow-lg on hover with transition-all duration-200
-- No new dependencies needed
+### Files to modify:
+1. `src/pages/portal/client/ClientDashboard.tsx` — Remove unused imports, add Messages card, advisor sidebar, skeleton loaders
+2. `src/pages/portal/advisor/AdvisorDashboard.tsx` — Add skeleton loaders, verify imports
 
-### Cards Pattern (stat card example)
-```
-rounded-2xl border-0 shadow-sm hover:shadow-lg transition-all duration-200
-First card: bg-[#1A4D3E] text-white (filled green)
-Other cards: bg-white border border-border/50
-```
+### What stays the same:
+- All Supabase queries and data fetching logic
+- All routing and navigation links
+- All state management
+- Authentication and RLS
+- PortalLayout sidebar and top bar
 
-### What Stays the Same
-- All data fetching logic (useEffect, loadData, loadDashboard)
-- All Supabase queries and state management
-- All routing/navigation links and hrefs
-- PortalLayout sidebar nav items and auth logic
-- Mobile responsive behavior
+### Styling approach:
+- Continue using Tailwind utility classes with `rounded-2xl`, `shadow-sm`, hover transitions
+- Use existing Evergreen brand colors (primary = #1A4D3E)
+- Skeleton component from `@/components/ui/skeleton` for loading states
+- `animate-fade-in` from existing animation utilities for staggered entry
 
