@@ -42,6 +42,7 @@ export default function AdvisorDocuments() {
   const [clients, setClients] = useState<ClientOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [selectedFileName, setSelectedFileName] = useState("");
   const [uploading, setUploading] = useState(false);
   const [uploadForm, setUploadForm] = useState({ client_id: clientFilter || "", document_type: "general", is_client_visible: true });
   const fileRef = useRef<HTMLInputElement>(null);
@@ -115,6 +116,7 @@ export default function AdvisorDocuments() {
 
       loadData();
       if (fileRef.current) fileRef.current.value = "";
+      setSelectedFileName("");
     }
     setUploading(false);
   }
@@ -187,7 +189,10 @@ export default function AdvisorDocuments() {
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <Input type="file" ref={fileRef} className="max-w-sm" />
+            <input type="file" ref={fileRef} className="hidden" onChange={() => setSelectedFileName(fileRef.current?.files?.[0]?.name || "")} />
+            <Button type="button" variant="outline" onClick={() => fileRef.current?.click()}>
+              {selectedFileName || "Choose File"}
+            </Button>
             <Button onClick={handleUpload} disabled={uploading}>
               <Upload className="h-4 w-4 mr-2" />{uploading ? "Uploading..." : "Upload"}
             </Button>
