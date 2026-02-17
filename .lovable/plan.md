@@ -1,17 +1,27 @@
 
 
-## Fix "$500M+" Clipping in Stats Cards
+## Add Rounded Corners to All Sections with White Background
 
-The "+" symbol on the "$500M+" stat is being cut off because of the `overflow-hidden` class on the card combined with text that's slightly too wide for the available space.
+Change the homepage so each section appears as a rounded "card" floating on a white page background, similar to the screenshot reference.
 
-### Changes (single file: `src/components/homepage/Stats.tsx`)
+### Approach
 
-1. **Remove `overflow-hidden`** from the card container -- it was added as a "safety net" but is actually causing the clipping problem. The `rounded-3xl` already clips children visually via border-radius.
+Instead of modifying every individual section component (15+ files), we make two targeted changes:
 
-2. **Scale down font sizes one more step** to ensure all values (especially "$500M+") fit comfortably:
-   - From: `text-4xl sm:text-5xl md:text-6xl`
-   - To: `text-3xl sm:text-4xl md:text-5xl`
+1. **`src/pages/Home.tsx`** -- Change the outer container background from `bg-dark-bg` to `bg-white`, and wrap each section in the `<main>` with spacing so the white gaps show between sections.
 
-3. **Add horizontal padding reduction on mobile** (`px-3`) so the text has proportionally more room on smaller screens while keeping the card compact.
+2. **`src/pages/Home.tsx`** -- Add a wrapper `<div>` around each section component with `rounded-3xl overflow-hidden` so the sections get clipped to rounded corners, plus vertical margin (`my-4 md:my-6`) to create visible white gaps between them.
 
-These two small CSS tweaks will ensure the full "$500M+" value (including the "+") is visible on both desktop and mobile without any clipping.
+### Technical Details
+
+**File: `src/pages/Home.tsx`**
+
+- Change outer div from `bg-dark-bg` to `bg-white`
+- Wrap each section component (Hero through CTA) in a `<div className="rounded-3xl overflow-hidden">` container
+- Add `mx-2 md:mx-4 lg:mx-6` horizontal margin to the main element so the rounded edges are visible on the sides too
+- Add `space-y-4 md:space-y-6` to the main element for consistent vertical gaps
+- The StackingCards component needs special handling since it uses sticky positioning -- wrap the entire StackingCards in one rounded container rather than individual cards
+
+**File: `src/components/home/Footer.tsx`** -- Also wrap in a rounded container for consistency
+
+This approach requires editing only 1-2 files rather than touching all 15 section components, since the `overflow-hidden` on the wrapper will clip each section's content to rounded corners regardless of the section's own styles.
