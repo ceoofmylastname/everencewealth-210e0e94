@@ -234,7 +234,7 @@ export const CostBreakdown: React.FC = () => {
                       <div>
                         <h4 className="font-bold text-foreground text-lg">{cost.name}</h4>
                         <span className="text-prime-gold font-semibold text-sm">
-                          {cost.percentage || cost.amount}
+                          {cost.percentage}
                         </span>
                       </div>
                     </div>
