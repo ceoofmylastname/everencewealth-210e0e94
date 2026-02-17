@@ -917,6 +917,11 @@ export const es = {
       paragraph: "Creemos que la libertad financiera proviene del flujo de efectivo, no del patrimonio neto. De ingresos libres de impuestos, no de acumulación diferida. De transparencia, no de comisiones ocultas.",
       ctaPrimary: "Explore Nuestros Principios",
       ctaSecondary: "Agendar Consulta",
+      stats: [
+        { value: "25+", label: "Años" },
+        { value: "1,200+", label: "Familias Atendidas" },
+        { value: "$0", label: "Comisiones AUM" },
+      ],
     },
     principles: {
       badge: "Nuestros Principios Fundamentales",
