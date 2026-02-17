@@ -1,19 +1,17 @@
-import React, { Suspense } from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
 import { Shield, Lock, Landmark } from 'lucide-react';
 import { MorphingBlob } from '@/components/philosophy/MorphingBlob';
 import { StatBadge } from '../shared/StatBadge';
 import { useTranslation } from '@/i18n/useTranslation';
-import { Canvas } from '@react-three/fiber';
-import { Float, MeshDistortMaterial } from '@react-three/drei';
 
-const ShieldPolyhedron = () => (
-  <Float speed={1.8} rotationIntensity={1.2} floatIntensity={1.8}>
-    <mesh>
-      <dodecahedronGeometry args={[1.2, 0]} />
-      <MeshDistortMaterial color="hsl(160,48%,35%)" metalness={0.85} roughness={0.15} distort={0.1} speed={1.5} />
-    </mesh>
-  </Float>
+const FloatingShape = () => (
+  <motion.div
+    animate={{ rotate: 360, y: [0, -15, 0] }}
+    transition={{ rotate: { duration: 20, repeat: Infinity, ease: 'linear' }, y: { duration: 3, repeat: Infinity, ease: 'easeInOut' } }}
+    className="w-full h-full rounded-3xl"
+    style={{ background: 'linear-gradient(135deg, hsl(160,48%,35%), hsl(43,74%,49%))', clipPath: 'polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%)' }}
+  />
 );
 
 export const APHero: React.FC = () => {
@@ -26,14 +24,7 @@ export const APHero: React.FC = () => {
       <MorphingBlob className="absolute bottom-[-200px] left-[-150px] w-[500px] h-[500px] opacity-10" colors={['hsl(160,48%,25%)', 'hsl(160,48%,35%)']} morphSpeed={12000} />
 
       <div className="absolute right-[5%] top-1/2 -translate-y-1/2 w-[300px] h-[300px] md:w-[400px] md:h-[400px] opacity-50 pointer-events-none hidden lg:block">
-        <Suspense fallback={null}>
-          <Canvas camera={{ position: [0, 0, 4] as [number, number, number] }}>
-            <ambientLight intensity={0.4} />
-            <pointLight position={[10, 10, 10]} intensity={1} color="hsl(43,74%,49%)" />
-            <pointLight position={[-5, 5, -5]} intensity={0.5} color="hsl(160,48%,50%)" />
-            <ShieldPolyhedron />
-          </Canvas>
-        </Suspense>
+        <FloatingShape />
       </div>
 
       <div className="container max-w-6xl mx-auto px-6 py-24 text-center relative z-10">

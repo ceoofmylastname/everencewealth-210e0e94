@@ -1,19 +1,21 @@
-import React, { Suspense } from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
 import { Shield, Landmark, PiggyBank } from 'lucide-react';
 import { MorphingBlob } from '@/components/philosophy/MorphingBlob';
 import { StatBadge } from '../shared/StatBadge';
 import { useTranslation } from '@/i18n/useTranslation';
-import { Canvas } from '@react-three/fiber';
-import { Float, MeshDistortMaterial } from '@react-three/drei';
 
-const CrystalSphere = () => (
-  <Float speed={1.5} rotationIntensity={0.8} floatIntensity={2}>
-    <mesh>
-      <sphereGeometry args={[1.3, 64, 64]} />
-      <MeshDistortMaterial color="hsl(200,70%,70%)" metalness={0.9} roughness={0.1} distort={0.2} speed={1.5} transparent opacity={0.7} />
-    </mesh>
-  </Float>
+const FloatingSphere = () => (
+  <motion.div
+    className="w-52 h-52 mx-auto rounded-full"
+    animate={{ y: [0, -15, 0], scale: [1, 1.05, 1] }}
+    transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
+    style={{
+      background: 'radial-gradient(circle at 30% 30%, hsl(200,70%,80%), hsl(200,70%,50%), hsl(200,70%,30%))',
+      boxShadow: '0 0 80px hsla(200,70%,60%,0.3), inset 0 0 30px hsla(200,70%,90%,0.2)',
+      opacity: 0.7,
+    }}
+  />
 );
 
 export const WLHero: React.FC = () => {
@@ -25,15 +27,8 @@ export const WLHero: React.FC = () => {
       <MorphingBlob className="absolute top-[-150px] right-[-100px] w-[600px] h-[600px] opacity-20" colors={['hsl(160,48%,30%)', 'hsl(43,74%,49%)']} morphSpeed={10000} />
       <MorphingBlob className="absolute bottom-[-200px] left-[-150px] w-[500px] h-[500px] opacity-10" colors={['hsl(160,48%,25%)', 'hsl(160,48%,35%)']} morphSpeed={12000} />
 
-      <div className="absolute right-[5%] top-1/2 -translate-y-1/2 w-[300px] h-[300px] md:w-[400px] md:h-[400px] opacity-50 pointer-events-none hidden lg:block">
-        <Suspense fallback={null}>
-          <Canvas camera={{ position: [0, 0, 4] as [number, number, number] }}>
-            <ambientLight intensity={0.4} />
-            <pointLight position={[10, 10, 10]} intensity={1.2} color="hsl(43,74%,60%)" />
-            <pointLight position={[-5, -5, 5]} intensity={0.4} color="hsl(200,70%,70%)" />
-            <CrystalSphere />
-          </Canvas>
-        </Suspense>
+      <div className="absolute right-[5%] top-1/2 -translate-y-1/2 w-[300px] h-[300px] md:w-[400px] md:h-[400px] pointer-events-none hidden lg:block flex items-center justify-center">
+        <FloatingSphere />
       </div>
 
       <div className="container max-w-6xl mx-auto px-6 py-24 text-center relative z-10">
