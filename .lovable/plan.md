@@ -1,53 +1,28 @@
 
 
-# Add State-Specific Hero Images to State Page Generator
+# Fix: California (and other state pages) missing card images
 
 ## Problem
-State guide pages currently show a plain evergreen gradient fallback in the hero because no featured image is ever generated for them. The `LocationHero` component already supports displaying images -- the pipeline just never creates them for state pages.
+The `FeaturedCitiesSection` component uses a fallback image map (`CITY_FALLBACK_IMAGES`) when a location has no `featured_image_url`. The map only contains city-level slugs (los-angeles, austin, etc.) but no state-level slugs (california). The final fallback references `CITY_FALLBACK_IMAGES.marbella` which also does not exist, resulting in an undefined image URL and a blank gray card.
 
 ## Solution
-Trigger image generation automatically after a state page is created, so the hero displays a professional AI-generated visual specific to each state. This happens transparently during the admin generation flow.
+Two changes in `src/components/location-hub/FeaturedCitiesSection.tsx`:
 
-## Changes
+### 1. Add state-level fallback images
+Add entries like `"california"` to the `CITY_FALLBACK_IMAGES` map with appropriate Unsplash images for each state.
 
-### 1. Admin State Page Generator (`src/pages/portal/admin/AdminStatePages.tsx`)
-After a state page is successfully created (both single and batch modes), call the existing `generate-location-image` edge function with a state-appropriate prompt.
+### 2. Add state-level metadata
+Add entries like `"california"` to the `CITY_METADATA` map so the overlay tags show meaningful data instead of generic defaults.
 
-- **Single mode (line ~229-236)**: After the page is inserted into the DB, fire a background call to `generate-location-image` with the new page's ID, state name, and a prompt like "Professional aerial photography of [State Name], modern cityscape, institutional financial planning imagery."
-- **Batch mode (line ~167-177)**: After the generation job completes successfully, query the newly created state pages and trigger image generation for any that lack a `featured_image_url`.
-
-### 2. Image Prompt for States
-Use a state-tailored prompt template:
-```
-Professional aerial photography of [State Name], USA. 
-Modern cityscape skyline, institutional financial district, 
-wealth management and retirement planning imagery.
-Ultra high resolution, corporate marketing style, clean professional lighting.
-```
-
-### 3. Storage Bucket
-Images will be stored in the existing `location-images` bucket under `[state-slug]/[topic-slug]-[timestamp].png` -- exactly how the existing `generate-location-image` function already works.
-
-### 4. No Hero Component Changes Needed
-`LocationHero` already renders the image when `featuredImageUrl` is provided and falls back to the gradient when it's not. Once the DB row gets a `featured_image_url`, the hero automatically displays it.
+### 3. Fix the broken final fallback
+Replace the non-existent `CITY_FALLBACK_IMAGES.marbella` reference (lines 158 and 230) with a generic default Unsplash URL, so any location without a specific fallback still gets a visible image.
 
 ## Technical Details
 
-### File Modified
-- `src/pages/portal/admin/AdminStatePages.tsx`
-  - After single-mode insert: add async call to `generate-location-image` (fire-and-forget with toast notification)
-  - After batch-mode completion: query pages without images, trigger image generation for each
-  - Add a "Generate Image" button on each state page card in the manage tab for manual regeneration
+**File:** `src/components/location-hub/FeaturedCitiesSection.tsx`
 
-### Flow
+- Line 69-82: Add `'california': 'https://images.unsplash.com/photo-1449034446853-66c86144b0ad?w=800&q=80'` (or similar California landscape) to `CITY_FALLBACK_IMAGES`.
+- Line 24-37: Add `'california': { avgPrice: 'From $300K', bestFor: 'Diverse Economy', vibe: 'Golden State' }` to `CITY_METADATA`.
+- Lines 158 and 230: Change the fallback from `CITY_FALLBACK_IMAGES.marbella` (which is undefined) to a hardcoded generic cityscape URL like `'https://images.unsplash.com/photo-1486325212027-8081e485255e?w=800&q=80'`.
 
-1. Admin selects state and clicks Generate
-2. Page content is generated via `generate-location-page`
-3. Page is saved to DB
-4. Immediately after, `generate-location-image` is called with the page ID
-5. Image is generated, uploaded to storage, and the `featured_image_url` column is updated
-6. Next time the state page is viewed, the hero shows the AI-generated state visual
-
-### Manual Regeneration
-Add a small image icon button on each state page card in the "Manage" tab. Clicking it calls `generate-location-image` for that specific page, allowing admins to regenerate images on demand.
-
+This is a purely cosmetic fix -- no database or backend changes needed. Once the admin generates images for the California state pages using the "Generate Image" button we added earlier, the AI-generated images will automatically replace these fallbacks.
