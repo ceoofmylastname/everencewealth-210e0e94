@@ -88,9 +88,9 @@ export function LocationHero({
 
       {/* Fallback gradient background if no image */}
       {!featuredImageUrl && (
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-background to-secondary/20">
-          <div className="absolute -top-24 -left-24 w-96 h-96 rounded-full bg-primary/20 blur-3xl animate-pulse" />
-          <div className="absolute -bottom-24 -right-24 w-[500px] h-[500px] rounded-full bg-secondary/20 blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+        <div className="absolute inset-0 bg-gradient-to-br from-[#0a2a1f] via-[#1A4D3E] to-[#0d1f1a]">
+          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#C5A059]/10 rounded-full blur-3xl" />
+          <div className="absolute bottom-1/3 right-1/4 w-80 h-80 bg-[#C5A059]/8 rounded-full blur-3xl" />
         </div>
       )}
 
