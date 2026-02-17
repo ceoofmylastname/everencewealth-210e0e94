@@ -918,6 +918,37 @@ export const es = {
       ctaPrimary: "Explore Nuestros Principios",
       ctaSecondary: "Agendar Consulta",
     },
+    principles: {
+      badge: "Nuestros Principios Fundamentales",
+      headline: "Tres Creencias Que Guían Cada Recomendación",
+      subheadline: "Tres creencias fundamentales que guían cada recomendación que hacemos",
+      cards: [
+        {
+          title: "Flujo de Efectivo Sobre Patrimonio Neto",
+          description: "Wall Street se obsesiona con saldos de cuenta que no puede gastar. Nosotros nos enfocamos en ingresos libres de impuestos que realmente puede usar.",
+          chartLabel: "La Realidad:",
+          chartNote: "$5,000/mes de flujo de efectivo libre de impuestos supera $1M en un 401k que no puede tocar hasta los 59½ años",
+          bars: [
+            { label: "$5K/mes Libre", value: 100 },
+            { label: "$1M en 401k", value: 60 },
+          ],
+        },
+        {
+          title: "Cero es Su Héroe",
+          description: "La Regla #1 de Warren Buffett: Nunca perder dinero. Lo diseñamos literalmente con protección de piso al 0%.",
+          chartLabel: "Las Matemáticas:",
+          chartNote: "Una pérdida del 50% requiere una ganancia del 100% solo para recuperarse. Cero es su héroe.",
+        },
+        {
+          title: "Fiduciario, Siempre",
+          description: "Estamos legalmente obligados a actuar en su mejor interés — no a maximizar nuestras comisiones.",
+          chartLabel: "La Diferencia:",
+          chartNote: "Los asesores de Wall Street ganan más cuando usted sigue invertido. Nosotros no ganamos nada si usted pierde.",
+          centerText: "100%",
+          centerLabel: "Cliente Primero",
+        },
+      ],
+    },
     killers: {
       badge: "Las Amenazas Ocultas",
       headline: "Los Tres Asesinos Silenciosos de la Riqueza",
