@@ -483,6 +483,7 @@ export const ClusterQATab = ({
             
             // Also refresh the main QA counts for UI consistency
             await fetchQACounts();
+            queryClient.invalidateQueries({ queryKey: ["cluster-qa-counts"] });
             
             if (currentPolledCount >= 24) {
               // Complete!
@@ -521,6 +522,7 @@ export const ClusterQATab = ({
       await fetchQACounts();
       await queryClient.refetchQueries({ queryKey: ['cluster-qa-pages'] });
       await queryClient.invalidateQueries({ queryKey: ['cluster-generations'] });
+      await queryClient.invalidateQueries({ queryKey: ["cluster-qa-counts"] });
       return true;
       
     } catch (error) {
