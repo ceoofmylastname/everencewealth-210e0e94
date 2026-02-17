@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Home, Phone, X } from "lucide-react";
+import { Sparkles, Phone, X } from "lucide-react";
 
 export const StickyMobileCTA = () => {
   const [isVisible, setIsVisible] = useState(false);
@@ -38,18 +38,18 @@ export const StickyMobileCTA = () => {
         <div className="flex gap-3">
           <Button
             asChild
-            className="flex-1 ripple-container bg-gradient-to-r from-primary to-[hsl(42_58%_50%)] text-white rounded-full px-6 py-4 font-bold shadow-xl shadow-primary/40 hover:shadow-2xl hover:scale-[1.02] active:scale-95 transition-all duration-300 min-h-[56px]"
+            className="flex-1 ripple-container bg-gradient-to-r from-[#1A4D3E] to-[#1A4D3E]/80 text-white rounded-full px-6 py-4 font-bold shadow-xl shadow-[#1A4D3E]/30 hover:shadow-2xl hover:scale-[1.02] active:scale-95 transition-all duration-300 min-h-[56px]"
           >
-            <a href="/properties?near=malaga-airport">
-              <Home className="h-5 w-5 mr-2" />
-              <span>Explore Homes</span>
+            <a href="/contact">
+              <Sparkles className="h-5 w-5 mr-2" />
+              <span>Get Started</span>
             </a>
           </Button>
           
           <Button
             asChild
             variant="outline"
-            className="flex-1 border-2 border-primary text-primary rounded-full px-5 py-3 font-bold hover:bg-primary/10 hover:scale-[1.02] active:scale-95 transition-all duration-300 min-h-[56px]"
+            className="flex-1 border-2 border-[#1A4D3E] text-[#1A4D3E] rounded-full px-5 py-3 font-bold hover:bg-[#1A4D3E]/10 hover:scale-[1.02] active:scale-95 transition-all duration-300 min-h-[56px]"
           >
             <a href="/contact">
               <Phone className="h-5 w-5 mr-2" />
