@@ -62,6 +62,7 @@ const LocationPage = lazy(() => import("./pages/LocationPage"));
 const StateGuidesIndex = lazy(() => import("./pages/StateGuidesIndex"));
 const StateGuidePage = lazy(() => import("./pages/StateGuidePage"));
 const About = lazy(() => import("./pages/About"));
+const Philosophy = lazy(() => import("./pages/Philosophy"));
 const Team = lazy(() => import("./pages/Team"));
 const BuyersGuide = lazy(() => import("./pages/BuyersGuide"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
@@ -453,6 +454,11 @@ const App = () => (
               {/* Team page */}
               <Route path="/team" element={<Navigate to="/en/team" replace />} />
               <Route path="/:lang/team" element={<Team />} />
+              
+              {/* Philosophy page */}
+              <Route path="/philosophy" element={<Navigate to="/en/philosophy" replace />} />
+              <Route path="/es/filosofia" element={<Navigate to="/es/philosophy" replace />} />
+              <Route path="/:lang/philosophy" element={<Philosophy />} />
               
               <Route path="/buyers-guide" element={<Navigate to="/en/buyers-guide" replace />} />
               <Route path="/:lang/buyers-guide" element={<BuyersGuide />} />

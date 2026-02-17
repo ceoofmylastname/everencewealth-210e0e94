@@ -900,4 +900,123 @@ export const es = {
       secondaryCta: "Llámenos Directamente",
     },
   },
+  philosophy: {
+    seo: {
+      title: "Nuestra Filosofía: Creación de Riqueza Contraria | Everence Wealth",
+      description: "Descubra la filosofía financiera contraria de Everence Wealth: desafiando las normas de Wall Street con estrategias libres de impuestos, protección de piso al 0% y orientación fiduciaria desde 1998.",
+      breadcrumb: "Filosofía",
+    },
+    hero: {
+      badge: "Nuestra Filosofía",
+      headline: "Desafiando las Normas de Wall Street Desde 1998",
+      paragraph: "Creemos que la libertad financiera proviene del flujo de efectivo, no del patrimonio neto. De ingresos libres de impuestos, no de acumulación diferida. De transparencia, no de comisiones ocultas.",
+      ctaPrimary: "Explore Nuestros Principios",
+      ctaSecondary: "Agendar Consulta",
+    },
+    killers: {
+      badge: "Las Amenazas Ocultas",
+      headline: "Los Tres Asesinos Silenciosos de la Riqueza",
+      subheadline: "La mayoría de las familias pierden del 30 al 50% de sus ahorros para la jubilación debido a estas tres fuerzas — y nunca lo ven venir.",
+      cards: [
+        {
+          id: "01",
+          title: "Comisiones Ocultas",
+          description: "El inversionista promedio paga 2.5% en comisiones anuales totales — honorarios de asesoría, gastos de fondos, costos de plataforma y cargos por transacción. En 30 años, esto puede consumir más del 40% del crecimiento de su cartera.",
+          stat: "40%",
+          statLabel: "del crecimiento perdido en comisiones",
+        },
+        {
+          id: "02",
+          title: "Volatilidad del Mercado",
+          description: "Una pérdida del 50% requiere una ganancia del 100% solo para recuperar lo perdido. El riesgo de secuencia de rendimientos significa que un gran colapso cerca de la jubilación puede reducir permanentemente sus ingresos en un 30% o más.",
+          stat: "100%",
+          statLabel: "de ganancia necesaria para recuperar pérdida del 50%",
+        },
+        {
+          id: "03",
+          title: "Erosión Fiscal",
+          description: "Las cuentas con impuestos diferidos crean una bomba fiscal. Las Distribuciones Mínimas Requeridas fuerzan retiros a potencialmente las tasas impositivas más altas de su vida — hasta un 37% federal.",
+          stat: "37%",
+          statLabel: "tasa federal máxima en RMDs",
+        },
+      ],
+    },
+    buckets: {
+      badge: "Estrategia Fiscal",
+      headline: "Los Tres Cubos Fiscales",
+      subheadline: "Cada dólar que ahorra cae en una de tres categorías fiscales. Entender esto cambia todo sobre la planificación de jubilación.",
+      recommended: "Nuestra Recomendación",
+      columns: [
+        {
+          id: "taxable",
+          name: "Gravable",
+          subtitle: "Cuentas de corretaje, ahorros, CDs",
+          recommended: false,
+          features: [
+            { label: "Impuestos sobre ganancias anualmente", included: false },
+            { label: "Impuesto sobre ganancias de capital", included: false },
+            { label: "Sin límites de contribución", included: true },
+            { label: "Acceso completo a liquidez", included: true },
+            { label: "Sin ingresos libres de impuestos", included: false },
+            { label: "Exposición a impuestos sucesorios", included: false },
+          ],
+        },
+        {
+          id: "tax-deferred",
+          name: "Impuestos Diferidos",
+          subtitle: "401(k), IRA Tradicional, 403(b)",
+          recommended: false,
+          features: [
+            { label: "Deducción fiscal en contribuciones", included: true },
+            { label: "Crecimiento con impuestos diferidos", included: true },
+            { label: "Distribuciones Mínimas Requeridas", included: false },
+            { label: "Gravado a tasas de ingreso ordinario", included: false },
+            { label: "Penalidades por retiro anticipado", included: false },
+            { label: "Tasas fiscales futuras desconocidas", included: false },
+          ],
+        },
+        {
+          id: "tax-free",
+          name: "Libre de Impuestos",
+          subtitle: "Roth IRA, IUL, Bonos Municipales",
+          recommended: true,
+          features: [
+            { label: "Crecimiento libre de impuestos", included: true },
+            { label: "Ingresos libres de impuestos en jubilación", included: true },
+            { label: "Sin Distribuciones Mínimas Requeridas", included: true },
+            { label: "Protección de piso al 0% (IUL)", included: true },
+            { label: "Beneficio por fallecimiento libre de impuestos", included: true },
+            { label: "Acceso a beneficios en vida", included: true },
+          ],
+        },
+      ],
+    },
+    cashFlow: {
+      badge: "El Cambio Fundamental",
+      headline: "Movilidad de Flujo de Efectivo vs Ilusión de Patrimonio Neto",
+      barLabel: "Accesibilidad de Ingresos de Jubilación",
+      netWorth: {
+        title: "Enfoque de Patrimonio Neto",
+        description: "La planificación tradicional se fija en acumular un gran portafolio — y luego rezar para que el mercado coopere cuando necesite retirar. Su riqueza está atrapada en activos volátiles sujetos a impuestos y tiempo.",
+        stats: [
+          { value: 4, prefix: "", suffix: "%", label: "Tasa de retiro segura" },
+          { value: 30, prefix: "", suffix: "%", label: "Impuesto potencial sobre retiros" },
+        ],
+      },
+      cashFlowMobility: {
+        title: "Movilidad de Flujo de Efectivo",
+        description: "Nuestro enfoque construye flujos de ingresos garantizados y libres de impuestos que nunca podrá agotar. Su dinero trabaja para usted independientemente de las condiciones del mercado — con un piso del 0% que protege contra pérdidas.",
+        stats: [
+          { value: 0, prefix: "", suffix: "%", label: "Protección de piso" },
+          { value: 100, prefix: "", suffix: "%", label: "Ingresos libres de impuestos" },
+        ],
+      },
+    },
+    cta: {
+      headline: "Su Sesión de Estrategia le Espera",
+      subtitle: "Descubra cómo nuestro enfoque contrario puede proteger y hacer crecer su riqueza — sin ninguna obligación.",
+      primaryCta: "Agendar Sesión de Estrategia",
+      secondaryCta: "Llámenos Directamente",
+    },
+  },
 };
