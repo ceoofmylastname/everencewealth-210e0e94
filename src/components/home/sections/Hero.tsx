@@ -133,11 +133,11 @@ export const Hero: React.FC = () => {
           </span>
         </motion.div>
 
-        <div className="leading-none -space-y-2 md:-space-y-3">
-          <h1 className="font-hero font-black uppercase tracking-tighter">
+        <div className="leading-none -space-y-2 md:-space-y-3 w-full flex flex-col items-center">
+          <h1 className="font-hero font-black uppercase tracking-tighter text-center w-full">
             {/* BRIDGE the — same line */}
             <motion.span
-              className="flex items-baseline justify-center gap-3 md:gap-5"
+              className="flex items-baseline justify-center gap-3 md:gap-5 w-full"
               initial={{ opacity: 0, x: -60, filter: 'blur(12px)' }}
               animate={stage >= 1 ? { opacity: 1, x: 0, filter: 'blur(0px)' } : {}}
               transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
@@ -147,7 +147,7 @@ export const Hero: React.FC = () => {
             </motion.span>
 
             {/* RETIREMENT — letter by letter with rounded pill style */}
-            <span className="flex items-center justify-center gap-[0.5vw] md:gap-[0.4vw] overflow-hidden py-2">
+            <span className="flex items-center justify-center gap-[0.5vw] md:gap-[0.4vw] overflow-hidden py-2 w-full">
               {RETIREMENT_LETTERS.map((letter, i) => (
                 <motion.span
                   key={i}
@@ -167,7 +167,7 @@ export const Hero: React.FC = () => {
 
             {/* GAP — slam */}
             <motion.span
-              className="block text-[22vw] md:text-[16vw] lg:text-[13vw] text-outline leading-[0.8]"
+              className="block text-[22vw] md:text-[16vw] lg:text-[13vw] text-outline leading-[0.8] text-center w-full"
               initial={{ opacity: 0, y: 100, scale: 2.5 }}
               animate={stage >= 3 ? { opacity: 1, y: 0, scale: 1 } : {}}
               transition={{
