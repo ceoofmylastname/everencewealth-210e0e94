@@ -16,8 +16,21 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Plus, Search, Trash2, Pencil, Download, BookOpen } from "lucide-react";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle,
+} from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import { Plus, Search, Trash2, Pencil, Download, BookOpen, MapPin, Loader2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+
+const US_STATES = [
+  "Alabama","Alaska","Arizona","Arkansas","California","Colorado","Connecticut","Delaware","Florida","Georgia",
+  "Hawaii","Idaho","Illinois","Indiana","Iowa","Kansas","Kentucky","Louisiana","Maine","Maryland",
+  "Massachusetts","Michigan","Minnesota","Mississippi","Missouri","Montana","Nebraska","Nevada","New Hampshire","New Jersey",
+  "New Mexico","New York","North Carolina","North Dakota","Ohio","Oklahoma","Oregon","Pennsylvania","Rhode Island","South Carolina",
+  "South Dakota","Tennessee","Texas","Utah","Vermont","Virginia","Washington","West Virginia","Wisconsin","Wyoming"
+];
 
 const CATEGORIES = [
   { value: "all", label: "All Categories" },
@@ -63,6 +76,43 @@ export default function AdminBrochures() {
     return matchesSearch && matchesCategory && matchesStatus;
   });
 
+  const [stateDialogOpen, setStateDialogOpen] = useState(false);
+  const [selectedStates, setSelectedStates] = useState<string[]>([]);
+  const [stateGenerating, setStateGenerating] = useState(false);
+  const [stateProgress, setStateProgress] = useState(0);
+
+  const toggleState = (s: string) => {
+    setSelectedStates((prev) => prev.includes(s) ? prev.filter((x) => x !== s) : [...prev, s]);
+  };
+
+  const generateStateGuides = async () => {
+    if (!selectedStates.length) return;
+    setStateGenerating(true);
+    setStateProgress(0);
+    for (let i = 0; i < selectedStates.length; i++) {
+      const state = selectedStates[i];
+      try {
+        await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-guide-content`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "apikey": import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY },
+          body: JSON.stringify({
+            category: "retirement_strategies",
+            topic: `Retirement Planning in ${state}`,
+            target_audience: "pre-retirees aged 50-65",
+            language: "en",
+            state,
+          }),
+        });
+      } catch (e) { console.error(`Failed: ${state}`, e); }
+      setStateProgress(i + 1);
+    }
+    toast({ title: "State guides generated!", description: `${selectedStates.length} guides created as drafts.` });
+    queryClient.invalidateQueries({ queryKey: ["admin-brochures"] });
+    setStateDialogOpen(false);
+    setStateGenerating(false);
+    setSelectedStates([]);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -74,12 +124,47 @@ export default function AdminBrochures() {
             Manage educational guides and lead magnets
           </p>
         </div>
-        <Button asChild>
-          <Link to="/portal/admin/brochures/new">
-            <Plus className="h-4 w-4 mr-2" /> New Brochure
-          </Link>
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" onClick={() => setStateDialogOpen(true)}>
+            <MapPin className="h-4 w-4 mr-2" /> Generate State Guides
+          </Button>
+          <Button asChild>
+            <Link to="/portal/admin/brochures/new">
+              <Plus className="h-4 w-4 mr-2" /> New Brochure
+            </Link>
+          </Button>
+        </div>
       </div>
+
+      {/* State Guides Dialog */}
+      <Dialog open={stateDialogOpen} onOpenChange={setStateDialogOpen}>
+        <DialogContent className="sm:max-w-lg max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Generate State Retirement Guides</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">Select states to generate retirement planning guides for. Each will be created as a draft brochure.</p>
+          <div className="flex gap-2 mb-3">
+            <Button variant="outline" size="sm" onClick={() => setSelectedStates([...US_STATES])}>Select All</Button>
+            <Button variant="outline" size="sm" onClick={() => setSelectedStates([])}>Clear</Button>
+          </div>
+          <div className="grid grid-cols-2 gap-1.5 max-h-[40vh] overflow-y-auto">
+            {US_STATES.map((s) => (
+              <label key={s} className="flex items-center gap-2 text-sm py-1 cursor-pointer hover:bg-muted/50 px-2 rounded">
+                <Checkbox checked={selectedStates.includes(s)} onCheckedChange={() => toggleState(s)} />
+                {s}
+              </label>
+            ))}
+          </div>
+          {stateGenerating && (
+            <div className="text-sm text-muted-foreground">
+              Progress: {stateProgress}/{selectedStates.length}
+            </div>
+          )}
+          <Button onClick={generateStateGuides} disabled={stateGenerating || !selectedStates.length} className="w-full">
+            {stateGenerating ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Generating {stateProgress}/{selectedStates.length}...</> : `Generate ${selectedStates.length} State Guide${selectedStates.length !== 1 ? 's' : ''}`}
+          </Button>
+        </DialogContent>
+      </Dialog>
 
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">

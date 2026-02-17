@@ -12,8 +12,11 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Plus, Trash2, GripVertical, Save } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, GripVertical, Save, Sparkles, Loader2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle,
+} from "@/components/ui/dialog";
 
 interface Section {
   section_number: number;
@@ -184,6 +187,40 @@ export default function AdminBrochureForm() {
 
   const wordCount = form.speakable_intro.split(/\s+/).filter(Boolean).length;
 
+  const [aiDialogOpen, setAiDialogOpen] = useState(false);
+  const [aiTopic, setAiTopic] = useState("");
+  const [aiAudience, setAiAudience] = useState("pre-retirees aged 50-65");
+  const [aiGenerating, setAiGenerating] = useState(false);
+
+  const generateWithAI = async () => {
+    if (!aiTopic) return;
+    setAiGenerating(true);
+    try {
+      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-guide-content`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "apikey": import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY },
+        body: JSON.stringify({ category: form.category, topic: aiTopic, target_audience: aiAudience, language: form.language }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Generation failed");
+
+      const b = data.brochure;
+      setForm((prev) => ({
+        ...prev,
+        title: b.title, slug: b.slug, hero_headline: b.hero_headline,
+        subtitle: b.subtitle || "", meta_title: b.meta_title, meta_description: b.meta_description,
+        speakable_intro: b.speakable_intro, tags: b.tags || [],
+      }));
+      setSections(b.sections || []);
+      toast({ title: "AI content generated!", description: "Review and edit before saving." });
+      setAiDialogOpen(false);
+    } catch (err: any) {
+      toast({ title: "AI Generation Failed", description: err.message, variant: "destructive" });
+    } finally {
+      setAiGenerating(false);
+    }
+  };
+
   return (
     <div className="space-y-6 max-w-4xl">
       <div className="flex items-center gap-3">
@@ -193,7 +230,33 @@ export default function AdminBrochureForm() {
         <h1 className="text-2xl font-bold text-foreground" style={{ fontFamily: "'Playfair Display', serif" }}>
           {isEdit ? "Edit Brochure" : "New Brochure"}
         </h1>
+        <div className="ml-auto">
+          <Button variant="outline" onClick={() => setAiDialogOpen(true)}>
+            <Sparkles className="h-4 w-4 mr-2" /> Generate with AI
+          </Button>
+        </div>
       </div>
+
+      <Dialog open={aiDialogOpen} onOpenChange={setAiDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Generate Brochure with AI</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Topic *</Label>
+              <Input value={aiTopic} onChange={(e) => setAiTopic(e.target.value)} placeholder="e.g., Tax-Free Retirement Income Strategies" />
+            </div>
+            <div className="space-y-2">
+              <Label>Target Audience</Label>
+              <Input value={aiAudience} onChange={(e) => setAiAudience(e.target.value)} />
+            </div>
+            <Button onClick={generateWithAI} disabled={aiGenerating || !aiTopic} className="w-full">
+              {aiGenerating ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Generating...</> : <><Sparkles className="h-4 w-4 mr-2" /> Generate Content</>}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Basic Info */}
       <Card>
