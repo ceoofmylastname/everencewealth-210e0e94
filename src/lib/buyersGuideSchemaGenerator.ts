@@ -1,6 +1,6 @@
 import { truncateForAEO } from "./aeoUtils";
 
-const BASE_URL = 'https://www.delsolprimehomes.com';
+const BASE_URL = 'https://www.everencewealth.com';
 const LOGO_URL = `${BASE_URL}/assets/logo-new.png`;
 
 export interface BuyingStep {
@@ -36,17 +36,17 @@ export const generateBuyersGuideSchema = (
     "@type": "WebPage",
     "@id": `${pageUrl}#webpage`,
     "url": pageUrl,
-    "name": "Complete Buyers Guide to Costa del Sol Property | Del Sol Prime Homes",
-    "description": "Your comprehensive guide to buying property on the Costa del Sol. Step-by-step process, costs, legal requirements, Golden Visa information, and expert advice.",
+    "name": "Complete Financial Planning Guide | Everence Wealth",
+    "description": "Your comprehensive guide to wealth management and financial planning. Step-by-step process, strategies, and expert advice.",
     "inLanguage": language,
     "isPartOf": {
       "@type": "WebSite",
       "@id": `${BASE_URL}#website`,
       "url": BASE_URL,
-      "name": "Del Sol Prime Homes",
+      "name": "Everence Wealth",
       "publisher": {
-        "@type": "RealEstateAgent",
-        "name": "Del Sol Prime Homes",
+        "@type": "FinancialService",
+        "name": "Everence Wealth",
         "logo": {
           "@type": "ImageObject",
           "url": LOGO_URL
@@ -68,8 +68,8 @@ export const generateBuyersGuideSchema = (
     "@context": "https://schema.org",
     "@type": "Article",
     "@id": `${pageUrl}#article`,
-    "headline": "The Complete Guide to Buying Property on the Costa del Sol",
-    "description": "Everything you need to know about purchasing real estate in Spain's Costa del Sol region. From NIE numbers to Digital Nomad Visa requirements.",
+    "headline": "The Complete Guide to Financial Planning and Wealth Management",
+    "description": "Everything you need to know about building and protecting your wealth. From retirement planning to estate strategies.",
     "image": {
       "@type": "ImageObject",
       "url": `${BASE_URL}/assets/costa-del-sol-bg.jpg`,
@@ -78,13 +78,13 @@ export const generateBuyersGuideSchema = (
     },
     "author": {
       "@type": "Organization",
-      "name": "Del Sol Prime Homes",
+      "name": "Everence Wealth",
       "url": BASE_URL,
       "logo": LOGO_URL
     },
     "publisher": {
       "@type": "Organization",
-      "name": "Del Sol Prime Homes",
+      "name": "Everence Wealth",
       "logo": {
         "@type": "ImageObject",
         "url": LOGO_URL
@@ -95,10 +95,10 @@ export const generateBuyersGuideSchema = (
     "mainEntityOfPage": pageUrl,
     "inLanguage": language,
     "about": [
-      { "@type": "Thing", "name": "Real Estate Investment" },
-      { "@type": "Thing", "name": "Costa del Sol" },
-      { "@type": "Thing", "name": "Property Purchase Spain" },
-      { "@type": "Place", "name": "Andalusia, Spain" }
+      { "@type": "Thing", "name": "Wealth Management" },
+      { "@type": "Thing", "name": "Financial Planning" },
+      { "@type": "Thing", "name": "Retirement Planning" },
+      { "@type": "Place", "name": "United States" }
     ]
   };
 
@@ -107,21 +107,21 @@ export const generateBuyersGuideSchema = (
     "@context": "https://schema.org",
     "@type": "HowTo",
     "@id": `${pageUrl}#howto`,
-    "name": "How to Buy Property on the Costa del Sol",
-    "description": "A step-by-step guide to purchasing real estate in Spain's Costa del Sol, from initial search to receiving your keys.",
-    "image": `${BASE_URL}/assets/costa-del-sol-bg.jpg`,
-    "totalTime": "P6M",
+    "name": "How to Build a Comprehensive Wealth Management Plan",
+    "description": "A step-by-step guide to financial planning, from initial assessment to ongoing portfolio management.",
+    "image": `${BASE_URL}/assets/wealth-planning-bg.jpg`,
+    "totalTime": "P3M",
     "estimatedCost": {
       "@type": "MonetaryAmount",
-      "currency": "EUR",
-      "minValue": "200000",
-      "maxValue": "5000000"
+      "currency": "USD",
+      "minValue": "1000",
+      "maxValue": "10000"
     },
     "tool": [
-      { "@type": "HowToTool", "name": "NIE Number (Foreigner ID)" },
-      { "@type": "HowToTool", "name": "Spanish Bank Account" },
-      { "@type": "HowToTool", "name": "Valid Passport" },
-      { "@type": "HowToTool", "name": "Proof of Funds" }
+      { "@type": "HowToTool", "name": "Financial Goals Statement" },
+      { "@type": "HowToTool", "name": "Current Financial Statements" },
+      { "@type": "HowToTool", "name": "Tax Returns" },
+      { "@type": "HowToTool", "name": "Insurance Policies" }
     ],
     "step": steps.map((step, index) => ({
       "@type": "HowToStep",
@@ -173,8 +173,8 @@ export const generateBuyersGuideSchema = (
     "@context": "https://schema.org",
     "@type": "ItemList",
     "@id": `${pageUrl}#costs`,
-    "name": "Property Purchase Costs in Spain",
-    "description": "Complete breakdown of costs when buying property on the Costa del Sol",
+    "name": "Financial Planning Costs and Fees",
+    "description": "Complete breakdown of costs for professional wealth management services",
     "numberOfItems": costs.length,
     "itemListElement": costs.map((cost, index) => ({
       "@type": "ListItem",
@@ -184,39 +184,27 @@ export const generateBuyersGuideSchema = (
     }))
   };
 
-  // RealEstateAgent Schema
   const agentSchema = {
     "@context": "https://schema.org",
-    "@type": "RealEstateAgent",
+    "@type": "FinancialService",
     "@id": `${BASE_URL}#agent`,
-    "name": "Del Sol Prime Homes",
+    "name": "Everence Wealth",
     "url": BASE_URL,
     "logo": LOGO_URL,
     "image": LOGO_URL,
-    "telephone": "+34 630 03 90 90",
-    "email": "info@delsolprimehomes.com",
+    "telephone": "+1 (555) 123-4567",
+    "email": "info@everencewealth.com",
     "address": {
       "@type": "PostalAddress",
-      "streetAddress": "Avenida Ricardo Soriano 72",
-      "addressLocality": "Marbella",
-      "addressRegion": "Málaga",
-      "postalCode": "29601",
-      "addressCountry": "ES"
-    },
-    "geo": {
-      "@type": "GeoCoordinates",
-      "latitude": 36.5126,
-      "longitude": -4.8828
+      "addressLocality": "San Diego",
+      "addressRegion": "California",
+      "addressCountry": "US"
     },
     "areaServed": {
-      "@type": "Place",
-      "name": "Costa del Sol",
-      "geo": {
-        "@type": "GeoShape",
-        "box": "36.3 -5.5 36.8 -3.7"
-      }
+      "@type": "Country",
+      "name": "United States"
     },
-    "priceRange": "€200,000 - €10,000,000",
+    "priceRange": "$$",
     "openingHoursSpecification": [
       {
         "@type": "OpeningHoursSpecification",

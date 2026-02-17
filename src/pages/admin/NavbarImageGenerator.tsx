@@ -19,27 +19,27 @@ interface CityImage {
 
 const CITY_PROMPTS: CityImage[] = [
   {
-    city: 'Marbella',
-    slug: 'marbella',
-    prompt: 'Puerto Banús marina with luxury yachts at golden hour, Marbella Golden Mile white Mediterranean buildings, turquoise sea, Costa del Sol Spain, 8k ultra-realistic photography, warm lighting, no text no watermarks',
+    city: 'Los Angeles, CA',
+    slug: 'los-angeles',
+    prompt: 'Panoramic aerial view of downtown Los Angeles skyline at golden hour, palm trees lining the boulevard, modern glass towers, clear blue sky, 8k ultra-realistic photography, warm lighting, no text no watermarks',
     status: 'pending'
   },
   {
-    city: 'Estepona',
-    slug: 'estepona',
-    prompt: 'Charming old town street in Estepona Spain, colorful flower pots on whitewashed walls, traditional Andalusian architecture, cobblestone pedestrian street, sunny Mediterranean day, Costa del Sol, 8k photography, no text no watermarks',
+    city: 'Austin, TX',
+    slug: 'austin',
+    prompt: 'Austin Texas downtown skyline at sunset, Congress Avenue bridge, Lady Bird Lake reflections, modern high-rises mixed with vibrant street art, warm golden hour light, 8k photography, no text no watermarks',
     status: 'pending'
   },
   {
-    city: 'Málaga',
-    slug: 'malaga',
-    prompt: 'Panoramic aerial view of Málaga city center Spain, cathedral and Alcazaba Moorish fortress, port with Mediterranean sea, palm trees, blue sky, Costa del Sol coastline, 8k photography, no text no watermarks',
+    city: 'Phoenix, AZ',
+    slug: 'phoenix',
+    prompt: 'Phoenix Arizona downtown skyline with desert mountains in background, saguaro cacti in foreground, dramatic sunset colors orange and purple, clear sky, 8k photography, no text no watermarks',
     status: 'pending'
   },
   {
-    city: 'Sotogrande',
-    slug: 'sotogrande',
-    prompt: 'Sotogrande marina at sunset with luxury sailboats and yachts, exclusive waterfront Mediterranean villas, elegant coastal lifestyle, golden hour reflections on calm water, Costa del Sol Spain, 8k photography, no text no watermarks',
+    city: 'San Diego, CA',
+    slug: 'san-diego',
+    prompt: 'San Diego California coastline aerial view, Coronado Bridge, harbor with sailboats, palm trees, clear blue Pacific Ocean, sunny day, 8k photography, no text no watermarks',
     status: 'pending'
   }
 ];
@@ -284,7 +284,7 @@ const NavbarImageGenerator = () => {
             <div className="prose prose-sm dark:prose-invert">
               <ol className="list-decimal list-inside space-y-2 text-muted-foreground">
                 <li>Click "Generate All Images" to create city-specific images for the navbar</li>
-                <li>Images are generated using Flux AI with Costa del Sol-specific prompts</li>
+                <li>Images are generated using Flux AI with city-specific prompts</li>
                 <li>Generated images are automatically uploaded to Supabase Storage</li>
                 <li>The Header component will automatically use these images once generated</li>
                 <li>You can regenerate individual images if needed</li>

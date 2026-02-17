@@ -14,10 +14,10 @@ interface TestResult {
 }
 
 const TEST_URLS = [
-  { path: '/no/qa/unngaa-feil-nye-boliger-costa-del-sol-reservasjonsdepositum', lang: 'no', label: '🇳🇴 Norwegian Q&A' },
-  { path: '/da/blog/fra-thalassoterapi-til-termalbade-din-vej-til-naturlig-helbredelse-p-costa-del-sol', lang: 'da', label: '🇩🇰 Danish Blog' },
-  { path: '/de/compare/marbella-oder-estepona', lang: 'de', label: '🇩🇪 German Compare' },
-  { path: '/en/locations/marbella/investment', lang: 'en', label: '🇬🇧 English Location' },
+  { path: '/en/blog/retirement-planning-guide', lang: 'en', label: '🇺🇸 English Blog' },
+  { path: '/es/blog/guia-planificacion-jubilacion', lang: 'es', label: '🇪🇸 Spanish Blog' },
+  { path: '/en/locations/los-angeles/retirement-planning', lang: 'en', label: '🇺🇸 English Location' },
+  { path: '/es/locations/miami/planificacion-jubilacion', lang: 'es', label: '🇪🇸 Spanish Location' },
 ];
 
 export const EdgeFunctionHealth = () => {
@@ -144,7 +144,7 @@ export const EdgeFunctionHealth = () => {
                     Test
                   </Button>
                   <a
-                    href={`https://www.delsolprimehomes.com${url.path}`}
+                    href={`https://www.everencewealth.com${url.path}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-muted-foreground hover:text-foreground"

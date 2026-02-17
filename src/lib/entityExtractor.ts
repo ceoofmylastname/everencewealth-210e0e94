@@ -16,110 +16,86 @@ export interface EntityExtractionResult {
   mentions: ExtractedEntity[];
 }
 
-// Wikidata entity IDs for Costa del Sol cities and key concepts
+// Wikidata entity IDs for US cities and key concepts
 const WIKIDATA_ENTITIES: Record<string, string> = {
-  // Cities
-  "Marbella": "https://www.wikidata.org/wiki/Q8337",
-  "Estepona": "https://www.wikidata.org/wiki/Q477306",
-  "Fuengirola": "https://www.wikidata.org/wiki/Q618947",
-  "Benalmádena": "https://www.wikidata.org/wiki/Q571725",
-  "Benalmadena": "https://www.wikidata.org/wiki/Q571725",
-  "Mijas": "https://www.wikidata.org/wiki/Q571737",
-  "Sotogrande": "https://www.wikidata.org/wiki/Q3490614",
-  "Casares": "https://www.wikidata.org/wiki/Q1046949",
-  "Torremolinos": "https://www.wikidata.org/wiki/Q184217",
-  "Manilva": "https://www.wikidata.org/wiki/Q571730",
-  "Málaga": "https://www.wikidata.org/wiki/Q8851",
-  "Malaga": "https://www.wikidata.org/wiki/Q8851",
-  "Costa del Sol": "https://www.wikidata.org/wiki/Q751676",
-  "Nerja": "https://www.wikidata.org/wiki/Q571741",
-  "Ronda": "https://www.wikidata.org/wiki/Q184053",
-  "Puerto Banús": "https://www.wikidata.org/wiki/Q1139089",
-  "Puerto Banus": "https://www.wikidata.org/wiki/Q1139089",
-  "La Cala de Mijas": "https://www.wikidata.org/wiki/Q6466653",
-  "Ojén": "https://www.wikidata.org/wiki/Q571744",
-  "Ojen": "https://www.wikidata.org/wiki/Q571744",
-  "Benahavís": "https://www.wikidata.org/wiki/Q571719",
-  "Benahavis": "https://www.wikidata.org/wiki/Q571719",
+  // US Cities
+  "Los Angeles": "https://www.wikidata.org/wiki/Q65",
+  "Austin": "https://www.wikidata.org/wiki/Q30656",
+  "Phoenix": "https://www.wikidata.org/wiki/Q16556",
+  "New York": "https://www.wikidata.org/wiki/Q60",
+  "Chicago": "https://www.wikidata.org/wiki/Q1297",
+  "Houston": "https://www.wikidata.org/wiki/Q16555",
+  "San Diego": "https://www.wikidata.org/wiki/Q16552",
+  "Dallas": "https://www.wikidata.org/wiki/Q16557",
+  "Miami": "https://www.wikidata.org/wiki/Q8652",
+  "San Francisco": "https://www.wikidata.org/wiki/Q62",
+  "Denver": "https://www.wikidata.org/wiki/Q16554",
+  "Seattle": "https://www.wikidata.org/wiki/Q5083",
 
   // Regions
-  "Andalusia": "https://www.wikidata.org/wiki/Q5765",
-  "Andalucía": "https://www.wikidata.org/wiki/Q5765",
-  "Spain": "https://www.wikidata.org/wiki/Q29",
+  "California": "https://www.wikidata.org/wiki/Q99",
+  "Texas": "https://www.wikidata.org/wiki/Q1439",
+  "Arizona": "https://www.wikidata.org/wiki/Q816",
+  "Florida": "https://www.wikidata.org/wiki/Q812",
+  "United States": "https://www.wikidata.org/wiki/Q30",
 
-  // Key concepts
-  "Golden Visa": "https://www.wikidata.org/wiki/Q5579119",
-  "NIE": "https://www.wikidata.org/wiki/Q6955279",
-  "Schengen Area": "https://www.wikidata.org/wiki/Q47906",
-  
-  // Organizations
-  "Spanish Tax Agency": "https://www.wikidata.org/wiki/Q1442469",
-  "Agencia Tributaria": "https://www.wikidata.org/wiki/Q1442469",
+  // Key financial concepts
+  "IUL": "https://www.wikidata.org/wiki/Q1142847",
+  "401k": "https://www.wikidata.org/wiki/Q244499",
+  "Roth IRA": "https://www.wikidata.org/wiki/Q1434230",
+  "Fiduciary": "https://www.wikidata.org/wiki/Q17519",
 };
 
 // Known organizations that may be mentioned in articles
 const KNOWN_ORGANIZATIONS: Record<string, { wikidata?: string; description: string }> = {
-  "Spanish Tax Agency": { wikidata: "https://www.wikidata.org/wiki/Q1442469", description: "Spain's tax administration agency" },
-  "Agencia Tributaria": { wikidata: "https://www.wikidata.org/wiki/Q1442469", description: "Spain's tax administration agency" },
-  "Hacienda": { description: "Spanish Treasury / Tax Office" },
-  "Catastro": { description: "Spanish Property Registry" },
-  "Registro de la Propiedad": { description: "Spanish Land Registry" },
-  "Notario": { description: "Spanish Notary Public" },
-  "Bank of Spain": { wikidata: "https://www.wikidata.org/wiki/Q806452", description: "Central bank of Spain" },
-  "Banco de España": { wikidata: "https://www.wikidata.org/wiki/Q806452", description: "Central bank of Spain" },
+  "IRS": { wikidata: "https://www.wikidata.org/wiki/Q42429", description: "United States Internal Revenue Service" },
+  "SEC": { wikidata: "https://www.wikidata.org/wiki/Q953944", description: "Securities and Exchange Commission" },
+  "FINRA": { description: "Financial Industry Regulatory Authority" },
+  "FDIC": { wikidata: "https://www.wikidata.org/wiki/Q571823", description: "Federal Deposit Insurance Corporation" },
+  "Federal Reserve": { wikidata: "https://www.wikidata.org/wiki/Q53536", description: "Central banking system of the United States" },
 };
 
-// Cities to detect in content
-const COSTA_DEL_SOL_CITIES = [
-  "Marbella", "Estepona", "Fuengirola", "Benalmádena", "Benalmadena",
-  "Mijas", "Sotogrande", "Casares", "Torremolinos", "Manilva",
-  "Málaga", "Malaga", "Nerja", "Ronda", "Puerto Banús", "Puerto Banus",
-  "La Cala de Mijas", "Ojén", "Ojen", "Benahavís", "Benahavis"
+// US cities to detect in content
+const US_CITIES = [
+  "Los Angeles", "Austin", "Phoenix", "New York", "Chicago",
+  "Houston", "San Diego", "Dallas", "Miami", "San Francisco",
+  "Denver", "Seattle"
 ];
 
-// Common glossary terms to detect (subset of most important)
+// Common financial terms to detect
 const KEY_GLOSSARY_TERMS = [
-  "NIE", "NIF", "TIE", "IBI", "ITP", "AJD", "IVA", "Plusvalía", "IRNR",
-  "Golden Visa", "Non-Lucrative Visa", "Digital Nomad Visa",
-  "Escritura", "Nota Simple", "Notario", "Arras",
-  "Off-Plan", "New-Build", "Resale", "Urbanización",
-  "Community Fees", "Catastral Value", "Empadronamiento",
-  "LTV", "Hipoteca", "Euribor", "Rental Yield",
-  "90-Day Rule", "Schengen", "Brexit"
+  "IUL", "401k", "Roth IRA", "Traditional IRA", "SEP IRA",
+  "Fiduciary", "Annuity", "Term Life", "Whole Life", "Universal Life",
+  "Estate Planning", "Tax Deferral", "Capital Gains",
+  "S&P 500", "Index Fund", "ETF",
+  "Social Security", "Medicare", "Long-Term Care",
+  "Living Trust", "Irrevocable Trust", "Power of Attorney"
 ];
 
-// Glossary term definitions for schema
+// Financial term definitions for schema
 const GLOSSARY_DEFINITIONS: Record<string, string> = {
-  "NIE": "Número de Identidad de Extranjero - Tax identification number for foreigners in Spain",
-  "NIF": "Número de Identificación Fiscal - Spanish tax identification number",
-  "TIE": "Tarjeta de Identidad de Extranjero - Physical residence card for non-EU foreigners",
-  "IBI": "Impuesto sobre Bienes Inmuebles - Annual municipal property tax in Spain",
-  "ITP": "Impuesto de Transmisiones Patrimoniales - Transfer tax for resale properties (7% in Andalusia)",
-  "AJD": "Actos Jurídicos Documentados - Stamp duty tax (1.2% in Andalusia)",
-  "IVA": "Impuesto sobre el Valor Añadido - VAT charged on new-build properties (10%)",
-  "Plusvalía": "Municipal capital gains tax on increased land value",
-  "IRNR": "Impuesto sobre la Renta de No Residentes - Non-resident income tax",
-  "Golden Visa": "Spanish residence permit for property investors (€500,000+ investment)",
-  "Non-Lucrative Visa": "Residence visa for non-EU nationals with passive income",
-  "Digital Nomad Visa": "Spanish visa for remote workers employed outside Spain",
-  "Escritura": "Public deed of sale signed before a notary",
-  "Nota Simple": "Official extract from Property Registry showing ownership and charges",
-  "Notario": "Notary Public who authenticates property transactions",
-  "Arras": "Reservation deposit contract in Spain",
-  "Off-Plan": "Property purchased before construction is complete",
-  "New-Build": "Newly constructed property sold for the first time",
-  "Resale": "Previously owned property being sold",
-  "Urbanización": "Planned residential development or gated community",
-  "Community Fees": "Monthly fees for shared amenities in urbanizations",
-  "Catastral Value": "Official administrative property value for tax calculations",
-  "Empadronamiento": "Municipal registration confirming address in Spain",
-  "LTV": "Loan-to-Value ratio - Percentage of property value a bank will lend",
-  "Hipoteca": "Spanish mortgage loan secured against property",
-  "Euribor": "Euro Interbank Offered Rate - Benchmark for variable mortgages",
-  "Rental Yield": "Annual rental income as percentage of property value",
-  "90-Day Rule": "Schengen 90/180 day rule for non-EU visitors",
-  "Schengen": "European area with no internal border controls",
-  "Brexit": "UK's departure from the European Union"
+  "IUL": "Indexed Universal Life - A permanent life insurance policy with cash value growth tied to a market index",
+  "401k": "Employer-sponsored retirement savings plan with tax advantages",
+  "Roth IRA": "Individual retirement account funded with after-tax dollars, offering tax-free growth and withdrawals",
+  "Traditional IRA": "Individual retirement account with tax-deductible contributions and tax-deferred growth",
+  "SEP IRA": "Simplified Employee Pension IRA for self-employed individuals and small business owners",
+  "Fiduciary": "A financial advisor legally obligated to act in the client's best interest",
+  "Annuity": "Insurance product providing guaranteed income stream, typically for retirement",
+  "Term Life": "Life insurance coverage for a specific period, typically 10-30 years",
+  "Whole Life": "Permanent life insurance with guaranteed cash value accumulation",
+  "Universal Life": "Flexible permanent life insurance with adjustable premiums and death benefit",
+  "Estate Planning": "Process of arranging for the management and disposal of a person's estate",
+  "Tax Deferral": "Strategy to postpone paying taxes on income or gains to a future date",
+  "Capital Gains": "Profit from the sale of an asset such as stocks, bonds, or real estate",
+  "S&P 500": "Stock market index tracking 500 of the largest U.S. publicly traded companies",
+  "Index Fund": "Mutual fund designed to track the performance of a market index",
+  "ETF": "Exchange-Traded Fund - A marketable security that tracks an index, commodity, or basket of assets",
+  "Social Security": "Federal insurance program providing retirement, disability, and survivor benefits",
+  "Medicare": "Federal health insurance program for people 65 and older",
+  "Long-Term Care": "Insurance covering extended care services not covered by regular health insurance",
+  "Living Trust": "Legal document that places assets in a trust for the benefit of beneficiaries",
+  "Irrevocable Trust": "Trust that cannot be modified after creation without beneficiary consent",
+  "Power of Attorney": "Legal document authorizing someone to act on another's behalf in financial matters"
 };
 
 /**
@@ -140,7 +116,7 @@ export function extractCityMentions(content: string, headline: string): Extracte
   const combinedText = `${headline} ${content}`;
   const seenCities = new Set<string>();
 
-  for (const city of COSTA_DEL_SOL_CITIES) {
+  for (const city of US_CITIES) {
     // Create regex for whole word matching
     const regex = new RegExp(`\\b${city.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'gi');
     
@@ -165,16 +141,6 @@ export function extractCityMentions(content: string, headline: string): Extracte
     }
   }
 
-  // Also check for Costa del Sol
-  if (/\bcosta del sol\b/i.test(combinedText) && !seenCities.has("costa del sol")) {
-    cities.push({
-      type: 'Place',
-      name: 'Costa del Sol',
-      description: 'Mediterranean coastline in southern Spain',
-      sameAs: WIKIDATA_ENTITIES['Costa del Sol']
-    });
-  }
-
   return cities;
 }
 
@@ -195,7 +161,7 @@ export function extractGlossaryTerms(content: string, headline: string): Extract
       const entity: ExtractedEntity = {
         type: 'DefinedTerm',
         name: term,
-        inDefinedTermSet: 'https://www.delsolprimehomes.com/glossary'
+        inDefinedTermSet: 'https://www.everencewealth.com/glossary'
       };
       
       if (GLOSSARY_DEFINITIONS[term]) {
@@ -250,7 +216,7 @@ export function getCategoryEntity(category: string): ExtractedEntity {
   return {
     type: 'Thing',
     name: category,
-    sameAs: `https://www.delsolprimehomes.com/blog/category/${category.toLowerCase().replace(/\s+/g, '-')}`
+    sameAs: `https://www.everencewealth.com/blog/category/${category.toLowerCase().replace(/\s+/g, '-')}`
   };
 }
 
@@ -281,12 +247,6 @@ export function extractEntitiesFromArticle(
   const headlineCities = extractCityMentions('', headline);
   if (headlineCities.length > 0) {
     about.push(headlineCities[0]);
-  }
-  
-  // Add Costa del Sol if mentioned prominently
-  const costaDelSol = cities.find(c => c.name === 'Costa del Sol');
-  if (costaDelSol && !about.some(e => e.name === 'Costa del Sol')) {
-    about.push(costaDelSol);
   }
   
   // Mentions are secondary references (exclude what's in about)

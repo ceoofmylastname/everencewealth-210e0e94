@@ -7,34 +7,34 @@ import { LanguageContext } from '@/i18n/LanguageContext';
 
 const locationData = [
   {
-    key: 'marbella',
+    key: 'losAngeles',
+    image: 'https://images.unsplash.com/photo-1534190760961-74e8c1c5c3da?w=600&q=80',
+    slug: 'los-angeles',
+  },
+  {
+    key: 'austin',
+    image: 'https://images.unsplash.com/photo-1531218150217-54595bc2b934?w=600&q=80',
+    slug: 'austin',
+  },
+  {
+    key: 'phoenix',
     image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80',
-    slug: 'marbella',
+    slug: 'phoenix',
   },
   {
-    key: 'puertoBanus',
-    image: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=600&q=80',
-    slug: 'marbella',
+    key: 'sanDiego',
+    image: 'https://images.unsplash.com/photo-1538097304804-2a1b932466a9?w=600&q=80',
+    slug: 'san-diego',
   },
   {
-    key: 'estepona',
-    image: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=600&q=80',
-    slug: 'estepona',
+    key: 'miami',
+    image: 'https://images.unsplash.com/photo-1506966953602-c20cc11f75e3?w=600&q=80',
+    slug: 'miami',
   },
   {
-    key: 'fuengirola',
-    image: 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=600&q=80',
-    slug: 'fuengirola',
-  },
-  {
-    key: 'benalmadena',
-    image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=600&q=80',
-    slug: 'benalmadena',
-  },
-  {
-    key: 'mijas',
-    image: 'https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=600&q=80',
-    slug: 'mijas',
+    key: 'denver',
+    image: 'https://images.unsplash.com/photo-1546156929-a4c0ac411f47?w=600&q=80',
+    slug: 'denver',
   },
 ];
 

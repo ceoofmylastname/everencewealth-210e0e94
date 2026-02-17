@@ -30,16 +30,18 @@ const LANGUAGE_FLAGS: Record<string, string> = {
 };
 
 const CITY_OPTIONS = [
-  { slug: 'marbella', name: 'Marbella' },
-  { slug: 'estepona', name: 'Estepona' },
-  { slug: 'sotogrande', name: 'Sotogrande' },
-  { slug: 'malaga-city', name: 'Málaga City' },
-  { slug: 'fuengirola', name: 'Fuengirola' },
-  { slug: 'benalmadena', name: 'Benalmádena' },
-  { slug: 'mijas', name: 'Mijas' },
-  { slug: 'casares', name: 'Casares' },
-  { slug: 'manilva', name: 'Manilva' },
-  { slug: 'torremolinos', name: 'Torremolinos' },
+  { slug: 'los-angeles', name: 'Los Angeles, CA' },
+  { slug: 'austin', name: 'Austin, TX' },
+  { slug: 'phoenix', name: 'Phoenix, AZ' },
+  { slug: 'new-york', name: 'New York, NY' },
+  { slug: 'chicago', name: 'Chicago, IL' },
+  { slug: 'houston', name: 'Houston, TX' },
+  { slug: 'san-diego', name: 'San Diego, CA' },
+  { slug: 'dallas', name: 'Dallas, TX' },
+  { slug: 'miami', name: 'Miami, FL' },
+  { slug: 'san-francisco', name: 'San Francisco, CA' },
+  { slug: 'denver', name: 'Denver, CO' },
+  { slug: 'seattle', name: 'Seattle, WA' },
 ];
 
 const ITEMS_PER_PAGE = 50;

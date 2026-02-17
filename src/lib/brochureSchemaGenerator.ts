@@ -24,7 +24,7 @@ const generatePlaceSchema = (city: CityBrochureData) => ({
   '@context': 'https://schema.org',
   '@type': 'Place',
   name: city.name,
-  description: `${city.name} - Premium real estate destination on Spain's Costa del Sol. Luxury villas, apartments, and investment properties.`,
+  description: `${city.name} - Premium wealth management destination. Financial planning, insurance, and investment services.`,
   geo: {
     '@type': 'GeoCoordinates',
     latitude: city.coordinates.lat,
@@ -33,36 +33,24 @@ const generatePlaceSchema = (city: CityBrochureData) => ({
   address: {
     '@type': 'PostalAddress',
     addressLocality: city.name,
-    addressRegion: 'Andalucía',
-    addressCountry: 'ES',
-  },
-  containedInPlace: {
-    '@type': 'Place',
-    name: 'Costa del Sol',
-    address: {
-      '@type': 'PostalAddress',
-      addressRegion: 'Málaga',
-      addressCountry: 'ES',
-    },
+    addressRegion: city.coordinates.lat > 35 ? 'United States' : 'United States',
+    addressCountry: 'US',
   },
 });
 
 const generateRealEstateAgentSchema = (city: CityBrochureData) => ({
   '@context': 'https://schema.org',
-  '@type': 'RealEstateAgent',
-  name: 'Del Sol Prime Homes',
-  description: `API-accredited real estate agency specializing in luxury properties in ${city.name} and across the Costa del Sol.`,
+  '@type': 'FinancialService',
+  name: 'Everence Wealth',
+  description: `Licensed financial advisory firm specializing in wealth management and insurance solutions in ${city.name}.`,
   url: BASE_URL,
   logo: `${BASE_URL}/assets/logo-new.png`,
-  telephone: '+34 630 03 90 90',
-  email: 'info@delsolprimehomes.com',
+  telephone: '+1 (555) 123-4567',
+  email: 'info@everencewealth.com',
   address: {
     '@type': 'PostalAddress',
-    streetAddress: 'ED SAN FERNAN, C. Alfonso XIII, 6, 1 OFICINA',
-    addressLocality: 'Fuengirola',
-    addressRegion: 'Málaga',
-    postalCode: '29640',
-    addressCountry: 'ES',
+    addressLocality: city.name,
+    addressCountry: 'US',
   },
   areaServed: [
     {
@@ -74,24 +62,8 @@ const generateRealEstateAgentSchema = (city: CityBrochureData) => ({
         longitude: city.coordinates.lng,
       },
     },
-    {
-      '@type': 'Place',
-      name: 'Costa del Sol',
-    },
   ],
   knowsLanguage: ['en', 'es'],
-  hasCredential: {
-    '@type': 'EducationalOccupationalCredential',
-    credentialCategory: 'API Registration',
-    name: 'API-Accredited Real Estate Professional',
-  },
-  aggregateRating: {
-    '@type': 'AggregateRating',
-    ratingValue: '4.9',
-    reviewCount: '127',
-    bestRating: '5',
-    worstRating: '1',
-  },
 });
 
 const generateBreadcrumbSchema = (city: CityBrochureData) => ({
@@ -128,7 +100,7 @@ const generateFAQSchema = (city: CityBrochureData) => ({
       name: `Why invest in property in ${city.name}?`,
       acceptedAnswer: {
         '@type': 'Answer',
-        text: truncateForAEO(`${city.name} offers exceptional investment potential with strong capital appreciation, high rental yields, and year-round demand from international buyers. The Costa del Sol enjoys over 320 days of sunshine, world-class amenities, and excellent connectivity to major European cities.`),
+        text: truncateForAEO(`${city.name} offers exceptional opportunities with strong growth potential, diverse financial services landscape, and access to top-tier wealth management professionals.`),
       },
     },
     {
@@ -136,7 +108,7 @@ const generateFAQSchema = (city: CityBrochureData) => ({
       name: `What types of properties are available in ${city.name}?`,
       acceptedAnswer: {
         '@type': 'Answer',
-        text: truncateForAEO(`${city.name} offers a diverse range of properties including ${city.propertyTypes.slice(0, 3).join(', ')}. From contemporary apartments to luxury villas, there are options for every lifestyle and budget.`),
+        text: truncateForAEO(`${city.name} offers a diverse range of financial services including ${city.propertyTypes.slice(0, 3).join(', ')}. From retirement planning to wealth protection, there are options for every financial goal.`),
       },
     },
     {
@@ -144,7 +116,7 @@ const generateFAQSchema = (city: CityBrochureData) => ({
       name: `Which are the best neighborhoods in ${city.name}?`,
       acceptedAnswer: {
         '@type': 'Answer',
-        text: truncateForAEO(`The most sought-after neighborhoods in ${city.name} include ${city.neighborhoods.slice(0, 4).join(', ')}. Each area offers unique characteristics, from beachfront living to golf course views.`),
+        text: truncateForAEO(`The most sought-after areas in ${city.name} include ${city.neighborhoods.slice(0, 4).join(', ')}. Each area offers unique characteristics and financial planning needs.`),
       },
     },
     {
@@ -152,7 +124,7 @@ const generateFAQSchema = (city: CityBrochureData) => ({
       name: 'Do you offer support for foreign buyers?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: truncateForAEO('Yes, Del Sol Prime Homes specializes in guiding international buyers through the Spanish property purchase process. Our multilingual team speaks English, Dutch, German, French, Polish, Swedish, Danish, Hungarian, Finnish, and Norwegian. We provide end-to-end support from property search to key handover.'),
+        text: truncateForAEO('Yes, Everence Wealth specializes in guiding clients through comprehensive wealth management. Our multilingual team provides end-to-end support from financial assessment to strategy implementation.'),
       },
     },
   ],
@@ -161,22 +133,22 @@ const generateFAQSchema = (city: CityBrochureData) => ({
 const generateSpeakableSchema = (city: CityBrochureData) => ({
   '@context': 'https://schema.org',
   '@type': 'WebPage',
-  name: `Luxury Properties in ${city.name} | Del Sol Prime Homes`,
-  description: `Discover exceptional real estate opportunities in ${city.name}. Expert guidance for international buyers seeking luxury properties on Spain's Costa del Sol.`,
+  name: `Wealth Management in ${city.name} | Everence Wealth`,
+  description: `Discover exceptional financial planning opportunities in ${city.name}. Expert guidance for clients seeking wealth management and insurance solutions.`,
   url: `${BASE_URL}/brochure/${city.slug}`,
   speakable: {
     '@type': 'SpeakableSpecification',
     cssSelector: ['.brochure-hero h1', '.brochure-hero p', '.lifestyle-narrative h2', '.lifestyle-narrative p'],
   },
-  inLanguage: 'en-GB',
+  inLanguage: 'en-US',
 });
 
 export const generateBrochureMetaTags = (city: CityBrochureData) => ({
-  title: `Luxury Properties in ${city.name} | Costa del Sol Real Estate | Del Sol Prime Homes`,
-  description: `Discover exceptional investment opportunities and lifestyle properties in ${city.name}. Expert guidance from API-accredited advisors. Luxury villas, apartments & new developments.`,
-  keywords: `${city.name} real estate, ${city.name} property, Costa del Sol investment, luxury villas ${city.name}, apartments ${city.name}, Spanish property`,
-  ogTitle: `${city.name} - Premium Real Estate on the Costa del Sol`,
-  ogDescription: `Explore luxury properties in ${city.name}. From beachfront apartments to exclusive villas, find your dream home with expert guidance.`,
+  title: `Wealth Management in ${city.name} | Everence Wealth`,
+  description: `Discover exceptional financial planning and wealth management services in ${city.name}. Expert guidance from licensed advisors. Retirement planning, insurance & investment strategies.`,
+  keywords: `${city.name} wealth management, ${city.name} financial planning, retirement planning ${city.name}, insurance ${city.name}, financial advisor ${city.name}`,
+  ogTitle: `${city.name} - Premium Wealth Management Services`,
+  ogDescription: `Explore wealth management services in ${city.name}. From retirement planning to insurance solutions, find your financial strategy with expert guidance.`,
   ogImage: city.heroImage,
   canonical: `${BASE_URL}/brochure/${city.slug}`,
 });

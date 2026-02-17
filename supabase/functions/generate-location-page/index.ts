@@ -312,8 +312,8 @@ serve(async (req) => {
   try {
     const { 
       city, 
-      region = 'Andalusia', 
-      country = 'Spain', 
+      region = '', 
+      country = 'United States', 
       intent_type,
       goal,
       language = 'en',
