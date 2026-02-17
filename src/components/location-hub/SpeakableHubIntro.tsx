@@ -17,122 +17,26 @@ const LOCALIZED_CONTENT: Record<string, {
   en: {
     badge: "AI-Ready Summary",
     title: "Quick Answer",
-    intro: "Our Costa del Sol Location Guides are comprehensive resources covering cities across the region. Each guide addresses specific buyer intents including family relocation, retirement planning, property investment, and cost of living analysis. Every page features expert insights, neighborhood breakdowns, price comparisons, and actionable recommendations to help you make informed real estate decisions.",
+    intro: "Everence Wealth Location Guides are comprehensive financial planning resources covering cities across the United States. Each guide addresses specific client needs including retirement planning, tax optimization, insurance coverage, and estate planning. Every page features expert insights, market analysis, cost of living breakdowns, and actionable recommendations to help you make informed financial decisions.",
     highlights: [
-      "8 major cities covered",
-      "8 intent types per city",
-      "Available in 10 languages",
+      "50 states served",
+      "8 planning topics per market",
+      "Bilingual guidance",
       "Updated quarterly"
     ],
     footer: "Optimized for voice assistants and AI search"
   },
-  nl: {
-    badge: "AI-Gereed Samenvatting",
-    title: "Snel Antwoord",
-    intro: "Onze Costa del Sol Locatiegidsen zijn uitgebreide bronnen die steden in de hele regio behandelen. Elke gids behandelt specifieke kopersbehoeften, waaronder gezinsverhuizing, pensioenplanning, vastgoedinvesteringen en kosten van levensonderhoud. Elke pagina bevat expertinzichten, wijkoverzichten, prijsvergelijkingen en uitvoerbare aanbevelingen.",
+  es: {
+    badge: "Resumen Listo para IA",
+    title: "Respuesta Rápida",
+    intro: "Las Guías de Ubicación de Everence Wealth son recursos completos de planificación financiera que cubren ciudades en los Estados Unidos. Cada guía aborda necesidades específicas del cliente, incluyendo planificación de jubilación, optimización fiscal, cobertura de seguros y planificación patrimonial. Cada página presenta información experta, análisis de mercado y recomendaciones prácticas para decisiones financieras informadas.",
     highlights: [
-      "8 grote steden",
-      "8 intentietypes per stad",
-      "Beschikbaar in 10 talen",
-      "Kwartaallijks bijgewerkt"
+      "50 estados atendidos",
+      "8 temas por mercado",
+      "Orientación bilingüe",
+      "Actualizado trimestralmente"
     ],
-    footer: "Geoptimaliseerd voor spraakassistenten en AI-zoekopdrachten"
-  },
-  de: {
-    badge: "KI-bereite Zusammenfassung",
-    title: "Schnelle Antwort",
-    intro: "Unsere Costa del Sol Standortführer sind umfassende Ressourcen, die Städte in der gesamten Region abdecken. Jeder Führer behandelt spezifische Käuferbedürfnisse wie Familienumzug, Ruhestandsplanung, Immobilieninvestitionen und Lebenshaltungskostenanalyse. Jede Seite enthält Experteneinblicke, Stadtteilübersichten und Preisvergleiche.",
-    highlights: [
-      "8 große Städte",
-      "8 Thementypen pro Stadt",
-      "In 10 Sprachen verfügbar",
-      "Vierteljährlich aktualisiert"
-    ],
-    footer: "Optimiert für Sprachassistenten und KI-Suche"
-  },
-  fr: {
-    badge: "Résumé prêt pour l'IA",
-    title: "Réponse Rapide",
-    intro: "Nos guides d'emplacement Costa del Sol sont des ressources complètes couvrant les villes de la région. Chaque guide aborde des besoins spécifiques des acheteurs, notamment la relocalisation familiale, la planification de la retraite, l'investissement immobilier et l'analyse du coût de la vie. Chaque page contient des informations d'experts et des recommandations.",
-    highlights: [
-      "8 grandes villes",
-      "8 types de thèmes par ville",
-      "Disponible en 10 langues",
-      "Mis à jour trimestriellement"
-    ],
-    footer: "Optimisé pour les assistants vocaux et la recherche IA"
-  },
-  sv: {
-    badge: "AI-redo Sammanfattning",
-    title: "Snabbt Svar",
-    intro: "Våra Costa del Sol platsguider är omfattande resurser som täcker städer i hela regionen. Varje guide behandlar specifika köparbehov inklusive familjeflytt, pensionsplanering, fastighetsinvesteringar och levnadskostnadsanalys. Varje sida innehåller expertinsikter, områdesbeskrivningar, prisjämförelser och handlingsbara rekommendationer för välgrundade fastighetsbeslut.",
-    highlights: [
-      "8 stora städer",
-      "8 tematyper per stad",
-      "Tillgänglig på 10 språk",
-      "Uppdateras kvartalsvis"
-    ],
-    footer: "Optimerad för röstassistenter och AI-sökning"
-  },
-  no: {
-    badge: "AI-klar Sammendrag",
-    title: "Raskt Svar",
-    intro: "Våre Costa del Sol stedsguider er omfattende ressurser som dekker byer i hele regionen. Hver guide tar for seg spesifikke kjøperbehov inkludert familieflytting, pensjonsplanlegging, eiendomsinvesteringer og levekostnadsanalyse. Hver side inneholder ekspertinnsikt, områdebeskrivelser, prissammenligninger og handlingsrettede anbefalinger for informerte eiendomsbeslutninger.",
-    highlights: [
-      "8 store byer",
-      "8 tematyper per by",
-      "Tilgjengelig på 10 språk",
-      "Oppdateres kvartalsvis"
-    ],
-    footer: "Optimalisert for stemmeassistenter og AI-søk"
-  },
-  da: {
-    badge: "AI-klar Resumé",
-    title: "Hurtigt Svar",
-    intro: "Vores Costa del Sol stedguider er omfattende ressourcer, der dækker byer i hele regionen. Hver guide adresserer specifikke køberbehov, herunder familieflytning, pensionsplanlægning, ejendomsinvesteringer og leveomkostningsanalyse. Hver side indeholder ekspertindsigt, områdebeskrivelser, prissammenligninger og handlingsrettede anbefalinger.",
-    highlights: [
-      "8 store byer",
-      "8 tematyper per by",
-      "Tilgængelig på 10 sprog",
-      "Opdateres kvartalsvis"
-    ],
-    footer: "Optimeret til stemmeassistenter og AI-søgning"
-  },
-  fi: {
-    badge: "AI-valmis Yhteenveto",
-    title: "Nopea Vastaus",
-    intro: "Costa del Sol -sijaintioppaamme ovat kattavia resursseja, jotka kattavat alueen kaupungit. Jokainen opas käsittelee tiettyjä ostajien tarpeita, kuten perheen muuttoa, eläkesuunnittelua, kiinteistösijoituksia ja elinkustannusanalyysiä. Jokainen sivu sisältää asiantuntijatietoa, aluekuvauksia, hintavertailuja ja toimintakelpoisia suosituksia tietoisiin kiinteistöpäätöksiin.",
-    highlights: [
-      "8 suurta kaupunkia",
-      "8 tematyyppiä per kaupunki",
-      "Saatavilla 10 kielellä",
-      "Päivitetään neljännesvuosittain"
-    ],
-    footer: "Optimoitu ääniavustajille ja AI-haulle"
-  },
-  pl: {
-    badge: "Podsumowanie Gotowe dla AI",
-    title: "Szybka Odpowiedź",
-    intro: "Nasze przewodniki po lokalizacjach Costa del Sol to kompleksowe zasoby obejmujące miasta w całym regionie. Każdy przewodnik odpowiada na konkretne potrzeby kupujących, w tym przeprowadzkę rodzinną, planowanie emerytury, inwestycje w nieruchomości i analizę kosztów życia. Każda strona zawiera eksperckie spostrzeżenia, opisy dzielnic, porównania cen i praktyczne rekomendacje.",
-    highlights: [
-      "8 dużych miast",
-      "8 typów tematów na miasto",
-      "Dostępne w 10 językach",
-      "Aktualizowane kwartalnie"
-    ],
-    footer: "Zoptymalizowane dla asystentów głosowych i wyszukiwania AI"
-  },
-  hu: {
-    badge: "AI-kész Összefoglaló",
-    title: "Gyors Válasz",
-    intro: "Costa del Sol helyszín útmutatóink átfogó források, amelyek a régió városait fedik le. Minden útmutató konkrét vásárlói igényekre válaszol, beleértve a családi költözést, nyugdíjtervezést, ingatlan befektetéseket és megélhetési költségek elemzését. Minden oldal szakértői betekintést, környékleírásokat, árösszehasonlításokat és gyakorlati ajánlásokat tartalmaz.",
-    highlights: [
-      "8 nagyobb város",
-      "8 téma típus városonként",
-      "Elérhető 10 nyelven",
-      "Negyedévente frissítve"
-    ],
-    footer: "Optimalizálva hangasszisztensekhez és AI kereséshez"
+    footer: "Optimizado para asistentes de voz y búsqueda con IA"
   }
 };
 
