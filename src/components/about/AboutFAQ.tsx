@@ -22,13 +22,12 @@ export const AboutFAQ = ({ faqs }: AboutFAQProps) => {
   const aboutUs = t.aboutUs as Record<string, unknown> | undefined;
   const faqSection = aboutUs?.faq as { heading?: string; subheading?: string; items?: FAQ[] } | undefined;
 
-  // Use i18n items first, then fallback to database props
   const faqItems = faqSection?.items || faqs;
 
   if (!faqItems || faqItems.length === 0) return null;
 
   return (
-    <section className="py-20 bg-prime-50" aria-labelledby="faq-heading">
+    <section className="py-20 bg-muted" aria-labelledby="faq-heading">
       <div className="container mx-auto px-4 md:px-6">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
@@ -38,14 +37,14 @@ export const AboutFAQ = ({ faqs }: AboutFAQProps) => {
           className="max-w-3xl mx-auto"
         >
           <div className="text-center mb-12">
-            <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-prime-gold/10 mb-4">
-              <HelpCircle className="w-7 h-7 text-prime-gold" />
+            <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-[hsl(43,74%,49%)]/10 mb-4">
+              <HelpCircle className="w-7 h-7 text-[hsl(43,74%,49%)]" />
             </div>
-            <h2 id="faq-heading" className="font-serif text-3xl md:text-4xl font-bold text-prime-900 mb-4">
+            <h2 id="faq-heading" className="font-serif text-3xl md:text-4xl font-bold text-foreground mb-4">
               {faqSection?.heading || "Frequently Asked Questions"}
             </h2>
-            <p className="text-slate-600">
-              {faqSection?.subheading || "Common questions about Del Sol Prime Homes"}
+            <p className="text-muted-foreground">
+              {faqSection?.subheading || "Common questions about Everence Wealth"}
             </p>
           </div>
 
@@ -54,12 +53,12 @@ export const AboutFAQ = ({ faqs }: AboutFAQProps) => {
               <AccordionItem
                 key={index}
                 value={`faq-${index}`}
-                className="bg-white rounded-xl border border-prime-gold/10 px-6 shadow-sm"
+                className="bg-background rounded-2xl border border-border px-6 shadow-sm"
               >
-                <AccordionTrigger className="text-left font-semibold text-prime-900 hover:text-prime-gold py-5 hover:no-underline">
+                <AccordionTrigger className="text-left font-semibold text-foreground hover:text-[hsl(43,74%,49%)] py-5 hover:no-underline">
                   {faq.question}
                 </AccordionTrigger>
-                <AccordionContent className="text-slate-600 pb-5 faq-answer">
+                <AccordionContent className="text-muted-foreground pb-5 faq-answer">
                   {faq.answer}
                 </AccordionContent>
               </AccordionItem>

@@ -19,7 +19,6 @@ import { useTranslation } from "@/i18n";
 
 const BASE_URL = "https://www.everencewealth.com";
 
-// Default content fallback
 const defaultContent: AboutPageContent = {
   meta_title: "About Everence Wealth | Independent Fiduciary Wealth Architects",
   meta_description: `Meet the founders of Everence Wealth. ${COMPANY_FACTS.yearsExperience}+ years experience helping families build tax-efficient retirement strategies and asset protection plans.`,
@@ -42,8 +41,7 @@ const About = () => {
   const { t } = useTranslation();
   const aboutUs = t.aboutUs as Record<string, unknown> | undefined;
   const credentialsFromI18n = (aboutUs?.credentials as { items?: Array<{ name: string; description: string }> })?.items || [];
-  
-  // Fetch content from database
+
   const { data: content, isLoading } = useQuery({
     queryKey: ["about-page-content"],
     queryFn: async () => {
@@ -57,12 +55,10 @@ const About = () => {
         console.error("Error fetching about content:", error);
         return null;
       }
-
       return data;
     }
   });
 
-  // Merge with defaults
   const pageContent: AboutPageContent = content
     ? {
         meta_title: content.meta_title,
@@ -85,7 +81,6 @@ const About = () => {
       }
     : defaultContent;
 
-  // Scroll to top on mount
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
@@ -103,54 +98,61 @@ const About = () => {
 
   return (
     <>
-      {/* SEO tags are handled by server/edge - no Helmet needed */}
       <div className="min-h-screen bg-background">
         <Header />
 
-        <main>
-          {/* Hero with H1 */}
-          <AboutHero
-            headline={pageContent.hero_headline}
-            subheadline={pageContent.hero_subheadline}
-            yearsInBusiness={pageContent.years_in_business}
-            propertiesSold={pageContent.properties_sold}
-            clientSatisfaction={pageContent.client_satisfaction_percent}
-          />
+        <main className="mx-2 md:mx-4 lg:mx-6 space-y-4 md:space-y-6 py-4 md:py-6">
+          <div className="rounded-3xl overflow-hidden">
+            <AboutHero
+              headline={pageContent.hero_headline}
+              subheadline={pageContent.hero_subheadline}
+              yearsInBusiness={pageContent.years_in_business}
+              propertiesSold={pageContent.properties_sold}
+              clientSatisfaction={pageContent.client_satisfaction_percent}
+            />
+          </div>
 
-          {/* Mission with Speakable content */}
-          <MissionStatement
-            mission={pageContent.mission_statement}
-            speakableSummary={pageContent.speakable_summary}
-          />
+          <div className="rounded-3xl overflow-hidden">
+            <MissionStatement
+              mission={pageContent.mission_statement}
+              speakableSummary={pageContent.speakable_summary}
+            />
+          </div>
 
-          {/* Story section with H2/H3 structure */}
           {content?.our_story_content && (
-            <OurStory content={content.our_story_content} />
+            <div className="rounded-3xl overflow-hidden">
+              <OurStory content={content.our_story_content} />
+            </div>
           )}
 
-          {/* Founders - E-E-A-T People */}
-          <FounderProfiles founders={pageContent.founders} />
+          <div className="rounded-3xl overflow-hidden">
+            <FounderProfiles founders={pageContent.founders} />
+          </div>
 
-          {/* Why Choose Us */}
           {content?.why_choose_us_content && (
-            <WhyChooseUs content={content.why_choose_us_content} />
+            <div className="rounded-3xl overflow-hidden">
+              <WhyChooseUs content={content.why_choose_us_content} />
+            </div>
           )}
 
-          {/* Credentials & Citations - GEO */}
-          <Credentials
-            credentials={credentialsFromI18n.length > 0 ? credentialsFromI18n.map((item, index) => ({
-              name: item.name,
-              description: item.description,
-              icon: ["shield-check", "award", "file-check", "lock"][index] || "shield-check"
-            })) : []}
-            citations={pageContent.citations}
-          />
+          <div className="rounded-3xl overflow-hidden">
+            <Credentials
+              credentials={credentialsFromI18n.length > 0 ? credentialsFromI18n.map((item, index) => ({
+                name: item.name,
+                description: item.description,
+                icon: ["shield-check", "award", "file-check", "lock"][index] || "shield-check"
+              })) : []}
+              citations={pageContent.citations}
+            />
+          </div>
 
-          {/* FAQ Section - AEO */}
-          <AboutFAQ faqs={pageContent.faq_entities} />
+          <div className="rounded-3xl overflow-hidden">
+            <AboutFAQ faqs={pageContent.faq_entities} />
+          </div>
 
-          {/* CTA */}
-          <AboutCTA />
+          <div className="rounded-3xl overflow-hidden">
+            <AboutCTA />
+          </div>
         </main>
 
         <Footer />
