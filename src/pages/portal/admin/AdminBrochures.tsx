@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Plus, Search, Trash2, Pencil, Download, BookOpen, MapPin, Loader2 } from "lucide-react";
+import { Plus, Search, Trash2, Pencil, Download, BookOpen, MapPin, Loader2, Globe, GlobeLock } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
 const US_STATES = [
@@ -67,6 +67,21 @@ export default function AdminBrochures() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-brochures"] });
       toast({ title: "Brochure deleted" });
+    },
+  });
+
+  const togglePublishMutation = useMutation({
+    mutationFn: async ({ id, currentStatus }: { id: string; currentStatus: string }) => {
+      const newStatus = currentStatus === "published" ? "draft" : "published";
+      const update: Record<string, unknown> = { status: newStatus };
+      if (newStatus === "published") update.published_at = new Date().toISOString();
+      const { error } = await supabase.from("brochures").update(update).eq("id", id);
+      if (error) throw error;
+      return newStatus;
+    },
+    onSuccess: (newStatus) => {
+      queryClient.invalidateQueries({ queryKey: ["admin-brochures"] });
+      toast({ title: newStatus === "published" ? "Brochure published" : "Brochure unpublished" });
     },
   });
 
@@ -247,6 +262,14 @@ export default function AdminBrochures() {
                   <TableCell className="text-center">{b.featured ? "⭐" : "—"}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        title={b.status === "published" ? "Unpublish" : "Publish"}
+                        onClick={() => togglePublishMutation.mutate({ id: b.id, currentStatus: b.status || "draft" })}
+                      >
+                        {b.status === "published" ? <GlobeLock className="h-4 w-4 text-muted-foreground" /> : <Globe className="h-4 w-4 text-green-600" />}
+                      </Button>
                       <Button variant="ghost" size="icon" asChild>
                         <Link to={`/admin/brochures/${b.id}/edit`}>
                           <Pencil className="h-4 w-4" />
