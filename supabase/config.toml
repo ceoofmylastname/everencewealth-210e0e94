@@ -8,3 +8,9 @@ verify_jwt = false
 
 [functions.generate-guide-content]
 verify_jwt = false
+
+[functions.get-pending-agents]
+verify_jwt = false
+
+[functions.update-portal-agent-password]
+verify_jwt = false
