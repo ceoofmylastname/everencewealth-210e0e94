@@ -1,23 +1,27 @@
-import React, { Suspense } from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
 import { Ban, Layers, ShieldOff } from 'lucide-react';
 import { MorphingBlob } from '@/components/philosophy/MorphingBlob';
 import { StatBadge } from '../shared/StatBadge';
 import { useTranslation } from '@/i18n/useTranslation';
-import { Canvas } from '@react-three/fiber';
-import { Float } from '@react-three/drei';
 
-const StackedRings = () => (
-  <Float speed={2} rotationIntensity={1} floatIntensity={1.5}>
-    <group>
-      {[0, 0.8, 1.6].map((y, i) => (
-        <mesh key={i} position={[0, y - 0.8, 0]} rotation={[Math.PI / 2, 0, i * 0.3]}>
-          <torusGeometry args={[1 - i * 0.15, 0.08, 16, 100]} />
-          <meshStandardMaterial color="hsl(43,74%,49%)" metalness={0.9} roughness={0.15} />
-        </mesh>
-      ))}
-    </group>
-  </Float>
+const FloatingRings = () => (
+  <div className="relative w-full h-full flex items-center justify-center">
+    {[0, 1, 2].map((i) => (
+      <motion.div
+        key={i}
+        className="absolute rounded-full border-4"
+        style={{
+          width: `${180 - i * 30}px`,
+          height: `${180 - i * 30}px`,
+          borderColor: 'hsl(43,74%,49%)',
+          opacity: 0.6 - i * 0.15,
+        }}
+        animate={{ rotate: 360 }}
+        transition={{ duration: 8 + i * 4, repeat: Infinity, ease: 'linear' }}
+      />
+    ))}
+  </div>
 );
 
 export const TFRHero: React.FC = () => {
@@ -30,13 +34,7 @@ export const TFRHero: React.FC = () => {
       <MorphingBlob className="absolute bottom-[-200px] left-[-150px] w-[500px] h-[500px] opacity-10" colors={['hsl(160,48%,25%)', 'hsl(160,48%,35%)']} morphSpeed={12000} />
 
       <div className="absolute right-[5%] top-1/2 -translate-y-1/2 w-[300px] h-[300px] md:w-[400px] md:h-[400px] opacity-50 pointer-events-none hidden lg:block">
-        <Suspense fallback={null}>
-          <Canvas camera={{ position: [0, 0, 4] as [number, number, number] }}>
-            <ambientLight intensity={0.5} />
-            <pointLight position={[10, 10, 10]} intensity={1} color="hsl(43,74%,49%)" />
-            <StackedRings />
-          </Canvas>
-        </Suspense>
+        <FloatingRings />
       </div>
 
       <div className="container max-w-6xl mx-auto px-6 py-24 text-center relative z-10">
