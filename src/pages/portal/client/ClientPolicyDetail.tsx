@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { FileText, Download, Users, Shield, Mail, Phone, MessageSquare, Calendar } from "lucide-react";
+import { toast } from "sonner";
 import {
   Breadcrumb,
   BreadcrumbList,
@@ -67,6 +68,14 @@ const formatFileSize = (bytes: number | null) => {
   if (bytes < 1048576) return `${(bytes / 1024).toFixed(1)} KB`;
   return `${(bytes / 1048576).toFixed(1)} MB`;
 };
+
+/** Extract the storage path from a file_url (backward-compatible with full URLs). */
+function getStoragePath(fileUrl: string): string {
+  const marker = "/portal-documents/";
+  const idx = fileUrl.indexOf(marker);
+  if (idx !== -1) return fileUrl.substring(idx + marker.length);
+  return fileUrl;
+}
 
 const evergreen = "#1A4D3E";
 const slate = "#4A5565";
@@ -313,11 +322,14 @@ export default function ClientPolicyDetail() {
                           {doc.created_at ? ` • ${format(new Date(doc.created_at), "MMM d, yyyy")}` : ""}
                         </p>
                       </div>
-                      <a href={doc.file_url} target="_blank" rel="noopener noreferrer">
-                        <Button variant="ghost" size="sm">
-                          <Download className="h-4 w-4" />
-                        </Button>
-                      </a>
+                      <Button variant="ghost" size="sm" onClick={async () => {
+                        const storagePath = getStoragePath(doc.file_url);
+                        const { data, error } = await supabase.storage.from("portal-documents").createSignedUrl(storagePath, 3600);
+                        if (error || !data?.signedUrl) { toast.error("Failed to generate download link"); return; }
+                        window.open(data.signedUrl, "_blank");
+                      }}>
+                        <Download className="h-4 w-4" />
+                      </Button>
                     </div>
                   ))}
                 </div>

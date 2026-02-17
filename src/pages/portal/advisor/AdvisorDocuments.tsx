@@ -26,6 +26,14 @@ interface Doc {
 
 interface ClientOption { id: string; first_name: string; last_name: string; }
 
+/** Extract the storage path from a file_url (backward-compatible with full URLs). */
+function getStoragePath(fileUrl: string): string {
+  const marker = "/portal-documents/";
+  const idx = fileUrl.indexOf(marker);
+  if (idx !== -1) return fileUrl.substring(idx + marker.length);
+  return fileUrl; // already a relative path
+}
+
 export default function AdvisorDocuments() {
   const { portalUser } = usePortalAuth();
   const [searchParams] = useSearchParams();
@@ -79,11 +87,10 @@ export default function AdvisorDocuments() {
     const { error: uploadError } = await supabase.storage.from("portal-documents").upload(path, file);
     if (uploadError) { toast.error(uploadError.message); setUploading(false); return; }
 
-    const { data: urlData } = supabase.storage.from("portal-documents").getPublicUrl(path);
-
+    // Store only the relative storage path (not full public URL)
     const { error: dbError } = await supabase.from("portal_documents").insert({
       file_name: file.name,
-      file_url: urlData.publicUrl,
+      file_url: path,
       file_size: file.size,
       document_type: uploadForm.document_type,
       is_client_visible: uploadForm.is_client_visible,
@@ -94,6 +101,18 @@ export default function AdvisorDocuments() {
     if (dbError) { toast.error(dbError.message); }
     else {
       toast.success("Document uploaded");
+
+      // Create notification for client if document is visible
+      if (uploadForm.is_client_visible) {
+        await supabase.from("portal_notifications").insert({
+          user_id: uploadForm.client_id,
+          title: "New Document Available",
+          message: `A new ${uploadForm.document_type.replace(/_/g, " ")} document "${file.name}" has been uploaded to your account.`,
+          notification_type: "document",
+          link: "/portal/client/documents",
+        });
+      }
+
       loadData();
       if (fileRef.current) fileRef.current.value = "";
     }
@@ -103,11 +122,8 @@ export default function AdvisorDocuments() {
   async function handleDelete(doc: Doc) {
     if (!confirm(`Delete "${doc.file_name}"?`)) return;
     await supabase.from("portal_documents").delete().eq("id", doc.id);
-    // Also delete from storage
-    const urlParts = doc.file_url.split("/portal-documents/");
-    if (urlParts[1]) {
-      await supabase.storage.from("portal-documents").remove([urlParts[1]]);
-    }
+    const storagePath = getStoragePath(doc.file_url);
+    await supabase.storage.from("portal-documents").remove([storagePath]);
     toast.success("Document deleted");
     setDocs((prev) => prev.filter((d) => d.id !== doc.id));
   }
@@ -116,6 +132,13 @@ export default function AdvisorDocuments() {
     const { error } = await supabase.from("portal_documents").update({ is_client_visible: !doc.is_client_visible }).eq("id", doc.id);
     if (error) { toast.error(error.message); return; }
     setDocs((prev) => prev.map((d) => d.id === doc.id ? { ...d, is_client_visible: !d.is_client_visible } : d));
+  }
+
+  async function handleDownload(doc: Doc) {
+    const storagePath = getStoragePath(doc.file_url);
+    const { data, error } = await supabase.storage.from("portal-documents").createSignedUrl(storagePath, 3600);
+    if (error || !data?.signedUrl) { toast.error("Failed to generate download link"); return; }
+    window.open(data.signedUrl, "_blank");
   }
 
   const filtered = docs.filter((d) => d.file_name.toLowerCase().includes(search.toLowerCase()));
@@ -206,8 +229,8 @@ export default function AdvisorDocuments() {
                   <Button variant="ghost" size="icon" onClick={() => toggleVisibility(doc)} title={doc.is_client_visible ? "Hide from client" : "Show to client"}>
                     {doc.is_client_visible ? "👁" : "🔒"}
                   </Button>
-                  <Button variant="ghost" size="icon" asChild>
-                    <a href={doc.file_url} download target="_blank" rel="noopener"><Download className="h-4 w-4" /></a>
+                  <Button variant="ghost" size="icon" onClick={() => handleDownload(doc)}>
+                    <Download className="h-4 w-4" />
                   </Button>
                   <Button variant="ghost" size="icon" onClick={() => handleDelete(doc)}>
                     <Trash2 className="h-4 w-4 text-destructive" />
