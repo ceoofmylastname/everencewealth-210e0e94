@@ -186,7 +186,8 @@ Deno.serve(async (req) => {
         console.error(invitation_error);
       } else {
         try {
-          const appUrl = "https://id-preview--29324b25-4616-48ca-967b-28e362789bf6.lovable.app";
+          const origin = req.headers.get("origin") || req.headers.get("referer")?.replace(/\/$/,  "") || "https://29324b25-4616-48ca-967b-28e362789bf6.lovableproject.com";
+          const appUrl = origin;
 
           const { data: linkData, error: linkError } = await adminClient.auth.admin.generateLink({
             type: "recovery",
