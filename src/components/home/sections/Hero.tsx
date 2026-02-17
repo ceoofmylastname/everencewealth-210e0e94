@@ -120,7 +120,7 @@ export const Hero: React.FC = () => {
       </motion.div>
 
       {/* Main content */}
-      <div className="relative z-10 container mx-auto px-4 text-center pt-28 md:pt-24 pb-28 md:pb-24 flex flex-col items-center justify-center min-h-[100svh]">
+      <div className="relative z-10 container mx-auto px-4 text-center pt-28 md:pt-24 pb-48 md:pb-40 flex flex-col items-center justify-center min-h-[100svh]">
         {/* Top badge */}
         <motion.div
           className="mb-6 md:mb-8"
