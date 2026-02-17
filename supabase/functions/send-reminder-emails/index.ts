@@ -40,19 +40,15 @@ interface Lead {
   language: string | null;
 }
 
-const LANGUAGE_FLAGS: Record<string, string> = {
-  en: "🇺🇸",
-  es: "🇪🇸",
-};
+const LANGUAGE_FLAGS: Record<string, string> = { en: "🇺🇸", es: "🇪🇸" };
 
 const REMINDER_TYPE_ICONS: Record<string, string> = {
-  callback: "📞",
-  follow_up: "🔄",
-  viewing: "📊",
-  meeting: "👥",
-  appointment: "📅",
-  deadline: "⏰",
+  callback: "📞", follow_up: "🔄", viewing: "📊", meeting: "👥", appointment: "📅", deadline: "⏰",
 };
+
+function brandedEmailWrapper(subtitle: string, innerHtml: string): string {
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head><body style="margin:0;padding:0;background-color:#F0F2F1;font-family:Georgia,serif;"><table width="100%" cellpadding="0" cellspacing="0" style="background-color:#F0F2F1;padding:40px 20px;"><tr><td align="center"><table width="600" cellpadding="0" cellspacing="0" style="background-color:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);"><tr><td style="background-color:#1A4D3E;padding:28px 24px;text-align:center;"><img src="https://everencewealth.com/logo-icon.png" alt="Everence Wealth" width="48" height="48" style="margin-bottom:10px;"/><h1 style="margin:0;color:#F0F2F1;font-size:24px;font-weight:700;font-family:Georgia,serif;">Everence Wealth</h1><p style="margin:6px 0 0;color:#C5A059;font-size:14px;font-family:Georgia,serif;">${subtitle}</p></td></tr><tr><td style="padding:32px 28px;">${innerHtml}</td></tr><tr><td style="background-color:#F0F2F1;padding:20px 24px;text-align:center;border-top:1px solid #e5e7eb;"><p style="margin:0;font-size:12px;color:#4A5565;font-family:Georgia,serif;">&copy; ${new Date().getFullYear()} Everence Wealth. All rights reserved.</p><p style="margin:4px 0 0;font-size:12px;color:#4A5565;font-family:Georgia,serif;">455 Market St Ste 1940 PMB 350011, San Francisco, CA 94105</p></td></tr></table></td></tr></table></body></html>`;
+}
 
 function getTimeUntil(datetime: string): { minutes: number; display: string } {
   const now = new Date();
@@ -60,168 +56,83 @@ function getTimeUntil(datetime: string): { minutes: number; display: string } {
   const diffMs = reminderTime.getTime() - now.getTime();
   const minutes = Math.floor(diffMs / 60000);
 
-  if (minutes < 0) {
-    return { minutes, display: `${Math.abs(minutes)} minutes overdue` };
-  } else if (minutes < 60) {
-    return { minutes, display: `in ${minutes} minutes` };
-  } else if (minutes < 1440) {
-    const hours = Math.floor(minutes / 60);
-    return { minutes, display: `in ${hours} hour${hours > 1 ? "s" : ""}` };
-  } else {
-    const days = Math.floor(minutes / 1440);
-    return { minutes, display: `in ${days} day${days > 1 ? "s" : ""}` };
-  }
+  if (minutes < 0) return { minutes, display: `${Math.abs(minutes)} minutes overdue` };
+  if (minutes < 60) return { minutes, display: `in ${minutes} minutes` };
+  if (minutes < 1440) { const hours = Math.floor(minutes / 60); return { minutes, display: `in ${hours} hour${hours > 1 ? "s" : ""}` }; }
+  const days = Math.floor(minutes / 1440);
+  return { minutes, display: `in ${days} day${days > 1 ? "s" : ""}` };
 }
 
 function getUrgencyColor(minutes: number, isUrgent: boolean = false): { bg: string; text: string; border: string } {
-  if (minutes < 0) return { bg: "#FEE2E2", text: "#DC2626", border: "#DC2626" }; // Overdue - red
-  if (isUrgent || minutes <= 10) return { bg: "#FEE2E2", text: "#DC2626", border: "#DC2626" }; // Starting soon - red
-  if (minutes < 30) return { bg: "#FFEDD5", text: "#EA580C", border: "#EA580C" }; // Critical - orange
-  if (minutes < 60) return { bg: "#FEF3C7", text: "#D97706", border: "#D97706" }; // Urgent - amber
-  return { bg: "#FEF9C3", text: "#CA8A04", border: "#CA8A04" }; // Soon - yellow
+  if (minutes < 0) return { bg: "#FEE2E2", text: "#DC2626", border: "#DC2626" };
+  if (isUrgent || minutes <= 10) return { bg: "#FEE2E2", text: "#DC2626", border: "#DC2626" };
+  if (minutes < 30) return { bg: "#FFEDD5", text: "#EA580C", border: "#EA580C" };
+  if (minutes < 60) return { bg: "#FEF3C7", text: "#D97706", border: "#D97706" };
+  return { bg: "#FEF9C3", text: "#CA8A04", border: "#CA8A04" };
 }
 
 function generateEmailHtml(
-  reminder: Reminder,
-  agent: Agent,
-  lead: Lead | null,
-  crmUrl: string,
-  isUrgentReminder: boolean = false
+  reminder: Reminder, agent: Agent, lead: Lead | null, crmUrl: string, isUrgentReminder: boolean = false
 ): string {
   const timeUntil = getTimeUntil(reminder.reminder_datetime);
   const urgencyColors = getUrgencyColor(timeUntil.minutes, isUrgentReminder);
   const typeIcon = REMINDER_TYPE_ICONS[reminder.reminder_type] || "🔔";
   const reminderDate = new Date(reminder.reminder_datetime);
-  const formattedDate = reminderDate.toLocaleDateString("en-US", {
-    weekday: "long",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
-  const formattedTime = reminderDate.toLocaleTimeString("en-US", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  const formattedDate = reminderDate.toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
+  const formattedTime = reminderDate.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" });
 
   const urgentBanner = isUrgentReminder
-    ? `
-    <tr>
-      <td style="background: #DC2626; padding: 8px 24px; text-align: center;">
-        <p style="margin: 0; color: white; font-weight: 700; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">
-          🚨 STARTING SOON - 10 MINUTES 🚨
-        </p>
-      </td>
-    </tr>
-    `
+    ? `<div style="background:#DC2626;padding:10px 16px;text-align:center;border-radius:8px;margin:0 0 20px;">
+        <p style="margin:0;color:white;font-weight:700;font-size:14px;text-transform:uppercase;letter-spacing:1px;">🚨 STARTING SOON - 10 MINUTES 🚨</p>
+       </div>`
     : "";
 
   const leadSection = lead
-    ? `
-    <div style="background: #F9FAFB; border-radius: 8px; padding: 16px; margin-top: 16px;">
-      <h3 style="margin: 0 0 12px 0; font-size: 14px; color: #6B7280;">Lead Details</h3>
-      <div style="display: flex; align-items: center; gap: 12px;">
-        <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #D4AF37 0%, #F5D675 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 16px;">
-          ${lead.first_name[0]}${lead.last_name[0]}
-        </div>
-        <div>
-          <p style="margin: 0; font-weight: 600; color: #111827;">${lead.first_name} ${lead.last_name}</p>
-          <p style="margin: 4px 0 0 0; font-size: 13px; color: #6B7280;">
-            ${LANGUAGE_FLAGS[lead.language || "en"] || "🌍"} ${lead.lead_segment || "New Lead"} 
-            ${lead.phone_number ? `• ${lead.phone_number}` : ""}
-          </p>
-        </div>
-      </div>
-    </div>
-  `
+    ? `<div style="background:#f9fafb;border-radius:8px;padding:16px;margin:16px 0 0;border:1px solid #e5e7eb;">
+        <p style="margin:0 0 8px;font-size:14px;color:#6B7280;font-weight:600;">Lead Details</p>
+        <p style="margin:0;font-weight:600;color:#111827;font-size:15px;">${lead.first_name} ${lead.last_name}</p>
+        <p style="margin:4px 0 0;font-size:13px;color:#6B7280;">
+          ${LANGUAGE_FLAGS[lead.language || "en"] || "🌍"} ${lead.lead_segment || "New Lead"} 
+          ${lead.phone_number ? `• ${lead.phone_number}` : ""}
+        </p>
+      </div>`
     : "";
 
-  const headerTitle = isUrgentReminder ? "Final Reminder" : "Reminder";
-  const headerSubtitle = isUrgentReminder ? "Your appointment is about to start!" : "Everence Wealth CRM";
+  const subtitleText = isUrgentReminder ? "Urgent Reminder" : "Calendar Reminder";
+  const accentColor = isUrgentReminder ? "#DC2626" : "#C5A059";
 
-  return `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${isUrgentReminder ? "STARTING SOON: " : "Reminder: "}${reminder.title}</title>
-</head>
-<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #F3F4F6;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #F3F4F6; padding: 32px 16px;">
-    <tr>
-      <td align="center">
-        <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 520px; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
-          
-          ${urgentBanner}
-          
-          <!-- Header with Gold Gradient -->
-          <tr>
-            <td style="background: linear-gradient(135deg, ${isUrgentReminder ? "#DC2626" : "#D4AF37"} 0%, ${isUrgentReminder ? "#B91C1C" : "#B8963F"} 100%); padding: 24px; text-align: center;">
-              <div style="font-size: 28px; margin-bottom: 8px;">${isUrgentReminder ? "🚨" : "🔔"}</div>
-              <h1 style="margin: 0; color: white; font-size: 20px; font-weight: 600;">${headerTitle}</h1>
-              <p style="margin: 4px 0 0 0; color: rgba(255,255,255,0.9); font-size: 14px;">${headerSubtitle}</p>
-            </td>
-          </tr>
-          
-          <!-- Urgency Alert Bar -->
-          <tr>
-            <td style="background: ${urgencyColors.bg}; padding: 12px 24px; border-bottom: 2px solid ${urgencyColors.border};">
-              <p style="margin: 0; color: ${urgencyColors.text}; font-weight: 600; font-size: 14px; text-align: center;">
-                ⏰ ${timeUntil.display.charAt(0).toUpperCase() + timeUntil.display.slice(1)}
-              </p>
-            </td>
-          </tr>
-          
-          <!-- Content -->
-          <tr>
-            <td style="padding: 24px;">
-              <p style="margin: 0 0 8px 0; color: #6B7280; font-size: 14px;">Hi ${agent.first_name},</p>
-              <p style="margin: 0 0 20px 0; color: #374151; font-size: 15px;">${isUrgentReminder ? "Your" : "You have an upcoming"} ${reminder.reminder_type.replace("_", " ")}${isUrgentReminder ? " is about to start" : ""}:</p>
-              
-              <!-- Reminder Card -->
-              <div style="background: ${isUrgentReminder ? "#FEE2E2" : "#FEFCE8"}; border: 1px solid ${isUrgentReminder ? "#FECACA" : "#FDE68A"}; border-left: 4px solid ${isUrgentReminder ? "#DC2626" : "#D4AF37"}; border-radius: 8px; padding: 16px;">
-                <div style="display: flex; align-items: flex-start; gap: 12px;">
-                  <div style="font-size: 24px;">${typeIcon}</div>
-                  <div style="flex: 1;">
-                    <h2 style="margin: 0; font-size: 16px; color: #111827; font-weight: 600;">${reminder.title}</h2>
-                    <p style="margin: 8px 0 0 0; font-size: 13px; color: #6B7280;">
-                      📅 ${formattedDate}<br>
-                      🕐 ${formattedTime}
-                    </p>
-                    ${reminder.description ? `<p style="margin: 12px 0 0 0; font-size: 14px; color: #374151;">${reminder.description}</p>` : ""}
-                  </div>
-                </div>
-              </div>
-              
-              ${leadSection}
-              
-              <!-- CTA Button -->
-              <div style="text-align: center; margin-top: 24px;">
-                <a href="${crmUrl}/crm/agent/calendar" 
-                   style="display: inline-block; background: linear-gradient(135deg, ${isUrgentReminder ? "#DC2626" : "#D4AF37"} 0%, ${isUrgentReminder ? "#B91C1C" : "#B8963F"} 100%); color: white; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: 600; font-size: 14px; box-shadow: 0 2px 4px rgba(${isUrgentReminder ? "220, 38, 38" : "212, 175, 55"}, 0.3);">
-                  View in CRM Calendar
-                </a>
-              </div>
-            </td>
-          </tr>
-          
-          <!-- Footer -->
-          <tr>
-            <td style="background: #F9FAFB; padding: 16px 24px; text-align: center; border-top: 1px solid #E5E7EB;">
-              <p style="margin: 0; font-size: 12px; color: #9CA3AF;">
-                Everence Wealth • Advisor CRM System<br>
-                You received this because you have email reminders enabled.
-              </p>
-            </td>
-          </tr>
-          
-        </table>
-      </td>
-    </tr>
-  </table>
-</body>
-</html>
+  const innerHtml = `
+    ${urgentBanner}
+
+    <div style="background:${urgencyColors.bg};padding:12px 16px;border-radius:8px;border:1px solid ${urgencyColors.border};margin:0 0 20px;">
+      <p style="margin:0;color:${urgencyColors.text};font-weight:600;font-size:14px;text-align:center;">
+        ⏰ ${timeUntil.display.charAt(0).toUpperCase() + timeUntil.display.slice(1)}
+      </p>
+    </div>
+
+    <p style="margin:0 0 8px;color:#6B7280;font-size:14px;">Hi ${agent.first_name},</p>
+    <p style="margin:0 0 20px;color:#4A5565;font-size:15px;">${isUrgentReminder ? "Your" : "You have an upcoming"} ${reminder.reminder_type.replace("_", " ")}${isUrgentReminder ? " is about to start" : ""}:</p>
+    
+    <div style="background:${isUrgentReminder ? "#FEE2E2" : "#FFFBEB"};border:1px solid ${isUrgentReminder ? "#FECACA" : "#FDE68A"};border-left:4px solid ${accentColor};border-radius:8px;padding:16px;">
+      <p style="margin:0;font-size:24px;">${typeIcon}</p>
+      <p style="margin:8px 0 0;font-size:16px;color:#111827;font-weight:600;">${reminder.title}</p>
+      <p style="margin:8px 0 0;font-size:13px;color:#6B7280;">
+        📅 ${formattedDate}<br>🕐 ${formattedTime}
+      </p>
+      ${reminder.description ? `<p style="margin:12px 0 0;font-size:14px;color:#4A5565;">${reminder.description}</p>` : ""}
+    </div>
+    
+    ${leadSection}
+    
+    <div style="text-align:center;margin:24px 0;">
+      <a href="${crmUrl}/crm/agent/calendar" 
+         style="display:inline-block;background-color:${isUrgentReminder ? "#DC2626" : "#1A4D3E"};color:#F0F2F1;text-decoration:none;padding:14px 32px;border-radius:8px;font-weight:600;font-size:14px;font-family:Georgia,serif;">
+        View in CRM Calendar
+      </a>
+    </div>
   `;
+
+  return brandedEmailWrapper(subtitleText, innerHtml);
 }
 
 async function processReminders(
@@ -238,19 +149,15 @@ async function processReminders(
   let isUrgent: boolean;
 
   if (windowType === "1hour") {
-    // Check for reminders due in 55-65 minutes (1 hour window with buffer)
     startTime = new Date(now.getTime() + 55 * 60 * 1000);
     endTime = new Date(now.getTime() + 65 * 60 * 1000);
     emailSentColumn = "email_sent";
     isUrgent = false;
-    console.log(`[1-HOUR] Checking reminders between ${startTime.toISOString()} and ${endTime.toISOString()}`);
   } else {
-    // Check for reminders due in 5-15 minutes (10 minute window)
     startTime = new Date(now.getTime() + 5 * 60 * 1000);
     endTime = new Date(now.getTime() + 15 * 60 * 1000);
     emailSentColumn = "email_10min_sent";
     isUrgent = true;
-    console.log(`[10-MIN] Checking reminders between ${startTime.toISOString()} and ${endTime.toISOString()}`);
   }
 
   const { data: reminders, error: remindersError } = await supabase
@@ -263,35 +170,19 @@ async function processReminders(
     .lte("reminder_datetime", endTime.toISOString())
     .order("reminder_datetime", { ascending: true });
 
-  if (remindersError) {
-    console.error(`Error fetching ${windowType} reminders:`, remindersError);
-    throw remindersError;
-  }
+  if (remindersError) throw remindersError;
+  if (!reminders || reminders.length === 0) return results;
 
-  console.log(`[${windowType.toUpperCase()}] Found ${reminders?.length || 0} reminders to process`);
-
-  if (!reminders || reminders.length === 0) {
-    return results;
-  }
-
-  // Process each reminder
   for (const reminder of reminders) {
     try {
-      // Get agent info
       const { data: agent, error: agentError } = await supabase
         .from("crm_agents")
         .select("id, email, first_name, last_name")
         .eq("id", reminder.agent_id)
         .single();
 
-      if (agentError || !agent) {
-        console.error(`Agent not found for reminder ${reminder.id}`);
-        results.failed++;
-        results.errors.push(`Agent not found for reminder ${reminder.id}`);
-        continue;
-      }
+      if (agentError || !agent) { results.failed++; continue; }
 
-      // Get lead info if available
       let lead: Lead | null = null;
       if (reminder.lead_id) {
         const { data: leadData } = await supabase
@@ -302,13 +193,8 @@ async function processReminders(
         lead = leadData;
       }
 
-      // Generate email HTML
       const html = generateEmailHtml(reminder, agent, lead, crmUrl, isUrgent);
-
-      // Send email via Resend
-      const subject = isUrgent
-        ? `🚨 STARTING SOON: ${reminder.title}`
-        : `🔔 Reminder: ${reminder.title}`;
+      const subject = isUrgent ? `🚨 STARTING SOON: ${reminder.title}` : `🔔 Reminder: ${reminder.title}`;
 
       const { error: emailError } = await resend.emails.send({
         from: "Everence Wealth <crm@notifications.everencewealth.com>",
@@ -319,33 +205,20 @@ async function processReminders(
       });
 
       if (emailError) {
-        console.error(`Failed to send ${windowType} email for reminder ${reminder.id}:`, emailError);
         results.failed++;
-        results.errors.push(`Failed to send for ${reminder.id}: ${emailError.message}`);
+        results.errors.push(`Failed for ${reminder.id}: ${emailError.message}`);
         continue;
       }
 
-      // Mark as sent based on which email type
-      const updateData: Record<string, unknown> = {
-        notification_sent_at: new Date().toISOString(),
-      };
-      
-      if (windowType === "1hour") {
-        updateData.email_sent = true;
-      } else {
-        updateData.email_10min_sent = true;
-      }
+      const updateData: Record<string, unknown> = { notification_sent_at: new Date().toISOString() };
+      if (windowType === "1hour") updateData.email_sent = true;
+      else updateData.email_10min_sent = true;
 
-      await supabase
-        .from("crm_reminders")
-        .update(updateData)
-        .eq("id", reminder.id);
-
+      await supabase.from("crm_reminders").update(updateData).eq("id", reminder.id);
       console.log(`[${windowType.toUpperCase()}] Email sent for reminder ${reminder.id} to ${agent.email}`);
       results.sent++;
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : String(err);
-      console.error(`Error processing ${windowType} reminder ${reminder.id}:`, err);
       results.failed++;
       results.errors.push(`Error for ${reminder.id}: ${errorMessage}`);
     }
@@ -355,7 +228,6 @@ async function processReminders(
 }
 
 serve(async (req) => {
-  // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -364,13 +236,8 @@ serve(async (req) => {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
-    // Get CRM URL from environment or use default
     const crmUrl = Deno.env.get("CRM_URL") || "https://blog-knowledge-vault.lovable.app";
 
-    console.log("=== Starting dual-timing reminder email check ===");
-
-    // Process BOTH windows in parallel
     const [hourResults, tenMinResults] = await Promise.all([
       processReminders(supabase, crmUrl, "1hour"),
       processReminders(supabase, crmUrl, "10min"),
@@ -383,18 +250,12 @@ serve(async (req) => {
       total_failed: hourResults.failed + tenMinResults.failed,
     };
 
-    console.log(`=== Completed: ${combinedResults.total_sent} sent, ${combinedResults.total_failed} failed ===`);
-
     return new Response(
-      JSON.stringify({
-        success: true,
-        ...combinedResults,
-      }),
+      JSON.stringify({ success: true, ...combinedResults }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error("Error in send-reminder-emails:", error);
     return new Response(
       JSON.stringify({ success: false, error: errorMessage }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }

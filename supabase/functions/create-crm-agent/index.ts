@@ -18,6 +18,10 @@ interface CreateAgentRequest {
   timezone: string;
 }
 
+function brandedEmailWrapper(subtitle: string, innerHtml: string): string {
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head><body style="margin:0;padding:0;background-color:#F0F2F1;font-family:Georgia,serif;"><table width="100%" cellpadding="0" cellspacing="0" style="background-color:#F0F2F1;padding:40px 20px;"><tr><td align="center"><table width="600" cellpadding="0" cellspacing="0" style="background-color:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);"><tr><td style="background-color:#1A4D3E;padding:28px 24px;text-align:center;"><img src="https://everencewealth.com/logo-icon.png" alt="Everence Wealth" width="48" height="48" style="margin-bottom:10px;"/><h1 style="margin:0;color:#F0F2F1;font-size:24px;font-weight:700;font-family:Georgia,serif;">Everence Wealth</h1><p style="margin:6px 0 0;color:#C5A059;font-size:14px;font-family:Georgia,serif;">${subtitle}</p></td></tr><tr><td style="padding:32px 28px;">${innerHtml}</td></tr><tr><td style="background-color:#F0F2F1;padding:20px 24px;text-align:center;border-top:1px solid #e5e7eb;"><p style="margin:0;font-size:12px;color:#4A5565;font-family:Georgia,serif;">&copy; ${new Date().getFullYear()} Everence Wealth. All rights reserved.</p><p style="margin:4px 0 0;font-size:12px;color:#4A5565;font-family:Georgia,serif;">455 Market St Ste 1940 PMB 350011, San Francisco, CA 94105</p></td></tr></table></td></tr></table></body></html>`;
+}
+
 function generateWelcomeEmailHtml(data: {
   firstName: string;
   email: string;
@@ -42,78 +46,50 @@ function generateWelcomeEmailHtml(data: {
     : 'Your CRM <strong>agent</strong> account has been created! You can now log in and start managing leads assigned to you.';
   
   const nextSteps = isAdmin 
-    ? `<ul>
+    ? `<ul style="color:#4A5565;line-height:1.8;padding-left:20px;">
             <li>Log in to your admin dashboard</li>
             <li>Review and configure system settings</li>
             <li>Add and manage team agents</li>
             <li>Monitor lead distribution and performance</li>
           </ul>`
-    : `<ul>
+    : `<ul style="color:#4A5565;line-height:1.8;padding-left:20px;">
             <li>Log in to your dashboard</li>
             <li>Review your notification preferences</li>
             <li>Wait for new leads to be assigned based on your language skills</li>
             <li>Claim leads quickly - you have a 15-minute window!</li>
           </ul>`;
 
-  return `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background: #1a365d; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
-        .header h1 { margin: 0; font-size: 24px; }
-        .content { padding: 30px 20px; }
-        .credentials { background: #f7fafc; border: 1px solid #e2e8f0; padding: 20px; margin: 20px 0; border-radius: 8px; }
-        .credentials h3 { margin-top: 0; color: #1a365d; }
-        .credentials p { margin: 8px 0; }
-        .role-badge { display: inline-block; background: ${isAdmin ? '#805ad5' : '#3182ce'}; color: white; padding: 4px 12px; border-radius: 12px; font-size: 14px; font-weight: bold; }
-        .button { display: inline-block; background: #3182ce; color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; font-weight: bold; }
-        .button:hover { background: #2c5282; }
-        .warning { background: #fef3c7; border: 1px solid #f59e0b; padding: 12px; border-radius: 6px; margin: 20px 0; }
-        .footer { font-size: 12px; color: #718096; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0; }
-      </style>
-    </head>
-    <body>
-      <div class="container">
-        <div class="header">
-          <h1>💼 Welcome to Everence Wealth CRM</h1>
-        </div>
-        
-        <div class="content">
-          <p>Hi ${data.firstName},</p>
-          
-          <p>${roleMessage}</p>
-          
-          <div class="credentials">
-            <h3>🔐 Your Login Credentials</h3>
-            <p><strong>Email:</strong> ${data.email}</p>
-            <p><strong>Password:</strong> ${data.password}</p>
-            <p><strong>Role:</strong> <span class="role-badge">${roleLabel}</span></p>
-            <p><strong>Assigned Languages:</strong> ${formattedLanguages}</p>
-          </div>
-          
-          <p style="text-align: center; margin: 30px 0;">
-            <a href="${data.loginUrl}" class="button">Log In to CRM Dashboard</a>
-          </p>
-          
-          <div class="warning">
-            <strong>🔒 Security Reminder:</strong> Please change your password after your first login for security purposes.
-          </div>
-          
-          <h3>What's Next?</h3>
-          ${nextSteps}
-        </div>
-        
-        <div class="footer">
-          <p>If you have questions, contact your administrator.</p>
-          <p>© Everence Wealth CRM</p>
-        </div>
-      </div>
-    </body>
-    </html>
+  const roleBadgeColor = isAdmin ? '#805ad5' : '#1A4D3E';
+
+  const innerHtml = `
+    <p style="margin:0 0 16px;color:#4A5565;font-size:16px;line-height:1.6;">Hi ${data.firstName},</p>
+    <p style="margin:0 0 24px;color:#4A5565;font-size:16px;line-height:1.6;">${roleMessage}</p>
+    
+    <table width="100%" cellpadding="0" cellspacing="0" style="background:#f9fafb;border-radius:8px;border:1px solid #e5e7eb;margin:0 0 24px;">
+      <tr><td style="padding:20px;">
+        <p style="margin:0 0 12px;font-weight:700;color:#1A4D3E;font-size:16px;">🔐 Your Login Credentials</p>
+        <table width="100%" cellpadding="0" cellspacing="0">
+          <tr><td style="padding:6px 0;color:#6b7280;font-size:13px;width:120px;">Email:</td><td style="padding:6px 0;font-weight:600;color:#111827;font-size:14px;">${data.email}</td></tr>
+          <tr><td style="padding:6px 0;color:#6b7280;font-size:13px;">Password:</td><td style="padding:6px 0;font-weight:600;color:#111827;font-size:14px;">${data.password}</td></tr>
+          <tr><td style="padding:6px 0;color:#6b7280;font-size:13px;">Role:</td><td style="padding:6px 0;"><span style="display:inline-block;background:${roleBadgeColor};color:white;padding:4px 12px;border-radius:12px;font-size:13px;font-weight:600;">${roleLabel}</span></td></tr>
+          <tr><td style="padding:6px 0;color:#6b7280;font-size:13px;">Languages:</td><td style="padding:6px 0;color:#111827;font-size:14px;">${formattedLanguages}</td></tr>
+        </table>
+      </td></tr>
+    </table>
+    
+    <div style="text-align:center;margin:32px 0;">
+      <a href="${data.loginUrl}" style="display:inline-block;background-color:#1A4D3E;color:#F0F2F1;padding:14px 32px;text-decoration:none;border-radius:8px;font-weight:600;font-size:16px;font-family:Georgia,serif;">Log In to CRM Dashboard</a>
+    </div>
+    
+    <div style="background:#FFFBEB;border-left:4px solid #C5A059;padding:16px;border-radius:8px;margin:0 0 24px;">
+      <p style="margin:0;color:#92400E;font-size:14px;"><strong>🔒 Security Reminder:</strong> Please change your password after your first login.</p>
+    </div>
+    
+    <p style="margin:0 0 8px;font-weight:700;color:#1A4D3E;font-size:16px;">What's Next?</p>
+    ${nextSteps}
   `;
+
+  return brandedEmailWrapper("CRM Account Created", innerHtml);
 }
 
 Deno.serve(async (req) => {
@@ -126,15 +102,10 @@ Deno.serve(async (req) => {
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
 
-    // Admin client for privileged operations
     const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false,
-      },
+      auth: { autoRefreshToken: false, persistSession: false },
     });
 
-    // Verify caller is an admin
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
       return new Response(
@@ -143,7 +114,6 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Create a client with the caller's token to verify their identity
     const callerClient = createClient(supabaseUrl, anonKey, {
       global: { headers: { Authorization: authHeader } },
       auth: { autoRefreshToken: false, persistSession: false },
@@ -151,24 +121,14 @@ Deno.serve(async (req) => {
 
     const { data: { user: caller }, error: callerError } = await callerClient.auth.getUser();
     if (callerError || !caller) {
-      console.error("Caller auth error:", callerError);
       return new Response(
         JSON.stringify({ error: "Invalid authentication" }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Check if caller is admin using the is_admin function
     const { data: isAdmin, error: adminCheckError } = await supabaseAdmin.rpc("is_admin", { _user_id: caller.id });
-    if (adminCheckError) {
-      console.error("Admin check error:", adminCheckError);
-      return new Response(
-        JSON.stringify({ error: "Failed to verify admin status" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    if (!isAdmin) {
+    if (adminCheckError || !isAdmin) {
       return new Response(
         JSON.stringify({ error: "Only admins can create agents" }),
         { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -176,9 +136,8 @@ Deno.serve(async (req) => {
     }
 
     const body: CreateAgentRequest = await req.json();
-    console.log("Creating agent with email:", body.email, "by admin:", caller.id);
+    console.log("Creating agent with email:", body.email);
 
-    // Validate required fields
     if (!body.email || !body.password || !body.first_name || !body.last_name) {
       return new Response(
         JSON.stringify({ error: "Missing required fields" }),
@@ -186,7 +145,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Check if agent record with this email already exists in crm_agents
+    // Check existing agent
     const { data: existingAgent } = await supabaseAdmin
       .from("crm_agents")
       .select("id, is_active")
@@ -195,90 +154,60 @@ Deno.serve(async (req) => {
 
     if (existingAgent) {
       if (existingAgent.is_active) {
-        // Block if already active
         return new Response(
           JSON.stringify({ error: "An agent with this email already exists" }),
           { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
       
-      // Reactivate inactive agent with new data
+      // Reactivate inactive agent
       console.log("Reactivating inactive agent:", existingAgent.id);
       
-      // Update auth user password
-      const { error: updateAuthError } = await supabaseAdmin.auth.admin.updateUserById(existingAgent.id, {
-        password: body.password,
-      });
+      await supabaseAdmin.auth.admin.updateUserById(existingAgent.id, { password: body.password });
       
-      if (updateAuthError) {
-        console.warn("Could not update password for reactivated agent:", updateAuthError.message);
-      }
-      
-      // Update agent record with new details
       const { data: reactivatedAgent, error: reactivateError } = await supabaseAdmin
         .from("crm_agents")
         .update({
-          first_name: body.first_name,
-          last_name: body.last_name,
-          phone: body.phone || null,
-          role: body.role || "agent",
-          languages: body.languages || ["en"],
-          max_active_leads: body.max_active_leads || 50,
+          first_name: body.first_name, last_name: body.last_name,
+          phone: body.phone || null, role: body.role || "agent",
+          languages: body.languages || ["en"], max_active_leads: body.max_active_leads || 50,
           email_notifications: body.email_notifications ?? true,
           timezone: body.timezone || "Europe/Madrid",
-          is_active: true,
-          accepts_new_leads: true,
+          is_active: true, accepts_new_leads: true,
         })
         .eq("id", existingAgent.id)
         .select()
         .single();
       
       if (reactivateError) {
-        console.error("Failed to reactivate agent:", reactivateError);
         return new Response(
           JSON.stringify({ error: reactivateError.message }),
           { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
       
-      console.log("Agent reactivated successfully:", reactivatedAgent.id);
-      
-      // Send welcome email for reactivated agent
+      // Send welcome email
       const resendApiKey = Deno.env.get("RESEND_API_KEY");
       let emailSent = false;
-      
       if (resendApiKey) {
         try {
           const appUrl = Deno.env.get("APP_URL") || "https://www.everencewealth.com";
-          const loginUrl = `${appUrl}/crm/login`;
-          const isAdmin = body.role === 'admin';
-          const subjectLine = isAdmin 
-            ? "Welcome Back to Everence Wealth CRM - Your Admin Account is Reactivated"
-            : "Welcome Back to Everence Wealth CRM - Your Account is Reactivated";
-          
           const emailResponse = await fetch("https://api.resend.com/emails", {
             method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${resendApiKey}`,
-            },
+            headers: { "Content-Type": "application/json", Authorization: `Bearer ${resendApiKey}` },
             body: JSON.stringify({
               from: "Everence Wealth CRM <crm@notifications.everencewealth.com>",
               to: [body.email],
-              subject: subjectLine,
+              subject: body.role === 'admin' 
+                ? "Welcome Back to Everence Wealth CRM - Your Admin Account is Reactivated"
+                : "Welcome Back to Everence Wealth CRM - Your Account is Reactivated",
               html: generateWelcomeEmailHtml({
-                firstName: body.first_name,
-                email: body.email,
-                password: body.password,
-                loginUrl,
-                languages: body.languages || ["en"],
-                role: body.role || "agent",
+                firstName: body.first_name, email: body.email, password: body.password,
+                loginUrl: `${appUrl}/crm/login`, languages: body.languages || ["en"], role: body.role || "agent",
               }),
             }),
           });
-          
           emailSent = emailResponse.ok;
-          console.log("Reactivation email result:", emailSent ? "sent successfully" : "failed");
         } catch (emailError) {
           console.error("Failed to send reactivation email:", emailError);
         }
@@ -290,164 +219,73 @@ Deno.serve(async (req) => {
       );
     }
 
+    // Create new agent
     let userId: string;
     let authUserCreated = false;
 
-    // Try to create auth user first
     const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
-      email: body.email,
-      password: body.password,
-      email_confirm: true,
+      email: body.email, password: body.password, email_confirm: true,
     });
 
     if (authError) {
-      // Check if error is because email already exists
-      if (authError.message?.includes("already been registered") || 
-          authError.message?.includes("email_exists") ||
-          authError.message?.includes("already exists")) {
-        console.log("Auth user already exists, finding existing user...");
-        
-        // Find existing user by email
-        const { data: usersData, error: listError } = await supabaseAdmin.auth.admin.listUsers({
-          page: 1,
-          perPage: 1000,
-        });
-
-        if (listError) {
-          console.error("Failed to list users:", listError);
-          return new Response(
-            JSON.stringify({ error: "Failed to find existing user" }),
-            { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-          );
-        }
-
-        const existingAuthUser = usersData.users.find(
-          (u) => u.email?.toLowerCase() === body.email.toLowerCase()
-        );
-
-        if (!existingAuthUser) {
-          console.error("Could not find existing auth user by email");
-          return new Response(
-            JSON.stringify({ error: "Could not find existing user with this email" }),
-            { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-          );
-        }
-
+      if (authError.message?.includes("already been registered") || authError.message?.includes("email_exists") || authError.message?.includes("already exists")) {
+        const { data: usersData, error: listError } = await supabaseAdmin.auth.admin.listUsers({ page: 1, perPage: 1000 });
+        if (listError) return new Response(JSON.stringify({ error: "Failed to find existing user" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        const existingAuthUser = usersData.users.find((u) => u.email?.toLowerCase() === body.email.toLowerCase());
+        if (!existingAuthUser) return new Response(JSON.stringify({ error: "Could not find existing user with this email" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
         userId = existingAuthUser.id;
-        console.log("Found existing auth user:", userId);
-
-        // Update their password to the provided one
-        const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(userId, {
-          password: body.password,
-        });
-        
-        if (updateError) {
-          console.warn("Could not update password for existing user:", updateError.message);
-          // Continue anyway - the user exists, just password wasn't updated
-        } else {
-          console.log("Updated password for existing auth user");
-        }
+        await supabaseAdmin.auth.admin.updateUserById(userId, { password: body.password });
       } else {
-        // Different auth error
-        console.error("Auth error:", authError);
-        return new Response(
-          JSON.stringify({ error: authError.message }),
-          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+        return new Response(JSON.stringify({ error: authError.message }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
     } else {
-      if (!authData.user) {
-        return new Response(
-          JSON.stringify({ error: "Failed to create auth user" }),
-          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
+      if (!authData.user) return new Response(JSON.stringify({ error: "Failed to create auth user" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       userId = authData.user.id;
       authUserCreated = true;
-      console.log("Auth user created:", userId);
     }
 
-    // Create agent record
     const { data: agent, error: agentError } = await supabaseAdmin
       .from("crm_agents")
       .insert({
-        id: userId,
-        email: body.email,
-        first_name: body.first_name,
-        last_name: body.last_name,
-        phone: body.phone || null,
-        role: body.role || "agent",
-        languages: body.languages || ["en"],
-        max_active_leads: body.max_active_leads || 50,
-        email_notifications: body.email_notifications ?? true,
-        timezone: body.timezone || "Europe/Madrid",
-        is_active: true,
-        accepts_new_leads: true,
-        current_lead_count: 0,
+        id: userId, email: body.email, first_name: body.first_name, last_name: body.last_name,
+        phone: body.phone || null, role: body.role || "agent", languages: body.languages || ["en"],
+        max_active_leads: body.max_active_leads || 50, email_notifications: body.email_notifications ?? true,
+        timezone: body.timezone || "Europe/Madrid", is_active: true, accepts_new_leads: true, current_lead_count: 0,
       })
       .select()
       .single();
 
     if (agentError) {
-      console.error("Agent creation error:", agentError);
-      
-      // Rollback: only delete auth user if WE created it
-      if (authUserCreated) {
-        console.log("Rolling back: deleting newly created auth user");
-        await supabaseAdmin.auth.admin.deleteUser(userId);
-      }
-      
-      return new Response(
-        JSON.stringify({ error: agentError.message }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      if (authUserCreated) await supabaseAdmin.auth.admin.deleteUser(userId);
+      return new Response(JSON.stringify({ error: agentError.message }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    console.log("Agent created successfully:", agent.id);
-
-    // Send welcome email using Resend
     const resendApiKey = Deno.env.get("RESEND_API_KEY");
     let emailSent = false;
-    
     if (resendApiKey) {
       try {
         const appUrl = Deno.env.get("APP_URL") || "https://www.everencewealth.com";
-        const loginUrl = `${appUrl}/crm/login`;
-        const isAdmin = body.role === 'admin';
-        const subjectLine = isAdmin 
-          ? "Welcome to Everence Wealth CRM - Your Admin Account is Ready"
-          : "Welcome to Everence Wealth CRM - Your Account is Ready";
-        
         const emailResponse = await fetch("https://api.resend.com/emails", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${resendApiKey}`,
-          },
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${resendApiKey}` },
           body: JSON.stringify({
             from: "Everence Wealth CRM <crm@notifications.everencewealth.com>",
             to: [body.email],
-            subject: subjectLine,
+            subject: body.role === 'admin'
+              ? "Welcome to Everence Wealth CRM - Your Admin Account is Ready"
+              : "Welcome to Everence Wealth CRM - Your Account is Ready",
             html: generateWelcomeEmailHtml({
-              firstName: body.first_name,
-              email: body.email,
-              password: body.password,
-              loginUrl,
-              languages: body.languages || ["en"],
-              role: body.role || "agent",
+              firstName: body.first_name, email: body.email, password: body.password,
+              loginUrl: `${appUrl}/crm/login`, languages: body.languages || ["en"], role: body.role || "agent",
             }),
           }),
         });
-        
         emailSent = emailResponse.ok;
         const emailResult = await emailResponse.json();
-        console.log("Welcome email result:", emailSent ? "sent successfully" : "failed", emailResult);
+        console.log("Welcome email result:", emailSent ? "sent" : "failed", emailResult);
       } catch (emailError) {
         console.error("Failed to send welcome email:", emailError);
-        // Don't fail the agent creation if email fails
       }
-    } else {
-      console.warn("RESEND_API_KEY not configured - skipping welcome email");
     }
 
     return new Response(
@@ -455,7 +293,6 @@ Deno.serve(async (req) => {
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error: unknown) {
-    console.error("Unexpected error:", error);
     const message = error instanceof Error ? error.message : "Internal server error";
     return new Response(
       JSON.stringify({ error: message }),
