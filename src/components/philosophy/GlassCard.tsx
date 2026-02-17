@@ -17,7 +17,7 @@ export const GlassCard: React.FC<GlassCardProps> = ({
   return (
     <div
       className={cn(
-        'relative',
+        'relative rounded-2xl',
         dark
           ? 'bg-white/[0.06] backdrop-blur-xl border border-white/[0.12] shadow-[0_8px_32px_rgba(0,0,0,0.2)]'
           : 'bg-white/[0.7] backdrop-blur-xl border border-white/[0.3] shadow-[0_8px_32px_rgba(0,0,0,0.08)]',

@@ -188,7 +188,7 @@ export const PhilosophyBuckets: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
           {/* Left: 3D Canvas + Sliders */}
           <div className="relative">
-            <div className="relative h-[420px] md:h-[480px] rounded-sm overflow-hidden bg-white/[0.03] border border-white/[0.08]">
+            <div className="relative h-[420px] md:h-[480px] rounded-2xl overflow-hidden bg-white/[0.03] border border-white/[0.08]">
               <CanvasErrorBoundary
                 fallback={
                   <div className="w-full h-full flex items-center justify-center">
@@ -229,7 +229,7 @@ export const PhilosophyBuckets: React.FC = () => {
             </div>
 
             {/* Slider overlay */}
-            <div className="mt-4 p-6 backdrop-blur-md bg-white/[0.06] border border-white/[0.08] rounded-sm">
+            <div className="mt-4 p-6 backdrop-blur-md bg-white/[0.06] border border-white/[0.08] rounded-2xl">
               <p className="text-xs font-space font-bold tracking-[0.2em] uppercase text-white/50 mb-4">
                 {b.sliderLabel}
               </p>
@@ -248,7 +248,7 @@ export const PhilosophyBuckets: React.FC = () => {
                 <motion.div
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: 'auto' }}
-                  className="mt-4 p-3 bg-[#EF4444]/10 border-l-4 border-[#EF4444] rounded-sm"
+                  className="mt-4 p-3 bg-[#EF4444]/10 border-l-4 border-[#EF4444] rounded-xl"
                 >
                   <div className="flex items-center gap-2">
                     <AlertTriangle className="w-4 h-4 text-[#EF4444] shrink-0" />
@@ -281,7 +281,7 @@ export const PhilosophyBuckets: React.FC = () => {
                   whileInView={{ opacity: 1, x: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.5, delay: i * 0.15 }}
-                  className={`p-6 md:p-8 backdrop-blur-md bg-white/[0.05] border border-white/[0.08] border-l-4 ${BORDER_COLORS[i]} hover:bg-white/[0.08] transition-colors duration-300`}
+                  className={`p-6 md:p-8 backdrop-blur-md bg-white/[0.05] border border-white/[0.08] border-l-4 rounded-2xl ${BORDER_COLORS[i]} hover:bg-white/[0.08] transition-colors duration-300`}
                 >
                   <div className="flex items-center gap-3 mb-3">
                     <div
@@ -308,7 +308,7 @@ export const PhilosophyBuckets: React.FC = () => {
                     />
                     {exp.extraBadge && (
                       <span
-                        className="text-xs font-space font-bold px-2 py-1 rounded-sm"
+                        className="text-xs font-space font-bold px-2 py-1 rounded-full"
                         style={{
                           backgroundColor: `${BUCKET_COLORS[i]}20`,
                           color: BUCKET_COLORS[i],
@@ -328,7 +328,7 @@ export const PhilosophyBuckets: React.FC = () => {
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.4 }}
-              className="relative p-6 md:p-8 overflow-hidden rounded-sm"
+              className="relative p-6 md:p-8 overflow-hidden rounded-2xl"
               style={{
                 background:
                   'linear-gradient(135deg, hsl(160,48%,18%) 0%, hsl(43,74%,35%) 100%)',

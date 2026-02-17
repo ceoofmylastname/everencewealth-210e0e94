@@ -216,7 +216,7 @@ export const PhilosophyKillers: React.FC = () => {
 
                   {/* Solution callout */}
                   {card.solution && (
-                    <div className="bg-evergreen/[0.06] px-4 py-3 flex items-start gap-2">
+                    <div className="bg-evergreen/[0.06] px-4 py-3 rounded-xl flex items-start gap-2">
                       <CheckCircle className="w-4 h-4 text-evergreen mt-0.5 flex-shrink-0" />
                       <span className="text-sm font-medium text-evergreen">{card.solution}</span>
                     </div>
