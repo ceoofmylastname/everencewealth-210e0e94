@@ -1,27 +1,23 @@
 
 
-## Add Rounded Corners to All Sections with White Background
+## Make "Wealth Architecture" & "Strategic Fiduciary" Text Larger and More Modern
 
-Change the homepage so each section appears as a rounded "card" floating on a white page background, similar to the screenshot reference.
+These are the decorative vertical side-labels in the Hero section, currently set at `text-[10px]` -- barely visible. Making them larger and more stylish will give the hero a more modern, high-end editorial feel.
 
-### Approach
+### Changes
 
-Instead of modifying every individual section component (15+ files), we make two targeted changes:
+**File: `src/components/home/sections/Hero.tsx`**
 
-1. **`src/pages/Home.tsx`** -- Change the outer container background from `bg-dark-bg` to `bg-white`, and wrap each section in the `<main>` with spacing so the white gaps show between sections.
+For both the left ("Wealth Architecture") and right ("Strategic Fiduciary") side text elements:
 
-2. **`src/pages/Home.tsx`** -- Add a wrapper `<div>` around each section component with `rounded-3xl overflow-hidden` so the sections get clipped to rounded corners, plus vertical margin (`my-4 md:my-6`) to create visible white gaps between them.
+1. **Increase font size** from `text-[10px]` to `text-xs md:text-sm` (12px to 14px) for a bolder presence
+2. **Increase opacity** from `text-white/20` to `text-white/30` so the text is more visible without being distracting
+3. **Widen letter spacing** from `tracking-[0.4em]` to `tracking-[0.5em]` for a more spacious, editorial look
 
-### Technical Details
+| Property | Before | After |
+|---|---|---|
+| Font size | `text-[10px]` | `text-xs md:text-sm` |
+| Opacity | `text-white/20` | `text-white/30` |
+| Letter spacing | `tracking-[0.4em]` | `tracking-[0.5em]` |
 
-**File: `src/pages/Home.tsx`**
-
-- Change outer div from `bg-dark-bg` to `bg-white`
-- Wrap each section component (Hero through CTA) in a `<div className="rounded-3xl overflow-hidden">` container
-- Add `mx-2 md:mx-4 lg:mx-6` horizontal margin to the main element so the rounded edges are visible on the sides too
-- Add `space-y-4 md:space-y-6` to the main element for consistent vertical gaps
-- The StackingCards component needs special handling since it uses sticky positioning -- wrap the entire StackingCards in one rounded container rather than individual cards
-
-**File: `src/components/home/Footer.tsx`** -- Also wrap in a rounded container for consistency
-
-This approach requires editing only 1-2 files rather than touching all 15 section components, since the `overflow-hidden` on the wrapper will clip each section's content to rounded corners regardless of the section's own styles.
+Single file, two line changes. Purely visual update.
