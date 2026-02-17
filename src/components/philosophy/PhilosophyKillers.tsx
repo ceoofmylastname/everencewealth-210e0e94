@@ -235,7 +235,7 @@ export const PhilosophyKillers: React.FC = () => {
           transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
           className="max-w-4xl mx-auto"
         >
-          <GlassCard dark className="p-12 md:p-16 text-center relative overflow-hidden">
+          <div className="p-12 md:p-16 text-center relative overflow-hidden rounded-2xl bg-evergreen shadow-[0_8px_32px_rgba(0,0,0,0.2)]">
             {/* Floating particles */}
             {particles.map((p, i) => (
               <motion.div
@@ -268,7 +268,7 @@ export const PhilosophyKillers: React.FC = () => {
                 {(k as any).compound?.punchline}
               </p>
             </div>
-          </GlassCard>
+          </div>
         </motion.div>
       </div>
     </section>
