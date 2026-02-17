@@ -63,14 +63,14 @@ export function WealthPhilosophy() {
           transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
           className="mb-20"
         >
-          <p className="text-xs font-space font-bold tracking-[0.3em] uppercase text-white/30 mb-4">{wp.badge}</p>
+          <p className="text-xs font-space font-bold tracking-[0.3em] uppercase text-white/50 mb-4">{wp.badge}</p>
           <h2 className="text-3xl md:text-5xl lg:text-6xl font-space font-bold leading-tight max-w-3xl mb-6">
             <span className="bg-gradient-to-r from-primary via-emerald-400 to-primary bg-[length:200%_auto] animate-text-gradient bg-clip-text text-transparent">
               {wp.headline1}
             </span>
             <br />{wp.headline2}
           </h2>
-          <p className="text-white/50 max-w-2xl text-lg">{wp.paragraph}</p>
+          <p className="text-white/65 max-w-2xl text-lg">{wp.paragraph}</p>
         </motion.div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-20">
@@ -83,7 +83,7 @@ export function WealthPhilosophy() {
             <TiltCard glowColor="hsl(0 70% 50%)" className="glass-card rounded-[40px] p-8 md:p-10">
               <span className="text-xs font-space font-bold tracking-[0.2em] uppercase text-red-400/80 mb-4 block">{wp.goldenCage}</span>
               <h3 className="text-2xl font-space font-bold text-white mb-4">{wp.goldenCageTitle}</h3>
-              <ul className="space-y-3 text-white/50 text-sm">
+                <ul className="space-y-3 text-white/60 text-sm">
                 {wp.goldenCageItems.map((item, i) => <li key={i}>• {item}</li>)}
               </ul>
             </TiltCard>
@@ -98,7 +98,7 @@ export function WealthPhilosophy() {
             <TiltCard glowColor="hsl(var(--primary))" className="glass-card rounded-[40px] p-8 md:p-10 ring-1 ring-primary/30">
               <span className="text-xs font-space font-bold tracking-[0.2em] uppercase text-primary mb-4 block">{wp.cashFlow}</span>
               <h3 className="text-2xl font-space font-bold text-white mb-4">{wp.cashFlowTitle}</h3>
-              <ul className="space-y-3 text-white/50 text-sm">
+              <ul className="space-y-3 text-white/60 text-sm">
                 {wp.cashFlowItems.map((item, i) => <li key={i}>• {item}</li>)}
               </ul>
             </TiltCard>
@@ -115,7 +115,7 @@ export function WealthPhilosophy() {
           <h2 className="text-3xl md:text-5xl font-space font-bold leading-tight mb-4">
             {wp.greatestAsset} <span className="text-primary">{wp.greatestAssetHighlight}</span>
           </h2>
-          <p className="text-white/50 max-w-2xl text-lg mb-8">{wp.hlvParagraph}</p>
+          <p className="text-white/65 max-w-2xl text-lg mb-8">{wp.hlvParagraph}</p>
         </motion.div>
 
         {/* Income valuation table with row-by-row animation */}
@@ -187,7 +187,7 @@ export function WealthPhilosophy() {
                     <Icon className="w-5 h-5 text-primary" />
                   </motion.div>
                   <h4 className="font-space font-bold text-white text-sm mb-1">{benefit.label}</h4>
-                  <p className="text-white/40 text-xs leading-relaxed">{benefit.desc}</p>
+                  <p className="text-white/55 text-xs leading-relaxed">{benefit.desc}</p>
                 </motion.div>
               );
             })}
