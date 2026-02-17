@@ -179,6 +179,11 @@ Adapt cultural references and examples to be relevant for ${targetLang}-speaking
   const langSlug = targetLang === 'en' ? baseSlug : `${baseSlug}-${targetLang}`;
 
   // Build the location page object
+  // Auto-detect state_code for US states (region is the 2-letter code)
+  const stateCode = country === 'United States' && region && region.length === 2
+    ? region.toUpperCase()
+    : null;
+
   return {
     city_slug: city.toLowerCase().replace(/\s+/g, '-'),
     city_name: city,
@@ -203,6 +208,7 @@ Adapt cultural references and examples to be relevant for ${targetLang}-speaking
     image_prompt: parsed.image_prompt,
     hreflang_group_id: hreflangGroupId,
     content_type: 'location',
+    state_code: stateCode,
   };
 }
 
