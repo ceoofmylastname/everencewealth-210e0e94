@@ -6953,6 +6953,10 @@ export type Database = {
         Args: { p_article_id: string }
         Returns: string[]
       }
+      get_my_advisor_id_from_portal: {
+        Args: { _auth_uid: string }
+        Returns: string
+      }
       get_next_round_config: {
         Args: { p_current_round: number; p_language: string }
         Returns: {
