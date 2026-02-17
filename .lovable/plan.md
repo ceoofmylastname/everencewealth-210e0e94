@@ -1,132 +1,113 @@
 
 
-## Phase 1: State-Specific Retirement Planning Pages
+## Rebrand Cleanup: Remove All "Del Sol Prime Homes", "Costa del Sol", and Real Estate References
 
-Build the new `/retirement-planning/:stateSlug` route with a dedicated `state_pages` table, 7 frontend components, JSON-LD schema generator, and updated routing.
-
----
-
-### 1. Database: New `state_pages` Table
-
-Create a new table (not reuse `location_pages`) to cleanly separate the US state content model:
-
-| Column | Type | Notes |
-|---|---|---|
-| id | UUID PK | auto-generated |
-| state_code | TEXT NOT NULL | 'CA', 'TX', etc. |
-| state_name | TEXT NOT NULL | 'California' |
-| slug | TEXT NOT NULL UNIQUE | 'california' |
-| meta_title | TEXT | SEO title |
-| meta_description | TEXT | SEO description |
-| canonical_url | TEXT | Full canonical |
-| hero_headline | TEXT | H1 content |
-| hero_subheadline | TEXT | Sub-H1 |
-| speakable_answer | TEXT | 40-60 word AI-ready answer |
-| overview_content | TEXT | Rich HTML body |
-| state_income_tax_rate | DECIMAL | e.g. 13.3 |
-| has_state_income_tax | BOOLEAN DEFAULT true | |
-| estate_tax_exemption | DECIMAL | Dollar amount |
-| creditor_protection_level | TEXT | 'strong'/'moderate'/'weak' |
-| recommended_strategies | JSONB | Array of strategy objects |
-| case_study_title | TEXT | |
-| case_study_content | TEXT | HTML |
-| state_statistics | JSONB | Key metrics object |
-| hero_image_url | TEXT | |
-| hero_image_alt | TEXT | |
-| hero_image_caption | TEXT | |
-| state_map_image_url | TEXT | |
-| json_ld_schema | JSONB | Pre-built schema |
-| qa_entities | JSONB | FAQ array |
-| language | TEXT DEFAULT 'en' | 'en' or 'es' |
-| hreflang_group_id | UUID | For EN/ES linking |
-| status | TEXT DEFAULT 'draft' | 'draft' or 'published' |
-| date_published | TIMESTAMPTZ | |
-| date_modified | TIMESTAMPTZ | |
-| created_at | TIMESTAMPTZ DEFAULT NOW() | |
-| updated_at | TIMESTAMPTZ DEFAULT NOW() | |
-| author_id | UUID | FK to authors |
-
-Indexes on `slug`, `status`, `language`, `state_code`.
-RLS: public SELECT for published, admin-only INSERT/UPDATE/DELETE.
+This is a systematic cleanup of **173 files** that still contain legacy branding from the old "Del Sol Prime Homes" real estate identity. The project has been rebranded to **Everence Wealth** (fiduciary wealth management), but many files were missed.
 
 ---
 
-### 2. Routing
+### Root Cause of "Los Angeles, Spain"
 
-Add new routes in `App.tsx`:
-
-```text
-/:lang/retirement-planning/:stateSlug  -->  StateRetirementPage
-/retirement-planning/:stateSlug        -->  redirect to /en/retirement-planning/:stateSlug
-```
+The `generate-location-image` edge function hardcodes "Costa del Sol, Spain" in its default prompt, alt text, and caption. When you generate a page for "Los Angeles", it produces "Aerial view of Los Angeles, Costa del Sol" -- nonsensical for a US city.
 
 ---
 
-### 3. Frontend Components (new folder: `src/components/state-retirement/`)
+### Cleanup Categories
 
-**StateRetirementHero** -- Full-width hero with state image, Evergreen overlay at 85% opacity, H1, subheadline, CTA button. Sharp edges (0px radius) per request. Image with alt, caption, lazy loading.
+The work is organized from highest-impact to lowest:
 
-**StateSpeakableBox** -- Reuse existing `SpeakableBox` component (already generic enough).
+#### 1. Edge Functions (backend -- affects generated content)
+These produce the "Spain" text users see:
 
-**StateTaxEnvironmentCard** -- Card showing `state_income_tax_rate`, comparison to national average (currently ~4.6%), visual bar chart. Uses `has_state_income_tax` flag.
-
-**StateStrategiesSection** -- Grid of strategy cards from `recommended_strategies` JSONB. Each card: icon, title, description, link to strategy page.
-
-**StateStatisticsSection** -- Interactive cards using Recharts for `state_statistics` JSONB data: retirement gap, cost of living index, median home price, average retirement age, retiree poverty rate.
-
-**StateCaseStudySection** -- Storytelling format: client profile, challenge, solution, results with before/after comparison table.
-
-**StateCTASection** -- "Schedule Your [State] Retirement Strategy Session" with form link to `/contact?state=[code]`.
-
----
-
-### 4. Main Page: `src/pages/StateRetirementPage.tsx`
-
-- Fetches from `state_pages` by slug + language + status='published'
-- Renders: Header, Hero, SpeakableBox, Overview, Tax Environment Card, Strategies, Statistics, Case Study, FAQs, CTA, Footer
-- Injects JSON-LD from `json_ld_schema` field
-- Sets canonical URL and hreflang tags
-
----
-
-### 5. JSON-LD Schema Generator: `src/lib/stateSchemaGenerator.ts`
-
-Generates WebPage, FAQPage, BreadcrumbList, SpeakableSpecification, and FinancialService schemas with proper language prefixes (`/es/retirement-planning/...` for Spanish).
-
----
-
-### 6. Design Tokens
-
-Per the request, these pages use a different aesthetic from the main site:
-- Sharp edges (0px border radius) instead of rounded
-- Colors: #1A4D3E (Evergreen), #4A5565 (Slate text), #F0F2F1 (Cream bg), #FFFFFF (cards)
-- GeistSans typography (falls back to system sans-serif)
-- 8px spacing system
-- Mobile-first responsive at 640/768/1024/1280px breakpoints
-
----
-
-### 7. Files to Create/Modify
-
-| Action | File |
+| File | What to fix |
 |---|---|
-| CREATE | `src/pages/StateRetirementPage.tsx` |
-| CREATE | `src/components/state-retirement/StateRetirementHero.tsx` |
-| CREATE | `src/components/state-retirement/StateTaxEnvironmentCard.tsx` |
-| CREATE | `src/components/state-retirement/StateStrategiesSection.tsx` |
-| CREATE | `src/components/state-retirement/StateStatisticsSection.tsx` |
-| CREATE | `src/components/state-retirement/StateCaseStudySection.tsx` |
-| CREATE | `src/components/state-retirement/StateCTASection.tsx` |
-| CREATE | `src/lib/stateSchemaGenerator.ts` |
-| MODIFY | `src/App.tsx` (add routes) |
-| DB MIGRATION | Create `state_pages` table with RLS |
+| `supabase/functions/generate-location-image/index.ts` | Default prompt says "Costa del Sol, Spain", alt/caption mention Mediterranean real estate |
+| `supabase/functions/generate-brochure-content/index.ts` | References "Mediterranean appeal", "Costa del Sol golf courses" |
+| `supabase/functions/generate-missing-captions/index.ts` | Prompt says "Costa del Sol real estate article image" |
+| `supabase/functions/generate-comparison/index.ts` | Mentions "Spain/Marbella/Costa del Sol" in headline instructions |
+| `supabase/functions/generate-qa-pages/index.ts` | Fallback text "Real estate in Costa del Sol, Spain" |
+| `supabase/functions/find-citations-gemini/index.ts` | Competitor list full of Marbella real estate agencies |
+| `supabase/functions/create-crm-agent/index.ts` | HTML email says "Del Sol Prime Homes CRM" |
+| `supabase/functions/shared/aeoRules.ts` | Example text about "buying property in Costa del Sol" |
 
-### What's Deferred to Phase 2
+**Replacement approach**: Remove geographic defaults entirely. Image prompts will use only `{city_name}` without assuming Spain. Alt/caption text will reference financial planning, not real estate.
 
-- Admin state page generator (AI content creation)
-- Batch state generation (all 50 states)
-- Educational brochures library
-- Tax calculator widget
-- State map SVG rendering
-- Translation edge function for state pages
+#### 2. Schema/SEO Generators (affects structured data)
+
+| File | What to fix |
+|---|---|
+| `src/lib/locationSchemaGenerator.ts` | Organization schema says "Del Sol Prime Homes", "RealEstateAgent" |
+| `src/lib/locationHubSchemaGenerator.ts` | All hub labels reference "Costa del Sol", "Del Sol Prime Homes" |
+| `src/lib/aboutSchemaGenerator.ts` | Team bios mention Costa del Sol real estate, old team members |
+| `src/lib/generateCostaDelSolImages.ts` | Entire file is Costa del Sol image prompts |
+| `src/lib/domainAnalyzer.ts` | Real estate competitor keywords |
+
+**Replacement**: Organization type changes from `RealEstateAgent` to `FinancialService`. All schema references update to "Everence Wealth" with `everencewealth.com` URLs.
+
+#### 3. Frontend Components (~37 files)
+
+| File group | What to fix |
+|---|---|
+| `src/components/AdminLayout.tsx` | Alt text "Del Sol Prime Homes" |
+| `src/components/ApartmentsEditorLayout.tsx` | Same alt text issue |
+| `src/components/about/WhyChooseUs.tsx` | "40+ years on the Costa del Sol" |
+| `src/components/blog-article/FunnelCTA.tsx` | "dream property in Costa del Sol" |
+| `src/components/blog-article/ExpertInsight.tsx` | "Costa del Sol Property Specialist" |
+| `src/components/brochures/BrochureDescription.tsx` | "Costa del Sol" badge |
+| `src/components/contact/OfficeInfo.tsx` | Map title "Del Sol Prime Homes" |
+| `src/components/LanguageMismatchNotFound.tsx` | Title suffix "Del Sol Prime Homes" |
+| `src/components/dev/WebhookPayloadPreview.tsx` | Test data with delsolprimehomes URLs |
+| `src/components/PropertyHreflangTags.tsx` | BASE_URL = delsolprimehomes.com |
+
+**Replacement**: All brand references become "Everence Wealth", URLs become `everencewealth.com`, descriptions reference financial planning.
+
+#### 4. Translation Files (~20+ files)
+
+| File group | What to fix |
+|---|---|
+| `src/translations/landing/*.json` | All landing page translations reference Costa del Sol, DelSolPrimeHomes |
+| `src/i18n/translations/*.ts` | Property finder, navigation, etc. |
+| `src/constants/home.ts` | City descriptions mention "Costa del Sol" |
+
+**Replacement**: Update all translated strings. Since the platform now only supports EN/ES, many of these translation files (Italian, Finnish, Polish, etc.) may be dead code and can be removed entirely.
+
+#### 5. Public/Config Files
+
+| File | What to fix |
+|---|---|
+| `public/.well-known/ai-plugin.json` | Entire file is Del Sol Prime Homes |
+| `public/facts.json` | Source and URL reference old brand |
+
+---
+
+### Implementation Approach
+
+Due to the massive scope (173 files, ~6000 matches), this will be done in systematic batches:
+
+1. **Batch 1**: Edge functions (8 files) -- fixes the "Los Angeles, Spain" issue immediately
+2. **Batch 2**: Schema generators and SEO libs (5 files)
+3. **Batch 3**: Frontend components (37 files)
+4. **Batch 4**: Translation/i18n files and constants (20+ files)
+5. **Batch 5**: Public config files (2 files)
+
+### Global Find-and-Replace Rules
+
+| Old | New |
+|---|---|
+| "Del Sol Prime Homes" | "Everence Wealth" |
+| "DSPH" | "Everence" |
+| "delsolprimehomes.com" | "everencewealth.com" |
+| "Costa del Sol" | Remove or replace with contextual US location |
+| "RealEstateAgent" (schema type) | "FinancialService" |
+| "real estate" (in descriptions) | "wealth management" / "financial planning" |
+| "Mediterranean" (in prompts) | Remove or replace with financial imagery |
+| "luxury villas/properties" | "financial advisory" / "retirement planning" |
+| "info@delsolprimehomes.com" | "info@everencewealth.com" |
+
+### Dead Code Candidates for Removal
+
+These files appear to be entirely legacy and could be deleted:
+- `src/lib/generateCostaDelSolImages.ts` -- Costa del Sol image generation
+- Translation files for unsupported languages (IT, FI, PL, DA, etc.) if confirmed unused
+- `public/.well-known/ai-plugin.json` -- old ChatGPT plugin config
 
