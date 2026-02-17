@@ -1,33 +1,33 @@
 
 
-## Fix Comparison Language Switching Errors
+## Fix JSON-LD Schemas and Image Metadata for Multilingual Comparisons
 
-### Problem
-When a user views an English comparison and tries to switch to Spanish, they get a "Content Not Available" error because:
-1. The `ComparisonLanguageSwitcher` shows Spanish as available based on the `translations` JSONB field, even when no actual Spanish page exists in the database
-2. The `ContentLanguageSwitcher` (used by Q&A pages) still lists old European languages instead of Spanish
+### What's Already Working
+- The translation edge function **already copies** `featured_image_url` from the English source (line 220)
+- Alt text and caption **are already translated** by AI (lines 221-222)
+- The `ComparisonPage.tsx` already sets `inLanguage`, canonical URL, and hreflang tags correctly
 
-### Solution (2 files)
+### What's Broken: Schema URLs Missing Language Prefix
 
-**File 1: `src/components/comparison/ComparisonLanguageSwitcher.tsx`**
-- Before showing Spanish as available, verify the translated page actually exists in `comparison_pages` with `status = 'published'`
-- Query the database for sibling pages sharing the same `comparison_topic` to confirm real availability
-- Only render language links for translations that have published pages
+The `comparisonSchemaGenerator.ts` builds all URLs as `/compare/slug` instead of `/{lang}/compare/slug`. This means Spanish pages have English-looking URLs in their JSON-LD, confusing search engines.
 
-**File 2: `src/components/ContentLanguageSwitcher.tsx`**
-- Replace the outdated `LANGUAGES` map (Dutch, Hungarian, German, French, etc.) with only English and Spanish
-- Update the English flag from British flag to US flag to match the rest of the site
+**File: `src/lib/comparisonSchemaGenerator.ts`**
 
-### Admin Workflow (Already Exists)
-The admin Comparison Generator page already has a "Translate All to Spanish" button that calls the `batch-translate-comparisons` backend function. Admins should use this to create Spanish versions before the language switcher will show them as available.
+1. **Article schema URL** (line 62): Change `${BASE_URL}/compare/${slug}` to `${BASE_URL}/${lang}/compare/${slug}`
+2. **FAQ schema @id** (line 131): Same fix -- include language prefix
+3. **Breadcrumb schema** (lines 148-168): Include language in all breadcrumb item URLs; translate "Comparisons" label to "Comparaciones" for Spanish
+4. **Image schema description** (line 191): Replace stale "property buyers" fallback with `comparison.target_audience || 'financial planning'`
+5. **Table schema** (line 177-178): The `about` and `description` fields are English-only -- make them use the translated headline when available
 
-### Technical Details
+### Technical Approach
 
-**ComparisonLanguageSwitcher changes:**
-- Add a database query using `comparison_topic` to find sibling translations with `status = 'published'`
-- Build the available languages map from actual DB results instead of trusting the `translations` JSONB alone
-- Keep the current UI design (rounded pills with flags)
+All schema generator functions already receive the full `comparison` object which includes `comparison.language`. We just need to use it in URL construction:
 
-**ContentLanguageSwitcher changes:**
-- Reduce `LANGUAGES` constant from 10 entries to 2: `en` (English, US flag) and `es` (Spanish, Spain flag)
-- No other logic changes needed -- the existing availability check already works correctly
+| Schema | Before | After |
+|---|---|---|
+| Article mainEntityOfPage | `/compare/{slug}` | `/{lang}/compare/{slug}` |
+| FAQ @id | `/compare/{slug}#faq` | `/{lang}/compare/{slug}#faq` |
+| Breadcrumb items | `/compare`, `/compare/{slug}` | `/{lang}/compare`, `/{lang}/compare/{slug}` |
+| Image description fallback | "property buyers" | `target_audience` or "financial planning" |
+
+Single file change: `src/lib/comparisonSchemaGenerator.ts`
