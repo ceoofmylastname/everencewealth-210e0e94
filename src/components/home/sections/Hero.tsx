@@ -86,7 +86,7 @@ export const Hero: React.FC = () => {
         animate={stage >= 2 ? { opacity: 1, x: 0 } : {}}
         transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
       >
-        <p className="text-[10px] font-space font-bold tracking-[0.4em] uppercase text-white/20 [writing-mode:vertical-lr] rotate-180">
+        <p className="text-xs md:text-sm font-space font-bold tracking-[0.5em] uppercase text-white/30 [writing-mode:vertical-lr] rotate-180">
           {hp.sideLeft}
         </p>
       </motion.div>
@@ -96,7 +96,7 @@ export const Hero: React.FC = () => {
         animate={stage >= 2 ? { opacity: 1, x: 0 } : {}}
         transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
       >
-        <p className="text-[10px] font-space font-bold tracking-[0.4em] uppercase text-white/20 [writing-mode:vertical-lr]">
+        <p className="text-xs md:text-sm font-space font-bold tracking-[0.5em] uppercase text-white/30 [writing-mode:vertical-lr]">
           {hp.sideRight}
         </p>
       </motion.div>
