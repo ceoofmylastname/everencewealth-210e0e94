@@ -146,7 +146,7 @@ const LocationHub = () => {
           {/* Brand Gradient Background */}
           <div className="absolute inset-0 bg-gradient-to-br from-[#0a2a1f] via-[#1A4D3E] to-[#0d1f1a]">
             {/* US Map Background */}
-            <div className="absolute inset-0 flex items-center justify-center opacity-20">
+            <div className="absolute inset-0 flex items-center justify-center opacity-30 mix-blend-screen">
               <img src={usMapHero} alt="" aria-hidden="true" className="w-full h-full object-contain max-w-4xl mx-auto" />
             </div>
             {/* Decorative Gold Blur Orbs */}
