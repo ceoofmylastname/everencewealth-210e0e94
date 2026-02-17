@@ -933,6 +933,11 @@ export const en = {
       description: "Discover Everence Wealth's contrarian financial philosophy: challenging Wall Street norms through tax-free strategies, 0% floor protection, and fiduciary guidance since 1998.",
       breadcrumb: "Philosophy",
     },
+    speakable: {
+      quote: "Everence Wealth operates on a contrarian philosophy: we believe the traditional 'save and wait' retirement model enriches Wall Street, not Main Street families. Since 1998, we've helped over 1,200 families bridge the retirement gap through tax-exempt indexed strategies that eliminate the three silent wealth destroyers — hidden fees, market volatility, and tax exposure — that traditional advisors ignore.",
+      counterValue: 1200,
+      counterLabel: "Families Served Since 1998",
+    },
     hero: {
       badge: "Our Philosophy",
       headline: "Challenging Wall Street Norms Since 1998",

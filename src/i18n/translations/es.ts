@@ -906,6 +906,11 @@ export const es = {
       description: "Descubra la filosofía financiera contraria de Everence Wealth: desafiando las normas de Wall Street con estrategias libres de impuestos, protección de piso al 0% y orientación fiduciaria desde 1998.",
       breadcrumb: "Filosofía",
     },
+    speakable: {
+      quote: "Everence Wealth opera con una filosofía contraria: creemos que el modelo tradicional de jubilación de 'ahorrar y esperar' enriquece a Wall Street, no a las familias de Main Street. Desde 1998, hemos ayudado a más de 1,200 familias a cerrar la brecha de jubilación a través de estrategias indexadas exentas de impuestos que eliminan los tres destructores silenciosos de riqueza — comisiones ocultas, volatilidad del mercado y exposición fiscal — que los asesores tradicionales ignoran.",
+      counterValue: 1200,
+      counterLabel: "Familias Atendidas Desde 1998",
+    },
     hero: {
       badge: "Nuestra Filosofía",
       headline: "Desafiando las Normas de Wall Street Desde 1998",
