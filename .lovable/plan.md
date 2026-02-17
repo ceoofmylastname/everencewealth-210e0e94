@@ -1,110 +1,133 @@
 
 
-# Add "Three Core Principles" Section to Philosophy Page
+# Upgrade Tax Buckets Section to Interactive 3D Visualization
 
 ## Overview
-Add a brand-new section between PhilosophySpeakable and PhilosophyKillers featuring three premium glassmorphic cards -- "Cash Flow Over Net Worth," "Zero is Your Hero," and "Fiduciary, Always" -- each with custom inline SVG mini-charts (bar, line, donut), hover-lift animations, and gradient overlays.
+Transform the existing `PhilosophyBuckets` section from a three-column feature-list layout into a two-column interactive experience: a 3D bucket visualization on the left (using React Three Fiber) with adjustable sliders, and detailed bucket explanation cards on the right with animated tax-rate badges and a recommendation CTA.
 
 ## What Changes
 
-### 1. Add i18n Translation Keys
+### 1. Install 3D Dependencies
+Add `@react-three/fiber@^8.18`, `@react-three/drei@^9.122.0`, and `three@^0.133` (compatible with React 18).
 
-Add a `principles` block inside `philosophy` in both `en.ts` and `es.ts`:
+### 2. Add i18n Translation Keys
+Extend `philosophy.buckets` in both `en.ts` and `es.ts` with new keys for the interactive layout:
 
-**English keys:**
 ```text
-principles: {
-  badge: "Our Core Principles",
-  headline: "Three Beliefs That Guide Every Recommendation",
-  subheadline: "Three fundamental beliefs that guide every recommendation we make",
-  cards: [
+buckets: {
+  // ... keep existing badge, headline, subheadline, recommended, columns ...
+  sliderLabel: "Adjust Your Allocation:",
+  warningPrefix: "Warning:",
+  warningSuffix: "in tax-deferred = massive tax exposure in retirement",
+  explanations: [
     {
-      title: "Cash Flow Over Net Worth",
-      description: "Wall Street obsesses over account balances you can't spend. We focus on tax-free income you can actually use.",
-      chartLabel: "The Reality:",
-      chartNote: "$5,000/month tax-free cash flow beats $1M in a 401k you can't touch until age 59 1/2",
-      bars: [
-        { label: "$5K/mo Tax-Free", value: 100 },
-        { label: "$1M in 401k", value: 60 }
-      ]
+      number: "1",
+      title: "Bucket 1: Taxable",
+      description: "Brokerage accounts, savings, CDs. You paid taxes on deposits, AND you'll pay capital gains on growth. Double taxation.",
+      taxRate: 20,
+      taxLabel: "Capital Gains",
     },
     {
-      title: "Zero is Your Hero",
-      description: "Warren Buffett's Rule #1: Never lose money. We engineer that literally with 0% floor protection.",
-      chartLabel: "The Math:",
-      chartNote: "A 50% loss requires a 100% gain just to break even. Zero is your hero."
+      number: "2",
+      title: "Bucket 2: Tax-Deferred",
+      description: "401k, Traditional IRA, 403b. Tax deduction today, but you'll pay ordinary income tax on EVERY dollar withdrawn. Plus RMDs force withdrawals whether you need them or not.",
+      taxRate: 37,
+      taxLabel: "Ordinary Income",
+      extraBadge: "+ RMDs",
     },
     {
-      title: "Fiduciary, Always",
-      description: "We're legally required to act in your best interest -- not maximize our commissions.",
-      chartLabel: "The Difference:",
-      chartNote: "Wall Street advisors earn more when you stay invested. We earn nothing if you lose.",
-      centerText: "100%",
-      centerLabel: "Client First"
-    }
-  ]
+      number: "3",
+      title: "Bucket 3: Tax-Exempt",
+      description: "Roth IRA, Indexed Universal Life, Municipal Bonds. Pay taxes on the seed, never on the harvest. No RMDs. No age restrictions.",
+      taxRate: 0,
+      taxLabel: "Tax-Free Forever",
+      extraBadge: "No RMDs",
+    },
+  ],
+  recommendation: {
+    title: "Everence Wealth Recommendation:",
+    text: "Minimize Bucket 1 (taxable). Maximize Bucket 3 (tax-exempt). Use Bucket 2 (tax-deferred) strategically up to employer match only.",
+  },
 }
 ```
 
-Spanish: equivalent translations with the same structure.
+Spanish: equivalent translations.
 
-### 2. Create New Component: `PhilosophyPrinciples.tsx`
+### 3. Create New Component: `AnimatedBucket.tsx`
+**File:** `src/components/philosophy/AnimatedBucket.tsx`
 
-**File:** `src/components/philosophy/PhilosophyPrinciples.tsx`
+A React Three Fiber 3D component rendering a transparent cylindrical bucket with an animated "liquid fill" inside:
+- Cylinder geometry for the bucket shell (transparent glass material)
+- Inner cylinder for liquid that scales on the Y-axis based on `fillLevel` prop (0-100)
+- Liquid color maps to bucket type (red, yellow, green)
+- Gentle bobbing animation on the liquid surface using `useFrame`
+- Label rendered as `<Html>` overlay from `@react-three/drei`
 
-Features:
-- **Background:** Two `MorphingBlob` instances (reused from existing component) at low opacity behind the grid
-- **Section header:** Badge + blur-to-sharp headline reveal (matching existing pattern from PhilosophyKillers)
-- **Three-column grid** of glassmorphic cards using `GlassCard` component
-- Each card contains:
-  - **Gradient overlay on hover** (evergreen-to-gold, evergreen-to-blue, evergreen-to-purple respectively)
-  - **Icon pair** at top (static icon, no morphing library needed -- just swap icon opacity on group-hover via CSS transitions)
-  - **Title + description** text from i18n
-  - **Custom inline SVG mini-chart** specific to each card:
-    - Card 1: Two horizontal bars (custom SVG rects with width animation on scroll)
-    - Card 2: Two polylines (market vs IUL) with stroke-dashoffset draw animation
-    - Card 3: Donut/ring chart (SVG circle with stroke-dasharray arc animation + centered text)
-  - **Hover lift:** `whileHover={{ y: -10 }}` via Framer Motion
-- All charts animate on scroll into view using `useInView`
+### 4. Rewrite `PhilosophyBuckets.tsx`
+**File:** `src/components/philosophy/PhilosophyBuckets.tsx`
 
-### 3. Custom SVG Charts (inline in component)
+Complete rewrite into a two-column layout:
 
-Three small chart components defined inside PhilosophyPrinciples.tsx (no separate files needed):
+**Left column (interactive 3D):**
+- `<Canvas>` from React Three Fiber with three `AnimatedBucket` instances
+- `OrbitControls` from drei (no zoom, slow auto-rotate)
+- Ambient + point light
+- Glassmorphic overlay at bottom with three custom range sliders
+- Sliders control bucket fill levels via React state (values must sum to 100 -- adjusting one redistributes the others)
+- Warning alert animates in when tax-deferred exceeds 50%
 
-- **PrincipleBarChart:** Two horizontal SVG `<rect>` bars that animate width from 0 to target on scroll. Labels below each bar.
-- **PrincipleLineChart:** Two SVG `<polyline>` lines (red "Market" dashed, green "IUL" solid) with stroke-dashoffset animation. Three data points showing loss-recovery scenario.
-- **PrincipleDonutChart:** SVG `<circle>` with large stroke-width, `stroke-dasharray` animated to show 100% fill. Center text "100%" and "Client First" label.
+**Right column (explanations):**
+- Three glassmorphic explanation cards, each with:
+  - Colored left border (red, yellow, green)
+  - Numbered circle badge
+  - Title, description from i18n
+  - `TaxRateBadge` inline component: animated circular progress showing the tax rate percentage
+  - Optional extra badge ("+RMDs", "No RMDs")
+- Slide-in-from-right animation staggered by 0.2s
+- Bottom recommendation CTA card with evergreen-to-gold gradient, grid pattern background, and CheckCircle icon
 
-### 4. Update Philosophy Page
+**Preserved:** All existing i18n keys (`badge`, `headline`, `subheadline`, `recommended`, `columns`) remain in translations for backward compatibility. The new layout uses the new `explanations` and `recommendation` keys.
 
-**File:** `src/pages/Philosophy.tsx`
+### 5. Inline Sub-Components (inside PhilosophyBuckets.tsx)
 
-- Import `PhilosophyPrinciples`
-- Insert between `PhilosophySpeakable` and `PhilosophyKillers`
+- **TaxBucketSlider:** A styled `<input type="range">` with colored track matching bucket color, current value label, and custom thumb
+- **TaxRateBadge:** Small SVG donut (similar to PrincipleDonutChart) showing rate as arc fill, with percentage text in center
 
-## Section Order After Change
-
+## Section Order (unchanged)
 1. PhilosophyHero
 2. PhilosophySpeakable
-3. **PhilosophyPrinciples** (NEW)
+3. PhilosophyPrinciples
 4. PhilosophyKillers
-5. PhilosophyBuckets
+5. **PhilosophyBuckets** (upgraded in-place)
 6. PhilosophyCashFlow
 7. PhilosophyCTA
 
 ## Technical Details
 
-### Icon Hover Effect
-Instead of a complex "MorphingIcon" component, use a simple CSS-based icon swap: both icons are rendered, the secondary starts at `opacity-0 scale-75`, on `group-hover` it transitions to `opacity-100 scale-100` while the primary fades out. Pure CSS, no JS animation loop.
+### 3D Performance
+- Canvas renders at device pixel ratio capped at 2
+- OrbitControls with `enableZoom={false}` and `enablePan={false}`
+- Bucket geometry is simple cylinders (low poly count)
+- `useFrame` runs liquid bob animation (GPU-accelerated)
+- Lazy-loaded via `React.lazy` + `Suspense` with a fallback showing a static SVG representation
+
+### Slider Logic
+State: `[taxable, deferred, exempt]` initialized to `[30, 60, 10]`. When one slider changes, the other two adjust proportionally to keep the sum at 100.
 
 ### Files Created
-- `src/components/philosophy/PhilosophyPrinciples.tsx`
+- `src/components/philosophy/AnimatedBucket.tsx`
 
 ### Files Modified
-- `src/i18n/translations/en.ts` -- add `philosophy.principles` block
-- `src/i18n/translations/es.ts` -- add `philosophy.principles` block
-- `src/pages/Philosophy.tsx` -- import and render PhilosophyPrinciples
+- `src/components/philosophy/PhilosophyBuckets.tsx` -- full rewrite
+- `src/i18n/translations/en.ts` -- extend `philosophy.buckets`
+- `src/i18n/translations/es.ts` -- extend `philosophy.buckets`
 
-### No new dependencies
-Uses existing framer-motion, lucide-react, MorphingBlob, and GlassCard components.
+### New Dependencies
+- `@react-three/fiber@^8.18`
+- `@react-three/drei@^9.122.0`
+- `three@^0.133`
 
+### What Is NOT Changed
+- No other Philosophy sections modified
+- All existing i18n keys preserved (columns data stays for any other usage)
+- No routing or SEO changes
