@@ -13,7 +13,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Plus, Trash2, GripVertical, Save, Sparkles, Loader2 } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, GripVertical, Save, Sparkles, Loader2, ImagePlus } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
@@ -122,8 +122,10 @@ export default function AdminBrochureForm() {
 
   const saveMutation = useMutation({
     mutationFn: async () => {
+      const slug = form.slug || slugify(form.title);
       const payload = {
         ...form,
+        slug,
         sections: JSON.parse(JSON.stringify(sections)),
         published_at: form.status === "published" ? new Date().toISOString() : null,
       };
@@ -132,8 +134,15 @@ export default function AdminBrochureForm() {
         const { error } = await supabase.from("brochures").update(payload).eq("id", id!);
         if (error) throw error;
       } else {
+        // Try insert, if slug conflict append random suffix
         const { error } = await supabase.from("brochures").insert([payload]);
-        if (error) throw error;
+        if (error && error.message.includes("brochures_slug_key")) {
+          payload.slug = `${slug}-${Math.random().toString(36).substring(2, 6)}`;
+          const { error: retryError } = await supabase.from("brochures").insert([payload]);
+          if (retryError) throw retryError;
+        } else if (error) {
+          throw error;
+        }
       }
     },
     onSuccess: () => {
@@ -192,6 +201,8 @@ export default function AdminBrochureForm() {
   const [aiTopic, setAiTopic] = useState("");
   const [aiAudience, setAiAudience] = useState("pre-retirees aged 50-65");
   const [aiGenerating, setAiGenerating] = useState(false);
+  const [aiGenerateCover, setAiGenerateCover] = useState(true);
+  const [coverGenerating, setCoverGenerating] = useState(false);
 
   const generateWithAI = async () => {
     if (!aiTopic) return;
@@ -200,7 +211,7 @@ export default function AdminBrochureForm() {
       const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-guide-content`, {
         method: "POST",
         headers: { "Content-Type": "application/json", "apikey": import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY },
-        body: JSON.stringify({ category: form.category, topic: aiTopic, target_audience: aiAudience, language: form.language }),
+        body: JSON.stringify({ category: form.category, topic: aiTopic, target_audience: aiAudience, language: form.language, generate_cover_image: aiGenerateCover }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Generation failed");
@@ -211,14 +222,49 @@ export default function AdminBrochureForm() {
         title: b.title, slug: b.slug, hero_headline: b.hero_headline,
         subtitle: b.subtitle || "", meta_title: b.meta_title, meta_description: b.meta_description,
         speakable_intro: b.speakable_intro, tags: b.tags || [],
+        cover_image_url: b.cover_image_url || prev.cover_image_url,
+        cover_image_alt: b.cover_image_alt || prev.cover_image_alt,
       }));
       setSections(b.sections || []);
-      toast({ title: "AI content generated!", description: "Review and edit before saving." });
+      toast({ title: "AI content generated!", description: b.cover_image_url ? "Content and cover image ready. Review before saving." : "Review and edit before saving." });
       setAiDialogOpen(false);
     } catch (err: any) {
       toast({ title: "AI Generation Failed", description: err.message, variant: "destructive" });
     } finally {
       setAiGenerating(false);
+    }
+  };
+
+  const generateCoverImage = async () => {
+    if (!form.title) {
+      toast({ title: "Title required", description: "Enter a title first so the AI can generate a relevant image.", variant: "destructive" });
+      return;
+    }
+    setCoverGenerating(true);
+    try {
+      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-guide-content`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "apikey": import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY },
+        body: JSON.stringify({ category: form.category, topic: form.title, target_audience: "cover image only", language: form.language, generate_cover_image: true }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Image generation failed");
+
+      const b = data.brochure;
+      if (b.cover_image_url) {
+        setForm((prev) => ({
+          ...prev,
+          cover_image_url: b.cover_image_url,
+          cover_image_alt: b.cover_image_alt || prev.cover_image_alt,
+        }));
+        toast({ title: "Cover image generated!" });
+      } else {
+        toast({ title: "No image generated", description: "The AI did not return an image. Try again.", variant: "destructive" });
+      }
+    } catch (err: any) {
+      toast({ title: "Image Generation Failed", description: err.message, variant: "destructive" });
+    } finally {
+      setCoverGenerating(false);
     }
   };
 
@@ -253,8 +299,12 @@ export default function AdminBrochureForm() {
               <Label>Target Audience</Label>
               <Input value={aiAudience} onChange={(e) => setAiAudience(e.target.value)} />
             </div>
+            <div className="flex items-center justify-between">
+              <Label>Generate Cover Image</Label>
+              <Switch checked={aiGenerateCover} onCheckedChange={setAiGenerateCover} />
+            </div>
             <Button onClick={generateWithAI} disabled={aiGenerating || !aiTopic} className="w-full">
-              {aiGenerating ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Generating...</> : <><Sparkles className="h-4 w-4 mr-2" /> Generate Content</>}
+              {aiGenerating ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Generating{aiGenerateCover ? " (content + image)..." : "..."}</> : <><Sparkles className="h-4 w-4 mr-2" /> Generate Content</>}
             </Button>
           </div>
         </DialogContent>
@@ -324,8 +374,18 @@ export default function AdminBrochureForm() {
 
       {/* Cover */}
       <Card>
-        <CardHeader><CardTitle>Cover Image</CardTitle></CardHeader>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle>Cover Image</CardTitle>
+            <Button variant="outline" size="sm" onClick={generateCoverImage} disabled={coverGenerating}>
+              {coverGenerating ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Generating...</> : <><ImagePlus className="h-4 w-4 mr-2" /> Generate with AI</>}
+            </Button>
+          </div>
+        </CardHeader>
         <CardContent className="space-y-4">
+          {form.cover_image_url && (
+            <img src={form.cover_image_url} alt={form.cover_image_alt || "Cover preview"} className="w-full max-h-48 object-cover rounded-lg border" />
+          )}
           <div className="space-y-2">
             <Label>Cover Image URL</Label>
             <Input value={form.cover_image_url} onChange={(e) => updateField("cover_image_url", e.target.value)} placeholder="https://..." />
