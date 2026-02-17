@@ -1,11 +1,23 @@
-import React, { useState, useCallback, Suspense, lazy } from 'react';
+import React, { useState, useCallback, Suspense, lazy, Component, type ErrorInfo, type ReactNode } from 'react';
 import { motion, useInView } from 'framer-motion';
 import { AlertTriangle, CheckCircle } from 'lucide-react';
 import { useTranslation } from '@/i18n/useTranslation';
 import { MorphingBlob } from './MorphingBlob';
 
-// Lazy-load 3D canvas
-const BucketCanvas = lazy(() => import('./BucketCanvas'));
+// Error boundary for 3D canvas
+class CanvasErrorBoundary extends Component<{ fallback: ReactNode; children: ReactNode }, { hasError: boolean }> {
+  state = { hasError: false };
+  static getDerivedStateFromError() { return { hasError: true }; }
+  componentDidCatch(error: Error, info: ErrorInfo) { console.warn('3D Canvas failed to load:', error); }
+  render() { return this.state.hasError ? this.props.fallback : this.props.children; }
+}
+
+// Lazy-load 3D canvas with error handling
+const BucketCanvas = lazy(() =>
+  import('./BucketCanvas').catch(() => ({
+    default: () => null as any,
+  }))
+);
 
 /* ── Inline sub-components ── */
 
@@ -177,7 +189,7 @@ export const PhilosophyBuckets: React.FC = () => {
           {/* Left: 3D Canvas + Sliders */}
           <div className="relative">
             <div className="relative h-[420px] md:h-[480px] rounded-sm overflow-hidden bg-white/[0.03] border border-white/[0.08]">
-              <Suspense
+              <CanvasErrorBoundary
                 fallback={
                   <div className="w-full h-full flex items-center justify-center">
                     <div className="flex gap-8">
@@ -194,8 +206,26 @@ export const PhilosophyBuckets: React.FC = () => {
                   </div>
                 }
               >
-                <BucketCanvas levels={levels} />
-              </Suspense>
+                <Suspense
+                  fallback={
+                    <div className="w-full h-full flex items-center justify-center">
+                      <div className="flex gap-8">
+                        {BUCKET_COLORS.map((c, i) => (
+                          <div key={i} className="flex flex-col items-center gap-2">
+                            <div
+                              className="w-16 h-24 rounded-sm border-2 opacity-40"
+                              style={{ borderColor: c }}
+                            />
+                            <span className="text-xs text-white/40 font-space">{levels[i]}%</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  }
+                >
+                  <BucketCanvas levels={levels} />
+                </Suspense>
+              </CanvasErrorBoundary>
             </div>
 
             {/* Slider overlay */}
