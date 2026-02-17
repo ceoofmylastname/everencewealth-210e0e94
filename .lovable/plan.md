@@ -1,34 +1,33 @@
 
 
-## Fix Navbar Position and Alignment at Top of Hero
+## Fix Comparison Language Switching Errors
 
-The screenshot shows two issues:
-1. The "Philosophy" navigation pill bleeds into the white background above the rounded hero section
-2. The logo, language flag, and Portal link aren't visually aligned on the same baseline
+### Problem
+When a user views an English comparison and tries to switch to Spanish, they get a "Content Not Available" error because:
+1. The `ComparisonLanguageSwitcher` shows Spanish as available based on the `translations` JSONB field, even when no actual Spanish page exists in the database
+2. The `ContentLanguageSwitcher` (used by Q&A pages) still lists old European languages instead of Spanish
 
-### Root Cause
+### Solution (2 files)
 
-The header is `fixed top-0` but the hero section now lives inside a rounded container with `py-4 md:py-6` top padding on the main element. This means the dark hero area starts ~16-24px below the top of the viewport, but the header still sits at the very top against the white background.
+**File 1: `src/components/comparison/ComparisonLanguageSwitcher.tsx`**
+- Before showing Spanish as available, verify the translated page actually exists in `comparison_pages` with `status = 'published'`
+- Query the database for sibling pages sharing the same `comparison_topic` to confirm real availability
+- Only render language links for translations that have published pages
 
-### Changes
+**File 2: `src/components/ContentLanguageSwitcher.tsx`**
+- Replace the outdated `LANGUAGES` map (Dutch, Hungarian, German, French, etc.) with only English and Spanish
+- Update the English flag from British flag to US flag to match the rest of the site
 
-**File: `src/components/home/Header.tsx`**
+### Admin Workflow (Already Exists)
+The admin Comparison Generator page already has a "Translate All to Spanish" button that calls the `batch-translate-comparisons` backend function. Admins should use this to create Spanish versions before the language switcher will show them as available.
 
-1. **Increase top padding on header** -- Add `top-2 md:top-4 lg:top-6` instead of `top-0` so the header sits inside the rounded dark hero area rather than bleeding into the white zone above it. Match the horizontal margins from Home.tsx (`mx-2 md:mx-4 lg:mx-6`).
+### Technical Details
 
-2. **Align items vertically** -- The grid currently uses `items-center` which should work, but the logo image (`h-14 md:h-16`) may be causing visual misalignment. Ensure the right-side actions (flag + Portal) use consistent vertical centering by adding `items-center` to their flex container (already present, but we should verify the logo height matches).
+**ComparisonLanguageSwitcher changes:**
+- Add a database query using `comparison_topic` to find sibling translations with `status = 'published'`
+- Build the available languages map from actual DB results instead of trusting the `translations` JSONB alone
+- Keep the current UI design (rounded pills with flags)
 
-**File: `src/components/home/sections/Hero.tsx`**
-
-3. **Adjust hero top padding** -- Currently `pt-24 md:pt-16` on the main content container. Since the header is now pushed down, increase to `pt-28 md:pt-24` so the "ESTABLISHED 1998" badge doesn't overlap with the navbar.
-
-### Summary
-
-| Element | Before | After |
-|---|---|---|
-| Header position | `top-0` | `top-2 md:top-4 lg:top-6` |
-| Hero content padding | `pt-24 md:pt-16` | `pt-28 md:pt-24` |
-| Logo height | `h-14 md:h-16` | `h-12 md:h-14` (slightly smaller for better alignment) |
-
-This ensures the navbar sits cleanly within the dark rounded hero area and all three header elements (logo, nav pill, flag+portal) are visually balanced.
-
+**ContentLanguageSwitcher changes:**
+- Reduce `LANGUAGES` constant from 10 entries to 2: `en` (English, US flag) and `es` (Spanish, Spain flag)
+- No other logic changes needed -- the existing availability check already works correctly
