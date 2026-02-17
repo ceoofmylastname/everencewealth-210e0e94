@@ -44,7 +44,7 @@ export const Assessment: React.FC = () => {
         <ScrollReveal>
           <p className="text-primary font-semibold tracking-widest uppercase text-sm mb-4">{a.badge}</p>
           <h2 className="text-4xl md:text-5xl font-serif font-bold text-white mb-6">{a.headline}</h2>
-          <p className="text-white/60 text-lg max-w-2xl mx-auto mb-16">{a.subtitle}</p>
+          <p className="text-primary/70 text-lg max-w-2xl mx-auto mb-16">{a.subtitle}</p>
         </ScrollReveal>
 
         {/* Connected step timeline */}
@@ -85,7 +85,7 @@ export const Assessment: React.FC = () => {
                       <Icon className="w-7 h-7 text-primary" />
                     </div>
                     <h3 className="text-xl font-semibold text-white mb-3">{step.title}</h3>
-                    <p className="text-white/50 text-sm leading-relaxed">{step.desc}</p>
+                    <p className="text-primary/60 text-sm leading-relaxed">{step.desc}</p>
                   </div>
                 </motion.div>
               );

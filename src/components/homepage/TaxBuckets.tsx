@@ -35,14 +35,14 @@ export const TaxBuckets: React.FC = () => {
           transition={{ duration: 0.7 }}
           className="text-center mb-14"
         >
-          <p className="text-xs font-space font-bold tracking-[0.3em] uppercase text-white/55 mb-4">
+          <p className="text-xs font-space font-bold tracking-[0.3em] uppercase text-primary/70 mb-4">
             {tb.badge}
           </p>
           <h2 className="text-3xl md:text-5xl lg:text-6xl font-space font-bold leading-tight">
             {tb.headline}{' '}
             <span className="text-outline">{tb.headlineHighlight}</span>
           </h2>
-          <p className="text-white/55 mt-4 max-w-xl mx-auto font-space text-sm">
+          <p className="text-primary/70 mt-4 max-w-xl mx-auto font-space text-sm">
             {tb.subtitle}
           </p>
         </motion.div>
@@ -74,12 +74,12 @@ export const TaxBuckets: React.FC = () => {
                 <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center mb-6">
                   <Icon className={`w-6 h-6 ${iconColor}`} />
                 </div>
-                <span className="text-[10px] font-space font-bold tracking-[0.3em] uppercase text-white/50 block mb-2">
+                <span className="text-[10px] font-space font-bold tracking-[0.3em] uppercase text-primary/60 block mb-2">
                   {bucket.label}
                 </span>
                 <h3 className="text-xl font-space font-bold text-white mb-3">{bucket.title}</h3>
-                <p className="text-white/70 text-sm mb-1 font-medium">{bucket.treatment}</p>
-                <p className="text-white/55 text-sm">{bucket.examples}</p>
+                <p className="text-primary/80 text-sm mb-1 font-medium">{bucket.treatment}</p>
+                <p className="text-primary/60 text-sm">{bucket.examples}</p>
               </motion.div>
             );
           })}
@@ -97,7 +97,7 @@ export const TaxBuckets: React.FC = () => {
           </p>
           <button
             onClick={() => navigate('/contact')}
-            className="px-8 py-3.5 border-2 border-white/20 text-white font-space font-semibold text-sm rounded-xl hover:bg-white/5 transition-colors"
+            className="px-8 py-3.5 border-2 border-primary/30 text-primary font-space font-semibold text-sm rounded-xl hover:bg-primary/5 transition-colors"
           >
             {tb.cta}
           </button>

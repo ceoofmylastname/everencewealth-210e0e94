@@ -73,7 +73,7 @@ export const FAQ: React.FC = () => {
                 >
                   {faq.q}
                 </AccordionTrigger>
-                <AccordionContent className="text-white/60 text-base leading-relaxed pb-5">
+                <AccordionContent className="text-primary/70 text-base leading-relaxed pb-5">
                   {faq.a}
                 </AccordionContent>
               </AccordionItem>

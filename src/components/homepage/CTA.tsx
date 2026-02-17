@@ -74,7 +74,7 @@ export const CTA: React.FC = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.4 }}
-          className="text-white/60 text-lg md:text-xl max-w-2xl mx-auto mb-12 leading-relaxed"
+          className="text-primary/70 text-lg md:text-xl max-w-2xl mx-auto mb-12 leading-relaxed"
         >
           {c.subtitle}
         </motion.p>

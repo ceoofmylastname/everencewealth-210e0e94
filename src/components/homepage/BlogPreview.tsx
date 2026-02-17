@@ -42,7 +42,7 @@ export const BlogPreview: React.FC = () => {
             <h2 className="font-serif text-3xl md:text-5xl font-bold text-white mb-4">
               {bp.headline}
             </h2>
-            <p className="text-white/50 max-w-xl mx-auto text-base md:text-lg">
+            <p className="text-primary/60 max-w-xl mx-auto text-base md:text-lg">
               {bp.subtitle}
             </p>
           </div>
@@ -91,13 +91,13 @@ export const BlogPreview: React.FC = () => {
                   </div>
 
                   <div className="p-6">
-                    <span className="text-[11px] tracking-[0.2em] uppercase font-medium text-white/30 mb-2 block">
+                    <span className="text-[11px] tracking-[0.2em] uppercase font-medium text-primary/50 mb-2 block">
                       {article.category}
                     </span>
                     <h3 className="font-serif text-lg font-semibold text-white leading-snug mb-3 transition-colors duration-300 group-hover:text-[#C5A059]">
                       {article.headline}
                     </h3>
-                    <p className="text-white/50 text-sm leading-relaxed line-clamp-2 mb-4">
+                    <p className="text-primary/60 text-sm leading-relaxed line-clamp-2 mb-4">
                       {article.meta_description}
                     </p>
                     <span className="inline-flex items-center gap-1.5 text-xs font-semibold tracking-wide uppercase transition-colors duration-300" style={{ color: '#C5A059' }}>
@@ -110,7 +110,7 @@ export const BlogPreview: React.FC = () => {
             ))}
           </motion.div>
         ) : (
-          <p className="text-center text-white/40 text-sm">{bp.noArticles}</p>
+          <p className="text-center text-primary/50 text-sm">{bp.noArticles}</p>
         )}
 
         <ScrollReveal delay={0.3}>

@@ -63,7 +63,7 @@ export const SilentKillers: React.FC = () => {
           {/* Gold accent line */}
           <div className="w-16 h-[2px] bg-gradient-to-r from-[#C5A059] to-transparent mb-6" />
           
-          <p className="text-xs font-space font-bold tracking-[0.3em] uppercase text-white/40 mb-4">
+          <p className="text-xs font-space font-bold tracking-[0.3em] uppercase text-primary/60 mb-4">
             {s.badge}
           </p>
           <h2 className="text-3xl md:text-5xl lg:text-6xl font-space font-bold leading-tight max-w-3xl">
@@ -118,7 +118,7 @@ export const SilentKillers: React.FC = () => {
                 </div>
                 
                 <h3 className="text-xl font-space font-bold text-white mb-3">{killer.title}</h3>
-                <p className="text-white/60 text-sm leading-relaxed">{killer.description}</p>
+                <p className="text-primary/70 text-sm leading-relaxed">{killer.description}</p>
               </motion.div>
             );
           })}
