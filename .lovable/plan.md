@@ -1,95 +1,84 @@
 
 
-# Unify All System Emails with Everence Wealth Branding
+# Pending Agents Tab, Admin Password Set, and Agent Password Change
 
 ## Overview
-There are **8 edge functions** that send emails via Resend. Currently, they use inconsistent designs -- some have no logo, mismatched color schemes (blue headers, generic Arial fonts), and lack the Everence brand identity. This plan creates a **shared email template** and applies it uniformly across all functions.
+Three features to add:
+1. A "Pending" tab on the Admin Agents page showing agents who haven't logged in yet
+2. Admin ability to set a password for any agent
+3. Agents can change their own password from the advisor portal
 
-## Current State
+## Implementation
 
-| Function | Purpose | Current Design Issues |
-|---|---|---|
-| `create-agent` | Advisor portal invitation | No logo, plain green header, no footer address |
-| `create-crm-agent` | CRM agent welcome | No logo, **navy blue** header (#1a365d), no brand colors |
-| `send-portal-invitation` | Client portal invite | Has logo, good branding (already closest to target) |
-| `reassign-lead` | Lead reassignment notice | No logo, **blue** header (#1E40AF), minimal footer |
-| `send-lead-notification` | New lead broadcast | No logo, **gold gradient** header, no brand header |
-| `send-escalating-alarms` | Escalating reminders | No logo, varies by urgency, generic footer |
-| `send-reminder-emails` | Calendar reminders | No logo, gold gradient, minimal footer |
-| `check-claim-window-expiry` | Admin: unclaimed lead alert | No logo, **red** header, CSS classes (unreliable in email) |
-| `check-contact-window-expiry` | Admin: contact SLA breach | No logo, **amber** header, CSS classes (unreliable in email) |
+### 1. Add Tabs to Admin Agents Page (`src/pages/portal/admin/AdminAgents.tsx`)
+- Add Tabs component (All Agents / Pending Invitations)
+- "All Agents" tab shows the current agent table
+- "Pending Invitations" tab queries advisors and cross-references with `auth.users.last_sign_in_at` via a new edge function to identify agents who have never logged in
+- Pending tab shows: name, email, date invited, with options to "Resend Invitation" and "Set Password"
 
-## Unified Email Template Design
+### 2. Create Edge Function: `get-pending-agents` 
+New backend function that:
+- Queries all portal advisors
+- Uses the service role key to check `auth.users.last_sign_in_at`
+- Returns agents where `last_sign_in_at` is null (never logged in = pending)
+- Only accessible by portal admins
 
-Every email will share this common structure:
+### 3. Create Edge Function: `update-portal-agent-password`
+New backend function that:
+- Accepts `auth_user_id` and `new_password`
+- Verifies the caller is a portal admin
+- Uses `supabase.auth.admin.updateUserById()` to set the password
+- Validates minimum 8 characters
 
-```text
-+--------------------------------------------------+
-|  [Logo Icon]  EVERENCE WEALTH                    |
-|  Tagline (varies by email type)                  |
-|  Background: Evergreen #1A4D3E                   |
-+--------------------------------------------------+
-|                                                  |
-|  [Content area - specific to each email]         |
-|                                                  |
-|  [CTA Button - Evergreen or contextual color]    |
-|                                                  |
-+--------------------------------------------------+
-|  (c) 2026 Everence Wealth. All rights reserved.  |
-|  455 Market St Ste 1940 PMB 350011,              |
-|  San Francisco, CA 94105                         |
-+--------------------------------------------------+
-```
+### 4. Admin Set Password Dialog (`src/components/portal/admin/SetAgentPasswordDialog.tsx`)
+- Modal dialog with password input and confirmation
+- Calls the `update-portal-agent-password` edge function
+- Shows success/error feedback
 
-**Brand Constants:**
-- Logo: `https://everencewealth.com/logo-icon.png` (48x48)
-- Primary: Evergreen `#1A4D3E`
-- Accent: Gold `#C5A059`
-- Background: Cream `#F0F2F1`
-- Text: Slate `#4A5565`
-- Font: Georgia, serif (matching `send-portal-invitation` template)
+### 5. Resend Invitation
+- Add a "Resend" button on pending agents that calls the existing `create-agent` function logic, or simply re-generates a recovery link and sends via Resend
 
-## Implementation Plan
+### 6. Agent Change Password Page (`src/pages/portal/AdvisorSettings.tsx`)
+- New "Settings" page under `/portal/advisor/settings`
+- Contains a "Change Password" form (current password not required since we use `supabase.auth.updateUser`)
+- Fields: New Password, Confirm Password
+- Calls `supabase.auth.updateUser({ password })` directly (client-side, no edge function needed)
 
-### Step 1: Create shared email wrapper utility
-Create `supabase/functions/shared/email-template.ts` with a `wrapEmailHtml()` function that provides the branded header (with logo) and footer, accepting the inner content and a subtitle string.
+### 7. Add Settings nav item and route
+- Add "Settings" to the `advisorNav` array in `PortalLayout.tsx`
+- Add the route in `App.tsx` under the advisor routes
 
-### Step 2: Update each edge function (8 functions)
+## Technical Details
 
-1. **`create-agent/index.ts`** -- Replace the inline HTML with the shared wrapper. Keep the password reset link as the CTA.
-
-2. **`create-crm-agent/index.ts`** -- Rewrite `generateWelcomeEmailHtml()` to use the shared wrapper. Replace the navy blue scheme with Evergreen branding.
-
-3. **`send-portal-invitation/index.ts`** -- Already well-branded; minor alignment to use the shared wrapper for consistency.
-
-4. **`reassign-lead/index.ts`** -- Replace inline blue-themed HTML with the shared wrapper. Keep lead details table.
-
-5. **`send-lead-notification/index.ts`** -- Update `generateEmailHtml()`, `generateUrgentEmailHtml()`, and `generateAdminUnclaimedEmailHtml()` to wrap content with the branded header/footer. Urgent emails will keep their red accent but within the branded frame.
-
-6. **`send-escalating-alarms/index.ts`** -- Add branded header with logo above the existing urgency-level content.
-
-7. **`send-reminder-emails/index.ts`** -- Update `generateEmailHtml()` to use the branded wrapper instead of the plain gold header.
-
-8. **`check-claim-window-expiry/index.ts`** and **`check-contact-window-expiry/index.ts`** -- Replace CSS `<style>` blocks (unreliable in email clients) with inline styles and the branded wrapper.
-
-### Key Design Rules
-- All styles are **inline** (no `<style>` blocks) for maximum email client compatibility
-- Logo image is always present in the header
-- CTA buttons use `border-radius: 8px`, `padding: 14px 32px`, `font-weight: 600`
-- Urgent/alert emails: branded Evergreen header stays, but the content area uses red/amber accent borders to convey urgency
-- Footer always includes copyright year, company name, and full address
+### Files to Create
+- `supabase/functions/get-pending-agents/index.ts` -- fetches agents with null `last_sign_in_at`
+- `supabase/functions/update-portal-agent-password/index.ts` -- admin sets agent password
+- `src/components/portal/admin/SetAgentPasswordDialog.tsx` -- password set dialog
+- `src/pages/portal/AdvisorSettings.tsx` -- agent settings page with password change
 
 ### Files to Modify
-- `supabase/functions/shared/email-template.ts` (new)
-- `supabase/functions/create-agent/index.ts`
-- `supabase/functions/create-crm-agent/index.ts`
-- `supabase/functions/send-portal-invitation/index.ts`
-- `supabase/functions/reassign-lead/index.ts`
-- `supabase/functions/send-lead-notification/index.ts`
-- `supabase/functions/send-escalating-alarms/index.ts`
-- `supabase/functions/send-reminder-emails/index.ts`
-- `supabase/functions/check-claim-window-expiry/index.ts`
-- `supabase/functions/check-contact-window-expiry/index.ts`
+- `src/pages/portal/admin/AdminAgents.tsx` -- add tabs (All / Pending), pending table, resend + set password actions
+- `src/components/portal/PortalLayout.tsx` -- add "Settings" nav item
+- `src/App.tsx` -- add `/portal/advisor/settings` route
 
-All 8 edge functions will be redeployed after changes.
+### Edge Function: `get-pending-agents`
+- Verifies caller is portal admin via `portal_users` table
+- Queries `advisors` table joined with auth user data
+- Returns list with: id, auth_user_id, first_name, last_name, email, created_at, has_logged_in (boolean)
+
+### Edge Function: `update-portal-agent-password`
+- Verifies caller is portal admin
+- Looks up the advisor by `auth_user_id` in the `advisors` table
+- Calls `supabase.auth.admin.updateUserById(auth_user_id, { password })`
+- Returns success/failure
+
+### Pending Agents Tab UI
+- Table columns: Name, Email, Invited Date, Actions
+- Actions: "Set Password" button (opens dialog), "Resend Invite" button
+- Badge showing count of pending agents on the tab
+
+### Agent Settings Page
+- Simple form with New Password and Confirm Password fields
+- Uses `supabase.auth.updateUser({ password: newPassword })` (works for the currently logged-in user)
+- Success redirects or shows toast confirmation
 
