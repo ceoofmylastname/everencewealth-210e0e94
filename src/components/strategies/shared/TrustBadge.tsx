@@ -14,9 +14,13 @@ export const TrustBadge: React.FC<TrustBadgeProps> = ({ icon: Icon, text, delay 
     whileInView={{ opacity: 1, y: 0 }}
     viewport={{ once: true }}
     transition={{ duration: 0.5, delay }}
-    className="flex items-center gap-2 text-muted-foreground"
+    whileHover={{ scale: 1.05 }}
+    className="flex items-center gap-2 text-muted-foreground group cursor-default"
   >
     <Icon className="w-5 h-5 text-primary" />
-    <span className="text-sm font-medium">{text}</span>
+    <span className="text-sm font-medium relative">
+      {text}
+      <span className="absolute bottom-0 left-0 w-full h-px scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" style={{ background: 'hsl(43,74%,49%)' }} />
+    </span>
   </motion.div>
 );

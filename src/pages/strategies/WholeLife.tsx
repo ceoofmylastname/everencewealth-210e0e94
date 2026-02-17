@@ -106,14 +106,14 @@ const WholeLife: React.FC = () => {
       </div>
 
       <Header />
-      <main className="flex-grow">
-        <WLHero />
-        <WLSpeakable />
-        <WLHowItWorks />
-        <WLComparison />
-        <WLInfiniteBanking />
-        <WLIdealClient />
-        <WLCTA />
+      <main className="flex-grow mx-2 md:mx-4 lg:mx-6 space-y-4 md:space-y-6 py-4 md:py-6">
+        <div className="rounded-3xl overflow-hidden"><WLHero /></div>
+        <div className="rounded-3xl overflow-hidden"><WLSpeakable /></div>
+        <div className="rounded-3xl overflow-hidden"><WLHowItWorks /></div>
+        <div className="rounded-3xl overflow-hidden"><WLComparison /></div>
+        <div className="rounded-3xl overflow-hidden"><WLInfiniteBanking /></div>
+        <div className="rounded-3xl overflow-hidden"><WLIdealClient /></div>
+        <div className="rounded-3xl overflow-hidden"><WLCTA /></div>
       </main>
       <Footer />
     </div>

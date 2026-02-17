@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { MorphingBlob } from '@/components/philosophy/MorphingBlob';
+import { FloatingParticles } from './FloatingParticles';
 
 interface StrategyFormCTAProps {
   headline: string;
@@ -29,6 +30,7 @@ export const StrategyFormCTA: React.FC<StrategyFormCTAProps> = ({
     <section className="relative py-24 md:py-32 overflow-hidden" style={{ background: 'linear-gradient(135deg, hsl(160,48%,21%) 0%, hsl(160,48%,8%) 100%)' }}>
       <MorphingBlob className="absolute top-[-100px] left-[-100px] w-[500px] h-[500px] opacity-15" colors={['hsl(43,74%,49%)', 'hsl(43,74%,60%)']} />
       <MorphingBlob className="absolute bottom-[-100px] right-[-100px] w-[400px] h-[400px] opacity-10" colors={['hsl(160,48%,30%)', 'hsl(160,48%,40%)']} />
+      <FloatingParticles count={15} />
 
       <div className="container max-w-5xl mx-auto px-6 text-center relative z-10">
         <motion.h2
@@ -54,7 +56,7 @@ export const StrategyFormCTA: React.FC<StrategyFormCTAProps> = ({
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ delay: 0.2 }}
-          className="max-w-xl mx-auto rounded-2xl bg-white/[0.06] backdrop-blur-xl border border-white/[0.12] p-8 md:p-10"
+          className="max-w-xl mx-auto rounded-3xl bg-white/[0.06] backdrop-blur-xl border border-white/[0.12] p-8 md:p-10 shadow-[0_40px_80px_-20px_rgba(0,0,0,0.4)]"
         >
           <form onSubmit={handleSubmit} className="space-y-4">
             <input
@@ -62,7 +64,7 @@ export const StrategyFormCTA: React.FC<StrategyFormCTAProps> = ({
               placeholder={namePlaceholder}
               value={form.name}
               onChange={e => setForm(p => ({ ...p, name: e.target.value }))}
-              className="w-full px-5 py-3.5 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-[hsl(43,74%,49%)]/50"
+              className="w-full px-5 py-3.5 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-[hsl(43,74%,49%)]/50 focus:border-[hsl(43,74%,49%)]/40 transition-all duration-300"
               required
             />
             <input
@@ -70,7 +72,7 @@ export const StrategyFormCTA: React.FC<StrategyFormCTAProps> = ({
               placeholder={emailPlaceholder}
               value={form.email}
               onChange={e => setForm(p => ({ ...p, email: e.target.value }))}
-              className="w-full px-5 py-3.5 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-[hsl(43,74%,49%)]/50"
+              className="w-full px-5 py-3.5 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-[hsl(43,74%,49%)]/50 focus:border-[hsl(43,74%,49%)]/40 transition-all duration-300"
               required
             />
             <input
@@ -78,25 +80,28 @@ export const StrategyFormCTA: React.FC<StrategyFormCTAProps> = ({
               placeholder={phonePlaceholder}
               value={form.phone}
               onChange={e => setForm(p => ({ ...p, phone: e.target.value }))}
-              className="w-full px-5 py-3.5 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-[hsl(43,74%,49%)]/50"
+              className="w-full px-5 py-3.5 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-[hsl(43,74%,49%)]/50 focus:border-[hsl(43,74%,49%)]/40 transition-all duration-300"
             />
             <select
               value={form.income}
               onChange={e => setForm(p => ({ ...p, income: e.target.value }))}
-              className="w-full px-5 py-3.5 bg-white/10 border border-white/20 rounded-xl text-white/70 focus:outline-none focus:ring-2 focus:ring-[hsl(43,74%,49%)]/50"
+              className="w-full px-5 py-3.5 bg-white/10 border border-white/20 rounded-xl text-white/70 focus:outline-none focus:ring-2 focus:ring-[hsl(43,74%,49%)]/50 focus:border-[hsl(43,74%,49%)]/40 transition-all duration-300"
             >
               <option value="" className="text-foreground">{incomePlaceholder}</option>
               {incomeRanges.map(r => (
                 <option key={r} value={r} className="text-foreground">{r}</option>
               ))}
             </select>
-            <button
+            <motion.button
               type="submit"
-              className="w-full py-4 rounded-xl font-bold text-lg transition-all duration-300 hover:brightness-110"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="w-full py-4 rounded-xl font-bold text-lg transition-all duration-300 relative overflow-hidden group"
               style={{ background: 'linear-gradient(135deg, hsl(43,74%,49%) 0%, hsl(43,74%,55%) 100%)', color: 'hsl(160,48%,12%)' }}
             >
-              {submitText}
-            </button>
+              <span className="relative z-10">{submitText}</span>
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
+            </motion.button>
           </form>
           <p className="text-xs text-white/50 mt-5">{disclaimer}</p>
         </motion.div>

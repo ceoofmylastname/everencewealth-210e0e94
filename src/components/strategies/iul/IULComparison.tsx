@@ -44,34 +44,19 @@ export const IULComparison: React.FC = () => {
   return (
     <section id="iul-comparison" className="py-24 md:py-32 bg-white">
       <div className="container max-w-7xl mx-auto px-6">
-        <motion.h2
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="text-4xl md:text-5xl lg:text-6xl font-bold text-primary text-center mb-16"
-        >
+        <motion.h2 initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-4xl md:text-5xl lg:text-6xl font-bold text-primary text-center mb-16">
           {s?.title || 'IUL vs. 401k: Side-by-Side'}
         </motion.h2>
 
-        <div className="rounded-2xl border border-border overflow-hidden shadow-sm">
+        <div className="rounded-3xl border border-border overflow-hidden">
           <StrategyComparisonTable leftColumn={leftColumn} rightColumn={rightColumn} />
         </div>
 
-        {/* Winner badge */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          viewport={{ once: true }}
-          className="mt-14 text-center"
-        >
-          <GlassCard className="inline-block px-10 py-7" glow>
+        <motion.div initial={{ opacity: 0, scale: 0.9 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} className="mt-14 text-center">
+          <GlassCard className="inline-block px-10 py-7 shadow-[0_20px_50px_-10px_hsla(43,74%,49%,0.15)] border-[hsla(43,74%,49%,0.2)]" glow>
             <Trophy className="w-12 h-12 mx-auto mb-3" style={{ color: 'hsl(43,74%,49%)' }} />
-            <p className="text-2xl font-bold text-primary">
-              {s?.winner || 'Winner: IUL for Tax-Free Retirement'}
-            </p>
-            <p className="text-muted-foreground mt-1">
-              {s?.winnerDesc || 'Combines growth, protection, and flexibility 401k can\'t match'}
-            </p>
+            <p className="text-2xl font-bold text-primary">{s?.winner || 'Winner: IUL for Tax-Free Retirement'}</p>
+            <p className="text-muted-foreground mt-1">{s?.winnerDesc || 'Combines growth, protection, and flexibility 401k can\'t match'}</p>
           </GlassCard>
         </motion.div>
       </div>

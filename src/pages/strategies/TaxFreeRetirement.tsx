@@ -106,14 +106,14 @@ const TaxFreeRetirement: React.FC = () => {
       </div>
 
       <Header />
-      <main className="flex-grow">
-        <TFRHero />
-        <TFRSpeakable />
-        <TFRTaxTimeBomb />
-        <TFRIncomeStacking />
-        <TFRComparison />
-        <TFRIdealClient />
-        <TFRCTA />
+      <main className="flex-grow mx-2 md:mx-4 lg:mx-6 space-y-4 md:space-y-6 py-4 md:py-6">
+        <div className="rounded-3xl overflow-hidden"><TFRHero /></div>
+        <div className="rounded-3xl overflow-hidden"><TFRSpeakable /></div>
+        <div className="rounded-3xl overflow-hidden"><TFRTaxTimeBomb /></div>
+        <div className="rounded-3xl overflow-hidden"><TFRIncomeStacking /></div>
+        <div className="rounded-3xl overflow-hidden"><TFRComparison /></div>
+        <div className="rounded-3xl overflow-hidden"><TFRIdealClient /></div>
+        <div className="rounded-3xl overflow-hidden"><TFRCTA /></div>
       </main>
       <Footer />
     </div>

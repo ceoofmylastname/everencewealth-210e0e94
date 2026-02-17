@@ -24,11 +24,11 @@ export const IULSpeakable: React.FC = () => {
         <script type="application/ld+json">{JSON.stringify(speakableSchema)}</script>
       </Helmet>
 
-      {/* Subtle grid */}
-      <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'linear-gradient(hsl(160,48%,21%) 1px, transparent 1px), linear-gradient(90deg, hsl(160,48%,21%) 1px, transparent 1px)', backgroundSize: '60px 60px' }} />
+      {/* Dot grid background */}
+      <div className="absolute inset-0 opacity-[0.04]" style={{ backgroundImage: 'radial-gradient(circle, hsl(160,48%,21%) 1px, transparent 1px)', backgroundSize: '24px 24px' }} />
 
       <div className="container max-w-5xl mx-auto px-6 relative z-10">
-        <GlassCard className="p-10 md:p-16" glow>
+        <GlassCard className="p-10 md:p-16 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.12)]" glow tilt depth>
           <div className="iul-speakable-content" itemProp="speakable">
             <motion.p
               initial={{ opacity: 0, y: 20 }}

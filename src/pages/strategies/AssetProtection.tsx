@@ -106,14 +106,14 @@ const AssetProtection: React.FC = () => {
       </div>
 
       <Header />
-      <main className="flex-grow">
-        <APHero />
-        <APSpeakable />
-        <APThreatLandscape />
-        <APProtectionVehicles />
-        <APComparison />
-        <APIdealClient />
-        <APCTA />
+      <main className="flex-grow mx-2 md:mx-4 lg:mx-6 space-y-4 md:space-y-6 py-4 md:py-6">
+        <div className="rounded-3xl overflow-hidden"><APHero /></div>
+        <div className="rounded-3xl overflow-hidden"><APSpeakable /></div>
+        <div className="rounded-3xl overflow-hidden"><APThreatLandscape /></div>
+        <div className="rounded-3xl overflow-hidden"><APProtectionVehicles /></div>
+        <div className="rounded-3xl overflow-hidden"><APComparison /></div>
+        <div className="rounded-3xl overflow-hidden"><APIdealClient /></div>
+        <div className="rounded-3xl overflow-hidden"><APCTA /></div>
       </main>
       <Footer />
     </div>
