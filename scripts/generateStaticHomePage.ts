@@ -625,13 +625,13 @@ function generateStaticHTML(productionAssets: ProductionAssets, language: Langua
       
       <!-- Footer -->
       <footer class="static-footer">
-        <p><strong>Del Sol Prime Homes</strong></p>
-        <p>ED SAN FERNAN, C. Alfonso XIII, 6, 1 OFICINA, 29640 Fuengirola, Málaga, Spain</p>
+        <p><strong>Everence Wealth</strong></p>
+        <p>455 Market St Ste 1940 PMB 350011, San Francisco, CA 94105</p>
         <p>
-          <a href="tel:+34613578416">+34 613 578 416</a> | 
-          <a href="mailto:info@delsolprimehomes.com">info@delsolprimehomes.com</a>
+          <a href="tel:+14155550100">+1-415-555-0100</a> | 
+          <a href="mailto:info@everencewealth.com">info@everencewealth.com</a>
         </p>
-        <p style="margin-top: 1.5rem; font-size: 0.875rem;">© ${new Date().getFullYear()} Del Sol Prime Homes. All rights reserved.</p>
+        <p style="margin-top: 1.5rem; font-size: 0.875rem;">© ${new Date().getFullYear()} Everence Wealth. All rights reserved.</p>
       </footer>
       
     </div>

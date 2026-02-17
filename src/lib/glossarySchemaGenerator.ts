@@ -21,7 +21,7 @@ interface GlossaryData {
   categories: Record<string, GlossaryCategory>;
 }
 
-const BASE_URL = "https://www.delsolprimehomes.com";
+const BASE_URL = "https://www.everencewealth.com";
 
 // Localized glossary names for each language
 const GLOSSARY_NAMES: Record<string, string> = {

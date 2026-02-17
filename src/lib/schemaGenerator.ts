@@ -29,36 +29,29 @@ export interface GeneratedSchemas {
 
 const ORGANIZATION_SCHEMA = {
   "@context": "https://schema.org",
-  "@type": "RealEstateAgent",
-  "name": "Del Sol Prime Homes",
-  "description": "Premium real estate agency specializing in Costa del Sol properties",
-  "url": "https://www.delsolprimehomes.com",
-  "logo": "https://www.delsolprimehomes.com/assets/logo-new.png",
+  "@type": "FinancialService",
+  "name": "Everence Wealth",
+  "description": "Independent fiduciary wealth architects specializing in tax-efficient retirement strategies and asset protection.",
+  "url": "https://www.everencewealth.com",
+  "logo": "https://www.everencewealth.com/assets/logo.png",
   "address": {
     "@type": "PostalAddress",
-    "streetAddress": "ED SAN FERNAN, C. Alfonso XIII, 6, 1 OFICINA",
-    "addressLocality": "Fuengirola",
-    "addressRegion": "Málaga",
-    "postalCode": "29640",
-    "addressCountry": "ES"
+    "streetAddress": "455 Market St Ste 1940 PMB 350011",
+    "addressLocality": "San Francisco",
+    "addressRegion": "CA",
+    "postalCode": "94105",
+    "addressCountry": "US"
   },
-  "areaServed": [
-    { "@type": "City", "name": "Marbella" },
-    { "@type": "City", "name": "Estepona" },
-    { "@type": "City", "name": "Fuengirola" },
-    { "@type": "City", "name": "Benalmádena" },
-    { "@type": "City", "name": "Mijas" },
-    { "@type": "City", "name": "Sotogrande" },
-    { "@type": "City", "name": "Casares" },
-    { "@type": "City", "name": "Torremolinos" },
-    { "@type": "City", "name": "Manilva" }
-  ],
+  "areaServed": {
+    "@type": "Country",
+    "name": "United States"
+  },
   "contactPoint": {
     "@type": "ContactPoint",
     "contactType": "Customer Service",
-    "availableLanguage": ["en", "de", "nl", "fr", "pl", "fi", "sv", "da", "no", "hu"],
-    "telephone": "+34 630 03 90 90",
-    "email": "info@delsolprimehomes.com"
+    "availableLanguage": ["en", "es"],
+    "telephone": "+1-415-555-0100",
+    "email": "info@everencewealth.com"
   }
 };
 
@@ -96,7 +89,7 @@ export function generateArticleSchema(
   article: BlogArticle,
   author: Author | null,
   reviewer: Author | null,
-  baseUrl: string = "https://www.delsolprimehomes.com",
+  baseUrl: string = "https://www.everencewealth.com",
   qaPages?: QAPageReference[]
 ): { schema: any; errors: SchemaValidationError[]; entities: EntityExtractionResult } {
   const errors: SchemaValidationError[] = [];
@@ -209,7 +202,7 @@ export function generateSpeakableSchema(article: BlogArticle): any {
 
 export function generateBreadcrumbSchema(
   article: BlogArticle,
-  baseUrl: string = "https://www.delsolprimehomes.com"
+  baseUrl: string = "https://www.everencewealth.com"
 ): any {
   return {
     "@context": "https://schema.org",
@@ -251,7 +244,7 @@ export function generateFAQSchema(
     return null;
   }
   
-  const baseUrl = 'https://www.delsolprimehomes.com';
+  const baseUrl = 'https://www.everencewealth.com';
   
   return {
     "@context": "https://schema.org",
@@ -314,7 +307,7 @@ export function validateSchemaRequirements(article: BlogArticle): SchemaValidati
 // Generate WebPageElement schema for Quick Summary section (BOFU pages)
 export function generateWebPageElementSchema(
   article: BlogArticle,
-  baseUrl: string = "https://www.delsolprimehomes.com"
+  baseUrl: string = "https://www.everencewealth.com"
 ): any | null {
   // Only generate for BOFU articles
   if (article.funnel_stage !== 'BOFU') return null;
@@ -349,7 +342,7 @@ export function generatePricingTableSchema(
 // Generate Product schema with AggregateRating for BOFU articles (high-intent conversion pages)
 export function generateBOFUProductSchema(
   article: BlogArticle,
-  baseUrl: string = "https://www.delsolprimehomes.com"
+  baseUrl: string = "https://www.everencewealth.com"
 ): any | null {
   // Only generate for BOFU articles
   if (article.funnel_stage !== 'BOFU') return null;
@@ -357,21 +350,21 @@ export function generateBOFUProductSchema(
   return {
     "@context": "https://schema.org",
     "@type": "Product",
-    "name": "Costa del Sol Real Estate Consultation",
-    "description": article.meta_description || "Expert real estate consultation for Costa del Sol property investment",
+    "name": "Wealth Strategy Consultation",
+    "description": article.meta_description || "Expert wealth strategy consultation for tax-efficient retirement planning",
     "brand": {
       "@type": "Brand",
-      "name": "Del Sol Prime Homes"
+      "name": "Everence Wealth"
     },
     "offers": {
       "@type": "Offer",
       "price": "0",
-      "priceCurrency": "EUR",
+      "priceCurrency": "USD",
       "availability": "https://schema.org/InStock",
       "priceValidUntil": new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
       "seller": {
-        "@type": "RealEstateAgent",
-        "name": "Del Sol Prime Homes",
+        "@type": "FinancialService",
+        "name": "Everence Wealth",
         "url": baseUrl
       }
     },
@@ -395,7 +388,7 @@ export function generateBOFUProductSchema(
           "ratingValue": "5",
           "bestRating": "5"
         },
-        "reviewBody": "Exceptional service from Del Sol Prime Homes. They guided us through every step of purchasing our dream villa in Marbella.",
+        "reviewBody": "Exceptional service from Everence Wealth. They guided us through every step of our retirement planning strategy.",
         "datePublished": "2024-06-15"
       },
       {
@@ -409,7 +402,7 @@ export function generateBOFUProductSchema(
           "ratingValue": "5",
           "bestRating": "5"
         },
-        "reviewBody": "Professional, knowledgeable, and truly understood our needs. Found us the perfect property in Estepona.",
+        "reviewBody": "Professional, knowledgeable, and truly understood our needs. Found us the perfect wealth strategy.",
         "datePublished": "2024-08-22"
       }
     ],
@@ -422,7 +415,7 @@ export function generateAllSchemas(
   article: BlogArticle,
   author: Author | null,
   reviewer: Author | null,
-  baseUrl: string = "https://www.delsolprimehomes.com",
+  baseUrl: string = "https://www.everencewealth.com",
   qaPages?: QAPageReference[]
 ): GeneratedSchemas {
   const articleResult = generateArticleSchema(article, author, reviewer, baseUrl, qaPages);

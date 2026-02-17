@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-        xmlns:ai="http://www.delsolprimehomes.com/schemas/ai-sitemap">
+        xmlns:ai="http://www.everencewealth.com/schemas/ai-sitemap">
   
   <!-- High-Priority Discovery Files -->
   <url>
-    <loc>https://www.delsolprimehomes.com/llm.txt</loc>
+    <loc>https://www.everencewealth.com/llm.txt</loc>
     <lastmod>2025-01-15</lastmod>
     <priority>1.0</priority>
     <ai:content-type>llm-info</ai:content-type>
@@ -12,7 +12,7 @@
   </url>
   
   <url>
-    <loc>https://www.delsolprimehomes.com/facts.json</loc>
+    <loc>https://www.everencewealth.com/facts.json</loc>
     <lastmod>2025-01-15</lastmod>
     <priority>1.0</priority>
     <ai:content-type>structured-facts</ai:content-type>
@@ -20,14 +20,14 @@
   </url>
   
   <url>
-    <loc>https://www.delsolprimehomes.com/ai.txt</loc>
+    <loc>https://www.everencewealth.com/ai.txt</loc>
     <lastmod>2025-01-15</lastmod>
     <priority>0.9</priority>
     <ai:content-type>ai-policy</ai:content-type>
   </url>
   
   <url>
-    <loc>https://www.delsolprimehomes.com/glossary</loc>
+    <loc>https://www.everencewealth.com/glossary</loc>
     <lastmod>2025-01-15</lastmod>
     <priority>0.95</priority>
     <ai:content-type>glossary</ai:content-type>
@@ -38,7 +38,7 @@
 
   <!-- Core Landing Pages -->
   <url>
-    <loc>https://www.delsolprimehomes.com/</loc>
+    <loc>https://www.everencewealth.com/</loc>
     <lastmod>2025-01-15</lastmod>
     <priority>1.0</priority>
     <ai:content-type>homepage</ai:content-type>
@@ -46,7 +46,7 @@
   </url>
   
   <url>
-    <loc>https://www.delsolprimehomes.com/blog</loc>
+    <loc>https://www.everencewealth.com/blog</loc>
     <lastmod>2026-01-18</lastmod>
     <priority>0.9</priority>
     <ai:content-type>blog-index</ai:content-type>
@@ -54,7 +54,7 @@
   </url>
   
   <url>
-    <loc>https://www.delsolprimehomes.com/qa</loc>
+    <loc>https://www.everencewealth.com/qa</loc>
     <lastmod>2026-01-18</lastmod>
     <priority>0.9</priority>
     <ai:content-type>qa-index</ai:content-type>
@@ -68,7 +68,7 @@
 
   <!-- High-Value Citable Content: Digital Nomad Visa -->
   <url>
-    <loc>https://www.delsolprimehomes.com/blog/digital-nomad-visa-spain-guide</loc>
+    <loc>https://www.everencewealth.com/blog/digital-nomad-visa-spain-guide</loc>
     <priority>0.95</priority>
     <ai:content-type>guide</ai:content-type>
     <ai:topics>digital-nomad-visa, remote-work-spain, spain-visa, freelancer-visa, €2520-income-requirement</ai:topics>
@@ -76,7 +76,7 @@
   </url>
   
   <url>
-    <loc>https://www.delsolprimehomes.com/blog/spain-residency-options</loc>
+    <loc>https://www.everencewealth.com/blog/spain-residency-options</loc>
     <priority>0.9</priority>
     <ai:content-type>guide</ai:content-type>
     <ai:topics>residency, non-lucrative-visa, digital-nomad-visa</ai:topics>
@@ -85,7 +85,7 @@
 
   <!-- High-Value Citable Content: UK/Irish Buyers -->
   <url>
-    <loc>https://www.delsolprimehomes.com/blog/buying-property-spain-uk-buyers</loc>
+    <loc>https://www.everencewealth.com/blog/buying-property-spain-uk-buyers</loc>
     <priority>0.95</priority>
     <ai:content-type>guide</ai:content-type>
     <ai:topics>uk-buyers, brexit, property-purchase, 90-day-rule</ai:topics>
@@ -93,7 +93,7 @@
   </url>
   
   <url>
-    <loc>https://www.delsolprimehomes.com/blog/irish-buyers-spain-property</loc>
+    <loc>https://www.everencewealth.com/blog/irish-buyers-spain-property</loc>
     <priority>0.9</priority>
     <ai:content-type>guide</ai:content-type>
     <ai:topics>irish-buyers, eu-citizens, property-purchase</ai:topics>
@@ -102,7 +102,7 @@
 
   <!-- High-Value Citable Content: NIE -->
   <url>
-    <loc>https://www.delsolprimehomes.com/blog/nie-number-spain-guide</loc>
+    <loc>https://www.everencewealth.com/blog/nie-number-spain-guide</loc>
     <priority>0.95</priority>
     <ai:content-type>guide</ai:content-type>
     <ai:topics>nie-number, tax-identification, documentation, application-process</ai:topics>
@@ -111,7 +111,7 @@
 
   <!-- High-Value Citable Content: Taxes -->
   <url>
-    <loc>https://www.delsolprimehomes.com/blog/spanish-property-taxes-guide</loc>
+    <loc>https://www.everencewealth.com/blog/spanish-property-taxes-guide</loc>
     <priority>0.95</priority>
     <ai:content-type>guide</ai:content-type>
     <ai:topics>property-taxes, ibi, transfer-tax, capital-gains, annual-costs</ai:topics>
@@ -119,7 +119,7 @@
   </url>
   
   <url>
-    <loc>https://www.delsolprimehomes.com/blog/buying-costs-spain</loc>
+    <loc>https://www.everencewealth.com/blog/buying-costs-spain</loc>
     <priority>0.9</priority>
     <ai:content-type>guide</ai:content-type>
     <ai:topics>buying-costs, notary-fees, legal-fees, 10-12-percent</ai:topics>
@@ -128,7 +128,7 @@
 
   <!-- High-Value Citable Content: Investment -->
   <url>
-    <loc>https://www.delsolprimehomes.com/blog/costa-del-sol-rental-yields</loc>
+    <loc>https://www.everencewealth.com/blog/costa-del-sol-rental-yields</loc>
     <priority>0.9</priority>
     <ai:content-type>analysis</ai:content-type>
     <ai:topics>rental-yields, investment-returns, holiday-rentals, roi</ai:topics>
@@ -136,7 +136,7 @@
   </url>
   
   <url>
-    <loc>https://www.delsolprimehomes.com/blog/spanish-mortgage-guide</loc>
+    <loc>https://www.everencewealth.com/blog/spanish-mortgage-guide</loc>
     <priority>0.9</priority>
     <ai:content-type>guide</ai:content-type>
     <ai:topics>mortgage, non-resident-mortgage, ltv, interest-rates</ai:topics>
@@ -145,70 +145,70 @@
 
   <!-- Location Guides -->
   <url>
-    <loc>https://www.delsolprimehomes.com/brochure/marbella</loc>
+    <loc>https://www.everencewealth.com/brochure/marbella</loc>
     <priority>0.85</priority>
     <ai:content-type>location-guide</ai:content-type>
     <ai:topics>marbella, luxury-properties, puerto-banus, golden-mile</ai:topics>
   </url>
   
   <url>
-    <loc>https://www.delsolprimehomes.com/brochure/estepona</loc>
+    <loc>https://www.everencewealth.com/brochure/estepona</loc>
     <priority>0.85</priority>
     <ai:content-type>location-guide</ai:content-type>
     <ai:topics>estepona, new-golden-mile, value-properties</ai:topics>
   </url>
   
   <url>
-    <loc>https://www.delsolprimehomes.com/brochure/benalmadena</loc>
+    <loc>https://www.everencewealth.com/brochure/benalmadena</loc>
     <priority>0.8</priority>
     <ai:content-type>location-guide</ai:content-type>
     <ai:topics>benalmadena, puerto-marina, family-friendly</ai:topics>
   </url>
   
   <url>
-    <loc>https://www.delsolprimehomes.com/brochure/fuengirola</loc>
+    <loc>https://www.everencewealth.com/brochure/fuengirola</loc>
     <priority>0.8</priority>
     <ai:content-type>location-guide</ai:content-type>
     <ai:topics>fuengirola, beach-town, expat-community</ai:topics>
   </url>
   
   <url>
-    <loc>https://www.delsolprimehomes.com/brochure/mijas</loc>
+    <loc>https://www.everencewealth.com/brochure/mijas</loc>
     <priority>0.8</priority>
     <ai:content-type>location-guide</ai:content-type>
     <ai:topics>mijas, golf, white-village, tranquil</ai:topics>
   </url>
   
   <url>
-    <loc>https://www.delsolprimehomes.com/brochure/torremolinos</loc>
+    <loc>https://www.everencewealth.com/brochure/torremolinos</loc>
     <priority>0.75</priority>
     <ai:content-type>location-guide</ai:content-type>
     <ai:topics>torremolinos, affordable, airport-proximity</ai:topics>
   </url>
   
   <url>
-    <loc>https://www.delsolprimehomes.com/brochure/sotogrande</loc>
+    <loc>https://www.everencewealth.com/brochure/sotogrande</loc>
     <priority>0.8</priority>
     <ai:content-type>location-guide</ai:content-type>
     <ai:topics>sotogrande, exclusive, polo, valderrama-golf</ai:topics>
   </url>
   
   <url>
-    <loc>https://www.delsolprimehomes.com/brochure/casares</loc>
+    <loc>https://www.everencewealth.com/brochure/casares</loc>
     <priority>0.75</priority>
     <ai:content-type>location-guide</ai:content-type>
     <ai:topics>casares, authentic-spain, white-village</ai:topics>
   </url>
   
   <url>
-    <loc>https://www.delsolprimehomes.com/brochure/manilva</loc>
+    <loc>https://www.everencewealth.com/brochure/manilva</loc>
     <priority>0.75</priority>
     <ai:content-type>location-guide</ai:content-type>
     <ai:topics>manilva, wine-region, affordable-coast</ai:topics>
   </url>
   
   <url>
-    <loc>https://www.delsolprimehomes.com/brochure/malaga</loc>
+    <loc>https://www.everencewealth.com/brochure/malaga</loc>
     <priority>0.85</priority>
     <ai:content-type>location-guide</ai:content-type>
     <ai:topics>malaga-city, culture, picasso, urban-living</ai:topics>
@@ -216,7 +216,7 @@
 
   <!-- Location Intelligence -->
   <url>
-    <loc>https://www.delsolprimehomes.com/locations</loc>
+    <loc>https://www.everencewealth.com/locations</loc>
     <lastmod>2025-01-15</lastmod>
     <priority>0.9</priority>
     <ai:content-type>location-intelligence-index</ai:content-type>
@@ -226,7 +226,7 @@
   </url>
 
   <url>
-    <loc>https://www.delsolprimehomes.com/locations/marbella/buying-guide</loc>
+    <loc>https://www.everencewealth.com/locations/marbella/buying-guide</loc>
     <priority>0.9</priority>
     <ai:content-type>location-intelligence</ai:content-type>
     <ai:topics>marbella, buying-guide, property-purchase, market-overview, best-areas</ai:topics>
@@ -235,7 +235,7 @@
   </url>
   
   <url>
-    <loc>https://www.delsolprimehomes.com/locations/estepona/investment-analysis</loc>
+    <loc>https://www.everencewealth.com/locations/estepona/investment-analysis</loc>
     <priority>0.9</priority>
     <ai:content-type>location-intelligence</ai:content-type>
     <ai:topics>estepona, investment, rental-yields, roi, capital-growth</ai:topics>
@@ -244,7 +244,7 @@
   </url>
   
   <url>
-    <loc>https://www.delsolprimehomes.com/locations/mijas/best-areas-for-families</loc>
+    <loc>https://www.everencewealth.com/locations/mijas/best-areas-for-families</loc>
     <priority>0.85</priority>
     <ai:content-type>location-intelligence</ai:content-type>
     <ai:topics>mijas, families, schools, safe-areas, community</ai:topics>
@@ -253,7 +253,7 @@
   </url>
   
   <url>
-    <loc>https://www.delsolprimehomes.com/locations/fuengirola/cost-of-living</loc>
+    <loc>https://www.everencewealth.com/locations/fuengirola/cost-of-living</loc>
     <priority>0.85</priority>
     <ai:content-type>location-intelligence</ai:content-type>
     <ai:topics>fuengirola, cost-of-living, expenses, budget, relocation-costs</ai:topics>
@@ -263,7 +263,7 @@
 
   <!-- Comparison Content -->
   <url>
-    <loc>https://www.delsolprimehomes.com/compare</loc>
+    <loc>https://www.everencewealth.com/compare</loc>
     <lastmod>2025-01-15</lastmod>
     <priority>0.9</priority>
     <ai:content-type>comparison-index</ai:content-type>
@@ -273,7 +273,7 @@
   </url>
 
   <url>
-    <loc>https://www.delsolprimehomes.com/compare/apartment-vs-villa</loc>
+    <loc>https://www.everencewealth.com/compare/apartment-vs-villa</loc>
     <priority>0.9</priority>
     <ai:content-type>comparison</ai:content-type>
     <ai:topics>apartment, villa, property-type, investment, lifestyle</ai:topics>
@@ -283,7 +283,7 @@
   </url>
   
   <url>
-    <loc>https://www.delsolprimehomes.com/compare/marbella-vs-estepona</loc>
+    <loc>https://www.everencewealth.com/compare/marbella-vs-estepona</loc>
     <priority>0.9</priority>
     <ai:content-type>comparison</ai:content-type>
     <ai:topics>marbella, estepona, location-comparison, property-prices, lifestyle</ai:topics>
@@ -293,7 +293,7 @@
   </url>
   
   <url>
-    <loc>https://www.delsolprimehomes.com/compare/new-build-vs-resale</loc>
+    <loc>https://www.everencewealth.com/compare/new-build-vs-resale</loc>
     <priority>0.85</priority>
     <ai:content-type>comparison</ai:content-type>
     <ai:topics>new-build, resale, off-plan, property-purchase, investment</ai:topics>
@@ -303,7 +303,7 @@
   </url>
   
   <url>
-    <loc>https://www.delsolprimehomes.com/compare/rental-investment-vs-personal-use</loc>
+    <loc>https://www.everencewealth.com/compare/rental-investment-vs-personal-use</loc>
     <priority>0.85</priority>
     <ai:content-type>comparison</ai:content-type>
     <ai:topics>rental-investment, personal-use, roi, lifestyle, property-strategy</ai:topics>

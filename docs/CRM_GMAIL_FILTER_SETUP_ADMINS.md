@@ -1,7 +1,7 @@
 # 📧 CRM Gmail Filter Setup — Admins
 
 > **Last updated:** 2026-02-13
-> **Sender:** `crm@notifications.delsolprimehomes.com`
+> **Sender:** `crm@notifications.everencewealth.com`
 > **Audience:** Admin users only
 
 ---

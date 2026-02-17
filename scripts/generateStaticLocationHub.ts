@@ -12,7 +12,7 @@ const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY, {
   global: { headers: { 'x-client-info': 'static-build' } }
 });
 
-const BASE_URL = 'https://www.delsolprimehomes.com';
+const BASE_URL = 'https://www.everencewealth.com';
 const SUPPORTED_LANGUAGES = ['en', 'nl', 'hu', 'de', 'fr', 'sv', 'pl', 'no', 'fi', 'da'];
 
 const LOCALE_MAP: Record<string, string> = {

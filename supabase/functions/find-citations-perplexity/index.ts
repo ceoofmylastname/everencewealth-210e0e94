@@ -670,7 +670,7 @@ If NO suitable source exists, return:
         headers: {
           'Authorization': `Bearer ${PERPLEXITY_API_KEY}`,
           'Accept': 'application/json',
-          'User-Agent': 'LovableCitationBot/1.0 (https://delsolprimehomes.com)',
+          'User-Agent': 'LovableCitationBot/1.0 (https://everencewealth.com)',
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({

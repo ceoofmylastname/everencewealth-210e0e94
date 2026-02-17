@@ -54,7 +54,7 @@ const RedirectChecker = () => {
     markedInDb: 0
   });
 
-  const BASE_URL = "https://www.delsolprimehomes.com";
+  const BASE_URL = "https://www.everencewealth.com";
 
   // Fetch all published content from database
   const fetchAllContent = async (): Promise<RedirectResult[]> => {

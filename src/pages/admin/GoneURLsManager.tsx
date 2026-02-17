@@ -490,7 +490,7 @@ const GoneURLsManager = () => {
           <CardContent className="space-y-4">
             <div className="flex gap-4">
               <Input
-                placeholder="https://www.delsolprimehomes.com/en/old-page or /en/old-page"
+                placeholder="https://www.everencewealth.com/en/old-page or /en/old-page"
                 value={testUrl}
                 onChange={(e) => setTestUrl(e.target.value)}
                 className="flex-1"
@@ -607,7 +607,7 @@ const GoneURLsManager = () => {
                               variant="ghost"
                               size="icon"
                               onClick={() =>
-                                window.open(`https://www.delsolprimehomes.com${url.url_path}`, "_blank")
+                                window.open(`https://www.everencewealth.com${url.url_path}`, "_blank")
                               }
                               title="Test URL"
                             >
