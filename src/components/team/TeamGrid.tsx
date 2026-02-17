@@ -53,7 +53,7 @@ export const TeamGrid = () => {
         <div className="container mx-auto px-4 md:px-6">
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-96 bg-muted animate-pulse rounded-xl" />
+              <div key={i} className="h-96 bg-muted animate-pulse rounded-2xl" />
             ))}
           </div>
         </div>
@@ -61,19 +61,18 @@ export const TeamGrid = () => {
     );
   }
 
-  const filteredMembers = filter === 'founders' 
-    ? teamMembers?.filter(m => m.is_founder) 
+  const filteredMembers = filter === 'founders'
+    ? teamMembers?.filter(m => m.is_founder)
     : teamMembers;
 
   return (
     <section className="py-16 bg-background">
       <div className="container mx-auto px-4 md:px-6">
-        {/* Filter buttons */}
         <div className="flex justify-center gap-4 mb-12">
           <Button
             variant={filter === 'all' ? 'default' : 'outline'}
             onClick={() => setFilter('all')}
-            className={filter === 'all' ? 'bg-prime-gold text-prime-900 hover:bg-prime-gold/90' : ''}
+            className={`rounded-xl ${filter === 'all' ? 'bg-[hsl(43,74%,49%)] text-[hsl(160,48%,12%)] hover:bg-[hsl(43,74%,49%)]/90' : ''}`}
           >
             <Users className="w-4 h-4 mr-2" />
             {t.team?.filters?.all || "All Team Members"}
@@ -81,14 +80,13 @@ export const TeamGrid = () => {
           <Button
             variant={filter === 'founders' ? 'default' : 'outline'}
             onClick={() => setFilter('founders')}
-            className={filter === 'founders' ? 'bg-prime-gold text-prime-900 hover:bg-prime-gold/90' : ''}
+            className={`rounded-xl ${filter === 'founders' ? 'bg-[hsl(43,74%,49%)] text-[hsl(160,48%,12%)] hover:bg-[hsl(43,74%,49%)]/90' : ''}`}
           >
             <Star className="w-4 h-4 mr-2" />
             {t.team?.filters?.founders || "Founders"}
           </Button>
         </div>
 
-        {/* Team grid */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
           {filteredMembers?.map((member, index) => (
             <TeamMemberCard
@@ -100,7 +98,6 @@ export const TeamGrid = () => {
           ))}
         </div>
 
-        {/* Empty state */}
         {(!filteredMembers || filteredMembers.length === 0) && (
           <div className="text-center py-12">
             <Users className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
@@ -111,7 +108,6 @@ export const TeamGrid = () => {
         )}
       </div>
 
-      {/* Modal */}
       <TeamMemberModal
         member={selectedMember}
         isOpen={!!selectedMember}

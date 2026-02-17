@@ -53,9 +53,13 @@ const Team = () => {
       <div className="min-h-screen bg-background">
         <Header />
 
-        <main>
-          <TeamHero />
-          <TeamGrid />
+        <main className="mx-2 md:mx-4 lg:mx-6 space-y-4 md:space-y-6 py-4 md:py-6">
+          <div className="rounded-3xl overflow-hidden">
+            <TeamHero />
+          </div>
+          <div className="rounded-3xl overflow-hidden">
+            <TeamGrid />
+          </div>
         </main>
 
         <Footer />
