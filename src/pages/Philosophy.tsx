@@ -4,6 +4,7 @@ import { useParams } from 'react-router-dom';
 import { Header } from '../components/home/Header';
 import { Footer } from '../components/home/Footer';
 import { PhilosophyHero } from '../components/philosophy/PhilosophyHero';
+import { PhilosophySpeakable } from '../components/philosophy/PhilosophySpeakable';
 import { PhilosophyKillers } from '../components/philosophy/PhilosophyKillers';
 import { PhilosophyBuckets } from '../components/philosophy/PhilosophyBuckets';
 import { PhilosophyCashFlow } from '../components/philosophy/PhilosophyCashFlow';
@@ -121,6 +122,7 @@ const Philosophy: React.FC = () => {
       <Header />
       <main className="flex-grow">
         <PhilosophyHero />
+        <PhilosophySpeakable />
         <PhilosophyKillers />
         <PhilosophyBuckets />
         <PhilosophyCashFlow />
