@@ -26,90 +26,48 @@ export const IULHowItWorks: React.FC = () => {
   return (
     <section className="py-24 md:py-32 bg-muted/30 overflow-hidden relative">
       <div className="container mx-auto px-6">
-        <motion.h2
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="text-4xl md:text-5xl lg:text-6xl font-bold text-primary text-center mb-16"
-        >
+        <motion.h2 initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-4xl md:text-5xl lg:text-6xl font-bold text-primary text-center mb-16">
           {s?.title || 'How IUL Works: The Mechanics'}
         </motion.h2>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-start">
-          {/* Left: Interactive diagram */}
-          <motion.div
-            initial={{ opacity: 0, x: -30 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            className="relative"
-          >
-            {/* SVG diagram */}
-            <div className="bg-card rounded-2xl border border-border p-6 md:p-8 shadow-sm">
+          <motion.div initial={{ opacity: 0, x: -30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} className="relative">
+            <div className="bg-card rounded-3xl border border-border p-6 md:p-8 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.15)]">
               <svg viewBox="0 0 400 220" className="w-full mb-6">
-                {/* Background grid */}
                 {[0, 1, 2, 3, 4].map(i => (
                   <line key={`grid-${i}`} x1="50" y1={40 + i * 40} x2="380" y2={40 + i * 40} stroke="hsl(var(--border))" strokeWidth="0.5" />
                 ))}
-                {/* Labels */}
                 <text x="10" y="45" fontSize="10" fill="hsl(var(--muted-foreground))">+12%</text>
                 <text x="18" y="125" fontSize="10" fill="hsl(var(--muted-foreground))">0%</text>
                 <text x="10" y="205" fontSize="10" fill="hsl(var(--muted-foreground))">-50%</text>
-                {/* Floor line */}
                 <line x1="50" y1="120" x2="380" y2="120" stroke="hsl(43,74%,49%)" strokeWidth="2" strokeDasharray="6 3" />
                 <text x="310" y="115" fontSize="9" fill="hsl(43,74%,49%)" fontWeight="600">0% FLOOR</text>
-                {/* Cap line */}
                 <line x1="50" y1="40" x2="380" y2="40" stroke="hsl(var(--primary))" strokeWidth="2" strokeDasharray="6 3" />
                 <text x="330" y="35" fontSize="9" fill="hsl(var(--primary))" fontWeight="600">CAP</text>
-                {/* Market bar */}
                 {(() => {
                   const barHeight = Math.abs(marketReturn[0]) * (80 / 50);
                   const isNeg = marketReturn[0] < 0;
                   return (
                     <>
-                      <rect
-                        x="100"
-                        y={isNeg ? 120 : 120 - barHeight}
-                        width="60"
-                        height={barHeight || 2}
-                        rx="4"
-                        fill={isNeg ? 'hsl(var(--destructive))' : 'hsl(var(--muted-foreground))'}
-                        opacity="0.6"
-                      />
+                      <rect x="100" y={isNeg ? 120 : 120 - barHeight} width="60" height={barHeight || 2} rx="6" fill={isNeg ? 'hsl(var(--destructive))' : 'hsl(var(--muted-foreground))'} opacity="0.6" className="transition-all duration-300" />
                       <text x="115" y="215" fontSize="10" fill="hsl(var(--muted-foreground))" fontWeight="500">Market</text>
                     </>
                   );
                 })()}
-                {/* IUL bar */}
                 {(() => {
                   const iulHeight = effectiveReturn * (80 / 12);
                   return (
                     <>
-                      <rect
-                        x="240"
-                        y={120 - iulHeight}
-                        width="60"
-                        height={iulHeight || 2}
-                        rx="4"
-                        fill="hsl(var(--primary))"
-                      />
+                      <rect x="240" y={120 - iulHeight} width="60" height={iulHeight || 2} rx="6" fill="hsl(var(--primary))" className="transition-all duration-300" style={{ filter: 'drop-shadow(0 4px 8px hsla(160,48%,21%,0.3))' }} />
                       <text x="248" y="215" fontSize="10" fill="hsl(var(--primary))" fontWeight="500">Your IUL</text>
                     </>
                   );
                 })()}
               </svg>
 
-              {/* Slider */}
               <div className="mb-4">
-                <p className="text-sm font-semibold text-foreground mb-3">
-                  {s?.sliderLabel || 'Adjust Market Performance:'}
-                </p>
-                <Slider
-                  value={marketReturn}
-                  onValueChange={setMarketReturn}
-                  min={-50}
-                  max={50}
-                  step={1}
-                />
+                <p className="text-sm font-semibold text-foreground mb-3">{s?.sliderLabel || 'Adjust Market Performance:'}</p>
+                <Slider value={marketReturn} onValueChange={setMarketReturn} min={-50} max={50} step={1} />
                 <div className="flex justify-between text-xs text-muted-foreground mt-2">
                   <span>-50%</span>
                   <span className="font-semibold text-foreground">{marketReturn[0]}%</span>
@@ -117,8 +75,7 @@ export const IULHowItWorks: React.FC = () => {
                 </div>
               </div>
 
-              {/* Result */}
-              <div className="rounded-xl p-4 bg-primary text-primary-foreground">
+              <div className="rounded-2xl p-4 bg-primary text-primary-foreground shadow-[0_8px_30px_-5px_hsla(160,48%,21%,0.4)]">
                 <p className="text-sm font-semibold">{s?.resultLabel || 'Your IUL Account Value:'}</p>
                 <p className="text-3xl font-bold mt-1">${accountValue.toLocaleString()}</p>
                 <p className="text-xs mt-1 opacity-80">
@@ -130,17 +87,9 @@ export const IULHowItWorks: React.FC = () => {
             </div>
           </motion.div>
 
-          {/* Right: Steps */}
           <div className="space-y-7">
             {steps.map((step, i) => (
-              <ProcessStep
-                key={i}
-                number={i + 1}
-                title={step.title}
-                description={step.description}
-                icon={step.icon}
-                delay={i * 0.1}
-              />
+              <ProcessStep key={i} number={i + 1} title={step.title} description={step.description} icon={step.icon} delay={i * 0.1} isLast={i === steps.length - 1} />
             ))}
           </div>
         </div>

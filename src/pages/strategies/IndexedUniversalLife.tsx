@@ -107,14 +107,14 @@ const IndexedUniversalLife: React.FC = () => {
       </div>
 
       <Header />
-      <main className="flex-grow">
-        <IULHero />
-        <IULSpeakable />
-        <IULHowItWorks />
-        <IULComparison />
-        <IULLivingBenefits />
-        <IULIdealClient />
-        <IULCTA />
+      <main className="flex-grow mx-2 md:mx-4 lg:mx-6 space-y-4 md:space-y-6 py-4 md:py-6">
+        <div className="rounded-3xl overflow-hidden"><IULHero /></div>
+        <div className="rounded-3xl overflow-hidden"><IULSpeakable /></div>
+        <div className="rounded-3xl overflow-hidden"><IULHowItWorks /></div>
+        <div className="rounded-3xl overflow-hidden"><IULComparison /></div>
+        <div className="rounded-3xl overflow-hidden"><IULLivingBenefits /></div>
+        <div className="rounded-3xl overflow-hidden"><IULIdealClient /></div>
+        <div className="rounded-3xl overflow-hidden"><IULCTA /></div>
       </main>
       <Footer />
     </div>
