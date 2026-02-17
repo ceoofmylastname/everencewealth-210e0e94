@@ -40,6 +40,15 @@ export interface ComparisonPage {
 
 const BASE_URL = "https://www.everencewealth.com";
 
+function langPrefix(lang: string): string {
+  return lang === "en" ? "" : `/${lang}`;
+}
+
+const BREADCRUMB_LABELS: Record<string, string> = {
+  en: "Comparisons",
+  es: "Comparaciones",
+};
+
 const ORGANIZATION_SCHEMA = {
   "@context": "https://schema.org",
   "@type": "FinancialService",
@@ -59,7 +68,8 @@ export function generateComparisonArticleSchema(
   comparison: ComparisonPage,
   author?: { name: string; job_title: string; linkedin_url?: string } | null
 ): any {
-  const comparisonUrl = `${BASE_URL}/compare/${comparison.slug}`;
+  const prefix = langPrefix(comparison.language);
+  const comparisonUrl = `${BASE_URL}${prefix}/compare/${comparison.slug}`;
   
   const schema: any = {
     "@context": "https://schema.org",
@@ -128,7 +138,7 @@ export function generateComparisonFAQSchema(comparison: ComparisonPage): any | n
   return {
     "@context": "https://schema.org",
     "@type": "FAQPage",
-    "@id": `${BASE_URL}/compare/${comparison.slug}#faq`,
+    "@id": `${BASE_URL}${langPrefix(comparison.language)}/compare/${comparison.slug}#faq`,
     "inLanguage": comparison.language,
     "mainEntity": comparison.qa_entities.map(qa => ({
       "@type": "Question",
@@ -150,19 +160,19 @@ export function generateComparisonBreadcrumbSchema(comparison: ComparisonPage): 
         "@type": "ListItem",
         "position": 1,
         "name": "Home",
-        "item": BASE_URL
+        "item": `${BASE_URL}${langPrefix(comparison.language)}`
       },
       {
         "@type": "ListItem",
         "position": 2,
-        "name": "Comparisons",
-        "item": `${BASE_URL}/compare`
+        "name": BREADCRUMB_LABELS[comparison.language] || "Comparisons",
+        "item": `${BASE_URL}${langPrefix(comparison.language)}/compare`
       },
       {
         "@type": "ListItem",
         "position": 3,
         "name": comparison.headline,
-        "item": `${BASE_URL}/compare/${comparison.slug}`
+        "item": `${BASE_URL}${langPrefix(comparison.language)}/compare/${comparison.slug}`
       }
     ]
   };
@@ -174,8 +184,10 @@ export function generateComparisonTableSchema(comparison: ComparisonPage): any |
   return {
     "@context": "https://schema.org",
     "@type": "Table",
-    "about": `${comparison.option_a} vs ${comparison.option_b} comparison`,
-    "description": `Detailed comparison table showing differences between ${comparison.option_a} and ${comparison.option_b}`,
+    "about": comparison.headline || `${comparison.option_a} vs ${comparison.option_b}`,
+    "description": comparison.headline
+      ? `${comparison.headline} — ${comparison.option_a} vs ${comparison.option_b}`
+      : `Detailed comparison table showing differences between ${comparison.option_a} and ${comparison.option_b}`,
     "inLanguage": comparison.language
   };
 }
@@ -188,7 +200,7 @@ export function generateComparisonImageSchema(comparison: ComparisonPage): any |
     "@type": "ImageObject",
     "url": comparison.featured_image_url,
     "name": comparison.featured_image_alt || `${comparison.option_a} vs ${comparison.option_b} comparison`,
-    "description": comparison.featured_image_caption || `Visual comparison of ${comparison.option_a} and ${comparison.option_b} for ${comparison.target_audience || 'property buyers'}`,
+    "description": comparison.featured_image_caption || `Visual comparison of ${comparison.option_a} and ${comparison.option_b} for ${comparison.target_audience || 'financial planning'}`,
     "caption": comparison.featured_image_caption,
     "contentUrl": comparison.featured_image_url,
     "inLanguage": comparison.language
