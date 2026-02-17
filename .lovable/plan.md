@@ -1,47 +1,36 @@
 
 
-# Redesign Terms of Service Page to Match Privacy Policy
+# Rebrand /auth Login Page for Everence Wealth
 
 ## Overview
-Rewrite `src/pages/TermsOfService.tsx` to match the premium bento-grid editorial design of the Privacy Policy page, replacing the current dark navy accordion layout with the same evergreen/gold glassmorphic aesthetic.
+Replace the generic white card with "Del Sol Prime Homes CMS" branding with a premium, dark glassmorphic login page matching the Everence Wealth tactical institutional aesthetic used across the CRM and Portal login pages.
 
-## What Changes
+## Design
+- **Background**: Deep evergreen `#0B1F18` with mesh gradient blobs (`#1A4D3E` and `#C5A059/10`) matching the Privacy Policy and Terms pages
+- **Logo**: Everence Wealth logo image (same URL used site-wide) centered above the form
+- **Title**: "Everence Wealth" with subtitle "Content Management System"
+- **Card**: Glassmorphic panel (`bg-white/[0.05] backdrop-blur-xl border border-white/10 rounded-2xl`) -- same style as Portal and CRM login pages
+- **Inputs**: Dark translucent inputs (`bg-white/10 border-white/20 text-white`) with gold focus rings
+- **Tabs**: Custom styled Sign In / Sign Up tabs with gold active indicator
+- **Button**: Gold CTA (`bg-[#C5A059] hover:bg-[#d4b06a] text-[#0B1F18]`) matching the brand
+- **Password toggle**: Eye/EyeOff icon button (matching Portal login)
+- **Footer**: Copyright line "Everence Wealth. All rights reserved."
+- **Animation**: Subtle `framer-motion` fade-in on the card
 
-**File: `src/pages/TermsOfService.tsx`** (full rewrite)
+## Content Changes
+- Remove "Del Sol Prime Homes CMS" -- replace with logo + "Everence Wealth"
+- Remove "Admin Access" -- replace with "Content Management System"
+- Remove the Lock icon circle -- replaced by the brand logo
+- Keep all auth logic (signUp, signIn, session check, redirects) exactly as-is
 
-### Visual Design (mirroring Privacy Policy exactly)
-- Background: Deep evergreen `#0B1F18` with mesh gradient blobs (`#1A4D3E` and `#C5A059`)
-- Gold scroll-progress bar at top using `framer-motion useScroll + useSpring`
-- Fixed header with logo image (same URL) and "Home" back link
-- Full-viewport hero with "TERMS OF SERVICE" in bold uppercase
-- Gold horizontal rule divider and Everence Wealth subtitle
-- Responsive bento grid (2-column on desktop, single on mobile)
-- Glassmorphic cards: `bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-3xl`
-- Watermark numbers (01-07) in each card background
-- Gold icon badges in top-left of each card
-- Hover effects: gold border glow, slight scale-up, title color shift to gold
-- Footer CTA glassmorphic card with gold "Contact Us" button
-- Bottom bar with Privacy, Terms, and Disclosures links
+## Technical Details
 
-### Layout
-- Sections 1 and 7 (Acceptance and Contact) span full width (`lg:col-span-2`)
-- Sections 2-6 alternate in the 2-column grid
-- Staggered `whileInView` animations with `cardVariants`
+**File changed:** `src/pages/Auth.tsx`
 
-### Content (kept as-is, already Everence Wealth branded)
-All 7 sections retain their current financial advisory content -- no real estate or Del Sol references exist. The content already references Everence Wealth, California law, and fiduciary services.
+- Add imports: `framer-motion` (motion), `Eye`/`EyeOff` from lucide-react
+- Remove imports: `Card`, `CardContent`, `CardDescription`, `CardHeader`, `CardTitle`, `Lock`
+- Add `showPassword` state for password visibility toggle
+- Replace the entire JSX return with the new branded layout
+- All auth handler functions remain unchanged
+- Use the logo URL: `https://storage.googleapis.com/msgsndr/TLhrYb7SRrWrly615tCI/media/6993ada8dcdadb155342f28e.png`
 
-### Removed Elements
-- Dark navy `#0a0f1a` background and blue/purple gradient orbs
-- SVG grid pattern background
-- Accordion expand/collapse interaction (replaced with always-visible bento cards)
-- "Key Points to Remember" summary cards section (redundant with bento layout)
-- `font-serif` typography (replaced with bold uppercase tracking)
-- Text "EVERENCE WEALTH" in header (replaced with logo image)
-
-### Technical Details
-- Import `useScroll, useSpring` from framer-motion (drop `AnimatePresence`)
-- Remove `useState` (no accordion state needed)
-- Use same `LOGO_URL` constant as Privacy Policy
-- Same `cardVariants` animation config as Privacy Policy
-- Add `/disclosures` link to footer
