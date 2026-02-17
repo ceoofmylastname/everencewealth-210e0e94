@@ -66,6 +66,7 @@ const Philosophy = lazy(() => import("./pages/Philosophy"));
 const IndexedUniversalLife = lazy(() => import("./pages/strategies/IndexedUniversalLife"));
 const WholeLife = lazy(() => import("./pages/strategies/WholeLife"));
 const TaxFreeRetirement = lazy(() => import("./pages/strategies/TaxFreeRetirement"));
+const AssetProtection = lazy(() => import("./pages/strategies/AssetProtection"));
 const Team = lazy(() => import("./pages/Team"));
 const BuyersGuide = lazy(() => import("./pages/BuyersGuide"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
@@ -472,6 +473,8 @@ const App = () => (
               <Route path="/:lang/estrategias/seguro-vida-entera" element={<WholeLife />} />
               <Route path="/:lang/strategies/tax-free-retirement" element={<TaxFreeRetirement />} />
               <Route path="/:lang/estrategias/retiro-libre-impuestos" element={<TaxFreeRetirement />} />
+              <Route path="/:lang/strategies/asset-protection" element={<AssetProtection />} />
+              <Route path="/:lang/estrategias/proteccion-de-activos" element={<AssetProtection />} />
               
               <Route path="/buyers-guide" element={<Navigate to="/en/buyers-guide" replace />} />
               <Route path="/:lang/buyers-guide" element={<BuyersGuide />} />
