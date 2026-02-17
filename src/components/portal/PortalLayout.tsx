@@ -73,9 +73,11 @@ export function PortalLayout() {
       >
         {/* Brand */}
         <div className="h-16 border-b border-border flex items-center justify-between px-5">
-          <Link to={isAdvisor ? "/portal/advisor/dashboard" : "/portal/client/dashboard"} className="flex items-center gap-2">
-            <Shield className="h-6 w-6 text-primary" />
-            <span className="font-bold text-lg text-foreground" style={{ fontFamily: "'Playfair Display', serif" }}>
+          <Link to={isAdvisor ? "/portal/advisor/dashboard" : "/portal/client/dashboard"} className="flex items-center gap-2.5">
+            <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
+              <Shield className="h-4 w-4 text-primary-foreground" />
+            </div>
+            <span className="font-bold text-lg text-foreground font-serif">
               Everence
             </span>
           </Link>
@@ -88,7 +90,7 @@ export function PortalLayout() {
         </div>
 
         {/* Nav items */}
-        <nav className="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
+        <nav className="flex-1 py-4 px-3 space-y-0.5 overflow-y-auto">
           {navItems.map((item) => {
             const active = location.pathname === item.href || location.pathname.startsWith(item.href + "/");
             return (
@@ -97,9 +99,9 @@ export function PortalLayout() {
                 to={item.href}
                 onClick={() => setMobileOpen(false)}
                 className={cn(
-                  "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                  "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-150",
                   active
-                    ? "bg-primary/10 text-primary"
+                    ? "bg-primary text-primary-foreground shadow-sm"
                     : "text-muted-foreground hover:bg-muted hover:text-foreground"
                 )}
               >
@@ -138,10 +140,20 @@ export function PortalLayout() {
           <Button variant="ghost" size="icon" onClick={() => setMobileOpen(true)}>
             <Menu className="h-5 w-5" />
           </Button>
-          <span className="ml-3 font-semibold text-foreground flex-1" style={{ fontFamily: "'Playfair Display', serif" }}>
+          <span className="ml-3 font-semibold text-foreground flex-1 font-serif">
             {isAdvisor ? "Advisor Portal" : "Client Portal"}
           </span>
           <NotificationBell />
+        </header>
+
+        {/* Desktop top bar */}
+        <header className="hidden lg:flex h-16 border-b border-border bg-card items-center justify-end px-8">
+          <div className="flex items-center gap-3">
+            <NotificationBell />
+            <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-xs font-bold text-primary-foreground">
+              {portalUser?.first_name?.[0]}{portalUser?.last_name?.[0]}
+            </div>
+          </div>
         </header>
 
         <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
