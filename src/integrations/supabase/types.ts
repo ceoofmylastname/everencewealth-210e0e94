@@ -794,6 +794,42 @@ export type Database = {
           },
         ]
       }
+      assessment_leads: {
+        Row: {
+          age_range: string | null
+          created_at: string
+          email: string
+          first_name: string
+          id: string
+          last_name: string
+          phone: string | null
+          retirement_concern: string | null
+          tax_strategy_familiarity: string | null
+        }
+        Insert: {
+          age_range?: string | null
+          created_at?: string
+          email: string
+          first_name: string
+          id?: string
+          last_name: string
+          phone?: string | null
+          retirement_concern?: string | null
+          tax_strategy_familiarity?: string | null
+        }
+        Update: {
+          age_range?: string | null
+          created_at?: string
+          email?: string
+          first_name?: string
+          id?: string
+          last_name?: string
+          phone?: string | null
+          retirement_concern?: string | null
+          tax_strategy_familiarity?: string | null
+        }
+        Relationships: []
+      }
       authors: {
         Row: {
           bio: string
