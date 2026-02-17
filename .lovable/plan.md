@@ -1,67 +1,60 @@
 
 
-# Domain Consolidation: Switch All URLs to everencewealth.com
+# Typeform-Style Assessment Page
 
-## Overview
-There are ~94 files containing "delsolprimehomes" references that need to be updated to "everencewealth.com". This is a comprehensive find-and-replace across the entire project.
+## What We're Building
+A modern, full-screen assessment experience at `/assessment` -- similar to Typeform -- that walks visitors through a few questions about their tax-free retirement goals, collects their contact info, then celebrates with confetti and a personalized congratulations banner.
 
-## Scope of Changes
+## User Flow
 
-### Category 1: Source Code (28 .ts/.tsx files)
-Key files with `BASE_URL` or hardcoded domain references:
+1. **Slide 1**: "What is your primary retirement concern?" (multiple choice)
+2. **Slide 2**: "What is your current age range?" (multiple choice)  
+3. **Slide 3**: "How familiar are you with tax-free retirement strategies?" (multiple choice)
+4. **Slide 4**: Contact info form -- First Name, Last Name, Email, Phone
+5. **On Submit**: Form disappears, confetti bursts from both sides, and a banner appears: "Congratulations [First Name]! You've completed the assessment. A licensed advisor will contact you shortly."
 
-- `src/lib/schemaGenerator.ts` -- structured data schema with old domain, org name, email, phone
-- `src/lib/glossarySchemaGenerator.ts` -- BASE_URL constant
-- `src/hooks/useCanonicalBackfill.ts` -- BASE_URL constant
-- `src/pages/admin/RedirectChecker.tsx` -- BASE_URL constant
-- `src/pages/admin/BrochureManager.tsx` -- preview URL display
-- `src/pages/admin/AEOGuide.tsx` -- example canonical URL
-- `src/components/dev/WebhookPayloadPreview.tsx` -- sample webhook payloads
-- `src/components/cluster-review/GooglePreview.tsx` -- Google SERP preview
-- `src/types/hreflang.ts` -- JSDoc examples
-- `scripts/generateSitemap.ts` -- BASE_URL constant
-- `scripts/generateStaticComparisonPages.ts` -- BASE_URL constant
-- `scripts/testAllLanguagesQA.ts` -- BASE_URL constant
-- Plus ~16 more files (edge functions, other components)
+## Technical Plan
 
-### Category 2: Public Static Files (30+ XML/TXT files)
-- `public/robots.txt` -- Sitemap URL and domain references
-- `public/sitemap.xml` -- already uses everencewealth.com (correct)
-- `public/sitemap-index.xml` -- already uses everencewealth.com (correct)
-- `public/sitemap-core.xml` -- all URLs use delsolprimehomes
-- `public/ai.txt` -- attribution references
-- `public/sitemaps/brochures.xml` -- all URLs
-- `public/sitemaps/glossary.xml` -- all URLs
-- `public/sitemaps/{da,de,en,fi,fr,hu,nl,no,pl,sv}/` -- all language-specific sitemaps (index.xml, blog.xml, qa.xml, locations.xml, comparisons.xml)
+### 1. Database Table
+Create an `assessment_leads` table to store submissions:
+- `id` (uuid, primary key)
+- `first_name` (text, not null)
+- `last_name` (text, not null)
+- `email` (text, not null)
+- `phone` (text)
+- `retirement_concern` (text)
+- `age_range` (text)
+- `tax_strategy_familiarity` (text)
+- `created_at` (timestamptz)
 
-### Category 3: Documentation (2 .md files)
-- `docs/CRM_GMAIL_FILTER_SETUP_AGENTS.md` -- email sender domain
-- `docs/CRM_GMAIL_FILTER_SETUP_ADMINS.md` -- email sender domain
+RLS policy: Allow anonymous inserts (public-facing form), restrict reads to authenticated admins only.
 
-### Category 4: Edge Functions (~10 files in supabase/functions/)
-- Various edge functions with hardcoded domain references
+### 2. New Page: `src/pages/Assessment.tsx`
+- Full-screen, dark glassmorphic background matching the brand aesthetic
+- One question per screen with smooth slide transitions (framer-motion)
+- Progress bar at top showing completion percentage
+- Keyboard-friendly: press Enter or click to advance
+- Back button to revisit previous questions
+- Final slide: validated contact form (zod + react-hook-form)
+- On submit: save to `assessment_leads`, trigger confetti + congratulations banner
 
-## Approach
-A global find-and-replace of all variations:
-- `https://www.delsolprimehomes.com` -> `https://www.everencewealth.com`
-- `www.delsolprimehomes.com` -> `www.everencewealth.com`
-- `delsolprimehomes.com` -> `everencewealth.com`
-- `info@delsolprimehomes.com` -> `info@everencewealth.com`
-- `crm@notifications.delsolprimehomes.com` -> `crm@notifications.everencewealth.com`
-- `"Del Sol Prime Homes"` -> `"Everence Wealth"` (in schema/structured data)
+### 3. Confetti Effect
+A custom canvas-based confetti animation that fires from both left and right edges of the screen when the form is submitted. No external library needed -- lightweight CSS/JS particle effect.
 
-Also update the brand identity in `src/lib/schemaGenerator.ts` (org name, description, address, phone number) to match the Everence Wealth identity already established in `src/constants/home.ts`.
+### 4. Congratulations Banner
+After confetti, a centered card fades in with:
+- "Congratulations, [First Name]!"
+- "You've completed the assessment"
+- "A licensed advisor will contact you shortly"
+- A button to return to the homepage
 
-## Technical Details
+### 5. Route Registration
+Add `/assessment` route to `src/App.tsx` pointing to the new Assessment page.
 
-### Files already correct (no changes needed)
-- `public/sitemap.xml` -- already everencewealth.com
-- `public/sitemap-index.xml` -- already everencewealth.com
-- `src/hooks/useSitemapGeneration.ts` -- already everencewealth.com
+### 6. Fix Hero Button
+The existing "Begin Assessment" link in the Hero already points to `/assessment` -- it will work automatically once the route exists.
 
-### Database consideration
-Past migrations contain old domain references but those are historical records and should NOT be modified.
-
-### Estimated file count
-~94 files will be touched. This will be done methodically file-by-file or in batches by category.
-
+## Files Changed
+- **New**: `src/pages/Assessment.tsx` -- the full assessment experience
+- **Modified**: `src/App.tsx` -- add the `/assessment` route
+- **Database**: Create `assessment_leads` table with RLS policies
