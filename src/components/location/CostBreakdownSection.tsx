@@ -1,4 +1,4 @@
-import { Euro, TrendingUp } from "lucide-react";
+import { DollarSign, TrendingUp } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -29,14 +29,14 @@ export function CostBreakdownSection({ costs, cityName }: CostBreakdownSectionPr
       {/* Section Header */}
       <div className="flex items-center gap-4 mb-10 animate-fade-in">
         <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center shadow-lg shadow-primary/10">
-          <Euro className="w-6 h-6 text-primary" />
+          <DollarSign className="w-6 h-6 text-primary" />
         </div>
         <div>
           <h2 className="text-2xl md:text-3xl font-bold text-foreground">
             Cost Breakdown in {cityName}
           </h2>
           <p className="text-muted-foreground mt-1">
-            Current market prices and fees
+            Current costs and fee structures
           </p>
         </div>
       </div>

@@ -57,7 +57,7 @@ export function LocationCTASection({ cityName, topicName }: LocationCTASectionPr
                 </h2>
                 
                 <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                  {t.locationGuides?.connectWithExperts || "Connect with our local experts who can help you find your perfect property"}
+                  {t.locationGuides?.connectWithExperts || "Connect with our expert advisors who can help you build your financial strategy"}
                   {topicName ? ` ${replaceTopic(t.locationGuides?.andAnswerQuestions || "and answer all your questions about {topic}")}` : ''} {replaceCity(t.locationGuides?.inCity || "in {city}")}.
                 </p>
                 
@@ -79,9 +79,9 @@ export function LocationCTASection({ cityName, topicName }: LocationCTASectionPr
                     className="border-primary/30 hover:bg-primary/5 hover:border-primary/50 w-full sm:w-auto"
                     asChild
                   >
-                    <a href="https://wa.me/34630039090" target="_blank" rel="noopener noreferrer">
+                    <a href="/contact">
                       <Phone className="w-5 h-5 mr-2" />
-                      {t.locationGuides?.contactWhatsApp || "Contact via WhatsApp"}
+                      {t.locationGuides?.contactWhatsApp || "Schedule a Consultation"}
                     </a>
                   </Button>
                 </div>
@@ -94,11 +94,11 @@ export function LocationCTASection({ cityName, topicName }: LocationCTASectionPr
                   </div>
                   <div className="flex items-center gap-2">
                     <Shield className="w-4 h-4 text-primary" />
-                    <span>{t.locationGuides?.licensedAgents || "Licensed Agents"}</span>
+                    <span>{t.locationGuides?.licensedAgents || "Licensed Advisors"}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <MessageCircle className="w-4 h-4 text-primary" />
-                    <span>{t.locationGuides?.multipleLanguages || "10+ Languages"}</span>
+                    <span>{t.locationGuides?.multipleLanguages || "EN/ES"}</span>
                   </div>
                 </div>
               </div>

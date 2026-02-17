@@ -25,7 +25,7 @@ export function UseCaseSection({ content, cityName }: UseCaseSectionProps) {
             When {cityName} Makes Sense
           </h2>
           <p className="text-muted-foreground mt-1">
-            Ideal scenarios and buyer profiles
+            Ideal scenarios and client profiles
           </p>
         </div>
       </div>
