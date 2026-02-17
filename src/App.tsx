@@ -59,6 +59,8 @@ const ComparisonIndex = lazy(() => import("./pages/ComparisonIndex"));
 const LocationHub = lazy(() => import("./pages/LocationHub"));
 const LocationIndex = lazy(() => import("./pages/LocationIndex"));
 const LocationPage = lazy(() => import("./pages/LocationPage"));
+const StateGuidesIndex = lazy(() => import("./pages/StateGuidesIndex"));
+const StateGuidePage = lazy(() => import("./pages/StateGuidePage"));
 const About = lazy(() => import("./pages/About"));
 const Team = lazy(() => import("./pages/Team"));
 const BuyersGuide = lazy(() => import("./pages/BuyersGuide"));
@@ -484,6 +486,10 @@ const App = () => (
               <Route path="/:lang/locations" element={<LocationHub />} />
               <Route path="/:lang/locations/:citySlug" element={<LocationIndex />} />
               <Route path="/:lang/locations/:citySlug/:topicSlug" element={<LocationPage />} />
+
+              {/* State Guides routes */}
+              <Route path="/:lang/retirement-planning" element={<StateGuidesIndex />} />
+              <Route path="/:lang/retirement-planning/:topicSlug" element={<StateGuidePage />} />
 
               {/* Property routes with language prefix */}
               <Route path="/:lang/properties" element={<PropertyFinder />} />
