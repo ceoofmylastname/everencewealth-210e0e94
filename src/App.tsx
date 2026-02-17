@@ -210,6 +210,7 @@ const CrmSalestrailCallLogs = lazy(() => import("./pages/crm/admin/SalestrailCal
 const LandingEn = lazy(() => import("./pages/landing/en"));
 const OptIn = lazy(() => import("./pages/OptIn"));
 const RetargetingLanding = lazy(() => import("./pages/RetargetingLanding"));
+const Assessment = lazy(() => import("./pages/Assessment"));
 
 
 // Loading fallback component
@@ -253,6 +254,7 @@ const App = () => (
               <Route path="/auth/gmail/callback" element={<GmailCallback />} />
               <Route path="/login" element={<Navigate to="/auth" replace />} />
               <Route path="/thank-you" element={<ThankYou />} />
+              <Route path="/assessment" element={<Assessment />} />
               
 
               {/* ========================================== */}
