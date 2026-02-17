@@ -26,6 +26,7 @@ const advisorNav = [
   { label: "Documents", icon: FolderOpen, href: "/portal/advisor/documents" },
   { label: "Invite Client", icon: Send, href: "/portal/advisor/invite" },
   { label: "Messages", icon: MessageSquare, href: "/portal/advisor/messages" },
+  { label: "Settings", icon: Settings, href: "/portal/advisor/settings" },
 ];
 
 const clientNav = [
