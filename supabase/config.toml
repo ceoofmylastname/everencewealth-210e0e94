@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.generate-homepage-images]
 verify_jwt = false
+
+[functions.generate-guide-content]
+verify_jwt = false

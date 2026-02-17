@@ -6989,6 +6989,10 @@ export type Database = {
         Args: { p_agent_id: string }
         Returns: undefined
       }
+      increment_brochure_download_count: {
+        Args: { p_brochure_id: string }
+        Returns: undefined
+      }
       increment_domain_usage: {
         Args: { p_article_id?: string; p_domain: string }
         Returns: {

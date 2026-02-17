@@ -1,12 +1,17 @@
-import { useParams } from "react-router-dom";
+import { useState } from "react";
+import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Download } from "lucide-react";
+import { Download, Share2, Linkedin, Mail, Link as LinkIcon, BookOpen } from "lucide-react";
+import { Helmet } from "react-helmet";
+import { toast } from "@/hooks/use-toast";
+import { EmailGateModal } from "@/components/guides/EmailGateModal";
 
 export default function GuidePage() {
   const { slug } = useParams<{ slug: string }>();
+  const [gateOpen, setGateOpen] = useState(false);
 
   const { data: brochure, isLoading } = useQuery({
     queryKey: ["brochure-public", slug],
@@ -22,6 +27,35 @@ export default function GuidePage() {
     },
     enabled: !!slug,
   });
+
+  const { data: relatedGuides } = useQuery({
+    queryKey: ["related-guides", brochure?.category, brochure?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("brochures")
+        .select("id, title, slug, category, meta_description, cover_image_url, cover_image_alt, download_count")
+        .eq("status", "published")
+        .eq("category", brochure!.category)
+        .neq("id", brochure!.id)
+        .limit(3);
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!brochure?.category && !!brochure?.id,
+  });
+
+  const handleDownload = () => {
+    if (brochure?.gated) {
+      setGateOpen(true);
+    } else if (brochure?.pdf_url) {
+      window.open(brochure.pdf_url, "_blank");
+    }
+  };
+
+  const copyLink = () => {
+    navigator.clipboard.writeText(window.location.href);
+    toast({ title: "Link copied!" });
+  };
 
   if (isLoading) {
     return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Loading guide...</div>;
@@ -47,8 +81,19 @@ export default function GuidePage() {
     image_caption?: string;
   }>) : [];
 
+  const shareUrl = typeof window !== "undefined" ? window.location.href : "";
+
   return (
     <main className="min-h-screen bg-background">
+      <Helmet>
+        <title>{brochure.meta_title || brochure.title}</title>
+        <meta name="description" content={brochure.meta_description} />
+        {brochure.canonical_url && <link rel="canonical" href={brochure.canonical_url} />}
+        {brochure.json_ld_schema && (
+          <script type="application/ld+json">{JSON.stringify(brochure.json_ld_schema)}</script>
+        )}
+      </Helmet>
+
       {/* Hero */}
       <section className="bg-[#1A4D3E] text-white py-16 px-4">
         <div className="max-w-4xl mx-auto">
@@ -61,11 +106,27 @@ export default function GuidePage() {
           {brochure.subtitle && (
             <p className="mt-4 text-lg text-white/80">{brochure.subtitle}</p>
           )}
-          <div className="mt-6 flex items-center gap-4">
-            <Button size="lg" className="bg-amber-500 hover:bg-amber-600 text-white">
+          <div className="mt-6 flex flex-wrap items-center gap-4">
+            <Button size="lg" className="bg-amber-500 hover:bg-amber-600 text-white" onClick={handleDownload}>
               <Download className="h-4 w-4 mr-2" /> Download PDF
             </Button>
             <span className="text-sm text-white/60">{brochure.download_count ?? 0} downloads</span>
+            {/* Share */}
+            <div className="flex items-center gap-1 ml-auto">
+              <Button variant="ghost" size="icon" className="text-white/60 hover:text-white hover:bg-white/10" asChild>
+                <a href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`} target="_blank" rel="noopener noreferrer">
+                  <Linkedin className="h-4 w-4" />
+                </a>
+              </Button>
+              <Button variant="ghost" size="icon" className="text-white/60 hover:text-white hover:bg-white/10" asChild>
+                <a href={`mailto:?subject=${encodeURIComponent(brochure.title)}&body=${encodeURIComponent(shareUrl)}`}>
+                  <Mail className="h-4 w-4" />
+                </a>
+              </Button>
+              <Button variant="ghost" size="icon" className="text-white/60 hover:text-white hover:bg-white/10" onClick={copyLink}>
+                <LinkIcon className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
         </div>
       </section>
@@ -111,22 +172,55 @@ export default function GuidePage() {
             />
             {section.image_url && (
               <figure className="mt-6">
-                <img
-                  src={section.image_url}
-                  alt={section.image_alt || section.title}
-                  className="w-full rounded-lg"
-                  loading="lazy"
-                />
+                <img src={section.image_url} alt={section.image_alt || section.title} className="w-full rounded-lg" loading="lazy" />
                 {section.image_caption && (
-                  <figcaption className="mt-2 text-sm italic text-muted-foreground text-center">
-                    {section.image_caption}
-                  </figcaption>
+                  <figcaption className="mt-2 text-sm italic text-muted-foreground text-center">{section.image_caption}</figcaption>
                 )}
               </figure>
             )}
           </section>
         ))}
       </article>
+
+      {/* Related Guides */}
+      {relatedGuides && relatedGuides.length > 0 && (
+        <section className="bg-muted/50 py-12 px-4">
+          <div className="max-w-5xl mx-auto">
+            <h2 className="text-xl font-bold mb-6" style={{ fontFamily: "'Playfair Display', serif" }}>Related Guides</h2>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {relatedGuides.map((g) => (
+                <Link key={g.id} to={`/guides/${g.slug}`} className="group border rounded-lg overflow-hidden bg-card hover:shadow-lg transition-shadow">
+                  {g.cover_image_url && (
+                    <img src={g.cover_image_url} alt={g.cover_image_alt || g.title} className="w-full h-36 object-cover" loading="lazy" />
+                  )}
+                  <div className="p-4 space-y-2">
+                    <h3 className="font-semibold group-hover:text-primary transition-colors">{g.title}</h3>
+                    <p className="text-sm text-muted-foreground line-clamp-2">{g.meta_description}</p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Sticky Mobile CTA */}
+      <div className="fixed bottom-0 left-0 right-0 bg-card border-t p-3 flex items-center justify-between sm:hidden z-40">
+        <div className="text-xs text-muted-foreground">
+          <Download className="h-3 w-3 inline mr-1" />{brochure.download_count ?? 0} downloads
+        </div>
+        <Button size="sm" className="bg-amber-500 hover:bg-amber-600 text-white" onClick={handleDownload}>
+          <Download className="h-3 w-3 mr-1" /> Download PDF
+        </Button>
+      </div>
+
+      <EmailGateModal
+        open={gateOpen}
+        onOpenChange={setGateOpen}
+        brochureId={brochure.id}
+        brochureTitle={brochure.title}
+        pdfUrl={brochure.pdf_url}
+      />
     </main>
   );
 }
