@@ -1,104 +1,119 @@
 
-# Change Gold Text to #09301B on White-Background Sections (4 Strategy Pages)
+# Fix: English as Default Language for Blog, QA & Comparisons
 
-## The Problem
-On all 4 strategy pages, large headings and icons that use `text-primary` (which resolves to light gold: `hsl(51, 78%, 70%)`) appear on white or light muted backgrounds. This is poor contrast and the user wants them to be dark forest green `#09301B` instead.
+## Problem Summary
 
-## What "gold text" means in this codebase
-- `text-primary` = CSS variable `--primary: 51 78% 70%` = Light Gold `#EDDB77`
-- This is used for: h2 headings, icon colors, testimonial labels, inline `text-primary` badges, border-primary accents
-- The screenshots confirm: large section titles like "How Whole Life Works", "How IUL Works", "The Tax Time Bomb", "The Threat Landscape" all appear in light gold against a near-white background
+When visiting `/en/blog`, `/en/qa`, and the homepage `/`, content shows in a mix of languages (Spanish appears alongside English). The user wants English to always be the default, so:
+- `/en/blog` → shows only English articles by default
+- `/en/qa` → shows only English Q&As by default  
+- `/en/compare` → already works correctly (uses URL lang as default)
+- Homepage blog teaser → should always show English articles when on the root `/` path
 
-## Strategy
-We cannot change the CSS variable globally as gold is correct on dark/green hero/CTA backgrounds. Instead, we replace `text-primary` → `text-[#09301B]` (and inline color styles) **only in the light-background components** across the 4 pages.
+## Root Causes Found
 
-## Files to Update
+### 1. BlogIndex (`src/pages/BlogIndex.tsx`)
+The `selectedLanguage` state comes from URL query params: `searchParams.get("lang") || "all"`. When a user visits `/en/blog`, there's no `?lang=en` in the URL, so it defaults to `"all"` — showing every language including Spanish. The `lang` URL route param (`en`) is read but **never used as the default filter**.
 
-### Whole Life Page
-1. **`WLHowItWorks.tsx`** — Section uses `bg-muted/30` (light)
-   - Line 58: `text-primary` heading → `text-[#09301B]`
+**Fix:** Change the default to use the URL `lang` param:
+```
+const selectedLanguage = searchParams.get("lang") || lang;
+```
+This makes `/en/blog` default to English articles, while still allowing the user to manually select "All Languages" or "Spanish" from the filter dropdown.
 
-2. **`WLComparison.tsx`** — `bg-white`
-   - Line 51: `text-primary` heading → `text-[#09301B]`
-   - Line 67: Scale icon inline color → `#09301B`
-   - Line 68: `text-primary` winner text → `text-[#09301B]`
+### 2. QAIndex (`src/pages/QAIndex.tsx`)
+The `languageFilter` state is initialized to `'all'`:
+```ts
+const [languageFilter, setLanguageFilter] = useState<string>('all');
+```
+When visiting `/en/qa`, the `lang` URL param is `'en'` but is never used as the initial filter value.
 
-3. **`WLIdealClient.tsx`** — `bg-white`
-   - Line 34: `text-primary` heading → `text-[#09301B]`
-   - Line 40: `!border-l-primary` → keep (border accent stays gold)
-   - Line 42: `text-primary` CheckCircle icon → `text-[#09301B]`
-   - Line 55: `text-primary` list icons → `text-[#09301B]`
+**Fix:** Initialize with the URL `lang` param:
+```ts
+const [languageFilter, setLanguageFilter] = useState<string>(lang);
+```
 
-4. **`WLInfiniteBanking.tsx`** — Light gradient background
-   - Line 24: `text-primary` heading → `text-[#09301B]`
-   - Line 71: `text-primary` MessageCircle icon → `text-[#09301B]`
-   - Line 72: `text-primary` testimonial label → `text-[#09301B]`
+### 3. Homepage BlogTeaser (`src/components/home/sections/ReviewsAndBlog.tsx`)
+The `BlogTeaser` component uses `currentLanguage` from the `LanguageContext`. The homepage is at `/` which has no language prefix in the URL, so `getLanguageFromPath` returns `null`. The context then falls back to `localStorage.getItem('preferredLanguage')` — if the user ever browsed a Spanish page, `localStorage` holds `'es'` and Spanish articles appear on the homepage.
 
-5. **`WLSpeakable.tsx`** — `bg-white` (only trust badges, no primary text here — OK as-is)
+**Fix:** In `BlogTeaser`, when querying articles, force English (`'en'`) when `currentLanguage` would normally be used for the DB query — since the homepage has no language prefix, always fetch English articles for the homepage teaser. The display language (translations) can still follow `currentLanguage`, but the article fetch should default to `'en'`.
 
-### IUL Page
-6. **`IULHowItWorks.tsx`** — `bg-muted/30` (light)
-   - Line 29: `text-primary` heading → `text-[#09301B]`
+More precisely: update the `ReviewsAndBlog.tsx` query to always fetch `'en'` articles for the homepage context (since the homepage `/` is the English homepage). The `currentLanguage` on the root path should resolve to `'en'` — we can also fix `LanguageContext` to clear `localStorage` and return `'en'` as default when the path is `/`.
 
-7. **`IULComparison.tsx`** — `bg-white`
-   - Line 47: `text-primary` heading → `text-[#09301B]`
-   - Line 57: Trophy icon inline color → `#09301B`
-   - Line 58: `text-primary` winner text → `text-[#09301B]`
+## Files to Change
 
-8. **`IULLivingBenefits.tsx`** — Light gradient background
-   - Line 22: `text-primary` heading → `text-[#09301B]`
-   - Line 40: `text-primary` benefit text → `text-[#09301B]`
-   - Line 51: `text-primary` MessageCircle icon → `text-[#09301B]`
-   - Line 52: `text-primary` testimonial label → `text-[#09301B]`
+### File 1: `src/pages/BlogIndex.tsx` — line 28
 
-9. **`IULIdealClient.tsx`** — `bg-white`
-   - Line 33: `text-primary` heading → `text-[#09301B]`
-   - Line 40: CheckCircle icon → `text-[#09301B]`
-   - Line 49: list icons → `text-[#09301B]`
+**Current:**
+```ts
+const selectedLanguage = searchParams.get("lang") || "all";
+```
+**Change to:**
+```ts
+const selectedLanguage = searchParams.get("lang") || lang;
+```
 
-### Tax-Free Retirement Page
-10. **`TFRTaxTimeBomb.tsx`** — `bg-muted/30` (light)
-    - Line 53: `text-primary` heading → `text-[#09301B]`
-    - Line 75: `text-primary` inline withdrawal label → `text-[#09301B]`
-    - Line 141: `text-primary` "$0" value → `text-[#09301B]`
+This ensures visiting `/en/blog` defaults to English, `/es/blog` defaults to Spanish, etc. Users can still change the filter manually.
 
-11. **`TFRIncomeStacking.tsx`** — `bg-white`
-    - Line 25: `text-primary` heading → `text-[#09301B]`
-    - Line 78: `text-primary` total value → `text-[#09301B]`
+### File 2: `src/pages/QAIndex.tsx` — line 35
 
-12. **`TFRIdealClient.tsx`** — `bg-white`
-    - Line 34: `text-primary` heading → `text-[#09301B]`
-    - Line 42: CheckCircle → `text-[#09301B]`
-    - Line 55: list icons → `text-[#09301B]`
+**Current:**
+```ts
+const [languageFilter, setLanguageFilter] = useState<string>('all');
+```
+**Change to:**
+```ts
+const [languageFilter, setLanguageFilter] = useState<string>(lang);
+```
 
-13. **`TFRComparison.tsx`** — `bg-muted/30` (light)
-    - Line 45: `text-primary` heading → `text-[#09301B]`
-    - Line 61-63: `text-primary` winner badge → `text-[#09301B]` + border/bg updated
+This ensures visiting `/en/qa` defaults to English Q&As.
 
-### Asset Protection Page
-14. **`APThreatLandscape.tsx`** — `bg-muted/30` (light)
-    - Line 37: `text-primary` heading → `text-[#09301B]`
+### File 3: `src/i18n/LanguageContext.tsx` — `getInitialLanguage` function
 
-15. **`APProtectionVehicles.tsx`** — `bg-white`
-    - Line 25: `text-primary` heading → `text-[#09301B]`
+When the path is `/` (no language segment), the context currently falls back to `localStorage`. This causes the homepage to "remember" a previous Spanish session.
 
-16. **`APIdealClient.tsx`** — `bg-white`
-    - Line 34: `text-primary` heading → `text-[#09301B]`
-    - Line 42: CheckCircle → `text-[#09301B]`
-    - Line 55: list icons → `text-[#09301B]`
+**Fix:** Clear the `localStorage` fallback when on the root path — always return `'en'` for the root path:
+```ts
+const getInitialLanguage = (): Language => {
+  const urlLang = getLanguageFromPath(location.pathname);
+  if (urlLang) return urlLang;
+  
+  // Root path (/) always defaults to English, regardless of localStorage
+  if (location.pathname === '/' || location.pathname === '') {
+    return Language.EN;
+  }
+  
+  const stored = localStorage.getItem('preferredLanguage');
+  if (stored && VALID_LANGUAGES.includes(stored as Language)) {
+    return stored as Language;
+  }
+  
+  return Language.EN;
+};
+```
 
-17. **`APComparison.tsx`** — `bg-muted/30` (light)
-    - Line 47: `text-primary` heading → `text-[#09301B]`
-    - Line 63: `text-primary` winner badge → `text-[#09301B]`
+Also update the `useEffect` that syncs language with URL changes so that when returning to `/`, it resets to `'en'`:
+```ts
+useEffect(() => {
+  const urlLang = getLanguageFromPath(location.pathname);
+  if (urlLang && urlLang !== currentLanguage) {
+    setCurrentLanguage(urlLang);
+    localStorage.setItem('preferredLanguage', urlLang);
+  } else if (!urlLang && (location.pathname === '/' || location.pathname === '')) {
+    // Root path always resets to English
+    if (currentLanguage !== Language.EN) {
+      setCurrentLanguage(Language.EN);
+    }
+  }
+}, [location.pathname]);
+```
 
-## What is NOT changed
-- Hero sections (dark/green backgrounds — gold is correct there)
-- CTA sections (dark green backgrounds — gold text is correct)
-- Chart SVG lines/bars (gold accents are decorative, not text)
-- The numbered step circles (gold background with dark text — those are correct)
-- Speakable sections (no prominent `text-primary` headings)
-- `border-primary` and `bg-primary` elements (borders/fills stay as-is)
-- Dark background testimonials (gold text correct on dark)
+## What Stays the Same
+- Users can still manually change the language filter in the Blog and QA index pages
+- Spanish-language routes (`/es/blog`, `/es/qa`) continue to default to Spanish
+- All other pages with explicit `/lang/` URL prefixes remain unaffected
+- The homepage translations still respect the user's selected language preference once they explicitly switch
 
-## Files Modified (17 components)
-All files are in `src/components/strategies/` subfolders.
+## Summary of Files Modified
+1. `src/pages/BlogIndex.tsx` — 1 line change: default language filter to URL `lang` param
+2. `src/pages/QAIndex.tsx` — 1 line change: initialize language filter to URL `lang` param
+3. `src/i18n/LanguageContext.tsx` — root path always resolves to English, not localStorage fallback
