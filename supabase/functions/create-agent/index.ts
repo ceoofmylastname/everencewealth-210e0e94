@@ -123,7 +123,9 @@ Deno.serve(async (req) => {
       authUserId = authUser.user.id;
     }
 
-    // 2. Create portal_users record
+    // 2. Create portal_users record — clean up any stale orphaned record first
+    await adminClient.from("portal_users").delete().eq("auth_user_id", authUserId);
+
     const { data: portalUser, error: puError } = await adminClient
       .from("portal_users")
       .insert({
@@ -148,7 +150,10 @@ Deno.serve(async (req) => {
       );
     }
 
-    // 3. Create advisors record
+    // 3. Create advisors record — clean up any stale orphaned record first
+    // (can happen if a previous delete removed the auth user but left an advisors row)
+    await adminClient.from("advisors").delete().eq("email", email.toLowerCase());
+
     const { error: advError } = await adminClient.from("advisors").insert({
       auth_user_id: authUserId,
       portal_user_id: portalUser.id,
