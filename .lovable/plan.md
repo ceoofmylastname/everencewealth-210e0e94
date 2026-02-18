@@ -1,77 +1,150 @@
 
-# Fix: Agent Invitation Email Logo + Reset Password Page Stuck
+# Messaging Email Notifications — Bidirectional Alert System
 
-## Root Cause Analysis
+## What We're Building
 
-### Bug 1 — Broken Logo in All Emails
-Every edge function uses this logo URL in `brandedEmailWrapper`:
-`https://everencewealth.com/logo-icon.png`
+When either an advisor or a client sends a message, an email notification fires automatically to the **recipient** containing:
+- A preview of the message content
+- Who sent it
+- A direct login link to the portal to reply
 
-This domain either doesn't serve the image, blocks hotlinking, or the path doesn't exist. Email clients show a broken image icon. The correct, publicly accessible logo is:
-`https://storage.googleapis.com/msgsndr/TLhrYb7SRrWrly615tCI/media/6993ada8dcdadb155342f28e.png`
-
-This affects **8 edge functions** that all share the same `brandedEmailWrapper` pattern.
-
-### Bug 2 — Reset Password Page Stuck on "Verifying your reset link..."
-The flow when an agent clicks "Set Your Password":
-
-1. Email link → Supabase auth server verifies token
-2. Supabase redirects to `/portal/reset-password#access_token=...&type=recovery`
-3. The Supabase JS client detects the hash and fires `PASSWORD_RECOVERY` via `onAuthStateChange`
-4. Page sets `ready = true` and shows the form
-
-**The race condition:** `onAuthStateChange` is registered inside a `useEffect` which runs AFTER the initial React render. If the Supabase client processes the URL hash before the listener is registered, the `PASSWORD_RECOVERY` event fires and is missed — `ready` stays `false` forever.
-
-The current hash check `window.location.hash.includes("type=recovery")` should catch this, BUT it only works when the raw hash is still present. Once Supabase's client exchanges the token, it clears the hash, so if the effect runs after token exchange, that check also misses.
-
-**The fix:** Add an immediate `supabase.auth.getSession()` check on mount. If Supabase already auto-established a session from the recovery URL (which it does), the session will exist and we can set `ready = true` right away — no event listener required.
+This uses a single new backend function `notify-portal-message` triggered from both `AdvisorMessages.tsx` and `ClientMessages.tsx` immediately after a message is successfully inserted.
 
 ---
 
-## Changes Required
+## How It Works (Flow)
 
-### 1. Fix Logo in All 8 Edge Functions
+**Advisor sends message to Client:**
+1. Advisor types and sends message in `/portal/advisor/messages`
+2. Message inserts into `portal_messages` (already working)
+3. Frontend calls `notify-portal-message` edge function with `{ conversation_id, message_content, sender_role: "advisor" }`
+4. Edge function looks up the conversation → finds the `client_id` → gets client's email from `portal_users`
+5. Resend delivers email to client: "Your advisor sent you a message" + message preview + "Login to Reply" button → `/portal/login`
 
-Replace `https://everencewealth.com/logo-icon.png` with the correct Google Storage URL in every `brandedEmailWrapper` function.
+**Client sends message to Advisor:**
+1. Client types and sends in `/portal/client/messages`
+2. Message inserts into `portal_messages` (already working)
+3. Frontend calls `notify-portal-message` with `{ conversation_id, message_content, sender_role: "client" }`
+4. Edge function looks up the conversation → finds the `advisor_id` → gets advisor's email from `portal_users`
+5. Resend delivers email to advisor: "Your client sent you a message" + message preview + "Login to Reply" button → `/portal/login`
 
-Files to update:
-- `supabase/functions/create-agent/index.ts`
-- `supabase/functions/send-portal-invitation/index.ts`
-- `supabase/functions/check-contact-window-expiry/index.ts`
-- `supabase/functions/check-claim-window-expiry/index.ts`
-- `supabase/functions/reassign-lead/index.ts`
-- `supabase/functions/send-escalating-alarms/index.ts`
-- (+ any remaining 2 of the 8)
+---
 
-### 2. Fix PortalResetPassword.tsx — Race Condition
+## Architecture
 
-**Current logic (broken):**
+```text
+[Advisor UI sends message]           [Client UI sends message]
+         │                                      │
+         ▼                                      ▼
+portal_messages INSERT               portal_messages INSERT
+         │                                      │
+         ▼                                      ▼
+invoke("notify-portal-message", {    invoke("notify-portal-message", {
+  conversation_id,                     conversation_id,
+  message_content,                     message_content,
+  sender_role: "advisor"               sender_role: "client"
+})                                   })
+         │                                      │
+         └──────────────┬───────────────────────┘
+                        ▼
+         notify-portal-message edge function
+                        │
+         ┌──────────────▼──────────────┐
+         │  Look up conversation       │
+         │  Determine recipient:       │
+         │  - if sender=advisor →      │
+         │    recipient = client       │
+         │  - if sender=client  →      │
+         │    recipient = advisor      │
+         │                             │
+         │  Fetch recipient email      │
+         │  from portal_users          │
+         └──────────────┬──────────────┘
+                        │
+                        ▼
+              Resend API → Email sent
 ```
-useEffect → register onAuthStateChange → wait for PASSWORD_RECOVERY event
-                                       → check window.location.hash
+
+---
+
+## Email Templates
+
+### To Client (when advisor sends message)
+```
+Subject: [Advisor Name] sent you a message — Everence Wealth Portal
+
+Header: Everence Wealth (branded green)
+
+Hi [Client First Name],
+
+Your advisor, [Advisor Name], has sent you a new message:
+
+┌──────────────────────────────────────────────┐
+│ "[Message content preview, up to 300 chars]" │
+└──────────────────────────────────────────────┘
+
+[Login to Reply]  ← button → https://everencewealth.lovable.app/portal/login
+
+You received this because you have an active conversation in your Everence Wealth portal.
 ```
 
-**New logic (fixed):**
+### To Advisor (when client sends message)
 ```
-useEffect → immediately call getSession()
-          → if session exists → setReady(true) ✓
-          → register onAuthStateChange as backup for PASSWORD_RECOVERY
-          → check window.location.hash as secondary fallback
-```
+Subject: [Client Name] replied to your message — Everence Wealth Portal
 
-The `getSession()` call is the key fix. When Supabase redirects back with a recovery token in the hash, it auto-signs the user in. Calling `getSession()` on mount will immediately return that session, so we can show the form without waiting for any event.
+Hi [Advisor First Name],
+
+Your client, [Client Name], has sent you a new message:
+
+┌──────────────────────────────────────────────┐
+│ "[Message content preview, up to 300 chars]" │
+└──────────────────────────────────────────────┘
+
+[View Message]  ← button → https://everencewealth.lovable.app/portal/login
+
+```
 
 ---
 
 ## Files Changed
 
-- `supabase/functions/create-agent/index.ts` — logo URL fix
-- `supabase/functions/send-portal-invitation/index.ts` — logo URL fix
-- `supabase/functions/check-contact-window-expiry/index.ts` — logo URL fix
-- `supabase/functions/check-claim-window-expiry/index.ts` — logo URL fix
-- `supabase/functions/reassign-lead/index.ts` — logo URL fix
-- `supabase/functions/send-escalating-alarms/index.ts` — logo URL fix
-- (+ remaining 2 edge function files)
-- `src/pages/portal/PortalResetPassword.tsx` — race condition fix with `getSession()` fallback
+### New File: `supabase/functions/notify-portal-message/index.ts`
+- Accepts `{ conversation_id, message_content, sender_role }` in body
+- Uses service role client to look up `portal_conversations` and join `portal_users` for both parties
+- Determines recipient based on `sender_role`
+- Sends branded Resend email via `portal@everencewealth.com`
+- Returns `{ success: true }` — errors are logged but non-blocking (message is already delivered)
+- Auth-protected: requires valid JWT from the caller
 
-No database changes required.
+### Modified: `src/pages/portal/advisor/AdvisorMessages.tsx`
+- After successful `portal_messages` insert in `handleSend()`, invoke `notify-portal-message` with `sender_role: "advisor"`
+- Fire-and-forget (no await needed, won't block the UI)
+
+### Modified: `src/pages/portal/client/ClientMessages.tsx`
+- After successful `portal_messages` insert in `handleSend()`, invoke `notify-portal-message` with `sender_role: "client"`
+- Fire-and-forget (no await needed, won't block the UI)
+
+---
+
+## Technical Details
+
+### Edge Function Auth
+- `verify_jwt = false` in config.toml
+- Manually validates the JWT using `getClaims()` to get sender's identity
+- Uses `SUPABASE_SERVICE_ROLE_KEY` admin client only for DB lookups (not for auth bypass)
+
+### Email Sender
+- `from: "Everence Wealth Portal <portal@everencewealth.com>"`
+- Subject lines follow existing CRM convention
+
+### Error Handling
+- If recipient email is not found → log and return gracefully (message was already sent)
+- If Resend fails → log error, return `{ success: false }` but don't throw (non-blocking)
+- The message itself is never blocked by the notification system
+
+### Login URL
+- Points to `https://everencewealth.lovable.app/portal/login` (published URL, always valid)
+
+### No Database Changes Required
+- All data needed already exists: `portal_conversations`, `portal_messages`, `portal_users`
+- No new tables or schema migrations needed
