@@ -254,7 +254,7 @@ export default function AdvisorDashboard() {
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
           <div className="flex items-center justify-between p-5 border-b border-gray-100">
             <h2 className="text-base font-semibold text-gray-900">Recent Clients</h2>
-            <Link to="/portal/advisor/clients" className="text-xs font-semibold hover:underline" style={{ color: GOLD }}>
+            <Link to="/portal/advisor/clients" className="text-xs font-semibold text-[#1A4D3E] hover:text-[#143d30] hover:underline">
               View all
             </Link>
           </div>
