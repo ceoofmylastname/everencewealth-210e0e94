@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
+import glossaryHeroImage from "@/assets/glossary-hero.jpg";
 import { Helmet } from "react-helmet";
 import { Link, useParams } from "react-router-dom";
 import { Search, Book, ChevronRight, ExternalLink, Award, CheckCircle2 } from "lucide-react";
@@ -253,40 +254,59 @@ const Glossary: React.FC = () => {
       <main className="min-h-screen bg-slate-50">
         {/* Hero Section - Premium Dark */}
         <section className="relative py-20 md:py-28 overflow-hidden">
-          {/* Dark gradient background */}
-          <div className="absolute inset-0 bg-gradient-to-br from-prime-900 via-prime-800 to-prime-900" />
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-prime-gold/10 via-transparent to-transparent" />
+          {/* Evergreen gradient background */}
+          <div className="absolute inset-0 bg-gradient-to-br from-[#1A4D3E] via-[#15402F] to-[#0D2E20]" />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-prime-gold/15 via-transparent to-transparent" />
           <div className="absolute bottom-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-prime-gold/30 to-transparent" />
           
           <div className="container mx-auto px-4 relative z-10">
-            <div className="max-w-3xl mx-auto text-center reveal-on-scroll">
-              <div className="flex items-center justify-center gap-3 mb-6">
-                <div className="w-12 h-12 rounded-xl bg-prime-gold/20 flex items-center justify-center">
-                  <Book className="h-6 w-6 text-prime-gold" />
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+              {/* Left column - Text & Search */}
+              <div className="text-center lg:text-left reveal-on-scroll">
+                <div className="flex items-center justify-center lg:justify-start gap-3 mb-6">
+                  <div className="w-12 h-12 rounded-xl bg-prime-gold/20 flex items-center justify-center">
+                    <Book className="h-6 w-6 text-prime-gold" />
+                  </div>
+                  <Badge className="bg-prime-gold/20 text-prime-gold border-prime-gold/30 hover:bg-prime-gold/30">
+                    {t.badge.replace("{count}", String(glossaryData.total_terms))}
+                  </Badge>
                 </div>
-                <Badge className="bg-prime-gold/20 text-prime-gold border-prime-gold/30 hover:bg-prime-gold/30">
-                  {t.badge.replace("{count}", String(glossaryData.total_terms))}
-                </Badge>
+                <h1 className="glossary-category-title text-4xl md:text-5xl lg:text-6xl font-serif font-bold text-white mb-6 tracking-tight">
+                  {t.headline} <span className="text-prime-gold italic">{t.headlineHighlight}</span>
+                </h1>
+                <p className="text-lg text-white/70 mb-10 font-light leading-relaxed max-w-2xl mx-auto lg:mx-0">
+                  {t.description}
+                </p>
+                
+                {/* Search - Premium Style */}
+                <div className="relative max-w-xl mx-auto lg:mx-0">
+                  <Search className="absolute left-5 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+                  <Input
+                    type="search"
+                    placeholder={t.searchPlaceholder}
+                    className="pl-14 h-14 text-lg rounded-full border-2 border-white/20 bg-white/10 backdrop-blur-sm text-white placeholder:text-slate-400 focus:border-prime-gold focus:bg-white/20 transition-all"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    aria-label={t.searchPlaceholder}
+                  />
+                </div>
               </div>
-              {/* Speakable H1 - glossary-category-title class for voice assistants */}
-              <h1 className="glossary-category-title text-4xl md:text-5xl lg:text-6xl font-serif font-bold text-white mb-6 tracking-tight">
-                {t.headline} <span className="text-prime-gold italic">{t.headlineHighlight}</span>
-              </h1>
-              <p className="text-lg text-slate-300 mb-10 font-light leading-relaxed max-w-2xl mx-auto">
-                {t.description}
-              </p>
-              
-              {/* Search - Premium Style */}
-              <div className="relative max-w-xl mx-auto">
-                <Search className="absolute left-5 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
-                <Input
-                  type="search"
-                  placeholder={t.searchPlaceholder}
-                  className="pl-14 h-14 text-lg rounded-full border-2 border-white/20 bg-white/10 backdrop-blur-sm text-white placeholder:text-slate-400 focus:border-prime-gold focus:bg-white/20 transition-all"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  aria-label={t.searchPlaceholder}
-                />
+
+              {/* Right column - Modern Image (hidden on mobile) */}
+              <div className="hidden lg:block reveal-on-scroll">
+                <div className="relative">
+                  <div className="rounded-2xl overflow-hidden border-2 border-prime-gold/30 shadow-2xl">
+                    <img
+                      src={glossaryHeroImage}
+                      alt="Financial advisor discussing wealth management strategy"
+                      className="w-full h-[400px] object-cover"
+                      loading="eager"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#1A4D3E]/40 via-transparent to-transparent rounded-2xl" />
+                  </div>
+                  <div className="absolute -bottom-3 -right-3 w-24 h-24 rounded-full bg-prime-gold/10 blur-2xl" />
+                  <div className="absolute -top-3 -left-3 w-16 h-16 rounded-full bg-prime-gold/15 blur-xl" />
+                </div>
               </div>
             </div>
           </div>
