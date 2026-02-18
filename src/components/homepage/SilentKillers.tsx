@@ -1,156 +1,291 @@
-import React from 'react';
-import { motion } from 'framer-motion';
-import { TrendingDown, Activity, Receipt, ArrowRight } from 'lucide-react';
+import React, { useRef, useState } from 'react';
+import { motion, useMotionValue, useSpring, useTransform, useInView } from 'framer-motion';
+import { TrendingDown, Activity, Receipt, ArrowRight, ShieldAlert } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from '@/i18n/useTranslation';
 
-const icons = [TrendingDown, Activity, Receipt];
+// ─── 3D Tilt Card ───────────────────────────────────────────────────────────
+interface TiltCardProps {
+  children: React.ReactNode;
+  className?: string;
+  glowColor?: string;
+  index: number;
+}
 
-const containerVariants = {
-  hidden: {},
-  visible: { transition: { staggerChildren: 0.2 } },
+const TiltCard: React.FC<TiltCardProps> = ({ children, className = '', glowColor = 'hsla(160,48%,30%,0.4)', index }) => {
+  const ref = useRef<HTMLDivElement>(null);
+  const [isHovered, setIsHovered] = useState(false);
+
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+
+  const rotateX = useSpring(useTransform(y, [-0.5, 0.5], [8, -8]), { stiffness: 300, damping: 30 });
+  const rotateY = useSpring(useTransform(x, [-0.5, 0.5], [-8, 8]), { stiffness: 300, damping: 30 });
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = ref.current?.getBoundingClientRect();
+    if (!rect) return;
+    const nx = (e.clientX - rect.left) / rect.width - 0.5;
+    const ny = (e.clientY - rect.top) / rect.height - 0.5;
+    x.set(nx);
+    y.set(ny);
+  };
+
+  const handleMouseLeave = () => {
+    x.set(0);
+    y.set(0);
+    setIsHovered(false);
+  };
+
+  return (
+    <motion.div
+      ref={ref}
+      className={`relative ${className}`}
+      style={{ rotateX, rotateY, transformPerspective: 800, transformStyle: 'preserve-3d' }}
+      onMouseMove={handleMouseMove}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={handleMouseLeave}
+      initial={{ opacity: 0, y: 60, scale: 0.92 }}
+      whileInView={{ opacity: 1, y: 0, scale: 1 }}
+      viewport={{ once: true, amount: 0.3 }}
+      transition={{ duration: 0.8, delay: index * 0.15, ease: [0.16, 1, 0.3, 1] }}
+    >
+      {/* Glow orb behind card */}
+      <motion.div
+        className="absolute inset-0 rounded-3xl pointer-events-none"
+        animate={isHovered ? { opacity: 1, scale: 1.05 } : { opacity: 0, scale: 1 }}
+        transition={{ duration: 0.4 }}
+        style={{ background: glowColor, filter: 'blur(32px)', transform: 'translateZ(-20px)' }}
+      />
+      {children}
+    </motion.div>
+  );
 };
 
-const cardVariants = {
-  hidden: { opacity: 0, y: 40, scale: 0.95 },
-  visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.7, ease: 'easeOut' as const } },
+// ─── Animated Counter ────────────────────────────────────────────────────────
+const AnimatedNumber: React.FC<{ value: string }> = ({ value }) => {
+  const ref = useRef<HTMLSpanElement>(null);
+  const inView = useInView(ref, { once: true });
+  return (
+    <motion.span
+      ref={ref}
+      initial={{ opacity: 0, y: 20 }}
+      animate={inView ? { opacity: 1, y: 0 } : {}}
+      transition={{ duration: 0.6, ease: 'easeOut' }}
+    >
+      {value}
+    </motion.span>
+  );
 };
 
-const particles = [
-  { x: '10%', y: '20%', size: 4, color: 'hsla(160,48%,30%,0.15)', duration: 8, delay: 0 },
-  { x: '85%', y: '35%', size: 3, color: 'hsla(40,45%,55%,0.12)', duration: 10, delay: 1 },
-  { x: '70%', y: '75%', size: 5, color: 'hsla(160,48%,30%,0.1)', duration: 12, delay: 2 },
-  { x: '25%', y: '80%', size: 3, color: 'hsla(40,45%,55%,0.1)', duration: 9, delay: 3 },
+// ─── Data for icons / glow colors ───────────────────────────────────────────
+const CARD_META = [
+  { Icon: TrendingDown, glow: 'hsla(51,78%,65%,0.25)', accent: 'hsla(51,78%,65%,1)' },
+  { Icon: Activity,    glow: 'hsla(160,48%,35%,0.35)', accent: 'hsla(160,60%,55%,1)' },
+  { Icon: Receipt,     glow: 'hsla(51,78%,65%,0.2)',  accent: 'hsla(51,78%,65%,1)' },
 ];
 
+// ─── Main Component ──────────────────────────────────────────────────────────
 export const SilentKillers: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const s = t.homepage.silentKillers;
 
   return (
-    <section className="relative py-20 md:py-28 px-4 md:px-8 bg-evergreen text-white overflow-hidden">
-      {/* Background layers */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_hsla(160,48%,30%,0.2),_transparent_60%)]" />
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_hsla(160,48%,30%,0.1),_transparent_60%)]" />
-      
-      {/* Grain overlay */}
-      <div className="absolute inset-0 opacity-[0.03]" style={{
-        backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E")`,
-        backgroundRepeat: 'repeat',
-        backgroundSize: '128px 128px',
-      }} />
+    <section className="relative py-24 md:py-36 px-4 md:px-8 bg-evergreen text-white overflow-hidden">
 
-      {/* Floating particles */}
-      {particles.map((p, i) => (
-        <motion.div
-          key={i}
-          className="absolute rounded-full pointer-events-none"
-          style={{ left: p.x, top: p.y, width: p.size, height: p.size, backgroundColor: p.color }}
-          animate={{ y: [0, -20, 0], x: [0, 10, 0], opacity: [0.4, 0.8, 0.4] }}
-          transition={{ duration: p.duration, repeat: Infinity, delay: p.delay, ease: 'easeInOut' }}
-        />
-      ))}
+      {/* ── Deep background mesh ── */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-10%,hsla(160,48%,25%,0.6),transparent)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_60%_at_80%_80%,hsla(51,78%,40%,0.07),transparent)]" />
+
+      {/* ── Grid overlay ── */}
+      <div
+        className="absolute inset-0 opacity-[0.025]"
+        style={{
+          backgroundImage: `
+            linear-gradient(hsla(160,48%,70%,1) 1px, transparent 1px),
+            linear-gradient(90deg, hsla(160,48%,70%,1) 1px, transparent 1px)
+          `,
+          backgroundSize: '60px 60px',
+        }}
+      />
+
+      {/* ── Large ghost orbs ── */}
+      <motion.div
+        className="absolute w-[600px] h-[600px] rounded-full pointer-events-none"
+        style={{ background: 'radial-gradient(circle, hsla(51,78%,55%,0.06) 0%, transparent 70%)', top: '-20%', right: '-10%' }}
+        animate={{ scale: [1, 1.1, 1], opacity: [0.4, 0.7, 0.4] }}
+        transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
+      />
+      <motion.div
+        className="absolute w-[400px] h-[400px] rounded-full pointer-events-none"
+        style={{ background: 'radial-gradient(circle, hsla(160,48%,40%,0.1) 0%, transparent 70%)', bottom: '0%', left: '-5%' }}
+        animate={{ scale: [1, 1.15, 1], opacity: [0.3, 0.6, 0.3] }}
+        transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut', delay: 3 }}
+      />
 
       <div className="max-w-6xl mx-auto relative z-10">
+
+        {/* ── Section header ── */}
         <motion.div
-          initial={{ opacity: 0, y: 24 }}
+          initial={{ opacity: 0, y: 32 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.3 }}
-          transition={{ duration: 0.7 }}
-          className="mb-14"
+          viewport={{ once: true, amount: 0.4 }}
+          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+          className="mb-16 md:mb-20"
         >
-          {/* Gold accent line */}
-          <div className="w-16 h-[2px] bg-gradient-to-r from-[#C5A059] to-transparent mb-6" />
-          
-          <p className="text-xs font-space font-bold tracking-[0.3em] uppercase text-primary/60 mb-4">
-            {s.badge}
-          </p>
-          <h2 className="text-3xl md:text-5xl lg:text-6xl font-space font-bold leading-tight max-w-3xl">
-            {s.headline}{' '}
-            <span className="text-outline relative inline-block">
-              {/* Shimmer overlay */}
-              <span
-                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent bg-[length:200%_100%] bg-clip-text"
-                style={{ animation: 'shimmer-drift 4s linear infinite' }}
-                aria-hidden="true"
-              />
+          {/* Eyebrow + line */}
+          <div className="flex items-center gap-4 mb-5">
+            <div className="w-10 h-[1.5px] bg-primary" />
+            <div className="flex items-center gap-2">
+              <ShieldAlert className="w-3.5 h-3.5 text-primary/70" />
+              <p className="text-[10px] font-space font-bold tracking-[0.35em] uppercase text-primary/70">
+                {s.badge}
+              </p>
+            </div>
+          </div>
+
+          <h2 className="text-4xl md:text-6xl lg:text-7xl font-space font-black leading-none tracking-tight">
+            <motion.span
+              className="block"
+              initial={{ opacity: 0, x: -40 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+            >
+              {s.headline}
+            </motion.span>
+            <motion.span
+              className="block text-outline-gold"
+              initial={{ opacity: 0, x: -40 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.7, delay: 0.12, ease: [0.16, 1, 0.3, 1] }}
+            >
               {s.headlineHighlight}
-            </span>
+            </motion.span>
           </h2>
         </motion.div>
 
-        <motion.div
-          className="grid grid-cols-1 md:grid-cols-3 gap-6"
-          variants={containerVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.2 }}
-        >
+        {/* ── Cards ── */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-6">
           {s.killers.map((killer, idx) => {
-            const Icon = icons[idx];
+            const { Icon, glow, accent } = CARD_META[idx];
             return (
-              <motion.div
-                key={killer.id}
-                variants={cardVariants}
-                whileHover={{ y: -8, transition: { duration: 0.3 } }}
-                className="relative group bg-white/[0.04] backdrop-blur-xl border border-white/[0.08] rounded-3xl p-8 md:p-10 overflow-hidden shadow-[0_8px_32px_rgba(0,0,0,0.3)] hover:border-white/[0.15] transition-colors duration-300"
-              >
-                {/* Top inner glow */}
-                <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
-                
-                {/* Hover emerald glow */}
-                <div className="absolute -inset-1 rounded-3xl bg-[hsla(160,48%,30%,0.15)] opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-xl -z-10" />
+              <TiltCard key={killer.id} index={idx} glowColor={glow}>
+                <div
+                  className="relative h-full bg-white/[0.03] border border-white/[0.08] rounded-3xl p-8 md:p-9 overflow-hidden group cursor-default"
+                  style={{ backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)' }}
+                >
+                  {/* Top shimmer line */}
+                  <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
 
-                <span className="absolute top-6 right-8 text-[80px] font-space font-bold text-white/[0.03] group-hover:text-white/[0.06] transition-colors duration-500 leading-none select-none">
-                  {killer.id}
-                </span>
-                
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-white/15 to-white/5 ring-1 ring-white/10 flex items-center justify-center mb-6">
+                  {/* Bottom gold accent line on hover */}
                   <motion.div
-                    initial={{ scale: 1 }}
-                    whileInView={{ scale: [1, 1.15, 1] }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.6, delay: 0.3 + idx * 0.2 }}
+                    className="absolute bottom-0 inset-x-0 h-[1.5px]"
+                    style={{ background: `linear-gradient(90deg, transparent, ${accent}, transparent)` }}
+                    initial={{ opacity: 0, scaleX: 0 }}
+                    whileHover={{ opacity: 1, scaleX: 1 }}
+                    transition={{ duration: 0.4 }}
+                  />
+
+                  {/* Ghost number */}
+                  <span
+                    className="absolute top-5 right-7 text-[90px] font-space font-black leading-none select-none pointer-events-none transition-all duration-500"
+                    style={{ color: `${accent}08` }}
                   >
-                    <Icon className="w-6 h-6 text-white/80" />
-                  </motion.div>
+                    <AnimatedNumber value={killer.id} />
+                  </span>
+
+                  {/* Floating 3D icon */}
+                  <div className="relative mb-7" style={{ transformStyle: 'preserve-3d' }}>
+                    <motion.div
+                      className="w-14 h-14 rounded-2xl flex items-center justify-center relative"
+                      style={{
+                        background: `linear-gradient(135deg, ${accent}20, ${accent}08)`,
+                        border: `1px solid ${accent}25`,
+                        transform: 'translateZ(20px)',
+                      }}
+                      animate={{ y: [0, -4, 0] }}
+                      transition={{ duration: 3 + idx, repeat: Infinity, ease: 'easeInOut', delay: idx * 0.5 }}
+                    >
+                      <Icon className="w-6 h-6" style={{ color: accent }} />
+                      {/* Icon inner glow */}
+                      <div
+                        className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                        style={{ background: `radial-gradient(circle at center, ${accent}30, transparent 70%)` }}
+                      />
+                    </motion.div>
+
+                    {/* Icon shadow reflection */}
+                    <div
+                      className="absolute -bottom-2 left-2 w-10 h-4 rounded-full blur-lg opacity-30"
+                      style={{ background: accent }}
+                    />
+                  </div>
+
+                  <h3 className="text-xl font-space font-bold text-white mb-3 tracking-tight">
+                    {killer.title}
+                  </h3>
+                  <p className="text-white/55 text-sm leading-relaxed">
+                    {killer.description}
+                  </p>
+
+                  {/* Corner accent dot */}
+                  <div
+                    className="absolute bottom-8 right-8 w-1.5 h-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                    style={{ background: accent }}
+                  />
                 </div>
-                
-                <h3 className="text-xl font-space font-bold text-white mb-3">{killer.title}</h3>
-                <p className="text-primary/70 text-sm leading-relaxed">{killer.description}</p>
-              </motion.div>
+              </TiltCard>
             );
           })}
-        </motion.div>
+        </div>
 
-        <div className="mt-16 text-center">
-          <motion.p
-            className="text-[6vw] md:text-[4vw] font-space font-bold text-white/[0.04] uppercase tracking-tight leading-none mb-8 select-none"
-            animate={{ x: [0, 15, 0] }}
-            transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut' }}
+        {/* ── Bottom CTA strip ── */}
+        <motion.div
+          className="mt-20 flex flex-col md:flex-row items-center justify-between gap-8 border-t border-white/[0.06] pt-10"
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.7, delay: 0.2 }}
+        >
+          {/* Watermark text */}
+          <p
+            className="text-[clamp(2.5rem,7vw,5rem)] font-space font-black uppercase tracking-tight leading-none select-none"
+            style={{ WebkitTextStroke: '1px hsla(51,78%,65%,0.08)', color: 'transparent' }}
           >
             {s.watermark}
-          </motion.p>
-          <button
-            onClick={() => navigate('/contact')}
-            className="group/btn relative px-8 py-4 bg-white text-evergreen font-space font-bold text-sm tracking-wide rounded-xl hover:bg-white/90 transition-all duration-300 hover:shadow-[0_0_20px_hsla(40,45%,55%,0.3)] border border-transparent hover:border-[#C5A059]/40"
-          >
-            <span className="flex items-center gap-2">
-              {s.cta}
-              <ArrowRight className="w-4 h-4 -translate-x-2 opacity-0 group-hover/btn:translate-x-0 group-hover/btn:opacity-100 transition-all duration-300" />
-            </span>
-          </button>
-        </div>
-      </div>
+          </p>
 
-      {/* Shimmer keyframe */}
-      <style>{`
-        @keyframes shimmer-drift {
-          0% { background-position: 200% 0; }
-          100% { background-position: -200% 0; }
-        }
-      `}</style>
+          {/* Gold CTA button */}
+          <motion.button
+            onClick={() => navigate('/contact')}
+            className="group/btn relative px-8 py-4 rounded-xl font-space font-bold text-sm tracking-[0.08em] uppercase text-evergreen overflow-hidden flex-shrink-0"
+            style={{ background: 'hsla(51,78%,65%,1)' }}
+            whileHover={{ scale: 1.04 }}
+            whileTap={{ scale: 0.97 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+          >
+            {/* Shimmer sweep */}
+            <motion.span
+              className="absolute inset-0 pointer-events-none"
+              style={{ background: 'linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.35) 50%, transparent 60%)', backgroundSize: '200% 100%' }}
+              animate={{ backgroundPosition: ['200% 0', '-100% 0'] }}
+              transition={{ duration: 2.5, repeat: Infinity, repeatDelay: 1.5, ease: 'linear' }}
+            />
+            {/* Outer glow */}
+            <motion.span
+              className="absolute -inset-1 rounded-xl pointer-events-none opacity-0 group-hover/btn:opacity-100 transition-opacity duration-400"
+              style={{ background: 'hsla(51,78%,65%,0.35)', filter: 'blur(16px)' }}
+            />
+            <span className="relative flex items-center gap-2.5">
+              {s.cta}
+              <ArrowRight className="w-4 h-4 -translate-x-1 opacity-0 group-hover/btn:translate-x-0 group-hover/btn:opacity-100 transition-all duration-300" />
+            </span>
+          </motion.button>
+        </motion.div>
+      </div>
     </section>
   );
 };
