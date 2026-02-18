@@ -21,7 +21,7 @@ export const WLInfiniteBanking: React.FC = () => {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-4xl md:text-5xl lg:text-6xl font-bold text-primary text-center mb-5"
+          className="text-4xl md:text-5xl lg:text-6xl font-bold text-[#09301B] text-center mb-5"
         >
           {s?.title || 'The Infinite Banking Concept'}
         </motion.h2>
@@ -68,8 +68,8 @@ export const WLInfiniteBanking: React.FC = () => {
           className="mt-16 max-w-4xl mx-auto"
         >
           <GlassCard className="p-10" glow>
-            <MessageCircle className="w-10 h-10 text-primary mb-4" />
-            <p className="text-xl font-semibold text-primary mb-3">{s?.testimonial?.label || 'Infinite Banking Success Story:'}</p>
+            <MessageCircle className="w-10 h-10 text-[#09301B] mb-4" />
+            <p className="text-xl font-semibold text-[#09301B] mb-3">{s?.testimonial?.label || 'Infinite Banking Success Story:'}</p>
             <p className="text-base text-muted-foreground leading-relaxed italic">
               {s?.testimonial?.text || '"We\'ve financed three cars, a rental property down payment, and our daughter\'s college through our whole life policy. Every dollar we \'borrowed\' continued earning dividends, and we paid ourselves back instead of a bank. In 12 years, our cash value has grown to $380,000 while we used it the entire time."'}
             </p>

@@ -30,14 +30,14 @@ export const IULIdealClient: React.FC = () => {
       <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(circle, hsl(160,48%,21%) 1px, transparent 1px)', backgroundSize: '20px 20px' }} />
 
       <div className="container max-w-6xl mx-auto px-6 relative z-10">
-        <motion.h2 initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-4xl md:text-5xl lg:text-6xl font-bold text-primary text-center mb-16">
+        <motion.h2 initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-4xl md:text-5xl lg:text-6xl font-bold text-[#09301B] text-center mb-16">
           {s?.title || 'Is IUL Right for You?'}
         </motion.h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <GlassCard className="p-8 md:p-10 border-l-4 !border-l-primary shadow-[0_20px_40px_-10px_rgba(0,0,0,0.1),_0_0_40px_-10px_hsla(160,48%,30%,0.1)]" glow tilt>
             <div className="flex items-center gap-3 mb-7">
-              <CheckCircle className="w-10 h-10 text-primary" />
+              <CheckCircle className="w-10 h-10 text-[#09301B]" />
               <h3 className="text-2xl font-bold text-foreground">{s?.perfectTitle || 'Perfect For:'}</h3>
             </div>
             <div className="space-y-4">
@@ -46,7 +46,7 @@ export const IULIdealClient: React.FC = () => {
                 return (
                   <motion.div key={i} initial={{ opacity: 0, x: -15 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.08, type: 'spring', stiffness: 200 }} className="flex items-start gap-3">
                     <motion.div initial={{ scale: 0 }} whileInView={{ scale: 1 }} viewport={{ once: true }} transition={{ type: 'spring', delay: i * 0.08 + 0.1 }}>
-                      <item.icon className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
+                      <item.icon className="w-5 h-5 text-[#09301B] mt-0.5 flex-shrink-0" />
                     </motion.div>
                     <p className="text-sm text-muted-foreground">{translatedText || item.text}</p>
                   </motion.div>

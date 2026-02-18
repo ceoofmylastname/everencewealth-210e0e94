@@ -44,7 +44,7 @@ export const APComparison: React.FC = () => {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-4xl md:text-5xl lg:text-6xl font-bold text-primary text-center mb-16"
+          className="text-4xl md:text-5xl lg:text-6xl font-bold text-[#09301B] text-center mb-16"
         >
           {s?.title || 'Protected vs. Unprotected: Side-by-Side'}
         </motion.h2>
@@ -60,7 +60,7 @@ export const APComparison: React.FC = () => {
           transition={{ delay: 0.3 }}
           className="mt-8 text-center"
         >
-          <span className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-primary/10 border border-primary/20 text-primary font-semibold">
+          <span className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-primary/10 border border-primary/20 text-[#09301B] font-semibold">
             ✦ {s?.winner || 'Proper Structure Protects Your Legacy'}
           </span>
           <p className="text-sm text-muted-foreground mt-3 max-w-2xl mx-auto">

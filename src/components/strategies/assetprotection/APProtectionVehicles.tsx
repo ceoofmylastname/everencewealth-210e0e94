@@ -22,7 +22,7 @@ export const APProtectionVehicles: React.FC = () => {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-4xl md:text-5xl lg:text-6xl font-bold text-primary text-center mb-6"
+          className="text-4xl md:text-5xl lg:text-6xl font-bold text-[#09301B] text-center mb-6"
         >
           {s?.title || 'Protection Vehicles'}
         </motion.h2>
