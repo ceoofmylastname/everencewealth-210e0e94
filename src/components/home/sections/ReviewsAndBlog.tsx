@@ -47,28 +47,15 @@ export const BlogTeaser: React.FC = () => {
   const { t, currentLanguage } = useTranslation();
   
   const { data: articles, isLoading } = useQuery({
-    queryKey: ['homepage-blog-articles', currentLanguage],
+    queryKey: ['homepage-blog-articles'],
     queryFn: async () => {
-      let { data, error } = await supabase
+      const { data, error } = await supabase
         .from('blog_articles')
         .select('id, slug, headline, meta_description, featured_image_url, date_published')
         .eq('status', 'published')
-        .eq('language', currentLanguage)
+        .eq('language', 'en')
         .order('date_published', { ascending: false })
         .limit(3);
-      
-      if (!error && (!data || data.length === 0) && currentLanguage !== 'en') {
-        const fallback = await supabase
-          .from('blog_articles')
-          .select('id, slug, headline, meta_description, featured_image_url, date_published')
-          .eq('status', 'published')
-          .eq('language', 'en')
-          .order('date_published', { ascending: false })
-          .limit(3);
-        data = fallback.data;
-        error = fallback.error;
-      }
-      
       if (error) throw error;
       return data;
     },
