@@ -22,7 +22,7 @@ export const TFRIncomeStacking: React.FC = () => {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-4xl md:text-5xl lg:text-6xl font-bold text-primary text-center mb-6"
+          className="text-4xl md:text-5xl lg:text-6xl font-bold text-[#09301B] text-center mb-6"
         >
           {s?.title || 'Tax-Free Income Stacking'}
         </motion.h2>
@@ -75,7 +75,7 @@ export const TFRIncomeStacking: React.FC = () => {
           className="mt-12 text-center rounded-2xl p-6 border border-primary/20 bg-primary/5"
         >
           <p className="text-sm text-muted-foreground mb-1">{s?.totalLabel || 'Combined Tax-Free Retirement Income Potential'}</p>
-          <p className="text-3xl md:text-4xl font-bold text-primary">{s?.totalValue || '$100,000 – $200,000+/year'}</p>
+          <p className="text-3xl md:text-4xl font-bold text-[#09301B]">{s?.totalValue || '$100,000 – $200,000+/year'}</p>
           <p className="text-sm text-muted-foreground mt-1">{s?.totalNote || 'With $0 in federal or state income taxes'}</p>
         </motion.div>
       </div>

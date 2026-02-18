@@ -26,7 +26,7 @@ export const IULHowItWorks: React.FC = () => {
   return (
     <section className="py-24 md:py-32 bg-muted/30 overflow-hidden relative">
       <div className="container mx-auto px-6">
-        <motion.h2 initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-4xl md:text-5xl lg:text-6xl font-bold text-primary text-center mb-16">
+        <motion.h2 initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-4xl md:text-5xl lg:text-6xl font-bold text-[#09301B] text-center mb-16">
           {s?.title || 'How IUL Works: The Mechanics'}
         </motion.h2>
 

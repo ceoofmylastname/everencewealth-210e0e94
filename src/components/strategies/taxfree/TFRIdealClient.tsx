@@ -31,7 +31,7 @@ export const TFRIdealClient: React.FC = () => {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-4xl md:text-5xl lg:text-6xl font-bold text-primary text-center mb-16"
+          className="text-4xl md:text-5xl lg:text-6xl font-bold text-[#09301B] text-center mb-16"
         >
           {s?.title || 'Is Tax-Free Retirement Right for You?'}
         </motion.h2>
@@ -39,7 +39,7 @@ export const TFRIdealClient: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <GlassCard className="p-8 md:p-10 border-l-4 !border-l-primary" glow>
             <div className="flex items-center gap-3 mb-7">
-              <CheckCircle className="w-10 h-10 text-primary" />
+              <CheckCircle className="w-10 h-10 text-[#09301B]" />
               <h3 className="text-2xl font-bold text-foreground">{s?.perfectTitle || 'Perfect For:'}</h3>
             </div>
             <div className="space-y-4">
@@ -52,7 +52,7 @@ export const TFRIdealClient: React.FC = () => {
                   transition={{ delay: i * 0.08 }}
                   className="flex items-start gap-3"
                 >
-                  <item.icon className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
+                  <item.icon className="w-5 h-5 text-[#09301B] mt-0.5 flex-shrink-0" />
                   <p className="text-sm text-muted-foreground">{s?.perfect?.[i] || item.text}</p>
                 </motion.div>
               ))}

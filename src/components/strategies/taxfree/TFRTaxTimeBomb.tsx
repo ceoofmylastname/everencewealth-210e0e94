@@ -50,7 +50,7 @@ export const TFRTaxTimeBomb: React.FC = () => {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-4xl md:text-5xl lg:text-6xl font-bold text-primary text-center mb-16"
+          className="text-4xl md:text-5xl lg:text-6xl font-bold text-[#09301B] text-center mb-16"
         >
           {s?.title || 'The Tax Time Bomb'}
         </motion.h2>
@@ -72,7 +72,7 @@ export const TFRTaxTimeBomb: React.FC = () => {
 
             <div className="mb-6">
               <label className="text-sm font-medium text-foreground mb-2 block">
-                {s?.sliderLabel || 'Annual Withdrawal:'} <span className="text-primary font-bold">${(withdrawal / 1000).toFixed(0)}K</span>
+                {s?.sliderLabel || 'Annual Withdrawal:'} <span className="text-[#09301B] font-bold">${(withdrawal / 1000).toFixed(0)}K</span>
               </label>
               <Slider
                 value={[withdrawal]}
@@ -138,7 +138,7 @@ export const TFRTaxTimeBomb: React.FC = () => {
               </div>
               <div className="text-right">
                 <p className="text-sm text-muted-foreground">{s?.taxFreeLabel || 'Tax-Free Strategy:'}</p>
-                <p className="text-2xl font-bold text-primary">$0</p>
+                <p className="text-2xl font-bold text-[#09301B]">$0</p>
               </div>
             </div>
           </motion.div>

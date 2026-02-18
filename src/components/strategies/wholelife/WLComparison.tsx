@@ -48,7 +48,7 @@ export const WLComparison: React.FC = () => {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-4xl md:text-5xl lg:text-6xl font-bold text-primary text-center mb-16"
+          className="text-4xl md:text-5xl lg:text-6xl font-bold text-[#09301B] text-center mb-16"
         >
           {s?.title || 'Whole Life vs. IUL: Side-by-Side'}
         </motion.h2>
@@ -64,8 +64,8 @@ export const WLComparison: React.FC = () => {
           className="mt-14 text-center"
         >
           <GlassCard className="inline-block px-10 py-7" glow>
-            <Scale className="w-12 h-12 mx-auto mb-3" style={{ color: 'hsl(43,74%,49%)' }} />
-            <p className="text-2xl font-bold text-primary">
+            <Scale className="w-12 h-12 mx-auto mb-3" style={{ color: '#09301B' }} />
+            <p className="text-2xl font-bold text-[#09301B]">
               {s?.winner || 'Choose Based on Your Goals'}
             </p>
             <p className="text-muted-foreground mt-1">
