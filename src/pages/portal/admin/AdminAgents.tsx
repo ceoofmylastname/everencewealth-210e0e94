@@ -3,8 +3,6 @@ import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -115,14 +113,11 @@ export default function AdminAgents() {
           send_invitation: true,
         },
       });
-      // The create-agent function will return error if user already exists, which is expected
-      // We mainly want to trigger the invitation email resend
       if (res.data?.invitation_sent) {
         toast({ title: "Invitation Sent", description: `Invitation re-sent to ${agent.email}` });
       } else if (res.data?.invitation_error) {
         toast({ title: "Warning", description: res.data.invitation_error, variant: "destructive" });
       } else if (res.data?.error?.includes("already exists")) {
-        // Try generating a recovery link directly via the password function as fallback
         toast({ title: "Note", description: "Agent already exists. Use 'Set Password' to provide login credentials.", variant: "destructive" });
       } else {
         toast({ title: "Sent", description: "Invitation process completed" });
@@ -148,155 +143,168 @@ export default function AdminAgents() {
 
   return (
     <div className="space-y-6">
+      {/* Page header */}
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold" style={{ color: "#1A4D3E", fontFamily: "'Playfair Display', serif" }}>
-          Agent Management
-        </h1>
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Agent Management</h1>
+          <p className="text-sm text-gray-500 mt-0.5">Manage your advisor agents and their access</p>
+        </div>
         <Link to="/portal/admin/agents/new">
-          <Button><Plus className="h-4 w-4 mr-2" />Add New Agent</Button>
+          <Button className="bg-[#1A4D3E] hover:bg-[#143d30] text-white rounded-lg gap-2">
+            <Plus className="h-4 w-4" />Add New Agent
+          </Button>
         </Link>
       </div>
 
       <Tabs defaultValue="all">
-        <TabsList>
-          <TabsTrigger value="all">All Agents</TabsTrigger>
-          <TabsTrigger value="pending" className="gap-2">
+        <TabsList className="bg-gray-100 p-1 rounded-lg">
+          <TabsTrigger value="all" className="data-[state=active]:bg-white data-[state=active]:text-[#1A4D3E] data-[state=active]:shadow-sm rounded-md">
+            All Agents
+          </TabsTrigger>
+          <TabsTrigger value="pending" className="data-[state=active]:bg-white data-[state=active]:text-[#1A4D3E] data-[state=active]:shadow-sm rounded-md gap-2">
             Pending Invitations
             {pendingAgents.length > 0 && (
-              <Badge variant="secondary" className="ml-1 h-5 min-w-5 px-1.5 text-xs">
+              <span className="ml-1 h-5 min-w-5 px-1.5 text-xs bg-[#1A4D3E] text-white rounded-full inline-flex items-center justify-center">
                 {pendingAgents.length}
-              </Badge>
+              </span>
             )}
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="all">
-          <Card className="shadow-sm">
-            <CardHeader className="pb-3">
-              <div className="flex flex-col sm:flex-row gap-3">
-                <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input placeholder="Search by name or email..." className="pl-9" value={search} onChange={(e) => setSearch(e.target.value)} />
-                </div>
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="w-40">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Status</SelectItem>
-                    <SelectItem value="active">Active</SelectItem>
-                    <SelectItem value="inactive">Inactive</SelectItem>
-                  </SelectContent>
-                </Select>
+          <div className="bg-white rounded-xl border border-gray-100 shadow-sm mt-4">
+            {/* Toolbar */}
+            <div className="p-4 border-b border-gray-100 flex flex-col sm:flex-row gap-3">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input
+                  placeholder="Search by name or email..."
+                  className="pl-9 border-gray-200 bg-white placeholder:text-gray-400 focus-visible:ring-1 focus-visible:ring-[#1A4D3E]"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                />
               </div>
-            </CardHeader>
-            <CardContent className="p-0">
-              {loading ? (
-                <div className="flex justify-center py-12">
-                  <div className="w-6 h-6 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-                </div>
-              ) : (
-                <Table>
-                  <TableHeader>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-40 border-gray-200 bg-white">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="inactive">Inactive</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {loading ? (
+              <div className="flex justify-center py-12">
+                <div className="w-6 h-6 border-4 border-[#1A4D3E] border-t-transparent rounded-full animate-spin" />
+              </div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-gray-50 hover:bg-gray-50">
+                    <TableHead className="text-xs font-semibold uppercase tracking-wide text-gray-500">Name</TableHead>
+                    <TableHead className="text-xs font-semibold uppercase tracking-wide text-gray-500">Email</TableHead>
+                    <TableHead className="text-xs font-semibold uppercase tracking-wide text-gray-500">Status</TableHead>
+                    <TableHead className="text-xs font-semibold uppercase tracking-wide text-gray-500 text-center">Clients</TableHead>
+                    <TableHead className="text-xs font-semibold uppercase tracking-wide text-gray-500 text-center">Active Policies</TableHead>
+                    <TableHead className="text-xs font-semibold uppercase tracking-wide text-gray-500">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filtered.length === 0 ? (
                     <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Email</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead className="text-center">Clients</TableHead>
-                      <TableHead className="text-center">Active Policies</TableHead>
-                      <TableHead>Actions</TableHead>
+                      <TableCell colSpan={6} className="text-center py-10 text-gray-400">
+                        No agents found
+                      </TableCell>
                     </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filtered.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                          No agents found
+                  ) : (
+                    filtered.map((a) => (
+                      <TableRow key={a.id} className="border-b border-gray-100 hover:bg-gray-50/50">
+                        <TableCell className="font-medium text-gray-900">{a.first_name} {a.last_name}</TableCell>
+                        <TableCell className="text-gray-500">{a.email}</TableCell>
+                        <TableCell>
+                          {a.is_active ? (
+                            <span className="inline-flex items-center bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full text-xs px-2.5 py-0.5 font-medium">Active</span>
+                          ) : (
+                            <span className="inline-flex items-center bg-gray-100 text-gray-600 border border-gray-200 rounded-full text-xs px-2.5 py-0.5 font-medium">Inactive</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-center text-gray-700">{a.clientCount}</TableCell>
+                        <TableCell className="text-center text-gray-700">{a.policyCount}</TableCell>
+                        <TableCell>
+                          <Link to={`/portal/admin/agents/${a.id}`}>
+                            <Button variant="ghost" size="sm" className="text-[#1A4D3E] hover:bg-[#F0F5F3]">
+                              <Eye className="h-4 w-4 mr-1" />View
+                            </Button>
+                          </Link>
                         </TableCell>
                       </TableRow>
-                    ) : (
-                      filtered.map((a) => (
-                        <TableRow key={a.id}>
-                          <TableCell className="font-medium">{a.first_name} {a.last_name}</TableCell>
-                          <TableCell className="text-muted-foreground">{a.email}</TableCell>
-                          <TableCell>
-                            <Badge variant={a.is_active ? "default" : "secondary"} className={a.is_active ? "bg-green-100 text-green-800 hover:bg-green-100" : ""}>
-                              {a.is_active ? "Active" : "Inactive"}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-center">{a.clientCount}</TableCell>
-                          <TableCell className="text-center">{a.policyCount}</TableCell>
-                          <TableCell>
-                            <Link to={`/portal/admin/agents/${a.id}`}>
-                              <Button variant="ghost" size="sm"><Eye className="h-4 w-4 mr-1" />View</Button>
-                            </Link>
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
-              )}
-            </CardContent>
-          </Card>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            )}
+          </div>
         </TabsContent>
 
         <TabsContent value="pending">
-          <Card className="shadow-sm">
-            <CardContent className="p-0">
-              {pendingLoading ? (
-                <div className="flex justify-center py-12">
-                  <div className="w-6 h-6 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-                </div>
-              ) : pendingAgents.length === 0 ? (
-                <div className="text-center py-12 text-muted-foreground">
-                  No pending invitations
-                </div>
-              ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Email</TableHead>
-                      <TableHead>Invited</TableHead>
-                      <TableHead>Actions</TableHead>
+          <div className="bg-white rounded-xl border border-gray-100 shadow-sm mt-4">
+            {pendingLoading ? (
+              <div className="flex justify-center py-12">
+                <div className="w-6 h-6 border-4 border-[#1A4D3E] border-t-transparent rounded-full animate-spin" />
+              </div>
+            ) : pendingAgents.length === 0 ? (
+              <div className="text-center py-12 text-gray-400">
+                No pending invitations
+              </div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-gray-50 hover:bg-gray-50">
+                    <TableHead className="text-xs font-semibold uppercase tracking-wide text-gray-500">Name</TableHead>
+                    <TableHead className="text-xs font-semibold uppercase tracking-wide text-gray-500">Email</TableHead>
+                    <TableHead className="text-xs font-semibold uppercase tracking-wide text-gray-500">Invited</TableHead>
+                    <TableHead className="text-xs font-semibold uppercase tracking-wide text-gray-500">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {pendingAgents.map((a) => (
+                    <TableRow key={a.id} className="border-b border-gray-100 hover:bg-gray-50/50">
+                      <TableCell className="font-medium text-gray-900">{a.first_name} {a.last_name}</TableCell>
+                      <TableCell className="text-gray-500">{a.email}</TableCell>
+                      <TableCell className="text-gray-500">
+                        {new Date(a.created_at).toLocaleDateString()}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="border-[#1A4D3E] text-[#1A4D3E] hover:bg-[#F0F5F3]"
+                            onClick={() => setPasswordAgent(a)}
+                          >
+                            <KeyRound className="h-4 w-4 mr-1" />Set Password
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-gray-500 hover:text-gray-900"
+                            disabled={resendingId === a.id}
+                            onClick={() => handleResendInvite(a)}
+                          >
+                            <RefreshCw className={`h-4 w-4 mr-1 ${resendingId === a.id ? "animate-spin" : ""}`} />
+                            Resend
+                          </Button>
+                        </div>
+                      </TableCell>
                     </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {pendingAgents.map((a) => (
-                      <TableRow key={a.id}>
-                        <TableCell className="font-medium">{a.first_name} {a.last_name}</TableCell>
-                        <TableCell className="text-muted-foreground">{a.email}</TableCell>
-                        <TableCell className="text-muted-foreground">
-                          {new Date(a.created_at).toLocaleDateString()}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex gap-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => setPasswordAgent(a)}
-                            >
-                              <KeyRound className="h-4 w-4 mr-1" />Set Password
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              disabled={resendingId === a.id}
-                              onClick={() => handleResendInvite(a)}
-                            >
-                              <RefreshCw className={`h-4 w-4 mr-1 ${resendingId === a.id ? "animate-spin" : ""}`} />
-                              Resend
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              )}
-            </CardContent>
-          </Card>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </div>
         </TabsContent>
       </Tabs>
 

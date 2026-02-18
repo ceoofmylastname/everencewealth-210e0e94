@@ -2,8 +2,6 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Search } from "lucide-react";
 import { ReassignAdvisorDialog } from "@/components/portal/admin/ReassignAdvisorDialog";
@@ -38,7 +36,6 @@ export default function AdminClients() {
       .eq("role", "client")
       .order("first_name");
 
-    // Build advisor lookup
     const { data: advisors } = await supabase
       .from("advisors")
       .select("portal_user_id, first_name, last_name");
@@ -65,62 +62,75 @@ export default function AdminClients() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold" style={{ color: "#1A4D3E", fontFamily: "'Playfair Display', serif" }}>
-        Client Management
-      </h1>
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900">Client Management</h1>
+        <p className="text-sm text-gray-500 mt-0.5">View and manage all portal clients</p>
+      </div>
 
-      <Card className="shadow-sm">
-        <CardHeader className="pb-3">
+      <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
+        {/* Toolbar */}
+        <div className="p-4 border-b border-gray-100">
           <div className="relative max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input placeholder="Search by name or email..." className="pl-9" value={search} onChange={(e) => setSearch(e.target.value)} />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Input
+              placeholder="Search by name or email..."
+              className="pl-9 border-gray-200 bg-white placeholder:text-gray-400 focus-visible:ring-1 focus-visible:ring-[#1A4D3E]"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
           </div>
-        </CardHeader>
-        <CardContent className="p-0">
-          {loading ? (
-            <div className="flex justify-center py-12">
-              <div className="w-6 h-6 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-            </div>
-          ) : (
-            <Table>
-              <TableHeader>
+        </div>
+
+        {loading ? (
+          <div className="flex justify-center py-12">
+            <div className="w-6 h-6 border-4 border-[#1A4D3E] border-t-transparent rounded-full animate-spin" />
+          </div>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-gray-50 hover:bg-gray-50">
+                <TableHead className="text-xs font-semibold uppercase tracking-wide text-gray-500">Name</TableHead>
+                <TableHead className="text-xs font-semibold uppercase tracking-wide text-gray-500">Email</TableHead>
+                <TableHead className="text-xs font-semibold uppercase tracking-wide text-gray-500">Assigned Advisor</TableHead>
+                <TableHead className="text-xs font-semibold uppercase tracking-wide text-gray-500">Status</TableHead>
+                <TableHead className="text-xs font-semibold uppercase tracking-wide text-gray-500">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filtered.length === 0 ? (
                 <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Assigned Advisor</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Actions</TableHead>
+                  <TableCell colSpan={5} className="text-center py-10 text-gray-400">No clients found</TableCell>
                 </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filtered.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">No clients found</TableCell>
+              ) : (
+                filtered.map((c) => (
+                  <TableRow key={c.id} className="border-b border-gray-100 hover:bg-gray-50/50">
+                    <TableCell className="font-medium text-gray-900">{c.first_name} {c.last_name}</TableCell>
+                    <TableCell className="text-gray-500">{c.email}</TableCell>
+                    <TableCell className="text-gray-700">{c.advisorName}</TableCell>
+                    <TableCell>
+                      {c.is_active ? (
+                        <span className="inline-flex items-center bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full text-xs px-2.5 py-0.5 font-medium">Active</span>
+                      ) : (
+                        <span className="inline-flex items-center bg-gray-100 text-gray-600 border border-gray-200 rounded-full text-xs px-2.5 py-0.5 font-medium">Inactive</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="border-[#1A4D3E] text-[#1A4D3E] hover:bg-[#F0F5F3]"
+                        onClick={() => setReassignClient(c)}
+                      >
+                        Reassign
+                      </Button>
+                    </TableCell>
                   </TableRow>
-                ) : (
-                  filtered.map((c) => (
-                    <TableRow key={c.id}>
-                      <TableCell className="font-medium">{c.first_name} {c.last_name}</TableCell>
-                      <TableCell className="text-muted-foreground">{c.email}</TableCell>
-                      <TableCell>{c.advisorName}</TableCell>
-                      <TableCell>
-                        <Badge variant={c.is_active ? "default" : "secondary"} className={c.is_active ? "bg-green-100 text-green-800 hover:bg-green-100" : ""}>
-                          {c.is_active ? "Active" : "Inactive"}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Button variant="outline" size="sm" onClick={() => setReassignClient(c)}>
-                          Reassign
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        )}
+      </div>
 
       {reassignClient && (
         <ReassignAdvisorDialog
