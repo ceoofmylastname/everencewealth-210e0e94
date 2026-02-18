@@ -6,7 +6,17 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search, Plus, Eye, KeyRound, RefreshCw } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Search, Plus, Eye, KeyRound, RefreshCw, Trash2 } from "lucide-react";
 import { SetAgentPasswordDialog } from "@/components/portal/admin/SetAgentPasswordDialog";
 import { toast } from "@/hooks/use-toast";
 
@@ -39,6 +49,8 @@ export default function AdminAgents() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [passwordAgent, setPasswordAgent] = useState<PendingAgent | null>(null);
   const [resendingId, setResendingId] = useState<string | null>(null);
+  const [deleteAgent, setDeleteAgent] = useState<AgentRow | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     fetchAgents();
@@ -126,6 +138,25 @@ export default function AdminAgents() {
       toast({ title: "Error", description: err.message || "Failed to resend invitation", variant: "destructive" });
     } finally {
       setResendingId(null);
+    }
+  }
+
+  async function handleDeleteAgent() {
+    if (!deleteAgent) return;
+    setDeleting(true);
+    try {
+      const res = await supabase.functions.invoke("delete-portal-agent", {
+        body: { advisor_id: deleteAgent.id },
+      });
+      if (res.error) throw res.error;
+      if (res.data?.error) throw new Error(res.data.error);
+      toast({ title: "Agent deleted", description: `${deleteAgent.first_name} ${deleteAgent.last_name} has been permanently removed. Their email can be re-invited.` });
+      setDeleteAgent(null);
+      fetchAgents();
+    } catch (err: any) {
+      toast({ title: "Error deleting agent", description: err.message, variant: "destructive" });
+    } finally {
+      setDeleting(false);
     }
   }
 
@@ -234,11 +265,21 @@ export default function AdminAgents() {
                         <TableCell className="text-center text-gray-700">{a.clientCount}</TableCell>
                         <TableCell className="text-center text-gray-700">{a.policyCount}</TableCell>
                         <TableCell>
-                          <Link to={`/portal/admin/agents/${a.id}`}>
-                            <Button variant="ghost" size="sm" className="text-[#1A4D3E] hover:bg-[#F0F5F3]">
-                              <Eye className="h-4 w-4 mr-1" />View
+                          <div className="flex items-center gap-1">
+                            <Link to={`/portal/admin/agents/${a.id}`}>
+                              <Button variant="ghost" size="sm" className="text-[#1A4D3E] hover:bg-[#F0F5F3]">
+                                <Eye className="h-4 w-4 mr-1" />View
+                              </Button>
+                            </Link>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                              onClick={() => setDeleteAgent(a)}
+                            >
+                              <Trash2 className="h-4 w-4 mr-1" />Delete
                             </Button>
-                          </Link>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))
@@ -313,6 +354,29 @@ export default function AdminAgents() {
         onOpenChange={(open) => !open && setPasswordAgent(null)}
         agent={passwordAgent}
       />
+
+      <AlertDialog open={!!deleteAgent} onOpenChange={(open) => !open && setDeleteAgent(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Agent Permanently?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete <strong>{deleteAgent?.first_name} {deleteAgent?.last_name}</strong> ({deleteAgent?.email}) and remove all their data. Their email address will be freed so they can be re-invited fresh in the future.
+              <br /><br />
+              <span className="text-red-600 font-medium">This action cannot be undone.</span>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={deleting}
+              onClick={handleDeleteAgent}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              {deleting ? "Deleting..." : "Yes, Delete Agent"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
