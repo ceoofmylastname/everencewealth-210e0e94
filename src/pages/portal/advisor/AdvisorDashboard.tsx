@@ -187,7 +187,7 @@ export default function AdvisorDashboard() {
           <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
             <div className="flex items-center justify-between p-5 border-b border-gray-100">
               <h2 className="text-base font-semibold text-gray-900">Latest Carrier News</h2>
-              <Link to="/portal/advisor/news" className="text-xs font-semibold flex items-center gap-1 hover:underline" style={{ color: GOLD }}>
+              <Link to="/portal/advisor/news" className="text-xs font-semibold flex items-center gap-1 text-[#1A4D3E] hover:text-[#143d30] hover:underline">
                 View All <ArrowUpRight className="h-3 w-3" />
               </Link>
             </div>
@@ -218,7 +218,7 @@ export default function AdvisorDashboard() {
           <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
             <div className="flex items-center justify-between p-5 border-b border-gray-100">
               <h2 className="text-base font-semibold text-gray-900">Upcoming Events</h2>
-              <Link to="/portal/advisor/schedule" className="text-xs font-semibold flex items-center gap-1 hover:underline" style={{ color: GOLD }}>
+              <Link to="/portal/advisor/schedule" className="text-xs font-semibold flex items-center gap-1 text-[#1A4D3E] hover:text-[#143d30] hover:underline">
                 View Calendar <ArrowUpRight className="h-3 w-3" />
               </Link>
             </div>
