@@ -147,7 +147,7 @@ export const Hero: React.FC = () => {
             </motion.span>
 
             {/* RETIREMENT — letter by letter with rounded pill style */}
-            <span className="flex items-center justify-center gap-[0.5vw] md:gap-[0.4vw] overflow-hidden py-2 w-full">
+            <span className="flex items-center justify-center gap-[0.5vw] md:gap-[0.4vw] overflow-hidden py-2 w-full retirement-row-announce">
               {RETIREMENT_LETTERS.map((letter, i) => (
                 <motion.span
                   key={i}
