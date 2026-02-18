@@ -1,51 +1,103 @@
 
-## Slow-Down & Pop: RETIREMENT Spotlight Refinement
+## Portal Dashboard Visual Redesign — Hero Aesthetic
 
 ### What's Changing
 
-The current 8s cycle moves too fast — each letter only glows for ~0.32s, which reads as a flicker rather than a deliberate spotlight hit. The fix is to:
+Both the **Advisor Dashboard** (`/portal/advisor/dashboard`) and the **Client Dashboard** (`/portal/client/dashboard`) will be redesigned to match the home hero's visual language: deep dark-bg (`#020806`) background, gold (`hsla(51, 78%, 65%)`) accents, glassmorphism cards, mesh gradient orbs, scan-line atmosphere, and the same `font-hero`/`font-serif` typography system. All existing data elements, links, and functionality are preserved — only the visual treatment changes.
 
-1. **Slow the total cycle to 16s** (from 8s) — forward pass takes 8s, reverse takes 8s
-2. **Widen each letter's lit window** from 4% to 7% of the cycle — so each letter holds its glow for ~1.1s instead of 0.32s, long enough to read and appreciate before the light moves on
-3. **Add a `translateY(-6px) scale(1.08)` pop-up transform** when lit — so the pill physically lifts and grows slightly like it's being picked up by a spotlight beam, then settles back down
-4. **Soften the fade in/out** around each lit window by adding easing keyframe stops (ramp up over 1.5%, hold for 4%, ramp down over 1.5%) for a smooth bloom rather than a hard snap
+---
 
-### Precise Timing Math (16s cycle)
+### Design System Being Applied
 
-- Total = 16s, step size = 5% per letter (same percentage structure, just slower clock)
-- Forward: letter 1 peaks at 3%, letter 2 at 8%, ..., letter 10 at 48%
-- Reverse: letter 10 peaks at 52%, letter 9 at 57%, ..., letter 1 at 97%
-- Each lit window: `pre-ramp at peak-2%`, `full bloom at peak`, `post-ramp at peak+2%`, `dark from peak+3.5% onward`
+From the hero page:
+- **Background**: `bg-dark-bg` (`#020806`) with floating radial gradient mesh orbs
+- **Cards**: `glass-card` class — `backdrop-filter: blur(16px)`, `hsla(160,48%,21%,0.08)` fill, `hsla(0,0%,100%,0.08)` border
+- **Primary accent**: Gold `hsla(51, 78%, 65%)` — used for numbers, icons, active labels, borders
+- **Text**: White for headings, `text-primary/70` (gold-tinted) for secondary copy
+- **Buttons/CTAs**: Gold-glowed pill buttons matching the `BEGIN ASSESSMENT` style
+- **Stat cards**: Glassmorphic tiles with gold top-border shimmer and number reveals
+- **Welcome banner**: Replaces current gradient banner with the dark hero aesthetic + scan-line badge
+- **Quick actions** (advisor): Dark glass tiles with gold icons, matching the HUD panel
+- **Sidebar**: Already dark — stays untouched (only the `<main>` content area changes)
 
-### What It Looks Like
+---
 
-```text
-R   →   lit, lifts up 6px, glows gold for ~1.1s
-    →   fades back to dark green
-E   →   lit, lifts up 6px, glows gold for ~1.1s
-    →   fades back
-T   →   ... (continues through all 10 letters)
-    
-(pause at T, then reverses)
+### Advisor Dashboard — Element-by-Element Plan
 
-T   →   lit again on the way back
-N   →   lit
-E   →   lit
-... back to R
-(loop)
-```
+| Current Element | New Treatment |
+|---|---|
+| White welcome heading | Large `font-hero font-black` white heading with gold sub-label badge (matching hero badge style) |
+| Rank banner (colored border) | Dark glass card with gold left-accent bar + rank badge pill |
+| 4 stat cards (light tints) | Dark glassmorphic tiles, gold top-border glow, large gold number, white label |
+| Quick Actions (muted/50 bg) | Dark glass tiles with gold icon + label, hover: gold border glow |
+| Latest Carrier News section | Dark card with glass-card class, gold dot indicators, white title, gold/50 meta |
+| Upcoming Events section | Same dark glass treatment, gold calendar icon bg, event type badge → gold outlined pill |
+| Recent Clients sidebar | Dark glass card, gold avatar initials bg, white names, gold email text |
+| Overall page bg | `bg-dark-bg` (overrides the portal layout's `bg-background`) |
 
-### Technical Changes — `src/index.css` only
+---
 
-**1. Update animation duration on all 10 nth-child selectors:** `8s → 16s`
+### Client Dashboard — Element-by-Element Plan
 
-**2. Update all 10 `@keyframes retirement-spot-N` blocks** to:
-- Widen the lit window from 4% to 7% wide (centered on same peak percentages)
-- Add `transform: translateY(-6px) scale(1.08)` on the lit peak keyframe stop
-- Add `transform: translateY(0) scale(1)` on resting keyframe stops
-- Increase the box-shadow intensity slightly for a more dramatic glow bloom: `0 0 28px hsla(51,78%,65%,0.55), 0 0 10px hsla(51,78%,80%,0.4), inset 0 0 12px hsla(51,78%,70%,0.15)`
+| Current Element | New Treatment |
+|---|---|
+| Welcome banner (primary blue) | Dark hero-style banner with gold "WELCOME BACK" label badge + white serif name |
+| 3 stat cards | Dark glassmorphic, gold number + icon glow |
+| Recent Policies (2/3 col) | Dark glass card, gold FileText icon, white carrier name, gold status dot |
+| Advisor sidebar (1/3 col) | Dark glass card, gold avatar ring, gold email/phone icons, hero-style "Send Message" button |
+| Page background | `bg-dark-bg` |
 
-**3. Update `.retirement-letter-pill` base style** to include `transform: translateY(0) scale(1)` and `will-change: transform, background, box-shadow` for smooth GPU-composited animation
+---
+
+### Technical Approach
+
+**1. Scoped dark background**
+Each dashboard page wraps its content in a full-page dark container that overrides the portal layout's `bg-background`. The sidebar and topbar are left untouched since they already work on their own layering.
+
+**2. No new dependencies**
+Uses only existing Framer Motion (already installed), `glass-card` CSS class (already in `src/index.css`), and Tailwind tokens (`dark-bg`, `primary`, `evergreen`).
+
+**3. Mesh orb decorations**
+Two or three absolute-positioned blurred radial gradient divs (pointer-events-none) placed behind the content — matching the hero's `animate-mesh-shift` orbs for atmosphere. These are `position: absolute` inside a `relative` wrapper so they don't escape the main scroll area.
+
+**4. Stat card gold glow on hover**
+Inline `boxShadow` with `onMouseEnter`/`onMouseLeave` pattern (same as Footer and HUD button) for GPU-composited glow without CSS animation overhead.
+
+**5. Skeleton loaders**
+Updated to dark glass skeleton (`bg-white/5 animate-pulse`) to match the new background.
+
+---
 
 ### Files to Edit
-- **`src/index.css`** — lines 917–1011 (the 10 keyframe blocks + nth-child animation rules)
+
+- **`src/pages/portal/advisor/AdvisorDashboard.tsx`** — Full visual redesign (all JSX styling, no logic changes)
+- **`src/pages/portal/client/ClientDashboard.tsx`** — Full visual redesign (all JSX styling, no logic changes)
+
+No CSS, no new components, no database changes needed.
+
+---
+
+### Visual Preview
+
+```text
+┌─────────────────────────────────────────────────────────┐
+│  [sidebar unchanged]  │  bg-dark-bg (#020806)           │
+│                       │  ┌─ mesh orb (top-left) ──┐    │
+│                       │  │ blurred green radial    │    │
+│                       │  └────────────────────────┘    │
+│                       │                                  │
+│                       │  ● ADVISOR PORTAL  [gold badge] │
+│                       │  Welcome back, Marcus            │
+│                       │                                  │
+│                       │  ┌glass──┐ ┌glass──┐ ┌glass──┐ │
+│                       │  │  12   │ │ $48K  │ │  34   │ │
+│                       │  │Active │ │ YTD   │ │Policy │ │
+│                       │  └───────┘ └───────┘ └───────┘ │
+│                       │                                  │
+│                       │  [Quick Actions — gold icons]   │
+│                       │                                  │
+│                       │  ┌ News ──────────┐ ┌ Clients ┐ │
+│                       │  │ glass card     │ │glass    │ │
+│                       │  └────────────────┘ └─────────┘ │
+└─────────────────────────────────────────────────────────┘
+```
