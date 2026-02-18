@@ -1,33 +1,60 @@
 
-# Fix: Homepage Blog Preview Always Shows English Articles
+# Fix: BlogPreview Component Missing English Filter
 
-## Problem
-The `BlogTeaser` component in `src/components/home/sections/ReviewsAndBlog.tsx` queries articles using `currentLanguage` from context (line 56):
-```ts
-.eq('language', currentLanguage)
-```
+## Root Cause
 
-The homepage lives at `/` — no language prefix — so `currentLanguage` can still be `'es'` if a user previously browsed a Spanish page (pulled from `localStorage`). This causes Spanish articles to appear on the homepage even when the US flag is displayed in the header.
+The previous fix was applied to the wrong component. There are **two** blog preview components:
+
+1. `src/components/home/sections/ReviewsAndBlog.tsx` → `BlogTeaser` — **was fixed** (now filters `language = 'en'`)
+2. `src/components/homepage/BlogPreview.tsx` → `BlogPreview` — **NOT fixed, and this is the one the homepage actually uses**
+
+`src/pages/Home.tsx` line 15 imports `BlogPreview` from `src/components/homepage/BlogPreview.tsx`, and line 39 renders it. That component's Supabase query on line 22-24 has **no language filter** — it fetches the 3 most recently published articles regardless of language. Since the most recent articles are in Spanish, those are what appear.
 
 ## Fix
 
-**File: `src/components/home/sections/ReviewsAndBlog.tsx`**
+**File: `src/components/homepage/BlogPreview.tsx`**
 
-Two changes:
-1. **Line 50** — Update the query key so it no longer varies by language (homepage is always English):
-   ```ts
-   queryKey: ['homepage-blog-articles'],
-   ```
-2. **Line 56** — Hard-code `'en'` instead of `currentLanguage`:
-   ```ts
-   .eq('language', 'en')
-   ```
-3. **Lines 60–70** — Remove the fallback block (it was only needed when `currentLanguage !== 'en'`, which is now irrelevant since we always fetch English).
+Add `.eq('language', 'en')` to the query, and update the query key to reflect the English-only scope:
 
-This ensures the homepage blog preview **always** shows the 3 most recent English articles, regardless of the user's browser history or stored language preference.
+**Current (lines 17-27):**
+```ts
+queryKey: ['homepage-blog-preview'],
+queryFn: async () => {
+  const { data, error } = await supabase
+    .from('blog_articles')
+    .select('id, slug, headline, meta_description, featured_image_url, featured_image_alt, date_published, language, category')
+    .eq('status', 'published')
+    .order('date_published', { ascending: false })
+    .limit(3);
+  if (error) throw error;
+  return data;
+},
+```
 
-## What Stays the Same
-- The "View All Articles" and "Read More" links still use `currentLanguage` for routing (correct behavior)
-- The `/en/blog` and `/es/blog` pages are unaffected
-- Spanish users who explicitly navigate to `/es/` will see Spanish content on the Spanish homepage
-- The `LanguageContext` fixes from the previous session remain in place
+**After fix:**
+```ts
+queryKey: ['homepage-blog-preview-en'],
+queryFn: async () => {
+  const { data, error } = await supabase
+    .from('blog_articles')
+    .select('id, slug, headline, meta_description, featured_image_url, featured_image_alt, date_published, language, category')
+    .eq('status', 'published')
+    .eq('language', 'en')
+    .order('date_published', { ascending: false })
+    .limit(3);
+  if (error) throw error;
+  return data;
+},
+```
+
+That single `.eq('language', 'en')` addition ensures only English articles appear in the homepage blog preview section, regardless of what language the user previously browsed.
+
+## Why the Previous Fix Didn't Work
+
+The previous session fixed `src/components/home/sections/ReviewsAndBlog.tsx` (`BlogTeaser`), but the homepage at `/` actually renders `src/components/homepage/BlogPreview.tsx` (`BlogPreview`). Both components display blog articles, but they are completely separate files. The actual component used on the homepage was never updated.
+
+## Summary
+
+- **1 file to change**: `src/components/homepage/BlogPreview.tsx`
+- **1 line to add**: `.eq('language', 'en')` in the Supabase query
+- **1 query key to update**: `'homepage-blog-preview'` → `'homepage-blog-preview-en'` to avoid stale cache from previous fetches
