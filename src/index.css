@@ -909,31 +909,106 @@ All colors MUST be HSL.
   }
 }
 
+/* ── RETIREMENT spotlight keyframes — each letter gets its own forward + reverse window ── */
+/* Total cycle: 8s. Forward pass: 0%–50% (letters 1→10). Reverse pass: 50%–100% (letters 10→1).
+   Each lit window is 4% wide (0.32s of glow) centered on its % position.
+   Step size forward = 5% per letter (10 letters × 5% = 50%). Reverse mirrors that. */
+
+@keyframes retirement-spot-1 {
+  0%,  1.5% { background: hsla(160,48%,16%,0.9); border-color: hsla(51,78%,70%,0.12); box-shadow: none; color: hsla(0,0%,100%,0.5); }
+  3%         { background: hsla(51,78%,52%,0.65); border-color: hsla(51,78%,72%,0.9);  box-shadow: 0 0 22px hsla(51,78%,65%,0.45), 0 0 6px hsla(51,78%,80%,0.3); color: #fff; }
+  4.5%, 93.5%{ background: hsla(160,48%,16%,0.9); border-color: hsla(51,78%,70%,0.12); box-shadow: none; color: hsla(0,0%,100%,0.5); }
+  95%        { background: hsla(51,78%,52%,0.65); border-color: hsla(51,78%,72%,0.9);  box-shadow: 0 0 22px hsla(51,78%,65%,0.45), 0 0 6px hsla(51,78%,80%,0.3); color: #fff; }
+  96.5%, 100%{ background: hsla(160,48%,16%,0.9); border-color: hsla(51,78%,70%,0.12); box-shadow: none; color: hsla(0,0%,100%,0.5); }
+}
+@keyframes retirement-spot-2 {
+  0%, 6.5%  { background: hsla(160,48%,16%,0.9); border-color: hsla(51,78%,70%,0.12); box-shadow: none; color: hsla(0,0%,100%,0.5); }
+  8%         { background: hsla(51,78%,52%,0.65); border-color: hsla(51,78%,72%,0.9);  box-shadow: 0 0 22px hsla(51,78%,65%,0.45), 0 0 6px hsla(51,78%,80%,0.3); color: #fff; }
+  9.5%, 88.5%{ background: hsla(160,48%,16%,0.9); border-color: hsla(51,78%,70%,0.12); box-shadow: none; color: hsla(0,0%,100%,0.5); }
+  90%        { background: hsla(51,78%,52%,0.65); border-color: hsla(51,78%,72%,0.9);  box-shadow: 0 0 22px hsla(51,78%,65%,0.45), 0 0 6px hsla(51,78%,80%,0.3); color: #fff; }
+  91.5%, 100%{ background: hsla(160,48%,16%,0.9); border-color: hsla(51,78%,70%,0.12); box-shadow: none; color: hsla(0,0%,100%,0.5); }
+}
+@keyframes retirement-spot-3 {
+  0%, 11.5% { background: hsla(160,48%,16%,0.9); border-color: hsla(51,78%,70%,0.12); box-shadow: none; color: hsla(0,0%,100%,0.5); }
+  13%        { background: hsla(51,78%,52%,0.65); border-color: hsla(51,78%,72%,0.9);  box-shadow: 0 0 22px hsla(51,78%,65%,0.45), 0 0 6px hsla(51,78%,80%,0.3); color: #fff; }
+  14.5%, 83.5%{ background: hsla(160,48%,16%,0.9); border-color: hsla(51,78%,70%,0.12); box-shadow: none; color: hsla(0,0%,100%,0.5); }
+  85%        { background: hsla(51,78%,52%,0.65); border-color: hsla(51,78%,72%,0.9);  box-shadow: 0 0 22px hsla(51,78%,65%,0.45), 0 0 6px hsla(51,78%,80%,0.3); color: #fff; }
+  86.5%, 100%{ background: hsla(160,48%,16%,0.9); border-color: hsla(51,78%,70%,0.12); box-shadow: none; color: hsla(0,0%,100%,0.5); }
+}
+@keyframes retirement-spot-4 {
+  0%, 16.5% { background: hsla(160,48%,16%,0.9); border-color: hsla(51,78%,70%,0.12); box-shadow: none; color: hsla(0,0%,100%,0.5); }
+  18%        { background: hsla(51,78%,52%,0.65); border-color: hsla(51,78%,72%,0.9);  box-shadow: 0 0 22px hsla(51,78%,65%,0.45), 0 0 6px hsla(51,78%,80%,0.3); color: #fff; }
+  19.5%, 78.5%{ background: hsla(160,48%,16%,0.9); border-color: hsla(51,78%,70%,0.12); box-shadow: none; color: hsla(0,0%,100%,0.5); }
+  80%        { background: hsla(51,78%,52%,0.65); border-color: hsla(51,78%,72%,0.9);  box-shadow: 0 0 22px hsla(51,78%,65%,0.45), 0 0 6px hsla(51,78%,80%,0.3); color: #fff; }
+  81.5%, 100%{ background: hsla(160,48%,16%,0.9); border-color: hsla(51,78%,70%,0.12); box-shadow: none; color: hsla(0,0%,100%,0.5); }
+}
+@keyframes retirement-spot-5 {
+  0%, 21.5% { background: hsla(160,48%,16%,0.9); border-color: hsla(51,78%,70%,0.12); box-shadow: none; color: hsla(0,0%,100%,0.5); }
+  23%        { background: hsla(51,78%,52%,0.65); border-color: hsla(51,78%,72%,0.9);  box-shadow: 0 0 22px hsla(51,78%,65%,0.45), 0 0 6px hsla(51,78%,80%,0.3); color: #fff; }
+  24.5%, 73.5%{ background: hsla(160,48%,16%,0.9); border-color: hsla(51,78%,70%,0.12); box-shadow: none; color: hsla(0,0%,100%,0.5); }
+  75%        { background: hsla(51,78%,52%,0.65); border-color: hsla(51,78%,72%,0.9);  box-shadow: 0 0 22px hsla(51,78%,65%,0.45), 0 0 6px hsla(51,78%,80%,0.3); color: #fff; }
+  76.5%, 100%{ background: hsla(160,48%,16%,0.9); border-color: hsla(51,78%,70%,0.12); box-shadow: none; color: hsla(0,0%,100%,0.5); }
+}
+@keyframes retirement-spot-6 {
+  0%, 26.5% { background: hsla(160,48%,16%,0.9); border-color: hsla(51,78%,70%,0.12); box-shadow: none; color: hsla(0,0%,100%,0.5); }
+  28%        { background: hsla(51,78%,52%,0.65); border-color: hsla(51,78%,72%,0.9);  box-shadow: 0 0 22px hsla(51,78%,65%,0.45), 0 0 6px hsla(51,78%,80%,0.3); color: #fff; }
+  29.5%, 68.5%{ background: hsla(160,48%,16%,0.9); border-color: hsla(51,78%,70%,0.12); box-shadow: none; color: hsla(0,0%,100%,0.5); }
+  70%        { background: hsla(51,78%,52%,0.65); border-color: hsla(51,78%,72%,0.9);  box-shadow: 0 0 22px hsla(51,78%,65%,0.45), 0 0 6px hsla(51,78%,80%,0.3); color: #fff; }
+  71.5%, 100%{ background: hsla(160,48%,16%,0.9); border-color: hsla(51,78%,70%,0.12); box-shadow: none; color: hsla(0,0%,100%,0.5); }
+}
+@keyframes retirement-spot-7 {
+  0%, 31.5% { background: hsla(160,48%,16%,0.9); border-color: hsla(51,78%,70%,0.12); box-shadow: none; color: hsla(0,0%,100%,0.5); }
+  33%        { background: hsla(51,78%,52%,0.65); border-color: hsla(51,78%,72%,0.9);  box-shadow: 0 0 22px hsla(51,78%,65%,0.45), 0 0 6px hsla(51,78%,80%,0.3); color: #fff; }
+  34.5%, 63.5%{ background: hsla(160,48%,16%,0.9); border-color: hsla(51,78%,70%,0.12); box-shadow: none; color: hsla(0,0%,100%,0.5); }
+  65%        { background: hsla(51,78%,52%,0.65); border-color: hsla(51,78%,72%,0.9);  box-shadow: 0 0 22px hsla(51,78%,65%,0.45), 0 0 6px hsla(51,78%,80%,0.3); color: #fff; }
+  66.5%, 100%{ background: hsla(160,48%,16%,0.9); border-color: hsla(51,78%,70%,0.12); box-shadow: none; color: hsla(0,0%,100%,0.5); }
+}
+@keyframes retirement-spot-8 {
+  0%, 36.5% { background: hsla(160,48%,16%,0.9); border-color: hsla(51,78%,70%,0.12); box-shadow: none; color: hsla(0,0%,100%,0.5); }
+  38%        { background: hsla(51,78%,52%,0.65); border-color: hsla(51,78%,72%,0.9);  box-shadow: 0 0 22px hsla(51,78%,65%,0.45), 0 0 6px hsla(51,78%,80%,0.3); color: #fff; }
+  39.5%, 58.5%{ background: hsla(160,48%,16%,0.9); border-color: hsla(51,78%,70%,0.12); box-shadow: none; color: hsla(0,0%,100%,0.5); }
+  60%        { background: hsla(51,78%,52%,0.65); border-color: hsla(51,78%,72%,0.9);  box-shadow: 0 0 22px hsla(51,78%,65%,0.45), 0 0 6px hsla(51,78%,80%,0.3); color: #fff; }
+  61.5%, 100%{ background: hsla(160,48%,16%,0.9); border-color: hsla(51,78%,70%,0.12); box-shadow: none; color: hsla(0,0%,100%,0.5); }
+}
+@keyframes retirement-spot-9 {
+  0%, 41.5% { background: hsla(160,48%,16%,0.9); border-color: hsla(51,78%,70%,0.12); box-shadow: none; color: hsla(0,0%,100%,0.5); }
+  43%        { background: hsla(51,78%,52%,0.65); border-color: hsla(51,78%,72%,0.9);  box-shadow: 0 0 22px hsla(51,78%,65%,0.45), 0 0 6px hsla(51,78%,80%,0.3); color: #fff; }
+  44.5%, 53.5%{ background: hsla(160,48%,16%,0.9); border-color: hsla(51,78%,70%,0.12); box-shadow: none; color: hsla(0,0%,100%,0.5); }
+  55%        { background: hsla(51,78%,52%,0.65); border-color: hsla(51,78%,72%,0.9);  box-shadow: 0 0 22px hsla(51,78%,65%,0.45), 0 0 6px hsla(51,78%,80%,0.3); color: #fff; }
+  56.5%, 100%{ background: hsla(160,48%,16%,0.9); border-color: hsla(51,78%,70%,0.12); box-shadow: none; color: hsla(0,0%,100%,0.5); }
+}
+@keyframes retirement-spot-10 {
+  0%, 46.5% { background: hsla(160,48%,16%,0.9); border-color: hsla(51,78%,70%,0.12); box-shadow: none; color: hsla(0,0%,100%,0.5); }
+  48%        { background: hsla(51,78%,52%,0.65); border-color: hsla(51,78%,72%,0.9);  box-shadow: 0 0 22px hsla(51,78%,65%,0.45), 0 0 6px hsla(51,78%,80%,0.3); color: #fff; }
+  49.5%, 100%{ background: hsla(160,48%,16%,0.9); border-color: hsla(51,78%,70%,0.12); box-shadow: none; color: hsla(0,0%,100%,0.5); }
+}
+
 /* ── RETIREMENT rounded pill letters ── */
 .retirement-letter-pill {
   font-size: 10vw;
   width: 1.1em;
   height: 1.15em;
   border-radius: 0.25em;
-  background: linear-gradient(
-    90deg,
-    hsla(160, 48%, 18%, 0.85) 0%,
-    hsla(160, 48%, 28%, 0.7) 20%,
-    hsla(51, 78%, 70%, 0.35) 40%,
-    hsla(160, 48%, 28%, 0.7) 60%,
-    hsla(160, 48%, 18%, 0.85) 80%,
-    hsla(51, 78%, 70%, 0.20) 100%
-  );
-  background-size: 300% 100%;
-  animation: retirement-gradient-sweep 7s linear infinite;
-  border: 1px solid hsla(51, 78%, 70%, 0.25);
-  color: white;
+  background: hsla(160, 48%, 16%, 0.9);
+  border: 1px solid hsla(51, 78%, 70%, 0.12);
+  color: hsla(0, 0%, 100%, 0.5);
   font-weight: 900;
   text-transform: uppercase;
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  transition: transform 0.3s ease, border-color 0.3s ease;
+  transition: transform 0.3s ease;
 }
+
+.retirement-letter-pill:nth-child(1)  { animation: retirement-spot-1  8s ease-in-out infinite; }
+.retirement-letter-pill:nth-child(2)  { animation: retirement-spot-2  8s ease-in-out infinite; }
+.retirement-letter-pill:nth-child(3)  { animation: retirement-spot-3  8s ease-in-out infinite; }
+.retirement-letter-pill:nth-child(4)  { animation: retirement-spot-4  8s ease-in-out infinite; }
+.retirement-letter-pill:nth-child(5)  { animation: retirement-spot-5  8s ease-in-out infinite; }
+.retirement-letter-pill:nth-child(6)  { animation: retirement-spot-6  8s ease-in-out infinite; }
+.retirement-letter-pill:nth-child(7)  { animation: retirement-spot-7  8s ease-in-out infinite; }
+.retirement-letter-pill:nth-child(8)  { animation: retirement-spot-8  8s ease-in-out infinite; }
+.retirement-letter-pill:nth-child(9)  { animation: retirement-spot-9  8s ease-in-out infinite; }
+.retirement-letter-pill:nth-child(10) { animation: retirement-spot-10 8s ease-in-out infinite; }
 
 .retirement-letter-pill:hover {
   border-color: hsla(51, 78%, 70%, 0.5);
