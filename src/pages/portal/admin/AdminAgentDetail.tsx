@@ -1,11 +1,9 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ArrowLeft, Save, UserMinus, UserCheck } from "lucide-react";
 import { toast } from "sonner";
@@ -94,7 +92,6 @@ export default function AdminAgentDetail() {
       })
       .eq("id", advisor.id);
 
-    // Also update portal_users name
     await supabase
       .from("portal_users")
       .update({
@@ -125,148 +122,200 @@ export default function AdminAgentDetail() {
   if (loading) {
     return (
       <div className="flex justify-center py-20">
-        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-4 border-[#1A4D3E] border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   if (!advisor) {
-    return <p className="text-center py-20 text-muted-foreground">Agent not found</p>;
+    return <p className="text-center py-20 text-gray-400">Agent not found</p>;
   }
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
-      <Button variant="ghost" onClick={() => navigate("/portal/admin/agents")} className="gap-2">
+      <Button
+        variant="ghost"
+        onClick={() => navigate("/portal/admin/agents")}
+        className="gap-2 text-gray-500 hover:text-gray-900"
+      >
         <ArrowLeft className="h-4 w-4" />Back to Agents
       </Button>
 
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold" style={{ color: "#1A4D3E", fontFamily: "'Playfair Display', serif" }}>
+          <h1 className="text-2xl font-bold text-gray-900">
             {advisor.first_name} {advisor.last_name}
           </h1>
-          <p className="text-muted-foreground">{advisor.email}</p>
+          <p className="text-gray-500">{advisor.email}</p>
         </div>
-        <div className="flex gap-2">
-          <Badge variant={advisor.is_active ? "default" : "secondary"} className={advisor.is_active ? "bg-green-100 text-green-800" : ""}>
-            {advisor.is_active ? "Active" : "Inactive"}
-          </Badge>
-          <Button variant="outline" size="sm" onClick={toggleActive}>
-            {advisor.is_active ? <><UserMinus className="h-4 w-4 mr-1" />Deactivate</> : <><UserCheck className="h-4 w-4 mr-1" />Activate</>}
+        <div className="flex items-center gap-3">
+          {advisor.is_active ? (
+            <span className="inline-flex items-center bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full text-xs px-2.5 py-1 font-medium">Active</span>
+          ) : (
+            <span className="inline-flex items-center bg-gray-100 text-gray-600 border border-gray-200 rounded-full text-xs px-2.5 py-1 font-medium">Inactive</span>
+          )}
+          <Button
+            variant="outline"
+            size="sm"
+            className="border-gray-200 text-gray-700 hover:border-[#1A4D3E] hover:text-[#1A4D3E]"
+            onClick={toggleActive}
+          >
+            {advisor.is_active
+              ? <><UserMinus className="h-4 w-4 mr-1" />Deactivate</>
+              : <><UserCheck className="h-4 w-4 mr-1" />Activate</>
+            }
           </Button>
         </div>
       </div>
 
-      {/* Performance summary */}
+      {/* Stat cards */}
       <div className="grid grid-cols-2 gap-4">
-        <Card className="shadow-sm">
-          <CardContent className="pt-6 text-center">
-            <p className="text-3xl font-bold" style={{ color: "#1A4D3E" }}>{clients.length}</p>
-            <p className="text-sm text-muted-foreground">Total Clients</p>
-          </CardContent>
-        </Card>
-        <Card className="shadow-sm">
-          <CardContent className="pt-6 text-center">
-            <p className="text-3xl font-bold" style={{ color: "#1A4D3E" }}>{policyCount}</p>
-            <p className="text-sm text-muted-foreground">Active Policies</p>
-          </CardContent>
-        </Card>
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 text-center">
+          <p className="text-3xl font-bold text-[#1A4D3E]">{clients.length}</p>
+          <p className="text-sm text-gray-500 mt-1">Total Clients</p>
+        </div>
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 text-center">
+          <p className="text-3xl font-bold text-[#1A4D3E]">{policyCount}</p>
+          <p className="text-sm text-gray-500 mt-1">Active Policies</p>
+        </div>
       </div>
 
       {/* Edit form */}
-      <Card className="shadow-sm">
-        <CardHeader>
-          <CardTitle style={{ color: "#1A4D3E" }}>Agent Details</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
+      <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
+        <div className="px-6 py-4 border-b border-gray-100">
+          <h2 className="text-base font-semibold text-gray-900">Agent Details</h2>
+        </div>
+        <div className="p-6 space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>First Name</Label>
-              <Input value={editForm.first_name ?? ""} onChange={(e) => setEditForm((p) => ({ ...p, first_name: e.target.value }))} />
+              <Label className="text-gray-700">First Name</Label>
+              <Input
+                className="border-gray-200 bg-white focus-visible:ring-1 focus-visible:ring-[#1A4D3E]"
+                value={editForm.first_name ?? ""}
+                onChange={(e) => setEditForm((p) => ({ ...p, first_name: e.target.value }))}
+              />
             </div>
             <div className="space-y-2">
-              <Label>Last Name</Label>
-              <Input value={editForm.last_name ?? ""} onChange={(e) => setEditForm((p) => ({ ...p, last_name: e.target.value }))} />
+              <Label className="text-gray-700">Last Name</Label>
+              <Input
+                className="border-gray-200 bg-white focus-visible:ring-1 focus-visible:ring-[#1A4D3E]"
+                value={editForm.last_name ?? ""}
+                onChange={(e) => setEditForm((p) => ({ ...p, last_name: e.target.value }))}
+              />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Phone</Label>
-              <Input value={editForm.phone ?? ""} onChange={(e) => setEditForm((p) => ({ ...p, phone: e.target.value }))} />
+              <Label className="text-gray-700">Phone</Label>
+              <Input
+                className="border-gray-200 bg-white focus-visible:ring-1 focus-visible:ring-[#1A4D3E]"
+                value={editForm.phone ?? ""}
+                onChange={(e) => setEditForm((p) => ({ ...p, phone: e.target.value }))}
+              />
             </div>
             <div className="space-y-2">
-              <Label>Title</Label>
-              <Input value={editForm.title ?? ""} onChange={(e) => setEditForm((p) => ({ ...p, title: e.target.value }))} />
+              <Label className="text-gray-700">Title</Label>
+              <Input
+                className="border-gray-200 bg-white focus-visible:ring-1 focus-visible:ring-[#1A4D3E]"
+                value={editForm.title ?? ""}
+                onChange={(e) => setEditForm((p) => ({ ...p, title: e.target.value }))}
+              />
             </div>
           </div>
           <div className="space-y-2">
-            <Label>Bio</Label>
-            <Input value={editForm.bio ?? ""} onChange={(e) => setEditForm((p) => ({ ...p, bio: e.target.value }))} />
+            <Label className="text-gray-700">Bio</Label>
+            <Input
+              className="border-gray-200 bg-white focus-visible:ring-1 focus-visible:ring-[#1A4D3E]"
+              value={editForm.bio ?? ""}
+              onChange={(e) => setEditForm((p) => ({ ...p, bio: e.target.value }))}
+            />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>License Number</Label>
-              <Input value={editForm.license_number ?? ""} onChange={(e) => setEditForm((p) => ({ ...p, license_number: e.target.value }))} />
+              <Label className="text-gray-700">License Number</Label>
+              <Input
+                className="border-gray-200 bg-white focus-visible:ring-1 focus-visible:ring-[#1A4D3E]"
+                value={editForm.license_number ?? ""}
+                onChange={(e) => setEditForm((p) => ({ ...p, license_number: e.target.value }))}
+              />
             </div>
             <div className="space-y-2">
-              <Label>Specializations (comma-separated)</Label>
-              <Input value={editForm.specializations?.join(", ") ?? ""} onChange={(e) => setEditForm((p) => ({ ...p, specializations: e.target.value.split(",").map((s) => s.trim()) }))} />
+              <Label className="text-gray-700">Specializations (comma-separated)</Label>
+              <Input
+                className="border-gray-200 bg-white focus-visible:ring-1 focus-visible:ring-[#1A4D3E]"
+                value={editForm.specializations?.join(", ") ?? ""}
+                onChange={(e) => setEditForm((p) => ({ ...p, specializations: e.target.value.split(",").map((s) => s.trim()) }))}
+              />
             </div>
           </div>
           <div className="space-y-2">
-            <Label>Languages (comma-separated)</Label>
-            <Input value={editForm.languages?.join(", ") ?? ""} onChange={(e) => setEditForm((p) => ({ ...p, languages: e.target.value.split(",").map((s) => s.trim()) }))} />
+            <Label className="text-gray-700">Languages (comma-separated)</Label>
+            <Input
+              className="border-gray-200 bg-white focus-visible:ring-1 focus-visible:ring-[#1A4D3E]"
+              value={editForm.languages?.join(", ") ?? ""}
+              onChange={(e) => setEditForm((p) => ({ ...p, languages: e.target.value.split(",").map((s) => s.trim()) }))}
+            />
           </div>
-          <div className="flex justify-end">
-            <Button onClick={handleSave} disabled={saving}>
+          <div className="flex justify-end pt-2">
+            <Button
+              onClick={handleSave}
+              disabled={saving}
+              className="bg-[#1A4D3E] hover:bg-[#143d30] text-white"
+            >
               <Save className="h-4 w-4 mr-2" />{saving ? "Saving..." : "Save Changes"}
             </Button>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Assigned clients */}
-      <Card className="shadow-sm">
-        <CardHeader>
-          <CardTitle style={{ color: "#1A4D3E" }}>Assigned Clients ({clients.length})</CardTitle>
-        </CardHeader>
-        <CardContent className="p-0">
-          <Table>
-            <TableHeader>
+      <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
+        <div className="px-6 py-4 border-b border-gray-100">
+          <h2 className="text-base font-semibold text-gray-900">Assigned Clients ({clients.length})</h2>
+        </div>
+        <Table>
+          <TableHeader>
+            <TableRow className="bg-gray-50 hover:bg-gray-50">
+              <TableHead className="text-xs font-semibold uppercase tracking-wide text-gray-500">Name</TableHead>
+              <TableHead className="text-xs font-semibold uppercase tracking-wide text-gray-500">Email</TableHead>
+              <TableHead className="text-xs font-semibold uppercase tracking-wide text-gray-500">Status</TableHead>
+              <TableHead className="text-xs font-semibold uppercase tracking-wide text-gray-500">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {clients.length === 0 ? (
               <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Actions</TableHead>
+                <TableCell colSpan={4} className="text-center py-8 text-gray-400">No clients assigned</TableCell>
               </TableRow>
-            </TableHeader>
-            <TableBody>
-              {clients.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={4} className="text-center py-6 text-muted-foreground">No clients assigned</TableCell>
+            ) : (
+              clients.map((c) => (
+                <TableRow key={c.id} className="border-b border-gray-100 hover:bg-gray-50/50">
+                  <TableCell className="font-medium text-gray-900">{c.first_name} {c.last_name}</TableCell>
+                  <TableCell className="text-gray-500">{c.email}</TableCell>
+                  <TableCell>
+                    {c.is_active ? (
+                      <span className="inline-flex items-center bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full text-xs px-2.5 py-0.5 font-medium">Active</span>
+                    ) : (
+                      <span className="inline-flex items-center bg-gray-100 text-gray-600 border border-gray-200 rounded-full text-xs px-2.5 py-0.5 font-medium">Inactive</span>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="border-[#1A4D3E] text-[#1A4D3E] hover:bg-[#F0F5F3]"
+                      onClick={() => setReassignClient(c)}
+                    >
+                      Reassign
+                    </Button>
+                  </TableCell>
                 </TableRow>
-              ) : (
-                clients.map((c) => (
-                  <TableRow key={c.id}>
-                    <TableCell className="font-medium">{c.first_name} {c.last_name}</TableCell>
-                    <TableCell className="text-muted-foreground">{c.email}</TableCell>
-                    <TableCell>
-                      <Badge variant={c.is_active ? "default" : "secondary"} className={c.is_active ? "bg-green-100 text-green-800" : ""}>
-                        {c.is_active ? "Active" : "Inactive"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Button variant="outline" size="sm" onClick={() => setReassignClient(c)}>
-                        Reassign
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </div>
 
       {reassignClient && (
         <ReassignAdvisorDialog
