@@ -4,10 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Search, Download, FileText, Video, Megaphone, Eye, Image as ImageIcon, Copy } from "lucide-react";
 import { toast } from "sonner";
 
-const GOLD = "hsla(51, 78%, 65%, 1)";
-const GOLD_BG = "hsla(51, 78%, 65%, 0.12)";
-const GOLD_BORDER = "hsla(51, 78%, 65%, 0.3)";
-const GLASS = { background: "hsla(160,48%,21%,0.08)", border: "1px solid hsla(0,0%,100%,0.08)", backdropFilter: "blur(16px)" };
+const BRAND_GREEN = "#1A4D3E";
 
 const categories = [
   { key: "recruiting", label: "Recruiting" }, { key: "client_acquisition", label: "Client Acquisition" },
@@ -22,9 +19,8 @@ const typeIcons: Record<string, React.ElementType> = { creative: ImageIcon, temp
 
 function FilterChip({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
   return (
-    <button onClick={onClick} className="px-3 py-1 rounded-full text-xs font-medium transition-all cursor-pointer"
-      style={active ? { background: GOLD_BG, color: GOLD, border: `1px solid ${GOLD_BORDER}` }
-        : { background: "hsla(0,0%,100%,0.04)", color: "hsla(0,0%,100%,0.5)", border: "1px solid hsla(0,0%,100%,0.08)" }}>
+    <button onClick={onClick} className={`px-3 py-1 rounded-full text-xs font-medium transition-all cursor-pointer border ${active ? "text-white border-transparent" : "border-gray-200 text-gray-600 bg-white hover:bg-gray-50"}`}
+      style={active ? { background: BRAND_GREEN } : {}}>
       {label}
     </button>
   );
@@ -57,106 +53,97 @@ export default function MarketingResources() {
   }
 
   return (
-    <div className="relative min-h-screen -m-4 sm:-m-6 lg:-m-8 p-4 sm:p-6 lg:p-8" style={{ background: "#020806" }}>
-      <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -top-32 -left-32 h-[500px] w-[500px] rounded-full opacity-30" style={{ background: "radial-gradient(circle, hsla(160,60%,25%,0.5) 0%, transparent 70%)", filter: "blur(60px)" }} />
-        <div className="absolute bottom-0 right-0 h-[350px] w-[350px] rounded-full opacity-20" style={{ background: `radial-gradient(circle, ${GOLD_BG} 0%, transparent 70%)`, filter: "blur(80px)" }} />
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900">Marketing Resources</h1>
+        <p className="text-sm text-gray-500 mt-0.5">Access social media creatives, email templates, and recruiting materials.</p>
       </div>
-      <div className="relative z-10 space-y-6">
-        <div>
-          <span className="text-xs font-bold tracking-[0.2em] uppercase px-3 py-1 rounded-full" style={{ background: GOLD_BG, color: GOLD, border: `1px solid ${GOLD_BORDER}` }}>MARKETING</span>
-          <h1 className="text-2xl font-black text-white mt-2" style={{ fontFamily: "'Playfair Display', serif" }}>Marketing Resources</h1>
-          <p className="text-white/50 mt-1 text-sm">Access social media creatives, email templates, and recruiting materials.</p>
-        </div>
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          {[{ label: "Total Resources", value: stats.total, icon: Megaphone }, { label: "Creatives", value: stats.creatives, icon: ImageIcon }, { label: "Templates", value: stats.templates, icon: FileText }, { label: "Videos", value: stats.videos, icon: Video }].map(s => (
-            <div key={s.label} className="rounded-2xl p-4 flex items-center gap-3" style={GLASS}>
-              <div className="h-10 w-10 rounded-lg flex items-center justify-center shrink-0" style={{ background: GOLD_BG }}>
-                <s.icon className="h-5 w-5" style={{ color: GOLD }} />
-              </div>
-              <div><p className="text-xs text-white/40">{s.label}</p><p className="text-xl font-bold text-white">{s.value}</p></div>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {[{ label: "Total Resources", value: stats.total, icon: Megaphone }, { label: "Creatives", value: stats.creatives, icon: ImageIcon }, { label: "Templates", value: stats.templates, icon: FileText }, { label: "Videos", value: stats.videos, icon: Video }].map(s => (
+          <div key={s.label} className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 flex items-center gap-3">
+            <div className="h-10 w-10 rounded-lg flex items-center justify-center shrink-0" style={{ background: `${BRAND_GREEN}15` }}>
+              <s.icon className="h-5 w-5" style={{ color: BRAND_GREEN }} />
             </div>
-          ))}
-        </div>
+            <div><p className="text-xs text-gray-500">{s.label}</p><p className="text-xl font-bold text-gray-900">{s.value}</p></div>
+          </div>
+        ))}
+      </div>
 
-        <div className="rounded-2xl p-5 space-y-4" style={GLASS}>
-          <div className="relative max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/30" />
-            <Input placeholder="Search resources or tags..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-9 bg-white/5 border-white/10 text-white placeholder:text-white/30 focus-visible:ring-0 focus-visible:border-white/20 rounded-xl" />
-          </div>
-          <div className="space-y-2">
-            <p className="text-xs font-medium text-white/40">Category</p>
-            <div className="flex flex-wrap gap-2">
-              <FilterChip label="All" active={!selectedCategory} onClick={() => setSelectedCategory(null)} />
-              {categories.map(c => <FilterChip key={c.key} label={c.label} active={selectedCategory === c.key} onClick={() => setSelectedCategory(c.key)} />)}
-            </div>
-          </div>
-          <div className="space-y-2">
-            <p className="text-xs font-medium text-white/40">Type</p>
-            <div className="flex flex-wrap gap-2">
-              <FilterChip label="All Types" active={!selectedType} onClick={() => setSelectedType(null)} />
-              {resourceTypes.map(t => <FilterChip key={t.key} label={t.label} active={selectedType === t.key} onClick={() => setSelectedType(t.key)} />)}
-            </div>
+      <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 space-y-4">
+        <div className="relative max-w-md">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <Input placeholder="Search resources or tags..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
+            className="pl-9 border-gray-200 bg-white text-gray-900 placeholder:text-gray-400 focus-visible:ring-1 rounded-lg" />
+        </div>
+        <div className="space-y-2">
+          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Category</p>
+          <div className="flex flex-wrap gap-2">
+            <FilterChip label="All" active={!selectedCategory} onClick={() => setSelectedCategory(null)} />
+            {categories.map(c => <FilterChip key={c.key} label={c.label} active={selectedCategory === c.key} onClick={() => setSelectedCategory(c.key)} />)}
           </div>
         </div>
-
-        {loading ? (
-          <div className="flex justify-center py-12"><div className="w-8 h-8 border-4 rounded-full animate-spin" style={{ borderColor: GOLD, borderTopColor: "transparent" }} /></div>
-        ) : filtered.length === 0 ? (
-          <div className="text-center py-12 rounded-2xl" style={GLASS}>
-            <Search className="h-10 w-10 text-white/20 mx-auto mb-3" />
-            <p className="text-white/50">No resources match your filters</p>
+        <div className="space-y-2">
+          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Type</p>
+          <div className="flex flex-wrap gap-2">
+            <FilterChip label="All Types" active={!selectedType} onClick={() => setSelectedType(null)} />
+            {resourceTypes.map(t => <FilterChip key={t.key} label={t.label} active={selectedType === t.key} onClick={() => setSelectedType(t.key)} />)}
           </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filtered.map(r => {
-              const TypeIcon = typeIcons[r.resource_type] || FileText;
-              return (
-                <div key={r.id} className="rounded-2xl overflow-hidden flex flex-col" style={GLASS}>
-                  {r.thumbnail_url || (r.resource_type === "creative" && r.file_url) ? (
-                    <img src={r.thumbnail_url || r.file_url} alt={r.title} className="w-full h-40 object-cover" />
-                  ) : (
-                    <div className="w-full h-40 flex items-center justify-center" style={{ background: GOLD_BG }}>
-                      <TypeIcon className="h-12 w-12 opacity-30" style={{ color: GOLD }} />
+        </div>
+      </div>
+
+      {loading ? (
+        <div className="flex justify-center py-12"><div className="w-8 h-8 border-4 rounded-full animate-spin" style={{ borderColor: BRAND_GREEN, borderTopColor: "transparent" }} /></div>
+      ) : filtered.length === 0 ? (
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm text-center py-12">
+          <Search className="h-10 w-10 text-gray-300 mx-auto mb-3" />
+          <p className="text-gray-500">No resources match your filters</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filtered.map(r => {
+            const TypeIcon = typeIcons[r.resource_type] || FileText;
+            return (
+              <div key={r.id} className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden flex flex-col hover:shadow-md hover:border-gray-200 transition-all">
+                {r.thumbnail_url || (r.resource_type === "creative" && r.file_url) ? (
+                  <img src={r.thumbnail_url || r.file_url} alt={r.title} className="w-full h-40 object-cover" />
+                ) : (
+                  <div className="w-full h-40 flex items-center justify-center bg-gray-50">
+                    <TypeIcon className="h-12 w-12 text-gray-300" />
+                  </div>
+                )}
+                <div className="p-4 flex-1 flex flex-col">
+                  <span className="text-xs px-2 py-0.5 rounded-full w-fit capitalize mb-2 bg-gray-100 text-gray-600 border border-gray-200">{r.resource_type}</span>
+                  <p className="font-medium text-gray-900 truncate">{r.title}</p>
+                  {r.description && <p className="text-xs text-gray-400 mt-1 line-clamp-2">{r.description}</p>}
+                  {r.tags && r.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-2">
+                      {r.tags.slice(0, 3).map((tag: string) => (
+                        <span key={tag} className="text-[10px] px-1.5 py-0 rounded-full bg-gray-50 text-gray-400 border border-gray-100">{tag}</span>
+                      ))}
                     </div>
                   )}
-                  <div className="p-4 flex-1 flex flex-col">
-                    <span className="text-xs px-2 py-0.5 rounded-full w-fit capitalize mb-2"
-                      style={{ background: "hsla(0,0%,100%,0.06)", color: "hsla(0,0%,100%,0.6)", border: "1px solid hsla(0,0%,100%,0.08)" }}>{r.resource_type}</span>
-                    <p className="font-medium text-white truncate">{r.title}</p>
-                    {r.description && <p className="text-xs text-white/40 mt-1 line-clamp-2">{r.description}</p>}
-                    {r.tags && r.tags.length > 0 && (
-                      <div className="flex flex-wrap gap-1 mt-2">
-                        {r.tags.slice(0, 3).map((tag: string) => (
-                          <span key={tag} className="text-[10px] px-1.5 py-0 rounded-full" style={{ background: "hsla(0,0%,100%,0.04)", color: "hsla(0,0%,100%,0.4)", border: "1px solid hsla(0,0%,100%,0.06)" }}>{tag}</span>
-                        ))}
-                      </div>
+                  <div className="flex items-center gap-1 mt-2 text-xs text-gray-400">
+                    <Download className="h-3 w-3" />{r.download_count || 0} downloads
+                  </div>
+                  <div className="flex gap-2 mt-3 pt-3 border-t border-gray-100">
+                    <button onClick={() => handleDownload(r)} className="flex-1 py-1.5 rounded-lg text-xs font-medium flex items-center justify-center gap-1 text-white transition-all hover:opacity-90" style={{ background: BRAND_GREEN }}>
+                      <Download className="h-3 w-3" />Download
+                    </button>
+                    {r.file_url && (
+                      <a href={r.file_url} target="_blank" rel="noopener noreferrer">
+                        <button className="px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1 text-gray-600 hover:text-gray-900 bg-gray-50 border border-gray-200 transition-colors">
+                          <Eye className="h-3 w-3" />Preview
+                        </button>
+                      </a>
                     )}
-                    <div className="flex items-center gap-1 mt-2 text-xs text-white/30">
-                      <Download className="h-3 w-3" />{r.download_count || 0} downloads
-                    </div>
-                    <div className="flex gap-2 mt-3 pt-3 border-t border-white/[0.06]">
-                      <button onClick={() => handleDownload(r)} className="flex-1 py-1.5 rounded-xl text-xs font-medium flex items-center justify-center gap-1 transition-all"
-                        style={{ background: GOLD_BG, color: GOLD, border: `1px solid ${GOLD_BORDER}` }}>
-                        <Download className="h-3 w-3" />Download
-                      </button>
-                      {r.file_url && (
-                        <a href={r.file_url} target="_blank" rel="noopener noreferrer">
-                          <button className="px-3 py-1.5 rounded-xl text-xs font-medium flex items-center gap-1 text-white/60 hover:text-white transition-colors"
-                            style={{ background: "hsla(0,0%,100%,0.05)", border: "1px solid hsla(0,0%,100%,0.08)" }}>
-                            <Eye className="h-3 w-3" />Preview
-                          </button>
-                        </a>
-                      )}
-                    </div>
                   </div>
                 </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
