@@ -94,7 +94,7 @@ export const CTA: React.FC = () => {
             onMouseLeave={() => setBtnPos({ x: 0, y: 0 })}
             animate={{ x: btnPos.x, y: btnPos.y }}
             transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-            className="relative inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full bg-primary text-primary-foreground font-semibold text-lg hover:brightness-110 transition-all"
+            className="relative inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full bg-primary text-evergreen font-semibold text-lg hover:brightness-110 transition-all"
             style={{ boxShadow: '0 0 30px hsl(var(--primary) / 0.3), 0 0 60px hsl(var(--primary) / 0.15)' }}
           >
             <span className="absolute inset-0 rounded-full animate-ping opacity-15 bg-primary" style={{ animationDuration: '2.5s' }} />
