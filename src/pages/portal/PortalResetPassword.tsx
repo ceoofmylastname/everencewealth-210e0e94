@@ -17,13 +17,20 @@ export default function PortalResetPassword() {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
+    // Primary fix: check if Supabase already established a session from the recovery URL.
+    // This handles the race condition where the token is exchanged before onAuthStateChange is registered.
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) setReady(true);
+    });
+
+    // Backup: listen for the PASSWORD_RECOVERY event (fires if getSession() hadn't caught it yet)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "PASSWORD_RECOVERY") {
+      if (event === "PASSWORD_RECOVERY" || event === "SIGNED_IN") {
         setReady(true);
       }
     });
 
-    // Also check hash for recovery token
+    // Secondary fallback: raw hash check (works if token hasn't been exchanged yet)
     const hash = window.location.hash;
     if (hash.includes("type=recovery")) {
       setReady(true);
