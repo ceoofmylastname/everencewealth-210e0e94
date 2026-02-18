@@ -1,81 +1,121 @@
 
-# Show Advisor Info + First Message on Client Signup Success Screen
+# Build 8 Interactive Calculators into the Tools Hub
 
-## What We're Changing
+## Current State
 
-Right now, after a client creates their account, they see a plain "Account Created!" success screen with just a "Go to Login" and "Resend Verification" button. There's no advisor context at all.
+All 8 calculators in the database have `external_url = null`. This means every calculator card currently renders with **no action button** — they are purely decorative display cards. The calculators exist:
 
-The request is to enhance this success screen so the client:
-1. **Sees their advisor's name** (and photo if available) immediately after account creation
-2. **Can compose and send a first message** to their advisor right from the signup success screen — before they've even verified and logged in
+1. IUL vs 401k Comparison (Cash Flow)
+2. Inflation Impact Calculator (Cash Flow)
+3. Retirement Gap Calculator (Retirement)
+4. Social Security Estimator (Retirement)
+5. RMD Calculator (Retirement)
+6. Life Expectancy Calculator (Life & Income)
+7. Tax Bucket Optimizer (Tax Planning)
+8. Estate Tax Calculator (Estate Planning)
 
-Since the user hasn't verified their email yet (they're not logged in), we can't use the authenticated Supabase client to insert a `portal_messages` row. The cleanest solution is to store the message text locally and pass it as a URL parameter to the login page, where — after they log in — we check for a pending message and send it automatically. Alternatively, and more elegantly, we simply encourage them to go to login and send from there. However, the most seamless approach is:
+## The Fix: Build All 8 as In-App Interactive Calculators
 
-**Show the advisor intro on the success screen** + **provide a pre-filled message button that takes them to the messages page after login**, since that doesn't require any unauthenticated writes.
+Rather than linking to external tools (which don't exist), we build each calculator as an interactive React component with real financial math, rendered in a modal/slide-over when the advisor clicks "Open Calculator."
 
-## Approach
+Each calculator will:
+- Open in a full-featured **Dialog modal** (right-side slide panel on desktop)
+- Have **real input fields** (sliders + number inputs for key variables)
+- Show **live computed results** as inputs change (no submit button needed)
+- Use **Recharts** for visual output (already installed)
+- Be **fully responsive** — stacked on mobile, two-column on desktop
+- Match the existing brand green design system
 
-### Step 1 — Fetch advisor name during token validation
+---
 
-The invitation record already has `advisor_id` (which maps to `advisors.id`). We extend the `validateToken` query to join the `advisors` table and pull `first_name`, `last_name`, `title`, and `photo_url`.
+## The 8 Calculators — Inputs & Outputs
 
-```ts
-// Extended query in validateToken()
-const { data } = await supabase
-  .from("client_invitations")
-  .select(`
-    id, first_name, last_name, email, phone, advisor_id, status, expires_at,
-    advisors!advisor_id (
-      first_name, last_name, title, photo_url
-    )
-  `)
-  .eq("invitation_token", token)
-  .maybeSingle();
+### 1. IUL vs 401k Comparison
+- **Inputs:** Age, annual contribution ($), years to retirement, tax rate, assumed growth rate
+- **Output:** Side-by-side bar chart showing projected value at retirement for IUL vs 401k, with tax-equivalent comparison table showing net after-tax income
+
+### 2. Inflation Impact Calculator
+- **Inputs:** Current amount ($), inflation rate (%), years
+- **Output:** Line chart showing purchasing power erosion over time; "In X years, $Y today will only buy what $Z buys today"
+
+### 3. Retirement Gap Calculator
+- **Inputs:** Current age, retirement age, current savings ($), monthly contribution ($), expected return (%), desired monthly income in retirement ($)
+- **Output:** Projected savings at retirement vs. required nest egg; gap amount highlighted in red/green; bar chart visualization
+
+### 4. Social Security Estimator
+- **Inputs:** Current age, annual earnings ($), planned retirement age (62/67/70 slider)
+- **Output:** Estimated monthly benefit at each claiming age, with a comparison bar chart and total lifetime benefit estimate
+
+### 5. RMD Calculator
+- **Inputs:** Age, account balance ($), account type (Traditional IRA / 401k)
+- **Output:** Required minimum distribution for this year, projected RMD schedule table for next 10 years (declining balance chart)
+
+### 6. Life Expectancy Calculator
+- **Inputs:** Age, gender, smoker Y/N, health rating (excellent/good/fair), exercise frequency
+- **Output:** Estimated life expectancy years, color-coded longevity score, "years of retirement income needed" derived figure
+
+### 7. Tax Bucket Optimizer
+- **Inputs:** Total investable assets ($), current tax bracket (%), projected retirement tax bracket (%), years to retirement
+- **Output:** Recommended allocation across Taxable / Tax-Deferred / Tax-Exempt buckets; donut pie chart with dollar amounts per bucket
+
+### 8. Estate Tax Calculator
+- **Inputs:** Total gross estate ($), outstanding debts ($), existing life insurance ($), state selection
+- **Output:** Federal taxable estate, federal estate tax due, net estate to heirs; simple summary card with color-coded results
+
+---
+
+## Architecture
+
+### New Files
+- `src/pages/portal/advisor/calculators/IULvsKComparison.tsx`
+- `src/pages/portal/advisor/calculators/InflationImpact.tsx`
+- `src/pages/portal/advisor/calculators/RetirementGap.tsx`
+- `src/pages/portal/advisor/calculators/SocialSecurityEstimator.tsx`
+- `src/pages/portal/advisor/calculators/RMDCalculator.tsx`
+- `src/pages/portal/advisor/calculators/LifeExpectancy.tsx`
+- `src-pages/portal/advisor/calculators/TaxBucketOptimizer.tsx`
+- `src/pages/portal/advisor/calculators/EstateTaxCalculator.tsx`
+
+Each exports a single React component that receives `onClose: () => void` as a prop.
+
+### Modified Files
+- `src/pages/portal/advisor/ToolsHub.tsx` — wire the "Open Calculator" button to open the correct calculator modal by matching `calculator_name` to the component map
+
+### Calculator Card Enhancement
+Each calculator card gets:
+- An "Open Calculator" button (brand green, full width) that opens the modal
+- A live badge showing the category color (Cash Flow = blue, Retirement = emerald, etc.)
+- Estimated time label (e.g., "~2 min")
+
+### Modal Pattern
+Use `<Dialog>` from shadcn/ui with `max-w-2xl` on desktop, full-screen on mobile. The calculator renders inside with:
+
+```
+┌─────────────────────────────────────────────────────┐
+│  [← Back]    IUL vs 401k Comparison        [✕]     │
+├──────────────────┬──────────────────────────────────┤
+│  INPUTS          │  RESULTS                         │
+│  ─────────────── │  ────────────────────────────    │
+│  Age: [──●──]    │  [Chart]                         │
+│  Contribution:$  │                                  │
+│  Years:          │  IUL: $X,XXX,XXX                 │
+│  Tax Rate: %     │  401k net: $X,XXX,XXX            │
+└──────────────────┴──────────────────────────────────┘
 ```
 
-The `advisors` table is referenced directly via the FK `client_invitations.advisor_id → advisors.id`, so this join works without needing authentication (the `client_invitations` table already has an anon-accessible policy for token validation per the existing memory).
+On mobile: inputs stack on top, results below (single column).
 
-### Step 2 — Store advisor info in state
+---
 
-Add a new `AdvisorPreview` interface and state variable to hold the advisor's display info alongside the invitation.
+## No Database Changes Required
 
-### Step 3 — Enhance the success screen
+The calculators are purely client-side math — no API calls, no schema changes. All financial formulas run in the browser using standard React `useMemo` hooks.
 
-Update the `if (success)` render to show:
+---
 
-```
-┌─────────────────────────────────────────────────┐
-│  ✓  Account Created!                            │
-│                                                 │
-│  [Advisor Photo / Initial Avatar]               │
-│  Your advisor is:                               │
-│  [First Name Last Name]                         │
-│  [Title / "Financial Advisor"]                  │
-│                                                 │
-│  "Once you verify your email and log in, you    │
-│   can message [Advisor First Name] directly     │
-│   from your portal."                            │
-│                                                 │
-│  [ Go to Login ]                                │
-│  [ Resend Verification Email ]                  │
-└─────────────────────────────────────────────────┘
-```
+## Technical Notes
 
-The advisor card uses the same branded green styling as the rest of the dark-themed signup page.
-
-### Step 4 — Pre-fill the message page (optional UX touch)
-
-The "Go to Login" button can navigate to `/portal/login?next=/portal/client/messages` so after login the client lands directly on the messages page ready to send their first message. This is a simple `navigate()` change — no extra state management needed.
-
-## Files Changed
-
-- **`src/pages/portal/ClientSignup.tsx`** only — extend the token validation query to include advisor join, add `AdvisorPreview` state, update the success screen UI
-
-No database changes. No new edge functions. No schema migrations.
-
-## Key Details
-
-- The `client_invitations` table's anon policy already allows reading by token (required for the current signup flow to work), so the advisor join will succeed without auth
-- `advisor_id` on `client_invitations` is a FK to `advisors.id` — Supabase supports this join syntax directly
-- Photo display: if `photo_url` is null, fall back to a branded initials avatar (same pattern as `ClientDashboard.tsx`)
-- The success state is set only after `signUp()` succeeds, so the advisor info will already be loaded in state from the earlier `validateToken` call — no extra fetch needed
+- All calculations use standard financial formulas (compound interest, IRS RMD Uniform Lifetime Table, Social Security bend points)
+- Recharts `LineChart`, `BarChart`, and `PieChart` are used for visualizations (already in dependencies)
+- Sliders use the existing `@radix-ui/react-slider` (already installed)
+- All components are zero-dependency additions — no new packages needed
