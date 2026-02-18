@@ -121,7 +121,12 @@ export const Footer: React.FC = () => {
             </ul>
             <Link
               to={`/${lang}/contact`}
-              className="inline-block bg-evergreen text-white px-6 py-3 hover:bg-prime-gold hover:text-prime-900 transition-colors text-sm font-semibold"
+              className="inline-block bg-evergreen text-white px-6 py-3 hover:bg-prime-gold hover:text-prime-900 transition-all duration-300 text-sm font-semibold rounded-xl"
+              style={{
+                boxShadow: '0 0 18px hsla(51, 78%, 65%, 0.35), 0 0 40px hsla(51, 78%, 65%, 0.15)',
+              }}
+              onMouseEnter={e => ((e.currentTarget as HTMLElement).style.boxShadow = '0 0 28px hsla(51, 78%, 65%, 0.6), 0 0 60px hsla(51, 78%, 65%, 0.25)')}
+              onMouseLeave={e => ((e.currentTarget as HTMLElement).style.boxShadow = '0 0 18px hsla(51, 78%, 65%, 0.35), 0 0 40px hsla(51, 78%, 65%, 0.15)')}
             >
               Schedule Assessment
             </Link>
