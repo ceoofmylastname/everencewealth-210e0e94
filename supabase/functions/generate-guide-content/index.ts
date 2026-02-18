@@ -10,12 +10,67 @@ function slugify(text: string): string {
   return text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 }
 
+// Sanitize user input: strip characters that could break prompt context
+function sanitize(str: string, maxLen: number): string {
+  return str
+    .replace(/[`\\]/g, '')           // remove backticks and backslashes
+    .replace(/"{2,}/g, '"')          // collapse multiple quotes
+    .replace(/\n{3,}/g, '\n\n')      // limit consecutive newlines
+    .trim()
+    .substring(0, maxLen);
+}
+
+const ALLOWED_LANGUAGES = ['en', 'es'];
+const ALLOWED_CATEGORIES = [
+  'tax_planning',
+  'retirement_strategies',
+  'iul_education',
+  'estate_planning',
+];
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
+    // ── Issue 2: Auth check — verify JWT + admin role ──────────────────────
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const supabaseAuthClient = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_ANON_KEY')!,
+      { global: { headers: { Authorization: authHeader } } }
+    );
+
+    const token = authHeader.replace('Bearer ', '');
+    const { data: claimsData, error: claimsError } = await supabaseAuthClient.auth.getClaims(token);
+    if (claimsError || !claimsData?.claims) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const userId = claimsData.claims.sub;
+
+    // Check admin role via is_admin function
+    const adminClient = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    );
+    const { data: isAdmin } = await adminClient.rpc('is_admin', { _user_id: userId });
+    if (!isAdmin) {
+      return new Response(JSON.stringify({ error: 'Forbidden: admin access required' }), {
+        status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    // ── End auth check ─────────────────────────────────────────────────────
+
     const { category, topic, target_audience, language = 'en', state, generate_cover_image = false } = await req.json();
 
     if (!category || !topic) {
@@ -24,12 +79,36 @@ serve(async (req) => {
       });
     }
 
+    // ── Issue 3: Input validation & sanitization ───────────────────────────
+    if (!ALLOWED_LANGUAGES.includes(language)) {
+      return new Response(JSON.stringify({ error: 'Invalid language. Must be one of: en, es' }), {
+        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    if (!ALLOWED_CATEGORIES.includes(category)) {
+      return new Response(JSON.stringify({ error: 'Invalid category.' }), {
+        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const safeTopic = sanitize(String(topic), 200);
+    const safeAudience = sanitize(String(target_audience || 'pre-retirees aged 50-65'), 150);
+    const safeState = state ? sanitize(String(state), 50) : null;
+
+    if (!safeTopic) {
+      return new Response(JSON.stringify({ error: 'topic cannot be empty after sanitization' }), {
+        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    // ── End input validation ───────────────────────────────────────────────
+
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) throw new Error('LOVABLE_API_KEY not configured');
 
-    const stateContext = state ? ` Focus specifically on ${state} state laws, tax rules, and retirement planning considerations.` : '';
+    const stateContext = safeState ? ` Focus specifically on ${safeState} state laws, tax rules, and retirement planning considerations.` : '';
 
-    const prompt = `You are Steven Rosenberg, Founder & Chief Wealth Strategist at Everence Wealth. Generate an educational brochure/guide about "${topic}" in the "${category.replace(/_/g, ' ')}" category for ${target_audience || 'pre-retirees aged 50-65'}.${stateContext}
+    const prompt = `You are Steven Rosenberg, Founder & Chief Wealth Strategist at Everence Wealth. Generate an educational brochure/guide about "${safeTopic}" in the "${category.replace(/_/g, ' ')}" category for ${safeAudience}.${stateContext}
 
 Challenge Wall Street conventions. Prioritize cash flow over net worth. Advocate for protected indexed strategies using the Three Tax Buckets framework.
 
@@ -124,7 +203,7 @@ Return ONLY the JSON object.`;
     if (generate_cover_image) {
       try {
         const imagePrompt = `Professional, high-quality cover image for a financial educational guide titled "${parsed.title}". 
-The image should convey: ${parsed.cover_image_alt || topic}.
+The image should convey: ${parsed.cover_image_alt || safeTopic}.
 Style: Clean, modern, professional financial advisory aesthetic. Warm lighting, sophisticated color palette with navy blue and gold accents. 
 NO text or words in the image. Photorealistic quality. Landscape orientation 16:9 aspect ratio.
 Theme: Wealth management, retirement planning, financial security.`;
@@ -147,23 +226,17 @@ Theme: Wealth management, retirement planning, financial security.`;
           const base64Image = imageData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
 
           if (base64Image) {
-            // Upload to storage bucket
-            const supabase = createClient(
-              Deno.env.get('SUPABASE_URL')!,
-              Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-            );
-
             // Extract base64 data
             const base64Data = base64Image.replace(/^data:image\/\w+;base64,/, '');
             const imageBytes = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
             const fileName = `brochure-cover-${uniqueSlug}-${Date.now()}.png`;
 
-            const { error: uploadError } = await supabase.storage
+            const { error: uploadError } = await adminClient.storage
               .from('article-images')
               .upload(fileName, imageBytes, { contentType: 'image/png', upsert: true });
 
             if (!uploadError) {
-              const { data: publicUrlData } = supabase.storage
+              const { data: publicUrlData } = adminClient.storage
                 .from('article-images')
                 .getPublicUrl(fileName);
               brochure.cover_image_url = publicUrlData.publicUrl;

@@ -6875,11 +6875,11 @@ export type Database = {
       }
       duplicate_image_articles: {
         Row: {
+          article_count: number | null
           article_ids: string[] | null
-          cluster_ids: string[] | null
           featured_image_url: string | null
-          headlines: string[] | null
-          usage_count: number | null
+          languages: string[] | null
+          slugs: string[] | null
         }
         Relationships: []
       }
@@ -6890,7 +6890,7 @@ export type Database = {
           id: string | null
           language: string | null
           slug: string | null
-          url_path: string | null
+          title: string | null
         }
         Relationships: []
       }

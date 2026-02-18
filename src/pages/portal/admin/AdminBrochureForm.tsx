@@ -208,9 +208,14 @@ export default function AdminBrochureForm() {
     if (!aiTopic) return;
     setAiGenerating(true);
     try {
+      const { data: { session } } = await supabase.auth.getSession();
       const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-guide-content`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", "apikey": import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY },
+        headers: {
+          "Content-Type": "application/json",
+          "apikey": import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          "Authorization": `Bearer ${session?.access_token}`,
+        },
         body: JSON.stringify({ category: form.category, topic: aiTopic, target_audience: aiAudience, language: form.language, generate_cover_image: aiGenerateCover }),
       });
       const data = await res.json();
@@ -242,9 +247,14 @@ export default function AdminBrochureForm() {
     }
     setCoverGenerating(true);
     try {
+      const { data: { session } } = await supabase.auth.getSession();
       const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-guide-content`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", "apikey": import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY },
+        headers: {
+          "Content-Type": "application/json",
+          "apikey": import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          "Authorization": `Bearer ${session?.access_token}`,
+        },
         body: JSON.stringify({ category: form.category, topic: form.title, target_audience: "cover image only", language: form.language, generate_cover_image: true }),
       });
       const data = await res.json();
