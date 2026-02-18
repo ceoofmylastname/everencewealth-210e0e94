@@ -28,10 +28,7 @@ export const BlogPreview: React.FC = () => {
   });
 
   return (
-    <section className="relative py-24 md:py-32 overflow-hidden" style={{ background: 'hsl(160 80% 2%)' }}>
-      <div className="absolute inset-0 pointer-events-none" style={{
-        background: 'radial-gradient(ellipse 60% 40% at 50% 60%, hsla(160, 60%, 15%, 0.12), transparent)'
-      }} />
+    <section className="relative py-24 md:py-32 overflow-hidden bg-white">
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <ScrollReveal>
@@ -39,10 +36,10 @@ export const BlogPreview: React.FC = () => {
             <span className="inline-block text-xs tracking-[0.3em] uppercase font-semibold mb-4" style={{ color: '#C5A059' }}>
               {bp.badge}
             </span>
-            <h2 className="font-serif text-3xl md:text-5xl font-bold text-white mb-4">
+            <h2 className="font-serif text-3xl md:text-5xl font-bold text-foreground mb-4">
               {bp.headline}
             </h2>
-            <p className="text-primary/60 max-w-xl mx-auto text-base md:text-lg">
+            <p className="text-muted-foreground max-w-xl mx-auto text-base md:text-lg">
               {bp.subtitle}
             </p>
           </div>
@@ -51,12 +48,12 @@ export const BlogPreview: React.FC = () => {
         {isLoading ? (
           <div className="grid md:grid-cols-3 gap-8">
             {[0, 1, 2].map((i) => (
-              <div key={i} className="rounded-2xl border border-white/10 overflow-hidden bg-white/[0.03]">
-                <Skeleton className="h-52 w-full bg-white/5" />
+              <div key={i} className="rounded-2xl border border-border overflow-hidden bg-card">
+                <Skeleton className="h-52 w-full" />
                 <div className="p-6 space-y-3">
-                  <Skeleton className="h-4 w-20 bg-white/5" />
-                  <Skeleton className="h-6 w-full bg-white/5" />
-                  <Skeleton className="h-4 w-3/4 bg-white/5" />
+                  <Skeleton className="h-4 w-20" />
+                  <Skeleton className="h-6 w-full" />
+                  <Skeleton className="h-4 w-3/4" />
                 </div>
               </div>
             ))}
@@ -73,7 +70,7 @@ export const BlogPreview: React.FC = () => {
               <motion.div key={article.id} variants={staggerItem}>
                 <Link
                   to={`/${article.language || 'en'}/blog/${article.slug}`}
-                  className="group block rounded-2xl border border-white/10 overflow-hidden bg-white/[0.03] backdrop-blur-sm transition-all duration-500 hover:border-white/20 hover:shadow-[0_0_40px_-12px_hsla(160,60%,30%,0.15)]"
+                  className="group block rounded-2xl border border-border overflow-hidden bg-card shadow-sm transition-all duration-500 hover:border-border hover:shadow-lg"
                 >
                   <div className="relative h-52 overflow-hidden">
                     <img
@@ -84,20 +81,20 @@ export const BlogPreview: React.FC = () => {
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
                     {article.date_published && (
-                      <span className="absolute top-4 left-4 px-3 py-1 rounded-full text-[11px] font-medium tracking-wide text-white/90 backdrop-blur-md bg-white/10 border border-white/10">
+                      <span className="absolute top-4 left-4 px-3 py-1 rounded-full text-[11px] font-medium tracking-wide text-white/90 backdrop-blur-md bg-black/30 border border-white/10">
                         {format(new Date(article.date_published), 'MMM d, yyyy')}
                       </span>
                     )}
                   </div>
 
                   <div className="p-6">
-                    <span className="text-[11px] tracking-[0.2em] uppercase font-medium text-primary/50 mb-2 block">
+                    <span className="text-[11px] tracking-[0.2em] uppercase font-medium text-muted-foreground mb-2 block">
                       {article.category}
                     </span>
-                    <h3 className="font-serif text-lg font-semibold text-white leading-snug mb-3 transition-colors duration-300 group-hover:text-[#C5A059]">
+                    <h3 className="font-serif text-lg font-semibold text-foreground leading-snug mb-3 transition-colors duration-300 group-hover:text-[#C5A059]">
                       {article.headline}
                     </h3>
-                    <p className="text-primary/60 text-sm leading-relaxed line-clamp-2 mb-4">
+                    <p className="text-muted-foreground text-sm leading-relaxed line-clamp-2 mb-4">
                       {article.meta_description}
                     </p>
                     <span className="inline-flex items-center gap-1.5 text-xs font-semibold tracking-wide uppercase transition-colors duration-300" style={{ color: '#C5A059' }}>
@@ -110,7 +107,7 @@ export const BlogPreview: React.FC = () => {
             ))}
           </motion.div>
         ) : (
-          <p className="text-center text-primary/50 text-sm">{bp.noArticles}</p>
+          <p className="text-center text-muted-foreground text-sm">{bp.noArticles}</p>
         )}
 
         <ScrollReveal delay={0.3}>
