@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Send, Clock, CheckCircle, XCircle, KeyRound, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 import { SetClientPasswordDialog } from "@/components/portal/advisor/SetClientPasswordDialog";
@@ -21,9 +22,18 @@ interface Invitation {
   invitation_token: string;
 }
 
+interface AdvisorOption {
+  id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+}
+
 export default function ClientInvite() {
   const { portalUser } = usePortalAuth();
   const [advisorId, setAdvisorId] = useState<string | null>(null);
+  const [advisorList, setAdvisorList] = useState<AdvisorOption[]>([]);
+  const [selectedAdvisorId, setSelectedAdvisorId] = useState<string>("");
   const [invitations, setInvitations] = useState<Invitation[]>([]);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
@@ -38,34 +48,62 @@ export default function ClientInvite() {
   }, [portalUser]);
 
   async function init() {
-    const { data: advisor } = await supabase
-      .from("advisors")
-      .select("id")
-      .eq("portal_user_id", portalUser!.id)
-      .maybeSingle();
+    if (portalUser!.role === "admin") {
+      // Admin: load all advisors for dropdown
+      const { data: advisors } = await supabase
+        .from("advisors")
+        .select("id, first_name, last_name, email")
+        .eq("is_active", true)
+        .order("first_name");
+      setAdvisorList((advisors as AdvisorOption[]) ?? []);
 
-    if (advisor) {
-      setAdvisorId(advisor.id);
+      // Load all invitations across all advisors
       const { data } = await supabase
         .from("client_invitations")
         .select("*")
-        .eq("advisor_id", advisor.id)
         .order("created_at", { ascending: false });
       setInvitations((data as Invitation[]) ?? []);
+    } else {
+      // Advisor: use their own advisors row
+      const { data: advisor } = await supabase
+        .from("advisors")
+        .select("id")
+        .eq("portal_user_id", portalUser!.id)
+        .maybeSingle();
+
+      if (advisor) {
+        setAdvisorId(advisor.id);
+        const { data } = await supabase
+          .from("client_invitations")
+          .select("*")
+          .eq("advisor_id", advisor.id)
+          .order("created_at", { ascending: false });
+        setInvitations((data as Invitation[]) ?? []);
+      }
     }
     setLoading(false);
   }
 
   async function handleInvite(e: React.FormEvent) {
     e.preventDefault();
-    if (!advisorId) { toast.error("Advisor record not found"); return; }
+
+    const effectiveAdvisorId = portalUser?.role === "admin" ? selectedAdvisorId : advisorId;
+
+    if (portalUser?.role === "admin" && !selectedAdvisorId) {
+      toast.error("Please select an advisor");
+      return;
+    }
+    if (!effectiveAdvisorId) {
+      toast.error("Advisor record not found. Contact your administrator.");
+      return;
+    }
 
     setSending(true);
     const token = crypto.randomUUID();
     const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
 
     const { data: inserted, error } = await supabase.from("client_invitations").insert({
-      advisor_id: advisorId,
+      advisor_id: effectiveAdvisorId,
       email: form.email,
       first_name: form.first_name,
       last_name: form.last_name,
@@ -162,6 +200,23 @@ export default function ClientInvite() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleInvite} className="space-y-4">
+            {portalUser?.role === "admin" && (
+              <div className="space-y-2">
+                <Label>Invite on Behalf of Advisor *</Label>
+                <Select value={selectedAdvisorId} onValueChange={setSelectedAdvisorId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select advisor..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {advisorList.map((a) => (
+                      <SelectItem key={a.id} value={a.id}>
+                        {a.first_name} {a.last_name} — {a.email}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>First Name *</Label>
