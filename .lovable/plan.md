@@ -1,124 +1,183 @@
 
-# Admin Portal Redesign — Match Agent Dashboard Style
+# Portal Login Redesign — Split-Screen Animated Layout
 
-## What's Changing
+## Concept: "Executive Split"
 
-The admin portal (sidebar + all pages) is currently on a **dark green sidebar** (`bg-[#0F2922]`) with a mixed light/dark layout. The agent portal was just redesigned to a clean white professional theme. This plan brings the admin portal into exact parity.
-
-## Current vs Target
-
-| Element | Current Admin | Target (matching agent) |
-|---|---|---|
-| Sidebar bg | `bg-[#0F2922]` dark green | `bg-white border-r border-gray-200` |
-| Sidebar active | `bg-white/10 text-white` | `bg-[#F0F5F3] text-[#1A4D3E]` + left green border |
-| Sidebar inactive | `text-white/70` | `text-gray-500 hover:text-gray-900` |
-| User footer | Dark glass style | White card with brand-green avatar |
-| Page bg | `#F0F2F1` | `bg-gray-50` |
-| Cards | Default shadcn `Card` | `bg-white rounded-xl border border-gray-100 shadow-sm` |
-| Table headers | Default | `bg-gray-50 text-xs uppercase text-gray-500` |
-| Table rows | Default | Clean rows with `border-b border-gray-100` separator |
-| Inputs | Default | `border-gray-200 bg-white` with green focus ring |
-| Buttons primary | Default primary | `bg-[#1A4D3E] text-white` |
-| Status badges | `bg-green-100 text-green-800` (correct but needs cleanup) | `bg-emerald-50 text-emerald-700 border border-emerald-200` |
-| Page headings | `text-[#1A4D3E]` inline style | `text-gray-900 font-bold` (clean) |
-| Admin badge | Amber bg pill in sidebar | Gold pill matching brand |
-
-## Files to Edit
-
-### 1. `src/components/portal/AdminPortalLayout.tsx`
-
-**Sidebar:**
-- Change `bg-[#0F2922]` → `bg-white` with `border-r border-gray-200`
-- Brand area: white bg, dark "Everence" text, gold "Wealth" label (matching PortalLayout exactly)
-- `ADMIN` badge: style with `bg-[hsla(51,78%,65%,0.15)] text-[#8B6914] border border-[hsla(51,78%,65%,0.4)]` (gold tint, not amber)
-- Nav items active: `bg-[#F0F5F3] text-[#1A4D3E]` + `borderLeft: 3px solid #1A4D3E` (identical to PortalLayout NavItem)
-- Nav items inactive: `text-gray-500 hover:text-gray-900 hover:bg-gray-50`
-- Active chevron: `text-[#1A4D3E]`
-- User footer: white card (`bg-gray-50 border border-gray-100 rounded-xl`), brand-green avatar bg, dark name text, gray role text
-- Sign out button: `text-gray-500 hover:text-red-600 hover:bg-red-50`
-
-**Mobile header:**
-- Change from dark border/bg to `bg-white border-b border-gray-200`
-
-**Main content area:**
-- Change from `#F0F2F1` to `bg-gray-50`
+A full-screen two-panel layout — left side is the brand panel with animated elements, right side is the clean white login form. This is a premium, creative, and unique design inspired by top-tier SaaS and financial platforms.
 
 ---
 
-### 2. `src/pages/portal/admin/AdminAgents.tsx`
+## Layout Structure
 
-**Page header:**
-- Remove inline `color: "#1A4D3E"` style from h1
-- Use `text-2xl font-bold text-gray-900` + subtitle `text-sm text-gray-500`
-- "Add New Agent" button: `bg-[#1A4D3E] hover:bg-[#143d30] text-white rounded-lg` with `Plus` icon
+```text
+┌─────────────────────────────────────────────────────────────┐
+│                                                             │
+│  LEFT PANEL (55% width)         RIGHT PANEL (45% width)    │
+│  ─────────────────────────────  ──────────────────────────  │
+│  Deep brand green background    Pure white background       │
+│  #0B1F16 → #1A4D3E gradient     Clean & minimal             │
+│                                                             │
+│  ┌──────────────────────────┐   ┌────────────────────────┐  │
+│  │  Logo (top-left)         │   │                        │  │
+│  │                          │   │   Welcome back         │  │
+│  │  Animated floating       │   │   Sign in to access    │  │
+│  │  abstract mesh shapes    │   │   your portal          │  │
+│  │  (brand green + gold     │   │                        │  │
+│  │   gradient orbs)         │   │  [Email Input]         │  │
+│  │                          │   │  [Password Input]      │  │
+│  │  ┌────────────────────┐  │   │  [Forgot Password]     │  │
+│  │  │ "Protecting what   │  │   │                        │  │
+│  │  │  matters most."    │  │   │  [Sign In Button]      │  │
+│  │  │                    │  │   │                        │  │
+│  │  │ Tagline below      │  │   │  © 2026 Everence       │  │
+│  │  └────────────────────┘  │   └────────────────────────┘  │
+│  │                          │                               │
+│  │  3 feature bullets        │                              │
+│  │  with gold check icons   │                               │
+│  └──────────────────────────┘                               │
+└─────────────────────────────────────────────────────────────┘
+```
 
-**Tabs:**
-- `TabsList`: `bg-gray-100 p-1 rounded-lg`
-- Active `TabsTrigger`: `bg-white text-[#1A4D3E] shadow-sm`
-- Pending badge: brand-green bg pill
-
-**Table card:**
-- Replace `Card` with clean white `div` → `bg-white rounded-xl border border-gray-100 shadow-sm`
-- Search input: `border-gray-200 bg-white placeholder:text-gray-400 focus-visible:ring-1 focus-visible:ring-[#1A4D3E]`
-- `Select` trigger: same border-gray-200 style
-- `TableHeader` row: `bg-gray-50`
-- `TableHead`: `text-xs font-semibold uppercase tracking-wide text-gray-500`
-- `TableBody` rows: `border-b border-gray-100 hover:bg-gray-50/50`
-- `TableCell` names: `font-medium text-gray-900`
-- `TableCell` emails: `text-gray-500`
-- Status badge Active: `bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full text-xs px-2.5 py-0.5`
-- Status badge Inactive: `bg-gray-100 text-gray-600 border border-gray-200 rounded-full text-xs px-2.5 py-0.5`
-- View button: `text-[#1A4D3E] hover:bg-[#F0F5F3]` ghost with eye icon
-
-**Pending Invitations tab:**
-- Same table treatment
-- "Set Password" button: `border-[#1A4D3E] text-[#1A4D3E] hover:bg-[#F0F5F3]` outline
-- "Resend" button: ghost with gray text
-
----
-
-### 3. `src/pages/portal/admin/AdminClients.tsx`
-
-Same treatment as AdminAgents:
-- Page heading: `text-gray-900 font-bold`
-- Card → clean white div
-- Search input: dark-style removed → clean white
-- Table: `bg-gray-50` header, clean rows
-- Status badges: emerald/gray pill system
-- "Reassign" button: outline with brand-green border
+On **mobile** (< lg breakpoint): The left panel collapses and the right panel becomes full-screen with a subtle dark-to-evergreen gradient background, logo at top.
 
 ---
 
-### 4. `src/pages/portal/admin/AdminAgentDetail.tsx`
+## Left Panel Design (Brand Side)
 
-- Back button: `text-gray-500 hover:text-gray-900`
-- Heading: `text-gray-900 font-bold` (remove inline color)
-- Email: `text-gray-500`
-- Status badge: emerald/gray pill
-- Toggle button: `border-gray-200 text-gray-700 hover:border-[#1A4D3E] hover:text-[#1A4D3E]`
-- 2 stat cards: clean white with brand-green number, gray label
-- Edit form card: white, clean labels `text-gray-700`, inputs `border-gray-200`
-- "Save Changes" button: `bg-[#1A4D3E] text-white`
-- Assigned clients table: same clean treatment
+### Background
+- Deep gradient: `from-[#071912] via-[#0F2922] to-[#1A4D3E]`
+- Animated floating orbs using CSS keyframe animations (Framer Motion)
+- Subtle noise/grain texture overlay (CSS pseudo-element)
+
+### Animated Elements
+1. **Large blurred orbs** (3 orbs, different sizes):
+   - Orb 1: Gold `hsla(51,78%,65%,0.12)` — slow float up/down (8s cycle)
+   - Orb 2: Evergreen `rgba(26,77,62,0.4)` — float diagonal (12s cycle)
+   - Orb 3: Gold `hsla(51,78%,65%,0.06)` — very slow rotation (20s cycle)
+
+2. **Decorative grid lines** — ultra-faint white lines forming a subtle geometric pattern in the background
+
+3. **Animated brand badge** — Logo image fades in with a subtle upward entrance (Framer Motion `initial: opacity 0, y: 20` → `animate: opacity 1, y: 0`)
+
+### Content (bottom-aligned)
+```
+[Everence Logo Image — large, centered]
+
+"Protecting what matters most."
+(Serif, white, 36px, font-light)
+
+"Trusted wealth protection for families and advisors."
+(Small, white/60, 14px)
+
+────────────────────────────────
+
+✓  Personalized Financial Planning
+✓  Life & Annuity Portfolio Management  
+✓  Dedicated Advisor Support
+
+(Each bullet fades in with staggered delay)
+```
+
+### Feature Bullets
+- Gold checkmark circle icon (`text-[hsla(51,78%,65%,1)]`)
+- White text for feature name, white/50 for sub-description
 
 ---
 
-### 5. `src/pages/portal/admin/AdminAgentNew.tsx`
+## Right Panel Design (Form Side)
 
-- Back button: gray
-- Form card: white, clean
-- Labels: `text-gray-700`
-- Inputs/selects: `border-gray-200`
-- Checkbox label: `text-gray-700`
-- "Cancel" button: outline gray
-- "Create Agent" button: `bg-[#1A4D3E] text-white`
+### Background
+- Pure white `bg-white`
+- Centered content with generous padding
+
+### Form Content (vertically centered)
+```
+[Logo — smaller, for mobile only / or show on right always]
+
+"Welcome back"        ← text-gray-400 small label
+"Sign in to your portal"  ← text-gray-900 text-2xl font-bold
+
+Horizontal divider
+
+[Email field]
+Label: "Email address" — text-gray-600 text-sm
+Input: Clean, border-gray-200, focus ring brand-green
+
+[Password field]
+Label: "Password" — with "Forgot password?" link (brand green, right-aligned)
+Input: Clean with eye toggle
+
+[Sign In button]
+Full width, bg-[#1A4D3E], white text, rounded-xl
+Subtle shadow: shadow-lg shadow-[#1A4D3E]/20
+Hover: slight lighter green + scale(1.01)
+
+[Error messages]
+Inline below button — red-50 bg, red-700 text
+
+[Success messages]  
+emerald-50 bg, emerald-700 text
+```
+
+### Entrance Animation (Framer Motion)
+- Right panel form elements stagger in from right with `x: 20` offset, fading to opacity 1
+- Each field animates in with 100ms delay between elements
 
 ---
 
-## No Logic or Data Changes
+## Animations Detail
 
-All Supabase queries, state management, navigation, and business logic remain 100% unchanged. Only className strings and inline styles are changed.
+### Framer Motion Entrance
+```jsx
+// Left panel brand content
+initial={{ opacity: 0, x: -30 }}
+animate={{ opacity: 1, x: 0 }}
+transition={{ duration: 0.8, ease: "easeOut" }}
 
-## Visual Consistency
+// Right panel form
+initial={{ opacity: 0, x: 30 }}
+animate={{ opacity: 1, x: 0 }}
+transition={{ duration: 0.7, ease: "easeOut", delay: 0.2 }}
 
-After this change, the admin portal sidebar will look identical to the agent/advisor portal sidebar — same brand logo treatment, same nav item style, same user footer, same page background. The only difference will be the gold `ADMIN` badge on the logo and the 3 simplified nav items (Agents, Clients, Advisor Dashboard).
+// Staggered form elements
+// Each child: delay increments by 0.1s
+```
+
+### CSS Keyframe Orbs
+```css
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0px) scale(1); }
+  50% { transform: translateY(-30px) scale(1.05); }
+}
+/* Applied via inline style: animation: float-slow 10s ease-in-out infinite */
+```
+
+### Sign In Button
+- `transition-all duration-200 hover:scale-[1.01] active:scale-[0.99]`
+- Loading state: spinner icon + "Signing in..." text
+
+---
+
+## Color Breakdown
+
+| Element | Color |
+|---|---|
+| Left panel bg | `#071912` → `#1A4D3E` gradient |
+| Right panel bg | `#FFFFFF` |
+| Logo text | White (left), Gray-900 (right mobile) |
+| Headline | White serif |
+| Feature bullets | White + gold check icons |
+| Form labels | `#374151` gray-700 |
+| Input borders | `#E5E7EB` gray-200 |
+| Input focus ring | `#1A4D3E` brand green |
+| Sign In button | `#1A4D3E` bg, white text |
+| Forgot password | `#1A4D3E` brand green link |
+| Footer | `#9CA3AF` gray-400 |
+
+---
+
+## Files Changed
+
+- **`src/pages/portal/PortalLogin.tsx`** — Complete visual rewrite. All existing auth logic (Supabase calls, navigation, error handling) remains 100% intact. Only JSX and className strings change.
+
+No database changes. No logic changes.
