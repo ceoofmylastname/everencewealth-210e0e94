@@ -146,10 +146,11 @@ export default function AdvisorMessages() {
     if (!newMessage.trim() || !selectedConv || !portalUser) return;
 
     setSending(true);
+    const content = newMessage.trim();
     const { error } = await supabase.from("portal_messages").insert({
       conversation_id: selectedConv,
       sender_id: portalUser.id,
-      content: newMessage.trim(),
+      content,
     });
 
     if (!error) {
@@ -159,6 +160,15 @@ export default function AdvisorMessages() {
         .from("portal_conversations")
         .update({ last_message_at: new Date().toISOString() })
         .eq("id", selectedConv);
+
+      // Fire-and-forget email notification to client
+      supabase.functions.invoke("notify-portal-message", {
+        body: {
+          conversation_id: selectedConv,
+          message_content: content,
+          sender_role: "advisor",
+        },
+      }).catch((err) => console.warn("Notification error:", err));
     }
     setSending(false);
   }
