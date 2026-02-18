@@ -30,14 +30,7 @@ function getLanguageFromPath(pathname: string): Language | null {
   return null;
 }
 
-// Get browser preferred language
-function getBrowserLanguage(): Language {
-  const browserLang = navigator.language.split('-')[0].toLowerCase();
-  if (VALID_LANGUAGES.includes(browserLang as Language)) {
-    return browserLang as Language;
-  }
-  return Language.EN;
-}
+
 
 export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) => {
   const location = useLocation();
@@ -55,8 +48,8 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
       return stored as Language;
     }
     
-    // Finally, use browser language
-    return getBrowserLanguage();
+    // Default to English
+    return Language.EN;
   };
 
   const [currentLanguage, setCurrentLanguage] = useState<Language>(getInitialLanguage);
