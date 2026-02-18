@@ -10,11 +10,6 @@ export const detectUserLanguage = (): LanguageCode => {
     return urlLang as LanguageCode;
   }
   
-  const browserLang = navigator.language.split('-')[0];
-  if (SUPPORTED_LANGUAGES.includes(browserLang as LanguageCode)) {
-    return browserLang as LanguageCode;
-  }
-  
   return 'en';
 };
 
