@@ -1,454 +1,461 @@
 {
-  "version": "1.0",
-  "last_updated": "2025-01-15",
-  "total_terms": 65,
+  "version": "2.0",
+  "last_updated": "2026-02-18",
+  "total_terms": 60,
   "categories": {
-    "legal_tax": {
-      "title": "Legal & Tax Terms",
-      "description": "Spanish legal and tax terminology for property transactions",
+    "retirement": {
+      "title": "Retirement Planning",
+      "description": "Key terms for retirement savings, income planning, and benefit strategies",
       "terms": [
         {
-          "term": "NIE",
-          "full_name": "Número de Identidad de Extranjero",
-          "definition": "A tax identification number required for all foreigners conducting financial transactions in Spain, including property purchases, opening bank accounts, and signing contracts.",
-          "related_terms": ["TIE", "NIF"],
-          "see_also": ["/blog/nie-number-spain-guide", "/qa/what-is-nie-number"]
+          "term": "401(k)",
+          "full_name": "401(k) Retirement Plan",
+          "definition": "An employer-sponsored retirement savings plan that allows employees to contribute pre-tax dollars, reducing current taxable income. Many employers offer matching contributions up to a certain percentage.",
+          "related_terms": ["Roth IRA", "IRA", "Defined Contribution Plan"],
+          "see_also": ["/blog/retirement-planning-guide"]
         },
         {
-          "term": "NIF",
-          "full_name": "Número de Identificación Fiscal",
-          "definition": "The Spanish tax identification number for residents. For Spanish nationals, this is the same as their DNI number.",
-          "related_terms": ["NIE", "DNI"],
+          "term": "IRA",
+          "full_name": "Individual Retirement Account",
+          "definition": "A tax-advantaged savings account for retirement. Traditional IRAs offer tax-deductible contributions with taxable withdrawals, while Roth IRAs use after-tax contributions with tax-free withdrawals.",
+          "related_terms": ["Roth IRA", "401(k)", "Tax-Deferred"],
+          "see_also": ["/blog/retirement-planning-guide"]
+        },
+        {
+          "term": "Roth IRA",
+          "full_name": "Roth Individual Retirement Account",
+          "definition": "A retirement account funded with after-tax dollars where qualified withdrawals in retirement are completely tax-free, including all investment gains. Subject to income limits for direct contributions.",
+          "related_terms": ["IRA", "Tax-Exempt", "401(k)"],
+          "see_also": ["/blog/roth-ira-guide"]
+        },
+        {
+          "term": "RMD",
+          "full_name": "Required Minimum Distribution",
+          "definition": "The minimum amount you must withdraw annually from tax-deferred retirement accounts starting at age 73. Failure to take RMDs results in a 25% penalty on the amount not withdrawn.",
+          "related_terms": ["IRA", "401(k)", "Tax-Deferred"],
           "see_also": []
         },
         {
-          "term": "TIE",
-          "full_name": "Tarjeta de Identidad de Extranjero",
-          "definition": "The physical residence card issued to non-EU foreigners living in Spain, containing their NIE number and residence permit details.",
-          "related_terms": ["NIE", "Residencia"],
-          "see_also": ["/blog/spain-residency-options"]
-        },
-        {
-          "term": "IBI",
-          "full_name": "Impuesto sobre Bienes Inmuebles",
-          "definition": "Annual municipal property tax in Spain, typically 0.4% to 1.1% of the cadastral value. Paid yearly to the local town hall.",
-          "related_terms": ["Catastral Value", "Plusvalía"],
-          "see_also": ["/blog/spanish-property-taxes-guide"]
-        },
-        {
-          "term": "ITP",
-          "full_name": "Impuesto de Transmisiones Patrimoniales",
-          "definition": "Transfer tax paid when purchasing resale properties in Spain. In Andalusia, this is 7% of the declared purchase price.",
-          "related_terms": ["AJD", "IVA"],
-          "see_also": ["/blog/buying-costs-spain"]
-        },
-        {
-          "term": "AJD",
-          "full_name": "Actos Jurídicos Documentados",
-          "definition": "Stamp duty tax in Spain, charged at 1.2% in Andalusia on new-build properties and mortgages.",
-          "related_terms": ["ITP", "IVA"],
-          "see_also": ["/blog/buying-costs-spain"]
-        },
-        {
-          "term": "IVA",
-          "full_name": "Impuesto sobre el Valor Añadido",
-          "definition": "Value Added Tax charged on new-build properties in Spain at 10% of the purchase price (21% for commercial properties).",
-          "related_terms": ["ITP", "AJD"],
-          "see_also": ["/blog/buying-costs-spain"]
-        },
-        {
-          "term": "Plusvalía",
-          "full_name": "Impuesto sobre el Incremento de Valor de los Terrenos",
-          "definition": "Municipal capital gains tax on the increased land value since the last sale. Traditionally paid by the seller but negotiable.",
-          "related_terms": ["IBI", "Capital Gains"],
-          "see_also": ["/blog/spanish-property-taxes-guide"]
-        },
-        {
-          "term": "Catastral Value",
-          "full_name": "Valor Catastral",
-          "definition": "The official administrative value of a property used to calculate IBI and other taxes. Usually significantly lower than market value.",
-          "related_terms": ["IBI", "Catastro"],
-          "see_also": ["/blog/spanish-property-taxes-guide"]
-        },
-        {
-          "term": "Catastro",
-          "full_name": "Catastro Inmobiliario",
-          "definition": "The Spanish property registry that maintains records of all properties including boundaries, size, and cadastral values.",
-          "related_terms": ["Registro de la Propiedad", "Catastral Value"],
+          "term": "Social Security",
+          "full_name": "Social Security Benefits",
+          "definition": "A federal insurance program providing retirement income, disability benefits, and survivor benefits funded through payroll taxes. Benefits are based on your 35 highest-earning years.",
+          "related_terms": ["COLA", "Pension", "Retirement Income"],
           "see_also": []
         },
         {
-          "term": "IRNR",
-          "full_name": "Impuesto sobre la Renta de No Residentes",
-          "definition": "Non-resident income tax in Spain. Property owners must pay annually even if not renting out (imputed income). Rate is 19% for EU residents, 24% for others.",
-          "related_terms": ["Modelo 210", "Non-Resident Tax"],
-          "see_also": ["/blog/spanish-property-taxes-guide"]
-        },
-        {
-          "term": "Modelo 210",
-          "full_name": "Tax Form 210",
-          "definition": "The Spanish tax form used by non-residents to declare and pay income tax on Spanish property, including rental income and imputed income.",
-          "related_terms": ["IRNR", "Fiscal Representative"],
+          "term": "Pension",
+          "full_name": "Pension Plan",
+          "definition": "A retirement plan where an employer guarantees a specific monthly benefit in retirement based on salary history and years of service. Also known as a defined benefit plan.",
+          "related_terms": ["Defined Benefit Plan", "Social Security", "Annuity"],
           "see_also": []
         },
         {
-          "term": "Fiscal Representative",
-          "full_name": "Representante Fiscal",
-          "definition": "A tax representative in Spain who handles tax obligations for non-residents, including filing Modelo 210 and receiving official communications.",
-          "related_terms": ["Modelo 210", "IRNR"],
+          "term": "Defined Benefit Plan",
+          "full_name": "Defined Benefit Pension Plan",
+          "definition": "A retirement plan that promises a predetermined monthly benefit at retirement, typically calculated using a formula based on salary and years of service. The employer bears the investment risk.",
+          "related_terms": ["Pension", "Defined Contribution Plan"],
           "see_also": []
         },
         {
-          "term": "Wealth Tax",
-          "full_name": "Impuesto sobre el Patrimonio",
-          "definition": "Annual tax on net assets exceeding €700,000 (threshold varies by region). Rates range from 0.2% to 3.5% depending on total wealth.",
-          "related_terms": ["IRNR", "IBI"],
-          "see_also": ["/blog/spanish-property-taxes-guide"]
-        }
-      ]
-    },
-    "property": {
-      "title": "Property Terms",
-      "description": "Real estate and property-specific terminology in Spain",
-      "terms": [
-        {
-          "term": "Escritura",
-          "full_name": "Escritura Pública",
-          "definition": "The public deed of sale signed before a notary that officially transfers property ownership. This document is then registered in the Property Registry.",
-          "related_terms": ["Notario", "Registro de la Propiedad"],
-          "see_also": ["/blog/buying-property-spain-uk-buyers"]
-        },
-        {
-          "term": "Nota Simple",
-          "full_name": "Nota Simple Informativa",
-          "definition": "An official extract from the Property Registry showing current ownership, charges, and encumbrances on a property. Essential for due diligence.",
-          "related_terms": ["Registro de la Propiedad", "Due Diligence"],
+          "term": "Defined Contribution Plan",
+          "full_name": "Defined Contribution Retirement Plan",
+          "definition": "A retirement plan where the employee and/or employer contribute a defined amount, but the final benefit depends on investment performance. Examples include 401(k) and 403(b) plans.",
+          "related_terms": ["401(k)", "Defined Benefit Plan"],
           "see_also": []
         },
         {
-          "term": "Registro de la Propiedad",
-          "full_name": "Land Registry",
-          "definition": "The Spanish Property Registry where all property ownership and charges are officially recorded. Registration provides legal protection for ownership.",
-          "related_terms": ["Nota Simple", "Escritura"],
-          "see_also": []
+          "term": "Annuity",
+          "full_name": "Annuity Contract",
+          "definition": "An insurance contract that provides guaranteed income payments for a specified period or for life. Can be immediate (payments start now) or deferred (payments start later). Used to create predictable retirement income.",
+          "related_terms": ["Pension", "Retirement Income", "Cash Value"],
+          "see_also": ["/blog/annuity-guide"]
         },
         {
-          "term": "Notario",
-          "full_name": "Notary Public",
-          "definition": "A public official who authenticates the property sale deed, verifies identities, and ensures legal requirements are met. Notary fees are regulated by government.",
-          "related_terms": ["Escritura", "Completion"],
-          "see_also": []
-        },
-        {
-          "term": "Off-Plan",
-          "full_name": "Sobre Plano",
-          "definition": "Purchasing a property before construction is complete, typically at a lower price with staged payments. Buyers benefit from BFA bank guarantees protecting deposits.",
-          "related_terms": ["New-Build", "BFA Guarantee"],
-          "see_also": []
-        },
-        {
-          "term": "New-Build",
-          "full_name": "Obra Nueva",
-          "definition": "A newly constructed property being sold for the first time. Subject to 10% IVA instead of 7% ITP, plus 1.2% AJD stamp duty.",
-          "related_terms": ["Off-Plan", "IVA"],
-          "see_also": []
-        },
-        {
-          "term": "Resale",
-          "full_name": "Segunda Mano",
-          "definition": "A previously owned property being sold by its current owner. Subject to 7% ITP transfer tax in Andalusia instead of IVA.",
-          "related_terms": ["ITP", "Second-Hand"],
-          "see_also": []
-        },
-        {
-          "term": "Urbanización",
-          "full_name": "Urbanization/Development",
-          "definition": "A planned residential development or gated community, typically with shared amenities like pools, gardens, and 24-hour security.",
-          "related_terms": ["Community Fees", "Comunidad"],
-          "see_also": []
-        },
-        {
-          "term": "Community Fees",
-          "full_name": "Cuota de Comunidad",
-          "definition": "Monthly or quarterly fees paid to maintain shared areas in an urbanization or apartment building, including pools, gardens, lifts, and security.",
-          "related_terms": ["Urbanización", "Comunidad"],
-          "see_also": []
-        },
-        {
-          "term": "Comunidad",
-          "full_name": "Comunidad de Propietarios",
-          "definition": "The community of property owners in a building or urbanization who collectively manage shared areas and make decisions at AGMs.",
-          "related_terms": ["Community Fees", "AGM"],
-          "see_also": []
-        },
-        {
-          "term": "Arras",
-          "full_name": "Contrato de Arras",
-          "definition": "A reservation or deposit contract in Spain. Arras penitenciales allows buyer to withdraw losing the deposit, or seller to withdraw paying double.",
-          "related_terms": ["Deposit", "Private Contract"],
-          "see_also": []
-        },
-        {
-          "term": "Licencia de Primera Ocupación",
-          "full_name": "First Occupation License",
-          "definition": "Official certificate confirming a new-build property meets all building regulations and is fit for habitation. Required to connect utilities.",
-          "related_terms": ["New-Build", "Habitation Certificate"],
-          "see_also": []
-        },
-        {
-          "term": "Certificado Energético",
-          "full_name": "Energy Performance Certificate",
-          "definition": "Mandatory certificate rating a property's energy efficiency from A (most efficient) to G. Required for all property sales and rentals.",
-          "related_terms": ["EPC", "Energy Rating"],
-          "see_also": []
-        },
-        {
-          "term": "Referencia Catastral",
-          "full_name": "Cadastral Reference",
-          "definition": "A unique 20-character code identifying a property in the Spanish Catastro system. Essential for tax purposes and property identification.",
-          "related_terms": ["Catastro", "Catastral Value"],
+          "term": "COLA",
+          "full_name": "Cost-of-Living Adjustment",
+          "definition": "An annual increase to Social Security and some pension benefits designed to keep pace with inflation, typically based on the Consumer Price Index (CPI).",
+          "related_terms": ["Social Security", "Inflation", "Pension"],
           "see_also": []
         }
       ]
     },
-    "visa_residency": {
-      "title": "Visa & Residency Terms",
-      "description": "Immigration and residency terminology for Spain",
+    "insurance": {
+      "title": "Insurance & Protection",
+      "description": "Life insurance, disability, and asset protection terminology",
       "terms": [
         {
-          "term": "Digital Nomad Visa",
-          "full_name": "Visado para Nómadas Digitales",
-          "definition": "A Spanish residence permit designed for remote workers and freelancers who earn at least €2,520 per month from companies or clients outside Spain. Valid for 3 years initially, renewable for an additional 2 years.",
-          "related_terms": ["Remote Work Visa", "Spain Remote Work Permit", "Freelancer Visa"],
-          "see_also": ["/blog/digital-nomad-visa-spain-guide"]
+          "term": "IUL",
+          "full_name": "Indexed Universal Life Insurance",
+          "definition": "A permanent life insurance policy where the cash value growth is linked to a stock market index (like the S&P 500) with a guaranteed floor protecting against losses. Combines death benefit protection with tax-advantaged cash value accumulation.",
+          "related_terms": ["Cash Value", "Death Benefit", "Whole Life"],
+          "see_also": ["/blog/iul-guide"]
         },
         {
-          "term": "Non-Lucrative Visa",
-          "full_name": "Visado No Lucrativo",
-          "definition": "A residence visa for non-EU nationals who can prove sufficient passive income (approximately €28,800/year) without working in Spain.",
-          "related_terms": ["Residency", "Passive Income"],
-          "see_also": ["/blog/spain-residency-options"]
-        },
-        {
-          "term": "Digital Nomad Visa",
-          "full_name": "Visado para Teletrabajo Internacional",
-          "definition": "Spanish visa for remote workers employed by or running businesses outside Spain. Requires minimum income of approximately €28,800/year from non-Spanish sources.",
-          "related_terms": ["Remote Worker", "Freelancer Visa"],
-          "see_also": ["/blog/spain-residency-options"]
-        },
-        {
-          "term": "Empadronamiento",
-          "full_name": "Municipal Registration",
-          "definition": "Registration with your local town hall confirming your address in Spain. Required for many administrative procedures including healthcare access.",
-          "related_terms": ["Padrón", "Town Hall"],
+          "term": "Term Life",
+          "full_name": "Term Life Insurance",
+          "definition": "Life insurance that provides coverage for a specific period (10, 20, or 30 years). If the insured dies during the term, beneficiaries receive the death benefit. Generally the most affordable type of life insurance.",
+          "related_terms": ["Death Benefit", "Whole Life", "Premium"],
           "see_also": []
         },
         {
-          "term": "Residencia",
-          "full_name": "Residence Permit",
-          "definition": "Official permission to reside in Spain. EU citizens register after 3 months; non-EU citizens require a visa and residence card (TIE).",
-          "related_terms": ["TIE", "NIE"],
-          "see_also": ["/blog/spain-residency-options"]
-        },
-        {
-          "term": "90-Day Rule",
-          "full_name": "Schengen 90/180 Day Rule",
-          "definition": "Non-EU visitors can stay in the Schengen area for a maximum of 90 days within any 180-day period without a visa. Applies to UK citizens post-Brexit.",
-          "related_terms": ["Schengen", "Brexit"],
-          "see_also": ["/blog/buying-property-spain-uk-buyers"]
-        },
-        {
-          "term": "Schengen Area",
-          "full_name": "Schengen Zone",
-          "definition": "A group of 27 European countries with no internal border controls. Spain is a member, allowing free movement within the zone.",
-          "related_terms": ["90-Day Rule", "EU"],
+          "term": "Whole Life",
+          "full_name": "Whole Life Insurance",
+          "definition": "Permanent life insurance with guaranteed level premiums, a guaranteed death benefit, and a guaranteed cash value that grows at a fixed rate. Provides lifelong coverage as long as premiums are paid.",
+          "related_terms": ["IUL", "Cash Value", "Term Life"],
           "see_also": []
         },
         {
-          "term": "Long-Term Residence",
-          "full_name": "Residencia de Larga Duración",
-          "definition": "Permanent residence status granted after 5 years of legal residence in Spain. Provides same rights as Spanish citizens except voting.",
-          "related_terms": ["Permanent Residency", "5-Year Rule"],
+          "term": "Cash Value",
+          "full_name": "Cash Value Life Insurance",
+          "definition": "The savings component of a permanent life insurance policy that grows tax-deferred over time. Can be accessed through policy loans or withdrawals for supplemental retirement income or emergencies.",
+          "related_terms": ["IUL", "Whole Life", "Tax-Deferred"],
+          "see_also": []
+        },
+        {
+          "term": "Death Benefit",
+          "full_name": "Life Insurance Death Benefit",
+          "definition": "The amount paid to beneficiaries upon the death of the insured person. Generally received income-tax-free by beneficiaries and can be used for any purpose.",
+          "related_terms": ["Beneficiary", "Term Life", "IUL"],
+          "see_also": []
+        },
+        {
+          "term": "Living Benefits",
+          "full_name": "Accelerated Living Benefits",
+          "definition": "Life insurance riders that allow the policyholder to access a portion of the death benefit while still alive if diagnosed with a terminal, chronic, or critical illness.",
+          "related_terms": ["Death Benefit", "Long-Term Care", "IUL"],
+          "see_also": []
+        },
+        {
+          "term": "Long-Term Care",
+          "full_name": "Long-Term Care Insurance",
+          "definition": "Insurance that covers the cost of extended care services not covered by health insurance or Medicare, including nursing home care, assisted living, and in-home care.",
+          "related_terms": ["Living Benefits", "Disability Insurance"],
+          "see_also": []
+        },
+        {
+          "term": "Disability Insurance",
+          "full_name": "Disability Income Insurance",
+          "definition": "Insurance that replaces a portion of your income if you become unable to work due to illness or injury. Can be short-term (up to 2 years) or long-term (to age 65+).",
+          "related_terms": ["Long-Term Care", "Premium"],
+          "see_also": []
+        },
+        {
+          "term": "Premium",
+          "full_name": "Insurance Premium",
+          "definition": "The regular payment made to an insurance company to maintain coverage. Premiums vary based on age, health, coverage amount, and policy type.",
+          "related_terms": ["Underwriting", "Term Life", "IUL"],
+          "see_also": []
+        },
+        {
+          "term": "Underwriting",
+          "full_name": "Insurance Underwriting",
+          "definition": "The process by which an insurance company evaluates the risk of insuring an applicant, determining eligibility and premium rates based on health, lifestyle, and other factors.",
+          "related_terms": ["Premium", "Term Life"],
           "see_also": []
         }
       ]
     },
-    "financial": {
-      "title": "Financial Terms",
-      "description": "Banking, mortgage, and financial terminology",
+    "tax": {
+      "title": "Tax Strategy",
+      "description": "Tax planning, optimization, and regulatory terminology",
       "terms": [
         {
-          "term": "LTV",
-          "full_name": "Loan-to-Value Ratio",
-          "definition": "The percentage of property value that a bank will lend as a mortgage. Spanish banks typically offer 60-70% LTV for non-residents, 80% for residents.",
-          "related_terms": ["Mortgage", "Hipoteca"],
-          "see_also": ["/blog/spanish-mortgage-guide"]
+          "term": "Tax-Deferred",
+          "full_name": "Tax-Deferred Growth",
+          "definition": "An investment arrangement where taxes on earnings are postponed until funds are withdrawn, typically in retirement. Examples include traditional IRAs, 401(k)s, and annuities.",
+          "related_terms": ["Tax-Exempt", "IRA", "401(k)"],
+          "see_also": []
         },
         {
-          "term": "Hipoteca",
-          "full_name": "Mortgage",
-          "definition": "A Spanish mortgage loan secured against property. Non-residents can obtain mortgages from Spanish banks with appropriate documentation.",
-          "related_terms": ["LTV", "Interest Rate"],
-          "see_also": ["/blog/spanish-mortgage-guide"]
+          "term": "Tax-Exempt",
+          "full_name": "Tax-Exempt Income",
+          "definition": "Income or investment gains that are permanently free from federal income tax. Roth IRA qualified withdrawals and municipal bond interest are common examples.",
+          "related_terms": ["Roth IRA", "Tax-Deferred"],
+          "see_also": []
         },
         {
-          "term": "Euribor",
-          "full_name": "Euro Interbank Offered Rate",
-          "definition": "The benchmark interest rate for euro lending between European banks. Variable rate mortgages in Spain are typically priced as Euribor plus a margin.",
-          "related_terms": ["Variable Rate", "Interest Rate"],
-          "see_also": ["/blog/spanish-mortgage-guide"]
+          "term": "Tax-Loss Harvesting",
+          "full_name": "Tax-Loss Harvesting Strategy",
+          "definition": "Selling investments at a loss to offset capital gains and reduce taxable income. Up to $3,000 in net losses can be deducted against ordinary income annually, with excess losses carried forward.",
+          "related_terms": ["Capital Gains", "Rebalancing"],
+          "see_also": []
         },
         {
-          "term": "Fixed Rate Mortgage",
-          "full_name": "Hipoteca Tipo Fijo",
-          "definition": "A mortgage where the interest rate remains constant throughout the term. Provides payment certainty but typically starts higher than variable rates.",
-          "related_terms": ["Variable Rate", "Hipoteca"],
-          "see_also": ["/blog/spanish-mortgage-guide"]
+          "term": "Capital Gains",
+          "full_name": "Capital Gains Tax",
+          "definition": "Tax on profit from selling an asset for more than its purchase price. Long-term gains (held over 1 year) are taxed at preferential rates of 0%, 15%, or 20% depending on income.",
+          "related_terms": ["Tax-Loss Harvesting", "Qualified Dividend"],
+          "see_also": []
         },
         {
-          "term": "Variable Rate Mortgage",
-          "full_name": "Hipoteca Tipo Variable",
-          "definition": "A mortgage where the interest rate is reviewed periodically (usually annually) based on Euribor plus a fixed margin.",
-          "related_terms": ["Euribor", "Fixed Rate"],
-          "see_also": ["/blog/spanish-mortgage-guide"]
+          "term": "Marginal Tax Rate",
+          "full_name": "Marginal Federal Tax Rate",
+          "definition": "The tax rate applied to the last dollar of income earned. The U.S. uses a progressive system with brackets ranging from 10% to 37%, where only income within each bracket is taxed at that rate.",
+          "related_terms": ["Capital Gains", "AMT"],
+          "see_also": []
         },
         {
-          "term": "Rental Yield",
-          "full_name": "Rentabilidad por Alquiler",
-          "definition": "The annual rental income expressed as a percentage of property value. Costa del Sol typically sees 4-6% for long-term rentals, 8-12% for holiday lets.",
-          "related_terms": ["ROI", "Investment"],
-          "see_also": ["/blog/costa-del-sol-rental-yields"]
+          "term": "Estate Tax",
+          "full_name": "Federal Estate Tax",
+          "definition": "A tax on the transfer of wealth at death. In 2026, estates exceeding the exemption amount (currently ~$13.6 million per individual) are taxed at rates up to 40%.",
+          "related_terms": ["Gift Tax", "Trust", "Estate Plan"],
+          "see_also": ["/blog/estate-planning-guide"]
         },
         {
-          "term": "Capital Gains Tax",
-          "full_name": "Impuesto sobre Ganancias Patrimoniales",
-          "definition": "Tax on profit from selling property in Spain. Rates are 19% on first €6,000, then 21-28% on higher amounts. Various allowances may apply.",
-          "related_terms": ["Plusvalía", "Property Sale"],
-          "see_also": ["/blog/spanish-property-taxes-guide"]
+          "term": "Gift Tax",
+          "full_name": "Federal Gift Tax",
+          "definition": "A tax on transferring assets to another person during your lifetime without receiving full value in return. Annual exclusion allows gifts up to $18,000 per recipient without tax consequences.",
+          "related_terms": ["Estate Tax", "Trust"],
+          "see_also": []
         },
         {
-          "term": "Bank Guarantee",
-          "full_name": "Aval Bancario / BFA Guarantee",
-          "definition": "For off-plan purchases, developers must provide bank guarantees protecting buyer deposits until completion or refunding if the project fails.",
-          "related_terms": ["Off-Plan", "Deposit Protection"],
+          "term": "1031 Exchange",
+          "full_name": "Section 1031 Like-Kind Exchange",
+          "definition": "A tax-deferral strategy allowing investors to sell an investment property and reinvest proceeds into a similar property while deferring capital gains taxes. Strict timelines and rules apply.",
+          "related_terms": ["Capital Gains", "Tax-Deferred"],
+          "see_also": []
+        },
+        {
+          "term": "Qualified Dividend",
+          "full_name": "Qualified Dividend Income",
+          "definition": "Dividends from domestic and qualifying foreign corporations that meet specific holding period requirements and are taxed at the lower long-term capital gains rates rather than ordinary income rates.",
+          "related_terms": ["Capital Gains", "Yield"],
+          "see_also": []
+        },
+        {
+          "term": "AMT",
+          "full_name": "Alternative Minimum Tax",
+          "definition": "A parallel tax system designed to ensure high-income taxpayers pay a minimum amount of tax by limiting certain deductions and exclusions. Calculated separately from regular income tax.",
+          "related_terms": ["Marginal Tax Rate", "Tax-Loss Harvesting"],
+          "see_also": []
+        }
+      ]
+    },
+    "investment": {
+      "title": "Investment Terms",
+      "description": "Core investment concepts and portfolio management terminology",
+      "terms": [
+        {
+          "term": "Asset Allocation",
+          "full_name": "Strategic Asset Allocation",
+          "definition": "The process of dividing investments among different asset classes (stocks, bonds, cash, real estate) based on your goals, risk tolerance, and time horizon to optimize returns while managing risk.",
+          "related_terms": ["Diversification", "Risk Tolerance", "Rebalancing"],
+          "see_also": []
+        },
+        {
+          "term": "Diversification",
+          "full_name": "Portfolio Diversification",
+          "definition": "Spreading investments across various asset classes, sectors, and geographies to reduce risk. The principle that a diversified portfolio tends to have less volatile returns than any single investment.",
+          "related_terms": ["Asset Allocation", "Index Fund", "Risk Tolerance"],
+          "see_also": []
+        },
+        {
+          "term": "Dollar-Cost Averaging",
+          "full_name": "Dollar-Cost Averaging Strategy",
+          "definition": "An investment strategy of regularly investing a fixed dollar amount regardless of market conditions. This approach reduces the impact of volatility by buying more shares when prices are low and fewer when high.",
+          "related_terms": ["Index Fund", "Compound Interest"],
+          "see_also": []
+        },
+        {
+          "term": "Fiduciary",
+          "full_name": "Fiduciary Duty",
+          "definition": "A legal obligation to act in the best interest of a client. Fiduciary advisors must put their clients' interests ahead of their own and disclose any conflicts of interest.",
+          "related_terms": ["Asset Allocation", "Risk Tolerance"],
+          "see_also": ["/blog/why-fiduciary-matters"]
+        },
+        {
+          "term": "Index Fund",
+          "full_name": "Index Fund / ETF",
+          "definition": "A mutual fund or ETF designed to track the performance of a specific market index, such as the S&P 500. Offers broad market exposure with low fees and is a cornerstone of passive investing.",
+          "related_terms": ["Diversification", "Dollar-Cost Averaging", "Yield"],
+          "see_also": []
+        },
+        {
+          "term": "Compound Interest",
+          "full_name": "Compound Interest / Growth",
+          "definition": "Interest earned on both the initial principal and previously accumulated interest. Often called the 'eighth wonder of the world,' compounding accelerates wealth growth over long time horizons.",
+          "related_terms": ["Dollar-Cost Averaging", "Yield"],
+          "see_also": []
+        },
+        {
+          "term": "Risk Tolerance",
+          "full_name": "Investment Risk Tolerance",
+          "definition": "The degree of variability in investment returns that an individual is willing to withstand. Influenced by factors including age, income, financial goals, and personal comfort with market fluctuations.",
+          "related_terms": ["Asset Allocation", "Diversification"],
+          "see_also": []
+        },
+        {
+          "term": "Rebalancing",
+          "full_name": "Portfolio Rebalancing",
+          "definition": "The process of realigning the weightings of portfolio assets back to target allocations. Involves periodically buying or selling assets to maintain the desired level of asset allocation and risk.",
+          "related_terms": ["Asset Allocation", "Tax-Loss Harvesting"],
+          "see_also": []
+        },
+        {
+          "term": "Yield",
+          "full_name": "Investment Yield",
+          "definition": "The income return on an investment, expressed as a percentage of the investment's cost or current market value. Includes dividends from stocks and interest from bonds.",
+          "related_terms": ["Qualified Dividend", "Compound Interest", "Liquidity"],
+          "see_also": []
+        },
+        {
+          "term": "Liquidity",
+          "full_name": "Asset Liquidity",
+          "definition": "The ease with which an asset can be converted to cash without significantly affecting its price. Cash is the most liquid asset, while real estate and certain investments are less liquid.",
+          "related_terms": ["Emergency Fund", "Cash Flow", "Yield"],
+          "see_also": []
+        }
+      ]
+    },
+    "estate": {
+      "title": "Estate Planning",
+      "description": "Wealth transfer, trusts, and legacy planning terminology",
+      "terms": [
+        {
+          "term": "Trust",
+          "full_name": "Trust Agreement",
+          "definition": "A legal arrangement where a trustee holds and manages assets on behalf of beneficiaries according to terms set by the grantor. Trusts can avoid probate, reduce estate taxes, and protect assets.",
+          "related_terms": ["Irrevocable Trust", "Revocable Trust", "Beneficiary"],
+          "see_also": ["/blog/estate-planning-guide"]
+        },
+        {
+          "term": "Will",
+          "full_name": "Last Will and Testament",
+          "definition": "A legal document that specifies how a person's assets should be distributed after death, names guardians for minor children, and designates an executor to manage the estate.",
+          "related_terms": ["Probate", "Beneficiary", "Estate Plan"],
+          "see_also": []
+        },
+        {
+          "term": "Beneficiary",
+          "full_name": "Designated Beneficiary",
+          "definition": "A person or entity designated to receive assets from an insurance policy, retirement account, trust, or estate. Beneficiary designations typically override instructions in a will.",
+          "related_terms": ["Trust", "Death Benefit", "Will"],
           "see_also": []
         },
         {
           "term": "Power of Attorney",
-          "full_name": "Poder Notarial",
-          "definition": "Legal document authorizing another person (typically a lawyer) to act on your behalf for property transactions. Essential for remote purchases.",
-          "related_terms": ["Notario", "Legal Representation"],
+          "full_name": "Durable Power of Attorney",
+          "definition": "A legal document authorizing someone to act on your behalf for financial or healthcare decisions if you become incapacitated. A 'durable' POA remains in effect during incapacity.",
+          "related_terms": ["Estate Plan", "Trust"],
+          "see_also": []
+        },
+        {
+          "term": "Probate",
+          "full_name": "Probate Process",
+          "definition": "The legal process of validating a will and distributing a deceased person's assets under court supervision. Can be time-consuming and expensive, which is why many people use trusts to avoid it.",
+          "related_terms": ["Will", "Trust", "Beneficiary"],
+          "see_also": []
+        },
+        {
+          "term": "Irrevocable Trust",
+          "full_name": "Irrevocable Trust Agreement",
+          "definition": "A trust that generally cannot be modified or terminated after creation without the beneficiaries' consent. Assets placed in an irrevocable trust are removed from the grantor's taxable estate.",
+          "related_terms": ["Revocable Trust", "Estate Tax", "Trust"],
+          "see_also": []
+        },
+        {
+          "term": "Revocable Trust",
+          "full_name": "Revocable Living Trust",
+          "definition": "A trust that can be modified or dissolved by the grantor during their lifetime. Primarily used to avoid probate and provide seamless management of assets if the grantor becomes incapacitated.",
+          "related_terms": ["Irrevocable Trust", "Probate", "Trust"],
+          "see_also": []
+        },
+        {
+          "term": "Estate Plan",
+          "full_name": "Comprehensive Estate Plan",
+          "definition": "A collection of legal documents and strategies for managing and distributing assets during life and after death. Typically includes a will or trust, powers of attorney, and healthcare directives.",
+          "related_terms": ["Trust", "Will", "Power of Attorney"],
+          "see_also": ["/blog/estate-planning-guide"]
+        },
+        {
+          "term": "Successor Trustee",
+          "full_name": "Successor Trustee Designation",
+          "definition": "The person or institution named to take over management of a trust when the original trustee can no longer serve, either due to incapacity or death.",
+          "related_terms": ["Trust", "Revocable Trust"],
+          "see_also": []
+        },
+        {
+          "term": "Charitable Remainder Trust",
+          "full_name": "Charitable Remainder Trust (CRT)",
+          "definition": "An irrevocable trust that provides income to the donor or beneficiaries for a specified period, with the remaining assets going to a designated charity. Offers income tax deductions and estate tax benefits.",
+          "related_terms": ["Irrevocable Trust", "Estate Tax", "Gift Tax"],
           "see_also": []
         }
       ]
     },
-    "location": {
-      "title": "Location Terms",
-      "description": "Geographic and location-specific terminology for Costa del Sol",
+    "general": {
+      "title": "General Finance",
+      "description": "Foundational financial concepts and personal finance terminology",
       "terms": [
         {
-          "term": "Costa del Sol",
-          "full_name": "Coast of the Sun",
-          "definition": "The 150km Mediterranean coastline in southern Spain stretching from Málaga to Gibraltar. Known for 320+ days of sunshine annually and popular with international buyers.",
-          "related_terms": ["Andalusia", "Málaga Province"],
-          "see_also": ["/brochure/marbella", "/brochure/estepona"]
-        },
-        {
-          "term": "Andalusia",
-          "full_name": "Andalucía",
-          "definition": "The autonomous community in southern Spain that includes the Costa del Sol. Has its own tax rates and property regulations.",
-          "related_terms": ["Costa del Sol", "Spain"],
+          "term": "Net Worth",
+          "full_name": "Personal Net Worth",
+          "definition": "The total value of all assets minus all liabilities. A key measure of financial health that includes property, investments, cash, and retirement accounts minus debts like mortgages and loans.",
+          "related_terms": ["Cash Flow", "Equity"],
           "see_also": []
         },
         {
-          "term": "Golden Mile",
-          "full_name": "Milla de Oro",
-          "definition": "The prestigious stretch between Marbella town and Puerto Banús, home to some of the most exclusive properties, hotels, and beach clubs on the Costa del Sol.",
-          "related_terms": ["Marbella", "Puerto Banús"],
-          "see_also": ["/brochure/marbella"]
-        },
-        {
-          "term": "New Golden Mile",
-          "full_name": "Nueva Milla de Oro",
-          "definition": "The coastal stretch between San Pedro and Estepona, offering similar beachfront lifestyle to Marbella's Golden Mile at more accessible prices.",
-          "related_terms": ["Estepona", "Beachfront"],
-          "see_also": ["/brochure/estepona"]
-        },
-        {
-          "term": "Puerto Banús",
-          "full_name": "Puerto José Banús",
-          "definition": "The famous luxury marina in Marbella known for superyachts, designer boutiques, and upscale nightlife. A landmark of Costa del Sol's jet-set lifestyle.",
-          "related_terms": ["Marbella", "Golden Mile"],
-          "see_also": ["/brochure/marbella"]
-        },
-        {
-          "term": "Pueblo",
-          "full_name": "Village/Town",
-          "definition": "Traditional Spanish village, often a 'pueblo blanco' (white village) with whitewashed buildings and narrow streets. Many are protected historical areas.",
-          "related_terms": ["Pueblo Blanco", "Old Town"],
-          "see_also": ["/brochure/mijas", "/brochure/casares"]
-        },
-        {
-          "term": "Chiringuito",
-          "full_name": "Beach Bar/Restaurant",
-          "definition": "A beachfront bar or restaurant serving food and drinks, typically specializing in fresh seafood and paella. A quintessential Costa del Sol experience.",
-          "related_terms": ["Beach", "Seafood"],
+          "term": "Cash Flow",
+          "full_name": "Personal Cash Flow",
+          "definition": "The total amount of money coming in (income) minus money going out (expenses) over a specific period. Positive cash flow enables saving, investing, and building wealth over time.",
+          "related_terms": ["Net Worth", "Emergency Fund", "Debt-to-Income Ratio"],
           "see_also": []
         },
         {
-          "term": "Paseo Marítimo",
-          "full_name": "Seafront Promenade",
-          "definition": "The beachfront promenade found in most Costa del Sol towns, ideal for walking, cycling, and enjoying the Mediterranean views.",
-          "related_terms": ["Beachfront", "Promenade"],
-          "see_also": []
-        }
-      ]
-    },
-    "process": {
-      "title": "Process Terms",
-      "description": "Property buying process and procedural terminology",
-      "terms": [
-        {
-          "term": "Due Diligence",
-          "full_name": "Diligencia Debida",
-          "definition": "The investigation process before purchasing property, including legal checks on ownership, planning permissions, debts, and building compliance.",
-          "related_terms": ["Nota Simple", "Legal Check"],
-          "see_also": ["/blog/buying-property-spain-uk-buyers"]
-        },
-        {
-          "term": "Completion",
-          "full_name": "Firma de Escritura",
-          "definition": "The final stage of property purchase when buyer and seller sign the deed before a notary, funds are transferred, and keys are handed over.",
-          "related_terms": ["Escritura", "Notario"],
+          "term": "Emergency Fund",
+          "full_name": "Emergency Savings Fund",
+          "definition": "A readily accessible savings reserve, typically 3-6 months of living expenses, set aside for unexpected financial needs such as job loss, medical emergencies, or major repairs.",
+          "related_terms": ["Cash Flow", "Liquidity"],
           "see_also": []
         },
         {
-          "term": "Reservation Fee",
-          "full_name": "Señal de Reserva",
-          "definition": "An initial payment (typically €3,000-€10,000) to take a property off the market while contracts are prepared. Usually deducted from final price.",
-          "related_terms": ["Deposit", "Arras"],
+          "term": "Debt-to-Income Ratio",
+          "full_name": "Debt-to-Income Ratio (DTI)",
+          "definition": "A personal finance metric calculated by dividing total monthly debt payments by gross monthly income. Lenders use DTI to assess borrowing capacity; generally, a DTI below 36% is considered healthy.",
+          "related_terms": ["Credit Score", "Cash Flow"],
           "see_also": []
         },
         {
-          "term": "Private Contract",
-          "full_name": "Contrato Privado de Compraventa",
-          "definition": "A binding private purchase agreement between buyer and seller, typically signed after due diligence with a 10% deposit paid.",
-          "related_terms": ["Arras", "Deposit"],
+          "term": "Credit Score",
+          "full_name": "FICO Credit Score",
+          "definition": "A three-digit number (300-850) representing creditworthiness, calculated from payment history, credit utilization, length of credit history, credit mix, and new credit inquiries.",
+          "related_terms": ["Debt-to-Income Ratio", "APR/APY"],
           "see_also": []
         },
         {
-          "term": "Conveyancing",
-          "full_name": "Transmisión de Propiedad",
-          "definition": "The legal process of transferring property ownership from seller to buyer, including all documentation, checks, and registrations.",
-          "related_terms": ["Lawyer", "Legal Process"],
+          "term": "Inflation",
+          "full_name": "Consumer Price Inflation",
+          "definition": "The rate at which the general level of prices for goods and services rises over time, eroding purchasing power. A critical factor in retirement planning, as it reduces the real value of savings.",
+          "related_terms": ["COLA", "Compound Interest"],
           "see_also": []
         },
         {
-          "term": "Gestoría",
-          "full_name": "Administrative Agency",
-          "definition": "A Spanish administrative services company that handles paperwork and bureaucratic procedures like NIE applications, tax filings, and utility connections.",
-          "related_terms": ["NIE", "Administration"],
+          "term": "APR/APY",
+          "full_name": "Annual Percentage Rate / Annual Percentage Yield",
+          "definition": "APR is the annual cost of borrowing without compounding. APY is the annual return on savings including compound interest. APY is always equal to or higher than APR due to compounding effects.",
+          "related_terms": ["Compound Interest", "Credit Score"],
           "see_also": []
+        },
+        {
+          "term": "Amortization",
+          "full_name": "Loan Amortization",
+          "definition": "The process of spreading loan payments over time in regular installments. Early payments are mostly interest, while later payments apply more to principal—a concept important for mortgages and large loans.",
+          "related_terms": ["Equity", "APR/APY"],
+          "see_also": []
+        },
+        {
+          "term": "Equity",
+          "full_name": "Home Equity / Ownership Equity",
+          "definition": "The difference between an asset's market value and the outstanding balance of any loans against it. In homeownership, equity builds as mortgage principal is paid down and/or property value increases.",
+          "related_terms": ["Net Worth", "Amortization"],
+          "see_also": []
+        },
+        {
+          "term": "Human Life Value",
+          "full_name": "Human Life Value (HLV)",
+          "definition": "An economic concept measuring the monetary value of an individual's future earning potential, used to determine appropriate life insurance coverage. Factors include age, income, benefits, and expenses.",
+          "related_terms": ["Death Benefit", "Term Life", "IUL"],
+          "see_also": ["/blog/life-insurance-guide"]
         }
       ]
     }

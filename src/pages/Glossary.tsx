@@ -36,12 +36,12 @@ interface GlossaryData {
 }
 
 const categoryIcons: Record<string, string> = {
-  legal_tax: "⚖️",
-  property: "📊",
-  visa_residency: "🛂",
-  financial: "💰",
-  location: "📍",
-  process: "📋"
+  retirement: "🛡️",
+  insurance: "🔒",
+  tax: "🧾",
+  investment: "📈",
+  estate: "🏛️",
+  general: "💼"
 };
 
 const BASE_URL = "https://www.everencewealth.com";
@@ -196,7 +196,7 @@ const Glossary: React.FC = () => {
         <title>{pageTitle}</title>
         <meta name="title" content={pageTitle} />
         <meta name="description" content={pageDescription} />
-        <meta name="keywords" content="financial glossary, IUL definition, annuity terms, retirement planning terms, wealth management glossary, tax-efficient investing, fiduciary advisor, estate planning terms" />
+        <meta name="keywords" content="financial glossary, IUL definition, annuity terms, retirement planning terms, wealth management glossary, tax-efficient investing, fiduciary advisor, estate planning terms, Roth IRA, 401k, indexed universal life" />
         <meta name="author" content="Everence Wealth" />
         <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
         
@@ -473,7 +473,7 @@ const Glossary: React.FC = () => {
                 </Link>
               </Button>
               <Button asChild variant="outline" size="lg" className="border-white/30 text-white hover:bg-white hover:text-prime-900">
-                <Link to={`/${currentLang}/qa`}>
+                <Link to={`/${currentLang}/contact`}>
                   {t.ctaButton2} <ChevronRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
