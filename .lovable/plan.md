@@ -1,31 +1,24 @@
 
 
-# Change All Green Text to #EDDB77 (Light Gold)
+# Default Language to English
 
-## Problem
-All text using `text-primary` renders as dark green (HSL `160 48% 21%`). The user wants this changed to `#EDDB77` -- a warm light gold.
+## What Changes
+Two files auto-detect the browser's language and may serve Spanish to users who haven't explicitly chosen it. We'll remove the browser-language detection so the site always defaults to English unless:
+- The URL already contains a language prefix (e.g., `/es/blog/...`)
+- The user previously chose Spanish (saved in localStorage)
 
-## Solution
-Update the `--primary` CSS variable in `src/index.css` from the green value to the HSL equivalent of `#EDDB77`, which is `51 78% 70%`. This single change will cascade across every component using `text-primary`, `bg-primary`, `border-primary`, etc.
+## Files to Update
 
-## File: `src/index.css`
+### 1. `src/i18n/LanguageContext.tsx`
+- Remove the `getBrowserLanguage()` function entirely
+- In `getInitialLanguage()`, replace the call to `getBrowserLanguage()` with a hardcoded `Language.EN`
 
-### Light mode (line 26)
-- `--primary: 160 48% 21%;` --> `--primary: 51 78% 70%;`
+### 2. `src/utils/landing/languageDetection.ts`
+- Remove the browser language detection block from `detectUserLanguage()`
+- Always fall through to `return 'en'` if no URL param is set
 
-### Dark mode (line 74)
-- `--primary: 160 48% 30%;` --> `--primary: 51 78% 70%;`
-
-### Sidebar variants (lines 51, 94)
-- `--sidebar-primary: 160 48% 21%;` --> `--sidebar-primary: 51 78% 70%;`
-- `--sidebar-primary: 160 48% 30%;` --> `--sidebar-primary: 51 78% 70%;`
-
-## Impact
-This changes the primary color globally, affecting:
-- All `text-primary/XX` labels, badges, subtitles (the gold text we just set up)
-- Button backgrounds using `bg-primary`
-- Border accents using `border-primary`
-- Glow effects, gradients, and animations referencing `hsl(var(--primary))`
-
-All will shift from green to `#EDDB77` gold automatically.
+## What Stays the Same
+- URL-based language detection (visiting `/es/...` still works)
+- localStorage preference (if a user explicitly switched to Spanish, it's remembered)
+- The language switcher in the header still lets users choose Spanish manually
 
