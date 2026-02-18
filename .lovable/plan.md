@@ -1,72 +1,51 @@
 
-## Letter-by-Letter Spotlight Animation on RETIREMENT
+## Slow-Down & Pop: RETIREMENT Spotlight Refinement
 
-### What You're Getting
+### What's Changing
 
-Instead of a gradient sliding across all pills at once, a single gold "spotlight" will illuminate each letter pill in sequence: R → E → T → I → R → E → M → E → N → T — then reverse back T → N → E → M → E → R → I → T → E → R. One letter glows gold at a time, the rest stay deep forest green. Clean, precise, modern.
+The current 8s cycle moves too fast — each letter only glows for ~0.32s, which reads as a flicker rather than a deliberate spotlight hit. The fix is to:
 
-### Visual Behavior
+1. **Slow the total cycle to 16s** (from 8s) — forward pass takes 8s, reverse takes 8s
+2. **Widen each letter's lit window** from 4% to 7% of the cycle — so each letter holds its glow for ~1.1s instead of 0.32s, long enough to read and appreciate before the light moves on
+3. **Add a `translateY(-6px) scale(1.08)` pop-up transform** when lit — so the pill physically lifts and grows slightly like it's being picked up by a spotlight beam, then settles back down
+4. **Soften the fade in/out** around each lit window by adding easing keyframe stops (ramp up over 1.5%, hold for 4%, ramp down over 1.5%) for a smooth bloom rather than a hard snap
 
-- Each pill sits at its **resting state**: deep forest green background, subtle border
-- As the spotlight reaches a pill, it **blooms** to a bright gold accent: the background brightens, the border intensifies, and a subtle gold glow appears
-- The spotlight dwells briefly on each letter before moving to the next
-- The full forward + reverse sweep takes ~4 seconds per cycle, looping infinitely
-- The transition between lit/unlit states is smooth (ease-in-out), not a hard cut
+### Precise Timing Math (16s cycle)
 
-### Technical Approach
+- Total = 16s, step size = 5% per letter (same percentage structure, just slower clock)
+- Forward: letter 1 peaks at 3%, letter 2 at 8%, ..., letter 10 at 48%
+- Reverse: letter 10 peaks at 52%, letter 9 at 57%, ..., letter 1 at 97%
+- Each lit window: `pre-ramp at peak-2%`, `full bloom at peak`, `post-ramp at peak+2%`, `dark from peak+3.5% onward`
 
-**CSS-only, no JS changes needed.**
+### What It Looks Like
 
-The key insight: we define one `@keyframes retirement-spotlight` that animates a pill from its resting dark state → lit gold state → back to dark. Then we assign each of the 10 letter pills a staggered `animation-delay` using `nth-child`, so they fire in sequence.
+```text
+R   →   lit, lifts up 6px, glows gold for ~1.1s
+    →   fades back to dark green
+E   →   lit, lifts up 6px, glows gold for ~1.1s
+    →   fades back
+T   →   ... (continues through all 10 letters)
+    
+(pause at T, then reverses)
 
-The total cycle duration is set to `4s`. With 10 letters going forward + 10 going back = 20 steps, each letter's spotlight window is `4s / 20 = 0.2s`. We use a single keyframe where the "lit" phase occupies a small window (e.g., 0%–10%–20%), then stays dark for the rest of its delay cycle.
-
-**`@keyframes retirement-spotlight`**
-```css
-@keyframes retirement-spotlight {
-  0%, 100%  { background: hsla(160, 48%, 16%, 0.9);  border-color: hsla(51, 78%, 70%, 0.15); box-shadow: none; }
-  10%       { background: hsla(51,  78%, 48%, 0.55); border-color: hsla(51, 78%, 70%, 0.80); box-shadow: 0 0 18px hsla(51, 78%, 65%, 0.35); }
-  20%       { background: hsla(160, 48%, 16%, 0.9);  border-color: hsla(51, 78%, 70%, 0.15); box-shadow: none; }
-}
+T   →   lit again on the way back
+N   →   lit
+E   →   lit
+... back to R
+(loop)
 ```
 
-**Animation timing per letter (10 letters, ping-pong)**
+### Technical Changes — `src/index.css` only
 
-The duration on every pill is the same (`4s linear infinite`), but the delay staggers each letter so the spotlight hits at the right moment. The forward pass delays: 0, 0.2s, 0.4s … 1.8s. After the forward pass (2s), it reverses: letter 9 fires at 2.0s, letter 8 at 2.2s … letter 0 at 3.8s. This is achieved by staggering delays individually with `nth-child`.
+**1. Update animation duration on all 10 nth-child selectors:** `8s → 16s`
 
-```css
-.retirement-letter-pill:nth-child(1)  { animation-delay: 0s;    }
-.retirement-letter-pill:nth-child(2)  { animation-delay: 0.2s;  }
-.retirement-letter-pill:nth-child(3)  { animation-delay: 0.4s;  }
-.retirement-letter-pill:nth-child(4)  { animation-delay: 0.6s;  }
-.retirement-letter-pill:nth-child(5)  { animation-delay: 0.8s;  }
-.retirement-letter-pill:nth-child(6)  { animation-delay: 1.0s;  }
-.retirement-letter-pill:nth-child(7)  { animation-delay: 1.2s;  }
-.retirement-letter-pill:nth-child(8)  { animation-delay: 1.4s;  }
-.retirement-letter-pill:nth-child(9)  { animation-delay: 1.6s;  }
-.retirement-letter-pill:nth-child(10) { animation-delay: 1.8s;  }
-```
+**2. Update all 10 `@keyframes retirement-spot-N` blocks** to:
+- Widen the lit window from 4% to 7% wide (centered on same peak percentages)
+- Add `transform: translateY(-6px) scale(1.08)` on the lit peak keyframe stop
+- Add `transform: translateY(0) scale(1)` on resting keyframe stops
+- Increase the box-shadow intensity slightly for a more dramatic glow bloom: `0 0 28px hsla(51,78%,65%,0.55), 0 0 10px hsla(51,78%,80%,0.4), inset 0 0 12px hsla(51,78%,70%,0.15)`
 
-True ping-pong (reversing back letter by letter) requires a second pass of delays on the same pills. Since CSS `animation-delay` can only handle one pass, the cleanest approach is to use a **longer total duration** (`8s`) and encode both the forward lit-window and the reverse lit-window inside the single keyframe percentage range for each letter. 
-
-Concretely: with an `8s` cycle, each 10%-wide keyframe window = 0.8s. Forward pass occupies 0%–50% (letters 1–10), reverse occupies 50%–100% (letters 10–1). Each letter has two lit windows in the keyframe:
-- Letter 1 (R): lit at ~0% and ~95% 
-- Letter 2 (E): lit at ~6.25% and ~87.5%
-- ... etc.
-
-This is complex to hand-code, so the simpler and equally premium approach is: use `animation-direction: alternate` with a stagger that naturally creates the bouncing effect — forward on odd cycles, reversed on even. This can be achieved by setting the keyframe duration to `4s`, using `animation-iteration-count: infinite`, and `animation-direction: alternate` for the container, while keeping per-letter delays consistent.
-
-The cleanest implementation:
-- **Duration per pill**: `4s` with `animation-fill-mode: both`
-- **animation-direction on each pill**: `normal` 
-- A helper `@keyframes` where the lit peak occupies a narrow band (8% wide), and each letter's delay offsets it so only one is lit at a time
-- After the 10th letter fires (delay 1.8s), the cycle naturally reverses because each subsequent loop re-fires in the same sequence — creating the appearance of the spotlight bouncing back when the gap between end of loop and start of new loop causes a visual "reverse" flow
-
-**For a true ping-pong**, we add a second keyframe class `.retirement-letter-pill--reverse` and alternate them in the React component so even-indexed letters animate slightly differently — but this requires minimal JSX changes.
-
-**Simplest approach that looks perfect**: Use an `8s` animation total, encode both the forward and reverse spotlight windows into the keyframe `%` stops per pill using `nth-child`. This is pure CSS, zero JS.
+**3. Update `.retirement-letter-pill` base style** to include `transform: translateY(0) scale(1)` and `will-change: transform, background, box-shadow` for smooth GPU-composited animation
 
 ### Files to Edit
-
-- **`src/index.css`**: Replace the `retirement-gradient-sweep` keyframe and `.retirement-letter-pill` animation with the new spotlight system using `retirement-spotlight` keyframes and `nth-child` delays
-- **`src/components/home/sections/Hero.tsx`**: Add `nth-child`-compatible wrapping OR confirm the existing `flex` row works with `:nth-child` selectors (it does, since each `motion.span` is a direct child of the parent `span`)
+- **`src/index.css`** — lines 917–1011 (the 10 keyframe blocks + nth-child animation rules)
