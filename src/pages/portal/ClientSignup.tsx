@@ -17,12 +17,20 @@ interface InvitationData {
   expires_at: string;
 }
 
+interface AdvisorPreview {
+  first_name: string;
+  last_name: string;
+  title: string | null;
+  photo_url: string | null;
+}
+
 export default function ClientSignup() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const token = searchParams.get("token");
 
   const [invitation, setInvitation] = useState<InvitationData | null>(null);
+  const [advisor, setAdvisor] = useState<AdvisorPreview | null>(null);
   const [validating, setValidating] = useState(true);
   const [tokenError, setTokenError] = useState<string | null>(null);
 
@@ -49,7 +57,12 @@ export default function ClientSignup() {
     try {
       const { data, error } = await supabase
         .from("client_invitations")
-        .select("id, first_name, last_name, email, phone, advisor_id, status, expires_at")
+        .select(`
+          id, first_name, last_name, email, phone, advisor_id, status, expires_at,
+          advisors!advisor_id (
+            first_name, last_name, title, photo_url
+          )
+        `)
         .eq("invitation_token", token)
         .maybeSingle();
 
@@ -68,7 +81,9 @@ export default function ClientSignup() {
         return;
       }
 
-      setInvitation(data as InvitationData);
+      const { advisors: advisorData, ...invitationFields } = data as any;
+      setInvitation(invitationFields as InvitationData);
+      if (advisorData) setAdvisor(advisorData as AdvisorPreview);
     } catch {
       setTokenError("Unable to validate invitation.");
     } finally {
@@ -169,15 +184,51 @@ export default function ClientSignup() {
   }
 
   if (success) {
+    const advisorInitials = advisor
+      ? `${advisor.first_name[0]}${advisor.last_name[0]}`.toUpperCase()
+      : "?";
+
     return (
       <div className="min-h-screen flex items-center justify-center bg-[hsl(215,28%,10%)] px-4">
         <div className="w-full max-w-md text-center">
           <CheckCircle className="h-16 w-16 text-emerald-400 mx-auto mb-4" />
-          <h1 className="text-xl font-semibold text-white mb-2">Account Created!</h1>
-          <p className="text-white/60 mb-2">Please check your email to verify your account before signing in.</p>
-          <p className="text-white/40 text-sm mb-6">Once verified, you can log in to view your policies and documents.</p>
+          <h1 className="text-2xl font-semibold text-white mb-2">Account Created!</h1>
+          <p className="text-white/60 mb-6">Please check your email to verify your account before signing in.</p>
+
+          {advisor && (
+            <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md p-6 mb-6 text-center">
+              <p className="text-xs text-white/40 uppercase tracking-widest mb-4">Your Advisor</p>
+              <div className="flex flex-col items-center gap-3">
+                {advisor.photo_url ? (
+                  <img
+                    src={advisor.photo_url}
+                    alt={`${advisor.first_name} ${advisor.last_name}`}
+                    className="w-20 h-20 rounded-full object-cover border-2 border-[hsl(42,50%,55%)]"
+                  />
+                ) : (
+                  <div className="w-20 h-20 rounded-full bg-[hsl(160,48%,21%)] border-2 border-[hsl(42,50%,55%)] flex items-center justify-center text-2xl font-bold text-white">
+                    {advisorInitials}
+                  </div>
+                )}
+                <div>
+                  <p className="text-white font-semibold text-lg">
+                    {advisor.first_name} {advisor.last_name}
+                  </p>
+                  <p className="text-[hsl(42,50%,55%)] text-sm">{advisor.title ?? "Financial Advisor"}</p>
+                </div>
+              </div>
+              <p className="text-white/50 text-sm mt-4 leading-relaxed">
+                Once you verify your email and log in, you can message{" "}
+                <span className="text-white/80">{advisor.first_name}</span> directly from your portal.
+              </p>
+            </div>
+          )}
+
           <div className="flex flex-col gap-3">
-            <Button onClick={() => navigate("/portal/login")} className="bg-[hsl(160,48%,21%)] hover:bg-[hsl(42,50%,55%)] text-white">
+            <Button
+              onClick={() => navigate("/portal/login?next=/portal/client/messages")}
+              className="bg-[hsl(160,48%,21%)] hover:bg-[hsl(42,50%,55%)] text-white"
+            >
               Go to Login
             </Button>
             <Button
