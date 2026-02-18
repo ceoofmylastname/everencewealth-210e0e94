@@ -2,13 +2,15 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { usePortalAuth } from "@/hooks/usePortalAuth";
-import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Users, FileText, Send, ArrowUpRight, TrendingUp,
   Calendar, Shield, Calculator, GraduationCap, Megaphone,
-  Wrench, User,
+  Wrench,
 } from "lucide-react";
+
+const BRAND_GREEN = "#1A4D3E";
+const GOLD = "hsla(51, 78%, 65%, 1)";
 
 interface DashboardStats {
   totalClients: number;
@@ -32,17 +34,21 @@ interface RecentClient {
   created_at: string;
 }
 
+function getHour() {
+  const h = new Date().getHours();
+  if (h < 12) return "Good morning";
+  if (h < 17) return "Good afternoon";
+  return "Good evening";
+}
+
 export default function AdvisorDashboard() {
   const { portalUser } = usePortalAuth();
-  const [stats, setStats] = useState<DashboardStats>({
-    totalClients: 0, activePolicies: 0, ytdRevenue: 0, pendingInvitations: 0,
-  });
+  const [stats, setStats] = useState<DashboardStats>({ totalClients: 0, activePolicies: 0, ytdRevenue: 0, pendingInvitations: 0 });
   const [rank, setRank] = useState<RankInfo | null>(null);
   const [recentNews, setRecentNews] = useState<any[]>([]);
   const [upcomingEvents, setUpcomingEvents] = useState<any[]>([]);
   const [recentClients, setRecentClients] = useState<RecentClient[]>([]);
   const [loading, setLoading] = useState(true);
-  const [hoveredCard, setHoveredCard] = useState<string | null>(null);
 
   useEffect(() => {
     if (!portalUser) return;
@@ -51,12 +57,7 @@ export default function AdvisorDashboard() {
 
   async function loadDashboard() {
     try {
-      const { data: advisor } = await supabase
-        .from("advisors")
-        .select("id")
-        .eq("portal_user_id", portalUser!.id)
-        .maybeSingle();
-
+      const { data: advisor } = await supabase.from("advisors").select("id").eq("portal_user_id", portalUser!.id).maybeSingle();
       if (!advisor) { setLoading(false); return; }
 
       const currentYear = new Date().getFullYear();
@@ -74,23 +75,11 @@ export default function AdvisorDashboard() {
       ]);
 
       const ytdRevenue = perfData.data?.reduce((sum, r) => sum + (Number(r.revenue) || 0), 0) ?? 0;
-
-      setStats({
-        totalClients: clients.count ?? 0,
-        activePolicies: policies.count ?? 0,
-        ytdRevenue,
-        pendingInvitations: invitations.count ?? 0,
-      });
+      setStats({ totalClients: clients.count ?? 0, activePolicies: policies.count ?? 0, ytdRevenue, pendingInvitations: invitations.count ?? 0 });
 
       if (ranks.data) {
         const currentRank = ranks.data.find(r => ytdRevenue >= Number(r.min_ytd_premium)) || ranks.data[ranks.data.length - 1];
-        if (currentRank) {
-          setRank({
-            rank_name: currentRank.rank_name,
-            compensation_level_percent: Number(currentRank.compensation_level_percent),
-            badge_color: currentRank.badge_color || "#3b82f6",
-          });
-        }
+        if (currentRank) setRank({ rank_name: currentRank.rank_name, compensation_level_percent: Number(currentRank.compensation_level_percent), badge_color: currentRank.badge_color || "#3b82f6" });
       }
 
       setRecentNews(news.data ?? []);
@@ -103,15 +92,11 @@ export default function AdvisorDashboard() {
     }
   }
 
-  const gold = "hsla(51, 78%, 65%, 1)";
-  const goldGlow = "0 0 24px hsla(51, 78%, 65%, 0.45), 0 0 48px hsla(51, 78%, 65%, 0.15)";
-  const goldGlowHover = "0 0 32px hsla(51, 78%, 65%, 0.65), 0 0 70px hsla(51, 78%, 65%, 0.25)";
-
   const statCards = [
-    { label: "Active Clients", value: stats.totalClients, icon: Users, href: "/portal/advisor/clients" },
-    { label: "YTD Revenue", value: `$${(stats.ytdRevenue / 1000).toFixed(0)}K`, icon: TrendingUp, href: "/portal/advisor/performance" },
-    { label: "Active Policies", value: stats.activePolicies, icon: FileText, href: "/portal/advisor/policies" },
-    { label: "Pending Invites", value: stats.pendingInvitations, icon: Send, href: "/portal/advisor/invite" },
+    { label: "Active Clients", value: stats.totalClients, icon: Users, href: "/portal/advisor/clients", color: BRAND_GREEN },
+    { label: "YTD Revenue", value: `$${(stats.ytdRevenue / 1000).toFixed(0)}K`, icon: TrendingUp, href: "/portal/advisor/performance", color: "#C9A84C" },
+    { label: "Active Policies", value: stats.activePolicies, icon: FileText, href: "/portal/advisor/policies", color: BRAND_GREEN },
+    { label: "Pending Invites", value: stats.pendingInvitations, icon: Send, href: "/portal/advisor/invite", color: "#6366F1" },
   ];
 
   const quickActions = [
@@ -124,242 +109,182 @@ export default function AdvisorDashboard() {
   ];
 
   return (
-    <div className="relative min-h-screen -m-6 p-6" style={{ background: "#020806" }}>
-      {/* Mesh orbs */}
-      <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -top-32 -left-32 h-[500px] w-[500px] rounded-full opacity-30"
-          style={{ background: "radial-gradient(circle, hsla(160,60%,25%,0.5) 0%, transparent 70%)", filter: "blur(60px)" }} />
-        <div className="absolute top-1/3 -right-40 h-[400px] w-[400px] rounded-full opacity-20"
-          style={{ background: "radial-gradient(circle, hsla(51,78%,65%,0.3) 0%, transparent 70%)", filter: "blur(80px)" }} />
-        <div className="absolute bottom-0 left-1/3 h-[350px] w-[350px] rounded-full opacity-20"
-          style={{ background: "radial-gradient(circle, hsla(160,48%,21%,0.6) 0%, transparent 70%)", filter: "blur(70px)" }} />
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">
+            {getHour()}, {portalUser?.first_name} 👋
+          </h1>
+          <p className="text-sm text-gray-500 mt-0.5">Here's your performance overview for today.</p>
+        </div>
+        <span className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold" style={{ background: "#F0F5F3", color: BRAND_GREEN }}>
+          Advisor Portal
+        </span>
       </div>
 
-      <div className="relative z-10 space-y-8">
-        {/* Welcome Header */}
-        <div>
-          <div className="inline-flex items-center gap-2 mb-3 px-3 py-1 rounded-full border text-xs font-medium tracking-widest uppercase"
-            style={{ borderColor: "hsla(51,78%,65%,0.3)", color: gold, background: "hsla(51,78%,65%,0.08)" }}>
-            <span className="h-1.5 w-1.5 rounded-full animate-pulse" style={{ background: gold }} />
-            Advisor Portal
+      {/* Rank Banner */}
+      {rank && (
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 flex items-center justify-between" style={{ borderLeft: `4px solid ${rank.badge_color}` }}>
+          <div>
+            <p className="text-xs font-medium uppercase tracking-wider text-gray-400">Current Rank</p>
+            <p className="text-lg font-bold text-gray-900 mt-0.5">{rank.rank_name}</p>
           </div>
-          <h1 className="text-3xl sm:text-4xl font-black text-white" style={{ fontFamily: "var(--font-hero, serif)" }}>
-            Welcome back, {portalUser?.first_name}
-          </h1>
-          <p className="mt-1 text-sm" style={{ color: "hsla(51,78%,65%,0.7)" }}>
-            Here's your performance dashboard and latest updates.
-          </p>
+          <span className="px-3 py-1 rounded-full text-sm font-semibold" style={{ background: `${rank.badge_color}18`, color: rank.badge_color }}>
+            {rank.compensation_level_percent}% Comp
+          </span>
         </div>
+      )}
 
-        {/* Rank Banner */}
-        {rank && (
-          <div className="glass-card rounded-2xl p-5 flex items-center justify-between"
-            style={{ borderLeft: `3px solid ${rank.badge_color}`, borderColor: "hsla(0,0%,100%,0.08)" }}>
-            <div>
-              <p className="text-xs font-medium uppercase tracking-wider" style={{ color: "hsla(51,78%,65%,0.6)" }}>Current Rank</p>
-              <p className="text-xl font-bold text-white mt-0.5">{rank.rank_name}</p>
-            </div>
-            <Badge className="text-sm px-3 py-1 rounded-full border-0" style={{ backgroundColor: `${rank.badge_color}30`, color: rank.badge_color }}>
-              {rank.compensation_level_percent}% Comp
-            </Badge>
-          </div>
-        )}
-
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-          {loading
-            ? Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="glass-card rounded-2xl p-6 space-y-4">
-                  <div className="h-10 w-10 rounded-xl bg-white/5 animate-pulse" />
-                  <div className="h-8 w-16 rounded bg-white/5 animate-pulse" />
-                  <div className="h-4 w-24 rounded bg-white/5 animate-pulse" />
-                </div>
-              ))
-            : statCards.map((card, i) => (
-                <Link key={card.label} to={card.href} style={{ animationDelay: `${i * 80}ms` }} className="animate-fade-in">
-                  <div
-                    className="group glass-card rounded-2xl p-6 transition-all duration-300 cursor-pointer"
-                    style={{
-                      borderTop: `1px solid hsla(51,78%,65%,0.3)`,
-                      boxShadow: hoveredCard === card.label ? goldGlowHover : "none",
-                      transform: hoveredCard === card.label ? "scale(1.02)" : "scale(1)",
-                    }}
-                    onMouseEnter={() => setHoveredCard(card.label)}
-                    onMouseLeave={() => setHoveredCard(null)}
-                  >
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="h-10 w-10 rounded-xl flex items-center justify-center"
-                        style={{ background: "hsla(51,78%,65%,0.12)", border: "1px solid hsla(51,78%,65%,0.2)" }}>
-                        <card.icon className="h-5 w-5" style={{ color: gold }} />
-                      </div>
-                      <ArrowUpRight className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: gold }} />
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {loading
+          ? Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 space-y-3">
+                <Skeleton className="h-10 w-10 rounded-lg" />
+                <Skeleton className="h-8 w-16" />
+                <Skeleton className="h-4 w-24" />
+              </div>
+            ))
+          : statCards.map((card) => (
+              <Link key={card.label} to={card.href}>
+                <div className="group bg-white rounded-xl border border-gray-100 shadow-sm p-5 hover:shadow-md hover:border-gray-200 transition-all duration-200 cursor-pointer">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="h-10 w-10 rounded-lg flex items-center justify-center" style={{ background: `${card.color}15` }}>
+                      <card.icon className="h-5 w-5" style={{ color: card.color }} />
                     </div>
-                    <p className="text-3xl font-black" style={{ color: gold }}>{card.value}</p>
-                    <p className="text-sm mt-1 text-white/60">{card.label}</p>
+                    <ArrowUpRight className="h-4 w-4 text-gray-300 group-hover:text-gray-500 transition-colors" />
                   </div>
-                </Link>
-              ))}
-        </div>
-
-        {/* Quick Actions */}
-        <div className="glass-card rounded-2xl p-6">
-          <h2 className="text-lg font-semibold text-white mb-4">Quick Actions</h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-            {quickActions.map((action) => (
-              <Link key={action.label} to={action.href}>
-                <div
-                  className="flex flex-col items-center gap-2 p-4 rounded-xl transition-all duration-200 cursor-pointer group"
-                  style={{ background: "hsla(0,0%,100%,0.04)", border: "1px solid hsla(0,0%,100%,0.07)" }}
-                  onMouseEnter={e => {
-                    (e.currentTarget as HTMLDivElement).style.border = "1px solid hsla(51,78%,65%,0.4)";
-                    (e.currentTarget as HTMLDivElement).style.boxShadow = "0 0 16px hsla(51,78%,65%,0.15)";
-                  }}
-                  onMouseLeave={e => {
-                    (e.currentTarget as HTMLDivElement).style.border = "1px solid hsla(0,0%,100%,0.07)";
-                    (e.currentTarget as HTMLDivElement).style.boxShadow = "none";
-                  }}
-                >
-                  <action.icon className="h-5 w-5 transition-transform group-hover:scale-110" style={{ color: gold }} />
-                  <span className="text-xs font-medium text-white/70 group-hover:text-white transition-colors">{action.label}</span>
+                  <p className="text-3xl font-bold text-gray-900">{card.value}</p>
+                  <p className="text-sm text-gray-500 mt-1">{card.label}</p>
                 </div>
               </Link>
             ))}
+      </div>
+
+      {/* Quick Actions */}
+      <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+        <h2 className="text-base font-semibold text-gray-900 mb-4">Quick Actions</h2>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+          {quickActions.map((action) => (
+            <Link key={action.label} to={action.href}>
+              <div className="flex flex-col items-center gap-2 p-3 rounded-xl bg-gray-50 hover:bg-[#F0F5F3] transition-colors cursor-pointer group border border-transparent hover:border-gray-200">
+                <div className="h-9 w-9 rounded-lg flex items-center justify-center" style={{ background: `${BRAND_GREEN}15` }}>
+                  <action.icon className="h-4 w-4 transition-transform group-hover:scale-110" style={{ color: BRAND_GREEN }} />
+                </div>
+                <span className="text-xs font-medium text-gray-600 group-hover:text-gray-900 text-center">{action.label}</span>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </div>
+
+      {/* Bottom 3-column grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        {/* Left 2/3: News + Events */}
+        <div className="lg:col-span-2 space-y-5">
+          {/* Recent News */}
+          <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
+            <div className="flex items-center justify-between p-5 border-b border-gray-100">
+              <h2 className="text-base font-semibold text-gray-900">Latest Carrier News</h2>
+              <Link to="/portal/advisor/news" className="text-xs font-semibold flex items-center gap-1 hover:underline" style={{ color: GOLD }}>
+                View All <ArrowUpRight className="h-3 w-3" />
+              </Link>
+            </div>
+            <div className="p-5 space-y-3">
+              {loading ? (
+                Array.from({ length: 3 }).map((_, i) => (
+                  <div key={i} className="space-y-2">
+                    <Skeleton className="h-4 w-3/4" />
+                    <Skeleton className="h-3 w-full" />
+                  </div>
+                ))
+              ) : recentNews.length === 0 ? (
+                <p className="text-sm text-gray-400 text-center py-4">No recent news</p>
+              ) : recentNews.map((n: any) => (
+                <div key={n.id} className="pb-3 border-b border-gray-100 last:border-0 last:pb-0">
+                  <p className="text-sm font-medium text-gray-900">{n.title}</p>
+                  <p className="text-xs text-gray-500 mt-1 line-clamp-2">{n.content}</p>
+                  <p className="text-xs mt-2 flex items-center gap-1.5 text-gray-400">
+                    <span className="h-1.5 w-1.5 rounded-full inline-block" style={{ background: GOLD }} />
+                    {n.carriers?.carrier_name} · {n.published_at ? new Date(n.published_at).toLocaleDateString() : ""}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Upcoming Events */}
+          <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
+            <div className="flex items-center justify-between p-5 border-b border-gray-100">
+              <h2 className="text-base font-semibold text-gray-900">Upcoming Events</h2>
+              <Link to="/portal/advisor/schedule" className="text-xs font-semibold flex items-center gap-1 hover:underline" style={{ color: GOLD }}>
+                View Calendar <ArrowUpRight className="h-3 w-3" />
+              </Link>
+            </div>
+            <div className="p-5 space-y-3">
+              {loading ? (
+                Array.from({ length: 3 }).map((_, i) => (
+                  <div key={i} className="flex items-center gap-3">
+                    <Skeleton className="h-9 w-9 rounded-lg" />
+                    <div className="space-y-1.5 flex-1"><Skeleton className="h-4 w-1/2" /><Skeleton className="h-3 w-1/3" /></div>
+                  </div>
+                ))
+              ) : upcomingEvents.length === 0 ? (
+                <p className="text-sm text-gray-400 text-center py-4">No upcoming events</p>
+              ) : upcomingEvents.map((e: any) => (
+                <div key={e.id} className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 transition-colors">
+                  <div className="flex items-center gap-3">
+                    <div className="h-9 w-9 rounded-lg flex items-center justify-center" style={{ background: `${BRAND_GREEN}15` }}>
+                      <Calendar className="h-4 w-4" style={{ color: BRAND_GREEN }} />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">{e.title}</p>
+                      <p className="text-xs text-gray-500">{new Date(e.event_date).toLocaleDateString()} at {e.event_time}</p>
+                    </div>
+                  </div>
+                  <span className="text-xs capitalize rounded-full px-2.5 py-1 font-medium bg-gray-100 text-gray-600">{e.event_type}</span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left 2/3: News + Events */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Recent News */}
-            <div className="glass-card rounded-2xl">
-              <div className="flex items-center justify-between p-6 pb-4">
-                <h2 className="text-lg font-semibold text-white">Latest Carrier News</h2>
-                <Link to="/portal/advisor/news" className="text-xs font-medium flex items-center gap-1 transition-colors hover:opacity-80" style={{ color: gold }}>
-                  View All <ArrowUpRight className="h-3 w-3" />
-                </Link>
-              </div>
-              <div className="px-6 pb-6 space-y-3">
-                {loading ? (
-                  Array.from({ length: 3 }).map((_, i) => (
-                    <div key={i} className="p-3 rounded-xl space-y-2" style={{ background: "hsla(0,0%,100%,0.04)" }}>
-                      <div className="h-4 w-3/4 rounded bg-white/5 animate-pulse" />
-                      <div className="h-3 w-full rounded bg-white/5 animate-pulse" />
-                      <div className="h-3 w-1/3 rounded bg-white/5 animate-pulse" />
-                    </div>
-                  ))
-                ) : recentNews.length === 0 ? (
-                  <p className="text-sm text-white/40 py-4 text-center">No recent news</p>
-                ) : recentNews.map((n: any) => (
-                  <div key={n.id} className="p-3 rounded-xl transition-colors"
-                    style={{ background: "hsla(0,0%,100%,0.04)", border: "1px solid hsla(0,0%,100%,0.06)" }}
-                    onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.background = "hsla(0,0%,100%,0.07)"}
-                    onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.background = "hsla(0,0%,100%,0.04)"}
-                  >
-                    <p className="text-sm font-medium text-white">{n.title}</p>
-                    <p className="text-xs mt-1 line-clamp-2 text-white/50">{n.content}</p>
-                    <p className="text-xs mt-2 flex items-center gap-1.5" style={{ color: "hsla(51,78%,65%,0.7)" }}>
-                      <span className="h-1.5 w-1.5 rounded-full inline-block" style={{ background: gold }} />
-                      {n.carriers?.carrier_name} · {n.published_at ? new Date(n.published_at).toLocaleDateString() : ""}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Upcoming Events */}
-            <div className="glass-card rounded-2xl">
-              <div className="flex items-center justify-between p-6 pb-4">
-                <h2 className="text-lg font-semibold text-white">Upcoming Events</h2>
-                <Link to="/portal/advisor/schedule" className="text-xs font-medium flex items-center gap-1 hover:opacity-80 transition-opacity" style={{ color: gold }}>
-                  View Calendar <ArrowUpRight className="h-3 w-3" />
-                </Link>
-              </div>
-              <div className="px-6 pb-6 space-y-3">
-                {loading ? (
-                  Array.from({ length: 3 }).map((_, i) => (
-                    <div key={i} className="flex items-center gap-3 p-3 rounded-xl" style={{ background: "hsla(0,0%,100%,0.04)" }}>
-                      <div className="h-9 w-9 rounded-lg bg-white/5 animate-pulse" />
-                      <div className="space-y-1.5 flex-1">
-                        <div className="h-4 w-1/2 rounded bg-white/5 animate-pulse" />
-                        <div className="h-3 w-1/3 rounded bg-white/5 animate-pulse" />
-                      </div>
-                    </div>
-                  ))
-                ) : upcomingEvents.length === 0 ? (
-                  <p className="text-sm text-white/40 py-4 text-center">No upcoming events</p>
-                ) : upcomingEvents.map((e: any) => (
-                  <div key={e.id} className="flex items-center justify-between p-3 rounded-xl transition-colors"
-                    style={{ background: "hsla(0,0%,100%,0.04)", border: "1px solid hsla(0,0%,100%,0.06)" }}
-                    onMouseEnter={ev => (ev.currentTarget as HTMLDivElement).style.background = "hsla(0,0%,100%,0.07)"}
-                    onMouseLeave={ev => (ev.currentTarget as HTMLDivElement).style.background = "hsla(0,0%,100%,0.04)"}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="h-9 w-9 rounded-lg flex items-center justify-center"
-                        style={{ background: "hsla(51,78%,65%,0.12)", border: "1px solid hsla(51,78%,65%,0.2)" }}>
-                        <Calendar className="h-4 w-4" style={{ color: gold }} />
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-white">{e.title}</p>
-                        <p className="text-xs text-white/50">
-                          {new Date(e.event_date).toLocaleDateString()} at {e.event_time}
-                        </p>
-                      </div>
-                    </div>
-                    <span className="text-xs capitalize rounded-full px-2.5 py-1 border font-medium"
-                      style={{ borderColor: "hsla(51,78%,65%,0.35)", color: gold, background: "hsla(51,78%,65%,0.08)" }}>
-                      {e.event_type}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
+        {/* Right 1/3: Recent Clients */}
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
+          <div className="flex items-center justify-between p-5 border-b border-gray-100">
+            <h2 className="text-base font-semibold text-gray-900">Recent Clients</h2>
+            <Link to="/portal/advisor/clients" className="text-xs font-semibold hover:underline" style={{ color: GOLD }}>
+              View all
+            </Link>
           </div>
-
-          {/* Right 1/3: Recent Clients */}
-          <div className="glass-card rounded-2xl">
-            <div className="flex items-center justify-between p-6 pb-4">
-              <h2 className="text-lg font-semibold text-white">Recent Clients</h2>
-              <Link to="/portal/advisor/clients" className="text-xs font-medium hover:opacity-80 transition-opacity" style={{ color: gold }}>
-                View all
+          <div className="p-5 space-y-2">
+            {loading ? (
+              Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} className="flex items-center gap-3 p-2">
+                  <Skeleton className="h-9 w-9 rounded-full" />
+                  <div className="space-y-1.5 flex-1"><Skeleton className="h-4 w-24" /><Skeleton className="h-3 w-32" /></div>
+                </div>
+              ))
+            ) : recentClients.length === 0 ? (
+              <p className="text-sm text-gray-400 text-center py-4">No clients yet</p>
+            ) : recentClients.map((c) => (
+              <Link key={c.id} to={`/portal/advisor/clients/${c.id}`}>
+                <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 transition-colors">
+                  {c.avatar_url ? (
+                    <img src={c.avatar_url} alt={c.first_name} className="h-9 w-9 rounded-full object-cover" />
+                  ) : (
+                    <div className="h-9 w-9 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0" style={{ background: BRAND_GREEN }}>
+                      {c.first_name[0]}{c.last_name[0]}
+                    </div>
+                  )}
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-gray-900 truncate">{c.first_name} {c.last_name}</p>
+                    <p className="text-xs text-gray-500 truncate">{c.email}</p>
+                  </div>
+                </div>
               </Link>
-            </div>
-            <div className="px-6 pb-6 space-y-3">
-              {loading ? (
-                Array.from({ length: 5 }).map((_, i) => (
-                  <div key={i} className="flex items-center gap-3 p-3 rounded-xl" style={{ background: "hsla(0,0%,100%,0.04)" }}>
-                    <div className="h-9 w-9 rounded-full bg-white/5 animate-pulse" />
-                    <div className="space-y-1.5 flex-1">
-                      <div className="h-4 w-24 rounded bg-white/5 animate-pulse" />
-                      <div className="h-3 w-32 rounded bg-white/5 animate-pulse" />
-                    </div>
-                  </div>
-                ))
-              ) : recentClients.length === 0 ? (
-                <p className="text-sm text-white/40 py-4 text-center">No clients yet</p>
-              ) : recentClients.map((c) => (
-                <Link key={c.id} to={`/portal/advisor/clients/${c.id}`}>
-                  <div className="flex items-center gap-3 p-3 rounded-xl transition-colors"
-                    style={{ background: "hsla(0,0%,100%,0.04)", border: "1px solid hsla(0,0%,100%,0.06)" }}
-                    onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.background = "hsla(0,0%,100%,0.07)"}
-                    onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.background = "hsla(0,0%,100%,0.04)"}
-                  >
-                    {c.avatar_url ? (
-                      <img src={c.avatar_url} alt={c.first_name} className="h-9 w-9 rounded-full object-cover ring-1"
-                        style={{ ringColor: gold } as any} />
-                    ) : (
-                      <div className="h-9 w-9 rounded-full flex items-center justify-center text-xs font-bold"
-                        style={{ background: "hsla(51,78%,65%,0.15)", color: gold, border: "1px solid hsla(51,78%,65%,0.3)" }}>
-                        {c.first_name[0]}{c.last_name[0]}
-                      </div>
-                    )}
-                    <div>
-                      <p className="text-sm font-medium text-white">{c.first_name} {c.last_name}</p>
-                      <p className="text-xs" style={{ color: "hsla(51,78%,65%,0.6)" }}>{c.email}</p>
-                    </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
+            ))}
           </div>
         </div>
       </div>
