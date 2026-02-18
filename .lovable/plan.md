@@ -1,183 +1,77 @@
 
-# Portal Login Redesign — Split-Screen Animated Layout
+# Fix: Agent Invitation Email Logo + Reset Password Page Stuck
 
-## Concept: "Executive Split"
+## Root Cause Analysis
 
-A full-screen two-panel layout — left side is the brand panel with animated elements, right side is the clean white login form. This is a premium, creative, and unique design inspired by top-tier SaaS and financial platforms.
+### Bug 1 — Broken Logo in All Emails
+Every edge function uses this logo URL in `brandedEmailWrapper`:
+`https://everencewealth.com/logo-icon.png`
 
----
+This domain either doesn't serve the image, blocks hotlinking, or the path doesn't exist. Email clients show a broken image icon. The correct, publicly accessible logo is:
+`https://storage.googleapis.com/msgsndr/TLhrYb7SRrWrly615tCI/media/6993ada8dcdadb155342f28e.png`
 
-## Layout Structure
+This affects **8 edge functions** that all share the same `brandedEmailWrapper` pattern.
 
-```text
-┌─────────────────────────────────────────────────────────────┐
-│                                                             │
-│  LEFT PANEL (55% width)         RIGHT PANEL (45% width)    │
-│  ─────────────────────────────  ──────────────────────────  │
-│  Deep brand green background    Pure white background       │
-│  #0B1F16 → #1A4D3E gradient     Clean & minimal             │
-│                                                             │
-│  ┌──────────────────────────┐   ┌────────────────────────┐  │
-│  │  Logo (top-left)         │   │                        │  │
-│  │                          │   │   Welcome back         │  │
-│  │  Animated floating       │   │   Sign in to access    │  │
-│  │  abstract mesh shapes    │   │   your portal          │  │
-│  │  (brand green + gold     │   │                        │  │
-│  │   gradient orbs)         │   │  [Email Input]         │  │
-│  │                          │   │  [Password Input]      │  │
-│  │  ┌────────────────────┐  │   │  [Forgot Password]     │  │
-│  │  │ "Protecting what   │  │   │                        │  │
-│  │  │  matters most."    │  │   │  [Sign In Button]      │  │
-│  │  │                    │  │   │                        │  │
-│  │  │ Tagline below      │  │   │  © 2026 Everence       │  │
-│  │  └────────────────────┘  │   └────────────────────────┘  │
-│  │                          │                               │
-│  │  3 feature bullets        │                              │
-│  │  with gold check icons   │                               │
-│  └──────────────────────────┘                               │
-└─────────────────────────────────────────────────────────────┘
-```
+### Bug 2 — Reset Password Page Stuck on "Verifying your reset link..."
+The flow when an agent clicks "Set Your Password":
 
-On **mobile** (< lg breakpoint): The left panel collapses and the right panel becomes full-screen with a subtle dark-to-evergreen gradient background, logo at top.
+1. Email link → Supabase auth server verifies token
+2. Supabase redirects to `/portal/reset-password#access_token=...&type=recovery`
+3. The Supabase JS client detects the hash and fires `PASSWORD_RECOVERY` via `onAuthStateChange`
+4. Page sets `ready = true` and shows the form
+
+**The race condition:** `onAuthStateChange` is registered inside a `useEffect` which runs AFTER the initial React render. If the Supabase client processes the URL hash before the listener is registered, the `PASSWORD_RECOVERY` event fires and is missed — `ready` stays `false` forever.
+
+The current hash check `window.location.hash.includes("type=recovery")` should catch this, BUT it only works when the raw hash is still present. Once Supabase's client exchanges the token, it clears the hash, so if the effect runs after token exchange, that check also misses.
+
+**The fix:** Add an immediate `supabase.auth.getSession()` check on mount. If Supabase already auto-established a session from the recovery URL (which it does), the session will exist and we can set `ready = true` right away — no event listener required.
 
 ---
 
-## Left Panel Design (Brand Side)
+## Changes Required
 
-### Background
-- Deep gradient: `from-[#071912] via-[#0F2922] to-[#1A4D3E]`
-- Animated floating orbs using CSS keyframe animations (Framer Motion)
-- Subtle noise/grain texture overlay (CSS pseudo-element)
+### 1. Fix Logo in All 8 Edge Functions
 
-### Animated Elements
-1. **Large blurred orbs** (3 orbs, different sizes):
-   - Orb 1: Gold `hsla(51,78%,65%,0.12)` — slow float up/down (8s cycle)
-   - Orb 2: Evergreen `rgba(26,77,62,0.4)` — float diagonal (12s cycle)
-   - Orb 3: Gold `hsla(51,78%,65%,0.06)` — very slow rotation (20s cycle)
+Replace `https://everencewealth.com/logo-icon.png` with the correct Google Storage URL in every `brandedEmailWrapper` function.
 
-2. **Decorative grid lines** — ultra-faint white lines forming a subtle geometric pattern in the background
+Files to update:
+- `supabase/functions/create-agent/index.ts`
+- `supabase/functions/send-portal-invitation/index.ts`
+- `supabase/functions/check-contact-window-expiry/index.ts`
+- `supabase/functions/check-claim-window-expiry/index.ts`
+- `supabase/functions/reassign-lead/index.ts`
+- `supabase/functions/send-escalating-alarms/index.ts`
+- (+ any remaining 2 of the 8)
 
-3. **Animated brand badge** — Logo image fades in with a subtle upward entrance (Framer Motion `initial: opacity 0, y: 20` → `animate: opacity 1, y: 0`)
+### 2. Fix PortalResetPassword.tsx — Race Condition
 
-### Content (bottom-aligned)
+**Current logic (broken):**
 ```
-[Everence Logo Image — large, centered]
-
-"Protecting what matters most."
-(Serif, white, 36px, font-light)
-
-"Trusted wealth protection for families and advisors."
-(Small, white/60, 14px)
-
-────────────────────────────────
-
-✓  Personalized Financial Planning
-✓  Life & Annuity Portfolio Management  
-✓  Dedicated Advisor Support
-
-(Each bullet fades in with staggered delay)
+useEffect → register onAuthStateChange → wait for PASSWORD_RECOVERY event
+                                       → check window.location.hash
 ```
 
-### Feature Bullets
-- Gold checkmark circle icon (`text-[hsla(51,78%,65%,1)]`)
-- White text for feature name, white/50 for sub-description
-
----
-
-## Right Panel Design (Form Side)
-
-### Background
-- Pure white `bg-white`
-- Centered content with generous padding
-
-### Form Content (vertically centered)
+**New logic (fixed):**
 ```
-[Logo — smaller, for mobile only / or show on right always]
-
-"Welcome back"        ← text-gray-400 small label
-"Sign in to your portal"  ← text-gray-900 text-2xl font-bold
-
-Horizontal divider
-
-[Email field]
-Label: "Email address" — text-gray-600 text-sm
-Input: Clean, border-gray-200, focus ring brand-green
-
-[Password field]
-Label: "Password" — with "Forgot password?" link (brand green, right-aligned)
-Input: Clean with eye toggle
-
-[Sign In button]
-Full width, bg-[#1A4D3E], white text, rounded-xl
-Subtle shadow: shadow-lg shadow-[#1A4D3E]/20
-Hover: slight lighter green + scale(1.01)
-
-[Error messages]
-Inline below button — red-50 bg, red-700 text
-
-[Success messages]  
-emerald-50 bg, emerald-700 text
+useEffect → immediately call getSession()
+          → if session exists → setReady(true) ✓
+          → register onAuthStateChange as backup for PASSWORD_RECOVERY
+          → check window.location.hash as secondary fallback
 ```
 
-### Entrance Animation (Framer Motion)
-- Right panel form elements stagger in from right with `x: 20` offset, fading to opacity 1
-- Each field animates in with 100ms delay between elements
-
----
-
-## Animations Detail
-
-### Framer Motion Entrance
-```jsx
-// Left panel brand content
-initial={{ opacity: 0, x: -30 }}
-animate={{ opacity: 1, x: 0 }}
-transition={{ duration: 0.8, ease: "easeOut" }}
-
-// Right panel form
-initial={{ opacity: 0, x: 30 }}
-animate={{ opacity: 1, x: 0 }}
-transition={{ duration: 0.7, ease: "easeOut", delay: 0.2 }}
-
-// Staggered form elements
-// Each child: delay increments by 0.1s
-```
-
-### CSS Keyframe Orbs
-```css
-@keyframes float-slow {
-  0%, 100% { transform: translateY(0px) scale(1); }
-  50% { transform: translateY(-30px) scale(1.05); }
-}
-/* Applied via inline style: animation: float-slow 10s ease-in-out infinite */
-```
-
-### Sign In Button
-- `transition-all duration-200 hover:scale-[1.01] active:scale-[0.99]`
-- Loading state: spinner icon + "Signing in..." text
-
----
-
-## Color Breakdown
-
-| Element | Color |
-|---|---|
-| Left panel bg | `#071912` → `#1A4D3E` gradient |
-| Right panel bg | `#FFFFFF` |
-| Logo text | White (left), Gray-900 (right mobile) |
-| Headline | White serif |
-| Feature bullets | White + gold check icons |
-| Form labels | `#374151` gray-700 |
-| Input borders | `#E5E7EB` gray-200 |
-| Input focus ring | `#1A4D3E` brand green |
-| Sign In button | `#1A4D3E` bg, white text |
-| Forgot password | `#1A4D3E` brand green link |
-| Footer | `#9CA3AF` gray-400 |
+The `getSession()` call is the key fix. When Supabase redirects back with a recovery token in the hash, it auto-signs the user in. Calling `getSession()` on mount will immediately return that session, so we can show the form without waiting for any event.
 
 ---
 
 ## Files Changed
 
-- **`src/pages/portal/PortalLogin.tsx`** — Complete visual rewrite. All existing auth logic (Supabase calls, navigation, error handling) remains 100% intact. Only JSX and className strings change.
+- `supabase/functions/create-agent/index.ts` — logo URL fix
+- `supabase/functions/send-portal-invitation/index.ts` — logo URL fix
+- `supabase/functions/check-contact-window-expiry/index.ts` — logo URL fix
+- `supabase/functions/check-claim-window-expiry/index.ts` — logo URL fix
+- `supabase/functions/reassign-lead/index.ts` — logo URL fix
+- `supabase/functions/send-escalating-alarms/index.ts` — logo URL fix
+- (+ remaining 2 edge function files)
+- `src/pages/portal/PortalResetPassword.tsx` — race condition fix with `getSession()` fallback
 
-No database changes. No logic changes.
+No database changes required.
