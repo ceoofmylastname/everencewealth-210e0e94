@@ -1,75 +1,32 @@
 
-# Rebrand Glossary Page for Everence Wealth
+# Update Glossary Hero with Evergreen Background and Modern Image
 
 ## Problem
-The glossary page still references "Costa del Sol Real Estate" and contains Spanish property/visa/location terms from the old brand. It needs to be fully updated to match Everence Wealth's identity: wealth management, insurance, retirement planning, and tax-efficient strategies.
+The glossary hero section currently uses dark navy/slate tones (`prime-900`, `prime-800`) instead of the brand Evergreen color (`#1A4D3E`). The user also wants a modern image added to the hero.
 
 ## Changes
 
-### 1. Update English translations (`src/i18n/translations/glossary.ts`)
+### File: `src/pages/Glossary.tsx` (lines 255-293)
 
-Replace the `en` block with Everence Wealth financial content:
-- **headline**: "Wealth Management" (highlight: "Glossary")
-- **description**: "Your comprehensive guide to financial planning, insurance, retirement, and tax-efficient wealth terminology. Essential knowledge for building and protecting your legacy."
-- **searchPlaceholder**: "Search terms (e.g., IUL, Annuity, Roth IRA...)"
-- **compiledBy / licensedExperts**: "Licensed Fiduciary Advisors"
-- **ctaHeadline**: "Ready to Build Your" / **ctaHighlight**: "Wealth Strategy?"
-- **ctaDescription**: "Our fiduciary team can guide you through retirement planning, tax optimization, and asset protection. Get personalized advice tailored to your financial goals."
-- **ctaButton1**: "Explore Our Services" (link to /en/services or blog)
-- **ctaButton2**: "Schedule a Consultation"
-- **categories**: Replace with financial categories:
-  - `retirement`: "Retirement Planning"
-  - `insurance`: "Insurance & Protection"
-  - `tax`: "Tax Strategy"
-  - `investment`: "Investment Terms"
-  - `estate`: "Estate Planning"
-  - `general`: "General Finance"
-- **meta.title**: "Wealth Management Glossary | Financial Terms Explained | Everence Wealth"
-- **meta.description**: Updated for financial SEO
+**Background update:**
+- Replace `from-prime-900 via-prime-800 to-prime-900` with `from-[#1A4D3E] via-[#15402F] to-[#0D2E20]` (Evergreen gradient)
+- Update the radial gradient accent from `prime-gold/10` to `prime-gold/15` for warmth against the green
 
-Also update the `es` (Spanish) block with equivalent Spanish translations. Remove or keep other languages minimal (they can be regenerated later).
+**Add a modern image:**
+- Add a decorative stock-style image on the right side of the hero using a professional financial/wealth imagery from a free source (Unsplash)
+- Restructure the hero layout to a two-column grid on desktop: left column for text/search, right column for a rounded image with subtle gold border and glass overlay
+- On mobile, the image will be hidden to keep the hero clean
 
-### 2. Replace glossary data (`public/glossary/en.json`)
+**Updated hero layout:**
+- Desktop: 2-column grid (text left, image right)
+- Image will be a professional financial scene (e.g., documents, charts, or a meeting) with a rounded-2xl border, gold border accent, and subtle overlay
+- The image URL will use Unsplash for a high-quality, royalty-free photo related to wealth/finance
 
-Replace the entire JSON with financial/insurance/retirement terms organized into new categories:
-- **retirement**: 401(k), IRA, Roth IRA, Required Minimum Distribution (RMD), Social Security, Pension, Defined Benefit Plan, Defined Contribution Plan, Annuity, COLA
-- **insurance**: Indexed Universal Life (IUL), Term Life, Whole Life, Cash Value, Death Benefit, Living Benefits, Long-Term Care, Disability Insurance, Premium, Underwriting
-- **tax**: Tax-Deferred, Tax-Exempt, Tax-Loss Harvesting, Capital Gains, Marginal Tax Rate, Estate Tax, Gift Tax, 1031 Exchange, Qualified Dividend, AMT
-- **investment**: Asset Allocation, Diversification, Dollar-Cost Averaging, Fiduciary, Index Fund, Compound Interest, Risk Tolerance, Rebalancing, Yield, Liquidity
-- **estate**: Trust, Will, Beneficiary, Power of Attorney, Probate, Irrevocable Trust, Revocable Trust, Estate Plan, Successor Trustee, Charitable Remainder Trust
-- **general**: Net Worth, Cash Flow, Emergency Fund, Debt-to-Income Ratio, Credit Score, Inflation, APR/APY, Amortization, Equity, Human Life Value
+**Text styling adjustments:**
+- Keep the gold highlights on "Glossary" text
+- Keep the search bar and badge as-is
+- Adjust subtitle text color from `text-slate-300` to `text-white/70` for better contrast on Evergreen
 
-Each term will include: `term`, `full_name`, `definition`, `related_terms`, `see_also` (linking to relevant blog/service pages).
+## Technical Details
 
-### 3. Update category icons (`src/pages/Glossary.tsx`)
-
-Replace the old `categoryIcons` map:
-```
-retirement: "shield" icon area
-insurance: "shield" 
-tax: "receipt"
-investment: "trending-up"
-estate: "landmark"
-general: "wallet"
-```
-
-### 4. Update SEO keywords (`src/pages/Glossary.tsx`)
-
-Line 199 -- replace the keywords meta tag with financial terms:
-`"financial glossary, IUL definition, annuity terms, retirement planning terms, wealth management glossary, tax-efficient investing, fiduciary advisor, estate planning terms, Roth IRA, 401k, indexed universal life"`
-
-### 5. Update sitemap (`public/sitemaps/glossary.xml`)
-
-Update the `lastmod` date to today's date.
-
-## Files Modified
-1. `src/i18n/translations/glossary.ts` -- EN and ES translations rebranded
-2. `public/glossary/en.json` -- Complete replacement with 60+ financial terms
-3. `src/pages/Glossary.tsx` -- Category icons, SEO keywords
-4. `public/sitemaps/glossary.xml` -- Updated date
-
-## What Stays the Same
-- Page layout, hero design, alphabet navigation, card structure, dark CTA section
-- All premium styling (glassmorphism, prime-gold accents, animations)
-- Multi-language infrastructure (translation loading, hreflang tags)
-- Schema.org structured data generation
+Only one file is modified: `src/pages/Glossary.tsx`, specifically the hero `<section>` block (lines 255-293). The change replaces the background gradient classes and adds a right-side image column with responsive visibility.
