@@ -1,31 +1,46 @@
 import { useEffect, useState, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ExternalLink, Calculator, Wrench, Search, Lock, ChevronDown, ChevronUp, DollarSign, TrendingUp, Calendar } from "lucide-react";
 
+const GOLD = "hsla(51, 78%, 65%, 1)";
+const GOLD_BG = "hsla(51, 78%, 65%, 0.12)";
+const GOLD_BORDER = "hsla(51, 78%, 65%, 0.3)";
+const GLASS = { background: "hsla(160,48%,21%,0.08)", border: "1px solid hsla(0,0%,100%,0.08)", backdropFilter: "blur(16px)" };
+
 const TOOL_TYPES = [
-  { key: "quick_quote", label: "Quick Quote" },
-  { key: "agent_portal", label: "Agent Portal" },
-  { key: "microsite", label: "Microsite" },
-  { key: "illustration_system", label: "Illustration System" },
+  { key: "quick_quote", label: "Quick Quote" }, { key: "agent_portal", label: "Agent Portal" },
+  { key: "microsite", label: "Microsite" }, { key: "illustration_system", label: "Illustration System" },
   { key: "application_portal", label: "Application Portal" },
 ];
 
 const CALC_CATEGORIES = [
-  { key: "cash_flow", label: "Cash Flow", icon: DollarSign },
-  { key: "retirement", label: "Retirement", icon: Calendar },
-  { key: "life_income", label: "Life & Income", icon: TrendingUp },
-  { key: "tax_planning", label: "Tax Planning", icon: Calculator },
+  { key: "cash_flow", label: "Cash Flow", icon: DollarSign }, { key: "retirement", label: "Retirement", icon: Calendar },
+  { key: "life_income", label: "Life & Income", icon: TrendingUp }, { key: "tax_planning", label: "Tax Planning", icon: Calculator },
   { key: "estate_planning", label: "Estate Planning", icon: Calculator },
 ];
 
-const getCategoryIcon = (category: string) => {
-  return CALC_CATEGORIES.find((c) => c.key === category)?.icon || Calculator;
-};
+function MeshOrbs() {
+  return (
+    <div className="pointer-events-none absolute inset-0 overflow-hidden">
+      <div className="absolute -top-32 -left-32 h-[500px] w-[500px] rounded-full opacity-30"
+        style={{ background: "radial-gradient(circle, hsla(160,60%,25%,0.5) 0%, transparent 70%)", filter: "blur(60px)" }} />
+      <div className="absolute bottom-0 right-0 h-[350px] w-[350px] rounded-full opacity-20"
+        style={{ background: `radial-gradient(circle, ${GOLD_BG} 0%, transparent 70%)`, filter: "blur(80px)" }} />
+    </div>
+  );
+}
+
+function FilterChip({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
+  return (
+    <button onClick={onClick} className="px-3 py-1 rounded-full text-xs font-medium transition-all cursor-pointer"
+      style={active ? { background: GOLD_BG, color: GOLD, border: `1px solid ${GOLD_BORDER}` }
+        : { background: "hsla(0,0%,100%,0.04)", color: "hsla(0,0%,100%,0.5)", border: "1px solid hsla(0,0%,100%,0.08)" }}>
+      {label}
+    </button>
+  );
+}
 
 export default function ToolsHub() {
   const [tools, setTools] = useState<any[]>([]);
@@ -40,249 +55,169 @@ export default function ToolsHub() {
     Promise.all([
       supabase.from("quoting_tools").select("*, carriers(carrier_name, carrier_logo_url)").order("tool_name"),
       supabase.from("calculators").select("*").eq("active", true).order("sort_order"),
-    ]).then(([t, c]) => {
-      setTools(t.data ?? []);
-      setCalculators(c.data ?? []);
-      setLoading(false);
-    });
+    ]).then(([t, c]) => { setTools(t.data ?? []); setCalculators(c.data ?? []); setLoading(false); });
   }, []);
 
   const filteredTools = useMemo(() => {
     let result = tools;
-    if (searchQuery) {
-      const q = searchQuery.toLowerCase();
-      result = result.filter(
-        (t) =>
-          t.tool_name?.toLowerCase().includes(q) ||
-          t.carriers?.carrier_name?.toLowerCase().includes(q)
-      );
-    }
-    if (selectedType) {
-      result = result.filter((t) => t.tool_type === selectedType);
-    }
+    if (searchQuery) { const q = searchQuery.toLowerCase(); result = result.filter(t => t.tool_name?.toLowerCase().includes(q) || t.carriers?.carrier_name?.toLowerCase().includes(q)); }
+    if (selectedType) result = result.filter(t => t.tool_type === selectedType);
     return result;
   }, [tools, searchQuery, selectedType]);
 
-  
-
-  if (loading)
-    return (
-      <div className="flex justify-center py-12">
-        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
+  if (loading) return (
+    <div className="relative min-h-screen -m-4 sm:-m-6 lg:-m-8 p-4 sm:p-6 lg:p-8 flex justify-center items-center" style={{ background: "#020806" }}>
+      <div className="w-8 h-8 border-4 rounded-full animate-spin" style={{ borderColor: GOLD, borderTopColor: "transparent" }} />
+    </div>
+  );
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground" style={{ fontFamily: "'Playfair Display', serif" }}>
-          Tools Hub
-        </h1>
-        <p className="text-muted-foreground mt-1">Access quoting tools and financial calculators.</p>
-      </div>
-
-      <Tabs defaultValue="quoting">
-        <TabsList>
-          <TabsTrigger value="quoting"><Wrench className="h-4 w-4 mr-1" />Quoting Tools</TabsTrigger>
-          <TabsTrigger value="calculators"><Calculator className="h-4 w-4 mr-1" />Calculators</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="quoting" className="mt-4 space-y-4">
-          {/* Search */}
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search by tool or carrier name…"
-              className="pl-9"
-            />
+    <div className="relative min-h-screen -m-4 sm:-m-6 lg:-m-8 p-4 sm:p-6 lg:p-8" style={{ background: "#020806" }}>
+      <MeshOrbs />
+      <div className="relative z-10 space-y-6">
+        {/* Header */}
+        <div>
+          <div className="flex items-center gap-3 mb-1">
+            <span className="text-xs font-bold tracking-[0.2em] uppercase px-3 py-1 rounded-full"
+              style={{ background: GOLD_BG, color: GOLD, border: `1px solid ${GOLD_BORDER}` }}>TOOLS HUB</span>
           </div>
+          <h1 className="text-2xl font-black text-white" style={{ fontFamily: "'Playfair Display', serif" }}>Tools Hub</h1>
+          <p className="text-white/50 mt-1 text-sm">Access quoting tools and financial calculators.</p>
+        </div>
 
-          {/* Type filter badges */}
-          <div className="flex flex-wrap gap-2">
-            <Badge
-              variant={selectedType === null ? "default" : "outline"}
-              className="cursor-pointer"
-              onClick={() => setSelectedType(null)}
-            >
-              All
-            </Badge>
-            {TOOL_TYPES.map((tt) => (
-              <Badge
-                key={tt.key}
-                variant={selectedType === tt.key ? "default" : "outline"}
-                className="cursor-pointer"
-                onClick={() => setSelectedType(selectedType === tt.key ? null : tt.key)}
-              >
-                {tt.label}
-              </Badge>
-            ))}
-          </div>
+        <Tabs defaultValue="quoting">
+          <TabsList className="rounded-xl p-1" style={{ background: "hsla(0,0%,100%,0.05)", border: "1px solid hsla(0,0%,100%,0.08)" }}>
+            <TabsTrigger value="quoting" className="rounded-lg data-[state=active]:text-black text-white/50"
+              style={{ "--tw-ring-shadow": "none" } as any}>
+              <Wrench className="h-4 w-4 mr-1" />Quoting Tools
+            </TabsTrigger>
+            <TabsTrigger value="calculators" className="rounded-lg data-[state=active]:text-black text-white/50">
+              <Calculator className="h-4 w-4 mr-1" />Calculators
+            </TabsTrigger>
+          </TabsList>
 
-          {/* Tools grid */}
-          {filteredTools.length === 0 ? (
-            <div className="text-center py-12">
-              <Search className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-              <p className="text-muted-foreground">No tools match your search.</p>
+          <TabsContent value="quoting" className="mt-4 space-y-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/30" />
+              <Input value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder="Search by tool or carrier name…"
+                className="pl-9 bg-white/5 border-white/10 text-white placeholder:text-white/30 focus-visible:ring-0 focus-visible:border-white/20 rounded-xl" />
             </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredTools.map((t) => (
-                <Card key={t.id} className="flex flex-col">
-                  <CardContent className="p-4 flex flex-col flex-1 gap-3">
-                    {/* Logo + name */}
+            <div className="flex flex-wrap gap-2">
+              <FilterChip label="All" active={selectedType === null} onClick={() => setSelectedType(null)} />
+              {TOOL_TYPES.map(tt => <FilterChip key={tt.key} label={tt.label} active={selectedType === tt.key} onClick={() => setSelectedType(selectedType === tt.key ? null : tt.key)} />)}
+            </div>
+
+            {filteredTools.length === 0 ? (
+              <div className="text-center py-12 rounded-2xl" style={GLASS}>
+                <Search className="h-8 w-8 text-white/20 mx-auto mb-2" />
+                <p className="text-white/50">No tools match your search.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {filteredTools.map(t => (
+                  <div key={t.id} className="rounded-2xl p-4 flex flex-col gap-3" style={GLASS}>
                     <div className="flex items-center gap-3">
                       {t.carriers?.carrier_logo_url ? (
-                        <img
-                          src={t.carriers.carrier_logo_url}
-                          alt={t.carriers.carrier_name}
-                          className="h-8 w-8 object-contain rounded"
-                        />
+                        <img src={t.carriers.carrier_logo_url} alt={t.carriers.carrier_name} className="h-8 w-8 object-contain rounded" />
                       ) : (
-                        <div className="h-8 w-8 rounded bg-muted flex items-center justify-center">
-                          <Wrench className="h-4 w-4 text-muted-foreground" />
+                        <div className="h-8 w-8 rounded flex items-center justify-center" style={{ background: GOLD_BG }}>
+                          <Wrench className="h-4 w-4" style={{ color: GOLD }} />
                         </div>
                       )}
                       <div className="min-w-0">
-                        <p className="font-medium text-foreground truncate">{t.tool_name}</p>
-                        {t.carriers?.carrier_name && (
-                          <p className="text-xs text-muted-foreground">{t.carriers.carrier_name}</p>
-                        )}
+                        <p className="font-medium text-white truncate">{t.tool_name}</p>
+                        {t.carriers?.carrier_name && <p className="text-xs text-white/40">{t.carriers.carrier_name}</p>}
                       </div>
                     </div>
-
-                    {/* Badges */}
                     <div className="flex flex-wrap gap-1.5">
-                      <Badge variant="secondary" className="text-xs capitalize">
+                      <span className="text-xs px-2 py-0.5 rounded-full capitalize"
+                        style={{ background: "hsla(0,0%,100%,0.06)", color: "hsla(0,0%,100%,0.6)", border: "1px solid hsla(0,0%,100%,0.08)" }}>
                         {t.tool_type?.replace(/_/g, " ")}
-                      </Badge>
+                      </span>
                       {t.requires_login && (
-                        <Badge variant="outline" className="text-xs gap-1">
+                        <span className="text-xs px-2 py-0.5 rounded-full flex items-center gap-1"
+                          style={{ background: GOLD_BG, color: GOLD, border: `1px solid ${GOLD_BORDER}` }}>
                           <Lock className="h-3 w-3" /> Login Required
-                        </Badge>
+                        </span>
                       )}
                     </div>
-
-                    {/* Description */}
-                    {t.description && (
-                      <p className="text-xs text-muted-foreground line-clamp-2">{t.description}</p>
-                    )}
-
-                    {/* Spacer */}
+                    {t.description && <p className="text-xs text-white/40 line-clamp-2">{t.description}</p>}
                     <div className="flex-1" />
-
-                    {/* Login instructions expandable */}
                     {t.login_instructions && (
                       <div>
-                        <button
-                          onClick={() =>
-                            setExpandedInstructions(expandedInstructions === t.id ? null : t.id)
-                          }
-                          className="text-xs text-primary flex items-center gap-1 hover:underline"
-                        >
+                        <button onClick={() => setExpandedInstructions(expandedInstructions === t.id ? null : t.id)}
+                          className="text-xs flex items-center gap-1 hover:opacity-80 transition-opacity" style={{ color: GOLD }}>
                           Login Instructions
-                          {expandedInstructions === t.id ? (
-                            <ChevronUp className="h-3 w-3" />
-                          ) : (
-                            <ChevronDown className="h-3 w-3" />
-                          )}
+                          {expandedInstructions === t.id ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
                         </button>
                         {expandedInstructions === t.id && (
-                          <p className="text-xs text-muted-foreground mt-1 bg-muted/50 rounded p-2">
-                            {t.login_instructions}
-                          </p>
+                          <p className="text-xs text-white/40 mt-1 p-2 rounded-lg" style={{ background: "hsla(0,0%,100%,0.04)" }}>{t.login_instructions}</p>
                         )}
                       </div>
                     )}
-
-                    {/* Open button */}
                     <a href={t.tool_url} target="_blank" rel="noopener noreferrer">
-                      <Button variant="outline" size="sm" className="w-full">
-                        <ExternalLink className="h-3 w-3 mr-1" /> Open Tool
-                      </Button>
+                      <button className="w-full py-1.5 rounded-xl text-xs font-medium flex items-center justify-center gap-1 transition-all"
+                        style={{ background: GOLD_BG, color: GOLD, border: `1px solid ${GOLD_BORDER}` }}
+                        onMouseEnter={e => (e.currentTarget as HTMLElement).style.boxShadow = `0 0 16px ${GOLD_BG}`}
+                        onMouseLeave={e => (e.currentTarget as HTMLElement).style.boxShadow = "none"}>
+                        <ExternalLink className="h-3 w-3" /> Open Tool
+                      </button>
                     </a>
-                  </CardContent>
-                </Card>
-              ))}
+                  </div>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="calculators" className="mt-4 space-y-4">
+            <div className="flex flex-wrap gap-2">
+              <FilterChip label="All" active={selectedCategory === null} onClick={() => setSelectedCategory(null)} />
+              {CALC_CATEGORIES.map(cat => <FilterChip key={cat.key} label={cat.label} active={selectedCategory === cat.key} onClick={() => setSelectedCategory(selectedCategory === cat.key ? null : cat.key)} />)}
             </div>
-          )}
-        </TabsContent>
-
-        <TabsContent value="calculators" className="mt-4 space-y-4">
-          {/* Category filter badges */}
-          <div className="flex flex-wrap gap-2">
-            <Badge
-              variant={selectedCategory === null ? "default" : "outline"}
-              className="cursor-pointer"
-              onClick={() => setSelectedCategory(null)}
-            >
-              All
-            </Badge>
-            {CALC_CATEGORIES.map((cat) => (
-              <Badge
-                key={cat.key}
-                variant={selectedCategory === cat.key ? "default" : "outline"}
-                className="cursor-pointer"
-                onClick={() => setSelectedCategory(selectedCategory === cat.key ? null : cat.key)}
-              >
-                {cat.label}
-              </Badge>
-            ))}
-          </div>
-
-          {/* Grouped calculator sections */}
-          {CALC_CATEGORIES.map((cat) => {
-            const categoryCalcs = calculators.filter((c) => c.category === cat.key);
-            if (selectedCategory && selectedCategory !== cat.key) return null;
-            if (categoryCalcs.length === 0) return null;
-            const Icon = cat.icon;
-
-            return (
-              <div key={cat.key} className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <Icon className="h-4 w-4 text-primary" />
-                  <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
-                    {cat.label}
-                  </h3>
-                  <Badge variant="secondary" className="text-xs">
-                    {categoryCalcs.length}
-                  </Badge>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {categoryCalcs.map((c) => {
-                    const CatIcon = getCategoryIcon(c.category);
-                    return (
-                      <Card key={c.id}>
-                        <CardContent className="p-4 flex flex-col gap-3">
+            {CALC_CATEGORIES.map(cat => {
+              const categoryCalcs = calculators.filter(c => c.category === cat.key);
+              if (selectedCategory && selectedCategory !== cat.key) return null;
+              if (categoryCalcs.length === 0) return null;
+              const Icon = cat.icon;
+              return (
+                <div key={cat.key} className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Icon className="h-4 w-4" style={{ color: GOLD }} />
+                    <h3 className="text-sm font-semibold uppercase tracking-wider" style={{ color: GOLD }}>{cat.label}</h3>
+                    <span className="text-xs px-1.5 rounded-full text-white/40" style={{ background: "hsla(0,0%,100%,0.06)" }}>{categoryCalcs.length}</span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {categoryCalcs.map(c => {
+                      const CatIcon = cat.icon;
+                      return (
+                        <div key={c.id} className="rounded-2xl p-4 flex flex-col gap-3" style={GLASS}>
                           <div className="flex items-start gap-3">
-                            <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                              <CatIcon className="h-5 w-5 text-primary" />
+                            <div className="h-9 w-9 rounded-lg flex items-center justify-center shrink-0" style={{ background: GOLD_BG }}>
+                              <CatIcon className="h-5 w-5" style={{ color: GOLD }} />
                             </div>
                             <div className="min-w-0">
-                              <p className="font-medium text-foreground">{c.calculator_name}</p>
-                              {c.description && (
-                                <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{c.description}</p>
-                              )}
+                              <p className="font-medium text-white">{c.calculator_name}</p>
+                              {c.description && <p className="text-xs text-white/40 mt-1 line-clamp-2">{c.description}</p>}
                             </div>
                           </div>
                           {c.external_url && (
                             <a href={c.external_url} target="_blank" rel="noopener noreferrer">
-                              <Button variant="outline" size="sm" className="w-full">
-                                <Calculator className="h-3 w-3 mr-1" /> Use Calculator
-                              </Button>
+                              <button className="w-full py-1.5 rounded-xl text-xs font-medium flex items-center justify-center gap-1 transition-all"
+                                style={{ background: GOLD_BG, color: GOLD, border: `1px solid ${GOLD_BORDER}` }}>
+                                <Calculator className="h-3 w-3" /> Use Calculator
+                              </button>
                             </a>
                           )}
-                        </CardContent>
-                      </Card>
-                    );
-                  })}
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
-            );
-          })}
-        </TabsContent>
-      </Tabs>
+              );
+            })}
+          </TabsContent>
+        </Tabs>
+      </div>
     </div>
   );
 }
