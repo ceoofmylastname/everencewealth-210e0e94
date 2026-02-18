@@ -71,7 +71,7 @@ export default function DuplicateImageFixer() {
         .order('usage_count', { ascending: false });
 
       if (error) throw error;
-      return data as DuplicateImageGroup[];
+      return data as unknown as DuplicateImageGroup[];
     },
   });
 
