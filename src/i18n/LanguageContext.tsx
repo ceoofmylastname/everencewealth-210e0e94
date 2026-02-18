@@ -42,6 +42,11 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
     const urlLang = getLanguageFromPath(location.pathname);
     if (urlLang) return urlLang;
     
+    // Root path (/) always defaults to English, regardless of localStorage
+    if (location.pathname === '/' || location.pathname === '') {
+      return Language.EN;
+    }
+    
     // Then check localStorage
     const stored = localStorage.getItem('preferredLanguage');
     if (stored && VALID_LANGUAGES.includes(stored as Language)) {
@@ -60,6 +65,11 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
     if (urlLang && urlLang !== currentLanguage) {
       setCurrentLanguage(urlLang);
       localStorage.setItem('preferredLanguage', urlLang);
+    } else if (!urlLang && (location.pathname === '/' || location.pathname === '')) {
+      // Root path always resets to English
+      if (currentLanguage !== Language.EN) {
+        setCurrentLanguage(Language.EN);
+      }
     }
   }, [location.pathname]);
 

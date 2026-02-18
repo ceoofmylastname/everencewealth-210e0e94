@@ -32,7 +32,7 @@ const CATEGORY_CONFIG: Record<string, { icon: React.ComponentType<any>; color: s
 export default function QAIndex() {
   const { lang = 'en' } = useParams<{ lang: string }>();
   const [searchTerm, setSearchTerm] = useState('');
-  const [languageFilter, setLanguageFilter] = useState<string>('all');
+  const [languageFilter, setLanguageFilter] = useState<string>(lang);
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [isFocused, setIsFocused] = useState(false);
   const [page, setPage] = useState(1);

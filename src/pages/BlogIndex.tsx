@@ -25,7 +25,7 @@ const BlogIndex = () => {
   const [currentPage, setCurrentPage] = useState(1);
 
   const selectedCategory = searchParams.get("category") || "all";
-  const selectedLanguage = searchParams.get("lang") || "all";
+  const selectedLanguage = searchParams.get("lang") || lang;
 
   // Fetch categories
   const { data: categories, isLoading: categoriesLoading, error: categoriesError } = useQuery({
