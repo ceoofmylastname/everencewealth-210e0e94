@@ -14,12 +14,13 @@ export const BlogPreview: React.FC = () => {
   const bp = t.homepage.blogPreview;
 
   const { data: articles, isLoading } = useQuery({
-    queryKey: ['homepage-blog-preview'],
+    queryKey: ['homepage-blog-preview-en'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('blog_articles')
         .select('id, slug, headline, meta_description, featured_image_url, featured_image_alt, date_published, language, category')
         .eq('status', 'published')
+        .eq('language', 'en')
         .order('date_published', { ascending: false })
         .limit(3);
       if (error) throw error;
