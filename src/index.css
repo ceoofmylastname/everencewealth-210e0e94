@@ -866,6 +866,12 @@ All colors MUST be HSL.
   color: transparent;
 }
 
+/* ── Gold outline variant ── */
+.text-outline-gold {
+  -webkit-text-stroke: 2px hsla(51, 78%, 65%, 0.5);
+  color: transparent;
+}
+
 /* ── Hero glow text shadow ── */
 .hero-glow {
   text-shadow: 0 0 30px hsla(160, 60%, 30%, 0.3), 0 0 80px hsla(160, 48%, 21%, 0.15);
