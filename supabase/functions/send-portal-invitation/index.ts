@@ -73,8 +73,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const origin = req.headers.get("origin") || req.headers.get("referer")?.replace(/\/[^/]*$/, "") || "";
-    const portalSignupUrl = `${origin}/portal/signup?token=${invitation.invitation_token}`;
+    const portalSignupUrl = `https://everencewealth.lovable.app/portal/signup?token=${invitation.invitation_token}`;
 
     const advisorName = invitation.advisors
       ? `${invitation.advisors.first_name} ${invitation.advisors.last_name}`
