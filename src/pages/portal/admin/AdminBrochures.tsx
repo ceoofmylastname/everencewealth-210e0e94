@@ -105,12 +105,17 @@ export default function AdminBrochures() {
     if (!selectedStates.length) return;
     setStateGenerating(true);
     setStateProgress(0);
+    const { data: { session } } = await supabase.auth.getSession();
     for (let i = 0; i < selectedStates.length; i++) {
       const state = selectedStates[i];
       try {
         await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-guide-content`, {
           method: "POST",
-          headers: { "Content-Type": "application/json", "apikey": import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY },
+          headers: {
+            "Content-Type": "application/json",
+            "apikey": import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            "Authorization": `Bearer ${session?.access_token}`,
+          },
           body: JSON.stringify({
             category: "retirement_strategies",
             topic: `Retirement Planning in ${state}`,

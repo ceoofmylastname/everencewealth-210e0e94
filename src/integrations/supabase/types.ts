@@ -6877,9 +6877,12 @@ export type Database = {
         Row: {
           article_count: number | null
           article_ids: string[] | null
+          cluster_ids: string[] | null
           featured_image_url: string | null
+          headlines: string[] | null
           languages: string[] | null
           slugs: string[] | null
+          usage_count: number | null
         }
         Relationships: []
       }
