@@ -225,7 +225,12 @@ export const Hero: React.FC = () => {
           <div className="flex items-center justify-center">
             <a
               href="/assessment"
-              className="inline-block px-6 py-2.5 border border-primary/20 bg-white/[0.03] text-primary/70 font-hero font-bold text-[11px] tracking-[0.15em] uppercase rounded-xl hover:bg-white/[0.06] hover:border-primary/40 transition-colors"
+              className="relative inline-block px-6 py-2.5 border border-primary/30 bg-white/[0.04] text-primary font-hero font-bold text-[11px] tracking-[0.15em] uppercase rounded-xl hover:bg-primary/10 hover:border-primary/60 transition-all duration-300"
+              style={{
+                boxShadow: '0 0 18px hsla(51, 78%, 65%, 0.35), 0 0 40px hsla(51, 78%, 65%, 0.15), inset 0 0 12px hsla(51, 78%, 65%, 0.05)',
+              }}
+              onMouseEnter={e => (e.currentTarget.style.boxShadow = '0 0 28px hsla(51, 78%, 65%, 0.6), 0 0 60px hsla(51, 78%, 65%, 0.25), inset 0 0 16px hsla(51, 78%, 65%, 0.1)')}
+              onMouseLeave={e => (e.currentTarget.style.boxShadow = '0 0 18px hsla(51, 78%, 65%, 0.35), 0 0 40px hsla(51, 78%, 65%, 0.15), inset 0 0 12px hsla(51, 78%, 65%, 0.05)')}
             >
               {hp.beginAssessment}
             </a>
