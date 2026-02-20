@@ -162,6 +162,8 @@ const MarketingResources = lazy(() => import("./pages/portal/advisor/MarketingRe
 const SchedulePage = lazy(() => import("./pages/portal/advisor/SchedulePage"));
 const ComplianceCenter = lazy(() => import("./pages/portal/advisor/ComplianceCenter"));
 const AdvisorSettings = lazy(() => import("./pages/portal/AdvisorSettings"));
+const CNADashboard = lazy(() => import("./pages/portal/advisor/CNADashboard"));
+const CNAForm = lazy(() => import("./pages/portal/advisor/CNAForm"));
 const ClientDashboard = lazy(() => import("./pages/portal/client/ClientDashboard"));
 const ClientPolicies = lazy(() => import("./pages/portal/client/ClientPolicies"));
 const ClientDocuments = lazy(() => import("./pages/portal/client/ClientDocuments"));
@@ -375,6 +377,9 @@ const App = () => (
                   <Route path="schedule" element={<SchedulePage />} />
                   <Route path="compliance" element={<ComplianceCenter />} />
                   <Route path="settings" element={<AdvisorSettings />} />
+                  <Route path="cna" element={<CNADashboard />} />
+                  <Route path="cna/new" element={<CNAForm />} />
+                  <Route path="cna/:id" element={<CNAForm />} />
                 </Route>
               </Route>
               <Route path="/portal/client" element={<ClientRoute />}>

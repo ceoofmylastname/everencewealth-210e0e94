@@ -6,7 +6,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import {
   Users, FileText, Send, ArrowUpRight, TrendingUp,
   Calendar, Shield, Calculator, GraduationCap, Megaphone,
-  Wrench,
+  Wrench, ClipboardList,
 } from "lucide-react";
 
 const BRAND_GREEN = "#1A4D3E";
@@ -100,12 +100,12 @@ export default function AdvisorDashboard() {
   ];
 
   const quickActions = [
+    { label: "Client Analysis", icon: ClipboardList, href: "/portal/advisor/cna" },
     { label: "Carriers", icon: Shield, href: "/portal/advisor/carriers" },
     { label: "Quoting Tools", icon: Wrench, href: "/portal/advisor/tools" },
     { label: "Calculators", icon: Calculator, href: "/portal/advisor/tools" },
     { label: "Training", icon: GraduationCap, href: "/portal/advisor/training" },
     { label: "Marketing", icon: Megaphone, href: "/portal/advisor/marketing" },
-    { label: "Schedule", icon: Calendar, href: "/portal/advisor/schedule" },
   ];
 
   return (

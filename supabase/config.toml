@@ -20,3 +20,6 @@ verify_jwt = false
 
 [functions.update-portal-client-password]
 verify_jwt = false
+
+[functions.financial-analysis]
+verify_jwt = false
