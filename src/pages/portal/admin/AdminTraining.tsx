@@ -9,7 +9,16 @@ import { toast } from "sonner";
 
 const BRAND_GREEN = "#1A4D3E";
 const inputCls = "border-gray-200 bg-white text-gray-900 placeholder:text-gray-400 focus-visible:ring-1 rounded-lg";
-const defaultForm = { title: "", description: "", category: "product_knowledge", level: "beginner", duration_minutes: 30, video_url: "", thumbnail_url: "", status: "published" };
+const VALID_CATEGORIES = [
+  { value: "account_setup", label: "Account Setup" },
+  { value: "product_training", label: "Product Training" },
+  { value: "sales_techniques", label: "Sales Techniques" },
+  { value: "compliance", label: "Compliance" },
+  { value: "technology", label: "Technology" },
+  { value: "carrier_specific", label: "Carrier Specific" },
+  { value: "advanced_strategies", label: "Advanced Strategies" },
+];
+const defaultForm = { title: "", description: "", category: "product_training", level: "beginner", duration_minutes: 30, video_url: "", thumbnail_url: "", status: "published" };
 
 function getLevelBadge(level: string) {
   switch (level) { case "beginner": return "bg-emerald-50 text-emerald-700 border border-emerald-200"; case "intermediate": return "bg-blue-50 text-blue-700 border border-blue-200"; case "advanced": return "bg-purple-50 text-purple-700 border border-purple-200"; default: return "bg-gray-100 text-gray-600 border border-gray-200"; }
@@ -38,7 +47,7 @@ export default function AdminTraining() {
   function openAdd() { setEditingItem(null); setForm({ ...defaultForm }); setShowDialog(true); }
   function openEdit(t: any) {
     setEditingItem(t);
-    setForm({ title: t.title || "", description: t.description || "", category: t.category || "product_knowledge", level: t.level || "beginner", duration_minutes: t.duration_minutes || 30, video_url: t.video_url || "", thumbnail_url: t.thumbnail_url || "", status: t.status || "published" });
+    setForm({ title: t.title || "", description: t.description || "", category: t.category || "product_training", level: t.level || "beginner", duration_minutes: t.duration_minutes || 30, video_url: t.video_url || "", thumbnail_url: t.thumbnail_url || "", status: t.status || "published" });
     setShowDialog(true);
   }
 
@@ -90,7 +99,11 @@ export default function AdminTraining() {
             <div><label className="text-sm font-medium text-gray-600">Title *</label><Input value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} className={inputCls} /></div>
             <div><label className="text-sm font-medium text-gray-600">Description</label><Textarea value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} rows={3} className={inputCls} /></div>
             <div className="grid grid-cols-2 gap-4">
-              <div><label className="text-sm font-medium text-gray-600">Category</label><Input value={form.category} onChange={e => setForm({ ...form, category: e.target.value })} className={inputCls} /></div>
+              <div><label className="text-sm font-medium text-gray-600">Category</label>
+                <select value={form.category} onChange={e => setForm({ ...form, category: e.target.value })} className={`w-full mt-1 rounded-lg border px-3 py-2 text-sm ${inputCls}`}>
+                  {VALID_CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
+                </select>
+              </div>
               <div><label className="text-sm font-medium text-gray-600">Level</label>
                 <select value={form.level} onChange={e => setForm({ ...form, level: e.target.value })} className={`w-full mt-1 rounded-lg border px-3 py-2 text-sm ${inputCls}`}>
                   <option value="beginner">Beginner</option><option value="intermediate">Intermediate</option><option value="advanced">Advanced</option>
