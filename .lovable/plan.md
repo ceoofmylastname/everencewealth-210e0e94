@@ -1,36 +1,41 @@
 
 
-# Fix: Training Creation Failing Due to Invalid Category
+# Filter Schedule Events by Creator Role
 
 ## Problem
-The "Failed to create" error happens because the category value `product_knowledge` does not match the database's allowed values. The database has a check constraint that only allows these categories:
-- `account_setup`
-- `product_training`
-- `sales_techniques`
-- `compliance`
-- `technology`
-- `carrier_specific`
-- `advanced_strategies`
+Currently, both the **Schedule Page** and the **Advisor Dashboard** show ALL events (admin + agent) to every user. The desired behavior is:
 
-The form's default category is set to `product_knowledge`, which is not in the list. The category input is also a free-text field, so any typo or unsupported value will cause this error.
+- **Admin-created events** = global, visible to all users
+- **Agent-created events** = private, visible only on that agent's own dashboard/schedule
 
-## Fix
+## Changes
 
-**File:** `src/pages/portal/admin/AdminTraining.tsx`
+### 1. `src/pages/portal/advisor/SchedulePage.tsx` (Schedule page)
+Update the `loadEvents` query to only fetch:
+- All events where the creator's role is `admin` (global)
+- Events created by the current logged-in user (their own agent events)
 
-1. Change the default category from `product_knowledge` to `product_training` (line 12)
-2. Replace the free-text category input with a dropdown (`<select>`) that only shows the valid category options, preventing future mismatches
+After fetching, filter client-side using the already-joined `creator.role` data:
+```
+events where creator.role === 'admin' OR created_by === portalUser.id
+```
+
+Since the Supabase JS client doesn't support OR conditions across a join easily, the simplest approach is to keep fetching all events (RLS already scopes this) and filter in JS after the query returns.
+
+### 2. `src/pages/portal/advisor/AdvisorDashboard.tsx` (Dashboard widget)
+Apply the same filtering logic to the "Upcoming Events" widget -- only show admin-created events (global) plus the current agent's own events.
+
+### 3. Admin pages remain unchanged
+The admin schedule page (`AdminSchedule.tsx`) already shows all events, which is correct since admins need full visibility.
 
 ## Technical Details
 
-- Line 12: Change `defaultForm.category` from `"product_knowledge"` to `"product_training"`
-- In the dialog form (around line 100), replace the `<Input>` for category with a `<select>` containing these options:
-  - Account Setup (`account_setup`)
-  - Product Training (`product_training`)
-  - Sales Techniques (`sales_techniques`)
-  - Compliance (`compliance`)
-  - Technology (`technology`)
-  - Carrier Specific (`carrier_specific`)
-  - Advanced Strategies (`advanced_strategies`)
+In both files, after the query returns data, filter with:
+```typescript
+const filtered = (data ?? []).filter(
+  (e: any) => e.creator?.role === 'admin' || e.created_by === portalUser?.id
+);
+```
 
-No database changes needed.
+This ensures agents see all company-wide admin announcements plus only their own personal events, while keeping the color-coded badges (amber for Admin, emerald for Agent) intact.
+
