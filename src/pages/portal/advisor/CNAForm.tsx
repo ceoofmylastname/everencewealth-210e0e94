@@ -551,16 +551,30 @@ export default function CNAForm() {
           <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
             <h3 className="text-base font-semibold text-gray-900 mb-4">Expense Breakdown</h3>
             {expensePieData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={220}>
-                <PieChart>
-                  <Pie data={expensePieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`} labelLine={false}>
-                    {expensePieData.map((_, i) => (
-                      <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip formatter={(v: number) => `$${fmt(v)}`} />
-                </PieChart>
-              </ResponsiveContainer>
+              <>
+                <ResponsiveContainer width="100%" height={180}>
+                  <PieChart>
+                    <Pie data={expensePieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={70} innerRadius={30}>
+                      {expensePieData.map((_, i) => (
+                        <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip formatter={(v: number) => `$${fmt(v)}`} />
+                  </PieChart>
+                </ResponsiveContainer>
+                <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-1.5">
+                  {expensePieData.map((item, i) => {
+                    const pct = totalExpenses > 0 ? ((item.value / totalExpenses) * 100).toFixed(0) : "0";
+                    return (
+                      <div key={i} className="flex items-center gap-2 min-w-0">
+                        <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: PIE_COLORS[i % PIE_COLORS.length] }} />
+                        <span className="text-xs text-gray-600 truncate">{item.name}</span>
+                        <span className="text-xs font-semibold text-gray-900 ml-auto shrink-0">{pct}%</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </>
             ) : (
               <p className="text-sm text-gray-400 text-center py-8">Enter expenses to see breakdown</p>
             )}
@@ -855,16 +869,27 @@ export default function CNAForm() {
               <h3 className="text-lg font-bold text-gray-900 mb-2">Recommended Allocation</h3>
               <p className="text-sm text-gray-600 mb-4">{aiAnalysis.risk_profile_summary}</p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 items-center">
-                <ResponsiveContainer width="100%" height={200}>
-                  <PieChart>
-                    <Pie data={aiAnalysis.recommended_allocation} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label={({ name, value }) => `${name} ${value}%`} labelLine={false}>
-                      {aiAnalysis.recommended_allocation.map((_: any, i: number) => (
-                        <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                  </PieChart>
-                </ResponsiveContainer>
+                <div>
+                  <ResponsiveContainer width="100%" height={180}>
+                    <PieChart>
+                      <Pie data={aiAnalysis.recommended_allocation} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={70} innerRadius={30}>
+                        {aiAnalysis.recommended_allocation.map((_: any, i: number) => (
+                          <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip />
+                    </PieChart>
+                  </ResponsiveContainer>
+                  <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-1.5">
+                    {aiAnalysis.recommended_allocation.map((item: any, i: number) => (
+                      <div key={i} className="flex items-center gap-2 min-w-0">
+                        <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: PIE_COLORS[i % PIE_COLORS.length] }} />
+                        <span className="text-xs text-gray-600 truncate">{item.name}</span>
+                        <span className="text-xs font-semibold text-gray-900 ml-auto shrink-0">{item.value}%</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
                 <div className="space-y-2">
                   {aiAnalysis.key_recommendations?.map((rec: string, i: number) => (
                     <div key={i} className="flex items-start gap-2">
