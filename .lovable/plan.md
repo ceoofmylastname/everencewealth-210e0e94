@@ -1,41 +1,66 @@
 
+# Push CNA to Client Dashboard
 
-# Mobile-First Optimization for CNA Form
+## Summary
+When an advisor completes a CNA, they can assign it to one of their clients via a dropdown and "push" it to the client's dashboard. The client can then view and optionally download the completed CNA as a read-only report.
 
-## Problems Identified
+## Changes
 
-1. **Pie chart labels truncated**: "Mortgage/Rent" renders as "gage/Rent 83%" because long label text overflows the small chart container. The `labelLine={false}` with inline labels doesn't have enough room.
-2. **Mobile chart overflow**: On mobile the chart is inside a 220px container and labels go outside the visible area.
-3. **Desktop spacing**: The left column (expense inputs) and right column (chart) could use better proportions.
+### 1. Database: Add RLS policy for clients
+Add a SELECT policy so clients can read CNAs assigned to them:
+```sql
+CREATE POLICY "Clients can view own CNAs"
+  ON client_needs_analysis FOR SELECT
+  USING (client_id = get_portal_user_id(auth.uid()));
+```
 
-## Changes (single file: `src/pages/portal/advisor/CNAForm.tsx`)
+### 2. CNA Form -- Add "Assign to Client" dropdown (Step 8: Review and Sign)
+In `src/pages/portal/advisor/CNAForm.tsx`:
+- Fetch the advisor's clients from `portal_users` where `advisor_id = portalUser.id` and `role = 'client'`
+- Add a Select dropdown above the signature section labeled "Assign to Client"
+- When a client is selected, set `form.client_id` to that client's `portal_users.id`
+- On submit, the `client_id` is saved to the database, making the CNA visible to that client
 
-### Fix 1: Pie chart label rendering
-- Replace inline pie labels with a **legend list below the chart** instead of text overlaying the pie slices
-- Remove the `label` prop from `<Pie>` and add a custom legend beneath the chart showing colored dots + category name + percentage
-- This completely eliminates the truncation problem on both mobile and desktop
+### 3. CNA Dashboard -- Show assigned client name
+In `src/pages/portal/advisor/CNADashboard.tsx`:
+- Update the query to join or show the client name when `client_id` is set
+- Show a "Shared" badge on CNAs that have a `client_id`
 
-### Fix 2: Improve chart container sizing
-- Increase `ResponsiveContainer` height from 220 to 250 on desktop
-- On mobile, reduce outer radius so the pie doesn't clip
+### 4. Client Dashboard -- Add "Financial Analyses" section
+In `src/pages/portal/client/ClientDashboard.tsx`:
+- Add a stat card for CNA count
+- Add a "Financial Analyses" section below policies showing completed CNAs assigned to this client
+- Each CNA card shows: applicant name, date, retirement score, net worth
+- Clicking opens a read-only view
 
-### Fix 3: Mobile-first expense layout
-- Change the grid from `lg:grid-cols-2` to show expense inputs full-width on mobile, with the summary card below
-- On desktop (`lg:`), keep the two-column sticky layout
-- Make the summary card non-sticky on mobile (remove `lg:sticky` behavior on small screens -- already correct)
+### 5. Client CNA View page (new file)
+Create `src/pages/portal/client/ClientCNAView.tsx`:
+- Read-only display of the completed CNA
+- Sections: Goals, Demographics, Income/Expenses, Assets/Liabilities, AI Analysis results
+- Download button that generates a printable HTML view (using `window.print()` with print-specific CSS) -- no PDF library needed
 
-### Fix 4: Pie chart for AI allocation (Step 7)
-- Apply the same legend-based approach to the recommended allocation pie chart to prevent label clipping there too
+### 6. Routing
+In `src/App.tsx`:
+- Add route `/portal/client/cna/:id` pointing to `ClientCNAView`
+- Add lazy import for the new component
 
 ## Technical Details
 
-In `renderStep3()` (Expenses step):
-- Remove `label` and `labelLine` props from `<Pie>`
-- Add a legend div below the `<ResponsiveContainer>` that maps over `expensePieData` with colored circles and truncated names
-- Each legend item shows: colored dot, label (truncated with `truncate` class), percentage, and dollar amount
+**Client dropdown query:**
+```sql
+SELECT id, first_name, last_name, email
+FROM portal_users
+WHERE advisor_id = :advisorId AND role = 'client' AND is_active = true
+ORDER BY last_name, first_name
+```
 
-In `renderStep6()` (AI Analysis step):
-- Same legend pattern for the allocation pie chart
+**Download approach:** Use `window.print()` with a print-friendly layout styled via `@media print` CSS. This avoids adding a PDF library dependency.
 
-The legend approach is standard for Recharts when labels overlap and is more mobile-friendly since text is rendered as HTML (not SVG) and respects container bounds.
+**Files to create:**
+- `src/pages/portal/client/ClientCNAView.tsx` -- read-only CNA report with print/download
 
+**Files to edit:**
+- `src/pages/portal/advisor/CNAForm.tsx` -- add client dropdown in Step 8
+- `src/pages/portal/advisor/CNADashboard.tsx` -- show shared badge
+- `src/pages/portal/client/ClientDashboard.tsx` -- add CNA section and stat card
+- `src/App.tsx` -- add client CNA route
