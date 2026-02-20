@@ -8,6 +8,10 @@ import { FileText, FolderOpen, ArrowUpRight, MessageCircle, Mail, Phone, User, C
 const BRAND_GREEN = "#1A4D3E";
 const GOLD = "hsla(51, 78%, 65%, 1)";
 
+// Enhanced card classes
+const CARD = "bg-white rounded-2xl border border-gray-200 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.08)] transition-all duration-200";
+const CARD_HOVER = `${CARD} hover:shadow-[0_4px_20px_-4px_rgba(0,0,0,0.12)] hover:translate-y-[-2px]`;
+
 interface PolicySummary {
   id: string;
   carrier_name: string;
@@ -66,7 +70,6 @@ export default function ClientDashboard() {
         unreadCount = msgsRes.count ?? 0;
       } catch {}
 
-      // Load CNAs assigned to this client
       const cnasRes = await supabase
         .from("client_needs_analysis")
         .select("id, applicant_name, created_at, net_worth, ai_retirement_projection, status")
@@ -98,7 +101,7 @@ export default function ClientDashboard() {
   return (
     <div className="space-y-6">
       {/* Welcome Header */}
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+      <div className={`${CARD} p-6`}>
         <p className="text-sm text-gray-500">Welcome back</p>
         <h1 className="text-2xl font-bold text-gray-900 mt-1">{portalUser?.first_name} {portalUser?.last_name}</h1>
         <p className="text-sm text-gray-400 mt-1">Your personal insurance portal — everything in one place.</p>
@@ -108,7 +111,7 @@ export default function ClientDashboard() {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4">
         {loading
           ? Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="bg-white rounded-xl border border-gray-100 shadow-sm p-3 sm:p-5 space-y-3">
+              <div key={i} className={`${CARD} p-3 sm:p-5 space-y-3`}>
                 <Skeleton className="h-8 w-8 rounded-lg" />
                 <Skeleton className="h-6 w-12" />
                 <Skeleton className="h-3 w-16" />
@@ -116,14 +119,14 @@ export default function ClientDashboard() {
             ))
           : statCards.map((card) => (
               <Link key={card.label} to={card.href}>
-                <div className="group bg-white rounded-xl border border-gray-100 shadow-sm p-3 sm:p-5 hover:shadow-md hover:border-gray-200 transition-all duration-200">
+                <div className={`group ${CARD_HOVER} p-3 sm:p-5`}>
                   <div className="flex items-center justify-between mb-2 sm:mb-4">
-                    <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg flex items-center justify-center" style={{ background: `${BRAND_GREEN}15` }}>
+                    <div className="h-9 w-9 sm:h-11 sm:w-11 rounded-xl flex items-center justify-center" style={{ background: `${BRAND_GREEN}15` }}>
                       <card.icon className="h-4 w-4 sm:h-5 sm:w-5" style={{ color: BRAND_GREEN }} />
                     </div>
                     <ArrowUpRight className="h-3 w-3 sm:h-4 sm:w-4 text-gray-300 group-hover:text-gray-500 transition-colors" />
                   </div>
-                  <p className="text-lg sm:text-3xl font-bold text-gray-900">{card.value}</p>
+                  <p className="text-lg sm:text-3xl font-extrabold text-gray-900">{card.value}</p>
                   <p className="text-[10px] sm:text-sm text-gray-500 mt-0.5 sm:mt-1 truncate">{card.label}</p>
                 </div>
               </Link>
@@ -132,9 +135,9 @@ export default function ClientDashboard() {
 
       {/* Financial Analyses */}
       {cnas.length > 0 && (
-        <div id="analyses" className="bg-white rounded-xl border border-gray-100 shadow-sm">
+        <div id="analyses" className={CARD}>
           <div className="flex items-center justify-between p-5 border-b border-gray-100">
-            <h2 className="text-base font-semibold text-gray-900">Financial Analyses</h2>
+            <h2 className="text-lg font-bold text-gray-900">Financial Analyses</h2>
           </div>
           <div className="p-5 space-y-2">
             {cnas.map((cna) => {
@@ -178,9 +181,9 @@ export default function ClientDashboard() {
       {/* Two-column: Policies + Advisor */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
         {/* Policies - 2/3 */}
-        <div className="lg:col-span-2 bg-white rounded-xl border border-gray-100 shadow-sm">
+        <div className={`lg:col-span-2 ${CARD}`}>
           <div className="flex items-center justify-between p-5 border-b border-gray-100">
-            <h2 className="text-base font-semibold text-gray-900">Recent Policies</h2>
+            <h2 className="text-lg font-bold text-gray-900">Recent Policies</h2>
             <Link to="/portal/client/policies" className="text-xs font-semibold hover:underline" style={{ color: GOLD }}>
               View all
             </Link>
@@ -230,8 +233,8 @@ export default function ClientDashboard() {
         </div>
 
         {/* Advisor - 1/3 */}
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
-          <h2 className="text-base font-semibold text-gray-900 mb-4">Your Advisor</h2>
+        <div className={`${CARD} p-5`}>
+          <h2 className="text-lg font-bold text-gray-900 mb-4">Your Advisor</h2>
           {loading ? (
             <div className="space-y-4">
               <div className="flex items-center gap-4">
