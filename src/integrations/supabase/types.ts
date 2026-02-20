@@ -437,6 +437,7 @@ export type Database = {
           agency_id: string | null
           auth_user_id: string
           bio: string | null
+          ce_due_date: string | null
           created_at: string
           current_zone: string | null
           email: string
@@ -446,10 +447,14 @@ export type Database = {
           languages: string[] | null
           last_name: string
           license_number: string | null
+          npn_number: string | null
           phone: string | null
           photo_url: string | null
           portal_user_id: string
           rank_override_id: string | null
+          resident_license_exp: string | null
+          resident_license_number: string | null
+          resident_state: string | null
           specializations: string[] | null
           title: string | null
           updated_at: string
@@ -459,6 +464,7 @@ export type Database = {
           agency_id?: string | null
           auth_user_id: string
           bio?: string | null
+          ce_due_date?: string | null
           created_at?: string
           current_zone?: string | null
           email: string
@@ -468,10 +474,14 @@ export type Database = {
           languages?: string[] | null
           last_name: string
           license_number?: string | null
+          npn_number?: string | null
           phone?: string | null
           photo_url?: string | null
           portal_user_id: string
           rank_override_id?: string | null
+          resident_license_exp?: string | null
+          resident_license_number?: string | null
+          resident_state?: string | null
           specializations?: string[] | null
           title?: string | null
           updated_at?: string
@@ -481,6 +491,7 @@ export type Database = {
           agency_id?: string | null
           auth_user_id?: string
           bio?: string | null
+          ce_due_date?: string | null
           created_at?: string
           current_zone?: string | null
           email?: string
@@ -490,10 +501,14 @@ export type Database = {
           languages?: string[] | null
           last_name?: string
           license_number?: string | null
+          npn_number?: string | null
           phone?: string | null
           photo_url?: string | null
           portal_user_id?: string
           rank_override_id?: string | null
+          resident_license_exp?: string | null
+          resident_license_number?: string | null
+          resident_state?: string | null
           specializations?: string[] | null
           title?: string | null
           updated_at?: string
@@ -3324,6 +3339,53 @@ export type Database = {
           },
         ]
       }
+      compliance_records: {
+        Row: {
+          advisor_id: string
+          aml_training_date: string | null
+          background_check_date: string | null
+          ce_hours_completed: boolean | null
+          ce_hours_earned: number | null
+          ce_hours_required: number | null
+          created_at: string
+          eo_insurance_exp: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          advisor_id: string
+          aml_training_date?: string | null
+          background_check_date?: string | null
+          ce_hours_completed?: boolean | null
+          ce_hours_earned?: number | null
+          ce_hours_required?: number | null
+          created_at?: string
+          eo_insurance_exp?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          advisor_id?: string
+          aml_training_date?: string | null
+          background_check_date?: string | null
+          ce_hours_completed?: boolean | null
+          ce_hours_earned?: number | null
+          ce_hours_required?: number | null
+          created_at?: string
+          eo_insurance_exp?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "compliance_records_advisor_id_fkey"
+            columns: ["advisor_id"]
+            isOneToOne: true
+            referencedRelation: "advisors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       content_settings: {
         Row: {
           created_at: string | null
@@ -5762,6 +5824,50 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      non_resident_licenses: {
+        Row: {
+          advisor_id: string
+          created_at: string
+          expiration_date: string | null
+          id: string
+          license_number: string | null
+          notes: string | null
+          state: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          advisor_id: string
+          created_at?: string
+          expiration_date?: string | null
+          id?: string
+          license_number?: string | null
+          notes?: string | null
+          state: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          advisor_id?: string
+          created_at?: string
+          expiration_date?: string | null
+          id?: string
+          license_number?: string | null
+          notes?: string | null
+          state?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "non_resident_licenses_advisor_id_fkey"
+            columns: ["advisor_id"]
+            isOneToOne: false
+            referencedRelation: "advisors"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       notifications: {
         Row: {
