@@ -12,6 +12,10 @@ import {
 const BRAND_GREEN = "#1A4D3E";
 const GOLD = "hsla(51, 78%, 65%, 1)";
 
+// Enhanced card classes
+const CARD = "bg-white rounded-2xl border border-gray-200 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.08)] transition-all duration-200";
+const CARD_HOVER = `${CARD} hover:shadow-[0_4px_20px_-4px_rgba(0,0,0,0.12)] hover:translate-y-[-2px]`;
+
 interface DashboardStats {
   totalClients: number;
   activePolicies: number;
@@ -118,22 +122,22 @@ export default function AdvisorDashboard() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {loading
           ? Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 space-y-3">
-                <Skeleton className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg" />
+              <div key={i} className={`${CARD} p-4 space-y-3`}>
+                <Skeleton className="h-8 w-8 sm:h-11 sm:w-11 rounded-lg" />
                 <Skeleton className="h-6 w-16" />
                 <Skeleton className="h-4 w-24" />
               </div>
             ))
           : statCards.map((card) => (
               <Link key={card.label} to={card.href}>
-                <div className="group bg-white rounded-xl border border-gray-100 shadow-sm p-3 sm:p-5 hover:shadow-md hover:border-gray-200 transition-all duration-200 cursor-pointer">
+                <div className={`group ${CARD_HOVER} p-3 sm:p-5 cursor-pointer`}>
                   <div className="flex items-center justify-between mb-2 sm:mb-4">
-                    <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg flex items-center justify-center" style={{ background: `${card.color}15` }}>
+                    <div className="h-9 w-9 sm:h-11 sm:w-11 rounded-xl flex items-center justify-center" style={{ background: `${card.color}15` }}>
                       <card.icon className="h-4 w-4 sm:h-5 sm:w-5" style={{ color: card.color }} />
                     </div>
                     <ArrowUpRight className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-300 group-hover:text-gray-500 transition-colors" />
                   </div>
-                  <p className="text-xl sm:text-3xl font-bold text-gray-900">{card.value}</p>
+                  <p className="text-xl sm:text-3xl font-extrabold text-gray-900">{card.value}</p>
                   <p className="text-xs sm:text-sm text-gray-500 mt-0.5 sm:mt-1">{card.label}</p>
                 </div>
               </Link>
@@ -141,12 +145,12 @@ export default function AdvisorDashboard() {
       </div>
 
       {/* Quick Actions */}
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-3 sm:p-5">
-        <h2 className="text-sm sm:text-base font-semibold text-gray-900 mb-3 sm:mb-4">Quick Actions</h2>
+      <div className={`${CARD} p-3 sm:p-5`}>
+        <h2 className="text-sm sm:text-lg font-bold text-gray-900 mb-3 sm:mb-4">Quick Actions</h2>
         <div className="grid grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-3">
           {quickActions.map((action) => (
             <Link key={action.label} to={action.href}>
-              <div className="flex flex-col items-center gap-2 p-3 rounded-xl bg-gray-50 hover:bg-[#F0F5F3] transition-colors cursor-pointer group border border-transparent hover:border-gray-200">
+              <div className="flex flex-col items-center gap-2 p-3 rounded-xl bg-gray-50 hover:bg-[#F0F5F3] transition-all cursor-pointer group border border-gray-100 shadow-[0_1px_4px_rgba(0,0,0,0.06)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.1)] hover:translate-y-[-1px] hover:border-gray-200">
                 <div className="h-9 w-9 rounded-lg flex items-center justify-center" style={{ background: `${BRAND_GREEN}15` }}>
                   <action.icon className="h-4 w-4 transition-transform group-hover:scale-110" style={{ color: BRAND_GREEN }} />
                 </div>
@@ -162,9 +166,9 @@ export default function AdvisorDashboard() {
         {/* Left 2/3: News + Events */}
         <div className="lg:col-span-2 space-y-5">
           {/* Recent News */}
-          <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
+          <div className={CARD}>
             <div className="flex items-center justify-between p-5 border-b border-gray-100">
-              <h2 className="text-base font-semibold text-gray-900">Latest Carrier News</h2>
+              <h2 className="text-lg font-bold text-gray-900">Latest Carrier News</h2>
               <Link to="/portal/advisor/news" className="text-xs font-semibold flex items-center gap-1 text-[#1A4D3E] hover:text-[#143d30] hover:underline">
                 View All <ArrowUpRight className="h-3 w-3" />
               </Link>
@@ -193,9 +197,9 @@ export default function AdvisorDashboard() {
           </div>
 
           {/* Upcoming Events */}
-          <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
+          <div className={CARD}>
             <div className="flex items-center justify-between p-5 border-b border-gray-100">
-              <h2 className="text-base font-semibold text-gray-900">Upcoming Events</h2>
+              <h2 className="text-lg font-bold text-gray-900">Upcoming Events</h2>
               <Link to="/portal/advisor/schedule" className="text-xs font-semibold flex items-center gap-1 text-[#1A4D3E] hover:text-[#143d30] hover:underline">
                 View Calendar <ArrowUpRight className="h-3 w-3" />
               </Link>
@@ -237,9 +241,9 @@ export default function AdvisorDashboard() {
         </div>
 
         {/* Right 1/3: Recent Clients */}
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
+        <div className={CARD}>
           <div className="flex items-center justify-between p-5 border-b border-gray-100">
-            <h2 className="text-base font-semibold text-gray-900">Recent Clients</h2>
+            <h2 className="text-lg font-bold text-gray-900">Recent Clients</h2>
             <Link to="/portal/advisor/clients" className="text-xs font-semibold text-[#1A4D3E] hover:text-[#143d30] hover:underline">
               View all
             </Link>
