@@ -6,8 +6,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
-  Plus, Search, FileText, ClipboardList, CheckCircle, Clock, Archive, TrendingUp,
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
+} from "@/components/ui/dialog";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
+import {
+  Plus, Search, FileText, ClipboardList, CheckCircle, Clock, TrendingUp, Send,
 } from "lucide-react";
+import { toast } from "sonner";
 
 const BRAND_GREEN = "#1A4D3E";
 
@@ -24,10 +31,15 @@ export default function CNADashboard() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [clients, setClients] = useState<any[]>([]);
+  const [sendingCnaId, setSendingCnaId] = useState<string | null>(null);
+  const [selectedClientId, setSelectedClientId] = useState("");
+  const [sending, setSending] = useState(false);
 
   useEffect(() => {
     if (!portalUser) return;
     loadCnas();
+    loadClients();
   }, [portalUser]);
 
   async function loadCnas() {
@@ -36,13 +48,44 @@ export default function CNADashboard() {
         .from("client_needs_analysis")
         .select("*")
         .order("created_at", { ascending: false });
-
       if (error) throw error;
       setCnas(data ?? []);
     } catch (err) {
       console.error("Error loading CNAs:", err);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function loadClients() {
+    if (!portalUser) return;
+    const { data } = await supabase
+      .from("portal_users")
+      .select("id, first_name, last_name, email")
+      .eq("advisor_id", portalUser.id)
+      .eq("role", "client")
+      .eq("is_active", true);
+    setClients(data ?? []);
+  }
+
+  async function handleSendToClient() {
+    if (!sendingCnaId || !selectedClientId) return;
+    setSending(true);
+    try {
+      const { error } = await supabase
+        .from("client_needs_analysis")
+        .update({ client_id: selectedClientId })
+        .eq("id", sendingCnaId);
+      if (error) throw error;
+      toast.success("Analysis sent to client successfully");
+      setSendingCnaId(null);
+      setSelectedClientId("");
+      loadCnas();
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to send analysis");
+    } finally {
+      setSending(false);
     }
   }
 
@@ -73,13 +116,14 @@ export default function CNADashboard() {
     { label: "Total Analyses", value: cnas.length, icon: ClipboardList, color: BRAND_GREEN },
     { label: "Completed This Month", value: completedThisMonth, icon: CheckCircle, color: "#10B981" },
     { label: "Pending Follow-ups", value: pendingFollowUps, icon: Clock, color: "#F59E0B" },
-    {
-      label: "Avg Net Worth",
-      value: `$${(avgNetWorth / 1000).toFixed(0)}K`,
-      icon: TrendingUp,
-      color: "#6366F1",
-    },
+    { label: "Avg Net Worth", value: `$${(avgNetWorth / 1000).toFixed(0)}K`, icon: TrendingUp, color: "#6366F1" },
   ];
+
+  // Find client name for a given client_id
+  const getClientName = (clientId: string) => {
+    const c = clients.find((cl) => cl.id === clientId);
+    return c ? `${c.first_name} ${c.last_name}` : null;
+  };
 
   return (
     <div className="space-y-6">
@@ -103,10 +147,7 @@ export default function CNADashboard() {
         {stats.map((s) => (
           <div key={s.label} className="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
             <div className="flex items-center gap-3 mb-2">
-              <div
-                className="h-9 w-9 rounded-lg flex items-center justify-center"
-                style={{ background: `${s.color}15` }}
-              >
+              <div className="h-9 w-9 rounded-lg flex items-center justify-center" style={{ background: `${s.color}15` }}>
                 <s.icon className="h-4 w-4" style={{ color: s.color }} />
               </div>
             </div>
@@ -120,12 +161,7 @@ export default function CNADashboard() {
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-          <Input
-            placeholder="Search by client name..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-10"
-          />
+          <Input placeholder="Search by client name..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-10" />
         </div>
         <div className="flex gap-2 overflow-x-auto">
           {["all", "draft", "completed", "reviewed", "archived"].map((s) => (
@@ -133,9 +169,7 @@ export default function CNADashboard() {
               key={s}
               onClick={() => setStatusFilter(s)}
               className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${
-                statusFilter === s
-                  ? "text-white"
-                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                statusFilter === s ? "text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
               }`}
               style={statusFilter === s ? { background: BRAND_GREEN } : undefined}
             >
@@ -175,18 +209,13 @@ export default function CNADashboard() {
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <div className="min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                         <h3 className="text-sm font-semibold text-gray-900 truncate">
-                          {cna.applicant_name}
-                        </h3>
-                        <span
-                          className="px-2 py-0.5 rounded-full text-[10px] font-semibold"
-                          style={{ background: sc.bg, color: sc.color }}
-                        >
+                        <h3 className="text-sm font-semibold text-gray-900 truncate">{cna.applicant_name}</h3>
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold" style={{ background: sc.bg, color: sc.color }}>
                           {sc.label}
                         </span>
                         {cna.client_id && (
                           <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-50 text-blue-600 border border-blue-200">
-                            Shared
+                            Shared{getClientName(cna.client_id) ? ` · ${getClientName(cna.client_id)}` : ""}
                           </span>
                         )}
                       </div>
@@ -195,13 +224,11 @@ export default function CNADashboard() {
                         {cna.email && ` · ${cna.email}`}
                       </p>
                     </div>
-                    <div className="flex items-center gap-4 text-xs text-gray-500">
+                    <div className="flex items-center gap-3 text-xs text-gray-500">
                       {cna.net_worth != null && (
                         <div className="text-right">
                           <p className="text-gray-400">Net Worth</p>
-                          <p className="font-semibold text-gray-900">
-                            ${Number(cna.net_worth).toLocaleString()}
-                          </p>
+                          <p className="font-semibold text-gray-900">${Number(cna.net_worth).toLocaleString()}</p>
                         </div>
                       )}
                       {retScore != null && (
@@ -212,6 +239,18 @@ export default function CNADashboard() {
                           </p>
                         </div>
                       )}
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setSendingCnaId(cna.id);
+                          setSelectedClientId(cna.client_id || "");
+                        }}
+                        className="h-8 w-8 rounded-lg flex items-center justify-center hover:bg-gray-100 transition-colors"
+                        title="Send to Client"
+                      >
+                        <Send className="h-4 w-4 text-gray-500" />
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -220,6 +259,43 @@ export default function CNADashboard() {
           })
         )}
       </div>
+
+      {/* Send to Client Dialog */}
+      <Dialog open={!!sendingCnaId} onOpenChange={(open) => { if (!open) { setSendingCnaId(null); setSelectedClientId(""); } }}>
+        <DialogContent className="sm:max-w-md" onClick={(e) => e.stopPropagation()}>
+          <DialogHeader>
+            <DialogTitle>Send to Client</DialogTitle>
+            <DialogDescription>Select a client to share this analysis with.</DialogDescription>
+          </DialogHeader>
+          {clients.length === 0 ? (
+            <p className="text-sm text-gray-500 py-4">No active clients found. Invite a client first.</p>
+          ) : (
+            <Select value={selectedClientId} onValueChange={setSelectedClientId}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select a client..." />
+              </SelectTrigger>
+              <SelectContent>
+                {clients.map((c) => (
+                  <SelectItem key={c.id} value={c.id}>
+                    {c.first_name} {c.last_name} · {c.email}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setSendingCnaId(null); setSelectedClientId(""); }}>Cancel</Button>
+            <Button
+              onClick={handleSendToClient}
+              disabled={!selectedClientId || sending}
+              className="text-white"
+              style={{ background: BRAND_GREEN }}
+            >
+              {sending ? "Sending..." : "Send"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
