@@ -71,7 +71,10 @@ export default function AdvisorDashboard() {
       setStats({ totalClients: clients.count ?? 0, activePolicies: policies.count ?? 0, ytdRevenue, pendingInvitations: invitations.count ?? 0 });
 
       setRecentNews(news.data ?? []);
-      setUpcomingEvents(events.data ?? []);
+      const filteredEvents = (events.data ?? []).filter(
+        (e: any) => e.creator?.role === 'admin' || e.created_by === portalUser?.id
+      );
+      setUpcomingEvents(filteredEvents);
       setRecentClients((recentClientsRes.data as RecentClient[]) ?? []);
     } catch (err) {
       console.error("Error loading dashboard:", err);
