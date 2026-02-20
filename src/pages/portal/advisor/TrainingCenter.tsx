@@ -3,20 +3,14 @@ import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { usePortalAuth } from "@/hooks/usePortalAuth";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { GraduationCap, Clock, Search, Play, CheckCircle, TrendingUp, Plus, Pencil, Trash2 } from "lucide-react";
-import { toast } from "sonner";
+import { GraduationCap, Clock, Search, Play, CheckCircle, TrendingUp } from "lucide-react";
 
 const BRAND_GREEN = "#1A4D3E";
 const inputCls = "border-gray-200 bg-white text-gray-900 placeholder:text-gray-400 focus-visible:ring-1 rounded-lg";
-const defaultForm = { title: "", description: "", category: "product_knowledge", level: "beginner", duration_minutes: 30, video_url: "", thumbnail_url: "", status: "published" };
 
 function getLevelBadge(level: string) {
   switch (level) { case "beginner": return "bg-emerald-50 text-emerald-700 border border-emerald-200"; case "intermediate": return "bg-blue-50 text-blue-700 border border-blue-200"; case "advanced": return "bg-purple-50 text-purple-700 border border-purple-200"; default: return "bg-gray-100 text-gray-600 border border-gray-200"; }
 }
-
 function FilterChip({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
   return (<button onClick={onClick} className={`px-3 py-1 rounded-full text-xs font-medium transition-all cursor-pointer capitalize border ${active ? "text-white border-transparent" : "border-gray-200 text-gray-600 bg-white hover:bg-gray-50"}`} style={active ? { background: BRAND_GREEN } : {}}>{label}</button>);
 }
@@ -25,59 +19,26 @@ interface TrainingProgress { training_id: string; progress_percent: number; comp
 
 export default function TrainingCenter() {
   const { portalUser } = usePortalAuth();
-  const isAdmin = portalUser?.role === "admin";
   const [trainings, setTrainings] = useState<any[]>([]);
   const [progressRecords, setProgressRecords] = useState<TrainingProgress[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedLevel, setSelectedLevel] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [showDialog, setShowDialog] = useState(false);
-  const [editingItem, setEditingItem] = useState<any>(null);
-  const [form, setForm] = useState({ ...defaultForm });
 
   useEffect(() => { if (portalUser) loadData(); }, [portalUser]);
 
   async function loadData() {
     const [t, a] = await Promise.all([
-      supabase.from("trainings").select("*").order("category"),
+      supabase.from("trainings").select("*").eq("status", "published").order("category"),
       supabase.from("advisors").select("id").eq("portal_user_id", portalUser!.id).maybeSingle(),
     ]);
-    const allTrainings = t.data ?? [];
-    setTrainings(isAdmin ? allTrainings : allTrainings.filter(tr => tr.status === "published"));
+    setTrainings(t.data ?? []);
     if (a.data) {
       const { data: prog } = await supabase.from("training_progress").select("training_id, progress_percent, completed").eq("advisor_id", a.data.id);
       setProgressRecords(prog ?? []);
     }
     setLoading(false);
-  }
-
-  function openAdd() { setEditingItem(null); setForm({ ...defaultForm }); setShowDialog(true); }
-  function openEdit(t: any) {
-    setEditingItem(t);
-    setForm({ title: t.title || "", description: t.description || "", category: t.category || "product_knowledge", level: t.level || "beginner", duration_minutes: t.duration_minutes || 30, video_url: t.video_url || "", thumbnail_url: t.thumbnail_url || "", status: t.status || "published" });
-    setShowDialog(true);
-  }
-
-  async function handleSave() {
-    if (!form.title.trim()) { toast.error("Title is required"); return; }
-    const payload = { ...form, video_url: form.video_url || null, thumbnail_url: form.thumbnail_url || null };
-    if (editingItem) {
-      const { error } = await supabase.from("trainings").update(payload).eq("id", editingItem.id);
-      if (error) { toast.error("Failed to update"); return; }
-      toast.success("Training updated!");
-    } else {
-      const { error } = await supabase.from("trainings").insert(payload);
-      if (error) { toast.error("Failed to create"); return; }
-      toast.success("Training created!");
-    }
-    setShowDialog(false); loadData();
-  }
-
-  async function handleDelete(id: string) {
-    const { error } = await supabase.from("trainings").delete().eq("id", id);
-    if (error) { toast.error("Failed to delete"); return; }
-    toast.success("Training deleted"); loadData();
   }
 
   const progressMap = useMemo(() => { const map: Record<string, TrainingProgress> = {}; progressRecords.forEach(p => { map[p.training_id] = p; }); return map; }, [progressRecords]);
@@ -98,45 +59,10 @@ export default function TrainingCenter() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Training Center</h1>
-          <p className="text-sm text-gray-500 mt-0.5">Build your expertise with product training, sales techniques, and compliance education.</p>
-        </div>
-        {isAdmin && (
-          <button onClick={openAdd} className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold text-white transition-all hover:opacity-90" style={{ background: BRAND_GREEN }}>
-            <Plus className="h-4 w-4" /> Add Training
-          </button>
-        )}
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900">Training Center</h1>
+        <p className="text-sm text-gray-500 mt-0.5">Build your expertise with product training, sales techniques, and compliance education.</p>
       </div>
-
-      {/* Admin Dialog */}
-      <Dialog open={showDialog} onOpenChange={setShowDialog}>
-        <DialogContent className="max-w-lg bg-white max-h-[90vh] overflow-y-auto">
-          <DialogHeader><DialogTitle className="text-gray-900">{editingItem ? "Edit Training" : "Add Training"}</DialogTitle></DialogHeader>
-          <div className="space-y-4 mt-2">
-            <div><label className="text-sm font-medium text-gray-600">Title *</label><Input value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} className={inputCls} /></div>
-            <div><label className="text-sm font-medium text-gray-600">Description</label><Textarea value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} rows={3} className={inputCls} /></div>
-            <div className="grid grid-cols-2 gap-4">
-              <div><label className="text-sm font-medium text-gray-600">Category</label><Input value={form.category} onChange={e => setForm({ ...form, category: e.target.value })} className={inputCls} /></div>
-              <div><label className="text-sm font-medium text-gray-600">Level</label>
-                <select value={form.level} onChange={e => setForm({ ...form, level: e.target.value })} className={`w-full mt-1 rounded-lg border px-3 py-2 text-sm ${inputCls}`}>
-                  <option value="beginner">Beginner</option><option value="intermediate">Intermediate</option><option value="advanced">Advanced</option>
-                </select>
-              </div>
-            </div>
-            <div><label className="text-sm font-medium text-gray-600">Duration (minutes)</label><Input type="number" value={form.duration_minutes} onChange={e => setForm({ ...form, duration_minutes: parseInt(e.target.value) || 0 })} className={inputCls} /></div>
-            <div><label className="text-sm font-medium text-gray-600">Video URL</label><Input value={form.video_url} onChange={e => setForm({ ...form, video_url: e.target.value })} placeholder="https://..." className={inputCls} /></div>
-            <div><label className="text-sm font-medium text-gray-600">Thumbnail URL</label><Input value={form.thumbnail_url} onChange={e => setForm({ ...form, thumbnail_url: e.target.value })} placeholder="https://..." className={inputCls} /></div>
-            <div><label className="text-sm font-medium text-gray-600">Status</label>
-              <select value={form.status} onChange={e => setForm({ ...form, status: e.target.value })} className={`w-full mt-1 rounded-lg border px-3 py-2 text-sm ${inputCls}`}>
-                <option value="published">Published</option><option value="draft">Draft</option>
-              </select>
-            </div>
-            <button onClick={handleSave} className="w-full py-2.5 rounded-lg text-sm font-semibold text-white transition-all hover:opacity-90" style={{ background: BRAND_GREEN }}>{editingItem ? "Update" : "Create"}</button>
-          </div>
-        </DialogContent>
-      </Dialog>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {[{ label: "Trainings Completed", value: stats.completedCount, icon: CheckCircle }, { label: "Total Watch Time", value: `${stats.totalMinutes} min`, icon: Clock }, { label: "In Progress", value: stats.inProgressCount, icon: TrendingUp }].map(s => (
@@ -159,43 +85,31 @@ export default function TrainingCenter() {
           const isCompleted = prog?.completed ?? false;
           const percent = prog?.progress_percent ?? 0;
           return (
-            <div key={t.id} className="relative">
-              {isAdmin && (
-                <div className="absolute top-2 right-2 z-10 flex gap-1">
-                  <button onClick={() => openEdit(t)} className="p-1.5 rounded-lg bg-white/90 shadow hover:bg-white text-gray-500 hover:text-gray-700"><Pencil className="h-3.5 w-3.5" /></button>
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild><button className="p-1.5 rounded-lg bg-white/90 shadow hover:bg-white text-gray-500 hover:text-red-600"><Trash2 className="h-3.5 w-3.5" /></button></AlertDialogTrigger>
-                    <AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Delete this training?</AlertDialogTitle><AlertDialogDescription>This action cannot be undone.</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction onClick={() => handleDelete(t.id)} className="bg-red-600 hover:bg-red-700">Delete</AlertDialogAction></AlertDialogFooter></AlertDialogContent>
-                  </AlertDialog>
-                </div>
-              )}
-              <Link to={`/portal/advisor/training/${t.id}`} className="block">
-                <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden flex flex-col h-full hover:shadow-md hover:border-gray-200 transition-all">
-                  {t.thumbnail_url ? (<img src={t.thumbnail_url} alt={t.title} className="w-full h-40 object-cover" />) : (<div className="w-full h-40 flex items-center justify-center bg-gray-50"><GraduationCap className="h-10 w-10 text-gray-300" /></div>)}
-                  <div className="p-5 flex flex-col flex-1">
-                    <div className="flex items-center gap-2 mb-3">
-                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium capitalize ${getLevelBadge(t.level)}`}>{t.level}</span>
-                      {t.duration_minutes && <span className="text-xs text-gray-400 flex items-center gap-1"><Clock className="h-3 w-3" />{t.duration_minutes}m</span>}
-                      {isCompleted && <CheckCircle className="h-4 w-4 ml-auto text-emerald-500" />}
-                      {t.status !== "published" && <span className="text-xs text-orange-500 font-medium ml-auto">{t.status}</span>}
+            <Link key={t.id} to={`/portal/advisor/training/${t.id}`} className="block">
+              <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden flex flex-col h-full hover:shadow-md hover:border-gray-200 transition-all">
+                {t.thumbnail_url ? (<img src={t.thumbnail_url} alt={t.title} className="w-full h-40 object-cover" />) : (<div className="w-full h-40 flex items-center justify-center bg-gray-50"><GraduationCap className="h-10 w-10 text-gray-300" /></div>)}
+                <div className="p-5 flex flex-col flex-1">
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium capitalize ${getLevelBadge(t.level)}`}>{t.level}</span>
+                    {t.duration_minutes && <span className="text-xs text-gray-400 flex items-center gap-1"><Clock className="h-3 w-3" />{t.duration_minutes}m</span>}
+                    {isCompleted && <CheckCircle className="h-4 w-4 ml-auto text-emerald-500" />}
+                  </div>
+                  <h3 className="font-semibold text-gray-900 mb-1">{t.title}</h3>
+                  <p className="text-xs text-gray-400 line-clamp-2 mb-3">{t.description}</p>
+                  {percent > 0 && !isCompleted && (
+                    <div className="mb-3">
+                      <div className="flex justify-between text-xs text-gray-400 mb-1"><span>Progress</span><span>{percent}%</span></div>
+                      <div className="h-1.5 rounded-full overflow-hidden bg-gray-100"><div className="h-full rounded-full" style={{ width: `${percent}%`, background: BRAND_GREEN }} /></div>
                     </div>
-                    <h3 className="font-semibold text-gray-900 mb-1">{t.title}</h3>
-                    <p className="text-xs text-gray-400 line-clamp-2 mb-3">{t.description}</p>
-                    {percent > 0 && !isCompleted && (
-                      <div className="mb-3">
-                        <div className="flex justify-between text-xs text-gray-400 mb-1"><span>Progress</span><span>{percent}%</span></div>
-                        <div className="h-1.5 rounded-full overflow-hidden bg-gray-100"><div className="h-full rounded-full" style={{ width: `${percent}%`, background: BRAND_GREEN }} /></div>
-                      </div>
-                    )}
-                    <div className="mt-auto">
-                      <button className="w-full py-1.5 rounded-lg text-xs font-medium flex items-center justify-center gap-2 text-white transition-all hover:opacity-90" style={{ background: BRAND_GREEN }}>
-                        <Play className="h-3 w-3" />{isCompleted ? "Watch Again" : percent > 0 ? "Continue" : "Start Training"}
-                      </button>
-                    </div>
+                  )}
+                  <div className="mt-auto">
+                    <button className="w-full py-1.5 rounded-lg text-xs font-medium flex items-center justify-center gap-2 text-white transition-all hover:opacity-90" style={{ background: BRAND_GREEN }}>
+                      <Play className="h-3 w-3" />{isCompleted ? "Watch Again" : percent > 0 ? "Continue" : "Start Training"}
+                    </button>
                   </div>
                 </div>
-              </Link>
-            </div>
+              </div>
+            </Link>
           );
         })}
       </div>

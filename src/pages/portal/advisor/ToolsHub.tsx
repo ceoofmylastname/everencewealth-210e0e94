@@ -2,12 +2,9 @@ import { useEffect, useState, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { usePortalAuth } from "@/hooks/usePortalAuth";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { ExternalLink, Calculator, Wrench, Search, Lock, ChevronDown, ChevronUp, DollarSign, TrendingUp, Calendar, Plus, Pencil, Trash2 } from "lucide-react";
-import { toast } from "sonner";
+import { ExternalLink, Calculator, Wrench, Search, Lock, ChevronDown, ChevronUp, DollarSign, TrendingUp, Calendar } from "lucide-react";
 
 import IULvs401k from "./calculators/IULvs401k";
 import InflationImpact from "./calculators/InflationImpact";
@@ -38,8 +35,6 @@ const CALC_CATEGORIES = [
   { key: "estate_planning", label: "Estate Planning", icon: Calculator },
 ];
 
-const defaultToolForm = { tool_name: "", tool_url: "", tool_type: "quick_quote", carrier_id: "", description: "", requires_login: false, login_instructions: "", featured: false };
-
 function FilterChip({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
   return (
     <button onClick={onClick} className={`px-3 py-1 rounded-full text-xs font-medium transition-all cursor-pointer border ${active ? "text-white border-transparent" : "border-gray-200 text-gray-600 bg-white hover:bg-gray-50"}`} style={active ? { background: BRAND_GREEN } : {}}>
@@ -49,58 +44,23 @@ function FilterChip({ label, active, onClick }: { label: string; active: boolean
 }
 
 export default function ToolsHub() {
-  const { portalUser } = usePortalAuth();
-  const isAdmin = portalUser?.role === "admin";
   const [tools, setTools] = useState<any[]>([]);
   const [calculators, setCalculators] = useState<any[]>([]);
-  const [carriers, setCarriers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [expandedInstructions, setExpandedInstructions] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [openCalculator, setOpenCalculator] = useState<{ name: string; component: React.ComponentType<{ onClose: () => void }> } | null>(null);
-  const [showToolDialog, setShowToolDialog] = useState(false);
-  const [editingTool, setEditingTool] = useState<any>(null);
-  const [toolForm, setToolForm] = useState({ ...defaultToolForm });
 
   useEffect(() => { loadData(); }, []);
 
   async function loadData() {
-    const [t, c, cr] = await Promise.all([
+    const [t, c] = await Promise.all([
       supabase.from("quoting_tools").select("*, carriers(carrier_name, carrier_logo_url)").order("tool_name"),
       supabase.from("calculators").select("*").eq("active", true).order("sort_order"),
-      supabase.from("carriers").select("id, carrier_name").order("carrier_name"),
     ]);
-    setTools(t.data ?? []); setCalculators(c.data ?? []); setCarriers(cr.data ?? []); setLoading(false);
-  }
-
-  function openAddTool() { setEditingTool(null); setToolForm({ ...defaultToolForm }); setShowToolDialog(true); }
-  function openEditTool(t: any) {
-    setEditingTool(t);
-    setToolForm({ tool_name: t.tool_name || "", tool_url: t.tool_url || "", tool_type: t.tool_type || "quick_quote", carrier_id: t.carrier_id || "", description: t.description || "", requires_login: t.requires_login || false, login_instructions: t.login_instructions || "", featured: t.featured || false });
-    setShowToolDialog(true);
-  }
-
-  async function handleSaveTool() {
-    if (!toolForm.tool_name.trim()) { toast.error("Tool name is required"); return; }
-    const payload = { ...toolForm, carrier_id: toolForm.carrier_id || null };
-    if (editingTool) {
-      const { error } = await supabase.from("quoting_tools").update(payload).eq("id", editingTool.id);
-      if (error) { toast.error("Failed to update tool"); return; }
-      toast.success("Tool updated!");
-    } else {
-      const { error } = await supabase.from("quoting_tools").insert(payload);
-      if (error) { toast.error("Failed to create tool"); return; }
-      toast.success("Tool created!");
-    }
-    setShowToolDialog(false); loadData();
-  }
-
-  async function handleDeleteTool(id: string) {
-    const { error } = await supabase.from("quoting_tools").delete().eq("id", id);
-    if (error) { toast.error("Failed to delete tool"); return; }
-    toast.success("Tool deleted"); loadData();
+    setTools(t.data ?? []); setCalculators(c.data ?? []); setLoading(false);
   }
 
   const filteredTools = useMemo(() => {
@@ -117,56 +77,11 @@ export default function ToolsHub() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Tools Hub</h1>
-          <p className="text-sm text-gray-500 mt-0.5">Access quoting tools and financial calculators.</p>
-        </div>
-        {isAdmin && (
-          <button onClick={openAddTool} className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold text-white transition-all hover:opacity-90" style={{ background: BRAND_GREEN }}>
-            <Plus className="h-4 w-4" /> Add Tool
-          </button>
-        )}
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900">Tools Hub</h1>
+        <p className="text-sm text-gray-500 mt-0.5">Access quoting tools and financial calculators.</p>
       </div>
 
-      {/* Tool Dialog */}
-      <Dialog open={showToolDialog} onOpenChange={setShowToolDialog}>
-        <DialogContent className="max-w-lg bg-white max-h-[90vh] overflow-y-auto">
-          <DialogHeader><DialogTitle className="text-gray-900">{editingTool ? "Edit Tool" : "Add Tool"}</DialogTitle></DialogHeader>
-          <div className="space-y-4 mt-2">
-            <div><label className="text-sm font-medium text-gray-600">Tool Name *</label><Input value={toolForm.tool_name} onChange={e => setToolForm({ ...toolForm, tool_name: e.target.value })} className={inputCls} /></div>
-            <div><label className="text-sm font-medium text-gray-600">Tool URL *</label><Input value={toolForm.tool_url} onChange={e => setToolForm({ ...toolForm, tool_url: e.target.value })} placeholder="https://..." className={inputCls} /></div>
-            <div className="grid grid-cols-2 gap-4">
-              <div><label className="text-sm font-medium text-gray-600">Type</label>
-                <select value={toolForm.tool_type} onChange={e => setToolForm({ ...toolForm, tool_type: e.target.value })} className={`w-full mt-1 rounded-lg border px-3 py-2 text-sm ${inputCls}`}>
-                  {TOOL_TYPES.map(tt => <option key={tt.key} value={tt.key}>{tt.label}</option>)}
-                </select>
-              </div>
-              <div><label className="text-sm font-medium text-gray-600">Carrier</label>
-                <select value={toolForm.carrier_id} onChange={e => setToolForm({ ...toolForm, carrier_id: e.target.value })} className={`w-full mt-1 rounded-lg border px-3 py-2 text-sm ${inputCls}`}>
-                  <option value="">None</option>
-                  {carriers.map(c => <option key={c.id} value={c.id}>{c.carrier_name}</option>)}
-                </select>
-              </div>
-            </div>
-            <div><label className="text-sm font-medium text-gray-600">Description</label><Textarea value={toolForm.description} onChange={e => setToolForm({ ...toolForm, description: e.target.value })} rows={2} className={inputCls} /></div>
-            <div className="flex items-center gap-2">
-              <input type="checkbox" checked={toolForm.requires_login} onChange={e => setToolForm({ ...toolForm, requires_login: e.target.checked })} className="rounded" />
-              <label className="text-sm text-gray-600">Requires login</label>
-            </div>
-            {toolForm.requires_login && (
-              <div><label className="text-sm font-medium text-gray-600">Login Instructions</label><Textarea value={toolForm.login_instructions} onChange={e => setToolForm({ ...toolForm, login_instructions: e.target.value })} rows={2} className={inputCls} /></div>
-            )}
-            <div className="flex items-center gap-2">
-              <input type="checkbox" checked={toolForm.featured} onChange={e => setToolForm({ ...toolForm, featured: e.target.checked })} className="rounded" />
-              <label className="text-sm text-gray-600">Featured</label>
-            </div>
-            <button onClick={handleSaveTool} className="w-full py-2.5 rounded-lg text-sm font-semibold text-white transition-all hover:opacity-90" style={{ background: BRAND_GREEN }}>{editingTool ? "Update Tool" : "Create Tool"}</button>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Calculator Modal */}
       <Dialog open={!!openCalculator} onOpenChange={(open) => { if (!open) setOpenCalculator(null); }}>
         <DialogContent className="max-w-4xl w-full max-h-[90vh] overflow-y-auto p-0">
           <DialogHeader className="px-6 py-4 border-b border-gray-100 sticky top-0 bg-white z-10">
@@ -200,20 +115,9 @@ export default function ToolsHub() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredTools.map(t => (
                 <div key={t.id} className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 flex flex-col gap-3 hover:shadow-md hover:border-gray-200 transition-all">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3 min-w-0">
-                      {t.carriers?.carrier_logo_url ? (<img src={t.carriers.carrier_logo_url} alt={t.carriers.carrier_name} className="h-8 w-8 object-contain rounded bg-gray-50" />) : (<div className="h-8 w-8 rounded flex items-center justify-center" style={{ background: `${BRAND_GREEN}15` }}><Wrench className="h-4 w-4" style={{ color: BRAND_GREEN }} /></div>)}
-                      <div className="min-w-0"><p className="font-medium text-gray-900 truncate">{t.tool_name}</p>{t.carriers?.carrier_name && <p className="text-xs text-gray-400">{t.carriers.carrier_name}</p>}</div>
-                    </div>
-                    {isAdmin && (
-                      <div className="flex items-center gap-0.5 shrink-0">
-                        <button onClick={() => openEditTool(t)} className="p-1 rounded hover:bg-gray-100 text-gray-400 hover:text-gray-600"><Pencil className="h-3.5 w-3.5" /></button>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild><button className="p-1 rounded hover:bg-red-50 text-gray-400 hover:text-red-600"><Trash2 className="h-3.5 w-3.5" /></button></AlertDialogTrigger>
-                          <AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Delete this tool?</AlertDialogTitle><AlertDialogDescription>This action cannot be undone.</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction onClick={() => handleDeleteTool(t.id)} className="bg-red-600 hover:bg-red-700">Delete</AlertDialogAction></AlertDialogFooter></AlertDialogContent>
-                        </AlertDialog>
-                      </div>
-                    )}
+                  <div className="flex items-center gap-3 min-w-0">
+                    {t.carriers?.carrier_logo_url ? (<img src={t.carriers.carrier_logo_url} alt={t.carriers.carrier_name} className="h-8 w-8 object-contain rounded bg-gray-50" />) : (<div className="h-8 w-8 rounded flex items-center justify-center" style={{ background: `${BRAND_GREEN}15` }}><Wrench className="h-4 w-4" style={{ color: BRAND_GREEN }} /></div>)}
+                    <div className="min-w-0"><p className="font-medium text-gray-900 truncate">{t.tool_name}</p>{t.carriers?.carrier_name && <p className="text-xs text-gray-400">{t.carriers.carrier_name}</p>}</div>
                   </div>
                   <div className="flex flex-wrap gap-1.5">
                     <span className="text-xs px-2 py-0.5 rounded-full capitalize bg-gray-100 text-gray-600 border border-gray-200">{t.tool_type?.replace(/_/g, " ")}</span>

@@ -4,12 +4,11 @@ import { usePortalAuth } from "@/hooks/usePortalAuth";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Calendar, Clock, Video, Users, Plus, Pencil, Trash2 } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Calendar, Clock, Video, Users, Plus, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 const BRAND_GREEN = "#1A4D3E";
-
 const typeColors: Record<string, string> = {
   training: "bg-blue-50 text-blue-700 border border-blue-200",
   webinar: "bg-purple-50 text-purple-700 border border-purple-200",
@@ -17,15 +16,13 @@ const typeColors: Record<string, string> = {
   meeting: "bg-amber-50 text-amber-700 border border-amber-200",
   other: "bg-gray-100 text-gray-600 border border-gray-200",
 };
-
 function getEventIcon(type: string) {
   switch (type) { case "training": case "webinar": return Video; case "call": return Users; default: return Calendar; }
 }
-
 const defaultNewEvent = { title: "", description: "", event_date: new Date().toISOString().split("T")[0], event_time: "10:00", event_type: "meeting" };
 const inputCls = "border-gray-200 bg-white text-gray-900 placeholder:text-gray-400 focus-visible:ring-1 rounded-lg";
 
-export default function SchedulePage() {
+export default function AdminSchedule() {
   const { portalUser } = usePortalAuth();
   const [events, setEvents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -37,8 +34,7 @@ export default function SchedulePage() {
 
   async function loadEvents() {
     setLoading(true);
-    const today = new Date().toISOString().split("T")[0];
-    const { data } = await supabase.from("schedule_events").select("*").gte("event_date", today).order("event_date").order("event_time");
+    const { data } = await supabase.from("schedule_events").select("*").order("event_date").order("event_time");
     setEvents(data ?? []); setLoading(false);
   }
 
@@ -70,9 +66,6 @@ export default function SchedulePage() {
     toast.success("Event deleted"); loadEvents();
   }
 
-  // Agents can only manage their own events
-  const canManage = (event: any) => event.created_by === portalUser?.id;
-
   const groupedEvents = useMemo(() => events.reduce<Record<string, any[]>>((acc, event) => {
     const date = event.event_date; if (!acc[date]) acc[date] = []; acc[date].push(event); return acc;
   }, {}), [events]);
@@ -81,8 +74,8 @@ export default function SchedulePage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Schedule &amp; Events</h1>
-          <p className="text-sm text-gray-500 mt-0.5">View upcoming trainings, meetings, and webinars</p>
+          <h1 className="text-2xl font-bold text-gray-900">Manage Schedule &amp; Events</h1>
+          <p className="text-sm text-gray-500 mt-0.5">Create and manage all events visible to agents (past and upcoming)</p>
         </div>
         <button onClick={openAdd} className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold text-white transition-all hover:opacity-90" style={{ background: BRAND_GREEN }}>
           <Plus className="h-4 w-4" /> Add Event
@@ -101,8 +94,7 @@ export default function SchedulePage() {
             </div>
             <div>
               <label className="text-sm font-medium text-gray-600">Type</label>
-              <select value={form.event_type} onChange={e => setForm({ ...form, event_type: e.target.value })}
-                className="w-full mt-1 rounded-lg border border-gray-200 px-3 py-2 text-sm bg-white text-gray-900 focus:ring-1 focus:outline-none">
+              <select value={form.event_type} onChange={e => setForm({ ...form, event_type: e.target.value })} className="w-full mt-1 rounded-lg border border-gray-200 px-3 py-2 text-sm bg-white text-gray-900 focus:ring-1 focus:outline-none">
                 <option value="meeting">Meeting</option><option value="training">Training</option>
                 <option value="webinar">Webinar</option><option value="call">Call</option><option value="other">Other</option>
               </select>
@@ -117,7 +109,7 @@ export default function SchedulePage() {
       ) : Object.keys(groupedEvents).length === 0 ? (
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-12 text-center">
           <Calendar className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-          <p className="text-gray-500">No upcoming events</p>
+          <p className="text-gray-500">No events</p>
         </div>
       ) : (
         <div className="space-y-6">
@@ -148,15 +140,11 @@ export default function SchedulePage() {
                               <span className={`text-xs px-2.5 py-0.5 rounded-full font-medium capitalize ${typeColors[event.event_type] || typeColors.other}`}>
                                 {event.event_type}
                               </span>
-                              {canManage(event) && (
-                                <>
-                                  <button onClick={() => openEdit(event)} className="p-1 rounded hover:bg-gray-100 text-gray-400 hover:text-gray-600"><Pencil className="h-3.5 w-3.5" /></button>
-                                  <AlertDialog>
-                                    <AlertDialogTrigger asChild><button className="p-1 rounded hover:bg-red-50 text-gray-400 hover:text-red-600"><Trash2 className="h-3.5 w-3.5" /></button></AlertDialogTrigger>
-                                    <AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Delete this event?</AlertDialogTitle><AlertDialogDescription>This action cannot be undone.</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction onClick={() => handleDelete(event.id)} className="bg-red-600 hover:bg-red-700">Delete</AlertDialogAction></AlertDialogFooter></AlertDialogContent>
-                                  </AlertDialog>
-                                </>
-                              )}
+                              <button onClick={() => openEdit(event)} className="p-1 rounded hover:bg-gray-100 text-gray-400 hover:text-gray-600"><Pencil className="h-3.5 w-3.5" /></button>
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild><button className="p-1 rounded hover:bg-red-50 text-gray-400 hover:text-red-600"><Trash2 className="h-3.5 w-3.5" /></button></AlertDialogTrigger>
+                                <AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Delete this event?</AlertDialogTitle><AlertDialogDescription>This action cannot be undone.</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction onClick={() => handleDelete(event.id)} className="bg-red-600 hover:bg-red-700">Delete</AlertDialogAction></AlertDialogFooter></AlertDialogContent>
+                              </AlertDialog>
                             </div>
                           </div>
                           {event.description && <p className="text-sm text-gray-500 mt-2">{event.description}</p>}

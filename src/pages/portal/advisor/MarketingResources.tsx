@@ -1,11 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { usePortalAuth } from "@/hooks/usePortalAuth";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Search, Download, FileText, Video, Megaphone, Eye, Image as ImageIcon, Copy, Plus, Pencil, Trash2 } from "lucide-react";
+import { Search, Download, FileText, Video, Megaphone, Eye, Image as ImageIcon, Copy } from "lucide-react";
 import { toast } from "sonner";
 
 const BRAND_GREEN = "#1A4D3E";
@@ -22,57 +18,22 @@ const resourceTypes = [
 ];
 const typeIcons: Record<string, React.ElementType> = { creative: ImageIcon, template: FileText, video: Video, document: FileText, script: Copy };
 
-const defaultForm = { title: "", category: "recruiting", resource_type: "document", file_url: "", thumbnail_url: "", description: "", tags: "" };
-
 function FilterChip({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
   return (<button onClick={onClick} className={`px-3 py-1 rounded-full text-xs font-medium transition-all cursor-pointer border ${active ? "text-white border-transparent" : "border-gray-200 text-gray-600 bg-white hover:bg-gray-50"}`} style={active ? { background: BRAND_GREEN } : {}}>{label}</button>);
 }
 
 export default function MarketingResources() {
-  const { portalUser } = usePortalAuth();
-  const isAdmin = portalUser?.role === "admin";
   const [resources, setResources] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedType, setSelectedType] = useState<string | null>(null);
-  const [showDialog, setShowDialog] = useState(false);
-  const [editingItem, setEditingItem] = useState<any>(null);
-  const [form, setForm] = useState({ ...defaultForm });
 
   useEffect(() => { loadData(); }, []);
 
   async function loadData() {
     const { data } = await supabase.from("marketing_resources").select("*").order("created_at", { ascending: false });
     setResources(data ?? []); setLoading(false);
-  }
-
-  function openAdd() { setEditingItem(null); setForm({ ...defaultForm }); setShowDialog(true); }
-  function openEdit(r: any) {
-    setEditingItem(r);
-    setForm({ title: r.title || "", category: r.category || "recruiting", resource_type: r.resource_type || "document", file_url: r.file_url || "", thumbnail_url: r.thumbnail_url || "", description: r.description || "", tags: (r.tags || []).join(", ") });
-    setShowDialog(true);
-  }
-
-  async function handleSave() {
-    if (!form.title.trim()) { toast.error("Title is required"); return; }
-    const payload = { title: form.title, category: form.category, resource_type: form.resource_type, file_url: form.file_url || null, thumbnail_url: form.thumbnail_url || null, description: form.description || null, tags: form.tags ? form.tags.split(",").map(t => t.trim()).filter(Boolean) : null };
-    if (editingItem) {
-      const { error } = await supabase.from("marketing_resources").update(payload).eq("id", editingItem.id);
-      if (error) { toast.error("Failed to update"); return; }
-      toast.success("Resource updated!");
-    } else {
-      const { error } = await supabase.from("marketing_resources").insert(payload);
-      if (error) { toast.error("Failed to create"); return; }
-      toast.success("Resource created!");
-    }
-    setShowDialog(false); loadData();
-  }
-
-  async function handleDelete(id: string) {
-    const { error } = await supabase.from("marketing_resources").delete().eq("id", id);
-    if (error) { toast.error("Failed to delete"); return; }
-    toast.success("Resource deleted"); loadData();
   }
 
   const filtered = useMemo(() => {
@@ -91,44 +52,10 @@ export default function MarketingResources() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Marketing Resources</h1>
-          <p className="text-sm text-gray-500 mt-0.5">Access social media creatives, email templates, and recruiting materials.</p>
-        </div>
-        {isAdmin && (
-          <button onClick={openAdd} className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold text-white transition-all hover:opacity-90" style={{ background: BRAND_GREEN }}>
-            <Plus className="h-4 w-4" /> Add Resource
-          </button>
-        )}
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900">Marketing Resources</h1>
+        <p className="text-sm text-gray-500 mt-0.5">Access social media creatives, email templates, and recruiting materials.</p>
       </div>
-
-      {/* Admin Dialog */}
-      <Dialog open={showDialog} onOpenChange={setShowDialog}>
-        <DialogContent className="max-w-lg bg-white max-h-[90vh] overflow-y-auto">
-          <DialogHeader><DialogTitle className="text-gray-900">{editingItem ? "Edit Resource" : "Add Resource"}</DialogTitle></DialogHeader>
-          <div className="space-y-4 mt-2">
-            <div><label className="text-sm font-medium text-gray-600">Title *</label><Input value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} className={inputCls} /></div>
-            <div className="grid grid-cols-2 gap-4">
-              <div><label className="text-sm font-medium text-gray-600">Category</label>
-                <select value={form.category} onChange={e => setForm({ ...form, category: e.target.value })} className={`w-full mt-1 rounded-lg border px-3 py-2 text-sm ${inputCls}`}>
-                  {categories.map(c => <option key={c.key} value={c.key}>{c.label}</option>)}
-                </select>
-              </div>
-              <div><label className="text-sm font-medium text-gray-600">Type</label>
-                <select value={form.resource_type} onChange={e => setForm({ ...form, resource_type: e.target.value })} className={`w-full mt-1 rounded-lg border px-3 py-2 text-sm ${inputCls}`}>
-                  {resourceTypes.map(t => <option key={t.key} value={t.key}>{t.label}</option>)}
-                </select>
-              </div>
-            </div>
-            <div><label className="text-sm font-medium text-gray-600">File URL</label><Input value={form.file_url} onChange={e => setForm({ ...form, file_url: e.target.value })} placeholder="https://..." className={inputCls} /></div>
-            <div><label className="text-sm font-medium text-gray-600">Thumbnail URL</label><Input value={form.thumbnail_url} onChange={e => setForm({ ...form, thumbnail_url: e.target.value })} placeholder="https://..." className={inputCls} /></div>
-            <div><label className="text-sm font-medium text-gray-600">Description</label><Textarea value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} rows={2} className={inputCls} /></div>
-            <div><label className="text-sm font-medium text-gray-600">Tags (comma-separated)</label><Input value={form.tags} onChange={e => setForm({ ...form, tags: e.target.value })} placeholder="social, recruiting, flyer" className={inputCls} /></div>
-            <button onClick={handleSave} className="w-full py-2.5 rounded-lg text-sm font-semibold text-white transition-all hover:opacity-90" style={{ background: BRAND_GREEN }}>{editingItem ? "Update" : "Create"}</button>
-          </div>
-        </DialogContent>
-      </Dialog>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[{ label: "Total Resources", value: stats.total, icon: Megaphone }, { label: "Creatives", value: stats.creatives, icon: ImageIcon }, { label: "Templates", value: stats.templates, icon: FileText }, { label: "Videos", value: stats.videos, icon: Video }].map(s => (
@@ -154,16 +81,7 @@ export default function MarketingResources() {
           {filtered.map(r => {
             const TypeIcon = typeIcons[r.resource_type] || FileText;
             return (
-              <div key={r.id} className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden flex flex-col hover:shadow-md hover:border-gray-200 transition-all relative">
-                {isAdmin && (
-                  <div className="absolute top-2 right-2 z-10 flex gap-1">
-                    <button onClick={() => openEdit(r)} className="p-1.5 rounded-lg bg-white/90 shadow hover:bg-white text-gray-500 hover:text-gray-700"><Pencil className="h-3.5 w-3.5" /></button>
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild><button className="p-1.5 rounded-lg bg-white/90 shadow hover:bg-white text-gray-500 hover:text-red-600"><Trash2 className="h-3.5 w-3.5" /></button></AlertDialogTrigger>
-                      <AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Delete this resource?</AlertDialogTitle><AlertDialogDescription>This action cannot be undone.</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction onClick={() => handleDelete(r.id)} className="bg-red-600 hover:bg-red-700">Delete</AlertDialogAction></AlertDialogFooter></AlertDialogContent>
-                    </AlertDialog>
-                  </div>
-                )}
+              <div key={r.id} className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden flex flex-col hover:shadow-md hover:border-gray-200 transition-all">
                 {r.thumbnail_url || (r.resource_type === "creative" && r.file_url) ? (<img src={r.thumbnail_url || r.file_url} alt={r.title} className="w-full h-40 object-cover" />) : (<div className="w-full h-40 flex items-center justify-center bg-gray-50"><TypeIcon className="h-12 w-12 text-gray-300" /></div>)}
                 <div className="p-4 flex-1 flex flex-col">
                   <span className="text-xs px-2 py-0.5 rounded-full w-fit capitalize mb-2 bg-gray-100 text-gray-600 border border-gray-200">{r.resource_type}</span>

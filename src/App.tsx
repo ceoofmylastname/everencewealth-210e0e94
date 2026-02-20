@@ -175,6 +175,13 @@ const AdminAgents = lazy(() => import("./pages/portal/admin/AdminAgents"));
 const AdminAgentNew = lazy(() => import("./pages/portal/admin/AdminAgentNew"));
 const AdminAgentDetail = lazy(() => import("./pages/portal/admin/AdminAgentDetail"));
 const AdminClients = lazy(() => import("./pages/portal/admin/AdminClients"));
+const AdminCarriersPage = lazy(() => import("./pages/portal/admin/AdminCarriers"));
+const AdminNewsPage = lazy(() => import("./pages/portal/admin/AdminNews"));
+const AdminToolsPage = lazy(() => import("./pages/portal/admin/AdminTools"));
+const AdminTrainingPage = lazy(() => import("./pages/portal/admin/AdminTraining"));
+const AdminMarketingPage = lazy(() => import("./pages/portal/admin/AdminMarketing"));
+const AdminSchedulePage = lazy(() => import("./pages/portal/admin/AdminSchedule"));
+const AdminCompliancePage = lazy(() => import("./pages/portal/admin/AdminCompliance"));
 const AdminBrochures = lazy(() => import("./pages/portal/admin/AdminBrochures"));
 const AdminBrochureForm = lazy(() => import("./pages/portal/admin/AdminBrochureForm"));
 const AdminStatePages = lazy(() => import("./pages/portal/admin/AdminStatePages"));
@@ -388,6 +395,13 @@ const App = () => (
                   <Route path="agents/new" element={<AdminAgentNew />} />
                   <Route path="agents/:id" element={<AdminAgentDetail />} />
                   <Route path="clients" element={<AdminClients />} />
+                  <Route path="carriers" element={<AdminCarriersPage />} />
+                  <Route path="news" element={<AdminNewsPage />} />
+                  <Route path="tools" element={<AdminToolsPage />} />
+                  <Route path="training" element={<AdminTrainingPage />} />
+                  <Route path="marketing" element={<AdminMarketingPage />} />
+                  <Route path="schedule" element={<AdminSchedulePage />} />
+                  <Route path="compliance" element={<AdminCompliancePage />} />
                 </Route>
               </Route>
 
