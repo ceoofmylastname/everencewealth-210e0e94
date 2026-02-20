@@ -1,50 +1,36 @@
 
 
-# Auto-Create Income Transaction from Sale Commissions
+# Fix: Training Creation Failing Due to Invalid Category
 
-## What Changes
+## Problem
+The "Failed to create" error happens because the category value `product_knowledge` does not match the database's allowed values. The database has a check constraint that only allows these categories:
+- `account_setup`
+- `product_training`
+- `sales_techniques`
+- `compliance`
+- `technology`
+- `carrier_specific`
+- `advanced_strategies`
 
-When an agent logs a sale, the system will automatically insert a matching income transaction into `advisor_transactions` so it appears on the Data tab.
+The form's default category is set to `product_knowledge`, which is not in the list. The category input is also a free-text field, so any typo or unsupported value will cause this error.
 
-### Commission Logic
-- **Monthly premium selected**: Income = annual premium x 75% (i.e., monthly x 12 x 0.75)
-- **Annual premium selected**: Income = annual premium x 100%
+## Fix
 
-### Transaction Details
-The auto-created transaction will include:
-- Type: "income"
-- Amount: calculated commission (75% or 100% of annual)
-- Category: "Commission"
-- Account Name: carrier name (e.g., "F&G", "Moo")
-- Memo: "Auto: [Carrier] - [Product Type] ([premium mode])"
-- Transaction Date: today's date
+**File:** `src/pages/portal/admin/AdminTraining.tsx`
+
+1. Change the default category from `product_knowledge` to `product_training` (line 12)
+2. Replace the free-text category input with a dropdown (`<select>`) that only shows the valid category options, preventing future mismatches
 
 ## Technical Details
 
-### File Modified
-- `src/pages/portal/advisor/PerformanceTracker.tsx`
+- Line 12: Change `defaultForm.category` from `"product_knowledge"` to `"product_training"`
+- In the dialog form (around line 100), replace the `<Input>` for category with a `<select>` containing these options:
+  - Account Setup (`account_setup`)
+  - Product Training (`product_training`)
+  - Sales Techniques (`sales_techniques`)
+  - Compliance (`compliance`)
+  - Technology (`technology`)
+  - Carrier Specific (`carrier_specific`)
+  - Advanced Strategies (`advanced_strategies`)
 
-### Change Location
-The `handleSaleSubmit` function (lines 231-240) will be updated. After the sale is successfully inserted, a second insert into `advisor_transactions` will run automatically:
-
-```typescript
-// After successful sale insert:
-const commissionAmount = newSale.premium_mode === "monthly"
-  ? annual * 0.75   // 75% of annualized premium
-  : annual;          // 100% of annual premium
-
-await supabase.from("advisor_transactions").insert({
-  advisor_id: advisorId,
-  type: "income",
-  amount: commissionAmount,
-  category: "Commission",
-  account_name: newSale.carrier,
-  memo: `Auto: ${newSale.carrier} - ${newSale.product_type} (${newSale.premium_mode})`,
-  transaction_date: new Date().toISOString().split("T")[0],
-});
-```
-
-After the transaction is created, both the sales and transactions lists will be reloaded so the Data tab immediately reflects the new income entry.
-
-No database schema changes are needed -- the existing `advisor_transactions` table already supports this.
-
+No database changes needed.
