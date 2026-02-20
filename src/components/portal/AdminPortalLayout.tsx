@@ -4,7 +4,7 @@ import { usePortalAuth } from "@/hooks/usePortalAuth";
 import { cn } from "@/lib/utils";
 import {
   LogOut, Users, Menu, X, ChevronRight,
-  LayoutDashboard, UserCog,
+  LayoutDashboard, UserCog, FileText, FolderOpen, MessageSquare,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { NotificationBell } from "./NotificationBell";
@@ -12,6 +12,9 @@ import { NotificationBell } from "./NotificationBell";
 const adminNav = [
   { label: "Agents", icon: UserCog, href: "/portal/admin/agents" },
   { label: "Clients", icon: Users, href: "/portal/admin/clients" },
+  { label: "Policies", icon: FileText, href: "/portal/advisor/policies" },
+  { label: "Documents", icon: FolderOpen, href: "/portal/advisor/documents" },
+  { label: "Messages", icon: MessageSquare, href: "/portal/advisor/messages" },
   { label: "Advisor Dashboard", icon: LayoutDashboard, href: "/portal/advisor/dashboard" },
 ];
 

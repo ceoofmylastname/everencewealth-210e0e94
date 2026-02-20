@@ -3,7 +3,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { usePortalAuth } from "@/hooks/usePortalAuth";
 import { Input } from "@/components/ui/input";
-import { FileText, Plus, Search, Eye, Pencil, Trash2 } from "lucide-react";
+import { FileText, Plus, Search, Eye, Pencil, Trash2, Filter } from "lucide-react";
 import { toast } from "sonner";
 
 const BRAND_GREEN = "#1A4D3E";
@@ -14,6 +14,13 @@ interface Policy {
   death_benefit: number | null; cash_value: number | null; monthly_premium: number | null;
   issue_date: string | null; created_at: string;
   client?: { first_name: string; last_name: string };
+}
+
+interface AdvisorInfo {
+  id: string;
+  first_name: string;
+  last_name: string;
+  portal_user_id: string;
 }
 
 function StatusBadge({ status }: { status: string }) {
@@ -38,18 +45,40 @@ export default function AdvisorPolicies() {
   const [policies, setPolicies] = useState<Policy[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [advisors, setAdvisors] = useState<AdvisorInfo[]>([]);
+  const [advisorFilter, setAdvisorFilter] = useState<string>("all");
+  const [advisorNameMap, setAdvisorNameMap] = useState<Record<string, string>>({});
+
+  const isAdmin = portalUser?.role === "admin";
 
   useEffect(() => { if (!portalUser) return; loadPolicies(); }, [portalUser, clientFilter]);
 
   async function loadPolicies() {
     try {
-      const { data: advisor } = await supabase.from("advisors").select("id").eq("portal_user_id", portalUser!.id).maybeSingle();
-      if (!advisor) { setLoading(false); return; }
-      let query = supabase.from("policies").select("*, client:portal_users!policies_client_id_fkey(first_name, last_name)").eq("advisor_id", advisor.id).order("created_at", { ascending: false });
-      if (clientFilter) query = query.eq("client_id", clientFilter);
-      const { data, error } = await query;
-      if (error) throw error;
-      setPolicies((data as Policy[]) ?? []);
+      if (isAdmin) {
+        // Admin: load all advisors and all policies
+        const { data: allAdvisors } = await supabase.from("advisors").select("id, first_name, last_name, portal_user_id");
+        const advisorList = (allAdvisors as AdvisorInfo[]) ?? [];
+        setAdvisors(advisorList);
+        const nameMap: Record<string, string> = {};
+        advisorList.forEach((a) => { nameMap[a.id] = `${a.first_name} ${a.last_name}`; });
+        setAdvisorNameMap(nameMap);
+
+        let query = supabase.from("policies").select("*, client:portal_users!policies_client_id_fkey(first_name, last_name)").order("created_at", { ascending: false });
+        if (clientFilter) query = query.eq("client_id", clientFilter);
+        const { data, error } = await query;
+        if (error) throw error;
+        setPolicies((data as Policy[]) ?? []);
+      } else {
+        // Advisor: only their own policies
+        const { data: advisor } = await supabase.from("advisors").select("id").eq("portal_user_id", portalUser!.id).maybeSingle();
+        if (!advisor) { setLoading(false); return; }
+        let query = supabase.from("policies").select("*, client:portal_users!policies_client_id_fkey(first_name, last_name)").eq("advisor_id", advisor.id).order("created_at", { ascending: false });
+        if (clientFilter) query = query.eq("client_id", clientFilter);
+        const { data, error } = await query;
+        if (error) throw error;
+        setPolicies((data as Policy[]) ?? []);
+      }
     } catch (err) { console.error("Error loading policies:", err); }
     finally { setLoading(false); }
   }
@@ -62,8 +91,10 @@ export default function AdvisorPolicies() {
 
   const filtered = policies.filter((p) => {
     const q = search.toLowerCase();
-    return p.carrier_name.toLowerCase().includes(q) || p.policy_number.toLowerCase().includes(q) || p.product_type.toLowerCase().includes(q) ||
+    const matchesSearch = p.carrier_name.toLowerCase().includes(q) || p.policy_number.toLowerCase().includes(q) || p.product_type.toLowerCase().includes(q) ||
       (p.client && `${p.client.first_name} ${p.client.last_name}`.toLowerCase().includes(q));
+    const matchesAdvisor = !isAdmin || advisorFilter === "all" || p.advisor_id === advisorFilter;
+    return matchesSearch && matchesAdvisor;
   });
 
   const fmt = (n: number | null) => n != null ? `$${n.toLocaleString()}` : "—";
@@ -83,11 +114,28 @@ export default function AdvisorPolicies() {
         </Link>
       </div>
 
-      {/* Search */}
-      <div className="relative max-w-sm">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-        <Input placeholder="Search policies..." value={search} onChange={(e) => setSearch(e.target.value)}
-          className="pl-9 border-gray-200 bg-white text-gray-900 placeholder:text-gray-400 focus-visible:ring-1 rounded-lg" />
+      {/* Search + Advisor Filter */}
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="relative max-w-sm flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <Input placeholder="Search policies..." value={search} onChange={(e) => setSearch(e.target.value)}
+            className="pl-9 border-gray-200 bg-white text-gray-900 placeholder:text-gray-400 focus-visible:ring-1 rounded-lg" />
+        </div>
+        {isAdmin && advisors.length > 0 && (
+          <div className="flex items-center gap-2">
+            <Filter className="h-4 w-4 text-gray-400" />
+            <select
+              className="text-sm border border-gray-200 rounded-lg p-2 bg-white text-gray-900"
+              value={advisorFilter}
+              onChange={(e) => setAdvisorFilter(e.target.value)}
+            >
+              <option value="all">All Advisors</option>
+              {advisors.map((a) => (
+                <option key={a.id} value={a.id}>{a.first_name} {a.last_name}</option>
+              ))}
+            </select>
+          </div>
+        )}
       </div>
 
       {loading ? (
@@ -108,6 +156,11 @@ export default function AdvisorPolicies() {
                   <div className="flex items-center gap-2 flex-wrap mb-1">
                     <span className="font-semibold text-gray-900">{policy.carrier_name}</span>
                     <StatusBadge status={policy.policy_status} />
+                    {isAdmin && advisorNameMap[policy.advisor_id] && (
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 font-medium">
+                        {advisorNameMap[policy.advisor_id]}
+                      </span>
+                    )}
                   </div>
                   <div className="text-sm text-gray-400 space-x-3">
                     <span>#{policy.policy_number}</span>
