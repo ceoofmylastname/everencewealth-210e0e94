@@ -104,6 +104,88 @@ export type Database = {
         }
         Relationships: []
       }
+      advisor_accounts: {
+        Row: {
+          account_name: string
+          account_type: string
+          advisor_id: string
+          balance: number
+          created_at: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          account_name: string
+          account_type?: string
+          advisor_id: string
+          balance?: number
+          created_at?: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          account_name?: string
+          account_type?: string
+          advisor_id?: string
+          balance?: number
+          created_at?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "advisor_accounts_advisor_id_fkey"
+            columns: ["advisor_id"]
+            isOneToOne: false
+            referencedRelation: "advisors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      advisor_debts: {
+        Row: {
+          advisor_id: string
+          apr: number
+          created_at: string
+          current_balance: number
+          id: string
+          is_paid_off: boolean
+          minimum_payment: number
+          name: string
+          target_payoff_date: string | null
+        }
+        Insert: {
+          advisor_id: string
+          apr?: number
+          created_at?: string
+          current_balance?: number
+          id?: string
+          is_paid_off?: boolean
+          minimum_payment?: number
+          name: string
+          target_payoff_date?: string | null
+        }
+        Update: {
+          advisor_id?: string
+          apr?: number
+          created_at?: string
+          current_balance?: number
+          id?: string
+          is_paid_off?: boolean
+          minimum_payment?: number
+          name?: string
+          target_payoff_date?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "advisor_debts_advisor_id_fkey"
+            columns: ["advisor_id"]
+            isOneToOne: false
+            referencedRelation: "advisors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       advisor_goals: {
         Row: {
           advisor_id: string
@@ -298,6 +380,50 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "advisor_sales_advisor_id_fkey"
+            columns: ["advisor_id"]
+            isOneToOne: false
+            referencedRelation: "advisors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      advisor_transactions: {
+        Row: {
+          account_name: string
+          advisor_id: string
+          amount: number
+          category: string
+          created_at: string
+          id: string
+          memo: string | null
+          transaction_date: string
+          type: string
+        }
+        Insert: {
+          account_name?: string
+          advisor_id: string
+          amount?: number
+          category?: string
+          created_at?: string
+          id?: string
+          memo?: string | null
+          transaction_date?: string
+          type: string
+        }
+        Update: {
+          account_name?: string
+          advisor_id?: string
+          amount?: number
+          category?: string
+          created_at?: string
+          id?: string
+          memo?: string | null
+          transaction_date?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "advisor_transactions_advisor_id_fkey"
             columns: ["advisor_id"]
             isOneToOne: false
             referencedRelation: "advisors"
