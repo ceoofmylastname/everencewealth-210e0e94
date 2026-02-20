@@ -9,6 +9,11 @@ import { Progress } from "@/components/ui/progress";
 import { ArrowLeft, Clock, CheckCircle } from "lucide-react";
 import { toast } from "sonner";
 
+function toYouTubeEmbed(url: string): string {
+  const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|.*&v=))([^?&]+)/);
+  return match ? `https://www.youtube.com/embed/${match[1]}` : url;
+}
+
 export default function TrainingDetail() {
   const { id } = useParams<{ id: string }>();
   const { portalUser } = usePortalAuth();
@@ -82,7 +87,7 @@ export default function TrainingDetail() {
         <Card>
           <CardContent className="p-0">
             <div className="aspect-video">
-              <iframe src={training.video_url} className="w-full h-full rounded-lg" allowFullScreen />
+              <iframe src={toYouTubeEmbed(training.video_url)} className="w-full h-full rounded-lg" allowFullScreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" />
             </div>
           </CardContent>
         </Card>

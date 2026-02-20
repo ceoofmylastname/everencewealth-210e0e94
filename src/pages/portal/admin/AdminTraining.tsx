@@ -9,6 +9,15 @@ import { toast } from "sonner";
 
 const BRAND_GREEN = "#1A4D3E";
 const inputCls = "border-gray-200 bg-white text-gray-900 placeholder:text-gray-400 focus-visible:ring-1 rounded-lg";
+
+function getYouTubeId(url: string): string | null {
+  const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|.*&v=))([^?&]+)/);
+  return match ? match[1] : null;
+}
+function getYouTubeThumbnail(url: string): string | null {
+  const id = getYouTubeId(url);
+  return id ? `https://img.youtube.com/vi/${id}/hqdefault.jpg` : null;
+}
 const VALID_CATEGORIES = [
   { value: "account_setup", label: "Account Setup" },
   { value: "product_training", label: "Product Training" },
@@ -139,7 +148,7 @@ export default function AdminTraining() {
                 <AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Delete this training?</AlertDialogTitle><AlertDialogDescription>This action cannot be undone.</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction onClick={() => handleDelete(t.id)} className="bg-red-600 hover:bg-red-700">Delete</AlertDialogAction></AlertDialogFooter></AlertDialogContent>
               </AlertDialog>
             </div>
-            {t.thumbnail_url ? (<img src={t.thumbnail_url} alt={t.title} className="w-full h-40 object-cover" />) : (<div className="w-full h-40 flex items-center justify-center bg-gray-50"><GraduationCap className="h-10 w-10 text-gray-300" /></div>)}
+            {t.thumbnail_url ? (<img src={t.thumbnail_url} alt={t.title} className="w-full h-40 object-cover" />) : t.video_url && getYouTubeThumbnail(t.video_url) ? (<img src={getYouTubeThumbnail(t.video_url)!} alt={t.title} className="w-full h-40 object-cover" />) : (<div className="w-full h-40 flex items-center justify-center bg-gray-50"><GraduationCap className="h-10 w-10 text-gray-300" /></div>)}
             <div className="p-5 flex flex-col flex-1">
               <div className="flex items-center gap-2 mb-3">
                 <span className={`text-xs px-2 py-0.5 rounded-full font-medium capitalize ${getLevelBadge(t.level)}`}>{t.level}</span>
