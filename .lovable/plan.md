@@ -1,60 +1,83 @@
 
 
-# Redesign Clients Page: Admin View with Advisor Assignment
+# Admin Read-Only Access to All Advisor-Client Messages
 
-## What Changes
+## What's Wrong
 
-The Clients page will be upgraded so admins can see **all clients grouped by their assigned advisor/agent**, with a modern, professional design. Advisors will continue to see only their own clients.
+1. **Code**: The Messages page only loads conversations where `advisor_id` matches the logged-in user. Admin's ID doesn't match any advisor, so they see nothing.
+2. **Database security policies**: Only conversation participants (the advisor and their client) are allowed to read conversations and messages. No admin access exists at the database level.
 
-## Design
+All messages are permanently stored and safe -- the admin simply has no access path to view them.
 
-### Admin View
-- **Summary stats bar** at the top showing total clients, total advisors, and active policies count
-- **Advisor filter tabs/dropdown** to filter by a specific advisor or view all
-- Each client card displays a small **advisor badge** showing which advisor manages them (e.g., "Advisor: John Mel")
-- Search also filters by advisor name
-- Clean table/list toggle option for when there are many clients
+## The Fix
 
-### Client Cards (Redesigned)
-- Larger, more polished cards with subtle hover animations
-- Avatar initials with a gradient background
-- Advisor name displayed as a colored pill/tag below the client name
-- Contact info (email, phone) with copy-to-clipboard icons
-- Quick-action buttons for Policies, Documents, and Messages
-- "Last active" or "Joined" date shown subtly
+### 1. Database: Add admin read access (2 new policies)
 
-### Advisor View (unchanged behavior)
-- Advisors still see only their own clients
-- No advisor badge shown (redundant for them)
+Add SELECT policies so admins can read all conversations and messages:
+
+- **portal_conversations**: "Admins can view all conversations" -- allows SELECT when `is_portal_admin(auth.uid())` returns true
+- **portal_messages**: "Admins can view all messages" -- allows SELECT when `is_portal_admin(auth.uid())` returns true
+
+Admins get **read-only** access. They cannot send messages or modify conversations.
+
+### 2. Code: Update AdvisorMessages.tsx
+
+**For admins:**
+- Load ALL conversations (no `advisor_id` filter)
+- Show each conversation labeled with both the advisor name AND the client name (e.g., "John Mel <-> jm mel")
+- Add an advisor filter dropdown so admins can filter conversations by specific advisor
+- Hide the message input box -- admins observe only, they don't participate
+- Hide the "new conversation" dropdown since admins don't start conversations
+
+**For advisors (unchanged):**
+- Continue to see only their own conversations
+- Can still send messages as before
+
+### Visual Layout for Admin
+
+```
+Conversations sidebar:
+  [Filter by Advisor: All v]
+  ----------------------------------------
+  | [avatar] John Mel <-> jm mel         |
+  |         Feb 20, 2026                 |
+  ----------------------------------------
+
+Message area (read-only):
+  Header: "John Mel <-> jm mel"
+  Messages displayed normally (advisor on right, client on left)
+  NO input box at the bottom for admin
+```
 
 ## Technical Details
 
-### File: `src/pages/portal/advisor/AdvisorClients.tsx`
+### Database migration (2 RLS policies)
 
-1. **Fetch advisor names** alongside clients:
-   - After loading clients, extract unique `advisor_id` values
-   - Fetch those advisor records from `portal_users` to get their names
-   - Build a lookup map: `advisorId -> advisorName`
+```sql
+-- Admin can view all conversations
+CREATE POLICY "Admins can view all conversations"
+ON public.portal_conversations FOR SELECT
+TO authenticated
+USING (is_portal_admin(auth.uid()));
 
-2. **Add advisor filter** (admin only):
-   - State for `selectedAdvisor` (default: "all")
-   - Dropdown populated from the advisor lookup map
-   - Filter `filtered` array by selected advisor
+-- Admin can view all messages
+CREATE POLICY "Admins can view all messages"
+ON public.portal_messages FOR SELECT
+TO authenticated
+USING (is_portal_admin(auth.uid()));
+```
 
-3. **Stats bar** (admin only):
-   - Count unique advisors from the clients list
-   - Display total clients and advisor count
+### File: `src/pages/portal/advisor/AdvisorMessages.tsx`
 
-4. **Redesigned card layout**:
-   - Modern card with proper spacing, subtle border, smooth shadow on hover
-   - Advisor pill badge (only shown for admin users)
-   - Better typography hierarchy
-   - Action buttons styled with brand green accents
-
-### No database or RLS changes needed
-The admin RLS policy already allows full SELECT on `portal_users`.
+- In `loadConversations()`: if admin, remove the `.eq("advisor_id", ...)` filter and fetch advisor names alongside client names
+- Add `advisorName` to each conversation entry for display
+- Add advisor filter state and dropdown (admin only)
+- In the message view: label messages with sender name (advisor or client), not just "mine vs theirs"
+- Conditionally hide the send form and "new conversation" dropdown when user is admin
+- Admin sees messages as an observer: advisor messages on one side, client messages on the other
 
 ## Files Changed
 
-- `src/pages/portal/advisor/AdvisorClients.tsx` -- complete redesign with advisor info, filtering, and modern UI
+- Database: 2 new RLS policies on `portal_conversations` and `portal_messages`
+- `src/pages/portal/advisor/AdvisorMessages.tsx` -- admin-aware conversation loading, advisor labels, read-only mode
 
