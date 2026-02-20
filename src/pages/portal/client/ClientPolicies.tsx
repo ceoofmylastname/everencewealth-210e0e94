@@ -37,6 +37,28 @@ export default function ClientPolicies() {
     loadPolicies();
   }, [portalUser]);
 
+  // Realtime subscription for instant policy updates
+  useEffect(() => {
+    if (!portalUser) return;
+    const channel = supabase
+      .channel('client-policies')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'policies',
+          filter: `client_id=eq.${portalUser.id}`,
+        },
+        () => {
+          loadPolicies();
+        }
+      )
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [portalUser?.id]);
+
   async function loadPolicies() {
     const { data, error } = await supabase
       .from("policies")
