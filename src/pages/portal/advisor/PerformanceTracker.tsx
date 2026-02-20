@@ -234,9 +234,17 @@ export default function PerformanceTracker() {
     const monthlyVal = newSale.premium_mode === "monthly" ? newSale.premium_amount : null;
     const { error } = await supabase.from("advisor_sales").insert({ advisor_id: advisorId, carrier: newSale.carrier, product_type: newSale.product_type, premium_mode: newSale.premium_mode, monthly_premium: monthlyVal, annual_premium: annual, client_name: newSale.client_name || null, notes: newSale.notes || null });
     if (error) { toast.error("Failed to log sale"); return; }
+    // Auto-create income transaction from commission
+    const commissionAmount = newSale.premium_mode === "monthly" ? annual * 0.75 : annual;
+    await supabase.from("advisor_transactions").insert({
+      advisor_id: advisorId, type: "income", amount: commissionAmount, category: "Commission",
+      account_name: newSale.carrier,
+      memo: `Auto: ${newSale.carrier} - ${newSale.product_type} (${newSale.premium_mode})`,
+      transaction_date: new Date().toISOString().split("T")[0],
+    });
     toast.success("Sale logged!"); setShowSaleDialog(false);
     setNewSale({ carrier: "", product_type: "", premium_mode: "annual", premium_amount: 0, client_name: "", notes: "" });
-    loadSales(advisorId); loadAllSales();
+    loadSales(advisorId); loadAllSales(); loadTransactions(advisorId);
   }
 
   async function handleGoalSubmit(e: React.FormEvent) {
