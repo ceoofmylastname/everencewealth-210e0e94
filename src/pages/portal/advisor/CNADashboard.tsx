@@ -12,7 +12,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import {
-  Plus, Search, FileText, ClipboardList, CheckCircle, Clock, TrendingUp, Send,
+  Plus, Search, FileText, ClipboardList, CheckCircle, Clock, TrendingUp, Send, Eye,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -216,6 +216,12 @@ export default function CNADashboard() {
                         {cna.client_id && (
                           <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-50 text-blue-600 border border-blue-200">
                             Shared{getClientName(cna.client_id) ? ` · ${getClientName(cna.client_id)}` : ""}
+                          </span>
+                        )}
+                        {cna.reviewed_at && (
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-600 border border-emerald-200 flex items-center gap-1">
+                            <Eye className="h-3 w-3" />
+                            Viewed {new Date(cna.reviewed_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} at {new Date(cna.reviewed_at).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}
                           </span>
                         )}
                       </div>

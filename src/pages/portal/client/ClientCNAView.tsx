@@ -43,6 +43,17 @@ export default function ClientCNAView() {
       });
   }, [id, portalUser]);
 
+  // Auto-mark as reviewed on first client view
+  useEffect(() => {
+    if (cna && !cna.reviewed_at && cna.client_id) {
+      supabase
+        .from("client_needs_analysis")
+        .update({ status: "reviewed", reviewed_at: new Date().toISOString() } as any)
+        .eq("id", cna.id)
+        .then(() => {});
+    }
+  }, [cna]);
+
   if (loading) {
     return (
       <div className="max-w-3xl mx-auto space-y-6">

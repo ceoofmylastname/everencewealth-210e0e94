@@ -1,0 +1,1 @@
+ALTER TABLE client_needs_analysis ADD COLUMN reviewed_at timestamptz DEFAULT NULL;
