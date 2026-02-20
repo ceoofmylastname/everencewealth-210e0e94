@@ -1,83 +1,100 @@
 
+# Admin Full Advisor Capabilities + Agency Oversight
 
-# Admin Read-Only Access to All Advisor-Client Messages
+## Summary
 
-## What's Wrong
+The admin needs to work both as a full advisor (own clients, policies, documents, messages) AND have oversight of all agents' activities. This requires changes across 4 pages plus 1 database record, and adding more navigation links to the admin layout.
 
-1. **Code**: The Messages page only loads conversations where `advisor_id` matches the logged-in user. Admin's ID doesn't match any advisor, so they see nothing.
-2. **Database security policies**: Only conversation participants (the advisor and their client) are allowed to read conversations and messages. No admin access exists at the database level.
+## Changes Required
 
-All messages are permanently stored and safe -- the admin simply has no access path to view them.
+### 1. Create an Advisors Record for the Admin
 
-## The Fix
+The admin currently has no entry in the `advisors` table, which is required for creating policies (the `policies.advisor_id` references `advisors.id`). We need to insert a record so the admin can function as an advisor.
 
-### 1. Database: Add admin read access (2 new policies)
+- Insert into `advisors` table: `portal_user_id = admin's portal_user ID`, with the admin's name and auth_user_id
 
-Add SELECT policies so admins can read all conversations and messages:
+### 2. Update Admin Navigation (AdminPortalLayout.tsx)
 
-- **portal_conversations**: "Admins can view all conversations" -- allows SELECT when `is_portal_admin(auth.uid())` returns true
-- **portal_messages**: "Admins can view all messages" -- allows SELECT when `is_portal_admin(auth.uid())` returns true
+Add links to the admin sidebar so they can access the advisor pages directly from the admin panel:
 
-Admins get **read-only** access. They cannot send messages or modify conversations.
+- Clients (already exists)
+- Policies (new link to `/portal/advisor/policies`)
+- Documents (new link to `/portal/advisor/documents`)
+- Messages (new link to `/portal/advisor/messages`)
 
-### 2. Code: Update AdvisorMessages.tsx
+### 3. Update Policies Page (AdvisorPolicies.tsx)
 
-**For admins:**
-- Load ALL conversations (no `advisor_id` filter)
-- Show each conversation labeled with both the advisor name AND the client name (e.g., "John Mel <-> jm mel")
-- Add an advisor filter dropdown so admins can filter conversations by specific advisor
-- Hide the message input box -- admins observe only, they don't participate
-- Hide the "new conversation" dropdown since admins don't start conversations
+**Current problem**: Queries `advisors` table for the user's advisor record. Admin has no record, so it returns nothing.
 
-**For advisors (unchanged):**
-- Continue to see only their own conversations
-- Can still send messages as before
+**Fix**:
+- If admin: load ALL policies across all advisors (no `advisor_id` filter), so they see every policy in the agency
+- Fetch advisor names and display which advisor owns each policy
+- Add an advisor filter dropdown (similar to the clients page)
+- Keep the `?client=` URL filter working so clicking "Policies" from a client card still works
+- Admin can still create/edit/delete policies (they will use their own advisor record)
 
-### Visual Layout for Admin
+### 4. Update Documents Page (AdvisorDocuments.tsx)
 
-```
-Conversations sidebar:
-  [Filter by Advisor: All v]
-  ----------------------------------------
-  | [avatar] John Mel <-> jm mel         |
-  |         Feb 20, 2026                 |
-  ----------------------------------------
+**Current problem**: Filters documents by `uploaded_by = portalUser.id`. Admin sees only their own uploads, not other agents' documents.
 
-Message area (read-only):
-  Header: "John Mel <-> jm mel"
-  Messages displayed normally (advisor on right, client on left)
-  NO input box at the bottom for admin
-```
+**Fix**:
+- If admin: load ALL documents across all advisors (no `uploaded_by` filter)
+- Show which advisor uploaded each document
+- Add an advisor filter dropdown
+- For the upload form client dropdown: load all active clients (not just admin's own)
+- Keep `?client=` URL filter working
+
+### 5. Update Messages Page (AdvisorMessages.tsx)
+
+**Current problem**: Admin is read-only for all conversations. But the admin also needs to be able to message their own clients.
+
+**Fix**:
+- Admin can still see ALL conversations (oversight mode)
+- When viewing someone else's conversation, it remains read-only
+- When viewing their own conversation (where `advisor_id` matches admin's portal user ID), they CAN send messages
+- Admin can also start new conversations with their own clients
+- Add visual indicator showing "Your conversation" vs "Observing"
 
 ## Technical Details
 
-### Database migration (2 RLS policies)
+### Database: Insert admin advisor record
 
 ```sql
--- Admin can view all conversations
-CREATE POLICY "Admins can view all conversations"
-ON public.portal_conversations FOR SELECT
-TO authenticated
-USING (is_portal_admin(auth.uid()));
-
--- Admin can view all messages
-CREATE POLICY "Admins can view all messages"
-ON public.portal_messages FOR SELECT
-TO authenticated
-USING (is_portal_admin(auth.uid()));
+INSERT INTO advisors (portal_user_id, auth_user_id, first_name, last_name, email)
+SELECT pu.id, pu.auth_user_id, pu.first_name, pu.last_name, pu.email
+FROM portal_users pu
+WHERE pu.id = 'e82dd92c-819b-47ca-889a-a67f9e90aae3'
+AND NOT EXISTS (SELECT 1 FROM advisors WHERE portal_user_id = pu.id);
 ```
 
-### File: `src/pages/portal/advisor/AdvisorMessages.tsx`
+### AdminPortalLayout.tsx
 
-- In `loadConversations()`: if admin, remove the `.eq("advisor_id", ...)` filter and fetch advisor names alongside client names
-- Add `advisorName` to each conversation entry for display
-- Add advisor filter state and dropdown (admin only)
-- In the message view: label messages with sender name (advisor or client), not just "mine vs theirs"
-- Conditionally hide the send form and "new conversation" dropdown when user is admin
-- Admin sees messages as an observer: advisor messages on one side, client messages on the other
+Add navigation items for Policies, Documents, and Messages pointing to the advisor routes.
+
+### AdvisorPolicies.tsx
+
+- Add role check: if admin, skip the `advisors` table lookup and load all policies
+- Fetch advisor names from the `advisors` table for display
+- Add advisor filter dropdown (admin only)
+- Show advisor name badge on each policy card
+
+### AdvisorDocuments.tsx
+
+- Add role check: if admin, load all documents (no `uploaded_by` filter)
+- For client dropdown in upload form: if admin, load all active clients
+- Fetch uploader names for display
+- Add advisor filter dropdown (admin only)
+
+### AdvisorMessages.tsx
+
+- Change from fully read-only to conditional: admin can send in conversations where they are the advisor
+- Allow admin to start new conversations with their own clients
+- Show "Observing" badge only on other advisors' conversations, not admin's own
 
 ## Files Changed
 
-- Database: 2 new RLS policies on `portal_conversations` and `portal_messages`
-- `src/pages/portal/advisor/AdvisorMessages.tsx` -- admin-aware conversation loading, advisor labels, read-only mode
-
+- `src/components/portal/AdminPortalLayout.tsx` -- add nav links for Policies, Documents, Messages
+- `src/pages/portal/advisor/AdvisorPolicies.tsx` -- admin sees all policies with advisor labels and filter
+- `src/pages/portal/advisor/AdvisorDocuments.tsx` -- admin sees all documents with uploader info and filter
+- `src/pages/portal/advisor/AdvisorMessages.tsx` -- admin can send in own conversations, read-only for others
+- Database: insert advisor record for admin user
