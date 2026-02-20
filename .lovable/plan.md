@@ -1,117 +1,134 @@
 
-
-# Populate Tools Hub Data and Enhance with Modern Animated UI
+# Mobile-First Optimization Across All Portals
 
 ## Summary
+A comprehensive pass to make every page across the Advisor, Client, and Admin portals feel native and polished on mobile devices. The site already has responsive foundations (sidebar collapse, grid breakpoints) but many pages have oversized elements, wasted whitespace, truncated content, and desktop-oriented layouts that need refinement for touch-first usage.
 
-The Tools Hub currently has 2 tabs (Quoting and Calculators) but the quoting_tools table is empty, and only 8 calculators exist. This plan inserts all 8 quoting tool records, adds 7 new calculator records, creates 7 new calculator components, and redesigns the entire Tools Hub with Framer Motion animations, 3D card effects, and a sleek professional UI.
+## Key Issues Identified
 
-## Phase 1: Insert Quoting Tools Data
+1. **Advisor Dashboard**: Stat cards are too tall on mobile (single column with large padding). Quick Actions grid only shows 2 per row on small screens. The 3-column bottom grid stacks but has excessive padding.
 
-Insert 8 records into the `quoting_tools` table, linked to the correct carrier IDs:
+2. **Client Dashboard**: Stat cards go single-column too early (sm:grid-cols-3 skips the 2-col breakpoint). Policy list rows have desktop-oriented horizontal layouts that waste mobile space.
 
-1. Mutual of Omaha - Mobile Quote System (quick_quote)
-2. Americo - Agent Portal (agent_portal, requires_login=true)
-3. Americo - IUL Microsite (microsite)
-4. Foresters Financial - Quote System (quick_quote)
-5. Assurity - Accidental Death Quote (quick_quote)
-6. Royal Neighbors - Quick Quote (quick_quote)
-7. Transamerica - Immediate Solutions Quote (quick_quote)
-8. F&G Life - IUL Microsite (microsite)
+3. **ToolsHub**: Calculator dialog uses `max-w-4xl` which doesn't respect mobile well. Tab triggers could be more touch-friendly. Filter chips scroll off-screen on small devices. 3D hover effects are wasted on touch (should disable).
 
-Each includes tool_name, tool_url, tool_type, requires_login, login_instructions (where applicable), and description.
+4. **Messages (Both Advisor and Client)**: Fixed height `h-[calc(100vh-12rem)]` doesn't account for mobile header properly. Conversation list + messages side-by-side breaks on mobile (lg:grid-cols-3). On small screens, users see both panels crammed together.
 
-## Phase 2: Insert New Calculator Records
+5. **Performance Tracker**: Data table with 10 columns is unusable on mobile -- horizontal scroll exists but columns are hard to read. The "Add Entry" dialog form uses grid-cols-2 which is cramped on phones.
 
-Add 7 new calculator records to the `calculators` table:
+6. **Carrier Directory**: Filter chips for Products and Specialties overflow without scrollable container. Cards work well but action buttons at bottom can be cramped.
 
-| Calculator | Category | ID Range |
-|---|---|---|
-| Debt vs Investing | cash_flow | sort 9 |
-| Purchasing Power | cash_flow | sort 10 |
-| Inflation Retirement | retirement | sort 11 |
-| Habits to Wealth | retirement | sort 12 |
-| Lifetime Earnings | life_income | sort 13 |
-| Insurance Longevity | life_income | sort 14 |
-| Commission Calculator | life_income | sort 15 |
+7. **Marketing Resources**: Filter chip rows can overflow. Stats grid needs 2-col on mobile.
 
-## Phase 3: Create 7 New Calculator Components
+8. **Training Center**: Generally OK but cards could use tighter spacing.
 
-Build each calculator following the existing pattern (Props with onClose, Slider/input controls, useMemo results, brand green styling):
+9. **Admin pages (AdminCarriers, AdminAgents, etc.)**: Forms and tables need mobile-friendly layouts.
 
-### Cash Flow Intelligence
-- **DebtVsInvesting.tsx** - Compares effective debt rate vs investment return, recommends "pay debt" or "invest more," shows 10-year wealth difference
-- **PurchasingPower.tsx** - Historical CPI-based tool showing adjusted value, % decrease, dollar loss, inflation multiple
+10. **Layout headers**: Mobile header is 56px (h-14) but content padding could be tighter. No bottom safe-area padding for iOS on scrollable content.
 
-### Retirement Intelligence
-- **InflationRetirement.tsx** - Shows required income at retirement, total needed, inflation gap, cost of waiting
-- **HabitsWealth.tsx** - Converts recurring spending into future wealth with opportunity cost and multiplier
+---
 
-### Life and Income
-- **LifetimeEarnings.tsx** - Projects total career earnings with Recharts line chart of income growth
-- **InsuranceLongevity.tsx** - Shows how long coverage lasts with balance depletion chart and shortfall warnings
-- **CommissionCalculator.tsx** - Calculates advance vs residual split, monthly/annual projections, chargeback buffer
+## Changes by File
 
-Each calculator will use:
-- Recharts for data visualization (line/bar charts where applicable)
-- Animated number counters for key results
-- Insight boxes with dynamic recommendations
-- Context-aware disclaimers
+### 1. `src/components/portal/PortalLayout.tsx`
+- Add bottom safe area padding to main content area for iOS devices
+- Ensure mobile header height works well with notched phones
 
-## Phase 4: Redesign ToolsHub.tsx with Modern Animated UI
+### 2. `src/pages/portal/advisor/AdvisorDashboard.tsx`
+- Change stat cards grid to `grid-cols-2` on mobile (instead of single column) for a compact 2x2 layout
+- Reduce stat card inner padding on mobile (`p-4` instead of `p-5`)
+- Reduce font size of stat values on mobile (`text-2xl` instead of `text-3xl`)
+- Quick Actions: use `grid-cols-3` on mobile (instead of `grid-cols-2`) so all 6 fit in 2 rows
+- Bottom grid: reduce gap on mobile
+- Tighten section spacing on mobile
 
-Transform the Tools Hub into a visually stunning, animated experience:
+### 3. `src/pages/portal/client/ClientDashboard.tsx`
+- Change stat cards to `grid-cols-3` even on smallest screens (cards are compact enough)
+- Reduce stat value font size to `text-2xl` on mobile
+- Reduce card padding on mobile
+- Advisor card: make "Send Message" button full-width touch-friendly
 
-### Quoting Tab Enhancements
-- **Header section** with gradient text: "Quick Access to Quote Systems" and descriptive subtitle
-- **Framer Motion staggered animations** on card grid (spring physics, 50ms stagger delay)
-- **3D hover effects** using CSS perspective/transform (rotateY/rotateX on hover)
-- **Gradient hover borders** that shift color per card
-- **Carrier logo display** with fallback icon
-- **Badge system** for tool types with color-coded pills
-- **Lock icon badge** for login-required tools
-- **Footer note** explaining the lock icon
+### 4. `src/pages/portal/advisor/ToolsHub.tsx`
+- Calculator dialog: change to `max-w-full sm:max-w-4xl` with `mx-2` margin on mobile
+- Filter chips: wrap in horizontally scrollable container with `overflow-x-auto` and `flex-nowrap` option
+- Disable 3D perspective hover on touch devices (check for pointer:coarse media query or just remove mouse-move handler on mobile)
+- Tab triggers: increase touch target size on mobile
+- Calculator cards grid: keep `grid-cols-1` on mobile (already correct)
 
-### Calculators Tab Enhancements
-- **Category hero titles** with taglines:
-  - Cash Flow Intelligence: "See what inflation steals -- and what strategy protects"
-  - Retirement Intelligence: "Plan the life you want -- not the one inflation leaves you"
-  - Life and Income: "Build trust through education -- not pressure"
-- **Animated category transitions** when switching filter pills
-- **3D card hover** with subtle rotateY/rotateX perspective transforms
-- **Gradient accent bars** on the left edge of each calculator card
-- **Estimated time badges** with animated dot indicator
-- **Category disclaimers** at the bottom of each section
-- **Smooth card entrance** with scale-in and fade animations
+### 5. `src/pages/portal/advisor/AdvisorMessages.tsx`
+- On mobile, implement a stacked view: show conversation list by default, when a conversation is selected, show full-screen messages with a back button
+- This replaces the side-by-side `lg:grid-cols-3` layout which is unusable on phones
+- Add proper height calculation accounting for mobile header
+- Make message input sticky at bottom
 
-### Shared Animation System
-- Container variants with staggerChildren for grid items
-- Individual card variants: initial hidden/scaled-down, animate visible/full-scale
-- Spring-based hover lift (y: -6) with shadow elevation
-- CSS perspective transforms for 3D depth on hover
-- Framer Motion AnimatePresence for tab/filter transitions
+### 6. `src/pages/portal/client/ClientMessages.tsx`
+- Adjust height calculation to account for mobile header: `h-[calc(100vh-10rem)] sm:h-[calc(100vh-12rem)]`
+- Increase message bubble max-width on mobile to `max-w-[85%]` instead of `max-w-[70%]`
+- Make input area more touch-friendly with larger tap targets
 
-## Phase 5: Update CALC_COMPONENTS Map
+### 7. `src/pages/portal/advisor/PerformanceTracker.tsx`
+- On mobile, replace the data table with a card-based list view showing key metrics per entry
+- Keep the table view for `md:` breakpoint and above using responsive visibility classes
+- "Add Entry" dialog form: change to `grid-cols-1` on mobile, `grid-cols-2` on `sm:`
+- Stats grid: use `grid-cols-2` on mobile (already correct)
 
-Extend the component registry in ToolsHub.tsx to include all 7 new calculators, mapping their database names to the new React components.
+### 8. `src/pages/portal/advisor/CarrierDirectory.tsx`
+- Wrap filter chips in `overflow-x-auto` scrollable containers
+- Search input: remove `max-w-md` constraint on mobile (full width)
+- Carrier card action buttons: stack vertically on very small screens
 
-## Files to Create
-- `src/pages/portal/advisor/calculators/DebtVsInvesting.tsx`
-- `src/pages/portal/advisor/calculators/PurchasingPower.tsx`
-- `src/pages/portal/advisor/calculators/InflationRetirement.tsx`
-- `src/pages/portal/advisor/calculators/HabitsWealth.tsx`
-- `src/pages/portal/advisor/calculators/LifetimeEarnings.tsx`
-- `src/pages/portal/advisor/calculators/InsuranceLongevity.tsx`
-- `src/pages/portal/advisor/calculators/CommissionCalculator.tsx`
+### 9. `src/pages/portal/advisor/MarketingResources.tsx`
+- Filter chips: add horizontal scroll container
+- Resource cards: ensure proper text truncation on mobile
 
-## Files to Edit
-- `src/pages/portal/advisor/ToolsHub.tsx` - Full redesign with Framer Motion, 3D effects, new component imports, updated category data
+### 10. `src/pages/portal/advisor/TrainingCenter.tsx`
+- Filter chips: add horizontal scroll container
+- Training cards: tighten padding on mobile
 
-## Technical Notes
-- All new calculators follow the existing `{ onClose: () => void }` props interface
-- Framer Motion is already installed and used throughout the project
-- Recharts is already installed for chart visualizations
-- Brand green (#1A4D3E) remains the primary accent color
-- The existing 8 calculator components remain unchanged
-- Database category values (`cash_flow`, `retirement`, `life_income`) match the existing filter system
+### 11. `src/pages/portal/client/ClientPolicies.tsx`
+- Policy card grid: change from `grid-cols-2 sm:grid-cols-4` to `grid-cols-2` with proper truncation on mobile
+- Ensure all text is readable without horizontal scroll
 
+### 12. `src/pages/portal/client/ClientDocuments.tsx`
+- Ensure document cards are touch-friendly with adequate tap targets
+- Download button: full-width on mobile
+
+### 13. `src/components/portal/AdminPortalLayout.tsx`
+- Add bottom safe area padding for iOS
+- Ensure mobile sidebar animation is smooth
+
+### 14. Calculator Components (all 15 files in `src/pages/portal/advisor/calculators/`)
+- Ensure slider inputs have adequate touch targets (min 44px height)
+- Result grids: use `grid-cols-1` on mobile where currently using `grid-cols-2`
+- Charts: set minimum height and ensure ResponsiveContainer works well on narrow screens
+- Reduce typography sizes on mobile for long result labels
+
+---
+
+## Technical Approach
+
+- Use Tailwind responsive prefixes (`sm:`, `md:`, `lg:`) consistently -- mobile-first
+- Add `touch-manipulation` CSS to interactive elements for 300ms tap delay removal
+- Use `scrollbar-hide` utility class for horizontal filter scrolling
+- Add safe area insets via `pb-[env(safe-area-inset-bottom)]` where needed
+- For the Messages stacked view on mobile, use state + conditional rendering rather than CSS-only
+- Disable 3D mouse-tracking effects by checking `window.matchMedia('(pointer: coarse)')` 
+
+## Files to Edit (15+ files)
+- `src/components/portal/PortalLayout.tsx`
+- `src/components/portal/AdminPortalLayout.tsx`
+- `src/pages/portal/advisor/AdvisorDashboard.tsx`
+- `src/pages/portal/advisor/ToolsHub.tsx`
+- `src/pages/portal/advisor/AdvisorMessages.tsx`
+- `src/pages/portal/advisor/PerformanceTracker.tsx`
+- `src/pages/portal/advisor/CarrierDirectory.tsx`
+- `src/pages/portal/advisor/MarketingResources.tsx`
+- `src/pages/portal/advisor/TrainingCenter.tsx`
+- `src/pages/portal/client/ClientDashboard.tsx`
+- `src/pages/portal/client/ClientPolicies.tsx`
+- `src/pages/portal/client/ClientDocuments.tsx`
+- `src/pages/portal/client/ClientMessages.tsx`
+- Select calculator components (DebtVsInvesting, CommissionCalculator, etc.)
+
+## No New Dependencies Required
+All changes use existing Tailwind utilities and React patterns.
