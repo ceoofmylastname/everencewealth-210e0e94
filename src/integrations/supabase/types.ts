@@ -1448,6 +1448,41 @@ export type Database = {
           },
         ]
       }
+      carrier_documents: {
+        Row: {
+          carrier_id: string
+          created_at: string
+          document_name: string
+          document_type: string
+          document_url: string
+          id: string
+        }
+        Insert: {
+          carrier_id: string
+          created_at?: string
+          document_name: string
+          document_type?: string
+          document_url: string
+          id?: string
+        }
+        Update: {
+          carrier_id?: string
+          created_at?: string
+          document_name?: string
+          document_type?: string
+          document_url?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "carrier_documents_carrier_id_fkey"
+            columns: ["carrier_id"]
+            isOneToOne: false
+            referencedRelation: "carriers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       carrier_news: {
         Row: {
           article_type: string | null
@@ -1507,14 +1542,26 @@ export type Database = {
           contact_info: Json | null
           contracting_requirements: string | null
           created_at: string
+          description: string | null
+          employees: string | null
           featured: boolean
+          founded_year: number | null
+          headquarters: string | null
           id: string
+          illustration_url: string | null
           niches: string[] | null
           notes: string | null
+          phone: string | null
           portal_url: string | null
           products_offered: string[] | null
+          quotes_url: string | null
+          reparenting_info: Json | null
           short_code: string | null
+          special_products: string[] | null
+          turnaround: string | null
+          underwriting_strengths: string | null
           updated_at: string
+          website: string | null
         }
         Insert: {
           am_best_rating?: string | null
@@ -1524,14 +1571,26 @@ export type Database = {
           contact_info?: Json | null
           contracting_requirements?: string | null
           created_at?: string
+          description?: string | null
+          employees?: string | null
           featured?: boolean
+          founded_year?: number | null
+          headquarters?: string | null
           id?: string
+          illustration_url?: string | null
           niches?: string[] | null
           notes?: string | null
+          phone?: string | null
           portal_url?: string | null
           products_offered?: string[] | null
+          quotes_url?: string | null
+          reparenting_info?: Json | null
           short_code?: string | null
+          special_products?: string[] | null
+          turnaround?: string | null
+          underwriting_strengths?: string | null
           updated_at?: string
+          website?: string | null
         }
         Update: {
           am_best_rating?: string | null
@@ -1541,14 +1600,26 @@ export type Database = {
           contact_info?: Json | null
           contracting_requirements?: string | null
           created_at?: string
+          description?: string | null
+          employees?: string | null
           featured?: boolean
+          founded_year?: number | null
+          headquarters?: string | null
           id?: string
+          illustration_url?: string | null
           niches?: string[] | null
           notes?: string | null
+          phone?: string | null
           portal_url?: string | null
           products_offered?: string[] | null
+          quotes_url?: string | null
+          reparenting_info?: Json | null
           short_code?: string | null
+          special_products?: string[] | null
+          turnaround?: string | null
+          underwriting_strengths?: string | null
           updated_at?: string
+          website?: string | null
         }
         Relationships: []
       }
