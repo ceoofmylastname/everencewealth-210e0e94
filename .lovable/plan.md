@@ -1,54 +1,58 @@
 
 
-# Fix Client Select Dropdown + Add Realtime Policy Sync
+# Fix: Admin Can't See Clients on Clients Page
 
-## Issues Found
+## Problem
 
-### Issue 1: Client Select might show empty
-The query on line 64 of `PolicyForm.tsx` filters `portal_users` by `.eq("advisor_id", portalUser!.id)`. This is correct -- `portal_users.advisor_id` stores the advisor's `portal_user_id`, and `portalUser.id` is exactly that. The dropdown works if the advisor has assigned clients. No code fix needed here, but worth verifying your test advisor has clients.
+The Clients page at `/portal/advisor/clients` always filters by `advisor_id = portalUser.id`. When you're logged in as Admin ("AU"), your portal_user ID is different from any advisor's ID, so no clients match -- the page shows "No clients yet."
 
-### Issue 2: No realtime sync to client portal
-The `policies` table is already added to `supabase_realtime` publication, but the client's policy list page does not subscribe to Postgres changes. When an advisor creates a policy, the client must manually refresh to see it.
+In the database:
+- Admin User (id: `e82dd92c...`) -- no clients assigned to this ID
+- Advisor John Mel (id: `ce09b1a3...`) -- has client "jm mel" assigned
+- Client "jm mel" has `advisor_id: ce09b1a3...` (points to John Mel, not Admin)
 
-## The Fix
+## Fix
 
-Update the client's policies page to subscribe to realtime changes on the `policies` table, so new policies appear instantly without a refresh.
+Update `AdvisorClients.tsx` to check the user's role:
+- **If admin**: load ALL active clients (no `advisor_id` filter), so admins see every client across all advisors
+- **If advisor**: keep the existing filter (`advisor_id = portalUser.id`)
 
-### File: Client policies list page (likely `src/pages/portal/client/ClientPolicies.tsx` or similar)
+Also add the advisor's name to each client card so the admin knows which advisor each client belongs to.
 
-Add a Supabase realtime subscription:
+## Technical Details
+
+### File: `src/pages/portal/advisor/AdvisorClients.tsx`
+
+In the `loadClients()` function, change the query:
 
 ```typescript
-useEffect(() => {
-  const channel = supabase
-    .channel('client-policies')
-    .on(
-      'postgres_changes',
-      {
-        event: '*',
-        schema: 'public',
-        table: 'policies',
-        filter: `client_id=eq.${portalUser?.id}`,
-      },
-      () => {
-        // Re-fetch policies when any change occurs
-        fetchPolicies();
-      }
-    )
-    .subscribe();
+async function loadClients() {
+  try {
+    let query = supabase
+      .from("portal_users")
+      .select("*")
+      .eq("role", "client")
+      .eq("is_active", true)
+      .order("last_name");
 
-  return () => { supabase.removeChannel(channel); };
-}, [portalUser?.id]);
+    // Admins see all clients; advisors see only their own
+    if (portalUser!.role !== "admin") {
+      query = query.eq("advisor_id", portalUser!.id);
+    }
+
+    const { data, error } = await query;
+    if (error) throw error;
+    setClients((data as PortalUser[]) ?? []);
+  } catch (err) {
+    console.error("Error loading clients:", err);
+  } finally {
+    setLoading(false);
+  }
+}
 ```
 
-This means when the advisor clicks "Create Policy," the client's portal will update within seconds -- no refresh needed.
-
-## Summary
-
-- **Client Select dropdown**: Working correctly. If empty, it means the logged-in advisor has no active clients assigned.
-- **Realtime sync**: Needs a subscription added to the client policies page. The database-level realtime is already enabled; only the frontend listener is missing.
+No database changes needed -- the admin RLS policy already grants full SELECT access to portal_users for admins.
 
 ## Files Changed
 
-- Client policies list page -- add realtime subscription to auto-refresh when policies are inserted/updated/deleted
-
+- `src/pages/portal/advisor/AdvisorClients.tsx` -- add role check to conditionally remove the `advisor_id` filter for admins
