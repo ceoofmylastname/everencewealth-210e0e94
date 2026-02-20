@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { usePortalAuth } from "@/hooks/usePortalAuth";
 import { Skeleton } from "@/components/ui/skeleton";
-import { FileText, FolderOpen, ArrowUpRight, MessageCircle, Mail, Phone, User } from "lucide-react";
+import { FileText, FolderOpen, ArrowUpRight, MessageCircle, Mail, Phone, User, ClipboardList } from "lucide-react";
 
 const BRAND_GREEN = "#1A4D3E";
 const GOLD = "hsla(51, 78%, 65%, 1)";
@@ -42,6 +42,7 @@ export default function ClientDashboard() {
   const [docCount, setDocCount] = useState(0);
   const [msgCount, setMsgCount] = useState(0);
   const [advisor, setAdvisor] = useState<AdvisorInfo | null>(null);
+  const [cnas, setCnas] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -65,10 +66,19 @@ export default function ClientDashboard() {
         unreadCount = msgsRes.count ?? 0;
       } catch {}
 
+      // Load CNAs assigned to this client
+      const cnasRes = await supabase
+        .from("client_needs_analysis")
+        .select("id, applicant_name, created_at, net_worth, ai_retirement_projection, status")
+        .eq("client_id", portalUser!.id)
+        .order("created_at", { ascending: false })
+        .limit(5);
+
       setPolicies((policiesRes.data as PolicySummary[]) ?? []);
       setDocCount(docsRes.count ?? 0);
       setMsgCount(unreadCount);
       setAdvisor(advisorRes.data as AdvisorInfo | null);
+      setCnas(cnasRes.data ?? []);
     } catch (err) {
       console.error(err);
     } finally {
@@ -81,6 +91,7 @@ export default function ClientDashboard() {
   const statCards = [
     { label: "Active Policies", value: policies.filter(p => p.policy_status === "active").length, icon: FileText, href: "/portal/client/policies" },
     { label: "Documents", value: docCount, icon: FolderOpen, href: "/portal/client/documents" },
+    { label: "Analyses", value: cnas.length, icon: ClipboardList, href: "#analyses" },
     { label: "Unread Messages", value: msgCount, icon: MessageCircle, href: "/portal/client/messages" },
   ];
 
@@ -94,7 +105,7 @@ export default function ClientDashboard() {
       </div>
 
       {/* Stat Cards */}
-      <div className="grid grid-cols-3 gap-2 sm:gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4">
         {loading
           ? Array.from({ length: 3 }).map((_, i) => (
               <div key={i} className="bg-white rounded-xl border border-gray-100 shadow-sm p-3 sm:p-5 space-y-3">
@@ -118,6 +129,51 @@ export default function ClientDashboard() {
               </Link>
             ))}
       </div>
+
+      {/* Financial Analyses */}
+      {cnas.length > 0 && (
+        <div id="analyses" className="bg-white rounded-xl border border-gray-100 shadow-sm">
+          <div className="flex items-center justify-between p-5 border-b border-gray-100">
+            <h2 className="text-base font-semibold text-gray-900">Financial Analyses</h2>
+          </div>
+          <div className="p-5 space-y-2">
+            {cnas.map((cna) => {
+              const retScore = cna.ai_retirement_projection?.retirement_score;
+              return (
+                <Link key={cna.id} to={`/portal/client/cna/${cna.id}`}>
+                  <div className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 transition-colors border border-transparent hover:border-gray-100">
+                    <div className="flex items-center gap-3">
+                      <div className="h-9 w-9 rounded-lg flex items-center justify-center" style={{ background: `${BRAND_GREEN}15` }}>
+                        <ClipboardList className="h-4 w-4" style={{ color: BRAND_GREEN }} />
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-900 text-sm">{cna.applicant_name}</p>
+                        <p className="text-xs text-gray-500">{new Date(cna.created_at).toLocaleDateString()}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-4 text-xs">
+                      {cna.net_worth != null && (
+                        <div className="text-right hidden sm:block">
+                          <p className="text-gray-400">Net Worth</p>
+                          <p className="font-semibold text-gray-900">${Number(cna.net_worth).toLocaleString()}</p>
+                        </div>
+                      )}
+                      {retScore != null && (
+                        <div className="text-right">
+                          <p className="text-gray-400">Score</p>
+                          <p className="font-semibold" style={{ color: retScore >= 70 ? "#10B981" : retScore >= 40 ? "#F59E0B" : "#EF4444" }}>
+                            {retScore}%
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Two-column: Policies + Advisor */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">

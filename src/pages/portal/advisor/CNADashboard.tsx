@@ -175,7 +175,7 @@ export default function CNADashboard() {
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <div className="min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <h3 className="text-sm font-semibold text-gray-900 truncate">
+                         <h3 className="text-sm font-semibold text-gray-900 truncate">
                           {cna.applicant_name}
                         </h3>
                         <span
@@ -184,6 +184,11 @@ export default function CNADashboard() {
                         >
                           {sc.label}
                         </span>
+                        {cna.client_id && (
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-50 text-blue-600 border border-blue-200">
+                            Shared
+                          </span>
+                        )}
                       </div>
                       <p className="text-xs text-gray-500 mt-1">
                         Created {new Date(cna.created_at).toLocaleDateString()}

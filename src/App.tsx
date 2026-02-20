@@ -170,6 +170,7 @@ const ClientDocuments = lazy(() => import("./pages/portal/client/ClientDocuments
 const ClientMessages = lazy(() => import("./pages/portal/client/ClientMessages"));
 const ClientPolicyDetail = lazy(() => import("./pages/portal/client/ClientPolicyDetail"));
 const ClientNotifications = lazy(() => import("./pages/portal/client/ClientNotifications"));
+const ClientCNAView = lazy(() => import("./pages/portal/client/ClientCNAView"));
 const ClientSignup = lazy(() => import("./pages/portal/ClientSignup"));
 
 // Portal Admin Pages
@@ -390,6 +391,7 @@ const App = () => (
                   <Route path="documents" element={<ClientDocuments />} />
                   <Route path="messages" element={<ClientMessages />} />
                   <Route path="notifications" element={<ClientNotifications />} />
+                  <Route path="cna/:id" element={<ClientCNAView />} />
                 </Route>
               </Route>
 
