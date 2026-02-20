@@ -21,13 +21,19 @@ export default function AdvisorClients() {
 
   async function loadClients() {
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from("portal_users")
         .select("*")
         .eq("role", "client")
-        .eq("advisor_id", portalUser!.id)
         .eq("is_active", true)
         .order("last_name");
+
+      // Admins see all clients; advisors see only their own
+      if (portalUser!.role !== "admin") {
+        query = query.eq("advisor_id", portalUser!.id);
+      }
+
+      const { data, error } = await query;
       if (error) throw error;
       setClients((data as PortalUser[]) ?? []);
     } catch (err) {
