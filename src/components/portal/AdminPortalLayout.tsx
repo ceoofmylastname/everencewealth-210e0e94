@@ -5,17 +5,50 @@ import { cn } from "@/lib/utils";
 import {
   LogOut, Users, Menu, X, ChevronRight,
   LayoutDashboard, UserCog, FileText, FolderOpen, MessageSquare,
+  Building2, Newspaper, Wrench, GraduationCap, Megaphone, Calendar, Shield,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { NotificationBell } from "./NotificationBell";
 
-const adminNav = [
-  { label: "Agents", icon: UserCog, href: "/portal/admin/agents" },
-  { label: "Clients", icon: Users, href: "/portal/admin/clients" },
-  { label: "Policies", icon: FileText, href: "/portal/advisor/policies" },
-  { label: "Documents", icon: FolderOpen, href: "/portal/advisor/documents" },
-  { label: "Messages", icon: MessageSquare, href: "/portal/advisor/messages" },
-  { label: "Advisor Dashboard", icon: LayoutDashboard, href: "/portal/advisor/dashboard" },
+const adminNavGroups = [
+  {
+    label: "Management",
+    items: [
+      { label: "Agents", icon: UserCog, href: "/portal/admin/agents" },
+      { label: "Clients", icon: Users, href: "/portal/admin/clients" },
+      { label: "Policies", icon: FileText, href: "/portal/advisor/policies" },
+      { label: "Documents", icon: FolderOpen, href: "/portal/advisor/documents" },
+      { label: "Messages", icon: MessageSquare, href: "/portal/advisor/messages" },
+    ],
+  },
+  {
+    label: "Market",
+    items: [
+      { label: "Carriers", icon: Building2, href: "/portal/advisor/carriers" },
+      { label: "News", icon: Newspaper, href: "/portal/advisor/news" },
+    ],
+  },
+  {
+    label: "Resources",
+    items: [
+      { label: "Tools", icon: Wrench, href: "/portal/advisor/tools" },
+      { label: "Training", icon: GraduationCap, href: "/portal/advisor/training" },
+      { label: "Marketing", icon: Megaphone, href: "/portal/advisor/marketing" },
+      { label: "Schedule", icon: Calendar, href: "/portal/advisor/schedule" },
+    ],
+  },
+  {
+    label: "Compliance",
+    items: [
+      { label: "Compliance", icon: Shield, href: "/portal/advisor/compliance" },
+    ],
+  },
+  {
+    label: "Overview",
+    items: [
+      { label: "Advisor Dashboard", icon: LayoutDashboard, href: "/portal/advisor/dashboard" },
+    ],
+  },
 ];
 
 export function AdminPortalLayout() {
@@ -70,28 +103,35 @@ export function AdminPortalLayout() {
         </div>
 
         {/* Nav */}
-        <nav className="flex-1 py-4 px-3 space-y-0.5 overflow-y-auto">
-          {adminNav.map((item) => {
-            const active = location.pathname === item.href || location.pathname.startsWith(item.href + "/");
-            return (
-              <Link
-                key={item.href}
-                to={item.href}
-                onClick={() => setMobileOpen(false)}
-                className={cn(
-                  "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
-                  active
-                    ? "bg-[#F0F5F3] text-[#1A4D3E]"
-                    : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
-                )}
-                style={active ? { borderLeft: "3px solid #1A4D3E", paddingLeft: "calc(0.75rem - 3px)" } : { borderLeft: "3px solid transparent", paddingLeft: "calc(0.75rem - 3px)" }}
-              >
-                <item.icon className={cn("h-4 w-4 shrink-0", active ? "text-[#1A4D3E]" : "text-gray-400")} />
-                {item.label}
-                {active && <ChevronRight className="h-3 w-3 ml-auto text-[#1A4D3E]" />}
-              </Link>
-            );
-          })}
+        <nav className="flex-1 py-4 px-3 space-y-4 overflow-y-auto">
+          {adminNavGroups.map((group) => (
+            <div key={group.label}>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 px-3 mb-1">{group.label}</p>
+              <div className="space-y-0.5">
+                {group.items.map((item) => {
+                  const active = location.pathname === item.href || location.pathname.startsWith(item.href + "/");
+                  return (
+                    <Link
+                      key={item.href}
+                      to={item.href}
+                      onClick={() => setMobileOpen(false)}
+                      className={cn(
+                        "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                        active
+                          ? "bg-[#F0F5F3] text-[#1A4D3E]"
+                          : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
+                      )}
+                      style={active ? { borderLeft: "3px solid #1A4D3E", paddingLeft: "calc(0.75rem - 3px)" } : { borderLeft: "3px solid transparent", paddingLeft: "calc(0.75rem - 3px)" }}
+                    >
+                      <item.icon className={cn("h-4 w-4 shrink-0", active ? "text-[#1A4D3E]" : "text-gray-400")} />
+                      {item.label}
+                      {active && <ChevronRight className="h-3 w-3 ml-auto text-[#1A4D3E]" />}
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </nav>
 
         {/* User footer */}
