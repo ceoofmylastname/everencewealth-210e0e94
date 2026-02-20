@@ -1,0 +1,1 @@
+ALTER TABLE public.advisors ADD COLUMN rank_override_id uuid REFERENCES public.advisor_rank_config(id) DEFAULT NULL;
