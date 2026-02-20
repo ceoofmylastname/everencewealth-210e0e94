@@ -137,35 +137,35 @@ export default function AdvisorDashboard() {
       )}
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {loading
           ? Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 space-y-3">
-                <Skeleton className="h-10 w-10 rounded-lg" />
-                <Skeleton className="h-8 w-16" />
+              <div key={i} className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 space-y-3">
+                <Skeleton className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg" />
+                <Skeleton className="h-6 w-16" />
                 <Skeleton className="h-4 w-24" />
               </div>
             ))
           : statCards.map((card) => (
               <Link key={card.label} to={card.href}>
-                <div className="group bg-white rounded-xl border border-gray-100 shadow-sm p-5 hover:shadow-md hover:border-gray-200 transition-all duration-200 cursor-pointer">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="h-10 w-10 rounded-lg flex items-center justify-center" style={{ background: `${card.color}15` }}>
-                      <card.icon className="h-5 w-5" style={{ color: card.color }} />
+                <div className="group bg-white rounded-xl border border-gray-100 shadow-sm p-3 sm:p-5 hover:shadow-md hover:border-gray-200 transition-all duration-200 cursor-pointer">
+                  <div className="flex items-center justify-between mb-2 sm:mb-4">
+                    <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg flex items-center justify-center" style={{ background: `${card.color}15` }}>
+                      <card.icon className="h-4 w-4 sm:h-5 sm:w-5" style={{ color: card.color }} />
                     </div>
-                    <ArrowUpRight className="h-4 w-4 text-gray-300 group-hover:text-gray-500 transition-colors" />
+                    <ArrowUpRight className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-300 group-hover:text-gray-500 transition-colors" />
                   </div>
-                  <p className="text-3xl font-bold text-gray-900">{card.value}</p>
-                  <p className="text-sm text-gray-500 mt-1">{card.label}</p>
+                  <p className="text-xl sm:text-3xl font-bold text-gray-900">{card.value}</p>
+                  <p className="text-xs sm:text-sm text-gray-500 mt-0.5 sm:mt-1">{card.label}</p>
                 </div>
               </Link>
             ))}
       </div>
 
       {/* Quick Actions */}
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
-        <h2 className="text-base font-semibold text-gray-900 mb-4">Quick Actions</h2>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+      <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-3 sm:p-5">
+        <h2 className="text-sm sm:text-base font-semibold text-gray-900 mb-3 sm:mb-4">Quick Actions</h2>
+        <div className="grid grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-3">
           {quickActions.map((action) => (
             <Link key={action.label} to={action.href}>
               <div className="flex flex-col items-center gap-2 p-3 rounded-xl bg-gray-50 hover:bg-[#F0F5F3] transition-colors cursor-pointer group border border-transparent hover:border-gray-200">
@@ -180,7 +180,7 @@ export default function AdvisorDashboard() {
       </div>
 
       {/* Bottom 3-column grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-5">
         {/* Left 2/3: News + Events */}
         <div className="lg:col-span-2 space-y-5">
           {/* Recent News */}

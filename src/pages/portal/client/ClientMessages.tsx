@@ -157,7 +157,7 @@ export default function ClientMessages() {
         Messages
       </h1>
 
-      <Card className="flex flex-col h-[calc(100vh-12rem)]">
+      <Card className="flex flex-col h-[calc(100vh-10rem)] sm:h-[calc(100vh-12rem)]">
         <CardHeader className="py-3 px-4 border-b">
           <CardTitle className="text-sm">Chat with {advisorName || "Your Advisor"}</CardTitle>
         </CardHeader>
@@ -167,7 +167,7 @@ export default function ClientMessages() {
             return (
               <div key={msg.id} className={cn("flex", isMine ? "justify-end" : "justify-start")}>
                 <div className={cn(
-                  "max-w-[70%] rounded-2xl px-4 py-2",
+                  "max-w-[85%] sm:max-w-[70%] rounded-2xl px-4 py-2",
                   isMine
                     ? "bg-primary text-primary-foreground rounded-br-md"
                     : "bg-muted rounded-bl-md"
@@ -182,15 +182,15 @@ export default function ClientMessages() {
           })}
           <div ref={messagesEndRef} />
         </CardContent>
-        <div className="border-t p-3">
+        <div className="border-t p-2 sm:p-3">
           <form onSubmit={handleSend} className="flex gap-2">
             <Input
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
               placeholder="Type a message..."
-              className="flex-1"
+              className="flex-1 h-10 sm:h-9 text-base sm:text-sm"
             />
-            <Button type="submit" size="icon" disabled={sending || !newMessage.trim()}>
+            <Button type="submit" size="icon" disabled={sending || !newMessage.trim()} className="h-10 w-10 sm:h-9 sm:w-9 shrink-0">
               <Send className="h-4 w-4" />
             </Button>
           </form>

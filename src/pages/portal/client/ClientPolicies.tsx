@@ -104,7 +104,7 @@ export default function ClientPolicies() {
                       <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
                     </div>
                   </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
+                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3 text-sm">
                     <div>
                       <p className="text-muted-foreground">Death Benefit</p>
                       <p className="font-medium text-foreground">{fmt(p.death_benefit)}</p>

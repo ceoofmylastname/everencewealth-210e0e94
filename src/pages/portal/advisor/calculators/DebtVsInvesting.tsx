@@ -73,7 +73,7 @@ export default function DebtVsInvesting({ onClose }: Props) {
             </p>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="rounded-xl p-3 border border-red-200 bg-red-50">
               <p className="text-xs text-gray-500">Effective Debt Rate</p>
               <p className="text-lg font-bold text-red-600">{results.effectiveDebtRate.toFixed(2)}%</p>

@@ -94,26 +94,26 @@ export default function ClientDashboard() {
       </div>
 
       {/* Stat Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-3 gap-2 sm:gap-4">
         {loading
           ? Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 space-y-3">
-                <Skeleton className="h-10 w-10 rounded-lg" />
-                <Skeleton className="h-8 w-16" />
-                <Skeleton className="h-4 w-24" />
+              <div key={i} className="bg-white rounded-xl border border-gray-100 shadow-sm p-3 sm:p-5 space-y-3">
+                <Skeleton className="h-8 w-8 rounded-lg" />
+                <Skeleton className="h-6 w-12" />
+                <Skeleton className="h-3 w-16" />
               </div>
             ))
           : statCards.map((card) => (
               <Link key={card.label} to={card.href}>
-                <div className="group bg-white rounded-xl border border-gray-100 shadow-sm p-5 hover:shadow-md hover:border-gray-200 transition-all duration-200">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="h-10 w-10 rounded-lg flex items-center justify-center" style={{ background: `${BRAND_GREEN}15` }}>
-                      <card.icon className="h-5 w-5" style={{ color: BRAND_GREEN }} />
+                <div className="group bg-white rounded-xl border border-gray-100 shadow-sm p-3 sm:p-5 hover:shadow-md hover:border-gray-200 transition-all duration-200">
+                  <div className="flex items-center justify-between mb-2 sm:mb-4">
+                    <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg flex items-center justify-center" style={{ background: `${BRAND_GREEN}15` }}>
+                      <card.icon className="h-4 w-4 sm:h-5 sm:w-5" style={{ color: BRAND_GREEN }} />
                     </div>
-                    <ArrowUpRight className="h-4 w-4 text-gray-300 group-hover:text-gray-500 transition-colors" />
+                    <ArrowUpRight className="h-3 w-3 sm:h-4 sm:w-4 text-gray-300 group-hover:text-gray-500 transition-colors" />
                   </div>
-                  <p className="text-3xl font-bold text-gray-900">{card.value}</p>
-                  <p className="text-sm text-gray-500 mt-1">{card.label}</p>
+                  <p className="text-lg sm:text-3xl font-bold text-gray-900">{card.value}</p>
+                  <p className="text-[10px] sm:text-sm text-gray-500 mt-0.5 sm:mt-1 truncate">{card.label}</p>
                 </div>
               </Link>
             ))}

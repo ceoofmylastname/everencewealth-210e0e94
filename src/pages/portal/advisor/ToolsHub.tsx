@@ -133,20 +133,21 @@ function FilterChip({ label, active, onClick }: { label: string; active: boolean
 
 function Card3D({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   const [transform, setTransform] = useState("perspective(600px) rotateX(0deg) rotateY(0deg)");
+  const isTouch = typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches;
   return (
     <motion.div
       variants={cardVariants}
-      whileHover={{ y: -6, boxShadow: "0 20px 40px -12px rgba(0,0,0,0.12)" }}
+      whileHover={isTouch ? undefined : { y: -6, boxShadow: "0 20px 40px -12px rgba(0,0,0,0.12)" }}
       transition={{ type: "spring", stiffness: 300, damping: 20 }}
       className={`${className}`}
-      style={{ transform }}
-      onMouseMove={e => {
+      style={isTouch ? undefined : { transform }}
+      onMouseMove={isTouch ? undefined : e => {
         const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
         const x = (e.clientX - rect.left) / rect.width - 0.5;
         const y = (e.clientY - rect.top) / rect.height - 0.5;
         setTransform(`perspective(600px) rotateY(${x * 6}deg) rotateX(${-y * 6}deg)`);
       }}
-      onMouseLeave={() => setTransform("perspective(600px) rotateX(0deg) rotateY(0deg)")}>
+      onMouseLeave={isTouch ? undefined : () => setTransform("perspective(600px) rotateX(0deg) rotateY(0deg)")}>
       {children}
     </motion.div>
   );
@@ -204,7 +205,7 @@ export default function ToolsHub() {
       </motion.div>
 
       <Dialog open={!!openCalculator} onOpenChange={(open) => { if (!open) setOpenCalculator(null); }}>
-        <DialogContent className="max-w-4xl w-full max-h-[90vh] overflow-y-auto p-0">
+        <DialogContent className="max-w-4xl w-full max-h-[90vh] overflow-y-auto p-0 mx-2 sm:mx-auto">
           <DialogHeader className="px-6 py-4 border-b border-gray-100 sticky top-0 bg-white z-10">
             <div className="flex items-center gap-3">
               <div className="h-8 w-8 rounded-lg flex items-center justify-center" style={{ background: `${BRAND_GREEN}15` }}>
@@ -218,11 +219,11 @@ export default function ToolsHub() {
       </Dialog>
 
       <Tabs defaultValue="quoting">
-        <TabsList className="bg-gray-100 rounded-lg p-1">
-          <TabsTrigger value="quoting" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-gray-900 text-gray-500">
+        <TabsList className="bg-gray-100 rounded-lg p-1 w-full sm:w-auto">
+          <TabsTrigger value="quoting" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-gray-900 text-gray-500 py-2.5 sm:py-1.5 flex-1 sm:flex-none touch-manipulation">
             <Wrench className="h-4 w-4 mr-1" />Quoting Tools
           </TabsTrigger>
-          <TabsTrigger value="calculators" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-gray-900 text-gray-500">
+          <TabsTrigger value="calculators" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-gray-900 text-gray-500 py-2.5 sm:py-1.5 flex-1 sm:flex-none touch-manipulation">
             <Calculator className="h-4 w-4 mr-1" />Calculators
           </TabsTrigger>
         </TabsList>
@@ -242,7 +243,7 @@ export default function ToolsHub() {
             <Input value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder="Search by tool or carrier name…" className={`pl-9 ${inputCls}`} />
           </div>
 
-          <div className="flex flex-wrap gap-2">
+          <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
             <FilterChip label="All" active={selectedType === null} onClick={() => setSelectedType(null)} />
             {TOOL_TYPES.map(tt => (
               <FilterChip key={tt.key} label={tt.label} active={selectedType === tt.key}
@@ -325,7 +326,7 @@ export default function ToolsHub() {
 
         {/* ── CALCULATORS TAB ── */}
         <TabsContent value="calculators" className="mt-6 space-y-6">
-          <div className="flex flex-wrap gap-2">
+          <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
             <FilterChip label="All" active={selectedCategory === null} onClick={() => setSelectedCategory(null)} />
             {CALC_CATEGORIES.map(cat => (
               <FilterChip key={cat.key} label={cat.label} active={selectedCategory === cat.key}

@@ -89,7 +89,7 @@ export default function PerformanceTracker() {
             </DialogTrigger>
             <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto bg-white">
               <DialogHeader><DialogTitle className="text-gray-900">Add Performance Entry</DialogTitle></DialogHeader>
-              <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-4 mt-2">
+              <form onSubmit={handleSubmit} className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
                 <div><Label className="text-gray-600 text-sm">Entry Date</Label><Input type="date" className={inputCls} value={newEntry.entry_date} onChange={e => setNewEntry({ ...newEntry, entry_date: e.target.value })} required /></div>
                 <div><Label className="text-gray-600 text-sm">Lead Type</Label><Input className={inputCls} value={newEntry.lead_type} onChange={e => setNewEntry({ ...newEntry, lead_type: e.target.value })} placeholder="e.g. IUL" /></div>
                 <div><Label className="text-gray-600 text-sm">Leads Purchased</Label><Input type="number" className={inputCls} value={newEntry.leads_purchased} onChange={e => setNewEntry({ ...newEntry, leads_purchased: Number(e.target.value) })} /></div>
@@ -112,7 +112,7 @@ export default function PerformanceTracker() {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {[
           { label: "Total Revenue", value: `$${(stats.totalRevenue / 1000).toFixed(1)}K`, icon: DollarSign, color: "#C9A84C" },
           { label: "Clients Closed", value: stats.totalClientsClosed, icon: Users, color: BRAND_GREEN },
@@ -156,41 +156,69 @@ export default function PerformanceTracker() {
       {loading ? (
         <div className="flex justify-center py-12"><div className="w-8 h-8 border-4 rounded-full animate-spin" style={{ borderColor: BRAND_GREEN, borderTopColor: "transparent" }} /></div>
       ) : entries.length > 0 && (
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-          <div className="p-5 border-b border-gray-100">
+        <>
+          {/* Mobile card view */}
+          <div className="md:hidden space-y-3">
             <h2 className="text-base font-semibold text-gray-900">Recent Activity</h2>
+            {entries.slice(0, 10).map((e: any) => {
+              const roi = (e.total_lead_cost || 0) > 0 ? ((e.revenue - e.total_lead_cost) / e.total_lead_cost * 100) : 0;
+              return (
+                <div key={e.id} className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-gray-900">{e.entry_date}</span>
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">{e.lead_type || "—"}</span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2 text-center">
+                    <div><p className="text-xs text-gray-400">Leads</p><p className="text-sm font-semibold text-gray-900">{e.leads_worked}</p></div>
+                    <div><p className="text-xs text-gray-400">Closed</p><p className="text-sm font-semibold text-gray-900">{e.clients_closed}</p></div>
+                    <div><p className="text-xs text-gray-400">Revenue</p><p className="text-sm font-semibold text-gray-900">${Number(e.revenue).toLocaleString()}</p></div>
+                  </div>
+                  <div className="flex items-center justify-between pt-1 border-t border-gray-100">
+                    <span className="text-xs text-gray-400">ROI</span>
+                    <span className="text-sm font-bold" style={{ color: roi >= 0 ? "#10B981" : "#EF4444" }}>{roi.toFixed(1)}%</span>
+                  </div>
+                </div>
+              );
+            })}
           </div>
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow className="border-gray-100 bg-gray-50 hover:bg-gray-50">
-                  {["Date", "Lead Type", "Leads", "Worked", "Dials", "Appts Set", "Appts Held", "Closed", "Revenue", "ROI"].map(h => (
-                    <TableHead key={h} className="text-gray-500 whitespace-nowrap font-semibold text-xs uppercase tracking-wide">{h}</TableHead>
-                  ))}
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {entries.slice(0, 10).map((e: any) => {
-                  const roi = (e.total_lead_cost || 0) > 0 ? ((e.revenue - e.total_lead_cost) / e.total_lead_cost * 100) : 0;
-                  return (
-                    <TableRow key={e.id} className="border-gray-100 hover:bg-gray-50">
-                      <TableCell className="text-gray-600 whitespace-nowrap">{e.entry_date}</TableCell>
-                      <TableCell className="text-gray-600">{e.lead_type || "—"}</TableCell>
-                      <TableCell className="text-gray-600">{e.leads_purchased}</TableCell>
-                      <TableCell className="text-gray-600">{e.leads_worked}</TableCell>
-                      <TableCell className="text-gray-600">{e.dials_made}</TableCell>
-                      <TableCell className="text-gray-600">{e.appointments_set}</TableCell>
-                      <TableCell className="text-gray-600">{e.appointments_held}</TableCell>
-                      <TableCell className="text-gray-600">{e.clients_closed}</TableCell>
-                      <TableCell className="font-semibold text-gray-900">${Number(e.revenue).toLocaleString()}</TableCell>
-                      <TableCell className="font-semibold" style={{ color: roi >= 0 ? "#10B981" : "#EF4444" }}>{roi.toFixed(1)}%</TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
+
+          {/* Desktop table view */}
+          <div className="hidden md:block bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+            <div className="p-5 border-b border-gray-100">
+              <h2 className="text-base font-semibold text-gray-900">Recent Activity</h2>
+            </div>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="border-gray-100 bg-gray-50 hover:bg-gray-50">
+                    {["Date", "Lead Type", "Leads", "Worked", "Dials", "Appts Set", "Appts Held", "Closed", "Revenue", "ROI"].map(h => (
+                      <TableHead key={h} className="text-gray-500 whitespace-nowrap font-semibold text-xs uppercase tracking-wide">{h}</TableHead>
+                    ))}
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {entries.slice(0, 10).map((e: any) => {
+                    const roi = (e.total_lead_cost || 0) > 0 ? ((e.revenue - e.total_lead_cost) / e.total_lead_cost * 100) : 0;
+                    return (
+                      <TableRow key={e.id} className="border-gray-100 hover:bg-gray-50">
+                        <TableCell className="text-gray-600 whitespace-nowrap">{e.entry_date}</TableCell>
+                        <TableCell className="text-gray-600">{e.lead_type || "—"}</TableCell>
+                        <TableCell className="text-gray-600">{e.leads_purchased}</TableCell>
+                        <TableCell className="text-gray-600">{e.leads_worked}</TableCell>
+                        <TableCell className="text-gray-600">{e.dials_made}</TableCell>
+                        <TableCell className="text-gray-600">{e.appointments_set}</TableCell>
+                        <TableCell className="text-gray-600">{e.appointments_held}</TableCell>
+                        <TableCell className="text-gray-600">{e.clients_closed}</TableCell>
+                        <TableCell className="font-semibold text-gray-900">${Number(e.revenue).toLocaleString()}</TableCell>
+                        <TableCell className="font-semibold" style={{ color: roi >= 0 ? "#10B981" : "#EF4444" }}>{roi.toFixed(1)}%</TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
           </div>
-        </div>
+        </>
       )}
     </div>
   );
