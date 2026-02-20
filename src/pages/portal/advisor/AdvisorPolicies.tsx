@@ -143,14 +143,14 @@ export default function AdvisorPolicies() {
           <div className="w-6 h-6 border-2 rounded-full animate-spin" style={{ borderColor: BRAND_GREEN, borderTopColor: "transparent" }} />
         </div>
       ) : filtered.length === 0 ? (
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-12 text-center">
+        <div className="bg-white rounded-2xl border border-gray-200 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.08)] p-12 text-center">
           <FileText className="h-12 w-12 mx-auto mb-4 text-gray-300" />
           <p className="text-gray-500">No policies found.</p>
         </div>
       ) : (
         <div className="space-y-3">
           {filtered.map((policy) => (
-            <div key={policy.id} className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 sm:p-5 hover:shadow-md hover:border-gray-200 transition-all">
+            <div key={policy.id} className="bg-white rounded-2xl border border-gray-200 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.08)] p-4 sm:p-5 hover:shadow-[0_4px_20px_-4px_rgba(0,0,0,0.12)] hover:translate-y-[-2px] transition-all">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap mb-1">

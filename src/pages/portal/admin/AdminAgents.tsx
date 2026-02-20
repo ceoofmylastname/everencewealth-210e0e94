@@ -203,7 +203,7 @@ export default function AdminAgents() {
         </TabsList>
 
         <TabsContent value="all">
-          <div className="bg-white rounded-xl border border-gray-100 shadow-sm mt-4">
+          <div className="bg-white rounded-2xl border border-gray-200 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.08)] mt-4">
             {/* Toolbar */}
             <div className="p-4 border-b border-gray-100 flex flex-col sm:flex-row gap-3">
               <div className="relative flex-1">
@@ -291,7 +291,7 @@ export default function AdminAgents() {
         </TabsContent>
 
         <TabsContent value="pending">
-          <div className="bg-white rounded-xl border border-gray-100 shadow-sm mt-4">
+          <div className="bg-white rounded-2xl border border-gray-200 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.08)] mt-4">
             {pendingLoading ? (
               <div className="flex justify-center py-12">
                 <div className="w-6 h-6 border-4 border-[#1A4D3E] border-t-transparent rounded-full animate-spin" />

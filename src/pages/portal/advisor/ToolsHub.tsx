@@ -254,7 +254,7 @@ export default function ToolsHub() {
           <AnimatePresence mode="wait">
             {filteredTools.length === 0 ? (
               <motion.div key="empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                className="bg-white rounded-xl border border-gray-100 shadow-sm text-center py-12">
+                className="bg-white rounded-2xl border border-gray-200 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.08)] text-center py-12">
                 <Search className="h-8 w-8 text-gray-300 mx-auto mb-2" />
                 <p className="text-gray-500">No tools match your search.</p>
               </motion.div>
@@ -264,7 +264,7 @@ export default function ToolsHub() {
                 {filteredTools.map(t => {
                   const typeColor = TOOL_TYPE_COLORS[t.tool_type] || { bg: "#F3F4F6", text: "#374151" };
                   return (
-                    <Card3D key={t.id} className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 flex flex-col gap-3 transition-all">
+                    <Card3D key={t.id} className="bg-white rounded-2xl border border-gray-200 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.08)] p-5 flex flex-col gap-3 transition-all">
                       <div className="flex items-center gap-3 min-w-0">
                         {t.carriers?.carrier_logo_url ? (
                           <img src={t.carriers.carrier_logo_url} alt={t.carriers.carrier_name} className="h-10 w-10 object-contain rounded-lg bg-gray-50 p-1" />

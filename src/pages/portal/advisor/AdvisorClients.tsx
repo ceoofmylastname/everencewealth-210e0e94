@@ -128,7 +128,7 @@ export default function AdvisorClients() {
             { label: "Active Advisors", value: uniqueAdvisorCount, icon: UserCheck },
             { label: "Avg per Advisor", value: uniqueAdvisorCount > 0 ? Math.round(clients.length / uniqueAdvisorCount) : 0, icon: FileText },
           ].map((stat) => (
-            <div key={stat.label} className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 flex items-center gap-3">
+            <div key={stat.label} className="bg-white rounded-2xl border border-gray-200 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.08)] p-4 flex items-center gap-3">
               <div className="h-9 w-9 rounded-lg flex items-center justify-center" style={{ background: BRAND_GREEN_LIGHT }}>
                 <stat.icon className="h-4.5 w-4.5" style={{ color: BRAND_GREEN }} />
               </div>
@@ -197,7 +197,7 @@ export default function AdvisorClients() {
           <div className="w-6 h-6 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: BRAND_GREEN, borderTopColor: "transparent" }} />
         </div>
       ) : filtered.length === 0 ? (
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-14 text-center">
+        <div className="bg-white rounded-2xl border border-gray-200 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.08)] p-14 text-center">
           <Users className="h-12 w-12 mx-auto mb-4 text-gray-300" />
           <p className="text-gray-500 font-medium">
             {search || selectedAdvisor !== "all" ? "No clients match your filters." : "No clients yet. Invite your first client to get started."}
@@ -210,7 +210,7 @@ export default function AdvisorClients() {
             return (
               <div
                 key={client.id}
-                className="bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md hover:border-gray-200 transition-all duration-200 overflow-hidden group"
+                className="bg-white rounded-2xl border border-gray-200 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.08)] hover:shadow-[0_4px_20px_-4px_rgba(0,0,0,0.12)] hover:translate-y-[-2px] transition-all duration-200 overflow-hidden group"
               >
                 <div className="p-5">
                   {/* Client Identity */}
