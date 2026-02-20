@@ -2361,6 +2361,286 @@ export type Database = {
           },
         ]
       }
+      client_needs_analysis: {
+        Row: {
+          address: string | null
+          advisor_id: string
+          advisor_notes: string | null
+          ai_insurance_gap: Json | null
+          ai_recommendations: Json | null
+          ai_retirement_projection: Json | null
+          ai_risk_assessment: Json | null
+          applicant_dob: string | null
+          applicant_name: string
+          applicant_smoking_status: string | null
+          asset_home_value: number | null
+          asset_investments: number | null
+          asset_life_insurance_cv: number | null
+          asset_other: number | null
+          asset_other_description: string | null
+          asset_retirement_accounts: number | null
+          asset_savings_cds: number | null
+          budget_available_1600: boolean | null
+          budget_available_400: boolean | null
+          budget_available_800: boolean | null
+          budget_available_other: number | null
+          city: string | null
+          client_id: string | null
+          client_signature: string | null
+          combined_gross_income: number | null
+          combined_net_income: number | null
+          completed_at: string | null
+          created_at: string | null
+          debt_to_income_ratio: number | null
+          email: string | null
+          expense_car_payment: number | null
+          expense_child_care: number | null
+          expense_clothing: number | null
+          expense_debt_service: number | null
+          expense_dining_out: number | null
+          expense_gifts: number | null
+          expense_groceries: number | null
+          expense_health_premiums: number | null
+          expense_insurance: number | null
+          expense_mortgage_rent: number | null
+          expense_other: number | null
+          expense_other_description: string | null
+          expense_travel: number | null
+          expense_utilities: number | null
+          follow_up_tasks: Json | null
+          goal_education: boolean | null
+          goal_home: boolean | null
+          goal_monthly_amount: boolean | null
+          goal_monthly_amount_target: number | null
+          goal_other_description: string | null
+          goal_other_goals: boolean | null
+          goal_retire_parents: boolean | null
+          goal_retirement_age: boolean | null
+          goal_retirement_age_target: number | null
+          goal_travel: boolean | null
+          goal_vacation: boolean | null
+          id: string
+          liability_car_loans: number | null
+          liability_credit_cards: number | null
+          liability_mortgage: number | null
+          liability_other: number | null
+          liability_other_description: string | null
+          liability_student_loans: number | null
+          monthly_surplus_deficit: number | null
+          net_worth: number | null
+          next_review_date: string | null
+          other_income: number | null
+          other_income_description: string | null
+          phone: string | null
+          previous_version_id: string | null
+          risk_tolerance: string | null
+          signature_date: string | null
+          spouse_dob: string | null
+          spouse_name: string | null
+          spouse_smoking_status: string | null
+          state: string | null
+          status: string | null
+          total_assets: number | null
+          total_liabilities: number | null
+          total_monthly_expenses: number | null
+          updated_at: string | null
+          version: number | null
+          zip: string | null
+        }
+        Insert: {
+          address?: string | null
+          advisor_id: string
+          advisor_notes?: string | null
+          ai_insurance_gap?: Json | null
+          ai_recommendations?: Json | null
+          ai_retirement_projection?: Json | null
+          ai_risk_assessment?: Json | null
+          applicant_dob?: string | null
+          applicant_name: string
+          applicant_smoking_status?: string | null
+          asset_home_value?: number | null
+          asset_investments?: number | null
+          asset_life_insurance_cv?: number | null
+          asset_other?: number | null
+          asset_other_description?: string | null
+          asset_retirement_accounts?: number | null
+          asset_savings_cds?: number | null
+          budget_available_1600?: boolean | null
+          budget_available_400?: boolean | null
+          budget_available_800?: boolean | null
+          budget_available_other?: number | null
+          city?: string | null
+          client_id?: string | null
+          client_signature?: string | null
+          combined_gross_income?: number | null
+          combined_net_income?: number | null
+          completed_at?: string | null
+          created_at?: string | null
+          debt_to_income_ratio?: number | null
+          email?: string | null
+          expense_car_payment?: number | null
+          expense_child_care?: number | null
+          expense_clothing?: number | null
+          expense_debt_service?: number | null
+          expense_dining_out?: number | null
+          expense_gifts?: number | null
+          expense_groceries?: number | null
+          expense_health_premiums?: number | null
+          expense_insurance?: number | null
+          expense_mortgage_rent?: number | null
+          expense_other?: number | null
+          expense_other_description?: string | null
+          expense_travel?: number | null
+          expense_utilities?: number | null
+          follow_up_tasks?: Json | null
+          goal_education?: boolean | null
+          goal_home?: boolean | null
+          goal_monthly_amount?: boolean | null
+          goal_monthly_amount_target?: number | null
+          goal_other_description?: string | null
+          goal_other_goals?: boolean | null
+          goal_retire_parents?: boolean | null
+          goal_retirement_age?: boolean | null
+          goal_retirement_age_target?: number | null
+          goal_travel?: boolean | null
+          goal_vacation?: boolean | null
+          id?: string
+          liability_car_loans?: number | null
+          liability_credit_cards?: number | null
+          liability_mortgage?: number | null
+          liability_other?: number | null
+          liability_other_description?: string | null
+          liability_student_loans?: number | null
+          monthly_surplus_deficit?: number | null
+          net_worth?: number | null
+          next_review_date?: string | null
+          other_income?: number | null
+          other_income_description?: string | null
+          phone?: string | null
+          previous_version_id?: string | null
+          risk_tolerance?: string | null
+          signature_date?: string | null
+          spouse_dob?: string | null
+          spouse_name?: string | null
+          spouse_smoking_status?: string | null
+          state?: string | null
+          status?: string | null
+          total_assets?: number | null
+          total_liabilities?: number | null
+          total_monthly_expenses?: number | null
+          updated_at?: string | null
+          version?: number | null
+          zip?: string | null
+        }
+        Update: {
+          address?: string | null
+          advisor_id?: string
+          advisor_notes?: string | null
+          ai_insurance_gap?: Json | null
+          ai_recommendations?: Json | null
+          ai_retirement_projection?: Json | null
+          ai_risk_assessment?: Json | null
+          applicant_dob?: string | null
+          applicant_name?: string
+          applicant_smoking_status?: string | null
+          asset_home_value?: number | null
+          asset_investments?: number | null
+          asset_life_insurance_cv?: number | null
+          asset_other?: number | null
+          asset_other_description?: string | null
+          asset_retirement_accounts?: number | null
+          asset_savings_cds?: number | null
+          budget_available_1600?: boolean | null
+          budget_available_400?: boolean | null
+          budget_available_800?: boolean | null
+          budget_available_other?: number | null
+          city?: string | null
+          client_id?: string | null
+          client_signature?: string | null
+          combined_gross_income?: number | null
+          combined_net_income?: number | null
+          completed_at?: string | null
+          created_at?: string | null
+          debt_to_income_ratio?: number | null
+          email?: string | null
+          expense_car_payment?: number | null
+          expense_child_care?: number | null
+          expense_clothing?: number | null
+          expense_debt_service?: number | null
+          expense_dining_out?: number | null
+          expense_gifts?: number | null
+          expense_groceries?: number | null
+          expense_health_premiums?: number | null
+          expense_insurance?: number | null
+          expense_mortgage_rent?: number | null
+          expense_other?: number | null
+          expense_other_description?: string | null
+          expense_travel?: number | null
+          expense_utilities?: number | null
+          follow_up_tasks?: Json | null
+          goal_education?: boolean | null
+          goal_home?: boolean | null
+          goal_monthly_amount?: boolean | null
+          goal_monthly_amount_target?: number | null
+          goal_other_description?: string | null
+          goal_other_goals?: boolean | null
+          goal_retire_parents?: boolean | null
+          goal_retirement_age?: boolean | null
+          goal_retirement_age_target?: number | null
+          goal_travel?: boolean | null
+          goal_vacation?: boolean | null
+          id?: string
+          liability_car_loans?: number | null
+          liability_credit_cards?: number | null
+          liability_mortgage?: number | null
+          liability_other?: number | null
+          liability_other_description?: string | null
+          liability_student_loans?: number | null
+          monthly_surplus_deficit?: number | null
+          net_worth?: number | null
+          next_review_date?: string | null
+          other_income?: number | null
+          other_income_description?: string | null
+          phone?: string | null
+          previous_version_id?: string | null
+          risk_tolerance?: string | null
+          signature_date?: string | null
+          spouse_dob?: string | null
+          spouse_name?: string | null
+          spouse_smoking_status?: string | null
+          state?: string | null
+          status?: string | null
+          total_assets?: number | null
+          total_liabilities?: number | null
+          total_monthly_expenses?: number | null
+          updated_at?: string | null
+          version?: number | null
+          zip?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_needs_analysis_advisor_id_fkey"
+            columns: ["advisor_id"]
+            isOneToOne: false
+            referencedRelation: "portal_users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_needs_analysis_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "portal_users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_needs_analysis_previous_version_id_fkey"
+            columns: ["previous_version_id"]
+            isOneToOne: false
+            referencedRelation: "client_needs_analysis"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cluster_article_chunks: {
         Row: {
           article_data: Json | null
