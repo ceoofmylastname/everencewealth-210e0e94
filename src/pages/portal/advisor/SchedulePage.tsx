@@ -39,7 +39,10 @@ export default function SchedulePage() {
     setLoading(true);
     const today = new Date().toISOString().split("T")[0];
     const { data } = await supabase.from("schedule_events").select("*, creator:portal_users!schedule_events_created_by_fkey(role)").gte("event_date", today).order("event_date").order("event_time");
-    setEvents(data ?? []); setLoading(false);
+    const filtered = (data ?? []).filter(
+      (e: any) => e.creator?.role === 'admin' || e.created_by === portalUser?.id
+    );
+    setEvents(filtered); setLoading(false);
   }
 
   function openAdd() { setEditingEvent(null); setForm({ ...defaultNewEvent }); setShowDialog(true); }
