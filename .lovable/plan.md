@@ -1,100 +1,80 @@
 
-# Admin Full Advisor Capabilities + Agency Oversight
+# Admin Content Management -- Full CRUD Access to All Portal Modules
 
 ## Summary
 
-The admin needs to work both as a full advisor (own clients, policies, documents, messages) AND have oversight of all agents' activities. This requires changes across 4 pages plus 1 database record, and adding more navigation links to the admin layout.
+The admin needs to manage all content that agents/brokers see: carriers, news, tools, training, marketing, schedule, compliance, and downloadable documents. The database RLS policies already grant admins full CRUD access on all these tables. The work is purely frontend: adding navigation links and adding admin-only create/edit/delete UI to each existing page.
 
-## Changes Required
+## Current State
 
-### 1. Create an Advisors Record for the Admin
+- **Database**: Already has `ALL` (full CRUD) RLS policies for admins on `carriers`, `carrier_news`, `quoting_tools`, `trainings`, `marketing_resources`, `schedule_events`, `compliance_documents`, and `carrier_contracts`. No database changes needed.
+- **Routing**: `AdvisorRoute` already allows admins through (checks `role === "advisor" || role === "admin"`), so admins can already visit `/portal/advisor/*` pages.
+- **Admin Sidebar**: Only has links for Agents, Clients, Policies, Documents, Messages, and Dashboard. Missing links for Carriers, News, Tools, Training, Marketing, Schedule, and Compliance.
+- **Page UI**: These pages are read-only views for advisors. None have add/edit/delete forms. The admin needs CRUD forms added (visible only when user is admin).
 
-The admin currently has no entry in the `advisors` table, which is required for creating policies (the `policies.advisor_id` references `advisors.id`). We need to insert a record so the admin can function as an advisor.
+## Plan
 
-- Insert into `advisors` table: `portal_user_id = admin's portal_user ID`, with the admin's name and auth_user_id
+### 1. Update Admin Sidebar Navigation (AdminPortalLayout.tsx)
 
-### 2. Update Admin Navigation (AdminPortalLayout.tsx)
+Add all missing links organized into groups similar to the advisor layout:
 
-Add links to the admin sidebar so they can access the advisor pages directly from the admin panel:
+- **Management**: Agents, Clients, Policies, Documents, Messages
+- **Market**: Carriers, News
+- **Resources**: Tools, Training, Marketing, Schedule
+- **Compliance**: Compliance
 
-- Clients (already exists)
-- Policies (new link to `/portal/advisor/policies`)
-- Documents (new link to `/portal/advisor/documents`)
-- Messages (new link to `/portal/advisor/messages`)
+### 2. Add Admin CRUD to Each Page
 
-### 3. Update Policies Page (AdvisorPolicies.tsx)
+For each page, detect if the user is an admin (via `usePortalAuth`) and show admin-only add/edit/delete UI. All pages follow a similar pattern:
 
-**Current problem**: Queries `advisors` table for the user's advisor record. Admin has no record, so it returns nothing.
+**CarrierDirectory.tsx** -- Add "Add Carrier" button + dialog form (carrier name, logo URL, AM Best rating, products offered, niches, short code, portal URL, notes). Add edit/delete buttons on each carrier card.
 
-**Fix**:
-- If admin: load ALL policies across all advisors (no `advisor_id` filter), so they see every policy in the agency
-- Fetch advisor names and display which advisor owns each policy
-- Add an advisor filter dropdown (similar to the clients page)
-- Keep the `?client=` URL filter working so clicking "Policies" from a client card still works
-- Admin can still create/edit/delete policies (they will use their own advisor record)
+**CarrierNews.tsx** -- Add "Add News" button + dialog form (title, content, carrier, article type, priority, status). Add edit/delete buttons on each news card.
 
-### 4. Update Documents Page (AdvisorDocuments.tsx)
+**ToolsHub.tsx** -- Add "Add Tool" button + dialog form (tool name, URL, type, carrier, description, requires login, login instructions, featured). Add edit/delete on each tool card. (Note: built-in calculators remain unchanged.)
 
-**Current problem**: Filters documents by `uploaded_by = portalUser.id`. Admin sees only their own uploads, not other agents' documents.
+**TrainingCenter.tsx** -- Add "Add Training" button + dialog form (title, description, category, level, duration, video URL, thumbnail URL, status). Add edit/delete on each training card.
 
-**Fix**:
-- If admin: load ALL documents across all advisors (no `uploaded_by` filter)
-- Show which advisor uploaded each document
-- Add an advisor filter dropdown
-- For the upload form client dropdown: load all active clients (not just admin's own)
-- Keep `?client=` URL filter working
+**MarketingResources.tsx** -- Add "Add Resource" button + dialog form (title, category, resource type, file URL, thumbnail URL, description, tags). Add edit/delete on each resource card.
 
-### 5. Update Messages Page (AdvisorMessages.tsx)
+**SchedulePage.tsx** -- Already has an "Add Event" button. Add edit/delete capabilities on events for admin (currently any advisor can add, but admin should be able to manage all events).
 
-**Current problem**: Admin is read-only for all conversations. But the admin also needs to be able to message their own clients.
+**ComplianceCenter.tsx** -- Add ability for admin to manage compliance documents for any advisor and manage carrier contracts. Add "Add Document" and "Add Contract" forms.
 
-**Fix**:
-- Admin can still see ALL conversations (oversight mode)
-- When viewing someone else's conversation, it remains read-only
-- When viewing their own conversation (where `advisor_id` matches admin's portal user ID), they CAN send messages
-- Admin can also start new conversations with their own clients
-- Add visual indicator showing "Your conversation" vs "Observing"
+### 3. File Changes
+
+- `src/components/portal/AdminPortalLayout.tsx` -- Add navigation links with grouped sections
+- `src/pages/portal/advisor/CarrierDirectory.tsx` -- Add admin CRUD UI
+- `src/pages/portal/advisor/CarrierNews.tsx` -- Add admin CRUD UI
+- `src/pages/portal/advisor/ToolsHub.tsx` -- Add admin CRUD UI for quoting tools
+- `src/pages/portal/advisor/TrainingCenter.tsx` -- Add admin CRUD UI
+- `src/pages/portal/advisor/MarketingResources.tsx` -- Add admin CRUD UI
+- `src/pages/portal/advisor/SchedulePage.tsx` -- Add admin edit/delete for all events
+- `src/pages/portal/advisor/ComplianceCenter.tsx` -- Add admin CRUD UI for documents and contracts
+
+No database migrations needed -- all RLS policies are already in place.
 
 ## Technical Details
 
-### Database: Insert admin advisor record
+### Admin Detection Pattern
 
-```sql
-INSERT INTO advisors (portal_user_id, auth_user_id, first_name, last_name, email)
-SELECT pu.id, pu.auth_user_id, pu.first_name, pu.last_name, pu.email
-FROM portal_users pu
-WHERE pu.id = 'e82dd92c-819b-47ca-889a-a67f9e90aae3'
-AND NOT EXISTS (SELECT 1 FROM advisors WHERE portal_user_id = pu.id);
+Each page will use the existing `usePortalAuth` hook:
+
+```typescript
+const { portalUser } = usePortalAuth();
+const isAdmin = portalUser?.role === "admin";
 ```
 
-### AdminPortalLayout.tsx
+Admin-only UI elements (add/edit/delete buttons and dialog forms) will be conditionally rendered with `{isAdmin && (...)}`.
 
-Add navigation items for Policies, Documents, and Messages pointing to the advisor routes.
+### CRUD Pattern for Each Page
 
-### AdvisorPolicies.tsx
+Each page will follow the same pattern:
+1. Add a Dialog with a form for creating new records
+2. Add edit/delete action buttons on each card (admin only)
+3. Edit reuses the same dialog form pre-filled with existing data
+4. Delete uses a confirmation dialog before removing
 
-- Add role check: if admin, skip the `advisors` table lookup and load all policies
-- Fetch advisor names from the `advisors` table for display
-- Add advisor filter dropdown (admin only)
-- Show advisor name badge on each policy card
+### Navigation Update
 
-### AdvisorDocuments.tsx
-
-- Add role check: if admin, load all documents (no `uploaded_by` filter)
-- For client dropdown in upload form: if admin, load all active clients
-- Fetch uploader names for display
-- Add advisor filter dropdown (admin only)
-
-### AdvisorMessages.tsx
-
-- Change from fully read-only to conditional: admin can send in conversations where they are the advisor
-- Allow admin to start new conversations with their own clients
-- Show "Observing" badge only on other advisors' conversations, not admin's own
-
-## Files Changed
-
-- `src/components/portal/AdminPortalLayout.tsx` -- add nav links for Policies, Documents, Messages
-- `src/pages/portal/advisor/AdvisorPolicies.tsx` -- admin sees all policies with advisor labels and filter
-- `src/pages/portal/advisor/AdvisorDocuments.tsx` -- admin sees all documents with uploader info and filter
-- `src/pages/portal/advisor/AdvisorMessages.tsx` -- admin can send in own conversations, read-only for others
-- Database: insert advisor record for admin user
+The admin sidebar will be restructured from a flat list to grouped sections matching the advisor layout pattern, using the same Lucide icons (Building2, Newspaper, Wrench, GraduationCap, Megaphone, Calendar, Shield).
