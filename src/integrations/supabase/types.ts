@@ -104,6 +104,41 @@ export type Database = {
         }
         Relationships: []
       }
+      advisor_goals: {
+        Row: {
+          advisor_id: string
+          created_at: string
+          id: string
+          target_amount: number
+          target_date: string | null
+          title: string
+        }
+        Insert: {
+          advisor_id: string
+          created_at?: string
+          id?: string
+          target_amount: number
+          target_date?: string | null
+          title: string
+        }
+        Update: {
+          advisor_id?: string
+          created_at?: string
+          id?: string
+          target_amount?: number
+          target_date?: string | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "advisor_goals_advisor_id_fkey"
+            columns: ["advisor_id"]
+            isOneToOne: false
+            referencedRelation: "advisors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       advisor_performance: {
         Row: {
           advancement_percent: number | null
@@ -219,6 +254,56 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      advisor_sales: {
+        Row: {
+          advisor_id: string
+          annual_premium: number
+          carrier: string
+          client_name: string | null
+          created_at: string
+          id: string
+          monthly_premium: number | null
+          notes: string | null
+          premium_mode: string
+          product_type: string
+          submitted_at: string
+        }
+        Insert: {
+          advisor_id: string
+          annual_premium: number
+          carrier: string
+          client_name?: string | null
+          created_at?: string
+          id?: string
+          monthly_premium?: number | null
+          notes?: string | null
+          premium_mode?: string
+          product_type: string
+          submitted_at?: string
+        }
+        Update: {
+          advisor_id?: string
+          annual_premium?: number
+          carrier?: string
+          client_name?: string | null
+          created_at?: string
+          id?: string
+          monthly_premium?: number | null
+          notes?: string | null
+          premium_mode?: string
+          product_type?: string
+          submitted_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "advisor_sales_advisor_id_fkey"
+            columns: ["advisor_id"]
+            isOneToOne: false
+            referencedRelation: "advisors"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       advisors: {
         Row: {
