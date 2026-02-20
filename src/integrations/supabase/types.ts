@@ -7396,6 +7396,7 @@ export type Database = {
           status: string
         }[]
       }
+      get_advisor_id_for_auth: { Args: { _auth_uid: string }; Returns: string }
       get_citation_health_stats: { Args: never; Returns: Json }
       get_cluster_image_health: {
         Args: never
