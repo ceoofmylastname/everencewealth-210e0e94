@@ -1,110 +1,117 @@
 
 
-# Add All 16 Carriers with Rich Data and Modern Card Design
+# Populate Tools Hub Data and Enhance with Modern Animated UI
 
 ## Summary
 
-The carriers table is currently empty and its schema only supports basic fields. This plan extends the database schema to store all the detailed carrier information provided, inserts all 16 carriers with comprehensive data, creates a carrier_documents table for PDF resources, and redesigns both the agent-facing carrier cards and detail page to be modern, sleek, and professional -- turning the Carrier Directory into a true agent resource hub.
+The Tools Hub currently has 2 tabs (Quoting and Calculators) but the quoting_tools table is empty, and only 8 calculators exist. This plan inserts all 8 quoting tool records, adds 7 new calculator records, creates 7 new calculator components, and redesigns the entire Tools Hub with Framer Motion animations, 3D card effects, and a sleek professional UI.
 
-## Phase 1: Database Schema Changes
+## Phase 1: Insert Quoting Tools Data
 
-Add new columns to the `carriers` table to support the full dataset:
+Insert 8 records into the `quoting_tools` table, linked to the correct carrier IDs:
 
-- `description` (text) -- short marketing description
-- `founded_year` (integer) -- e.g. 1910
-- `employees` (text) -- e.g. "500+"
-- `headquarters` (text) -- full address
-- `phone` (text) -- main phone number
-- `website` (text) -- public website URL
-- `quotes_url` (text) -- agent quoting link
-- `illustration_url` (text) -- illustration tool link
-- `turnaround` (text) -- "Fast" or "Average"
-- `special_products` (text[]) -- array of product names/descriptions
-- `underwriting_strengths` (text) -- paragraph describing UW advantages
-- `reparenting_info` (jsonb) -- email, subject, template for reparenting
+1. Mutual of Omaha - Mobile Quote System (quick_quote)
+2. Americo - Agent Portal (agent_portal, requires_login=true)
+3. Americo - IUL Microsite (microsite)
+4. Foresters Financial - Quote System (quick_quote)
+5. Assurity - Accidental Death Quote (quick_quote)
+6. Royal Neighbors - Quick Quote (quick_quote)
+7. Transamerica - Immediate Solutions Quote (quick_quote)
+8. F&G Life - IUL Microsite (microsite)
 
-Create a new `carrier_documents` table:
-- `id` (uuid, PK)
-- `carrier_id` (uuid, FK to carriers)
-- `document_name` (text) -- e.g. "Senior Choice Guide"
-- `document_url` (text) -- path or URL to PDF
-- `document_type` (text) -- e.g. "guide", "highlight_sheet", "underwriting"
-- `created_at` (timestamptz)
+Each includes tool_name, tool_url, tool_type, requires_login, login_instructions (where applicable), and description.
 
-With RLS policies matching the carriers table (admin full access, advisors read-only).
+## Phase 2: Insert New Calculator Records
 
-## Phase 2: Insert All 16 Carriers
+Add 7 new calculator records to the `calculators` table:
 
-Insert complete records for all 16 carriers using the data provided:
+| Calculator | Category | ID Range |
+|---|---|---|
+| Debt vs Investing | cash_flow | sort 9 |
+| Purchasing Power | cash_flow | sort 10 |
+| Inflation Retirement | retirement | sort 11 |
+| Habits to Wealth | retirement | sort 12 |
+| Lifetime Earnings | life_income | sort 13 |
+| Insurance Longevity | life_income | sort 14 |
+| Commission Calculator | life_income | sort 15 |
 
-1. Allianz Life Insurance Company of North America
-2. American Amicable
-3. American General (AIG)
-4. Americo
-5. Assurity
-6. Athene
-7. Baltimore Life
-8. Continental General
-9. Ethos
-10. Fidelity and Guaranty Life (F&G)
-11. Foresters Financial
-12. Mutual of Omaha
-13. North American
-14. Royal Neighbors of America
-15. Transamerica Life Insurance Company
-16. TruStage
+## Phase 3: Create 7 New Calculator Components
 
-Each record will include all available fields: name, short code, AM Best rating, products, niches, headquarters, phone, website, portal URL, quotes URL, illustration URL, founded year, employees, turnaround, special products, underwriting strengths, reparenting info, notes, and featured status.
+Build each calculator following the existing pattern (Props with onClose, Slider/input controls, useMemo results, brand green styling):
 
-Also insert all 17 PDF document records into `carrier_documents`.
+### Cash Flow Intelligence
+- **DebtVsInvesting.tsx** - Compares effective debt rate vs investment return, recommends "pay debt" or "invest more," shows 10-year wealth difference
+- **PurchasingPower.tsx** - Historical CPI-based tool showing adjusted value, % decrease, dollar loss, inflation multiple
 
-## Phase 3: Redesign Agent-Facing Carrier Cards (CarrierDirectory.tsx)
+### Retirement Intelligence
+- **InflationRetirement.tsx** - Shows required income at retirement, total needed, inflation gap, cost of waiting
+- **HabitsWealth.tsx** - Converts recurring spending into future wealth with opportunity cost and multiplier
 
-Transform the current minimal cards into rich, information-dense cards that agents actually want to use as a resource:
+### Life and Income
+- **LifetimeEarnings.tsx** - Projects total career earnings with Recharts line chart of income growth
+- **InsuranceLongevity.tsx** - Shows how long coverage lasts with balance depletion chart and shortfall warnings
+- **CommissionCalculator.tsx** - Calculates advance vs residual split, monthly/annual projections, chargeback buffer
 
-- **Logo + Name header** with AM Best rating badge and turnaround speed indicator
-- **Quick stats row**: Founded year, Headquarters city/state, Employees count
-- **Products offered** as styled pills/badges
-- **Niche specialties** as subtle tags
-- **Key strengths** -- 1-2 line summary from underwriting_strengths
-- **Action buttons**: View Details, Agent Portal (if URL exists), Quick Quote (if quotes_url exists)
-- **Document count badge** showing how many PDFs are available
+Each calculator will use:
+- Recharts for data visualization (line/bar charts where applicable)
+- Animated number counters for key results
+- Insight boxes with dynamic recommendations
+- Context-aware disclaimers
 
-Card style: white background, rounded-xl, subtle shadow, hover elevation, brand green accents -- matching the existing design system.
+## Phase 4: Redesign ToolsHub.tsx with Modern Animated UI
 
-## Phase 4: Enhance CarrierDetail.tsx
+Transform the Tools Hub into a visually stunning, animated experience:
 
-Update the carrier detail page to display all the new data in organized sections:
+### Quoting Tab Enhancements
+- **Header section** with gradient text: "Quick Access to Quote Systems" and descriptive subtitle
+- **Framer Motion staggered animations** on card grid (spring physics, 50ms stagger delay)
+- **3D hover effects** using CSS perspective/transform (rotateY/rotateX on hover)
+- **Gradient hover borders** that shift color per card
+- **Carrier logo display** with fallback icon
+- **Badge system** for tool types with color-coded pills
+- **Lock icon badge** for login-required tools
+- **Footer note** explaining the lock icon
 
-- **Hero section**: Logo, name, rating, turnaround badge, founded year, HQ
-- **Contact bar**: Phone, website, portal, quoting, illustrations -- all as clickable links
-- **Overview tab**: Description, underwriting strengths, headquarters/employees details
-- **Products tab**: Products offered, niches, special products list
-- **Documents tab** (new): List of downloadable PDFs with icons and download buttons
-- **Tools tab**: Existing quoting tools
-- **News tab**: Existing carrier news
-- **Reparenting tab** (conditional): Only shows if reparenting_info exists (currently just Ethos)
+### Calculators Tab Enhancements
+- **Category hero titles** with taglines:
+  - Cash Flow Intelligence: "See what inflation steals -- and what strategy protects"
+  - Retirement Intelligence: "Plan the life you want -- not the one inflation leaves you"
+  - Life and Income: "Build trust through education -- not pressure"
+- **Animated category transitions** when switching filter pills
+- **3D card hover** with subtle rotateY/rotateX perspective transforms
+- **Gradient accent bars** on the left edge of each calculator card
+- **Estimated time badges** with animated dot indicator
+- **Category disclaimers** at the bottom of each section
+- **Smooth card entrance** with scale-in and fade animations
 
-## Phase 5: Update Admin Form (AdminCarriers.tsx)
+### Shared Animation System
+- Container variants with staggerChildren for grid items
+- Individual card variants: initial hidden/scaled-down, animate visible/full-scale
+- Spring-based hover lift (y: -6) with shadow elevation
+- CSS perspective transforms for 3D depth on hover
+- Framer Motion AnimatePresence for tab/filter transitions
 
-Extend the admin add/edit dialog to include all the new fields so admins can manage the full dataset:
+## Phase 5: Update CALC_COMPONENTS Map
 
-- Add inputs for: description, founded year, employees, headquarters, phone, website, quotes URL, illustration URL, turnaround (dropdown: Fast/Average), special products (comma-separated input), underwriting strengths (textarea), reparenting info fields
-- Add a section to manage carrier documents (add/remove PDFs)
+Extend the component registry in ToolsHub.tsx to include all 7 new calculators, mapping their database names to the new React components.
 
 ## Files to Create
-- None (carrier_documents table via migration)
+- `src/pages/portal/advisor/calculators/DebtVsInvesting.tsx`
+- `src/pages/portal/advisor/calculators/PurchasingPower.tsx`
+- `src/pages/portal/advisor/calculators/InflationRetirement.tsx`
+- `src/pages/portal/advisor/calculators/HabitsWealth.tsx`
+- `src/pages/portal/advisor/calculators/LifetimeEarnings.tsx`
+- `src/pages/portal/advisor/calculators/InsuranceLongevity.tsx`
+- `src/pages/portal/advisor/calculators/CommissionCalculator.tsx`
 
 ## Files to Edit
-- `src/pages/portal/advisor/CarrierDirectory.tsx` -- Redesigned modern carrier cards
-- `src/pages/portal/advisor/CarrierDetail.tsx` -- Enhanced detail page with all new data sections
-- `src/pages/portal/admin/AdminCarriers.tsx` -- Extended admin form with all new fields
+- `src/pages/portal/advisor/ToolsHub.tsx` - Full redesign with Framer Motion, 3D effects, new component imports, updated category data
 
 ## Technical Notes
-
-- The `contact_info` jsonb column already exists but is underused. The new dedicated columns (phone, website, headquarters) are more explicit and easier to query/display. The contact_info field can remain for any additional freeform contact data.
-- All 16 carriers will be inserted via the data tool after schema migration.
-- The 17 PDF documents reference paths under `/carriers/` in public storage; the carrier_documents table stores these references.
-- Turnaround values will be limited to "Fast" and "Average" as provided in the dataset.
-- Reparenting info is jsonb to accommodate varying structures (only Ethos currently has it).
+- All new calculators follow the existing `{ onClose: () => void }` props interface
+- Framer Motion is already installed and used throughout the project
+- Recharts is already installed for chart visualizations
+- Brand green (#1A4D3E) remains the primary accent color
+- The existing 8 calculator components remain unchanged
+- Database category values (`cash_flow`, `retirement`, `life_income`) match the existing filter system
 
