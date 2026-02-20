@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import { MessageSquare, Send, User } from "lucide-react";
+import { MessageSquare, Send, User, Shield, Filter } from "lucide-react";
 
 interface Conversation {
   id: string;
@@ -13,6 +13,7 @@ interface Conversation {
   client_id: string;
   last_message_at: string;
   client_name?: string;
+  advisor_name?: string;
 }
 
 interface Message {
@@ -32,18 +33,22 @@ export default function AdvisorMessages() {
   const [newMessage, setNewMessage] = useState("");
   const [sending, setSending] = useState(false);
   const [clients, setClients] = useState<{ id: string; first_name: string; last_name: string }[]>([]);
+  const [advisorFilter, setAdvisorFilter] = useState<string>("all");
+  const [senderNames, setSenderNames] = useState<Record<string, string>>({});
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const isAdmin = portalUser?.role === "admin";
 
   useEffect(() => {
     if (!portalUser) return;
     loadConversations();
-    loadClients();
+    if (!isAdmin) loadClients();
   }, [portalUser]);
 
   useEffect(() => {
     if (!selectedConv) return;
     loadMessages(selectedConv);
-    markMessagesRead(selectedConv);
+    if (!isAdmin) markMessagesRead(selectedConv);
 
     const channel = supabase
       .channel(`conv-${selectedConv}`)
@@ -54,7 +59,7 @@ export default function AdvisorMessages() {
         filter: `conversation_id=eq.${selectedConv}`,
       }, (payload) => {
         setMessages((prev) => [...prev, payload.new as Message]);
-        if ((payload.new as Message).sender_id !== portalUser?.id) {
+        if (!isAdmin && (payload.new as Message).sender_id !== portalUser?.id) {
           markMessagesRead(selectedConv);
         }
       })
@@ -69,26 +74,44 @@ export default function AdvisorMessages() {
 
   async function loadConversations() {
     if (!portalUser) return;
-    const { data } = await supabase
+
+    let query = supabase
       .from("portal_conversations")
       .select("*")
-      .eq("advisor_id", portalUser.id)
       .order("last_message_at", { ascending: false });
 
-    if (data) {
-      // Fetch client names
-      const clientIds = data.map((c: any) => c.client_id);
-      const { data: clientData } = await supabase
-        .from("portal_users")
-        .select("id, first_name, last_name")
-        .in("id", clientIds);
-
-      const enriched = data.map((c: any) => {
-        const client = clientData?.find((cl: any) => cl.id === c.client_id);
-        return { ...c, client_name: client ? `${client.first_name} ${client.last_name}` : "Unknown" };
-      });
-      setConversations(enriched);
+    // Advisors only see their own; admins see all
+    if (!isAdmin) {
+      query = query.eq("advisor_id", portalUser.id);
     }
+
+    const { data } = await query;
+    if (!data) return;
+
+    // Collect all unique user IDs (clients + advisors)
+    const userIds = new Set<string>();
+    data.forEach((c: any) => {
+      userIds.add(c.client_id);
+      userIds.add(c.advisor_id);
+    });
+
+    const { data: userData } = await supabase
+      .from("portal_users")
+      .select("id, first_name, last_name")
+      .in("id", Array.from(userIds));
+
+    const nameMap: Record<string, string> = {};
+    userData?.forEach((u: any) => {
+      nameMap[u.id] = `${u.first_name} ${u.last_name}`;
+    });
+    setSenderNames((prev) => ({ ...prev, ...nameMap }));
+
+    const enriched = data.map((c: any) => ({
+      ...c,
+      client_name: nameMap[c.client_id] || "Unknown",
+      advisor_name: nameMap[c.advisor_id] || "Unknown",
+    }));
+    setConversations(enriched);
   }
 
   async function loadClients() {
@@ -122,7 +145,6 @@ export default function AdvisorMessages() {
 
   async function startConversation(clientId: string) {
     if (!portalUser) return;
-    // Check if conversation exists
     const existing = conversations.find((c) => c.client_id === clientId);
     if (existing) {
       setSelectedConv(existing.id);
@@ -143,7 +165,7 @@ export default function AdvisorMessages() {
 
   async function handleSend(e: React.FormEvent) {
     e.preventDefault();
-    if (!newMessage.trim() || !selectedConv || !portalUser) return;
+    if (!newMessage.trim() || !selectedConv || !portalUser || isAdmin) return;
 
     setSending(true);
     const content = newMessage.trim();
@@ -155,13 +177,11 @@ export default function AdvisorMessages() {
 
     if (!error) {
       setNewMessage("");
-      // Update last_message_at
       await supabase
         .from("portal_conversations")
         .update({ last_message_at: new Date().toISOString() })
         .eq("id", selectedConv);
 
-      // Fire-and-forget email notification to client
       supabase.functions.invoke("notify-portal-message", {
         body: {
           conversation_id: selectedConv,
@@ -175,11 +195,41 @@ export default function AdvisorMessages() {
 
   const selectedConversation = conversations.find((c) => c.id === selectedConv);
 
+  // Get unique advisors for filter dropdown
+  const uniqueAdvisors = isAdmin
+    ? Array.from(new Map(conversations.map((c) => [c.advisor_id, c.advisor_name || "Unknown"])).entries())
+    : [];
+
+  // Filter conversations by selected advisor
+  const filteredConversations = advisorFilter === "all"
+    ? conversations
+    : conversations.filter((c) => c.advisor_id === advisorFilter);
+
+  // For admin: determine which side messages go on (advisor = right, client = left)
+  function getMessageAlignment(msg: Message) {
+    if (!isAdmin) return msg.sender_id === portalUser?.id ? "right" : "left";
+    const conv = selectedConversation;
+    return conv && msg.sender_id === conv.advisor_id ? "right" : "left";
+  }
+
+  function getConversationLabel(conv: Conversation) {
+    if (isAdmin) return `${conv.advisor_name} ↔ ${conv.client_name}`;
+    return conv.client_name || "Unknown";
+  }
+
   return (
     <div className="space-y-4">
-      <h1 className="text-2xl font-bold text-foreground" style={{ fontFamily: "'Playfair Display', serif" }}>
-        Messages
-      </h1>
+      <div className="flex items-center gap-3">
+        <h1 className="text-2xl font-bold text-foreground" style={{ fontFamily: "'Playfair Display', serif" }}>
+          Messages
+        </h1>
+        {isAdmin && (
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300">
+            <Shield className="h-3 w-3" />
+            Read-Only
+          </span>
+        )}
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 h-[calc(100vh-12rem)]">
         {/* Conversations List */}
@@ -188,8 +238,27 @@ export default function AdvisorMessages() {
             <CardTitle className="text-sm">Conversations</CardTitle>
           </CardHeader>
           <CardContent className="p-0 flex-1 overflow-y-auto">
-            {/* Start new conversation */}
-            {clients.filter((c) => !conversations.find((conv) => conv.client_id === c.id)).length > 0 && (
+            {/* Admin: Advisor filter */}
+            {isAdmin && uniqueAdvisors.length > 1 && (
+              <div className="p-3 border-b">
+                <div className="flex items-center gap-2">
+                  <Filter className="h-3.5 w-3.5 text-muted-foreground" />
+                  <select
+                    className="w-full text-sm border rounded-md p-2 bg-background"
+                    value={advisorFilter}
+                    onChange={(e) => setAdvisorFilter(e.target.value)}
+                  >
+                    <option value="all">All Advisors</option>
+                    {uniqueAdvisors.map(([id, name]) => (
+                      <option key={id} value={id}>{name}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            )}
+
+            {/* Advisor: Start new conversation */}
+            {!isAdmin && clients.filter((c) => !conversations.find((conv) => conv.client_id === c.id)).length > 0 && (
               <div className="p-3 border-b">
                 <select
                   className="w-full text-sm border rounded-md p-2 bg-background"
@@ -205,10 +274,11 @@ export default function AdvisorMessages() {
                 </select>
               </div>
             )}
-            {conversations.length === 0 ? (
+
+            {filteredConversations.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-8">No conversations yet</p>
             ) : (
-              conversations.map((conv) => (
+              filteredConversations.map((conv) => (
                 <button
                   key={conv.id}
                   onClick={() => setSelectedConv(conv.id)}
@@ -221,8 +291,8 @@ export default function AdvisorMessages() {
                     <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
                       <User className="h-4 w-4 text-primary" />
                     </div>
-                    <div>
-                      <p className="text-sm font-medium">{conv.client_name}</p>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium truncate">{getConversationLabel(conv)}</p>
                       <p className="text-xs text-muted-foreground">
                         {new Date(conv.last_message_at).toLocaleDateString()}
                       </p>
@@ -240,27 +310,34 @@ export default function AdvisorMessages() {
             <div className="flex-1 flex items-center justify-center text-muted-foreground">
               <div className="text-center">
                 <MessageSquare className="h-12 w-12 mx-auto mb-3 opacity-30" />
-                <p>Select a conversation to start messaging</p>
+                <p>Select a conversation to {isAdmin ? "view messages" : "start messaging"}</p>
               </div>
             </div>
           ) : (
             <>
               <CardHeader className="py-3 px-4 border-b">
-                <CardTitle className="text-sm">{selectedConversation?.client_name}</CardTitle>
+                <CardTitle className="text-sm">{getConversationLabel(selectedConversation!)}</CardTitle>
               </CardHeader>
               <CardContent className="flex-1 overflow-y-auto p-4 space-y-3">
                 {messages.map((msg) => {
-                  const isMine = msg.sender_id === portalUser?.id;
+                  const alignment = getMessageAlignment(msg);
+                  const isRight = alignment === "right";
+                  const senderLabel = senderNames[msg.sender_id];
                   return (
-                    <div key={msg.id} className={cn("flex", isMine ? "justify-end" : "justify-start")}>
+                    <div key={msg.id} className={cn("flex", isRight ? "justify-end" : "justify-start")}>
                       <div className={cn(
                         "max-w-[70%] rounded-2xl px-4 py-2",
-                        isMine
+                        isRight
                           ? "bg-primary text-primary-foreground rounded-br-md"
                           : "bg-muted rounded-bl-md"
                       )}>
+                        {isAdmin && senderLabel && (
+                          <p className={cn("text-[10px] font-semibold mb-0.5", isRight ? "text-primary-foreground/70" : "text-muted-foreground")}>
+                            {senderLabel}
+                          </p>
+                        )}
                         <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
-                        <p className={cn("text-[10px] mt-1", isMine ? "text-primary-foreground/60" : "text-muted-foreground")}>
+                        <p className={cn("text-[10px] mt-1", isRight ? "text-primary-foreground/60" : "text-muted-foreground")}>
                           {new Date(msg.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                         </p>
                       </div>
@@ -269,19 +346,23 @@ export default function AdvisorMessages() {
                 })}
                 <div ref={messagesEndRef} />
               </CardContent>
-              <div className="border-t p-3">
-                <form onSubmit={handleSend} className="flex gap-2">
-                  <Input
-                    value={newMessage}
-                    onChange={(e) => setNewMessage(e.target.value)}
-                    placeholder="Type a message..."
-                    className="flex-1"
-                  />
-                  <Button type="submit" size="icon" disabled={sending || !newMessage.trim()}>
-                    <Send className="h-4 w-4" />
-                  </Button>
-                </form>
-              </div>
+
+              {/* Only show send form for advisors, not admins */}
+              {!isAdmin && (
+                <div className="border-t p-3">
+                  <form onSubmit={handleSend} className="flex gap-2">
+                    <Input
+                      value={newMessage}
+                      onChange={(e) => setNewMessage(e.target.value)}
+                      placeholder="Type a message..."
+                      className="flex-1"
+                    />
+                    <Button type="submit" size="icon" disabled={sending || !newMessage.trim()}>
+                      <Send className="h-4 w-4" />
+                    </Button>
+                  </form>
+                </div>
+              )}
             </>
           )}
         </Card>
