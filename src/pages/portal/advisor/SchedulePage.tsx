@@ -38,7 +38,7 @@ export default function SchedulePage() {
   async function loadEvents() {
     setLoading(true);
     const today = new Date().toISOString().split("T")[0];
-    const { data } = await supabase.from("schedule_events").select("*").gte("event_date", today).order("event_date").order("event_time");
+    const { data } = await supabase.from("schedule_events").select("*, creator:portal_users!schedule_events_created_by_fkey(role)").gte("event_date", today).order("event_date").order("event_time");
     setEvents(data ?? []); setLoading(false);
   }
 
@@ -129,8 +129,9 @@ export default function SchedulePage() {
               <div className="space-y-3">
                 {dateEvents.map((event: any) => {
                   const EventIcon = getEventIcon(event.event_type);
+                  const isAdmin = event.creator?.role === "admin";
                   return (
-                    <div key={event.id} className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 hover:shadow-md hover:border-gray-200 transition-all">
+                    <div key={event.id} className={`bg-white rounded-xl border shadow-sm p-4 hover:shadow-md transition-all ${isAdmin ? "border-l-4 border-l-amber-400 border-gray-100" : "border-l-4 border-l-emerald-400 border-gray-100"}`}>
                       <div className="flex items-start gap-4">
                         <div className="h-10 w-10 rounded-lg flex items-center justify-center shrink-0" style={{ background: `${BRAND_GREEN}15` }}>
                           <EventIcon className="h-5 w-5" style={{ color: BRAND_GREEN }} />
@@ -145,6 +146,9 @@ export default function SchedulePage() {
                               </div>
                             </div>
                             <div className="flex items-center gap-1 shrink-0">
+                              <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${isAdmin ? "bg-amber-50 text-amber-700 border border-amber-200" : "bg-emerald-50 text-emerald-700 border border-emerald-200"}`}>
+                                {isAdmin ? "Admin" : "Agent"}
+                              </span>
                               <span className={`text-xs px-2.5 py-0.5 rounded-full font-medium capitalize ${typeColors[event.event_type] || typeColors.other}`}>
                                 {event.event_type}
                               </span>
