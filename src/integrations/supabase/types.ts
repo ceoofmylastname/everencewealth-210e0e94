@@ -238,6 +238,7 @@ export type Database = {
           phone: string | null
           photo_url: string | null
           portal_user_id: string
+          rank_override_id: string | null
           specializations: string[] | null
           title: string | null
           updated_at: string
@@ -259,6 +260,7 @@ export type Database = {
           phone?: string | null
           photo_url?: string | null
           portal_user_id: string
+          rank_override_id?: string | null
           specializations?: string[] | null
           title?: string | null
           updated_at?: string
@@ -280,6 +282,7 @@ export type Database = {
           phone?: string | null
           photo_url?: string | null
           portal_user_id?: string
+          rank_override_id?: string | null
           specializations?: string[] | null
           title?: string | null
           updated_at?: string
@@ -304,6 +307,13 @@ export type Database = {
             columns: ["portal_user_id"]
             isOneToOne: false
             referencedRelation: "portal_users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "advisors_rank_override_id_fkey"
+            columns: ["rank_override_id"]
+            isOneToOne: false
+            referencedRelation: "advisor_rank_config"
             referencedColumns: ["id"]
           },
         ]
