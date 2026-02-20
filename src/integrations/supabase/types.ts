@@ -2433,6 +2433,7 @@ export type Database = {
           other_income_description: string | null
           phone: string | null
           previous_version_id: string | null
+          reviewed_at: string | null
           risk_tolerance: string | null
           signature_date: string | null
           spouse_dob: string | null
@@ -2518,6 +2519,7 @@ export type Database = {
           other_income_description?: string | null
           phone?: string | null
           previous_version_id?: string | null
+          reviewed_at?: string | null
           risk_tolerance?: string | null
           signature_date?: string | null
           spouse_dob?: string | null
@@ -2603,6 +2605,7 @@ export type Database = {
           other_income_description?: string | null
           phone?: string | null
           previous_version_id?: string | null
+          reviewed_at?: string | null
           risk_tolerance?: string | null
           signature_date?: string | null
           spouse_dob?: string | null
