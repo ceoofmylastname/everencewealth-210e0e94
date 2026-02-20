@@ -17,10 +17,17 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Target, Home, Plane, GraduationCap, Heart, Gift, DollarSign,
   TrendingUp, TrendingDown, ChevronLeft, ChevronRight, CheckCircle,
   AlertTriangle, Loader2, ArrowLeft, ShoppingBag, Users, Calendar,
-  Shield, BarChart3,
+  Shield, BarChart3, Share2,
 } from "lucide-react";
 
 const BRAND_GREEN = "#1A4D3E";
@@ -132,6 +139,20 @@ export default function CNAForm() {
   });
 
   const [aiAnalysis, setAiAnalysis] = useState<any>(null);
+  const [clients, setClients] = useState<{ id: string; first_name: string; last_name: string; email: string }[]>([]);
+
+  // Load advisor's clients for assignment
+  useEffect(() => {
+    if (!portalUser) return;
+    supabase
+      .from("portal_users")
+      .select("id, first_name, last_name, email")
+      .eq("advisor_id", portalUser.id)
+      .eq("role", "client")
+      .eq("is_active", true)
+      .order("last_name")
+      .then(({ data }) => setClients(data ?? []));
+  }, [portalUser]);
 
   // Load existing CNA if editing
   useEffect(() => {
@@ -999,6 +1020,34 @@ export default function CNAForm() {
           </AccordionItem>
         )}
       </Accordion>
+
+      {/* Assign to Client */}
+      {clients.length > 0 && (
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+          <div className="flex items-center gap-2 mb-2">
+            <Share2 className="h-4 w-4" style={{ color: BRAND_GREEN }} />
+            <h3 className="text-base font-semibold text-gray-900">Assign to Client</h3>
+          </div>
+          <p className="text-xs text-gray-500 mb-3">
+            Push this analysis to a client's dashboard so they can view and download it.
+          </p>
+          <Select
+            value={form.client_id || ""}
+            onValueChange={(v) => update("client_id", v || null)}
+          >
+            <SelectTrigger className="w-full bg-white">
+              <SelectValue placeholder="Select a client (optional)" />
+            </SelectTrigger>
+            <SelectContent className="bg-white z-50">
+              {clients.map((c) => (
+                <SelectItem key={c.id} value={c.id}>
+                  {c.first_name} {c.last_name} — {c.email}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
 
       {/* Signature */}
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
