@@ -1,134 +1,154 @@
 
-# Mobile-First Optimization Across All Portals
+# Enhanced Client Needs Analysis (CNA) Form System
 
 ## Summary
-A comprehensive pass to make every page across the Advisor, Client, and Admin portals feel native and polished on mobile devices. The site already has responsive foundations (sidebar collapse, grid breakpoints) but many pages have oversized elements, wasted whitespace, truncated content, and desktop-oriented layouts that need refinement for touch-first usage.
 
-## Key Issues Identified
+Build a comprehensive, multi-step financial needs analysis wizard accessible from the advisor portal at `/portal/advisor/cna`. This includes a new database table (60+ columns), an 8-step animated form with real-time calculations and charts, an AI-powered financial analysis edge function via Lovable AI, a CNA management dashboard, and a digital signature capture. PDF export will be deferred to a follow-up since `@react-pdf/renderer` is not installed and adds significant bundle size.
 
-1. **Advisor Dashboard**: Stat cards are too tall on mobile (single column with large padding). Quick Actions grid only shows 2 per row on small screens. The 3-column bottom grid stacks but has excessive padding.
+## Phase 1: Database Schema
 
-2. **Client Dashboard**: Stat cards go single-column too early (sm:grid-cols-3 skips the 2-col breakpoint). Policy list rows have desktop-oriented horizontal layouts that waste mobile space.
+Create the `client_needs_analysis` table with all fields organized by section:
 
-3. **ToolsHub**: Calculator dialog uses `max-w-4xl` which doesn't respect mobile well. Tab triggers could be more touch-friendly. Filter chips scroll off-screen on small devices. 3D hover effects are wasted on touch (should disable).
+- **Relationships**: `advisor_id` and optional `client_id` referencing `portal_users`
+- **Goals** (10 boolean fields + target values)
+- **Risk Tolerance** (enum text)
+- **Demographics** (name, email, phone, address, DOB, smoking status for applicant + spouse)
+- **Income** (gross, net, other)
+- **Expenses** (13 expense fields across non-discretionary and discretionary)
+- **Assets** (7 asset fields)
+- **Liabilities** (6 liability fields)
+- **Budget** (3 preset booleans + custom amount)
+- **Calculated fields** (total expenses, assets, liabilities, net worth, surplus/deficit, debt-to-income)
+- **AI analysis** (4 JSONB columns for recommendations, insurance gap, retirement projection, risk assessment)
+- **Collaboration** (advisor notes, follow-up tasks JSONB, next review date)
+- **Signature** (base64 text + timestamp)
+- **Metadata** (status enum, version, previous_version_id self-reference, timestamps)
 
-4. **Messages (Both Advisor and Client)**: Fixed height `h-[calc(100vh-12rem)]` doesn't account for mobile header properly. Conversation list + messages side-by-side breaks on mobile (lg:grid-cols-3). On small screens, users see both panels crammed together.
+RLS policies:
+- Advisors SELECT/INSERT/UPDATE their own CNAs (via `get_portal_user_id(auth.uid())`)
+- Admins SELECT all CNAs (via `is_portal_admin(auth.uid())`)
 
-5. **Performance Tracker**: Data table with 10 columns is unusable on mobile -- horizontal scroll exists but columns are hard to read. The "Add Entry" dialog form uses grid-cols-2 which is cramped on phones.
+Indexes on advisor_id, client_id, status, and created_at.
 
-6. **Carrier Directory**: Filter chips for Products and Specialties overflow without scrollable container. Cards work well but action buttons at bottom can be cramped.
+## Phase 2: AI Edge Function
 
-7. **Marketing Resources**: Filter chip rows can overflow. Stats grid needs 2-col on mobile.
+Create `supabase/functions/financial-analysis/index.ts` using the Lovable AI gateway (not direct OpenAI calls):
 
-8. **Training Center**: Generally OK but cards could use tighter spacing.
+- Accepts client financial data (age, income, expenses, net worth, goals, risk tolerance)
+- Sends structured prompt to `google/gemini-3-flash-preview` via the Lovable AI gateway
+- Uses tool calling to extract structured JSON output (retirement score, insurance gaps, recommendations, action steps)
+- Returns the structured analysis
+- Handles 429/402 rate limit errors gracefully
+- Includes CORS headers and JWT validation
 
-9. **Admin pages (AdminCarriers, AdminAgents, etc.)**: Forms and tables need mobile-friendly layouts.
+## Phase 3: Multi-Step CNA Form Component
 
-10. **Layout headers**: Mobile header is 56px (h-14) but content padding could be tighter. No bottom safe-area padding for iOS on scrollable content.
+Create `src/pages/portal/advisor/CNAForm.tsx` -- a self-contained 8-step wizard:
 
----
+### Step 1: Goals and Risk Tolerance
+- Animated goal cards with icons (Framer Motion stagger)
+- Checkbox-style selection with expandable target inputs for retirement age and monthly amount
+- Visual risk tolerance slider with 5 levels and color gradient
 
-## Changes by File
+### Step 2: Applicant and Spouse Information
+- Two-column layout (single column on mobile)
+- Text inputs for name, email, phone, address, city, state, zip
+- Date picker for DOB with auto-calculated age display
+- Radio group for smoking status
+- Spouse section is collapsible/optional
 
-### 1. `src/components/portal/PortalLayout.tsx`
-- Add bottom safe area padding to main content area for iOS devices
-- Ensure mobile header height works well with notched phones
+### Step 3: Income Analysis
+- Currency-formatted inputs for gross income, net income, other income
+- Optional description field for other income sources
+- Real-time income summary card showing monthly and annualized totals
 
-### 2. `src/pages/portal/advisor/AdvisorDashboard.tsx`
-- Change stat cards grid to `grid-cols-2` on mobile (instead of single column) for a compact 2x2 layout
-- Reduce stat card inner padding on mobile (`p-4` instead of `p-5`)
-- Reduce font size of stat values on mobile (`text-2xl` instead of `text-3xl`)
-- Quick Actions: use `grid-cols-3` on mobile (instead of `grid-cols-2`) so all 6 fit in 2 rows
-- Bottom grid: reduce gap on mobile
-- Tighten section spacing on mobile
+### Step 4: Expense Tracking
+- Two categories: Non-Discretionary (6 items) and Discretionary (7 items)
+- Recharts PieChart showing expense breakdown in real-time
+- Live surplus/deficit calculation against net income
+- Warning badge when expenses exceed income
 
-### 3. `src/pages/portal/client/ClientDashboard.tsx`
-- Change stat cards to `grid-cols-3` even on smallest screens (cards are compact enough)
-- Reduce stat value font size to `text-2xl` on mobile
-- Reduce card padding on mobile
-- Advisor card: make "Send Message" button full-width touch-friendly
+### Step 5: Assets and Liabilities
+- Side-by-side green (assets) and red (liabilities) columns
+- Animated count-up totals
+- Net worth hero card with large animated number
+- Debt-to-income ratio display with color coding (green < 36%, yellow < 43%, red >= 43%)
 
-### 4. `src/pages/portal/advisor/ToolsHub.tsx`
-- Calculator dialog: change to `max-w-full sm:max-w-4xl` with `mx-2` margin on mobile
-- Filter chips: wrap in horizontally scrollable container with `overflow-x-auto` and `flex-nowrap` option
-- Disable 3D perspective hover on touch devices (check for pointer:coarse media query or just remove mouse-move handler on mobile)
-- Tab triggers: increase touch target size on mobile
-- Calculator cards grid: keep `grid-cols-1` on mobile (already correct)
+### Step 6: Budget for Goals
+- Quick-select buttons ($400, $800, $1,600, custom)
+- Shows available monthly surplus from previous calculations
+- Additional notes textarea
 
-### 5. `src/pages/portal/advisor/AdvisorMessages.tsx`
-- On mobile, implement a stacked view: show conversation list by default, when a conversation is selected, show full-screen messages with a back button
-- This replaces the side-by-side `lg:grid-cols-3` layout which is unusable on phones
-- Add proper height calculation accounting for mobile header
-- Make message input sticky at bottom
+### Step 7: AI Analysis
+- Loading state with rotating status messages
+- Calls the financial-analysis edge function
+- Displays: retirement readiness score (circular progress), insurance gap cards, risk profile with recommended allocation (Recharts PieChart), prioritized action steps
+- All AI results stored in form state for saving
 
-### 6. `src/pages/portal/client/ClientMessages.tsx`
-- Adjust height calculation to account for mobile header: `h-[calc(100vh-10rem)] sm:h-[calc(100vh-12rem)]`
-- Increase message bubble max-width on mobile to `max-w-[85%]` instead of `max-w-[70%]`
-- Make input area more touch-friendly with larger tap targets
+### Step 8: Review and Sign
+- Accordion sections summarizing all data
+- HTML Canvas-based signature pad (no external library needed -- use native canvas API with mouse/touch events)
+- Submit button saves everything to database
 
-### 7. `src/pages/portal/advisor/PerformanceTracker.tsx`
-- On mobile, replace the data table with a card-based list view showing key metrics per entry
-- Keep the table view for `md:` breakpoint and above using responsive visibility classes
-- "Add Entry" dialog form: change to `grid-cols-1` on mobile, `grid-cols-2` on `sm:`
-- Stats grid: use `grid-cols-2` on mobile (already correct)
+### Shared Form Features
+- Progress bar showing current step (1-8)
+- Next/Back navigation buttons
+- Auto-save draft on step change
+- Mobile-first responsive layout (all grids collapse to single column)
+- Brand green (#1A4D3E) accent color throughout
 
-### 8. `src/pages/portal/advisor/CarrierDirectory.tsx`
-- Wrap filter chips in `overflow-x-auto` scrollable containers
-- Search input: remove `max-w-md` constraint on mobile (full width)
-- Carrier card action buttons: stack vertically on very small screens
+## Phase 4: CNA Management Dashboard
 
-### 9. `src/pages/portal/advisor/MarketingResources.tsx`
-- Filter chips: add horizontal scroll container
-- Resource cards: ensure proper text truncation on mobile
+Create `src/pages/portal/advisor/CNADashboard.tsx`:
 
-### 10. `src/pages/portal/advisor/TrainingCenter.tsx`
-- Filter chips: add horizontal scroll container
-- Training cards: tighten padding on mobile
+- Stats row: Total CNAs, Completed This Month, Pending Follow-ups, Average Net Worth
+- Search bar with status filter (All, Draft, Completed, Reviewed, Archived)
+- Card-based list of CNAs showing client name, date, status badge, net worth, retirement score
+- Click to view completed CNA (read-only mode of the form)
+- "New Analysis" button linking to the form
+- Mobile-optimized with card layout
 
-### 11. `src/pages/portal/client/ClientPolicies.tsx`
-- Policy card grid: change from `grid-cols-2 sm:grid-cols-4` to `grid-cols-2` with proper truncation on mobile
-- Ensure all text is readable without horizontal scroll
+## Phase 5: Navigation and Routing
 
-### 12. `src/pages/portal/client/ClientDocuments.tsx`
-- Ensure document cards are touch-friendly with adequate tap targets
-- Download button: full-width on mobile
+### Add routes in `src/App.tsx`:
+- `/portal/advisor/cna` -- CNA Dashboard
+- `/portal/advisor/cna/new` -- New CNA Form  
+- `/portal/advisor/cna/:id` -- View/Edit existing CNA
 
-### 13. `src/components/portal/AdminPortalLayout.tsx`
-- Add bottom safe area padding for iOS
-- Ensure mobile sidebar animation is smooth
+### Add nav item in `src/components/portal/PortalLayout.tsx`:
+- Add "CNA" entry under the "Portal" nav group with `FileText` or `ClipboardList` icon
+- Link to `/portal/advisor/cna`
 
-### 14. Calculator Components (all 15 files in `src/pages/portal/advisor/calculators/`)
-- Ensure slider inputs have adequate touch targets (min 44px height)
-- Result grids: use `grid-cols-1` on mobile where currently using `grid-cols-2`
-- Charts: set minimum height and ensure ResponsiveContainer works well on narrow screens
-- Reduce typography sizes on mobile for long result labels
+### Add Quick Action on Advisor Dashboard:
+- Add "Client Analysis" quick action card linking to `/portal/advisor/cna`
 
----
+## Phase 6: Signature Pad Component
 
-## Technical Approach
+Create `src/components/portal/SignaturePad.tsx`:
+- Pure canvas-based implementation (no external library)
+- Supports mouse and touch events
+- Returns base64 PNG string via onChange callback
+- Clear button to reset
+- Responsive width (fills container)
 
-- Use Tailwind responsive prefixes (`sm:`, `md:`, `lg:`) consistently -- mobile-first
-- Add `touch-manipulation` CSS to interactive elements for 300ms tap delay removal
-- Use `scrollbar-hide` utility class for horizontal filter scrolling
-- Add safe area insets via `pb-[env(safe-area-inset-bottom)]` where needed
-- For the Messages stacked view on mobile, use state + conditional rendering rather than CSS-only
-- Disable 3D mouse-tracking effects by checking `window.matchMedia('(pointer: coarse)')` 
+## Files to Create
+- `supabase/functions/financial-analysis/index.ts` -- AI analysis edge function
+- `src/pages/portal/advisor/CNAForm.tsx` -- 8-step wizard form (~800 lines)
+- `src/pages/portal/advisor/CNADashboard.tsx` -- Management dashboard (~300 lines)
+- `src/components/portal/SignaturePad.tsx` -- Canvas signature component (~100 lines)
 
-## Files to Edit (15+ files)
-- `src/components/portal/PortalLayout.tsx`
-- `src/components/portal/AdminPortalLayout.tsx`
-- `src/pages/portal/advisor/AdvisorDashboard.tsx`
-- `src/pages/portal/advisor/ToolsHub.tsx`
-- `src/pages/portal/advisor/AdvisorMessages.tsx`
-- `src/pages/portal/advisor/PerformanceTracker.tsx`
-- `src/pages/portal/advisor/CarrierDirectory.tsx`
-- `src/pages/portal/advisor/MarketingResources.tsx`
-- `src/pages/portal/advisor/TrainingCenter.tsx`
-- `src/pages/portal/client/ClientDashboard.tsx`
-- `src/pages/portal/client/ClientPolicies.tsx`
-- `src/pages/portal/client/ClientDocuments.tsx`
-- `src/pages/portal/client/ClientMessages.tsx`
-- Select calculator components (DebtVsInvesting, CommissionCalculator, etc.)
+## Files to Edit
+- `src/App.tsx` -- Add 3 new routes and import statements
+- `src/components/portal/PortalLayout.tsx` -- Add CNA nav item
+- `src/pages/portal/advisor/AdvisorDashboard.tsx` -- Add CNA quick action
+- `supabase/config.toml` -- Add financial-analysis function config
 
-## No New Dependencies Required
-All changes use existing Tailwind utilities and React patterns.
+## Technical Notes
+
+- The AI analysis uses Lovable AI gateway (`https://ai.gateway.lovable.dev/v1/chat/completions`) with `LOVABLE_API_KEY`, not direct OpenAI. This avoids requiring any additional API keys.
+- PDF export is excluded from this initial build since `@react-pdf/renderer` is not installed. It can be added as a follow-up.
+- The signature pad uses native Canvas API to avoid adding a dependency.
+- All currency inputs use a reusable pattern: `type="number"` with step="0.01" and formatting display.
+- Calculated fields (totals, net worth, ratios) are computed client-side in real-time via `useMemo` and also stored in the database on save.
+- Version history works via the `previous_version_id` self-reference -- creating a new version inserts a new row pointing to the old one.
+- Follow-up tasks stored as JSONB array: `[{task: string, dueDate: string, completed: boolean}]`.
