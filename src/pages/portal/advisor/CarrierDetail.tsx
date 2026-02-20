@@ -59,7 +59,7 @@ export default function CarrierDetail() {
       <Link to="/portal/advisor/carriers"><Button variant="ghost" size="sm"><ArrowLeft className="h-4 w-4 mr-2" />Back to Carriers</Button></Link>
 
       {/* Hero */}
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+      <div className="bg-white rounded-2xl border border-gray-200 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.08)] p-6">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-4">
             {carrier.carrier_logo_url ? (
@@ -127,7 +127,7 @@ export default function CarrierDetail() {
 
       {/* Tabs */}
       <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="bg-white border border-gray-100 shadow-sm">
+        <TabsList className="bg-white border border-gray-200 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.08)]">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="products">Products</TabsTrigger>
           {docs.length > 0 && <TabsTrigger value="documents">Documents ({docs.length})</TabsTrigger>}
@@ -139,25 +139,25 @@ export default function CarrierDetail() {
         {/* Overview */}
         <TabsContent value="overview" className="space-y-4 mt-4">
           {carrier.description && (
-            <Card className="border-gray-100 shadow-sm">
+             <Card className="border-gray-200 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.08)]">
               <CardHeader><CardTitle className="text-base">About</CardTitle></CardHeader>
               <CardContent><p className="text-sm text-gray-600 leading-relaxed">{carrier.description}</p></CardContent>
             </Card>
           )}
           {carrier.underwriting_strengths && (
-            <Card className="border-gray-100 shadow-sm">
+             <Card className="border-gray-200 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.08)]">
               <CardHeader><CardTitle className="text-base">Underwriting Strengths</CardTitle></CardHeader>
               <CardContent><p className="text-sm text-gray-600 leading-relaxed">{carrier.underwriting_strengths}</p></CardContent>
             </Card>
           )}
           {carrier.notes && (
-            <Card className="border-gray-100 shadow-sm">
+             <Card className="border-gray-200 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.08)]">
               <CardHeader><CardTitle className="text-base">Notes</CardTitle></CardHeader>
               <CardContent><p className="text-sm text-gray-500 whitespace-pre-line">{carrier.notes}</p></CardContent>
             </Card>
           )}
           {carrier.contracting_requirements && (
-            <Card className="border-gray-100 shadow-sm">
+             <Card className="border-gray-200 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.08)]">
               <CardHeader><CardTitle className="text-base">Contracting Requirements</CardTitle></CardHeader>
               <CardContent><p className="text-sm text-gray-500 whitespace-pre-line">{carrier.contracting_requirements}</p></CardContent>
             </Card>
@@ -167,7 +167,7 @@ export default function CarrierDetail() {
         {/* Products */}
         <TabsContent value="products" className="space-y-4 mt-4">
           {carrier.products_offered && carrier.products_offered.length > 0 && (
-            <Card className="border-gray-100 shadow-sm">
+             <Card className="border-gray-200 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.08)]">
               <CardHeader><CardTitle className="text-base">Products Offered</CardTitle></CardHeader>
               <CardContent>
                 <div className="flex flex-wrap gap-2">
@@ -179,7 +179,7 @@ export default function CarrierDetail() {
             </Card>
           )}
           {carrier.niches && carrier.niches.length > 0 && (
-            <Card className="border-gray-100 shadow-sm">
+             <Card className="border-gray-200 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.08)]">
               <CardHeader><CardTitle className="text-base">Market Niches</CardTitle></CardHeader>
               <CardContent>
                 <div className="flex flex-wrap gap-2">
@@ -189,7 +189,7 @@ export default function CarrierDetail() {
             </Card>
           )}
           {carrier.special_products && carrier.special_products.length > 0 && (
-            <Card className="border-gray-100 shadow-sm">
+             <Card className="border-gray-200 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.08)]">
               <CardHeader><CardTitle className="text-base">Special Products & Features</CardTitle></CardHeader>
               <CardContent>
                 <ul className="space-y-1.5">
@@ -208,7 +208,7 @@ export default function CarrierDetail() {
         {/* Documents */}
         {docs.length > 0 && (
           <TabsContent value="documents" className="mt-4">
-            <Card className="border-gray-100 shadow-sm">
+             <Card className="border-gray-200 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.08)]">
               <CardHeader><CardTitle className="text-base">Carrier Documents & Guides</CardTitle></CardHeader>
               <CardContent className="space-y-2">
                 {docs.map((doc: any) => (
@@ -235,7 +235,7 @@ export default function CarrierDetail() {
         {/* Tools */}
         <TabsContent value="tools" className="space-y-4 mt-4">
           {tools.length > 0 && (
-            <Card className="border-gray-100 shadow-sm">
+             <Card className="border-gray-200 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.08)]">
               <CardHeader><CardTitle className="text-base">Quoting & Application Tools</CardTitle></CardHeader>
               <CardContent className="space-y-3">
                 {tools.map((t: any) => (
@@ -263,7 +263,7 @@ export default function CarrierDetail() {
         {/* News */}
         <TabsContent value="news" className="space-y-4 mt-4">
           {news.length > 0 ? (
-            <Card className="border-gray-100 shadow-sm">
+            <Card className="border-gray-200 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.08)]">
               <CardHeader><CardTitle className="text-base">Latest Updates</CardTitle></CardHeader>
               <CardContent className="space-y-4">
                 {news.map((n: any) => (
@@ -286,7 +286,7 @@ export default function CarrierDetail() {
         {/* Reparenting */}
         {hasReparenting && (
           <TabsContent value="reparenting" className="mt-4">
-            <Card className="border-gray-100 shadow-sm border-l-4" style={{ borderLeftColor: BRAND_GREEN }}>
+            <Card className="border-gray-200 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.08)] border-l-4" style={{ borderLeftColor: BRAND_GREEN }}>
               <CardHeader>
                 <CardTitle className="text-base flex items-center gap-2"><RefreshCcw className="h-4 w-4" /> Reparenting Instructions</CardTitle>
               </CardHeader>

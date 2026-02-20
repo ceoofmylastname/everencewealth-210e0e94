@@ -66,14 +66,14 @@ export default function TrainingCenter() {
 
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
         {[{ label: "Trainings Completed", value: stats.completedCount, icon: CheckCircle }, { label: "Total Watch Time", value: `${stats.totalMinutes} min`, icon: Clock }, { label: "In Progress", value: stats.inProgressCount, icon: TrendingUp }].map(s => (
-          <div key={s.label} className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 flex items-center gap-4">
+          <div key={s.label} className="bg-white rounded-2xl border border-gray-200 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.08)] p-5 flex items-center gap-4">
             <div className="h-10 w-10 rounded-lg flex items-center justify-center shrink-0" style={{ background: `${BRAND_GREEN}15` }}><s.icon className="h-5 w-5" style={{ color: BRAND_GREEN }} /></div>
             <div><p className="text-xs text-gray-500">{s.label}</p><p className="text-xl font-bold text-gray-900">{s.value}</p></div>
           </div>
         ))}
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 space-y-4">
+      <div className="bg-white rounded-2xl border border-gray-200 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.08)] p-5 space-y-4">
         <div className="relative"><Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" /><Input value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder="Search trainings..." className={`pl-10 ${inputCls}`} /></div>
         <div><p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Category</p><div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide"><FilterChip label="All" active={!selectedCategory} onClick={() => setSelectedCategory(null)} />{categories.map(cat => <FilterChip key={cat} label={cat.replace(/_/g, " ")} active={selectedCategory === cat} onClick={() => setSelectedCategory(cat)} />)}</div></div>
         <div><p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Level</p><div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide"><FilterChip label="All Levels" active={!selectedLevel} onClick={() => setSelectedLevel(null)} />{["beginner", "intermediate", "advanced"].map(lvl => <FilterChip key={lvl} label={lvl} active={selectedLevel === lvl} onClick={() => setSelectedLevel(lvl)} />)}</div></div>
@@ -86,7 +86,7 @@ export default function TrainingCenter() {
           const percent = prog?.progress_percent ?? 0;
           return (
             <Link key={t.id} to={`/portal/advisor/training/${t.id}`} className="block">
-              <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden flex flex-col h-full hover:shadow-md hover:border-gray-200 transition-all">
+              <div className="bg-white rounded-2xl border border-gray-200 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.08)] overflow-hidden flex flex-col h-full hover:shadow-[0_4px_20px_-4px_rgba(0,0,0,0.12)] hover:translate-y-[-2px] transition-all">
                 {t.thumbnail_url ? (<img src={t.thumbnail_url} alt={t.title} className="w-full h-40 object-cover" />) : (<div className="w-full h-40 flex items-center justify-center bg-gray-50"><GraduationCap className="h-10 w-10 text-gray-300" /></div>)}
                 <div className="p-5 flex flex-col flex-1">
                   <div className="flex items-center gap-2 mb-3">
@@ -115,7 +115,7 @@ export default function TrainingCenter() {
       </div>
 
       {filtered.length === 0 && (
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm text-center py-12"><GraduationCap className="h-12 w-12 text-gray-300 mx-auto mb-3" /><p className="text-gray-500">No trainings match your filters</p></div>
+        <div className="bg-white rounded-2xl border border-gray-200 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.08)] text-center py-12"><GraduationCap className="h-12 w-12 text-gray-300 mx-auto mb-3" /><p className="text-gray-500">No trainings match your filters</p></div>
       )}
     </div>
   );

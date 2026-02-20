@@ -77,7 +77,7 @@ export default function CarrierDirectory() {
         <p className="text-sm text-gray-500 mt-0.5">Browse {carriers.length} partnered carriers and their product offerings.</p>
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 space-y-4">
+      <div className="bg-white rounded-2xl border border-gray-200 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.08)] p-5 space-y-4">
         <div className="relative sm:max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
           <Input placeholder="Search carriers..." value={search} onChange={e => setSearch(e.target.value)} className={`pl-9 ${inputCls}`} />
@@ -98,7 +98,7 @@ export default function CarrierDirectory() {
       {loading ? (
         <div className="flex justify-center py-12"><div className="w-8 h-8 border-4 rounded-full animate-spin" style={{ borderColor: BRAND_GREEN, borderTopColor: "transparent" }} /></div>
       ) : filtered.length === 0 ? (
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm flex flex-col items-center justify-center py-16 text-center">
+        <div className="bg-white rounded-2xl border border-gray-200 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.08)] flex flex-col items-center justify-center py-16 text-center">
           <Building2 className="h-12 w-12 text-gray-300 mb-4" />
           <p className="text-gray-500 font-medium">No carriers match your filters</p>
           <button onClick={clearFilters} className="mt-4 px-4 py-2 rounded-lg text-sm text-gray-600 hover:text-gray-900 bg-gray-50 border border-gray-200 transition-colors">Clear Filters</button>
@@ -109,7 +109,7 @@ export default function CarrierDirectory() {
             const dc = docCounts[carrier.id] || 0;
             const cityState = extractCityState(carrier.headquarters);
             return (
-              <div key={carrier.id} className="bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-lg hover:border-gray-200 transition-all h-full flex flex-col overflow-hidden group">
+              <div key={carrier.id} className="bg-white rounded-2xl border border-gray-200 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.08)] hover:shadow-[0_4px_20px_-4px_rgba(0,0,0,0.12)] hover:translate-y-[-2px] transition-all h-full flex flex-col overflow-hidden group">
                 {/* Header */}
                 <div className="p-5 pb-3">
                   <div className="flex items-start justify-between mb-3">

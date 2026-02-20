@@ -38,7 +38,7 @@ interface LeaderboardEntry { advisorId: string; name: string; totalPremium: numb
 
 function StatCard({ label, value, sub, icon: Icon, color = BRAND }: { label: string; value: string; sub?: string; icon: any; color?: string }) {
   return (
-    <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 flex items-center gap-4">
+    <div className="bg-white rounded-2xl border border-gray-200 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.08)] p-4 flex items-center gap-4">
       <div className="h-10 w-10 rounded-lg flex items-center justify-center shrink-0" style={{ background: `${color}15` }}>
         <Icon className="h-5 w-5" style={{ color }} />
       </div>

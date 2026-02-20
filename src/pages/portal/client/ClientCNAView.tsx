@@ -98,7 +98,7 @@ export default function ClientCNAView() {
       </div>
 
       {/* Title */}
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 print:shadow-none print:border-0 print:p-0 print:mb-4">
+      <div className="bg-white rounded-2xl border border-gray-200 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.08)] p-6 print:shadow-none print:border-0 print:p-0 print:mb-4">
         <h1 className="text-2xl font-bold text-gray-900">Financial Needs Analysis</h1>
         <p className="text-sm text-gray-500 mt-1">
           Prepared for {cna.applicant_name} · {new Date(cna.created_at).toLocaleDateString()}
@@ -211,7 +211,7 @@ export default function ClientCNAView() {
 
 function Section({ title, icon: Icon, children }: { title: string; icon: any; children: React.ReactNode }) {
   return (
-    <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 print:shadow-none print:border print:p-4">
+    <div className="bg-white rounded-2xl border border-gray-200 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.08)] p-6 print:shadow-none print:border print:p-4">
       <div className="flex items-center gap-2 mb-4">
         <div className="h-8 w-8 rounded-lg flex items-center justify-center" style={{ background: `${BRAND_GREEN}15` }}>
           <Icon className="h-4 w-4" style={{ color: BRAND_GREEN }} />

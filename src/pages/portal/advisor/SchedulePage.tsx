@@ -118,7 +118,7 @@ export default function SchedulePage() {
       {loading ? (
         <div className="flex justify-center py-12"><div className="w-8 h-8 border-4 rounded-full animate-spin" style={{ borderColor: BRAND_GREEN, borderTopColor: "transparent" }} /></div>
       ) : Object.keys(groupedEvents).length === 0 ? (
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-12 text-center">
+        <div className="bg-white rounded-2xl border border-gray-200 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.08)] p-12 text-center">
           <Calendar className="h-12 w-12 text-gray-300 mx-auto mb-4" />
           <p className="text-gray-500">No upcoming events</p>
         </div>
@@ -134,7 +134,7 @@ export default function SchedulePage() {
                   const EventIcon = getEventIcon(event.event_type);
                   const isAdmin = event.creator?.role === "admin";
                   return (
-                    <div key={event.id} className={`bg-white rounded-xl border shadow-sm p-4 hover:shadow-md transition-all ${isAdmin ? "border-l-4 border-l-amber-400 border-gray-100" : "border-l-4 border-l-emerald-400 border-gray-100"}`}>
+                    <div key={event.id} className={`bg-white rounded-2xl border shadow-[0_2px_12px_-2px_rgba(0,0,0,0.08)] p-4 hover:shadow-[0_4px_20px_-4px_rgba(0,0,0,0.12)] hover:translate-y-[-2px] transition-all ${isAdmin ? "border-l-4 border-l-amber-400 border-gray-200" : "border-l-4 border-l-emerald-400 border-gray-200"}`}>
                       <div className="flex items-start gap-4">
                         <div className="h-10 w-10 rounded-lg flex items-center justify-center shrink-0" style={{ background: `${BRAND_GREEN}15` }}>
                           <EventIcon className="h-5 w-5" style={{ color: BRAND_GREEN }} />

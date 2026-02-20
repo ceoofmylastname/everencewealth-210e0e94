@@ -145,7 +145,7 @@ export default function CNADashboard() {
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {stats.map((s) => (
-          <div key={s.label} className="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
+          <div key={s.label} className="bg-white rounded-2xl border border-gray-200 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.08)] p-4">
             <div className="flex items-center gap-3 mb-2">
               <div className="h-9 w-9 rounded-lg flex items-center justify-center" style={{ background: `${s.color}15` }}>
                 <s.icon className="h-4 w-4" style={{ color: s.color }} />
@@ -183,13 +183,13 @@ export default function CNADashboard() {
       <div className="space-y-3">
         {loading ? (
           Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+            <div key={i} className="bg-white rounded-2xl border border-gray-200 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.08)] p-5">
               <Skeleton className="h-5 w-40 mb-2" />
               <Skeleton className="h-4 w-60" />
             </div>
           ))
         ) : filtered.length === 0 ? (
-          <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-12 text-center">
+          <div className="bg-white rounded-2xl border border-gray-200 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.08)] p-12 text-center">
             <FileText className="h-12 w-12 text-gray-300 mx-auto mb-3" />
             <p className="text-gray-500 font-medium">No analyses found</p>
             <p className="text-sm text-gray-400 mt-1">Create your first Client Needs Analysis</p>
@@ -205,7 +205,7 @@ export default function CNADashboard() {
             const retScore = cna.ai_retirement_projection?.retirement_score;
             return (
               <Link key={cna.id} to={`/portal/advisor/cna/${cna.id}`}>
-                <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 sm:p-5 hover:shadow-md hover:border-gray-200 transition-all cursor-pointer">
+                <div className="bg-white rounded-2xl border border-gray-200 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.08)] p-4 sm:p-5 hover:shadow-[0_4px_20px_-4px_rgba(0,0,0,0.12)] hover:translate-y-[-2px] transition-all cursor-pointer">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <div className="min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">

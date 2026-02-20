@@ -118,14 +118,14 @@ export default function AdminMarketing() {
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[{ label: "Total Resources", value: stats.total, icon: Megaphone }, { label: "Creatives", value: stats.creatives, icon: ImageIcon }, { label: "Templates", value: stats.templates, icon: FileText }, { label: "Videos", value: stats.videos, icon: Video }].map(s => (
-          <div key={s.label} className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 flex items-center gap-3">
+          <div key={s.label} className="bg-white rounded-2xl border border-gray-200 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.08)] p-4 flex items-center gap-3">
             <div className="h-10 w-10 rounded-lg flex items-center justify-center shrink-0" style={{ background: `${BRAND_GREEN}15` }}><s.icon className="h-5 w-5" style={{ color: BRAND_GREEN }} /></div>
             <div><p className="text-xs text-gray-500">{s.label}</p><p className="text-xl font-bold text-gray-900">{s.value}</p></div>
           </div>
         ))}
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 space-y-4">
+      <div className="bg-white rounded-2xl border border-gray-200 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.08)] p-5 space-y-4">
         <div className="relative max-w-md"><Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" /><Input placeholder="Search resources or tags..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className={`pl-9 ${inputCls}`} /></div>
         <div className="space-y-2"><p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Category</p><div className="flex flex-wrap gap-2"><FilterChip label="All" active={!selectedCategory} onClick={() => setSelectedCategory(null)} />{categories.map(c => <FilterChip key={c.key} label={c.label} active={selectedCategory === c.key} onClick={() => setSelectedCategory(c.key)} />)}</div></div>
         <div className="space-y-2"><p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Type</p><div className="flex flex-wrap gap-2"><FilterChip label="All Types" active={!selectedType} onClick={() => setSelectedType(null)} />{resourceTypes.map(t => <FilterChip key={t.key} label={t.label} active={selectedType === t.key} onClick={() => setSelectedType(t.key)} />)}</div></div>
@@ -134,13 +134,13 @@ export default function AdminMarketing() {
       {loading ? (
         <div className="flex justify-center py-12"><div className="w-8 h-8 border-4 rounded-full animate-spin" style={{ borderColor: BRAND_GREEN, borderTopColor: "transparent" }} /></div>
       ) : filtered.length === 0 ? (
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm text-center py-12"><Search className="h-10 w-10 text-gray-300 mx-auto mb-3" /><p className="text-gray-500">No resources match your filters</p></div>
+        <div className="bg-white rounded-2xl border border-gray-200 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.08)] text-center py-12"><Search className="h-10 w-10 text-gray-300 mx-auto mb-3" /><p className="text-gray-500">No resources match your filters</p></div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {filtered.map(r => {
             const TypeIcon = typeIcons[r.resource_type] || FileText;
             return (
-              <div key={r.id} className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden flex flex-col hover:shadow-md hover:border-gray-200 transition-all relative">
+              <div key={r.id} className="bg-white rounded-2xl border border-gray-200 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.08)] overflow-hidden flex flex-col hover:shadow-[0_4px_20px_-4px_rgba(0,0,0,0.12)] hover:translate-y-[-2px] transition-all relative">
                 <div className="absolute top-2 right-2 z-10 flex gap-1">
                   <button onClick={() => openEdit(r)} className="p-1.5 rounded-lg bg-white/90 shadow hover:bg-white text-gray-500 hover:text-gray-700"><Pencil className="h-3.5 w-3.5" /></button>
                   <AlertDialog>
