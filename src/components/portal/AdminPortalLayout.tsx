@@ -24,23 +24,23 @@ const adminNavGroups = [
   {
     label: "Market",
     items: [
-      { label: "Carriers", icon: Building2, href: "/portal/advisor/carriers" },
-      { label: "News", icon: Newspaper, href: "/portal/advisor/news" },
+      { label: "Carriers", icon: Building2, href: "/portal/admin/carriers" },
+      { label: "News", icon: Newspaper, href: "/portal/admin/news" },
     ],
   },
   {
     label: "Resources",
     items: [
-      { label: "Tools", icon: Wrench, href: "/portal/advisor/tools" },
-      { label: "Training", icon: GraduationCap, href: "/portal/advisor/training" },
-      { label: "Marketing", icon: Megaphone, href: "/portal/advisor/marketing" },
-      { label: "Schedule", icon: Calendar, href: "/portal/advisor/schedule" },
+      { label: "Tools", icon: Wrench, href: "/portal/admin/tools" },
+      { label: "Training", icon: GraduationCap, href: "/portal/admin/training" },
+      { label: "Marketing", icon: Megaphone, href: "/portal/admin/marketing" },
+      { label: "Schedule", icon: Calendar, href: "/portal/admin/schedule" },
     ],
   },
   {
     label: "Compliance",
     items: [
-      { label: "Compliance", icon: Shield, href: "/portal/advisor/compliance" },
+      { label: "Compliance", icon: Shield, href: "/portal/admin/compliance" },
     ],
   },
   {
