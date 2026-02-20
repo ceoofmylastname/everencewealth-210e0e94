@@ -4,17 +4,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { usePortalAuth } from "@/hooks/usePortalAuth";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { toast } from "sonner";
-import {
   Users, FileText, Send, ArrowUpRight, TrendingUp,
   Calendar, Shield, Calculator, GraduationCap, Megaphone,
-  Wrench, ClipboardList, Pencil,
+  Wrench, ClipboardList,
 } from "lucide-react";
 
 const BRAND_GREEN = "#1A4D3E";
@@ -27,20 +19,6 @@ interface DashboardStats {
   pendingInvitations: number;
 }
 
-interface RankInfo {
-  rank_name: string;
-  compensation_level_percent: number;
-  badge_color: string;
-  id?: string;
-}
-
-interface RankOption {
-  id: string;
-  rank_name: string;
-  compensation_level_percent: number;
-  badge_color: string | null;
-  rank_order: number;
-}
 
 interface RecentClient {
   id: string;
@@ -61,10 +39,6 @@ function getHour() {
 export default function AdvisorDashboard() {
   const { portalUser } = usePortalAuth();
   const [stats, setStats] = useState<DashboardStats>({ totalClients: 0, activePolicies: 0, ytdRevenue: 0, pendingInvitations: 0 });
-  const [rank, setRank] = useState<RankInfo | null>(null);
-  const [allRanks, setAllRanks] = useState<RankOption[]>([]);
-  const [editingRank, setEditingRank] = useState(false);
-  const [advisorId, setAdvisorId] = useState<string | null>(null);
   const [recentNews, setRecentNews] = useState<any[]>([]);
   const [upcomingEvents, setUpcomingEvents] = useState<any[]>([]);
   const [recentClients, setRecentClients] = useState<RecentClient[]>([]);
@@ -77,19 +51,17 @@ export default function AdvisorDashboard() {
 
   async function loadDashboard() {
     try {
-      const { data: advisor } = await supabase.from("advisors").select("id, rank_override_id").eq("portal_user_id", portalUser!.id).maybeSingle();
+      const { data: advisor } = await supabase.from("advisors").select("id").eq("portal_user_id", portalUser!.id).maybeSingle();
       if (!advisor) { setLoading(false); return; }
-      setAdvisorId(advisor.id);
 
       const currentYear = new Date().getFullYear();
       const today = new Date().toISOString().split("T")[0];
 
-      const [clients, policies, invitations, perfData, ranks, news, events, recentClientsRes] = await Promise.all([
+      const [clients, policies, invitations, perfData, news, events, recentClientsRes] = await Promise.all([
         supabase.from("portal_users").select("id", { count: "exact", head: true }).eq("advisor_id", portalUser!.id).eq("role", "client"),
         supabase.from("policies").select("id", { count: "exact", head: true }).eq("advisor_id", advisor.id).eq("policy_status", "active"),
         supabase.from("client_invitations").select("id", { count: "exact", head: true }).eq("advisor_id", advisor.id).eq("status", "pending"),
         supabase.from("advisor_performance").select("revenue").eq("advisor_id", advisor.id).gte("entry_date", `${currentYear}-01-01`),
-        supabase.from("advisor_rank_config").select("*").order("rank_order", { ascending: false }),
         supabase.from("carrier_news").select("*, carriers(carrier_name)").eq("status", "published").order("published_at", { ascending: false }).limit(3),
         supabase.from("schedule_events").select("*").gte("event_date", today).order("event_date", { ascending: true }).limit(3),
         supabase.from("portal_users").select("id, first_name, last_name, email, avatar_url, created_at").eq("advisor_id", portalUser!.id).eq("role", "client").order("created_at", { ascending: false }).limit(5),
@@ -97,14 +69,6 @@ export default function AdvisorDashboard() {
 
       const ytdRevenue = perfData.data?.reduce((sum, r) => sum + (Number(r.revenue) || 0), 0) ?? 0;
       setStats({ totalClients: clients.count ?? 0, activePolicies: policies.count ?? 0, ytdRevenue, pendingInvitations: invitations.count ?? 0 });
-
-      if (ranks.data) {
-        setAllRanks(ranks.data.map(r => ({ id: r.id, rank_name: r.rank_name, compensation_level_percent: Number(r.compensation_level_percent), badge_color: r.badge_color, rank_order: r.rank_order })));
-        // Use override if set, otherwise auto-calculate
-        const overrideRank = advisor.rank_override_id ? ranks.data.find(r => r.id === advisor.rank_override_id) : null;
-        const currentRank = overrideRank || ranks.data.find(r => ytdRevenue >= Number(r.min_ytd_premium)) || ranks.data[ranks.data.length - 1];
-        if (currentRank) setRank({ id: currentRank.id, rank_name: currentRank.rank_name, compensation_level_percent: Number(currentRank.compensation_level_percent), badge_color: currentRank.badge_color || "#3b82f6" });
-      }
 
       setRecentNews(news.data ?? []);
       setUpcomingEvents(events.data ?? []);
@@ -114,16 +78,6 @@ export default function AdvisorDashboard() {
     } finally {
       setLoading(false);
     }
-  }
-
-  async function handleRankChange(rankId: string) {
-    if (!advisorId) return;
-    const { error } = await supabase.from("advisors").update({ rank_override_id: rankId } as any).eq("id", advisorId);
-    if (error) { toast.error("Failed to update rank"); return; }
-    const selected = allRanks.find(r => r.id === rankId);
-    if (selected) setRank({ id: selected.id, rank_name: selected.rank_name, compensation_level_percent: selected.compensation_level_percent, badge_color: selected.badge_color || "#3b82f6" });
-    setEditingRank(false);
-    toast.success("Rank updated successfully");
   }
 
   const statCards = [
@@ -156,41 +110,6 @@ export default function AdvisorDashboard() {
           Advisor Portal
         </span>
       </div>
-
-      {/* Rank Banner */}
-      {rank && (
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 flex items-center justify-between" style={{ borderLeft: `4px solid ${rank.badge_color}` }}>
-          <div className="flex items-center gap-3">
-            <div>
-              <p className="text-xs font-medium uppercase tracking-wider text-gray-400">Current Rank</p>
-              {editingRank ? (
-                <Select defaultValue={rank.id} onValueChange={handleRankChange}>
-                  <SelectTrigger className="w-[200px] mt-1 h-9">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {allRanks.sort((a, b) => a.rank_order - b.rank_order).map(r => (
-                      <SelectItem key={r.id} value={r.id}>
-                        {r.rank_name} ({r.compensation_level_percent}%)
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              ) : (
-                <p className="text-lg font-bold text-gray-900 mt-0.5">{rank.rank_name}</p>
-              )}
-            </div>
-            {!editingRank && (
-              <button onClick={() => setEditingRank(true)} className="p-1.5 rounded-md hover:bg-gray-100 transition-colors" title="Change rank">
-                <Pencil className="h-3.5 w-3.5 text-gray-400" />
-              </button>
-            )}
-          </div>
-          <span className="px-3 py-1 rounded-full text-sm font-semibold" style={{ background: `${rank.badge_color}18`, color: rank.badge_color }}>
-            {rank.compensation_level_percent}% Comp
-          </span>
-        </div>
-      )}
 
       {/* Stats Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
