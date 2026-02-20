@@ -67,9 +67,9 @@ export default function MarketingResources() {
       </div>
 
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 space-y-4">
-        <div className="relative max-w-md"><Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" /><Input placeholder="Search resources or tags..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className={`pl-9 ${inputCls}`} /></div>
-        <div className="space-y-2"><p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Category</p><div className="flex flex-wrap gap-2"><FilterChip label="All" active={!selectedCategory} onClick={() => setSelectedCategory(null)} />{categories.map(c => <FilterChip key={c.key} label={c.label} active={selectedCategory === c.key} onClick={() => setSelectedCategory(c.key)} />)}</div></div>
-        <div className="space-y-2"><p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Type</p><div className="flex flex-wrap gap-2"><FilterChip label="All Types" active={!selectedType} onClick={() => setSelectedType(null)} />{resourceTypes.map(t => <FilterChip key={t.key} label={t.label} active={selectedType === t.key} onClick={() => setSelectedType(t.key)} />)}</div></div>
+        <div className="relative sm:max-w-md"><Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" /><Input placeholder="Search resources or tags..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className={`pl-9 ${inputCls}`} /></div>
+        <div className="space-y-2"><p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Category</p><div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide"><FilterChip label="All" active={!selectedCategory} onClick={() => setSelectedCategory(null)} />{categories.map(c => <FilterChip key={c.key} label={c.label} active={selectedCategory === c.key} onClick={() => setSelectedCategory(c.key)} />)}</div></div>
+        <div className="space-y-2"><p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Type</p><div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide"><FilterChip label="All Types" active={!selectedType} onClick={() => setSelectedType(null)} />{resourceTypes.map(t => <FilterChip key={t.key} label={t.label} active={selectedType === t.key} onClick={() => setSelectedType(t.key)} />)}</div></div>
       </div>
 
       {loading ? (

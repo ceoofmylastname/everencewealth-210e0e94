@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import { MessageSquare, Send, User, Shield, Filter, Eye } from "lucide-react";
+import { MessageSquare, Send, User, Shield, Filter, Eye, ChevronRight } from "lucide-react";
 
 interface Conversation {
   id: string;
@@ -241,9 +241,9 @@ export default function AdvisorMessages() {
         )}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 h-[calc(100vh-12rem)]">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 h-[calc(100vh-10rem)] sm:h-[calc(100vh-12rem)]">
         {/* Conversations List */}
-        <Card className="lg:col-span-1 flex flex-col">
+        <Card className={cn("lg:col-span-1 flex flex-col", selectedConv ? "hidden lg:flex" : "flex")}>
           <CardHeader className="py-3 px-4 border-b">
             <CardTitle className="text-sm">Conversations</CardTitle>
           </CardHeader>
@@ -320,7 +320,7 @@ export default function AdvisorMessages() {
         </Card>
 
         {/* Messages Area */}
-        <Card className="lg:col-span-2 flex flex-col">
+        <Card className={cn("lg:col-span-2 flex flex-col", !selectedConv ? "hidden lg:flex" : "flex")}>
           {!selectedConv ? (
             <div className="flex-1 flex items-center justify-center text-muted-foreground">
               <div className="text-center">
@@ -331,7 +331,12 @@ export default function AdvisorMessages() {
           ) : (
             <>
               <CardHeader className="py-3 px-4 border-b">
-                <CardTitle className="text-sm">{getConversationLabel(selectedConversation!)}</CardTitle>
+                <div className="flex items-center gap-2">
+                  <button onClick={() => setSelectedConv(null)} className="lg:hidden p-1 -ml-1 rounded hover:bg-muted">
+                    <ChevronRight className="h-4 w-4 rotate-180" />
+                  </button>
+                  <CardTitle className="text-sm">{getConversationLabel(selectedConversation!)}</CardTitle>
+                </div>
               </CardHeader>
               <CardContent className="flex-1 overflow-y-auto p-4 space-y-3">
                 {messages.map((msg) => {
@@ -341,7 +346,7 @@ export default function AdvisorMessages() {
                   return (
                     <div key={msg.id} className={cn("flex", isRight ? "justify-end" : "justify-start")}>
                       <div className={cn(
-                        "max-w-[70%] rounded-2xl px-4 py-2",
+                        "max-w-[85%] sm:max-w-[70%] rounded-2xl px-4 py-2",
                         isRight
                           ? "bg-primary text-primary-foreground rounded-br-md"
                           : "bg-muted rounded-bl-md"

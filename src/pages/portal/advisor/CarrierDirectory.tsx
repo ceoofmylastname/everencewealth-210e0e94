@@ -78,17 +78,17 @@ export default function CarrierDirectory() {
       </div>
 
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 space-y-4">
-        <div className="relative max-w-md">
+        <div className="relative sm:max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-          <Input placeholder="Search carriers by name or description..." value={search} onChange={e => setSearch(e.target.value)} className={`pl-9 ${inputCls}`} />
+          <Input placeholder="Search carriers..." value={search} onChange={e => setSearch(e.target.value)} className={`pl-9 ${inputCls}`} />
         </div>
         <div className="space-y-2">
           <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">Products</p>
-          <div className="flex flex-wrap gap-2">{ALL_PRODUCTS.map(p => <FilterChip key={p} label={p} active={selectedProducts.includes(p)} onClick={() => toggleProduct(p)} />)}</div>
+          <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">{ALL_PRODUCTS.map(p => <FilterChip key={p} label={p} active={selectedProducts.includes(p)} onClick={() => toggleProduct(p)} />)}</div>
         </div>
         <div className="space-y-2">
           <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">Specialties</p>
-          <div className="flex flex-wrap gap-2">{ALL_NICHES.map(n => <FilterChip key={n} label={n.replace(/_/g, " ")} active={selectedNiches.includes(n)} onClick={() => toggleNiche(n)} />)}</div>
+          <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">{ALL_NICHES.map(n => <FilterChip key={n} label={n.replace(/_/g, " ")} active={selectedNiches.includes(n)} onClick={() => toggleNiche(n)} />)}</div>
         </div>
         {hasFilters && (
           <button onClick={clearFilters} className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-700 transition-colors"><X className="h-3 w-3" /> Clear All Filters</button>
@@ -196,26 +196,28 @@ export default function CarrierDirectory() {
                 )}
 
                 {/* Actions */}
-                <div className="mt-auto px-5 pb-5 pt-2 flex items-center gap-2">
+                <div className="mt-auto px-5 pb-5 pt-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                   <Link to={`/portal/advisor/carriers/${carrier.id}`} className="flex-1">
-                    <button className="w-full py-2 rounded-lg text-xs font-semibold text-gray-700 hover:text-gray-900 bg-gray-50 hover:bg-gray-100 border border-gray-200 transition-all">
+                    <button className="w-full py-2.5 sm:py-2 rounded-lg text-xs font-semibold text-gray-700 hover:text-gray-900 bg-gray-50 hover:bg-gray-100 border border-gray-200 transition-all touch-manipulation">
                       View Details
                     </button>
                   </Link>
-                  {carrier.portal_url && (
-                    <a href={carrier.portal_url} target="_blank" rel="noopener noreferrer">
-                      <button className="px-3 py-2 rounded-lg text-xs font-semibold flex items-center gap-1 text-white transition-all hover:opacity-90" style={{ background: BRAND_GREEN }}>
-                        <ExternalLink className="h-3 w-3" /> Portal
-                      </button>
-                    </a>
-                  )}
-                  {carrier.quotes_url && (
-                    <a href={carrier.quotes_url} target="_blank" rel="noopener noreferrer">
-                      <button className="px-3 py-2 rounded-lg text-xs font-semibold flex items-center gap-1 text-white transition-all hover:opacity-90 bg-blue-600 hover:bg-blue-700">
-                        Quote
-                      </button>
-                    </a>
-                  )}
+                  <div className="flex gap-2">
+                    {carrier.portal_url && (
+                      <a href={carrier.portal_url} target="_blank" rel="noopener noreferrer" className="flex-1 sm:flex-none">
+                        <button className="w-full px-3 py-2.5 sm:py-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1 text-white transition-all hover:opacity-90 touch-manipulation" style={{ background: BRAND_GREEN }}>
+                          <ExternalLink className="h-3 w-3" /> Portal
+                        </button>
+                      </a>
+                    )}
+                    {carrier.quotes_url && (
+                      <a href={carrier.quotes_url} target="_blank" rel="noopener noreferrer" className="flex-1 sm:flex-none">
+                        <button className="w-full px-3 py-2.5 sm:py-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1 text-white transition-all hover:opacity-90 bg-blue-600 hover:bg-blue-700 touch-manipulation">
+                          Quote
+                        </button>
+                      </a>
+                    )}
+                  </div>
                 </div>
               </div>
             );

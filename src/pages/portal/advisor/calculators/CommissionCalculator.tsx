@@ -74,7 +74,7 @@ export default function CommissionCalculator({ onClose }: Props) {
             <p className="text-xs mt-0.5" style={{ color: BRAND }}>After {chargebackRate}% chargeback buffer</p>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="rounded-xl p-3 border border-emerald-200 bg-emerald-50">
               <p className="text-xs text-gray-500">Advance / Policy</p>
               <p className="text-lg font-bold text-emerald-700">{fmt(results.advanceAmount)}</p>
@@ -85,7 +85,7 @@ export default function CommissionCalculator({ onClose }: Props) {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="rounded-xl p-3 border border-gray-200 bg-gray-50">
               <p className="text-xs text-gray-500">Monthly Gross</p>
               <p className="text-lg font-bold text-gray-900">{fmt(results.monthlyGross)}</p>

@@ -64,7 +64,7 @@ export default function TrainingCenter() {
         <p className="text-sm text-gray-500 mt-0.5">Build your expertise with product training, sales techniques, and compliance education.</p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
         {[{ label: "Trainings Completed", value: stats.completedCount, icon: CheckCircle }, { label: "Total Watch Time", value: `${stats.totalMinutes} min`, icon: Clock }, { label: "In Progress", value: stats.inProgressCount, icon: TrendingUp }].map(s => (
           <div key={s.label} className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 flex items-center gap-4">
             <div className="h-10 w-10 rounded-lg flex items-center justify-center shrink-0" style={{ background: `${BRAND_GREEN}15` }}><s.icon className="h-5 w-5" style={{ color: BRAND_GREEN }} /></div>
@@ -75,8 +75,8 @@ export default function TrainingCenter() {
 
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 space-y-4">
         <div className="relative"><Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" /><Input value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder="Search trainings..." className={`pl-10 ${inputCls}`} /></div>
-        <div><p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Category</p><div className="flex flex-wrap gap-2"><FilterChip label="All" active={!selectedCategory} onClick={() => setSelectedCategory(null)} />{categories.map(cat => <FilterChip key={cat} label={cat.replace(/_/g, " ")} active={selectedCategory === cat} onClick={() => setSelectedCategory(cat)} />)}</div></div>
-        <div><p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Level</p><div className="flex flex-wrap gap-2"><FilterChip label="All Levels" active={!selectedLevel} onClick={() => setSelectedLevel(null)} />{["beginner", "intermediate", "advanced"].map(lvl => <FilterChip key={lvl} label={lvl} active={selectedLevel === lvl} onClick={() => setSelectedLevel(lvl)} />)}</div></div>
+        <div><p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Category</p><div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide"><FilterChip label="All" active={!selectedCategory} onClick={() => setSelectedCategory(null)} />{categories.map(cat => <FilterChip key={cat} label={cat.replace(/_/g, " ")} active={selectedCategory === cat} onClick={() => setSelectedCategory(cat)} />)}</div></div>
+        <div><p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Level</p><div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide"><FilterChip label="All Levels" active={!selectedLevel} onClick={() => setSelectedLevel(null)} />{["beginner", "intermediate", "advanced"].map(lvl => <FilterChip key={lvl} label={lvl} active={selectedLevel === lvl} onClick={() => setSelectedLevel(lvl)} />)}</div></div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">

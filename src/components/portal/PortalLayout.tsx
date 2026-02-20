@@ -265,8 +265,8 @@ export function PortalLayout() {
           </div>
         </header>
 
-        <main className="flex-1 overflow-y-auto bg-gray-50">
-          <div className="p-4 sm:p-6 lg:p-8">
+        <main className="flex-1 overflow-y-auto bg-gray-50 pb-[env(safe-area-inset-bottom)]">
+          <div className="p-3 sm:p-6 lg:p-8">
             <Outlet />
           </div>
         </main>
