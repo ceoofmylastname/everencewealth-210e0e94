@@ -289,7 +289,7 @@ export default function CNAForm() {
         const { error } = await supabase.from("client_needs_analysis").update(payload).eq("id", saveId);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from("client_needs_analysis").insert(payload);
+        const { error } = await supabase.from("client_needs_analysis").insert(payload as any);
         if (error) throw error;
       }
 
