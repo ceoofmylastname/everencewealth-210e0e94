@@ -1,64 +1,54 @@
 
-# Fix: Advisors Cannot Create Schedule Events
 
-## The Problem
+# Fix Client Select Dropdown + Add Realtime Policy Sync
 
-The `schedule_events` table has a gap in its security policies:
+## Issues Found
 
-| Policy | Who | What |
-|---|---|---|
-| "Admins manage schedule events" | Admins only | SELECT, INSERT, UPDATE, DELETE |
-| "Portal advisors can view schedule events" | Advisors | SELECT only |
+### Issue 1: Client Select might show empty
+The query on line 64 of `PolicyForm.tsx` filters `portal_users` by `.eq("advisor_id", portalUser!.id)`. This is correct -- `portal_users.advisor_id` stores the advisor's `portal_user_id`, and `portalUser.id` is exactly that. The dropdown works if the advisor has assigned clients. No code fix needed here, but worth verifying your test advisor has clients.
 
-**There is no INSERT policy for advisors.** When John Mel (advisor role) clicks "Create Event," the database rejects the insert with a permissions error — which the frontend catches and shows as "Failed to create event."
-
-The advisor can *read* events just fine, but cannot *write* any.
+### Issue 2: No realtime sync to client portal
+The `policies` table is already added to `supabase_realtime` publication, but the client's policy list page does not subscribe to Postgres changes. When an advisor creates a policy, the client must manually refresh to see it.
 
 ## The Fix
 
-Add two missing RLS policies to the `schedule_events` table:
+Update the client's policies page to subscribe to realtime changes on the `policies` table, so new policies appear instantly without a refresh.
 
-1. **INSERT** — allow advisors to create new events (setting `created_by` to their own user ID)
-2. **UPDATE / DELETE** — allow advisors to edit or delete only events *they created* (ownership check via `created_by = auth.uid()` cross-referenced against `portal_users`)
+### File: Client policies list page (likely `src/pages/portal/client/ClientPolicies.tsx` or similar)
 
-This follows the same pattern used elsewhere in the portal (e.g., advisors can manage their own client records).
+Add a Supabase realtime subscription:
 
-## Database Migration
+```typescript
+useEffect(() => {
+  const channel = supabase
+    .channel('client-policies')
+    .on(
+      'postgres_changes',
+      {
+        event: '*',
+        schema: 'public',
+        table: 'policies',
+        filter: `client_id=eq.${portalUser?.id}`,
+      },
+      () => {
+        // Re-fetch policies when any change occurs
+        fetchPolicies();
+      }
+    )
+    .subscribe();
 
-A single migration adds the two new policies:
-
-```sql
--- Allow advisors to insert schedule events
-CREATE POLICY "Portal advisors can create schedule events"
-ON public.schedule_events
-FOR INSERT
-TO public
-WITH CHECK (is_portal_advisor(auth.uid()) OR is_portal_admin(auth.uid()));
-
--- Allow advisors to update/delete events they created
-CREATE POLICY "Portal advisors can manage own schedule events"
-ON public.schedule_events
-FOR ALL
-TO public
-USING (
-  (is_portal_advisor(auth.uid()) OR is_portal_admin(auth.uid()))
-  AND created_by IN (
-    SELECT id FROM public.portal_users WHERE auth_user_id = auth.uid()
-  )
-)
-WITH CHECK (
-  (is_portal_advisor(auth.uid()) OR is_portal_admin(auth.uid()))
-  AND created_by IN (
-    SELECT id FROM public.portal_users WHERE auth_user_id = auth.uid()
-  )
-);
+  return () => { supabase.removeChannel(channel); };
+}, [portalUser?.id]);
 ```
 
-## No Code Changes Needed
+This means when the advisor clicks "Create Policy," the client's portal will update within seconds -- no refresh needed.
 
-The `SchedulePage.tsx` code is already correct — it properly passes `created_by: portalUser.id` on insert. The only missing piece is the database-level permission. Once the policy is added, event creation will work immediately.
+## Summary
+
+- **Client Select dropdown**: Working correctly. If empty, it means the logged-in advisor has no active clients assigned.
+- **Realtime sync**: Needs a subscription added to the client policies page. The database-level realtime is already enabled; only the frontend listener is missing.
 
 ## Files Changed
 
-- **Database migration only** — two new RLS policies on `schedule_events`
-- No frontend code changes required
+- Client policies list page -- add realtime subscription to auto-refresh when policies are inserted/updated/deleted
+
