@@ -1,58 +1,60 @@
 
 
-# Fix: Admin Can't See Clients on Clients Page
+# Redesign Clients Page: Admin View with Advisor Assignment
 
-## Problem
+## What Changes
 
-The Clients page at `/portal/advisor/clients` always filters by `advisor_id = portalUser.id`. When you're logged in as Admin ("AU"), your portal_user ID is different from any advisor's ID, so no clients match -- the page shows "No clients yet."
+The Clients page will be upgraded so admins can see **all clients grouped by their assigned advisor/agent**, with a modern, professional design. Advisors will continue to see only their own clients.
 
-In the database:
-- Admin User (id: `e82dd92c...`) -- no clients assigned to this ID
-- Advisor John Mel (id: `ce09b1a3...`) -- has client "jm mel" assigned
-- Client "jm mel" has `advisor_id: ce09b1a3...` (points to John Mel, not Admin)
+## Design
 
-## Fix
+### Admin View
+- **Summary stats bar** at the top showing total clients, total advisors, and active policies count
+- **Advisor filter tabs/dropdown** to filter by a specific advisor or view all
+- Each client card displays a small **advisor badge** showing which advisor manages them (e.g., "Advisor: John Mel")
+- Search also filters by advisor name
+- Clean table/list toggle option for when there are many clients
 
-Update `AdvisorClients.tsx` to check the user's role:
-- **If admin**: load ALL active clients (no `advisor_id` filter), so admins see every client across all advisors
-- **If advisor**: keep the existing filter (`advisor_id = portalUser.id`)
+### Client Cards (Redesigned)
+- Larger, more polished cards with subtle hover animations
+- Avatar initials with a gradient background
+- Advisor name displayed as a colored pill/tag below the client name
+- Contact info (email, phone) with copy-to-clipboard icons
+- Quick-action buttons for Policies, Documents, and Messages
+- "Last active" or "Joined" date shown subtly
 
-Also add the advisor's name to each client card so the admin knows which advisor each client belongs to.
+### Advisor View (unchanged behavior)
+- Advisors still see only their own clients
+- No advisor badge shown (redundant for them)
 
 ## Technical Details
 
 ### File: `src/pages/portal/advisor/AdvisorClients.tsx`
 
-In the `loadClients()` function, change the query:
+1. **Fetch advisor names** alongside clients:
+   - After loading clients, extract unique `advisor_id` values
+   - Fetch those advisor records from `portal_users` to get their names
+   - Build a lookup map: `advisorId -> advisorName`
 
-```typescript
-async function loadClients() {
-  try {
-    let query = supabase
-      .from("portal_users")
-      .select("*")
-      .eq("role", "client")
-      .eq("is_active", true)
-      .order("last_name");
+2. **Add advisor filter** (admin only):
+   - State for `selectedAdvisor` (default: "all")
+   - Dropdown populated from the advisor lookup map
+   - Filter `filtered` array by selected advisor
 
-    // Admins see all clients; advisors see only their own
-    if (portalUser!.role !== "admin") {
-      query = query.eq("advisor_id", portalUser!.id);
-    }
+3. **Stats bar** (admin only):
+   - Count unique advisors from the clients list
+   - Display total clients and advisor count
 
-    const { data, error } = await query;
-    if (error) throw error;
-    setClients((data as PortalUser[]) ?? []);
-  } catch (err) {
-    console.error("Error loading clients:", err);
-  } finally {
-    setLoading(false);
-  }
-}
-```
+4. **Redesigned card layout**:
+   - Modern card with proper spacing, subtle border, smooth shadow on hover
+   - Advisor pill badge (only shown for admin users)
+   - Better typography hierarchy
+   - Action buttons styled with brand green accents
 
-No database changes needed -- the admin RLS policy already grants full SELECT access to portal_users for admins.
+### No database or RLS changes needed
+The admin RLS policy already allows full SELECT on `portal_users`.
 
 ## Files Changed
 
-- `src/pages/portal/advisor/AdvisorClients.tsx` -- add role check to conditionally remove the `advisor_id` filter for admins
+- `src/pages/portal/advisor/AdvisorClients.tsx` -- complete redesign with advisor info, filtering, and modern UI
+
