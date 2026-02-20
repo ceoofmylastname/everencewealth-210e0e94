@@ -63,7 +63,7 @@ export default function AdvisorDashboard() {
         supabase.from("client_invitations").select("id", { count: "exact", head: true }).eq("advisor_id", advisor.id).eq("status", "pending"),
         supabase.from("advisor_performance").select("revenue").eq("advisor_id", advisor.id).gte("entry_date", `${currentYear}-01-01`),
         supabase.from("carrier_news").select("*, carriers(carrier_name)").eq("status", "published").order("published_at", { ascending: false }).limit(3),
-        supabase.from("schedule_events").select("*").gte("event_date", today).order("event_date", { ascending: true }).limit(3),
+        supabase.from("schedule_events").select("*, creator:portal_users!schedule_events_created_by_fkey(role)").gte("event_date", today).order("event_date", { ascending: true }).limit(3),
         supabase.from("portal_users").select("id, first_name, last_name, email, avatar_url, created_at").eq("advisor_id", portalUser!.id).eq("role", "client").order("created_at", { ascending: false }).limit(5),
       ]);
 
@@ -207,20 +207,28 @@ export default function AdvisorDashboard() {
                 ))
               ) : upcomingEvents.length === 0 ? (
                 <p className="text-sm text-gray-400 text-center py-4">No upcoming events</p>
-              ) : upcomingEvents.map((e: any) => (
-                <div key={e.id} className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 transition-colors">
-                  <div className="flex items-center gap-3">
-                    <div className="h-9 w-9 rounded-lg flex items-center justify-center" style={{ background: `${BRAND_GREEN}15` }}>
-                      <Calendar className="h-4 w-4" style={{ color: BRAND_GREEN }} />
+              ) : upcomingEvents.map((e: any) => {
+                const isAdmin = e.creator?.role === "admin";
+                return (
+                  <div key={e.id} className={`flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 transition-colors border-l-4 ${isAdmin ? "border-l-amber-400" : "border-l-emerald-400"}`}>
+                    <div className="flex items-center gap-3">
+                      <div className="h-9 w-9 rounded-lg flex items-center justify-center" style={{ background: `${BRAND_GREEN}15` }}>
+                        <Calendar className="h-4 w-4" style={{ color: BRAND_GREEN }} />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">{e.title}</p>
+                        <p className="text-xs text-gray-500">{new Date(e.event_date).toLocaleDateString()} at {e.event_time}</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-sm font-medium text-gray-900">{e.title}</p>
-                      <p className="text-xs text-gray-500">{new Date(e.event_date).toLocaleDateString()} at {e.event_time}</p>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${isAdmin ? "bg-amber-50 text-amber-700 border border-amber-200" : "bg-emerald-50 text-emerald-700 border border-emerald-200"}`}>
+                        {isAdmin ? "Admin" : "Agent"}
+                      </span>
+                      <span className="text-xs capitalize rounded-full px-2.5 py-0.5 font-medium bg-gray-100 text-gray-600">{e.event_type}</span>
                     </div>
                   </div>
-                  <span className="text-xs capitalize rounded-full px-2.5 py-1 font-medium bg-gray-100 text-gray-600">{e.event_type}</span>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>
