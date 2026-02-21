@@ -1,47 +1,71 @@
 
 
-# Skip Email Verification for Client Signups
+# Contracting Chat System: Agent-to-Team Messaging with Email Notifications
 
-## Problem
-When clients sign up via an invitation link, they must verify their email before logging in. Since these clients are already pre-verified through the invitation system (advisor sent them the link), this extra step is unnecessary friction.
+## Overview
+Replace the current single-thread messaging model with a channel-based system that allows agents to chat directly with their manager, admin team, and contracting team. Each agent gets three dedicated chat channels. When a message is received, an email notification is sent to the recipient(s).
 
-## Solution
-Two changes are needed:
+## Current State
+- The `contracting_messages` table exists with `thread_id` (always the agent's ID) and `sender_id`
+- All messages for an agent go into one thread -- no way to distinguish who the agent is talking to
+- No email notifications on new messages
+- The `ContractingMessages.tsx` page shows threads (admin/manager view) or a single thread (agent view)
 
-### 1. Enable Auto-Confirm for Email Signups
-Configure the authentication system to automatically confirm email addresses on signup. This means clients can log in immediately after setting their password -- no verification email required.
+## Database Changes
 
-### 2. Update Client Signup Flow (Auto-Login After Signup)
-**File:** `src/pages/portal/ClientSignup.tsx`
+### Add `channel` column to `contracting_messages`
+Add a `channel` text column to distinguish conversation targets:
+- `"manager"` -- agent talks with their assigned manager
+- `"admin"` -- agent talks with admin team
+- `"contracting"` -- agent talks with contracting team
 
-Instead of showing the "check your email" success screen after signup, the client will be automatically logged in and redirected to their dashboard. Changes:
-- After successful `signUp`, immediately call `signInWithPassword` with the same credentials
-- On successful sign-in, redirect to `/portal/client/dashboard`
-- Remove the verification email success screen, resend button, and related state
-- Remove `emailRedirectTo` option from the signup call (no longer needed)
+Default: `"general"` (for existing messages, backward compatible).
 
-### 3. Clean Up Login Page Error Message
-**File:** `src/pages/portal/PortalLogin.tsx`
+```
+ALTER TABLE contracting_messages
+ADD COLUMN channel text NOT NULL DEFAULT 'general';
+```
 
-The "email not confirmed" error branch (line 37-38) will remain as a safety net but should rarely trigger after this change.
+No RLS policy changes needed -- the existing policies already allow the right people to read/write. The `channel` is simply a filter on top.
 
-## What Won't Change
-- The invitation token validation flow stays the same
-- The `handle_new_portal_user` database trigger still fires on signup
-- Admin/advisor signup flows are unaffected (they use different paths)
-- Password requirements remain the same (min 8 characters)
+## New Edge Function: `notify-contracting-message`
 
-## Technical Details
+**File:** `supabase/functions/notify-contracting-message/index.ts`
 
-### Auth Configuration
-Use the `configure-auth` tool to set `enable_signup: true` and `double_confirm_changes: false` with auto-confirm enabled.
+When a message is sent, the frontend calls this function (fire-and-forget) with `{ threadId, senderId, senderName, channel, messagePreview }`. The function determines the recipients based on the channel:
 
-### ClientSignup.tsx Changes
-- Remove states: `resending`, `resent`, `resendCooldown`
-- Remove `handleResend` callback
-- Remove the entire success screen (lines 186-253)
-- Replace the success flow in `handleSignup` with:
-  1. After `signUp` succeeds, call `signInWithPassword({ email, password })`
-  2. On success, navigate to `/portal/client/dashboard`
-  3. On failure, show error and link to login page
+- **`manager` channel**: Look up the agent's `manager_id` in `contracting_agents`, get the manager's email, send notification
+- **`admin` channel**: Query all agents with `contracting_role = 'admin'`, send email to each (excluding sender)
+- **`contracting` channel**: Query all agents with `contracting_role = 'contracting'` or `'admin'`, send email to each (excluding sender)
+- **Agent receives message** (sender is manager/admin/contracting): Look up the agent's email from `thread_id` and send notification
+
+Uses the existing `RESEND_API_KEY` and branded email wrapper pattern from `notify-contracting-step`.
+
+## UI Changes
+
+### Agent Dashboard Chat Panel (`ContractingDashboard.tsx`)
+Replace the existing single chat panel with a tabbed interface:
+- Three tabs: **Manager**, **Admin**, **Contracting**
+- Each tab filters messages by `channel`
+- Sending a message includes the `channel` in the insert
+- After sending, fire-and-forget call to `notify-contracting-message`
+- If the agent has no manager assigned, the Manager tab shows "No manager assigned"
+
+### ContractingMessages.tsx (Admin/Manager/Contracting View)
+Update the thread list and message panel:
+- Thread list shows agent name + channel indicator badge (color-coded)
+- When selecting a thread, add channel tabs within the conversation to switch between channels
+- Admin/contracting see all three channels per agent
+- Managers see only the `manager` channel for their assigned agents
+- Sending from this view also triggers the email notification edge function
+
+## Technical Summary
+
+| Item | Detail |
+|---|---|
+| Database migration | Add `channel` column to `contracting_messages` |
+| New edge function | `supabase/functions/notify-contracting-message/index.ts` |
+| Modified files | `ContractingDashboard.tsx` (agent chat panel), `ContractingMessages.tsx` (admin/manager view) |
+| Existing secrets used | `RESEND_API_KEY`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` |
+| Email sender | `onboarding@everencewealth.com` |
 
