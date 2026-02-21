@@ -3565,6 +3565,7 @@ export type Database = {
       }
       contracting_agents: {
         Row: {
+          address: string | null
           auth_user_id: string
           completed_at: string | null
           contracting_role: string
@@ -3572,17 +3573,22 @@ export type Database = {
           email: string
           first_name: string
           id: string
+          is_licensed: boolean | null
           last_name: string
           manager_id: string | null
           notes: string | null
           phone: string | null
           pipeline_stage: string
           portal_user_id: string | null
+          referral_source: string | null
+          referring_director: string | null
           started_at: string
+          state: string | null
           status: string
           updated_at: string
         }
         Insert: {
+          address?: string | null
           auth_user_id: string
           completed_at?: string | null
           contracting_role?: string
@@ -3590,17 +3596,22 @@ export type Database = {
           email: string
           first_name: string
           id?: string
+          is_licensed?: boolean | null
           last_name: string
           manager_id?: string | null
           notes?: string | null
           phone?: string | null
           pipeline_stage?: string
           portal_user_id?: string | null
+          referral_source?: string | null
+          referring_director?: string | null
           started_at?: string
+          state?: string | null
           status?: string
           updated_at?: string
         }
         Update: {
+          address?: string | null
           auth_user_id?: string
           completed_at?: string | null
           contracting_role?: string
@@ -3608,13 +3619,17 @@ export type Database = {
           email?: string
           first_name?: string
           id?: string
+          is_licensed?: boolean | null
           last_name?: string
           manager_id?: string | null
           notes?: string | null
           phone?: string | null
           pipeline_stage?: string
           portal_user_id?: string | null
+          referral_source?: string | null
+          referring_director?: string | null
           started_at?: string
+          state?: string | null
           status?: string
           updated_at?: string
         }
