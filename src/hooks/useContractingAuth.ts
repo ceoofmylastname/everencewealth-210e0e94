@@ -13,6 +13,7 @@ export interface ContractingAgent {
   contracting_role: string;
   pipeline_stage: string;
   status: string;
+  created_at: string;
 }
 
 export function useContractingAuth() {

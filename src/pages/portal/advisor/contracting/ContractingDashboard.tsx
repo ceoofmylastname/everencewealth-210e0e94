@@ -4,10 +4,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { useContractingAuth } from "@/hooks/useContractingAuth";
 import {
   Users, Clock, CheckCircle2, PauseCircle, AlertTriangle,
-  ArrowRight, Plus, BarChart3, Activity,
+  ArrowRight, Plus, BarChart3, Activity, User, Mail, Phone, Calendar,
+  CheckCircle, Circle, ChevronDown, ChevronRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
+import { Progress } from "@/components/ui/progress";
 
 const BRAND = "#1A4D3E";
 const ACCENT = "#EBD975";
@@ -20,6 +22,8 @@ const PIPELINE_STAGES = [
   { key: "training", label: "Training", color: "#6366F1" },
   { key: "active", label: "Active", color: BRAND },
 ];
+
+// ─── Shared types ────────────────────────────────────────────────────
 
 interface Stats {
   total: number;
@@ -37,8 +41,220 @@ interface ActivityLog {
   agent_id: string;
 }
 
-export default function ContractingDashboard() {
-  const { canManage, loading: authLoading } = useContractingAuth();
+interface StepRow {
+  id: string;
+  title: string;
+  description: string | null;
+  stage: string;
+  step_order: number;
+  is_required: boolean;
+}
+
+interface AgentStepRow {
+  id: string;
+  step_id: string;
+  status: string;
+  completed_at: string | null;
+}
+
+// ─── Agent Personal View ─────────────────────────────────────────────
+
+function AgentDashboard({ agentId, firstName, lastName, email, pipelineStage, status, createdAt }: {
+  agentId: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  pipelineStage: string;
+  status: string;
+  createdAt: string;
+}) {
+  const [steps, setSteps] = useState<StepRow[]>([]);
+  const [agentSteps, setAgentSteps] = useState<AgentStepRow[]>([]);
+  const [activities, setActivities] = useState<ActivityLog[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [expandedStages, setExpandedStages] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    async function load() {
+      try {
+        const [stepsRes, agentStepsRes, logsRes] = await Promise.all([
+          supabase.from("contracting_steps").select("id, title, description, stage, step_order, is_required").order("step_order"),
+          supabase.from("contracting_agent_steps").select("id, step_id, status, completed_at").eq("agent_id", agentId),
+          supabase.from("contracting_activity_logs").select("id, action, description, created_at, agent_id").eq("agent_id", agentId).order("created_at", { ascending: false }).limit(10),
+        ]);
+        if (stepsRes.data) setSteps(stepsRes.data);
+        if (agentStepsRes.data) setAgentSteps(agentStepsRes.data);
+        if (logsRes.data) setActivities(logsRes.data);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    load();
+  }, [agentId]);
+
+  const completedStepIds = new Set(agentSteps.filter(s => s.status === "completed").map(s => s.step_id));
+  const totalSteps = steps.length;
+  const completedCount = completedStepIds.size;
+  const progressPct = totalSteps > 0 ? Math.round((completedCount / totalSteps) * 100) : 0;
+
+  const currentStageObj = PIPELINE_STAGES.find(s => s.key === pipelineStage) || PIPELINE_STAGES[0];
+  const currentStageIndex = PIPELINE_STAGES.findIndex(s => s.key === pipelineStage);
+
+  const stageGroups = PIPELINE_STAGES.map(stage => ({
+    ...stage,
+    steps: steps.filter(s => s.stage === stage.key),
+  }));
+
+  const toggleStage = (key: string) => setExpandedStages(prev => ({ ...prev, [key]: !prev[key] }));
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <div className="w-8 h-8 border-4 border-t-transparent rounded-full animate-spin" style={{ borderColor: `${BRAND} transparent ${BRAND} ${BRAND}` }} />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Welcome Header */}
+      <div className="bg-white rounded-2xl border border-gray-200 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.08)] p-6">
+        <div className="flex items-center gap-4">
+          <div className="h-14 w-14 rounded-full flex items-center justify-center text-white text-lg font-bold" style={{ background: BRAND }}>
+            {firstName?.[0]}{lastName?.[0]}
+          </div>
+          <div className="flex-1">
+            <h1 className="text-2xl font-bold text-gray-900">Welcome back, {firstName}!</h1>
+            <div className="flex items-center gap-2 mt-1">
+              <span className="text-xs font-medium px-2.5 py-0.5 rounded-full text-white" style={{ background: currentStageObj.color }}>
+                {currentStageObj.label}
+              </span>
+              <span className={`text-xs font-medium px-2.5 py-0.5 rounded-full ${
+                status === "completed" ? "bg-green-100 text-green-700" :
+                status === "on_hold" ? "bg-yellow-100 text-yellow-700" :
+                "bg-blue-100 text-blue-700"
+              }`}>
+                {status === "in_progress" ? "In Progress" : status === "completed" ? "Completed" : status === "on_hold" ? "On Hold" : status}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Progress Card */}
+      <div className="bg-white rounded-2xl border border-gray-200 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.08)] p-6">
+        <h2 className="text-lg font-semibold text-gray-900 mb-3">Onboarding Progress</h2>
+        <div className="flex items-center gap-4 mb-2">
+          <div className="flex-1">
+            <Progress value={progressPct} className="h-3" />
+          </div>
+          <span className="text-sm font-bold text-gray-700 whitespace-nowrap">{completedCount} / {totalSteps} steps</span>
+        </div>
+        <p className="text-sm text-gray-500">{progressPct}% complete</p>
+      </div>
+
+      {/* Current Stage Checklist */}
+      <div className="bg-white rounded-2xl border border-gray-200 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.08)] p-6">
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">Current Stage: {currentStageObj.label}</h2>
+        <div className="space-y-2">
+          {stageGroups.find(g => g.key === pipelineStage)?.steps.map(step => {
+            const done = completedStepIds.has(step.id);
+            return (
+              <div key={step.id} className="flex items-start gap-3 py-2">
+                {done ? (
+                  <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 shrink-0" />
+                ) : (
+                  <Circle className="h-5 w-5 text-gray-300 mt-0.5 shrink-0" />
+                )}
+                <div>
+                  <p className={`text-sm ${done ? "text-gray-400 line-through" : "text-gray-700"}`}>{step.title}</p>
+                  {step.description && <p className="text-xs text-gray-400 mt-0.5">{step.description}</p>}
+                </div>
+              </div>
+            );
+          })}
+          {(stageGroups.find(g => g.key === pipelineStage)?.steps.length ?? 0) === 0 && (
+            <p className="text-sm text-gray-400">No steps for this stage yet.</p>
+          )}
+        </div>
+      </div>
+
+      {/* Upcoming Stages */}
+      {currentStageIndex < PIPELINE_STAGES.length - 1 && (
+        <div className="bg-white rounded-2xl border border-gray-200 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.08)] p-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-3">Upcoming Stages</h2>
+          <div className="space-y-1">
+            {stageGroups.slice(currentStageIndex + 1).map(group => (
+              <div key={group.key}>
+                <button
+                  onClick={() => toggleStage(group.key)}
+                  className="flex items-center gap-2 w-full py-2 text-left hover:bg-gray-50 rounded-lg px-2 transition-colors"
+                >
+                  {expandedStages[group.key] ? <ChevronDown className="h-4 w-4 text-gray-400" /> : <ChevronRight className="h-4 w-4 text-gray-400" />}
+                  <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ background: group.color }} />
+                  <span className="text-sm font-medium text-gray-700">{group.label}</span>
+                  <span className="text-xs text-gray-400 ml-auto">{group.steps.length} steps</span>
+                </button>
+                {expandedStages[group.key] && group.steps.length > 0 && (
+                  <div className="ml-9 space-y-1 pb-2">
+                    {group.steps.map(step => (
+                      <p key={step.id} className="text-xs text-gray-500 py-0.5">{step.title}</p>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Personal Info */}
+        <div className="bg-white rounded-2xl border border-gray-200 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.08)] p-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Personal Info</h2>
+          <div className="space-y-3">
+            <div className="flex items-center gap-3">
+              <Mail className="h-4 w-4 text-gray-400" />
+              <span className="text-sm text-gray-700">{email}</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <Calendar className="h-4 w-4 text-gray-400" />
+              <span className="text-sm text-gray-700">Started {format(new Date(createdAt), "MMM d, yyyy")}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* My Activity */}
+        <div className="bg-white rounded-2xl border border-gray-200 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.08)] p-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">My Activity</h2>
+          {activities.length === 0 ? (
+            <p className="text-sm text-gray-400">No activity yet.</p>
+          ) : (
+            <div className="space-y-3">
+              {activities.map(log => (
+                <div key={log.id} className="flex items-start gap-3 py-1">
+                  <div className="h-7 w-7 rounded-full flex items-center justify-center shrink-0" style={{ background: `${BRAND}15` }}>
+                    <Activity className="h-3.5 w-3.5" style={{ color: BRAND }} />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm text-gray-700">{log.description}</p>
+                    <p className="text-xs text-gray-400">{format(new Date(log.created_at), "MMM d 'at' h:mm a")}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Admin / Manager View ────────────────────────────────────────────
+
+function ManagerDashboard({ canManage }: { canManage: boolean }) {
   const [stats, setStats] = useState<Stats>({ total: 0, inProgress: 0, completed: 0, onHold: 0, stageCounts: {} });
   const [activities, setActivities] = useState<ActivityLog[]>([]);
   const [loading, setLoading] = useState(true);
@@ -87,7 +303,7 @@ export default function ContractingDashboard() {
 
   const maxStageCount = Math.max(...Object.values(stats.stageCounts), 1);
 
-  if (authLoading || loading) {
+  if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
         <div className="w-8 h-8 border-4 border-t-transparent rounded-full animate-spin" style={{ borderColor: `${BRAND} transparent ${BRAND} ${BRAND}` }} />
@@ -195,4 +411,36 @@ export default function ContractingDashboard() {
       </div>
     </div>
   );
+}
+
+// ─── Main Router ─────────────────────────────────────────────────────
+
+export default function ContractingDashboard() {
+  const { contractingAgent, contractingRole, canManage, loading } = useContractingAuth();
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <div className="w-8 h-8 border-4 border-t-transparent rounded-full animate-spin" style={{ borderColor: `${BRAND} transparent ${BRAND} ${BRAND}` }} />
+      </div>
+    );
+  }
+
+  // Agent role → personal dashboard
+  if (contractingRole === "agent" && contractingAgent) {
+    return (
+      <AgentDashboard
+        agentId={contractingAgent.id}
+        firstName={contractingAgent.first_name}
+        lastName={contractingAgent.last_name}
+        email={contractingAgent.email}
+        pipelineStage={contractingAgent.pipeline_stage}
+        status={contractingAgent.status}
+        createdAt={contractingAgent.created_at || new Date().toISOString()}
+      />
+    );
+  }
+
+  // Manager / Contracting / Admin → overview dashboard
+  return <ManagerDashboard canManage={canManage} />;
 }
