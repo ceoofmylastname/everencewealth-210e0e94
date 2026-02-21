@@ -3635,6 +3635,97 @@ export type Database = {
           },
         ]
       }
+      contracting_bundles: {
+        Row: {
+          carrier_ids: string[]
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          name: string
+          product_types: string[]
+          updated_at: string
+        }
+        Insert: {
+          carrier_ids?: string[]
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          product_types?: string[]
+          updated_at?: string
+        }
+        Update: {
+          carrier_ids?: string[]
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          product_types?: string[]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      contracting_carrier_selections: {
+        Row: {
+          agent_id: string
+          approved_at: string | null
+          bundle_id: string | null
+          carrier_id: string
+          created_at: string
+          id: string
+          notes: string | null
+          status: string
+          submitted_at: string | null
+        }
+        Insert: {
+          agent_id: string
+          approved_at?: string | null
+          bundle_id?: string | null
+          carrier_id: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          status?: string
+          submitted_at?: string | null
+        }
+        Update: {
+          agent_id?: string
+          approved_at?: string | null
+          bundle_id?: string | null
+          carrier_id?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          status?: string
+          submitted_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contracting_carrier_selections_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "contracting_agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contracting_carrier_selections_bundle_id_fkey"
+            columns: ["bundle_id"]
+            isOneToOne: false
+            referencedRelation: "contracting_bundles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contracting_carrier_selections_carrier_id_fkey"
+            columns: ["carrier_id"]
+            isOneToOne: false
+            referencedRelation: "carriers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contracting_documents: {
         Row: {
           agent_id: string
@@ -3719,6 +3810,50 @@ export type Database = {
           {
             foreignKeyName: "contracting_messages_sender_id_fkey"
             columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "contracting_agents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contracting_notifications: {
+        Row: {
+          agent_id: string
+          created_at: string
+          id: string
+          link: string | null
+          message: string
+          notification_type: string
+          read: boolean
+          read_at: string | null
+          title: string
+        }
+        Insert: {
+          agent_id: string
+          created_at?: string
+          id?: string
+          link?: string | null
+          message: string
+          notification_type?: string
+          read?: boolean
+          read_at?: string | null
+          title: string
+        }
+        Update: {
+          agent_id?: string
+          created_at?: string
+          id?: string
+          link?: string | null
+          message?: string
+          notification_type?: string
+          read?: boolean
+          read_at?: string | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contracting_notifications_agent_id_fkey"
+            columns: ["agent_id"]
             isOneToOne: false
             referencedRelation: "contracting_agents"
             referencedColumns: ["id"]
