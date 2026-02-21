@@ -56,12 +56,16 @@ export default function ContractingIntake() {
   });
 
   useEffect(() => {
-    supabase
-      .from("crm_agents")
-      .select("id, first_name, last_name")
-      .eq("is_active", true)
-      .then(({ data }) => {
-        if (data) setManagers(data);
+    supabase.functions
+      .invoke("list-contracting-managers")
+      .then(({ data, error }) => {
+        if (error) {
+          console.error("Failed to load managers:", error);
+          return;
+        }
+        if (Array.isArray(data)) {
+          setManagers(data);
+        }
       });
   }, []);
 
