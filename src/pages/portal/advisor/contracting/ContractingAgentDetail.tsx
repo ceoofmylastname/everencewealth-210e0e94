@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useContractingAuth } from "@/hooks/useContractingAuth";
 import {
   ArrowLeft, CheckCircle2, Circle, Clock, Upload, FileText,
-  Activity, MessageSquare, AlertTriangle, User,
+  Activity, MessageSquare, AlertTriangle, User, Building2, Plus,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -78,6 +78,20 @@ interface Doc {
   step_id: string | null;
 }
 
+interface CarrierSelection {
+  id: string;
+  carrier_id: string;
+  carrier_name?: string;
+  status: string;
+  notes: string | null;
+  created_at: string;
+}
+
+interface Carrier {
+  id: string;
+  carrier_name: string;
+}
+
 export default function ContractingAgentDetail() {
   const { id } = useParams<{ id: string }>();
   const { canManage } = useContractingAuth();
@@ -86,6 +100,8 @@ export default function ContractingAgentDetail() {
   const [agentSteps, setAgentSteps] = useState<AgentStep[]>([]);
   const [activities, setActivities] = useState<ActivityLog[]>([]);
   const [docs, setDocs] = useState<Doc[]>([]);
+  const [carrierSelections, setCarrierSelections] = useState<CarrierSelection[]>([]);
+  const [allCarriers, setAllCarriers] = useState<Carrier[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -94,18 +110,33 @@ export default function ContractingAgentDetail() {
 
   async function fetchData() {
     try {
-      const [agentRes, stepsRes, agentStepsRes, activityRes, docsRes] = await Promise.all([
+      const [agentRes, stepsRes, agentStepsRes, activityRes, docsRes, selectionsRes, carriersRes] = await Promise.all([
         supabase.from("contracting_agents").select("*").eq("id", id!).single(),
         supabase.from("contracting_steps").select("*").order("stage").order("step_order"),
         supabase.from("contracting_agent_steps").select("*").eq("agent_id", id!),
         supabase.from("contracting_activity_logs").select("id, action, description, created_at").eq("agent_id", id!).order("created_at", { ascending: false }).limit(20),
         supabase.from("contracting_documents").select("*").eq("agent_id", id!).order("created_at", { ascending: false }),
+        supabase.from("contracting_carrier_selections").select("*").eq("agent_id", id!),
+        supabase.from("carriers").select("id, carrier_name").order("carrier_name"),
       ]);
       if (agentRes.data) setAgent(agentRes.data as Agent);
       if (stepsRes.data) setSteps(stepsRes.data as Step[]);
       if (agentStepsRes.data) setAgentSteps(agentStepsRes.data as AgentStep[]);
       if (activityRes.data) setActivities(activityRes.data as ActivityLog[]);
       if (docsRes.data) setDocs(docsRes.data as Doc[]);
+      if (carriersRes.data) setAllCarriers(carriersRes.data as Carrier[]);
+
+      // Map carrier names
+      const carrierMap = new Map<string, string>();
+      if (carriersRes.data) {
+        for (const c of carriersRes.data) carrierMap.set(c.id, c.carrier_name);
+      }
+      if (selectionsRes.data) {
+        setCarrierSelections((selectionsRes.data as any[]).map(s => ({
+          ...s,
+          carrier_name: carrierMap.get(s.carrier_id) || "Unknown",
+        })));
+      }
     } catch (err) {
       console.error(err);
     } finally {
@@ -330,6 +361,53 @@ export default function ContractingAgentDetail() {
                 </div>
               )}
             </dl>
+          </div>
+
+          {/* Carrier Appointments */}
+          <div className="bg-white rounded-2xl border border-gray-200 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.08)] p-5">
+            <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+              <Building2 className="h-4 w-4" /> Carrier Appointments ({carrierSelections.length})
+            </h3>
+            {carrierSelections.length === 0 ? (
+              <p className="text-xs text-gray-400">No carriers assigned</p>
+            ) : (
+              <div className="space-y-2">
+                {carrierSelections.map(cs => (
+                  <div key={cs.id} className="flex items-center justify-between text-xs py-1.5 border-b border-gray-50 last:border-0">
+                    <span className="text-gray-700 font-medium">{cs.carrier_name}</span>
+                    <span className={`px-2 py-0.5 rounded-full font-medium ${
+                      cs.status === "approved" ? "bg-green-50 text-green-700" :
+                      cs.status === "rejected" ? "bg-red-50 text-red-700" :
+                      cs.status === "submitted" ? "bg-blue-50 text-blue-700" :
+                      "bg-gray-100 text-gray-500"
+                    }`}>{cs.status}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+            {canManage && (
+              <div className="mt-3">
+                <select
+                  className="w-full text-xs border border-gray-200 rounded-lg p-2 text-gray-600"
+                  defaultValue=""
+                  onChange={async (e) => {
+                    const carrierId = e.target.value;
+                    if (!carrierId) return;
+                    try {
+                      await supabase.from("contracting_carrier_selections").insert({ agent_id: id!, carrier_id: carrierId });
+                      toast.success("Carrier added");
+                      fetchData();
+                    } catch { toast.error("Failed"); }
+                    e.target.value = "";
+                  }}
+                >
+                  <option value="">+ Add carrier...</option>
+                  {allCarriers.filter(c => !carrierSelections.find(cs => cs.carrier_id === c.id)).map(c => (
+                    <option key={c.id} value={c.id}>{c.carrier_name}</option>
+                  ))}
+                </select>
+              </div>
+            )}
           </div>
 
           {/* Documents */}

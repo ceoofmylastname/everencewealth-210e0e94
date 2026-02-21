@@ -167,6 +167,9 @@ const CNAForm = lazy(() => import("./pages/portal/advisor/CNAForm"));
 const ContractingDashboard = lazy(() => import("./pages/portal/advisor/contracting/ContractingDashboard"));
 const ContractingPipeline = lazy(() => import("./pages/portal/advisor/contracting/ContractingPipeline"));
 const ContractingAgentDetail = lazy(() => import("./pages/portal/advisor/contracting/ContractingAgentDetail"));
+const ContractingMessages = lazy(() => import("./pages/portal/advisor/contracting/ContractingMessages"));
+const ContractingDocuments = lazy(() => import("./pages/portal/advisor/contracting/ContractingDocuments"));
+const ContractingAdmin = lazy(() => import("./pages/portal/advisor/contracting/ContractingAdmin"));
 const ClientDashboard = lazy(() => import("./pages/portal/client/ClientDashboard"));
 const ClientPolicies = lazy(() => import("./pages/portal/client/ClientPolicies"));
 const ClientDocuments = lazy(() => import("./pages/portal/client/ClientDocuments"));
@@ -387,6 +390,9 @@ const App = () => (
                   <Route path="contracting" element={<ContractingDashboard />} />
                   <Route path="contracting/pipeline" element={<ContractingPipeline />} />
                   <Route path="contracting/agent/:id" element={<ContractingAgentDetail />} />
+                  <Route path="contracting/messages" element={<ContractingMessages />} />
+                  <Route path="contracting/documents" element={<ContractingDocuments />} />
+                  <Route path="contracting/admin" element={<ContractingAdmin />} />
                 </Route>
               </Route>
               <Route path="/portal/client" element={<ClientRoute />}>

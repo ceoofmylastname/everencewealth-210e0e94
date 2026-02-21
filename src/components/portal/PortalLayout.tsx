@@ -47,6 +47,8 @@ const advisorNavGroups = [
     items: [
       { label: "Dashboard", icon: Briefcase, href: "/portal/advisor/contracting" },
       { label: "Pipeline", icon: GitBranch, href: "/portal/advisor/contracting/pipeline" },
+      { label: "Messages", icon: MessageSquare, href: "/portal/advisor/contracting/messages" },
+      { label: "Documents", icon: FolderOpen, href: "/portal/advisor/contracting/documents" },
     ],
   },
   {
@@ -155,9 +157,13 @@ export function PortalLayout() {
       <nav className="flex-1 py-4 px-3 overflow-y-auto space-y-4">
         {isAdvisor ? (
           advisorNavGroups.map((group) => {
-            const groupItems = isAdmin && group.label === "Compliance"
-              ? [...group.items, { label: "Admin Panel", icon: Settings, href: "/portal/admin/agents" }]
-              : group.items;
+            let groupItems = group.items;
+            if (isAdmin && group.label === "Compliance") {
+              groupItems = [...groupItems, { label: "Admin Panel", icon: Settings, href: "/portal/admin/agents" }];
+            }
+            if (isAdmin && group.label === "Contracting") {
+              groupItems = [...groupItems, { label: "Admin", icon: Settings, href: "/portal/advisor/contracting/admin" }];
+            }
             return (
               <div key={group.label}>
                 <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400 px-3 mb-1.5">
