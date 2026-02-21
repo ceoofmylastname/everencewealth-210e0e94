@@ -148,11 +148,20 @@ export default function ContractingIntake() {
             <Check className="h-10 w-10 text-white" />
           </div>
           <h1 className="text-3xl font-bold text-foreground mb-3" style={{ fontFamily: "Georgia, serif" }}>
-            Application Submitted
+            Application Submitted!
           </h1>
-          <p className="text-muted-foreground text-lg">
-            Thank you! We'll review your application and reach out shortly.
+          <p className="text-muted-foreground text-lg mb-2">
+            We've sent a welcome email to <span className="font-semibold text-foreground">{form.email}</span>.
           </p>
+          <p className="text-muted-foreground">
+            Click the link in the email to set your password and access your onboarding dashboard.
+          </p>
+          <Button
+            onClick={() => navigate("/portal/login")}
+            className="mt-8 bg-[hsl(160,45%,25%)] hover:bg-[hsl(160,45%,20%)] text-white px-8 py-3 rounded-xl text-base"
+          >
+            Go to Login
+          </Button>
         </motion.div>
       </div>
     );

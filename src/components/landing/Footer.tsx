@@ -28,6 +28,7 @@ const Footer: React.FC<FooterProps> = ({ content }) => {
                         <a href="/terms" className="hover:text-landing-navy transition-colors">{content?.terms || "Terms"}</a>
                         <a href="/crm/agent/login" className="hover:text-landing-navy transition-colors">Dashboard</a>
                         <a href="/portal/login" className="hover:text-landing-navy transition-colors">Advisor</a>
+                        <a href="/apply" className="hover:text-landing-navy transition-colors">Become an Agent</a>
                     </div>
 
                     {/* Language Selector - Hidden on mobile (already in header) */}
