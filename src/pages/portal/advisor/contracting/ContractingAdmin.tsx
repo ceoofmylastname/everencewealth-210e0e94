@@ -93,6 +93,19 @@ export default function ContractingAdmin() {
       const { error } = await supabase.from("contracting_agents").update({ [field]: value }).eq("id", id);
       if (error) throw error;
       setAgents(prev => prev.map(a => a.id === id ? { ...a, [field]: value } : a));
+      // Log field update
+      const humanField = field === "manager_id" ? "Manager" : field === "pipeline_stage" ? "Pipeline stage" : field === "status" ? "Status" : field;
+      const humanValue = field === "manager_id" ? (allAgents.find(a => a.id === value)?.name || value) : value.replace(/_/g, " ");
+      const { data: { user } } = await supabase.auth.getUser();
+      const { data: performer } = await supabase.from("contracting_agents").select("id").eq("auth_user_id", user!.id).maybeSingle();
+      supabase.from("contracting_activity_logs").insert({
+        agent_id: id,
+        performed_by: performer?.id || id,
+        action: "field_updated",
+        activity_type: "field_updated",
+        description: `${humanField} updated to ${humanValue}`,
+        metadata: { field, value },
+      }).then(null, err => console.error("Activity log error:", err));
       toast.success("Updated");
     } catch (err: any) {
       toast.error(err.message || "Update failed");
@@ -101,12 +114,25 @@ export default function ContractingAdmin() {
 
   async function createBundle() {
     try {
-      const { error } = await supabase.from("contracting_bundles").insert({
+      const { data: bundleData, error } = await supabase.from("contracting_bundles").insert({
         name: newBundle.name,
         description: newBundle.description || null,
         product_types: newBundle.product_types.split(",").map(s => s.trim()).filter(Boolean),
-      });
+      }).select().single();
       if (error) throw error;
+      // Log bundle created
+      const { data: { user } } = await supabase.auth.getUser();
+      const { data: performer } = await supabase.from("contracting_agents").select("id").eq("auth_user_id", user!.id).maybeSingle();
+      if (performer) {
+        supabase.from("contracting_activity_logs").insert({
+          agent_id: performer.id,
+          performed_by: performer.id,
+          action: "bundle_created",
+          activity_type: "bundle_created",
+          description: `Bundle created: ${newBundle.name}`,
+          metadata: { bundle_id: bundleData?.id, name: newBundle.name },
+        }).then(null, err => console.error("Activity log error:", err));
+      }
       toast.success("Bundle created");
       setShowNewBundle(false);
       setNewBundle({ name: "", description: "", product_types: "" });
