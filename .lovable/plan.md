@@ -1,42 +1,42 @@
 
 
-# Show Manager's Own Recruits on Contracting Dashboard & Pipeline
+# Fix: Manager Can't See Their Recruits on Contracting Dashboard
 
-## Problem
-When a new recruit selects a manager on the `/apply` form, the `manager_id` is saved to `contracting_agents`. However, the Contracting Dashboard and Pipeline pages do not filter by `manager_id` -- they either show all agents (for admin/contracting roles) or nothing. Managers cannot see which recruits selected them.
+## Root Cause
 
-## Solution
-Update the Dashboard and Pipeline queries so that **managers** only see agents where `manager_id` matches their own `portal_users.id`. Admins and contracting roles continue to see all agents.
+The issue is a **mismatch in the database security policy** (RLS). Here's what's happening:
 
-## Changes
+1. When Mike Ross submitted the intake form, his record was saved with `manager_id` pointing to John Mel's **portal user ID** (the correct value after our earlier fix).
 
-### 1. `src/pages/portal/advisor/contracting/ContractingDashboard.tsx`
-- In the `ManagerDashboard` component's `fetchData()`, pass down the current user's portal user ID
-- If the user's role is `manager` (not admin/contracting), add `.eq("manager_id", portalUserId)` to the `contracting_agents` query
-- Same filter on the activity logs query (join through agent_id)
+2. However, the database security rule that controls who can see which agents still checks `manager_id` against `get_contracting_agent_id()` -- which looks up a **contracting agent ID** (a different table entirely).
 
-### 2. `src/pages/portal/advisor/contracting/ContractingPipeline.tsx`
-- Same pattern: if role is `manager`, filter `contracting_agents` by `manager_id` matching the logged-in user's portal user ID
-- Admins/contracting roles continue to see all agents
+3. Since John Mel is an advisor (not a contracting agent himself), `get_contracting_agent_id()` returns nothing for him, so the security rule blocks him from seeing any recruits.
 
-### 3. `src/pages/portal/advisor/contracting/ContractingDocuments.tsx`
-- Apply the same manager-scoped filter when listing documents/agents
+Additionally, the `useContractingAuth` hook doesn't recognize John Mel as a "manager" role because he has no row in `contracting_agents`. This means the dashboard doesn't apply the manager filter and shows generic content.
 
-### 4. Pass portal user context
-- The `useContractingAuth` hook already provides `portalUser` (which has the portal user's `id` and `role`)
-- The Dashboard/Pipeline components will use `portalUser.id` as the manager filter value and `canManage` vs `canViewAll` to decide whether to scope
+## Fix (2 changes)
 
-### How it works end-to-end
+### 1. Update the database security policy
 
-```text
-Recruit fills /apply form
-  --> selects "Boob S." (portal_users.id = abc123)
-  --> contracting_agents row created with manager_id = abc123
+Change the RLS SELECT policy on `contracting_agents` to compare `manager_id` against `get_portal_user_id(auth.uid())` instead of `get_contracting_agent_id(auth.uid())`.
 
-Boob S. logs in, opens Contracting Dashboard
-  --> query: SELECT * FROM contracting_agents WHERE manager_id = abc123
-  --> sees only their recruits in stats + pipeline
-```
+**Before:** `manager_id = get_contracting_agent_id(auth.uid())`
+**After:** `manager_id = get_portal_user_id(auth.uid())`
 
-No database changes needed -- `manager_id` already references `portal_users(id)` correctly.
+This matches the actual data relationship: `manager_id` references `portal_users.id`.
+
+### 2. Update `useContractingAuth` to detect managers automatically
+
+Modify the hook so that advisors who have recruits assigned to them (i.e., exist as a `manager_id` in `contracting_agents`) are automatically treated as having the "manager" role -- even without a `contracting_agents` row of their own.
+
+**File:** `src/hooks/useContractingAuth.ts`
+
+Add logic after the existing contracting agent lookup: if no contracting role was found and the user is an advisor, check if any `contracting_agents` rows have `manager_id` matching their `portal_users.id`. If so, set `effectiveRole` to `"manager"`.
+
+## Expected Result
+
+After these changes, when John Mel logs in and opens the Contracting Dashboard, the system will:
+1. Recognize him as a "manager" via the auto-detection
+2. The database security policy will allow him to see agents where `manager_id` matches his portal user ID
+3. Mike Ross (and any future recruits who select John Mel) will appear on his dashboard, pipeline, and documents pages
 
