@@ -165,6 +165,18 @@ export default function ContractingAgentDetail() {
           completed_at: newStatus === "completed" ? new Date().toISOString() : null,
         });
       }
+      // Log step toggle
+      const { data: { user } } = await supabase.auth.getUser();
+      const { data: performer } = await supabase.from("contracting_agents").select("id").eq("auth_user_id", user!.id).maybeSingle();
+      const stepTitle = steps.find(s => s.id === stepId)?.title || "Unknown step";
+      supabase.from("contracting_activity_logs").insert({
+        agent_id: id!,
+        performed_by: performer?.id || id!,
+        action: newStatus === "completed" ? "step_completed" : "step_reopened",
+        activity_type: newStatus === "completed" ? "step_completed" : "step_reopened",
+        description: `Step "${stepTitle}" ${newStatus === "completed" ? "completed" : "reopened"}`,
+      }).then(null, err => console.error("Activity log error:", err));
+
       setAgentSteps(prev => {
         const idx = prev.findIndex(as => as.step_id === stepId);
         if (idx >= 0) {
@@ -197,6 +209,16 @@ export default function ContractingAgentDetail() {
         file_size: file.size,
         uploaded_by: contractingAgent?.id || id!,
       });
+
+      // Log document uploaded
+      supabase.from("contracting_activity_logs").insert({
+        agent_id: id!,
+        performed_by: contractingAgent?.id || id!,
+        action: "document_uploaded",
+        activity_type: "document_uploaded",
+        description: `Document uploaded: ${file.name}`,
+        metadata: { file_name: file.name, step_id: stepId },
+      }).then(null, err => console.error("Activity log error:", err));
 
       toast.success("Document uploaded");
       fetchData();

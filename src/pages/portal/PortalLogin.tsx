@@ -70,6 +70,20 @@ export default function PortalLogin() {
         return;
       }
 
+      // Log login activity (fire-and-forget)
+      supabase.from("contracting_agents").select("id").eq("auth_user_id", authData.user.id).maybeSingle().then(({ data: cAgent }) => {
+        if (cAgent) {
+          supabase.from("contracting_activity_logs").insert({
+            agent_id: cAgent.id,
+            performed_by: cAgent.id,
+            action: "login",
+            activity_type: "login",
+            description: "Agent logged in",
+            metadata: { role: portalUser.role },
+          }).then(null, err => console.error("Activity log error:", err));
+        }
+      });
+
       if (portalUser.role === "advisor" || portalUser.role === "admin") {
         // Check if they're a contracting agent still in onboarding
         const { data: contractingAgent } = await supabase

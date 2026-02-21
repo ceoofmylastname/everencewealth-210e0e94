@@ -182,6 +182,14 @@ function AgentDashboard({ agentId, firstName, lastName, email, pipelineStage, st
         sender_id: agentId,
         content: newMessage.trim(),
       });
+      // Log message sent
+      supabase.from("contracting_activity_logs").insert({
+        agent_id: agentId,
+        performed_by: agentId,
+        action: "message_sent",
+        activity_type: "message_sent",
+        description: "Sent a message",
+      }).then(null, err => console.error("Activity log error:", err));
       setNewMessage("");
     } catch (err) {
       console.error(err);
@@ -658,6 +666,17 @@ function ManagerDashboard({ canManage, portalUserId, isManagerOnly }: ManagerDas
           message: needsInfoMessage.trim(),
         },
       });
+      // Log needs info sent
+      const { data: { user } } = await supabase.auth.getUser();
+      const { data: performer } = await supabase.from("contracting_agents").select("id").eq("auth_user_id", user!.id).maybeSingle();
+      supabase.from("contracting_activity_logs").insert({
+        agent_id: needsInfoAgent.id,
+        performed_by: performer?.id || needsInfoAgent.id,
+        action: "needs_info_sent",
+        activity_type: "needs_info_sent",
+        description: "Information request sent",
+        metadata: { message: needsInfoMessage.trim() },
+      }).then(null, err => console.error("Activity log error:", err));
       toast.success(`Information request sent to ${needsInfoAgent.first_name}`);
       setNeedsInfoAgent(null);
       setNeedsInfoMessage("");

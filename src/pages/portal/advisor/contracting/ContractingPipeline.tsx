@@ -134,6 +134,17 @@ export default function ContractingPipeline() {
         await supabase.from("contracting_agent_steps").insert(agentSteps);
       }
 
+      // Log agent added
+      if (data) {
+        supabase.from("contracting_activity_logs").insert({
+          agent_id: data.id,
+          performed_by: data.id,
+          action: "agent_added",
+          activity_type: "agent_added",
+          description: `New agent added: ${newAgent.first_name} ${newAgent.last_name}`,
+          metadata: { email: newAgent.email },
+        }).then(null, err => console.error("Activity log error:", err));
+      }
       toast.success("Agent added successfully");
       setAddOpen(false);
       setNewAgent({ first_name: "", last_name: "", email: "", phone: "" });
@@ -149,6 +160,15 @@ export default function ContractingPipeline() {
     try {
       await supabase.from("contracting_agents").update({ pipeline_stage: newStage }).eq("id", agentId);
       setAgents(prev => prev.map(a => a.id === agentId ? { ...a, pipeline_stage: newStage } : a));
+      // Log stage change
+      supabase.from("contracting_activity_logs").insert({
+        agent_id: agentId,
+        performed_by: agentId,
+        action: "stage_changed",
+        activity_type: "stage_changed",
+        description: `Stage changed to ${newStage.replace(/_/g, " ")}`,
+        metadata: { new_stage: newStage },
+      }).then(null, err => console.error("Activity log error:", err));
       toast.success("Stage updated");
     } catch {
       toast.error("Failed to update stage");

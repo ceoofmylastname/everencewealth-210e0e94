@@ -144,6 +144,14 @@ export default function ContractingMessages() {
         sender_id: contractingAgent.id,
         content: newMessage.trim(),
       });
+      // Log message sent
+      supabase.from("contracting_activity_logs").insert({
+        agent_id: selectedThread,
+        performed_by: contractingAgent.id,
+        action: "message_sent",
+        activity_type: "message_sent",
+        description: "Sent a message in thread",
+      }).then(null, err => console.error("Activity log error:", err));
       setNewMessage("");
     } catch (err) {
       console.error(err);
