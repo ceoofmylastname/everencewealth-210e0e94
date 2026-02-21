@@ -348,7 +348,7 @@ export default function ContractingIntake() {
                     <span className="inline-flex items-center justify-center w-8 h-8 rounded-md border border-border text-sm font-bold mr-3">
                       {String.fromCharCode(65 + i)}
                     </span>
-                    {m.first_name} {m.last_name}
+                    {m.first_name} {m.last_name?.charAt(0)}.
                   </button>
                 ))
               )}
