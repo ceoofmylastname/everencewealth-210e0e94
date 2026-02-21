@@ -71,7 +71,18 @@ export default function PortalLogin() {
       }
 
       if (portalUser.role === "advisor" || portalUser.role === "admin") {
-        navigate("/portal/advisor/dashboard", { replace: true });
+        // Check if they're a contracting agent still in onboarding
+        const { data: contractingAgent } = await supabase
+          .from("contracting_agents")
+          .select("pipeline_stage")
+          .eq("auth_user_id", authData.user.id)
+          .maybeSingle();
+
+        if (contractingAgent && contractingAgent.pipeline_stage !== "active") {
+          navigate("/portal/advisor/contracting/dashboard", { replace: true });
+        } else {
+          navigate("/portal/advisor/dashboard", { replace: true });
+        }
       } else {
         navigate("/portal/client/dashboard", { replace: true });
       }

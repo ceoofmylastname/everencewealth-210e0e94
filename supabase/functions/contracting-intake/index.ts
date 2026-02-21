@@ -124,6 +124,19 @@ Deno.serve(async (req) => {
       );
     }
 
+    // Create portal_users record so the recruit can log in
+    const { error: portalError } = await adminClient.from("portal_users").insert({
+      auth_user_id: authUserId,
+      email: email.toLowerCase(),
+      full_name: `${first_name} ${last_name}`,
+      role: "advisor",
+      is_active: true,
+    });
+
+    if (portalError) {
+      console.error("Failed to create portal user:", portalError);
+    }
+
     // Log activity
     await adminClient.from("contracting_activity_logs").insert({
       agent_id: agent.id,
