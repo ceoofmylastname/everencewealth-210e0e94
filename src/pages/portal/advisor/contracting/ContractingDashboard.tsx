@@ -285,11 +285,20 @@ function ManagerDashboard({ canManage, portalUserId, isManagerOnly }: { canManag
         });
       }
 
-      const { data: logs } = await supabase
+      let logsQuery = supabase
         .from("contracting_activity_logs")
         .select("id, action, description, created_at, agent_id")
         .order("created_at", { ascending: false })
         .limit(10);
+      if (isManagerOnly && agents) {
+        const agentIds = agents.map(a => a.id);
+        if (agentIds.length > 0) {
+          logsQuery = logsQuery.in("agent_id", agentIds);
+        } else {
+          logsQuery = logsQuery.eq("agent_id", "none");
+        }
+      }
+      const { data: logs } = await logsQuery;
       if (logs) setActivities(logs);
     } catch (err) {
       console.error(err);
