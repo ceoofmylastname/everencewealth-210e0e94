@@ -6,12 +6,17 @@ import {
   Users, Clock, CheckCircle2, PauseCircle, AlertTriangle,
   ArrowRight, Plus, BarChart3, Activity, User, Mail, Phone, Calendar,
   CheckCircle, Circle, ChevronDown, ChevronRight, MessageSquare, Send,
-  LayoutGrid, Table as TableIcon,
+  LayoutGrid, Table as TableIcon, MessageSquareWarning,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose,
+} from "@/components/ui/dialog";
 import { format, differenceInDays } from "date-fns";
+import { toast } from "sonner";
 import { Progress } from "@/components/ui/progress";
 import {
   Table, TableHeader, TableBody, TableHead, TableRow, TableCell,
@@ -409,7 +414,10 @@ function ManagerDashboard({ canManage, portalUserId, isManagerOnly }: ManagerDas
   const [agentStepsMap, setAgentStepsMap] = useState<Map<string, AgentStepRow[]>>(new Map()); // agentId -> steps
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState<"board" | "table">("table");
-  const [completingStep, setCompletingStep] = useState<string | null>(null); // agentId being processed
+  const [completingStep, setCompletingStep] = useState<string | null>(null);
+  const [needsInfoAgent, setNeedsInfoAgent] = useState<EnhancedAgent | null>(null);
+  const [needsInfoMessage, setNeedsInfoMessage] = useState("");
+  const [sendingNeedsInfo, setSendingNeedsInfo] = useState(false);
 
   useEffect(() => {
     fetchAll();
@@ -533,12 +541,43 @@ function ManagerDashboard({ canManage, portalUserId, isManagerOnly }: ManagerDas
         description: `Step "${nextStep.title}" marked complete by manager`,
       });
 
+      // Fire-and-forget notification
+      supabase.functions.invoke("notify-contracting-step", {
+        body: { agentId, stageName: agent.pipeline_stage, stepTitle: nextStep.title },
+      }).catch(err => console.error("Notification error:", err));
+
+      toast.success(`Step "${nextStep.title}" completed`);
+
       // Refetch
       await fetchAll();
     } catch (err) {
       console.error("Step completion error:", err);
+      toast.error("Failed to complete step");
     } finally {
       setCompletingStep(null);
+    }
+  }
+
+  // ── Needs Info handler ──
+  async function handleSendNeedsInfo() {
+    if (!needsInfoAgent || !needsInfoMessage.trim() || sendingNeedsInfo) return;
+    setSendingNeedsInfo(true);
+    try {
+      await supabase.functions.invoke("notify-contracting-step", {
+        body: {
+          agentId: needsInfoAgent.id,
+          stageName: "needs_info",
+          message: needsInfoMessage.trim(),
+        },
+      });
+      toast.success(`Information request sent to ${needsInfoAgent.first_name}`);
+      setNeedsInfoAgent(null);
+      setNeedsInfoMessage("");
+    } catch (err) {
+      console.error("Needs info error:", err);
+      toast.error("Failed to send request");
+    } finally {
+      setSendingNeedsInfo(false);
     }
   }
 
@@ -765,21 +804,30 @@ function ManagerDashboard({ canManage, portalUserId, isManagerOnly }: ManagerDas
                       </TableCell>
                       {canManage && (
                         <TableCell>
-                          {nextStep && !stageComplete ? (
-                            <div className="flex items-center gap-2">
-                              <Checkbox
-                                disabled={completingStep === agent.id}
-                                onCheckedChange={() => handleStepComplete(agent.id)}
-                              />
-                              <span className="text-xs text-gray-500 max-w-[120px] truncate" title={nextStep.title}>
-                                {nextStep.title}
-                              </span>
-                            </div>
-                          ) : stageComplete ? (
-                            <span className="text-xs text-green-600 font-medium">✓ Stage done</span>
-                          ) : (
-                            <span className="text-xs text-gray-300">—</span>
-                          )}
+                          <div className="flex items-center gap-2">
+                            {nextStep && !stageComplete ? (
+                              <>
+                                <Checkbox
+                                  disabled={completingStep === agent.id}
+                                  onCheckedChange={() => handleStepComplete(agent.id)}
+                                />
+                                <span className="text-xs text-gray-500 max-w-[100px] truncate" title={nextStep.title}>
+                                  {nextStep.title}
+                                </span>
+                              </>
+                            ) : stageComplete ? (
+                              <span className="text-xs text-green-600 font-medium">✓ Stage done</span>
+                            ) : (
+                              <span className="text-xs text-gray-300">—</span>
+                            )}
+                            <button
+                              onClick={() => { setNeedsInfoAgent(agent); setNeedsInfoMessage(""); }}
+                              className="ml-auto p-1 rounded hover:bg-amber-50 text-amber-600 hover:text-amber-700 transition-colors"
+                              title="Request info from agent"
+                            >
+                              <MessageSquareWarning className="h-4 w-4" />
+                            </button>
+                          </div>
                         </TableCell>
                       )}
                     </TableRow>
@@ -790,6 +838,37 @@ function ManagerDashboard({ canManage, portalUserId, isManagerOnly }: ManagerDas
           </Table>
         </div>
       )}
+
+      {/* Needs Info Dialog */}
+      <Dialog open={!!needsInfoAgent} onOpenChange={(open) => { if (!open) setNeedsInfoAgent(null); }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Request Information</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-gray-500">
+            Send an email to <strong>{needsInfoAgent?.first_name} {needsInfoAgent?.last_name}</strong> requesting additional information.
+          </p>
+          <Textarea
+            value={needsInfoMessage}
+            onChange={(e) => setNeedsInfoMessage(e.target.value)}
+            placeholder="Describe what information is needed..."
+            rows={4}
+          />
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="outline">Cancel</Button>
+            </DialogClose>
+            <Button
+              onClick={handleSendNeedsInfo}
+              disabled={!needsInfoMessage.trim() || sendingNeedsInfo}
+              style={{ background: BRAND }}
+              className="text-white"
+            >
+              {sendingNeedsInfo ? "Sending..." : "Send Request"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
