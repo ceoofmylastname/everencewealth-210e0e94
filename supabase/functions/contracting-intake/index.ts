@@ -22,6 +22,7 @@ Deno.serve(async (req) => {
       first_name,
       last_name,
       email,
+      password,
       phone,
       referral_source,
       
@@ -31,9 +32,16 @@ Deno.serve(async (req) => {
       manager_id,
     } = body;
 
-    if (!first_name || !last_name || !email) {
+    if (!first_name || !last_name || !email || !password) {
       return new Response(
-        JSON.stringify({ error: "Name and email are required" }),
+        JSON.stringify({ error: "Name, email, and password are required" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (password.length < 8) {
+      return new Response(
+        JSON.stringify({ error: "Password must be at least 8 characters" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -56,11 +64,10 @@ Deno.serve(async (req) => {
 
     // Create or find auth user
     let authUserId: string;
-    const tempPassword = crypto.randomUUID() + "!Aa1";
 
     const { data: authUser, error: authError } = await adminClient.auth.admin.createUser({
       email,
-      password: tempPassword,
+      password,
       email_confirm: true,
       user_metadata: { first_name, last_name },
     });
@@ -124,29 +131,18 @@ Deno.serve(async (req) => {
       description: `New application submitted by ${first_name} ${last_name}`,
     });
 
-    // Generate password recovery link and send welcome email
+    // Send welcome confirmation email (no recovery link needed since user set their password)
     let emailSent = false;
     try {
       const siteUrl = "https://everencewealth.lovable.app";
 
-      const { data: linkData, error: linkError } = await adminClient.auth.admin.generateLink({
-        type: "recovery",
-        email,
-        options: {
-          redirectTo: `${siteUrl}/portal/login`,
-        },
-      });
-
-      if (linkError) {
-        console.error("Failed to generate recovery link:", linkError.message);
-      } else if (resendApiKey && linkData?.properties?.action_link) {
-        const recoveryUrl = linkData.properties.action_link;
+      if (resendApiKey) {
         const resend = new Resend(resendApiKey);
 
         const { error: emailError } = await resend.emails.send({
           from: "Everence Wealth <onboarding@everencewealth.com>",
           to: [email],
-          subject: "Welcome to Everence Wealth – Set Your Password",
+          subject: "Welcome to Everence Wealth – Your Application is Received",
           html: `
 <!DOCTYPE html>
 <html>
@@ -156,13 +152,13 @@ Deno.serve(async (req) => {
     <img src="https://storage.googleapis.com/msgsndr/TLhrYb7SRrWrly615tCI/media/6993ada8dcdadb155342f28e.png" alt="Everence Wealth" style="height:48px;margin-bottom:32px;" />
     <h1 style="font-size:26px;color:#1a1a1a;margin:0 0 16px;">Welcome, ${first_name}!</h1>
     <p style="font-size:16px;color:#555;line-height:1.6;margin:0 0 24px;">
-      Your application has been received. To access your onboarding dashboard, please set your password by clicking the button below.
+      Your application has been received. You can now log in to your onboarding dashboard using the email and password you created during your application.
     </p>
-    <a href="${recoveryUrl}" style="display:inline-block;background:#2d6a4f;color:#ffffff;padding:14px 32px;border-radius:10px;text-decoration:none;font-size:16px;font-weight:bold;">
-      Set Your Password
+    <a href="${siteUrl}/portal/login" style="display:inline-block;background:#2d6a4f;color:#ffffff;padding:14px 32px;border-radius:10px;text-decoration:none;font-size:16px;font-weight:bold;">
+      Go to Login
     </a>
     <p style="font-size:14px;color:#888;line-height:1.5;margin:32px 0 0;">
-      This link will expire in 24 hours. If you didn't apply to Everence Wealth, you can safely ignore this email.
+      If you didn't apply to Everence Wealth, you can safely ignore this email.
     </p>
     <hr style="border:none;border-top:1px solid #eee;margin:32px 0;" />
     <p style="font-size:12px;color:#aaa;">© ${new Date().getFullYear()} Everence Wealth. All rights reserved.</p>
