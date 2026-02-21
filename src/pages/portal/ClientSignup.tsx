@@ -1,7 +1,7 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Shield, Eye, EyeOff, CheckCircle, XCircle } from "lucide-react";
+import { Shield, Eye, EyeOff, XCircle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -39,10 +39,6 @@ export default function ClientSignup() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
-  const [resending, setResending] = useState(false);
-  const [resent, setResent] = useState(false);
-  const [resendCooldown, setResendCooldown] = useState(0);
 
   useEffect(() => {
     if (!token) {
@@ -91,29 +87,6 @@ export default function ClientSignup() {
     }
   }
 
-  const handleResend = useCallback(async () => {
-    if (!invitation || resendCooldown > 0) return;
-    setResending(true);
-    try {
-      await supabase.auth.resend({ type: "signup", email: invitation.email });
-      setResent(true);
-      setResendCooldown(60);
-      const interval = setInterval(() => {
-        setResendCooldown((prev) => {
-          if (prev <= 1) {
-            clearInterval(interval);
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    } catch {
-      // silently fail
-    } finally {
-      setResending(false);
-    }
-  }, [invitation, resendCooldown]);
-
   async function handleSignup(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
@@ -130,14 +103,9 @@ export default function ClientSignup() {
 
     setLoading(true);
     try {
-      // Create auth user — the database trigger handles creating
-      // the portal_users record and marking the invitation as accepted
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: invitation.email,
         password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/portal/login?verified=true`,
-        },
       });
 
       if (authError) {
@@ -152,7 +120,19 @@ export default function ClientSignup() {
         return;
       }
 
-      setSuccess(true);
+      // Auto-login after signup (email is auto-confirmed)
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: invitation.email,
+        password,
+      });
+
+      if (signInError) {
+        setError("Account created but login failed. Please go to the login page.");
+        setLoading(false);
+        return;
+      }
+
+      navigate("/portal/client/dashboard");
     } catch {
       setError("An unexpected error occurred.");
     } finally {
@@ -178,75 +158,6 @@ export default function ClientSignup() {
           <Button onClick={() => navigate("/portal/login")} variant="outline" className="border-white/20 text-white hover:bg-white/10">
             Go to Login
           </Button>
-        </div>
-      </div>
-    );
-  }
-
-  if (success) {
-    const advisorInitials = advisor
-      ? `${advisor.first_name[0]}${advisor.last_name[0]}`.toUpperCase()
-      : "?";
-
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[hsl(215,28%,10%)] px-4">
-        <div className="w-full max-w-md text-center">
-          <CheckCircle className="h-16 w-16 text-emerald-400 mx-auto mb-4" />
-          <h1 className="text-2xl font-semibold text-white mb-2">Account Created!</h1>
-          <p className="text-white/60 mb-6">Please check your email to verify your account before signing in.</p>
-
-          {advisor && (
-            <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md p-6 mb-6 text-center">
-              <p className="text-xs text-white/40 uppercase tracking-widest mb-4">Your Advisor</p>
-              <div className="flex flex-col items-center gap-3">
-                {advisor.photo_url ? (
-                  <img
-                    src={advisor.photo_url}
-                    alt={`${advisor.first_name} ${advisor.last_name}`}
-                    className="w-20 h-20 rounded-full object-cover border-2 border-[hsl(42,50%,55%)]"
-                  />
-                ) : (
-                  <div className="w-20 h-20 rounded-full bg-[hsl(160,48%,21%)] border-2 border-[hsl(42,50%,55%)] flex items-center justify-center text-2xl font-bold text-white">
-                    {advisorInitials}
-                  </div>
-                )}
-                <div>
-                  <p className="text-white font-semibold text-lg">
-                    {advisor.first_name} {advisor.last_name}
-                  </p>
-                  <p className="text-[hsl(42,50%,55%)] text-sm">{advisor.title ?? "Financial Advisor"}</p>
-                </div>
-              </div>
-              <p className="text-white/50 text-sm mt-4 leading-relaxed">
-                Once you verify your email and log in, you can message{" "}
-                <span className="text-white/80">{advisor.first_name}</span> directly from your portal.
-              </p>
-            </div>
-          )}
-
-          <div className="flex flex-col gap-3">
-            <Button
-              onClick={() => navigate("/portal/login?next=/portal/client/messages")}
-              className="bg-[hsl(160,48%,21%)] hover:bg-[hsl(42,50%,55%)] text-white"
-            >
-              Go to Login
-            </Button>
-            <Button
-              onClick={handleResend}
-              disabled={resending || resendCooldown > 0}
-              variant="outline"
-              className="border-white/20 text-white hover:bg-white/10"
-            >
-              {resending
-                ? "Sending..."
-                : resendCooldown > 0
-                ? `Resend in ${resendCooldown}s`
-                : "Resend Verification Email"}
-            </Button>
-          </div>
-          {resent && (
-            <p className="text-emerald-400 text-sm mt-3">Verification email sent!</p>
-          )}
         </div>
       </div>
     );
