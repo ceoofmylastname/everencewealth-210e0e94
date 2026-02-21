@@ -1,82 +1,88 @@
 
 
-# Contracting Section Navigation Update
+# Manager-Approved Agent Onboarding (Remove Support Code)
 
-## Overview
-Restructure the contracting sidebar navigation to show seven clear items: Dashboard, Pipeline, Agents, Messages, Files, Analytics, and Settings. This requires updating the PortalLayout nav, creating two new pages (Agents and Settings), and adding their routes.
+## Problem
+When a new agent applies and the `portal_users` record isn't found or created properly, the login page shows "Account setup incomplete. Please contact support with code: XXXXXXXX". There's no actual support interface to handle this code, and the flow is confusing.
 
-## Current State
-The sidebar "Contracting" group currently has:
-- Dashboard (`/portal/advisor/contracting`)
-- Pipeline (`/portal/advisor/contracting/pipeline`)
-- Messages (`/portal/advisor/contracting/messages`)
-- Documents (`/portal/advisor/contracting/documents`)
-- Admin (admin-only, `/portal/advisor/contracting/admin`)
-
-Analytics exists as a route but is not in the sidebar nav.
+## Solution
+Replace the support-code flow with a **manager approval** system:
+1. During intake, create `portal_users` with `is_active = false`
+2. Notify the manager that a new recruit needs approval
+3. Manager sees pending agents and clicks **Approve**
+4. Approval sets `is_active = true`, agent can now log in
+5. Login page shows a clear "pending approval" message instead of the cryptic code
 
 ## Changes
 
-### 1. Update PortalLayout sidebar nav
-In `src/components/portal/PortalLayout.tsx`, replace the Contracting group items with:
+### 1. Update `contracting-intake` Edge Function
+- Change `portal_users` insert to set `is_active: false` instead of `true`
+- The agent's auth account is created, but they can't log in until approved
 
-| Nav Item | Icon | Route |
-|---|---|---|
-| Dashboard | Briefcase | `/portal/advisor/contracting` |
-| Pipeline | GitBranch | `/portal/advisor/contracting/pipeline` |
-| Agents | Users | `/portal/advisor/contracting/agents` |
-| Messages | MessageSquare | `/portal/advisor/contracting/messages` |
-| Files | FolderOpen | `/portal/advisor/contracting/documents` |
-| Analytics | TrendingUp | `/portal/advisor/contracting/analytics` |
-| Settings | Settings | `/portal/advisor/contracting/settings` |
+### 2. Update Login Page (`PortalLogin.tsx`)
+- Replace the "Account setup incomplete" + support code error with two distinct messages:
+  - **No portal_users record at all**: "No account found. If you recently applied, please wait for manager approval."
+  - **portal_users exists but `is_active = false`**: "Your account is pending approval from your manager. You'll receive an email once approved."
+- Query portal_users without the `is_active = true` filter to distinguish between these two states
 
-Remove the conditional admin-only "Admin" entry -- the Admin functionality will be accessible from the Settings page instead.
+### 3. Create `approve-agent` Edge Function
+- Accepts `agent_id` (contracting_agents.id)
+- Validates the caller is the agent's assigned manager (or admin/contracting role)
+- Sets the agent's `portal_users.is_active = true`
+- Sends an approval email to the agent via Resend: "Your account has been approved! You can now log in."
+- Creates an activity log entry
 
-### 2. Create Agents page
-**New file:** `src/pages/portal/advisor/contracting/ContractingAgents.tsx`
+### 4. Add Approve Button to Manager Dashboard
+In `ContractingDashboard.tsx` (the manager/admin view), add an "Approve" button on agent cards/rows where `pipeline_stage = 'intake_submitted'` and the agent's portal_users record has `is_active = false`. Also surface pending approvals in `ContractingAgents.tsx`.
 
-A dedicated agent directory/list page showing all contracting agents in a searchable, filterable table. Features:
-- Search by name or email
-- Filter by status (in_progress, completed, on_hold, rejected)
-- Filter by pipeline stage
-- Table columns: Name, Email, Stage, Status, Manager, Days in Pipeline, Progress
-- Each row links to the agent detail page (`/portal/advisor/contracting/agent/:id`)
-- Access controlled by `useContractingAuth` -- managers see only their assigned agents, admins/contracting see all
-
-### 3. Create Settings page
-**New file:** `src/pages/portal/advisor/contracting/ContractingSettings.tsx`
-
-A settings hub for contracting configuration, accessible to admin/contracting roles. Sections:
-- **Pipeline Stages** -- read-only reference of the pipeline stage order
-- **Bundle Management** -- moved from the Admin page (create/edit bundles)
-- **Admin Panel link** -- button linking to the existing Admin page for full agent management
-- Access controlled to `canManage` users only
-
-### 4. Add routes in App.tsx
-Add two new lazy-loaded routes:
-- `contracting/agents` pointing to `ContractingAgents`
-- `contracting/settings` pointing to `ContractingSettings`
+### 5. Add Notification to Manager
+The intake edge function already notifies the manager. Update the notification message to explicitly say approval is needed: "New agent [Name] needs your approval to access the portal."
 
 ## Technical Details
+
+### New Edge Function: `supabase/functions/approve-agent/index.ts`
+- Receives `{ agent_id }` in POST body
+- Uses service role to:
+  1. Fetch contracting_agents row to get `manager_id` and `auth_user_id`
+  2. Verify caller is the manager (compare `get_portal_user_id` from auth token) or has admin/contracting role
+  3. Update `portal_users` set `is_active = true` where `auth_user_id` matches
+  4. Send approval email via Resend
+  5. Log activity in `contracting_activity_logs`
 
 ### Files Modified
 | File | Change |
 |---|---|
-| `src/components/portal/PortalLayout.tsx` | Update Contracting nav group items to the 7-item list; remove conditional admin entry |
-| `src/App.tsx` | Add lazy imports and routes for `ContractingAgents` and `ContractingSettings` |
+| `supabase/functions/contracting-intake/index.ts` | Set `is_active: false` on portal_users insert; update manager notification text |
+| `src/pages/portal/PortalLogin.tsx` | Replace support code error with pending-approval message; query portal_users without `is_active` filter |
+| `src/pages/portal/advisor/contracting/ContractingDashboard.tsx` | Add "Approve" button on pending agents for managers |
+| `src/pages/portal/advisor/contracting/ContractingAgents.tsx` | Show approval status column and approve action |
 
-### Files Created
+### New Files
 | File | Purpose |
 |---|---|
-| `src/pages/portal/advisor/contracting/ContractingAgents.tsx` | Agent directory with search, filters, and table |
-| `src/pages/portal/advisor/contracting/ContractingSettings.tsx` | Settings hub with bundle management and admin link |
+| `supabase/functions/approve-agent/index.ts` | Edge function to approve agent and send notification |
 
-### Data Sources
-- **Agents page**: queries `contracting_agents` (with optional join to `portal_users` for manager name) and `contracting_agent_steps` for progress calculation
-- **Settings page**: queries `contracting_bundles` for bundle management (reuses logic from ContractingAdmin)
+### Flow After Implementation
 
-### Access Control
-Both new pages use the existing `useContractingAuth` hook:
-- Agents: visible to all contracting roles (agent sees only self, manager sees assigned, admin/contracting sees all) -- enforced by RLS
-- Settings: restricted to `canManage === true` users
+```text
+Agent applies (/apply)
+        |
+        v
+Auth user created + portal_users (is_active=false) + contracting_agents
+        |
+        v
+Manager gets notification: "[Name] needs your approval"
+        |
+        v
+Agent tries to log in --> sees "Pending approval from your manager"
+        |
+        v
+Manager clicks "Approve" on their dashboard
+        |
+        v
+portal_users.is_active = true + approval email sent to agent
+        |
+        v
+Agent can now log in and access onboarding dashboard
+```
 
