@@ -3467,6 +3467,345 @@ export type Database = {
           },
         ]
       }
+      contracting_activity_logs: {
+        Row: {
+          action: string
+          agent_id: string
+          created_at: string
+          description: string
+          id: string
+          metadata: Json | null
+          performed_by: string
+        }
+        Insert: {
+          action: string
+          agent_id: string
+          created_at?: string
+          description: string
+          id?: string
+          metadata?: Json | null
+          performed_by: string
+        }
+        Update: {
+          action?: string
+          agent_id?: string
+          created_at?: string
+          description?: string
+          id?: string
+          metadata?: Json | null
+          performed_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contracting_activity_logs_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "contracting_agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contracting_activity_logs_performed_by_fkey"
+            columns: ["performed_by"]
+            isOneToOne: false
+            referencedRelation: "contracting_agents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contracting_agent_steps: {
+        Row: {
+          agent_id: string
+          completed_at: string | null
+          completed_by: string | null
+          created_at: string
+          id: string
+          notes: string | null
+          status: string
+          step_id: string
+          updated_at: string
+        }
+        Insert: {
+          agent_id: string
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          status?: string
+          step_id: string
+          updated_at?: string
+        }
+        Update: {
+          agent_id?: string
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          status?: string
+          step_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contracting_agent_steps_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "contracting_agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contracting_agent_steps_step_id_fkey"
+            columns: ["step_id"]
+            isOneToOne: false
+            referencedRelation: "contracting_steps"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contracting_agents: {
+        Row: {
+          auth_user_id: string
+          completed_at: string | null
+          contracting_role: string
+          created_at: string
+          email: string
+          first_name: string
+          id: string
+          last_name: string
+          manager_id: string | null
+          notes: string | null
+          phone: string | null
+          pipeline_stage: string
+          portal_user_id: string | null
+          started_at: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          auth_user_id: string
+          completed_at?: string | null
+          contracting_role?: string
+          created_at?: string
+          email: string
+          first_name: string
+          id?: string
+          last_name: string
+          manager_id?: string | null
+          notes?: string | null
+          phone?: string | null
+          pipeline_stage?: string
+          portal_user_id?: string | null
+          started_at?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          auth_user_id?: string
+          completed_at?: string | null
+          contracting_role?: string
+          created_at?: string
+          email?: string
+          first_name?: string
+          id?: string
+          last_name?: string
+          manager_id?: string | null
+          notes?: string | null
+          phone?: string | null
+          pipeline_stage?: string
+          portal_user_id?: string | null
+          started_at?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contracting_agents_manager_id_fkey"
+            columns: ["manager_id"]
+            isOneToOne: false
+            referencedRelation: "contracting_agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contracting_agents_portal_user_id_fkey"
+            columns: ["portal_user_id"]
+            isOneToOne: false
+            referencedRelation: "portal_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contracting_documents: {
+        Row: {
+          agent_id: string
+          created_at: string
+          file_name: string
+          file_path: string
+          file_size: number | null
+          id: string
+          step_id: string | null
+          uploaded_by: string
+        }
+        Insert: {
+          agent_id: string
+          created_at?: string
+          file_name: string
+          file_path: string
+          file_size?: number | null
+          id?: string
+          step_id?: string | null
+          uploaded_by: string
+        }
+        Update: {
+          agent_id?: string
+          created_at?: string
+          file_name?: string
+          file_path?: string
+          file_size?: number | null
+          id?: string
+          step_id?: string | null
+          uploaded_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contracting_documents_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "contracting_agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contracting_documents_step_id_fkey"
+            columns: ["step_id"]
+            isOneToOne: false
+            referencedRelation: "contracting_steps"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contracting_documents_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "contracting_agents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contracting_messages: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          is_read: boolean
+          sender_id: string
+          thread_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          sender_id: string
+          thread_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          sender_id?: string
+          thread_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contracting_messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "contracting_agents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contracting_reminders: {
+        Row: {
+          agent_id: string
+          created_at: string
+          id: string
+          reminder_type: string
+          scheduled_for: string
+          sent_at: string | null
+          status: string
+          step_id: string | null
+        }
+        Insert: {
+          agent_id: string
+          created_at?: string
+          id?: string
+          reminder_type?: string
+          scheduled_for?: string
+          sent_at?: string | null
+          status?: string
+          step_id?: string | null
+        }
+        Update: {
+          agent_id?: string
+          created_at?: string
+          id?: string
+          reminder_type?: string
+          scheduled_for?: string
+          sent_at?: string | null
+          status?: string
+          step_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contracting_reminders_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "contracting_agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contracting_reminders_step_id_fkey"
+            columns: ["step_id"]
+            isOneToOne: false
+            referencedRelation: "contracting_steps"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contracting_steps: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_required: boolean
+          requires_upload: boolean
+          stage: string
+          step_order: number
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_required?: boolean
+          requires_upload?: boolean
+          stage: string
+          step_order?: number
+          title: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_required?: boolean
+          requires_upload?: boolean
+          stage?: string
+          step_order?: number
+          title?: string
+        }
+        Relationships: []
+      }
       crm_activities: {
         Row: {
           activity_type: string
@@ -7648,6 +7987,8 @@ export type Database = {
           total_count: number
         }[]
       }
+      get_contracting_agent_id: { Args: { _auth_uid: string }; Returns: string }
+      get_contracting_role: { Args: { _auth_uid: string }; Returns: string }
       get_database_triggers: {
         Args: never
         Returns: {
