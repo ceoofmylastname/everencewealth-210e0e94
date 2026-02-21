@@ -6,7 +6,7 @@ import {
   Users, Clock, CheckCircle2, PauseCircle, AlertTriangle,
   ArrowRight, Plus, BarChart3, Activity, User, Mail, Phone, Calendar,
   CheckCircle, Circle, ChevronDown, ChevronRight, MessageSquare, Send,
-  LayoutGrid, Table as TableIcon, MessageSquareWarning,
+  LayoutGrid, Table as TableIcon, MessageSquareWarning, Upload, Loader2, FileText,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -61,6 +61,7 @@ interface StepRow {
   stage: string;
   step_order: number;
   is_required: boolean;
+  requires_upload?: boolean;
 }
 
 interface AgentStepRow {
@@ -86,6 +87,8 @@ function AgentDashboard({ agentId, firstName, lastName, email, pipelineStage, st
   const [activities, setActivities] = useState<ActivityLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedStages, setExpandedStages] = useState<Record<string, boolean>>({});
+  const [uploading, setUploading] = useState(false);
+  const [uploadedDocs, setUploadedDocs] = useState<Map<string, string>>(new Map()); // stepId -> fileName
 
   // Chat state
   const [chatMessages, setChatMessages] = useState<{ id: string; sender_id: string; content: string; created_at: string; sender_name?: string }[]>([]);
@@ -98,13 +101,24 @@ function AgentDashboard({ agentId, firstName, lastName, email, pipelineStage, st
     async function load() {
       try {
         const [stepsRes, agentStepsRes, logsRes] = await Promise.all([
-          supabase.from("contracting_steps").select("id, title, description, stage, step_order, is_required").order("step_order"),
+          supabase.from("contracting_steps").select("id, title, description, stage, step_order, is_required, requires_upload").order("step_order"),
           supabase.from("contracting_agent_steps").select("id, step_id, status, completed_at").eq("agent_id", agentId),
           supabase.from("contracting_activity_logs").select("id, action, description, created_at, agent_id").eq("agent_id", agentId).order("created_at", { ascending: false }).limit(10),
         ]);
         if (stepsRes.data) setSteps(stepsRes.data);
         if (agentStepsRes.data) setAgentSteps(agentStepsRes.data);
         if (logsRes.data) setActivities(logsRes.data);
+
+        // Fetch uploaded documents for this agent
+        const { data: docs } = await supabase
+          .from("contracting_documents")
+          .select("step_id, file_name")
+          .eq("agent_id", agentId);
+        if (docs) {
+          const docMap = new Map<string, string>();
+          docs.forEach(d => { if (d.step_id) docMap.set(d.step_id, d.file_name); });
+          setUploadedDocs(docMap);
+        }
       } catch (err) {
         console.error(err);
       } finally {
@@ -176,6 +190,51 @@ function AgentDashboard({ agentId, firstName, lastName, email, pipelineStage, st
     }
   }
 
+  async function handleStepUpload(stepId: string, file: File) {
+    setUploading(true);
+    try {
+      const filePath = `${agentId}/surelc/${Date.now()}_${file.name}`;
+      const { error: uploadErr } = await supabase.storage
+        .from("contracting-documents")
+        .upload(filePath, file);
+      if (uploadErr) throw uploadErr;
+
+      await supabase.from("contracting_documents").insert({
+        agent_id: agentId,
+        step_id: stepId,
+        file_name: file.name,
+        file_path: filePath,
+        file_size: file.size,
+        uploaded_by: agentId,
+      });
+
+      await supabase.from("contracting_agent_steps").upsert({
+        agent_id: agentId,
+        step_id: stepId,
+        status: "completed",
+        completed_at: new Date().toISOString(),
+        completed_by: agentId,
+      }, { onConflict: "agent_id,step_id" });
+
+      await supabase.from("contracting_activity_logs").insert({
+        agent_id: agentId,
+        action: "document_uploaded",
+        activity_type: "document_uploaded",
+        description: "SureLC profile completed",
+        performed_by: agentId,
+      });
+
+      setAgentSteps(prev => [...prev.filter(s => s.step_id !== stepId), { id: crypto.randomUUID(), step_id: stepId, status: "completed", completed_at: new Date().toISOString() }]);
+      setUploadedDocs(prev => new Map(prev).set(stepId, file.name));
+      toast.success("SureLC screenshot uploaded successfully!");
+    } catch (err: any) {
+      console.error(err);
+      toast.error("Upload failed: " + (err.message || "Unknown error"));
+    } finally {
+      setUploading(false);
+    }
+  }
+
   const completedStepIds = new Set(agentSteps.filter(s => s.status === "completed").map(s => s.step_id));
   const totalSteps = steps.length;
   const completedCount = completedStepIds.size;
@@ -243,6 +302,7 @@ function AgentDashboard({ agentId, firstName, lastName, email, pipelineStage, st
         <div className="space-y-2">
           {stageGroups.find(g => g.key === pipelineStage)?.steps.map(step => {
             const done = completedStepIds.has(step.id);
+            const docName = uploadedDocs.get(step.id);
             return (
               <div key={step.id} className="flex items-start gap-3 py-2">
                 {done ? (
@@ -250,10 +310,38 @@ function AgentDashboard({ agentId, firstName, lastName, email, pipelineStage, st
                 ) : (
                   <Circle className="h-5 w-5 text-gray-300 mt-0.5 shrink-0" />
                 )}
-                <div>
+                <div className="flex-1 min-w-0">
                   <p className={`text-sm ${done ? "text-gray-400 line-through" : "text-gray-700"}`}>{step.title}</p>
                   {step.description && <p className="text-xs text-gray-400 mt-0.5">{step.description}</p>}
+                  {docName && (
+                    <div className="flex items-center gap-1 mt-1">
+                      <FileText className="h-3.5 w-3.5 text-green-600" />
+                      <span className="text-xs text-green-700">{docName}</span>
+                    </div>
+                  )}
                 </div>
+                {step.requires_upload && !done && (
+                  <label className="cursor-pointer shrink-0">
+                    <input
+                      type="file"
+                      accept="image/*,.pdf"
+                      className="hidden"
+                      onChange={e => {
+                        const file = e.target.files?.[0];
+                        if (file) handleStepUpload(step.id, file);
+                      }}
+                      disabled={uploading}
+                    />
+                    {uploading ? (
+                      <Loader2 className="h-5 w-5 text-gray-400 animate-spin" />
+                    ) : (
+                      <div className="flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors" style={{ color: BRAND }}>
+                        <Upload className="h-3.5 w-3.5" />
+                        Upload
+                      </div>
+                    )}
+                  </label>
+                )}
               </div>
             );
           })}
