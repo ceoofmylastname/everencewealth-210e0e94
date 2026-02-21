@@ -15,8 +15,6 @@ const US_STATES = [
   "South Dakota","Tennessee","Texas","Utah","Vermont","Virginia","Washington","West Virginia","Wisconsin","Wyoming",
 ];
 
-const DIRECTORS = ["Adam T", "Antwan G", "Benjamin S", "Jalil D", "Jeff U"];
-
 interface Manager {
   id: string;
   first_name: string;
@@ -25,7 +23,6 @@ interface Manager {
 
 interface FormData {
   referral_source: string;
-  referring_director: string;
   first_name: string;
   last_name: string;
   email: string;
@@ -37,7 +34,7 @@ interface FormData {
   consent: boolean;
 }
 
-const TOTAL_STEPS = 9;
+const TOTAL_STEPS = 8;
 
 export default function ContractingIntake() {
   const navigate = useNavigate();
@@ -47,7 +44,6 @@ export default function ContractingIntake() {
   const [managers, setManagers] = useState<Manager[]>([]);
   const [form, setForm] = useState<FormData>({
     referral_source: "",
-    referring_director: "",
     first_name: "",
     last_name: "",
     email: "",
@@ -61,9 +57,9 @@ export default function ContractingIntake() {
 
   useEffect(() => {
     supabase
-      .from("contracting_agents")
+      .from("crm_agents")
       .select("id, first_name, last_name")
-      .eq("contracting_role", "manager")
+      .eq("is_active", true)
       .then(({ data }) => {
         if (data) setManagers(data);
       });
@@ -75,14 +71,13 @@ export default function ContractingIntake() {
   const canContinue = (): boolean => {
     switch (step) {
       case 0: return form.referral_source.trim().length > 0;
-      case 1: return form.referring_director.length > 0;
-      case 2: return form.first_name.trim().length > 0 && form.last_name.trim().length > 0;
-      case 3: return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email);
-      case 4: return form.phone.trim().length >= 7;
-      case 5: return form.state.length > 0;
-      case 6: return form.is_licensed !== null;
-      case 7: return form.manager_id.length > 0;
-      case 8: return form.consent;
+      case 1: return form.first_name.trim().length > 0 && form.last_name.trim().length > 0;
+      case 2: return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email);
+      case 3: return form.phone.trim().length >= 7;
+      case 4: return form.state.length > 0;
+      case 5: return form.is_licensed !== null;
+      case 6: return form.manager_id.length > 0;
+      case 7: return form.consent;
       default: return false;
     }
   };
@@ -97,7 +92,7 @@ export default function ContractingIntake() {
           email: form.email.trim().toLowerCase(),
           phone: form.phone.trim(),
           referral_source: form.referral_source.trim(),
-          referring_director: form.referring_director,
+          
           state: form.state,
           address: form.address.trim(),
           is_licensed: form.is_licensed,
@@ -199,35 +194,7 @@ export default function ContractingIntake() {
 
       case 1:
         return (
-          <div key="step-1" className="space-y-6">
-            <h2 className="text-3xl md:text-4xl font-bold text-foreground" style={{ fontFamily: "Georgia, serif" }}>
-              Which director referred you?
-            </h2>
-            <p className="text-muted-foreground text-lg">Select the director who brought you in</p>
-            <div className="space-y-3 mt-4">
-              {DIRECTORS.map((d) => (
-                <button
-                  key={d}
-                  onClick={() => update("referring_director", d)}
-                  className={`w-full text-left px-5 py-4 rounded-xl border-2 transition-all text-lg font-medium ${
-                    form.referring_director === d
-                      ? "border-[hsl(160,45%,25%)] bg-[hsl(160,45%,25%/0.08)] text-foreground"
-                      : "border-border hover:border-muted-foreground/40 text-foreground"
-                  }`}
-                >
-                  <span className="inline-flex items-center justify-center w-8 h-8 rounded-md border border-border text-sm font-bold mr-3">
-                    {String.fromCharCode(65 + DIRECTORS.indexOf(d))}
-                  </span>
-                  {d}
-                </button>
-              ))}
-            </div>
-          </div>
-        );
-
-      case 2:
-        return (
-          <div key="step-2" className="space-y-6" onKeyDown={handleKeyDown}>
+          <div key="step-1" className="space-y-6" onKeyDown={handleKeyDown}>
             <h2 className="text-3xl md:text-4xl font-bold text-foreground" style={{ fontFamily: "Georgia, serif" }}>
               What is your name?
             </h2>
@@ -255,9 +222,9 @@ export default function ContractingIntake() {
           </div>
         );
 
-      case 3:
+      case 2:
         return (
-          <div key="step-3" className="space-y-6" onKeyDown={handleKeyDown}>
+          <div key="step-2" className="space-y-6" onKeyDown={handleKeyDown}>
             <h2 className="text-3xl md:text-4xl font-bold text-foreground" style={{ fontFamily: "Georgia, serif" }}>
               What is your email?
             </h2>
@@ -273,9 +240,9 @@ export default function ContractingIntake() {
           </div>
         );
 
-      case 4:
+      case 3:
         return (
-          <div key="step-4" className="space-y-6" onKeyDown={handleKeyDown}>
+          <div key="step-3" className="space-y-6" onKeyDown={handleKeyDown}>
             <h2 className="text-3xl md:text-4xl font-bold text-foreground" style={{ fontFamily: "Georgia, serif" }}>
               What is your phone number?
             </h2>
@@ -290,9 +257,9 @@ export default function ContractingIntake() {
           </div>
         );
 
-      case 5:
+      case 4:
         return (
-          <div key="step-5" className="space-y-6" onKeyDown={handleKeyDown}>
+          <div key="step-4" className="space-y-6" onKeyDown={handleKeyDown}>
             <h2 className="text-3xl md:text-4xl font-bold text-foreground" style={{ fontFamily: "Georgia, serif" }}>
               Where are you located?
             </h2>
@@ -323,9 +290,9 @@ export default function ContractingIntake() {
           </div>
         );
 
-      case 6:
+      case 5:
         return (
-          <div key="step-6" className="space-y-6">
+          <div key="step-5" className="space-y-6">
             <h2 className="text-3xl md:text-4xl font-bold text-foreground" style={{ fontFamily: "Georgia, serif" }}>
               Are you currently licensed?
             </h2>
@@ -353,9 +320,9 @@ export default function ContractingIntake() {
           </div>
         );
 
-      case 7:
+      case 6:
         return (
-          <div key="step-7" className="space-y-6">
+          <div key="step-6" className="space-y-6">
             <h2 className="text-3xl md:text-4xl font-bold text-foreground" style={{ fontFamily: "Georgia, serif" }}>
               Select your manager
             </h2>
@@ -385,9 +352,9 @@ export default function ContractingIntake() {
           </div>
         );
 
-      case 8:
+      case 7:
         return (
-          <div key="step-8" className="space-y-6">
+          <div key="step-7" className="space-y-6">
             <h2 className="text-3xl md:text-4xl font-bold text-foreground" style={{ fontFamily: "Georgia, serif" }}>
               Almost there!
             </h2>

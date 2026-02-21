@@ -24,7 +24,7 @@ Deno.serve(async (req) => {
       email,
       phone,
       referral_source,
-      referring_director,
+      
       state,
       address,
       is_licensed,
@@ -101,7 +101,7 @@ Deno.serve(async (req) => {
         pipeline_stage: "application",
         status: "in_progress",
         referral_source: referral_source || null,
-        referring_director: referring_director || null,
+        
         state: state || null,
         address: address || null,
         is_licensed: is_licensed ?? false,
