@@ -742,6 +742,11 @@ function ManagerDashboard({ canManage, portalUserId, isManagerOnly }: ManagerDas
               <TableIcon className="h-4 w-4" />
             </button>
           </div>
+          <Button asChild variant="outline" size="sm">
+            <Link to="/portal/advisor/contracting/analytics">
+              <BarChart3 className="h-4 w-4 mr-2" /> Analytics
+            </Link>
+          </Button>
           {canManage && (
             <Button asChild style={{ background: BRAND }} className="text-white hover:opacity-90">
               <Link to="/portal/advisor/contracting/pipeline">
