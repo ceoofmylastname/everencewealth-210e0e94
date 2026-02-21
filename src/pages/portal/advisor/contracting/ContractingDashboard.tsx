@@ -6,11 +6,16 @@ import {
   Users, Clock, CheckCircle2, PauseCircle, AlertTriangle,
   ArrowRight, Plus, BarChart3, Activity, User, Mail, Phone, Calendar,
   CheckCircle, Circle, ChevronDown, ChevronRight, MessageSquare, Send,
+  LayoutGrid, Table as TableIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { format } from "date-fns";
+import { Checkbox } from "@/components/ui/checkbox";
+import { format, differenceInDays } from "date-fns";
 import { Progress } from "@/components/ui/progress";
+import {
+  Table, TableHeader, TableBody, TableHead, TableRow, TableCell,
+} from "@/components/ui/table";
 
 const BRAND = "#1A4D3E";
 const ACCENT = "#EBD975";
@@ -373,52 +378,116 @@ function AgentDashboard({ agentId, firstName, lastName, email, pipelineStage, st
 
 // ─── Admin / Manager View ────────────────────────────────────────────
 
-function ManagerDashboard({ canManage, portalUserId, isManagerOnly }: { canManage: boolean; portalUserId: string | null; isManagerOnly: boolean }) {
-  const [stats, setStats] = useState<Stats>({ total: 0, inProgress: 0, completed: 0, onHold: 0, stageCounts: {} });
-  const [activities, setActivities] = useState<ActivityLog[]>([]);
+// ─── Enhanced Types ──────────────────────────────────────────────────
+
+interface EnhancedAgent {
+  id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  pipeline_stage: string;
+  status: string;
+  progress_pct: number | null;
+  manager_id: string | null;
+  updated_at: string;
+  created_at: string;
+}
+
+interface ManagerDashboardProps {
+  canManage: boolean;
+  portalUserId: string | null;
+  isManagerOnly: boolean;
+}
+
+function ManagerDashboard({ canManage, portalUserId, isManagerOnly }: ManagerDashboardProps) {
+  const [agents, setAgents] = useState<EnhancedAgent[]>([]);
+  const [managerNames, setManagerNames] = useState<Map<string, string>>(new Map());
+  const [bundleMap, setBundleMap] = useState<Map<string, string[]>>(new Map()); // agentId -> bundle names
+  const [carrierCounts, setCarrierCounts] = useState<Map<string, number>>(new Map()); // agentId -> count
+  const [lastActivityMap, setLastActivityMap] = useState<Map<string, string>>(new Map()); // agentId -> date
+  const [steps, setSteps] = useState<StepRow[]>([]);
+  const [agentStepsMap, setAgentStepsMap] = useState<Map<string, AgentStepRow[]>>(new Map()); // agentId -> steps
   const [loading, setLoading] = useState(true);
+  const [view, setView] = useState<"board" | "table">("table");
+  const [completingStep, setCompletingStep] = useState<string | null>(null); // agentId being processed
 
   useEffect(() => {
-    fetchData();
+    fetchAll();
   }, [portalUserId, isManagerOnly]);
 
-  async function fetchData() {
+  async function fetchAll() {
     try {
-      let agentsQuery = supabase.from("contracting_agents").select("id, status, pipeline_stage");
+      // 1. Agents
+      let agentsQuery = supabase.from("contracting_agents").select("id, first_name, last_name, email, pipeline_stage, status, progress_pct, manager_id, updated_at, created_at");
       if (isManagerOnly && portalUserId) {
         agentsQuery = agentsQuery.eq("manager_id", portalUserId);
       }
-      const { data: agents } = await agentsQuery;
-      if (agents) {
-        const stageCounts: Record<string, number> = {};
-        PIPELINE_STAGES.forEach(s => stageCounts[s.key] = 0);
-        agents.forEach(a => {
-          if (stageCounts[a.pipeline_stage] !== undefined) stageCounts[a.pipeline_stage]++;
-        });
-        setStats({
-          total: agents.length,
-          inProgress: agents.filter(a => a.status === "in_progress").length,
-          completed: agents.filter(a => a.status === "completed").length,
-          onHold: agents.filter(a => a.status === "on_hold").length,
-          stageCounts,
-        });
-      }
+      const { data: agentsData } = await agentsQuery;
+      const agentsList = (agentsData || []) as EnhancedAgent[];
+      setAgents(agentsList);
 
-      let logsQuery = supabase
-        .from("contracting_activity_logs")
-        .select("id, action, description, created_at, agent_id")
-        .order("created_at", { ascending: false })
-        .limit(10);
-      if (isManagerOnly && agents) {
-        const agentIds = agents.map(a => a.id);
-        if (agentIds.length > 0) {
-          logsQuery = logsQuery.in("agent_id", agentIds);
-        } else {
-          logsQuery = logsQuery.eq("agent_id", "none");
+      const agentIds = agentsList.map(a => a.id);
+      const managerIds = [...new Set(agentsList.map(a => a.manager_id).filter(Boolean))] as string[];
+
+      // 2. Parallel queries
+      const [managersRes, selectionsRes, bundlesRes, stepsRes, agentStepsRes, activityRes] = await Promise.all([
+        managerIds.length > 0
+          ? supabase.from("portal_users").select("id, first_name, last_name").in("id", managerIds)
+          : Promise.resolve({ data: [] }),
+        agentIds.length > 0
+          ? supabase.from("contracting_carrier_selections").select("agent_id, bundle_id, carrier_id").in("agent_id", agentIds)
+          : Promise.resolve({ data: [] }),
+        supabase.from("contracting_bundles").select("id, name"),
+        supabase.from("contracting_steps").select("id, title, description, stage, step_order, is_required").order("step_order"),
+        agentIds.length > 0
+          ? supabase.from("contracting_agent_steps").select("id, agent_id, step_id, status, completed_at").in("agent_id", agentIds)
+          : Promise.resolve({ data: [] }),
+        agentIds.length > 0
+          ? supabase.from("contracting_activity_logs").select("agent_id, created_at").in("agent_id", agentIds).order("created_at", { ascending: false })
+          : Promise.resolve({ data: [] }),
+      ]);
+
+      // Manager names
+      const mNames = new Map<string, string>();
+      (managersRes.data || []).forEach((m: any) => mNames.set(m.id, `${m.first_name} ${m.last_name}`));
+      setManagerNames(mNames);
+
+      // Bundle name lookup
+      const bundleLookup = new Map<string, string>();
+      (bundlesRes.data || []).forEach((b: any) => bundleLookup.set(b.id, b.name));
+
+      // Carrier selections → bundle names & carrier counts per agent
+      const bMap = new Map<string, Set<string>>();
+      const cMap = new Map<string, number>();
+      (selectionsRes.data || []).forEach((s: any) => {
+        if (!bMap.has(s.agent_id)) bMap.set(s.agent_id, new Set());
+        if (s.bundle_id && bundleLookup.has(s.bundle_id)) {
+          bMap.get(s.agent_id)!.add(bundleLookup.get(s.bundle_id)!);
         }
-      }
-      const { data: logs } = await logsQuery;
-      if (logs) setActivities(logs);
+        cMap.set(s.agent_id, (cMap.get(s.agent_id) || 0) + 1);
+      });
+      const bMapFinal = new Map<string, string[]>();
+      bMap.forEach((v, k) => bMapFinal.set(k, [...v]));
+      setBundleMap(bMapFinal);
+      setCarrierCounts(cMap);
+
+      // Steps
+      if (stepsRes.data) setSteps(stepsRes.data);
+
+      // Agent steps grouped by agent
+      const asMap = new Map<string, AgentStepRow[]>();
+      (agentStepsRes.data || []).forEach((as: any) => {
+        if (!asMap.has(as.agent_id)) asMap.set(as.agent_id, []);
+        asMap.get(as.agent_id)!.push(as);
+      });
+      setAgentStepsMap(asMap);
+
+      // Last activity per agent (first occurrence since sorted desc)
+      const laMap = new Map<string, string>();
+      (activityRes.data || []).forEach((log: any) => {
+        if (!laMap.has(log.agent_id)) laMap.set(log.agent_id, log.created_at);
+      });
+      setLastActivityMap(laMap);
     } catch (err) {
       console.error(err);
     } finally {
@@ -426,14 +495,75 @@ function ManagerDashboard({ canManage, portalUserId, isManagerOnly }: { canManag
     }
   }
 
+  // ── Checkbox automation ──
+  async function handleStepComplete(agentId: string) {
+    if (completingStep) return;
+    setCompletingStep(agentId);
+    try {
+      const agent = agents.find(a => a.id === agentId);
+      if (!agent) return;
+      // Find the current stage's first incomplete required step
+      const stageSteps = steps.filter(s => s.stage === agent.pipeline_stage && s.is_required);
+      const agentStepsList = agentStepsMap.get(agentId) || [];
+      const completedIds = new Set(agentStepsList.filter(s => s.status === "completed").map(s => s.step_id));
+      const nextStep = stageSteps.find(s => !completedIds.has(s.id));
+      if (!nextStep) return;
+
+      // Check if agent_step row exists
+      const existing = agentStepsList.find(as => as.step_id === nextStep.id);
+      if (existing) {
+        await supabase.from("contracting_agent_steps").update({
+          status: "completed",
+          completed_at: new Date().toISOString(),
+        }).eq("id", existing.id);
+      } else {
+        await supabase.from("contracting_agent_steps").insert({
+          agent_id: agentId,
+          step_id: nextStep.id,
+          status: "completed",
+          completed_at: new Date().toISOString(),
+        });
+      }
+
+      // Log activity
+      await supabase.from("contracting_activity_logs").insert({
+        agent_id: agentId,
+        action: "step_completed",
+        performed_by: agentId,
+        description: `Step "${nextStep.title}" marked complete by manager`,
+      });
+
+      // Refetch
+      await fetchAll();
+    } catch (err) {
+      console.error("Step completion error:", err);
+    } finally {
+      setCompletingStep(null);
+    }
+  }
+
+  // ── Computed stats ──
+  const now = new Date();
+  const stuckAgents = agents.filter(a => a.status === "in_progress" && differenceInDays(now, new Date(a.updated_at)) > 7);
   const statCards = [
-    { label: "Total Agents", value: stats.total, icon: Users, color: BRAND },
-    { label: "In Progress", value: stats.inProgress, icon: Clock, color: "#3B82F6" },
-    { label: "Completed", value: stats.completed, icon: CheckCircle2, color: "#10B981" },
-    { label: "On Hold", value: stats.onHold, icon: PauseCircle, color: "#F59E0B" },
+    { label: "Total Agents", value: agents.length, icon: Users, color: BRAND },
+    { label: "Active Onboarding", value: agents.filter(a => a.status === "in_progress").length, icon: Clock, color: "#3B82F6" },
+    { label: "Completed", value: agents.filter(a => a.status === "completed").length, icon: CheckCircle2, color: "#10B981" },
+    { label: "Stuck Agents", value: stuckAgents.length, icon: AlertTriangle, color: "#EF4444" },
   ];
 
-  const maxStageCount = Math.max(...Object.values(stats.stageCounts), 1);
+  // ── Helper: get next incomplete step for agent ──
+  function getNextStep(agent: EnhancedAgent) {
+    const stageSteps = steps.filter(s => s.stage === agent.pipeline_stage && s.is_required);
+    const completedIds = new Set((agentStepsMap.get(agent.id) || []).filter(s => s.status === "completed").map(s => s.step_id));
+    return stageSteps.find(s => !completedIds.has(s.id)) || null;
+  }
+
+  function isStageFullyComplete(agent: EnhancedAgent) {
+    const stageSteps = steps.filter(s => s.stage === agent.pipeline_stage && s.is_required);
+    const completedIds = new Set((agentStepsMap.get(agent.id) || []).filter(s => s.status === "completed").map(s => s.step_id));
+    return stageSteps.length > 0 && stageSteps.every(s => completedIds.has(s.id));
+  }
 
   if (loading) {
     return (
@@ -451,7 +581,21 @@ function ManagerDashboard({ canManage, portalUserId, isManagerOnly }: { canManag
           <h1 className="text-2xl font-bold text-gray-900">Contracting Dashboard</h1>
           <p className="text-sm text-gray-500 mt-1">Track onboarding progress across all agents</p>
         </div>
-        <div className="flex gap-3">
+        <div className="flex gap-2">
+          <div className="flex bg-gray-100 rounded-lg p-0.5">
+            <button
+              onClick={() => setView("board")}
+              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${view === "board" ? "bg-white shadow text-gray-900" : "text-gray-500 hover:text-gray-700"}`}
+            >
+              <LayoutGrid className="h-4 w-4" />
+            </button>
+            <button
+              onClick={() => setView("table")}
+              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${view === "table" ? "bg-white shadow text-gray-900" : "text-gray-500 hover:text-gray-700"}`}
+            >
+              <TableIcon className="h-4 w-4" />
+            </button>
+          </div>
           {canManage && (
             <Button asChild style={{ background: BRAND }} className="text-white hover:opacity-90">
               <Link to="/portal/advisor/contracting/pipeline">
@@ -459,11 +603,6 @@ function ManagerDashboard({ canManage, portalUserId, isManagerOnly }: { canManag
               </Link>
             </Button>
           )}
-          <Button asChild variant="outline">
-            <Link to="/portal/advisor/contracting/pipeline">
-              <BarChart3 className="h-4 w-4 mr-2" /> View Pipeline
-            </Link>
-          </Button>
         </div>
       </div>
 
@@ -488,59 +627,169 @@ function ManagerDashboard({ canManage, portalUserId, isManagerOnly }: { canManag
         })}
       </div>
 
-      {/* Pipeline Breakdown */}
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.08)] p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Pipeline Breakdown</h2>
-        <div className="space-y-3">
-          {PIPELINE_STAGES.map((stage) => {
-            const count = stats.stageCounts[stage.key] || 0;
-            const pct = maxStageCount > 0 ? (count / maxStageCount) * 100 : 0;
-            return (
-              <div key={stage.key} className="flex items-center gap-4">
-                <span className="text-sm text-gray-600 w-32 shrink-0">{stage.label}</span>
-                <div className="flex-1 h-7 bg-gray-100 rounded-full overflow-hidden">
-                  <div
-                    className="h-full rounded-full transition-all duration-500 flex items-center justify-end pr-3"
-                    style={{ width: `${Math.max(pct, 8)}%`, background: stage.color }}
-                  >
-                    <span className="text-xs font-bold text-white">{count}</span>
+      {/* Pipeline Board View */}
+      {view === "board" && (
+        <div className="overflow-x-auto pb-4">
+          <div className="flex gap-4" style={{ minWidth: PIPELINE_STAGES.length * 240 }}>
+            {PIPELINE_STAGES.map(stage => {
+              const stageAgents = agents.filter(a => a.pipeline_stage === stage.key);
+              return (
+                <div key={stage.key} className="w-60 flex-shrink-0">
+                  <div className="flex items-center gap-2 mb-3 px-1">
+                    <span className="h-3 w-3 rounded-full" style={{ background: stage.color }} />
+                    <span className="text-sm font-semibold text-gray-700">{stage.label}</span>
+                    <span className="ml-auto text-xs font-bold rounded-full px-2 py-0.5 text-white" style={{ background: stage.color }}>
+                      {stageAgents.length}
+                    </span>
+                  </div>
+                  <div className="space-y-2">
+                    {stageAgents.map(agent => {
+                      const days = differenceInDays(now, new Date(agent.updated_at));
+                      return (
+                        <div key={agent.id} className="bg-white rounded-xl border border-gray-200 p-3 shadow-sm hover:shadow-md transition-shadow">
+                          <div className="flex items-center gap-2 mb-2">
+                            <div className="h-8 w-8 rounded-full text-white text-xs font-bold flex items-center justify-center" style={{ background: BRAND }}>
+                              {agent.first_name?.[0]}{agent.last_name?.[0]}
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm font-medium text-gray-900 truncate">{agent.first_name} {agent.last_name}</p>
+                              <p className="text-xs text-gray-400">{days}d in stage</p>
+                            </div>
+                          </div>
+                          <Progress value={agent.progress_pct || 0} className="h-1.5" />
+                          <div className="flex items-center justify-between mt-2">
+                            <span className="text-xs text-gray-400">{agent.progress_pct || 0}%</span>
+                            {days > 7 && agent.status === "in_progress" && (
+                              <span className="text-xs text-red-500 font-medium">Stuck</span>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                    {stageAgents.length === 0 && (
+                      <div className="text-center py-6 text-gray-300 text-xs">No agents</div>
+                    )}
                   </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* Recent Activity */}
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.08)] p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-gray-900">Recent Activity</h2>
-          <Activity className="h-5 w-5 text-gray-400" />
+      {/* Spreadsheet Table View */}
+      {view === "table" && (
+        <div className="bg-white rounded-2xl border border-gray-200 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.08)] overflow-hidden">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-gray-50">
+                <TableHead className="font-semibold text-gray-700">Agent</TableHead>
+                <TableHead className="font-semibold text-gray-700">Manager</TableHead>
+                <TableHead className="font-semibold text-gray-700">Stage</TableHead>
+                <TableHead className="font-semibold text-gray-700">Progress</TableHead>
+                <TableHead className="font-semibold text-gray-700">Bundle</TableHead>
+                <TableHead className="font-semibold text-gray-700">Carriers</TableHead>
+                <TableHead className="font-semibold text-gray-700">Status</TableHead>
+                <TableHead className="font-semibold text-gray-700">Last Activity</TableHead>
+                <TableHead className="font-semibold text-gray-700">Days Stuck</TableHead>
+                {canManage && <TableHead className="font-semibold text-gray-700">Action</TableHead>}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {agents.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={canManage ? 10 : 9} className="text-center py-12 text-gray-400">
+                    No agents found
+                  </TableCell>
+                </TableRow>
+              ) : (
+                agents.map(agent => {
+                  const stageObj = PIPELINE_STAGES.find(s => s.key === agent.pipeline_stage) || PIPELINE_STAGES[0];
+                  const days = differenceInDays(now, new Date(agent.updated_at));
+                  const isStuck = agent.status === "in_progress" && days > 7;
+                  const lastAct = lastActivityMap.get(agent.id);
+                  const bundles = bundleMap.get(agent.id) || [];
+                  const carriers = carrierCounts.get(agent.id) || 0;
+                  const nextStep = getNextStep(agent);
+                  const stageComplete = isStageFullyComplete(agent);
+
+                  return (
+                    <TableRow key={agent.id} className={isStuck ? "bg-red-50/40" : ""}>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <div className="h-7 w-7 rounded-full text-white text-[10px] font-bold flex items-center justify-center shrink-0" style={{ background: BRAND }}>
+                            {agent.first_name?.[0]}{agent.last_name?.[0]}
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-gray-900">{agent.first_name} {agent.last_name}</p>
+                            <p className="text-xs text-gray-400">{agent.email}</p>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-sm text-gray-600">
+                        {agent.manager_id ? managerNames.get(agent.manager_id) || "—" : "—"}
+                      </TableCell>
+                      <TableCell>
+                        <span className="text-xs font-medium px-2 py-0.5 rounded-full text-white whitespace-nowrap" style={{ background: stageObj.color }}>
+                          {stageObj.label}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2 min-w-[100px]">
+                          <Progress value={agent.progress_pct || 0} className="h-2 flex-1" />
+                          <span className="text-xs text-gray-500 whitespace-nowrap">{agent.progress_pct || 0}%</span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-sm text-gray-600">
+                        {bundles.length > 0 ? bundles.join(", ") : "—"}
+                      </TableCell>
+                      <TableCell className="text-sm text-gray-600 text-center">{carriers || "—"}</TableCell>
+                      <TableCell>
+                        <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+                          agent.status === "completed" ? "bg-green-100 text-green-700" :
+                          agent.status === "on_hold" ? "bg-yellow-100 text-yellow-700" :
+                          "bg-blue-100 text-blue-700"
+                        }`}>
+                          {agent.status === "in_progress" ? "In Progress" : agent.status === "completed" ? "Completed" : agent.status === "on_hold" ? "On Hold" : agent.status}
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-xs text-gray-500 whitespace-nowrap">
+                        {lastAct ? format(new Date(lastAct), "MMM d, h:mm a") : "—"}
+                      </TableCell>
+                      <TableCell>
+                        {agent.status === "in_progress" ? (
+                          <span className={`text-sm font-bold ${isStuck ? "text-red-600" : "text-gray-500"}`}>
+                            {days}d
+                          </span>
+                        ) : "—"}
+                      </TableCell>
+                      {canManage && (
+                        <TableCell>
+                          {nextStep && !stageComplete ? (
+                            <div className="flex items-center gap-2">
+                              <Checkbox
+                                disabled={completingStep === agent.id}
+                                onCheckedChange={() => handleStepComplete(agent.id)}
+                              />
+                              <span className="text-xs text-gray-500 max-w-[120px] truncate" title={nextStep.title}>
+                                {nextStep.title}
+                              </span>
+                            </div>
+                          ) : stageComplete ? (
+                            <span className="text-xs text-green-600 font-medium">✓ Stage done</span>
+                          ) : (
+                            <span className="text-xs text-gray-300">—</span>
+                          )}
+                        </TableCell>
+                      )}
+                    </TableRow>
+                  );
+                })
+              )}
+            </TableBody>
+          </Table>
         </div>
-        {activities.length === 0 ? (
-          <div className="text-center py-8 text-gray-400">
-            <AlertTriangle className="h-8 w-8 mx-auto mb-2 opacity-50" />
-            <p className="text-sm">No activity yet</p>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {activities.map((log) => (
-              <div key={log.id} className="flex items-start gap-3 py-2 border-b border-gray-50 last:border-0">
-                <div className="h-8 w-8 rounded-full flex items-center justify-center shrink-0" style={{ background: `${BRAND}15` }}>
-                  <Activity className="h-4 w-4" style={{ color: BRAND }} />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm text-gray-700">{log.description}</p>
-                  <p className="text-xs text-gray-400 mt-0.5">
-                    {format(new Date(log.created_at), "MMM d, yyyy 'at' h:mm a")}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+      )}
     </div>
   );
 }
