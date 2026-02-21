@@ -1,97 +1,82 @@
 
 
-# RLS Security Hardening for Contracting Tables
+# Contracting Section Navigation Update
 
-## Current State Assessment
+## Overview
+Restructure the contracting sidebar navigation to show seven clear items: Dashboard, Pipeline, Agents, Messages, Files, Analytics, and Settings. This requires updating the PortalLayout nav, creating two new pages (Agents and Settings), and adding their routes.
 
-After reviewing all 10 contracting tables and their existing RLS policies, I found several issues:
+## Current State
+The sidebar "Contracting" group currently has:
+- Dashboard (`/portal/advisor/contracting`)
+- Pipeline (`/portal/advisor/contracting/pipeline`)
+- Messages (`/portal/advisor/contracting/messages`)
+- Documents (`/portal/advisor/contracting/documents`)
+- Admin (admin-only, `/portal/advisor/contracting/admin`)
 
-### Issues Found
-
-1. **`contracting_reminders`** -- RLS is enabled but has ZERO policies. This table is completely locked out from the client, meaning the analytics dashboard and cron job cannot read/write reminders properly from authenticated users.
-
-2. **Incorrect manager check on 4 tables** -- The `manager_id` column in `contracting_agents` references `portal_users.id`, but several policies compare it against `get_contracting_agent_id(auth.uid())` (which returns a `contracting_agents.id`). This means manager-scoped access is currently broken on:
-   - `contracting_activity_logs` (SELECT)
-   - `contracting_agent_steps` (SELECT)
-   - `contracting_documents` (SELECT)
-   - `contracting_messages` (SELECT)
-
-   These should use `get_portal_user_id(auth.uid())` instead.
-
-3. **Missing manager access on some operations**:
-   - `contracting_agent_steps` UPDATE -- managers cannot toggle steps for their agents
-   - `contracting_documents` INSERT -- managers cannot upload docs for their agents
-   - `contracting_carrier_selections` manager check also uses wrong function
-
-4. **`contracting_carrier_selections`** -- Manager subquery compares `manager_id` to `get_contracting_agent_id` (wrong function).
-
-### What Already Works Well
-
-- All 10 tables have RLS enabled
-- Agent self-access patterns are correct (using `get_contracting_agent_id`)
-- Admin/contracting full-access patterns are consistent
-- `portal_admin` fallback is present on all policies
-- `contracting_steps` and `contracting_bundles` are correctly open for read (config data)
+Analytics exists as a route but is not in the sidebar nav.
 
 ## Changes
 
-### Database Migration (single SQL migration)
+### 1. Update PortalLayout sidebar nav
+In `src/components/portal/PortalLayout.tsx`, replace the Contracting group items with:
 
-**1. Fix manager checks on `contracting_activity_logs`**
-- DROP and recreate SELECT policy to use `get_portal_user_id(auth.uid())` in the manager subquery
+| Nav Item | Icon | Route |
+|---|---|---|
+| Dashboard | Briefcase | `/portal/advisor/contracting` |
+| Pipeline | GitBranch | `/portal/advisor/contracting/pipeline` |
+| Agents | Users | `/portal/advisor/contracting/agents` |
+| Messages | MessageSquare | `/portal/advisor/contracting/messages` |
+| Files | FolderOpen | `/portal/advisor/contracting/documents` |
+| Analytics | TrendingUp | `/portal/advisor/contracting/analytics` |
+| Settings | Settings | `/portal/advisor/contracting/settings` |
 
-**2. Fix manager checks on `contracting_agent_steps`**
-- DROP and recreate SELECT policy with correct manager function
-- DROP and recreate UPDATE policy to include manager access
+Remove the conditional admin-only "Admin" entry -- the Admin functionality will be accessible from the Settings page instead.
 
-**3. Fix manager checks on `contracting_documents`**
-- DROP and recreate SELECT policy with correct manager function
-- DROP and recreate INSERT policy to include manager uploads
+### 2. Create Agents page
+**New file:** `src/pages/portal/advisor/contracting/ContractingAgents.tsx`
 
-**4. Fix manager checks on `contracting_messages`**
-- DROP and recreate SELECT policy with correct manager function
+A dedicated agent directory/list page showing all contracting agents in a searchable, filterable table. Features:
+- Search by name or email
+- Filter by status (in_progress, completed, on_hold, rejected)
+- Filter by pipeline stage
+- Table columns: Name, Email, Stage, Status, Manager, Days in Pipeline, Progress
+- Each row links to the agent detail page (`/portal/advisor/contracting/agent/:id`)
+- Access controlled by `useContractingAuth` -- managers see only their assigned agents, admins/contracting see all
 
-**5. Fix manager checks on `contracting_carrier_selections`**
-- DROP and recreate SELECT policy with correct manager subquery
+### 3. Create Settings page
+**New file:** `src/pages/portal/advisor/contracting/ContractingSettings.tsx`
 
-**6. Add policies to `contracting_reminders`**
-- SELECT: agent sees own, manager sees assigned agents', admin/contracting sees all
-- INSERT: admin/contracting/portal_admin only (system-managed)
-- UPDATE: admin/contracting/portal_admin only (system-managed)
-- DELETE: admin/contracting/portal_admin only
+A settings hub for contracting configuration, accessible to admin/contracting roles. Sections:
+- **Pipeline Stages** -- read-only reference of the pipeline stage order
+- **Bundle Management** -- moved from the Admin page (create/edit bundles)
+- **Admin Panel link** -- button linking to the existing Admin page for full agent management
+- Access controlled to `canManage` users only
 
-### No Frontend Changes Needed
-
-All frontend queries already go through Supabase client with the user's auth token, so RLS policies are the enforcement layer. The queries themselves don't need modification -- fixing the policies will automatically scope the data correctly.
+### 4. Add routes in App.tsx
+Add two new lazy-loaded routes:
+- `contracting/agents` pointing to `ContractingAgents`
+- `contracting/settings` pointing to `ContractingSettings`
 
 ## Technical Details
 
-The corrected manager pattern for all policies will be:
+### Files Modified
+| File | Change |
+|---|---|
+| `src/components/portal/PortalLayout.tsx` | Update Contracting nav group items to the 7-item list; remove conditional admin entry |
+| `src/App.tsx` | Add lazy imports and routes for `ContractingAgents` and `ContractingSettings` |
 
-```sql
--- Correct: manager_id references portal_users.id
-EXISTS (
-  SELECT 1 FROM contracting_agents ca
-  WHERE ca.id = <table>.agent_id
-  AND ca.manager_id = get_portal_user_id(auth.uid())
-)
+### Files Created
+| File | Purpose |
+|---|---|
+| `src/pages/portal/advisor/contracting/ContractingAgents.tsx` | Agent directory with search, filters, and table |
+| `src/pages/portal/advisor/contracting/ContractingSettings.tsx` | Settings hub with bundle management and admin link |
 
--- Wrong (current): get_contracting_agent_id returns contracting_agents.id
-ca.manager_id = get_contracting_agent_id(auth.uid())
-```
+### Data Sources
+- **Agents page**: queries `contracting_agents` (with optional join to `portal_users` for manager name) and `contracting_agent_steps` for progress calculation
+- **Settings page**: queries `contracting_bundles` for bundle management (reuses logic from ContractingAdmin)
 
-### Access Matrix After Fix
-
-| Table | Agent (own) | Manager (assigned) | Contracting | Admin |
-|---|---|---|---|---|
-| contracting_agents | SELECT | SELECT | ALL | ALL |
-| contracting_agent_steps | SELECT | SELECT, UPDATE | ALL | ALL |
-| contracting_activity_logs | SELECT, INSERT | SELECT | ALL | ALL |
-| contracting_documents | SELECT, INSERT | SELECT, INSERT | ALL | ALL |
-| contracting_messages | SELECT, INSERT | SELECT | ALL | ALL |
-| contracting_carrier_selections | SELECT | SELECT | ALL | ALL |
-| contracting_notifications | SELECT, UPDATE, INSERT | -- | ALL | ALL |
-| contracting_reminders | SELECT | SELECT | ALL | ALL |
-| contracting_steps | SELECT | SELECT | ALL | ALL |
-| contracting_bundles | SELECT | SELECT | ALL | ALL |
+### Access Control
+Both new pages use the existing `useContractingAuth` hook:
+- Agents: visible to all contracting roles (agent sees only self, manager sees assigned, admin/contracting sees all) -- enforced by RLS
+- Settings: restricted to `canManage === true` users
 
