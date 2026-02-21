@@ -1,160 +1,79 @@
 
-# Contracting & Onboarding Platform -- Expansion (Phase 2)
+
+# Fix the Post-Application Journey + Add Apply Link
 
 ## Summary
+Close the gap between form submission and dashboard access: send the recruit a welcome email with a password-set link, then redirect them to login. Also add the `/apply` link to both footers.
 
-Expand the existing contracting system with 3 new database tables, 4 new UI pages, and enhanced role-based access. The system already has 7 core tables, RLS policies, 3 pages (Dashboard, Pipeline, Agent Detail), and role detection via `useContractingAuth`. This phase adds the missing entities (bundles, carrier selections, notifications) and the remaining UI pages (Messages, Documents, Admin).
+## Changes
 
----
+### 1. Update the Edge Function (`contracting-intake`)
+After creating the auth user and agent record:
+- Use Resend (already configured as `RESEND_API_KEY`) to send a welcome email containing a magic link / password reset URL
+- Generate the password reset link via `adminClient.auth.admin.generateLink({ type: 'recovery', email })` -- this gives a one-time link the recruit can use to set their own password
+- The email includes: welcome message, their name, and a "Set Your Password" button linking to the recovery URL
+- On the success screen, update the copy to say "Check your email to set your password and access your dashboard"
 
-## What Already Exists (No Changes Needed)
+### 2. Update Success Screen (`ContractingIntake.tsx`)
+After submission, instead of a dead-end "we'll reach out" message:
+- Show "Check your email to set your password"
+- Add a "Go to Login" button linking to `/portal/login`
+- This makes the journey clear: apply -> check email -> set password -> login -> see agent dashboard
 
-- **Tables**: `contracting_agents`, `contracting_steps`, `contracting_agent_steps`, `contracting_documents`, `contracting_messages`, `contracting_activity_logs`, `contracting_reminders`
-- **Carriers table**: `carriers` (shared with portal) -- already has carrier_name, products_offered, commission_structure, contracting_requirements, etc.
-- **Auth/Roles**: `useContractingAuth` hook with `get_contracting_role()` and `get_contracting_agent_id()` security definer functions
-- **RLS**: Full role-based policies (agent sees own, manager sees assigned, admin/contracting sees all)
-- **Storage**: `contracting-documents` private bucket
-- **Pages**: Dashboard (role-split), Pipeline (Kanban + table), Agent Detail (checklist + uploads)
-- **Routing**: Already wired under `/portal/advisor/contracting/*`
+### 3. Add `/apply` Link to Homepage Footer
+In `src/components/home/Footer.tsx`:
+- Add "Become an Agent" link under the "Company" section (alongside About Us, Philosophy, Team, Careers)
+- Links to `/apply`
 
----
-
-## New Database Tables (3)
-
-### 1. `contracting_bundles`
-Groups of carriers/products offered as a package to agents during onboarding.
-
-| Column | Type | Notes |
-|---|---|---|
-| id | uuid PK | |
-| name | text | e.g. "Standard IUL Bundle" |
-| description | text nullable | |
-| carrier_ids | uuid[] | Array of carrier IDs from `carriers` table |
-| product_types | text[] | e.g. ['IUL', 'Whole Life'] |
-| is_active | boolean default true | |
-| created_at / updated_at | timestamptz | |
-
-### 2. `contracting_carrier_selections`
-Tracks which carriers each agent is being contracted with.
-
-| Column | Type | Notes |
-|---|---|---|
-| id | uuid PK | |
-| agent_id | uuid FK | contracting_agents |
-| carrier_id | uuid FK | carriers |
-| bundle_id | uuid FK nullable | contracting_bundles |
-| status | text | 'pending', 'submitted', 'approved', 'rejected' |
-| submitted_at | timestamptz nullable | |
-| approved_at | timestamptz nullable | |
-| notes | text nullable | |
-| created_at | timestamptz | |
-
-### 3. `contracting_notifications`
-In-app notifications for contracting events.
-
-| Column | Type | Notes |
-|---|---|---|
-| id | uuid PK | |
-| agent_id | uuid FK | contracting_agents (recipient) |
-| title | text | |
-| message | text | |
-| notification_type | text | 'step_completed', 'stage_changed', 'document_uploaded', 'message', 'reminder' |
-| link | text nullable | In-app link |
-| read | boolean default false | |
-| read_at | timestamptz nullable | |
-| created_at | timestamptz | |
-
-### RLS for New Tables
-
-All three tables follow the same pattern as existing contracting tables:
-- Agents: see own rows only (via `get_contracting_agent_id`)
-- Managers: see assigned agents
-- Admin/Contracting: full access
-- `contracting_bundles`: read access for all authenticated users, write access for admin/contracting only
-
----
-
-## New UI Pages (4)
-
-### 1. Contracting Messages Page (`ContractingMessages.tsx`)
-Route: `/portal/advisor/contracting/messages`
-
-- Thread list on left, message panel on right
-- Threads grouped by agent (thread_id = agent_id)
-- Real-time updates via Supabase Realtime (already enabled on `contracting_messages`)
-- Agents see only their own thread; managers/admins see all threads
-- Send new messages with sender auto-detected from `useContractingAuth`
-
-### 2. Contracting Documents Page (`ContractingDocuments.tsx`)
-Route: `/portal/advisor/contracting/documents`
-
-- Filterable list of all documents from `contracting_documents`
-- Filter by agent, step, date range
-- Upload new documents with agent/step assignment
-- Download via signed URLs (private bucket)
-- Agents see only their own documents; managers/admins see scoped documents
-
-### 3. Contracting Admin Page (`ContractingAdmin.tsx`)
-Route: `/portal/advisor/contracting/admin`
-
-- Spreadsheet-style table of all agents with inline editing
-- Columns: Name, Email, Stage, Status, Progress %, Manager, Carrier Selections, Days Active
-- Bulk actions: assign manager, change status, assign bundle
-- Bundle management section (create/edit bundles)
-- Carrier selection management per agent
-- Export to CSV
-- Only accessible by admin/contracting roles
-
-### 4. Carrier Selections Page (embedded in Agent Detail)
-- Enhance existing `ContractingAgentDetail.tsx` with a "Carrier Appointments" section
-- Shows which carriers the agent is being contracted with
-- Admin/contracting can add carriers from the existing `carriers` table or assign a bundle
-- Status tracking per carrier (pending, submitted, approved, rejected)
-
----
-
-## Navigation Updates
-
-Update sidebar in `PortalLayout.tsx` Contracting group:
-
-```
-Contracting
-  - Dashboard    /portal/advisor/contracting
-  - Pipeline     /portal/advisor/contracting/pipeline
-  - Messages     /portal/advisor/contracting/messages
-  - Documents    /portal/advisor/contracting/documents
-  - Admin        /portal/advisor/contracting/admin  (admin/contracting only)
-```
+### 4. Add `/apply` Link to Landing Footer
+In `src/components/landing/Footer.tsx`:
+- Add "Become an Agent" link in the footer links row
 
 ---
 
 ## Technical Details
 
-### Files to Create
-| File | Purpose |
-|---|---|
-| `src/pages/portal/advisor/contracting/ContractingMessages.tsx` | Messages page with real-time chat |
-| `src/pages/portal/advisor/contracting/ContractingDocuments.tsx` | Document browser with filters |
-| `src/pages/portal/advisor/contracting/ContractingAdmin.tsx` | Admin spreadsheet + bundle management |
+### Edge Function Changes (`supabase/functions/contracting-intake/index.ts`)
 
-### Files to Modify
-| File | Change |
-|---|---|
-| Database migration | 3 new tables + RLS policies |
-| `src/components/portal/PortalLayout.tsx` | Add Messages, Documents, Admin nav items |
-| `src/App.tsx` | Add 3 new routes |
-| `src/pages/portal/advisor/contracting/ContractingAgentDetail.tsx` | Add carrier selections section |
-| `src/hooks/useContractingAuth.ts` | No changes needed -- already complete |
+After the agent record is created and activity is logged:
 
-### Notification Triggers
-- Activity log entries will also create `contracting_notifications` via a database trigger when:
-  - A step is completed
-  - Pipeline stage changes
-  - A document is uploaded
-  - A new message is sent
+```text
+1. Generate recovery link:
+   adminClient.auth.admin.generateLink({ type: 'recovery', email, options: { redirectTo: '<site_url>/portal/login' } })
 
-### Design System
-Follows existing portal patterns:
-- White cards with `rounded-2xl border border-gray-200 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.08)]`
-- Primary #1A4D3E, accent #EBD975
-- 3D hover lift effect on interactive cards
+2. Send email via Resend:
+   POST https://api.resend.com/emails
+   {
+     from: "Everence Wealth <onboarding@...>",
+     to: email,
+     subject: "Welcome to Everence Wealth - Set Your Password",
+     html: styled email with "Set Your Password" button pointing to recovery link
+   }
+
+3. Return { success: true, agent_id, email_sent: true }
+```
+
+### Success Screen Changes (`ContractingIntake.tsx`)
+
+Replace the current "we'll review" message with:
+- Heading: "Application Submitted!"
+- Body: "We've sent a welcome email to [email]. Click the link in the email to set your password and access your onboarding dashboard."
+- Button: "Go to Login" -> navigates to `/portal/login`
+
+### Footer Changes
+
+**`src/components/home/Footer.tsx`** -- Add to Company links:
+```text
+{ label: 'Become an Agent', href: '/apply' }
+```
+
+**`src/components/landing/Footer.tsx`** -- Add link in bottom row:
+```text
+<a href="/apply">Become an Agent</a>
+```
+
+### No Database Changes Needed
+The existing schema already supports this flow. The auth user + contracting_agents record are created; we just need to give the user a way to set their password and log in.
+
+### Email Domain Consideration
+The Resend email "from" address will need a verified domain. We should check what email domain is configured and use it. If none is configured, we'll use a fallback or prompt for setup.
