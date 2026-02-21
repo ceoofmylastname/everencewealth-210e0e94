@@ -386,7 +386,7 @@ export default function ContractingIntake() {
     <div className="min-h-screen bg-[hsl(var(--background))] flex flex-col">
       {/* Header */}
       <header className="flex items-center justify-between px-6 py-4 border-b border-border">
-        <div className="flex items-center gap-3">
+        <a href="/" className="flex items-center gap-3 no-underline">
           <img
             src="https://storage.googleapis.com/msgsndr/TLhrYb7SRrWrly615tCI/media/6993ada8dcdadb155342f28e.png"
             alt="Everence Wealth"
@@ -395,7 +395,7 @@ export default function ContractingIntake() {
           <span className="text-lg font-bold text-foreground" style={{ fontFamily: "Georgia, serif" }}>
             Agent Application
           </span>
-        </div>
+        </a>
         <span className="text-sm text-muted-foreground">
           {step + 1} of {TOTAL_STEPS}
         </span>
