@@ -170,6 +170,7 @@ const ContractingAgentDetail = lazy(() => import("./pages/portal/advisor/contrac
 const ContractingMessages = lazy(() => import("./pages/portal/advisor/contracting/ContractingMessages"));
 const ContractingDocuments = lazy(() => import("./pages/portal/advisor/contracting/ContractingDocuments"));
 const ContractingAdmin = lazy(() => import("./pages/portal/advisor/contracting/ContractingAdmin"));
+const ContractingAnalytics = lazy(() => import("./pages/portal/advisor/contracting/ContractingAnalytics"));
 const ClientDashboard = lazy(() => import("./pages/portal/client/ClientDashboard"));
 const ClientPolicies = lazy(() => import("./pages/portal/client/ClientPolicies"));
 const ClientDocuments = lazy(() => import("./pages/portal/client/ClientDocuments"));
@@ -395,6 +396,7 @@ const App = () => (
                   <Route path="contracting/messages" element={<ContractingMessages />} />
                   <Route path="contracting/documents" element={<ContractingDocuments />} />
                   <Route path="contracting/admin" element={<ContractingAdmin />} />
+                  <Route path="contracting/analytics" element={<ContractingAnalytics />} />
                 </Route>
               </Route>
               <Route path="/portal/client" element={<ClientRoute />}>
