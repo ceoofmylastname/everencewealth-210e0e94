@@ -23,7 +23,8 @@ interface Doc {
 }
 
 export default function ContractingDocuments() {
-  const { contractingAgent, canViewAll, canManage, loading: authLoading } = useContractingAuth();
+  const { contractingAgent, canViewAll, canManage, contractingRole, portalUser, loading: authLoading } = useContractingAuth();
+  const isManagerOnly = contractingRole === "manager";
   const [docs, setDocs] = useState<Doc[]>([]);
   const [agents, setAgents] = useState<{ id: string; name: string }[]>([]);
   const [steps, setSteps] = useState<{ id: string; title: string }[]>([]);
@@ -35,15 +36,20 @@ export default function ContractingDocuments() {
 
   useEffect(() => {
     if (!authLoading) fetchData();
-  }, [authLoading]);
+  }, [authLoading, portalUser?.id]);
 
   async function fetchData() {
     try {
+      let agentsQuery = canViewAll
+        ? supabase.from("contracting_agents").select("id, first_name, last_name")
+        : Promise.resolve({ data: [] as any[] });
+      if (isManagerOnly && portalUser?.id && canViewAll) {
+        agentsQuery = supabase.from("contracting_agents").select("id, first_name, last_name").eq("manager_id", portalUser.id);
+      }
+
       const [docsRes, agentsRes, stepsRes] = await Promise.all([
         supabase.from("contracting_documents").select("*").order("created_at", { ascending: false }),
-        canViewAll
-          ? supabase.from("contracting_agents").select("id, first_name, last_name")
-          : Promise.resolve({ data: [] }),
+        agentsQuery,
         supabase.from("contracting_steps").select("id, title"),
       ]);
 

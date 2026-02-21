@@ -254,18 +254,22 @@ function AgentDashboard({ agentId, firstName, lastName, email, pipelineStage, st
 
 // ─── Admin / Manager View ────────────────────────────────────────────
 
-function ManagerDashboard({ canManage }: { canManage: boolean }) {
+function ManagerDashboard({ canManage, portalUserId, isManagerOnly }: { canManage: boolean; portalUserId: string | null; isManagerOnly: boolean }) {
   const [stats, setStats] = useState<Stats>({ total: 0, inProgress: 0, completed: 0, onHold: 0, stageCounts: {} });
   const [activities, setActivities] = useState<ActivityLog[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [portalUserId, isManagerOnly]);
 
   async function fetchData() {
     try {
-      const { data: agents } = await supabase.from("contracting_agents").select("id, status, pipeline_stage");
+      let agentsQuery = supabase.from("contracting_agents").select("id, status, pipeline_stage");
+      if (isManagerOnly && portalUserId) {
+        agentsQuery = agentsQuery.eq("manager_id", portalUserId);
+      }
+      const { data: agents } = await agentsQuery;
       if (agents) {
         const stageCounts: Record<string, number> = {};
         PIPELINE_STAGES.forEach(s => stageCounts[s.key] = 0);
@@ -416,7 +420,7 @@ function ManagerDashboard({ canManage }: { canManage: boolean }) {
 // ─── Main Router ─────────────────────────────────────────────────────
 
 export default function ContractingDashboard() {
-  const { contractingAgent, contractingRole, canManage, loading } = useContractingAuth();
+  const { contractingAgent, contractingRole, canManage, portalUser, loading } = useContractingAuth();
 
   if (loading) {
     return (
@@ -442,5 +446,6 @@ export default function ContractingDashboard() {
   }
 
   // Manager / Contracting / Admin → overview dashboard
-  return <ManagerDashboard canManage={canManage} />;
+  const isManagerOnly = contractingRole === "manager";
+  return <ManagerDashboard canManage={canManage} portalUserId={portalUser?.id || null} isManagerOnly={isManagerOnly} />;
 }
