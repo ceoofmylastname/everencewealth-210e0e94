@@ -144,6 +144,20 @@ Deno.serve(async (req) => {
       description: `New application submitted by ${first_name} ${last_name}`,
     });
 
+    // Notify the selected manager
+    if (manager_id) {
+      const { error: notifError } = await adminClient.from("portal_notifications").insert({
+        user_id: manager_id,
+        title: "New Agent Assigned to You",
+        message: `${first_name} ${last_name} has submitted an application and selected you as their manager.`,
+        notification_type: "contracting",
+        link: "/portal/advisor/contracting/dashboard",
+      });
+      if (notifError) {
+        console.error("Failed to notify manager:", notifError);
+      }
+    }
+
     // Send welcome confirmation email (no recovery link needed since user set their password)
     let emailSent = false;
     try {
