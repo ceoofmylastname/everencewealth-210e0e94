@@ -1,74 +1,52 @@
 
 
-# Checkbox-Triggered Notifications and Emails
+# SureLC Screenshot Upload Step for Agents
 
-## Overview
-When an admin/manager checks a step in the manager dashboard, the system will trigger stage-specific notifications and emails based on which stage the step belongs to.
+## What This Does
+Adds the ability for agents to upload a SureLC screenshot directly from their personal dashboard. When the file is uploaded, the step is automatically marked complete, the file is stored securely, and activity is logged.
 
-## Notification Rules
-
-| Stage Checked | Action |
-|---|---|
-| `contracting_submitted` | Create in-app notification for contracting team members |
-| `contracting_approved` | Send congratulations email to agent + in-app notification |
-| `bundle_selected` | Create in-app notification for contracting team members |
-| Any step marked "needs info" | Send email to agent requesting info (future -- currently steps are binary complete/incomplete, so this will be handled as a manual action via chat or a new "needs info" button) |
+## Current State
+- The `contracting_steps` table already has a SureLC step (`surelc_setup` stage, `requires_upload: true`).
+- The agent dashboard checklist currently shows steps as read-only icons -- agents cannot upload files.
+- The `contracting-documents` storage bucket already exists (private).
 
 ## Changes
 
-### 1. New Edge Function: `notify-contracting-step`
+### 1. Update AgentDashboard Checklist (UI)
+**File:** `src/pages/portal/advisor/contracting/ContractingDashboard.tsx`
 
-**File:** `supabase/functions/notify-contracting-step/index.ts`
+For steps where `requires_upload` is true (the SureLC step), show an upload button next to the step in the agent's current stage checklist. This allows agents to:
+- Click an upload icon to select an image/file
+- See a loading indicator while uploading
+- See the step automatically marked as completed after successful upload
 
-Accepts a POST with `{ agentId, stageName, stepTitle }` and performs the appropriate action:
+This requires:
+- Adding `requires_upload` to the `StepRow` interface
+- Including `requires_upload` in the steps query
+- Adding `Upload` icon import from lucide-react
+- Adding upload state (`uploading`) and a `handleStepUpload` function
+- Rendering the upload button for steps with `requires_upload: true` that are not yet completed
 
-- **`contracting_submitted`**: Query all agents with `contracting_role = 'contracting'` or `'admin'`, insert a `contracting_notifications` row for each with title "Contracting Submitted" and link to the agent's profile.
+### 2. Upload and Completion Logic
+When an agent uploads a file:
+1. **Store file** in `contracting-documents` bucket at path `{agentId}/surelc/{timestamp}_{filename}`
+2. **Insert record** into `contracting_documents` table with `agent_id`, `step_id`, `file_name`, `file_path`, `file_size`, `uploaded_by`
+3. **Mark step complete** by upserting into `contracting_agent_steps` with `status: 'completed'`, `completed_at: now()`, `completed_by: agentId`
+4. **Log activity** in `contracting_activity_logs` with description "SureLC profile completed"
+5. **Refresh data** to reflect the completed step and updated progress
 
-- **`contracting_approved`**: Send a congratulations email to the agent's email address via Resend (using the existing `RESEND_API_KEY` and the branded email wrapper pattern from `send-portal-invitation`). Also insert an in-app notification for the agent.
+The existing `auto_advance_pipeline_stage` trigger will automatically fire when the step is marked complete, advancing the agent to the next stage if all required steps are done.
 
-- **`bundle_selected`**: Same as `contracting_submitted` -- notify contracting team members via in-app notifications.
+### 3. Show Uploaded Documents
+After upload, show the uploaded file name beneath the step (matching the pattern used in `ContractingAgentDetail.tsx`). This requires fetching documents for the agent filtered by step_id.
 
-- **Needs Info**: Add a "Needs Info" button next to each agent row in the table. Clicking it opens a small dialog for a message, then calls the edge function with `stageName = 'needs_info'` and the custom message. The function sends an email to the agent with the message content.
+## Technical Details
 
-### 2. Update `handleStepComplete` in ManagerDashboard
+### File Modified
+- `src/pages/portal/advisor/contracting/ContractingDashboard.tsx`
 
-After successfully marking a step complete and logging activity, call the new edge function:
-
-```
-await supabase.functions.invoke("notify-contracting-step", {
-  body: { agentId, stageName: agent.pipeline_stage, stepTitle: nextStep.title }
-});
-```
-
-This is fire-and-forget -- notification failures won't block the step completion.
-
-### 3. Add "Needs Info" Button to Table
-
-Add a small icon button (e.g., `MessageSquareWarning`) in each agent row. Clicking it opens a dialog with a textarea for the admin to type a message, then calls the edge function with `stageName: "needs_info"` and `message` in the body. The function sends an email to the agent's address.
-
-### 4. Edge Function Details
-
-The function uses:
-- `RESEND_API_KEY` (already configured) for sending emails
-- `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` for inserting notifications
-- The branded email wrapper from `send-portal-invitation` for consistent styling
-- Sender: `onboarding@everencewealth.com`
-
-Email templates:
-- **Congratulations**: "Congratulations! Your contracting has been approved. You're now ready to start writing business."
-- **Needs Info**: "Your contracting team needs additional information: [message]. Please log in to your dashboard to respond."
-
-### 5. No Database Changes Required
-
-The `contracting_notifications` table already has all needed columns (`agent_id`, `title`, `message`, `notification_type`, `link`). The `contracting_agents` table has `email` for sending emails. No schema changes needed.
-
-## Technical Summary
-
-| Item | Detail |
-|---|---|
-| New edge function | `supabase/functions/notify-contracting-step/index.ts` |
-| Modified file | `src/pages/portal/advisor/contracting/ContractingDashboard.tsx` |
-| New UI element | "Needs Info" icon button + dialog in table rows |
-| Existing secrets used | `RESEND_API_KEY`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` |
-| Database changes | None |
-
+### No Database or Schema Changes Needed
+- The `contracting_steps` row already exists with `requires_upload: true`
+- The `contracting-documents` bucket exists
+- The `contracting_documents`, `contracting_agent_steps`, and `contracting_activity_logs` tables all exist
+- The `auto_advance_pipeline_stage` trigger handles stage progression automatically
