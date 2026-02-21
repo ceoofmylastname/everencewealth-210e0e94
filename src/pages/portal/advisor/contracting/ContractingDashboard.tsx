@@ -1,13 +1,14 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useContractingAuth } from "@/hooks/useContractingAuth";
 import {
   Users, Clock, CheckCircle2, PauseCircle, AlertTriangle,
   ArrowRight, Plus, BarChart3, Activity, User, Mail, Phone, Calendar,
-  CheckCircle, Circle, ChevronDown, ChevronRight,
+  CheckCircle, Circle, ChevronDown, ChevronRight, MessageSquare, Send,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { format } from "date-fns";
 import { Progress } from "@/components/ui/progress";
 
@@ -76,6 +77,13 @@ function AgentDashboard({ agentId, firstName, lastName, email, pipelineStage, st
   const [loading, setLoading] = useState(true);
   const [expandedStages, setExpandedStages] = useState<Record<string, boolean>>({});
 
+  // Chat state
+  const [chatMessages, setChatMessages] = useState<{ id: string; sender_id: string; content: string; created_at: string; sender_name?: string }[]>([]);
+  const [newMessage, setNewMessage] = useState("");
+  const [sending, setSending] = useState(false);
+  const [senderNames, setSenderNames] = useState<Map<string, string>>(new Map());
+  const chatBottomRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     async function load() {
       try {
@@ -95,6 +103,68 @@ function AgentDashboard({ agentId, firstName, lastName, email, pipelineStage, st
     }
     load();
   }, [agentId]);
+
+  // Fetch chat messages
+  useEffect(() => {
+    async function fetchChat() {
+      const { data } = await supabase
+        .from("contracting_messages")
+        .select("id, sender_id, content, created_at")
+        .eq("thread_id", agentId)
+        .order("created_at");
+      if (data) {
+        const ids = new Set(data.map(m => m.sender_id));
+        const { data: agents } = await supabase
+          .from("contracting_agents")
+          .select("id, first_name, last_name")
+          .in("id", Array.from(ids));
+        const nameMap = new Map<string, string>();
+        if (agents) agents.forEach(a => nameMap.set(a.id, `${a.first_name} ${a.last_name}`));
+        setSenderNames(nameMap);
+        setChatMessages(data.map(m => ({ ...m, sender_name: nameMap.get(m.sender_id) || "Unknown" })));
+      }
+    }
+    fetchChat();
+  }, [agentId]);
+
+  // Realtime chat subscription
+  useEffect(() => {
+    const channel = supabase
+      .channel("agent-dashboard-chat")
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "contracting_messages" }, (payload) => {
+        const msg = payload.new as any;
+        if (msg.thread_id === agentId) {
+          setChatMessages(prev => [...prev, {
+            id: msg.id, sender_id: msg.sender_id, content: msg.content,
+            created_at: msg.created_at, sender_name: senderNames.get(msg.sender_id) || "Unknown",
+          }]);
+        }
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [agentId, senderNames]);
+
+  // Auto-scroll chat
+  useEffect(() => {
+    chatBottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [chatMessages]);
+
+  async function handleSendMessage() {
+    if (!newMessage.trim() || sending) return;
+    setSending(true);
+    try {
+      await supabase.from("contracting_messages").insert({
+        thread_id: agentId,
+        sender_id: agentId,
+        content: newMessage.trim(),
+      });
+      setNewMessage("");
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setSending(false);
+    }
+  }
 
   const completedStepIds = new Set(agentSteps.filter(s => s.status === "completed").map(s => s.step_id));
   const totalSteps = steps.length;
@@ -248,6 +318,53 @@ function AgentDashboard({ agentId, firstName, lastName, email, pipelineStage, st
               ))}
             </div>
           )}
+        </div>
+      </div>
+
+      {/* Chat Panel */}
+      <div className="bg-white rounded-2xl border border-gray-200 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.08)] flex flex-col" style={{ height: 400 }}>
+        <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-2">
+          <MessageSquare className="h-5 w-5" style={{ color: BRAND }} />
+          <h2 className="text-lg font-semibold text-gray-900">Messages</h2>
+        </div>
+        <div className="flex-1 overflow-y-auto px-6 py-4 space-y-3">
+          {chatMessages.length === 0 ? (
+            <div className="flex items-center justify-center h-full text-gray-400">
+              <div className="text-center">
+                <MessageSquare className="h-8 w-8 mx-auto mb-2 opacity-40" />
+                <p className="text-sm">No messages yet. Say hello to your manager!</p>
+              </div>
+            </div>
+          ) : (
+            chatMessages.map(msg => {
+              const isOwn = msg.sender_id === agentId;
+              return (
+                <div key={msg.id} className={`flex ${isOwn ? "justify-end" : "justify-start"}`}>
+                  <div className={`max-w-[70%] rounded-2xl px-4 py-2.5 ${isOwn ? "text-white" : "bg-gray-100 text-gray-800"}`} style={isOwn ? { background: BRAND } : undefined}>
+                    {!isOwn && (
+                      <p className="text-xs font-semibold mb-0.5" style={{ color: BRAND }}>{msg.sender_name}</p>
+                    )}
+                    <p className="text-sm">{msg.content}</p>
+                    <p className={`text-[10px] mt-1 ${isOwn ? "text-white/60" : "text-gray-400"}`}>
+                      {format(new Date(msg.created_at), "h:mm a")}
+                    </p>
+                  </div>
+                </div>
+              );
+            })
+          )}
+          <div ref={chatBottomRef} />
+        </div>
+        <div className="px-6 py-4 border-t border-gray-100 flex gap-2">
+          <Input
+            value={newMessage}
+            onChange={e => setNewMessage(e.target.value)}
+            placeholder="Type a message..."
+            onKeyDown={e => e.key === "Enter" && !e.shiftKey && handleSendMessage()}
+          />
+          <Button onClick={handleSendMessage} disabled={sending || !newMessage.trim()} style={{ background: BRAND }} className="text-white">
+            <Send className="h-4 w-4" />
+          </Button>
         </div>
       </div>
     </div>
