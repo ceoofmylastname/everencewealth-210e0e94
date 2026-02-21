@@ -26,6 +26,8 @@ interface FormData {
   first_name: string;
   last_name: string;
   email: string;
+  password: string;
+  confirm_password: string;
   phone: string;
   state: string;
   address: string;
@@ -34,7 +36,7 @@ interface FormData {
   consent: boolean;
 }
 
-const TOTAL_STEPS = 8;
+const TOTAL_STEPS = 9;
 
 export default function ContractingIntake() {
   const navigate = useNavigate();
@@ -47,6 +49,8 @@ export default function ContractingIntake() {
     first_name: "",
     last_name: "",
     email: "",
+    password: "",
+    confirm_password: "",
     phone: "",
     state: "",
     address: "",
@@ -77,11 +81,12 @@ export default function ContractingIntake() {
       case 0: return form.referral_source.trim().length > 0;
       case 1: return form.first_name.trim().length > 0 && form.last_name.trim().length > 0;
       case 2: return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email);
-      case 3: return form.phone.trim().length >= 7;
-      case 4: return form.state.length > 0;
-      case 5: return form.is_licensed !== null;
-      case 6: return form.manager_id.length > 0;
-      case 7: return form.consent;
+      case 3: return form.password.length >= 8 && form.password === form.confirm_password;
+      case 4: return form.phone.trim().length >= 7;
+      case 5: return form.state.length > 0;
+      case 6: return form.is_licensed !== null;
+      case 7: return form.manager_id.length > 0;
+      case 8: return form.consent;
       default: return false;
     }
   };
@@ -94,6 +99,7 @@ export default function ContractingIntake() {
           first_name: form.first_name.trim(),
           last_name: form.last_name.trim(),
           email: form.email.trim().toLowerCase(),
+          password: form.password,
           phone: form.phone.trim(),
           referral_source: form.referral_source.trim(),
           
@@ -150,10 +156,10 @@ export default function ContractingIntake() {
             Application Submitted!
           </h1>
           <p className="text-muted-foreground text-lg mb-2">
-            We've sent a welcome email to <span className="font-semibold text-foreground">{form.email}</span>.
+            Your account has been created successfully.
           </p>
           <p className="text-muted-foreground">
-            Click the link in the email to set your password and access your onboarding dashboard.
+            You can now log in with <span className="font-semibold text-foreground">{form.email}</span> and the password you chose.
           </p>
           <Button
             onClick={() => navigate("/portal/login")}
@@ -248,6 +254,45 @@ export default function ContractingIntake() {
         return (
           <div key="step-3" className="space-y-6" onKeyDown={handleKeyDown}>
             <h2 className="text-3xl md:text-4xl font-bold text-foreground" style={{ fontFamily: "Georgia, serif" }}>
+              Create your password
+            </h2>
+            <p className="text-muted-foreground text-lg">You'll use this to log in to your dashboard</p>
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm text-muted-foreground mb-1 block">Password</label>
+                <Input
+                  autoFocus
+                  type="password"
+                  className={inputClass}
+                  placeholder="Min. 8 characters"
+                  value={form.password}
+                  onChange={(e) => update("password", e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="text-sm text-muted-foreground mb-1 block">Confirm password</label>
+                <Input
+                  type="password"
+                  className={inputClass}
+                  placeholder="Re-enter your password"
+                  value={form.confirm_password}
+                  onChange={(e) => update("confirm_password", e.target.value)}
+                />
+              </div>
+              {form.password.length > 0 && form.password.length < 8 && (
+                <p className="text-sm text-destructive">Password must be at least 8 characters</p>
+              )}
+              {form.confirm_password.length > 0 && form.password !== form.confirm_password && (
+                <p className="text-sm text-destructive">Passwords don't match</p>
+              )}
+            </div>
+          </div>
+        );
+
+      case 4:
+        return (
+          <div key="step-4" className="space-y-6" onKeyDown={handleKeyDown}>
+            <h2 className="text-3xl md:text-4xl font-bold text-foreground" style={{ fontFamily: "Georgia, serif" }}>
               What is your phone number?
             </h2>
             <Input
@@ -261,7 +306,7 @@ export default function ContractingIntake() {
           </div>
         );
 
-      case 4:
+      case 5:
         return (
           <div key="step-4" className="space-y-6" onKeyDown={handleKeyDown}>
             <h2 className="text-3xl md:text-4xl font-bold text-foreground" style={{ fontFamily: "Georgia, serif" }}>
@@ -294,9 +339,9 @@ export default function ContractingIntake() {
           </div>
         );
 
-      case 5:
+      case 6:
         return (
-          <div key="step-5" className="space-y-6">
+          <div key="step-6" className="space-y-6">
             <h2 className="text-3xl md:text-4xl font-bold text-foreground" style={{ fontFamily: "Georgia, serif" }}>
               Are you currently licensed?
             </h2>
@@ -324,9 +369,9 @@ export default function ContractingIntake() {
           </div>
         );
 
-      case 6:
+      case 7:
         return (
-          <div key="step-6" className="space-y-6">
+          <div key="step-7" className="space-y-6">
             <h2 className="text-3xl md:text-4xl font-bold text-foreground" style={{ fontFamily: "Georgia, serif" }}>
               Select your manager
             </h2>
@@ -356,9 +401,9 @@ export default function ContractingIntake() {
           </div>
         );
 
-      case 7:
+      case 8:
         return (
-          <div key="step-7" className="space-y-6">
+          <div key="step-8" className="space-y-6">
             <h2 className="text-3xl md:text-4xl font-bold text-foreground" style={{ fontFamily: "Georgia, serif" }}>
               Almost there!
             </h2>
