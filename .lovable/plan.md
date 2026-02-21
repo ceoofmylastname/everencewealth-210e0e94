@@ -1,117 +1,98 @@
 
 
-# Contracting Automation Engine: Event Emails + Escalating Reminders
+# Comprehensive Activity Logging for Contracting System
 
 ## Overview
-Build a centralized automation engine that sends branded emails on key contracting events and follows up with escalating reminders when agents stall on incomplete steps.
+Add activity log entries for every user action across the contracting portal. The `contracting_activity_logs` table already exists with the right schema (`action`, `agent_id`, `performed_by`, `description`, `metadata`, `created_at`). We just need to insert log rows at every action point.
 
-## Part 1: Event-Triggered Emails
+## No Database Changes Needed
+The existing `contracting_activity_logs` table already supports all required fields including a `metadata` JSONB column for storing contextual data.
 
-Expand the existing `notify-contracting-step` edge function to handle all five event types. Each event sends a branded email to the agent and creates an in-app notification.
+## Actions to Log
 
-| Event | Trigger | Email To | Subject |
-|---|---|---|---|
-| Step Completed | Frontend calls after step upsert | Agent | "Step Completed: {step title}" |
-| Stage Change | Frontend calls after stage advances | Agent + Manager | "Stage Update: {new stage}" |
-| Manager Assignment | Admin assigns manager | Agent | "Your Manager Has Been Assigned" |
-| Bundle Selection | Agent selects bundle | Agent + Contracting team | "Bundle Selected: {bundle name}" |
-| Contracting Approved | Admin marks approved | Agent | Already exists -- keep as-is |
-
-**File modified:** `supabase/functions/notify-contracting-step/index.ts`
-
-New event types added to the same function:
-- `step_completed` -- emails the agent confirming a step was finished
-- `stage_changed` -- emails the agent (and their manager if assigned) about the new stage
-- `manager_assigned` -- emails the agent introducing their manager with the manager's name and contact
-- `bundle_selected` -- already partially handled, will add agent-facing email
-
-The existing `contracting_approved` and `needs_info` handlers stay unchanged.
-
-## Part 2: Reminder System
-
-### New Database Table: `contracting_reminders`
-
-Tracks scheduled reminders per agent per step. Each row represents a reminder sequence for one incomplete step.
-
-| Column | Type | Purpose |
+| Action | File | Currently Logged? |
 |---|---|---|
-| id | uuid PK | |
-| agent_id | uuid FK | The agent being reminded |
-| step_id | uuid FK | The step that needs completing |
-| stage | text | The pipeline stage |
-| reminder_count | int (default 0) | How many reminders sent so far |
-| last_sent_at | timestamptz | When the last reminder was sent |
-| next_send_at | timestamptz | When the next reminder should fire |
-| phase | text | 'daily', 'every_3_days', 'weekly' |
-| is_active | boolean (default true) | Set to false when step is completed |
-| created_at | timestamptz | |
+| Step completed (checkbox) | `ContractingDashboard.tsx` (admin view) | Yes |
+| Document uploaded | `ContractingDashboard.tsx` (agent view) | Yes |
+| Message sent | `ContractingDashboard.tsx` + `ContractingMessages.tsx` | No |
+| Login | `PortalLogin.tsx` | No |
+| Stage changed | `ContractingPipeline.tsx` | No |
+| Agent added | `ContractingPipeline.tsx` | No |
+| Manager assigned | `ContractingAdmin.tsx` | No |
+| Pipeline stage changed (admin) | `ContractingAdmin.tsx` | No |
+| Status changed (admin) | `ContractingAdmin.tsx` | No |
+| Step toggled (detail view) | `ContractingAgentDetail.tsx` | No |
+| File uploaded (detail view) | `ContractingAgentDetail.tsx` | No |
+| Bundle created | `ContractingAdmin.tsx` | No |
+| Needs info sent | `ContractingDashboard.tsx` | No |
 
-**RLS:** Service role only (edge function access). No client-side reads needed.
+## File Changes
 
-**Unique constraint:** `(agent_id, step_id)` -- one reminder sequence per step per agent.
+### 1. `src/pages/portal/PortalLogin.tsx`
+After successful login and portal user verification, insert a log entry:
+- Action: `"login"`
+- Look up the contracting agent by `auth_user_id` to get the `agent_id` and `performed_by`
+- Description: `"Agent logged in"`
+- Metadata: `{ role: portalUser.role }`
 
-### Reminder Schedule Logic
+### 2. `src/pages/portal/advisor/contracting/ContractingDashboard.tsx`
+Add logging to two unlogged actions:
 
-The 15-reminder escalation pattern:
-- **Phase 1 (Daily):** Reminders 1-5, sent once per day
-- **Phase 2 (Every 3 days):** Reminders 6-10, sent every 3 days
-- **Phase 3 (Weekly):** Reminders 11-15, sent every 7 days
+**Message sent (agent view, `handleSendMessage`):**
+- Action: `"message_sent"`
+- Description: `"Sent a message"`
 
-After 15 reminders (about 7 weeks), the reminder stops and the manager is notified that the agent is unresponsive.
+**Needs info sent (`handleSendNeedsInfo`):**
+- Action: `"needs_info_sent"`
+- Agent ID: the target agent
+- Performed by: current user
+- Description: `"Information request sent"`
 
-### New Edge Function: `process-contracting-reminders`
+### 3. `src/pages/portal/advisor/contracting/ContractingMessages.tsx`
+**Message sent (admin/manager view, `handleSend`):**
+- Action: `"message_sent"`
+- Description: `"Sent a message in thread"`
 
-**File:** `supabase/functions/process-contracting-reminders/index.ts`
+### 4. `src/pages/portal/advisor/contracting/ContractingPipeline.tsx`
+**Agent added (`handleAddAgent`):**
+- Action: `"agent_added"`
+- Description: `"New agent added: {name}"`
 
-Called by a cron job every hour. It:
-1. Queries `contracting_reminders` where `is_active = true` and `next_send_at <= now()`
-2. For each due reminder:
-   - Sends branded email to the agent: "Reminder: Complete your {step title}"
-   - Increments `reminder_count`, updates `last_sent_at`
-   - Calculates `next_send_at` based on current phase
-   - If count reaches 15, sets `is_active = false` and emails the manager
-3. Cross-checks `contracting_agent_steps` -- if the step is already completed, deactivates the reminder (stop condition)
+**Stage changed (`moveStage`):**
+- Action: `"stage_changed"`
+- Description: `"Stage changed to {newStage}"`
+- Metadata: `{ new_stage: newStage }`
 
-### Auto-Create Reminders
+### 5. `src/pages/portal/advisor/contracting/ContractingAdmin.tsx`
+**`updateAgent` function** -- log every field change:
+- Action: `"field_updated"`
+- Description: `"{field} updated to {value}"` with human-readable mappings for `manager_id`, `pipeline_stage`, `status`
+- Metadata: `{ field, value }`
 
-When a stage changes (detected in the updated `notify-contracting-step`), the function:
-1. Deactivates any reminders for the old stage's steps (they're done)
-2. Creates new reminder rows for all required steps in the new stage
-3. Sets `next_send_at` to 24 hours from now (first daily reminder)
+**Bundle created (`createBundle`):**
+- Action: `"bundle_created"`
+- Description: `"Bundle created: {name}"`
 
-### Auto-Stop Reminders
+### 6. `src/pages/portal/advisor/contracting/ContractingAgentDetail.tsx`
+**Step toggled (`toggleStep`):**
+- Action: `"step_completed"` or `"step_reopened"`
+- Description: `"Step toggled to {status}"`
 
-When a step is completed, the function deactivates the matching reminder row. This is handled in two places:
-- In `notify-contracting-step` when `step_completed` is called
-- In `process-contracting-reminders` as a safety check before sending
+**File uploaded (`handleFileUpload`):**
+- Action: `"document_uploaded"`
+- Description: `"Document uploaded: {fileName}"`
 
-### Cron Job
+## Implementation Pattern
+Every log insert follows the same pattern (fire-and-forget to avoid blocking the UI):
 
-A new cron schedule running every hour to process due reminders:
+```typescript
+supabase.from("contracting_activity_logs").insert({
+  agent_id: targetAgentId,
+  performed_by: currentUserId,
+  action: "action_name",
+  description: "Human-readable description",
+  metadata: { /* contextual data */ },
+}).then(null, err => console.error("Activity log error:", err));
 ```
-process-contracting-reminders: '0 * * * *'
-```
 
-## Part 3: Email Templates
-
-All emails use the existing `brandedEmailWrapper` with Everence Wealth branding. Each event type gets a distinct subtitle and inner content:
-
-- **Step Completed:** Green checkmark icon, step name, encouraging next-step message
-- **Stage Change:** Progress bar visual, new stage name, what to expect next
-- **Manager Assigned:** Manager's name, "reach out with questions" message
-- **Bundle Selected:** Bundle name confirmation, next steps
-- **Reminder:** Friendly nudge with step name, link to dashboard, reminder count ("This is reminder 3 of 15")
-
-## Files Summary
-
-| File | Action |
-|---|---|
-| `supabase/functions/notify-contracting-step/index.ts` | Modify -- add step_completed, stage_changed, manager_assigned handlers + reminder creation logic |
-| `supabase/functions/process-contracting-reminders/index.ts` | Create -- cron-driven reminder processor |
-| Database | Add `contracting_reminders` table |
-| Cron | Add hourly `process-contracting-reminders` schedule |
-
-## No Frontend Changes
-
-All automation is backend-only. The existing frontend already calls `notify-contracting-step` on relevant events -- the new event types just need the correct `stageName` parameter passed from existing UI actions.
-
+All inserts are non-blocking -- failures are logged to console but do not interrupt the user's workflow.
