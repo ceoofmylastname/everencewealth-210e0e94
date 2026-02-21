@@ -50,7 +50,8 @@ interface AgentStep {
 }
 
 export default function ContractingPipeline() {
-  const { canManage } = useContractingAuth();
+  const { canManage, canViewAll, portalUser, contractingRole } = useContractingAuth();
+  const isManagerOnly = contractingRole === "manager";
   const [agents, setAgents] = useState<Agent[]>([]);
   const [steps, setSteps] = useState<AgentStep[]>([]);
   const [totalSteps, setTotalSteps] = useState(0);
@@ -63,12 +64,16 @@ export default function ContractingPipeline() {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [portalUser?.id, isManagerOnly]);
 
   async function fetchData() {
     try {
+      let agentsQuery = supabase.from("contracting_agents").select("*").order("created_at", { ascending: false });
+      if (isManagerOnly && portalUser?.id) {
+        agentsQuery = agentsQuery.eq("manager_id", portalUser.id);
+      }
       const [agentsRes, stepsRes, totalRes] = await Promise.all([
-        supabase.from("contracting_agents").select("*").order("created_at", { ascending: false }),
+        agentsQuery,
         supabase.from("contracting_agent_steps").select("agent_id, status"),
         supabase.from("contracting_steps").select("id"),
       ]);
