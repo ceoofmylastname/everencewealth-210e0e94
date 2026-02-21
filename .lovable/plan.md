@@ -1,71 +1,117 @@
 
 
-# Contracting Chat System: Agent-to-Team Messaging with Email Notifications
+# Contracting Automation Engine: Event Emails + Escalating Reminders
 
 ## Overview
-Replace the current single-thread messaging model with a channel-based system that allows agents to chat directly with their manager, admin team, and contracting team. Each agent gets three dedicated chat channels. When a message is received, an email notification is sent to the recipient(s).
+Build a centralized automation engine that sends branded emails on key contracting events and follows up with escalating reminders when agents stall on incomplete steps.
 
-## Current State
-- The `contracting_messages` table exists with `thread_id` (always the agent's ID) and `sender_id`
-- All messages for an agent go into one thread -- no way to distinguish who the agent is talking to
-- No email notifications on new messages
-- The `ContractingMessages.tsx` page shows threads (admin/manager view) or a single thread (agent view)
+## Part 1: Event-Triggered Emails
 
-## Database Changes
+Expand the existing `notify-contracting-step` edge function to handle all five event types. Each event sends a branded email to the agent and creates an in-app notification.
 
-### Add `channel` column to `contracting_messages`
-Add a `channel` text column to distinguish conversation targets:
-- `"manager"` -- agent talks with their assigned manager
-- `"admin"` -- agent talks with admin team
-- `"contracting"` -- agent talks with contracting team
+| Event | Trigger | Email To | Subject |
+|---|---|---|---|
+| Step Completed | Frontend calls after step upsert | Agent | "Step Completed: {step title}" |
+| Stage Change | Frontend calls after stage advances | Agent + Manager | "Stage Update: {new stage}" |
+| Manager Assignment | Admin assigns manager | Agent | "Your Manager Has Been Assigned" |
+| Bundle Selection | Agent selects bundle | Agent + Contracting team | "Bundle Selected: {bundle name}" |
+| Contracting Approved | Admin marks approved | Agent | Already exists -- keep as-is |
 
-Default: `"general"` (for existing messages, backward compatible).
+**File modified:** `supabase/functions/notify-contracting-step/index.ts`
 
+New event types added to the same function:
+- `step_completed` -- emails the agent confirming a step was finished
+- `stage_changed` -- emails the agent (and their manager if assigned) about the new stage
+- `manager_assigned` -- emails the agent introducing their manager with the manager's name and contact
+- `bundle_selected` -- already partially handled, will add agent-facing email
+
+The existing `contracting_approved` and `needs_info` handlers stay unchanged.
+
+## Part 2: Reminder System
+
+### New Database Table: `contracting_reminders`
+
+Tracks scheduled reminders per agent per step. Each row represents a reminder sequence for one incomplete step.
+
+| Column | Type | Purpose |
+|---|---|---|
+| id | uuid PK | |
+| agent_id | uuid FK | The agent being reminded |
+| step_id | uuid FK | The step that needs completing |
+| stage | text | The pipeline stage |
+| reminder_count | int (default 0) | How many reminders sent so far |
+| last_sent_at | timestamptz | When the last reminder was sent |
+| next_send_at | timestamptz | When the next reminder should fire |
+| phase | text | 'daily', 'every_3_days', 'weekly' |
+| is_active | boolean (default true) | Set to false when step is completed |
+| created_at | timestamptz | |
+
+**RLS:** Service role only (edge function access). No client-side reads needed.
+
+**Unique constraint:** `(agent_id, step_id)` -- one reminder sequence per step per agent.
+
+### Reminder Schedule Logic
+
+The 15-reminder escalation pattern:
+- **Phase 1 (Daily):** Reminders 1-5, sent once per day
+- **Phase 2 (Every 3 days):** Reminders 6-10, sent every 3 days
+- **Phase 3 (Weekly):** Reminders 11-15, sent every 7 days
+
+After 15 reminders (about 7 weeks), the reminder stops and the manager is notified that the agent is unresponsive.
+
+### New Edge Function: `process-contracting-reminders`
+
+**File:** `supabase/functions/process-contracting-reminders/index.ts`
+
+Called by a cron job every hour. It:
+1. Queries `contracting_reminders` where `is_active = true` and `next_send_at <= now()`
+2. For each due reminder:
+   - Sends branded email to the agent: "Reminder: Complete your {step title}"
+   - Increments `reminder_count`, updates `last_sent_at`
+   - Calculates `next_send_at` based on current phase
+   - If count reaches 15, sets `is_active = false` and emails the manager
+3. Cross-checks `contracting_agent_steps` -- if the step is already completed, deactivates the reminder (stop condition)
+
+### Auto-Create Reminders
+
+When a stage changes (detected in the updated `notify-contracting-step`), the function:
+1. Deactivates any reminders for the old stage's steps (they're done)
+2. Creates new reminder rows for all required steps in the new stage
+3. Sets `next_send_at` to 24 hours from now (first daily reminder)
+
+### Auto-Stop Reminders
+
+When a step is completed, the function deactivates the matching reminder row. This is handled in two places:
+- In `notify-contracting-step` when `step_completed` is called
+- In `process-contracting-reminders` as a safety check before sending
+
+### Cron Job
+
+A new cron schedule running every hour to process due reminders:
 ```
-ALTER TABLE contracting_messages
-ADD COLUMN channel text NOT NULL DEFAULT 'general';
+process-contracting-reminders: '0 * * * *'
 ```
 
-No RLS policy changes needed -- the existing policies already allow the right people to read/write. The `channel` is simply a filter on top.
+## Part 3: Email Templates
 
-## New Edge Function: `notify-contracting-message`
+All emails use the existing `brandedEmailWrapper` with Everence Wealth branding. Each event type gets a distinct subtitle and inner content:
 
-**File:** `supabase/functions/notify-contracting-message/index.ts`
+- **Step Completed:** Green checkmark icon, step name, encouraging next-step message
+- **Stage Change:** Progress bar visual, new stage name, what to expect next
+- **Manager Assigned:** Manager's name, "reach out with questions" message
+- **Bundle Selected:** Bundle name confirmation, next steps
+- **Reminder:** Friendly nudge with step name, link to dashboard, reminder count ("This is reminder 3 of 15")
 
-When a message is sent, the frontend calls this function (fire-and-forget) with `{ threadId, senderId, senderName, channel, messagePreview }`. The function determines the recipients based on the channel:
+## Files Summary
 
-- **`manager` channel**: Look up the agent's `manager_id` in `contracting_agents`, get the manager's email, send notification
-- **`admin` channel**: Query all agents with `contracting_role = 'admin'`, send email to each (excluding sender)
-- **`contracting` channel**: Query all agents with `contracting_role = 'contracting'` or `'admin'`, send email to each (excluding sender)
-- **Agent receives message** (sender is manager/admin/contracting): Look up the agent's email from `thread_id` and send notification
-
-Uses the existing `RESEND_API_KEY` and branded email wrapper pattern from `notify-contracting-step`.
-
-## UI Changes
-
-### Agent Dashboard Chat Panel (`ContractingDashboard.tsx`)
-Replace the existing single chat panel with a tabbed interface:
-- Three tabs: **Manager**, **Admin**, **Contracting**
-- Each tab filters messages by `channel`
-- Sending a message includes the `channel` in the insert
-- After sending, fire-and-forget call to `notify-contracting-message`
-- If the agent has no manager assigned, the Manager tab shows "No manager assigned"
-
-### ContractingMessages.tsx (Admin/Manager/Contracting View)
-Update the thread list and message panel:
-- Thread list shows agent name + channel indicator badge (color-coded)
-- When selecting a thread, add channel tabs within the conversation to switch between channels
-- Admin/contracting see all three channels per agent
-- Managers see only the `manager` channel for their assigned agents
-- Sending from this view also triggers the email notification edge function
-
-## Technical Summary
-
-| Item | Detail |
+| File | Action |
 |---|---|
-| Database migration | Add `channel` column to `contracting_messages` |
-| New edge function | `supabase/functions/notify-contracting-message/index.ts` |
-| Modified files | `ContractingDashboard.tsx` (agent chat panel), `ContractingMessages.tsx` (admin/manager view) |
-| Existing secrets used | `RESEND_API_KEY`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` |
-| Email sender | `onboarding@everencewealth.com` |
+| `supabase/functions/notify-contracting-step/index.ts` | Modify -- add step_completed, stage_changed, manager_assigned handlers + reminder creation logic |
+| `supabase/functions/process-contracting-reminders/index.ts` | Create -- cron-driven reminder processor |
+| Database | Add `contracting_reminders` table |
+| Cron | Add hourly `process-contracting-reminders` schedule |
+
+## No Frontend Changes
+
+All automation is backend-only. The existing frontend already calls `notify-contracting-step` on relevant events -- the new event types just need the correct `stageName` parameter passed from existing UI actions.
 
