@@ -15,7 +15,7 @@ import { toast } from "sonner";
 
 const BRAND = "#1A4D3E";
 
-const STAGES = ["application", "background_check", "licensing", "carrier_appointments", "training", "active"];
+const STAGES = ["intake_submitted", "agreement_pending", "surelc_setup", "bundle_selected", "carrier_selection", "contracting_submitted", "contracting_approved", "completed"];
 const STATUSES = ["in_progress", "completed", "on_hold", "rejected"];
 
 interface AgentRow {

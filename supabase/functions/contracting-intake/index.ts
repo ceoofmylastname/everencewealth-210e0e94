@@ -105,7 +105,7 @@ Deno.serve(async (req) => {
         email: email.toLowerCase(),
         phone: phone || null,
         contracting_role: "agent",
-        pipeline_stage: "application",
+        pipeline_stage: "intake_submitted",
         status: "in_progress",
         referral_source: referral_source || null,
         

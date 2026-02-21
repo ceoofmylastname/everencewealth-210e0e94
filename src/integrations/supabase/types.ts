@@ -3580,6 +3580,7 @@ export type Database = {
           phone: string | null
           pipeline_stage: string
           portal_user_id: string | null
+          progress_pct: number | null
           referral_source: string | null
           referring_director: string | null
           started_at: string
@@ -3603,6 +3604,7 @@ export type Database = {
           phone?: string | null
           pipeline_stage?: string
           portal_user_id?: string | null
+          progress_pct?: number | null
           referral_source?: string | null
           referring_director?: string | null
           started_at?: string
@@ -3626,6 +3628,7 @@ export type Database = {
           phone?: string | null
           pipeline_stage?: string
           portal_user_id?: string | null
+          progress_pct?: number | null
           referral_source?: string | null
           referring_director?: string | null
           started_at?: string

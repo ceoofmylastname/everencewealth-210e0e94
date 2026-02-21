@@ -15,12 +15,14 @@ const BRAND = "#1A4D3E";
 const ACCENT = "#EBD975";
 
 const STAGE_LABELS: Record<string, string> = {
-  application: "Application",
-  background_check: "Background Check",
-  licensing: "Licensing",
-  carrier_appointments: "Carrier Appointments",
-  training: "Training",
-  active: "Active",
+  intake_submitted: "Intake Submitted",
+  agreement_pending: "Agreement Pending",
+  surelc_setup: "SureLC Setup",
+  bundle_selected: "Bundle Selected",
+  carrier_selection: "Carrier Selection",
+  contracting_submitted: "Contracting Submitted",
+  contracting_approved: "Contracting Approved",
+  completed: "Completed",
 };
 
 const STATUS_COLORS: Record<string, string> = {

@@ -78,7 +78,7 @@ export default function PortalLogin() {
           .eq("auth_user_id", authData.user.id)
           .maybeSingle();
 
-        if (contractingAgent && contractingAgent.pipeline_stage !== "active") {
+        if (contractingAgent && contractingAgent.pipeline_stage !== "completed") {
           navigate("/portal/advisor/contracting/dashboard", { replace: true });
         } else {
           navigate("/portal/advisor/dashboard", { replace: true });
