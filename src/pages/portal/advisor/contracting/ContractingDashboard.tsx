@@ -15,12 +15,14 @@ const BRAND = "#1A4D3E";
 const ACCENT = "#EBD975";
 
 const PIPELINE_STAGES = [
-  { key: "application", label: "Application", color: "#3B82F6" },
-  { key: "background_check", label: "Background Check", color: "#8B5CF6" },
-  { key: "licensing", label: "Licensing", color: "#F59E0B" },
-  { key: "carrier_appointments", label: "Carrier Appts", color: "#10B981" },
-  { key: "training", label: "Training", color: "#6366F1" },
-  { key: "active", label: "Active", color: BRAND },
+  { key: "intake_submitted", label: "Intake Submitted", color: "#3B82F6" },
+  { key: "agreement_pending", label: "Agreement Pending", color: "#8B5CF6" },
+  { key: "surelc_setup", label: "SureLC Setup", color: "#F59E0B" },
+  { key: "bundle_selected", label: "Bundle Selected", color: "#EC4899" },
+  { key: "carrier_selection", label: "Carrier Selection", color: "#10B981" },
+  { key: "contracting_submitted", label: "Contracting Submitted", color: "#6366F1" },
+  { key: "contracting_approved", label: "Contracting Approved", color: "#14B8A6" },
+  { key: "completed", label: "Completed", color: BRAND },
 ];
 
 // ─── Shared types ────────────────────────────────────────────────────
