@@ -1,52 +1,47 @@
 
 
-# SureLC Screenshot Upload Step for Agents
+# Skip Email Verification for Client Signups
 
-## What This Does
-Adds the ability for agents to upload a SureLC screenshot directly from their personal dashboard. When the file is uploaded, the step is automatically marked complete, the file is stored securely, and activity is logged.
+## Problem
+When clients sign up via an invitation link, they must verify their email before logging in. Since these clients are already pre-verified through the invitation system (advisor sent them the link), this extra step is unnecessary friction.
 
-## Current State
-- The `contracting_steps` table already has a SureLC step (`surelc_setup` stage, `requires_upload: true`).
-- The agent dashboard checklist currently shows steps as read-only icons -- agents cannot upload files.
-- The `contracting-documents` storage bucket already exists (private).
+## Solution
+Two changes are needed:
 
-## Changes
+### 1. Enable Auto-Confirm for Email Signups
+Configure the authentication system to automatically confirm email addresses on signup. This means clients can log in immediately after setting their password -- no verification email required.
 
-### 1. Update AgentDashboard Checklist (UI)
-**File:** `src/pages/portal/advisor/contracting/ContractingDashboard.tsx`
+### 2. Update Client Signup Flow (Auto-Login After Signup)
+**File:** `src/pages/portal/ClientSignup.tsx`
 
-For steps where `requires_upload` is true (the SureLC step), show an upload button next to the step in the agent's current stage checklist. This allows agents to:
-- Click an upload icon to select an image/file
-- See a loading indicator while uploading
-- See the step automatically marked as completed after successful upload
+Instead of showing the "check your email" success screen after signup, the client will be automatically logged in and redirected to their dashboard. Changes:
+- After successful `signUp`, immediately call `signInWithPassword` with the same credentials
+- On successful sign-in, redirect to `/portal/client/dashboard`
+- Remove the verification email success screen, resend button, and related state
+- Remove `emailRedirectTo` option from the signup call (no longer needed)
 
-This requires:
-- Adding `requires_upload` to the `StepRow` interface
-- Including `requires_upload` in the steps query
-- Adding `Upload` icon import from lucide-react
-- Adding upload state (`uploading`) and a `handleStepUpload` function
-- Rendering the upload button for steps with `requires_upload: true` that are not yet completed
+### 3. Clean Up Login Page Error Message
+**File:** `src/pages/portal/PortalLogin.tsx`
 
-### 2. Upload and Completion Logic
-When an agent uploads a file:
-1. **Store file** in `contracting-documents` bucket at path `{agentId}/surelc/{timestamp}_{filename}`
-2. **Insert record** into `contracting_documents` table with `agent_id`, `step_id`, `file_name`, `file_path`, `file_size`, `uploaded_by`
-3. **Mark step complete** by upserting into `contracting_agent_steps` with `status: 'completed'`, `completed_at: now()`, `completed_by: agentId`
-4. **Log activity** in `contracting_activity_logs` with description "SureLC profile completed"
-5. **Refresh data** to reflect the completed step and updated progress
+The "email not confirmed" error branch (line 37-38) will remain as a safety net but should rarely trigger after this change.
 
-The existing `auto_advance_pipeline_stage` trigger will automatically fire when the step is marked complete, advancing the agent to the next stage if all required steps are done.
-
-### 3. Show Uploaded Documents
-After upload, show the uploaded file name beneath the step (matching the pattern used in `ContractingAgentDetail.tsx`). This requires fetching documents for the agent filtered by step_id.
+## What Won't Change
+- The invitation token validation flow stays the same
+- The `handle_new_portal_user` database trigger still fires on signup
+- Admin/advisor signup flows are unaffected (they use different paths)
+- Password requirements remain the same (min 8 characters)
 
 ## Technical Details
 
-### File Modified
-- `src/pages/portal/advisor/contracting/ContractingDashboard.tsx`
+### Auth Configuration
+Use the `configure-auth` tool to set `enable_signup: true` and `double_confirm_changes: false` with auto-confirm enabled.
 
-### No Database or Schema Changes Needed
-- The `contracting_steps` row already exists with `requires_upload: true`
-- The `contracting-documents` bucket exists
-- The `contracting_documents`, `contracting_agent_steps`, and `contracting_activity_logs` tables all exist
-- The `auto_advance_pipeline_stage` trigger handles stage progression automatically
+### ClientSignup.tsx Changes
+- Remove states: `resending`, `resent`, `resendCooldown`
+- Remove `handleResend` callback
+- Remove the entire success screen (lines 186-253)
+- Replace the success flow in `handleSignup` with:
+  1. After `signUp` succeeds, call `signInWithPassword({ email, password })`
+  2. On success, navigate to `/portal/client/dashboard`
+  3. On failure, show error and link to login page
+
