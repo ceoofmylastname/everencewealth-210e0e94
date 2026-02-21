@@ -1,61 +1,97 @@
 
 
-# Contracting Analytics Dashboard
+# RLS Security Hardening for Contracting Tables
 
-## Overview
-Create a new analytics page at `/portal/advisor/contracting/analytics` that provides visual insights into the onboarding pipeline. Accessible only to admin/contracting/manager roles.
+## Current State Assessment
 
-## Metrics and Visualizations
+After reviewing all 10 contracting tables and their existing RLS policies, I found several issues:
 
-### 1. KPI Summary Cards (top row)
-- **Average Onboarding Time** -- mean days from `created_at` to `completed_at` for completed agents
-- **Completion Rate** -- percentage of agents who reached "completed" stage vs total
-- **Active Reminders** -- count of `contracting_reminders` where `is_active = true`
-- **Total Activity Logs** -- count of `contracting_activity_logs` entries (last 30 days)
+### Issues Found
 
-### 2. Drop-Off Funnel (horizontal bar chart)
-Query `contracting_agents` grouped by `pipeline_stage`, ordered by pipeline sequence. Shows how many agents are currently at each stage, making it immediately clear where drop-off occurs. Uses Recharts `BarChart` horizontal layout.
+1. **`contracting_reminders`** -- RLS is enabled but has ZERO policies. This table is completely locked out from the client, meaning the analytics dashboard and cron job cannot read/write reminders properly from authenticated users.
 
-### 3. Average Time Per Stage (bar chart)
-For completed agents, calculate time spent in each stage by looking at `contracting_agent_steps` completion timestamps and the stage sequence. Displays average days per stage using a vertical `BarChart`.
+2. **Incorrect manager check on 4 tables** -- The `manager_id` column in `contracting_agents` references `portal_users.id`, but several policies compare it against `get_contracting_agent_id(auth.uid())` (which returns a `contracting_agents.id`). This means manager-scoped access is currently broken on:
+   - `contracting_activity_logs` (SELECT)
+   - `contracting_agent_steps` (SELECT)
+   - `contracting_documents` (SELECT)
+   - `contracting_messages` (SELECT)
 
-### 4. Reminder Distribution (pie chart)
-Query `contracting_reminders` grouped by `phase` (daily / every_3_days / weekly) to show how many active reminders are in each escalation phase. Uses Recharts `PieChart`.
+   These should use `get_portal_user_id(auth.uid())` instead.
 
-### 5. Activity Frequency (area chart)
-Query `contracting_activity_logs` for the last 30 days, group by day, chart the volume of actions over time. Uses Recharts `AreaChart`.
+3. **Missing manager access on some operations**:
+   - `contracting_agent_steps` UPDATE -- managers cannot toggle steps for their agents
+   - `contracting_documents` INSERT -- managers cannot upload docs for their agents
+   - `contracting_carrier_selections` manager check also uses wrong function
 
-### 6. Top Drop-Off Steps (table)
-Query `contracting_agent_steps` where `status != 'completed'` joined with `contracting_steps` to show which specific steps agents are stuck on most frequently.
+4. **`contracting_carrier_selections`** -- Manager subquery compares `manager_id` to `get_contracting_agent_id` (wrong function).
+
+### What Already Works Well
+
+- All 10 tables have RLS enabled
+- Agent self-access patterns are correct (using `get_contracting_agent_id`)
+- Admin/contracting full-access patterns are consistent
+- `portal_admin` fallback is present on all policies
+- `contracting_steps` and `contracting_bundles` are correctly open for read (config data)
+
+## Changes
+
+### Database Migration (single SQL migration)
+
+**1. Fix manager checks on `contracting_activity_logs`**
+- DROP and recreate SELECT policy to use `get_portal_user_id(auth.uid())` in the manager subquery
+
+**2. Fix manager checks on `contracting_agent_steps`**
+- DROP and recreate SELECT policy with correct manager function
+- DROP and recreate UPDATE policy to include manager access
+
+**3. Fix manager checks on `contracting_documents`**
+- DROP and recreate SELECT policy with correct manager function
+- DROP and recreate INSERT policy to include manager uploads
+
+**4. Fix manager checks on `contracting_messages`**
+- DROP and recreate SELECT policy with correct manager function
+
+**5. Fix manager checks on `contracting_carrier_selections`**
+- DROP and recreate SELECT policy with correct manager subquery
+
+**6. Add policies to `contracting_reminders`**
+- SELECT: agent sees own, manager sees assigned agents', admin/contracting sees all
+- INSERT: admin/contracting/portal_admin only (system-managed)
+- UPDATE: admin/contracting/portal_admin only (system-managed)
+- DELETE: admin/contracting/portal_admin only
+
+### No Frontend Changes Needed
+
+All frontend queries already go through Supabase client with the user's auth token, so RLS policies are the enforcement layer. The queries themselves don't need modification -- fixing the policies will automatically scope the data correctly.
 
 ## Technical Details
 
-### New Files
-| File | Purpose |
-|---|---|
-| `src/hooks/useContractingAnalytics.ts` | React Query hook that fetches all data from the four tables and computes metrics client-side |
-| `src/pages/portal/advisor/contracting/ContractingAnalytics.tsx` | Full page component with charts and cards |
+The corrected manager pattern for all policies will be:
 
-### Route Addition
-In `src/App.tsx`, add:
+```sql
+-- Correct: manager_id references portal_users.id
+EXISTS (
+  SELECT 1 FROM contracting_agents ca
+  WHERE ca.id = <table>.agent_id
+  AND ca.manager_id = get_portal_user_id(auth.uid())
+)
+
+-- Wrong (current): get_contracting_agent_id returns contracting_agents.id
+ca.manager_id = get_contracting_agent_id(auth.uid())
 ```
-contracting/analytics -> ContractingAnalytics
-```
 
-### Data Fetching Strategy
-A single `useQuery` hook makes parallel queries to:
-- `contracting_agents` (all rows, select relevant columns)
-- `contracting_agent_steps` with joined `contracting_steps`
-- `contracting_activity_logs` (last 30 days)
-- `contracting_reminders` (active only)
+### Access Matrix After Fix
 
-All aggregation is done client-side to avoid needing new database functions.
+| Table | Agent (own) | Manager (assigned) | Contracting | Admin |
+|---|---|---|---|---|
+| contracting_agents | SELECT | SELECT | ALL | ALL |
+| contracting_agent_steps | SELECT | SELECT, UPDATE | ALL | ALL |
+| contracting_activity_logs | SELECT, INSERT | SELECT | ALL | ALL |
+| contracting_documents | SELECT, INSERT | SELECT, INSERT | ALL | ALL |
+| contracting_messages | SELECT, INSERT | SELECT | ALL | ALL |
+| contracting_carrier_selections | SELECT | SELECT | ALL | ALL |
+| contracting_notifications | SELECT, UPDATE, INSERT | -- | ALL | ALL |
+| contracting_reminders | SELECT | SELECT | ALL | ALL |
+| contracting_steps | SELECT | SELECT | ALL | ALL |
+| contracting_bundles | SELECT | SELECT | ALL | ALL |
 
-### Chart Library
-Uses the existing `recharts` dependency (already installed) with direct imports (`BarChart`, `PieChart`, `AreaChart`, `ResponsiveContainer`) -- matching the pattern used in calculator pages.
-
-### Access Control
-Uses the existing `useContractingAuth` hook. Only renders for users where `canManage === true`.
-
-### Navigation
-Add an "Analytics" link/button to the existing contracting navigation (in `ContractingDashboard.tsx` manager/admin view header area).
