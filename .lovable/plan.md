@@ -1,48 +1,51 @@
 
 
-# Simplified Checklist Step System
+# Enhanced Agent Dashboard with Chat Panel
 
-## What Already Exists
-- `contracting_steps` table (step definitions)
-- `contracting_agent_steps` table with `status`, `completed_by`, `completed_at`, `notes` columns
-- `auto_advance_pipeline_stage` database trigger that automatically moves the pipeline when all required steps in a stage are completed
+## Current State
+The `AgentDashboard` component in `ContractingDashboard.tsx` already implements 6 of 7 requested features:
+- Welcome header with name and avatar
+- Current stage badge
+- Progress bar with step count
+- Current stage checklist (read-only -- agents cannot edit)
+- Upcoming stages collapsed/expandable
+- Personal info card
+- Recent activity feed
 
-## The Change
+**Missing: Chat panel embedded in the dashboard.**
 
-Replace the current 15 granular steps with 6 clear, one-per-stage checklist items. The auto-advance trigger already handles pipeline movement -- no code changes needed.
+## Changes
 
-### New Steps
+### 1. Add Inline Chat Panel to AgentDashboard
+Embed a compact messaging panel directly into the agent's personal dashboard (below the activity feed / personal info grid). This reuses the existing `contracting_messages` table and realtime subscription pattern from `ContractingMessages.tsx`.
 
-| Step | Pipeline Stage | Upload Required |
-|------|---------------|-----------------|
-| Agreement Signed | agreement_pending | Yes |
-| SureLC Screenshot Uploaded | surelc_setup | Yes |
-| Bundle Selected | bundle_selected | No |
-| Carriers Selected | carrier_selection | No |
-| Contracting Submitted | contracting_submitted | Yes |
-| Contracting Approved | contracting_approved | No |
+The chat panel will:
+- Show messages for the agent's thread (thread_id = agent's contracting_agents.id)
+- Allow the agent to send messages to their manager/admin
+- Auto-scroll to latest message
+- Subscribe to realtime inserts for instant updates
+- Use the same BRAND styling as the rest of the dashboard
 
-The `intake_submitted` stage has no manual step (it completes automatically when the form is submitted). The `completed` stage is reached when all prior stages finish.
+### 2. Layout
+The dashboard layout becomes:
+1. Welcome header (name, avatar, stage badge, status badge)
+2. Progress bar card
+3. Current stage checklist (read-only icons, no toggles)
+4. Upcoming stages (collapsed, expandable)
+5. Two-column grid: Personal Info | Recent Activity
+6. **Chat Panel (full-width card below the grid)**
 
-### Database Data Update
-- Delete existing `contracting_agent_steps` records (old step references)
-- Delete existing `contracting_steps` records
-- Insert the 6 new steps
+### Technical Details
 
-### How It Works
-1. Manager/admin checks off "Agreement Signed" on the agent detail page
-2. The `contracting_agent_steps` row is marked `completed` with `completed_by` and `completed_at`
-3. The database trigger fires, sees all required steps for `agreement_pending` are done
-4. Pipeline automatically advances to `surelc_setup`
-5. Progress percentage recalculates
+**File modified:** `src/pages/portal/advisor/contracting/ContractingDashboard.tsx`
 
-### Files Changed
-No frontend or edge function changes needed. The dashboard and agent detail pages already dynamically load steps from the database, so they will automatically display the new 6-step checklist.
+- Add chat state variables to `AgentDashboard`: messages array, newMessage input, sending flag, bottomRef
+- Add `useEffect` to fetch messages from `contracting_messages` where `thread_id = agentId`
+- Add realtime subscription on `contracting_messages` filtered by `thread_id`
+- Add send handler that inserts into `contracting_messages` with `thread_id = agentId` and `sender_id = agentId`
+- Render a chat card with scrollable message list, input field, and send button
+- Messages from the agent appear on the right (branded background), messages from others on the left (gray background) with sender name
+- Resolve sender names by querying `contracting_agents` for IDs found in messages
 
-| Component | Impact |
-|-----------|--------|
-| Database (data only) | Replace seed data with 6 steps |
-| `ContractingDashboard.tsx` | No change (reads steps dynamically) |
-| `ContractingAgentDetail.tsx` | No change (reads steps dynamically) |
-| `auto_advance_pipeline_stage` trigger | No change (already works with any step count) |
+No database changes needed -- the `contracting_messages` table and realtime publication already exist.
 
