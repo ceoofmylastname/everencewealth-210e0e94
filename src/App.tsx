@@ -164,6 +164,9 @@ const ComplianceCenter = lazy(() => import("./pages/portal/advisor/ComplianceCen
 const AdvisorSettings = lazy(() => import("./pages/portal/AdvisorSettings"));
 const CNADashboard = lazy(() => import("./pages/portal/advisor/CNADashboard"));
 const CNAForm = lazy(() => import("./pages/portal/advisor/CNAForm"));
+const ContractingDashboard = lazy(() => import("./pages/portal/advisor/contracting/ContractingDashboard"));
+const ContractingPipeline = lazy(() => import("./pages/portal/advisor/contracting/ContractingPipeline"));
+const ContractingAgentDetail = lazy(() => import("./pages/portal/advisor/contracting/ContractingAgentDetail"));
 const ClientDashboard = lazy(() => import("./pages/portal/client/ClientDashboard"));
 const ClientPolicies = lazy(() => import("./pages/portal/client/ClientPolicies"));
 const ClientDocuments = lazy(() => import("./pages/portal/client/ClientDocuments"));
@@ -381,6 +384,9 @@ const App = () => (
                   <Route path="cna" element={<CNADashboard />} />
                   <Route path="cna/new" element={<CNAForm />} />
                   <Route path="cna/:id" element={<CNAForm />} />
+                  <Route path="contracting" element={<ContractingDashboard />} />
+                  <Route path="contracting/pipeline" element={<ContractingPipeline />} />
+                  <Route path="contracting/agent/:id" element={<ContractingAgentDetail />} />
                 </Route>
               </Route>
               <Route path="/portal/client" element={<ClientRoute />}>

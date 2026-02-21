@@ -6,7 +6,7 @@ import {
   Shield, LogOut, LayoutDashboard, FileText, Users, Send,
   FolderOpen, Menu, X, ChevronRight, MessageSquare,
   Building2, TrendingUp, Wrench, GraduationCap, Megaphone, Calendar, Newspaper,
-  Settings, ClipboardList,
+  Settings, ClipboardList, Briefcase, GitBranch,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { NotificationBell } from "./NotificationBell";
@@ -40,6 +40,13 @@ const advisorNavGroups = [
       { label: "Training", icon: GraduationCap, href: "/portal/advisor/training" },
       { label: "Marketing", icon: Megaphone, href: "/portal/advisor/marketing" },
       { label: "Schedule", icon: Calendar, href: "/portal/advisor/schedule" },
+    ],
+  },
+  {
+    label: "Contracting",
+    items: [
+      { label: "Dashboard", icon: Briefcase, href: "/portal/advisor/contracting" },
+      { label: "Pipeline", icon: GitBranch, href: "/portal/advisor/contracting/pipeline" },
     ],
   },
   {
