@@ -3638,7 +3638,7 @@ export type Database = {
             foreignKeyName: "contracting_agents_manager_id_fkey"
             columns: ["manager_id"]
             isOneToOne: false
-            referencedRelation: "contracting_agents"
+            referencedRelation: "portal_users"
             referencedColumns: ["id"]
           },
           {
