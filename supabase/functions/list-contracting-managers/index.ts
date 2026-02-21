@@ -18,8 +18,9 @@ Deno.serve(async (req) => {
     );
 
     const { data, error } = await supabase
-      .from("crm_agents")
+      .from("portal_users")
       .select("id, first_name, last_name")
+      .eq("role", "advisor")
       .eq("is_active", true)
       .order("first_name");
 
