@@ -1,79 +1,48 @@
 
-
-# Fix the Post-Application Journey + Add Apply Link
+# Remove Director Step and Fix Manager List
 
 ## Summary
-Close the gap between form submission and dashboard access: send the recruit a welcome email with a password-set link, then redirect them to login. Also add the `/apply` link to both footers.
+Remove the "Which director referred you?" step from the intake form (reducing from 9 to 8 steps) and update the "Select your manager" step to pull from the `crm_agents` table instead of `contracting_agents`.
 
 ## Changes
 
-### 1. Update the Edge Function (`contracting-intake`)
-After creating the auth user and agent record:
-- Use Resend (already configured as `RESEND_API_KEY`) to send a welcome email containing a magic link / password reset URL
-- Generate the password reset link via `adminClient.auth.admin.generateLink({ type: 'recovery', email })` -- this gives a one-time link the recruit can use to set their own password
-- The email includes: welcome message, their name, and a "Set Your Password" button linking to the recovery URL
-- On the success screen, update the copy to say "Check your email to set your password and access your dashboard"
+### 1. Remove Director Step (Step 1)
+- Delete the `DIRECTORS` constant and the `referring_director` field from form state
+- Remove step 1 (director selection) entirely
+- Renumber all subsequent steps (current 2-8 become 1-7)
+- Update `TOTAL_STEPS` from 9 to 8
+- Update `canContinue()` switch cases accordingly
 
-### 2. Update Success Screen (`ContractingIntake.tsx`)
-After submission, instead of a dead-end "we'll reach out" message:
-- Show "Check your email to set your password"
-- Add a "Go to Login" button linking to `/portal/login`
-- This makes the journey clear: apply -> check email -> set password -> login -> see agent dashboard
+### 2. Update Manager Step to Use CRM Agents
+- Change the `useEffect` query from `contracting_agents` (filtering by `contracting_role = 'manager'`) to `crm_agents` (filtering by `is_active = true`)
+- This pulls the list of agents that admin has invited through the CRM system
+- Display format remains the same: first_name + last_name with letter badges
 
-### 3. Add `/apply` Link to Homepage Footer
-In `src/components/home/Footer.tsx`:
-- Add "Become an Agent" link under the "Company" section (alongside About Us, Philosophy, Team, Careers)
-- Links to `/apply`
-
-### 4. Add `/apply` Link to Landing Footer
-In `src/components/landing/Footer.tsx`:
-- Add "Become an Agent" link in the footer links row
+### 3. Update Edge Function
+- Remove `referring_director` from the request body destructuring
+- Remove `referring_director` from the `contracting_agents` insert (column still exists in DB but will be null)
 
 ---
 
 ## Technical Details
 
-### Edge Function Changes (`supabase/functions/contracting-intake/index.ts`)
+### `src/pages/ContractingIntake.tsx`
+- Remove `DIRECTORS` array (line 18)
+- Remove `referring_director` from `FormData` interface and initial state
+- Change `TOTAL_STEPS` from 9 to 8
+- Update manager fetch: `supabase.from("crm_agents").select("id, first_name, last_name").eq("is_active", true)`
+- Remove case 1 (director), shift all cases down by 1
+- Update `canContinue()` to match new step numbers
 
-After the agent record is created and activity is logged:
+### `supabase/functions/contracting-intake/index.ts`
+- Remove `referring_director` from body destructuring and from the insert object
 
-```text
-1. Generate recovery link:
-   adminClient.auth.admin.generateLink({ type: 'recovery', email, options: { redirectTo: '<site_url>/portal/login' } })
-
-2. Send email via Resend:
-   POST https://api.resend.com/emails
-   {
-     from: "Everence Wealth <onboarding@...>",
-     to: email,
-     subject: "Welcome to Everence Wealth - Set Your Password",
-     html: styled email with "Set Your Password" button pointing to recovery link
-   }
-
-3. Return { success: true, agent_id, email_sent: true }
-```
-
-### Success Screen Changes (`ContractingIntake.tsx`)
-
-Replace the current "we'll review" message with:
-- Heading: "Application Submitted!"
-- Body: "We've sent a welcome email to [email]. Click the link in the email to set your password and access your onboarding dashboard."
-- Button: "Go to Login" -> navigates to `/portal/login`
-
-### Footer Changes
-
-**`src/components/home/Footer.tsx`** -- Add to Company links:
-```text
-{ label: 'Become an Agent', href: '/apply' }
-```
-
-**`src/components/landing/Footer.tsx`** -- Add link in bottom row:
-```text
-<a href="/apply">Become an Agent</a>
-```
-
-### No Database Changes Needed
-The existing schema already supports this flow. The auth user + contracting_agents record are created; we just need to give the user a way to set their password and log in.
-
-### Email Domain Consideration
-The Resend email "from" address will need a verified domain. We should check what email domain is configured and use it. If none is configured, we'll use a fallback or prompt for setup.
+### New Step Order
+1. Who referred you? (text)
+2. What is your name? (first + last)
+3. What is your email?
+4. What is your phone number?
+5. Where are you located? (state + address)
+6. Are you currently licensed? (yes/no)
+7. Select your manager (from CRM agents)
+8. Consent checkbox + submit
