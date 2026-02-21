@@ -47,8 +47,11 @@ const advisorNavGroups = [
     items: [
       { label: "Dashboard", icon: Briefcase, href: "/portal/advisor/contracting" },
       { label: "Pipeline", icon: GitBranch, href: "/portal/advisor/contracting/pipeline" },
+      { label: "Agents", icon: Users, href: "/portal/advisor/contracting/agents" },
       { label: "Messages", icon: MessageSquare, href: "/portal/advisor/contracting/messages" },
-      { label: "Documents", icon: FolderOpen, href: "/portal/advisor/contracting/documents" },
+      { label: "Files", icon: FolderOpen, href: "/portal/advisor/contracting/documents" },
+      { label: "Analytics", icon: TrendingUp, href: "/portal/advisor/contracting/analytics" },
+      { label: "Settings", icon: Settings, href: "/portal/advisor/contracting/settings" },
     ],
   },
   {
@@ -161,9 +164,7 @@ export function PortalLayout() {
             if (isAdmin && group.label === "Compliance") {
               groupItems = [...groupItems, { label: "Admin Panel", icon: Settings, href: "/portal/admin/agents" }];
             }
-            if (isAdmin && group.label === "Contracting") {
-              groupItems = [...groupItems, { label: "Admin", icon: Settings, href: "/portal/advisor/contracting/admin" }];
-            }
+            // Admin contracting functionality is now in Settings page
             return (
               <div key={group.label}>
                 <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400 px-3 mb-1.5">
