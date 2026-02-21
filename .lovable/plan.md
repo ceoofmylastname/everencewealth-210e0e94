@@ -1,98 +1,61 @@
 
 
-# Comprehensive Activity Logging for Contracting System
+# Contracting Analytics Dashboard
 
 ## Overview
-Add activity log entries for every user action across the contracting portal. The `contracting_activity_logs` table already exists with the right schema (`action`, `agent_id`, `performed_by`, `description`, `metadata`, `created_at`). We just need to insert log rows at every action point.
+Create a new analytics page at `/portal/advisor/contracting/analytics` that provides visual insights into the onboarding pipeline. Accessible only to admin/contracting/manager roles.
 
-## No Database Changes Needed
-The existing `contracting_activity_logs` table already supports all required fields including a `metadata` JSONB column for storing contextual data.
+## Metrics and Visualizations
 
-## Actions to Log
+### 1. KPI Summary Cards (top row)
+- **Average Onboarding Time** -- mean days from `created_at` to `completed_at` for completed agents
+- **Completion Rate** -- percentage of agents who reached "completed" stage vs total
+- **Active Reminders** -- count of `contracting_reminders` where `is_active = true`
+- **Total Activity Logs** -- count of `contracting_activity_logs` entries (last 30 days)
 
-| Action | File | Currently Logged? |
-|---|---|---|
-| Step completed (checkbox) | `ContractingDashboard.tsx` (admin view) | Yes |
-| Document uploaded | `ContractingDashboard.tsx` (agent view) | Yes |
-| Message sent | `ContractingDashboard.tsx` + `ContractingMessages.tsx` | No |
-| Login | `PortalLogin.tsx` | No |
-| Stage changed | `ContractingPipeline.tsx` | No |
-| Agent added | `ContractingPipeline.tsx` | No |
-| Manager assigned | `ContractingAdmin.tsx` | No |
-| Pipeline stage changed (admin) | `ContractingAdmin.tsx` | No |
-| Status changed (admin) | `ContractingAdmin.tsx` | No |
-| Step toggled (detail view) | `ContractingAgentDetail.tsx` | No |
-| File uploaded (detail view) | `ContractingAgentDetail.tsx` | No |
-| Bundle created | `ContractingAdmin.tsx` | No |
-| Needs info sent | `ContractingDashboard.tsx` | No |
+### 2. Drop-Off Funnel (horizontal bar chart)
+Query `contracting_agents` grouped by `pipeline_stage`, ordered by pipeline sequence. Shows how many agents are currently at each stage, making it immediately clear where drop-off occurs. Uses Recharts `BarChart` horizontal layout.
 
-## File Changes
+### 3. Average Time Per Stage (bar chart)
+For completed agents, calculate time spent in each stage by looking at `contracting_agent_steps` completion timestamps and the stage sequence. Displays average days per stage using a vertical `BarChart`.
 
-### 1. `src/pages/portal/PortalLogin.tsx`
-After successful login and portal user verification, insert a log entry:
-- Action: `"login"`
-- Look up the contracting agent by `auth_user_id` to get the `agent_id` and `performed_by`
-- Description: `"Agent logged in"`
-- Metadata: `{ role: portalUser.role }`
+### 4. Reminder Distribution (pie chart)
+Query `contracting_reminders` grouped by `phase` (daily / every_3_days / weekly) to show how many active reminders are in each escalation phase. Uses Recharts `PieChart`.
 
-### 2. `src/pages/portal/advisor/contracting/ContractingDashboard.tsx`
-Add logging to two unlogged actions:
+### 5. Activity Frequency (area chart)
+Query `contracting_activity_logs` for the last 30 days, group by day, chart the volume of actions over time. Uses Recharts `AreaChart`.
 
-**Message sent (agent view, `handleSendMessage`):**
-- Action: `"message_sent"`
-- Description: `"Sent a message"`
+### 6. Top Drop-Off Steps (table)
+Query `contracting_agent_steps` where `status != 'completed'` joined with `contracting_steps` to show which specific steps agents are stuck on most frequently.
 
-**Needs info sent (`handleSendNeedsInfo`):**
-- Action: `"needs_info_sent"`
-- Agent ID: the target agent
-- Performed by: current user
-- Description: `"Information request sent"`
+## Technical Details
 
-### 3. `src/pages/portal/advisor/contracting/ContractingMessages.tsx`
-**Message sent (admin/manager view, `handleSend`):**
-- Action: `"message_sent"`
-- Description: `"Sent a message in thread"`
+### New Files
+| File | Purpose |
+|---|---|
+| `src/hooks/useContractingAnalytics.ts` | React Query hook that fetches all data from the four tables and computes metrics client-side |
+| `src/pages/portal/advisor/contracting/ContractingAnalytics.tsx` | Full page component with charts and cards |
 
-### 4. `src/pages/portal/advisor/contracting/ContractingPipeline.tsx`
-**Agent added (`handleAddAgent`):**
-- Action: `"agent_added"`
-- Description: `"New agent added: {name}"`
-
-**Stage changed (`moveStage`):**
-- Action: `"stage_changed"`
-- Description: `"Stage changed to {newStage}"`
-- Metadata: `{ new_stage: newStage }`
-
-### 5. `src/pages/portal/advisor/contracting/ContractingAdmin.tsx`
-**`updateAgent` function** -- log every field change:
-- Action: `"field_updated"`
-- Description: `"{field} updated to {value}"` with human-readable mappings for `manager_id`, `pipeline_stage`, `status`
-- Metadata: `{ field, value }`
-
-**Bundle created (`createBundle`):**
-- Action: `"bundle_created"`
-- Description: `"Bundle created: {name}"`
-
-### 6. `src/pages/portal/advisor/contracting/ContractingAgentDetail.tsx`
-**Step toggled (`toggleStep`):**
-- Action: `"step_completed"` or `"step_reopened"`
-- Description: `"Step toggled to {status}"`
-
-**File uploaded (`handleFileUpload`):**
-- Action: `"document_uploaded"`
-- Description: `"Document uploaded: {fileName}"`
-
-## Implementation Pattern
-Every log insert follows the same pattern (fire-and-forget to avoid blocking the UI):
-
-```typescript
-supabase.from("contracting_activity_logs").insert({
-  agent_id: targetAgentId,
-  performed_by: currentUserId,
-  action: "action_name",
-  description: "Human-readable description",
-  metadata: { /* contextual data */ },
-}).then(null, err => console.error("Activity log error:", err));
+### Route Addition
+In `src/App.tsx`, add:
+```
+contracting/analytics -> ContractingAnalytics
 ```
 
-All inserts are non-blocking -- failures are logged to console but do not interrupt the user's workflow.
+### Data Fetching Strategy
+A single `useQuery` hook makes parallel queries to:
+- `contracting_agents` (all rows, select relevant columns)
+- `contracting_agent_steps` with joined `contracting_steps`
+- `contracting_activity_logs` (last 30 days)
+- `contracting_reminders` (active only)
+
+All aggregation is done client-side to avoid needing new database functions.
+
+### Chart Library
+Uses the existing `recharts` dependency (already installed) with direct imports (`BarChart`, `PieChart`, `AreaChart`, `ResponsiveContainer`) -- matching the pattern used in calculator pages.
+
+### Access Control
+Uses the existing `useContractingAuth` hook. Only renders for users where `canManage === true`.
+
+### Navigation
+Add an "Analytics" link/button to the existing contracting navigation (in `ContractingDashboard.tsx` manager/admin view header area).
