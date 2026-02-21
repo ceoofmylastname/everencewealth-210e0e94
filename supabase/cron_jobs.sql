@@ -149,3 +149,21 @@ SELECT cron.schedule(
 -- SELECT cron.unschedule('send-reminder-emails');
 -- SELECT cron.unschedule('check-claim-window-expiry');
 -- SELECT cron.unschedule('check-contact-window-expiry');
+-- SELECT cron.unschedule('process-contracting-reminders');
+
+-- ==============================================
+-- 8. PROCESS CONTRACTING REMINDERS - Every hour at :30
+-- Sends escalating reminder emails to agents with incomplete onboarding steps
+-- Phase 1: Daily (reminders 1-5), Phase 2: Every 3 days (6-10), Phase 3: Weekly (11-15)
+-- ==============================================
+SELECT cron.schedule(
+  'process-contracting-reminders',
+  '30 * * * *',
+  $$
+  SELECT net.http_post(
+    url := 'https://zbzrmpmqijvmjbhctfoe.supabase.co/functions/v1/process-contracting-reminders',
+    headers := '{"Content-Type": "application/json", "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpienJtcG1xaWp2bWpiaGN0Zm9lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzExNjk1MzUsImV4cCI6MjA4Njc0NTUzNX0.cI7HQmbY1XF_wmPMSm9ofbQdR3iujQ5_YNg8h_YLkVg"}'::jsonb,
+    body := '{"triggered_by": "cron"}'::jsonb
+  ) AS request_id;
+  $$
+);

@@ -3883,31 +3883,37 @@ export type Database = {
           agent_id: string
           created_at: string
           id: string
-          reminder_type: string
-          scheduled_for: string
-          sent_at: string | null
-          status: string
-          step_id: string | null
+          is_active: boolean
+          last_sent_at: string | null
+          next_send_at: string
+          phase: string
+          reminder_count: number
+          stage: string
+          step_id: string
         }
         Insert: {
           agent_id: string
           created_at?: string
           id?: string
-          reminder_type?: string
-          scheduled_for?: string
-          sent_at?: string | null
-          status?: string
-          step_id?: string | null
+          is_active?: boolean
+          last_sent_at?: string | null
+          next_send_at: string
+          phase?: string
+          reminder_count?: number
+          stage: string
+          step_id: string
         }
         Update: {
           agent_id?: string
           created_at?: string
           id?: string
-          reminder_type?: string
-          scheduled_for?: string
-          sent_at?: string | null
-          status?: string
-          step_id?: string | null
+          is_active?: boolean
+          last_sent_at?: string | null
+          next_send_at?: string
+          phase?: string
+          reminder_count?: number
+          stage?: string
+          step_id?: string
         }
         Relationships: [
           {
