@@ -1070,6 +1070,7 @@ function ManagerDashboard({ canManage, canApprove, portalUserId, isManagerOnly }
 
 export default function ContractingDashboard() {
   const { contractingAgent, contractingRole, canManage, portalUser, loading } = useContractingAuth();
+  const [forceStage, setForceStage] = useState<string | null>(null);
 
   if (loading) {
     return (
@@ -1081,9 +1082,9 @@ export default function ContractingDashboard() {
 
   // Agent role → welcome page for new agents, or personal dashboard
   if (contractingRole === "agent" && contractingAgent) {
-    const stage = contractingAgent.pipeline_stage;
+    const stage = forceStage || contractingAgent.pipeline_stage;
     if (stage === "intake_submitted" || stage === "agreement_pending") {
-      return <AgentWelcome firstName={contractingAgent.first_name} agentId={contractingAgent.id} fullName={`${contractingAgent.first_name} ${contractingAgent.last_name}`} />;
+      return <AgentWelcome firstName={contractingAgent.first_name} agentId={contractingAgent.id} fullName={`${contractingAgent.first_name} ${contractingAgent.last_name}`} onContinue={() => setForceStage("surelc_setup")} />;
     }
     if (stage === "surelc_setup") {
       return <SureLCSetup agentId={contractingAgent.id} firstName={contractingAgent.first_name} />;
