@@ -1,39 +1,39 @@
 
 
-# Fix: Allow Agent Agreement to Sign and Save
+# Post-Agreement Confirmation Page
 
-## Problem
-When an agent signs the agreement and clicks submit, they get: **"new row violates row-level security policy for table contracting_agent_steps"**
+## Overview
+After an agent signs the Agent Agreement, instead of immediately reloading to the Step 2 checklist, show a branded confirmation page acknowledging receipt of the agreement and introducing the next phase (carrier contracting via SureLC).
 
-The INSERT policy on `contracting_agent_steps` only allows `contracting` and `admin` roles. Agents cannot mark their own steps as completed.
+## What Changes
 
-## Solution
+### Modified: `AgentWelcome.tsx`
+Add a third state (`showConfirmation`) that displays after the agent successfully signs. The flow becomes:
 
-### 1. Update RLS Policy on `contracting_agent_steps`
-Add a new INSERT policy (or modify the existing one) to allow agents to insert rows for their own `agent_id`:
+1. Welcome page (Step 1 intro) -- current behavior, unchanged
+2. Agreement form (sign and submit) -- current behavior, unchanged
+3. **NEW: Confirmation page** -- shown after signing, before proceeding to Step 2
 
-```sql
--- Allow agents to insert their own step records
-CREATE POLICY "agents_can_insert_own_steps"
-ON public.contracting_agent_steps
-FOR INSERT TO authenticated
-WITH CHECK (agent_id = get_contracting_agent_id(auth.uid()));
-```
+The confirmation page will contain:
+- Branded header card (same style as welcome page)
+- A letter-style body with:
+  - "Dear {firstName}, I wanted to confirm that we have received your Agent Agreement. Thank you for submitting it promptly."
+  - "{firstName}, you will now be able to get appointed with the Insurance Carriers -- Steps 2 of 2."
+  - "Please, watch both SureLC videos to ensure you complete your onboarding process."
+  - "Please let us know if you have any questions or need further assistance."
+  - "Best regards, Contracting"
+- A "Continue to Step 2" button that triggers `window.location.reload()` to load the AgentDashboard checklist
 
-This is safe because:
-- Agents can only insert rows where `agent_id` matches their own ID
-- The existing UPDATE policy already allows agents to update their own rows
-- The `auto_advance_pipeline_stage` trigger handles the pipeline progression server-side
-
-### 2. No Code Changes Needed
-The `AgentAgreementForm` component code is already correct. Once the RLS policy is fixed, the existing sign-and-submit flow will work end-to-end.
+### Flow Change
+- Currently: Sign agreement --> `window.location.reload()` --> AgentDashboard
+- New: Sign agreement --> Confirmation page --> User clicks "Continue" --> `window.location.reload()` --> AgentDashboard
 
 ## Technical Details
 
 | Item | Detail |
 |---|---|
-| Root cause | INSERT policy on `contracting_agent_steps` excludes agent role |
-| Fix | Add new INSERT policy allowing agents to insert own rows |
-| Risk | Low -- agents already have UPDATE on own rows; INSERT is consistent |
-| Files changed | Database migration only (no code changes) |
+| File modified | `src/pages/portal/advisor/contracting/AgentWelcome.tsx` |
+| Change type | Add `showConfirmation` state and confirmation UI |
+| No new files | Confirmation is a view state within AgentWelcome |
+| No DB changes | None required |
 
