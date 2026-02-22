@@ -56,16 +56,15 @@ export default function PortalLogin() {
         .maybeSingle();
 
       if (portalError || !portalUser) {
-        const supportCode = authData.user.id.substring(0, 8).toUpperCase();
         await supabase.auth.signOut();
-        setError(`Account setup incomplete. Please contact support with code: ${supportCode}`);
+        setError("No account found. If you recently applied, please wait for manager approval.");
         setLoading(false);
         return;
       }
 
       if (!portalUser.is_active) {
         await supabase.auth.signOut();
-        setError("Your account has been deactivated. Contact support.");
+        setError("Your account is pending approval from your manager. You'll receive an email once approved.");
         setLoading(false);
         return;
       }

@@ -492,6 +492,7 @@ interface EnhancedAgent {
   manager_id: string | null;
   updated_at: string;
   created_at: string;
+  portal_is_active?: boolean;
 }
 
 interface ManagerDashboardProps {
@@ -514,6 +515,7 @@ function ManagerDashboard({ canManage, portalUserId, isManagerOnly }: ManagerDas
   const [needsInfoAgent, setNeedsInfoAgent] = useState<EnhancedAgent | null>(null);
   const [needsInfoMessage, setNeedsInfoMessage] = useState("");
   const [sendingNeedsInfo, setSendingNeedsInfo] = useState(false);
+  const [approvingAgent, setApprovingAgent] = useState<string | null>(null);
 
   useEffect(() => {
     fetchAll();
@@ -528,6 +530,36 @@ function ManagerDashboard({ canManage, portalUserId, isManagerOnly }: ManagerDas
       }
       const { data: agentsData } = await agentsQuery;
       const agentsList = (agentsData || []) as EnhancedAgent[];
+
+      // Fetch portal_users active status for these agents
+      const authUserIds = agentsList.map(a => a.id); // we need auth_user_ids but we don't have them here
+      // Instead, fetch portal active status via auth_user_id from contracting_agents
+      const { data: agentsWithAuth } = await supabase
+        .from("contracting_agents")
+        .select("id, auth_user_id")
+        .in("id", agentsList.map(a => a.id));
+      
+      const authIdMap = new Map<string, string>();
+      (agentsWithAuth || []).forEach((a: any) => authIdMap.set(a.id, a.auth_user_id));
+      
+      const authIds = [...new Set(Array.from(authIdMap.values()).filter(Boolean))];
+      let portalActiveMap = new Map<string, boolean>();
+      if (authIds.length > 0) {
+        const { data: portalUsers } = await supabase
+          .from("portal_users")
+          .select("auth_user_id, is_active")
+          .in("auth_user_id", authIds);
+        if (portalUsers) {
+          portalUsers.forEach((pu: any) => portalActiveMap.set(pu.auth_user_id, pu.is_active));
+        }
+      }
+      
+      // Attach portal_is_active to agents
+      agentsList.forEach(a => {
+        const authId = authIdMap.get(a.id);
+        a.portal_is_active = authId ? portalActiveMap.get(authId) ?? true : true;
+      });
+
       setAgents(agentsList);
 
       const agentIds = agentsList.map(a => a.id);
@@ -685,6 +717,24 @@ function ManagerDashboard({ canManage, portalUserId, isManagerOnly }: ManagerDas
       toast.error("Failed to send request");
     } finally {
       setSendingNeedsInfo(false);
+    }
+  }
+
+  // ── Approve agent handler ──
+  async function handleApproveAgent(agentId: string) {
+    setApprovingAgent(agentId);
+    try {
+      const { data, error } = await supabase.functions.invoke("approve-agent", {
+        body: { agent_id: agentId },
+      });
+      if (error) throw error;
+      toast.success("Agent approved! They can now log in.");
+      await fetchAll();
+    } catch (err: any) {
+      console.error("Approve error:", err);
+      toast.error("Failed to approve agent: " + (err.message || "Unknown error"));
+    } finally {
+      setApprovingAgent(null);
     }
   }
 
@@ -917,7 +967,17 @@ function ManagerDashboard({ canManage, portalUserId, isManagerOnly }: ManagerDas
                       {canManage && (
                         <TableCell>
                           <div className="flex items-center gap-2">
-                            {nextStep && !stageComplete ? (
+                            {agent.portal_is_active === false && agent.pipeline_stage === "intake_submitted" ? (
+                              <Button
+                                size="sm"
+                                onClick={() => handleApproveAgent(agent.id)}
+                                disabled={approvingAgent === agent.id}
+                                style={{ background: BRAND }}
+                                className="text-white text-xs h-7"
+                              >
+                                {approvingAgent === agent.id ? <Loader2 className="h-3 w-3 animate-spin" /> : "Approve"}
+                              </Button>
+                            ) : nextStep && !stageComplete ? (
                               <>
                                 <Checkbox
                                   disabled={completingStep === agent.id}
