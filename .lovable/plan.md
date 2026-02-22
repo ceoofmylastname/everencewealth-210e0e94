@@ -1,28 +1,29 @@
 
-# Fix: Show "Approved" After Clicking Approve
+
+# Fix: Login Redirect Points to Non-Existent Route
 
 ## Problem
-After an admin or manager clicks "Approve," the button either stays as "Approve" or changes to a dash ("—"). It should clearly show "Approved" with a green checkmark so the user gets visual confirmation.
+When a user (like Bobby) logs in and has an active contracting pipeline, the login page redirects them to `/portal/advisor/contracting/dashboard` -- but that route does not exist. The actual route for the Contracting Dashboard is `/portal/advisor/contracting`. This causes the 404 error.
 
-## Solution
-In both the Dashboard and Agents pages, replace the dash ("—") shown after approval with an "Approved" label (green text + checkmark icon). This applies to:
-
-1. **ContractingDashboard.tsx** — In the Actions column, when `portal_is_active` is `true` and there's no next step to complete, show "Approved" with a green CheckCircle icon instead of "—".
-
-2. **ContractingAgents.tsx** — In the Action column, when `portal_is_active` is `true`, show "Approved" with a green CheckCircle icon instead of "—".
-
-## Technical Details
-
-| File | Change |
-|---|---|
-| `src/pages/portal/advisor/contracting/ContractingDashboard.tsx` (around line 972-981) | When `portal_is_active === true` and there is no actionable next step, render a green "Approved" badge with CheckCircle icon instead of the current dash |
-| `src/pages/portal/advisor/contracting/ContractingAgents.tsx` (lines 273-274) | Replace `<span className="text-xs text-muted-foreground">—</span>` with a green "Approved" label with CheckCircle icon |
-
-The approved state markup will look like:
+## Root Cause
+In `src/pages/portal/PortalLogin.tsx` (line 95), the redirect path is wrong:
 ```tsx
-<span className="inline-flex items-center gap-1 text-xs text-green-700 font-medium">
-  <CheckCircle className="h-3.5 w-3.5" /> Approved
-</span>
+navigate("/portal/advisor/contracting/dashboard", { replace: true });
+```
+The correct path should be `/portal/advisor/contracting`, which matches the route defined in `App.tsx` (line 395).
+
+## Fix
+
+**File: `src/pages/portal/PortalLogin.tsx` (line 95)**
+
+Change:
+```tsx
+navigate("/portal/advisor/contracting/dashboard", { replace: true });
+```
+To:
+```tsx
+navigate("/portal/advisor/contracting", { replace: true });
 ```
 
-Both files already import `CheckCircle` from lucide-react, so no new dependencies are needed.
+This is a one-line fix. No other files need to change.
+
