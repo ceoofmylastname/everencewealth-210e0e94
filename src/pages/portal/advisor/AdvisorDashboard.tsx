@@ -65,13 +65,13 @@ export default function AdvisorDashboard() {
         supabase.from("portal_users").select("id", { count: "exact", head: true }).eq("advisor_id", portalUser!.id).eq("role", "client"),
         supabase.from("policies").select("id", { count: "exact", head: true }).eq("advisor_id", advisor.id).eq("policy_status", "active"),
         supabase.from("client_invitations").select("id", { count: "exact", head: true }).eq("advisor_id", advisor.id).eq("status", "pending"),
-        supabase.from("advisor_performance").select("revenue").eq("advisor_id", advisor.id).gte("entry_date", `${currentYear}-01-01`),
+        supabase.from("advisor_sales").select("annual_premium").eq("advisor_id", advisor.id).gte("submitted_at", `${currentYear}-01-01T00:00:00`),
         supabase.from("carrier_news").select("*, carriers(carrier_name)").eq("status", "published").order("published_at", { ascending: false }).limit(3),
         supabase.from("schedule_events").select("*, creator:portal_users!schedule_events_created_by_fkey(role)").gte("event_date", today).order("event_date", { ascending: true }).limit(3),
         supabase.from("portal_users").select("id, first_name, last_name, email, avatar_url, created_at").eq("advisor_id", portalUser!.id).eq("role", "client").order("created_at", { ascending: false }).limit(5),
       ]);
 
-      const ytdRevenue = perfData.data?.reduce((sum, r) => sum + (Number(r.revenue) || 0), 0) ?? 0;
+      const ytdRevenue = perfData.data?.reduce((sum, r) => sum + (Number(r.annual_premium) || 0), 0) ?? 0;
       setStats({ totalClients: clients.count ?? 0, activePolicies: policies.count ?? 0, ytdRevenue, pendingInvitations: invitations.count ?? 0 });
 
       setRecentNews(news.data ?? []);
