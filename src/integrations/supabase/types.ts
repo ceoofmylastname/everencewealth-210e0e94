@@ -3653,6 +3653,68 @@ export type Database = {
           },
         ]
       }
+      contracting_agreements: {
+        Row: {
+          agent_id: string
+          agent_initials: string | null
+          agent_signature: string | null
+          agent_signed_at: string | null
+          company_initials: string | null
+          company_signature: string | null
+          company_signed_at: string | null
+          company_signed_by: string | null
+          consultant_name: string
+          created_at: string
+          effective_date: string
+          id: string
+          pdf_storage_path: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          agent_id: string
+          agent_initials?: string | null
+          agent_signature?: string | null
+          agent_signed_at?: string | null
+          company_initials?: string | null
+          company_signature?: string | null
+          company_signed_at?: string | null
+          company_signed_by?: string | null
+          consultant_name: string
+          created_at?: string
+          effective_date?: string
+          id?: string
+          pdf_storage_path?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          agent_id?: string
+          agent_initials?: string | null
+          agent_signature?: string | null
+          agent_signed_at?: string | null
+          company_initials?: string | null
+          company_signature?: string | null
+          company_signed_at?: string | null
+          company_signed_by?: string | null
+          consultant_name?: string
+          created_at?: string
+          effective_date?: string
+          id?: string
+          pdf_storage_path?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contracting_agreements_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "contracting_agents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contracting_bundles: {
         Row: {
           carrier_ids: string[]
