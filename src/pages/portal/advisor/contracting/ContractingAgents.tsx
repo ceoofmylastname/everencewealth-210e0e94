@@ -55,6 +55,7 @@ interface AgentRow {
 
 export default function ContractingAgents() {
   const { contractingRole, canManage, loading: authLoading } = useContractingAuth();
+  const canApprove = canManage || contractingRole === "manager";
   const [agents, setAgents] = useState<AgentRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -210,13 +211,13 @@ export default function ContractingAgents() {
               <TableHead>Manager</TableHead>
               <TableHead className="text-right">Days</TableHead>
               <TableHead className="text-right">Progress</TableHead>
-              {canManage && <TableHead>Action</TableHead>}
+              {canApprove && <TableHead>Action</TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
             {filtered.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={canManage ? 9 : 8} className="text-center text-muted-foreground py-10">
+                <TableCell colSpan={canApprove ? 9 : 8} className="text-center text-muted-foreground py-10">
                   No agents found
                 </TableCell>
               </TableRow>
@@ -258,7 +259,7 @@ export default function ContractingAgents() {
                   <TableCell className="text-right font-medium">
                     {agent.progress_pct ?? 0}%
                   </TableCell>
-                  {canManage && (
+                  {canApprove && (
                     <TableCell>
                       {agent.portal_is_active === false ? (
                         <Button
