@@ -1,56 +1,45 @@
 
+# Celebration Button with Confetti After Screenshot Upload
 
-# Fix: Upload Button and Activity Tracking Bugs
+## What Changes
 
-## Two bugs found and fixes needed:
+### Modified: `SureLCSetup.tsx`
 
-### Bug 1: Activity Log Trigger References Wrong Column
-The database trigger `create_contracting_notification_from_activity` references `NEW.activity_type`, but the actual column in `contracting_activity_logs` is called `action`. This causes every insert to fail with `"record 'new' has no field 'activity_type'"`.
+After the screenshot is successfully uploaded, instead of just showing a static "Screenshot Uploaded!" message, the component will:
 
-**Fix:** Update the trigger function to use `NEW.action` instead of `NEW.activity_type`.
+1. **Show a celebration button** that only appears once the screenshot is uploaded
+2. **On click, fire a massive confetti explosion** from both sides of the screen using a lightweight canvas-based confetti function (no new dependencies -- we'll use a self-contained confetti utility)
+3. **Display an epic congratulations message** personalized with the agent's first name:
+   - "You're officially a Gladiator in a Suit!"
+   - "Let's go help families, {firstName}!"
+   - Celebratory styling with the brand green/gold palette, animated entrance
 
-```sql
-CREATE OR REPLACE FUNCTION create_contracting_notification_from_activity()
-RETURNS TRIGGER AS $$
-BEGIN
-  INSERT INTO public.contracting_notifications (agent_id, title, message, notification_type, link)
-  VALUES (
-    NEW.agent_id,
-    CASE NEW.action
-      WHEN 'step_completed' THEN 'Step Completed'
-      WHEN 'stage_changed' THEN 'Stage Updated'
-      WHEN 'document_uploaded' THEN 'Document Uploaded'
-      WHEN 'message_sent' THEN 'New Message'
-      ELSE 'Activity Update'
-    END,
-    COALESCE(NEW.description, 'Activity recorded on your contracting profile.'),
-    COALESCE(NEW.action, 'message'),
-    '/portal/advisor/contracting'
-  );
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-```
+### Confetti Implementation (no new packages)
+A small `fireConfetti()` utility function will be added directly inside the component file. It creates a temporary canvas overlay and shoots colorful particles from both the left and right edges of the screen simultaneously. The canvas auto-removes after the animation completes (~3 seconds). Colors will use brand green and gold plus celebratory extras.
 
-### Bug 2: File Upload Fails Due to Spaces in Filename
-The storage upload path includes the raw filename which can have spaces (e.g., `Screenshot 2026-02-13 at 12.46.36 AM.jpeg`). Supabase Storage rejects keys with spaces.
+### Flow
+1. Agent uploads screenshot -- upload zone changes to green success state (existing)
+2. A bold "Complete Your Onboarding" button appears below the success state, pulsing with brand gold
+3. Agent clicks the button -- confetti erupts from both sides, button transforms into a full celebration card:
+   - Shield/trophy icon
+   - "CONGRATULATIONS, {firstName}!"
+   - "You're officially a Gladiator in a Suit."
+   - "Let's go help families, {firstName}!"
+   - Animated fade-in with scale effect
+4. After a 4-second delay, the page reloads to advance the pipeline (replaces the current 2-second auto-reload)
 
-**Fix:** Sanitize the filename in `SureLCSetup.tsx` by replacing spaces and special characters with underscores.
+### Visual Design
+- The celebration card uses the brand gradient background (deep green to teal)
+- Gold accent sparkle effects
+- Text is white with gold highlights for "Gladiator in a Suit"
+- Smooth `animate-fade-in` and `animate-scale-in` entrance animations
 
-Change the upload path construction (line 147) from:
-```ts
-const filePath = `${agentId}/surelc/${Date.now()}_${file.name}`;
-```
-to:
-```ts
-const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
-const filePath = `${agentId}/surelc/${Date.now()}_${safeName}`;
-```
+## Technical Details
 
-## Files Changed
-
-| File | Action |
+| Item | Detail |
 |---|---|
-| Database migration | Fix trigger function to use `action` instead of `activity_type` |
-| `src/pages/portal/advisor/contracting/SureLCSetup.tsx` | Sanitize filename to remove spaces before upload |
-
+| Files modified | `SureLCSetup.tsx` |
+| New dependencies | None (confetti is self-contained canvas code) |
+| New state | `showCelebration` boolean |
+| DB changes | None |
+| Behavior change | Replaces auto-reload with button-triggered celebration, then reload after 4s |
