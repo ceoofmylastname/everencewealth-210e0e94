@@ -1,51 +1,51 @@
 
 
-# Mobile-First Agents CRM Dashboard
+# Portal Onboarding Tour -- First-Time Welcome Experience
 
-## Problem
-The current Agents page uses a 12-column data table that requires horizontal scrolling on mobile devices. Filters use fixed-width selects that overflow on small screens. There's no card-based mobile view.
+## Overview
+A multi-step guided tour that appears as a fullscreen modal overlay the first time an advisor signs in. Each step highlights one sidebar navigation group with a modern, animated design. Users can click "Next" to advance or "X" to dismiss. The tour state persists in localStorage so it only shows once.
 
-## Solution
-Rebuild the page with a mobile-first approach: card-based agent list on mobile, full table on desktop, with touch-friendly filters and improved stat cards.
+## Tour Steps (5 total)
 
-## Changes (single file)
+1. **Welcome / Portal** -- "Your command center. The Dashboard gives you a full snapshot of your business. Clients lets you invite and manage clients. Policies tracks all active coverage. CNA helps you understand each client's needs. Messages keeps the conversation going."
 
-**File:** `src/pages/portal/advisor/contracting/ContractingAgents.tsx` -- rewrite
+2. **Market** -- "Stay ahead of the industry. Browse Carriers, read the latest News, and track your Performance all in one place."
 
-### Mobile Layout (below 768px)
+3. **Resources** -- "Everything you need to grow. Access quoting Tools, complete Training courses, grab Marketing materials, and manage your Schedule."
 
-1. **Stat Cards**: 2x2 grid with the 5th card spanning full width, larger touch targets (min 48px height), bolder typography
-2. **Filters**: Horizontal scrollable pill/chip row for quick filters (Status, Stage, Licensed), full-width search bar above
-3. **Agent Cards** (replaces table): Each card shows:
-   - Avatar initials + full name (tappable, links to detail)
-   - Stage pill (color-coded) + Licensed badge
-   - Progress bar with percentage
-   - Manager name, days in pipeline, last activity as compact metadata row
-   - Email + phone as secondary info
-   - Approve button (if applicable) as full-width action
-   - Red left-border accent for stuck agents (7d+ inactive)
-   - Min 44px touch targets on all interactive elements
+4. **Contracting** -- "Onboard new agents seamlessly. Track the full pipeline from application to completion, manage documents, and monitor analytics."
 
-### Desktop Layout (768px+)
+5. **Compliance** -- "Stay compliant and organized. Monitor licensing, manage documents, invite clients, and configure your settings."
 
-4. **Keep existing table** but wrap in responsive container that only renders on md+ screens
-5. Stat cards switch to 5-column grid
-6. Filters display inline horizontally
+## Visual Design
 
-### Technical Approach
+- Fullscreen semi-transparent backdrop (blur effect)
+- Centered card (max-w-lg) with smooth slide/fade animations between steps
+- Each step features:
+  - Large icon cluster representing the section (using existing Lucide icons)
+  - Section name as a styled heading
+  - Brief description paragraph
+  - Step indicator dots at the bottom
+  - "Next" button (brand green) + "Skip Tour" text link
+  - Final step shows "Get Started" button instead of Next
+- Mobile: card goes full-width with adjusted padding, larger touch targets
 
-- Use the existing `useMediaQuery` hook or Tailwind responsive classes
-- Conditionally render card list vs table based on screen size
-- Extract `MobileAgentCard` as an inline component within the same file
-- All data fetching, real-time subscriptions, and filter logic remain unchanged
-- Add `pb-24` safe area padding at bottom for mobile
-- Touch targets minimum 44px height on buttons and tappable areas
+## Persistence
 
-### UI Polish (both views)
+- Uses `localStorage` key `portal_tour_completed` set to `true` on dismiss or completion
+- Checked on mount in PortalLayout -- if not set and user is an advisor, show the tour
 
-- Smoother stat card design with subtle gradient backgrounds
-- Improved color palette for stage pills (slightly more saturated)
-- Better spacing and padding throughout
-- Sticky search bar on mobile scroll
-- Empty state with illustration for zero results
+## Technical Details
 
+### New File
+`src/components/portal/PortalOnboardingTour.tsx` -- Self-contained tour component with all 5 steps, animations via Framer Motion, and localStorage logic.
+
+### Modified File
+`src/components/portal/PortalLayout.tsx` -- Import and render `<PortalOnboardingTour />` inside the layout, passing `isAdvisor` and `portalUser` to control visibility.
+
+### Implementation Notes
+- Uses Framer Motion `AnimatePresence` + `motion.div` for step transitions (slide left/right + fade)
+- Each step has a curated icon grid showing the nav items for that section
+- Step dots are clickable for random access
+- Responsive: on mobile the card is nearly full-screen with bottom-anchored buttons
+- No database changes needed -- localStorage is sufficient for this feature
