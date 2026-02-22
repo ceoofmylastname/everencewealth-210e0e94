@@ -1,45 +1,74 @@
 
-# Celebration Button with Confetti After Screenshot Upload
 
-## What Changes
+# Real-Time Manager Dashboard Updates
 
-### Modified: `SureLCSetup.tsx`
+## Problem
+The Manager Dashboard fetches all data once when the page loads and never updates again. There are no real-time subscriptions, so when an agent signs their agreement, advances stages, clicks videos, or uploads screenshots, the manager sees nothing until they manually refresh the page.
 
-After the screenshot is successfully uploaded, instead of just showing a static "Screenshot Uploaded!" message, the component will:
+## Solution
+Add real-time database subscriptions to the Manager Dashboard so it automatically refreshes whenever agent data changes. Also enable realtime on the tables that don't have it yet.
 
-1. **Show a celebration button** that only appears once the screenshot is uploaded
-2. **On click, fire a massive confetti explosion** from both sides of the screen using a lightweight canvas-based confetti function (no new dependencies -- we'll use a self-contained confetti utility)
-3. **Display an epic congratulations message** personalized with the agent's first name:
-   - "You're officially a Gladiator in a Suit!"
-   - "Let's go help families, {firstName}!"
-   - Celebratory styling with the brand green/gold palette, animated entrance
+## Changes
 
-### Confetti Implementation (no new packages)
-A small `fireConfetti()` utility function will be added directly inside the component file. It creates a temporary canvas overlay and shoots colorful particles from both the left and right edges of the screen simultaneously. The canvas auto-removes after the animation completes (~3 seconds). Colors will use brand green and gold plus celebratory extras.
+### 1. Database Migration: Enable Realtime on Missing Tables
 
-### Flow
-1. Agent uploads screenshot -- upload zone changes to green success state (existing)
-2. A bold "Complete Your Onboarding" button appears below the success state, pulsing with brand gold
-3. Agent clicks the button -- confetti erupts from both sides, button transforms into a full celebration card:
-   - Shield/trophy icon
-   - "CONGRATULATIONS, {firstName}!"
-   - "You're officially a Gladiator in a Suit."
-   - "Let's go help families, {firstName}!"
-   - Animated fade-in with scale effect
-4. After a 4-second delay, the page reloads to advance the pipeline (replaces the current 2-second auto-reload)
+Enable realtime on `contracting_agents` and `contracting_activity_logs` so changes to these tables can be broadcast to subscribed clients.
 
-### Visual Design
-- The celebration card uses the brand gradient background (deep green to teal)
-- Gold accent sparkle effects
-- Text is white with gold highlights for "Gladiator in a Suit"
-- Smooth `animate-fade-in` and `animate-scale-in` entrance animations
+```sql
+ALTER PUBLICATION supabase_realtime ADD TABLE public.contracting_agents;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.contracting_activity_logs;
+```
 
-## Technical Details
+### 2. Add Real-Time Subscriptions to ManagerDashboard
 
-| Item | Detail |
+In `ContractingDashboard.tsx`, inside the `ManagerDashboard` component, add a new `useEffect` that subscribes to three channels:
+
+- **contracting_agents** (any UPDATE/INSERT) -- catches stage changes, progress updates, status changes
+- **contracting_agent_steps** (any INSERT/UPDATE) -- catches step completions (agreement signed, SureLC uploaded, etc.)
+- **contracting_activity_logs** (any INSERT) -- catches new activities (video clicks, uploads, logins)
+
+When any of these events fire, the dashboard calls `fetchAll()` to refresh all data. A short debounce (500ms) prevents rapid-fire refetches when multiple changes happen at once (e.g., step completion triggers both a step update and a stage change).
+
+The subscription cleans up on unmount.
+
+### What the Manager Will See Update in Real Time
+
+| Agent Action | What Updates on Dashboard |
 |---|---|
-| Files modified | `SureLCSetup.tsx` |
-| New dependencies | None (confetti is self-contained canvas code) |
-| New state | `showCelebration` boolean |
-| DB changes | None |
-| Behavior change | Replaces auto-reload with button-triggered celebration, then reload after 4s |
+| Signs in / logs in | Last Activity column updates |
+| Signs Agent Agreement | Stage changes from "Intake Submitted" to "Agreement Pending", progress bar advances |
+| Reaches SureLC Setup | Stage changes to "SureLC Setup" |
+| Clicks video links | Last Activity updates (tracked in activity logs) |
+| Uploads SureLC screenshot | Progress bar advances, step completion registered |
+| Completes onboarding celebration | Stage advances, progress updates |
+| Any stage/step change | Stats cards (Active, Completed, Stuck) update automatically |
+
+### Technical Details
+
+**File modified:** `src/pages/portal/advisor/contracting/ContractingDashboard.tsx`
+
+The new `useEffect` will be added right after the existing `fetchAll` useEffect (around line 538):
+
+```text
+useEffect(() => {
+  let debounceTimer: NodeJS.Timeout;
+  const debouncedFetch = () => {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => fetchAll(), 500);
+  };
+
+  const channel = supabase
+    .channel('manager-dashboard-realtime')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'contracting_agents' }, debouncedFetch)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'contracting_agent_steps' }, debouncedFetch)
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'contracting_activity_logs' }, debouncedFetch)
+    .subscribe();
+
+  return () => {
+    clearTimeout(debounceTimer);
+    supabase.removeChannel(channel);
+  };
+}, [portalUserId, isManagerOnly]);
+```
+
+No new dependencies, no new components. Just wiring up the existing `fetchAll()` to real-time events.
