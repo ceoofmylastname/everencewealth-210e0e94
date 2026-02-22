@@ -1069,7 +1069,7 @@ export default function ContractingDashboard() {
   if (contractingRole === "agent" && contractingAgent) {
     const stage = contractingAgent.pipeline_stage;
     if (stage === "intake_submitted" || stage === "agreement_pending") {
-      return <AgentWelcome firstName={contractingAgent.first_name} />;
+      return <AgentWelcome firstName={contractingAgent.first_name} agentId={contractingAgent.id} fullName={`${contractingAgent.first_name} ${contractingAgent.last_name}`} />;
     }
     return (
       <AgentDashboard

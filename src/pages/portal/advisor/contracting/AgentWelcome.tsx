@@ -1,20 +1,32 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose,
-} from "@/components/ui/dialog";
 import { FileText, ArrowRight } from "lucide-react";
+import AgentAgreementForm from "./AgentAgreementForm";
 
 const BRAND = "#1A4D3E";
 const ACCENT = "#C9A84C";
 
 interface AgentWelcomeProps {
   firstName: string;
+  agentId?: string;
+  fullName?: string;
 }
 
-export default function AgentWelcome({ firstName }: AgentWelcomeProps) {
+export default function AgentWelcome({ firstName, agentId, fullName }: AgentWelcomeProps) {
   const [showAgreement, setShowAgreement] = useState(false);
   const currentYear = new Date().getFullYear();
+
+  // If the agreement form is open, show it full-screen
+  if (showAgreement && agentId) {
+    return (
+      <AgentAgreementForm
+        agentId={agentId}
+        fullName={fullName || firstName}
+        onClose={() => setShowAgreement(false)}
+        onSigned={() => window.location.reload()}
+      />
+    );
+  }
 
   return (
     <div className="max-w-3xl mx-auto py-8 px-4 space-y-6">
@@ -103,32 +115,6 @@ export default function AgentWelcome({ firstName }: AgentWelcomeProps) {
         <p>Everence Wealth - 1 -</p>
         <p>Copyright &copy; {currentYear} Everence Wealth, All rights reserved.</p>
       </div>
-
-      {/* Agreement Placeholder Dialog */}
-      <Dialog open={showAgreement} onOpenChange={setShowAgreement}>
-        <DialogContent className="sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2" style={{ color: BRAND }}>
-              <FileText className="h-5 w-5" />
-              Agent Agreement
-            </DialogTitle>
-          </DialogHeader>
-          <div className="py-8 text-center space-y-3">
-            <div className="mx-auto w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center">
-              <FileText className="h-8 w-8 text-gray-400" />
-            </div>
-            <p className="text-gray-600 font-medium">Agent Agreement — Content Coming Soon</p>
-            <p className="text-sm text-gray-400">
-              The agreement document will be available here for review and signature.
-            </p>
-          </div>
-          <div className="flex justify-end">
-            <DialogClose asChild>
-              <Button variant="outline">Close</Button>
-            </DialogClose>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
