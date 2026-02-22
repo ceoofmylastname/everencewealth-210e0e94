@@ -1,74 +1,49 @@
 
 
-# Real-Time Manager Dashboard Updates
+# Fix: Manager Dashboard Not Tracking Agent Progress
 
-## Problem
-The Manager Dashboard fetches all data once when the page loads and never updates again. There are no real-time subscriptions, so when an agent signs their agreement, advances stages, clicks videos, or uploads screenshots, the manager sees nothing until they manually refresh the page.
+## Root Cause
 
-## Solution
-Add real-time database subscriptions to the Manager Dashboard so it automatically refreshes whenever agent data changes. Also enable realtime on the tables that don't have it yet.
+The `auto_advance_pipeline_stage` database trigger has a logic flaw. When an agent completes a step, the trigger checks the agent's current pipeline stage for required steps. But the first stage (`intake_submitted`) has **zero required steps**, and the trigger's condition requires `total_required > 0` to advance. This creates a deadlock -- the agent is forever stuck at `intake_submitted` no matter how many steps they complete.
 
-## Changes
+Bobby (DELSOLPRIMEHOMES) has completed 2 steps (Agreement Signed + SureLC Screenshot) but the system still shows stage: `intake_submitted`, progress: 0%.
 
-### 1. Database Migration: Enable Realtime on Missing Tables
+## The Fix (2 parts)
 
-Enable realtime on `contracting_agents` and `contracting_activity_logs` so changes to these tables can be broadcast to subscribed clients.
+### 1. Fix the Trigger Logic (Database Migration)
 
-```sql
-ALTER PUBLICATION supabase_realtime ADD TABLE public.contracting_agents;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.contracting_activity_logs;
-```
-
-### 2. Add Real-Time Subscriptions to ManagerDashboard
-
-In `ContractingDashboard.tsx`, inside the `ManagerDashboard` component, add a new `useEffect` that subscribes to three channels:
-
-- **contracting_agents** (any UPDATE/INSERT) -- catches stage changes, progress updates, status changes
-- **contracting_agent_steps** (any INSERT/UPDATE) -- catches step completions (agreement signed, SureLC uploaded, etc.)
-- **contracting_activity_logs** (any INSERT) -- catches new activities (video clicks, uploads, logins)
-
-When any of these events fire, the dashboard calls `fetchAll()` to refresh all data. A short debounce (500ms) prevents rapid-fire refetches when multiple changes happen at once (e.g., step completion triggers both a step update and a stage change).
-
-The subscription cleans up on unmount.
-
-### What the Manager Will See Update in Real Time
-
-| Agent Action | What Updates on Dashboard |
-|---|---|
-| Signs in / logs in | Last Activity column updates |
-| Signs Agent Agreement | Stage changes from "Intake Submitted" to "Agreement Pending", progress bar advances |
-| Reaches SureLC Setup | Stage changes to "SureLC Setup" |
-| Clicks video links | Last Activity updates (tracked in activity logs) |
-| Uploads SureLC screenshot | Progress bar advances, step completion registered |
-| Completes onboarding celebration | Stage advances, progress updates |
-| Any stage/step change | Stats cards (Active, Completed, Stuck) update automatically |
-
-### Technical Details
-
-**File modified:** `src/pages/portal/advisor/contracting/ContractingDashboard.tsx`
-
-The new `useEffect` will be added right after the existing `fetchAll` useEffect (around line 538):
+Update `auto_advance_pipeline_stage` so that when a stage has zero required steps, it automatically advances to the next stage and re-checks. This creates a cascading advance that correctly moves the agent through stages without required steps.
 
 ```text
-useEffect(() => {
-  let debounceTimer: NodeJS.Timeout;
-  const debouncedFetch = () => {
-    clearTimeout(debounceTimer);
-    debounceTimer = setTimeout(() => fetchAll(), 500);
-  };
+Current logic (broken):
+  Agent at "intake_submitted" -> 0 required steps -> STOP (never advances)
 
-  const channel = supabase
-    .channel('manager-dashboard-realtime')
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'contracting_agents' }, debouncedFetch)
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'contracting_agent_steps' }, debouncedFetch)
-    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'contracting_activity_logs' }, debouncedFetch)
-    .subscribe();
-
-  return () => {
-    clearTimeout(debounceTimer);
-    supabase.removeChannel(channel);
-  };
-}, [portalUserId, isManagerOnly]);
+Fixed logic:
+  Agent at "intake_submitted" -> 0 required steps -> auto-advance to "agreement_pending"
+  -> 1 required step, 1 completed -> advance to "surelc_setup"
+  -> 1 required step, 1 completed -> advance to "bundle_selected"
+  -> STOP (step not completed yet)
 ```
 
-No new dependencies, no new components. Just wiring up the existing `fetchAll()` to real-time events.
+The trigger will use a loop with a safety limit (max 8 iterations) to cascade through stages with no required steps, stopping when it reaches a stage with incomplete requirements.
+
+### 2. Fix Bobby's Existing Data (Data Update)
+
+Run the corrected trigger logic against Bobby's record to update his `pipeline_stage` and `progress_pct` to reflect his actual completed steps. Based on his 2 completed steps (Agreement + SureLC), he should be at stage `bundle_selected` with ~33% progress.
+
+## What the Manager Will See After This Fix
+
+- Bobby's stage will correctly show "Bundle Selected" instead of "Intake Submitted"
+- Progress bar will show 33% instead of 0%
+- Future step completions will correctly advance the pipeline
+- Real-time subscriptions (already implemented) will push these changes to the dashboard live
+- All stats cards (Active, Completed, Stuck counts) will reflect accurate data
+
+## Files Changed
+
+| Item | Detail |
+|---|---|
+| Database migration | Updated `auto_advance_pipeline_stage` trigger function |
+| Data fix | Update Bobby's `pipeline_stage` and `progress_pct` |
+| Code changes | None needed -- the dashboard and real-time code are already correct |
+
