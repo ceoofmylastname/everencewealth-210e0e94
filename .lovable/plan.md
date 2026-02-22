@@ -1,39 +1,54 @@
 
 
-# Post-Agreement Confirmation Page
+# Persist Agent Progress and Allow Viewing Signed Agreement
 
-## Overview
-After an agent signs the Agent Agreement, instead of immediately reloading to the Step 2 checklist, show a branded confirmation page acknowledging receipt of the agreement and introducing the next phase (carrier contracting via SureLC).
+## Problem
+Currently, the agent's progress through the onboarding steps is lost on page reload. If an agent has already signed the agreement, they should:
+1. See the confirmation/next-step page (not the welcome page again)
+2. Be able to view the agreement they signed
 
-## What Changes
+The pipeline stage auto-advances from `agreement_pending` to `surelc_setup` after signing (via the database trigger). When the agent returns, `ContractingDashboard` checks the stage -- if it's past `agreement_pending`, it shows `AgentDashboard` (the Step 2 checklist). So the routing already works correctly for returning agents.
 
-### Modified: `AgentWelcome.tsx`
-Add a third state (`showConfirmation`) that displays after the agent successfully signs. The flow becomes:
+The missing pieces are:
+- **AgentWelcome** doesn't check for an existing signed agreement on load -- if the pipeline stage hasn't advanced yet (e.g., due to timing), the agent sees the welcome page again instead of the confirmation
+- **AgentDashboard** has no way to view the signed agreement
 
-1. Welcome page (Step 1 intro) -- current behavior, unchanged
-2. Agreement form (sign and submit) -- current behavior, unchanged
-3. **NEW: Confirmation page** -- shown after signing, before proceeding to Step 2
+## Changes
 
-The confirmation page will contain:
-- Branded header card (same style as welcome page)
-- A letter-style body with:
-  - "Dear {firstName}, I wanted to confirm that we have received your Agent Agreement. Thank you for submitting it promptly."
-  - "{firstName}, you will now be able to get appointed with the Insurance Carriers -- Steps 2 of 2."
-  - "Please, watch both SureLC videos to ensure you complete your onboarding process."
-  - "Please let us know if you have any questions or need further assistance."
-  - "Best regards, Contracting"
-- A "Continue to Step 2" button that triggers `window.location.reload()` to load the AgentDashboard checklist
+### 1. `AgentWelcome.tsx` -- Check for existing agreement on mount
+- Add a `useEffect` that queries `contracting_agreements` for the current agent on load
+- If an agreement with `agent_signed_at` exists, automatically show the confirmation page (`showConfirmation = true`) instead of the welcome page
+- Add a "View My Agreement" button on the confirmation page that opens a read-only view of the signed agreement (shows signature, initials, date signed)
 
-### Flow Change
-- Currently: Sign agreement --> `window.location.reload()` --> AgentDashboard
-- New: Sign agreement --> Confirmation page --> User clicks "Continue" --> `window.location.reload()` --> AgentDashboard
+### 2. `AgentDashboard` (in `ContractingDashboard.tsx`) -- Add "View Agreement" capability
+- In the AgentDashboard welcome header area, add a "View Signed Agreement" button
+- When clicked, it opens a dialog/modal showing the agreement details: consultant name, effective date, signature image, initials image, and signed date -- all fetched from `contracting_agreements`
+
+### 3. New Component: `ViewSignedAgreement.tsx`
+- A reusable read-only component that displays the signed agreement
+- Fetches the agreement from `contracting_agreements` by `agent_id`
+- Shows the full agreement text (same sections as the form) with the agent's signature and initials rendered as images
+- Used by both AgentWelcome (confirmation page) and AgentDashboard
+
+## Flow After Changes
+
+```text
+Agent returns after signing:
+  Pipeline = "surelc_setup" --> AgentDashboard (with "View Agreement" button)
+
+Agent returns mid-signing (stage still agreement_pending):
+  AgentWelcome loads --> checks DB --> agreement found --> shows confirmation page
+  
+Agent first visit (no agreement):
+  AgentWelcome loads --> checks DB --> no agreement --> shows welcome + sign page
+```
 
 ## Technical Details
 
 | Item | Detail |
 |---|---|
-| File modified | `src/pages/portal/advisor/contracting/AgentWelcome.tsx` |
-| Change type | Add `showConfirmation` state and confirmation UI |
-| No new files | Confirmation is a view state within AgentWelcome |
-| No DB changes | None required |
+| Files modified | `AgentWelcome.tsx`, `ContractingDashboard.tsx` |
+| Files created | `ViewSignedAgreement.tsx` |
+| DB changes | None (uses existing `contracting_agreements` table) |
+| RLS | Already allows agents to read their own agreements |
 
