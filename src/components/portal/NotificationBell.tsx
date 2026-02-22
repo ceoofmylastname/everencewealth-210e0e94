@@ -149,7 +149,7 @@ export function NotificationBell() {
         </div>
         <div className="border-t px-4 py-2">
           <button
-            onClick={() => { navigate("/portal/client/notifications"); setOpen(false); }}
+            onClick={() => { navigate("/portal/advisor/contracting"); setOpen(false); }}
             className="w-full text-center text-sm text-primary hover:underline py-1"
           >
             View all notifications
