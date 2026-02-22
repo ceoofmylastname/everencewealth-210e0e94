@@ -3,11 +3,13 @@ import { Link } from "react-router-dom";
 import { useContractingAuth } from "@/hooks/useContractingAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Search, Users, Loader2 } from "lucide-react";
+import { Search, Users, Loader2, CheckCircle } from "lucide-react";
 import { differenceInDays } from "date-fns";
+import { toast } from "sonner";
 
 const PIPELINE_STAGES = [
   "intake_submitted",
@@ -48,22 +50,24 @@ interface AgentRow {
   created_at: string;
   progress_pct?: number;
   manager_name?: string;
+  portal_is_active?: boolean;
 }
 
 export default function ContractingAgents() {
-  const { contractingRole, loading: authLoading } = useContractingAuth();
+  const { contractingRole, canManage, loading: authLoading } = useContractingAuth();
   const [agents, setAgents] = useState<AgentRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [stageFilter, setStageFilter] = useState("all");
+  const [approvingAgent, setApprovingAgent] = useState<string | null>(null);
 
   useEffect(() => {
-    async function fetchAgents() {
+  async function fetchAgents() {
       setLoading(true);
       const { data, error } = await supabase
         .from("contracting_agents")
-        .select("id, first_name, last_name, email, pipeline_stage, status, created_at, progress_pct, manager_id");
+        .select("id, first_name, last_name, email, pipeline_stage, status, created_at, progress_pct, manager_id, auth_user_id");
 
       if (error) {
         console.error("Error fetching agents:", error);
@@ -86,16 +90,50 @@ export default function ContractingAgents() {
         }
       }
 
+      // Fetch portal active status
+      const authUserIds = [...new Set((data || []).map(a => a.auth_user_id).filter(Boolean))];
+      let portalActiveMap: Record<string, boolean> = {};
+      if (authUserIds.length > 0) {
+        const { data: portalUsers } = await supabase
+          .from("portal_users")
+          .select("auth_user_id, is_active")
+          .in("auth_user_id", authUserIds);
+        if (portalUsers) {
+          portalActiveMap = Object.fromEntries(
+            portalUsers.map(pu => [pu.auth_user_id, pu.is_active])
+          );
+        }
+      }
+
       setAgents(
         (data || []).map(a => ({
           ...a,
           manager_name: a.manager_id ? managerMap[a.manager_id] || "—" : "—",
+          portal_is_active: a.auth_user_id ? portalActiveMap[a.auth_user_id] ?? true : true,
         }))
       );
       setLoading(false);
     }
     if (!authLoading) fetchAgents();
   }, [authLoading]);
+
+  async function handleApproveAgent(agentId: string) {
+    setApprovingAgent(agentId);
+    try {
+      const { error } = await supabase.functions.invoke("approve-agent", {
+        body: { agent_id: agentId },
+      });
+      if (error) throw error;
+      toast.success("Agent approved!");
+      // Refresh
+      setAgents(prev => prev.map(a => a.id === agentId ? { ...a, portal_is_active: true } : a));
+    } catch (err: any) {
+      console.error(err);
+      toast.error("Failed to approve: " + (err.message || "Unknown error"));
+    } finally {
+      setApprovingAgent(null);
+    }
+  }
 
   const filtered = useMemo(() => {
     return agents.filter(a => {
@@ -168,15 +206,17 @@ export default function ContractingAgents() {
               <TableHead>Email</TableHead>
               <TableHead>Stage</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead>Approval</TableHead>
               <TableHead>Manager</TableHead>
               <TableHead className="text-right">Days</TableHead>
               <TableHead className="text-right">Progress</TableHead>
+              {canManage && <TableHead>Action</TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
             {filtered.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center text-muted-foreground py-10">
+                <TableCell colSpan={canManage ? 9 : 8} className="text-center text-muted-foreground py-10">
                   No agents found
                 </TableCell>
               </TableRow>
@@ -202,6 +242,15 @@ export default function ContractingAgents() {
                       {agent.status.replace("_", " ")}
                     </Badge>
                   </TableCell>
+                  <TableCell>
+                    {agent.portal_is_active ? (
+                      <span className="inline-flex items-center gap-1 text-xs text-green-700">
+                        <CheckCircle className="h-3.5 w-3.5" /> Active
+                      </span>
+                    ) : (
+                      <span className="text-xs text-amber-600 font-medium">Pending</span>
+                    )}
+                  </TableCell>
                   <TableCell className="text-muted-foreground">{agent.manager_name}</TableCell>
                   <TableCell className="text-right text-muted-foreground">
                     {differenceInDays(new Date(), new Date(agent.created_at))}
@@ -209,6 +258,22 @@ export default function ContractingAgents() {
                   <TableCell className="text-right font-medium">
                     {agent.progress_pct ?? 0}%
                   </TableCell>
+                  {canManage && (
+                    <TableCell>
+                      {agent.portal_is_active === false ? (
+                        <Button
+                          size="sm"
+                          onClick={() => handleApproveAgent(agent.id)}
+                          disabled={approvingAgent === agent.id}
+                          className="text-xs h-7 bg-[#1A4D3E] text-white hover:bg-[#1A4D3E]/90"
+                        >
+                          {approvingAgent === agent.id ? <Loader2 className="h-3 w-3 animate-spin" /> : "Approve"}
+                        </Button>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">—</span>
+                      )}
+                    </TableCell>
+                  )}
                 </TableRow>
               ))
             )}

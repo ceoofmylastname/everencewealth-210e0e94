@@ -130,7 +130,7 @@ Deno.serve(async (req) => {
       email: email.toLowerCase(),
       full_name: `${first_name} ${last_name}`,
       role: "advisor",
-      is_active: true,
+      is_active: false,
     });
 
     if (portalError) {
@@ -149,7 +149,7 @@ Deno.serve(async (req) => {
       const { error: notifError } = await adminClient.from("portal_notifications").insert({
         user_id: manager_id,
         title: "New Agent Assigned to You",
-        message: `${first_name} ${last_name} has submitted an application and selected you as their manager.`,
+        message: `${first_name} ${last_name} has submitted an application and needs your approval to access the portal.`,
         notification_type: "contracting",
         link: "/portal/advisor/contracting/dashboard",
       });
