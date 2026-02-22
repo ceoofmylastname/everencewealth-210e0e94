@@ -271,7 +271,9 @@ export default function ContractingAgents() {
                           {approvingAgent === agent.id ? <Loader2 className="h-3 w-3 animate-spin" /> : "Approve"}
                         </Button>
                       ) : (
-                        <span className="text-xs text-muted-foreground">—</span>
+                        <span className="inline-flex items-center gap-1 text-xs text-green-700 font-medium">
+                          <CheckCircle className="h-3.5 w-3.5" /> Approved
+                        </span>
                       )}
                     </TableCell>
                   )}
