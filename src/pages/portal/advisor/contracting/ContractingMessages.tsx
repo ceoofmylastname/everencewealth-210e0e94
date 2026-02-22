@@ -1,10 +1,17 @@
 import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useContractingAuth } from "@/hooks/useContractingAuth";
-import { MessageSquare, Send, Search } from "lucide-react";
+import { MessageSquare, Send, Search, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { format } from "date-fns";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 const BRAND = "#1A4D3E";
 
@@ -13,6 +20,7 @@ interface Thread {
   agent_name: string;
   last_message: string;
   last_at: string;
+  role_type?: "agent" | "manager";
 }
 
 interface Message {
@@ -25,8 +33,14 @@ interface Message {
   sender_name?: string;
 }
 
+interface AgentOption {
+  id: string;
+  name: string;
+  role_type: "agent" | "manager";
+}
+
 export default function ContractingMessages() {
-  const { contractingAgent, contractingRole, canViewAll, loading: authLoading } = useContractingAuth();
+  const { contractingAgent, contractingRole, canViewAll, canManage, loading: authLoading, portalUser } = useContractingAuth();
   const [threads, setThreads] = useState<Thread[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
   const [selectedThread, setSelectedThread] = useState<string | null>(null);
@@ -35,6 +49,8 @@ export default function ContractingMessages() {
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [agentNames, setAgentNames] = useState<Map<string, string>>(new Map());
+  const [newConvoOpen, setNewConvoOpen] = useState(false);
+  const [agentOptions, setAgentOptions] = useState<AgentOption[]>([]);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -77,7 +93,6 @@ export default function ContractingMessages() {
 
       if (!data) { setLoading(false); return; }
 
-      // Collect all unique sender/thread IDs to resolve names
       const allIds = new Set<string>();
       for (const msg of data) {
         allIds.add(msg.thread_id);
@@ -86,31 +101,35 @@ export default function ContractingMessages() {
 
       const { data: agents } = await supabase
         .from("contracting_agents")
-        .select("id, first_name, last_name")
+        .select("id, first_name, last_name, contracting_role")
         .in("id", Array.from(allIds));
 
       const nameMap = new Map<string, string>();
+      const roleMap = new Map<string, string>();
       if (agents) {
-        for (const a of agents) nameMap.set(a.id, `${a.first_name} ${a.last_name}`);
+        for (const a of agents) {
+          nameMap.set(a.id, `${a.first_name} ${a.last_name}`);
+          roleMap.set(a.id, a.contracting_role || "agent");
+        }
       }
       setAgentNames(nameMap);
 
-      // Build threads
       const threadMap = new Map<string, Thread>();
       for (const msg of data) {
         if (!threadMap.has(msg.thread_id)) {
+          const role = roleMap.get(msg.thread_id);
           threadMap.set(msg.thread_id, {
             thread_id: msg.thread_id,
             agent_name: nameMap.get(msg.thread_id) || msg.thread_id.slice(0, 8),
             last_message: msg.content,
             last_at: msg.created_at,
+            role_type: role === "manager" ? "manager" : "agent",
           });
         }
       }
 
       setThreads(Array.from(threadMap.values()));
 
-      // Auto-select for agents
       if (!canViewAll && contractingAgent?.id) {
         setSelectedThread(contractingAgent.id);
       }
@@ -135,16 +154,77 @@ export default function ContractingMessages() {
     }
   }
 
+  async function getRecipients(threadId: string, senderId: string): Promise<string[]> {
+    const recipientIds = new Set<string>();
+
+    // Always add the thread owner (the agent/manager whose thread this is)
+    if (threadId !== senderId) {
+      recipientIds.add(threadId);
+    }
+
+    // Get the thread agent's manager
+    const { data: threadAgent } = await supabase
+      .from("contracting_agents")
+      .select("manager_id")
+      .eq("id", threadId)
+      .single();
+
+    if (threadAgent?.manager_id) {
+      // manager_id references portal_users.id, look up the contracting_agent for that portal user
+      const { data: managerAgent } = await supabase
+        .from("contracting_agents")
+        .select("id")
+        .eq("auth_user_id", (await supabase
+          .from("portal_users")
+          .select("auth_user_id")
+          .eq("id", threadAgent.manager_id)
+          .single()).data?.auth_user_id || "")
+        .single();
+
+      if (managerAgent?.id && managerAgent.id !== senderId) {
+        recipientIds.add(managerAgent.id);
+      }
+    }
+
+    // If agent is sending, also notify contracting/admin who have messaged in this thread
+    if (senderId === threadId) {
+      const { data: threadParticipants } = await supabase
+        .from("contracting_messages")
+        .select("sender_id")
+        .eq("thread_id", threadId)
+        .neq("sender_id", senderId);
+
+      if (threadParticipants) {
+        for (const p of threadParticipants) {
+          recipientIds.add(p.sender_id);
+        }
+      }
+    }
+
+    recipientIds.delete(senderId);
+    return Array.from(recipientIds);
+  }
+
   async function handleSend() {
     if (!newMessage.trim() || !selectedThread || !contractingAgent?.id) return;
     setSending(true);
     try {
-      await supabase.from("contracting_messages").insert({
+      const { error } = await supabase.from("contracting_messages").insert({
         thread_id: selectedThread,
         sender_id: contractingAgent.id,
         content: newMessage.trim(),
       });
-      // Log message sent
+
+      if (error) {
+        console.error("Insert error:", error);
+        setSending(false);
+        return;
+      }
+
+      const messageContent = newMessage.trim();
+      setNewMessage("");
+
+      // Log activity
       supabase.from("contracting_activity_logs").insert({
         agent_id: selectedThread,
         performed_by: contractingAgent.id,
@@ -152,7 +232,19 @@ export default function ContractingMessages() {
         activity_type: "message_sent",
         description: "Sent a message in thread",
       }).then(null, err => console.error("Activity log error:", err));
-      setNewMessage("");
+
+      // Send email notifications
+      const recipients = await getRecipients(selectedThread, contractingAgent.id);
+      if (recipients.length > 0) {
+        supabase.functions.invoke("notify-contracting-message", {
+          body: {
+            thread_id: selectedThread,
+            sender_id: contractingAgent.id,
+            message_content: messageContent,
+            recipients,
+          },
+        }).then(null, err => console.error("Email notification error:", err));
+      }
     } catch (err) {
       console.error(err);
     } finally {
@@ -160,7 +252,34 @@ export default function ContractingMessages() {
     }
   }
 
-  const filteredThreads = threads.filter(t =>
+  async function fetchAgentOptions() {
+    const { data } = await supabase
+      .from("contracting_agents")
+      .select("id, first_name, last_name, contracting_role");
+    if (data) {
+      const options: AgentOption[] = data
+        .filter(a => a.id !== contractingAgent?.id)
+        .map(a => ({
+          id: a.id,
+          name: `${a.first_name} ${a.last_name}`,
+          role_type: a.contracting_role === "manager" ? "manager" as const : "agent" as const,
+        }));
+      setAgentOptions(options);
+    }
+  }
+
+  function startConversation(agentId: string) {
+    setSelectedThread(agentId);
+    setNewConvoOpen(false);
+  }
+
+  const agentThreads = threads.filter(t => t.role_type !== "manager");
+  const managerThreads = threads.filter(t => t.role_type === "manager");
+
+  const filteredAgentThreads = agentThreads.filter(t =>
+    t.agent_name.toLowerCase().includes(search.toLowerCase())
+  );
+  const filteredManagerThreads = managerThreads.filter(t =>
     t.agent_name.toLowerCase().includes(search.toLowerCase())
   );
 
@@ -203,7 +322,50 @@ export default function ContractingMessages() {
   // Admin/Manager view: thread list + messages
   return (
     <div className="space-y-4">
-      <h1 className="text-2xl font-bold text-gray-900">Contracting Messages</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-gray-900">Contracting Messages</h1>
+        {canManage && (
+          <Dialog open={newConvoOpen} onOpenChange={(open) => { setNewConvoOpen(open); if (open) fetchAgentOptions(); }}>
+            <DialogTrigger asChild>
+              <Button size="sm" style={{ background: BRAND }} className="text-white gap-1.5">
+                <Plus className="h-4 w-4" /> New Message
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Start a Conversation</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4 max-h-80 overflow-y-auto">
+                {agentOptions.filter(a => a.role_type === "manager").length > 0 && (
+                  <>
+                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Managers</p>
+                    {agentOptions.filter(a => a.role_type === "manager").map(a => (
+                      <button key={a.id} onClick={() => startConversation(a.id)} className="w-full text-left p-3 rounded-lg hover:bg-gray-50 border border-gray-100 flex items-center gap-3">
+                        <div className="h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0" style={{ background: "#C5A059" }}>
+                          {a.name.split(" ").map(n => n[0]).join("").slice(0, 2)}
+                        </div>
+                        <span className="text-sm font-medium">{a.name}</span>
+                      </button>
+                    ))}
+                  </>
+                )}
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Agents</p>
+                {agentOptions.filter(a => a.role_type === "agent").map(a => (
+                  <button key={a.id} onClick={() => startConversation(a.id)} className="w-full text-left p-3 rounded-lg hover:bg-gray-50 border border-gray-100 flex items-center gap-3">
+                    <div className="h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0" style={{ background: BRAND }}>
+                      {a.name.split(" ").map(n => n[0]).join("").slice(0, 2)}
+                    </div>
+                    <span className="text-sm font-medium">{a.name}</span>
+                  </button>
+                ))}
+                {agentOptions.length === 0 && (
+                  <p className="text-sm text-gray-400 text-center py-4">No agents found</p>
+                )}
+              </div>
+            </DialogContent>
+          </Dialog>
+        )}
+      </div>
       <div className="bg-white rounded-2xl border border-gray-200 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.08)] flex" style={{ height: "calc(100vh - 220px)" }}>
         {/* Thread list */}
         <div className="w-72 border-r border-gray-100 flex flex-col shrink-0">
@@ -214,26 +376,33 @@ export default function ContractingMessages() {
             </div>
           </div>
           <div className="flex-1 overflow-y-auto">
-            {filteredThreads.length === 0 ? (
+            {filteredAgentThreads.length === 0 && filteredManagerThreads.length === 0 ? (
               <div className="p-6 text-center text-gray-400 text-sm">No conversations</div>
             ) : (
-              filteredThreads.map(thread => (
-                <button
-                  key={thread.thread_id}
-                  onClick={() => setSelectedThread(thread.thread_id)}
-                  className={`w-full text-left p-3 border-b border-gray-50 hover:bg-gray-50 transition-colors ${selectedThread === thread.thread_id ? "bg-gray-50" : ""}`}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="h-9 w-9 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0" style={{ background: BRAND }}>
-                      {thread.agent_name.split(" ").map(n => n[0]).join("").slice(0, 2)}
+              <>
+                {filteredManagerThreads.length > 0 && canManage && (
+                  <>
+                    <div className="px-3 pt-3 pb-1">
+                      <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Managers</p>
                     </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-semibold text-gray-900 truncate">{thread.agent_name}</p>
-                      <p className="text-xs text-gray-400 truncate">{thread.last_message}</p>
-                    </div>
-                  </div>
-                </button>
-              ))
+                    {filteredManagerThreads.map(thread => (
+                      <ThreadButton key={thread.thread_id} thread={thread} selected={selectedThread === thread.thread_id} onSelect={setSelectedThread} accentColor="#C5A059" />
+                    ))}
+                  </>
+                )}
+                {filteredAgentThreads.length > 0 && (
+                  <>
+                    {filteredManagerThreads.length > 0 && canManage && (
+                      <div className="px-3 pt-3 pb-1">
+                        <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Agents</p>
+                      </div>
+                    )}
+                    {filteredAgentThreads.map(thread => (
+                      <ThreadButton key={thread.thread_id} thread={thread} selected={selectedThread === thread.thread_id} onSelect={setSelectedThread} accentColor={BRAND} />
+                    ))}
+                  </>
+                )}
+              </>
             )}
           </div>
         </div>
@@ -271,6 +440,25 @@ export default function ContractingMessages() {
         </div>
       </div>
     </div>
+  );
+}
+
+function ThreadButton({ thread, selected, onSelect, accentColor }: { thread: Thread; selected: boolean; onSelect: (id: string) => void; accentColor: string }) {
+  return (
+    <button
+      onClick={() => onSelect(thread.thread_id)}
+      className={`w-full text-left p-3 border-b border-gray-50 hover:bg-gray-50 transition-colors ${selected ? "bg-gray-50" : ""}`}
+    >
+      <div className="flex items-center gap-3">
+        <div className="h-9 w-9 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0" style={{ background: accentColor }}>
+          {thread.agent_name.split(" ").map(n => n[0]).join("").slice(0, 2)}
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-semibold text-gray-900 truncate">{thread.agent_name}</p>
+          <p className="text-xs text-gray-400 truncate">{thread.last_message}</p>
+        </div>
+      </div>
+    </button>
   );
 }
 
