@@ -1,49 +1,84 @@
 
 
-# Fix: Manager Dashboard Not Tracking Agent Progress
+# CRM-Style Agents Tab (Airtable Look & Feel)
 
-## Root Cause
+## Overview
+Rebuild the existing Contracting Agents page (`/portal/advisor/contracting/agents`) into a rich, Airtable-inspired CRM dashboard that tracks every applicant's name, contact info, manager, licensing status, and contracting progress -- including backfilling data for all current applicants.
 
-The `auto_advance_pipeline_stage` database trigger has a logic flaw. When an agent completes a step, the trigger checks the agent's current pipeline stage for required steps. But the first stage (`intake_submitted`) has **zero required steps**, and the trigger's condition requires `total_required > 0` to advance. This creates a deadlock -- the agent is forever stuck at `intake_submitted` no matter how many steps they complete.
+## What You'll See
 
-Bobby (DELSOLPRIMEHOMES) has completed 2 steps (Agreement Signed + SureLC Screenshot) but the system still shows stage: `intake_submitted`, progress: 0%.
+A polished, full-width table with:
+- Search bar + filters (by status, stage, licensed/unlicensed)
+- Colored row accents for stuck agents (7+ days inactive)
+- Each row showing:
+  - Agent name + avatar initials
+  - Email and phone
+  - State
+  - Manager name (resolved from manager_id)
+  - Licensed status (green/red badge)
+  - Referral source
+  - Pipeline stage (color-coded pill)
+  - Progress bar with percentage
+  - Days in pipeline
+  - Last activity date
+  - Status badge
+  - Link to detailed agent view
+- Summary stat cards at top (Total, Licensed, Unlicensed, Completed, Stuck)
+- Real-time updates (using the subscriptions already enabled)
 
-## The Fix (2 parts)
+## Data Already Available
 
-### 1. Fix the Trigger Logic (Database Migration)
+All needed fields already exist in `contracting_agents`:
+- `first_name`, `last_name`, `email`, `phone`
+- `state`, `is_licensed`
+- `manager_id` (resolved to name via `portal_users`)
+- `referral_source`, `referring_director`
+- `pipeline_stage`, `progress_pct`, `status`
+- `created_at`, `updated_at`
 
-Update `auto_advance_pipeline_stage` so that when a stage has zero required steps, it automatically advances to the next stage and re-checks. This creates a cascading advance that correctly moves the agent through stages without required steps.
+No database changes needed -- just a UI rebuild.
 
-```text
-Current logic (broken):
-  Agent at "intake_submitted" -> 0 required steps -> STOP (never advances)
+## Technical Details
 
-Fixed logic:
-  Agent at "intake_submitted" -> 0 required steps -> auto-advance to "agreement_pending"
-  -> 1 required step, 1 completed -> advance to "surelc_setup"
-  -> 1 required step, 1 completed -> advance to "bundle_selected"
-  -> STOP (step not completed yet)
-```
+### File Modified
+`src/pages/portal/advisor/contracting/ContractingAgents.tsx` -- complete rewrite
 
-The trigger will use a loop with a safety limit (max 8 iterations) to cascade through stages with no required steps, stopping when it reaches a stage with incomplete requirements.
+### Key Changes
 
-### 2. Fix Bobby's Existing Data (Data Update)
+1. **Stat Cards Row**: Total Agents, Licensed, Unlicensed, Completed, Stuck (7+ days no update)
 
-Run the corrected trigger logic against Bobby's record to update his `pipeline_stage` and `progress_pct` to reflect his actual completed steps. Based on his 2 completed steps (Agreement + SureLC), he should be at stage `bundle_selected` with ~33% progress.
+2. **Filters Bar**: 
+   - Search by name/email/phone
+   - Filter by status (All, In Progress, Completed, On Hold)
+   - Filter by stage (All + 8 pipeline stages)
+   - Filter by licensed (All, Licensed, Unlicensed)
 
-## What the Manager Will See After This Fix
+3. **Airtable-Style Table Columns**:
+   | Column | Source |
+   |--------|--------|
+   | Agent (initials + name) | first_name, last_name |
+   | Email | email |
+   | Phone | phone |
+   | State | state |
+   | Manager | manager_id -> portal_users lookup |
+   | Licensed | is_licensed (green/red badge) |
+   | Referral | referral_source |
+   | Stage | pipeline_stage (color pill) |
+   | Progress | progress_pct (bar + %) |
+   | Status | status (badge) |
+   | Days | differenceInDays from created_at |
+   | Last Activity | from contracting_activity_logs |
+   | Action | Link to agent detail page |
 
-- Bobby's stage will correctly show "Bundle Selected" instead of "Intake Submitted"
-- Progress bar will show 33% instead of 0%
-- Future step completions will correctly advance the pipeline
-- Real-time subscriptions (already implemented) will push these changes to the dashboard live
-- All stats cards (Active, Completed, Stuck counts) will reflect accurate data
+4. **Real-Time Updates**: Subscribe to `contracting_agents` changes so when agents complete steps, the table updates live.
 
-## Files Changed
+5. **Airtable Styling**: 
+   - Compact rows with hover highlight
+   - Alternating subtle row backgrounds
+   - Sticky header
+   - Clean sans-serif typography
+   - Colored badges and pills
+   - Rounded card container with shadow
 
-| Item | Detail |
-|---|---|
-| Database migration | Updated `auto_advance_pipeline_stage` trigger function |
-| Data fix | Update Bobby's `pipeline_stage` and `progress_pct` |
-| Code changes | None needed -- the dashboard and real-time code are already correct |
+6. **Backfill**: All current applicants are already in the `contracting_agents` table, so this view automatically shows everyone. Bobby's fixed data (bundle_selected, 33%) will display correctly.
 
