@@ -45,6 +45,7 @@ interface SureLCSetupProps {
 
 export default function SureLCSetup({ agentId, firstName }: SureLCSetupProps) {
   const [clickedLinks, setClickedLinks] = useState<Set<string>>(new Set());
+  const [activeVideo, setActiveVideo] = useState<string | null>(null);
   const [screenshotUploaded, setScreenshotUploaded] = useState(false);
   const [screenshotName, setScreenshotName] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -105,9 +106,20 @@ export default function SureLCSetup({ agentId, firstName }: SureLCSetupProps) {
     loadState();
   }, [agentId]);
 
+  function getEmbedUrl(youtubeUrl: string) {
+    const match = youtubeUrl.match(/[?&]v=([^&]+)/);
+    return match ? `https://www.youtube.com/embed/${match[1]}?autoplay=1` : youtubeUrl;
+  }
+
   // Track link click (fire-and-forget)
   function handleLinkClick(link: typeof LINKS[number]) {
-    window.open(link.url, "_blank", "noopener,noreferrer");
+    const isVideo = link.key.startsWith("surelc_video");
+
+    if (isVideo) {
+      setActiveVideo(prev => prev === link.key ? null : link.key);
+    } else {
+      window.open(link.url, "_blank", "noopener,noreferrer");
+    }
 
     // Non-blocking activity log
     setClickedLinks(prev => new Set(prev).add(link.key));
@@ -351,6 +363,21 @@ export default function SureLCSetup({ agentId, firstName }: SureLCSetupProps) {
                     )}
                   </div>
                 </button>
+
+                {/* Inline video iframe */}
+                {link.key.startsWith("surelc_video") && activeVideo === link.key && (
+                  <div className="mt-3 rounded-xl overflow-hidden shadow-lg border border-gray-200 transition-all">
+                    <div className="relative w-full" style={{ paddingBottom: "56.25%" }}>
+                      <iframe
+                        className="absolute inset-0 w-full h-full"
+                        src={getEmbedUrl(link.url)}
+                        title={link.label}
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
             );
           })}
