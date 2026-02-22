@@ -92,7 +92,7 @@ export default function PortalLogin() {
           .maybeSingle();
 
         if (contractingAgent && contractingAgent.pipeline_stage !== "completed") {
-          navigate("/portal/advisor/contracting/dashboard", { replace: true });
+          navigate("/portal/advisor/contracting", { replace: true });
         } else {
           navigate("/portal/advisor/dashboard", { replace: true });
         }
