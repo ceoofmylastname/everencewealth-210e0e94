@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { NotificationBell } from "./NotificationBell";
+import { PortalOnboardingTour } from "./PortalOnboardingTour";
 
 const BRAND_GREEN = "#1A4D3E";
 const BRAND_GREEN_LIGHT = "#F0F5F3";
@@ -226,6 +227,7 @@ export function PortalLayout() {
 
   return (
     <div className="min-h-screen flex bg-gray-50">
+      <PortalOnboardingTour isAdvisor={isAdvisor} />
       {/* Mobile overlay */}
       {mobileOpen && (
         <div
