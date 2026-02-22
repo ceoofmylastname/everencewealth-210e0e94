@@ -1,84 +1,51 @@
 
 
-# CRM-Style Agents Tab (Airtable Look & Feel)
+# Mobile-First Agents CRM Dashboard
 
-## Overview
-Rebuild the existing Contracting Agents page (`/portal/advisor/contracting/agents`) into a rich, Airtable-inspired CRM dashboard that tracks every applicant's name, contact info, manager, licensing status, and contracting progress -- including backfilling data for all current applicants.
+## Problem
+The current Agents page uses a 12-column data table that requires horizontal scrolling on mobile devices. Filters use fixed-width selects that overflow on small screens. There's no card-based mobile view.
 
-## What You'll See
+## Solution
+Rebuild the page with a mobile-first approach: card-based agent list on mobile, full table on desktop, with touch-friendly filters and improved stat cards.
 
-A polished, full-width table with:
-- Search bar + filters (by status, stage, licensed/unlicensed)
-- Colored row accents for stuck agents (7+ days inactive)
-- Each row showing:
-  - Agent name + avatar initials
-  - Email and phone
-  - State
-  - Manager name (resolved from manager_id)
-  - Licensed status (green/red badge)
-  - Referral source
-  - Pipeline stage (color-coded pill)
-  - Progress bar with percentage
-  - Days in pipeline
-  - Last activity date
-  - Status badge
-  - Link to detailed agent view
-- Summary stat cards at top (Total, Licensed, Unlicensed, Completed, Stuck)
-- Real-time updates (using the subscriptions already enabled)
+## Changes (single file)
 
-## Data Already Available
+**File:** `src/pages/portal/advisor/contracting/ContractingAgents.tsx` -- rewrite
 
-All needed fields already exist in `contracting_agents`:
-- `first_name`, `last_name`, `email`, `phone`
-- `state`, `is_licensed`
-- `manager_id` (resolved to name via `portal_users`)
-- `referral_source`, `referring_director`
-- `pipeline_stage`, `progress_pct`, `status`
-- `created_at`, `updated_at`
+### Mobile Layout (below 768px)
 
-No database changes needed -- just a UI rebuild.
+1. **Stat Cards**: 2x2 grid with the 5th card spanning full width, larger touch targets (min 48px height), bolder typography
+2. **Filters**: Horizontal scrollable pill/chip row for quick filters (Status, Stage, Licensed), full-width search bar above
+3. **Agent Cards** (replaces table): Each card shows:
+   - Avatar initials + full name (tappable, links to detail)
+   - Stage pill (color-coded) + Licensed badge
+   - Progress bar with percentage
+   - Manager name, days in pipeline, last activity as compact metadata row
+   - Email + phone as secondary info
+   - Approve button (if applicable) as full-width action
+   - Red left-border accent for stuck agents (7d+ inactive)
+   - Min 44px touch targets on all interactive elements
 
-## Technical Details
+### Desktop Layout (768px+)
 
-### File Modified
-`src/pages/portal/advisor/contracting/ContractingAgents.tsx` -- complete rewrite
+4. **Keep existing table** but wrap in responsive container that only renders on md+ screens
+5. Stat cards switch to 5-column grid
+6. Filters display inline horizontally
 
-### Key Changes
+### Technical Approach
 
-1. **Stat Cards Row**: Total Agents, Licensed, Unlicensed, Completed, Stuck (7+ days no update)
+- Use the existing `useMediaQuery` hook or Tailwind responsive classes
+- Conditionally render card list vs table based on screen size
+- Extract `MobileAgentCard` as an inline component within the same file
+- All data fetching, real-time subscriptions, and filter logic remain unchanged
+- Add `pb-24` safe area padding at bottom for mobile
+- Touch targets minimum 44px height on buttons and tappable areas
 
-2. **Filters Bar**: 
-   - Search by name/email/phone
-   - Filter by status (All, In Progress, Completed, On Hold)
-   - Filter by stage (All + 8 pipeline stages)
-   - Filter by licensed (All, Licensed, Unlicensed)
+### UI Polish (both views)
 
-3. **Airtable-Style Table Columns**:
-   | Column | Source |
-   |--------|--------|
-   | Agent (initials + name) | first_name, last_name |
-   | Email | email |
-   | Phone | phone |
-   | State | state |
-   | Manager | manager_id -> portal_users lookup |
-   | Licensed | is_licensed (green/red badge) |
-   | Referral | referral_source |
-   | Stage | pipeline_stage (color pill) |
-   | Progress | progress_pct (bar + %) |
-   | Status | status (badge) |
-   | Days | differenceInDays from created_at |
-   | Last Activity | from contracting_activity_logs |
-   | Action | Link to agent detail page |
-
-4. **Real-Time Updates**: Subscribe to `contracting_agents` changes so when agents complete steps, the table updates live.
-
-5. **Airtable Styling**: 
-   - Compact rows with hover highlight
-   - Alternating subtle row backgrounds
-   - Sticky header
-   - Clean sans-serif typography
-   - Colored badges and pills
-   - Rounded card container with shadow
-
-6. **Backfill**: All current applicants are already in the `contracting_agents` table, so this view automatically shows everyone. Bobby's fixed data (bundle_selected, 33%) will display correctly.
+- Smoother stat card design with subtle gradient backgrounds
+- Improved color palette for stage pills (slightly more saturated)
+- Better spacing and padding throughout
+- Sticky search bar on mobile scroll
+- Empty state with illustration for zero results
 
