@@ -14,6 +14,7 @@ export interface ContractingAgent {
   pipeline_stage: string;
   status: string;
   created_at: string;
+  is_licensed: boolean | null;
 }
 
 export function useContractingAuth() {
