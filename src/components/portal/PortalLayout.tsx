@@ -167,7 +167,7 @@ export function PortalLayout() {
             }
             // Admin contracting functionality is now in Settings page
             return (
-              <div key={group.label}>
+              <div key={group.label} data-tour-group={group.label}>
                 <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400 px-3 mb-1.5">
                   {group.label}
                 </p>
@@ -227,7 +227,7 @@ export function PortalLayout() {
 
   return (
     <div className="min-h-screen flex bg-gray-50">
-      <PortalOnboardingTour isAdvisor={isAdvisor} />
+      <PortalOnboardingTour isAdvisor={isAdvisor} setMobileOpen={setMobileOpen} />
       {/* Mobile overlay */}
       {mobileOpen && (
         <div

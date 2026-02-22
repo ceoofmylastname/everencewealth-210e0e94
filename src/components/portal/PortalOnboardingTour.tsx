@@ -1,31 +1,31 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard, Users, FileText, ClipboardList, MessageSquare,
   Building2, Newspaper, TrendingUp,
   Wrench, GraduationCap, Megaphone, Calendar,
   Briefcase, GitBranch, FolderOpen, Settings,
-  Shield, Send, X, ArrowRight, Sparkles,
+  Shield, Send, ArrowRight, Sparkles,
 } from "lucide-react";
 
 const BRAND_GREEN = "#1A4D3E";
 const BRAND_GOLD = "#C9A84C";
 const LS_KEY = "portal_tour_completed";
+const PADDING = 6;
 
 interface TourStep {
+  group: string;
   title: string;
-  subtitle: string;
   description: string;
   icons: { icon: React.ElementType; label: string }[];
-  gradient: string;
 }
 
 const steps: TourStep[] = [
   {
-    title: "Welcome to Your Portal",
-    subtitle: "Portal",
+    group: "Portal",
+    title: "Your Command Center",
     description:
-      "Your command center. The Dashboard gives you a full snapshot of your business. Clients lets you invite and manage clients. Policies tracks all active coverage. CNA helps you understand each client's needs. Messages keeps the conversation going.",
+      "Dashboard gives you a full snapshot. Clients lets you invite and manage clients. Policies tracks coverage. CNA helps understand needs. Messages keeps conversations going.",
     icons: [
       { icon: LayoutDashboard, label: "Dashboard" },
       { icon: Users, label: "Clients" },
@@ -33,11 +33,10 @@ const steps: TourStep[] = [
       { icon: ClipboardList, label: "CNA" },
       { icon: MessageSquare, label: "Messages" },
     ],
-    gradient: "from-emerald-500/10 to-teal-500/10",
   },
   {
+    group: "Market",
     title: "Market Intelligence",
-    subtitle: "Market",
     description:
       "Stay ahead of the industry. Browse Carriers, read the latest News, and track your Performance — all in one place.",
     icons: [
@@ -45,26 +44,24 @@ const steps: TourStep[] = [
       { icon: Newspaper, label: "News" },
       { icon: TrendingUp, label: "Performance" },
     ],
-    gradient: "from-blue-500/10 to-indigo-500/10",
   },
   {
+    group: "Resources",
     title: "Resources & Growth",
-    subtitle: "Resources",
     description:
-      "Everything you need to grow. Access quoting Tools, complete Training courses, grab Marketing materials, and manage your Schedule.",
+      "Access quoting Tools, complete Training courses, grab Marketing materials, and manage your Schedule.",
     icons: [
       { icon: Wrench, label: "Tools" },
       { icon: GraduationCap, label: "Training" },
       { icon: Megaphone, label: "Marketing" },
       { icon: Calendar, label: "Schedule" },
     ],
-    gradient: "from-amber-500/10 to-orange-500/10",
   },
   {
+    group: "Contracting",
     title: "Agent Contracting",
-    subtitle: "Contracting",
     description:
-      "Onboard new agents seamlessly. Track the full pipeline from application to completion, manage documents, and monitor analytics.",
+      "Onboard new agents seamlessly. Track the full pipeline, manage documents, and monitor analytics.",
     icons: [
       { icon: Briefcase, label: "Dashboard" },
       { icon: GitBranch, label: "Pipeline" },
@@ -73,205 +70,279 @@ const steps: TourStep[] = [
       { icon: TrendingUp, label: "Analytics" },
       { icon: Settings, label: "Settings" },
     ],
-    gradient: "from-violet-500/10 to-purple-500/10",
   },
   {
+    group: "Compliance",
     title: "Compliance & Settings",
-    subtitle: "Compliance",
     description:
-      "Stay compliant and organized. Monitor licensing, manage documents, invite clients, and configure your settings.",
+      "Monitor licensing, manage documents, invite clients, and configure your settings.",
     icons: [
       { icon: Shield, label: "Compliance" },
       { icon: FolderOpen, label: "Documents" },
       { icon: Send, label: "Invite Client" },
       { icon: Settings, label: "Settings" },
     ],
-    gradient: "from-rose-500/10 to-pink-500/10",
   },
 ];
 
-const slideVariants = {
-  enter: (dir: number) => ({ x: dir > 0 ? 80 : -80, opacity: 0 }),
-  center: { x: 0, opacity: 1 },
-  exit: (dir: number) => ({ x: dir > 0 ? -80 : 80, opacity: 0 }),
-};
+interface Rect {
+  top: number;
+  left: number;
+  width: number;
+  height: number;
+}
 
-export function PortalOnboardingTour({ isAdvisor }: { isAdvisor: boolean }) {
+function getGroupRect(group: string): Rect | null {
+  const el = document.querySelector(`[data-tour-group="${group}"]`);
+  if (!el) return null;
+  const r = el.getBoundingClientRect();
+  return { top: r.top, left: r.left, width: r.width, height: r.height };
+}
+
+function buildClipPath(rect: Rect | null): string {
+  if (!rect) return "polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)";
+  const t = rect.top - PADDING;
+  const l = rect.left - PADDING;
+  const r = rect.left + rect.width + PADDING;
+  const b = rect.top + rect.height + PADDING;
+  // outer rectangle with a rectangular hole
+  return `polygon(
+    0% 0%, 100% 0%, 100% 100%, 0% 100%, 0% 0%,
+    ${l}px ${t}px, ${l}px ${b}px, ${r}px ${b}px, ${r}px ${t}px, ${l}px ${t}px
+  )`;
+}
+
+interface Props {
+  isAdvisor: boolean;
+  setMobileOpen?: (open: boolean) => void;
+}
+
+export function PortalOnboardingTour({ isAdvisor, setMobileOpen }: Props) {
   const [visible, setVisible] = useState(false);
   const [step, setStep] = useState(0);
-  const [dir, setDir] = useState(1);
+  const [rect, setRect] = useState<Rect | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
+  const rafRef = useRef(0);
 
+  // Check visibility
   useEffect(() => {
     if (!isAdvisor) return;
     const done = localStorage.getItem(LS_KEY);
     if (!done) setVisible(true);
   }, [isAdvisor]);
 
+  // Detect mobile
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 1024);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
+
+  // Open sidebar on mobile when tour starts
+  useEffect(() => {
+    if (visible && isMobile && setMobileOpen) {
+      setMobileOpen(true);
+    }
+  }, [visible, isMobile, setMobileOpen]);
+
+  // Measure target element position
+  const measure = useCallback(() => {
+    if (!visible) return;
+    const current = steps[step];
+    const el = document.querySelector(`[data-tour-group="${current.group}"]`);
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      // small delay to let scroll settle
+      rafRef.current = requestAnimationFrame(() => {
+        const newRect = getGroupRect(current.group);
+        setRect(newRect);
+      });
+    }
+  }, [step, visible]);
+
+  useEffect(() => {
+    measure();
+    window.addEventListener("resize", measure);
+    window.addEventListener("scroll", measure, true);
+    return () => {
+      window.removeEventListener("resize", measure);
+      window.removeEventListener("scroll", measure, true);
+      cancelAnimationFrame(rafRef.current);
+    };
+  }, [measure]);
+
   const dismiss = useCallback(() => {
     setVisible(false);
     localStorage.setItem(LS_KEY, "true");
-  }, []);
+    if (isMobile && setMobileOpen) setMobileOpen(false);
+  }, [isMobile, setMobileOpen]);
 
   const next = useCallback(() => {
     if (step === steps.length - 1) return dismiss();
-    setDir(1);
     setStep((s) => s + 1);
   }, [step, dismiss]);
 
-  const goTo = useCallback(
-    (i: number) => {
-      setDir(i > step ? 1 : -1);
-      setStep(i);
-    },
-    [step]
-  );
-
-  if (!visible) return null;
+  if (!visible || !rect) return null;
 
   const current = steps[step];
   const isLast = step === steps.length - 1;
 
+  // Tooltip position: right of spotlight on desktop, below on mobile
+  const tooltipStyle: React.CSSProperties = isMobile
+    ? {
+        position: "fixed",
+        top: rect.top + rect.height + PADDING + 12,
+        left: 12,
+        right: 12,
+        zIndex: 110,
+      }
+    : {
+        position: "fixed",
+        top: rect.top - PADDING,
+        left: rect.left + rect.width + PADDING + 16,
+        zIndex: 110,
+        width: 340,
+      };
+
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
-      {/* Backdrop */}
+    <>
+      {/* Overlay with cutout */}
       <motion.div
+        className="fixed inset-0 z-[100]"
+        style={{
+          background: "rgba(0,0,0,0.55)",
+          clipPath: buildClipPath(rect),
+          transition: "clip-path 0.45s cubic-bezier(0.4, 0, 0.2, 1)",
+        }}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
         onClick={dismiss}
       />
 
-      {/* Card */}
+      {/* Spotlight glow border */}
       <motion.div
-        initial={{ opacity: 0, scale: 0.92, y: 20 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        transition={{ type: "spring", damping: 28, stiffness: 300 }}
-        className="relative z-10 w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
-      >
-        {/* Close */}
-        <button
-          onClick={dismiss}
-          className="absolute top-4 right-4 z-20 h-8 w-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
-          aria-label="Close tour"
+        className="fixed z-[101] pointer-events-none rounded-lg"
+        animate={{
+          top: rect.top - PADDING,
+          left: rect.left - PADDING,
+          width: rect.width + PADDING * 2,
+          height: rect.height + PADDING * 2,
+        }}
+        transition={{ type: "spring", damping: 25, stiffness: 200 }}
+        style={{
+          border: `2px solid ${BRAND_GREEN}`,
+          boxShadow: `0 0 20px ${BRAND_GREEN}44, 0 0 40px ${BRAND_GREEN}22`,
+        }}
+      />
+
+      {/* Pulse ring */}
+      <motion.div
+        className="fixed z-[101] pointer-events-none rounded-lg"
+        animate={{
+          top: rect.top - PADDING - 4,
+          left: rect.left - PADDING - 4,
+          width: rect.width + PADDING * 2 + 8,
+          height: rect.height + PADDING * 2 + 8,
+        }}
+        transition={{ type: "spring", damping: 25, stiffness: 200 }}
+        style={{
+          border: `1px solid ${BRAND_GREEN}33`,
+          animation: "pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+        }}
+      />
+
+      {/* Tooltip card */}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={step}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
+          transition={{ duration: 0.3 }}
+          style={tooltipStyle}
+          className="bg-white rounded-xl shadow-2xl overflow-hidden"
         >
-          <X className="h-4 w-4 text-gray-500" />
-        </button>
+          <div className="p-5">
+            {/* Badge */}
+            <div className="flex items-center gap-2 mb-3">
+              <span
+                className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest px-2.5 py-0.5 rounded-full text-white"
+                style={{ background: BRAND_GREEN }}
+              >
+                <Sparkles className="h-3 w-3" />
+                {current.group}
+              </span>
+              <span className="text-[11px] text-gray-400 font-medium">
+                {step + 1} / {steps.length}
+              </span>
+            </div>
 
-        {/* Animated content area */}
-        <div className="flex-1 overflow-y-auto">
-          <AnimatePresence mode="wait" custom={dir}>
-            <motion.div
-              key={step}
-              custom={dir}
-              variants={slideVariants}
-              initial="enter"
-              animate="center"
-              exit="exit"
-              transition={{ duration: 0.3, ease: "easeInOut" }}
-              className="p-6 sm:p-8"
+            {/* Title */}
+            <h3
+              className="text-lg font-bold font-serif mb-1.5"
+              style={{ color: BRAND_GREEN }}
             >
-              {/* Step badge */}
-              <div className="flex items-center gap-2 mb-5">
-                <span
-                  className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest px-3 py-1 rounded-full text-white"
-                  style={{ background: BRAND_GREEN }}
+              {current.title}
+            </h3>
+
+            {/* Description */}
+            <p className="text-gray-600 text-sm leading-relaxed mb-4">
+              {current.description}
+            </p>
+
+            {/* Icon row */}
+            <div className="flex flex-wrap gap-2 mb-4">
+              {current.icons.map(({ icon: Icon, label }) => (
+                <div
+                  key={label}
+                  className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-gray-50 border border-gray-100"
                 >
-                  <Sparkles className="h-3 w-3" />
-                  {current.subtitle}
-                </span>
-                <span className="text-xs text-gray-400 font-medium">
-                  {step + 1} / {steps.length}
-                </span>
-              </div>
+                  <Icon className="h-3.5 w-3.5" style={{ color: BRAND_GREEN }} />
+                  <span className="text-[11px] font-medium text-gray-600">{label}</span>
+                </div>
+              ))}
+            </div>
 
-              {/* Title */}
-              <h2
-                className="text-2xl sm:text-3xl font-bold mb-3 font-serif leading-tight"
-                style={{ color: BRAND_GREEN }}
-              >
-                {current.title}
-              </h2>
+            {/* Dots */}
+            <div className="flex items-center gap-1.5 mb-4">
+              {steps.map((_, i) => (
+                <div
+                  key={i}
+                  className="transition-all duration-300 rounded-full"
+                  style={{
+                    width: i === step ? 20 : 6,
+                    height: 6,
+                    background: i === step ? BRAND_GREEN : "#E5E7EB",
+                  }}
+                />
+              ))}
+            </div>
 
-              {/* Description */}
-              <p className="text-gray-600 text-sm sm:text-base leading-relaxed mb-6">
-                {current.description}
-              </p>
-
-              {/* Icon grid */}
-              <div
-                className={`grid gap-3 ${
-                  current.icons.length <= 3
-                    ? "grid-cols-3"
-                    : current.icons.length <= 4
-                    ? "grid-cols-2 sm:grid-cols-4"
-                    : "grid-cols-3 sm:grid-cols-3"
-                }`}
-              >
-                {current.icons.map(({ icon: Icon, label }) => (
-                  <div
-                    key={label}
-                    className={`flex flex-col items-center gap-2 p-3 sm:p-4 rounded-xl bg-gradient-to-br ${current.gradient} border border-gray-100`}
-                  >
-                    <div
-                      className="h-10 w-10 rounded-lg flex items-center justify-center"
-                      style={{ background: BRAND_GREEN }}
-                    >
-                      <Icon className="h-5 w-5 text-white" />
-                    </div>
-                    <span className="text-xs font-semibold text-gray-700 text-center leading-tight">
-                      {label}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </motion.div>
-          </AnimatePresence>
-        </div>
-
-        {/* Footer */}
-        <div className="px-6 sm:px-8 pb-6 sm:pb-8 pt-2 flex flex-col gap-4">
-          {/* Dots */}
-          <div className="flex items-center justify-center gap-2">
-            {steps.map((_, i) => (
+            {/* Actions */}
+            <div className="flex items-center justify-between">
               <button
-                key={i}
-                onClick={() => goTo(i)}
-                aria-label={`Go to step ${i + 1}`}
-                className="transition-all duration-300"
+                onClick={dismiss}
+                className="text-xs text-gray-400 hover:text-gray-600 transition-colors font-medium"
+              >
+                Skip Tour
+              </button>
+              <button
+                onClick={next}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold text-white shadow-md transition-all hover:shadow-lg active:scale-[0.97]"
                 style={{
-                  width: i === step ? 24 : 8,
-                  height: 8,
-                  borderRadius: 4,
-                  background: i === step ? BRAND_GREEN : "#E5E7EB",
+                  background: isLast
+                    ? `linear-gradient(135deg, ${BRAND_GREEN}, ${BRAND_GOLD})`
+                    : BRAND_GREEN,
                 }}
-              />
-            ))}
+              >
+                {isLast ? "Get Started" : "Next"}
+                <ArrowRight className="h-3.5 w-3.5" />
+              </button>
+            </div>
           </div>
-
-          {/* Actions */}
-          <div className="flex items-center justify-between gap-3">
-            <button
-              onClick={dismiss}
-              className="text-sm text-gray-400 hover:text-gray-600 transition-colors font-medium min-h-[44px] px-2"
-            >
-              Skip Tour
-            </button>
-            <button
-              onClick={next}
-              className="flex items-center gap-2 px-6 min-h-[44px] rounded-xl text-sm font-semibold text-white shadow-lg transition-all hover:shadow-xl active:scale-[0.97]"
-              style={{
-                background: isLast
-                  ? `linear-gradient(135deg, ${BRAND_GREEN}, ${BRAND_GOLD})`
-                  : BRAND_GREEN,
-              }}
-            >
-              {isLast ? "Get Started" : "Next"}
-              <ArrowRight className="h-4 w-4" />
-            </button>
-          </div>
-        </div>
-      </motion.div>
-    </div>
+        </motion.div>
+      </AnimatePresence>
+    </>
   );
 }
