@@ -1,33 +1,35 @@
 
 
-# Fix Notification 404 Errors
+# Fix: Let Managers Approve Their Agents
 
 ## Problem
-When a manager clicks on a notification (e.g., "New Agent Assigned to You"), they get a 404 because:
+The "Approve" button on the Contracting Dashboard and Agents page only shows for users with `canManage = true` (admin and contracting roles). Managers cannot see it, even though the backend `approve-agent` function already allows managers to approve their assigned agents.
 
-1. The notification `link` is set to `/portal/advisor/contracting/dashboard` in the intake edge function, but that route does not exist. The actual route is `/portal/advisor/contracting` (no `/dashboard` suffix).
-2. The "View all notifications" button at the bottom of the notification popover links to `/portal/client/notifications`, which also does not exist as a route.
+## Root Cause
+In `useContractingAuth.ts`:
+- `canManage = effectiveRole === "contracting" || effectiveRole === "admin"`
+- Managers are excluded from `canManage`
 
-## Changes
+The dashboard's Actions column and the Agents page's Action column are both gated behind `canManage`, so managers never see the Approve button.
 
-### 1. Fix notification link in the intake edge function
-**File:** `supabase/functions/contracting-intake/index.ts`
+## Solution
+Instead of changing `canManage` (which controls other admin-level features), add the Approve button visibility for managers too. Specifically:
 
-Change the notification link from `/portal/advisor/contracting/dashboard` to `/portal/advisor/contracting` so it lands on the actual Contracting Dashboard page.
+### 1. ContractingDashboard.tsx
+- Show the Actions column for managers as well (not just `canManage` users)
+- The Approve button should appear when `portal_is_active === false` regardless of whether the user is a manager or admin/contracting
 
-### 2. Fix "View all notifications" link in NotificationBell
-**File:** `src/components/portal/NotificationBell.tsx`
+### 2. ContractingAgents.tsx
+- Same fix: show the Action column and Approve button for managers, not just `canManage` users
 
-Change the "View all notifications" button from navigating to `/portal/client/notifications` (non-existent) to `/portal/advisor/contracting` for now, since there is no dedicated notifications page. Alternatively, remove the link or route it to a sensible existing page.
+### Technical Details
 
-### 3. Update existing notifications in the database
-Run a quick database migration to fix any already-stored notifications that have the wrong link, updating `/portal/advisor/contracting/dashboard` to `/portal/advisor/contracting`.
-
-## Technical Details
+**Files Modified:**
 
 | File | Change |
 |---|---|
-| `supabase/functions/contracting-intake/index.ts` | Change link value from `/portal/advisor/contracting/dashboard` to `/portal/advisor/contracting` |
-| `src/components/portal/NotificationBell.tsx` | Change "View all notifications" route from `/portal/client/notifications` to `/portal/advisor/contracting` |
-| Database migration | `UPDATE portal_notifications SET link = '/portal/advisor/contracting' WHERE link = '/portal/advisor/contracting/dashboard';` |
+| `src/pages/portal/advisor/contracting/ContractingDashboard.tsx` | Change the Actions column gate from `canManage` to `canManage \|\| contractingRole === "manager"` so managers see the Approve button for their recruits |
+| `src/pages/portal/advisor/contracting/ContractingAgents.tsx` | Same change: gate the Action column on `canManage \|\| contractingRole === "manager"` |
+
+The backend (`approve-agent` edge function) already validates that the caller is the assigned manager or an admin/contracting role, so no backend changes are needed.
 
