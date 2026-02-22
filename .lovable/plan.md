@@ -1,54 +1,94 @@
 
 
-# Persist Agent Progress and Allow Viewing Signed Agreement
+# SureLC Setup Page -- Step 2 of 2
 
-## Problem
-Currently, the agent's progress through the onboarding steps is lost on page reload. If an agent has already signed the agreement, they should:
-1. See the confirmation/next-step page (not the welcome page again)
-2. Be able to view the agreement they signed
+## Overview
+Replace the current "Continue to Step 2" reload behavior with a branded, interactive SureLC onboarding page. This page guides agents through watching instructional videos, registering their SureLC profile, and uploading a completion screenshot. Every interaction is tracked for managers in real-time.
 
-The pipeline stage auto-advances from `agreement_pending` to `surelc_setup` after signing (via the database trigger). When the agent returns, `ContractingDashboard` checks the stage -- if it's past `agreement_pending`, it shows `AgentDashboard` (the Step 2 checklist). So the routing already works correctly for returning agents.
+## New Component: `SureLCSetup.tsx`
 
-The missing pieces are:
-- **AgentWelcome** doesn't check for an existing signed agreement on load -- if the pipeline stage hasn't advanced yet (e.g., due to timing), the agent sees the welcome page again instead of the confirmation
-- **AgentDashboard** has no way to view the signed agreement
+A full-page branded experience with the following sections:
 
-## Changes
+### Header
+- Branded dark green banner with congratulations message
+- Personalized greeting using `{firstName}`
 
-### 1. `AgentWelcome.tsx` -- Check for existing agreement on mount
-- Add a `useEffect` that queries `contracting_agreements` for the current agent on load
-- If an agreement with `agent_signed_at` exists, automatically show the confirmation page (`showConfirmation = true`) instead of the welcome page
-- Add a "View My Agreement" button on the confirmation page that opens a read-only view of the signed agreement (shows signature, initials, date signed)
+### Content Sections (letter-style card)
+1. **Welcome paragraph** -- congratulates agent on signing agreement, welcomes to team
+2. **Step indicator** -- "Next Steps: Getting Appointed with the Carriers. Steps 2 of 2"
+3. **Compliance warning** -- instructs agent to carefully review videos
+4. **Video 1 button** -- "Click to watch | SureLC - Producer Registration Video Instructions" linking to `https://www.youtube.com/watch?v=6Sc1qas71SU`
+5. **Video 2 button** -- "Click to watch | SureLC - How To Create A Contract Request" linking to `https://www.youtube.com/watch?v=xWrbs1tcxsI`
+6. **SureLC Registration button** -- "Click to Register | Create Your SureLC Profile" linking to the SureLC OAuth URL
+7. **Screenshot upload section** -- Agent must upload a screenshot of their completed SureLC account to proceed
+8. **Carrier warning** -- Only request carriers cleared by manager
+9. **Footer** -- "Best Regards, Everence Wealth"
 
-### 2. `AgentDashboard` (in `ContractingDashboard.tsx`) -- Add "View Agreement" capability
-- In the AgentDashboard welcome header area, add a "View Signed Agreement" button
-- When clicked, it opens a dialog/modal showing the agreement details: consultant name, effective date, signature image, initials image, and signed date -- all fetched from `contracting_agreements`
+### Link Click Tracking
+Each button click (Video 1, Video 2, SureLC Register) logs an entry to `contracting_activity_logs` with:
+- `action`: e.g., `"link_clicked"`
+- `description`: e.g., `"Watched SureLC Producer Registration video"`
+- `metadata`: `{ "link_type": "surelc_video_1", "url": "...", "clicked_at": "ISO timestamp" }`
 
-### 3. New Component: `ViewSignedAgreement.tsx`
-- A reusable read-only component that displays the signed agreement
-- Fetches the agreement from `contracting_agreements` by `agent_id`
-- Shows the full agreement text (same sections as the form) with the agent's signature and initials rendered as images
-- Used by both AgentWelcome (confirmation page) and AgentDashboard
+The button opens the link in a new tab and simultaneously fires a non-blocking activity log insert. Managers see these in real-time via the existing activity log feeds.
 
-## Flow After Changes
+### Screenshot Upload
+Reuses the existing upload pattern from `AgentDashboard`:
+- Uploads file to `contracting-documents` storage bucket under `{agentId}/surelc/`
+- Inserts into `contracting_documents` table
+- Marks the SureLC step (ID: `1e83a6c7-2d4f-4d09-b04f-4ee86fc47ac5`) as `completed` in `contracting_agent_steps`
+- This triggers `auto_advance_pipeline_stage` to advance from `surelc_setup` to `bundle_selected`
+- Logs activity for manager visibility
+- Shows success toast and transitions to the next stage
 
-```text
-Agent returns after signing:
-  Pipeline = "surelc_setup" --> AgentDashboard (with "View Agreement" button)
+### Manager Notification
+On screenshot upload, calls the existing `notify-contracting-step` edge function to alert the manager/contracting team that the agent completed SureLC setup.
 
-Agent returns mid-signing (stage still agreement_pending):
-  AgentWelcome loads --> checks DB --> agreement found --> shows confirmation page
-  
-Agent first visit (no agreement):
-  AgentWelcome loads --> checks DB --> no agreement --> shows welcome + sign page
+## Routing Changes: `ContractingDashboard.tsx`
+
+Currently, agents in `surelc_setup` stage see the generic `AgentDashboard` checklist. Change this:
+
+```
+// Before: only intake_submitted/agreement_pending get special treatment
+if (stage === "intake_submitted" || stage === "agreement_pending") {
+  return <AgentWelcome ... />;
+}
+return <AgentDashboard ... />;
+
+// After: surelc_setup also gets its own page
+if (stage === "intake_submitted" || stage === "agreement_pending") {
+  return <AgentWelcome ... />;
+}
+if (stage === "surelc_setup") {
+  return <SureLCSetup ... />;
+}
+return <AgentDashboard ... />;
 ```
 
-## Technical Details
+## Changes to `AgentWelcome.tsx`
 
-| Item | Detail |
+The "Continue to Step 2" button currently calls `window.location.reload()`. This already works correctly because after signing, the pipeline stage advances to `surelc_setup`, and on reload the routing in ContractingDashboard will now show SureLCSetup. No change needed here.
+
+## Persistence
+
+- On mount, SureLCSetup queries `contracting_activity_logs` for this agent to check which links have already been clicked, and shows check marks next to completed actions
+- Queries `contracting_agent_steps` + `contracting_documents` for the SureLC step to check if screenshot already uploaded
+- If agent leaves and returns, they see exactly where they left off with visual indicators of completed actions
+
+## Visual Design
+
+- Same brand colors: `#1A4D3E` (dark green), `#C9A84C` (gold accent)
+- Video buttons: large, card-style with play icon, gold accent border
+- SureLC register button: prominent green CTA
+- Upload section: dashed border upload zone with drag-and-drop feel
+- Completed actions get green checkmarks
+- Modern rounded cards with subtle shadows matching existing design system
+
+## Files
+
+| File | Action |
 |---|---|
-| Files modified | `AgentWelcome.tsx`, `ContractingDashboard.tsx` |
-| Files created | `ViewSignedAgreement.tsx` |
-| DB changes | None (uses existing `contracting_agreements` table) |
-| RLS | Already allows agents to read their own agreements |
+| `src/pages/portal/advisor/contracting/SureLCSetup.tsx` | Create -- new branded Step 2 page |
+| `src/pages/portal/advisor/contracting/ContractingDashboard.tsx` | Modify -- route `surelc_setup` stage to new component |
+| No database changes | All tracking uses existing `contracting_activity_logs` and `contracting_agent_steps` tables |
 
