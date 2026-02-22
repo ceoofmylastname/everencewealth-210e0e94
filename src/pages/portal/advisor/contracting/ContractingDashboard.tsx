@@ -992,7 +992,9 @@ function ManagerDashboard({ canManage, canApprove, portalUserId, isManagerOnly }
                             ) : canManage && stageComplete ? (
                               <span className="text-xs text-green-600 font-medium">✓ Stage done</span>
                             ) : (
-                              <span className="text-xs text-gray-300">—</span>
+                              <span className="inline-flex items-center gap-1 text-xs text-green-700 font-medium">
+                                <CheckCircle className="h-3.5 w-3.5" /> Approved
+                              </span>
                             )}
                             {canManage && (
                               <button
