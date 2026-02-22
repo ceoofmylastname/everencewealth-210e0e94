@@ -144,7 +144,8 @@ export default function SureLCSetup({ agentId, firstName }: SureLCSetupProps) {
     if (uploading) return;
     setUploading(true);
     try {
-      const filePath = `${agentId}/surelc/${Date.now()}_${file.name}`;
+      const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+      const filePath = `${agentId}/surelc/${Date.now()}_${safeName}`;
 
       // 1. Upload to storage
       const { error: uploadErr } = await supabase.storage
