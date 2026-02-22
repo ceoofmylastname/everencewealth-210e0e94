@@ -110,7 +110,7 @@ export default function ContractingAgents() {
         (data || []).map(a => ({
           ...a,
           manager_name: a.manager_id ? managerMap[a.manager_id] || "—" : "—",
-          portal_is_active: a.auth_user_id ? portalActiveMap[a.auth_user_id] ?? true : true,
+          portal_is_active: a.auth_user_id ? portalActiveMap[a.auth_user_id] ?? false : false,
         }))
       );
       setLoading(false);

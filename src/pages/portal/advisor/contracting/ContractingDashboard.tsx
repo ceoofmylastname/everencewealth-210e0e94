@@ -558,7 +558,8 @@ function ManagerDashboard({ canManage, canApprove, portalUserId, isManagerOnly }
       // Attach portal_is_active to agents
       agentsList.forEach(a => {
         const authId = authIdMap.get(a.id);
-        a.portal_is_active = authId ? portalActiveMap.get(authId) ?? true : true;
+        // If no portal_users record found (undefined in map), treat as inactive (needs approval)
+        a.portal_is_active = authId ? portalActiveMap.get(authId) ?? false : false;
       });
 
       setAgents(agentsList);
@@ -968,7 +969,7 @@ function ManagerDashboard({ canManage, canApprove, portalUserId, isManagerOnly }
                       {(canManage || canApprove) && (
                         <TableCell>
                           <div className="flex items-center gap-2">
-                            {agent.portal_is_active === false && agent.pipeline_stage === "intake_submitted" ? (
+                            {agent.portal_is_active === false ? (
                               <Button
                                 size="sm"
                                 onClick={() => handleApproveAgent(agent.id)}
