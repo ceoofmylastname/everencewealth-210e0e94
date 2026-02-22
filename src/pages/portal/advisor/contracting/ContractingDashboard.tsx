@@ -22,6 +22,7 @@ import {
   Table, TableHeader, TableBody, TableHead, TableRow, TableCell,
 } from "@/components/ui/table";
 import AgentWelcome from "./AgentWelcome";
+import ViewSignedAgreement from "./ViewSignedAgreement";
 
 const BRAND = "#1A4D3E";
 const ACCENT = "#EBD975";
@@ -90,6 +91,7 @@ function AgentDashboard({ agentId, firstName, lastName, email, pipelineStage, st
   const [expandedStages, setExpandedStages] = useState<Record<string, boolean>>({});
   const [uploading, setUploading] = useState(false);
   const [uploadedDocs, setUploadedDocs] = useState<Map<string, string>>(new Map()); // stepId -> fileName
+  const [showViewAgreement, setShowViewAgreement] = useState(false);
 
   // Chat state
   const [chatMessages, setChatMessages] = useState<{ id: string; sender_id: string; content: string; created_at: string; sender_name?: string }[]>([]);
@@ -290,8 +292,19 @@ function AgentDashboard({ agentId, firstName, lastName, email, pipelineStage, st
               </span>
             </div>
           </div>
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-2 shrink-0"
+            style={{ color: BRAND, borderColor: BRAND }}
+            onClick={() => setShowViewAgreement(true)}
+          >
+            <FileText className="h-4 w-4" />
+            View Agreement
+          </Button>
         </div>
       </div>
+      <ViewSignedAgreement agentId={agentId} open={showViewAgreement} onOpenChange={setShowViewAgreement} />
 
       {/* Progress Card */}
       <div className="bg-white rounded-2xl border border-gray-200 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.08)] p-6">
