@@ -151,7 +151,7 @@ Deno.serve(async (req) => {
         title: "New Agent Assigned to You",
         message: `${first_name} ${last_name} has submitted an application and needs your approval to access the portal.`,
         notification_type: "contracting",
-        link: "/portal/advisor/contracting/dashboard",
+        link: "/portal/advisor/contracting",
       });
       if (notifError) {
         console.error("Failed to notify manager:", notifError);
