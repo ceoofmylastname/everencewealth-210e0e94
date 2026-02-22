@@ -1,40 +1,28 @@
 
-# Fix: Approve Function Must Create Missing portal_users Records
+# Fix: Show "Approved" After Clicking Approve
 
 ## Problem
-When a manager clicks "Approve," the backend function only runs an UPDATE on the `portal_users` table. For agents like Bobby Smith Jones who have no `portal_users` record at all, the UPDATE matches 0 rows and silently succeeds. The UI shows "Agent approved!" but the agent still cannot log in because no record was created.
-
-## Root Cause
-The `contracting-intake` edge function sometimes fails to create the `portal_users` record during signup, or it was never designed to in certain flows. The `approve-agent` function assumes the record already exists and only does:
-```
-UPDATE portal_users SET is_active = true WHERE auth_user_id = ...
-```
-This is a no-op when the row doesn't exist.
+After an admin or manager clicks "Approve," the button either stays as "Approve" or changes to a dash ("—"). It should clearly show "Approved" with a green checkmark so the user gets visual confirmation.
 
 ## Solution
-Update the `approve-agent` edge function to use an **upsert pattern**: check if a `portal_users` record exists, and if not, create one before activating it.
+In both the Dashboard and Agents pages, replace the dash ("—") shown after approval with an "Approved" label (green text + checkmark icon). This applies to:
 
-### Changes
+1. **ContractingDashboard.tsx** — In the Actions column, when `portal_is_active` is `true` and there's no next step to complete, show "Approved" with a green CheckCircle icon instead of "—".
 
-**File: `supabase/functions/approve-agent/index.ts`**
+2. **ContractingAgents.tsx** — In the Action column, when `portal_is_active` is `true`, show "Approved" with a green CheckCircle icon instead of "—".
 
-Replace the simple UPDATE (lines 82-91) with logic that:
-1. Checks if a `portal_users` record exists for the agent's `auth_user_id`
-2. If it exists, updates `is_active` to `true`
-3. If it does NOT exist, inserts a new `portal_users` record with:
-   - `auth_user_id` from the agent
-   - `first_name`, `last_name`, `email` from the contracting_agents record
-   - `role: "advisor"`
-   - `is_active: true`
+## Technical Details
 
-### Also: Fix the existing broken record
-Run a database query to manually create Bobby's missing `portal_users` record so he can log in immediately without waiting for another approval click.
-
-### Technical Details
-
-| Item | Detail |
+| File | Change |
 |---|---|
-| File modified | `supabase/functions/approve-agent/index.ts` |
-| Database fix | Insert missing `portal_users` row for Bobby Smith Jones |
-| Logic change | Check for existing record, INSERT if missing, UPDATE if present |
-| No other files affected | The UI already handles the approval flow correctly |
+| `src/pages/portal/advisor/contracting/ContractingDashboard.tsx` (around line 972-981) | When `portal_is_active === true` and there is no actionable next step, render a green "Approved" badge with CheckCircle icon instead of the current dash |
+| `src/pages/portal/advisor/contracting/ContractingAgents.tsx` (lines 273-274) | Replace `<span className="text-xs text-muted-foreground">—</span>` with a green "Approved" label with CheckCircle icon |
+
+The approved state markup will look like:
+```tsx
+<span className="inline-flex items-center gap-1 text-xs text-green-700 font-medium">
+  <CheckCircle className="h-3.5 w-3.5" /> Approved
+</span>
+```
+
+Both files already import `CheckCircle` from lucide-react, so no new dependencies are needed.
