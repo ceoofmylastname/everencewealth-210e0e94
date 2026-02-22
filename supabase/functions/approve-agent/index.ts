@@ -78,14 +78,38 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Activate the agent's portal_users record
-    const { error: updateError } = await adminClient
+    // Check if portal_users record exists
+    const { data: existingPortalUser } = await adminClient
       .from("portal_users")
-      .update({ is_active: true })
-      .eq("auth_user_id", agent.auth_user_id);
+      .select("id")
+      .eq("auth_user_id", agent.auth_user_id)
+      .maybeSingle();
 
-    if (updateError) {
-      return new Response(JSON.stringify({ error: "Failed to activate agent: " + updateError.message }), {
+    let portalError;
+    if (existingPortalUser) {
+      // Record exists — activate it
+      const { error } = await adminClient
+        .from("portal_users")
+        .update({ is_active: true })
+        .eq("auth_user_id", agent.auth_user_id);
+      portalError = error;
+    } else {
+      // Record missing — create it
+      const { error } = await adminClient
+        .from("portal_users")
+        .insert({
+          auth_user_id: agent.auth_user_id,
+          first_name: agent.first_name,
+          last_name: agent.last_name,
+          email: agent.email,
+          role: "advisor",
+          is_active: true,
+        });
+      portalError = error;
+    }
+
+    if (portalError) {
+      return new Response(JSON.stringify({ error: "Failed to activate agent: " + portalError.message }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
