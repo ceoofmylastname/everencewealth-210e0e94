@@ -497,11 +497,12 @@ interface EnhancedAgent {
 
 interface ManagerDashboardProps {
   canManage: boolean;
+  canApprove: boolean;
   portalUserId: string | null;
   isManagerOnly: boolean;
 }
 
-function ManagerDashboard({ canManage, portalUserId, isManagerOnly }: ManagerDashboardProps) {
+function ManagerDashboard({ canManage, canApprove, portalUserId, isManagerOnly }: ManagerDashboardProps) {
   const [agents, setAgents] = useState<EnhancedAgent[]>([]);
   const [managerNames, setManagerNames] = useState<Map<string, string>>(new Map());
   const [bundleMap, setBundleMap] = useState<Map<string, string[]>>(new Map()); // agentId -> bundle names
@@ -893,13 +894,13 @@ function ManagerDashboard({ canManage, portalUserId, isManagerOnly }: ManagerDas
                 <TableHead className="font-semibold text-gray-700">Status</TableHead>
                 <TableHead className="font-semibold text-gray-700">Last Activity</TableHead>
                 <TableHead className="font-semibold text-gray-700">Days Stuck</TableHead>
-                {canManage && <TableHead className="font-semibold text-gray-700">Action</TableHead>}
+                {(canManage || canApprove) && <TableHead className="font-semibold text-gray-700">Action</TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
               {agents.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={canManage ? 10 : 9} className="text-center py-12 text-gray-400">
+                  <TableCell colSpan={(canManage || canApprove) ? 10 : 9} className="text-center py-12 text-gray-400">
                     No agents found
                   </TableCell>
                 </TableRow>
@@ -964,7 +965,7 @@ function ManagerDashboard({ canManage, portalUserId, isManagerOnly }: ManagerDas
                           </span>
                         ) : "—"}
                       </TableCell>
-                      {canManage && (
+                      {(canManage || canApprove) && (
                         <TableCell>
                           <div className="flex items-center gap-2">
                             {agent.portal_is_active === false && agent.pipeline_stage === "intake_submitted" ? (
@@ -977,7 +978,7 @@ function ManagerDashboard({ canManage, portalUserId, isManagerOnly }: ManagerDas
                               >
                                 {approvingAgent === agent.id ? <Loader2 className="h-3 w-3 animate-spin" /> : "Approve"}
                               </Button>
-                            ) : nextStep && !stageComplete ? (
+                            ) : canManage && nextStep && !stageComplete ? (
                               <>
                                 <Checkbox
                                   disabled={completingStep === agent.id}
@@ -987,18 +988,20 @@ function ManagerDashboard({ canManage, portalUserId, isManagerOnly }: ManagerDas
                                   {nextStep.title}
                                 </span>
                               </>
-                            ) : stageComplete ? (
+                            ) : canManage && stageComplete ? (
                               <span className="text-xs text-green-600 font-medium">✓ Stage done</span>
                             ) : (
                               <span className="text-xs text-gray-300">—</span>
                             )}
-                            <button
-                              onClick={() => { setNeedsInfoAgent(agent); setNeedsInfoMessage(""); }}
-                              className="ml-auto p-1 rounded hover:bg-amber-50 text-amber-600 hover:text-amber-700 transition-colors"
-                              title="Request info from agent"
-                            >
-                              <MessageSquareWarning className="h-4 w-4" />
-                            </button>
+                            {canManage && (
+                              <button
+                                onClick={() => { setNeedsInfoAgent(agent); setNeedsInfoMessage(""); }}
+                                className="ml-auto p-1 rounded hover:bg-amber-50 text-amber-600 hover:text-amber-700 transition-colors"
+                                title="Request info from agent"
+                              >
+                                <MessageSquareWarning className="h-4 w-4" />
+                              </button>
+                            )}
                           </div>
                         </TableCell>
                       )}
@@ -1075,5 +1078,6 @@ export default function ContractingDashboard() {
 
   // Manager / Contracting / Admin → overview dashboard
   const isManagerOnly = contractingRole === "manager";
-  return <ManagerDashboard canManage={canManage} portalUserId={portalUser?.id || null} isManagerOnly={isManagerOnly} />;
+  const canApprove = canManage || contractingRole === "manager";
+  return <ManagerDashboard canManage={canManage} canApprove={canApprove} portalUserId={portalUser?.id || null} isManagerOnly={isManagerOnly} />;
 }
