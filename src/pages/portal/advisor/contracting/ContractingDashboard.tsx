@@ -24,6 +24,7 @@ import {
 import AgentWelcome from "./AgentWelcome";
 import SureLCSetup from "./SureLCSetup";
 import ViewSignedAgreement from "./ViewSignedAgreement";
+import ExamFXWelcome from "./ExamFXWelcome";
 
 const BRAND = "#1A4D3E";
 const ACCENT = "#EBD975";
@@ -1104,6 +1105,13 @@ export default function ContractingDashboard() {
   // Agent role → welcome page for new agents, or personal dashboard
   if (contractingRole === "agent" && contractingAgent) {
     const stage = forceStage || contractingAgent.pipeline_stage;
+
+    // Unlicensed agents → ExamFX onboarding flow
+    if (contractingAgent.is_licensed === false) {
+      return <ExamFXWelcome firstName={contractingAgent.first_name} agentId={contractingAgent.id} />;
+    }
+
+    // Licensed agents → standard flow
     if (stage === "intake_submitted" || stage === "agreement_pending") {
       return <AgentWelcome firstName={contractingAgent.first_name} agentId={contractingAgent.id} fullName={`${contractingAgent.first_name} ${contractingAgent.last_name}`} onContinue={() => setForceStage("surelc_setup")} />;
     }
