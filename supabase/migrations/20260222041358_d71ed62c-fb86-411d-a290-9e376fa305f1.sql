@@ -1,0 +1,2 @@
+ALTER PUBLICATION supabase_realtime ADD TABLE public.contracting_agents;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.contracting_activity_logs;

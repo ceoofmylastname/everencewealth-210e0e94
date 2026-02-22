@@ -537,6 +537,27 @@ function ManagerDashboard({ canManage, canApprove, portalUserId, isManagerOnly }
     fetchAll();
   }, [portalUserId, isManagerOnly]);
 
+  // Real-time subscriptions for live dashboard updates
+  useEffect(() => {
+    let debounceTimer: NodeJS.Timeout;
+    const debouncedFetch = () => {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => fetchAll(), 500);
+    };
+
+    const channel = supabase
+      .channel('manager-dashboard-realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'contracting_agents' }, debouncedFetch)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'contracting_agent_steps' }, debouncedFetch)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'contracting_activity_logs' }, debouncedFetch)
+      .subscribe();
+
+    return () => {
+      clearTimeout(debounceTimer);
+      supabase.removeChannel(channel);
+    };
+  }, [portalUserId, isManagerOnly]);
+
   async function fetchAll() {
     try {
       // 1. Agents
