@@ -1,60 +1,72 @@
 
 
-# Guided Spotlight Tour (Replaces Centered Modal)
+# Unlicensed Agent Route: ExamFX Onboarding Page
 
-## What Changes
+## Overview
 
-Instead of a popup in the middle of the screen, the tour will **highlight each actual sidebar section** with a spotlight effect and position a tooltip card next to it. The tour literally "walks" through the sidebar, scrolling and animating to each nav group.
+Agents who selected "No" for licensed on the intake form will see a different onboarding experience focused on getting their license through ExamFX, instead of the standard Agent Agreement flow.
 
-## How It Works
+## Routing Logic Change
 
-### Desktop (sidebar always visible)
-1. A dark overlay covers the entire screen with a **cutout/spotlight** around the current nav group
-2. A sleek tooltip card appears to the **right of the highlighted section** with the title, description, step dots, and Next/Skip buttons
-3. As the user clicks "Next", the spotlight **smoothly animates** down the sidebar to the next group, scrolling the sidebar nav if needed
-4. The cutout uses CSS `clip-path` or a canvas-based approach for the spotlight hole
+In `ContractingDashboard.tsx`, the main router (line 1092+) will check `is_licensed` on the `contracting_agents` record before deciding which flow to show:
 
-### Mobile (sidebar is a drawer)
-1. Tour automatically **opens the mobile sidebar drawer** when it starts
-2. Same spotlight + tooltip behavior, but the tooltip appears **below the highlighted section** (since there's no room to the right)
-3. Sidebar stays open throughout the tour; closes on dismiss/completion
+- **Licensed agents** (`is_licensed = true` or `null`): Current flow (AgentWelcome -> SureLCSetup -> Dashboard)
+- **Unlicensed agents** (`is_licensed = false`): New flow starting with ExamFX page
 
-## Visual Design
-- Dark semi-transparent overlay (same backdrop blur as current)
-- Spotlight cutout with a subtle glowing border (brand green) around the highlighted nav group
-- Tooltip card: compact white card with rounded corners, shadow, containing:
-  - Step badge (e.g., "Portal -- 1/5")
-  - Title + description
-  - Small icon row showing the section's nav items
-  - Dot indicators + Next/Skip buttons
-- Smooth spring animation when spotlight moves between sections
-- Pulse animation on the highlighted area to draw attention
+## New Component: ExamFXWelcome
 
-## Technical Approach
+A branded page matching the existing AgentWelcome style (same BRAND green header, white card body, gold accent step indicators) that displays:
 
-### PortalLayout.tsx changes
-- Add `data-tour-group="Portal"`, `data-tour-group="Market"`, etc. to each nav group `<div>` wrapper in the sidebar
-- Pass `setMobileOpen` to the tour component so it can open the sidebar on mobile
+- Header card: "Hello {firstName}, Welcome to Everence Wealth!"
+- Branded letter body with 6 clearly formatted steps:
+  1. Create an ExamFX Account (with link to examfx.com)
+  2. Access the Course
+  3. Register for the Live Class
+  4. Complete the Course and Practice Exams
+  5. Schedule the State Exam
+  6. Take and Pass the Licensing Exam
+- Each step has sub-bullets matching the provided data
+- Promo code / email callout styled with the gold accent border
+- Footer with "Best regards, Everence Wealth" and copyright
 
-### PortalOnboardingTour.tsx -- full rewrite
-- On mount, query `[data-tour-group="Portal"]` to get the bounding rect of the current step's target
-- Render a full-screen overlay with a rectangular cutout (using `clip-path: polygon(...)` or an SVG mask) positioned over the target element
-- Render the tooltip card absolutely positioned next to the cutout
-- On "Next", update the target selector, recalculate position, and animate the cutout + tooltip to the new location using Framer Motion
-- Use `ResizeObserver` and scroll listeners to keep positions accurate
-- On mobile: call `setMobileOpen(true)` on mount, use a slight delay for the drawer animation, then start highlighting
+## Technical Details
 
-### Step-to-Element Mapping
-Each step maps to a `data-tour-group` value:
-| Step | data-tour-group | Tooltip Position |
-|------|----------------|-----------------|
-| 0 | Portal | Right (desktop) / Below (mobile) |
-| 1 | Market | Right / Below |
-| 2 | Resources | Right / Below |
-| 3 | Contracting | Right / Below |
-| 4 | Compliance | Right / Below |
+### Files
 
-### Files Modified
-1. **`src/components/portal/PortalOnboardingTour.tsx`** -- Complete rewrite to spotlight-based guided tour
-2. **`src/components/portal/PortalLayout.tsx`** -- Add `data-tour-group` attributes to nav group wrappers; pass `setMobileOpen` prop to tour component
+1. **New file: `src/pages/portal/advisor/contracting/ExamFXWelcome.tsx`**
+   - Props: `firstName`, `agentId`
+   - Branded layout matching AgentWelcome (same BRAND/ACCENT colors, card structure)
+   - 6 collapsible or scrollable step sections with sub-items
+   - Link to examfx.com opens in new tab
+
+2. **Modified: `src/pages/portal/advisor/contracting/ContractingDashboard.tsx`**
+   - Import `ExamFXWelcome`
+   - In the main router, before the current licensed flow, check `contractingAgent.is_licensed === false`
+   - If false and in early stages, render `ExamFXWelcome` instead of `AgentWelcome`
+
+3. **Modified: `src/hooks/useContractingAuth.ts`**
+   - Add `is_licensed` to the `ContractingAgent` interface and the select query so it's available in the dashboard router
+
+### Routing Flow
+
+```text
+Agent Login
+    |
+    v
+is_licensed === false?
+    |           |
+   YES/null     NO
+    |           |
+    v           v
+AgentWelcome   ExamFXWelcome (new)
+    |           |
+    v           v
+SureLCSetup    (future pages TBD)
+    |
+    v
+Dashboard
+```
+
+### No database changes needed
+The `is_licensed` boolean column already exists on `contracting_agents`.
 
