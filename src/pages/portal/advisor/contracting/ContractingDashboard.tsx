@@ -22,6 +22,7 @@ import {
   Table, TableHeader, TableBody, TableHead, TableRow, TableCell,
 } from "@/components/ui/table";
 import AgentWelcome from "./AgentWelcome";
+import SureLCSetup from "./SureLCSetup";
 import ViewSignedAgreement from "./ViewSignedAgreement";
 
 const BRAND = "#1A4D3E";
@@ -1083,6 +1084,9 @@ export default function ContractingDashboard() {
     const stage = contractingAgent.pipeline_stage;
     if (stage === "intake_submitted" || stage === "agreement_pending") {
       return <AgentWelcome firstName={contractingAgent.first_name} agentId={contractingAgent.id} fullName={`${contractingAgent.first_name} ${contractingAgent.last_name}`} />;
+    }
+    if (stage === "surelc_setup") {
+      return <SureLCSetup agentId={contractingAgent.id} firstName={contractingAgent.first_name} />;
     }
     return (
       <AgentDashboard
