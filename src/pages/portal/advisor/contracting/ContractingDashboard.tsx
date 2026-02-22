@@ -21,6 +21,7 @@ import { Progress } from "@/components/ui/progress";
 import {
   Table, TableHeader, TableBody, TableHead, TableRow, TableCell,
 } from "@/components/ui/table";
+import AgentWelcome from "./AgentWelcome";
 
 const BRAND = "#1A4D3E";
 const ACCENT = "#EBD975";
@@ -1064,8 +1065,12 @@ export default function ContractingDashboard() {
     );
   }
 
-  // Agent role → personal dashboard
+  // Agent role → welcome page for new agents, or personal dashboard
   if (contractingRole === "agent" && contractingAgent) {
+    const stage = contractingAgent.pipeline_stage;
+    if (stage === "intake_submitted" || stage === "agreement_pending") {
+      return <AgentWelcome firstName={contractingAgent.first_name} />;
+    }
     return (
       <AgentDashboard
         agentId={contractingAgent.id}
