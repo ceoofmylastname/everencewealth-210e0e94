@@ -1,11 +1,102 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
   PlayCircle, ExternalLink, Upload, CheckCircle2, Loader2,
-  ShieldCheck, AlertTriangle, Image as ImageIcon,
+  ShieldCheck, AlertTriangle, Image as ImageIcon, Trophy, Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+
+// ── Confetti Engine (self-contained, no deps) ────────────────
+function fireConfetti() {
+  const canvas = document.createElement("canvas");
+  canvas.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:99999";
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  document.body.appendChild(canvas);
+  const ctx = canvas.getContext("2d")!;
+
+  const colors = ["#C9A84C", "#1A4D3E", "#FFD700", "#FF6B6B", "#4ECDC4", "#45B7D1", "#96CEB4", "#FFEAA7", "#DDA0DD", "#98D8C8", "#F7DC6F", "#82E0AA"];
+  
+  interface Particle {
+    x: number; y: number; vx: number; vy: number;
+    size: number; color: string; rotation: number; rotSpeed: number;
+    gravity: number; drag: number; shape: number; opacity: number;
+  }
+
+  const particles: Particle[] = [];
+  const count = 200;
+
+  // Shoot from both sides
+  for (let i = 0; i < count; i++) {
+    const fromLeft = i < count / 2;
+    particles.push({
+      x: fromLeft ? -10 : canvas.width + 10,
+      y: canvas.height * (0.2 + Math.random() * 0.4),
+      vx: (fromLeft ? 1 : -1) * (8 + Math.random() * 14),
+      vy: -(4 + Math.random() * 10),
+      size: 6 + Math.random() * 8,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      rotation: Math.random() * Math.PI * 2,
+      rotSpeed: (Math.random() - 0.5) * 0.3,
+      gravity: 0.15 + Math.random() * 0.1,
+      drag: 0.97 + Math.random() * 0.02,
+      shape: Math.floor(Math.random() * 3),
+      opacity: 1,
+    });
+  }
+
+  let frame = 0;
+  const maxFrames = 180;
+
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    let alive = false;
+
+    for (const p of particles) {
+      p.vy += p.gravity;
+      p.vx *= p.drag;
+      p.vy *= p.drag;
+      p.x += p.vx;
+      p.y += p.vy;
+      p.rotation += p.rotSpeed;
+      if (frame > maxFrames * 0.6) p.opacity = Math.max(0, p.opacity - 0.02);
+
+      if (p.opacity <= 0) continue;
+      alive = true;
+
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rotation);
+      ctx.globalAlpha = p.opacity;
+      ctx.fillStyle = p.color;
+
+      if (p.shape === 0) {
+        ctx.fillRect(-p.size / 2, -p.size / 4, p.size, p.size / 2);
+      } else if (p.shape === 1) {
+        ctx.beginPath();
+        ctx.arc(0, 0, p.size / 2, 0, Math.PI * 2);
+        ctx.fill();
+      } else {
+        ctx.beginPath();
+        ctx.moveTo(0, -p.size / 2);
+        ctx.lineTo(p.size / 2, p.size / 2);
+        ctx.lineTo(-p.size / 2, p.size / 2);
+        ctx.closePath();
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+
+    frame++;
+    if (alive && frame < maxFrames) {
+      requestAnimationFrame(draw);
+    } else {
+      canvas.remove();
+    }
+  }
+  requestAnimationFrame(draw);
+}
 
 const BRAND = "#1A4D3E";
 const ACCENT = "#C9A84C";
@@ -49,6 +140,7 @@ export default function SureLCSetup({ agentId, firstName }: SureLCSetupProps) {
   const [screenshotUploaded, setScreenshotUploaded] = useState(false);
   const [screenshotName, setScreenshotName] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [showCelebration, setShowCelebration] = useState(false);
   const [loadingState, setLoadingState] = useState(true);
   const [dragActive, setDragActive] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -201,10 +293,7 @@ export default function SureLCSetup({ agentId, firstName }: SureLCSetupProps) {
 
       setScreenshotUploaded(true);
       setScreenshotName(file.name);
-      toast.success("Screenshot uploaded! Your contracting process is advancing.");
-
-      // Reload after brief delay so routing picks up new pipeline stage
-      setTimeout(() => window.location.reload(), 2000);
+      toast.success("Screenshot uploaded! Click the button below to celebrate! 🎉");
     } catch (err: any) {
       console.error(err);
       toast.error("Upload failed: " + (err.message || "Unknown error"));
@@ -399,13 +488,95 @@ export default function SureLCSetup({ agentId, firstName }: SureLCSetupProps) {
           </div>
 
           {screenshotUploaded ? (
-            <div className="rounded-xl border-2 border-green-400 bg-green-50 p-6 text-center space-y-2">
-              <CheckCircle2 className="h-10 w-10 text-green-500 mx-auto" />
-              <p className="font-semibold text-green-700">Screenshot Uploaded!</p>
-              {screenshotName && (
-                <p className="text-xs text-green-600">{screenshotName}</p>
+            <div className="space-y-4">
+              {/* Success indicator */}
+              <div className="rounded-xl border-2 border-green-400 bg-green-50 p-4 text-center space-y-1">
+                <CheckCircle2 className="h-8 w-8 text-green-500 mx-auto" />
+                <p className="font-semibold text-green-700 text-sm">Screenshot Uploaded!</p>
+                {screenshotName && (
+                  <p className="text-xs text-green-600">{screenshotName}</p>
+                )}
+              </div>
+
+              {/* Celebration Button or Celebration Card */}
+              {!showCelebration ? (
+                <button
+                  onClick={() => {
+                    setShowCelebration(true);
+                    fireConfetti();
+                    // Fire again after a beat for extra drama
+                    setTimeout(() => fireConfetti(), 600);
+                    setTimeout(() => fireConfetti(), 1200);
+                    // Reload after celebration
+                    setTimeout(() => window.location.reload(), 5000);
+                  }}
+                  className="w-full rounded-xl p-5 text-white font-bold text-lg transition-all hover:scale-[1.02] active:scale-95 animate-pulse"
+                  style={{
+                    background: `linear-gradient(135deg, ${ACCENT} 0%, #E8C74A 50%, ${ACCENT} 100%)`,
+                    backgroundSize: "200% 200%",
+                    boxShadow: `0 0 30px ${ACCENT}40, 0 4px 20px rgba(0,0,0,0.15)`,
+                  }}
+                >
+                  <div className="flex items-center justify-center gap-3">
+                    <Trophy className="h-7 w-7" />
+                    <span>🎉 Complete Your Onboarding 🎉</span>
+                    <Sparkles className="h-7 w-7" />
+                  </div>
+                </button>
+              ) : (
+                <div
+                  className="rounded-2xl p-8 text-center text-white space-y-4 animate-scale-in relative overflow-hidden"
+                  style={{
+                    background: `linear-gradient(135deg, ${BRAND} 0%, #2D6B5A 40%, #1A6B5A 100%)`,
+                    boxShadow: `0 0 60px ${ACCENT}30, 0 8px 32px rgba(0,0,0,0.2)`,
+                  }}
+                >
+                  {/* Decorative circles */}
+                  <div className="absolute top-0 left-0 w-40 h-40 rounded-full opacity-10" style={{ background: ACCENT, transform: "translate(-40%, -40%)" }} />
+                  <div className="absolute bottom-0 right-0 w-32 h-32 rounded-full opacity-10" style={{ background: ACCENT, transform: "translate(30%, 30%)" }} />
+                  <div className="absolute top-1/2 right-4 w-20 h-20 rounded-full opacity-5" style={{ background: "#fff" }} />
+
+                  {/* Trophy icon */}
+                  <div
+                    className="mx-auto w-20 h-20 rounded-full flex items-center justify-center animate-fade-in"
+                    style={{ background: `${ACCENT}30`, border: `3px solid ${ACCENT}` }}
+                  >
+                    <Trophy className="h-10 w-10" style={{ color: ACCENT }} />
+                  </div>
+
+                  {/* Main text */}
+                  <div className="space-y-2 animate-fade-in" style={{ animationDelay: "200ms" }}>
+                    <p className="text-3xl md:text-4xl font-black tracking-tight">
+                      🎉 CONGRATULATIONS 🎉
+                    </p>
+                    <p className="text-2xl md:text-3xl font-extrabold" style={{ color: ACCENT }}>
+                      {firstName}!
+                    </p>
+                  </div>
+
+                  <div className="animate-fade-in" style={{ animationDelay: "400ms" }}>
+                    <p className="text-xl md:text-2xl font-bold">
+                      You're officially a{" "}
+                      <span style={{ color: ACCENT }} className="underline decoration-2 underline-offset-4">
+                        Gladiator in a Suit
+                      </span>
+                      . 🛡️
+                    </p>
+                  </div>
+
+                  <div className="animate-fade-in pt-2" style={{ animationDelay: "700ms" }}>
+                    <p className="text-lg md:text-xl font-semibold text-white/90">
+                      Let's go help families, <span style={{ color: ACCENT }}>{firstName}</span>! 💪🔥
+                    </p>
+                  </div>
+
+                  <div className="animate-fade-in pt-3" style={{ animationDelay: "1000ms" }}>
+                    <p className="text-sm text-white/60">
+                      Your onboarding is complete. Redirecting you to your dashboard…
+                    </p>
+                  </div>
+                </div>
               )}
-              <p className="text-xs text-gray-500">Your contracting process is being advanced…</p>
             </div>
           ) : (
             <div
