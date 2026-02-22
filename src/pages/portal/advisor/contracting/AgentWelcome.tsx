@@ -12,9 +12,10 @@ interface AgentWelcomeProps {
   firstName: string;
   agentId?: string;
   fullName?: string;
+  onContinue?: () => void;
 }
 
-export default function AgentWelcome({ firstName, agentId, fullName }: AgentWelcomeProps) {
+export default function AgentWelcome({ firstName, agentId, fullName, onContinue }: AgentWelcomeProps) {
   const [showAgreement, setShowAgreement] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [showViewAgreement, setShowViewAgreement] = useState(false);
@@ -104,7 +105,7 @@ export default function AgentWelcome({ firstName, agentId, fullName }: AgentWelc
               size="lg"
               className="text-white font-semibold gap-2 px-8 py-3 text-base rounded-xl shadow-lg hover:translate-y-[-2px] transition-all"
               style={{ background: BRAND }}
-              onClick={() => window.location.reload()}
+              onClick={() => onContinue ? onContinue() : window.location.reload()}
             >
               Continue to Step 2
               <ArrowRight className="h-5 w-5" />
