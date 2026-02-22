@@ -1,51 +1,60 @@
 
 
-# Portal Onboarding Tour -- First-Time Welcome Experience
+# Guided Spotlight Tour (Replaces Centered Modal)
 
-## Overview
-A multi-step guided tour that appears as a fullscreen modal overlay the first time an advisor signs in. Each step highlights one sidebar navigation group with a modern, animated design. Users can click "Next" to advance or "X" to dismiss. The tour state persists in localStorage so it only shows once.
+## What Changes
 
-## Tour Steps (5 total)
+Instead of a popup in the middle of the screen, the tour will **highlight each actual sidebar section** with a spotlight effect and position a tooltip card next to it. The tour literally "walks" through the sidebar, scrolling and animating to each nav group.
 
-1. **Welcome / Portal** -- "Your command center. The Dashboard gives you a full snapshot of your business. Clients lets you invite and manage clients. Policies tracks all active coverage. CNA helps you understand each client's needs. Messages keeps the conversation going."
+## How It Works
 
-2. **Market** -- "Stay ahead of the industry. Browse Carriers, read the latest News, and track your Performance all in one place."
+### Desktop (sidebar always visible)
+1. A dark overlay covers the entire screen with a **cutout/spotlight** around the current nav group
+2. A sleek tooltip card appears to the **right of the highlighted section** with the title, description, step dots, and Next/Skip buttons
+3. As the user clicks "Next", the spotlight **smoothly animates** down the sidebar to the next group, scrolling the sidebar nav if needed
+4. The cutout uses CSS `clip-path` or a canvas-based approach for the spotlight hole
 
-3. **Resources** -- "Everything you need to grow. Access quoting Tools, complete Training courses, grab Marketing materials, and manage your Schedule."
-
-4. **Contracting** -- "Onboard new agents seamlessly. Track the full pipeline from application to completion, manage documents, and monitor analytics."
-
-5. **Compliance** -- "Stay compliant and organized. Monitor licensing, manage documents, invite clients, and configure your settings."
+### Mobile (sidebar is a drawer)
+1. Tour automatically **opens the mobile sidebar drawer** when it starts
+2. Same spotlight + tooltip behavior, but the tooltip appears **below the highlighted section** (since there's no room to the right)
+3. Sidebar stays open throughout the tour; closes on dismiss/completion
 
 ## Visual Design
+- Dark semi-transparent overlay (same backdrop blur as current)
+- Spotlight cutout with a subtle glowing border (brand green) around the highlighted nav group
+- Tooltip card: compact white card with rounded corners, shadow, containing:
+  - Step badge (e.g., "Portal -- 1/5")
+  - Title + description
+  - Small icon row showing the section's nav items
+  - Dot indicators + Next/Skip buttons
+- Smooth spring animation when spotlight moves between sections
+- Pulse animation on the highlighted area to draw attention
 
-- Fullscreen semi-transparent backdrop (blur effect)
-- Centered card (max-w-lg) with smooth slide/fade animations between steps
-- Each step features:
-  - Large icon cluster representing the section (using existing Lucide icons)
-  - Section name as a styled heading
-  - Brief description paragraph
-  - Step indicator dots at the bottom
-  - "Next" button (brand green) + "Skip Tour" text link
-  - Final step shows "Get Started" button instead of Next
-- Mobile: card goes full-width with adjusted padding, larger touch targets
+## Technical Approach
 
-## Persistence
+### PortalLayout.tsx changes
+- Add `data-tour-group="Portal"`, `data-tour-group="Market"`, etc. to each nav group `<div>` wrapper in the sidebar
+- Pass `setMobileOpen` to the tour component so it can open the sidebar on mobile
 
-- Uses `localStorage` key `portal_tour_completed` set to `true` on dismiss or completion
-- Checked on mount in PortalLayout -- if not set and user is an advisor, show the tour
+### PortalOnboardingTour.tsx -- full rewrite
+- On mount, query `[data-tour-group="Portal"]` to get the bounding rect of the current step's target
+- Render a full-screen overlay with a rectangular cutout (using `clip-path: polygon(...)` or an SVG mask) positioned over the target element
+- Render the tooltip card absolutely positioned next to the cutout
+- On "Next", update the target selector, recalculate position, and animate the cutout + tooltip to the new location using Framer Motion
+- Use `ResizeObserver` and scroll listeners to keep positions accurate
+- On mobile: call `setMobileOpen(true)` on mount, use a slight delay for the drawer animation, then start highlighting
 
-## Technical Details
+### Step-to-Element Mapping
+Each step maps to a `data-tour-group` value:
+| Step | data-tour-group | Tooltip Position |
+|------|----------------|-----------------|
+| 0 | Portal | Right (desktop) / Below (mobile) |
+| 1 | Market | Right / Below |
+| 2 | Resources | Right / Below |
+| 3 | Contracting | Right / Below |
+| 4 | Compliance | Right / Below |
 
-### New File
-`src/components/portal/PortalOnboardingTour.tsx` -- Self-contained tour component with all 5 steps, animations via Framer Motion, and localStorage logic.
+### Files Modified
+1. **`src/components/portal/PortalOnboardingTour.tsx`** -- Complete rewrite to spotlight-based guided tour
+2. **`src/components/portal/PortalLayout.tsx`** -- Add `data-tour-group` attributes to nav group wrappers; pass `setMobileOpen` prop to tour component
 
-### Modified File
-`src/components/portal/PortalLayout.tsx` -- Import and render `<PortalOnboardingTour />` inside the layout, passing `isAdvisor` and `portalUser` to control visibility.
-
-### Implementation Notes
-- Uses Framer Motion `AnimatePresence` + `motion.div` for step transitions (slide left/right + fade)
-- Each step has a curated icon grid showing the nav items for that section
-- Step dots are clickable for random access
-- Responsive: on mobile the card is nearly full-screen with bottom-anchored buttons
-- No database changes needed -- localStorage is sufficient for this feature
