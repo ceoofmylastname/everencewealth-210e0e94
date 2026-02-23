@@ -16,7 +16,7 @@ import {
 } from "@/components/LegacyRouteRedirects";
 import { SUPPORTED_LANGUAGES } from "@/types/hreflang";
 
-// Language-prefixed homepage wrapper - validates lang param and renders Home or NotFound
+// Language-prefixed homepage wrapper - validates lang param and renders Home, or falls through to WorkshopLanding
 const LanguageHome = () => {
   const { lang } = useParams<{ lang: string }>();
 
@@ -29,7 +29,8 @@ const LanguageHome = () => {
   const isValidLang = lang && SUPPORTED_LANGUAGES.includes(lang as typeof SUPPORTED_LANGUAGES[number]);
 
   if (!isValidLang) {
-    return <NotFound />;
+    // Not a language code — try workshop landing page (e.g., /john-mel)
+    return <WorkshopLanding />;
   }
 
   return <Home />;
@@ -598,9 +599,6 @@ const App = () => (
               <Route path="/properties" element={<Navigate to="/en/properties" replace />} />
               <Route path="/property-finder" element={<Navigate to="/en/properties" replace />} />
               <Route path="/property/:reference" element={<PropertyRedirect />} />
-
-              {/* Public Workshop Landing Page */}
-              <Route path="/w/:slug" element={<WorkshopLanding />} />
 
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
