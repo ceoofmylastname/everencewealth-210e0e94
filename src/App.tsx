@@ -174,6 +174,7 @@ const ContractingAnalytics = lazy(() => import("./pages/portal/advisor/contracti
 const ContractingAgents = lazy(() => import("./pages/portal/advisor/contracting/ContractingAgents"));
 const ContractingSettings = lazy(() => import("./pages/portal/advisor/contracting/ContractingSettings"));
 const WorkshopSlugSetup = lazy(() => import("./pages/portal/advisor/WorkshopSlugSetup"));
+const WorkshopCreate = lazy(() => import("./pages/portal/advisor/WorkshopCreate"));
 const ClientDashboard = lazy(() => import("./pages/portal/client/ClientDashboard"));
 const ClientPolicies = lazy(() => import("./pages/portal/client/ClientPolicies"));
 const ClientDocuments = lazy(() => import("./pages/portal/client/ClientDocuments"));
@@ -403,6 +404,7 @@ const App = () => (
                   <Route path="contracting/agents" element={<ContractingAgents />} />
                   <Route path="contracting/settings" element={<ContractingSettings />} />
                   <Route path="workshops/slug-setup" element={<WorkshopSlugSetup />} />
+                  <Route path="workshops/create" element={<WorkshopCreate />} />
                 </Route>
               </Route>
               <Route path="/portal/client" element={<ClientRoute />}>
