@@ -53,6 +53,8 @@ export default function WorkshopSlugSetup() {
         .select("slug")
         .eq("advisor_id", advisor.id)
         .eq("is_active", true)
+        .order("created_at", { ascending: false })
+        .limit(1)
         .maybeSingle();
       if (slugErr) throw slugErr;
 
