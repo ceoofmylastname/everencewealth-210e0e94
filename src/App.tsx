@@ -403,6 +403,7 @@ const App = () => (
                   <Route path="contracting/analytics" element={<ContractingAnalytics />} />
                   <Route path="contracting/agents" element={<ContractingAgents />} />
                   <Route path="contracting/settings" element={<ContractingSettings />} />
+                  <Route path="workshops" element={<Navigate to="workshops/slug-setup" replace />} />
                   <Route path="workshops/slug-setup" element={<WorkshopSlugSetup />} />
                   <Route path="workshops/create" element={<WorkshopCreate />} />
                 </Route>
