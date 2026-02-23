@@ -361,7 +361,7 @@ const WorkshopLanding: React.FC = () => {
                   >
                     Build Your{" "}
                     <span className="relative inline-block pb-1">Tax-Free<svg className="absolute -bottom-1 left-0 w-full" viewBox="0 0 200 12" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"><path d="M2 8.5C30 3 70 2 100 5.5C130 9 170 4 198 6" stroke="#EDDB77" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"/></svg></span>{" "}
-                    <span className="bg-[#EDDB77]/20 px-2 rounded-lg">Retirement</span>
+                    <span className="bg-clip-text text-transparent bg-[length:200%_auto] animate-[gradient-shift_3s_ease-in-out_infinite] bg-gradient-to-r from-[#EDDB77] via-white to-[#EDDB77]">Retirement</span>
                   </motion.h1>
 
                   {/* Subheadline */}
