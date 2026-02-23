@@ -1,16 +1,18 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { usePortalAuth } from "@/hooks/usePortalAuth";
+import { useContractingGate } from "@/hooks/useContractingGate";
 import { cn } from "@/lib/utils";
 import {
   Shield, LogOut, LayoutDashboard, FileText, Users, Send,
   FolderOpen, Menu, X, ChevronRight, MessageSquare,
   Building2, TrendingUp, Wrench, GraduationCap, Megaphone, Calendar, Newspaper,
-  Settings, ClipboardList, Briefcase, GitBranch,
+  Settings, ClipboardList, Briefcase, GitBranch, Lock, AlertTriangle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { NotificationBell } from "./NotificationBell";
 import { PortalOnboardingTour } from "./PortalOnboardingTour";
+import { toast } from "sonner";
 
 const BRAND_GREEN = "#1A4D3E";
 const BRAND_GREEN_LIGHT = "#F0F5F3";
@@ -73,8 +75,41 @@ const clientNav = [
   { label: "Messages", icon: MessageSquare, href: "/portal/client/messages" },
 ];
 
-function NavItem({ item, active, onClick }: { item: { label: string; icon: React.ElementType; href: string }; active: boolean; onClick?: () => void }) {
+function NavItem({
+  item,
+  active,
+  onClick,
+  locked,
+}: {
+  item: { label: string; icon: React.ElementType; href: string };
+  active: boolean;
+  onClick?: () => void;
+  locked?: boolean;
+}) {
   const Icon = item.icon;
+
+  if (locked) {
+    return (
+      <div
+        role="button"
+        onClick={() => {
+          toast.info("Complete your contracting onboarding to unlock this section.");
+        }}
+        className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-150 cursor-not-allowed select-none"
+        style={{
+          color: "#D1D5DB",
+          borderLeft: "3px solid transparent",
+          paddingLeft: "9px",
+          opacity: 0.5,
+        }}
+      >
+        <Icon className="h-4 w-4 shrink-0" />
+        <span>{item.label}</span>
+        <Lock className="h-3 w-3 ml-auto text-gray-300" />
+      </div>
+    );
+  }
+
   return (
     <Link
       to={item.href}
@@ -112,12 +147,20 @@ function NavItem({ item, active, onClick }: { item: { label: string; icon: React
 
 export function PortalLayout() {
   const { portalUser, signOut } = usePortalAuth();
+  const { isGated, loading: gateLoading } = useContractingGate();
   const location = useLocation();
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const isAdvisor = portalUser?.role === "advisor" || portalUser?.role === "admin";
   const isAdmin = portalUser?.role === "admin";
+
+  // Route-level guard: redirect gated users away from non-contracting routes
+  useEffect(() => {
+    if (!gateLoading && isGated && !location.pathname.startsWith("/portal/advisor/contracting")) {
+      navigate("/portal/advisor/contracting", { replace: true });
+    }
+  }, [isGated, gateLoading, location.pathname, navigate]);
 
   const handleSignOut = async () => {
     await signOut();
@@ -126,6 +169,8 @@ export function PortalLayout() {
 
   const isActive = (href: string) =>
     location.pathname === href || location.pathname.startsWith(href + "/");
+
+  const isContractingGroup = (groupLabel: string) => groupLabel === "Contracting";
 
   const SidebarContent = () => (
     <div className="flex flex-col h-full bg-white">
@@ -157,6 +202,17 @@ export function PortalLayout() {
         </Button>
       </div>
 
+      {/* Gating Banner */}
+      {isGated && (
+        <div className="mx-3 mt-3 p-3 rounded-lg border border-amber-200 bg-amber-50 flex items-start gap-2">
+          <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
+          <div>
+            <p className="text-xs font-semibold text-amber-800">Complete contracting</p>
+            <p className="text-[10px] text-amber-600 mt-0.5">Finish your onboarding to unlock all tools & resources</p>
+          </div>
+        </div>
+      )}
+
       {/* Nav */}
       <nav className="flex-1 py-4 px-3 overflow-y-auto space-y-4">
         {isAdvisor ? (
@@ -165,7 +221,7 @@ export function PortalLayout() {
             if (isAdmin && group.label === "Compliance") {
               groupItems = [...groupItems, { label: "Admin Panel", icon: Settings, href: "/portal/admin/agents" }];
             }
-            // Admin contracting functionality is now in Settings page
+            const groupLocked = isGated && !isContractingGroup(group.label);
             return (
               <div key={group.label} data-tour-group={group.label}>
                 <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400 px-3 mb-1.5">
@@ -178,6 +234,7 @@ export function PortalLayout() {
                       item={item}
                       active={isActive(item.href)}
                       onClick={() => setMobileOpen(false)}
+                      locked={groupLocked}
                     />
                   ))}
                 </div>
