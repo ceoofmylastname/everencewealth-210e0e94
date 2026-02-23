@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { z } from "zod";
 import { toast } from "sonner";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Check,
   Mail,
@@ -19,7 +20,9 @@ import {
   Award,
   Loader2,
   ChevronDown,
+  Sparkles,
 } from "lucide-react";
+import workshopHeroBg from "@/assets/workshop-hero-bg.jpg";
 
 // ── Zod schema ──
 const registrationSchema = z.object({
@@ -29,6 +32,35 @@ const registrationSchema = z.object({
   phone: z.string().trim().max(20).optional().or(z.literal("")),
 });
 type RegistrationData = z.infer<typeof registrationSchema>;
+
+// ── Animation Variants ──
+const fadeUp = {
+  hidden: { opacity: 0, y: 30 },
+  visible: { opacity: 1, y: 0 },
+};
+
+const fadeRight = {
+  hidden: { opacity: 0, x: 40 },
+  visible: { opacity: 1, x: 0 },
+};
+
+const fadeLeft = {
+  hidden: { opacity: 0, x: -40 },
+  visible: { opacity: 1, x: 0 },
+};
+
+const scaleIn = {
+  hidden: { opacity: 0, scale: 0.9 },
+  visible: { opacity: 1, scale: 1 },
+};
+
+const staggerContainer = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.1, delayChildren: 0.2 } },
+};
+
+const cardShadow = "shadow-[0_8px_30px_-4px_rgba(26,77,62,0.15)]";
+const cardHoverShadow = "hover:shadow-[0_16px_40px_-4px_rgba(26,77,62,0.25)]";
 
 // ── Main Component ──
 const WorkshopLanding: React.FC = () => {
@@ -87,11 +119,11 @@ const WorkshopLanding: React.FC = () => {
     enabled: !!advisorId,
   });
 
-  // Workshop selection (for multiple)
+  // Workshop selection
   const [selectedIdx, setSelectedIdx] = useState(0);
   const workshop = workshops?.[selectedIdx] ?? null;
 
-  // Registration count query
+  // Registration count
   const { data: regCount } = useQuery({
     queryKey: ["workshop-reg-count", workshop?.id],
     queryFn: async () => {
@@ -168,7 +200,6 @@ const WorkshopLanding: React.FC = () => {
         setSubmitted(true);
         setForm({ first_name: "", last_name: "", email: "", phone: "" });
         toast.success("You're registered!");
-        // Cooldown
         setCooldown(true);
         setTimeout(() => setCooldown(false), 30000);
       }
@@ -184,31 +215,35 @@ const WorkshopLanding: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white" style={{ fontFamily: "GeistSans, system-ui, sans-serif" }}>
-        <div className="flex flex-col items-center gap-4">
-          <Loader2 className="w-8 h-8 animate-spin" style={{ color: "#1A4D3E" }} />
-          <p className="text-sm" style={{ color: "#4A5565" }}>Loading workshop…</p>
-        </div>
+      <div className="min-h-screen flex items-center justify-center" style={{ background: "linear-gradient(135deg, #1A4D3E 0%, #0F2F27 100%)", fontFamily: "GeistSans, system-ui, sans-serif" }}>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="flex flex-col items-center gap-4"
+        >
+          <Loader2 className="w-10 h-10 animate-spin text-white/80" />
+          <p className="text-sm text-white/60">Loading workshop…</p>
+        </motion.div>
       </div>
     );
   }
 
-  // ── 404 — render standard NotFound page ──
+  // 404
   if (slugError || !slugData || !advisor) {
     return <NotFound />;
   }
 
-  // ── No upcoming workshops ──
+  // No upcoming workshops
   if (!workshops || workshops.length === 0) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white" style={{ fontFamily: "GeistSans, system-ui, sans-serif" }}>
-        <div className="text-center max-w-md px-6">
-          <h1 className="text-3xl font-bold mb-4" style={{ color: "#1A4D3E" }}>No Upcoming Workshops</h1>
-          <p className="text-lg mb-2" style={{ color: "#4A5565" }}>
+      <div className="min-h-screen flex items-center justify-center" style={{ background: "linear-gradient(135deg, #1A4D3E 0%, #0F2F27 100%)", fontFamily: "GeistSans, system-ui, sans-serif" }}>
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center max-w-md px-6">
+          <h1 className="text-3xl font-bold mb-4 text-white">No Upcoming Workshops</h1>
+          <p className="text-lg mb-2 text-white/70">
             {advisor.first_name} {advisor.last_name} doesn't have any upcoming workshops scheduled.
           </p>
-          <p style={{ color: "#4A5565" }}>Check back soon!</p>
-        </div>
+          <p className="text-white/50">Check back soon!</p>
+        </motion.div>
       </div>
     );
   }
@@ -219,7 +254,6 @@ const WorkshopLanding: React.FC = () => {
     ? format(new Date(workshop.workshop_date + "T00:00:00"), "EEEE, MMMM d, yyyy")
     : "";
   const rawTime = (workshop as any)?.workshop_time ?? "18:00:00";
-  // Format "HH:mm:ss" or "HH:mm" to "h:mm A"
   const formatTime = (t: string) => {
     const [h, m] = t.split(":").map(Number);
     const ampm = h >= 12 ? "PM" : "AM";
@@ -228,7 +262,6 @@ const WorkshopLanding: React.FC = () => {
   };
   const workshopTime = formatTime(rawTime);
   const rawTimezone = (workshop as any)?.timezone ?? "PST";
-  // Convert IANA timezone to abbreviation
   const workshopTimezone = (() => {
     try {
       const abbr = new Intl.DateTimeFormat("en-US", { timeZone: rawTimezone, timeZoneName: "short" })
@@ -245,6 +278,9 @@ const WorkshopLanding: React.FC = () => {
     (workshop as any)?.custom_subheadline ||
     `Join ${advisorName} for a complimentary workshop`;
 
+  // Split headline into words for animation
+  const headlineWords = headline.split(" ");
+
   return (
     <>
       <Helmet>
@@ -260,419 +296,507 @@ const WorkshopLanding: React.FC = () => {
         />
       </Helmet>
 
-      <div
-        className="min-h-screen bg-white"
-        style={{ fontFamily: "GeistSans, system-ui, sans-serif" }}
-      >
-        {/* ── HEADER ── */}
-        <header className="border-b" style={{ borderColor: "#E5E7EB" }}>
-          <div className="max-w-[1200px] mx-auto px-4 sm:px-6 py-4 flex items-center">
-            <img
-              src="https://everencewealth-beta.vercel.app/logo-icon.png"
-              alt="Everence Wealth logo"
-              className="h-10 sm:h-12"
-            />
-          </div>
-        </header>
+      <div className="min-h-screen bg-white" style={{ fontFamily: "GeistSans, system-ui, sans-serif" }}>
+        
+        {/* ── HERO SECTION ── */}
+        <section className="relative overflow-hidden" style={{ background: "linear-gradient(135deg, #1A4D3E 0%, #0F2F27 100%)" }}>
+          {/* Background image overlay */}
+          <div
+            className="absolute inset-0 opacity-20"
+            style={{
+              backgroundImage: `url(${workshopHeroBg})`,
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+              mixBlendMode: "overlay",
+            }}
+          />
+          {/* Gradient overlay for text readability */}
+          <div className="absolute inset-0 bg-gradient-to-r from-[#1A4D3E]/90 via-[#1A4D3E]/70 to-transparent" />
 
-        {/* ── HERO + FORM ── */}
-        <section className="max-w-[1200px] mx-auto px-4 sm:px-6 py-12 sm:py-16">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16">
-            {/* Left: Hero content */}
-            <div>
-              <h1
-                className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight mb-4"
-                style={{ color: "#1A4D3E" }}
-              >
-                {headline}
-              </h1>
-              <p className="text-lg sm:text-xl mb-6" style={{ color: "#4A5565" }}>
-                {subheadline}
-              </p>
-
-              {/* Date/Time prominent */}
-              <div
-                className="flex flex-col gap-2 mb-8 p-6"
-                style={{ background: "#F8FAF9", border: "1px solid #E5E7EB", borderRadius: "0px" }}
-              >
-                <div className="flex items-center gap-3">
-                  <Calendar className="w-5 h-5 flex-shrink-0" style={{ color: "#1A4D3E" }} />
-                  <span className="text-base sm:text-lg font-medium" style={{ color: "#1A4D3E" }}>
-                    {workshopDate} at {workshopTime} {workshopTimezone}
-                  </span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <Clock className="w-5 h-5 flex-shrink-0" style={{ color: "#1A4D3E" }} />
-                  <span style={{ color: "#4A5565" }}>{workshopDuration}-minute workshop</span>
-                </div>
-              </div>
-
-              {/* Multiple workshops selector */}
-              {workshops.length > 1 && (
-                <div className="mb-8">
-                  <label className="block text-sm font-medium mb-2" style={{ color: "#1A4D3E" }}>
-                    Select a workshop date:
-                  </label>
-                  <div className="relative">
-                    <select
-                      value={selectedIdx}
-                      onChange={(e) => {
-                        setSelectedIdx(Number(e.target.value));
-                        setSubmitted(false);
-                      }}
-                      className="w-full appearance-none px-4 py-3 text-base border bg-white pr-10"
-                      style={{
-                        borderColor: "#E5E7EB",
-                        borderRadius: "0px",
-                        color: "#1A4D3E",
-                      }}
-                    >
-                      {workshops.map((w: any, i: number) => (
-                        <option key={w.id} value={i}>
-                          {w.title} — {format(new Date(w.workshop_date + "T00:00:00"), "MMM d, yyyy")}
-                        </option>
-                      ))}
-                    </select>
-                    <ChevronDown
-                      className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 pointer-events-none"
-                      style={{ color: "#4A5565" }}
-                    />
-                  </div>
-                </div>
-              )}
-
-              {/* What You'll Learn */}
-              <div className="mb-8">
-                <h2 className="text-xl sm:text-2xl font-bold mb-5" style={{ color: "#1A4D3E" }}>
-                  What You'll Learn
-                </h2>
-                <ul className="space-y-4">
-                  {[
-                    "How to eliminate taxes on retirement income",
-                    "Protect your wealth from market volatility",
-                    "The Three Tax Buckets strategy",
-                    "Living benefits you can access before age 59½",
-                  ].map((item) => (
-                    <li key={item} className="flex items-start gap-3">
-                      <Check className="w-6 h-6 flex-shrink-0 mt-0.5" style={{ color: "#10B981" }} />
-                      <span className="text-base sm:text-lg" style={{ color: "#1A4D3E" }}>
-                        {item}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-
-            {/* Right: Registration Form */}
-            <div>
-              <div
-                className="p-6 sm:p-8"
-                style={{
-                  border: "2px solid #1A4D3E",
-                  borderRadius: "0px",
-                  background: "#FFFFFF",
-                }}
-              >
-                {submitted ? (
-                  <div className="text-center py-8">
-                    <div
-                      className="w-16 h-16 mx-auto mb-4 flex items-center justify-center"
-                      style={{ background: "#10B981", borderRadius: "0px" }}
-                    >
-                      <Check className="w-8 h-8 text-white" />
-                    </div>
-                    <h3 className="text-2xl font-bold mb-2" style={{ color: "#1A4D3E" }}>
-                      You're registered! ✓
-                    </h3>
-                    <p style={{ color: "#4A5565" }}>
-                      Check your email for confirmation and calendar invite.
-                    </p>
-                  </div>
-                ) : (
-                  <>
-                    <h3 className="text-xl sm:text-2xl font-bold mb-6" style={{ color: "#1A4D3E" }}>
-                      Reserve Your Spot
-                    </h3>
-
-                    {isFull && (
-                      <div
-                        className="p-4 mb-6 text-center"
-                        style={{
-                          background: "#FEF2F2",
-                          border: "1px solid #FECACA",
-                          borderRadius: "0px",
-                          color: "#DC2626",
-                        }}
-                      >
-                        <strong>This workshop is full.</strong>
-                      </div>
-                    )}
-
-                    <form onSubmit={handleSubmit} className="space-y-5" noValidate>
-                      {/* First Name */}
-                      <div>
-                        <label className="block text-sm font-medium mb-1.5" style={{ color: "#1A4D3E" }}>
-                          First Name <span style={{ color: "#DC2626" }}>*</span>
-                        </label>
-                        <input
-                          type="text"
-                          value={form.first_name}
-                          onChange={(e) => handleChange("first_name", e.target.value)}
-                          disabled={isFull}
-                          className="w-full px-4 py-3 text-base border outline-none transition-colors"
-                          style={{
-                            borderColor: errors.first_name ? "#DC2626" : "#E5E7EB",
-                            borderRadius: "0px",
-                            color: "#1A4D3E",
-                          }}
-                          onFocus={(e) => (e.target.style.borderColor = "#1A4D3E")}
-                          onBlur={(e) => (e.target.style.borderColor = errors.first_name ? "#DC2626" : "#E5E7EB")}
-                          aria-required="true"
-                          aria-invalid={!!errors.first_name}
-                        />
-                        {errors.first_name && (
-                          <p className="text-sm mt-1" style={{ color: "#DC2626" }} role="alert">
-                            {errors.first_name}
-                          </p>
-                        )}
-                      </div>
-
-                      {/* Last Name */}
-                      <div>
-                        <label className="block text-sm font-medium mb-1.5" style={{ color: "#1A4D3E" }}>
-                          Last Name <span style={{ color: "#DC2626" }}>*</span>
-                        </label>
-                        <input
-                          type="text"
-                          value={form.last_name}
-                          onChange={(e) => handleChange("last_name", e.target.value)}
-                          disabled={isFull}
-                          className="w-full px-4 py-3 text-base border outline-none transition-colors"
-                          style={{
-                            borderColor: errors.last_name ? "#DC2626" : "#E5E7EB",
-                            borderRadius: "0px",
-                            color: "#1A4D3E",
-                          }}
-                          onFocus={(e) => (e.target.style.borderColor = "#1A4D3E")}
-                          onBlur={(e) => (e.target.style.borderColor = errors.last_name ? "#DC2626" : "#E5E7EB")}
-                          aria-required="true"
-                          aria-invalid={!!errors.last_name}
-                        />
-                        {errors.last_name && (
-                          <p className="text-sm mt-1" style={{ color: "#DC2626" }} role="alert">
-                            {errors.last_name}
-                          </p>
-                        )}
-                      </div>
-
-                      {/* Email */}
-                      <div>
-                        <label className="block text-sm font-medium mb-1.5" style={{ color: "#1A4D3E" }}>
-                          Email <span style={{ color: "#DC2626" }}>*</span>
-                        </label>
-                        <input
-                          type="email"
-                          value={form.email}
-                          onChange={(e) => handleChange("email", e.target.value)}
-                          disabled={isFull}
-                          className="w-full px-4 py-3 text-base border outline-none transition-colors"
-                          style={{
-                            borderColor: errors.email ? "#DC2626" : "#E5E7EB",
-                            borderRadius: "0px",
-                            color: "#1A4D3E",
-                          }}
-                          onFocus={(e) => (e.target.style.borderColor = "#1A4D3E")}
-                          onBlur={(e) => (e.target.style.borderColor = errors.email ? "#DC2626" : "#E5E7EB")}
-                          aria-required="true"
-                          aria-invalid={!!errors.email}
-                        />
-                        {errors.email && (
-                          <p className="text-sm mt-1" style={{ color: "#DC2626" }} role="alert">
-                            {errors.email}
-                          </p>
-                        )}
-                      </div>
-
-                      {/* Phone */}
-                      <div>
-                        <label className="block text-sm font-medium mb-1.5" style={{ color: "#4A5565" }}>
-                          Phone <span className="text-xs" style={{ color: "#9CA3AF" }}>(optional)</span>
-                        </label>
-                        <input
-                          type="tel"
-                          value={form.phone}
-                          onChange={(e) => handleChange("phone", e.target.value)}
-                          disabled={isFull}
-                          className="w-full px-4 py-3 text-base border outline-none transition-colors"
-                          style={{
-                            borderColor: "#E5E7EB",
-                            borderRadius: "0px",
-                            color: "#1A4D3E",
-                          }}
-                          onFocus={(e) => (e.target.style.borderColor = "#1A4D3E")}
-                          onBlur={(e) => (e.target.style.borderColor = "#E5E7EB")}
-                        />
-                      </div>
-
-                      {/* Submit */}
-                      <button
-                        type="submit"
-                        disabled={submitting || isFull || cooldown}
-                        className="w-full py-3 sm:py-4 text-base sm:text-lg font-bold text-white transition-opacity disabled:opacity-50"
-                        style={{
-                          background: "#1A4D3E",
-                          borderRadius: "0px",
-                          height: "48px",
-                        }}
-                      >
-                        {submitting ? (
-                          <span className="flex items-center justify-center gap-2">
-                            <Loader2 className="w-5 h-5 animate-spin" />
-                            Registering…
-                          </span>
-                        ) : (
-                          "Reserve My Spot"
-                        )}
-                      </button>
-                    </form>
-                  </>
+          <div className="relative z-10">
+            {/* Header */}
+            <header className="border-b border-white/10">
+              <div className="max-w-[1200px] mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
+                <img
+                  src="https://everencewealth-beta.vercel.app/logo-icon.png"
+                  alt="Everence Wealth logo"
+                  className="h-10 sm:h-12 brightness-0 invert"
+                />
+                {seatsRemaining !== null && seatsRemaining > 0 && seatsRemaining <= 15 && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold"
+                    style={{ background: "rgba(220, 38, 38, 0.2)", color: "#FCA5A5" }}
+                  >
+                    <Sparkles className="w-3 h-3" />
+                    {seatsRemaining} spots left
+                  </motion.div>
                 )}
               </div>
+            </header>
 
-              {/* Workshop Details card */}
-              <div
-                className="mt-6 p-6"
-                style={{
-                  border: "1px solid #E5E7EB",
-                  borderRadius: "0px",
-                  background: "#FFFFFF",
-                }}
-              >
-                <h3 className="text-lg font-bold mb-4" style={{ color: "#1A4D3E" }}>
-                  Workshop Details
-                </h3>
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3">
-                    <Calendar className="w-5 h-5 flex-shrink-0" style={{ color: "#1A4D3E" }} />
-                    <span style={{ color: "#4A5565" }}>{workshopDate}</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Clock className="w-5 h-5 flex-shrink-0" style={{ color: "#1A4D3E" }} />
-                    <span style={{ color: "#4A5565" }}>
-                      {workshopTime} {workshopTimezone}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Clock className="w-5 h-5 flex-shrink-0" style={{ color: "#1A4D3E" }} />
-                    <span style={{ color: "#4A5565" }}>{workshopDuration} minutes</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Monitor className="w-5 h-5 flex-shrink-0" style={{ color: "#1A4D3E" }} />
-                    <span style={{ color: "#4A5565" }}>Live Online Workshop via Zoom</span>
-                  </div>
-                  {seatsRemaining !== null && (
-                    <div className="flex items-center gap-3">
-                      <Users className="w-5 h-5 flex-shrink-0" style={{ color: "#1A4D3E" }} />
-                      <span
-                        className="font-medium"
-                        style={{ color: seatsRemaining <= 10 ? "#DC2626" : "#4A5565" }}
+            {/* Hero Content */}
+            <div className="max-w-[1200px] mx-auto px-4 sm:px-6 py-16 sm:py-20 lg:py-24">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-start">
+                
+                {/* Left: Hero text */}
+                <motion.div
+                  variants={staggerContainer}
+                  initial="hidden"
+                  animate="visible"
+                >
+                  {/* Date badge */}
+                  <motion.div
+                    variants={fadeLeft}
+                    transition={{ type: "spring", stiffness: 100, damping: 15 }}
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-6"
+                    style={{ background: "rgba(255,255,255,0.1)", backdropFilter: "blur(8px)", border: "1px solid rgba(255,255,255,0.15)" }}
+                  >
+                    <Calendar className="w-4 h-4 text-[#EDDB77]" />
+                    <span className="text-sm font-medium text-white/90">{workshopDate}</span>
+                  </motion.div>
+
+                  {/* Headline - word by word */}
+                  <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight mb-5">
+                    {headlineWords.map((word, i) => (
+                      <motion.span
+                        key={i}
+                        variants={fadeUp}
+                        transition={{ duration: 0.5, delay: i * 0.08 }}
+                        className="inline-block mr-[0.3em] text-white"
                       >
-                        {seatsRemaining > 0
-                          ? `${seatsRemaining} seats remaining`
-                          : "This workshop is full"}
-                      </span>
+                        {word}
+                      </motion.span>
+                    ))}
+                  </h1>
+
+                  {/* Subheadline */}
+                  <motion.p
+                    variants={fadeUp}
+                    transition={{ duration: 0.5, delay: 0.4 }}
+                    className="text-lg sm:text-xl mb-8 text-white/70 max-w-lg"
+                  >
+                    {subheadline}
+                  </motion.p>
+
+                  {/* Quick info pills */}
+                  <motion.div variants={fadeUp} transition={{ delay: 0.5 }} className="flex flex-wrap gap-3 mb-8">
+                    {[
+                      { icon: Clock, text: `${workshopTime} ${workshopTimezone}` },
+                      { icon: Monitor, text: "Live Online" },
+                      { icon: Clock, text: `${workshopDuration} min` },
+                    ].map(({ icon: Icon, text }) => (
+                      <div
+                        key={text}
+                        className="flex items-center gap-2 px-3 py-1.5 rounded-full text-sm"
+                        style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.1)" }}
+                      >
+                        <Icon className="w-3.5 h-3.5 text-[#EDDB77]" />
+                        <span className="text-white/80">{text}</span>
+                      </div>
+                    ))}
+                  </motion.div>
+
+                  {/* Advisor mini card in hero */}
+                  <motion.div
+                    variants={fadeUp}
+                    transition={{ delay: 0.6 }}
+                    className="flex items-center gap-4"
+                  >
+                    {advisor.photo_url ? (
+                      <div className="relative">
+                        <div className="w-14 h-14 rounded-full p-[2px]" style={{ background: "linear-gradient(135deg, #EDDB77, #C4A84D)" }}>
+                          <img
+                            src={advisor.photo_url}
+                            alt={`${advisorName}`}
+                            className="w-full h-full rounded-full object-cover"
+                          />
+                        </div>
+                      </div>
+                    ) : (
+                      <div
+                        className="w-14 h-14 rounded-full flex items-center justify-center text-lg font-bold text-white"
+                        style={{ background: "rgba(255,255,255,0.15)" }}
+                      >
+                        {advisor.first_name?.[0]}{advisor.last_name?.[0]}
+                      </div>
+                    )}
+                    <div>
+                      <p className="text-white font-semibold">{advisorName}</p>
+                      <p className="text-sm text-[#EDDB77]">{advisor.title || "Wealth Strategist"}</p>
                     </div>
-                  )}
-                </div>
+                  </motion.div>
+                </motion.div>
+
+                {/* Right: Registration Form */}
+                <motion.div
+                  variants={fadeRight}
+                  initial="hidden"
+                  animate="visible"
+                  transition={{ type: "spring", stiffness: 80, damping: 20, delay: 0.3 }}
+                >
+                  <div
+                    className={`p-6 sm:p-8 rounded-2xl ${cardShadow} backdrop-blur-sm`}
+                    style={{
+                      background: "rgba(255,255,255,0.97)",
+                      border: "1px solid rgba(255,255,255,0.3)",
+                    }}
+                  >
+                    <AnimatePresence mode="wait">
+                      {submitted ? (
+                        <motion.div
+                          key="success"
+                          initial={{ opacity: 0, scale: 0.9 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0 }}
+                          className="text-center py-8"
+                        >
+                          <motion.div
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            transition={{ type: "spring", stiffness: 200, delay: 0.2 }}
+                            className="w-20 h-20 mx-auto mb-5 flex items-center justify-center rounded-full"
+                            style={{ background: "linear-gradient(135deg, #10B981, #059669)" }}
+                          >
+                            <Check className="w-10 h-10 text-white" />
+                          </motion.div>
+                          <h3 className="text-2xl font-bold mb-2" style={{ color: "#1A4D3E" }}>
+                            You're Registered! 🎉
+                          </h3>
+                          <p className="text-base" style={{ color: "#4A5565" }}>
+                            Check your email for confirmation and calendar invite.
+                          </p>
+                        </motion.div>
+                      ) : (
+                        <motion.div key="form" initial={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                          <h3 className="text-xl sm:text-2xl font-bold mb-1" style={{ color: "#1A4D3E" }}>
+                            Reserve Your Spot
+                          </h3>
+                          <p className="text-sm mb-6" style={{ color: "#4A5565" }}>
+                            Free · {workshopDuration} minutes · No obligation
+                          </p>
+
+                          {isFull && (
+                            <div className="p-4 mb-6 text-center rounded-xl" style={{ background: "#FEF2F2", border: "1px solid #FECACA", color: "#DC2626" }}>
+                              <strong>This workshop is full.</strong>
+                            </div>
+                          )}
+
+                          {/* Multiple workshops selector */}
+                          {workshops.length > 1 && (
+                            <div className="mb-5">
+                              <label className="block text-sm font-medium mb-1.5" style={{ color: "#1A4D3E" }}>
+                                Select a date:
+                              </label>
+                              <div className="relative">
+                                <select
+                                  value={selectedIdx}
+                                  onChange={(e) => { setSelectedIdx(Number(e.target.value)); setSubmitted(false); }}
+                                  className="w-full appearance-none px-4 py-3 text-base border rounded-xl bg-white pr-10 outline-none transition-all focus:ring-2 focus:ring-[#1A4D3E]/20 focus:border-[#1A4D3E]"
+                                  style={{ borderColor: "#E5E7EB", color: "#1A4D3E" }}
+                                >
+                                  {workshops.map((w: any, i: number) => (
+                                    <option key={w.id} value={i}>
+                                      {w.title} — {format(new Date(w.workshop_date + "T00:00:00"), "MMM d, yyyy")}
+                                    </option>
+                                  ))}
+                                </select>
+                                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 pointer-events-none" style={{ color: "#4A5565" }} />
+                              </div>
+                            </div>
+                          )}
+
+                          <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+                            {/* First & Last Name side by side */}
+                            <div className="grid grid-cols-2 gap-3">
+                              <div>
+                                <label className="block text-sm font-medium mb-1.5" style={{ color: "#1A4D3E" }}>
+                                  First Name <span style={{ color: "#DC2626" }}>*</span>
+                                </label>
+                                <input
+                                  type="text"
+                                  value={form.first_name}
+                                  onChange={(e) => handleChange("first_name", e.target.value)}
+                                  disabled={isFull}
+                                  className="w-full px-4 py-3 text-base border rounded-xl outline-none transition-all focus:ring-2 focus:ring-[#1A4D3E]/20 focus:border-[#1A4D3E]"
+                                  style={{ borderColor: errors.first_name ? "#DC2626" : "#E5E7EB", color: "#1A4D3E" }}
+                                  aria-required="true"
+                                  aria-invalid={!!errors.first_name}
+                                />
+                                {errors.first_name && <p className="text-xs mt-1" style={{ color: "#DC2626" }} role="alert">{errors.first_name}</p>}
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium mb-1.5" style={{ color: "#1A4D3E" }}>
+                                  Last Name <span style={{ color: "#DC2626" }}>*</span>
+                                </label>
+                                <input
+                                  type="text"
+                                  value={form.last_name}
+                                  onChange={(e) => handleChange("last_name", e.target.value)}
+                                  disabled={isFull}
+                                  className="w-full px-4 py-3 text-base border rounded-xl outline-none transition-all focus:ring-2 focus:ring-[#1A4D3E]/20 focus:border-[#1A4D3E]"
+                                  style={{ borderColor: errors.last_name ? "#DC2626" : "#E5E7EB", color: "#1A4D3E" }}
+                                  aria-required="true"
+                                  aria-invalid={!!errors.last_name}
+                                />
+                                {errors.last_name && <p className="text-xs mt-1" style={{ color: "#DC2626" }} role="alert">{errors.last_name}</p>}
+                              </div>
+                            </div>
+
+                            {/* Email */}
+                            <div>
+                              <label className="block text-sm font-medium mb-1.5" style={{ color: "#1A4D3E" }}>
+                                Email <span style={{ color: "#DC2626" }}>*</span>
+                              </label>
+                              <input
+                                type="email"
+                                value={form.email}
+                                onChange={(e) => handleChange("email", e.target.value)}
+                                disabled={isFull}
+                                className="w-full px-4 py-3 text-base border rounded-xl outline-none transition-all focus:ring-2 focus:ring-[#1A4D3E]/20 focus:border-[#1A4D3E]"
+                                style={{ borderColor: errors.email ? "#DC2626" : "#E5E7EB", color: "#1A4D3E" }}
+                                aria-required="true"
+                                aria-invalid={!!errors.email}
+                              />
+                              {errors.email && <p className="text-xs mt-1" style={{ color: "#DC2626" }} role="alert">{errors.email}</p>}
+                            </div>
+
+                            {/* Phone */}
+                            <div>
+                              <label className="block text-sm font-medium mb-1.5" style={{ color: "#4A5565" }}>
+                                Phone <span className="text-xs" style={{ color: "#9CA3AF" }}>(optional)</span>
+                              </label>
+                              <input
+                                type="tel"
+                                value={form.phone}
+                                onChange={(e) => handleChange("phone", e.target.value)}
+                                disabled={isFull}
+                                className="w-full px-4 py-3 text-base border rounded-xl outline-none transition-all focus:ring-2 focus:ring-[#1A4D3E]/20 focus:border-[#1A4D3E]"
+                                style={{ borderColor: "#E5E7EB", color: "#1A4D3E" }}
+                              />
+                            </div>
+
+                            {/* Submit */}
+                            <motion.button
+                              type="submit"
+                              disabled={submitting || isFull || cooldown}
+                              whileHover={{ scale: 1.02 }}
+                              whileTap={{ scale: 0.98 }}
+                              className="w-full py-3.5 text-base sm:text-lg font-bold text-white rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                              style={{
+                                background: "linear-gradient(135deg, #1A4D3E, #0F2F27)",
+                                boxShadow: "0 4px 15px -3px rgba(26, 77, 62, 0.4)",
+                              }}
+                            >
+                              {submitting ? (
+                                <span className="flex items-center justify-center gap-2">
+                                  <Loader2 className="w-5 h-5 animate-spin" />
+                                  Registering…
+                                </span>
+                              ) : (
+                                "Reserve My Spot →"
+                              )}
+                            </motion.button>
+                          </form>
+
+                          <p className="text-xs text-center mt-4" style={{ color: "#9CA3AF" }}>
+                            🔒 Your information is secure and will never be shared.
+                          </p>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                </motion.div>
               </div>
             </div>
           </div>
         </section>
 
-        {/* ── ADVISOR CONTACT CARD ── */}
-        <section style={{ background: "#F8FAF9" }}>
-          <div className="max-w-[1200px] mx-auto px-4 sm:px-6 py-12 sm:py-16">
-            <h2 className="text-xl sm:text-2xl font-bold mb-6" style={{ color: "#1A4D3E" }}>
-              Your Workshop Host
-            </h2>
-            <div
-              className="inline-flex items-center gap-6 p-8 transition-shadow hover:shadow-lg"
-              style={{
-                background: "#FFFFFF",
-                border: "1px solid #E5E7EB",
-                borderRadius: "0px",
-              }}
+        {/* ── WHAT YOU'LL LEARN ── */}
+        <section className="bg-white">
+          <div className="max-w-[1200px] mx-auto px-4 sm:px-6 py-16 sm:py-20">
+            <motion.div
+              variants={staggerContainer}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: "-100px" }}
             >
-              {advisor.photo_url ? (
-                <img
-                  src={advisor.photo_url}
-                  alt={`${advisorName} photo`}
-                  className="w-20 h-20 object-cover flex-shrink-0"
-                  style={{ borderRadius: "50%" }}
-                />
-              ) : (
-                <div
-                  className="w-20 h-20 flex items-center justify-center text-2xl font-bold text-white flex-shrink-0"
-                  style={{ background: "#1A4D3E", borderRadius: "50%" }}
-                >
-                  {advisor.first_name?.[0]}
-                  {advisor.last_name?.[0]}
-                </div>
-              )}
-              <div>
-                <h3 className="text-lg font-bold" style={{ color: "#1A4D3E" }}>
-                  {advisorName}
-                </h3>
-                <p className="text-sm mb-3" style={{ color: "#4A5565" }}>
-                  {advisor.title || "Wealth Strategist"}
-                </p>
-                <div className="space-y-1.5">
-                  <a
-                    href={`mailto:${advisor.email}`}
-                    className="flex items-center gap-2 text-sm hover:underline"
-                    style={{ color: "#1A4D3E" }}
+              <motion.h2
+                variants={fadeUp}
+                className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-10 text-center"
+                style={{ color: "#1A4D3E" }}
+              >
+                What You'll Learn
+              </motion.h2>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 max-w-3xl mx-auto">
+                {[
+                  { title: "Eliminate Taxes", desc: "Discover how to eliminate taxes on retirement income using proven strategies" },
+                  { title: "Protect Your Wealth", desc: "Shield your assets from market volatility with stable growth vehicles" },
+                  { title: "Three Tax Buckets", desc: "Master the Three Tax Buckets strategy for optimal retirement planning" },
+                  { title: "Living Benefits", desc: "Access living benefits you can use before age 59½ without penalties" },
+                ].map((item, i) => (
+                  <motion.div
+                    key={item.title}
+                    variants={fadeUp}
+                    transition={{ delay: i * 0.1 }}
+                    className={`p-6 rounded-2xl ${cardShadow} ${cardHoverShadow} transition-all duration-300 hover:-translate-y-1 cursor-default`}
+                    style={{ background: "#FFFFFF", border: "1px solid #F0F0F0" }}
                   >
-                    <Mail className="w-4 h-4" /> {advisor.email}
-                  </a>
-                  {advisor.phone && (
-                    <a
-                      href={`tel:${advisor.phone}`}
-                      className="flex items-center gap-2 text-sm hover:underline"
-                      style={{ color: "#1A4D3E" }}
-                    >
-                      <Phone className="w-4 h-4" /> {advisor.phone}
-                    </a>
+                    <div className="flex items-start gap-4">
+                      <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                        style={{ background: "linear-gradient(135deg, #1A4D3E, #2D6B5A)" }}>
+                        <Check className="w-5 h-5 text-white" />
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-base mb-1" style={{ color: "#1A4D3E" }}>{item.title}</h3>
+                        <p className="text-sm leading-relaxed" style={{ color: "#4A5565" }}>{item.desc}</p>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
+          </div>
+        </section>
+
+        {/* ── WORKSHOP DETAILS ── */}
+        <section style={{ background: "#F8FAF9" }}>
+          <div className="max-w-[1200px] mx-auto px-4 sm:px-6 py-16 sm:py-20">
+            <motion.div
+              variants={staggerContainer}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: "-100px" }}
+              className="grid grid-cols-1 lg:grid-cols-2 gap-8"
+            >
+              {/* Details Card */}
+              <motion.div
+                variants={fadeUp}
+                className={`p-8 rounded-2xl ${cardShadow} ${cardHoverShadow} transition-all duration-300 hover:-translate-y-1`}
+                style={{ background: "#FFFFFF" }}
+              >
+                <h3 className="text-xl font-bold mb-6" style={{ color: "#1A4D3E" }}>Workshop Details</h3>
+                <div className="space-y-4">
+                  {[
+                    { icon: Calendar, text: workshopDate },
+                    { icon: Clock, text: `${workshopTime} ${workshopTimezone}` },
+                    { icon: Clock, text: `${workshopDuration} minutes` },
+                    { icon: Monitor, text: "Live Online Workshop via Zoom" },
+                  ].map(({ icon: Icon, text }) => (
+                    <div key={text} className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: "#F0FDF4" }}>
+                        <Icon className="w-4.5 h-4.5" style={{ color: "#1A4D3E" }} />
+                      </div>
+                      <span className="text-base" style={{ color: "#4A5565" }}>{text}</span>
+                    </div>
+                  ))}
+                  {seatsRemaining !== null && (
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: seatsRemaining <= 10 ? "#FEF2F2" : "#F0FDF4" }}>
+                        <Users className="w-4.5 h-4.5" style={{ color: seatsRemaining <= 10 ? "#DC2626" : "#1A4D3E" }} />
+                      </div>
+                      <span className="font-medium" style={{ color: seatsRemaining <= 10 ? "#DC2626" : "#4A5565" }}>
+                        {seatsRemaining > 0 ? `${seatsRemaining} seats remaining` : "This workshop is full"}
+                      </span>
+                    </div>
                   )}
                 </div>
-              </div>
-            </div>
+              </motion.div>
+
+              {/* Advisor Card */}
+              <motion.div
+                variants={scaleIn}
+                transition={{ type: "spring", stiffness: 100 }}
+                className={`p-8 rounded-2xl ${cardShadow} ${cardHoverShadow} transition-all duration-300 hover:-translate-y-1`}
+                style={{ background: "#FFFFFF" }}
+              >
+                <h3 className="text-xl font-bold mb-6" style={{ color: "#1A4D3E" }}>Your Workshop Host</h3>
+                <div className="flex items-start gap-5">
+                  {advisor.photo_url ? (
+                    <div className="relative flex-shrink-0">
+                      <div className="w-24 h-24 rounded-2xl p-[3px]" style={{ background: "linear-gradient(135deg, #EDDB77, #C4A84D)" }}>
+                        <img
+                          src={advisor.photo_url}
+                          alt={`${advisorName}`}
+                          className="w-full h-full rounded-[13px] object-cover"
+                        />
+                      </div>
+                    </div>
+                  ) : (
+                    <div
+                      className="w-24 h-24 rounded-2xl flex items-center justify-center text-2xl font-bold text-white flex-shrink-0"
+                      style={{ background: "linear-gradient(135deg, #1A4D3E, #2D6B5A)" }}
+                    >
+                      {advisor.first_name?.[0]}{advisor.last_name?.[0]}
+                    </div>
+                  )}
+                  <div>
+                    <h4 className="text-lg font-bold mb-0.5" style={{ color: "#1A4D3E" }}>{advisorName}</h4>
+                    <p className="text-sm mb-4" style={{ color: "#EDDB77" }}>{advisor.title || "Wealth Strategist"}</p>
+                    <div className="space-y-2">
+                      <a href={`mailto:${advisor.email}`} className="flex items-center gap-2 text-sm hover:underline" style={{ color: "#1A4D3E" }}>
+                        <Mail className="w-4 h-4" /> {advisor.email}
+                      </a>
+                      {advisor.phone && (
+                        <a href={`tel:${advisor.phone}`} className="flex items-center gap-2 text-sm hover:underline" style={{ color: "#1A4D3E" }}>
+                          <Phone className="w-4 h-4" /> {advisor.phone}
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            </motion.div>
           </div>
         </section>
 
         {/* ── TRUST INDICATORS ── */}
-        <section style={{ background: "#1A4D3E" }}>
-          <div className="max-w-[1200px] mx-auto px-4 sm:px-6 py-10">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 text-center">
+        <motion.section
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          variants={staggerContainer}
+          className="relative overflow-hidden"
+          style={{ background: "linear-gradient(135deg, #1A4D3E 0%, #0F2F27 100%)" }}
+        >
+          <div
+            className="absolute inset-0 opacity-10"
+            style={{
+              backgroundImage: `url(${workshopHeroBg})`,
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+              mixBlendMode: "overlay",
+            }}
+          />
+          <div className="relative z-10 max-w-[1200px] mx-auto px-4 sm:px-6 py-12 sm:py-16">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 text-center">
               {[
-                { icon: Shield, label: "Independent Fiduciary" },
-                { icon: Award, label: "Established 1998" },
-                { icon: Users, label: "75+ Carrier Partnerships" },
-              ].map(({ icon: Icon, label }) => (
-                <div key={label} className="flex flex-col items-center gap-2">
-                  <Icon className="w-7 h-7" style={{ color: "#A7F3D0" }} />
-                  <span className="text-white font-medium text-sm sm:text-base tracking-wide uppercase">
-                    {label}
-                  </span>
-                </div>
+                { icon: Shield, label: "Independent Fiduciary", desc: "Your interests always come first" },
+                { icon: Award, label: "Established 1998", desc: "25+ years of trusted service" },
+                { icon: Users, label: "75+ Carrier Partners", desc: "Access to the best products" },
+              ].map(({ icon: Icon, label, desc }) => (
+                <motion.div
+                  key={label}
+                  variants={scaleIn}
+                  className="flex flex-col items-center gap-3 p-6 rounded-2xl"
+                  style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)" }}
+                >
+                  <div className="w-14 h-14 rounded-xl flex items-center justify-center" style={{ background: "rgba(237,219,119,0.15)" }}>
+                    <Icon className="w-7 h-7" style={{ color: "#EDDB77" }} />
+                  </div>
+                  <span className="text-white font-semibold text-base tracking-wide">{label}</span>
+                  <span className="text-white/50 text-sm">{desc}</span>
+                </motion.div>
               ))}
             </div>
           </div>
-        </section>
+        </motion.section>
 
         {/* ── FOOTER ── */}
-        <footer className="border-t" style={{ borderColor: "#E5E7EB" }}>
-          <div className="max-w-[1200px] mx-auto px-4 sm:px-6 py-6 text-center">
+        <footer className="border-t" style={{ borderColor: "#F0F0F0" }}>
+          <div className="max-w-[1200px] mx-auto px-4 sm:px-6 py-8 text-center">
             <p className="text-sm" style={{ color: "#9CA3AF" }}>
               © {new Date().getFullYear()} Everence Wealth. All rights reserved.
             </p>
