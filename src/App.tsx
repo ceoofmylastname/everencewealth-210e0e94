@@ -239,6 +239,7 @@ const OptIn = lazy(() => import("./pages/OptIn"));
 const RetargetingLanding = lazy(() => import("./pages/RetargetingLanding"));
 const Assessment = lazy(() => import("./pages/Assessment"));
 const ContractingIntake = lazy(() => import("./pages/ContractingIntake"));
+const WorkshopLanding = lazy(() => import("./pages/public/WorkshopLanding"));
 
 
 // Loading fallback component
@@ -597,6 +598,9 @@ const App = () => (
               <Route path="/properties" element={<Navigate to="/en/properties" replace />} />
               <Route path="/property-finder" element={<Navigate to="/en/properties" replace />} />
               <Route path="/property/:reference" element={<PropertyRedirect />} />
+
+              {/* Public Workshop Landing Page */}
+              <Route path="/w/:slug" element={<WorkshopLanding />} />
 
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
