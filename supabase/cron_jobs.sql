@@ -167,3 +167,19 @@ SELECT cron.schedule(
   ) AS request_id;
   $$
 );
+
+-- ==============================================
+-- 9. PROCESS WORKSHOP REMINDERS - Every 5 minutes
+-- Sends reminder emails at 24h, 4h, 1h, and 10m before workshop start
+-- ==============================================
+SELECT cron.schedule(
+  'process-workshop-reminders',
+  '*/5 * * * *',
+  $$
+  SELECT net.http_post(
+    url := 'https://zbzrmpmqijvmjbhctfoe.supabase.co/functions/v1/process-workshop-reminders',
+    headers := '{"Content-Type": "application/json", "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpienJtcG1xaWp2bWpiaGN0Zm9lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzExNjk1MzUsImV4cCI6MjA4Njc0NTUzNX0.cI7HQmbY1XF_wmPMSm9ofbQdR3iujQ5_YNg8h_YLkVg"}'::jsonb,
+    body := '{"triggered_by": "cron"}'::jsonb
+  ) AS request_id;
+  $$
+);
