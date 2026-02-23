@@ -150,8 +150,23 @@ export default function WorkshopCreate() {
         status: "draft",
       });
       if (error) throw error;
-      toast.success("Workshop created! An admin will assign your Zoom link.");
-      navigate("/portal/advisor/workshops/slug-setup");
+
+      // Fetch the newly created workshop ID to navigate to its detail page
+      const { data: newWorkshop } = await supabase
+        .from("workshops")
+        .select("id")
+        .eq("advisor_id", advisorId)
+        .eq("title", title.trim())
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .single();
+
+      toast.success("Workshop created! You can now add your Zoom link from the workshop detail page.");
+      if (newWorkshop?.id) {
+        navigate(`/portal/advisor/workshops/${newWorkshop.id}`);
+      } else {
+        navigate("/portal/advisor/workshops");
+      }
     } catch (err: any) {
       toast.error(err.message || "Failed to create workshop.");
     } finally {
@@ -390,9 +405,9 @@ export default function WorkshopCreate() {
           <div className="border p-5 flex gap-3" style={{ backgroundColor: "#F9FAFB", borderColor: "#E5E7EB" }}>
             <Info className="h-5 w-5 shrink-0 mt-0.5" style={{ color: "#6B7280" }} />
             <div>
-              <p className="font-medium text-foreground">Zoom details are managed by Everence Wealth</p>
+              <p className="font-medium text-foreground">Add your Zoom link after creating this workshop</p>
               <p className="text-muted-foreground text-sm mt-1">
-                An admin will assign your Zoom Meeting ID, Join URL, and Passcode after you create this workshop.
+                Once you create this workshop, you'll be taken to the workshop detail page where you can enter your Zoom Join URL and Passcode. This link will be included in the 10-minute reminder email sent to registrants.
               </p>
             </div>
           </div>
