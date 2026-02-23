@@ -1,4 +1,5 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
+import confetti from "canvas-confetti";
 import { useParams } from "react-router-dom";
 import NotFound from "@/pages/NotFound";
 import { Helmet } from "react-helmet";
@@ -61,6 +62,97 @@ const staggerContainer = {
 
 const cardShadow = "shadow-[0_8px_30px_-4px_rgba(26,77,62,0.15)]";
 const cardHoverShadow = "hover:shadow-[0_16px_40px_-4px_rgba(26,77,62,0.25)]";
+
+// ── Success Confetti Component ──
+function SuccessConfetti() {
+  useEffect(() => {
+    const duration = 2500;
+    const end = Date.now() + duration;
+
+    const frame = () => {
+      // Left side burst
+      confetti({
+        particleCount: 3,
+        angle: 60,
+        spread: 55,
+        origin: { x: 0, y: 0.6 },
+        colors: ["#EDDB77", "#10B981", "#1A4D3E", "#FFD700", "#ffffff"],
+      });
+      // Right side burst
+      confetti({
+        particleCount: 3,
+        angle: 120,
+        spread: 55,
+        origin: { x: 1, y: 0.6 },
+        colors: ["#EDDB77", "#10B981", "#1A4D3E", "#FFD700", "#ffffff"],
+      });
+
+      if (Date.now() < end) requestAnimationFrame(frame);
+    };
+    frame();
+  }, []);
+
+  return (
+    <motion.div
+      key="success"
+      initial={{ opacity: 0, scale: 0.8 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ type: "spring", stiffness: 150, damping: 15 }}
+      className="text-center py-10 px-4"
+    >
+      <motion.div
+        initial={{ scale: 0, rotate: -180 }}
+        animate={{ scale: 1, rotate: 0 }}
+        transition={{ type: "spring", stiffness: 200, delay: 0.15 }}
+        className="w-24 h-24 mx-auto mb-6 flex items-center justify-center rounded-full relative"
+        style={{ background: "linear-gradient(135deg, #10B981, #059669)" }}
+      >
+        <motion.div
+          initial={{ scale: 0 }}
+          animate={{ scale: [0, 1.3, 1] }}
+          transition={{ duration: 0.5, delay: 0.4 }}
+        >
+          <Check className="w-12 h-12 text-white" strokeWidth={3} />
+        </motion.div>
+        <motion.div
+          className="absolute inset-0 rounded-full"
+          initial={{ boxShadow: "0 0 0 0 rgba(16, 185, 129, 0.6)" }}
+          animate={{ boxShadow: "0 0 0 20px rgba(16, 185, 129, 0)" }}
+          transition={{ duration: 1, delay: 0.3 }}
+        />
+      </motion.div>
+
+      <motion.h3
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
+        className="text-2xl sm:text-3xl font-bold mb-2"
+        style={{ color: "#1A4D3E" }}
+      >
+        Congratulations! 🎉
+      </motion.h3>
+      <motion.p
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.45 }}
+        className="text-base sm:text-lg mb-1 font-medium"
+        style={{ color: "#1A4D3E" }}
+      >
+        You're all set!
+      </motion.p>
+      <motion.p
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.6 }}
+        className="text-sm"
+        style={{ color: "#4A5565" }}
+      >
+        Check your email for confirmation details and a calendar invite.
+      </motion.p>
+    </motion.div>
+  );
+}
 
 // ── Main Component ──
 const WorkshopLanding: React.FC = () => {
@@ -439,29 +531,7 @@ const WorkshopLanding: React.FC = () => {
                   >
                     <AnimatePresence mode="wait">
                       {submitted ? (
-                        <motion.div
-                          key="success"
-                          initial={{ opacity: 0, scale: 0.9 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          exit={{ opacity: 0 }}
-                          className="text-center py-8"
-                        >
-                          <motion.div
-                            initial={{ scale: 0 }}
-                            animate={{ scale: 1 }}
-                            transition={{ type: "spring", stiffness: 200, delay: 0.2 }}
-                            className="w-20 h-20 mx-auto mb-5 flex items-center justify-center rounded-full"
-                            style={{ background: "linear-gradient(135deg, #10B981, #059669)" }}
-                          >
-                            <Check className="w-10 h-10 text-white" />
-                          </motion.div>
-                          <h3 className="text-2xl font-bold mb-2" style={{ color: "#1A4D3E" }}>
-                            You're Registered! 🎉
-                          </h3>
-                          <p className="text-base" style={{ color: "#4A5565" }}>
-                            Check your email for confirmation and calendar invite.
-                          </p>
-                        </motion.div>
+                        <SuccessConfetti />
                       ) : (
                         <motion.div key="form" initial={{ opacity: 1 }} exit={{ opacity: 0 }}>
                           <h3 className="text-xl sm:text-2xl font-bold mb-1" style={{ color: "#1A4D3E" }}>
