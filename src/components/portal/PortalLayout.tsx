@@ -44,6 +44,7 @@ const advisorNavGroups = [
       { label: "Training", icon: GraduationCap, href: "/portal/advisor/training" },
       { label: "Marketing", icon: Megaphone, href: "/portal/advisor/marketing" },
       { label: "Schedule", icon: Calendar, href: "/portal/advisor/schedule" },
+      { label: "Workshops", icon: Megaphone, href: "/portal/advisor/workshops/slug-setup" },
     ],
   },
   {
