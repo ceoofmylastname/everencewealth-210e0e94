@@ -1,61 +1,37 @@
 
 
-# Advisor Landing Page Profile Editor
+## Fix: Workshop Registration Failing Due to RLS
 
-## Problem
-Currently, advisors have no way to edit the information that appears on their public workshop landing page. Their name, photo, email, and phone come from the `advisors` table, but only admins can edit that data. Advisors also create workshops (with date/time) separately on a different page, but there's no unified "manage your landing page" experience.
+### Root Cause
+The registration insert itself is allowed by RLS (the INSERT policy permits both anonymous and authenticated users). However, the code uses `.select("id").single()` after the insert to retrieve the new row's ID for the confirmation email. This triggers the **SELECT** policy, which only allows advisors and admins to read registrations -- so the entire operation fails with an RLS violation.
 
-## Solution
-Expand the Workshop Slug Setup page (`/portal/advisor/workshops/slug-setup`) to include a **Landing Page Profile** section where advisors can:
+### Solution
+Two changes are needed:
 
-1. **Upload/change their headshot photo** (displayed on the landing page)
-2. **Edit their display email and phone number** (shown on the landing page)
-3. **See their name** (read-only, set by admin)
-4. **Quick-link to create/manage workshops** (date and time are already set during workshop creation)
+1. **Add a SELECT policy** on `workshop_registrations` that allows anyone (anon + authenticated) to read back a row they just inserted, scoped to their own email. Alternatively, we can take a simpler approach:
 
-## Implementation Details
+2. **Remove `.select("id").single()`** from the insert call and instead generate the UUID on the client side before inserting. This way, the insert never needs to read the row back, and the confirmation email can be triggered with the pre-generated ID.
 
-### 1. Storage Bucket for Advisor Photos
-- Create a `advisor-photos` storage bucket via migration
-- Add RLS policies so advisors can upload/update their own photos
-- Photos will be stored as `{advisor_id}/headshot.{ext}`
+I recommend option 2 (client-side UUID) as it's simpler and avoids opening up SELECT access unnecessarily. However, generating UUIDs client-side requires `crypto.randomUUID()`. A cleaner alternative is adding a public SELECT policy.
 
-### 2. Database: No schema changes needed
-The `advisors` table already has `photo_url`, `email`, `phone`, `first_name`, `last_name` columns. We just need to allow advisors to update their own records.
+**Recommended approach: Add a public SELECT policy for registrants**
 
-### 3. RLS Policy for Advisor Self-Edit
-Add an UPDATE policy on the `advisors` table so authenticated users can update their own row (limited to `photo_url`, `email`, `phone` columns). This will be done via a database function to restrict which columns can be modified.
+### Technical Details
 
-### 4. UI Changes to WorkshopSlugSetup.tsx
-Expand the "management view" (when slug already exists) to include:
+**Database migration:**
+- Add a new RLS policy on `workshop_registrations` allowing `anon` and `authenticated` roles to SELECT rows matching their own insert (using `true` for the returning clause, or a narrow policy).
+- Simplest safe policy: Allow public SELECT on `workshop_registrations` but only for the `id` column isn't possible with RLS (it's row-level, not column-level). Instead, we'll allow public users to read rows where `email` matches -- but we don't have the email in the auth context for anonymous users.
 
-- **Profile Card Section** below the URL display:
-  - Circular photo with upload/change button (click to upload)
-  - Display name (read-only)
-  - Editable email field
-  - Editable phone field
-  - "Save Changes" button
-- **Workshops Quick Section**:
-  - Link to create new workshop
-  - Link to workshops dashboard
-  - Show next upcoming workshop date/time if one exists
+**Best approach: Generate UUID client-side**
+- Generate `id` with `crypto.randomUUID()` before the insert
+- Pass the `id` in the insert payload
+- Remove `.select("id").single()` from the insert call
+- Use the pre-generated ID for the confirmation email trigger
 
-### 5. File Changes
+### Changes
 
-| File | Change |
-|------|--------|
-| `src/pages/portal/advisor/WorkshopSlugSetup.tsx` | Add profile editing UI with photo upload, email/phone fields |
-| New migration SQL | Create storage bucket, add RLS policies for advisor self-update and photo storage |
-
-### 6. Photo Upload Flow
-1. Advisor clicks the photo area or "Upload Photo" button
-2. File picker opens (accept: image/png, image/jpeg, image/webp)
-3. File uploads to `advisor-photos/{advisor_id}/headshot.{ext}` bucket
-4. Public URL is saved to `advisors.photo_url`
-5. Landing page immediately reflects the new photo
-
-### 7. Workshop Date/Time
-Date and time are already managed through the **Create Workshop** form at `/portal/advisor/workshops/create`. The slug setup page will include a clear link to that form so advisors understand the workflow:
-- Set up landing page (slug + profile) here
-- Create/manage workshops (with dates) via the workshop creation form
-
+**File: `src/pages/public/WorkshopLanding.tsx`** (lines ~274-283)
+- Generate a UUID before the insert: `const regId = crypto.randomUUID()`
+- Include `id: regId` in the insert object
+- Remove `.select("id").single()` -- just use `.insert({...})` 
+- Use `regId` directly for the confirmation email call instead of `insertedReg?.id`
