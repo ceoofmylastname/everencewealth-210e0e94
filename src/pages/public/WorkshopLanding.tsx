@@ -345,6 +345,7 @@ const WorkshopLanding: React.FC = () => {
                   variants={staggerContainer}
                   initial="hidden"
                   animate="visible"
+                  className="overflow-hidden min-w-0"
                 >
                   {/* Date badge */}
                   <motion.div
@@ -358,7 +359,7 @@ const WorkshopLanding: React.FC = () => {
                   </motion.div>
 
                   {/* Headline - word by word */}
-                  <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight mb-5">
+                  <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight mb-5 break-words">
                     {headlineWords.map((word, i) => (
                       <motion.span
                         key={i}
