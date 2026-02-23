@@ -785,20 +785,6 @@ const WorkshopLanding: React.FC = () => {
                         </div>
                       </div>
                     ))}
-                    {seatsRemaining !== null && (
-                      <div className="flex items-center gap-4">
-                        <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0"
-                          style={{ background: seatsRemaining <= 10 ? "rgba(220,38,38,0.08)" : "linear-gradient(135deg, rgba(26,77,62,0.08), rgba(26,77,62,0.04))" }}>
-                          <Users className="w-5 h-5" style={{ color: seatsRemaining <= 10 ? "#DC2626" : "#1A4D3E" }} />
-                        </div>
-                        <div>
-                          <p className="text-[11px] font-semibold tracking-[0.1em] uppercase mb-0.5" style={{ color: "#94A3B8" }}>Availability</p>
-                          <span className="text-[15px] font-semibold" style={{ color: seatsRemaining <= 10 ? "#DC2626" : "#1E293B" }}>
-                            {seatsRemaining > 0 ? `${seatsRemaining} seats remaining` : "This workshop is full"}
-                          </span>
-                        </div>
-                      </div>
-                    )}
                   </div>
                 </motion.div>
 
