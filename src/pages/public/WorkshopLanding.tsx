@@ -273,13 +273,7 @@ const WorkshopLanding: React.FC = () => {
     }
   })();
   const workshopDuration = (workshop as any)?.duration_minutes ?? 60;
-  const headline = (workshop as any)?.custom_headline || "Build Tax-Free Retirement Wealth";
-  const subheadline =
-    (workshop as any)?.custom_subheadline ||
-    `Join ${advisorName} for a complimentary workshop`;
-
-  // Split headline into words for animation
-  const headlineWords = headline.split(" ");
+  // Headline and subheadline are hardcoded for brand consistency
 
   return (
     <>
@@ -337,7 +331,7 @@ const WorkshopLanding: React.FC = () => {
             </header>
 
             {/* Hero Content */}
-            <div className="max-w-[1200px] mx-auto px-4 sm:px-6 py-16 sm:py-20 lg:py-24">
+            <div className="max-w-[1200px] mx-auto px-4 sm:px-6 py-10 sm:py-16 lg:py-24">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-start">
                 
                 {/* Left: Hero text */}
@@ -358,27 +352,26 @@ const WorkshopLanding: React.FC = () => {
                     <span className="text-sm font-medium text-white/90">{workshopDate}</span>
                   </motion.div>
 
-                  {/* Headline - word by word */}
-                  <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight mb-5 break-words">
-                    {headlineWords.map((word, i) => (
-                      <motion.span
-                        key={i}
-                        variants={fadeUp}
-                        transition={{ duration: 0.5, delay: i * 0.08 }}
-                        className="inline-block mr-[0.3em] text-white"
-                      >
-                        {word}
-                      </motion.span>
-                    ))}
-                  </h1>
+                  {/* Headline */}
+                  <motion.h1
+                    initial={{ opacity: 0, y: 30 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.7, ease: "easeOut" }}
+                    className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight mb-5 break-words text-white"
+                  >
+                    Build Your{" "}
+                    <span className="relative inline-block border-b-4 border-[#EDDB77] pb-1">Tax-Free</span>{" "}
+                    <span className="bg-[#EDDB77]/20 px-2 rounded-lg">Retirement</span>
+                  </motion.h1>
 
                   {/* Subheadline */}
                   <motion.p
-                    variants={fadeUp}
-                    transition={{ duration: 0.5, delay: 0.4 }}
-                    className="text-lg sm:text-xl mb-8 text-white/70 max-w-lg"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, ease: "easeOut", delay: 0.3 }}
+                    className="text-base sm:text-lg md:text-xl mb-8 text-white/70 max-w-lg"
                   >
-                    {subheadline}
+                    Join a complimentary workshop and discover proven strategies to eliminate taxes, protect your wealth, and retire with confidence.
                   </motion.p>
 
                   {/* Quick info pills */}
