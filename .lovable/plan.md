@@ -1,47 +1,61 @@
 
 
-# Hardcoded Modern Headline + Mobile Optimization
+# Advisor Landing Page Profile Editor
 
-## Changes to `src/pages/public/WorkshopLanding.tsx`
+## Problem
+Currently, advisors have no way to edit the information that appears on their public workshop landing page. Their name, photo, email, and phone come from the `advisors` table, but only admins can edit that data. Advisors also create workshops (with date/time) separately on a different page, but there's no unified "manage your landing page" experience.
 
-### 1. Replace Dynamic Headline with Hardcoded Copy
+## Solution
+Expand the Workshop Slug Setup page (`/portal/advisor/workshops/slug-setup`) to include a **Landing Page Profile** section where advisors can:
 
-Remove the word-by-word dynamic headline logic (`headlineWords`, `headline` variable) and replace with a hardcoded headline and subheadline featuring styled words:
+1. **Upload/change their headshot photo** (displayed on the landing page)
+2. **Edit their display email and phone number** (shown on the landing page)
+3. **See their name** (read-only, set by admin)
+4. **Quick-link to create/manage workshops** (date and time are already set during workshop creation)
 
-**Headline:** "Build Your **Tax-Free** Retirement"
-- "Tax-Free" gets a gold underline decoration (`border-b-4 border-[#EDDB77]`)
-- "Retirement" gets a highlighted background (`bg-[#EDDB77]/20 px-2 rounded-lg`)
+## Implementation Details
 
-**Subheadline:** "Join a complimentary workshop and discover proven strategies to eliminate taxes, protect your wealth, and retire with confidence."
+### 1. Storage Bucket for Advisor Photos
+- Create a `advisor-photos` storage bucket via migration
+- Add RLS policies so advisors can upload/update their own photos
+- Photos will be stored as `{advisor_id}/headshot.{ext}`
 
-### 2. Animation
+### 2. Database: No schema changes needed
+The `advisors` table already has `photo_url`, `email`, `phone`, `first_name`, `last_name` columns. We just need to allow advisors to update their own records.
 
-Replace the word-by-word `motion.span` loop with a single `motion.h1` that fades up smoothly:
-```tsx
-<motion.h1
-  initial={{ opacity: 0, y: 30 }}
-  animate={{ opacity: 1, y: 0 }}
-  transition={{ duration: 0.7, ease: "easeOut" }}
->
-  Build Your{" "}
-  <span className="border-b-4 border-[#EDDB77] pb-1">Tax-Free</span>{" "}
-  <span className="bg-[#EDDB77]/20 px-2 rounded-lg">Retirement</span>
-</motion.h1>
-```
+### 3. RLS Policy for Advisor Self-Edit
+Add an UPDATE policy on the `advisors` table so authenticated users can update their own row (limited to `photo_url`, `email`, `phone` columns). This will be done via a database function to restrict which columns can be modified.
 
-Subheadline animates in with a 0.3s delay.
+### 4. UI Changes to WorkshopSlugSetup.tsx
+Expand the "management view" (when slug already exists) to include:
 
-### 3. Mobile Optimization
+- **Profile Card Section** below the URL display:
+  - Circular photo with upload/change button (click to upload)
+  - Display name (read-only)
+  - Editable email field
+  - Editable phone field
+  - "Save Changes" button
+- **Workshops Quick Section**:
+  - Link to create new workshop
+  - Link to workshops dashboard
+  - Show next upcoming workshop date/time if one exists
 
-- Hero padding: reduce to `py-10` on mobile (currently `py-16`)
-- Headline size: `text-2xl` on mobile, scaling up through breakpoints
-- Grid: already `grid-cols-1` on mobile -- no change needed
-- Form card: ensure full-width on mobile with `px-4` padding
-- Info pills: use `flex-wrap` (already set) with smaller text on mobile
-- "What You'll Learn" cards: single column on mobile (already set)
-- Ensure the hero gradient covers the full viewport on mobile
+### 5. File Changes
 
-### 4. Remove Unused Variables
+| File | Change |
+|------|--------|
+| `src/pages/portal/advisor/WorkshopSlugSetup.tsx` | Add profile editing UI with photo upload, email/phone fields |
+| New migration SQL | Create storage bucket, add RLS policies for advisor self-update and photo storage |
 
-Remove `headlineWords`, the `headline` const, and the `subheadline` const since they are no longer used dynamically.
+### 6. Photo Upload Flow
+1. Advisor clicks the photo area or "Upload Photo" button
+2. File picker opens (accept: image/png, image/jpeg, image/webp)
+3. File uploads to `advisor-photos/{advisor_id}/headshot.{ext}` bucket
+4. Public URL is saved to `advisors.photo_url`
+5. Landing page immediately reflects the new photo
+
+### 7. Workshop Date/Time
+Date and time are already managed through the **Create Workshop** form at `/portal/advisor/workshops/create`. The slug setup page will include a clear link to that form so advisors understand the workflow:
+- Set up landing page (slug + profile) here
+- Create/manage workshops (with dates) via the workshop creation form
 
