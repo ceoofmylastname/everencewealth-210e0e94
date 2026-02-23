@@ -678,44 +678,57 @@ const WorkshopLanding: React.FC = () => {
         </section>
 
         {/* ── WHAT YOU'LL LEARN ── */}
-        <section className="bg-white">
-          <div className="max-w-[1200px] mx-auto px-4 sm:px-6 py-16 sm:py-20">
+        <section className="relative overflow-hidden" style={{ background: "#FAFBFC" }}>
+          {/* Subtle geometric accent */}
+          <div className="absolute top-0 right-0 w-96 h-96 rounded-full opacity-[0.03]" style={{ background: "radial-gradient(circle, #1A4D3E, transparent)" }} />
+          <div className="absolute bottom-0 left-0 w-64 h-64 rounded-full opacity-[0.03]" style={{ background: "radial-gradient(circle, #EDDB77, transparent)" }} />
+          
+          <div className="relative z-10 max-w-[1200px] mx-auto px-4 sm:px-6 py-20 sm:py-28">
             <motion.div
               variants={staggerContainer}
               initial="hidden"
               whileInView="visible"
               viewport={{ once: true, margin: "-100px" }}
             >
-              <motion.h2
-                variants={fadeUp}
-                className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-10 text-center"
-                style={{ color: "#1A4D3E" }}
-              >
-                What You'll Learn
-              </motion.h2>
+              <motion.div variants={fadeUp} className="text-center mb-14">
+                <span className="inline-block text-xs font-semibold tracking-[0.2em] uppercase mb-3 px-4 py-1.5 rounded-full" style={{ color: "#1A4D3E", background: "rgba(26,77,62,0.08)" }}>
+                  Workshop Curriculum
+                </span>
+                <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold" style={{ color: "#0F2F27" }}>
+                  What You'll Learn
+                </h2>
+              </motion.div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 max-w-3xl mx-auto">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 max-w-4xl mx-auto">
                 {[
-                  { title: "Eliminate Taxes", desc: "Discover how to eliminate taxes on retirement income using proven strategies" },
-                  { title: "Protect Your Wealth", desc: "Shield your assets from market volatility with stable growth vehicles" },
-                  { title: "Three Tax Buckets", desc: "Master the Three Tax Buckets strategy for optimal retirement planning" },
-                  { title: "Living Benefits", desc: "Access living benefits you can use before age 59½ without penalties" },
+                  { title: "Eliminate Taxes", desc: "Discover how to eliminate taxes on retirement income using proven strategies", num: "01" },
+                  { title: "Protect Your Wealth", desc: "Shield your assets from market volatility with stable growth vehicles", num: "02" },
+                  { title: "Three Tax Buckets", desc: "Master the Three Tax Buckets strategy for optimal retirement planning", num: "03" },
+                  { title: "Living Benefits", desc: "Access living benefits you can use before age 59½ without penalties", num: "04" },
                 ].map((item, i) => (
                   <motion.div
                     key={item.title}
                     variants={fadeUp}
-                    transition={{ delay: i * 0.1 }}
-                    className={`p-6 rounded-2xl ${cardShadow} ${cardHoverShadow} transition-all duration-300 hover:-translate-y-1 cursor-default`}
-                    style={{ background: "#FFFFFF", border: "1px solid #F0F0F0" }}
+                    transition={{ delay: i * 0.08 }}
+                    whileHover={{ y: -4, transition: { duration: 0.2 } }}
+                    className="group relative p-6 sm:p-7 rounded-2xl cursor-default transition-all duration-300"
+                    style={{
+                      background: "#FFFFFF",
+                      border: "1px solid rgba(0,0,0,0.06)",
+                      boxShadow: "0 1px 3px rgba(0,0,0,0.04), 0 8px 24px -8px rgba(26,77,62,0.08)",
+                    }}
                   >
+                    {/* Top accent line */}
+                    <div className="absolute top-0 left-6 right-6 h-[2px] rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300" style={{ background: "linear-gradient(90deg, #1A4D3E, #EDDB77)" }} />
+                    
                     <div className="flex items-start gap-4">
-                      <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-                        style={{ background: "linear-gradient(135deg, #1A4D3E, #2D6B5A)" }}>
-                        <Check className="w-5 h-5 text-white" />
+                      <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 group-hover:scale-110"
+                        style={{ background: "linear-gradient(135deg, #1A4D3E, #2D6B5A)", boxShadow: "0 4px 12px -2px rgba(26,77,62,0.3)" }}>
+                        <Check className="w-5 h-5 text-white" strokeWidth={2.5} />
                       </div>
-                      <div>
-                        <h3 className="font-bold text-base mb-1" style={{ color: "#1A4D3E" }}>{item.title}</h3>
-                        <p className="text-sm leading-relaxed" style={{ color: "#4A5565" }}>{item.desc}</p>
+                      <div className="min-w-0">
+                        <h3 className="font-bold text-[15px] sm:text-base mb-1.5 tracking-tight" style={{ color: "#0F2F27" }}>{item.title}</h3>
+                        <p className="text-sm leading-relaxed" style={{ color: "#64748B" }}>{item.desc}</p>
                       </div>
                     </div>
                   </motion.div>
@@ -726,92 +739,119 @@ const WorkshopLanding: React.FC = () => {
         </section>
 
         {/* ── WORKSHOP DETAILS ── */}
-        <section style={{ background: "#F8FAF9" }}>
-          <div className="max-w-[1200px] mx-auto px-4 sm:px-6 py-16 sm:py-20">
+        <section className="bg-white">
+          <div className="max-w-[1200px] mx-auto px-4 sm:px-6 py-20 sm:py-28">
             <motion.div
               variants={staggerContainer}
               initial="hidden"
               whileInView="visible"
               viewport={{ once: true, margin: "-100px" }}
-              className="grid grid-cols-1 lg:grid-cols-2 gap-8"
             >
-              {/* Details Card */}
-              <motion.div
-                variants={fadeUp}
-                className={`p-8 rounded-2xl ${cardShadow} ${cardHoverShadow} transition-all duration-300 hover:-translate-y-1`}
-                style={{ background: "#FFFFFF" }}
-              >
-                <h3 className="text-xl font-bold mb-6" style={{ color: "#1A4D3E" }}>Workshop Details</h3>
-                <div className="space-y-4">
-                  {[
-                    { icon: Calendar, text: workshopDate },
-                    { icon: Clock, text: `${workshopTime} ${workshopTimezone}` },
-                    { icon: Clock, text: `${workshopDuration} minutes` },
-                    { icon: Monitor, text: "Live Online Workshop via Zoom" },
-                  ].map(({ icon: Icon, text }) => (
-                    <div key={text} className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: "#F0FDF4" }}>
-                        <Icon className="w-4.5 h-4.5" style={{ color: "#1A4D3E" }} />
-                      </div>
-                      <span className="text-base" style={{ color: "#4A5565" }}>{text}</span>
-                    </div>
-                  ))}
-                  {seatsRemaining !== null && (
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: seatsRemaining <= 10 ? "#FEF2F2" : "#F0FDF4" }}>
-                        <Users className="w-4.5 h-4.5" style={{ color: seatsRemaining <= 10 ? "#DC2626" : "#1A4D3E" }} />
-                      </div>
-                      <span className="font-medium" style={{ color: seatsRemaining <= 10 ? "#DC2626" : "#4A5565" }}>
-                        {seatsRemaining > 0 ? `${seatsRemaining} seats remaining` : "This workshop is full"}
-                      </span>
-                    </div>
-                  )}
-                </div>
+              <motion.div variants={fadeUp} className="text-center mb-14">
+                <span className="inline-block text-xs font-semibold tracking-[0.2em] uppercase mb-3 px-4 py-1.5 rounded-full" style={{ color: "#1A4D3E", background: "rgba(26,77,62,0.08)" }}>
+                  Event Information
+                </span>
+                <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold" style={{ color: "#0F2F27" }}>
+                  Workshop Details
+                </h2>
               </motion.div>
 
-              {/* Advisor Card */}
-              <motion.div
-                variants={scaleIn}
-                transition={{ type: "spring", stiffness: 100 }}
-                className={`p-8 rounded-2xl ${cardShadow} ${cardHoverShadow} transition-all duration-300 hover:-translate-y-1`}
-                style={{ background: "#FFFFFF" }}
-              >
-                <h3 className="text-xl font-bold mb-6" style={{ color: "#1A4D3E" }}>Your Workshop Host</h3>
-                <div className="flex items-start gap-5">
-                  {advisor.photo_url ? (
-                    <div className="relative flex-shrink-0">
-                      <div className="w-24 h-24 rounded-2xl p-[3px]" style={{ background: "linear-gradient(135deg, #EDDB77, #C4A84D)" }}>
-                        <img
-                          src={advisor.photo_url}
-                          alt={`${advisorName}`}
-                          className="w-full h-full rounded-[13px] object-cover"
-                        />
+              <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 max-w-5xl mx-auto">
+                {/* Details Card - 3 columns */}
+                <motion.div
+                  variants={fadeUp}
+                  className="lg:col-span-3 p-8 sm:p-10 rounded-2xl transition-all duration-300"
+                  style={{
+                    background: "#FFFFFF",
+                    border: "1px solid rgba(0,0,0,0.06)",
+                    boxShadow: "0 1px 3px rgba(0,0,0,0.04), 0 8px 24px -8px rgba(26,77,62,0.08)",
+                  }}
+                >
+                  <div className="space-y-5">
+                    {[
+                      { icon: Calendar, label: "Date", text: workshopDate },
+                      { icon: Clock, label: "Time", text: `${workshopTime} ${workshopTimezone}` },
+                      { icon: Clock, label: "Duration", text: `${workshopDuration} minutes` },
+                      { icon: Monitor, label: "Format", text: "Live Online Workshop via Zoom" },
+                    ].map(({ icon: Icon, label, text }) => (
+                      <div key={label} className="flex items-center gap-4">
+                        <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0"
+                          style={{ background: "linear-gradient(135deg, rgba(26,77,62,0.08), rgba(26,77,62,0.04))" }}>
+                          <Icon className="w-5 h-5" style={{ color: "#1A4D3E" }} />
+                        </div>
+                        <div>
+                          <p className="text-[11px] font-semibold tracking-[0.1em] uppercase mb-0.5" style={{ color: "#94A3B8" }}>{label}</p>
+                          <span className="text-[15px] font-medium" style={{ color: "#1E293B" }}>{text}</span>
+                        </div>
                       </div>
-                    </div>
-                  ) : (
-                    <div
-                      className="w-24 h-24 rounded-2xl flex items-center justify-center text-2xl font-bold text-white flex-shrink-0"
-                      style={{ background: "linear-gradient(135deg, #1A4D3E, #2D6B5A)" }}
-                    >
-                      {advisor.first_name?.[0]}{advisor.last_name?.[0]}
-                    </div>
-                  )}
-                  <div>
-                    <h4 className="text-lg font-bold mb-0.5" style={{ color: "#1A4D3E" }}>{advisorName}</h4>
-                    <p className="text-sm mb-4" style={{ color: "#EDDB77" }}>{advisor.title || "Wealth Strategist"}</p>
-                    <div className="space-y-2">
-                      <a href={`mailto:${advisor.email}`} className="flex items-center gap-2 text-sm hover:underline" style={{ color: "#1A4D3E" }}>
-                        <Mail className="w-4 h-4" /> {advisor.email}
+                    ))}
+                    {seatsRemaining !== null && (
+                      <div className="flex items-center gap-4">
+                        <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0"
+                          style={{ background: seatsRemaining <= 10 ? "rgba(220,38,38,0.08)" : "linear-gradient(135deg, rgba(26,77,62,0.08), rgba(26,77,62,0.04))" }}>
+                          <Users className="w-5 h-5" style={{ color: seatsRemaining <= 10 ? "#DC2626" : "#1A4D3E" }} />
+                        </div>
+                        <div>
+                          <p className="text-[11px] font-semibold tracking-[0.1em] uppercase mb-0.5" style={{ color: "#94A3B8" }}>Availability</p>
+                          <span className="text-[15px] font-semibold" style={{ color: seatsRemaining <= 10 ? "#DC2626" : "#1E293B" }}>
+                            {seatsRemaining > 0 ? `${seatsRemaining} seats remaining` : "This workshop is full"}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </motion.div>
+
+                {/* Advisor Card - 2 columns */}
+                <motion.div
+                  variants={scaleIn}
+                  transition={{ type: "spring", stiffness: 100 }}
+                  className="lg:col-span-2 p-8 sm:p-10 rounded-2xl transition-all duration-300"
+                  style={{
+                    background: "linear-gradient(135deg, #1A4D3E, #0F2F27)",
+                    boxShadow: "0 8px 32px -8px rgba(26,77,62,0.35)",
+                  }}
+                >
+                  <p className="text-[11px] font-semibold tracking-[0.2em] uppercase mb-6" style={{ color: "rgba(237,219,119,0.7)" }}>Your Host</p>
+                  
+                  <div className="flex flex-col items-center text-center">
+                    {advisor.photo_url ? (
+                      <div className="relative mb-5">
+                        <div className="w-28 h-28 rounded-full p-[3px]" style={{ background: "linear-gradient(135deg, #EDDB77, #C4A84D)" }}>
+                          <img
+                            src={advisor.photo_url}
+                            alt={advisorName}
+                            className="w-full h-full rounded-full object-cover"
+                          />
+                        </div>
+                        {/* Online indicator */}
+                        <div className="absolute bottom-1 right-1 w-5 h-5 rounded-full border-[3px] flex-shrink-0" style={{ background: "#22C55E", borderColor: "#1A4D3E" }} />
+                      </div>
+                    ) : (
+                      <div
+                        className="w-28 h-28 rounded-full flex items-center justify-center text-3xl font-bold text-white mb-5"
+                        style={{ background: "rgba(255,255,255,0.1)", border: "2px solid rgba(237,219,119,0.3)" }}
+                      >
+                        {advisor.first_name?.[0]}{advisor.last_name?.[0]}
+                      </div>
+                    )}
+                    
+                    <h4 className="text-xl font-bold text-white mb-1">{advisorName}</h4>
+                    <p className="text-sm font-medium mb-6" style={{ color: "#EDDB77" }}>{advisor.title || "Wealth Strategist"}</p>
+                    
+                    <div className="w-full space-y-2.5">
+                      <a href={`mailto:${advisor.email}`} className="flex items-center justify-center gap-2.5 text-sm py-2.5 rounded-xl transition-all hover:bg-white/10" style={{ color: "rgba(255,255,255,0.8)", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)" }}>
+                        <Mail className="w-4 h-4" style={{ color: "#EDDB77" }} /> {advisor.email}
                       </a>
                       {advisor.phone && (
-                        <a href={`tel:${advisor.phone}`} className="flex items-center gap-2 text-sm hover:underline" style={{ color: "#1A4D3E" }}>
-                          <Phone className="w-4 h-4" /> {advisor.phone}
+                        <a href={`tel:${advisor.phone}`} className="flex items-center justify-center gap-2.5 text-sm py-2.5 rounded-xl transition-all hover:bg-white/10" style={{ color: "rgba(255,255,255,0.8)", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)" }}>
+                          <Phone className="w-4 h-4" style={{ color: "#EDDB77" }} /> {advisor.phone}
                         </a>
                       )}
                     </div>
                   </div>
-                </div>
-              </motion.div>
+                </motion.div>
+              </div>
             </motion.div>
           </div>
         </section>
