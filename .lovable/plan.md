@@ -1,37 +1,38 @@
 
 
-## Fix: Workshop Registration Failing Due to RLS
+## Add Zoom Link Management + Batch Email Sending
 
-### Root Cause
-The registration insert itself is allowed by RLS (the INSERT policy permits both anonymous and authenticated users). However, the code uses `.select("id").single()` after the insert to retrieve the new row's ID for the confirmation email. This triggers the **SELECT** policy, which only allows advisors and admins to read registrations -- so the entire operation fails with an RLS violation.
-
-### Solution
-Two changes are needed:
-
-1. **Add a SELECT policy** on `workshop_registrations` that allows anyone (anon + authenticated) to read back a row they just inserted, scoped to their own email. Alternatively, we can take a simpler approach:
-
-2. **Remove `.select("id").single()`** from the insert call and instead generate the UUID on the client side before inserting. This way, the insert never needs to read the row back, and the confirmation email can be triggered with the pre-generated ID.
-
-I recommend option 2 (client-side UUID) as it's simpler and avoids opening up SELECT access unnecessarily. However, generating UUIDs client-side requires `crypto.randomUUID()`. A cleaner alternative is adding a public SELECT policy.
-
-**Recommended approach: Add a public SELECT policy for registrants**
-
-### Technical Details
-
-**Database migration:**
-- Add a new RLS policy on `workshop_registrations` allowing `anon` and `authenticated` roles to SELECT rows matching their own insert (using `true` for the returning clause, or a narrow policy).
-- Simplest safe policy: Allow public SELECT on `workshop_registrations` but only for the `id` column isn't possible with RLS (it's row-level, not column-level). Instead, we'll allow public users to read rows where `email` matches -- but we don't have the email in the auth context for anonymous users.
-
-**Best approach: Generate UUID client-side**
-- Generate `id` with `crypto.randomUUID()` before the insert
-- Pass the `id` in the insert payload
-- Remove `.select("id").single()` from the insert call
-- Use the pre-generated ID for the confirmation email trigger
+### Problem
+1. The `zoom_join_url`, `zoom_meeting_id`, and `zoom_passcode` columns exist on the `workshops` table, but there is **no UI** for admins or advisors to enter them. The reminder emails already use these fields -- they just show an empty "Join" button when no link is set.
+2. The 10-minute reminder currently fires all emails simultaneously. It needs to send **2 at a time with a 3-second delay** between batches to stay within Resend rate limits.
 
 ### Changes
 
-**File: `src/pages/public/WorkshopLanding.tsx`** (lines ~274-283)
-- Generate a UUID before the insert: `const regId = crypto.randomUUID()`
-- Include `id: regId` in the insert object
-- Remove `.select("id").single()` -- just use `.insert({...})` 
-- Use `regId` directly for the confirmation email call instead of `insertedReg?.id`
+**1. Workshop Detail Page -- Add Zoom Link Editor** (`src/pages/portal/advisor/WorkshopDetail.tsx`)
+
+- Add an editable section in the workshop details card where the advisor (or admin) can enter/update:
+  - Zoom Join URL
+  - Zoom Passcode (optional)
+- Show a "Save" button that updates the `workshops` table
+- Once saved, the link will automatically appear in all reminder emails (the edge function already reads `zoom_join_url` from the workshops table)
+
+**2. Batch the 10-minute reminder emails** (`supabase/functions/process-workshop-reminders/index.ts`)
+
+- For the `10m` window specifically, process eligible registrations in batches of 2
+- After each batch of 2 emails, wait 3 seconds before sending the next batch
+- Other reminder windows (24h, 4h, 1h) continue sending normally since volume is lower at those intervals
+
+### Technical Details
+
+**File: `src/pages/portal/advisor/WorkshopDetail.tsx`**
+- Add state for `zoomUrl` and `zoomPasscode`, pre-filled from `workshop.zoom_join_url` / `workshop.zoom_passcode`
+- Add an inline form with two text inputs and a Save button
+- On save, call `supabase.from("workshops").update({ zoom_join_url, zoom_passcode }).eq("id", workshop.id)`
+- Show toast on success/failure
+- Both advisors and admins can set this since the workshop detail page is already role-gated
+
+**File: `supabase/functions/process-workshop-reminders/index.ts`**
+- Add a helper: `async function sleep(ms: number) { return new Promise(r => setTimeout(r, ms)); }`
+- For the 10m window, chunk the eligible array into groups of 2
+- After sending each chunk, `await sleep(3000)` before the next
+- All other windows send as before (one at a time, no delay)
