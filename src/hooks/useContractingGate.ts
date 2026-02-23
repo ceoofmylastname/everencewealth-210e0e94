@@ -22,7 +22,7 @@ export function useContractingGate() {
         // 1. Get contracting_agents row for this user
         const { data: agent, error } = await supabase
           .from("contracting_agents")
-          .select("id, contracting_role, pipeline_stage, is_licensed")
+          .select("id, contracting_role, pipeline_stage, is_licensed, dashboard_access_granted")
           .eq("auth_user_id", session!.user.id)
           .maybeSingle();
 
@@ -30,6 +30,12 @@ export function useContractingGate() {
 
         // No contracting row -> regular advisor, not gated
         if (!agent) {
+          setIsGated(false);
+          return;
+        }
+
+        // Admin-granted full dashboard access bypasses all gating
+        if (agent.dashboard_access_granted) {
           setIsGated(false);
           return;
         }

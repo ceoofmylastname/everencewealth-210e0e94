@@ -18,11 +18,13 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Search, Plus, Eye, KeyRound, RefreshCw, Trash2 } from "lucide-react";
 import { SetAgentPasswordDialog } from "@/components/portal/admin/SetAgentPasswordDialog";
+import { Switch } from "@/components/ui/switch";
 import { toast } from "@/hooks/use-toast";
 
 interface AgentRow {
   id: string;
   portal_user_id: string;
+  auth_user_id: string;
   first_name: string;
   last_name: string;
   email: string;
@@ -43,6 +45,7 @@ interface PendingAgent {
 export default function AdminAgents() {
   const [agents, setAgents] = useState<AgentRow[]>([]);
   const [pendingAgents, setPendingAgents] = useState<PendingAgent[]>([]);
+  const [contractingAccess, setContractingAccess] = useState<Record<string, boolean>>({});
   const [loading, setLoading] = useState(true);
   const [pendingLoading, setPendingLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -51,6 +54,7 @@ export default function AdminAgents() {
   const [resendingId, setResendingId] = useState<string | null>(null);
   const [deleteAgent, setDeleteAgent] = useState<AgentRow | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [togglingAccess, setTogglingAccess] = useState<string | null>(null);
 
   useEffect(() => {
     fetchAgents();
@@ -61,34 +65,45 @@ export default function AdminAgents() {
     setLoading(true);
     const { data: advisors } = await supabase
       .from("advisors")
-      .select("id, portal_user_id, first_name, last_name, email, is_active")
+      .select("id, portal_user_id, auth_user_id, first_name, last_name, email, is_active")
       .order("first_name");
 
     if (!advisors) { setLoading(false); return; }
 
     const portalUserIds = advisors.map((a) => a.portal_user_id);
-    const { data: clients } = await (supabase
-      .from("portal_users")
-      .select("id, advisor_id")
-      .eq("role", "client") as any)
-      .in("advisor_id", portalUserIds);
-
-    const advisorIds = advisors.map((a: any) => a.id);
-    const { data: policies } = await (supabase
-      .from("policies") as any)
-      .select("id, advisor_id")
-      .eq("status", "active")
-      .in("advisor_id", advisorIds);
+    const authUserIds = advisors.map((a) => a.auth_user_id);
+    
+    const [clientsRes, policiesRes, contractingRes] = await Promise.all([
+      (supabase
+        .from("portal_users")
+        .select("id, advisor_id")
+        .eq("role", "client") as any)
+        .in("advisor_id", portalUserIds),
+      (supabase.from("policies") as any)
+        .select("id, advisor_id")
+        .eq("status", "active")
+        .in("advisor_id", advisors.map((a: any) => a.id)),
+      supabase
+        .from("contracting_agents")
+        .select("auth_user_id, dashboard_access_granted")
+        .in("auth_user_id", authUserIds),
+    ]);
 
     const clientCounts: Record<string, number> = {};
-    (clients ?? []).forEach((c: any) => {
+    (clientsRes.data ?? []).forEach((c: any) => {
       clientCounts[c.advisor_id] = (clientCounts[c.advisor_id] || 0) + 1;
     });
 
     const policyCounts: Record<string, number> = {};
-    (policies ?? []).forEach((p: any) => {
+    (policiesRes.data ?? []).forEach((p: any) => {
       policyCounts[p.advisor_id] = (policyCounts[p.advisor_id] || 0) + 1;
     });
+
+    const accessMap: Record<string, boolean> = {};
+    (contractingRes.data ?? []).forEach((c: any) => {
+      accessMap[c.auth_user_id] = c.dashboard_access_granted ?? false;
+    });
+    setContractingAccess(accessMap);
 
     setAgents(
       advisors.map((a) => ({
@@ -157,6 +172,23 @@ export default function AdminAgents() {
       toast({ title: "Error deleting agent", description: err.message, variant: "destructive" });
     } finally {
       setDeleting(false);
+    }
+  }
+
+  async function handleToggleDashboardAccess(agent: AgentRow, granted: boolean) {
+    setTogglingAccess(agent.auth_user_id);
+    try {
+      const { error } = await supabase
+        .from("contracting_agents")
+        .update({ dashboard_access_granted: granted })
+        .eq("auth_user_id", agent.auth_user_id);
+      if (error) throw error;
+      setContractingAccess((prev) => ({ ...prev, [agent.auth_user_id]: granted }));
+      toast({ title: granted ? "Full access granted" : "Access reverted", description: `${agent.first_name} ${agent.last_name} ${granted ? "now has full dashboard access" : "follows standard contracting rules"}` });
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    } finally {
+      setTogglingAccess(null);
     }
   }
 
@@ -240,13 +272,14 @@ export default function AdminAgents() {
                     <TableHead className="text-xs font-semibold uppercase tracking-wide text-gray-500">Status</TableHead>
                     <TableHead className="text-xs font-semibold uppercase tracking-wide text-gray-500 text-center">Clients</TableHead>
                     <TableHead className="text-xs font-semibold uppercase tracking-wide text-gray-500 text-center">Active Policies</TableHead>
+                    <TableHead className="text-xs font-semibold uppercase tracking-wide text-gray-500 text-center">Dashboard</TableHead>
                     <TableHead className="text-xs font-semibold uppercase tracking-wide text-gray-500">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filtered.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={6} className="text-center py-10 text-gray-400">
+                       <TableCell colSpan={7} className="text-center py-10 text-gray-400">
                         No agents found
                       </TableCell>
                     </TableRow>
@@ -264,6 +297,17 @@ export default function AdminAgents() {
                         </TableCell>
                         <TableCell className="text-center text-gray-700">{a.clientCount}</TableCell>
                         <TableCell className="text-center text-gray-700">{a.policyCount}</TableCell>
+                        <TableCell className="text-center">
+                          {a.auth_user_id in contractingAccess ? (
+                            <Switch
+                              checked={contractingAccess[a.auth_user_id] ?? false}
+                              onCheckedChange={(val) => handleToggleDashboardAccess(a, val)}
+                              disabled={togglingAccess === a.auth_user_id}
+                            />
+                          ) : (
+                            <span className="inline-flex items-center bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full text-xs px-2.5 py-0.5 font-medium">Full</span>
+                          )}
+                        </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-1">
                             <Link to={`/portal/admin/agents/${a.id}`}>
