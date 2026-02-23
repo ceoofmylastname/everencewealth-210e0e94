@@ -1,14 +1,15 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { usePortalAuth } from "@/hooks/usePortalAuth";
 import { useContractingGate } from "@/hooks/useContractingGate";
 import { cn } from "@/lib/utils";
 import {
   Shield, LogOut, LayoutDashboard, FileText, Users, Send,
-  FolderOpen, Menu, X, ChevronRight, MessageSquare,
+  FolderOpen, Menu, X, ChevronRight, ChevronDown, MessageSquare,
   Building2, TrendingUp, Wrench, GraduationCap, Megaphone, Calendar, Newspaper,
   Settings, ClipboardList, Briefcase, GitBranch, Lock, AlertTriangle,
 } from "lucide-react";
+import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import { Button } from "@/components/ui/button";
 import { NotificationBell } from "./NotificationBell";
 import { PortalOnboardingTour } from "./PortalOnboardingTour";
@@ -151,6 +152,7 @@ export function PortalLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [openGroup, setOpenGroup] = useState<string | null>(null);
 
   const isAdvisor = portalUser?.role === "advisor" || portalUser?.role === "admin";
   const isAdmin = portalUser?.role === "admin";
@@ -162,6 +164,17 @@ export function PortalLayout() {
     }
   }, [isGated, gateLoading, location.pathname, navigate]);
 
+  // Auto-expand group containing active route
+  useEffect(() => {
+    if (!isAdvisor) return;
+    for (const group of advisorNavGroups) {
+      if (group.items.some((item) => isActive(item.href))) {
+        setOpenGroup(group.label);
+        return;
+      }
+    }
+  }, [location.pathname, isAdvisor]);
+
   const handleSignOut = async () => {
     await signOut();
     navigate("/portal/login", { replace: true });
@@ -171,6 +184,10 @@ export function PortalLayout() {
     location.pathname === href || location.pathname.startsWith(href + "/");
 
   const isContractingGroup = (groupLabel: string) => groupLabel === "Contracting";
+
+  const toggleGroup = (label: string) => {
+    setOpenGroup((prev) => (prev === label ? null : label));
+  };
 
   const SidebarContent = () => (
     <div className="flex flex-col h-full bg-white">
@@ -214,7 +231,7 @@ export function PortalLayout() {
       )}
 
       {/* Nav */}
-      <nav className="flex-1 py-4 px-3 overflow-y-auto space-y-4">
+      <nav className="flex-1 py-4 px-3 overflow-y-auto space-y-1">
         {isAdvisor ? (
           advisorNavGroups.map((group) => {
             let groupItems = group.items;
@@ -222,12 +239,23 @@ export function PortalLayout() {
               groupItems = [...groupItems, { label: "Admin Panel", icon: Settings, href: "/portal/admin/agents" }];
             }
             const groupLocked = isGated && !isContractingGroup(group.label);
+            const isOpen = openGroup === group.label;
             return (
-              <div key={group.label} data-tour-group={group.label}>
-                <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400 px-3 mb-1.5">
-                  {group.label}
-                </p>
-                <div className="space-y-0.5">
+              <Collapsible
+                key={group.label}
+                open={isOpen}
+                onOpenChange={() => toggleGroup(group.label)}
+                data-tour-group={group.label}
+              >
+                <CollapsibleTrigger className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-semibold uppercase tracking-wider text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-colors cursor-pointer select-none">
+                  <span className="text-[11px]">{group.label}</span>
+                  {isOpen ? (
+                    <ChevronDown className="h-3.5 w-3.5 text-gray-400 transition-transform" />
+                  ) : (
+                    <ChevronRight className="h-3.5 w-3.5 text-gray-400 transition-transform" />
+                  )}
+                </CollapsibleTrigger>
+                <CollapsibleContent className="space-y-0.5 mt-0.5">
                   {groupItems.map((item) => (
                     <NavItem
                       key={item.href}
@@ -237,8 +265,8 @@ export function PortalLayout() {
                       locked={groupLocked}
                     />
                   ))}
-                </div>
-              </div>
+                </CollapsibleContent>
+              </Collapsible>
             );
           })
         ) : (
