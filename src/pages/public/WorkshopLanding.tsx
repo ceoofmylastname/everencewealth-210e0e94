@@ -223,8 +223,27 @@ const WorkshopLanding: React.FC = () => {
   const workshopDate = workshop?.workshop_date
     ? format(new Date(workshop.workshop_date + "T00:00:00"), "EEEE, MMMM d, yyyy")
     : "";
-  const workshopTime = (workshop as any)?.workshop_time ?? "6:00 PM";
-  const workshopTimezone = (workshop as any)?.timezone ?? "PST";
+  const rawTime = (workshop as any)?.workshop_time ?? "18:00:00";
+  // Format "HH:mm:ss" or "HH:mm" to "h:mm A"
+  const formatTime = (t: string) => {
+    const [h, m] = t.split(":").map(Number);
+    const ampm = h >= 12 ? "PM" : "AM";
+    const hour12 = h % 12 || 12;
+    return `${hour12}:${String(m).padStart(2, "0")} ${ampm}`;
+  };
+  const workshopTime = formatTime(rawTime);
+  const rawTimezone = (workshop as any)?.timezone ?? "PST";
+  // Convert IANA timezone to abbreviation
+  const workshopTimezone = (() => {
+    try {
+      const abbr = new Intl.DateTimeFormat("en-US", { timeZone: rawTimezone, timeZoneName: "short" })
+        .formatToParts(new Date())
+        .find((p) => p.type === "timeZoneName")?.value;
+      return abbr || rawTimezone;
+    } catch {
+      return rawTimezone;
+    }
+  })();
   const workshopDuration = (workshop as any)?.duration_minutes ?? 60;
   const headline = (workshop as any)?.custom_headline || "Build Tax-Free Retirement Wealth";
   const subheadline =
