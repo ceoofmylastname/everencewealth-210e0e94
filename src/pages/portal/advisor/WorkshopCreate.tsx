@@ -101,6 +101,8 @@ export default function WorkshopCreate() {
           .select("id")
           .eq("advisor_id", advisor.id)
           .eq("is_active", true)
+          .order("created_at", { ascending: false })
+          .limit(1)
           .maybeSingle();
         if (slugErr) throw slugErr;
         setHasSlug(!!slug);
