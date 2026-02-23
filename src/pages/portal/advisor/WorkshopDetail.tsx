@@ -43,6 +43,9 @@ export default function WorkshopDetail() {
   const [registrations, setRegistrations] = useState<Registration[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [zoomUrl, setZoomUrl] = useState("");
+  const [zoomPasscode, setZoomPasscode] = useState("");
+  const [savingZoom, setSavingZoom] = useState(false);
 
   const fetchData = useCallback(async () => {
     if (!portalUser || !workshopId) return;
@@ -88,6 +91,13 @@ export default function WorkshopDetail() {
     if (!authLoading && portalUser) fetchData();
   }, [authLoading, portalUser, fetchData]);
 
+  useEffect(() => {
+    if (workshop) {
+      setZoomUrl(workshop.zoom_join_url || "");
+      setZoomPasscode(workshop.zoom_passcode || "");
+    }
+  }, [workshop?.id]);
+
   if (authLoading || loading) {
     return (
       <div className="max-w-3xl mx-auto py-12 px-4 space-y-6">
@@ -121,6 +131,23 @@ export default function WorkshopDetail() {
       </div>
     );
   }
+
+
+  const handleSaveZoom = async () => {
+    if (!workshop) return;
+    setSavingZoom(true);
+    const { error: updateErr } = await supabase
+      .from("workshops")
+      .update({ zoom_join_url: zoomUrl || null, zoom_passcode: zoomPasscode || null })
+      .eq("id", workshop.id);
+    setSavingZoom(false);
+    if (updateErr) {
+      toast.error("Failed to save Zoom link");
+    } else {
+      toast.success("Zoom link saved");
+      setWorkshop({ ...workshop, zoom_join_url: zoomUrl || null, zoom_passcode: zoomPasscode || null });
+    }
+  };
 
   const statusColors: Record<string, string> = {
     draft: "bg-yellow-100 text-yellow-800",
@@ -181,6 +208,45 @@ export default function WorkshopDetail() {
             </div>
           )}
         </div>
+      </div>
+
+      {/* Zoom Link Editor */}
+      <div className="border p-6 space-y-4" style={{ borderColor: "#e5e7eb", borderRadius: 0 }}>
+        <h2 className="text-lg font-bold" style={{ color: BRAND }}>Zoom Meeting Link</h2>
+        <p className="text-sm text-gray-500">Enter the Zoom link so it appears in the 10-minute reminder email sent to registrants.</p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Zoom Join URL</label>
+            <input
+              type="url"
+              value={zoomUrl}
+              onChange={(e) => setZoomUrl(e.target.value)}
+              placeholder="https://zoom.us/j/..."
+              className="w-full border px-3 py-2 text-sm focus:outline-none focus:ring-2"
+              style={{ borderColor: "#d1d5db", borderRadius: 0, focusRingColor: BRAND } as any}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Passcode (optional)</label>
+            <input
+              type="text"
+              value={zoomPasscode}
+              onChange={(e) => setZoomPasscode(e.target.value)}
+              placeholder="123456"
+              className="w-full border px-3 py-2 text-sm focus:outline-none focus:ring-2"
+              style={{ borderColor: "#d1d5db", borderRadius: 0 } as any}
+            />
+          </div>
+        </div>
+        <button
+          onClick={handleSaveZoom}
+          disabled={savingZoom}
+          className="inline-flex items-center gap-2 px-5 py-2 text-white text-sm font-medium disabled:opacity-50"
+          style={{ backgroundColor: BRAND, borderRadius: 0 }}
+        >
+          {savingZoom ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+          Save Zoom Link
+        </button>
       </div>
 
       {/* Registrations */}

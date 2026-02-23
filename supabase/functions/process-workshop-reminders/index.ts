@@ -28,6 +28,10 @@ const REMINDER_WINDOWS: ReminderWindow[] = [
   { key: "10m", label: "10 minutes", minutesBefore: 10, sentCol: "reminder_10m_sent", sentAtCol: "reminder_10m_sent_at", subject: "Starting Now", urgency: "Your workshop is about to begin — join now!", emoji: "🚀" },
 ];
 
+function sleep(ms: number) {
+  return new Promise((r) => setTimeout(r, ms));
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -96,7 +100,8 @@ Deno.serve(async (req) => {
         return timeDiffMinutes > 0 && timeDiffMinutes <= window.minutesBefore;
       });
 
-      for (const reg of eligible) {
+      // For the 10m window, batch 2 at a time with 3s delay
+      const sendOne = async (reg: any) => {
         const ws = reg.workshops;
         const advisor = reg.advisors;
         const workshopDate = new Date(ws.workshop_date);
@@ -150,10 +155,9 @@ Deno.serve(async (req) => {
             const errBody = await emailRes.text();
             console.error(`Resend error for ${reg.email} (${window.key}):`, errBody);
             errors.push(`${reg.email}/${window.key}: ${errBody}`);
-            continue;
+            return false;
           }
 
-          // Mark reminder as sent
           await adminClient
             .from("workshop_registrations")
             .update({
@@ -164,9 +168,26 @@ Deno.serve(async (req) => {
 
           totalSent++;
           console.log(`${window.key} reminder sent to ${reg.email} for "${ws.title}"`);
+          return true;
         } catch (sendErr) {
           console.error(`Error sending ${window.key} to ${reg.email}:`, sendErr);
           errors.push(`${reg.email}/${window.key}: ${String(sendErr)}`);
+          return false;
+        }
+      };
+
+      if (window.key === "10m") {
+        // Batch: 2 at a time with 3-second delay between batches
+        for (let i = 0; i < eligible.length; i += 2) {
+          const batch = eligible.slice(i, i + 2);
+          await Promise.all(batch.map(sendOne));
+          if (i + 2 < eligible.length) {
+            await sleep(3000);
+          }
+        }
+      } else {
+        for (const reg of eligible) {
+          await sendOne(reg);
         }
       }
     }
