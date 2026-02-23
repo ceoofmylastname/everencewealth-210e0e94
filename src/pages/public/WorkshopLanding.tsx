@@ -360,7 +360,7 @@ const WorkshopLanding: React.FC = () => {
                     className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight mb-5 break-words text-white"
                   >
                     Build Your{" "}
-                    <span className="relative inline-block border-b-4 border-[#EDDB77] pb-1">Tax-Free</span>{" "}
+                    <span className="relative inline-block pb-1">Tax-Free<svg className="absolute -bottom-1 left-0 w-full" viewBox="0 0 200 12" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"><path d="M2 8.5C30 3 70 2 100 5.5C130 9 170 4 198 6" stroke="#EDDB77" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"/></svg></span>{" "}
                     <span className="bg-[#EDDB77]/20 px-2 rounded-lg">Retirement</span>
                   </motion.h1>
 
