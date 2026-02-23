@@ -1,38 +1,22 @@
 
 
-## Add Zoom Link Management + Batch Email Sending
+## Update Workshop Zoom Link Flow for Advisors
 
-### Problem
-1. The `zoom_join_url`, `zoom_meeting_id`, and `zoom_passcode` columns exist on the `workshops` table, but there is **no UI** for admins or advisors to enter them. The reminder emails already use these fields -- they just show an empty "Join" button when no link is set.
-2. The 10-minute reminder currently fires all emails simultaneously. It needs to send **2 at a time with a 3-second delay** between batches to stay within Resend rate limits.
+### What's Changing
+
+The current workshop creation page tells advisors "An admin will assign your Zoom Meeting ID" -- but that's no longer accurate. Advisors already have the ability to enter Zoom links on the Workshop Detail page (added in the previous update). This plan updates the messaging to reflect that.
 
 ### Changes
 
-**1. Workshop Detail Page -- Add Zoom Link Editor** (`src/pages/portal/advisor/WorkshopDetail.tsx`)
+**File: `src/pages/portal/advisor/WorkshopCreate.tsx`**
 
-- Add an editable section in the workshop details card where the advisor (or admin) can enter/update:
-  - Zoom Join URL
-  - Zoom Passcode (optional)
-- Show a "Save" button that updates the `workshops` table
-- Once saved, the link will automatically appear in all reminder emails (the edge function already reads `zoom_join_url` from the workshops table)
+1. Update the "Zoom Meeting Details" section (lines 387-399) to replace the "admin will assign" info box with a friendlier message telling the advisor they can add their Zoom link after creating the workshop from the workshop detail page.
+2. Update the success toast message (line 153) from "An admin will assign your Zoom link." to something like "You can now add your Zoom link from the workshop detail page."
+3. After creation, navigate to the new workshop's detail page instead of the slug-setup page, so the advisor can immediately enter the Zoom link.
 
-**2. Batch the 10-minute reminder emails** (`supabase/functions/process-workshop-reminders/index.ts`)
-
-- For the `10m` window specifically, process eligible registrations in batches of 2
-- After each batch of 2 emails, wait 3 seconds before sending the next batch
-- Other reminder windows (24h, 4h, 1h) continue sending normally since volume is lower at those intervals
+**File: `src/pages/portal/advisor/WorkshopDetail.tsx`** -- No changes needed. The Zoom link editor is already there and functional. The saved `zoom_join_url` is already used by the `process-workshop-reminders` edge function for the 10-minute reminder email.
 
 ### Technical Details
 
-**File: `src/pages/portal/advisor/WorkshopDetail.tsx`**
-- Add state for `zoomUrl` and `zoomPasscode`, pre-filled from `workshop.zoom_join_url` / `workshop.zoom_passcode`
-- Add an inline form with two text inputs and a Save button
-- On save, call `supabase.from("workshops").update({ zoom_join_url, zoom_passcode }).eq("id", workshop.id)`
-- Show toast on success/failure
-- Both advisors and admins can set this since the workshop detail page is already role-gated
-
-**File: `supabase/functions/process-workshop-reminders/index.ts`**
-- Add a helper: `async function sleep(ms: number) { return new Promise(r => setTimeout(r, ms)); }`
-- For the 10m window, chunk the eligible array into groups of 2
-- After sending each chunk, `await sleep(3000)` before the next
-- All other windows send as before (one at a time, no delay)
+- The insert call on the create page will need to return the new workshop ID using `.select("id").single()` so we can navigate to `/portal/advisor/workshops/{id}` after creation. Since the advisor is authenticated and has RLS SELECT access, this will work.
+- The Zoom link editor on the detail page already saves to the `workshops` table, and the 10-minute reminder edge function already reads `zoom_join_url` from there -- so the full flow is already wired up.
