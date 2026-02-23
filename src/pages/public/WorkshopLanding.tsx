@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from "react";
 import { useParams } from "react-router-dom";
+import NotFound from "@/pages/NotFound";
 import { Helmet } from "react-helmet";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -31,7 +32,8 @@ type RegistrationData = z.infer<typeof registrationSchema>;
 
 // ── Main Component ──
 const WorkshopLanding: React.FC = () => {
-  const { slug } = useParams<{ slug: string }>();
+  const params = useParams<{ slug?: string; lang?: string }>();
+  const slug = params.slug || params.lang;
 
   // Step 1: Resolve slug → advisor_id
   const { data: slugData, isLoading: slugLoading, error: slugError } = useQuery({
@@ -191,16 +193,9 @@ const WorkshopLanding: React.FC = () => {
     );
   }
 
-  // ── 404 ──
+  // ── 404 — render standard NotFound page ──
   if (slugError || !slugData || !advisor) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-white" style={{ fontFamily: "GeistSans, system-ui, sans-serif" }}>
-        <div className="text-center">
-          <h1 className="text-3xl font-bold mb-4" style={{ color: "#1A4D3E" }}>Workshop page not found</h1>
-          <p style={{ color: "#4A5565" }}>The link you followed may be incorrect or expired.</p>
-        </div>
-      </div>
-    );
+    return <NotFound />;
   }
 
   // ── No upcoming workshops ──
