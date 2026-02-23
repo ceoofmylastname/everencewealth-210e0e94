@@ -231,7 +231,7 @@ export default function WorkshopsDashboard() {
                   {/* Actions */}
                   <div className="flex gap-2 shrink-0">
                     <Link
-                      to={`/portal/advisor/workshops/${w.id}/registrations`}
+                      to={`/portal/advisor/workshops/${w.id}`}
                       className="inline-flex items-center gap-1.5 px-3 py-2 text-sm border font-medium"
                       style={{ borderColor: BRAND, color: BRAND, borderRadius: 0 }}
                     >

@@ -177,6 +177,7 @@ const ContractingSettings = lazy(() => import("./pages/portal/advisor/contractin
 const WorkshopSlugSetup = lazy(() => import("./pages/portal/advisor/WorkshopSlugSetup"));
 const WorkshopCreate = lazy(() => import("./pages/portal/advisor/WorkshopCreate"));
 const WorkshopsDashboard = lazy(() => import("./pages/portal/advisor/WorkshopsDashboard"));
+const WorkshopDetail = lazy(() => import("./pages/portal/advisor/WorkshopDetail"));
 const ClientDashboard = lazy(() => import("./pages/portal/client/ClientDashboard"));
 const ClientPolicies = lazy(() => import("./pages/portal/client/ClientPolicies"));
 const ClientDocuments = lazy(() => import("./pages/portal/client/ClientDocuments"));
@@ -409,6 +410,7 @@ const App = () => (
                   <Route path="workshops" element={<WorkshopsDashboard />} />
                   <Route path="workshops/slug-setup" element={<WorkshopSlugSetup />} />
                   <Route path="workshops/create" element={<WorkshopCreate />} />
+                  <Route path="workshops/:workshopId" element={<WorkshopDetail />} />
                 </Route>
               </Route>
               <Route path="/portal/client" element={<ClientRoute />}>
