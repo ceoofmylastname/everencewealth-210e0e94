@@ -1,56 +1,81 @@
 
 
-# Collapsible Tab Navigation for Portal Sidebar
+# Workshop Slug Setup Page
+
+## Overview
+
+Create a new page at `/portal/advisor/workshops/slug-setup` where advisors can create or manage their custom workshop landing page URL. The page has two states: a creation form (if no slug exists) and a management view (if a slug already exists).
 
 ## What Changes
 
-The five sidebar navigation groups -- **Portal, Market, Resources, Contracting, Compliance** -- will become clickable collapsible tabs. Clicking a group label toggles its dropdown of nav items open/closed, instead of all items being visible at once. The currently active group (based on the current route) will auto-expand on load.
+### 1. New Page: `src/pages/portal/advisor/WorkshopSlugSetup.tsx`
 
-## Behavior
+The main page component with two views:
 
-- Each group label becomes a clickable row with a chevron icon that rotates when open
-- Only one group can be open at a time (accordion-style) to keep the sidebar clean
-- The group containing the active route auto-opens on page load/navigation
-- Locked groups (when gated) still show the label but items inside remain locked with the existing lock icon behavior
-- Smooth expand/collapse animation
+**No Slug View (Creation Form):**
+- Title: "Set Up Your Workshop Landing Page"
+- Subtitle explaining purpose
+- Input with `everencewealth.com/` prefix
+- Real-time validation (regex, length, hyphen rules)
+- Debounced availability check (500ms) against `advisor_slugs` table
+- 3 auto-generated clickable slug suggestions based on advisor name (filtered to only available ones)
+- "Create My Landing Page" button with loading/disabled states
+- Inserts into `advisor_slugs` on submit
 
-## Visual Layout
+**Slug Exists View (Management):**
+- Large prominent URL display (`everencewealth.com/{slug}`)
+- Copy URL, Preview (opens new tab), and Edit buttons
+- Success message
 
-```text
-Sidebar:
-+---------------------------+
-| Everence Wealth           |
-|---------------------------|
-| > Portal           [v]   |  <- click to expand
-|   Dashboard               |
-|   Clients                 |
-|   Policies                |
-|   CNA                     |
-|   Messages                |
-|---------------------------|
-| > Market            [>]   |  <- collapsed
-|---------------------------|
-| > Resources         [>]   |  <- collapsed
-|---------------------------|
-| > Contracting       [>]   |  <- collapsed
-|---------------------------|
-| > Compliance        [>]   |  <- collapsed
-+---------------------------+
-```
+**Design:**
+- Everence brand: `#1A4D3E` primary, 0px border radius, GeistSans font
+- Large clean layout with white space
+- URL preview at 48px+ font size
+
+### 2. Route Registration in `src/App.tsx`
+
+Add route: `workshops/slug-setup` under the existing advisor route group (around line 393).
+
+### 3. Sidebar Navigation in `src/components/portal/PortalLayout.tsx`
+
+Add "Workshops" item to the "Resources" nav group with the `Calendar` icon, pointing to `/portal/advisor/workshops/slug-setup`.
 
 ## Technical Details
 
-### File Modified
-- `src/components/portal/PortalLayout.tsx`
+### Data Flow
+1. On mount: fetch advisor record via `portal_users.auth_user_id` -> `advisors.auth_user_id`
+2. Then fetch `advisor_slugs` where `advisor_id` matches
+3. If slug found -> show management view; otherwise -> show creation form
+4. Availability check: `SELECT id FROM advisor_slugs WHERE slug = $input AND is_active = true`
+5. Creation: `INSERT INTO advisor_slugs (advisor_id, slug, is_active) VALUES (...)`
 
-### Implementation
-- Import `Collapsible`, `CollapsibleTrigger`, `CollapsibleContent` from `@/components/ui/collapsible` (already used in AdminLayout)
-- Add state: `openGroup` (string | null) tracking which single group is expanded
-- Auto-set `openGroup` based on which group contains the current route (using `useLocation`)
-- Replace the static group rendering with `Collapsible` wrappers:
-  - The group label becomes a `CollapsibleTrigger` styled as a clickable row with a `ChevronDown`/`ChevronRight` icon
-  - The nav items go inside `CollapsibleContent`
-- Clicking a group label toggles it: if already open, close it; if closed, open it and close the previous one
-- Gating logic stays the same -- locked groups still show locked items inside their dropdown
+### Validation Rules
+- Regex: `/^[a-z0-9]+(-[a-z0-9]+)*$/` (lowercase alphanumeric, hyphens between words)
+- Length: 3-50 characters
+- No leading/trailing hyphens
+- Must be available in `advisor_slugs`
+
+### Suggested Slugs
+Generated from advisor `first_name` + `last_name`:
+- `firstname-lastname`
+- `firstnamelastname`
+- `firstname-l` (first initial of last name)
+
+Each suggestion checked for availability on load, only available ones shown.
+
+### Edge Cases
+- Loading: skeleton loader
+- DB error: error message with retry button
+- Race condition on slug creation: catch unique constraint violation, show "just taken" message
+- Double-submit prevention: disable button after click
+
+### Files Modified
+- `src/App.tsx` -- add route + lazy import
+- `src/components/portal/PortalLayout.tsx` -- add Workshops nav item to Resources group
+
+### Files Created
+- `src/pages/portal/advisor/WorkshopSlugSetup.tsx` -- the full page component
 
 ### No database changes needed
+The `advisor_slugs` table and RLS policies already exist.
+
