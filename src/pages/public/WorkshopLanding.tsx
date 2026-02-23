@@ -271,7 +271,7 @@ const WorkshopLanding: React.FC = () => {
 
     setSubmitting(true);
     try {
-      const { error } = await supabase.from("workshop_registrations").insert({
+      const { data: insertedReg, error } = await supabase.from("workshop_registrations").insert({
         workshop_id: workshop.id,
         advisor_id: advisorId,
         first_name: result.data.first_name,
@@ -280,7 +280,7 @@ const WorkshopLanding: React.FC = () => {
         phone: result.data.phone || null,
         source_url: window.location.href,
         lead_status: "registered",
-      });
+      }).select("id").single();
 
       if (error) {
         if (error.code === "23505") {
@@ -291,9 +291,16 @@ const WorkshopLanding: React.FC = () => {
       } else {
         setSubmitted(true);
         setForm({ first_name: "", last_name: "", email: "", phone: "" });
-        toast.success("You're registered!");
+        toast.success("You're registered! Check your email for confirmation.");
         setCooldown(true);
         setTimeout(() => setCooldown(false), 30000);
+
+        // Send confirmation email (fire-and-forget)
+        if (insertedReg?.id) {
+          supabase.functions.invoke("send-workshop-confirmation", {
+            body: { registration_id: insertedReg.id },
+          }).catch((e) => console.error("Confirmation email error:", e));
+        }
       }
     } catch {
       toast.error("Registration failed. Please try again.");
