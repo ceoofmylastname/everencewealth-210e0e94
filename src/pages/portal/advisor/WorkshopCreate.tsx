@@ -147,7 +147,7 @@ export default function WorkshopCreate() {
         max_attendees: maxAttendees,
         custom_headline: customHeadline.trim() || null,
         custom_subheadline: customSubheadline.trim() || null,
-        status: "draft",
+        status: "scheduled",
       });
       if (error) throw error;
 
