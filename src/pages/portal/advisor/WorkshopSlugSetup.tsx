@@ -40,6 +40,7 @@ export default function WorkshopSlugSetup() {
         .from("advisors")
         .select("id, first_name, last_name")
         .eq("auth_user_id", portalUser.auth_user_id)
+        .limit(1)
         .maybeSingle();
       if (advErr) throw advErr;
       if (!advisor) throw new Error("Advisor record not found");

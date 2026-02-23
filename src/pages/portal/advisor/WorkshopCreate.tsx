@@ -86,6 +86,7 @@ export default function WorkshopCreate() {
           .from("advisors")
           .select("id")
           .eq("auth_user_id", portalUser.auth_user_id)
+          .limit(1)
           .maybeSingle();
         if (advErr) throw advErr;
         if (!advisor) {
