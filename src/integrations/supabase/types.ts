@@ -3570,6 +3570,7 @@ export type Database = {
           completed_at: string | null
           contracting_role: string
           created_at: string
+          dashboard_access_granted: boolean
           email: string
           first_name: string
           id: string
@@ -3594,6 +3595,7 @@ export type Database = {
           completed_at?: string | null
           contracting_role?: string
           created_at?: string
+          dashboard_access_granted?: boolean
           email: string
           first_name: string
           id?: string
@@ -3618,6 +3620,7 @@ export type Database = {
           completed_at?: string | null
           contracting_role?: string
           created_at?: string
+          dashboard_access_granted?: boolean
           email?: string
           first_name?: string
           id?: string

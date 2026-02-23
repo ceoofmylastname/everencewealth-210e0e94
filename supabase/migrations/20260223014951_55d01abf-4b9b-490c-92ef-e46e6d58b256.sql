@@ -1,0 +1,1 @@
+ALTER TABLE public.contracting_agents ADD COLUMN dashboard_access_granted boolean NOT NULL DEFAULT false;
