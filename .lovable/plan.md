@@ -1,81 +1,63 @@
 
-
-# Workshop Slug Setup Page
+# Create Workshop Page
 
 ## Overview
 
-Create a new page at `/portal/advisor/workshops/slug-setup` where advisors can create or manage their custom workshop landing page URL. The page has two states: a creation form (if no slug exists) and a management view (if a slug already exists).
+Add a new page at `/portal/advisor/workshops/create` where advisors can create workshops with a 3-section form (Basic Details, Schedule, Zoom Info). The page pre-checks whether the advisor has set up their slug; if not, it blocks the form and redirects them to slug setup first.
 
-## What Changes
+## Files to Create
 
-### 1. New Page: `src/pages/portal/advisor/WorkshopSlugSetup.tsx`
+### `src/pages/portal/advisor/WorkshopCreate.tsx`
 
-The main page component with two views:
+The main page component with:
 
-**No Slug View (Creation Form):**
-- Title: "Set Up Your Workshop Landing Page"
-- Subtitle explaining purpose
-- Input with `everencewealth.com/` prefix
-- Real-time validation (regex, length, hyphen rules)
-- Debounced availability check (500ms) against `advisor_slugs` table
-- 3 auto-generated clickable slug suggestions based on advisor name (filtered to only available ones)
-- "Create My Landing Page" button with loading/disabled states
-- Inserts into `advisor_slugs` on submit
+**Pre-check logic:**
+- Uses `usePortalAuth()` to get auth user
+- Queries `advisors` table for `advisor_id`
+- Queries `advisor_slugs` for active slug
+- If no slug: shows alert banner with link to `/portal/advisor/workshops/slug-setup`, form disabled
+- If slug exists: renders the full form
 
-**Slug Exists View (Management):**
-- Large prominent URL display (`everencewealth.com/{slug}`)
-- Copy URL, Preview (opens new tab), and Edit buttons
-- Success message
+**Section 1 - Basic Details:**
+- Title (text input, default "Tax-Free Retirement Workshop", required, max 200)
+- Description (textarea, optional, max 1000)
+- Custom Headline (text input, optional, max 150, help text)
+- Custom Subheadline (text input, optional, max 200)
 
-**Design:**
-- Everence brand: `#1A4D3E` primary, 0px border radius, GeistSans font
-- Large clean layout with white space
-- URL preview at 48px+ font size
+**Section 2 - Schedule:**
+- Workshop Date (date picker using Popover + Calendar, required, must be future)
+- Workshop Time (select with 12-hour AM/PM options, required)
+- Timezone (select dropdown, default "America/Los_Angeles", 6 US timezone options)
+- Duration (number input, default 60, min 15, max 240, "minutes" suffix)
+- Max Attendees (number input, default 100, min 1, max 1000)
 
-### 2. Route Registration in `src/App.tsx`
+**Section 3 - Zoom Details (read-only info card):**
+- Info icon with message explaining admin assigns Zoom details post-creation
+- Visually distinct with light gray background and border
 
-Add route: `workshops/slug-setup` under the existing advisor route group (around line 393).
+**Submit behavior:**
+- Inserts into `workshops` table with `status: 'draft'`
+- On success: toast + redirect to `/portal/advisor/workshops/slug-setup` (temporary until workshop dashboard exists)
+- On error: toast with error, form data preserved
 
-### 3. Sidebar Navigation in `src/components/portal/PortalLayout.tsx`
+**Design:** Everence brand (#1A4D3E primary, 0px border radius, GeistSans font, large clear inputs)
 
-Add "Workshops" item to the "Resources" nav group with the `Calendar` icon, pointing to `/portal/advisor/workshops/slug-setup`.
+## Files to Modify
+
+### `src/App.tsx`
+- Add lazy import for `WorkshopCreate`
+- Add route `workshops/create` alongside existing `workshops/slug-setup` (line ~405)
+
+### `src/components/portal/PortalLayout.tsx`
+- Add "Create Workshop" sub-item or ensure "Workshops" nav item exists in Resources group (already added from previous work)
 
 ## Technical Details
 
-### Data Flow
-1. On mount: fetch advisor record via `portal_users.auth_user_id` -> `advisors.auth_user_id`
-2. Then fetch `advisor_slugs` where `advisor_id` matches
-3. If slug found -> show management view; otherwise -> show creation form
-4. Availability check: `SELECT id FROM advisor_slugs WHERE slug = $input AND is_active = true`
-5. Creation: `INSERT INTO advisor_slugs (advisor_id, slug, is_active) VALUES (...)`
-
-### Validation Rules
-- Regex: `/^[a-z0-9]+(-[a-z0-9]+)*$/` (lowercase alphanumeric, hyphens between words)
-- Length: 3-50 characters
-- No leading/trailing hyphens
-- Must be available in `advisor_slugs`
-
-### Suggested Slugs
-Generated from advisor `first_name` + `last_name`:
-- `firstname-lastname`
-- `firstnamelastname`
-- `firstname-l` (first initial of last name)
-
-Each suggestion checked for availability on load, only available ones shown.
-
-### Edge Cases
-- Loading: skeleton loader
-- DB error: error message with retry button
-- Race condition on slug creation: catch unique constraint violation, show "just taken" message
-- Double-submit prevention: disable button after click
-
-### Files Modified
-- `src/App.tsx` -- add route + lazy import
-- `src/components/portal/PortalLayout.tsx` -- add Workshops nav item to Resources group
-
-### Files Created
-- `src/pages/portal/advisor/WorkshopSlugSetup.tsx` -- the full page component
-
-### No database changes needed
-The `advisor_slugs` table and RLS policies already exist.
-
+- Uses `react-hook-form` for form state management
+- Uses `date-fns` for date validation (isBefore, startOfToday)
+- Uses existing shadcn Calendar + Popover for date picker (with `pointer-events-auto`)
+- Debounce not needed here (no real-time checks)
+- Double-submit prevention via `isSubmitting` state disabling the button
+- All validation inline with red error messages
+- Required fields marked with asterisk
+- No database schema changes needed -- `workshops` table already has all columns with correct defaults
