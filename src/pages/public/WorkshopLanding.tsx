@@ -688,7 +688,7 @@ const WorkshopLanding: React.FC = () => {
               variants={staggerContainer}
               initial="hidden"
               whileInView="visible"
-              viewport={{ once: true, margin: "-100px" }}
+              viewport={{ once: true, amount: 0.1 }}
             >
               <motion.div variants={fadeUp} className="text-center mb-14">
                 <span className="inline-block text-xs font-semibold tracking-[0.2em] uppercase mb-3 px-4 py-1.5 rounded-full" style={{ color: "#1A4D3E", background: "rgba(26,77,62,0.08)" }}>
@@ -745,7 +745,7 @@ const WorkshopLanding: React.FC = () => {
               variants={staggerContainer}
               initial="hidden"
               whileInView="visible"
-              viewport={{ once: true, margin: "-100px" }}
+              viewport={{ once: true, amount: 0.1 }}
             >
               <motion.div variants={fadeUp} className="text-center mb-14">
                 <span className="inline-block text-xs font-semibold tracking-[0.2em] uppercase mb-3 px-4 py-1.5 rounded-full" style={{ color: "#1A4D3E", background: "rgba(26,77,62,0.08)" }}>
