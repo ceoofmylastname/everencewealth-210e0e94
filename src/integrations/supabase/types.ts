@@ -387,6 +387,38 @@ export type Database = {
           },
         ]
       }
+      advisor_slugs: {
+        Row: {
+          advisor_id: string
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          slug: string
+        }
+        Insert: {
+          advisor_id: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          slug: string
+        }
+        Update: {
+          advisor_id?: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          slug?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "advisor_slugs_advisor_id_fkey"
+            columns: ["advisor_id"]
+            isOneToOne: false
+            referencedRelation: "advisors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       advisor_transactions: {
         Row: {
           account_name: string
@@ -8031,6 +8063,276 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      workshop_email_queue: {
+        Row: {
+          advisor_email: string | null
+          advisor_id: string | null
+          advisor_name: string | null
+          advisor_phone: string | null
+          advisor_photo_url: string | null
+          created_at: string | null
+          email_type: string
+          error_message: string | null
+          id: string
+          max_retries: number | null
+          registration_id: string | null
+          retry_count: number | null
+          scheduled_for: string
+          sent_at: string | null
+          status: string | null
+          to_email: string
+          to_name: string
+          workshop_date: string | null
+          workshop_id: string | null
+          workshop_time: string | null
+          workshop_timezone: string | null
+          workshop_title: string | null
+          zoom_join_url: string | null
+        }
+        Insert: {
+          advisor_email?: string | null
+          advisor_id?: string | null
+          advisor_name?: string | null
+          advisor_phone?: string | null
+          advisor_photo_url?: string | null
+          created_at?: string | null
+          email_type: string
+          error_message?: string | null
+          id?: string
+          max_retries?: number | null
+          registration_id?: string | null
+          retry_count?: number | null
+          scheduled_for: string
+          sent_at?: string | null
+          status?: string | null
+          to_email: string
+          to_name: string
+          workshop_date?: string | null
+          workshop_id?: string | null
+          workshop_time?: string | null
+          workshop_timezone?: string | null
+          workshop_title?: string | null
+          zoom_join_url?: string | null
+        }
+        Update: {
+          advisor_email?: string | null
+          advisor_id?: string | null
+          advisor_name?: string | null
+          advisor_phone?: string | null
+          advisor_photo_url?: string | null
+          created_at?: string | null
+          email_type?: string
+          error_message?: string | null
+          id?: string
+          max_retries?: number | null
+          registration_id?: string | null
+          retry_count?: number | null
+          scheduled_for?: string
+          sent_at?: string | null
+          status?: string | null
+          to_email?: string
+          to_name?: string
+          workshop_date?: string | null
+          workshop_id?: string | null
+          workshop_time?: string | null
+          workshop_timezone?: string | null
+          workshop_title?: string | null
+          zoom_join_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workshop_email_queue_advisor_id_fkey"
+            columns: ["advisor_id"]
+            isOneToOne: false
+            referencedRelation: "advisors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workshop_email_queue_registration_id_fkey"
+            columns: ["registration_id"]
+            isOneToOne: false
+            referencedRelation: "workshop_registrations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workshop_email_queue_workshop_id_fkey"
+            columns: ["workshop_id"]
+            isOneToOne: false
+            referencedRelation: "workshops"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workshop_registrations: {
+        Row: {
+          advisor_id: string
+          attended: boolean | null
+          attended_at: string | null
+          email: string
+          first_name: string
+          id: string
+          ip_address: unknown
+          last_name: string
+          lead_status: string | null
+          phone: string | null
+          registered_at: string | null
+          reminder_10m_sent: boolean | null
+          reminder_10m_sent_at: string | null
+          reminder_1h_sent: boolean | null
+          reminder_1h_sent_at: string | null
+          reminder_24h_sent: boolean | null
+          reminder_24h_sent_at: string | null
+          reminder_4h_sent: boolean | null
+          reminder_4h_sent_at: string | null
+          source_url: string | null
+          user_agent: string | null
+          welcome_email_sent: boolean | null
+          welcome_email_sent_at: string | null
+          workshop_id: string
+        }
+        Insert: {
+          advisor_id: string
+          attended?: boolean | null
+          attended_at?: string | null
+          email: string
+          first_name: string
+          id?: string
+          ip_address?: unknown
+          last_name: string
+          lead_status?: string | null
+          phone?: string | null
+          registered_at?: string | null
+          reminder_10m_sent?: boolean | null
+          reminder_10m_sent_at?: string | null
+          reminder_1h_sent?: boolean | null
+          reminder_1h_sent_at?: string | null
+          reminder_24h_sent?: boolean | null
+          reminder_24h_sent_at?: string | null
+          reminder_4h_sent?: boolean | null
+          reminder_4h_sent_at?: string | null
+          source_url?: string | null
+          user_agent?: string | null
+          welcome_email_sent?: boolean | null
+          welcome_email_sent_at?: string | null
+          workshop_id: string
+        }
+        Update: {
+          advisor_id?: string
+          attended?: boolean | null
+          attended_at?: string | null
+          email?: string
+          first_name?: string
+          id?: string
+          ip_address?: unknown
+          last_name?: string
+          lead_status?: string | null
+          phone?: string | null
+          registered_at?: string | null
+          reminder_10m_sent?: boolean | null
+          reminder_10m_sent_at?: string | null
+          reminder_1h_sent?: boolean | null
+          reminder_1h_sent_at?: string | null
+          reminder_24h_sent?: boolean | null
+          reminder_24h_sent_at?: string | null
+          reminder_4h_sent?: boolean | null
+          reminder_4h_sent_at?: string | null
+          source_url?: string | null
+          user_agent?: string | null
+          welcome_email_sent?: boolean | null
+          welcome_email_sent_at?: string | null
+          workshop_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workshop_registrations_advisor_id_fkey"
+            columns: ["advisor_id"]
+            isOneToOne: false
+            referencedRelation: "advisors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workshop_registrations_workshop_id_fkey"
+            columns: ["workshop_id"]
+            isOneToOne: false
+            referencedRelation: "workshops"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workshops: {
+        Row: {
+          advisor_id: string
+          attendance_count: number | null
+          created_at: string | null
+          custom_headline: string | null
+          custom_subheadline: string | null
+          description: string | null
+          duration_minutes: number | null
+          id: string
+          max_attendees: number | null
+          registration_count: number | null
+          status: string | null
+          timezone: string
+          title: string
+          updated_at: string | null
+          workshop_date: string
+          workshop_time: string
+          zoom_join_url: string | null
+          zoom_meeting_id: string | null
+          zoom_passcode: string | null
+        }
+        Insert: {
+          advisor_id: string
+          attendance_count?: number | null
+          created_at?: string | null
+          custom_headline?: string | null
+          custom_subheadline?: string | null
+          description?: string | null
+          duration_minutes?: number | null
+          id?: string
+          max_attendees?: number | null
+          registration_count?: number | null
+          status?: string | null
+          timezone?: string
+          title?: string
+          updated_at?: string | null
+          workshop_date: string
+          workshop_time: string
+          zoom_join_url?: string | null
+          zoom_meeting_id?: string | null
+          zoom_passcode?: string | null
+        }
+        Update: {
+          advisor_id?: string
+          attendance_count?: number | null
+          created_at?: string | null
+          custom_headline?: string | null
+          custom_subheadline?: string | null
+          description?: string | null
+          duration_minutes?: number | null
+          id?: string
+          max_attendees?: number | null
+          registration_count?: number | null
+          status?: string | null
+          timezone?: string
+          title?: string
+          updated_at?: string | null
+          workshop_date?: string
+          workshop_time?: string
+          zoom_join_url?: string | null
+          zoom_meeting_id?: string | null
+          zoom_passcode?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workshops_advisor_id_fkey"
+            columns: ["advisor_id"]
+            isOneToOne: false
+            referencedRelation: "advisors"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       zone_config: {
         Row: {
