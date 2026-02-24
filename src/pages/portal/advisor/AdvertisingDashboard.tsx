@@ -134,25 +134,71 @@ const AdvertisingDashboard = () => {
                 </div>
             </section>
 
-            {/* 2. Ticker Strip - Dynamic Ad Platform Integrations */}
-            <div className="bg-[#f0f0f0] py-4 overflow-hidden">
+            {/* 2. Ticker Strip - Infinite Rotating Carousel */}
+            <div className="bg-muted/50 py-5 overflow-hidden border-y border-border relative">
+                <div className="absolute left-0 top-0 bottom-0 w-16 bg-gradient-to-r from-muted/50 to-transparent z-10 pointer-events-none" />
+                <div className="absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-muted/50 to-transparent z-10 pointer-events-none" />
                 <motion.div
-                    className="flex items-center justify-around w-full"
-                    style={{ y }}
+                    className="flex items-center gap-12 whitespace-nowrap"
+                    animate={{ x: ['0%', '-50%'] }}
+                    transition={{ x: { duration: 25, repeat: Infinity, ease: 'linear' } }}
                 >
-                    <SiFacebook size={32} className="text-[#1877F2]" />
-                    <SiInstagram size={32} className="text-[#E4405F]" />
-                    <SiLinkedin size={32} className="text-[#0077B5]" />
-                    <SiTiktok size={32} className="text-[#000000]" />
-                    <SiYoutube size={32} className="text-[#FF0000]" />
-                    <SiWhatsapp size={32} className="text-[#25D366]" />
-                    <SiSpotify size={32} className="text-[#1DB954]" />
-                    <SiPinterest size={32} className="text-[#E60023]" />
-                    <SiX size={32} className="text-[#000000]" />
-                    <SiSnapchat size={32} className="text-[#FFFC00]" />
-                    <SiGoogle size={32} className="text-[#4285F4]" />
-                    <FaMicrosoft size={32} className="text-[#F25022]" />
-                    <BsEnvelopePaper size={32} className="text-[#000000]" />
+                    {[0, 1].map((setIdx) => (
+                        <React.Fragment key={setIdx}>
+                            <div className="flex items-center gap-3 px-4 py-2 rounded-full bg-white shadow-sm border border-border shrink-0">
+                                <SiFacebook size={24} className="text-[#1877F2]" />
+                                <span className="text-sm font-semibold text-foreground">Facebook</span>
+                            </div>
+                            <div className="flex items-center gap-3 px-4 py-2 rounded-full bg-white shadow-sm border border-border shrink-0">
+                                <SiInstagram size={24} className="text-[#E4405F]" />
+                                <span className="text-sm font-semibold text-foreground">Instagram</span>
+                            </div>
+                            <div className="flex items-center gap-3 px-4 py-2 rounded-full bg-white shadow-sm border border-border shrink-0">
+                                <SiLinkedin size={24} className="text-[#0077B5]" />
+                                <span className="text-sm font-semibold text-foreground">LinkedIn</span>
+                            </div>
+                            <div className="flex items-center gap-3 px-4 py-2 rounded-full bg-white shadow-sm border border-border shrink-0">
+                                <SiTiktok size={24} />
+                                <span className="text-sm font-semibold text-foreground">TikTok</span>
+                            </div>
+                            <div className="flex items-center gap-3 px-4 py-2 rounded-full bg-white shadow-sm border border-border shrink-0">
+                                <SiYoutube size={24} className="text-[#FF0000]" />
+                                <span className="text-sm font-semibold text-foreground">YouTube</span>
+                            </div>
+                            <div className="flex items-center gap-3 px-4 py-2 rounded-full bg-white shadow-sm border border-border shrink-0">
+                                <SiWhatsapp size={24} className="text-[#25D366]" />
+                                <span className="text-sm font-semibold text-foreground">WhatsApp</span>
+                            </div>
+                            <div className="flex items-center gap-3 px-4 py-2 rounded-full bg-white shadow-sm border border-border shrink-0">
+                                <SiSpotify size={24} className="text-[#1DB954]" />
+                                <span className="text-sm font-semibold text-foreground">Spotify</span>
+                            </div>
+                            <div className="flex items-center gap-3 px-4 py-2 rounded-full bg-white shadow-sm border border-border shrink-0">
+                                <SiPinterest size={24} className="text-[#E60023]" />
+                                <span className="text-sm font-semibold text-foreground">Pinterest</span>
+                            </div>
+                            <div className="flex items-center gap-3 px-4 py-2 rounded-full bg-white shadow-sm border border-border shrink-0">
+                                <SiX size={24} />
+                                <span className="text-sm font-semibold text-foreground">X / Twitter</span>
+                            </div>
+                            <div className="flex items-center gap-3 px-4 py-2 rounded-full bg-white shadow-sm border border-border shrink-0">
+                                <SiSnapchat size={24} className="text-[#FFFC00]" />
+                                <span className="text-sm font-semibold text-foreground">Snapchat</span>
+                            </div>
+                            <div className="flex items-center gap-3 px-4 py-2 rounded-full bg-white shadow-sm border border-border shrink-0">
+                                <SiGoogle size={24} className="text-[#4285F4]" />
+                                <span className="text-sm font-semibold text-foreground">Google</span>
+                            </div>
+                            <div className="flex items-center gap-3 px-4 py-2 rounded-full bg-white shadow-sm border border-border shrink-0">
+                                <FaMicrosoft size={24} className="text-[#F25022]" />
+                                <span className="text-sm font-semibold text-foreground">Bing</span>
+                            </div>
+                            <div className="flex items-center gap-3 px-4 py-2 rounded-full bg-white shadow-sm border border-border shrink-0">
+                                <BsEnvelopePaper size={24} />
+                                <span className="text-sm font-semibold text-foreground">Postcards</span>
+                            </div>
+                        </React.Fragment>
+                    ))}
                 </motion.div>
             </div>
 
