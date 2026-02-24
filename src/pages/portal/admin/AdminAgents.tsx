@@ -31,6 +31,7 @@ interface AgentRow {
   is_active: boolean;
   clientCount: number;
   policyCount: number;
+  role: string;
 }
 
 interface PendingAgent {
@@ -65,7 +66,7 @@ export default function AdminAgents() {
     setLoading(true);
     const { data: advisors } = await supabase
       .from("advisors")
-      .select("id, portal_user_id, auth_user_id, first_name, last_name, email, is_active")
+      .select("id, portal_user_id, auth_user_id, first_name, last_name, email, is_active, portal_users:portal_user_id(role)")
       .order("first_name");
 
     if (!advisors) { setLoading(false); return; }
@@ -106,10 +107,17 @@ export default function AdminAgents() {
     setContractingAccess(accessMap);
 
     setAgents(
-      advisors.map((a) => ({
-        ...a,
+      advisors.map((a: any) => ({
+        id: a.id,
+        portal_user_id: a.portal_user_id,
+        auth_user_id: a.auth_user_id,
+        first_name: a.first_name,
+        last_name: a.last_name,
+        email: a.email,
+        is_active: a.is_active,
         clientCount: clientCounts[a.portal_user_id] || 0,
         policyCount: policyCounts[a.id] || 0,
+        role: a.portal_users?.role || "advisor",
       }))
     );
     setLoading(false);
@@ -269,6 +277,7 @@ export default function AdminAgents() {
                   <TableRow className="bg-gray-50 hover:bg-gray-50">
                     <TableHead className="text-xs font-semibold uppercase tracking-wide text-gray-500">Name</TableHead>
                     <TableHead className="text-xs font-semibold uppercase tracking-wide text-gray-500">Email</TableHead>
+                    <TableHead className="text-xs font-semibold uppercase tracking-wide text-gray-500">Role</TableHead>
                     <TableHead className="text-xs font-semibold uppercase tracking-wide text-gray-500">Status</TableHead>
                     <TableHead className="text-xs font-semibold uppercase tracking-wide text-gray-500 text-center">Clients</TableHead>
                     <TableHead className="text-xs font-semibold uppercase tracking-wide text-gray-500 text-center">Active Policies</TableHead>
@@ -288,6 +297,13 @@ export default function AdminAgents() {
                       <TableRow key={a.id} className="border-b border-gray-100 hover:bg-gray-50/50">
                         <TableCell className="font-medium text-gray-900">{a.first_name} {a.last_name}</TableCell>
                         <TableCell className="text-gray-500">{a.email}</TableCell>
+                        <TableCell>
+                          {a.role === "admin" ? (
+                            <span className="inline-flex items-center bg-purple-50 text-purple-700 border border-purple-200 rounded-full text-xs px-2.5 py-0.5 font-medium">Admin</span>
+                          ) : (
+                            <span className="inline-flex items-center bg-blue-50 text-blue-700 border border-blue-200 rounded-full text-xs px-2.5 py-0.5 font-medium">Advisor</span>
+                          )}
+                        </TableCell>
                         <TableCell>
                           {a.is_active ? (
                             <span className="inline-flex items-center bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full text-xs px-2.5 py-0.5 font-medium">Active</span>
