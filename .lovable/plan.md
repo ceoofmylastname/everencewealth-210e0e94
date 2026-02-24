@@ -1,75 +1,62 @@
 
 
-## Fix Image Studio — Full Functional Implementation
+## Fix Image Studio to Use Fal.ai Nano Banana Pro with 4K Output
 
-The Image Studio page (`/portal/advisor/image-studio`) currently renders as a static mockup with no working functionality. All buttons, upload zones, and download actions are decorative. Here's the plan to make it fully functional.
+### Current Problem
 
----
+The `generate-image` edge function currently uses **Lovable AI Gateway** (`google/gemini-3-pro-image-preview`), not **Fal.ai**. The project already has `FAL_KEY` configured as a secret and uses Fal.ai's Nano Banana Pro model in another edge function (`generate-10lang-qa`). The Image Studio needs to be switched to use Fal.ai for crisp, clear, 4K images.
 
-### What's Broken / Missing
+### Changes Required
 
-1. **No image upload** — The dropzone in the Edit tab is a styled div with no file input or handler
-2. **No AI image generation** — The "Generate Image" button does nothing; no connection to the `generate-image` edge function
-3. **No AI image editing** — The "Apply AI Edits" button is non-functional
-4. **No download capability** — Download buttons have no logic
-5. **No image persistence** — Generated/edited images aren't saved anywhere
-6. **No state management** — No state for generated images, uploaded files, loading states, or errors
-7. **Before & After comparison** — Only shows placeholder gradients, not real images
+#### 1. Rewrite `supabase/functions/generate-image/index.ts` to use Fal.ai
 
----
+- Import and configure `@fal-ai/client` with the existing `FAL_KEY` secret
+- Use `fal-ai/nano-banana-pro` model (same pattern as `generate-10lang-qa`)
+- For **generation**: Send prompt with high-resolution settings (4K: `image_size: { width: 3840, height: 2160 }` for 16:9, scaled proportionally for other ratios)
+- For **editing**: Use `fal-ai/nano-banana-pro/image-to-image` (or the appropriate Fal.ai edit endpoint) with the uploaded `imageUrl`
+- Map dimension choices from the frontend (`1:1`, `16:9`, `9:16`, `4:1`) to pixel dimensions at 4K scale
+- Keep the existing prompt-generation logic via Lovable AI for the `headline` flow (prompt writing only), but switch image generation to Fal.ai
+- Maintain existing CORS headers and error handling (429/402)
 
-### Implementation Plan
+#### 2. Update `ImageStudio.tsx` prompt to request 4K quality
 
-#### 1. Add State Management
-- Add state for: `prompt`, `uploadedImage`, `generatedImages`, `editedImage`, `isGenerating`, `isEditing`, `selectedPreset`, `selectedDimension`, `editInstructions`
-- Track original and edited images for the comparison slider
+- Append `4K resolution, ultra-sharp, crisp details` to all prompts sent from the frontend
+- The `uploadBase64ToStorage` function may need adjustment since Fal.ai returns a URL (not base64) — download from `fal.media` URL and upload to storage (same pattern as `generate-10lang-qa`)
 
-#### 2. Wire Up Image Upload (Edit Tab)
-- Add a hidden `<input type="file">` accepting PNG/JPG/WEBP up to 10MB
-- On file select or drag-and-drop, read the file and display a preview
-- Upload to `article-images` storage bucket (already exists with proper RLS policies)
-- Show the uploaded image in the comparison slider's "Original" side
+#### 3. Add `generate-image` to `supabase/config.toml`
 
-#### 3. Wire Up AI Image Generation (Generate Tab)
-- Connect the "Generate Image" button to the existing `generate-image` edge function
-- Pass the user's prompt text, selected style preset, and dimensions
-- On success, download the base64 result, upload to storage, and display in the output gallery
-- Show loading spinner during generation
-- Display the generated image replacing the CSS gradient placeholder
-- Enable the Download button to trigger a browser download of the generated image
-
-#### 4. Wire Up AI Image Editing (Edit Tab)
-- Connect "Apply AI Edits" to the `generate-image` edge function (it already supports `imageUrl` for editing)
-- Pass the uploaded image URL + edit instructions
-- On success, display the edited image in the "After" side of the comparison slider
-- Enable Download Original / Download Edited buttons
-
-#### 5. Download Functionality
-- Implement `downloadImage()` helper that fetches the image URL and triggers `<a download>` click
-- Wire to all Download buttons (Generate tab download, Edit tab download original/edited)
-
-#### 6. Save to Storage
-- All generated and edited images are uploaded to `article-images` bucket with descriptive filenames
-- Images get permanent public URLs for reuse
-
-#### 7. Visual Fixes
-- Replace CSS gradient placeholders with actual image previews when images exist
-- Show empty/placeholder state only when no images have been generated yet
-- Add loading states with skeleton animations during AI processing
-- Add error toasts for failed generations/uploads
-
----
+- Currently missing from config — add `[functions.generate-image]` with `verify_jwt = false`
 
 ### Technical Details
 
+**Fal.ai Nano Banana Pro API call pattern** (from existing codebase):
+```typescript
+import { fal } from "https://esm.sh/@fal-ai/client@1.2.1";
+fal.config({ credentials: Deno.env.get("FAL_KEY") });
+
+const result = await fal.subscribe("fal-ai/nano-banana-pro", {
+  input: {
+    prompt,
+    negative_prompt: "blurry, low quality, text, watermark, logo",
+    image_size: { width: 3840, height: 2160 }, // 4K for 16:9
+    num_images: 1,
+    num_inference_steps: 40,
+    guidance_scale: 7.5,
+  }
+});
+// result.data.images[0].url → fal.media URL
+```
+
+**4K dimension mapping:**
+- `1:1` → 2160×2160
+- `16:9` → 3840×2160
+- `9:16` → 2160×3840
+- `4:1` → 3840×960
+
 **Files to modify:**
-- `src/pages/portal/advisor/ImageStudio.tsx` — Major rewrite to add all functional state and handlers
+- `supabase/functions/generate-image/index.ts` — Switch from Lovable AI to Fal.ai
+- `supabase/config.toml` — Add missing function entry
+- `src/pages/portal/advisor/ImageStudio.tsx` — Update `uploadBase64ToStorage` to handle URL-based images from Fal.ai, enhance prompt quality strings
 
-**Edge function used:**
-- `supabase/functions/generate-image/index.ts` — Already supports both generation (prompt only) and editing (prompt + imageUrl)
-
-**Storage bucket:**
-- `article-images` — Already exists, public, with authenticated upload/delete RLS policies
-
-**No new database tables or edge functions needed.**
+**Secrets needed:** `FAL_KEY` — already configured.
 
