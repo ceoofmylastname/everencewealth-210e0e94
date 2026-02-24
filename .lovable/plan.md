@@ -1,42 +1,61 @@
 
 
-## Fix: Uploaded Images Showing Too Zoomed In / Cropped
+## How Admins Can Add More Admins
 
-### Root Cause
+### Current State
 
-Every `<img>` in the Image Studio uses `object-cover`, which scales the image to fill the container and **crops** whatever doesn't fit. For portrait or large images, this means only a portion (like shoulders) is visible.
+The `create-agent` edge function (line 133) always sets `role: "advisor"` when creating a new portal user. The `AdminAgentNew.tsx` form has no role selector. There is no way for an existing admin to promote someone to admin through the UI.
 
-Additionally, the "before" image in the comparison slider uses `w-screen max-w-[1000px]` which is incorrect — it should match the actual container width for proper alignment.
+### Proposed Changes
 
-### Changes to `src/pages/portal/advisor/ImageStudio.tsx`
+#### 1. Add a "Role" selector to `AdminAgentNew.tsx`
 
-**1. Upload dropzone preview (line 383)**
-- Change `object-cover` → `object-contain` and add a neutral background so the image fits fully within the 192px-tall dropzone
+- Add a dropdown with two options: **Advisor** (default) and **Admin**
+- Place it after the Email field
+- When "Admin" is selected, show a brief warning: "This user will have full administrative access to the portal."
 
-**2. Comparison slider — "After" image (line 452)**
-- Change `object-cover` → `object-contain` with dark background
+#### 2. Update `supabase/functions/create-agent/index.ts`
 
-**3. Comparison slider — "Before" image (line 468)**
-- Change `w-screen max-w-[1000px] h-full object-cover` → use the actual slider container width instead of `w-screen`, and switch to `object-contain`
-- The before image needs to match the full slider width (not just the clipped portion) so alignment stays correct when dragging
+- Accept an optional `role` field from the request body (default: `"advisor"`)
+- Validate that the role is either `"advisor"` or `"admin"`
+- Use the provided role when inserting into `portal_users` (line 133) instead of hardcoding `"advisor"`
 
-**4. Generated image output (line 337)**
-- Change `object-cover` → `object-contain` with neutral background so generated images also show fully
+#### 3. Show role badge in `AdminAgents.tsx` agent list
 
-**5. Hero generated image (line 222)**
-- Change `object-cover` → `object-contain`
+- Add a "Role" column to the agents table showing "Admin" or "Advisor" badge
+- This requires fetching the `role` from the `portal_users` table (already joined via `portal_user_id`)
 
-All placeholder gradient backgrounds remain unchanged — only real images get `object-contain` with a subtle background color behind them so letterboxing looks clean.
+### Technical Details
 
-### Summary of line changes
+**Edge function change** (`create-agent/index.ts`, line 58-68 and 129-141):
+```typescript
+// Accept role from body
+const { first_name, last_name, email, phone, agency_id, license_number, specializations, send_invitation, role } = body;
 
-| Line | Current | Fix |
-|------|---------|-----|
-| 222 | `object-cover` | `object-contain bg-gray-100` |
-| 337 | `object-cover` | `object-contain bg-gray-100` |
-| 383 | `object-cover` | `object-contain bg-gray-100` |
-| 452 | `object-cover` | `object-contain bg-gray-900` |
-| 468 | `w-screen max-w-[1000px] h-full object-cover` | Match parent slider width, `object-contain bg-gray-900` |
+// Validate role
+const validRole = role === "admin" ? "admin" : "advisor";
 
-No new files, no backend changes. Pure CSS/class fixes.
+// Use in insert
+.insert({
+  auth_user_id: authUserId,
+  role: validRole,  // was hardcoded "advisor"
+  ...
+})
+```
+
+**Frontend change** (`AdminAgentNew.tsx`):
+- Add a `role` field to form state (default `"advisor"`)
+- Add a Select dropdown: Advisor / Admin
+- Pass `role` in the edge function body
+
+**Agent list change** (`AdminAgents.tsx`):
+- Query `portal_users.role` alongside advisor data
+- Display role badge in the table
+
+### Files to Modify
+- `supabase/functions/create-agent/index.ts` — Accept and use `role` parameter
+- `src/pages/portal/admin/AdminAgentNew.tsx` — Add role selector to form
+- `src/pages/portal/admin/AdminAgents.tsx` — Show role column in table
+
+No database changes needed — `portal_users.role` already supports `"admin"` as a value.
 
