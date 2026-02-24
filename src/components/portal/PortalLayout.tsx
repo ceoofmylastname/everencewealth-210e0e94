@@ -7,7 +7,7 @@ import {
   Shield, LogOut, LayoutDashboard, FileText, Users, Send,
   FolderOpen, Menu, X, ChevronRight, ChevronDown, MessageSquare,
   Building2, TrendingUp, Wrench, GraduationCap, Megaphone, Calendar, Newspaper,
-  Settings, ClipboardList, Briefcase, GitBranch, Lock, AlertTriangle, Target,
+  Settings, ClipboardList, Briefcase, GitBranch, Lock, AlertTriangle, Target, Wand2
 } from "lucide-react";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import { Button } from "@/components/ui/button";
@@ -44,6 +44,7 @@ const advisorNavGroups = [
       { label: "Training", icon: GraduationCap, href: "/portal/advisor/training" },
       { label: "Marketing", icon: Megaphone, href: "/portal/advisor/marketing" },
       { label: "Advertising", icon: Target, href: "/portal/advisor/advertising" },
+      { label: "Image Studio", icon: Wand2, href: "/portal/advisor/image-studio" },
       { label: "Schedule", icon: Calendar, href: "/portal/advisor/schedule" },
       { label: "Workshops", icon: Megaphone, href: "/portal/advisor/workshops/slug-setup" },
     ],

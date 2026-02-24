@@ -9,7 +9,7 @@ import {
     SiYoutube, SiWhatsapp, SiSpotify, SiPinterest, SiX,
     SiSnapchat, SiGoogle
 } from 'react-icons/si';
-import { FaBing } from 'react-icons/fa';
+
 import { BsEnvelopePaper } from 'react-icons/bs';
 
 // Utilities
