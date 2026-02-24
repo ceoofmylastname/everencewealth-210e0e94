@@ -72,11 +72,11 @@ serve(async (req) => {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          model: 'google/gemini-2.5-flash-image',
+          model: 'google/gemini-3-pro-image-preview',
           messages: [{
             role: 'user',
             content: [
-              { type: 'text', text: finalPrompt },
+              { type: 'text', text: `${finalPrompt}. IMPORTANT: Output the image at the highest possible resolution, at least 4K quality. Maintain all original details, sharpness and clarity. The result must be ultra-crisp, not blurry or degraded.` },
               { type: 'image_url', image_url: { url: imageUrl } }
             ]
           }],
