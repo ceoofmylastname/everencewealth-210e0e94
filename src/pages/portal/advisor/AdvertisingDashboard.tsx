@@ -11,7 +11,11 @@ import {
     SiSnapchat, SiGoogle
 } from 'react-icons/si';
 import { FaMicrosoft } from 'react-icons/fa';
-import { BsEnvelopePaper } from 'react-icons/bs'; // For Postcard Ads
+import { BsEnvelopePaper } from 'react-icons/bs';
+import aiCreativeStudioImg from '@/assets/advertising/ai-creative-studio.jpg';
+import multiChannelImg from '@/assets/advertising/multi-channel-dashboard.jpg';
+import aiOptimizationImg from '@/assets/advertising/ai-optimization.jpg';
+import aiStudioVideo from '@/assets/advertising/ai-studio-showcase.mp4';
 
 // Floating Shape Component
 const FloatingShape = ({ x, y, rotate, color }: { x: string, y: string, rotate: number, color: string }) => (
@@ -255,7 +259,7 @@ const AdvertisingDashboard = () => {
                             onMouseLeave={() => setActiveVideoHover(false)}
                         >
                             <video
-                                src="https://res.cloudinary.com/dyvgcv3wr/video/upload/v1710787744/yenomai/AI_Advertising_Dashboard_Veo3_Aesthetic_Design_Showcase_Video_1_-_AdobeCreativeCloudExpress_x9ikrx.mp4"
+                                src={aiStudioVideo}
                                 autoPlay
                                 loop
                                 muted
@@ -389,8 +393,8 @@ const AdvertisingDashboard = () => {
                             className="relative rounded-3xl overflow-hidden shadow-2xl"
                         >
                             <img
-                                src="https://images.unsplash.com/photo-1556761175-b413da4caea8?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2070&q=80"
-                                alt="Multi-Channel Ad Management"
+                                src={multiChannelImg}
+                                alt="Multi-Channel Ad Management Dashboard"
                                 className="w-full h-auto object-cover"
                             />
                         </motion.div>
@@ -410,8 +414,8 @@ const AdvertisingDashboard = () => {
                             className="relative rounded-3xl overflow-hidden shadow-2xl"
                         >
                             <img
-                                src="https://images.unsplash.com/photo-1587620962725-abab7fe93c5a?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2071&q=80"
-                                alt="AI-Powered Optimization"
+                                src={aiOptimizationImg}
+                                alt="AI-Powered Campaign Optimization"
                                 className="w-full h-auto object-cover"
                             />
                         </motion.div>
