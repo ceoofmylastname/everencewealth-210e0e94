@@ -65,7 +65,11 @@ Deno.serve(async (req) => {
       license_number,
       specializations,
       send_invitation,
+      role,
     } = body;
+
+    // Validate role — default to "advisor"
+    const validRole = role === "admin" ? "admin" : "advisor";
 
     if (!first_name || !last_name || !email) {
       return new Response(
@@ -130,7 +134,7 @@ Deno.serve(async (req) => {
       .from("portal_users")
       .insert({
         auth_user_id: authUserId,
-        role: "advisor",
+        role: validRole,
         first_name,
         last_name,
         email,

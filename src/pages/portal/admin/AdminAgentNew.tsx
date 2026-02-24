@@ -28,6 +28,7 @@ export default function AdminAgentNew() {
     agency_id: "",
     license_number: "",
     specializations: "",
+    role: "advisor",
   });
 
   useEffect(() => {
@@ -54,6 +55,7 @@ export default function AdminAgentNew() {
         license_number: form.license_number,
         specializations: form.specializations,
         send_invitation: sendInvitation,
+        role: form.role,
       },
     });
 
@@ -126,6 +128,21 @@ export default function AdminAgentNew() {
                 value={form.email}
                 onChange={(e) => updateField("email", e.target.value)}
               />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-gray-700">Role *</Label>
+              <Select value={form.role} onValueChange={(v) => updateField("role", v)}>
+                <SelectTrigger className="border-gray-200 bg-white">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="advisor">Advisor</SelectItem>
+                  <SelectItem value="admin">Admin</SelectItem>
+                </SelectContent>
+              </Select>
+              {form.role === "admin" && (
+                <p className="text-xs text-amber-600 font-medium">⚠ This user will have full administrative access to the portal.</p>
+              )}
             </div>
             <div className="space-y-2">
               <Label className="text-gray-700">Phone</Label>
