@@ -515,7 +515,7 @@ const AdvertisingDashboard = () => {
             <footer className="py-12 bg-[#f0f0f0] border-t border-gray-200">
                 <div className="container mx-auto px-6 text-center">
                     <p className="text-sm text-gray-500">
-                        &copy; {new Date().getFullYear()} Yenomai. All rights reserved.
+                        &copy; {new Date().getFullYear()} Everence Wealth. All rights reserved.
                     </p>
                     <p className="text-sm text-gray-500 mt-2">
                         Contact us: support@yenomai.com
