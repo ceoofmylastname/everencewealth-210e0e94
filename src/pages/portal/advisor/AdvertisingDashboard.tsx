@@ -10,7 +10,7 @@ import {
     SiYoutube, SiWhatsapp, SiSpotify, SiPinterest, SiX,
     SiSnapchat, SiGoogle
 } from 'react-icons/si';
-import { FaBing } from 'react-icons/fa';
+import { FaMicrosoft } from 'react-icons/fa';
 import { BsEnvelopePaper } from 'react-icons/bs'; // For Postcard Ads
 
 const FloatingShape = ({ className, delay = 0, duration = 15, x = [0, 50, 0], y = [0, 30, 0], ...props }: any) => (
@@ -173,7 +173,7 @@ const AdvertisingDashboard = () => {
                             { name: 'TikTok Ads', icon: SiTiktok, color: '#000000', features: ['Viral-Ready Campaigns', 'Spark Ads & Lead Forms', 'Website Conversions', 'AI Creative Insights'] },
                             { name: 'YouTube Ads', icon: SiYoutube, color: '#FF0000', features: ['In-Stream & Shorts', 'Contextual Placements', 'AI-Assisted Creative', 'Targeting Suggestions'] },
                             { name: 'WhatsApp Ads', icon: SiWhatsapp, color: '#25D366', features: ['Click-to-Chat Campaigns', 'Start Real Conversations', 'Conversion-Ready Leads', 'Direct Engagement'] },
-                            { name: 'Bing Ads', icon: FaBing, color: '#0089D6', features: ['AI-Generated Headlines', 'Descriptions & Keywords', 'Targeting Suggestions', 'Launch Search Campaigns'] },
+                            { name: 'Bing Ads', icon: FaMicrosoft, color: '#0089D6', features: ['AI-Generated Headlines', 'Descriptions & Keywords', 'Targeting Suggestions', 'Launch Search Campaigns'] },
                             { name: 'Snapchat Ads', icon: SiSnapchat, color: '#FFFC00', features: ['Vertical Video Ads', 'Traffic & Awareness', 'Conversion Campaigns', 'AI-Generated Creative'] },
                             { name: 'Spotify Ads', icon: SiSpotify, color: '#1DB954', features: ['AI Audio Scripts', 'AI Voiceovers', 'Background Music', 'Target Podcast Listeners'] },
                             { name: 'Postcard Ads', icon: BsEnvelopePaper, color: '#1A4D3E', features: ['Physical Postcards', 'Digital-Like Targeting', 'AI Handles Layout', 'Unique Marketing Channel'] },
