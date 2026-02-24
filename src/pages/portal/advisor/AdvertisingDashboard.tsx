@@ -319,14 +319,17 @@ const AdvertisingDashboard = () => {
                                     Real-Time Optimization
                                 </li>
                             </motion.ul>
-                            <motion.button
+                            <motion.a
+                                href="https://launch.yenomai.com/?ref_id=IPxLDDZso3Z1XsmXbpGK2kkf2gn2"
+                                target="_blank"
+                                rel="noreferrer"
                                 initial={{ opacity: 0, y: 20 }}
                                 whileInView={{ opacity: 1, y: 0 }}
                                 transition={{ duration: 0.7, delay: 0.5 }}
-                                className="px-8 py-4 bg-[#1A4D3E] text-white font-medium hover:bg-[#113328] transition-all rounded-sm shadow-md"
+                                className="inline-block px-8 py-4 bg-[#1A4D3E] text-white font-medium hover:bg-[#113328] transition-all rounded-sm shadow-md"
                             >
                                 Explore AI Creative Studio
-                            </motion.button>
+                            </motion.a>
                         </div>
                     </div>
                 </div>
@@ -375,14 +378,17 @@ const AdvertisingDashboard = () => {
                                     Automated Reporting
                                 </li>
                             </motion.ul>
-                            <motion.button
+                            <motion.a
+                                href="https://launch.yenomai.com/?ref_id=IPxLDDZso3Z1XsmXbpGK2kkf2gn2"
+                                target="_blank"
+                                rel="noreferrer"
                                 initial={{ opacity: 0, x: -20 }}
                                 whileInView={{ opacity: 1, x: 0 }}
                                 transition={{ duration: 0.7, delay: 0.4 }}
-                                className="px-8 py-4 bg-[#1A4D3E] text-white font-medium hover:bg-[#113328] transition-all rounded-sm shadow-md"
+                                className="inline-block px-8 py-4 bg-[#1A4D3E] text-white font-medium hover:bg-[#113328] transition-all rounded-sm shadow-md"
                             >
                                 Get Started with Centralized Control
-                            </motion.button>
+                            </motion.a>
                         </div>
 
                         {/* Right: Image Showcase */}
@@ -459,14 +465,17 @@ const AdvertisingDashboard = () => {
                                     Predictive Analytics
                                 </li>
                             </motion.ul>
-                            <motion.button
+                            <motion.a
+                                href="https://launch.yenomai.com/?ref_id=IPxLDDZso3Z1XsmXbpGK2kkf2gn2"
+                                target="_blank"
+                                rel="noreferrer"
                                 initial={{ opacity: 0, x: 20 }}
                                 whileInView={{ opacity: 1, x: 0 }}
                                 transition={{ duration: 0.7, delay: 0.4 }}
-                                className="px-8 py-4 bg-[#1A4D3E] text-white font-medium hover:bg-[#113328] transition-all rounded-sm shadow-md"
+                                className="inline-block px-8 py-4 bg-[#1A4D3E] text-white font-medium hover:bg-[#113328] transition-all rounded-sm shadow-md"
                             >
                                 Optimize Your Campaigns Today
-                            </motion.button>
+                            </motion.a>
                         </div>
                     </div>
                 </div>
