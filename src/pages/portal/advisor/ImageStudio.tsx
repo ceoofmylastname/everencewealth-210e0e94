@@ -219,7 +219,7 @@ const ImageStudio = () => {
                         <motion.div animate={{ rotateY: [-8, 0, -8], rotateX: [4, 0, 4], y: [-5, 5, -5] }} transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }} className="relative w-full aspect-[4/3] rounded-2xl bg-white p-2 shadow-[0_24px_64px_rgba(26,77,62,0.14)] transform-gpu border border-gray-100" style={{ transformStyle: 'preserve-3d' }}>
                             <div className="w-full h-full rounded-xl overflow-hidden relative">
                                 {generatedImage ? (
-                                    <img src={generatedImage} alt="AI Generated" className="w-full h-full object-cover" />
+                                    <img src={generatedImage} alt="AI Generated" className="w-full h-full object-contain bg-gray-100" />
                                 ) : (
                                     <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,#2D6B57,#1A4D3E,#0D1F1A)]">
                                         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3/4 h-3/4 border-2 border-[#C8A96E]/20 rotate-45"></div>
@@ -334,7 +334,7 @@ const ImageStudio = () => {
                                                 <p className="text-sm font-bold text-gray-500">Generating your image...</p>
                                             </div>
                                         ) : generatedImage ? (
-                                            <img src={generatedImage} alt="Generated" className="w-full h-full object-cover" />
+                                            <img src={generatedImage} alt="Generated" className="w-full h-full object-contain bg-gray-100" />
                                         ) : (
                                             <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,#3d8a73_0%,#1A4D3E_50%,#0D1F1A_100%)] transition-transform duration-700 group-hover:scale-105">
                                                 <div className="absolute inset-0 opacity-20 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] mix-blend-overlay"></div>
@@ -380,7 +380,7 @@ const ImageStudio = () => {
                                 <div onClick={() => fileInputRef.current?.click()} onDragOver={(e) => e.preventDefault()} onDrop={handleDrop} className="w-full h-48 border-2 border-dashed border-[#1A4D3E]/40 rounded-xl bg-[#F7F9F8] hover:bg-[#1A4D3E]/5 flex flex-col items-center justify-center gap-3 cursor-pointer transition-colors relative group overflow-hidden">
                                     {uploadedImage ? (
                                         <>
-                                            <img src={uploadedImage} alt="Uploaded" className="absolute inset-0 w-full h-full object-cover" />
+                                            <img src={uploadedImage} alt="Uploaded" className="absolute inset-0 w-full h-full object-contain bg-gray-100" />
                                             <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                                                 <p className="text-white font-bold text-sm">Click to replace</p>
                                             </div>
@@ -449,7 +449,7 @@ const ImageStudio = () => {
                                                 <Loader2 size={48} className="animate-spin text-[#1A4D3E]" />
                                             </div>
                                         ) : editedImage ? (
-                                            <img src={editedImage} alt="Edited" className="w-full h-full object-cover" />
+                                            <img src={editedImage} alt="Edited" className="w-full h-full object-contain bg-gray-900" />
                                         ) : (
                                             <div className="w-full h-full bg-[conic-gradient(from_90deg_at_50%_50%,#0D1F1A_0%,#1A4D3E_50%,#2D6B57_100%)] flex items-center justify-center">
                                                 <p className="text-white/50 text-sm font-bold">Edited result appears here</p>
@@ -465,7 +465,7 @@ const ImageStudio = () => {
                                     {/* Before (foreground clipped) */}
                                     <div className="absolute inset-y-0 left-0 overflow-hidden" style={{ width: `${sliderPosition}%` }}>
                                         {uploadedImage ? (
-                                            <img src={uploadedImage} alt="Original" className="w-screen max-w-[1000px] h-full object-cover" />
+                                            <img src={uploadedImage} alt="Original" className="h-full object-contain bg-gray-900" style={{ width: sliderRef.current?.offsetWidth ? `${sliderRef.current.offsetWidth}px` : '100%' }} />
                                         ) : (
                                             <div className="w-screen max-w-[1000px] h-full bg-gradient-to-br from-gray-400 to-gray-600 flex items-center justify-center">
                                                 <p className="text-white/50 text-sm font-bold">Upload an image</p>
