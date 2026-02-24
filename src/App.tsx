@@ -160,6 +160,7 @@ const ToolsHub = lazy(() => import("./pages/portal/advisor/ToolsHub"));
 const TrainingCenter = lazy(() => import("./pages/portal/advisor/TrainingCenter"));
 const TrainingDetail = lazy(() => import("./pages/portal/advisor/TrainingDetail"));
 const MarketingResources = lazy(() => import("./pages/portal/advisor/MarketingResources"));
+const AdvertisingDashboard = lazy(() => import("./pages/portal/advisor/AdvertisingDashboard"));
 const SchedulePage = lazy(() => import("./pages/portal/advisor/SchedulePage"));
 const ComplianceCenter = lazy(() => import("./pages/portal/advisor/ComplianceCenter"));
 const AdvisorSettings = lazy(() => import("./pages/portal/AdvisorSettings"));
@@ -287,7 +288,7 @@ const App = () => (
               <Route path="/thank-you" element={<ThankYou />} />
               <Route path="/assessment" element={<Assessment />} />
               <Route path="/apply" element={<ContractingIntake />} />
-              
+
 
               {/* ========================================== */}
               {/* PROTECTED ADMIN ROUTES (MUST BE BEFORE /:lang) */}
@@ -392,6 +393,7 @@ const App = () => (
                   <Route path="training" element={<TrainingCenter />} />
                   <Route path="training/:id" element={<TrainingDetail />} />
                   <Route path="marketing" element={<MarketingResources />} />
+                  <Route path="advertising" element={<AdvertisingDashboard />} />
                   <Route path="schedule" element={<SchedulePage />} />
                   <Route path="compliance" element={<ComplianceCenter />} />
                   <Route path="settings" element={<AdvisorSettings />} />
@@ -445,7 +447,7 @@ const App = () => (
               {/* CRM Routes */}
               <Route path="/crm/login" element={<CrmLogin />} />
               <Route path="/crm/agent/login" element={<AgentLogin />} />
-              
+
               {/* CRM Agent Protected Routes */}
               {/* CRM Agent Protected Routes */}
               <Route path="/crm/agent" element={<CrmAgentRoute><CrmAgentLayout /></CrmAgentRoute>}>
@@ -492,11 +494,11 @@ const App = () => (
 
               {/* Landing Pages (Paid Traffic) */}
               <Route path="/en/landing" element={<LandingEn />} />
-              
+
               {/* Retargeting Landing Pages (EN + ES) */}
               <Route path="/en/welcome-back" element={<RetargetingLanding />} />
               <Route path="/es/bienvenido" element={<RetargetingLanding />} />
-              
+
               <Route path="/optin" element={<OptIn />} />
               <Route path="/:lang/optin" element={<OptIn />} />
 
@@ -508,21 +510,21 @@ const App = () => (
               <Route path="/about" element={<Navigate to="/en/about-us" replace />} />
               <Route path="/:lang/about" element={<About />} />
               <Route path="/:lang/about-us" element={<About />} />
-              
+
               {/* Team page */}
               <Route path="/team" element={<Navigate to="/en/team" replace />} />
               <Route path="/:lang/team" element={<Team />} />
-              
+
               {/* Client Stories page */}
               <Route path="/client-stories" element={<Navigate to="/en/client-stories" replace />} />
               <Route path="/:lang/client-stories" element={<ClientStories />} />
               <Route path="/:lang/historias-de-clientes" element={<ClientStories />} />
-              
+
               {/* Philosophy page */}
               <Route path="/philosophy" element={<Navigate to="/en/philosophy" replace />} />
               <Route path="/es/filosofia" element={<Navigate to="/es/philosophy" replace />} />
               <Route path="/:lang/philosophy" element={<Philosophy />} />
-              
+
               {/* Strategy pages */}
               <Route path="/:lang/strategies/iul" element={<IndexedUniversalLife />} />
               <Route path="/:lang/estrategias/seguro-universal-indexado" element={<IndexedUniversalLife />} />
@@ -532,10 +534,10 @@ const App = () => (
               <Route path="/:lang/estrategias/retiro-libre-impuestos" element={<TaxFreeRetirement />} />
               <Route path="/:lang/strategies/asset-protection" element={<AssetProtection />} />
               <Route path="/:lang/estrategias/proteccion-de-activos" element={<AssetProtection />} />
-              
+
               <Route path="/buyers-guide" element={<Navigate to="/en/buyers-guide" replace />} />
               <Route path="/:lang/buyers-guide" element={<BuyersGuide />} />
-              
+
               {/* Contact page */}
               <Route path="/contact" element={<Navigate to="/en/contact" replace />} />
               <Route path="/:lang/contact" element={<Contact />} />
