@@ -16,12 +16,13 @@ const DIMENSIONS = [
     { id: '4:1', label: 'Banner 4:1', w: '36px', h: '9px' }
 ];
 
-async function uploadBase64ToStorage(base64Url: string, filename: string): Promise<string | null> {
+async function uploadImageUrlToStorage(imageUrl: string, filename: string): Promise<string | null> {
     try {
-        const res = await fetch(base64Url);
+        const res = await fetch(imageUrl);
+        if (!res.ok) throw new Error(`Failed to fetch image: ${res.status}`);
         const blob = await res.blob();
         const path = `studio/${Date.now()}-${filename}.png`;
-        const { error } = await supabase.storage.from('article-images').upload(path, blob, { contentType: 'image/png', upsert: true });
+        const { error } = await supabase.storage.from('article-images').upload(path, blob, { contentType: blob.type || 'image/png', upsert: true });
         if (error) throw error;
         const { data: { publicUrl } } = supabase.storage.from('article-images').getPublicUrl(path);
         return publicUrl;
@@ -113,9 +114,9 @@ const ImageStudio = () => {
         if (!prompt.trim()) { toast.error('Please enter a prompt'); return; }
         setIsGenerating(true);
         try {
-            const fullPrompt = `${prompt}. Style: ${STYLE_PRESETS[selectedPreset]}. Aspect ratio: ${activeDimension}. Ultra high resolution, professional photography, no text, no watermarks.`;
+            const fullPrompt = `${prompt}. Style: ${STYLE_PRESETS[selectedPreset]}. 4K resolution, ultra-sharp, crisp details, professional photography, no text, no watermarks.`;
             const { data, error } = await supabase.functions.invoke('generate-image', {
-                body: { prompt: fullPrompt }
+                body: { prompt: fullPrompt, dimensions: activeDimension }
             });
             if (error) throw error;
             if (data?.error) throw new Error(data.error);
@@ -123,7 +124,7 @@ const ImageStudio = () => {
             if (!imageUrl) throw new Error('No image returned');
             setGeneratedImage(imageUrl);
             // Upload to storage
-            const storageUrl = await uploadBase64ToStorage(imageUrl, 'generated');
+            const storageUrl = await uploadImageUrlToStorage(imageUrl, 'generated');
             if (storageUrl) setGeneratedStorageUrl(storageUrl);
             toast.success('Image generated successfully!');
         } catch (e: any) {
@@ -166,14 +167,14 @@ const ImageStudio = () => {
         try {
             const modePrefix = editMode === 'style' ? 'Apply style transfer: ' : editMode === 'bg' ? 'Replace the background: ' : 'Enhance the image: ';
             const { data, error } = await supabase.functions.invoke('generate-image', {
-                body: { prompt: modePrefix + editInstructions, imageUrl: uploadedStorageUrl }
+                body: { prompt: modePrefix + editInstructions + '. 4K resolution, ultra-sharp, crisp details.', imageUrl: uploadedStorageUrl }
             });
             if (error) throw error;
             if (data?.error) throw new Error(data.error);
             const imageUrl = data?.images?.[0]?.url;
             if (!imageUrl) throw new Error('No edited image returned');
             setEditedImage(imageUrl);
-            const storageUrl = await uploadBase64ToStorage(imageUrl, 'edited');
+            const storageUrl = await uploadImageUrlToStorage(imageUrl, 'edited');
             if (storageUrl) setEditedStorageUrl(storageUrl);
             toast.success('Image edited successfully!');
         } catch (e: any) {
