@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { usePortalAuth } from "@/hooks/usePortalAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Copy, ExternalLink, Pencil, Check, X, Loader2, RefreshCw, Camera, User, Mail, Phone, Calendar, Plus, LayoutDashboard } from "lucide-react";
+import { Copy, ExternalLink, Pencil, Check, X, Loader2, RefreshCw, Camera, User, Mail, Phone, Calendar, Plus, LayoutDashboard, Trash2 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useNavigate } from "react-router-dom";
 
@@ -27,6 +27,8 @@ export default function WorkshopSlugSetup() {
   const [validationMessage, setValidationMessage] = useState("");
   const [isCreating, setIsCreating] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [suggestionsLoading, setSuggestionsLoading] = useState(false);
 
@@ -179,6 +181,17 @@ export default function WorkshopSlugSetup() {
     if (!advisorId || validationState !== "available") return;
     setIsCreating(true);
     try {
+      // If editing, deactivate the old slug first
+      if (isEditing && existingSlug) {
+        const { error: deactivateErr } = await supabase
+          .from("advisor_slugs")
+          .update({ is_active: false })
+          .eq("advisor_id", advisorId)
+          .eq("slug", existingSlug)
+          .eq("is_active", true);
+        if (deactivateErr) throw deactivateErr;
+      }
+
       const { error } = await supabase.from("advisor_slugs").insert({
         advisor_id: advisorId,
         slug: slugInput.trim().toLowerCase(),
@@ -194,13 +207,37 @@ export default function WorkshopSlugSetup() {
         }
         return;
       }
-      toast.success("Landing page created!");
+      toast.success(isEditing ? "URL updated!" : "Landing page created!");
       setExistingSlug(slugInput);
       setIsEditing(false);
     } catch (err: any) {
-      toast.error(err.message || "Failed to create landing page");
+      toast.error(err.message || "Failed to save URL");
     } finally {
       setIsCreating(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!advisorId || !existingSlug) return;
+    setIsDeleting(true);
+    try {
+      const { error } = await supabase
+        .from("advisor_slugs")
+        .update({ is_active: false })
+        .eq("advisor_id", advisorId)
+        .eq("slug", existingSlug)
+        .eq("is_active", true);
+      if (error) throw error;
+      toast.success("URL deleted");
+      setExistingSlug(null);
+      setShowDeleteConfirm(false);
+      setSlugInput("");
+      setValidationState("idle");
+      setValidationMessage("");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to delete URL");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -361,7 +398,42 @@ export default function WorkshopSlugSetup() {
               <Pencil className="w-4 h-4" />
               Edit URL
             </button>
+            <button
+              onClick={() => setShowDeleteConfirm(true)}
+              className="inline-flex items-center gap-2 px-6 py-3 border font-medium text-red-600 border-red-300 hover:bg-red-50 transition-colors"
+              style={{ borderRadius: 0 }}
+            >
+              <Trash2 className="w-4 h-4" />
+              Delete URL
+            </button>
           </div>
+
+          {/* Delete confirmation */}
+          {showDeleteConfirm && (
+            <div className="border border-red-300 bg-red-50 p-4 space-y-3" style={{ borderRadius: 0 }}>
+              <p className="text-sm text-red-800 font-medium">
+                Are you sure you want to delete this URL? Your workshop landing page will no longer be accessible at this address.
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={handleDelete}
+                  disabled={isDeleting}
+                  className="inline-flex items-center gap-2 px-5 py-2 text-white font-medium text-sm bg-red-600 hover:bg-red-700 disabled:opacity-50"
+                  style={{ borderRadius: 0 }}
+                >
+                  {isDeleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                  Yes, Delete
+                </button>
+                <button
+                  onClick={() => setShowDeleteConfirm(false)}
+                  className="px-5 py-2 border font-medium text-sm"
+                  style={{ borderColor: "#d1d5db", borderRadius: 0 }}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* Landing Page Profile Section */}
           <div className="border p-6 space-y-6" style={{ borderColor: "#e5e7eb", borderRadius: 0 }}>
@@ -596,7 +668,7 @@ export default function WorkshopSlugSetup() {
             style={{ backgroundColor: BRAND_GREEN, borderRadius: 0 }}
           >
             {isCreating && <Loader2 className="w-4 h-4 animate-spin" />}
-            Create My Landing Page
+            {isEditing ? "Update URL" : "Create My Landing Page"}
           </button>
           {isEditing && (
             <button
