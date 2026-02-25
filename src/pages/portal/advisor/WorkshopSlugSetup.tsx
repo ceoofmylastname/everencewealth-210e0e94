@@ -189,7 +189,10 @@ export default function WorkshopSlugSetup() {
           .eq("advisor_id", advisorId)
           .eq("slug", existingSlug)
           .eq("is_active", true);
-        if (deactivateErr) throw deactivateErr;
+        if (deactivateErr) {
+          if (deactivateErr.code === "42501") throw new Error("You don't have permission to modify this URL. Please refresh and try again.");
+          throw deactivateErr;
+        }
       }
 
       const { error } = await supabase.from("advisor_slugs").insert({
@@ -202,6 +205,8 @@ export default function WorkshopSlugSetup() {
           toast.error("This URL was just taken. Please try another.");
           setValidationState("taken");
           setValidationMessage("This URL was just taken");
+        } else if (error.code === "42501") {
+          toast.error("You don't have permission to create this URL. Please refresh and try again.");
         } else {
           throw error;
         }
@@ -227,7 +232,10 @@ export default function WorkshopSlugSetup() {
         .eq("advisor_id", advisorId)
         .eq("slug", existingSlug)
         .eq("is_active", true);
-      if (error) throw error;
+      if (error) {
+        if (error.code === "42501") throw new Error("You don't have permission to delete this URL. Please refresh and try again.");
+        throw error;
+      }
       toast.success("URL deleted");
       setExistingSlug(null);
       setShowDeleteConfirm(false);
