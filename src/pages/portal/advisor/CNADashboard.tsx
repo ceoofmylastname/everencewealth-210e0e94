@@ -12,7 +12,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import {
-  Plus, Search, FileText, ClipboardList, CheckCircle, Clock, TrendingUp, Send, Eye,
+  Plus, Search, FileText, ClipboardList, CheckCircle, Clock, TrendingUp, Send, Eye, Users,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -27,10 +27,12 @@ const statusConfig: Record<string, { label: string; color: string; bg: string }>
 
 export default function CNADashboard() {
   const { portalUser } = usePortalAuth();
+  const isAdmin = portalUser?.role === "admin";
   const [cnas, setCnas] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [advisorFilter, setAdvisorFilter] = useState("all");
   const [clients, setClients] = useState<any[]>([]);
   const [sendingCnaId, setSendingCnaId] = useState<string | null>(null);
   const [selectedClientId, setSelectedClientId] = useState("");
@@ -46,7 +48,7 @@ export default function CNADashboard() {
     try {
       const { data, error } = await supabase
         .from("client_needs_analysis")
-        .select("*")
+        .select("*, advisor:portal_users!advisor_id(first_name, last_name)")
         .order("created_at", { ascending: false });
       if (error) throw error;
       setCnas(data ?? []);
@@ -89,10 +91,22 @@ export default function CNADashboard() {
     }
   }
 
+  // Build unique advisor list for filter dropdown
+  const advisorOptions = isAdmin
+    ? Array.from(
+        new Map(
+          cnas
+            .filter((c) => c.advisor)
+            .map((c) => [c.advisor_id, `${c.advisor.first_name} ${c.advisor.last_name}`])
+        ).entries()
+      ).sort((a, b) => a[1].localeCompare(b[1]))
+    : [];
+
   const filtered = cnas.filter((c) => {
     const matchSearch = !search || c.applicant_name?.toLowerCase().includes(search.toLowerCase());
     const matchStatus = statusFilter === "all" || c.status === statusFilter;
-    return matchSearch && matchStatus;
+    const matchAdvisor = advisorFilter === "all" || c.advisor_id === advisorFilter;
+    return matchSearch && matchStatus && matchAdvisor;
   });
 
   const now = new Date();
@@ -132,7 +146,9 @@ export default function CNADashboard() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Client Needs Analysis</h1>
           <p className="text-sm text-gray-500 mt-0.5">
-            {cnas.length} analyses · {completedThisMonth} completed this month
+            {isAdmin
+              ? `All advisor analyses · ${cnas.length} total · ${completedThisMonth} completed this month`
+              : `${cnas.length} analyses · ${completedThisMonth} completed this month`}
           </p>
         </div>
         <Link to="/portal/advisor/cna/new">
@@ -177,6 +193,20 @@ export default function CNADashboard() {
             </button>
           ))}
         </div>
+        {isAdmin && advisorOptions.length > 0 && (
+          <Select value={advisorFilter} onValueChange={setAdvisorFilter}>
+            <SelectTrigger className="w-[200px]">
+              <Users className="h-4 w-4 mr-2 text-gray-400" />
+              <SelectValue placeholder="All Advisors" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Advisors</SelectItem>
+              {advisorOptions.map(([id, name]) => (
+                <SelectItem key={id} value={id}>{name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
       </div>
 
       {/* CNA List */}
@@ -213,6 +243,11 @@ export default function CNADashboard() {
                         <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold" style={{ background: sc.bg, color: sc.color }}>
                           {sc.label}
                         </span>
+                        {isAdmin && cna.advisor && (
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-purple-50 text-purple-700 border border-purple-200">
+                            By: {cna.advisor.first_name} {cna.advisor.last_name}
+                          </span>
+                        )}
                         {cna.client_id && (
                           <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-50 text-blue-600 border border-blue-200">
                             Shared{getClientName(cna.client_id) ? ` · ${getClientName(cna.client_id)}` : ""}
