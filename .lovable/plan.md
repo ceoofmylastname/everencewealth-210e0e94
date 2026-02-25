@@ -1,61 +1,69 @@
 
+### Why you’re seeing that error (confirmed)
 
-## How Admins Can Add More Admins
+I traced the exact failing request in your current session:
 
-### Current State
-
-The `create-agent` edge function (line 133) always sets `role: "advisor"` when creating a new portal user. The `AdminAgentNew.tsx` form has no role selector. There is no way for an existing admin to promote someone to admin through the UI.
-
-### Proposed Changes
-
-#### 1. Add a "Role" selector to `AdminAgentNew.tsx`
-
-- Add a dropdown with two options: **Advisor** (default) and **Admin**
-- Place it after the Email field
-- When "Admin" is selected, show a brief warning: "This user will have full administrative access to the portal."
-
-#### 2. Update `supabase/functions/create-agent/index.ts`
-
-- Accept an optional `role` field from the request body (default: `"advisor"`)
-- Validate that the role is either `"advisor"` or `"admin"`
-- Use the provided role when inserting into `portal_users` (line 133) instead of hardcoding `"advisor"`
-
-#### 3. Show role badge in `AdminAgents.tsx` agent list
-
-- Add a "Role" column to the agents table showing "Admin" or "Advisor" badge
-- This requires fetching the `role` from the `portal_users` table (already joined via `portal_user_id`)
-
-### Technical Details
-
-**Edge function change** (`create-agent/index.ts`, line 58-68 and 129-141):
-```typescript
-// Accept role from body
-const { first_name, last_name, email, phone, agency_id, license_number, specializations, send_invitation, role } = body;
-
-// Validate role
-const validRole = role === "admin" ? "admin" : "advisor";
-
-// Use in insert
-.insert({
-  auth_user_id: authUserId,
-  role: validRole,  // was hardcoded "advisor"
-  ...
-})
+```text
+PATCH /rest/v1/advisor_slugs?advisor_id=eq.2202819c-...&slug=eq.davidrosenberg&is_active=eq.true
+Body: {"is_active": false}
+Response: 403
+Message: "new row violates row-level security policy for table advisor_slugs"
 ```
 
-**Frontend change** (`AdminAgentNew.tsx`):
-- Add a `role` field to form state (default `"advisor"`)
-- Add a Select dropdown: Advisor / Admin
-- Pass `role` in the edge function body
+The issue is the new UPDATE policy that was added:
 
-**Agent list change** (`AdminAgents.tsx`):
-- Query `portal_users.role` alongside advisor data
-- Display role badge in the table
+```sql
+advisor_id = get_my_advisor_id_from_portal(auth.uid())
+```
 
-### Files to Modify
-- `supabase/functions/create-agent/index.ts` — Accept and use `role` parameter
-- `src/pages/portal/admin/AdminAgentNew.tsx` — Add role selector to form
-- `src/pages/portal/admin/AdminAgents.tsx` — Show role column in table
+For your logged-in user, that helper returns `NULL`, while your slug row’s `advisor_id` is a real advisor UUID (`2202819c-...`). So the UPDATE check fails and deletion/edit deactivation is blocked.
 
-No database changes needed — `portal_users.role` already supports `"admin"` as a value.
+### Root cause in plain language
 
+- The policy compares against the wrong identity source for this table.
+- `advisor_slugs.advisor_id` stores advisor record IDs.
+- `get_my_advisor_id_from_portal(...)` does not reliably return that advisor record ID for your account context.
+- Result: policy condition is false during update, so backend blocks it.
+
+### Implementation plan to fix
+
+1. **Replace the broken UPDATE policy with a canonical one**
+   - Drop conflicting/duplicate UPDATE policies on `advisor_slugs`.
+   - Recreate one UPDATE policy using the advisor-ID helper that maps auth user → advisor record ID (`get_advisor_id_for_auth(auth.uid())`), not the portal helper.
+   - Include explicit `USING` and `WITH CHECK` with the same condition.
+
+2. **(Recommended) Align INSERT policy the same way**
+   - Update slug INSERT policy to use the same advisor-ID helper.
+   - This avoids policy drift and future “works for create but not update” inconsistencies.
+
+3. **Keep frontend logic as-is**
+   - `WorkshopSlugSetup.tsx` delete/edit flow is structurally fine.
+   - No UI redesign needed for core fix.
+
+4. **Add clearer UI error handling (small enhancement)**
+   - Map policy errors (`42501`) to a user-friendly message like:
+     - “You don’t have permission to modify this URL. Please refresh and try again.”
+   - Prevents confusing raw backend error text.
+
+### Technical details
+
+- Observed identity values for your session:
+  - `get_my_advisor_id_from_portal(auth_uid)` → `NULL`
+  - `get_advisor_id_for_auth(auth_uid)` → `2202819c-df54-435b-b86c-c6d65f363d4c`
+- Active slug row being updated:
+  - `advisor_id = 2202819c-df54-435b-b86c-c6d65f363d4c`
+- That mismatch is exactly why the current UPDATE policy denies the operation.
+
+### Validation checklist after fix
+
+1. On `/portal/advisor/workshops/slug-setup`, click **Delete URL** → confirm → should succeed.
+2. Create a new URL afterward → should succeed.
+3. Edit existing URL (deactivate old + insert new) → should succeed.
+4. Confirm only one active slug exists per advisor (unique partial index behavior still intact).
+5. Confirm another advisor cannot deactivate someone else’s slug.
+
+<lov-actions>
+<lov-suggestion message="Test the slug delete and edit flow end-to-end on /portal/advisor/workshops/slug-setup and verify no permission errors appear.">Verify end-to-end</lov-suggestion>
+<lov-suggestion message="Replace duplicate advisor_slugs UPDATE policies with one canonical policy using get_advisor_id_for_auth(auth.uid()) for both USING and WITH CHECK.">Harden slug RLS policy</lov-suggestion>
+<lov-suggestion message="Add friendly handling for backend permission error code 42501 in WorkshopSlugSetup so users see actionable guidance instead of raw policy errors.">Improve error messaging</lov-suggestion>
+</lov-actions>
