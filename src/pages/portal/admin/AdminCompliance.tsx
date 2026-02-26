@@ -9,7 +9,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Shield, FileText, CheckCircle, AlertCircle, Download, ExternalLink, Plus, Pencil, Trash2 } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Shield, FileText, CheckCircle, AlertCircle, Download, ExternalLink, Plus, Pencil, Trash2, BookOpen } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
@@ -45,6 +46,7 @@ export default function AdminCompliance() {
   const [contracts, setContracts] = useState<CarrierContract[]>([]);
   const [nonResidentLicenses, setNonResidentLicenses] = useState<any[]>([]);
   const [complianceRecords, setComplianceRecords] = useState<any[]>([]);
+  const [resources, setResources] = useState<any[]>([]);
   const [selectedAdvisor, setSelectedAdvisor] = useState<string>("all");
 
   // Doc/Contract dialogs (existing)
@@ -68,24 +70,31 @@ export default function AdminCompliance() {
   // Resident license dialog
   const [showResidentDialog, setShowResidentDialog] = useState(false);
   const [residentAdvisorId, setResidentAdvisorId] = useState("");
+
+  // Resource dialog
+  const [showResourceDialog, setShowResourceDialog] = useState(false);
+  const [editingResource, setEditingResource] = useState<any>(null);
+  const [resourceForm, setResourceForm] = useState({ title: "", description: "", url: "", promo_code: "", promo_text: "", contact_email: "", discount_text: "", color_theme: "neutral", type: "link", sort_order: 0, is_active: true });
   const [residentForm, setResidentForm] = useState({ resident_state: "", resident_license_number: "", resident_license_exp: "", npn_number: "", ce_due_date: "" });
 
   useEffect(() => { fetchAll(); }, []);
 
   const fetchAll = async () => {
     setLoading(true);
-    const [advisorsRes, docsRes, contractsRes, nrlRes, crRes] = await Promise.all([
+    const [advisorsRes, docsRes, contractsRes, nrlRes, crRes, resRes] = await Promise.all([
       supabase.from("advisors").select("id, first_name, last_name, portal_user_id, resident_state, resident_license_number, resident_license_exp, npn_number, ce_due_date").eq("is_active", true).order("first_name"),
       supabase.from("compliance_documents").select("id, name, status, expiry_date, file_url, advisor_id"),
       supabase.from("carrier_contracts").select("id, carrier_name, status, contracted_date, advisor_id"),
       supabase.from("non_resident_licenses").select("*").order("state"),
       supabase.from("compliance_records").select("*"),
+      supabase.from("compliance_resources").select("*").order("sort_order"),
     ]);
     setAdvisors(advisorsRes.data ?? []);
     setDocuments((docsRes.data ?? []) as ComplianceDocument[]);
     setContracts((contractsRes.data ?? []) as CarrierContract[]);
     setNonResidentLicenses(nrlRes.data ?? []);
     setComplianceRecords(crRes.data ?? []);
+    setResources(resRes.data ?? []);
     setLoading(false);
   };
 
@@ -167,6 +176,31 @@ export default function AdminCompliance() {
     setShowResidentDialog(false); fetchAll();
   }
 
+  // --- Resource CRUD ---
+  function openAddResource() {
+    setEditingResource(null);
+    setResourceForm({ title: "", description: "", url: "", promo_code: "", promo_text: "", contact_email: "", discount_text: "", color_theme: "neutral", type: "link", sort_order: resources.length + 1, is_active: true });
+    setShowResourceDialog(true);
+  }
+  function openEditResource(r: any) {
+    setEditingResource(r);
+    setResourceForm({ title: r.title, description: r.description || "", url: r.url, promo_code: r.promo_code || "", promo_text: r.promo_text || "", contact_email: r.contact_email || "", discount_text: r.discount_text || "", color_theme: r.color_theme, type: r.type, sort_order: r.sort_order, is_active: r.is_active });
+    setShowResourceDialog(true);
+  }
+  async function handleSaveResource() {
+    if (!resourceForm.title.trim() || !resourceForm.url.trim()) { toast.error("Title and URL are required"); return; }
+    const payload = { title: resourceForm.title, description: resourceForm.description || null, url: resourceForm.url, promo_code: resourceForm.promo_code || null, promo_text: resourceForm.promo_text || null, contact_email: resourceForm.contact_email || null, discount_text: resourceForm.discount_text || null, color_theme: resourceForm.color_theme, type: resourceForm.type, sort_order: resourceForm.sort_order, is_active: resourceForm.is_active };
+    if (editingResource) {
+      await supabase.from("compliance_resources").update(payload).eq("id", editingResource.id);
+      toast.success("Resource updated!");
+    } else {
+      await supabase.from("compliance_resources").insert(payload);
+      toast.success("Resource created!");
+    }
+    setShowResourceDialog(false); fetchAll();
+  }
+  async function handleDeleteResource(id: string) { await supabase.from("compliance_resources").delete().eq("id", id); toast.success("Resource deleted"); fetchAll(); }
+
   if (loading) return <div className="flex items-center justify-center min-h-[400px]"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>;
 
   return (
@@ -204,6 +238,7 @@ export default function AdminCompliance() {
           <TabsTrigger value="licenses">NR Licenses</TabsTrigger>
           <TabsTrigger value="compliance">Compliance Records</TabsTrigger>
           <TabsTrigger value="resident">Resident Licenses</TabsTrigger>
+          <TabsTrigger value="resources">Resources</TabsTrigger>
         </TabsList>
 
         {/* Documents Tab */}
@@ -358,6 +393,46 @@ export default function AdminCompliance() {
             </Table>
           </CardContent></Card>
         </TabsContent>
+
+        {/* Resources Tab */}
+        <TabsContent value="resources">
+          <Card><CardContent className="pt-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-foreground">Compliance Resources</h2>
+              <button onClick={openAddResource} className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-white transition-all hover:opacity-90" style={{ background: BRAND_GREEN }}><Plus className="h-4 w-4" /> Add Resource</button>
+            </div>
+            {resources.length === 0 ? <p className="text-sm text-muted-foreground py-4">No resources configured.</p> : (
+              <Table>
+                <TableHeader><TableRow><TableHead>Title</TableHead><TableHead>Type</TableHead><TableHead>Theme</TableHead><TableHead>Active</TableHead><TableHead>Order</TableHead><TableHead className="text-right">Actions</TableHead></TableRow></TableHeader>
+                <TableBody>
+                  {resources.map((r: any) => (
+                    <TableRow key={r.id}>
+                      <TableCell>
+                        <div>
+                          <p className="font-medium text-foreground">{r.title}</p>
+                          {r.description && <p className="text-xs text-muted-foreground">{r.description}</p>}
+                        </div>
+                      </TableCell>
+                      <TableCell><Badge variant="outline" className="capitalize">{r.type}</Badge></TableCell>
+                      <TableCell><Badge variant="outline" className="capitalize">{r.color_theme}</Badge></TableCell>
+                      <TableCell>{r.is_active ? <Badge className="bg-green-100 text-green-800 border-green-200">Active</Badge> : <Badge variant="outline">Inactive</Badge>}</TableCell>
+                      <TableCell>{r.sort_order}</TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex items-center justify-end gap-1">
+                          <Button variant="ghost" size="sm" asChild><a href={r.url} target="_blank" rel="noopener noreferrer"><ExternalLink className="h-3.5 w-3.5" /></a></Button>
+                          <button onClick={() => openEditResource(r)} className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground"><Pencil className="h-3.5 w-3.5" /></button>
+                          <AlertDialog><AlertDialogTrigger asChild><button className="p-1 rounded hover:bg-red-50 text-muted-foreground hover:text-red-600"><Trash2 className="h-3.5 w-3.5" /></button></AlertDialogTrigger>
+                            <AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Delete this resource?</AlertDialogTitle><AlertDialogDescription>This will remove it from all advisors' compliance pages.</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction onClick={() => handleDeleteResource(r.id)} className="bg-red-600 hover:bg-red-700">Delete</AlertDialogAction></AlertDialogFooter></AlertDialogContent>
+                          </AlertDialog>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </CardContent></Card>
+        </TabsContent>
       </Tabs>
 
       {/* Document Dialog */}
@@ -434,6 +509,33 @@ export default function AdminCompliance() {
             <div><label className="text-sm font-medium text-muted-foreground">NPN Number</label><Input value={residentForm.npn_number} onChange={e => setResidentForm({ ...residentForm, npn_number: e.target.value })} className={inputCls} /></div>
             <div><label className="text-sm font-medium text-muted-foreground">CE Due Date</label><Input type="date" value={residentForm.ce_due_date} onChange={e => setResidentForm({ ...residentForm, ce_due_date: e.target.value })} className={inputCls} /></div>
             <Button onClick={handleSaveResident} className="w-full">Save</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Resource Dialog */}
+      <Dialog open={showResourceDialog} onOpenChange={setShowResourceDialog}>
+        <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
+          <DialogHeader><DialogTitle>{editingResource ? "Edit Resource" : "Add Resource"}</DialogTitle><DialogDescription>Manage compliance resource details.</DialogDescription></DialogHeader>
+          <div className="space-y-4 mt-2">
+            <div><label className="text-sm font-medium text-muted-foreground">Title *</label><Input value={resourceForm.title} onChange={e => setResourceForm({ ...resourceForm, title: e.target.value })} placeholder="Resource title" className={inputCls} /></div>
+            <div><label className="text-sm font-medium text-muted-foreground">Description</label><Input value={resourceForm.description} onChange={e => setResourceForm({ ...resourceForm, description: e.target.value })} placeholder="Short description" className={inputCls} /></div>
+            <div><label className="text-sm font-medium text-muted-foreground">URL *</label><Input value={resourceForm.url} onChange={e => setResourceForm({ ...resourceForm, url: e.target.value })} placeholder="https://..." className={inputCls} /></div>
+            <div className="grid grid-cols-2 gap-4">
+              <div><label className="text-sm font-medium text-muted-foreground">Type</label><select value={resourceForm.type} onChange={e => setResourceForm({ ...resourceForm, type: e.target.value })} className={`w-full mt-1 rounded-lg border px-3 py-2 text-sm ${inputCls}`}><option value="link">Link</option><option value="partner">Partner</option></select></div>
+              <div><label className="text-sm font-medium text-muted-foreground">Color Theme</label><select value={resourceForm.color_theme} onChange={e => setResourceForm({ ...resourceForm, color_theme: e.target.value })} className={`w-full mt-1 rounded-lg border px-3 py-2 text-sm ${inputCls}`}><option value="neutral">Neutral</option><option value="blue">Blue</option><option value="emerald">Emerald</option></select></div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div><label className="text-sm font-medium text-muted-foreground">Promo Code</label><Input value={resourceForm.promo_code} onChange={e => setResourceForm({ ...resourceForm, promo_code: e.target.value })} placeholder="e.g. BB25HOF" className={inputCls} /></div>
+              <div><label className="text-sm font-medium text-muted-foreground">Discount Text</label><Input value={resourceForm.discount_text} onChange={e => setResourceForm({ ...resourceForm, discount_text: e.target.value })} placeholder="e.g. 20% OFF" className={inputCls} /></div>
+            </div>
+            <div><label className="text-sm font-medium text-muted-foreground">Promo Text</label><Input value={resourceForm.promo_text} onChange={e => setResourceForm({ ...resourceForm, promo_text: e.target.value })} placeholder="Instructions for the discount" className={inputCls} /></div>
+            <div><label className="text-sm font-medium text-muted-foreground">Contact Email</label><Input value={resourceForm.contact_email} onChange={e => setResourceForm({ ...resourceForm, contact_email: e.target.value })} placeholder="contact@example.com" className={inputCls} /></div>
+            <div className="grid grid-cols-2 gap-4">
+              <div><label className="text-sm font-medium text-muted-foreground">Sort Order</label><Input type="number" value={resourceForm.sort_order} onChange={e => setResourceForm({ ...resourceForm, sort_order: Number(e.target.value) })} className={inputCls} /></div>
+              <div className="flex items-center gap-2 pt-6"><Switch checked={resourceForm.is_active} onCheckedChange={v => setResourceForm({ ...resourceForm, is_active: v })} /><label className="text-sm text-muted-foreground">Active</label></div>
+            </div>
+            <Button onClick={handleSaveResource} className="w-full">{editingResource ? "Update" : "Create"}</Button>
           </div>
         </DialogContent>
       </Dialog>

@@ -63,6 +63,7 @@ export default function ComplianceCenter() {
   const [advisor, setAdvisor] = useState<any>(null);
   const [nonResidentLicenses, setNonResidentLicenses] = useState<any[]>([]);
   const [complianceRecord, setComplianceRecord] = useState<ComplianceRecord | null>(null);
+  const [resources, setResources] = useState<any[]>([]);
   const [showDialog, setShowDialog] = useState(false);
   const [editingLicense, setEditingLicense] = useState<any>(null);
   const [form, setForm] = useState({ state: "", license_number: "", expiration_date: "" });
@@ -79,12 +80,14 @@ export default function ComplianceCenter() {
     setAdvisor(advisorData);
     if (!advisorData) { setLoading(false); return; }
 
-    const [nrlRes, crRes] = await Promise.all([
+    const [nrlRes, crRes, resRes] = await Promise.all([
       supabase.from("non_resident_licenses").select("*").eq("advisor_id", advisorData.id).order("state"),
       supabase.from("compliance_records").select("*").eq("advisor_id", advisorData.id).maybeSingle(),
+      supabase.from("compliance_resources").select("*").eq("is_active", true).order("sort_order"),
     ]);
     setNonResidentLicenses(nrlRes.data ?? []);
     setComplianceRecord(crRes.data as ComplianceRecord | null);
+    setResources(resRes.data ?? []);
     setLoading(false);
   };
 
@@ -328,61 +331,62 @@ export default function ComplianceCenter() {
       </Card>
 
       {/* G. Compliance Resources */}
-      <Card>
-        <CardContent className="pt-6">
-          <h2 className="text-lg font-semibold text-foreground mb-4">Compliance Resources</h2>
-          <div className="space-y-4">
-            {/* FastrackCE */}
-            <div className="p-4 rounded-lg border bg-gradient-to-r from-blue-50 to-white">
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="font-semibold text-foreground">FastrackCE — Continuing Education</p>
-                  <p className="text-sm text-muted-foreground mt-1">Get <span className="font-bold text-blue-700">20% OFF</span> all CE courses</p>
-                  <div className="flex items-center gap-2 mt-2">
-                    <code className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-sm font-mono">BB25HOF</code>
-                    <button onClick={() => copyText("BB25HOF")} className="p-1 rounded hover:bg-muted"><Copy className="h-3.5 w-3.5 text-muted-foreground" /></button>
+      {resources.length > 0 && (
+        <Card>
+          <CardContent className="pt-6">
+            <h2 className="text-lg font-semibold text-foreground mb-4">Compliance Resources</h2>
+            <div className="space-y-4">
+              {/* Partner-type resources */}
+              {resources.filter(r => r.type === "partner").map(r => {
+                const gradientClass = r.color_theme === "blue" ? "from-blue-50" : r.color_theme === "emerald" ? "from-emerald-50" : "from-muted/50";
+                const accentClass = r.color_theme === "blue" ? "text-blue-700" : r.color_theme === "emerald" ? "text-emerald-700" : "text-foreground";
+                const codeBg = r.color_theme === "blue" ? "bg-blue-100 text-blue-800" : r.color_theme === "emerald" ? "bg-emerald-100 text-emerald-800" : "bg-muted text-foreground";
+                return (
+                  <div key={r.id} className={`p-4 rounded-lg border bg-gradient-to-r ${gradientClass} to-white`}>
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <p className="font-semibold text-foreground">{r.title}</p>
+                        {r.discount_text && (
+                          <p className="text-sm text-muted-foreground mt-1">Get <span className={`font-bold ${accentClass}`}>{r.discount_text}</span>{r.promo_text ? ` — ${r.promo_text}` : ""}</p>
+                        )}
+                        {r.promo_code && (
+                          <div className="flex items-center gap-2 mt-2">
+                            <code className={`px-2 py-1 ${codeBg} rounded text-sm font-mono`}>{r.promo_code}</code>
+                            <button onClick={() => copyText(r.promo_code)} className="p-1 rounded hover:bg-muted"><Copy className="h-3.5 w-3.5 text-muted-foreground" /></button>
+                          </div>
+                        )}
+                        {r.contact_email && (
+                          <div className="flex items-center gap-2 mt-2">
+                            <span className="text-xs text-muted-foreground">Contact:</span>
+                            <code className={`px-2 py-1 ${codeBg} rounded text-sm font-mono`}>{r.contact_email}</code>
+                            <button onClick={() => copyText(r.contact_email)} className="p-1 rounded hover:bg-muted"><Copy className="h-3.5 w-3.5 text-muted-foreground" /></button>
+                          </div>
+                        )}
+                      </div>
+                      <Button variant="outline" size="sm" asChild>
+                        <a href={r.url} target="_blank" rel="noopener noreferrer"><ExternalLink className="h-3.5 w-3.5 mr-1" />Visit</a>
+                      </Button>
+                    </div>
                   </div>
-                </div>
-                <Button variant="outline" size="sm" asChild>
-                  <a href="https://www.fastrackce.com/" target="_blank" rel="noopener noreferrer"><ExternalLink className="h-3.5 w-3.5 mr-1" />Visit</a>
-                </Button>
-              </div>
-            </div>
+                );
+              })}
 
-            {/* ExamFX */}
-            <div className="p-4 rounded-lg border bg-gradient-to-r from-emerald-50 to-white">
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="font-semibold text-foreground">ExamFX — Pre-Licensing Courses</p>
-                  <p className="text-sm text-muted-foreground mt-1">Get <span className="font-bold text-emerald-700">55% OFF</span> — mention "Insurance Courses"</p>
-                  <div className="flex items-center gap-2 mt-2">
-                    <span className="text-xs text-muted-foreground">Contact:</span>
-                    <code className="px-2 py-1 bg-emerald-100 text-emerald-800 rounded text-sm font-mono">kjenson@lifeconetwork.com</code>
-                    <button onClick={() => copyText("kjenson@lifeconetwork.com")} className="p-1 rounded hover:bg-muted"><Copy className="h-3.5 w-3.5 text-muted-foreground" /></button>
-                  </div>
+              {/* Link-type resources */}
+              {resources.filter(r => r.type === "link").length > 0 && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {resources.filter(r => r.type === "link").map(r => (
+                    <a key={r.id} href={r.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
+                      <FileText className="h-4 w-4 text-primary" />
+                      <div><p className="text-sm font-medium text-foreground">{r.title}</p>{r.description && <p className="text-xs text-muted-foreground">{r.description}</p>}</div>
+                      <ExternalLink className="h-3.5 w-3.5 text-muted-foreground ml-auto" />
+                    </a>
+                  ))}
                 </div>
-                <Button variant="outline" size="sm" asChild>
-                  <a href="https://www.examfx.com/product-registration" target="_blank" rel="noopener noreferrer"><ExternalLink className="h-3.5 w-3.5 mr-1" />Visit</a>
-                </Button>
-              </div>
+              )}
             </div>
-
-            {/* Resource links */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <a href="https://www.naic.org/state_web_map.htm" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
-                <FileText className="h-4 w-4 text-primary" />
-                <div><p className="text-sm font-medium text-foreground">State CE Requirements</p><p className="text-xs text-muted-foreground">NAIC interactive map</p></div>
-                <ExternalLink className="h-3.5 w-3.5 text-muted-foreground ml-auto" />
-              </a>
-              <a href="https://pdb.nipr.com/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
-                <Shield className="h-4 w-4 text-primary" />
-                <div><p className="text-sm font-medium text-foreground">NAIC Producer Database</p><p className="text-xs text-muted-foreground">Verify license status via NIPR</p></div>
-                <ExternalLink className="h-3.5 w-3.5 text-muted-foreground ml-auto" />
-              </a>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
