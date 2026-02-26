@@ -3418,6 +3418,57 @@ export type Database = {
           },
         ]
       }
+      compliance_resources: {
+        Row: {
+          color_theme: string
+          contact_email: string | null
+          created_at: string
+          description: string | null
+          discount_text: string | null
+          id: string
+          is_active: boolean
+          promo_code: string | null
+          promo_text: string | null
+          sort_order: number
+          title: string
+          type: string
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          color_theme?: string
+          contact_email?: string | null
+          created_at?: string
+          description?: string | null
+          discount_text?: string | null
+          id?: string
+          is_active?: boolean
+          promo_code?: string | null
+          promo_text?: string | null
+          sort_order?: number
+          title: string
+          type?: string
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          color_theme?: string
+          contact_email?: string | null
+          created_at?: string
+          description?: string | null
+          discount_text?: string | null
+          id?: string
+          is_active?: boolean
+          promo_code?: string | null
+          promo_text?: string | null
+          sort_order?: number
+          title?: string
+          type?: string
+          updated_at?: string
+          url?: string
+        }
+        Relationships: []
+      }
       content_settings: {
         Row: {
           created_at: string | null
