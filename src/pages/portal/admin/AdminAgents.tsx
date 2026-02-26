@@ -32,6 +32,7 @@ interface AgentRow {
   clientCount: number;
   policyCount: number;
   role: string;
+  is_manager: boolean;
 }
 
 interface PendingAgent {
@@ -47,6 +48,7 @@ export default function AdminAgents() {
   const [agents, setAgents] = useState<AgentRow[]>([]);
   const [pendingAgents, setPendingAgents] = useState<PendingAgent[]>([]);
   const [contractingAccess, setContractingAccess] = useState<Record<string, boolean>>({});
+  const [managerStatus, setManagerStatus] = useState<Record<string, boolean>>({});
   const [loading, setLoading] = useState(true);
   const [pendingLoading, setPendingLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -56,6 +58,7 @@ export default function AdminAgents() {
   const [deleteAgent, setDeleteAgent] = useState<AgentRow | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [togglingAccess, setTogglingAccess] = useState<string | null>(null);
+  const [togglingManager, setTogglingManager] = useState<string | null>(null);
 
   useEffect(() => {
     fetchAgents();
@@ -66,7 +69,7 @@ export default function AdminAgents() {
     setLoading(true);
     const { data: advisors } = await supabase
       .from("advisors")
-      .select("id, portal_user_id, auth_user_id, first_name, last_name, email, is_active, portal_users:portal_user_id(role)")
+      .select("id, portal_user_id, auth_user_id, first_name, last_name, email, is_active, portal_users:portal_user_id(role, is_manager)")
       .order("first_name");
 
     if (!advisors) { setLoading(false); return; }
@@ -106,6 +109,12 @@ export default function AdminAgents() {
     });
     setContractingAccess(accessMap);
 
+    const mgrMap: Record<string, boolean> = {};
+    advisors.forEach((a: any) => {
+      mgrMap[a.portal_user_id] = a.portal_users?.is_manager ?? false;
+    });
+    setManagerStatus(mgrMap);
+
     setAgents(
       advisors.map((a: any) => ({
         id: a.id,
@@ -118,6 +127,7 @@ export default function AdminAgents() {
         clientCount: clientCounts[a.portal_user_id] || 0,
         policyCount: policyCounts[a.id] || 0,
         role: a.portal_users?.role || "advisor",
+        is_manager: a.portal_users?.is_manager ?? false,
       }))
     );
     setLoading(false);
@@ -197,6 +207,23 @@ export default function AdminAgents() {
       toast({ title: "Error", description: err.message, variant: "destructive" });
     } finally {
       setTogglingAccess(null);
+    }
+  }
+
+  async function handleToggleManager(agent: AgentRow, isManager: boolean) {
+    setTogglingManager(agent.portal_user_id);
+    try {
+      const { error } = await supabase
+        .from("portal_users")
+        .update({ is_manager: isManager } as any)
+        .eq("id", agent.portal_user_id);
+      if (error) throw error;
+      setManagerStatus((prev) => ({ ...prev, [agent.portal_user_id]: isManager }));
+      toast({ title: isManager ? "Manager enabled" : "Manager disabled", description: `${agent.first_name} ${agent.last_name} ${isManager ? "will now appear in the manager dropdown" : "removed from manager dropdown"}` });
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    } finally {
+      setTogglingManager(null);
     }
   }
 
@@ -282,13 +309,14 @@ export default function AdminAgents() {
                     <TableHead className="text-xs font-semibold uppercase tracking-wide text-gray-500 text-center">Clients</TableHead>
                     <TableHead className="text-xs font-semibold uppercase tracking-wide text-gray-500 text-center">Active Policies</TableHead>
                     <TableHead className="text-xs font-semibold uppercase tracking-wide text-gray-500 text-center">Dashboard</TableHead>
+                    <TableHead className="text-xs font-semibold uppercase tracking-wide text-gray-500 text-center">Manager</TableHead>
                     <TableHead className="text-xs font-semibold uppercase tracking-wide text-gray-500">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filtered.length === 0 ? (
                     <TableRow>
-                       <TableCell colSpan={7} className="text-center py-10 text-gray-400">
+                       <TableCell colSpan={9} className="text-center py-10 text-gray-400">
                         No agents found
                       </TableCell>
                     </TableRow>
@@ -298,11 +326,16 @@ export default function AdminAgents() {
                         <TableCell className="font-medium text-gray-900">{a.first_name} {a.last_name}</TableCell>
                         <TableCell className="text-gray-500">{a.email}</TableCell>
                         <TableCell>
-                          {a.role === "admin" ? (
-                            <span className="inline-flex items-center bg-purple-50 text-purple-700 border border-purple-200 rounded-full text-xs px-2.5 py-0.5 font-medium">Admin</span>
-                          ) : (
-                            <span className="inline-flex items-center bg-blue-50 text-blue-700 border border-blue-200 rounded-full text-xs px-2.5 py-0.5 font-medium">Advisor</span>
-                          )}
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            {a.role === "admin" ? (
+                              <span className="inline-flex items-center bg-purple-50 text-purple-700 border border-purple-200 rounded-full text-xs px-2.5 py-0.5 font-medium">Admin</span>
+                            ) : (
+                              <span className="inline-flex items-center bg-blue-50 text-blue-700 border border-blue-200 rounded-full text-xs px-2.5 py-0.5 font-medium">Advisor</span>
+                            )}
+                            {(managerStatus[a.portal_user_id] ?? a.is_manager) && (
+                              <span className="inline-flex items-center bg-amber-50 text-amber-700 border border-amber-200 rounded-full text-xs px-2.5 py-0.5 font-medium">Manager</span>
+                            )}
+                          </div>
                         </TableCell>
                         <TableCell>
                           {a.is_active ? (
@@ -323,6 +356,13 @@ export default function AdminAgents() {
                           ) : (
                             <span className="inline-flex items-center bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full text-xs px-2.5 py-0.5 font-medium">Full</span>
                           )}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <Switch
+                            checked={managerStatus[a.portal_user_id] ?? a.is_manager}
+                            onCheckedChange={(val) => handleToggleManager(a, val)}
+                            disabled={togglingManager === a.portal_user_id || a.role === "admin"}
+                          />
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-1">

@@ -19,9 +19,9 @@ Deno.serve(async (req) => {
 
     const { data, error } = await supabase
       .from("portal_users")
-      .select("id, first_name, last_name")
-      .eq("role", "admin")
+      .select("id, first_name, last_name, role, is_manager")
       .eq("is_active", true)
+      .or("role.eq.admin,is_manager.eq.true")
       .order("first_name");
 
     if (error) throw error;
