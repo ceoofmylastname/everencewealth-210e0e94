@@ -7,6 +7,7 @@ import {
   ArrowRight, Plus, BarChart3, Activity, User, Mail, Phone, Calendar,
   CheckCircle, Circle, ChevronDown, ChevronRight, MessageSquare, Send,
   LayoutGrid, Table as TableIcon, MessageSquareWarning, Upload, Loader2, FileText,
+  Download,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -837,11 +838,35 @@ function ManagerDashboard({ canManage, canApprove, portalUserId, isManagerOnly }
             </Link>
           </Button>
           {canManage && (
-            <Button asChild style={{ background: BRAND }} className="text-white hover:opacity-90">
-              <Link to="/portal/advisor/contracting/pipeline">
-                <Plus className="h-4 w-4 mr-2" /> Add Agent
-              </Link>
-            </Button>
+            <>
+              <Button variant="outline" size="sm" onClick={() => {
+                const headers = ["Name", "Email", "Stage", "Status", "Progress", "Carriers", "Days Active"];
+                const rows = agents.map(a => [
+                  `${a.first_name} ${a.last_name}`,
+                  a.email,
+                  a.pipeline_stage,
+                  a.status,
+                  `${a.progress_pct || 0}%`,
+                  carrierCounts.get(a.id) || 0,
+                  differenceInDays(new Date(), new Date(a.created_at)),
+                ]);
+                const csv = [headers.join(","), ...rows.map(r => r.join(","))].join("\n");
+                const blob = new Blob([csv], { type: "text/csv" });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement("a");
+                link.href = url;
+                link.download = `contracting-agents-${format(new Date(), "yyyy-MM-dd")}.csv`;
+                link.click();
+                URL.revokeObjectURL(url);
+              }}>
+                <Download className="h-4 w-4 mr-2" /> Export CSV
+              </Button>
+              <Button asChild style={{ background: BRAND }} className="text-white hover:opacity-90">
+                <Link to="/portal/advisor/contracting/pipeline">
+                  <Plus className="h-4 w-4 mr-2" /> Add Agent
+                </Link>
+              </Button>
+            </>
           )}
         </div>
       </div>
