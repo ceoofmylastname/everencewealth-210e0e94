@@ -396,11 +396,6 @@ export default function ContractingIntake() {
                       {String.fromCharCode(65 + i)}
                     </span>
                     {m.first_name} {m.last_name?.charAt(0)}.
-                    {m.role === "admin" ? (
-                      <span className="ml-2 text-xs text-muted-foreground font-normal">(Admin)</span>
-                    ) : m.is_manager ? (
-                      <span className="ml-2 text-xs text-muted-foreground font-normal">(Manager)</span>
-                    ) : null}
                   </button>
                 ))
               )}
