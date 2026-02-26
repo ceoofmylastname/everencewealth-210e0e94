@@ -1,22 +1,37 @@
 
 
-## Fix: Grant Full Admin Access + Fix Manager FK Error
+## Problem
 
-### Problem 1: Missing admin role assignments
-`jrmenterprisegroup@gmail.com` (auth: `431e15bd-29b2-46cb-a037-83c9162ae1b5`) has `portal_users.role = admin` but:
-- No `user_roles` row → blocks CRM & Blog admin access
-- No `admin_email_whitelist` entry → won't auto-grant on future sign-ins
+`jrmenterprisegroup@gmail.com` is a portal admin with **no row in `contracting_agents`**. The `useContractingAuth` hook correctly grants them `effectiveRole = 'admin'` via the portal role fallback, so contracting nav items are visible. However, contracting sub-pages (Messages, Pipeline, etc.) rely on `contractingAgent.id` for queries — which is `null` — causing empty/broken views.
 
-**Fix:** Database migration to insert both records.
+## Solution
 
-### Problem 2: FK constraint error on manager assignment
-`contracting_agents.manager_id` references `portal_users.id`. The manager dropdown likely passes a value that doesn't match a valid `portal_users.id`.
+Two-part fix:
 
-**Fix:** Investigate and patch the manager selection component to ensure it only passes valid `portal_users.id` values. Also check if existing `contracting_agents` rows have stale/invalid `manager_id` values.
+### 1. Create a `contracting_agents` row for this admin
+Insert a record with `contracting_role = 'admin'` so all contracting pages can resolve their identity.
 
-### Implementation steps
+**Database change:**
+```sql
+INSERT INTO contracting_agents (auth_user_id, first_name, last_name, email, contracting_role, pipeline_stage, status, is_licensed)
+SELECT 
+  '431e15bd-29b2-46cb-a037-83c9162ae1b5',
+  pu.first_name,
+  pu.last_name,
+  pu.email,
+  'admin',
+  'completed',
+  'active',
+  true
+FROM portal_users pu
+WHERE pu.auth_user_id = '431e15bd-29b2-46cb-a037-83c9162ae1b5'
+ON CONFLICT DO NOTHING;
+```
 
-1. **Run migration** to insert `user_roles` admin entry + `admin_email_whitelist` entry for `jrmenterprisegroup@gmail.com`
-2. **Query for broken manager_id references** in `contracting_agents` and null them out
-3. **Verify manager dropdown** in the contracting admin UI sends correct `portal_users.id` values
+### 2. Harden contracting pages for admin users without a `contracting_agents` row
+Update `ContractingMessages.tsx` (and similar pages) to handle `contractingAgent = null` gracefully when the user has admin-level `canViewAll` access — querying all threads instead of filtering by a missing agent ID. This prevents the issue from recurring for future admin accounts.
+
+**Files to update:**
+- `src/pages/portal/advisor/contracting/ContractingMessages.tsx` — use `canViewAll` flag to fetch all threads when `contractingAgent` is null
+- Audit other contracting pages for same null-guard pattern
 
