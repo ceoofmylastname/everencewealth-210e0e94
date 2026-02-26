@@ -45,7 +45,7 @@ export default function ContractingAdmin() {
   const { canManage, loading: authLoading } = useContractingAuth();
   const [agents, setAgents] = useState<AgentRow[]>([]);
   const [bundles, setBundles] = useState<Bundle[]>([]);
-  const [allAgents, setAllAgents] = useState<{ id: string; name: string }[]>([]);
+  const [managerOptions, setManagerOptions] = useState<{ id: string; name: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingBundle, setEditingBundle] = useState<Bundle | null>(null);
   const [newBundle, setNewBundle] = useState({ name: "", description: "", product_types: "" });
@@ -58,10 +58,11 @@ export default function ContractingAdmin() {
 
   async function fetchData() {
     try {
-      const [agentsRes, bundlesRes, selectionsRes] = await Promise.all([
+      const [agentsRes, bundlesRes, selectionsRes, portalUsersRes] = await Promise.all([
         supabase.from("contracting_agents").select("*").order("created_at", { ascending: false }),
         supabase.from("contracting_bundles").select("*").order("name"),
         supabase.from("contracting_carrier_selections").select("agent_id"),
+        supabase.from("portal_users").select("id, first_name, last_name, role").eq("is_active", true),
       ]);
 
       // Count carrier selections per agent
@@ -72,13 +73,21 @@ export default function ContractingAdmin() {
         }
       }
 
+      // Build manager options from portal_users (advisors and admins)
+      if (portalUsersRes.data) {
+        setManagerOptions(
+          portalUsersRes.data
+            .filter(pu => pu.role === "advisor" || pu.role === "admin")
+            .map(pu => ({ id: pu.id, name: `${pu.first_name} ${pu.last_name}` }))
+        );
+      }
+
       if (agentsRes.data) {
         const rows = agentsRes.data.map((a: any) => ({
           ...a,
           carrier_count: selCounts.get(a.id) || 0,
         }));
         setAgents(rows);
-        setAllAgents(rows.map((a: any) => ({ id: a.id, name: `${a.first_name} ${a.last_name}` })));
       }
       if (bundlesRes.data) setBundles(bundlesRes.data as Bundle[]);
     } catch (err) {
@@ -90,12 +99,13 @@ export default function ContractingAdmin() {
 
   async function updateAgent(id: string, field: string, value: string) {
     try {
-      const { error } = await supabase.from("contracting_agents").update({ [field]: value }).eq("id", id);
+      const dbValue = field === "manager_id" && !value ? null : value;
+      const { error } = await supabase.from("contracting_agents").update({ [field]: dbValue }).eq("id", id);
       if (error) throw error;
       setAgents(prev => prev.map(a => a.id === id ? { ...a, [field]: value } : a));
       // Log field update
       const humanField = field === "manager_id" ? "Manager" : field === "pipeline_stage" ? "Pipeline stage" : field === "status" ? "Status" : field;
-      const humanValue = field === "manager_id" ? (allAgents.find(a => a.id === value)?.name || value) : value.replace(/_/g, " ");
+      const humanValue = field === "manager_id" ? (managerOptions.find(m => m.id === value)?.name || value) : value.replace(/_/g, " ");
       const { data: { user } } = await supabase.auth.getUser();
       const { data: performer } = await supabase.from("contracting_agents").select("id").eq("auth_user_id", user!.id).maybeSingle();
       supabase.from("contracting_activity_logs").insert({
@@ -267,8 +277,8 @@ export default function ContractingAdmin() {
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="none">Unassigned</SelectItem>
-                            {allAgents.filter(a => a.id !== agent.id).map(a => (
-                              <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>
+                            {managerOptions.map(m => (
+                              <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
