@@ -1,37 +1,23 @@
 
 
-## Problem
+## Plan: Remove Admin Command Center, Merge Unique Features
 
-`jrmenterprisegroup@gmail.com` is a portal admin with **no row in `contracting_agents`**. The `useContractingAuth` hook correctly grants them `effectiveRole = 'admin'` via the portal role fallback, so contracting nav items are visible. However, contracting sub-pages (Messages, Pipeline, etc.) rely on `contractingAgent.id` for queries — which is `null` — causing empty/broken views.
+The Admin Command Center is largely redundant with the Contracting Dashboard. Consolidate the two unique features and remove the page.
 
-## Solution
+### Steps
 
-Two-part fix:
+1. **Move CSV Export to Contracting Dashboard** — Add the "Export CSV" button to the Dashboard header (next to Analytics / Add Agent buttons)
 
-### 1. Create a `contracting_agents` row for this admin
-Insert a record with `contracting_role = 'admin'` so all contracting pages can resolve their identity.
+2. **Move Bundle Management to Contracting Settings** — The Settings page (`/contracting/settings`) is already described as the "configuration hub for bundle management." Move the Bundles CRUD UI there (or confirm it already exists there)
 
-**Database change:**
-```sql
-INSERT INTO contracting_agents (auth_user_id, first_name, last_name, email, contracting_role, pipeline_stage, status, is_licensed)
-SELECT 
-  '431e15bd-29b2-46cb-a037-83c9162ae1b5',
-  pu.first_name,
-  pu.last_name,
-  pu.email,
-  'admin',
-  'completed',
-  'active',
-  true
-FROM portal_users pu
-WHERE pu.auth_user_id = '431e15bd-29b2-46cb-a037-83c9162ae1b5'
-ON CONFLICT DO NOTHING;
-```
+3. **Remove ContractingAdmin page** — Delete `src/pages/portal/advisor/contracting/ContractingAdmin.tsx`, remove its route from `App.tsx`, and remove the nav link pointing to `/contracting/admin`
 
-### 2. Harden contracting pages for admin users without a `contracting_agents` row
-Update `ContractingMessages.tsx` (and similar pages) to handle `contractingAgent = null` gracefully when the user has admin-level `canViewAll` access — querying all threads instead of filtering by a missing agent ID. This prevents the issue from recurring for future admin accounts.
+4. **Update navigation** — Remove "Admin" or "Settings → Admin Panel" link from the contracting sidebar that pointed to this page
 
-**Files to update:**
-- `src/pages/portal/advisor/contracting/ContractingMessages.tsx` — use `canViewAll` flag to fetch all threads when `contractingAgent` is null
-- Audit other contracting pages for same null-guard pattern
+### Files affected
+- `src/pages/portal/advisor/contracting/ContractingDashboard.tsx` — add CSV export button
+- `src/pages/portal/advisor/contracting/ContractingSettings.tsx` — verify/add Bundles tab
+- `src/pages/portal/advisor/contracting/ContractingAdmin.tsx` — delete
+- `src/App.tsx` — remove route
+- Navigation component (sidebar) — remove link
 
