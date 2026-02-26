@@ -75,7 +75,10 @@ Deno.serve(async (req) => {
       });
     }
 
-    // 2. Delete carrier_contracts
+    // 2. Delete client_invitations referencing this advisor
+    await supabaseAdmin.from("client_invitations").delete().eq("advisor_id", advisor_id);
+
+    // 3. Delete carrier_contracts
     await supabaseAdmin.from("carrier_contracts").delete().eq("advisor_id", advisor_id);
 
     // 3. Delete advisor_performance records
