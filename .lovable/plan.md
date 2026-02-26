@@ -1,53 +1,33 @@
 
 
-## Analysis
+## Current State
 
-The system partially supports admin access for approve/delete operations, but there's an inconsistency in the `approve-agent` edge function that prevents contracting admins from approving agents they don't manage.
+| Person | Auth Email | Portal Role | Contracting Record | CRM (user_roles) |
+|--------|-----------|-------------|-------------------|-------------------|
+| **David** | david.rosenberg@everencewealth.com (`c6fd1541`) | admin | Jazmine's record is linked to his auth ID; `contracting_role: agent` | None |
+| **Steven** | srosenberg@everencewealth.com (`239045d7`) | admin | None | None |
+| **Jazmine** | jrosenberg@everencewealth.com (`54ae359b`) | advisor | No record linked to her own auth ID | None |
 
-### Current State
-- **Frontend**: Already correctly shows approve/delete buttons for all users with `canApprove` (admins, contracting admins, managers)
-- **`delete-contracting-agent` edge function**: Already checks both `portal_users.role = 'admin'` AND `contracting_agents.contracting_role = 'admin'` — works correctly
-- **`approve-agent` edge function**: Only checks `portal_users.role` for admin/contracting. Does NOT check `contracting_agents.contracting_role = 'admin'`. This means a user who is a contracting admin but has portal role "advisor" can only approve agents they directly manage, not all agents.
+### Problems Identified
 
-### Changes Required
+1. **Jazmine and David are sharing a login**: The contracting_agents record for Jazmine (email `jrosenberg@everencewealth.com`) has `auth_user_id = c6fd1541` which is **David's** auth account. Jazmine has her own separate auth account (`54ae359b`) but nothing in contracting points to it.
 
-**File: `supabase/functions/approve-agent/index.ts` (lines 63-79)**
+2. **David and Steven lack full admin access**: Neither has a `user_roles` entry (needed for CRM/blog admin). David's contracting role is `agent` instead of `admin`. Steven has no contracting record at all.
 
-Add a check for the caller's `contracting_role` in the `contracting_agents` table, matching the pattern already used in `delete-contracting-agent`:
+---
 
-```typescript
-// Verify caller is manager, admin, or contracting role
-const { data: callerPortalUser } = await adminClient
-  .from("portal_users")
-  .select("id, role")
-  .eq("auth_user_id", callerUser.id)
-  .maybeSingle();
+## Changes Required
 
-// Also check contracting_agents for contracting admin role
-const { data: callerContracting } = await adminClient
-  .from("contracting_agents")
-  .select("contracting_role")
-  .eq("auth_user_id", callerUser.id)
-  .maybeSingle();
+### 1. Separate Jazmine from David (data fix)
+- Update the contracting_agents record (`cbff6acb-...`) to point `auth_user_id` to Jazmine's own auth account (`54ae359b-d3c1-4445-93e0-aef8aff8df13`) instead of David's.
 
-const isManager = callerPortalUser && agent.manager_id === callerPortalUser.id;
-const isPortalAdmin = callerPortalUser?.role === "admin";
-const isContractingAdmin = callerContracting?.contracting_role === "admin";
+### 2. Give David full admin access
+- Update his contracting_agents `contracting_role` from `agent` to `admin`.
+- Insert a `user_roles` record granting him the `admin` role (for CRM/blog access).
 
-if (!isManager && !isPortalAdmin && !isContractingAdmin) {
-  return new Response(JSON.stringify({ error: "You are not authorized to approve this agent" }), {
-    status: 403,
-    headers: { ...corsHeaders, "Content-Type": "application/json" },
-  });
-}
-```
+### 3. Give Steven full admin access
+- Insert a `user_roles` record granting him the `admin` role (for CRM/blog access).
+- No contracting record exists for Steven — he can be added if needed, or his portal admin status already grants contracting oversight.
 
-### Summary
-| What | Where | Status |
-|------|-------|--------|
-| Delete permission for all admins | `delete-contracting-agent` edge function | Already working |
-| Approve permission for all admins | `approve-agent` edge function | Needs fix — add contracting_agents role check |
-| Frontend button visibility | `ContractingAgents.tsx` | Already working |
-
-One edge function change. No frontend changes needed.
+All changes are data updates only — no code or schema modifications needed.
 
