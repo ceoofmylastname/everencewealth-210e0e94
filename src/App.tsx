@@ -172,7 +172,7 @@ const ContractingPipeline = lazy(() => import("./pages/portal/advisor/contractin
 const ContractingAgentDetail = lazy(() => import("./pages/portal/advisor/contracting/ContractingAgentDetail"));
 const ContractingMessages = lazy(() => import("./pages/portal/advisor/contracting/ContractingMessages"));
 const ContractingDocuments = lazy(() => import("./pages/portal/advisor/contracting/ContractingDocuments"));
-const ContractingAdmin = lazy(() => import("./pages/portal/advisor/contracting/ContractingAdmin"));
+
 const ContractingAnalytics = lazy(() => import("./pages/portal/advisor/contracting/ContractingAnalytics"));
 const ContractingAgents = lazy(() => import("./pages/portal/advisor/contracting/ContractingAgents"));
 const ContractingSettings = lazy(() => import("./pages/portal/advisor/contracting/ContractingSettings"));
@@ -407,7 +407,7 @@ const App = () => (
                   <Route path="contracting/agent/:id" element={<ContractingAgentDetail />} />
                   <Route path="contracting/messages" element={<ContractingMessages />} />
                   <Route path="contracting/documents" element={<ContractingDocuments />} />
-                  <Route path="contracting/admin" element={<ContractingAdmin />} />
+                  
                   <Route path="contracting/analytics" element={<ContractingAnalytics />} />
                   <Route path="contracting/agents" element={<ContractingAgents />} />
                   <Route path="contracting/settings" element={<ContractingSettings />} />
