@@ -12,6 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose,
@@ -527,6 +528,7 @@ function ManagerDashboard({ canManage, canApprove, portalUserId, isManagerOnly }
   const [lastActivityMap, setLastActivityMap] = useState<Map<string, string>>(new Map()); // agentId -> date
   const [steps, setSteps] = useState<StepRow[]>([]);
   const [agentStepsMap, setAgentStepsMap] = useState<Map<string, AgentStepRow[]>>(new Map()); // agentId -> steps
+  const [managerStatusMap, setManagerStatusMap] = useState<Map<string, boolean>>(new Map()); // auth_user_id -> is_manager
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState<"board" | "table">("table");
   const [completingStep, setCompletingStep] = useState<string | null>(null);
@@ -534,6 +536,8 @@ function ManagerDashboard({ canManage, canApprove, portalUserId, isManagerOnly }
   const [needsInfoMessage, setNeedsInfoMessage] = useState("");
   const [sendingNeedsInfo, setSendingNeedsInfo] = useState(false);
   const [approvingAgent, setApprovingAgent] = useState<string | null>(null);
+  const [togglingManager, setTogglingManager] = useState<string | null>(null);
+  const authIdMapRef = useRef<Map<string, string>>(new Map()); // agentId -> auth_user_id
 
   useEffect(() => {
     fetchAll();
@@ -580,16 +584,20 @@ function ManagerDashboard({ canManage, canApprove, portalUserId, isManagerOnly }
       
       const authIdMap = new Map<string, string>();
       (agentsWithAuth || []).forEach((a: any) => authIdMap.set(a.id, a.auth_user_id));
+      authIdMapRef.current = authIdMap;
       
       const authIds = [...new Set(Array.from(authIdMap.values()).filter(Boolean))];
       let portalActiveMap = new Map<string, boolean>();
       if (authIds.length > 0) {
         const { data: portalUsers } = await supabase
           .from("portal_users")
-          .select("auth_user_id, is_active")
+          .select("auth_user_id, is_active, is_manager")
           .in("auth_user_id", authIds);
         if (portalUsers) {
           portalUsers.forEach((pu: any) => portalActiveMap.set(pu.auth_user_id, pu.is_active));
+          const mgrMap = new Map<string, boolean>();
+          portalUsers.forEach((pu: any) => mgrMap.set(pu.auth_user_id, pu.is_manager === true));
+          setManagerStatusMap(mgrMap);
         }
       }
       
@@ -778,6 +786,33 @@ function ManagerDashboard({ canManage, canApprove, portalUserId, isManagerOnly }
     }
   }
 
+  // ── Toggle Manager handler ──
+  async function handleToggleManager(agentId: string, newValue: boolean) {
+    setTogglingManager(agentId);
+    try {
+      // Get auth_user_id for this agent
+      const authUserId = Array.from(authIdMapRef.current.entries()).find(([aId]) => aId === agentId)?.[1];
+      if (!authUserId) {
+        toast.error("Could not find portal user for this agent");
+        return;
+      }
+      const { error } = await supabase
+        .from("portal_users")
+        .update({ is_manager: newValue })
+        .eq("auth_user_id", authUserId);
+      if (error) throw error;
+      setManagerStatusMap(prev => new Map(prev).set(authUserId, newValue));
+      toast.success(newValue
+        ? "Agent designated as Manager — their name will appear on the application form."
+        : "Manager status removed — agent will no longer appear on the application form.");
+    } catch (err: any) {
+      console.error("Toggle manager error:", err);
+      toast.error("Failed to update manager status");
+    } finally {
+      setTogglingManager(null);
+    }
+  }
+
   // ── Computed stats ──
   const now = new Date();
   const stuckAgents = agents.filter(a => a.status === "in_progress" && differenceInDays(now, new Date(a.updated_at)) > 7);
@@ -917,7 +952,15 @@ function ManagerDashboard({ canManage, canApprove, portalUserId, isManagerOnly }
                               {agent.first_name?.[0]}{agent.last_name?.[0]}
                             </div>
                             <div className="min-w-0 flex-1">
-                              <p className="text-sm font-medium text-gray-900 truncate">{agent.first_name} {agent.last_name}</p>
+                              <div className="flex items-center gap-1.5">
+                                <p className="text-sm font-medium text-gray-900 truncate">{agent.first_name} {agent.last_name}</p>
+                                {(() => {
+                                  const authId = authIdMapRef.current.get(agent.id);
+                                  return authId && managerStatusMap.get(authId) === true ? (
+                                    <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full" style={{ background: `${ACCENT}`, color: BRAND }}>MGR</span>
+                                  ) : null;
+                                })()}
+                              </div>
                               <p className="text-xs text-gray-400">{days}d in stage</p>
                             </div>
                           </div>
@@ -955,6 +998,7 @@ function ManagerDashboard({ canManage, canApprove, portalUserId, isManagerOnly }
                 <TableHead className="font-semibold text-gray-700">Bundle</TableHead>
                 <TableHead className="font-semibold text-gray-700">Carriers</TableHead>
                 <TableHead className="font-semibold text-gray-700">Status</TableHead>
+                {canManage && <TableHead className="font-semibold text-gray-700">Make Manager</TableHead>}
                 <TableHead className="font-semibold text-gray-700">Last Activity</TableHead>
                 <TableHead className="font-semibold text-gray-700">Days Stuck</TableHead>
                 {(canManage || canApprove) && <TableHead className="font-semibold text-gray-700">Action</TableHead>}
@@ -963,7 +1007,7 @@ function ManagerDashboard({ canManage, canApprove, portalUserId, isManagerOnly }
             <TableBody>
               {agents.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={(canManage || canApprove) ? 10 : 9} className="text-center py-12 text-gray-400">
+                  <TableCell colSpan={(canManage || canApprove) ? 11 : canManage ? 10 : 9} className="text-center py-12 text-gray-400">
                     No agents found
                   </TableCell>
                 </TableRow>
@@ -1018,6 +1062,21 @@ function ManagerDashboard({ canManage, canApprove, portalUserId, isManagerOnly }
                           {agent.status === "in_progress" ? "In Progress" : agent.status === "completed" ? "Completed" : agent.status === "on_hold" ? "On Hold" : agent.status}
                         </span>
                       </TableCell>
+                      {canManage && (
+                        <TableCell>
+                          {(() => {
+                            const authId = authIdMapRef.current.get(agent.id);
+                            const isManager = authId ? managerStatusMap.get(authId) === true : false;
+                            return (
+                              <Switch
+                                checked={isManager}
+                                disabled={togglingManager === agent.id}
+                                onCheckedChange={(val) => handleToggleManager(agent.id, val)}
+                              />
+                            );
+                          })()}
+                        </TableCell>
+                      )}
                       <TableCell className="text-xs text-gray-500 whitespace-nowrap">
                         {lastAct ? format(new Date(lastAct), "MMM d, h:mm a") : "—"}
                       </TableCell>
