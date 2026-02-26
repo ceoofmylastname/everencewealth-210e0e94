@@ -60,18 +60,25 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Verify caller is manager, admin, or contracting role
+    // Verify caller is manager, admin, or contracting admin
     const { data: callerPortalUser } = await adminClient
       .from("portal_users")
       .select("id, role")
       .eq("auth_user_id", callerUser.id)
       .maybeSingle();
 
-    const isManager = callerPortalUser && agent.manager_id === callerPortalUser.id;
-    const isAdminOrContracting = callerPortalUser &&
-      (callerPortalUser.role === "admin" || callerPortalUser.role === "contracting");
+    // Also check contracting_agents for contracting admin role
+    const { data: callerContracting } = await adminClient
+      .from("contracting_agents")
+      .select("contracting_role")
+      .eq("auth_user_id", callerUser.id)
+      .maybeSingle();
 
-    if (!isManager && !isAdminOrContracting) {
+    const isManager = callerPortalUser && agent.manager_id === callerPortalUser.id;
+    const isPortalAdmin = callerPortalUser?.role === "admin";
+    const isContractingAdmin = callerContracting?.contracting_role === "admin";
+
+    if (!isManager && !isPortalAdmin && !isContractingAdmin) {
       return new Response(JSON.stringify({ error: "You are not authorized to approve this agent" }), {
         status: 403,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
