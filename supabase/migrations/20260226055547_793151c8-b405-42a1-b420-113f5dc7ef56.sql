@@ -1,0 +1,1 @@
+ALTER TABLE public.portal_users ADD COLUMN is_manager boolean NOT NULL DEFAULT false;
