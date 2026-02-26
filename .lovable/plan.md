@@ -1,28 +1,53 @@
 
 
-## Changes Required
+## Analysis
 
-### 1. Remove role labels from the apply form
-The `(Admin)` and `(Manager)` labels next to each name on Step 7 of the apply form are internal details that clients should not see. These will be removed entirely.
+The system partially supports admin access for approve/delete operations, but there's an inconsistency in the `approve-agent` edge function that prevents contracting admins from approving agents they don't manage.
 
-**File: `src/pages/ContractingIntake.tsx` (lines 398-403)**
-- Remove the `(Admin)` and `(Manager)` spans after the name
-- Keep just the name display: `{m.first_name} {m.last_name?.charAt(0)}.`
+### Current State
+- **Frontend**: Already correctly shows approve/delete buttons for all users with `canApprove` (admins, contracting admins, managers)
+- **`delete-contracting-agent` edge function**: Already checks both `portal_users.role = 'admin'` AND `contracting_agents.contracting_role = 'admin'` — works correctly
+- **`approve-agent` edge function**: Only checks `portal_users.role` for admin/contracting. Does NOT check `contracting_agents.contracting_role = 'admin'`. This means a user who is a contracting admin but has portal role "advisor" can only approve agents they directly manage, not all agents.
 
-### 2. Exclude the test admin account "Admin U."
-The portal_user "Admin User" (id: `e82dd92c-...`, email: `jrmenterprisegroup@gmail.com`) is a test account and should not appear in the manager list for clients.
+### Changes Required
 
-Two approaches:
-- **Option A (recommended):** Set `is_active = false` on that test account so it's filtered out automatically by the existing `.eq("is_active", true)` query. This is the cleanest approach — no code changes needed for this part, just a one-line database update.
-- **Option B:** Add a hardcoded exclusion or a `is_test_account` flag. Heavier and unnecessary.
+**File: `supabase/functions/approve-agent/index.ts` (lines 63-79)**
 
-**I will use Option A** — a small database migration to deactivate the test admin account so it no longer appears in the manager dropdown (or anywhere else that filters by `is_active`).
+Add a check for the caller's `contracting_role` in the `contracting_agents` table, matching the pattern already used in `delete-contracting-agent`:
 
-### Summary of changes
-| Change | Where |
-|--------|-------|
-| Remove `(Admin)` / `(Manager)` labels | `ContractingIntake.tsx` line 399-403 |
-| Deactivate test admin "Admin User" | Database update on `portal_users` |
+```typescript
+// Verify caller is manager, admin, or contracting role
+const { data: callerPortalUser } = await adminClient
+  .from("portal_users")
+  .select("id, role")
+  .eq("auth_user_id", callerUser.id)
+  .maybeSingle();
 
-No edge function changes needed. No frontend logic changes beyond removing the label text.
+// Also check contracting_agents for contracting admin role
+const { data: callerContracting } = await adminClient
+  .from("contracting_agents")
+  .select("contracting_role")
+  .eq("auth_user_id", callerUser.id)
+  .maybeSingle();
+
+const isManager = callerPortalUser && agent.manager_id === callerPortalUser.id;
+const isPortalAdmin = callerPortalUser?.role === "admin";
+const isContractingAdmin = callerContracting?.contracting_role === "admin";
+
+if (!isManager && !isPortalAdmin && !isContractingAdmin) {
+  return new Response(JSON.stringify({ error: "You are not authorized to approve this agent" }), {
+    status: 403,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+}
+```
+
+### Summary
+| What | Where | Status |
+|------|-------|--------|
+| Delete permission for all admins | `delete-contracting-agent` edge function | Already working |
+| Approve permission for all admins | `approve-agent` edge function | Needs fix — add contracting_agents role check |
+| Frontend button visibility | `ContractingAgents.tsx` | Already working |
+
+One edge function change. No frontend changes needed.
 
