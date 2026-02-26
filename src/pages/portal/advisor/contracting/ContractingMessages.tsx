@@ -130,8 +130,8 @@ export default function ContractingMessages() {
 
       setThreads(Array.from(threadMap.values()));
 
-      if (!canViewAll && contractingAgent?.id) {
-        setSelectedThread(contractingAgent.id);
+      if (!canViewAll && myAgentId) {
+        setSelectedThread(myAgentId);
       }
     } catch (err) {
       console.error(err);
@@ -205,13 +205,15 @@ export default function ContractingMessages() {
     return Array.from(recipientIds);
   }
 
+  const myAgentId = contractingAgent?.id;
+
   async function handleSend() {
-    if (!newMessage.trim() || !selectedThread || !contractingAgent?.id) return;
+    if (!newMessage.trim() || !selectedThread || !myAgentId) return;
     setSending(true);
     try {
       const { error } = await supabase.from("contracting_messages").insert({
         thread_id: selectedThread,
-        sender_id: contractingAgent.id,
+        sender_id: myAgentId,
         content: newMessage.trim(),
       });
 
@@ -227,19 +229,18 @@ export default function ContractingMessages() {
       // Log activity
       supabase.from("contracting_activity_logs").insert({
         agent_id: selectedThread,
-        performed_by: contractingAgent.id,
+        performed_by: myAgentId,
         action: "message_sent",
         activity_type: "message_sent",
         description: "Sent a message in thread",
       }).then(null, err => console.error("Activity log error:", err));
 
-      // Send email notifications
-      const recipients = await getRecipients(selectedThread, contractingAgent.id);
+      const recipients = await getRecipients(selectedThread, myAgentId);
       if (recipients.length > 0) {
         supabase.functions.invoke("notify-contracting-message", {
           body: {
             thread_id: selectedThread,
-            sender_id: contractingAgent.id,
+            sender_id: myAgentId,
             message_content: messageContent,
             recipients,
           },
@@ -258,7 +259,7 @@ export default function ContractingMessages() {
       .select("id, first_name, last_name, contracting_role");
     if (data) {
       const options: AgentOption[] = data
-        .filter(a => a.id !== contractingAgent?.id)
+        .filter(a => a.id !== myAgentId)
         .map(a => ({
           id: a.id,
           name: `${a.first_name} ${a.last_name}`,
@@ -299,7 +300,7 @@ export default function ContractingMessages() {
         <div className="bg-white rounded-2xl border border-gray-200 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.08)] flex flex-col" style={{ height: "calc(100vh - 220px)" }}>
           <div className="flex-1 overflow-y-auto p-4 space-y-3">
             {messages.map(msg => (
-              <MessageBubble key={msg.id} msg={msg} isOwn={msg.sender_id === contractingAgent?.id} />
+              <MessageBubble key={msg.id} msg={msg} isOwn={msg.sender_id === myAgentId} />
             ))}
             <div ref={bottomRef} />
           </div>
@@ -420,7 +421,7 @@ export default function ContractingMessages() {
             <>
               <div className="flex-1 overflow-y-auto p-4 space-y-3">
                 {messages.map(msg => (
-                  <MessageBubble key={msg.id} msg={msg} isOwn={msg.sender_id === contractingAgent?.id} />
+                  <MessageBubble key={msg.id} msg={msg} isOwn={msg.sender_id === myAgentId} />
                 ))}
                 <div ref={bottomRef} />
               </div>
