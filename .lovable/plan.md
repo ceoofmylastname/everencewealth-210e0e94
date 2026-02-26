@@ -1,36 +1,40 @@
 
 
-## Admin CNA Oversight
+## Question: Should the Apply Form Pull Managers from Agent Management?
 
-### Current State
-- The CNA dashboard (`/portal/advisor/cna`) already queries all CNAs without an advisor filter.
-- An RLS policy "Admins can view all CNAs" already exists using `is_portal_admin(auth.uid())`.
-- Since admins use advisor routes (hybrid role), they already see all CNAs when visiting this page.
-- **However**, the dashboard does not display which advisor created each CNA — so admins can't tell whose analysis is whose.
+### Current Behavior
+The edge function `list-contracting-managers` queries `portal_users` where `role = 'advisor'` and `is_active = true`. This returns **all active advisors** as potential managers — not a curated list of actual managers.
 
-### What Needs to Change
+Agent Management (`/crm/admin/agents`) manages a separate `crm_agents` table used for lead distribution, which has no connection to the contracting pipeline.
 
-**No database changes required.** RLS already permits admin access.
+### The Real Problem
+Neither source is ideal. The apply form should only show people who are actually **managers** in the contracting context — not every advisor and not CRM agents.
 
-#### 1. Enhance CNA Dashboard for Admin Context
-- Detect if the current user is an admin (`portalUser.role === 'admin'`).
-- When admin, join the `advisor_id` to the `portal_users` table to fetch the advisor's name.
-- Display an **advisor name badge** on each CNA card (e.g., "By: David Rosenberg").
-- Add an **advisor filter dropdown** so admins can filter CNAs by advisor.
-- Update the page subtitle to reflect agency-wide scope (e.g., "All advisor analyses" instead of just a count).
+### Options
 
-#### 2. CNA Card Changes
-Each CNA card will show:
-- Existing: applicant name, status, shared badge, reviewed badge, net worth, retirement score.
-- **New for admins**: A small colored pill showing the advisor who created the CNA.
+**Option A: Filter portal_users by contracting role**
+The `contracting_agents` table has a `contracting_role` column. Update the edge function to only return portal users who have a matching `contracting_agents` record with `contracting_role = 'manager'` (or similar). This keeps the manager list scoped to the contracting system.
 
-#### 3. Admin Filter Bar
-- Add a dropdown next to the existing status filter: "All Advisors" / individual advisor names.
-- Filter the CNA list by `advisor_id` when selected.
+**Option B: Use a dedicated flag on portal_users**
+Add an `is_manager` boolean to `portal_users` so admins can designate who appears in the manager dropdown. The admin portal would need a toggle for this.
 
-### Technical Details
-- The `client_needs_analysis` table has an `advisor_id` column (FK to `portal_users.id`).
-- Query will be updated to `.select("*, advisor:portal_users!advisor_id(first_name, last_name)")` to join advisor names.
-- No new RLS policies needed — "Admins can view all CNAs" already covers SELECT.
-- The UPDATE policy only allows advisors to update their own CNAs, which is correct (admins should view, not edit others' CNAs).
+**Option C: Pull from portal_users with role = 'admin'**
+If only admins should appear as selectable managers, change the filter from `role = 'advisor'` to `role = 'admin'`.
+
+### Recommendation
+**Option C is the simplest and most likely correct.** In most setups, the people recruits select as "their manager" are the portal admins — not fellow advisors. This is a one-line change in the edge function:
+
+```typescript
+// Change from:
+.eq("role", "advisor")
+// To:
+.eq("role", "admin")
+```
+
+No database migration needed. No frontend changes needed.
+
+### If you want it tied to Agent Management instead
+That would require joining `crm_agents` and returning those records. But CRM agents are for lead routing, not contracting oversight — so this likely isn't the right source.
+
+Let me know which option fits your intent, or clarify who exactly should appear in the "Select your manager" dropdown.
 
