@@ -12,8 +12,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import {
   Search, Users, Loader2, CheckCircle, ExternalLink, ShieldCheck, ShieldX,
   Clock, UserCheck, AlertTriangle, Filter, Mail, Phone, MapPin, ChevronRight,
-  Inbox,
+  Inbox, Trash2,
 } from "lucide-react";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { differenceInDays, formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
 import { useIsMobile } from "@/hooks/useMediaQuery";
@@ -93,6 +97,8 @@ export default function ContractingAgents() {
   const [stageFilter, setStageFilter] = useState("all");
   const [licensedFilter, setLicensedFilter] = useState("all");
   const [approvingAgent, setApprovingAgent] = useState<string | null>(null);
+  const [deleteAgent, setDeleteAgent] = useState<AgentRow | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   async function fetchAgents() {
     setLoading(true);
@@ -204,6 +210,26 @@ export default function ContractingAgents() {
       toast.error("Failed to approve: " + (err.message || "Unknown error"));
     } finally {
       setApprovingAgent(null);
+    }
+  }
+
+  async function handleDeleteAgent() {
+    if (!deleteAgent) return;
+    setDeleting(true);
+    try {
+      const res = await supabase.functions.invoke("delete-contracting-agent", {
+        body: { agent_id: deleteAgent.id },
+      });
+      if (res.error) throw res.error;
+      if (res.data?.error) throw new Error(res.data.error);
+      toast.success(`${deleteAgent.first_name} ${deleteAgent.last_name} has been deleted.`);
+      setDeleteAgent(null);
+      fetchAgents();
+    } catch (err: any) {
+      console.error(err);
+      toast.error("Failed to delete: " + (err.message || "Unknown error"));
+    } finally {
+      setDeleting(false);
     }
   }
 
@@ -381,6 +407,7 @@ export default function ContractingAgents() {
                 canApprove={canApprove}
                 approvingAgent={approvingAgent}
                 onApprove={handleApproveAgent}
+                onDelete={setDeleteAgent}
               />
             );
           })}
@@ -498,6 +525,16 @@ export default function ContractingAgents() {
                               <CheckCircle className="h-3 w-3" /> OK
                             </span>
                           )}
+                          {canApprove && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-7 px-2 text-xs text-destructive hover:text-destructive hover:bg-destructive/10"
+                              onClick={() => setDeleteAgent(agent)}
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
+                          )}
                         </div>
                       </TableCell>
                     </TableRow>
@@ -508,6 +545,30 @@ export default function ContractingAgents() {
           </div>
         </div>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!deleteAgent} onOpenChange={(open) => !open && setDeleteAgent(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Agent?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete <strong>{deleteAgent?.first_name} {deleteAgent?.last_name}</strong> ({deleteAgent?.email}) and all their contracting data (steps, documents, activity logs).
+              <br /><br />
+              <span className="text-destructive font-medium">This action cannot be undone.</span>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={deleting}
+              onClick={handleDeleteAgent}
+              className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+            >
+              {deleting ? "Deleting..." : "Yes, Delete Agent"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
@@ -579,6 +640,7 @@ function MobileAgentCard({
   canApprove,
   approvingAgent,
   onApprove,
+  onDelete,
 }: {
   agent: AgentRow;
   isStuck: boolean;
@@ -587,6 +649,7 @@ function MobileAgentCard({
   canApprove: boolean;
   approvingAgent: string | null;
   onApprove: (id: string) => void;
+  onDelete: (agent: AgentRow) => void;
 }) {
   const stageAccent = isStuck
     ? "border-l-red-500"
@@ -695,6 +758,16 @@ function MobileAgentCard({
             <span className="text-xs text-emerald-600 font-medium flex items-center gap-1">
               <CheckCircle className="h-3.5 w-3.5" /> Approved
             </span>
+          )}
+          {canApprove && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-10 text-xs text-destructive hover:text-destructive hover:bg-destructive/10"
+              onClick={() => onDelete(agent)}
+            >
+              <Trash2 className="h-3.5 w-3.5 mr-1" /> Delete
+            </Button>
           )}
         </div>
       </CardContent>
