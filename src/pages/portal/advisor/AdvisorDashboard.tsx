@@ -259,7 +259,7 @@ export default function AdvisorDashboard() {
             ) : recentClients.length === 0 ? (
               <p className="text-sm text-gray-400 text-center py-4">No clients yet</p>
             ) : recentClients.map((c) => (
-              <Link key={c.id} to={`/portal/advisor/clients/${c.id}`}>
+              <Link key={c.id} to="/portal/advisor/clients">
                 <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 transition-colors">
                   {c.avatar_url ? (
                     <img src={c.avatar_url} alt={c.first_name} className="h-9 w-9 rounded-full object-cover" />
