@@ -1,7 +1,8 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useContractingAuth } from "@/hooks/useContractingAuth";
 import { MessageSquare, Send, Search, Plus } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { format } from "date-fns";
@@ -53,13 +54,58 @@ export default function ContractingMessages() {
   const [agentOptions, setAgentOptions] = useState<AgentOption[]>([]);
   const bottomRef = useRef<HTMLDivElement>(null);
 
-  const myAgentId = contractingAgent?.id;
+  const [provisionedAgentId, setProvisionedAgentId] = useState<string | null>(null);
+  const myAgentId = contractingAgent?.id ?? provisionedAgentId;
   const isAdmin = contractingRole === "admin" || contractingRole === "contracting";
   const isManagerOnly = contractingRole === "manager" && !isAdmin;
 
+  // Auto-provision contracting_agents row for admin users who don't have one
   useEffect(() => {
-    if (!authLoading) fetchThreads();
-  }, [authLoading]);
+    if (authLoading || contractingAgent || !portalUser || !isAdmin) return;
+    
+    const session = supabase.auth.getSession();
+    session.then(async ({ data: { session: s } }) => {
+      if (!s?.user) return;
+      try {
+        const { data: existing } = await supabase
+          .from("contracting_agents")
+          .select("id")
+          .eq("auth_user_id", s.user.id)
+          .maybeSingle();
+
+        if (existing) {
+          setProvisionedAgentId(existing.id);
+          return;
+        }
+
+        const { data: inserted, error } = await supabase
+          .from("contracting_agents")
+          .insert({
+            auth_user_id: s.user.id,
+            first_name: portalUser.first_name || "Admin",
+            last_name: portalUser.last_name || "",
+            email: portalUser.email || s.user.email || "",
+            contracting_role: "admin",
+            pipeline_stage: "completed",
+            status: "active",
+          })
+          .select("id")
+          .single();
+
+        if (error) {
+          console.error("Auto-provision contracting agent failed:", error);
+        } else if (inserted) {
+          setProvisionedAgentId(inserted.id);
+        }
+      } catch (err) {
+        console.error("Auto-provision error:", err);
+      }
+    });
+  }, [authLoading, contractingAgent, portalUser, isAdmin]);
+
+  useEffect(() => {
+    if (!authLoading && (contractingAgent || provisionedAgentId || !isAdmin)) fetchThreads();
+  }, [authLoading, contractingAgent, provisionedAgentId]);
 
   useEffect(() => {
     if (selectedThread) fetchMessages(selectedThread);
@@ -245,7 +291,11 @@ export default function ContractingMessages() {
   }
 
   async function handleSend() {
-    if (!newMessage.trim() || !selectedThread || !myAgentId) return;
+    if (!newMessage.trim() || !selectedThread) return;
+    if (!myAgentId) {
+      toast({ title: "Unable to send", description: "Your messaging identity could not be resolved. Please refresh the page.", variant: "destructive" });
+      return;
+    }
     setSending(true);
     try {
       const { error } = await supabase.from("contracting_messages").insert({
@@ -256,6 +306,7 @@ export default function ContractingMessages() {
 
       if (error) {
         console.error("Insert error:", error);
+        toast({ title: "Message failed", description: error.message || "Could not send message. Please try again.", variant: "destructive" });
         setSending(false);
         return;
       }
