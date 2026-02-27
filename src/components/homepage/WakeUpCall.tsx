@@ -51,13 +51,17 @@ export const WakeUpCall: React.FC = () => {
 
   return (
     <section className="relative py-20 md:py-28 px-4 md:px-8 bg-white overflow-hidden">
-      {/* Animated grid pattern background */}
-      <div className="absolute inset-0 opacity-[0.03] pointer-events-none"
+      {/* Subtle micro-dot pattern */}
+      <div className="absolute inset-0 pointer-events-none"
         style={{
-          backgroundImage: 'linear-gradient(hsl(var(--primary)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--primary)) 1px, transparent 1px)',
-          backgroundSize: '60px 60px',
+          backgroundImage: 'radial-gradient(circle, hsl(160 48% 30% / 0.04) 1px, transparent 1px)',
+          backgroundSize: '24px 24px',
         }}
       />
+      {/* Soft radial glow accents */}
+      <div className="absolute top-0 right-0 w-[600px] h-[600px] rounded-full pointer-events-none" style={{ background: 'radial-gradient(circle, hsl(160 48% 30% / 0.03) 0%, transparent 70%)' }} />
+      <div className="absolute bottom-0 left-0 w-[500px] h-[500px] rounded-full pointer-events-none" style={{ background: 'radial-gradient(circle, hsl(43 56% 57% / 0.03) 0%, transparent 70%)' }} />
+
 
       <div className="max-w-6xl mx-auto relative z-10">
         <motion.div
@@ -93,11 +97,13 @@ export const WakeUpCall: React.FC = () => {
             </p>
 
             {/* Glassmorphic quote card */}
-            <div className="relative bg-evergreen text-white rounded-3xl p-8 md:p-10 group hover:scale-[1.01] transition-transform duration-500">
+            <div className="relative bg-evergreen text-white rounded-3xl p-8 md:p-10 group hover:scale-[1.02] transition-transform duration-500 overflow-hidden">
               {/* Inner glow border */}
               <div className="absolute inset-0 rounded-3xl border border-white/10" />
-              <div className="absolute top-0 left-[10%] right-[10%] h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
-              
+              <div className="absolute top-0 left-[10%] right-[10%] h-px bg-gradient-to-r from-transparent via-[hsl(43_56%_57%/0.4)] to-transparent" />
+              {/* Shimmer sweep */}
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.03] to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 pointer-events-none" />
+
               <p className="text-xl md:text-2xl font-serif italic leading-relaxed mb-4 relative z-10" dangerouslySetInnerHTML={{ __html: `"${w.quote}"` }} />
               <p className="text-primary/60 text-sm font-space relative z-10">{w.quoteAuthor}</p>
             </div>
@@ -146,10 +152,12 @@ export const WakeUpCall: React.FC = () => {
               onMouseLeave={() => setBtnPos({ x: 0, y: 0 })}
               animate={{ x: btnPos.x, y: btnPos.y }}
               transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-              className="relative inline-flex items-center gap-2 px-6 py-3 bg-evergreen text-white font-space font-semibold text-sm rounded-xl overflow-hidden group"
+              className="relative inline-flex items-center gap-2 px-7 py-3.5 bg-evergreen text-white font-space font-semibold text-sm rounded-xl overflow-hidden group"
+              style={{ boxShadow: '0 4px 20px rgba(26,77,62,0.3)' }}
+              onMouseEnter={e => (e.currentTarget.style.boxShadow = '0 8px 30px rgba(26,77,62,0.4), 0 0 0 1px hsl(43 56% 57% / 0.2)')}
             >
               {/* Gold shimmer on hover */}
-              <span className="absolute inset-0 bg-gradient-to-r from-transparent via-[hsl(43_56%_57%/0.15)] to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
+              <span className="absolute inset-0 bg-gradient-to-r from-transparent via-[hsl(43_56%_57%/0.12)] to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
               <span className="relative z-10 flex items-center gap-2">
                 {w.cta} <ChevronRight className="w-4 h-4" />
               </span>

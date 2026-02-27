@@ -15,8 +15,19 @@ export const Services: React.FC = () => {
   const images = useHomepageImages();
 
   return (
-    <section className="py-20 md:py-28 px-4 md:px-8 bg-white">
-      <div className="max-w-6xl mx-auto">
+    <section className="relative py-20 md:py-28 px-4 md:px-8 bg-white overflow-hidden">
+      {/* Subtle micro-dot pattern */}
+      <div className="absolute inset-0 pointer-events-none"
+        style={{
+          backgroundImage: 'radial-gradient(circle, hsl(160 48% 30% / 0.04) 1px, transparent 1px)',
+          backgroundSize: '24px 24px',
+        }}
+      />
+      {/* Soft radial glow accents */}
+      <div className="absolute top-[10%] left-[5%] w-[500px] h-[500px] rounded-full pointer-events-none" style={{ background: 'radial-gradient(circle, hsl(160 48% 30% / 0.03) 0%, transparent 70%)' }} />
+      <div className="absolute bottom-[10%] right-[5%] w-[400px] h-[400px] rounded-full pointer-events-none" style={{ background: 'radial-gradient(circle, hsl(43 56% 57% / 0.025) 0%, transparent 70%)' }} />
+
+      <div className="max-w-6xl mx-auto relative z-10">
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -62,24 +73,30 @@ export const Services: React.FC = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: idx * 0.12, ease: [0.16, 1, 0.3, 1] }}
-                className="group relative bg-[hsl(160_80%_2%)] text-white rounded-3xl p-8 overflow-hidden hover:-translate-y-1 transition-transform duration-300"
+                className="group relative bg-[hsl(160_80%_2%)] text-white rounded-3xl p-8 overflow-hidden hover:-translate-y-2 transition-all duration-500"
+                style={{
+                  boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.boxShadow = '0 8px 40px rgba(26,77,62,0.3), 0 0 0 1px hsl(43 56% 57% / 0.15)')}
+                onMouseLeave={(e) => (e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.15)')}
               >
                 {/* Inner top glow */}
                 <div className="absolute top-0 left-[10%] right-[10%] h-px bg-gradient-to-r from-transparent via-white/15 to-transparent" />
-                
-                {/* Gradient sweep on hover */}
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.03] to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 pointer-events-none" />
 
-                {/* Icon with gradient ring + pulse */}
+                {/* Gradient sweep on hover */}
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.04] to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 pointer-events-none" />
+
+                {/* Icon with gradient ring + pulse glow */}
                 <motion.div
-                  className="w-12 h-12 rounded-2xl flex items-center justify-center mb-6 relative"
+                  className="w-14 h-14 rounded-2xl flex items-center justify-center mb-6 relative"
                   style={{ background: 'linear-gradient(135deg, hsl(var(--primary) / 0.2), hsl(var(--primary) / 0.05))' }}
                   whileInView={{ scale: [0.8, 1.1, 1] }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.6, delay: 0.2 + idx * 0.1 }}
                 >
-                  <div className="absolute inset-0 rounded-2xl border border-primary/30" />
-                  <Icon className="w-6 h-6 text-primary relative z-10" />
+                  <div className="absolute inset-0 rounded-2xl border border-primary/30 group-hover:border-primary/50 transition-colors duration-300" />
+                  <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" style={{ boxShadow: '0 0 20px hsl(var(--primary) / 0.3)' }} />
+                  <Icon className="w-7 h-7 text-primary relative z-10" />
                 </motion.div>
 
                 <h3 className="text-xl font-space font-bold text-white mb-3">{service.title}</h3>

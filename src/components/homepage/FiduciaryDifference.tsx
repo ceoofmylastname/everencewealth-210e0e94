@@ -24,16 +24,28 @@ function GlowCard({ children, index }: { children: React.ReactNode; index: numbe
       {hovering && (
         <div className="absolute -inset-3 rounded-[32px] bg-primary/10 blur-2xl transition-opacity pointer-events-none" />
       )}
-      
-      <div className={`relative bg-white/[0.06] backdrop-blur-xl border border-white/10 rounded-3xl p-8 transition-transform duration-300 ${hovering ? '-translate-y-1' : ''}`}>
-        {/* Inner top glow line */}
+
+      <div className={`relative bg-white/[0.06] backdrop-blur-xl border border-white/10 rounded-3xl p-8 overflow-hidden transition-all duration-500 ${hovering ? '-translate-y-2 border-white/20' : ''}`}>
+        {/* Animated gold gradient top bar */}
+        <div className={`absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[hsl(43_56%_57%)] to-transparent transition-opacity duration-500 ${hovering ? 'opacity-100' : 'opacity-0'}`} />
+        {/* Inner top glow line (default) */}
         <div className="absolute top-0 left-[10%] right-[10%] h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
-        
-        {/* Watermark number */}
-        <span className="absolute top-4 right-6 text-7xl font-space font-bold text-white/[0.03] select-none pointer-events-none">
+
+        {/* Gradient watermark number */}
+        <span
+          className="absolute top-4 right-6 text-7xl font-space font-bold select-none pointer-events-none"
+          style={{
+            background: hovering
+              ? 'linear-gradient(135deg, hsl(43 56% 57% / 0.12), hsl(160 48% 40% / 0.08))'
+              : 'linear-gradient(135deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01))',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            transition: 'all 0.5s ease',
+          }}
+        >
           {watermark}
         </span>
-        
+
         {children}
       </div>
     </motion.div>

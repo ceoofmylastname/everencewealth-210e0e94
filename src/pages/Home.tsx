@@ -24,7 +24,7 @@ function Home() {
       <ScrollProgressBar />
       <Header />
       <CursorGlow />
-      <main className="flex-grow mx-2 md:mx-4 lg:mx-6 space-y-4 md:space-y-6 py-4 md:py-6">
+      <main className="flex-grow mx-2 md:mx-4 lg:mx-6 space-y-2 md:space-y-3 py-2 md:py-3">
         <div className={sectionClass}><Hero /></div>
         <div className={sectionClass}><WakeUpCall /></div>
         <div className={sectionClass}><StackingCards /></div>
@@ -39,7 +39,7 @@ function Home() {
         <div className={sectionClass}><BlogPreview /></div>
         <div className={sectionClass}><CTA /></div>
       </main>
-      <div className="mx-2 md:mx-4 lg:mx-6 mb-4 md:mb-6 rounded-3xl overflow-hidden">
+      <div className="mx-2 md:mx-4 lg:mx-6 mb-2 md:mb-3 rounded-3xl overflow-hidden">
         <Footer />
       </div>
     </div>
@@ -47,3 +47,4 @@ function Home() {
 }
 
 export default Home;
+

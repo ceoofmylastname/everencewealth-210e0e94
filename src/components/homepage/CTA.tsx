@@ -101,13 +101,14 @@ export const CTA: React.FC = () => {
             <span className="relative z-10">{c.primaryCta}</span>
           </motion.button>
 
-          {/* Secondary CTA with glass + animated border */}
+          {/* Secondary CTA with glass + animated border + shimmer */}
           <a
             href="tel:+14155551234"
-            className="relative inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full bg-white/[0.06] backdrop-blur-xl border border-white/20 text-white font-semibold text-lg hover:bg-white/10 hover:border-white/30 transition-all"
+            className="group/sec relative inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full bg-white/[0.06] backdrop-blur-xl border border-white/20 text-white font-semibold text-lg hover:bg-white/10 hover:border-white/30 transition-all overflow-hidden"
           >
-            <Phone className="w-5 h-5" />
-            {c.secondaryCta}
+            <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.06] to-transparent translate-x-[-100%] group-hover/sec:translate-x-[100%] transition-transform duration-700 pointer-events-none" />
+            <Phone className="w-5 h-5 relative z-10" />
+            <span className="relative z-10">{c.secondaryCta}</span>
           </a>
         </motion.div>
       </div>

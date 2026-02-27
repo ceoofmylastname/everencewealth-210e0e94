@@ -22,8 +22,10 @@ const rightVariants = {
 const factIcons = [Calendar, Users, Building2, MapPin];
 
 function FactCounter({ value }: { value: string }) {
-  const num = parseInt(value.replace(/[^0-9]/g, ''), 10);
-  const suffix = value.replace(/[0-9,]/g, '');
+  // If value starts with letters (e.g. "Since 1998", "Fiduciary"), don't animate — show as-is
+  const startsWithText = /^[a-zA-Z]/.test(value.trim());
+  const num = startsWithText ? NaN : parseInt(value.replace(/[^0-9]/g, ''), 10);
+  const suffix = startsWithText ? '' : value.replace(/[0-9,]/g, '');
   const [count, setCount] = useState(0);
   const ref = useRef<HTMLSpanElement>(null);
   const hasAnimated = useRef(false);
@@ -68,6 +70,15 @@ export function HomepageAbout() {
     <section ref={sectionRef} className="relative bg-[#F0F2F1] py-20 md:py-28 px-4 md:px-8 overflow-hidden">
       {/* Subtle warm gradient overlay */}
       <div className="absolute inset-0 bg-gradient-to-br from-[#F0F2F1] via-[#F5F0EB] to-[#F0F2F1] pointer-events-none" />
+      {/* Micro-dot pattern */}
+      <div className="absolute inset-0 pointer-events-none"
+        style={{
+          backgroundImage: 'radial-gradient(circle, hsl(160 48% 30% / 0.03) 1px, transparent 1px)',
+          backgroundSize: '24px 24px',
+        }}
+      />
+      {/* Soft glow accents */}
+      <div className="absolute top-[20%] right-[10%] w-[400px] h-[400px] rounded-full pointer-events-none" style={{ background: 'radial-gradient(circle, hsl(43 56% 57% / 0.04) 0%, transparent 70%)' }} />
 
       <motion.div
         className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center relative z-10"
@@ -129,11 +140,12 @@ export function HomepageAbout() {
           )}
 
           {/* Enhanced glassmorphic testimonial */}
-          <div className="absolute bottom-4 left-4 right-4 bg-white/70 backdrop-blur-xl rounded-xl p-5 shadow-lg border-l-4 border-[hsl(43_56%_57%)]">
-            <p className="italic font-serif text-slate-700 text-sm leading-relaxed mb-2">
+          <div className="absolute bottom-4 left-4 right-4 bg-[#1A4D3E]/85 backdrop-blur-xl rounded-xl p-5 shadow-lg border border-white/10">
+            <div className="absolute top-0 left-6 right-6 h-px bg-gradient-to-r from-transparent via-[hsl(43_56%_57%/0.4)] to-transparent" />
+            <p className="italic font-serif text-white/90 text-sm leading-relaxed mb-2">
               "{ha.testimonial}"
             </p>
-            <span className="text-xs text-slate-500">{ha.testimonialAuthor}</span>
+            <span className="text-xs text-[hsl(43_56%_57%/0.7)]">{ha.testimonialAuthor}</span>
           </div>
         </motion.div>
       </motion.div>
