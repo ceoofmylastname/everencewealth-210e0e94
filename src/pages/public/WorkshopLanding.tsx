@@ -8,7 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { z } from "zod";
 import { toast } from "sonner";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useMotionValue, useTransform, useSpring } from "framer-motion";
 import {
   Check,
   Mail,
@@ -22,8 +22,46 @@ import {
   Loader2,
   ChevronDown,
   Sparkles,
+  Star,
+  ArrowRight,
 } from "lucide-react";
 import workshopHeroBg from "@/assets/workshop-hero-bg.jpg";
+
+// ── Inline keyframes for workshop page ──
+const workshopStyles = `
+@keyframes ws-gradient-flow {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+@keyframes ws-float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  33% { transform: translateY(-12px) rotate(1deg); }
+  66% { transform: translateY(-6px) rotate(-1deg); }
+}
+@keyframes ws-float-slow {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-20px); }
+}
+@keyframes ws-pulse-glow {
+  0%, 100% { box-shadow: 0 0 20px rgba(237,219,119,0.15); }
+  50% { box-shadow: 0 0 40px rgba(237,219,119,0.35), 0 0 80px rgba(237,219,119,0.1); }
+}
+@keyframes ws-shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+@keyframes ws-orb-drift {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  25% { transform: translate(30px, -20px) scale(1.05); }
+  50% { transform: translate(-10px, -35px) scale(0.95); }
+  75% { transform: translate(-25px, -10px) scale(1.02); }
+}
+@keyframes ws-text-gradient {
+  0% { background-position: 0% center; }
+  100% { background-position: 200% center; }
+}
+`;
 
 // ── Zod schema ──
 const registrationSchema = z.object({
@@ -36,118 +74,127 @@ type RegistrationData = z.infer<typeof registrationSchema>;
 
 // ── Animation Variants ──
 const fadeUp = {
-  hidden: { opacity: 0, y: 30 },
+  hidden: { opacity: 0, y: 40 },
   visible: { opacity: 1, y: 0 },
 };
-
 const fadeRight = {
-  hidden: { opacity: 0, x: 40 },
+  hidden: { opacity: 0, x: 60 },
   visible: { opacity: 1, x: 0 },
 };
-
 const fadeLeft = {
-  hidden: { opacity: 0, x: -40 },
+  hidden: { opacity: 0, x: -60 },
   visible: { opacity: 1, x: 0 },
 };
-
 const scaleIn = {
-  hidden: { opacity: 0, scale: 0.9 },
+  hidden: { opacity: 0, scale: 0.85 },
   visible: { opacity: 1, scale: 1 },
 };
-
 const staggerContainer = {
   hidden: {},
-  visible: { transition: { staggerChildren: 0.1, delayChildren: 0.2 } },
+  visible: { transition: { staggerChildren: 0.12, delayChildren: 0.15 } },
+};
+const fadeUpSpring = {
+  hidden: { opacity: 0, y: 50 },
+  visible: { opacity: 1, y: 0, transition: { type: "spring" as const, stiffness: 80, damping: 18 } },
+};
+const scaleUpRotate = {
+  hidden: { opacity: 0, scale: 0.7, rotate: -5 },
+  visible: { opacity: 1, scale: 1, rotate: 0, transition: { type: "spring" as const, stiffness: 120, damping: 14 } },
 };
 
-const cardShadow = "shadow-[0_8px_30px_-4px_rgba(26,77,62,0.15)]";
-const cardHoverShadow = "hover:shadow-[0_16px_40px_-4px_rgba(26,77,62,0.25)]";
+// ── Floating Orb Background ──
+function FloatingOrbs() {
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      <div className="absolute -top-32 -right-32 w-[500px] h-[500px] rounded-full opacity-[0.07]"
+        style={{ background: "radial-gradient(circle, #EDDB77, transparent 70%)", animation: "ws-orb-drift 15s ease-in-out infinite" }} />
+      <div className="absolute top-1/2 -left-40 w-[400px] h-[400px] rounded-full opacity-[0.05]"
+        style={{ background: "radial-gradient(circle, #56B4A0, transparent 70%)", animation: "ws-orb-drift 20s ease-in-out infinite reverse" }} />
+      <div className="absolute -bottom-20 right-1/4 w-[300px] h-[300px] rounded-full opacity-[0.04]"
+        style={{ background: "radial-gradient(circle, #EDDB77, transparent 70%)", animation: "ws-orb-drift 18s ease-in-out infinite 3s" }} />
+    </div>
+  );
+}
+
+// ── Glassmorphism Card wrapper ──
+function GlassCard({ children, className = "", style = {} }: { children: React.ReactNode; className?: string; style?: React.CSSProperties }) {
+  return (
+    <div className={`relative overflow-hidden ${className}`}
+      style={{
+        background: "rgba(255,255,255,0.03)",
+        backdropFilter: "blur(20px)",
+        WebkitBackdropFilter: "blur(20px)",
+        border: "1px solid rgba(255,255,255,0.08)",
+        ...style,
+      }}>
+      {/* Shimmer overlay */}
+      <div className="absolute inset-0 pointer-events-none"
+        style={{ background: "linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.03) 45%, rgba(255,255,255,0.05) 50%, rgba(255,255,255,0.03) 55%, transparent 60%)", animation: "ws-shimmer 8s ease-in-out infinite" }} />
+      <div className="relative z-10">{children}</div>
+    </div>
+  );
+}
+
+// ── 3D Tilt Card ──
+function TiltCard({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+  const rotateX = useSpring(useTransform(y, [-0.5, 0.5], [8, -8]), { stiffness: 300, damping: 30 });
+  const rotateY = useSpring(useTransform(x, [-0.5, 0.5], [-8, 8]), { stiffness: 300, damping: 30 });
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    x.set((e.clientX - rect.left) / rect.width - 0.5);
+    y.set((e.clientY - rect.top) / rect.height - 0.5);
+  };
+  const handleMouseLeave = () => { x.set(0); y.set(0); };
+
+  return (
+    <motion.div className={className} style={{ rotateX, rotateY, transformStyle: "preserve-3d", perspective: 1000 }}
+      onMouseMove={handleMouseMove} onMouseLeave={handleMouseLeave}>
+      {children}
+    </motion.div>
+  );
+}
 
 // ── Success Confetti Component ──
 function SuccessConfetti() {
   useEffect(() => {
-    const duration = 2500;
+    const duration = 3000;
     const end = Date.now() + duration;
-
     const frame = () => {
-      // Left side burst
-      confetti({
-        particleCount: 3,
-        angle: 60,
-        spread: 55,
-        origin: { x: 0, y: 0.6 },
-        colors: ["#EDDB77", "#10B981", "#1A4D3E", "#FFD700", "#ffffff"],
-      });
-      // Right side burst
-      confetti({
-        particleCount: 3,
-        angle: 120,
-        spread: 55,
-        origin: { x: 1, y: 0.6 },
-        colors: ["#EDDB77", "#10B981", "#1A4D3E", "#FFD700", "#ffffff"],
-      });
-
+      confetti({ particleCount: 4, angle: 60, spread: 55, origin: { x: 0, y: 0.6 }, colors: ["#EDDB77", "#10B981", "#1A4D3E", "#FFD700", "#ffffff"] });
+      confetti({ particleCount: 4, angle: 120, spread: 55, origin: { x: 1, y: 0.6 }, colors: ["#EDDB77", "#10B981", "#1A4D3E", "#FFD700", "#ffffff"] });
       if (Date.now() < end) requestAnimationFrame(frame);
     };
     frame();
   }, []);
 
   return (
-    <motion.div
-      key="success"
-      initial={{ opacity: 0, scale: 0.8 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ type: "spring", stiffness: 150, damping: 15 }}
-      className="text-center py-10 px-4"
-    >
-      <motion.div
-        initial={{ scale: 0, rotate: -180 }}
-        animate={{ scale: 1, rotate: 0 }}
+    <motion.div key="success" initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0 }} transition={{ type: "spring", stiffness: 150, damping: 15 }} className="text-center py-10 px-4">
+      <motion.div initial={{ scale: 0, rotate: -180 }} animate={{ scale: 1, rotate: 0 }}
         transition={{ type: "spring", stiffness: 200, delay: 0.15 }}
-        className="w-24 h-24 mx-auto mb-6 flex items-center justify-center rounded-full relative"
-        style={{ background: "linear-gradient(135deg, #10B981, #059669)" }}
-      >
-        <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: [0, 1.3, 1] }}
-          transition={{ duration: 0.5, delay: 0.4 }}
-        >
-          <Check className="w-12 h-12 text-white" strokeWidth={3} />
+        className="w-28 h-28 mx-auto mb-6 flex items-center justify-center rounded-full relative"
+        style={{ background: "linear-gradient(135deg, #10B981, #059669)", boxShadow: "0 0 40px rgba(16,185,129,0.3)" }}>
+        <motion.div initial={{ scale: 0 }} animate={{ scale: [0, 1.3, 1] }} transition={{ duration: 0.5, delay: 0.4 }}>
+          <Check className="w-14 h-14 text-white" strokeWidth={3} />
         </motion.div>
-        <motion.div
-          className="absolute inset-0 rounded-full"
+        <motion.div className="absolute inset-0 rounded-full"
           initial={{ boxShadow: "0 0 0 0 rgba(16, 185, 129, 0.6)" }}
-          animate={{ boxShadow: "0 0 0 20px rgba(16, 185, 129, 0)" }}
-          transition={{ duration: 1, delay: 0.3 }}
-        />
+          animate={{ boxShadow: "0 0 0 24px rgba(16, 185, 129, 0)" }}
+          transition={{ duration: 1.2, delay: 0.3 }} />
       </motion.div>
-
-      <motion.h3
-        initial={{ opacity: 0, y: 15 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
-        className="text-2xl sm:text-3xl font-bold mb-2"
-        style={{ color: "#1A4D3E" }}
-      >
+      <motion.h3 initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
+        className="text-2xl sm:text-3xl font-bold mb-2" style={{ color: "#1A4D3E" }}>
         Congratulations! 🎉
       </motion.h3>
-      <motion.p
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.45 }}
-        className="text-base sm:text-lg mb-1 font-medium"
-        style={{ color: "#1A4D3E" }}
-      >
+      <motion.p initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.45 }}
+        className="text-base sm:text-lg mb-1 font-medium" style={{ color: "#1A4D3E" }}>
         You're all set!
       </motion.p>
-      <motion.p
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.6 }}
-        className="text-sm"
-        style={{ color: "#4A5565" }}
-      >
+      <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }}
+        className="text-sm" style={{ color: "#4A5565" }}>
         Check your email for confirmation details and a calendar invite.
       </motion.p>
     </motion.div>
@@ -335,8 +382,13 @@ const WorkshopLanding: React.FC = () => {
   // No upcoming workshops
   if (!workshops || workshops.length === 0) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: "linear-gradient(135deg, #1A4D3E 0%, #0F2F27 100%)", fontFamily: "GeistSans, system-ui, sans-serif" }}>
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center max-w-md px-6">
+      <div className="min-h-screen flex items-center justify-center" style={{ background: "linear-gradient(135deg, #1A4D3E 0%, #0F2F27 100%)", fontFamily: "'Inter', GeistSans, system-ui, sans-serif" }}>
+        <style>{workshopStyles}</style>
+        <FloatingOrbs />
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center max-w-md px-6 relative z-10">
+          <div className="w-20 h-20 mx-auto mb-6 rounded-2xl flex items-center justify-center" style={{ background: "rgba(237,219,119,0.1)", border: "1px solid rgba(237,219,119,0.2)", animation: "ws-float-slow 6s ease-in-out infinite" }}>
+            <Calendar className="w-10 h-10" style={{ color: "#EDDB77" }} />
+          </div>
           <h1 className="text-3xl font-bold mb-4 text-white">No Upcoming Workshops</h1>
           <p className="text-lg mb-2 text-white/70">
             {advisor.first_name} {advisor.last_name} doesn't have any upcoming workshops scheduled.
@@ -372,7 +424,6 @@ const WorkshopLanding: React.FC = () => {
     }
   })();
   const workshopDuration = (workshop as any)?.duration_minutes ?? 60;
-  // Headline and subheadline are hardcoded for brand consistency
 
   return (
     <>
@@ -387,42 +438,35 @@ const WorkshopLanding: React.FC = () => {
           property="og:description"
           content={`Join ${advisorName} for a complimentary workshop on building tax-free retirement wealth.`}
         />
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
       </Helmet>
 
-      <div className="min-h-screen bg-white" style={{ fontFamily: "GeistSans, system-ui, sans-serif" }}>
-        
-        {/* ── HERO SECTION ── */}
-        <section className="relative overflow-hidden" style={{ background: "linear-gradient(135deg, #1A4D3E 0%, #0F2F27 100%)" }}>
-          {/* Background image overlay */}
-          <div
-            className="absolute inset-0 opacity-20"
-            style={{
-              backgroundImage: `url(${workshopHeroBg})`,
-              backgroundSize: "cover",
-              backgroundPosition: "center",
-              mixBlendMode: "overlay",
-            }}
-          />
-          {/* Gradient overlay for text readability */}
-          <div className="absolute inset-0 bg-gradient-to-r from-[#1A4D3E]/90 via-[#1A4D3E]/70 to-transparent" />
+      {/* Inject workshop-specific keyframes */}
+      <style>{workshopStyles}</style>
 
-          <div className="relative z-10">
+      <div className="min-h-screen bg-white" style={{ fontFamily: "'Inter', GeistSans, system-ui, sans-serif" }}>
+
+        {/* ── HERO SECTION ── */}
+        <section className="relative overflow-hidden min-h-[100vh] flex flex-col" style={{ background: "linear-gradient(160deg, #0F2F27 0%, #1A4D3E 40%, #153D32 70%, #0F2F27 100%)" }}>
+          {/* Background image overlay */}
+          <div className="absolute inset-0 opacity-15" style={{ backgroundImage: `url(${workshopHeroBg})`, backgroundSize: "cover", backgroundPosition: "center", mixBlendMode: "overlay" }} />
+          {/* Gradient overlay for depth */}
+          <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse at 30% 20%, rgba(26,77,62,0.4) 0%, transparent 50%), radial-gradient(ellipse at 80% 80%, rgba(15,47,39,0.6) 0%, transparent 50%)" }} />
+          {/* Floating orbs */}
+          <FloatingOrbs />
+          {/* Mesh gradient accent */}
+          <div className="absolute top-0 left-0 right-0 h-[2px]" style={{ background: "linear-gradient(90deg, transparent, #EDDB77, #56B4A0, #EDDB77, transparent)" }} />
+
+          <div className="relative z-10 flex-1 flex flex-col">
             {/* Header */}
-            <header className="border-b border-white/10">
+            <header className="border-b border-white/[0.06]" style={{ backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)", background: "rgba(15,47,39,0.3)" }}>
               <div className="max-w-[1200px] mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
-                <img
-                  src="https://everencewealth-beta.vercel.app/logo-icon.png"
-                  alt="Everence Wealth logo"
-                  className="h-10 sm:h-12 brightness-0 invert"
-                />
+                <img src="https://everencewealth-beta.vercel.app/logo-icon.png" alt="Everence Wealth logo" className="h-10 sm:h-12 brightness-0 invert drop-shadow-[0_0_10px_rgba(255,255,255,0.1)]" />
                 {seatsRemaining !== null && seatsRemaining > 0 && seatsRemaining <= 15 && (
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold"
-                    style={{ background: "rgba(220, 38, 38, 0.2)", color: "#FCA5A5" }}
-                  >
-                    <Sparkles className="w-3 h-3" />
+                  <motion.div initial={{ opacity: 0, scale: 0.8, x: 20 }} animate={{ opacity: 1, scale: 1, x: 0 }}
+                    className="flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold tracking-wide"
+                    style={{ background: "linear-gradient(135deg, rgba(220,38,38,0.2), rgba(220,38,38,0.1))", color: "#FCA5A5", border: "1px solid rgba(220,38,38,0.2)", backdropFilter: "blur(8px)" }}>
+                    <span className="relative flex h-2 w-2"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" /><span className="relative inline-flex rounded-full h-2 w-2 bg-red-400" /></span>
                     {seatsRemaining} spots left
                   </motion.div>
                 )}
@@ -430,311 +474,263 @@ const WorkshopLanding: React.FC = () => {
             </header>
 
             {/* Hero Content */}
-            <div className="max-w-[1200px] mx-auto px-4 sm:px-6 py-10 sm:py-16 lg:py-24">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-start">
-                
-                {/* Left: Hero text */}
-                <motion.div
-                  variants={staggerContainer}
-                  initial="hidden"
-                  animate="visible"
-                  className="overflow-hidden min-w-0"
-                >
-                  {/* Date badge */}
-                  <motion.div
-                    variants={fadeLeft}
-                    transition={{ type: "spring", stiffness: 100, damping: 15 }}
-                    className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-6"
-                    style={{ background: "rgba(255,255,255,0.1)", backdropFilter: "blur(8px)", border: "1px solid rgba(255,255,255,0.15)" }}
-                  >
-                    <Calendar className="w-4 h-4 text-[#EDDB77]" />
-                    <span className="text-sm font-medium text-white/90">{workshopDate}</span>
-                  </motion.div>
+            <div className="flex-1 flex items-center">
+              <div className="max-w-[1200px] mx-auto px-4 sm:px-6 py-10 sm:py-16 lg:py-20 w-full">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
 
-                  {/* Headline */}
-                  <motion.h1
-                    initial={{ opacity: 0, y: 30 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.7, ease: "easeOut" }}
-                    className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight mb-5 break-words text-white"
-                  >
-                    Build Your{" "}
-                    <span className="relative inline-block pb-1">Tax-Free<svg className="absolute -bottom-1 left-0 w-full" viewBox="0 0 200 12" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"><path d="M2 8.5C30 3 70 2 100 5.5C130 9 170 4 198 6" stroke="#EDDB77" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"/></svg></span>{" "}
-                    <span className="bg-clip-text text-transparent bg-[length:200%_auto] animate-[gradient-shift_3s_ease-in-out_infinite] bg-gradient-to-r from-[#EDDB77] via-white to-[#EDDB77]">Retirement</span>
-                  </motion.h1>
+                  {/* Left: Hero text */}
+                  <motion.div variants={staggerContainer} initial="hidden" animate="visible" className="overflow-hidden min-w-0">
+                    {/* Date badge with glow */}
+                    <motion.div variants={fadeLeft} transition={{ type: "spring", stiffness: 100, damping: 15 }}
+                      className="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-full mb-8"
+                      style={{ background: "rgba(255,255,255,0.06)", backdropFilter: "blur(12px)", border: "1px solid rgba(237,219,119,0.15)", boxShadow: "0 4px 24px -4px rgba(0,0,0,0.2)" }}>
+                      <Calendar className="w-4 h-4" style={{ color: "#EDDB77" }} />
+                      <span className="text-sm font-semibold text-white/90 tracking-wide">{workshopDate}</span>
+                    </motion.div>
 
-                  {/* Subheadline */}
-                  <motion.p
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6, ease: "easeOut", delay: 0.3 }}
-                    className="text-base sm:text-lg md:text-xl mb-8 text-white/70 max-w-lg"
-                  >
-                    Join a complimentary workshop and discover proven strategies to eliminate taxes, protect your wealth, and retire with confidence.
-                  </motion.p>
+                    {/* Animated Gradient Headline */}
+                    <motion.h1 initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+                      className="text-3xl sm:text-4xl md:text-5xl lg:text-[3.5rem] xl:text-[4rem] font-extrabold leading-[1.1] mb-6 break-words text-white tracking-tight">
+                      Build Your{" "}
+                      <span className="relative inline-block pb-1">
+                        Tax-Free
+                        <motion.svg className="absolute -bottom-1 left-0 w-full" viewBox="0 0 200 12" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"
+                          initial={{ pathLength: 0, opacity: 0 }} animate={{ pathLength: 1, opacity: 1 }} transition={{ duration: 1.2, delay: 0.8 }}>
+                          <motion.path d="M2 8.5C30 3 70 2 100 5.5C130 9 170 4 198 6" stroke="url(#underline-gradient)" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"
+                            initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 1.2, delay: 0.8 }} />
+                          <defs><linearGradient id="underline-gradient" x1="0" y1="0" x2="200" y2="0" gradientUnits="userSpaceOnUse"><stop stopColor="#EDDB77" /><stop offset="1" stopColor="#C4A84D" /></linearGradient></defs>
+                        </motion.svg>
+                      </span>{" "}
+                      <span className="inline-block" style={{ background: "linear-gradient(90deg, #EDDB77, #fff, #EDDB77, #C4A84D, #EDDB77)", backgroundSize: "300% auto", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", animation: "ws-text-gradient 4s linear infinite" }}>
+                        Retirement
+                      </span>
+                    </motion.h1>
 
-                  {/* Quick info pills */}
-                  <motion.div variants={fadeUp} transition={{ delay: 0.5 }} className="flex flex-wrap gap-3 mb-8">
-                    {[
-                      { icon: Clock, text: `${workshopTime} ${workshopTimezone}` },
-                      { icon: Monitor, text: "Live Online" },
-                      { icon: Clock, text: `${workshopDuration} min` },
-                    ].map(({ icon: Icon, text }) => (
-                      <div
-                        key={text}
-                        className="flex items-center gap-2 px-3 py-1.5 rounded-full text-sm"
-                        style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.1)" }}
-                      >
-                        <Icon className="w-3.5 h-3.5 text-[#EDDB77]" />
-                        <span className="text-white/80">{text}</span>
-                      </div>
-                    ))}
-                  </motion.div>
+                    {/* Subheadline */}
+                    <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1], delay: 0.35 }}
+                      className="text-base sm:text-lg md:text-xl mb-10 text-white/65 max-w-lg leading-relaxed font-light">
+                      Join a complimentary workshop and discover proven strategies to eliminate taxes, protect your wealth, and retire with confidence.
+                    </motion.p>
 
-                  {/* Advisor mini card in hero */}
-                  <motion.div
-                    variants={fadeUp}
-                    transition={{ delay: 0.6 }}
-                    className="flex items-center gap-4"
-                  >
-                    {advisor.photo_url ? (
-                      <div className="relative">
-                        <div className="w-14 h-14 rounded-full p-[2px]" style={{ background: "linear-gradient(135deg, #EDDB77, #C4A84D)" }}>
-                          <img
-                            src={advisor.photo_url}
-                            alt={`${advisorName}`}
-                            className="w-full h-full rounded-full object-cover"
-                          />
-                        </div>
-                      </div>
-                    ) : (
-                      <div
-                        className="w-14 h-14 rounded-full flex items-center justify-center text-lg font-bold text-white"
-                        style={{ background: "rgba(255,255,255,0.15)" }}
-                      >
-                        {advisor.first_name?.[0]}{advisor.last_name?.[0]}
-                      </div>
-                    )}
-                    <div>
-                      <p className="text-white font-semibold">{advisorName}</p>
-                      <p className="text-sm text-[#EDDB77]">{advisor.title || "Wealth Strategist"}</p>
-                    </div>
-                  </motion.div>
-                </motion.div>
-
-                {/* Right: Registration Form */}
-                <motion.div
-                  variants={fadeRight}
-                  initial="hidden"
-                  animate="visible"
-                  transition={{ type: "spring", stiffness: 80, damping: 20, delay: 0.3 }}
-                >
-                  <div
-                    className={`p-6 sm:p-8 rounded-2xl ${cardShadow} backdrop-blur-sm`}
-                    style={{
-                      background: "rgba(255,255,255,0.97)",
-                      border: "1px solid rgba(255,255,255,0.3)",
-                    }}
-                  >
-                    <AnimatePresence mode="wait">
-                      {submitted ? (
-                        <SuccessConfetti />
-                      ) : (
-                        <motion.div key="form" initial={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                          <h3 className="text-xl sm:text-2xl font-bold mb-1" style={{ color: "#1A4D3E" }}>
-                            Reserve Your Spot
-                          </h3>
-                          <p className="text-sm mb-6" style={{ color: "#4A5565" }}>
-                            Free · {workshopDuration} minutes · No obligation
-                          </p>
-
-                          {isFull && (
-                            <div className="p-4 mb-6 text-center rounded-xl" style={{ background: "#FEF2F2", border: "1px solid #FECACA", color: "#DC2626" }}>
-                              <strong>This workshop is full.</strong>
-                            </div>
-                          )}
-
-                          {/* Multiple workshops selector */}
-                          {workshops.length > 1 && (
-                            <div className="mb-5">
-                              <label className="block text-sm font-medium mb-1.5" style={{ color: "#1A4D3E" }}>
-                                Select a date:
-                              </label>
-                              <div className="relative">
-                                <select
-                                  value={selectedIdx}
-                                  onChange={(e) => { setSelectedIdx(Number(e.target.value)); setSubmitted(false); }}
-                                  className="w-full appearance-none px-4 py-3 text-base border rounded-xl bg-white pr-10 outline-none transition-all focus:ring-2 focus:ring-[#1A4D3E]/20 focus:border-[#1A4D3E]"
-                                  style={{ borderColor: "#E5E7EB", color: "#1A4D3E" }}
-                                >
-                                  {workshops.map((w: any, i: number) => (
-                                    <option key={w.id} value={i}>
-                                      {w.title} — {format(new Date(w.workshop_date + "T00:00:00"), "MMM d, yyyy")}
-                                    </option>
-                                  ))}
-                                </select>
-                                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 pointer-events-none" style={{ color: "#4A5565" }} />
-                              </div>
-                            </div>
-                          )}
-
-                          <form onSubmit={handleSubmit} className="space-y-4" noValidate>
-                            {/* First & Last Name side by side */}
-                            <div className="grid grid-cols-2 gap-3">
-                              <div>
-                                <label className="block text-sm font-medium mb-1.5" style={{ color: "#1A4D3E" }}>
-                                  First Name <span style={{ color: "#DC2626" }}>*</span>
-                                </label>
-                                <input
-                                  type="text"
-                                  value={form.first_name}
-                                  onChange={(e) => handleChange("first_name", e.target.value)}
-                                  disabled={isFull}
-                                  className="w-full px-4 py-3 text-base border rounded-xl outline-none transition-all focus:ring-2 focus:ring-[#1A4D3E]/20 focus:border-[#1A4D3E]"
-                                  style={{ borderColor: errors.first_name ? "#DC2626" : "#E5E7EB", color: "#1A4D3E" }}
-                                  aria-required="true"
-                                  aria-invalid={!!errors.first_name}
-                                />
-                                {errors.first_name && <p className="text-xs mt-1" style={{ color: "#DC2626" }} role="alert">{errors.first_name}</p>}
-                              </div>
-                              <div>
-                                <label className="block text-sm font-medium mb-1.5" style={{ color: "#1A4D3E" }}>
-                                  Last Name <span style={{ color: "#DC2626" }}>*</span>
-                                </label>
-                                <input
-                                  type="text"
-                                  value={form.last_name}
-                                  onChange={(e) => handleChange("last_name", e.target.value)}
-                                  disabled={isFull}
-                                  className="w-full px-4 py-3 text-base border rounded-xl outline-none transition-all focus:ring-2 focus:ring-[#1A4D3E]/20 focus:border-[#1A4D3E]"
-                                  style={{ borderColor: errors.last_name ? "#DC2626" : "#E5E7EB", color: "#1A4D3E" }}
-                                  aria-required="true"
-                                  aria-invalid={!!errors.last_name}
-                                />
-                                {errors.last_name && <p className="text-xs mt-1" style={{ color: "#DC2626" }} role="alert">{errors.last_name}</p>}
-                              </div>
-                            </div>
-
-                            {/* Email */}
-                            <div>
-                              <label className="block text-sm font-medium mb-1.5" style={{ color: "#1A4D3E" }}>
-                                Email <span style={{ color: "#DC2626" }}>*</span>
-                              </label>
-                              <input
-                                type="email"
-                                value={form.email}
-                                onChange={(e) => handleChange("email", e.target.value)}
-                                disabled={isFull}
-                                className="w-full px-4 py-3 text-base border rounded-xl outline-none transition-all focus:ring-2 focus:ring-[#1A4D3E]/20 focus:border-[#1A4D3E]"
-                                style={{ borderColor: errors.email ? "#DC2626" : "#E5E7EB", color: "#1A4D3E" }}
-                                aria-required="true"
-                                aria-invalid={!!errors.email}
-                              />
-                              {errors.email && <p className="text-xs mt-1" style={{ color: "#DC2626" }} role="alert">{errors.email}</p>}
-                            </div>
-
-                            {/* Phone */}
-                            <div>
-                              <label className="block text-sm font-medium mb-1.5" style={{ color: "#4A5565" }}>
-                                Phone <span className="text-xs" style={{ color: "#9CA3AF" }}>(optional)</span>
-                              </label>
-                              <input
-                                type="tel"
-                                value={form.phone}
-                                onChange={(e) => handleChange("phone", e.target.value)}
-                                disabled={isFull}
-                                className="w-full px-4 py-3 text-base border rounded-xl outline-none transition-all focus:ring-2 focus:ring-[#1A4D3E]/20 focus:border-[#1A4D3E]"
-                                style={{ borderColor: "#E5E7EB", color: "#1A4D3E" }}
-                              />
-                            </div>
-
-                            {/* Submit */}
-                            <motion.button
-                              type="submit"
-                              disabled={submitting || isFull || cooldown}
-                              whileHover={{ scale: 1.02 }}
-                              whileTap={{ scale: 0.98 }}
-                              className="w-full py-3.5 text-base sm:text-lg font-bold text-white rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                              style={{
-                                background: "linear-gradient(135deg, #1A4D3E, #0F2F27)",
-                                boxShadow: "0 4px 15px -3px rgba(26, 77, 62, 0.4)",
-                              }}
-                            >
-                              {submitting ? (
-                                <span className="flex items-center justify-center gap-2">
-                                  <Loader2 className="w-5 h-5 animate-spin" />
-                                  Registering…
-                                </span>
-                              ) : (
-                                "Reserve My Spot →"
-                              )}
-                            </motion.button>
-                          </form>
-
-                          <p className="text-xs text-center mt-4" style={{ color: "#9CA3AF" }}>
-                            🔒 Your information is secure and will never be shared.
-                          </p>
+                    {/* Quick info pills — premium glassmorphism */}
+                    <motion.div variants={fadeUp} transition={{ delay: 0.5 }} className="flex flex-wrap gap-3 mb-10">
+                      {[
+                        { icon: Clock, text: `${workshopTime} ${workshopTimezone}` },
+                        { icon: Monitor, text: "Live Online" },
+                        { icon: Clock, text: `${workshopDuration} min` },
+                      ].map(({ icon: Icon, text }, i) => (
+                        <motion.div key={text} whileHover={{ scale: 1.05, y: -2 }} transition={{ type: "spring", stiffness: 400 }}
+                          className="flex items-center gap-2 px-4 py-2 rounded-full text-sm cursor-default"
+                          style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)", backdropFilter: "blur(8px)", boxShadow: "0 2px 12px -2px rgba(0,0,0,0.15)" }}>
+                          <Icon className="w-3.5 h-3.5" style={{ color: "#EDDB77" }} />
+                          <span className="text-white/80 font-medium">{text}</span>
                         </motion.div>
+                      ))}
+                    </motion.div>
+
+                    {/* Advisor mini card — with pulsing glow */}
+                    <motion.div variants={fadeUp} transition={{ delay: 0.6 }}
+                      className="inline-flex items-center gap-4 px-5 py-3 rounded-2xl"
+                      style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", backdropFilter: "blur(8px)" }}>
+                      {advisor.photo_url ? (
+                        <div className="relative" style={{ animation: "ws-pulse-glow 3s ease-in-out infinite" }}>
+                          <div className="w-14 h-14 rounded-full p-[2px]" style={{ background: "linear-gradient(135deg, #EDDB77, #C4A84D)" }}>
+                            <img src={advisor.photo_url} alt={advisorName} className="w-full h-full rounded-full object-cover" />
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="w-14 h-14 rounded-full flex items-center justify-center text-lg font-bold text-white"
+                          style={{ background: "linear-gradient(135deg, rgba(237,219,119,0.2), rgba(196,168,77,0.1))", border: "1px solid rgba(237,219,119,0.3)" }}>
+                          {advisor.first_name?.[0]}{advisor.last_name?.[0]}
+                        </div>
                       )}
-                    </AnimatePresence>
-                  </div>
-                </motion.div>
+                      <div>
+                        <p className="text-white font-semibold text-[15px]">{advisorName}</p>
+                        <p className="text-sm font-medium" style={{ color: "#EDDB77" }}>{advisor.title || "Wealth Strategist"}</p>
+                      </div>
+                    </motion.div>
+                  </motion.div>
+
+                  {/* Right: 3D Registration Form Card */}
+                  <motion.div variants={fadeRight} initial="hidden" animate="visible"
+                    transition={{ type: "spring", stiffness: 60, damping: 18, delay: 0.4 }}>
+                    <TiltCard>
+                      <div className="relative p-6 sm:p-8 rounded-3xl overflow-hidden"
+                        style={{
+                          background: "rgba(255,255,255,0.97)",
+                          border: "1px solid rgba(255,255,255,0.4)",
+                          boxShadow: "0 25px 60px -12px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.1), inset 0 1px 0 rgba(255,255,255,0.6)",
+                        }}>
+                        {/* Top accent gradient bar */}
+                        <div className="absolute top-0 left-0 right-0 h-1 rounded-t-3xl" style={{ background: "linear-gradient(90deg, #1A4D3E, #EDDB77, #1A4D3E)", backgroundSize: "200% 100%", animation: "ws-gradient-flow 3s ease-in-out infinite" }} />
+
+                        <AnimatePresence mode="wait">
+                          {submitted ? (
+                            <SuccessConfetti />
+                          ) : (
+                            <motion.div key="form" initial={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                              <div className="flex items-center gap-3 mb-1">
+                                <h3 className="text-xl sm:text-2xl font-bold" style={{ color: "#1A4D3E" }}>Reserve Your Spot</h3>
+                                <div className="flex -space-x-1">
+                                  {[...Array(5)].map((_, i) => <Star key={i} className="w-3.5 h-3.5 fill-[#EDDB77] text-[#EDDB77]" />)}
+                                </div>
+                              </div>
+                              <p className="text-sm mb-6 flex items-center gap-2" style={{ color: "#64748B" }}>
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold tracking-wider uppercase" style={{ background: "rgba(16,185,129,0.1)", color: "#059669" }}>FREE</span>
+                                {workshopDuration} minutes · No obligation
+                              </p>
+
+                              {isFull && (
+                                <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
+                                  className="p-4 mb-6 text-center rounded-xl" style={{ background: "linear-gradient(135deg, #FEF2F2, #FFF5F5)", border: "1px solid #FECACA", color: "#DC2626" }}>
+                                  <strong>This workshop is full.</strong>
+                                </motion.div>
+                              )}
+
+                              {/* Multiple workshops selector */}
+                              {workshops.length > 1 && (
+                                <div className="mb-5">
+                                  <label className="block text-sm font-semibold mb-1.5" style={{ color: "#1A4D3E" }}>Select a date:</label>
+                                  <div className="relative">
+                                    <select value={selectedIdx} onChange={(e) => { setSelectedIdx(Number(e.target.value)); setSubmitted(false); }}
+                                      className="w-full appearance-none px-4 py-3 text-base border-2 rounded-xl bg-white pr-10 outline-none transition-all focus:ring-2 focus:ring-[#1A4D3E]/20 focus:border-[#1A4D3E]"
+                                      style={{ borderColor: "#E5E7EB", color: "#1A4D3E" }}>
+                                      {workshops.map((w: any, i: number) => (
+                                        <option key={w.id} value={i}>{w.title} — {format(new Date(w.workshop_date + "T00:00:00"), "MMM d, yyyy")}</option>
+                                      ))}
+                                    </select>
+                                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 pointer-events-none" style={{ color: "#4A5565" }} />
+                                  </div>
+                                </div>
+                              )}
+
+                              <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+                                <div className="grid grid-cols-2 gap-3">
+                                  <div>
+                                    <label className="block text-sm font-semibold mb-1.5" style={{ color: "#1A4D3E" }}>
+                                      First Name <span style={{ color: "#DC2626" }}>*</span>
+                                    </label>
+                                    <input type="text" value={form.first_name} onChange={(e) => handleChange("first_name", e.target.value)} disabled={isFull}
+                                      className="w-full px-4 py-3 text-base border-2 rounded-xl outline-none transition-all duration-200 focus:ring-2 focus:ring-[#1A4D3E]/20 focus:border-[#1A4D3E] hover:border-[#1A4D3E]/30"
+                                      style={{ borderColor: errors.first_name ? "#DC2626" : "#E5E7EB", color: "#1A4D3E" }} aria-required="true" aria-invalid={!!errors.first_name} />
+                                    {errors.first_name && <p className="text-xs mt-1" style={{ color: "#DC2626" }} role="alert">{errors.first_name}</p>}
+                                  </div>
+                                  <div>
+                                    <label className="block text-sm font-semibold mb-1.5" style={{ color: "#1A4D3E" }}>
+                                      Last Name <span style={{ color: "#DC2626" }}>*</span>
+                                    </label>
+                                    <input type="text" value={form.last_name} onChange={(e) => handleChange("last_name", e.target.value)} disabled={isFull}
+                                      className="w-full px-4 py-3 text-base border-2 rounded-xl outline-none transition-all duration-200 focus:ring-2 focus:ring-[#1A4D3E]/20 focus:border-[#1A4D3E] hover:border-[#1A4D3E]/30"
+                                      style={{ borderColor: errors.last_name ? "#DC2626" : "#E5E7EB", color: "#1A4D3E" }} aria-required="true" aria-invalid={!!errors.last_name} />
+                                    {errors.last_name && <p className="text-xs mt-1" style={{ color: "#DC2626" }} role="alert">{errors.last_name}</p>}
+                                  </div>
+                                </div>
+                                <div>
+                                  <label className="block text-sm font-semibold mb-1.5" style={{ color: "#1A4D3E" }}>
+                                    Email <span style={{ color: "#DC2626" }}>*</span>
+                                  </label>
+                                  <input type="email" value={form.email} onChange={(e) => handleChange("email", e.target.value)} disabled={isFull}
+                                    className="w-full px-4 py-3 text-base border-2 rounded-xl outline-none transition-all duration-200 focus:ring-2 focus:ring-[#1A4D3E]/20 focus:border-[#1A4D3E] hover:border-[#1A4D3E]/30"
+                                    style={{ borderColor: errors.email ? "#DC2626" : "#E5E7EB", color: "#1A4D3E" }} aria-required="true" aria-invalid={!!errors.email} />
+                                  {errors.email && <p className="text-xs mt-1" style={{ color: "#DC2626" }} role="alert">{errors.email}</p>}
+                                </div>
+                                <div>
+                                  <label className="block text-sm font-semibold mb-1.5" style={{ color: "#64748B" }}>
+                                    Phone <span className="text-xs" style={{ color: "#9CA3AF" }}>(optional)</span>
+                                  </label>
+                                  <input type="tel" value={form.phone} onChange={(e) => handleChange("phone", e.target.value)} disabled={isFull}
+                                    className="w-full px-4 py-3 text-base border-2 rounded-xl outline-none transition-all duration-200 focus:ring-2 focus:ring-[#1A4D3E]/20 focus:border-[#1A4D3E] hover:border-[#1A4D3E]/30"
+                                    style={{ borderColor: "#E5E7EB", color: "#1A4D3E" }} />
+                                </div>
+
+                                {/* Premium Submit Button */}
+                                <motion.button type="submit" disabled={submitting || isFull || cooldown}
+                                  whileHover={{ scale: 1.02, boxShadow: "0 8px 30px -5px rgba(26, 77, 62, 0.5)" }}
+                                  whileTap={{ scale: 0.98 }}
+                                  className="relative w-full py-4 text-base sm:text-lg font-bold text-white rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden group"
+                                  style={{ background: "linear-gradient(135deg, #1A4D3E, #0F2F27)", boxShadow: "0 6px 20px -4px rgba(26, 77, 62, 0.45)" }}>
+                                  {/* Shimmer effect on button */}
+                                  <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                                    style={{ background: "linear-gradient(105deg, transparent 40%, rgba(237,219,119,0.1) 45%, rgba(237,219,119,0.15) 50%, rgba(237,219,119,0.1) 55%, transparent 60%)", animation: "ws-shimmer 2s ease-in-out infinite" }} />
+                                  <span className="relative z-10">
+                                    {submitting ? (
+                                      <span className="flex items-center justify-center gap-2">
+                                        <Loader2 className="w-5 h-5 animate-spin" /> Registering…
+                                      </span>
+                                    ) : (
+                                      <span className="flex items-center justify-center gap-2">
+                                        Reserve My Spot <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                                      </span>
+                                    )}
+                                  </span>
+                                </motion.button>
+                              </form>
+
+                              <p className="text-xs text-center mt-4 flex items-center justify-center gap-1.5" style={{ color: "#9CA3AF" }}>
+                                <Shield className="w-3.5 h-3.5" /> Your information is secure and will never be shared.
+                              </p>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                    </TiltCard>
+                  </motion.div>
+                </div>
               </div>
             </div>
           </div>
         </section>
 
+
         {/* ── WHAT YOU'LL LEARN ── */}
-        <section className="relative overflow-hidden" style={{ background: "#FAFBFC" }}>
-          {/* Subtle geometric accent */}
-          <div className="absolute top-0 right-0 w-96 h-96 rounded-full opacity-[0.03]" style={{ background: "radial-gradient(circle, #1A4D3E, transparent)" }} />
-          <div className="absolute bottom-0 left-0 w-64 h-64 rounded-full opacity-[0.03]" style={{ background: "radial-gradient(circle, #EDDB77, transparent)" }} />
-          
-          <div className="relative z-10 max-w-[1200px] mx-auto px-4 sm:px-6 py-20 sm:py-28">
-            <motion.div
-              variants={staggerContainer}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, amount: 0.1 }}
-            >
-              <motion.div variants={fadeUp} className="text-center mb-14">
-                <span className="inline-block text-xs font-semibold tracking-[0.2em] uppercase mb-3 px-4 py-1.5 rounded-full" style={{ color: "#1A4D3E", background: "rgba(26,77,62,0.08)" }}>
-                  Workshop Curriculum
-                </span>
-                <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold" style={{ color: "#0F2F27" }}>
-                  What You'll Learn
+        <section className="relative overflow-hidden" style={{ background: "linear-gradient(180deg, #F8FAFB 0%, #FFFFFF 100%)" }}>
+          {/* Decorative elements */}
+          <div className="absolute top-0 right-0 w-[500px] h-[500px] rounded-full opacity-[0.04]" style={{ background: "radial-gradient(circle, #1A4D3E, transparent 70%)" }} />
+          <div className="absolute bottom-0 left-0 w-[400px] h-[400px] rounded-full opacity-[0.03]" style={{ background: "radial-gradient(circle, #EDDB77, transparent 70%)" }} />
+          {/* Top divider line */}
+          <div className="absolute top-0 left-0 right-0 h-[1px]" style={{ background: "linear-gradient(90deg, transparent 10%, rgba(26,77,62,0.1) 50%, transparent 90%)" }} />
+
+          <div className="relative z-10 max-w-[1200px] mx-auto px-4 sm:px-6 py-24 sm:py-32">
+            <motion.div variants={staggerContainer} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.1 }}>
+              <motion.div variants={fadeUp} className="text-center mb-16">
+                <motion.span variants={scaleIn} className="inline-flex items-center gap-2 text-xs font-bold tracking-[0.2em] uppercase mb-4 px-5 py-2 rounded-full"
+                  style={{ color: "#1A4D3E", background: "linear-gradient(135deg, rgba(26,77,62,0.08), rgba(26,77,62,0.04))", border: "1px solid rgba(26,77,62,0.08)" }}>
+                  <Sparkles className="w-3.5 h-3.5" /> Workshop Curriculum
+                </motion.span>
+                <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight" style={{ color: "#0F2F27" }}>
+                  What You'll{" "}
+                  <span style={{ background: "linear-gradient(135deg, #1A4D3E, #2D8B6E)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Learn</span>
                 </h2>
               </motion.div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 max-w-4xl mx-auto">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6 max-w-4xl mx-auto">
                 {[
-                  { title: "Eliminate Taxes", desc: "Discover how to eliminate taxes on retirement income using proven strategies", num: "01" },
-                  { title: "Protect Your Wealth", desc: "Shield your assets from market volatility with stable growth vehicles", num: "02" },
-                  { title: "Three Tax Buckets", desc: "Master the Three Tax Buckets strategy for optimal retirement planning", num: "03" },
-                  { title: "Living Benefits", desc: "Access living benefits you can use before age 59½ without penalties", num: "04" },
+                  { title: "Eliminate Taxes", desc: "Discover how to eliminate taxes on retirement income using proven strategies", icon: "💰" },
+                  { title: "Protect Your Wealth", desc: "Shield your assets from market volatility with stable growth vehicles", icon: "🛡️" },
+                  { title: "Three Tax Buckets", desc: "Master the Three Tax Buckets strategy for optimal retirement planning", icon: "📊" },
+                  { title: "Living Benefits", desc: "Access living benefits you can use before age 59½ without penalties", icon: "✨" },
                 ].map((item, i) => (
-                  <motion.div
-                    key={item.title}
-                    variants={fadeUp}
-                    transition={{ delay: i * 0.08 }}
-                    whileHover={{ y: -4, transition: { duration: 0.2 } }}
-                    className="group relative p-6 sm:p-7 rounded-2xl cursor-default transition-all duration-300"
+                  <motion.div key={item.title} variants={fadeUpSpring} transition={{ delay: i * 0.1 }}
+                    whileHover={{ y: -6, transition: { type: "spring", stiffness: 400, damping: 25 } }}
+                    className="group relative p-7 sm:p-8 rounded-2xl cursor-default"
                     style={{
                       background: "#FFFFFF",
-                      border: "1px solid rgba(0,0,0,0.06)",
-                      boxShadow: "0 1px 3px rgba(0,0,0,0.04), 0 8px 24px -8px rgba(26,77,62,0.08)",
-                    }}
-                  >
-                    {/* Top accent line */}
-                    <div className="absolute top-0 left-6 right-6 h-[2px] rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300" style={{ background: "linear-gradient(90deg, #1A4D3E, #EDDB77)" }} />
-                    
-                    <div className="flex items-start gap-4">
-                      <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 group-hover:scale-110"
-                        style={{ background: "linear-gradient(135deg, #1A4D3E, #2D6B5A)", boxShadow: "0 4px 12px -2px rgba(26,77,62,0.3)" }}>
+                      border: "1px solid rgba(0,0,0,0.05)",
+                      boxShadow: "0 2px 8px rgba(0,0,0,0.03), 0 12px 32px -8px rgba(26,77,62,0.08)",
+                    }}>
+                    {/* Hover gradient accent */}
+                    <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-all duration-500"
+                      style={{ background: "linear-gradient(135deg, rgba(26,77,62,0.02), rgba(237,219,119,0.03))" }} />
+                    <div className="absolute top-0 left-8 right-8 h-[2px] rounded-full opacity-0 group-hover:opacity-100 transition-all duration-500 scale-x-0 group-hover:scale-x-100"
+                      style={{ background: "linear-gradient(90deg, #1A4D3E, #EDDB77)", transformOrigin: "left" }} />
+
+                    <div className="relative flex items-start gap-4">
+                      <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 text-xl transition-all duration-300 group-hover:scale-110 group-hover:rotate-3"
+                        style={{ background: "linear-gradient(135deg, #1A4D3E, #2D6B5A)", boxShadow: "0 6px 16px -4px rgba(26,77,62,0.35)" }}>
                         <Check className="w-5 h-5 text-white" strokeWidth={2.5} />
                       </div>
-                      <div className="min-w-0">
-                        <h3 className="font-bold text-[15px] sm:text-base mb-1.5 tracking-tight" style={{ color: "#0F2F27" }}>{item.title}</h3>
+                      <div className="min-w-0 pt-0.5">
+                        <h3 className="font-bold text-base mb-1.5 tracking-tight" style={{ color: "#0F2F27" }}>{item.title}</h3>
                         <p className="text-sm leading-relaxed" style={{ color: "#64748B" }}>{item.desc}</p>
                       </div>
                     </div>
@@ -745,50 +741,41 @@ const WorkshopLanding: React.FC = () => {
           </div>
         </section>
 
-        {/* ── WORKSHOP DETAILS ── */}
-        <section className="bg-white">
-          <div className="max-w-[1200px] mx-auto px-4 sm:px-6 py-20 sm:py-28">
-            <motion.div
-              variants={staggerContainer}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, amount: 0.1 }}
-            >
-              <motion.div variants={fadeUp} className="text-center mb-14">
-                <span className="inline-block text-xs font-semibold tracking-[0.2em] uppercase mb-3 px-4 py-1.5 rounded-full" style={{ color: "#1A4D3E", background: "rgba(26,77,62,0.08)" }}>
-                  Event Information
+        {/* ── WORKSHOP DETAILS + ADVISOR ── */}
+        <section className="bg-white relative">
+          <div className="absolute top-0 left-0 right-0 h-[1px]" style={{ background: "linear-gradient(90deg, transparent 10%, rgba(0,0,0,0.04) 50%, transparent 90%)" }} />
+          <div className="max-w-[1200px] mx-auto px-4 sm:px-6 py-24 sm:py-32">
+            <motion.div variants={staggerContainer} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.1 }}>
+              <motion.div variants={fadeUp} className="text-center mb-16">
+                <span className="inline-flex items-center gap-2 text-xs font-bold tracking-[0.2em] uppercase mb-4 px-5 py-2 rounded-full"
+                  style={{ color: "#1A4D3E", background: "linear-gradient(135deg, rgba(26,77,62,0.08), rgba(26,77,62,0.04))", border: "1px solid rgba(26,77,62,0.08)" }}>
+                  <Calendar className="w-3.5 h-3.5" /> Event Information
                 </span>
-                <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold" style={{ color: "#0F2F27" }}>
-                  Workshop Details
+                <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight" style={{ color: "#0F2F27" }}>
+                  Workshop{" "}
+                  <span style={{ background: "linear-gradient(135deg, #1A4D3E, #2D8B6E)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Details</span>
                 </h2>
               </motion.div>
 
               <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 max-w-5xl mx-auto">
                 {/* Details Card - 3 columns */}
-                <motion.div
-                  variants={fadeUp}
-                  className="lg:col-span-3 p-8 sm:p-10 rounded-2xl transition-all duration-300"
-                  style={{
-                    background: "#FFFFFF",
-                    border: "1px solid rgba(0,0,0,0.06)",
-                    boxShadow: "0 1px 3px rgba(0,0,0,0.04), 0 8px 24px -8px rgba(26,77,62,0.08)",
-                  }}
-                >
-                  <div className="space-y-5">
+                <motion.div variants={fadeUp} className="lg:col-span-3 p-8 sm:p-10 rounded-2xl"
+                  style={{ background: "#FFFFFF", border: "1px solid rgba(0,0,0,0.05)", boxShadow: "0 2px 8px rgba(0,0,0,0.03), 0 12px 32px -8px rgba(26,77,62,0.08)" }}>
+                  <div className="space-y-6">
                     {[
                       { icon: Calendar, label: "Date", text: workshopDate },
                       { icon: Clock, label: "Time", text: `${workshopTime} ${workshopTimezone}` },
                       { icon: Clock, label: "Duration", text: `${workshopDuration} minutes` },
                       { icon: Monitor, label: "Format", text: "Live Online Workshop via Zoom" },
                     ].map(({ icon: Icon, label, text }) => (
-                      <div key={label} className="flex items-center gap-4">
-                        <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0"
+                      <div key={label} className="flex items-center gap-4 group">
+                        <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 group-hover:scale-105"
                           style={{ background: "linear-gradient(135deg, rgba(26,77,62,0.08), rgba(26,77,62,0.04))" }}>
                           <Icon className="w-5 h-5" style={{ color: "#1A4D3E" }} />
                         </div>
                         <div>
-                          <p className="text-[11px] font-semibold tracking-[0.1em] uppercase mb-0.5" style={{ color: "#94A3B8" }}>{label}</p>
-                          <span className="text-[15px] font-medium" style={{ color: "#1E293B" }}>{text}</span>
+                          <p className="text-[11px] font-bold tracking-[0.15em] uppercase mb-0.5" style={{ color: "#94A3B8" }}>{label}</p>
+                          <span className="text-[15px] font-semibold" style={{ color: "#1E293B" }}>{text}</span>
                         </div>
                       </div>
                     ))}
@@ -796,48 +783,42 @@ const WorkshopLanding: React.FC = () => {
                 </motion.div>
 
                 {/* Advisor Card - 2 columns */}
-                <motion.div
-                  variants={scaleIn}
-                  transition={{ type: "spring", stiffness: 100 }}
-                  className="lg:col-span-2 p-8 sm:p-10 rounded-2xl transition-all duration-300"
-                  style={{
-                    background: "linear-gradient(135deg, #1A4D3E, #0F2F27)",
-                    boxShadow: "0 8px 32px -8px rgba(26,77,62,0.35)",
-                  }}
-                >
-                  <p className="text-[11px] font-semibold tracking-[0.2em] uppercase mb-6" style={{ color: "rgba(237,219,119,0.7)" }}>Your Host</p>
-                  
-                  <div className="flex flex-col items-center text-center">
+                <motion.div variants={scaleUpRotate}
+                  className="lg:col-span-2 p-8 sm:p-10 rounded-2xl relative overflow-hidden"
+                  style={{ background: "linear-gradient(135deg, #1A4D3E, #0F2F27)", boxShadow: "0 12px 40px -10px rgba(26,77,62,0.4)" }}>
+                  {/* Decorative glow */}
+                  <div className="absolute -top-20 -right-20 w-40 h-40 rounded-full opacity-20" style={{ background: "radial-gradient(circle, #EDDB77, transparent)" }} />
+
+                  <p className="text-[11px] font-bold tracking-[0.2em] uppercase mb-6" style={{ color: "rgba(237,219,119,0.7)" }}>Your Host</p>
+
+                  <div className="relative flex flex-col items-center text-center">
                     {advisor.photo_url ? (
-                      <div className="relative mb-5">
+                      <div className="relative mb-5" style={{ animation: "ws-pulse-glow 3s ease-in-out infinite" }}>
                         <div className="w-28 h-28 rounded-full p-[3px]" style={{ background: "linear-gradient(135deg, #EDDB77, #C4A84D)" }}>
-                          <img
-                            src={advisor.photo_url}
-                            alt={advisorName}
-                            className="w-full h-full rounded-full object-cover"
-                          />
+                          <img src={advisor.photo_url} alt={advisorName} className="w-full h-full rounded-full object-cover" />
                         </div>
-                        {/* Online indicator */}
                         <div className="absolute bottom-1 right-1 w-5 h-5 rounded-full border-[3px] flex-shrink-0" style={{ background: "#22C55E", borderColor: "#1A4D3E" }} />
                       </div>
                     ) : (
-                      <div
-                        className="w-28 h-28 rounded-full flex items-center justify-center text-3xl font-bold text-white mb-5"
-                        style={{ background: "rgba(255,255,255,0.1)", border: "2px solid rgba(237,219,119,0.3)" }}
-                      >
+                      <div className="w-28 h-28 rounded-full flex items-center justify-center text-3xl font-bold text-white mb-5"
+                        style={{ background: "rgba(255,255,255,0.1)", border: "2px solid rgba(237,219,119,0.3)" }}>
                         {advisor.first_name?.[0]}{advisor.last_name?.[0]}
                       </div>
                     )}
-                    
+
                     <h4 className="text-xl font-bold text-white mb-1">{advisorName}</h4>
                     <p className="text-sm font-medium mb-6" style={{ color: "#EDDB77" }}>{advisor.title || "Wealth Strategist"}</p>
-                    
+
                     <div className="w-full space-y-2.5">
-                      <a href={`mailto:${advisor.email}`} className="flex items-center justify-center gap-2.5 text-sm py-2.5 rounded-xl transition-all hover:bg-white/10" style={{ color: "rgba(255,255,255,0.8)", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)" }}>
+                      <a href={`mailto:${advisor.email}`}
+                        className="flex items-center justify-center gap-2.5 text-sm py-3 rounded-xl transition-all duration-200 hover:bg-white/10 hover:scale-[1.02]"
+                        style={{ color: "rgba(255,255,255,0.8)", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)" }}>
                         <Mail className="w-4 h-4" style={{ color: "#EDDB77" }} /> {advisor.email}
                       </a>
                       {advisor.phone && (
-                        <a href={`tel:${advisor.phone}`} className="flex items-center justify-center gap-2.5 text-sm py-2.5 rounded-xl transition-all hover:bg-white/10" style={{ color: "rgba(255,255,255,0.8)", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)" }}>
+                        <a href={`tel:${advisor.phone}`}
+                          className="flex items-center justify-center gap-2.5 text-sm py-3 rounded-xl transition-all duration-200 hover:bg-white/10 hover:scale-[1.02]"
+                          style={{ color: "rgba(255,255,255,0.8)", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)" }}>
                           <Phone className="w-4 h-4" style={{ color: "#EDDB77" }} /> {advisor.phone}
                         </a>
                       )}
@@ -850,41 +831,29 @@ const WorkshopLanding: React.FC = () => {
         </section>
 
         {/* ── TRUST INDICATORS ── */}
-        <motion.section
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          variants={staggerContainer}
-          className="relative overflow-hidden"
-          style={{ background: "linear-gradient(135deg, #1A4D3E 0%, #0F2F27 100%)" }}
-        >
-          <div
-            className="absolute inset-0 opacity-10"
-            style={{
-              backgroundImage: `url(${workshopHeroBg})`,
-              backgroundSize: "cover",
-              backgroundPosition: "center",
-              mixBlendMode: "overlay",
-            }}
-          />
-          <div className="relative z-10 max-w-[1200px] mx-auto px-4 sm:px-6 py-12 sm:py-16">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 text-center">
+        <motion.section initial="hidden" whileInView="visible" viewport={{ once: true }} variants={staggerContainer}
+          className="relative overflow-hidden" style={{ background: "linear-gradient(160deg, #0F2F27 0%, #1A4D3E 50%, #0F2F27 100%)" }}>
+          <div className="absolute inset-0 opacity-10" style={{ backgroundImage: `url(${workshopHeroBg})`, backgroundSize: "cover", backgroundPosition: "center", mixBlendMode: "overlay" }} />
+          <FloatingOrbs />
+          {/* Top accent line */}
+          <div className="absolute top-0 left-0 right-0 h-[1px]" style={{ background: "linear-gradient(90deg, transparent, rgba(237,219,119,0.3), transparent)" }} />
+
+          <div className="relative z-10 max-w-[1200px] mx-auto px-4 sm:px-6 py-16 sm:py-20">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 text-center">
               {[
                 { icon: Shield, label: "Independent Fiduciary", desc: "Your interests always come first" },
                 { icon: Award, label: "Established 1998", desc: "25+ years of trusted service" },
                 { icon: Users, label: "75+ Carrier Partners", desc: "Access to the best products" },
-              ].map(({ icon: Icon, label, desc }) => (
-                <motion.div
-                  key={label}
-                  variants={scaleIn}
-                  className="flex flex-col items-center gap-3 p-6 rounded-2xl"
-                  style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)" }}
-                >
-                  <div className="w-14 h-14 rounded-xl flex items-center justify-center" style={{ background: "rgba(237,219,119,0.15)" }}>
+              ].map(({ icon: Icon, label, desc }, i) => (
+                <motion.div key={label} variants={scaleIn} transition={{ delay: i * 0.1 }}
+                  whileHover={{ y: -4, transition: { type: "spring", stiffness: 300 } }}
+                  className="flex flex-col items-center gap-4 p-8 rounded-2xl cursor-default"
+                  style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", backdropFilter: "blur(8px)" }}>
+                  <div className="w-16 h-16 rounded-2xl flex items-center justify-center" style={{ background: "linear-gradient(135deg, rgba(237,219,119,0.15), rgba(237,219,119,0.05))", border: "1px solid rgba(237,219,119,0.15)", animation: "ws-float-slow 6s ease-in-out infinite", animationDelay: `${i * 0.5}s` }}>
                     <Icon className="w-7 h-7" style={{ color: "#EDDB77" }} />
                   </div>
-                  <span className="text-white font-semibold text-base tracking-wide">{label}</span>
-                  <span className="text-white/50 text-sm">{desc}</span>
+                  <span className="text-white font-bold text-base tracking-wide">{label}</span>
+                  <span className="text-white/50 text-sm leading-relaxed">{desc}</span>
                 </motion.div>
               ))}
             </div>
@@ -892,9 +861,11 @@ const WorkshopLanding: React.FC = () => {
         </motion.section>
 
         {/* ── FOOTER ── */}
-        <footer className="border-t" style={{ borderColor: "#F0F0F0" }}>
-          <div className="max-w-[1200px] mx-auto px-4 sm:px-6 py-8 text-center">
-            <p className="text-sm" style={{ color: "#9CA3AF" }}>
+        <footer className="relative" style={{ background: "#0F2F27" }}>
+          <div className="absolute top-0 left-0 right-0 h-[1px]" style={{ background: "linear-gradient(90deg, transparent, rgba(237,219,119,0.2), transparent)" }} />
+          <div className="max-w-[1200px] mx-auto px-4 sm:px-6 py-10 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <img src="https://everencewealth-beta.vercel.app/logo-icon.png" alt="Everence Wealth" className="h-8 brightness-0 invert opacity-40" />
+            <p className="text-sm" style={{ color: "rgba(255,255,255,0.35)" }}>
               © {new Date().getFullYear()} Everence Wealth. All rights reserved.
             </p>
           </div>
@@ -905,3 +876,4 @@ const WorkshopLanding: React.FC = () => {
 };
 
 export default WorkshopLanding;
+
