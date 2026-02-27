@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useContractingAuth } from "@/hooks/useContractingAuth";
+import { usePortalAuth } from "@/hooks/usePortalAuth";
 import { MessageSquare, Send, Search, Plus } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -42,6 +43,7 @@ interface AgentOption {
 
 export default function ContractingMessages() {
   const { contractingAgent, contractingRole, canViewAll, canManage, loading: authLoading, portalUser } = useContractingAuth();
+  const { session } = usePortalAuth();
   const [threads, setThreads] = useState<Thread[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
   const [selectedThread, setSelectedThread] = useState<string | null>(null);
@@ -61,16 +63,14 @@ export default function ContractingMessages() {
 
   // Auto-provision contracting_agents row for admin users who don't have one
   useEffect(() => {
-    if (authLoading || contractingAgent || !portalUser || !isAdmin) return;
+    if (authLoading || contractingAgent || !portalUser || !isAdmin || !session?.user) return;
     
-    const session = supabase.auth.getSession();
-    session.then(async ({ data: { session: s } }) => {
-      if (!s?.user) return;
+    (async () => {
       try {
         const { data: existing } = await supabase
           .from("contracting_agents")
           .select("id")
-          .eq("auth_user_id", s.user.id)
+          .eq("auth_user_id", session.user.id)
           .maybeSingle();
 
         if (existing) {
@@ -81,10 +81,10 @@ export default function ContractingMessages() {
         const { data: inserted, error } = await supabase
           .from("contracting_agents")
           .insert({
-            auth_user_id: s.user.id,
+            auth_user_id: session.user.id,
             first_name: portalUser.first_name || "Admin",
             last_name: portalUser.last_name || "",
-            email: portalUser.email || s.user.email || "",
+            email: portalUser.email || session.user.email || "",
             contracting_role: "admin",
             pipeline_stage: "completed",
             status: "active",
@@ -94,14 +94,15 @@ export default function ContractingMessages() {
 
         if (error) {
           console.error("Auto-provision contracting agent failed:", error);
+          toast({ title: "Setup issue", description: "Could not set up your messaging identity. Please refresh.", variant: "destructive" });
         } else if (inserted) {
           setProvisionedAgentId(inserted.id);
         }
       } catch (err) {
         console.error("Auto-provision error:", err);
       }
-    });
-  }, [authLoading, contractingAgent, portalUser, isAdmin]);
+    })();
+  }, [authLoading, contractingAgent, portalUser, isAdmin, session?.user?.id]);
 
   useEffect(() => {
     if (!authLoading && (contractingAgent || provisionedAgentId || !isAdmin)) fetchThreads();
@@ -342,9 +343,16 @@ export default function ContractingMessages() {
   }
 
   async function fetchAgentOptions() {
-    const { data } = await supabase
+    let query = supabase
       .from("contracting_agents")
-      .select("id, first_name, last_name, contracting_role");
+      .select("id, first_name, last_name, contracting_role, manager_id");
+
+    // Managers can only message agents assigned to them
+    if (isManagerOnly && portalUser?.id) {
+      query = query.eq("manager_id", portalUser.id);
+    }
+
+    const { data } = await query;
     if (data) {
       const options: AgentOption[] = data
         .filter(a => a.id !== myAgentId)
@@ -422,7 +430,7 @@ export default function ContractingMessages() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900">Contracting Messages</h1>
-        {canManage && (
+        {(canManage || isManagerOnly) && (
           <Dialog open={newConvoOpen} onOpenChange={(open) => { setNewConvoOpen(open); if (open) fetchAgentOptions(); }}>
             <DialogTrigger asChild>
               <Button size="sm" style={{ background: BRAND }} className="text-white gap-1.5">
@@ -476,7 +484,7 @@ export default function ContractingMessages() {
           <div className="flex-1 overflow-y-auto">
             {filteredAgentThreads.length === 0 && filteredManagerThreads.length === 0 ? (
               <div className="p-6 text-center text-gray-400 text-sm">
-                {canManage ? "No conversations yet. Click 'New Message' to start one." : "No conversations"}
+                {(canManage || isManagerOnly) ? "No conversations yet. Click 'New Message' to start one." : "No conversations"}
               </div>
             ) : (
               <>
