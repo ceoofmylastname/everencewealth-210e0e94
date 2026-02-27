@@ -53,6 +53,10 @@ export default function ContractingMessages() {
   const [agentOptions, setAgentOptions] = useState<AgentOption[]>([]);
   const bottomRef = useRef<HTMLDivElement>(null);
 
+  const myAgentId = contractingAgent?.id;
+  const isAdmin = contractingRole === "admin" || contractingRole === "contracting";
+  const isManagerOnly = contractingRole === "manager" && !isAdmin;
+
   useEffect(() => {
     if (!authLoading) fetchThreads();
   }, [authLoading]);
@@ -99,17 +103,24 @@ export default function ContractingMessages() {
         allIds.add(msg.sender_id);
       }
 
+      // For agent view, also add their own ID so we always show "My Thread"
+      if (!canViewAll && myAgentId) {
+        allIds.add(myAgentId);
+      }
+
       const { data: agents } = await supabase
         .from("contracting_agents")
-        .select("id, first_name, last_name, contracting_role")
+        .select("id, first_name, last_name, contracting_role, manager_id")
         .in("id", Array.from(allIds));
 
       const nameMap = new Map<string, string>();
       const roleMap = new Map<string, string>();
+      const managerIdMap = new Map<string, string | null>(); // agent_id -> manager_id (portal_users.id)
       if (agents) {
         for (const a of agents) {
           nameMap.set(a.id, `${a.first_name} ${a.last_name}`);
           roleMap.set(a.id, a.contracting_role || "agent");
+          managerIdMap.set(a.id, a.manager_id);
         }
       }
       setAgentNames(nameMap);
@@ -128,11 +139,35 @@ export default function ContractingMessages() {
         }
       }
 
-      setThreads(Array.from(threadMap.values()));
+      let threadList = Array.from(threadMap.values());
+
+      // --- Role-based filtering ---
 
       if (!canViewAll && myAgentId) {
+        // Agent view: show only own thread (messages where thread_id = myAgentId)
+        // The agent always sees their own thread even if no messages yet
+        if (!threadMap.has(myAgentId)) {
+          threadList = [{
+            thread_id: myAgentId,
+            agent_name: "My Thread",
+            last_message: "Start a conversation...",
+            last_at: new Date().toISOString(),
+            role_type: "agent",
+          }];
+        } else {
+          threadList = threadList.filter(t => t.thread_id === myAgentId);
+          // Rename to "My Thread" for clarity
+          threadList = threadList.map(t => ({ ...t, agent_name: "My Thread" }));
+        }
+        // Auto-select the agent's own thread
         setSelectedThread(myAgentId);
+      } else if (isManagerOnly && portalUser?.id) {
+        // Manager (non-admin): only show threads where the agent's manager_id matches this user's portal_users.id
+        threadList = threadList.filter(t => managerIdMap.get(t.thread_id) === portalUser.id);
       }
+      // Admin: no filtering, see all threads
+
+      setThreads(threadList);
     } catch (err) {
       console.error(err);
     } finally {
@@ -171,18 +206,22 @@ export default function ContractingMessages() {
 
     if (threadAgent?.manager_id) {
       // manager_id references portal_users.id, look up the contracting_agent for that portal user
-      const { data: managerAgent } = await supabase
-        .from("contracting_agents")
-        .select("id")
-        .eq("auth_user_id", (await supabase
-          .from("portal_users")
-          .select("auth_user_id")
-          .eq("id", threadAgent.manager_id)
-          .single()).data?.auth_user_id || "")
+      const { data: managerPortalUser } = await supabase
+        .from("portal_users")
+        .select("auth_user_id")
+        .eq("id", threadAgent.manager_id)
         .single();
 
-      if (managerAgent?.id && managerAgent.id !== senderId) {
-        recipientIds.add(managerAgent.id);
+      if (managerPortalUser?.auth_user_id) {
+        const { data: managerAgent } = await supabase
+          .from("contracting_agents")
+          .select("id")
+          .eq("auth_user_id", managerPortalUser.auth_user_id)
+          .single();
+
+        if (managerAgent?.id && managerAgent.id !== senderId) {
+          recipientIds.add(managerAgent.id);
+        }
       }
     }
 
@@ -204,8 +243,6 @@ export default function ContractingMessages() {
     recipientIds.delete(senderId);
     return Array.from(recipientIds);
   }
-
-  const myAgentId = contractingAgent?.id;
 
   async function handleSend() {
     if (!newMessage.trim() || !selectedThread || !myAgentId) return;
@@ -292,13 +329,22 @@ export default function ContractingMessages() {
     );
   }
 
-  // Agent view: single thread, no sidebar
+  // Agent view: single thread (their own), no sidebar needed
   if (!canViewAll) {
     return (
       <div className="space-y-4">
         <h1 className="text-2xl font-bold text-gray-900">Messages</h1>
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.08)] flex flex-col" style={{ height: "calc(100vh - 220px)" }}>
+        <p className="text-sm text-gray-500">Messages sent here are visible to your manager and admin team.</p>
+        <div className="bg-white rounded-2xl border border-gray-200 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.08)] flex flex-col" style={{ height: "calc(100vh - 260px)" }}>
           <div className="flex-1 overflow-y-auto p-4 space-y-3">
+            {messages.length === 0 && (
+              <div className="flex-1 flex items-center justify-center text-gray-400 py-12">
+                <div className="text-center">
+                  <MessageSquare className="h-10 w-10 mx-auto mb-2 opacity-40" />
+                  <p className="text-sm">Send a message to get started</p>
+                </div>
+              </div>
+            )}
             {messages.map(msg => (
               <MessageBubble key={msg.id} msg={msg} isOwn={msg.sender_id === myAgentId} />
             ))}
@@ -378,7 +424,9 @@ export default function ContractingMessages() {
           </div>
           <div className="flex-1 overflow-y-auto">
             {filteredAgentThreads.length === 0 && filteredManagerThreads.length === 0 ? (
-              <div className="p-6 text-center text-gray-400 text-sm">No conversations</div>
+              <div className="p-6 text-center text-gray-400 text-sm">
+                {canManage ? "No conversations yet. Click 'New Message' to start one." : "No conversations"}
+              </div>
             ) : (
               <>
                 {filteredManagerThreads.length > 0 && canManage && (
