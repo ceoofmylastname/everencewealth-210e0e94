@@ -3,10 +3,11 @@ import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { usePortalAuth } from "@/hooks/usePortalAuth";
 import { Input } from "@/components/ui/input";
-import { Users, Search, Send, Mail, Phone, UserCheck, Copy, Check, ChevronDown, FileText, FolderOpen, MessageSquare } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Users, Search, Send, Mail, Phone, UserCheck, Copy, Check, ChevronDown, FileText, FolderOpen, MessageSquare, Trash2 } from "lucide-react";
 import type { PortalUser } from "@/hooks/usePortalAuth";
 import { format } from "date-fns";
-
+import { toast } from "@/hooks/use-toast";
 const BRAND_GREEN = "#1A4D3E";
 const BRAND_GREEN_LIGHT = "#F0F5F3";
 
@@ -24,6 +25,8 @@ export default function AdvisorClients() {
   const [selectedAdvisor, setSelectedAdvisor] = useState("all");
   const [copiedEmail, setCopiedEmail] = useState<string | null>(null);
   const [filterOpen, setFilterOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<PortalUser | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const isAdmin = portalUser?.role === "admin";
 
@@ -98,6 +101,27 @@ export default function AdvisorClients() {
     navigator.clipboard.writeText(email);
     setCopiedEmail(email);
     setTimeout(() => setCopiedEmail(null), 1500);
+  }
+
+  async function handleDeleteClient() {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    try {
+      const { error } = await supabase
+        .from("portal_users")
+        .update({ is_active: false })
+        .eq("id", deleteTarget.id)
+        .eq("role", "client");
+      if (error) throw error;
+      setClients((prev) => prev.filter((c) => c.id !== deleteTarget.id));
+      toast({ title: "Client removed", description: `${deleteTarget.first_name} ${deleteTarget.last_name} has been removed.` });
+    } catch (err) {
+      console.error("Error deleting client:", err);
+      toast({ title: "Error", description: "Failed to remove client. Please try again.", variant: "destructive" });
+    } finally {
+      setDeleting(false);
+      setDeleteTarget(null);
+    }
   }
 
   return (
@@ -289,11 +313,43 @@ export default function AdvisorClients() {
                         Message
                       </button>
                     </Link>
+                    <button
+                      onClick={() => setDeleteTarget(client)}
+                      className="py-2 px-2.5 rounded-lg text-xs font-medium transition-all flex items-center justify-center text-gray-400 hover:text-red-600 bg-gray-50 hover:bg-red-50 border border-gray-200 hover:border-red-200"
+                      title="Remove client"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
                   </div>
                 </div>
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={() => !deleting && setDeleteTarget(null)}>
+          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm mx-4" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Remove Client</h3>
+            <p className="text-sm text-gray-600 mb-5">
+              Are you sure you want to remove <strong>{deleteTarget.first_name} {deleteTarget.last_name}</strong>? They will no longer be able to access the portal.
+            </p>
+            <div className="flex gap-3 justify-end">
+              <Button variant="outline" size="sm" onClick={() => setDeleteTarget(null)} disabled={deleting}>
+                Cancel
+              </Button>
+              <Button
+                size="sm"
+                onClick={handleDeleteClient}
+                disabled={deleting}
+                className="bg-red-600 hover:bg-red-700 text-white"
+              >
+                {deleting ? "Removing..." : "Remove"}
+              </Button>
+            </div>
+          </div>
         </div>
       )}
     </div>
