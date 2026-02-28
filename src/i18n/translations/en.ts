@@ -1181,14 +1181,14 @@ export const en = {
   strategies: {
     iul: {
       seo: {
-        title: 'Indexed Universal Life Insurance: Tax-Free Growth with 0% Floor | Everence Wealth',
-        description: 'Discover how Indexed Universal Life (IUL) combines market-linked growth, downside protection, tax-free income, and living benefits—the ultimate retirement vehicle.',
+        title: 'Index Strategy: Tax-Free Growth with 0% Floor Protection | Everence Wealth',
+        description: 'Discover how Index Strategies combine S&P 500-linked growth with 0% floor protection, tax-free income, and living benefits—the ultimate retirement vehicle.',
       },
       hero: {
         badge: 'Strategy',
-        title: 'Indexed Universal Life',
-        subtitle: 'Market Growth Without Market Risk',
-        description: 'The only financial vehicle that combines tax-free growth, 0% floor protection, living benefits, and a legacy—all in one.',
+        title: 'Index Strategy',
+        subtitle: 'S&P 500 Growth Without Market Loss',
+        description: 'Track S&P 500 performance with a guaranteed floor - you participate in the growth, you\'re protected from the loss. The only financial vehicle that combines tax-free growth, 0% floor protection, living benefits, and a legacy - all in one.',
         stats: [
           { value: 'Market-Linked', label: 'Growth Potential' },
           { value: '0% Floor', label: 'Downside Protection' },
@@ -1198,13 +1198,13 @@ export const en = {
         ctaSecondary: 'Compare to 401k',
       },
       speakable: {
-        text: 'Indexed Universal Life (IUL) insurance is a permanent life insurance policy that credits interest based on stock market index performance—typically the S&P 500—while guaranteeing you never lose money in down markets with a 0% floor. Unlike traditional investments, IUL offers tax-free withdrawals, living benefits for critical illness, and creditor protection, making it the cornerstone strategy for tax-efficient retirement planning.',
+        text: 'An Index Strategy is a permanent life insurance structure that credits interest based on S&P 500 performance—while guaranteeing you never lose money in down markets with a 0% floor. If the S&P 500 drops 30%, a traditional investor loses 30% and needs a 43% gain just to break even. An Index Strategy investor loses 0% and captures the next market recovery from their full principal. This is Zero is Your Hero—your worst year is zero, not negative. Unlike traditional investments, Index Strategies offer tax-free withdrawals, living benefits for critical illness, and creditor protection, making it the cornerstone strategy for tax-efficient retirement planning.',
         badges: ['Licensed in 50 States', '75+ Carrier Partners', '1,200+ Families Served'],
       },
       howItWorks: {
-        title: 'How IUL Works: The Mechanics',
+        title: 'How Index Strategies Work: The Mechanics',
         sliderLabel: 'Adjust Market Performance:',
-        resultLabel: 'Your IUL Account Value:',
+        resultLabel: 'Your Index Strategy Account Value:',
         floorMessage: 'Floor Protection: You never go below $100,000',
         steps: [
           { title: 'You Pay Premium', desc: 'Your premium is split: part goes to insurance cost, part to cash value account.' },
@@ -1215,13 +1215,13 @@ export const en = {
         ],
       },
       comparison: {
-        title: 'IUL vs. 401k: Side-by-Side',
-        winner: 'Winner: IUL for Tax-Free Retirement',
+        title: 'Index Strategy vs. 401k: Side-by-Side',
+        winner: 'Winner: Index Strategy for Tax-Free Retirement',
         winnerDesc: 'Combines growth, protection, and flexibility 401k can\'t match',
       },
       livingBenefits: {
         title: 'Living Benefits: Insurance While You\'re Alive',
-        subtitle: 'Unlike term life insurance that only pays when you die, IUL provides accelerated death benefit riders that pay out during your lifetime.',
+        subtitle: 'Unlike term life insurance that only pays when you die, Index Strategies provide accelerated death benefit riders that pay out during your lifetime.',
         cards: [
           { title: 'Critical Illness', desc: 'Heart attack, stroke, cancer, organ transplant', benefit: 'Receive 25-100% of death benefit', example: '$500K policy → $250K cash for stroke recovery' },
           { title: 'Chronic Illness', desc: 'Unable to perform 2+ Activities of Daily Living', benefit: 'Monthly payments for long-term care', example: '$500K policy → $4K/month for nursing home' },
@@ -1229,12 +1229,12 @@ export const en = {
         ],
         testimonial: {
           label: 'Real Client Story:',
-          text: '"When my husband had a stroke at 58, our IUL paid out $300,000 immediately. We used it for his rehabilitation, modified our home, and covered lost income. The death benefit is still intact. This saved our retirement."',
+          text: '"When my husband had a stroke at 58, our Index Strategy paid out $300,000 immediately. We used it for his rehabilitation, modified our home, and covered lost income. The death benefit is still intact. This saved our retirement."',
           author: '— Maria T., San Francisco',
         },
       },
       idealClient: {
-        title: 'Is IUL Right for You?',
+        title: 'Is an Index Strategy Right for You?',
         perfectTitle: 'Perfect For:',
         notIdealTitle: 'Not Ideal For:',
         perfect: [
@@ -1253,9 +1253,9 @@ export const en = {
         ],
       },
       cta: {
-        headline: 'See Your Personalized IUL Illustration',
-        subtitle: 'Get a custom projection showing exactly how IUL would work for your age, income, and retirement goals—with zero obligation.',
-        submitText: 'Get My Custom IUL Illustration',
+        headline: 'See Your Personalized Index Strategy Illustration',
+        subtitle: 'Get a custom projection showing exactly how an Index Strategy would work for your age, income, and retirement goals—with zero obligation.',
+        submitText: 'Get My Custom Illustration',
         disclaimer: 'No spam. No high-pressure sales. Just real numbers for your situation.',
         namePlaceholder: 'Full Name',
         emailPlaceholder: 'Email Address',

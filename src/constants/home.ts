@@ -34,7 +34,7 @@ export const LOCATIONS = [
 
 export const PROPERTY_TYPES = [
   { label: 'All Products', value: 'all' },
-  { label: 'Indexed Universal Life', value: 'IUL' },
+  { label: 'Index Strategy', value: 'INDEX_STRATEGY' },
   { label: 'Whole Life', value: 'WL' },
   { label: 'Term Life', value: 'Term' },
   { label: 'Fixed Indexed Annuity', value: 'FIA' },
@@ -125,8 +125,8 @@ export const LATEST_POSTS: BlogPost[] = [
   },
   {
     id: '2',
-    title: 'IUL vs 401(k): Which Is Right for You?',
-    excerpt: 'A comprehensive comparison of indexed universal life insurance and traditional 401(k) retirement plans.',
+    title: 'Index Strategy vs 401(k): Which Builds More Tax-Free Retirement Income?',
+    excerpt: 'A comprehensive comparison of Index Strategies and traditional 401(k) retirement plans - discover which builds more tax-free income.',
     date: 'Jan 10, 2026',
     image: 'https://picsum.photos/id/3/600/400'
   },
@@ -153,7 +153,7 @@ export const getStructuredData = () => ({
   "@context": "https://schema.org",
   "@type": "FinancialService",
   "name": "Everence Wealth",
-  "description": "Independent fiduciary wealth architects specializing in tax-efficient retirement strategies and asset protection.",
+  "description": "Independent wealth architects specializing in tax-efficient retirement strategies and asset protection.",
   "image": "https://www.everencewealth.com/assets/logo.png",
   "logo": "https://www.everencewealth.com/assets/logo.png",
   "url": "https://www.everencewealth.com",

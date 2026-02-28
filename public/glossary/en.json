@@ -84,9 +84,9 @@
       "description": "Life insurance, disability, and asset protection terminology",
       "terms": [
         {
-          "term": "IUL",
-          "full_name": "Indexed Universal Life Insurance",
-          "definition": "A permanent life insurance policy where the cash value growth is linked to a stock market index (like the S&P 500) with a guaranteed floor protecting against losses. Combines death benefit protection with tax-advantaged cash value accumulation.",
+          "term": "Index Strategy",
+          "full_name": "Indexed Universal Life Strategy",
+          "definition": "A permanent life insurance structure where cash value growth is linked to the S&P 500 with a guaranteed floor protecting against losses. When the S&P 500 gains, you participate up to a cap rate. When it drops, your floor is 0%—you never lose principal. This is the foundation of Zero is Your Hero. Combines death benefit protection with tax-advantaged cash value accumulation and tax-free retirement income.",
           "related_terms": ["Cash Value", "Death Benefit", "Whole Life"],
           "see_also": ["/blog/iul-guide"]
         },
@@ -101,28 +101,28 @@
           "term": "Whole Life",
           "full_name": "Whole Life Insurance",
           "definition": "Permanent life insurance with guaranteed level premiums, a guaranteed death benefit, and a guaranteed cash value that grows at a fixed rate. Provides lifelong coverage as long as premiums are paid.",
-          "related_terms": ["IUL", "Cash Value", "Term Life"],
+          "related_terms": ["Index Strategy", "Cash Value", "Term Life"],
           "see_also": []
         },
         {
           "term": "Cash Value",
           "full_name": "Cash Value Life Insurance",
           "definition": "The savings component of a permanent life insurance policy that grows tax-deferred over time. Can be accessed through policy loans or withdrawals for supplemental retirement income or emergencies.",
-          "related_terms": ["IUL", "Whole Life", "Tax-Deferred"],
+          "related_terms": ["Index Strategy", "Whole Life", "Tax-Deferred"],
           "see_also": []
         },
         {
           "term": "Death Benefit",
           "full_name": "Life Insurance Death Benefit",
           "definition": "The amount paid to beneficiaries upon the death of the insured person. Generally received income-tax-free by beneficiaries and can be used for any purpose.",
-          "related_terms": ["Beneficiary", "Term Life", "IUL"],
+          "related_terms": ["Beneficiary", "Term Life", "Index Strategy"],
           "see_also": []
         },
         {
           "term": "Living Benefits",
           "full_name": "Accelerated Living Benefits",
           "definition": "Life insurance riders that allow the policyholder to access a portion of the death benefit while still alive if diagnosed with a terminal, chronic, or critical illness.",
-          "related_terms": ["Death Benefit", "Long-Term Care", "IUL"],
+          "related_terms": ["Death Benefit", "Long-Term Care", "Index Strategy"],
           "see_also": []
         },
         {
@@ -143,7 +143,7 @@
           "term": "Premium",
           "full_name": "Insurance Premium",
           "definition": "The regular payment made to an insurance company to maintain coverage. Premiums vary based on age, health, coverage amount, and policy type.",
-          "related_terms": ["Underwriting", "Term Life", "IUL"],
+          "related_terms": ["Underwriting", "Term Life", "Index Strategy"],
           "see_also": []
         },
         {
@@ -454,7 +454,7 @@
           "term": "Human Life Value",
           "full_name": "Human Life Value (HLV)",
           "definition": "An economic concept measuring the monetary value of an individual's future earning potential, used to determine appropriate life insurance coverage. Factors include age, income, benefits, and expenses.",
-          "related_terms": ["Death Benefit", "Term Life", "IUL"],
+          "related_terms": ["Death Benefit", "Term Life", "Index Strategy"],
           "see_also": ["/blog/life-insurance-guide"]
         }
       ]

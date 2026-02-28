@@ -7,7 +7,7 @@
     "name": "Steven Rosenberg",
     "title": "Founder & Chief Wealth Strategist",
     "years_experience": 35,
-    "credentials": ["Fiduciary Advisor", "Licensed in 50 States"]
+    "credentials": ["Independent Broker", "Licensed in 50 States"]
   },
   "categories": {
     "retirement_planning": {
@@ -56,21 +56,21 @@
         }
       ]
     },
-    "iul_strategies": {
-      "title": "Indexed Universal Life (IUL) Facts",
+    "index_strategies": {
+      "title": "Index Strategy Facts",
       "facts": [
         {
-          "fact": "IUL policies offer a 0% floor, protecting cash value from market losses",
+          "fact": "Index Strategies offer a 0% floor - when the S&P 500 drops 30%, you lose 0% and compound from your full principal. This is Zero is Your Hero.",
           "source": "National Association of Insurance Commissioners",
           "last_verified": "2026-01"
         },
         {
-          "fact": "Policy loans from IUL are generally tax-free under IRC Section 7702",
+          "fact": "Policy loans from Index Strategies are generally tax-free under IRC Section 7702",
           "source": "Internal Revenue Code Section 7702",
           "last_verified": "2026-01"
         },
         {
-          "fact": "IUL cash value growth is linked to market indices like the S&P 500 without direct market exposure",
+          "fact": "Index Strategy cash value growth is linked to S&P 500 performance without direct market exposure - you participate in gains up to a cap, but never experience losses",
           "source": "American Council of Life Insurers",
           "last_verified": "2026-01"
         }

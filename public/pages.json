@@ -3,7 +3,7 @@
   "site": {
     "name": "Everence Wealth",
     "url": "https://www.everencewealth.com",
-    "description": "Independent fiduciary wealth architects specializing in tax-efficient retirement strategies",
+    "description": "Independent wealth architects specializing in tax-efficient retirement strategies",
     "language": "en",
     "supported_languages": ["en", "es"],
     "last_updated": "2026-01-15"
@@ -12,7 +12,7 @@
     "primary_topics": [
       "Retirement planning",
       "Tax-efficient wealth strategies",
-      "Indexed Universal Life (IUL)",
+      "Index Strategies",
       "Annuities and fixed income",
       "Estate planning",
       "Asset protection",
@@ -74,8 +74,8 @@
     },
     {
       "url": "/blog/iul-vs-401k-comparison",
-      "title": "IUL vs 401(k): Which Is Right for You?",
-      "topics": ["IUL", "401k", "Retirement planning"]
+      "title": "Index Strategy vs 401(k): Which Builds More Tax-Free Retirement Income?",
+      "topics": ["Index Strategy", "401k", "Retirement planning", "S&P 500"]
     },
     {
       "url": "/blog/retirement-income-gap",
