@@ -630,6 +630,19 @@ serve(async (req) => {
       })
       .eq('id', jobId);
 
+    // Auto-generate content-aware images for the completed cluster
+    if (finalStatus === 'completed') {
+      console.log(`[Chunk] 🎨 Auto-triggering content-aware image generation for cluster ${jobId}...`);
+      fetch(`${SUPABASE_URL}/functions/v1/regenerate-cluster-images`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+        },
+        body: JSON.stringify({ clusterId: jobId }),
+      }).catch(err => console.error('[Chunk] Image generation trigger error:', err));
+    }
+
     return new Response(JSON.stringify({
       success: true,
       chunkIndex,
