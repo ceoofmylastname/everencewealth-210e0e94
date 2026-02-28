@@ -7418,6 +7418,63 @@ export type Database = {
           },
         ]
       }
+      recruit_leads: {
+        Row: {
+          audit_answers: Json | null
+          audit_score: number | null
+          created_at: string | null
+          email: string | null
+          id: string
+          name: string | null
+          phone: string | null
+          video_watch_time: number | null
+        }
+        Insert: {
+          audit_answers?: Json | null
+          audit_score?: number | null
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          name?: string | null
+          phone?: string | null
+          video_watch_time?: number | null
+        }
+        Update: {
+          audit_answers?: Json | null
+          audit_score?: number | null
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          name?: string | null
+          phone?: string | null
+          video_watch_time?: number | null
+        }
+        Relationships: []
+      }
+      recruit_settings: {
+        Row: {
+          created_at: string | null
+          id: string
+          key: string
+          updated_at: string | null
+          value: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          key: string
+          updated_at?: string | null
+          value?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          key?: string
+          updated_at?: string | null
+          value?: string | null
+        }
+        Relationships: []
+      }
       retargeting_leads: {
         Row: {
           created_at: string | null

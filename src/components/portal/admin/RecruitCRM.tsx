@@ -35,7 +35,7 @@ export function RecruitCRM() {
         setLoading(true);
         try {
             // 1. Fetch leads
-            const { data: leadsData, error: leadsError } = await supabase
+            const { data: leadsData, error: leadsError } = await (supabase as any)
                 .from("recruit_leads")
                 .select("*")
                 .order("created_at", { ascending: false });
@@ -47,7 +47,7 @@ export function RecruitCRM() {
             }
 
             // 2. Fetch config
-            const { data: settingsData, error: settingsError } = await supabase
+            const { data: settingsData, error: settingsError } = await (supabase as any)
                 .from("recruit_settings")
                 .select("value")
                 .eq("key", "briefing_video_url")
@@ -68,14 +68,14 @@ export function RecruitCRM() {
     async function handleSaveVideoUrl() {
         setSavingVideo(true);
         try {
-            const { data: exist } = await supabase.from('recruit_settings').select('id').eq('key', 'briefing_video_url').maybeSingle();
+            const { data: exist } = await (supabase as any).from('recruit_settings').select('id').eq('key', 'briefing_video_url').maybeSingle();
 
             let error;
             if (exist) {
-                const res = await supabase.from('recruit_settings').update({ value: videoUrl }).eq('key', 'briefing_video_url');
+                const res = await (supabase as any).from('recruit_settings').update({ value: videoUrl }).eq('key', 'briefing_video_url');
                 error = res.error;
             } else {
-                const res = await supabase.from('recruit_settings').insert({ key: 'briefing_video_url', value: videoUrl });
+                const res = await (supabase as any).from('recruit_settings').insert({ key: 'briefing_video_url', value: videoUrl });
                 error = res.error;
             }
 
