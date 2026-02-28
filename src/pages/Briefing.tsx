@@ -21,7 +21,7 @@ const Briefing: React.FC = () => {
     useEffect(() => {
         const fetchVideoUrl = async () => {
             try {
-                const { data, error } = await supabase
+                const { data, error } = await (supabase as any)
                     .from("recruit_settings")
                     .select("value")
                     .eq("key", "briefing_video_url")
