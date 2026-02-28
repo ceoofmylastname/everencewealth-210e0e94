@@ -437,7 +437,7 @@ serve(async (req) => {
     // Get target language articles (to find correct source_article_id)
     const { data: targetArticles } = await supabase
       .from('blog_articles')
-      .select('id, hreflang_group_id, featured_image_alt, slug')
+      .select('id, hreflang_group_id, featured_image_alt, featured_image_url, slug')
       .eq('cluster_id', clusterId)
       .eq('language', targetLanguage)
       .eq('status', 'published');
@@ -578,7 +578,7 @@ serve(async (req) => {
     console.log(`[TranslateQAs] ✅ Pre-check passed: ${validQAs.length} Q&As ready, ${missingArticleLinks.length} blocked, ${qaLinkingMismatches.length} mismatches`);
 
     // BULLETPROOF: Process Q&As ONE AT A TIME with retry logic
-    const BATCH_SIZE = 6;
+    const BATCH_SIZE = 12;
     const qaGroup = validQAs.slice(0, BATCH_SIZE);
     const qasRemaining = validQAs.length - qaGroup.length;
     
@@ -622,32 +622,10 @@ serve(async (req) => {
         // Build translated Q&A record
         const now = new Date().toISOString();
         
-        // Generate unique image for this Q&A
-        const sceneVariations = [
-          'professional office with financial charts',
-          'modern wealth management consultation',
-          'retirement planning meeting',
-          'family reviewing financial documents',
-          'elegant home office with laptop',
-          'sunset landscape symbolizing retirement',
-          'professional advisor at desk',
-          'secure vault representing wealth protection',
-          'happy retired couple outdoors',
-          'modern financial district skyline'
-        ];
-        const randomScene = sceneVariations[Math.floor(Math.random() * sceneVariations.length)];
-        const qaImagePrompt = `Professional wealth management photograph, ${randomScene}, bright natural lighting, educational visual style, no text, no watermarks, no logos, clean composition, high-end quality, ${LANGUAGE_NAMES[targetLanguage] || targetLanguage} market aesthetic`;
-        let generatedImageUrl = await generateUniqueImage(qaImagePrompt, englishQA.featured_image_url);
-        
-        // Upload to Supabase Storage if it's a Fal.ai URL
-        if (generatedImageUrl && generatedImageUrl.includes('fal.media')) {
-          generatedImageUrl = await uploadToStorage(
-            generatedImageUrl,
-            supabase,
-            'article-images',
-            `qa-${slug}`
-          );
-        }
+        // Reuse the source article's image (fast, no AI call needed)
+        const generatedImageUrl = targetArticle.featured_image_url || 
+          englishQA.featured_image_url || 
+          'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=1200';
         
         const translatedQARecord = {
           source_article_id: targetArticle.id,
