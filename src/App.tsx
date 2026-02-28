@@ -244,6 +244,9 @@ const RetargetingLanding = lazy(() => import("./pages/RetargetingLanding"));
 const Assessment = lazy(() => import("./pages/Assessment"));
 const ContractingIntake = lazy(() => import("./pages/ContractingIntake"));
 const WorkshopLanding = lazy(() => import("./pages/public/WorkshopLanding"));
+const Recruit = lazy(() => import("./pages/Recruit"));
+const Briefing = lazy(() => import("./pages/Briefing"));
+const RecruitDashboard = lazy(() => import("./pages/RecruitDashboard"));
 
 
 // Loading fallback component
@@ -289,6 +292,9 @@ const App = () => (
               <Route path="/thank-you" element={<ThankYou />} />
               <Route path="/assessment" element={<Assessment />} />
               <Route path="/apply" element={<ContractingIntake />} />
+              <Route path="/recruit" element={<Recruit />} />
+              <Route path="/briefing" element={<Briefing />} />
+              <Route path="/recruit-dashboard" element={<RecruitDashboard />} />
 
 
               {/* ========================================== */}
@@ -407,7 +413,7 @@ const App = () => (
                   <Route path="contracting/agent/:id" element={<ContractingAgentDetail />} />
                   <Route path="contracting/messages" element={<ContractingMessages />} />
                   <Route path="contracting/documents" element={<ContractingDocuments />} />
-                  
+
                   <Route path="contracting/analytics" element={<ContractingAnalytics />} />
                   <Route path="contracting/agents" element={<ContractingAgents />} />
                   <Route path="contracting/settings" element={<ContractingSettings />} />
