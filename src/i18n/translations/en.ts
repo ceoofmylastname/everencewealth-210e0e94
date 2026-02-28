@@ -712,7 +712,7 @@ export const en = {
       sideRight: "Strategic Broker",
       subline1: "Stop funding Wall Street's wealth.",
       subline2: "Start building yours.",
-      sublineSmall: "You've been sold a myth. Save and hope? That's a gamble. We reclaim control.",
+      sublineSmall: "You've been sold a myth. Save and hope? That's a gamble. We help you reclaim control.",
       systemStatus: "System Status",
       analysisActive: "Analysis Active",
       currentProtocol: "Current Protocol",

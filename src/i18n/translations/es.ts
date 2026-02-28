@@ -685,7 +685,7 @@ export const es = {
       sideRight: "Fiduciario Estratégico",
       subline1: "Deja de financiar la riqueza de Wall Street.",
       subline2: "Comienza a construir la tuya.",
-      sublineSmall: "Te han vendido un mito. ¿Ahorrar y esperar? Eso es una apuesta. Nosotros recuperamos el control.",
+      sublineSmall: "Te han vendido un mito. ¿Ahorrar y esperar? Eso es una apuesta. Te ayudamos a recuperar el control.",
       systemStatus: "Estado del Sistema",
       analysisActive: "Análisis Activo",
       currentProtocol: "Protocolo Actual",
