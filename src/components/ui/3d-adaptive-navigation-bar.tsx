@@ -56,7 +56,7 @@ export const NavigationPill: React.FC<NavigationPillProps> = ({ isLightBackgroun
       label: nav.about, id: 'about',
       children: [
         { label: nav.team, path: `/${currentLanguage}/team`, icon: <Users className="w-4 h-4" /> },
-        { label: nav.whyFiduciary, path: `/${currentLanguage}/about`, icon: <Info className="w-4 h-4" /> },
+        { label: nav.whyIndependent, path: `/${currentLanguage}/about`, icon: <Info className="w-4 h-4" /> },
         { label: nav.clientStories, path: `/${currentLanguage}/client-stories`, icon: <Heart className="w-4 h-4" /> },
       ],
     },

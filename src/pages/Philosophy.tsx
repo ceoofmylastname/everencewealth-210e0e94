@@ -55,7 +55,7 @@ const Philosophy: React.FC = () => {
     "@context": "https://schema.org",
     "@type": "FinancialService",
     "name": "Everence Wealth",
-    "description": "Independent fiduciary wealth management specializing in tax-efficient indexed retirement strategies.",
+    "description": "Independent wealth management specializing in tax-efficient indexed retirement strategies.",
     "url": baseUrl,
     "logo": `${baseUrl}/logo-icon.png`,
 
@@ -78,7 +78,7 @@ const Philosophy: React.FC = () => {
       "Indexed Universal Life Insurance",
       "Three Tax Buckets Strategy",
       "Asset Protection",
-      "Fiduciary Financial Planning",
+      "Independent Financial Planning",
     ],
   };
 

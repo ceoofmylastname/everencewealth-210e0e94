@@ -72,7 +72,7 @@ const TaxFreeRetirement: React.FC = () => {
     "name": "Everence Wealth",
     "url": baseUrl,
     "logo": `${baseUrl}/logo-icon.png`,
-    "description": "Independent fiduciary wealth advisory firm specializing in tax-efficient retirement strategies with access to 75+ carrier partnerships.",
+    "description": "Independent wealth advisory firm specializing in tax-efficient retirement strategies with access to 75+ carrier partnerships.",
     "slogan": "Bridge the Retirement Gap",
   };
 

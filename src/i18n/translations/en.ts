@@ -21,7 +21,7 @@ export const en = {
       contact: "Get Started",
     },
     cities: {
-      marbella: "Indexed Universal Life strategies",
+      marbella: "Index Strategies",
       estepona: "Tax-free retirement income",
       malaga: "Asset protection planning",
       sotogrande: "Estate & legacy planning",
@@ -32,7 +32,7 @@ export const en = {
       strategies: "Strategies",
       education: "Education",
       about: "About",
-      iul: "Indexed Universal Life",
+      iul: "Index Strategy",
       wholeLife: "Whole Life",
       taxFreeRetirement: "Tax-Free Retirement",
       assetProtection: "Asset Protection",
@@ -40,7 +40,7 @@ export const en = {
       qa: "Q&A",
       glossary: "Financial Terms",
       team: "Our Team",
-      whyFiduciary: "Why Fiduciary",
+      whyIndependent: "Why Independent",
       clientStories: "Client Stories",
       portalLogin: "Portal",
       comparisons: "Comparisons",
@@ -90,17 +90,17 @@ export const en = {
     trustBadges: {
       api: "75+ Carriers",
       experience: "35+ Years",
-      buyers: "Fiduciary Advisors",
+      buyers: "Independent Brokers",
     },
     trustBadgesMobile: {
       api: "75+",
       experience: "35+",
-      buyers: "Fiduciary",
+      buyers: "Independent",
     },
     headline: "Bridge the Retirement Gap.",
     headlineHighlight: "Protect What Matters.",
-    tagline: "Tax-Efficient Strategies. Independent Advice. Fiduciary Always.",
-    description: "Everence Wealth helps families bridge the retirement gap through tax-efficient indexed strategies. As independent fiduciary advisors with access to 75+ carriers and 35+ years of combined experience, we eliminate hidden fees, reduce tax exposure, and build generational wealth.",
+    tagline: "Tax-Efficient Strategies. Independent Advice. Client-First Always.",
+    description: "Everence Wealth helps families bridge the retirement gap through tax-efficient indexed strategies. As independent brokers with access to 75+ carriers and 35+ years of combined experience, we eliminate hidden fees, reduce tax exposure, and build generational wealth.",
     ctaPrimary: "Explore Strategies",
     ctaSecondary: "Get Started",
   },
@@ -176,8 +176,8 @@ export const en = {
   miniAbout: {
     headline: "Expertise You Can",
     headlineHighlight: "Trust",
-    paragraph1: "Everence Wealth was founded by a team of fiduciary advisors with 35+ years of combined experience helping Americans build tax-efficient retirement strategies and protect their wealth.",
-    paragraph2: "Our bilingual team provides expert guidance in English and Spanish, specializing in indexed universal life, annuities, estate planning, and comprehensive wealth management.",
+    paragraph1: "Everence Wealth was founded by a team of independent brokers with 35+ years of combined experience helping Americans build tax-efficient retirement strategies and protect their wealth.",
+    paragraph2: "Our bilingual team provides expert guidance in English and Spanish, specializing in Index Strategies, annuities, estate planning, and comprehensive wealth management.",
     cta: "Meet the Team",
   },
   usps: {
@@ -185,8 +185,8 @@ export const en = {
     headline: "Why Clients Trust Everence Wealth",
     items: [
       {
-        title: "Fiduciary Standard",
-        description: "We operate under a strict fiduciary duty, always putting your financial interests first.",
+        title: "Client-First Standard",
+        description: "We work exclusively for you — not for any insurance company, bank, or Wall Street institution.",
       },
       {
         title: "35+ Years of Experience",
@@ -208,7 +208,7 @@ export const en = {
     description: "Each financial strategy has its own strengths, tax advantages, and ideal use case. We guide you to the approach that fits your vision.",
     cta: "Explore All Strategies",
     areas: {
-      marbella: "Indexed Universal Life (IUL) — tax-free retirement income with market-linked growth and downside protection.",
+      marbella: "Indexed Strategy — tax-free retirement income with market-linked growth and downside protection.",
       estepona: "Fixed & Indexed Annuities — guaranteed income streams for retirement security with tax-deferred growth.",
       fuengirola: "Roth IRA strategies — tax-free growth and withdrawal for long-term retirement planning.",
       benalmadena: "Estate planning — protecting your legacy with trusts, beneficiary designations, and wealth transfer strategies.",
@@ -262,26 +262,26 @@ export const en = {
   glossaryTeaser: {
     eyebrow: "Essential Terms",
     headline: "Understand Financial Terminology",
-    description: "Navigate the planning process with confidence. Our glossary explains IUL, RMDs, fiduciary duty, and everything you need to know.",
+    description: "Navigate the planning process with confidence. Our glossary explains Index Strategies, RMDs, client-first duty, and everything you need to know.",
     cta: "Explore Full Glossary",
     featuredTerms: "Popular Terms",
     learnMore: "Learn more",
     terms: {
-      nie: "Indexed Universal Life (IUL) — a permanent life insurance policy with cash value growth linked to market indices.",
+      nie: "Indexed Universal Life Strategy — a cash-value life insurance structure that links growth to a market index like the S&P 500, with a guaranteed floor so you never lose principal to market downturns.",
       digitalNomadVisa: "Required Minimum Distribution (RMD) — mandatory annual withdrawal from tax-deferred retirement accounts after age 73.",
-      ibi: "Fiduciary — a financial advisor legally obligated to act in the client's best interest at all times.",
+      ibi: "Independent Broker — a financial professional ethically obligated to act in the client's best interest at all times.",
       escritura: "Annuity — a contract with an insurance company providing guaranteed income payments for a specified period or lifetime.",
     },
   },
   finalCta: {
     headline: "Ready to Secure Your",
     headlineHighlight: "Financial Future?",
-    description: "Whether you're just starting to plan or ready to take action, our fiduciary advisors are here to guide you — clearly, transparently, and in your language.",
+    description: "Whether you're just starting to plan or ready to take action, our independent brokers are here to guide you — clearly, transparently, and in your language.",
     ctaPrimary: "Chat with Everence AI",
     ctaSecondary: "Contact via Phone",
   },
   footer: {
-    brandDescription: "Everence Wealth — Independent fiduciary wealth architects specializing in tax-efficient retirement strategies. Licensed professionals. Bilingual guidance.",
+    brandDescription: "Everence Wealth — Independent wealth architects specializing in tax-efficient retirement strategies. Licensed professionals. Bilingual guidance.",
     contactHeading: "Contact Us",
     navigateHeading: "Navigate",
     legalHeading: "Legal",
@@ -415,24 +415,24 @@ export const en = {
       hero: {
         eyebrow: 'California',
         tagline: 'Where Innovation Meets Financial Planning',
-        description: 'Discover exceptional retirement and wealth strategies tailored for California residents. Expert guidance from fiduciary advisors.',
+        description: 'Discover exceptional retirement and wealth strategies tailored for California residents. Expert guidance from independent brokers.',
       },
       lifestyle: {
         eyebrow: 'The Opportunity',
         headline: 'Financial Planning in California',
         paragraph1: 'California offers unique tax considerations and planning opportunities. With one of the highest state income tax rates, strategic planning is essential for maximizing retirement income.',
-        paragraph2: 'From Roth conversions to tax-free IUL strategies, California residents benefit most from comprehensive tax-bucket diversification.',
+        paragraph2: 'From Roth conversions to tax-free Index Strategies, California residents benefit most from comprehensive tax-bucket diversification.',
         paragraph3: 'Whether you\'re seeking tax-efficient retirement income, estate protection, or business succession planning — our California-focused strategies deliver results.',
       },
       investment: {
         eyebrow: 'Strategy Overview',
         headline: 'Why Californians Choose Everence Wealth',
-        description: 'California\'s high-tax environment demands sophisticated planning. Discover why discerning clients consistently choose our fiduciary approach.',
+        description: 'California\'s high-tax environment demands sophisticated planning. Discover why discerning clients consistently choose our client-first approach.',
       },
       propertyTypes: {
         eyebrow: 'Strategy Types',
         headline: 'What We Offer in California',
-        description: 'From IUL policies to indexed annuities, we offer comprehensive financial products to match every goal and risk tolerance.',
+        description: 'From Index Strategies to indexed annuities, we offer comprehensive financial products to match every goal and risk tolerance.',
       },
       gallery: {
         eyebrow: 'Success Stories',
@@ -449,12 +449,12 @@ export const en = {
   team: {
     meta: {
       title: "Meet Our Advisors | Everence Wealth",
-      description: "Meet the expert fiduciary advisors at Everence Wealth. Bilingual team with 35+ years combined experience in wealth management and insurance."
+      description: "Meet the expert independent brokers at Everence Wealth. Bilingual team with 35+ years combined experience in wealth management and insurance."
     },
     hero: {
       badge: "Our Advisors",
       headline: "Meet Our Expert Team",
-      subheadline: "Dedicated fiduciary professionals ready to help you build and protect your wealth",
+      subheadline: "Dedicated independent professionals ready to help you build and protect your wealth",
       badges: {
         languages: "EN/ES",
         experience: "35+ Years Combined"
@@ -498,7 +498,7 @@ export const en = {
   contact: {
     meta: {
       title: "Contact Everence Wealth | Retirement & Wealth Planning",
-      description: "Get in touch with our fiduciary advisory team. Call, email, or schedule a consultation for personalized wealth management guidance."
+      description: "Get in touch with our independent advisory team. Call, email, or schedule a consultation for personalized wealth management guidance."
     },
     hero: {
       headline: "Get in Touch",
@@ -591,7 +591,7 @@ export const en = {
         },
         {
           question: "Can I schedule a video call?",
-          answer: "Absolutely! Contact us via phone or email to arrange a convenient time for a video consultation with one of our fiduciary advisors."
+          answer: "Absolutely! Contact us via phone or email to arrange a convenient time for a video consultation with one of our independent brokers."
         },
         {
           question: "What states do you serve?",
@@ -608,8 +608,8 @@ export const en = {
   },
   aboutUs: {
     meta: {
-      title: "About Everence Wealth | Fiduciary Wealth Architects",
-      description: "Learn about our fiduciary advisory team with 35+ years experience helping Americans build tax-efficient retirement strategies."
+      title: "About Everence Wealth | Independent Wealth Architects",
+      description: "Learn about our independent advisory team with 35+ years experience helping Americans build tax-efficient retirement strategies."
     },
     cta: {
       meetTeam: "Meet Our Advisors",
@@ -617,7 +617,7 @@ export const en = {
     },
     hero: {
       headline: "Your Trusted Partners in Wealth Management",
-      subheadline: "Fiduciary advisors with 35+ years of expertise and one mission: securing your financial future.",
+      subheadline: "Independent brokers with 35+ years of expertise and one mission: securing your financial future.",
       breadcrumbHome: "Home",
       breadcrumbAbout: "About Us",
       statsYears: "Years Experience",
@@ -628,14 +628,14 @@ export const en = {
       heading: "Our Mission",
       summaryLabel: "About Us",
       content: "We believe everyone deserves expert guidance when making life's most important financial decisions. Our mission is to provide transparent, personalized wealth management services that put your interests first.",
-      speakableContent: "Everence Wealth is an independent fiduciary advisory firm specializing in tax-efficient retirement strategies, founded by experienced professionals with over 35 years of combined experience helping Americans build, protect, and transfer wealth."
+      speakableContent: "Everence Wealth is an independent advisory firm specializing in tax-efficient retirement strategies, founded by experienced professionals with over 35 years of combined experience helping Americans build, protect, and transfer wealth."
     },
     story: {
       heading: "Our Story",
-      subheading: "From individual expertise to a unified fiduciary mission",
+      subheading: "From individual expertise to a unified client-first mission",
       timelineHeading: "Our Journey",
       narrativeHeading: "A Journey of Purpose and Expertise",
-      narrativeContent: "## A Journey of Purpose and Expertise\n\nOur story begins with experienced financial professionals who saw a better way to serve clients.\n\nAfter decades in the financial services industry, our founders recognized that most Americans lacked access to truly independent, fiduciary advice. Too many families were sold products rather than given strategies.\n\nWe built Everence Wealth to change that. By combining deep expertise in insurance, tax planning, and wealth management with cutting-edge AI analysis, we deliver institutional-quality strategies to everyday families.\n\nToday, we serve clients across the United States, helping them bridge the retirement gap and protect what matters most.",
+      narrativeContent: "## A Journey of Purpose and Expertise\n\nOur story begins with experienced financial professionals who saw a better way to serve clients.\n\nAfter decades in the financial services industry, our founders recognized that most Americans lacked access to truly independent, client-first advice. Too many families were sold products rather than given strategies.\n\nWe built Everence Wealth to change that. By combining deep expertise in insurance, tax planning, and wealth management with cutting-edge AI analysis, we deliver institutional-quality strategies to everyday families.\n\nToday, we serve clients across the United States, helping them bridge the retirement gap and protect what matters most.",
       timeline: [
         { year: "1991", event: "Founding advisors begin financial careers" },
         { year: "2010", event: "Team expands to multi-state practice" },
@@ -646,14 +646,14 @@ export const en = {
     founders: {
       badge: "Expert Team",
       heading: "Meet The Founders",
-      subheading: "Experienced fiduciary professionals united by a passion for helping clients secure their financial future",
+      subheading: "Experienced independent professionals united by a passion for helping clients secure their financial future",
       specialization: "Specialization",
       viewProfile: "View Profile",
       profiles: [
         {
           name: "Advisory Team",
-          role: "Fiduciary Advisors",
-          bio: "Our team of licensed fiduciary advisors brings 35+ years of combined experience in retirement planning, insurance, and wealth management. Each advisor holds relevant industry credentials and maintains a strict fiduciary standard.",
+          role: "Independent Advisors",
+          bio: "Our team of licensed independent brokers brings 35+ years of combined experience in retirement planning, insurance, and wealth management. Each advisor holds relevant industry credentials and maintains a strict client-first standard.",
           specialization: "Retirement Planning and Tax-Efficient Strategies"
         }
       ]
@@ -662,14 +662,14 @@ export const en = {
       heading: "Why Choose Us",
       subheading: "We don't just sell products — we architect comprehensive financial strategies",
       features: [
-        { title: "Fiduciary Standard", description: "Legally obligated to act in your best interest" },
+        { title: "Client-First Standard", description: "Ethically obligated to act in your best interest" },
         { title: "End-to-End Service", description: "From strategy design to ongoing portfolio reviews" },
         { title: "Licensed & Certified", description: "Fully licensed and insured professionals" },
         { title: "Responsive Support", description: "Available when you need us most" },
         { title: "Client-First Approach", description: "Your goals drive every recommendation" },
         { title: "Transparent Process", description: "No hidden fees, no surprises" }
       ],
-      content: "## Why Clients Choose Us\n\nWhen it comes to planning your financial future, you need a partner who understands both the products and your needs.\n\n### Fiduciary Expertise\n\nOur team operates under a strict fiduciary standard, meaning we are legally obligated to put your interests first — always.\n\n### End-to-End Service\n\nFrom your first consultation to annual portfolio reviews, we're with you every step of the way."
+      content: "## Why Clients Choose Us\n\nWhen it comes to planning your financial future, you need a partner who understands both the products and your needs.\n\n### Client-First Expertise\n\nOur team operates under a strict client-first standard, meaning we work exclusively for you — always.\n\n### End-to-End Service\n\nFrom your first consultation to annual portfolio reviews, we're with you every step of the way."
     },
     credentials: {
       heading: "Our Credentials",
@@ -677,7 +677,7 @@ export const en = {
       citationsLabel: "Verified By Official Sources",
       items: [
         { name: "State Licensed", description: "Licensed in all 50 states for insurance and financial products" },
-        { name: "Fiduciary Standard", description: "Bound by legal duty to act in client's best interest" },
+        { name: "Client-First Standard", description: "Committed to acting in the client's best interest" },
         { name: "E&O Insured", description: "Full Errors & Omissions professional liability coverage" },
         { name: "CCPA Compliant", description: "California Consumer Privacy Act compliance" }
       ]
@@ -686,7 +686,7 @@ export const en = {
       heading: "Frequently Asked Questions",
       subheading: "Common questions about Everence Wealth",
       items: [
-        { question: "What is a fiduciary advisor?", answer: "A fiduciary advisor is legally obligated to act in your best interest at all times. Unlike commission-based agents, we recommend strategies based solely on what's best for you." },
+        { question: "What does it mean to be independent?", answer: "As independent brokers, we have access to 75+ carriers. We aren't bound to one company's products. We recommend strategies based solely on what's best for you." },
         { question: "Are your advisors licensed?", answer: "Yes, all our advisors are fully licensed and insured, holding relevant state and industry credentials for insurance and financial products." },
         { question: "What languages do you support?", answer: "Our bilingual team provides full guidance in English and Spanish." },
         { question: "What states do you serve?", answer: "We serve clients across all 50 states, with specialized expertise in California, Texas, Florida, New York, Illinois, and other key markets." }
@@ -704,12 +704,12 @@ export const en = {
   },
   homepage: {
     hero: {
-      badge: "Nationwide Coverage · Independent Fiduciary",
+      badge: "Nationwide Coverage · Independent Broker",
       bridge: "BRIDGE",
       the: "the",
       gap: "GAP",
       sideLeft: "Wealth Architecture",
-      sideRight: "Strategic Fiduciary",
+      sideRight: "Strategic Broker",
       subline1: "Stop funding Wall Street's wealth.",
       subline2: "Start building yours.",
       sublineSmall: "You've been sold a myth. Save and hope? That's a gamble. We reclaim control.",
@@ -761,15 +761,16 @@ export const en = {
       buckets: [
         { label: "TAXABLE", title: "Taxable", treatment: "Capital gains + ordinary income on every gain", examples: "Brokerage accounts, savings, CDs" },
         { label: "TAX-DEFERRED", title: "Tax-Deferred", treatment: "Ordinary income at withdrawal + mandatory RMDs", examples: "401(k), Traditional IRA, 403(b)" },
-        { label: "TAX-EXEMPT", title: "Tax-Exempt", treatment: "Zero taxes on qualified distributions", examples: "Roth IRA, Indexed Universal Life, Municipal bonds" },
+        { label: "TAX-EXEMPT", title: "Tax-Exempt", treatment: "Zero taxes on qualified distributions", examples: "Roth IRA, Index Strategy, Municipal bonds" },
       ],
     },
     indexedAdvantage: {
-      badge: "The IUL Advantage",
+      badge: "The Index Strategy Advantage",
       headline: "Growth Without the Risk",
       subtitle: "Participate in market gains. Protected from market losses. Zero is your hero.",
-      tableTitle: "S&P 500 vs Indexed Universal Life",
-      tableHeaders: { year: "Year", sp500: "S&P 500", iul: "IUL Return" },
+      tableTitle: "S&P 500 vs Index Strategy",
+      tableHeaders: { year: "Year", sp500: "S&P 500", iul: "Index Strategy Return" },
+      sp500Framing: "The S&P 500 has historically delivered strong long-term returns — but with full exposure to market losses. Index Strategies track S&P 500 performance up to a cap rate, while a guaranteed floor ensures you never lose principal when the market drops. You participate in the growth. You're protected from the loss.",
       floorBadge: "Floor: 0% — never lose money",
       capBadge: "Cap: 10-12% — participate in up years",
       whoTitle: "Who This Is For",
@@ -807,8 +808,8 @@ export const en = {
         { label: "Long-Term Care", desc: "Fund care needs without separate LTC policy" },
       ],
     },
-    fiduciaryDifference: {
-      headline: "The Fiduciary Difference",
+    independentDifference: {
+      headline: "The Independent Difference",
       subtitle: "Independent. Objective. In your corner.",
       cards: [
         {
@@ -816,15 +817,15 @@ export const en = {
           items: ["Access to 75+ carriers", "Not captive to one company", "Shop the market for your best fit"],
         },
         {
-          title: "Fiduciary Duty",
-          items: ["Legally obligated to act in YOUR best interest", "No hidden commission conflicts", "Transparent fee structure"],
+          title: "Client-First Duty",
+          items: ["We work exclusively for you", "No hidden commission conflicts", "Transparent fee structure"],
         },
         {
           title: "Holistic Planning",
           items: ["Retirement gap analysis", "Tax bucket optimization", "Estate and legacy planning"],
         },
       ],
-      badges: ["Licensed in 50 States", "75+ Carriers", "Fiduciary Standard"],
+      badges: ["Licensed in 50 States", "75+ Carriers", "Client-First Standard"],
     },
     theGap: {
       badge: "The Retirement Crisis",
@@ -852,7 +853,7 @@ export const en = {
         {
           title: "Retirement Planning",
           description: "Tax-efficient strategies that create predictable, tax-free retirement income.",
-          points: ["Indexed Universal Life (IUL)", "Tax-free distribution strategies", "Social Security optimization", "RMD avoidance planning"],
+          points: ["Index Strategy", "Tax-free distribution strategies", "Social Security optimization", "RMD avoidance planning"],
         },
         {
           title: "Wealth Protection",
@@ -869,12 +870,12 @@ export const en = {
     },
     homepageAbout: {
       headline: "Everence Wealth: Built on Independence",
-      paragraph1: "Founded in San Francisco, Everence Wealth was built on a simple belief: families deserve independent, fiduciary guidance—not sales pitches disguised as advice.",
+      paragraph1: "Founded in San Francisco, Everence Wealth was built on a simple belief: families deserve independent broker guidance—not sales pitches disguised as advice.",
       paragraph2: "As an independent broker with access to 75+ carriers, we work for you, not for any insurance company or investment firm. Our mission is to help you bridge the retirement gap through tax-efficient strategies that Wall Street doesn't want you to know about.",
       facts: [
-        { value: "Independent", label: "Fiduciary" },
+        { value: "Independent", label: "Broker" },
         { value: "75+", label: "Carrier Partnerships" },
-        { value: "Fiduciary", label: "Independent Advisor" },
+        { value: "Client-First", label: "Independent Advisor" },
         { value: "San Francisco, CA", label: "Headquarters" },
       ],
       testimonial: "For the first time, I felt like my advisor was truly on my side—not selling me something.",
@@ -903,12 +904,12 @@ export const en = {
       badge: "FAQ",
       headline: "Common Questions",
       items: [
-        { q: "What does it mean to be a fiduciary?", a: "A fiduciary is legally obligated to act in your best interest — not earn commissions or push proprietary products. Unlike most brokers, we sit on your side of the table." },
-        { q: "What is Indexed Universal Life (IUL) insurance?", a: "IUL is a permanent life insurance product that offers a death benefit plus cash value growth linked to market indexes — with a floor that protects you from losses. It can serve as a tax-advantaged retirement supplement." },
+        { q: "What does it mean to be independent?", a: "As independent brokers, we have access to 75+ carriers. We aren't bound to one company's products. We recommend strategies based solely on what's best for you." },
+        { q: "What is an Index Strategy?", a: "An Index Strategy is a cash-value life insurance structure that links growth to a market index like the S&P 500, with a guaranteed floor so you never lose principal to market downturns. It can serve as a tax-advantaged retirement supplement." },
         { q: "How are your fees structured?", a: "We are compensated by the insurance carriers we work with — you pay nothing out of pocket for our advisory services. We disclose all compensation transparently." },
-        { q: "How does tax-free retirement income work?", a: "Certain financial instruments, like Roth IRAs and properly structured IUL policies, allow you to withdraw funds tax-free in retirement. We help you build a multi-bucket strategy to minimize lifetime taxes." },
+        { q: "How does tax-free retirement income work?", a: "Certain financial instruments, like Roth IRAs and properly structured Index Strategies, allow you to withdraw funds tax-free in retirement. We help you build a multi-bucket strategy to minimize lifetime taxes." },
         { q: "Who is Everence Wealth best suited for?", a: "We primarily serve families and professionals between ages 35-60 who want to protect their wealth, optimize their tax situation, and build a reliable retirement income they won't outlive." },
-        { q: "How is Everence Wealth different from a traditional financial advisor?", a: "We combine fiduciary duty with access to 75+ insurance carriers, tax-optimized strategies, and institutional-grade planning — without the conflicts of interest common in the brokerage world." },
+        { q: "How is Everence Wealth different from a traditional financial advisor?", a: "We combine an independent client-first approach with access to 75+ insurance carriers, tax-optimized strategies, and institutional-grade planning — without the conflicts of interest common in the captive brokerage world." },
         { q: "What is the retirement gap assessment?", a: "It's a complimentary analysis that compares your current trajectory against what you'll actually need in retirement. In five minutes, you'll see exactly where you stand and what adjustments could close the gap." },
       ],
     },
@@ -922,7 +923,7 @@ export const en = {
     },
     cta: {
       headline: "Your Retirement Deserves Better",
-      subtitle: "Stop guessing. Start planning with a fiduciary who puts your interests first — always.",
+      subtitle: "Stop guessing. Start planning with an independent broker who puts your interests first — always.",
       primaryCta: "Schedule Assessment",
       secondaryCta: "Call Us Direct",
     },
@@ -930,7 +931,7 @@ export const en = {
   philosophy: {
     seo: {
       title: "Our Philosophy: Contrarian Wealth Building | Everence Wealth",
-      description: "Discover Everence Wealth's contrarian financial philosophy: challenging Wall Street norms through tax-free strategies, 0% floor protection, and fiduciary guidance.",
+      description: "Discover Everence Wealth's contrarian financial philosophy: challenging Wall Street norms through tax-free strategies, 0% floor protection, and independent broker guidance.",
       breadcrumb: "Philosophy",
     },
     speakable: {
@@ -972,10 +973,10 @@ export const en = {
           chartNote: "A 50% loss requires a 100% gain just to break even. Zero is your hero.",
         },
         {
-          title: "Fiduciary, Always",
-          description: "We're legally required to act in your best interest — not maximize our commissions.",
+          title: "Client-First, Always",
+          description: "We work exclusively for you — not for any insurance company, bank, or Wall Street institution.",
           chartLabel: "The Difference:",
-          chartNote: "Wall Street advisors earn more when you stay invested. We earn nothing if you lose.",
+          chartNote: "Wall Street advisors earn more when you stay invested. We protect your wealth against loss.",
           centerText: "100%",
           centerLabel: "Client First",
         },
@@ -1055,13 +1056,13 @@ export const en = {
         {
           id: "tax-free",
           name: "Tax-Free",
-          subtitle: "Roth IRA, IUL, Municipal Bonds",
+          subtitle: "Roth IRA, Index Strategy, Municipal Bonds",
           recommended: true,
           features: [
             { label: "Tax-free growth", included: true },
             { label: "Tax-free income in retirement", included: true },
             { label: "No Required Minimum Distributions", included: true },
-            { label: "0% floor protection (IUL)", included: true },
+            { label: "0% floor protection", included: true },
             { label: "Tax-free death benefit", included: true },
             { label: "Living benefits access", included: true },
           ],
@@ -1089,7 +1090,7 @@ export const en = {
         {
           number: "3",
           title: "Bucket 3: Tax-Exempt",
-          description: "Roth IRA, Indexed Universal Life, Municipal Bonds. Pay taxes on the seed, never on the harvest. No RMDs. No age restrictions.",
+          description: "Roth IRA, Index Strategy, Municipal Bonds. Pay taxes on the seed, never on the harvest. No RMDs. No age restrictions.",
           taxRate: 0,
           taxLabel: "Tax-Free Forever",
           extraBadge: "No RMDs",
@@ -1142,7 +1143,7 @@ export const en = {
           { title: "0% Floor Protection", description: "Participate in growth, protected from losses" },
           { title: "Tax-Exempt Income", description: "Pay taxes once, withdraw tax-free forever" },
           { title: "75+ Carrier Partnerships", description: "Independent broker. Best solution for YOU." },
-          { title: "Fiduciary Obligation", description: "Legally required to act in YOUR best interest" },
+          { title: "Client-First Duty", description: "We work exclusively for you — not for any insurance company" },
         ],
         incentiveLabel: "Our Incentive:",
         incentiveText: "Help you achieve financial independence and retire successfully",

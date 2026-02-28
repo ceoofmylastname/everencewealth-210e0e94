@@ -82,7 +82,7 @@ export const Header: React.FC<HeaderProps> = ({ variant = 'transparent', content
       {/* About */}
       <MobileMenuSection title={nav.about} isOpen={mobileSubmenu === 'about'} onToggle={() => setMobileSubmenu(mobileSubmenu === 'about' ? null : 'about')}>
         <MobileLink to={`/${currentLanguage}/team`} onClick={closeMobile} icon={<Users className="w-5 h-5" />}>{nav.team}</MobileLink>
-        <MobileLink to={`/${currentLanguage}/about`} onClick={closeMobile} icon={<Info className="w-5 h-5" />}>{nav.whyFiduciary}</MobileLink>
+        <MobileLink to={`/${currentLanguage}/about`} onClick={closeMobile} icon={<Info className="w-5 h-5" />}>{nav.whyIndependent}</MobileLink>
         <MobileLink to={`/${currentLanguage}/client-stories`} onClick={closeMobile} icon={<Heart className="w-5 h-5" />}>{nav.clientStories}</MobileLink>
       </MobileMenuSection>
       

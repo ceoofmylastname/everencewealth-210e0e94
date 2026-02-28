@@ -54,7 +54,7 @@ function GlowCard({ children, index }: { children: React.ReactNode; index: numbe
 
 export function FiduciaryDifference() {
   const { t } = useTranslation();
-  const fd = t.homepage.fiduciaryDifference;
+  const fd = t.homepage.independentDifference;
 
   return (
     <section className="relative bg-[#1A4D3E] py-20 md:py-28 overflow-hidden">

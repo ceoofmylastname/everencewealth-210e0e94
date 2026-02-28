@@ -67,7 +67,7 @@ export const Footer: React.FC = () => {
               />
             </div>
             <p className="text-gray-400 text-sm mb-6">
-              Everence Wealth was built on the belief that families deserve independent, fiduciary guidance — not sales pitches disguised as advice.
+              Everence Wealth was built on the belief that families deserve independent, client-first guidance — not sales pitches disguised as advice.
             </p>
             <div className="flex items-start gap-2 text-gray-500 text-xs">
               <MapPin size={14} className="text-prime-gold shrink-0 mt-0.5" />

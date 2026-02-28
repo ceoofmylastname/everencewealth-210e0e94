@@ -40,7 +40,7 @@ export const es = {
       qa: "Preguntas y Respuestas",
       glossary: "Términos Financieros",
       team: "Nuestro Equipo",
-      whyFiduciary: "Por Qué Fiduciario",
+      whyIndependent: "Por Qué Independiente",
       clientStories: "Historias de Clientes",
       portalLogin: "Portal",
       comparisons: "Comparaciones",
@@ -780,8 +780,8 @@ export const es = {
         { label: "Cuidado a Largo Plazo", desc: "Financia necesidades de cuidado sin póliza LTC separada" },
       ],
     },
-    fiduciaryDifference: {
-      headline: "La Diferencia Fiduciaria",
+    independentDifference: {
+      headline: "La Diferencia Independiente",
       subtitle: "Independientes. Objetivos. De tu lado.",
       cards: [
         {
@@ -789,15 +789,15 @@ export const es = {
           items: ["Acceso a 75+ aseguradoras", "No cautivos de una sola compañía", "Compramos en el mercado para tu mejor opción"],
         },
         {
-          title: "Deber Fiduciario",
-          items: ["Legalmente obligados a actuar en TU mejor interés", "Sin conflictos de comisiones ocultas", "Estructura de tarifas transparente"],
+          title: "Deber Cliente-Primero",
+          items: ["Trabajamos exclusivamente para ti", "Sin conflictos de comisiones ocultas", "Estructura de tarifas transparente"],
         },
         {
           title: "Planificación Holística",
           items: ["Análisis de brecha de jubilación", "Optimización de cubetas fiscales", "Planificación patrimonial y de legado"],
         },
       ],
-      badges: ["Licenciados en 50 Estados", "75+ Aseguradoras", "Estándar Fiduciario"],
+      badges: ["Licenciados en 50 Estados", "75+ Aseguradoras", "Estándar Cliente-Primero"],
     },
     theGap: {
       badge: "La Crisis de Jubilación",

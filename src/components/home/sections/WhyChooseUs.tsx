@@ -10,8 +10,8 @@ const benefits = [
     icon: ShieldCheck,
     titleKey: 'apiAccredited',
     descKey: 'apiAccreditedDesc',
-    fallbackTitle: 'Fiduciary Standard',
-    fallbackDesc: 'We operate under a strict fiduciary duty, always putting your financial interests first.',
+    fallbackTitle: 'Client-First Standard',
+    fallbackDesc: 'We work exclusively for you — not for any insurance company, bank, or Wall Street institution.',
   },
   {
     icon: Star,

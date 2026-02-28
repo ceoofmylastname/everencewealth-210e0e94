@@ -25,7 +25,7 @@ const Contact: React.FC = () => {
     '@context': 'https://schema.org',
     '@type': 'FinancialService',
     name: 'Everence Wealth',
-    description: contactT.meta?.description || 'Independent fiduciary wealth management and retirement planning',
+    description: contactT.meta?.description || 'Independent wealth management and retirement planning',
     url: `https://everencewealth.com/${language}/contact`,
     telephone: COMPANY_CONTACT.phone,
     email: COMPANY_CONTACT.email,
@@ -71,7 +71,7 @@ const Contact: React.FC = () => {
     <>
       <Helmet>
         <title>{contactT.meta?.title || 'Contact Everence Wealth | Financial Planning & Wealth Management'}</title>
-        <meta name="description" content={contactT.meta?.description || 'Get in touch with our fiduciary wealth advisors.'} />
+        <meta name="description" content={contactT.meta?.description || 'Get in touch with our independent wealth advisors.'} />
         <link rel="canonical" href={`https://everencewealth.com/${language}/contact`} />
         <meta property="og:title" content={contactT.meta?.title} />
         <meta property="og:description" content={contactT.meta?.description} />
@@ -111,7 +111,7 @@ function getDefaultContactTranslations() {
   return {
     meta: {
       title: "Contact Everence Wealth | Financial Planning & Wealth Management",
-      description: "Get in touch with our fiduciary wealth advisors. Phone, email, or schedule a consultation for personalized retirement and wealth planning guidance."
+      description: "Get in touch with our independent wealth advisors. Phone, email, or schedule a consultation for personalized retirement and wealth planning guidance."
     },
     hero: {
       headline: "Get in Touch",
