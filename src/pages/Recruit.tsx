@@ -8,6 +8,7 @@ import { ProducerAudit } from '../components/recruit/ProducerAudit';
 import { GoldConfetti } from '../components/recruit/GoldConfetti';
 import { supabase } from '@/integrations/supabase/client';
 import { Shield, XOctagon } from 'lucide-react';
+import { toast } from '@/hooks/use-toast';
 
 type AuditResult = 'none' | 'passed' | 'failed';
 
@@ -54,17 +55,38 @@ const Recruit: React.FC = () => {
                 phone: leadForm.phone,
                 audit_score: finalScore,
                 video_watch_time: 0,
-                audit_answers: JSON.stringify({ ...savedLabels, comments: leadForm.comments }),
+                // Supabase expects a javascript object for jsonb columns
+                audit_answers: { ...savedLabels, comments: leadForm.comments },
             });
 
             if (error) {
                 console.error('Supabase error:', error);
+
+                // If it's the missing table error, log it specifically
+                if (error.code === 'PGRST205') {
+                    toast({
+                        title: "Database Sync Error",
+                        description: "The recruit_leads table was not found. Please verify database migrations.",
+                        variant: "destructive"
+                    });
+                } else {
+                    toast({
+                        title: "System Error",
+                        description: "There was a problem saving your audit. You are being redirected.",
+                        variant: "destructive"
+                    });
+                }
             }
 
             // Navigate to private masterclass briefing
             navigate('/briefing', { state: { authorized: true, score: finalScore, name: fullName, answers: savedLabels } });
         } catch (err) {
             console.error('Error submitting lead:', err);
+            toast({
+                title: "System Connection Error",
+                description: "Failed to connect to the secure server.",
+                variant: "destructive"
+            });
             navigate('/briefing', { state: { authorized: true, score: finalScore, name: fullName, answers: savedLabels } });
         } finally {
             setIsSubmitting(false);
