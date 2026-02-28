@@ -78,23 +78,23 @@ const BOFU_TEMPLATES: Record<string, {
       'Longevity risk and planning for 30+ year retirements'
     ]
   },
-  'iul-guide': {
-    topic: 'Indexed Universal Life Insurance (IUL): How It Works & Who It\'s For',
-    targetKeyword: 'indexed universal life insurance how it works',
-    category: 'Insurance Products',
+  'index-strategy-guide': {
+    topic: 'Index Strategy: How It Works & Who It\'s For',
+    targetKeyword: 'index strategy how it works',
+    category: 'Retirement Strategies',
     targetAudience: 'High-income individuals seeking tax-advantaged growth with downside protection',
     pageType: 'process-guide',
     contentFocus: [
-      'How index-linked crediting works (S&P 500, participation rates, caps)',
-      'Floor protection - 0% minimum guarantees',
+      'How S&P 500-linked crediting works (participation rates, caps)',
+      'Floor protection - 0% minimum guarantees (Zero is Your Hero)',
       'Flexible premium payments and death benefit options',
       'Cash value accumulation vs traditional investments',
       'Tax-free policy loans for retirement income',
       'Cost of insurance charges and their impact',
       'Illustration regulations and realistic expectations',
-      'IUL vs 401(k) and Roth IRA comparison',
-      'Suitability considerations and who should avoid IUL',
-      'How to evaluate IUL illustrations from different carriers'
+      'Index Strategy vs 401(k) and Roth IRA comparison',
+      'Suitability considerations and who should avoid Index Strategies',
+      'How to evaluate Index Strategy illustrations from different carriers'
     ]
   },
   'estate-planning': {

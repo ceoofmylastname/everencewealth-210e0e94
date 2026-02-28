@@ -52,7 +52,7 @@ HANS' AEO RULES (MANDATORY):
 - Directly answers the question as a verdict/conclusion
 
 WRONG: "There are 5 key steps: 1. Set up a 401(k) 2. Open a Roth IRA 3. Get life insurance..."
-RIGHT: "Building a tax-efficient retirement strategy involves maximizing employer-matched 401(k) contributions, establishing a Roth IRA for tax-free growth, securing an indexed universal life policy for supplemental income, creating a systematic withdrawal plan across tax buckets, and coordinating Social Security timing to optimize lifetime benefits."
+RIGHT: "Building a tax-efficient retirement strategy involves maximizing employer-matched 401(k) contributions, establishing a Roth IRA for tax-free growth, securing an Index Strategy for supplemental income with S&P 500-linked growth and 0% floor protection, creating a systematic withdrawal plan across tax buckets, and coordinating Social Security timing to optimize lifetime benefits."
 
 Return ONLY the rewritten answer in ${languageName}. No JSON, no formatting, no quotes.`;
 

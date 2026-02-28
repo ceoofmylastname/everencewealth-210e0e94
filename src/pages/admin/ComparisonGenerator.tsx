@@ -26,12 +26,12 @@ type LanguageCode = 'en' | 'es';
 
 const SUGGESTED_COMPARISONS = [
   { a: 'Term Life', b: 'Whole Life', context: 'Which Life Insurance Is Right for You?' },
-  { a: 'IUL', b: 'Traditional 401(k)', context: 'Best Retirement Savings Vehicle?' },
+  { a: 'Index Strategy', b: 'Traditional 401(k)', context: 'Best Retirement Savings Vehicle?' },
   { a: 'Fixed Annuity', b: 'Variable Annuity', context: 'Which Annuity Fits Your Goals?' },
   { a: 'ROP Term', b: 'Standard Term', context: 'Is Return of Premium Worth It?' },
   { a: 'Universal Life', b: 'Indexed Universal Life', context: 'Which UL Policy Should You Choose?' },
   { a: 'Roth IRA', b: 'Traditional IRA', context: 'Best Tax Strategy for Retirement?' },
-  { a: 'Whole Life', b: 'IUL', context: 'Cash Value Accumulation Comparison' },
+  { a: 'Whole Life', b: 'Index Strategy', context: 'Cash Value Accumulation Comparison' },
   { a: 'Fixed Index Annuity', b: 'RILA', context: 'Protected Growth Options Compared' },
 ];
 
@@ -47,12 +47,12 @@ const PHASE3_MOFU_COMPARISONS = [
     description: 'Comprehensive guide comparing term life and whole life insurance policies',
   },
   {
-    optionA: 'IUL',
+    optionA: 'Index Strategy',
     optionB: '401(k) for Retirement',
-    aiHeadline: 'IUL vs 401(k): Which Retirement Strategy Builds More Wealth?',
+    aiHeadline: 'Index Strategy vs 401(k): Which Builds More Tax-Free Retirement Income?',
     targetAudience: 'professionals planning for retirement seeking tax-efficient growth strategies',
     niche: 'wealth-management',
-    relatedKeywords: ['indexed universal life', 'tax-free retirement', 'market-linked growth', 'employer match'],
+    relatedKeywords: ['index strategy', 'tax-free retirement', 'S&P 500 linked growth', 'zero floor protection', 'employer match'],
     description: 'Retirement vehicle comparison for tax-efficient wealth accumulation',
   },
   {

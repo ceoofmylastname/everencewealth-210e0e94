@@ -85,7 +85,7 @@ CRITICAL - HANS' AEO RULES FOR speakableAnswer:
 - Directly answers the question in summary form
 
 WRONG: "There are 5 key steps: 1. Get an NIE 2. Find a lawyer..."
-RIGHT: "Building a tax-efficient retirement income stream involves maximizing contributions to tax-deferred accounts, strategically converting assets to tax-exempt vehicles like Roth IRAs or properly structured indexed universal life policies, coordinating Social Security timing with other income sources, and establishing a withdrawal sequence that minimizes lifetime tax liability across all three tax buckets."
+RIGHT: "Building a tax-efficient retirement income stream involves maximizing contributions to tax-deferred accounts, strategically converting assets to tax-exempt vehicles like Roth IRAs or properly structured Index Strategies, coordinating Social Security timing with other income sources, and establishing a withdrawal sequence that minimizes lifetime tax liability across all three tax buckets."
 
 Return JSON:
 {
