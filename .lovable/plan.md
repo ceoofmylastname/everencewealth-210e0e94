@@ -2,38 +2,41 @@
 
 ## Problem
 
-The content generator assigns **the same generic Unsplash stock photo** to every article (`generate-cluster-chunk/index.ts`, line 397). A separate `regenerate-cluster-images` function exists that generates content-aware images by reading each article's actual content — but it is **never automatically called**. Users must manually trigger it after generation.
+The Q&A translation from English to Spanish is working but extremely slow — each Q&A takes ~30 seconds because the function generates a unique AI image via `fal-ai/nano-banana-pro` for every single Q&A page. With a ~60s edge function timeout, only 1-2 Q&As complete per invocation, requiring 12+ manual re-triggers to finish 24 Q&As.
+
+The hreflang linking issue is now resolved (the repair ran successfully). The translation function is working but needs to be called repeatedly.
 
 ## Solution
 
-Auto-trigger `regenerate-cluster-images` after the final chunk completes, so every newly generated cluster gets unique, article-specific AI images without manual intervention.
+Two changes to make Q&A translation fast and reliable:
 
-### Change: `supabase/functions/generate-cluster-chunk/index.ts`
+### 1. Skip per-Q&A image generation in `translate-qas-to-language/index.ts`
 
-After the job is finalized (around line 631, after the status update), add a fire-and-forget call to `regenerate-cluster-images`:
+Instead of generating a unique AI image for each Q&A (~25s overhead per Q&A), reuse the source article's featured image (same approach used by `repair-missing-qas`). Q&A pages are supplementary content — they don't need unique images.
 
+**Lines ~626-650**: Replace the `generateUniqueImage` + `uploadToStorage` block with:
 ```typescript
-// Auto-generate content-aware images for the completed cluster
-if (finalStatus === 'completed') {
-  console.log(`[Chunk] 🎨 Auto-triggering content-aware image generation...`);
-  fetch(`${SUPABASE_URL}/functions/v1/regenerate-cluster-images`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
-    },
-    body: JSON.stringify({ clusterId: jobId }),
-  }).catch(err => console.error('[Chunk] Image generation trigger error:', err));
-}
+// Reuse the source article's image (fast, no AI call needed)
+const generatedImageUrl = targetArticle.featured_image_url || 
+  englishQA.featured_image_url || 
+  'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=1200';
 ```
 
-This reuses the existing `regenerate-cluster-images` function which already:
-- Reads each article's `detailed_content` and `headline`
-- Uses AI to extract a hyper-specific image prompt from the actual article content
-- Generates unique images via `google/gemini-3-pro-image-preview`
-- Persists them to storage and updates the article record
-- Shares the English image with Spanish translations (with localized alt text)
+Also update the `targetArticles` query (line ~439) to include `featured_image_url`:
+```typescript
+.select('id, hreflang_group_id, featured_image_alt, featured_image_url, slug')
+```
+
+### 2. Increase batch size from 6 to 24
+
+Without image generation, each Q&A takes only ~4-5 seconds (just AI translation). So 24 Q&As can complete in ~2 minutes. But edge functions timeout at ~60s, so set batch to 12 to safely fit within the limit.
+
+**Line 581**: Change `BATCH_SIZE = 6` to `BATCH_SIZE = 12`.
+
+### 3. Re-trigger the translation
+
+After deploying, call `translate-qas-to-language` twice (12 Q&As per call × 2 = 24 total, minus the 2 already done = ~22 remaining).
 
 ### Files changed
-- `supabase/functions/generate-cluster-chunk/index.ts` — add auto-trigger after final chunk
+- `supabase/functions/translate-qas-to-language/index.ts` — remove per-Q&A image gen, increase batch size, add `featured_image_url` to article query
 
