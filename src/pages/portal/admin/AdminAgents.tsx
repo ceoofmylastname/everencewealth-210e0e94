@@ -16,8 +16,9 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Search, Plus, Eye, KeyRound, RefreshCw, Trash2 } from "lucide-react";
+import { Search, Plus, Eye, KeyRound, RefreshCw, Trash2, UsersIcon } from "lucide-react";
 import { SetAgentPasswordDialog } from "@/components/portal/admin/SetAgentPasswordDialog";
+import { RecruitCRM } from "@/components/portal/admin/RecruitCRM";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "@/hooks/use-toast";
 
@@ -76,7 +77,7 @@ export default function AdminAgents() {
 
     const portalUserIds = advisors.map((a) => a.portal_user_id);
     const authUserIds = advisors.map((a) => a.auth_user_id);
-    
+
     const [clientsRes, policiesRes, contractingRes] = await Promise.all([
       (supabase
         .from("portal_users")
@@ -267,6 +268,9 @@ export default function AdminAgents() {
               </span>
             )}
           </TabsTrigger>
+          <TabsTrigger value="recruits" className="data-[state=active]:bg-white data-[state=active]:text-[#1A4D3E] data-[state=active]:shadow-sm rounded-md gap-2">
+            <UsersIcon className="w-4 h-4" /> Recruits CRM
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="all">
@@ -316,7 +320,7 @@ export default function AdminAgents() {
                 <TableBody>
                   {filtered.length === 0 ? (
                     <TableRow>
-                       <TableCell colSpan={9} className="text-center py-10 text-gray-400">
+                      <TableCell colSpan={9} className="text-center py-10 text-gray-400">
                         No agents found
                       </TableCell>
                     </TableRow>
@@ -447,6 +451,10 @@ export default function AdminAgents() {
             )}
           </div>
         </TabsContent>
+
+        <TabsContent value="recruits">
+          <RecruitCRM />
+        </TabsContent>
       </Tabs>
 
       <SetAgentPasswordDialog
@@ -477,6 +485,6 @@ export default function AdminAgents() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </div >
   );
 }

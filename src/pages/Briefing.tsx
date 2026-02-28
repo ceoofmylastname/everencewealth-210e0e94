@@ -5,6 +5,7 @@ import { RecruitHeader } from '../components/recruit/RecruitHeader';
 import { StarField } from '../components/recruit/StarField';
 import { BriefingPlayer } from '../components/recruit/BriefingPlayer';
 import { Shield, Lock, CheckCircle2 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 interface LocationState {
     authorized?: boolean;
@@ -15,6 +16,27 @@ interface LocationState {
 const Briefing: React.FC = () => {
     const location = useLocation();
     const state = location.state as LocationState | null;
+    const [videoUrl, setVideoUrl] = useState<string>("https://www.youtube.com/watch?v=dQw4w9WgXcQ");
+
+    useEffect(() => {
+        const fetchVideoUrl = async () => {
+            try {
+                const { data, error } = await supabase
+                    .from("recruit_settings")
+                    .select("value")
+                    .eq("key", "briefing_video_url")
+                    .maybeSingle();
+
+                if (data?.value && !error) {
+                    setVideoUrl(data.value);
+                }
+            } catch (err) {
+                console.error("Error loading video URL:", err);
+            }
+        };
+
+        fetchVideoUrl();
+    }, []);
 
     // If not authorized, redirect back
     if (!state?.authorized) {
@@ -107,9 +129,7 @@ const Briefing: React.FC = () => {
                     transition={{ duration: 0.6, delay: 0.5 }}
                 >
                     <BriefingPlayer
-                        // Use a valid YouTube URL for testing, e.g. a public video. 
-                        // Empty string "" crashes the iframe initialization.
-                        videoUrl="https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+                        videoUrl={videoUrl}
                     />
                 </motion.div>
 
