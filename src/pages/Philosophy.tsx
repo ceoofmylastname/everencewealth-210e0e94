@@ -58,7 +58,7 @@ const Philosophy: React.FC = () => {
     "description": "Independent fiduciary wealth management specializing in tax-efficient indexed retirement strategies.",
     "url": baseUrl,
     "logo": `${baseUrl}/logo-icon.png`,
-    "foundingDate": "1998",
+
     "founder": {
       "@type": "Person",
       "name": "Steven Rosenberg",

@@ -677,7 +677,7 @@ export const es = {
   },
   homepage: {
     hero: {
-      badge: "Establecidos en 1998 · Fiduciarios Independientes",
+      badge: "Cobertura Nacional · Fiduciarios Independientes",
       bridge: "CIERRA",
       the: "la",
       gap: "BRECHA",
@@ -842,10 +842,10 @@ export const es = {
     },
     homepageAbout: {
       headline: "Everence Wealth: Construido sobre la Independencia",
-      paragraph1: "Fundada en San Francisco en 1998, Everence Wealth fue construida sobre una creencia simple: las familias merecen orientación independiente y fiduciaria — no discursos de venta disfrazados de asesoría.",
+      paragraph1: "Fundada en San Francisco, Everence Wealth fue construida sobre una creencia simple: las familias merecen orientación independiente y fiduciaria — no discursos de venta disfrazados de asesoría.",
       paragraph2: "Como corredor independiente con acceso a más de 75 aseguradoras, trabajamos para usted, no para ninguna compañía de seguros o firma de inversión. Nuestra misión es ayudarle a cerrar la brecha de jubilación a través de estrategias fiscalmente eficientes que Wall Street no quiere que conozca.",
       facts: [
-        { value: "Desde 1998", label: "Fundada" },
+        { value: "Independientes", label: "Fiduciarios" },
         { value: "75+", label: "Alianzas con Aseguradoras" },
         { value: "Fiduciario", label: "Asesor Independiente" },
         { value: "San Francisco, CA", label: "Sede Central" },
@@ -903,17 +903,17 @@ export const es = {
   philosophy: {
     seo: {
       title: "Nuestra Filosofía: Creación de Riqueza Contraria | Everence Wealth",
-      description: "Descubra la filosofía financiera contraria de Everence Wealth: desafiando las normas de Wall Street con estrategias libres de impuestos, protección de piso al 0% y orientación fiduciaria desde 1998.",
+      description: "Descubra la filosofía financiera contraria de Everence Wealth: desafiando las normas de Wall Street con estrategias libres de impuestos, protección de piso al 0% y orientación fiduciaria.",
       breadcrumb: "Filosofía",
     },
     speakable: {
-      quote: "Everence Wealth opera con una filosofía contraria: creemos que el modelo tradicional de jubilación de 'ahorrar y esperar' enriquece a Wall Street, no a las familias de Main Street. Desde 1998, hemos ayudado a más de 1,200 familias a cerrar la brecha de jubilación a través de estrategias indexadas exentas de impuestos que eliminan los tres destructores silenciosos de riqueza — comisiones ocultas, volatilidad del mercado y exposición fiscal — que los asesores tradicionales ignoran.",
+      quote: "Everence Wealth opera con una filosofía contraria: creemos que el modelo tradicional de jubilación de 'ahorrar y esperar' enriquece a Wall Street, no a las familias de Main Street. Hemos ayudado a más de 1,200 familias a cerrar la brecha de jubilación a través de estrategias indexadas exentas de impuestos que eliminan los tres destructores silenciosos de riqueza — comisiones ocultas, volatilidad del mercado y exposición fiscal — que los asesores tradicionales ignoran.",
       counterValue: 1200,
-      counterLabel: "Familias Atendidas Desde 1998",
+      counterLabel: "Familias Atendidas",
     },
     hero: {
       badge: "Nuestra Filosofía",
-      headline: "Desafiando las Normas de Wall Street Desde 1998",
+      headline: "Desafiando las Normas de Wall Street",
       paragraph: "Creemos que la libertad financiera proviene del flujo de efectivo, no del patrimonio neto. De ingresos libres de impuestos, no de acumulación diferida. De transparencia, no de comisiones ocultas.",
       ctaPrimary: "Explore Nuestros Principios",
       ctaSecondary: "Agendar Consulta",
@@ -1122,10 +1122,10 @@ export const es = {
       },
     },
     quote: {
-      text: "No trabajamos para Wall Street. No trabajamos para compañías de seguros. Trabajamos para familias que merecen transparencia, protección y un camino claro hacia la independencia financiera. Esa ha sido nuestra misión desde 1998, y nunca cambiará.",
+      text: "No trabajamos para Wall Street. No trabajamos para compañías de seguros. Trabajamos para familias que merecen transparencia, protección y un camino claro hacia la independencia financiera. Esa es nuestra misión, y nunca cambiará.",
       author: "Steven Rosenberg",
       role: "Fundador y Estratega Patrimonial Principal",
-      company: "Everence Wealth, Est. 1998",
+      company: "Everence Wealth",
     },
     cta: {
       headline: "¿Listo para Desafiar el Status Quo?",
@@ -1141,7 +1141,7 @@ export const es = {
       ],
       stats: {
         familiesCount: "1,200+",
-        familiesLabel: "Familias ayudadas a cerrar la brecha de jubilación desde 1998",
+        familiesLabel: "Familias ayudadas a cerrar la brecha de jubilación",
         miniStats: [
           { value: "$0", label: "Comisiones AUM continuas" },
           { value: "75+", label: "Asociaciones con aseguradoras" },

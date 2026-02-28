@@ -22,7 +22,7 @@ const rightVariants = {
 const factIcons = [Calendar, Users, Building2, MapPin];
 
 function FactCounter({ value }: { value: string }) {
-  // If value starts with letters (e.g. "Since 1998", "Fiduciary"), don't animate — show as-is
+  // If value starts with letters (e.g. "Founded", "Fiduciary"), don't animate — show as-is
   const startsWithText = /^[a-zA-Z]/.test(value.trim());
   const num = startsWithText ? NaN : parseInt(value.replace(/[^0-9]/g, ''), 10);
   const suffix = startsWithText ? '' : value.replace(/[0-9,]/g, '');

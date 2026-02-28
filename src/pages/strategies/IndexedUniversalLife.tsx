@@ -72,7 +72,7 @@ const IndexedUniversalLife: React.FC = () => {
     "name": "Everence Wealth",
     "url": baseUrl,
     "logo": `${baseUrl}/logo-icon.png`,
-    "foundingDate": "1998",
+    "description": "Independent fiduciary wealth advisory firm specializing in tax-efficient retirement strategies with access to 75+ carrier partnerships.",
     "slogan": "Bridge the Retirement Gap",
   };
 

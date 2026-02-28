@@ -29,7 +29,7 @@ export const WhyChooseUs = ({ content }: WhyChooseUsProps) => {
   };
 
   const defaultFeatures = [
-    { title: "Independent & Fiduciary", description: "25+ years of client-first wealth management" },
+    { title: "Independent & Fiduciary", description: "Decades of independent fiduciary experience" },
     { title: "End-to-End Service", description: "From retirement planning to estate strategies" },
     { title: "Licensed Nationwide", description: "Series 65 licensed in all 50 states" },
     { title: "Responsive Support", description: "Available when you need us most" },

@@ -842,7 +842,7 @@ const WorkshopLanding: React.FC = () => {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 text-center">
               {[
                 { icon: Shield, label: "Independent Fiduciary", desc: "Your interests always come first" },
-                { icon: Award, label: "Established 1998", desc: "25+ years of trusted service" },
+                { icon: Award, label: "Nationwide Coverage", desc: "Licensed in 50 states" },
                 { icon: Users, label: "75+ Carrier Partners", desc: "Access to the best products" },
               ].map(({ icon: Icon, label, desc }, i) => (
                 <motion.div key={label} variants={scaleIn} transition={{ delay: i * 0.1 }}

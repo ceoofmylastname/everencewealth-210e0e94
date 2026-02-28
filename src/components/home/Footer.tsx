@@ -60,14 +60,14 @@ export const Footer: React.FC = () => {
           {/* Brand */}
           <div className="lg:col-span-1">
             <div className="mb-4">
-              <img 
+              <img
                 src="https://storage.googleapis.com/msgsndr/TLhrYb7SRrWrly615tCI/media/6993ada8dcdadb155342f28e.png"
                 alt="Everence Wealth"
                 className="h-14 md:h-16 w-auto object-contain brightness-0 invert drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]"
               />
             </div>
             <p className="text-gray-400 text-sm mb-6">
-              Independent fiduciary wealth architects helping families bridge the retirement gap since 1998.
+              Everence Wealth was built on the belief that families deserve independent, fiduciary guidance — not sales pitches disguised as advice.
             </p>
             <div className="flex items-start gap-2 text-gray-500 text-xs">
               <MapPin size={14} className="text-prime-gold shrink-0 mt-0.5" />

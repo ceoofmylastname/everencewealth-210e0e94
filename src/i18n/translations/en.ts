@@ -704,7 +704,7 @@ export const en = {
   },
   homepage: {
     hero: {
-      badge: "Established 1998 · Independent Fiduciary",
+      badge: "Nationwide Coverage · Independent Fiduciary",
       bridge: "BRIDGE",
       the: "the",
       gap: "GAP",
@@ -869,10 +869,10 @@ export const en = {
     },
     homepageAbout: {
       headline: "Everence Wealth: Built on Independence",
-      paragraph1: "Founded in San Francisco in 1998, Everence Wealth was built on a simple belief: families deserve independent, fiduciary guidance—not sales pitches disguised as advice.",
+      paragraph1: "Founded in San Francisco, Everence Wealth was built on a simple belief: families deserve independent, fiduciary guidance—not sales pitches disguised as advice.",
       paragraph2: "As an independent broker with access to 75+ carriers, we work for you, not for any insurance company or investment firm. Our mission is to help you bridge the retirement gap through tax-efficient strategies that Wall Street doesn't want you to know about.",
       facts: [
-        { value: "Since 1998", label: "Founded" },
+        { value: "Independent", label: "Fiduciary" },
         { value: "75+", label: "Carrier Partnerships" },
         { value: "Fiduciary", label: "Independent Advisor" },
         { value: "San Francisco, CA", label: "Headquarters" },
@@ -930,17 +930,17 @@ export const en = {
   philosophy: {
     seo: {
       title: "Our Philosophy: Contrarian Wealth Building | Everence Wealth",
-      description: "Discover Everence Wealth's contrarian financial philosophy: challenging Wall Street norms through tax-free strategies, 0% floor protection, and fiduciary guidance since 1998.",
+      description: "Discover Everence Wealth's contrarian financial philosophy: challenging Wall Street norms through tax-free strategies, 0% floor protection, and fiduciary guidance.",
       breadcrumb: "Philosophy",
     },
     speakable: {
-      quote: "Everence Wealth operates on a contrarian philosophy: we believe the traditional 'save and wait' retirement model enriches Wall Street, not Main Street families. Since 1998, we've helped over 1,200 families bridge the retirement gap through tax-exempt indexed strategies that eliminate the three silent wealth destroyers — hidden fees, market volatility, and tax exposure — that traditional advisors ignore.",
+      quote: "Everence Wealth operates on a contrarian philosophy: we believe the traditional 'save and wait' retirement model enriches Wall Street, not Main Street families. We've helped over 1,200 families bridge the retirement gap through tax-exempt indexed strategies that eliminate the three silent wealth destroyers — hidden fees, market volatility, and tax exposure — that traditional advisors ignore.",
       counterValue: 1200,
-      counterLabel: "Families Served Since 1998",
+      counterLabel: "Families Served",
     },
     hero: {
       badge: "Our Philosophy",
-      headline: "Challenging Wall Street Norms Since 1998",
+      headline: "Challenging Wall Street Norms",
       paragraph: "We believe financial freedom comes from cash flow, not net worth. From tax-free income, not tax-deferred accumulation. From transparency, not hidden fees.",
       ctaPrimary: "Explore Our Principles",
       ctaSecondary: "Schedule Consultation",
@@ -1149,10 +1149,10 @@ export const en = {
       },
     },
     quote: {
-      text: "We don't work for Wall Street. We don't work for insurance carriers. We work for families who deserve transparency, protection, and a clear path to financial independence. That's been our mission since 1998, and it will never change.",
+      text: "We don't work for Wall Street. We don't work for insurance carriers. We work for families who deserve transparency, protection, and a clear path to financial independence. That's our mission, and it will never change.",
       author: "Steven Rosenberg",
       role: "Founder & Chief Wealth Strategist",
-      company: "Everence Wealth, Est. 1998",
+      company: "Everence Wealth",
     },
     cta: {
       headline: "Ready to Challenge the Status Quo?",
@@ -1168,7 +1168,7 @@ export const en = {
       ],
       stats: {
         familiesCount: "1,200+",
-        familiesLabel: "Families helped bridge the retirement gap since 1998",
+        familiesLabel: "Families helped bridge the retirement gap",
         miniStats: [
           { value: "$0", label: "Ongoing AUM fees" },
           { value: "75+", label: "Carrier partnerships" },

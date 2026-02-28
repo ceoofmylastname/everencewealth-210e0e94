@@ -70,7 +70,7 @@ const ThankYouPage: React.FC = () => {
                         <div className="grid md:grid-cols-3 gap-8 mb-16">
                             {[
                                 { number: "500+", label: "Families Served" },
-                                { number: "25+", label: "Years Experience" },
+                                { number: "75+", label: "Carrier Partners" },
                                 { number: "50", label: "States Licensed" }
                             ].map((stat, i) => (
                                 <div

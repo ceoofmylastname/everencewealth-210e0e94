@@ -49,7 +49,7 @@ export const FOUNDERS_DATA: Founder[] = [
   {
     name: "Steven Rosenberg",
     role: "Founder & Chief Wealth Strategist",
-    bio: "Independent fiduciary advisor with 25+ years experience. Licensed in all 50 states. Specializes in tax-exempt retirement strategies and indexed universal life insurance.",
+    bio: "Founder & Chief Wealth Strategist at Everence Wealth. Independent fiduciary advisor and licensed insurance professional serving families across all 50 states.",
     photo_url: "https://storage.googleapis.com/msgsndr/TLhrYb7SRrWrly615tCI/media/6993ada8dcdadb155342f28e.png",
     linkedin_url: "https://www.linkedin.com/company/everencewealth/",
     credentials: ["Series 65", "Life & Health Licensed (All 50 States)"],
@@ -74,7 +74,7 @@ export function generateOrganizationSchema(content: AboutPageContent) {
     },
     "image": "https://storage.googleapis.com/msgsndr/TLhrYb7SRrWrly615tCI/media/6993ada8dcdadb155342f28e.png",
     "description": content.speakable_summary,
-    "foundingDate": "1998",
+
     "numberOfEmployees": {
       "@type": "QuantitativeValue",
       "minValue": 3,
@@ -188,7 +188,7 @@ export function generateAPICredentialSchema() {
 // FAQPage Schema (AEO)
 export function generateFAQPageSchema(faqs: FAQ[]) {
   if (!faqs || faqs.length === 0) return null;
-  
+
   return {
     "@type": "FAQPage",
     "@id": `${BASE_URL}/about#faq`,
@@ -283,8 +283,8 @@ export function generateAboutPageSchema(content: AboutPageContent) {
 
 // Generate complete schema graph
 export function generateAllAboutSchemas(content: AboutPageContent): string {
-  const founders = content.founders && content.founders.length > 0 
-    ? content.founders 
+  const founders = content.founders && content.founders.length > 0
+    ? content.founders
     : FOUNDERS_DATA;
 
   const schemas = [
