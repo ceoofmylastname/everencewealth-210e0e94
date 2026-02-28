@@ -48,7 +48,7 @@ const LOCALIZED_CONTENT: Record<string, {
       insuranceCoverage: { title: "Insurance Coverage", description: "State-specific insurance requirements, carrier availability, premium comparisons, and coverage gap analysis" },
       cashFlow: { title: "Cash Flow Planning", description: "Cost of living indexes, lifestyle affordability, healthcare costs, and income sustainability projections" },
       marketAccess: { title: "Market Access", description: "Local advisor availability, financial institution density, and access to specialized wealth management services" },
-      regulatoryCompliance: { title: "Regulatory Compliance", description: "State-specific financial regulations, licensing requirements, fiduciary standards, and consumer protection laws" }
+      regulatoryCompliance: { title: "Regulatory Compliance", description: "State-specific financial regulations, licensing requirements, insurance broker standards, and consumer protection laws" }
     }
   },
   es: {

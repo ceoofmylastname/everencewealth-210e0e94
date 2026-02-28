@@ -96,7 +96,7 @@ export const FounderProfiles = ({ founders }: FounderProfilesProps) => {
               {foundersSection?.heading || "Meet The Founders"}
             </h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              {foundersSection?.subheading || "Experienced fiduciary professionals united by a passion for helping clients"}
+              {foundersSection?.subheading || "Experienced independent advisors united by a passion for helping clients"}
             </p>
           </div>
 

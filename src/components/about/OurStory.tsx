@@ -30,7 +30,7 @@ export const OurStory = ({ content }: OurStoryProps) => {
   };
 
   const defaultTimeline = [
-    { year: "Origin", event: "Steven Rosenberg establishes Everence Wealth as an independent fiduciary" },
+    { year: "Origin", event: "Steven Rosenberg establishes Everence Wealth as an independent broker" },
     { year: "2005", event: "Expanded to all 50 states licensing" },
     { year: "2015", event: "Three Tax Buckets framework developed" },
     { year: "2024", event: "Digital wealth planning platform launched" }

@@ -22,7 +22,7 @@ export const buyersGuideEn = {
     extraCosts: "Advisory Fees",
     months: "Months",
     visaIncome: "Min. Investment",
-    paragraph1: "Building a comprehensive wealth management plan is a straightforward process with the right guidance. You'll need a clear understanding of your goals, a trusted fiduciary advisor, and a strategy tailored to your risk tolerance and timeline.",
+    paragraph1: "Building a comprehensive wealth management plan is a straightforward process with the right guidance. You'll need a clear understanding of your goals, a trusted independent advisor, and a strategy tailored to your risk tolerance and timeline.",
     paragraph2: "The process typically takes 1-3 months from initial consultation to full implementation. Our advisors help you navigate retirement planning, insurance solutions, and tax-advantaged strategies to build lasting financial security.",
     optimizedFor: "Optimized for voice assistants and AI search"
   },
@@ -51,7 +51,7 @@ export const buyersGuideEn = {
       },
       {
         title: "Strategy Development",
-        description: "Our fiduciary advisors create a personalized wealth management plan that addresses retirement income, tax optimization, insurance coverage, and estate planning.",
+        description: "Our independent advisors create a personalized wealth management plan that addresses retirement income, tax optimization, insurance coverage, and estate planning.",
         documents: ["Financial goals worksheet", "Risk tolerance assessment"]
       },
       {
@@ -195,7 +195,7 @@ export const buyersGuideEn = {
       title: "Advisor Due Diligence Checklist",
       description: "Before engaging any financial advisor, verify the following to protect your interests and ensure quality guidance.",
       checks: [
-        "Verify advisor is a registered fiduciary",
+        "Verify advisor is an independent broker with 75+ carrier access",
         "Check FINRA BrokerCheck for disciplinary history",
         "Confirm proper state insurance licensing",
         "Review fee structure and compensation model",
@@ -265,8 +265,8 @@ export const buyersGuideEn = {
     contactUs: "Contact Us",
     items: [
       {
-        question: "What is a fiduciary financial advisor?",
-        answer: "A fiduciary financial advisor is legally obligated to act in your best interest at all times. Unlike commission-based advisors, fiduciaries must disclose conflicts of interest and recommend strategies that benefit you, not their compensation."
+        question: "What makes an independent broker different?",
+        answer: "An independent broker works exclusively for you — not for any single insurance company. Unlike captive agents who can only sell their company's products, independent brokers have access to 75+ carriers, allowing unbiased product recommendations that truly fit your needs."
       },
       {
         question: "How much do I need to start working with a financial advisor?",

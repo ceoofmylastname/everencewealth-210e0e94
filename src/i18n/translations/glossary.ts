@@ -15,7 +15,7 @@ export const glossaryTranslations = {
     
     // E-E-A-T trust signals
     compiledBy: "Compiled by",
-    licensedExperts: "Licensed Fiduciary Advisors",
+    licensedExperts: "Licensed Independent Advisors",
     lastUpdated: "Last updated:",
     verifiedDefinitions: "verified definitions",
     
@@ -33,7 +33,7 @@ export const glossaryTranslations = {
     // CTA section
     ctaHeadline: "Ready to Build Your",
     ctaHighlight: "Wealth Strategy?",
-    ctaDescription: "Our fiduciary team can guide you through retirement planning, tax optimization, and asset protection. Get personalized advice tailored to your financial goals.",
+    ctaDescription: "Our independent team can guide you through retirement planning, tax optimization, and asset protection. Get personalized advice tailored to your financial goals.",
     ctaButton1: "Explore Our Services",
     ctaButton2: "Schedule a Consultation",
     

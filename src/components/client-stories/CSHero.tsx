@@ -23,7 +23,7 @@ export const CSHero: React.FC = () => {
           {s?.title || 'Real Stories. Real Results.'}
         </motion.h1>
         <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }} className="text-xl md:text-2xl text-white/80 mb-10 max-w-3xl mx-auto">
-          {s?.subtitle || 'See how families across America have transformed their financial futures with our fiduciary guidance.'}
+          {s?.subtitle || 'See how families across America have transformed their financial futures with our independent guidance.'}
         </motion.p>
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.9 }} className="flex flex-wrap justify-center gap-4">
           <StatBadge icon={Users} value="98%" label={s?.stats?.[0] || 'Satisfaction'} delay={0.9} />

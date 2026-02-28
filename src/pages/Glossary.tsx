@@ -197,7 +197,7 @@ const Glossary: React.FC = () => {
         <title>{pageTitle}</title>
         <meta name="title" content={pageTitle} />
         <meta name="description" content={pageDescription} />
-        <meta name="keywords" content="financial glossary, IUL definition, annuity terms, retirement planning terms, wealth management glossary, tax-efficient investing, fiduciary advisor, estate planning terms, Roth IRA, 401k, indexed universal life" />
+        <meta name="keywords" content="financial glossary, index strategy definition, annuity terms, retirement planning terms, wealth management glossary, tax-efficient investing, independent broker, estate planning terms, Roth IRA, 401k, indexed strategy" />
         <meta name="author" content="Everence Wealth" />
         <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
         

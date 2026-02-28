@@ -219,8 +219,8 @@ const StateGuidesIndex = () => {
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
               {isEn
-                ? "Our fiduciary advisors can help you navigate your state's unique financial landscape."
-                : "Nuestros asesores fiduciarios pueden ayudarle a navegar el panorama financiero único de su estado."}
+                ? "Our independent advisors can help you navigate your state's unique financial landscape."
+                : "Nuestros asesores independientes pueden ayudarle a navegar el panorama financiero único de su estado."}
             </p>
             <Button asChild size="lg" className="btn-luxury">
               <Link to={`/${lang}/#contact`}>{isEn ? "Schedule a Consultation" : "Agendar Consulta"}</Link>

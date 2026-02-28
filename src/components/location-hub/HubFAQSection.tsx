@@ -20,12 +20,12 @@ const LOCALIZED_CONTENT: Record<string, {
     sectionSubtitle: "Common questions about retirement planning and wealth management",
     faqs: [
       {
-        question: "What is a fiduciary advisor and why does it matter?",
-        answer: "A fiduciary advisor is legally obligated to act in your best interest at all times. Unlike commission-based salespeople, fiduciaries must recommend strategies that benefit you, not their own compensation. This means transparent fees, unbiased product recommendations from 75+ carriers, and a focus on your long-term financial goals."
+        question: "What makes an independent broker different?",
+        answer: "An independent broker works exclusively for you — not for any single insurance company. Unlike captive agents who can only sell their company's products, independent brokers have access to 75+ carriers, allowing unbiased product recommendations that truly fit your needs. This means transparent comparisons, client-first guidance, and a focus on your long-term financial goals."
       },
       {
-        question: "How does Indexed Universal Life (IUL) provide tax-free retirement income?",
-        answer: "IUL policies grow cash value linked to market indices like the S&P 500 with a 0% floor protecting against losses. Policy loans against the cash value are generally tax-free under IRC Section 7702. This creates a supplemental retirement income stream that doesn't increase your tax bracket or affect Social Security benefits."
+        question: "How do Index Strategies provide tax-free retirement income?",
+        answer: "Index Strategies grow cash value linked to S&P 500 performance with a 0% floor protecting against losses. When the S&P 500 drops, you lose 0% and compound from your full principal—this is Zero is Your Hero. Policy loans against the cash value are generally tax-free under IRC Section 7702. This creates a supplemental retirement income stream that doesn't increase your tax bracket or affect Social Security benefits."
       },
       {
         question: "What are the Three Tax Buckets and why should I care?",

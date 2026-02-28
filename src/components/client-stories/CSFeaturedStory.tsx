@@ -18,7 +18,7 @@ export const CSFeaturedStory: React.FC = () => {
               </span>
               <Quote className="w-10 h-10 text-[hsl(43,74%,49%)] mb-4 opacity-60" />
               <p className="text-xl md:text-2xl text-white/90 leading-relaxed mb-8 italic">
-                {s?.quote || '"We were paying over $12,000 a year in hidden fees on our 401(k). Everence helped us restructure into an IUL strategy that eliminated those fees and gave us tax-free retirement income. In just 3 years, our projected retirement income increased by 40%."'}
+                {s?.quote || '"We were paying over $12,000 a year in hidden fees on our 401(k). Everence helped us restructure into an Index Strategy that eliminated those fees and gave us tax-free retirement income. In just 3 years, our projected retirement income increased by 40%."'}
               </p>
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 rounded-full bg-[hsl(43,74%,49%)]/20 flex items-center justify-center text-[hsl(43,74%,49%)] font-bold text-lg">

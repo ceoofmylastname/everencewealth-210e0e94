@@ -53,7 +53,7 @@ export const AboutHero = ({
           className="inline-block px-4 py-1.5 rounded-full text-xs font-semibold tracking-wider uppercase mb-6 border"
           style={{ borderColor: 'hsl(43,74%,49%,0.4)', color: 'hsl(43,74%,49%)' }}
         >
-          Independent Fiduciary
+          Independent Broker
         </motion.span>
 
         <motion.h1

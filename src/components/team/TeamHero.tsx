@@ -47,7 +47,7 @@ export const TeamHero = () => {
           transition={{ delay: 0.6 }}
           className="text-xl md:text-2xl text-white/80 mb-10 max-w-3xl mx-auto"
         >
-          {t.team?.hero?.subheadline || "Dedicated fiduciary professionals ready to help you build and protect your wealth"}
+          {t.team?.hero?.subheadline || "Dedicated independent professionals ready to help you build and protect your wealth"}
         </motion.p>
 
         <motion.div

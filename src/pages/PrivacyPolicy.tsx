@@ -18,7 +18,7 @@ const sections = [
     icon: Eye,
     number: '02',
     title: 'How We Use Your Data',
-    content: `Your information powers personalized wealth strategies tailored to your financial goals. We use it to generate retirement projections, develop tax-efficient planning recommendations, refine our AI assistant's advisory capabilities, and deliver customized insights on indexed strategies, annuities, and cash-flow optimization. We never sell your personal or financial data to third parties. Your trust as a fiduciary client is our highest obligation.`
+    content: `Your information powers personalized wealth strategies tailored to your financial goals. We use it to generate retirement projections, develop tax-efficient planning recommendations, refine our AI assistant's advisory capabilities, and deliver customized insights on indexed strategies, annuities, and cash-flow optimization. We never sell your personal or financial data to third parties. Your trust as a client is our highest obligation.`
   },
   {
     id: 'protection',
@@ -110,7 +110,7 @@ const PrivacyPolicy: React.FC = () => {
           </h1>
           <div className="w-24 h-[2px] bg-gradient-to-r from-transparent via-[#C5A059] to-transparent mx-auto mb-6" />
           <p className="text-white/50 max-w-xl mx-auto text-lg leading-relaxed">
-            Your trust is our fiduciary obligation. Transparency in how we protect your financial data.
+            Your trust is our commitment. Transparency in how we protect your financial data.
           </p>
           <p className="text-white/30 text-sm mt-4">
             Last updated: January {new Date().getFullYear()}
