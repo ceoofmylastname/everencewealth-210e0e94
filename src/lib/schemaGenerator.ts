@@ -31,7 +31,7 @@ const ORGANIZATION_SCHEMA = {
   "@context": "https://schema.org",
   "@type": "FinancialService",
   "name": "Everence Wealth",
-  "description": "Independent fiduciary wealth architects specializing in tax-efficient retirement strategies and asset protection.",
+  "description": "Independent wealth architects specializing in tax-efficient retirement strategies and asset protection.",
   "url": "https://www.everencewealth.com",
   "logo": "https://www.everencewealth.com/assets/logo.png",
   "address": {

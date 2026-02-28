@@ -20,13 +20,13 @@ import { useTranslation } from "@/i18n";
 const BASE_URL = "https://www.everencewealth.com";
 
 const defaultContent: AboutPageContent = {
-  meta_title: "About Everence Wealth | Independent Fiduciary Wealth Architects",
+  meta_title: "About Everence Wealth | Independent Wealth Architects",
   meta_description: `Meet the founders of Everence Wealth. ${COMPANY_FACTS.yearsExperience}+ years experience helping families build tax-efficient retirement strategies and asset protection plans.`,
   canonical_url: `${BASE_URL}/about`,
-  speakable_summary: `Everence Wealth is an independent fiduciary wealth management firm, founded by experienced professionals with over ${COMPANY_FACTS.yearsExperience} years of combined experience helping families secure their financial future.`,
-  hero_headline: "Your Trusted Fiduciary Wealth Architects",
+  speakable_summary: `Everence Wealth is an independent wealth management firm, founded by experienced professionals with over ${COMPANY_FACTS.yearsExperience} years of combined experience helping families secure their financial future.`,
+  hero_headline: "Your Independent Wealth Architects",
   hero_subheadline: `Three founders, ${COMPANY_FACTS.yearsExperience}+ years of expertise, and one mission: building tax-efficient wealth strategies that protect what matters most.`,
-  mission_statement: "We believe everyone deserves fiduciary guidance when making critical financial decisions. Our mission is to provide transparent, personalized wealth strategies that put your interests first.",
+  mission_statement: "We believe everyone deserves independent, client-first guidance when making critical financial decisions. Our mission is to provide transparent, personalized wealth strategies that put your interests first — not the interests of any insurance company or financial institution.",
   years_in_business: COMPANY_FACTS.yearsExperience,
   properties_sold: COMPANY_FACTS.propertiesSold,
   client_satisfaction_percent: COMPANY_FACTS.clientSatisfaction,

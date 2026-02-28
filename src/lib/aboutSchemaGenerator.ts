@@ -49,7 +49,7 @@ export const FOUNDERS_DATA: Founder[] = [
   {
     name: "Steven Rosenberg",
     role: "Founder & Chief Wealth Strategist",
-    bio: "Founder & Chief Wealth Strategist at Everence Wealth. Independent fiduciary advisor and licensed insurance professional serving families across all 50 states.",
+    bio: "Founder & Chief Wealth Strategist at Everence Wealth. Independent insurance broker and licensed professional serving families across all 50 states.",
     photo_url: "https://storage.googleapis.com/msgsndr/TLhrYb7SRrWrly615tCI/media/6993ada8dcdadb155342f28e.png",
     linkedin_url: "https://www.linkedin.com/company/everencewealth/",
     credentials: ["Series 65", "Life & Health Licensed (All 50 States)"],
@@ -80,7 +80,7 @@ export function generateOrganizationSchema(content: AboutPageContent) {
       "minValue": 3,
       "maxValue": 10
     },
-    "slogan": "Your Independent Fiduciary Wealth Strategist",
+    "slogan": "Your Independent Wealth Strategist",
     "knowsAbout": [
       "Retirement Planning",
       "Indexed Universal Life Insurance",
@@ -181,7 +181,7 @@ export function generateAPICredentialSchema() {
     "@id": `${BASE_URL}/#credential`,
     "credentialCategory": "license",
     "name": "Series 65 - Uniform Investment Adviser Law Examination",
-    "description": "Fiduciary investment advisor license"
+    "description": "Insurance broker license"
   };
 }
 

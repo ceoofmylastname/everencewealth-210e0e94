@@ -73,7 +73,7 @@ const ORGANIZATION_SCHEMA = {
   "@context": "https://schema.org",
   "@type": "FinancialService",
   "name": "Everence Wealth",
-  "description": "Independent fiduciary wealth management and retirement planning",
+  "description": "Independent wealth management and retirement planning",
   "url": "https://www.everencewealth.com",
   "logo": "https://storage.googleapis.com/msgsndr/TLhrYb7SRrWrly615tCI/media/6993ada8dcdadb155342f28e.png",
   "address": {

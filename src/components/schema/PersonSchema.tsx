@@ -15,7 +15,7 @@ const PersonSchema: React.FC<PersonSchemaProps> = ({ context }) => {
         "@id": "https://everencewealth.com/#steven-rosenberg",
         "name": "Steven Rosenberg",
         "jobTitle": "Founder & Chief Wealth Strategist",
-        "description": "Founder & Chief Wealth Strategist at Everence Wealth. Independent fiduciary advisor and licensed insurance professional serving families across all 50 states.",
+        "description": "Founder & Chief Wealth Strategist at Everence Wealth. Independent insurance broker and licensed professional serving families across all 50 states.",
         "image": photoUrl,
         "sameAs": [
             "https://www.linkedin.com/in/stevenrosenberg/"
@@ -30,7 +30,7 @@ const PersonSchema: React.FC<PersonSchemaProps> = ({ context }) => {
             "Indexed Universal Life Insurance",
             "Tax-Free Retirement Strategies",
             "Three Tax Buckets Framework",
-            "Fiduciary Financial Planning",
+            "Independent Financial Planning",
             "Retirement Gap Analysis"
         ]
     };
