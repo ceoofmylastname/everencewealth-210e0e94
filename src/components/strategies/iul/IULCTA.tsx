@@ -18,6 +18,7 @@ export const IULCTA: React.FC = () => {
         phonePlaceholder={s?.phonePlaceholder || 'Phone Number'}
         incomePlaceholder={s?.incomePlaceholder || 'Annual Income Range'}
         incomeRanges={s?.incomeRanges || ['$75K - $150K', '$150K - $250K', '$250K - $500K', '$500K+']}
+        formSource="Index Strategy"
       />
     </div>
   );

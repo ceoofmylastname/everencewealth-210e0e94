@@ -2,6 +2,10 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { MorphingBlob } from '@/components/philosophy/MorphingBlob';
 import { FloatingParticles } from './FloatingParticles';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
+import confetti from 'canvas-confetti';
+import { CheckCircle, Loader2 } from 'lucide-react';
 
 interface StrategyFormCTAProps {
   headline: string;
@@ -13,17 +17,152 @@ interface StrategyFormCTAProps {
   emailPlaceholder: string;
   phonePlaceholder: string;
   incomePlaceholder: string;
+  formSource: string; // e.g., "Index Strategy", "Tax-Free Retirement", etc.
 }
 
 export const StrategyFormCTA: React.FC<StrategyFormCTAProps> = ({
   headline, subtitle, submitText, disclaimer, incomeRanges,
   namePlaceholder, emailPlaceholder, phonePlaceholder, incomePlaceholder,
+  formSource,
 }) => {
   const [form, setForm] = useState({ name: '', email: '', phone: '', income: '' });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
+  const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const shootConfetti = () => {
+    const count = 200;
+    const defaults = {
+      origin: { y: 0.7 },
+      zIndex: 9999,
+    };
+
+    function fire(particleRatio: number, opts: any) {
+      confetti({
+        ...defaults,
+        ...opts,
+        particleCount: Math.floor(count * particleRatio),
+      });
+    }
+
+    fire(0.25, {
+      spread: 26,
+      startVelocity: 55,
+      colors: ['#C5A059', '#1A4D3E', '#ffffff'],
+    });
+
+    fire(0.2, {
+      spread: 60,
+      colors: ['#C5A059', '#1A4D3E', '#ffffff'],
+    });
+
+    fire(0.35, {
+      spread: 100,
+      decay: 0.91,
+      scalar: 0.8,
+      colors: ['#C5A059', '#1A4D3E', '#ffffff'],
+    });
+
+    fire(0.1, {
+      spread: 120,
+      startVelocity: 25,
+      decay: 0.92,
+      scalar: 1.2,
+      colors: ['#C5A059', '#1A4D3E', '#ffffff'],
+    });
+
+    fire(0.1, {
+      spread: 120,
+      startVelocity: 45,
+      colors: ['#C5A059', '#1A4D3E', '#ffffff'],
+    });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Strategy form submitted:', form);
+
+    if (!form.name || !form.email) {
+      toast({
+        title: 'Required fields missing',
+        description: 'Please fill in your name and email',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      // Get UTM parameters from URL
+      const urlParams = new URLSearchParams(window.location.search);
+      const utmSource = urlParams.get('utm_source') || undefined;
+      const utmMedium = urlParams.get('utm_medium') || undefined;
+      const utmCampaign = urlParams.get('utm_campaign') || undefined;
+      const utmContent = urlParams.get('utm_content') || undefined;
+      const utmTerm = urlParams.get('utm_term') || undefined;
+
+      // Save to Supabase
+      const { data: submission, error: insertError } = await supabase
+        .from('strategy_form_submissions')
+        .insert({
+          full_name: form.name,
+          email: form.email,
+          phone: form.phone || null,
+          income_range: form.income || null,
+          form_source: formSource,
+          page_url: window.location.href,
+          utm_source: utmSource,
+          utm_medium: utmMedium,
+          utm_campaign: utmCampaign,
+          utm_content: utmContent,
+          utm_term: utmTerm,
+          user_agent: navigator.userAgent,
+          language: navigator.language,
+        })
+        .select()
+        .single();
+
+      if (insertError) throw insertError;
+
+      // Send email notification to admins
+      const { error: emailError } = await supabase.functions.invoke(
+        'send-strategy-form-notification',
+        {
+          body: { submission },
+        }
+      );
+
+      if (emailError) {
+        console.error('Email notification error:', emailError);
+        // Don't fail the submission if email fails
+      }
+
+      // Success!
+      setIsSuccess(true);
+      shootConfetti();
+
+      toast({
+        title: '🎉 Success!',
+        description: `Thank you ${form.name.split(' ')[0]}! We'll send your ${formSource} illustration shortly.`,
+        duration: 6000,
+      });
+
+      // Reset form
+      setTimeout(() => {
+        setForm({ name: '', email: '', phone: '', income: '' });
+        setIsSuccess(false);
+      }, 3000);
+
+    } catch (error) {
+      console.error('Submission error:', error);
+      toast({
+        title: 'Submission failed',
+        description: 'Please try again or contact us directly at info@everencewealth.com',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -94,13 +233,33 @@ export const StrategyFormCTA: React.FC<StrategyFormCTAProps> = ({
             </select>
             <motion.button
               type="submit"
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              className="w-full py-4 rounded-xl font-bold text-lg transition-all duration-300 relative overflow-hidden group"
-              style={{ background: 'linear-gradient(135deg, hsl(43,74%,49%) 0%, hsl(43,74%,55%) 100%)', color: 'hsl(160,48%,12%)' }}
+              disabled={isSubmitting || isSuccess}
+              whileHover={{ scale: isSubmitting || isSuccess ? 1 : 1.02 }}
+              whileTap={{ scale: isSubmitting || isSuccess ? 1 : 0.98 }}
+              className="w-full py-4 rounded-xl font-bold text-lg transition-all duration-300 relative overflow-hidden group disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              style={{
+                background: isSuccess
+                  ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)'
+                  : 'linear-gradient(135deg, hsl(43,74%,49%) 0%, hsl(43,74%,55%) 100%)',
+                color: 'white'
+              }}
             >
-              <span className="relative z-10">{submitText}</span>
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  <span className="relative z-10">Submitting...</span>
+                </>
+              ) : isSuccess ? (
+                <>
+                  <CheckCircle className="w-5 h-5" />
+                  <span className="relative z-10">Submitted!</span>
+                </>
+              ) : (
+                <span className="relative z-10">{submitText}</span>
+              )}
+              {!isSubmitting && !isSuccess && (
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
+              )}
             </motion.button>
           </form>
           <p className="text-xs text-white/50 mt-5">{disclaimer}</p>
