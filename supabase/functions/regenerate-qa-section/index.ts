@@ -25,7 +25,102 @@ serve(async (req) => {
   }
 
   try {
-    const { qaPageId, section } = await req.json();
+    const body = await req.json();
+    const { targetType } = body;
+
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const openaiApiKey = Deno.env.get('OPENAI_API_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    // === NEW: Article FAQ regeneration mode ===
+    if (targetType === 'article') {
+      const { articleId } = body;
+      if (!articleId) {
+        return new Response(JSON.stringify({ error: 'articleId is required when targetType is article' }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      const { data: article, error: articleError } = await supabase
+        .from('blog_articles')
+        .select('id, headline, detailed_content, language, meta_description, funnel_stage')
+        .eq('id', articleId)
+        .single();
+
+      if (articleError || !article) {
+        return new Response(JSON.stringify({ error: 'Article not found' }), {
+          status: 404,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      const languageName = LANGUAGE_NAMES[article.language] || 'English';
+      const contentSnippet = article.detailed_content?.substring(0, 3000) || '';
+
+      const prompt = `CRITICAL: Write ENTIRELY in ${languageName}. No English unless target language IS English.
+
+Based on this article:
+Title: "${article.headline}"
+Description: "${article.meta_description || ''}"
+Content excerpt: ${contentSnippet}
+
+Generate 5-7 FAQ Q&A pairs that are DIRECTLY relevant to the article's actual topic and content.
+Each question should be something a reader of THIS specific article would naturally ask.
+Each answer should be 50-120 words, informative, and SEO-friendly.
+
+Return JSON array only: [{"question": "...", "answer": "..."}, ...]`;
+
+      const aiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${openaiApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          messages: [
+            { role: 'system', content: 'You are an expert SEO content generator. Generate FAQ Q&As that precisely match the article topic. Never generate generic or off-topic FAQs.' },
+            { role: 'user', content: prompt }
+          ],
+          max_tokens: 4096,
+        }),
+      });
+
+      if (!aiResponse.ok) {
+        throw new Error(`AI API error: ${aiResponse.status}`);
+      }
+
+      const aiData = await aiResponse.json();
+      let content = aiData.choices?.[0]?.message?.content || '';
+      content = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+
+      const qaEntities = JSON.parse(content);
+
+      const { data: updatedArticle, error: updateError } = await supabase
+        .from('blog_articles')
+        .update({
+          qa_entities: qaEntities,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', articleId)
+        .select('id, headline, qa_entities')
+        .single();
+
+      if (updateError) throw updateError;
+
+      return new Response(JSON.stringify({
+        success: true,
+        article: updatedArticle,
+        faqCount: qaEntities.length,
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // === EXISTING: Q&A page section regeneration ===
+    const { qaPageId, section } = body;
 
     if (!qaPageId || !section) {
       return new Response(JSON.stringify({ error: 'qaPageId and section are required' }), {
@@ -41,11 +136,6 @@ serve(async (req) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
-
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const openaiApiKey = Deno.env.get('OPENAI_API_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     // Get Q&A page
     const { data: qaPage, error: qaError } = await supabase
