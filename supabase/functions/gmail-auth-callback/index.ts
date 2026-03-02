@@ -114,9 +114,9 @@ serve(async (req) => {
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
-    console.error("[gmail-auth-callback] Error:", error.message);
+    console.error("[gmail-auth-callback] Error:", (error as Error).message);
     return new Response(
-      JSON.stringify({ success: false, error: error.message }),
+      JSON.stringify({ success: false, error: (error as Error).message }),
       {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },

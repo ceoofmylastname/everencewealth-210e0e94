@@ -247,7 +247,7 @@ Deno.serve(async (req) => {
             }
           }
         } catch (e) {
-          invitation_error = e.message || "Unknown email error";
+          invitation_error = (e as Error).message || "Unknown email error";
           console.error("Failed to send invitation email:", e);
         }
       }
@@ -259,7 +259,7 @@ Deno.serve(async (req) => {
     );
   } catch (err) {
     return new Response(
-      JSON.stringify({ error: err.message || "Internal server error" }),
+      JSON.stringify({ error: (err as Error).message || "Internal server error" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }

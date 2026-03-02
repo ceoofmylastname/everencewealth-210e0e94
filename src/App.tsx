@@ -238,6 +238,7 @@ const CrmRoutingRules = lazy(() => import("./pages/crm/admin/RoutingRulesPage"))
 const CrmRoundRobinConfig = lazy(() => import("./pages/crm/admin/RoundRobinConfig"));
 const CrmEmailLogs = lazy(() => import("./pages/crm/admin/EmailLogs"));
 const CrmSalestrailCallLogs = lazy(() => import("./pages/crm/admin/SalestrailCallLogs"));
+const CrmAssessmentLeads = lazy(() => import("./pages/crm/admin/AssessmentLeads"));
 const LandingEn = lazy(() => import("./pages/landing/en"));
 const OptIn = lazy(() => import("./pages/OptIn"));
 const RetargetingLanding = lazy(() => import("./pages/RetargetingLanding"));
@@ -481,6 +482,7 @@ const App = () => (
                 <Route path="call-logs" element={<CrmSalestrailCallLogs />} />
                 <Route path="verification" element={<CrmSystemVerification />} />
                 <Route path="settings" element={<CrmSettings />} />
+                <Route path="assessment-leads" element={<CrmAssessmentLeads />} />
               </Route>
 
               {/* ========================================== */}

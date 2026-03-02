@@ -19,6 +19,7 @@ import {
   Phone,
   Briefcase,
   Calendar,
+  FileCheck,
 } from "lucide-react";
 
 const adminNavigation = [
@@ -31,6 +32,7 @@ const adminNavigation = [
   { name: "Round Robin", href: "/crm/admin/round-robin", icon: RefreshCcw },
   { name: "Email Logs", href: "/crm/admin/email-logs", icon: Mail },
   { name: "Verification", href: "/crm/admin/verification", icon: Shield },
+  { name: "Assessment Leads", href: "/crm/admin/assessment-leads", icon: FileCheck },
   { name: "Settings", href: "/crm/admin/settings", icon: Settings },
 ];
 

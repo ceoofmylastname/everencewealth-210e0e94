@@ -1,0 +1,22 @@
+
+ALTER TABLE public.assessment_leads
+  ADD COLUMN IF NOT EXISTS savings_status text,
+  ADD COLUMN IF NOT EXISTS income_range text,
+  ADD COLUMN IF NOT EXISTS tax_diversification text,
+  ADD COLUMN IF NOT EXISTS insurance_coverage text,
+  ADD COLUMN IF NOT EXISTS market_volatility text,
+  ADD COLUMN IF NOT EXISTS retirement_plan_formality text,
+  ADD COLUMN IF NOT EXISTS legacy_planning text,
+  ADD COLUMN IF NOT EXISTS overall_score integer,
+  ADD COLUMN IF NOT EXISTS score_savings integer,
+  ADD COLUMN IF NOT EXISTS score_tax integer,
+  ADD COLUMN IF NOT EXISTS score_protection integer,
+  ADD COLUMN IF NOT EXISTS score_timeline integer,
+  ADD COLUMN IF NOT EXISTS score_tier text,
+  ADD COLUMN IF NOT EXISTS recommendations jsonb,
+  ADD COLUMN IF NOT EXISTS page_url text,
+  ADD COLUMN IF NOT EXISTS user_agent text,
+  ADD COLUMN IF NOT EXISTS lead_language text,
+  ADD COLUMN IF NOT EXISTS utm_source text,
+  ADD COLUMN IF NOT EXISTS utm_medium text,
+  ADD COLUMN IF NOT EXISTS utm_campaign text;

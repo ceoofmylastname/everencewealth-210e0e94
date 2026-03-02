@@ -1069,10 +1069,30 @@ export type Database = {
           email: string
           first_name: string
           id: string
+          income_range: string | null
+          insurance_coverage: string | null
           last_name: string
+          lead_language: string | null
+          legacy_planning: string | null
+          market_volatility: string | null
+          overall_score: number | null
+          page_url: string | null
           phone: string | null
+          recommendations: Json | null
           retirement_concern: string | null
+          retirement_plan_formality: string | null
+          savings_status: string | null
+          score_protection: number | null
+          score_savings: number | null
+          score_tax: number | null
+          score_tier: string | null
+          score_timeline: number | null
+          tax_diversification: string | null
           tax_strategy_familiarity: string | null
+          user_agent: string | null
+          utm_campaign: string | null
+          utm_medium: string | null
+          utm_source: string | null
         }
         Insert: {
           age_range?: string | null
@@ -1080,10 +1100,30 @@ export type Database = {
           email: string
           first_name: string
           id?: string
+          income_range?: string | null
+          insurance_coverage?: string | null
           last_name: string
+          lead_language?: string | null
+          legacy_planning?: string | null
+          market_volatility?: string | null
+          overall_score?: number | null
+          page_url?: string | null
           phone?: string | null
+          recommendations?: Json | null
           retirement_concern?: string | null
+          retirement_plan_formality?: string | null
+          savings_status?: string | null
+          score_protection?: number | null
+          score_savings?: number | null
+          score_tax?: number | null
+          score_tier?: string | null
+          score_timeline?: number | null
+          tax_diversification?: string | null
           tax_strategy_familiarity?: string | null
+          user_agent?: string | null
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
         }
         Update: {
           age_range?: string | null
@@ -1091,10 +1131,30 @@ export type Database = {
           email?: string
           first_name?: string
           id?: string
+          income_range?: string | null
+          insurance_coverage?: string | null
           last_name?: string
+          lead_language?: string | null
+          legacy_planning?: string | null
+          market_volatility?: string | null
+          overall_score?: number | null
+          page_url?: string | null
           phone?: string | null
+          recommendations?: Json | null
           retirement_concern?: string | null
+          retirement_plan_formality?: string | null
+          savings_status?: string | null
+          score_protection?: number | null
+          score_savings?: number | null
+          score_tax?: number | null
+          score_tier?: string | null
+          score_timeline?: number | null
+          tax_diversification?: string | null
           tax_strategy_familiarity?: string | null
+          user_agent?: string | null
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
         }
         Relationships: []
       }
