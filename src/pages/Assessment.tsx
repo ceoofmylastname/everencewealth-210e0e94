@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, ArrowRight, Check } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
@@ -9,40 +9,10 @@ import { supabase } from '@/integrations/supabase/client';
 import { Progress } from '@/components/ui/progress';
 import { Input } from '@/components/ui/input';
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
+import { QUESTIONS, calculateScores, type AssessmentResult } from '@/lib/assessment-scoring';
+import { AssessmentResults } from '@/components/assessment/AssessmentResults';
 
-// ── Question Data ──────────────────────────────────────────────
-const questions = [
-  {
-    id: 'retirement_concern',
-    question: 'What is your primary retirement concern?',
-    subtitle: 'Select the option that best describes your situation',
-    options: [
-      'Running out of money in retirement',
-      'Paying too much in taxes',
-      'Not having enough saved',
-      'Protecting assets from market volatility',
-      'Leaving a legacy for my family',
-    ],
-  },
-  {
-    id: 'age_range',
-    question: 'What is your current age range?',
-    subtitle: 'This helps us tailor strategies to your timeline',
-    options: ['Under 30', '30–39', '40–49', '50–59', '60+'],
-  },
-  {
-    id: 'tax_strategy_familiarity',
-    question: 'How familiar are you with tax-free retirement strategies?',
-    subtitle: 'No wrong answer here — we meet you where you are',
-    options: [
-      'Not familiar at all',
-      'I\'ve heard of them but don\'t know details',
-      'Somewhat familiar',
-      'Very familiar — I want advanced strategies',
-    ],
-  },
-];
-
+// ── Contact Form Schema ──────────────────────────────────────
 const contactSchema = z.object({
   first_name: z.string().trim().min(1, 'First name is required').max(100),
   last_name: z.string().trim().min(1, 'Last name is required').max(100),
@@ -112,14 +82,16 @@ function launchConfetti(canvas: HTMLCanvasElement) {
 // ── Main Component ─────────────────────────────────────────────
 const Assessment: React.FC = () => {
   const navigate = useNavigate();
-  const [step, setStep] = useState(0); // 0-2 = questions, 3 = contact, 4 = success
+  const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
   const [firstName, setFirstName] = useState('');
+  const [userEmail, setUserEmail] = useState('');
   const [direction, setDirection] = useState(1);
+  const [assessmentResult, setAssessmentResult] = useState<AssessmentResult | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  const totalSteps = questions.length + 1; // questions + contact form
+  const totalSteps = QUESTIONS.length + 1; // questions + contact form
   const progress = step >= totalSteps ? 100 : Math.round((step / totalSteps) * 100);
 
   const form = useForm<ContactForm>({
@@ -130,8 +102,8 @@ const Assessment: React.FC = () => {
   // Keyboard navigation
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if (step >= questions.length) return; // Don't interfere with form typing
-      if (e.key === 'Enter' && answers[questions[step].id]) {
+      if (step >= QUESTIONS.length) return;
+      if (e.key === 'Enter' && answers[QUESTIONS[step].id]) {
         goNext();
       }
     };
@@ -139,7 +111,7 @@ const Assessment: React.FC = () => {
     return () => window.removeEventListener('keydown', handler);
   }, [step, answers]);
 
-  // Confetti on success
+  // Confetti on results
   useEffect(() => {
     if (step === totalSteps && canvasRef.current) {
       const cleanup = launchConfetti(canvasRef.current);
@@ -171,17 +143,68 @@ const Assessment: React.FC = () => {
   const onSubmit = async (data: ContactForm) => {
     setSubmitting(true);
     try {
+      // Calculate scores
+      const result = calculateScores(answers);
+      setAssessmentResult(result);
+
+      // Get UTM parameters
+      const urlParams = new URLSearchParams(window.location.search);
+
+      // Insert to database with scores
       const { error } = await supabase.from('assessment_leads').insert({
         first_name: data.first_name,
         last_name: data.last_name,
         email: data.email,
         phone: data.phone,
+        // Original 3 answers
         retirement_concern: answers.retirement_concern || null,
         age_range: answers.age_range || null,
         tax_strategy_familiarity: answers.tax_strategy_familiarity || null,
-      });
+        // New 7 answers
+        savings_status: answers.savings_status || null,
+        income_range: answers.income_range || null,
+        tax_diversification: answers.tax_diversification || null,
+        insurance_coverage: answers.insurance_coverage || null,
+        market_volatility: answers.market_volatility || null,
+        retirement_plan_formality: answers.retirement_plan_formality || null,
+        legacy_planning: answers.legacy_planning || null,
+        // Scores
+        overall_score: result.overallScore,
+        score_savings: result.categoryScores.savings,
+        score_tax: result.categoryScores.tax,
+        score_protection: result.categoryScores.protection,
+        score_timeline: result.categoryScores.timeline,
+        score_tier: result.tier,
+        recommendations: result.recommendations,
+        // Metadata
+        page_url: window.location.href,
+        user_agent: navigator.userAgent,
+        language: navigator.language,
+        utm_source: urlParams.get('utm_source') || null,
+        utm_medium: urlParams.get('utm_medium') || null,
+        utm_campaign: urlParams.get('utm_campaign') || null,
+      } as any);
+
       if (error) throw error;
+
+      // Send results email to user (fire and forget)
+      supabase.functions
+        .invoke('send-assessment-results', {
+          body: {
+            email: data.email,
+            first_name: data.first_name,
+            overall_score: result.overallScore,
+            category_scores: result.categoryScores,
+            tier: result.tier,
+            tier_label: result.tierLabel,
+            tier_description: result.tierDescription,
+            recommendations: result.recommendations,
+          },
+        })
+        .catch((err) => console.error('Assessment email error:', err));
+
       setFirstName(data.first_name);
+      setUserEmail(data.email);
       setDirection(1);
       setStep(totalSteps);
     } catch (err) {
@@ -237,7 +260,7 @@ const Assessment: React.FC = () => {
       <div className="relative z-10 min-h-screen flex items-center justify-center px-6 py-20">
         <AnimatePresence mode="wait" custom={direction}>
           {/* ── Question slides ── */}
-          {step < questions.length && (
+          {step < QUESTIONS.length && (
             <motion.div
               key={`q-${step}`}
               custom={direction}
@@ -250,21 +273,21 @@ const Assessment: React.FC = () => {
             >
               <div className="text-center mb-10">
                 <span className="text-primary/70 text-sm font-medium tracking-widest uppercase mb-3 block">
-                  Question {step + 1} of {questions.length}
+                  Question {step + 1} of {QUESTIONS.length}
                 </span>
                 <h1 className="text-3xl md:text-4xl font-serif font-bold text-white mb-3">
-                  {questions[step].question}
+                  {QUESTIONS[step].question}
                 </h1>
-                <p className="text-white/50">{questions[step].subtitle}</p>
+                <p className="text-white/50">{QUESTIONS[step].subtitle}</p>
               </div>
 
               <div className="space-y-3">
-                {questions[step].options.map((option) => {
-                  const isSelected = answers[questions[step].id] === option;
+                {QUESTIONS[step].options.map((option) => {
+                  const isSelected = answers[QUESTIONS[step].id] === option;
                   return (
                     <button
                       key={option}
-                      onClick={() => selectOption(questions[step].id, option)}
+                      onClick={() => selectOption(QUESTIONS[step].id, option)}
                       className={`w-full text-left px-6 py-4 rounded-2xl border transition-all duration-200 group ${
                         isSelected
                           ? 'bg-primary/20 border-primary/50 text-white'
@@ -291,7 +314,7 @@ const Assessment: React.FC = () => {
           )}
 
           {/* ── Contact form slide ── */}
-          {step === questions.length && (
+          {step === QUESTIONS.length && (
             <motion.div
               key="contact"
               custom={direction}
@@ -307,10 +330,10 @@ const Assessment: React.FC = () => {
                   Almost done
                 </span>
                 <h1 className="text-3xl md:text-4xl font-serif font-bold text-white mb-3">
-                  Where should we send your results?
+                  See Your Personalized Results
                 </h1>
                 <p className="text-white/50">
-                  A licensed advisor will review your assessment and reach out personally.
+                  Enter your info to see your Retirement Readiness Score instantly.
                 </p>
               </div>
 
@@ -401,12 +424,12 @@ const Assessment: React.FC = () => {
                   >
                     {submitting ? (
                       <span className="flex items-center justify-center gap-2">
-                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                        Submitting…
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                        Calculating Your Score...
                       </span>
                     ) : (
                       <span className="flex items-center justify-center gap-2">
-                        Submit Assessment
+                        See My Results
                         <ArrowRight className="w-5 h-5" />
                       </span>
                     )}
@@ -416,39 +439,20 @@ const Assessment: React.FC = () => {
             </motion.div>
           )}
 
-          {/* ── Success / Congratulations ── */}
-          {step === totalSteps && (
+          {/* ── Results Page ── */}
+          {step === totalSteps && assessmentResult && (
             <motion.div
-              key="success"
+              key="results"
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.6, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
-              className="w-full max-w-lg text-center"
+              className="w-full"
             >
-              <div className="bg-white/[0.06] backdrop-blur-xl border border-white/10 rounded-3xl p-10 md:p-14">
-                <div className="w-20 h-20 rounded-full bg-primary/20 border border-primary/40 flex items-center justify-center mx-auto mb-8">
-                  <Check className="w-10 h-10 text-primary" />
-                </div>
-
-                <h1 className="text-3xl md:text-4xl font-serif font-bold text-white mb-4">
-                  Congratulations, {firstName}!
-                </h1>
-                <p className="text-white/60 text-lg mb-2">
-                  You've completed the assessment.
-                </p>
-                <p className="text-white/50 mb-10">
-                  A licensed advisor will contact you shortly to discuss your personalized
-                  tax-free retirement strategy.
-                </p>
-
-                <button
-                  onClick={() => navigate('/')}
-                  className="inline-flex items-center gap-2 px-8 py-4 rounded-full bg-white/10 border border-white/20 text-white font-medium hover:bg-white/15 transition-all"
-                >
-                  Return to Homepage
-                  <ArrowRight className="w-4 h-4" />
-                </button>
-              </div>
+              <AssessmentResults
+                firstName={firstName}
+                email={userEmail}
+                result={assessmentResult}
+              />
             </motion.div>
           )}
         </AnimatePresence>
