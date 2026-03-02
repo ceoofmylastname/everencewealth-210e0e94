@@ -1,34 +1,37 @@
 
 
-## Chat Buttons Across the Site — Audit
+## Add Assessment Leads to Admin Dashboard
 
-Here are all the places that have "Chat with Emma" or similar chat trigger buttons:
+### Problem
+1. **No admin view** — `assessment_leads` data is saved but not visible anywhere in the admin/CRM dashboards
+2. **Missing DB columns** — The table lacks scoring columns (`overall_score`, `score_savings`, `score_tax`, `score_protection`, `score_timeline`, `score_tier`, `recommendations`, etc.), so the full insert fails and falls back to base columns only
 
-### Currently Active Chat Buttons
+### Plan
 
-| Location | File | Button Text | Action |
-|----------|------|-------------|--------|
-| **About Page CTA** | `src/components/about/AboutCTA.tsx` | "Chat with Emma" | Opens Emma chat |
-| **Landing Page Sticky Button** | `src/components/landing/StickyActionButton.tsx` | "Chat with Emma Now" | Opens Emma chat |
-| **Landing Page Video CTA** | `src/components/landing/AutoplayVideo.tsx` | Golden button over video | Opens Emma chat |
-| **Landing Emma Section** | `src/components/landing/EmmaSection.tsx` | Emma intro card | Opens Emma chat |
-| **Location Pages CTA** | `src/components/location/LocationCTASection.tsx` | "Chat with EMMA" | Opens Emma chat |
-| **Retargeting Page** | `src/components/retargeting/RetargetingEmmaSection.tsx` | Emma CTA button | Opens Emma chat |
-| **Blog Articles** | `src/components/blog-article/BlogEmmaChat.tsx` | Floating chat bubble (bottom-right) | Opens Emma chat |
-| **Blog BOFU CTA** | `src/components/blog-article/FunnelCTA.tsx` | "Schedule a Consultation" | Opens Emma chat |
-| **Client Stories CTA** | `src/components/client-stories/CSCTA.tsx` | "Get Your Free Consultation" | Opens Emma chat |
-| **Comparison Page** | `src/pages/ComparisonPage.tsx` | Chat click handler | Opens Emma chat |
-| **Brochure Pages** | `src/components/brochures/BrochureChatbot.tsx` | Floating chat bubble | Opens separate brochure chatbot |
-| **Apartments Landing** | `src/pages/apartments/ApartmentsLanding.tsx` | Multiple triggers | Opens Emma chat |
-| **Explainer Video** | `src/components/landing/ExplainerVideo.tsx` | Button under video | Opens Emma chat |
+#### 1. Database Migration — Add missing columns to `assessment_leads`
+Add these columns to capture the full assessment results:
+- `savings_status`, `income_range`, `tax_diversification`, `insurance_coverage`, `market_volatility`, `retirement_plan_formality`, `legacy_planning` (all `text`, nullable)
+- `overall_score` (`integer`, nullable)
+- `score_savings`, `score_tax`, `score_protection`, `score_timeline` (`integer`, nullable)
+- `score_tier` (`text`, nullable)
+- `recommendations` (`jsonb`, nullable)
+- `page_url`, `user_agent`, `language` (`text`, nullable)
+- `utm_source`, `utm_medium`, `utm_campaign` (`text`, nullable)
 
-### Which Should Be Removed?
+#### 2. New Page — `src/pages/crm/admin/AssessmentLeads.tsx`
+Create a new admin page that displays a table of all assessment submissions with:
+- Columns: Date, Name, Email, Phone, Age Range, Concern, Score, Tier
+- Expandable row or detail modal showing full answers, category scores, and recommendations
+- Sort by date (newest first)
+- Search/filter by name or email
 
-Before I remove anything, I need to know your intent:
+#### 3. Add Route + Navigation
+- Add route `/crm/admin/assessment-leads` in the CRM router
+- Add a nav link in the CRM admin sidebar/layout
 
-- **Remove ALL chat buttons site-wide?** (Emma chat completely gone)
-- **Keep some specific ones?** (e.g., keep the floating bubble on blog, remove the rest)
-- **Only remove the ones that say "Chat with Emma" specifically?** (keep consultation/booking CTAs)
-
-Please let me know which ones to remove and I'll make the changes.
+#### Files to create/change
+- **Database migration** — ALTER TABLE `assessment_leads` ADD columns
+- **`src/pages/crm/admin/AssessmentLeads.tsx`** — new page component
+- **CRM routes file** — add new route
+- **CRM admin layout/nav** — add sidebar link
 
