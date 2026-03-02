@@ -42,15 +42,6 @@ export const AboutCTA = () => {
                 {cta?.meetTeam || "Meet Our Team"}
               </Link>
             </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              className="bg-transparent border-white/30 text-white hover:bg-white/10 px-8 rounded-xl"
-              onClick={() => window.dispatchEvent(new CustomEvent('openEmmaChat'))}
-            >
-              <Phone className="w-4 h-4 mr-2" />
-              {ctaSection?.chatWithEmma || "Chat with Emma"}
-            </Button>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8 max-w-3xl mx-auto">

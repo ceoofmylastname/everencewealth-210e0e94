@@ -88,33 +88,6 @@ const ExplainerVideo: React.FC<ExplainerVideoProps> = ({ language }) => {
                         )}
                     </div>
 
-                    {/* CTA Below Video */}
-                    <div className="mt-12">
-                        <button
-                            onClick={() => {
-                                const event = new CustomEvent('openLeadForm'); // Changed to openLeadForm based on previous usage, user asked for 'openEmmaChat' but previous code used openLeadForm/setIsEmmaOpen. I will check LandingLayout.
-                                // Actually the user request says: const event = new CustomEvent('openEmmaChat');
-                                // But LandingLayout listens to 'openLeadForm'. 
-                                // Wait, LandingLayout.tsx has:
-                                // <EmmaChat ... isOpen={isEmmaOpen} ... />
-                                // And: <Hero ... onStartChat={() => setIsEmmaOpen(true)} ... />
-                                // And: window.addEventListener('openLeadForm' as any, handleOpenForm); which opens the FORM.
-                                // The user specifically requested "Chat with Emma" so I should probably open the chat.
-                                // However, there is no global event listener for 'openEmmaChat' in LandingLayout shown in my previous read.
-                                // Let me check LandingLayout again.
-                                // In LandingLayout.tsx (read in step 86), I see:
-                                // const [isEmmaOpen, setIsEmmaOpen] = useState(false);
-                                // There is no event listener for opening chat, only passed props.
-                                // BUT, I can see if I can add one or if I should just use `openLeadForm` if that's what they meant.
-                                // The CTA says "Chat with Emma".
-                                // I will use `openEmmaChat` and adding the listener to LandingLayout is the correct approach to make it work.
-                                window.dispatchEvent(new CustomEvent('openEmmaChat'));
-                            }}
-                            className="px-8 py-4 bg-landing-gold text-white rounded-lg font-bold hover:bg-landing-goldDark transition-all duration-300 hover:shadow-lg hover:-translate-y-1"
-                        >
-                            Ready to Start? Chat with Emma
-                        </button>
-                    </div>
                 </div>
             </div>
         </section>

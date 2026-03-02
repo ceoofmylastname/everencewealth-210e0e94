@@ -43,19 +43,6 @@ export const RetargetingEmmaSection = ({ language = "en" }: RetargetingEmmaSecti
             {t.emmaExplanation}
           </p>
 
-          {/* CTA Button */}
-          <Button
-            onClick={handleEmmaClick}
-            className="bg-landing-navy hover:bg-landing-navy/90 text-white px-8 py-6 text-base font-medium rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-[1.02]"
-          >
-            <MessageCircle className="w-4 h-4 mr-2" />
-            {t.emmaCta}
-          </Button>
-
-          {/* Microcopy */}
-          <p className="mt-4 text-landing-navy/40 text-sm">
-            {t.emmaMicrocopy}
-          </p>
         </motion.div>
       </div>
     </section>
