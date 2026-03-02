@@ -83,7 +83,7 @@ Deno.serve(async (req) => {
 
       // Filter to registrations where workshop is within the reminder window
       const eligible = registrations.filter((reg) => {
-        const ws = reg.workshops;
+        const ws = reg.workshops as unknown as { id: string; title: string; workshop_date: string; workshop_time: string; zoom_join_url: string; zoom_passcode: string };
         // Combine date + time into a proper datetime
         let workshopDateTime: Date;
         if (ws.workshop_time) {

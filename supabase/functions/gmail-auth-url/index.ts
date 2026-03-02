@@ -48,8 +48,8 @@ serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
-    console.error("[gmail-auth-url] Error:", error.message);
-    return new Response(JSON.stringify({ error: error.message }), {
+    console.error("[gmail-auth-url] Error:", (error as Error).message);
+    return new Response(JSON.stringify({ error: (error as Error).message }), {
       status: 400,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

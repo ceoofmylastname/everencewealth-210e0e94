@@ -135,8 +135,9 @@ function generateEmailHtml(
   return brandedEmailWrapper(subtitleText, innerHtml);
 }
 
+// deno-lint-ignore no-explicit-any
 async function processReminders(
-  supabase: ReturnType<typeof createClient>,
+  supabase: any,
   crmUrl: string,
   windowType: "1hour" | "10min"
 ): Promise<{ sent: number; failed: number; errors: string[] }> {
@@ -178,7 +179,7 @@ async function processReminders(
       const { data: agent, error: agentError } = await supabase
         .from("crm_agents")
         .select("id, email, first_name, last_name")
-        .eq("id", reminder.agent_id)
+        .eq("id", reminder.agent_id as string)
         .single();
 
       if (agentError || !agent) { results.failed++; continue; }
@@ -190,15 +191,15 @@ async function processReminders(
           .select("id, first_name, last_name, phone_number, email, lead_segment, language")
           .eq("id", reminder.lead_id)
           .single();
-        lead = leadData;
+        lead = leadData as Lead | null;
       }
 
-      const html = generateEmailHtml(reminder, agent, lead, crmUrl, isUrgent);
+      const html = generateEmailHtml(reminder as unknown as Reminder, agent as Agent, lead, crmUrl, isUrgent);
       const subject = isUrgent ? `🚨 STARTING SOON: ${reminder.title}` : `🔔 Reminder: ${reminder.title}`;
 
       const { error: emailError } = await resend.emails.send({
         from: "Everence Wealth <crm@notifications.everencewealth.com>",
-        to: [agent.email],
+        to: [agent.email as string],
         subject,
         html,
         headers: isUrgent ? { "X-Priority": "1" } : undefined,
@@ -214,7 +215,7 @@ async function processReminders(
       if (windowType === "1hour") updateData.email_sent = true;
       else updateData.email_10min_sent = true;
 
-      await supabase.from("crm_reminders").update(updateData).eq("id", reminder.id);
+      await supabase.from("crm_reminders").update(updateData).eq("id", reminder.id as string);
       console.log(`[${windowType.toUpperCase()}] Email sent for reminder ${reminder.id} to ${agent.email}`);
       results.sent++;
     } catch (err: unknown) {
