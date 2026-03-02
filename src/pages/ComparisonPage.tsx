@@ -77,9 +77,6 @@ export default function ComparisonPage() {
     enabled: !!comparison?.author_id,
   });
 
-  const handleChatClick = () => {
-    window.dispatchEvent(new CustomEvent('openChatbot'));
-  };
 
   if (isLoading) {
     return (
@@ -353,11 +350,6 @@ export default function ComparisonPage() {
             </section>
           )}
 
-          <CTASection 
-            optionA={comparison.option_a}
-            optionB={comparison.option_b}
-            onChatClick={handleChatClick}
-          />
 
           <VerdictSection verdict={comparison.final_verdict} />
 

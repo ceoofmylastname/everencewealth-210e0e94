@@ -141,13 +141,6 @@ const ApartmentsLanding: React.FC = () => {
             >
               View Properties
             </button>
-            <button
-              onClick={openEmma}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-landing-gold text-white rounded-lg font-semibold hover:bg-landing-goldDark transition-colors text-sm"
-            >
-              <MessageCircle size={16} />
-              <span className="hidden sm:inline">Speak with Emma</span>
-            </button>
           </div>
         </div>
       </header>
@@ -168,8 +161,8 @@ const ApartmentsLanding: React.FC = () => {
           />
         )}
 
-        <AutoplayVideo language={language} onOpenEmmaChat={openEmma} />
-        <EmmaSection onStartChat={openEmma} />
+        <AutoplayVideo language={language} />
+        <EmmaSection onStartChat={() => {}} />
 
         {/* Masonry Grid */}
         <ApartmentsMasonryGrid
@@ -225,11 +218,6 @@ const ApartmentsLanding: React.FC = () => {
         language={language}
       />
 
-      <EmmaChat
-        isOpen={isEmmaOpen}
-        onClose={() => setIsEmmaOpen(false)}
-        language={language}
-      />
     </>
   );
 };

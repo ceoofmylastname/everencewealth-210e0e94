@@ -21,24 +21,7 @@ interface FunnelCTAProps {
 
 export const FunnelCTA = ({ funnelStage, ctaArticles }: FunnelCTAProps) => {
   if (funnelStage === "BOFU") {
-    return (
-      <div className="my-12 p-8 bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg border-2 border-primary/20">
-        <div className="text-center space-y-6">
-          <h2 className="text-3xl font-bold">Ready to Take the Next Step?</h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Connect with our expert team to plan your financial future
-          </p>
-          <Button
-            size="lg"
-            className="gap-2"
-            onClick={() => window.dispatchEvent(new Event('openEmmaChat'))}
-          >
-            <Calendar className="h-5 w-5" />
-            Schedule a Consultation
-          </Button>
-        </div>
-      </div>
-    );
+    return null;
   }
 
   if (ctaArticles.length === 0) return null;

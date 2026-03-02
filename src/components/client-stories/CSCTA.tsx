@@ -16,10 +16,6 @@ export const CSCTA: React.FC = () => {
         <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
           <h2 className="font-serif text-3xl md:text-5xl font-bold text-white mb-6">{s?.headline || 'Start Your Success Story'}</h2>
           <p className="text-xl text-white/70 mb-10 max-w-2xl mx-auto">{s?.subtitle || 'Join 1,200+ families who have already secured their financial future with Everence Wealth.'}</p>
-          <Button size="lg" className="bg-[hsl(43,74%,49%)] hover:bg-[hsl(43,74%,49%)]/90 text-[hsl(160,48%,12%)] font-semibold px-8 rounded-xl" onClick={() => window.dispatchEvent(new CustomEvent('openEmmaChat'))}>
-            {s?.button || 'Get Your Free Consultation'}
-            <ArrowRight className="w-4 h-4 ml-2" />
-          </Button>
         </motion.div>
       </div>
     </section>

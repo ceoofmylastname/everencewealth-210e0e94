@@ -102,14 +102,6 @@ const AutoplayVideo: React.FC<AutoplayVideoProps> = ({ language, translations, o
                         ))}
                     </div>
 
-                    {/* MIDDLE - Prominent Golden Button */}
-                    <button
-                        onClick={onOpenEmmaChat}
-                        className="bg-gradient-to-r from-[#C4A053] to-[#D4B068] text-white font-semibold text-base sm:text-lg px-8 py-3 sm:px-12 sm:py-4 rounded-full shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 mx-auto block my-6 sm:my-8"
-                    >
-                        ✨ {t.ctaButton || "Ask Emma All Your Questions"}
-                    </button>
-
                     {/* Bottom - Single checkmark */}
                     <div className="flex items-center justify-center gap-2 text-landing-navy/60 italic text-sm sm:text-base">
                         <div className="w-5 h-5 rounded-full bg-landing-gold/20 flex items-center justify-center shrink-0">
