@@ -64,16 +64,16 @@ export default function AdvisorSettings() {
     setUploading(true);
     try {
       const ext = file.name.split(".").pop() || "jpg";
-      const filename = `advisor-${advisorId}-${Date.now()}.${ext}`;
+      const filename = `${advisorId}/headshot-${Date.now()}.${ext}`;
 
       const { error: uploadError } = await supabase.storage
-        .from("article-images")
-        .upload(filename, file, { contentType: file.type, cacheControl: "31536000", upsert: false });
+        .from("advisor-photos")
+        .upload(filename, file, { contentType: file.type, cacheControl: "31536000", upsert: true });
 
       if (uploadError) throw uploadError;
 
       const { data: publicUrlData } = supabase.storage
-        .from("article-images")
+        .from("advisor-photos")
         .getPublicUrl(filename);
 
       const newUrl = publicUrlData?.publicUrl;
