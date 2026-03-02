@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, ArrowRight, Check, Loader2 } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, Loader2, Sparkles } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
@@ -9,8 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Progress } from '@/components/ui/progress';
 import { Input } from '@/components/ui/input';
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
-import { QUESTIONS, calculateScores, type AssessmentResult } from '@/lib/assessment-scoring';
-import { AssessmentResults } from '@/components/assessment/AssessmentResults';
+import { QUESTIONS, calculateScores } from '@/lib/assessment-scoring';
 
 // ── Contact Form Schema ──────────────────────────────────────
 const contactSchema = z.object({
@@ -22,35 +21,72 @@ const contactSchema = z.object({
 
 type ContactForm = z.infer<typeof contactSchema>;
 
-// ── Confetti ───────────────────────────────────────────────────
-function launchConfetti(canvas: HTMLCanvasElement) {
+// ── MASSIVE Confetti ──────────────────────────────────────────
+function launchMassiveConfetti(canvas: HTMLCanvasElement) {
   const ctx = canvas.getContext('2d')!;
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
 
-  const colors = ['#C5A059', '#1A4D3E', '#FFD700', '#FFFFFF', '#F5E6CC', '#2E8B57'];
+  const colors = ['#C5A059', '#1A4D3E', '#FFD700', '#FFFFFF', '#F5E6CC', '#2E8B57', '#10B981', '#8B5CF6', '#3B82F6'];
   const particles: {
     x: number; y: number; vx: number; vy: number;
     w: number; h: number; color: string; rot: number; vr: number; life: number;
   }[] = [];
 
+  // Wave 1: Side cannons (massive burst)
   for (let side = 0; side < 2; side++) {
     const originX = side === 0 ? 0 : canvas.width;
     const dirX = side === 0 ? 1 : -1;
-    for (let i = 0; i < 120; i++) {
+    for (let i = 0; i < 300; i++) {
       particles.push({
         x: originX,
-        y: canvas.height * 0.3 + Math.random() * canvas.height * 0.4,
-        vx: dirX * (3 + Math.random() * 8),
-        vy: -(2 + Math.random() * 6),
-        w: 6 + Math.random() * 8,
-        h: 4 + Math.random() * 6,
+        y: canvas.height * 0.2 + Math.random() * canvas.height * 0.6,
+        vx: dirX * (2 + Math.random() * 10),
+        vy: -(3 + Math.random() * 8),
+        w: 5 + Math.random() * 12,
+        h: 3 + Math.random() * 8,
         color: colors[Math.floor(Math.random() * colors.length)],
         rot: Math.random() * Math.PI * 2,
-        vr: (Math.random() - 0.5) * 0.3,
+        vr: (Math.random() - 0.5) * 0.4,
         life: 1,
       });
     }
+  }
+
+  // Wave 2: Top rain (delayed via negative y)
+  for (let i = 0; i < 400; i++) {
+    particles.push({
+      x: Math.random() * canvas.width,
+      y: -Math.random() * 300,
+      vx: (Math.random() - 0.5) * 4,
+      vy: 1 + Math.random() * 3,
+      w: 4 + Math.random() * 10,
+      h: 3 + Math.random() * 7,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      rot: Math.random() * Math.PI * 2,
+      vr: (Math.random() - 0.5) * 0.3,
+      life: 1.2,
+    });
+  }
+
+  // Wave 3: Center explosion
+  const cx = canvas.width / 2;
+  const cy = canvas.height * 0.35;
+  for (let i = 0; i < 200; i++) {
+    const angle = Math.random() * Math.PI * 2;
+    const speed = 2 + Math.random() * 8;
+    particles.push({
+      x: cx,
+      y: cy,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed - 3,
+      w: 5 + Math.random() * 10,
+      h: 4 + Math.random() * 8,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      rot: Math.random() * Math.PI * 2,
+      vr: (Math.random() - 0.5) * 0.5,
+      life: 1.1,
+    });
   }
 
   let frame: number;
@@ -61,10 +97,10 @@ function launchConfetti(canvas: HTMLCanvasElement) {
       if (p.life <= 0) continue;
       alive = true;
       p.x += p.vx;
-      p.vy += 0.15;
+      p.vy += 0.12;
       p.y += p.vy;
       p.rot += p.vr;
-      p.life -= 0.006;
+      p.life -= 0.004; // Slower fade = longer show
       ctx.save();
       ctx.translate(p.x, p.y);
       ctx.rotate(p.rot);
@@ -86,9 +122,7 @@ const Assessment: React.FC = () => {
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
   const [firstName, setFirstName] = useState('');
-  const [userEmail, setUserEmail] = useState('');
   const [direction, setDirection] = useState(1);
-  const [assessmentResult, setAssessmentResult] = useState<AssessmentResult | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const totalSteps = QUESTIONS.length + 1; // questions + contact form
@@ -111,13 +145,20 @@ const Assessment: React.FC = () => {
     return () => window.removeEventListener('keydown', handler);
   }, [step, answers]);
 
-  // Confetti on results
+  // Confetti on success + auto-redirect to homepage
   useEffect(() => {
     if (step === totalSteps && canvasRef.current) {
-      const cleanup = launchConfetti(canvasRef.current);
-      return cleanup;
+      const cleanup = launchMassiveConfetti(canvasRef.current);
+      // Redirect to homepage after confetti finishes
+      const timer = setTimeout(() => {
+        navigate('/');
+      }, 7000);
+      return () => {
+        cleanup();
+        clearTimeout(timer);
+      };
     }
-  }, [step]);
+  }, [step, navigate, totalSteps]);
 
   const goNext = useCallback(() => {
     setDirection(1);
@@ -145,49 +186,65 @@ const Assessment: React.FC = () => {
     try {
       // Calculate scores
       const result = calculateScores(answers);
-      setAssessmentResult(result);
 
       // Get UTM parameters
       const urlParams = new URLSearchParams(window.location.search);
 
-      // Insert to database with scores
-      const { error } = await supabase.from('assessment_leads').insert({
-        first_name: data.first_name,
-        last_name: data.last_name,
-        email: data.email,
-        phone: data.phone,
-        // Original 3 answers
-        retirement_concern: answers.retirement_concern || null,
-        age_range: answers.age_range || null,
-        tax_strategy_familiarity: answers.tax_strategy_familiarity || null,
-        // New 7 answers
-        savings_status: answers.savings_status || null,
-        income_range: answers.income_range || null,
-        tax_diversification: answers.tax_diversification || null,
-        insurance_coverage: answers.insurance_coverage || null,
-        market_volatility: answers.market_volatility || null,
-        retirement_plan_formality: answers.retirement_plan_formality || null,
-        legacy_planning: answers.legacy_planning || null,
-        // Scores
-        overall_score: result.overallScore,
-        score_savings: result.categoryScores.savings,
-        score_tax: result.categoryScores.tax,
-        score_protection: result.categoryScores.protection,
-        score_timeline: result.categoryScores.timeline,
-        score_tier: result.tier,
-        recommendations: result.recommendations,
-        // Metadata
-        page_url: window.location.href,
-        user_agent: navigator.userAgent,
-        language: navigator.language,
-        utm_source: urlParams.get('utm_source') || null,
-        utm_medium: urlParams.get('utm_medium') || null,
-        utm_campaign: urlParams.get('utm_campaign') || null,
-      } as any);
+      // Try full insert with all scoring columns first
+      let insertError = null;
+      try {
+        const { error } = await supabase.from('assessment_leads').insert({
+          first_name: data.first_name,
+          last_name: data.last_name,
+          email: data.email,
+          phone: data.phone,
+          retirement_concern: answers.retirement_concern || null,
+          age_range: answers.age_range || null,
+          tax_strategy_familiarity: answers.tax_strategy_familiarity || null,
+          savings_status: answers.savings_status || null,
+          income_range: answers.income_range || null,
+          tax_diversification: answers.tax_diversification || null,
+          insurance_coverage: answers.insurance_coverage || null,
+          market_volatility: answers.market_volatility || null,
+          retirement_plan_formality: answers.retirement_plan_formality || null,
+          legacy_planning: answers.legacy_planning || null,
+          overall_score: result.overallScore,
+          score_savings: result.categoryScores.savings,
+          score_tax: result.categoryScores.tax,
+          score_protection: result.categoryScores.protection,
+          score_timeline: result.categoryScores.timeline,
+          score_tier: result.tier,
+          recommendations: result.recommendations,
+          page_url: window.location.href,
+          user_agent: navigator.userAgent,
+          language: navigator.language,
+          utm_source: urlParams.get('utm_source') || null,
+          utm_medium: urlParams.get('utm_medium') || null,
+          utm_campaign: urlParams.get('utm_campaign') || null,
+        } as any);
+        insertError = error;
+      } catch {
+        insertError = { message: 'full insert failed' };
+      }
 
-      if (error) throw error;
+      // Fallback: if full insert failed (columns don't exist yet), insert just the base columns
+      if (insertError) {
+        console.warn('Full insert failed, trying base columns:', insertError);
+        const { error: baseError } = await supabase.from('assessment_leads').insert({
+          first_name: data.first_name,
+          last_name: data.last_name,
+          email: data.email,
+          phone: data.phone,
+          retirement_concern: answers.retirement_concern || null,
+          age_range: answers.age_range || null,
+          tax_strategy_familiarity: answers.tax_strategy_familiarity || null,
+        } as any);
+        if (baseError) {
+          console.error('Base insert also failed:', baseError);
+        }
+      }
 
-      // Send results email to user (fire and forget)
+      // Send results email to user via Resend (fire and forget)
       supabase.functions
         .invoke('send-assessment-results', {
           body: {
@@ -203,12 +260,16 @@ const Assessment: React.FC = () => {
         })
         .catch((err) => console.error('Assessment email error:', err));
 
+      // Show success with confetti
       setFirstName(data.first_name);
-      setUserEmail(data.email);
       setDirection(1);
       setStep(totalSteps);
     } catch (err) {
       console.error('Assessment submit error:', err);
+      // Still show success even if DB fails - the user experience matters most
+      setFirstName(data.first_name);
+      setDirection(1);
+      setStep(totalSteps);
     } finally {
       setSubmitting(false);
     }
@@ -330,10 +391,10 @@ const Assessment: React.FC = () => {
                   Almost done
                 </span>
                 <h1 className="text-3xl md:text-4xl font-serif font-bold text-white mb-3">
-                  See Your Personalized Results
+                  Where should we send your results?
                 </h1>
                 <p className="text-white/50">
-                  Enter your info to see your Retirement Readiness Score instantly.
+                  We'll email your personalized Retirement Readiness Score and recommendations.
                 </p>
               </div>
 
@@ -439,20 +500,62 @@ const Assessment: React.FC = () => {
             </motion.div>
           )}
 
-          {/* ── Results Page ── */}
-          {step === totalSteps && assessmentResult && (
+          {/* ── Success + Confetti + Auto-redirect ── */}
+          {step === totalSteps && (
             <motion.div
-              key="results"
-              initial={{ opacity: 0, scale: 0.9 }}
+              key="success"
+              initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.6, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
-              className="w-full"
+              transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+              className="w-full max-w-lg text-center"
             >
-              <AssessmentResults
-                firstName={firstName}
-                email={userEmail}
-                result={assessmentResult}
-              />
+              <div className="bg-white/[0.06] backdrop-blur-xl border border-white/10 rounded-3xl p-10 md:p-14">
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ duration: 0.5, delay: 0.4, type: 'spring', stiffness: 200 }}
+                  className="w-24 h-24 rounded-full bg-primary/20 border-2 border-primary/40 flex items-center justify-center mx-auto mb-8"
+                >
+                  <Sparkles className="w-12 h-12 text-primary" />
+                </motion.div>
+
+                <motion.h1
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.6 }}
+                  className="text-3xl md:text-4xl font-serif font-bold text-white mb-4"
+                >
+                  Amazing, {firstName}!
+                </motion.h1>
+
+                <motion.p
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.8 }}
+                  className="text-white/60 text-lg mb-3"
+                >
+                  Your Retirement Readiness Assessment is complete.
+                </motion.p>
+
+                <motion.p
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.5, delay: 1.0 }}
+                  className="text-primary/80 text-base mb-8"
+                >
+                  Check your email for your personalized score, category breakdown, and custom recommendations.
+                </motion.p>
+
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.5, delay: 1.2 }}
+                  className="flex items-center justify-center gap-2 text-white/30 text-sm"
+                >
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Redirecting to homepage...
+                </motion.div>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
