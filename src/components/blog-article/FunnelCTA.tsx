@@ -1,7 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowRight, Calendar, MessageCircle } from "lucide-react";
+import { ArrowRight, Calendar } from "lucide-react";
 import { Link } from "react-router-dom";
 import { FunnelStage } from "@/types/blog";
 
@@ -28,16 +28,14 @@ export const FunnelCTA = ({ funnelStage, ctaArticles }: FunnelCTAProps) => {
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             Connect with our expert team to plan your financial future
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="gap-2">
-              <Calendar className="h-5 w-5" />
-              Schedule Your Private Viewing
-            </Button>
-            <Button size="lg" variant="outline" className="gap-2">
-              <MessageCircle className="h-5 w-5" />
-              Chat with Expert Now
-            </Button>
-          </div>
+          <Button
+            size="lg"
+            className="gap-2"
+            onClick={() => window.dispatchEvent(new Event('openEmmaChat'))}
+          >
+            <Calendar className="h-5 w-5" />
+            Schedule a Consultation
+          </Button>
         </div>
       </div>
     );
