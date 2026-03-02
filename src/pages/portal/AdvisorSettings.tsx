@@ -17,31 +17,28 @@ export default function AdvisorSettings() {
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [advisorId, setAdvisorId] = useState<string | null>(null);
+  const [profileLoading, setProfileLoading] = useState(true);
 
-  // Load current advisor photo
+  // Load current advisor photo — lookup by auth_user_id directly (works for both advisor & admin roles)
   useEffect(() => {
     const loadAdvisorPhoto = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      setProfileLoading(true);
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
 
-      const { data: portalUser } = await supabase
-        .from("portal_users")
-        .select("id")
-        .eq("auth_user_id", user.id)
-        .eq("role", "advisor")
-        .maybeSingle();
+        const { data: advisor } = await supabase
+          .from("advisors")
+          .select("id, photo_url")
+          .eq("auth_user_id", user.id)
+          .maybeSingle();
 
-      if (!portalUser) return;
-
-      const { data: advisor } = await supabase
-        .from("advisors")
-        .select("id, photo_url")
-        .eq("portal_user_id", portalUser.id)
-        .maybeSingle();
-
-      if (advisor) {
-        setAdvisorId(advisor.id);
-        setPhotoUrl(advisor.photo_url);
+        if (advisor) {
+          setAdvisorId(advisor.id);
+          setPhotoUrl(advisor.photo_url);
+        }
+      } finally {
+        setProfileLoading(false);
       }
     };
     loadAdvisorPhoto();
@@ -49,7 +46,11 @@ export default function AdvisorSettings() {
 
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !advisorId) return;
+    if (!file) return;
+    if (!advisorId) {
+      toast({ title: "Error", description: "Could not load your advisor profile. Please refresh and try again.", variant: "destructive" });
+      return;
+    }
 
     // Validate file
     if (!file.type.startsWith("image/")) {
@@ -92,6 +93,9 @@ export default function AdvisorSettings() {
       toast({ title: "Error", description: err.message || "Failed to upload photo", variant: "destructive" });
     } finally {
       setUploading(false);
+      // Reset input so the same file can be re-selected
+      const input = document.getElementById("photo-upload") as HTMLInputElement;
+      if (input) input.value = "";
     }
   };
 
@@ -184,7 +188,7 @@ export default function AdvisorSettings() {
                 accept="image/*"
                 className="hidden"
                 onChange={handlePhotoUpload}
-                disabled={uploading}
+                disabled={uploading || profileLoading}
               />
               <p className="text-xs text-muted-foreground">JPG, PNG · Max 5MB</p>
             </div>
