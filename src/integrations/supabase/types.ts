@@ -7780,6 +7780,72 @@ export type Database = {
         }
         Relationships: []
       }
+      strategy_form_submissions: {
+        Row: {
+          assigned_to: string | null
+          created_at: string | null
+          email: string
+          form_source: string
+          full_name: string
+          id: string
+          income_range: string | null
+          language: string | null
+          notes: string | null
+          page_url: string | null
+          phone: string | null
+          status: string | null
+          updated_at: string | null
+          user_agent: string | null
+          utm_campaign: string | null
+          utm_content: string | null
+          utm_medium: string | null
+          utm_source: string | null
+          utm_term: string | null
+        }
+        Insert: {
+          assigned_to?: string | null
+          created_at?: string | null
+          email: string
+          form_source: string
+          full_name: string
+          id?: string
+          income_range?: string | null
+          language?: string | null
+          notes?: string | null
+          page_url?: string | null
+          phone?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_agent?: string | null
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
+        }
+        Update: {
+          assigned_to?: string | null
+          created_at?: string | null
+          email?: string
+          form_source?: string
+          full_name?: string
+          id?: string
+          income_range?: string | null
+          language?: string | null
+          notes?: string | null
+          page_url?: string | null
+          phone?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_agent?: string | null
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
+        }
+        Relationships: []
+      }
       team_members: {
         Row: {
           active: boolean | null
