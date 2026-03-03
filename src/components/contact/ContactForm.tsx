@@ -98,7 +98,7 @@ export const ContactForm: React.FC<ContactFormProps> = ({ t, language, variant =
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.fullName || !formData.email || !formData.message || !formData.privacy || !formData.smsTransactionalConsent) {
+    if (!formData.fullName || !formData.email || !formData.message || !formData.privacy) {
       toast({
         title: t.form.validation?.requiredFields || 'Please fill in all required fields',
         variant: 'destructive',
@@ -371,7 +371,7 @@ export const ContactForm: React.FC<ContactFormProps> = ({ t, language, variant =
               </Select>
             </div>
 
-            {/* SMS Transactional Consent (Required) */}
+            {/* SMS Transactional Consent (Optional) */}
             <div className="space-y-4 border border-border rounded-xl p-4 bg-muted/20">
               <div className="flex items-start gap-3">
                 <Checkbox
@@ -381,7 +381,7 @@ export const ContactForm: React.FC<ContactFormProps> = ({ t, language, variant =
                   className="mt-1"
                 />
                 <Label htmlFor="smsTransactional" className="text-sm text-muted-foreground leading-relaxed cursor-pointer">
-                  I consent to receive transactional messages (e.g., appointment confirmations, account alerts) from <span className="font-semibold text-foreground">Everence Wealth</span> at the phone number provided. Message frequency may vary. Message & Data rates may apply. Reply HELP for help or STOP to opt-out. *
+                  I consent to receive transactional messages (e.g., appointment confirmations, account alerts) from <span className="font-semibold text-foreground">Everence Wealth</span> at the phone number provided. Message frequency may vary. Message & Data rates may apply. Reply HELP for help or STOP to opt-out.
                 </Label>
               </div>
 
