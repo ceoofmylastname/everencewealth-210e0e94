@@ -1,24 +1,22 @@
 
 
-## Show All Questions & Answers in Assessment Leads Admin
+## Fix: Assessment Full Insert Failing
 
-### Problem
-1. **Missing data**: The 8 existing submissions only saved 3 answer fields (`retirement_concern`, `age_range`, `tax_strategy_familiarity`). The other 7 answers and all scores are `null` because the DB columns were added after those submissions. Future submissions will save correctly now that the columns exist.
-2. **Admin can't see answers**: The table only shows summary columns. Full Q&A is hidden behind a detail dialog click, and even there, empty answers are filtered out.
+### Root Cause
+The full insert in `src/pages/Assessment.tsx` (line 222) sends `language: navigator.language`, but the database column is named `lead_language`, not `language`. PostgREST rejects the entire insert, and the fallback only saves 3 base fields.
 
-### Changes
+### Fix
+In `src/pages/Assessment.tsx`, change line 222 from:
+```
+language: navigator.language,
+```
+to:
+```
+lead_language: navigator.language,
+```
 
-#### 1. Update the Detail Dialog in `src/pages/crm/admin/AssessmentLeads.tsx`
-- Import `QUESTIONS` from `@/lib/assessment-scoring`
-- Replace the hardcoded answer list with a loop over all 10 `QUESTIONS`, showing:
-  - The actual **question text** (e.g., "What is your primary retirement concern?")
-  - The user's **selected answer** (or "Not answered" if null)
-- Show all 10 questions regardless of whether answered, so admin always sees the full picture
-- Display the question label prominently and the answer below it, in a card-style layout
-
-#### 2. No schema changes needed
-The columns already exist. Future submissions will populate all fields. The 8 legacy submissions will simply show "Not answered" for the missing fields.
+This single-line fix will make the full insert succeed, saving all 10 answers, scores, tier, and recommendations to the database. Future submissions will then appear with complete data in the admin view.
 
 ### Files to change
-- `src/pages/crm/admin/AssessmentLeads.tsx` — update the "Assessment Answers" section in the detail dialog to show all questions with their full text
+- `src/pages/Assessment.tsx` — rename `language` to `lead_language` in the insert object (~line 222)
 
