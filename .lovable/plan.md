@@ -1,17 +1,15 @@
 
 
-## Plan: Update Phone Number to 925-433-7724
+## Plan: Make SMS Consent Checkboxes Optional
 
-Update `src/constants/company.ts` to change the phone number from the current placeholder to the real number:
+Two changes in `src/components/contact/ContactForm.tsx`:
 
-- `phone`: `'+1 (925) 433-7724'`
-- `phoneClean`: `'19254337724'`
-- `whatsappBase`: `'https://wa.me/19254337724'`
-- `whatsappWithMessage`: update the base number to `19254337724`
+1. **Line 101** — Remove `smsTransactionalConsent` from the required fields validation check:
+   - Change `!formData.privacy || !formData.smsTransactionalConsent` → `!formData.privacy`
 
-Also update the hardcoded phone in `src/components/about/AboutCTA.tsx` which displays `"+34 630 03 90 90"` — change to `"+1 (925) 433-7724"`.
+2. **Lines 374-384** — Remove the `*` asterisk from the transactional consent label text and update the comment from "Required" to "Optional":
+   - Remove ` *` at the end of the transactional consent text
+   - Change comment from `{/* SMS Transactional Consent (Required) */}` to `{/* SMS Transactional Consent (Optional) */}`
 
-**Files to edit:**
-1. `src/constants/company.ts` — update all phone references
-2. `src/components/about/AboutCTA.tsx` — update hardcoded phone string
+Both SMS consent checkboxes will remain on the form but neither will block submission.
 
