@@ -88,12 +88,14 @@ export const ContactForm: React.FC<ContactFormProps> = ({ t, language }) => {
     message: '',
     referral: '',
     privacy: false,
+    smsTransactionalConsent: false,
+    smsMarketingConsent: false,
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.fullName || !formData.email || !formData.message || !formData.privacy) {
+    if (!formData.fullName || !formData.email || !formData.message || !formData.privacy || !formData.smsTransactionalConsent) {
       toast({
         title: t.form.validation?.requiredFields || 'Please fill in all required fields',
         variant: 'destructive',
@@ -112,7 +114,7 @@ export const ContactForm: React.FC<ContactFormProps> = ({ t, language }) => {
         full_name: formData.fullName,
         email: formData.email,
         phone: formData.phone || null,
-        comment: formData.message,
+        comment: `${formData.message}\n\n---\nSMS Transactional Consent: ${formData.smsTransactionalConsent ? 'Yes' : 'No'}\nSMS Marketing Consent: ${formData.smsMarketingConsent ? 'Yes' : 'No'}`,
         language: formData.preferredLanguage,
         source: 'contact_page',
         page_url: metadata.pageUrl,
@@ -354,7 +356,35 @@ export const ContactForm: React.FC<ContactFormProps> = ({ t, language }) => {
               </Select>
             </div>
 
-            {/* Privacy */}
+            {/* SMS Transactional Consent (Required) */}
+            <div className="space-y-4 border border-border rounded-xl p-4 bg-muted/20">
+              <div className="flex items-start gap-3">
+                <Checkbox
+                  id="smsTransactional"
+                  checked={formData.smsTransactionalConsent}
+                  onCheckedChange={(checked) => setFormData({ ...formData, smsTransactionalConsent: checked as boolean })}
+                  className="mt-1"
+                />
+                <Label htmlFor="smsTransactional" className="text-sm text-muted-foreground leading-relaxed cursor-pointer">
+                  I consent to receive transactional messages (e.g., appointment confirmations, account alerts) from <span className="font-semibold text-foreground">Everence Wealth</span> at the phone number provided. Message frequency may vary. Message & Data rates may apply. Reply HELP for help or STOP to opt-out. *
+                </Label>
+              </div>
+
+              {/* SMS Marketing Consent (Optional) */}
+              <div className="flex items-start gap-3">
+                <Checkbox
+                  id="smsMarketing"
+                  checked={formData.smsMarketingConsent}
+                  onCheckedChange={(checked) => setFormData({ ...formData, smsMarketingConsent: checked as boolean })}
+                  className="mt-1"
+                />
+                <Label htmlFor="smsMarketing" className="text-sm text-muted-foreground leading-relaxed cursor-pointer">
+                  I consent to receive marketing and promotional messages from <span className="font-semibold text-foreground">Everence Wealth</span> at the phone number provided. Message frequency may vary. Message & Data rates may apply. Reply HELP for help or STOP to opt-out.
+                </Label>
+              </div>
+            </div>
+
+            {/* Privacy & Terms Acknowledgment (Required) */}
             <div className="flex items-start gap-3">
               <Checkbox
                 id="privacy"
@@ -363,14 +393,14 @@ export const ContactForm: React.FC<ContactFormProps> = ({ t, language }) => {
                 className="mt-1"
               />
               <Label htmlFor="privacy" className="text-sm text-muted-foreground leading-relaxed cursor-pointer">
-                {t.form.fields.privacy}{' '}
+                I agree to the{' '}
                 <Link to="/privacy" className="text-primary hover:underline">
                   {t.form.fields.privacyLink || 'Privacy Policy'}
                 </Link>
                 {' & '}
                 <Link to="/terms" className="text-primary hover:underline">
                   {t.form.fields.termsLink || 'Terms & Conditions'}
-                </Link>
+                </Link> *
               </Label>
             </div>
 
