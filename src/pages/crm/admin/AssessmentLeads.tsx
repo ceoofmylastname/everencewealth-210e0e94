@@ -12,6 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Search, Eye, FileText, RefreshCw } from "lucide-react";
 import { format } from "date-fns";
+import { QUESTIONS } from "@/lib/assessment-scoring";
 
 interface AssessmentLead {
   id: string;
@@ -229,25 +230,20 @@ export default function AssessmentLeads() {
 
                 {/* Answers */}
                 <div>
-                  <h4 className="text-sm font-semibold mb-2">Assessment Answers</h4>
-                  <div className="space-y-1 text-sm">
-                    {[
-                      { label: "Age Range", value: selected.age_range },
-                      { label: "Retirement Concern", value: selected.retirement_concern },
-                      { label: "Tax Strategy Familiarity", value: selected.tax_strategy_familiarity },
-                      { label: "Savings Status", value: selected.savings_status },
-                      { label: "Income Range", value: selected.income_range },
-                      { label: "Tax Diversification", value: selected.tax_diversification },
-                      { label: "Insurance Coverage", value: selected.insurance_coverage },
-                      { label: "Market Volatility", value: selected.market_volatility },
-                      { label: "Retirement Plan Formality", value: selected.retirement_plan_formality },
-                      { label: "Legacy Planning", value: selected.legacy_planning },
-                    ].filter((a) => a.value).map((a) => (
-                      <div key={a.label} className="flex justify-between border-b py-1.5">
-                        <span className="text-muted-foreground">{a.label}</span>
-                        <span className="font-medium text-right max-w-[200px]">{a.value}</span>
-                      </div>
-                    ))}
+                  <h4 className="text-sm font-semibold mb-2">Assessment Answers ({QUESTIONS.length} Questions)</h4>
+                  <div className="space-y-3">
+                    {QUESTIONS.map((q, idx) => {
+                      const answer = (selected as unknown as Record<string, unknown>)[q.id] as string | null;
+                      return (
+                        <div key={q.id} className="rounded-lg border p-3">
+                          <p className="text-xs text-muted-foreground mb-1">Q{idx + 1}</p>
+                          <p className="text-sm font-medium mb-1">{q.question}</p>
+                          <p className={`text-sm ${answer ? "font-semibold" : "text-muted-foreground italic"}`}>
+                            {answer || "Not answered"}
+                          </p>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
 
