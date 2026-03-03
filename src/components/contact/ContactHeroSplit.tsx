@@ -25,7 +25,7 @@ export const ContactHeroSplit: React.FC<ContactHeroSplitProps> = ({ t, language 
   );
 
   return (
-    <section className="relative bg-gradient-to-br from-prime-900 via-prime-800 to-prime-900 overflow-hidden">
+    <section className="relative overflow-hidden" style={{ background: 'linear-gradient(135deg, hsl(160,48%,14%) 0%, hsl(160,48%,8%) 60%, hsl(160,48%,5%) 100%)' }}>
       {/* Decorative background elements */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] bg-prime-gold/5 rounded-full blur-3xl" />
@@ -177,7 +177,7 @@ export const ContactHeroSplit: React.FC<ContactHeroSplitProps> = ({ t, language 
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.7, delay: 0.2 }}
           >
-            <ContactForm t={t} language={language} variant="embedded" />
+            <ContactForm t={t} language={language} variant="embedded" showBrandName />
           </motion.div>
         </div>
       </div>

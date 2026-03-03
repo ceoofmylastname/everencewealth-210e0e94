@@ -69,6 +69,7 @@ interface ContactFormProps {
   t: ContactFormTranslations;
   language: string;
   variant?: 'default' | 'embedded';
+  showBrandName?: boolean;
 }
 
 const LANGUAGES = [
@@ -76,7 +77,7 @@ const LANGUAGES = [
   { code: 'es', name: 'Español' },
 ];
 
-export const ContactForm: React.FC<ContactFormProps> = ({ t, language, variant = 'default' }) => {
+export const ContactForm: React.FC<ContactFormProps> = ({ t, language, variant = 'default', showBrandName = false }) => {
   const isEmbedded = variant === 'embedded';
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -230,6 +231,12 @@ export const ContactForm: React.FC<ContactFormProps> = ({ t, language, variant =
             {t.form.subheadline}
           </p>
         </motion.div>
+      )}
+
+      {showBrandName && (
+        <div className="mb-1">
+          <span className="text-xs font-semibold tracking-widest uppercase text-prime-gold">Everence Wealth</span>
+        </div>
       )}
 
       <motion.form
