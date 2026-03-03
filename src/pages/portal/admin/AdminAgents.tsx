@@ -16,9 +16,10 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Search, Plus, Eye, KeyRound, RefreshCw, Trash2, UsersIcon } from "lucide-react";
+import { Search, Plus, Eye, KeyRound, RefreshCw, Trash2, UsersIcon, MessageSquare } from "lucide-react";
 import { SetAgentPasswordDialog } from "@/components/portal/admin/SetAgentPasswordDialog";
 import { RecruitCRM } from "@/components/portal/admin/RecruitCRM";
+import { ContactLeadsTab } from "@/components/portal/admin/ContactLeadsTab";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "@/hooks/use-toast";
 
@@ -60,6 +61,7 @@ export default function AdminAgents() {
   const [deleting, setDeleting] = useState(false);
   const [togglingAccess, setTogglingAccess] = useState<string | null>(null);
   const [togglingManager, setTogglingManager] = useState<string | null>(null);
+  const [contactLeadCount, setContactLeadCount] = useState(0);
 
   useEffect(() => {
     fetchAgents();
@@ -271,6 +273,14 @@ export default function AdminAgents() {
           <TabsTrigger value="recruits" className="data-[state=active]:bg-white data-[state=active]:text-[#1A4D3E] data-[state=active]:shadow-sm rounded-md gap-2">
             <UsersIcon className="w-4 h-4" /> Recruits CRM
           </TabsTrigger>
+          <TabsTrigger value="contact-leads" className="data-[state=active]:bg-white data-[state=active]:text-[#1A4D3E] data-[state=active]:shadow-sm rounded-md gap-2">
+            <MessageSquare className="w-4 h-4" /> Contact Leads
+            {contactLeadCount > 0 && (
+              <span className="ml-1 h-5 min-w-5 px-1.5 text-xs bg-[#1A4D3E] text-white rounded-full inline-flex items-center justify-center">
+                {contactLeadCount}
+              </span>
+            )}
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="all">
@@ -454,6 +464,10 @@ export default function AdminAgents() {
 
         <TabsContent value="recruits">
           <RecruitCRM />
+        </TabsContent>
+
+        <TabsContent value="contact-leads">
+          <ContactLeadsTab onCountChange={setContactLeadCount} />
         </TabsContent>
       </Tabs>
 
