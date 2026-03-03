@@ -12,8 +12,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import {
   Search, Users, Loader2, CheckCircle, ExternalLink, ShieldCheck, ShieldX,
   Clock, UserCheck, AlertTriangle, Filter, Mail, Phone, MapPin, ChevronRight,
-  Inbox, Trash2,
+  Inbox, Trash2, KeyRound,
 } from "lucide-react";
+import { SetAgentPasswordDialog } from "@/components/portal/admin/SetAgentPasswordDialog";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -68,6 +69,7 @@ const statusBadgeVariant = (status: string) => {
 
 interface AgentRow {
   id: string;
+  auth_user_id: string | null;
   first_name: string;
   last_name: string;
   email: string;
@@ -99,6 +101,7 @@ export default function ContractingAgents() {
   const [approvingAgent, setApprovingAgent] = useState<string | null>(null);
   const [deleteAgent, setDeleteAgent] = useState<AgentRow | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [passwordAgent, setPasswordAgent] = useState<AgentRow | null>(null);
 
   async function fetchAgents() {
     setLoading(true);
@@ -160,6 +163,7 @@ export default function ContractingAgents() {
     setAgents(
       (data || []).map(a => ({
         id: a.id,
+        auth_user_id: a.auth_user_id,
         first_name: a.first_name,
         last_name: a.last_name,
         email: a.email,
@@ -405,9 +409,11 @@ export default function ContractingAgents() {
                 daysInPipeline={daysInPipeline}
                 initials={initials}
                 canApprove={canApprove}
+                canManage={canManage}
                 approvingAgent={approvingAgent}
                 onApprove={handleApproveAgent}
                 onDelete={setDeleteAgent}
+                onSetPassword={setPasswordAgent}
               />
             );
           })}
@@ -535,6 +541,17 @@ export default function ContractingAgents() {
                               <Trash2 className="h-3.5 w-3.5" />
                             </Button>
                           )}
+                          {canManage && agent.auth_user_id && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-7 px-2 text-xs"
+                              onClick={() => setPasswordAgent(agent)}
+                              title="Set Password"
+                            >
+                              <KeyRound className="h-3.5 w-3.5" />
+                            </Button>
+                          )}
                         </div>
                       </TableCell>
                     </TableRow>
@@ -569,6 +586,18 @@ export default function ContractingAgents() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Set Password Dialog (admin only) */}
+      <SetAgentPasswordDialog
+        open={!!passwordAgent}
+        onOpenChange={(open) => !open && setPasswordAgent(null)}
+        agent={passwordAgent ? {
+          auth_user_id: passwordAgent.auth_user_id!,
+          first_name: passwordAgent.first_name,
+          last_name: passwordAgent.last_name,
+          email: passwordAgent.email,
+        } : null}
+      />
     </div>
   );
 }
@@ -638,18 +667,22 @@ function MobileAgentCard({
   daysInPipeline,
   initials,
   canApprove,
+  canManage,
   approvingAgent,
   onApprove,
   onDelete,
+  onSetPassword,
 }: {
   agent: AgentRow;
   isStuck: boolean;
   daysInPipeline: number;
   initials: (f: string, l: string) => string;
   canApprove: boolean;
+  canManage: boolean;
   approvingAgent: string | null;
   onApprove: (id: string) => void;
   onDelete: (agent: AgentRow) => void;
+  onSetPassword: (agent: AgentRow) => void;
 }) {
   const stageAccent = isStuck
     ? "border-l-red-500"
@@ -767,6 +800,16 @@ function MobileAgentCard({
               onClick={() => onDelete(agent)}
             >
               <Trash2 className="h-3.5 w-3.5 mr-1" /> Delete
+            </Button>
+          )}
+          {canManage && agent.auth_user_id && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-10 text-xs"
+              onClick={() => onSetPassword(agent)}
+            >
+              <KeyRound className="h-3.5 w-3.5 mr-1" /> Set Password
             </Button>
           )}
         </div>
