@@ -217,7 +217,7 @@ const Assessment: React.FC = () => {
           recommendations: result.recommendations,
           page_url: window.location.href,
           user_agent: navigator.userAgent,
-          language: navigator.language,
+          lead_language: navigator.language,
           utm_source: urlParams.get('utm_source') || null,
           utm_medium: urlParams.get('utm_medium') || null,
           utm_campaign: urlParams.get('utm_campaign') || null,
