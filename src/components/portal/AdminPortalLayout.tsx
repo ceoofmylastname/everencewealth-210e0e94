@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import {
   LogOut, Users, Menu, X, ChevronRight,
   LayoutDashboard, UserCog, FileText, FolderOpen, MessageSquare,
-  Building2, Newspaper, Wrench, GraduationCap, Megaphone, Calendar, Shield,
+  Building2, Newspaper, Wrench, GraduationCap, Megaphone, Calendar, Shield, FileCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { NotificationBell } from "./NotificationBell";
@@ -19,6 +19,7 @@ const adminNavGroups = [
       { label: "Policies", icon: FileText, href: "/portal/advisor/policies" },
       { label: "Documents", icon: FolderOpen, href: "/portal/advisor/documents" },
       { label: "Messages", icon: MessageSquare, href: "/portal/advisor/messages" },
+      { label: "Assessment Leads", icon: FileCheck, href: "/portal/admin/assessment-leads" },
     ],
   },
   {
