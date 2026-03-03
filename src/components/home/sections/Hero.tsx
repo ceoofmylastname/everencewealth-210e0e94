@@ -211,14 +211,14 @@ export const Hero: React.FC = () => {
 
         {/* Get In Touch CTA */}
         <motion.div
-          className="mt-6"
+          className="mt-6 relative z-50"
           initial={{ opacity: 0, y: 20 }}
           animate={stage >= 4 ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.5, delay: 0.2, ease: 'easeOut' }}
         >
           <Link
             to="/en/contact"
-            className="inline-flex items-center gap-2 px-8 py-3.5 bg-primary/10 border border-primary/30 text-primary font-hero font-bold text-sm tracking-[0.12em] uppercase rounded-full hover:bg-primary/20 hover:border-primary/50 hover:scale-105 transition-all duration-300 cursor-pointer"
+            className="relative z-50 pointer-events-auto inline-flex items-center gap-2 px-6 py-3 sm:px-8 sm:py-3.5 bg-primary/10 border border-primary/30 text-primary font-hero font-bold text-xs sm:text-sm tracking-[0.12em] uppercase rounded-full hover:bg-primary/20 hover:border-primary/50 hover:scale-105 active:scale-95 transition-all duration-300 cursor-pointer"
             style={{
               boxShadow: '0 0 20px hsla(51,78%,65%,0.2), 0 0 40px hsla(51,78%,65%,0.1)',
             }}
