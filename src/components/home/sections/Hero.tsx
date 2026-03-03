@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from '@/i18n/useTranslation';
 import { ArrowRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const PARTICLES = Array.from({ length: 12 }, (_, i) => ({
   id: i,
@@ -215,16 +216,16 @@ export const Hero: React.FC = () => {
           animate={stage >= 4 ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.5, delay: 0.2, ease: 'easeOut' }}
         >
-          <a
-            href="/en/contact"
-            className="inline-flex items-center gap-2 px-8 py-3.5 bg-primary/10 border border-primary/30 text-primary font-hero font-bold text-sm tracking-[0.12em] uppercase rounded-full hover:bg-primary/20 hover:border-primary/50 hover:scale-105 transition-all duration-300"
+          <Link
+            to="/en/contact"
+            className="inline-flex items-center gap-2 px-8 py-3.5 bg-primary/10 border border-primary/30 text-primary font-hero font-bold text-sm tracking-[0.12em] uppercase rounded-full hover:bg-primary/20 hover:border-primary/50 hover:scale-105 transition-all duration-300 cursor-pointer"
             style={{
               boxShadow: '0 0 20px hsla(51,78%,65%,0.2), 0 0 40px hsla(51,78%,65%,0.1)',
             }}
           >
             Get In Touch
             <ArrowRight className="w-4 h-4" />
-          </a>
+          </Link>
         </motion.div>
       </div>
 
