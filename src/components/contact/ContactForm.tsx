@@ -33,6 +33,7 @@ interface ContactFormTranslations {
       referral: string;
       privacy: string;
       privacyLink?: string;
+      termsLink?: string;
     };
     subjects: {
       general: string;
@@ -365,6 +366,10 @@ export const ContactForm: React.FC<ContactFormProps> = ({ t, language }) => {
                 {t.form.fields.privacy}{' '}
                 <Link to="/privacy" className="text-primary hover:underline">
                   {t.form.fields.privacyLink || 'Privacy Policy'}
+                </Link>
+                {' & '}
+                <Link to="/terms" className="text-primary hover:underline">
+                  {t.form.fields.termsLink || 'Terms & Conditions'}
                 </Link>
               </Label>
             </div>
