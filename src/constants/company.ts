@@ -3,12 +3,12 @@
  * Update these values in one place to reflect across the entire site.
  */
 export const COMPANY_CONTACT = {
-  phone: '+1 (415) 555-0100',
-  phoneClean: '14155550100',
+  phone: '+1 (925) 433-7724',
+  phoneClean: '19254337724',
   email: 'info@everencewealth.com',
-  whatsappBase: 'https://wa.me/14155550100',
+  whatsappBase: 'https://wa.me/19254337724',
   whatsappWithMessage: (msg: string) => 
-    `https://wa.me/14155550100?text=${encodeURIComponent(msg)}`,
+    `https://wa.me/19254337724?text=${encodeURIComponent(msg)}`,
 } as const;
 
 /**
