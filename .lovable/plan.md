@@ -1,18 +1,28 @@
 
 
-## Fix: Edge Function Only Checks `advisors` Table
+## Plan: Add "Contact Submissions" Tab to Admin Agents Page
 
-The error happens because the `update-portal-agent-password` edge function validates the target user against the `advisors` table only. Domaneque Newsome is in `contracting_agents`, not `advisors`, so the function returns 404 → "non-2xx status code" error.
+### What it does
+Adds a new tab on `/portal/admin/agents` called "Contact Leads" that displays all submissions from the `/en/contact` and `/es/contact` forms. Admins can view name, email, phone, subject, message, language, source, and submission date in a searchable, filterable table.
 
-### Change
+### Technical Changes
 
-**File:** `supabase/functions/update-portal-agent-password/index.ts` (lines 71–83)
+**1. Create `src/components/portal/admin/ContactLeadsTab.tsx`**
+- New component that queries the `leads` table filtered by `source = 'contact_page'`
+- Displays a table with columns: Name, Email, Phone, Language, Subject (parsed from comment), Message, Date
+- Includes search (by name/email) and language filter
+- Shows submission count in the tab badge
+- Expandable message preview (truncated in table, full on click)
 
-Replace the single `advisors` lookup with checks against **both** `advisors` and `contracting_agents`:
+**2. Modify `src/pages/portal/admin/AdminAgents.tsx`**
+- Import the new `ContactLeadsTab` component
+- Add a 4th tab trigger: "Contact Leads" with a count badge (like Pending tab)
+- Add corresponding `TabsContent` rendering `<ContactLeadsTab />`
+- Add `MessageSquare` icon from lucide-react
 
-- Query `advisors` with `.maybeSingle()` (instead of `.single()` which throws on no match)
-- Query `contracting_agents` with `.maybeSingle()`
-- Only return 404 if the user is found in **neither** table
+### Data Source
+The `leads` table already stores contact form submissions with `source = 'contact_page'`. No database changes needed — this is purely a read-only admin view of existing data.
 
-Then redeploy the edge function.
+### No new RLS policies needed
+The admin already has access to the `leads` table through existing policies.
 
