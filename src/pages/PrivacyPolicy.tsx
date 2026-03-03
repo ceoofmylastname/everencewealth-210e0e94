@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, useScroll, useSpring } from 'framer-motion';
-import { Shield, Lock, Eye, Database, Globe, Mail, ArrowLeft } from 'lucide-react';
+import { Shield, Lock, Eye, Database, Globe, Mail, ArrowLeft, Smartphone, Share2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const LOGO_URL = 'https://storage.googleapis.com/msgsndr/TLhrYb7SRrWrly615tCI/media/6993ada8dcdadb155342f28e.png';
@@ -21,30 +21,44 @@ const sections = [
     content: `Your information powers personalized wealth strategies tailored to your financial goals. We use it to generate retirement projections, develop tax-efficient planning recommendations, refine our AI assistant's advisory capabilities, and deliver customized insights on indexed strategies, annuities, and cash-flow optimization. We never sell your personal or financial data to third parties. Your trust as a client is our highest obligation.`
   },
   {
+    id: 'sms',
+    icon: Smartphone,
+    number: '03',
+    title: 'SMS Opt-In & Messaging',
+    content: `By providing your phone number and opting in via our contact form, you consent to receive SMS messages from Everence Wealth. These may include transactional messages such as appointment confirmations, account alerts, and service updates. With separate consent, you may also receive marketing and promotional messages. Message frequency may vary. Message and Data rates may apply. You may opt out at any time by replying STOP to any message. For help, reply HELP or contact us at info@everencewealth.com. Consent to receive SMS messages is not a condition of purchasing any goods or services.`
+  },
+  {
+    id: 'mobile-sharing',
+    icon: Share2,
+    number: '04',
+    title: 'Mobile Information Sharing',
+    content: `Everence Wealth does not sell, rent, or share your mobile phone number or SMS opt-in consent with any third parties for marketing or promotional purposes. Your mobile information will only be shared with our SMS service providers solely for the purpose of delivering the messages you have consented to receive. This restriction applies to all categories of data derived from your mobile interactions with Everence Wealth.`
+  },
+  {
     id: 'protection',
     icon: Lock,
-    number: '03',
+    number: '05',
     title: 'Data Protection',
     content: `We employ industry-standard AES-256 encryption and TLS 1.3 protocols to protect data in transit and at rest. Our infrastructure follows SOC 2 Type II compliance practices, and we align with SEC and FINRA regulatory standards for handling sensitive financial information. Access to client data is strictly limited to authorized personnel, and we conduct regular third-party security audits to ensure the integrity of our systems.`
   },
   {
     id: 'cookies',
     icon: Globe,
-    number: '04',
+    number: '06',
     title: 'Cookies & Tracking',
     content: `We use essential cookies to ensure our platform functions properly, analytics cookies to understand user behavior and improve our services, and preference cookies to remember your settings and personalize your experience. You can manage cookie preferences through your browser settings at any time. We do not use cookies to track your activity across unrelated third-party websites.`
   },
   {
     id: 'rights',
     icon: Shield,
-    number: '05',
+    number: '07',
     title: 'Your Rights',
     content: `Under the California Consumer Privacy Act (CCPA) and other applicable US privacy laws, you have the right to know what personal information we collect and how it is used. You may request access to, deletion of, or correction of your data. You also have the right to opt out of the sale of personal information—though we do not sell your data. To exercise any of these rights, contact us at info@everencewealth.com.`
   },
   {
     id: 'contact',
     icon: Mail,
-    number: '06',
+    number: '08',
     title: 'Contact Us',
     content: `For privacy-related inquiries, reach us at info@everencewealth.com or write to: Everence Wealth, 101 Montgomery Street, Suite 2400, San Francisco, CA 94104. We are committed to responding to all privacy requests within 30 business days.`
   }
@@ -132,7 +146,7 @@ const PrivacyPolicy: React.FC = () => {
                 variants={cardVariants}
                 className={`group relative overflow-hidden rounded-3xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-8 md:p-10 transition-all duration-500 hover:border-[#C5A059]/30 hover:bg-white/[0.05] hover:scale-[1.02] ${
                   index === 0 || index === 5 ? 'lg:col-span-2' : ''
-                }`}
+                } ${index === 0 || index === 7 ? 'lg:col-span-2' : ''}`}
               >
                 {/* Watermark Number */}
                 <span className="absolute top-4 right-6 text-[7rem] md:text-[9rem] font-bold text-white/[0.03] leading-none select-none pointer-events-none group-hover:text-[#C5A059]/[0.06] transition-colors duration-500">

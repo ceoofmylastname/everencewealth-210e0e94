@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, useScroll, useSpring } from 'framer-motion';
-import { FileText, Scale, Users, AlertTriangle, Gavel, HelpCircle, CheckCircle2, Mail, ArrowLeft } from 'lucide-react';
+import { FileText, Scale, Users, AlertTriangle, Gavel, HelpCircle, CheckCircle2, Mail, ArrowLeft, Smartphone, ShieldAlert, UserCheck } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const LOGO_URL = 'https://storage.googleapis.com/msgsndr/TLhrYb7SRrWrly615tCI/media/6993ada8dcdadb155342f28e.png';
@@ -42,16 +42,30 @@ const sections = [
     content: `All content on this website, including text, graphics, logos, images, and software, is the property of Everence Wealth or its content suppliers and is protected by United States copyright laws. You may not reproduce, distribute, modify, or create derivative works without our express written permission. The "Everence Wealth" name and logo are registered trademarks.`
   },
   {
+    id: 'sms-services',
+    icon: Smartphone,
+    number: '06',
+    title: 'SMS Messaging Services',
+    content: `Everence Wealth may send SMS messages for the following purposes: appointment reminders and confirmations, account alerts and service notifications, and marketing or promotional messages (only with your separate opt-in consent). Message frequency may vary. Message and Data rates may apply. To opt out of SMS messages, reply STOP to any message you receive from us. For help or support, reply HELP to any message or email us at info@everencewealth.com. Carriers are not liable for delayed or undelivered messages. For full details on how we handle your mobile information, please review our Privacy Policy at everencewealth.com/privacy.`
+  },
+  {
+    id: 'age-restriction',
+    icon: UserCheck,
+    number: '07',
+    title: 'Age Requirement',
+    content: `You must be at least 18 years of age to use our services, including SMS messaging services. By using our website and providing your phone number, you confirm that you are 18 years of age or older. We do not knowingly collect personal information from individuals under 18 years of age.`
+  },
+  {
     id: 'disputes',
     icon: Gavel,
-    number: '06',
+    number: '08',
     title: 'Dispute Resolution',
     content: `Any disputes arising from these Terms or your use of our services shall be governed by the laws of the State of California, United States. We encourage resolution through direct communication first. If unresolved, disputes may be submitted to mediation or arbitration before pursuing legal action. The federal and state courts located in the State of California shall have exclusive jurisdiction.`
   },
   {
     id: 'contact',
     icon: HelpCircle,
-    number: '07',
+    number: '09',
     title: 'Contact Information',
     content: `For questions about these Terms of Service, please contact us at: Everence Wealth, 101 Montgomery Street, Suite 2400, San Francisco, CA 94104. Email: info@everencewealth.com. We aim to respond to all inquiries within 2 business days.`
   }
@@ -138,7 +152,7 @@ const TermsOfService: React.FC = () => {
                 viewport={{ once: true, margin: '-50px' }}
                 variants={cardVariants}
                 className={`group relative overflow-hidden rounded-3xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-8 md:p-10 transition-all duration-500 hover:border-[#C5A059]/30 hover:bg-white/[0.05] hover:scale-[1.02] ${
-                  index === 0 || index === 6 ? 'lg:col-span-2' : ''
+                  index === 0 || index === 8 ? 'lg:col-span-2' : ''
                 }`}
               >
                 {/* Watermark Number */}
