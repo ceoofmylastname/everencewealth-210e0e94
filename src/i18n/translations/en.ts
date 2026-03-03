@@ -63,7 +63,7 @@ export const en = {
     yearsExperience: "Over {years} years of combined experience within our founding team",
     professionalCredentials: "Professional Credentials",
     linkedinProfile: "LinkedIn Profile",
-    whatsappContact: "Schedule a Call",
+    whatsappContact: "Contact Us",
   },
   qa: {
     quickAnswer: "Quick Answer",
@@ -518,9 +518,9 @@ export const en = {
         cta: "Send Email"
       },
       phone: {
-        title: "Schedule a Call",
+        title: "Call Our Office",
         description: "Speak directly with an advisor",
-        cta: "Schedule Now"
+        cta: "Call Now"
       }
     },
     form: {
