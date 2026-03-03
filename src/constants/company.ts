@@ -31,8 +31,8 @@ export const COMPANY_ADDRESS = {
  * Centralized company office hours.
  */
 export const COMPANY_HOURS = {
-  weekdays: { open: '09:00', close: '18:00' },
-  saturday: { open: '10:00', close: '14:00' },
+  weekdays: { open: '9:00 AM', close: '5:00 PM' },
+  saturday: null, // Closed
   sunday: null, // Closed
   timezone: 'PT'
 } as const;
