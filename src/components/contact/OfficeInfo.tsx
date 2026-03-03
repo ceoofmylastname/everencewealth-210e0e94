@@ -114,9 +114,7 @@ export const OfficeInfo: React.FC<OfficeInfoProps> = ({ t }) => {
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">{t.office.hours.saturday}</span>
-                      <span className="text-foreground font-medium">
-                        {COMPANY_HOURS.saturday.open} - {COMPANY_HOURS.saturday.close}
-                      </span>
+                      <span className="text-red-500 font-medium">{t.office.hours.closed}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">{t.office.hours.sunday}</span>
