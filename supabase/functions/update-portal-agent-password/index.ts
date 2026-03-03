@@ -68,14 +68,20 @@ Deno.serve(async (req) => {
 
     const adminClient = createClient(supabaseUrl, serviceRoleKey);
 
-    // Verify the target user is an advisor
+    // Verify the target user exists in advisors OR contracting_agents
     const { data: advisor } = await adminClient
       .from("advisors")
       .select("id")
       .eq("auth_user_id", auth_user_id)
-      .single();
+      .maybeSingle();
 
-    if (!advisor) {
+    const { data: contractingAgent } = await adminClient
+      .from("contracting_agents")
+      .select("id")
+      .eq("auth_user_id", auth_user_id)
+      .maybeSingle();
+
+    if (!advisor && !contractingAgent) {
       return new Response(JSON.stringify({ error: "Agent not found" }), {
         status: 404,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
