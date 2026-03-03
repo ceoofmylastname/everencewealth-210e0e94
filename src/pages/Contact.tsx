@@ -3,12 +3,10 @@ import { useParams } from 'react-router-dom';
 import { Helmet } from 'react-helmet';
 import { Header } from '@/components/home/Header';
 import { Footer } from '@/components/home/Footer';
-import { ContactHero } from '@/components/contact/ContactHero';
-import { ContactOptions } from '@/components/contact/ContactOptions';
+import { ContactHeroSplit } from '@/components/contact/ContactHeroSplit';
 import { ContactForm } from '@/components/contact/ContactForm';
 import { OfficeInfo } from '@/components/contact/OfficeInfo';
 import { ContactFAQ } from '@/components/contact/ContactFAQ';
-import { EmmaCallout } from '@/components/contact/EmmaCallout';
 import { MobileStickyContact } from '@/components/contact/MobileStickyContact';
 import { useTranslation } from '@/i18n';
 import BlogEmmaChat from '@/components/blog-article/BlogEmmaChat';
@@ -85,12 +83,10 @@ const Contact: React.FC = () => {
       <Header />
       
       <main className="min-h-screen">
-        <ContactHero t={contactT} />
-        <ContactOptions t={contactT} />
-        <ContactForm t={contactT} language={language} />
+        <ContactHeroSplit t={contactT} language={language} />
+        
         <OfficeInfo t={contactT} />
         <ContactFAQ t={contactT} />
-        <EmmaCallout t={contactT} />
       </main>
 
       <Footer />

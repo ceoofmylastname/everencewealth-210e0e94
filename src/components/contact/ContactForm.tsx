@@ -68,6 +68,7 @@ interface ContactFormTranslations {
 interface ContactFormProps {
   t: ContactFormTranslations;
   language: string;
+  variant?: 'default' | 'embedded';
 }
 
 const LANGUAGES = [
@@ -75,7 +76,8 @@ const LANGUAGES = [
   { code: 'es', name: 'Español' },
 ];
 
-export const ContactForm: React.FC<ContactFormProps> = ({ t, language }) => {
+export const ContactForm: React.FC<ContactFormProps> = ({ t, language, variant = 'default' }) => {
+  const isEmbedded = variant === 'embedded';
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -181,57 +183,63 @@ export const ContactForm: React.FC<ContactFormProps> = ({ t, language }) => {
   };
 
   if (isSubmitted) {
+    const successContent = (
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className={isEmbedded ? "" : "max-w-2xl mx-auto text-center"}
+      >
+        <div className={`bg-card border border-border rounded-2xl p-8 md:p-12 ${isEmbedded ? 'text-center' : ''}`}>
+          <div className="w-20 h-20 rounded-full bg-green-500/20 flex items-center justify-center mx-auto mb-6">
+            <CheckCircle className="w-10 h-10 text-green-500" />
+          </div>
+          <h2 className="text-2xl md:text-3xl font-serif font-bold text-foreground mb-4">
+            {t.form.success.title}
+          </h2>
+          <p className="text-muted-foreground text-lg">
+            {t.form.success.description}
+          </p>
+        </div>
+      </motion.div>
+    );
+
+    if (isEmbedded) return successContent;
+
     return (
       <section className="py-16 md:py-20 bg-muted/30">
         <div className="container mx-auto px-4 md:px-6">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="max-w-2xl mx-auto text-center"
-          >
-            <div className="bg-card border border-border rounded-2xl p-8 md:p-12">
-              <div className="w-20 h-20 rounded-full bg-green-500/20 flex items-center justify-center mx-auto mb-6">
-                <CheckCircle className="w-10 h-10 text-green-500" />
-              </div>
-              <h2 className="text-2xl md:text-3xl font-serif font-bold text-foreground mb-4">
-                {t.form.success.title}
-              </h2>
-              <p className="text-muted-foreground text-lg">
-                {t.form.success.description}
-              </p>
-            </div>
-          </motion.div>
+          {successContent}
         </div>
       </section>
     );
   }
 
-  return (
-    <section className="py-16 md:py-20 bg-muted/30">
-      <div className="container mx-auto px-4 md:px-6">
-        <div className="max-w-2xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center mb-10"
-          >
-            <h2 className="text-3xl md:text-4xl font-serif font-bold text-foreground mb-4">
-              {t.form.headline}
-            </h2>
-            <p className="text-muted-foreground text-lg">
-              {t.form.subheadline}
-            </p>
-          </motion.div>
+  const formContent = (
+    <>
+      {!isEmbedded && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="text-center mb-10"
+        >
+          <h2 className="text-3xl md:text-4xl font-serif font-bold text-foreground mb-4">
+            {t.form.headline}
+          </h2>
+          <p className="text-muted-foreground text-lg">
+            {t.form.subheadline}
+          </p>
+        </motion.div>
+      )}
 
-          <motion.form
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.1 }}
-            onSubmit={handleSubmit}
-            className="bg-card border border-border rounded-2xl p-6 md:p-8 space-y-6"
-          >
+      <motion.form
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ delay: 0.1 }}
+        onSubmit={handleSubmit}
+        className={`bg-card border border-border rounded-2xl p-6 md:p-8 space-y-5 ${isEmbedded ? 'shadow-2xl shadow-black/20' : ''}`}
+      >
             {/* Full Name */}
             <div>
               <Label htmlFor="fullName" className="text-foreground font-medium">
@@ -423,6 +431,27 @@ export const ContactForm: React.FC<ContactFormProps> = ({ t, language }) => {
               )}
             </Button>
           </motion.form>
+    </>
+  );
+
+  if (isEmbedded) {
+    return (
+      <div>
+        {isEmbedded && (
+          <h2 className="text-2xl font-serif font-bold text-foreground mb-5">
+            {t.form.headline}
+          </h2>
+        )}
+        {formContent}
+      </div>
+    );
+  }
+
+  return (
+    <section className="py-16 md:py-20 bg-muted/30">
+      <div className="container mx-auto px-4 md:px-6">
+        <div className="max-w-2xl mx-auto">
+          {formContent}
         </div>
       </div>
     </section>
