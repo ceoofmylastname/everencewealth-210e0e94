@@ -248,8 +248,8 @@ export default function TrainingEvent() {
                         </div>
 
                         {/* Scroll-stopping animated gradient headline */}
-                        <h1 className="text-[1.75rem] leading-[1.1] sm:text-4xl md:text-6xl lg:text-7xl font-serif font-bold tracking-tight">
-                            Does Your Strategy Have a{' '}
+                        <h1 className="text-[1.85rem] leading-[1.15] sm:text-4xl md:text-6xl lg:text-7xl font-serif font-bold tracking-[-0.02em] sm:tracking-tight">
+                            Does Your Strategy<br className="sm:hidden" /> Have a{' '}
                             <span className="relative inline-block">
                                 <span className="text-transparent bg-clip-text animate-gradient bg-[length:200%_auto] bg-gradient-to-r from-[#C5A059] via-[#F2E0B2] to-[#C5A059]">
                                     Ceiling
@@ -258,8 +258,8 @@ export default function TrainingEvent() {
                                 <svg className="absolute -bottom-1 sm:-bottom-2 left-0 w-full" viewBox="0 0 120 8" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
                                     <path d="M2 6C20 2 40 1.5 60 3C80 4.5 100 3 118 1" stroke="#C5A059" strokeWidth="2.5" strokeLinecap="round" opacity="0.7" />
                                 </svg>
-                            </span>? This Day{' '}<br />
-                            <span className="bg-[#C5A059]/20 px-2 sm:px-3 rounded-md" style={{ boxDecorationBreak: 'clone' }}>Removes It</span>.
+                            </span>?<br className="sm:hidden" /> This Day{' '}<br />
+                            <span className="bg-[#C5A059]/20 px-2 sm:px-3 py-px rounded-md" style={{ boxDecorationBreak: 'clone' }}>Removes It</span>.
                         </h1>
 
                         <p className="text-[0.9rem] leading-relaxed sm:text-lg md:text-xl lg:text-2xl text-gray-300 font-light">
