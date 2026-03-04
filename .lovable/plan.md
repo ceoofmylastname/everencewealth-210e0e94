@@ -1,19 +1,23 @@
 
 
-## Plan: Update Confirmation Email with Actual Venue Location
+## Plan: Fix Highlight Pill Overlap
 
-The email in `supabase/functions/register-training-event/index.ts` hardcodes "To Be Announced" for the location. The venue is Andaz Napa, which is already shown on the registration page.
+The `bg-[#C5A059]/20` background with `py-0.5` padding is extending vertically and visually overlapping "This Day" on the line above due to tight `leading-[1.1]` line-height.
 
-### Change (line 73)
+### Fix in `src/pages/TrainingEvent.tsx` (line 262)
 
-Replace:
-```
-📍 <strong>Location:</strong> To Be Announced
-```
-With:
-```
-📍 <strong>Location:</strong> Andaz Napa, 1450 First Street, Napa, CA 94559
+Change the highlight from a block-level background to an inline decoration that doesn't affect line-box height:
+- Remove `py-0.5` vertical padding (this is what causes the overlap into the line above)
+- Add `inline` and `decoration-clone` to keep it tight
+- Use `py-0 leading-normal` so the background stays within the text bounds
+
+```tsx
+// From:
+<span className="bg-[#C5A059]/20 px-2 sm:px-3 py-0.5 rounded-lg">Removes It</span>.
+
+// To:
+<span className="bg-[#C5A059]/20 px-2 sm:px-3 rounded-md" style={{ boxDecorationBreak: 'clone' }}>Removes It</span>.
 ```
 
-Single line change in the edge function, which will be auto-deployed.
+Single line change — removes `py-0.5` and switches from `rounded-lg` to `rounded-md` for a tighter, non-overlapping pill.
 
