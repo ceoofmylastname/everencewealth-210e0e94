@@ -1,29 +1,33 @@
 
 
-## Plan: Optimize Mobile Headline Typography
+## Plan: Modernize Venue Icon Element with Hotel Image and Animated Border
 
-The headline "Does Your Strategy Have a Ceiling? This Day Removes It." needs better mobile line breaks and sizing at 390px width.
+The selected element (line 312) is the icon box showing a MapPin icon above "Andaz Napa" in the registration card's step 0. The project already has `/andaz-napa.png` used elsewhere on the page (line 438).
 
-### Changes to `src/pages/TrainingEvent.tsx` (lines 251-263)
+### Changes to `src/pages/TrainingEvent.tsx` (lines 312-314)
 
-1. **Better mobile font size**: Bump from `text-[1.75rem]` to `text-[1.85rem]` for stronger presence
-2. **Control line breaks**: Use explicit `<br className="sm:hidden" />` after "Have a" to force clean wrapping on mobile — "Does Your Strategy" / "Have a Ceiling?" / "This Day" / "Removes It."
-3. **Remove the forced `<br />` before "Removes It"** on desktop — use `<br className="block sm:hidden" />` so desktop flows naturally
-4. **Tighten tracking**: Add `tracking-[-0.02em]` on mobile for a more polished feel
-5. **Give the highlight pill slight vertical padding back**: `py-px` (1px) so it doesn't look too flat, without the overlap issue
+Replace the current gradient icon box with:
+
+1. **Hotel image** instead of MapPin icon — use the existing `/andaz-napa.png` with `object-cover` in a larger container (e.g. `w-24 h-24 sm:w-28 sm:h-28`)
+2. **Neon rotating border** — wrap with the existing `neon-border` class from `src/styles/neon-prestige.css` which provides a conic-gradient animated border
+3. **3D depth** — add deep shadow (`shadow-[0_12px_40px_-8px_rgba(197,160,89,0.3)]`), slight hover lift, and `overflow-hidden rounded-2xl`
+4. **Modern feel** — `backdrop-blur`, subtle inner glow via `ring-1 ring-white/10`
 
 ```tsx
-<h1 className="text-[1.85rem] leading-[1.15] sm:text-4xl md:text-6xl lg:text-7xl font-serif font-bold tracking-[-0.02em] sm:tracking-tight">
-    Does Your Strategy<br className="sm:hidden" /> Have a{' '}
-    <span className="relative inline-block">
-        <span className="text-transparent bg-clip-text animate-gradient bg-[length:200%_auto] bg-gradient-to-r from-[#C5A059] via-[#F2E0B2] to-[#C5A059]">
-            Ceiling
-        </span>
-        <svg ...>...</svg>
-    </span>?<br className="sm:hidden" /> This Day{' '}<br />
-    <span className="bg-[#C5A059]/20 px-2 sm:px-3 py-px rounded-md" style={{ boxDecorationBreak: 'clone' }}>Removes It</span>.
-</h1>
+// From (lines 312-314):
+<div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-[#1A4D3E] to-[#0A120F] rounded-2xl flex items-center justify-center mx-auto border border-white/10 shadow-2xl">
+    <MapPin className="w-6 h-6 sm:w-8 sm:h-8 text-[#C5A059]" />
+</div>
+
+// To:
+<div className="neon-border w-24 h-24 sm:w-28 sm:h-28 mx-auto shadow-[0_12px_40px_-8px_rgba(197,160,89,0.3)] rounded-2xl">
+    <img
+        src="/andaz-napa.png"
+        alt="Andaz Napa"
+        className="w-full h-full object-cover rounded-[21px] relative z-0"
+    />
+</div>
 ```
 
-This gives clean 4-line stacking on mobile with balanced line lengths, and preserves the current desktop layout.
+The `neon-border` class (already in `src/styles/neon-prestige.css`) provides the rotating conic gold gradient border animation. The `rounded-[21px]` on the image sits inside the 24px border-radius container, accounting for the 3px border padding. No new CSS needed.
 
