@@ -232,14 +232,14 @@ export default function TrainingEvent() {
                 </nav>
 
                 {/* Hero Section */}
-                <section className="container mx-auto px-4 sm:px-6 pt-12 pb-8 lg:pt-32 lg:pb-24 grid lg:grid-cols-2 gap-10 lg:gap-24 items-center min-h-[auto] lg:min-h-[85vh]">
+                <section className="container mx-auto px-4 sm:px-6 pt-6 pb-6 lg:pt-32 lg:pb-24 grid lg:grid-cols-2 gap-6 lg:gap-24 items-center min-h-[auto] lg:min-h-[85vh]">
                     <motion.div
                         initial={{ opacity: 0, x: -50 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ duration: 0.8, ease: "easeOut" }}
-                        className="space-y-8"
+                        className="space-y-5 sm:space-y-8"
                     >
-                        <div className="inline-flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full border border-[#C5A059]/30 bg-[#C5A059]/10 text-[#C5A059] text-[0.65rem] sm:text-sm uppercase tracking-widest font-semibold backdrop-blur-md">
+                        <div className="inline-flex items-center gap-2 px-2.5 py-1 sm:px-4 sm:py-2 rounded-full border border-[#C5A059]/30 bg-[#C5A059]/10 text-[#C5A059] text-[0.65rem] sm:text-sm uppercase tracking-widest font-semibold backdrop-blur-md">
                             <span className="relative flex h-2 w-2">
                                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#C5A059] opacity-75"></span>
                                 <span className="relative inline-flex rounded-full h-2 w-2 bg-[#C5A059]"></span>
@@ -248,7 +248,7 @@ export default function TrainingEvent() {
                         </div>
 
                         {/* Scroll-stopping animated gradient headline */}
-                        <h1 className="text-[2rem] leading-[1.15] sm:text-4xl md:text-6xl lg:text-7xl font-serif font-bold tracking-tight">
+                        <h1 className="text-[1.75rem] leading-[1.1] sm:text-4xl md:text-6xl lg:text-7xl font-serif font-bold tracking-tight">
                             Your Strategy Has a{' '}
                             <span className="relative inline-block">
                                 <span className="text-transparent bg-clip-text animate-gradient bg-[length:200%_auto] bg-gradient-to-r from-[#C5A059] via-[#F2E0B2] to-[#C5A059]">
@@ -263,26 +263,26 @@ export default function TrainingEvent() {
                             <span className="bg-[#C5A059]/20 px-2 sm:px-3 py-0.5 rounded-lg">Removes It</span>.
                         </h1>
 
-                        <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-gray-300 leading-relaxed font-light">
+                        <p className="text-[0.9rem] leading-relaxed sm:text-lg md:text-xl lg:text-2xl text-gray-300 font-light">
                             Join Everence Wealth at Andaz Napa for a full-day intensive designed to sharpen your strategy, expand your carrier access, and position you ahead of brokers still playing the old game.
                         </p>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 pt-4">
-                            <div className="flex gap-4 items-start">
-                                <div className="w-12 h-12 rounded-xl bg-black/40 border border-white/10 flex items-center justify-center shrink-0 backdrop-blur-md shadow-lg shadow-black/20">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-6 pt-2 sm:pt-4">
+                            <div className="flex gap-3 sm:gap-4 items-start">
+                                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-black/40 border border-white/10 flex items-center justify-center shrink-0 backdrop-blur-md shadow-lg shadow-black/20">
                                     <Calendar className="w-5 h-5 text-[#C5A059]" />
                                 </div>
                                 <div>
-                                    <h4 className="text-white font-medium text-lg">March 21, 2026</h4>
+                                    <h4 className="text-white font-medium text-base sm:text-lg">March 21, 2026</h4>
                                     <p className="text-[#C5A059] text-sm font-medium uppercase tracking-wider">Saturday</p>
                                 </div>
                             </div>
-                            <div className="flex gap-4 items-start">
-                                <div className="w-12 h-12 rounded-xl bg-black/40 border border-white/10 flex items-center justify-center shrink-0 backdrop-blur-md shadow-lg shadow-black/20">
+                            <div className="flex gap-3 sm:gap-4 items-start">
+                                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-black/40 border border-white/10 flex items-center justify-center shrink-0 backdrop-blur-md shadow-lg shadow-black/20">
                                     <Clock className="w-5 h-5 text-[#C5A059]" />
                                 </div>
                                 <div>
-                                    <h4 className="text-white font-medium text-lg">11:00 AM - 4:00 PM</h4>
+                                    <h4 className="text-white font-medium text-base sm:text-lg">11:00 AM - 4:00 PM</h4>
                                     <p className="text-[#C5A059] text-sm font-medium uppercase tracking-wider">Pacific Time</p>
                                 </div>
                             </div>
@@ -300,7 +300,7 @@ export default function TrainingEvent() {
                         {/* Glowing effect behind form */}
                         <div className="absolute inset-0 bg-[#C5A059] blur-[120px] opacity-[0.15] rounded-full pointer-events-none" />
 
-                        <div className="relative bg-[#111A16]/80 backdrop-blur-3xl border border-white/10 p-6 sm:p-8 md:p-12 rounded-[2rem] shadow-[0_30px_80px_-20px_rgba(0,0,0,0.7)] min-h-[320px] sm:min-h-[400px] flex flex-col justify-center">
+                        <div className="relative bg-[#111A16]/80 backdrop-blur-3xl border border-white/10 p-5 sm:p-8 md:p-12 rounded-[2rem] shadow-[0_30px_80px_-20px_rgba(0,0,0,0.7)] min-h-[280px] sm:min-h-[400px] flex flex-col justify-center">
 
                             <AnimatePresence mode="wait">
                                 {step === 0 && (
@@ -310,16 +310,16 @@ export default function TrainingEvent() {
                                         initial="hidden" animate="visible" exit="exit"
                                         className="text-center space-y-8"
                                     >
-                                        <div className="w-20 h-20 bg-gradient-to-br from-[#1A4D3E] to-[#0A120F] rounded-2xl flex items-center justify-center mx-auto border border-white/10 shadow-2xl">
-                                            <MapPin className="w-8 h-8 text-[#C5A059]" />
+                                        <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-[#1A4D3E] to-[#0A120F] rounded-2xl flex items-center justify-center mx-auto border border-white/10 shadow-2xl">
+                                            <MapPin className="w-6 h-6 sm:w-8 sm:h-8 text-[#C5A059]" />
                                         </div>
                                         <div>
-                                            <h3 className="text-3xl font-serif text-white mb-3">Andaz Napa</h3>
+                                            <h3 className="text-2xl sm:text-3xl font-serif text-white mb-3">Andaz Napa</h3>
                                             <p className="text-gray-400 text-lg">Napa Valley, California</p>
                                         </div>
                                         <Button
                                             onClick={() => setStep(1)}
-                                            className="w-full h-16 bg-[#C5A059] hover:bg-[#b08e4f] text-black font-semibold text-xl rounded-2xl shadow-[0_0_30px_rgba(197,160,89,0.2)] transition-all hover:shadow-[0_0_40px_rgba(197,160,89,0.4)] group"
+                                            className="w-full h-14 sm:h-16 bg-[#C5A059] hover:bg-[#b08e4f] text-black font-semibold text-lg sm:text-xl rounded-2xl shadow-[0_0_30px_rgba(197,160,89,0.2)] transition-all hover:shadow-[0_0_40px_rgba(197,160,89,0.4)] group"
                                         >
                                             Secure Your Seat
                                             <ArrowRight className="w-6 h-6 ml-3 group-hover:translate-x-1 transition-transform" />
