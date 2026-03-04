@@ -309,8 +309,12 @@ export default function TrainingEvent() {
                                         initial="hidden" animate="visible" exit="exit"
                                         className="text-center space-y-8"
                                     >
-                                        <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-[#1A4D3E] to-[#0A120F] rounded-2xl flex items-center justify-center mx-auto border border-white/10 shadow-2xl">
-                                            <MapPin className="w-6 h-6 sm:w-8 sm:h-8 text-[#C5A059]" />
+                                        <div className="neon-border w-24 h-24 sm:w-28 sm:h-28 mx-auto shadow-[0_12px_40px_-8px_rgba(197,160,89,0.3)] rounded-2xl">
+                                            <img
+                                                src="/andaz-napa.png"
+                                                alt="Andaz Napa"
+                                                className="w-full h-full object-cover rounded-[21px] relative z-0"
+                                            />
                                         </div>
                                         <div>
                                             <h3 className="text-2xl sm:text-3xl font-serif text-white mb-3">Andaz Napa</h3>
