@@ -108,7 +108,7 @@ export default function TrainingEvent() {
 
     if (success) {
         return (
-            <div className="min-h-screen bg-[#0A120F] flex items-center justify-center p-6 text-center relative overflow-hidden">
+            <div className="min-h-screen bg-[#0A120F] flex items-center justify-center p-4 sm:p-6 text-center relative overflow-hidden">
                 <div className="absolute inset-0 z-0">
                     <img src="/training-hero.png" alt="Training Event" className="w-full h-full object-cover opacity-20 filter blur-sm" />
                     <div className="absolute inset-0 bg-gradient-to-t from-[#0A120F] via-[#0A120F]/80 to-[#0A120F]/40" />
@@ -117,7 +117,7 @@ export default function TrainingEvent() {
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ duration: 0.6 }}
-                    className="relative z-10 w-full max-w-xl bg-white/5 backdrop-blur-2xl border border-white/10 p-10 md:p-14 rounded-[2rem] shadow-[0_0_60px_-15px_rgba(197,160,89,0.3)]"
+                    className="relative z-10 w-full max-w-xl bg-white/5 backdrop-blur-2xl border border-white/10 p-6 sm:p-10 md:p-14 rounded-[2rem] shadow-[0_0_60px_-15px_rgba(197,160,89,0.3)]"
                 >
                     {/* Animated check */}
                     <motion.div
@@ -153,7 +153,7 @@ export default function TrainingEvent() {
                                 <p className="text-gray-500 text-xs uppercase tracking-widest">Broker Training · Spring '26</p>
                             </div>
                         </div>
-                        <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 text-sm">
                             <div className="flex items-center gap-2 text-gray-300">
                                 <Calendar className="w-4 h-4 text-[#C5A059]" /> March 21, 2026
                             </div>
@@ -177,7 +177,7 @@ export default function TrainingEvent() {
                         className="mb-8"
                     >
                         <p className="text-xs uppercase tracking-widest text-[#C5A059] font-bold mb-3">Session Highlights</p>
-                        <div className="grid grid-cols-2 gap-2 text-left">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-left">
                             {sessionHighlights.slice(1, 7).map((h, i) => (
                                 <div key={i} className="flex items-center gap-2 text-gray-400 text-sm">
                                     <Check className="w-3 h-3 text-[#C5A059] shrink-0" /> {h.title}
@@ -221,7 +221,7 @@ export default function TrainingEvent() {
 
             <div className="relative z-10">
                 {/* Navbar */}
-                <nav className="p-6 md:px-12 flex items-center justify-between border-b border-white/5 backdrop-blur-md sticky top-0 bg-[#0A120F]/60 z-50">
+                <nav className="p-4 md:p-6 md:px-12 flex items-center justify-between border-b border-white/5 backdrop-blur-md sticky top-0 bg-[#0A120F]/60 z-50">
                     <Link to="/" className="flex items-center gap-3 group">
                         <img src="https://storage.googleapis.com/msgsndr/TLhrYb7SRrWrly615tCI/media/6993ada8dcdadb155342f28e.png" alt="Logo" className="w-10 h-10 group-hover:scale-105 transition-transform" />
                         <span className="font-serif text-xl tracking-wider uppercase text-[#C5A059] hidden sm:block">Everence Wealth</span>
@@ -232,14 +232,14 @@ export default function TrainingEvent() {
                 </nav>
 
                 {/* Hero Section */}
-                <section className="container mx-auto px-6 pt-20 pb-12 lg:pt-32 lg:pb-24 grid lg:grid-cols-2 gap-16 lg:gap-24 items-center min-h-[85vh]">
+                <section className="container mx-auto px-4 sm:px-6 pt-12 pb-8 lg:pt-32 lg:pb-24 grid lg:grid-cols-2 gap-10 lg:gap-24 items-center min-h-[auto] lg:min-h-[85vh]">
                     <motion.div
                         initial={{ opacity: 0, x: -50 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ duration: 0.8, ease: "easeOut" }}
                         className="space-y-8"
                     >
-                        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-[#C5A059]/30 bg-[#C5A059]/10 text-[#C5A059] text-sm uppercase tracking-widest font-semibold backdrop-blur-md">
+                        <div className="inline-flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full border border-[#C5A059]/30 bg-[#C5A059]/10 text-[#C5A059] text-[0.65rem] sm:text-sm uppercase tracking-widest font-semibold backdrop-blur-md">
                             <span className="relative flex h-2 w-2">
                                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#C5A059] opacity-75"></span>
                                 <span className="relative inline-flex rounded-full h-2 w-2 bg-[#C5A059]"></span>
@@ -248,18 +248,26 @@ export default function TrainingEvent() {
                         </div>
 
                         {/* Scroll-stopping animated gradient headline */}
-                        <h1 className="text-6xl md:text-8xl font-serif leading-[1.1] font-bold tracking-tight">
-                            Master the<br />
-                            <span className="text-transparent bg-clip-text animate-gradient bg-[length:200%_auto] bg-gradient-to-r from-[#C5A059] via-[#F2E0B2] to-[#C5A059]">
-                                Index Strategy
-                            </span>
+                        <h1 className="text-[2rem] leading-[1.15] sm:text-4xl md:text-6xl lg:text-7xl font-serif font-bold tracking-tight">
+                            Your Strategy Has a{' '}
+                            <span className="relative inline-block">
+                                <span className="text-transparent bg-clip-text animate-gradient bg-[length:200%_auto] bg-gradient-to-r from-[#C5A059] via-[#F2E0B2] to-[#C5A059]">
+                                    Ceiling
+                                </span>
+                                {/* Modern slash underline */}
+                                <svg className="absolute -bottom-1 sm:-bottom-2 left-0 w-full" viewBox="0 0 120 8" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+                                    <path d="M2 6C20 2 40 1.5 60 3C80 4.5 100 3 118 1" stroke="#C5A059" strokeWidth="2.5" strokeLinecap="round" opacity="0.7" />
+                                </svg>
+                            </span>.<br />
+                            This Day{' '}
+                            <span className="bg-[#C5A059]/20 px-2 sm:px-3 py-0.5 rounded-lg">Removes It</span>.
                         </h1>
 
-                        <p className="text-xl md:text-2xl text-gray-300 leading-relaxed font-light">
-                            Deepen your expertise in values-based financial planning and elevate your broker status at our exclusive, full-day training.
+                        <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-gray-300 leading-relaxed font-light">
+                            Join Everence Wealth at Andaz Napa for a full-day intensive designed to sharpen your strategy, expand your carrier access, and position you ahead of brokers still playing the old game.
                         </p>
 
-                        <div className="grid sm:grid-cols-2 gap-6 pt-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 pt-4">
                             <div className="flex gap-4 items-start">
                                 <div className="w-12 h-12 rounded-xl bg-black/40 border border-white/10 flex items-center justify-center shrink-0 backdrop-blur-md shadow-lg shadow-black/20">
                                     <Calendar className="w-5 h-5 text-[#C5A059]" />
@@ -292,7 +300,7 @@ export default function TrainingEvent() {
                         {/* Glowing effect behind form */}
                         <div className="absolute inset-0 bg-[#C5A059] blur-[120px] opacity-[0.15] rounded-full pointer-events-none" />
 
-                        <div className="relative bg-[#111A16]/80 backdrop-blur-3xl border border-white/10 p-8 md:p-12 rounded-[2rem] shadow-[0_30px_80px_-20px_rgba(0,0,0,0.7)] min-h-[400px] flex flex-col justify-center">
+                        <div className="relative bg-[#111A16]/80 backdrop-blur-3xl border border-white/10 p-6 sm:p-8 md:p-12 rounded-[2rem] shadow-[0_30px_80px_-20px_rgba(0,0,0,0.7)] min-h-[320px] sm:min-h-[400px] flex flex-col justify-center">
 
                             <AnimatePresence mode="wait">
                                 {step === 0 && (
@@ -419,9 +427,9 @@ export default function TrainingEvent() {
                 </section>
 
                 {/* Detailed Info Splat */}
-                <section className="bg-black/40 backdrop-blur-md border-t border-b border-white/5 py-24 relative z-10">
-                    <div className="container mx-auto px-6 max-w-7xl">
-                        <div className="grid lg:grid-cols-2 gap-20">
+                <section className="bg-black/40 backdrop-blur-md border-t border-b border-white/5 py-12 sm:py-16 lg:py-24 relative z-10">
+                    <div className="container mx-auto px-4 sm:px-6 max-w-7xl">
+                        <div className="grid lg:grid-cols-2 gap-10 lg:gap-20">
 
                             {/* Left Side: Image and About */}
                             <div className="space-y-10">
@@ -460,7 +468,7 @@ export default function TrainingEvent() {
                                     <div className="space-y-6">
                                         {sessionHighlights.map((highlight, index) => (
                                             <div key={index} className="flex gap-6 group">
-                                                <div className="w-12 h-12 rounded-full border border-white/10 shrink-0 flex items-center justify-center bg-white/[0.02] group-hover:border-[#C5A059]/50 group-hover:bg-[#C5A059]/5 transition-colors">
+                                                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border border-white/10 shrink-0 flex items-center justify-center bg-white/[0.02] group-hover:border-[#C5A059]/50 group-hover:bg-[#C5A059]/5 transition-colors">
                                                     <span className="text-[#C5A059] font-medium text-sm">0{index + 1}</span>
                                                 </div>
                                                 <div className="border-b border-white/5 pb-6 flex-1 pt-3">
