@@ -249,7 +249,7 @@ export default function TrainingEvent() {
 
                         {/* Scroll-stopping animated gradient headline */}
                         <h1 className="text-[1.75rem] leading-[1.1] sm:text-4xl md:text-6xl lg:text-7xl font-serif font-bold tracking-tight">
-                            Your Strategy Has a{' '}
+                            Does Your Strategy Have a{' '}
                             <span className="relative inline-block">
                                 <span className="text-transparent bg-clip-text animate-gradient bg-[length:200%_auto] bg-gradient-to-r from-[#C5A059] via-[#F2E0B2] to-[#C5A059]">
                                     Ceiling
@@ -258,8 +258,7 @@ export default function TrainingEvent() {
                                 <svg className="absolute -bottom-1 sm:-bottom-2 left-0 w-full" viewBox="0 0 120 8" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
                                     <path d="M2 6C20 2 40 1.5 60 3C80 4.5 100 3 118 1" stroke="#C5A059" strokeWidth="2.5" strokeLinecap="round" opacity="0.7" />
                                 </svg>
-                            </span>.<br />
-                            This Day{' '}
+                            </span>? This Day{' '}<br />
                             <span className="bg-[#C5A059]/20 px-2 sm:px-3 py-0.5 rounded-lg">Removes It</span>.
                         </h1>
 
