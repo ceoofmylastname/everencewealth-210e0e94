@@ -1,50 +1,40 @@
 
 
-## Plan: Update Headline, Subheadline, Animated Gradient, Slash Underline & Mobile-First Optimization
+## Plan: Perfect Mobile Hero Section UI
+
+Looking at the screenshot reference and the current code, the hero needs tighter spacing and better proportions on mobile so everything fits without excessive scrolling.
 
 ### Changes to `src/pages/TrainingEvent.tsx`
 
-**1. New Headline & Subheadline (lines 250-260)**
+**Hero section (line 235)**: Reduce top/bottom padding on mobile, tighten gap:
+- `pt-12 pb-8` → `pt-6 pb-6` on mobile
+- `gap-10` → `gap-6` on mobile
 
-Replace the current headline/subheadline with:
-- **Headline**: "Your Strategy Has a Ceiling. This Day Removes It."
-- **"Ceiling"** gets an animated moving gradient (gold shimmer) + a modern SVG slash underline beneath it
-- **"Removes It"** gets highlighted with a glowing gold background pill
-- **Subheadline**: "Join Everence Wealth at Andaz Napa for a full-day intensive designed to sharpen your strategy, expand your carrier access, and position you ahead of brokers still playing the old game."
+**Left column (line 240)**: Reduce `space-y-8` to `space-y-5` on mobile:
+- `space-y-8` → `space-y-5 sm:space-y-8`
 
-**2. Animated Gradient + Slash Underline**
+**Badge pill (line 242)**: Slightly smaller on mobile — already decent but tighten padding:
+- `px-3 py-1.5` → `px-2.5 py-1`
 
-Add a CSS `@keyframes gradient-shift` animation (or use inline Tailwind `animate-gradient` already referenced). The word "Ceiling" will have:
-- `bg-gradient-to-r from-[#C5A059] via-[#F2E0B2] to-[#C5A059]` with `bg-clip-text text-transparent` and `animate-gradient bg-[length:200%_auto]`
-- An inline SVG slash line positioned underneath via `relative` + `absolute bottom-0` styling
+**Headline (line 251)**: Fine-tune mobile size for perfect fit — bump slightly and tighten line-height:
+- `text-[2rem] leading-[1.15]` → `text-[1.75rem] leading-[1.1]` to prevent wrapping issues on narrow screens
 
-The word "Removes It" gets a subtle gold highlight: `bg-[#C5A059]/20 px-2 rounded`
+**Subheadline (line 266)**: Tighten on mobile:
+- `text-base` → `text-[0.9rem] leading-relaxed`
 
-**3. Add `@keyframes gradient-shift` to `src/index.css`**
+**Event details grid (line 270)**: Reduce gap and padding:
+- `gap-4 sm:gap-6 pt-4` → `gap-3 sm:gap-6 pt-2 sm:pt-4`
+- Icon boxes `w-12 h-12` → `w-10 h-10 sm:w-12 sm:h-12`
+- Date/time text `text-lg` → `text-base sm:text-lg`
 
-```css
-@keyframes gradient-shift {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-.animate-gradient {
-  animation: gradient-shift 3s ease infinite;
-}
-```
+**Form card (line 303)**: Reduce padding and min-height on mobile:
+- `p-6 sm:p-8 md:p-12` → `p-5 sm:p-8 md:p-12`
+- `min-h-[320px]` → `min-h-[280px]`
+- Andaz icon `w-20 h-20` → `w-16 h-16 sm:w-20 sm:h-20`, MapPin `w-8 h-8` → `w-6 h-6 sm:w-8 sm:h-8`
+- Venue title `text-3xl` → `text-2xl sm:text-3xl`
+- CTA button `h-16 text-xl` → `h-14 text-lg sm:h-16 sm:text-xl`
 
-**4. Mobile-First Optimization (throughout the file)**
+**Navbar (line 224)**: Already fine, just ensure compact on small screens.
 
-- **Hero section**: Change `pt-20 pb-12 lg:pt-32 lg:pb-24` to `pt-12 pb-8 lg:pt-32 lg:pb-24`, reduce `min-h-[85vh]` to `min-h-[auto] lg:min-h-[85vh]`
-- **Headline**: Scale down from `text-6xl md:text-8xl` to `text-[2rem] leading-[1.15] sm:text-4xl md:text-6xl lg:text-7xl`
-- **Subheadline**: `text-base sm:text-lg md:text-xl lg:text-2xl`
-- **Navbar**: Reduce padding `p-4 md:p-6 md:px-12`, ensure logo + badge fit on small screens
-- **Form card**: `p-6 sm:p-8 md:p-12`, `min-h-[320px] sm:min-h-[400px]`
-- **Event detail grid**: Stack on mobile with `grid-cols-1 sm:grid-cols-2`
-- **Info section**: `py-12 sm:py-16 lg:py-24`, `gap-10 lg:gap-20`
-- **Session highlights circles**: `w-10 h-10 sm:w-12 sm:h-12`
-- **Touch targets**: Ensure all buttons remain at least 44px tall (already satisfied with `h-14`/`h-16`)
-- **Parallax**: Disable on mobile by conditionally applying `style={{ y: y1 }}` only on desktop, or simply keep it (framer-motion handles touch well)
-- **Success screen**: `p-6 sm:p-10 md:p-14`, session highlights grid `grid-cols-1 sm:grid-cols-2`
-- **Badge pill**: `text-[0.65rem] sm:text-sm` with tighter padding on mobile
+All changes are mobile-size reductions with `sm:` breakpoints preserving the current desktop look.
 
