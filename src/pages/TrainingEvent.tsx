@@ -259,7 +259,7 @@ export default function TrainingEvent() {
                                     <path d="M2 6C20 2 40 1.5 60 3C80 4.5 100 3 118 1" stroke="#C5A059" strokeWidth="2.5" strokeLinecap="round" opacity="0.7" />
                                 </svg>
                             </span>? This Day{' '}<br />
-                            <span className="bg-[#C5A059]/20 px-2 sm:px-3 py-0.5 rounded-lg">Removes It</span>.
+                            <span className="bg-[#C5A059]/20 px-2 sm:px-3 rounded-md" style={{ boxDecorationBreak: 'clone' }}>Removes It</span>.
                         </h1>
 
                         <p className="text-[0.9rem] leading-relaxed sm:text-lg md:text-xl lg:text-2xl text-gray-300 font-light">
