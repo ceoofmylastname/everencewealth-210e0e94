@@ -70,7 +70,7 @@ Deno.serve(async (req) => {
         <div style="background:#f9fafb;border-radius:8px;padding:16px;margin:24px 0;border-left:4px solid #1A4D3E;">
           <h2 style="color:#1A4D3E;font-size:18px;margin:0 0 8px;font-family:Georgia,serif;">Event Details</h2>
           <p style="margin:0 0 8px;color:#4A5565;font-size:14px;">📅 <strong>Date:</strong> March 21st, 2026</p>
-          <p style="margin:0;color:#4A5565;font-size:14px;">📍 <strong>Location:</strong> To Be Announced</p>
+          <p style="margin:0;color:#4A5565;font-size:14px;">📍 <strong>Location:</strong> Andaz Napa, 1450 First Street, Napa, CA 94559</p>
         </div>
         <p style="color:#4A5565;line-height:1.6;font-size:16px;margin:0 0 16px;">
           We are preparing an incredible experience designed to elevate your business. You will receive further details and reminders as we get closer to the event.
