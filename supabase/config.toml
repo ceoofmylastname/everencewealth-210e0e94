@@ -41,3 +41,6 @@ verify_jwt = false
 
 [functions.send-strategy-form-notification]
 verify_jwt = false
+
+[functions.register-training-event]
+verify_jwt = false
