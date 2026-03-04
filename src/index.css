@@ -288,6 +288,10 @@ All colors MUST be HSL.
     100% { background-position: 0% center; }
   }
 
+  .animate-gradient {
+    animation: gradient-shift 3s ease infinite;
+  }
+
   /* Glassmorphism utilities */
   .glass {
     backdrop-filter: blur(12px);
