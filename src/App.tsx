@@ -248,7 +248,7 @@ const WorkshopLanding = lazy(() => import("./pages/public/WorkshopLanding"));
 const Recruit = lazy(() => import("./pages/Recruit"));
 const Briefing = lazy(() => import("./pages/Briefing"));
 const RecruitDashboard = lazy(() => import("./pages/RecruitDashboard"));
-
+const TrainingEvent = lazy(() => import("./pages/TrainingEvent"));
 
 // Loading fallback component
 const PageLoader = () => (
@@ -295,8 +295,8 @@ const App = () => (
               <Route path="/apply" element={<ContractingIntake />} />
               <Route path="/recruit" element={<Recruit />} />
               <Route path="/briefing" element={<Briefing />} />
+              <Route path="/broker-training" element={<TrainingEvent />} />
               <Route path="/recruit-dashboard" element={<RecruitDashboard />} />
-
 
               {/* ========================================== */}
               {/* PROTECTED ADMIN ROUTES (MUST BE BEFORE /:lang) */}

@@ -20,6 +20,7 @@ import { Search, Plus, Eye, KeyRound, RefreshCw, Trash2, UsersIcon, MessageSquar
 import { SetAgentPasswordDialog } from "@/components/portal/admin/SetAgentPasswordDialog";
 import { RecruitCRM } from "@/components/portal/admin/RecruitCRM";
 import { ContactLeadsTab } from "@/components/portal/admin/ContactLeadsTab";
+import { TrainingEventCRM } from "@/components/portal/admin/TrainingEventCRM";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "@/hooks/use-toast";
 
@@ -281,6 +282,9 @@ export default function AdminAgents() {
               </span>
             )}
           </TabsTrigger>
+          <TabsTrigger value="training_event" className="data-[state=active]:bg-white data-[state=active]:text-[#1A4D3E] data-[state=active]:shadow-sm rounded-md gap-2">
+            March 21st Event
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="all">
@@ -468,6 +472,10 @@ export default function AdminAgents() {
 
         <TabsContent value="contact-leads">
           <ContactLeadsTab onCountChange={setContactLeadCount} />
+        </TabsContent>
+
+        <TabsContent value="training_event">
+          <TrainingEventCRM />
         </TabsContent>
       </Tabs>
 
