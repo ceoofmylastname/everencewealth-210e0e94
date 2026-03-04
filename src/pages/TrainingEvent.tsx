@@ -5,8 +5,8 @@ import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion"
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
-import { ArrowRight, Calendar, MapPin, Clock, Loader2, CheckCircle2, ChevronRight, Check } from "lucide-react";
-
+import { ArrowRight, Calendar, MapPin, Clock, Loader2, CheckCircle2, ChevronRight, ChevronLeft, Check, Star } from "lucide-react";
+import confetti from "canvas-confetti";
 const sessionHighlights = [
     { time: "11:00 AM", title: "Financial Workshop Begins" },
     { title: "Welcome & Introductions" },
@@ -79,39 +79,119 @@ export default function TrainingEvent() {
         }
     };
 
+    // Fire brand confetti on success
+    useEffect(() => {
+        if (!success) return;
+        const brandColors = ['#C5A059', '#1A4D3E', '#F2E0B2', '#ffffff'];
+        const fire = (particleRatio: number, opts: confetti.Options) => {
+            confetti({
+                origin: { y: 0.7 },
+                colors: brandColors,
+                ...opts,
+                particleCount: Math.floor(250 * particleRatio),
+            });
+        };
+        fire(0.25, { spread: 26, startVelocity: 55 });
+        fire(0.2, { spread: 60 });
+        fire(0.35, { spread: 100, decay: 0.91, scalar: 0.8 });
+        fire(0.1, { spread: 120, startVelocity: 25, decay: 0.92, scalar: 1.2 });
+        fire(0.1, { spread: 120, startVelocity: 45 });
+        // Second burst
+        setTimeout(() => {
+            confetti({ particleCount: 80, angle: 60, spread: 55, origin: { x: 0 }, colors: brandColors });
+            confetti({ particleCount: 80, angle: 120, spread: 55, origin: { x: 1 }, colors: brandColors });
+        }, 400);
+    }, [success]);
+
+    const firstName = formData.name.split(' ')[0] || 'there';
+    const submittedAt = new Date();
+
     if (success) {
         return (
             <div className="min-h-screen bg-[#0A120F] flex items-center justify-center p-6 text-center relative overflow-hidden">
                 <div className="absolute inset-0 z-0">
-                    <img
-                        src="/training-hero.png"
-                        alt="Training Event"
-                        className="w-full h-full object-cover opacity-20 filter blur-sm"
-                    />
+                    <img src="/training-hero.png" alt="Training Event" className="w-full h-full object-cover opacity-20 filter blur-sm" />
                     <div className="absolute inset-0 bg-gradient-to-t from-[#0A120F] via-[#0A120F]/80 to-[#0A120F]/40" />
                 </div>
                 <motion.div
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="relative z-10 max-w-xl bg-white/5 backdrop-blur-2xl border border-white/10 p-12 rounded-[2rem] shadow-[0_0_60px_-15px_rgba(197,160,89,0.3)]"
+                    transition={{ duration: 0.6 }}
+                    className="relative z-10 w-full max-w-xl bg-white/5 backdrop-blur-2xl border border-white/10 p-10 md:p-14 rounded-[2rem] shadow-[0_0_60px_-15px_rgba(197,160,89,0.3)]"
                 >
+                    {/* Animated check */}
                     <motion.div
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
-                        transition={{ type: "spring", delay: 0.2 }}
-                        className="w-20 h-20 bg-[#1A4D3E] rounded-full flex items-center justify-center mx-auto mb-6"
+                        transition={{ type: "spring", delay: 0.2, stiffness: 200 }}
+                        className="w-20 h-20 bg-[#1A4D3E] rounded-full flex items-center justify-center mx-auto mb-6 shadow-[0_0_30px_rgba(26,77,62,0.5)]"
                     >
                         <CheckCircle2 className="w-10 h-10 text-[#C5A059]" />
                     </motion.div>
-                    <h1 className="text-4xl font-serif text-white mb-4">You're on the list.</h1>
-                    <p className="text-gray-300 text-lg mb-8 leading-relaxed">
-                        Your registration for the Everence Wealth Broker Training at Andaz Napa is confirmed. We will send you reminders as the event approaches.
-                    </p>
+
+                    <motion.h1
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.4 }}
+                        className="text-4xl md:text-5xl font-serif text-white mb-2"
+                    >
+                        Congratulations, <span className="text-[#C5A059]">{firstName}</span>!
+                    </motion.h1>
+                    <p className="text-gray-400 text-lg mb-8">Your seat is officially reserved.</p>
+
+                    {/* Event details card */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 15 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.6 }}
+                        className="bg-white/[0.03] border border-white/10 rounded-2xl p-6 mb-8 text-left space-y-4"
+                    >
+                        <div className="flex items-center gap-3 pb-4 border-b border-white/5">
+                            <img src="https://storage.googleapis.com/msgsndr/TLhrYb7SRrWrly615tCI/media/6993ada8dcdadb155342f28e.png" alt="Everence" className="w-8 h-8" />
+                            <div>
+                                <p className="text-[#C5A059] font-serif text-lg font-semibold">Everence Wealth</p>
+                                <p className="text-gray-500 text-xs uppercase tracking-widest">Broker Training · Spring '26</p>
+                            </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4 text-sm">
+                            <div className="flex items-center gap-2 text-gray-300">
+                                <Calendar className="w-4 h-4 text-[#C5A059]" /> March 21, 2026
+                            </div>
+                            <div className="flex items-center gap-2 text-gray-300">
+                                <Clock className="w-4 h-4 text-[#C5A059]" /> 11:00 AM – 4:00 PM PT
+                            </div>
+                            <div className="flex items-center gap-2 text-gray-300">
+                                <MapPin className="w-4 h-4 text-[#C5A059]" /> Andaz Napa
+                            </div>
+                            <div className="flex items-center gap-2 text-gray-300">
+                                <Star className="w-4 h-4 text-[#C5A059]" /> {submittedAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} at {submittedAt.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
+                            </div>
+                        </div>
+                    </motion.div>
+
+                    {/* Session highlights preview */}
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.8 }}
+                        className="mb-8"
+                    >
+                        <p className="text-xs uppercase tracking-widest text-[#C5A059] font-bold mb-3">Session Highlights</p>
+                        <div className="grid grid-cols-2 gap-2 text-left">
+                            {sessionHighlights.slice(1, 7).map((h, i) => (
+                                <div key={i} className="flex items-center gap-2 text-gray-400 text-sm">
+                                    <Check className="w-3 h-3 text-[#C5A059] shrink-0" /> {h.title}
+                                </div>
+                            ))}
+                        </div>
+                    </motion.div>
+
                     <Link to="/">
-                        <Button className="bg-[#C5A059] hover:bg-[#b08e4f] text-black rounded-full px-8 h-12 text-lg font-medium transition-colors">
+                        <Button className="bg-[#C5A059] hover:bg-[#b08e4f] text-black rounded-full px-8 h-12 text-lg font-medium transition-colors w-full">
                             Return Home
                         </Button>
                     </Link>
+                    <p className="text-gray-600 text-xs mt-4">Confirmation sent to {formData.email}</p>
                 </motion.div>
             </div>
         );
@@ -120,8 +200,8 @@ export default function TrainingEvent() {
     // Animation variants for Typeform-like multi-step
     const formVariants = {
         hidden: { opacity: 0, y: 20 },
-        visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: "easeOut" } },
-        exit: { opacity: 0, y: -20, transition: { duration: 0.3, ease: "easeIn" } }
+        visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: "easeOut" as const } },
+        exit: { opacity: 0, y: -20, transition: { duration: 0.3, ease: "easeIn" as const } }
     };
 
     return (
