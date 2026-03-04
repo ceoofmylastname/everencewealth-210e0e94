@@ -89,7 +89,8 @@ Deno.serve(async (req) => {
             <h2 style="color:#1A4D3E;font-size:20px;margin:16px 0 8px;font-family:Georgia,serif;">March 21st Broker Training</h2>
             <div style="background:#f9fafb;border-radius:8px;padding:16px;margin:16px 0;">
               <p style="margin:0 0 8px;color:#4A5565;font-size:14px;">📅 <strong>Date:</strong> Saturday, March 21, 2026</p>
-              <p style="margin:0 0 8px;color:#4A5565;font-size:14px;">🕐 <strong>Time:</strong> 11:00 AM to 4:00 PM PST</p>
+              <p style="margin:0 0 8px;color:#4A5565;font-size:14px;">🕐 <strong>Registration:</strong> 10:30 AM PST</p>
+              <p style="margin:0 0 8px;color:#4A5565;font-size:14px;">🕐 <strong>Event:</strong> 11:00 AM – 4:00 PM PST</p>
               <p style="margin:0;color:#4A5565;font-size:14px;">📍 <strong>Location:</strong> Andaz Napa</p>
             </div>
             <p style="color:#4A5565;line-height:1.6;font-size:16px;margin:0 0 16px;">Get ready for a focused, full-day program designed to deepen your expertise in values-based financial planning, strengthen client engagement strategies, and expand your knowledge.</p>
