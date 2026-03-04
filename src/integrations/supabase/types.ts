@@ -7487,6 +7487,7 @@ export type Database = {
           id: string
           name: string | null
           phone: string | null
+          status: string | null
           video_watch_time: number | null
         }
         Insert: {
@@ -7497,6 +7498,7 @@ export type Database = {
           id?: string
           name?: string | null
           phone?: string | null
+          status?: string | null
           video_watch_time?: number | null
         }
         Update: {
@@ -7507,6 +7509,7 @@ export type Database = {
           id?: string
           name?: string | null
           phone?: string | null
+          status?: string | null
           video_watch_time?: number | null
         }
         Relationships: []
