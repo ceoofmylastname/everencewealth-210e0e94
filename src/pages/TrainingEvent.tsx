@@ -8,6 +8,7 @@ import { toast } from "@/hooks/use-toast";
 import { ArrowRight, Calendar, MapPin, Clock, Loader2, CheckCircle2, ChevronRight, ChevronLeft, Check, Star } from "lucide-react";
 import confetti from "canvas-confetti";
 const sessionHighlights = [
+    { time: "10:30 AM", title: "Registration & Check-In" },
     { time: "11:00 AM", title: "Financial Workshop Begins" },
     { title: "Welcome & Introductions" },
     { title: "Everence Product Portfolio Overview" },
@@ -158,7 +159,7 @@ export default function TrainingEvent() {
                                 <Calendar className="w-4 h-4 text-[#C5A059]" /> March 21, 2026
                             </div>
                             <div className="flex items-center gap-2 text-gray-300">
-                                <Clock className="w-4 h-4 text-[#C5A059]" /> 11:00 AM – 4:00 PM PT
+                                <Clock className="w-4 h-4 text-[#C5A059]" /> Registration 10:30 AM | Event 11:00 AM – 4:00 PM PT
                             </div>
                             <div className="flex items-center gap-2 text-gray-300">
                                 <MapPin className="w-4 h-4 text-[#C5A059]" /> Andaz Napa
@@ -281,7 +282,8 @@ export default function TrainingEvent() {
                                     <Clock className="w-5 h-5 text-[#C5A059]" />
                                 </div>
                                 <div>
-                                    <h4 className="text-white font-medium text-base sm:text-lg">11:00 AM - 4:00 PM</h4>
+                                    <h4 className="text-white font-medium text-base sm:text-lg">Registration: 10:30 AM</h4>
+                                    <h4 className="text-white font-medium text-base sm:text-lg">Event: 11:00 AM – 4:00 PM</h4>
                                     <p className="text-[#C5A059] text-sm font-medium uppercase tracking-wider">Pacific Time</p>
                                 </div>
                             </div>
