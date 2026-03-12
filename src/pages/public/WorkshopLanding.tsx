@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import confetti from "canvas-confetti";
 import { useParams } from "react-router-dom";
 import NotFound from "@/pages/NotFound";
@@ -284,6 +284,23 @@ const WorkshopLanding: React.FC = () => {
 
   const isFull = seatsRemaining !== null && seatsRemaining <= 0;
 
+  // ── Video State ──
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [isMuted, setIsMuted] = useState(true);
+
+  const toggleSound = useCallback(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    if (isMuted) {
+      video.muted = false;
+      video.currentTime = 0;
+      video.play().catch(() => {});
+    } else {
+      video.muted = true;
+    }
+    setIsMuted(!isMuted);
+  }, [isMuted]);
+
   // ── Form State ──
   const [form, setForm] = useState<RegistrationData>({
     first_name: "",
@@ -448,16 +465,58 @@ const WorkshopLanding: React.FC = () => {
 
         {/* ── HERO SECTION ── */}
         <section className="relative overflow-hidden min-h-[100vh] flex flex-col" style={{ background: "linear-gradient(160deg, #0F2F27 0%, #1A4D3E 40%, #153D32 70%, #0F2F27 100%)" }}>
-          {/* Background image overlay */}
-          <div className="absolute inset-0 opacity-15" style={{ backgroundImage: `url(${workshopHeroBg})`, backgroundSize: "cover", backgroundPosition: "center", mixBlendMode: "overlay" }} />
-          {/* Gradient overlay for depth */}
-          <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse at 30% 20%, rgba(26,77,62,0.4) 0%, transparent 50%), radial-gradient(ellipse at 80% 80%, rgba(15,47,39,0.6) 0%, transparent 50%)" }} />
+          {/* Background video layer */}
+          <video
+            ref={videoRef}
+            autoPlay
+            muted
+            playsInline
+            className="absolute inset-0 w-full h-full object-cover"
+            style={{ zIndex: 0 }}
+            onEnded={(e) => { e.currentTarget.pause(); }}
+          >
+            <source src="https://assets.cdn.filesafe.space/htr97zzmRc1NMujHbL9R/media/69b228577fc07c6782abd388.mov" type="video/quicktime" />
+            <source src="https://assets.cdn.filesafe.space/htr97zzmRc1NMujHbL9R/media/69b228577fc07c6782abd388.mov" type="video/mp4" />
+          </video>
+          {/* Gradient overlay between video and content */}
+          <div className="absolute inset-0" style={{
+            zIndex: 1,
+            background: "linear-gradient(to bottom, rgba(15,47,39,0.55) 0%, rgba(26,77,62,0.45) 40%, rgba(15,47,39,0.6) 70%, rgba(15,47,39,0.85) 100%)"
+          }} />
           {/* Floating orbs */}
           <FloatingOrbs />
           {/* Mesh gradient accent */}
-          <div className="absolute top-0 left-0 right-0 h-[2px]" style={{ background: "linear-gradient(90deg, transparent, #EDDB77, #56B4A0, #EDDB77, transparent)" }} />
+          <div className="absolute top-0 left-0 right-0 h-[2px]" style={{ zIndex: 2, background: "linear-gradient(90deg, transparent, #EDDB77, #56B4A0, #EDDB77, transparent)" }} />
 
-          <div className="relative z-10 flex-1 flex flex-col">
+          {/* Sound toggle button */}
+          <button
+            onClick={toggleSound}
+            aria-label={isMuted ? "Unmute video" : "Mute video"}
+            className="absolute bottom-6 right-6 md:bottom-8 md:right-8 w-[36px] h-[36px] md:w-[42px] md:h-[42px] rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110 hover:bg-white/20 cursor-pointer"
+            style={{
+              zIndex: 20,
+              background: "rgba(255,255,255,0.12)",
+              backdropFilter: "blur(12px)",
+              WebkitBackdropFilter: "blur(12px)",
+              border: "1px solid rgba(255,255,255,0.18)",
+            }}
+          >
+            {isMuted ? (
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M11 5L6 9H2V15H6L11 19V5Z" fill="rgba(255,255,255,0.85)" />
+                <line x1="23" y1="9" x2="17" y2="15" stroke="rgba(255,255,255,0.85)" strokeWidth="2" strokeLinecap="round" />
+                <line x1="17" y1="9" x2="23" y2="15" stroke="rgba(255,255,255,0.85)" strokeWidth="2" strokeLinecap="round" />
+              </svg>
+            ) : (
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M11 5L6 9H2V15H6L11 19V5Z" fill="rgba(255,255,255,0.85)" />
+                <path d="M15.54 8.46C16.48 9.4 17.01 10.67 17.01 12C17.01 13.33 16.48 14.6 15.54 15.54" stroke="rgba(255,255,255,0.85)" strokeWidth="2" strokeLinecap="round" />
+                <path d="M18.07 5.93C19.78 7.64 20.74 9.87 20.74 12.19C20.74 14.51 19.78 16.74 18.07 18.45" stroke="rgba(255,255,255,0.85)" strokeWidth="2" strokeLinecap="round" />
+              </svg>
+            )}
+          </button>
+
+          <div className="relative flex-1 flex flex-col" style={{ zIndex: 2 }}>
             {/* Header */}
             <header className="border-b border-white/[0.06]" style={{ backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)", background: "rgba(15,47,39,0.3)" }}>
               <div className="max-w-[1200px] mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
