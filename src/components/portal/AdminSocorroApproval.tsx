@@ -5,7 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
-import { Loader2, Search } from "lucide-react";
+import { Loader2, Search, Plus, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import type { SocorroAdvisor } from "@/types/socorro";
 
@@ -16,6 +16,15 @@ export default function AdminSocorroApproval() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [togglingId, setTogglingId] = useState<string | null>(null);
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [adding, setAdding] = useState(false);
+  const [newAdvisor, setNewAdvisor] = useState({
+    first_name: "",
+    last_name: "",
+    email: "",
+    headshot_url: "",
+    bio: "",
+  });
 
   useEffect(() => {
     loadAdvisors();
@@ -34,6 +43,34 @@ export default function AdminSocorroApproval() {
       console.error("Failed to load advisors:", err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const addAdvisor = async () => {
+    if (!newAdvisor.first_name.trim() || !newAdvisor.last_name.trim() || !newAdvisor.email.trim()) {
+      toast({ title: "Missing fields", description: "First name, last name, and email are required.", variant: "destructive" });
+      return;
+    }
+    setAdding(true);
+    try {
+      const { error } = await supabase
+        .from("socorro_workshop_advisors" as any)
+        .insert({
+          first_name: newAdvisor.first_name.trim(),
+          last_name: newAdvisor.last_name.trim(),
+          email: newAdvisor.email.trim().toLowerCase(),
+          headshot_url: newAdvisor.headshot_url.trim() || null,
+          bio: newAdvisor.bio.trim() || null,
+        });
+      if (error) throw error;
+      toast({ title: "Advisor added", description: `${newAdvisor.first_name} ${newAdvisor.last_name}` });
+      setNewAdvisor({ first_name: "", last_name: "", email: "", headshot_url: "", bio: "" });
+      setShowAddForm(false);
+      loadAdvisors();
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    } finally {
+      setAdding(false);
     }
   };
 
@@ -99,6 +136,14 @@ export default function AdminSocorroApproval() {
             className="pl-9"
           />
         </div>
+        <Button
+          size="sm"
+          className="bg-[#1A4D3E] hover:bg-[#163f33]"
+          onClick={() => setShowAddForm(!showAddForm)}
+        >
+          {showAddForm ? <X className="w-4 h-4 mr-1" /> : <Plus className="w-4 h-4 mr-1" />}
+          {showAddForm ? "Cancel" : "Add Advisor"}
+        </Button>
         <Button variant="outline" size="sm" onClick={loadAdvisors}>
           Refresh
         </Button>
@@ -107,9 +152,63 @@ export default function AdminSocorroApproval() {
         </span>
       </div>
 
+      {/* Add Advisor Form */}
+      {showAddForm && (
+        <div className="border rounded-lg p-5 bg-gray-50 space-y-4">
+          <h3 className="text-sm font-semibold text-gray-700">New Workshop Advisor</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">First Name *</label>
+              <Input
+                value={newAdvisor.first_name}
+                onChange={(e) => setNewAdvisor((p) => ({ ...p, first_name: e.target.value }))}
+                placeholder="John"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">Last Name *</label>
+              <Input
+                value={newAdvisor.last_name}
+                onChange={(e) => setNewAdvisor((p) => ({ ...p, last_name: e.target.value }))}
+                placeholder="Smith"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">Email *</label>
+              <Input
+                type="email"
+                value={newAdvisor.email}
+                onChange={(e) => setNewAdvisor((p) => ({ ...p, email: e.target.value }))}
+                placeholder="john@example.com"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">Headshot URL</label>
+              <Input
+                value={newAdvisor.headshot_url}
+                onChange={(e) => setNewAdvisor((p) => ({ ...p, headshot_url: e.target.value }))}
+                placeholder="https://..."
+              />
+            </div>
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-500 mb-1">Bio</label>
+            <Input
+              value={newAdvisor.bio}
+              onChange={(e) => setNewAdvisor((p) => ({ ...p, bio: e.target.value }))}
+              placeholder="Short bio for the public advisor card"
+            />
+          </div>
+          <Button onClick={addAdvisor} disabled={adding} className="bg-[#1A4D3E] hover:bg-[#163f33]">
+            {adding ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Plus className="w-4 h-4 mr-1" />}
+            {adding ? "Adding…" : "Add Advisor"}
+          </Button>
+        </div>
+      )}
+
       {/* Table */}
       {filtered.length === 0 ? (
-        <p className="py-8 text-center text-gray-400 text-sm">No advisors found.</p>
+        <p className="py-8 text-center text-gray-400 text-sm">No advisors found. Click "Add Advisor" to get started.</p>
       ) : (
         <div className="border rounded-lg overflow-x-auto">
           <Table>
