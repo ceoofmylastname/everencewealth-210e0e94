@@ -322,14 +322,14 @@ export default function TrainingEvent() {
                     <div className="hidden md:block absolute top-0 bottom-0" style={{ left: '52%', width: '1px', background: 'rgba(200,169,110,0.2)', zIndex: 5 }} />
 
                     {/* RIGHT HALF — CONTENT PANEL */}
-                    <div className="w-full md:w-[48%] flex flex-col justify-center p-7 md:p-16" style={{ background: '#080f0b' }}>
+                    <div className="w-full md:w-[48%] flex flex-col justify-center p-7 md:p-16" style={{ background: '#080f0b', borderRadius: '20px', border: '1px solid rgba(200,169,110,0.1)', boxShadow: 'inset 0 0 60px rgba(0,0,0,0.3)' }}>
                         <div className="w-full max-w-[520px] mx-auto md:mx-0" style={{ padding: '0' }}>
                             {/* Desktop padding override */}
                             <div className="hidden md:block" style={{ position: 'absolute' }} />
 
                             {/* 1. EYEBROW */}
                             <p style={{
-                                fontSize: '10px', letterSpacing: '0.22em', textTransform: 'uppercase',
+                                fontSize: '11px', letterSpacing: '0.28em', textTransform: 'uppercase',
                                 color: '#C8A96E', marginBottom: '28px',
                                 animation: 'te-fadeUp 400ms ease 200ms both',
                             }}>
@@ -338,19 +338,20 @@ export default function TrainingEvent() {
 
                             {/* 2. HEADLINE */}
                             <h1 style={{
-                                fontFamily: "'GeistSans', 'Inter', system-ui, sans-serif",
-                                fontWeight: 900, fontSize: 'clamp(32px, 3.6vw, 54px)', lineHeight: 1.05,
-                                letterSpacing: '-0.03em',
+                                fontFamily: "'Inter', system-ui, sans-serif",
+                                fontWeight: 800, fontSize: 'clamp(32px, 3.6vw, 54px)', lineHeight: 1.08,
+                                letterSpacing: '-0.04em',
                                 color: '#FFFFFF', marginBottom: '20px',
+                                textShadow: '0 2px 24px rgba(200,169,110,0.15)',
                                 animation: 'te-fadeUp12 500ms ease 350ms both',
                             }}>
                                 Your Strategy Has a Ceiling.<br />
                                 This Day <span style={{
-                                    background: 'linear-gradient(90deg, #C8A96E, #F5E6C8, #EDDB77, #C8A96E)',
-                                    backgroundSize: '300% 100%',
+                                    background: 'linear-gradient(90deg, #B8945E, #F5E6C8, #EDDB77, #F5E6C8, #B8945E)',
+                                    backgroundSize: '400% 100%',
                                     WebkitBackgroundClip: 'text',
                                     WebkitTextFillColor: 'transparent',
-                                    animation: 'te-gold-gradient-shift 4s ease infinite',
+                                    animation: 'te-gold-gradient-shift 6s ease infinite',
                                 }}>Removes It</span>.
                             </h1>
 
