@@ -248,6 +248,10 @@ export default function TrainingEvent() {
                     50% { background-position: 100% 50%; }
                     100% { background-position: 0% 50%; }
                 }
+                @keyframes te-gold-glow {
+                    0%, 100% { text-shadow: 0 0 20px rgba(237,219,119,0.6), 0 0 40px rgba(200,169,110,0.2); }
+                    50% { text-shadow: 0 0 40px rgba(200,169,110,0.8), 0 0 80px rgba(237,219,119,0.3); }
+                }
             `}</style>
 
             <div className="relative z-10">
