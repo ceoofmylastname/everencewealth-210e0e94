@@ -1,40 +1,26 @@
 
 
-## Plan: Add Registration Time (10:30 AM) to Landing Page and Emails
+## Plan: Upgrade Headline Typography & Sleek Design
 
-### 1. Landing Page Changes (`src/pages/TrainingEvent.tsx`)
+### Changes to `src/pages/TrainingEvent.tsx`
 
-**A. Add registration time to the event details pills (line 284)**
-Change "11:00 AM - 4:00 PM" to include registration:
-```
-Registration: 10:30 AM
-Event: 11:00 AM – 4:00 PM
-```
+**1. Headline font upgrade (lines 340-355)**
+- Switch to `fontFamily: "'Inter', system-ui, sans-serif"` with `fontWeight: 800` and tighter tracking `-0.04em`
+- Add subtle `textShadow: '0 2px 24px rgba(200,169,110,0.15)'` for depth
+- Increase `lineHeight` to `1.08` for better breathing room
 
-**B. Add registration time to the confirmation card (line 161)**
-Update the time display from `11:00 AM – 4:00 PM PT` to `Registration 10:30 AM | Event 11:00 AM – 4:00 PM PT`
+**2. Content panel background — add rounded corners + glass feel (line 325)**
+- Add `borderRadius: '20px'` to the right content panel div
+- Add a subtle border: `border: '1px solid rgba(200,169,110,0.1)'`
+- Add soft inner glow via `boxShadow: 'inset 0 0 60px rgba(0,0,0,0.3)'`
 
-**C. Update session highlights (line 11)**
-Add a "10:30 AM" registration/check-in entry as the first item in `sessionHighlights`.
+**3. "Removes It" gradient span — smoother, wider gradient (lines 348-354)**
+- Expand gradient to 5 stops for a richer sweep: `#B8945E, #F5E6C8, #EDDB77, #F5E6C8, #B8945E`
+- Slow animation to `6s` for more elegance
 
-### 2. Email Changes
-
-**A. Registration confirmation email (`supabase/functions/register-training-event/index.ts`)**
-Add registration and event times to the event details block (currently only shows date and location):
-```
-🕐 Registration: 10:30 AM PST
-🕐 Event: 11:00 AM – 4:00 PM PST
-```
-
-**B. Reminder emails (`supabase/functions/process-training-reminders/index.ts`, line 92)**
-Update the time line from `11:00 AM to 4:00 PM PST` to include registration:
-```
-🕐 Registration: 10:30 AM PST
-🕐 Event: 11:00 AM – 4:00 PM PST
-```
+**4. Eyebrow text (lines 331-337)**
+- Bump `fontSize` to `11px` and `letterSpacing` to `0.28em` for a more refined, airy feel
 
 ### Files Modified
-- `src/pages/TrainingEvent.tsx` — 3 spots (session highlights array, event pills, confirmation card)
-- `supabase/functions/register-training-event/index.ts` — add times to email
-- `supabase/functions/process-training-reminders/index.ts` — update time line
+- `src/pages/TrainingEvent.tsx` — headline, eyebrow, content panel, gradient span
 
