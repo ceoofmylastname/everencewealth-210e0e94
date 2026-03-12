@@ -502,13 +502,13 @@ export default function TrainingEvent() {
                                                     />
                                                 </div>
                                                 <div className="flex gap-3">
-                                                    <button type="button" onClick={() => setStep(1)} className="h-14 w-14 flex items-center justify-center border border-white/20 text-white transition-colors duration-200 cursor-pointer" style={{ background: 'transparent', borderRadius: '0px' }}
+                                                    <button type="button" onClick={() => setStep(1)} className="h-14 w-14 flex items-center justify-center border border-white/20 text-white transition-all duration-300 cursor-pointer hover:scale-[1.02]" style={{ background: 'transparent', borderRadius: '14px' }}
                                                         onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; }}
                                                         onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
                                                     >
                                                         <ChevronLeft className="w-5 h-5" />
                                                     </button>
-                                                    <button type="submit" className="h-14 px-8 text-sm font-bold tracking-wider uppercase transition-colors duration-200 cursor-pointer" style={{ background: '#C8A96E', color: '#1A4D3E', border: 'none', borderRadius: '0px', letterSpacing: '0.1em' }}
+                                                    <button type="submit" className="h-14 px-8 text-sm font-bold tracking-wider uppercase transition-all duration-300 cursor-pointer hover:scale-[1.02]" style={{ background: '#C8A96E', color: '#1A4D3E', border: 'none', borderRadius: '14px', letterSpacing: '0.1em', boxShadow: '0 4px 20px rgba(200,169,110,0.3)' }}
                                                         onMouseEnter={(e) => { e.currentTarget.style.background = '#b8996a'; }}
                                                         onMouseLeave={(e) => { e.currentTarget.style.background = '#C8A96E'; }}
                                                     >
