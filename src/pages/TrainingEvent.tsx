@@ -536,15 +536,15 @@ export default function TrainingEvent() {
                                                     />
                                                 </div>
                                                 <div className="flex gap-3">
-                                                    <button type="button" onClick={() => setStep(2)} disabled={loading} className="h-14 w-14 flex items-center justify-center border border-white/20 text-white transition-colors duration-200 cursor-pointer disabled:opacity-50" style={{ background: 'transparent', borderRadius: '0px' }}
+                                                    <button type="button" onClick={() => setStep(2)} disabled={loading} className="h-14 w-14 flex items-center justify-center border border-white/20 text-white transition-all duration-300 cursor-pointer disabled:opacity-50 hover:scale-[1.02]" style={{ background: 'transparent', borderRadius: '14px' }}
                                                         onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; }}
                                                         onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
                                                     >
                                                         <ChevronLeft className="w-5 h-5" />
                                                     </button>
-                                                    <button type="submit" disabled={loading} className="h-14 flex-1 text-sm font-bold tracking-wider uppercase transition-colors duration-200 cursor-pointer disabled:opacity-70" style={{ background: '#1A4D3E', color: '#FFFFFF', border: 'none', borderRadius: '0px', letterSpacing: '0.1em' }}
-                                                        onMouseEnter={(e) => { if (!loading) e.currentTarget.style.background = '#143d30'; }}
-                                                        onMouseLeave={(e) => { e.currentTarget.style.background = '#1A4D3E'; }}
+                                                    <button type="submit" disabled={loading} className="h-14 flex-1 text-sm font-bold tracking-wider uppercase transition-all duration-300 cursor-pointer disabled:opacity-70 hover:scale-[1.02]" style={{ background: 'linear-gradient(135deg, #1A4D3E, #2a6b54)', color: '#FFFFFF', border: 'none', borderRadius: '14px', letterSpacing: '0.1em', boxShadow: '0 4px 20px rgba(26,77,62,0.4)' }}
+                                                        onMouseEnter={(e) => { if (!loading) e.currentTarget.style.background = 'linear-gradient(135deg, #143d30, #1A4D3E)'; }}
+                                                        onMouseLeave={(e) => { e.currentTarget.style.background = 'linear-gradient(135deg, #1A4D3E, #2a6b54)'; }}
                                                     >
                                                         {loading ? <Loader2 className="w-6 h-6 animate-spin mx-auto" /> : 'Confirm Registration'}
                                                     </button>
