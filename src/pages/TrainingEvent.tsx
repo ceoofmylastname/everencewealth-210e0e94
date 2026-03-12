@@ -455,7 +455,7 @@ export default function TrainingEvent() {
                                 transition={{ duration: 0.4, ease: 'easeOut' }}
                                 className="relative w-full max-w-lg mx-4"
                             >
-                                <div className="relative border border-white/10 p-6 sm:p-10 md:p-14 min-h-[320px] flex flex-col justify-center" style={{ background: '#0d1a14', borderRadius: '0px' }}>
+                                <div className="relative p-6 sm:p-10 md:p-14 min-h-[320px] flex flex-col justify-center" style={{ background: 'rgba(13,26,20,0.85)', borderRadius: '24px', border: '1px solid rgba(200,169,110,0.15)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)', boxShadow: '0 24px 80px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.05)' }}>
 
                                     <AnimatePresence mode="wait">
                                         {step === 1 && (
