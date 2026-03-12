@@ -1,6 +1,8 @@
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
 import type { SocorroAdvisor } from "@/types/socorro";
+import ScrollReveal from "./primitives/ScrollReveal";
+import GlassCard from "./primitives/GlassCard";
+import GoldCTA from "./primitives/GoldCTA";
 
 interface AdvisorCardProps {
   advisor: SocorroAdvisor;
@@ -9,23 +11,21 @@ interface AdvisorCardProps {
 
 export default function AdvisorCard({ advisor, index }: AdvisorCardProps) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.5, delay: index * 0.1 }}
-    >
+    <ScrollReveal delay={index * 0.1}>
       <Link
         to={`/socorro-isd/advisors/${advisor.id}`}
         className="block group"
         style={{ textDecoration: "none" }}
       >
-        <div
-          className="overflow-hidden"
-          style={{ background: "#ffffff", borderRadius: "4px", border: "1px solid #E5E7EB" }}
-        >
+        <GlassCard variant="light" hover3d className="overflow-hidden">
           {/* Headshot */}
-          <div className="aspect-square overflow-hidden" style={{ background: "#E8ECE9" }}>
+          <div
+            className="aspect-square overflow-hidden"
+            style={{
+              borderRadius: "var(--socorro-radius-card) var(--socorro-radius-card) 0 0",
+              background: "rgba(26,77,62,0.06)",
+            }}
+          >
             {advisor.headshot_url ? (
               <img
                 src={advisor.headshot_url}
@@ -40,7 +40,7 @@ export default function AdvisorCard({ advisor, index }: AdvisorCardProps) {
                     fontSize: "48px",
                     fontWeight: 700,
                     color: "#1A4D3E",
-                    opacity: 0.3,
+                    opacity: 0.25,
                   }}
                 >
                   {advisor.first_name[0]}
@@ -51,7 +51,7 @@ export default function AdvisorCard({ advisor, index }: AdvisorCardProps) {
           </div>
 
           {/* Info */}
-          <div className="p-5">
+          <div className="p-6">
             <h3
               style={{
                 fontFamily: "'Cormorant Garamond', Georgia, serif",
@@ -65,7 +65,7 @@ export default function AdvisorCard({ advisor, index }: AdvisorCardProps) {
             </h3>
             {advisor.bio && (
               <p
-                className="line-clamp-2 mb-4"
+                className="line-clamp-2 mb-5"
                 style={{
                   fontFamily: "'DM Sans', system-ui, sans-serif",
                   fontSize: "14px",
@@ -76,23 +76,10 @@ export default function AdvisorCard({ advisor, index }: AdvisorCardProps) {
                 {advisor.bio}
               </p>
             )}
-            <span
-              className="inline-block transition-colors duration-200 group-hover:opacity-90"
-              style={{
-                background: "#C8A96E",
-                color: "#1A4D3E",
-                fontFamily: "'DM Sans', system-ui, sans-serif",
-                fontSize: "13px",
-                fontWeight: 700,
-                padding: "10px 24px",
-                borderRadius: "4px",
-              }}
-            >
-              See Availability →
-            </span>
+            <GoldCTA size="sm">See Availability &rarr;</GoldCTA>
           </div>
-        </div>
+        </GlassCard>
       </Link>
-    </motion.div>
+    </ScrollReveal>
   );
 }

@@ -102,7 +102,7 @@ export default function SocorroAvailabilityManager({ advisorId }: SocorroAvailab
             </SelectContent>
           </Select>
         </div>
-        <Button onClick={addSlot} disabled={adding} className="bg-[#1A4D3E] hover:bg-[#163f33]">
+        <Button onClick={addSlot} disabled={adding} className="bg-[#1A4D3E] hover:bg-[#163f33] rounded-full">
           {adding ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Plus className="w-4 h-4 mr-1" />}
           Add Slot
         </Button>
@@ -116,7 +116,7 @@ export default function SocorroAvailabilityManager({ advisorId }: SocorroAvailab
       ) : slots.length === 0 ? (
         <p className="py-8 text-center text-gray-400 text-sm">No availability slots yet. Add your first one above.</p>
       ) : (
-        <div className="border rounded-lg overflow-hidden">
+        <div className="border rounded-xl overflow-hidden shadow-sm">
           <Table>
             <TableHeader>
               <TableRow>

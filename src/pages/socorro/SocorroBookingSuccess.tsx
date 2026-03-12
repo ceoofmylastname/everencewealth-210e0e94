@@ -1,4 +1,8 @@
-import { useSearchParams, Link } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
+import SocorroNavbar from "@/components/socorro/SocorroNavbar";
+import SocorroFooter from "@/components/socorro/SocorroFooter";
+import FloatingOrbs from "@/components/socorro/primitives/FloatingOrbs";
+import GoldCTA from "@/components/socorro/primitives/GoldCTA";
 import ConfirmationBlock from "@/components/socorro/ConfirmationBlock";
 
 export default function SocorroBookingSuccess() {
@@ -10,31 +14,28 @@ export default function SocorroBookingSuccess() {
   const time = searchParams.get("time") || "";
 
   return (
-    <main
-      className="min-h-screen flex flex-col items-center justify-center px-4 sm:px-6 py-16"
-      style={{ background: "#F7F9F8" }}
-    >
-      <ConfirmationBlock
-        name={name}
-        advisorName={advisorName}
-        date={date}
-        time={time}
-      />
+    <main style={{ background: "#F7F9F8", minHeight: "100vh" }}>
+      <SocorroNavbar />
 
-      <Link
-        to="/socorro-isd"
-        className="mt-10 inline-block transition-colors duration-200"
-        style={{
-          fontFamily: "'DM Sans', system-ui, sans-serif",
-          fontSize: "14px",
-          fontWeight: 600,
-          color: "#1A4D3E",
-          textDecoration: "underline",
-          textUnderlineOffset: "3px",
-        }}
-      >
-        Back to Socorro ISD Home
-      </Link>
+      <section className="relative min-h-[80vh] flex flex-col items-center justify-center px-6 py-20 overflow-hidden">
+        <FloatingOrbs variant="light" />
+        <div className="relative z-10">
+          <ConfirmationBlock
+            name={name}
+            advisorName={advisorName}
+            date={date}
+            time={time}
+          />
+
+          <div className="mt-10 text-center">
+            <GoldCTA href="/socorro-isd" size="sm">
+              Back to Socorro ISD Home
+            </GoldCTA>
+          </div>
+        </div>
+      </section>
+
+      <SocorroFooter />
     </main>
   );
 }

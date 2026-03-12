@@ -20,6 +20,8 @@ export default {
         nav: ['Raleway', 'sans-serif'],
         space: ['Clash Display', 'Space Grotesk', 'sans-serif'],
         hero: ['Inter Tight', 'sans-serif'],
+        cormorant: ['Cormorant Garamond', 'Georgia', 'serif'],
+        dm: ['DM Sans', 'system-ui', 'sans-serif'],
       },
       colors: {
         evergreen: '#1A4D3E',
@@ -90,6 +92,10 @@ export default {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+        'socorro-pill': '9999px',
+        'socorro-card': '20px',
+        'socorro-panel': '24px',
+        'socorro-input': '14px',
       },
       scale: {
         '103': '1.03',

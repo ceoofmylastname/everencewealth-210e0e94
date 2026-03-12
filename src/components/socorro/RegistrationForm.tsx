@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/form";
 import { Loader2 } from "lucide-react";
 import type { SocorroBookingState } from "@/types/socorro";
+import GoldCTA from "./primitives/GoldCTA";
 
 const schema = z.object({
   first_name: z.string().trim().min(1, "First name is required").max(100),
@@ -78,6 +79,11 @@ export default function RegistrationForm({ booking }: RegistrationFormProps) {
     }
   };
 
+  const inputStyle: React.CSSProperties = {
+    borderRadius: "var(--socorro-radius-input)",
+    fontFamily: "'DM Sans', system-ui, sans-serif",
+  };
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
@@ -98,7 +104,7 @@ export default function RegistrationForm({ booking }: RegistrationFormProps) {
                   First Name
                 </FormLabel>
                 <FormControl>
-                  <Input placeholder="John" {...field} />
+                  <Input placeholder="John" style={inputStyle} {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -120,7 +126,7 @@ export default function RegistrationForm({ booking }: RegistrationFormProps) {
                   Last Name
                 </FormLabel>
                 <FormControl>
-                  <Input placeholder="Smith" {...field} />
+                  <Input placeholder="Smith" style={inputStyle} {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -144,7 +150,7 @@ export default function RegistrationForm({ booking }: RegistrationFormProps) {
                 Email
               </FormLabel>
               <FormControl>
-                <Input type="email" placeholder="you@example.com" {...field} />
+                <Input type="email" placeholder="you@example.com" style={inputStyle} {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -167,7 +173,7 @@ export default function RegistrationForm({ booking }: RegistrationFormProps) {
                 Phone Number
               </FormLabel>
               <FormControl>
-                <Input type="tel" placeholder="(555) 555-1234" {...field} />
+                <Input type="tel" placeholder="(555) 555-1234" style={inputStyle} {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -176,11 +182,11 @@ export default function RegistrationForm({ booking }: RegistrationFormProps) {
 
         {error && (
           <div
-            className="p-3"
+            className="p-4"
             style={{
-              background: "rgba(239,68,68,0.08)",
-              borderRadius: "4px",
-              border: "1px solid rgba(239,68,68,0.2)",
+              background: "rgba(239,68,68,0.06)",
+              borderRadius: "var(--socorro-radius-input)",
+              border: "1px solid rgba(239,68,68,0.15)",
             }}
           >
             <p
@@ -195,31 +201,15 @@ export default function RegistrationForm({ booking }: RegistrationFormProps) {
           </div>
         )}
 
-        <button
+        <GoldCTA
           type="submit"
+          size="lg"
           disabled={submitting}
-          className="w-full flex items-center justify-center gap-2 transition-colors duration-200"
-          style={{
-            background: submitting ? "#b8996a" : "#C8A96E",
-            color: "#1A4D3E",
-            fontFamily: "'DM Sans', system-ui, sans-serif",
-            fontSize: "15px",
-            fontWeight: 700,
-            padding: "14px 32px",
-            borderRadius: "4px",
-            border: "none",
-            cursor: submitting ? "not-allowed" : "pointer",
-          }}
-          onMouseEnter={(e) => {
-            if (!submitting) e.currentTarget.style.background = "#b8996a";
-          }}
-          onMouseLeave={(e) => {
-            if (!submitting) e.currentTarget.style.background = "#C8A96E";
-          }}
+          className="w-full"
         >
-          {submitting && <Loader2 className="w-4 h-4 animate-spin" />}
-          {submitting ? "Reserving Your Spot…" : "Confirm Registration"}
-        </button>
+          {submitting && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
+          {submitting ? "Reserving Your Spot..." : "Confirm Registration"}
+        </GoldCTA>
 
         <p
           className="text-center"

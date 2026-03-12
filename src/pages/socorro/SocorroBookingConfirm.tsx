@@ -1,5 +1,10 @@
 import { useSearchParams, Navigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
+import SocorroNavbar from "@/components/socorro/SocorroNavbar";
+import SocorroFooter from "@/components/socorro/SocorroFooter";
+import FloatingOrbs from "@/components/socorro/primitives/FloatingOrbs";
+import ShimmerHeadline from "@/components/socorro/primitives/ShimmerHeadline";
+import GlassCard from "@/components/socorro/primitives/GlassCard";
 import BookingSummaryBar from "@/components/socorro/BookingSummaryBar";
 import RegistrationForm from "@/components/socorro/RegistrationForm";
 import type { SocorroBookingState } from "@/types/socorro";
@@ -13,7 +18,6 @@ export default function SocorroBookingConfirm() {
   const date = searchParams.get("date");
   const time = searchParams.get("time");
 
-  // Redirect if missing params
   if (!advisorId || !advisorName || !slotId || !date || !time) {
     return <Navigate to="/socorro-isd/advisors" replace />;
   }
@@ -28,10 +32,12 @@ export default function SocorroBookingConfirm() {
 
   return (
     <main style={{ background: "#F7F9F8", minHeight: "100vh" }}>
+      <SocorroNavbar />
       <BookingSummaryBar advisorName={advisorName} date={date} time={time} />
 
-      <section className="py-12 px-4 sm:px-6">
-        <div className="max-w-[520px] mx-auto">
+      <section className="relative py-14 px-6 overflow-hidden">
+        <FloatingOrbs variant="light" />
+        <div className="relative z-10 max-w-[520px] mx-auto">
           <Link
             to={`/socorro-isd/advisors/${advisorId}`}
             className="inline-flex items-center gap-2 mb-6"
@@ -41,9 +47,13 @@ export default function SocorroBookingConfirm() {
               fontWeight: 500,
               color: "#4A5565",
               textDecoration: "none",
+              borderRadius: "9999px",
+              padding: "6px 14px",
+              background: "rgba(26,77,62,0.06)",
+              border: "1px solid rgba(26,77,62,0.08)",
             }}
           >
-            ← Change Time
+            &larr; Change Time
           </Link>
 
           <motion.div
@@ -51,17 +61,9 @@ export default function SocorroBookingConfirm() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <h1
-              className="mb-2"
-              style={{
-                fontFamily: "'Cormorant Garamond', Georgia, serif",
-                fontSize: "clamp(28px, 4vw, 36px)",
-                fontWeight: 700,
-                color: "#1A4D3E",
-              }}
-            >
+            <ShimmerHeadline as="h1" className="text-[clamp(28px,4vw,36px)] mb-2">
               Complete Your Registration
-            </h1>
+            </ShimmerHeadline>
             <p
               className="mb-8"
               style={{
@@ -74,19 +76,14 @@ export default function SocorroBookingConfirm() {
               <strong style={{ color: "#1A4D3E" }}>{advisorName}</strong>.
             </p>
 
-            <div
-              className="p-6 sm:p-8"
-              style={{
-                background: "#ffffff",
-                borderRadius: "4px",
-                border: "1px solid #E5E7EB",
-              }}
-            >
+            <GlassCard variant="light" className="p-6 sm:p-8">
               <RegistrationForm booking={booking} />
-            </div>
+            </GlassCard>
           </motion.div>
         </div>
       </section>
+
+      <SocorroFooter />
     </main>
   );
 }

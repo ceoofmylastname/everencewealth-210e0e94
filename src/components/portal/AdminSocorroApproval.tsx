@@ -169,7 +169,7 @@ export default function AdminSocorroApproval() {
 
       {/* Add Advisor Form */}
       {showAddForm && (
-        <div className="border rounded-lg p-5 bg-gray-50 space-y-4">
+        <div className="border rounded-xl p-5 bg-gray-50 space-y-4 shadow-sm">
           <h3 className="text-sm font-semibold text-gray-700">New Workshop Advisor</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
@@ -229,7 +229,7 @@ export default function AdminSocorroApproval() {
           {filtered.map((advisor) => {
             const isExpanded = expandedId === advisor.id;
             return (
-              <div key={advisor.id} className="border rounded-lg overflow-hidden bg-white">
+              <div key={advisor.id} className="border rounded-xl overflow-hidden bg-white shadow-sm">
                 {/* Row header */}
                 <div
                   className="flex items-center gap-4 px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors"
@@ -266,7 +266,7 @@ export default function AdminSocorroApproval() {
 
                 {/* Expanded panel */}
                 {isExpanded && (
-                  <div className="border-t px-4 py-5 bg-gray-50 space-y-6">
+                  <div className="border-t px-4 py-5 bg-gradient-to-b from-gray-50 to-white space-y-6">
                     <AdvisorProfileEditor advisor={advisor} onUpdated={loadAdvisors} />
                     <div className="border-t pt-5">
                       <h4 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
@@ -499,7 +499,7 @@ function AdvisorScheduleManager({ advisorId }: { advisorId: string }) {
                   {dateSlots.map((slot) => (
                     <div
                       key={slot.id}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded text-sm border"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm border"
                       style={{
                         background: slot.is_booked ? "#fef3c7" : "#ecfdf5",
                         borderColor: slot.is_booked ? "#fde68a" : "#a7f3d0",

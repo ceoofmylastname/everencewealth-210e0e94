@@ -109,7 +109,7 @@ export default function SocorroRegistrationsTable({ advisorId }: SocorroRegistra
       {filtered.length === 0 ? (
         <p className="py-8 text-center text-gray-400 text-sm">No registrations found.</p>
       ) : (
-        <div className="border rounded-lg overflow-x-auto">
+        <div className="border rounded-xl overflow-x-auto shadow-sm">
           <Table>
             <TableHeader>
               <TableRow>

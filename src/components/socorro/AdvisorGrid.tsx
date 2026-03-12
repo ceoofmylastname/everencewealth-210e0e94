@@ -1,6 +1,6 @@
 import AdvisorCard from "./AdvisorCard";
 import type { SocorroAdvisor } from "@/types/socorro";
-import { Skeleton } from "@/components/ui/skeleton";
+import GlassCard from "./primitives/GlassCard";
 
 interface AdvisorGridProps {
   advisors: SocorroAdvisor[];
@@ -12,12 +12,19 @@ export default function AdvisorGrid({ advisors, isLoading }: AdvisorGridProps) {
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {[0, 1, 2].map((i) => (
-          <div key={i} className="space-y-3">
-            <Skeleton className="aspect-square w-full" />
-            <Skeleton className="h-6 w-2/3" />
-            <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-10 w-32" />
-          </div>
+          <GlassCard key={i} variant="light" className="overflow-hidden animate-pulse">
+            <div
+              className="aspect-square"
+              style={{
+                background: "linear-gradient(135deg, rgba(200,169,110,0.06), rgba(26,77,62,0.04))",
+              }}
+            />
+            <div className="p-6 space-y-3">
+              <div className="h-6 w-2/3 rounded-full" style={{ background: "rgba(26,77,62,0.08)" }} />
+              <div className="h-4 w-full rounded-full" style={{ background: "rgba(26,77,62,0.05)" }} />
+              <div className="h-10 w-32 rounded-full" style={{ background: "rgba(200,169,110,0.1)" }} />
+            </div>
+          </GlassCard>
         ))}
       </div>
     );

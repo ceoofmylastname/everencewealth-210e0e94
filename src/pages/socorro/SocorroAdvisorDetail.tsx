@@ -1,11 +1,16 @@
 import { useState } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import SocorroNavbar from "@/components/socorro/SocorroNavbar";
+import SocorroFooter from "@/components/socorro/SocorroFooter";
+import FloatingOrbs from "@/components/socorro/primitives/FloatingOrbs";
+import ShimmerHeadline from "@/components/socorro/primitives/ShimmerHeadline";
+import GlassCard from "@/components/socorro/primitives/GlassCard";
+import GoldCTA from "@/components/socorro/primitives/GoldCTA";
 import AvailabilityPicker from "@/components/socorro/AvailabilityPicker";
 import { useSocorroAdvisor } from "@/hooks/useSocorroAdvisors";
 import { useSocorroAvailability } from "@/hooks/useSocorroAvailability";
 import type { SocorroAvailabilitySlot } from "@/types/socorro";
-import { Skeleton } from "@/components/ui/skeleton";
 
 export default function SocorroAdvisorDetail() {
   const { advisorId } = useParams<{ advisorId: string }>();
@@ -28,28 +33,24 @@ export default function SocorroAdvisorDetail() {
 
   return (
     <main style={{ background: "#F7F9F8", minHeight: "100vh" }}>
-      {/* Header */}
-      <section className="py-12 px-4 sm:px-6" style={{ background: "#0D1F1A" }}>
-        <div className="max-w-[800px] mx-auto">
-          <Link
-            to="/socorro-isd/advisors"
-            className="inline-flex items-center gap-2 mb-6"
-            style={{
-              fontFamily: "'DM Sans', system-ui, sans-serif",
-              fontSize: "13px",
-              fontWeight: 500,
-              color: "rgba(240,242,241,0.6)",
-              textDecoration: "none",
-            }}
-          >
-            ← All Advisors
-          </Link>
+      <SocorroNavbar />
+
+      {/* Advisor Header */}
+      <section
+        className="relative pt-28 pb-14 px-6 overflow-hidden"
+        style={{ background: "#0D1F1A" }}
+      >
+        <FloatingOrbs variant="dark" />
+        <div className="relative z-10 max-w-[800px] mx-auto">
           {advLoading ? (
             <div className="flex items-center gap-6">
-              <Skeleton className="w-20 h-20 rounded-full" />
+              <div
+                className="w-20 h-20 rounded-full animate-pulse"
+                style={{ background: "rgba(200,169,110,0.15)" }}
+              />
               <div className="space-y-2">
-                <Skeleton className="h-8 w-48" />
-                <Skeleton className="h-4 w-72" />
+                <div className="h-8 w-48 rounded-full animate-pulse" style={{ background: "rgba(200,169,110,0.1)" }} />
+                <div className="h-4 w-72 rounded-full animate-pulse" style={{ background: "rgba(200,169,110,0.06)" }} />
               </div>
             </div>
           ) : advisor ? (
@@ -57,59 +58,62 @@ export default function SocorroAdvisorDetail() {
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
-              className="flex items-center gap-6"
             >
-              {advisor.headshot_url ? (
-                <img
-                  src={advisor.headshot_url}
-                  alt={`${advisor.first_name} ${advisor.last_name}`}
-                  className="w-20 h-20 rounded-full object-cover"
-                  style={{ border: "2px solid #C8A96E" }}
-                />
-              ) : (
-                <div
-                  className="w-20 h-20 rounded-full flex items-center justify-center"
-                  style={{ background: "rgba(200,169,110,0.15)" }}
-                >
-                  <span
+              <GlassCard className="p-6 flex items-center gap-6">
+                {advisor.headshot_url ? (
+                  <img
+                    src={advisor.headshot_url}
+                    alt={`${advisor.first_name} ${advisor.last_name}`}
+                    className="w-20 h-20 object-cover flex-shrink-0"
                     style={{
-                      fontFamily: "'Cormorant Garamond', Georgia, serif",
-                      fontSize: "28px",
-                      fontWeight: 700,
-                      color: "#C8A96E",
+                      borderRadius: "var(--socorro-radius-card)",
+                      border: "2px solid rgba(200,169,110,0.3)",
+                    }}
+                  />
+                ) : (
+                  <div
+                    className="w-20 h-20 flex items-center justify-center flex-shrink-0"
+                    style={{
+                      borderRadius: "var(--socorro-radius-card)",
+                      background: "rgba(200,169,110,0.12)",
                     }}
                   >
-                    {advisor.first_name[0]}
-                    {advisor.last_name[0]}
-                  </span>
-                </div>
-              )}
-              <div>
-                <h1
-                  style={{
-                    fontFamily: "'Cormorant Garamond', Georgia, serif",
-                    fontSize: "clamp(28px, 4vw, 40px)",
-                    fontWeight: 700,
-                    color: "#F0F2F1",
-                    lineHeight: 1.1,
-                  }}
-                >
-                  {advisor.first_name} {advisor.last_name}
-                </h1>
-                {advisor.bio && (
-                  <p
-                    className="mt-1"
-                    style={{
-                      fontFamily: "'DM Sans', system-ui, sans-serif",
-                      fontSize: "15px",
-                      color: "rgba(240,242,241,0.6)",
-                      maxWidth: "400px",
-                    }}
-                  >
-                    {advisor.bio}
-                  </p>
+                    <span
+                      style={{
+                        fontFamily: "'Cormorant Garamond', Georgia, serif",
+                        fontSize: "28px",
+                        fontWeight: 700,
+                        color: "#C8A96E",
+                      }}
+                    >
+                      {advisor.first_name[0]}
+                      {advisor.last_name[0]}
+                    </span>
+                  </div>
                 )}
-              </div>
+                <div>
+                  <ShimmerHeadline
+                    as="h1"
+                    variant="light"
+                    className="text-[clamp(28px,4vw,40px)] leading-[1.1]"
+                  >
+                    {advisor.first_name} {advisor.last_name}
+                  </ShimmerHeadline>
+                  {advisor.bio && (
+                    <p
+                      className="mt-2"
+                      style={{
+                        fontFamily: "'DM Sans', system-ui, sans-serif",
+                        fontSize: "15px",
+                        color: "rgba(240,242,241,0.55)",
+                        maxWidth: "400px",
+                      }}
+                    >
+                      {advisor.bio}
+                    </p>
+                  )}
+                </div>
+              </GlassCard>
             </motion.div>
           ) : (
             <p style={{ color: "#F0F2F1" }}>Advisor not found.</p>
@@ -118,61 +122,32 @@ export default function SocorroAdvisorDetail() {
       </section>
 
       {/* Availability picker */}
-      <section className="py-10 px-4 sm:px-6">
-        <div className="max-w-[800px] mx-auto">
-          <h2
-            className="mb-6"
-            style={{
-              fontFamily: "'Cormorant Garamond', Georgia, serif",
-              fontSize: "24px",
-              fontWeight: 700,
-              color: "#1A4D3E",
-            }}
-          >
+      <section className="relative py-12 px-6 overflow-hidden">
+        <FloatingOrbs variant="light" />
+        <div className="relative z-10 max-w-[800px] mx-auto">
+          <ShimmerHeadline as="h2" className="text-[24px] mb-6">
             Select a Date &amp; Time
-          </h2>
-          <div
-            className="p-6"
-            style={{ background: "#ffffff", borderRadius: "4px", border: "1px solid #E5E7EB" }}
-          >
+          </ShimmerHeadline>
+
+          <GlassCard variant="light" className="p-6 sm:p-8">
             <AvailabilityPicker
               slots={slots}
               isLoading={slotsLoading}
               onSelect={setSelectedSlot}
               selectedSlotId={selectedSlot?.id ?? null}
             />
-          </div>
+          </GlassCard>
 
           {/* Continue button */}
           {selectedSlot && (
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="mt-6 text-center"
+              className="mt-8 text-center"
             >
-              <button
-                onClick={handleContinue}
-                className="transition-colors duration-200"
-                style={{
-                  background: "#C8A96E",
-                  color: "#1A4D3E",
-                  fontFamily: "'DM Sans', system-ui, sans-serif",
-                  fontSize: "15px",
-                  fontWeight: 700,
-                  padding: "14px 40px",
-                  borderRadius: "4px",
-                  border: "none",
-                  cursor: "pointer",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = "#b8996a";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = "#C8A96E";
-                }}
-              >
-                Continue to Registration →
-              </button>
+              <GoldCTA onClick={handleContinue} size="lg">
+                Continue to Registration &rarr;
+              </GoldCTA>
               <p
                 className="mt-3"
                 style={{
@@ -187,6 +162,8 @@ export default function SocorroAdvisorDetail() {
           )}
         </div>
       </section>
+
+      <SocorroFooter />
     </main>
   );
 }

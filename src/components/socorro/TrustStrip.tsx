@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import ScrollReveal from "./primitives/ScrollReveal";
 
 const carriers = [
   "Nationwide",
@@ -18,23 +18,18 @@ const badges = [
 
 export default function TrustStrip() {
   return (
-    <section className="py-12 px-4 sm:px-6" style={{ background: "#ffffff" }}>
+    <section className="py-14 px-6" style={{ background: "#F7F9F8" }}>
       <div className="max-w-[900px] mx-auto">
-        <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-        >
+        <ScrollReveal>
           <p
             className="text-center mb-8"
             style={{
               fontFamily: "'DM Sans', system-ui, sans-serif",
               fontSize: "12px",
               fontWeight: 600,
-              letterSpacing: "0.1em",
+              letterSpacing: "0.15em",
               textTransform: "uppercase",
-              color: "#9CA3AF",
+              color: "rgba(26,77,62,0.4)",
             }}
           >
             Trusted Carrier Partners
@@ -49,7 +44,7 @@ export default function TrustStrip() {
                   fontFamily: "'DM Sans', system-ui, sans-serif",
                   fontSize: "14px",
                   fontWeight: 600,
-                  color: "#9CA3AF",
+                  color: "rgba(26,77,62,0.35)",
                   letterSpacing: "0.02em",
                 }}
               >
@@ -74,12 +69,12 @@ export default function TrustStrip() {
                 <span
                   className="flex items-center justify-center"
                   style={{
-                    width: "22px",
-                    height: "22px",
+                    width: 24,
+                    height: 24,
                     borderRadius: "50%",
-                    background: "rgba(26,77,62,0.08)",
+                    background: "rgba(200,169,110,0.12)",
                     fontSize: "11px",
-                    color: "#1A4D3E",
+                    color: "#C8A96E",
                     fontWeight: 700,
                   }}
                 >
@@ -89,7 +84,7 @@ export default function TrustStrip() {
               </div>
             ))}
           </div>
-        </motion.div>
+        </ScrollReveal>
       </div>
     </section>
   );

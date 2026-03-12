@@ -1,0 +1,205 @@
+/* =========================================
+   Socorro ISD — Design Tokens & Utilities
+   Glassmorphism V2 Design System
+   ========================================= */
+
+:root {
+  /* Color Tokens */
+  --socorro-bg-dark: #0D1F1A;
+  --socorro-bg-cream: #F7F9F8;
+  --socorro-evergreen: #1A4D3E;
+  --socorro-gold: #C8A96E;
+  --socorro-gold-light: #E2C896;
+  --socorro-gold-hover: #b8996a;
+  --socorro-gold-shadow: #997a3a;
+  --socorro-white: #F0F2F1;
+  --socorro-text-muted: #4A5565;
+
+  /* Radius Tokens */
+  --socorro-radius-pill: 9999px;
+  --socorro-radius-card: 20px;
+  --socorro-radius-panel: 24px;
+  --socorro-radius-input: 14px;
+
+  /* Glass Tokens */
+  --socorro-glass-blur: 18px;
+  --socorro-glass-bg: rgba(255, 255, 255, 0.06);
+  --socorro-glass-bg-light: rgba(255, 255, 255, 0.65);
+  --socorro-glass-border: rgba(200, 169, 110, 0.12);
+  --socorro-glass-border-hover: rgba(200, 169, 110, 0.25);
+}
+
+/* =========================================
+   Keyframes
+   ========================================= */
+
+@keyframes socorro-shimmer {
+  0% {
+    background-position: -200% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+
+@keyframes socorro-orb-float {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+  }
+  25% {
+    transform: translate(15px, -25px) scale(1.05);
+  }
+  50% {
+    transform: translate(-10px, -15px) scale(0.97);
+  }
+  75% {
+    transform: translate(20px, -10px) scale(1.03);
+  }
+}
+
+@keyframes socorro-underline-draw {
+  0% {
+    transform: scaleX(0);
+    transform-origin: left;
+  }
+  100% {
+    transform: scaleX(1);
+    transform-origin: left;
+  }
+}
+
+@keyframes socorro-count-up {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* =========================================
+   Utility Classes
+   ========================================= */
+
+/* Glass panel — dark variant (for dark backgrounds) */
+.socorro-glass {
+  backdrop-filter: blur(var(--socorro-glass-blur));
+  -webkit-backdrop-filter: blur(var(--socorro-glass-blur));
+  background: var(--socorro-glass-bg);
+  border: 1px solid var(--socorro-glass-border);
+  border-radius: var(--socorro-radius-card);
+}
+
+/* Glass panel — light variant (for cream/white backgrounds) */
+.socorro-glass-light {
+  backdrop-filter: blur(var(--socorro-glass-blur));
+  -webkit-backdrop-filter: blur(var(--socorro-glass-blur));
+  background: var(--socorro-glass-bg-light);
+  border: 1px solid var(--socorro-glass-border);
+  border-radius: var(--socorro-radius-card);
+}
+
+/* Shimmer gradient text */
+.socorro-shimmer-text {
+  background: linear-gradient(
+    90deg,
+    var(--socorro-evergreen) 0%,
+    var(--socorro-gold) 25%,
+    var(--socorro-gold-light) 50%,
+    var(--socorro-gold) 75%,
+    var(--socorro-evergreen) 100%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: socorro-shimmer 8s linear infinite;
+}
+
+/* Shimmer gradient text — light variant (for dark backgrounds) */
+.socorro-shimmer-text-light {
+  background: linear-gradient(
+    90deg,
+    var(--socorro-white) 0%,
+    var(--socorro-gold) 25%,
+    var(--socorro-gold-light) 50%,
+    var(--socorro-gold) 75%,
+    var(--socorro-white) 100%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: socorro-shimmer 8s linear infinite;
+}
+
+/* Pill button with 3D press effect */
+.socorro-pill-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--socorro-radius-pill);
+  background: var(--socorro-gold);
+  color: var(--socorro-evergreen);
+  font-family: 'DM Sans', system-ui, sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 0 var(--socorro-gold-shadow);
+  transform: translateY(0);
+  transition: all 0.15s ease;
+}
+
+.socorro-pill-btn:hover {
+  background: var(--socorro-gold-hover);
+}
+
+.socorro-pill-btn:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 var(--socorro-gold-shadow);
+}
+
+/* Floating orb base */
+.socorro-orb {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  animation: socorro-orb-float 20s ease-in-out infinite;
+  will-change: transform;
+}
+
+/* Animated underline */
+.socorro-underline {
+  position: relative;
+  display: inline-block;
+}
+
+.socorro-underline::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(90deg, var(--socorro-gold), var(--socorro-gold-light));
+  border-radius: 2px;
+  transform: scaleX(0);
+  transform-origin: left;
+  animation: socorro-underline-draw 0.6s ease-out 0.3s forwards;
+}
+
+/* 3D card hover */
+.socorro-card-3d {
+  transition: transform 0.35s ease, box-shadow 0.35s ease;
+  will-change: transform;
+}
+
+.socorro-card-3d:hover {
+  transform: translateY(-6px) rotateX(2deg);
+  box-shadow:
+    0 20px 40px rgba(0, 0, 0, 0.12),
+    0 0 30px rgba(200, 169, 110, 0.08);
+}

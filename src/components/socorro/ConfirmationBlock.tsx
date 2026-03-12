@@ -1,5 +1,7 @@
 import { useEffect, useRef } from "react";
 import { motion } from "framer-motion";
+import ShimmerHeadline from "./primitives/ShimmerHeadline";
+import GlassCard from "./primitives/GlassCard";
 
 interface ConfirmationBlockProps {
   name: string;
@@ -96,6 +98,22 @@ export default function ConfirmationBlock({
     });
   }, []);
 
+  const labelStyle: React.CSSProperties = {
+    fontFamily: "'DM Sans', system-ui, sans-serif",
+    fontSize: "11px",
+    fontWeight: 600,
+    letterSpacing: "0.1em",
+    textTransform: "uppercase",
+    color: "rgba(240,242,241,0.45)",
+    marginBottom: "4px",
+  };
+
+  const valueStyle: React.CSSProperties = {
+    fontFamily: "'DM Sans', system-ui, sans-serif",
+    fontSize: "16px",
+    color: "#F0F2F1",
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
@@ -107,10 +125,11 @@ export default function ConfirmationBlock({
       <div
         className="mx-auto mb-6 flex items-center justify-center"
         style={{
-          width: "80px",
-          height: "80px",
+          width: 80,
+          height: 80,
           borderRadius: "50%",
-          background: "rgba(26,77,62,0.08)",
+          background: "rgba(200,169,110,0.1)",
+          border: "2px solid rgba(200,169,110,0.2)",
         }}
       >
         <motion.svg
@@ -124,7 +143,7 @@ export default function ConfirmationBlock({
           <motion.path
             d="M10 20 L17 27 L30 13"
             fill="none"
-            stroke="#1A4D3E"
+            stroke="#C8A96E"
             strokeWidth="3"
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -135,18 +154,10 @@ export default function ConfirmationBlock({
         </motion.svg>
       </div>
 
-      <h1
-        className="mb-3"
-        style={{
-          fontFamily: "'Cormorant Garamond', Georgia, serif",
-          fontSize: "clamp(28px, 4vw, 40px)",
-          fontWeight: 700,
-          color: "#1A4D3E",
-          lineHeight: 1.2,
-        }}
-      >
+      <ShimmerHeadline as="h1" className="text-[clamp(28px,4vw,40px)] mb-3">
         You're All Set, {name}!
-      </h1>
+      </ShimmerHeadline>
+
       <p
         className="mb-8"
         style={{
@@ -158,120 +169,35 @@ export default function ConfirmationBlock({
           lineHeight: 1.6,
         }}
       >
-        Your session has been confirmed. You'll receive a confirmation email shortly with all the details.
+        Your session has been confirmed. You'll receive a confirmation email
+        shortly with all the details.
       </p>
 
-      {/* Details card */}
-      <div
-        className="mx-auto p-6 text-left"
-        style={{
-          maxWidth: "400px",
-          background: "#0D1F1A",
-          borderRadius: "4px",
-        }}
-      >
+      {/* Details card — glass dark */}
+      <GlassCard className="mx-auto p-6 text-left" style={{ maxWidth: 420, background: "rgba(13,31,26,0.95)" }}>
         <div className="space-y-4">
           <div>
-            <p
-              style={{
-                fontFamily: "'DM Sans', system-ui, sans-serif",
-                fontSize: "11px",
-                fontWeight: 600,
-                letterSpacing: "0.1em",
-                textTransform: "uppercase",
-                color: "rgba(240,242,241,0.5)",
-                marginBottom: "4px",
-              }}
-            >
-              Advisor
-            </p>
-            <p
-              style={{
-                fontFamily: "'DM Sans', system-ui, sans-serif",
-                fontSize: "16px",
-                fontWeight: 600,
-                color: "#C8A96E",
-              }}
-            >
+            <p style={labelStyle}>Advisor</p>
+            <p style={{ ...valueStyle, color: "#C8A96E", fontWeight: 600 }}>
               {advisorName}
             </p>
           </div>
           <div className="flex gap-8">
             <div>
-              <p
-                style={{
-                  fontFamily: "'DM Sans', system-ui, sans-serif",
-                  fontSize: "11px",
-                  fontWeight: 600,
-                  letterSpacing: "0.1em",
-                  textTransform: "uppercase",
-                  color: "rgba(240,242,241,0.5)",
-                  marginBottom: "4px",
-                }}
-              >
-                Date
-              </p>
-              <p
-                style={{
-                  fontFamily: "'DM Sans', system-ui, sans-serif",
-                  fontSize: "16px",
-                  color: "#F0F2F1",
-                }}
-              >
-                {date}
-              </p>
+              <p style={labelStyle}>Date</p>
+              <p style={valueStyle}>{date}</p>
             </div>
             <div>
-              <p
-                style={{
-                  fontFamily: "'DM Sans', system-ui, sans-serif",
-                  fontSize: "11px",
-                  fontWeight: 600,
-                  letterSpacing: "0.1em",
-                  textTransform: "uppercase",
-                  color: "rgba(240,242,241,0.5)",
-                  marginBottom: "4px",
-                }}
-              >
-                Time
-              </p>
-              <p
-                style={{
-                  fontFamily: "'DM Sans', system-ui, sans-serif",
-                  fontSize: "16px",
-                  color: "#F0F2F1",
-                }}
-              >
-                {time}
-              </p>
+              <p style={labelStyle}>Time</p>
+              <p style={valueStyle}>{time}</p>
             </div>
           </div>
           <div>
-            <p
-              style={{
-                fontFamily: "'DM Sans', system-ui, sans-serif",
-                fontSize: "11px",
-                fontWeight: 600,
-                letterSpacing: "0.1em",
-                textTransform: "uppercase",
-                color: "rgba(240,242,241,0.5)",
-                marginBottom: "4px",
-              }}
-            >
-              Location
-            </p>
-            <p
-              style={{
-                fontFamily: "'DM Sans', system-ui, sans-serif",
-                fontSize: "16px",
-                color: "#F0F2F1",
-              }}
-            >
-              Socorro ISD Campus
-            </p>
+            <p style={labelStyle}>Location</p>
+            <p style={valueStyle}>Socorro ISD Campus</p>
           </div>
         </div>
-      </div>
+      </GlassCard>
     </motion.div>
   );
 }

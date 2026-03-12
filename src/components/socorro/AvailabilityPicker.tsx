@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import type { SocorroAvailabilitySlot } from "@/types/socorro";
-import { Skeleton } from "@/components/ui/skeleton";
+import GlassCard from "./primitives/GlassCard";
 
 const WORKSHOP_DATES = [
   { date: "2026-03-24", label: "Mon Mar 24" },
@@ -34,12 +34,20 @@ export default function AvailabilityPicker({
       <div className="space-y-4">
         <div className="flex gap-2">
           {[0, 1, 2, 3, 4].map((i) => (
-            <Skeleton key={i} className="h-10 w-24" />
+            <div
+              key={i}
+              className="h-10 w-28 rounded-full animate-pulse"
+              style={{ background: "rgba(200,169,110,0.1)" }}
+            />
           ))}
         </div>
         <div className="grid grid-cols-2 gap-3">
           {[0, 1, 2, 3].map((i) => (
-            <Skeleton key={i} className="h-14" />
+            <div
+              key={i}
+              className="h-14 rounded-socorro-card animate-pulse"
+              style={{ background: "rgba(26,77,62,0.05)" }}
+            />
           ))}
         </div>
       </div>
@@ -65,7 +73,7 @@ export default function AvailabilityPicker({
   return (
     <div>
       {/* Date pills */}
-      <div className="flex flex-wrap gap-2 mb-6">
+      <div className="flex flex-wrap gap-2 mb-8">
         {WORKSHOP_DATES.map((d) => {
           const hasSlots = availableDates.has(d.date);
           const isActive = activeDate === d.date;
@@ -74,22 +82,25 @@ export default function AvailabilityPicker({
               key={d.date}
               onClick={() => hasSlots && setActiveDate(d.date)}
               disabled={!hasSlots}
-              className="transition-colors duration-200"
+              className="transition-all duration-200"
               style={{
                 fontFamily: "'DM Sans', system-ui, sans-serif",
                 fontSize: "13px",
                 fontWeight: 600,
-                padding: "10px 18px",
-                borderRadius: "4px",
-                border: "none",
+                padding: "10px 20px",
+                borderRadius: "9999px",
+                border: isActive
+                  ? "2px solid #C8A96E"
+                  : "1px solid rgba(200,169,110,0.15)",
                 cursor: hasSlots ? "pointer" : "default",
                 background: isActive
-                  ? "#1A4D3E"
+                  ? "rgba(200,169,110,0.1)"
                   : hasSlots
-                    ? "#E8ECE9"
-                    : "#F3F4F6",
+                    ? "rgba(255,255,255,0.65)"
+                    : "rgba(200,200,200,0.1)",
+                backdropFilter: "blur(8px)",
                 color: isActive
-                  ? "#F0F2F1"
+                  ? "#C8A96E"
                   : hasSlots
                     ? "#1A4D3E"
                     : "#9CA3AF",
@@ -124,33 +135,40 @@ export default function AvailabilityPicker({
                 whileTap={isAvailable ? { scale: 0.97 } : {}}
                 onClick={() => isAvailable && onSelect(slot)}
                 disabled={!isAvailable}
-                className="transition-colors duration-200"
+                className="transition-all duration-200"
                 style={{
                   fontFamily: "'DM Sans', system-ui, sans-serif",
                   fontSize: "14px",
                   fontWeight: 600,
                   padding: "14px 8px",
-                  borderRadius: "4px",
+                  borderRadius: "var(--socorro-radius-card)",
                   border: isSelected
                     ? "2px solid #C8A96E"
-                    : "1px solid #E5E7EB",
+                    : "1px solid rgba(200,169,110,0.12)",
                   cursor: isAvailable ? "pointer" : "default",
                   background: isSelected
-                    ? "rgba(200,169,110,0.08)"
+                    ? "rgba(200,169,110,0.1)"
                     : isAvailable
-                      ? "#ffffff"
-                      : "#F3F4F6",
+                      ? "rgba(255,255,255,0.65)"
+                      : "rgba(200,200,200,0.08)",
+                  backdropFilter: isAvailable ? "blur(8px)" : "none",
                   color: isSelected
                     ? "#C8A96E"
                     : isAvailable
                       ? "#1A4D3E"
                       : "#9CA3AF",
                   textDecoration: isAvailable ? "none" : "line-through",
+                  boxShadow: isSelected
+                    ? "0 0 20px rgba(200,169,110,0.15)"
+                    : "none",
                 }}
               >
                 {slot.time_slot}
                 {!isAvailable && (
-                  <span className="block text-xs font-normal mt-1" style={{ color: "#9CA3AF", textDecoration: "none" }}>
+                  <span
+                    className="block text-xs font-normal mt-1"
+                    style={{ color: "#9CA3AF", textDecoration: "none" }}
+                  >
                     Booked
                   </span>
                 )}
