@@ -560,9 +560,9 @@ export default function TrainingEvent() {
                                     <div className="absolute top-6 left-1/2 -translate-x-1/2 flex gap-2">
                                         {[1, 2, 3].map(i => (
                                             <div key={i} className="transition-all duration-500" style={{
-                                                height: '2px', borderRadius: '0px',
-                                                width: step >= i ? '32px' : '8px',
-                                                background: step >= i ? '#C8A96E' : 'rgba(255,255,255,0.2)',
+                                                height: '3px', borderRadius: '99px',
+                                                width: step >= i ? '32px' : '12px',
+                                                background: step >= i ? '#C8A96E' : 'rgba(255,255,255,0.15)',
                                             }} />
                                         ))}
                                     </div>
