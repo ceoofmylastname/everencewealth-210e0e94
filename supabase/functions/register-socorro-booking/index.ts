@@ -155,13 +155,14 @@ Deno.serve(async (req) => {
                 body: JSON.stringify({
                     event: "workshop_registration",
                     source: "socorro_isd_workshop_march2025",
-                    attendee: { first_name, last_name, email, phone: phone || "" },
-                    booking: {
-                        advisor_id,
-                        advisor_name: advisor_name || "",
-                        selected_date,
-                        selected_time,
-                    },
+                    first_name,
+                    last_name,
+                    email,
+                    phone: phone || "",
+                    advisor_id,
+                    advisor_name: advisor_name || "",
+                    selected_date,
+                    selected_time,
                     timestamp: new Date().toISOString(),
                 }),
             });
