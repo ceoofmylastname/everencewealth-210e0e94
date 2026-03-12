@@ -347,11 +347,11 @@ export default function TrainingEvent() {
                             }}>
                                 Your Strategy Has a Ceiling.<br />
                                 This Day <span style={{
-                                    background: 'linear-gradient(90deg, #C8A96E, #F5E6C8, #EDDB77, #C8A96E)',
-                                    backgroundSize: '300% 100%',
+                                    background: 'linear-gradient(90deg, #B8945E, #F5E6C8, #EDDB77, #F5E6C8, #B8945E)',
+                                    backgroundSize: '400% 100%',
                                     WebkitBackgroundClip: 'text',
                                     WebkitTextFillColor: 'transparent',
-                                    animation: 'te-gold-gradient-shift 4s ease infinite',
+                                    animation: 'te-gold-gradient-shift 6s ease infinite',
                                 }}>Removes It</span>.
                             </h1>
 
