@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
 import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
@@ -26,9 +26,17 @@ export default function TrainingEvent() {
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState(false);
     const inputRef = useRef<HTMLInputElement>(null);
+    const videoRef = useRef<HTMLVideoElement>(null);
+    const [isMuted, setIsMuted] = useState(true);
+
+    const toggleSound = useCallback(() => {
+        if (videoRef.current) {
+            videoRef.current.muted = !videoRef.current.muted;
+            setIsMuted(videoRef.current.muted);
+        }
+    }, []);
 
     const { scrollY } = useScroll();
-    const y1 = useTransform(scrollY, [0, 1000], [0, 250]);
     const y2 = useTransform(scrollY, [0, 1000], [0, -100]);
 
     // Focus input automatically on step change
@@ -206,19 +214,21 @@ export default function TrainingEvent() {
     };
 
     return (
-        <div className="min-h-screen bg-[#0A120F] text-white selection:bg-[#C5A059] selection:text-black font-sans relative overflow-x-hidden">
-            {/* Background Parallax */}
-            <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
-                <motion.div style={{ y: y1 }} className="absolute inset-0 w-full h-[120vh] -top-[10vh]">
-                    <img
-                        src="/training-hero.png"
-                        alt="Corporate Training Event"
-                        className="w-full h-full object-cover opacity-20"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#0A120F]/80 to-[#0A120F] pointer-events-none" />
-                    <div className="absolute inset-0 bg-gradient-to-r from-[#0A120F] via-transparent to-[#0A120F] pointer-events-none" />
-                </motion.div>
-            </div>
+        <div className="min-h-screen bg-[#0a140e] text-white selection:bg-[#C5A059] selection:text-black font-sans relative overflow-x-hidden">
+            {/* Noise texture overlay */}
+            <div className="fixed inset-0 z-0 pointer-events-none opacity-[0.035]" style={{
+                backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E")`,
+                backgroundRepeat: 'repeat',
+                backgroundSize: '128px 128px'
+            }} />
+
+            {/* Sound toggle pulse animation */}
+            <style>{`
+                @keyframes te-sound-pulse {
+                    0%, 100% { box-shadow: 0 0 0 0 rgba(200,169,110,0.4); }
+                    50% { box-shadow: 0 0 0 8px rgba(200,169,110,0); }
+                }
+            `}</style>
 
             <div className="relative z-10">
                 {/* Navbar */}
@@ -233,13 +243,63 @@ export default function TrainingEvent() {
                 </nav>
 
                 {/* Hero Section */}
-                <section className="container mx-auto px-4 sm:px-6 pt-6 pb-6 lg:pt-32 lg:pb-24 grid lg:grid-cols-2 gap-6 lg:gap-24 items-center min-h-[auto] lg:min-h-[85vh]">
+                <section className="container mx-auto px-4 sm:px-6 pt-6 pb-6 lg:pt-20 lg:pb-24 grid lg:grid-cols-[11fr_9fr] gap-8 lg:gap-12 items-start min-h-[auto] lg:min-h-[85vh]">
                     <motion.div
                         initial={{ opacity: 0, x: -50 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ duration: 0.8, ease: "easeOut" }}
                         className="space-y-5 sm:space-y-8"
                     >
+                        {/* Video Container — the star of the page */}
+                        <div className="relative w-full overflow-hidden" style={{ aspectRatio: '16/9', borderRadius: '2px', border: '1px solid rgba(200,169,110,0.2)' }}>
+                            <video
+                                ref={videoRef}
+                                autoPlay
+                                muted
+                                playsInline
+                                className="absolute inset-0 w-full h-full object-cover"
+                                onEnded={(e) => { e.currentTarget.pause(); }}
+                            >
+                                <source src="https://assets.cdn.filesafe.space/htr97zzmRc1NMujHbL9R/media/69b228577fc07c6782abd388.mov" type="video/quicktime" />
+                                <source src="https://assets.cdn.filesafe.space/htr97zzmRc1NMujHbL9R/media/69b228577fc07c6782abd388.mov" type="video/mp4" />
+                            </video>
+                            {/* Vignette overlay */}
+                            <div className="absolute inset-0 pointer-events-none" style={{ boxShadow: 'inset 0 0 60px rgba(0,0,0,0.5)' }} />
+                            {/* Sound toggle — bottom-right of video */}
+                            <button
+                                onClick={toggleSound}
+                                aria-label={isMuted ? 'Unmute video' : 'Mute video'}
+                                className="absolute flex items-center justify-center transition-all duration-200 hover:scale-110 cursor-pointer"
+                                style={{
+                                    bottom: '12px',
+                                    right: '12px',
+                                    width: '38px',
+                                    height: '38px',
+                                    zIndex: 10,
+                                    background: 'rgba(0,0,0,0.55)',
+                                    backdropFilter: 'blur(8px)',
+                                    WebkitBackdropFilter: 'blur(8px)',
+                                    border: '1px solid rgba(200,169,110,0.4)',
+                                    borderRadius: '0px',
+                                    animation: !isMuted ? 'te-sound-pulse 2s ease-in-out infinite' : 'none',
+                                }}
+                            >
+                                {isMuted ? (
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M11 5L6 9H2V15H6L11 19V5Z" fill="#C8A96E" />
+                                        <line x1="23" y1="9" x2="17" y2="15" stroke="#C8A96E" strokeWidth="2" strokeLinecap="round" />
+                                        <line x1="17" y1="9" x2="23" y2="15" stroke="#C8A96E" strokeWidth="2" strokeLinecap="round" />
+                                    </svg>
+                                ) : (
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M11 5L6 9H2V15H6L11 19V5Z" fill="#C8A96E" />
+                                        <path d="M15.54 8.46C16.48 9.4 17.01 10.67 17.01 12C17.01 13.33 16.48 14.6 15.54 15.54" stroke="#C8A96E" strokeWidth="2" strokeLinecap="round" />
+                                        <path d="M18.07 5.93C19.78 7.64 20.74 9.87 20.74 12.19C20.74 14.51 19.78 16.74 18.07 18.45" stroke="#C8A96E" strokeWidth="2" strokeLinecap="round" />
+                                    </svg>
+                                )}
+                            </button>
+                        </div>
+
                         <div className="inline-flex items-center gap-2 px-2.5 py-1 sm:px-4 sm:py-2 rounded-full border border-[#C5A059]/30 bg-[#C5A059]/10 text-[#C5A059] text-[0.65rem] sm:text-sm uppercase tracking-widest font-semibold backdrop-blur-md">
                             <span className="relative flex h-2 w-2">
                                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#C5A059] opacity-75"></span>
