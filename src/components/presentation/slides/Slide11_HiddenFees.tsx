@@ -1,5 +1,4 @@
-import { motion } from "framer-motion";
-import { slideInLeft, fadeUp, flipIn, explodeIn, staggerContainer } from "../animations/variants";
+import RevealElement from "../RevealElement";
 import GradientText from "../animations/GradientText";
 import GoldUnderline from "../animations/GoldUnderline";
 
@@ -21,81 +20,88 @@ const costs = [
 export default function Slide11_HiddenFees() {
   return (
     <div className="antigravity-slide bg-white">
-      <motion.div
-        className="antigravity-slide-inner"
-        variants={staggerContainer}
-        initial="hidden"
-        animate="visible"
-      >
-        <motion.div variants={slideInLeft} className="mb-2">
+      <div className="antigravity-slide-inner">
+        {/* Reveal 1: Title */}
+        <RevealElement index={1} direction="left" className="mb-2">
           <h2 className="text-3xl font-bold" style={{ color: "#4A5565" }}>
             Hidden Fees inside
           </h2>
           <h2 className="text-3xl font-bold">
             <GoldUnderline><GradientText>Retirement Plans</GradientText></GoldUnderline>
           </h2>
-        </motion.div>
-        <motion.p variants={fadeUp} className="text-sm mb-4" style={{ color: "#4A5565" }}>
-          $3,600 annual contribution, 8% compounded, 35 years
-        </motion.p>
+          <p className="text-sm mt-2" style={{ color: "#4A5565" }}>
+            $3,600 annual contribution, 8% compounded, 35 years
+          </p>
+        </RevealElement>
 
-        {/* Fee Table */}
-        <motion.div variants={fadeUp} className="overflow-x-auto mb-4">
-          <table className="antigravity-fee-table">
-            <thead>
-              <tr>
-                <th>Year</th>
-                <th>No Fee</th>
-                <th>0.95% Fee</th>
-                <th>2% Fee</th>
-                <th>3% Fee</th>
-              </tr>
-            </thead>
-            <tbody>
-              {feeData.map((row, i) => (
-                <motion.tr
-                  key={i}
-                  variants={flipIn}
-                  style={row.bold ? { fontWeight: 700, background: "#F5E6C8" } : {}}
-                >
-                  <td>{row.year}</td>
-                  <td>{row.noFee}</td>
-                  <td>{row.fee095}</td>
-                  <td>{row.fee2}</td>
-                  <td>{row.fee3}</td>
-                </motion.tr>
-              ))}
-            </tbody>
-          </table>
-        </motion.div>
+        {/* Reveal 2: Fee Table */}
+        <RevealElement index={2} direction="up" className="mb-4">
+          <div className="overflow-x-auto">
+            <table className="antigravity-fee-table">
+              <thead>
+                <tr>
+                  <th>Year</th>
+                  <th>No Fee</th>
+                  <th>0.95% Fee</th>
+                  <th>2% Fee</th>
+                  <th>3% Fee</th>
+                </tr>
+              </thead>
+              <tbody>
+                {feeData.map((row, i) => (
+                  <tr
+                    key={i}
+                    style={row.bold ? { fontWeight: 700, background: "#F5E6C8" } : {}}
+                  >
+                    <td>{row.year}</td>
+                    <td>{row.noFee}</td>
+                    <td>{row.fee095}</td>
+                    <td>{row.fee2}</td>
+                    <td>{row.fee3}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </RevealElement>
 
-        {/* Cost of Plan row */}
-        <motion.div variants={explodeIn} className="flex flex-wrap gap-3 justify-center mb-4">
-          {costs.map((cost, i) => (
-            <div
-              key={i}
-              className="px-4 py-2 rounded-xl text-center"
-              style={{
-                background: cost.highlight ? "#C8A96E" : "#F5E6C8",
-                color: cost.highlight ? "white" : "#1A4D3E",
-              }}
-            >
-              <div className="text-xs">{cost.label}</div>
-              <div className="text-lg font-bold">{cost.value}</div>
+        {/* Reveal 3: Cost of Plan row */}
+        <RevealElement index={3} direction="scale" className="mb-4">
+          <div className="flex flex-wrap gap-3 justify-center">
+            {costs.map((cost, i) => (
+              <div
+                key={i}
+                className="px-4 py-2 rounded-xl text-center"
+                style={{
+                  background: cost.highlight ? "#C8A96E" : "#F5E6C8",
+                  color: cost.highlight ? "white" : "#1A4D3E",
+                }}
+              >
+                <div className="text-xs">{cost.label}</div>
+                <div className="text-lg font-bold antigravity-stat">{cost.value}</div>
+              </div>
+            ))}
+          </div>
+        </RevealElement>
+
+        {/* Reveal 4: Warning callouts */}
+        <RevealElement index={4} direction="up">
+          <div className="flex flex-col items-center gap-2">
+            <div className="px-4 py-2 rounded-xl text-sm font-bold" style={{ background: "#FEE2E2", color: "#D64545" }}>
+              Average 401k fees: <strong>3.1%</strong> — More than HALF your account gone.
             </div>
-          ))}
-        </motion.div>
+          </div>
+        </RevealElement>
 
-        {/* Callouts */}
-        <motion.div variants={explodeIn} className="flex flex-col items-center gap-2">
-          <div className="px-4 py-2 rounded-xl text-sm font-bold" style={{ background: "#FEE2E2", color: "#D64545" }}>
-            Average 401k fees: <strong>3.1%</strong> — More than HALF your account gone.
+        {/* Reveal 5: Second warning */}
+        <RevealElement index={5} direction="up" className="mt-2">
+          <div className="flex justify-center">
+            <div className="px-4 py-2 rounded-xl text-sm" style={{ background: "#FEE2E2", color: "#D64545" }}>
+              Average advisor total fees: <strong>3.7%</strong>
+            </div>
           </div>
-          <div className="px-4 py-2 rounded-xl text-sm" style={{ background: "#FEE2E2", color: "#D64545" }}>
-            Average advisor total fees: <strong>3.7%</strong>
-          </div>
-        </motion.div>
-      </motion.div>
+        </RevealElement>
+      </div>
     </div>
   );
 }

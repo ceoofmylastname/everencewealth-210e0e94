@@ -1,0 +1,77 @@
+import { useRevealQueue } from "./RevealContext";
+import { Volume2, VolumeX, Grid3X3, X } from "lucide-react";
+
+interface HUDProps {
+  onGridToggle?: () => void;
+  onExit?: () => void;
+}
+
+export default function HUD({ onGridToggle, onExit }: HUDProps) {
+  const { currentSlide, revealIndex, totalReveals, totalSlides, soundEnabled, toggleSound } =
+    useRevealQueue();
+
+  return (
+    <div className="antigravity-hud">
+      {/* Left: Slide counter */}
+      <div className="flex items-center gap-3">
+        <span className="antigravity-hud-counter">
+          {String(currentSlide + 1).padStart(2, "0")} / {totalSlides}
+        </span>
+      </div>
+
+      {/* Center: Reveal dot indicators */}
+      <div className="flex items-center gap-2">
+        {totalReveals > 0 && (
+          <>
+            <div className="flex items-center gap-1.5">
+              {Array.from({ length: totalReveals }, (_, i) => (
+                <div
+                  key={i}
+                  className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                    i < revealIndex
+                      ? "bg-[#1A4D3E] scale-100"
+                      : i === revealIndex
+                        ? "bg-[#C8A96E] scale-125"
+                        : "bg-gray-300 scale-100"
+                  }`}
+                />
+              ))}
+            </div>
+            <span className="text-xs text-gray-400 ml-2 font-mono">
+              {revealIndex} of {totalReveals}
+            </span>
+          </>
+        )}
+      </div>
+
+      {/* Right: Controls */}
+      <div className="flex items-center gap-1">
+        {onGridToggle && (
+          <button
+            onClick={onGridToggle}
+            className="antigravity-hud-btn"
+            title="Grid view"
+          >
+            <Grid3X3 className="w-4 h-4" />
+          </button>
+        )}
+        <button
+          onClick={toggleSound}
+          className="antigravity-hud-btn"
+          title={soundEnabled ? "Mute" : "Unmute"}
+        >
+          {soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
+        </button>
+        {onExit && (
+          <button
+            onClick={onExit}
+            className="antigravity-hud-btn"
+            title="Exit presentation"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}

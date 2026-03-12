@@ -1,8 +1,38 @@
 /* =========================================
-   Antigravity Presentation System
-   Design Tokens & Animations
+   Antigravity Presentation System v2
+   "Director Mode" — Design Tokens & Layout
    ========================================= */
 
+/* --- Fonts --- */
+/* Geist + Geist Mono loaded via index.html */
+
+/* --- Desktop-only gate --- */
+.antigravity-desktop-gate {
+  display: none;
+}
+
+@media (max-width: 1199px) {
+  .antigravity-desktop-gate {
+    display: flex;
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: #0D1F1A;
+    color: white;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 12px;
+    font-family: 'Geist', system-ui, sans-serif;
+    padding: 32px;
+    text-align: center;
+  }
+  .antigravity-shell {
+    display: none !important;
+  }
+}
+
+/* --- Gold shimmer animation --- */
 @keyframes antigravity-gold-shimmer {
   0% { background-position: -200% center; }
   100% { background-position: 200% center; }
@@ -12,14 +42,26 @@
   animation: antigravity-gold-shimmer 4s linear infinite;
 }
 
-/* Slide base layout */
+/* --- Shell layout --- */
+.antigravity-shell {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: white;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  font-family: 'Geist', system-ui, sans-serif;
+}
+
+/* --- Slide base layout --- */
 .antigravity-slide {
   width: 100%;
   height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: 'DM Sans', system-ui, sans-serif;
+  font-family: 'Geist', system-ui, sans-serif;
   overflow: hidden;
   position: relative;
 }
@@ -35,36 +77,75 @@
   justify-content: center;
 }
 
-/* Semicircle gauge for compound interest slide */
-.antigravity-gauge {
-  width: 120px;
-  height: 60px;
-  border-radius: 120px 120px 0 0;
-  position: relative;
-  overflow: hidden;
+/* --- Two-column editorial layout --- */
+.antigravity-editorial {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 48px 64px;
+  height: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 64px;
+  align-items: center;
 }
 
-.antigravity-gauge-label {
-  position: absolute;
-  bottom: 4px;
-  left: 50%;
-  transform: translateX(-50%);
-  font-weight: 800;
-  font-size: 20px;
+.antigravity-editorial-wide-left {
+  grid-template-columns: 1.2fr 0.8fr;
 }
 
-/* Line chart draw animation */
-@keyframes antigravity-draw-line {
-  0% { stroke-dashoffset: 2000; }
-  100% { stroke-dashoffset: 0; }
+.antigravity-editorial-wide-right {
+  grid-template-columns: 0.8fr 1.2fr;
 }
 
-.antigravity-chart-line {
-  stroke-dasharray: 2000;
-  animation: antigravity-draw-line 2s ease-out forwards;
+/* --- HUD (bottom control bar) --- */
+.antigravity-hud {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 24px;
+  border-top: 1px solid #E5E7EB;
+  background: white;
+  z-index: 10;
 }
 
-/* Card styles */
+.antigravity-hud-counter {
+  font-family: 'Geist Mono', monospace;
+  font-size: 13px;
+  color: #9CA3AF;
+  font-weight: 500;
+}
+
+.antigravity-hud-btn {
+  padding: 6px;
+  border-radius: 8px;
+  color: #6B7280;
+  transition: all 150ms;
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+.antigravity-hud-btn:hover {
+  background: #F3F4F6;
+  color: #1A4D3E;
+}
+
+/* --- Progress bar --- */
+.antigravity-progress {
+  height: 2px;
+  background: #F3F4F6;
+  flex-shrink: 0;
+}
+
+.antigravity-progress-fill {
+  height: 100%;
+  background: #C8A96E;
+  transition: width 400ms ease-out;
+}
+
+/* --- Cards --- */
 .antigravity-card {
   background: #FFFFFF;
   border-radius: 16px;
@@ -80,7 +161,7 @@
   color: white;
 }
 
-/* Pill badge */
+/* --- Pill badges --- */
 .antigravity-pill {
   display: inline-flex;
   align-items: center;
@@ -111,7 +192,7 @@
   color: white;
 }
 
-/* Progress bar for tax comparison */
+/* --- Progress bars for comparisons --- */
 .antigravity-progress-track {
   height: 8px;
   border-radius: 4px;
@@ -131,7 +212,7 @@
   background: linear-gradient(90deg, #1A4D3E, #2A6D5E);
 }
 
-/* Full-bleed image slide */
+/* --- Full-bleed backgrounds --- */
 .antigravity-full-bleed {
   position: absolute;
   inset: 0;
@@ -151,7 +232,7 @@
   background: rgba(13, 31, 26, 0.85);
 }
 
-/* Fee comparison table */
+/* --- Fee comparison table --- */
 .antigravity-fee-table {
   width: 100%;
   border-collapse: separate;
@@ -192,15 +273,78 @@
   border-bottom: none;
 }
 
-/* Mobile responsive scaling */
-@media (max-width: 1024px) {
-  .antigravity-slide-inner {
-    padding: 32px 32px;
-  }
+/* --- Semicircle gauge --- */
+.antigravity-gauge {
+  width: 120px;
+  height: 60px;
+  border-radius: 120px 120px 0 0;
+  position: relative;
+  overflow: hidden;
 }
 
-@media (max-width: 768px) {
-  .antigravity-slide-inner {
-    padding: 24px 20px;
-  }
+.antigravity-gauge-label {
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-weight: 800;
+  font-size: 20px;
+}
+
+/* --- Grid overlay --- */
+.antigravity-grid-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+}
+
+.antigravity-grid-panel {
+  background: white;
+  border-radius: 20px;
+  padding: 24px;
+  max-width: 900px;
+  width: 100%;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+/* --- Floating badge (editorial design) --- */
+.antigravity-floating-badge {
+  position: absolute;
+  padding: 8px 20px;
+  border-radius: 9999px;
+  font-size: 13px;
+  font-weight: 600;
+  z-index: 5;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+}
+
+/* --- Stat number styling --- */
+.antigravity-stat {
+  font-family: 'Geist Mono', monospace;
+  font-weight: 700;
+}
+
+/* --- Quote block --- */
+.antigravity-quote {
+  border-left: 3px solid #C8A96E;
+  padding-left: 20px;
+  font-style: italic;
+  font-size: 20px;
+  line-height: 1.6;
+  color: #1A4D3E;
+}
+
+.antigravity-quote-dark {
+  border-left: 3px solid #C8A96E;
+  padding-left: 20px;
+  font-style: italic;
+  font-size: 20px;
+  line-height: 1.6;
+  color: white;
 }
