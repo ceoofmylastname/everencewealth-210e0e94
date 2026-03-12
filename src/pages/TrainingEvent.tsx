@@ -329,7 +329,7 @@ export default function TrainingEvent() {
 
                             {/* 1. EYEBROW */}
                             <p style={{
-                                fontSize: '10px', letterSpacing: '0.22em', textTransform: 'uppercase',
+                                fontSize: '11px', letterSpacing: '0.28em', textTransform: 'uppercase',
                                 color: '#C8A96E', marginBottom: '28px',
                                 animation: 'te-fadeUp 400ms ease 200ms both',
                             }}>
