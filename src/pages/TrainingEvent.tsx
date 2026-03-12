@@ -338,10 +338,11 @@ export default function TrainingEvent() {
 
                             {/* 2. HEADLINE */}
                             <h1 style={{
-                                fontFamily: "'GeistSans', 'Inter', system-ui, sans-serif",
-                                fontWeight: 900, fontSize: 'clamp(32px, 3.6vw, 54px)', lineHeight: 1.05,
-                                letterSpacing: '-0.03em',
+                                fontFamily: "'Inter', system-ui, sans-serif",
+                                fontWeight: 800, fontSize: 'clamp(32px, 3.6vw, 54px)', lineHeight: 1.08,
+                                letterSpacing: '-0.04em',
                                 color: '#FFFFFF', marginBottom: '20px',
+                                textShadow: '0 2px 24px rgba(200,169,110,0.15)',
                                 animation: 'te-fadeUp12 500ms ease 350ms both',
                             }}>
                                 Your Strategy Has a Ceiling.<br />
