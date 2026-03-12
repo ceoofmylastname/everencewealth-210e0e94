@@ -497,7 +497,7 @@ export default function TrainingEvent() {
                                                         required type="email"
                                                         value={formData.email}
                                                         onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                                                        className="bg-transparent border-0 border-b-2 border-white/20 text-white h-14 px-0 rounded-none focus-visible:ring-0 focus-visible:border-[#C8A96E] text-2xl placeholder:text-gray-600 transition-colors"
+                                                        className="bg-white/5 border border-white/10 text-white h-14 px-5 rounded-xl focus-visible:ring-1 focus-visible:ring-[#C8A96E] focus-visible:border-[#C8A96E] text-lg placeholder:text-gray-500 transition-all duration-300"
                                                         placeholder="john@example.com"
                                                     />
                                                 </div>
