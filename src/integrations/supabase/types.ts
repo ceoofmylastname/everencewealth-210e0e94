@@ -7843,6 +7843,143 @@ export type Database = {
         }
         Relationships: []
       }
+      socorro_advisor_availability: {
+        Row: {
+          advisor_id: string
+          created_at: string | null
+          event_date: string
+          id: string
+          is_booked: boolean | null
+          time_slot: string
+        }
+        Insert: {
+          advisor_id: string
+          created_at?: string | null
+          event_date: string
+          id?: string
+          is_booked?: boolean | null
+          time_slot: string
+        }
+        Update: {
+          advisor_id?: string
+          created_at?: string | null
+          event_date?: string
+          id?: string
+          is_booked?: boolean | null
+          time_slot?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "socorro_advisor_availability_advisor_id_fkey"
+            columns: ["advisor_id"]
+            isOneToOne: false
+            referencedRelation: "socorro_workshop_advisors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      socorro_workshop_advisors: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          auth_user_id: string | null
+          bio: string | null
+          created_at: string | null
+          email: string
+          first_name: string
+          headshot_url: string | null
+          id: string
+          is_approved: boolean | null
+          last_name: string
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          auth_user_id?: string | null
+          bio?: string | null
+          created_at?: string | null
+          email: string
+          first_name: string
+          headshot_url?: string | null
+          id?: string
+          is_approved?: boolean | null
+          last_name: string
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          auth_user_id?: string | null
+          bio?: string | null
+          created_at?: string | null
+          email?: string
+          first_name?: string
+          headshot_url?: string | null
+          id?: string
+          is_approved?: boolean | null
+          last_name?: string
+        }
+        Relationships: []
+      }
+      socorro_workshop_registrations: {
+        Row: {
+          advisor_id: string
+          availability_slot_id: string
+          created_at: string | null
+          email: string
+          email_sent: boolean | null
+          first_name: string
+          ghl_webhook_sent: boolean | null
+          id: string
+          last_name: string
+          phone: string | null
+          selected_date: string
+          selected_time: string
+        }
+        Insert: {
+          advisor_id: string
+          availability_slot_id: string
+          created_at?: string | null
+          email: string
+          email_sent?: boolean | null
+          first_name: string
+          ghl_webhook_sent?: boolean | null
+          id?: string
+          last_name: string
+          phone?: string | null
+          selected_date: string
+          selected_time: string
+        }
+        Update: {
+          advisor_id?: string
+          availability_slot_id?: string
+          created_at?: string | null
+          email?: string
+          email_sent?: boolean | null
+          first_name?: string
+          ghl_webhook_sent?: boolean | null
+          id?: string
+          last_name?: string
+          phone?: string | null
+          selected_date?: string
+          selected_time?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "socorro_workshop_registrations_advisor_id_fkey"
+            columns: ["advisor_id"]
+            isOneToOne: false
+            referencedRelation: "socorro_workshop_advisors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "socorro_workshop_registrations_availability_slot_id_fkey"
+            columns: ["availability_slot_id"]
+            isOneToOne: false
+            referencedRelation: "socorro_advisor_availability"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       strategy_form_submissions: {
         Row: {
           assigned_to: string | null

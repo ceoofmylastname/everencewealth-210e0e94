@@ -1,25 +1,40 @@
 
 
-## Plan: Fix Registration Error + Add Confetti & Sound + Webhook Data
+## Plan: Add Registration Time (10:30 AM) to Landing Page and Emails
 
-### 1. Fix the Registration Error
-**Root cause:** Field name mismatch between client and edge function.
-- Client sends `slot_id` → Edge function expects `availability_slot_id`
-- Client doesn't send `advisor_name` → Edge function receives undefined
+### 1. Landing Page Changes (`src/pages/TrainingEvent.tsx`)
 
-**Fix in `src/components/socorro/RegistrationForm.tsx`:**
-- Change `slot_id: booking.slot_id` → `availability_slot_id: booking.slot_id`
-- Add `advisor_name: booking.advisor_name`
+**A. Add registration time to the event details pills (line 284)**
+Change "11:00 AM - 4:00 PM" to include registration:
+```
+Registration: 10:30 AM
+Event: 11:00 AM – 4:00 PM
+```
 
-### 2. Enhanced Confetti + Pop Sound on Success Page
-**In `src/components/socorro/ConfirmationBlock.tsx`:**
-- Increase confetti volume: more particles, longer duration, bigger spread from both sides
-- Add a pop/burst sound effect using the Web Audio API (generate a synthetic pop sound — no external file needed) that plays when confetti fires
+**B. Add registration time to the confirmation card (line 161)**
+Update the time display from `11:00 AM – 4:00 PM PT` to `Registration 10:30 AM | Event 11:00 AM – 4:00 PM PT`
 
-### 3. Webhook Already Configured
-The edge function already sends all data (name, email, phone, advisor info, date, time) to the exact GHL webhook URL provided. Once the field name mismatch is fixed, this will work automatically.
+**C. Update session highlights (line 11)**
+Add a "10:30 AM" registration/check-in entry as the first item in `sessionHighlights`.
 
-### Technical Summary
-- **Files modified:** `RegistrationForm.tsx` (field name fix), `ConfirmationBlock.tsx` (confetti + sound)
-- **Edge function:** No changes needed — already has webhook integration and sends all required data
+### 2. Email Changes
+
+**A. Registration confirmation email (`supabase/functions/register-training-event/index.ts`)**
+Add registration and event times to the event details block (currently only shows date and location):
+```
+🕐 Registration: 10:30 AM PST
+🕐 Event: 11:00 AM – 4:00 PM PST
+```
+
+**B. Reminder emails (`supabase/functions/process-training-reminders/index.ts`, line 92)**
+Update the time line from `11:00 AM to 4:00 PM PST` to include registration:
+```
+🕐 Registration: 10:30 AM PST
+🕐 Event: 11:00 AM – 4:00 PM PST
+```
+
+### Files Modified
+- `src/pages/TrainingEvent.tsx` — 3 spots (session highlights array, event pills, confirmation card)
+- `supabase/functions/register-training-event/index.ts` — add times to email
+- `supabase/functions/process-training-reminders/index.ts` — update time line
 
