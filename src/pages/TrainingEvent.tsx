@@ -252,6 +252,17 @@ export default function TrainingEvent() {
                     0%, 100% { filter: drop-shadow(0 0 12px rgba(237,219,119,0.4)) drop-shadow(0 0 30px rgba(200,169,110,0.15)); }
                     50% { filter: drop-shadow(0 0 24px rgba(200,169,110,0.7)) drop-shadow(0 0 50px rgba(237,219,119,0.25)); }
                 }
+                @keyframes te-letter-highlight {
+                    0%, 100% { background-position: 0% 50%; }
+                    25% { background-position: 50% 50%; }
+                    50% { background-position: 100% 50%; }
+                    75% { background-position: 50% 50%; }
+                }
+                @keyframes te-letter-pop {
+                    0%, 100% { transform: scale(1) translateY(0); }
+                    25% { transform: scale(1.08) translateY(-2px); }
+                    50% { transform: scale(1) translateY(0); }
+                }
             `}</style>
 
             <div className="relative z-10">
