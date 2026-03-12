@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
-import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
@@ -28,16 +28,26 @@ export default function TrainingEvent() {
     const inputRef = useRef<HTMLInputElement>(null);
     const videoRef = useRef<HTMLVideoElement>(null);
     const [isMuted, setIsMuted] = useState(true);
+    const [videoProgress, setVideoProgress] = useState(0);
 
     const toggleSound = useCallback(() => {
-        if (videoRef.current) {
-            videoRef.current.muted = !videoRef.current.muted;
-            setIsMuted(videoRef.current.muted);
+        if (!videoRef.current) return;
+        if (isMuted) {
+            videoRef.current.muted = false;
+            videoRef.current.currentTime = 0;
+            videoRef.current.play();
+            setIsMuted(false);
+        } else {
+            videoRef.current.muted = true;
+            setIsMuted(true);
+        }
+    }, [isMuted]);
+
+    const handleTimeUpdate = useCallback(() => {
+        if (videoRef.current && videoRef.current.duration) {
+            setVideoProgress((videoRef.current.currentTime / videoRef.current.duration) * 100);
         }
     }, []);
-
-    const { scrollY } = useScroll();
-    const y2 = useTransform(scrollY, [0, 1000], [0, -100]);
 
     // Focus input automatically on step change
     useEffect(() => {
@@ -214,282 +224,305 @@ export default function TrainingEvent() {
     };
 
     return (
-        <div className="min-h-screen bg-[#0a140e] text-white selection:bg-[#C5A059] selection:text-black font-sans relative overflow-x-hidden">
-            {/* Noise texture overlay */}
-            <div className="fixed inset-0 z-0 pointer-events-none opacity-[0.035]" style={{
-                backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E")`,
-                backgroundRepeat: 'repeat',
-                backgroundSize: '128px 128px'
-            }} />
-
-            {/* Sound toggle pulse animation */}
+        <div className="min-h-screen bg-[#080f0b] text-white selection:bg-[#C8A96E] selection:text-black relative overflow-x-hidden" style={{ fontFamily: "'GeistSans', system-ui, -apple-system, sans-serif" }}>
+            {/* CSS animations */}
             <style>{`
-                @keyframes te-sound-pulse {
-                    0%, 100% { box-shadow: 0 0 0 0 rgba(200,169,110,0.4); }
-                    50% { box-shadow: 0 0 0 8px rgba(200,169,110,0); }
+                @keyframes te-fadeUp {
+                    from { opacity: 0; transform: translateY(8px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
+                @keyframes te-fadeUp12 {
+                    from { opacity: 0; transform: translateY(12px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
+                @keyframes te-fadeIn {
+                    from { opacity: 0; }
+                    to { opacity: 1; }
+                }
+                @keyframes te-wave-pulse {
+                    0%, 100% { opacity: 1; }
+                    50% { opacity: 0.3; }
                 }
             `}</style>
 
             <div className="relative z-10">
                 {/* Navbar */}
-                <nav className="p-4 md:p-6 md:px-12 flex items-center justify-between border-b border-white/5 backdrop-blur-md sticky top-0 bg-[#0A120F]/60 z-50">
+                <nav className="p-4 md:p-6 md:px-12 flex items-center justify-between border-b border-white/5 backdrop-blur-md sticky top-0 bg-[#080f0b]/60 z-50">
                     <Link to="/" className="flex items-center gap-3 group">
                         <img src="https://storage.googleapis.com/msgsndr/TLhrYb7SRrWrly615tCI/media/6993ada8dcdadb155342f28e.png" alt="Logo" className="w-10 h-10 group-hover:scale-105 transition-transform" />
-                        <span className="font-serif text-xl tracking-wider uppercase text-[#C5A059] hidden sm:block">Everence Wealth</span>
+                        <span className="text-xl tracking-wider uppercase hidden sm:block" style={{ color: '#C8A96E', letterSpacing: '0.12em', fontWeight: 600 }}>Everence Wealth</span>
                     </Link>
-                    <div className="text-sm font-medium tracking-widest text-[#C5A059]/70 uppercase flex items-center gap-2">
-                        Broker Training <span className="hidden sm:inline">• Spring '26</span>
+                    <div className="text-sm font-medium tracking-widest uppercase flex items-center gap-2" style={{ color: 'rgba(200,169,110,0.7)', letterSpacing: '0.14em' }}>
+                        Broker Training <span className="hidden sm:inline">· Spring '26</span>
                     </div>
                 </nav>
 
-                {/* Hero Section */}
-                <section className="container mx-auto px-4 sm:px-6 pt-6 pb-6 lg:pt-20 lg:pb-24 grid lg:grid-cols-[11fr_9fr] gap-8 lg:gap-12 items-start min-h-[auto] lg:min-h-[85vh]">
-                    <motion.div
-                        initial={{ opacity: 0, x: -50 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ duration: 0.8, ease: "easeOut" }}
-                        className="space-y-5 sm:space-y-8"
-                    >
-                        {/* Video Container — the star of the page */}
-                        <div className="relative w-full overflow-hidden" style={{ aspectRatio: '16/9', borderRadius: '2px', border: '1px solid rgba(200,169,110,0.2)' }}>
+                {/* ═══ HERO: FULL-VIEWPORT CINEMATIC SPLIT ═══ */}
+                <section className="relative overflow-hidden flex flex-col md:flex-row" style={{ minHeight: 'calc(100vh - 73px)', background: '#080f0b' }}>
+
+                    {/* LEFT HALF — VIDEO PANEL */}
+                    <div className="relative w-full md:w-[52%] flex-shrink-0" style={{ minHeight: 'auto' }}>
+                        {/* Mobile: 16:9 aspect ratio. Desktop: fill full height */}
+                        <div className="relative w-full h-0 pb-[56.25%] md:pb-0 md:absolute md:inset-0 md:h-full">
                             <video
                                 ref={videoRef}
                                 autoPlay
                                 muted
                                 playsInline
-                                className="absolute inset-0 w-full h-full object-cover"
-                                onEnded={(e) => { e.currentTarget.pause(); }}
+                                className="absolute inset-0 w-full h-full object-cover object-center"
+                                onEnded={(e) => { e.currentTarget.pause(); setVideoProgress(100); }}
+                                onTimeUpdate={handleTimeUpdate}
                             >
                                 <source src="https://assets.cdn.filesafe.space/htr97zzmRc1NMujHbL9R/media/69b228577fc07c6782abd388.mov" type="video/quicktime" />
                                 <source src="https://assets.cdn.filesafe.space/htr97zzmRc1NMujHbL9R/media/69b228577fc07c6782abd388.mov" type="video/mp4" />
                             </video>
-                            {/* Vignette overlay */}
-                            <div className="absolute inset-0 pointer-events-none" style={{ boxShadow: 'inset 0 0 60px rgba(0,0,0,0.5)' }} />
-                            {/* Sound toggle — bottom-right of video */}
+
+                            {/* Sound toggle */}
                             <button
                                 onClick={toggleSound}
                                 aria-label={isMuted ? 'Unmute video' : 'Mute video'}
                                 className="absolute flex items-center justify-center transition-all duration-200 hover:scale-110 cursor-pointer"
                                 style={{
-                                    bottom: '12px',
-                                    right: '12px',
-                                    width: '38px',
-                                    height: '38px',
-                                    zIndex: 10,
-                                    background: 'rgba(0,0,0,0.55)',
-                                    backdropFilter: 'blur(8px)',
-                                    WebkitBackdropFilter: 'blur(8px)',
-                                    border: '1px solid rgba(200,169,110,0.4)',
+                                    bottom: '20px', right: '20px',
+                                    width: '40px', height: '40px', zIndex: 10,
+                                    background: 'rgba(0,0,0,0.6)',
+                                    backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)',
+                                    border: '1px solid rgba(200,169,110,0.5)',
                                     borderRadius: '0px',
-                                    animation: !isMuted ? 'te-sound-pulse 2s ease-in-out infinite' : 'none',
                                 }}
                             >
                                 {isMuted ? (
                                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                         <path d="M11 5L6 9H2V15H6L11 19V5Z" fill="#C8A96E" />
-                                        <line x1="23" y1="9" x2="17" y2="15" stroke="#C8A96E" strokeWidth="2" strokeLinecap="round" />
-                                        <line x1="17" y1="9" x2="23" y2="15" stroke="#C8A96E" strokeWidth="2" strokeLinecap="round" />
+                                        <line x1="23" y1="9" x2="17" y2="15" stroke="#C8A96E" strokeWidth="1.5" strokeLinecap="round" />
+                                        <line x1="17" y1="9" x2="23" y2="15" stroke="#C8A96E" strokeWidth="1.5" strokeLinecap="round" />
                                     </svg>
                                 ) : (
                                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                         <path d="M11 5L6 9H2V15H6L11 19V5Z" fill="#C8A96E" />
-                                        <path d="M15.54 8.46C16.48 9.4 17.01 10.67 17.01 12C17.01 13.33 16.48 14.6 15.54 15.54" stroke="#C8A96E" strokeWidth="2" strokeLinecap="round" />
-                                        <path d="M18.07 5.93C19.78 7.64 20.74 9.87 20.74 12.19C20.74 14.51 19.78 16.74 18.07 18.45" stroke="#C8A96E" strokeWidth="2" strokeLinecap="round" />
+                                        <path d="M15.54 8.46C16.48 9.4 17.01 10.67 17.01 12C17.01 13.33 16.48 14.6 15.54 15.54" stroke="#C8A96E" strokeWidth="1.5" strokeLinecap="round" style={{ animation: 'te-wave-pulse 1s ease-in-out infinite' }} />
+                                        <path d="M18.07 5.93C19.78 7.64 20.74 9.87 20.74 12.19C20.74 14.51 19.78 16.74 18.07 18.45" stroke="#C8A96E" strokeWidth="1.5" strokeLinecap="round" style={{ animation: 'te-wave-pulse 1s ease-in-out infinite 0.3s' }} />
                                     </svg>
                                 )}
                             </button>
-                        </div>
 
-                        <div className="inline-flex items-center gap-2 px-2.5 py-1 sm:px-4 sm:py-2 rounded-full border border-[#C5A059]/30 bg-[#C5A059]/10 text-[#C5A059] text-[0.65rem] sm:text-sm uppercase tracking-widest font-semibold backdrop-blur-md">
-                            <span className="relative flex h-2 w-2">
-                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#C5A059] opacity-75"></span>
-                                <span className="relative inline-flex rounded-full h-2 w-2 bg-[#C5A059]"></span>
-                            </span>
-                            Cordially Invites You
-                        </div>
-
-                        {/* Scroll-stopping animated gradient headline */}
-                        <h1 className="text-[1.85rem] leading-[1.15] sm:text-4xl md:text-6xl lg:text-7xl font-serif font-bold tracking-[-0.02em] sm:tracking-tight">
-                            Does Your Strategy<br className="sm:hidden" /> Have a{' '}
-                            <span className="relative inline-block">
-                                <span className="text-transparent bg-clip-text animate-gradient bg-[length:200%_auto] bg-gradient-to-r from-[#C5A059] via-[#F2E0B2] to-[#C5A059]">
-                                    Ceiling
-                                </span>
-                                {/* Modern slash underline */}
-                                <svg className="absolute -bottom-1 sm:-bottom-2 left-0 w-full" viewBox="0 0 120 8" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
-                                    <path d="M2 6C20 2 40 1.5 60 3C80 4.5 100 3 118 1" stroke="#C5A059" strokeWidth="2.5" strokeLinecap="round" opacity="0.7" />
-                                </svg>
-                            </span>?<br className="sm:hidden" /> This Day{' '}<br />
-                            <span className="bg-[#C5A059]/20 px-2 sm:px-3 py-px rounded-md" style={{ boxDecorationBreak: 'clone' }}>Removes It</span>.
-                        </h1>
-
-                        <p className="text-[0.9rem] leading-relaxed sm:text-lg md:text-xl lg:text-2xl text-gray-300 font-light">
-                            Join Everence Wealth at Andaz Napa for a full-day intensive designed to sharpen your strategy, expand your carrier access, and position you ahead of brokers still playing the old game.
-                        </p>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-6 pt-2 sm:pt-4">
-                            <div className="flex gap-3 sm:gap-4 items-start">
-                                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-black/40 border border-white/10 flex items-center justify-center shrink-0 backdrop-blur-md shadow-lg shadow-black/20">
-                                    <Calendar className="w-5 h-5 text-[#C5A059]" />
-                                </div>
-                                <div>
-                                    <h4 className="text-white font-medium text-base sm:text-lg">March 21, 2026</h4>
-                                    <p className="text-[#C5A059] text-sm font-medium uppercase tracking-wider">Saturday</p>
-                                </div>
-                            </div>
-                            <div className="flex gap-3 sm:gap-4 items-start">
-                                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-black/40 border border-white/10 flex items-center justify-center shrink-0 backdrop-blur-md shadow-lg shadow-black/20">
-                                    <Clock className="w-5 h-5 text-[#C5A059]" />
-                                </div>
-                                <div>
-                                    <h4 className="text-white font-medium text-base sm:text-lg">Registration: 10:30 AM</h4>
-                                    <h4 className="text-white font-medium text-base sm:text-lg">Event: 11:00 AM – 4:00 PM</h4>
-                                    <p className="text-[#C5A059] text-sm font-medium uppercase tracking-wider">Pacific Time</p>
-                                </div>
+                            {/* Video progress bar */}
+                            <div className="absolute bottom-0 left-0 right-0" style={{ height: '2px', background: 'rgba(200,169,110,0.2)', zIndex: 10 }}>
+                                <div style={{ height: '100%', background: '#C8A96E', width: `${videoProgress}%`, transition: 'width 0.3s linear' }} />
                             </div>
                         </div>
-                    </motion.div>
+                    </div>
 
-                    {/* Interactive Typeform Registration Block */}
-                    <motion.div
-                        style={{ y: y2 }}
-                        initial={{ opacity: 0, y: 50 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.8, delay: 0.2 }}
-                        className="relative w-full max-w-lg mx-auto lg:ml-auto"
-                    >
-                        {/* Glowing effect behind form */}
-                        <div className="absolute inset-0 bg-[#C5A059] blur-[120px] opacity-[0.15] rounded-full pointer-events-none" />
+                    {/* Vertical gold divider (desktop only) */}
+                    <div className="hidden md:block absolute top-0 bottom-0" style={{ left: '52%', width: '1px', background: 'rgba(200,169,110,0.2)', zIndex: 5 }} />
 
-                        <div className="relative bg-[#111A16]/80 backdrop-blur-3xl border border-white/10 p-5 sm:p-8 md:p-12 rounded-[2rem] shadow-[0_30px_80px_-20px_rgba(0,0,0,0.7)] min-h-[280px] sm:min-h-[400px] flex flex-col justify-center">
+                    {/* RIGHT HALF — CONTENT PANEL */}
+                    <div className="w-full md:w-[48%] flex flex-col justify-center p-7 md:p-16" style={{ background: '#080f0b' }}>
+                        <div className="w-full max-w-[520px] mx-auto md:mx-0" style={{ padding: '0' }}>
+                            {/* Desktop padding override */}
+                            <div className="hidden md:block" style={{ position: 'absolute' }} />
 
-                            <AnimatePresence mode="wait">
-                                {step === 0 && (
-                                    <motion.div
-                                        key="step0"
-                                        variants={formVariants}
-                                        initial="hidden" animate="visible" exit="exit"
-                                        className="text-center space-y-8"
-                                    >
-                                        <div className="neon-border w-24 h-24 sm:w-28 sm:h-28 mx-auto shadow-[0_12px_40px_-8px_rgba(197,160,89,0.3)] rounded-2xl">
-                                            <img
-                                                src="/andaz-napa.png"
-                                                alt="Andaz Napa"
-                                                className="w-full h-full object-cover rounded-[21px] relative z-0"
-                                            />
-                                        </div>
-                                        <div>
-                                            <h3 className="text-2xl sm:text-3xl font-serif text-white mb-3">Andaz Napa</h3>
-                                            <p className="text-gray-400 text-lg">Napa Valley, California</p>
-                                        </div>
-                                        <Button
-                                            onClick={() => setStep(1)}
-                                            className="w-full h-14 sm:h-16 bg-[#C5A059] hover:bg-[#b08e4f] text-black font-semibold text-lg sm:text-xl rounded-2xl shadow-[0_0_30px_rgba(197,160,89,0.2)] transition-all hover:shadow-[0_0_40px_rgba(197,160,89,0.4)] group"
-                                        >
-                                            Secure Your Seat
-                                            <ArrowRight className="w-6 h-6 ml-3 group-hover:translate-x-1 transition-transform" />
-                                        </Button>
-                                        <p className="text-xs text-gray-500 uppercase tracking-widest font-semibold">Strictly Limited Capacity</p>
-                                    </motion.div>
-                                )}
+                            {/* 1. EYEBROW */}
+                            <p style={{
+                                fontSize: '10px', letterSpacing: '0.22em', textTransform: 'uppercase',
+                                color: '#C8A96E', marginBottom: '28px',
+                                animation: 'te-fadeUp 400ms ease 200ms both',
+                            }}>
+                                INVITATION ONLY&ensp;·&ensp;NAPA, CA&ensp;·&ensp;MARCH 21, 2026
+                            </p>
 
-                                {step === 1 && (
-                                    <motion.form
-                                        key="step1" onSubmit={handleNext}
-                                        variants={formVariants} initial="hidden" animate="visible" exit="exit"
-                                        className="space-y-6"
-                                    >
-                                        <div className="space-y-4">
-                                            <h3 className="text-2xl font-serif text-white">Let's start with your name</h3>
-                                            <Input
-                                                ref={inputRef}
-                                                required
-                                                value={formData.name}
-                                                onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                                                className="bg-transparent border-0 border-b-2 border-white/20 text-white h-14 px-0 rounded-none focus-visible:ring-0 focus-visible:border-[#C5A059] text-2xl placeholder:text-gray-600 transition-colors"
-                                                placeholder="John Doe"
-                                            />
-                                        </div>
-                                        <Button type="submit" className="h-14 px-8 bg-white text-black hover:bg-gray-200 rounded-full font-semibold group rounded-r-full">
-                                            Next Step <ChevronRight className="w-5 h-5 ml-1 group-hover:translate-x-1 transition-transform" />
-                                        </Button>
-                                    </motion.form>
-                                )}
+                            {/* 2. HEADLINE */}
+                            <h1 style={{
+                                fontWeight: 800, fontSize: 'clamp(32px, 3.6vw, 54px)', lineHeight: 1.05,
+                                color: '#FFFFFF', marginBottom: '20px',
+                                animation: 'te-fadeUp12 500ms ease 350ms both',
+                            }}>
+                                Your Strategy Has a Ceiling.<br />
+                                This Day <span style={{ color: '#C8A96E' }}>Removes It</span>.
+                            </h1>
 
-                                {step === 2 && (
-                                    <motion.form
-                                        key="step2" onSubmit={handleNext}
-                                        variants={formVariants} initial="hidden" animate="visible" exit="exit"
-                                        className="space-y-6"
-                                    >
-                                        <div className="space-y-4">
-                                            <h3 className="text-2xl font-serif text-white leading-tight">Nice to meet you, <span className="text-[#C5A059]">{formData.name.split(' ')[0]}</span>. <br />What's your professional email?</h3>
-                                            <Input
-                                                ref={inputRef}
-                                                required type="email"
-                                                value={formData.email}
-                                                onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                                                className="bg-transparent border-0 border-b-2 border-white/20 text-white h-14 px-0 rounded-none focus-visible:ring-0 focus-visible:border-[#C5A059] text-2xl placeholder:text-gray-600 transition-colors"
-                                                placeholder="john@example.com"
-                                            />
-                                        </div>
-                                        <div className="flex gap-3">
-                                            <Button type="button" variant="outline" onClick={() => setStep(1)} className="h-14 w-14 rounded-full p-0 flex items-center justify-center border-white/20 text-white hover:bg-white/10 bg-transparent">
-                                                <ChevronLeft className="w-5 h-5" />
-                                            </Button>
-                                            <Button type="submit" className="h-14 px-8 bg-white text-black hover:bg-gray-200 rounded-full font-semibold group">
-                                                Next Step <ChevronRight className="w-5 h-5 ml-1 group-hover:translate-x-1 transition-transform" />
-                                            </Button>
-                                        </div>
-                                    </motion.form>
-                                )}
+                            {/* 3. SUBHEADLINE */}
+                            <p style={{
+                                fontSize: '15px', fontWeight: 400, lineHeight: 1.65,
+                                color: 'rgba(255,255,255,0.6)', maxWidth: '400px', marginBottom: '40px',
+                                animation: 'te-fadeIn 400ms ease 500ms both',
+                            }}>
+                                An exclusive full-day intensive at Andaz Napa for brokers ready to stop renting their strategy from carriers — and start owning their ceiling.
+                            </p>
 
-                                {step === 3 && (
-                                    <motion.form
-                                        key="step3" onSubmit={handleNext}
-                                        variants={formVariants} initial="hidden" animate="visible" exit="exit"
-                                        className="space-y-6"
-                                    >
-                                        <div className="space-y-4">
-                                            <h3 className="text-2xl font-serif text-white">Finally, the best number to reach you?</h3>
-                                            <Input
-                                                ref={inputRef}
-                                                required type="tel"
-                                                value={formData.phone}
-                                                onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-                                                className="bg-transparent border-0 border-b-2 border-white/20 text-white h-14 px-0 rounded-none focus-visible:ring-0 focus-visible:border-[#C5A059] text-2xl placeholder:text-gray-600 transition-colors"
-                                                placeholder="(555) 123-4567"
-                                            />
-                                        </div>
-                                        <div className="flex gap-3">
-                                            <Button type="button" variant="outline" onClick={() => setStep(2)} disabled={loading} className="h-14 w-14 rounded-full p-0 flex items-center justify-center border-white/20 text-white hover:bg-white/10 bg-transparent">
-                                                <ChevronLeft className="w-5 h-5" />
-                                            </Button>
-                                            <Button type="submit" disabled={loading} className="h-14 flex-1 bg-[#1A4D3E] hover:bg-[#143d30] text-white rounded-full font-bold text-lg shadow-[0_0_20px_rgba(26,77,62,0.5)] transition-shadow hover:shadow-[0_0_30px_rgba(26,77,62,0.7)] group">
-                                                {loading ? <Loader2 className="w-6 h-6 animate-spin mx-auto" /> :
-                                                    <div className="flex items-center justify-center">
-                                                        Confirm Registration <Check className="w-5 h-5 ml-2" />
-                                                    </div>}
-                                            </Button>
-                                        </div>
-                                        <p className="text-center text-xs text-gray-500 mt-2">
-                                            We'll send reminders via email leading up to March 21.
-                                        </p>
-                                    </motion.form>
-                                )}
-                            </AnimatePresence>
-
-                            {/* Progress Indicator */}
-                            {step > 0 && (
-                                <div className="absolute top-6 left-1/2 -translate-x-1/2 flex gap-2">
-                                    {[1, 2, 3].map(i => (
-                                        <div key={i} className={`h-1.5 rounded-full transition-all duration-500 ${step >= i ? 'w-8 bg-[#C5A059]' : 'w-2 bg-white/20'}`} />
-                                    ))}
+                            {/* 4. DATE + TIME ROW */}
+                            <div className="flex items-center gap-6" style={{ marginBottom: '40px', animation: 'te-fadeIn 400ms ease 650ms both' }}>
+                                <div>
+                                    <p style={{ fontSize: '9px', letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.35)', marginBottom: '4px' }}>DATE</p>
+                                    <p style={{ fontSize: '13px', fontWeight: 500, color: '#FFFFFF' }}>Saturday, March 21</p>
                                 </div>
-                            )}
+                                <div style={{ width: '1px', height: '32px', background: 'rgba(255,255,255,0.12)', flexShrink: 0 }} />
+                                <div>
+                                    <p style={{ fontSize: '9px', letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.35)', marginBottom: '4px' }}>EVENT TIME</p>
+                                    <p style={{ fontSize: '13px', fontWeight: 500, color: '#FFFFFF' }}>11:00 AM – 4:00 PM PT</p>
+                                </div>
+                            </div>
+
+                            {/* 5. CTA BUTTON */}
+                            <div style={{ animation: 'te-fadeIn 400ms ease 800ms both' }}>
+                                <button
+                                    onClick={() => setStep(1)}
+                                    className="transition-colors duration-200 cursor-pointer"
+                                    style={{
+                                        width: '100%', maxWidth: '320px',
+                                        background: '#C8A96E', color: '#1A4D3E',
+                                        fontSize: '12px', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase' as const,
+                                        padding: '18px 32px',
+                                        border: 'none', borderRadius: '0px',
+                                    }}
+                                    onMouseEnter={(e) => { e.currentTarget.style.background = '#b8996a'; }}
+                                    onMouseLeave={(e) => { e.currentTarget.style.background = '#C8A96E'; }}
+                                >
+                                    SECURE YOUR SEAT
+                                </button>
+                                <p style={{ fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)', marginTop: '8px' }}>
+                                    Strictly limited capacity. No walk-ins.
+                                </p>
+                            </div>
                         </div>
-                    </motion.div>
+                    </div>
                 </section>
+
+                {/* ═══ REGISTRATION MODAL (triggered by CTA) ═══ */}
+                <AnimatePresence>
+                    {step > 0 && step <= 3 && (
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.3 }}
+                            className="fixed inset-0 z-[100] flex items-center justify-center"
+                            style={{ background: 'rgba(8,15,11,0.85)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}
+                            onClick={(e) => { if (e.target === e.currentTarget) setStep(0); }}
+                        >
+                            <motion.div
+                                initial={{ opacity: 0, y: 30, scale: 0.97 }}
+                                animate={{ opacity: 1, y: 0, scale: 1 }}
+                                exit={{ opacity: 0, y: 20, scale: 0.97 }}
+                                transition={{ duration: 0.4, ease: 'easeOut' }}
+                                className="relative w-full max-w-lg mx-4"
+                            >
+                                <div className="relative border border-white/10 p-6 sm:p-10 md:p-14 min-h-[320px] flex flex-col justify-center" style={{ background: '#0d1a14', borderRadius: '0px' }}>
+
+                                    <AnimatePresence mode="wait">
+                                        {step === 1 && (
+                                            <motion.form
+                                                key="step1" onSubmit={handleNext}
+                                                variants={formVariants} initial="hidden" animate="visible" exit="exit"
+                                                className="space-y-6"
+                                            >
+                                                <div className="space-y-4">
+                                                    <h3 className="text-2xl font-semibold text-white">Let's start with your name</h3>
+                                                    <Input
+                                                        ref={inputRef}
+                                                        required
+                                                        value={formData.name}
+                                                        onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                                                        className="bg-transparent border-0 border-b-2 border-white/20 text-white h-14 px-0 rounded-none focus-visible:ring-0 focus-visible:border-[#C8A96E] text-2xl placeholder:text-gray-600 transition-colors"
+                                                        placeholder="John Doe"
+                                                    />
+                                                </div>
+                                                <button type="submit" className="h-14 px-8 text-sm font-bold tracking-wider uppercase transition-colors duration-200 cursor-pointer" style={{ background: '#C8A96E', color: '#1A4D3E', border: 'none', borderRadius: '0px', letterSpacing: '0.1em' }}
+                                                    onMouseEnter={(e) => { e.currentTarget.style.background = '#b8996a'; }}
+                                                    onMouseLeave={(e) => { e.currentTarget.style.background = '#C8A96E'; }}
+                                                >
+                                                    Next Step
+                                                </button>
+                                            </motion.form>
+                                        )}
+
+                                        {step === 2 && (
+                                            <motion.form
+                                                key="step2" onSubmit={handleNext}
+                                                variants={formVariants} initial="hidden" animate="visible" exit="exit"
+                                                className="space-y-6"
+                                            >
+                                                <div className="space-y-4">
+                                                    <h3 className="text-2xl font-semibold text-white leading-tight">Nice to meet you, <span style={{ color: '#C8A96E' }}>{formData.name.split(' ')[0]}</span>.<br />What's your professional email?</h3>
+                                                    <Input
+                                                        ref={inputRef}
+                                                        required type="email"
+                                                        value={formData.email}
+                                                        onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                                                        className="bg-transparent border-0 border-b-2 border-white/20 text-white h-14 px-0 rounded-none focus-visible:ring-0 focus-visible:border-[#C8A96E] text-2xl placeholder:text-gray-600 transition-colors"
+                                                        placeholder="john@example.com"
+                                                    />
+                                                </div>
+                                                <div className="flex gap-3">
+                                                    <button type="button" onClick={() => setStep(1)} className="h-14 w-14 flex items-center justify-center border border-white/20 text-white transition-colors duration-200 cursor-pointer" style={{ background: 'transparent', borderRadius: '0px' }}
+                                                        onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; }}
+                                                        onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                                                    >
+                                                        <ChevronLeft className="w-5 h-5" />
+                                                    </button>
+                                                    <button type="submit" className="h-14 px-8 text-sm font-bold tracking-wider uppercase transition-colors duration-200 cursor-pointer" style={{ background: '#C8A96E', color: '#1A4D3E', border: 'none', borderRadius: '0px', letterSpacing: '0.1em' }}
+                                                        onMouseEnter={(e) => { e.currentTarget.style.background = '#b8996a'; }}
+                                                        onMouseLeave={(e) => { e.currentTarget.style.background = '#C8A96E'; }}
+                                                    >
+                                                        Next Step
+                                                    </button>
+                                                </div>
+                                            </motion.form>
+                                        )}
+
+                                        {step === 3 && (
+                                            <motion.form
+                                                key="step3" onSubmit={handleNext}
+                                                variants={formVariants} initial="hidden" animate="visible" exit="exit"
+                                                className="space-y-6"
+                                            >
+                                                <div className="space-y-4">
+                                                    <h3 className="text-2xl font-semibold text-white">Finally, the best number to reach you?</h3>
+                                                    <Input
+                                                        ref={inputRef}
+                                                        required type="tel"
+                                                        value={formData.phone}
+                                                        onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+                                                        className="bg-transparent border-0 border-b-2 border-white/20 text-white h-14 px-0 rounded-none focus-visible:ring-0 focus-visible:border-[#C8A96E] text-2xl placeholder:text-gray-600 transition-colors"
+                                                        placeholder="(555) 123-4567"
+                                                    />
+                                                </div>
+                                                <div className="flex gap-3">
+                                                    <button type="button" onClick={() => setStep(2)} disabled={loading} className="h-14 w-14 flex items-center justify-center border border-white/20 text-white transition-colors duration-200 cursor-pointer disabled:opacity-50" style={{ background: 'transparent', borderRadius: '0px' }}
+                                                        onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; }}
+                                                        onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                                                    >
+                                                        <ChevronLeft className="w-5 h-5" />
+                                                    </button>
+                                                    <button type="submit" disabled={loading} className="h-14 flex-1 text-sm font-bold tracking-wider uppercase transition-colors duration-200 cursor-pointer disabled:opacity-70" style={{ background: '#1A4D3E', color: '#FFFFFF', border: 'none', borderRadius: '0px', letterSpacing: '0.1em' }}
+                                                        onMouseEnter={(e) => { if (!loading) e.currentTarget.style.background = '#143d30'; }}
+                                                        onMouseLeave={(e) => { e.currentTarget.style.background = '#1A4D3E'; }}
+                                                    >
+                                                        {loading ? <Loader2 className="w-6 h-6 animate-spin mx-auto" /> : 'Confirm Registration'}
+                                                    </button>
+                                                </div>
+                                                <p className="text-center text-xs" style={{ color: 'rgba(255,255,255,0.3)', marginTop: '8px' }}>
+                                                    We'll send reminders via email leading up to March 21.
+                                                </p>
+                                            </motion.form>
+                                        )}
+                                    </AnimatePresence>
+
+                                    {/* Progress Indicator */}
+                                    <div className="absolute top-6 left-1/2 -translate-x-1/2 flex gap-2">
+                                        {[1, 2, 3].map(i => (
+                                            <div key={i} className="transition-all duration-500" style={{
+                                                height: '2px', borderRadius: '0px',
+                                                width: step >= i ? '32px' : '8px',
+                                                background: step >= i ? '#C8A96E' : 'rgba(255,255,255,0.2)',
+                                            }} />
+                                        ))}
+                                    </div>
+                                </div>
+                            </motion.div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
 
                 {/* Detailed Info Splat */}
                 <section className="bg-black/40 backdrop-blur-md border-t border-b border-white/5 py-12 sm:py-16 lg:py-24 relative z-10">
