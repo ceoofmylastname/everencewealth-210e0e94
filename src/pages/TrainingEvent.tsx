@@ -392,7 +392,7 @@ export default function TrainingEvent() {
                                 color: 'rgba(255,255,255,0.6)', maxWidth: '400px', marginBottom: '40px',
                                 animation: 'te-fadeIn 400ms ease 500ms both',
                             }}>
-                                An exclusive full-day intensive at Andaz Napa for brokers ready to stop renting their strategy from carriers — and start owning their ceiling.
+                                An exclusive full-day intensive at Andaz Napa for brokers ready to stop renting their strategy from carriers and start owning their ceiling.
                             </p>
 
                             {/* 4. DATE + TIME ROW */}
