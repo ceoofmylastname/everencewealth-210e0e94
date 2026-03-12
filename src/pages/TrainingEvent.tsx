@@ -382,16 +382,20 @@ export default function TrainingEvent() {
                             <div style={{ animation: 'te-fadeIn 400ms ease 800ms both' }}>
                                 <button
                                     onClick={() => setStep(1)}
-                                    className="transition-colors duration-200 cursor-pointer"
+                                    className="cursor-pointer"
                                     style={{
                                         width: '100%', maxWidth: '320px',
                                         background: '#C8A96E', color: '#1A4D3E',
                                         fontSize: '12px', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase' as const,
                                         padding: '18px 32px',
-                                        border: 'none', borderRadius: '0px',
+                                        border: 'none', borderRadius: '14px',
+                                        boxShadow: '0 8px 32px rgba(200,169,110,0.35), 0 2px 8px rgba(0,0,0,0.4)',
+                                        transition: 'all 0.2s ease',
                                     }}
-                                    onMouseEnter={(e) => { e.currentTarget.style.background = '#b8996a'; }}
-                                    onMouseLeave={(e) => { e.currentTarget.style.background = '#C8A96E'; }}
+                                    onMouseEnter={(e) => { e.currentTarget.style.background = '#b8996a'; e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 12px 40px rgba(200,169,110,0.5), 0 4px 12px rgba(0,0,0,0.5)'; }}
+                                    onMouseLeave={(e) => { e.currentTarget.style.background = '#C8A96E'; e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 8px 32px rgba(200,169,110,0.35), 0 2px 8px rgba(0,0,0,0.4)'; }}
+                                    onMouseDown={(e) => { e.currentTarget.style.transform = 'translateY(1px)'; e.currentTarget.style.boxShadow = '0 4px 16px rgba(200,169,110,0.3), 0 1px 4px rgba(0,0,0,0.3)'; }}
+                                    onMouseUp={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 12px 40px rgba(200,169,110,0.5), 0 4px 12px rgba(0,0,0,0.5)'; }}
                                 >
                                     SECURE YOUR SEAT
                                 </button>
