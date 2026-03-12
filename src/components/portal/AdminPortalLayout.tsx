@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import {
   LogOut, Users, Menu, X, ChevronRight,
   LayoutDashboard, UserCog, FileText, FolderOpen, MessageSquare,
-  Building2, Newspaper, Wrench, GraduationCap, Megaphone, Calendar, Shield, FileCheck,
+  Building2, Newspaper, Wrench, GraduationCap, Megaphone, Calendar, Shield, FileCheck, ClipboardList,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { NotificationBell } from "./NotificationBell";
@@ -36,6 +36,7 @@ const adminNavGroups = [
       { label: "Training", icon: GraduationCap, href: "/portal/admin/training" },
       { label: "Marketing", icon: Megaphone, href: "/portal/admin/marketing" },
       { label: "Schedule", icon: Calendar, href: "/portal/admin/schedule" },
+      { label: "Socorro Workshop", icon: ClipboardList, href: "/portal/admin/socorro-workshop" },
     ],
   },
   {

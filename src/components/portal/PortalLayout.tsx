@@ -47,6 +47,7 @@ const advisorNavGroups = [
       { label: "Image Studio", icon: Wand2, href: "/portal/advisor/image-studio" },
       { label: "Schedule", icon: Calendar, href: "/portal/advisor/schedule" },
       { label: "Workshops", icon: Megaphone, href: "/portal/advisor/workshops/slug-setup" },
+      { label: "Socorro Workshop", icon: ClipboardList, href: "/portal/advisor/socorro-workshop" },
     ],
   },
   {

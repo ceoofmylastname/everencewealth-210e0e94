@@ -250,6 +250,15 @@ const Briefing = lazy(() => import("./pages/Briefing"));
 const RecruitDashboard = lazy(() => import("./pages/RecruitDashboard"));
 const TrainingEvent = lazy(() => import("./pages/TrainingEvent"));
 
+// Socorro ISD Pages
+const SocorroLanding = lazy(() => import("./pages/socorro/SocorroLanding"));
+const SocorroAdvisors = lazy(() => import("./pages/socorro/SocorroAdvisors"));
+const SocorroAdvisorDetail = lazy(() => import("./pages/socorro/SocorroAdvisorDetail"));
+const SocorroBookingConfirm = lazy(() => import("./pages/socorro/SocorroBookingConfirm"));
+const SocorroBookingSuccess = lazy(() => import("./pages/socorro/SocorroBookingSuccess"));
+const SocorroWorkshopManage = lazy(() => import("./pages/portal/advisor/SocorroWorkshopManage"));
+const AdminSocorroWorkshop = lazy(() => import("./pages/portal/admin/AdminSocorroWorkshop"));
+
 // Loading fallback component
 const PageLoader = () => (
   <div className="min-h-screen flex items-center justify-center bg-background">
@@ -297,6 +306,13 @@ const App = () => (
               <Route path="/briefing" element={<Briefing />} />
               <Route path="/broker-training" element={<TrainingEvent />} />
               <Route path="/recruit-dashboard" element={<RecruitDashboard />} />
+
+              {/* Socorro ISD Public Routes */}
+              <Route path="/socorro-isd" element={<SocorroLanding />} />
+              <Route path="/socorro-isd/advisors" element={<SocorroAdvisors />} />
+              <Route path="/socorro-isd/advisors/:advisorId" element={<SocorroAdvisorDetail />} />
+              <Route path="/socorro-isd/booking/confirm" element={<SocorroBookingConfirm />} />
+              <Route path="/socorro-isd/booking/success" element={<SocorroBookingSuccess />} />
 
               {/* ========================================== */}
               {/* PROTECTED ADMIN ROUTES (MUST BE BEFORE /:lang) */}
@@ -422,6 +438,7 @@ const App = () => (
                   <Route path="workshops/slug-setup" element={<WorkshopSlugSetup />} />
                   <Route path="workshops/create" element={<WorkshopCreate />} />
                   <Route path="workshops/:workshopId" element={<WorkshopDetail />} />
+                  <Route path="socorro-workshop" element={<SocorroWorkshopManage />} />
                 </Route>
               </Route>
               <Route path="/portal/client" element={<ClientRoute />}>
@@ -451,6 +468,7 @@ const App = () => (
                   <Route path="schedule" element={<AdminSchedulePage />} />
                   <Route path="compliance" element={<AdminCompliancePage />} />
                   <Route path="assessment-leads" element={<CrmAssessmentLeads />} />
+                  <Route path="socorro-workshop" element={<AdminSocorroWorkshop />} />
                 </Route>
               </Route>
 
