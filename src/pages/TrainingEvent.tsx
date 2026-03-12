@@ -455,7 +455,7 @@ export default function TrainingEvent() {
                                 transition={{ duration: 0.4, ease: 'easeOut' }}
                                 className="relative w-full max-w-lg mx-4"
                             >
-                                <div className="relative border border-white/10 p-6 sm:p-10 md:p-14 min-h-[320px] flex flex-col justify-center" style={{ background: '#0d1a14', borderRadius: '0px' }}>
+                                <div className="relative p-6 sm:p-10 md:p-14 min-h-[320px] flex flex-col justify-center" style={{ background: 'rgba(13,26,20,0.85)', borderRadius: '24px', border: '1px solid rgba(200,169,110,0.15)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)', boxShadow: '0 24px 80px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.05)' }}>
 
                                     <AnimatePresence mode="wait">
                                         {step === 1 && (
@@ -471,11 +471,11 @@ export default function TrainingEvent() {
                                                         required
                                                         value={formData.name}
                                                         onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                                                        className="bg-transparent border-0 border-b-2 border-white/20 text-white h-14 px-0 rounded-none focus-visible:ring-0 focus-visible:border-[#C8A96E] text-2xl placeholder:text-gray-600 transition-colors"
+                                                        className="bg-white/5 border border-white/10 text-white h-14 px-5 rounded-xl focus-visible:ring-1 focus-visible:ring-[#C8A96E] focus-visible:border-[#C8A96E] text-lg placeholder:text-gray-500 transition-all duration-300"
                                                         placeholder="John Doe"
                                                     />
                                                 </div>
-                                                <button type="submit" className="h-14 px-8 text-sm font-bold tracking-wider uppercase transition-colors duration-200 cursor-pointer" style={{ background: '#C8A96E', color: '#1A4D3E', border: 'none', borderRadius: '0px', letterSpacing: '0.1em' }}
+                                                <button type="submit" className="h-14 px-8 text-sm font-bold tracking-wider uppercase transition-all duration-300 cursor-pointer hover:scale-[1.02]" style={{ background: '#C8A96E', color: '#1A4D3E', border: 'none', borderRadius: '14px', letterSpacing: '0.1em', boxShadow: '0 4px 20px rgba(200,169,110,0.3)' }}
                                                     onMouseEnter={(e) => { e.currentTarget.style.background = '#b8996a'; }}
                                                     onMouseLeave={(e) => { e.currentTarget.style.background = '#C8A96E'; }}
                                                 >
@@ -497,18 +497,18 @@ export default function TrainingEvent() {
                                                         required type="email"
                                                         value={formData.email}
                                                         onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                                                        className="bg-transparent border-0 border-b-2 border-white/20 text-white h-14 px-0 rounded-none focus-visible:ring-0 focus-visible:border-[#C8A96E] text-2xl placeholder:text-gray-600 transition-colors"
+                                                        className="bg-white/5 border border-white/10 text-white h-14 px-5 rounded-xl focus-visible:ring-1 focus-visible:ring-[#C8A96E] focus-visible:border-[#C8A96E] text-lg placeholder:text-gray-500 transition-all duration-300"
                                                         placeholder="john@example.com"
                                                     />
                                                 </div>
                                                 <div className="flex gap-3">
-                                                    <button type="button" onClick={() => setStep(1)} className="h-14 w-14 flex items-center justify-center border border-white/20 text-white transition-colors duration-200 cursor-pointer" style={{ background: 'transparent', borderRadius: '0px' }}
+                                                    <button type="button" onClick={() => setStep(1)} className="h-14 w-14 flex items-center justify-center border border-white/20 text-white transition-all duration-300 cursor-pointer hover:scale-[1.02]" style={{ background: 'transparent', borderRadius: '14px' }}
                                                         onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; }}
                                                         onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
                                                     >
                                                         <ChevronLeft className="w-5 h-5" />
                                                     </button>
-                                                    <button type="submit" className="h-14 px-8 text-sm font-bold tracking-wider uppercase transition-colors duration-200 cursor-pointer" style={{ background: '#C8A96E', color: '#1A4D3E', border: 'none', borderRadius: '0px', letterSpacing: '0.1em' }}
+                                                    <button type="submit" className="h-14 px-8 text-sm font-bold tracking-wider uppercase transition-all duration-300 cursor-pointer hover:scale-[1.02]" style={{ background: '#C8A96E', color: '#1A4D3E', border: 'none', borderRadius: '14px', letterSpacing: '0.1em', boxShadow: '0 4px 20px rgba(200,169,110,0.3)' }}
                                                         onMouseEnter={(e) => { e.currentTarget.style.background = '#b8996a'; }}
                                                         onMouseLeave={(e) => { e.currentTarget.style.background = '#C8A96E'; }}
                                                     >
@@ -531,20 +531,20 @@ export default function TrainingEvent() {
                                                         required type="tel"
                                                         value={formData.phone}
                                                         onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-                                                        className="bg-transparent border-0 border-b-2 border-white/20 text-white h-14 px-0 rounded-none focus-visible:ring-0 focus-visible:border-[#C8A96E] text-2xl placeholder:text-gray-600 transition-colors"
+                                                        className="bg-white/5 border border-white/10 text-white h-14 px-5 rounded-xl focus-visible:ring-1 focus-visible:ring-[#C8A96E] focus-visible:border-[#C8A96E] text-lg placeholder:text-gray-500 transition-all duration-300"
                                                         placeholder="(555) 123-4567"
                                                     />
                                                 </div>
                                                 <div className="flex gap-3">
-                                                    <button type="button" onClick={() => setStep(2)} disabled={loading} className="h-14 w-14 flex items-center justify-center border border-white/20 text-white transition-colors duration-200 cursor-pointer disabled:opacity-50" style={{ background: 'transparent', borderRadius: '0px' }}
+                                                    <button type="button" onClick={() => setStep(2)} disabled={loading} className="h-14 w-14 flex items-center justify-center border border-white/20 text-white transition-all duration-300 cursor-pointer disabled:opacity-50 hover:scale-[1.02]" style={{ background: 'transparent', borderRadius: '14px' }}
                                                         onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; }}
                                                         onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
                                                     >
                                                         <ChevronLeft className="w-5 h-5" />
                                                     </button>
-                                                    <button type="submit" disabled={loading} className="h-14 flex-1 text-sm font-bold tracking-wider uppercase transition-colors duration-200 cursor-pointer disabled:opacity-70" style={{ background: '#1A4D3E', color: '#FFFFFF', border: 'none', borderRadius: '0px', letterSpacing: '0.1em' }}
-                                                        onMouseEnter={(e) => { if (!loading) e.currentTarget.style.background = '#143d30'; }}
-                                                        onMouseLeave={(e) => { e.currentTarget.style.background = '#1A4D3E'; }}
+                                                    <button type="submit" disabled={loading} className="h-14 flex-1 text-sm font-bold tracking-wider uppercase transition-all duration-300 cursor-pointer disabled:opacity-70 hover:scale-[1.02]" style={{ background: 'linear-gradient(135deg, #1A4D3E, #2a6b54)', color: '#FFFFFF', border: 'none', borderRadius: '14px', letterSpacing: '0.1em', boxShadow: '0 4px 20px rgba(26,77,62,0.4)' }}
+                                                        onMouseEnter={(e) => { if (!loading) e.currentTarget.style.background = 'linear-gradient(135deg, #143d30, #1A4D3E)'; }}
+                                                        onMouseLeave={(e) => { e.currentTarget.style.background = 'linear-gradient(135deg, #1A4D3E, #2a6b54)'; }}
                                                     >
                                                         {loading ? <Loader2 className="w-6 h-6 animate-spin mx-auto" /> : 'Confirm Registration'}
                                                     </button>
@@ -560,9 +560,9 @@ export default function TrainingEvent() {
                                     <div className="absolute top-6 left-1/2 -translate-x-1/2 flex gap-2">
                                         {[1, 2, 3].map(i => (
                                             <div key={i} className="transition-all duration-500" style={{
-                                                height: '2px', borderRadius: '0px',
-                                                width: step >= i ? '32px' : '8px',
-                                                background: step >= i ? '#C8A96E' : 'rgba(255,255,255,0.2)',
+                                                height: '3px', borderRadius: '99px',
+                                                width: step >= i ? '32px' : '12px',
+                                                background: step >= i ? '#C8A96E' : 'rgba(255,255,255,0.15)',
                                             }} />
                                         ))}
                                     </div>
