@@ -356,7 +356,9 @@ export default function TrainingEvent() {
 
                             {/* 3. SUBHEADLINE */}
                             <p style={{
-                                fontSize: '15px', fontWeight: 400, lineHeight: 1.65,
+                                fontFamily: "'GeistSans', 'Inter', system-ui, sans-serif",
+                                fontSize: '16px', fontWeight: 300, lineHeight: 1.65,
+                                letterSpacing: '0.01em',
                                 color: 'rgba(255,255,255,0.6)', maxWidth: '400px', marginBottom: '40px',
                                 animation: 'te-fadeIn 400ms ease 500ms both',
                             }}>
