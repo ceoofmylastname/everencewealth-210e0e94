@@ -338,12 +338,20 @@ export default function TrainingEvent() {
 
                             {/* 2. HEADLINE */}
                             <h1 style={{
-                                fontWeight: 800, fontSize: 'clamp(32px, 3.6vw, 54px)', lineHeight: 1.05,
+                                fontFamily: "'GeistSans', 'Inter', system-ui, sans-serif",
+                                fontWeight: 900, fontSize: 'clamp(32px, 3.6vw, 54px)', lineHeight: 1.05,
+                                letterSpacing: '-0.03em',
                                 color: '#FFFFFF', marginBottom: '20px',
                                 animation: 'te-fadeUp12 500ms ease 350ms both',
                             }}>
                                 Your Strategy Has a Ceiling.<br />
-                                This Day <span style={{ color: '#C8A96E' }}>Removes It</span>.
+                                This Day <span style={{
+                                    background: 'linear-gradient(90deg, #C8A96E, #F5E6C8, #EDDB77, #C8A96E)',
+                                    backgroundSize: '300% 100%',
+                                    WebkitBackgroundClip: 'text',
+                                    WebkitTextFillColor: 'transparent',
+                                    animation: 'te-gold-gradient-shift 4s ease infinite',
+                                }}>Removes It</span>.
                             </h1>
 
                             {/* 3. SUBHEADLINE */}
