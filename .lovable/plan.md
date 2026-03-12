@@ -1,40 +1,30 @@
 
 
-## Plan: Add Registration Time (10:30 AM) to Landing Page and Emails
+## Plan: Restructure Headline to 3 Lines
 
-### 1. Landing Page Changes (`src/pages/TrainingEvent.tsx`)
+The headline currently renders as 2 lines. Restructure the line breaks so it flows as:
 
-**A. Add registration time to the event details pills (line 284)**
-Change "11:00 AM - 4:00 PM" to include registration:
-```
-Registration: 10:30 AM
-Event: 11:00 AM – 4:00 PM
-```
+- Line 1: "Your Strategy Has a"
+- Line 2: "Ceiling. This Day"
+- Line 3: "REMOVES IT."
 
-**B. Add registration time to the confirmation card (line 161)**
-Update the time display from `11:00 AM – 4:00 PM PT` to `Registration 10:30 AM | Event 11:00 AM – 4:00 PM PT`
+### Change in `src/pages/TrainingEvent.tsx` (line 364)
 
-**C. Update session highlights (line 11)**
-Add a "10:30 AM" registration/check-in entry as the first item in `sessionHighlights`.
-
-### 2. Email Changes
-
-**A. Registration confirmation email (`supabase/functions/register-training-event/index.ts`)**
-Add registration and event times to the event details block (currently only shows date and location):
-```
-🕐 Registration: 10:30 AM PST
-🕐 Event: 11:00 AM – 4:00 PM PST
+Replace:
+```tsx
+Your Strategy Has a Ceiling.<br />
+This Day <span ...>
 ```
 
-**B. Reminder emails (`supabase/functions/process-training-reminders/index.ts`, line 92)**
-Update the time line from `11:00 AM to 4:00 PM PST` to include registration:
+With:
+```tsx
+Your Strategy Has a<br />
+Ceiling. This Day<br />
+<span ...>{"REMOVES IT"...}</span><span>.</span>
 ```
-🕐 Registration: 10:30 AM PST
-🕐 Event: 11:00 AM – 4:00 PM PST
-```
+
+The animated letter-by-letter "REMOVES IT" span and the trailing period stay on their own third line. Everything else (keyframes, styling, animations) remains unchanged.
 
 ### Files Modified
-- `src/pages/TrainingEvent.tsx` — 3 spots (session highlights array, event pills, confirmation card)
-- `supabase/functions/register-training-event/index.ts` — add times to email
-- `supabase/functions/process-training-reminders/index.ts` — update time line
+- `src/pages/TrainingEvent.tsx` (1 line change)
 
