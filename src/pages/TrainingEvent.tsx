@@ -361,8 +361,9 @@ export default function TrainingEvent() {
                                 textShadow: '0 2px 24px rgba(200,169,110,0.15)',
                                 animation: 'te-fadeUp12 500ms ease 350ms both',
                             }}>
-                                Your Strategy Has a Ceiling.<br />
-                                This Day <span style={{ display: 'inline-flex', alignItems: 'baseline' }}>
+                                Your Strategy Has a<br />
+                                Ceiling. This Day<br />
+                                <span style={{ display: 'inline-flex', alignItems: 'baseline' }}>
                                     {"REMOVES IT".split("").map((char, i) => (
                                         <span key={i} style={{
                                             display: 'inline-block',
