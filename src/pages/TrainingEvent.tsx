@@ -343,8 +343,9 @@ export default function TrainingEvent() {
                             {/* 2. HEADLINE */}
                             <h1 style={{
                                 fontFamily: "'Inter', system-ui, sans-serif",
-                                fontWeight: 800, fontSize: 'clamp(32px, 3.6vw, 54px)', lineHeight: 1.08,
-                                letterSpacing: '-0.04em',
+                                fontWeight: 900, fontSize: 'clamp(28px, 7vw, 54px)', lineHeight: 1.08,
+                                letterSpacing: '-0.05em',
+                                fontFeatureSettings: "'ss01'",
                                 color: '#FFFFFF', marginBottom: '20px',
                                 textShadow: '0 2px 24px rgba(200,169,110,0.15)',
                                 animation: 'te-fadeUp12 500ms ease 350ms both',
@@ -353,14 +354,16 @@ export default function TrainingEvent() {
                                 This Day <span
                                     className="te-gradient-text"
                                     style={{
-                                        background: 'linear-gradient(90deg, #B8945E, #F5E6C8, #EDDB77, #F5E6C8, #B8945E)',
-                                        backgroundSize: '400% 100%',
+                                        background: 'linear-gradient(90deg, #B8945E, #F5E6C8, #EDDB77, #FFD700, #F5E6C8, #B8945E)',
+                                        backgroundSize: '600% 100%',
                                         backgroundClip: 'text',
                                         WebkitBackgroundClip: 'text',
                                         color: 'transparent',
                                         WebkitTextFillColor: 'transparent',
-                                        animation: 'te-gold-gradient-shift 6s ease infinite',
+                                        animation: 'te-gold-gradient-shift 3s ease infinite, te-gold-glow 3s ease-in-out infinite',
                                         display: 'inline-block',
+                                        padding: '2px 0',
+                                        textTransform: 'uppercase',
                                     }}>Removes It</span>.
                             </h1>
 
