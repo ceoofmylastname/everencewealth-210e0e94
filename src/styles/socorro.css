@@ -191,6 +191,89 @@
   animation: socorro-underline-draw 0.6s ease-out 0.3s forwards;
 }
 
+/* Hero headline — dual font treatment */
+.hero-headline {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.hero-headline .line-1 {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-weight: 700;
+  font-style: italic;
+  font-size: clamp(48px, 7vw, 88px);
+  line-height: 1.05;
+  color: rgba(255, 255, 255, 0.92);
+  letter-spacing: -0.01em;
+}
+
+.hero-headline .line-2 {
+  font-family: 'DM Sans', system-ui, sans-serif;
+  font-weight: 800;
+  font-style: normal;
+  font-size: clamp(44px, 6.5vw, 82px);
+  line-height: 1.0;
+  letter-spacing: -0.03em;
+  background: linear-gradient(
+    120deg,
+    #ffffff 0%,
+    #C8A96E 25%,
+    #ffffff 50%,
+    #E2C896 72%,
+    #ffffff 100%
+  );
+  background-size: 250% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: hero-line2-shimmer 5s linear infinite;
+}
+
+.hero-headline .slash-word {
+  position: relative;
+  display: inline-block;
+  font-style: italic;
+}
+
+.hero-headline .slash-word::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: -2px;
+  right: -2px;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    #C8A96E 20%,
+    #E2C896 50%,
+    #C8A96E 80%,
+    transparent 100%
+  );
+  border-radius: 9999px;
+  transform: scaleX(0) skewX(-6deg);
+  transform-origin: left center;
+  animation: hero-draw-slash 1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation-delay: 1.2s;
+}
+
+@keyframes hero-line2-shimmer {
+  0%   { background-position: 0% center; }
+  100% { background-position: 250% center; }
+}
+
+@keyframes hero-draw-slash {
+  0%   { transform: scaleX(0) skewX(-6deg); }
+  100% { transform: scaleX(1) skewX(-6deg); }
+}
+
+/* Mobile sizes */
+@media (max-width: 639px) {
+  .hero-headline .line-1 { font-size: 38px; }
+  .hero-headline .line-2 { font-size: 36px; }
+}
+
 /* 3D card hover */
 .socorro-card-3d {
   transition: transform 0.35s ease, box-shadow 0.35s ease;

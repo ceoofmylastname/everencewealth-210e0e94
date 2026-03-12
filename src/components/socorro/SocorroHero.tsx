@@ -1,7 +1,23 @@
 import { motion } from "framer-motion";
 import FloatingOrbs from "./primitives/FloatingOrbs";
-import ShimmerHeadline from "./primitives/ShimmerHeadline";
 import GoldCTA from "./primitives/GoldCTA";
+
+const headlineVariants = {
+  hidden: {},
+  show: {
+    transition: { staggerChildren: 0.18 },
+  },
+};
+
+const lineVariant = {
+  hidden: { opacity: 0, y: 40, filter: "blur(6px)" },
+  show: {
+    opacity: 1,
+    y: 0,
+    filter: "blur(0px)",
+    transition: { duration: 0.85, ease: [0.22, 1, 0.36, 1] },
+  },
+};
 
 export default function SocorroHero() {
   return (
@@ -44,25 +60,19 @@ export default function SocorroHero() {
         </motion.div>
 
         {/* Headline */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-          className="mb-6"
+        <motion.h1
+          className="hero-headline mb-6"
+          variants={headlineVariants}
+          initial="hidden"
+          animate="show"
         >
-          <ShimmerHeadline
-            as="h1"
-            variant="light"
-            className="leading-[1.05]"
-            style={{
-              fontSize: "clamp(40px, 6vw, 80px)",
-            }}
-          >
-            Are You Leaving Retirement
-            <br />
-            <span className="socorro-underline">Money on the Table?</span>
-          </ShimmerHeadline>
-        </motion.div>
+          <motion.span className="line-1" variants={lineVariant}>
+            Are You Leaving <em className="slash-word">Retirement</em>
+          </motion.span>
+          <motion.span className="line-2" variants={lineVariant}>
+            Money on the Table?
+          </motion.span>
+        </motion.h1>
 
         {/* Subheadline */}
         <motion.p
