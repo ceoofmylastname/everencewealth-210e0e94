@@ -61,8 +61,8 @@ export default function RegistrationForm({ booking }: RegistrationFormProps) {
         }
       );
 
-      if (fnErr) throw new Error(fnErr.message);
       if (data?.error) throw new Error(data.error);
+      if (fnErr) throw new Error(fnErr.message);
 
       const successParams = new URLSearchParams({
         name: values.first_name,
