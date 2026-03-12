@@ -1,24 +1,40 @@
 
 
-## Plan: Modernize Hero Section — Button, Headline, and "Removes It" Animation
+## Plan: Add Registration Time (10:30 AM) to Landing Page and Emails
 
-### 1. "Secure Your Seat" Button (lines 368-382)
-Replace the flat, square `borderRadius: '0px'` button with a modern rounded pill with depth:
-- `borderRadius: '14px'` (rounded-xl feel)
-- Deep shadow: `boxShadow: '0 8px 32px rgba(200,169,110,0.35), 0 2px 8px rgba(0,0,0,0.4)'`
-- Hover: lift + intensified glow (`translateY(-2px)`, stronger shadow)
-- Active: press-down effect
+### 1. Landing Page Changes (`src/pages/TrainingEvent.tsx`)
 
-### 2. "Removes It" Gradient Animation (line 341)
-Replace the static `color: '#C8A96E'` span with an animated multi-stop gold gradient text:
-- Add a CSS `@keyframes` for shifting `background-position` across a gold→cream→gold gradient
-- Apply `-webkit-background-clip: text` + transparent fill
-- Similar to the existing `gold-shimmer-text` class but inline for isolation
+**A. Add registration time to the event details pills (line 284)**
+Change "11:00 AM - 4:00 PM" to include registration:
+```
+Registration: 10:30 AM
+Event: 11:00 AM – 4:00 PM
+```
 
-### 3. Headline & Subheadline Font Modernization (lines 335-351)
-- Headline: Add `fontFamily: "'GeistSans', 'Inter', system-ui, sans-serif"` with `letterSpacing: '-0.03em'` (tight tracking for premium feel) and bump weight to 900
-- Subheadline: Use `letterSpacing: '0.01em'`, `fontWeight: 300` (light weight for elegance), slightly larger `fontSize: '16px'`
+**B. Add registration time to the confirmation card (line 161)**
+Update the time display from `11:00 AM – 4:00 PM PT` to `Registration 10:30 AM | Event 11:00 AM – 4:00 PM PT`
+
+**C. Update session highlights (line 11)**
+Add a "10:30 AM" registration/check-in entry as the first item in `sessionHighlights`.
+
+### 2. Email Changes
+
+**A. Registration confirmation email (`supabase/functions/register-training-event/index.ts`)**
+Add registration and event times to the event details block (currently only shows date and location):
+```
+🕐 Registration: 10:30 AM PST
+🕐 Event: 11:00 AM – 4:00 PM PST
+```
+
+**B. Reminder emails (`supabase/functions/process-training-reminders/index.ts`, line 92)**
+Update the time line from `11:00 AM to 4:00 PM PST` to include registration:
+```
+🕐 Registration: 10:30 AM PST
+🕐 Event: 11:00 AM – 4:00 PM PST
+```
 
 ### Files Modified
-- `src/pages/TrainingEvent.tsx` — CSS keyframes block + hero section (button, headline, "Removes It" span)
+- `src/pages/TrainingEvent.tsx` — 3 spots (session highlights array, event pills, confirmation card)
+- `supabase/functions/register-training-event/index.ts` — add times to email
+- `supabase/functions/process-training-reminders/index.ts` — update time line
 

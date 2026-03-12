@@ -243,6 +243,11 @@ export default function TrainingEvent() {
                     0%, 100% { opacity: 1; }
                     50% { opacity: 0.3; }
                 }
+                @keyframes te-gold-gradient-shift {
+                    0% { background-position: 0% 50%; }
+                    50% { background-position: 100% 50%; }
+                    100% { background-position: 0% 50%; }
+                }
             `}</style>
 
             <div className="relative z-10">
@@ -333,17 +338,27 @@ export default function TrainingEvent() {
 
                             {/* 2. HEADLINE */}
                             <h1 style={{
-                                fontWeight: 800, fontSize: 'clamp(32px, 3.6vw, 54px)', lineHeight: 1.05,
+                                fontFamily: "'GeistSans', 'Inter', system-ui, sans-serif",
+                                fontWeight: 900, fontSize: 'clamp(32px, 3.6vw, 54px)', lineHeight: 1.05,
+                                letterSpacing: '-0.03em',
                                 color: '#FFFFFF', marginBottom: '20px',
                                 animation: 'te-fadeUp12 500ms ease 350ms both',
                             }}>
                                 Your Strategy Has a Ceiling.<br />
-                                This Day <span style={{ color: '#C8A96E' }}>Removes It</span>.
+                                This Day <span style={{
+                                    background: 'linear-gradient(90deg, #C8A96E, #F5E6C8, #EDDB77, #C8A96E)',
+                                    backgroundSize: '300% 100%',
+                                    WebkitBackgroundClip: 'text',
+                                    WebkitTextFillColor: 'transparent',
+                                    animation: 'te-gold-gradient-shift 4s ease infinite',
+                                }}>Removes It</span>.
                             </h1>
 
                             {/* 3. SUBHEADLINE */}
                             <p style={{
-                                fontSize: '15px', fontWeight: 400, lineHeight: 1.65,
+                                fontFamily: "'GeistSans', 'Inter', system-ui, sans-serif",
+                                fontSize: '16px', fontWeight: 300, lineHeight: 1.65,
+                                letterSpacing: '0.01em',
                                 color: 'rgba(255,255,255,0.6)', maxWidth: '400px', marginBottom: '40px',
                                 animation: 'te-fadeIn 400ms ease 500ms both',
                             }}>
@@ -367,16 +382,20 @@ export default function TrainingEvent() {
                             <div style={{ animation: 'te-fadeIn 400ms ease 800ms both' }}>
                                 <button
                                     onClick={() => setStep(1)}
-                                    className="transition-colors duration-200 cursor-pointer"
+                                    className="cursor-pointer"
                                     style={{
                                         width: '100%', maxWidth: '320px',
                                         background: '#C8A96E', color: '#1A4D3E',
                                         fontSize: '12px', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase' as const,
                                         padding: '18px 32px',
-                                        border: 'none', borderRadius: '0px',
+                                        border: 'none', borderRadius: '14px',
+                                        boxShadow: '0 8px 32px rgba(200,169,110,0.35), 0 2px 8px rgba(0,0,0,0.4)',
+                                        transition: 'all 0.2s ease',
                                     }}
-                                    onMouseEnter={(e) => { e.currentTarget.style.background = '#b8996a'; }}
-                                    onMouseLeave={(e) => { e.currentTarget.style.background = '#C8A96E'; }}
+                                    onMouseEnter={(e) => { e.currentTarget.style.background = '#b8996a'; e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 12px 40px rgba(200,169,110,0.5), 0 4px 12px rgba(0,0,0,0.5)'; }}
+                                    onMouseLeave={(e) => { e.currentTarget.style.background = '#C8A96E'; e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 8px 32px rgba(200,169,110,0.35), 0 2px 8px rgba(0,0,0,0.4)'; }}
+                                    onMouseDown={(e) => { e.currentTarget.style.transform = 'translateY(1px)'; e.currentTarget.style.boxShadow = '0 4px 16px rgba(200,169,110,0.3), 0 1px 4px rgba(0,0,0,0.3)'; }}
+                                    onMouseUp={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 12px 40px rgba(200,169,110,0.5), 0 4px 12px rgba(0,0,0,0.5)'; }}
                                 >
                                     SECURE YOUR SEAT
                                 </button>
