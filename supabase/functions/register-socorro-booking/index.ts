@@ -115,7 +115,7 @@ Deno.serve(async (req) => {
                     <p style="margin:0 0 8px;color:#4A5565;font-size:14px;">👤 <strong>Advisor:</strong> ${advisorDisplay}</p>
                     <p style="margin:0 0 8px;color:#4A5565;font-size:14px;">📅 <strong>Date:</strong> ${selected_date}</p>
                     <p style="margin:0 0 8px;color:#4A5565;font-size:14px;">🕐 <strong>Time:</strong> ${selected_time}</p>
-                    <p style="margin:0;color:#4A5565;font-size:14px;">📍 <strong>Location:</strong> Socorro ISD Campus</p>
+                    <p style="margin:0;color:#4A5565;font-size:14px;">📍 <strong>Location:</strong> Phone Call</p>
                 </div>
                 <p style="color:#4A5565;line-height:1.6;font-size:16px;margin:0 0 16px;">
                     Your advisor will meet with you at your scheduled time. This is a 5-minute session
