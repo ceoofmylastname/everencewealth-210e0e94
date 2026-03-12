@@ -475,7 +475,7 @@ export default function TrainingEvent() {
                                                         placeholder="John Doe"
                                                     />
                                                 </div>
-                                                <button type="submit" className="h-14 px-8 text-sm font-bold tracking-wider uppercase transition-colors duration-200 cursor-pointer" style={{ background: '#C8A96E', color: '#1A4D3E', border: 'none', borderRadius: '0px', letterSpacing: '0.1em' }}
+                                                <button type="submit" className="h-14 px-8 text-sm font-bold tracking-wider uppercase transition-all duration-300 cursor-pointer hover:scale-[1.02]" style={{ background: '#C8A96E', color: '#1A4D3E', border: 'none', borderRadius: '14px', letterSpacing: '0.1em', boxShadow: '0 4px 20px rgba(200,169,110,0.3)' }}
                                                     onMouseEnter={(e) => { e.currentTarget.style.background = '#b8996a'; }}
                                                     onMouseLeave={(e) => { e.currentTarget.style.background = '#C8A96E'; }}
                                                 >
