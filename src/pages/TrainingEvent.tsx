@@ -346,13 +346,18 @@ export default function TrainingEvent() {
                                 animation: 'te-fadeUp12 500ms ease 350ms both',
                             }}>
                                 Your Strategy Has a Ceiling.<br />
-                                This Day <span style={{
-                                    background: 'linear-gradient(90deg, #B8945E, #F5E6C8, #EDDB77, #F5E6C8, #B8945E)',
-                                    backgroundSize: '400% 100%',
-                                    WebkitBackgroundClip: 'text',
-                                    WebkitTextFillColor: 'transparent',
-                                    animation: 'te-gold-gradient-shift 6s ease infinite',
-                                }}>Removes It</span>.
+                                This Day <span
+                                    className="te-gradient-text"
+                                    style={{
+                                        background: 'linear-gradient(90deg, #B8945E, #F5E6C8, #EDDB77, #F5E6C8, #B8945E)',
+                                        backgroundSize: '400% 100%',
+                                        backgroundClip: 'text',
+                                        WebkitBackgroundClip: 'text',
+                                        color: 'transparent',
+                                        WebkitTextFillColor: 'transparent',
+                                        animation: 'te-gold-gradient-shift 6s ease infinite',
+                                        display: 'inline-block',
+                                    }}>Removes It</span>.
                             </h1>
 
                             {/* 3. SUBHEADLINE */}
