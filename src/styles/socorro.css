@@ -274,6 +274,22 @@
   .hero-headline .line-2 { font-size: 36px; }
 }
 
+/* Logo carousel — infinite scroll */
+@keyframes socorro-logo-scroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.socorro-logo-carousel {
+  display: flex;
+  width: max-content;
+  animation: socorro-logo-scroll 25s linear infinite;
+}
+
+.socorro-logo-carousel:hover {
+  animation-play-state: paused;
+}
+
 /* 3D card hover */
 .socorro-card-3d {
   transition: transform 0.35s ease, box-shadow 0.35s ease;
