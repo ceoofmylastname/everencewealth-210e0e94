@@ -1,0 +1,206 @@
+/* =========================================
+   Antigravity Presentation System
+   Design Tokens & Animations
+   ========================================= */
+
+@keyframes antigravity-gold-shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+.antigravity-gradient-text {
+  animation: antigravity-gold-shimmer 4s linear infinite;
+}
+
+/* Slide base layout */
+.antigravity-slide {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'DM Sans', system-ui, sans-serif;
+  overflow: hidden;
+  position: relative;
+}
+
+.antigravity-slide-inner {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 48px 64px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* Semicircle gauge for compound interest slide */
+.antigravity-gauge {
+  width: 120px;
+  height: 60px;
+  border-radius: 120px 120px 0 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.antigravity-gauge-label {
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-weight: 800;
+  font-size: 20px;
+}
+
+/* Line chart draw animation */
+@keyframes antigravity-draw-line {
+  0% { stroke-dashoffset: 2000; }
+  100% { stroke-dashoffset: 0; }
+}
+
+.antigravity-chart-line {
+  stroke-dasharray: 2000;
+  animation: antigravity-draw-line 2s ease-out forwards;
+}
+
+/* Card styles */
+.antigravity-card {
+  background: #FFFFFF;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(26,77,62,0.12);
+  padding: 24px;
+}
+
+.antigravity-card-dark {
+  background: #1A4D3E;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(26,77,62,0.24);
+  padding: 24px;
+  color: white;
+}
+
+/* Pill badge */
+.antigravity-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 16px;
+  border-radius: 9999px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.antigravity-pill-gold {
+  background: #C8A96E;
+  color: white;
+}
+
+.antigravity-pill-evergreen {
+  background: #1A4D3E;
+  color: white;
+}
+
+.antigravity-pill-red {
+  background: #D64545;
+  color: white;
+}
+
+.antigravity-pill-green {
+  background: #1A4D3E;
+  color: white;
+}
+
+/* Progress bar for tax comparison */
+.antigravity-progress-track {
+  height: 8px;
+  border-radius: 4px;
+  background: #E5E7EB;
+  overflow: hidden;
+}
+
+.antigravity-progress-fill-gold {
+  height: 100%;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #C8A96E, #E2C896);
+}
+
+.antigravity-progress-fill-green {
+  height: 100%;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #1A4D3E, #2A6D5E);
+}
+
+/* Full-bleed image slide */
+.antigravity-full-bleed {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+}
+
+.antigravity-overlay-dark {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+}
+
+.antigravity-overlay-green {
+  position: absolute;
+  inset: 0;
+  background: rgba(13, 31, 26, 0.85);
+}
+
+/* Fee comparison table */
+.antigravity-fee-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 14px;
+}
+
+.antigravity-fee-table th {
+  background: #1A4D3E;
+  color: white;
+  padding: 10px 16px;
+  text-align: right;
+  font-weight: 600;
+}
+
+.antigravity-fee-table th:first-child {
+  text-align: left;
+  border-radius: 12px 0 0 0;
+}
+
+.antigravity-fee-table th:last-child {
+  border-radius: 0 12px 0 0;
+}
+
+.antigravity-fee-table td {
+  padding: 8px 16px;
+  text-align: right;
+  border-bottom: 1px solid #E5E7EB;
+}
+
+.antigravity-fee-table td:first-child {
+  text-align: left;
+  font-weight: 600;
+  color: #1A4D3E;
+}
+
+.antigravity-fee-table tr:last-child td {
+  border-bottom: none;
+}
+
+/* Mobile responsive scaling */
+@media (max-width: 1024px) {
+  .antigravity-slide-inner {
+    padding: 32px 32px;
+  }
+}
+
+@media (max-width: 768px) {
+  .antigravity-slide-inner {
+    padding: 24px 20px;
+  }
+}

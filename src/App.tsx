@@ -135,6 +135,9 @@ const ApartmentsProperties = lazy(() => import("./pages/admin/ApartmentsProperti
 const ApartmentsEditorManager = lazy(() => import("./pages/admin/ApartmentsEditorManager"));
 const ApartmentsAuth = lazy(() => import("./pages/ApartmentsAuth"));
 
+// Presentation System
+const Presentation = lazy(() => import("./pages/admin/Presentation"));
+
 // Inner components for apartments editor layout (no AdminLayout wrapper)
 import { ApartmentsPageContentInner } from "./pages/admin/ApartmentsPageContent";
 import { ApartmentsPropertiesInner } from "./pages/admin/ApartmentsProperties";
@@ -377,6 +380,9 @@ const App = () => (
               <Route path="/admin/apartments-content" element={<ProtectedRoute><ApartmentsPageContent /></ProtectedRoute>} />
               <Route path="/admin/apartments-properties" element={<ProtectedRoute><ApartmentsProperties /></ProtectedRoute>} />
               <Route path="/admin/apartments-editors" element={<ProtectedRoute><ApartmentsEditorManager /></ProtectedRoute>} />
+
+              {/* Antigravity Presentation System */}
+              <Route path="/admin/presentation" element={<ProtectedRoute><Presentation /></ProtectedRoute>} />
 
               {/* Apartments Editor Login (public) */}
               <Route path="/apartments/login" element={<ApartmentsAuth />} />

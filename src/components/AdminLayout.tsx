@@ -32,6 +32,7 @@ import {
   Copy,
   AlertTriangle,
   Building2,
+  Presentation,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -48,6 +49,7 @@ const navGroups = [
     label: "Dashboard",
     items: [
       { name: "Overview", href: "/admin", icon: LayoutDashboard },
+      { name: "Workshop Presentation", href: "/admin/presentation", icon: Presentation },
     ],
   },
   {
