@@ -8,6 +8,31 @@ interface ConfirmationBlockProps {
   time: string;
 }
 
+function playPopSound() {
+  try {
+    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const duration = 0.15;
+    const buffer = ctx.createBuffer(1, ctx.sampleRate * duration, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < data.length; i++) {
+      const t = i / ctx.sampleRate;
+      data[i] = Math.sin(2 * Math.PI * 600 * t) * Math.exp(-t * 40) * 0.5
+        + (Math.random() * 2 - 1) * Math.exp(-t * 30) * 0.3;
+    }
+    const source = ctx.createBufferSource();
+    source.buffer = buffer;
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0.6, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + duration);
+    source.connect(gain);
+    gain.connect(ctx.destination);
+    source.start();
+    source.onended = () => ctx.close();
+  } catch {
+    // Audio not supported, silently skip
+  }
+}
+
 export default function ConfirmationBlock({
   name,
   advisorName,
@@ -20,25 +45,50 @@ export default function ConfirmationBlock({
     if (confettiRef.current) return;
     confettiRef.current = true;
 
+    // Play pop sound
+    playPopSound();
+
     import("canvas-confetti").then((mod) => {
       const confetti = mod.default;
-      const end = Date.now() + 2000;
+      const colors = ["#C8A96E", "#1A4D3E", "#F0F2F1", "#FFD700", "#E8D5B7"];
 
-      const colors = ["#C8A96E", "#1A4D3E", "#F0F2F1"];
+      // Initial big burst from both sides
+      confetti({
+        particleCount: 80,
+        angle: 60,
+        spread: 80,
+        startVelocity: 55,
+        origin: { x: 0, y: 0.6 },
+        colors,
+        gravity: 0.8,
+      });
+      confetti({
+        particleCount: 80,
+        angle: 120,
+        spread: 80,
+        startVelocity: 55,
+        origin: { x: 1, y: 0.6 },
+        colors,
+        gravity: 0.8,
+      });
 
+      // Continuous stream for 3 seconds
+      const end = Date.now() + 3000;
       (function frame() {
         confetti({
-          particleCount: 3,
+          particleCount: 5,
           angle: 60,
-          spread: 55,
-          origin: { x: 0 },
+          spread: 65,
+          startVelocity: 45,
+          origin: { x: 0, y: 0.7 },
           colors,
         });
         confetti({
-          particleCount: 3,
+          particleCount: 5,
           angle: 120,
-          spread: 55,
-          origin: { x: 1 },
+          spread: 65,
+          startVelocity: 45,
+          origin: { x: 1, y: 0.7 },
           colors,
         });
         if (Date.now() < end) requestAnimationFrame(frame);
