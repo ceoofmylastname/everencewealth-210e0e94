@@ -360,7 +360,7 @@ export default function TrainingEvent() {
                                         WebkitBackgroundClip: 'text',
                                         color: 'transparent',
                                         WebkitTextFillColor: 'transparent',
-                                        animation: 'te-gold-gradient-shift 3s ease infinite, te-gold-glow 3s ease-in-out infinite',
+                                        animation: 'te-gold-gradient-shift 3s ease infinite',
                                         display: 'inline-block',
                                         padding: '2px 0',
                                         textTransform: 'uppercase',
