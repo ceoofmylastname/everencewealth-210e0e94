@@ -322,7 +322,7 @@ export default function TrainingEvent() {
                     <div className="hidden md:block absolute top-0 bottom-0" style={{ left: '52%', width: '1px', background: 'rgba(200,169,110,0.2)', zIndex: 5 }} />
 
                     {/* RIGHT HALF — CONTENT PANEL */}
-                    <div className="w-full md:w-[48%] flex flex-col justify-center p-7 md:p-16" style={{ background: '#080f0b' }}>
+                    <div className="w-full md:w-[48%] flex flex-col justify-center p-7 md:p-16" style={{ background: '#080f0b', borderRadius: '20px', border: '1px solid rgba(200,169,110,0.1)', boxShadow: 'inset 0 0 60px rgba(0,0,0,0.3)' }}>
                         <div className="w-full max-w-[520px] mx-auto md:mx-0" style={{ padding: '0' }}>
                             {/* Desktop padding override */}
                             <div className="hidden md:block" style={{ position: 'absolute' }} />
