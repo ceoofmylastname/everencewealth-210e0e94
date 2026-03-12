@@ -61,6 +61,10 @@ const workshopStyles = `
   0% { background-position: 0% center; }
   100% { background-position: 200% center; }
 }
+@keyframes ws-sound-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
 `;
 
 // ── Zod schema ──
@@ -464,57 +468,15 @@ const WorkshopLanding: React.FC = () => {
       <div className="min-h-screen bg-white" style={{ fontFamily: "'Inter', GeistSans, system-ui, sans-serif" }}>
 
         {/* ── HERO SECTION ── */}
-        <section className="relative overflow-hidden min-h-[100vh] flex flex-col" style={{ background: "linear-gradient(160deg, #0F2F27 0%, #1A4D3E 40%, #153D32 70%, #0F2F27 100%)" }}>
-          {/* Background video layer */}
-          <video
-            ref={videoRef}
-            autoPlay
-            muted
-            playsInline
-            className="absolute inset-0 w-full h-full object-cover"
-            style={{ zIndex: 0 }}
-            onEnded={(e) => { e.currentTarget.pause(); }}
-          >
-            <source src="https://assets.cdn.filesafe.space/htr97zzmRc1NMujHbL9R/media/69b228577fc07c6782abd388.mov" type="video/quicktime" />
-            <source src="https://assets.cdn.filesafe.space/htr97zzmRc1NMujHbL9R/media/69b228577fc07c6782abd388.mov" type="video/mp4" />
-          </video>
-          {/* Gradient overlay between video and content */}
-          <div className="absolute inset-0" style={{
-            zIndex: 1,
-            background: "linear-gradient(to bottom, rgba(15,47,39,0.55) 0%, rgba(26,77,62,0.45) 40%, rgba(15,47,39,0.6) 70%, rgba(15,47,39,0.85) 100%)"
-          }} />
-          {/* Floating orbs */}
-          <FloatingOrbs />
+        <section className="relative overflow-hidden min-h-[100vh] flex flex-col" style={{ background: "#0a140e" }}>
+          {/* Noise texture overlay */}
+          <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 0, opacity: 0.03, backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E")`, backgroundRepeat: "repeat", backgroundSize: "256px 256px" }} />
+          {/* Floating orbs (reduced opacity) */}
+          <div style={{ opacity: 0.3 }}>
+            <FloatingOrbs />
+          </div>
           {/* Mesh gradient accent */}
-          <div className="absolute top-0 left-0 right-0 h-[2px]" style={{ zIndex: 2, background: "linear-gradient(90deg, transparent, #EDDB77, #56B4A0, #EDDB77, transparent)" }} />
-
-          {/* Sound toggle button */}
-          <button
-            onClick={toggleSound}
-            aria-label={isMuted ? "Unmute video" : "Mute video"}
-            className="absolute bottom-6 right-6 md:bottom-8 md:right-8 w-[36px] h-[36px] md:w-[42px] md:h-[42px] rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110 hover:bg-white/20 cursor-pointer"
-            style={{
-              zIndex: 20,
-              background: "rgba(255,255,255,0.12)",
-              backdropFilter: "blur(12px)",
-              WebkitBackdropFilter: "blur(12px)",
-              border: "1px solid rgba(255,255,255,0.18)",
-            }}
-          >
-            {isMuted ? (
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M11 5L6 9H2V15H6L11 19V5Z" fill="rgba(255,255,255,0.85)" />
-                <line x1="23" y1="9" x2="17" y2="15" stroke="rgba(255,255,255,0.85)" strokeWidth="2" strokeLinecap="round" />
-                <line x1="17" y1="9" x2="23" y2="15" stroke="rgba(255,255,255,0.85)" strokeWidth="2" strokeLinecap="round" />
-              </svg>
-            ) : (
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M11 5L6 9H2V15H6L11 19V5Z" fill="rgba(255,255,255,0.85)" />
-                <path d="M15.54 8.46C16.48 9.4 17.01 10.67 17.01 12C17.01 13.33 16.48 14.6 15.54 15.54" stroke="rgba(255,255,255,0.85)" strokeWidth="2" strokeLinecap="round" />
-                <path d="M18.07 5.93C19.78 7.64 20.74 9.87 20.74 12.19C20.74 14.51 19.78 16.74 18.07 18.45" stroke="rgba(255,255,255,0.85)" strokeWidth="2" strokeLinecap="round" />
-              </svg>
-            )}
-          </button>
+          <div className="absolute top-0 left-0 right-0 h-[2px]" style={{ zIndex: 2, background: "linear-gradient(90deg, transparent, #C8A96E, #56B4A0, #C8A96E, transparent)" }} />
 
           <div className="relative flex-1 flex flex-col" style={{ zIndex: 2 }}>
             {/* Header */}
@@ -535,21 +497,71 @@ const WorkshopLanding: React.FC = () => {
             {/* Hero Content */}
             <div className="flex-1 flex items-center">
               <div className="max-w-[1200px] mx-auto px-4 sm:px-6 py-10 sm:py-16 lg:py-20 w-full">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+                <div className="grid grid-cols-1 lg:grid-cols-[11fr_9fr] gap-8 lg:gap-12 items-start">
 
-                  {/* Left: Hero text */}
-                  <motion.div variants={staggerContainer} initial="hidden" animate="visible" className="overflow-hidden min-w-0">
-                    {/* Date badge with glow */}
+                  {/* Left: Video + Text */}
+                  <motion.div variants={staggerContainer} initial="hidden" animate="visible" className="min-w-0">
+                    {/* Video Container — the star of the page */}
+                    <motion.div variants={fadeUp} className="relative w-full overflow-hidden mb-8" style={{ aspectRatio: "16/9", borderRadius: "2px", border: "1px solid rgba(200,169,110,0.2)" }}>
+                      <video
+                        ref={videoRef}
+                        autoPlay
+                        muted
+                        playsInline
+                        className="absolute inset-0 w-full h-full object-cover"
+                        onEnded={(e) => { e.currentTarget.pause(); }}
+                      >
+                        <source src="https://assets.cdn.filesafe.space/htr97zzmRc1NMujHbL9R/media/69b228577fc07c6782abd388.mov" type="video/quicktime" />
+                        <source src="https://assets.cdn.filesafe.space/htr97zzmRc1NMujHbL9R/media/69b228577fc07c6782abd388.mov" type="video/mp4" />
+                      </video>
+                      {/* Vignette overlay */}
+                      <div className="absolute inset-0 pointer-events-none" style={{ boxShadow: "inset 0 0 60px rgba(0,0,0,0.5)" }} />
+                      {/* Sound toggle — bottom-right of video */}
+                      <button
+                        onClick={toggleSound}
+                        aria-label={isMuted ? "Unmute video" : "Mute video"}
+                        className="absolute flex items-center justify-center transition-all duration-200 hover:scale-110 cursor-pointer"
+                        style={{
+                          bottom: "12px",
+                          right: "12px",
+                          width: "38px",
+                          height: "38px",
+                          zIndex: 10,
+                          background: "rgba(0,0,0,0.55)",
+                          backdropFilter: "blur(8px)",
+                          WebkitBackdropFilter: "blur(8px)",
+                          border: "1px solid rgba(200,169,110,0.4)",
+                          borderRadius: "0px",
+                        }}
+                      >
+                        {isMuted ? (
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M11 5L6 9H2V15H6L11 19V5Z" fill="#C8A96E" />
+                            <line x1="23" y1="9" x2="17" y2="15" stroke="#C8A96E" strokeWidth="2" strokeLinecap="round" />
+                            <line x1="17" y1="9" x2="23" y2="15" stroke="#C8A96E" strokeWidth="2" strokeLinecap="round" />
+                          </svg>
+                        ) : (
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M11 5L6 9H2V15H6L11 19V5Z" fill="#C8A96E" />
+                            <path d="M15.54 8.46C16.48 9.4 17.01 10.67 17.01 12C17.01 13.33 16.48 14.6 15.54 15.54" stroke="#C8A96E" strokeWidth="2" strokeLinecap="round" style={{ animation: "ws-sound-pulse 1.2s ease-in-out infinite" }} />
+                            <path d="M18.07 5.93C19.78 7.64 20.74 9.87 20.74 12.19C20.74 14.51 19.78 16.74 18.07 18.45" stroke="#C8A96E" strokeWidth="2" strokeLinecap="round" style={{ animation: "ws-sound-pulse 1.2s ease-in-out infinite 0.15s" }} />
+                          </svg>
+                        )}
+                      </button>
+                    </motion.div>
+
+                    {/* Date badge */}
                     <motion.div variants={fadeLeft} transition={{ type: "spring", stiffness: 100, damping: 15 }}
-                      className="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-full mb-8"
-                      style={{ background: "rgba(255,255,255,0.06)", backdropFilter: "blur(12px)", border: "1px solid rgba(237,219,119,0.15)", boxShadow: "0 4px 24px -4px rgba(0,0,0,0.2)" }}>
-                      <Calendar className="w-4 h-4" style={{ color: "#EDDB77" }} />
+                      className="inline-flex items-center gap-2.5 px-5 py-2.5 mb-8"
+                      style={{ background: "rgba(255,255,255,0.06)", backdropFilter: "blur(12px)", border: "1px solid rgba(200,169,110,0.15)", boxShadow: "0 4px 24px -4px rgba(0,0,0,0.2)" }}>
+                      <Calendar className="w-4 h-4" style={{ color: "#C8A96E" }} />
                       <span className="text-sm font-semibold text-white/90 tracking-wide">{workshopDate}</span>
                     </motion.div>
 
-                    {/* Animated Gradient Headline */}
+                    {/* Headline */}
                     <motion.h1 initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-                      className="text-3xl sm:text-4xl md:text-5xl lg:text-[3.5rem] xl:text-[4rem] font-extrabold leading-[1.1] mb-6 break-words text-white tracking-tight">
+                      className="font-extrabold leading-[1.1] mb-6 break-words text-white tracking-tight"
+                      style={{ fontSize: "clamp(32px, 4vw, 52px)" }}>
                       Build Your{" "}
                       <span className="relative inline-block pb-1">
                         Tax-Free
@@ -557,10 +569,10 @@ const WorkshopLanding: React.FC = () => {
                           initial={{ pathLength: 0, opacity: 0 }} animate={{ pathLength: 1, opacity: 1 }} transition={{ duration: 1.2, delay: 0.8 }}>
                           <motion.path d="M2 8.5C30 3 70 2 100 5.5C130 9 170 4 198 6" stroke="url(#underline-gradient)" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"
                             initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 1.2, delay: 0.8 }} />
-                          <defs><linearGradient id="underline-gradient" x1="0" y1="0" x2="200" y2="0" gradientUnits="userSpaceOnUse"><stop stopColor="#EDDB77" /><stop offset="1" stopColor="#C4A84D" /></linearGradient></defs>
+                          <defs><linearGradient id="underline-gradient" x1="0" y1="0" x2="200" y2="0" gradientUnits="userSpaceOnUse"><stop stopColor="#C8A96E" /><stop offset="1" stopColor="#A08445" /></linearGradient></defs>
                         </motion.svg>
                       </span>{" "}
-                      <span className="inline-block" style={{ background: "linear-gradient(90deg, #EDDB77, #fff, #EDDB77, #C4A84D, #EDDB77)", backgroundSize: "300% auto", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", animation: "ws-text-gradient 4s linear infinite" }}>
+                      <span className="inline-block" style={{ background: "linear-gradient(90deg, #C8A96E, #fff, #C8A96E, #A08445, #C8A96E)", backgroundSize: "300% auto", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", animation: "ws-text-gradient 4s linear infinite" }}>
                         Retirement
                       </span>
                     </motion.h1>
@@ -571,41 +583,41 @@ const WorkshopLanding: React.FC = () => {
                       Join a complimentary workshop and discover proven strategies to eliminate taxes, protect your wealth, and retire with confidence.
                     </motion.p>
 
-                    {/* Quick info pills — premium glassmorphism */}
+                    {/* Quick info pills */}
                     <motion.div variants={fadeUp} transition={{ delay: 0.5 }} className="flex flex-wrap gap-3 mb-10">
                       {[
                         { icon: Clock, text: `${workshopTime} ${workshopTimezone}` },
                         { icon: Monitor, text: "Live Online" },
                         { icon: Clock, text: `${workshopDuration} min` },
-                      ].map(({ icon: Icon, text }, i) => (
+                      ].map(({ icon: Icon, text }) => (
                         <motion.div key={text} whileHover={{ scale: 1.05, y: -2 }} transition={{ type: "spring", stiffness: 400 }}
-                          className="flex items-center gap-2 px-4 py-2 rounded-full text-sm cursor-default"
+                          className="flex items-center gap-2 px-4 py-2 text-sm cursor-default"
                           style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)", backdropFilter: "blur(8px)", boxShadow: "0 2px 12px -2px rgba(0,0,0,0.15)" }}>
-                          <Icon className="w-3.5 h-3.5" style={{ color: "#EDDB77" }} />
+                          <Icon className="w-3.5 h-3.5" style={{ color: "#C8A96E" }} />
                           <span className="text-white/80 font-medium">{text}</span>
                         </motion.div>
                       ))}
                     </motion.div>
 
-                    {/* Advisor mini card — with pulsing glow */}
+                    {/* Advisor mini card */}
                     <motion.div variants={fadeUp} transition={{ delay: 0.6 }}
-                      className="inline-flex items-center gap-4 px-5 py-3 rounded-2xl"
+                      className="inline-flex items-center gap-4 px-5 py-3"
                       style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", backdropFilter: "blur(8px)" }}>
                       {advisor.photo_url ? (
                         <div className="relative" style={{ animation: "ws-pulse-glow 3s ease-in-out infinite" }}>
-                          <div className="w-14 h-14 rounded-full p-[2px]" style={{ background: "linear-gradient(135deg, #EDDB77, #C4A84D)" }}>
+                          <div className="w-14 h-14 rounded-full p-[2px]" style={{ background: "linear-gradient(135deg, #C8A96E, #A08445)" }}>
                             <img src={advisor.photo_url} alt={advisorName} className="w-full h-full rounded-full object-cover" />
                           </div>
                         </div>
                       ) : (
                         <div className="w-14 h-14 rounded-full flex items-center justify-center text-lg font-bold text-white"
-                          style={{ background: "linear-gradient(135deg, rgba(237,219,119,0.2), rgba(196,168,77,0.1))", border: "1px solid rgba(237,219,119,0.3)" }}>
+                          style={{ background: "linear-gradient(135deg, rgba(200,169,110,0.2), rgba(160,132,69,0.1))", border: "1px solid rgba(200,169,110,0.3)" }}>
                           {advisor.first_name?.[0]}{advisor.last_name?.[0]}
                         </div>
                       )}
                       <div>
                         <p className="text-white font-semibold text-[15px]">{advisorName}</p>
-                        <p className="text-sm font-medium" style={{ color: "#EDDB77" }}>{advisor.title || "Wealth Strategist"}</p>
+                        <p className="text-sm font-medium" style={{ color: "#C8A96E" }}>{advisor.title || "Wealth Strategist"}</p>
                       </div>
                     </motion.div>
                   </motion.div>
