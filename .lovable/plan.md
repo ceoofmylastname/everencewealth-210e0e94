@@ -1,30 +1,40 @@
 
 
-## Problem
+## Plan: Add Registration Time (10:30 AM) to Landing Page and Emails
 
-The slot being booked is already marked `is_booked = true` in the database. The edge function returns HTTP 409 with `{"error": "This time slot is no longer available."}`, but `supabase.functions.invoke()` treats any non-2xx as a generic error and doesn't pass through the response body message.
+### 1. Landing Page Changes (`src/pages/TrainingEvent.tsx`)
 
-## Fix
-
-**File: `src/components/socorro/RegistrationForm.tsx`** — Change the error handling to extract the actual error message from the edge function response:
-
-```typescript
-const { data, error: fnErr } = await supabase.functions.invoke(
-  "register-socorro-booking",
-  { body: { ... } }
-);
-
-// supabase.functions.invoke returns the parsed body in `data` even on non-2xx
-// but sets `fnErr` with a generic message. Check `data.error` first.
-if (data?.error) throw new Error(data.error);
-if (fnErr) throw new Error(fnErr.message);
+**A. Add registration time to the event details pills (line 284)**
+Change "11:00 AM - 4:00 PM" to include registration:
+```
+Registration: 10:30 AM
+Event: 11:00 AM – 4:00 PM
 ```
 
-The fix is simply swapping the order: check `data?.error` before `fnErr`, since `data` contains the actual descriptive error from the edge function (e.g., "This time slot is no longer available"), while `fnErr` only has the generic SDK message.
+**B. Add registration time to the confirmation card (line 161)**
+Update the time display from `11:00 AM – 4:00 PM PT` to `Registration 10:30 AM | Event 11:00 AM – 4:00 PM PT`
 
-Additionally, the specific slot the user is testing with is already booked. They need to either:
-- Use a different available slot
-- Or we unbook it in the database for re-testing
+**C. Update session highlights (line 11)**
+Add a "10:30 AM" registration/check-in entry as the first item in `sessionHighlights`.
 
-No other changes needed. The edge function itself is working correctly.
+### 2. Email Changes
+
+**A. Registration confirmation email (`supabase/functions/register-training-event/index.ts`)**
+Add registration and event times to the event details block (currently only shows date and location):
+```
+🕐 Registration: 10:30 AM PST
+🕐 Event: 11:00 AM – 4:00 PM PST
+```
+
+**B. Reminder emails (`supabase/functions/process-training-reminders/index.ts`, line 92)**
+Update the time line from `11:00 AM to 4:00 PM PST` to include registration:
+```
+🕐 Registration: 10:30 AM PST
+🕐 Event: 11:00 AM – 4:00 PM PST
+```
+
+### Files Modified
+- `src/pages/TrainingEvent.tsx` — 3 spots (session highlights array, event pills, confirmation card)
+- `supabase/functions/register-training-event/index.ts` — add times to email
+- `supabase/functions/process-training-reminders/index.ts` — update time line
 
