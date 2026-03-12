@@ -243,6 +243,11 @@ export default function TrainingEvent() {
                     0%, 100% { opacity: 1; }
                     50% { opacity: 0.3; }
                 }
+                @keyframes te-gold-gradient-shift {
+                    0% { background-position: 0% 50%; }
+                    50% { background-position: 100% 50%; }
+                    100% { background-position: 0% 50%; }
+                }
             `}</style>
 
             <div className="relative z-10">
