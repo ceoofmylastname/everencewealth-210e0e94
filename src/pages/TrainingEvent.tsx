@@ -252,6 +252,17 @@ export default function TrainingEvent() {
                     0%, 100% { filter: drop-shadow(0 0 12px rgba(237,219,119,0.4)) drop-shadow(0 0 30px rgba(200,169,110,0.15)); }
                     50% { filter: drop-shadow(0 0 24px rgba(200,169,110,0.7)) drop-shadow(0 0 50px rgba(237,219,119,0.25)); }
                 }
+                @keyframes te-letter-highlight {
+                    0%, 100% { background-position: 0% 50%; }
+                    25% { background-position: 50% 50%; }
+                    50% { background-position: 100% 50%; }
+                    75% { background-position: 50% 50%; }
+                }
+                @keyframes te-letter-pop {
+                    0%, 100% { transform: scale(1) translateY(0); }
+                    25% { transform: scale(1.08) translateY(-2px); }
+                    50% { transform: scale(1) translateY(0); }
+                }
             `}</style>
 
             <div className="relative z-10">
@@ -351,15 +362,25 @@ export default function TrainingEvent() {
                                 animation: 'te-fadeUp12 500ms ease 350ms both',
                             }}>
                                 Your Strategy Has a Ceiling.<br />
-                                This Day <span
-                                    className="te-gradient-text"
-                                    style={{
-                                        color: '#EDDB77',
-                                        textShadow: '0 0 18px rgba(200,169,110,0.35)',
-                                        display: 'inline-block',
-                                        padding: '2px 0',
-                                        textTransform: 'uppercase',
-                                    }}>REMOVES IT</span>.
+                                This Day <span style={{ display: 'inline-flex', alignItems: 'baseline' }}>
+                                    {"REMOVES IT".split("").map((char, i) => (
+                                        <span key={i} style={{
+                                            display: 'inline-block',
+                                            background: 'linear-gradient(90deg, #FFFFFF, #EDDB77, #1A4D3E, #EDDB77, #FFFFFF)',
+                                            backgroundSize: '500% 100%',
+                                            WebkitBackgroundClip: 'text',
+                                            backgroundClip: 'text',
+                                            WebkitTextFillColor: 'transparent',
+                                            color: 'transparent',
+                                            animation: 'te-letter-highlight 4s ease infinite, te-letter-pop 4s ease infinite',
+                                            animationDelay: `${i * 0.25}s`,
+                                            fontWeight: 900,
+                                            textTransform: 'uppercase',
+                                            letterSpacing: '0.04em',
+                                            ...(char === ' ' ? { width: '0.3em' } : {}),
+                                        }}>{char === ' ' ? '\u00A0' : char}</span>
+                                    ))}
+                                </span><span style={{ color: '#FFFFFF' }}>.</span>
                             </h1>
 
                             {/* 3. SUBHEADLINE */}
