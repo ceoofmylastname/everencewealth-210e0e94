@@ -354,17 +354,12 @@ export default function TrainingEvent() {
                                 This Day <span
                                     className="te-gradient-text"
                                     style={{
-                                        background: 'linear-gradient(90deg, #B8945E, #F5E6C8, #EDDB77, #FFD700, #F5E6C8, #B8945E)',
-                                        backgroundSize: '600% 100%',
-                                        backgroundClip: 'text',
-                                        WebkitBackgroundClip: 'text',
-                                        color: 'transparent',
-                                        WebkitTextFillColor: 'transparent',
-                                        animation: 'te-gold-gradient-shift 3s ease infinite',
+                                        color: '#EDDB77',
+                                        textShadow: '0 0 18px rgba(200,169,110,0.35)',
                                         display: 'inline-block',
                                         padding: '2px 0',
                                         textTransform: 'uppercase',
-                                    }}>Removes It</span>.
+                                    }}>REMOVES IT</span>.
                             </h1>
 
                             {/* 3. SUBHEADLINE */}
