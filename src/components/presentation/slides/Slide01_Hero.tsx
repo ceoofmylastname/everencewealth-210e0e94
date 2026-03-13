@@ -4,30 +4,40 @@ import GoldUnderline from "../animations/GoldUnderline";
 import ClipReveal from "../ClipReveal";
 import { HeroText, HeroItalic, LeadText } from "../Typography";
 import { useRevealQueue } from "../RevealContext";
+import beachBg from "@/assets/retirees-beach.jpg";
+import logo from "@/assets/logo-new.png";
 
 export default function Slide01_Hero() {
   const { isRevealed } = useRevealQueue();
 
   return (
     <div className="antigravity-slide">
-      {/* Dark background — always visible */}
+      {/* Beach background image */}
+      <div className="antigravity-full-bleed">
+        <img
+          src={beachBg}
+          alt="Retirees enjoying a beach at sunset"
+          className="w-full h-full object-cover"
+        />
+      </div>
+
+      {/* Cinematic dark gradient overlay */}
       <div
         className="antigravity-full-bleed"
         style={{
-          background: "linear-gradient(135deg, #0D1F1A 0%, #1A3A30 40%, #0D1F1A 100%)",
+          background:
+            "linear-gradient(180deg, rgba(13,31,26,0.85) 0%, rgba(13,31,26,0.55) 40%, rgba(13,31,26,0.75) 100%)",
         }}
       />
-      <div className="antigravity-overlay-dark" style={{ background: "rgba(0,0,0,0.4)" }} />
 
       <div className="relative z-10 flex flex-col items-center justify-center h-full text-center px-8">
-        {/* Reveal 1: Logo */}
-        <RevealElement index={1} direction="scale" className="mb-6">
-          <div
-            className="text-2xl font-bold tracking-wider"
-            style={{ color: "#C8A96E", fontFamily: "var(--font-display)" }}
-          >
-            EVERENCE WEALTH
-          </div>
+        {/* Reveal 1: Logo image */}
+        <RevealElement index={1} direction="scale" className="mb-8">
+          <img
+            src={logo}
+            alt="Everence Wealth logo"
+            className="h-16 md:h-20 w-auto object-contain drop-shadow-lg"
+          />
         </RevealElement>
 
         {/* Reveal 2: Gold rule */}
