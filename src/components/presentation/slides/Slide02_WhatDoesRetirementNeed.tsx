@@ -23,7 +23,7 @@ export default function Slide02_WhatDoesRetirementNeed() {
           <h2
             className="text-4xl md:text-5xl font-bold"
             style={{
-              color: "#F9F8F5",
+              color: "#1A4D3E",
               fontFamily: "var(--font-display)",
               lineHeight: "var(--lh-title)",
               letterSpacing: "var(--ls-hero)",
