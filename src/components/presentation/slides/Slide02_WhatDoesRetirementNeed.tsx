@@ -88,7 +88,7 @@ export default function Slide02_WhatDoesRetirementNeed() {
                 rotateX: -5,
                 rotateY: -5,
                 scale: 1.08,
-                boxShadow: "0 12px 48px rgba(200,169,110,0.35), 0 0 80px rgba(26,77,62,0.2)",
+                boxShadow: "0 12px 48px rgba(26,77,62,0.15), 0 0 80px rgba(200,169,110,0.1)",
               }}
               transition={{ type: "spring", stiffness: 300, damping: 20 }}
             >

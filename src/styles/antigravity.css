@@ -478,14 +478,14 @@
 
 /* --- Gold Glow Text (Strategy) --- */
 .antigravity-gold-glow-text {
-  color: var(--ev-gold);
+  color: var(--ev-gold-dk);
   text-shadow:
-    0 0 20px rgba(200, 169, 110, 0.5),
-    0 0 40px rgba(200, 169, 110, 0.25);
+    0 0 20px rgba(200, 169, 110, 0.35),
+    0 0 40px rgba(200, 169, 110, 0.15);
   animation: antigravity-gold-pulse 3s ease-in-out infinite alternate;
 }
 
 @keyframes antigravity-gold-pulse {
-  0% { text-shadow: 0 0 16px rgba(200, 169, 110, 0.4), 0 0 32px rgba(200, 169, 110, 0.2); }
-  100% { text-shadow: 0 0 28px rgba(200, 169, 110, 0.7), 0 0 56px rgba(200, 169, 110, 0.35); }
+  0% { text-shadow: 0 0 16px rgba(200, 169, 110, 0.25), 0 0 32px rgba(200, 169, 110, 0.1); }
+  100% { text-shadow: 0 0 28px rgba(200, 169, 110, 0.5), 0 0 56px rgba(200, 169, 110, 0.2); }
 }
