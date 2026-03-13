@@ -5,7 +5,7 @@ import ClipReveal from "../ClipReveal";
 import { HeroText, HeroItalic, LeadText } from "../Typography";
 import { useRevealQueue } from "../RevealContext";
 import beachBg from "@/assets/retirees-beach.jpg";
-import logo from "@/assets/logo-new.png";
+
 
 export default function Slide01_Hero() {
   const { isRevealed } = useRevealQueue();
@@ -31,14 +31,6 @@ export default function Slide01_Hero() {
       />
 
       <div className="relative z-10 flex flex-col items-center justify-center h-full text-center px-8">
-        {/* Reveal 1: Logo image */}
-        <RevealElement index={1} direction="scale" className="mb-8">
-          <img
-            src={logo}
-            alt="Everence Wealth logo"
-            className="h-16 md:h-20 w-auto object-contain drop-shadow-lg"
-          />
-        </RevealElement>
 
         {/* Reveal 2: Gold rule */}
         <RevealElement index={2} direction="wipe">
