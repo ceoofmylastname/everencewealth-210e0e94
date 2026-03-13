@@ -95,7 +95,7 @@ export default function Slide02_WhatDoesRetirementNeed() {
               <div className="antigravity-icon-orb">
                 <card.icon className="w-7 h-7" style={{ color: "#fff" }} />
               </div>
-              <span style={{ color: "rgba(255,255,255,0.85)", fontFamily: "var(--font-body)", fontSize: 15, fontWeight: 500 }}>
+              <span style={{ color: "var(--ev-green)", fontFamily: "var(--font-body)", fontSize: 15, fontWeight: 500 }}>
                 {card.label}
               </span>
             </motion.div>
