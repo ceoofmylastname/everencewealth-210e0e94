@@ -23,7 +23,7 @@ export default function Slide02_WhatDoesRetirementNeed() {
           <h2
             className="text-4xl md:text-5xl font-bold"
             style={{
-              color: "#F9F8F5",
+              color: "#1A4D3E",
               fontFamily: "var(--font-display)",
               lineHeight: "var(--lh-title)",
               letterSpacing: "var(--ls-hero)",
@@ -49,7 +49,7 @@ export default function Slide02_WhatDoesRetirementNeed() {
                 Retirement Account
               </span>
             </GoldUnderline>{" "}
-            <span style={{ color: "#F9F8F5" }}>need?</span>
+            <span style={{ color: "#1A4D3E" }}>need?</span>
           </h2>
         </RevealElement>
 
@@ -64,14 +64,14 @@ export default function Slide02_WhatDoesRetirementNeed() {
                 rotateX: -5,
                 rotateY: 5,
                 scale: 1.08,
-                boxShadow: "0 12px 48px rgba(200,169,110,0.35), 0 0 80px rgba(26,77,62,0.2)",
+                boxShadow: "0 12px 48px rgba(26,77,62,0.15), 0 0 80px rgba(200,169,110,0.1)",
               }}
               transition={{ type: "spring", stiffness: 300, damping: 20 }}
             >
               <div className="antigravity-icon-orb">
                 <card.icon className="w-7 h-7" style={{ color: "#fff" }} />
               </div>
-              <span style={{ color: "rgba(255,255,255,0.85)", fontFamily: "var(--font-body)", fontSize: 15, fontWeight: 500 }}>
+              <span style={{ color: "var(--ev-green)", fontFamily: "var(--font-body)", fontSize: 15, fontWeight: 500 }}>
                 {card.label}
               </span>
             </motion.div>
@@ -88,14 +88,14 @@ export default function Slide02_WhatDoesRetirementNeed() {
                 rotateX: -5,
                 rotateY: -5,
                 scale: 1.08,
-                boxShadow: "0 12px 48px rgba(200,169,110,0.35), 0 0 80px rgba(26,77,62,0.2)",
+                boxShadow: "0 12px 48px rgba(26,77,62,0.15), 0 0 80px rgba(200,169,110,0.1)",
               }}
               transition={{ type: "spring", stiffness: 300, damping: 20 }}
             >
               <div className="antigravity-icon-orb">
                 <card.icon className="w-7 h-7" style={{ color: "#fff" }} />
               </div>
-              <span style={{ color: "rgba(255,255,255,0.85)", fontFamily: "var(--font-body)", fontSize: 15, fontWeight: 500 }}>
+              <span style={{ color: "var(--ev-green)", fontFamily: "var(--font-body)", fontSize: 15, fontWeight: 500 }}>
                 {card.label}
               </span>
             </motion.div>
@@ -112,7 +112,7 @@ export default function Slide02_WhatDoesRetirementNeed() {
           <p
             className="text-3xl md:text-4xl font-bold"
             style={{
-              color: "#F9F8F5",
+              color: "#1A4D3E",
               fontFamily: "var(--font-display)",
               lineHeight: "var(--lh-title)",
             }}
