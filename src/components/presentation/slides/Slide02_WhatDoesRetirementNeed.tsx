@@ -49,7 +49,7 @@ export default function Slide02_WhatDoesRetirementNeed() {
                 Retirement Account
               </span>
             </GoldUnderline>{" "}
-            <span style={{ color: "#F9F8F5" }}>need?</span>
+            <span style={{ color: "#1A4D3E" }}>need?</span>
           </h2>
         </RevealElement>
 
