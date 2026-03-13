@@ -5,7 +5,7 @@ import ClipReveal from "../ClipReveal";
 import { HeroText, HeroItalic, LeadText } from "../Typography";
 import { useRevealQueue } from "../RevealContext";
 import beachBg from "@/assets/retirees-beach.jpg";
-import logo from "@/assets/logo-new.png";
+
 
 export default function Slide01_Hero() {
   const { isRevealed } = useRevealQueue();
