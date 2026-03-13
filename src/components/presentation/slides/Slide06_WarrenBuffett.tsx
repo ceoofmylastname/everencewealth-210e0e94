@@ -9,8 +9,8 @@ export default function Slide06_WarrenBuffett() {
         {/* Left Side */}
         <div>
           {/* Reveal 1: Title */}
-          <RevealElement index={1} direction="left">
-            <h2 className="text-5xl font-bold mb-2" style={{ color: "#1A4D3E" }}>
+          <RevealElement index={1} direction="slam">
+            <h2 className="text-5xl font-bold mb-2" style={{ color: "#1A4D3E", fontFamily: "var(--font-display)" }}>
               <GoldUnderline>Warren Buffett</GoldUnderline>
             </h2>
             <p className="text-2xl mb-10" style={{ color: "#4A5565" }}>
@@ -19,9 +19,9 @@ export default function Slide06_WarrenBuffett() {
           </RevealElement>
 
           {/* Reveal 2: Rule 1 */}
-          <RevealElement index={2} direction="left" className="mb-4">
+          <RevealElement index={2} direction="cardRise" className="mb-4">
             <div className="antigravity-card-dark">
-              <span className="text-white text-lg">Rule 1:</span>
+              <span className="text-white text-lg" style={{ fontFamily: "var(--font-body)", fontWeight: 300, letterSpacing: "0.24em", textTransform: "uppercase" as const, fontSize: "var(--t-eyebrow)" }}>RULE 1</span>
               <div
                 className="text-2xl font-bold mt-1"
                 style={{ color: "#C8A96E", letterSpacing: "0.05em" }}
@@ -32,9 +32,9 @@ export default function Slide06_WarrenBuffett() {
           </RevealElement>
 
           {/* Reveal 3: Rule 2 */}
-          <RevealElement index={3} direction="left">
+          <RevealElement index={3} direction="cardRise">
             <div className="antigravity-card-dark">
-              <span className="text-white text-lg">Rule 2:</span>
+              <span className="text-white text-lg" style={{ fontFamily: "var(--font-body)", fontWeight: 300, letterSpacing: "0.24em", textTransform: "uppercase" as const, fontSize: "var(--t-eyebrow)" }}>RULE 2</span>
               <div
                 className="text-2xl font-bold mt-1"
                 style={{ color: "#C8A96E", letterSpacing: "0.05em" }}

@@ -27,8 +27,8 @@ export default function Slide24_GreatRetirementTransfer() {
         {/* Left */}
         <div>
           {/* Reveal 1: Title */}
-          <RevealElement index={1} direction="left">
-            <h2 className="text-4xl font-bold mb-1" style={{ color: "#1A4D3E" }}>
+          <RevealElement index={1} direction="slam">
+            <h2 className="text-4xl font-bold mb-1" style={{ color: "#1A4D3E", fontFamily: "var(--font-display)" }}>
               The BIG <GradientText>Question?</GradientText>
             </h2>
             <p className="text-lg mb-8" style={{ color: "#4A5565" }}>
@@ -37,7 +37,7 @@ export default function Slide24_GreatRetirementTransfer() {
           </RevealElement>
 
           {/* Reveal 2: Question cards */}
-          <RevealElement index={2} direction="up">
+          <RevealElement index={2} direction="cardRise">
             <div className="space-y-4">
               {questions.map((q, i) => (
                 <div
@@ -57,7 +57,7 @@ export default function Slide24_GreatRetirementTransfer() {
           </RevealElement>
 
           {/* Reveal 3: Historical fact */}
-          <RevealElement index={3} direction="scale" className="mt-6">
+          <RevealElement index={3} direction="whomp" className="mt-6">
             <div className="px-5 py-3 rounded-xl" style={{ background: "#F5E6C8" }}>
               <p className="text-sm font-bold" style={{ color: "#1A4D3E" }}>
                 The worst tax rate in American history: <strong className="antigravity-stat">94%</strong>. It happened before.

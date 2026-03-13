@@ -16,8 +16,8 @@ export default function Slide25_TheOpportunity() {
         {/* Left */}
         <div>
           {/* Reveal 1: Title */}
-          <RevealElement index={1} direction="left">
-            <h2 className="text-4xl font-bold mb-2" style={{ color: "#1A4D3E" }}>
+          <RevealElement index={1} direction="slam">
+            <h2 className="text-4xl font-bold mb-2" style={{ color: "#1A4D3E", fontFamily: "var(--font-display)" }}>
               The <GradientText>Opportunity</GradientText>
             </h2>
             <p className="text-lg mb-8" style={{ color: "#4A5565" }}>
@@ -26,7 +26,7 @@ export default function Slide25_TheOpportunity() {
           </RevealElement>
 
           {/* Reveal 2: Benefits list */}
-          <RevealElement index={2} direction="up">
+          <RevealElement index={2} direction="cardRise">
             <div className="space-y-3">
               {benefits.map((benefit, i) => (
                 <div
@@ -47,7 +47,7 @@ export default function Slide25_TheOpportunity() {
           </RevealElement>
 
           {/* Reveal 3: CTA */}
-          <RevealElement index={3} direction="scale" className="mt-6">
+          <RevealElement index={3} direction="explode" className="mt-6">
             <div
               className="inline-block px-6 py-3 rounded-xl text-lg font-bold"
               style={{ background: "#1A4D3E", color: "white" }}

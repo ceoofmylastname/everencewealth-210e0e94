@@ -7,8 +7,8 @@ export default function Slide17_TaxBucketsIntro() {
     <div className="antigravity-slide bg-white">
       <div className="antigravity-slide-inner">
         {/* Reveal 1: Title */}
-        <RevealElement index={1} direction="up" className="text-center mb-12">
-          <h2 className="text-4xl md:text-5xl font-bold" style={{ color: "#1A4D3E" }}>
+        <RevealElement index={1} direction="slam" className="text-center mb-12">
+          <h2 className="text-4xl md:text-5xl font-bold" style={{ color: "#1A4D3E", fontFamily: "var(--font-display)" }}>
             Tax <GoldUnderline><GradientText>Categories</GradientText></GoldUnderline>
           </h2>
           <p className="text-lg mt-3" style={{ color: "#4A5565" }}>
@@ -18,7 +18,7 @@ export default function Slide17_TaxBucketsIntro() {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
           {/* Reveal 2: Ordinary Income */}
-          <RevealElement index={2} direction="up">
+          <RevealElement index={2} direction="cardRise">
             <div className="antigravity-card flex flex-col items-center text-center" style={{ background: "#F5E6C8" }}>
               <div
                 className="w-24 h-20 mb-4"
@@ -30,7 +30,7 @@ export default function Slide17_TaxBucketsIntro() {
           </RevealElement>
 
           {/* Reveal 2: Capital Gains (same reveal as OI) */}
-          <RevealElement index={2} direction="up">
+          <RevealElement index={2} direction="cardRise">
             <div className="antigravity-card flex flex-col items-center text-center" style={{ background: "#FFF8EB" }}>
               <div
                 className="w-24 h-20 mb-4"
@@ -42,7 +42,7 @@ export default function Slide17_TaxBucketsIntro() {
           </RevealElement>
 
           {/* Reveal 3: Tax Free (mystery) */}
-          <RevealElement index={3} direction="scale">
+          <RevealElement index={3} direction="explode">
             <div className="antigravity-card flex flex-col items-center text-center border-2 border-dashed" style={{ borderColor: "#C8A96E" }}>
               <div
                 className="w-24 h-20 mb-4 flex items-center justify-center"

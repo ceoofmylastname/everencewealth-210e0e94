@@ -23,17 +23,17 @@ export default function Slide26_Legacy() {
 
       <div className="relative z-10 antigravity-slide-inner flex flex-col items-center justify-center text-center">
         {/* Reveal 1: Headlines */}
-        <RevealElement index={1} direction="left">
-          <h2 className="text-4xl md:text-6xl font-bold text-white leading-tight mb-2">
+        <RevealElement index={1} direction="slam">
+          <h2 className="text-4xl md:text-6xl font-bold text-white leading-tight mb-2" style={{ fontFamily: "var(--font-display)" }}>
             <GradientText>Legacy</GradientText> doesn't have to be a dream,
           </h2>
-          <h2 className="text-4xl md:text-6xl font-bold text-white leading-tight mb-8">
+          <h2 className="text-4xl md:text-6xl font-bold text-white leading-tight mb-8" style={{ fontFamily: "var(--font-display)" }}>
             It can be a <GradientText>reality again.</GradientText>
           </h2>
         </RevealElement>
 
         {/* Reveal 2: Divider */}
-        <RevealElement index={2} direction="none" className="mb-8">
+        <RevealElement index={2} direction="wipe" className="mb-8">
           <div
             className="w-[120px] h-[2px] mx-auto"
             style={{ background: "linear-gradient(90deg, transparent, #C8A96E, transparent)" }}
@@ -41,14 +41,14 @@ export default function Slide26_Legacy() {
         </RevealElement>
 
         {/* Reveal 3: Thank You */}
-        <RevealElement index={3} direction="up" onRevealed={() => setShowConfetti(true)}>
+        <RevealElement index={3} direction="explode" onRevealed={() => setShowConfetti(true)}>
           <h3 className="text-4xl text-white mb-8">
             Thank You
           </h3>
         </RevealElement>
 
         {/* Reveal 4: CTA Card */}
-        <RevealElement index={4} direction="scale" className="mb-6">
+        <RevealElement index={4} direction="cardRise" className="mb-6">
           <div className="antigravity-card max-w-md text-center">
             <p className="text-lg font-bold mb-4" style={{ color: "#1A4D3E" }}>
               Schedule Your Financial Needs Assessment
@@ -63,10 +63,10 @@ export default function Slide26_Legacy() {
         </RevealElement>
 
         {/* Reveal 5: Logo */}
-        <RevealElement index={5} direction="up">
+        <RevealElement index={5} direction="drift">
           <div
             className="text-xl font-bold tracking-wider mb-2"
-            style={{ color: "#C8A96E", fontFamily: "'Cormorant Garamond', Georgia, serif" }}
+            style={{ color: "#C8A96E", fontFamily: "var(--font-display)" }}
           >
             EVERENCE WEALTH
           </div>

@@ -22,8 +22,8 @@ export default function Slide11_HiddenFees() {
     <div className="antigravity-slide bg-white">
       <div className="antigravity-slide-inner">
         {/* Reveal 1: Title */}
-        <RevealElement index={1} direction="left" className="mb-2">
-          <h2 className="text-3xl font-bold" style={{ color: "#4A5565" }}>
+        <RevealElement index={1} direction="slam" className="mb-2">
+          <h2 className="text-3xl font-bold" style={{ color: "#4A5565", fontFamily: "var(--font-display)" }}>
             Hidden Fees inside
           </h2>
           <h2 className="text-3xl font-bold">
@@ -35,7 +35,7 @@ export default function Slide11_HiddenFees() {
         </RevealElement>
 
         {/* Reveal 2: Fee Table */}
-        <RevealElement index={2} direction="up" className="mb-4">
+        <RevealElement index={2} direction="cardRise" className="mb-4">
           <div className="overflow-x-auto">
             <table className="antigravity-fee-table">
               <thead>
@@ -66,7 +66,7 @@ export default function Slide11_HiddenFees() {
         </RevealElement>
 
         {/* Reveal 3: Cost of Plan row */}
-        <RevealElement index={3} direction="scale" className="mb-4">
+        <RevealElement index={3} direction="explode" className="mb-4">
           <div className="flex flex-wrap gap-3 justify-center">
             {costs.map((cost, i) => (
               <div
@@ -85,7 +85,7 @@ export default function Slide11_HiddenFees() {
         </RevealElement>
 
         {/* Reveal 4: Warning callouts */}
-        <RevealElement index={4} direction="up">
+        <RevealElement index={4} direction="whomp">
           <div className="flex flex-col items-center gap-2">
             <div className="px-4 py-2 rounded-xl text-sm font-bold" style={{ background: "#FEE2E2", color: "#D64545" }}>
               Average 401k fees: <strong>3.1%</strong> — More than HALF your account gone.
@@ -94,7 +94,7 @@ export default function Slide11_HiddenFees() {
         </RevealElement>
 
         {/* Reveal 5: Second warning */}
-        <RevealElement index={5} direction="up" className="mt-2">
+        <RevealElement index={5} direction="whomp" className="mt-2">
           <div className="flex justify-center">
             <div className="px-4 py-2 rounded-xl text-sm" style={{ background: "#FEE2E2", color: "#D64545" }}>
               Average advisor total fees: <strong>3.7%</strong>

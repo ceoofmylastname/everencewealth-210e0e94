@@ -11,8 +11,8 @@ export default function Slide16_PerformanceChart() {
     <div className="antigravity-slide bg-white">
       <div className="antigravity-slide-inner">
         {/* Reveal 1: Title */}
-        <RevealElement index={1} direction="left" className="mb-6">
-          <h2 className="text-3xl font-bold" style={{ color: "#1A4D3E" }}>
+        <RevealElement index={1} direction="slam" className="mb-6">
+          <h2 className="text-3xl font-bold" style={{ color: "#1A4D3E", fontFamily: "var(--font-display)" }}>
             How <GradientText>Strategy</GradientText> Impacts Performance
           </h2>
         </RevealElement>
@@ -43,7 +43,7 @@ export default function Slide16_PerformanceChart() {
         </RevealElement>
 
         {/* Reveal 4: Badge */}
-        <RevealElement index={4} direction="scale" className="flex justify-center">
+        <RevealElement index={4} direction="explode" className="flex justify-center">
           <div className="antigravity-pill-gold text-sm font-bold px-5 py-2">
             +$132,503 MORE — Protected Strategy
           </div>

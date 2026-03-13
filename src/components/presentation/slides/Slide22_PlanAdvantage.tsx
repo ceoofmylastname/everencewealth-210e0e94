@@ -34,8 +34,8 @@ export default function Slide22_PlanAdvantage() {
     <div className="antigravity-slide bg-white">
       <div className="antigravity-slide-inner">
         {/* Reveal 1: Title */}
-        <RevealElement index={1} direction="left" className="mb-2">
-          <h2 className="text-4xl font-bold" style={{ color: "#1A4D3E" }}>
+        <RevealElement index={1} direction="slam" className="mb-2">
+          <h2 className="text-4xl font-bold" style={{ color: "#1A4D3E", fontFamily: "var(--font-display)" }}>
             Plan <GoldUnderline>Advantage</GoldUnderline>
           </h2>
           <p className="text-base mt-2" style={{ color: "#4A5565" }}>
@@ -46,7 +46,7 @@ export default function Slide22_PlanAdvantage() {
         {/* Reveals 2-5: Each advantage card */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
           {advantages.map((adv, i) => (
-            <RevealElement key={adv.title} index={i + 2} direction="up">
+            <RevealElement key={adv.title} index={i + 2} direction="cardRise">
               <div
                 className="antigravity-card flex gap-4"
                 style={{ borderTop: `4px solid ${adv.borderColor}` }}

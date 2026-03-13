@@ -45,14 +45,14 @@ export default function Slide20_TaxComparison() {
     <div className="antigravity-slide bg-white">
       <div className="antigravity-slide-inner">
         {/* Reveal 1: Title */}
-        <RevealElement index={1} direction="up" className="text-center mb-8">
-          <h2 className="text-3xl md:text-4xl font-bold" style={{ color: "#1A4D3E" }}>
+        <RevealElement index={1} direction="slam" className="text-center mb-8">
+          <h2 className="text-3xl md:text-4xl font-bold" style={{ color: "#1A4D3E", fontFamily: "var(--font-display)" }}>
             Tax <GradientText>Categories</GradientText> — Side by Side
           </h2>
         </RevealElement>
 
         {/* Reveal 2: Comparison cards */}
-        <RevealElement index={2} direction="up">
+        <RevealElement index={2} direction="cardRise">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto mb-8">
             {comparisons.map((c, i) => (
               <div
@@ -94,12 +94,12 @@ export default function Slide20_TaxComparison() {
         </RevealElement>
 
         {/* Reveal 3: Divider */}
-        <RevealElement index={3} direction="none" className="flex justify-center mb-4">
+        <RevealElement index={3} direction="wipe" className="flex justify-center mb-4">
           <div className="w-[80px] h-[2px]" style={{ background: "#C8A96E" }} />
         </RevealElement>
 
         {/* Reveal 4: Insight */}
-        <RevealElement index={4} direction="up" className="text-center">
+        <RevealElement index={4} direction="whomp" className="text-center">
           <p className="text-lg" style={{ color: "#4A5565" }}>
             The difference between knowing and not knowing: <strong className="antigravity-stat" style={{ color: "#C8A96E" }}>$50,300</strong>
           </p>

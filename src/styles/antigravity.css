@@ -1,10 +1,60 @@
 /* =========================================
    Antigravity Presentation System v2
-   "Director Mode" — Design Tokens & Layout
+   Font + Animation Overhaul
    ========================================= */
 
-/* --- Fonts --- */
-/* Geist + Geist Mono loaded via index.html */
+/* --- Design Tokens --- */
+:root {
+  /* Font families */
+  --font-display: 'Playfair Display', Georgia, serif;
+  --font-body: 'DM Sans', system-ui, sans-serif;
+  --font-mono: 'DM Mono', 'Courier New', monospace;
+
+  /* Type scale — fluid using clamp */
+  --t-hero:    clamp(64px, 8.5vw, 128px);
+  --t-display: clamp(44px, 5.5vw,  88px);
+  --t-title:   clamp(32px, 4vw,    64px);
+  --t-lead:    clamp(18px, 1.8vw,  26px);
+  --t-body:    clamp(15px, 1.3vw,  19px);
+  --t-caption: clamp(11px, 0.9vw,  14px);
+  --t-eyebrow: clamp(9px,  0.8vw,  12px);
+  --t-stat:    clamp(44px, 5.5vw,  88px);
+  --t-data:    clamp(16px, 1.8vw,  26px);
+
+  /* Line heights */
+  --lh-display: 0.93;
+  --lh-title:   1.08;
+  --lh-body:    1.65;
+
+  /* Letter spacing */
+  --ls-hero:    -0.03em;
+  --ls-eyebrow: 0.24em;
+  --ls-mono:    0.02em;
+
+  /* Brand colors */
+  --ev-green:   #1A4D3E;
+  --ev-dark:    #0D1F1A;
+  --ev-gold:    #C8A96E;
+  --ev-gold-lt: #F5E6C8;
+  --ev-gold-dk: #8B6914;
+  --ev-slate:   #4A5565;
+  --ev-white:   #FFFFFF;
+  --ev-off:     #F9F8F5;
+}
+
+/* --- Gold shimmer keyframe --- */
+@keyframes goldShimmer {
+  to { background-position: 300% center; }
+}
+
+@keyframes antigravity-gold-shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+.antigravity-gradient-text {
+  animation: antigravity-gold-shimmer 4s linear infinite;
+}
 
 /* --- Desktop-only gate --- */
 .antigravity-desktop-gate {
@@ -17,29 +67,19 @@
     position: fixed;
     inset: 0;
     z-index: 9999;
-    background: #0D1F1A;
+    background: var(--ev-dark);
     color: white;
     align-items: center;
     justify-content: center;
     flex-direction: column;
     gap: 12px;
-    font-family: 'Geist', system-ui, sans-serif;
+    font-family: var(--font-body);
     padding: 32px;
     text-align: center;
   }
   .antigravity-shell {
     display: none !important;
   }
-}
-
-/* --- Gold shimmer animation --- */
-@keyframes antigravity-gold-shimmer {
-  0% { background-position: -200% center; }
-  100% { background-position: 200% center; }
-}
-
-.antigravity-gradient-text {
-  animation: antigravity-gold-shimmer 4s linear infinite;
 }
 
 /* --- Shell layout --- */
@@ -51,7 +91,7 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  font-family: 'Geist', system-ui, sans-serif;
+  font-family: var(--font-body);
 }
 
 /* --- Slide base layout --- */
@@ -61,7 +101,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: 'Geist', system-ui, sans-serif;
+  font-family: var(--font-body);
   overflow: hidden;
   position: relative;
 }
@@ -111,10 +151,11 @@
 }
 
 .antigravity-hud-counter {
-  font-family: 'Geist Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 13px;
   color: #9CA3AF;
-  font-weight: 500;
+  font-weight: 400;
+  letter-spacing: 0.05em;
 }
 
 .antigravity-hud-btn {
@@ -125,11 +166,15 @@
   cursor: pointer;
   border: none;
   background: none;
+  font-family: var(--font-body);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
 }
 
 .antigravity-hud-btn:hover {
   background: #F3F4F6;
-  color: #1A4D3E;
+  color: var(--ev-green);
 }
 
 /* --- Progress bar --- */
@@ -141,7 +186,7 @@
 
 .antigravity-progress-fill {
   height: 100%;
-  background: #C8A96E;
+  background: var(--ev-gold);
   transition: width 400ms ease-out;
 }
 
@@ -154,7 +199,7 @@
 }
 
 .antigravity-card-dark {
-  background: #1A4D3E;
+  background: var(--ev-green);
   border-radius: 16px;
   box-shadow: 0 8px 32px rgba(26,77,62,0.24);
   padding: 24px;
@@ -170,15 +215,16 @@
   border-radius: 9999px;
   font-size: 14px;
   font-weight: 600;
+  font-family: var(--font-body);
 }
 
 .antigravity-pill-gold {
-  background: #C8A96E;
+  background: var(--ev-gold);
   color: white;
 }
 
 .antigravity-pill-evergreen {
-  background: #1A4D3E;
+  background: var(--ev-green);
   color: white;
 }
 
@@ -188,7 +234,7 @@
 }
 
 .antigravity-pill-green {
-  background: #1A4D3E;
+  background: var(--ev-green);
   color: white;
 }
 
@@ -203,13 +249,13 @@
 .antigravity-progress-fill-gold {
   height: 100%;
   border-radius: 4px;
-  background: linear-gradient(90deg, #C8A96E, #E2C896);
+  background: linear-gradient(90deg, var(--ev-gold), var(--ev-gold-lt));
 }
 
 .antigravity-progress-fill-green {
   height: 100%;
   border-radius: 4px;
-  background: linear-gradient(90deg, #1A4D3E, #2A6D5E);
+  background: linear-gradient(90deg, var(--ev-green), #2A6D5E);
 }
 
 /* --- Full-bleed backgrounds --- */
@@ -238,14 +284,16 @@
   border-collapse: separate;
   border-spacing: 0;
   font-size: 14px;
+  font-family: var(--font-body);
 }
 
 .antigravity-fee-table th {
-  background: #1A4D3E;
+  background: var(--ev-green);
   color: white;
   padding: 10px 16px;
   text-align: right;
   font-weight: 600;
+  font-family: var(--font-body);
 }
 
 .antigravity-fee-table th:first-child {
@@ -261,12 +309,16 @@
   padding: 8px 16px;
   text-align: right;
   border-bottom: 1px solid #E5E7EB;
+  font-family: var(--font-mono);
+  font-weight: 400;
+  letter-spacing: 0.02em;
 }
 
 .antigravity-fee-table td:first-child {
   text-align: left;
   font-weight: 600;
-  color: #1A4D3E;
+  color: var(--ev-green);
+  font-family: var(--font-body);
 }
 
 .antigravity-fee-table tr:last-child td {
@@ -287,7 +339,8 @@
   bottom: 4px;
   left: 50%;
   transform: translateX(-50%);
-  font-weight: 800;
+  font-family: var(--font-mono);
+  font-weight: 500;
   font-size: 20px;
 }
 
@@ -322,29 +375,34 @@
   font-weight: 600;
   z-index: 5;
   box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+  font-family: var(--font-body);
 }
 
 /* --- Stat number styling --- */
 .antigravity-stat {
-  font-family: 'Geist Mono', monospace;
-  font-weight: 700;
+  font-family: var(--font-mono);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
 }
 
 /* --- Quote block --- */
 .antigravity-quote {
-  border-left: 3px solid #C8A96E;
+  border-left: 3px solid var(--ev-gold);
   padding-left: 20px;
   font-style: italic;
   font-size: 20px;
   line-height: 1.6;
-  color: #1A4D3E;
+  color: var(--ev-green);
+  font-family: var(--font-body);
 }
 
 .antigravity-quote-dark {
-  border-left: 3px solid #C8A96E;
+  border-left: 3px solid var(--ev-gold);
   padding-left: 20px;
   font-style: italic;
   font-size: 20px;
   line-height: 1.6;
   color: white;
+  font-family: var(--font-body);
 }

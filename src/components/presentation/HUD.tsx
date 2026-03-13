@@ -14,7 +14,15 @@ export default function HUD({ onGridToggle, onExit }: HUDProps) {
     <div className="antigravity-hud">
       {/* Left: Slide counter */}
       <div className="flex items-center gap-3">
-        <span className="antigravity-hud-counter">
+        <span
+          style={{
+            fontFamily: "var(--font-mono)",
+            fontSize: "13px",
+            fontWeight: 400,
+            letterSpacing: "0.05em",
+            color: "rgba(0,0,0,0.4)",
+          }}
+        >
           {String(currentSlide + 1).padStart(2, "0")} / {totalSlides}
         </span>
       </div>
@@ -37,8 +45,17 @@ export default function HUD({ onGridToggle, onExit }: HUDProps) {
                 />
               ))}
             </div>
-            <span className="text-xs text-gray-400 ml-2 font-mono">
-              {revealIndex} of {totalReveals}
+            <span
+              style={{
+                fontFamily: "var(--font-mono)",
+                fontSize: "11px",
+                fontWeight: 400,
+                letterSpacing: "0.04em",
+                color: "rgba(0,0,0,0.3)",
+              }}
+              className="ml-2"
+            >
+              Reveal {revealIndex} of {totalReveals}
             </span>
           </>
         )}

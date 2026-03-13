@@ -13,11 +13,11 @@ export default function Slide05_CarrierLogos() {
     <div className="antigravity-slide bg-white">
       <div className="antigravity-slide-inner">
         {/* Reveal 1: Headline */}
-        <RevealElement index={1} direction="up" className="text-center mb-2">
-          <h2 className="text-3xl md:text-4xl" style={{ color: "#4A5565" }}>
+        <RevealElement index={1} direction="slam" className="text-center mb-2">
+          <h2 className="text-3xl md:text-4xl" style={{ color: "#4A5565", fontFamily: "var(--font-display)" }}>
             Committed to
           </h2>
-          <h2 className="text-3xl md:text-4xl font-bold">
+          <h2 className="text-3xl md:text-4xl font-bold" style={{ fontFamily: "var(--font-display)" }}>
             <GradientText>Bridging the Gap</GradientText>
           </h2>
           <p className="text-base mt-4" style={{ color: "#4A5565" }}>
@@ -43,7 +43,7 @@ export default function Slide05_CarrierLogos() {
         </RevealElement>
 
         {/* Reveal 3: Badge */}
-        <RevealElement index={3} direction="scale" className="flex justify-center mt-8">
+        <RevealElement index={3} direction="drop" className="flex justify-center mt-8">
           <div className="antigravity-pill-gold text-base font-bold px-6 py-2">
             75+ Partners
           </div>

@@ -22,8 +22,8 @@ export default function Slide21_BridgingTheGap() {
 
       <div className="relative z-10 antigravity-slide-inner flex flex-col items-center justify-center text-center">
         {/* Reveal 1: Question */}
-        <RevealElement index={1} direction="up">
-          <h2 className="text-3xl md:text-4xl text-white mb-4">
+        <RevealElement index={1} direction="slam">
+          <h2 className="text-3xl md:text-4xl text-white mb-4" style={{ fontFamily: "var(--font-display)" }}>
             What is bridging the{" "}
             <span className="font-bold" style={{ color: "#C8A96E" }}>GAP</span>{" "}
             for Americans?
@@ -31,12 +31,12 @@ export default function Slide21_BridgingTheGap() {
         </RevealElement>
 
         {/* Reveal 2: Divider */}
-        <RevealElement index={2} direction="none" className="my-6">
+        <RevealElement index={2} direction="wipe" className="my-6">
           <div className="w-[80px] h-[2px] mx-auto" style={{ background: "#C8A96E" }} />
         </RevealElement>
 
         {/* Reveal 3: Three pillars */}
-        <RevealElement index={3} direction="up">
+        <RevealElement index={3} direction="cardRise">
           <div className="flex flex-wrap justify-center gap-4 mb-8">
             {["Zero Floor Protection", "Tax-Free Growth", "No Hidden Fees"].map((item) => (
               <div
@@ -55,7 +55,7 @@ export default function Slide21_BridgingTheGap() {
         </RevealElement>
 
         {/* Reveal 4: Answer */}
-        <RevealElement index={4} direction="scale">
+        <RevealElement index={4} direction="explode">
           <div
             className="px-10 py-8 rounded-2xl"
             style={{
@@ -63,14 +63,14 @@ export default function Slide21_BridgingTheGap() {
               boxShadow: "0 16px 64px rgba(200,169,110,0.4)",
             }}
           >
-            <h2 className="text-4xl md:text-5xl font-bold text-white">
+            <h2 className="text-4xl md:text-5xl font-bold text-white" style={{ fontFamily: "var(--font-display)" }}>
               Indexed Account (SERP)
             </h2>
           </div>
         </RevealElement>
 
         {/* Reveal 5: Confetti trigger */}
-        <RevealElement index={5} direction="up" className="mt-6" onRevealed={() => setShowConfetti(true)}>
+        <RevealElement index={5} direction="drift" className="mt-6" onRevealed={() => setShowConfetti(true)}>
           <p className="text-white/60 text-sm">
             The strategy that bridges protection, growth, and tax efficiency.
           </p>

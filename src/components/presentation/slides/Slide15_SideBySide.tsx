@@ -22,15 +22,15 @@ export default function Slide15_SideBySide() {
     <div className="antigravity-slide bg-white">
       <div className="antigravity-slide-inner">
         {/* Reveal 1: Title */}
-        <RevealElement index={1} direction="up" className="text-center mb-8">
-          <h2 className="text-3xl md:text-4xl font-bold" style={{ color: "#1A4D3E" }}>
+        <RevealElement index={1} direction="slam" className="text-center mb-8">
+          <h2 className="text-3xl md:text-4xl font-bold" style={{ color: "#1A4D3E", fontFamily: "var(--font-display)" }}>
             Same Market. <GradientText>Different Strategy.</GradientText>
           </h2>
         </RevealElement>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
           {/* Reveal 2: Variable Column */}
-          <RevealElement index={2} direction="left">
+          <RevealElement index={2} direction="cardRise">
             <div className="rounded-2xl p-6" style={{ background: "#FEF2F2" }}>
               <h3 className="text-xl font-bold mb-4 text-center" style={{ color: "#D64545" }}>
                 Variable Strategy
@@ -50,7 +50,7 @@ export default function Slide15_SideBySide() {
           </RevealElement>
 
           {/* Reveal 3: Indexed Column */}
-          <RevealElement index={3} direction="right">
+          <RevealElement index={3} direction="cardRise">
             <div className="rounded-2xl p-6" style={{ background: "#E8F0EC" }}>
               <h3 className="text-xl font-bold mb-4 text-center" style={{ color: "#1A4D3E" }}>
                 Indexed Strategy
@@ -71,7 +71,7 @@ export default function Slide15_SideBySide() {
         </div>
 
         {/* Reveal 4: Comparison badge */}
-        <RevealElement index={4} direction="scale" className="flex justify-center">
+        <RevealElement index={4} direction="explode" className="flex justify-center">
           <div className="antigravity-card-dark px-8 py-4 text-center">
             <p className="text-xl text-white">
               $75k vs $125k — <strong style={{ color: "#C8A96E" }}>$50,000 Difference</strong>

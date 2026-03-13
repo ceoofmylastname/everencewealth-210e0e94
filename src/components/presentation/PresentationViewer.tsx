@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Monitor } from "lucide-react";
 import { RevealProvider, useRevealQueue } from "./RevealContext";
 import HUD from "./HUD";
-import { playSlideTransition } from "./sounds/sounds";
+import { sound } from "./sounds/SoundEngine";
 
 // Lazy load all 26 slides
 const slides = [
@@ -99,6 +99,24 @@ function PresentationShell({ onExit }: { onExit?: () => void }) {
   const { currentSlide, advance, back, goToSlide, soundEnabled, totalSlides } = useRevealQueue();
   const [showGrid, setShowGrid] = useState(false);
 
+  // Unlock AudioContext on first interaction
+  useEffect(() => {
+    const unlock = () => {
+      sound.init();
+      document.removeEventListener("keydown", unlock);
+      document.removeEventListener("click", unlock);
+      document.removeEventListener("touchstart", unlock);
+    };
+    document.addEventListener("keydown", unlock, { once: true });
+    document.addEventListener("click", unlock, { once: true });
+    document.addEventListener("touchstart", unlock, { once: true });
+    return () => {
+      document.removeEventListener("keydown", unlock);
+      document.removeEventListener("click", unlock);
+      document.removeEventListener("touchstart", unlock);
+    };
+  }, []);
+
   // Keyboard navigation
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -106,7 +124,7 @@ function PresentationShell({ onExit }: { onExit?: () => void }) {
       if (e.key === " " || e.key === "Enter" || e.key === "ArrowRight") {
         e.preventDefault();
         advance();
-        if (soundEnabled) playSlideTransition();
+        if (soundEnabled) sound.slideTransition();
       } else if (e.key === "ArrowLeft") {
         e.preventDefault();
         back();
@@ -124,6 +142,11 @@ function PresentationShell({ onExit }: { onExit?: () => void }) {
     return () => window.removeEventListener("keydown", handler);
   }, [advance, back, onExit, soundEnabled, showGrid]);
 
+  // Sync sound engine enabled state
+  useEffect(() => {
+    sound.enabled = soundEnabled;
+  }, [soundEnabled]);
+
   const CurrentSlide = slides[currentSlide];
   const progress = ((currentSlide + 1) / totalSlides) * 100;
 
@@ -132,8 +155,13 @@ function PresentationShell({ onExit }: { onExit?: () => void }) {
       {/* Desktop-only gate */}
       <div className="antigravity-desktop-gate">
         <Monitor className="w-12 h-12 text-[#C8A96E] mb-4" />
-        <h2 className="text-xl font-bold">Desktop Required</h2>
-        <p className="text-white/60 text-sm max-w-xs">
+        <h2
+          className="text-xl font-bold"
+          style={{ fontFamily: "var(--font-display)" }}
+        >
+          Desktop Required
+        </h2>
+        <p className="text-white/60 text-sm max-w-xs" style={{ fontFamily: "var(--font-body)" }}>
           This presentation is optimized for desktop displays (1200px+).
           Please use a laptop or desktop computer.
         </p>
@@ -191,7 +219,7 @@ function PresentationShell({ onExit }: { onExit?: () => void }) {
               >
                 <h3
                   className="text-lg font-bold mb-4"
-                  style={{ color: "#1A4D3E" }}
+                  style={{ color: "#1A4D3E", fontFamily: "var(--font-display)" }}
                 >
                   All Slides
                 </h3>
@@ -211,11 +239,14 @@ function PresentationShell({ onExit }: { onExit?: () => void }) {
                     >
                       <div
                         className="text-xs font-bold text-gray-400 mb-1"
-                        style={{ fontFamily: "'Geist Mono', monospace" }}
+                        style={{ fontFamily: "var(--font-mono)" }}
                       >
                         {String(i + 1).padStart(2, "0")}
                       </div>
-                      <div className="text-xs font-medium text-[#1A4D3E] line-clamp-2">
+                      <div
+                        className="text-xs font-medium text-[#1A4D3E] line-clamp-2"
+                        style={{ fontFamily: "var(--font-body)" }}
+                      >
                         {title}
                       </div>
                     </button>

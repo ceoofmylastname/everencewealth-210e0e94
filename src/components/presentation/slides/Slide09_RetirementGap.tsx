@@ -20,33 +20,33 @@ export default function Slide09_RetirementGap() {
 
       <div className="relative z-10 antigravity-slide-inner flex flex-col items-center justify-center text-center">
         {/* Reveal 1: Badge */}
-        <RevealElement index={1} direction="scale" className="mb-8">
+        <RevealElement index={1} direction="drop" className="mb-8">
           <div className="antigravity-pill-gold text-base font-bold px-6 py-2">
             ⚠ The Great Retirement Gap
           </div>
         </RevealElement>
 
         {/* Reveal 2: First headline */}
-        <RevealElement index={2} direction="left">
-          <h2 className="text-5xl md:text-6xl font-bold text-white mb-4">
+        <RevealElement index={2} direction="slam">
+          <h2 className="text-5xl md:text-6xl font-bold text-white mb-4" style={{ fontFamily: "var(--font-display)" }}>
             It looks sturdy.
           </h2>
         </RevealElement>
 
         {/* Reveal 3: Second headline */}
-        <RevealElement index={3} direction="up">
-          <p className="text-2xl text-white/80 mb-12">
+        <RevealElement index={3} direction="drift">
+          <p className="text-2xl text-white/80 mb-12" style={{ fontFamily: "var(--font-body)", fontWeight: 200, fontStyle: "italic" }}>
             Until the pressure forces it to break.
           </p>
         </RevealElement>
 
         {/* Reveal 4: Divider */}
-        <RevealElement index={4} direction="none" className="mb-8">
+        <RevealElement index={4} direction="wipe" className="mb-8">
           <div className="w-[80px] h-[2px] mx-auto" style={{ background: "#C8A96E" }} />
         </RevealElement>
 
         {/* Reveal 5: Three causes */}
-        <RevealElement index={5} direction="up">
+        <RevealElement index={5} direction="cardRise">
           <div className="flex flex-wrap justify-center gap-4">
             {causes.map((cause, i) => (
               <div

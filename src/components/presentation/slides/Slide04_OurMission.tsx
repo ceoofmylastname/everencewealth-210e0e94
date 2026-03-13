@@ -15,9 +15,9 @@ export default function Slide04_OurMission() {
         {/* Left Side */}
         <div>
           {/* Reveal 1: Title */}
-          <RevealElement index={1} direction="left">
-            <h2 className="text-5xl mb-1" style={{ color: "#4A5565" }}>Our</h2>
-            <h2 className="text-5xl font-bold mb-4" style={{ color: "#1A4D3E" }}>
+          <RevealElement index={1} direction="slam">
+            <h2 className="text-5xl mb-1" style={{ color: "#4A5565", fontFamily: "var(--font-display)" }}>Our</h2>
+            <h2 className="text-5xl font-bold mb-4" style={{ color: "#1A4D3E", fontFamily: "var(--font-display)" }}>
               <GoldUnderline>Mission</GoldUnderline>
             </h2>
             <div className="w-[80px] h-1 rounded-full mb-8" style={{ background: "#C8A96E" }} />
@@ -25,7 +25,7 @@ export default function Slide04_OurMission() {
 
           {/* Reveals 2-4: Mission blocks */}
           {missionBlocks.map((block, i) => (
-            <RevealElement key={i} index={i + 2} direction="up" className="mb-4">
+            <RevealElement key={i} index={i + 2} direction="cardRise" className="mb-4">
               <div className="antigravity-card" style={{ padding: "16px" }}>
                 <p className="text-base leading-relaxed" style={{ color: "#4A5565" }}>
                   {block}

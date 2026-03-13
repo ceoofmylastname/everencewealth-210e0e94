@@ -46,7 +46,7 @@ export default function Slide19_TaxDeepDive() {
     <div className="antigravity-slide bg-white">
       <div className="antigravity-slide-inner">
         {/* Reveal 1: Title */}
-        <RevealElement index={1} direction="left" className="mb-6">
+        <RevealElement index={1} direction="slam" className="mb-6">
           <h2 className="text-3xl font-bold" style={{ color: "#1A4D3E" }}>
             <GoldUnderline>Tax Deep Dive</GoldUnderline> — $100,000 Withdrawal
           </h2>
@@ -55,7 +55,7 @@ export default function Slide19_TaxDeepDive() {
         {/* Reveals 2-4: Each category */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {categories.map((cat, i) => (
-            <RevealElement key={cat.title} index={i + 2} direction="up">
+            <RevealElement key={cat.title} index={i + 2} direction="cardRise">
               <div className="antigravity-card h-full flex flex-col">
                 <h3 className="text-lg font-bold mb-1" style={{ color: "#1A4D3E" }}>{cat.title}</h3>
                 <p className="text-xs mb-3" style={{ color: "#4A5565" }}>{cat.subtitle}</p>
@@ -81,7 +81,7 @@ export default function Slide19_TaxDeepDive() {
         </div>
 
         {/* Reveal 5: Key insight */}
-        <RevealElement index={5} direction="scale" className="flex justify-center mt-6">
+        <RevealElement index={5} direction="whomp" className="flex justify-center mt-6">
           <div className="antigravity-card-dark px-6 py-3 text-center">
             <p className="text-base text-white">
               The difference: <strong className="antigravity-stat" style={{ color: "#C8A96E" }}>$50,300</strong> — just from knowing where to put your money.

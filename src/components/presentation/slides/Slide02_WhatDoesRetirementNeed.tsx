@@ -15,17 +15,17 @@ export default function Slide02_WhatDoesRetirementNeed() {
     <div className="antigravity-slide bg-white">
       <div className="antigravity-slide-inner">
         {/* Reveal 1: Headline */}
-        <RevealElement index={1} direction="up" className="text-center mb-12">
-          <h2 className="text-4xl md:text-5xl font-bold" style={{ color: "#1A4D3E" }}>
+        <RevealElement index={1} direction="slam" className="text-center mb-12">
+          <h2 className="text-4xl md:text-5xl font-bold" style={{ color: "#1A4D3E", fontFamily: "var(--font-display)" }}>
             What does every
           </h2>
-          <h2 className="text-4xl md:text-5xl font-bold" style={{ color: "#1A4D3E" }}>
+          <h2 className="text-4xl md:text-5xl font-bold" style={{ color: "#1A4D3E", fontFamily: "var(--font-display)" }}>
             <GoldUnderline>Retirement Account</GoldUnderline> need?
           </h2>
         </RevealElement>
 
         {/* Reveal 2-3: Icon cards (first 3, then last 2) */}
-        <RevealElement index={2} direction="scale" className="flex flex-wrap justify-center gap-6 mb-4">
+        <RevealElement index={2} direction="cardRise" className="flex flex-wrap justify-center gap-6 mb-4">
           {cards.slice(0, 3).map((card, i) => (
             <div
               key={i}
@@ -37,7 +37,7 @@ export default function Slide02_WhatDoesRetirementNeed() {
           ))}
         </RevealElement>
 
-        <RevealElement index={3} direction="scale" className="flex flex-wrap justify-center gap-6 mb-12">
+        <RevealElement index={3} direction="cardRise" className="flex flex-wrap justify-center gap-6 mb-12">
           {cards.slice(3).map((card, i) => (
             <div
               key={i}
@@ -50,13 +50,13 @@ export default function Slide02_WhatDoesRetirementNeed() {
         </RevealElement>
 
         {/* Reveal 4: Divider */}
-        <RevealElement index={4} direction="none" className="flex justify-center mb-6">
+        <RevealElement index={4} direction="wipe" className="flex justify-center mb-6">
           <div className="w-[80px] h-[2px]" style={{ background: "#C8A96E" }} />
         </RevealElement>
 
         {/* Reveal 5: Answer */}
-        <RevealElement index={5} direction="up" className="text-center">
-          <p className="text-2xl md:text-3xl font-bold" style={{ color: "#1A4D3E" }}>
+        <RevealElement index={5} direction="explode" className="text-center">
+          <p className="text-2xl md:text-3xl font-bold" style={{ color: "#1A4D3E", fontFamily: "var(--font-display)" }}>
             Retirement needs... <GoldUnderline><span style={{ color: "#C8A96E" }}>Strategy.</span></GoldUnderline>
           </p>
         </RevealElement>

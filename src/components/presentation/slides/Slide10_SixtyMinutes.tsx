@@ -11,7 +11,7 @@ export default function Slide10_SixtyMinutes() {
     <div className="antigravity-slide" style={{ background: "#1A4D3E" }}>
       <div className="antigravity-slide-inner flex flex-col items-center justify-center">
         {/* Reveal 1: TV Frame */}
-        <RevealElement index={1} direction="scale" className="w-full max-w-xl mb-8">
+        <RevealElement index={1} direction="whomp" className="w-full max-w-xl mb-8">
           <div
             className="rounded-2xl p-1"
             style={{
@@ -35,7 +35,7 @@ export default function Slide10_SixtyMinutes() {
         </RevealElement>
 
         {/* Reveal 2: Quote cards */}
-        <RevealElement index={2} direction="up">
+        <RevealElement index={2} direction="cardRise">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-4xl mx-auto mb-6">
             {quotes.map((quote, i) => (
               <div key={i} className="antigravity-card text-center" style={{ padding: "16px" }}>
@@ -48,12 +48,12 @@ export default function Slide10_SixtyMinutes() {
         </RevealElement>
 
         {/* Reveal 3: Divider */}
-        <RevealElement index={3} direction="none" className="flex justify-center mb-4">
+        <RevealElement index={3} direction="wipe" className="flex justify-center mb-4">
           <div className="w-[60px] h-[2px]" style={{ background: "#C8A96E" }} />
         </RevealElement>
 
         {/* Reveal 4: Bottom badge */}
-        <RevealElement index={4} direction="scale" className="flex justify-center">
+        <RevealElement index={4} direction="drop" className="flex justify-center">
           <div className="antigravity-pill-gold text-sm font-bold px-6 py-2">
             These facts are real. These fees are yours.
           </div>

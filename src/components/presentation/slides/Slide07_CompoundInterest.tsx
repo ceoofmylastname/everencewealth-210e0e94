@@ -51,8 +51,8 @@ export default function Slide07_CompoundInterest() {
     <div className="antigravity-slide bg-white">
       <div className="antigravity-slide-inner">
         {/* Reveal 1: Title */}
-        <RevealElement index={1} direction="left" className="mb-2">
-          <h2 className="text-3xl md:text-4xl font-bold" style={{ color: "#1A4D3E" }}>
+        <RevealElement index={1} direction="slam" className="mb-2">
+          <h2 className="text-3xl md:text-4xl font-bold" style={{ color: "#1A4D3E", fontFamily: "var(--font-display)" }}>
             Compound <GradientText>Interest</GradientText>
           </h2>
           <p className="text-xl mt-1" style={{ color: "#4A5565" }}>The Rule of <strong>72</strong></p>
@@ -64,7 +64,7 @@ export default function Slide07_CompoundInterest() {
         {/* Reveals 2-4: Each column */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
           {columns.map((col, ci) => (
-            <RevealElement key={ci} index={ci + 2} direction="up">
+            <RevealElement key={ci} index={ci + 2} direction="cardRise">
               <div className="antigravity-card">
                 {/* Gauge */}
                 <div className="flex justify-center mb-3">
@@ -107,7 +107,7 @@ export default function Slide07_CompoundInterest() {
         </div>
 
         {/* Reveal 5: Key insight */}
-        <RevealElement index={5} direction="scale" className="flex justify-center mt-6">
+        <RevealElement index={5} direction="explode" className="flex justify-center mt-6">
           <div className="antigravity-pill-gold text-base font-bold px-6 py-2">
             2% difference = DOUBLE the money
           </div>

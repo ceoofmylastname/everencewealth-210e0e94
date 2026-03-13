@@ -8,8 +8,8 @@ export default function Slide08_DarrenHardy() {
         {/* Left side */}
         <div>
           {/* Reveal 1: Title */}
-          <RevealElement index={1} direction="left">
-            <h2 className="text-4xl font-bold text-white mb-2">
+          <RevealElement index={1} direction="slam">
+            <h2 className="text-4xl font-bold text-white mb-2" style={{ fontFamily: "var(--font-display)" }}>
               The Compound Effect
             </h2>
             <div className="w-[60px] h-1 rounded-full" style={{ background: "#C8A96E" }} />
@@ -19,7 +19,7 @@ export default function Slide08_DarrenHardy() {
         {/* Right — Quote */}
         <div>
           {/* Reveal 2: Quote card */}
-          <RevealElement index={2} direction="right">
+          <RevealElement index={2} direction="cardRise">
             <div
               className="rounded-3xl p-8 relative"
               style={{
@@ -46,8 +46,8 @@ export default function Slide08_DarrenHardy() {
           </RevealElement>
 
           {/* Reveal 3: Attribution */}
-          <RevealElement index={3} direction="up" className="mt-6 pl-8">
-            <p className="text-white/60 text-lg italic">
+          <RevealElement index={3} direction="drift" className="mt-6 pl-8">
+            <p className="text-white/60 text-lg italic" style={{ fontFamily: "var(--font-body)", fontWeight: 200 }}>
               — Darren Hardy
             </p>
           </RevealElement>

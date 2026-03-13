@@ -16,8 +16,8 @@ export default function Slide13_NegativeCredit() {
         {/* Left — Number sequence */}
         <div>
           {/* Reveal 1: Title */}
-          <RevealElement index={1} direction="left" className="mb-6">
-            <h2 className="text-3xl font-bold" style={{ color: "#1A4D3E" }}>
+          <RevealElement index={1} direction="slam" className="mb-6">
+            <h2 className="text-3xl font-bold" style={{ color: "#1A4D3E", fontFamily: "var(--font-display)" }}>
               Traditional Approach
             </h2>
             <p className="text-sm mt-2 italic" style={{ color: "#4A5565" }}>
@@ -26,7 +26,7 @@ export default function Slide13_NegativeCredit() {
           </RevealElement>
 
           {/* Reveal 2: Steps */}
-          <RevealElement index={2} direction="up">
+          <RevealElement index={2} direction="cardRise">
             <div className="space-y-3">
               {steps.map((step, i) => (
                 <div
@@ -42,7 +42,7 @@ export default function Slide13_NegativeCredit() {
           </RevealElement>
 
           {/* Reveal 3: Warning */}
-          <RevealElement index={3} direction="scale" className="mt-4">
+          <RevealElement index={3} direction="explode" className="mt-4">
             <div className="antigravity-pill-red px-4 py-2 text-sm font-bold">
               Still $25,000 short. Not even whole.
             </div>

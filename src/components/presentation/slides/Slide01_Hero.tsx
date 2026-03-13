@@ -1,8 +1,13 @@
 import RevealElement from "../RevealElement";
 import GradientText from "../animations/GradientText";
 import GoldUnderline from "../animations/GoldUnderline";
+import ClipReveal from "../ClipReveal";
+import { HeroText, HeroItalic, LeadText } from "../Typography";
+import { useRevealQueue } from "../RevealContext";
 
 export default function Slide01_Hero() {
+  const { isRevealed } = useRevealQueue();
+
   return (
     <div className="antigravity-slide">
       {/* Dark background — always visible */}
@@ -19,14 +24,14 @@ export default function Slide01_Hero() {
         <RevealElement index={1} direction="scale" className="mb-6">
           <div
             className="text-2xl font-bold tracking-wider"
-            style={{ color: "#C8A96E", fontFamily: "'Cormorant Garamond', Georgia, serif" }}
+            style={{ color: "#C8A96E", fontFamily: "var(--font-display)" }}
           >
             EVERENCE WEALTH
           </div>
         </RevealElement>
 
         {/* Reveal 2: Gold rule */}
-        <RevealElement index={2} direction="none">
+        <RevealElement index={2} direction="wipe">
           <div
             className="w-[120px] h-[2px] mb-10"
             style={{ background: "linear-gradient(90deg, transparent, #C8A96E, transparent)" }}
@@ -34,38 +39,31 @@ export default function Slide01_Hero() {
         </RevealElement>
 
         {/* Reveal 3: Headlines */}
-        <RevealElement index={3} direction="left">
-          <h1
-            className="text-white font-bold leading-none mb-2"
-            style={{ fontSize: "clamp(48px, 7vw, 72px)", letterSpacing: "0.02em" }}
-          >
-            BRIDGING THE
-          </h1>
-          <h1
-            className="text-white font-bold leading-none mb-2"
-            style={{ fontSize: "clamp(48px, 7vw, 72px)", letterSpacing: "0.02em" }}
-          >
-            RETIREMENT
-          </h1>
-          <h1
-            className="font-bold leading-none"
-            style={{ fontSize: "clamp(48px, 7vw, 72px)", letterSpacing: "0.02em" }}
-          >
-            <GoldUnderline delay={0.3}>
-              <GradientText>GAP</GradientText>
-            </GoldUnderline>
-          </h1>
+        <RevealElement index={3} direction="slam">
+          <ClipReveal isVisible={isRevealed(3)}>
+            <HeroText>BRIDGING THE</HeroText>
+          </ClipReveal>
+          <ClipReveal isVisible={isRevealed(3)} delay={0.08}>
+            <HeroText>RETIREMENT</HeroText>
+          </ClipReveal>
+          <ClipReveal isVisible={isRevealed(3)} delay={0.16}>
+            <HeroItalic>
+              <GoldUnderline delay={0.3}>
+                <GradientText>GAP</GradientText>
+              </GoldUnderline>
+            </HeroItalic>
+          </ClipReveal>
         </RevealElement>
 
         {/* Reveal 4: Presenter badge */}
-        <RevealElement index={4} direction="up" className="mt-12">
+        <RevealElement index={4} direction="drift" className="mt-12">
           <div
             className="px-6 py-2 rounded-full"
             style={{ background: "rgba(255,255,255,0.1)", backdropFilter: "blur(8px)" }}
           >
-            <span className="text-white/80 text-sm">
+            <LeadText>
               David Rosenberg | Everence Wealth
-            </span>
+            </LeadText>
           </div>
         </RevealElement>
       </div>

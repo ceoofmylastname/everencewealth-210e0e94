@@ -25,8 +25,8 @@ export default function Slide03_WaysToInvest() {
     <div className="antigravity-slide bg-white">
       <div className="antigravity-slide-inner">
         {/* Reveal 1: Title */}
-        <RevealElement index={1} direction="up" className="text-center mb-4">
-          <h2 className="text-4xl md:text-5xl font-bold" style={{ color: "#1A4D3E" }}>
+        <RevealElement index={1} direction="slam" className="text-center mb-4">
+          <h2 className="text-4xl md:text-5xl font-bold" style={{ color: "#1A4D3E", fontFamily: "var(--font-display)" }}>
             Ways to <GradientText>Invest</GradientText>
           </h2>
           <p className="text-lg mt-3" style={{ color: "#4A5565" }}>
@@ -37,7 +37,7 @@ export default function Slide03_WaysToInvest() {
         {/* Reveals 2-4: Each column */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-8">
           {columns.map((col, i) => (
-            <RevealElement key={col.title} index={i + 2} direction="up">
+            <RevealElement key={col.title} index={i + 2} direction="cardRise">
               <div className="antigravity-card relative flex flex-col items-center text-center"
                 style={{ background: i === 0 ? "#E8EBF0" : i === 1 ? "#F5E6C8" : "#E8F0EC" }}
               >

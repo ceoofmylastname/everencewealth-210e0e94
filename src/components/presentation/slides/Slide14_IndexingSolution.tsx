@@ -23,14 +23,14 @@ export default function Slide14_IndexingSolution() {
         {/* Left — Number sequence */}
         <div>
           {/* Reveal 1: Title */}
-          <RevealElement index={1} direction="left" className="mb-6">
-            <h2 className="text-3xl font-bold" style={{ color: "#1A4D3E" }}>
+          <RevealElement index={1} direction="slam" className="mb-6">
+            <h2 className="text-3xl font-bold" style={{ color: "#1A4D3E", fontFamily: "var(--font-display)" }}>
               Indexed Strategy
             </h2>
           </RevealElement>
 
           {/* Reveal 2: Steps */}
-          <RevealElement index={2} direction="up">
+          <RevealElement index={2} direction="cardRise">
             <div className="space-y-3">
               {steps.map((step, i) => (
                 <div
@@ -57,7 +57,7 @@ export default function Slide14_IndexingSolution() {
           </RevealElement>
 
           {/* Reveal 3: Badge */}
-          <RevealElement index={3} direction="scale" className="mt-4">
+          <RevealElement index={3} direction="explode" className="mt-4">
             <div
               className="inline-block px-6 py-3 rounded-xl text-xl font-bold"
               style={{ background: "#C8A96E", color: "white" }}
@@ -67,7 +67,7 @@ export default function Slide14_IndexingSolution() {
           </RevealElement>
 
           {/* Reveal 4: Confetti moment */}
-          <RevealElement index={4} direction="up" className="mt-4" onRevealed={() => setShowConfetti(true)}>
+          <RevealElement index={4} direction="drop" className="mt-4" onRevealed={() => setShowConfetti(true)}>
             <div className="antigravity-pill-evergreen px-4 py-2 text-sm font-bold">
               Protection + Growth = Indexed Strategy
             </div>

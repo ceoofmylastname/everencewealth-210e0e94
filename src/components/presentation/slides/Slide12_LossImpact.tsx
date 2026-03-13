@@ -12,8 +12,8 @@ export default function Slide12_LossImpact() {
     <div className="antigravity-slide bg-white">
       <div className="antigravity-slide-inner">
         {/* Reveal 1: Title */}
-        <RevealElement index={1} direction="up" className="text-center mb-4">
-          <h2 className="text-3xl md:text-4xl font-bold" style={{ color: "#1A4D3E" }}>
+        <RevealElement index={1} direction="slam" className="text-center mb-4">
+          <h2 className="text-3xl md:text-4xl font-bold" style={{ color: "#1A4D3E", fontFamily: "var(--font-display)" }}>
             Traditional Approach to <GradientText>Investing</GradientText>
           </h2>
           <p className="text-lg mt-2" style={{ color: "#4A5565" }}>
@@ -22,7 +22,7 @@ export default function Slide12_LossImpact() {
         </RevealElement>
 
         {/* Reveals 2-3: Bubbles */}
-        <RevealElement index={2} direction="scale">
+        <RevealElement index={2} direction="cardRise">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {bubbles.map((b, i) => (
               <div key={i} className="flex flex-col items-center">
@@ -46,12 +46,12 @@ export default function Slide12_LossImpact() {
         </RevealElement>
 
         {/* Reveal 3: Divider */}
-        <RevealElement index={3} direction="none" className="flex justify-center my-6">
+        <RevealElement index={3} direction="wipe" className="flex justify-center my-6">
           <div className="w-[80px] h-[2px]" style={{ background: "#C8A96E" }} />
         </RevealElement>
 
         {/* Reveal 4: Bottom insight */}
-        <RevealElement index={4} direction="up" className="text-center">
+        <RevealElement index={4} direction="whomp" className="text-center">
           <div className="antigravity-card-dark inline-block px-8 py-4">
             <p className="text-lg text-white font-medium">
               100% gains take years. 50% losses happen in <strong>ONE year</strong>.
