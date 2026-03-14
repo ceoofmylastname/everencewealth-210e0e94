@@ -1,40 +1,25 @@
 
 
-## Plan: Add Registration Time (10:30 AM) to Landing Page and Emails
+## Plan: Generate Modern Images for Fixed, Variable, and Indexed Cards
 
-### 1. Landing Page Changes (`src/pages/TrainingEvent.tsx`)
+### What
+Generate 3 AI images using Nano Banana Pro (google/gemini-3-pro-image-preview) via the Lovable AI Gateway to replace the plain gradient rectangles on Slide 03. Save them as static assets and update the slide component.
 
-**A. Add registration time to the event details pills (line 284)**
-Change "11:00 AM - 4:00 PM" to include registration:
-```
-Registration: 10:30 AM
-Event: 11:00 AM – 4:00 PM
-```
+### Image Generation
+Create a one-off edge function call (or script) to generate 3 images with these prompts:
 
-**B. Add registration time to the confirmation card (line 161)**
-Update the time display from `11:00 AM – 4:00 PM PT` to `Registration 10:30 AM | Event 11:00 AM – 4:00 PM PT`
+1. **Fixed** — Abstract modern visualization of stability and security. A pristine steel vault door with soft blue-gray tones, geometric precision, clean lines, minimal composition. Ultra-realistic, 4K, no text, no watermarks.
+2. **Variable** — Abstract modern visualization of market volatility. Dynamic golden stock chart lines flowing through space with warm amber tones, movement and energy. Ultra-realistic, 4K, no text, no watermarks.  
+3. **Indexed** — Abstract modern visualization of protected growth. A lush green shield with upward arrow, combining nature and finance, deep emerald tones. Ultra-realistic, 4K, no text, no watermarks.
 
-**C. Update session highlights (line 11)**
-Add a "10:30 AM" registration/check-in entry as the first item in `sessionHighlights`.
+### Technical Steps
 
-### 2. Email Changes
+1. **Generate images** via a script that calls the `generate-image` edge function 3 times with custom prompts, using the existing Nano Banana Pro path (by passing `imageUrl` with a blank base image, or better — create a small dedicated edge function that calls `google/gemini-3-pro-image-preview` for text-to-image directly)
+2. **Save images** as `src/assets/invest-fixed.jpg`, `src/assets/invest-variable.jpg`, `src/assets/invest-indexed.jpg`
+3. **Update `Slide03_WaysToInvest.tsx`**: Import the 3 images and replace the gradient `<div>` with `<img>` tags using `object-cover` and `rounded-xl`
 
-**A. Registration confirmation email (`supabase/functions/register-training-event/index.ts`)**
-Add registration and event times to the event details block (currently only shows date and location):
-```
-🕐 Registration: 10:30 AM PST
-🕐 Event: 11:00 AM – 4:00 PM PST
-```
-
-**B. Reminder emails (`supabase/functions/process-training-reminders/index.ts`, line 92)**
-Update the time line from `11:00 AM to 4:00 PM PST` to include registration:
-```
-🕐 Registration: 10:30 AM PST
-🕐 Event: 11:00 AM – 4:00 PM PST
-```
-
-### Files Modified
-- `src/pages/TrainingEvent.tsx` — 3 spots (session highlights array, event pills, confirmation card)
-- `supabase/functions/register-training-event/index.ts` — add times to email
-- `supabase/functions/process-training-reminders/index.ts` — update time line
+### Slide Component Changes
+- Add image imports for the 3 generated assets
+- Replace `style={{ background: col.gradient }}` divs with `<img src={col.image} className="w-full h-[180px] rounded-xl mb-4 object-cover" />`
+- Add the image field to each column config object
 
