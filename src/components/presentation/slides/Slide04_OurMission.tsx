@@ -1,6 +1,6 @@
 import RevealElement from "../RevealElement";
-import BlobClip from "../BlobClip";
 import GoldUnderline from "../animations/GoldUnderline";
+import advisorMeetingImg from "@/assets/advisor-meeting.jpg";
 
 const missionBlocks = [
   "With over 45 years of combined experience in the financial services industry, at Everence Wealth, we are driven by one purpose: to deliver the very best.",
