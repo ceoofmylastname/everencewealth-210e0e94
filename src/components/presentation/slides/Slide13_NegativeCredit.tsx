@@ -49,7 +49,7 @@ function StepCard({ label, value, numericValue, prefix = "", suffix = "", isNega
           transform: `rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)`,
         }}
       >
-        <span className="text-sm font-medium" style={{ color: "#8B9AAF" }}>{label}</span>
+        <span className="text-sm font-medium" style={{ color: "#4A5565" }}>{label}</span>
         <span
           className="text-2xl font-bold antigravity-stat"
           style={{ color: isNegative ? "#EF4444" : accentColor }}
