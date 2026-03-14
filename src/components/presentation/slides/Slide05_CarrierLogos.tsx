@@ -44,6 +44,7 @@ function CarrierCard({ carrier, index }: { carrier: typeof carriers[0]; index: n
       initial={{ opacity: 0, y: 32, scale: 0.96 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.5, delay: index * 0.06, ease: "easeOut" }}
+      className="antigravity-carrier-card-wrapper"
     >
       <div
         ref={cardRef}
@@ -51,13 +52,13 @@ function CarrierCard({ carrier, index }: { carrier: typeof carriers[0]; index: n
         onMouseLeave={handleMouseLeave}
         className="antigravity-carrier-card"
         style={{
-          transform: `perspective(800px) rotateX(${tilt.rotateX}deg) rotateY(${tilt.rotateY}deg) translateY(${isHovered ? -6 : 0}px)`,
+          transform: `perspective(600px) rotateX(${tilt.rotateX}deg) rotateY(${tilt.rotateY}deg) translateY(${isHovered ? -8 : 0}px) scale(${isHovered ? 1.02 : 1})`,
           transition: "all 0.35s cubic-bezier(0.23, 1, 0.32, 1)",
           transformStyle: "preserve-3d",
-          borderColor: isHovered ? "rgba(200,169,110,0.4)" : "rgba(26,77,62,0.12)",
+          borderColor: isHovered ? "rgba(200,169,110,0.35)" : "rgba(26,77,62,0.10)",
           boxShadow: isHovered
-            ? "0 12px 32px rgba(0,0,0,0.1), 0 0 20px rgba(200,169,110,0.08), inset 0 1px 0 rgba(255,255,255,0.9)"
-            : "0 2px 12px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.8)",
+            ? "0 20px 40px rgba(0,0,0,0.08), 0 8px 16px rgba(0,0,0,0.04), 0 0 24px rgba(200,169,110,0.06), inset 0 1px 0 rgba(255,255,255,1), inset 0 -1px 0 rgba(0,0,0,0.02)"
+            : "0 4px 16px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.03), inset 0 1px 0 rgba(255,255,255,0.9), inset 0 -1px 0 rgba(0,0,0,0.02)",
         }}
       >
         {!logoError ? (
