@@ -26,6 +26,8 @@ interface BlobClipProps {
   variant?: number;
   /** Additional className */
   className?: string;
+  /** Additional style for the image */
+  imageStyle?: CSSProperties;
   /** Additional style */
   style?: CSSProperties;
 }
@@ -39,6 +41,7 @@ export default function BlobClip({
   height = "400px",
   variant = 0,
   className,
+  imageStyle,
   style,
 }: BlobClipProps) {
   const shape = BLOB_PATHS[variant % BLOB_PATHS.length];
@@ -68,7 +71,7 @@ export default function BlobClip({
       transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
     >
       {imageSrc ? (
-        <img src={imageSrc} alt={imageAlt} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+        <img src={imageSrc} alt={imageAlt} style={{ width: "100%", height: "100%", objectFit: "cover", ...imageStyle }} />
       ) : label ? (
         <span className="text-white/40 text-sm font-medium text-center px-4">
           {label}
