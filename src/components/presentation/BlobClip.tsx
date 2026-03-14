@@ -41,6 +41,7 @@ export default function BlobClip({
   height = "400px",
   variant = 0,
   className,
+  imageStyle,
   style,
 }: BlobClipProps) {
   const shape = BLOB_PATHS[variant % BLOB_PATHS.length];
