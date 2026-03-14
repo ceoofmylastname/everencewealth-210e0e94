@@ -57,8 +57,10 @@ export default function Slide08_DarrenHardy() {
           <BlobClip
             imageSrc={darrenHardyImg}
             imageAlt="Darren Hardy"
-            height="350px"
+            height="400px"
             variant={2}
+            style={{ overflow: "hidden" }}
+            imageStyle={{ objectPosition: "center 15%" }}
           />
         </RevealElement>
       </div>
