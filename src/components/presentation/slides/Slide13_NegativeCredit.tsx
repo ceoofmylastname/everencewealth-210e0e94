@@ -126,11 +126,11 @@ export default function Slide13_NegativeCredit() {
           <RevealElement index={1} direction="slam" className="mb-2">
             <h2
               className="text-3xl font-bold"
-              style={{ color: "#EDDB77", fontFamily: "var(--font-display)" }}
+              style={{ color: "#1A4D3E", fontFamily: "var(--font-display)" }}
             >
               Traditional Approach
             </h2>
-            <p className="text-sm mt-2 italic" style={{ color: "#8B9AAF" }}>
+            <p className="text-sm mt-2 italic" style={{ color: "#4A5565" }}>
               The consequence of a negative interest credit
             </p>
           </RevealElement>
