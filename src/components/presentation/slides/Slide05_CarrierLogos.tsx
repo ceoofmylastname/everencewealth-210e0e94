@@ -67,8 +67,8 @@ function CarrierCard({ carrier, index }: { carrier: typeof carriers[0]; index: n
             alt={carrier.name}
             onError={() => setLogoError(true)}
             style={{
-              maxWidth: 140,
-              maxHeight: 48,
+              maxWidth: 200,
+              maxHeight: 72,
               objectFit: "contain",
               filter: isHovered ? "brightness(1.1)" : "brightness(1)",
               transition: "filter 0.3s ease",
