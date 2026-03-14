@@ -26,25 +26,30 @@ const SP500_DATA: DataPoint[] = [
 const INDEXED_DATA: DataPoint[] = [
   { year: 1999, value: 100000 },
   { year: 2000, value: 100000 },
+  { year: 2001, value: 100000 },
   { year: 2002, value: 100000 },
-  { year: 2004, value: 120000 },
-  { year: 2006, value: 140000 },
-  { year: 2007, value: 160000 },
-  { year: 2008, value: 160000 },
-  { year: 2009, value: 170000 },
-  { year: 2010, value: 190000 },
-  { year: 2012, value: 240000 },
-  { year: 2014, value: 320000 },
-  { year: 2016, value: 380000 },
-  { year: 2018, value: 420000 },
-  { year: 2020, value: 450000 },
-  { year: 2025, value: 541391 },
+  { year: 2003, value: 100000 },
+  { year: 2004, value: 122068.80 },
+  { year: 2005, value: 140818.57 },
+  { year: 2006, value: 145789.46 },
+  { year: 2007, value: 182878.30 },
+  { year: 2008, value: 229402.54 },
+  { year: 2009, value: 255531.49 },
+  { year: 2010, value: 313498.30 },
+  { year: 2011, value: 344064.38 },
+  { year: 2012, value: 344064.38 },
+  { year: 2013, value: 431594.35 },
+  { year: 2014, value: 483385.28 },
+  { year: 2025, value: 541391.51 },
 ];
 
 const MIN_YEAR = 1999;
 const MAX_YEAR = 2025;
-const MAX_VAL = 600000;
-const PADDING = { top: 40, right: 40, bottom: 50, left: 80 };
+const MAX_VAL = 580000;
+const PADDING = { top: 60, right: 40, bottom: 50, left: 85 };
+
+const RED = "#E87070";
+const GREEN = "#1A4D3E";
 
 function mapPoint(p: DataPoint, w: number, h: number): [number, number] {
   const x = PADDING.left + ((p.year - MIN_YEAR) / (MAX_YEAR - MIN_YEAR)) * (w - PADDING.left - PADDING.right);
@@ -75,7 +80,7 @@ export default function PerformanceChart({ animate = false, className }: Perform
 
       const chartBottom = PADDING.top + (h - PADDING.top - PADDING.bottom);
 
-      // Grid lines — soft
+      // Grid lines
       ctx.strokeStyle = "rgba(0,0,0,0.06)";
       ctx.lineWidth = 1;
       for (let pct = 0; pct <= 1; pct += 0.2) {
@@ -100,11 +105,34 @@ export default function PerformanceChart({ animate = false, className }: Perform
         ctx.fillText(String(year), x, h - 10);
       }
 
-      // Draw gradient fill under S&P 500 line
+      // Legend key
+      const legendAlpha = Math.max(0, Math.min(1, t * 3));
+      ctx.globalAlpha = legendAlpha;
+      const legendX = PADDING.left + 8;
+      const legendY = PADDING.top - 38;
+
+      // Red legend
+      ctx.fillStyle = RED;
+      ctx.fillRect(legendX, legendY, 12, 12);
+      ctx.fillStyle = "#374151";
+      ctx.font = "bold 11px 'Geist Mono', monospace";
+      ctx.textAlign = "left";
+      ctx.fillText("S&P 500", legendX + 18, legendY + 10);
+
+      // Green legend
+      const greenLegendX = legendX + 110;
+      ctx.fillStyle = GREEN;
+      ctx.fillRect(greenLegendX, legendY, 12, 12);
+      ctx.fillStyle = "#374151";
+      ctx.fillText("S&P 500 Indexed 0% Guarantee 12% Cap", greenLegendX + 18, legendY + 10);
+
+      ctx.globalAlpha = 1;
+
+      // Draw gradient fill
       const drawGradientFill = (data: DataPoint[], color: string, pointsToShow: number) => {
         if (pointsToShow < 2) return;
         const gradient = ctx.createLinearGradient(0, PADDING.top, 0, chartBottom);
-        gradient.addColorStop(0, color.replace("1)", "0.15)"));
+        gradient.addColorStop(0, color.replace("1)", "0.12)"));
         gradient.addColorStop(1, color.replace("1)", "0.01)"));
         ctx.fillStyle = gradient;
         ctx.beginPath();
@@ -121,16 +149,15 @@ export default function PerformanceChart({ animate = false, className }: Perform
         ctx.fill();
       };
 
-      // Draw line with progress
-      const drawLine = (data: DataPoint[], color: string, lineWidth: number, showLabels: boolean) => {
+      // Draw line with labels
+      const drawLine = (data: DataPoint[], color: string, lineWidth: number, showLabels: boolean, labelAboveDefault: boolean) => {
         const totalPoints = data.length;
         const pointsToShow = Math.ceil(t * totalPoints);
         if (pointsToShow < 2) return;
 
-        // Gradient fill for S&P
-        if (showLabels) {
-          drawGradientFill(data, "rgba(232, 112, 112, 1)", pointsToShow);
-        }
+        // Gradient fill
+        const gradientColor = color === RED ? "rgba(232, 112, 112, 1)" : "rgba(26, 77, 62, 1)";
+        drawGradientFill(data, gradientColor, pointsToShow);
 
         ctx.strokeStyle = color;
         ctx.lineWidth = lineWidth;
@@ -148,7 +175,7 @@ export default function PerformanceChart({ animate = false, className }: Perform
         // Dots and labels
         for (let i = 0; i < pointsToShow; i++) {
           const [x, y] = mapPoint(data[i], w, h);
-          
+
           // Dot
           ctx.fillStyle = color;
           ctx.beginPath();
@@ -162,16 +189,13 @@ export default function PerformanceChart({ animate = false, className }: Perform
           ctx.arc(x, y, 3.5, 0, Math.PI * 2);
           ctx.stroke();
 
-          // Labels for S&P 500 only (alternating above/below)
           if (showLabels) {
             const label = formatDollar(data[i].value);
-            const above = i % 2 === 0;
+            const above = i % 2 === 0 ? labelAboveDefault : !labelAboveDefault;
             const labelY = above ? y - 14 : y + 18;
 
-            // Label fade based on progress
             const pointProgress = i / totalPoints;
             const labelAlpha = Math.max(0, Math.min(1, (t - pointProgress) * totalPoints * 0.5));
-
             ctx.globalAlpha = labelAlpha;
 
             // Background pill
@@ -216,15 +240,17 @@ export default function PerformanceChart({ animate = false, className }: Perform
         }
       };
 
-      drawLine(SP500_DATA, "#E87070", 2.5, true);
-      drawLine(INDEXED_DATA, "#1A4D3E", 3, false);
+      // Draw S&P 500 first (red, labels below by default)
+      drawLine(SP500_DATA, RED, 2.5, true, false);
+      // Draw Indexed on top (green, labels above by default)
+      drawLine(INDEXED_DATA, GREEN, 3, true, true);
 
       // End dot glow for indexed line
       if (t > 0.9) {
         const lastIdx = INDEXED_DATA.length - 1;
         const [lx, ly] = mapPoint(INDEXED_DATA[lastIdx], w, h);
         const glowAlpha = Math.min(1, (t - 0.9) * 10);
-        
+
         const glow = ctx.createRadialGradient(lx, ly, 0, lx, ly, 12);
         glow.addColorStop(0, `rgba(26, 77, 62, ${0.3 * glowAlpha})`);
         glow.addColorStop(1, "rgba(26, 77, 62, 0)");
@@ -280,7 +306,7 @@ export default function PerformanceChart({ animate = false, className }: Perform
     <canvas
       ref={canvasRef}
       className={className}
-      style={{ width: "100%", height: "400px" }}
+      style={{ width: "100%", height: "480px" }}
     />
   );
 }
