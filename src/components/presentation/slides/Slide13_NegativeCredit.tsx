@@ -42,14 +42,14 @@ function StepCard({ label, value, numericValue, prefix = "", suffix = "", isNega
       <div
         className="relative flex items-center justify-between px-5 py-4 rounded-2xl border transition-transform duration-200 ease-out"
         style={{
-          background: "rgba(255,255,255,0.06)",
+          background: "rgba(0,0,0,0.03)",
           backdropFilter: "blur(16px)",
           WebkitBackdropFilter: "blur(16px)",
           borderColor: `${accentColor}33`,
           transform: `rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)`,
         }}
       >
-        <span className="text-sm font-medium" style={{ color: "#8B9AAF" }}>{label}</span>
+        <span className="text-sm font-medium" style={{ color: "#4A5565" }}>{label}</span>
         <span
           className="text-2xl font-bold antigravity-stat"
           style={{ color: isNegative ? "#EF4444" : accentColor }}
@@ -118,7 +118,7 @@ const steps: StepCardProps[] = [
 
 export default function Slide13_NegativeCredit() {
   return (
-    <div className="antigravity-slide" style={{ background: "linear-gradient(135deg, #0F1419 0%, #1A2332 50%, #0F1419 100%)" }}>
+    <div className="antigravity-slide bg-white">
       <div className="antigravity-editorial">
         {/* Left — glassmorphism step cards */}
         <div className="flex flex-col gap-4">
@@ -126,11 +126,11 @@ export default function Slide13_NegativeCredit() {
           <RevealElement index={1} direction="slam" className="mb-2">
             <h2
               className="text-3xl font-bold"
-              style={{ color: "#EDDB77", fontFamily: "var(--font-display)" }}
+              style={{ color: "#1A4D3E", fontFamily: "var(--font-display)" }}
             >
               Traditional Approach
             </h2>
-            <p className="text-sm mt-2 italic" style={{ color: "#8B9AAF" }}>
+            <p className="text-sm mt-2 italic" style={{ color: "#4A5565" }}>
               The consequence of a negative interest credit
             </p>
           </RevealElement>
