@@ -118,7 +118,7 @@ const steps: StepCardProps[] = [
 
 export default function Slide13_NegativeCredit() {
   return (
-    <div className="antigravity-slide" style={{ background: "linear-gradient(135deg, #0F1419 0%, #1A2332 50%, #0F1419 100%)" }}>
+    <div className="antigravity-slide bg-white">
       <div className="antigravity-editorial">
         {/* Left — glassmorphism step cards */}
         <div className="flex flex-col gap-4">
