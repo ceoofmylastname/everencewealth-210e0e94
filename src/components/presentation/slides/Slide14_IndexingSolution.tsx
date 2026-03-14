@@ -1,6 +1,7 @@
 import { useState } from "react";
 import RevealElement from "../RevealElement";
 import BlobClip from "../BlobClip";
+import happyFamilyImg from "@/assets/happy-family-dream-home.jpg";
 import ConfettiTrigger from "../animations/ConfettiTrigger";
 import { useRevealQueue } from "../RevealContext";
 
