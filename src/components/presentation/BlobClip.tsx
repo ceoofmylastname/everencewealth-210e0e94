@@ -33,6 +33,8 @@ interface BlobClipProps {
 export default function BlobClip({
   gradient = "linear-gradient(135deg, #1A4D3E 0%, #C8A96E 100%)",
   label,
+  imageSrc,
+  imageAlt = "",
   width = "100%",
   height = "400px",
   variant = 0,
