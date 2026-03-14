@@ -14,6 +14,7 @@ const carriers = [
   { name: "Mutual of Omaha", logo: "https://assets.cdn.filesafe.space/9m2UBN29nuaCWceOgW2Z/media/691d516dcdf23108afbd0e4f.png" },
   { name: "National Life Group", logo: "https://assets.cdn.filesafe.space/9m2UBN29nuaCWceOgW2Z/media/691d516d7e9b299af97d9e27.png" },
   { name: "North American", logo: "https://assets.cdn.filesafe.space/9m2UBN29nuaCWceOgW2Z/media/691d516d4b75355b4548aad2.png" },
+  { name: "Equitable", logo: "https://assets.cdn.filesafe.space/9m2UBN29nuaCWceOgW2Z/media/69b5d32aad0276db2ddac132.png" },
 ];
 
 function CarrierCard({ carrier, index }: { carrier: typeof carriers[0]; index: number }) {
