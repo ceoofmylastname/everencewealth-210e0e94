@@ -1,19 +1,40 @@
 
 
-## Plan: Add Darren Hardy Portrait with Blob Clip
+## Plan: Add Registration Time (10:30 AM) to Landing Page and Emails
 
-Generate a professional portrait of Darren Hardy using nano banana pro and display it with the same organic BlobClip border used on the Warren Buffett slide.
+### 1. Landing Page Changes (`src/pages/TrainingEvent.tsx`)
 
-### Changes
+**A. Add registration time to the event details pills (line 284)**
+Change "11:00 AM - 4:00 PM" to include registration:
+```
+Registration: 10:30 AM
+Event: 11:00 AM – 4:00 PM
+```
 
-**1. Generate image via `generate-image` edge function**
-- Use nano banana pro (google/gemini-3-pro-image-preview) to generate a professional editorial portrait of Darren Hardy — business attire, confident pose, clean background
-- Save the base64 result to `src/assets/darren-hardy-portrait.png`
+**B. Add registration time to the confirmation card (line 161)**
+Update the time display from `11:00 AM – 4:00 PM PT` to `Registration 10:30 AM | Event 11:00 AM – 4:00 PM PT`
 
-**2. Update `src/components/presentation/slides/Slide08_DarrenHardy.tsx`**
-- Import the generated portrait and `BlobClip` component
-- Restructure layout: keep left side (title + quote card), add a `BlobClip` with the portrait on the right bottom area or reposition the layout to a 3-column feel
-- Use `BlobClip` with a different `variant` (e.g. variant={2}) for visual variety, matching the Warren Buffett pattern
-- Add as Reveal index 4 with `direction="right"` animation
-- The quote card and attribution stay above/alongside, with the portrait complementing the slide's evergreen background
+**C. Update session highlights (line 11)**
+Add a "10:30 AM" registration/check-in entry as the first item in `sessionHighlights`.
+
+### 2. Email Changes
+
+**A. Registration confirmation email (`supabase/functions/register-training-event/index.ts`)**
+Add registration and event times to the event details block (currently only shows date and location):
+```
+🕐 Registration: 10:30 AM PST
+🕐 Event: 11:00 AM – 4:00 PM PST
+```
+
+**B. Reminder emails (`supabase/functions/process-training-reminders/index.ts`, line 92)**
+Update the time line from `11:00 AM to 4:00 PM PST` to include registration:
+```
+🕐 Registration: 10:30 AM PST
+🕐 Event: 11:00 AM – 4:00 PM PST
+```
+
+### Files Modified
+- `src/pages/TrainingEvent.tsx` — 3 spots (session highlights array, event pills, confirmation card)
+- `supabase/functions/register-training-event/index.ts` — add times to email
+- `supabase/functions/process-training-reminders/index.ts` — update time line
 
