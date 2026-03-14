@@ -1,40 +1,39 @@
 
 
-## Plan: Add Registration Time (10:30 AM) to Landing Page and Emails
+## Plan: Redesign Slide 12 — Loss Impact (Modern, Staggered Reveals, 3D)
 
-### 1. Landing Page Changes (`src/pages/TrainingEvent.tsx`)
+Completely redesign the Loss Impact slide with sequential click-triggered reveals, modern 3D glassmorphism cards, and a more dramatic presentation flow.
 
-**A. Add registration time to the event details pills (line 284)**
-Change "11:00 AM - 4:00 PM" to include registration:
-```
-Registration: 10:30 AM
-Event: 11:00 AM – 4:00 PM
-```
+### Reveal Flow (6 reveals total)
 
-**B. Add registration time to the confirmation card (line 161)**
-Update the time display from `11:00 AM – 4:00 PM PT` to `Registration 10:30 AM | Event 11:00 AM – 4:00 PM PT`
+1. **Reveal 1** — Headline only: "Traditional Approach to *Investing*" with subtitle
+2. **Reveal 2** — First loss scenario: $100k → -25% → $75k with "+33% needed to recover"
+3. **Reveal 3** — Second loss scenario: $100k → -33% → $67k with "+50% needed"
+4. **Reveal 4** — Third (danger) scenario: $100k → -50% → $50k with "+100% needed"
+5. **Reveal 5** — Gold divider wipe
+6. **Reveal 6** — Bottom dark card: "100% gains take years..."
 
-**C. Update session highlights (line 11)**
-Add a "10:30 AM" registration/check-in entry as the first item in `sessionHighlights`.
+### Visual Upgrades
 
-### 2. Email Changes
+Each loss scenario becomes a **3D glassmorphism card** instead of flat colored circles:
+- Frosted glass background with `backdrop-filter: blur(16px)`, semi-transparent borders
+- 3D perspective hover tilt effect (CSS `perspective: 800px`, `rotateX`/`rotateY` on hover)
+- Large animated counter-style numbers with the starting amount at top
+- Red loss percentage with a downward arrow icon
+- Result amount below
+- Recovery text as a subtle pill badge beneath the card
+- Progressive danger coloring: card 1 has gold-green accent border, card 2 has amber, card 3 has red glow/border
+- Each card uses `cardRise` or `explode` animation direction for dramatic entry
 
-**A. Registration confirmation email (`supabase/functions/register-training-event/index.ts`)**
-Add registration and event times to the event details block (currently only shows date and location):
-```
-🕐 Registration: 10:30 AM PST
-🕐 Event: 11:00 AM – 4:00 PM PST
-```
+### Changes
 
-**B. Reminder emails (`supabase/functions/process-training-reminders/index.ts`, line 92)**
-Update the time line from `11:00 AM to 4:00 PM PST` to include registration:
-```
-🕐 Registration: 10:30 AM PST
-🕐 Event: 11:00 AM – 4:00 PM PST
-```
+**1. `src/components/presentation/slides/Slide12_LossImpact.tsx`** — Full rewrite:
+- Each bubble becomes its own `RevealElement` (indexes 2, 3, 4) instead of all appearing at once
+- Replace circle bubbles with tall glassmorphism cards featuring 3D hover transforms
+- Add subtle radial gradient backgrounds behind each card for depth
+- Use `TrendingDown` icon from lucide-react for visual impact
+- The danger card (50% loss) gets a pulsing red border glow
 
-### Files Modified
-- `src/pages/TrainingEvent.tsx` — 3 spots (session highlights array, event pills, confirmation card)
-- `supabase/functions/register-training-event/index.ts` — add times to email
-- `supabase/functions/process-training-reminders/index.ts` — update time line
+**2. `src/components/presentation/PresentationViewer.tsx`** — Update `SLIDE_CONFIGS`:
+- Change Slide 12 totalReveals from `4` to `6`
 
