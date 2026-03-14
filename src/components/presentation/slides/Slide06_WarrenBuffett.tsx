@@ -49,8 +49,8 @@ export default function Slide06_WarrenBuffett() {
         {/* Right — Blob image */}
         <RevealElement index={4} direction="right" className="flex items-center justify-center">
           <BlobClip
-            gradient="linear-gradient(135deg, #2A3D56 0%, #1A2D42 100%)"
-            label="Successful Investor"
+            imageSrc={warrenBuffettImg}
+            imageAlt="Warren Buffett"
             height="350px"
             variant={1}
           />
