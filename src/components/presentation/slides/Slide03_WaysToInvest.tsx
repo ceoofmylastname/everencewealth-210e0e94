@@ -1,21 +1,24 @@
 import RevealElement from "../RevealElement";
 import GradientText from "../animations/GradientText";
+import investFixed from "@/assets/invest-fixed.jpg";
+import investVariable from "@/assets/invest-variable.jpg";
+import investIndexed from "@/assets/invest-indexed.jpg";
 
 const columns = [
   {
     title: "FIXED",
     items: "Savings Account / CD / Bonds",
-    gradient: "linear-gradient(135deg, #7B8BA4 0%, #4A5E7A 100%)",
+    image: investFixed,
   },
   {
     title: "VARIABLE",
     items: "Brokerage Accounts / IRA / 401k / Stocks",
-    gradient: "linear-gradient(135deg, #C8A96E 0%, #E2C896 100%)",
+    image: investVariable,
   },
   {
     title: "INDEXED",
     items: "Protection / Growth",
-    gradient: "linear-gradient(135deg, #1A4D3E 0%, #2A6D5E 100%)",
+    image: investIndexed,
     recommended: true,
   },
 ];
@@ -41,9 +44,10 @@ export default function Slide03_WaysToInvest() {
               <div className="antigravity-card relative flex flex-col items-center text-center"
                 style={{ background: i === 0 ? "#E8EBF0" : i === 1 ? "#F5E6C8" : "#E8F0EC" }}
               >
-                <div
-                  className="w-full h-[180px] rounded-xl mb-4"
-                  style={{ background: col.gradient }}
+                <img
+                  src={col.image}
+                  alt={col.title}
+                  className="w-full h-[180px] rounded-xl mb-4 object-cover"
                 />
                 <h3 className="text-2xl font-bold mb-2" style={{ color: "#1A4D3E" }}>
                   {col.title}
