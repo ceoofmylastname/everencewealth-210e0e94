@@ -1,29 +1,40 @@
 
 
-## Plan: Redesign Slide 13 — Negative Credit (Modern Glassmorphism + AI Portrait)
+## Plan: Add Registration Time (10:30 AM) to Landing Page and Emails
 
-### 1. Generate image via edge function
-- Use Nano banana pro (`google/gemini-3-pro-image-preview`) to generate a cinematic editorial photo of a stressed husband and wife sitting at a kitchen table reviewing bills and debt notices, warm dramatic lighting
-- Save to `src/assets/couple-stressed-bills.png`
+### 1. Landing Page Changes (`src/pages/TrainingEvent.tsx`)
 
-### 2. Full rewrite of `src/components/presentation/slides/Slide13_NegativeCredit.tsx`
+**A. Add registration time to the event details pills (line 284)**
+Change "11:00 AM - 4:00 PM" to include registration:
+```
+Registration: 10:30 AM
+Event: 11:00 AM – 4:00 PM
+```
 
-**Layout:** Two-column editorial with glassmorphism cards on the left, BlobClip portrait on the right.
+**B. Add registration time to the confirmation card (line 161)**
+Update the time display from `11:00 AM – 4:00 PM PT` to `Registration 10:30 AM | Event 11:00 AM – 4:00 PM PT`
 
-**Visual upgrades:**
-- Each step row becomes a **glassmorphism card** with `backdrop-filter: blur(16px)`, semi-transparent backgrounds, rounded-2xl corners (no sharp squares)
-- Subtle **radial glow highlights** behind each card for depth
-- **Animated counting numbers** — dollar values and percentages animate up on reveal (counter effect from 0 to target)
-- 3D hover tilt on step cards (perspective transform like Slide 12's LossCard)
-- Warning pill gets a pulsing red glow border instead of flat red background
-- BlobClip uses the generated stressed couple image with `variant={2}` and proper `imageStyle` positioning
+**C. Update session highlights (line 11)**
+Add a "10:30 AM" registration/check-in entry as the first item in `sessionHighlights`.
 
-**Reveal flow (keep 4 reveals):**
-1. Title + subtitle (slam)
-2. Step cards with animated counters (cardRise)
-3. Warning pill (explode)
-4. BlobClip portrait (right)
+### 2. Email Changes
 
-### 3. No changes needed to `PresentationViewer.tsx`
-- Slide 13 already has `totalReveals: 4` which matches
+**A. Registration confirmation email (`supabase/functions/register-training-event/index.ts`)**
+Add registration and event times to the event details block (currently only shows date and location):
+```
+🕐 Registration: 10:30 AM PST
+🕐 Event: 11:00 AM – 4:00 PM PST
+```
+
+**B. Reminder emails (`supabase/functions/process-training-reminders/index.ts`, line 92)**
+Update the time line from `11:00 AM to 4:00 PM PST` to include registration:
+```
+🕐 Registration: 10:30 AM PST
+🕐 Event: 11:00 AM – 4:00 PM PST
+```
+
+### Files Modified
+- `src/pages/TrainingEvent.tsx` — 3 spots (session highlights array, event pills, confirmation card)
+- `supabase/functions/register-training-event/index.ts` — add times to email
+- `supabase/functions/process-training-reminders/index.ts` — update time line
 
