@@ -26,6 +26,8 @@ interface BlobClipProps {
   variant?: number;
   /** Additional className */
   className?: string;
+  /** Additional style for the image */
+  imageStyle?: CSSProperties;
   /** Additional style */
   style?: CSSProperties;
 }
