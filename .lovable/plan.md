@@ -1,32 +1,40 @@
 
 
-## Plan: White Background Carrier Slide with Real Logo Images
+## Plan: Add Registration Time (10:30 AM) to Landing Page and Emails
 
-### What
-Redesign Slide 05 to use a **white background** instead of dark green, and replace the Clearbit logo URLs with the 11 provided CDN image URLs. Adjust all colors for light-theme readability.
+### 1. Landing Page Changes (`src/pages/TrainingEvent.tsx`)
 
-### Changes
+**A. Add registration time to the event details pills (line 284)**
+Change "11:00 AM - 4:00 PM" to include registration:
+```
+Registration: 10:30 AM
+Event: 11:00 AM – 4:00 PM
+```
 
-**File: `src/components/presentation/slides/Slide05_CarrierLogos.tsx`**
+**B. Add registration time to the confirmation card (line 161)**
+Update the time display from `11:00 AM – 4:00 PM PT` to `Registration 10:30 AM | Event 11:00 AM – 4:00 PM PT`
 
-1. **Update carriers array** — Replace Clearbit URLs with the 11 provided CDN URLs. Reduce carrier list from 13 to 11 (or keep extras as text-only fallbacks) to match the available images. Map each URL to a carrier in order.
+**C. Update session highlights (line 11)**
+Add a "10:30 AM" registration/check-in entry as the first item in `sessionHighlights`.
 
-2. **Switch to white background** — Change `antigravity-carrier-bg` class or override inline to `background: #FFFFFF`. Remove the ambient orbs (gold/green gradient circles).
+### 2. Email Changes
 
-3. **Recolor text for light theme**:
-   - "Committed to" → `#1A4D3E` (Evergreen) instead of white
-   - "Bridging the Gap" → keep `#C8A96E` (Gold)
-   - Overline → keep gold
-   - Subtext → `#6B7B74` (darker muted green for readability on white)
-   - Trust bar → same darker muted tone
+**A. Registration confirmation email (`supabase/functions/register-training-event/index.ts`)**
+Add registration and event times to the event details block (currently only shows date and location):
+```
+🕐 Registration: 10:30 AM PST
+🕐 Event: 11:00 AM – 4:00 PM PST
+```
 
-4. **Recolor cards for light theme**:
-   - Card background: `rgba(245, 247, 246, 0.8)` (light gray-green tint)
-   - Border: `rgba(26, 77, 62, 0.12)` default, `rgba(200, 169, 110, 0.4)` on hover
-   - Box-shadow: lighter shadows appropriate for white bg
-   - Carrier name label below logo: `#1A4D3E` at lower opacity
+**B. Reminder emails (`supabase/functions/process-training-reminders/index.ts`, line 92)**
+Update the time line from `11:00 AM to 4:00 PM PST` to include registration:
+```
+🕐 Registration: 10:30 AM PST
+🕐 Event: 11:00 AM – 4:00 PM PST
+```
 
-5. **Keep 3D tilt, hover effects, and Framer Motion animations** — just adjust shadow colors for light theme.
-
-**File: `src/styles/antigravity.css`** — Update `.antigravity-carrier-bg` to white background, remove or hide orb styles for this slide.
+### Files Modified
+- `src/pages/TrainingEvent.tsx` — 3 spots (session highlights array, event pills, confirmation card)
+- `supabase/functions/register-training-event/index.ts` — add times to email
+- `supabase/functions/process-training-reminders/index.ts` — update time line
 

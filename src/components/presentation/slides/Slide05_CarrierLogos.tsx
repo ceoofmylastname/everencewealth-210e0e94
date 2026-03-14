@@ -3,19 +3,17 @@ import { motion } from "framer-motion";
 import RevealElement from "../RevealElement";
 
 const carriers = [
-  { name: "Prudential", logo: "https://logo.clearbit.com/prudential.com" },
-  { name: "Principal", logo: "https://logo.clearbit.com/principal.com" },
-  { name: "Lincoln Financial Group", logo: "https://logo.clearbit.com/lfg.com" },
-  { name: "Allianz", logo: "https://logo.clearbit.com/allianz.com" },
-  { name: "Global Atlantic", logo: "https://logo.clearbit.com/globalatlantic.com" },
-  { name: "American National", logo: "https://logo.clearbit.com/anico.com" },
-  { name: "Securian Financial", logo: "https://logo.clearbit.com/securian.com" },
-  { name: "John Hancock", logo: "https://logo.clearbit.com/johnhancock.com" },
-  { name: "Mutual of Omaha", logo: "https://logo.clearbit.com/mutualofomaha.com" },
-  { name: "National Life Group", logo: "https://logo.clearbit.com/nationallife.com" },
-  { name: "North American", logo: "https://logo.clearbit.com/northamericancompany.com" },
-  { name: "AIG", logo: "https://logo.clearbit.com/aig.com" },
-  { name: "Equitable", logo: "https://logo.clearbit.com/equitable.com" },
+  { name: "Prudential", logo: "https://assets.cdn.filesafe.space/9m2UBN29nuaCWceOgW2Z/media/691d516d7e9b293d0b7d9e26.png" },
+  { name: "Principal", logo: "https://assets.cdn.filesafe.space/9m2UBN29nuaCWceOgW2Z/media/691d516d7e9b292aa47d9e25.png" },
+  { name: "Lincoln Financial Group", logo: "https://assets.cdn.filesafe.space/9m2UBN29nuaCWceOgW2Z/media/691d516dce99892f5f7679f6.png" },
+  { name: "Allianz", logo: "https://assets.cdn.filesafe.space/9m2UBN29nuaCWceOgW2Z/media/691d516d6d309e2866328d5e.png" },
+  { name: "Global Atlantic", logo: "https://assets.cdn.filesafe.space/9m2UBN29nuaCWceOgW2Z/media/691d516d6d309e8871328d5d.png" },
+  { name: "American National", logo: "https://assets.cdn.filesafe.space/9m2UBN29nuaCWceOgW2Z/media/691d516dce998948627679f5.png" },
+  { name: "Securian Financial", logo: "https://assets.cdn.filesafe.space/9m2UBN29nuaCWceOgW2Z/media/691d516dce998922617679f4.png" },
+  { name: "John Hancock", logo: "https://assets.cdn.filesafe.space/9m2UBN29nuaCWceOgW2Z/media/691d516dcdf2313ec7bd0e4e.png" },
+  { name: "Mutual of Omaha", logo: "https://assets.cdn.filesafe.space/9m2UBN29nuaCWceOgW2Z/media/691d516dcdf23108afbd0e4f.png" },
+  { name: "National Life Group", logo: "https://assets.cdn.filesafe.space/9m2UBN29nuaCWceOgW2Z/media/691d516d7e9b299af97d9e27.png" },
+  { name: "North American", logo: "https://assets.cdn.filesafe.space/9m2UBN29nuaCWceOgW2Z/media/691d516d4b75355b4548aad2.png" },
 ];
 
 function CarrierCard({ carrier, index }: { carrier: typeof carriers[0]; index: number }) {
@@ -55,10 +53,10 @@ function CarrierCard({ carrier, index }: { carrier: typeof carriers[0]; index: n
           transform: `perspective(800px) rotateX(${tilt.rotateX}deg) rotateY(${tilt.rotateY}deg) translateY(${isHovered ? -6 : 0}px)`,
           transition: "all 0.35s cubic-bezier(0.23, 1, 0.32, 1)",
           transformStyle: "preserve-3d",
-          borderColor: isHovered ? "rgba(200,169,110,0.5)" : "rgba(200,169,110,0.15)",
+          borderColor: isHovered ? "rgba(200,169,110,0.4)" : "rgba(26,77,62,0.12)",
           boxShadow: isHovered
-            ? "0 16px 48px rgba(0,0,0,0.4), 0 0 30px rgba(200,169,110,0.12), inset 0 1px 0 rgba(255,255,255,0.08)"
-            : "0 4px 24px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.06)",
+            ? "0 12px 32px rgba(0,0,0,0.1), 0 0 20px rgba(200,169,110,0.08), inset 0 1px 0 rgba(255,255,255,0.9)"
+            : "0 2px 12px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.8)",
         }}
       >
         {!logoError ? (
@@ -80,7 +78,7 @@ function CarrierCard({ carrier, index }: { carrier: typeof carriers[0]; index: n
               fontFamily: "var(--font-body)",
               fontWeight: 600,
               fontSize: 14,
-              color: "#E8EFE9",
+              color: "#1A4D3E",
               textAlign: "center",
             }}
           >
@@ -92,7 +90,7 @@ function CarrierCard({ carrier, index }: { carrier: typeof carriers[0]; index: n
             fontFamily: "var(--font-body)",
             fontWeight: 500,
             fontSize: 12,
-            color: "#6B8F7E",
+            color: "rgba(26, 77, 62, 0.6)",
             letterSpacing: "0.1em",
             textTransform: "uppercase",
             textAlign: "center",
@@ -106,7 +104,6 @@ function CarrierCard({ carrier, index }: { carrier: typeof carriers[0]; index: n
 }
 
 export default function Slide05_CarrierLogos() {
-  // Load Google Fonts
   useEffect(() => {
     const id = "carrier-google-fonts";
     if (!document.getElementById(id)) {
@@ -121,12 +118,8 @@ export default function Slide05_CarrierLogos() {
 
   return (
     <div className="antigravity-slide antigravity-carrier-bg">
-      {/* Ambient orbs */}
-      <div className="antigravity-carrier-orb-gold" />
-      <div className="antigravity-carrier-orb-green" />
-
       <div className="antigravity-slide-inner" style={{ position: "relative", zIndex: 1 }}>
-        {/* Reveal 1: Headline */}
+        {/* Headline */}
         <RevealElement index={1} direction="slam" className="text-center mb-2">
           <motion.p
             initial={{ opacity: 0, y: 24 }}
@@ -136,7 +129,7 @@ export default function Slide05_CarrierLogos() {
               fontFamily: "var(--font-body)",
               fontWeight: 600,
               fontSize: 12,
-              color: "var(--ev-gold)",
+              color: "#C8A96E",
               letterSpacing: "0.35em",
               textTransform: "uppercase",
               marginBottom: 16,
@@ -153,7 +146,7 @@ export default function Slide05_CarrierLogos() {
               fontFamily: "var(--font-body)",
               fontWeight: 800,
               fontSize: "clamp(36px, 4vw, 52px)",
-              color: "#FFFFFF",
+              color: "#1A4D3E",
               margin: 0,
               lineHeight: 1.1,
             }}
@@ -170,7 +163,7 @@ export default function Slide05_CarrierLogos() {
               fontStyle: "italic",
               fontWeight: 400,
               fontSize: "clamp(40px, 4.5vw, 56px)",
-              color: "var(--ev-gold)",
+              color: "#C8A96E",
               margin: 0,
               lineHeight: 1.1,
             }}
@@ -186,7 +179,7 @@ export default function Slide05_CarrierLogos() {
               fontFamily: "var(--font-body)",
               fontWeight: 400,
               fontSize: 16,
-              color: "#A0B5AD",
+              color: "#6B7B74",
               marginTop: 16,
             }}
           >
@@ -194,7 +187,7 @@ export default function Slide05_CarrierLogos() {
           </motion.p>
         </RevealElement>
 
-        {/* Reveal 2: Carrier grid */}
+        {/* Carrier grid */}
         <RevealElement index={2} direction="scale" className="mt-8">
           <div
             style={{
@@ -213,7 +206,7 @@ export default function Slide05_CarrierLogos() {
           </div>
         </RevealElement>
 
-        {/* Reveal 3: Trust bar */}
+        {/* Trust bar */}
         <RevealElement index={3} direction="drop" className="flex justify-center mt-16">
           <motion.p
             initial={{ opacity: 0 }}
@@ -223,7 +216,7 @@ export default function Slide05_CarrierLogos() {
               fontFamily: "var(--font-body)",
               fontWeight: 500,
               fontSize: 13,
-              color: "#6B8F7E",
+              color: "#6B7B74",
               letterSpacing: "0.2em",
               textTransform: "uppercase",
               textAlign: "center",
