@@ -1,37 +1,40 @@
 
 
-## Plan: Rebuild Slide 05 — Carrier Partners Section
+## Plan: Add Registration Time (10:30 AM) to Landing Page and Emails
 
-### Overview
-Replace the current plain white carrier grid with a premium dark-themed section featuring glassmorphism cards, Clearbit logos, 3D tilt hover effects, and staggered Framer Motion animations — all within the existing presentation slide system.
+### 1. Landing Page Changes (`src/pages/TrainingEvent.tsx`)
 
-### Changes
+**A. Add registration time to the event details pills (line 284)**
+Change "11:00 AM - 4:00 PM" to include registration:
+```
+Registration: 10:30 AM
+Event: 11:00 AM – 4:00 PM
+```
 
-**File: `src/components/presentation/slides/Slide05_CarrierLogos.tsx`** — Full rewrite
+**B. Add registration time to the confirmation card (line 161)**
+Update the time display from `11:00 AM – 4:00 PM PT` to `Registration 10:30 AM | Event 11:00 AM – 4:00 PM PT`
 
-- **Background**: Dark `#0D2B20` with two ambient gradient orbs (gold top-right, green bottom-left) absolutely positioned
-- **Headline block**: Using `RevealElement` wrappers for staggered reveals:
-  - Overline: "TRUSTED CARRIER NETWORK" in gold, uppercase, tracked
-  - "Committed to" in white, DM Sans 800, 52px
-  - "Bridging the Gap" in Cormorant Garamond italic, gold, 56px
-  - Subtext in muted green
-- **Carrier grid**: 4-col desktop / 2-col mobile CSS grid with glassmorphism cards (`backdrop-filter: blur(12px)`, semi-transparent bg/border, deep shadows)
-- **Logos**: Each card shows a Clearbit logo (`logo.clearbit.com`) with `onError` fallback to carrier name text
-- **3D tilt**: `useRef` + `onMouseMove` per card calculating rotateX/rotateY from mouse position relative to card center, max 10deg, with cubic-bezier transition reset on mouseLeave
-- **Hover state**: Enhanced border gold opacity, deeper shadows, logo brightness bump
-- **Bottom trust bar**: "75+ Carriers · Independent Broker · San Francisco, CA" in muted green, uppercase
-- **Fonts**: Import Cormorant Garamond (italic) and DM Sans (400-800) from Google Fonts via `<link>` in a `useEffect` or inline style import
+**C. Update session highlights (line 11)**
+Add a "10:30 AM" registration/check-in entry as the first item in `sessionHighlights`.
 
-**File: `src/styles/antigravity.css`** — Add carrier section styles
+### 2. Email Changes
 
-- `.antigravity-carrier-bg` for the dark background
-- `.antigravity-carrier-orb-gold` / `.antigravity-carrier-orb-green` for ambient orbs
-- `.antigravity-carrier-card` for glassmorphism + shadow base styles
+**A. Registration confirmation email (`supabase/functions/register-training-event/index.ts`)**
+Add registration and event times to the event details block (currently only shows date and location):
+```
+🕐 Registration: 10:30 AM PST
+🕐 Event: 11:00 AM – 4:00 PM PST
+```
 
-### Technical Details
-- Preserves `RevealElement` integration with existing reveal queue (indices 1-3)
-- Uses `useState` for per-card tilt tracking (object keyed by card index)
-- Clearbit logo URLs hardcoded per the spec
-- Framer Motion handles scroll-triggered entry via `RevealElement`; 3D tilt is pure CSS transform via inline styles
-- Fully responsive with grid breakpoint at md (768px)
+**B. Reminder emails (`supabase/functions/process-training-reminders/index.ts`, line 92)**
+Update the time line from `11:00 AM to 4:00 PM PST` to include registration:
+```
+🕐 Registration: 10:30 AM PST
+🕐 Event: 11:00 AM – 4:00 PM PST
+```
+
+### Files Modified
+- `src/pages/TrainingEvent.tsx` — 3 spots (session highlights array, event pills, confirmation card)
+- `supabase/functions/register-training-event/index.ts` — add times to email
+- `supabase/functions/process-training-reminders/index.ts` — update time line
 
