@@ -71,7 +71,7 @@ export default function BlobClip({
       transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
     >
       {imageSrc ? (
-        <img src={imageSrc} alt={imageAlt} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+        <img src={imageSrc} alt={imageAlt} style={{ width: "100%", height: "100%", objectFit: "cover", ...imageStyle }} />
       ) : label ? (
         <span className="text-white/40 text-sm font-medium text-center px-4">
           {label}
