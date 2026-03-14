@@ -79,9 +79,12 @@ export default function Slide14_IndexingSolution() {
         <RevealElement index={5} direction="right" className="flex items-center justify-center">
           <BlobClip
             gradient="linear-gradient(135deg, #6BA08A 0%, #4A8A70 100%)"
-            label="Happy family"
-            height="380px"
+            imageSrc={happyFamilyImg}
+            imageAlt="Happy family walking into their dream home"
+            height="420px"
+            width="420px"
             variant={3}
+            imageStyle={{ objectPosition: "center center" }}
           />
         </RevealElement>
       </div>
