@@ -1,11 +1,13 @@
 import RevealElement from "../RevealElement";
+import BlobClip from "../BlobClip";
 import GoldUnderline from "../animations/GoldUnderline";
+import darrenHardyImg from "@/assets/darren-hardy-portrait.png";
 
 export default function Slide08_DarrenHardy() {
   return (
     <div className="antigravity-slide" style={{ background: "#1A4D3E" }}>
       <div className="antigravity-editorial">
-        {/* Left side */}
+        {/* Left side — Title + Quote */}
         <div>
           {/* Reveal 1: Title */}
           <RevealElement index={1} direction="slam">
@@ -14,12 +16,9 @@ export default function Slide08_DarrenHardy() {
             </h2>
             <div className="w-[60px] h-1 rounded-full" style={{ background: "#C8A96E" }} />
           </RevealElement>
-        </div>
 
-        {/* Right — Quote */}
-        <div>
           {/* Reveal 2: Quote card */}
-          <RevealElement index={2} direction="cardRise">
+          <RevealElement index={2} direction="cardRise" className="mt-8">
             <div
               className="rounded-3xl p-8 relative"
               style={{
@@ -52,6 +51,16 @@ export default function Slide08_DarrenHardy() {
             </p>
           </RevealElement>
         </div>
+
+        {/* Right — Blob portrait */}
+        <RevealElement index={4} direction="right" className="flex items-center justify-center">
+          <BlobClip
+            imageSrc={darrenHardyImg}
+            imageAlt="Darren Hardy"
+            height="350px"
+            variant={2}
+          />
+        </RevealElement>
       </div>
     </div>
   );
