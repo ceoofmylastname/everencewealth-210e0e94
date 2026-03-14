@@ -1,6 +1,6 @@
 import RevealElement from "../RevealElement";
-import BlobClip from "../BlobClip";
 import GoldUnderline from "../animations/GoldUnderline";
+import advisorMeetingImg from "@/assets/advisor-meeting.jpg";
 
 const missionBlocks = [
   "With over 45 years of combined experience in the financial services industry, at Everence Wealth, we are driven by one purpose: to deliver the very best.",
@@ -37,11 +37,11 @@ export default function Slide04_OurMission() {
 
         {/* Right Side — Blob image (always visible as background element) */}
         <div className="flex items-center justify-center">
-          <BlobClip
-            gradient="linear-gradient(135deg, #1A4D3E 0%, #2A6D5E 40%, #C8A96E 100%)"
-            label="Financial Advisor Meeting"
-            height="400px"
-            variant={0}
+          <img
+            src={advisorMeetingImg}
+            alt="Professional financial advisor in modern office"
+            className="w-full h-[400px] object-cover"
+            style={{ borderRadius: "30% 70% 70% 30% / 30% 30% 70% 70%" }}
           />
         </div>
       </div>
