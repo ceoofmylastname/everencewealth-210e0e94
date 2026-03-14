@@ -14,6 +14,10 @@ interface BlobClipProps {
   gradient?: string;
   /** Descriptive label for the image placeholder */
   label?: string;
+  /** Image source URL or import */
+  imageSrc?: string;
+  /** Alt text for image */
+  imageAlt?: string;
   /** Width of the blob container */
   width?: string | number;
   /** Height of the blob container */
