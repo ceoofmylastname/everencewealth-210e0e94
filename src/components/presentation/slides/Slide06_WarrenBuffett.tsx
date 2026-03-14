@@ -1,6 +1,7 @@
 import RevealElement from "../RevealElement";
 import BlobClip from "../BlobClip";
 import GoldUnderline from "../animations/GoldUnderline";
+import warrenBuffettImg from "@/assets/warren-buffett-portrait.png";
 
 export default function Slide06_WarrenBuffett() {
   return (
