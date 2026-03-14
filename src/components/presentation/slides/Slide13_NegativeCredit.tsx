@@ -42,7 +42,7 @@ function StepCard({ label, value, numericValue, prefix = "", suffix = "", isNega
       <div
         className="relative flex items-center justify-between px-5 py-4 rounded-2xl border transition-transform duration-200 ease-out"
         style={{
-          background: "rgba(255,255,255,0.06)",
+          background: "rgba(0,0,0,0.03)",
           backdropFilter: "blur(16px)",
           WebkitBackdropFilter: "blur(16px)",
           borderColor: `${accentColor}33`,
