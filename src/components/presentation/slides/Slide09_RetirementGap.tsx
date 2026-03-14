@@ -1,4 +1,5 @@
 import RevealElement from "../RevealElement";
+import bridgeImg from "@/assets/retirement-gap-bridge.png";
 
 const causes = [
   { emoji: "💸", label: "Hidden Fees" },
@@ -9,14 +10,16 @@ const causes = [
 export default function Slide09_RetirementGap() {
   return (
     <div className="antigravity-slide">
-      {/* Dark dramatic background — always visible */}
+      {/* Full-bleed bridge image */}
       <div
         className="antigravity-full-bleed"
         style={{
-          background: "linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 50%, #1a1a1a 100%)",
+          backgroundImage: `url(${bridgeImg})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
         }}
       />
-      <div className="antigravity-overlay-dark" style={{ background: "rgba(0,0,0,0.6)" }} />
+      <div className="antigravity-overlay-dark" style={{ background: "rgba(0,0,0,0.55)" }} />
 
       <div className="relative z-10 antigravity-slide-inner flex flex-col items-center justify-center text-center">
         {/* Reveal 1: Badge */}
