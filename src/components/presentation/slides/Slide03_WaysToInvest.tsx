@@ -44,9 +44,10 @@ export default function Slide03_WaysToInvest() {
               <div className="antigravity-card relative flex flex-col items-center text-center"
                 style={{ background: i === 0 ? "#E8EBF0" : i === 1 ? "#F5E6C8" : "#E8F0EC" }}
               >
-                <div
-                  className="w-full h-[180px] rounded-xl mb-4"
-                  style={{ background: col.gradient }}
+                <img
+                  src={col.image}
+                  alt={col.title}
+                  className="w-full h-[180px] rounded-xl mb-4 object-cover"
                 />
                 <h3 className="text-2xl font-bold mb-2" style={{ color: "#1A4D3E" }}>
                   {col.title}
