@@ -1,40 +1,36 @@
 
 
-## Plan: Add Registration Time (10:30 AM) to Landing Page and Emails
+## Plan: Add Full Indexed Data Labels + Legend Key to Performance Chart
 
-### 1. Landing Page Changes (`src/pages/TrainingEvent.tsx`)
+The reference image shows **both** lines with dollar labels — S&P 500 in red and Indexed in green. Currently only S&P 500 labels are shown. The Indexed line also needs exact data from the reference image and visible labels in green.
 
-**A. Add registration time to the event details pills (line 284)**
-Change "11:00 AM - 4:00 PM" to include registration:
+### 1. Update `src/components/presentation/PerformanceChart.tsx`
+
+**Update INDEXED_DATA** with exact values from the reference:
 ```
-Registration: 10:30 AM
-Event: 11:00 AM – 4:00 PM
-```
-
-**B. Add registration time to the confirmation card (line 161)**
-Update the time display from `11:00 AM – 4:00 PM PT` to `Registration 10:30 AM | Event 11:00 AM – 4:00 PM PT`
-
-**C. Update session highlights (line 11)**
-Add a "10:30 AM" registration/check-in entry as the first item in `sessionHighlights`.
-
-### 2. Email Changes
-
-**A. Registration confirmation email (`supabase/functions/register-training-event/index.ts`)**
-Add registration and event times to the event details block (currently only shows date and location):
-```
-🕐 Registration: 10:30 AM PST
-🕐 Event: 11:00 AM – 4:00 PM PST
+1999: $100,000 → 2000: $100,000 → 2001: $100,000 → 2002: $100,000 →
+2003: $100,000 → 2004: $122,068.80 → 2005: $140,818.57 → 2006: $145,789.46 →
+2007: $182,878.30 → 2008: $229,402.54 → 2009: $255,531.49 → 2010: $313,498.30 →
+2011: $344,064.38 → 2012: $344,064.38 → 2013: $431,594.35 → 2014: $483,385.28 →
+2015-2025: $541,391.51
 ```
 
-**B. Reminder emails (`supabase/functions/process-training-reminders/index.ts`, line 92)**
-Update the time line from `11:00 AM to 4:00 PM PST` to include registration:
-```
-🕐 Registration: 10:30 AM PST
-🕐 Event: 11:00 AM – 4:00 PM PST
-```
+**Show labels on BOTH lines:**
+- Change `drawLine(INDEXED_DATA, ...)` to pass `showLabels: true`
+- S&P 500 labels render in red (`#E87070`)
+- Indexed labels render in green (`#1A4D3E`)
+- Labels alternate above/below to avoid overlap — use smarter positioning since both lines now have labels
 
-### Files Modified
-- `src/pages/TrainingEvent.tsx` — 3 spots (session highlights array, event pills, confirmation card)
-- `supabase/functions/register-training-event/index.ts` — add times to email
-- `supabase/functions/process-training-reminders/index.ts` — update time line
+**Add gradient fill under Indexed line** (green gradient, same technique as red S&P fill)
+
+**Draw a canvas legend key** in the top-left area of the chart:
+- Red square + "S&P 500" text
+- Green square + "S&P 500 Indexed 0% Guarantee 12% Cap" text
+
+**Increase chart height** from 400px to 480px to accommodate more labels
+
+**Adjust Y-axis max** to ~$560k to fit the indexed line values better
+
+### 2. No changes to `Slide16_PerformanceChart.tsx`
+The slide wrapper, legend pills, and badges remain as-is since the chart canvas handles everything internally.
 
