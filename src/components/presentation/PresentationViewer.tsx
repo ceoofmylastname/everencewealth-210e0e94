@@ -83,6 +83,7 @@ const SLIDE_CONFIGS = [
   { totalReveals: 4 },  // 15: Side by Side
   { totalReveals: 4 },  // 16: Performance Chart
   { totalReveals: 4 },  // 17: Tax Buckets Intro
+  { totalReveals: 5 },  // 18: Tax Categories Transition
   { totalReveals: 5 },  // 19: Tax Deep Dive
   { totalReveals: 4 },  // 20: Tax Comparison
   { totalReveals: 5 },  // 21: Bridging the Gap
