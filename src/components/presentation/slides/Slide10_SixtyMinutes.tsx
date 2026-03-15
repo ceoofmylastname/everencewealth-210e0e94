@@ -124,10 +124,8 @@ export default function Slide10_SixtyMinutes() {
                   justifyContent: "center",
                 }}
               >
-                {/* Thumbnail or shimmer */}
-                {thumbnailUrl ? (
-                  <img
-                    src={thumbnailUrl}
+                <img
+                    src={THUMBNAIL_URL}
                     alt="60 Minutes broadcast studio thumbnail"
                     style={{
                       width: "100%",
@@ -138,29 +136,6 @@ export default function Slide10_SixtyMinutes() {
                       borderRadius: 24,
                     }}
                   />
-                ) : thumbnailLoading ? (
-                  <div
-                    className="slide10-shimmer"
-                    style={{
-                      width: "100%",
-                      height: "100%",
-                      position: "absolute",
-                      inset: 0,
-                      borderRadius: 24,
-                    }}
-                  />
-                ) : (
-                  <div
-                    style={{
-                      width: "100%",
-                      height: "100%",
-                      position: "absolute",
-                      inset: 0,
-                      borderRadius: 24,
-                      background: "linear-gradient(135deg, #1a2030 0%, #2a3040 40%, #0f1520 100%)",
-                    }}
-                  />
-                )}
                 {/* Dark overlay for play button contrast */}
                 <div
                   style={{
