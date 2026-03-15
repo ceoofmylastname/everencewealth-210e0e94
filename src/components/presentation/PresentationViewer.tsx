@@ -90,7 +90,7 @@ const SLIDE_CONFIGS = [
   { totalReveals: 5 },  // 22: Plan Advantage
   { totalReveals: 5 },  // 23: Plan Benefits
   { totalReveals: 4 },  // 24: Great Retirement Transfer
-  { totalReveals: 4 },  // 25: The Opportunity
+  { totalReveals: 7 },  // 25: The Opportunity
   { totalReveals: 5 },  // 26: Legacy
 ];
 
