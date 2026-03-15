@@ -314,7 +314,7 @@ export default function Slide07_CompoundInterest() {
 
       <div className="antigravity-slide-inner">
         {/* Title block */}
-        <RevealElement index={1} direction="slam" className="mb-6">
+        <RevealElement index={1} direction="slam" className="mb-3">
           <div
             style={{
               display: "flex",
