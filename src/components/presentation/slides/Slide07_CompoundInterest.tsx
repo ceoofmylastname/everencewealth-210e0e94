@@ -106,7 +106,7 @@ function CompoundCard({
       <div
         style={{
           borderRadius: 28,
-          padding: "36px 32px 32px",
+          padding: "24px 28px 24px",
           position: "relative",
           overflow: "hidden",
           background: "rgba(255, 255, 255, 0.65)",
@@ -136,13 +136,13 @@ function CompoundCard({
 
         {/* Rate circle with frosted ring */}
         <div
-          className="relative flex justify-center mb-6"
+          className="relative flex justify-center mb-4"
           style={{ zIndex: 2 }}
         >
           <div
             style={{
-              width: 110,
-              height: 110,
+              width: 80,
+              height: 80,
               borderRadius: "50%",
               display: "flex",
               alignItems: "center",
@@ -163,7 +163,7 @@ function CompoundCard({
             <span
               style={{
                 fontFamily: "var(--font-display)",
-                fontSize: 40,
+                fontSize: 30,
                 fontWeight: 800,
                 fontStyle: "italic",
                 color: col.color,
@@ -177,7 +177,7 @@ function CompoundCard({
 
         {/* Doubling label */}
         <div
-          className="relative text-center mb-6"
+          className="relative text-center mb-3"
           style={{ zIndex: 2 }}
         >
           <span
@@ -223,7 +223,7 @@ function CompoundCard({
           style={{
             height: 1,
             background: `linear-gradient(90deg, transparent 5%, ${col.color}18 50%, transparent 95%)`,
-            marginBottom: 20,
+            marginBottom: 12,
           }}
         />
 
@@ -236,7 +236,7 @@ function CompoundCard({
                 key={ri}
                 className="flex items-center justify-between"
                 style={{
-                  padding: "10px 16px",
+                  padding: "6px 14px",
                   borderRadius: 16,
                   transition: "all 0.3s ease",
                   ...(isLast
@@ -288,7 +288,7 @@ export default function Slide07_CompoundInterest() {
   const { isRevealed } = useRevealQueue();
 
   return (
-    <div className="antigravity-slide" style={{ background: "#FAFAF8", overflow: "auto", alignItems: "flex-start", paddingTop: 40, paddingBottom: 40 }}>
+    <div className="antigravity-slide" style={{ background: "#FAFAF8" }}>
       <style>{`
         @keyframes slide07Float {
           0%, 100% { transform: translateY(0px); }
@@ -314,7 +314,7 @@ export default function Slide07_CompoundInterest() {
 
       <div className="antigravity-slide-inner">
         {/* Title block */}
-        <RevealElement index={1} direction="slam" className="mb-6">
+        <RevealElement index={1} direction="slam" className="mb-3">
           <div
             style={{
               display: "flex",
@@ -326,7 +326,7 @@ export default function Slide07_CompoundInterest() {
             <h2
               style={{
                 fontFamily: "var(--font-display)",
-                fontSize: "clamp(36px, 4.5vw, 56px)",
+                fontSize: "clamp(30px, 3.5vw, 40px)",
                 fontWeight: 800,
                 color: "#1A4D3E",
                 letterSpacing: "-0.03em",
@@ -372,7 +372,7 @@ export default function Slide07_CompoundInterest() {
         </RevealElement>
 
         {/* Cards grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-2">
           {columns.map((col, ci) => (
             <RevealElement key={ci} index={ci + 2} direction="cardRise">
               <CompoundCard
@@ -387,7 +387,7 @@ export default function Slide07_CompoundInterest() {
         <RevealElement
           index={5}
           direction="explode"
-          className="flex justify-center mt-10"
+          className="flex justify-center mt-6"
         >
           <div
             className="slide07-pill-shimmer"
@@ -399,7 +399,7 @@ export default function Slide07_CompoundInterest() {
               fontWeight: 800,
               fontSize: "clamp(14px, 1.3vw, 18px)",
               letterSpacing: "0.04em",
-              padding: "14px 42px",
+              padding: "10px 36px",
               borderRadius: 9999,
               boxShadow:
                 "0 12px 36px -8px rgba(200, 169, 110, 0.5), 0 4px 12px rgba(0,0,0,0.06)",
