@@ -65,7 +65,6 @@ function CompoundCard({
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const [transform, setTransform] = useState("perspective(800px) rotateX(0deg) rotateY(0deg)");
-  const [isHovered, setIsHovered] = useState(false);
 
   const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     if (!ref.current) return;
@@ -77,17 +76,16 @@ function CompoundCard({
 
   const handleMouseLeave = useCallback(() => {
     setTransform("perspective(800px) rotateX(0deg) rotateY(0deg) translateY(0px) scale(1)");
-    setIsHovered(false);
   }, []);
 
   return (
     <div
       className="slide07-card-outer"
-      style={{ "--card-accent": col.color, "--card-glow": col.glowColor } as React.CSSProperties}
+      style={{ "--card-accent": col.color } as React.CSSProperties}
     >
       <div
         ref={ref}
-        onMouseMove={(e) => { handleMouseMove(e); setIsHovered(true); }}
+        onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
         style={{
           transform,
@@ -97,12 +95,8 @@ function CompoundCard({
           padding: "32px 28px 28px",
           position: "relative",
           overflow: "hidden",
-          background: `linear-gradient(160deg, ${col.gradientFrom}, ${col.gradientTo}, rgba(255,255,255,0.9))`,
-          backdropFilter: "blur(20px)",
-          WebkitBackdropFilter: "blur(20px)",
-          boxShadow: isHovered
-            ? `0 20px 50px -12px ${col.glowColor}, 0 8px 20px -8px rgba(0,0,0,0.06)`
-            : "0 4px 24px -4px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.03)",
+          background: "#FFFFFF",
+          boxShadow: "0 4px 24px -4px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.03)",
         }}
       >
         {/* Animated border overlay */}
@@ -114,37 +108,6 @@ function CompoundCard({
             borderRadius: 24,
             pointerEvents: "none",
             zIndex: 10,
-            opacity: isHovered ? 1 : 0.5,
-            transition: "opacity 0.4s ease",
-          }}
-        />
-
-        {/* Subtle top highlight */}
-        <div
-          style={{
-            position: "absolute",
-            top: 0,
-            left: "10%",
-            right: "10%",
-            height: 1,
-            background: `linear-gradient(90deg, transparent, ${col.color}44, transparent)`,
-            borderRadius: "0 0 50% 50%",
-            zIndex: 5,
-          }}
-        />
-
-        {/* Light sweep on hover */}
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            borderRadius: "inherit",
-            background: "linear-gradient(115deg, transparent 42%, rgba(255,255,255,0.5) 50%, transparent 58%)",
-            backgroundSize: "250% 100%",
-            backgroundPosition: isHovered ? "100% 0" : "-100% 0",
-            transition: "background-position 0.7s ease",
-            pointerEvents: "none",
-            zIndex: 6,
           }}
         />
 
@@ -158,9 +121,7 @@ function CompoundCard({
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              background: `radial-gradient(circle at 40% 35%, ${col.gradientFrom}, transparent 70%)`,
               border: `2.5px solid ${col.color}33`,
-              position: "relative",
             }}
           >
             <span
