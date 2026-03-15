@@ -67,12 +67,14 @@ function formatDollar(v: number): string {
 interface PerformanceChartProps {
   animate?: boolean;
   className?: string;
+  onAnimationComplete?: () => void;
 }
 
-export default function PerformanceChart({ animate = false, className }: PerformanceChartProps) {
+export default function PerformanceChart({ animate = false, className, onAnimationComplete }: PerformanceChartProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [progress, setProgress] = useState(0);
   const animRef = useRef<number>(0);
+  const completeFiredRef = useRef(false);
 
   const draw = useCallback(
     (ctx: CanvasRenderingContext2D, w: number, h: number, t: number) => {
@@ -82,6 +84,10 @@ export default function PerformanceChart({ animate = false, className }: Perform
       ctx.scale(dpr, dpr);
 
       const chartBottom = PADDING.top + (h - PADDING.top - PADDING.bottom);
+
+      // Line progress finishes at t=0.7, highlight phase is 0.7–1.0
+      const lineT = Math.min(t / 0.7, 1);
+      const highlightT = Math.max(0, Math.min((t - 0.7) / 0.3, 1));
 
       // Grid lines
       const ySteps = [0, 50000, 100000, 150000, 200000, 250000, 300000, 350000, 400000, 450000, 500000, 550000, 580000];
@@ -116,7 +122,7 @@ export default function PerformanceChart({ animate = false, className }: Perform
       }
 
       // Legend
-      const legendAlpha = Math.max(0, Math.min(1, t * 4));
+      const legendAlpha = Math.max(0, Math.min(1, lineT * 4));
       ctx.globalAlpha = legendAlpha;
       const lx = PADDING.left + 4;
       const ly = PADDING.top - 46;
@@ -154,7 +160,7 @@ export default function PerformanceChart({ animate = false, className }: Perform
         ctx.fill();
       };
 
-      // Draw line — every point is a key/labeled point
+      // Draw line
       const drawLine = (
         data: DataPoint[],
         color: string,
@@ -163,12 +169,11 @@ export default function PerformanceChart({ animate = false, className }: Perform
         labelAbove: boolean
       ) => {
         const totalPoints = data.length;
-        const pointsToShow = Math.ceil(t * totalPoints);
+        const pointsToShow = Math.ceil(lineT * totalPoints);
         if (pointsToShow < 2) return;
 
         drawGradientFill(data, colorRGB, pointsToShow);
 
-        // Straight line segments
         ctx.strokeStyle = color;
         ctx.lineWidth = lineWidth;
         ctx.lineJoin = "miter";
@@ -184,26 +189,28 @@ export default function PerformanceChart({ animate = false, className }: Perform
         // Dots + labels on every point
         for (let i = 0; i < pointsToShow; i++) {
           const [x, y] = mapPoint(data[i], w, h);
+          const isLast = i === totalPoints - 1;
 
           ctx.fillStyle = color;
           ctx.beginPath();
-          ctx.arc(x, y, 3.5, 0, Math.PI * 2);
+          ctx.arc(x, y, isLast && highlightT > 0 ? 3.5 + 2 * highlightT : 3.5, 0, Math.PI * 2);
           ctx.fill();
 
-          // White ring
           ctx.strokeStyle = "white";
           ctx.lineWidth = 1.5;
           ctx.beginPath();
-          ctx.arc(x, y, 3.5, 0, Math.PI * 2);
+          ctx.arc(x, y, isLast && highlightT > 0 ? 3.5 + 2 * highlightT : 3.5, 0, Math.PI * 2);
           ctx.stroke();
 
-          // Label
+          // Skip the last point label here — we draw it in the highlight phase
+          if (isLast && highlightT > 0) continue;
+
           const label = formatDollar(data[i].value);
           const above = labelAbove ? (i % 2 === 0) : (i % 2 !== 0);
           const labelY = above ? y - 15 : y + 19;
 
           const pointProgress = i / totalPoints;
-          const labelAlpha = Math.max(0, Math.min(1, (t - pointProgress) * totalPoints * 0.4));
+          const labelAlpha = Math.max(0, Math.min(1, (lineT - pointProgress) * totalPoints * 0.4));
           ctx.globalAlpha = labelAlpha;
 
           ctx.font = "bold 8px 'Geist Mono', monospace";
@@ -246,18 +253,105 @@ export default function PerformanceChart({ animate = false, className }: Perform
       drawLine(SP500_DATA, RED, "232,112,112", 2.5, false);
       drawLine(INDEXED_DATA, GREEN, "26,77,62", 3, true);
 
-      // End glow on indexed
-      if (t > 0.9) {
-        const lastIdx = INDEXED_DATA.length - 1;
-        const [lx2, ly2] = mapPoint(INDEXED_DATA[lastIdx], w, h);
-        const glowAlpha = Math.min(1, (t - 0.9) * 10);
-        const glow = ctx.createRadialGradient(lx2, ly2, 0, lx2, ly2, 14);
-        glow.addColorStop(0, `rgba(26, 77, 62, ${0.3 * glowAlpha})`);
-        glow.addColorStop(1, "rgba(26, 77, 62, 0)");
-        ctx.fillStyle = glow;
+      // === HIGHLIGHT PHASE: 2021 endpoints ===
+      if (highlightT > 0) {
+        const redLast = SP500_DATA[SP500_DATA.length - 1];
+        const greenLast = INDEXED_DATA[INDEXED_DATA.length - 1];
+        const [rx, ry] = mapPoint(redLast, w, h);
+        const [gxp, gyp] = mapPoint(greenLast, w, h);
+
+        // Oval encompassing both endpoints
+        const cx = (rx + gxp) / 2;
+        const cy = (ry + gyp) / 2;
+        const radiusX = Math.abs(gxp - rx) / 2 + 35;
+        const radiusY = Math.abs(gyp - ry) / 2 + 30;
+
+        // Animated oval stroke
+        ctx.save();
+        ctx.globalAlpha = highlightT * 0.7;
+        ctx.strokeStyle = "#555";
+        ctx.lineWidth = 1.8;
+        ctx.setLineDash([4, 3]);
         ctx.beginPath();
-        ctx.arc(lx2, ly2, 14, 0, Math.PI * 2);
-        ctx.fill();
+        ctx.ellipse(cx, cy, radiusX, radiusY, 0, 0, Math.PI * 2 * highlightT);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.restore();
+
+        // Enlarged labels for 2021 values
+        const drawHighlightLabel = (
+          x: number, y: number, value: number, color: string, above: boolean
+        ) => {
+          const easeHL = 1 - Math.pow(1 - highlightT, 3);
+          const fontSize = 8 + 5 * easeHL;
+          const label = formatDollar(value);
+          const labelY = above ? y - 18 - 6 * easeHL : y + 22 + 6 * easeHL;
+
+          ctx.globalAlpha = highlightT;
+          ctx.font = `bold ${fontSize}px 'Geist Mono', monospace`;
+          const textWidth = ctx.measureText(label).width;
+          const pillW = textWidth + 12;
+          const pillH = fontSize + 8;
+          const pillX = x - pillW / 2;
+          const pillY = labelY - pillH / 2;
+
+          // Shadow
+          ctx.shadowColor = `rgba(0,0,0,${0.12 * easeHL})`;
+          ctx.shadowBlur = 8 * easeHL;
+          ctx.shadowOffsetY = 2;
+
+          ctx.fillStyle = "rgba(255,255,255,0.97)";
+          ctx.beginPath();
+          ctx.roundRect(pillX, pillY, pillW, pillH, 4);
+          ctx.fill();
+
+          ctx.shadowColor = "transparent";
+          ctx.shadowBlur = 0;
+          ctx.shadowOffsetY = 0;
+
+          ctx.strokeStyle = color;
+          ctx.lineWidth = 1.5 * easeHL;
+          ctx.beginPath();
+          ctx.roundRect(pillX, pillY, pillW, pillH, 4);
+          ctx.stroke();
+
+          // Connector line
+          ctx.strokeStyle = color;
+          ctx.lineWidth = 1;
+          ctx.globalAlpha = highlightT * 0.6;
+          ctx.beginPath();
+          if (above) {
+            ctx.moveTo(x, y - 7);
+            ctx.lineTo(x, pillY + pillH);
+          } else {
+            ctx.moveTo(x, y + 7);
+            ctx.lineTo(x, pillY);
+          }
+          ctx.stroke();
+
+          ctx.globalAlpha = highlightT;
+          ctx.fillStyle = color;
+          ctx.textAlign = "center";
+          ctx.fillText(label, x, labelY + fontSize * 0.3);
+          ctx.globalAlpha = 1;
+        };
+
+        // Glow behind endpoints
+        const drawGlow = (x: number, y: number, colorRGB: string) => {
+          const glow = ctx.createRadialGradient(x, y, 0, x, y, 18);
+          glow.addColorStop(0, `rgba(${colorRGB}, ${0.35 * highlightT})`);
+          glow.addColorStop(1, `rgba(${colorRGB}, 0)`);
+          ctx.fillStyle = glow;
+          ctx.beginPath();
+          ctx.arc(x, y, 18, 0, Math.PI * 2);
+          ctx.fill();
+        };
+
+        drawGlow(gxp, gyp, "26, 77, 62");
+        drawGlow(rx, ry, "232, 112, 112");
+
+        drawHighlightLabel(gxp, gyp, greenLast.value, GREEN, true);
+        drawHighlightLabel(rx, ry, redLast.value, RED, false);
       }
 
       ctx.restore();
@@ -268,20 +362,29 @@ export default function PerformanceChart({ animate = false, className }: Perform
   useEffect(() => {
     if (!animate) {
       setProgress(0);
+      completeFiredRef.current = false;
       return;
     }
     const start = performance.now();
-    const duration = 3000;
+    const duration = 4500; // 3s lines + 1.5s highlight
     const tick = (now: number) => {
       const elapsed = now - start;
       const t = Math.min(elapsed / duration, 1);
       const eased = 1 - Math.pow(1 - t, 3);
       setProgress(eased);
-      if (t < 1) animRef.current = requestAnimationFrame(tick);
+      if (t < 1) {
+        animRef.current = requestAnimationFrame(tick);
+      } else if (!completeFiredRef.current) {
+        completeFiredRef.current = true;
+        // Hold the highlight for 1.5s then fire complete
+        setTimeout(() => {
+          onAnimationComplete?.();
+        }, 1500);
+      }
     };
     animRef.current = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(animRef.current);
-  }, [animate]);
+  }, [animate, onAnimationComplete]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
