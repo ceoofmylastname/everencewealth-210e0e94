@@ -5,6 +5,9 @@ import GradientText from "../animations/GradientText";
 import GoldUnderline from "../animations/GoldUnderline";
 import CountingNumber from "../animations/CountingNumber";
 import { useRevealQueue } from "../RevealContext";
+import taxIconOrdinary from "@/assets/tax-icon-ordinary.png";
+import taxIconCapital from "@/assets/tax-icon-capital.png";
+import taxIconTaxFree from "@/assets/tax-icon-taxfree.png";
 
 function useTilt(strength = 10) {
   const ref = useRef<HTMLDivElement>(null);
@@ -14,7 +17,7 @@ function useTilt(strength = 10) {
     const r = el.getBoundingClientRect();
     const x = ((e.clientX - r.left) / r.width - 0.5) * strength;
     const y = ((e.clientY - r.top) / r.height - 0.5) * -strength;
-    el.style.transform = `perspective(700px) rotateX(${y}deg) rotateY(${x}deg) translateY(-4px) scale(1.02)`;
+    el.style.transform = `perspective(700px) rotateX(${y}deg) rotateY(${x}deg) translateY(-6px) scale(1.02)`;
   }, [strength]);
   const onLeave = useCallback(() => {
     if (ref.current)
@@ -27,11 +30,11 @@ interface CategoryData {
   label: string;
   tagline: string;
   items: string[];
-  icon: string;
+  image: string;
   accentGradient: string;
-  accentColor: string;
   glowColor: string;
   borderColor: string;
+  pillTextColor: string;
 }
 
 const categories: CategoryData[] = [
@@ -39,31 +42,31 @@ const categories: CategoryData[] = [
     label: "Ordinary Income",
     tagline: "Taxed at the highest marginal rate",
     items: ["401(k)", "403(b)", "457 Plan", "Pension"],
-    icon: "📊",
+    image: taxIconOrdinary,
     accentGradient: "linear-gradient(135deg, #C8A96E 0%, #E2C896 100%)",
-    accentColor: "#C8A96E",
-    glowColor: "rgba(200,169,110,0.25)",
-    borderColor: "rgba(200,169,110,0.25)",
+    glowColor: "rgba(200,169,110,0.2)",
+    borderColor: "rgba(200,169,110,0.15)",
+    pillTextColor: "#1a1a1a",
   },
   {
     label: "Capital Gains",
     tagline: "Taxed when you sell investments",
     items: ["Brokerage", "Bonds", "Stocks", "ETFs", "Crypto"],
-    icon: "📈",
+    image: taxIconCapital,
     accentGradient: "linear-gradient(135deg, #E8D44D 0%, #F0E68C 100%)",
-    accentColor: "#D4B82E",
-    glowColor: "rgba(232,212,77,0.2)",
-    borderColor: "rgba(232,212,77,0.25)",
+    glowColor: "rgba(232,212,77,0.18)",
+    borderColor: "rgba(232,212,77,0.15)",
+    pillTextColor: "#1a1a1a",
   },
   {
     label: "Tax Free",
     tagline: "0% State & Federal income tax",
     items: ["Roth IRA", "SERP"],
-    icon: "🛡️",
+    image: taxIconTaxFree,
     accentGradient: "linear-gradient(135deg, #1A4D3E 0%, #2A6B55 100%)",
-    accentColor: "#1A4D3E",
-    glowColor: "rgba(26,77,62,0.2)",
-    borderColor: "rgba(26,77,62,0.2)",
+    glowColor: "rgba(26,77,62,0.18)",
+    borderColor: "rgba(26,77,62,0.12)",
+    pillTextColor: "#ffffff",
   },
 ];
 
@@ -79,10 +82,10 @@ function CategoryCard({ cat, revealed, index }: { cat: CategoryData; revealed: b
         transition={{ duration: 0.6, delay: 0.1 }}
         style={{
           position: "absolute",
-          inset: -12,
-          borderRadius: 36,
+          inset: -16,
+          borderRadius: 40,
           background: `radial-gradient(circle at 50% 60%, ${cat.glowColor}, transparent 70%)`,
-          filter: "blur(24px)",
+          filter: "blur(28px)",
           pointerEvents: "none",
         }}
       />
@@ -93,25 +96,25 @@ function CategoryCard({ cat, revealed, index }: { cat: CategoryData; revealed: b
         onMouseLeave={onLeave}
         style={{
           position: "relative",
-          background: "rgba(255,255,255,0.85)",
+          background: "rgba(255,255,255,0.75)",
           backdropFilter: "blur(16px)",
           WebkitBackdropFilter: "blur(16px)",
           border: `1px solid ${cat.borderColor}`,
           borderRadius: 24,
-          padding: "32px 28px",
+          padding: "36px 28px 32px",
           transition: "transform 0.15s ease-out, box-shadow 0.25s ease",
           willChange: "transform",
-          boxShadow: `0 8px 32px -8px rgba(0,0,0,0.06), 0 1px 0 ${cat.borderColor}`,
+          boxShadow: "0 12px 40px -12px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.04)",
           display: "flex",
           flexDirection: "column" as const,
           alignItems: "center",
           textAlign: "center" as const,
-          minHeight: 340,
+          minHeight: 360,
           cursor: "default",
           overflow: "hidden",
         }}
       >
-        {/* Light sweep effect */}
+        {/* Light sweep */}
         <motion.div
           initial={{ x: "-120%" }}
           animate={revealed ? { x: "120%" } : { x: "-120%" }}
@@ -119,78 +122,95 @@ function CategoryCard({ cat, revealed, index }: { cat: CategoryData; revealed: b
           style={{
             position: "absolute",
             inset: 0,
-            background: "linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.5) 50%, transparent 60%)",
+            background: "linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.6) 50%, transparent 60%)",
             pointerEvents: "none",
           }}
         />
 
-        {/* Icon */}
+        {/* 3D Icon with float animation */}
         <motion.div
-          initial={{ scale: 0 }}
-          animate={revealed ? { scale: 1 } : { scale: 0 }}
-          transition={{ type: "spring", stiffness: 400, damping: 15, delay: 0.1 }}
+          initial={{ scale: 0, rotate: -10 }}
+          animate={revealed ? { scale: 1, rotate: 0 } : { scale: 0, rotate: -10 }}
+          transition={{ type: "spring", stiffness: 350, damping: 18, delay: 0.1 }}
+          className="slide18-float"
           style={{
-            fontSize: 48,
-            marginBottom: 16,
-            filter: "drop-shadow(0 4px 8px rgba(0,0,0,0.1))",
+            width: 100,
+            height: 100,
+            marginBottom: 20,
+            animationDelay: `${index * 0.4}s`,
           }}
         >
-          {cat.icon}
+          <img
+            src={cat.image}
+            alt={`${cat.label} icon`}
+            style={{
+              width: "100%",
+              height: "100%",
+              objectFit: "contain",
+              filter: "drop-shadow(0 8px 20px rgba(0,0,0,0.15))",
+            }}
+          />
         </motion.div>
 
-        {/* Accent pill */}
-        <div
+        {/* Label pill */}
+        <motion.div
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={revealed ? { scale: 1, opacity: 1 } : { scale: 0.8, opacity: 0 }}
+          transition={{ duration: 0.4, delay: 0.2 }}
           style={{
             background: cat.accentGradient,
             borderRadius: 9999,
-            padding: "6px 20px",
-            marginBottom: 12,
-            boxShadow: `0 4px 14px -4px ${cat.glowColor}`,
+            padding: "8px 24px",
+            marginBottom: 14,
+            boxShadow: `0 6px 20px -6px ${cat.glowColor}`,
           }}
         >
           <span
             style={{
-              fontSize: 11,
+              fontSize: 12,
               fontWeight: 700,
-              letterSpacing: 2,
-              color: cat.label === "Tax Free" ? "#fff" : "#1a1a1a",
+              letterSpacing: 2.5,
+              color: cat.pillTextColor,
               fontFamily: "var(--font-display)",
               textTransform: "uppercase" as const,
             }}
           >
             {cat.label}
           </span>
-        </div>
+        </motion.div>
 
         {/* Tagline */}
         <p
           style={{
-            fontSize: 13,
+            fontSize: 14,
             color: "#6B7280",
-            marginBottom: 20,
+            marginBottom: 24,
             lineHeight: 1.5,
-            maxWidth: 200,
+            maxWidth: 220,
           }}
         >
           {cat.tagline}
         </p>
 
-        {/* Items */}
-        <div style={{ display: "flex", flexWrap: "wrap" as const, gap: 6, justifyContent: "center" }}>
+        {/* Item badges */}
+        <div style={{ display: "flex", flexWrap: "wrap" as const, gap: 8, justifyContent: "center" }}>
           {cat.items.map((item, i) => (
             <motion.span
               key={item}
-              initial={{ opacity: 0, y: 8 }}
-              animate={revealed ? { opacity: 1, y: 0 } : { opacity: 0, y: 8 }}
-              transition={{ duration: 0.35, delay: 0.3 + i * 0.08 }}
+              initial={{ opacity: 0, y: 10, scale: 0.9 }}
+              animate={revealed ? { opacity: 1, y: 0, scale: 1 } : { opacity: 0, y: 10, scale: 0.9 }}
+              transition={{ duration: 0.35, delay: 0.35 + i * 0.07 }}
               style={{
-                fontSize: 12,
+                fontSize: 13,
                 fontWeight: 500,
-                padding: "5px 14px",
-                borderRadius: 10,
-                background: "rgba(0,0,0,0.03)",
-                border: "1px solid rgba(0,0,0,0.05)",
-                color: "#4a4a4a",
+                padding: "6px 16px",
+                borderRadius: 12,
+                background: "rgba(255,255,255,0.7)",
+                border: "1px solid rgba(0,0,0,0.06)",
+                color: "#3a3a3a",
+                backdropFilter: "blur(6px)",
+                WebkitBackdropFilter: "blur(6px)",
+                boxShadow: "0 2px 8px -2px rgba(0,0,0,0.04)",
               }}
             >
               {item}
@@ -210,13 +230,20 @@ export default function Slide18_TaxCategoriesTransition() {
       <style>{`
         @keyframes slide18Pulse {
           0%, 100% { box-shadow: 0 0 0 0 rgba(200,169,110,0.3); }
-          50% { box-shadow: 0 0 0 12px rgba(200,169,110,0); }
+          50% { box-shadow: 0 0 0 14px rgba(200,169,110,0); }
+        }
+        @keyframes slide18Float {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-8px); }
+        }
+        .slide18-float {
+          animation: slide18Float 3s ease-in-out infinite;
         }
       `}</style>
 
       <div className="antigravity-slide-inner flex flex-col items-center justify-center px-4">
         {/* Title */}
-        <RevealElement index={1} direction="slam" className="text-center mb-6 w-full" style={{ maxWidth: 700 }}>
+        <RevealElement index={1} direction="slam" className="text-center mb-5 w-full" style={{ maxWidth: 700 }}>
           <h2
             className="text-4xl font-bold"
             style={{ color: "#2a2a2a", fontFamily: "var(--font-display)" }}
@@ -231,23 +258,23 @@ export default function Slide18_TaxCategoriesTransition() {
           </p>
         </RevealElement>
 
-        {/* Amount pill */}
+        {/* Withdrawal scenario pill */}
         <RevealElement index={1} direction="scale" className="mb-10">
           <motion.div
             initial={{ scale: 0.9 }}
             animate={{ scale: 1 }}
             transition={{ type: "spring", stiffness: 300, damping: 20 }}
             style={{
-              background: "linear-gradient(135deg, rgba(255,255,255,0.95), rgba(245,230,200,0.2))",
-              backdropFilter: "blur(12px)",
-              WebkitBackdropFilter: "blur(12px)",
-              border: "1px solid rgba(200,169,110,0.2)",
+              background: "linear-gradient(135deg, rgba(255,255,255,0.9), rgba(245,230,200,0.15))",
+              backdropFilter: "blur(14px)",
+              WebkitBackdropFilter: "blur(14px)",
+              border: "1px solid rgba(200,169,110,0.18)",
               borderRadius: 9999,
-              padding: "12px 32px",
+              padding: "14px 36px",
               display: "flex",
               alignItems: "center",
-              gap: 12,
-              boxShadow: "0 4px 20px -6px rgba(200,169,110,0.25)",
+              gap: 14,
+              boxShadow: "0 6px 24px -8px rgba(200,169,110,0.25)",
               animation: "slide18Pulse 2.5s ease-in-out infinite",
             }}
           >
@@ -256,7 +283,7 @@ export default function Slide18_TaxCategoriesTransition() {
             </span>
             <span
               style={{
-                fontSize: 28,
+                fontSize: 30,
                 fontWeight: 800,
                 color: "#C8A96E",
                 fontFamily: "'Geist Mono', monospace",
@@ -268,7 +295,7 @@ export default function Slide18_TaxCategoriesTransition() {
           </motion.div>
         </RevealElement>
 
-        {/* Category Cards — each on independent reveal */}
+        {/* Category cards — independent reveals */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto w-full">
           {categories.map((cat, i) => (
             <RevealElement key={cat.label} index={i + 2} direction="cardRise">
@@ -277,22 +304,24 @@ export default function Slide18_TaxCategoriesTransition() {
           ))}
         </div>
 
-        {/* Bottom insight */}
+        {/* Bottom CTA pill */}
         <RevealElement index={5} direction="whomp" className="flex justify-center mt-10">
           <div
             style={{
-              background: "linear-gradient(135deg, rgba(255,255,255,0.9), rgba(245,230,200,0.15))",
-              backdropFilter: "blur(12px)",
-              WebkitBackdropFilter: "blur(12px)",
-              border: "1px solid rgba(200,169,110,0.15)",
+              background: "linear-gradient(135deg, rgba(255,255,255,0.85), rgba(245,230,200,0.1))",
+              backdropFilter: "blur(14px)",
+              WebkitBackdropFilter: "blur(14px)",
+              border: "1px solid rgba(200,169,110,0.12)",
               borderRadius: 9999,
-              padding: "14px 36px",
-              boxShadow: "0 4px 16px -4px rgba(200,169,110,0.2)",
+              padding: "14px 40px",
+              boxShadow: "0 6px 20px -6px rgba(200,169,110,0.2)",
             }}
           >
             <p style={{ fontSize: 15, color: "#4a4a4a", fontWeight: 500 }}>
               Let's see exactly how each bucket impacts your{" "}
-              <strong style={{ color: "#C8A96E", fontFamily: "'Geist Mono', monospace" }}>$100,000</strong>{" "}
+              <strong style={{ color: "#C8A96E", fontFamily: "'Geist Mono', monospace", fontWeight: 800 }}>
+                $100,000
+              </strong>{" "}
               withdrawal →
             </p>
           </div>
