@@ -207,8 +207,8 @@ export default function Slide17_TaxBucketsIntro() {
           {buckets.map((bucket, i) => (
             <RevealElement
               key={bucket.title}
-              index={i === 2 ? 3 : 2}
-              direction={i === 2 ? "explode" : "cardRise"}
+              index={i + 2}
+              direction="cardRise"
             >
               <BucketCard bucket={bucket} index={i} />
             </RevealElement>
