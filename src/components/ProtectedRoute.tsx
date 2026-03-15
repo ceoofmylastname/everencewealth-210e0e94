@@ -4,6 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Session } from "@supabase/supabase-js";
 import { Skeleton } from "@/components/ui/skeleton";
 
+const SUPER_ADMIN_EMAIL = "jrmenterprisegroup@gmail.com";
+
 interface ProtectedRouteProps {
   children: React.ReactNode;
 }
@@ -41,6 +43,20 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
 
   if (!session) {
     return <Navigate to="/auth" replace />;
+  }
+
+  // Only allow the super admin email
+  const userEmail = session.user?.email?.toLowerCase();
+  if (userEmail !== SUPER_ADMIN_EMAIL) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+        <div className="text-center p-8 rounded-2xl bg-white shadow-lg max-w-md">
+          <div className="text-5xl mb-4">🔒</div>
+          <h2 className="text-xl font-bold text-gray-900 mb-2">Access Restricted</h2>
+          <p className="text-gray-500 text-sm">This dashboard is restricted. Contact your administrator for access.</p>
+        </div>
+      </div>
+    );
   }
 
   return <>{children}</>;
