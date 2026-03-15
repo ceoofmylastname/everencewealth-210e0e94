@@ -19,7 +19,7 @@ const slides = [
   lazy(() => import("./slides/Slide10_SixtyMinutes")),
   lazy(() => import("./slides/Slide11_HiddenFees")),
   lazy(() => import("./slides/Slide12_LossImpact")),
-  lazy(() => import("./slides/Slide13_NegativeCredit")),
+  
   lazy(() => import("./slides/Slide14_IndexingSolution")),
   lazy(() => import("./slides/Slide15_SideBySide")),
   lazy(() => import("./slides/Slide16_PerformanceChart")),
@@ -48,7 +48,7 @@ const SLIDE_TITLES = [
   "60 Minutes",
   "Hidden Fees",
   "Loss Impact",
-  "Negative Credit",
+  
   "Indexing Solution",
   "Side by Side",
   "Performance Chart",
@@ -78,7 +78,7 @@ const SLIDE_CONFIGS = [
   { totalReveals: 4 },  // 10: 60 Minutes
   { totalReveals: 5 },  // 11: Hidden Fees
   { totalReveals: 5 },  // 12: Loss Impact
-  { totalReveals: 4 },  // 13: Negative Credit
+  
   { totalReveals: 5 },  // 14: Indexing Solution
   { totalReveals: 4 },  // 15: Side by Side
   { totalReveals: 4 },  // 16: Performance Chart
