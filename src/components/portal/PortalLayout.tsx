@@ -7,7 +7,8 @@ import {
   Shield, LogOut, LayoutDashboard, FileText, Users, Send,
   FolderOpen, Menu, X, ChevronRight, ChevronDown, MessageSquare,
   Building2, TrendingUp, Wrench, GraduationCap, Megaphone, Calendar, Newspaper,
-  Settings, ClipboardList, Briefcase, GitBranch, Lock, AlertTriangle, Target, Wand2
+  Settings, ClipboardList, Briefcase, GitBranch, Lock, AlertTriangle, Target, Wand2,
+  Presentation,
 } from "lucide-react";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import { Button } from "@/components/ui/button";

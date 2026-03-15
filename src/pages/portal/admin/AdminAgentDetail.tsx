@@ -208,6 +208,24 @@ export default function AdminAgentDetail() {
         </div>
       </div>
 
+      {/* Presentation Access Toggle */}
+      <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Presentation className="h-5 w-5 text-[#1A4D3E]" />
+            <div>
+              <p className="text-sm font-semibold text-gray-900">Workshop Presentation Access</p>
+              <p className="text-xs text-gray-500">Allow this agent to view the workshop presentation on their dashboard</p>
+            </div>
+          </div>
+          <Switch
+            checked={presentationAccess}
+            onCheckedChange={togglePresentationAccess}
+            disabled={togglingPresentation}
+          />
+        </div>
+      </div>
+
       {/* Edit form */}
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
         <div className="px-6 py-4 border-b border-gray-100">
