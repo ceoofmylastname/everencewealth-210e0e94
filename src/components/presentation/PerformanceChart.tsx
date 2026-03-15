@@ -26,7 +26,7 @@ const SP500_DATA: DataPoint[] = [
   { year: 2016, value: 313498.30 },
   { year: 2017, value: 344064.38 },
   { year: 2018, value: 307071.03 },
-  { year: 2019, value: 370000.00 },
+  { year: 2019, value: 431594.35 },
   { year: 2020, value: 283383.18 },
   { year: 2021, value: 431594.35 },
   { year: 2022, value: 283383.18 },
