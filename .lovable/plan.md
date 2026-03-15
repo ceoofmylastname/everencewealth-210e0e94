@@ -1,20 +1,27 @@
 
 
-## Fix Headline Word Distribution
+## Fix Headline — Small Connector Text Not Visible on Line 2
 
-The current headline has "For You." incorrectly grouped with the small connector words on line 2. The intended reading is:
+The problem: On line 2, the `.hero-sm` span ("For You. It Was Built To Be") uses `-webkit-text-fill-color: transparent` inherited from `.line-2`'s gradient text effect. Combined with `opacity: 0.55`, the small text is nearly invisible — making the headline read as just "Paid By You." with no context.
 
-**Line 1:** `[sm]The[/sm] Retirement System [sm]Was Not[/sm] Built`  
-**Line 2:** `[sm]For You. It Was Built To Be[/sm] Paid By You.`
+The sentence should read:
+> *The* **Retirement System** *Was Not* **Built**  
+> *For You. It Was Built To Be* **Paid By You.**
 
-Looking at the screenshot, this actually matches the code. The headline **is** rendering correctly per the approved plan. The structure is:
+### Fix
 
-- Line 1: "The" (small) → "Retirement System" (large) → "Was Not" (small) → "Built" (large italic)
-- Line 2: "For You. It Was Built To Be" (small) → "Paid By You." (large)
+**`src/styles/socorro.css`** — Override the gradient fill on `.hero-sm` inside `.line-2` so the small connector words are actually visible:
 
-This matches the original copy: *"The Retirement System Was Not Built For You. It Was Built To Be Paid By You."*
+```css
+.hero-headline .line-2 .hero-sm {
+  font-weight: 500;
+  -webkit-text-fill-color: rgba(255, 255, 255, 0.55);
+  background: none;
+}
+```
 
-**The headline is correct.** The code matches the approved plan and the screenshot confirms it renders as intended — power words ("Retirement System", "Built", "Paid By You.") are large, connector words are small.
+This makes "For You. It Was Built To Be" render as subtle white text instead of inheriting the shimmer gradient at near-invisible opacity.
 
-No changes needed.
+### File
+`src/styles/socorro.css` — 2 lines added to the existing `.line-2 .hero-sm` rule.
 
