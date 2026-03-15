@@ -1,8 +1,6 @@
 import RevealElement from "../RevealElement";
 import GoldUnderline from "../animations/GoldUnderline";
 import { Monitor, RotateCcw, TrendingUp, Shield } from "lucide-react";
-import MeshGradient from "../MeshGradient";
-import MorphBlob from "../MorphBlob";
 
 const advantages = [
   {
@@ -33,17 +31,14 @@ const advantages = [
 
 export default function Slide22_PlanAdvantage() {
   return (
-    <div className="antigravity-slide">
-      <MeshGradient variant="warm" />
-      <MorphBlob size={320} color="rgba(200, 169, 110, 0.10)" top="-6%" left="-4%" delay={0} />
-      <MorphBlob size={260} color="rgba(26, 77, 62, 0.07)" bottom="-5%" right="-3%" delay={3} />
+    <div className="antigravity-slide bg-white">
       <div className="antigravity-slide-inner">
         {/* Reveal 1: Title */}
         <RevealElement index={1} direction="slam" className="mb-2">
-          <h2 className="text-4xl font-bold" style={{ color: "var(--ev-green)", fontFamily: "var(--font-display)" }}>
+          <h2 className="text-4xl font-bold" style={{ color: "#1A4D3E", fontFamily: "var(--font-display)" }}>
             Plan <GoldUnderline>Advantage</GoldUnderline>
           </h2>
-          <p className="text-base mt-2" style={{ color: "var(--ev-text-light)" }}>
+          <p className="text-base mt-2" style={{ color: "#4A5565" }}>
             Advantage inside the indexed plan
           </p>
         </RevealElement>
@@ -57,13 +52,13 @@ export default function Slide22_PlanAdvantage() {
                 style={{ borderTop: `4px solid ${adv.borderColor}` }}
               >
                 <div className="flex-shrink-0 mt-1">
-                  <adv.icon className="w-8 h-8" style={{ color: "var(--ev-green)" }} />
+                  <adv.icon className="w-8 h-8" style={{ color: "#1A4D3E" }} />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold mb-2" style={{ color: "var(--ev-green)" }}>
+                  <h3 className="text-base font-bold mb-2" style={{ color: "#1A4D3E" }}>
                     {adv.title}
                   </h3>
-                  <p className="text-sm leading-relaxed" style={{ color: "var(--ev-text-light)" }}>
+                  <p className="text-sm leading-relaxed" style={{ color: "#4A5565" }}>
                     {adv.desc}
                   </p>
                 </div>

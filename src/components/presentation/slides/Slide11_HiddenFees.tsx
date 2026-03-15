@@ -1,10 +1,6 @@
 import RevealElement from "../RevealElement";
 import GradientText from "../animations/GradientText";
 import GoldUnderline from "../animations/GoldUnderline";
-import SVGBarChart from "../charts/SVGBarChart";
-import { useRevealQueue } from "../RevealContext";
-import MeshGradient from "../MeshGradient";
-import MorphBlob from "../MorphBlob";
 
 const feeData = [
   { year: 1, noFee: "$3,888", fee095: "$3,851", fee2: "$3,810", fee3: "$3,771" },
@@ -21,30 +17,19 @@ const costs = [
   { label: "3% Fee", value: "$345,801", highlight: true },
 ];
 
-const barData = [
-  { label: "No Fee", values: [{ value: 669968, color: "var(--ev-green)", label: "No Fee" }] },
-  { label: "0.95%", values: [{ value: 529350, color: "var(--ev-gold)", label: "0.95% Fee" }] },
-  { label: "2%", values: [{ value: 410402, color: "#E8870A", label: "2% Fee" }] },
-  { label: "3%", values: [{ value: 324167, color: "#D64545", label: "3% Fee" }] },
-];
-
 export default function Slide11_HiddenFees() {
-  const { isRevealed } = useRevealQueue();
   return (
-    <div className="antigravity-slide">
-      <MeshGradient variant="warm" />
-      <MorphBlob size={300} color="rgba(200, 169, 110, 0.10)" top="-5%" right="-4%" delay={0} />
-      <MorphBlob size={250} color="rgba(26, 77, 62, 0.07)" bottom="-6%" left="-3%" delay={5} />
+    <div className="antigravity-slide bg-white">
       <div className="antigravity-slide-inner">
         {/* Reveal 1: Title */}
         <RevealElement index={1} direction="slam" className="mb-2">
-          <h2 className="text-3xl font-bold" style={{ color: "var(--ev-text-light)", fontFamily: "var(--font-display)" }}>
+          <h2 className="text-3xl font-bold" style={{ color: "#4A5565", fontFamily: "var(--font-display)" }}>
             Hidden Fees inside
           </h2>
           <h2 className="text-3xl font-bold">
             <GoldUnderline><GradientText>Retirement Plans</GradientText></GoldUnderline>
           </h2>
-          <p className="text-sm mt-2" style={{ color: "var(--ev-text-light)" }}>
+          <p className="text-sm mt-2" style={{ color: "#4A5565" }}>
             $3,600 annual contribution, 8% compounded, 35 years
           </p>
         </RevealElement>
@@ -66,7 +51,7 @@ export default function Slide11_HiddenFees() {
                 {feeData.map((row, i) => (
                   <tr
                     key={i}
-                    style={row.bold ? { fontWeight: 700, background: "var(--ev-gold-lt)" } : {}}
+                    style={row.bold ? { fontWeight: 700, background: "#F5E6C8" } : {}}
                   >
                     <td>{row.year}</td>
                     <td>{row.noFee}</td>
@@ -80,20 +65,16 @@ export default function Slide11_HiddenFees() {
           </div>
         </RevealElement>
 
-        {/* Reveal 3: Bar chart visualization */}
+        {/* Reveal 3: Cost of Plan row */}
         <RevealElement index={3} direction="explode" className="mb-4">
-          <div className="max-w-lg mx-auto">
-            <SVGBarChart data={barData} animate={isRevealed(3)} height={200} yFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} />
-          </div>
-          <div className="flex flex-wrap gap-3 justify-center mt-4">
+          <div className="flex flex-wrap gap-3 justify-center">
             {costs.map((cost, i) => (
               <div
                 key={i}
-                className="px-4 py-2 text-center ag-glass"
+                className="px-4 py-2 rounded-xl text-center"
                 style={{
-                  background: cost.highlight ? "rgba(200,169,110,0.85)" : "rgba(245,230,200,0.5)",
-                  color: cost.highlight ? "white" : "var(--ev-green)",
-                  borderRadius: "var(--radius-md)",
+                  background: cost.highlight ? "#C8A96E" : "#F5E6C8",
+                  color: cost.highlight ? "white" : "#1A4D3E",
                 }}
               >
                 <div className="text-xs">{cost.label}</div>

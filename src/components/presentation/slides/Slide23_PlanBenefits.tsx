@@ -1,66 +1,122 @@
+import { useRef, type MouseEvent } from "react";
 import RevealElement from "../RevealElement";
 import GoldUnderline from "../animations/GoldUnderline";
-import MeshGradient from "../MeshGradient";
-import MorphBlob from "../MorphBlob";
+import imgCritical from "@/assets/benefit-critical-illness.jpg";
+import imgChronic from "@/assets/benefit-chronic-illness.jpg";
+import imgTerminal from "@/assets/benefit-terminal-illness.jpg";
+import imgReplacement from "@/assets/benefit-income-replacement.jpg";
 
 const benefits = [
   {
     title: "Critical Illness / Critical Injury Benefit",
     desc: "Millions suffer heart attack, stroke or cancer",
-    bg: "linear-gradient(135deg, #4A7A6A 0%, #1A4D3E 100%)",
+    image: imgCritical,
   },
   {
     title: "Chronic Illness Benefit",
     desc: "Long Term Care alternative — 90% don't own this",
-    bg: "linear-gradient(135deg, #5A8A7A 0%, #2A5D4E 100%)",
+    image: imgChronic,
   },
   {
     title: "Terminal Illness Benefit",
     desc: "12–24 months to live",
-    bg: "linear-gradient(135deg, #6A9A8A 0%, #3A6D5E 100%)",
+    image: imgTerminal,
   },
   {
     title: "Die Too Soon / Income Replacement",
     desc: "Family protection in the event of premature death",
-    bg: "linear-gradient(135deg, #7AAA9A 0%, #4A7D6E 100%)",
+    image: imgReplacement,
   },
 ];
 
+function TiltCard({ children, className }: { children: React.ReactNode; className?: string }) {
+  const ref = useRef<HTMLDivElement>(null);
+
+  const handleMove = (e: MouseEvent<HTMLDivElement>) => {
+    const el = ref.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width - 0.5;
+    const y = (e.clientY - rect.top) / rect.height - 0.5;
+    el.style.transform = `perspective(800px) rotateY(${x * 8}deg) rotateX(${-y * 8}deg) translateY(-4px) scale(1.02)`;
+  };
+
+  const handleLeave = () => {
+    const el = ref.current;
+    if (el) el.style.transform = "perspective(800px) rotateY(0deg) rotateX(0deg) translateY(0px) scale(1)";
+  };
+
+  return (
+    <div
+      ref={ref}
+      className={className}
+      onMouseMove={handleMove}
+      onMouseLeave={handleLeave}
+      style={{ transition: "transform 0.3s ease-out" }}
+    >
+      {children}
+    </div>
+  );
+}
+
 export default function Slide23_PlanBenefits() {
   return (
-    <div className="antigravity-slide">
-      <MeshGradient variant="warm" />
-      <MorphBlob size={300} color="rgba(200, 169, 110, 0.10)" top="-5%" right="-4%" delay={0} />
-      <MorphBlob size={280} color="rgba(26, 77, 62, 0.07)" bottom="-7%" left="-4%" delay={5} />
+    <div className="antigravity-slide bg-white">
       <div className="antigravity-slide-inner">
-        {/* Reveal 1: Title */}
+        {/* Title */}
         <RevealElement index={1} direction="slam" className="mb-2">
-          <h2 className="text-4xl font-bold" style={{ color: "var(--ev-green)", fontFamily: "var(--font-display)" }}>
+          <h2 className="text-4xl font-bold" style={{ color: "#1A4D3E", fontFamily: "var(--font-display)" }}>
             Plan <GoldUnderline>Benefits</GoldUnderline>
           </h2>
-          <p className="text-base mt-2" style={{ color: "var(--ev-text-light)" }}>
+          <p className="text-base mt-2" style={{ color: "#4A5565" }}>
             Advantage inside the indexed plan
           </p>
         </RevealElement>
 
-        {/* Reveals 2-5: Each benefit card */}
+        {/* Benefit cards — 2x2 grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
           {benefits.map((ben, i) => (
             <RevealElement key={ben.title} index={i + 2} direction="cardRise">
-              <div
-                className="rounded-2xl overflow-hidden relative"
-                style={{ height: "200px", background: ben.bg }}
-              >
-                <div className="absolute inset-0 flex flex-col justify-end p-6">
+              <TiltCard>
+                <div
+                  className="rounded-2xl overflow-hidden relative group cursor-default"
+                  style={{
+                    height: "220px",
+                    boxShadow: "0 8px 32px -8px rgba(0,0,0,0.18), 0 2px 8px -2px rgba(0,0,0,0.08)",
+                  }}
+                >
+                  {/* Background image */}
+                  <img
+                    src={ben.image}
+                    alt={ben.title}
+                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+
+                  {/* Dark gradient overlay */}
                   <div
-                    className="rounded-xl p-4"
-                    style={{ background: "#1A4D3E", color: "white" }}
-                  >
-                    <h3 className="text-base font-bold mb-1">{ben.title}</h3>
-                    <p className="text-sm opacity-80">{ben.desc}</p>
+                    className="absolute inset-0"
+                    style={{
+                      background: "linear-gradient(0deg, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.25) 50%, rgba(0,0,0,0.1) 100%)",
+                    }}
+                  />
+
+                  {/* Text content */}
+                  <div className="absolute inset-0 flex flex-col justify-end p-6">
+                    <div
+                      className="rounded-xl px-4 py-3"
+                      style={{
+                        background: "rgba(26, 77, 62, 0.85)",
+                        backdropFilter: "blur(12px)",
+                        border: "1px solid rgba(200, 169, 110, 0.2)",
+                        boxShadow: "0 4px 16px rgba(0,0,0,0.2)",
+                      }}
+                    >
+                      <h3 className="text-base font-bold text-white mb-0.5">{ben.title}</h3>
+                      <p className="text-sm text-white/75">{ben.desc}</p>
+                    </div>
                   </div>
                 </div>
-              </div>
+              </TiltCard>
             </RevealElement>
           ))}
         </div>

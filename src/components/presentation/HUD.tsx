@@ -35,12 +35,13 @@ export default function HUD({ onGridToggle, onExit }: HUDProps) {
               {Array.from({ length: totalReveals }, (_, i) => (
                 <div
                   key={i}
-                  className="w-2 h-2 transition-all duration-300"
-                  style={{
-                    borderRadius: "var(--radius-full)",
-                    background: i < revealIndex ? "var(--ev-green)" : i === revealIndex ? "var(--ev-gold)" : "rgba(0,0,0,0.12)",
-                    transform: i === revealIndex ? "scale(1.25)" : "scale(1)",
-                  }}
+                  className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                    i < revealIndex
+                      ? "bg-[#1A4D3E] scale-100"
+                      : i === revealIndex
+                        ? "bg-[#C8A96E] scale-125"
+                        : "bg-gray-300 scale-100"
+                  }`}
                 />
               ))}
             </div>

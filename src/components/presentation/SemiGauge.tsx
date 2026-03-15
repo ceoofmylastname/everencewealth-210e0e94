@@ -1,10 +1,15 @@
 import { motion } from "framer-motion";
 
 interface SemiGaugeProps {
+  /** Value 0-100 for gauge fill percentage */
   value: number;
+  /** Display label below the gauge */
   label: string;
+  /** Color of the filled arc */
   color?: string;
+  /** Whether to animate */
   animate?: boolean;
+  /** Size in pixels */
   size?: number;
 }
 
@@ -20,25 +25,17 @@ export default function SemiGauge({
   const fill = (value / 100) * circumference;
 
   return (
-    <div
-      className="flex flex-col items-center"
-      style={{
-        background: "rgba(255, 255, 255, 0.3)",
-        backdropFilter: "blur(8px)",
-        WebkitBackdropFilter: "blur(8px)",
-        borderRadius: "var(--radius-md)",
-        padding: "16px 20px 12px",
-        border: "1px solid rgba(255, 255, 255, 0.4)",
-      }}
-    >
+    <div className="flex flex-col items-center">
       <svg width={size} height={size / 2 + 8} viewBox={`0 0 ${size} ${size / 2 + 8}`}>
+        {/* Background track */}
         <path
           d={`M 8 ${size / 2} A ${radius} ${radius} 0 0 1 ${size - 8} ${size / 2}`}
           fill="none"
-          stroke="rgba(0,0,0,0.06)"
+          stroke="#E5E7EB"
           strokeWidth={6}
           strokeLinecap="round"
         />
+        {/* Filled arc */}
         <motion.path
           d={`M 8 ${size / 2} A ${radius} ${radius} 0 0 1 ${size - 8} ${size / 2}`}
           fill="none"
@@ -52,12 +49,12 @@ export default function SemiGauge({
         />
       </svg>
       <div
-        className="text-2xl font-bold -mt-4 antigravity-stat"
-        style={{ color }}
+        className="text-2xl font-bold -mt-4"
+        style={{ color, fontFamily: "'Geist Mono', monospace" }}
       >
         {value}%
       </div>
-      <div className="text-xs mt-1 text-center" style={{ color: "var(--ev-text-light)" }}>{label}</div>
+      <div className="text-xs text-gray-500 mt-1 text-center">{label}</div>
     </div>
   );
 }

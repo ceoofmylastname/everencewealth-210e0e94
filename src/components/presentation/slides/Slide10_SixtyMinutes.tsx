@@ -1,6 +1,4 @@
 import RevealElement from "../RevealElement";
-import MeshGradient from "../MeshGradient";
-import MorphBlob from "../MorphBlob";
 
 const quotes = [
   "The typical 401k investor is a financial novice.",
@@ -10,10 +8,7 @@ const quotes = [
 
 export default function Slide10_SixtyMinutes() {
   return (
-    <div className="antigravity-slide" >
-      <MeshGradient variant="cool" />
-      <MorphBlob size={340} color="rgba(26, 77, 62, 0.08)" top="-7%" left="-5%" delay={0} />
-      <MorphBlob size={300} color="rgba(200, 169, 110, 0.10)" bottom="-8%" right="-6%" delay={4} />
+    <div className="antigravity-slide" style={{ background: "#1A4D3E" }}>
       <div className="antigravity-slide-inner flex flex-col items-center justify-center">
         {/* Reveal 1: TV Frame */}
         <RevealElement index={1} direction="whomp" className="w-full max-w-xl mb-8">
@@ -30,7 +25,7 @@ export default function Slide10_SixtyMinutes() {
                 401k RECESSION
               </div>
               <div
-                className="mt-4 h-[120px] rounded-xl flex items-center justify-center"
+                className="mt-4 h-[120px] rounded-lg flex items-center justify-center"
                 style={{ background: "linear-gradient(135deg, #1a2030 0%, #0f1520 100%)" }}
               >
                 <span className="text-white/30 text-sm">Broadcast Studio</span>
@@ -44,7 +39,7 @@ export default function Slide10_SixtyMinutes() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-4xl mx-auto mb-6">
             {quotes.map((quote, i) => (
               <div key={i} className="antigravity-card text-center" style={{ padding: "16px" }}>
-                <p className="text-sm font-medium" style={{ color: "var(--ev-text-light)" }}>
+                <p className="text-sm font-medium" style={{ color: "#4A5565" }}>
                   "{quote}"
                 </p>
               </div>
@@ -54,7 +49,7 @@ export default function Slide10_SixtyMinutes() {
 
         {/* Reveal 3: Divider */}
         <RevealElement index={3} direction="wipe" className="flex justify-center mb-4">
-          <div className="w-[60px] h-[2px]" style={{ background: "var(--ev-gold)" }} />
+          <div className="w-[60px] h-[2px]" style={{ background: "#C8A96E" }} />
         </RevealElement>
 
         {/* Reveal 4: Bottom badge */}

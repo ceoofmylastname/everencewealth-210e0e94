@@ -154,14 +154,14 @@ function PresentationShell({ onExit }: { onExit?: () => void }) {
     <>
       {/* Desktop-only gate */}
       <div className="antigravity-desktop-gate">
-        <Monitor className="w-12 h-12 mb-4" style={{ color: "var(--ev-gold)" }} />
+        <Monitor className="w-12 h-12 text-[#C8A96E] mb-4" />
         <h2
           className="text-xl font-bold"
-          style={{ fontFamily: "var(--font-display)", color: "var(--ev-green)" }}
+          style={{ fontFamily: "var(--font-display)" }}
         >
           Desktop Required
         </h2>
-        <p className="text-sm max-w-xs" style={{ fontFamily: "var(--font-body)", color: "var(--ev-text-light)" }}>
+        <p className="text-white/60 text-sm max-w-xs" style={{ fontFamily: "var(--font-body)" }}>
           This presentation is optimized for desktop displays (1200px+).
           Please use a laptop or desktop computer.
         </p>
@@ -187,7 +187,7 @@ function PresentationShell({ onExit }: { onExit?: () => void }) {
               <Suspense
                 fallback={
                   <div className="w-full h-full flex items-center justify-center">
-                    <div className="w-8 h-8 border-4 border-t-transparent rounded-full animate-spin" style={{ borderColor: "var(--ev-gold)", borderTopColor: "transparent" }} />
+                    <div className="w-8 h-8 border-4 border-[#C8A96E] border-t-transparent rounded-full animate-spin" />
                   </div>
                 }
               >
@@ -219,7 +219,7 @@ function PresentationShell({ onExit }: { onExit?: () => void }) {
               >
                 <h3
                   className="text-lg font-bold mb-4"
-                  style={{ color: "var(--ev-green)", fontFamily: "var(--font-display)" }}
+                  style={{ color: "#1A4D3E", fontFamily: "var(--font-display)" }}
                 >
                   All Slides
                 </h3>
@@ -231,24 +231,21 @@ function PresentationShell({ onExit }: { onExit?: () => void }) {
                         goToSlide(i);
                         setShowGrid(false);
                       }}
-                      style={{
-                        borderRadius: "var(--radius-md)",
-                        background: i === currentSlide ? "rgba(200, 169, 110, 0.15)" : "rgba(255, 255, 255, 0.4)",
-                        backdropFilter: "blur(8px)",
-                        WebkitBackdropFilter: "blur(8px)",
-                        border: i === currentSlide ? "2px solid var(--ev-gold)" : "2px solid rgba(0,0,0,0.06)",
-                      }}
-                      className={`text-left p-3 transition-all hover:shadow-md`}
+                      className={`text-left p-3 rounded-xl border-2 transition-all hover:shadow-md ${
+                        i === currentSlide
+                          ? "border-[#C8A96E] bg-[#F5E6C8]/30"
+                          : "border-gray-200 hover:border-[#C8A96E]/50"
+                      }`}
                     >
                       <div
-                        className="text-xs font-bold mb-1"
-                        style={{ fontFamily: "var(--font-mono)", color: "var(--ev-text-light)" }}
+                        className="text-xs font-bold text-gray-400 mb-1"
+                        style={{ fontFamily: "var(--font-mono)" }}
                       >
                         {String(i + 1).padStart(2, "0")}
                       </div>
                       <div
-                        className="text-xs font-medium line-clamp-2"
-                        style={{ fontFamily: "var(--font-body)", color: "var(--ev-green)" }}
+                        className="text-xs font-medium text-[#1A4D3E] line-clamp-2"
+                        style={{ fontFamily: "var(--font-body)" }}
                       >
                         {title}
                       </div>

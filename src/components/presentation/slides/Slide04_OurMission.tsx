@@ -1,8 +1,6 @@
 import RevealElement from "../RevealElement";
-import BlobClip from "../BlobClip";
 import GoldUnderline from "../animations/GoldUnderline";
-import MeshGradient from "../MeshGradient";
-import MorphBlob from "../MorphBlob";
+import advisorMeetingImg from "@/assets/advisor-meeting.jpg";
 
 const missionBlocks = [
   "With over 45 years of combined experience in the financial services industry, at Everence Wealth, we are driven by one purpose: to deliver the very best.",
@@ -12,27 +10,24 @@ const missionBlocks = [
 
 export default function Slide04_OurMission() {
   return (
-    <div className="antigravity-slide">
-      <MeshGradient variant="cool" />
-      <MorphBlob size={320} color="rgba(26, 77, 62, 0.07)" top="-6%" right="-4%" delay={0} />
-      <MorphBlob size={260} color="rgba(99, 110, 114, 0.06)" bottom="-5%" left="-3%" delay={4} />
+    <div className="antigravity-slide bg-white">
       <div className="antigravity-editorial">
         {/* Left Side */}
         <div>
           {/* Reveal 1: Title */}
           <RevealElement index={1} direction="slam">
-            <h2 className="text-5xl mb-1" style={{ color: "var(--ev-text-light)", fontFamily: "var(--font-display)" }}>Our</h2>
-            <h2 className="text-5xl font-bold mb-4" style={{ color: "var(--ev-green)", fontFamily: "var(--font-display)" }}>
+            <h2 className="text-5xl mb-1" style={{ color: "#4A5565", fontFamily: "var(--font-display)" }}>Our</h2>
+            <h2 className="text-5xl font-bold mb-4" style={{ color: "#1A4D3E", fontFamily: "var(--font-display)" }}>
               <GoldUnderline>Mission</GoldUnderline>
             </h2>
-            <div className="w-[80px] h-1 rounded-full mb-8" style={{ background: "var(--ev-gold)" }} />
+            <div className="w-[80px] h-1 rounded-full mb-8" style={{ background: "#C8A96E" }} />
           </RevealElement>
 
           {/* Reveals 2-4: Mission blocks */}
           {missionBlocks.map((block, i) => (
             <RevealElement key={i} index={i + 2} direction="cardRise" className="mb-4">
               <div className="antigravity-card" style={{ padding: "16px" }}>
-                <p className="text-base leading-relaxed" style={{ color: "var(--ev-text-light)" }}>
+                <p className="text-base leading-relaxed" style={{ color: "#4A5565" }}>
                   {block}
                 </p>
               </div>
@@ -42,11 +37,11 @@ export default function Slide04_OurMission() {
 
         {/* Right Side — Blob image (always visible as background element) */}
         <div className="flex items-center justify-center">
-          <BlobClip
-            gradient="linear-gradient(135deg, #1A4D3E 0%, #2A6D5E 40%, #C8A96E 100%)"
-            label="Financial Advisor Meeting"
-            height="400px"
-            variant={0}
+          <img
+            src={advisorMeetingImg}
+            alt="Professional financial advisor in modern office"
+            className="w-full h-[400px] object-cover"
+            style={{ borderRadius: "30% 70% 70% 30% / 30% 30% 70% 70%" }}
           />
         </div>
       </div>

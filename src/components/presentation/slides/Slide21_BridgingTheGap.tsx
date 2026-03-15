@@ -2,8 +2,7 @@ import { useState } from "react";
 import RevealElement from "../RevealElement";
 import ConfettiTrigger from "../animations/ConfettiTrigger";
 import { useRevealQueue } from "../RevealContext";
-import MeshGradient from "../MeshGradient";
-import MorphBlob from "../MorphBlob";
+import bridgeBg from "@/assets/bridge-skyline-sunset.jpg";
 
 export default function Slide21_BridgingTheGap() {
   const [showConfetti, setShowConfetti] = useState(false);
@@ -11,17 +10,21 @@ export default function Slide21_BridgingTheGap() {
 
   return (
     <div className="antigravity-slide">
-      <MeshGradient variant="gold" />
-      <MorphBlob size={380} color="rgba(200, 169, 110, 0.14)" top="-9%" right="-6%" delay={0} />
-      <MorphBlob size={300} color="rgba(26, 77, 62, 0.10)" bottom="-7%" left="-5%" delay={4} />
-      {/* Dramatic background — always visible */}
+      {/* Full-bleed background image */}
       <div
         className="antigravity-full-bleed"
         style={{
-          background: "linear-gradient(135deg, #1A3A30 0%, #0D1F1A 40%, #1A4D3E 100%)",
+          backgroundImage: `url(${bridgeBg})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
         }}
       />
-      <div className="antigravity-overlay-dark" style={{ background: "rgba(0,0,0,0.5)" }} />
+      <div
+        className="antigravity-overlay-dark"
+        style={{
+          background: "linear-gradient(180deg, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0.6) 60%, rgba(0,0,0,0.75) 100%)",
+        }}
+      />
 
       <ConfettiTrigger trigger={showConfetti} soundEnabled={soundEnabled} />
 
@@ -30,14 +33,14 @@ export default function Slide21_BridgingTheGap() {
         <RevealElement index={1} direction="slam">
           <h2 className="text-3xl md:text-4xl text-white mb-4" style={{ fontFamily: "var(--font-display)" }}>
             What is bridging the{" "}
-            <span className="font-bold" style={{ color: "var(--ev-gold)" }}>GAP</span>{" "}
+            <span className="font-bold" style={{ color: "#C8A96E" }}>GAP</span>{" "}
             for Americans?
           </h2>
         </RevealElement>
 
         {/* Reveal 2: Divider */}
         <RevealElement index={2} direction="wipe" className="my-6">
-          <div className="w-[80px] h-[2px] mx-auto" style={{ background: "var(--ev-gold)" }} />
+          <div className="w-[80px] h-[2px] mx-auto" style={{ background: "#C8A96E" }} />
         </RevealElement>
 
         {/* Reveal 3: Three pillars */}
@@ -64,7 +67,7 @@ export default function Slide21_BridgingTheGap() {
           <div
             className="px-10 py-8 rounded-2xl"
             style={{
-              background: "var(--ev-gold)",
+              background: "#C8A96E",
               boxShadow: "0 16px 64px rgba(200,169,110,0.4)",
             }}
           >

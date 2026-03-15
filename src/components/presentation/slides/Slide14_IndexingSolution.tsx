@@ -4,8 +4,6 @@ import BlobClip from "../BlobClip";
 import happyFamilyImg from "@/assets/happy-family-dream-home.jpg";
 import ConfettiTrigger from "../animations/ConfettiTrigger";
 import { useRevealQueue } from "../RevealContext";
-import MeshGradient from "../MeshGradient";
-import MorphBlob from "../MorphBlob";
 
 const steps = [
   { label: "Start:", value: "$100,000", color: "#E8F0EC", textColor: "#1A4D3E" },
@@ -20,17 +18,14 @@ export default function Slide14_IndexingSolution() {
   const { soundEnabled } = useRevealQueue();
 
   return (
-    <div className="antigravity-slide">
-      <MeshGradient variant="warm" />
-      <MorphBlob size={340} color="rgba(200, 169, 110, 0.10)" top="-7%" left="-5%" delay={0} />
-      <MorphBlob size={280} color="rgba(26, 77, 62, 0.07)" bottom="-5%" right="-4%" delay={5} />
+    <div className="antigravity-slide bg-white">
       <ConfettiTrigger trigger={showConfetti} soundEnabled={soundEnabled} />
       <div className="antigravity-editorial">
         {/* Left — Number sequence */}
         <div>
           {/* Reveal 1: Title */}
           <RevealElement index={1} direction="slam" className="mb-6">
-            <h2 className="text-3xl font-bold" style={{ color: "var(--ev-green)", fontFamily: "var(--font-display)" }}>
+            <h2 className="text-3xl font-bold" style={{ color: "#1A4D3E", fontFamily: "var(--font-display)" }}>
               Indexed Strategy
             </h2>
           </RevealElement>
@@ -47,12 +42,12 @@ export default function Slide14_IndexingSolution() {
                     border: step.badge ? "2px solid #1A4D3E" : "none",
                   }}
                 >
-                  <span className="text-base font-medium" style={{ color: "var(--ev-text-light)" }}>{step.label}</span>
+                  <span className="text-base font-medium" style={{ color: "#4A5565" }}>{step.label}</span>
                   <span className="text-2xl font-bold antigravity-stat" style={{ color: step.textColor }}>{step.value}</span>
                   {step.badge && (
                     <span
                       className="absolute -right-2 -top-2 text-xs font-bold px-2 py-1 rounded-full"
-                      style={{ background: "var(--ev-gold)", color: "white" }}
+                      style={{ background: "#C8A96E", color: "white" }}
                     >
                       Zero is Your Hero
                     </span>
@@ -66,7 +61,7 @@ export default function Slide14_IndexingSolution() {
           <RevealElement index={3} direction="explode" className="mt-4">
             <div
               className="inline-block px-6 py-3 rounded-xl text-xl font-bold"
-              style={{ background: "var(--ev-gold)", color: "white" }}
+              style={{ background: "#C8A96E", color: "white" }}
             >
               Zero is Your Hero ✦
             </div>

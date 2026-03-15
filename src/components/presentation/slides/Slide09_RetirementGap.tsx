@@ -1,6 +1,5 @@
 import RevealElement from "../RevealElement";
-import MeshGradient from "../MeshGradient";
-import MorphBlob from "../MorphBlob";
+import bridgeImg from "@/assets/retirement-gap-bridge.png";
 
 const causes = [
   { emoji: "💸", label: "Hidden Fees" },
@@ -11,17 +10,16 @@ const causes = [
 export default function Slide09_RetirementGap() {
   return (
     <div className="antigravity-slide">
-      <MeshGradient variant="gold" />
-      <MorphBlob size={360} color="rgba(200, 169, 110, 0.14)" top="-9%" right="-7%" delay={0} />
-      <MorphBlob size={280} color="rgba(26, 77, 62, 0.10)" bottom="-6%" left="-4%" delay={3} />
-      {/* Dark dramatic background — always visible */}
+      {/* Full-bleed bridge image */}
       <div
         className="antigravity-full-bleed"
         style={{
-          background: "linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 50%, #1a1a1a 100%)",
+          backgroundImage: `url(${bridgeImg})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
         }}
       />
-      <div className="antigravity-overlay-dark" style={{ background: "rgba(0,0,0,0.6)" }} />
+      <div className="antigravity-overlay-dark" style={{ background: "rgba(0,0,0,0.55)" }} />
 
       <div className="relative z-10 antigravity-slide-inner flex flex-col items-center justify-center text-center">
         {/* Reveal 1: Badge */}
@@ -47,7 +45,7 @@ export default function Slide09_RetirementGap() {
 
         {/* Reveal 4: Divider */}
         <RevealElement index={4} direction="wipe" className="mb-8">
-          <div className="w-[80px] h-[2px] mx-auto" style={{ background: "var(--ev-gold)" }} />
+          <div className="w-[80px] h-[2px] mx-auto" style={{ background: "#C8A96E" }} />
         </RevealElement>
 
         {/* Reveal 5: Three causes */}

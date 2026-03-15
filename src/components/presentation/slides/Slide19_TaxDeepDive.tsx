@@ -2,8 +2,6 @@ import RevealElement from "../RevealElement";
 import GoldUnderline from "../animations/GoldUnderline";
 import CountingNumber from "../animations/CountingNumber";
 import { useRevealQueue } from "../RevealContext";
-import MeshGradient from "../MeshGradient";
-import MorphBlob from "../MorphBlob";
 
 const categories = [
   {
@@ -45,14 +43,11 @@ export default function Slide19_TaxDeepDive() {
   const { isRevealed } = useRevealQueue();
 
   return (
-    <div className="antigravity-slide">
-      <MeshGradient variant="cool" />
-      <MorphBlob size={340} color="rgba(26, 77, 62, 0.08)" top="-7%" left="-5%" delay={0} />
-      <MorphBlob size={280} color="rgba(200, 169, 110, 0.08)" bottom="-6%" right="-4%" delay={3} />
+    <div className="antigravity-slide bg-white">
       <div className="antigravity-slide-inner">
         {/* Reveal 1: Title */}
         <RevealElement index={1} direction="slam" className="mb-6">
-          <h2 className="text-3xl font-bold" style={{ color: "var(--ev-green)" }}>
+          <h2 className="text-3xl font-bold" style={{ color: "#1A4D3E" }}>
             <GoldUnderline>Tax Deep Dive</GoldUnderline> — $100,000 Withdrawal
           </h2>
         </RevealElement>
@@ -62,8 +57,8 @@ export default function Slide19_TaxDeepDive() {
           {categories.map((cat, i) => (
             <RevealElement key={cat.title} index={i + 2} direction="cardRise">
               <div className="antigravity-card h-full flex flex-col">
-                <h3 className="text-lg font-bold mb-1" style={{ color: "var(--ev-green)" }}>{cat.title}</h3>
-                <p className="text-xs mb-3" style={{ color: "var(--ev-text-light)" }}>{cat.subtitle}</p>
+                <h3 className="text-lg font-bold mb-1" style={{ color: "#1A4D3E" }}>{cat.title}</h3>
+                <p className="text-xs mb-3" style={{ color: "#4A5565" }}>{cat.subtitle}</p>
 
                 <div className="flex flex-wrap gap-1 mb-3">
                   {cat.badges.map((b) => (
@@ -71,13 +66,13 @@ export default function Slide19_TaxDeepDive() {
                   ))}
                 </div>
 
-                <div className="text-xs mb-2" style={{ color: "var(--ev-text-light)" }}>{cat.rate}</div>
+                <div className="text-xs mb-2" style={{ color: "#4A5565" }}>{cat.rate}</div>
 
                 <div className="text-3xl font-bold mb-3 antigravity-stat" style={{ color: cat.netColor }}>
                   {isRevealed(i + 2) ? <CountingNumber value={cat.net} prefix="$" /> : "$0"}
                 </div>
 
-                <div className="mt-auto px-3 py-2 rounded-xl text-xs font-medium" style={{ background: cat.warningBg, color: cat.warningColor }}>
+                <div className="mt-auto px-3 py-2 rounded-lg text-xs font-medium" style={{ background: cat.warningBg, color: cat.warningColor }}>
                   {cat.warning}
                 </div>
               </div>
@@ -89,7 +84,7 @@ export default function Slide19_TaxDeepDive() {
         <RevealElement index={5} direction="whomp" className="flex justify-center mt-6">
           <div className="antigravity-card-dark px-6 py-3 text-center">
             <p className="text-base text-white">
-              The difference: <strong className="antigravity-stat" style={{ color: "var(--ev-gold)" }}>$50,300</strong> — just from knowing where to put your money.
+              The difference: <strong className="antigravity-stat" style={{ color: "#C8A96E" }}>$50,300</strong> — just from knowing where to put your money.
             </p>
           </div>
         </RevealElement>

@@ -2,13 +2,11 @@ import RevealElement from "../RevealElement";
 import GradientText from "../animations/GradientText";
 import CountingNumber from "../animations/CountingNumber";
 import { useRevealQueue } from "../RevealContext";
-import MeshGradient from "../MeshGradient";
-import MorphBlob from "../MorphBlob";
 
 const columns = [
   {
     rate: "7%",
-    color: "var(--ev-green)",
+    color: "#1A4D3E",
     doubling: "10.2 years",
     rows: [
       { age: 30, value: 20000 },
@@ -19,7 +17,7 @@ const columns = [
   },
   {
     rate: "10%",
-    color: "var(--ev-gold)",
+    color: "#C8A96E",
     doubling: "7.2 years",
     rows: [
       { age: 30, value: 20000 },
@@ -32,7 +30,7 @@ const columns = [
   },
   {
     rate: "12%",
-    color: "var(--ev-gold)",
+    color: "#C8A96E",
     doubling: "6 years",
     rows: [
       { age: 30, value: 20000 },
@@ -50,18 +48,15 @@ export default function Slide07_CompoundInterest() {
   const { isRevealed } = useRevealQueue();
 
   return (
-    <div className="antigravity-slide">
-      <MeshGradient variant="warm" />
-      <MorphBlob size={350} color="rgba(200, 169, 110, 0.10)" top="-6%" right="-5%" delay={0} />
-      <MorphBlob size={280} color="rgba(26, 77, 62, 0.07)" bottom="-7%" left="-4%" delay={4} />
+    <div className="antigravity-slide bg-white">
       <div className="antigravity-slide-inner">
         {/* Reveal 1: Title */}
         <RevealElement index={1} direction="slam" className="mb-2">
-          <h2 className="text-3xl md:text-4xl font-bold" style={{ color: "var(--ev-green)", fontFamily: "var(--font-display)" }}>
+          <h2 className="text-3xl md:text-4xl font-bold" style={{ color: "#1A4D3E", fontFamily: "var(--font-display)" }}>
             Compound <GradientText>Interest</GradientText>
           </h2>
-          <p className="text-xl mt-1" style={{ color: "var(--ev-text-light)" }}>The Rule of <strong>72</strong></p>
-          <p className="text-sm mt-2" style={{ color: "var(--ev-text-light)" }}>
+          <p className="text-xl mt-1" style={{ color: "#4A5565" }}>The Rule of <strong>72</strong></p>
+          <p className="text-sm mt-2" style={{ color: "#4A5565" }}>
             Investment of $20,000 at different rates of return starting at age 30
           </p>
         </RevealElement>
@@ -82,7 +77,7 @@ export default function Slide07_CompoundInterest() {
                     </div>
                   </div>
                 </div>
-                <p className="text-center text-sm mb-3" style={{ color: "var(--ev-text-light)" }}>
+                <p className="text-center text-sm mb-3" style={{ color: "#4A5565" }}>
                   Doubles Every {col.doubling}
                 </p>
                 <div className="space-y-1">
@@ -92,7 +87,7 @@ export default function Slide07_CompoundInterest() {
                       <div
                         key={ri}
                         className={`flex justify-between text-sm px-2 py-1 rounded ${isLast ? "font-bold" : ""}`}
-                        style={isLast ? { background: "var(--ev-gold-lt)", color: "var(--ev-green)" } : { color: "var(--ev-text-light)" }}
+                        style={isLast ? { background: "#F5E6C8", color: "#1A4D3E" } : { color: "#4A5565" }}
                       >
                         <span>Age {row.age}</span>
                         <span className="antigravity-stat">
