@@ -24,7 +24,7 @@ const slides = [
   lazy(() => import("./slides/Slide15_SideBySide")),
   lazy(() => import("./slides/Slide16_PerformanceChart")),
   lazy(() => import("./slides/Slide17_TaxBucketsIntro")),
-  lazy(() => import("./slides/Slide18_ThreeBuckets")),
+  
   lazy(() => import("./slides/Slide19_TaxDeepDive")),
   lazy(() => import("./slides/Slide20_TaxComparison")),
   lazy(() => import("./slides/Slide21_BridgingTheGap")),
@@ -53,7 +53,6 @@ const SLIDE_TITLES = [
   "Side by Side",
   "Performance Chart",
   "Tax Buckets Intro",
-  "Three Tax Buckets",
   "Tax Deep Dive",
   "Tax Comparison",
   "Bridging the Gap",
@@ -83,7 +82,6 @@ const SLIDE_CONFIGS = [
   { totalReveals: 4 },  // 15: Side by Side
   { totalReveals: 4 },  // 16: Performance Chart
   { totalReveals: 4 },  // 17: Tax Buckets Intro
-  { totalReveals: 6 },  // 18: Three Buckets
   { totalReveals: 5 },  // 19: Tax Deep Dive
   { totalReveals: 4 },  // 20: Tax Comparison
   { totalReveals: 5 },  // 21: Bridging the Gap
