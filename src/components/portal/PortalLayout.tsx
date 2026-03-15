@@ -255,7 +255,7 @@ export function PortalLayout() {
       {/* Nav */}
       <nav className="flex-1 py-4 px-3 overflow-y-auto space-y-1">
         {isAdvisor ? (
-          advisorNavGroups.map((group) => {
+          navGroups.map((group) => {
             let groupItems = group.items;
             if (isAdmin && group.label === "Compliance") {
               groupItems = [...groupItems, { label: "Admin Panel", icon: Settings, href: "/portal/admin/agents" }];
