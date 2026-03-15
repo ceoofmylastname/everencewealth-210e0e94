@@ -6929,6 +6929,7 @@ export type Database = {
           is_manager: boolean
           last_name: string
           phone: string | null
+          presentation_access: boolean
           role: string
           updated_at: string
         }
@@ -6944,6 +6945,7 @@ export type Database = {
           is_manager?: boolean
           last_name: string
           phone?: string | null
+          presentation_access?: boolean
           role: string
           updated_at?: string
         }
@@ -6959,6 +6961,7 @@ export type Database = {
           is_manager?: boolean
           last_name?: string
           phone?: string | null
+          presentation_access?: boolean
           role?: string
           updated_at?: string
         }
