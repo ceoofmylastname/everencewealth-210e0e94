@@ -381,8 +381,7 @@ const App = () => (
               <Route path="/admin/apartments-properties" element={<ProtectedRoute><ApartmentsProperties /></ProtectedRoute>} />
               <Route path="/admin/apartments-editors" element={<ProtectedRoute><ApartmentsEditorManager /></ProtectedRoute>} />
 
-              {/* Antigravity Presentation System */}
-              <Route path="/admin/presentation" element={<ProtectedRoute><Presentation /></ProtectedRoute>} />
+              {/* Presentation System — moved to portal */}
 
               {/* Apartments Editor Login (public) */}
               <Route path="/apartments/login" element={<ApartmentsAuth />} />

@@ -49,7 +49,6 @@ const navGroups = [
     label: "Dashboard",
     items: [
       { name: "Overview", href: "/admin", icon: LayoutDashboard },
-      { name: "Workshop Presentation", href: "/admin/presentation", icon: Presentation },
     ],
   },
   {
