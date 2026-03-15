@@ -1,6 +1,7 @@
 import RevealElement from "../RevealElement";
 import GradientText from "../animations/GradientText";
 import BlobClip from "../BlobClip";
+import teamImg from "@/assets/team-collaboration.jpg";
 
 const benefits = [
   "Build a business on your own schedule",
