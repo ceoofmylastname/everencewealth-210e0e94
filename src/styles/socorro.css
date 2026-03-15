@@ -200,7 +200,7 @@
 
 .hero-line-1 {
   display: block;
-  font-family: 'DM Sans', system-ui, sans-serif;
+  font-family: 'Space Grotesk', system-ui, sans-serif;
   font-size: clamp(1.2rem, 3vw, 2rem);
   font-weight: 300;
   color: #e8e0d0;
@@ -211,21 +211,29 @@
 
 .hero-line-2 {
   display: block;
-  font-family: 'DM Sans', system-ui, sans-serif;
+  font-family: 'Clash Display', system-ui, sans-serif;
   font-size: clamp(2.8rem, 7vw, 6rem);
-  font-weight: 800;
-  color: #C8A96E;
+  font-weight: 700;
   line-height: 1.0;
+  background: linear-gradient(90deg, #C8A96E 0%, #E2C896 30%, #FFFAF0 50%, #E2C896 70%, #C8A96E 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: socorro-shimmer 6s linear infinite;
 }
 
 .hero-line-3 {
   display: block;
-  font-family: 'DM Sans', system-ui, sans-serif;
+  font-family: 'Space Grotesk', system-ui, sans-serif;
   font-size: clamp(1.1rem, 2.5vw, 1.8rem);
   font-weight: 400;
-  color: #9a9a8a;
   line-height: 1.1;
   margin-top: 8px;
+  background: linear-gradient(90deg, #9a9a8a, #b8a88a);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 /* Logo carousel — infinite scroll */
