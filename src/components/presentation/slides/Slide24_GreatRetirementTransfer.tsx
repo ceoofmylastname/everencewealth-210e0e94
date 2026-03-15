@@ -1,5 +1,6 @@
 import RevealElement from "../RevealElement";
 import GradientText from "../animations/GradientText";
+import flagImg from "@/assets/american-flag-building.jpg";
 
 const questions = [
   {
@@ -66,18 +67,48 @@ export default function Slide24_GreatRetirementTransfer() {
           </RevealElement>
         </div>
 
-        {/* Right — Image placeholder */}
+        {/* Right — Animated image */}
         <RevealElement index={4} direction="right" className="flex items-center justify-center">
           <div
-            className="rounded-xl overflow-hidden w-full"
+            className="rounded-2xl overflow-hidden w-full relative"
             style={{
               height: "420px",
-              background: "linear-gradient(135deg, #1A3A50 0%, #2A4D66 50%, #C8A96E 100%)",
+              boxShadow: "0 12px 40px -8px rgba(0,0,0,0.25), 0 4px 12px -4px rgba(0,0,0,0.1)",
             }}
           >
-            <div className="w-full h-full flex items-center justify-center text-white/40 text-sm">
-              American Flag on Building
-            </div>
+            <img
+              src={flagImg}
+              alt="American flag on building at sunset"
+              className="absolute inset-0 w-full h-full object-cover"
+              style={{
+                animation: "kenBurns 20s ease-in-out infinite alternate",
+              }}
+            />
+            {/* Cinematic overlay */}
+            <div
+              className="absolute inset-0"
+              style={{
+                background: "linear-gradient(135deg, rgba(26,58,80,0.15) 0%, rgba(200,169,110,0.1) 100%)",
+              }}
+            />
+            {/* Animated light sweep */}
+            <div
+              className="absolute inset-0"
+              style={{
+                background: "linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.08) 50%, transparent 60%)",
+                animation: "lightSweep 6s ease-in-out infinite",
+              }}
+            />
+            <style>{`
+              @keyframes kenBurns {
+                0% { transform: scale(1) translate(0, 0); }
+                100% { transform: scale(1.08) translate(-1%, -1%); }
+              }
+              @keyframes lightSweep {
+                0%, 100% { transform: translateX(-100%); }
+                50% { transform: translateX(100%); }
+              }
+            `}</style>
           </div>
         </RevealElement>
       </div>
