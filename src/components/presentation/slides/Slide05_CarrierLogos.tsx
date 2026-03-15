@@ -122,7 +122,7 @@ export default function Slide05_CarrierLogos() {
     <div className="antigravity-slide antigravity-carrier-bg">
       <div className="antigravity-slide-inner" style={{ position: "relative", zIndex: 1 }}>
         {/* Headline */}
-        <RevealElement index={1} direction="slam" className="text-center mb-2">
+        <RevealElement index={1} direction="slam" className="text-center mb-1">
           <motion.p
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
@@ -130,11 +130,11 @@ export default function Slide05_CarrierLogos() {
             style={{
               fontFamily: "var(--font-body)",
               fontWeight: 600,
-              fontSize: 12,
+              fontSize: 11,
               color: "#C8A96E",
               letterSpacing: "0.35em",
               textTransform: "uppercase",
-              marginBottom: 16,
+              marginBottom: 8,
             }}
           >
             TRUSTED CARRIER NETWORK
@@ -147,7 +147,7 @@ export default function Slide05_CarrierLogos() {
             style={{
               fontFamily: "var(--font-body)",
               fontWeight: 800,
-              fontSize: "clamp(36px, 4vw, 52px)",
+              fontSize: "clamp(28px, 3.5vw, 42px)",
               color: "#1A4D3E",
               margin: 0,
               lineHeight: 1.1,
@@ -164,7 +164,7 @@ export default function Slide05_CarrierLogos() {
               fontFamily: "'Cormorant Garamond', Georgia, serif",
               fontStyle: "italic",
               fontWeight: 400,
-              fontSize: "clamp(40px, 4.5vw, 56px)",
+              fontSize: "clamp(32px, 4vw, 48px)",
               color: "#C8A96E",
               margin: 0,
               lineHeight: 1.1,
@@ -180,9 +180,9 @@ export default function Slide05_CarrierLogos() {
             style={{
               fontFamily: "var(--font-body)",
               fontWeight: 400,
-              fontSize: 16,
+              fontSize: 14,
               color: "#6B7B74",
-              marginTop: 16,
+              marginTop: 8,
             }}
           >
             Partnered with 75+ top-rated financial institutions
