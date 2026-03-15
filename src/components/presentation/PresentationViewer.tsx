@@ -19,7 +19,7 @@ const slides = [
   lazy(() => import("./slides/Slide10_SixtyMinutes")),
   lazy(() => import("./slides/Slide11_HiddenFees")),
   lazy(() => import("./slides/Slide12_LossImpact")),
-  lazy(() => import("./slides/Slide13_NegativeCredit")),
+  
   lazy(() => import("./slides/Slide14_IndexingSolution")),
   lazy(() => import("./slides/Slide15_SideBySide")),
   lazy(() => import("./slides/Slide16_PerformanceChart")),
