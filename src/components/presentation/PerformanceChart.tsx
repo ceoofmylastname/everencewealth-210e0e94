@@ -10,59 +10,33 @@ const SP500_DATA: DataPoint[] = [
   { year: 2000, value: 59880.41 },
   { year: 2001, value: 82480.21 },
   { year: 2002, value: 61468.66 },
-  { year: 2003, value: 84954.62 },
-  { year: 2004, value: 85580.91 },
-  { year: 2005, value: 125786.28 },
-  { year: 2006, value: 145789.46 },
-  { year: 2007, value: 182878.30 },
-  { year: 2008, value: 85580.91 },
+  { year: 2004, value: 84954.62 },
+  { year: 2005, value: 85580.91 },
+  { year: 2008, value: 125786.28 },
   { year: 2009, value: 139090.51 },
-  { year: 2010, value: 152359.74 },
-  { year: 2011, value: 125786.28 },
+  { year: 2011, value: 152359.74 },
   { year: 2012, value: 170594.45 },
-  { year: 2013, value: 229402.54 },
-  { year: 2014, value: 255531.49 },
-  { year: 2015, value: 263961.83 },
-  { year: 2016, value: 313498.30 },
-  { year: 2017, value: 344064.38 },
-  { year: 2018, value: 307071.03 },
-  { year: 2019, value: 431594.35 },
-  { year: 2020, value: 283383.18 },
-  { year: 2021, value: 408888.23 },
-  { year: 2022, value: 283383.18 },
-  { year: 2023, value: 370000.00 },
-  { year: 2024, value: 408888.23 },
+  { year: 2013, value: 263961.83 },
+  { year: 2014, value: 313498.30 },
+  { year: 2015, value: 307071.03 },
+  { year: 2019, value: 283383.18 },
+  { year: 2020, value: 408888.23 },
   { year: 2025, value: 408888.23 },
 ];
 
 const INDEXED_DATA: DataPoint[] = [
   { year: 1999, value: 100000 },
-  { year: 2000, value: 100000 },
-  { year: 2001, value: 100000 },
-  { year: 2002, value: 100000 },
   { year: 2003, value: 122068.80 },
   { year: 2004, value: 140818.57 },
-  { year: 2005, value: 145789.46 },
-  { year: 2006, value: 182878.30 },
-  { year: 2007, value: 229402.54 },
-  { year: 2008, value: 229402.54 },
-  { year: 2009, value: 255531.49 },
-  { year: 2010, value: 313498.30 },
-  { year: 2011, value: 313498.30 },
-  { year: 2012, value: 344064.38 },
-  { year: 2013, value: 431594.35 },
-  { year: 2014, value: 483385.28 },
+  { year: 2006, value: 145789.46 },
+  { year: 2007, value: 182878.30 },
+  { year: 2009, value: 229402.54 },
+  { year: 2010, value: 255531.49 },
+  { year: 2012, value: 313498.30 },
+  { year: 2013, value: 344064.38 },
+  { year: 2014, value: 431594.35 },
   { year: 2015, value: 483385.28 },
-  { year: 2016, value: 483385.28 },
-  { year: 2017, value: 483385.28 },
-  { year: 2018, value: 483385.28 },
-  { year: 2019, value: 483385.28 },
-  { year: 2020, value: 483385.28 },
-  { year: 2021, value: 483385.28 },
-  { year: 2022, value: 483385.28 },
-  { year: 2023, value: 483385.28 },
-  { year: 2024, value: 483385.28 },
-  { year: 2025, value: 541391.51 },
+  { year: 2024, value: 541391.51 },
 ];
 
 const MIN_YEAR = 1999;
@@ -81,22 +55,6 @@ function mapPoint(p: DataPoint, w: number, h: number): [number, number] {
 
 function formatDollar(v: number): string {
   return "$" + v.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-}
-
-// Decide label placement to reduce overlap: for S&P labels go below, for Indexed go above
-// Only label "key" points to avoid clutter — every point where value changes
-function getKeyIndices(data: DataPoint[]): number[] {
-  const indices: number[] = [0]; // always label first
-  for (let i = 1; i < data.length; i++) {
-    if (data[i].value !== data[i - 1].value) {
-      indices.push(i);
-    }
-  }
-  // Always include last
-  if (indices[indices.length - 1] !== data.length - 1) {
-    indices.push(data.length - 1);
-  }
-  return indices;
 }
 
 interface PerformanceChartProps {
@@ -136,14 +94,13 @@ export default function PerformanceChart({ animate = false, className }: Perform
         ctx.fillText(`$${(val / 1000).toFixed(0)},000`, PADDING.left - 8, y + 4);
       }
 
-      // X-axis: every year 1999–2025
+      // X-axis labels
       ctx.textAlign = "center";
       ctx.fillStyle = "#9CA3AF";
       ctx.font = "9px 'Geist Mono', monospace";
       for (let yr = MIN_YEAR; yr <= MAX_YEAR; yr++) {
         const x = PADDING.left + ((yr - MIN_YEAR) / (MAX_YEAR - MIN_YEAR)) * (w - PADDING.left - PADDING.right);
         ctx.fillText(String(yr), x, h - 8);
-        // tick
         ctx.strokeStyle = "rgba(0,0,0,0.08)";
         ctx.beginPath();
         ctx.moveTo(x, chartBottom);
@@ -156,23 +113,20 @@ export default function PerformanceChart({ animate = false, className }: Perform
       ctx.globalAlpha = legendAlpha;
       const lx = PADDING.left + 4;
       const ly = PADDING.top - 46;
-
       ctx.fillStyle = RED;
       ctx.fillRect(lx, ly, 14, 10);
       ctx.fillStyle = "#374151";
       ctx.font = "bold 11px 'Geist Mono', monospace";
       ctx.textAlign = "left";
       ctx.fillText("S&P 500", lx + 20, ly + 9);
-
       const gx = lx + 120;
       ctx.fillStyle = GREEN;
       ctx.fillRect(gx, ly, 14, 10);
       ctx.fillStyle = "#374151";
       ctx.fillText("S&P 500 Indexed 0% Guarantee 12% Cap", gx + 20, ly + 9);
-
       ctx.globalAlpha = 1;
 
-      // Gradient fill helper
+      // Gradient fill
       const drawGradientFill = (data: DataPoint[], colorRGB: string, pointsToShow: number) => {
         if (pointsToShow < 2) return;
         const gradient = ctx.createLinearGradient(0, PADDING.top, 0, chartBottom);
@@ -193,14 +147,13 @@ export default function PerformanceChart({ animate = false, className }: Perform
         ctx.fill();
       };
 
-      // Draw line — straight segments, no smoothing
+      // Draw line — every point is a key/labeled point
       const drawLine = (
         data: DataPoint[],
         color: string,
         colorRGB: string,
         lineWidth: number,
-        labelAbove: boolean,
-        keyIndices: number[]
+        labelAbove: boolean
       ) => {
         const totalPoints = data.length;
         const pointsToShow = Math.ceil(t * totalPoints);
@@ -221,81 +174,70 @@ export default function PerformanceChart({ animate = false, className }: Perform
         }
         ctx.stroke();
 
-        // Dots on key points + labels
+        // Dots + labels on every point
         for (let i = 0; i < pointsToShow; i++) {
           const [x, y] = mapPoint(data[i], w, h);
-          const isKey = keyIndices.includes(i);
 
-          // Small dot on every point
           ctx.fillStyle = color;
           ctx.beginPath();
-          ctx.arc(x, y, isKey ? 3.5 : 2, 0, Math.PI * 2);
+          ctx.arc(x, y, 3.5, 0, Math.PI * 2);
           ctx.fill();
 
-          if (isKey) {
-            // White ring
-            ctx.strokeStyle = "white";
-            ctx.lineWidth = 1.5;
-            ctx.beginPath();
-            ctx.arc(x, y, 3.5, 0, Math.PI * 2);
-            ctx.stroke();
+          // White ring
+          ctx.strokeStyle = "white";
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.arc(x, y, 3.5, 0, Math.PI * 2);
+          ctx.stroke();
 
-            // Label
-            const label = formatDollar(data[i].value);
-            const above = labelAbove ? (i % 2 === 0) : (i % 2 !== 0);
-            const labelY = above ? y - 15 : y + 19;
+          // Label
+          const label = formatDollar(data[i].value);
+          const above = labelAbove ? (i % 2 === 0) : (i % 2 !== 0);
+          const labelY = above ? y - 15 : y + 19;
 
-            const pointProgress = i / totalPoints;
-            const labelAlpha = Math.max(0, Math.min(1, (t - pointProgress) * totalPoints * 0.4));
-            ctx.globalAlpha = labelAlpha;
+          const pointProgress = i / totalPoints;
+          const labelAlpha = Math.max(0, Math.min(1, (t - pointProgress) * totalPoints * 0.4));
+          ctx.globalAlpha = labelAlpha;
 
-            ctx.font = "bold 8px 'Geist Mono', monospace";
-            const textWidth = ctx.measureText(label).width;
-            const pillW = textWidth + 8;
-            const pillH = 14;
-            const pillX = x - pillW / 2;
-            const pillY = labelY - pillH / 2;
+          ctx.font = "bold 8px 'Geist Mono', monospace";
+          const textWidth = ctx.measureText(label).width;
+          const pillW = textWidth + 8;
+          const pillH = 14;
+          const pillX = x - pillW / 2;
+          const pillY = labelY - pillH / 2;
 
-            // Pill bg
-            ctx.fillStyle = "rgba(255,255,255,0.93)";
-            ctx.beginPath();
-            ctx.roundRect(pillX, pillY, pillW, pillH, 3);
-            ctx.fill();
+          ctx.fillStyle = "rgba(255,255,255,0.93)";
+          ctx.beginPath();
+          ctx.roundRect(pillX, pillY, pillW, pillH, 3);
+          ctx.fill();
 
-            ctx.strokeStyle = "rgba(0,0,0,0.08)";
-            ctx.lineWidth = 0.5;
-            ctx.beginPath();
-            ctx.roundRect(pillX, pillY, pillW, pillH, 3);
-            ctx.stroke();
+          ctx.strokeStyle = "rgba(0,0,0,0.08)";
+          ctx.lineWidth = 0.5;
+          ctx.beginPath();
+          ctx.roundRect(pillX, pillY, pillW, pillH, 3);
+          ctx.stroke();
 
-            // Connector
-            ctx.strokeStyle = "rgba(0,0,0,0.15)";
-            ctx.lineWidth = 0.5;
-            ctx.beginPath();
-            if (above) {
-              ctx.moveTo(x, y - 5);
-              ctx.lineTo(x, pillY + pillH);
-            } else {
-              ctx.moveTo(x, y + 5);
-              ctx.lineTo(x, pillY);
-            }
-            ctx.stroke();
-
-            // Text
-            ctx.fillStyle = color;
-            ctx.textAlign = "center";
-            ctx.fillText(label, x, labelY + 3);
-            ctx.globalAlpha = 1;
+          ctx.strokeStyle = "rgba(0,0,0,0.15)";
+          ctx.lineWidth = 0.5;
+          ctx.beginPath();
+          if (above) {
+            ctx.moveTo(x, y - 5);
+            ctx.lineTo(x, pillY + pillH);
+          } else {
+            ctx.moveTo(x, y + 5);
+            ctx.lineTo(x, pillY);
           }
+          ctx.stroke();
+
+          ctx.fillStyle = color;
+          ctx.textAlign = "center";
+          ctx.fillText(label, x, labelY + 3);
+          ctx.globalAlpha = 1;
         }
       };
 
-      const sp500Keys = getKeyIndices(SP500_DATA);
-      const indexedKeys = getKeyIndices(INDEXED_DATA);
-
-      // Draw S&P first (below), then Indexed (above)
-      drawLine(SP500_DATA, RED, "232,112,112", 2.5, false, sp500Keys);
-      drawLine(INDEXED_DATA, GREEN, "26,77,62", 3, true, indexedKeys);
+      drawLine(SP500_DATA, RED, "232,112,112", 2.5, false);
+      drawLine(INDEXED_DATA, GREEN, "26,77,62", 3, true);
 
       // End glow on indexed
       if (t > 0.9) {
