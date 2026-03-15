@@ -1,40 +1,26 @@
 
 
-## Plan: Add Registration Time (10:30 AM) to Landing Page and Emails
+# Slide 04 — Fix Reveal Sequencing and Restore Image
 
-### 1. Landing Page Changes (`src/pages/TrainingEvent.tsx`)
+## Problem
+1. All 3 mission blocks appear to load together instead of one-by-one via user clicks
+2. The advisor image on the right side is not showing — its reveal index (5) exceeds the slide's `totalReveals` (4)
 
-**A. Add registration time to the event details pills (line 284)**
-Change "11:00 AM - 4:00 PM" to include registration:
-```
-Registration: 10:30 AM
-Event: 11:00 AM – 4:00 PM
-```
+## Changes
 
-**B. Add registration time to the confirmation card (line 161)**
-Update the time display from `11:00 AM – 4:00 PM PT` to `Registration 10:30 AM | Event 11:00 AM – 4:00 PM PT`
+### 1. Update `totalReveals` in PresentationViewer.tsx
+Change slide 4 config from `{ totalReveals: 4 }` to `{ totalReveals: 5 }` so the image at index 5 gets revealed.
 
-**C. Update session highlights (line 11)**
-Add a "10:30 AM" registration/check-in entry as the first item in `sessionHighlights`.
+### 2. Verify Slide04_OurMission.tsx reveal indices
+The current indices are already correct for sequential reveal:
+- Index 1: Title ("Our Mission")
+- Index 2: First mission block
+- Index 3: Second mission block  
+- Index 4: Third mission block
+- Index 5: Advisor image (right side)
 
-### 2. Email Changes
+Each `advance()` call increments `revealIndex` by 1, so blocks reveal one at a time. The only fix needed is the totalReveals config.
 
-**A. Registration confirmation email (`supabase/functions/register-training-event/index.ts`)**
-Add registration and event times to the event details block (currently only shows date and location):
-```
-🕐 Registration: 10:30 AM PST
-🕐 Event: 11:00 AM – 4:00 PM PST
-```
-
-**B. Reminder emails (`supabase/functions/process-training-reminders/index.ts`, line 92)**
-Update the time line from `11:00 AM to 4:00 PM PST` to include registration:
-```
-🕐 Registration: 10:30 AM PST
-🕐 Event: 11:00 AM – 4:00 PM PST
-```
-
-### Files Modified
-- `src/pages/TrainingEvent.tsx` — 3 spots (session highlights array, event pills, confirmation card)
-- `supabase/functions/register-training-event/index.ts` — add times to email
-- `supabase/functions/process-training-reminders/index.ts` — update time line
+## Files to Edit
+1. `src/components/presentation/PresentationViewer.tsx` — line 72: change totalReveals from 4 to 5
 
