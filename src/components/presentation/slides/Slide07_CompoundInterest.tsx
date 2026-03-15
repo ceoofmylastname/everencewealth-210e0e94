@@ -177,7 +177,7 @@ function CompoundCard({
 
         {/* Doubling label */}
         <div
-          className="relative text-center mb-6"
+          className="relative text-center mb-3"
           style={{ zIndex: 2 }}
         >
           <span
