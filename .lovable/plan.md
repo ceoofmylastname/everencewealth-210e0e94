@@ -1,30 +1,40 @@
 
 
-## Fix: Tax Categories Buckets Appearing All At Once
+## Plan: Add Registration Time (10:30 AM) to Landing Page and Emails
 
-### Root Cause
+### 1. Landing Page Changes (`src/pages/TrainingEvent.tsx`)
 
-There's a race condition in `RevealContext.tsx`. When advancing from the previous slide (Tax Buckets Intro, totalReveals: 4) to Slide 18, the `advance` function calls `setRevealIndex(0)` **inside** an already-running `setRevealIndex` updater. The outer updater returns the old value (`prev = 4`), which overwrites the inner `setRevealIndex(0)`. Result: Slide 18 loads with `revealIndex = 4`, so all cards (at indices 2, 3, 4) appear simultaneously.
+**A. Add registration time to the event details pills (line 284)**
+Change "11:00 AM - 4:00 PM" to include registration:
+```
+Registration: 10:30 AM
+Event: 11:00 AM – 4:00 PM
+```
 
-### Fix
+**B. Add registration time to the confirmation card (line 161)**
+Update the time display from `11:00 AM – 4:00 PM PT` to `Registration 10:30 AM | Event 11:00 AM – 4:00 PM PT`
 
-**`src/components/presentation/RevealContext.tsx`** — Restructure `advance` and `back` to avoid nested state setter conflicts:
+**C. Update session highlights (line 11)**
+Add a "10:30 AM" registration/check-in entry as the first item in `sessionHighlights`.
 
-- Instead of nesting `setCurrentSlide` inside `setRevealIndex`, read current state and decide the action, then call the appropriate setters sequentially
-- Use a ref to track `revealIndex` and `currentSlide` to avoid stale closures
-- When advancing to the next slide, set `revealIndex` to 0 **outside** the revealIndex updater
+### 2. Email Changes
 
-### Expected Result
+**A. Registration confirmation email (`supabase/functions/register-training-event/index.ts`)**
+Add registration and event times to the event details block (currently only shows date and location):
+```
+🕐 Registration: 10:30 AM PST
+🕐 Event: 11:00 AM – 4:00 PM PST
+```
 
-On Slide 18 (Tax Categories):
-- **Click 1**: Title + withdrawal scenario pill appear
-- **Click 2**: Ordinary Income card rises in
-- **Click 3**: Capital Gains card rises in  
-- **Click 4**: Tax Free card rises in
-- **Click 5**: Bottom CTA pill appears
-
-No changes needed to `Slide18_TaxCategoriesTransition.tsx` — the reveal indices (2, 3, 4) are already correct.
+**B. Reminder emails (`supabase/functions/process-training-reminders/index.ts`, line 92)**
+Update the time line from `11:00 AM to 4:00 PM PST` to include registration:
+```
+🕐 Registration: 10:30 AM PST
+🕐 Event: 11:00 AM – 4:00 PM PST
+```
 
 ### Files Modified
-- `src/components/presentation/RevealContext.tsx` — fix advance/back to prevent nested state setter race condition
+- `src/pages/TrainingEvent.tsx` — 3 spots (session highlights array, event pills, confirmation card)
+- `supabase/functions/register-training-event/index.ts` — add times to email
+- `supabase/functions/process-training-reminders/index.ts` — update time line
 

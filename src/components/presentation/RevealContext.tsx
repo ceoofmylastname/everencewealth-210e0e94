@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback, type ReactNode } from "react";
+import { createContext, useContext, useState, useCallback, useRef, useEffect, type ReactNode } from "react";
 
 interface SlideConfig {
   totalReveals: number;
@@ -10,15 +10,10 @@ interface RevealState {
   totalReveals: number;
   totalSlides: number;
   soundEnabled: boolean;
-  /** Advance one reveal; if all revealed, go to next slide */
   advance: () => void;
-  /** Go back one reveal; if at 0, go to previous slide's last reveal */
   back: () => void;
-  /** Jump to a specific slide (resets reveal to 0) */
   goToSlide: (index: number) => void;
-  /** Toggle sound */
   toggleSound: () => void;
-  /** Whether a given reveal index has been reached */
   isRevealed: (index: number) => boolean;
 }
 
@@ -41,45 +36,41 @@ export function RevealProvider({ children, slideConfigs, onExit }: RevealProvide
   const [revealIndex, setRevealIndex] = useState(0);
   const [soundEnabled, setSoundEnabled] = useState(false);
 
+  const currentSlideRef = useRef(currentSlide);
+  const revealIndexRef = useRef(revealIndex);
+
+  useEffect(() => { currentSlideRef.current = currentSlide; }, [currentSlide]);
+  useEffect(() => { revealIndexRef.current = revealIndex; }, [revealIndex]);
+
   const totalSlides = slideConfigs.length;
   const totalReveals = slideConfigs[currentSlide]?.totalReveals ?? 0;
 
   const advance = useCallback(() => {
-    setRevealIndex((prev) => {
-      const max = slideConfigs[currentSlide]?.totalReveals ?? 0;
-      if (prev < max) {
-        return prev + 1;
-      }
-      // All revealed — advance slide
-      setCurrentSlide((s) => {
-        if (s < slideConfigs.length - 1) {
-          setRevealIndex(0);
-          return s + 1;
-        }
-        return s;
-      });
-      return prev;
-    });
-  }, [currentSlide, slideConfigs]);
+    const s = currentSlideRef.current;
+    const r = revealIndexRef.current;
+    const max = slideConfigs[s]?.totalReveals ?? 0;
+
+    if (r < max) {
+      setRevealIndex(r + 1);
+    } else if (s < slideConfigs.length - 1) {
+      setCurrentSlide(s + 1);
+      setRevealIndex(0);
+    }
+  }, [slideConfigs]);
 
   const back = useCallback(() => {
-    setRevealIndex((prev) => {
-      if (prev > 0) {
-        return prev - 1;
-      }
-      // At first reveal — go to previous slide's last reveal
-      setCurrentSlide((s) => {
-        if (s > 0) {
-          const prevSlideReveals = slideConfigs[s - 1]?.totalReveals ?? 0;
-          setRevealIndex(prevSlideReveals);
-          return s - 1;
-        } else if (onExit) {
-          onExit();
-        }
-        return s;
-      });
-      return prev;
-    });
+    const s = currentSlideRef.current;
+    const r = revealIndexRef.current;
+
+    if (r > 0) {
+      setRevealIndex(r - 1);
+    } else if (s > 0) {
+      const prevReveals = slideConfigs[s - 1]?.totalReveals ?? 0;
+      setCurrentSlide(s - 1);
+      setRevealIndex(prevReveals);
+    } else if (onExit) {
+      onExit();
+    }
   }, [slideConfigs, onExit]);
 
   const goToSlide = useCallback(
