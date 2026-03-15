@@ -37,7 +37,7 @@ export default function RetirementCalculator() {
             Fee Calculator
           </span>
           <ShimmerHeadline as="h2" variant="light" className="mt-3 mb-3 text-[clamp(28px,4vw,42px)]">
-            See What Hidden Fees Could Cost You
+            Remember This Number?
           </ShimmerHeadline>
           <p
             className="mb-10"
@@ -47,7 +47,7 @@ export default function RetirementCalculator() {
               color: "rgba(240,242,241,0.6)",
             }}
           >
-            Enter your current 401(k) balance and see the impact over time.
+            You saw it at the workshop. Now plug in your own numbers.
           </p>
         </ScrollReveal>
 
