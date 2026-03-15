@@ -48,7 +48,7 @@ const SLIDE_TITLES = [
   "60 Minutes",
   "Hidden Fees",
   "Loss Impact",
-  "Negative Credit",
+  
   "Indexing Solution",
   "Side by Side",
   "Performance Chart",
