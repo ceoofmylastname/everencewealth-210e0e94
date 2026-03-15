@@ -1,37 +1,40 @@
 
 
-## Redesign Slide 01 Hero — Premium Cinematic Opening
+## Plan: Add Registration Time (10:30 AM) to Landing Page and Emails
 
-The current hero slide is just a full-bleed beach photo with centered text. For a presentation opener, it needs to feel cinematic, editorial, and set the tone. Here's the redesign:
+### 1. Landing Page Changes (`src/pages/TrainingEvent.tsx`)
 
-### Design Concept
+**A. Add registration time to the event details pills (line 284)**
+Change "11:00 AM - 4:00 PM" to include registration:
+```
+Registration: 10:30 AM
+Event: 11:00 AM – 4:00 PM
+```
 
-A **split-composition** hero with the beach image on the right half (masked with a rounded clip), and the left side featuring a dark editorial layout with layered typographic reveals, floating gold particles, and a subtle animated border accent.
+**B. Add registration time to the confirmation card (line 161)**
+Update the time display from `11:00 AM – 4:00 PM PT` to `Registration 10:30 AM | Event 11:00 AM – 4:00 PM PT`
 
-### Changes
+**C. Update session highlights (line 11)**
+Add a "10:30 AM" registration/check-in entry as the first item in `sessionHighlights`.
 
-**`src/components/presentation/slides/Slide01_Hero.tsx`** — Full rewrite:
+### 2. Email Changes
 
-- **Background**: Deep evergreen (`#0D1F1A`) base with a subtle radial gradient glow in gold
-- **Left side** (60%): Stacked reveal content:
-  - Reveal 1: Animated gold horizontal line + "EVERENCE WEALTH" eyebrow in Space Grotesk, letter-spaced
-  - Reveal 2: "BRIDGING THE" in white, clean weight 300
-  - Reveal 3: "RETIREMENT GAP" — "RETIREMENT" in bold white, "GAP" in animated gold gradient (GradientText), with a gold underline that wipes in
-  - Reveal 4: Glassmorphic pill badge with "Retirement Planning Workshop" + a subtle floating particle field behind
-- **Right side** (40%): The beach image in a tall rounded rectangle (`border-radius: 32px 80px 32px 80px` — organic asymmetric shape) with:
-  - A 2px gold border accent at 20% opacity
-  - A soft gold glow shadow behind the image
-  - Subtle slow `scale(1.02)` breathing animation
-- **Decorative elements**:
-  - Two or three small floating gold dots/orbs that drift slowly (CSS animation)
-  - A thin vertical gold line on the far left that draws downward on reveal 1
+**A. Registration confirmation email (`supabase/functions/register-training-event/index.ts`)**
+Add registration and event times to the event details block (currently only shows date and location):
+```
+🕐 Registration: 10:30 AM PST
+🕐 Event: 11:00 AM – 4:00 PM PST
+```
 
-### Reveal Sequence (4 reveals, unchanged count)
-1. Gold line + eyebrow text + image fades in
-2. "BRIDGING THE" slams in
-3. "RETIREMENT GAP" with gold gradient + underline
-4. Badge pill drifts in + particles appear
+**B. Reminder emails (`supabase/functions/process-training-reminders/index.ts`, line 92)**
+Update the time line from `11:00 AM to 4:00 PM PST` to include registration:
+```
+🕐 Registration: 10:30 AM PST
+🕐 Event: 11:00 AM – 4:00 PM PST
+```
 
 ### Files Modified
-- `src/components/presentation/slides/Slide01_Hero.tsx` — full redesign with split layout, floating orbs, organic image mask
+- `src/pages/TrainingEvent.tsx` — 3 spots (session highlights array, event pills, confirmation card)
+- `supabase/functions/register-training-event/index.ts` — add times to email
+- `supabase/functions/process-training-reminders/index.ts` — update time line
 
