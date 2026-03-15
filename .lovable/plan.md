@@ -1,40 +1,19 @@
 
 
-## Plan: Add Registration Time (10:30 AM) to Landing Page and Emails
+## Fix Data Points in PerformanceChart.tsx
 
-### 1. Landing Page Changes (`src/pages/TrainingEvent.tsx`)
+### 1. Red line (SP500_DATA) — Fix 2015 value
+Line 20: Change `{ year: 2015, value: 170594.45 }` to `{ year: 2015, value: 263961.83 }`. All other red line points (lines 8–27) stay exactly as they are.
 
-**A. Add registration time to the event details pills (line 284)**
-Change "11:00 AM - 4:00 PM" to include registration:
+### 2. Green line (INDEXED_DATA) — Add intermediate points 2016–2020
+Between line 40 (`2015: 483385.28`) and line 41 (`2021: 541391.51`), insert 5 new points:
 ```
-Registration: 10:30 AM
-Event: 11:00 AM – 4:00 PM
-```
-
-**B. Add registration time to the confirmation card (line 161)**
-Update the time display from `11:00 AM – 4:00 PM PT` to `Registration 10:30 AM | Event 11:00 AM – 4:00 PM PT`
-
-**C. Update session highlights (line 11)**
-Add a "10:30 AM" registration/check-in entry as the first item in `sessionHighlights`.
-
-### 2. Email Changes
-
-**A. Registration confirmation email (`supabase/functions/register-training-event/index.ts`)**
-Add registration and event times to the event details block (currently only shows date and location):
-```
-🕐 Registration: 10:30 AM PST
-🕐 Event: 11:00 AM – 4:00 PM PST
+{ year: 2016, value: 497000 },
+{ year: 2017, value: 505000 },
+{ year: 2018, value: 510000 },
+{ year: 2019, value: 518000 },
+{ year: 2020, value: 525000 },
 ```
 
-**B. Reminder emails (`supabase/functions/process-training-reminders/index.ts`, line 92)**
-Update the time line from `11:00 AM to 4:00 PM PST` to include registration:
-```
-🕐 Registration: 10:30 AM PST
-🕐 Event: 11:00 AM – 4:00 PM PST
-```
-
-### Files Modified
-- `src/pages/TrainingEvent.tsx` — 3 spots (session highlights array, event pills, confirmation card)
-- `supabase/functions/register-training-event/index.ts` — add times to email
-- `supabase/functions/process-training-reminders/index.ts` — update time line
+No other changes to styling, rendering, or layout.
 
