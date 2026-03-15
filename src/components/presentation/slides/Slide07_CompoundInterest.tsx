@@ -136,13 +136,13 @@ function CompoundCard({
 
         {/* Rate circle with frosted ring */}
         <div
-          className="relative flex justify-center mb-6"
+          className="relative flex justify-center mb-4"
           style={{ zIndex: 2 }}
         >
           <div
             style={{
-              width: 110,
-              height: 110,
+              width: 80,
+              height: 80,
               borderRadius: "50%",
               display: "flex",
               alignItems: "center",
@@ -163,7 +163,7 @@ function CompoundCard({
             <span
               style={{
                 fontFamily: "var(--font-display)",
-                fontSize: 40,
+                fontSize: 30,
                 fontWeight: 800,
                 fontStyle: "italic",
                 color: col.color,
