@@ -1,5 +1,6 @@
 import RevealElement from "../RevealElement";
 import GradientText from "../animations/GradientText";
+import flagImg from "@/assets/american-flag-building.jpg";
 
 const questions = [
   {
