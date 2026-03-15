@@ -173,8 +173,8 @@ export default function Slide17_TaxBucketsIntro() {
         }
         .slide17-card-inner {
           position: relative;
-          border-radius: 22px;
-          backdrop-filter: blur(16px);
+          border-radius: 24px;
+          border: 1px solid rgba(0,0,0,0.06);
           -webkit-backdrop-filter: blur(16px);
           padding: 32px 24px;
           display: flex;
