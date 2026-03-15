@@ -1,35 +1,36 @@
+import { Lock, DollarSign, BarChart3 } from "lucide-react";
 import ScrollReveal from "./primitives/ScrollReveal";
 import GlassCard from "./primitives/GlassCard";
 import ShimmerHeadline from "./primitives/ShimmerHeadline";
 
 const cards = [
   {
-    icon: "🔒",
-    question:
-      "Your 401(k) isn't as safe as you thought — and now you know why.",
+    icon: Lock,
+    num: "01",
+    question: "Your 401(k) isn't as safe as you thought — and now you know why.",
   },
   {
-    icon: "💰",
-    question:
-      "The fees you're paying could cost you six figures by retirement.",
+    icon: DollarSign,
+    num: "02",
+    question: "The fees you're paying could cost you six figures by retirement.",
   },
   {
-    icon: "📊",
-    question:
-      "There are tax strategies your HR department was never required to share.",
+    icon: BarChart3,
+    num: "03",
+    question: "There are tax strategies your HR department was never required to share.",
   },
 ];
 
 export default function CuriosityCards() {
   return (
-    <section className="py-20 sm:py-28 px-6" style={{ background: "#F7F9F8" }}>
+    <section className="py-20 sm:py-28 px-6 socorro-dot-grid" style={{ background: "#F7F9F8" }}>
       <div className="max-w-[1200px] mx-auto">
         <ScrollReveal>
           <span
             style={{
-              fontFamily: "'DM Sans', system-ui, sans-serif",
+              fontFamily: "'Space Grotesk', system-ui, sans-serif",
               fontSize: "12px",
-              fontWeight: 700,
+              fontWeight: 600,
               color: "#C8A96E",
               textTransform: "uppercase",
               letterSpacing: "0.2em",
@@ -45,25 +46,49 @@ export default function CuriosityCards() {
         <div className="grid md:grid-cols-3 gap-6">
           {cards.map((card, i) => (
             <ScrollReveal key={i} delay={i * 0.12}>
-              <GlassCard variant="light" hover3d className="p-8 h-full">
-                {/* Gold top border glow */}
+              <GlassCard variant="light" hover3d className="p-8 h-full socorro-hover-glow relative overflow-hidden">
+                {/* Gold left border accent */}
                 <div
-                  className="absolute top-0 left-4 right-4 h-[3px] rounded-full"
+                  className="absolute top-4 bottom-4 left-0 w-[3px] rounded-full"
                   style={{
-                    background:
-                      "linear-gradient(90deg, transparent, #C8A96E, transparent)",
+                    background: "linear-gradient(180deg, #C8A96E, #E2C896, #C8A96E)",
                   }}
                 />
 
-                <span className="text-2xl block mb-5">{card.icon}</span>
+                {/* Number label */}
+                <span
+                  style={{
+                    fontFamily: "'Clash Display', system-ui, sans-serif",
+                    fontSize: "11px",
+                    fontWeight: 600,
+                    color: "rgba(200, 169, 110, 0.4)",
+                    letterSpacing: "0.1em",
+                  }}
+                >
+                  {card.num}
+                </span>
+
+                {/* Icon in gold circle */}
+                <div
+                  className="mt-4 mb-5 flex items-center justify-center"
+                  style={{
+                    width: 48,
+                    height: 48,
+                    borderRadius: "50%",
+                    background: "rgba(200, 169, 110, 0.1)",
+                    border: "1px solid rgba(200, 169, 110, 0.2)",
+                  }}
+                >
+                  <card.icon size={22} strokeWidth={1.5} color="#C8A96E" />
+                </div>
+
                 <p
                   style={{
-                    fontFamily:
-                      "'Cormorant Garamond', Georgia, serif",
-                    fontSize: "20px",
-                    fontWeight: 600,
+                    fontFamily: "'Space Grotesk', system-ui, sans-serif",
+                    fontSize: "17px",
+                    fontWeight: 500,
                     color: "#1A4D3E",
-                    lineHeight: 1.4,
+                    lineHeight: 1.5,
                   }}
                 >
                   {card.question}
@@ -75,14 +100,14 @@ export default function CuriosityCards() {
 
         <ScrollReveal delay={0.4}>
           <p
-            className="mt-10 text-sm italic"
+            className="mt-10 text-sm"
             style={{
               color: "#4A5565",
               fontFamily: "'DM Sans', system-ui, sans-serif",
+              fontStyle: "italic",
             }}
           >
-            The question isn't whether these apply to you. It's what you're
-            going to do about it.
+            The question isn't whether these apply to you. It's what you're going to do about it.
           </p>
         </ScrollReveal>
       </div>

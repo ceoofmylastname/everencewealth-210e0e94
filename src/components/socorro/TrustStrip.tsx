@@ -15,26 +15,29 @@ export default function TrustStrip() {
   const doubled = [...logos, ...logos];
 
   return (
-    <section className="py-14 overflow-hidden" style={{ background: "#F7F9F8" }}>
+    <section className="py-16 overflow-hidden" style={{ background: "#F7F9F8" }}>
       <div className="max-w-[900px] mx-auto px-6">
         <ScrollReveal>
-          <p
-            className="text-center mb-10"
-            style={{
-              fontFamily: "'DM Sans', system-ui, sans-serif",
-              fontSize: "12px",
-              fontWeight: 600,
-              letterSpacing: "0.15em",
-              textTransform: "uppercase",
-              color: "rgba(26,77,62,0.4)",
-            }}
-          >
-            Trusted Carrier Partners
-          </p>
+          {/* Title with gold lines on each side */}
+          <div className="flex items-center gap-4 justify-center mb-12">
+            <div className="flex-1 h-px" style={{ background: "linear-gradient(90deg, transparent, rgba(200,169,110,0.25))" }} />
+            <p
+              style={{
+                fontFamily: "'Space Grotesk', system-ui, sans-serif",
+                fontSize: "11px",
+                fontWeight: 600,
+                letterSpacing: "0.18em",
+                textTransform: "uppercase",
+                color: "rgba(26,77,62,0.4)",
+              }}
+            >
+              Trusted Carrier Partners
+            </p>
+            <div className="flex-1 h-px" style={{ background: "linear-gradient(90deg, rgba(200,169,110,0.25), transparent)" }} />
+          </div>
         </ScrollReveal>
       </div>
 
-      {/* Carousel with edge fade */}
       <div
         className="relative"
         style={{
@@ -46,28 +49,28 @@ export default function TrustStrip() {
           {doubled.map((logo, i) => (
             <div
               key={i}
-              className="flex-shrink-0 flex items-center justify-center px-8 sm:px-10"
-              style={{ height: 60 }}
+              className="flex-shrink-0 flex items-center justify-center px-8 sm:px-12"
+              style={{ height: 65 }}
             >
               <img
                 src={logo.src}
                 alt={logo.alt}
                 loading="lazy"
+                className="transition-all duration-300 hover:scale-110"
                 style={{
-                  height: 40,
+                  height: 44,
                   width: "auto",
                   objectFit: "contain",
-                  opacity: 0.7,
-                  filter: "grayscale(30%)",
-                  transition: "opacity 0.3s, filter 0.3s",
+                  opacity: 0.6,
+                  filter: "grayscale(40%)",
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.opacity = "1";
                   e.currentTarget.style.filter = "grayscale(0%)";
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.opacity = "0.7";
-                  e.currentTarget.style.filter = "grayscale(30%)";
+                  e.currentTarget.style.opacity = "0.6";
+                  e.currentTarget.style.filter = "grayscale(40%)";
                 }}
               />
             </div>
