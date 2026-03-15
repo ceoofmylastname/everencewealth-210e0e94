@@ -4,18 +4,17 @@ interface Bucket {
   label: string;
   rate: string;
   color: string;
-  bgColor: string;
+  glassBg: string;
   trend: "up" | "down";
 }
 
 const BUCKETS: Bucket[] = [
-  { label: "ORDINARY INCOME", rate: "40%+", color: "#D64545", bgColor: "#FFF1F1", trend: "up" },
-  { label: "CAPITAL GAINS", rate: "40.3%", color: "#E8870A", bgColor: "#FFF8EB", trend: "up" },
-  { label: "TAX FREE", rate: "0%", color: "#1A4D3E", bgColor: "#1A4D3E", trend: "down" },
+  { label: "ORDINARY INCOME", rate: "40%+", color: "#D64545", glassBg: "rgba(255, 241, 241, 0.5)", trend: "up" },
+  { label: "CAPITAL GAINS", rate: "40.3%", color: "#E8870A", glassBg: "rgba(255, 248, 235, 0.5)", trend: "up" },
+  { label: "TAX FREE", rate: "0%", color: "#1A4D3E", glassBg: "rgba(26, 77, 62, 0.75)", trend: "down" },
 ];
 
 interface TaxBucketsProps {
-  /** Animate entry */
   animate?: boolean;
 }
 
@@ -27,9 +26,14 @@ export default function TaxBuckets({ animate = false }: TaxBucketsProps) {
           key={b.label}
           className="rounded-2xl p-6 flex flex-col items-center text-center"
           style={{
-            background: b.bgColor,
-            color: b.bgColor === "#1A4D3E" ? "white" : "#1A4D3E",
-            boxShadow: "0 8px 32px rgba(26,77,62,0.12)",
+            background: b.glassBg,
+            backdropFilter: "blur(12px)",
+            WebkitBackdropFilter: "blur(12px)",
+            border: b.glassBg.includes("26, 77, 62")
+              ? "1px solid rgba(255, 255, 255, 0.1)"
+              : "1px solid rgba(255, 255, 255, 0.5)",
+            color: b.glassBg.includes("26, 77, 62") ? "white" : "#1A4D3E",
+            boxShadow: "0 8px 32px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.4)",
           }}
           initial={{ opacity: 0, y: 30 }}
           animate={animate ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}

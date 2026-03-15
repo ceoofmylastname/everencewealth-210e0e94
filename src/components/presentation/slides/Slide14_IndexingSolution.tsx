@@ -6,11 +6,11 @@ import ConfettiTrigger from "../animations/ConfettiTrigger";
 import { useRevealQueue } from "../RevealContext";
 
 const steps = [
-  { label: "Start:", value: "$100,000", color: "#E8F0EC", textColor: "#1A4D3E" },
-  { label: "Market Loss:", value: "-0%", color: "#FFFFFF", textColor: "#1A4D3E", badge: true },
-  { label: "Protected:", value: "$100,000", color: "#E8F0EC", textColor: "#1A4D3E" },
-  { label: "Cap:", value: "+25%", color: "#F5E6C8", textColor: "#C8A96E" },
-  { label: "Result:", value: "$125,000", color: "#F5E6C8", textColor: "#1A4D3E" },
+  { label: "Start:", value: "$100,000", glassBg: "rgba(232, 240, 236, 0.45)", textColor: "#1A4D3E" },
+  { label: "Market Loss:", value: "-0%", glassBg: "rgba(255, 255, 255, 0.5)", textColor: "#1A4D3E", badge: true },
+  { label: "Protected:", value: "$100,000", glassBg: "rgba(232, 240, 236, 0.45)", textColor: "#1A4D3E" },
+  { label: "Cap:", value: "+25%", glassBg: "rgba(245, 230, 200, 0.45)", textColor: "#C8A96E" },
+  { label: "Result:", value: "$125,000", glassBg: "rgba(245, 230, 200, 0.45)", textColor: "#1A4D3E" },
 ];
 
 export default function Slide14_IndexingSolution() {
@@ -38,8 +38,11 @@ export default function Slide14_IndexingSolution() {
                   key={i}
                   className="flex items-center justify-between px-5 py-3 rounded-xl relative"
                   style={{
-                    background: step.color,
-                    border: step.badge ? "2px solid #1A4D3E" : "none",
+                    background: step.glassBg,
+                    backdropFilter: "blur(12px)",
+                    WebkitBackdropFilter: "blur(12px)",
+                    border: step.badge ? "2px solid #1A4D3E" : "1px solid rgba(255, 255, 255, 0.5)",
+                    boxShadow: "0 4px 16px rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.6)",
                   }}
                 >
                   <span className="text-base font-medium" style={{ color: "#4A5565" }}>{step.label}</span>
