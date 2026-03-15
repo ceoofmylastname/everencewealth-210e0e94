@@ -36,13 +36,13 @@ export default function SocorroHero() {
         }}
       />
 
-      <div className="relative z-10 max-w-[1280px] mx-auto px-6 py-20 w-full pt-32">
+      <div className="relative z-10 max-w-[1280px] mx-auto px-6 py-20 w-full pt-24">
         {/* Badge */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-          className="mb-10"
+          className="mb-6"
         >
           <span
             className="inline-block socorro-glass px-4 py-2"
