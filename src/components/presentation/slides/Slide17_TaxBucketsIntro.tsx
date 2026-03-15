@@ -169,28 +169,12 @@ export default function Slide17_TaxBucketsIntro() {
           position: relative;
           border-radius: 24px;
           overflow: hidden;
-          padding: 2px;
-        }
-        .slide17-border-wrap::before {
-          content: '';
-          position: absolute;
-          inset: -50%;
-          background: conic-gradient(
-            from 0deg,
-            var(--bucket-accent, rgba(200,169,110,0.4)) 0%,
-            transparent 14%,
-            transparent 50%,
-            var(--bucket-accent, rgba(200,169,110,0.3)) 64%,
-            transparent 100%
-          );
-          animation: slide17BorderRotate 7s linear infinite;
-          z-index: 0;
+          padding: 0;
         }
         .slide17-card-inner {
           position: relative;
-          z-index: 1;
-          border-radius: 22px;
-          backdrop-filter: blur(16px);
+          border-radius: 24px;
+          border: 1px solid rgba(0,0,0,0.06);
           -webkit-backdrop-filter: blur(16px);
           padding: 32px 24px;
           display: flex;
