@@ -20,9 +20,9 @@ export default function SocorroFinalCTA() {
               variant="light"
               className="text-[clamp(28px,4vw,44px)] leading-[1.2] mb-5"
             >
-              You Already Know What's at Stake.
+              You Now Know What the Gap Looks Like.
               <br />
-              Are You Going to Act?
+              Are You Going to Close It — or Hope It Closes Itself?
             </ShimmerHeadline>
 
             <p
