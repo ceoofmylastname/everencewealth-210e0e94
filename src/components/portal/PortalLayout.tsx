@@ -161,6 +161,23 @@ export function PortalLayout() {
 
   const isAdvisor = portalUser?.role === "advisor" || portalUser?.role === "admin";
   const isAdmin = portalUser?.role === "admin";
+  const hasPresentationAccess = !!(portalUser as any)?.presentation_access || isAdmin;
+
+  // Build nav groups with conditional presentation link
+  const navGroups = useMemo(() => {
+    return advisorNavGroups.map(group => {
+      if (group.label === "Resources" && hasPresentationAccess) {
+        return {
+          ...group,
+          items: [
+            ...group.items,
+            { label: "Workshop Presentation", icon: Presentation, href: "/portal/advisor/presentation" },
+          ],
+        };
+      }
+      return group;
+    });
+  }, [hasPresentationAccess]);
 
   // Route-level guard: redirect gated users away from non-contracting routes
   useEffect(() => {
