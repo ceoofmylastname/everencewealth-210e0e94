@@ -96,20 +96,10 @@ function CompoundCard({
           position: "relative",
           overflow: "hidden",
           background: "#FFFFFF",
+          border: "1px solid rgba(0,0,0,0.08)",
           boxShadow: "0 4px 24px -4px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.03)",
         }}
       >
-        {/* Animated border overlay */}
-        <div
-          className="slide07-border-ring"
-          style={{
-            position: "absolute",
-            inset: 0,
-            borderRadius: 24,
-            pointerEvents: "none",
-            zIndex: 10,
-          }}
-        />
 
         {/* Rate circle */}
         <div className="relative flex justify-center mb-5" style={{ zIndex: 7 }}>
@@ -236,41 +226,9 @@ export default function Slide07_CompoundInterest() {
   return (
     <div className="antigravity-slide" style={{ background: "#FAFAF8" }}>
       <style>{`
-        @keyframes slide07Border {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
-        }
         .slide07-card-outer {
           position: relative;
           border-radius: 26px;
-          padding: 2px;
-        }
-        .slide07-border-ring {
-          overflow: hidden;
-        }
-        .slide07-border-ring::before {
-          content: '';
-          position: absolute;
-          inset: -50%;
-          background: conic-gradient(
-            from 0deg,
-            var(--card-accent) 0%,
-            transparent 12%,
-            transparent 50%,
-            var(--card-accent) 62%,
-            transparent 75%,
-            transparent 100%
-          );
-          animation: slide07Border 5s linear infinite;
-          z-index: 0;
-        }
-        .slide07-border-ring::after {
-          content: '';
-          position: absolute;
-          inset: 2px;
-          border-radius: 22px;
-          background: inherit;
-          z-index: 1;
         }
         .slide07-pill-shimmer {
           position: relative;
