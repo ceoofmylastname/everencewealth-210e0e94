@@ -106,7 +106,7 @@ function CompoundCard({
       <div
         style={{
           borderRadius: 28,
-          padding: "36px 32px 32px",
+          padding: "24px 28px 24px",
           position: "relative",
           overflow: "hidden",
           background: "rgba(255, 255, 255, 0.65)",
