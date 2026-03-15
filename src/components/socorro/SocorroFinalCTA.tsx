@@ -20,9 +20,9 @@ export default function SocorroFinalCTA() {
               variant="light"
               className="text-[clamp(28px,4vw,44px)] leading-[1.2] mb-5"
             >
-              Take the First Step Toward
+              You Already Know What's at Stake.
               <br />
-              Financial Clarity
+              Are You Going to Act?
             </ShimmerHeadline>
 
             <p
@@ -35,12 +35,13 @@ export default function SocorroFinalCTA() {
                 margin: "0 auto 36px",
               }}
             >
-              Book a free, no-obligation session with one of our advisors
-              during the Socorro ISD workshop week. Spots are limited.
+              This call is free. It's confidential. And it could be the most
+              important 15 minutes of your financial life. Don't let what you
+              learned at the workshop go to waste.
             </p>
 
             <GoldCTA href="/socorro-isd/advisors" size="lg">
-              Choose Your Advisor &rarr;
+              Book Your Discovery Call &rarr;
             </GoldCTA>
 
             <p
@@ -51,7 +52,7 @@ export default function SocorroFinalCTA() {
                 color: "rgba(240,242,241,0.35)",
               }}
             >
-              100% free &middot; No sales pressure &middot; Confidential
+              No cost &middot; No commitment &middot; Your finances, your decision
             </p>
           </GlassCard>
         </ScrollReveal>

@@ -208,10 +208,10 @@ export default function RetirementCalculator() {
                 color: "rgba(240,242,241,0.6)",
               }}
             >
-              Want to see what you could do with that money instead?
+              Ready to stop losing money to fees?
             </p>
             <GoldCTA href="/socorro-isd/advisors">
-              Reserve Your Spot at the Workshop &rarr;
+              Book Your Discovery Call &rarr;
             </GoldCTA>
           </div>
         </ScrollReveal>

@@ -59,7 +59,7 @@ export default function SocorroNavbar() {
 
         {/* CTA */}
         <GoldCTA href="/socorro-isd/advisors" size="sm">
-          Book Now
+          Book Your Call
         </GoldCTA>
       </div>
     </nav>

@@ -33,7 +33,7 @@ export default function SocorroFooter() {
                 lineHeight: 1.6,
               }}
             >
-              Independent financial guidance for the Socorro ISD community. Licensed and insured.
+              Helping Socorro ISD employees take control of their retirement. Licensed and insured.
             </p>
           </div>
 
