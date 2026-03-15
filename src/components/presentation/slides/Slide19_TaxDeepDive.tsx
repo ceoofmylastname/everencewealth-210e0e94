@@ -12,7 +12,7 @@ const categories = [
     net: 59700,
     netColor: "#C8A96E",
     warning: "You thought you had $100k. You actually have $59,700.",
-    warningBg: "#FEE2E2",
+    warningGlassBg: "rgba(254, 226, 226, 0.5)",
     warningColor: "#D64545",
   },
   {
@@ -23,7 +23,7 @@ const categories = [
     net: 49700,
     netColor: "#D64545",
     warning: "Half of your retirement — gone to taxes.",
-    warningBg: "#F5E6C8",
+    warningGlassBg: "rgba(245, 230, 200, 0.5)",
     warningColor: "#1A4D3E",
   },
   {
@@ -34,7 +34,7 @@ const categories = [
     net: 100000,
     netColor: "#1A4D3E",
     warning: "You keep every dollar. No surprises.",
-    warningBg: "#E8F0EC",
+    warningGlassBg: "rgba(232, 240, 236, 0.5)",
     warningColor: "#1A4D3E",
   },
 ];
@@ -72,7 +72,16 @@ export default function Slide19_TaxDeepDive() {
                   {isRevealed(i + 2) ? <CountingNumber value={cat.net} prefix="$" /> : "$0"}
                 </div>
 
-                <div className="mt-auto px-3 py-2 rounded-lg text-xs font-medium" style={{ background: cat.warningBg, color: cat.warningColor }}>
+                <div
+                  className="mt-auto px-3 py-2 rounded-lg text-xs font-medium"
+                  style={{
+                    background: cat.warningGlassBg,
+                    backdropFilter: "blur(8px)",
+                    WebkitBackdropFilter: "blur(8px)",
+                    border: "1px solid rgba(255, 255, 255, 0.3)",
+                    color: cat.warningColor,
+                  }}
+                >
                   {cat.warning}
                 </div>
               </div>

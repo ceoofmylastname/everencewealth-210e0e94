@@ -36,7 +36,16 @@ export default function Slide11_HiddenFees() {
 
         {/* Reveal 2: Fee Table */}
         <RevealElement index={2} direction="cardRise" className="mb-4">
-          <div className="overflow-x-auto">
+          <div
+            className="overflow-x-auto rounded-2xl p-1"
+            style={{
+              background: "rgba(255, 255, 255, 0.35)",
+              backdropFilter: "blur(12px)",
+              WebkitBackdropFilter: "blur(12px)",
+              border: "1px solid rgba(255, 255, 255, 0.45)",
+              boxShadow: "0 8px 32px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.6)",
+            }}
+          >
             <table className="antigravity-fee-table">
               <thead>
                 <tr>
@@ -51,7 +60,7 @@ export default function Slide11_HiddenFees() {
                 {feeData.map((row, i) => (
                   <tr
                     key={i}
-                    style={row.bold ? { fontWeight: 700, background: "#F5E6C8" } : {}}
+                    style={row.bold ? { fontWeight: 700, background: "rgba(245, 230, 200, 0.5)" } : {}}
                   >
                     <td>{row.year}</td>
                     <td>{row.noFee}</td>
@@ -73,7 +82,10 @@ export default function Slide11_HiddenFees() {
                 key={i}
                 className="px-4 py-2 rounded-xl text-center"
                 style={{
-                  background: cost.highlight ? "#C8A96E" : "#F5E6C8",
+                  background: cost.highlight ? "rgba(200, 169, 110, 0.85)" : "rgba(245, 230, 200, 0.5)",
+                  backdropFilter: "blur(12px)",
+                  WebkitBackdropFilter: "blur(12px)",
+                  border: "1px solid rgba(255, 255, 255, 0.4)",
                   color: cost.highlight ? "white" : "#1A4D3E",
                 }}
               >
@@ -87,7 +99,16 @@ export default function Slide11_HiddenFees() {
         {/* Reveal 4: Warning callouts */}
         <RevealElement index={4} direction="whomp">
           <div className="flex flex-col items-center gap-2">
-            <div className="px-4 py-2 rounded-xl text-sm font-bold" style={{ background: "#FEE2E2", color: "#D64545" }}>
+            <div
+              className="px-4 py-2 rounded-xl text-sm font-bold"
+              style={{
+                background: "rgba(254, 226, 226, 0.6)",
+                backdropFilter: "blur(12px)",
+                WebkitBackdropFilter: "blur(12px)",
+                border: "1px solid rgba(214, 69, 69, 0.15)",
+                color: "#D64545",
+              }}
+            >
               Average 401k fees: <strong>3.1%</strong> — More than HALF your account gone.
             </div>
           </div>
@@ -96,7 +117,16 @@ export default function Slide11_HiddenFees() {
         {/* Reveal 5: Second warning */}
         <RevealElement index={5} direction="whomp" className="mt-2">
           <div className="flex justify-center">
-            <div className="px-4 py-2 rounded-xl text-sm" style={{ background: "#FEE2E2", color: "#D64545" }}>
+            <div
+              className="px-4 py-2 rounded-xl text-sm"
+              style={{
+                background: "rgba(254, 226, 226, 0.6)",
+                backdropFilter: "blur(12px)",
+                WebkitBackdropFilter: "blur(12px)",
+                border: "1px solid rgba(214, 69, 69, 0.15)",
+                color: "#D64545",
+              }}
+            >
               Average advisor total fees: <strong>3.7%</strong>
             </div>
           </div>
