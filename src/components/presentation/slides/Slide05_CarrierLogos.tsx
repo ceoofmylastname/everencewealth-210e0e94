@@ -190,13 +190,13 @@ export default function Slide05_CarrierLogos() {
         </RevealElement>
 
         {/* Carrier grid */}
-        <RevealElement index={2} direction="scale" className="mt-8">
+        <RevealElement index={2} direction="scale" className="mt-4">
           <div
             style={{
               display: "grid",
               gridTemplateColumns: "repeat(4, 1fr)",
-              gap: 20,
-              maxWidth: 1100,
+              gap: 12,
+              maxWidth: 1000,
               margin: "0 auto",
               padding: "0 24px",
             }}
@@ -209,7 +209,7 @@ export default function Slide05_CarrierLogos() {
         </RevealElement>
 
         {/* Trust bar */}
-        <RevealElement index={3} direction="drop" className="flex justify-center mt-16">
+        <RevealElement index={3} direction="drop" className="flex justify-center mt-6">
           <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
