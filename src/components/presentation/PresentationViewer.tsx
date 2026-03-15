@@ -53,6 +53,7 @@ const SLIDE_TITLES = [
   "Side by Side",
   "Performance Chart",
   "Tax Buckets Intro",
+  "Tax Categories",
   "Tax Deep Dive",
   "Tax Comparison",
   "Bridging the Gap",
