@@ -125,7 +125,7 @@ export default function Slide10_SixtyMinutes() {
                 }}
               >
                 <img
-                    src={THUMBNAIL_URL}
+                    src={slide10Thumb}
                     alt="60 Minutes broadcast studio thumbnail"
                     style={{
                       width: "100%",
