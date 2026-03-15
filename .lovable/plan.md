@@ -1,40 +1,31 @@
 
 
-## Plan: Add Registration Time (10:30 AM) to Landing Page and Emails
+# Slide 07 — Modernize Compound Interest Cards
 
-### 1. Landing Page Changes (`src/pages/TrainingEvent.tsx`)
+## What Changes
 
-**A. Add registration time to the event details pills (line 284)**
-Change "11:00 AM - 4:00 PM" to include registration:
-```
-Registration: 10:30 AM
-Event: 11:00 AM – 4:00 PM
-```
+### 1. Animated Clockwise Border (CSS `@keyframes`)
+Add a `conic-gradient` rotating border effect to each card. Technique: use a pseudo-element (`::before`) with a `conic-gradient` that rotates via `@keyframes` animation, masked by the card's inner background to create a glowing animated border moving clockwise.
 
-**B. Add registration time to the confirmation card (line 161)**
-Update the time display from `11:00 AM – 4:00 PM PT` to `Registration 10:30 AM | Event 11:00 AM – 4:00 PM PT`
+### 2. Glassmorphism + 3D Tilt Cards
+Replace the static `.antigravity-card` with inline TiltCard components (mouse-tracking `perspective(800px)` + `rotateX/Y`) matching the pattern used in Slide 03 and Slide 06. Each card gets:
+- `backdrop-filter: blur(16px)`, semi-transparent white bg
+- Deep layered box-shadows with colored glow matching each card's accent
+- `translateY(-6px)` lift + `scale(1.02)` on hover
+- Light sweep shimmer overlay on hover
 
-**C. Update session highlights (line 11)**
-Add a "10:30 AM" registration/check-in entry as the first item in `sessionHighlights`.
+### 3. Modern Typography
+- Rate percentage: larger `text-3xl` with `font-display`, letter-spacing
+- "Doubles Every" text: refined spacing
+- Row values: monospace font for financial data
+- Final row: gradient highlight instead of flat background
 
-### 2. Email Changes
+### 4. Visual Polish
+- Gauge semicircle: thicker stroke with subtle glow shadow matching card color
+- Bottom pill: animated gradient shimmer (reuse Slide 03 pattern)
+- Card accent glow beneath each card on hover
 
-**A. Registration confirmation email (`supabase/functions/register-training-event/index.ts`)**
-Add registration and event times to the event details block (currently only shows date and location):
-```
-🕐 Registration: 10:30 AM PST
-🕐 Event: 11:00 AM – 4:00 PM PST
-```
-
-**B. Reminder emails (`supabase/functions/process-training-reminders/index.ts`, line 92)**
-Update the time line from `11:00 AM to 4:00 PM PST` to include registration:
-```
-🕐 Registration: 10:30 AM PST
-🕐 Event: 11:00 AM – 4:00 PM PST
-```
-
-### Files Modified
-- `src/pages/TrainingEvent.tsx` — 3 spots (session highlights array, event pills, confirmation card)
-- `supabase/functions/register-training-event/index.ts` — add times to email
-- `supabase/functions/process-training-reminders/index.ts` — update time line
+## Files to Edit
+1. **`src/components/presentation/slides/Slide07_CompoundInterest.tsx`** — Full rewrite with TiltCard, animated border wrapper, modern styling
+2. **`src/styles/antigravity.css`** — Add `@keyframes slide07BorderRotate` for clockwise conic-gradient rotation
 
