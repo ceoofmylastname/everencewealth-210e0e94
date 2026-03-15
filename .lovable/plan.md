@@ -1,48 +1,40 @@
 
 
-## Audit: Reveal Index vs. Config Alignment
+## Plan: Add Registration Time (10:30 AM) to Landing Page and Emails
 
-I reviewed every slide's `RevealElement` max index against the `SLIDE_CONFIGS` `totalReveals` value. Here are the results:
+### 1. Landing Page Changes (`src/pages/TrainingEvent.tsx`)
 
-| Slide | Max Index Used | Config totalReveals | Status |
-|-------|---------------|---------------------|--------|
-| 01 Hero | 4 | 4 | OK |
-| 02 Retirement Needs | 5 | 5 | OK |
-| 03 Ways to Invest | 4 | 4 | OK |
-| 04 Our Mission | 5 | 5 | OK |
-| 05 Carrier Logos | 3 | 3 | OK |
-| 06 Warren Buffett | 4 | 4 | OK |
-| 07 Compound Interest | 5 | 5 | OK |
-| 08 Darren Hardy | **4** | **3** | **BUG** |
-| 09 Retirement Gap | 5 | 5 | OK |
-| 10 Sixty Minutes | 4 | 4 | OK |
-| 11 Hidden Fees | 5 | 5 | OK |
-| 12 Loss Impact | 5 | 5 | OK |
-| 14 Indexing Solution | 5 | 5 | OK |
-| 15 Side by Side | 4 | 4 | OK |
-| 16 Performance Chart | 4 | 4 | OK |
-| 17 Tax Buckets Intro | 4 | 4 | OK |
-| 18 Tax Categories | 5 | 5 | OK |
-| 19 Tax Deep Dive | 5 | 5 | OK |
-| 20 Tax Comparison | 4 | 4 | OK |
-| 21 Bridging the Gap | 5 | 5 | OK |
-| 22 Plan Advantage | 5 | 5 | OK |
-| 23 Plan Benefits | 5 | 5 | OK |
-| 24 Great Retirement | 4 | 4 | OK |
-| 25 The Opportunity | 4 | 4 | OK |
-| 26 Legacy | 5 | 5 | OK |
+**A. Add registration time to the event details pills (line 284)**
+Change "11:00 AM - 4:00 PM" to include registration:
+```
+Registration: 10:30 AM
+Event: 11:00 AM – 4:00 PM
+```
 
-### Finding
+**B. Add registration time to the confirmation card (line 161)**
+Update the time display from `11:00 AM – 4:00 PM PT` to `Registration 10:30 AM | Event 11:00 AM – 4:00 PM PT`
 
-**24 of 25 slides are correct** -- elements reveal independently on each click as intended.
+**C. Update session highlights (line 11)**
+Add a "10:30 AM" registration/check-in entry as the first item in `sessionHighlights`.
 
-**1 bug found: Slide 08 (Darren Hardy)** -- The slide uses reveal indices 1 through 4 (title, quote card, attribution, blob image), but `totalReveals` is set to `3`. This means the right-side blob portrait image at `index={4}` will **never appear** because the reveal counter maxes out at 3 and advances to the next slide.
+### 2. Email Changes
 
-### Fix
+**A. Registration confirmation email (`supabase/functions/register-training-event/index.ts`)**
+Add registration and event times to the event details block (currently only shows date and location):
+```
+🕐 Registration: 10:30 AM PST
+🕐 Event: 11:00 AM – 4:00 PM PST
+```
 
-One line change in `PresentationViewer.tsx`:
+**B. Reminder emails (`supabase/functions/process-training-reminders/index.ts`, line 92)**
+Update the time line from `11:00 AM to 4:00 PM PST` to include registration:
+```
+🕐 Registration: 10:30 AM PST
+🕐 Event: 11:00 AM – 4:00 PM PST
+```
 
-Change `SLIDE_CONFIGS[7]` from `{ totalReveals: 3 }` to `{ totalReveals: 4 }`.
-
-This will allow all 4 elements on the Darren Hardy slide to reveal one at a time on user clicks before advancing to the next slide.
+### Files Modified
+- `src/pages/TrainingEvent.tsx` — 3 spots (session highlights array, event pills, confirmation card)
+- `supabase/functions/register-training-event/index.ts` — add times to email
+- `supabase/functions/process-training-reminders/index.ts` — update time line
 

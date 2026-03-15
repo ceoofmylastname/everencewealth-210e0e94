@@ -73,7 +73,7 @@ const SLIDE_CONFIGS = [
   { totalReveals: 3 },  // 5: Carrier Logos
   { totalReveals: 4 },  // 6: Warren Buffett
   { totalReveals: 5 },  // 7: Compound Interest
-  { totalReveals: 3 },  // 8: Darren Hardy
+  { totalReveals: 4 },  // 8: Darren Hardy
   { totalReveals: 5 },  // 9: Retirement Gap
   { totalReveals: 4 },  // 10: 60 Minutes
   { totalReveals: 5 },  // 11: Hidden Fees
