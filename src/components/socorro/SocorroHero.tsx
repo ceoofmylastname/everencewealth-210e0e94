@@ -67,10 +67,10 @@ export default function SocorroHero() {
           animate="show"
         >
           <motion.span className="line-1" variants={lineVariant}>
-            The Retirement System Was Not <em className="slash-word">Built</em>
+            <span className="hero-sm">The </span>Retirement System <span className="hero-sm">Was Not </span><em className="slash-word">Built</em>
           </motion.span>
           <motion.span className="line-2" variants={lineVariant}>
-            For You. It Was Built To Be Paid By You.
+            <span className="hero-sm">For You. It Was Built To Be </span>Paid By You.
           </motion.span>
         </motion.h1>
 

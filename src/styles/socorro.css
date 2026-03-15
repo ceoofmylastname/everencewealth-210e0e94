@@ -198,6 +198,13 @@
   gap: 4px;
 }
 
+.hero-headline .line-1,
+.hero-headline .line-2 {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+}
+
 .hero-headline .line-1 {
   font-family: 'Cormorant Garamond', Georgia, serif;
   font-weight: 700;
@@ -268,10 +275,24 @@
   100% { transform: scaleX(1) skewX(-6deg); }
 }
 
+/* Hero small connector words */
+.hero-headline .hero-sm {
+  font-size: 0.55em;
+  font-weight: 400;
+  font-style: normal;
+  opacity: 0.55;
+  letter-spacing: 0.01em;
+}
+
+.hero-headline .line-2 .hero-sm {
+  font-weight: 500;
+}
+
 /* Mobile sizes */
 @media (max-width: 639px) {
   .hero-headline .line-1 { font-size: 38px; }
   .hero-headline .line-2 { font-size: 36px; }
+  .hero-headline .hero-sm { font-size: 0.5em; }
 }
 
 /* Logo carousel — infinite scroll */
