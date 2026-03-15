@@ -77,7 +77,7 @@ export default function Slide16_PerformanceChart() {
         {/* Reveal 4: Badges */}
         <RevealElement index={4} direction="explode" className="flex justify-center gap-3 flex-wrap">
           <div className="antigravity-pill-gold text-sm font-bold px-5 py-2">
-            +$132,503 MORE — Protected Strategy
+            +$132,503.28 MORE — Protected Strategy
           </div>
           <div
             className="text-sm font-bold px-5 py-2 rounded-full"

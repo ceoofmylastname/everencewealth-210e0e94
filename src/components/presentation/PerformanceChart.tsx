@@ -40,7 +40,7 @@ const INDEXED_DATA: DataPoint[] = [
 ];
 
 const MIN_YEAR = 1999;
-const MAX_YEAR = 2025;
+const MAX_YEAR = 2021;
 const MAX_VAL = 580000;
 const PADDING = { top: 65, right: 50, bottom: 55, left: 90 };
 
