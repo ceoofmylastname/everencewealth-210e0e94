@@ -326,7 +326,7 @@ export default function Slide07_CompoundInterest() {
             <h2
               style={{
                 fontFamily: "var(--font-display)",
-                fontSize: "clamp(36px, 4.5vw, 56px)",
+                fontSize: "clamp(30px, 3.5vw, 40px)",
                 fontWeight: 800,
                 color: "#1A4D3E",
                 letterSpacing: "-0.03em",
