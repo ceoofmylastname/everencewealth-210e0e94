@@ -61,7 +61,7 @@ export default function SocorroHero() {
 
         {/* Headline */}
         <motion.h1
-          className="hero-headline mb-6"
+          className="hero-headline mb-4"
           variants={headlineVariants}
           initial="hidden"
           animate="show"
