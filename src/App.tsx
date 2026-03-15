@@ -475,6 +475,7 @@ const App = () => (
                   <Route path="compliance" element={<AdminCompliancePage />} />
                   <Route path="assessment-leads" element={<CrmAssessmentLeads />} />
                   <Route path="socorro-workshop" element={<AdminSocorroWorkshop />} />
+                  <Route path="presentation" element={<Presentation />} />
                 </Route>
               </Route>
 
