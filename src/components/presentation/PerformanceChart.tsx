@@ -10,94 +10,34 @@ const SP500_DATA: DataPoint[] = [
   { year: 2000, value: 59880.41 },
   { year: 2001, value: 82480.21 },
   { year: 2002, value: 61468.66 },
-  { year: 2003, value: 84954.62 },
-  { year: 2004, value: 85580.91 },
-  { year: 2005, value: 125786.28 },
-  { year: 2006, value: 145789.46 },
-  { year: 2007, value: 182878.30 },
-  { year: 2008, value: 85580.91 },
+  { year: 2004, value: 84954.62 },
+  { year: 2005, value: 85580.91 },
+  { year: 2008, value: 125786.28 },
   { year: 2009, value: 139090.51 },
-  { year: 2010, value: 152359.74 },
-  { year: 2011, value: 125786.28 },
+  { year: 2011, value: 152359.74 },
   { year: 2012, value: 170594.45 },
-  { year: 2013, value: 229402.54 },
-  { year: 2014, value: 255531.49 },
-  { year: 2015, value: 263961.83 },
-  { year: 2016, value: 313498.30 },
-  { year: 2017, value: 344064.38 },
-  { year: 2018, value: 307071.03 },
-  { year: 2019, value: 431594.35 },
-  { year: 2020, value: 283383.18 },
-  { year: 2021, value: 408888.23 },
-  { year: 2022, value: 283383.18 },
-  { year: 2023, value: 370000.00 },
-  { year: 2024, value: 408888.23 },
-  { year: 2025, value: 408888.23 },
+  { year: 2013, value: 263961.83 },
+  { year: 2014, value: 313498.30 },
+  { year: 2015, value: 307071.03 },
+  { year: 2019, value: 283383.18 },
+  { year: 2020, value: 408888.23 },
+  { year: 2025, value: 408888.23 }, // anchor: hold final value to end
 ];
 
 const INDEXED_DATA: DataPoint[] = [
-  { year: 1999, value: 100000 },
-  { year: 2000, value: 100000 },
-  { year: 2001, value: 100000 },
-  { year: 2002, value: 100000 },
+  { year: 1999, value: 100000 }, // anchor: start at $100k
   { year: 2003, value: 122068.80 },
   { year: 2004, value: 140818.57 },
-  { year: 2005, value: 145789.46 },
-  { year: 2006, value: 182878.30 },
-  { year: 2007, value: 229402.54 },
-  { year: 2008, value: 229402.54 },
-  { year: 2009, value: 255531.49 },
-  { year: 2010, value: 313498.30 },
-  { year: 2011, value: 313498.30 },
-  { year: 2012, value: 344064.38 },
-  { year: 2013, value: 431594.35 },
-  { year: 2014, value: 483385.28 },
+  { year: 2006, value: 145789.46 },
+  { year: 2007, value: 182878.30 },
+  { year: 2009, value: 229402.54 },
+  { year: 2010, value: 255531.49 },
+  { year: 2012, value: 313498.30 },
+  { year: 2013, value: 344064.38 },
+  { year: 2014, value: 431594.35 },
   { year: 2015, value: 483385.28 },
-  { year: 2016, value: 483385.28 },
-  { year: 2017, value: 483385.28 },
-  { year: 2018, value: 483385.28 },
-  { year: 2019, value: 483385.28 },
-  { year: 2020, value: 483385.28 },
-  { year: 2021, value: 483385.28 },
-  { year: 2022, value: 483385.28 },
-  { year: 2023, value: 483385.28 },
-  { year: 2024, value: 483385.28 },
-  { year: 2025, value: 541391.51 },
+  { year: 2024, value: 541391.51 },
 ];
-
-const MIN_YEAR = 1999;
-const MAX_YEAR = 2025;
-const MAX_VAL = 580000;
-const PADDING = { top: 65, right: 50, bottom: 55, left: 90 };
-
-const RED = "#E87070";
-const GREEN = "#1A4D3E";
-
-function mapPoint(p: DataPoint, w: number, h: number): [number, number] {
-  const x = PADDING.left + ((p.year - MIN_YEAR) / (MAX_YEAR - MIN_YEAR)) * (w - PADDING.left - PADDING.right);
-  const y = PADDING.top + (1 - p.value / MAX_VAL) * (h - PADDING.top - PADDING.bottom);
-  return [x, y];
-}
-
-function formatDollar(v: number): string {
-  return "$" + v.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-}
-
-// Decide label placement to reduce overlap: for S&P labels go below, for Indexed go above
-// Only label "key" points to avoid clutter — every point where value changes
-function getKeyIndices(data: DataPoint[]): number[] {
-  const indices: number[] = [0]; // always label first
-  for (let i = 1; i < data.length; i++) {
-    if (data[i].value !== data[i - 1].value) {
-      indices.push(i);
-    }
-  }
-  // Always include last
-  if (indices[indices.length - 1] !== data.length - 1) {
-    indices.push(data.length - 1);
-  }
-  return indices;
-}
 
 interface PerformanceChartProps {
   animate?: boolean;
