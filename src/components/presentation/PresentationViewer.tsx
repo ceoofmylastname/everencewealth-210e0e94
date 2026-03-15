@@ -24,7 +24,7 @@ const slides = [
   lazy(() => import("./slides/Slide15_SideBySide")),
   lazy(() => import("./slides/Slide16_PerformanceChart")),
   lazy(() => import("./slides/Slide17_TaxBucketsIntro")),
-  lazy(() => import("./slides/Slide18_ThreeBuckets")),
+  
   lazy(() => import("./slides/Slide19_TaxDeepDive")),
   lazy(() => import("./slides/Slide20_TaxComparison")),
   lazy(() => import("./slides/Slide21_BridgingTheGap")),
