@@ -69,7 +69,7 @@ const SLIDE_CONFIGS = [
   { totalReveals: 4 },  // 1: Hero — logo, divider, headlines, badge
   { totalReveals: 5 },  // 2: What Does Retirement Need
   { totalReveals: 4 },  // 3: Ways to Invest
-  { totalReveals: 4 },  // 4: Our Mission
+  { totalReveals: 5 },  // 4: Our Mission
   { totalReveals: 3 },  // 5: Carrier Logos
   { totalReveals: 4 },  // 6: Warren Buffett
   { totalReveals: 5 },  // 7: Compound Interest
