@@ -1,38 +1,40 @@
 
 
-# Slide 03 — Modern Creative Upgrade
+## Plan: Add Registration Time (10:30 AM) to Landing Page and Emails
 
-## Current State
-The "Ways to Invest" slide has basic glassmorphism cards with static images, no hover effects, no 3D interaction, and plain typography.
+### 1. Landing Page Changes (`src/pages/TrainingEvent.tsx`)
 
-## Changes
+**A. Add registration time to the event details pills (line 284)**
+Change "11:00 AM - 4:00 PM" to include registration:
+```
+Registration: 10:30 AM
+Event: 11:00 AM – 4:00 PM
+```
 
-### 1. Add 3D TiltCard Component (inline)
-Reuse the same `TiltCard` pattern from Slide23 — mouse-tracking `perspective(800px)` with `rotateX`/`rotateY` transforms, lift on hover (`translateY(-8px)`), and smooth `scale(1.03)` emphasis.
+**B. Add registration time to the confirmation card (line 161)**
+Update the time display from `11:00 AM – 4:00 PM PT` to `Registration 10:30 AM | Event 11:00 AM – 4:00 PM PT`
 
-### 2. Enhanced Card Styling
-- **Deep box shadows**: Multi-layer shadows (`0 20px 60px -12px rgba(0,0,0,0.15)`) for floating 3D depth
-- **Glassmorphism**: Keep current blur but increase contrast — `rgba(255,255,255,0.6)` backgrounds, `border: 1px solid rgba(255,255,255,0.7)`
-- **Hover glow**: Add a subtle colored glow on hover matching each card's theme (blue-gray for Fixed, gold for Variable, emerald for Indexed)
-- **Transition**: `transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1)` for smooth, premium feel
+**C. Update session highlights (line 11)**
+Add a "10:30 AM" registration/check-in entry as the first item in `sessionHighlights`.
 
-### 3. Image Enhancements
-- Increase image height from 180px to 220px
-- Add `group-hover:scale-110` zoom effect with `overflow-hidden` container
-- Add a subtle gradient overlay at the bottom of each image for text separation
+### 2. Email Changes
 
-### 4. Typography Upgrade
-- Title: Use `var(--font-display)` with letter-spacing `-0.02em`, larger size (`text-3xl`)
-- Subtitle items: Slightly larger (`text-base`), lighter weight
-- "Recommended" pill: Add a shimmer animation (reuse `goldShimmer` keyframes)
+**A. Registration confirmation email (`supabase/functions/register-training-event/index.ts`)**
+Add registration and event times to the event details block (currently only shows date and location):
+```
+🕐 Registration: 10:30 AM PST
+🕐 Event: 11:00 AM – 4:00 PM PST
+```
 
-### 5. Entrance Animations
-- Keep existing `RevealElement` with `cardRise` but add staggered delays
-- Add a CSS `@keyframes float` subtle animation on the cards (2px up/down oscillation, 3s duration, offset per card)
+**B. Reminder emails (`supabase/functions/process-training-reminders/index.ts`, line 92)**
+Update the time line from `11:00 AM to 4:00 PM PST` to include registration:
+```
+🕐 Registration: 10:30 AM PST
+🕐 Event: 11:00 AM – 4:00 PM PST
+```
 
-### 6. Light Sweep Effect
-Add a CSS animated light sweep across each card on hover (diagonal white gradient that slides across), similar to the one used in Slide24.
-
-## Files to Edit
-1. `src/components/presentation/slides/Slide03_WaysToInvest.tsx` — Full rewrite with TiltCard, enhanced styles, animations
+### Files Modified
+- `src/pages/TrainingEvent.tsx` — 3 spots (session highlights array, event pills, confirmation card)
+- `supabase/functions/register-training-event/index.ts` — add times to email
+- `supabase/functions/process-training-reminders/index.ts` — update time line
 
