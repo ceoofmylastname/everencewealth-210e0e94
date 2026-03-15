@@ -1,6 +1,7 @@
 import RevealElement from "../RevealElement";
 import GradientText from "../animations/GradientText";
-import flagImg from "@/assets/american-flag-building.jpg";
+import MeshGradient from "../MeshGradient";
+import MorphBlob from "../MorphBlob";
 
 const questions = [
   {
@@ -23,16 +24,19 @@ const questions = [
 
 export default function Slide24_GreatRetirementTransfer() {
   return (
-    <div className="antigravity-slide bg-white">
+    <div className="antigravity-slide">
+      <MeshGradient variant="gold" />
+      <MorphBlob size={360} color="rgba(200, 169, 110, 0.12)" top="-8%" left="-5%" delay={0} />
+      <MorphBlob size={300} color="rgba(26, 77, 62, 0.10)" bottom="-6%" right="-4%" delay={4} />
       <div className="antigravity-editorial">
         {/* Left */}
         <div>
           {/* Reveal 1: Title */}
           <RevealElement index={1} direction="slam">
-            <h2 className="text-4xl font-bold mb-1" style={{ color: "#1A4D3E", fontFamily: "var(--font-display)" }}>
+            <h2 className="text-4xl font-bold mb-1" style={{ color: "var(--ev-green)", fontFamily: "var(--font-display)" }}>
               The BIG <GradientText>Question?</GradientText>
             </h2>
-            <p className="text-lg mb-8" style={{ color: "#4A5565" }}>
+            <p className="text-lg mb-8" style={{ color: "var(--ev-text-light)" }}>
               Do you have a <strong>Strategy</strong> you can rely on?
             </p>
           </RevealElement>
@@ -46,10 +50,10 @@ export default function Slide24_GreatRetirementTransfer() {
                   className="antigravity-card"
                   style={{ borderLeft: "4px solid #C8A96E", padding: "16px 20px" }}
                 >
-                  <div className="text-xs font-bold uppercase tracking-wider mb-1" style={{ color: "#C8A96E" }}>
+                  <div className="text-xs font-bold uppercase tracking-wider mb-1" style={{ color: "var(--ev-gold)" }}>
                     {q.label}
                   </div>
-                  <p className="text-sm" style={{ color: "#4A5565" }}>
+                  <p className="text-sm" style={{ color: "var(--ev-text-light)" }}>
                     {q.question}
                   </p>
                 </div>
@@ -59,56 +63,26 @@ export default function Slide24_GreatRetirementTransfer() {
 
           {/* Reveal 3: Historical fact */}
           <RevealElement index={3} direction="whomp" className="mt-6">
-            <div className="px-5 py-3 rounded-xl" style={{ background: "#F5E6C8" }}>
-              <p className="text-sm font-bold" style={{ color: "#1A4D3E" }}>
+            <div className="px-5 py-3 rounded-xl" style={{ background: "var(--ev-gold-lt)" }}>
+              <p className="text-sm font-bold" style={{ color: "var(--ev-green)" }}>
                 The worst tax rate in American history: <strong className="antigravity-stat">94%</strong>. It happened before.
               </p>
             </div>
           </RevealElement>
         </div>
 
-        {/* Right — Animated image */}
+        {/* Right — Image placeholder */}
         <RevealElement index={4} direction="right" className="flex items-center justify-center">
           <div
-            className="rounded-2xl overflow-hidden w-full relative"
+            className="rounded-xl overflow-hidden w-full"
             style={{
               height: "420px",
-              boxShadow: "0 12px 40px -8px rgba(0,0,0,0.25), 0 4px 12px -4px rgba(0,0,0,0.1)",
+              background: "linear-gradient(135deg, #1A3A50 0%, #2A4D66 50%, #C8A96E 100%)",
             }}
           >
-            <img
-              src={flagImg}
-              alt="American flag on building at sunset"
-              className="absolute inset-0 w-full h-full object-cover"
-              style={{
-                animation: "kenBurns 20s ease-in-out infinite alternate",
-              }}
-            />
-            {/* Cinematic overlay */}
-            <div
-              className="absolute inset-0"
-              style={{
-                background: "linear-gradient(135deg, rgba(26,58,80,0.15) 0%, rgba(200,169,110,0.1) 100%)",
-              }}
-            />
-            {/* Animated light sweep */}
-            <div
-              className="absolute inset-0"
-              style={{
-                background: "linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.08) 50%, transparent 60%)",
-                animation: "lightSweep 6s ease-in-out infinite",
-              }}
-            />
-            <style>{`
-              @keyframes kenBurns {
-                0% { transform: scale(1) translate(0, 0); }
-                100% { transform: scale(1.08) translate(-1%, -1%); }
-              }
-              @keyframes lightSweep {
-                0%, 100% { transform: translateX(-100%); }
-                50% { transform: translateX(100%); }
-              }
-            `}</style>
+            <div className="w-full h-full flex items-center justify-center text-white/40 text-sm">
+              American Flag on Building
+            </div>
           </div>
         </RevealElement>
       </div>

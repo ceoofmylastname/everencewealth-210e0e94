@@ -1,6 +1,6 @@
 /* =========================================
-   Antigravity Presentation System v2
-   Font + Animation Overhaul
+   Antigravity Presentation System v3
+   Glassmorphic Light-Mode Overhaul
    ========================================= */
 
 /* --- Design Tokens --- */
@@ -39,16 +39,38 @@
   --ev-gold-dk: #8B6914;
   --ev-slate:   #4A5565;
   --ev-white:   #FFFFFF;
-  --ev-off:     #F9F8F5;
+  --ev-off:     #F7F6F3;
+
+  /* Light mode theme */
+  --ev-bg:         #FAFAF8;
+  --ev-text:       #2D3436;
+  --ev-text-light: #636E72;
+
+  /* Glassmorphism tokens */
+  --glass-bg:     rgba(255, 255, 255, 0.18);
+  --glass-border: rgba(255, 255, 255, 0.3);
+  --glass-blur:   12px;
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+
+  /* Rounded corners — no sharp edges */
+  --radius-sm:   12px;
+  --radius-md:   20px;
+  --radius-lg:   28px;
+  --radius-xl:   36px;
+  --radius-full: 9999px;
 }
 
-/* --- Gold shimmer keyframe --- */
+/* ===========================
+   Keyframe Animations
+   =========================== */
+
+/* Gold shimmer */
 @keyframes goldShimmer {
   to { background-position: 300% center; }
 }
 
 @keyframes antigravity-gold-shimmer {
-  0% { background-position: -200% center; }
+  0%   { background-position: -200% center; }
   100% { background-position: 200% center; }
 }
 
@@ -56,7 +78,118 @@
   animation: antigravity-gold-shimmer 4s linear infinite;
 }
 
-/* --- Desktop-only gate --- */
+/* Staggered entrance animations */
+@keyframes ag-fadeInUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes ag-fadeInLeft {
+  from { opacity: 0; transform: translateX(-24px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes ag-zoomIn {
+  from { opacity: 0; transform: scale(0.92); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* Morphing blob shape */
+@keyframes ag-morphBlob {
+  0%   { border-radius: 50% 30% 70% 40% / 60% 40% 60% 50%; }
+  25%  { border-radius: 40% 60% 30% 70% / 50% 60% 40% 60%; }
+  50%  { border-radius: 60% 40% 50% 30% / 40% 50% 70% 40%; }
+  75%  { border-radius: 30% 70% 40% 60% / 60% 30% 50% 70%; }
+  100% { border-radius: 50% 30% 70% 40% / 60% 40% 60% 50%; }
+}
+
+/* Mesh gradient drift */
+@keyframes ag-meshDrift {
+  0%   { background-position: 0% 50%, 50% 0%, 100% 50%; }
+  33%  { background-position: 100% 25%, 0% 75%, 50% 100%; }
+  66%  { background-position: 50% 100%, 100% 0%, 0% 50%; }
+  100% { background-position: 0% 50%, 50% 0%, 100% 50%; }
+}
+
+/* SVG text crawl */
+@keyframes ag-textCrawl {
+  from { offset-distance: 0%; }
+  to   { offset-distance: 100%; }
+}
+
+/* Rotating badge */
+@keyframes ag-rotateBadge {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* ===========================
+   Entrance Utility Classes
+   =========================== */
+
+.ag-entrance-1 { animation: ag-fadeInUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.1s both; }
+.ag-entrance-2 { animation: ag-fadeInUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.2s both; }
+.ag-entrance-3 { animation: ag-fadeInUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.3s both; }
+.ag-entrance-4 { animation: ag-fadeInUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.4s both; }
+.ag-entrance-5 { animation: ag-fadeInUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.5s both; }
+.ag-entrance-6 { animation: ag-fadeInUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.6s both; }
+.ag-entrance-7 { animation: ag-fadeInUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.7s both; }
+.ag-entrance-8 { animation: ag-fadeInUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.8s both; }
+
+.ag-entrance-left-1 { animation: ag-fadeInLeft 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.1s both; }
+.ag-entrance-left-2 { animation: ag-fadeInLeft 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.2s both; }
+.ag-entrance-left-3 { animation: ag-fadeInLeft 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.3s both; }
+
+.ag-entrance-zoom-1 { animation: ag-zoomIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.1s both; }
+.ag-entrance-zoom-2 { animation: ag-zoomIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.2s both; }
+.ag-entrance-zoom-3 { animation: ag-zoomIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.3s both; }
+
+/* ===========================
+   Glass Utility Classes
+   =========================== */
+
+.ag-glass {
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--glass-shadow);
+}
+
+.ag-glass-strong {
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  background: rgba(255, 255, 255, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: var(--radius-md);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+}
+
+.ag-glass-dark {
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  background: rgba(26, 77, 62, 0.75);
+  border: 1px solid rgba(200, 169, 110, 0.2);
+  border-radius: var(--radius-md);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  color: white;
+}
+
+/* Card hover lift */
+.ag-card-lift {
+  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.3s ease;
+}
+
+.ag-card-lift:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.1);
+}
+
+/* ===========================
+   Desktop-only Gate
+   =========================== */
+
 .antigravity-desktop-gate {
   display: none;
 }
@@ -67,8 +200,8 @@
     position: fixed;
     inset: 0;
     z-index: 9999;
-    background: var(--ev-dark);
-    color: white;
+    background: var(--ev-bg);
+    color: var(--ev-text);
     align-items: center;
     justify-content: center;
     flex-direction: column;
@@ -76,25 +209,32 @@
     font-family: var(--font-body);
     padding: 32px;
     text-align: center;
+    border-radius: 0;
   }
   .antigravity-shell {
     display: none !important;
   }
 }
 
-/* --- Shell layout --- */
+/* ===========================
+   Shell Layout
+   =========================== */
+
 .antigravity-shell {
   position: fixed;
   inset: 0;
   z-index: 50;
-  background: white;
+  background: var(--ev-bg);
   display: flex;
   flex-direction: column;
   overflow: hidden;
   font-family: var(--font-body);
 }
 
-/* --- Slide base layout --- */
+/* ===========================
+   Slide Base Layout
+   =========================== */
+
 .antigravity-slide {
   width: 100%;
   height: 100%;
@@ -104,6 +244,7 @@
   font-family: var(--font-body);
   overflow: hidden;
   position: relative;
+  color: var(--ev-text);
 }
 
 .antigravity-slide-inner {
@@ -115,9 +256,14 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
+  position: relative;
+  z-index: 2;
 }
 
-/* --- Two-column editorial layout --- */
+/* ===========================
+   Two-column Editorial Layout
+   =========================== */
+
 .antigravity-editorial {
   width: 100%;
   max-width: 1200px;
@@ -128,6 +274,8 @@
   grid-template-columns: 1fr 1fr;
   gap: 64px;
   align-items: center;
+  position: relative;
+  z-index: 2;
 }
 
 .antigravity-editorial-wide-left {
@@ -138,31 +286,38 @@
   grid-template-columns: 0.8fr 1.2fr;
 }
 
-/* --- HUD (bottom control bar) --- */
+/* ===========================
+   HUD (Bottom Control Bar)
+   =========================== */
+
 .antigravity-hud {
   flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 24px;
-  border-top: 1px solid #E5E7EB;
-  background: white;
+  padding: 12px 28px;
+  border-top: none;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
   z-index: 10;
+  box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.04);
 }
 
 .antigravity-hud-counter {
   font-family: var(--font-mono);
   font-size: 13px;
-  color: #9CA3AF;
+  color: var(--ev-text-light);
   font-weight: 400;
   letter-spacing: 0.05em;
 }
 
 .antigravity-hud-btn {
-  padding: 6px;
-  border-radius: 8px;
-  color: #6B7280;
-  transition: all 150ms;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  color: var(--ev-text-light);
+  transition: all 200ms cubic-bezier(0.22, 1, 0.36, 1);
   cursor: pointer;
   border: none;
   background: none;
@@ -173,124 +328,180 @@
 }
 
 .antigravity-hud-btn:hover {
-  background: #F3F4F6;
+  background: rgba(26, 77, 62, 0.08);
   color: var(--ev-green);
+  border-radius: var(--radius-sm);
 }
 
-/* --- Progress bar --- */
+/* ===========================
+   Progress Bar
+   =========================== */
+
 .antigravity-progress {
-  height: 2px;
-  background: #F3F4F6;
+  height: 3px;
+  background: rgba(0, 0, 0, 0.04);
   flex-shrink: 0;
+  border-radius: var(--radius-full);
 }
 
 .antigravity-progress-fill {
   height: 100%;
-  background: var(--ev-gold);
+  background: linear-gradient(90deg, var(--ev-gold), var(--ev-gold-lt));
   transition: width 400ms ease-out;
+  border-radius: var(--radius-full);
 }
 
-/* --- Cards --- */
+/* ===========================
+   Cards — Glassmorphic
+   =========================== */
+
 .antigravity-card {
-  background: #FFFFFF;
-  border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(26,77,62,0.12);
+  background: rgba(255, 255, 255, 0.45);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: var(--radius-md);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
   padding: 24px;
+  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.3s ease;
+}
+
+.antigravity-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.1);
 }
 
 .antigravity-card-dark {
-  background: var(--ev-green);
-  border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(26,77,62,0.24);
+  background: rgba(26, 77, 62, 0.8);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(200, 169, 110, 0.2);
+  border-radius: var(--radius-md);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
   padding: 24px;
   color: white;
+  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.3s ease;
 }
 
-/* --- Pill badges --- */
+.antigravity-card-dark:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.2);
+}
+
+/* ===========================
+   Pill Badges
+   =========================== */
+
 .antigravity-pill {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   padding: 6px 16px;
-  border-radius: 9999px;
+  border-radius: var(--radius-full);
   font-size: 14px;
   font-weight: 600;
   font-family: var(--font-body);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
 .antigravity-pill-gold {
-  background: var(--ev-gold);
+  background: rgba(200, 169, 110, 0.9);
   color: white;
 }
 
 .antigravity-pill-evergreen {
-  background: var(--ev-green);
+  background: rgba(26, 77, 62, 0.85);
   color: white;
 }
 
 .antigravity-pill-red {
-  background: #D64545;
+  background: rgba(214, 69, 69, 0.85);
   color: white;
 }
 
 .antigravity-pill-green {
-  background: var(--ev-green);
+  background: rgba(26, 77, 62, 0.85);
   color: white;
 }
 
-/* --- Progress bars for comparisons --- */
+.antigravity-pill-glass {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: var(--ev-text);
+}
+
+/* ===========================
+   Progress Bars (Comparisons)
+   =========================== */
+
 .antigravity-progress-track {
   height: 8px;
-  border-radius: 4px;
-  background: #E5E7EB;
+  border-radius: var(--radius-full);
+  background: rgba(0, 0, 0, 0.06);
   overflow: hidden;
 }
 
 .antigravity-progress-fill-gold {
   height: 100%;
-  border-radius: 4px;
+  border-radius: var(--radius-full);
   background: linear-gradient(90deg, var(--ev-gold), var(--ev-gold-lt));
 }
 
 .antigravity-progress-fill-green {
   height: 100%;
-  border-radius: 4px;
+  border-radius: var(--radius-full);
   background: linear-gradient(90deg, var(--ev-green), #2A6D5E);
 }
 
-/* --- Full-bleed backgrounds --- */
+/* ===========================
+   Full-bleed Backgrounds
+   =========================== */
+
 .antigravity-full-bleed {
   position: absolute;
   inset: 0;
   background-size: cover;
   background-position: center;
+  border-radius: 0;
 }
 
 .antigravity-overlay-dark {
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
 }
 
 .antigravity-overlay-green {
   position: absolute;
   inset: 0;
-  background: rgba(13, 31, 26, 0.85);
+  background: rgba(13, 31, 26, 0.7);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
 }
 
-/* --- Fee comparison table --- */
+/* ===========================
+   Fee Comparison Table — Glass
+   =========================== */
+
 .antigravity-fee-table {
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
   font-size: 14px;
   font-family: var(--font-body);
+  border-radius: var(--radius-md);
+  overflow: hidden;
 }
 
 .antigravity-fee-table th {
-  background: var(--ev-green);
+  background: rgba(26, 77, 62, 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   color: white;
-  padding: 10px 16px;
+  padding: 12px 16px;
   text-align: right;
   font-weight: 600;
   font-family: var(--font-body);
@@ -298,20 +509,21 @@
 
 .antigravity-fee-table th:first-child {
   text-align: left;
-  border-radius: 12px 0 0 0;
+  border-radius: var(--radius-md) 0 0 0;
 }
 
 .antigravity-fee-table th:last-child {
-  border-radius: 0 12px 0 0;
+  border-radius: 0 var(--radius-md) 0 0;
 }
 
 .antigravity-fee-table td {
-  padding: 8px 16px;
+  padding: 10px 16px;
   text-align: right;
-  border-bottom: 1px solid #E5E7EB;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
   font-family: var(--font-mono);
   font-weight: 400;
   letter-spacing: 0.02em;
+  background: rgba(255, 255, 255, 0.3);
 }
 
 .antigravity-fee-table td:first-child {
@@ -325,7 +537,18 @@
   border-bottom: none;
 }
 
-/* --- Semicircle gauge --- */
+.antigravity-fee-table tr:last-child td:first-child {
+  border-radius: 0 0 0 var(--radius-md);
+}
+
+.antigravity-fee-table tr:last-child td:last-child {
+  border-radius: 0 0 var(--radius-md) 0;
+}
+
+/* ===========================
+   Semicircle Gauge
+   =========================== */
+
 .antigravity-gauge {
   width: 120px;
   height: 60px;
@@ -344,12 +567,17 @@
   font-size: 20px;
 }
 
-/* --- Grid overlay --- */
+/* ===========================
+   Grid Overlay — Glass
+   =========================== */
+
 .antigravity-grid-overlay {
   position: fixed;
   inset: 0;
   z-index: 60;
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -357,28 +585,40 @@
 }
 
 .antigravity-grid-panel {
-  background: white;
-  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: var(--radius-lg);
   padding: 24px;
   max-width: 900px;
   width: 100%;
   max-height: 80vh;
   overflow-y: auto;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.12);
 }
 
-/* --- Floating badge (editorial design) --- */
+/* ===========================
+   Floating Badge
+   =========================== */
+
 .antigravity-floating-badge {
   position: absolute;
   padding: 8px 20px;
-  border-radius: 9999px;
+  border-radius: var(--radius-full);
   font-size: 13px;
   font-weight: 600;
   z-index: 5;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
   font-family: var(--font-body);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
-/* --- Stat number styling --- */
+/* ===========================
+   Stat Number Styling
+   =========================== */
+
 .antigravity-stat {
   font-family: var(--font-mono);
   font-weight: 500;
@@ -386,25 +626,69 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* --- Quote block --- */
+/* ===========================
+   Quote Block — Glass
+   =========================== */
+
 .antigravity-quote {
   border-left: 3px solid var(--ev-gold);
-  padding-left: 20px;
+  padding: 16px 20px;
   font-style: italic;
   font-size: 20px;
   line-height: 1.6;
   color: var(--ev-green);
   font-family: var(--font-body);
+  background: rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
 }
 
 .antigravity-quote-dark {
   border-left: 3px solid var(--ev-gold);
-  padding-left: 20px;
+  padding: 16px 20px;
   font-style: italic;
   font-size: 20px;
   line-height: 1.6;
   color: white;
   font-family: var(--font-body);
+  background: rgba(26, 77, 62, 0.4);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+}
+
+/* ===========================
+   Auto-fit Card Grid
+   =========================== */
+
+.antigravity-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+  width: 100%;
+}
+
+/* ===========================
+   Chart Tooltip
+   =========================== */
+
+.ag-chart-tooltip {
+  position: absolute;
+  pointer-events: none;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: var(--radius-sm);
+  padding: 8px 14px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--ev-text);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  z-index: 20;
+  white-space: nowrap;
+  transform: translate(-50%, -120%);
 }
 
 /* --- Slide 02 Premium Background --- */

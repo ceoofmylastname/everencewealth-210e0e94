@@ -1,179 +1,66 @@
-import { useState } from "react";
 import RevealElement from "../RevealElement";
 import BlobClip from "../BlobClip";
-import CountingNumber from "../animations/CountingNumber";
-import coupleStressedImg from "@/assets/couple-stressed-bills.jpg";
+import MeshGradient from "../MeshGradient";
+import MorphBlob from "../MorphBlob";
 
-interface StepCardProps {
-  label: string;
-  value: string;
-  numericValue?: number;
-  prefix?: string;
-  suffix?: string;
-  isNegative?: boolean;
-  accentColor: string;
-  glowColor: string;
-}
-
-function StepCard({ label, value, numericValue, prefix = "", suffix = "", isNegative, accentColor, glowColor }: StepCardProps) {
-  const [tilt, setTilt] = useState({ x: 0, y: 0 });
-
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = (e.clientY - rect.top - rect.height / 2) / 12;
-    const y = -(e.clientX - rect.left - rect.width / 2) / 12;
-    setTilt({ x, y });
-  };
-
-  const handleMouseLeave = () => setTilt({ x: 0, y: 0 });
-
-  return (
-    <div
-      className="relative group"
-      style={{ perspective: "800px" }}
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
-    >
-      {/* Glow behind */}
-      <div
-        className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-60 transition-opacity duration-500 blur-xl"
-        style={{ background: glowColor }}
-      />
-      <div
-        className="relative flex items-center justify-between px-5 py-4 rounded-2xl border transition-transform duration-200 ease-out"
-        style={{
-          background: "rgba(0,0,0,0.03)",
-          backdropFilter: "blur(16px)",
-          WebkitBackdropFilter: "blur(16px)",
-          borderColor: `${accentColor}33`,
-          transform: `rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)`,
-        }}
-      >
-        <span className="text-sm font-medium" style={{ color: "#4A5565" }}>{label}</span>
-        <span
-          className="text-2xl font-bold antigravity-stat"
-          style={{ color: isNegative ? "#EF4444" : accentColor }}
-        >
-          {numericValue !== undefined ? (
-            <CountingNumber
-              value={numericValue}
-              prefix={prefix}
-              suffix={suffix}
-              duration={1.4}
-            />
-          ) : (
-            value
-          )}
-        </span>
-      </div>
-    </div>
-  );
-}
-
-const steps: StepCardProps[] = [
-  {
-    label: "Starting Value",
-    value: "$100,000",
-    numericValue: 100000,
-    prefix: "$",
-    accentColor: "#EDDB77",
-    glowColor: "radial-gradient(circle, rgba(237,219,119,0.3) 0%, transparent 70%)",
-  },
-  {
-    label: "Market Loss",
-    value: "-50%",
-    numericValue: 50,
-    prefix: "-",
-    suffix: "%",
-    isNegative: true,
-    accentColor: "#EF4444",
-    glowColor: "radial-gradient(circle, rgba(239,68,68,0.3) 0%, transparent 70%)",
-  },
-  {
-    label: "Remaining",
-    value: "$50,000",
-    numericValue: 50000,
-    prefix: "$",
-    accentColor: "#8B9AAF",
-    glowColor: "radial-gradient(circle, rgba(139,154,175,0.2) 0%, transparent 70%)",
-  },
-  {
-    label: "Gain Needed",
-    value: "+50%",
-    numericValue: 50,
-    prefix: "+",
-    suffix: "%",
-    accentColor: "#1A4D3E",
-    glowColor: "radial-gradient(circle, rgba(26,77,62,0.3) 0%, transparent 70%)",
-  },
-  {
-    label: "Result",
-    value: "$75,000",
-    numericValue: 75000,
-    prefix: "$",
-    accentColor: "#D4A853",
-    glowColor: "radial-gradient(circle, rgba(212,168,83,0.3) 0%, transparent 70%)",
-  },
+const steps = [
+  { label: "Start:", value: "$100,000", color: "#E8F0EC", textColor: "#1A4D3E" },
+  { label: "Market Loss:", value: "-50%", color: "#FEE2E2", textColor: "#D64545" },
+  { label: "Remaining:", value: "$50,000", color: "#F3F4F6", textColor: "#4A5565" },
+  { label: "Gain:", value: "+50%", color: "#E8F0EC", textColor: "#1A4D3E" },
+  { label: "Result:", value: "$75,000", color: "#F5E6C8", textColor: "#1A4D3E" },
 ];
 
 export default function Slide13_NegativeCredit() {
   return (
-    <div className="antigravity-slide bg-white">
+    <div className="antigravity-slide">
+      <MeshGradient variant="warm" />
+      <MorphBlob size={300} color="rgba(200, 169, 110, 0.09)" top="-5%" right="-4%" delay={0} />
+      <MorphBlob size={260} color="rgba(26, 77, 62, 0.06)" bottom="-6%" left="-3%" delay={3} />
       <div className="antigravity-editorial">
-        {/* Left — glassmorphism step cards */}
-        <div className="flex flex-col gap-4">
+        {/* Left — Number sequence */}
+        <div>
           {/* Reveal 1: Title */}
-          <RevealElement index={1} direction="slam" className="mb-2">
-            <h2
-              className="text-3xl font-bold"
-              style={{ color: "#1A4D3E", fontFamily: "var(--font-display)" }}
-            >
+          <RevealElement index={1} direction="slam" className="mb-6">
+            <h2 className="text-3xl font-bold" style={{ color: "var(--ev-green)", fontFamily: "var(--font-display)" }}>
               Traditional Approach
             </h2>
-            <p className="text-sm mt-2 italic" style={{ color: "#4A5565" }}>
+            <p className="text-sm mt-2 italic" style={{ color: "var(--ev-text-light)" }}>
               The consequence of a negative interest credit
             </p>
           </RevealElement>
 
-          {/* Reveal 2: Step cards with counting numbers */}
+          {/* Reveal 2: Steps */}
           <RevealElement index={2} direction="cardRise">
             <div className="space-y-3">
               {steps.map((step, i) => (
-                <StepCard key={i} {...step} />
+                <div
+                  key={i}
+                  className="flex items-center justify-between px-5 py-3 rounded-xl"
+                  style={{ background: step.color }}
+                >
+                  <span className="text-base font-medium" style={{ color: "var(--ev-text-light)" }}>{step.label}</span>
+                  <span className="text-2xl font-bold antigravity-stat" style={{ color: step.textColor }}>{step.value}</span>
+                </div>
               ))}
             </div>
           </RevealElement>
 
-          {/* Reveal 3: Warning pill with red glow */}
-          <RevealElement index={3} direction="explode" className="mt-2">
-            <div className="relative">
-              <div
-                className="absolute inset-0 rounded-2xl blur-lg animate-pulse"
-                style={{ background: "rgba(239,68,68,0.25)" }}
-              />
-              <div
-                className="relative px-5 py-3 rounded-2xl text-center text-sm font-bold border"
-                style={{
-                  background: "rgba(239,68,68,0.12)",
-                  backdropFilter: "blur(16px)",
-                  borderColor: "rgba(239,68,68,0.4)",
-                  color: "#FCA5A5",
-                }}
-              >
-                Still $25,000 short. Not even whole.
-              </div>
+          {/* Reveal 3: Warning */}
+          <RevealElement index={3} direction="explode" className="mt-4">
+            <div className="antigravity-pill-red px-4 py-2 text-sm font-bold">
+              Still $25,000 short. Not even whole.
             </div>
           </RevealElement>
         </div>
 
-        {/* Right — BlobClip with stressed couple portrait */}
+        {/* Right — Blob image */}
         <RevealElement index={4} direction="right" className="flex items-center justify-center">
           <BlobClip
-            imageSrc={coupleStressedImg}
-            imageAlt="Couple reviewing finances and debt"
-            height="400px"
+            gradient="linear-gradient(135deg, #8B9AAF 0%, #5A6B80 100%)"
+            label="Couple reviewing finances"
+            height="380px"
             variant={2}
-            imageStyle={{ objectPosition: "center top" }}
           />
         </RevealElement>
       </div>

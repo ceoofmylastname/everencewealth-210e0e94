@@ -3,6 +3,8 @@ import RevealElement from "../RevealElement";
 import GradientText from "../animations/GradientText";
 import ConfettiTrigger from "../animations/ConfettiTrigger";
 import { useRevealQueue } from "../RevealContext";
+import MeshGradient from "../MeshGradient";
+import MorphBlob from "../MorphBlob";
 
 export default function Slide26_Legacy() {
   const [showConfetti, setShowConfetti] = useState(false);
@@ -10,6 +12,9 @@ export default function Slide26_Legacy() {
 
   return (
     <div className="antigravity-slide">
+      <MeshGradient variant="gold" />
+      <MorphBlob size={400} color="rgba(200, 169, 110, 0.15)" top="-10%" right="-6%" delay={0} />
+      <MorphBlob size={320} color="rgba(26, 77, 62, 0.10)" bottom="-8%" left="-5%" delay={5} />
       {/* Warm golden background — always visible */}
       <div
         className="antigravity-full-bleed"
@@ -50,12 +55,12 @@ export default function Slide26_Legacy() {
         {/* Reveal 4: CTA Card */}
         <RevealElement index={4} direction="cardRise" className="mb-6">
           <div className="antigravity-card max-w-md text-center">
-            <p className="text-lg font-bold mb-4" style={{ color: "#1A4D3E" }}>
+            <p className="text-lg font-bold mb-4" style={{ color: "var(--ev-green)" }}>
               Schedule Your Financial Needs Assessment
             </p>
             <button
-              className="px-8 py-3 rounded-lg text-white font-bold text-base transition-all hover:opacity-90"
-              style={{ background: "#1A4D3E" }}
+              className="px-8 py-3 rounded-xl text-white font-bold text-base transition-all hover:opacity-90"
+              
             >
               Book My Strategy Session →
             </button>
@@ -66,7 +71,7 @@ export default function Slide26_Legacy() {
         <RevealElement index={5} direction="drift">
           <div
             className="text-xl font-bold tracking-wider mb-2"
-            style={{ color: "#C8A96E", fontFamily: "var(--font-display)" }}
+            style={{ color: "var(--ev-gold)", fontFamily: "var(--font-display)" }}
           >
             EVERENCE WEALTH
           </div>

@@ -1,5 +1,7 @@
 import RevealElement from "../RevealElement";
 import GradientText from "../animations/GradientText";
+import MeshGradient from "../MeshGradient";
+import MorphBlob from "../MorphBlob";
 
 const variableSteps = [
   { value: "100k", color: "#F3F4F6" },
@@ -19,11 +21,14 @@ const indexedSteps = [
 
 export default function Slide15_SideBySide() {
   return (
-    <div className="antigravity-slide bg-white">
+    <div className="antigravity-slide">
+      <MeshGradient variant="warm" />
+      <MorphBlob size={300} color="rgba(200, 169, 110, 0.10)" top="-6%" right="-5%" delay={0} />
+      <MorphBlob size={260} color="rgba(26, 77, 62, 0.07)" bottom="-7%" left="-4%" delay={4} />
       <div className="antigravity-slide-inner">
         {/* Reveal 1: Title */}
         <RevealElement index={1} direction="slam" className="text-center mb-8">
-          <h2 className="text-3xl md:text-4xl font-bold" style={{ color: "#1A4D3E", fontFamily: "var(--font-display)" }}>
+          <h2 className="text-3xl md:text-4xl font-bold" style={{ color: "var(--ev-green)", fontFamily: "var(--font-display)" }}>
             Same Market. <GradientText>Different Strategy.</GradientText>
           </h2>
         </RevealElement>
@@ -39,7 +44,7 @@ export default function Slide15_SideBySide() {
                 {variableSteps.map((s, i) => (
                   <div
                     key={i}
-                    className={`text-center py-2 rounded-lg text-lg ${s.bold ? "font-bold text-2xl" : "font-medium"}`}
+                    className={`text-center py-2 rounded-xl text-lg ${s.bold ? "font-bold text-2xl" : "font-medium"}`}
                     style={{ background: s.color, color: s.textColor || "#4A5565" }}
                   >
                     <span className="antigravity-stat">{s.value}</span>
@@ -52,14 +57,14 @@ export default function Slide15_SideBySide() {
           {/* Reveal 3: Indexed Column */}
           <RevealElement index={3} direction="cardRise">
             <div className="rounded-2xl p-6" style={{ background: "#E8F0EC" }}>
-              <h3 className="text-xl font-bold mb-4 text-center" style={{ color: "#1A4D3E" }}>
+              <h3 className="text-xl font-bold mb-4 text-center" style={{ color: "var(--ev-green)" }}>
                 Indexed Strategy
               </h3>
               <div className="space-y-2">
                 {indexedSteps.map((s, i) => (
                   <div
                     key={i}
-                    className={`text-center py-2 rounded-lg text-lg ${s.bold ? "font-bold text-2xl" : "font-medium"}`}
+                    className={`text-center py-2 rounded-xl text-lg ${s.bold ? "font-bold text-2xl" : "font-medium"}`}
                     style={{ background: s.color, color: s.textColor || "#1A4D3E" }}
                   >
                     <span className="antigravity-stat">{s.value}</span>
@@ -74,7 +79,7 @@ export default function Slide15_SideBySide() {
         <RevealElement index={4} direction="explode" className="flex justify-center">
           <div className="antigravity-card-dark px-8 py-4 text-center">
             <p className="text-xl text-white">
-              $75k vs $125k — <strong style={{ color: "#C8A96E" }}>$50,000 Difference</strong>
+              $75k vs $125k — <strong style={{ color: "var(--ev-gold)" }}>$50,000 Difference</strong>
             </p>
           </div>
         </RevealElement>

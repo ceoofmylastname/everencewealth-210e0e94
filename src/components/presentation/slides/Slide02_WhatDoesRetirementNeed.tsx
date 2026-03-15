@@ -1,7 +1,8 @@
 import RevealElement from "../RevealElement";
 import GoldUnderline from "../animations/GoldUnderline";
 import { BarChart2, Layers, Home, TrendingUp, Users } from "lucide-react";
-import { motion } from "framer-motion";
+import MeshGradient from "../MeshGradient";
+import MorphBlob from "../MorphBlob";
 
 const cards = [
   { icon: BarChart2, label: "Stocks?" },
@@ -13,114 +14,55 @@ const cards = [
 
 export default function Slide02_WhatDoesRetirementNeed() {
   return (
-    <div className="antigravity-slide antigravity-slide02-bg">
-      {/* Animated gradient mesh background */}
-      <div className="antigravity-slide02-mesh" />
-
-      <div className="antigravity-slide-inner" style={{ position: "relative", zIndex: 2 }}>
-        {/* Headline */}
-        <RevealElement index={1} direction="slam" className="text-center mb-14">
-          <h2
-            className="text-4xl md:text-5xl font-bold"
-            style={{
-              color: "#1A4D3E",
-              fontFamily: "var(--font-display)",
-              lineHeight: "var(--lh-title)",
-              letterSpacing: "var(--ls-hero)",
-            }}
-          >
+    <div className="antigravity-slide">
+      <MeshGradient variant="warm" />
+      <MorphBlob size={350} color="rgba(200, 169, 110, 0.10)" top="-8%" right="-5%" delay={0} />
+      <MorphBlob size={250} color="rgba(26, 77, 62, 0.06)" bottom="-6%" left="-4%" delay={3} />
+      <div className="antigravity-slide-inner">
+        {/* Reveal 1: Headline */}
+        <RevealElement index={1} direction="slam" className="text-center mb-12">
+          <h2 className="text-4xl md:text-5xl font-bold" style={{ color: "var(--ev-green)", fontFamily: "var(--font-display)" }}>
             What does every
           </h2>
-          <h2
-            className="text-4xl md:text-5xl font-bold"
-            style={{
-              fontFamily: "var(--font-display)",
-              lineHeight: "var(--lh-title)",
-              letterSpacing: "var(--ls-hero)",
-            }}
-          >
-            <GoldUnderline>
-              <span className="antigravity-gradient-text" style={{
-                background: "linear-gradient(90deg, #C8A96E, #EDDB77, #C8A96E, #EDDB77)",
-                backgroundSize: "300% 100%",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-              }}>
-                Retirement Account
-              </span>
-            </GoldUnderline>{" "}
-            <span style={{ color: "#1A4D3E" }}>need?</span>
+          <h2 className="text-4xl md:text-5xl font-bold" style={{ color: "var(--ev-green)", fontFamily: "var(--font-display)" }}>
+            <GoldUnderline>Retirement Account</GoldUnderline> need?
           </h2>
         </RevealElement>
 
-        {/* Glass cards grid */}
-        <RevealElement index={2} direction="cardRise" className="flex flex-wrap justify-center gap-5 mb-6">
+        {/* Reveal 2-3: Icon cards (first 3, then last 2) */}
+        <RevealElement index={2} direction="cardRise" className="flex flex-wrap justify-center gap-6 mb-4">
           {cards.slice(0, 3).map((card, i) => (
-            <motion.div
+            <div
               key={i}
-              className="antigravity-glass-card flex flex-col items-center gap-4"
-              style={{ width: 160, padding: 28, perspective: 800 }}
-              whileHover={{
-                rotateX: -5,
-                rotateY: 5,
-                scale: 1.08,
-                boxShadow: "0 12px 48px rgba(26,77,62,0.15), 0 0 80px rgba(200,169,110,0.1)",
-              }}
-              transition={{ type: "spring", stiffness: 300, damping: 20 }}
+              className="antigravity-card flex flex-col items-center gap-3 w-[140px]"
             >
-              <div className="antigravity-icon-orb">
-                <card.icon className="w-7 h-7" style={{ color: "#fff" }} />
-              </div>
-              <span style={{ color: "var(--ev-green)", fontFamily: "var(--font-body)", fontSize: 15, fontWeight: 500 }}>
-                {card.label}
-              </span>
-            </motion.div>
+              <card.icon className="w-10 h-10" style={{ color: "var(--ev-green)" }} />
+              <span className="text-base" style={{ color: "var(--ev-text-light)" }}>{card.label}</span>
+            </div>
           ))}
         </RevealElement>
 
-        <RevealElement index={3} direction="cardRise" className="flex flex-wrap justify-center gap-5 mb-14">
+        <RevealElement index={3} direction="cardRise" className="flex flex-wrap justify-center gap-6 mb-12">
           {cards.slice(3).map((card, i) => (
-            <motion.div
+            <div
               key={i}
-              className="antigravity-glass-card flex flex-col items-center gap-4"
-              style={{ width: 160, padding: 28, perspective: 800 }}
-              whileHover={{
-                rotateX: -5,
-                rotateY: -5,
-                scale: 1.08,
-                boxShadow: "0 12px 48px rgba(26,77,62,0.15), 0 0 80px rgba(200,169,110,0.1)",
-              }}
-              transition={{ type: "spring", stiffness: 300, damping: 20 }}
+              className="antigravity-card flex flex-col items-center gap-3 w-[140px]"
             >
-              <div className="antigravity-icon-orb">
-                <card.icon className="w-7 h-7" style={{ color: "#fff" }} />
-              </div>
-              <span style={{ color: "var(--ev-green)", fontFamily: "var(--font-body)", fontSize: 15, fontWeight: 500 }}>
-                {card.label}
-              </span>
-            </motion.div>
+              <card.icon className="w-10 h-10" style={{ color: "var(--ev-green)" }} />
+              <span className="text-base" style={{ color: "var(--ev-text-light)" }}>{card.label}</span>
+            </div>
           ))}
         </RevealElement>
 
-        {/* Gold divider */}
-        <RevealElement index={4} direction="wipe" className="flex justify-center mb-8">
-          <div className="antigravity-gold-divider" />
+        {/* Reveal 4: Divider */}
+        <RevealElement index={4} direction="wipe" className="flex justify-center mb-6">
+          <div className="w-[80px] h-[2px]" style={{ background: "var(--ev-gold)" }} />
         </RevealElement>
 
-        {/* Answer */}
+        {/* Reveal 5: Answer */}
         <RevealElement index={5} direction="explode" className="text-center">
-          <p
-            className="text-3xl md:text-4xl font-bold"
-            style={{
-              color: "#1A4D3E",
-              fontFamily: "var(--font-display)",
-              lineHeight: "var(--lh-title)",
-            }}
-          >
-            Retirement needs...{" "}
-            <GoldUnderline>
-              <span className="antigravity-gold-glow-text">Strategy.</span>
-            </GoldUnderline>
+          <p className="text-2xl md:text-3xl font-bold" style={{ color: "var(--ev-green)", fontFamily: "var(--font-display)" }}>
+            Retirement needs... <GoldUnderline><span style={{ color: "var(--ev-gold)" }}>Strategy.</span></GoldUnderline>
           </p>
         </RevealElement>
       </div>

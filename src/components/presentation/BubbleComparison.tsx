@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 interface BubbleItem {
   label: string;
   value: string;
-  size: number; // 1-3 scale
+  size: number;
   color: string;
 }
 
@@ -28,25 +28,29 @@ export default function BubbleComparison({ items, animate = false }: BubbleCompa
             transition={{ duration: 0.6, delay: i * 0.2, ease: "backOut" }}
           >
             <div
-              className="rounded-full flex items-center justify-center mb-3"
+              className="flex items-center justify-center mb-3"
               style={{
                 width: diameter,
                 height: diameter,
-                background: item.color,
-                boxShadow: `0 8px 32px ${item.color}40`,
+                background: `${item.color}cc`,
+                backdropFilter: "blur(8px)",
+                WebkitBackdropFilter: "blur(8px)",
+                borderRadius: "var(--radius-full)",
+                boxShadow: `0 8px 32px ${item.color}30`,
+                border: "1px solid rgba(255, 255, 255, 0.3)",
               }}
             >
               <span
-                className="text-white font-bold"
+                className="font-bold antigravity-stat"
                 style={{
                   fontSize: diameter / 4,
-                  fontFamily: "'Geist Mono', monospace",
+                  color: "white",
                 }}
               >
                 {item.value}
               </span>
             </div>
-            <span className="text-xs font-medium text-gray-600 text-center max-w-[120px]">
+            <span className="text-xs font-medium text-center max-w-[120px]" style={{ color: "var(--ev-text-light)" }}>
               {item.label}
             </span>
           </motion.div>

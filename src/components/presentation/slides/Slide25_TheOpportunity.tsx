@@ -1,7 +1,8 @@
 import RevealElement from "../RevealElement";
 import GradientText from "../animations/GradientText";
 import BlobClip from "../BlobClip";
-import teamImg from "@/assets/team-collaboration.jpg";
+import MeshGradient from "../MeshGradient";
+import MorphBlob from "../MorphBlob";
 
 const benefits = [
   "Build a business on your own schedule",
@@ -12,16 +13,19 @@ const benefits = [
 
 export default function Slide25_TheOpportunity() {
   return (
-    <div className="antigravity-slide" style={{ background: "#F9F8F5" }}>
+    <div className="antigravity-slide" style={{ background: "transparent" }}>
+      <MeshGradient variant="gold" />
+      <MorphBlob size={340} color="rgba(200, 169, 110, 0.12)" top="-7%" right="-5%" delay={0} />
+      <MorphBlob size={280} color="rgba(26, 77, 62, 0.08)" bottom="-6%" left="-4%" delay={3} />
       <div className="antigravity-editorial">
         {/* Left */}
         <div>
           {/* Reveal 1: Title */}
           <RevealElement index={1} direction="slam">
-            <h2 className="text-4xl font-bold mb-2" style={{ color: "#1A4D3E", fontFamily: "var(--font-display)" }}>
+            <h2 className="text-4xl font-bold mb-2" style={{ color: "var(--ev-green)", fontFamily: "var(--font-display)" }}>
               The <GradientText>Opportunity</GradientText>
             </h2>
-            <p className="text-lg mb-8" style={{ color: "#4A5565" }}>
+            <p className="text-lg mb-8" style={{ color: "var(--ev-text-light)" }}>
               Join the Everence Wealth team and help families bridge their retirement gap.
             </p>
           </RevealElement>
@@ -33,15 +37,15 @@ export default function Slide25_TheOpportunity() {
                 <div
                   key={i}
                   className="flex items-center gap-3 px-4 py-3 rounded-xl"
-                  style={{ background: "white", boxShadow: "0 2px 8px rgba(26,77,62,0.08)" }}
+                  style={{ background: "rgba(255,255,255,0.45)", boxShadow: "0 2px 8px rgba(26,77,62,0.08)" }}
                 >
                   <div
                     className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
-                    style={{ background: "#C8A96E", color: "white", fontWeight: 700, fontSize: 14 }}
+                    style={{ background: "var(--ev-gold)", color: "white", fontWeight: 700, fontSize: 14 }}
                   >
                     {i + 1}
                   </div>
-                  <span className="text-base" style={{ color: "#1A4D3E" }}>{benefit}</span>
+                  <span className="text-base" style={{ color: "var(--ev-green)" }}>{benefit}</span>
                 </div>
               ))}
             </div>
@@ -61,8 +65,8 @@ export default function Slide25_TheOpportunity() {
         {/* Right — Blob image */}
         <RevealElement index={4} direction="right" className="flex items-center justify-center">
           <BlobClip
-            imageSrc={teamImg}
-            imageAlt="Team collaboration in modern office"
+            gradient="linear-gradient(135deg, #1A4D3E 0%, #C8A96E 60%, #0D1F1A 100%)"
+            label="Team collaboration"
             height="380px"
             variant={1}
           />
