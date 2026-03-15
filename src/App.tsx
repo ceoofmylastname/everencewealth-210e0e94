@@ -381,8 +381,7 @@ const App = () => (
               <Route path="/admin/apartments-properties" element={<ProtectedRoute><ApartmentsProperties /></ProtectedRoute>} />
               <Route path="/admin/apartments-editors" element={<ProtectedRoute><ApartmentsEditorManager /></ProtectedRoute>} />
 
-              {/* Antigravity Presentation System */}
-              <Route path="/admin/presentation" element={<ProtectedRoute><Presentation /></ProtectedRoute>} />
+              {/* Presentation System — moved to portal */}
 
               {/* Apartments Editor Login (public) */}
               <Route path="/apartments/login" element={<ApartmentsAuth />} />
@@ -445,6 +444,7 @@ const App = () => (
                   <Route path="workshops/create" element={<WorkshopCreate />} />
                   <Route path="workshops/:workshopId" element={<WorkshopDetail />} />
                   <Route path="socorro-workshop" element={<SocorroWorkshopManage />} />
+                  <Route path="presentation" element={<Presentation />} />
                 </Route>
               </Route>
               <Route path="/portal/client" element={<ClientRoute />}>
@@ -475,6 +475,7 @@ const App = () => (
                   <Route path="compliance" element={<AdminCompliancePage />} />
                   <Route path="assessment-leads" element={<CrmAssessmentLeads />} />
                   <Route path="socorro-workshop" element={<AdminSocorroWorkshop />} />
+                  <Route path="presentation" element={<Presentation />} />
                 </Route>
               </Route>
 

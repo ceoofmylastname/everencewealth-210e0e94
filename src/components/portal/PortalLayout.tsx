@@ -7,7 +7,8 @@ import {
   Shield, LogOut, LayoutDashboard, FileText, Users, Send,
   FolderOpen, Menu, X, ChevronRight, ChevronDown, MessageSquare,
   Building2, TrendingUp, Wrench, GraduationCap, Megaphone, Calendar, Newspaper,
-  Settings, ClipboardList, Briefcase, GitBranch, Lock, AlertTriangle, Target, Wand2
+  Settings, ClipboardList, Briefcase, GitBranch, Lock, AlertTriangle, Target, Wand2,
+  Presentation,
 } from "lucide-react";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import { Button } from "@/components/ui/button";
@@ -160,6 +161,23 @@ export function PortalLayout() {
 
   const isAdvisor = portalUser?.role === "advisor" || portalUser?.role === "admin";
   const isAdmin = portalUser?.role === "admin";
+  const hasPresentationAccess = !!(portalUser as any)?.presentation_access || isAdmin;
+
+  // Build nav groups with conditional presentation link
+  const navGroups = useMemo(() => {
+    return advisorNavGroups.map(group => {
+      if (group.label === "Resources" && hasPresentationAccess) {
+        return {
+          ...group,
+          items: [
+            ...group.items,
+            { label: "Workshop Presentation", icon: Presentation, href: "/portal/advisor/presentation" },
+          ],
+        };
+      }
+      return group;
+    });
+  }, [hasPresentationAccess]);
 
   // Route-level guard: redirect gated users away from non-contracting routes
   useEffect(() => {
@@ -171,7 +189,7 @@ export function PortalLayout() {
   // Auto-expand group containing active route
   useEffect(() => {
     if (!isAdvisor) return;
-    for (const group of advisorNavGroups) {
+    for (const group of navGroups) {
       if (group.items.some((item) => isActive(item.href))) {
         setOpenGroup(group.label);
         return;
@@ -237,7 +255,7 @@ export function PortalLayout() {
       {/* Nav */}
       <nav className="flex-1 py-4 px-3 overflow-y-auto space-y-1">
         {isAdvisor ? (
-          advisorNavGroups.map((group) => {
+          navGroups.map((group) => {
             let groupItems = group.items;
             if (isAdmin && group.label === "Compliance") {
               groupItems = [...groupItems, { label: "Admin Panel", icon: Settings, href: "/portal/admin/agents" }];

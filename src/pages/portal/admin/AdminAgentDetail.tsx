@@ -4,8 +4,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ArrowLeft, Save, UserMinus, UserCheck } from "lucide-react";
+import { ArrowLeft, Save, UserMinus, UserCheck, Presentation } from "lucide-react";
 import { toast } from "sonner";
 import { ReassignAdvisorDialog } from "@/components/portal/admin/ReassignAdvisorDialog";
 
@@ -43,6 +44,8 @@ export default function AdminAgentDetail() {
   const [saving, setSaving] = useState(false);
   const [editForm, setEditForm] = useState<Partial<AdvisorData>>({});
   const [reassignClient, setReassignClient] = useState<ClientRow | null>(null);
+  const [presentationAccess, setPresentationAccess] = useState(false);
+  const [togglingPresentation, setTogglingPresentation] = useState(false);
 
   useEffect(() => { if (id) fetchData(); }, [id]);
 
@@ -57,6 +60,14 @@ export default function AdminAgentDetail() {
     if (!adv) { setLoading(false); return; }
     setAdvisor(adv as AdvisorData);
     setEditForm(adv as AdvisorData);
+
+    // Fetch presentation_access from portal_users
+    const { data: portalData } = await supabase
+      .from("portal_users")
+      .select("presentation_access")
+      .eq("id", (adv as any).portal_user_id)
+      .single();
+    setPresentationAccess(!!(portalData as any)?.presentation_access);
 
     const { data: clientData } = await (supabase
       .from("portal_users")
@@ -107,6 +118,22 @@ export default function AdminAgentDetail() {
     } else {
       toast.success("Agent updated");
       fetchData();
+    }
+  }
+
+  async function togglePresentationAccess(checked: boolean) {
+    if (!advisor) return;
+    setTogglingPresentation(true);
+    const { error } = await supabase
+      .from("portal_users")
+      .update({ presentation_access: checked } as any)
+      .eq("id", advisor.portal_user_id);
+    setTogglingPresentation(false);
+    if (error) {
+      toast.error("Failed to update presentation access");
+    } else {
+      setPresentationAccess(checked);
+      toast.success(checked ? "Presentation access granted" : "Presentation access revoked");
     }
   }
 
@@ -178,6 +205,24 @@ export default function AdminAgentDetail() {
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 text-center">
           <p className="text-3xl font-bold text-[#1A4D3E]">{policyCount}</p>
           <p className="text-sm text-gray-500 mt-1">Active Policies</p>
+        </div>
+      </div>
+
+      {/* Presentation Access Toggle */}
+      <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Presentation className="h-5 w-5 text-[#1A4D3E]" />
+            <div>
+              <p className="text-sm font-semibold text-gray-900">Workshop Presentation Access</p>
+              <p className="text-xs text-gray-500">Allow this agent to view the workshop presentation on their dashboard</p>
+            </div>
+          </div>
+          <Switch
+            checked={presentationAccess}
+            onCheckedChange={togglePresentationAccess}
+            disabled={togglingPresentation}
+          />
         </div>
       </div>
 

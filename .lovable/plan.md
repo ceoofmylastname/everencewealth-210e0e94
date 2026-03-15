@@ -1,36 +1,40 @@
 
 
-## Move Presentation to Portal & Add Per-Agent Access Control
+## Plan: Add Registration Time (10:30 AM) to Landing Page and Emails
 
-### What's changing
+### 1. Landing Page Changes (`src/pages/TrainingEvent.tsx`)
 
-1. **Remove** the "Workshop Presentation" link from the `/admin` sidebar (AdminLayout.tsx) — it doesn't belong in the blog/SEO admin.
-
-2. **Add** a "Workshop Presentation" link to the **Admin Portal sidebar** (`AdminPortalLayout.tsx`) under the "Resources" group, pointing to `/portal/admin/presentation`.
-
-3. **Add a new route** `/portal/admin/presentation` inside the admin portal route group in `App.tsx`, rendering the existing `PresentationViewer` component (with `onExit` navigating back to `/portal/admin/agents`).
-
-4. **Database: Add `presentation_access` column** to `portal_users` table — a boolean (default `false`) that flags whether an advisor can see the presentation link on their dashboard.
-
-5. **Admin Agent Detail page** (`AdminAgentDetail.tsx`) — Add a toggle switch labeled "Workshop Presentation Access" so admins can grant/revoke access with one click. This updates `portal_users.presentation_access` for that agent.
-
-6. **Advisor Portal nav** (`PortalLayout.tsx`) — Conditionally show a "Workshop Presentation" link under the "Portal" group when the logged-in advisor has `presentation_access = true`.
-
-7. **Add advisor presentation route** `/portal/advisor/presentation` in `App.tsx` — renders `PresentationViewer` with `onExit` back to advisor dashboard.
-
-### Files to modify
-- `src/components/AdminLayout.tsx` — remove Workshop Presentation nav item
-- `src/components/portal/AdminPortalLayout.tsx` — add Presentation link to Resources group
-- `src/App.tsx` — add two new routes (admin + advisor presentation)
-- `src/pages/portal/admin/AdminAgentDetail.tsx` — add toggle for `presentation_access`
-- `src/components/portal/PortalLayout.tsx` — conditionally show Presentation link
-- **Migration** — `ALTER TABLE portal_users ADD COLUMN presentation_access boolean DEFAULT false`
-
-### Database migration
-```sql
-ALTER TABLE public.portal_users 
-ADD COLUMN IF NOT EXISTS presentation_access boolean NOT NULL DEFAULT false;
+**A. Add registration time to the event details pills (line 284)**
+Change "11:00 AM - 4:00 PM" to include registration:
+```
+Registration: 10:30 AM
+Event: 11:00 AM – 4:00 PM
 ```
 
-No new RLS needed — existing portal_users policies already cover admin read/write and advisor self-read.
+**B. Add registration time to the confirmation card (line 161)**
+Update the time display from `11:00 AM – 4:00 PM PT` to `Registration 10:30 AM | Event 11:00 AM – 4:00 PM PT`
+
+**C. Update session highlights (line 11)**
+Add a "10:30 AM" registration/check-in entry as the first item in `sessionHighlights`.
+
+### 2. Email Changes
+
+**A. Registration confirmation email (`supabase/functions/register-training-event/index.ts`)**
+Add registration and event times to the event details block (currently only shows date and location):
+```
+🕐 Registration: 10:30 AM PST
+🕐 Event: 11:00 AM – 4:00 PM PST
+```
+
+**B. Reminder emails (`supabase/functions/process-training-reminders/index.ts`, line 92)**
+Update the time line from `11:00 AM to 4:00 PM PST` to include registration:
+```
+🕐 Registration: 10:30 AM PST
+🕐 Event: 11:00 AM – 4:00 PM PST
+```
+
+### Files Modified
+- `src/pages/TrainingEvent.tsx` — 3 spots (session highlights array, event pills, confirmation card)
+- `supabase/functions/register-training-event/index.ts` — add times to email
+- `supabase/functions/process-training-reminders/index.ts` — update time line
 
