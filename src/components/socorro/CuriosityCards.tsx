@@ -6,17 +6,17 @@ const cards = [
   {
     icon: "🔒",
     question:
-      "Is your current retirement account actually protected from market losses?",
+      "Your 401(k) isn't as safe as you thought — and now you know why.",
   },
   {
     icon: "💰",
     question:
-      "How much are hidden fees silently costing you over 30 years?",
+      "The fees you're paying could cost you six figures by retirement.",
   },
   {
     icon: "📊",
     question:
-      "Are there tax strategies your HR department was never required to tell you about?",
+      "There are tax strategies your HR department was never required to share.",
   },
 ];
 
@@ -35,10 +35,10 @@ export default function CuriosityCards() {
               letterSpacing: "0.2em",
             }}
           >
-            What You'll Discover
+            What the Workshop Revealed
           </span>
           <ShimmerHeadline as="h2" className="mt-3 mb-12 text-[clamp(28px,4vw,40px)]">
-            Questions Worth Asking
+            You Can't Unsee the Truth
           </ShimmerHeadline>
         </ScrollReveal>
 
@@ -81,8 +81,8 @@ export default function CuriosityCards() {
               fontFamily: "'DM Sans', system-ui, sans-serif",
             }}
           >
-            These aren't trick questions. They're the starting point for every
-            conversation we have.
+            The question isn't whether these apply to you. It's what you're
+            going to do about it.
           </p>
         </ScrollReveal>
       </div>

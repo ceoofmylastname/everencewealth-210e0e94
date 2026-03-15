@@ -55,7 +55,7 @@ export default function SocorroHero() {
               textTransform: "uppercase",
             }}
           >
-            SISD Official Vendor &nbsp;·&nbsp; March 24–28, 2026
+            SISD OFFICIAL VENDOR &nbsp;·&nbsp; LIMITED DISCOVERY SESSIONS
           </span>
         </motion.div>
 
@@ -67,10 +67,10 @@ export default function SocorroHero() {
           animate="show"
         >
           <motion.span className="line-1" variants={lineVariant}>
-            Are You Leaving <em className="slash-word">Retirement</em>
+            You Saw the <em className="slash-word">Numbers.</em>
           </motion.span>
           <motion.span className="line-2" variants={lineVariant}>
-            Money on the Table?
+            Now What Are You Going to Do About It?
           </motion.span>
         </motion.h1>
 
@@ -87,8 +87,7 @@ export default function SocorroHero() {
             maxWidth: "600px",
           }}
         >
-          Most SISD employees don't know what they're missing. This workshop
-          changes that.
+          The workshop showed you what's possible. This call makes it real.
         </motion.p>
 
         {/* Body */}
@@ -105,10 +104,10 @@ export default function SocorroHero() {
             lineHeight: 1.7,
           }}
         >
-          Join us for an exclusive financial education session designed
-          specifically for Socorro ISD employees — where we break down the
-          strategies that help public school employees build, protect, and
-          maximize their retirement.
+          You sat through the session. You saw how hidden fees, outdated
+          strategies, and missed tax advantages quietly drain your retirement.
+          Now you have a choice — go back to hoping, or sit down with someone
+          who can actually show you your options.
         </motion.p>
 
         {/* CTA */}
@@ -118,7 +117,7 @@ export default function SocorroHero() {
           transition={{ duration: 0.6, delay: 0.55 }}
         >
           <GoldCTA href="/socorro-isd/advisors" size="lg">
-            Reserve Your Seat &rarr;
+            Book Your Discovery Call &rarr;
           </GoldCTA>
         </motion.div>
 
@@ -134,8 +133,7 @@ export default function SocorroHero() {
             color: "rgba(255,255,255,0.4)",
           }}
         >
-          Socorro ISD Campus &nbsp;·&nbsp; Free, No-Obligation &nbsp;·&nbsp;
-          5-Minute Discovery Sessions Available
+          Free &nbsp;·&nbsp; No Obligation &nbsp;·&nbsp; 100% Confidential
         </motion.p>
 
         {/* Scroll indicator */}

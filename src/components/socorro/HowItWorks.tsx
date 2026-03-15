@@ -6,20 +6,20 @@ const steps = [
   {
     num: 1,
     icon: UserRound,
-    title: "Choose Your Advisor",
-    desc: "Browse our team of licensed financial advisors and pick the one that feels right for you.",
+    title: "Pick Your Advisor",
+    desc: "Choose from our licensed team — someone who understands public school retirement.",
   },
   {
     num: 2,
     icon: CalendarDays,
-    title: "Pick a Time",
-    desc: "Select a date and time during the workshop week that works with your schedule.",
+    title: "Schedule 15 Minutes",
+    desc: "Pick a time that works. No prep needed — just show up.",
   },
   {
     num: 3,
     icon: Handshake,
-    title: "Meet & Plan",
-    desc: "Sit down for a complimentary one-on-one session to discuss your financial future.",
+    title: "Get Your Personal Snapshot",
+    desc: "We'll walk through your current situation and show you what's possible. No pressure. No pitch.",
   },
 ];
 
@@ -39,7 +39,7 @@ export default function HowItWorks() {
                 letterSpacing: "0.2em",
               }}
             >
-              How It Works
+              Your Next Move
             </span>
             <h2
               className="socorro-shimmer-text mt-3"
@@ -50,7 +50,7 @@ export default function HowItWorks() {
                 lineHeight: 1.2,
               }}
             >
-              Three Simple Steps
+              Here's How the Call Works
             </h2>
           </div>
         </ScrollReveal>
