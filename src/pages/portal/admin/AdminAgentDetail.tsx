@@ -44,6 +44,8 @@ export default function AdminAgentDetail() {
   const [saving, setSaving] = useState(false);
   const [editForm, setEditForm] = useState<Partial<AdvisorData>>({});
   const [reassignClient, setReassignClient] = useState<ClientRow | null>(null);
+  const [presentationAccess, setPresentationAccess] = useState(false);
+  const [togglingPresentation, setTogglingPresentation] = useState(false);
 
   useEffect(() => { if (id) fetchData(); }, [id]);
 
