@@ -8,8 +8,10 @@ const columns = [
   {
     rate: "7%",
     color: "#1A4D3E",
-    glowColor: "rgba(26, 77, 62, 0.35)",
-    doubling: "10.2 years",
+    gradientFrom: "rgba(26, 77, 62, 0.08)",
+    gradientTo: "rgba(26, 77, 62, 0.02)",
+    glowColor: "rgba(26, 77, 62, 0.25)",
+    doubling: "10.2 yrs",
     rows: [
       { age: 30, value: 20000 },
       { age: 40, value: 40000 },
@@ -20,8 +22,10 @@ const columns = [
   {
     rate: "10%",
     color: "#C8A96E",
-    glowColor: "rgba(200, 169, 110, 0.35)",
-    doubling: "7.2 years",
+    gradientFrom: "rgba(200, 169, 110, 0.10)",
+    gradientTo: "rgba(200, 169, 110, 0.02)",
+    glowColor: "rgba(200, 169, 110, 0.30)",
+    doubling: "7.2 yrs",
     rows: [
       { age: 30, value: 20000 },
       { age: 37, value: 40000 },
@@ -34,8 +38,10 @@ const columns = [
   {
     rate: "12%",
     color: "#C8A96E",
-    glowColor: "rgba(200, 169, 110, 0.45)",
-    doubling: "6 years",
+    gradientFrom: "rgba(200, 169, 110, 0.12)",
+    gradientTo: "rgba(200, 169, 110, 0.03)",
+    glowColor: "rgba(200, 169, 110, 0.35)",
+    doubling: "6 yrs",
     rows: [
       { age: 30, value: 20000 },
       { age: 36, value: 40000 },
@@ -48,14 +54,14 @@ const columns = [
   },
 ];
 
-function TiltCard({
-  children,
-  color,
-  glowColor,
+function CompoundCard({
+  col,
+  ci,
+  isRevealed,
 }: {
-  children: React.ReactNode;
-  color: string;
-  glowColor: string;
+  col: typeof columns[0];
+  ci: number;
+  isRevealed: boolean;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const [transform, setTransform] = useState("perspective(800px) rotateX(0deg) rotateY(0deg)");
@@ -66,7 +72,7 @@ function TiltCard({
     const rect = ref.current.getBoundingClientRect();
     const x = (e.clientX - rect.left) / rect.width - 0.5;
     const y = (e.clientY - rect.top) / rect.height - 0.5;
-    setTransform(`perspective(800px) rotateY(${x * 8}deg) rotateX(${-y * 8}deg) translateY(-6px) scale(1.02)`);
+    setTransform(`perspective(800px) rotateY(${x * 6}deg) rotateX(${-y * 6}deg) translateY(-4px) scale(1.01)`);
   }, []);
 
   const handleMouseLeave = useCallback(() => {
@@ -76,43 +82,187 @@ function TiltCard({
 
   return (
     <div
-      className="slide07-border-wrapper"
-      style={{ "--border-color": color, "--border-glow": glowColor } as React.CSSProperties}
+      className="slide07-card-outer"
+      style={{ "--card-accent": col.color, "--card-glow": col.glowColor } as React.CSSProperties}
     >
       <div
         ref={ref}
         onMouseMove={(e) => { handleMouseMove(e); setIsHovered(true); }}
         onMouseLeave={handleMouseLeave}
-        className="relative overflow-hidden rounded-2xl"
         style={{
           transform,
-          transition: "all 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
+          transition: "all 0.45s cubic-bezier(0.16, 1, 0.3, 1)",
           transformStyle: "preserve-3d",
-          background: "rgba(255, 255, 255, 0.65)",
-          backdropFilter: "blur(16px)",
-          WebkitBackdropFilter: "blur(16px)",
-          padding: "28px 24px",
+          borderRadius: 24,
+          padding: "32px 28px 28px",
+          position: "relative",
+          overflow: "hidden",
+          background: `linear-gradient(160deg, ${col.gradientFrom}, ${col.gradientTo}, rgba(255,255,255,0.9))`,
+          backdropFilter: "blur(20px)",
+          WebkitBackdropFilter: "blur(20px)",
           boxShadow: isHovered
-            ? `0 24px 60px -12px ${glowColor}, 0 12px 24px -8px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.8)`
-            : `0 8px 32px -8px rgba(0,0,0,0.08), 0 4px 12px -4px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.8)`,
+            ? `0 20px 50px -12px ${col.glowColor}, 0 8px 20px -8px rgba(0,0,0,0.06)`
+            : "0 4px 24px -4px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.03)",
         }}
       >
-        {/* Light sweep */}
+        {/* Animated border overlay */}
+        <div
+          className="slide07-border-ring"
+          style={{
+            position: "absolute",
+            inset: 0,
+            borderRadius: 24,
+            pointerEvents: "none",
+            zIndex: 10,
+            opacity: isHovered ? 1 : 0.5,
+            transition: "opacity 0.4s ease",
+          }}
+        />
+
+        {/* Subtle top highlight */}
+        <div
+          style={{
+            position: "absolute",
+            top: 0,
+            left: "10%",
+            right: "10%",
+            height: 1,
+            background: `linear-gradient(90deg, transparent, ${col.color}44, transparent)`,
+            borderRadius: "0 0 50% 50%",
+            zIndex: 5,
+          }}
+        />
+
+        {/* Light sweep on hover */}
         <div
           style={{
             position: "absolute",
             inset: 0,
             borderRadius: "inherit",
-            background: "linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.25) 50%, transparent 60%)",
-            backgroundSize: "200% 100%",
+            background: "linear-gradient(115deg, transparent 42%, rgba(255,255,255,0.5) 50%, transparent 58%)",
+            backgroundSize: "250% 100%",
             backgroundPosition: isHovered ? "100% 0" : "-100% 0",
-            transition: "background-position 0.6s ease",
+            transition: "background-position 0.7s ease",
             pointerEvents: "none",
-            zIndex: 5,
+            zIndex: 6,
           }}
         />
-        <div className="relative" style={{ zIndex: 2 }}>
-          {children}
+
+        {/* Rate circle */}
+        <div className="relative flex justify-center mb-5" style={{ zIndex: 7 }}>
+          <div
+            style={{
+              width: 96,
+              height: 96,
+              borderRadius: "50%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              background: `radial-gradient(circle at 40% 35%, ${col.gradientFrom}, transparent 70%)`,
+              border: `2.5px solid ${col.color}33`,
+              position: "relative",
+            }}
+          >
+            <span
+              style={{
+                fontFamily: "var(--font-display)",
+                fontSize: "clamp(28px, 3vw, 36px)",
+                fontWeight: 700,
+                color: col.color,
+                letterSpacing: "-0.02em",
+              }}
+            >
+              {col.rate}
+            </span>
+          </div>
+        </div>
+
+        {/* Doubling label */}
+        <div className="relative text-center mb-5" style={{ zIndex: 7 }}>
+          <span
+            style={{
+              fontFamily: "var(--font-body)",
+              fontSize: 11,
+              fontWeight: 600,
+              letterSpacing: "0.18em",
+              textTransform: "uppercase" as const,
+              color: "#9CA3AF",
+            }}
+          >
+            Doubles every
+          </span>
+          <span
+            style={{
+              fontFamily: "var(--font-mono)",
+              fontSize: 13,
+              fontWeight: 700,
+              letterSpacing: "0.06em",
+              color: col.color,
+              marginLeft: 6,
+            }}
+          >
+            {col.doubling}
+          </span>
+        </div>
+
+        {/* Divider */}
+        <div
+          style={{
+            height: 1,
+            background: `linear-gradient(90deg, transparent, ${col.color}22, transparent)`,
+            marginBottom: 16,
+          }}
+        />
+
+        {/* Rows */}
+        <div className="relative space-y-0.5" style={{ zIndex: 7 }}>
+          {col.rows.map((row, ri) => {
+            const isLast = ri === col.rows.length - 1;
+            return (
+              <div
+                key={ri}
+                className="flex items-center justify-between"
+                style={{
+                  padding: "8px 14px",
+                  borderRadius: 14,
+                  transition: "background 0.3s ease",
+                  ...(isLast
+                    ? {
+                        background: `linear-gradient(135deg, ${col.color}18, ${col.color}0A)`,
+                        border: `1px solid ${col.color}22`,
+                      }
+                    : {}),
+                }}
+              >
+                <span
+                  style={{
+                    fontFamily: "var(--font-body)",
+                    fontSize: 14,
+                    fontWeight: isLast ? 700 : 500,
+                    color: isLast ? col.color : "#6B7B74",
+                  }}
+                >
+                  Age {row.age}
+                </span>
+                <span
+                  style={{
+                    fontFamily: "var(--font-mono)",
+                    fontSize: 14,
+                    fontWeight: isLast ? 700 : 500,
+                    letterSpacing: "0.02em",
+                    color: isLast ? col.color : "#4A5565",
+                    fontVariantNumeric: "tabular-nums",
+                  }}
+                >
+                  {isRevealed ? (
+                    <CountingNumber value={row.value} prefix="$" />
+                  ) : (
+                    "$0"
+                  )}
+                </span>
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>
@@ -123,137 +273,137 @@ export default function Slide07_CompoundInterest() {
   const { isRevealed } = useRevealQueue();
 
   return (
-    <div className="antigravity-slide bg-white">
+    <div className="antigravity-slide" style={{ background: "#FAFAF8" }}>
       <style>{`
-        @keyframes slide07BorderRotate {
+        @keyframes slide07Border {
           0% { transform: rotate(0deg); }
           100% { transform: rotate(360deg); }
         }
-        .slide07-border-wrapper {
+        .slide07-card-outer {
           position: relative;
-          border-radius: 20px;
+          border-radius: 26px;
           padding: 2px;
-          isolation: isolate;
         }
-        .slide07-border-wrapper::before {
+        .slide07-border-ring {
+          overflow: hidden;
+        }
+        .slide07-border-ring::before {
           content: '';
           position: absolute;
-          inset: -2px;
-          border-radius: 22px;
+          inset: -50%;
           background: conic-gradient(
             from 0deg,
-            var(--border-color),
-            transparent 30%,
-            transparent 70%,
-            var(--border-color) 100%
+            var(--card-accent) 0%,
+            transparent 12%,
+            transparent 50%,
+            var(--card-accent) 62%,
+            transparent 75%,
+            transparent 100%
           );
-          animation: slide07BorderRotate 4s linear infinite;
-          z-index: -1;
-          opacity: 0.5;
+          animation: slide07Border 5s linear infinite;
+          z-index: 0;
         }
-        .slide07-border-wrapper::after {
+        .slide07-border-ring::after {
           content: '';
           position: absolute;
-          inset: 1px;
-          border-radius: 19px;
-          background: white;
-          z-index: -1;
+          inset: 2px;
+          border-radius: 22px;
+          background: inherit;
+          z-index: 1;
         }
-        .slide07-border-wrapper:hover::before {
-          opacity: 0.85;
+        .slide07-pill-shimmer {
+          position: relative;
+          overflow: hidden;
+        }
+        .slide07-pill-shimmer::after {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.3) 50%, transparent 60%);
+          background-size: 200% 100%;
+          animation: slide07PillSweep 3s ease-in-out infinite;
+        }
+        @keyframes slide07PillSweep {
+          0%, 100% { background-position: -100% 0; }
+          50% { background-position: 200% 0; }
         }
       `}</style>
 
       <div className="antigravity-slide-inner">
-        {/* Title */}
-        <RevealElement index={1} direction="slam" className="mb-2">
-          <h2 className="text-3xl md:text-4xl font-bold" style={{ color: "#1A4D3E", fontFamily: "var(--font-display)" }}>
-            Compound <GradientText>Interest</GradientText>
-          </h2>
-          <p className="text-xl mt-1" style={{ color: "#4A5565" }}>
-            The Rule of <strong style={{ color: "var(--ev-gold)" }}>72</strong>
+        {/* Title block */}
+        <RevealElement index={1} direction="slam" className="mb-4">
+          <div style={{ display: "flex", alignItems: "baseline", gap: 12, marginBottom: 4 }}>
+            <h2
+              style={{
+                fontFamily: "var(--font-display)",
+                fontSize: "clamp(32px, 4vw, 48px)",
+                fontWeight: 700,
+                color: "#1A4D3E",
+                letterSpacing: "-0.02em",
+                lineHeight: 1.1,
+              }}
+            >
+              Compound <GradientText>Interest</GradientText>
+            </h2>
+          </div>
+          <p
+            style={{
+              fontFamily: "var(--font-body)",
+              fontSize: "clamp(16px, 1.5vw, 20px)",
+              color: "#6B7B74",
+              marginTop: 4,
+            }}
+          >
+            The Rule of{" "}
+            <span
+              style={{
+                fontFamily: "var(--font-display)",
+                fontWeight: 700,
+                color: "var(--ev-gold)",
+                fontSize: "1.1em",
+              }}
+            >
+              72
+            </span>
           </p>
-          <p className="text-sm mt-2" style={{ color: "#4A5565" }}>
-            Investment of $20,000 at different rates of return starting at age 30
+          <p
+            style={{
+              fontFamily: "var(--font-body)",
+              fontSize: 13,
+              color: "#9CA3AF",
+              marginTop: 8,
+              letterSpacing: "0.01em",
+            }}
+          >
+            Investment of $20,000 at different rates of return · starting at age 30
           </p>
         </RevealElement>
 
-        {/* Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+        {/* Cards grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-7 mt-4">
           {columns.map((col, ci) => (
             <RevealElement key={ci} index={ci + 2} direction="cardRise">
-              <TiltCard color={col.color} glowColor={col.glowColor}>
-                {/* Gauge */}
-                <div className="flex justify-center mb-4">
-                  <div
-                    className="antigravity-gauge"
-                    style={{
-                      border: `3px solid ${col.color}`,
-                      borderBottom: "none",
-                    }}
-                  >
-                    <div
-                      className="antigravity-gauge-label"
-                      style={{
-                        color: col.color,
-                        fontFamily: "var(--font-display)",
-                        fontSize: "clamp(22px, 2.5vw, 30px)",
-                        fontWeight: 700,
-                      }}
-                    >
-                      {col.rate}
-                    </div>
-                  </div>
-                </div>
-                <p
-                  className="text-center mb-4"
-                  style={{
-                    color: "#4A5565",
-                    fontFamily: "var(--font-body)",
-                    fontSize: 12,
-                    letterSpacing: "0.2em",
-                    textTransform: "uppercase",
-                    fontWeight: 500,
-                  }}
-                >
-                  Doubles Every {col.doubling}
-                </p>
-                <div className="space-y-1">
-                  {col.rows.map((row, ri) => {
-                    const isLast = ri === col.rows.length - 1;
-                    return (
-                      <div
-                        key={ri}
-                        className={`flex justify-between text-sm px-3 py-1.5 rounded-lg ${isLast ? "font-bold" : ""}`}
-                        style={
-                          isLast
-                            ? {
-                                background: "#F5E6C8",
-                                color: "#1A4D3E",
-                              }
-                            : { color: "#4A5565" }
-                        }
-                      >
-                        <span style={{ fontFamily: "var(--font-body)", fontWeight: 500 }}>Age {row.age}</span>
-                        <span className="antigravity-stat">
-                          {isRevealed(ci + 2) ? (
-                            <CountingNumber value={row.value} prefix="$" />
-                          ) : (
-                            "$0"
-                          )}
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
-              </TiltCard>
+              <CompoundCard col={col} ci={ci} isRevealed={isRevealed(ci + 2)} />
             </RevealElement>
           ))}
         </div>
 
-        {/* Key insight */}
-        <RevealElement index={5} direction="explode" className="flex justify-center mt-6">
-          <div className="antigravity-pill-gold text-base font-bold px-6 py-2">
+        {/* Bottom insight pill */}
+        <RevealElement index={5} direction="explode" className="flex justify-center mt-8">
+          <div
+            className="slide07-pill-shimmer"
+            style={{
+              background: "linear-gradient(135deg, var(--ev-gold), #B8943E)",
+              color: "white",
+              fontFamily: "var(--font-display)",
+              fontWeight: 700,
+              fontSize: "clamp(14px, 1.3vw, 17px)",
+              letterSpacing: "0.03em",
+              padding: "12px 36px",
+              borderRadius: 9999,
+              boxShadow: "0 8px 28px -6px rgba(200, 169, 110, 0.45), 0 2px 8px rgba(0,0,0,0.06)",
+            }}
+          >
             2% difference = DOUBLE the money
           </div>
         </RevealElement>
