@@ -1,40 +1,33 @@
 
 
-## Plan: Add Registration Time (10:30 AM) to Landing Page and Emails
+## Optimize SocorroHero — Tighten Copy & Fit to Viewport
 
-### 1. Landing Page Changes (`src/pages/TrainingEvent.tsx`)
+The hero currently has 5 body paragraphs that push content well below the fold. The goal is to condense the narrative into 2 tight paragraphs while keeping the same punch, so the headline + body + CTA all fit within a single viewport.
 
-**A. Add registration time to the event details pills (line 284)**
-Change "11:00 AM - 4:00 PM" to include registration:
-```
-Registration: 10:30 AM
-Event: 11:00 AM – 4:00 PM
-```
+### Copy Changes
 
-**B. Add registration time to the confirmation card (line 161)**
-Update the time display from `11:00 AM – 4:00 PM PT` to `Registration 10:30 AM | Event 11:00 AM – 4:00 PM PT`
+**Keep headline and subheadline exactly as-is.**
 
-**C. Update session highlights (line 11)**
-Add a "10:30 AM" registration/check-in entry as the first item in `sessionHighlights`.
+**Condense 5 body paragraphs into 2:**
 
-### 2. Email Changes
+Paragraph 1 (white/70):
+"You saw the chart — $100,000 in a variable account versus a protected indexed strategy over 26 years. That gap isn't luck. It's structure. Hidden fees, tax time bombs at 73, market crashes with no floor — most people in a 401k are on the wrong side of it and don't even know."
 
-**A. Registration confirmation email (`supabase/functions/register-training-event/index.ts`)**
-Add registration and event times to the event details block (currently only shows date and location):
-```
-🕐 Registration: 10:30 AM PST
-🕐 Event: 11:00 AM – 4:00 PM PST
-```
+Paragraph 2 (gold, bold):
+"You came to this workshop because something wasn't adding up. Trust that instinct. The Financial Needs Assessment is 30 minutes, your numbers, zero pressure — just a clear look at what your current strategy is actually costing you."
 
-**B. Reminder emails (`supabase/functions/process-training-reminders/index.ts`, line 92)**
-Update the time line from `11:00 AM to 4:00 PM PST` to include registration:
-```
-🕐 Registration: 10:30 AM PST
-🕐 Event: 11:00 AM – 4:00 PM PST
-```
+Remove the "No pressure. No products pushed. Just clarity." standalone paragraph — that sentiment is now baked into paragraph 2.
 
-### Files Modified
-- `src/pages/TrainingEvent.tsx` — 3 spots (session highlights array, event pills, confirmation card)
-- `supabase/functions/register-training-event/index.ts` — add times to email
-- `supabase/functions/process-training-reminders/index.ts` — update time line
+### Layout Tweaks
+
+- Reduce `mb-10` on badge to `mb-6`
+- Reduce `pt-32` to `pt-24`
+- Reduce `mb-6` on headline to `mb-4`
+- Reduce `mb-6` on subheadline to `mb-4`
+- Reduce spacing between body paragraphs from `mb-4` to `mb-3`
+- Last body paragraph: `mb-8` (before CTA)
+- Reduce `mt-8` on detail text to `mt-5`
+
+### File
+`src/components/socorro/SocorroHero.tsx` — condense paragraphs, tighten spacing.
 
