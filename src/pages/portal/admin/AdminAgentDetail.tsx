@@ -4,8 +4,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ArrowLeft, Save, UserMinus, UserCheck } from "lucide-react";
+import { ArrowLeft, Save, UserMinus, UserCheck, Presentation } from "lucide-react";
 import { toast } from "sonner";
 import { ReassignAdvisorDialog } from "@/components/portal/admin/ReassignAdvisorDialog";
 
