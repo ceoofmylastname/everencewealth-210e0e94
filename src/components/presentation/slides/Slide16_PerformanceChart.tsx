@@ -68,7 +68,7 @@ export default function Slide16_PerformanceChart() {
               <div className="w-3 h-3 rounded-full" style={{ background: "#1A4D3E" }} />
               <span className="text-xs font-medium" style={{ color: "#4A5565" }}>Indexed — 0% / 12% Cap</span>
               <span className="text-sm font-bold" style={{ color: "#1A4D3E" }}>
-                {isRevealed(3) ? <CountingNumber value={541391} prefix="$" decimals={2} /> : "$0.00"}
+                {isRevealed(3) ? <CountingNumber value={541391.51} prefix="$" decimals={2} /> : "$0.00"}
               </span>
             </div>
           </div>
