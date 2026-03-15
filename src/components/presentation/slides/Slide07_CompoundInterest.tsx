@@ -399,7 +399,7 @@ export default function Slide07_CompoundInterest() {
               fontWeight: 800,
               fontSize: "clamp(14px, 1.3vw, 18px)",
               letterSpacing: "0.04em",
-              padding: "14px 42px",
+              padding: "10px 36px",
               borderRadius: 9999,
               boxShadow:
                 "0 12px 36px -8px rgba(200, 169, 110, 0.5), 0 4px 12px rgba(0,0,0,0.06)",
