@@ -1,6 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import RevealElement from "../RevealElement";
-import { supabase } from "@/integrations/supabase/client";
+
+const THUMBNAIL_URL = "https://img.youtube.com/vi/eNo9HLgbax0/maxresdefault.jpg";
 
 const quotes = [
   "The typical 401k investor is a financial novice.",
@@ -10,32 +11,6 @@ const quotes = [
 
 export default function Slide10_SixtyMinutes() {
   const [playing, setPlaying] = useState(false);
-  const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null);
-  const [thumbnailLoading, setThumbnailLoading] = useState(true);
-
-  useEffect(() => {
-    let cancelled = false;
-    async function generateThumbnail() {
-      try {
-        const { data, error } = await supabase.functions.invoke("generate-image", {
-          body: {
-            prompt:
-              "60 Minutes CBS news broadcast studio set with dramatic cinematic lighting, large television monitors displaying 401k retirement crisis data charts and financial graphs, professional anchor desk, moody blue and amber broadcast atmosphere, depth of field, ultra-realistic, 4K resolution, crisp sharp details, no text, no watermarks",
-            dimensions: "16:9",
-          },
-        });
-        if (!cancelled && data?.images?.[0]?.url) {
-          setThumbnailUrl(data.images[0].url);
-        }
-      } catch {
-        // fallback handled by gradient
-      } finally {
-        if (!cancelled) setThumbnailLoading(false);
-      }
-    }
-    generateThumbnail();
-    return () => { cancelled = true; };
-  }, []);
 
   return (
     <div className="antigravity-slide" style={{ background: "#FAFAF8" }}>
