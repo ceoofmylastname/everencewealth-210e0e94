@@ -94,6 +94,9 @@ const SLIDE_CONFIGS = [
   { totalReveals: 5 },  // 26: Legacy
 ];
 
+// Slide indices to exclude from watermark (dark/image backgrounds + Slide 1)
+const WATERMARK_EXCLUDE_INDICES = new Set([0, 1, 4, 7, 8, 19, 24]);
+
 // Inner component that uses the context
 function PresentationShell({ onExit }: { onExit?: () => void }) {
   const { currentSlide, advance, back, goToSlide, soundEnabled, totalSlides } = useRevealQueue();
