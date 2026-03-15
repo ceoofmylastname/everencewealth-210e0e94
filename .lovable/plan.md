@@ -1,40 +1,70 @@
 
 
-## Plan: Add Registration Time (10:30 AM) to Landing Page and Emails
+## Redesign Socorro Hero Headline — Clean 3-Line Structure
 
-### 1. Landing Page Changes (`src/pages/TrainingEvent.tsx`)
+Replace the current mixed Cormorant/DM Sans italic headline with a clean 3-line block layout.
 
-**A. Add registration time to the event details pills (line 284)**
-Change "11:00 AM - 4:00 PM" to include registration:
-```
-Registration: 10:30 AM
-Event: 11:00 AM – 4:00 PM
-```
+### Changes
 
-**B. Add registration time to the confirmation card (line 161)**
-Update the time display from `11:00 AM – 4:00 PM PT` to `Registration 10:30 AM | Event 11:00 AM – 4:00 PM PT`
-
-**C. Update session highlights (line 11)**
-Add a "10:30 AM" registration/check-in entry as the first item in `sessionHighlights`.
-
-### 2. Email Changes
-
-**A. Registration confirmation email (`supabase/functions/register-training-event/index.ts`)**
-Add registration and event times to the event details block (currently only shows date and location):
-```
-🕐 Registration: 10:30 AM PST
-🕐 Event: 11:00 AM – 4:00 PM PST
-```
-
-**B. Reminder emails (`supabase/functions/process-training-reminders/index.ts`, line 92)**
-Update the time line from `11:00 AM to 4:00 PM PST` to include registration:
-```
-🕐 Registration: 10:30 AM PST
-🕐 Event: 11:00 AM – 4:00 PM PST
+**`src/components/socorro/SocorroHero.tsx`** (lines 63-75) — Replace headline markup:
+```tsx
+<motion.h1
+  className="hero-headline mb-4"
+  variants={headlineVariants}
+  initial="hidden"
+  animate="show"
+>
+  <motion.span className="hero-line-1" variants={lineVariant}>
+    The Retirement System
+  </motion.span>
+  <motion.span className="hero-line-2" variants={lineVariant}>
+    Was Not Built For You.
+  </motion.span>
+  <motion.span className="hero-line-3" variants={lineVariant}>
+    It Was Built To Be Paid By You.
+  </motion.span>
+</motion.h1>
 ```
 
-### Files Modified
-- `src/pages/TrainingEvent.tsx` — 3 spots (session highlights array, event pills, confirmation card)
-- `supabase/functions/register-training-event/index.ts` — add times to email
-- `supabase/functions/process-training-reminders/index.ts` — update time line
+**`src/styles/socorro.css`** (lines 194-298) — Replace all `.hero-headline` rules, `.slash-word`, `.hero-sm`, shimmer keyframes, and mobile overrides with:
+
+```css
+.hero-headline {
+  display: flex;
+  flex-direction: column;
+  max-width: 700px;
+}
+
+.hero-line-1 {
+  display: block;
+  font-family: 'DM Sans', system-ui, sans-serif;
+  font-size: clamp(1.2rem, 3vw, 2rem);
+  font-weight: 300;
+  color: #e8e0d0;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  line-height: 1.1;
+}
+
+.hero-line-2 {
+  display: block;
+  font-family: 'DM Sans', system-ui, sans-serif;
+  font-size: clamp(2.8rem, 7vw, 6rem);
+  font-weight: 800;
+  color: #C8A96E;
+  line-height: 1.0;
+}
+
+.hero-line-3 {
+  display: block;
+  font-family: 'DM Sans', system-ui, sans-serif;
+  font-size: clamp(1.1rem, 2.5vw, 1.8rem);
+  font-weight: 400;
+  color: #9a9a8a;
+  line-height: 1.1;
+  margin-top: 8px;
+}
+```
+
+Remove: `.line-1`, `.line-2`, `.slash-word`, `.hero-sm`, `hero-line2-shimmer` keyframe, `hero-draw-slash` keyframe, and the mobile media query for headline sizes.
 
