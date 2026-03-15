@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import {
   LogOut, Users, Menu, X, ChevronRight,
   LayoutDashboard, UserCog, FileText, FolderOpen, MessageSquare,
-  Building2, Newspaper, Wrench, GraduationCap, Megaphone, Calendar, Shield, FileCheck, ClipboardList,
+  Building2, Newspaper, Wrench, GraduationCap, Megaphone, Calendar, Shield, FileCheck, ClipboardList, Presentation,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { NotificationBell } from "./NotificationBell";
