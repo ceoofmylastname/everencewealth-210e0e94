@@ -79,7 +79,7 @@ export default function SocorroHero() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.25 }}
-          className="mb-6"
+          className="mb-4"
           style={{
             fontFamily: "'DM Sans', system-ui, sans-serif",
             fontSize: "20px",
@@ -95,7 +95,7 @@ export default function SocorroHero() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.4 }}
-          className="mb-4"
+          className="mb-3"
           style={{
             fontFamily: "'DM Sans', system-ui, sans-serif",
             fontSize: "16px",
@@ -104,73 +104,24 @@ export default function SocorroHero() {
             lineHeight: 1.7,
           }}
         >
-          You saw the chart. You saw what happens to $100,000 in a variable account versus a protected indexed strategy over 26 years. That gap isn't luck. It isn't timing. It's structure. And right now, most people sitting in a 401k or a brokerage account are on the wrong side of it.
+          You saw the chart — $100,000 in a variable account versus a protected indexed strategy over 26 years. That gap isn't luck. It's structure. Hidden fees, tax time bombs at 73, market crashes with no floor — most people in a 401k are on the wrong side of it and don't even know.
         </motion.p>
 
         <motion.p
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.5 }}
-          className="mb-4"
-          style={{
-            fontFamily: "'DM Sans', system-ui, sans-serif",
-            fontSize: "16px",
-            color: "rgba(255,255,255,0.7)",
-            maxWidth: "600px",
-            lineHeight: 1.7,
-          }}
-        >
-          Hidden fees don't announce themselves. Tax time bombs don't go off until you're 73 and the IRS sends you a Required Minimum Distribution you didn't plan for. Market crashes don't wait for a good time. They just happen — and if your floor is zero, you feel every single point of it.
-        </motion.p>
-
-        <motion.p
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.6 }}
-          className="mb-4"
+          className="mb-8"
           style={{
             fontFamily: "'DM Sans', system-ui, sans-serif",
             fontSize: "16px",
             color: "#C8A96E",
             maxWidth: "600px",
             lineHeight: 1.7,
-            fontWeight: 500,
-          }}
-        >
-          You came to this workshop because something wasn't adding up. Trust that instinct.
-        </motion.p>
-
-        <motion.p
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.7 }}
-          className="mb-4"
-          style={{
-            fontFamily: "'DM Sans', system-ui, sans-serif",
-            fontSize: "16px",
-            color: "rgba(255,255,255,0.7)",
-            maxWidth: "600px",
-            lineHeight: 1.7,
-          }}
-        >
-          The Financial Needs Assessment isn't a pitch. It's a stress test. Thirty minutes. Your numbers. A real look at what your current strategy costs you in fees, taxes, and unprotected downside — and what a different structure could do instead.
-        </motion.p>
-
-        <motion.p
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.8 }}
-          className="mb-10"
-          style={{
-            fontFamily: "'DM Sans', system-ui, sans-serif",
-            fontSize: "16px",
-            color: "rgba(255,255,255,0.85)",
-            maxWidth: "600px",
-            lineHeight: 1.7,
             fontWeight: 600,
           }}
         >
-          No pressure. No products pushed. Just clarity.
+          You came to this workshop because something wasn't adding up. Trust that instinct. The Financial Needs Assessment is 30 minutes, your numbers, zero pressure — just a clear look at what your current strategy is actually costing you.
         </motion.p>
 
         {/* CTA */}
