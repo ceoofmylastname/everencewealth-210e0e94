@@ -99,17 +99,6 @@ function CompoundCard({
           boxShadow: "0 4px 24px -4px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.03)",
         }}
       >
-        {/* Animated border overlay */}
-        <div
-          className="slide07-border-ring"
-          style={{
-            position: "absolute",
-            inset: 0,
-            borderRadius: 24,
-            pointerEvents: "none",
-            zIndex: 10,
-          }}
-        />
 
         {/* Rate circle */}
         <div className="relative flex justify-center mb-5" style={{ zIndex: 7 }}>
