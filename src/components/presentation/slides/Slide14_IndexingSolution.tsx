@@ -156,7 +156,7 @@ export default function Slide14_IndexingSolution() {
   );
 }
 
-function StepsCard({ steps, revealed }: { steps: typeof import("./Slide14_IndexingSolution").default extends never ? never : (typeof steps); revealed: boolean }) {
+function StepsCard({ steps: stepItems, revealed }: { steps: { label: string; display: string; numValue?: number; glassBg: string; textColor: string; prefix?: string; badge?: boolean; isPercent?: boolean }[]; revealed: boolean }) {
   const { ref, onMove, onLeave } = useTilt();
 
   return (
