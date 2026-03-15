@@ -445,6 +445,7 @@ const App = () => (
                   <Route path="workshops/create" element={<WorkshopCreate />} />
                   <Route path="workshops/:workshopId" element={<WorkshopDetail />} />
                   <Route path="socorro-workshop" element={<SocorroWorkshopManage />} />
+                  <Route path="presentation" element={<Presentation />} />
                 </Route>
               </Route>
               <Route path="/portal/client" element={<ClientRoute />}>
