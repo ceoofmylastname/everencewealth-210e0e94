@@ -1,40 +1,35 @@
 
 
-## Plan: Add Registration Time (10:30 AM) to Landing Page and Emails
+## Headline Typography — Mixed Sizing for Visual Hierarchy
 
-### 1. Landing Page Changes (`src/pages/TrainingEvent.tsx`)
+The headline "The Retirement System Was Not Built For You. It Was Built To Be Paid By You." currently renders at uniform large sizes per line. The goal is to create a dynamic typographic rhythm where key "power words" are large and connector words are smaller.
 
-**A. Add registration time to the event details pills (line 284)**
-Change "11:00 AM - 4:00 PM" to include registration:
+### Approach
+
+Break the headline into inline spans with two size classes — large (hero words) and small (connector words) — so the text reads naturally but visually emphasizes the important words.
+
+**Line 1:** `"The Retirement System Was Not"` → "The" small, "Retirement System" large, "Was Not" small  
+**Emphasis:** `"Built"` stays as the italic slash-word at large size  
+**Line 2:** `"For You. It Was Built To Be Paid By You."` → "For You." small, "It Was" small, "Built To Be" small, "Paid By You." large
+
+Simplified version — make the structural/filler words smaller and the punchy words bigger:
+
 ```
-Registration: 10:30 AM
-Event: 11:00 AM – 4:00 PM
-```
-
-**B. Add registration time to the confirmation card (line 161)**
-Update the time display from `11:00 AM – 4:00 PM PT` to `Registration 10:30 AM | Event 11:00 AM – 4:00 PM PT`
-
-**C. Update session highlights (line 11)**
-Add a "10:30 AM" registration/check-in entry as the first item in `sessionHighlights`.
-
-### 2. Email Changes
-
-**A. Registration confirmation email (`supabase/functions/register-training-event/index.ts`)**
-Add registration and event times to the event details block (currently only shows date and location):
-```
-🕐 Registration: 10:30 AM PST
-🕐 Event: 11:00 AM – 4:00 PM PST
+[small] The [/small] [large] Retirement System [/large] [small] Was Not [/small] [large] Built [/large]
+[small] For You. It Was Built To Be [/small] [large] Paid By You. [/large]
 ```
 
-**B. Reminder emails (`supabase/functions/process-training-reminders/index.ts`, line 92)**
-Update the time line from `11:00 AM to 4:00 PM PST` to include registration:
-```
-🕐 Registration: 10:30 AM PST
-🕐 Event: 11:00 AM – 4:00 PM PST
-```
+### File Changes
 
-### Files Modified
-- `src/pages/TrainingEvent.tsx` — 3 spots (session highlights array, event pills, confirmation card)
-- `supabase/functions/register-training-event/index.ts` — add times to email
-- `supabase/functions/process-training-reminders/index.ts` — update time line
+**`src/components/socorro/SocorroHero.tsx`** (lines 69-74):
+- Break each `<motion.span>` line into inner `<span>` elements with classes like `hero-sm` and `hero-lg` (or keep default as large, only wrap small words).
+
+**`src/styles/socorro.css`** (around line 193-275):
+- Add `.hero-headline .hero-sm` class — ~60% of the parent font-size, lighter weight, slightly more opacity reduction.
+- Add responsive overrides in the mobile media query.
+- Keep `.line-1` and `.line-2` as flex-wrap containers so words flow naturally.
+
+### Result
+Desktop: Big impactful words pop, small connector words recede — creating a magazine-style headline.  
+Mobile: Both sizes scale down proportionally via `clamp()` so nothing overflows.
 
