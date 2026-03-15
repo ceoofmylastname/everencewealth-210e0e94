@@ -1,40 +1,20 @@
 
 
-## Plan: Add Registration Time (10:30 AM) to Landing Page and Emails
+## Fix Green Line Data
 
-### 1. Landing Page Changes (`src/pages/TrainingEvent.tsx`)
+Update `INDEXED_DATA` in `src/components/presentation/PerformanceChart.tsx` so that $541,391.51 only appears at 2025. Years 2016–2024 should all be $483,385.28 instead of $541,391.51.
 
-**A. Add registration time to the event details pills (line 284)**
-Change "11:00 AM - 4:00 PM" to include registration:
-```
-Registration: 10:30 AM
-Event: 11:00 AM – 4:00 PM
-```
+### Changes (single file)
 
-**B. Add registration time to the confirmation card (line 161)**
-Update the time display from `11:00 AM – 4:00 PM PT` to `Registration 10:30 AM | Event 11:00 AM – 4:00 PM PT`
+**`src/components/presentation/PerformanceChart.tsx`** — update these entries in `INDEXED_DATA`:
+- 2016: `541391.51` → `483385.28`
+- 2017: `541391.51` → `483385.28`
+- 2018: `541391.51` → `483385.28`
+- 2019: `541391.51` → `483385.28`
+- 2020: `541391.51` → `483385.28`
+- 2021: `541391.51` → `483385.28`
+- 2024: `541391.51` → `483385.28`
+- 2025 stays at `541391.51` (the only point at that value)
 
-**C. Update session highlights (line 11)**
-Add a "10:30 AM" registration/check-in entry as the first item in `sessionHighlights`.
-
-### 2. Email Changes
-
-**A. Registration confirmation email (`supabase/functions/register-training-event/index.ts`)**
-Add registration and event times to the event details block (currently only shows date and location):
-```
-🕐 Registration: 10:30 AM PST
-🕐 Event: 11:00 AM – 4:00 PM PST
-```
-
-**B. Reminder emails (`supabase/functions/process-training-reminders/index.ts`, line 92)**
-Update the time line from `11:00 AM to 4:00 PM PST` to include registration:
-```
-🕐 Registration: 10:30 AM PST
-🕐 Event: 11:00 AM – 4:00 PM PST
-```
-
-### Files Modified
-- `src/pages/TrainingEvent.tsx` — 3 spots (session highlights array, event pills, confirmation card)
-- `supabase/functions/register-training-event/index.ts` — add times to email
-- `supabase/functions/process-training-reminders/index.ts` — update time line
+Red line and all other chart settings remain unchanged.
 
