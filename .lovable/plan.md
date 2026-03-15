@@ -1,40 +1,24 @@
 
 
-## Plan: Add Registration Time (10:30 AM) to Landing Page and Emails
+## Update SP500 and INDEXED Data Points
 
-### 1. Landing Page Changes (`src/pages/TrainingEvent.tsx`)
+### Single file change: `src/components/presentation/PerformanceChart.tsx`
 
-**A. Add registration time to the event details pills (line 284)**
-Change "11:00 AM - 4:00 PM" to include registration:
+**Replace `SP500_DATA` (lines 8–25) with the user's exact 18 points:**
 ```
-Registration: 10:30 AM
-Event: 11:00 AM – 4:00 PM
-```
-
-**B. Add registration time to the confirmation card (line 161)**
-Update the time display from `11:00 AM – 4:00 PM PT` to `Registration 10:30 AM | Event 11:00 AM – 4:00 PM PT`
-
-**C. Update session highlights (line 11)**
-Add a "10:30 AM" registration/check-in entry as the first item in `sessionHighlights`.
-
-### 2. Email Changes
-
-**A. Registration confirmation email (`supabase/functions/register-training-event/index.ts`)**
-Add registration and event times to the event details block (currently only shows date and location):
-```
-🕐 Registration: 10:30 AM PST
-🕐 Event: 11:00 AM – 4:00 PM PST
+1999: 100000, 2000: 59880.41, 2001: 82480.21, 2002: 61468.66,
+2004: 84954.62, 2005: 85580.91, 2008: 125786.28, 2009: 139090.51,
+2011: 152359.74, 2012: 170594.45, 2013: 263961.83, 2015: 170594.45,
+2016: 313498.30, 2017: 344064.38, 2018: 307071.03, 2019: 431594.35,
+2020: 283383.18, 2021: 408888.23
 ```
 
-**B. Reminder emails (`supabase/functions/process-training-reminders/index.ts`, line 92)**
-Update the time line from `11:00 AM to 4:00 PM PST` to include registration:
-```
-🕐 Registration: 10:30 AM PST
-🕐 Event: 11:00 AM – 4:00 PM PST
-```
+Key differences from current data:
+- Remove 2014: 313498.30 and 2020: 408888.23 (old last point)
+- Add 2015: 170594.45 (DOWN), 2016: 313498.30, 2017: 344064.38, 2018: 307071.03, 2019: 431594.35, 2020: 283383.18
+- 2021: 408888.23 is the final point
 
-### Files Modified
-- `src/pages/TrainingEvent.tsx` — 3 spots (session highlights array, event pills, confirmation card)
-- `supabase/functions/register-training-event/index.ts` — add times to email
-- `supabase/functions/process-training-reminders/index.ts` — update time line
+**`INDEXED_DATA` (lines 27–40)** — already matches. No changes needed.
+
+No other files or settings change. Straight line segments between points are already the rendering mode.
 
