@@ -189,7 +189,7 @@ export function PortalLayout() {
   // Auto-expand group containing active route
   useEffect(() => {
     if (!isAdvisor) return;
-    for (const group of advisorNavGroups) {
+    for (const group of navGroups) {
       if (group.items.some((item) => isActive(item.href))) {
         setOpenGroup(group.label);
         return;
