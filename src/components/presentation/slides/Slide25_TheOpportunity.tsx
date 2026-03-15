@@ -1,6 +1,7 @@
 import RevealElement from "../RevealElement";
 import GradientText from "../animations/GradientText";
 import BlobClip from "../BlobClip";
+import teamImg from "@/assets/team-collaboration.jpg";
 
 const benefits = [
   "Build a business on your own schedule",
@@ -60,8 +61,8 @@ export default function Slide25_TheOpportunity() {
         {/* Right — Blob image */}
         <RevealElement index={4} direction="right" className="flex items-center justify-center">
           <BlobClip
-            gradient="linear-gradient(135deg, #1A4D3E 0%, #C8A96E 60%, #0D1F1A 100%)"
-            label="Team collaboration"
+            imageSrc={teamImg}
+            imageAlt="Team collaboration in modern office"
             height="380px"
             variant={1}
           />
