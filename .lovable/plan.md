@@ -1,40 +1,20 @@
 
 
-## Plan: Add Registration Time (10:30 AM) to Landing Page and Emails
+## Problem
 
-### 1. Landing Page Changes (`src/pages/TrainingEvent.tsx`)
+The Compound Interest slide content exceeds the fixed 1080px slide height. The previous padding fix added `paddingTop: 40` and `overflow: auto`, but the title is still clipped because the `antigravity-slide-inner` has `height: 100%` and the content within it is too tall.
 
-**A. Add registration time to the event details pills (line 284)**
-Change "11:00 AM - 4:00 PM" to include registration:
-```
-Registration: 10:30 AM
-Event: 11:00 AM – 4:00 PM
-```
+## Solution
 
-**B. Add registration time to the confirmation card (line 161)**
-Update the time display from `11:00 AM – 4:00 PM PT` to `Registration 10:30 AM | Event 11:00 AM – 4:00 PM PT`
+Resize the content to fit within the 1080px slide without needing scroll. Changes to `Slide07_CompoundInterest.tsx`:
 
-**C. Update session highlights (line 11)**
-Add a "10:30 AM" registration/check-in entry as the first item in `sessionHighlights`.
+1. **Remove `overflow: auto`** — slides should not scroll; revert to `overflow: hidden` and `align-items: center` (default behavior).
+2. **Reduce vertical spacing** — shrink margins, font sizes, and padding throughout the slide to make everything fit within the fixed canvas:
+   - Reduce title font size from `clamp(36px, 4.5vw, 56px)` to ~40px
+   - Reduce subtitle/description margins
+   - Reduce card internal spacing (rate circle size, row padding, doubling text margins)
+   - Reduce gap between cards and bottom pill
+3. **Remove explicit `paddingTop`/`paddingBottom`** inline overrides — let the default `antigravity-slide-inner` padding (48px 64px) handle it.
 
-### 2. Email Changes
-
-**A. Registration confirmation email (`supabase/functions/register-training-event/index.ts`)**
-Add registration and event times to the event details block (currently only shows date and location):
-```
-🕐 Registration: 10:30 AM PST
-🕐 Event: 11:00 AM – 4:00 PM PST
-```
-
-**B. Reminder emails (`supabase/functions/process-training-reminders/index.ts`, line 92)**
-Update the time line from `11:00 AM to 4:00 PM PST` to include registration:
-```
-🕐 Registration: 10:30 AM PST
-🕐 Event: 11:00 AM – 4:00 PM PST
-```
-
-### Files Modified
-- `src/pages/TrainingEvent.tsx` — 3 spots (session highlights array, event pills, confirmation card)
-- `supabase/functions/register-training-event/index.ts` — add times to email
-- `supabase/functions/process-training-reminders/index.ts` — update time line
+This ensures the entire slide fits within the 1920×1080 canvas without clipping or scrolling.
 
