@@ -1,40 +1,20 @@
 
 
-## Plan: Add Registration Time (10:30 AM) to Landing Page and Emails
+## Fix Headline Word Distribution
 
-### 1. Landing Page Changes (`src/pages/TrainingEvent.tsx`)
+The current headline has "For You." incorrectly grouped with the small connector words on line 2. The intended reading is:
 
-**A. Add registration time to the event details pills (line 284)**
-Change "11:00 AM - 4:00 PM" to include registration:
-```
-Registration: 10:30 AM
-Event: 11:00 AM – 4:00 PM
-```
+**Line 1:** `[sm]The[/sm] Retirement System [sm]Was Not[/sm] Built`  
+**Line 2:** `[sm]For You. It Was Built To Be[/sm] Paid By You.`
 
-**B. Add registration time to the confirmation card (line 161)**
-Update the time display from `11:00 AM – 4:00 PM PT` to `Registration 10:30 AM | Event 11:00 AM – 4:00 PM PT`
+Looking at the screenshot, this actually matches the code. The headline **is** rendering correctly per the approved plan. The structure is:
 
-**C. Update session highlights (line 11)**
-Add a "10:30 AM" registration/check-in entry as the first item in `sessionHighlights`.
+- Line 1: "The" (small) → "Retirement System" (large) → "Was Not" (small) → "Built" (large italic)
+- Line 2: "For You. It Was Built To Be" (small) → "Paid By You." (large)
 
-### 2. Email Changes
+This matches the original copy: *"The Retirement System Was Not Built For You. It Was Built To Be Paid By You."*
 
-**A. Registration confirmation email (`supabase/functions/register-training-event/index.ts`)**
-Add registration and event times to the event details block (currently only shows date and location):
-```
-🕐 Registration: 10:30 AM PST
-🕐 Event: 11:00 AM – 4:00 PM PST
-```
+**The headline is correct.** The code matches the approved plan and the screenshot confirms it renders as intended — power words ("Retirement System", "Built", "Paid By You.") are large, connector words are small.
 
-**B. Reminder emails (`supabase/functions/process-training-reminders/index.ts`, line 92)**
-Update the time line from `11:00 AM to 4:00 PM PST` to include registration:
-```
-🕐 Registration: 10:30 AM PST
-🕐 Event: 11:00 AM – 4:00 PM PST
-```
-
-### Files Modified
-- `src/pages/TrainingEvent.tsx` — 3 spots (session highlights array, event pills, confirmation card)
-- `supabase/functions/register-training-event/index.ts` — add times to email
-- `supabase/functions/process-training-reminders/index.ts` — update time line
+No changes needed.
 
