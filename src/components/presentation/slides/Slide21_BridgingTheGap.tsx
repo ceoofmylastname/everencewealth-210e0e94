@@ -2,6 +2,7 @@ import { useState } from "react";
 import RevealElement from "../RevealElement";
 import ConfettiTrigger from "../animations/ConfettiTrigger";
 import { useRevealQueue } from "../RevealContext";
+import bridgeBg from "@/assets/bridge-skyline-sunset.jpg";
 
 export default function Slide21_BridgingTheGap() {
   const [showConfetti, setShowConfetti] = useState(false);
@@ -9,14 +10,21 @@ export default function Slide21_BridgingTheGap() {
 
   return (
     <div className="antigravity-slide">
-      {/* Dramatic background — always visible */}
+      {/* Full-bleed background image */}
       <div
         className="antigravity-full-bleed"
         style={{
-          background: "linear-gradient(135deg, #1A3A30 0%, #0D1F1A 40%, #1A4D3E 100%)",
+          backgroundImage: `url(${bridgeBg})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
         }}
       />
-      <div className="antigravity-overlay-dark" style={{ background: "rgba(0,0,0,0.5)" }} />
+      <div
+        className="antigravity-overlay-dark"
+        style={{
+          background: "linear-gradient(180deg, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0.6) 60%, rgba(0,0,0,0.75) 100%)",
+        }}
+      />
 
       <ConfettiTrigger trigger={showConfetti} soundEnabled={soundEnabled} />
 
