@@ -288,7 +288,7 @@ export default function Slide07_CompoundInterest() {
   const { isRevealed } = useRevealQueue();
 
   return (
-    <div className="antigravity-slide" style={{ background: "#FAFAF8" }}>
+    <div className="antigravity-slide" style={{ background: "#FAFAF8", overflow: "auto", alignItems: "flex-start" }}>
       <style>{`
         @keyframes slide07Float {
           0%, 100% { transform: translateY(0px); }
