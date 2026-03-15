@@ -1,27 +1,40 @@
 
 
-## Fix Headline — Small Connector Text Not Visible on Line 2
+## Plan: Add Registration Time (10:30 AM) to Landing Page and Emails
 
-The problem: On line 2, the `.hero-sm` span ("For You. It Was Built To Be") uses `-webkit-text-fill-color: transparent` inherited from `.line-2`'s gradient text effect. Combined with `opacity: 0.55`, the small text is nearly invisible — making the headline read as just "Paid By You." with no context.
+### 1. Landing Page Changes (`src/pages/TrainingEvent.tsx`)
 
-The sentence should read:
-> *The* **Retirement System** *Was Not* **Built**  
-> *For You. It Was Built To Be* **Paid By You.**
-
-### Fix
-
-**`src/styles/socorro.css`** — Override the gradient fill on `.hero-sm` inside `.line-2` so the small connector words are actually visible:
-
-```css
-.hero-headline .line-2 .hero-sm {
-  font-weight: 500;
-  -webkit-text-fill-color: rgba(255, 255, 255, 0.55);
-  background: none;
-}
+**A. Add registration time to the event details pills (line 284)**
+Change "11:00 AM - 4:00 PM" to include registration:
+```
+Registration: 10:30 AM
+Event: 11:00 AM – 4:00 PM
 ```
 
-This makes "For You. It Was Built To Be" render as subtle white text instead of inheriting the shimmer gradient at near-invisible opacity.
+**B. Add registration time to the confirmation card (line 161)**
+Update the time display from `11:00 AM – 4:00 PM PT` to `Registration 10:30 AM | Event 11:00 AM – 4:00 PM PT`
 
-### File
-`src/styles/socorro.css` — 2 lines added to the existing `.line-2 .hero-sm` rule.
+**C. Update session highlights (line 11)**
+Add a "10:30 AM" registration/check-in entry as the first item in `sessionHighlights`.
+
+### 2. Email Changes
+
+**A. Registration confirmation email (`supabase/functions/register-training-event/index.ts`)**
+Add registration and event times to the event details block (currently only shows date and location):
+```
+🕐 Registration: 10:30 AM PST
+🕐 Event: 11:00 AM – 4:00 PM PST
+```
+
+**B. Reminder emails (`supabase/functions/process-training-reminders/index.ts`, line 92)**
+Update the time line from `11:00 AM to 4:00 PM PST` to include registration:
+```
+🕐 Registration: 10:30 AM PST
+🕐 Event: 11:00 AM – 4:00 PM PST
+```
+
+### Files Modified
+- `src/pages/TrainingEvent.tsx` — 3 spots (session highlights array, event pills, confirmation card)
+- `supabase/functions/register-training-event/index.ts` — add times to email
+- `supabase/functions/process-training-reminders/index.ts` — update time line
 
