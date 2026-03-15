@@ -78,7 +78,7 @@ const SLIDE_CONFIGS = [
   { totalReveals: 4 },  // 10: 60 Minutes
   { totalReveals: 5 },  // 11: Hidden Fees
   { totalReveals: 5 },  // 12: Loss Impact
-  { totalReveals: 4 },  // 13: Negative Credit
+  
   { totalReveals: 5 },  // 14: Indexing Solution
   { totalReveals: 4 },  // 15: Side by Side
   { totalReveals: 4 },  // 16: Performance Chart
