@@ -24,7 +24,7 @@ export default function Slide09_RetirementGap() {
       <div className="relative z-10 antigravity-slide-inner flex flex-col items-center justify-center text-center">
         {/* Reveal 1: Badge */}
         <RevealElement index={1} direction="drop" className="mb-8">
-          <div className="antigravity-pill-gold text-base font-bold px-6 py-2">
+          <div className="antigravity-pill antigravity-pill-gold text-base font-bold px-6 py-2">
             ⚠ The Great Retirement Gap
           </div>
         </RevealElement>
