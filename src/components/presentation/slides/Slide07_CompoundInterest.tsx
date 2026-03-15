@@ -1,3 +1,4 @@
+import { useState, useRef, useCallback } from "react";
 import RevealElement from "../RevealElement";
 import GradientText from "../animations/GradientText";
 import CountingNumber from "../animations/CountingNumber";
@@ -7,6 +8,7 @@ const columns = [
   {
     rate: "7%",
     color: "#1A4D3E",
+    glowColor: "rgba(26, 77, 62, 0.35)",
     doubling: "10.2 years",
     rows: [
       { age: 30, value: 20000 },
@@ -18,6 +20,7 @@ const columns = [
   {
     rate: "10%",
     color: "#C8A96E",
+    glowColor: "rgba(200, 169, 110, 0.35)",
     doubling: "7.2 years",
     rows: [
       { age: 30, value: 20000 },
@@ -31,6 +34,7 @@ const columns = [
   {
     rate: "12%",
     color: "#C8A96E",
+    glowColor: "rgba(200, 169, 110, 0.45)",
     doubling: "6 years",
     rows: [
       { age: 30, value: 20000 },
@@ -44,40 +48,187 @@ const columns = [
   },
 ];
 
+function TiltCard({
+  children,
+  color,
+  glowColor,
+}: {
+  children: React.ReactNode;
+  color: string;
+  glowColor: string;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [transform, setTransform] = useState("perspective(800px) rotateX(0deg) rotateY(0deg)");
+  const [isHovered, setIsHovered] = useState(false);
+
+  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    if (!ref.current) return;
+    const rect = ref.current.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width - 0.5;
+    const y = (e.clientY - rect.top) / rect.height - 0.5;
+    setTransform(`perspective(800px) rotateY(${x * 8}deg) rotateX(${-y * 8}deg) translateY(-6px) scale(1.02)`);
+  }, []);
+
+  const handleMouseLeave = useCallback(() => {
+    setTransform("perspective(800px) rotateX(0deg) rotateY(0deg) translateY(0px) scale(1)");
+    setIsHovered(false);
+  }, []);
+
+  return (
+    <div className="slide07-border-wrapper" style={{ "--border-color": color, "--border-glow": glowColor } as React.CSSProperties}>
+      <div
+        ref={ref}
+        onMouseMove={(e) => { handleMouseMove(e); setIsHovered(true); }}
+        onMouseLeave={handleMouseLeave}
+        className="relative overflow-hidden rounded-2xl"
+        style={{
+          transform,
+          transition: "all 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
+          transformStyle: "preserve-3d",
+          background: "rgba(255, 255, 255, 0.08)",
+          backdropFilter: "blur(16px)",
+          WebkitBackdropFilter: "blur(16px)",
+          padding: "28px 24px",
+          boxShadow: isHovered
+            ? `0 24px 60px -12px ${glowColor}, 0 12px 24px -8px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.15)`
+            : `0 8px 32px -8px rgba(0,0,0,0.12), 0 4px 12px -4px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.1)`,
+          border: "1px solid rgba(255, 255, 255, 0.12)",
+        }}
+      >
+        {/* Light sweep */}
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            borderRadius: "inherit",
+            background: "linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.12) 50%, transparent 60%)",
+            backgroundSize: "200% 100%",
+            backgroundPosition: isHovered ? "100% 0" : "-100% 0",
+            transition: "background-position 0.6s ease",
+            pointerEvents: "none",
+            zIndex: 5,
+          }}
+        />
+        {/* Inner glow */}
+        <div
+          className="absolute inset-0 rounded-2xl"
+          style={{
+            background: isHovered
+              ? `radial-gradient(ellipse at 30% 20%, ${glowColor.replace(/[\d.]+\)$/, "0.15)")} 0%, transparent 60%)`
+              : "none",
+            transition: "background 0.4s ease",
+            pointerEvents: "none",
+          }}
+        />
+        <div className="relative" style={{ zIndex: 2 }}>
+          {children}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function Slide07_CompoundInterest() {
   const { isRevealed } = useRevealQueue();
 
   return (
-    <div className="antigravity-slide bg-white">
+    <div className="antigravity-slide" style={{ background: "#0D1F1A" }}>
+      <style>{`
+        @keyframes slide07BorderRotate {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+        .slide07-border-wrapper {
+          position: relative;
+          border-radius: 20px;
+          padding: 2px;
+          isolation: isolate;
+        }
+        .slide07-border-wrapper::before {
+          content: '';
+          position: absolute;
+          inset: -2px;
+          border-radius: 22px;
+          background: conic-gradient(
+            from 0deg,
+            var(--border-color),
+            transparent 25%,
+            transparent 50%,
+            var(--border-color) 75%,
+            transparent 100%
+          );
+          animation: slide07BorderRotate 4s linear infinite;
+          z-index: -1;
+          opacity: 0.6;
+          filter: blur(1px);
+        }
+        .slide07-border-wrapper::after {
+          content: '';
+          position: absolute;
+          inset: 0;
+          border-radius: 20px;
+          background: #0D1F1A;
+          z-index: -1;
+        }
+        .slide07-border-wrapper:hover::before {
+          opacity: 1;
+          filter: blur(2px);
+        }
+      `}</style>
+
       <div className="antigravity-slide-inner">
-        {/* Reveal 1: Title */}
+        {/* Title */}
         <RevealElement index={1} direction="slam" className="mb-2">
-          <h2 className="text-3xl md:text-4xl font-bold" style={{ color: "#1A4D3E", fontFamily: "var(--font-display)" }}>
+          <h2 className="text-3xl md:text-4xl font-bold" style={{ color: "#FFFFFF", fontFamily: "var(--font-display)" }}>
             Compound <GradientText>Interest</GradientText>
           </h2>
-          <p className="text-xl mt-1" style={{ color: "#4A5565" }}>The Rule of <strong>72</strong></p>
-          <p className="text-sm mt-2" style={{ color: "#4A5565" }}>
+          <p className="text-xl mt-1" style={{ color: "rgba(255,255,255,0.6)" }}>
+            The Rule of <strong style={{ color: "var(--ev-gold)" }}>72</strong>
+          </p>
+          <p className="text-sm mt-2" style={{ color: "rgba(255,255,255,0.4)", fontFamily: "var(--font-body)" }}>
             Investment of $20,000 at different rates of return starting at age 30
           </p>
         </RevealElement>
 
-        {/* Reveals 2-4: Each column */}
+        {/* Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
           {columns.map((col, ci) => (
             <RevealElement key={ci} index={ci + 2} direction="cardRise">
-              <div className="antigravity-card">
+              <TiltCard color={col.color} glowColor={col.glowColor}>
                 {/* Gauge */}
-                <div className="flex justify-center mb-3">
+                <div className="flex justify-center mb-4">
                   <div
                     className="antigravity-gauge"
-                    style={{ border: `4px solid ${col.color}`, borderBottom: "none" }}
+                    style={{
+                      border: `3px solid ${col.color}`,
+                      borderBottom: "none",
+                      boxShadow: `0 0 20px ${col.glowColor}`,
+                    }}
                   >
-                    <div className="antigravity-gauge-label" style={{ color: col.color }}>
+                    <div
+                      className="antigravity-gauge-label"
+                      style={{
+                        color: col.color,
+                        fontFamily: "var(--font-display)",
+                        fontSize: "clamp(22px, 2.5vw, 30px)",
+                        fontWeight: 700,
+                      }}
+                    >
                       {col.rate}
                     </div>
                   </div>
                 </div>
-                <p className="text-center text-sm mb-3" style={{ color: "#4A5565" }}>
+                <p
+                  className="text-center mb-4"
+                  style={{
+                    color: "rgba(255,255,255,0.5)",
+                    fontFamily: "var(--font-body)",
+                    fontSize: 12,
+                    letterSpacing: "0.2em",
+                    textTransform: "uppercase",
+                    fontWeight: 500,
+                  }}
+                >
                   Doubles Every {col.doubling}
                 </p>
                 <div className="space-y-1">
@@ -86,10 +237,18 @@ export default function Slide07_CompoundInterest() {
                     return (
                       <div
                         key={ri}
-                        className={`flex justify-between text-sm px-2 py-1 rounded ${isLast ? "font-bold" : ""}`}
-                        style={isLast ? { background: "#F5E6C8", color: "#1A4D3E" } : { color: "#4A5565" }}
+                        className={`flex justify-between text-sm px-3 py-1.5 rounded-lg ${isLast ? "font-bold" : ""}`}
+                        style={
+                          isLast
+                            ? {
+                                background: `linear-gradient(135deg, ${col.color}22, ${col.color}44)`,
+                                color: col.color === "#1A4D3E" ? "#8BCCB4" : "#C8A96E",
+                                border: `1px solid ${col.color}33`,
+                              }
+                            : { color: "rgba(255,255,255,0.55)" }
+                        }
                       >
-                        <span>Age {row.age}</span>
+                        <span style={{ fontFamily: "var(--font-body)", fontWeight: 500 }}>Age {row.age}</span>
                         <span className="antigravity-stat">
                           {isRevealed(ci + 2) ? (
                             <CountingNumber value={row.value} prefix="$" />
@@ -101,14 +260,23 @@ export default function Slide07_CompoundInterest() {
                     );
                   })}
                 </div>
-              </div>
+              </TiltCard>
             </RevealElement>
           ))}
         </div>
 
-        {/* Reveal 5: Key insight */}
+        {/* Key insight */}
         <RevealElement index={5} direction="explode" className="flex justify-center mt-6">
-          <div className="antigravity-pill-gold text-base font-bold px-6 py-2">
+          <div
+            className="text-base font-bold px-6 py-2 rounded-full"
+            style={{
+              background: "linear-gradient(135deg, var(--ev-gold), var(--ev-gold-dk))",
+              color: "white",
+              boxShadow: "0 0 30px rgba(200, 169, 110, 0.4), 0 4px 16px rgba(200, 169, 110, 0.2)",
+              fontFamily: "var(--font-display)",
+              letterSpacing: "0.02em",
+            }}
+          >
             2% difference = DOUBLE the money
           </div>
         </RevealElement>
