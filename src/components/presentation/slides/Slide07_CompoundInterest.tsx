@@ -372,7 +372,7 @@ export default function Slide07_CompoundInterest() {
         </RevealElement>
 
         {/* Cards grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-2">
           {columns.map((col, ci) => (
             <RevealElement key={ci} index={ci + 2} direction="cardRise">
               <CompoundCard
