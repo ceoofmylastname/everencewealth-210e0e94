@@ -169,7 +169,7 @@ function StepsCard({ steps: stepItems, revealed }: { steps: { label: string; dis
         style={{ transition: "transform 0.15s ease-out", willChange: "transform" }}
       >
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          {steps.map((step, i) => (
+          {stepItems.map((step, i) => (
             <div
               key={i}
               className={`slide14-step ${revealed ? "revealed" : ""}`}
