@@ -140,7 +140,7 @@ export default function SocorroHero() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.75 }}
-          className="mt-8"
+          className="mt-5"
           style={{
             fontFamily: "'DM Sans', system-ui, sans-serif",
             fontSize: "13px",
