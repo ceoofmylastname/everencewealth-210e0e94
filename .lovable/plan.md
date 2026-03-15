@@ -1,23 +1,40 @@
 
 
-## Problem
+## Plan: Add Registration Time (10:30 AM) to Landing Page and Emails
 
-The thumbnail on Slide 10 (60 Minutes) is generated via an **AI image generation API call every single time** the slide mounts. This is an expensive network request that takes several seconds, which is why you see the shimmer/gray placeholder before the image appears.
+### 1. Landing Page Changes (`src/pages/TrainingEvent.tsx`)
 
-## Solution
+**A. Add registration time to the event details pills (line 284)**
+Change "11:00 AM - 4:00 PM" to include registration:
+```
+Registration: 10:30 AM
+Event: 11:00 AM – 4:00 PM
+```
 
-Replace the dynamic AI-generated thumbnail with a **static image**. Since this thumbnail never changes, there's no reason to regenerate it on every view.
+**B. Add registration time to the confirmation card (line 161)**
+Update the time display from `11:00 AM – 4:00 PM PT` to `Registration 10:30 AM | Event 11:00 AM – 4:00 PM PT`
 
-### Approach
-1. **Use the YouTube video's actual thumbnail** — YouTube provides free thumbnail URLs for any video. For video ID `eNo9HLgbax0`, the high-quality thumbnail is:
-   `https://img.youtube.com/vi/eNo9HLgbax0/maxresdefault.jpg`
+**C. Update session highlights (line 11)**
+Add a "10:30 AM" registration/check-in entry as the first item in `sessionHighlights`.
 
-2. **Update `Slide10_SixtyMinutes.tsx`**:
-   - Remove the `useEffect` that calls `supabase.functions.invoke("generate-image")`
-   - Remove `thumbnailUrl`, `thumbnailLoading` state
-   - Remove the `supabase` import
-   - Set the `<img>` src directly to the YouTube thumbnail URL
-   - Remove the shimmer/fallback gradient logic since the image loads instantly
+### 2. Email Changes
 
-This eliminates the API call entirely, making the thumbnail appear near-instantly.
+**A. Registration confirmation email (`supabase/functions/register-training-event/index.ts`)**
+Add registration and event times to the event details block (currently only shows date and location):
+```
+🕐 Registration: 10:30 AM PST
+🕐 Event: 11:00 AM – 4:00 PM PST
+```
+
+**B. Reminder emails (`supabase/functions/process-training-reminders/index.ts`, line 92)**
+Update the time line from `11:00 AM to 4:00 PM PST` to include registration:
+```
+🕐 Registration: 10:30 AM PST
+🕐 Event: 11:00 AM – 4:00 PM PST
+```
+
+### Files Modified
+- `src/pages/TrainingEvent.tsx` — 3 spots (session highlights array, event pills, confirmation card)
+- `supabase/functions/register-training-event/index.ts` — add times to email
+- `supabase/functions/process-training-reminders/index.ts` — update time line
 

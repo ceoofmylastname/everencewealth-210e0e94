@@ -1,6 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import RevealElement from "../RevealElement";
-import { supabase } from "@/integrations/supabase/client";
+
+const THUMBNAIL_URL = "https://img.youtube.com/vi/eNo9HLgbax0/maxresdefault.jpg";
 
 const quotes = [
   "The typical 401k investor is a financial novice.",
@@ -10,32 +11,6 @@ const quotes = [
 
 export default function Slide10_SixtyMinutes() {
   const [playing, setPlaying] = useState(false);
-  const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null);
-  const [thumbnailLoading, setThumbnailLoading] = useState(true);
-
-  useEffect(() => {
-    let cancelled = false;
-    async function generateThumbnail() {
-      try {
-        const { data, error } = await supabase.functions.invoke("generate-image", {
-          body: {
-            prompt:
-              "60 Minutes CBS news broadcast studio set with dramatic cinematic lighting, large television monitors displaying 401k retirement crisis data charts and financial graphs, professional anchor desk, moody blue and amber broadcast atmosphere, depth of field, ultra-realistic, 4K resolution, crisp sharp details, no text, no watermarks",
-            dimensions: "16:9",
-          },
-        });
-        if (!cancelled && data?.images?.[0]?.url) {
-          setThumbnailUrl(data.images[0].url);
-        }
-      } catch {
-        // fallback handled by gradient
-      } finally {
-        if (!cancelled) setThumbnailLoading(false);
-      }
-    }
-    generateThumbnail();
-    return () => { cancelled = true; };
-  }, []);
 
   return (
     <div className="antigravity-slide" style={{ background: "#FAFAF8" }}>
@@ -149,10 +124,8 @@ export default function Slide10_SixtyMinutes() {
                   justifyContent: "center",
                 }}
               >
-                {/* Thumbnail or shimmer */}
-                {thumbnailUrl ? (
-                  <img
-                    src={thumbnailUrl}
+                <img
+                    src={THUMBNAIL_URL}
                     alt="60 Minutes broadcast studio thumbnail"
                     style={{
                       width: "100%",
@@ -163,29 +136,6 @@ export default function Slide10_SixtyMinutes() {
                       borderRadius: 24,
                     }}
                   />
-                ) : thumbnailLoading ? (
-                  <div
-                    className="slide10-shimmer"
-                    style={{
-                      width: "100%",
-                      height: "100%",
-                      position: "absolute",
-                      inset: 0,
-                      borderRadius: 24,
-                    }}
-                  />
-                ) : (
-                  <div
-                    style={{
-                      width: "100%",
-                      height: "100%",
-                      position: "absolute",
-                      inset: 0,
-                      borderRadius: 24,
-                      background: "linear-gradient(135deg, #1a2030 0%, #2a3040 40%, #0f1520 100%)",
-                    }}
-                  />
-                )}
                 {/* Dark overlay for play button contrast */}
                 <div
                   style={{
