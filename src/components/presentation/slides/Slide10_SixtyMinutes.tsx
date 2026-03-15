@@ -1,7 +1,7 @@
 import { useState } from "react";
 import RevealElement from "../RevealElement";
+import slide10Thumb from "@/assets/slide10-thumbnail.jpg";
 
-const THUMBNAIL_URL = "https://img.youtube.com/vi/eNo9HLgbax0/maxresdefault.jpg";
 
 const quotes = [
   "The typical 401k investor is a financial novice.",
@@ -125,7 +125,7 @@ export default function Slide10_SixtyMinutes() {
                 }}
               >
                 <img
-                    src={THUMBNAIL_URL}
+                    src={slide10Thumb}
                     alt="60 Minutes broadcast studio thumbnail"
                     style={{
                       width: "100%",
