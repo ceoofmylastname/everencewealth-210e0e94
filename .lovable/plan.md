@@ -1,36 +1,40 @@
 
 
-## Update Hero Copy — Full Narrative Rewrite
+## Plan: Add Registration Time (10:30 AM) to Landing Page and Emails
 
-The user provided a complete rewrite. The new copy is longer and more narrative-driven, so the Hero section needs to accommodate multiple body paragraphs while keeping the same visual structure.
+### 1. Landing Page Changes (`src/pages/TrainingEvent.tsx`)
 
-### Changes to `SocorroHero.tsx`
+**A. Add registration time to the event details pills (line 284)**
+Change "11:00 AM - 4:00 PM" to include registration:
+```
+Registration: 10:30 AM
+Event: 11:00 AM – 4:00 PM
+```
 
-**Headline** (two animated lines):
-- Line 1: `"The Retirement System Was Not Built"`
-- Line 2: `"For You. It Was Built To Be Paid By You."`
+**B. Add registration time to the confirmation card (line 161)**
+Update the time display from `11:00 AM – 4:00 PM PT` to `Registration 10:30 AM | Event 11:00 AM – 4:00 PM PT`
 
-**Subheadline** (gold text):
-- `"Every fee, every market swing, every tax bill in retirement — someone else planned for that. The question is whether you did."`
+**C. Update session highlights (line 11)**
+Add a "10:30 AM" registration/check-in entry as the first item in `sessionHighlights`.
 
-**Body** — Replace the single paragraph with the full narrative, broken into multiple `<motion.p>` blocks with staggered delays:
-1. "You saw the chart..." paragraph (variable account vs protected indexed strategy)
-2. "Hidden fees don't announce themselves..." paragraph (tax time bombs, market crashes)
-3. "You came to this workshop..." paragraph (trust that instinct)
-4. "The Financial Needs Assessment isn't a pitch..." paragraph (stress test, thirty minutes)
-5. "No pressure. No products pushed. Just clarity."
+### 2. Email Changes
 
-**CTA** stays: "Book Your Discovery Call →"
+**A. Registration confirmation email (`supabase/functions/register-training-event/index.ts`)**
+Add registration and event times to the event details block (currently only shows date and location):
+```
+🕐 Registration: 10:30 AM PST
+🕐 Event: 11:00 AM – 4:00 PM PST
+```
 
-**Detail text** stays: "Free · No Obligation · 100% Confidential"
+**B. Reminder emails (`supabase/functions/process-training-reminders/index.ts`, line 92)**
+Update the time line from `11:00 AM to 4:00 PM PST` to include registration:
+```
+🕐 Registration: 10:30 AM PST
+🕐 Event: 11:00 AM – 4:00 PM PST
+```
 
-### Changes to `SocorroFinalCTA.tsx`
-
-**Headline**: `"You Now Know What the Gap Looks Like."` / `"Are You Going to Close It — or Hope It Closes Itself?"`
-
-Body stays the same (already works with the new narrative).
-
-### Files to edit
-1. `src/components/socorro/SocorroHero.tsx` — headline, subheadline, body paragraphs
-2. `src/components/socorro/SocorroFinalCTA.tsx` — closing headline update
+### Files Modified
+- `src/pages/TrainingEvent.tsx` — 3 spots (session highlights array, event pills, confirmation card)
+- `supabase/functions/register-training-event/index.ts` — add times to email
+- `supabase/functions/process-training-reminders/index.ts` — update time line
 

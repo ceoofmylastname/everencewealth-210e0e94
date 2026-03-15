@@ -67,10 +67,10 @@ export default function SocorroHero() {
           animate="show"
         >
           <motion.span className="line-1" variants={lineVariant}>
-            You Saw the <em className="slash-word">Numbers.</em>
+            The Retirement System Was Not <em className="slash-word">Built</em>
           </motion.span>
           <motion.span className="line-2" variants={lineVariant}>
-            Now What Are You Going to Do About It?
+            For You. It Was Built To Be Paid By You.
           </motion.span>
         </motion.h1>
 
@@ -87,15 +87,15 @@ export default function SocorroHero() {
             maxWidth: "600px",
           }}
         >
-          The workshop showed you what's possible. This call makes it real.
+          Every fee, every market swing, every tax bill in retirement — someone else planned for that. The question is whether you did.
         </motion.p>
 
-        {/* Body */}
+        {/* Body paragraphs */}
         <motion.p
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.4 }}
-          className="mb-10"
+          className="mb-4"
           style={{
             fontFamily: "'DM Sans', system-ui, sans-serif",
             fontSize: "16px",
@@ -104,10 +104,73 @@ export default function SocorroHero() {
             lineHeight: 1.7,
           }}
         >
-          You sat through the session. You saw how hidden fees, outdated
-          strategies, and missed tax advantages quietly drain your retirement.
-          Now you have a choice — go back to hoping, or sit down with someone
-          who can actually show you your options.
+          You saw the chart. You saw what happens to $100,000 in a variable account versus a protected indexed strategy over 26 years. That gap isn't luck. It isn't timing. It's structure. And right now, most people sitting in a 401k or a brokerage account are on the wrong side of it.
+        </motion.p>
+
+        <motion.p
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, delay: 0.5 }}
+          className="mb-4"
+          style={{
+            fontFamily: "'DM Sans', system-ui, sans-serif",
+            fontSize: "16px",
+            color: "rgba(255,255,255,0.7)",
+            maxWidth: "600px",
+            lineHeight: 1.7,
+          }}
+        >
+          Hidden fees don't announce themselves. Tax time bombs don't go off until you're 73 and the IRS sends you a Required Minimum Distribution you didn't plan for. Market crashes don't wait for a good time. They just happen — and if your floor is zero, you feel every single point of it.
+        </motion.p>
+
+        <motion.p
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, delay: 0.6 }}
+          className="mb-4"
+          style={{
+            fontFamily: "'DM Sans', system-ui, sans-serif",
+            fontSize: "16px",
+            color: "#C8A96E",
+            maxWidth: "600px",
+            lineHeight: 1.7,
+            fontWeight: 500,
+          }}
+        >
+          You came to this workshop because something wasn't adding up. Trust that instinct.
+        </motion.p>
+
+        <motion.p
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, delay: 0.7 }}
+          className="mb-4"
+          style={{
+            fontFamily: "'DM Sans', system-ui, sans-serif",
+            fontSize: "16px",
+            color: "rgba(255,255,255,0.7)",
+            maxWidth: "600px",
+            lineHeight: 1.7,
+          }}
+        >
+          The Financial Needs Assessment isn't a pitch. It's a stress test. Thirty minutes. Your numbers. A real look at what your current strategy costs you in fees, taxes, and unprotected downside — and what a different structure could do instead.
+        </motion.p>
+
+        <motion.p
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, delay: 0.8 }}
+          className="mb-10"
+          style={{
+            fontFamily: "'DM Sans', system-ui, sans-serif",
+            fontSize: "16px",
+            color: "rgba(255,255,255,0.85)",
+            maxWidth: "600px",
+            lineHeight: 1.7,
+            fontWeight: 600,
+          }}
+        >
+          No pressure. No products pushed. Just clarity.
         </motion.p>
 
         {/* CTA */}
