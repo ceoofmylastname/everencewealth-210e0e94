@@ -236,7 +236,7 @@ function CompoundCard({
                 key={ri}
                 className="flex items-center justify-between"
                 style={{
-                  padding: "10px 16px",
+                  padding: "6px 14px",
                   borderRadius: 16,
                   transition: "all 0.3s ease",
                   ...(isLast
