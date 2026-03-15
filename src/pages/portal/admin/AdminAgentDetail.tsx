@@ -121,6 +121,22 @@ export default function AdminAgentDetail() {
     }
   }
 
+  async function togglePresentationAccess(checked: boolean) {
+    if (!advisor) return;
+    setTogglingPresentation(true);
+    const { error } = await supabase
+      .from("portal_users")
+      .update({ presentation_access: checked } as any)
+      .eq("id", advisor.portal_user_id);
+    setTogglingPresentation(false);
+    if (error) {
+      toast.error("Failed to update presentation access");
+    } else {
+      setPresentationAccess(checked);
+      toast.success(checked ? "Presentation access granted" : "Presentation access revoked");
+    }
+  }
+
   async function toggleActive() {
     if (!advisor) return;
     const newActive = !advisor.is_active;
