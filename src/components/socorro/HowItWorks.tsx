@@ -25,15 +25,18 @@ const steps = [
 
 export default function HowItWorks() {
   return (
-    <section style={{ background: "#F7F9F8" }} className="py-20 sm:py-28">
-      <div className="max-w-[1100px] mx-auto px-6">
+    <section style={{ background: "#F7F9F8" }} className="py-20 sm:py-28 relative">
+      {/* Dot grid texture */}
+      <div className="absolute inset-0 socorro-dot-grid pointer-events-none" />
+
+      <div className="relative max-w-[1100px] mx-auto px-6">
         <ScrollReveal>
-          <div className="text-center mb-14">
+          <div className="text-center mb-16">
             <span
               style={{
-                fontFamily: "'DM Sans', system-ui, sans-serif",
+                fontFamily: "'Space Grotesk', system-ui, sans-serif",
                 fontSize: "12px",
-                fontWeight: 700,
+                fontWeight: 600,
                 color: "#C8A96E",
                 textTransform: "uppercase",
                 letterSpacing: "0.2em",
@@ -44,8 +47,8 @@ export default function HowItWorks() {
             <h2
               className="socorro-shimmer-text mt-3"
               style={{
-                fontFamily: "'Cormorant Garamond', Georgia, serif",
-                fontSize: "clamp(28px, 4vw, 40px)",
+                fontFamily: "'Clash Display', system-ui, sans-serif",
+                fontSize: "clamp(28px, 4vw, 42px)",
                 fontWeight: 700,
                 lineHeight: 1.2,
               }}
@@ -55,70 +58,64 @@ export default function HowItWorks() {
           </div>
         </ScrollReveal>
 
-        {/* Steps grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative">
-          {/* Connecting line (desktop) */}
+        {/* Steps — horizontal on desktop, vertical on mobile */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
+          {/* Connecting dotted line (desktop) */}
           <div
-            className="hidden md:block absolute top-[72px] left-[16%] right-[16%] h-[2px]"
+            className="hidden md:block absolute top-[44px] left-[18%] right-[18%] h-[2px]"
             style={{
-              background: "linear-gradient(90deg, transparent, rgba(200,169,110,0.3), transparent)",
+              backgroundImage: "repeating-linear-gradient(90deg, rgba(200,169,110,0.3) 0px, rgba(200,169,110,0.3) 6px, transparent 6px, transparent 14px)",
             }}
             aria-hidden="true"
           />
 
           {steps.map((step, i) => (
-            <ScrollReveal key={step.num} delay={i * 0.12}>
-              <GlassCard variant="light" hover3d className="p-8 text-center relative">
-                {/* Number circle */}
-                <div
-                  className="mx-auto mb-5 flex items-center justify-center"
-                  style={{
-                    width: 56,
-                    height: 56,
-                    borderRadius: "50%",
-                    background: "linear-gradient(135deg, #C8A96E, #E2C896)",
-                    color: "#0D1F1A",
-                    fontFamily: "'DM Sans', system-ui, sans-serif",
-                    fontSize: "18px",
-                    fontWeight: 700,
-                  }}
-                >
+            <ScrollReveal key={step.num} delay={i * 0.15}>
+              <div className="flex flex-col items-center text-center">
+                {/* Number ring with glow */}
+                <div className="socorro-ring-number mb-6 relative z-10">
                   {step.num}
                 </div>
 
-                {/* Icon */}
-                <step.icon
-                  className="mx-auto mb-4"
-                  size={28}
-                  strokeWidth={1.5}
-                  color="#1A4D3E"
-                />
+                <GlassCard variant="light" hover3d className="p-7 w-full socorro-hover-glow">
+                  {/* Icon in glass circle */}
+                  <div
+                    className="mx-auto mb-4 flex items-center justify-center"
+                    style={{
+                      width: 52,
+                      height: 52,
+                      borderRadius: "50%",
+                      background: "rgba(200, 169, 110, 0.08)",
+                      border: "1px solid rgba(200, 169, 110, 0.15)",
+                    }}
+                  >
+                    <step.icon size={24} strokeWidth={1.5} color="#1A4D3E" />
+                  </div>
 
-                {/* Title */}
-                <h3
-                  style={{
-                    fontFamily: "'Cormorant Garamond', Georgia, serif",
-                    fontSize: "22px",
-                    fontWeight: 700,
-                    color: "#1A4D3E",
-                    marginBottom: "8px",
-                  }}
-                >
-                  {step.title}
-                </h3>
+                  <h3
+                    style={{
+                      fontFamily: "'Clash Display', system-ui, sans-serif",
+                      fontSize: "20px",
+                      fontWeight: 600,
+                      color: "#1A4D3E",
+                      marginBottom: "8px",
+                    }}
+                  >
+                    {step.title}
+                  </h3>
 
-                {/* Description */}
-                <p
-                  style={{
-                    fontFamily: "'DM Sans', system-ui, sans-serif",
-                    fontSize: "14px",
-                    color: "#4A5565",
-                    lineHeight: 1.6,
-                  }}
-                >
-                  {step.desc}
-                </p>
-              </GlassCard>
+                  <p
+                    style={{
+                      fontFamily: "'DM Sans', system-ui, sans-serif",
+                      fontSize: "14px",
+                      color: "#4A5565",
+                      lineHeight: 1.6,
+                    }}
+                  >
+                    {step.desc}
+                  </p>
+                </GlassCard>
+              </div>
             </ScrollReveal>
           ))}
         </div>
