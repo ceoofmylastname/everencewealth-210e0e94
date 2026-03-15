@@ -61,6 +61,14 @@ export default function AdminAgentDetail() {
     setAdvisor(adv as AdvisorData);
     setEditForm(adv as AdvisorData);
 
+    // Fetch presentation_access from portal_users
+    const { data: portalData } = await supabase
+      .from("portal_users")
+      .select("presentation_access")
+      .eq("id", (adv as any).portal_user_id)
+      .single();
+    setPresentationAccess(!!(portalData as any)?.presentation_access);
+
     const { data: clientData } = await (supabase
       .from("portal_users")
       .select("id, first_name, last_name, email, is_active, advisor_id")
