@@ -1,34 +1,40 @@
 
 
-## Add Background Watermark Logo to Presentation Slides
+## Plan: Add Registration Time (10:30 AM) to Landing Page and Emails
 
-### What
-Place the Everence Wealth logo (`https://assets.cdn.filesafe.space/htr97zzmRc1NMujHbL9R/media/69b7424c5b89c7c557adfe6e.png`) as a large centered background watermark at 30% opacity on all white/light-background slides, skipping Slide 1 and any slides with dark or image backgrounds.
+### 1. Landing Page Changes (`src/pages/TrainingEvent.tsx`)
 
-### How
-**Single change in `src/components/presentation/PresentationViewer.tsx`**:
+**A. Add registration time to the event details pills (line 284)**
+Change "11:00 AM - 4:00 PM" to include registration:
+```
+Registration: 10:30 AM
+Event: 11:00 AM – 4:00 PM
+```
 
-Add a watermark overlay layer inside the slide area, conditionally rendered based on `currentSlide` index. This avoids editing all 18+ individual slide files.
+**B. Add registration time to the confirmation card (line 161)**
+Update the time display from `11:00 AM – 4:00 PM PT` to `Registration 10:30 AM | Event 11:00 AM – 4:00 PM PT`
 
-- Define a set of slide indices to **exclude** (dark/image backgrounds):
-  - Index 0 (Slide01 — dark, also skip per request)
-  - Index 1 (Slide02 — mesh bg)
-  - Index 4 (Slide05 — carrier bg)
-  - Index 7 (Slide08 — dark green)
-  - Index 8 (Slide09 — bridge image)
-  - Index 19 (Slide21 — bridge/skyline image)
-  - Index 24 (Slide26 — gradient)
+**C. Update session highlights (line 11)**
+Add a "10:30 AM" registration/check-in entry as the first item in `sessionHighlights`.
 
-- All other slides (indices 2, 3, 5, 6, 9–18, 20–23) get the watermark
+### 2. Email Changes
 
-- The watermark is an absolutely positioned `img` element:
-  - Centered (top 50%, left 50%, translate -50% -50%)
-  - Large size (~60–70% of viewport height)
-  - `opacity: 0.3`, `pointer-events: none`, `z-index: 1`
-  - `object-fit: contain`
+**A. Registration confirmation email (`supabase/functions/register-training-event/index.ts`)**
+Add registration and event times to the event details block (currently only shows date and location):
+```
+🕐 Registration: 10:30 AM PST
+🕐 Event: 11:00 AM – 4:00 PM PST
+```
 
-- Placed inside the slide area `div` (the `flex-1 relative overflow-hidden` container), rendered **behind** the slide content via low z-index
+**B. Reminder emails (`supabase/functions/process-training-reminders/index.ts`, line 92)**
+Update the time line from `11:00 AM to 4:00 PM PST` to include registration:
+```
+🕐 Registration: 10:30 AM PST
+🕐 Event: 11:00 AM – 4:00 PM PST
+```
 
 ### Files Modified
-- `src/components/presentation/PresentationViewer.tsx` — add conditional watermark overlay
+- `src/pages/TrainingEvent.tsx` — 3 spots (session highlights array, event pills, confirmation card)
+- `supabase/functions/register-training-event/index.ts` — add times to email
+- `supabase/functions/process-training-reminders/index.ts` — update time line
 
