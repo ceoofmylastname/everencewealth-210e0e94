@@ -223,7 +223,7 @@ function CompoundCard({
           style={{
             height: 1,
             background: `linear-gradient(90deg, transparent 5%, ${col.color}18 50%, transparent 95%)`,
-            marginBottom: 20,
+            marginBottom: 12,
           }}
         />
 
