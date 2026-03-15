@@ -387,7 +387,7 @@ export default function Slide07_CompoundInterest() {
         <RevealElement
           index={5}
           direction="explode"
-          className="flex justify-center mt-10"
+          className="flex justify-center mt-6"
         >
           <div
             className="slide07-pill-shimmer"
