@@ -36,7 +36,7 @@ const INDEXED_DATA: DataPoint[] = [
   { year: 2013, value: 344064.38 },
   { year: 2014, value: 431594.35 },
   { year: 2015, value: 483385.28 },
-  { year: 2024, value: 541391.51 },
+  { year: 2021, value: 541391.51 },
 ];
 
 const MIN_YEAR = 1999;
