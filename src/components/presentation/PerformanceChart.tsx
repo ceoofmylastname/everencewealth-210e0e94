@@ -21,7 +21,7 @@ const SP500_DATA: DataPoint[] = [
   { year: 2015, value: 307071.03 },
   { year: 2019, value: 283383.18 },
   { year: 2020, value: 408888.23 },
-  { year: 2025, value: 408888.23 },
+  { year: 2021, value: 408888.23 },
 ];
 
 const INDEXED_DATA: DataPoint[] = [
@@ -36,11 +36,11 @@ const INDEXED_DATA: DataPoint[] = [
   { year: 2013, value: 344064.38 },
   { year: 2014, value: 431594.35 },
   { year: 2015, value: 483385.28 },
-  { year: 2024, value: 541391.51 },
+  { year: 2021, value: 541391.51 },
 ];
 
 const MIN_YEAR = 1999;
-const MAX_YEAR = 2025;
+const MAX_YEAR = 2021;
 const MAX_VAL = 580000;
 const PADDING = { top: 65, right: 50, bottom: 55, left: 90 };
 

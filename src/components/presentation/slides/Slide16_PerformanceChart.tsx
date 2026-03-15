@@ -16,7 +16,7 @@ export default function Slide16_PerformanceChart() {
             How <GradientText>Strategy</GradientText> Impacts Performance
           </h2>
           <p className="text-sm mt-1" style={{ color: "#4A5565" }}>
-            $100,000 invested — S&P 500 Direct vs. Indexed Strategy (1999–2025)
+            $100,000 invested — S&P 500 Direct vs. Indexed Strategy (1999–2021)
           </p>
         </RevealElement>
 
@@ -68,7 +68,7 @@ export default function Slide16_PerformanceChart() {
               <div className="w-3 h-3 rounded-full" style={{ background: "#1A4D3E" }} />
               <span className="text-xs font-medium" style={{ color: "#4A5565" }}>Indexed — 0% / 12% Cap</span>
               <span className="text-sm font-bold" style={{ color: "#1A4D3E" }}>
-                {isRevealed(3) ? <CountingNumber value={541391} prefix="$" decimals={2} /> : "$0.00"}
+                {isRevealed(3) ? <CountingNumber value={541391.51} prefix="$" decimals={2} /> : "$0.00"}
               </span>
             </div>
           </div>
@@ -77,7 +77,7 @@ export default function Slide16_PerformanceChart() {
         {/* Reveal 4: Badges */}
         <RevealElement index={4} direction="explode" className="flex justify-center gap-3 flex-wrap">
           <div className="antigravity-pill-gold text-sm font-bold px-5 py-2">
-            +$132,503 MORE — Protected Strategy
+            +$132,503.28 MORE — Protected Strategy
           </div>
           <div
             className="text-sm font-bold px-5 py-2 rounded-full"

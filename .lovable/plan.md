@@ -1,21 +1,40 @@
 
 
-## Trim Chart to 1999–2021
+## Plan: Add Registration Time (10:30 AM) to Landing Page and Emails
 
-### Changes
+### 1. Landing Page Changes (`src/pages/TrainingEvent.tsx`)
 
-**1. `src/components/presentation/PerformanceChart.tsx`**
+**A. Add registration time to the event details pills (line 284)**
+Change "11:00 AM - 4:00 PM" to include registration:
+```
+Registration: 10:30 AM
+Event: 11:00 AM – 4:00 PM
+```
 
-- **SP500_DATA**: Remove `{ year: 2025, value: 408888.23 }`. Add `{ year: 2021, value: 408888.23 }` as the final point. No other points are post-2021 so nothing else to remove.
-- **INDEXED_DATA**: Remove `{ year: 2024, value: 541391.51 }`. Add `{ year: 2021, value: 541391.51 }` as the final point.
-- **MAX_YEAR**: Change from `2025` to `2021`.
-- X-axis loop already uses `MIN_YEAR` to `MAX_YEAR`, so it will automatically show 1999–2021.
+**B. Add registration time to the confirmation card (line 161)**
+Update the time display from `11:00 AM – 4:00 PM PT` to `Registration 10:30 AM | Event 11:00 AM – 4:00 PM PT`
 
-**2. `src/components/presentation/slides/Slide16_PerformanceChart.tsx`**
+**C. Update session highlights (line 11)**
+Add a "10:30 AM" registration/check-in entry as the first item in `sessionHighlights`.
 
-- Line 19: Change subtitle from `(1999–2025)` to `(1999–2021)`.
-- Line 71: `CountingNumber value` is already `541391` — update to `541391.51` for precision.
-- Line 79: Change `+$132,503` to `+$132,503.28`.
+### 2. Email Changes
 
-Summary bar values and difference pill already display the correct numbers (just minor decimal precision fixes).
+**A. Registration confirmation email (`supabase/functions/register-training-event/index.ts`)**
+Add registration and event times to the event details block (currently only shows date and location):
+```
+🕐 Registration: 10:30 AM PST
+🕐 Event: 11:00 AM – 4:00 PM PST
+```
+
+**B. Reminder emails (`supabase/functions/process-training-reminders/index.ts`, line 92)**
+Update the time line from `11:00 AM to 4:00 PM PST` to include registration:
+```
+🕐 Registration: 10:30 AM PST
+🕐 Event: 11:00 AM – 4:00 PM PST
+```
+
+### Files Modified
+- `src/pages/TrainingEvent.tsx` — 3 spots (session highlights array, event pills, confirmation card)
+- `supabase/functions/register-training-event/index.ts` — add times to email
+- `supabase/functions/process-training-reminders/index.ts` — update time line
 
