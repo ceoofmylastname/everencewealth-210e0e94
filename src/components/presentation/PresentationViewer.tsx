@@ -175,6 +175,24 @@ function PresentationShell({ onExit }: { onExit?: () => void }) {
 
         {/* Slide area */}
         <div className="flex-1 relative overflow-hidden">
+          {/* Background watermark logo on white/light slides */}
+          {!WATERMARK_EXCLUDE_INDICES.has(currentSlide) && (
+            <img
+              src="https://assets.cdn.filesafe.space/htr97zzmRc1NMujHbL9R/media/69b7424c5b89c7c557adfe6e.png"
+              alt=""
+              aria-hidden="true"
+              className="absolute pointer-events-none select-none"
+              style={{
+                top: "50%",
+                left: "50%",
+                transform: "translate(-50%, -50%)",
+                height: "65%",
+                opacity: 0.3,
+                objectFit: "contain",
+                zIndex: 1,
+              }}
+            />
+          )}
           <AnimatePresence mode="wait">
             <motion.div
               key={currentSlide}
@@ -183,6 +201,7 @@ function PresentationShell({ onExit }: { onExit?: () => void }) {
               exit={{ opacity: 0 }}
               transition={{ duration: 0.3 }}
               className="absolute inset-0"
+              style={{ zIndex: 2 }}
             >
               <Suspense
                 fallback={
