@@ -236,41 +236,9 @@ export default function Slide07_CompoundInterest() {
   return (
     <div className="antigravity-slide" style={{ background: "#FAFAF8" }}>
       <style>{`
-        @keyframes slide07Border {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
-        }
         .slide07-card-outer {
           position: relative;
           border-radius: 26px;
-          padding: 2px;
-        }
-        .slide07-border-ring {
-          overflow: hidden;
-        }
-        .slide07-border-ring::before {
-          content: '';
-          position: absolute;
-          inset: -50%;
-          background: conic-gradient(
-            from 0deg,
-            var(--card-accent) 0%,
-            transparent 12%,
-            transparent 50%,
-            var(--card-accent) 62%,
-            transparent 75%,
-            transparent 100%
-          );
-          animation: slide07Border 5s linear infinite;
-          z-index: 0;
-        }
-        .slide07-border-ring::after {
-          content: '';
-          position: absolute;
-          inset: 2px;
-          border-radius: 22px;
-          background: inherit;
-          z-index: 1;
         }
         .slide07-pill-shimmer {
           position: relative;
