@@ -47,7 +47,7 @@ export default function CountingNumber({
   }, [inView, value, duration]);
 
   const formatted = decimals > 0
-    ? display.toFixed(decimals)
+    ? Number(display.toFixed(decimals)).toLocaleString("en-US", { minimumFractionDigits: decimals, maximumFractionDigits: decimals })
     : Math.round(display).toLocaleString();
 
   return (
