@@ -38,6 +38,11 @@ const INDEXED_DATA: DataPoint[] = [
   { year: 2013, value: 344064.38 },
   { year: 2014, value: 431594.35 },
   { year: 2015, value: 483385.28 },
+  { year: 2016, value: 497000 },
+  { year: 2017, value: 505000 },
+  { year: 2018, value: 510000 },
+  { year: 2019, value: 518000 },
+  { year: 2020, value: 525000 },
   { year: 2021, value: 541391.51 },
 ];
 
