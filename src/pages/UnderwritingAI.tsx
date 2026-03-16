@@ -371,21 +371,26 @@ export default function UnderwritingAI() {
                 const isUser = msg.role === "user";
                 return (
                   <div key={i} className={cn("flex", isUser ? "justify-end" : "justify-start")}>
-                    <div
-                      className={cn(
-                        "max-w-[85%] sm:max-w-[75%] rounded-2xl px-4 py-3",
-                        isUser
-                          ? "bg-[hsl(160,48%,18%)] text-white rounded-br-md"
-                          : "bg-card border border-gray-200 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.08)] rounded-bl-md"
-                      )}
-                    >
-                      {isUser ? (
-                        <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
-                      ) : (
-                        <div className="prose prose-sm max-w-none text-foreground prose-headings:text-foreground prose-a:text-[hsl(160,48%,18%)] prose-strong:text-foreground">
-                          <ReactMarkdown>{msg.content}</ReactMarkdown>
-                        </div>
-                      )}
+                    {(() => {
+                      const isClarify = !isUser && msg.content.startsWith("[CLARIFY]");
+                      const displayContent = isClarify ? msg.content.replace(/^\[CLARIFY\]\s*/, "") : msg.content;
+                      return (
+                        <div
+                          className={cn(
+                            "max-w-[85%] sm:max-w-[75%] rounded-2xl px-4 py-3",
+                            isUser
+                              ? "bg-[hsl(160,48%,18%)] text-white rounded-br-md"
+                              : "bg-card border border-gray-200 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.08)] rounded-bl-md",
+                            isClarify && "border-l-4 border-l-teal-600"
+                          )}
+                        >
+                          {isUser ? (
+                            <p className="text-sm whitespace-pre-wrap">{displayContent}</p>
+                          ) : (
+                            <div className="prose prose-sm max-w-none text-foreground prose-headings:text-foreground prose-a:text-[hsl(160,48%,18%)] prose-strong:text-foreground">
+                              <ReactMarkdown>{displayContent}</ReactMarkdown>
+                            </div>
+                          )}
 
                       {/* source badges */}
                       {!isUser && msg.sources && msg.sources.length > 0 && (
