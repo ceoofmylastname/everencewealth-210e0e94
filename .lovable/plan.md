@@ -1,40 +1,23 @@
 
 
-## Plan: Add Registration Time (10:30 AM) to Landing Page and Emails
+## Fix: underwriting-process FormData mismatch
 
-### 1. Landing Page Changes (`src/pages/TrainingEvent.tsx`)
+### Root Cause
+- **Frontend** sends JSON: `{ carrier_name, file_name, file_base64 }` via `supabase.functions.invoke()`
+- **Edge function** calls `req.formData()` expecting multipart form data
+- Result: `TypeError: Body can not be decoded as form data`
 
-**A. Add registration time to the event details pills (line 284)**
-Change "11:00 AM - 4:00 PM" to include registration:
-```
-Registration: 10:30 AM
-Event: 11:00 AM – 4:00 PM
-```
+### Fix (edge function only, one file)
 
-**B. Add registration time to the confirmation card (line 161)**
-Update the time display from `11:00 AM – 4:00 PM PT` to `Registration 10:30 AM | Event 11:00 AM – 4:00 PM PT`
+Update `supabase/functions/underwriting-process/index.ts` to parse JSON instead of FormData:
 
-**C. Update session highlights (line 11)**
-Add a "10:30 AM" registration/check-in entry as the first item in `sessionHighlights`.
+1. Replace `req.formData()` + `formData.get(...)` (lines ~48-55) with `req.json()` to extract `carrier_name`, `file_name`, and `file_base64`
+2. Decode the base64 string back to a `Uint8Array` / `Blob` for the LlamaParse upload
+3. Reconstruct a `FormData` with the decoded blob only for the LlamaParse API call (which still needs multipart)
+4. Use `file_name` from JSON instead of `file.name`
 
-### 2. Email Changes
+No frontend changes needed — the frontend payload format is fine.
 
-**A. Registration confirmation email (`supabase/functions/register-training-event/index.ts`)**
-Add registration and event times to the event details block (currently only shows date and location):
-```
-🕐 Registration: 10:30 AM PST
-🕐 Event: 11:00 AM – 4:00 PM PST
-```
-
-**B. Reminder emails (`supabase/functions/process-training-reminders/index.ts`, line 92)**
-Update the time line from `11:00 AM to 4:00 PM PST` to include registration:
-```
-🕐 Registration: 10:30 AM PST
-🕐 Event: 11:00 AM – 4:00 PM PST
-```
-
-### Files Modified
-- `src/pages/TrainingEvent.tsx` — 3 spots (session highlights array, event pills, confirmation card)
-- `supabase/functions/register-training-event/index.ts` — add times to email
-- `supabase/functions/process-training-reminders/index.ts` — update time line
+### Affected file
+- `supabase/functions/underwriting-process/index.ts` — change request parsing from formData to JSON+base64 decode
 
