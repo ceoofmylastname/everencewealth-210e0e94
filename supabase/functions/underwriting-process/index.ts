@@ -35,17 +35,23 @@ serve(async (req) => {
       });
     }
 
-    // --- Parse form data ---
-    const formData = await req.formData();
-    const carrierName = formData.get("carrier_name") as string;
-    const file = formData.get("file") as File;
+    // --- Parse JSON body ---
+    const { carrier_name: carrierName, file_name: fileName, file_base64 } = await req.json();
 
-    if (!carrierName || !file) {
+    if (!carrierName || !file_base64 || !fileName) {
       return new Response(
-        JSON.stringify({ error: "carrier_name and file are required" }),
+        JSON.stringify({ error: "carrier_name, file_name, and file_base64 are required" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+
+    // Decode base64 to binary
+    const binaryStr = atob(file_base64);
+    const bytes = new Uint8Array(binaryStr.length);
+    for (let i = 0; i < binaryStr.length; i++) {
+      bytes[i] = binaryStr.charCodeAt(i);
+    }
+    const fileBlob = new Blob([bytes], { type: "application/pdf" });
 
     const LLAMA_PARSE_API_KEY = Deno.env.get("LLAMA_PARSE_API_KEY")!;
     const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY")!;
