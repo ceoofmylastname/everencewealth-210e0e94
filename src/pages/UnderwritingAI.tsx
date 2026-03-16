@@ -380,7 +380,7 @@ export default function UnderwritingAI() {
                 return (
                   <div key={i} className={cn("flex", isUser ? "justify-end" : "justify-start")}>
                     {(() => {
-                      const isClarify = !isUser && msg.content.startsWith("[CLARIFY]");
+                      const isClarify = !isUser && (msg.content.startsWith("[CLARIFY]") || msg.content.includes("I need a bit more information"));
                       const displayContent = isClarify ? msg.content.replace(/^\[CLARIFY\]\s*/, "") : msg.content;
                       return (
                         <div
@@ -388,8 +388,9 @@ export default function UnderwritingAI() {
                             "max-w-[85%] sm:max-w-[75%] rounded-2xl px-4 py-3",
                             isUser
                               ? "bg-[hsl(160,48%,18%)] text-white rounded-br-md"
-                              : "bg-card border border-gray-200 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.08)] rounded-bl-md",
-                            isClarify && "border-l-4 border-l-teal-600"
+                              : isClarify
+                                ? "bg-card border border-gray-200 border-l-4 border-l-teal-500 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.08)] rounded-bl-md"
+                                : "bg-card border border-gray-200 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.08)] rounded-bl-md"
                           )}
                         >
                           {isUser ? (
