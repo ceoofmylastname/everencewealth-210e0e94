@@ -451,7 +451,7 @@ export default function UnderwritingAI() {
             <Input
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Ask about underwriting guidelines..."
+              placeholder={messages.length > 0 && messages[messages.length - 1].role === "assistant" && messages[messages.length - 1].content.startsWith("[CLARIFY]") ? "Answer the clarifying question above..." : "Ask about underwriting guidelines..."}
               className="flex-1 h-10 rounded-xl border-gray-200"
               disabled={isLoading}
             />
