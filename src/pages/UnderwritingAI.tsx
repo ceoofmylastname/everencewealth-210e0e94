@@ -392,33 +392,35 @@ export default function UnderwritingAI() {
                             </div>
                           )}
 
-                      {/* source badges */}
-                      {!isUser && msg.sources && msg.sources.length > 0 && (
-                        <div className="flex flex-wrap gap-1.5 mt-2 pt-2 border-t border-gray-100">
-                          <FileText className="h-3.5 w-3.5 text-muted-foreground mt-0.5" />
-                          {msg.sources.map((src, j) => (
-                            <span
-                              key={j}
-                              className="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium bg-[hsl(51,78%,70%)]/20 text-[hsl(160,48%,18%)] border border-[hsl(51,78%,70%)]/30"
-                            >
-                              {src}
-                            </span>
-                          ))}
-                        </div>
-                      )}
+                          {/* source badges */}
+                          {!isUser && msg.sources && msg.sources.length > 0 && (
+                            <div className="flex flex-wrap gap-1.5 mt-2 pt-2 border-t border-gray-100">
+                              <FileText className="h-3.5 w-3.5 text-muted-foreground mt-0.5" />
+                              {msg.sources.map((src, j) => (
+                                <span
+                                  key={j}
+                                  className="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium bg-[hsl(51,78%,70%)]/20 text-[hsl(160,48%,18%)] border border-[hsl(51,78%,70%)]/30"
+                                >
+                                  {src}
+                                </span>
+                              ))}
+                            </div>
+                          )}
 
-                      <p
-                        className={cn(
-                          "text-[10px] mt-1",
-                          isUser ? "text-white/60" : "text-muted-foreground"
-                        )}
-                      >
-                        {new Date().toLocaleTimeString([], {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
-                      </p>
-                    </div>
+                          <p
+                            className={cn(
+                              "text-[10px] mt-1",
+                              isUser ? "text-white/60" : "text-muted-foreground"
+                            )}
+                          >
+                            {new Date().toLocaleTimeString([], {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </p>
+                        </div>
+                      );
+                    })()}
                   </div>
                 );
               })}
