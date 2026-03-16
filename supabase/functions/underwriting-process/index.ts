@@ -194,7 +194,7 @@ serve(async (req) => {
             carrier: carrierName,
             section: batch[j].section,
             text: batch[j].text.substring(0, 8000),
-            source_file: file.name,
+            source_file: fileName,
           },
         });
       }
