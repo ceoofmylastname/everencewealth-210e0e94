@@ -1,40 +1,18 @@
 
 
-## Plan: Add Registration Time (10:30 AM) to Landing Page and Emails
+## Plan: Add footnote rules to STRICT OUTPUT RULES
 
-### 1. Landing Page Changes (`src/pages/TrainingEvent.tsx`)
+**What changes:** Insert 4 new bullet points after line 139 (the "Never ask clarifying questions" rule) in the system prompt, before the blank line that precedes `RESPONSE FORMAT:`.
 
-**A. Add registration time to the event details pills (line 284)**
-Change "11:00 AM - 4:00 PM" to include registration:
+**Lines affected:** 139-140 in `supabase/functions/underwriting-chat/index.ts`
+
+**New content after line 139:**
 ```
-Registration: 10:30 AM
-Event: 11:00 AM – 4:00 PM
-```
-
-**B. Add registration time to the confirmation card (line 161)**
-Update the time display from `11:00 AM – 4:00 PM PT` to `Registration 10:30 AM | Event 11:00 AM – 4:00 PM PT`
-
-**C. Update session highlights (line 11)**
-Add a "10:30 AM" registration/check-in entry as the first item in `sessionHighlights`.
-
-### 2. Email Changes
-
-**A. Registration confirmation email (`supabase/functions/register-training-event/index.ts`)**
-Add registration and event times to the event details block (currently only shows date and location):
-```
-🕐 Registration: 10:30 AM PST
-🕐 Event: 11:00 AM – 4:00 PM PST
+- When carrier guidelines use footnote references such as "See '*' Below" or "See '#' Below", always look up and include the full footnote text in your answer. Never give a decision without reading what the footnote says.
+- The '#' footnote for diabetes in American Amicable Term Made Simple means: eligible for Standard coverage IF not diagnosed before age 35, not on insulin, no tobacco in past 12 months, and not combined with overweight, gout, retinopathy, or protein in urine. This is NOT an automatic decline.
+- The '*' footnote for high blood pressure means: eligible if controlled with two or fewer medications. Three or more medications = decline.
+- Never summarize a footnote reference as a decline unless the footnote itself says decline.
 ```
 
-**B. Reminder emails (`supabase/functions/process-training-reminders/index.ts`, line 92)**
-Update the time line from `11:00 AM to 4:00 PM PST` to include registration:
-```
-🕐 Registration: 10:30 AM PST
-🕐 Event: 11:00 AM – 4:00 PM PST
-```
-
-### Files Modified
-- `src/pages/TrainingEvent.tsx` — 3 spots (session highlights array, event pills, confirmation card)
-- `supabase/functions/register-training-event/index.ts` — add times to email
-- `supabase/functions/process-training-reminders/index.ts` — update time line
+**Post-edit:** Redeploy the `underwriting-chat` edge function.
 
