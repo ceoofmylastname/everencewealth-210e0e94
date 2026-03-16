@@ -49,6 +49,7 @@ const advisorNavGroups = [
       { label: "Schedule", icon: Calendar, href: "/portal/advisor/schedule" },
       { label: "Workshops", icon: Megaphone, href: "/portal/advisor/workshops/slug-setup" },
       { label: "Socorro Workshop", icon: ClipboardList, href: "/portal/advisor/socorro-workshop" },
+      { label: "Underwriting AI", icon: FileSearch, href: "/portal/advisor/underwriting" },
     ],
   },
   {
