@@ -1,20 +1,40 @@
 
 
-## Fix Summary
+## Plan: Add Registration Time (10:30 AM) to Landing Page and Emails
 
-### Bug 1 — `[DONE]` in UI
-Already fixed. Both streaming blocks at lines 119 and 225 correctly check `if (!jsonStr || jsonStr === "[DONE]") continue;`. No code change needed.
+### 1. Landing Page Changes (`src/pages/TrainingEvent.tsx`)
 
-### Bug 2 — Pinecone zero matches
-The `PINECONE_INDEX_URL` secret needs to be updated to the correct index URL:
+**A. Add registration time to the event details pills (line 284)**
+Change "11:00 AM - 4:00 PM" to include registration:
 ```
-https://everencewealth-rv7l8s6.svc.aped-4627-b74a.pinecone.io
+Registration: 10:30 AM
+Event: 11:00 AM – 4:00 PM
 ```
 
-**Action:** Update the `PINECONE_INDEX_URL` secret using `update_secret`.
+**B. Add registration time to the confirmation card (line 161)**
+Update the time display from `11:00 AM – 4:00 PM PT` to `Registration 10:30 AM | Event 11:00 AM – 4:00 PM PT`
 
-**Note:** After updating the URL, the PDF will likely need to be re-uploaded/re-ingested since the vectors were written to the old index. The new index may be empty.
+**C. Update session highlights (line 11)**
+Add a "10:30 AM" registration/check-in entry as the first item in `sessionHighlights`.
 
-### Technical detail
-Both edge functions (`underwriting-process` and `underwriting-chat`) use the same `PINECONE_INDEX_URL` env var, so updating the secret fixes both ingestion and querying in one step.
+### 2. Email Changes
+
+**A. Registration confirmation email (`supabase/functions/register-training-event/index.ts`)**
+Add registration and event times to the event details block (currently only shows date and location):
+```
+🕐 Registration: 10:30 AM PST
+🕐 Event: 11:00 AM – 4:00 PM PST
+```
+
+**B. Reminder emails (`supabase/functions/process-training-reminders/index.ts`, line 92)**
+Update the time line from `11:00 AM to 4:00 PM PST` to include registration:
+```
+🕐 Registration: 10:30 AM PST
+🕐 Event: 11:00 AM – 4:00 PM PST
+```
+
+### Files Modified
+- `src/pages/TrainingEvent.tsx` — 3 spots (session highlights array, event pills, confirmation card)
+- `supabase/functions/register-training-event/index.ts` — add times to email
+- `supabase/functions/process-training-reminders/index.ts` — update time line
 

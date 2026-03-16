@@ -95,13 +95,19 @@ serve(async (req) => {
 
     const pineconeData = await pineconeRes.json();
 
+    console.log("Pinecone query debug:", {
+      pineconeIndexUrl: PINECONE_INDEX_URL,
+      matchesCount: pineconeData.matches?.length || 0,
+      matchScores: (pineconeData.matches || []).map((m: { score: number }) => m.score),
+    });
+
     // --- Step 3: Filter by score threshold ---
     const relevantMatches = (pineconeData.matches || []).filter(
-      (m: { score: number }) => m.score >= 0.75
+      (m: { score: number }) => m.score >= 0.5
     );
 
     console.log(
-      `Pinecone returned ${pineconeData.matches?.length || 0} matches, ${relevantMatches.length} above 0.75`
+      `Pinecone returned ${pineconeData.matches?.length || 0} matches, ${relevantMatches.length} above 0.5`
     );
 
     // Build context from matches
