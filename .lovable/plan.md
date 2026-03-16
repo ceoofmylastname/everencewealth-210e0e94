@@ -1,30 +1,40 @@
 
 
-## Fix 5 Failing Audit Items
+## Plan: Add Registration Time (10:30 AM) to Landing Page and Emails
 
-### 1. `underwriting-chat` system prompt (lines 124-134)
+### 1. Landing Page Changes (`src/pages/TrainingEvent.tsx`)
 
-Replace the current system prompt with an expanded version that includes three missing blocks:
+**A. Add registration time to the event details pills (line 284)**
+Change "11:00 AM - 4:00 PM" to include registration:
+```
+Registration: 10:30 AM
+Event: 11:00 AM – 4:00 PM
+```
 
-- **STRICT OUTPUT RULES** — instructs Claude to only use provided context, cite carriers/sections, never fabricate guidelines
-- **CLARIFYING QUESTIONS** — instructs Claude to ask a clarifying question (prefixed with `[CLARIFY]`) when the user's query is ambiguous or too broad, before answering
-- **RESPONSE FORMAT** — specifies markdown formatting rules, comparison table format, and section citation style
+**B. Add registration time to the confirmation card (line 161)**
+Update the time display from `11:00 AM – 4:00 PM PT` to `Registration 10:30 AM | Event 11:00 AM – 4:00 PM PT`
 
-The `[CLARIFY]` prefix convention allows the frontend to detect clarifying-question responses.
+**C. Update session highlights (line 11)**
+Add a "10:30 AM" registration/check-in entry as the first item in `sessionHighlights`.
 
-### 2. Frontend clarifying-question rendering (`UnderwritingAI.tsx`)
+### 2. Email Changes
 
-In the message rendering loop (~line 373), detect if an assistant message starts with `[CLARIFY]` (strip the tag for display). When detected:
-- Render the message bubble with a **teal left border** (`border-l-4 border-teal-600`)
-- Keep the rest of the styling the same
+**A. Registration confirmation email (`supabase/functions/register-training-event/index.ts`)**
+Add registration and event times to the event details block (currently only shows date and location):
+```
+🕐 Registration: 10:30 AM PST
+🕐 Event: 11:00 AM – 4:00 PM PST
+```
 
-### 3. Dynamic textarea placeholder (`UnderwritingAI.tsx`)
+**B. Reminder emails (`supabase/functions/process-training-reminders/index.ts`, line 92)**
+Update the time line from `11:00 AM to 4:00 PM PST` to include registration:
+```
+🕐 Registration: 10:30 AM PST
+🕐 Event: 11:00 AM – 4:00 PM PST
+```
 
-At ~line 449, change the static placeholder to be computed:
-- If the last message is an assistant message starting with `[CLARIFY]`, show `"Answer the clarifying question above..."`
-- Otherwise show `"Ask about underwriting guidelines..."`
-
-### Files modified
-- `supabase/functions/underwriting-chat/index.ts` — expanded system prompt
-- `src/pages/UnderwritingAI.tsx` — clarifying question border + dynamic placeholder
+### Files Modified
+- `src/pages/TrainingEvent.tsx` — 3 spots (session highlights array, event pills, confirmation card)
+- `supabase/functions/register-training-event/index.ts` — add times to email
+- `supabase/functions/process-training-reminders/index.ts` — update time line
 

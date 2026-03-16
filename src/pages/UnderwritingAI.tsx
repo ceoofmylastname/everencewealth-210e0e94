@@ -371,49 +371,56 @@ export default function UnderwritingAI() {
                 const isUser = msg.role === "user";
                 return (
                   <div key={i} className={cn("flex", isUser ? "justify-end" : "justify-start")}>
-                    <div
-                      className={cn(
-                        "max-w-[85%] sm:max-w-[75%] rounded-2xl px-4 py-3",
-                        isUser
-                          ? "bg-[hsl(160,48%,18%)] text-white rounded-br-md"
-                          : "bg-card border border-gray-200 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.08)] rounded-bl-md"
-                      )}
-                    >
-                      {isUser ? (
-                        <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
-                      ) : (
-                        <div className="prose prose-sm max-w-none text-foreground prose-headings:text-foreground prose-a:text-[hsl(160,48%,18%)] prose-strong:text-foreground">
-                          <ReactMarkdown>{msg.content}</ReactMarkdown>
-                        </div>
-                      )}
+                    {(() => {
+                      const isClarify = !isUser && msg.content.startsWith("[CLARIFY]");
+                      const displayContent = isClarify ? msg.content.replace(/^\[CLARIFY\]\s*/, "") : msg.content;
+                      return (
+                        <div
+                          className={cn(
+                            "max-w-[85%] sm:max-w-[75%] rounded-2xl px-4 py-3",
+                            isUser
+                              ? "bg-[hsl(160,48%,18%)] text-white rounded-br-md"
+                              : "bg-card border border-gray-200 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.08)] rounded-bl-md",
+                            isClarify && "border-l-4 border-l-teal-600"
+                          )}
+                        >
+                          {isUser ? (
+                            <p className="text-sm whitespace-pre-wrap">{displayContent}</p>
+                          ) : (
+                            <div className="prose prose-sm max-w-none text-foreground prose-headings:text-foreground prose-a:text-[hsl(160,48%,18%)] prose-strong:text-foreground">
+                              <ReactMarkdown>{displayContent}</ReactMarkdown>
+                            </div>
+                          )}
 
-                      {/* source badges */}
-                      {!isUser && msg.sources && msg.sources.length > 0 && (
-                        <div className="flex flex-wrap gap-1.5 mt-2 pt-2 border-t border-gray-100">
-                          <FileText className="h-3.5 w-3.5 text-muted-foreground mt-0.5" />
-                          {msg.sources.map((src, j) => (
-                            <span
-                              key={j}
-                              className="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium bg-[hsl(51,78%,70%)]/20 text-[hsl(160,48%,18%)] border border-[hsl(51,78%,70%)]/30"
-                            >
-                              {src}
-                            </span>
-                          ))}
-                        </div>
-                      )}
+                          {/* source badges */}
+                          {!isUser && msg.sources && msg.sources.length > 0 && (
+                            <div className="flex flex-wrap gap-1.5 mt-2 pt-2 border-t border-gray-100">
+                              <FileText className="h-3.5 w-3.5 text-muted-foreground mt-0.5" />
+                              {msg.sources.map((src, j) => (
+                                <span
+                                  key={j}
+                                  className="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium bg-[hsl(51,78%,70%)]/20 text-[hsl(160,48%,18%)] border border-[hsl(51,78%,70%)]/30"
+                                >
+                                  {src}
+                                </span>
+                              ))}
+                            </div>
+                          )}
 
-                      <p
-                        className={cn(
-                          "text-[10px] mt-1",
-                          isUser ? "text-white/60" : "text-muted-foreground"
-                        )}
-                      >
-                        {new Date().toLocaleTimeString([], {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
-                      </p>
-                    </div>
+                          <p
+                            className={cn(
+                              "text-[10px] mt-1",
+                              isUser ? "text-white/60" : "text-muted-foreground"
+                            )}
+                          >
+                            {new Date().toLocaleTimeString([], {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </p>
+                        </div>
+                      );
+                    })()}
                   </div>
                 );
               })}
@@ -446,7 +453,7 @@ export default function UnderwritingAI() {
             <Input
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Ask about underwriting guidelines..."
+              placeholder={messages.length > 0 && messages[messages.length - 1].role === "assistant" && messages[messages.length - 1].content.startsWith("[CLARIFY]") ? "Answer the clarifying question above..." : "Ask about underwriting guidelines..."}
               className="flex-1 h-10 rounded-xl border-gray-200"
               disabled={isLoading}
             />
