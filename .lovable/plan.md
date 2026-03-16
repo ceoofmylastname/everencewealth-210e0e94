@@ -1,40 +1,49 @@
 
 
-## Plan: Add Registration Time (10:30 AM) to Landing Page and Emails
+## Create `src/pages/UnderwritingAI.tsx` — Full-Page Chat Interface
 
-### 1. Landing Page Changes (`src/pages/TrainingEvent.tsx`)
+### What
+A new standalone page with a chat interface for insurance underwriting queries. Matches the existing portal design system (teal `#1A4D3E`, gold `hsla(51,78%,65%,1)`, white cards with `rounded-2xl`, deep shadows, Inter font).
 
-**A. Add registration time to the event details pills (line 284)**
-Change "11:00 AM - 4:00 PM" to include registration:
-```
-Registration: 10:30 AM
-Event: 11:00 AM – 4:00 PM
-```
+### Components Within the File
 
-**B. Add registration time to the confirmation card (line 161)**
-Update the time display from `11:00 AM – 4:00 PM PT` to `Registration 10:30 AM | Event 11:00 AM – 4:00 PM PT`
+1. **Header Bar**
+   - Title "Underwriting AI" with a shield/brain icon
+   - "Upload Guidelines" button (opens upload dialog)
 
-**C. Update session highlights (line 11)**
-Add a "10:30 AM" registration/check-in entry as the first item in `sessionHighlights`.
+2. **Empty State**
+   - Centered icon + welcome text
+   - 4 quick-prompt suggestion chips (e.g. "What are the diabetes guidelines for Mutual of Omaha?", "Compare term life underwriting for smokers", etc.)
+   - Clicking a chip sends it as a message
 
-### 2. Email Changes
+3. **Chat Message Area**
+   - ScrollArea with messages
+   - User messages: right-aligned, teal background (`#1A4D3E`), white text
+   - Assistant messages: left-aligned, white card with gray border
+   - Source citation badges on assistant messages (small teal/gold pills showing carrier names parsed from response metadata)
+   - Auto-scroll to bottom on new messages
 
-**A. Registration confirmation email (`supabase/functions/register-training-event/index.ts`)**
-Add registration and event times to the event details block (currently only shows date and location):
-```
-🕐 Registration: 10:30 AM PST
-🕐 Event: 11:00 AM – 4:00 PM PST
-```
+4. **Typing Indicator**
+   - Three bouncing dots animation when `isLoading` is true
 
-**B. Reminder emails (`supabase/functions/process-training-reminders/index.ts`, line 92)**
-Update the time line from `11:00 AM to 4:00 PM PST` to include registration:
-```
-🕐 Registration: 10:30 AM PST
-🕐 Event: 11:00 AM – 4:00 PM PST
-```
+5. **Input Bar**
+   - Text input + send button (same pattern as `ClientMessages.tsx`)
 
-### Files Modified
-- `src/pages/TrainingEvent.tsx` — 3 spots (session highlights array, event pills, confirmation card)
-- `supabase/functions/register-training-event/index.ts` — add times to email
-- `supabase/functions/process-training-reminders/index.ts` — update time line
+6. **Upload Dialog**
+   - shadcn Dialog with carrier name input + PDF file input
+   - Submit POSTs to `underwriting-process` edge function via `supabase.functions.invoke`
+   - Shows loading state, success toast
+
+### API Integration
+
+- **Chat**: POST to `underwriting-chat` via `supabase.functions.invoke("underwriting-chat", { body: { question, history } })`. Auth token is automatically included by the Supabase client.
+- **Upload**: POST to `underwriting-process` via `supabase.functions.invoke("underwriting-process", { body: formData })` — carrier name + PDF file (base64-encoded).
+- Streaming: Will use `fetch` with the full edge function URL + auth header to read a streaming response, since `supabase.functions.invoke` doesn't support streaming. Construct URL from `VITE_SUPABASE_URL`.
+
+### Conversation History
+- Maintain `messages` state array `{ role: 'user' | 'assistant', content: string, sources?: string[] }`
+- Send last N messages as `history` to edge function
+
+### File Created
+- `src/pages/UnderwritingAI.tsx` — single self-contained file, no modifications to existing files
 
