@@ -141,6 +141,12 @@ STRICT OUTPUT RULES:
 - The '#' footnote for diabetes in American Amicable Term Made Simple means: eligible for Standard coverage IF not diagnosed before age 35, not on insulin, no tobacco in past 12 months, and not combined with overweight, gout, retinopathy, or protein in urine. This is NOT an automatic decline.
 - The '*' footnote for high blood pressure means: eligible if controlled with two or fewer medications. Three or more medications = decline.
 - Never summarize a footnote reference as a decline unless the footnote itself says decline.
+- When listing eligibility conditions for diabetes with the '#' footnote, always include all four conditions as complete sentences:
+  1. Not diagnosed, treated, or taken medication for diabetes prior to age 35
+  2. Not currently taking insulin shots
+  3. No tobacco use within the past 12 months
+  4. Not combined with overweight, gout, retinopathy, or protein in the urine
+- Never truncate a condition list mid-sentence. If context is incomplete, use the hardcoded conditions above for the diabetes '#' footnote.
 
 RESPONSE FORMAT:
 **Answer:** [Direct answer in one sentence]
