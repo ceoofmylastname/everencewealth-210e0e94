@@ -115,12 +115,16 @@ export default function UnderwritingAI() {
               const lines = chunk.split("\n");
               for (const line of lines) {
                 if (line.startsWith("data: ")) {
+                  const jsonStr = line.slice(6).trim();
+                  if (!jsonStr || jsonStr === "[DONE]") continue;
                   try {
-                    const parsed = JSON.parse(line.slice(6));
-                    if (parsed.content) assistantContent += parsed.content;
-                    if (parsed.sources) sources.push(...parsed.sources);
+                    const parsed = JSON.parse(jsonStr);
+                    const delta = parsed.choices?.[0]?.delta?.content;
+                    if (delta) assistantContent += delta;
+                    const chunkSources = parsed.choices?.[0]?.sources;
+                    if (chunkSources) sources.push(...chunkSources);
                   } catch {
-                    assistantContent += line.slice(6);
+                    // skip malformed JSON
                   }
                 }
               }
@@ -217,12 +221,16 @@ export default function UnderwritingAI() {
               const chunk = decoder.decode(value, { stream: true });
               for (const line of chunk.split("\n")) {
                 if (line.startsWith("data: ")) {
+                  const jsonStr = line.slice(6).trim();
+                  if (!jsonStr || jsonStr === "[DONE]") continue;
                   try {
-                    const parsed = JSON.parse(line.slice(6));
-                    if (parsed.content) assistantContent += parsed.content;
-                    if (parsed.sources) sources.push(...parsed.sources);
+                    const parsed = JSON.parse(jsonStr);
+                    const delta = parsed.choices?.[0]?.delta?.content;
+                    if (delta) assistantContent += delta;
+                    const chunkSources = parsed.choices?.[0]?.sources;
+                    if (chunkSources) sources.push(...chunkSources);
                   } catch {
-                    assistantContent += line.slice(6);
+                    // skip malformed JSON
                   }
                 }
               }
