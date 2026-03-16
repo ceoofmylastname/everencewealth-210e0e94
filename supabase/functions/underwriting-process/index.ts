@@ -229,7 +229,7 @@ serve(async (req) => {
         success: true,
         carrier: carrierName,
         chunks_processed: allVectors.length,
-        source_file: file.name,
+        source_file: fileName,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
