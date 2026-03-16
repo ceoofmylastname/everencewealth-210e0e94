@@ -61,7 +61,7 @@ serve(async (req) => {
     // --- Step 1: Upload PDF to LlamaParse ---
     console.log("Uploading PDF to LlamaParse...");
     const uploadForm = new FormData();
-    uploadForm.append("file", file, file.name);
+    uploadForm.append("file", fileBlob, fileName);
 
     const uploadRes = await fetch(
       "https://api.cloud.llamaindex.ai/api/parsing/upload",
