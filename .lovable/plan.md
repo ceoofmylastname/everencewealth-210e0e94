@@ -1,40 +1,24 @@
 
 
-## Plan: Add Registration Time (10:30 AM) to Landing Page and Emails
+## Fix: "[DONE]" displayed instead of AI response
 
-### 1. Landing Page Changes (`src/pages/TrainingEvent.tsx`)
+### Root Cause (two bugs)
 
-**A. Add registration time to the event details pills (line 284)**
-Change "11:00 AM - 4:00 PM" to include registration:
-```
-Registration: 10:30 AM
-Event: 11:00 AM – 4:00 PM
-```
+1. **Format mismatch**: The edge function (`underwriting-chat`) sends OpenAI-compatible SSE with content at `choices[0].delta.content`, but the frontend parser at lines 119-124 reads `parsed.content` — which is always undefined, so no tokens are ever captured.
 
-**B. Add registration time to the confirmation card (line 161)**
-Update the time display from `11:00 AM – 4:00 PM PT` to `Registration 10:30 AM | Event 11:00 AM – 4:00 PM PT`
+2. **`[DONE]` leaks into content**: When the stream sends `data: [DONE]`, `JSON.parse("[DONE]")` throws. The `catch` block (line 122-124) blindly appends `line.slice(6)` (i.e. the literal string `[DONE]`) to `assistantContent`.
 
-**C. Update session highlights (line 11)**
-Add a "10:30 AM" registration/check-in entry as the first item in `sessionHighlights`.
+Both bugs exist in two duplicate streaming blocks (lines ~108-138 and ~211-239).
 
-### 2. Email Changes
+### Fix (one file: `src/pages/UnderwritingAI.tsx`)
 
-**A. Registration confirmation email (`supabase/functions/register-training-event/index.ts`)**
-Add registration and event times to the event details block (currently only shows date and location):
-```
-🕐 Registration: 10:30 AM PST
-🕐 Event: 11:00 AM – 4:00 PM PST
-```
+In both streaming parser blocks:
 
-**B. Reminder emails (`supabase/functions/process-training-reminders/index.ts`, line 92)**
-Update the time line from `11:00 AM to 4:00 PM PST` to include registration:
-```
-🕐 Registration: 10:30 AM PST
-🕐 Event: 11:00 AM – 4:00 PM PST
-```
+1. **Skip `[DONE]`** — before attempting JSON.parse, check `if (jsonStr === "[DONE]") continue;`
+2. **Read the correct path** — change `parsed.content` to `parsed.choices?.[0]?.delta?.content`
+3. **Read sources correctly** — change `parsed.sources` to `parsed.choices?.[0]?.sources`
+4. **Don't append raw text on parse failure** — remove the `catch` fallback that appends raw SSE data
 
-### Files Modified
-- `src/pages/TrainingEvent.tsx` — 3 spots (session highlights array, event pills, confirmation card)
-- `supabase/functions/register-training-event/index.ts` — add times to email
-- `supabase/functions/process-training-reminders/index.ts` — update time line
+### Affected file
+- `src/pages/UnderwritingAI.tsx` — fix both streaming blocks (~lines 116-126 and ~218-228)
 
