@@ -169,7 +169,7 @@ export default function Slide01_Hero() {
             >
               <img
                 src={beachBg}
-                alt="Retirees enjoying a beach at sunset"
+                alt="Young couple walking on a tropical beach at sunset"
                 className="w-full h-full object-cover"
               />
               {/* Soft vignette inside the image */}
