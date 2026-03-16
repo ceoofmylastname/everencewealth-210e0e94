@@ -1,30 +1,40 @@
 
 
-## Fix Hidden Fees Chart Numbers
+## Plan: Add Registration Time (10:30 AM) to Landing Page and Emails
 
-### What
-Update `Slide11_HiddenFees.tsx` to use dynamically calculated values via the future value of annuity formula instead of hardcoded numbers. Keep all existing animations, styling, and UI intact.
+### 1. Landing Page Changes (`src/pages/TrainingEvent.tsx`)
 
-### Calculations
-Using `FV = P × [((1 + r)^n − 1) / r]` with P=$3,600:
-- No Fee (8%): 3888, 56312→56324, 177923, 284236, 440445, 669968
-- 0.95% Fee (7.05%): 3851→3854, 53143→53372, 157429→158854, 242669→245506, 362077→367324, 529350→538580
-- 2% Fee (6%): 3810→3816, 49846→50298, 137775→140374, 204397→209363, 292881→301686, 410402→425235
-- 3% Fee (5%): 3771→3780, 46908→47544, 121587→124989, 174153→180408, 240479→251139, 324167→341411
-
-### Changes in `src/components/presentation/slides/Slide11_HiddenFees.tsx`
-
-1. **Replace hardcoded `feeData` array** with a computed version using the annuity formula. Add a helper function:
-```ts
-function fvAnnuity(pmt: number, rate: number, years: number) {
-  if (rate === 0) return pmt * years;
-  return pmt * ((Math.pow(1 + rate, years) - 1) / rate);
-}
+**A. Add registration time to the event details pills (line 284)**
+Change "11:00 AM - 4:00 PM" to include registration:
 ```
-Then generate `feeData` dynamically for years [1, 10, 20, 25, 30, 35] with rates [0.08, 0.0705, 0.06, 0.05].
+Registration: 10:30 AM
+Event: 11:00 AM – 4:00 PM
+```
 
-2. **Update `costs` array** to compute differences dynamically from the year-35 row (669968 - 538580 = 131388, 669968 - 425235 = 244733, 669968 - 341411 = 328557).
+**B. Add registration time to the confirmation card (line 161)**
+Update the time display from `11:00 AM – 4:00 PM PT` to `Registration 10:30 AM | Event 11:00 AM – 4:00 PM PT`
+
+**C. Update session highlights (line 11)**
+Add a "10:30 AM" registration/check-in entry as the first item in `sessionHighlights`.
+
+### 2. Email Changes
+
+**A. Registration confirmation email (`supabase/functions/register-training-event/index.ts`)**
+Add registration and event times to the event details block (currently only shows date and location):
+```
+🕐 Registration: 10:30 AM PST
+🕐 Event: 11:00 AM – 4:00 PM PST
+```
+
+**B. Reminder emails (`supabase/functions/process-training-reminders/index.ts`, line 92)**
+Update the time line from `11:00 AM to 4:00 PM PST` to include registration:
+```
+🕐 Registration: 10:30 AM PST
+🕐 Event: 11:00 AM – 4:00 PM PST
+```
 
 ### Files Modified
-- `src/components/presentation/slides/Slide11_HiddenFees.tsx`
+- `src/pages/TrainingEvent.tsx` — 3 spots (session highlights array, event pills, confirmation card)
+- `supabase/functions/register-training-event/index.ts` — add times to email
+- `supabase/functions/process-training-reminders/index.ts` — update time line
 

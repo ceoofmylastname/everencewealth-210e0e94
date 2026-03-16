@@ -5,19 +5,29 @@ import GoldUnderline from "../animations/GoldUnderline";
 import CountingNumber from "../animations/CountingNumber";
 import { useRevealQueue } from "../RevealContext";
 
-const feeData = [
-  { year: 1, noFee: 3888, fee095: 3851, fee2: 3810, fee3: 3771 },
-  { year: 10, noFee: 56312, fee095: 53143, fee2: 49846, fee3: 46908 },
-  { year: 20, noFee: 177923, fee095: 157429, fee2: 137775, fee3: 121587 },
-  { year: 25, noFee: 284236, fee095: 242669, fee2: 204397, fee3: 174153 },
-  { year: 30, noFee: 440445, fee095: 362077, fee2: 292881, fee3: 240479 },
-  { year: 35, noFee: 669968, fee095: 529350, fee2: 410402, fee3: 324167, bold: true },
-];
+function fvAnnuity(pmt: number, rate: number, years: number) {
+  if (rate === 0) return pmt * years;
+  return Math.round(pmt * ((Math.pow(1 + rate, years) - 1) / rate));
+}
 
+const PMT = 3600;
+const RATES = { noFee: 0.08, fee095: 0.0705, fee2: 0.06, fee3: 0.05 };
+const YEARS = [1, 10, 20, 25, 30, 35];
+
+const feeData = YEARS.map((year, i) => ({
+  year,
+  noFee: fvAnnuity(PMT, RATES.noFee, year),
+  fee095: fvAnnuity(PMT, RATES.fee095, year),
+  fee2: fvAnnuity(PMT, RATES.fee2, year),
+  fee3: fvAnnuity(PMT, RATES.fee3, year),
+  ...(i === YEARS.length - 1 ? { bold: true } : {}),
+}));
+
+const yr35 = feeData[feeData.length - 1];
 const costs = [
-  { label: "0.95% Fee", value: 140618, color: "#1A4D3E" },
-  { label: "2% Fee", value: 259566, color: "#8B6914" },
-  { label: "3% Fee", value: 345801, color: "#D64545", highlight: true },
+  { label: "0.95% Fee", value: yr35.noFee - yr35.fee095, color: "#1A4D3E" },
+  { label: "2% Fee", value: yr35.noFee - yr35.fee2, color: "#8B6914" },
+  { label: "3% Fee", value: yr35.noFee - yr35.fee3, color: "#D64545", highlight: true },
 ];
 
 /* 3D tilt hook */
