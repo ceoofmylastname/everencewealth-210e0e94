@@ -1,22 +1,40 @@
 
 
-## Replace Hero Slide Beach Image with Young Couple/Family
+## Plan: Add Registration Time (10:30 AM) to Landing Page and Emails
 
-### What
-Generate a new AI image of a young, attractive couple walking on a tropical beach at sunset — matching the current composition but targeting the younger demographic. Then swap it into Slide 01.
+### 1. Landing Page Changes (`src/pages/TrainingEvent.tsx`)
 
-### How
+**A. Add registration time to the event details pills (line 284)**
+Change "11:00 AM - 4:00 PM" to include registration:
+```
+Registration: 10:30 AM
+Event: 11:00 AM – 4:00 PM
+```
 
-1. **Generate image** using Nano Banana Pro (`google/gemini-3-pro-image-preview`) with a prompt like:
-   > "Young attractive couple in their late 20s walking hand-in-hand on a tropical beach at golden hour sunset, palm trees, turquoise water, barefoot, casual elegant linen clothing, warm cinematic lighting, ultra-realistic, 4K resolution, shallow depth of field, lifestyle photography"
+**B. Add registration time to the confirmation card (line 161)**
+Update the time display from `11:00 AM – 4:00 PM PT` to `Registration 10:30 AM | Event 11:00 AM – 4:00 PM PT`
 
-2. **Save the generated image** to `src/assets/young-couple-beach.jpg` (or `.png` depending on output)
+**C. Update session highlights (line 11)**
+Add a "10:30 AM" registration/check-in entry as the first item in `sessionHighlights`.
 
-3. **Update `src/components/presentation/slides/Slide01_Hero.tsx`**:
-   - Change import from `retirees-beach.jpg` to the new image file
-   - Update the alt text to reflect the new subjects
+### 2. Email Changes
+
+**A. Registration confirmation email (`supabase/functions/register-training-event/index.ts`)**
+Add registration and event times to the event details block (currently only shows date and location):
+```
+🕐 Registration: 10:30 AM PST
+🕐 Event: 11:00 AM – 4:00 PM PST
+```
+
+**B. Reminder emails (`supabase/functions/process-training-reminders/index.ts`, line 92)**
+Update the time line from `11:00 AM to 4:00 PM PST` to include registration:
+```
+🕐 Registration: 10:30 AM PST
+🕐 Event: 11:00 AM – 4:00 PM PST
+```
 
 ### Files Modified
-- `src/assets/young-couple-beach.jpg` — new AI-generated image
-- `src/components/presentation/slides/Slide01_Hero.tsx` — update import and alt text
+- `src/pages/TrainingEvent.tsx` — 3 spots (session highlights array, event pills, confirmation card)
+- `supabase/functions/register-training-event/index.ts` — add times to email
+- `supabase/functions/process-training-reminders/index.ts` — update time line
 
