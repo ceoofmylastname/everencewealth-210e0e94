@@ -1,29 +1,40 @@
 
 
-## Three Changes: Route, Sidebar Nav, and Config
+## Plan: Add Registration Time (10:30 AM) to Landing Page and Emails
 
-### Current State
-- **Routing**: The app uses `src/App.tsx` with lazy-loaded routes. Advisor routes live under `/portal/advisor/*` inside an `<AdvisorRoute>` + `<PortalLayout>` wrapper (lines 406-448).
-- **Sidebar**: The advisor sidebar is defined in `src/components/portal/PortalLayout.tsx` via `advisorNavGroups` (lines 22-75). There is no "AI Assist" entry — the closest group is "Resources" (line 42).
-- **Config**: `supabase/config.toml` already has both `[functions.underwriting-process]` and `[functions.underwriting-chat]` entries (lines 51-55). No change needed here.
-- **UnderwritingAI page**: Already exists at `src/pages/UnderwritingAI.tsx` with a default export.
+### 1. Landing Page Changes (`src/pages/TrainingEvent.tsx`)
 
-### Changes
+**A. Add registration time to the event details pills (line 284)**
+Change "11:00 AM - 4:00 PM" to include registration:
+```
+Registration: 10:30 AM
+Event: 11:00 AM – 4:00 PM
+```
 
-**1. `src/App.tsx` — Add lazy import and route**
-- Add after line 139: `const UnderwritingAI = lazy(() => import("./pages/UnderwritingAI"));`
-- Add a new route inside the advisor `<PortalLayout>` block (after line 447, the `presentation` route):
-  ```tsx
-  <Route path="underwriting" element={<UnderwritingAI />} />
-  ```
+**B. Add registration time to the confirmation card (line 161)**
+Update the time display from `11:00 AM – 4:00 PM PT` to `Registration 10:30 AM | Event 11:00 AM – 4:00 PM PT`
 
-**2. `src/components/portal/PortalLayout.tsx` — Add nav item**
-- Add `FileSearch` to the lucide-react import (line 11).
-- Add a new item to the "Resources" group (after "Schedule" or "Socorro Workshop", around line 52):
-  ```ts
-  { label: "Underwriting AI", icon: FileSearch, href: "/portal/advisor/underwriting" },
-  ```
+**C. Update session highlights (line 11)**
+Add a "10:30 AM" registration/check-in entry as the first item in `sessionHighlights`.
 
-**3. `supabase/config.toml` — No change needed**
-The entries already exist.
+### 2. Email Changes
+
+**A. Registration confirmation email (`supabase/functions/register-training-event/index.ts`)**
+Add registration and event times to the event details block (currently only shows date and location):
+```
+🕐 Registration: 10:30 AM PST
+🕐 Event: 11:00 AM – 4:00 PM PST
+```
+
+**B. Reminder emails (`supabase/functions/process-training-reminders/index.ts`, line 92)**
+Update the time line from `11:00 AM to 4:00 PM PST` to include registration:
+```
+🕐 Registration: 10:30 AM PST
+🕐 Event: 11:00 AM – 4:00 PM PST
+```
+
+### Files Modified
+- `src/pages/TrainingEvent.tsx` — 3 spots (session highlights array, event pills, confirmation card)
+- `supabase/functions/register-training-event/index.ts` — add times to email
+- `supabase/functions/process-training-reminders/index.ts` — update time line
 

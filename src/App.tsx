@@ -137,6 +137,7 @@ const ApartmentsAuth = lazy(() => import("./pages/ApartmentsAuth"));
 
 // Presentation System
 const Presentation = lazy(() => import("./pages/admin/Presentation"));
+const UnderwritingAI = lazy(() => import("./pages/UnderwritingAI"));
 
 // Inner components for apartments editor layout (no AdminLayout wrapper)
 import { ApartmentsPageContentInner } from "./pages/admin/ApartmentsPageContent";
@@ -445,6 +446,7 @@ const App = () => (
                   <Route path="workshops/:workshopId" element={<WorkshopDetail />} />
                   <Route path="socorro-workshop" element={<SocorroWorkshopManage />} />
                   <Route path="presentation" element={<Presentation />} />
+                  <Route path="underwriting" element={<UnderwritingAI />} />
                 </Route>
               </Route>
               <Route path="/portal/client" element={<ClientRoute />}>
