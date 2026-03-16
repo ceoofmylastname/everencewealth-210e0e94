@@ -1,40 +1,68 @@
 
 
-## Plan: Add Registration Time (10:30 AM) to Landing Page and Emails
+## Create Two New Edge Functions for Underwriting AI
 
-### 1. Landing Page Changes (`src/pages/TrainingEvent.tsx`)
+### Overview
+Two new edge functions that power the Underwriting AI chat page: one for processing/uploading carrier PDFs into a vector store, and one for RAG-based chat using those vectors.
 
-**A. Add registration time to the event details pills (line 284)**
-Change "11:00 AM - 4:00 PM" to include registration:
+### Secrets Required
+The functions need these secrets (already configured): `GEMINI_API_KEY`, `ANTHROPIC_API_KEY`. Three new secrets are needed: `PINECONE_API_KEY`, `PINECONE_INDEX_URL`, `LLAMA_PARSE_API_KEY`.
+
+### Function 1: `underwriting-process`
+
+**Path**: `supabase/functions/underwriting-process/index.ts`
+
+Accepts multipart/form-data with `carrier_name` (string) and `file` (PDF blob).
+
+Flow:
+1. Parse multipart form data to extract carrier name and PDF file
+2. Upload PDF to LlamaParse (`https://api.cloud.llamaindex.ai/api/parsing/upload`) with `LLAMA_PARSE_API_KEY`
+3. Poll job status until complete (`/api/parsing/job/{id}`)
+4. Fetch markdown result (`/api/parsing/job/{id}/result/markdown`)
+5. Chunk markdown by section headers (`## ` or `# `)—each chunk prefixed with `{carrier_name} — {section_title}`
+6. Embed each chunk via Gemini `gemini-embedding-001` (768 dims, `RETRIEVAL_DOCUMENT` task type) using `GEMINI_API_KEY`
+7. Upsert vectors to Pinecone at `PINECONE_INDEX_URL` with metadata: `carrier`, `section`, `text`, `source_file`
+
+CORS headers included. `verify_jwt = false` in config.toml (auth validated in code).
+
+### Function 2: `underwriting-chat`
+
+**Path**: `supabase/functions/underwriting-chat/index.ts`
+
+Accepts JSON `{ question, messages }`.
+
+Flow:
+1. Embed `question` via Gemini `gemini-embedding-001` (768 dims, `RETRIEVAL_QUERY` task type)
+2. Query Pinecone with `topK: 6`, `includeMetadata: true`
+3. Filter matches below 0.75 score
+4. Build a system prompt with the retrieved chunks as context
+5. Call Anthropic `claude-sonnet-4-20250514` with streaming enabled using `ANTHROPIC_API_KEY`
+6. Pipe SSE stream back in OpenAI-compatible format (`data: {"choices":[{"delta":{"content":"..."}}]}`)
+7. Include source carrier names in a final `data:` event or as metadata for citation badges
+
+CORS headers included. Returns `text/event-stream`.
+
+### Config Changes
+
+Add to `supabase/config.toml`:
+```toml
+[functions.underwriting-process]
+verify_jwt = false
+
+[functions.underwriting-chat]
+verify_jwt = false
 ```
-Registration: 10:30 AM
-Event: 11:00 AM – 4:00 PM
-```
 
-**B. Add registration time to the confirmation card (line 161)**
-Update the time display from `11:00 AM – 4:00 PM PT` to `Registration 10:30 AM | Event 11:00 AM – 4:00 PM PT`
+### New Secrets Needed
+Before implementation, three new secrets must be added:
+- `PINECONE_API_KEY`
+- `PINECONE_INDEX_URL` (e.g., `https://your-index-xxxxx.svc.pinecone.io`)
+- `LLAMA_PARSE_API_KEY`
 
-**C. Update session highlights (line 11)**
-Add a "10:30 AM" registration/check-in entry as the first item in `sessionHighlights`.
-
-### 2. Email Changes
-
-**A. Registration confirmation email (`supabase/functions/register-training-event/index.ts`)**
-Add registration and event times to the event details block (currently only shows date and location):
-```
-🕐 Registration: 10:30 AM PST
-🕐 Event: 11:00 AM – 4:00 PM PST
-```
-
-**B. Reminder emails (`supabase/functions/process-training-reminders/index.ts`, line 92)**
-Update the time line from `11:00 AM to 4:00 PM PST` to include registration:
-```
-🕐 Registration: 10:30 AM PST
-🕐 Event: 11:00 AM – 4:00 PM PST
-```
+### Files Created
+- `supabase/functions/underwriting-process/index.ts`
+- `supabase/functions/underwriting-chat/index.ts`
 
 ### Files Modified
-- `src/pages/TrainingEvent.tsx` — 3 spots (session highlights array, event pills, confirmation card)
-- `supabase/functions/register-training-event/index.ts` — add times to email
-- `supabase/functions/process-training-reminders/index.ts` — update time line
+- `supabase/config.toml` (append two new function entries)
 
