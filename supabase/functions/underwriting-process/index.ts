@@ -154,23 +154,6 @@ serve(async (req) => {
         (c) => `${carrierName} — ${c.section}\n\n${c.text}`
       );
 
-      const embedRes = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:embedContent?key=${GEMINI_API_KEY}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            requests: texts.map((t) => ({
-              model: "models/gemini-embedding-001",
-              content: { parts: [{ text: t }] },
-              outputDimensionality: 768,
-              taskType: "RETRIEVAL_DOCUMENT",
-            })),
-          }),
-        }
-      );
-
-      // Gemini batch embed uses batchEmbedContents endpoint
       const batchEmbedRes = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:batchEmbedContents?key=${GEMINI_API_KEY}`,
         {
