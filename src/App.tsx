@@ -137,6 +137,7 @@ const ApartmentsAuth = lazy(() => import("./pages/ApartmentsAuth"));
 
 // Presentation System
 const Presentation = lazy(() => import("./pages/admin/Presentation"));
+const UnderwritingAI = lazy(() => import("./pages/UnderwritingAI"));
 
 // Inner components for apartments editor layout (no AdminLayout wrapper)
 import { ApartmentsPageContentInner } from "./pages/admin/ApartmentsPageContent";
