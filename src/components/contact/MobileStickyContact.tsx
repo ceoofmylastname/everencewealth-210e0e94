@@ -33,7 +33,7 @@ export const MobileStickyContact: React.FC<MobileStickyContactProps> = ({
           href={whatsappUrl}
           target="_blank"
           rel="noopener noreferrer"
-          onClick={() => trackEvent('whatsapp_click')}
+          
           className="flex-1"
         >
           <Button className="w-full h-14 bg-green-500 hover:bg-green-600 text-white font-semibold text-base">
