@@ -114,7 +114,7 @@ export const ContactOptions: React.FC<ContactOptionsProps> = ({ t }) => {
                 </p>
                 <a
                   href={`mailto:${COMPANY_CONTACT.email}`}
-                  onClick={() => trackEvent('email_click', 'contact_options')}
+                  
                   className="w-full"
                 >
                   <Button variant="outline" className="w-full h-12 font-semibold">
