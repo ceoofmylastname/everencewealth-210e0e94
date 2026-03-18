@@ -79,7 +79,7 @@ export const ContactHeroSplit: React.FC<ContactHeroSplitProps> = ({ t, language 
               {/* Phone */}
               <motion.a
                 href={`tel:${COMPANY_CONTACT.phoneClean}`}
-                onClick={() => trackEvent('phone_click', 'contact_hero')}
+                
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4 }}
