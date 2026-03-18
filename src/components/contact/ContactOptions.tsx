@@ -31,15 +31,6 @@ interface ContactOptionsProps {
 }
 
 export const ContactOptions: React.FC<ContactOptionsProps> = ({ t }) => {
-  const trackEvent = (eventName: string, location: string) => {
-    if (typeof window !== 'undefined' && (window as any).gtag) {
-      (window as any).gtag('event', eventName, {
-        event_category: 'Contact',
-        event_label: location
-      });
-    }
-  };
-
   const whatsappUrl = COMPANY_CONTACT.whatsappWithMessage(t.options.whatsapp.prefill);
 
   return (
@@ -79,7 +70,6 @@ export const ContactOptions: React.FC<ContactOptionsProps> = ({ t }) => {
                   href={whatsappUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  
                   className="w-full"
                 >
                   <Button className="w-full h-12 bg-green-500 hover:bg-green-600 text-white font-semibold">
@@ -114,7 +104,6 @@ export const ContactOptions: React.FC<ContactOptionsProps> = ({ t }) => {
                 </p>
                 <a
                   href={`mailto:${COMPANY_CONTACT.email}`}
-                  
                   className="w-full"
                 >
                   <Button variant="outline" className="w-full h-12 font-semibold">
@@ -149,7 +138,6 @@ export const ContactOptions: React.FC<ContactOptionsProps> = ({ t }) => {
                 </p>
                 <a
                   href={`tel:${COMPANY_CONTACT.phoneClean}`}
-                  
                   className="w-full"
                 >
                   <Button variant="outline" className="w-full h-12 font-semibold">
