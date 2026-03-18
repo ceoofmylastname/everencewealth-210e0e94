@@ -25,15 +25,6 @@ interface OfficeInfoProps {
 }
 
 export const OfficeInfo: React.FC<OfficeInfoProps> = ({ t }) => {
-  const trackEvent = () => {
-    if (typeof window !== 'undefined' && (window as any).gtag) {
-      (window as any).gtag('event', 'map_directions_click', {
-        event_category: 'Contact',
-        event_label: 'office_location'
-      });
-    }
-  };
-
   return (
     <section className="py-16 md:py-20 bg-background">
       <div className="container mx-auto px-4 md:px-6">
