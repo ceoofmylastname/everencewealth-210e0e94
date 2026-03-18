@@ -66,13 +66,6 @@ export const TeamMemberModal = ({ member, isOpen, onClose }: TeamMemberModalProp
   const handleCallClick = () => {
     const phone = member.phone || COMPANY_CONTACT.phoneClean;
     window.location.href = `tel:${phone}`;
-    
-    if (typeof window !== 'undefined' && (window as any).gtag) {
-      (window as any).gtag('event', 'phone_click', {
-        category: 'Team',
-        label: member.name
-      });
-    }
   };
 
   return (

@@ -43,7 +43,7 @@ export const MobileStickyContact: React.FC<MobileStickyContactProps> = ({
         </a>
         <a 
           href={`tel:${COMPANY_CONTACT.phoneClean}`}
-          onClick={() => trackEvent('phone_click')}
+          
         >
           <Button variant="outline" className="h-14 w-14 shrink-0">
             <Phone className="w-5 h-5" />

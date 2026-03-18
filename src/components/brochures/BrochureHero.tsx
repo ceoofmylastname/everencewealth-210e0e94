@@ -199,7 +199,7 @@ export const BrochureHero: React.FC<BrochureHeroProps> = ({
             href={COMPANY_CONTACT.whatsappWithMessage(`Hi, I'm interested in properties in ${city.name}. Can you help?`)}
             target="_blank"
             rel="noopener noreferrer"
-            onClick={handleWhatsAppClick}
+            
             className="w-full sm:w-auto"
           >
             <Button

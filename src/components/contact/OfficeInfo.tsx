@@ -124,7 +124,7 @@ export const OfficeInfo: React.FC<OfficeInfoProps> = ({ t }) => {
               href={COMPANY_ADDRESS.googleMapsUrl}
               target="_blank"
               rel="noopener noreferrer"
-              onClick={trackEvent}
+              
             >
               <Button variant="outline" className="w-full h-12 font-semibold">
                 <ExternalLink className="w-5 h-5 mr-2" />

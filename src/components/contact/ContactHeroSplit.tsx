@@ -102,7 +102,7 @@ export const ContactHeroSplit: React.FC<ContactHeroSplitProps> = ({ t, language 
               {/* Email */}
               <motion.a
                 href={`mailto:${COMPANY_CONTACT.email}`}
-                onClick={() => trackEvent('email_click', 'contact_hero')}
+                
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.5 }}

@@ -39,13 +39,6 @@ export const TeamMemberCard = ({ member, index, onClick }: TeamMemberCardProps) 
     const phone = member.whatsapp || COMPANY_CONTACT.phoneClean;
     const message = encodeURIComponent(`Hi ${member.name}, I'd like to discuss wealth strategies with you.`);
     window.open(`https://wa.me/${phone}?text=${message}`, '_blank');
-
-    if (typeof window !== 'undefined' && (window as any).gtag) {
-      (window as any).gtag('event', 'whatsapp_click', {
-        category: 'Team',
-        label: member.name
-      });
-    }
   };
 
   return (

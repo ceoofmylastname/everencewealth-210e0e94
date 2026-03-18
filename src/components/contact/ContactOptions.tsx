@@ -149,7 +149,7 @@ export const ContactOptions: React.FC<ContactOptionsProps> = ({ t }) => {
                 </p>
                 <a
                   href={`tel:${COMPANY_CONTACT.phoneClean}`}
-                  onClick={() => trackEvent('phone_click', 'contact_options')}
+                  
                   className="w-full"
                 >
                   <Button variant="outline" className="w-full h-12 font-semibold">

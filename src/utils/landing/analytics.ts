@@ -15,11 +15,6 @@ export const trackEvent = (eventName: string, params: AnalyticsEvent) => {
     // Console log for verification
     console.log(`[Analytics] ${eventName}:`, params);
 
-    // Google Analytics 4
-    if (typeof window !== 'undefined' && (window as any).gtag) {
-        (window as any).gtag('event', eventName, params);
-    }
-
     // Facebook Pixel
     if (typeof window !== 'undefined' && (window as any).fbq) {
         // Map to standard FB events where possible, else CustomEvent
