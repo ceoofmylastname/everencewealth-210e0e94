@@ -61,13 +61,6 @@ export const TeamMemberModal = ({ member, isOpen, onClose }: TeamMemberModalProp
   const handleEmailClick = () => {
     const email = member.email || COMPANY_CONTACT.email;
     window.location.href = `mailto:${email}?subject=Wealth Planning Inquiry - Contact via ${member.name}`;
-    
-    if (typeof window !== 'undefined' && (window as any).gtag) {
-      (window as any).gtag('event', 'email_click', {
-        category: 'Team',
-        label: member.name
-      });
-    }
   };
 
   const handleCallClick = () => {
