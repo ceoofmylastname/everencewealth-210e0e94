@@ -79,7 +79,7 @@ export const ContactOptions: React.FC<ContactOptionsProps> = ({ t }) => {
                   href={whatsappUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  onClick={() => trackEvent('whatsapp_click', 'contact_options')}
+                  
                   className="w-full"
                 >
                   <Button className="w-full h-12 bg-green-500 hover:bg-green-600 text-white font-semibold">
