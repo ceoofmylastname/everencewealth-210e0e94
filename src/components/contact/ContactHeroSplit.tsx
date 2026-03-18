@@ -11,15 +11,6 @@ interface ContactHeroSplitProps {
 }
 
 export const ContactHeroSplit: React.FC<ContactHeroSplitProps> = ({ t, language }) => {
-  const trackEvent = (eventName: string, location: string) => {
-    if (typeof window !== 'undefined' && (window as any).gtag) {
-      (window as any).gtag('event', eventName, {
-        event_category: 'Contact',
-        event_label: location,
-      });
-    }
-  };
-
   const whatsappUrl = COMPANY_CONTACT.whatsappWithMessage(
     t.options?.whatsapp?.prefill || "Hi, I'm interested in learning about retirement strategies."
   );
@@ -79,7 +70,6 @@ export const ContactHeroSplit: React.FC<ContactHeroSplitProps> = ({ t, language 
               {/* Phone */}
               <motion.a
                 href={`tel:${COMPANY_CONTACT.phoneClean}`}
-                onClick={() => trackEvent('phone_click', 'contact_hero')}
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4 }}
@@ -102,7 +92,6 @@ export const ContactHeroSplit: React.FC<ContactHeroSplitProps> = ({ t, language 
               {/* Email */}
               <motion.a
                 href={`mailto:${COMPANY_CONTACT.email}`}
-                onClick={() => trackEvent('email_click', 'contact_hero')}
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.5 }}

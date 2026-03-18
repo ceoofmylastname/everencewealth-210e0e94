@@ -12,15 +12,6 @@ export const MobileStickyContact: React.FC<MobileStickyContactProps> = ({
   whatsappMessage,
   whatsappLabel,
 }) => {
-  const trackEvent = (eventName: string) => {
-    if (typeof window !== 'undefined' && (window as any).gtag) {
-      (window as any).gtag('event', eventName, {
-        event_category: 'Contact',
-        event_label: 'mobile_sticky_bar'
-      });
-    }
-  };
-
   const whatsappUrl = COMPANY_CONTACT.whatsappWithMessage(whatsappMessage);
 
   return (
@@ -33,7 +24,6 @@ export const MobileStickyContact: React.FC<MobileStickyContactProps> = ({
           href={whatsappUrl}
           target="_blank"
           rel="noopener noreferrer"
-          onClick={() => trackEvent('whatsapp_click')}
           className="flex-1"
         >
           <Button className="w-full h-14 bg-green-500 hover:bg-green-600 text-white font-semibold text-base">
@@ -43,7 +33,6 @@ export const MobileStickyContact: React.FC<MobileStickyContactProps> = ({
         </a>
         <a 
           href={`tel:${COMPANY_CONTACT.phoneClean}`}
-          onClick={() => trackEvent('phone_click')}
         >
           <Button variant="outline" className="h-14 w-14 shrink-0">
             <Phone className="w-5 h-5" />

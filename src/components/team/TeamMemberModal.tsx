@@ -56,37 +56,16 @@ export const TeamMemberModal = ({ member, isOpen, onClose }: TeamMemberModalProp
     const phone = member.whatsapp || COMPANY_CONTACT.phoneClean;
     const message = encodeURIComponent(`Hi ${member.name}, I'd like to discuss wealth strategies with you.`);
     window.open(`https://wa.me/${phone}?text=${message}`, '_blank');
-    
-    if (typeof window !== 'undefined' && (window as any).gtag) {
-      (window as any).gtag('event', 'whatsapp_click', {
-        category: 'Team',
-        label: member.name
-      });
-    }
   };
 
   const handleEmailClick = () => {
     const email = member.email || COMPANY_CONTACT.email;
     window.location.href = `mailto:${email}?subject=Wealth Planning Inquiry - Contact via ${member.name}`;
-    
-    if (typeof window !== 'undefined' && (window as any).gtag) {
-      (window as any).gtag('event', 'email_click', {
-        category: 'Team',
-        label: member.name
-      });
-    }
   };
 
   const handleCallClick = () => {
     const phone = member.phone || COMPANY_CONTACT.phoneClean;
     window.location.href = `tel:${phone}`;
-    
-    if (typeof window !== 'undefined' && (window as any).gtag) {
-      (window as any).gtag('event', 'phone_click', {
-        category: 'Team',
-        label: member.name
-      });
-    }
   };
 
   return (

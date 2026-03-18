@@ -26,8 +26,6 @@ const IGNORED_EXTERNAL_DOMAINS = [
   'fonts.gstatic.com',
   'cdn.jsdelivr.net',
   'cdnjs.cloudflare.com',
-  'www.googletagmanager.com',
-  'www.google-analytics.com',
   'unpkg.com',
   'maps.googleapis.com',
   'supabase.co', // Ignore Supabase storage URLs

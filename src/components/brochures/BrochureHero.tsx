@@ -61,16 +61,6 @@ export const BrochureHero: React.FC<BrochureHeroProps> = ({
     window.scrollTo({ top: window.innerHeight * 0.85, behavior: 'smooth' });
   };
 
-  const handleWhatsAppClick = () => {
-    // Track WhatsApp click
-    if (typeof window !== 'undefined' && (window as any).gtag) {
-      (window as any).gtag('event', 'whatsapp_click', { 
-        category: 'Contact', 
-        location: 'brochure_hero',
-        city: city.name
-      });
-    }
-  };
 
   return (
     <section className="brochure-hero relative min-h-screen flex items-center justify-center overflow-hidden">
@@ -209,7 +199,7 @@ export const BrochureHero: React.FC<BrochureHeroProps> = ({
             href={COMPANY_CONTACT.whatsappWithMessage(`Hi, I'm interested in properties in ${city.name}. Can you help?`)}
             target="_blank"
             rel="noopener noreferrer"
-            onClick={handleWhatsAppClick}
+            
             className="w-full sm:w-auto"
           >
             <Button

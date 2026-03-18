@@ -19,13 +19,6 @@ interface EmmaCalloutProps {
 export const EmmaCallout: React.FC<EmmaCalloutProps> = ({ t }) => {
   const handleOpenEmma = () => {
     window.dispatchEvent(new CustomEvent('openEmmaChat'));
-    
-    if (typeof window !== 'undefined' && (window as any).gtag) {
-      (window as any).gtag('event', 'emma_open', {
-        event_category: 'Contact',
-        event_label: 'contact_page_callout'
-      });
-    }
   };
 
   return (

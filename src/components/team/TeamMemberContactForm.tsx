@@ -85,15 +85,6 @@ export const TeamMemberContactForm = ({ memberName }: TeamMemberContactFormProps
         message: data.message,
       });
 
-      // Track event
-      if (typeof window !== 'undefined' && (window as any).gtag) {
-        (window as any).gtag('event', 'generate_lead', {
-          event_category: 'Team',
-          event_label: memberName,
-          value: 1
-        });
-      }
-
       setIsSubmitted(true);
       reset();
       toast.success(t.team?.form?.success || "Message sent successfully!");

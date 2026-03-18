@@ -154,16 +154,7 @@ export const ContactForm: React.FC<ContactFormProps> = ({ t, language, variant =
         initialLeadScore: 30,
       });
 
-      // 4. Track GA4 event
-      if (typeof window !== 'undefined' && (window as any).gtag) {
-        (window as any).gtag('event', 'generate_lead', {
-          event_category: 'Contact',
-          event_label: 'contact_form',
-          value: 30,
-        });
-      }
-
-      // 5. Show success
+      // 4. Show success
       setIsSubmitted(true);
 
       // 6. Trigger Emma chat after 2 seconds
