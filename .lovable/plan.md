@@ -1,40 +1,34 @@
 
 
-## Plan: Add Registration Time (10:30 AM) to Landing Page and Emails
+## Remove All Google Tags from Everence Wealth
 
-### 1. Landing Page Changes (`src/pages/TrainingEvent.tsx`)
+### Scope
+Remove Google Tag Manager (GTM-MNQLS97C) and all `gtag()` tracking calls across the site. **14 files** need changes.
 
-**A. Add registration time to the event details pills (line 284)**
-Change "11:00 AM - 4:00 PM" to include registration:
-```
-Registration: 10:30 AM
-Event: 11:00 AM – 4:00 PM
-```
+### Changes
 
-**B. Add registration time to the confirmation card (line 161)**
-Update the time display from `11:00 AM – 4:00 PM PT` to `Registration 10:30 AM | Event 11:00 AM – 4:00 PM PT`
+**1. `index.html`** — Remove GTM script block (lines 4-10) and noscript fallback (lines 80-83)
 
-**C. Update session highlights (line 11)**
-Add a "10:30 AM" registration/check-in entry as the first item in `sessionHighlights`.
+**2. `public/app-shell.html`** — Remove identical GTM script block and noscript fallback
 
-### 2. Email Changes
+**3. Remove all `gtag()` event tracking calls from these component files** (remove the `if (window.gtag)` blocks but keep surrounding logic):
+- `src/components/contact/ContactForm.tsx`
+- `src/components/contact/ContactHeroSplit.tsx`
+- `src/components/contact/ContactOptions.tsx`
+- `src/components/contact/EmmaCallout.tsx`
+- `src/components/contact/MobileStickyContact.tsx`
+- `src/components/contact/OfficeInfo.tsx`
+- `src/components/team/TeamMemberContactForm.tsx`
+- `src/components/team/TeamMemberCard.tsx`
+- `src/components/team/TeamMemberModal.tsx`
+- `src/components/brochures/BrochureHero.tsx`
 
-**A. Registration confirmation email (`supabase/functions/register-training-event/index.ts`)**
-Add registration and event times to the event details block (currently only shows date and location):
-```
-🕐 Registration: 10:30 AM PST
-🕐 Event: 11:00 AM – 4:00 PM PST
-```
+**4. `src/utils/landing/analytics.ts`** — Remove the GA4 `gtag()` section from `trackEvent` function
 
-**B. Reminder emails (`supabase/functions/process-training-reminders/index.ts`, line 92)**
-Update the time line from `11:00 AM to 4:00 PM PST` to include registration:
-```
-🕐 Registration: 10:30 AM PST
-🕐 Event: 11:00 AM – 4:00 PM PST
-```
+**5. `supabase/functions/production-site-audit/index.ts`** — Remove `www.googletagmanager.com` and `www.google-analytics.com` from the allowed domains list
 
-### Files Modified
-- `src/pages/TrainingEvent.tsx` — 3 spots (session highlights array, event pills, confirmation card)
-- `supabase/functions/register-training-event/index.ts` — add times to email
-- `supabase/functions/process-training-reminders/index.ts` — update time line
+### Not touched
+- Google Fonts (`fonts.googleapis.com`) — these are font loading, not tracking
+- Google Search Console references in admin UI — these are content labels, not tags
+- `storage.googleapis.com` image URLs — cloud storage, not tracking
 
