@@ -96,18 +96,18 @@ export default function Slide10_SixtyMinutes() {
             }}
           >
             {playing ? (
-              <iframe
-                src="https://www.youtube.com/embed/eNo9HLgbax0?autoplay=1&rel=0"
-                title="60 Minutes - 401k Recession"
-                allow="autoplay; encrypted-media"
-                allowFullScreen
+              <video
+                src="https://assets.cdn.filesafe.space/htr97zzmRc1NMujHbL9R/media/69ba279c61cba549c1a200d1.mp4"
+                controls
+                autoPlay
+                playsInline
                 style={{
                   width: "100%",
                   height: "100%",
                   position: "absolute",
                   inset: 0,
-                  border: "none",
                   borderRadius: 24,
+                  objectFit: "cover",
                 }}
               />
             ) : (
