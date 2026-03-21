@@ -50,13 +50,28 @@ export default function ClientInvite() {
 
   async function init() {
     if (portalUser!.role === "admin") {
-      // Admin: load all advisors for dropdown
-      const { data: advisors } = await supabase
-        .from("advisors")
-        .select("id, first_name, last_name, email")
-        .eq("is_active", true)
-        .order("first_name");
-      setAdvisorList((advisors as AdvisorOption[]) ?? []);
+      // Admin: load all advisors for dropdown, flag contracting agents
+      const [{ data: advisors }, { data: contractingAgents }] = await Promise.all([
+        supabase
+          .from("advisors")
+          .select("id, first_name, last_name, email, auth_user_id")
+          .eq("is_active", true)
+          .order("first_name"),
+        supabase
+          .from("contracting_agents")
+          .select("auth_user_id")
+      ]);
+
+      const contractingAuthIds = new Set(
+        (contractingAgents ?? []).map((ca: any) => ca.auth_user_id)
+      );
+
+      setAdvisorList(
+        (advisors ?? []).map((a: any) => ({
+          ...a,
+          isContracting: contractingAuthIds.has(a.auth_user_id),
+        }))
+      );
 
       // Load all invitations across all advisors
       const { data } = await supabase
