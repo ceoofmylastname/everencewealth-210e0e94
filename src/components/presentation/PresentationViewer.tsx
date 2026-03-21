@@ -154,6 +154,8 @@ function PresentationShell({ onExit }: { onExit?: () => void }) {
         }
       } else if (e.key === "g") {
         setShowGrid((s) => !s);
+      } else if (e.key === "f") {
+        toggleFullscreen();
       }
     };
     window.addEventListener("keydown", handler);
