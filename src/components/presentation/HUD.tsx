@@ -1,12 +1,14 @@
 import { useRevealQueue } from "./RevealContext";
-import { Volume2, VolumeX, Grid3X3, X } from "lucide-react";
+import { Volume2, VolumeX, Grid3X3, X, Maximize2, Minimize2 } from "lucide-react";
 
 interface HUDProps {
   onGridToggle?: () => void;
   onExit?: () => void;
+  isFullscreen?: boolean;
+  onFullscreenToggle?: () => void;
 }
 
-export default function HUD({ onGridToggle, onExit }: HUDProps) {
+export default function HUD({ onGridToggle, onExit, isFullscreen, onFullscreenToggle }: HUDProps) {
   const { currentSlide, revealIndex, totalReveals, totalSlides, soundEnabled, toggleSound } =
     useRevealQueue();
 
@@ -63,6 +65,15 @@ export default function HUD({ onGridToggle, onExit }: HUDProps) {
 
       {/* Right: Controls */}
       <div className="flex items-center gap-1">
+        {onFullscreenToggle && (
+          <button
+            onClick={onFullscreenToggle}
+            className="antigravity-hud-btn"
+            title={isFullscreen ? "Exit fullscreen (F)" : "Fullscreen (F)"}
+          >
+            {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+          </button>
+        )}
         {onGridToggle && (
           <button
             onClick={onGridToggle}

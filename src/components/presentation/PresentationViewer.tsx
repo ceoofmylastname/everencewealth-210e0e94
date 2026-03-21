@@ -1,4 +1,4 @@
-import { useState, useEffect, lazy, Suspense } from "react";
+import { useState, useEffect, useCallback, lazy, Suspense } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Monitor } from "lucide-react";
 import { RevealProvider, useRevealQueue } from "./RevealContext";
@@ -101,6 +101,21 @@ const WATERMARK_EXCLUDE_INDICES = new Set([0, 1, 4, 7, 8, 19, 24]);
 function PresentationShell({ onExit }: { onExit?: () => void }) {
   const { currentSlide, advance, back, goToSlide, soundEnabled, totalSlides } = useRevealQueue();
   const [showGrid, setShowGrid] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  const toggleFullscreen = useCallback(() => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(() => {});
+    } else {
+      document.exitFullscreen().catch(() => {});
+    }
+  }, []);
+
+  useEffect(() => {
+    const onFsChange = () => setIsFullscreen(!!document.fullscreenElement);
+    document.addEventListener("fullscreenchange", onFsChange);
+    return () => document.removeEventListener("fullscreenchange", onFsChange);
+  }, []);
 
   // Unlock AudioContext on first interaction
   useEffect(() => {
@@ -139,11 +154,13 @@ function PresentationShell({ onExit }: { onExit?: () => void }) {
         }
       } else if (e.key === "g") {
         setShowGrid((s) => !s);
+      } else if (e.key === "f") {
+        toggleFullscreen();
       }
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [advance, back, onExit, soundEnabled, showGrid]);
+  }, [advance, back, onExit, soundEnabled, showGrid, toggleFullscreen]);
 
   // Sync sound engine enabled state
   useEffect(() => {
@@ -220,7 +237,7 @@ function PresentationShell({ onExit }: { onExit?: () => void }) {
         </div>
 
         {/* HUD */}
-        <HUD onGridToggle={() => setShowGrid((s) => !s)} onExit={onExit} />
+        <HUD onGridToggle={() => setShowGrid((s) => !s)} onExit={onExit} isFullscreen={isFullscreen} onFullscreenToggle={toggleFullscreen} />
 
         {/* Grid overlay */}
         <AnimatePresence>
