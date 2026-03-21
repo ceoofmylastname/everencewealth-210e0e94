@@ -8,7 +8,7 @@ interface HUDProps {
   onFullscreenToggle?: () => void;
 }
 
-export default function HUD({ onGridToggle, onExit }: HUDProps) {
+export default function HUD({ onGridToggle, onExit, isFullscreen, onFullscreenToggle }: HUDProps) {
   const { currentSlide, revealIndex, totalReveals, totalSlides, soundEnabled, toggleSound } =
     useRevealQueue();
 
