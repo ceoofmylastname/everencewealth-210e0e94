@@ -101,6 +101,21 @@ const WATERMARK_EXCLUDE_INDICES = new Set([0, 1, 4, 7, 8, 19, 24]);
 function PresentationShell({ onExit }: { onExit?: () => void }) {
   const { currentSlide, advance, back, goToSlide, soundEnabled, totalSlides } = useRevealQueue();
   const [showGrid, setShowGrid] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  const toggleFullscreen = useCallback(() => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(() => {});
+    } else {
+      document.exitFullscreen().catch(() => {});
+    }
+  }, []);
+
+  useEffect(() => {
+    const onFsChange = () => setIsFullscreen(!!document.fullscreenElement);
+    document.addEventListener("fullscreenchange", onFsChange);
+    return () => document.removeEventListener("fullscreenchange", onFsChange);
+  }, []);
 
   // Unlock AudioContext on first interaction
   useEffect(() => {
