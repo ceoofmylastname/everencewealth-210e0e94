@@ -160,7 +160,7 @@ function PresentationShell({ onExit }: { onExit?: () => void }) {
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [advance, back, onExit, soundEnabled, showGrid]);
+  }, [advance, back, onExit, soundEnabled, showGrid, toggleFullscreen]);
 
   // Sync sound engine enabled state
   useEffect(() => {
