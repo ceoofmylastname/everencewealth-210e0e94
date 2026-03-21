@@ -1,4 +1,4 @@
-import { useState, useEffect, lazy, Suspense } from "react";
+import { useState, useEffect, useCallback, lazy, Suspense } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Monitor } from "lucide-react";
 import { RevealProvider, useRevealQueue } from "./RevealContext";
