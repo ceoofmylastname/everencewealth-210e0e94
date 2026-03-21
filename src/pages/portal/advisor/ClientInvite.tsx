@@ -27,6 +27,7 @@ interface AdvisorOption {
   first_name: string;
   last_name: string;
   email: string;
+  isContracting?: boolean;
 }
 
 export default function ClientInvite() {
