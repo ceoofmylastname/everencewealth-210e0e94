@@ -1,9 +1,11 @@
 import { useRevealQueue } from "./RevealContext";
-import { Volume2, VolumeX, Grid3X3, X } from "lucide-react";
+import { Volume2, VolumeX, Grid3X3, X, Maximize2, Minimize2 } from "lucide-react";
 
 interface HUDProps {
   onGridToggle?: () => void;
   onExit?: () => void;
+  isFullscreen?: boolean;
+  onFullscreenToggle?: () => void;
 }
 
 export default function HUD({ onGridToggle, onExit }: HUDProps) {
