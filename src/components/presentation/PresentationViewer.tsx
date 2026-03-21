@@ -139,11 +139,11 @@ function PresentationShell({ onExit }: { onExit?: () => void }) {
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (showGrid) return; // Don't navigate while grid is open
-      if (e.key === " " || e.key === "Enter" || e.key === "ArrowRight") {
+      if (e.key === " " || e.key === "Enter" || e.key === "ArrowRight" || e.key === "PageDown") {
         e.preventDefault();
         advance();
         if (soundEnabled) sound.slideTransition();
-      } else if (e.key === "ArrowLeft") {
+      } else if (e.key === "ArrowLeft" || e.key === "PageUp") {
         e.preventDefault();
         back();
       } else if (e.key === "Escape") {
