@@ -230,7 +230,6 @@ export default function ClientInvite() {
                         {a.isContracting && " (Contracting)"}
                       </SelectItem>
                     ))}
-                    ))}
                   </SelectContent>
                 </Select>
               </div>
