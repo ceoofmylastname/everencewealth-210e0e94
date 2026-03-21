@@ -65,6 +65,15 @@ export default function HUD({ onGridToggle, onExit, isFullscreen, onFullscreenTo
 
       {/* Right: Controls */}
       <div className="flex items-center gap-1">
+        {onFullscreenToggle && (
+          <button
+            onClick={onFullscreenToggle}
+            className="antigravity-hud-btn"
+            title={isFullscreen ? "Exit fullscreen (F)" : "Fullscreen (F)"}
+          >
+            {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+          </button>
+        )}
         {onGridToggle && (
           <button
             onClick={onGridToggle}

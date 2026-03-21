@@ -237,7 +237,7 @@ function PresentationShell({ onExit }: { onExit?: () => void }) {
         </div>
 
         {/* HUD */}
-        <HUD onGridToggle={() => setShowGrid((s) => !s)} onExit={onExit} />
+        <HUD onGridToggle={() => setShowGrid((s) => !s)} onExit={onExit} isFullscreen={isFullscreen} onFullscreenToggle={toggleFullscreen} />
 
         {/* Grid overlay */}
         <AnimatePresence>
