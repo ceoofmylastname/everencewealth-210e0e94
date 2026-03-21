@@ -227,7 +227,9 @@ export default function ClientInvite() {
                     {advisorList.map((a) => (
                       <SelectItem key={a.id} value={a.id}>
                         {a.first_name} {a.last_name} — {a.email}
+                        {a.isContracting && " (Contracting)"}
                       </SelectItem>
+                    ))}
                     ))}
                   </SelectContent>
                 </Select>
