@@ -60,7 +60,7 @@ const SLIDE_TITLES = [
   "Plan Advantage",
   "Plan Benefits",
   "Great Retirement Transfer",
-  "The Opportunity",
+  
   "Legacy",
 ];
 
