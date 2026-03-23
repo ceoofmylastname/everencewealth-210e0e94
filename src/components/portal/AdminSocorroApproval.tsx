@@ -305,8 +305,8 @@ function AdvisorProfileEditor({
   const [confirmDelete, setConfirmDelete] = useState(false);
 
   const save = async () => {
-    if (!firstName.trim() || !lastName.trim() || !email.trim()) {
-      toast({ title: "Missing fields", description: "Name and email are required.", variant: "destructive" });
+    if (!firstName.trim() || !lastName.trim()) {
+      toast({ title: "Missing fields", description: "First and last name are required.", variant: "destructive" });
       return;
     }
     setSaving(true);
@@ -316,7 +316,7 @@ function AdvisorProfileEditor({
         .update({
           first_name: firstName.trim(),
           last_name: lastName.trim(),
-          email: email.trim().toLowerCase(),
+          email: email.trim().toLowerCase() || null,
           headshot_url: headshot.trim() || null,
           bio: bio.trim() || null,
         })
