@@ -337,7 +337,7 @@ export default function AdminSocorroApproval() {
                     <AdvisorProfileEditor advisor={advisor} onUpdated={loadAdvisors} />
                     <div className="border-t pt-5">
                       <h4 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
-                        <Calendar className="w-4 h-4" /> Schedule — Availability Slots
+                        <Calendar className="w-4 h-4" /> Schedule — Availability Slots <span className="text-xs font-normal text-gray-400 ml-1">(Mountain Time)</span>
                       </h4>
                       <AdvisorScheduleManager advisorId={advisor.id} />
                     </div>
