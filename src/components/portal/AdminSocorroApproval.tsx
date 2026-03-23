@@ -18,9 +18,15 @@ const WORKSHOP_DATES = [
 ];
 
 const TIME_SLOTS = [
-  "8:00 AM", "8:30 AM", "9:00 AM", "9:30 AM", "10:00 AM", "10:30 AM",
-  "11:00 AM", "11:30 AM", "12:00 PM", "12:30 PM", "1:00 PM", "1:30 PM",
-  "2:00 PM", "2:30 PM", "3:00 PM", "3:30 PM", "4:00 PM", "4:30 PM",
+  "8:00 AM", "8:15 AM", "8:30 AM", "8:45 AM",
+  "9:00 AM", "9:15 AM", "9:30 AM", "9:45 AM",
+  "10:00 AM", "10:15 AM", "10:30 AM", "10:45 AM",
+  "11:00 AM", "11:15 AM", "11:30 AM", "11:45 AM",
+  "12:00 PM", "12:15 PM", "12:30 PM", "12:45 PM",
+  "1:00 PM", "1:15 PM", "1:30 PM", "1:45 PM",
+  "2:00 PM", "2:15 PM", "2:30 PM", "2:45 PM",
+  "3:00 PM", "3:15 PM", "3:30 PM", "3:45 PM",
+  "4:00 PM", "4:15 PM", "4:30 PM", "4:45 PM",
 ];
 
 export default function AdminSocorroApproval() {
@@ -331,7 +337,7 @@ export default function AdminSocorroApproval() {
                     <AdvisorProfileEditor advisor={advisor} onUpdated={loadAdvisors} />
                     <div className="border-t pt-5">
                       <h4 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
-                        <Calendar className="w-4 h-4" /> Schedule — Availability Slots
+                        <Calendar className="w-4 h-4" /> Schedule — Availability Slots <span className="text-xs font-normal text-gray-400 ml-1">(Mountain Time)</span>
                       </h4>
                       <AdvisorScheduleManager advisorId={advisor.id} />
                     </div>
@@ -610,7 +616,7 @@ function AdvisorScheduleManager({ advisorId }: { advisorId: string }) {
           </Select>
         </div>
         <div>
-          <label className="block text-xs font-medium text-gray-500 mb-1">Time</label>
+          <label className="block text-xs font-medium text-gray-500 mb-1">Time <span className="text-gray-400 font-normal">(MT)</span></label>
           <Select value={selectedTime} onValueChange={setSelectedTime}>
             <SelectTrigger className="w-32 h-9 text-sm">
               <SelectValue />
