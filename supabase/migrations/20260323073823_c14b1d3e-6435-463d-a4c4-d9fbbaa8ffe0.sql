@@ -1,0 +1,1 @@
+ALTER TABLE public.socorro_workshop_advisors DROP CONSTRAINT IF EXISTS socorro_workshop_advisors_email_key;
