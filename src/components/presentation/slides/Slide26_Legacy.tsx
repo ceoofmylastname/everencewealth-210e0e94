@@ -3,6 +3,7 @@ import RevealElement from "../RevealElement";
 import GradientText from "../animations/GradientText";
 import ConfettiTrigger from "../animations/ConfettiTrigger";
 import { useRevealQueue } from "../RevealContext";
+import { QrCode } from "lucide-react";
 
 export default function Slide26_Legacy() {
   const [showConfetti, setShowConfetti] = useState(false);
