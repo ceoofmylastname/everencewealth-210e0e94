@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, Search, Plus, X, Trash2, ChevronDown, ChevronRight, Calendar, Image, Clock } from "lucide-react";
+import { Loader2, Search, Plus, X, Trash2, ChevronDown, ChevronRight, Calendar, Image, Clock, ArrowUp, ArrowDown } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import type { SocorroAdvisor, SocorroAvailabilitySlot } from "@/types/socorro";
 
