@@ -76,6 +76,14 @@ export default function Slide26_Legacy() {
           </p>
         </RevealElement>
       </div>
+      {/* QR Code button — bottom-right, subtle */}
+      <button
+        onClick={() => window.open('/portal/admin/presentation/qr/socorro', '_blank')}
+        className="absolute bottom-4 right-4 z-20 opacity-20 hover:opacity-80 transition-opacity p-2 rounded-lg"
+        title="Open QR Code"
+      >
+        <QrCode className="h-5 w-5 text-white" />
+      </button>
     </div>
   );
 }
