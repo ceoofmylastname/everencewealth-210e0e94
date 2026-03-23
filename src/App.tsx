@@ -137,6 +137,7 @@ const ApartmentsAuth = lazy(() => import("./pages/ApartmentsAuth"));
 
 // Presentation System
 const Presentation = lazy(() => import("./pages/admin/Presentation"));
+const PresentationQR = lazy(() => import("./pages/admin/PresentationQR"));
 const UnderwritingAI = lazy(() => import("./pages/UnderwritingAI"));
 
 // Inner components for apartments editor layout (no AdminLayout wrapper)
@@ -478,6 +479,7 @@ const App = () => (
                   <Route path="assessment-leads" element={<CrmAssessmentLeads />} />
                   <Route path="socorro-workshop" element={<AdminSocorroWorkshop />} />
                   <Route path="presentation" element={<Presentation />} />
+                  <Route path="presentation/qr/:location" element={<PresentationQR />} />
                 </Route>
               </Route>
 
