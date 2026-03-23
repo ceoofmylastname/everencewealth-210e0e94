@@ -7888,7 +7888,7 @@ export type Database = {
           auth_user_id: string | null
           bio: string | null
           created_at: string | null
-          email: string
+          email: string | null
           first_name: string
           headshot_url: string | null
           id: string
@@ -7901,7 +7901,7 @@ export type Database = {
           auth_user_id?: string | null
           bio?: string | null
           created_at?: string | null
-          email: string
+          email?: string | null
           first_name: string
           headshot_url?: string | null
           id?: string
@@ -7914,7 +7914,7 @@ export type Database = {
           auth_user_id?: string | null
           bio?: string | null
           created_at?: string | null
-          email?: string
+          email?: string | null
           first_name?: string
           headshot_url?: string | null
           id?: string
