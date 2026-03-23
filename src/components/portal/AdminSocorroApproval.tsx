@@ -189,7 +189,7 @@ export default function AdminSocorroApproval() {
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1">Email *</label>
+              <label className="block text-xs font-medium text-gray-500 mb-1">Email</label>
               <Input
                 type="email"
                 value={newAdvisor.email}
