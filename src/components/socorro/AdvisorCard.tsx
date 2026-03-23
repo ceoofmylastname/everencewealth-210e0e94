@@ -30,7 +30,7 @@ export default function AdvisorCard({ advisor, index }: AdvisorCardProps) {
               <img
                 src={advisor.headshot_url}
                 alt={`${advisor.first_name} ${advisor.last_name}`}
-                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                className="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center">
