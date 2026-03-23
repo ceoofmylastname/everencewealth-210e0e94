@@ -51,7 +51,7 @@ export default function AdminSocorroApproval() {
       const { data, error } = await supabase
         .from("socorro_workshop_advisors" as any)
         .select("*")
-        .order("created_at", { ascending: false });
+        .order("display_order", { ascending: true });
       if (error) throw error;
       setAdvisors((data ?? []) as unknown as SocorroAdvisor[]);
     } catch (err) {
