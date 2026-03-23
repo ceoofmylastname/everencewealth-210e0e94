@@ -10,11 +10,11 @@ import { useToast } from "@/hooks/use-toast";
 import type { SocorroAdvisor, SocorroAvailabilitySlot } from "@/types/socorro";
 
 const WORKSHOP_DATES = [
-  { value: "2026-03-24", label: "Mon Mar 24" },
-  { value: "2026-03-25", label: "Tue Mar 25" },
-  { value: "2026-03-26", label: "Wed Mar 26" },
-  { value: "2026-03-27", label: "Thu Mar 27" },
-  { value: "2026-03-28", label: "Fri Mar 28" },
+  { value: "2026-03-23", label: "Mon Mar 23" },
+  { value: "2026-03-24", label: "Tue Mar 24" },
+  { value: "2026-03-25", label: "Wed Mar 25" },
+  { value: "2026-03-26", label: "Thu Mar 26" },
+  { value: "2026-03-27", label: "Fri Mar 27" },
 ];
 
 const TIME_SLOTS = [

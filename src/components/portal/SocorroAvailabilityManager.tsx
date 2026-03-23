@@ -9,11 +9,11 @@ import { Loader2, Plus, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const WORKSHOP_DATES = [
-  { value: "2026-03-24", label: "Mon March 24" },
-  { value: "2026-03-25", label: "Tue March 25" },
-  { value: "2026-03-26", label: "Wed March 26" },
-  { value: "2026-03-27", label: "Thu March 27" },
-  { value: "2026-03-28", label: "Fri March 28" },
+  { value: "2026-03-23", label: "Mon March 23" },
+  { value: "2026-03-24", label: "Tue March 24" },
+  { value: "2026-03-25", label: "Wed March 25" },
+  { value: "2026-03-26", label: "Thu March 26" },
+  { value: "2026-03-27", label: "Fri March 27" },
 ];
 
 const TIME_SLOTS = [

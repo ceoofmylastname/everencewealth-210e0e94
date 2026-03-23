@@ -4,11 +4,11 @@ import type { SocorroAvailabilitySlot } from "@/types/socorro";
 import GlassCard from "./primitives/GlassCard";
 
 const WORKSHOP_DATES = [
-  { date: "2026-03-24", label: "Mon Mar 24" },
-  { date: "2026-03-25", label: "Tue Mar 25" },
-  { date: "2026-03-26", label: "Wed Mar 26" },
-  { date: "2026-03-27", label: "Thu Mar 27" },
-  { date: "2026-03-28", label: "Fri Mar 28" },
+  { date: "2026-03-23", label: "Mon Mar 23" },
+  { date: "2026-03-24", label: "Tue Mar 24" },
+  { date: "2026-03-25", label: "Wed Mar 25" },
+  { date: "2026-03-26", label: "Thu Mar 26" },
+  { date: "2026-03-27", label: "Fri Mar 27" },
 ];
 
 interface AvailabilityPickerProps {
