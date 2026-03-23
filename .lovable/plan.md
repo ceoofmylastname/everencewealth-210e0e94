@@ -1,25 +1,20 @@
 
 
-## Update Socorro Booking Confirmation Email
+## Remove "The Opportunity" Slide from Presentation
 
-**Goal**: Replace "Questions? Reply to this email." with a line that shows the advisor's name and email (if available), so users can contact their advisor directly.
+**File**: `src/components/presentation/PresentationViewer.tsx`
 
-### Change
+Three changes needed — all in the same file:
 
-**File**: `supabase/functions/register-socorro-booking/index.ts`
+1. **Remove the slide import** (line 34): Delete the `Slide25_TheOpportunity` lazy import.
 
-1. After verifying the slot and before building the email HTML, query `socorro_workshop_advisors` by `advisor_id` to fetch the advisor's `first_name`, `last_name`, and `email`.
+2. **Remove its title** (line 63): Delete `"The Opportunity"` from `SLIDE_TITLES`.
 
-2. Replace the closing paragraph (lines 124-126):
-   - **If advisor has an email**: "Questions? Send an email to {First Last} at {email}."
-   - **If advisor has no email**: "Questions? Reply to this email." (fallback, same as current)
+3. **Remove its config** (line 93): Delete `{ totalReveals: 7 }` entry from `SLIDE_CONFIGS`.
 
-3. Use the fetched advisor name instead of the client-passed `advisor_name` for consistency.
+4. **Update watermark exclusion** (line 98): Change `24` to `23` in `WATERMARK_EXCLUDE_INDICES` since Legacy (currently index 24) shifts down to index 23.
 
-### Example output in the email
+5. **Update the comment** (line 8): Change "26 slides" to "25 slides".
 
-> Questions? Send an email to Steven Rosenberg at steven@example.com.
-> — Everence Wealth
-
-No database changes needed. The edge function will be redeployed after the update.
+No other files need changes. The slide file itself (`Slide25_TheOpportunity.tsx`) will be left in place but unused — no risk of breakage.
 
