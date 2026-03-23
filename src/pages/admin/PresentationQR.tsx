@@ -40,7 +40,7 @@ export default function PresentationQR() {
 
       <div className="bg-white rounded-2xl p-6 shadow-2xl">
         <img
-          src={config.url}
+          src={`https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(config.url)}`}
           alt={`QR Code for ${config.label}`}
           className="w-72 h-72 object-contain"
         />

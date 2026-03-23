@@ -479,7 +479,7 @@ const App = () => (
                   <Route path="assessment-leads" element={<CrmAssessmentLeads />} />
                   <Route path="socorro-workshop" element={<AdminSocorroWorkshop />} />
                   <Route path="presentation" element={<Presentation />} />
-                  <Route path="presentation/qr/:location" element={<PresentationQR />} />
+                  
                 </Route>
               </Route>
 
@@ -519,6 +519,7 @@ const App = () => (
               {/* OTHER PUBLIC ROUTES (no language prefix)  */}
               {/* MUST BE BEFORE /:lang dynamic route       */}
               {/* ========================================== */}
+              <Route path="/presentation/qr/:location" element={<PresentationQR />} />
               <Route path="/thank-you" element={<ThankYou />} />
               <Route path="/sitemap" element={<Sitemap />} />
               <Route path="/glossary" element={<Navigate to="/en/glossary" replace />} />
