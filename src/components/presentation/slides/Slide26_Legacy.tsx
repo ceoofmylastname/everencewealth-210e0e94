@@ -78,7 +78,7 @@ export default function Slide26_Legacy() {
       </div>
       {/* QR Code button — bottom-right, subtle */}
       <button
-        onClick={() => window.open('/portal/admin/presentation/qr/socorro', '_blank')}
+        onClick={() => window.open('/presentation/qr/socorro', '_blank')}
         className="absolute bottom-4 right-4 z-20 opacity-20 hover:opacity-80 transition-opacity p-2 rounded-lg"
         title="Open QR Code"
       >
