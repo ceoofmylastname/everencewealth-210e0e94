@@ -297,7 +297,7 @@ function AdvisorProfileEditor({
   const { toast } = useToast();
   const [firstName, setFirstName] = useState(advisor.first_name);
   const [lastName, setLastName] = useState(advisor.last_name);
-  const [email, setEmail] = useState(advisor.email);
+  const [email, setEmail] = useState(advisor.email || "");
   const [headshot, setHeadshot] = useState(advisor.headshot_url || "");
   const [bio, setBio] = useState(advisor.bio || "");
   const [saving, setSaving] = useState(false);
