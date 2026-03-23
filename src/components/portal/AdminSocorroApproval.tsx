@@ -27,6 +27,9 @@ const TIME_SLOTS = [
   "2:00 PM", "2:15 PM", "2:30 PM", "2:45 PM",
   "3:00 PM", "3:15 PM", "3:30 PM", "3:45 PM",
   "4:00 PM", "4:15 PM", "4:30 PM", "4:45 PM",
+  "5:00 PM", "5:15 PM", "5:30 PM", "5:45 PM",
+  "6:00 PM", "6:15 PM", "6:30 PM", "6:45 PM",
+  "7:00 PM",
 ];
 
 export default function AdminSocorroApproval() {
