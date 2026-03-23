@@ -15,7 +15,7 @@ export default function SocorroAdvisors() {
 
       {/* Header */}
       <section
-        className="relative pt-28 pb-16 px-6 overflow-hidden"
+        className="relative pt-24 pb-10 sm:pt-28 sm:pb-16 px-4 sm:px-6 overflow-hidden"
         style={{ background: "#0D1F1A" }}
       >
         <FloatingOrbs variant="dark" />
@@ -51,7 +51,7 @@ export default function SocorroAdvisors() {
       </section>
 
       {/* Grid */}
-      <section className="relative py-14 px-6 overflow-hidden">
+      <section className="relative py-10 sm:py-14 px-4 sm:px-6 overflow-hidden">
         <FloatingOrbs variant="light" />
         <div className="relative z-10 max-w-[1000px] mx-auto">
           <AdvisorGrid advisors={advisors} isLoading={isLoading} />

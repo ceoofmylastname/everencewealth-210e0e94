@@ -10,19 +10,19 @@ interface AdvisorGridProps {
 export default function AdvisorGrid({ advisors, isLoading }: AdvisorGridProps) {
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {[0, 1, 2].map((i) => (
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
+        {[0, 1, 2, 3].map((i) => (
           <GlassCard key={i} variant="light" className="overflow-hidden animate-pulse">
             <div
-              className="aspect-square"
+              className="aspect-[3/4]"
               style={{
                 background: "linear-gradient(135deg, rgba(200,169,110,0.06), rgba(26,77,62,0.04))",
               }}
             />
-            <div className="p-6 space-y-3">
-              <div className="h-6 w-2/3 rounded-full" style={{ background: "rgba(26,77,62,0.08)" }} />
+            <div className="p-4 sm:p-6 space-y-3">
+              <div className="h-5 sm:h-6 w-2/3 rounded-full" style={{ background: "rgba(26,77,62,0.08)" }} />
               <div className="h-4 w-full rounded-full" style={{ background: "rgba(26,77,62,0.05)" }} />
-              <div className="h-10 w-32 rounded-full" style={{ background: "rgba(200,169,110,0.1)" }} />
+              <div className="h-10 w-24 sm:w-32 rounded-full" style={{ background: "rgba(200,169,110,0.1)" }} />
             </div>
           </GlassCard>
         ))}
@@ -58,7 +58,7 @@ export default function AdvisorGrid({ advisors, isLoading }: AdvisorGridProps) {
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
       {advisors.map((advisor, i) => (
         <AdvisorCard key={advisor.id} advisor={advisor} index={i} />
       ))}
