@@ -62,8 +62,8 @@ export default function AdminSocorroApproval() {
   };
 
   const addAdvisor = async () => {
-    if (!newAdvisor.first_name.trim() || !newAdvisor.last_name.trim() || !newAdvisor.email.trim()) {
-      toast({ title: "Missing fields", description: "First name, last name, and email are required.", variant: "destructive" });
+    if (!newAdvisor.first_name.trim() || !newAdvisor.last_name.trim()) {
+      toast({ title: "Missing fields", description: "First name and last name are required.", variant: "destructive" });
       return;
     }
     setAdding(true);
@@ -73,7 +73,7 @@ export default function AdminSocorroApproval() {
         .insert({
           first_name: newAdvisor.first_name.trim(),
           last_name: newAdvisor.last_name.trim(),
-          email: newAdvisor.email.trim().toLowerCase(),
+          email: newAdvisor.email.trim().toLowerCase() || null,
           headshot_url: newAdvisor.headshot_url.trim() || null,
           bio: newAdvisor.bio.trim() || null,
         });
