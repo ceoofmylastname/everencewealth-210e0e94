@@ -616,7 +616,7 @@ function AdvisorScheduleManager({ advisorId }: { advisorId: string }) {
           </Select>
         </div>
         <div>
-          <label className="block text-xs font-medium text-gray-500 mb-1">Time</label>
+          <label className="block text-xs font-medium text-gray-500 mb-1">Time <span className="text-gray-400 font-normal">(MT)</span></label>
           <Select value={selectedTime} onValueChange={setSelectedTime}>
             <SelectTrigger className="w-32 h-9 text-sm">
               <SelectValue />
