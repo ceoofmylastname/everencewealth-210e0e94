@@ -125,9 +125,10 @@ export default function SocorroAdvisorDetail() {
       <section className="relative py-12 px-6 overflow-hidden">
         <FloatingOrbs variant="light" />
         <div className="relative z-10 max-w-[800px] mx-auto">
-          <ShimmerHeadline as="h2" className="text-[24px] mb-6">
+          <ShimmerHeadline as="h2" className="text-[24px] mb-2">
             Select a Date &amp; Time
           </ShimmerHeadline>
+          <p className="text-sm text-gray-500 mb-6">All times shown in Mountain Time (MT)</p>
 
           <GlassCard variant="light" className="p-6 sm:p-8">
             <AvailabilityPicker
