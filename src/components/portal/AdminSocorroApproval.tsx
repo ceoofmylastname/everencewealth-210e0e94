@@ -435,14 +435,14 @@ function AdvisorProfileEditor({
               className="text-sm"
             />
           </div>
-          {hasChanges && (
-            <Button size="sm" onClick={save} disabled={saving} className="bg-[#1A4D3E] hover:bg-[#163f33]">
-              {saving ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : null}
-              Save Changes
-            </Button>
-          )}
         </div>
       </div>
+      {hasChanges && (
+        <Button size="sm" onClick={save} disabled={saving} className="bg-[#1A4D3E] hover:bg-[#163f33]">
+          {saving ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : null}
+          Save Changes
+        </Button>
+      )}
     </div>
   );
 }
