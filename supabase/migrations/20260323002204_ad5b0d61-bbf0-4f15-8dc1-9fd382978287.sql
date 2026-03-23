@@ -1,0 +1,1 @@
+ALTER TABLE socorro_workshop_advisors ALTER COLUMN email DROP NOT NULL;
