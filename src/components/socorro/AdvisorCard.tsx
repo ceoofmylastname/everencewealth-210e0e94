@@ -17,7 +17,7 @@ export default function AdvisorCard({ advisor, index }: AdvisorCardProps) {
         className="block group"
         style={{ textDecoration: "none" }}
       >
-        <GlassCard variant="light" hover3d className="overflow-hidden">
+        <GlassCard variant="light" hover3d className="overflow-hidden [@media(pointer:coarse)]:transform-none">
           {/* Headshot */}
           <div
             className="aspect-[3/4] overflow-hidden"
@@ -30,6 +30,9 @@ export default function AdvisorCard({ advisor, index }: AdvisorCardProps) {
               <img
                 src={advisor.headshot_url}
                 alt={`${advisor.first_name} ${advisor.last_name}`}
+                loading="eager"
+                fetchPriority="high"
+                decoding="async"
                 className="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
               />
             ) : (
@@ -51,11 +54,11 @@ export default function AdvisorCard({ advisor, index }: AdvisorCardProps) {
           </div>
 
           {/* Info */}
-          <div className="p-6">
+          <div className="p-4 sm:p-6">
             <h3
               style={{
                 fontFamily: "'Cormorant Garamond', Georgia, serif",
-                fontSize: "22px",
+                fontSize: "clamp(18px, 3vw, 22px)",
                 fontWeight: 700,
                 color: "#1A4D3E",
                 marginBottom: "4px",
@@ -65,10 +68,10 @@ export default function AdvisorCard({ advisor, index }: AdvisorCardProps) {
             </h3>
             {advisor.bio && (
               <p
-                className="line-clamp-2 mb-5"
+                className="line-clamp-2 mb-4 sm:mb-5"
                 style={{
                   fontFamily: "'DM Sans', system-ui, sans-serif",
-                  fontSize: "14px",
+                  fontSize: "clamp(12px, 2vw, 14px)",
                   color: "#4A5565",
                   lineHeight: 1.5,
                 }}
@@ -76,7 +79,7 @@ export default function AdvisorCard({ advisor, index }: AdvisorCardProps) {
                 {advisor.bio}
               </p>
             )}
-            <GoldCTA size="sm">See Availability &rarr;</GoldCTA>
+            <GoldCTA size="sm" className="min-h-[44px]">See Availability &rarr;</GoldCTA>
           </div>
         </GlassCard>
       </Link>
