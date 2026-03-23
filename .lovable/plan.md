@@ -1,22 +1,15 @@
 
 
-## Fix QR Code Page
+## Fix Advisor Headshot Cropping
 
-### Problems
-1. Route is nested inside the admin dashboard layout — shows sidebar/nav chrome
-2. The URL `https://link.everencewealth.com/qr/x0UKirG-340V` is a landing page, not a QR image — the `<img>` tag can't render it
+**Problem**: The `aspect-square` container with `object-cover` crops the top of advisors' heads because the photos are taller than square.
 
-### Changes
+**File**: `src/components/socorro/AdvisorCard.tsx`
 
-**1. Move route to top level** — `src/App.tsx`
-- Remove the QR route from inside the admin layout nesting (line 482)
-- Add it as a standalone public route near the other public routes (around line 522), e.g.: `/presentation/qr/:location`
-- No auth required — it's just a display page
+**Change**: Adjust the image container from `aspect-square` to `aspect-[3/4]` (portrait ratio) and add `object-top` positioning so the face/head area is prioritized when any cropping occurs.
 
-**2. Generate a real QR code** — `src/pages/admin/PresentationQR.tsx`
-- Use a free QR API to render the code: `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=https://link.everencewealth.com/qr/x0UKirG-340V`
-- Keep the same page layout (dark bg, centered, location label, back button)
+- Line 23: Change `aspect-square` to `aspect-[3/4]`
+- Line 33: Add `object-top` to the image classes
 
-**3. Update button URL** — `src/components/presentation/slides/Slide26_Legacy.tsx`
-- Change `window.open` path from `/portal/admin/presentation/qr/socorro` to `/presentation/qr/socorro`
+This gives more vertical space for the headshots and ensures any remaining crop happens at the bottom (torso) rather than the top (head).
 
