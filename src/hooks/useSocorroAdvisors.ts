@@ -10,7 +10,7 @@ export function useSocorroAdvisors() {
         .from("socorro_workshop_advisors" as any)
         .select("*")
         .eq("is_approved", true)
-        .order("last_name");
+        .order("display_order");
       if (error) throw error;
       return (data ?? []) as unknown as SocorroAdvisor[];
     },

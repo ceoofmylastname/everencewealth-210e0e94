@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, Search, Plus, X, Trash2, ChevronDown, ChevronRight, Calendar, Image, Clock } from "lucide-react";
+import { Loader2, Search, Plus, X, Trash2, ChevronDown, ChevronRight, Calendar, Image, Clock, ArrowUp, ArrowDown } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import type { SocorroAdvisor, SocorroAvailabilitySlot } from "@/types/socorro";
 
@@ -51,7 +51,7 @@ export default function AdminSocorroApproval() {
       const { data, error } = await supabase
         .from("socorro_workshop_advisors" as any)
         .select("*")
-        .order("created_at", { ascending: false });
+        .order("display_order", { ascending: true });
       if (error) throw error;
       setAdvisors((data ?? []) as unknown as SocorroAdvisor[]);
     } catch (err) {
@@ -68,6 +68,8 @@ export default function AdminSocorroApproval() {
     }
     setAdding(true);
     try {
+      // Get max display_order
+      const maxOrder = advisors.reduce((max, a) => Math.max(max, (a as any).display_order ?? 0), 0);
       const { error } = await supabase
         .from("socorro_workshop_advisors" as any)
         .insert({
@@ -76,6 +78,7 @@ export default function AdminSocorroApproval() {
           email: newAdvisor.email.trim().toLowerCase() || null,
           headshot_url: newAdvisor.headshot_url.trim() || null,
           bio: newAdvisor.bio.trim() || null,
+          display_order: maxOrder + 1,
         });
       if (error) throw error;
       toast({ title: "Advisor added", description: `${newAdvisor.first_name} ${newAdvisor.last_name}` });
@@ -86,6 +89,45 @@ export default function AdminSocorroApproval() {
       toast({ title: "Error", description: err.message, variant: "destructive" });
     } finally {
       setAdding(false);
+    }
+  };
+
+  const [reordering, setReordering] = useState(false);
+
+  const moveAdvisor = async (index: number, direction: "up" | "down") => {
+    const swapIndex = direction === "up" ? index - 1 : index + 1;
+    if (swapIndex < 0 || swapIndex >= filtered.length) return;
+    if (reordering) return;
+    setReordering(true);
+    try {
+      const a = filtered[index] as any;
+      const b = filtered[swapIndex] as any;
+      const orderA = a.display_order ?? index;
+      const orderB = b.display_order ?? swapIndex;
+      // Swap display_order values
+      const { error: e1 } = await supabase
+        .from("socorro_workshop_advisors" as any)
+        .update({ display_order: orderB })
+        .eq("id", a.id);
+      if (e1) throw e1;
+      const { error: e2 } = await supabase
+        .from("socorro_workshop_advisors" as any)
+        .update({ display_order: orderA })
+        .eq("id", b.id);
+      if (e2) throw e2;
+      // Optimistic update
+      setAdvisors((prev) => {
+        const updated = [...prev];
+        const idxA = updated.findIndex((x) => x.id === a.id);
+        const idxB = updated.findIndex((x) => x.id === b.id);
+        if (idxA >= 0) (updated[idxA] as any).display_order = orderB;
+        if (idxB >= 0) (updated[idxB] as any).display_order = orderA;
+        return updated.sort((x: any, y: any) => (x.display_order ?? 0) - (y.display_order ?? 0));
+      });
+    } catch (err: any) {
+      toast({ title: "Reorder failed", description: err.message, variant: "destructive" });
+    } finally {
+      setReordering(false);
     }
   };
 
@@ -226,15 +268,33 @@ export default function AdminSocorroApproval() {
         <p className="py-8 text-center text-gray-400 text-sm">No advisors found. Click "Add Advisor" to get started.</p>
       ) : (
         <div className="space-y-3">
-          {filtered.map((advisor) => {
+          {filtered.map((advisor, idx) => {
             const isExpanded = expandedId === advisor.id;
             return (
               <div key={advisor.id} className="border rounded-xl overflow-hidden bg-white shadow-sm">
                 {/* Row header */}
-                <div
-                  className="flex items-center gap-4 px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors"
-                  onClick={() => setExpandedId(isExpanded ? null : advisor.id)}
-                >
+                <div className="flex items-center gap-4 px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors">
+                  {/* Reorder arrows */}
+                  <div className="flex flex-col gap-0.5 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+                    <button
+                      disabled={idx === 0 || reordering || !!search}
+                      onClick={() => moveAdvisor(idx, "up")}
+                      className="p-0.5 rounded hover:bg-gray-200 disabled:opacity-20 disabled:cursor-not-allowed"
+                    >
+                      <ArrowUp className="w-3.5 h-3.5 text-gray-500" />
+                    </button>
+                    <button
+                      disabled={idx === filtered.length - 1 || reordering || !!search}
+                      onClick={() => moveAdvisor(idx, "down")}
+                      className="p-0.5 rounded hover:bg-gray-200 disabled:opacity-20 disabled:cursor-not-allowed"
+                    >
+                      <ArrowDown className="w-3.5 h-3.5 text-gray-500" />
+                    </button>
+                  </div>
+                  <div
+                    className="flex items-center gap-4 flex-1 min-w-0"
+                    onClick={() => setExpandedId(isExpanded ? null : advisor.id)}
+                  >
                   <div className="text-gray-400">
                     {isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
                   </div>
@@ -250,6 +310,7 @@ export default function AdminSocorroApproval() {
                       {advisor.first_name} {advisor.last_name}
                     </p>
                     <p className="text-xs text-gray-400 truncate">{advisor.email}</p>
+                  </div>
                   </div>
                   <div className="flex items-center gap-3 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
                     <span className="text-xs text-gray-400">{advisor.is_approved ? "Live" : "Hidden"}</span>
