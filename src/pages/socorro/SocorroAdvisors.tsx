@@ -45,7 +45,7 @@ export default function SocorroAdvisors() {
             }}
           >
             Select an advisor to view their availability during the Socorro ISD
-            workshop week (March 24–28).
+            workshop week (March 23–27).
           </motion.p>
         </div>
       </section>
