@@ -295,16 +295,28 @@ function AdvisorProfileEditor({
   onUpdated: () => void;
 }) {
   const { toast } = useToast();
+  const [firstName, setFirstName] = useState(advisor.first_name);
+  const [lastName, setLastName] = useState(advisor.last_name);
+  const [email, setEmail] = useState(advisor.email);
   const [headshot, setHeadshot] = useState(advisor.headshot_url || "");
   const [bio, setBio] = useState(advisor.bio || "");
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   const save = async () => {
+    if (!firstName.trim() || !lastName.trim() || !email.trim()) {
+      toast({ title: "Missing fields", description: "Name and email are required.", variant: "destructive" });
+      return;
+    }
     setSaving(true);
     try {
       const { error } = await supabase
         .from("socorro_workshop_advisors" as any)
         .update({
+          first_name: firstName.trim(),
+          last_name: lastName.trim(),
+          email: email.trim().toLowerCase(),
           headshot_url: headshot.trim() || null,
           bio: bio.trim() || null,
         })
@@ -319,13 +331,80 @@ function AdvisorProfileEditor({
     }
   };
 
-  const hasChanges = headshot !== (advisor.headshot_url || "") || bio !== (advisor.bio || "");
+  const handleDelete = async () => {
+    setDeleting(true);
+    try {
+      // Delete availability slots first
+      await supabase
+        .from("socorro_advisor_availability" as any)
+        .delete()
+        .eq("advisor_id", advisor.id);
+      // Delete advisor
+      const { error } = await supabase
+        .from("socorro_workshop_advisors" as any)
+        .delete()
+        .eq("id", advisor.id);
+      if (error) throw error;
+      toast({ title: "Advisor deleted", description: `${advisor.first_name} ${advisor.last_name}` });
+      onUpdated();
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    } finally {
+      setDeleting(false);
+      setConfirmDelete(false);
+    }
+  };
+
+  const hasChanges =
+    firstName !== advisor.first_name ||
+    lastName !== advisor.last_name ||
+    email !== advisor.email ||
+    headshot !== (advisor.headshot_url || "") ||
+    bio !== (advisor.bio || "");
 
   return (
     <div className="space-y-3">
-      <h4 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-        <Image className="w-4 h-4" /> Profile &amp; Photo
-      </h4>
+      <div className="flex items-center justify-between">
+        <h4 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+          <Image className="w-4 h-4" /> Profile &amp; Photo
+        </h4>
+        {!confirmDelete ? (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-red-500 hover:text-red-700 hover:bg-red-50"
+            onClick={() => setConfirmDelete(true)}
+          >
+            <Trash2 className="w-3.5 h-3.5 mr-1" /> Delete Advisor
+          </Button>
+        ) : (
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-red-600 font-medium">Are you sure?</span>
+            <Button size="sm" variant="destructive" onClick={handleDelete} disabled={deleting}>
+              {deleting ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : null}
+              Yes, Delete
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => setConfirmDelete(false)}>
+              Cancel
+            </Button>
+          </div>
+        )}
+      </div>
+      {/* Name & Email */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div>
+          <label className="block text-xs font-medium text-gray-500 mb-1">First Name</label>
+          <Input value={firstName} onChange={(e) => setFirstName(e.target.value)} className="text-sm" />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-gray-500 mb-1">Last Name</label>
+          <Input value={lastName} onChange={(e) => setLastName(e.target.value)} className="text-sm" />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-gray-500 mb-1">Email</label>
+          <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="text-sm" />
+        </div>
+      </div>
       <div className="flex gap-4 items-start">
         {/* Preview */}
         <div className="flex-shrink-0">
