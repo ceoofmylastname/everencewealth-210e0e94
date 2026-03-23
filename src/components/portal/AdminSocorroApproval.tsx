@@ -268,15 +268,33 @@ export default function AdminSocorroApproval() {
         <p className="py-8 text-center text-gray-400 text-sm">No advisors found. Click "Add Advisor" to get started.</p>
       ) : (
         <div className="space-y-3">
-          {filtered.map((advisor) => {
+          {filtered.map((advisor, idx) => {
             const isExpanded = expandedId === advisor.id;
             return (
               <div key={advisor.id} className="border rounded-xl overflow-hidden bg-white shadow-sm">
                 {/* Row header */}
-                <div
-                  className="flex items-center gap-4 px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors"
-                  onClick={() => setExpandedId(isExpanded ? null : advisor.id)}
-                >
+                <div className="flex items-center gap-4 px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors">
+                  {/* Reorder arrows */}
+                  <div className="flex flex-col gap-0.5 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+                    <button
+                      disabled={idx === 0 || reordering || !!search}
+                      onClick={() => moveAdvisor(idx, "up")}
+                      className="p-0.5 rounded hover:bg-gray-200 disabled:opacity-20 disabled:cursor-not-allowed"
+                    >
+                      <ArrowUp className="w-3.5 h-3.5 text-gray-500" />
+                    </button>
+                    <button
+                      disabled={idx === filtered.length - 1 || reordering || !!search}
+                      onClick={() => moveAdvisor(idx, "down")}
+                      className="p-0.5 rounded hover:bg-gray-200 disabled:opacity-20 disabled:cursor-not-allowed"
+                    >
+                      <ArrowDown className="w-3.5 h-3.5 text-gray-500" />
+                    </button>
+                  </div>
+                  <div
+                    className="flex items-center gap-4 flex-1 min-w-0"
+                    onClick={() => setExpandedId(isExpanded ? null : advisor.id)}
+                  >
                   <div className="text-gray-400">
                     {isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
                   </div>
