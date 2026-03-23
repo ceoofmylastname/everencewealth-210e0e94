@@ -20,7 +20,7 @@ export default function AdvisorCard({ advisor, index }: AdvisorCardProps) {
         <GlassCard variant="light" hover3d className="overflow-hidden">
           {/* Headshot */}
           <div
-            className="aspect-square overflow-hidden"
+            className="aspect-[3/4] overflow-hidden"
             style={{
               borderRadius: "var(--socorro-radius-card) var(--socorro-radius-card) 0 0",
               background: "rgba(26,77,62,0.06)",
