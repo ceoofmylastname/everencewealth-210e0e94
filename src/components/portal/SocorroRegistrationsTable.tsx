@@ -3,17 +3,36 @@ import { supabase } from "@/integrations/supabase/client";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Loader2, Download, Search } from "lucide-react";
-import type { SocorroRegistration } from "@/types/socorro";
+import { Loader2, Download, Search, Trash2 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+
+interface RegistrationWithAdvisor {
+  id: string;
+  advisor_id: string;
+  availability_slot_id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone: string | null;
+  selected_date: string;
+  selected_time: string;
+  ghl_webhook_sent: boolean;
+  email_sent: boolean;
+  created_at: string;
+  advisor_name?: string;
+}
 
 interface SocorroRegistrationsTableProps {
-  advisorId?: string; // if omitted, shows all registrations (admin view)
+  advisorId?: string;
 }
 
 export default function SocorroRegistrationsTable({ advisorId }: SocorroRegistrationsTableProps) {
-  const [registrations, setRegistrations] = useState<SocorroRegistration[]>([]);
+  const { toast } = useToast();
+  const [registrations, setRegistrations] = useState<RegistrationWithAdvisor[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   useEffect(() => {
     loadRegistrations();
@@ -22,6 +41,7 @@ export default function SocorroRegistrationsTable({ advisorId }: SocorroRegistra
   const loadRegistrations = async () => {
     setLoading(true);
     try {
+      // Fetch registrations
       let query = supabase
         .from("socorro_workshop_registrations" as any)
         .select("*")
@@ -31,13 +51,49 @@ export default function SocorroRegistrationsTable({ advisorId }: SocorroRegistra
         query = query.eq("advisor_id", advisorId);
       }
 
-      const { data, error } = await query;
+      const { data: regs, error } = await query;
       if (error) throw error;
-      setRegistrations((data ?? []) as unknown as SocorroRegistration[]);
+
+      // Fetch all advisors to map names
+      const { data: advisors } = await supabase
+        .from("socorro_workshop_advisors" as any)
+        .select("id, first_name, last_name");
+
+      const advisorMap = new Map<string, string>();
+      if (advisors) {
+        for (const a of advisors as any[]) {
+          advisorMap.set(a.id, `${a.first_name} ${a.last_name}`);
+        }
+      }
+
+      const enriched = ((regs ?? []) as any[]).map((r) => ({
+        ...r,
+        advisor_name: advisorMap.get(r.advisor_id) || "Unknown",
+      })) as RegistrationWithAdvisor[];
+
+      setRegistrations(enriched);
     } catch (err) {
       console.error("Failed to load registrations:", err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const deleteRegistration = async (id: string) => {
+    setDeletingId(id);
+    try {
+      const { error } = await supabase
+        .from("socorro_workshop_registrations" as any)
+        .delete()
+        .eq("id", id);
+      if (error) throw error;
+      toast({ title: "Registration deleted" });
+      setRegistrations((prev) => prev.filter((r) => r.id !== id));
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    } finally {
+      setDeletingId(null);
+      setConfirmDeleteId(null);
     }
   };
 
@@ -47,21 +103,22 @@ export default function SocorroRegistrationsTable({ advisorId }: SocorroRegistra
     return (
       r.first_name.toLowerCase().includes(q) ||
       r.last_name.toLowerCase().includes(q) ||
-      r.email.toLowerCase().includes(q)
+      r.email.toLowerCase().includes(q) ||
+      (r.advisor_name || "").toLowerCase().includes(q)
     );
   });
 
   const downloadCsv = () => {
     if (!filtered.length) return;
-    const headers = ["Date", "Time", "First Name", "Last Name", "Email", "Phone", "Registered At", "Email Sent", "GHL Sent"];
+    const headers = ["Name", "Email", "Phone", "Advisor", "Date", "Time", "Registered At", "Email Sent", "GHL Sent"];
     const rows = filtered.map((r) =>
       [
-        r.selected_date,
-        r.selected_time,
-        `"${r.first_name}"`,
-        `"${r.last_name}"`,
+        `"${r.first_name} ${r.last_name}"`,
         `"${r.email}"`,
         `"${r.phone || ""}"`,
+        `"${r.advisor_name || ""}"`,
+        r.selected_date,
+        r.selected_time,
         new Date(r.created_at).toLocaleString(),
         r.email_sent ? "Yes" : "No",
         r.ghl_webhook_sent ? "Yes" : "No",
@@ -116,9 +173,11 @@ export default function SocorroRegistrationsTable({ advisorId }: SocorroRegistra
                 <TableHead>Name</TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead>Phone</TableHead>
+                <TableHead>Advisor</TableHead>
                 <TableHead>Date</TableHead>
                 <TableHead>Time</TableHead>
                 <TableHead>Registered</TableHead>
+                <TableHead className="w-[80px]"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -129,10 +188,42 @@ export default function SocorroRegistrationsTable({ advisorId }: SocorroRegistra
                   </TableCell>
                   <TableCell>{r.email}</TableCell>
                   <TableCell>{r.phone || "—"}</TableCell>
+                  <TableCell className="text-sm text-gray-600">{r.advisor_name}</TableCell>
                   <TableCell>{r.selected_date}</TableCell>
                   <TableCell>{r.selected_time}</TableCell>
                   <TableCell className="text-gray-500 text-sm">
                     {new Date(r.created_at).toLocaleDateString()}
+                  </TableCell>
+                  <TableCell>
+                    {confirmDeleteId === r.id ? (
+                      <div className="flex items-center gap-1">
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          className="h-7 px-2 text-xs"
+                          onClick={() => deleteRegistration(r.id)}
+                          disabled={deletingId === r.id}
+                        >
+                          {deletingId === r.id ? <Loader2 className="w-3 h-3 animate-spin" /> : "Yes"}
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-7 px-2 text-xs"
+                          onClick={() => setConfirmDeleteId(null)}
+                        >
+                          No
+                        </Button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => setConfirmDeleteId(r.id)}
+                        className="p-1.5 rounded hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors"
+                        title="Delete registration"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
                   </TableCell>
                 </TableRow>
               ))}
