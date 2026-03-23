@@ -5,7 +5,7 @@ import { RevealProvider, useRevealQueue } from "./RevealContext";
 import HUD from "./HUD";
 import { sound } from "./sounds/SoundEngine";
 
-// Lazy load all 26 slides
+// Lazy load all 25 slides
 const slides = [
   lazy(() => import("./slides/Slide01_Hero")),
   lazy(() => import("./slides/Slide02_WhatDoesRetirementNeed")),
@@ -31,7 +31,7 @@ const slides = [
   lazy(() => import("./slides/Slide22_PlanAdvantage")),
   lazy(() => import("./slides/Slide23_PlanBenefits")),
   lazy(() => import("./slides/Slide24_GreatRetirementTransfer")),
-  lazy(() => import("./slides/Slide25_TheOpportunity")),
+  
   lazy(() => import("./slides/Slide26_Legacy")),
 ];
 
@@ -60,7 +60,7 @@ const SLIDE_TITLES = [
   "Plan Advantage",
   "Plan Benefits",
   "Great Retirement Transfer",
-  "The Opportunity",
+  
   "Legacy",
 ];
 
@@ -90,12 +90,12 @@ const SLIDE_CONFIGS = [
   { totalReveals: 5 },  // 22: Plan Advantage
   { totalReveals: 5 },  // 23: Plan Benefits
   { totalReveals: 4 },  // 24: Great Retirement Transfer
-  { totalReveals: 7 },  // 25: The Opportunity
+  
   { totalReveals: 5 },  // 26: Legacy
 ];
 
 // Slide indices to exclude from watermark (dark/image backgrounds + Slide 1)
-const WATERMARK_EXCLUDE_INDICES = new Set([0, 1, 4, 7, 8, 19, 24]);
+const WATERMARK_EXCLUDE_INDICES = new Set([0, 1, 4, 7, 8, 19, 23]);
 
 // Inner component that uses the context
 function PresentationShell({ onExit }: { onExit?: () => void }) {
