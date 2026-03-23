@@ -68,6 +68,8 @@ export default function AdminSocorroApproval() {
     }
     setAdding(true);
     try {
+      // Get max display_order
+      const maxOrder = advisors.reduce((max, a) => Math.max(max, (a as any).display_order ?? 0), 0);
       const { error } = await supabase
         .from("socorro_workshop_advisors" as any)
         .insert({
@@ -76,6 +78,7 @@ export default function AdminSocorroApproval() {
           email: newAdvisor.email.trim().toLowerCase() || null,
           headshot_url: newAdvisor.headshot_url.trim() || null,
           bio: newAdvisor.bio.trim() || null,
+          display_order: maxOrder + 1,
         });
       if (error) throw error;
       toast({ title: "Advisor added", description: `${newAdvisor.first_name} ${newAdvisor.last_name}` });
@@ -86,6 +89,45 @@ export default function AdminSocorroApproval() {
       toast({ title: "Error", description: err.message, variant: "destructive" });
     } finally {
       setAdding(false);
+    }
+  };
+
+  const [reordering, setReordering] = useState(false);
+
+  const moveAdvisor = async (index: number, direction: "up" | "down") => {
+    const swapIndex = direction === "up" ? index - 1 : index + 1;
+    if (swapIndex < 0 || swapIndex >= filtered.length) return;
+    if (reordering) return;
+    setReordering(true);
+    try {
+      const a = filtered[index] as any;
+      const b = filtered[swapIndex] as any;
+      const orderA = a.display_order ?? index;
+      const orderB = b.display_order ?? swapIndex;
+      // Swap display_order values
+      const { error: e1 } = await supabase
+        .from("socorro_workshop_advisors" as any)
+        .update({ display_order: orderB })
+        .eq("id", a.id);
+      if (e1) throw e1;
+      const { error: e2 } = await supabase
+        .from("socorro_workshop_advisors" as any)
+        .update({ display_order: orderA })
+        .eq("id", b.id);
+      if (e2) throw e2;
+      // Optimistic update
+      setAdvisors((prev) => {
+        const updated = [...prev];
+        const idxA = updated.findIndex((x) => x.id === a.id);
+        const idxB = updated.findIndex((x) => x.id === b.id);
+        if (idxA >= 0) (updated[idxA] as any).display_order = orderB;
+        if (idxB >= 0) (updated[idxB] as any).display_order = orderA;
+        return updated.sort((x: any, y: any) => (x.display_order ?? 0) - (y.display_order ?? 0));
+      });
+    } catch (err: any) {
+      toast({ title: "Reorder failed", description: err.message, variant: "destructive" });
+    } finally {
+      setReordering(false);
     }
   };
 
