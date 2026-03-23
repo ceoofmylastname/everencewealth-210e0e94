@@ -311,6 +311,7 @@ export default function AdminSocorroApproval() {
                     </p>
                     <p className="text-xs text-gray-400 truncate">{advisor.email}</p>
                   </div>
+                  </div>
                   <div className="flex items-center gap-3 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
                     <span className="text-xs text-gray-400">{advisor.is_approved ? "Live" : "Hidden"}</span>
                     {togglingId === advisor.id ? (
