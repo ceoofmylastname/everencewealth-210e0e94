@@ -5,7 +5,7 @@ import { RevealProvider, useRevealQueue } from "./RevealContext";
 import HUD from "./HUD";
 import { sound } from "./sounds/SoundEngine";
 
-// Lazy load all 26 slides
+// Lazy load all 25 slides
 const slides = [
   lazy(() => import("./slides/Slide01_Hero")),
   lazy(() => import("./slides/Slide02_WhatDoesRetirementNeed")),
