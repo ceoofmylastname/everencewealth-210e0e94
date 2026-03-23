@@ -62,8 +62,8 @@ export default function AdminSocorroApproval() {
   };
 
   const addAdvisor = async () => {
-    if (!newAdvisor.first_name.trim() || !newAdvisor.last_name.trim() || !newAdvisor.email.trim()) {
-      toast({ title: "Missing fields", description: "First name, last name, and email are required.", variant: "destructive" });
+    if (!newAdvisor.first_name.trim() || !newAdvisor.last_name.trim()) {
+      toast({ title: "Missing fields", description: "First name and last name are required.", variant: "destructive" });
       return;
     }
     setAdding(true);
@@ -73,7 +73,7 @@ export default function AdminSocorroApproval() {
         .insert({
           first_name: newAdvisor.first_name.trim(),
           last_name: newAdvisor.last_name.trim(),
-          email: newAdvisor.email.trim().toLowerCase(),
+          email: newAdvisor.email.trim().toLowerCase() || null,
           headshot_url: newAdvisor.headshot_url.trim() || null,
           bio: newAdvisor.bio.trim() || null,
         });
@@ -189,7 +189,7 @@ export default function AdminSocorroApproval() {
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1">Email *</label>
+              <label className="block text-xs font-medium text-gray-500 mb-1">Email</label>
               <Input
                 type="email"
                 value={newAdvisor.email}
@@ -305,8 +305,8 @@ function AdvisorProfileEditor({
   const [confirmDelete, setConfirmDelete] = useState(false);
 
   const save = async () => {
-    if (!firstName.trim() || !lastName.trim() || !email.trim()) {
-      toast({ title: "Missing fields", description: "Name and email are required.", variant: "destructive" });
+    if (!firstName.trim() || !lastName.trim()) {
+      toast({ title: "Missing fields", description: "First and last name are required.", variant: "destructive" });
       return;
     }
     setSaving(true);
@@ -316,7 +316,7 @@ function AdvisorProfileEditor({
         .update({
           first_name: firstName.trim(),
           last_name: lastName.trim(),
-          email: email.trim().toLowerCase(),
+          email: email.trim().toLowerCase() || null,
           headshot_url: headshot.trim() || null,
           bio: bio.trim() || null,
         })
