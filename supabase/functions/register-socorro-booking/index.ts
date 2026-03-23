@@ -100,11 +100,26 @@ Deno.serve(async (req) => {
             });
         }
 
+        // Fetch advisor details for the confirmation email
+        const { data: advisorData } = await supabase
+            .from("socorro_workshop_advisors")
+            .select("first_name, last_name, email")
+            .eq("id", advisor_id)
+            .single();
+
+        const advisorFullName = advisorData
+            ? `${advisorData.first_name} ${advisorData.last_name}`
+            : (advisor_name || "your advisor");
+        const advisorEmail = advisorData?.email || null;
+
+        const contactLine = advisorEmail
+            ? `Questions? Send an email to ${advisorFullName} at <a href="mailto:${advisorEmail}" style="color:#1A4D3E;text-decoration:underline;">${advisorEmail}</a>.`
+            : `Questions? Reply to this email.`;
+
         // Send confirmation email via Resend
         const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
         let emailSent = false;
         if (RESEND_API_KEY) {
-            const advisorDisplay = advisor_name || "your advisor";
             const innerHtml = `
                 <p style="color:#4A5565;line-height:1.6;font-size:16px;margin:0 0 16px;">Hi ${first_name},</p>
                 <p style="color:#4A5565;line-height:1.6;font-size:16px;margin:0 0 16px;">
@@ -112,7 +127,7 @@ Deno.serve(async (req) => {
                 </p>
                 <div style="background:#f9fafb;border-radius:8px;padding:16px;margin:24px 0;border-left:4px solid #1A4D3E;">
                     <h2 style="color:#1A4D3E;font-size:18px;margin:0 0 12px;font-family:Georgia,serif;">Your Session Details</h2>
-                    <p style="margin:0 0 8px;color:#4A5565;font-size:14px;">👤 <strong>Advisor:</strong> ${advisorDisplay}</p>
+                    <p style="margin:0 0 8px;color:#4A5565;font-size:14px;">👤 <strong>Advisor:</strong> ${advisorFullName}</p>
                     <p style="margin:0 0 8px;color:#4A5565;font-size:14px;">📅 <strong>Date:</strong> ${selected_date}</p>
                     <p style="margin:0 0 8px;color:#4A5565;font-size:14px;">🕐 <strong>Time:</strong> ${selected_time}</p>
                     <p style="margin:0;color:#4A5565;font-size:14px;">📍 <strong>Location:</strong> Phone Call</p>
@@ -122,7 +137,7 @@ Deno.serve(async (req) => {
                     designed to give you a clear picture of your retirement options as an SISD employee.
                 </p>
                 <p style="color:#4A5565;line-height:1.6;font-size:16px;margin:0;">
-                    Questions? Reply to this email.<br/><strong>— Everence Wealth</strong>
+                    ${contactLine}<br/><strong>— Everence Wealth</strong>
                 </p>
             `;
 
