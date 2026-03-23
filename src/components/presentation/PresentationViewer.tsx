@@ -31,7 +31,7 @@ const slides = [
   lazy(() => import("./slides/Slide22_PlanAdvantage")),
   lazy(() => import("./slides/Slide23_PlanBenefits")),
   lazy(() => import("./slides/Slide24_GreatRetirementTransfer")),
-  lazy(() => import("./slides/Slide25_TheOpportunity")),
+  
   lazy(() => import("./slides/Slide26_Legacy")),
 ];
 
