@@ -95,7 +95,7 @@ const SLIDE_CONFIGS = [
 ];
 
 // Slide indices to exclude from watermark (dark/image backgrounds + Slide 1)
-const WATERMARK_EXCLUDE_INDICES = new Set([0, 1, 4, 7, 8, 19, 24]);
+const WATERMARK_EXCLUDE_INDICES = new Set([0, 1, 4, 7, 8, 19, 23]);
 
 // Inner component that uses the context
 function PresentationShell({ onExit }: { onExit?: () => void }) {
