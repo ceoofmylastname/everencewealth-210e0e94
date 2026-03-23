@@ -334,17 +334,24 @@ function AdvisorProfileEditor({
   const handleDelete = async () => {
     setDeleting(true);
     try {
-      // Delete availability slots first
-      await supabase
+      const { error: registrationsError } = await supabase
+        .from("socorro_workshop_registrations" as any)
+        .delete()
+        .eq("advisor_id", advisor.id);
+      if (registrationsError) throw registrationsError;
+
+      const { error: availabilityError } = await supabase
         .from("socorro_advisor_availability" as any)
         .delete()
         .eq("advisor_id", advisor.id);
-      // Delete advisor
+      if (availabilityError) throw availabilityError;
+
       const { error } = await supabase
         .from("socorro_workshop_advisors" as any)
         .delete()
         .eq("id", advisor.id);
       if (error) throw error;
+
       toast({ title: "Advisor deleted", description: `${advisor.first_name} ${advisor.last_name}` });
       onUpdated();
     } catch (err: any) {
