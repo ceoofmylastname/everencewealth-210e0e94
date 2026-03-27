@@ -5,17 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, Search, Plus, X, Trash2, ChevronDown, ChevronRight, Calendar, Image, Clock, ArrowUp, ArrowDown } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { cn } from "@/lib/utils";
+import { format } from "date-fns";
+import { Loader2, Search, Plus, X, Trash2, ChevronDown, ChevronRight, Calendar as CalendarIcon, Image, Clock, ArrowUp, ArrowDown, Link2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import type { SocorroAdvisor, SocorroAvailabilitySlot } from "@/types/socorro";
-
-const WORKSHOP_DATES = [
-  { value: "2026-03-23", label: "Mon Mar 23" },
-  { value: "2026-03-24", label: "Tue Mar 24" },
-  { value: "2026-03-25", label: "Wed Mar 25" },
-  { value: "2026-03-26", label: "Thu Mar 26" },
-  { value: "2026-03-27", label: "Fri Mar 27" },
-];
 
 const TIME_SLOTS = [
   "8:00 AM", "8:15 AM", "8:30 AM", "8:45 AM",
@@ -31,6 +27,13 @@ const TIME_SLOTS = [
   "6:00 PM", "6:15 PM", "6:30 PM", "6:45 PM",
   "7:00 PM",
 ];
+
+interface PortalAdvisorOption {
+  auth_user_id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+}
 
 export default function AdminSocorroApproval() {
   const { portalUser } = usePortalAuth();
@@ -77,7 +80,6 @@ export default function AdminSocorroApproval() {
     }
     setAdding(true);
     try {
-      // Get max display_order
       const maxOrder = advisors.reduce((max, a) => Math.max(max, (a as any).display_order ?? 0), 0);
       const { error } = await supabase
         .from("socorro_workshop_advisors" as any)
@@ -113,7 +115,6 @@ export default function AdminSocorroApproval() {
       const b = filtered[swapIndex] as any;
       const orderA = a.display_order ?? index;
       const orderB = b.display_order ?? swapIndex;
-      // Swap display_order values
       const { error: e1 } = await supabase
         .from("socorro_workshop_advisors" as any)
         .update({ display_order: orderB })
@@ -124,7 +125,6 @@ export default function AdminSocorroApproval() {
         .update({ display_order: orderA })
         .eq("id", b.id);
       if (e2) throw e2;
-      // Optimistic update
       setAdvisors((prev) => {
         const updated = [...prev];
         const idxA = updated.findIndex((x) => x.id === a.id);
@@ -317,6 +317,11 @@ export default function AdminSocorroApproval() {
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-gray-800 truncate">
                       {advisor.first_name} {advisor.last_name}
+                      {(advisor as any).auth_user_id && (
+                        <span className="ml-2 inline-flex items-center gap-1 text-[10px] font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 rounded px-1.5 py-0.5">
+                          <Link2 className="w-2.5 h-2.5" /> Linked
+                        </span>
+                      )}
                     </p>
                     <p className="text-xs text-gray-400 truncate">{advisor.email}</p>
                   </div>
@@ -340,7 +345,7 @@ export default function AdminSocorroApproval() {
                     <AdvisorProfileEditor advisor={advisor} onUpdated={loadAdvisors} />
                     <div className="border-t pt-5">
                       <h4 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
-                        <Calendar className="w-4 h-4" /> Schedule — Availability Slots <span className="text-xs font-normal text-gray-400 ml-1">(Mountain Time)</span>
+                        <CalendarIcon className="w-4 h-4" /> Schedule — Availability Slots <span className="text-xs font-normal text-gray-400 ml-1">(Mountain Time)</span>
                       </h4>
                       <AdvisorScheduleManager advisorId={advisor.id} />
                     </div>
@@ -373,6 +378,52 @@ function AdvisorProfileEditor({
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
+
+  // Portal account linking
+  const [portalAccounts, setPortalAccounts] = useState<PortalAdvisorOption[]>([]);
+  const [loadingAccounts, setLoadingAccounts] = useState(false);
+  const [selectedAuthUserId, setSelectedAuthUserId] = useState<string>((advisor as any).auth_user_id || "");
+  const [linkSaving, setLinkSaving] = useState(false);
+
+  useEffect(() => {
+    loadPortalAccounts();
+  }, []);
+
+  const loadPortalAccounts = async () => {
+    setLoadingAccounts(true);
+    try {
+      const { data, error } = await supabase
+        .from("portal_users")
+        .select("auth_user_id, first_name, last_name, email")
+        .eq("role", "advisor")
+        .eq("is_active", true)
+        .order("last_name");
+      if (error) throw error;
+      setPortalAccounts((data ?? []) as PortalAdvisorOption[]);
+    } catch (err) {
+      console.error("Failed to load portal accounts:", err);
+    } finally {
+      setLoadingAccounts(false);
+    }
+  };
+
+  const linkAccount = async (authUserId: string) => {
+    setLinkSaving(true);
+    try {
+      const { error } = await supabase
+        .from("socorro_workshop_advisors" as any)
+        .update({ auth_user_id: authUserId || null })
+        .eq("id", advisor.id);
+      if (error) throw error;
+      setSelectedAuthUserId(authUserId);
+      toast({ title: authUserId ? "Portal account linked" : "Portal account unlinked" });
+      onUpdated();
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    } finally {
+      setLinkSaving(false);
+    }
+  };
 
   const save = async () => {
     if (!firstName.trim() || !lastName.trim()) {
@@ -439,6 +490,8 @@ function AdvisorProfileEditor({
     headshot !== (advisor.headshot_url || "") ||
     bio !== (advisor.bio || "");
 
+  const linkedAccount = portalAccounts.find((a) => a.auth_user_id === selectedAuthUserId);
+
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
@@ -467,6 +520,44 @@ function AdvisorProfileEditor({
           </div>
         )}
       </div>
+
+      {/* Portal Account Linking */}
+      <div className="p-3 rounded-lg border border-blue-100 bg-blue-50/50 space-y-2">
+        <label className="block text-xs font-semibold text-gray-600 flex items-center gap-1.5">
+          <Link2 className="w-3.5 h-3.5" /> Link to Portal Account
+          <span className="font-normal text-gray-400 ml-1">(enables self-service availability)</span>
+        </label>
+        {loadingAccounts ? (
+          <div className="flex items-center gap-2 text-xs text-gray-400">
+            <Loader2 className="w-3 h-3 animate-spin" /> Loading accounts…
+          </div>
+        ) : (
+          <div className="flex items-center gap-2">
+            <Select
+              value={selectedAuthUserId || "__none__"}
+              onValueChange={(v) => linkAccount(v === "__none__" ? "" : v)}
+              disabled={linkSaving}
+            >
+              <SelectTrigger className="w-72 h-9 text-sm">
+                <SelectValue placeholder="Not linked" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none__">Not linked</SelectItem>
+                {portalAccounts.map((acc) => (
+                  <SelectItem key={acc.auth_user_id} value={acc.auth_user_id}>
+                    {acc.first_name} {acc.last_name} ({acc.email})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {linkSaving && <Loader2 className="w-3.5 h-3.5 animate-spin text-gray-400" />}
+            {linkedAccount && !linkSaving && (
+              <span className="text-xs text-emerald-600 font-medium">✓ Linked</span>
+            )}
+          </div>
+        )}
+      </div>
+
       {/* Name & Email */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div>
@@ -530,7 +621,7 @@ function AdvisorScheduleManager({ advisorId }: { advisorId: string }) {
   const { toast } = useToast();
   const [slots, setSlots] = useState<SocorroAvailabilitySlot[]>([]);
   const [loadingSlots, setLoadingSlots] = useState(true);
-  const [selectedDate, setSelectedDate] = useState(WORKSHOP_DATES[0].value);
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [selectedTime, setSelectedTime] = useState(TIME_SLOTS[0]);
   const [adding, setAdding] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -558,17 +649,22 @@ function AdvisorScheduleManager({ advisorId }: { advisorId: string }) {
   };
 
   const addSlot = async () => {
+    if (!selectedDate) {
+      toast({ title: "Select a date", variant: "destructive" });
+      return;
+    }
     setAdding(true);
+    const dateStr = format(selectedDate, "yyyy-MM-dd");
     try {
       const { error } = await supabase
         .from("socorro_advisor_availability" as any)
         .insert({
           advisor_id: advisorId,
-          event_date: selectedDate,
+          event_date: dateStr,
           time_slot: selectedTime,
         });
       if (error) throw error;
-      toast({ title: "Slot added", description: `${WORKSHOP_DATES.find((d) => d.value === selectedDate)?.label} at ${selectedTime}` });
+      toast({ title: "Slot added", description: `${format(selectedDate, "EEE MMM d, yyyy")} at ${selectedTime}` });
       loadSlots();
     } catch (err: any) {
       toast({ title: "Error", description: err.message, variant: "destructive" });
@@ -607,16 +703,33 @@ function AdvisorScheduleManager({ advisorId }: { advisorId: string }) {
       <div className="flex flex-wrap items-end gap-2">
         <div>
           <label className="block text-xs font-medium text-gray-500 mb-1">Date</label>
-          <Select value={selectedDate} onValueChange={setSelectedDate}>
-            <SelectTrigger className="w-44 h-9 text-sm">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {WORKSHOP_DATES.map((d) => (
-                <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className={cn(
+                  "w-48 h-9 justify-start text-left text-sm font-normal",
+                  !selectedDate && "text-muted-foreground"
+                )}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {selectedDate ? format(selectedDate, "EEE MMM d, yyyy") : "Pick a date"}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={selectedDate}
+                onSelect={setSelectedDate}
+                disabled={(date) =>
+                  date < new Date("2026-01-01") || date > new Date("2026-12-31")
+                }
+                defaultMonth={new Date("2026-03-01")}
+                initialFocus
+                className={cn("p-3 pointer-events-auto")}
+              />
+            </PopoverContent>
+          </Popover>
         </div>
         <div>
           <label className="block text-xs font-medium text-gray-500 mb-1">Time <span className="text-gray-400 font-normal">(MT)</span></label>
@@ -631,7 +744,7 @@ function AdvisorScheduleManager({ advisorId }: { advisorId: string }) {
             </SelectContent>
           </Select>
         </div>
-        <Button size="sm" onClick={addSlot} disabled={adding} className="bg-[#1A4D3E] hover:bg-[#163f33] h-9">
+        <Button size="sm" onClick={addSlot} disabled={adding || !selectedDate} className="bg-[#1A4D3E] hover:bg-[#163f33] h-9">
           {adding ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : <Plus className="w-3 h-3 mr-1" />}
           Add
         </Button>
@@ -647,7 +760,9 @@ function AdvisorScheduleManager({ advisorId }: { advisorId: string }) {
       ) : (
         <div className="space-y-3">
           {Object.entries(slotsByDate).map(([date, dateSlots]) => {
-            const dateLabel = WORKSHOP_DATES.find((d) => d.value === date)?.label || date;
+            // Format the date nicely
+            const d = new Date(date + "T12:00:00");
+            const dateLabel = isNaN(d.getTime()) ? date : format(d, "EEE MMM d, yyyy");
             return (
               <div key={date}>
                 <p className="text-xs font-semibold text-gray-500 mb-1.5">{dateLabel}</p>

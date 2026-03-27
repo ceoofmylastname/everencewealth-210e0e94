@@ -44,8 +44,7 @@ export default function SocorroAdvisors() {
               maxWidth: "520px",
             }}
           >
-            Select an advisor to view their availability during the Socorro ISD
-            workshop week (March 23–27).
+            Select an advisor to view their availability and book a session.
           </motion.p>
         </div>
       </section>

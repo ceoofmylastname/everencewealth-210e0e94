@@ -1,15 +1,7 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
+import { format } from "date-fns";
 import type { SocorroAvailabilitySlot } from "@/types/socorro";
-import GlassCard from "./primitives/GlassCard";
-
-const WORKSHOP_DATES = [
-  { date: "2026-03-23", label: "Mon Mar 23" },
-  { date: "2026-03-24", label: "Tue Mar 24" },
-  { date: "2026-03-25", label: "Wed Mar 25" },
-  { date: "2026-03-26", label: "Thu Mar 26" },
-  { date: "2026-03-27", label: "Fri Mar 27" },
-];
 
 interface AvailabilityPickerProps {
   slots: SocorroAvailabilitySlot[];
@@ -24,10 +16,26 @@ export default function AvailabilityPicker({
   onSelect,
   selectedSlotId,
 }: AvailabilityPickerProps) {
-  const [activeDate, setActiveDate] = useState(WORKSHOP_DATES[0].date);
+  // Derive unique dates from slots dynamically
+  const availableDates = useMemo(() => {
+    const dateSet = new Set(slots.map((s) => s.event_date));
+    return Array.from(dateSet).sort().map((date) => {
+      const d = new Date(date + "T12:00:00");
+      return {
+        date,
+        label: isNaN(d.getTime()) ? date : format(d, "EEE MMM d"),
+      };
+    });
+  }, [slots]);
 
-  const slotsForDate = slots.filter((s) => s.event_date === activeDate);
-  const availableDates = new Set(slots.map((s) => s.event_date));
+  const [activeDate, setActiveDate] = useState<string | null>(null);
+
+  // Auto-select first date if not set
+  const effectiveDate = activeDate && availableDates.some((d) => d.date === activeDate)
+    ? activeDate
+    : availableDates[0]?.date ?? null;
+
+  const slotsForDate = effectiveDate ? slots.filter((s) => s.event_date === effectiveDate) : [];
 
   if (isLoading) {
     return (
@@ -72,16 +80,14 @@ export default function AvailabilityPicker({
 
   return (
     <div>
-      {/* Date pills */}
+      {/* Date pills — dynamically derived from slots */}
       <div className="flex flex-wrap gap-2 mb-8">
-        {WORKSHOP_DATES.map((d) => {
-          const hasSlots = availableDates.has(d.date);
-          const isActive = activeDate === d.date;
+        {availableDates.map((d) => {
+          const isActive = effectiveDate === d.date;
           return (
             <button
               key={d.date}
-              onClick={() => hasSlots && setActiveDate(d.date)}
-              disabled={!hasSlots}
+              onClick={() => setActiveDate(d.date)}
               className="transition-all duration-200"
               style={{
                 fontFamily: "'DM Sans', system-ui, sans-serif",
@@ -92,19 +98,12 @@ export default function AvailabilityPicker({
                 border: isActive
                   ? "2px solid #C8A96E"
                   : "1px solid rgba(200,169,110,0.15)",
-                cursor: hasSlots ? "pointer" : "default",
+                cursor: "pointer",
                 background: isActive
                   ? "rgba(200,169,110,0.1)"
-                  : hasSlots
-                    ? "rgba(255,255,255,0.65)"
-                    : "rgba(200,200,200,0.1)",
+                  : "rgba(255,255,255,0.65)",
                 backdropFilter: "blur(8px)",
-                color: isActive
-                  ? "#C8A96E"
-                  : hasSlots
-                    ? "#1A4D3E"
-                    : "#9CA3AF",
-                opacity: hasSlots ? 1 : 0.5,
+                color: isActive ? "#C8A96E" : "#1A4D3E",
               }}
             >
               {d.label}

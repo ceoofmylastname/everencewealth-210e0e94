@@ -4,17 +4,13 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useSocorroAvailability } from "@/hooks/useSocorroAvailability";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Loader2, Plus, Trash2 } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { format } from "date-fns";
+import { Loader2, Plus, Trash2, CalendarIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-
-const WORKSHOP_DATES = [
-  { value: "2026-03-23", label: "Mon March 23" },
-  { value: "2026-03-24", label: "Tue March 24" },
-  { value: "2026-03-25", label: "Wed March 25" },
-  { value: "2026-03-26", label: "Thu March 26" },
-  { value: "2026-03-27", label: "Fri March 27" },
-];
 
 const TIME_SLOTS = [
   "8:00 AM", "8:15 AM", "8:30 AM", "8:45 AM",
@@ -39,24 +35,29 @@ export default function SocorroAvailabilityManager({ advisorId }: SocorroAvailab
   const { data: slots = [], isLoading } = useSocorroAvailability(advisorId);
   const queryClient = useQueryClient();
   const { toast } = useToast();
-  const [selectedDate, setSelectedDate] = useState(WORKSHOP_DATES[0].value);
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [selectedTime, setSelectedTime] = useState(TIME_SLOTS[0]);
   const [adding, setAdding] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const addSlot = async () => {
+    if (!selectedDate) {
+      toast({ title: "Select a date", variant: "destructive" });
+      return;
+    }
     setAdding(true);
+    const dateStr = format(selectedDate, "yyyy-MM-dd");
     try {
       const { error } = await supabase
         .from("socorro_advisor_availability" as any)
         .insert({
           advisor_id: advisorId,
-          event_date: selectedDate,
+          event_date: dateStr,
           time_slot: selectedTime,
         });
       if (error) throw error;
       queryClient.invalidateQueries({ queryKey: ["socorro-availability", advisorId] });
-      toast({ title: "Slot added", description: `${selectedDate} at ${selectedTime}` });
+      toast({ title: "Slot added", description: `${format(selectedDate, "EEE MMM d, yyyy")} at ${selectedTime}` });
     } catch (err: any) {
       toast({ title: "Error", description: err.message, variant: "destructive" });
     } finally {
@@ -87,19 +88,36 @@ export default function SocorroAvailabilityManager({ advisorId }: SocorroAvailab
       <div className="flex flex-wrap items-end gap-3">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
-          <Select value={selectedDate} onValueChange={setSelectedDate}>
-            <SelectTrigger className="w-48">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {WORKSHOP_DATES.map((d) => (
-                <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className={cn(
+                  "w-52 justify-start text-left font-normal",
+                  !selectedDate && "text-muted-foreground"
+                )}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {selectedDate ? format(selectedDate, "EEE MMM d, yyyy") : "Pick a date"}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={selectedDate}
+                onSelect={setSelectedDate}
+                disabled={(date) =>
+                  date < new Date("2026-01-01") || date > new Date("2026-12-31")
+                }
+                defaultMonth={new Date("2026-03-01")}
+                initialFocus
+                className={cn("p-3 pointer-events-auto")}
+              />
+            </PopoverContent>
+          </Popover>
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Time</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Time <span className="text-gray-400 font-normal text-xs">(MT)</span></label>
           <Select value={selectedTime} onValueChange={setSelectedTime}>
             <SelectTrigger className="w-36">
               <SelectValue />
@@ -111,7 +129,7 @@ export default function SocorroAvailabilityManager({ advisorId }: SocorroAvailab
             </SelectContent>
           </Select>
         </div>
-        <Button onClick={addSlot} disabled={adding} className="bg-[#1A4D3E] hover:bg-[#163f33] rounded-full">
+        <Button onClick={addSlot} disabled={adding || !selectedDate} className="bg-[#1A4D3E] hover:bg-[#163f33] rounded-full">
           {adding ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Plus className="w-4 h-4 mr-1" />}
           Add Slot
         </Button>
@@ -136,38 +154,42 @@ export default function SocorroAvailabilityManager({ advisorId }: SocorroAvailab
               </TableRow>
             </TableHeader>
             <TableBody>
-              {slots.map((slot) => (
-                <TableRow key={slot.id}>
-                  <TableCell className="font-medium">{slot.event_date}</TableCell>
-                  <TableCell>{slot.time_slot}</TableCell>
-                  <TableCell>
-                    {slot.is_booked ? (
-                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200">
-                        Booked
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
-                        Available
-                      </span>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    {!slot.is_booked && (
-                      <button
-                        onClick={() => removeSlot(slot.id)}
-                        disabled={deletingId === slot.id}
-                        className="text-gray-400 hover:text-red-500 transition-colors"
-                      >
-                        {deletingId === slot.id ? (
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                        ) : (
-                          <Trash2 className="w-4 h-4" />
-                        )}
-                      </button>
-                    )}
-                  </TableCell>
-                </TableRow>
-              ))}
+              {slots.map((slot) => {
+                const d = new Date(slot.event_date + "T12:00:00");
+                const dateLabel = isNaN(d.getTime()) ? slot.event_date : format(d, "EEE MMM d, yyyy");
+                return (
+                  <TableRow key={slot.id}>
+                    <TableCell className="font-medium">{dateLabel}</TableCell>
+                    <TableCell>{slot.time_slot}</TableCell>
+                    <TableCell>
+                      {slot.is_booked ? (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200">
+                          Booked
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+                          Available
+                        </span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {!slot.is_booked && (
+                        <button
+                          onClick={() => removeSlot(slot.id)}
+                          disabled={deletingId === slot.id}
+                          className="text-gray-400 hover:text-red-500 transition-colors"
+                        >
+                          {deletingId === slot.id ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <Trash2 className="w-4 h-4" />
+                          )}
+                        </button>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </div>

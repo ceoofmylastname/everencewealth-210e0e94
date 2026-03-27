@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import { usePortalAuth } from "@/hooks/usePortalAuth";
 import { useContractingGate } from "@/hooks/useContractingGate";
 import { cn } from "@/lib/utils";
@@ -164,21 +165,42 @@ export function PortalLayout() {
   const isAdmin = portalUser?.role === "admin";
   const hasPresentationAccess = !!(portalUser as any)?.presentation_access || isAdmin;
 
-  // Build nav groups with conditional presentation link
+  // Check if advisor has a Socorro workshop profile
+  const [hasSocorroProfile, setHasSocorroProfile] = useState(false);
+  useEffect(() => {
+    if (!portalUser?.auth_user_id || isAdmin) return;
+    (async () => {
+      const { data } = await supabase
+        .from("socorro_workshop_advisors" as any)
+        .select("id")
+        .eq("auth_user_id", portalUser.auth_user_id)
+        .maybeSingle();
+      setHasSocorroProfile(!!data);
+    })();
+  }, [portalUser?.auth_user_id, isAdmin]);
+
+  // Build nav groups with conditional links
   const navGroups = useMemo(() => {
     return advisorNavGroups.map(group => {
-      if (group.label === "Resources" && hasPresentationAccess) {
-        return {
-          ...group,
-          items: [
-            ...group.items,
+      if (group.label === "Resources") {
+        let items = group.items.filter((item) => {
+          // Only show Socorro Workshop if admin or has a Socorro profile
+          if (item.label === "Socorro Workshop") {
+            return isAdmin || hasSocorroProfile;
+          }
+          return true;
+        });
+        if (hasPresentationAccess) {
+          items = [
+            ...items,
             { label: "Workshop Presentation", icon: Presentation, href: "/portal/advisor/presentation" },
-          ],
-        };
+          ];
+        }
+        return { ...group, items };
       }
       return group;
     });
-  }, [hasPresentationAccess]);
+  }, [hasPresentationAccess, isAdmin, hasSocorroProfile]);
 
   // Route-level guard: redirect gated users away from non-contracting routes
   useEffect(() => {
