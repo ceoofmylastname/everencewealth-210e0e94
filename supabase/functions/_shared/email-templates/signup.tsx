@@ -11,6 +11,7 @@ import {
   Html,
   Link,
   Preview,
+  Section,
   Text,
 } from 'npm:@react-email/components@0.0.22'
 
@@ -29,29 +30,27 @@ export const SignupEmail = ({
 }: SignupEmailProps) => (
   <Html lang="en" dir="ltr">
     <Head />
-    <Preview>Confirm your email for {siteName}</Preview>
+    <Preview>Confirm your email for Everence Wealth</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Heading style={h1}>Confirm your email</Heading>
+        <Section style={header}>
+          <Text style={brandName}>Everence Wealth</Text>
+        </Section>
+        <Heading style={h1}>Confirm Your Email</Heading>
         <Text style={text}>
-          Thanks for signing up for{' '}
-          <Link href={siteUrl} style={link}>
-            <strong>{siteName}</strong>
-          </Link>
-          !
+          Welcome to Everence Wealth! Please confirm your email address (<Link href={`mailto:${recipient}`} style={link}>{recipient}</Link>) by clicking the button below.
         </Text>
-        <Text style={text}>
-          Please confirm your email address (
-          <Link href={`mailto:${recipient}`} style={link}>
-            {recipient}
-          </Link>
-          ) by clicking the button below:
-        </Text>
-        <Button style={button} href={confirmationUrl}>
-          Verify Email
-        </Button>
-        <Text style={footer}>
+        <Section style={buttonContainer}>
+          <Button style={button} href={confirmationUrl}>
+            Verify Email
+          </Button>
+        </Section>
+        <Text style={textSmall}>
           If you didn't create an account, you can safely ignore this email.
+        </Text>
+        <Section style={divider} />
+        <Text style={footer}>
+          © 2026 Everence Wealth. All rights reserved.
         </Text>
       </Container>
     </Body>
@@ -60,27 +59,44 @@ export const SignupEmail = ({
 
 export default SignupEmail
 
-const main = { backgroundColor: '#ffffff', fontFamily: 'Arial, sans-serif' }
-const container = { padding: '20px 25px' }
+const main = { backgroundColor: '#ffffff', fontFamily: "'Sora', 'Lato', Arial, sans-serif" }
+const container = { padding: '40px 25px', maxWidth: '560px', margin: '0 auto' }
+const header = { textAlign: 'center' as const, marginBottom: '30px' }
+const brandName = {
+  fontSize: '24px',
+  fontWeight: 'bold' as const,
+  color: '#1A4D3E',
+  fontFamily: "'Playfair Display', Georgia, serif",
+  margin: '0',
+}
 const h1 = {
   fontSize: '22px',
   fontWeight: 'bold' as const,
-  color: '#000000',
-  margin: '0 0 20px',
+  color: '#1e293b',
+  margin: '0 0 16px',
 }
 const text = {
-  fontSize: '14px',
-  color: '#55575d',
-  lineHeight: '1.5',
-  margin: '0 0 25px',
+  fontSize: '15px',
+  color: '#4a5568',
+  lineHeight: '1.6',
+  margin: '0 0 24px',
 }
-const link = { color: 'inherit', textDecoration: 'underline' }
+const textSmall = {
+  fontSize: '13px',
+  color: '#718096',
+  lineHeight: '1.5',
+  margin: '24px 0 0',
+}
+const link = { color: '#1A4D3E', textDecoration: 'underline' }
+const buttonContainer = { textAlign: 'center' as const, margin: '0 0 8px' }
 const button = {
-  backgroundColor: '#000000',
+  backgroundColor: '#1A4D3E',
   color: '#ffffff',
-  fontSize: '14px',
-  borderRadius: '8px',
-  padding: '12px 20px',
+  fontSize: '15px',
+  fontWeight: '600' as const,
+  borderRadius: '12px',
+  padding: '14px 28px',
   textDecoration: 'none',
 }
-const footer = { fontSize: '12px', color: '#999999', margin: '30px 0 0' }
+const divider = { borderTop: '1px solid #e2e8f0', margin: '32px 0 16px' }
+const footer = { fontSize: '12px', color: '#a0aec0', margin: '0', textAlign: 'center' as const }
