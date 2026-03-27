@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import { usePortalAuth } from "@/hooks/usePortalAuth";
 import { useContractingGate } from "@/hooks/useContractingGate";
 import { cn } from "@/lib/utils";
