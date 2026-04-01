@@ -452,6 +452,7 @@ const App = () => (
                   <Route path="socorro-workshop" element={<SocorroWorkshopManage />} />
                   <Route path="presentation" element={<Presentation />} />
                   <Route path="underwriting" element={<UnderwritingAI />} />
+                  <Route path="response-cards" element={<ResponseCardSubmissions />} />
                 </Route>
               </Route>
               <Route path="/portal/client" element={<ClientRoute />}>
