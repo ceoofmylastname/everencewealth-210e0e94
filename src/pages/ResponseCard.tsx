@@ -552,7 +552,7 @@ export default function ResponseCard() {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={next}
-              className="flex items-center gap-2 px-8 py-3 rounded-full bg-[#C8A96E] text-white font-semibold text-sm hover:shadow-[0_0_30px_rgba(200,169,110,0.25)] transition-shadow"
+              className="flex items-center justify-center gap-2 px-8 sm:px-8 py-3.5 rounded-full bg-[#C8A96E] text-white font-semibold text-sm min-w-[140px] hover:shadow-[0_0_30px_rgba(200,169,110,0.25)] transition-shadow"
             >
               Continue <ArrowRight className="w-4 h-4" />
             </motion.button>
