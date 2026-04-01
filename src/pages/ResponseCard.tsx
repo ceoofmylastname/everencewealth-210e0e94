@@ -272,45 +272,46 @@ export default function ResponseCard() {
         return (
           <div onKeyDown={handleKeyDown}>
             {header("Who invited you to this presentation?", "Select the agent who invited you.")}
-            <details
-              className="w-full rounded-xl border border-gray-200 bg-gray-50 transition-all group"
-              ref={(el) => {
-                if (el) {
-                  el.addEventListener('toggle', () => {
-                    el.classList.toggle('ring-2', el.open);
-                    el.classList.toggle('ring-[#C8A96E]', el.open);
-                    el.classList.toggle('border-[#C8A96E]', el.open);
-                  });
-                }
-              }}
-            >
-              <summary className="flex items-center justify-between px-4 py-3.5 min-h-[48px] cursor-pointer list-none text-base select-none [&::-webkit-details-marker]:hidden">
+            <div className="relative w-full">
+              <button
+                type="button"
+                onClick={() => setAgentOpen((v) => !v)}
+                className={`w-full flex items-center justify-between px-4 py-3.5 min-h-[48px] rounded-xl border text-base transition-all bg-gray-50 ${
+                  agentOpen
+                    ? "ring-2 ring-[#C8A96E] border-[#C8A96E]"
+                    : "border-gray-200"
+                }`}
+              >
                 <span className={form.assigned_advisor_id ? "text-gray-700" : "text-gray-400"}>
                   {selectedAdvisor ? `${selectedAdvisor.first_name} ${selectedAdvisor.last_name}` : "Select your agent..."}
                 </span>
-                <svg className="w-5 h-5 text-gray-400 shrink-0 transition-transform group-open:rotate-180" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9" /></svg>
-              </summary>
-              <div className="max-h-72 overflow-y-auto border-t border-gray-200" style={{ WebkitOverflowScrolling: 'touch' }}>
-                {advisors.map((a) => (
-                  <button
-                    key={a.id}
-                    type="button"
-                    onClick={(e) => {
-                      set("assigned_advisor_id", a.id);
-                      const details = (e.currentTarget.closest('details') as HTMLDetailsElement);
-                      if (details) details.removeAttribute('open');
-                    }}
-                    className={`w-full text-left px-4 py-3 min-h-[48px] text-base transition-colors ${
-                      form.assigned_advisor_id === a.id
-                        ? "bg-[#C8A96E]/10 text-[#1A4D3E] font-semibold"
-                        : "text-gray-700 hover:bg-gray-100"
-                    }`}
-                  >
-                    {a.first_name} {a.last_name}
-                  </button>
-                ))}
-              </div>
-            </details>
+                <svg className={`w-5 h-5 text-gray-400 shrink-0 transition-transform ${agentOpen ? "rotate-180" : ""}`} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9" /></svg>
+              </button>
+              {agentOpen && (
+                <div
+                  className="absolute left-0 right-0 top-full mt-1 z-50 rounded-xl border border-gray-200 bg-white shadow-lg max-h-72 overflow-y-auto overscroll-contain"
+                  style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-y' }}
+                >
+                  {advisors.map((a) => (
+                    <button
+                      key={a.id}
+                      type="button"
+                      onClick={() => {
+                        set("assigned_advisor_id", a.id);
+                        setAgentOpen(false);
+                      }}
+                      className={`w-full text-left px-4 py-3 min-h-[48px] text-base transition-colors ${
+                        form.assigned_advisor_id === a.id
+                          ? "bg-[#C8A96E]/10 text-[#1A4D3E] font-semibold"
+                          : "text-gray-700 hover:bg-gray-100"
+                      }`}
+                    >
+                      {a.first_name} {a.last_name}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
             {selectedAdvisor && (
               <motion.div
                 initial={{ opacity: 0, y: 8 }}
