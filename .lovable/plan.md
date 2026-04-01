@@ -1,21 +1,27 @@
 
 
-## Fix: Add Visible Scrollbar Inside Agent Popup
+## Remove Dropdown — Show All Agents as Inline Scrollable List
 
-### Problem
-The agent bottom-sheet popup scrolls, but the scrollbar thumb is not visible inside it on mobile. The global webkit scrollbar styles are thin (6px) and may not render visibly on iOS Safari. The user needs a clear, always-visible scrollbar **inside** the popup to indicate more agents are available.
+### What changes
+Replace the dropdown button + bottom-sheet popup with a simple scrollable list of agent cards always visible on step 0. No toggle, no overlay — all agents are shown immediately and the user taps to select.
 
-### Fix
-In `src/pages/ResponseCard.tsx`, add a CSS class to the scrollable agent list container that forces a visible scrollbar:
+### Implementation
 
-1. In `src/index.css`, add a new utility class `.agent-picker-scroll` that:
-   - Sets `scrollbar-width: thin` (Firefox)
-   - Uses `::-webkit-scrollbar` with `width: 8px`, visible track (`bg-gray-100`), and visible thumb (`bg-[#1A4D3E]/30` with border-radius)
-   - Forces the scrollbar to always display via `overflow-y: scroll` (not auto)
+**`src/pages/ResponseCard.tsx`** (step 0, lines ~271-347):
 
-2. In `src/pages/ResponseCard.tsx`, add the `agent-picker-scroll` class to the scrollable div (line ~312) alongside the existing `overflow-y-scroll` class.
+1. Remove the `agentOpen` toggle button (lines 277-291)
+2. Remove the entire fixed-position bottom-sheet overlay (lines 293-347)
+3. Replace with an inline scrollable container:
+   - `max-h-[50vh] overflow-y-auto` with the `agent-picker-scroll` class for visible scrollbar
+   - `touch-action: pan-y`, `-webkit-overflow-scrolling: touch`
+   - Each agent rendered as a tappable card/button with `min-h-[48px]`
+   - Selected agent highlighted with gold accent (`bg-[#C8A96E]/10`, `border-[#C8A96E]`)
+   - Rounded corners, slight border, clean spacing
+4. Keep the selected-agent confirmation badge below the list (lines 348-364) unchanged
+
+### Result
+All agents are visible immediately — user scrolls the in-page list and taps to select. No popup, no overlay, no iOS scroll issues.
 
 ### Files
-- `src/index.css` — add `.agent-picker-scroll` scrollbar styles (~8 lines)
-- `src/pages/ResponseCard.tsx` — add class name to scroll container (1 word change)
+- `src/pages/ResponseCard.tsx` — rewrite step 0 agent section (~30 lines replaced)
 
