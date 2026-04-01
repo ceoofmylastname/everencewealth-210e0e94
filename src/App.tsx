@@ -484,6 +484,7 @@ const App = () => (
                   <Route path="assessment-leads" element={<CrmAssessmentLeads />} />
                   <Route path="socorro-workshop" element={<AdminSocorroWorkshop />} />
                   <Route path="presentation" element={<Presentation />} />
+                  <Route path="response-cards" element={<AdminResponseCards />} />
                   
                 </Route>
               </Route>
