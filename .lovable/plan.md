@@ -1,27 +1,62 @@
 
+Fix the mobile agent picker by changing its layout strategy, not the data query.
 
-## Fix Mobile Agent Dropdown — Replace `<details>` with State-Controlled Dropdown
+What I found
+- The advisor data load is simple and likely correct: `src/pages/ResponseCard.tsx` fetches all active advisors from `advisors` and stores them in `advisors`.
+- The current picker is rendered as an absolutely positioned dropdown inside the step content:
+  - `src/pages/ResponseCard.tsx:291-314`
+- The page shell itself uses `overflow-hidden`:
+  - success screen: `src/pages/ResponseCard.tsx:478`
+  - main page: `src/pages/ResponseCard.tsx:518`
+- The step content is also inside a Framer Motion animated container:
+  - `src/pages/ResponseCard.tsx:554-565`
 
-### Problem
-The `<details>/<summary>` HTML pattern has known scroll issues on iOS Safari — the inner scrollable container clips or fails to render all items. The data is there (all agents load), but the scroll container doesn't work reliably on real mobile devices.
+Why live mobile is failing
+- This is most likely not “missing names in the database”.
+- On iPhone/Safari, a scrollable absolute dropdown inside ancestors with `overflow-hidden` and animated/transformed containers is a common clipping/touch-scroll failure.
+- That matches the screenshot and the fact that preview shows more names than live phone.
 
-### Solution
-Replace the `<details>` element with a simple React state-controlled dropdown (`useState` boolean toggle). This gives full control over rendering and avoids browser-specific `<details>` quirks.
+What to change
+1. Keep the existing advisor query exactly as-is.
+2. Replace the current absolute dropdown panel with an in-flow mobile-safe list pattern:
+   - keep the trigger button
+   - when opened, render the advisor list below it in normal document flow instead of `absolute`
+   - give the list its own bounded height with `max-h-*` and `overflow-y-auto`
+3. Close the dropdown after selection, same as now.
+4. Keep the selected-agent badge and validation exactly as they are.
 
-### File modified
-`src/pages/ResponseCard.tsx` — Step 0 (case 0, lines 270-313)
+Recommended implementation
+- In `src/pages/ResponseCard.tsx`, update step 0:
+  - remove `absolute left-0 right-0 top-full z-50` from the opened menu
+  - render the opened list as a regular block with margin-top
+  - add a visible border/dividers between names for easier mobile scanning
+  - preserve `WebkitOverflowScrolling: "touch"`
+- Example structure:
+```text
+Trigger button
+Opened list container (in flow)
+  advisor button
+  advisor button
+  advisor button
+```
 
-### Changes
-1. Add `const [agentOpen, setAgentOpen] = useState(false)` to the component state
-2. Replace `<details>/<summary>` with:
-   - A `<button>` trigger that toggles `agentOpen`
-   - A conditionally rendered `<div>` (when `agentOpen` is true) positioned with `absolute z-50`, styled with `max-h-72 overflow-y-auto overscroll-contain` and `touch-action: pan-y` for reliable iOS scrolling
-   - Each advisor as a `<button>` that sets the value and closes the dropdown
-3. Keep the selected-agent confirmation badge and validation unchanged
+Why this should solve it
+- An in-flow scroll container is much more reliable on iOS than an absolutely positioned menu nested inside transformed/overflow-hidden parents.
+- It avoids clipping from the page wrapper and animation container.
+- It will still support 10, 50, or 100+ names.
 
-### Why this fixes it
-- `overscroll-contain` prevents scroll chaining on mobile
-- `touch-action: pan-y` explicitly allows vertical touch scrolling
-- No reliance on browser `<details>` implementation quirks
-- Absolute positioning with `z-50` ensures the list overlays content cleanly
+Optional hardening
+- If needed, also close the list when advancing steps or when clicking Back.
+- If the animated step container still interferes, render step 0 without horizontal motion animation while the dropdown is open.
 
+Files to update
+- `src/pages/ResponseCard.tsx`
+
+Technical details
+- Root issue: mobile Safari clipping/touch-scroll behavior caused by the combination of:
+  - `overflow-hidden` page wrappers
+  - absolutely positioned dropdown
+  - Framer Motion animated step wrapper
+- No database changes needed.
+- No advisor sync logic changes needed.
+- The live mobile bug is a UI container/scroll bug, not a data source bug.
