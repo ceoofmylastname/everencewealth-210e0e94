@@ -1,62 +1,49 @@
 
-Fix the mobile agent picker by changing its layout strategy, not the data query.
+Update the mobile agent picker again, but this time stop relying on a visible iPhone scrollbar as the UX.
 
 What I found
-- The advisor data load is simple and likely correct: `src/pages/ResponseCard.tsx` fetches all active advisors from `advisors` and stores them in `advisors`.
-- The current picker is rendered as an absolutely positioned dropdown inside the step content:
-  - `src/pages/ResponseCard.tsx:291-314`
-- The page shell itself uses `overflow-hidden`:
-  - success screen: `src/pages/ResponseCard.tsx:478`
-  - main page: `src/pages/ResponseCard.tsx:518`
-- The step content is also inside a Framer Motion animated container:
-  - `src/pages/ResponseCard.tsx:554-565`
+- `src/pages/ResponseCard.tsx` already renders the agent list in-flow with `max-h-72 overflow-y-auto`.
+- The page still wraps the form in `overflow-hidden`, vertical centering, and a Framer Motion step container.
+- On iPhone/live, Safari often hides scrollbar thumbs entirely, so “no scrollbar” is usually a symptom, not the root issue.
 
-Why live mobile is failing
-- This is most likely not “missing names in the database”.
-- On iPhone/Safari, a scrollable absolute dropdown inside ancestors with `overflow-hidden` and animated/transformed containers is a common clipping/touch-scroll failure.
-- That matches the screenshot and the fact that preview shows more names than live phone.
+Plan
+1. Keep the advisor query exactly as-is
+   - Continue pulling all active advisors from `advisors`.
+   - No database or sync changes.
 
-What to change
-1. Keep the existing advisor query exactly as-is.
-2. Replace the current absolute dropdown panel with an in-flow mobile-safe list pattern:
-   - keep the trigger button
-   - when opened, render the advisor list below it in normal document flow instead of `absolute`
-   - give the list its own bounded height with `max-h-*` and `overflow-y-auto`
-3. Close the dropdown after selection, same as now.
-4. Keep the selected-agent badge and validation exactly as they are.
+2. Replace the mobile dropdown with a dedicated mobile-safe picker
+   - On small screens, open the agent list in a bottom-sheet/full-panel picker instead of an inline dropdown.
+   - Use a dedicated scroll container with:
+     - `overflow-y-scroll`
+     - `overscroll-contain`
+     - `WebkitOverflowScrolling: "touch"`
+     - a larger height like `max-h-[60vh]` or similar
+   - This avoids clipping from the page shell and step animation.
 
-Recommended implementation
-- In `src/pages/ResponseCard.tsx`, update step 0:
-  - remove `absolute left-0 right-0 top-full z-50` from the opened menu
-  - render the opened list as a regular block with margin-top
-  - add a visible border/dividers between names for easier mobile scanning
-  - preserve `WebkitOverflowScrolling: "touch"`
-- Example structure:
-```text
-Trigger button
-Opened list container (in flow)
-  advisor button
-  advisor button
-  advisor button
-```
+3. Keep desktop as a normal dropdown/list
+   - Desktop can stay inline since the issue is specifically live mobile Safari.
+   - Same data source and same selected-agent behavior.
 
-Why this should solve it
-- An in-flow scroll container is much more reliable on iOS than an absolutely positioned menu nested inside transformed/overflow-hidden parents.
-- It avoids clipping from the page wrapper and animation container.
-- It will still support 10, 50, or 100+ names.
+4. Add a clear mobile scrolling cue
+   - Since iPhone may not show a persistent scrollbar, add a visible cue at the top of the mobile picker:
+     - drag handle
+     - “Scroll to see more agents”
+     - subtle top/bottom fade
+   - This makes the list understandable even when the OS hides the scrollbar thumb.
 
-Optional hardening
-- If needed, also close the list when advancing steps or when clicking Back.
-- If the animated step container still interferes, render step 0 without horizontal motion animation while the dropdown is open.
+5. Prevent parent layout from interfering while the picker is open
+   - Disable step-slide animation for step 0 when the mobile picker is open.
+   - Close the picker on selection, Back, and Continue.
+   - If needed, relax `overflow-hidden` on the response card shell during the mobile picker state.
 
 Files to update
 - `src/pages/ResponseCard.tsx`
+- Possibly `src/index.css` only if a small reusable mobile scroll cue / scrollbar utility is needed
 
 Technical details
-- Root issue: mobile Safari clipping/touch-scroll behavior caused by the combination of:
-  - `overflow-hidden` page wrappers
-  - absolutely positioned dropdown
-  - Framer Motion animated step wrapper
-- No database changes needed.
-- No advisor sync logic changes needed.
-- The live mobile bug is a UI container/scroll bug, not a data source bug.
+- Root issue is still mobile Safari container behavior, not missing advisor records.
+- A permanently visible scrollbar cannot be guaranteed on iPhone Safari, so the fix should focus on:
+  - reliable scrolling
+  - dedicated mobile layout
+  - explicit visual cues
+- Result: all agents should be reachable whether there are 10, 50, or 100+ names.
