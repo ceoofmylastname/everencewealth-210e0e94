@@ -69,6 +69,7 @@ export default function ResponseCard() {
   const [step, setStep] = useState(0);
   const [direction, setDirection] = useState(1);
   const [advisors, setAdvisors] = useState<{ id: string; first_name: string; last_name: string }[]>([]);
+  const [agentOpen, setAgentOpen] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
