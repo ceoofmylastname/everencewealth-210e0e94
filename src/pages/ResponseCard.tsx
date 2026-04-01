@@ -270,28 +270,68 @@ export default function ResponseCard() {
     switch (step) {
       case 0: {
         const selectedAdvisor = advisors.find((a) => a.id === form.assigned_advisor_id);
+        const filteredAdvisors = advisors.filter((a) => {
+          if (!agentSearch.trim()) return true;
+          const full = `${a.first_name} ${a.last_name}`.toLowerCase();
+          return full.includes(agentSearch.toLowerCase().trim());
+        });
         return (
           <div onKeyDown={handleKeyDown}>
             {header("Who invited you to this presentation?", "Select the agent who invited you.")}
+
+            {/* Search + count */}
+            <div className="flex items-center gap-2 mb-3">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                <input
+                  type="text"
+                  value={agentSearch}
+                  onChange={(e) => setAgentSearch(e.target.value)}
+                  placeholder="Search by name…"
+                  className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-sm placeholder:text-gray-400 focus:outline-none focus:border-[#C8A96E]/50 focus:ring-1 focus:ring-[#C8A96E]/30 min-h-[44px]"
+                />
+              </div>
+              <span className="text-xs text-gray-400 whitespace-nowrap">{filteredAdvisors.length} agents</span>
+            </div>
+
+            {/* Agent list */}
             <div
               className="w-full max-h-[50vh] overflow-y-auto overscroll-contain agent-picker-scroll rounded-xl border border-gray-200"
               style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-y' }}
             >
-              {advisors.map((a) => (
-                <button
-                  key={a.id}
-                  type="button"
-                  onClick={() => set("assigned_advisor_id", a.id)}
-                  className={`block w-full text-left px-4 py-3.5 min-h-[48px] text-base border-b border-gray-100 last:border-b-0 transition-colors ${
-                    form.assigned_advisor_id === a.id
-                      ? "bg-[#C8A96E]/10 text-[#1A4D3E] font-semibold border-l-4 border-l-[#C8A96E]"
-                      : "text-gray-700 active:bg-gray-50"
-                  }`}
-                >
-                  {a.first_name} {a.last_name}
-                </button>
-              ))}
+              {filteredAdvisors.length === 0 && (
+                <p className="text-center text-gray-400 text-sm py-6">No agents match your search</p>
+              )}
+              {filteredAdvisors.map((a, i) => {
+                const isSelected = form.assigned_advisor_id === a.id;
+                return (
+                  <motion.button
+                    key={a.id}
+                    type="button"
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: Math.min(i * 0.03, 0.6) }}
+                    onClick={() => set("assigned_advisor_id", a.id)}
+                    className={`flex items-center gap-3 w-full text-left px-4 py-3 min-h-[52px] text-base border-b border-gray-100 last:border-b-0 transition-all ${
+                      isSelected
+                        ? "bg-[#C8A96E]/10 border-l-4 border-l-[#C8A96E]"
+                        : "hover:bg-gray-50 active:bg-gray-100"
+                    }`}
+                  >
+                    <div className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
+                      isSelected ? "bg-[#C8A96E] text-white" : "bg-[#1A4D3E]/10 text-[#1A4D3E]"
+                    }`}>
+                      {a.first_name[0]}{a.last_name[0]}
+                    </div>
+                    <span className={isSelected ? "font-semibold text-[#1A4D3E]" : "text-gray-700"}>
+                      {a.first_name} {a.last_name}
+                    </span>
+                    {isSelected && <Check className="w-4 h-4 text-[#C8A96E] ml-auto" />}
+                  </motion.button>
+                );
+              })}
             </div>
+
             {selectedAdvisor && (
               <motion.div
                 initial={{ opacity: 0, y: 8 }}
