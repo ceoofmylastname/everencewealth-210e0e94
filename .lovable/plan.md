@@ -1,16 +1,34 @@
 
 
-## Update Name: "Admin User" → "John Melvin"
+## Add a Bold Headline Above the Agent Selector on Step 1
 
-### What needs to change
-Your name "Admin User" exists in **two database tables** that both need updating:
+### What changes
+Add a prominent, attention-grabbing headline at the top of step 0 (case 0), rendered **before** the existing "YOUR AGENT" header block. This creates a visual hook that draws users in before they see the agent selector.
 
-1. **portal_users** — `id: e82dd92c...` — `first_name: Admin, last_name: User` → `first_name: John, last_name: Melvin`
-2. **advisors** — `id: 2202819c...` — `first_name: Admin, last_name: User` → `first_name: John, last_name: Melvin`
+### Design
+- A large, bold headline in the brand dark green (`text-[#1A4D3E]`) — something like:
+  > **"Ready to Take Control of Your Financial Future?"**
+- Rendered at `text-2xl sm:text-4xl font-extrabold` with generous bottom margin
+- Optional subtle gold accent underline or highlight on a key word
+- Sits above the existing icon + "YOUR AGENT" label + "Who invited you…" heading, giving the page a clear visual hierarchy:
+  1. Big emotional headline (new)
+  2. Step label + question + dropdown (existing)
 
-### How
-Two simple UPDATE statements using the database insert tool. No code changes needed — the UI already reads these fields dynamically.
+### Implementation
+**`src/pages/ResponseCard.tsx`** — inside `case 0:` return block (~line 329), add a headline `div` before `{header(...)}`:
 
-### Result
-Your name will display as "John Melvin" everywhere: the sidebar, settings page, response card submissions, and anywhere else your profile appears.
+```tsx
+<div className="text-center mb-10">
+  <h1 className="text-2xl sm:text-4xl font-extrabold text-[#1A4D3E] leading-tight">
+    Ready to Take Control of<br />
+    <span className="text-[#C8A96E]">Your Financial Future?</span>
+  </h1>
+  <p className="text-gray-400 text-sm mt-3">Let's start by connecting you with your agent.</p>
+</div>
+```
+
+The gold-colored second line creates a luxury feel consistent with the existing design system.
+
+### File
+- `src/pages/ResponseCard.tsx` — ~6 lines added inside case 0
 
