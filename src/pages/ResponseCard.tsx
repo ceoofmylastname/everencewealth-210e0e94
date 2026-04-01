@@ -290,8 +290,8 @@ export default function ResponseCard() {
               </button>
               {agentOpen && (
                 <div
-                  className="absolute left-0 right-0 top-full mt-1 z-50 rounded-xl border border-gray-200 bg-white shadow-lg max-h-72 overflow-y-auto overscroll-contain"
-                  style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-y' }}
+                  className="mt-2 rounded-xl border border-gray-200 bg-white shadow-lg max-h-72 overflow-y-auto"
+                  style={{ WebkitOverflowScrolling: 'touch' }}
                 >
                   {advisors.map((a) => (
                     <button
@@ -301,7 +301,7 @@ export default function ResponseCard() {
                         set("assigned_advisor_id", a.id);
                         setAgentOpen(false);
                       }}
-                      className={`w-full text-left px-4 py-3 min-h-[48px] text-base transition-colors ${
+                      className={`block w-full text-left px-4 py-3 min-h-[48px] text-base border-b border-gray-100 last:border-b-0 transition-colors ${
                         form.assigned_advisor_id === a.id
                           ? "bg-[#C8A96E]/10 text-[#1A4D3E] font-semibold"
                           : "text-gray-700 hover:bg-gray-100"
