@@ -6,7 +6,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import {
   Users, FileText, Send, ArrowUpRight, TrendingUp,
   Calendar, Shield, Calculator, GraduationCap, Megaphone,
-  Wrench, ClipboardList,
+  Wrench, ClipboardList, ClipboardCheck,
 } from "lucide-react";
 
 const BRAND_GREEN = "#1A4D3E";
