@@ -1,36 +1,13 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { z } from "zod";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { CheckCircle2 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import confetti from "canvas-confetti";
+import { ArrowLeft, ArrowRight, Check, User, Mail, Phone, MapPin, DollarSign, MessageSquare, Heart, Send } from "lucide-react";
 
+/* ───────── constants ───────── */
 const phoneRegex = /^\(\d{3}\)\s?\d{3}-\d{4}$/;
-
-const schema = z.object({
-  assigned_advisor_id: z.string().min(1, "Please select an agent"),
-  first_name: z.string().trim().min(1, "First name is required").max(100),
-  last_name: z.string().trim().min(1, "Last name is required").max(100),
-  marital_status: z.string().min(1, "Please select your marital status"),
-  email: z.string().trim().email("Invalid email address").max(255),
-  phone: z.string().regex(phoneRegex, "Phone must be (000) 000-0000"),
-  street_address: z.string().trim().min(1, "Street address is required").max(200),
-  address_line_2: z.string().max(200).optional().or(z.literal("")),
-  city: z.string().trim().min(1, "City is required").max(100),
-  state: z.string().trim().min(1, "State is required").max(50),
-  zip_code: z.string().trim().min(1, "Zip code is required").max(20),
-  income_range: z.string().min(1, "Please select your income range"),
-  wants_free_consultation: z.string().min(1, "Please select an option"),
-  meeting_topics: z.array(z.string()).min(1, "Select at least one topic"),
-  availability: z.string().max(1000).optional().or(z.literal("")),
-  comments: z.string().max(2000).optional().or(z.literal("")),
-});
-
-type FormData = z.infer<typeof schema>;
-
-const BRAND_GREEN = "#1A4D3E";
-const GOLD = "#C8A96E";
-const SLATE = "#4A5565";
+const TOTAL_STEPS = 8;
 
 const maritalOptions = ["Single", "Married", "Separated", "Divorced", "Widowed"];
 const incomeOptions = ["Less than $30k", "$30k – $50k", "$50k – $100k", "$100k+"];
@@ -40,6 +17,46 @@ const topicOptions = [
   "I want a second opinion on my current retirement plan",
 ];
 
+const stepIcons = [User, User, Heart, Mail, MapPin, DollarSign, MessageSquare, Send];
+const stepLabels = [
+  "Your Agent",
+  "Your Name",
+  "About You",
+  "Contact Info",
+  "Your Address",
+  "Financial Profile",
+  "Meeting Interests",
+  "Final Step",
+];
+
+/* ───────── per-step schemas ───────── */
+const stepSchemas = [
+  z.object({ assigned_advisor_id: z.string().min(1, "Please select an agent") }),
+  z.object({
+    first_name: z.string().trim().min(1, "First name is required"),
+    last_name: z.string().trim().min(1, "Last name is required"),
+  }),
+  z.object({ marital_status: z.string().min(1, "Please select your marital status") }),
+  z.object({
+    email: z.string().trim().email("Invalid email address"),
+    phone: z.string().regex(phoneRegex, "Phone must be (000) 000-0000"),
+  }),
+  z.object({
+    street_address: z.string().trim().min(1, "Street address is required"),
+    city: z.string().trim().min(1, "City is required"),
+    state: z.string().trim().min(1, "State is required"),
+    zip_code: z.string().trim().min(1, "Zip code is required"),
+  }),
+  z.object({
+    income_range: z.string().min(1, "Please select your income range"),
+    wants_free_consultation: z.string().min(1, "Please select an option"),
+  }),
+  z.object({
+    meeting_topics: z.array(z.string()).min(1, "Select at least one topic"),
+  }),
+  z.object({}), // final step — optional fields, always valid
+];
+
 function formatPhone(value: string) {
   const digits = value.replace(/\D/g, "").slice(0, 10);
   if (digits.length <= 3) return digits.length ? `(${digits}` : "";
@@ -47,34 +64,33 @@ function formatPhone(value: string) {
   return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
 }
 
+/* ───────── component ───────── */
 export default function ResponseCard() {
+  const [step, setStep] = useState(0);
+  const [direction, setDirection] = useState(1);
   const [advisors, setAdvisors] = useState<{ id: string; first_name: string; last_name: string }[]>([]);
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<FormData>({
-    resolver: zodResolver(schema),
-    defaultValues: {
-      assigned_advisor_id: "",
-      first_name: "",
-      last_name: "",
-      marital_status: "",
-      email: "",
-      phone: "",
-      street_address: "",
-      address_line_2: "",
-      city: "",
-      state: "",
-      zip_code: "",
-      income_range: "",
-      wants_free_consultation: "",
-      meeting_topics: [],
-      availability: "",
-      comments: "",
-    },
+  const [form, setForm] = useState({
+    assigned_advisor_id: "",
+    first_name: "",
+    last_name: "",
+    marital_status: "",
+    email: "",
+    phone: "",
+    street_address: "",
+    address_line_2: "",
+    city: "",
+    state: "",
+    zip_code: "",
+    income_range: "",
+    wants_free_consultation: "",
+    meeting_topics: [] as string[],
+    availability: "",
+    comments: "",
   });
-
-  const meetingTopics = watch("meeting_topics");
 
   useEffect(() => {
     supabase
@@ -82,34 +98,69 @@ export default function ResponseCard() {
       .select("id, first_name, last_name")
       .eq("is_active", true)
       .order("first_name")
-      .then(({ data }) => {
-        if (data) setAdvisors(data);
-      });
+      .then(({ data }) => { if (data) setAdvisors(data); });
   }, []);
 
-  const onSubmit = async (data: FormData) => {
+  const set = (key: string, val: any) => setForm((p) => ({ ...p, [key]: val }));
+
+  const selectedAdvisor = advisors.find((a) => a.id === form.assigned_advisor_id);
+
+  const validateStep = useCallback(() => {
+    const schema = stepSchemas[step];
+    const result = schema.safeParse(form);
+    if (!result.success) {
+      const errs: Record<string, string> = {};
+      result.error.issues.forEach((i) => { errs[String(i.path[0])] = i.message; });
+      setErrors(errs);
+      return false;
+    }
+    setErrors({});
+    return true;
+  }, [step, form]);
+
+  const next = () => {
+    if (!validateStep()) return;
+    setDirection(1);
+    setStep((s) => Math.min(s + 1, TOTAL_STEPS - 1));
+  };
+
+  const back = () => {
+    setDirection(-1);
+    setErrors({});
+    setStep((s) => Math.max(s - 1, 0));
+  };
+
+  const fireConfetti = () => {
+    const colors = ["#1A4D3E", "#C8A96E", "#FFFFFF", "#F5E6C8", "#EDDB77"];
+    confetti({ particleCount: 150, spread: 100, colors, origin: { y: 0.6 }, shapes: ["circle", "square"] });
+    setTimeout(() => confetti({ particleCount: 80, spread: 120, colors, origin: { y: 0.5, x: 0.3 } }), 300);
+    setTimeout(() => confetti({ particleCount: 80, spread: 120, colors, origin: { y: 0.5, x: 0.7 } }), 500);
+  };
+
+  const handleSubmit = async () => {
     setSubmitting(true);
     try {
       const { error } = await supabase.from("response_card_submissions" as any).insert({
-        assigned_advisor_id: data.assigned_advisor_id,
-        first_name: data.first_name,
-        last_name: data.last_name,
-        marital_status: data.marital_status,
-        email: data.email,
-        phone: data.phone,
-        street_address: data.street_address || null,
-        address_line_2: data.address_line_2 || null,
-        city: data.city || null,
-        state: data.state || null,
-        zip_code: data.zip_code || null,
-        income_range: data.income_range,
-        wants_free_consultation: data.wants_free_consultation === "yes",
-        meeting_topics: data.meeting_topics,
-        availability: data.availability || null,
-        comments: data.comments || null,
+        assigned_advisor_id: form.assigned_advisor_id,
+        first_name: form.first_name,
+        last_name: form.last_name,
+        marital_status: form.marital_status,
+        email: form.email,
+        phone: form.phone,
+        street_address: form.street_address || null,
+        address_line_2: form.address_line_2 || null,
+        city: form.city || null,
+        state: form.state || null,
+        zip_code: form.zip_code || null,
+        income_range: form.income_range,
+        wants_free_consultation: form.wants_free_consultation === "yes",
+        meeting_topics: form.meeting_topics,
+        availability: form.availability || null,
+        comments: form.comments || null,
       });
       if (error) throw error;
       setSubmitted(true);
+      setTimeout(fireConfetti, 200);
     } catch (err) {
       console.error("Submission error:", err);
     } finally {
@@ -118,225 +169,397 @@ export default function ResponseCard() {
   };
 
   const toggleTopic = (topic: string) => {
-    const current = meetingTopics || [];
-    setValue(
-      "meeting_topics",
-      current.includes(topic) ? current.filter((t) => t !== topic) : [...current, topic],
-      { shouldValidate: true }
-    );
+    const current = form.meeting_topics;
+    set("meeting_topics", current.includes(topic) ? current.filter((t) => t !== topic) : [...current, topic]);
   };
 
-  const inputClass = "w-full px-4 py-3 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#1A4D3E] focus:border-transparent transition-colors";
-  const labelClass = "block text-sm font-semibold mb-1.5";
-  const errorClass = "text-red-600 text-xs mt-1";
-  const requiredStar = <span className="text-red-500 ml-0.5">*</span>;
+  const progress = ((step + 1) / TOTAL_STEPS) * 100;
 
+  const variants = {
+    enter: (d: number) => ({ x: d > 0 ? 80 : -80, opacity: 0 }),
+    center: { x: 0, opacity: 1 },
+    exit: (d: number) => ({ x: d > 0 ? -80 : 80, opacity: 0 }),
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && step < TOTAL_STEPS - 1) { e.preventDefault(); next(); }
+  };
+
+  /* ─── pill select helper ─── */
+  const PillSelect = ({ options, value, onChange, error }: { options: string[]; value: string; onChange: (v: string) => void; error?: string }) => (
+    <div>
+      <div className="flex flex-wrap gap-3">
+        {options.map((opt) => (
+          <motion.button
+            key={opt}
+            type="button"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.97 }}
+            onClick={() => onChange(opt)}
+            className={`px-5 py-2.5 rounded-full text-sm font-medium border transition-all duration-200 ${
+              value === opt
+                ? "bg-[#C8A96E] text-[#080f0b] border-[#C8A96E] shadow-[0_0_20px_rgba(200,169,110,0.3)]"
+                : "bg-white/5 text-white/70 border-white/10 hover:border-[#C8A96E]/40 hover:text-white"
+            }`}
+          >
+            {opt}
+          </motion.button>
+        ))}
+      </div>
+      {error && <p className="text-red-400 text-xs mt-2">{error}</p>}
+    </div>
+  );
+
+  /* ─── card select (for income / topics) ─── */
+  const CardSelect = ({ options, selected, onToggle, multi = false, error }: { options: string[]; selected: string | string[]; onToggle: (v: string) => void; multi?: boolean; error?: string }) => (
+    <div>
+      <div className="grid gap-3">
+        {options.map((opt) => {
+          const isSelected = multi ? (selected as string[]).includes(opt) : selected === opt;
+          return (
+            <motion.button
+              key={opt}
+              type="button"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => onToggle(opt)}
+              className={`text-left px-5 py-4 rounded-2xl border text-sm transition-all duration-200 ${
+                isSelected
+                  ? "bg-[#C8A96E]/15 text-white border-[#C8A96E] shadow-[0_0_25px_rgba(200,169,110,0.15)]"
+                  : "bg-white/5 text-white/60 border-white/10 hover:border-white/20 hover:text-white/80"
+              }`}
+            >
+              <span className="flex items-center gap-3">
+                <span className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${
+                  isSelected ? "border-[#C8A96E] bg-[#C8A96E]" : "border-white/20"
+                }`}>
+                  {isSelected && <Check className="w-3 h-3 text-[#080f0b]" />}
+                </span>
+                {opt}
+              </span>
+            </motion.button>
+          );
+        })}
+      </div>
+      {error && <p className="text-red-400 text-xs mt-2">{error}</p>}
+    </div>
+  );
+
+  /* ─── input helper ─── */
+  const inputCls = "w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm placeholder:text-white/30 focus:outline-none focus:border-[#C8A96E]/50 focus:ring-1 focus:ring-[#C8A96E]/30 transition-all";
+
+  /* ─── step content ─── */
+  const renderStep = () => {
+    const StepIcon = stepIcons[step];
+    const label = stepLabels[step];
+
+    const header = (title: string, subtitle?: string) => (
+      <div className="mb-8">
+        <div className="flex items-center gap-3 mb-3">
+          <div className="w-10 h-10 rounded-xl bg-[#C8A96E]/15 flex items-center justify-center">
+            <StepIcon className="w-5 h-5 text-[#C8A96E]" />
+          </div>
+          <span className="text-xs text-white/30 uppercase tracking-widest font-medium">{label}</span>
+        </div>
+        <h2 className="text-2xl sm:text-3xl font-bold text-white">{title}</h2>
+        {subtitle && <p className="text-white/40 text-sm mt-2">{subtitle}</p>}
+      </div>
+    );
+
+    switch (step) {
+      case 0:
+        return (
+          <div onKeyDown={handleKeyDown}>
+            {header("Who invited you to this presentation?", "Select the agent who invited you.")}
+            <div className="grid gap-3 max-h-[45vh] overflow-y-auto pr-1">
+              {advisors.map((a) => (
+                <motion.button
+                  key={a.id}
+                  type="button"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={() => set("assigned_advisor_id", a.id)}
+                  className={`flex items-center gap-4 px-5 py-4 rounded-2xl border text-left transition-all duration-200 ${
+                    form.assigned_advisor_id === a.id
+                      ? "bg-[#C8A96E]/15 border-[#C8A96E] shadow-[0_0_25px_rgba(200,169,110,0.15)]"
+                      : "bg-white/5 border-white/10 hover:border-white/20"
+                  }`}
+                >
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold ${
+                    form.assigned_advisor_id === a.id ? "bg-[#C8A96E] text-[#080f0b]" : "bg-white/10 text-white/50"
+                  }`}>
+                    {a.first_name[0]}{a.last_name[0]}
+                  </div>
+                  <span className={`text-sm font-medium ${form.assigned_advisor_id === a.id ? "text-white" : "text-white/60"}`}>
+                    {a.first_name} {a.last_name}
+                  </span>
+                  {form.assigned_advisor_id === a.id && <Check className="w-5 h-5 text-[#C8A96E] ml-auto" />}
+                </motion.button>
+              ))}
+            </div>
+            {errors.assigned_advisor_id && <p className="text-red-400 text-xs mt-2">{errors.assigned_advisor_id}</p>}
+          </div>
+        );
+
+      case 1:
+        return (
+          <div onKeyDown={handleKeyDown}>
+            {header("What's your name?")}
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div>
+                <label className="text-xs text-white/40 mb-1.5 block">First Name</label>
+                <input value={form.first_name} onChange={(e) => set("first_name", e.target.value)} className={inputCls} placeholder="John" />
+                {errors.first_name && <p className="text-red-400 text-xs mt-1">{errors.first_name}</p>}
+              </div>
+              <div>
+                <label className="text-xs text-white/40 mb-1.5 block">Last Name</label>
+                <input value={form.last_name} onChange={(e) => set("last_name", e.target.value)} className={inputCls} placeholder="Doe" />
+                {errors.last_name && <p className="text-red-400 text-xs mt-1">{errors.last_name}</p>}
+              </div>
+            </div>
+          </div>
+        );
+
+      case 2:
+        return (
+          <div>
+            {header("What's your marital status?")}
+            <PillSelect options={maritalOptions} value={form.marital_status} onChange={(v) => set("marital_status", v)} error={errors.marital_status} />
+          </div>
+        );
+
+      case 3:
+        return (
+          <div onKeyDown={handleKeyDown}>
+            {header("How can we reach you?", "We'll only use this to schedule your consultation.")}
+            <div className="space-y-4">
+              <div>
+                <label className="text-xs text-white/40 mb-1.5 block">Email Address</label>
+                <input type="email" value={form.email} onChange={(e) => set("email", e.target.value)} className={inputCls} placeholder="john@example.com" />
+                {errors.email && <p className="text-red-400 text-xs mt-1">{errors.email}</p>}
+              </div>
+              <div>
+                <label className="text-xs text-white/40 mb-1.5 block">Phone Number</label>
+                <input value={form.phone} onChange={(e) => set("phone", formatPhone(e.target.value))} className={inputCls} placeholder="(000) 000-0000" />
+                {errors.phone && <p className="text-red-400 text-xs mt-1">{errors.phone}</p>}
+              </div>
+            </div>
+          </div>
+        );
+
+      case 4:
+        return (
+          <div onKeyDown={handleKeyDown}>
+            {header("What's your address?")}
+            <div className="space-y-4">
+              <div>
+                <input value={form.street_address} onChange={(e) => set("street_address", e.target.value)} className={inputCls} placeholder="Street Address" />
+                {errors.street_address && <p className="text-red-400 text-xs mt-1">{errors.street_address}</p>}
+              </div>
+              <input value={form.address_line_2} onChange={(e) => set("address_line_2", e.target.value)} className={inputCls} placeholder="Apt, Suite, etc. (optional)" />
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                <div>
+                  <input value={form.city} onChange={(e) => set("city", e.target.value)} className={inputCls} placeholder="City" />
+                  {errors.city && <p className="text-red-400 text-xs mt-1">{errors.city}</p>}
+                </div>
+                <div>
+                  <input value={form.state} onChange={(e) => set("state", e.target.value)} className={inputCls} placeholder="State" />
+                  {errors.state && <p className="text-red-400 text-xs mt-1">{errors.state}</p>}
+                </div>
+                <div>
+                  <input value={form.zip_code} onChange={(e) => set("zip_code", e.target.value)} className={inputCls} placeholder="Zip" />
+                  {errors.zip_code && <p className="text-red-400 text-xs mt-1">{errors.zip_code}</p>}
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+
+      case 5:
+        return (
+          <div>
+            {header("Tell us about your financial profile")}
+            <div className="space-y-6">
+              <div>
+                <label className="text-xs text-white/40 mb-3 block uppercase tracking-wider">Household Income</label>
+                <CardSelect options={incomeOptions} selected={form.income_range} onToggle={(v) => set("income_range", v)} error={errors.income_range} />
+              </div>
+              <div>
+                <label className="text-xs text-white/40 mb-3 block uppercase tracking-wider">
+                  Free Consultation & Financial Analysis?
+                </label>
+                <div className="flex gap-3">
+                  {["yes", "no"].map((v) => (
+                    <motion.button
+                      key={v}
+                      type="button"
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.97 }}
+                      onClick={() => set("wants_free_consultation", v)}
+                      className={`flex-1 py-3 rounded-xl text-sm font-medium border transition-all ${
+                        form.wants_free_consultation === v
+                          ? "bg-[#C8A96E]/15 text-white border-[#C8A96E]"
+                          : "bg-white/5 text-white/50 border-white/10 hover:border-white/20"
+                      }`}
+                    >
+                      {v === "yes" ? "Yes, I'm interested" : "No, thanks"}
+                    </motion.button>
+                  ))}
+                </div>
+                {errors.wants_free_consultation && <p className="text-red-400 text-xs mt-2">{errors.wants_free_consultation}</p>}
+              </div>
+            </div>
+          </div>
+        );
+
+      case 6:
+        return (
+          <div>
+            {header("What topics interest you?", "Select all that apply.")}
+            <div className="space-y-6">
+              <CardSelect options={topicOptions} selected={form.meeting_topics} onToggle={toggleTopic} multi error={errors.meeting_topics} />
+              <div>
+                <label className="text-xs text-white/40 mb-1.5 block">Best Day & Time to Meet (optional)</label>
+                <textarea value={form.availability} onChange={(e) => set("availability", e.target.value)} rows={3} className={inputCls} placeholder="Please provide 2–3 available times" />
+              </div>
+            </div>
+          </div>
+        );
+
+      case 7:
+        return (
+          <div>
+            {header("Almost done!", "Any additional comments or questions?")}
+            <textarea value={form.comments} onChange={(e) => set("comments", e.target.value)} rows={4} className={inputCls} placeholder="Optional — share anything else you'd like us to know" />
+          </div>
+        );
+
+      default:
+        return null;
+    }
+  };
+
+  /* ─── success screen ─── */
   if (submitted) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center px-4">
-        <div className="max-w-md w-full text-center space-y-6 py-20">
-          <div className="mx-auto h-16 w-16 rounded-full flex items-center justify-center" style={{ background: `${BRAND_GREEN}15` }}>
-            <CheckCircle2 className="h-8 w-8" style={{ color: BRAND_GREEN }} />
-          </div>
-          <h2 className="text-2xl font-bold" style={{ color: BRAND_GREEN }}>Thank You</h2>
-          <p className="text-gray-600">
-            Your response has been received. Your agent will be in touch shortly.
+      <div className="min-h-screen bg-[#080f0b] flex items-center justify-center px-4">
+        <motion.div
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ type: "spring", duration: 0.6 }}
+          className="max-w-md w-full text-center p-10 rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl shadow-[0_0_60px_rgba(200,169,110,0.1)]"
+        >
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
+            className="w-20 h-20 rounded-full bg-[#1A4D3E] flex items-center justify-center mx-auto mb-6"
+          >
+            <Check className="w-10 h-10 text-[#C8A96E]" />
+          </motion.div>
+          <h2 className="text-3xl font-bold text-white mb-3">
+            Thank you, {form.first_name}!
+          </h2>
+          <p className="text-white/50 leading-relaxed">
+            Your selected advisor, <span className="text-[#C8A96E] font-semibold">{selectedAdvisor?.first_name} {selectedAdvisor?.last_name}</span>, will be reaching out to you shortly.
           </p>
-        </div>
+          <motion.a
+            href="/"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.97 }}
+            className="inline-block mt-8 px-8 py-3 rounded-full bg-[#C8A96E] text-[#080f0b] font-semibold text-sm hover:shadow-[0_0_30px_rgba(200,169,110,0.3)] transition-shadow"
+          >
+            Return Home
+          </motion.a>
+        </motion.div>
       </div>
     );
   }
 
+  /* ─── main render ─── */
   return (
-    <div className="min-h-screen bg-white">
-      {/* Header */}
-      <div className="py-8 px-4" style={{ background: BRAND_GREEN }}>
-        <div className="max-w-2xl mx-auto text-center">
+    <div className="min-h-screen bg-[#080f0b] flex flex-col">
+      {/* Nav */}
+      <div className="border-b border-white/5">
+        <div className="max-w-3xl mx-auto flex items-center justify-between px-6 py-4">
           <img
             src="https://storage.googleapis.com/msgsndr/TLhrYb7SRrWrly615tCI/media/6993ada8dcdadb155342f28e.png"
             alt="Everence Wealth"
-            className="h-10 w-auto mx-auto mb-4 brightness-0 invert"
+            className="h-8 w-auto brightness-0 invert opacity-80"
           />
-          <h1 className="text-2xl sm:text-3xl font-bold text-white">Response Card</h1>
-          <p className="text-white/70 text-sm mt-2">Please complete this form after your presentation</p>
+          <span className="text-xs text-white/30 uppercase tracking-widest">Response Card</span>
         </div>
       </div>
 
-      {/* Form */}
-      <div className="max-w-2xl mx-auto px-4 py-8">
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-          {/* Agent Select */}
-          <div>
-            <label className={labelClass} style={{ color: SLATE }}>
-              Who invited you to this presentation?{requiredStar}
-            </label>
-            <select {...register("assigned_advisor_id")} className={inputClass}>
-              <option value="">Select an agent</option>
-              {advisors.map((a) => (
-                <option key={a.id} value={a.id}>
-                  {a.first_name} {a.last_name}
-                </option>
-              ))}
-            </select>
-            {errors.assigned_advisor_id && <p className={errorClass}>{errors.assigned_advisor_id.message}</p>}
-          </div>
-
-          {/* Name */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className={labelClass} style={{ color: SLATE }}>First Name{requiredStar}</label>
-              <input {...register("first_name")} className={inputClass} />
-              {errors.first_name && <p className={errorClass}>{errors.first_name.message}</p>}
-            </div>
-            <div>
-              <label className={labelClass} style={{ color: SLATE }}>Last Name{requiredStar}</label>
-              <input {...register("last_name")} className={inputClass} />
-              {errors.last_name && <p className={errorClass}>{errors.last_name.message}</p>}
-            </div>
-          </div>
-
-          {/* Marital Status */}
-          <div>
-            <label className={labelClass} style={{ color: SLATE }}>Marital Status{requiredStar}</label>
-            <div className="flex flex-wrap gap-3 mt-1">
-              {maritalOptions.map((opt) => (
-                <label key={opt} className="flex items-center gap-2 text-sm cursor-pointer" style={{ color: SLATE }}>
-                  <input type="radio" value={opt} {...register("marital_status")} className="accent-[#1A4D3E]" />
-                  {opt}
-                </label>
-              ))}
-            </div>
-            {errors.marital_status && <p className={errorClass}>{errors.marital_status.message}</p>}
-          </div>
-
-          {/* Email & Phone */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className={labelClass} style={{ color: SLATE }}>Email Address{requiredStar}</label>
-              <input type="email" {...register("email")} className={inputClass} />
-              {errors.email && <p className={errorClass}>{errors.email.message}</p>}
-            </div>
-            <div>
-              <label className={labelClass} style={{ color: SLATE }}>Phone Number{requiredStar}</label>
-              <input
-                {...register("phone")}
-                className={inputClass}
-                placeholder="(000) 000-0000"
-                onChange={(e) => setValue("phone", formatPhone(e.target.value), { shouldValidate: true })}
-              />
-              {errors.phone && <p className={errorClass}>{errors.phone.message}</p>}
-            </div>
-          </div>
-
-          {/* Address */}
-          <div className="space-y-4">
-            <label className={labelClass} style={{ color: SLATE }}>Address{requiredStar}</label>
-            <input {...register("street_address")} placeholder="Street Address" className={inputClass} />
-            {errors.street_address && <p className={errorClass}>{errors.street_address.message}</p>}
-            <input {...register("address_line_2")} placeholder="Street Address Line 2 (optional)" className={inputClass} />
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-              <div>
-                <input {...register("city")} placeholder="City" className={inputClass} />
-                {errors.city && <p className={errorClass}>{errors.city.message}</p>}
-              </div>
-              <div>
-                <input {...register("state")} placeholder="State" className={inputClass} />
-                {errors.state && <p className={errorClass}>{errors.state.message}</p>}
-              </div>
-              <div>
-                <input {...register("zip_code")} placeholder="Zip Code" className={inputClass} />
-                {errors.zip_code && <p className={errorClass}>{errors.zip_code.message}</p>}
-              </div>
-            </div>
-          </div>
-
-          {/* Income */}
-          <div>
-            <label className={labelClass} style={{ color: SLATE }}>Household Income{requiredStar}</label>
-            <div className="space-y-2 mt-1">
-              {incomeOptions.map((opt) => (
-                <label key={opt} className="flex items-center gap-2 text-sm cursor-pointer" style={{ color: SLATE }}>
-                  <input type="radio" value={opt} {...register("income_range")} className="accent-[#1A4D3E]" />
-                  {opt}
-                </label>
-              ))}
-            </div>
-            {errors.income_range && <p className={errorClass}>{errors.income_range.message}</p>}
-          </div>
-
-          {/* Consultation */}
-          <div>
-            <label className={labelClass} style={{ color: SLATE }}>
-              I would like to take advantage of a FREE Consultation and Financial Analysis{requiredStar}
-            </label>
-            <div className="flex gap-6 mt-1">
-              <label className="flex items-center gap-2 text-sm cursor-pointer" style={{ color: SLATE }}>
-                <input type="radio" value="yes" {...register("wants_free_consultation")} className="accent-[#1A4D3E]" />
-                Yes
-              </label>
-              <label className="flex items-center gap-2 text-sm cursor-pointer" style={{ color: SLATE }}>
-                <input type="radio" value="no" {...register("wants_free_consultation")} className="accent-[#1A4D3E]" />
-                No
-              </label>
-            </div>
-            {errors.wants_free_consultation && <p className={errorClass}>{errors.wants_free_consultation.message}</p>}
-          </div>
-
-          {/* Meeting Topics */}
-          <div>
-            <label className={labelClass} style={{ color: SLATE }}>
-              Meeting Topics (check all that apply){requiredStar}
-            </label>
-            <div className="space-y-2 mt-1">
-              {topicOptions.map((topic) => (
-                <label key={topic} className="flex items-start gap-2 text-sm cursor-pointer" style={{ color: SLATE }}>
-                  <input
-                    type="checkbox"
-                    checked={meetingTopics?.includes(topic) || false}
-                    onChange={() => toggleTopic(topic)}
-                    className="accent-[#1A4D3E] mt-0.5"
-                  />
-                  <span>{topic}</span>
-                </label>
-              ))}
-            </div>
-            {errors.meeting_topics && <p className={errorClass}>{errors.meeting_topics.message}</p>}
-          </div>
-
-          {/* Availability */}
-          <div>
-            <label className={labelClass} style={{ color: SLATE }}>
-              Best Day and Time to Meet
-            </label>
-            <p className="text-xs text-gray-400 mb-1.5">Please provide 2–3 available times</p>
-            <textarea {...register("availability")} rows={3} className={inputClass} />
-          </div>
-
-          {/* Comments */}
-          <div>
-            <label className={labelClass} style={{ color: SLATE }}>
-              Additional Comments or Questions
-            </label>
-            <textarea {...register("comments")} rows={3} className={inputClass} />
-          </div>
-
-          {/* Submit */}
-          <button
-            type="submit"
-            disabled={submitting}
-            className="w-full py-3.5 rounded-lg text-white font-semibold text-sm transition-all disabled:opacity-60"
-            style={{ background: submitting ? "#6B7280" : BRAND_GREEN }}
-          >
-            {submitting ? "Submitting..." : "Submit Response Card"}
-          </button>
-        </form>
+      {/* Progress */}
+      <div className="max-w-3xl mx-auto w-full px-6 pt-6">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-xs text-white/30">Step {step + 1} of {TOTAL_STEPS}</span>
+          <span className="text-xs text-[#C8A96E]/60">{Math.round(progress)}%</span>
+        </div>
+        <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
+          <motion.div
+            className="h-full rounded-full"
+            style={{ background: "linear-gradient(90deg, #1A4D3E, #C8A96E)" }}
+            animate={{ width: `${progress}%` }}
+            transition={{ duration: 0.4, ease: "easeOut" }}
+          />
+        </div>
       </div>
 
-      {/* Footer */}
-      <div className="py-6 text-center border-t border-gray-100">
-        <p className="text-xs" style={{ color: SLATE }}>
-          © {new Date().getFullYear()} Everence Wealth. All rights reserved.
-        </p>
+      {/* Content */}
+      <div className="flex-1 flex items-center justify-center px-6 py-8">
+        <div className="w-full max-w-lg">
+          <AnimatePresence mode="wait" custom={direction}>
+            <motion.div
+              key={step}
+              custom={direction}
+              variants={variants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={{ duration: 0.3, ease: "easeInOut" }}
+            >
+              {renderStep()}
+            </motion.div>
+          </AnimatePresence>
+        </div>
+      </div>
+
+      {/* Footer Nav */}
+      <div className="border-t border-white/5">
+        <div className="max-w-3xl mx-auto flex items-center justify-between px-6 py-5">
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={back}
+            disabled={step === 0}
+            className="flex items-center gap-2 text-sm text-white/40 hover:text-white/70 disabled:opacity-20 disabled:cursor-not-allowed transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" /> Back
+          </motion.button>
+
+          {step < TOTAL_STEPS - 1 ? (
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={next}
+              className="flex items-center gap-2 px-8 py-3 rounded-full bg-[#C8A96E] text-[#080f0b] font-semibold text-sm hover:shadow-[0_0_30px_rgba(200,169,110,0.3)] transition-shadow"
+            >
+              Continue <ArrowRight className="w-4 h-4" />
+            </motion.button>
+          ) : (
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={handleSubmit}
+              disabled={submitting}
+              className="flex items-center gap-2 px-8 py-3 rounded-full bg-[#C8A96E] text-[#080f0b] font-semibold text-sm hover:shadow-[0_0_30px_rgba(200,169,110,0.3)] transition-shadow disabled:opacity-60"
+            >
+              {submitting ? "Submitting..." : "Submit"} <Send className="w-4 h-4" />
+            </motion.button>
+          )}
+        </div>
       </div>
     </div>
   );
