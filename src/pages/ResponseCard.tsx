@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { z } from "zod";
 import { motion, AnimatePresence } from "framer-motion";
 import confetti from "canvas-confetti";
-import { ArrowLeft, ArrowRight, Check, User, Mail, Phone, MapPin, DollarSign, MessageSquare, Heart, Send } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, User, Mail, Phone, MapPin, DollarSign, MessageSquare, Heart, Send, Search } from "lucide-react";
 
 /* ───────── constants ───────── */
 const phoneRegex = /^\(\d{3}\)\s?\d{3}-\d{4}$/;
