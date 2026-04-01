@@ -267,39 +267,43 @@ export default function ResponseCard() {
     );
 
     switch (step) {
-      case 0:
+      case 0: {
+        const selectedAdvisor = advisors.find((a) => a.id === form.assigned_advisor_id);
         return (
           <div onKeyDown={handleKeyDown}>
             {header("Who invited you to this presentation?", "Select the agent who invited you.")}
-            <div className="grid gap-3 max-h-[50vh] overflow-y-auto pr-1" style={{ WebkitOverflowScrolling: "touch" }}>
+            <select
+              value={form.assigned_advisor_id}
+              onChange={(e) => set("assigned_advisor_id", e.target.value)}
+              className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3.5 text-base text-gray-700 min-h-[48px] focus:outline-none focus:ring-2 focus:ring-[#C8A96E] focus:border-[#C8A96E] transition-all appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%239ca3af%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E')] bg-no-repeat bg-[right_12px_center] bg-[length:20px]"
+            >
+              <option value="" disabled>Select your agent...</option>
               {advisors.map((a) => (
-                <motion.button
-                  key={a.id}
-                  type="button"
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.97 }}
-                  onClick={() => set("assigned_advisor_id", a.id)}
-                  className={`flex items-center gap-4 px-5 py-4 rounded-2xl border text-left transition-all duration-200 ${
-                    form.assigned_advisor_id === a.id
-                      ? "bg-[#C8A96E]/10 border-[#C8A96E] shadow-[0_0_25px_rgba(200,169,110,0.12)]"
-                      : "bg-gray-50 border-gray-200 hover:border-gray-300"
-                  }`}
-                >
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold ${
-                    form.assigned_advisor_id === a.id ? "bg-[#C8A96E] text-white" : "bg-gray-200 text-gray-500"
-                  }`}>
-                    {a.first_name[0]}{a.last_name[0]}
-                  </div>
-                  <span className={`text-sm font-medium ${form.assigned_advisor_id === a.id ? "text-[#1A4D3E]" : "text-gray-600"}`}>
-                    {a.first_name} {a.last_name}
-                  </span>
-                  {form.assigned_advisor_id === a.id && <Check className="w-5 h-5 text-[#C8A96E] ml-auto" />}
-                </motion.button>
+                <option key={a.id} value={a.id}>
+                  {a.first_name} {a.last_name}
+                </option>
               ))}
-            </div>
+            </select>
+            {selectedAdvisor && (
+              <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mt-4 flex items-center gap-3 px-4 py-3 rounded-xl bg-[#C8A96E]/10 border border-[#C8A96E]/30"
+              >
+                <div className="w-10 h-10 rounded-full bg-[#C8A96E] text-white flex items-center justify-center text-sm font-bold shrink-0">
+                  {selectedAdvisor.first_name[0]}{selectedAdvisor.last_name[0]}
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-[#1A4D3E]">{selectedAdvisor.first_name} {selectedAdvisor.last_name}</p>
+                  <p className="text-xs text-gray-500">Selected Agent</p>
+                </div>
+                <Check className="w-5 h-5 text-[#C8A96E] ml-auto" />
+              </motion.div>
+            )}
             {errors.assigned_advisor_id && <p className="text-red-500 text-xs mt-2">{errors.assigned_advisor_id}</p>}
           </div>
         );
+      }
 
       case 1:
         return (
