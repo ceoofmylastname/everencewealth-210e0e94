@@ -9,7 +9,7 @@ import {
   FolderOpen, Menu, X, ChevronRight, ChevronDown, MessageSquare,
   Building2, TrendingUp, Wrench, GraduationCap, Megaphone, Calendar, Newspaper,
   Settings, ClipboardList, Briefcase, GitBranch, Lock, AlertTriangle, Target, Wand2,
-  Presentation, FileSearch,
+  Presentation, FileSearch, ClipboardCheck,
 } from "lucide-react";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import { Button } from "@/components/ui/button";
@@ -51,6 +51,7 @@ const advisorNavGroups = [
       { label: "Workshops", icon: Megaphone, href: "/portal/advisor/workshops/slug-setup" },
       { label: "Socorro Workshop", icon: ClipboardList, href: "/portal/advisor/socorro-workshop" },
       { label: "Underwriting AI", icon: FileSearch, href: "/portal/advisor/underwriting" },
+      { label: "Response Cards", icon: ClipboardCheck, href: "/portal/advisor/response-cards" },
     ],
   },
   {

@@ -263,6 +263,9 @@ const SocorroBookingConfirm = lazy(() => import("./pages/socorro/SocorroBookingC
 const SocorroBookingSuccess = lazy(() => import("./pages/socorro/SocorroBookingSuccess"));
 const SocorroWorkshopManage = lazy(() => import("./pages/portal/advisor/SocorroWorkshopManage"));
 const AdminSocorroWorkshop = lazy(() => import("./pages/portal/admin/AdminSocorroWorkshop"));
+const ResponseCard = lazy(() => import("./pages/ResponseCard"));
+const ResponseCardSubmissions = lazy(() => import("./pages/portal/advisor/ResponseCardSubmissions"));
+const AdminResponseCards = lazy(() => import("./pages/portal/admin/AdminResponseCards"));
 
 // Loading fallback component
 const PageLoader = () => (
@@ -311,6 +314,7 @@ const App = () => (
               <Route path="/briefing" element={<Briefing />} />
               <Route path="/broker-training" element={<TrainingEvent />} />
               <Route path="/recruit-dashboard" element={<RecruitDashboard />} />
+              <Route path="/response-card" element={<ResponseCard />} />
 
               {/* Socorro ISD Public Routes */}
               <Route path="/socorro-isd" element={<SocorroLanding />} />
@@ -448,6 +452,7 @@ const App = () => (
                   <Route path="socorro-workshop" element={<SocorroWorkshopManage />} />
                   <Route path="presentation" element={<Presentation />} />
                   <Route path="underwriting" element={<UnderwritingAI />} />
+                  <Route path="response-cards" element={<ResponseCardSubmissions />} />
                 </Route>
               </Route>
               <Route path="/portal/client" element={<ClientRoute />}>
@@ -479,6 +484,7 @@ const App = () => (
                   <Route path="assessment-leads" element={<CrmAssessmentLeads />} />
                   <Route path="socorro-workshop" element={<AdminSocorroWorkshop />} />
                   <Route path="presentation" element={<Presentation />} />
+                  <Route path="response-cards" element={<AdminResponseCards />} />
                   
                 </Route>
               </Route>
