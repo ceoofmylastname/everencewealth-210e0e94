@@ -309,7 +309,7 @@ export default function ResponseCard() {
                   </div>
                   {/* Scrollable agent list */}
                   <div
-                    className="relative flex-1 overflow-y-scroll overscroll-contain"
+                    className="relative flex-1 overflow-y-scroll overscroll-contain agent-picker-scroll"
                     style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-y' }}
                   >
                     <div className="pointer-events-none sticky top-0 h-6 bg-gradient-to-b from-white to-transparent z-10" />

@@ -397,6 +397,29 @@ All colors MUST be HSL.
     background: #94a3b8;
   }
 
+  /* Agent picker always-visible scrollbar */
+  .agent-picker-scroll {
+    overflow-y: scroll !important;
+    scrollbar-width: thin;
+    scrollbar-color: hsl(163 51% 21% / 0.3) hsl(210 40% 96%);
+  }
+  .agent-picker-scroll::-webkit-scrollbar {
+    width: 8px;
+    display: block !important;
+  }
+  .agent-picker-scroll::-webkit-scrollbar-track {
+    background: hsl(210 40% 96%);
+    border-radius: 8px;
+  }
+  .agent-picker-scroll::-webkit-scrollbar-thumb {
+    background: hsl(163 51% 21% / 0.35);
+    border-radius: 8px;
+    min-height: 40px;
+  }
+  .agent-picker-scroll::-webkit-scrollbar-thumb:hover {
+    background: hsl(163 51% 21% / 0.5);
+  }
+
   /* Reveal Animation Classes */
   .reveal-on-scroll {
     opacity: 1;
