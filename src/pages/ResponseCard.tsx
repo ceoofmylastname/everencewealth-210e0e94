@@ -327,6 +327,13 @@ export default function ResponseCard() {
         });
         return (
           <div onKeyDown={handleKeyDown} className="relative">
+            <div className="text-center mb-10">
+              <h1 className="text-2xl sm:text-4xl font-extrabold text-[#1A4D3E] leading-tight">
+                Ready to Take Control of<br />
+                <span className="text-[#C8A96E]">Your Financial Future?</span>
+              </h1>
+              <p className="text-gray-400 text-sm mt-3">Let's start by connecting you with your agent.</p>
+            </div>
             {header("Who invited you to this presentation?", "Select the agent who invited you.")}
 
             {/* Trigger button */}
