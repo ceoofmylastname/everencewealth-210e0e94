@@ -1,30 +1,24 @@
 
 
-## Revert to Dropdown: Premium Searchable Select
+## Show Agent Photo Instead of Initials Everywhere
 
-### What changes
-Replace the card grid in step 0 with a **searchable dropdown** — a single trigger button that opens an inline scrollable list. Now that the RLS fix ensures all agents load, the dropdown will work correctly.
+### Current State
+- The `advisors` table already has a `photo_url` column
+- Advisors can already upload photos via **Advisor Settings** (`/portal/advisor/settings`) — photos are stored in the `advisor-photos` bucket and the URL is saved to `advisors.photo_url`
+- The Response Card query only fetches `id, first_name, last_name` — it does **not** fetch `photo_url`
+- Other places (client dashboard, client signup) already use `photo_url` when available
 
-### Design
-- **Trigger button**: shows "Select your agent…" or the selected agent's name + gradient avatar. Styled as a rounded-2xl input-like element with a chevron icon.
-- **Dropdown panel**: opens below the trigger (not a popup/overlay — just a `div` that conditionally renders). Contains:
-  - Search input at top (sticky)
-  - Scrollable list of agents (`max-h-[40vh] overflow-y-auto overscroll-contain` with `agent-picker-scroll`)
-  - Each agent row: gradient initials avatar + name + check icon if selected
-  - `min-h-[48px]` per row for touch targets
-- Clicking an agent selects them and closes the dropdown
-- Clicking outside closes the dropdown (click-away listener)
-- Keep the selected confirmation bar below
-- Keep Framer Motion for open/close animation (`AnimatePresence` + `motion.div`)
+### What to do
+**Yes, this is already possible.** The infrastructure exists — we just need to wire `photo_url` into every place that currently shows initials.
 
-### Implementation
-- **`src/pages/ResponseCard.tsx`** — rewrite step 0 case (~lines 321-424):
-  - Add `const [agentDropdownOpen, setAgentDropdownOpen] = useState(false)`
-  - Add a `useRef` + `useEffect` click-outside listener
-  - Trigger button toggles `agentDropdownOpen`
-  - Conditionally render the searchable list panel below
-  - Remove the grid layout, keep avatar gradients and search logic
+### Changes
 
-### File
-- `src/pages/ResponseCard.tsx` — ~80 lines rewritten in case 0
+1. **`src/pages/ResponseCard.tsx`** — Add `photo_url` to the advisor query (line 108: change `select("id, first_name, last_name")` to `select("id, first_name, last_name, photo_url")`). Then in the dropdown list and selected-agent display, show `<img>` when `photo_url` exists, fall back to gradient initials avatar when it doesn't.
+
+2. **Any other advisor avatar locations** — Search for places showing advisor initials (dashboard headers, submission views, etc.) and add the same `photo_url` check. The advisor settings page already handles upload, so no new upload UI is needed.
+
+### Result
+- Advisors who have uploaded a photo will show their real photo in the response card dropdown and everywhere else
+- Advisors without a photo continue to show the gradient initials avatar
+- No database changes needed — `photo_url` column and `advisor-photos` bucket already exist
 
