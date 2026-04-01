@@ -1,33 +1,50 @@
 
 
-## Update Response Card — White Background with Subtle Green Gradients
+## Verification: Data Capture + Mobile Optimization
 
-### What changes
-Restyle `src/pages/ResponseCard.tsx` from the current dark theme (`#080f0b`) to a **white background** with subtle green gradient accents bleeding in from corners/edges.
+### Data capture status — CONFIRMED COMPLETE
 
-### Color swap overview
-| Element | Current | New |
+Every single form field is already being captured and stored correctly:
+
+| Form Field | Stored in DB | Shown in Advisor Dashboard |
 |---|---|---|
-| Page background | `#080f0b` (dark) | `white` with faint green radial gradients in corners |
-| Text (headings) | `text-white` | `text-[#1A4D3E]` (evergreen) |
-| Text (body/labels) | `text-white/40`, `text-white/30` | `text-[#4A5565]`, `text-gray-400` |
-| Inputs | `bg-white/5 border-white/10 text-white` | `bg-gray-50 border-gray-200 text-gray-900` |
-| Pills/cards unselected | `bg-white/5 border-white/10 text-white/60` | `bg-gray-50 border-gray-200 text-gray-600` |
-| Pills/cards selected | `bg-[#C8A96E]/15 border-[#C8A96E]` | Keep gold accent, slightly stronger on white |
-| Nav bar | `border-white/5` dark | `border-gray-100` light, logo normal (remove `invert`) |
-| Progress bar track | `bg-white/5` | `bg-gray-100` |
-| Footer nav | `border-white/5` | `border-gray-100` |
-| Back button | `text-white/40` | `text-gray-400` |
-| Continue/Submit | Keep gold `#C8A96E` | Same, adjust shadow for light bg |
-| Error text | `text-red-400` | `text-red-500` |
-| Success screen | Dark glassmorphism | White card with soft green gradient bg, green shadow |
+| Selected Agent | `assigned_advisor_id` (UUID FK) | RLS filters by this — advisor only sees their own |
+| First Name | `first_name` | Yes |
+| Last Name | `last_name` | Yes |
+| Marital Status | `marital_status` | Yes |
+| Email | `email` | Yes |
+| Phone | `phone` | Yes |
+| Street Address | `street_address` | Yes |
+| Address Line 2 | `address_line_2` | Yes (in address block) |
+| City | `city` | Yes |
+| State | `state` | Yes |
+| Zip Code | `zip_code` | Yes |
+| Income Range | `income_range` | Yes |
+| Free Consultation | `wants_free_consultation` | Yes |
+| Meeting Topics | `meeting_topics` (array) | Yes (bullet list) |
+| Availability | `availability` | Yes |
+| Comments | `comments` | Yes |
+| Submission Date | `submitted_at` (auto) | Yes |
+| Reviewed Status | `reviewed` (default false) | Yes (toggle button) |
 
-### Green gradient accents
-Add decorative radial gradients using absolute-positioned divs:
-- Top-right corner: faint `#1A4D3E` at ~5-8% opacity, large blur
-- Bottom-left corner: faint `#1A4D3E` at ~3-5% opacity, large blur
-- Creates a subtle, organic "barely coming in" effect
+**RLS enforced at database level**: Advisors can ONLY see rows where `assigned_advisor_id` matches their advisor record. No data leaks between agents.
 
-### File modified
-- `src/pages/ResponseCard.tsx` — full color/style update, no logic changes
+### Mobile optimization — what needs improving
+
+The current form works on mobile but isn't truly mobile-first optimized for 95% phone usage. Here's what I'll fix:
+
+**File**: `src/pages/ResponseCard.tsx`
+
+1. **Touch targets**: Increase pill buttons from `py-2.5` to `py-3.5` (meets 44px minimum)
+2. **Address grid**: Change `grid-cols-2 sm:grid-cols-3` to stack vertically on mobile (`grid-cols-1 sm:grid-cols-3`), city/state/zip as a 3-col row only on sm+
+3. **Input sizing**: Bump inputs from `py-3` to `py-3.5` for easier thumb tapping
+4. **Font sizes**: Step titles from `text-2xl sm:text-3xl` to `text-xl sm:text-3xl` so they don't overflow on narrow screens
+5. **Agent list scroll area**: Change `max-h-[45vh]` to `max-h-[50vh]` and add `-webkit-overflow-scrolling: touch` for smooth iOS scrolling
+6. **Footer buttons**: Increase padding from `py-3` to `py-3.5` and make Continue/Submit button wider on mobile
+7. **Content padding**: Reduce horizontal padding from `px-6` to `px-4 sm:px-6` to reclaim space on small screens
+8. **Card select items**: Ensure minimum height of 48px for comfortable tapping
+9. **Consultation yes/no buttons**: Already `flex-1 py-3`, bump to `py-4`
+10. **Nav logo area**: Tighten padding on mobile
+
+**No database or logic changes** — purely CSS/layout adjustments for mobile-first experience.
 
