@@ -1,118 +1,45 @@
 
 
-## Response Card Page — Full Implementation Plan
+## Redesign /response-card — Typeform-Style Multi-Step Form
 
-### Table Verification
+Transform the current single-page form into an animated, multi-step experience matching the brand aesthetic (dark cinematic theme, gold accents, framer-motion transitions, confetti on completion).
 
-The prompt says to reference `advisors(id)` for the agent dropdown. The `advisors` table exists with `id`, `first_name`, `last_name`, `is_active`, `auth_user_id`, and `portal_user_id`. However, the prompt's RLS rule "assigned_advisor_id = auth.uid()" won't work because `advisors.id` is NOT the same as `auth.uid()` — it's a separate UUID. The correct RLS check for advisor SELECT is: `assigned_advisor_id = (SELECT id FROM advisors WHERE auth_user_id = auth.uid())`, or use the existing `get_advisor_id_for_auth(auth.uid())` function.
+### Design Approach
+- **Dark cinematic background** (#080f0b) matching TrainingEvent and homepage
+- **Multi-step wizard** — one question (or small group) per screen, Typeform-style
+- **Framer Motion AnimatePresence** for slide/fade transitions between steps
+- **Progress bar** with gold accent showing completion percentage
+- **Confetti burst** on successful submission (canvas-confetti, brand colors)
+- **Rich success card** with selected advisor name, glassmorphism styling, animated check icon
 
-The `contracting_agents` table (which powers `/portal/advisor/contracting/agents`) has a `status` column, but the prompt says to pull from the "agents table" with `status = 'active'`. The `advisors` table uses `is_active` (boolean), not a text status. I'll use `advisors` with `is_active = true` since that's the canonical advisor table and the FK target.
+### Steps Breakdown (8 steps)
+1. **Select Your Agent** — styled dropdown with advisor photos/names
+2. **Your Name** — first + last name side by side
+3. **About You** — marital status as clickable pill buttons (not radio inputs)
+4. **Contact Info** — email + phone
+5. **Your Address** — street, city, state, zip
+6. **Financial Profile** — income range as selectable cards + consultation yes/no toggle
+7. **Meeting Interests** — topic checkboxes as selectable cards + availability textarea
+8. **Final Comments** — optional comments + submit button
 
-### Database Migration
+### Navigation
+- "Continue" button (gold, animated) advances to next step
+- "Back" arrow to go to previous step
+- Enter key advances on text fields
+- Step counter: "Step 3 of 8"
 
-Create `response_card_submissions` table:
+### Success Screen
+- Confetti (brand gold + green)
+- Glassmorphism card with animated checkmark
+- "Thank you, [First Name]!" heading
+- "Your selected advisor, **[Advisor Name]**, will be reaching out to you shortly."
+- "Return Home" button
 
-```sql
-CREATE TABLE public.response_card_submissions (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  assigned_advisor_id UUID NOT NULL REFERENCES public.advisors(id),
-  first_name TEXT NOT NULL,
-  last_name TEXT NOT NULL,
-  marital_status TEXT NOT NULL,
-  email TEXT NOT NULL,
-  phone TEXT NOT NULL,
-  street_address TEXT,
-  address_line_2 TEXT,
-  city TEXT,
-  state TEXT,
-  zip_code TEXT,
-  income_range TEXT NOT NULL,
-  wants_free_consultation BOOLEAN NOT NULL DEFAULT false,
-  meeting_topics TEXT[] NOT NULL DEFAULT '{}',
-  availability TEXT,
-  comments TEXT,
-  reviewed BOOLEAN NOT NULL DEFAULT false,
-  submitted_at TIMESTAMPTZ DEFAULT NOW()
-);
-
-ALTER TABLE public.response_card_submissions ENABLE ROW LEVEL SECURITY;
-
--- Public insert (unauthenticated form)
-CREATE POLICY "Anyone can insert submissions"
-  ON public.response_card_submissions FOR INSERT
-  TO anon, authenticated
-  WITH CHECK (true);
-
--- Advisors see only their own
-CREATE POLICY "Advisors see own submissions"
-  ON public.response_card_submissions FOR SELECT
-  TO authenticated
-  USING (
-    assigned_advisor_id = public.get_advisor_id_for_auth(auth.uid())
-  );
-
--- Admins see all
-CREATE POLICY "Admins see all submissions"
-  ON public.response_card_submissions FOR SELECT
-  TO authenticated
-  USING (public.is_portal_admin(auth.uid()));
-
--- Advisors can mark reviewed
-CREATE POLICY "Advisors update own submissions"
-  ON public.response_card_submissions FOR UPDATE
-  TO authenticated
-  USING (assigned_advisor_id = public.get_advisor_id_for_auth(auth.uid()))
-  WITH CHECK (assigned_advisor_id = public.get_advisor_id_for_auth(auth.uid()));
-
--- Admins can delete
-CREATE POLICY "Admins can delete submissions"
-  ON public.response_card_submissions FOR DELETE
-  TO authenticated
-  USING (public.is_portal_admin(auth.uid()));
-```
-
-### New Files
-
-**1. `src/pages/ResponseCard.tsx`** — Public form page
-- Agent dropdown queries `advisors` where `is_active = true`, displays `first_name + last_name`
-- All form fields as specified, with zod validation
-- Phone mask `(000) 000-0000`
-- Branded Everence Wealth colors (#1A4D3E, #C8A96E, #4A5565)
-- On submit: insert into `response_card_submissions` using anon supabase client
-- Success state replaces form with confirmation message (no redirect)
-
-**2. `src/pages/portal/advisor/ResponseCardSubmissions.tsx`** — Advisor view
-- Queries `response_card_submissions` where RLS filters to their records
-- Card/table layout showing name, email, phone, income, topics, availability, date
-- Expandable detail view for full submission
-- Badge counter for unreviewed submissions (`reviewed = false`)
-- Mark as reviewed toggle
-
-**3. `src/pages/portal/admin/AdminResponseCards.tsx`** — Admin view
-- Shows all submissions across all agents
-- Filter by agent, date range, income range, meeting topic
-- Total count + per-agent breakdown stats
-- Full detail view
-
-### Route Changes (`src/App.tsx`)
-
-- Add `/response-card` as a public route → `ResponseCard`
-- Add `response-cards` under `/portal/advisor` → `ResponseCardSubmissions`
-- Add `response-cards` under `/portal/admin` → `AdminResponseCards`
-
-### Dashboard Integration
-
-- **AdvisorDashboard.tsx**: Add a "Response Card Submissions" quick-action card with unreviewed count badge, linking to `/portal/advisor/response-cards`
-- **Sidebar/nav**: Add "Response Cards" link in advisor and admin navigation
-
-### Files Modified
-- `src/App.tsx` — 3 new routes
-- `src/pages/portal/advisor/AdvisorDashboard.tsx` — Add response card stats card
-- Advisor sidebar component — Add nav link
-- Admin sidebar component — Add nav link
-
-### Files Created
-- `src/pages/ResponseCard.tsx`
-- `src/pages/portal/advisor/ResponseCardSubmissions.tsx`
-- `src/pages/portal/admin/AdminResponseCards.tsx`
+### Technical Details
+- **File modified**: `src/pages/ResponseCard.tsx` (full rewrite)
+- **Dependencies used**: framer-motion (already installed), canvas-confetti (already installed)
+- **No database changes** — same submission logic, same table
+- **Same zod validation** — validated per-step before advancing
+- Everence Wealth navbar at top with logo + "Response Card" label
+- Mobile-responsive throughout
 
