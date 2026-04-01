@@ -292,11 +292,12 @@ export default function ResponseCard() {
 
             {/* Mobile bottom-sheet agent picker — fixed overlay, outside all scroll/transform ancestors */}
             {agentOpen && (
-              <div className="fixed inset-0 z-[9999]" style={{ touchAction: 'none' }}>
+              <div className="fixed inset-0 z-[9999]">
                 {/* Backdrop */}
                 <div
                   className="absolute inset-0 bg-black/40"
                   onClick={() => setAgentOpen(false)}
+                  style={{ touchAction: 'none' }}
                 />
                 {/* Bottom sheet */}
                 <div className="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl shadow-2xl" style={{ maxHeight: '70vh', display: 'flex', flexDirection: 'column' }}>
