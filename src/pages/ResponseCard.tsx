@@ -196,7 +196,7 @@ export default function ResponseCard() {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.97 }}
             onClick={() => onChange(opt)}
-            className={`px-5 py-2.5 rounded-full text-sm font-medium border transition-all duration-200 ${
+            className={`px-5 py-3.5 rounded-full text-sm font-medium border transition-all duration-200 min-h-[48px] ${
               value === opt
                 ? "bg-[#C8A96E] text-white border-[#C8A96E] shadow-[0_0_20px_rgba(200,169,110,0.25)]"
                 : "bg-gray-50 text-gray-600 border-gray-200 hover:border-[#C8A96E]/40 hover:text-gray-800"
@@ -223,7 +223,7 @@ export default function ResponseCard() {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => onToggle(opt)}
-              className={`text-left px-5 py-4 rounded-2xl border text-sm transition-all duration-200 ${
+              className={`text-left px-5 py-4 rounded-2xl border text-sm transition-all duration-200 min-h-[48px] ${
                 isSelected
                   ? "bg-[#C8A96E]/10 text-[#1A4D3E] border-[#C8A96E] shadow-[0_0_25px_rgba(200,169,110,0.12)]"
                   : "bg-gray-50 text-gray-600 border-gray-200 hover:border-gray-300 hover:text-gray-800"
@@ -246,7 +246,7 @@ export default function ResponseCard() {
   );
 
   /* ─── input helper ─── */
-  const inputCls = "w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-900 text-sm placeholder:text-gray-400 focus:outline-none focus:border-[#C8A96E]/50 focus:ring-1 focus:ring-[#C8A96E]/30 transition-all";
+  const inputCls = "w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-gray-900 text-base sm:text-sm placeholder:text-gray-400 focus:outline-none focus:border-[#C8A96E]/50 focus:ring-1 focus:ring-[#C8A96E]/30 transition-all min-h-[48px]";
 
   /* ─── step content ─── */
   const renderStep = () => {
@@ -261,7 +261,7 @@ export default function ResponseCard() {
           </div>
           <span className="text-xs text-gray-400 uppercase tracking-widest font-medium">{label}</span>
         </div>
-        <h2 className="text-2xl sm:text-3xl font-bold text-[#1A4D3E]">{title}</h2>
+        <h2 className="text-xl sm:text-3xl font-bold text-[#1A4D3E]">{title}</h2>
         {subtitle && <p className="text-gray-500 text-sm mt-2">{subtitle}</p>}
       </div>
     );
@@ -271,7 +271,7 @@ export default function ResponseCard() {
         return (
           <div onKeyDown={handleKeyDown}>
             {header("Who invited you to this presentation?", "Select the agent who invited you.")}
-            <div className="grid gap-3 max-h-[45vh] overflow-y-auto pr-1">
+            <div className="grid gap-3 max-h-[50vh] overflow-y-auto pr-1" style={{ WebkitOverflowScrolling: "touch" }}>
               {advisors.map((a) => (
                 <motion.button
                   key={a.id}
@@ -357,7 +357,7 @@ export default function ResponseCard() {
                 {errors.street_address && <p className="text-red-500 text-xs mt-1">{errors.street_address}</p>}
               </div>
               <input value={form.address_line_2} onChange={(e) => set("address_line_2", e.target.value)} className={inputCls} placeholder="Apt, Suite, etc. (optional)" />
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
                   <input value={form.city} onChange={(e) => set("city", e.target.value)} className={inputCls} placeholder="City" />
                   {errors.city && <p className="text-red-500 text-xs mt-1">{errors.city}</p>}
@@ -396,7 +396,7 @@ export default function ResponseCard() {
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.97 }}
                       onClick={() => set("wants_free_consultation", v)}
-                      className={`flex-1 py-3 rounded-xl text-sm font-medium border transition-all ${
+                      className={`flex-1 py-4 rounded-xl text-sm font-medium border transition-all min-h-[48px] ${
                         form.wants_free_consultation === v
                           ? "bg-[#C8A96E]/10 text-[#1A4D3E] border-[#C8A96E]"
                           : "bg-gray-50 text-gray-500 border-gray-200 hover:border-gray-300"
@@ -489,7 +489,7 @@ export default function ResponseCard() {
 
       {/* Nav */}
       <div className="border-b border-gray-100 relative z-10">
-        <div className="max-w-3xl mx-auto flex items-center justify-between px-6 py-4">
+        <div className="max-w-3xl mx-auto flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4">
           <img
             src="https://storage.googleapis.com/msgsndr/TLhrYb7SRrWrly615tCI/media/6993ada8dcdadb155342f28e.png"
             alt="Everence Wealth"
@@ -500,7 +500,7 @@ export default function ResponseCard() {
       </div>
 
       {/* Progress */}
-      <div className="max-w-3xl mx-auto w-full px-6 pt-6 relative z-10">
+      <div className="max-w-3xl mx-auto w-full px-4 sm:px-6 pt-6 relative z-10">
         <div className="flex items-center justify-between mb-2">
           <span className="text-xs text-gray-400">Step {step + 1} of {TOTAL_STEPS}</span>
           <span className="text-xs text-[#C8A96E]">{Math.round(progress)}%</span>
@@ -516,7 +516,7 @@ export default function ResponseCard() {
       </div>
 
       {/* Content */}
-      <div className="flex-1 flex items-center justify-center px-6 py-8 relative z-10">
+      <div className="flex-1 flex items-center justify-center px-4 sm:px-6 py-6 sm:py-8 relative z-10">
         <div className="w-full max-w-lg">
           <AnimatePresence mode="wait" custom={direction}>
             <motion.div
@@ -536,7 +536,7 @@ export default function ResponseCard() {
 
       {/* Footer Nav */}
       <div className="border-t border-gray-100 relative z-10">
-        <div className="max-w-3xl mx-auto flex items-center justify-between px-6 py-5">
+        <div className="max-w-3xl mx-auto flex items-center justify-between px-4 sm:px-6 py-4 sm:py-5">
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
@@ -552,7 +552,7 @@ export default function ResponseCard() {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={next}
-              className="flex items-center gap-2 px-8 py-3 rounded-full bg-[#C8A96E] text-white font-semibold text-sm hover:shadow-[0_0_30px_rgba(200,169,110,0.25)] transition-shadow"
+              className="flex items-center justify-center gap-2 px-8 sm:px-8 py-3.5 rounded-full bg-[#C8A96E] text-white font-semibold text-sm min-w-[140px] hover:shadow-[0_0_30px_rgba(200,169,110,0.25)] transition-shadow"
             >
               Continue <ArrowRight className="w-4 h-4" />
             </motion.button>
@@ -562,7 +562,7 @@ export default function ResponseCard() {
               whileTap={{ scale: 0.95 }}
               onClick={handleSubmit}
               disabled={submitting}
-              className="flex items-center gap-2 px-8 py-3 rounded-full bg-[#C8A96E] text-white font-semibold text-sm hover:shadow-[0_0_30px_rgba(200,169,110,0.25)] transition-shadow disabled:opacity-60"
+              className="flex items-center justify-center gap-2 px-8 sm:px-8 py-3.5 rounded-full bg-[#C8A96E] text-white font-semibold text-sm min-w-[140px] hover:shadow-[0_0_30px_rgba(200,169,110,0.25)] transition-shadow disabled:opacity-60"
             >
               {submitting ? "Submitting..." : "Submit"} <Send className="w-4 h-4" />
             </motion.button>
