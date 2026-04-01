@@ -246,7 +246,7 @@ export default function ResponseCard() {
   );
 
   /* ─── input helper ─── */
-  const inputCls = "w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-900 text-sm placeholder:text-gray-400 focus:outline-none focus:border-[#C8A96E]/50 focus:ring-1 focus:ring-[#C8A96E]/30 transition-all";
+  const inputCls = "w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-gray-900 text-base sm:text-sm placeholder:text-gray-400 focus:outline-none focus:border-[#C8A96E]/50 focus:ring-1 focus:ring-[#C8A96E]/30 transition-all min-h-[48px]";
 
   /* ─── step content ─── */
   const renderStep = () => {
