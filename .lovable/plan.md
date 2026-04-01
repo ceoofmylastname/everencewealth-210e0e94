@@ -1,25 +1,27 @@
 
 
-## Fix Mobile Agent Dropdown — Replace Native Select with Custom Scrollable List
+## Fix Mobile Agent Dropdown — Replace `<details>` with State-Controlled Dropdown
 
 ### Problem
-The native `<select>` element on mobile browsers (especially iOS) can clip or limit the visible options, making it hard to scroll through all agents. Users report only seeing ~7 names even when more exist.
+The `<details>/<summary>` HTML pattern has known scroll issues on iOS Safari — the inner scrollable container clips or fails to render all items. The data is there (all agents load), but the scroll container doesn't work reliably on real mobile devices.
 
 ### Solution
-Replace the native `<select>` with a custom in-page expandable dropdown using the HTML `<details>/<summary>` pattern. This renders all options directly in the page with a scrollable container, bypassing mobile browser limitations entirely.
+Replace the `<details>` element with a simple React state-controlled dropdown (`useState` boolean toggle). This gives full control over rendering and avoids browser-specific `<details>` quirks.
 
 ### File modified
-`src/pages/ResponseCard.tsx` — Step 0 (case 0, lines 274-286)
+`src/pages/ResponseCard.tsx` — Step 0 (case 0, lines 270-313)
 
-### Implementation
-Replace the `<select>` block with:
-- A `<details>` element styled as a dropdown trigger
-- `<summary>` shows "Select your agent..." or the selected name
-- Expanding reveals a `max-h-72 overflow-y-auto` scrollable list of all advisors as `<button>` elements
-- Tapping an advisor selects them and closes the dropdown (programmatic `removeAttribute('open')`)
-- Each button has `min-h-[48px]` for mobile touch targets
-- Smooth iOS scrolling via `-webkit-overflow-scrolling: touch`
-- Supports any number of agents (10, 50, 100+)
+### Changes
+1. Add `const [agentOpen, setAgentOpen] = useState(false)` to the component state
+2. Replace `<details>/<summary>` with:
+   - A `<button>` trigger that toggles `agentOpen`
+   - A conditionally rendered `<div>` (when `agentOpen` is true) positioned with `absolute z-50`, styled with `max-h-72 overflow-y-auto overscroll-contain` and `touch-action: pan-y` for reliable iOS scrolling
+   - Each advisor as a `<button>` that sets the value and closes the dropdown
+3. Keep the selected-agent confirmation badge and validation unchanged
 
-The selected-agent confirmation badge and validation below remain unchanged.
+### Why this fixes it
+- `overscroll-contain` prevents scroll chaining on mobile
+- `touch-action: pan-y` explicitly allows vertical touch scrolling
+- No reliance on browser `<details>` implementation quirks
+- Absolute positioning with `z-50` ensures the list overlays content cleanly
 
