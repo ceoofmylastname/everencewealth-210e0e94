@@ -16,6 +16,12 @@ const topicOptions = [
   "Tax-free retirement alternatives to IRAs, 401(k)s, etc.",
   "I want a second opinion on my current retirement plan",
 ];
+const contactTimeOptions = [
+  "Morning (8am – 12pm)",
+  "Afternoon (12pm – 4pm)",
+  "Evening (4pm – 7pm)",
+  "Weekends Only",
+];
 
 const stepIcons = [User, User, Heart, Mail, MapPin, DollarSign, MessageSquare, Send];
 const stepLabels = [
