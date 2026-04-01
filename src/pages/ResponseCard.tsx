@@ -398,7 +398,7 @@ export default function ResponseCard() {
                     style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-y' }}
                   >
                     {filteredAdvisors.length === 0 && (
-                      <p className="text-center text-gray-400 text-sm py-8">No agents match your search</p>
+                      <p className="text-center text-gray-400 text-sm py-8">No advisors match your search</p>
                     )}
                     {filteredAdvisors.map((a) => {
                       const isSelected = form.assigned_advisor_id === a.id;
