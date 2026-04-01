@@ -271,7 +271,7 @@ export default function ResponseCard() {
         return (
           <div onKeyDown={handleKeyDown}>
             {header("Who invited you to this presentation?", "Select the agent who invited you.")}
-            <div className="grid gap-3 max-h-[45vh] overflow-y-auto pr-1">
+            <div className="grid gap-3 max-h-[50vh] overflow-y-auto pr-1" style={{ WebkitOverflowScrolling: "touch" }}>
               {advisors.map((a) => (
                 <motion.button
                   key={a.id}
