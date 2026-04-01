@@ -38,6 +38,7 @@ const adminNavGroups = [
       { label: "Schedule", icon: Calendar, href: "/portal/admin/schedule" },
       { label: "Socorro Workshop", icon: ClipboardList, href: "/portal/admin/socorro-workshop" },
       { label: "Workshop Presentation", icon: Presentation, href: "/portal/admin/presentation" },
+      { label: "Response Cards", icon: ClipboardCheck, href: "/portal/admin/response-cards" },
     ],
   },
   {

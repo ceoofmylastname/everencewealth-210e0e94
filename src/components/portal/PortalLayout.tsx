@@ -51,6 +51,7 @@ const advisorNavGroups = [
       { label: "Workshops", icon: Megaphone, href: "/portal/advisor/workshops/slug-setup" },
       { label: "Socorro Workshop", icon: ClipboardList, href: "/portal/advisor/socorro-workshop" },
       { label: "Underwriting AI", icon: FileSearch, href: "/portal/advisor/underwriting" },
+      { label: "Response Cards", icon: ClipboardCheck, href: "/portal/advisor/response-cards" },
     ],
   },
   {
