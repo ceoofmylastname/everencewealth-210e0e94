@@ -516,7 +516,7 @@ export default function ResponseCard() {
       </div>
 
       {/* Content */}
-      <div className="flex-1 flex items-center justify-center px-6 py-8 relative z-10">
+      <div className="flex-1 flex items-center justify-center px-4 sm:px-6 py-6 sm:py-8 relative z-10">
         <div className="w-full max-w-lg">
           <AnimatePresence mode="wait" custom={direction}>
             <motion.div
