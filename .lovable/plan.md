@@ -1,28 +1,25 @@
 
 
-## Replace Agent List with Dropdown Select
+## Fix Mobile Agent Dropdown — Replace Native Select with Custom Scrollable List
 
-### What changes
-Replace the current scrollable card list of agents (step 0) with a proper dropdown select on both mobile and desktop. The data source stays the same — it already queries `advisors` where `is_active = true`, so when agents are added/deleted via contracting (which syncs to `advisors` via the existing `sync_contracting_agent_to_advisor` trigger), the dropdown automatically reflects current agents.
+### Problem
+The native `<select>` element on mobile browsers (especially iOS) can clip or limit the visible options, making it hard to scroll through all agents. Users report only seeing ~7 names even when more exist.
+
+### Solution
+Replace the native `<select>` with a custom in-page expandable dropdown using the HTML `<details>/<summary>` pattern. This renders all options directly in the page with a scrollable container, bypassing mobile browser limitations entirely.
 
 ### File modified
-`src/pages/ResponseCard.tsx` — Step 0 (case 0) only
+`src/pages/ResponseCard.tsx` — Step 0 (case 0, lines 274-286)
 
-### Current behavior
-- All agents displayed as a scrollable list of cards (~lines 270-301)
-- On mobile with many agents, this takes up the whole screen
+### Implementation
+Replace the `<select>` block with:
+- A `<details>` element styled as a dropdown trigger
+- `<summary>` shows "Select your agent..." or the selected name
+- Expanding reveals a `max-h-72 overflow-y-auto` scrollable list of all advisors as `<button>` elements
+- Tapping an advisor selects them and closes the dropdown (programmatic `removeAttribute('open')`)
+- Each button has `min-h-[48px]` for mobile touch targets
+- Smooth iOS scrolling via `-webkit-overflow-scrolling: touch`
+- Supports any number of agents (10, 50, 100+)
 
-### New behavior
-- Replace the card list with a styled `<select>` dropdown (native HTML select for best mobile UX)
-- Styled to match the existing form design (rounded-xl, gray-50 bg, border-gray-200, gold focus ring)
-- Shows "Select your agent..." as placeholder
-- Options show "First Last" for each active advisor
-- Selected agent displays a confirmation badge below the dropdown showing the selected name with initials avatar
-- Same validation — must select an agent before continuing
-
-### Why native select
-Native `<select>` gives the best mobile experience (95% mobile users) — iOS/Android show their native picker wheels, which are much easier to use than custom dropdowns on touch devices.
-
-### Auto-sync confirmation
-The dropdown already queries `advisors` where `is_active = true` on page load. The existing `sync_contracting_agent_to_advisor` database trigger automatically creates advisor records when contracting agents are added. When agents are deactivated/deleted from the admin dashboard, their `is_active` flag is set to false, removing them from this query. No additional work needed for auto-sync.
+The selected-agent confirmation badge and validation below remain unchanged.
 
