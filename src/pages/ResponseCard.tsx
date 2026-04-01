@@ -25,7 +25,7 @@ const contactTimeOptions = [
 
 const stepIcons = [User, User, Heart, Mail, MapPin, DollarSign, MessageSquare, Send];
 const stepLabels = [
-  "Your Agent",
+  "Your Advisor",
   "Your Name",
   "About You",
   "Contact Info",
