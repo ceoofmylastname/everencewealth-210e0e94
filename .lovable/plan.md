@@ -1,41 +1,30 @@
 
 
-## Redesign Step 1: Premium Agent Selector
+## Revert to Dropdown: Premium Searchable Select
 
-### Concept
-Replace the plain scrollable list with a **search-first card grid** that feels like selecting a profile on a premium platform. Think Netflix profile selection meets luxury fintech.
+### What changes
+Replace the card grid in step 0 with a **searchable dropdown** — a single trigger button that opens an inline scrollable list. Now that the RLS fix ensures all agents load, the dropdown will work correctly.
 
 ### Design
+- **Trigger button**: shows "Select your agent…" or the selected agent's name + gradient avatar. Styled as a rounded-2xl input-like element with a chevron icon.
+- **Dropdown panel**: opens below the trigger (not a popup/overlay — just a `div` that conditionally renders). Contains:
+  - Search input at top (sticky)
+  - Scrollable list of agents (`max-h-[40vh] overflow-y-auto overscroll-contain` with `agent-picker-scroll`)
+  - Each agent row: gradient initials avatar + name + check icon if selected
+  - `min-h-[48px]` per row for touch targets
+- Clicking an agent selects them and closes the dropdown
+- Clicking outside closes the dropdown (click-away listener)
+- Keep the selected confirmation bar below
+- Keep Framer Motion for open/close animation (`AnimatePresence` + `motion.div`)
 
-**Layout:**
-- Search bar stays at top with a subtle glow effect on focus
-- Agents displayed as a **responsive grid of cards** (2 columns on mobile, 3 on desktop)
-- Each card is a **square-ish tile** with:
-  - Large circular avatar with initials (gradient background per agent using name hash)
-  - Agent name below in bold
-  - Subtle hover: 3D tilt lift effect + gold border glow
-  - Selected state: gold ring around avatar, checkmark badge overlay, card background glow
-- Cards animate in with staggered scale-up (spring physics)
-- Max height container with smooth scroll, visible on all devices
-
-**Visual details:**
-- Each agent gets a unique gradient on their avatar circle (derived from their name, cycling through a palette of rich greens, deep teals, warm golds, slate blues)
-- On hover (desktop): card lifts with `translateY(-4px)` and a warm gold shadow
-- On tap/select: gold ring pulses once, checkmark appears top-right corner of card
-- Selected confirmation bar below the grid stays (with the current gold accent style)
-- Search input gets a subtle gold underline glow on focus
-
-**Mobile reliability:**
-- Grid uses CSS Grid (`grid-cols-2`) — no absolute positioning, no overlays, no popups
-- Container: `max-h-[50vh] overflow-y-auto overscroll-contain` with `touch-action: pan-y`
-- Same `agent-picker-scroll` class for visible scrollbar
-- All items render inline — no clipping possible
+### Implementation
+- **`src/pages/ResponseCard.tsx`** — rewrite step 0 case (~lines 321-424):
+  - Add `const [agentDropdownOpen, setAgentDropdownOpen] = useState(false)`
+  - Add a `useRef` + `useEffect` click-outside listener
+  - Trigger button toggles `agentDropdownOpen`
+  - Conditionally render the searchable list panel below
+  - Remove the grid layout, keep avatar gradients and search logic
 
 ### File
-- `src/pages/ResponseCard.tsx` — rewrite case 0 section (~60 lines replaced)
-
-### Technical notes
-- Avatar gradient colors generated from a small deterministic palette using `(firstName.charCodeAt(0) + lastName.charCodeAt(0)) % paletteLength`
-- Framer Motion `whileHover` and `whileTap` for interactive feel
-- No new dependencies needed
+- `src/pages/ResponseCard.tsx` — ~80 lines rewritten in case 0
 
