@@ -164,10 +164,37 @@ export default function ResponseCard() {
         income_range: form.income_range,
         wants_free_consultation: form.wants_free_consultation === "yes",
         meeting_topics: form.meeting_topics,
+        best_contact_times: form.best_contact_times,
         availability: form.availability || null,
         comments: form.comments || null,
       });
       if (error) throw error;
+
+      // Fire-and-forget: send email notification to the selected agent
+      supabase.functions.invoke("send-response-card-notification", {
+        body: {
+          submission: {
+            assigned_advisor_id: form.assigned_advisor_id,
+            first_name: form.first_name,
+            last_name: form.last_name,
+            email: form.email,
+            phone: form.phone,
+            marital_status: form.marital_status,
+            street_address: form.street_address || undefined,
+            address_line_2: form.address_line_2 || undefined,
+            city: form.city || undefined,
+            state: form.state || undefined,
+            zip_code: form.zip_code || undefined,
+            income_range: form.income_range,
+            wants_free_consultation: form.wants_free_consultation === "yes",
+            meeting_topics: form.meeting_topics,
+            best_contact_times: form.best_contact_times,
+            availability: form.availability || undefined,
+            comments: form.comments || undefined,
+          },
+        },
+      }).catch((err) => console.error("Notification error:", err));
+
       setSubmitted(true);
       setTimeout(fireConfetti, 200);
     } catch (err) {
