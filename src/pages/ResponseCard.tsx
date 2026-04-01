@@ -396,7 +396,7 @@ export default function ResponseCard() {
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.97 }}
                       onClick={() => set("wants_free_consultation", v)}
-                      className={`flex-1 py-3 rounded-xl text-sm font-medium border transition-all ${
+                      className={`flex-1 py-4 rounded-xl text-sm font-medium border transition-all min-h-[48px] ${
                         form.wants_free_consultation === v
                           ? "bg-[#C8A96E]/10 text-[#1A4D3E] border-[#C8A96E]"
                           : "bg-gray-50 text-gray-500 border-gray-200 hover:border-gray-300"
