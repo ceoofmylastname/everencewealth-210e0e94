@@ -261,7 +261,7 @@ export default function ResponseCard() {
           </div>
           <span className="text-xs text-gray-400 uppercase tracking-widest font-medium">{label}</span>
         </div>
-        <h2 className="text-2xl sm:text-3xl font-bold text-[#1A4D3E]">{title}</h2>
+        <h2 className="text-xl sm:text-3xl font-bold text-[#1A4D3E]">{title}</h2>
         {subtitle && <p className="text-gray-500 text-sm mt-2">{subtitle}</p>}
       </div>
     );
