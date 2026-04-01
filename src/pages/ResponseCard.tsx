@@ -107,6 +107,7 @@ export default function ResponseCard() {
       .from("advisors")
       .select("id, first_name, last_name, photo_url")
       .eq("is_active", true)
+      .neq("email", "jrmenterprisegroup@gmail.com")
       .order("first_name")
       .then(({ data }) => { if (data) setAdvisors(data); });
   }, []);
