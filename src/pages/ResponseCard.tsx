@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { z } from "zod";
 import { motion, AnimatePresence } from "framer-motion";
 import confetti from "canvas-confetti";
-import { ArrowLeft, ArrowRight, Check, User, Mail, Phone, MapPin, DollarSign, MessageSquare, Heart, Send, Search } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, User, Mail, Phone, MapPin, DollarSign, MessageSquare, Heart, Send, Search, ChevronDown } from "lucide-react";
 
 /* ───────── constants ───────── */
 const phoneRegex = /^\(\d{3}\)\s?\d{3}-\d{4}$/;
@@ -326,84 +326,99 @@ export default function ResponseCard() {
           return full.includes(agentSearch.toLowerCase().trim());
         });
         return (
-          <div onKeyDown={handleKeyDown}>
+          <div onKeyDown={handleKeyDown} className="relative">
             {header("Who invited you to this presentation?", "Select the agent who invited you.")}
 
-            {/* Search bar with gold glow */}
-            <div className="flex items-center gap-2 mb-4">
-              <div className="relative flex-1">
-                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-                <input
-                  type="text"
-                  value={agentSearch}
-                  onChange={(e) => setAgentSearch(e.target.value)}
-                  placeholder="Search by name…"
-                  className="w-full pl-10 pr-4 py-3 rounded-2xl border border-gray-200 bg-white text-sm placeholder:text-gray-400 focus:outline-none focus:border-[#C8A96E] focus:ring-2 focus:ring-[#C8A96E]/20 focus:shadow-[0_0_20px_rgba(200,169,110,0.15)] transition-all min-h-[48px]"
-                />
-              </div>
-              <span className="text-xs text-[#C8A96E] font-medium whitespace-nowrap bg-[#C8A96E]/10 px-3 py-1.5 rounded-full">{filteredAdvisors.length} agents</span>
-            </div>
-
-            {/* Agent card grid */}
-            <div
-              className="w-full max-h-[50vh] overflow-y-auto overscroll-contain agent-picker-scroll rounded-2xl"
-              style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-y' }}
+            {/* Trigger button */}
+            <button
+              type="button"
+              onClick={() => { setAgentOpen(!agentOpen); setAgentSearch(""); }}
+              className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl border-2 bg-white text-left transition-all min-h-[56px] ${
+                agentOpen
+                  ? "border-[#C8A96E] shadow-[0_0_20px_rgba(200,169,110,0.15)]"
+                  : selectedAdvisor
+                    ? "border-[#C8A96E]/50 shadow-sm"
+                    : "border-gray-200 shadow-sm hover:border-gray-300"
+              }`}
             >
-              {filteredAdvisors.length === 0 && (
-                <p className="text-center text-gray-400 text-sm py-8">No agents match your search</p>
+              {selectedAdvisor ? (
+                <>
+                  <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${getGradient(selectedAdvisor.first_name, selectedAdvisor.last_name)} text-white flex items-center justify-center text-sm font-bold shrink-0`}>
+                    {selectedAdvisor.first_name[0]}{selectedAdvisor.last_name[0]}
+                  </div>
+                  <span className="text-sm font-semibold text-[#1A4D3E] flex-1">{selectedAdvisor.first_name} {selectedAdvisor.last_name}</span>
+                </>
+              ) : (
+                <span className="text-sm text-gray-400 flex-1">Select your agent…</span>
               )}
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 p-1">
-                {filteredAdvisors.map((a, i) => {
-                  const isSelected = form.assigned_advisor_id === a.id;
-                  const grad = getGradient(a.first_name, a.last_name);
-                  return (
-                    <motion.button
-                      key={a.id}
-                      type="button"
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: Math.min(i * 0.04, 0.8), type: "spring", stiffness: 260, damping: 20 }}
-                      whileHover={{ y: -4, boxShadow: "0 8px 30px rgba(200,169,110,0.2)" }}
-                      whileTap={{ scale: 0.96 }}
-                      onClick={() => set("assigned_advisor_id", a.id)}
-                      className={`relative flex flex-col items-center gap-2.5 p-4 rounded-2xl border-2 transition-all duration-200 min-h-[120px] justify-center ${
-                        isSelected
-                          ? "border-[#C8A96E] bg-[#C8A96E]/5 shadow-[0_0_30px_rgba(200,169,110,0.15)]"
-                          : "border-gray-100 bg-white hover:border-gray-200 shadow-sm hover:shadow-md"
-                      }`}
-                    >
-                      {/* Checkmark badge */}
-                      {isSelected && (
-                        <motion.div
-                          initial={{ scale: 0 }}
-                          animate={{ scale: 1 }}
-                          className="absolute top-2 right-2 w-6 h-6 rounded-full bg-[#C8A96E] flex items-center justify-center shadow-md"
+              <ChevronDown className={`w-5 h-5 text-gray-400 transition-transform duration-200 ${agentOpen ? "rotate-180" : ""}`} />
+            </button>
+
+            {/* Dropdown panel */}
+            <AnimatePresence>
+              {agentOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: -8, scaleY: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scaleY: 1 }}
+                  exit={{ opacity: 0, y: -8, scaleY: 0.95 }}
+                  transition={{ duration: 0.2, ease: "easeOut" }}
+                  style={{ transformOrigin: "top" }}
+                  className="mt-2 rounded-2xl border border-gray-200 bg-white shadow-xl overflow-hidden"
+                >
+                  {/* Sticky search */}
+                  <div className="sticky top-0 z-10 bg-white border-b border-gray-100 p-3">
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                      <input
+                        type="text"
+                        value={agentSearch}
+                        onChange={(e) => setAgentSearch(e.target.value)}
+                        placeholder="Search by name…"
+                        autoFocus
+                        className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-sm placeholder:text-gray-400 focus:outline-none focus:border-[#C8A96E] focus:ring-1 focus:ring-[#C8A96E]/30 transition-all"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Scrollable agent list */}
+                  <div
+                    className="max-h-[40vh] overflow-y-auto overscroll-contain agent-picker-scroll"
+                    style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-y' }}
+                  >
+                    {filteredAdvisors.length === 0 && (
+                      <p className="text-center text-gray-400 text-sm py-8">No agents match your search</p>
+                    )}
+                    {filteredAdvisors.map((a) => {
+                      const isSelected = form.assigned_advisor_id === a.id;
+                      const grad = getGradient(a.first_name, a.last_name);
+                      return (
+                        <button
+                          key={a.id}
+                          type="button"
+                          onClick={() => { set("assigned_advisor_id", a.id); setAgentOpen(false); setAgentSearch(""); }}
+                          className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-colors min-h-[48px] ${
+                            isSelected
+                              ? "bg-[#C8A96E]/10"
+                              : "hover:bg-gray-50 active:bg-gray-100"
+                          }`}
                         >
-                          <Check className="w-3.5 h-3.5 text-white" />
-                        </motion.div>
-                      )}
-
-                      {/* Avatar circle with gradient */}
-                      <div className={`relative w-14 h-14 rounded-full bg-gradient-to-br ${grad} flex items-center justify-center text-white text-lg font-bold shadow-lg ${
-                        isSelected ? "ring-[3px] ring-[#C8A96E] ring-offset-2" : ""
-                      }`}>
-                        {a.first_name[0]}{a.last_name[0]}
-                      </div>
-
-                      {/* Name */}
-                      <span className={`text-sm text-center font-medium leading-tight ${
-                        isSelected ? "text-[#1A4D3E] font-semibold" : "text-gray-700"
-                      }`}>
-                        {a.first_name} {a.last_name}
-                      </span>
-                    </motion.button>
-                  );
-                })}
-              </div>
-            </div>
+                          <div className={`w-9 h-9 rounded-full bg-gradient-to-br ${grad} text-white flex items-center justify-center text-xs font-bold shrink-0`}>
+                            {a.first_name[0]}{a.last_name[0]}
+                          </div>
+                          <span className={`text-sm flex-1 ${isSelected ? "font-semibold text-[#1A4D3E]" : "text-gray-700"}`}>
+                            {a.first_name} {a.last_name}
+                          </span>
+                          {isSelected && <Check className="w-4 h-4 text-[#C8A96E] shrink-0" />}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             {/* Selected confirmation bar */}
-            {selectedAdvisor && (
+            {selectedAdvisor && !agentOpen && (
               <motion.div
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
