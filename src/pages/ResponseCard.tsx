@@ -105,7 +105,7 @@ export default function ResponseCard() {
   useEffect(() => {
     supabase
       .from("advisors")
-      .select("id, first_name, last_name")
+      .select("id, first_name, last_name, photo_url")
       .eq("is_active", true)
       .order("first_name")
       .then(({ data }) => { if (data) setAdvisors(data); });
