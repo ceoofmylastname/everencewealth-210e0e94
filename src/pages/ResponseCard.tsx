@@ -223,7 +223,7 @@ export default function ResponseCard() {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => onToggle(opt)}
-              className={`text-left px-5 py-4 rounded-2xl border text-sm transition-all duration-200 ${
+              className={`text-left px-5 py-4 rounded-2xl border text-sm transition-all duration-200 min-h-[48px] ${
                 isSelected
                   ? "bg-[#C8A96E]/10 text-[#1A4D3E] border-[#C8A96E] shadow-[0_0_25px_rgba(200,169,110,0.12)]"
                   : "bg-gray-50 text-gray-600 border-gray-200 hover:border-gray-300 hover:text-gray-800"
