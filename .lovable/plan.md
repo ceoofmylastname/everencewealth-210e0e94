@@ -1,31 +1,19 @@
 
 
-## Fix: Mobile Agent Bottom Sheet Not Scrolling
+## Fix: Move Scroll Fade Cues Inside the Agent List Container
 
-### Root Cause
-Line 295 in `src/pages/ResponseCard.tsx`:
-```jsx
-<div className="fixed inset-0 z-[9999]" style={{ touchAction: 'none' }}>
-```
-
-The outer overlay container has `touchAction: 'none'`, which **blocks all touch events** including scrolling on iOS Safari. Even though the inner scroll container sets `touchAction: 'pan-y'`, iOS respects the parent's restriction and prevents scrolling entirely.
-
-This is why all 24 agents load but the user can only see the ones visible without scrolling (~7).
+### Problem
+The top/bottom gradient fade indicators ("scroll cues") are rendering on the backdrop overlay behind the bottom sheet, not inside the scrollable agent list where they belong.
 
 ### Fix
-In `src/pages/ResponseCard.tsx`, line 295:
-- Change `touchAction: 'none'` to `touchAction: 'auto'` on the outer fixed overlay
-- Keep `touchAction: 'pan-y'` on the inner scroll container
-- Add `touchAction: 'none'` only on the **backdrop** div (to prevent scroll-through on the dimmed area)
+In `src/pages/ResponseCard.tsx`, add sticky top/bottom gradient fades **inside** the scrollable agent list div (lines 311-332):
 
-### Changes (single file)
-**`src/pages/ResponseCard.tsx`** — 2 small edits:
+1. Add `relative` to the scrollable container class
+2. Add a sticky top fade: `<div className="pointer-events-none sticky top-0 h-6 bg-gradient-to-b from-white to-transparent" />`  — placed before the advisor `.map()`
+3. Add a sticky bottom fade: `<div className="pointer-events-none sticky bottom-0 h-6 bg-gradient-to-t from-white to-transparent" />` — placed after the advisor `.map()`
 
-1. **Line 295** — outer overlay: remove `touchAction: 'none'`
-   - Change: `style={{ touchAction: 'none' }}` → remove the style entirely (or set to `auto`)
+These stay pinned at the top/bottom of the scroll viewport, giving a visual cue that more content exists above/below.
 
-2. **Line 298-300** — backdrop div: add `touchAction: 'none'` so tapping the backdrop still closes without scrolling through
-   - Add: `style={{ touchAction: 'none' }}`
-
-No other changes needed. The scroll container already has the correct properties (`overflow-y-scroll`, `overscroll-contain`, `WebkitOverflowScrolling: 'touch'`, `touchAction: 'pan-y'`).
+### File
+- `src/pages/ResponseCard.tsx` — ~3 lines added inside the scroll container
 
