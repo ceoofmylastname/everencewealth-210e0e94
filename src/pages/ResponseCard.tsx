@@ -37,7 +37,7 @@ const stepLabels = [
 
 /* ───────── per-step schemas ───────── */
 const stepSchemas = [
-  z.object({ assigned_advisor_id: z.string().min(1, "Please select an agent") }),
+  z.object({ assigned_advisor_id: z.string().min(1, "Please select an advisor") }),
   z.object({
     first_name: z.string().trim().min(1, "First name is required"),
     last_name: z.string().trim().min(1, "Last name is required"),
