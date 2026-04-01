@@ -9,7 +9,7 @@ import {
   FolderOpen, Menu, X, ChevronRight, ChevronDown, MessageSquare,
   Building2, TrendingUp, Wrench, GraduationCap, Megaphone, Calendar, Newspaper,
   Settings, ClipboardList, Briefcase, GitBranch, Lock, AlertTriangle, Target, Wand2,
-  Presentation, FileSearch,
+  Presentation, FileSearch, ClipboardCheck,
 } from "lucide-react";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import { Button } from "@/components/ui/button";
