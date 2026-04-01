@@ -361,7 +361,7 @@ export default function ResponseCard() {
                   <span className="text-sm font-semibold text-[#1A4D3E] flex-1">{selectedAdvisor.first_name} {selectedAdvisor.last_name}</span>
                 </>
               ) : (
-                <span className="text-sm text-gray-400 flex-1">Select your agent…</span>
+                <span className="text-sm text-gray-400 flex-1">Select your advisor…</span>
               )}
               <ChevronDown className={`w-5 h-5 text-gray-400 transition-transform duration-200 ${agentOpen ? "rotate-180" : ""}`} />
             </button>
