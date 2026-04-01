@@ -25,7 +25,7 @@ const contactTimeOptions = [
 
 const stepIcons = [User, User, Heart, Mail, MapPin, DollarSign, MessageSquare, Send];
 const stepLabels = [
-  "Your Agent",
+  "Your Advisor",
   "Your Name",
   "About You",
   "Contact Info",
@@ -37,7 +37,7 @@ const stepLabels = [
 
 /* ───────── per-step schemas ───────── */
 const stepSchemas = [
-  z.object({ assigned_advisor_id: z.string().min(1, "Please select an agent") }),
+  z.object({ assigned_advisor_id: z.string().min(1, "Please select an advisor") }),
   z.object({
     first_name: z.string().trim().min(1, "First name is required"),
     last_name: z.string().trim().min(1, "Last name is required"),
@@ -333,9 +333,9 @@ export default function ResponseCard() {
                 Ready to Take Control of<br />
                 <span className="text-[#C8A96E]">Your Financial Future?</span>
               </h1>
-              <p className="text-gray-400 text-sm mt-3">Let's start by connecting you with your agent.</p>
+              <p className="text-gray-400 text-sm mt-3">Let's start by connecting you with your advisor.</p>
             </div>
-            {header("Who invited you to this presentation?", "Select the agent who invited you.")}
+            {header("Who invited you to this presentation?", "Select the advisor who invited you.")}
 
             {/* Trigger button */}
             <button
@@ -361,7 +361,7 @@ export default function ResponseCard() {
                   <span className="text-sm font-semibold text-[#1A4D3E] flex-1">{selectedAdvisor.first_name} {selectedAdvisor.last_name}</span>
                 </>
               ) : (
-                <span className="text-sm text-gray-400 flex-1">Select your agent…</span>
+                <span className="text-sm text-gray-400 flex-1">Select your advisor…</span>
               )}
               <ChevronDown className={`w-5 h-5 text-gray-400 transition-transform duration-200 ${agentOpen ? "rotate-180" : ""}`} />
             </button>
@@ -398,7 +398,7 @@ export default function ResponseCard() {
                     style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-y' }}
                   >
                     {filteredAdvisors.length === 0 && (
-                      <p className="text-center text-gray-400 text-sm py-8">No agents match your search</p>
+                      <p className="text-center text-gray-400 text-sm py-8">No advisors match your search</p>
                     )}
                     {filteredAdvisors.map((a) => {
                       const isSelected = form.assigned_advisor_id === a.id;
@@ -445,7 +445,7 @@ export default function ResponseCard() {
                 </div>
                 <div>
                   <p className="text-sm font-semibold text-[#1A4D3E]">{selectedAdvisor.first_name} {selectedAdvisor.last_name}</p>
-                  <p className="text-xs text-gray-500">Selected Agent</p>
+                  <p className="text-xs text-gray-500">Selected Advisor</p>
                 </div>
                 <Check className="w-5 h-5 text-[#C8A96E] ml-auto" />
               </motion.div>
