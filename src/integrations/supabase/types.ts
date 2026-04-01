@@ -7628,6 +7628,80 @@ export type Database = {
         }
         Relationships: []
       }
+      response_card_submissions: {
+        Row: {
+          address_line_2: string | null
+          assigned_advisor_id: string
+          availability: string | null
+          city: string | null
+          comments: string | null
+          email: string
+          first_name: string
+          id: string
+          income_range: string
+          last_name: string
+          marital_status: string
+          meeting_topics: string[]
+          phone: string
+          reviewed: boolean
+          state: string | null
+          street_address: string | null
+          submitted_at: string | null
+          wants_free_consultation: boolean
+          zip_code: string | null
+        }
+        Insert: {
+          address_line_2?: string | null
+          assigned_advisor_id: string
+          availability?: string | null
+          city?: string | null
+          comments?: string | null
+          email: string
+          first_name: string
+          id?: string
+          income_range: string
+          last_name: string
+          marital_status: string
+          meeting_topics?: string[]
+          phone: string
+          reviewed?: boolean
+          state?: string | null
+          street_address?: string | null
+          submitted_at?: string | null
+          wants_free_consultation?: boolean
+          zip_code?: string | null
+        }
+        Update: {
+          address_line_2?: string | null
+          assigned_advisor_id?: string
+          availability?: string | null
+          city?: string | null
+          comments?: string | null
+          email?: string
+          first_name?: string
+          id?: string
+          income_range?: string
+          last_name?: string
+          marital_status?: string
+          meeting_topics?: string[]
+          phone?: string
+          reviewed?: boolean
+          state?: string | null
+          street_address?: string | null
+          submitted_at?: string | null
+          wants_free_consultation?: boolean
+          zip_code?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "response_card_submissions_assigned_advisor_id_fkey"
+            columns: ["assigned_advisor_id"]
+            isOneToOne: false
+            referencedRelation: "advisors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       retargeting_leads: {
         Row: {
           created_at: string | null
