@@ -288,31 +288,60 @@ export default function ResponseCard() {
                 </span>
                 <svg className={`w-5 h-5 text-gray-400 shrink-0 transition-transform ${agentOpen ? "rotate-180" : ""}`} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9" /></svg>
               </button>
-              {agentOpen && (
-                <div
-                  className="mt-2 rounded-xl border border-gray-200 bg-white shadow-lg max-h-72 overflow-y-auto"
-                  style={{ WebkitOverflowScrolling: 'touch' }}
-                >
-                  {advisors.map((a) => (
-                    <button
-                      key={a.id}
-                      type="button"
-                      onClick={() => {
-                        set("assigned_advisor_id", a.id);
-                        setAgentOpen(false);
-                      }}
-                      className={`block w-full text-left px-4 py-3 min-h-[48px] text-base border-b border-gray-100 last:border-b-0 transition-colors ${
-                        form.assigned_advisor_id === a.id
-                          ? "bg-[#C8A96E]/10 text-[#1A4D3E] font-semibold"
-                          : "text-gray-700 hover:bg-gray-100"
-                      }`}
-                    >
-                      {a.first_name} {a.last_name}
-                    </button>
-                  ))}
-                </div>
-              )}
             </div>
+
+            {/* Mobile bottom-sheet agent picker — fixed overlay, outside all scroll/transform ancestors */}
+            {agentOpen && (
+              <div className="fixed inset-0 z-[9999]" style={{ touchAction: 'none' }}>
+                {/* Backdrop */}
+                <div
+                  className="absolute inset-0 bg-black/40"
+                  onClick={() => setAgentOpen(false)}
+                />
+                {/* Bottom sheet */}
+                <div className="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl shadow-2xl" style={{ maxHeight: '70vh', display: 'flex', flexDirection: 'column' }}>
+                  {/* Drag handle + header */}
+                  <div className="flex flex-col items-center pt-3 pb-2 border-b border-gray-100 flex-shrink-0">
+                    <div className="w-10 h-1 rounded-full bg-gray-300 mb-3" />
+                    <p className="text-sm font-semibold text-[#1A4D3E]">Select Your Agent</p>
+                    <p className="text-xs text-gray-400 mt-0.5">Scroll to see all agents</p>
+                  </div>
+                  {/* Scrollable agent list */}
+                  <div
+                    className="flex-1 overflow-y-scroll overscroll-contain"
+                    style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-y' }}
+                  >
+                    {advisors.map((a) => (
+                      <button
+                        key={a.id}
+                        type="button"
+                        onClick={() => {
+                          set("assigned_advisor_id", a.id);
+                          setAgentOpen(false);
+                        }}
+                        className={`block w-full text-left px-5 py-4 min-h-[52px] text-base border-b border-gray-100 last:border-b-0 transition-colors ${
+                          form.assigned_advisor_id === a.id
+                            ? "bg-[#C8A96E]/10 text-[#1A4D3E] font-semibold"
+                            : "text-gray-700 active:bg-gray-100"
+                        }`}
+                      >
+                        {a.first_name} {a.last_name}
+                      </button>
+                    ))}
+                  </div>
+                  {/* Close button at bottom for easy reach */}
+                  <div className="flex-shrink-0 p-4 border-t border-gray-100">
+                    <button
+                      type="button"
+                      onClick={() => setAgentOpen(false)}
+                      className="w-full py-3 rounded-xl bg-gray-100 text-gray-600 font-medium text-sm"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
             {selectedAdvisor && (
               <motion.div
                 initial={{ opacity: 0, y: 8 }}
