@@ -309,9 +309,10 @@ export default function ResponseCard() {
                   </div>
                   {/* Scrollable agent list */}
                   <div
-                    className="flex-1 overflow-y-scroll overscroll-contain"
+                    className="relative flex-1 overflow-y-scroll overscroll-contain"
                     style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-y' }}
                   >
+                    <div className="pointer-events-none sticky top-0 h-6 bg-gradient-to-b from-white to-transparent z-10" />
                     {advisors.map((a) => (
                       <button
                         key={a.id}
@@ -329,6 +330,7 @@ export default function ResponseCard() {
                         {a.first_name} {a.last_name}
                       </button>
                     ))}
+                    <div className="pointer-events-none sticky bottom-0 h-6 bg-gradient-to-t from-white to-transparent z-10" />
                   </div>
                   {/* Close button at bottom for easy reach */}
                   <div className="flex-shrink-0 p-4 border-t border-gray-100">
