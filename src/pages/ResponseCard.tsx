@@ -562,7 +562,7 @@ export default function ResponseCard() {
               whileTap={{ scale: 0.95 }}
               onClick={handleSubmit}
               disabled={submitting}
-              className="flex items-center gap-2 px-8 py-3 rounded-full bg-[#C8A96E] text-white font-semibold text-sm hover:shadow-[0_0_30px_rgba(200,169,110,0.25)] transition-shadow disabled:opacity-60"
+              className="flex items-center justify-center gap-2 px-8 sm:px-8 py-3.5 rounded-full bg-[#C8A96E] text-white font-semibold text-sm min-w-[140px] hover:shadow-[0_0_30px_rgba(200,169,110,0.25)] transition-shadow disabled:opacity-60"
             >
               {submitting ? "Submitting..." : "Submit"} <Send className="w-4 h-4" />
             </motion.button>
