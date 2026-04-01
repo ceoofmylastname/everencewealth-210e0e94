@@ -96,6 +96,7 @@ export default function ResponseCard() {
     income_range: "",
     wants_free_consultation: "",
     meeting_topics: [] as string[],
+    best_contact_times: [] as string[],
     availability: "",
     comments: "",
   });
