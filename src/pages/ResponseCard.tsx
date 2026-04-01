@@ -536,7 +536,7 @@ export default function ResponseCard() {
 
       {/* Footer Nav */}
       <div className="border-t border-gray-100 relative z-10">
-        <div className="max-w-3xl mx-auto flex items-center justify-between px-6 py-5">
+        <div className="max-w-3xl mx-auto flex items-center justify-between px-4 sm:px-6 py-4 sm:py-5">
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
