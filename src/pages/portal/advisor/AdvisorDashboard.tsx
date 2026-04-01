@@ -101,6 +101,7 @@ export default function AdvisorDashboard() {
     { label: "Calculators", icon: Calculator, href: "/portal/advisor/tools" },
     { label: "Training", icon: GraduationCap, href: "/portal/advisor/training" },
     { label: "Marketing", icon: Megaphone, href: "/portal/advisor/marketing" },
+    { label: "Response Cards", icon: ClipboardCheck, href: "/portal/advisor/response-cards" },
   ];
 
   return (
