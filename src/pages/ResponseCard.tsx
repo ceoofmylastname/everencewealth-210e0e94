@@ -445,7 +445,7 @@ export default function ResponseCard() {
                 </div>
                 <div>
                   <p className="text-sm font-semibold text-[#1A4D3E]">{selectedAdvisor.first_name} {selectedAdvisor.last_name}</p>
-                  <p className="text-xs text-gray-500">Selected Agent</p>
+                  <p className="text-xs text-gray-500">Selected Advisor</p>
                 </div>
                 <Check className="w-5 h-5 text-[#C8A96E] ml-auto" />
               </motion.div>
