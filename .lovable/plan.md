@@ -1,22 +1,28 @@
 
 
-## Replace "Agent" with "Advisor" on Public-Facing Response Card
+## Brand the Response Card Notification Email
 
 ### What changes
-Replace every user-visible occurrence of "agent" with "advisor" in `src/pages/ResponseCard.tsx`. Internal variable names stay unchanged.
+Rewrite the `send-response-card-notification` edge function to use the same `brandedEmailWrapper` template used by the workshop confirmation emails — with the Everence Wealth logo, Georgia serif font, gold accents (`#C5A059`), green header (`#1A4D3E`), and the San Francisco address footer.
 
-### Strings to update
+### Implementation
 
-| Line | Current text | New text |
-|------|-------------|----------|
-| 28 | `"Your Agent"` | `"Your Advisor"` |
-| 40 | `"Please select an agent"` | `"Please select an advisor"` |
-| 336 | `"Let's start by connecting you with your agent."` | `"Let's start by connecting you with your advisor."` |
-| 338 | `"Select the agent who invited you."` | `"Select the advisor who invited you."` |
-| 364 | `"Select your agent…"` | `"Select your advisor…"` |
-| 401 | `"No agents match your search"` | `"No advisors match your search"` |
-| 448 | `"Selected Agent"` | `"Selected Advisor"` |
+**`supabase/functions/send-response-card-notification/index.ts`** — full rewrite of the email HTML section:
+
+1. Add the `brandedEmailWrapper()` function (identical to the one in `send-workshop-confirmation`)
+2. Replace the inline `emailHtml` with a call to `brandedEmailWrapper("New Response Card Lead", innerHtml)`
+3. Build `innerHtml` using inline table styles (not CSS classes) matching the workshop email pattern:
+   - Greeting: "Hi {advisor name}, a new lead has been assigned to you"
+   - Client info displayed as styled field rows: name, email (linked), phone (linked), marital status, address, income range, consultation preference
+   - Best contact times in gold highlight pill
+   - Meeting topics as a bulleted list
+   - Availability and comments if present
+4. Update the `from` address to match workshop emails: `notifications@everencewealth.com`
+5. Keep all existing logic (advisor lookup, error handling, CORS) unchanged
+
+### Result
+Both the response card notification and workshop confirmation emails will share the same branded wrapper — logo, colors, fonts, and footer — giving advisors a consistent, professional experience.
 
 ### File
-- `src/pages/ResponseCard.tsx` — 7 string replacements, no logic changes
+- `supabase/functions/send-response-card-notification/index.ts` — rewrite email template (~60 lines changed)
 
