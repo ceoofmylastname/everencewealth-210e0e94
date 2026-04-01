@@ -1,0 +1,1 @@
+ALTER TABLE public.response_card_submissions ADD COLUMN best_contact_times text[] DEFAULT '{}';

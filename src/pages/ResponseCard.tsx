@@ -16,6 +16,12 @@ const topicOptions = [
   "Tax-free retirement alternatives to IRAs, 401(k)s, etc.",
   "I want a second opinion on my current retirement plan",
 ];
+const contactTimeOptions = [
+  "Morning (8am – 12pm)",
+  "Afternoon (12pm – 4pm)",
+  "Evening (4pm – 7pm)",
+  "Weekends Only",
+];
 
 const stepIcons = [User, User, Heart, Mail, MapPin, DollarSign, MessageSquare, Send];
 const stepLabels = [
@@ -53,6 +59,7 @@ const stepSchemas = [
   }),
   z.object({
     meeting_topics: z.array(z.string()).min(1, "Select at least one topic"),
+    best_contact_times: z.array(z.string()).length(2, "Please select exactly 2 preferred times"),
   }),
   z.object({}),
 ];
@@ -90,6 +97,7 @@ export default function ResponseCard() {
     income_range: "",
     wants_free_consultation: "",
     meeting_topics: [] as string[],
+    best_contact_times: [] as string[],
     availability: "",
     comments: "",
   });
@@ -157,10 +165,37 @@ export default function ResponseCard() {
         income_range: form.income_range,
         wants_free_consultation: form.wants_free_consultation === "yes",
         meeting_topics: form.meeting_topics,
+        best_contact_times: form.best_contact_times,
         availability: form.availability || null,
         comments: form.comments || null,
       });
       if (error) throw error;
+
+      // Fire-and-forget: send email notification to the selected agent
+      supabase.functions.invoke("send-response-card-notification", {
+        body: {
+          submission: {
+            assigned_advisor_id: form.assigned_advisor_id,
+            first_name: form.first_name,
+            last_name: form.last_name,
+            email: form.email,
+            phone: form.phone,
+            marital_status: form.marital_status,
+            street_address: form.street_address || undefined,
+            address_line_2: form.address_line_2 || undefined,
+            city: form.city || undefined,
+            state: form.state || undefined,
+            zip_code: form.zip_code || undefined,
+            income_range: form.income_range,
+            wants_free_consultation: form.wants_free_consultation === "yes",
+            meeting_topics: form.meeting_topics,
+            best_contact_times: form.best_contact_times,
+            availability: form.availability || undefined,
+            comments: form.comments || undefined,
+          },
+        },
+      }).catch((err) => console.error("Notification error:", err));
+
       setSubmitted(true);
       setTimeout(fireConfetti, 200);
     } catch (err) {
@@ -472,8 +507,23 @@ export default function ResponseCard() {
             <div className="space-y-6">
               <CardSelect options={topicOptions} selected={form.meeting_topics} onToggle={toggleTopic} multi error={errors.meeting_topics} />
               <div>
-                <label className="text-xs text-gray-400 mb-1.5 block">Best Day & Time to Meet (optional)</label>
-                <textarea value={form.availability} onChange={(e) => set("availability", e.target.value)} rows={3} className={inputCls} placeholder="Please provide 2–3 available times" />
+                <label className="text-xs text-gray-400 mb-3 block uppercase tracking-wider">
+                  Best Time to Contact <span className="normal-case text-gray-400">(select 2)</span>
+                </label>
+                <CardSelect
+                  options={contactTimeOptions}
+                  selected={form.best_contact_times}
+                  onToggle={(v) => {
+                    const current = form.best_contact_times;
+                    if (current.includes(v)) {
+                      set("best_contact_times", current.filter((t) => t !== v));
+                    } else if (current.length < 2) {
+                      set("best_contact_times", [...current, v]);
+                    }
+                  }}
+                  multi
+                  error={errors.best_contact_times}
+                />
               </div>
             </div>
           </div>

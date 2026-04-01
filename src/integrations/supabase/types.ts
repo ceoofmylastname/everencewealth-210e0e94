@@ -7633,6 +7633,7 @@ export type Database = {
           address_line_2: string | null
           assigned_advisor_id: string
           availability: string | null
+          best_contact_times: string[] | null
           city: string | null
           comments: string | null
           email: string
@@ -7654,6 +7655,7 @@ export type Database = {
           address_line_2?: string | null
           assigned_advisor_id: string
           availability?: string | null
+          best_contact_times?: string[] | null
           city?: string | null
           comments?: string | null
           email: string
@@ -7675,6 +7677,7 @@ export type Database = {
           address_line_2?: string | null
           assigned_advisor_id?: string
           availability?: string | null
+          best_contact_times?: string[] | null
           city?: string | null
           comments?: string | null
           email?: string

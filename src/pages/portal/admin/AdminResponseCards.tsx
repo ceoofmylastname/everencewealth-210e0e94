@@ -22,6 +22,7 @@ interface Submission {
   meeting_topics: string[];
   availability: string | null;
   comments: string | null;
+  best_contact_times: string[] | null;
   reviewed: boolean;
   submitted_at: string;
   advisor_name?: string;
@@ -195,6 +196,9 @@ export default function AdminResponseCards() {
                       </div>
                     )}
                     {s.availability && <Detail label="Availability" value={s.availability} />}
+                    {s.best_contact_times && s.best_contact_times.length > 0 && (
+                      <Detail label="Best Contact Times" value={s.best_contact_times.join(", ")} />
+                    )}
                     {s.comments && <Detail label="Comments" value={s.comments} />}
                     <div className="pt-2 flex gap-2">
                       <Button
