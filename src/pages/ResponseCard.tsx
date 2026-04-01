@@ -59,6 +59,7 @@ const stepSchemas = [
   }),
   z.object({
     meeting_topics: z.array(z.string()).min(1, "Select at least one topic"),
+    best_contact_times: z.array(z.string()).length(2, "Please select exactly 2 preferred times"),
   }),
   z.object({}),
 ];

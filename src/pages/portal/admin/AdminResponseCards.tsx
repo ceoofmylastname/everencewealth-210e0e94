@@ -196,6 +196,9 @@ export default function AdminResponseCards() {
                       </div>
                     )}
                     {s.availability && <Detail label="Availability" value={s.availability} />}
+                    {s.best_contact_times && s.best_contact_times.length > 0 && (
+                      <Detail label="Best Contact Times" value={s.best_contact_times.join(", ")} />
+                    )}
                     {s.comments && <Detail label="Comments" value={s.comments} />}
                     <div className="pt-2 flex gap-2">
                       <Button
