@@ -406,9 +406,13 @@ export default function ResponseCard() {
                               : "hover:bg-gray-50 active:bg-gray-100"
                           }`}
                         >
-                          <div className={`w-9 h-9 rounded-full bg-gradient-to-br ${grad} text-white flex items-center justify-center text-xs font-bold shrink-0`}>
-                            {a.first_name[0]}{a.last_name[0]}
-                          </div>
+                          {(a as any).photo_url ? (
+                            <img src={(a as any).photo_url} alt={`${a.first_name} ${a.last_name}`} className="w-9 h-9 rounded-full object-cover shrink-0" />
+                          ) : (
+                            <div className={`w-9 h-9 rounded-full bg-gradient-to-br ${grad} text-white flex items-center justify-center text-xs font-bold shrink-0`}>
+                              {a.first_name[0]}{a.last_name[0]}
+                            </div>
+                          )}
                           <span className={`text-sm flex-1 ${isSelected ? "font-semibold text-[#1A4D3E]" : "text-gray-700"}`}>
                             {a.first_name} {a.last_name}
                           </span>
