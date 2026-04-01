@@ -1,40 +1,41 @@
 
 
-## Two Changes: Email Notification to Agent + Best Time to Contact Field
+## Redesign Step 1: Premium Agent Selector
 
-### 1. Email notification via Resend when response card is submitted
+### Concept
+Replace the plain scrollable list with a **search-first card grid** that feels like selecting a profile on a premium platform. Think Netflix profile selection meets luxury fintech.
 
-**What:** After a successful response card submission, call a new edge function that sends an email to the selected agent with all the submission details.
+### Design
 
-**How:**
-- Create a new edge function `send-response-card-notification/index.ts` modeled after the existing `send-strategy-form-notification` function
-- The function receives the submission data + the agent's email
-- It looks up the agent's email from the `advisors` table using the `assigned_advisor_id`
-- Sends a branded HTML email via Resend (API key already configured) with all submission fields: name, phone, email, marital status, address, income, topics, availability, best contact times, comments
-- In `src/pages/ResponseCard.tsx`, after the successful `.insert()`, invoke the edge function (fire-and-forget — don't block the success screen)
+**Layout:**
+- Search bar stays at top with a subtle glow effect on focus
+- Agents displayed as a **responsive grid of cards** (2 columns on mobile, 3 on desktop)
+- Each card is a **square-ish tile** with:
+  - Large circular avatar with initials (gradient background per agent using name hash)
+  - Agent name below in bold
+  - Subtle hover: 3D tilt lift effect + gold border glow
+  - Selected state: gold ring around avatar, checkmark badge overlay, card background glow
+- Cards animate in with staggered scale-up (spring physics)
+- Max height container with smooth scroll, visible on all devices
 
-### 2. Add "Best Time to Contact" with two selectable time slots
+**Visual details:**
+- Each agent gets a unique gradient on their avatar circle (derived from their name, cycling through a palette of rich greens, deep teals, warm golds, slate blues)
+- On hover (desktop): card lifts with `translateY(-4px)` and a warm gold shadow
+- On tap/select: gold ring pulses once, checkmark appears top-right corner of card
+- Selected confirmation bar below the grid stays (with the current gold accent style)
+- Search input gets a subtle gold underline glow on focus
 
-**What:** Replace the current free-text "Best Day & Time to Meet" textarea on step 6 with a structured picker where the user selects **two preferred contact times** from predefined options.
+**Mobile reliability:**
+- Grid uses CSS Grid (`grid-cols-2`) — no absolute positioning, no overlays, no popups
+- Container: `max-h-[50vh] overflow-y-auto overscroll-contain` with `touch-action: pan-y`
+- Same `agent-picker-scroll` class for visible scrollbar
+- All items render inline — no clipping possible
 
-**Options (tappable cards, select exactly 2):**
-- Morning (8am – 12pm)
-- Afternoon (12pm – 4pm)
-- Evening (4pm – 7pm)
-- Weekends Only
+### File
+- `src/pages/ResponseCard.tsx` — rewrite case 0 section (~60 lines replaced)
 
-**Implementation:**
-- Add `best_contact_times: string[]` to the form state (replaces `availability`)
-- Add a database migration to add a `best_contact_times text[]` column to `response_card_submissions`
-- Render as tappable card buttons (same style as meeting topics) with "Select 2 preferred times" instruction
-- Validate that exactly 2 are selected before advancing
-- Store in DB and include in the email notification
-- Update the advisor dashboard (`ResponseCardSubmissions.tsx`) and admin dashboard (`AdminResponseCards.tsx`) to display the best contact times
-
-### Files to create/update
-- **New:** `supabase/functions/send-response-card-notification/index.ts` — Resend email to agent
-- **Migration:** Add `best_contact_times` column to `response_card_submissions`
-- **Edit:** `src/pages/ResponseCard.tsx` — add contact time picker, invoke notification edge function after submit
-- **Edit:** `src/pages/portal/advisor/ResponseCardSubmissions.tsx` — display best contact times
-- **Edit:** `src/pages/portal/admin/AdminResponseCards.tsx` — display best contact times
+### Technical notes
+- Avatar gradient colors generated from a small deterministic palette using `(firstName.charCodeAt(0) + lastName.charCodeAt(0)) % paletteLength`
+- Framer Motion `whileHover` and `whileTap` for interactive feel
+- No new dependencies needed
 
