@@ -335,7 +335,7 @@ export default function ResponseCard() {
               </h1>
               <p className="text-gray-400 text-sm mt-3">Let's start by connecting you with your advisor.</p>
             </div>
-            {header("Who invited you to this presentation?", "Select the agent who invited you.")}
+            {header("Who invited you to this presentation?", "Select the advisor who invited you.")}
 
             {/* Trigger button */}
             <button
