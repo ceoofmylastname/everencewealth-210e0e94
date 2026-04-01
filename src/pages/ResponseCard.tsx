@@ -196,7 +196,7 @@ export default function ResponseCard() {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.97 }}
             onClick={() => onChange(opt)}
-            className={`px-5 py-2.5 rounded-full text-sm font-medium border transition-all duration-200 ${
+            className={`px-5 py-3.5 rounded-full text-sm font-medium border transition-all duration-200 min-h-[48px] ${
               value === opt
                 ? "bg-[#C8A96E] text-white border-[#C8A96E] shadow-[0_0_20px_rgba(200,169,110,0.25)]"
                 : "bg-gray-50 text-gray-600 border-gray-200 hover:border-[#C8A96E]/40 hover:text-gray-800"
