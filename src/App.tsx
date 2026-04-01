@@ -314,6 +314,7 @@ const App = () => (
               <Route path="/briefing" element={<Briefing />} />
               <Route path="/broker-training" element={<TrainingEvent />} />
               <Route path="/recruit-dashboard" element={<RecruitDashboard />} />
+              <Route path="/response-card" element={<ResponseCard />} />
 
               {/* Socorro ISD Public Routes */}
               <Route path="/socorro-isd" element={<SocorroLanding />} />
