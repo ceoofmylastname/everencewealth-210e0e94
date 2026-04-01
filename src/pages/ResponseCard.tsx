@@ -333,7 +333,7 @@ export default function ResponseCard() {
                 Ready to Take Control of<br />
                 <span className="text-[#C8A96E]">Your Financial Future?</span>
               </h1>
-              <p className="text-gray-400 text-sm mt-3">Let's start by connecting you with your agent.</p>
+              <p className="text-gray-400 text-sm mt-3">Let's start by connecting you with your advisor.</p>
             </div>
             {header("Who invited you to this presentation?", "Select the agent who invited you.")}
 
