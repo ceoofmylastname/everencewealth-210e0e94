@@ -500,7 +500,7 @@ export default function ResponseCard() {
       </div>
 
       {/* Progress */}
-      <div className="max-w-3xl mx-auto w-full px-6 pt-6 relative z-10">
+      <div className="max-w-3xl mx-auto w-full px-4 sm:px-6 pt-6 relative z-10">
         <div className="flex items-center justify-between mb-2">
           <span className="text-xs text-gray-400">Step {step + 1} of {TOTAL_STEPS}</span>
           <span className="text-xs text-[#C8A96E]">{Math.round(progress)}%</span>
