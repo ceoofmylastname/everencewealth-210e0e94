@@ -357,7 +357,7 @@ export default function ResponseCard() {
                 {errors.street_address && <p className="text-red-500 text-xs mt-1">{errors.street_address}</p>}
               </div>
               <input value={form.address_line_2} onChange={(e) => set("address_line_2", e.target.value)} className={inputCls} placeholder="Apt, Suite, etc. (optional)" />
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
                   <input value={form.city} onChange={(e) => set("city", e.target.value)} className={inputCls} placeholder="City" />
                   {errors.city && <p className="text-red-500 text-xs mt-1">{errors.city}</p>}
