@@ -22,6 +22,7 @@ interface Submission {
   meeting_topics: string[];
   availability: string | null;
   comments: string | null;
+  best_contact_times: string[] | null;
   reviewed: boolean;
   submitted_at: string;
   advisor_name?: string;
