@@ -73,6 +73,7 @@ export default function ResponseCard() {
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [agentSearch, setAgentSearch] = useState("");
 
   const [form, setForm] = useState({
     assigned_advisor_id: "",
