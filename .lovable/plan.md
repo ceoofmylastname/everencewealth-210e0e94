@@ -1,27 +1,34 @@
 
 
-## Remove Dropdown — Show All Agents as Inline Scrollable List
+## Fix: All Agents Not Showing — RLS Policy Missing for Response Card
 
-### What changes
-Replace the dropdown button + bottom-sheet popup with a simple scrollable list of agent cards always visible on step 0. No toggle, no overlay — all agents are shown immediately and the user taps to select.
+### Root Cause
+The `advisors` table has Row-Level Security enabled. Unauthenticated users (response card visitors) can only see advisors that have an active entry in the `advisor_slugs` table — currently only **7 out of 24** active advisors have slugs. This is why the same 7 names appear regardless of dropdown vs inline list.
 
-### Implementation
+### Fix
+Add a new RLS policy on the `advisors` table that allows **anonymous/public SELECT** for all active advisors. This is safe because the response card only reads `id`, `first_name`, and `last_name`.
 
-**`src/pages/ResponseCard.tsx`** (step 0, lines ~271-347):
+**Database migration:**
+```sql
+CREATE POLICY "Public can view active advisors for response card"
+ON public.advisors
+FOR SELECT
+TO anon, public
+USING (is_active = true);
+```
 
-1. Remove the `agentOpen` toggle button (lines 277-291)
-2. Remove the entire fixed-position bottom-sheet overlay (lines 293-347)
-3. Replace with an inline scrollable container:
-   - `max-h-[50vh] overflow-y-auto` with the `agent-picker-scroll` class for visible scrollbar
-   - `touch-action: pan-y`, `-webkit-overflow-scrolling: touch`
-   - Each agent rendered as a tappable card/button with `min-h-[48px]`
-   - Selected agent highlighted with gold accent (`bg-[#C8A96E]/10`, `border-[#C8A96E]`)
-   - Rounded corners, slight border, clean spacing
-4. Keep the selected-agent confirmation badge below the list (lines 348-364) unchanged
-
-### Result
-All agents are visible immediately — user scrolls the in-page list and taps to select. No popup, no overlay, no iOS scroll issues.
+### Visual Refresh (Step 1 of 8)
+While fixing the data issue, also make step 1 more modern and creative:
+- Add a search/filter input at the top so users can type to find their agent
+- Style each agent card with avatar initials circle (green bg, white text), name in bold
+- Selected state: gold left border + gold tinted background
+- Smooth fade-in animation for the list items
+- "X agents available" count badge at top
 
 ### Files
-- `src/pages/ResponseCard.tsx` — rewrite step 0 agent section (~30 lines replaced)
+- **Database migration** — 1 new RLS policy (the actual fix)
+- **`src/pages/ResponseCard.tsx`** — add search filter input, styled agent cards with initials avatars, staggered animations
+
+### Why This Is Safe
+The policy only exposes `is_active = true` advisors for SELECT. No write access. The response card already only selects `id, first_name, last_name` columns.
 
