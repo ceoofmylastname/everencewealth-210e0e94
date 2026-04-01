@@ -272,18 +272,45 @@ export default function ResponseCard() {
         return (
           <div onKeyDown={handleKeyDown}>
             {header("Who invited you to this presentation?", "Select the agent who invited you.")}
-            <select
-              value={form.assigned_advisor_id}
-              onChange={(e) => set("assigned_advisor_id", e.target.value)}
-              className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3.5 text-base text-gray-700 min-h-[48px] focus:outline-none focus:ring-2 focus:ring-[#C8A96E] focus:border-[#C8A96E] transition-all appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%239ca3af%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E')] bg-no-repeat bg-[right_12px_center] bg-[length:20px]"
+            <details
+              className="w-full rounded-xl border border-gray-200 bg-gray-50 transition-all group"
+              ref={(el) => {
+                if (el) {
+                  el.addEventListener('toggle', () => {
+                    el.classList.toggle('ring-2', el.open);
+                    el.classList.toggle('ring-[#C8A96E]', el.open);
+                    el.classList.toggle('border-[#C8A96E]', el.open);
+                  });
+                }
+              }}
             >
-              <option value="" disabled>Select your agent...</option>
-              {advisors.map((a) => (
-                <option key={a.id} value={a.id}>
-                  {a.first_name} {a.last_name}
-                </option>
-              ))}
-            </select>
+              <summary className="flex items-center justify-between px-4 py-3.5 min-h-[48px] cursor-pointer list-none text-base select-none [&::-webkit-details-marker]:hidden">
+                <span className={form.assigned_advisor_id ? "text-gray-700" : "text-gray-400"}>
+                  {selectedAdvisor ? `${selectedAdvisor.first_name} ${selectedAdvisor.last_name}` : "Select your agent..."}
+                </span>
+                <svg className="w-5 h-5 text-gray-400 shrink-0 transition-transform group-open:rotate-180" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9" /></svg>
+              </summary>
+              <div className="max-h-72 overflow-y-auto border-t border-gray-200" style={{ WebkitOverflowScrolling: 'touch' }}>
+                {advisors.map((a) => (
+                  <button
+                    key={a.id}
+                    type="button"
+                    onClick={(e) => {
+                      set("assigned_advisor_id", a.id);
+                      const details = (e.currentTarget.closest('details') as HTMLDetailsElement);
+                      if (details) details.removeAttribute('open');
+                    }}
+                    className={`w-full text-left px-4 py-3 min-h-[48px] text-base transition-colors ${
+                      form.assigned_advisor_id === a.id
+                        ? "bg-[#C8A96E]/10 text-[#1A4D3E] font-semibold"
+                        : "text-gray-700 hover:bg-gray-100"
+                    }`}
+                  >
+                    {a.first_name} {a.last_name}
+                  </button>
+                ))}
+              </div>
+            </details>
             {selectedAdvisor && (
               <motion.div
                 initial={{ opacity: 0, y: 8 }}
