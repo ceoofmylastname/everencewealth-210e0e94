@@ -263,6 +263,9 @@ const SocorroBookingConfirm = lazy(() => import("./pages/socorro/SocorroBookingC
 const SocorroBookingSuccess = lazy(() => import("./pages/socorro/SocorroBookingSuccess"));
 const SocorroWorkshopManage = lazy(() => import("./pages/portal/advisor/SocorroWorkshopManage"));
 const AdminSocorroWorkshop = lazy(() => import("./pages/portal/admin/AdminSocorroWorkshop"));
+const ResponseCard = lazy(() => import("./pages/ResponseCard"));
+const ResponseCardSubmissions = lazy(() => import("./pages/portal/advisor/ResponseCardSubmissions"));
+const AdminResponseCards = lazy(() => import("./pages/portal/admin/AdminResponseCards"));
 
 // Loading fallback component
 const PageLoader = () => (
