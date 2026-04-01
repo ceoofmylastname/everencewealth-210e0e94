@@ -273,7 +273,7 @@ export default function ResponseCard() {
         return (
           <div onKeyDown={handleKeyDown}>
             {header("Who invited you to this presentation?", "Select the agent who invited you.")}
-            <div className="relative w-full">
+            <div className="w-full">
               <button
                 type="button"
                 onClick={() => setAgentOpen((v) => !v)}
