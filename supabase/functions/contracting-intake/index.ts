@@ -124,6 +124,16 @@ Deno.serve(async (req) => {
       );
     }
 
+    // If unlicensed, set up license reminder schedule (first reminder in 3 days)
+    if (is_licensed === false) {
+      await adminClient
+        .from("contracting_agents")
+        .update({
+          license_reminder_next_at: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
+        })
+        .eq("id", agent.id);
+    }
+
     // Create portal_users record so the recruit can log in
     const { error: portalError } = await adminClient.from("portal_users").insert({
       auth_user_id: authUserId,

@@ -1,4 +1,7 @@
-import { ExternalLink } from "lucide-react";
+import { useState, useRef } from "react";
+import { ExternalLink, Upload, Loader2, CheckCircle2, Award } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const BRAND = "#1A4D3E";
 const ACCENT = "#C9A84C";
@@ -70,8 +73,63 @@ const steps = [
   },
 ];
 
-export default function ExamFXWelcome({ firstName }: ExamFXWelcomeProps) {
+export default function ExamFXWelcome({ firstName, agentId }: ExamFXWelcomeProps) {
   const currentYear = new Date().getFullYear();
+  const [uploading, setUploading] = useState(false);
+  const [uploadComplete, setUploadComplete] = useState(false);
+  const [dragActive, setDragActive] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  async function handleLicenseUpload(file: File) {
+    if (uploading) return;
+    setUploading(true);
+    try {
+      const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+      const filePath = `${agentId}/license/${Date.now()}_${safeName}`;
+
+      // 1. Upload to storage
+      const { error: uploadErr } = await supabase.storage
+        .from("contracting-documents")
+        .upload(filePath, file);
+      if (uploadErr) throw uploadErr;
+
+      // 2. Call upgrade-license edge function
+      const { data, error: fnErr } = await supabase.functions.invoke("upgrade-license", {
+        body: {
+          agentId,
+          fileName: file.name,
+          filePath,
+          fileSize: file.size,
+        },
+      });
+
+      if (fnErr) throw fnErr;
+      if (data?.error) throw new Error(data.error);
+
+      setUploadComplete(true);
+      toast.success("License uploaded! Redirecting to your next step...");
+
+      // Reload after a short delay so the dashboard re-fetches the updated is_licensed
+      setTimeout(() => window.location.reload(), 2000);
+    } catch (err: any) {
+      console.error("License upload error:", err);
+      toast.error("Upload failed: " + (err.message || "Unknown error"));
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  function onFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (file) handleLicenseUpload(file);
+  }
+
+  function onDrop(e: React.DragEvent) {
+    e.preventDefault();
+    setDragActive(false);
+    const file = e.dataTransfer.files[0];
+    if (file) handleLicenseUpload(file);
+  }
 
   return (
     <div className="max-w-3xl mx-auto py-8 px-4 space-y-6">
@@ -138,6 +196,77 @@ export default function ExamFXWelcome({ firstName }: ExamFXWelcomeProps) {
             </ul>
           </div>
         ))}
+      </div>
+
+      {/* License Upload Section */}
+      <div className="bg-white rounded-2xl border border-gray-200 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.08)] p-8 space-y-5">
+        {/* Header */}
+        <div className="flex items-center gap-3">
+          <div
+            className="h-10 w-10 rounded-full flex items-center justify-center"
+            style={{ background: `${ACCENT}20` }}
+          >
+            <Award className="h-5 w-5" style={{ color: ACCENT }} />
+          </div>
+          <div>
+            <h2 className="text-lg font-semibold" style={{ color: BRAND }}>
+              Already Got Your License?
+            </h2>
+            <p className="text-sm text-gray-500">
+              Upload your license document below to continue your onboarding.
+            </p>
+          </div>
+        </div>
+
+        {uploadComplete ? (
+          /* Success state */
+          <div className="rounded-xl border-2 border-green-400 bg-green-50 p-6 text-center space-y-2">
+            <CheckCircle2 className="h-10 w-10 text-green-500 mx-auto" />
+            <p className="font-semibold text-green-700">License Uploaded Successfully!</p>
+            <p className="text-sm text-green-600">
+              Redirecting you to the next step...
+            </p>
+          </div>
+        ) : (
+          /* Upload dropzone */
+          <div
+            className={`rounded-xl border-2 border-dashed p-8 text-center cursor-pointer transition-all ${
+              dragActive
+                ? "border-green-400 bg-green-50 scale-[1.01]"
+                : "border-gray-300 hover:border-gray-400 bg-gray-50"
+            }`}
+            onClick={() => fileInputRef.current?.click()}
+            onDragOver={(e) => {
+              e.preventDefault();
+              setDragActive(true);
+            }}
+            onDragLeave={() => setDragActive(false)}
+            onDrop={onDrop}
+          >
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*,.pdf"
+              className="hidden"
+              onChange={onFileChange}
+              disabled={uploading}
+            />
+            {uploading ? (
+              <div className="space-y-2">
+                <Loader2 className="h-8 w-8 animate-spin mx-auto" style={{ color: BRAND }} />
+                <p className="text-sm text-gray-500">Uploading your license...</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <Upload className="h-10 w-10 mx-auto text-gray-400" />
+                <p className="text-sm font-medium text-gray-600">
+                  Drag & drop your license document here, or click to browse
+                </p>
+                <p className="text-xs text-gray-400">PDF, PNG, JPG up to 10MB</p>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Footer */}
