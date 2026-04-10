@@ -1,28 +1,32 @@
 
 
-## Brand the Response Card Notification Email
+## Fix Password Reset Redirect + Build Errors
 
-### What changes
-Rewrite the `send-response-card-notification` edge function to use the same `brandedEmailWrapper` template used by the workshop confirmation emails — with the Everence Wealth logo, Georgia serif font, gold accents (`#C5A059`), green header (`#1A4D3E`), and the San Francisco address footer.
+### Problem
+When the user clicks the password reset link in the email, they're redirected to the homepage instead of `/portal/reset-password`. Auth logs confirm the `/verify` endpoint returns a 303, but the redirect lands on the root URL.
 
-### Implementation
+**Root cause**: The `redirectTo` URL (`https://everencewealth.lovable.app/portal/reset-password`) is likely not in the allowed redirect URLs list in the auth configuration. When Supabase can't match the redirect URL, it falls back to the Site URL (homepage).
 
-**`supabase/functions/send-response-card-notification/index.ts`** — full rewrite of the email HTML section:
+### Plan
 
-1. Add the `brandedEmailWrapper()` function (identical to the one in `send-workshop-confirmation`)
-2. Replace the inline `emailHtml` with a call to `brandedEmailWrapper("New Response Card Lead", innerHtml)`
-3. Build `innerHtml` using inline table styles (not CSS classes) matching the workshop email pattern:
-   - Greeting: "Hi {advisor name}, a new lead has been assigned to you"
-   - Client info displayed as styled field rows: name, email (linked), phone (linked), marital status, address, income range, consultation preference
-   - Best contact times in gold highlight pill
-   - Meeting topics as a bulleted list
-   - Availability and comments if present
-4. Update the `from` address to match workshop emails: `notifications@everencewealth.com`
-5. Keep all existing logic (advisor lookup, error handling, CORS) unchanged
+#### 1. Add allowed redirect URLs to auth configuration
+- Use the auth configuration tool to add these redirect URL patterns:
+  - `https://everencewealth.lovable.app/portal/reset-password`
+  - `https://id-preview--29324b25-4616-48ca-967b-28e362789bf6.lovable.app/portal/reset-password`
+  - Wildcard patterns for both domains (`/**`) to cover future routes
 
-### Result
-Both the response card notification and workshop confirmation emails will share the same branded wrapper — logo, colors, fonts, and footer — giving advisors a consistent, professional experience.
+#### 2. Fix build errors in `process-email-queue/index.ts`
+The TypeScript errors are caused by type inference issues with the Supabase client. Fix by:
+- Adding explicit `any` type cast for `supabase.from('email_send_log').insert(...)` calls
+- Adding explicit `any` type cast for `supabase.rpc('move_to_dlq', ...)` calls
+- Adding explicit types for the `msg` and `id` parameters in the `.map()` and `.filter()` callbacks
+- Casting `supabase` parameter type in `moveToDlq` function to accept the actual client type
 
-### File
-- `supabase/functions/send-response-card-notification/index.ts` — rewrite email template (~60 lines changed)
+#### 3. Verify the fix
+- Trigger a new password reset for the test email
+- Confirm the reset link redirects to `/portal/reset-password` instead of the homepage
+
+### Files to modify
+- Auth configuration (redirect URLs) — via configuration tool
+- `supabase/functions/process-email-queue/index.ts` — fix TypeScript type errors (~5 lines changed)
 
