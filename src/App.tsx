@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route, Navigate, useParams } from "react-router-
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { LanguageProvider } from "@/i18n";
 import { ScrollToTop } from "@/components/ScrollToTop";
+import { AuthRecoveryRedirect } from "@/components/AuthRecoveryRedirect";
 import {
   BlogRedirect,
   QARedirect,
@@ -300,6 +301,7 @@ const App = () => (
       <BrowserRouter>
         <LanguageProvider>
           <ScrollToTop />
+          <AuthRecoveryRedirect />
           <Suspense fallback={<PageLoader />}>
             <Routes>
               {/* Eager-loaded critical pages */}
