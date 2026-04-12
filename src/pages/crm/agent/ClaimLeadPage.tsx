@@ -73,7 +73,7 @@ function CountdownTimer({
       setIsUrgent(minutes < 5);
 
       if (minutes < 5 && !document.title.includes("🔥")) {
-        document.title = "🔥 CLAIM NOW! - Del Sol CRM";
+        document.title = "🔥 CLAIM NOW! - Everence CRM";
       }
     };
 
@@ -81,7 +81,7 @@ function CountdownTimer({
     const interval = setInterval(updateTimer, 1000);
     return () => {
       clearInterval(interval);
-      document.title = "Del Sol CRM";
+      document.title = "Everence CRM";
     };
   }, [expiresAt, onExpire]);
 

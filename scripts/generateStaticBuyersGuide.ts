@@ -20,7 +20,7 @@ const LOCALIZED_CONTENT: Record<string, {
   breadcrumbGuide: string;
 }> = {
   en: {
-    title: "Complete Buyers Guide to Costa del Sol Property | Del Sol Prime Homes",
+    title: "Complete Buyers Guide to Costa del Sol Property | Everence Wealth",
     description: "Your comprehensive guide to buying property on the Costa del Sol. Step-by-step process, costs, legal requirements, and expert advice.",
     h1: "The Complete Guide to Buying Property on the Costa del Sol",
     speakable: "Buying property on the Costa del Sol is a straightforward process for international buyers. You'll need a NIE (tax identification number), a Spanish bank account, and typically 10-13% of the purchase price to cover taxes and fees. The process takes 3-6 months from finding your property to receiving the keys.",
@@ -28,7 +28,7 @@ const LOCALIZED_CONTENT: Record<string, {
     breadcrumbGuide: "Buyers Guide"
   },
   de: {
-    title: "Kompletter Käuferleitfaden für Costa del Sol Immobilien | Del Sol Prime Homes",
+    title: "Kompletter Käuferleitfaden für Costa del Sol Immobilien | Everence Wealth",
     description: "Ihr umfassender Leitfaden zum Immobilienkauf an der Costa del Sol. Schritt-für-Schritt-Prozess, Kosten, rechtliche Anforderungen und Expertenberatung.",
     h1: "Der komplette Leitfaden zum Immobilienkauf an der Costa del Sol",
     speakable: "Der Immobilienkauf an der Costa del Sol ist ein unkomplizierter Prozess für internationale Käufer. Sie benötigen eine NIE (Steueridentifikationsnummer), ein spanisches Bankkonto und in der Regel 10-13% des Kaufpreises zur Deckung von Steuern und Gebühren. Der Prozess dauert 3-6 Monate.",
@@ -36,7 +36,7 @@ const LOCALIZED_CONTENT: Record<string, {
     breadcrumbGuide: "Käuferleitfaden"
   },
   nl: {
-    title: "Complete Koopgids voor Costa del Sol Vastgoed | Del Sol Prime Homes",
+    title: "Complete Koopgids voor Costa del Sol Vastgoed | Everence Wealth",
     description: "Uw uitgebreide gids voor het kopen van vastgoed aan de Costa del Sol. Stapsgewijs proces, kosten, juridische vereisten en deskundig advies.",
     h1: "De Complete Gids voor het Kopen van Vastgoed aan de Costa del Sol",
     speakable: "Het kopen van vastgoed aan de Costa del Sol is een eenvoudig proces voor internationale kopers. U heeft een NIE (fiscaal identificatienummer), een Spaanse bankrekening en doorgaans 10-13% van de aankoopprijs nodig voor belastingen en kosten. Het proces duurt 3-6 maanden.",
@@ -44,7 +44,7 @@ const LOCALIZED_CONTENT: Record<string, {
     breadcrumbGuide: "Koopgids"
   },
   fr: {
-    title: "Guide Complet d'Achat Immobilier sur la Costa del Sol | Del Sol Prime Homes",
+    title: "Guide Complet d'Achat Immobilier sur la Costa del Sol | Everence Wealth",
     description: "Votre guide complet pour acheter une propriété sur la Costa del Sol. Processus étape par étape, coûts, exigences légales et conseils d'experts.",
     h1: "Le Guide Complet pour Acheter une Propriété sur la Costa del Sol",
     speakable: "L'achat d'une propriété sur la Costa del Sol est un processus simple pour les acheteurs internationaux. Vous aurez besoin d'un NIE (numéro d'identification fiscale), d'un compte bancaire espagnol et généralement de 10-13% du prix d'achat pour couvrir les taxes et frais. Le processus prend 3-6 mois.",
@@ -52,7 +52,7 @@ const LOCALIZED_CONTENT: Record<string, {
     breadcrumbGuide: "Guide d'Achat"
   },
   sv: {
-    title: "Komplett Köpguide för Costa del Sol Fastigheter | Del Sol Prime Homes",
+    title: "Komplett Köpguide för Costa del Sol Fastigheter | Everence Wealth",
     description: "Din kompletta guide till att köpa fastighet på Costa del Sol. Steg-för-steg-process, kostnader, juridiska krav och expertråd.",
     h1: "Den Kompletta Guiden till att Köpa Fastighet på Costa del Sol",
     speakable: "Att köpa fastighet på Costa del Sol är en enkel process för internationella köpare. Du behöver ett NIE (skatteidentifikationsnummer), ett spanskt bankkonto och vanligtvis 10-13% av köpeskillingen för att täcka skatter och avgifter. Processen tar 3-6 månader.",
@@ -60,7 +60,7 @@ const LOCALIZED_CONTENT: Record<string, {
     breadcrumbGuide: "Köpguide"
   },
   no: {
-    title: "Komplett Kjøpeguide for Costa del Sol Eiendom | Del Sol Prime Homes",
+    title: "Komplett Kjøpeguide for Costa del Sol Eiendom | Everence Wealth",
     description: "Din omfattende guide til å kjøpe eiendom på Costa del Sol. Trinn-for-trinn prosess, kostnader, juridiske krav og ekspertråd.",
     h1: "Den Komplette Guiden til å Kjøpe Eiendom på Costa del Sol",
     speakable: "Å kjøpe eiendom på Costa del Sol er en enkel prosess for internasjonale kjøpere. Du trenger et NIE (skatteidentifikasjonsnummer), en spansk bankkonto og vanligvis 10-13% av kjøpesummen for å dekke skatter og avgifter. Prosessen tar 3-6 måneder.",
@@ -68,7 +68,7 @@ const LOCALIZED_CONTENT: Record<string, {
     breadcrumbGuide: "Kjøpeguide"
   },
   da: {
-    title: "Komplet Købsguide til Costa del Sol Ejendomme | Del Sol Prime Homes",
+    title: "Komplet Købsguide til Costa del Sol Ejendomme | Everence Wealth",
     description: "Din omfattende guide til at købe ejendom på Costa del Sol. Trin-for-trin proces, omkostninger, juridiske krav og ekspertrådgivning.",
     h1: "Den Komplette Guide til at Købe Ejendom på Costa del Sol",
     speakable: "At købe ejendom på Costa del Sol er en ligetil proces for internationale købere. Du skal bruge et NIE (skatteidentifikationsnummer), en spansk bankkonto og typisk 10-13% af købsprisen til at dække skatter og gebyrer. Processen tager 3-6 måneder.",
@@ -76,7 +76,7 @@ const LOCALIZED_CONTENT: Record<string, {
     breadcrumbGuide: "Købsguide"
   },
   fi: {
-    title: "Täydellinen Ostajan Opas Costa del Sol Kiinteistöihin | Del Sol Prime Homes",
+    title: "Täydellinen Ostajan Opas Costa del Sol Kiinteistöihin | Everence Wealth",
     description: "Kattava oppaasi kiinteistön ostamiseen Costa del Solilta. Vaiheittainen prosessi, kustannukset, oikeudelliset vaatimukset ja asiantuntijaneuvot.",
     h1: "Täydellinen Opas Kiinteistön Ostamiseen Costa del Solilta",
     speakable: "Kiinteistön ostaminen Costa del Solilta on suoraviivainen prosessi kansainvälisille ostajille. Tarvitset NIE:n (verotunnistenumeron), espanjalaisen pankkitilin ja tyypillisesti 10-13% ostohinnasta verojen ja maksujen kattamiseksi. Prosessi kestää 3-6 kuukautta.",
@@ -84,7 +84,7 @@ const LOCALIZED_CONTENT: Record<string, {
     breadcrumbGuide: "Ostajan Opas"
   },
   pl: {
-    title: "Kompletny Przewodnik Kupującego Nieruchomości na Costa del Sol | Del Sol Prime Homes",
+    title: "Kompletny Przewodnik Kupującego Nieruchomości na Costa del Sol | Everence Wealth",
     description: "Twój kompleksowy przewodnik po zakupie nieruchomości na Costa del Sol. Proces krok po kroku, koszty, wymogi prawne i porady ekspertów.",
     h1: "Kompletny Przewodnik Zakupu Nieruchomości na Costa del Sol",
     speakable: "Zakup nieruchomości na Costa del Sol to prosty proces dla międzynarodowych kupujących. Potrzebujesz NIE (numeru identyfikacji podatkowej), hiszpańskiego konta bankowego i zazwyczaj 10-13% ceny zakupu na pokrycie podatków i opłat. Proces trwa 3-6 miesięcy.",
@@ -92,7 +92,7 @@ const LOCALIZED_CONTENT: Record<string, {
     breadcrumbGuide: "Przewodnik Kupującego"
   },
   hu: {
-    title: "Teljes Vásárlási Útmutató Costa del Sol Ingatlanokhoz | Del Sol Prime Homes",
+    title: "Teljes Vásárlási Útmutató Costa del Sol Ingatlanokhoz | Everence Wealth",
     description: "Átfogó útmutatója a Costa del Sol-i ingatlanvásárláshoz. Lépésről lépésre folyamat, költségek, jogi követelmények és szakértői tanácsok.",
     h1: "A Teljes Útmutató a Costa del Sol-i Ingatlanvásárláshoz",
     speakable: "A Costa del Sol-i ingatlanvásárlás egyszerű folyamat nemzetközi vásárlók számára. Szüksége lesz egy NIE-re (adóazonosító számra), spanyol bankszámlára és általában a vételár 10-13%-ára az adók és díjak fedezésére. A folyamat 3-6 hónapig tart.",
@@ -190,7 +190,7 @@ function generateJsonLdGraph(lang: string, content: typeof LOCALIZED_CONTENT['en
       "isPartOf": {
         "@type": "WebSite",
         "@id": `${BASE_URL}/#website`,
-        "name": "Del Sol Prime Homes",
+        "name": "Everence Wealth",
         "url": BASE_URL
       },
       "speakable": {
@@ -253,7 +253,7 @@ function generateJsonLdGraph(lang: string, content: typeof LOCALIZED_CONTENT['en
     {
       "@type": "RealEstateAgent",
       "@id": `${BASE_URL}/#organization`,
-      "name": "Del Sol Prime Homes",
+      "name": "Everence Wealth",
       "url": BASE_URL,
       "logo": {
         "@type": "ImageObject",
@@ -323,7 +323,7 @@ ${hreflangTags}
   <meta property="og:description" content="${escapeHtml(content.description)}" />
   <meta property="og:image" content="${BASE_URL}/assets/costa-del-sol-bg.jpg" />
   <meta property="og:locale" content="${locale}" />
-  <meta property="og:site_name" content="Del Sol Prime Homes" />
+  <meta property="og:site_name" content="Everence Wealth" />
   
   <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image" />

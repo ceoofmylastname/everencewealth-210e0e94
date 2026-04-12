@@ -138,7 +138,7 @@ const AEOGuide = () => {
   "slug": "new-build-property-investors",
   "summary": "New-build developments combine energy efficiency...",
   "author": "Hans Beeckman",
-  "brand": "Del Sol Prime Homes",
+  "brand": "Everence Wealth",
   "published_at": "2025-01-15T10:00:00Z",
   "topics": ["Investment", "New Build", "Costa del Sol"],
   "geo": ["Costa del Sol", "Spain", "Marbella"],

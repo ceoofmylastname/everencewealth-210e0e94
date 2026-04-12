@@ -157,7 +157,7 @@ export default function AgentLogin() {
               className="h-20 md:h-24 w-auto object-contain"
             />
           </div>
-          <h1 className="text-3xl font-serif font-bold text-white">Del Sol Prime Homes</h1>
+          <h1 className="text-3xl font-serif font-bold text-white">Everence Wealth</h1>
           <p className="text-transparent bg-clip-text bg-gradient-to-r from-prime-goldLight via-prime-gold to-prime-goldLight font-medium">Agent Portal</p>
         </CardHeader>
 

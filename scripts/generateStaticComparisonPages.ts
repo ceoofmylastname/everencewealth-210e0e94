@@ -115,7 +115,7 @@ function generateOrganizationSchema() {
     "@context": "https://schema.org",
     "@type": "RealEstateAgent",
     "@id": `${BASE_URL}/#organization`,
-    "name": "Del Sol Prime Homes",
+    "name": "Everence Wealth",
     "url": BASE_URL,
     "logo": `${BASE_URL}/assets/logo-new.png`,
     "areaServed": [
@@ -488,8 +488,8 @@ function generateStaticHTML(comparison: ComparisonData, productionAssets: Produc
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="${sanitizeForHTML(comparison.meta_description)}">
-  <meta name="author" content="${comparison.author?.name || 'Del Sol Prime Homes'}">
-  <title>${sanitizeForHTML(comparison.meta_title)} | Del Sol Prime Homes</title>
+  <meta name="author" content="${comparison.author?.name || 'Everence Wealth'}">
+  <title>${sanitizeForHTML(comparison.meta_title)} | Everence Wealth</title>
   
   <link rel="canonical" href="${canonicalUrl}" />
 ${hreflangTags}
@@ -510,7 +510,7 @@ ${hreflangTags}
   <meta property="og:description" content="${sanitizeForHTML(comparison.meta_description)}" />
   ${comparison.featured_image_url ? `<meta property="og:image" content="${comparison.featured_image_url}" />` : ''}
   <meta property="og:url" content="${canonicalUrl}" />
-  <meta property="og:site_name" content="Del Sol Prime Homes" />
+  <meta property="og:site_name" content="Everence Wealth" />
   
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="${sanitizeForHTML(comparison.meta_title)}" />
@@ -644,7 +644,7 @@ function generateComparisonIndexHTML(comparisons: ComparisonData[], productionAs
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Expert property comparisons to help you make informed real estate decisions in Costa del Sol, Spain.">
-  <title>Property Comparisons | Del Sol Prime Homes</title>
+  <title>Property Comparisons | Everence Wealth</title>
   
   <link rel="canonical" href="${BASE_URL}/${lang}/compare" />
 ${hreflangTags}

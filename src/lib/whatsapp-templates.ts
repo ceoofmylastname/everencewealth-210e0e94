@@ -10,13 +10,13 @@ export const WHATSAPP_TEMPLATES: WhatsAppTemplate[] = [
   {
     id: 'follow_up',
     label: 'Standard Follow-up',
-    message: `Hi {firstName}, this is {agentName} from Del Sol Prime Homes. I just tried calling you about your property inquiry. Would love to discuss your requirements. When would be a good time to talk?`,
+    message: `Hi {firstName}, this is {agentName} from Everence Wealth. I just tried calling you about your property inquiry. Would love to discuss your requirements. When would be a good time to talk?`,
     category: 'follow_up'
   },
   {
     id: 'missed_call',
     label: 'Missed Call',
-    message: `Hi {firstName}, I noticed I missed your call. I'm {agentName} from Del Sol Prime Homes. How can I help you today?`,
+    message: `Hi {firstName}, I noticed I missed your call. I'm {agentName} from Everence Wealth. How can I help you today?`,
     category: 'follow_up'
   },
   {

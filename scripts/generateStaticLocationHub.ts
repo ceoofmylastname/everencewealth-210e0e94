@@ -177,7 +177,7 @@ function generateJsonLdGraph(lang: string, content: typeof LOCALIZED_CONTENT['en
       "isPartOf": {
         "@type": "WebSite",
         "@id": `${BASE_URL}/#website`,
-        "name": "Del Sol Prime Homes",
+        "name": "Everence Wealth",
         "url": BASE_URL
       },
       "speakable": {
@@ -219,7 +219,7 @@ function generateJsonLdGraph(lang: string, content: typeof LOCALIZED_CONTENT['en
     {
       "@type": "RealEstateAgent",
       "@id": `${BASE_URL}/#organization`,
-      "name": "Del Sol Prime Homes",
+      "name": "Everence Wealth",
       "url": BASE_URL,
       "logo": {
         "@type": "ImageObject",
@@ -331,7 +331,7 @@ ${hreflangTags}
   <meta property="og:description" content="${escapeHtml(content.description)}" />
   <meta property="og:image" content="${BASE_URL}/assets/costa-del-sol-locations.jpg" />
   <meta property="og:locale" content="${locale}" />
-  <meta property="og:site_name" content="Del Sol Prime Homes" />
+  <meta property="og:site_name" content="Everence Wealth" />
   
   <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image" />

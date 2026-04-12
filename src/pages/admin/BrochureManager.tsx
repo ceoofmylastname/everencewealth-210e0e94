@@ -937,7 +937,7 @@ const BrochureManager: React.FC = () => {
                         <p className="text-xs text-muted-foreground mb-2">Search Preview</p>
                         <div className="space-y-1">
                           <p className="text-blue-600 dark:text-blue-400 text-lg hover:underline cursor-pointer truncate">
-                            {editData.meta_title || `${editData.name} | Del Sol Prime Homes`}
+                            {editData.meta_title || `${editData.name} | Everence Wealth`}
                           </p>
                           <p className="text-green-700 dark:text-green-500 text-sm">
                             www.everencewealth.com › {selectedLanguage} › brochure › {editData.slug}

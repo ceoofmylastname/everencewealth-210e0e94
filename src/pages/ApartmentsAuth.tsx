@@ -83,7 +83,7 @@ const ApartmentsAuth = () => {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center space-y-4">
           <div className="flex justify-center">
-            <img src={logo} alt="Del Sol Prime Homes" className="h-16 drop-shadow-[0_2px_4px_rgba(0,0,0,0.25)]" />
+            <img src={logo} alt="Everence Wealth" className="h-16 drop-shadow-[0_2px_4px_rgba(0,0,0,0.25)]" />
           </div>
           <div>
             <CardTitle className="flex items-center justify-center gap-2">

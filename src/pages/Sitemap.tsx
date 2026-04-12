@@ -140,7 +140,7 @@ ${articleUrls}
 
     return `<?xml version="1.0" encoding="UTF-8"?>
 <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <!-- Del Sol Prime Homes Sitemap Index -->
+  <!-- Everence Wealth Sitemap Index -->
   <!-- Total: ${totalUrls} published pages -->
 </sitemapindex>`;
   }, [totalUrls]);
