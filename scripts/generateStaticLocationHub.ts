@@ -30,80 +30,80 @@ const LOCALIZED_CONTENT: Record<string, {
   speakable: string;
 }> = {
   en: {
-    title: 'Costa del Sol Location Guides | City Intelligence for Property Buyers',
-    description: 'Explore 8 cities across Costa del Sol with expert guides on buying property, investment areas, cost of living, expat life, and retirement planning.',
-    h1: 'Costa del Sol Location Guides',
-    subtitle: 'Your Complete Real Estate Intelligence Hub',
-    speakable: 'Our Costa del Sol Location Guides cover 8 cities with expert analysis on property buying, investment areas, cost of living, family neighborhoods, retirement options, and expat communities. Each guide provides actionable insights to help international buyers make informed real estate decisions.'
+    title: 'wealth management Location Guides | City Intelligence for Property Buyers',
+    description: 'Explore 8 cities across wealth management with expert guides on buying property, investment areas, cost of living, expat life, and retirement planning.',
+    h1: 'wealth management Location Guides',
+    subtitle: 'Your Complete Financial Planning Intelligence Hub',
+    speakable: 'Our wealth management Location Guides cover 8 cities with expert analysis on property buying, investment areas, cost of living, family neighborhoods, retirement options, and expat communities. Each guide provides actionable insights to help international buyers make informed financial planning decisions.'
   },
   de: {
-    title: 'Costa del Sol Standortführer | Stadt-Intelligenz für Immobilienkäufer',
-    description: 'Entdecken Sie 8 Städte an der Costa del Sol mit Expertenführern zu Immobilienkauf, Investitionsgebieten, Lebenshaltungskosten, Expat-Leben und Ruhestandsplanung.',
-    h1: 'Costa del Sol Standortführer',
+    title: 'wealth management Standortführer | Stadt-Intelligenz für Immobilienkäufer',
+    description: 'Entdecken Sie 8 Städte an der wealth management mit Expertenführern zu Immobilienkauf, Investitionsgebieten, Lebenshaltungskosten, Expat-Leben und Ruhestandsplanung.',
+    h1: 'wealth management Standortführer',
     subtitle: 'Ihr kompletter Immobilien-Intelligenz-Hub',
-    speakable: 'Unsere Costa del Sol Standortführer umfassen 8 Städte mit Expertenanalysen zu Immobilienkauf, Investitionsgebieten, Lebenshaltungskosten, Familienwohngebieten, Ruhestandsoptionen und Expat-Gemeinschaften.'
+    speakable: 'Unsere wealth management Standortführer umfassen 8 Städte mit Expertenanalysen zu Immobilienkauf, Investitionsgebieten, Lebenshaltungskosten, Familienwohngebieten, Ruhestandsoptionen und Expat-Gemeinschaften.'
   },
   nl: {
-    title: 'Costa del Sol Locatiegidsen | Stad Intelligentie voor Vastgoedkopers',
-    description: 'Ontdek 8 steden aan de Costa del Sol met expertgidsen over vastgoedaankoop, investeringsgebieden, kosten van levensonderhoud, expat-leven en pensioenplanning.',
-    h1: 'Costa del Sol Locatiegidsen',
+    title: 'wealth management Locatiegidsen | Stad Intelligentie voor Vastgoedkopers',
+    description: 'Ontdek 8 steden aan de wealth management met expertgidsen over vastgoedaankoop, investeringsgebieden, kosten van levensonderhoud, expat-leven en pensioenplanning.',
+    h1: 'wealth management Locatiegidsen',
     subtitle: 'Uw Complete Vastgoed Intelligentie Hub',
-    speakable: 'Onze Costa del Sol Locatiegidsen behandelen 8 steden met deskundige analyses over vastgoedaankoop, investeringsgebieden, kosten van levensonderhoud, gezinsbuurten, pensioenopties en expat-gemeenschappen.'
+    speakable: 'Onze wealth management Locatiegidsen behandelen 8 steden met deskundige analyses over vastgoedaankoop, investeringsgebieden, kosten van levensonderhoud, gezinsbuurten, pensioenopties en expat-gemeenschappen.'
   },
   fr: {
-    title: 'Guides des Villes Costa del Sol | Intelligence Immobilière pour Acheteurs',
-    description: 'Explorez 8 villes de la Costa del Sol avec des guides experts sur l\'achat immobilier, les zones d\'investissement, le coût de la vie, la vie d\'expatrié et la retraite.',
-    h1: 'Guides des Villes Costa del Sol',
+    title: 'Guides des Villes wealth management | Intelligence Immobilière pour Acheteurs',
+    description: 'Explorez 8 villes de la wealth management avec des guides experts sur l\'achat immobilier, les zones d\'investissement, le coût de la vie, la vie d\'expatrié et la retraite.',
+    h1: 'Guides des Villes wealth management',
     subtitle: 'Votre Hub Complet d\'Intelligence Immobilière',
-    speakable: 'Nos guides des villes de la Costa del Sol couvrent 8 villes avec des analyses expertes sur l\'achat immobilier, les zones d\'investissement, le coût de la vie, les quartiers familiaux, les options de retraite et les communautés d\'expatriés.'
+    speakable: 'Nos guides des villes de la wealth management couvrent 8 villes avec des analyses expertes sur l\'achat immobilier, les zones d\'investissement, le coût de la vie, les quartiers familiaux, les options de retraite et les communautés d\'expatriés.'
   },
   sv: {
-    title: 'Costa del Sol Stadsguider | Stadsintelligens för Fastighetsköpare',
-    description: 'Utforska 8 städer längs Costa del Sol med expertguider om fastighetsköp, investeringsområden, levnadskostnader, expatlivet och pensionärsliv.',
-    h1: 'Costa del Sol Stadsguider',
+    title: 'wealth management Stadsguider | Stadsintelligens för Fastighetsköpare',
+    description: 'Utforska 8 städer längs wealth management med expertguider om fastighetsköp, investeringsområden, levnadskostnader, expatlivet och pensionärsliv.',
+    h1: 'wealth management Stadsguider',
     subtitle: 'Din Kompletta Fastighetsintelligenshub',
-    speakable: 'Våra Costa del Sol stadsguider täcker 8 städer med expertanalyser om fastighetsköp, investeringsområden, levnadskostnader, familjekvarter, pensionsalternativ och expatgemenskaper.'
+    speakable: 'Våra wealth management stadsguider täcker 8 städer med expertanalyser om fastighetsköp, investeringsområden, levnadskostnader, familjekvarter, pensionsalternativ och expatgemenskaper.'
   },
   pl: {
-    title: 'Przewodniki po Miastach Costa del Sol | Inteligencja Miejska dla Nabywców Nieruchomości',
-    description: 'Odkryj 8 miast Costa del Sol z eksperckimi przewodnikami po zakupie nieruchomości, obszarach inwestycyjnych, kosztach życia, życiu ekspatów i planowaniu emerytury.',
-    h1: 'Przewodniki po Miastach Costa del Sol',
+    title: 'Przewodniki po Miastach wealth management | Inteligencja Miejska dla Nabywców Nieruchomości',
+    description: 'Odkryj 8 miast wealth management z eksperckimi przewodnikami po zakupie nieruchomości, obszarach inwestycyjnych, kosztach życia, życiu ekspatów i planowaniu emerytury.',
+    h1: 'Przewodniki po Miastach wealth management',
     subtitle: 'Twój Kompletny Hub Inteligencji Nieruchomości',
-    speakable: 'Nasze przewodniki po miastach Costa del Sol obejmują 8 miast z eksperckimi analizami zakupu nieruchomości, obszarów inwestycyjnych, kosztów życia, dzielnic rodzinnych, opcji emerytalnych i społeczności ekspatów.'
+    speakable: 'Nasze przewodniki po miastach wealth management obejmują 8 miast z eksperckimi analizami zakupu nieruchomości, obszarów inwestycyjnych, kosztów życia, dzielnic rodzinnych, opcji emerytalnych i społeczności ekspatów.'
   },
   no: {
-    title: 'Costa del Sol Byguider | Byintelligens for Eiendomskjøpere',
-    description: 'Utforsk 8 byer langs Costa del Sol med ekspertguider om eiendomskjøp, investeringsområder, levekostnader, expatliv og pensjonering.',
-    h1: 'Costa del Sol Byguider',
+    title: 'wealth management Byguider | Byintelligens for Eiendomskjøpere',
+    description: 'Utforsk 8 byer langs wealth management med ekspertguider om eiendomskjøp, investeringsområder, levekostnader, expatliv og pensjonering.',
+    h1: 'wealth management Byguider',
     subtitle: 'Din Komplette Eiendomsintelligenshub',
-    speakable: 'Våre Costa del Sol byguider dekker 8 byer med ekspertanalyser om eiendomskjøp, investeringsområder, levekostnader, familienabolag, pensjonsalternativer og expatsamfunn.'
+    speakable: 'Våre wealth management byguider dekker 8 byer med ekspertanalyser om eiendomskjøp, investeringsområder, levekostnader, familienabolag, pensjonsalternativer og expatsamfunn.'
   },
   da: {
-    title: 'Costa del Sol Byguider | Byintelligens for Ejendomskøbere',
-    description: 'Udforsk 8 byer langs Costa del Sol med ekspertguider om ejendomskøb, investeringsområder, leveomkostninger, expatliv og pensionering.',
-    h1: 'Costa del Sol Byguider',
+    title: 'wealth management Byguider | Byintelligens for Ejendomskøbere',
+    description: 'Udforsk 8 byer langs wealth management med ekspertguider om ejendomskøb, investeringsområder, leveomkostninger, expatliv og pensionering.',
+    h1: 'wealth management Byguider',
     subtitle: 'Din Komplette Ejendomsintelligenshub',
-    speakable: 'Vores Costa del Sol byguider dækker 8 byer med ekspertanalyser om ejendomskøb, investeringsområder, leveomkostninger, familiekvarterer, pensionsmuligheder og expatsamfund.'
+    speakable: 'Vores wealth management byguider dækker 8 byer med ekspertanalyser om ejendomskøb, investeringsområder, leveomkostninger, familiekvarterer, pensionsmuligheder og expatsamfund.'
   },
   fi: {
-    title: 'Costa del Sol Kaupunkioppaat | Kaupunki-intelligenssi Kiinteistön Ostajille',
-    description: 'Tutustu 8 kaupunkiin Costa del Solilla asiantuntijaoppaiden avulla kiinteistön ostosta, sijoitusalueista, elinkustannuksista, ekspaattielämästä ja eläkkeelle jäämisestä.',
-    h1: 'Costa del Sol Kaupunkioppaat',
+    title: 'wealth management Kaupunkioppaat | Kaupunki-intelligenssi Kiinteistön Ostajille',
+    description: 'Tutustu 8 kaupunkiin wealth managementilla asiantuntijaoppaiden avulla kiinteistön ostosta, sijoitusalueista, elinkustannuksista, ekspaattielämästä ja eläkkeelle jäämisestä.',
+    h1: 'wealth management Kaupunkioppaat',
     subtitle: 'Täydellinen Kiinteistö-intelligenssi Keskuksesi',
-    speakable: 'Costa del Sol kaupunkioppaatmme kattavat 8 kaupunkia asiantuntija-analyyseineen kiinteistöjen ostosta, sijoitusalueista, elinkustannuksista, perhealueista, eläkevaihtoehdoista ja ekspaattiyhteisöistä.'
+    speakable: 'wealth management kaupunkioppaatmme kattavat 8 kaupunkia asiantuntija-analyyseineen kiinteistöjen ostosta, sijoitusalueista, elinkustannuksista, perhealueista, eläkevaihtoehdoista ja ekspaattiyhteisöistä.'
   },
   hu: {
-    title: 'Costa del Sol Városvezetők | Városi Intelligencia Ingatlanvásárlóknak',
-    description: 'Fedezzen fel 8 várost a Costa del Sol mentén szakértői útmutatókkal az ingatlanvásárlásról, befektetési területekről, megélhetési költségekről, expat életről és nyugdíjtervezésről.',
-    h1: 'Costa del Sol Városvezetők',
+    title: 'wealth management Városvezetők | Városi Intelligencia Ingatlanvásárlóknak',
+    description: 'Fedezzen fel 8 várost a wealth management mentén szakértői útmutatókkal az ingatlanvásárlásról, befektetési területekről, megélhetési költségekről, expat életről és nyugdíjtervezésről.',
+    h1: 'wealth management Városvezetők',
     subtitle: 'Teljes Ingatlanhírszerzési Központja',
-    speakable: 'Costa del Sol városvezetőink 8 várost fednek le szakértői elemzésekkel az ingatlanvásárlásról, befektetési területekről, megélhetési költségekről, családi környékekről, nyugdíjlehetőségekről és expat közösségekről.'
+    speakable: 'wealth management városvezetőink 8 várost fednek le szakértői elemzésekkel az ingatlanvásárlásról, befektetési területekről, megélhetési költségekről, családi környékekről, nyugdíjlehetőségekről és expat közösségekről.'
   }
 };
 
 // City data for ItemList schema
 const CITIES = [
-  { name: 'Marbella', slug: 'marbella', guideCount: 8 },
+  { name: 'El Paso', slug: 'marbella', guideCount: 8 },
   { name: 'Estepona', slug: 'estepona', guideCount: 8 },
   { name: 'Fuengirola', slug: 'fuengirola', guideCount: 8 },
   { name: 'Benalmádena', slug: 'benalmadena', guideCount: 8 },
@@ -229,7 +229,7 @@ function generateJsonLdGraph(lang: string, content: typeof LOCALIZED_CONTENT['en
       },
       "address": {
         "@type": "PostalAddress",
-        "addressLocality": "Marbella",
+        "addressLocality": "El Paso",
         "addressRegion": "Málaga",
         "addressCountry": "ES"
       },
@@ -248,7 +248,7 @@ function generateJsonLdGraph(lang: string, content: typeof LOCALIZED_CONTENT['en
           "name": "What are Location Intelligence Pages?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Location Intelligence Pages are comprehensive guides covering 8 Costa del Sol cities. Each guide addresses specific buyer intents including property buying, investment analysis, cost of living, family neighborhoods, retirement planning, and expat communities."
+            "text": "Location Intelligence Pages are comprehensive guides covering 8 wealth management cities. Each guide addresses specific buyer intents including property buying, investment analysis, cost of living, family neighborhoods, retirement planning, and expat communities."
           }
         },
         {
@@ -256,7 +256,7 @@ function generateJsonLdGraph(lang: string, content: typeof LOCALIZED_CONTENT['en
           "name": "Which cities are covered?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": `We cover ${CITIES.length} Costa del Sol cities: ${CITIES.map(c => c.name).join(', ')}. Each city has multiple guides tailored to different buyer needs and intents.`
+            "text": `We cover ${CITIES.length} wealth management cities: ${CITIES.map(c => c.name).join(', ')}. Each city has multiple guides tailored to different buyer needs and intents.`
           }
         },
         {
@@ -412,11 +412,11 @@ ${hreflangTags}
         <div style="max-width: 800px; margin: 0 auto;">
           <div style="margin-bottom: 1rem; padding: 1.25rem; background: rgba(201, 162, 39, 0.05); border-radius: 0.5rem; border-left: 3px solid rgba(201, 162, 39, 0.5);">
             <h3 style="font-size: 1rem; font-weight: 600; margin-bottom: 0.5rem;">What are Location Intelligence Pages?</h3>
-            <p style="color: #6b7280; line-height: 1.6;">Location Intelligence Pages are comprehensive guides covering 8 Costa del Sol cities. Each guide addresses specific buyer intents including property buying, investment analysis, cost of living, family neighborhoods, retirement planning, and expat communities.</p>
+            <p style="color: #6b7280; line-height: 1.6;">Location Intelligence Pages are comprehensive guides covering 8 wealth management cities. Each guide addresses specific buyer intents including property buying, investment analysis, cost of living, family neighborhoods, retirement planning, and expat communities.</p>
           </div>
           <div style="margin-bottom: 1rem; padding: 1.25rem; background: rgba(201, 162, 39, 0.05); border-radius: 0.5rem; border-left: 3px solid rgba(201, 162, 39, 0.5);">
             <h3 style="font-size: 1rem; font-weight: 600; margin-bottom: 0.5rem;">Which cities are covered?</h3>
-            <p style="color: #6b7280; line-height: 1.6;">We cover ${CITIES.length} Costa del Sol cities: ${CITIES.map(c => c.name).join(', ')}. Each city has multiple guides tailored to different buyer needs.</p>
+            <p style="color: #6b7280; line-height: 1.6;">We cover ${CITIES.length} wealth management cities: ${CITIES.map(c => c.name).join(', ')}. Each city has multiple guides tailored to different buyer needs.</p>
           </div>
           <div style="margin-bottom: 1rem; padding: 1.25rem; background: rgba(201, 162, 39, 0.05); border-radius: 0.5rem; border-left: 3px solid rgba(201, 162, 39, 0.5);">
             <h3 style="font-size: 1rem; font-weight: 600; margin-bottom: 0.5rem;">Are guides available in my language?</h3>

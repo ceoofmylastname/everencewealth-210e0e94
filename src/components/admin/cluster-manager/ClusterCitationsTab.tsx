@@ -319,7 +319,7 @@ export const ClusterCitationsTab = ({ cluster }: ClusterCitationsTabProps) => {
     
     if (validUrls.length === 0) {
       if (blockedUrls.length > 0) {
-        toast.error(`All ${blockedUrls.length} URLs were blocked as competitors. Remove real estate/property company links.`);
+        toast.error(`All ${blockedUrls.length} URLs were blocked as competitors. Remove competitor financial advisory links.`);
       } else {
         toast.error("No valid URLs found. Please enter URLs starting with http:// or https://");
       }

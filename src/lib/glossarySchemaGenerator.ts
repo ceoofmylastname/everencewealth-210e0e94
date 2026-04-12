@@ -245,7 +245,6 @@ export function generateGlossaryFAQSchema(glossaryData: GlossaryData, language: 
   
   // Select top 10 most important terms for FAQ schema
   const popularTerms = [
-    "NIE", "Golden Visa", "IBI", "Escritura", "Plusvalía", 
     "Notario", "Gestor", "Comunidad", "Catastro", "API"
   ];
   
