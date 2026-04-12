@@ -1,105 +1,90 @@
 
 
-## Phase 0.5: Deep Purge
+## Phase 2: Schema & SEO Infrastructure
 
-Complete removal of all Del Sol Prime Homes / real estate contamination. No database changes. Immutable migration files untouched.
+### 1. Homepage — Organization + FAQPage JSON-LD
 
----
+**File: `src/pages/Home.tsx`**
 
-### GROUP A: Delete files entirely (~30+ files)
+Add a `<script type="application/ld+json">` block inside the existing `<Helmet>` with a JSON array containing:
+- **FinancialService** schema (name, url, logo, description, address in San Francisco CA, telephone +1-925-433-7724, email info@everencewealth.com, areaServed US, serviceType)
+- **FAQPage** schema pulling from the translation file's `t.homepage.faq.items` array (7 items currently in `src/i18n/translations/en.ts` lines 906-913), mapping each `{q, a}` to `{@type: Question, name: q, acceptedAnswer: {text: a}}`
 
-**Retargeting system:**
-- `src/components/retargeting/` — entire directory (16 files)
-- `src/pages/RetargetingLanding.tsx`
-- `src/lib/retargetingTranslations.ts`
-- `src/lib/retargetingRoutes.ts`
-- `src/config/retargetingWelcomeBackVideos.ts`
-- `src/hooks/useRetargetingForm.ts`
+The FAQ data is available at runtime via `useTranslation()` hook — import it and map.
 
-**Property system:**
-- `src/pages/AddProperty.tsx`, `src/pages/PropertyFinder.tsx`, `src/pages/PropertyDetail.tsx`
-- `src/pages/AdminProperties.tsx`, `src/pages/admin/PropertyForm.tsx`
-- `src/types/property.ts`, `src/hooks/usePropertyTypes.ts`
+### 2. Blog Article Pages — Full Schema Array
 
-**Brochure system:**
-- `src/pages/CityBrochure.tsx`
-- `src/components/brochures/` — entire directory (9 files)
-- `src/constants/brochures.ts`, `src/lib/brochureSchemaGenerator.ts`
+**File: `src/components/schema/ArticleSchema.tsx`**
 
-**Home sections (legacy):**
-- `src/components/home/sections/FeaturedAreas.tsx`
-- `src/components/home/sections/QuickSearch.tsx`
+Expand to accept additional props: `faqs` (array of `{question, answer}`), `authorName`, `authorUrl`, `language`, `slug`. Output a single `<script>` with a JSON array of 3 schemas:
 
-**Edge functions (legacy real estate):**
-- `generate-retargeting-visual/`, `generate-city-qa-pages/`, `fetch-property-types/`, `fetch-locations/`, `search-properties/`, `get-property-details/`, `translate-property-description/`, `generate-brochure-content/`, `generate-brochure-images/`, `generate-location-image/`
+1. **Article** — with full author Person (not just @id), publisher with logo ImageObject, speakable with cssSelector `["h1", ".speakable-summary"]`, datePublished, dateModified, mainEntityOfPage
+2. **FAQPage** — from `article.qa_entities` (already rendered in BlogArticle.tsx line 314-320). Map each QA entity's question/answer to Question schema items. Only include if faqs array is non-empty.
+3. **BreadcrumbList** — Home → Blog → Article headline
 
----
+**File: `src/pages/BlogArticle.tsx`**
 
-### GROUP B: Update `src/App.tsx`
+Update the `<ArticleSchema>` invocation to pass the new props (faqs from `article.qa_entities`, author name/url, language, slug).
 
-Remove lazy imports and routes for all deleted pages: `RetargetingLanding`, `CityBrochure`, `AddProperty`, `PropertyFinder`, `PropertyDetail`, `AdminProperties`, `PropertyForm`. Remove `PropertyRedirect` component. Remove routes for `/en/welcome-back`, `/es/bienvenido`, `/brochure/*`, `/add-property`, `/:lang/properties`, `/:lang/property/*`, `/admin/properties/*`, property legacy redirects.
+### 3. Q&A Pages — Verify and Augment Schema
 
----
+**File: `src/lib/qaPageSchemaGenerator.ts`**
 
-### GROUP C: Update edge functions (persona swap)
+Current state: outputs QAPage, WebPage, BreadcrumbList, Organization via `generateAllQASchemas`. Speakable is intentionally returning null (line 246-248).
 
-| Function | Change |
-|----------|--------|
-| `serve-seo-page` | Hans Beeckman → Steven Rosenberg, Senior Wealth Strategist |
-| `resume-cluster` | System prompt → "expert independent financial advisor specializing in tax-free retirement strategies, IUL, and wealth protection." Image prompts → professional financial imagery |
-| `generate-missing-articles` | Same persona swap + remove Costa del Sol expansion instructions |
-| `generate-10lang-qa` | Prompt → wealth management context, category → "Wealth Management" |
-| `translate-glossary` | Remove Spanish city terms, update domain from "real estate" to "financial planning" |
-| `regenerate-sitemap` | Remove PropertyData interface + property sitemap generation |
-| `discover-cluster-citations` | Update prompt context from real estate to wealth management |
-| `auto-enhance-citations` | Update competitor domain list |
-| `find-citations-gemini` + `find-citations-perplexity` | Update blocking keywords |
+**Fix:** Re-enable speakable in `generateQAPageSchema` by adding a `speakable` property with `cssSelector: [".speakable-answer"]`. The `.speakable-answer` class is already used in `src/pages/QAPage.tsx` line 309.
 
----
+### 4. Strategy Pages — Add Service Schema
 
-### GROUP D: Update build scripts (8 files)
+**Files:** `src/pages/strategies/IndexedUniversalLife.tsx`, `WholeLife.tsx`, `TaxFreeRetirement.tsx`, `AssetProtection.tsx`
 
-- `generateStaticPages.ts` — Replace org description, remove WIKIDATA city entities, remove cities array
-- `generateStaticQAPages.ts` — Replace all "property in Costa del Sol" copy
-- `generateStaticHomePage.ts` — Replace keywords meta
-- `generateStaticComparisonPages.ts` — Replace descriptions, remove areaServed cities
-- `generateStaticAboutPage.ts` — Remove Hans Beeckman bio, Spanish address
-- `generateStaticLocationPages.ts` — Remove Spain/Costa del Sol region references
-- `generate-hero-images.ts` — Replace all 9 villa prompts with financial imagery
-- `generateSitemap.ts` — Remove LOCATION_CITIES array
+Each already has WebPage, Article, Breadcrumb, and FinancialService schemas. Add a **Service** schema object to each:
+```json
+{
+  "@context": "https://schema.org",
+  "@type": "Service",
+  "serviceType": "[strategy name]",
+  "provider": {"@type": "FinancialService", "name": "Everence Wealth", "url": "https://www.everencewealth.com"},
+  "description": "[seoDesc variable already defined]",
+  "areaServed": "United States"
+}
+```
 
----
+Add it as a new `const serviceSchema` and render via existing `<script type="application/ld+json">` pattern.
 
-### GROUP E: Update admin UI placeholders (9 files)
+### 5. Hreflang on Blog Articles — Verify
 
-Replace real estate placeholders/examples with wealth management equivalents in: `ClusterGenerator`, `ArticleEditor`, `AEOGuide`, `BOFUPageGenerator`, `QAGenerator`, `ComparisonGenerator`, `QASection`, `AIImageGenerator`, `WebhookPayloadPreview`.
+Already implemented in BlogArticle.tsx lines 239-245. The code iterates `article.translations` and generates `<link rel="alternate" hrefLang>` tags plus one for the current language. This is correct. No changes needed — just confirm during build.
 
----
+### 6. Sitemap Index Expansion
 
-### GROUP F: Update documentation (20 files)
+**File: `public/sitemap.xml`**
 
-- `docs/AUTHORITY_POLICY.md` — Steven Rosenberg, everencewealth.com entity
-- All `docs/crm/` files (12) — "Del Sol Prime Homes CRM" → "Everence Wealth CRM"
-- CRM Gmail filter docs (4) — Update sender domain
-- `ADMIN_GUIDE.md`, `LINK_VALIDATION_GUIDE.md`, `DEPLOYMENT_SSG_CHECKLIST.md`, `SCHEMA_DOCUMENTATION.md` — Replace all real estate examples
+Replace with the full sitemap index referencing all content types:
+- `en/blog.xml`, `en/qa.xml`, `en/strategies.xml`, `en/glossary.xml`, `en/comparisons.xml`, `en/locations.xml`, `en/guides.xml`, `en/state-guides.xml`
+- `es/blog.xml`, `es/qa.xml`
+- `static.xml`
+
+Also update `public/sitemap-index.xml` to match.
+
+**Note:** The child sitemaps (strategies.xml, glossary.xml, guides.xml, state-guides.xml, static.xml) need to be generated. Create a one-time script to generate them from Supabase data and static page lists, then write them to `public/sitemaps/`. The static sitemap covers: homepage, about, team, philosophy, contact, glossary, compare, blog, qa, guides, retirement-planning, locations, assessment.
+
+### 7. Build Verification
+
+Run `npx tsc --noEmit` to confirm zero TypeScript errors.
 
 ---
 
-### GROUP G: Clean remaining source files
-
-- `src/constants/home.ts` — Remove brochure hero image imports and city data
-- `src/i18n/translations/en.ts` + `es.ts` — Remove `featuredAreas` block
-- `src/pages/crm/admin/CrmSettings.tsx` — Remove Marbella/Puerto Banús examples
-- `src/components/landing/TestimonialSection.tsx` — Update if real estate focused
-
----
-
-### Verification
-
-After all changes, run grep for: `delsolprimehomes`, `del sol`, `Costa del Sol`, `Hans Beeckman`, `Marbella`, `real estate`, `Mediterranean`, `NIE`, `Spain`, `property`. Every result must be zero or limited to immutable `supabase/migrations/` files.
-
-### What is NOT touched
-- No database tables dropped or modified
-- `supabase/migrations/` files (immutable)
-- `src/integrations/supabase/client.ts` and `types.ts`
+### Files modified
+- `src/pages/Home.tsx` — add Organization + FAQPage JSON-LD
+- `src/components/schema/ArticleSchema.tsx` — expand to output Article + FAQPage + BreadcrumbList array
+- `src/pages/BlogArticle.tsx` — pass new props to ArticleSchema
+- `src/lib/qaPageSchemaGenerator.ts` — re-enable speakable with `.speakable-answer`
+- `src/pages/strategies/IndexedUniversalLife.tsx` — add Service schema
+- `src/pages/strategies/WholeLife.tsx` — add Service schema
+- `src/pages/strategies/TaxFreeRetirement.tsx` — add Service schema
+- `src/pages/strategies/AssetProtection.tsx` — add Service schema
+- `public/sitemap.xml` — expand to full index
+- `public/sitemap-index.xml` — sync with sitemap.xml
+- New static sitemap files generated via script
 
