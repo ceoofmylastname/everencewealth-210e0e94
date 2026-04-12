@@ -14,6 +14,7 @@ import BlogEmmaChat from '@/components/blog-article/BlogEmmaChat';
 import { generateAllGlossarySchemas, getGlossaryName, getOGLocale } from "@/lib/glossarySchemaGenerator";
 import { glossaryTranslations, type GlossaryTranslation } from "@/i18n/translations/glossary";
 import { SUPPORTED_LANGUAGES } from "@/types/hreflang";
+import { toTermSlug } from "@/pages/GlossaryTerm";
 
 interface GlossaryTerm {
   term: string;
@@ -412,7 +413,9 @@ const Glossary: React.FC = () => {
                                   <div>
                                     {/* Term name with speakable class for voice assistants */}
                                     <CardTitle className="glossary-term-name text-xl font-bold text-prime-900 group-hover:text-prime-gold transition-colors">
-                                      {term.term}
+                                      <Link to={`/${currentLang}/glossary/${toTermSlug(term.term)}`} className="hover:underline">
+                                        {term.term}
+                                      </Link>
                                     </CardTitle>
                                     {term.full_name !== term.term && (
                                       <p className="text-sm text-slate-500 italic mt-1">
