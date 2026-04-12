@@ -162,7 +162,7 @@ function generateOrganizationSchema() {
     "name": "Everence Wealth",
     "legalName": "Everence Wealth",
     "url": "https://www.everencewealth.com/",
-    "description": "Premium real estate agency specializing in Costa del Sol new-build and off-plan properties",
+    "description": "Independent wealth management firm specializing in tax-free retirement strategies, IUL, and asset protection",
     "logo": {
       "@type": "ImageObject",
       "url": "https://www.everencewealth.com/assets/logo-new.png",
