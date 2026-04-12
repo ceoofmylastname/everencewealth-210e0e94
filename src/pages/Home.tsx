@@ -1,4 +1,5 @@
 import React from 'react';
+import { Helmet } from 'react-helmet';
 import { Header } from '../components/home/Header';
 import { Footer } from '../components/home/Footer';
 import { Hero } from '../components/home/sections/Hero';
@@ -21,6 +22,16 @@ function Home() {
   const sectionClass = "rounded-3xl overflow-hidden";
   return (
     <div className="min-h-screen flex flex-col font-sans text-white bg-white">
+      <Helmet>
+        <title>Everence Wealth - Bridge the Retirement Gap</title>
+        <meta name="description" content="Tax-free retirement strategies with 0% floor protection. Independent broker guidance helping families eliminate fees, volatility, and taxes since 1990." />
+        <link rel="canonical" href="https://www.everencewealth.com/" />
+        <meta property="og:title" content="Everence Wealth - Bridge the Retirement Gap" />
+        <meta property="og:description" content="Tax-free retirement strategies with 0% floor protection. Independent broker guidance helping families eliminate fees, volatility, and taxes since 1990." />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://www.everencewealth.com/" />
+        <meta name="twitter:card" content="summary_large_image" />
+      </Helmet>
       <ScrollProgressBar />
       <Header />
       <CursorGlow />
