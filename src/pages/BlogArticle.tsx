@@ -216,11 +216,16 @@ const BlogArticle = () => {
         description={article.meta_description}
         datePublished={article.date_published || article.created_at}
         dateModified={article.date_modified || article.updated_at}
-        articleUrl={`https://www.everencewealth.com/${article.language}/blog/${article.slug}`}
+        articleUrl={article.canonical_url || `https://www.everencewealth.com/${article.language}/blog/${article.slug}`}
         imageUrl={article.featured_image_url}
         imageCaption={article.featured_image_caption}
         imageAlt={article.featured_image_alt}
         context="blog"
+        faqs={(article.qa_entities as Array<{question: string; answer: string}>) || []}
+        authorName={author?.name}
+        authorUrl={author ? `https://www.everencewealth.com/en/team` : undefined}
+        language={article.language}
+        slug={article.slug}
       />
 
       <Helmet>
