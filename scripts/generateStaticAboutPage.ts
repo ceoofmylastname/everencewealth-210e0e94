@@ -91,37 +91,15 @@ const BASE_URL = 'https://www.everencewealth.com';
 // Hardcoded founder data with LinkedIn URLs for entity disambiguation
 const FOUNDERS_DATA: Founder[] = [
   {
-    name: "Steven Roberts",
-    role: "Co-Founder & Director",
-    bio: "British real estate professional with 20+ years experience in Costa del Sol. Specializes in luxury villa sales and new developments.",
-    photo_url: "https://storage.googleapis.com/msgsndr/9m2UBN29nuaCWceOgW2Z/media/steven-roberts.jpg",
+    name: "Steven Rosenberg",
+    role: "Founder & Chief Wealth Strategist",
+    bio: "Independent financial advisor with 30+ years experience in wealth management. Specializes in tax-free retirement strategies, IUL, and asset protection.",
+    photo_url: "https://storage.googleapis.com/msgsndr/9m2UBN29nuaCWceOgW2Z/media/steven-rosenberg.jpg",
     linkedin_url: "https://www.linkedin.com/company/everencewealth/",
-    credentials: ["API Licensed Agent", "RICS Affiliate"],
-    years_experience: 20,
+    credentials: ["Licensed Insurance Broker", "Wealth Strategist"],
+    years_experience: 30,
     languages: ["English", "Spanish"],
-    specialization: "Luxury Villas & New Developments"
-  },
-  {
-    name: "Hans Beeckman",
-    role: "Co-Founder & Sales Director",
-    bio: "Belgian real estate expert with deep knowledge of the Dutch and Belgian buyer market. 35+ years guiding international clients through Spanish property purchases.",
-    photo_url: "https://storage.googleapis.com/msgsndr/9m2UBN29nuaCWceOgW2Z/media/hans-beeckman.jpg",
-    linkedin_url: "https://www.linkedin.com/in/hansbeeckman/",
-    credentials: ["API Licensed Agent", "Property Investment Specialist"],
-    years_experience: 15,
-    languages: ["Dutch", "French", "English", "Spanish"],
-    specialization: "International Buyers & Investment Properties"
-  },
-  {
-    name: "Cédric Van Hecke",
-    role: "Co-Founder & Client Relations",
-    bio: "Belgian real estate consultant specializing in client relations and after-sales support. Expert in helping buyers navigate Spanish bureaucracy.",
-    photo_url: "https://storage.googleapis.com/msgsndr/9m2UBN29nuaCWceOgW2Z/media/cedric-vanhecke.jpg",
-    linkedin_url: "https://www.linkedin.com/company/everencewealth/",
-    credentials: ["API Licensed Agent", "NIE & Residency Specialist"],
-    years_experience: 12,
-    languages: ["Dutch", "French", "English", "Spanish"],
-    specialization: "Client Relations & Legal Coordination"
+    specialization: "Tax-Free Retirement & IUL Strategies"
   }
 ];
 
@@ -153,14 +131,13 @@ function getProductionAssets(distDir: string): ProductionAssets {
 function generateAPICredentialSchema() {
   return {
     "@type": "EducationalOccupationalCredential",
-    "@id": `${BASE_URL}/#api-credential`,
+    "@id": `${BASE_URL}/#license-credential`,
     "credentialCategory": "license",
-    "name": "Agente de la Propiedad Inmobiliaria (API)",
-    "description": "Official Spanish real estate agent license issued by the professional college",
+    "name": "Licensed Insurance Broker",
+    "description": "State-licensed insurance broker authorized to sell life insurance and annuity products",
     "recognizedBy": {
       "@type": "Organization",
-      "name": "Colegio Oficial de Agentes de la Propiedad Inmobiliaria",
-      "url": "https://www.consejocoapis.org/"
+      "name": "State Department of Insurance"
     }
   };
 }
@@ -169,10 +146,10 @@ function generateAPICredentialSchema() {
 function generateOrganizationSchema(content: AboutPageData) {
   return {
     "@context": "https://schema.org",
-    "@type": ["Organization", "RealEstateAgent"],
+    "@type": ["Organization", "FinancialService"],
     "@id": `${BASE_URL}/#organization`,
     "name": "Everence Wealth",
-    "alternateName": "DSPH",
+    "alternateName": "Everence",
     "url": BASE_URL,
     "logo": {
       "@type": "ImageObject",
@@ -182,29 +159,23 @@ function generateOrganizationSchema(content: AboutPageData) {
     },
     "description": content.speakable_summary,
     "foundingDate": "2010",
-    "slogan": "Your Trusted Partners in Costa del Sol Real Estate",
+    "slogan": "Your Independent Wealth Management Partner",
     "knowsAbout": [
-      "Costa del Sol Real Estate",
-      "Spanish Property Law",
-      "International Property Purchases",
-      "Marbella Properties",
-      "NIE Applications",
-      "Golden Visa Spain"
+      "Tax-Free Retirement",
+      "Indexed Universal Life Insurance",
+      "Asset Protection",
+      "Wealth Management",
+      "Estate Planning",
+      "Independent Financial Advisory"
     ],
     "areaServed": [
-      { "@type": "City", "name": "Marbella", "containedInPlace": { "@type": "AdministrativeArea", "name": "Málaga" } },
-      { "@type": "City", "name": "Estepona", "containedInPlace": { "@type": "AdministrativeArea", "name": "Málaga" } },
-      { "@type": "City", "name": "Benalmádena", "containedInPlace": { "@type": "AdministrativeArea", "name": "Málaga" } },
-      { "@type": "City", "name": "Fuengirola", "containedInPlace": { "@type": "AdministrativeArea", "name": "Málaga" } },
-      { "@type": "City", "name": "Mijas", "containedInPlace": { "@type": "AdministrativeArea", "name": "Málaga" } }
+      { "@type": "Country", "name": "United States" }
     ],
     "address": {
       "@type": "PostalAddress",
-      "streetAddress": "Avenida Ricardo Soriano",
-      "addressLocality": "Marbella",
-      "postalCode": "29601",
-      "addressRegion": "Málaga",
-      "addressCountry": "ES"
+      "addressLocality": "El Paso",
+      "addressRegion": "TX",
+      "addressCountry": "US"
     },
     "contactPoint": [
       {
@@ -235,22 +206,19 @@ function generateLocalBusinessSchema(content: AboutPageData) {
     "@type": "LocalBusiness",
     "@id": `${BASE_URL}/#localbusiness`,
     "name": "Everence Wealth",
-    "priceRange": "€€€",
+    "priceRange": "$$",
     "address": {
       "@type": "PostalAddress",
-      "streetAddress": "Avenida Ricardo Soriano",
-      "addressLocality": "Marbella",
-      "postalCode": "29601",
-      "addressRegion": "Málaga",
-      "addressCountry": "ES"
+      "addressLocality": "El Paso",
+      "addressRegion": "TX",
+      "addressCountry": "US"
     },
     "geo": {
       "@type": "GeoCoordinates",
-      "latitude": 36.5090,
-      "longitude": -4.8826
+      "latitude": 31.7619,
+      "longitude": -106.4850
     },
     "url": BASE_URL,
-    "telephone": "+34 630 03 90 90",
     "openingHoursSpecification": [
       {
         "@type": "OpeningHoursSpecification",
