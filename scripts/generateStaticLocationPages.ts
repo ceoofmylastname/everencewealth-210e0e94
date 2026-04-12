@@ -111,7 +111,7 @@ function generatePlaceSchema(location: LocationData) {
       "@type": "PostalAddress",
       "addressLocality": location.city_name,
       "addressRegion": location.region,
-      "addressCountry": location.country === 'Spain' ? 'ES' : location.country
+      "addressCountry": location.country === 'United States' ? 'US' : location.country
     },
     "containedInPlace": {
       "@type": "AdministrativeArea",
@@ -126,7 +126,7 @@ function generateLocalBusinessSchema(location: LocationData) {
     "@type": "RealEstateAgent",
     "@id": `${BASE_URL}/#organization`,
     "name": "Everence Wealth",
-    "description": `Expert real estate services in ${location.city_name}, Costa del Sol`,
+    "description": `Expert wealth management services by Everence Wealth`,
     "url": BASE_URL,
     "areaServed": {
       "@type": "Place",
@@ -135,7 +135,7 @@ function generateLocalBusinessSchema(location: LocationData) {
         "@type": "PostalAddress",
         "addressLocality": location.city_name,
         "addressRegion": location.region,
-        "addressCountry": location.country === 'Spain' ? 'ES' : location.country
+        "addressCountry": location.country === 'United States' ? 'US' : location.country
       }
     }
   };
