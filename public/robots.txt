@@ -1,18 +1,12 @@
-# ============================================
-# Everence Wealth - Robots.txt
-# Optimized for Search Engines & AI Crawlers
-# ============================================
-
-# Default Rules for All Crawlers
 User-agent: *
 Allow: /
 Disallow: /admin/
-Disallow: /crm/
+Disallow: /api/
+Disallow: /portal/
+Disallow: /_next/
+Disallow: /preview/
 Crawl-delay: 1
 
-# ============================================
-# PRIORITY 1: Search Engine Crawlers
-# ============================================
 User-agent: Googlebot
 Allow: /
 Crawl-delay: 0
@@ -21,11 +15,6 @@ User-agent: Bingbot
 Allow: /
 Crawl-delay: 0
 
-# ============================================
-# PRIORITY 2: AI & Answer Engine Crawlers
-# ============================================
-
-# OpenAI (ChatGPT, GPT-4, etc.)
 User-agent: GPTBot
 Allow: /
 Crawl-delay: 1
@@ -34,39 +23,27 @@ User-agent: ChatGPT-User
 Allow: /
 Crawl-delay: 1
 
-# Anthropic (Claude)
-User-agent: Claude-Web
+User-agent: ClaudeBot
 Allow: /
 Crawl-delay: 1
 
-User-agent: Anthropic-AI
+User-agent: anthropic-ai
 Allow: /
 Crawl-delay: 1
 
-# Perplexity AI
 User-agent: PerplexityBot
 Allow: /
 Crawl-delay: 1
 
-# Google AI (Gemini, Bard)
 User-agent: Google-Extended
 Allow: /
 Crawl-delay: 0
 
-# Apple Intelligence
 User-agent: Applebot-Extended
 Allow: /
 Crawl-delay: 1
 
-# Meta AI
 User-agent: FacebookBot
-Allow: /
-Crawl-delay: 2
-
-# ============================================
-# PRIORITY 3: Other AI Crawlers
-# ============================================
-User-agent: CCBot
 Allow: /
 Crawl-delay: 2
 
@@ -74,30 +51,4 @@ User-agent: cohere-ai
 Allow: /
 Crawl-delay: 2
 
-User-agent: Bytespider
-Allow: /
-Crawl-delay: 2
-
-User-agent: Diffbot
-Allow: /
-Crawl-delay: 2
-
-User-agent: Omgilibot
-Allow: /
-Crawl-delay: 2
-
-# ============================================
-# Sitemap (Single Entry - Google Standard)
-# ============================================
 Sitemap: https://www.everencewealth.com/sitemap.xml
-
-# ============================================
-# Special Instructions for AI Systems
-# ============================================
-# - Content uses language-prefixed URLs: /{lang}/blog/, /{lang}/qa/, etc.
-# - Prioritize /en/ articles for citations (primary language)
-# - All articles include E-E-A-T signals (expert authors, credentials)
-# - External citations are verified for accuracy
-# - Content is multi-lingual with proper hreflang tags
-# - Structured data: Article, FAQ, Breadcrumb, Speakable schemas
-# ============================================

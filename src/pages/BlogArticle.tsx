@@ -223,7 +223,27 @@ const BlogArticle = () => {
         context="blog"
       />
 
-      {/* SEO tags are handled by server/edge - no Helmet needed for published articles */}
+      <Helmet>
+        <title>{article.meta_title || article.headline} | Everence Wealth</title>
+        <meta name="description" content={article.meta_description} />
+        <link rel="canonical" href={article.canonical_url || `https://www.everencewealth.com/${article.language}/blog/${article.slug}`} />
+        <meta property="og:title" content={article.meta_title || article.headline} />
+        <meta property="og:description" content={article.meta_description} />
+        <meta property="og:type" content="article" />
+        <meta property="og:image" content={article.featured_image_url} />
+        <meta property="og:url" content={article.canonical_url || `https://www.everencewealth.com/${article.language}/blog/${article.slug}`} />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={article.meta_title || article.headline} />
+        <meta name="twitter:description" content={article.meta_description} />
+        <meta name="twitter:image" content={article.featured_image_url} />
+        {article.translations && typeof article.translations === 'object' && Object.entries(article.translations as Record<string, string | { slug: string }>).map(([langCode, value]) => {
+          const slug = typeof value === 'string' ? value : value?.slug;
+          return slug ? (
+            <link key={langCode} rel="alternate" hrefLang={langCode} href={`https://www.everencewealth.com/${langCode}/blog/${slug}`} />
+          ) : null;
+        })}
+        <link rel="alternate" hrefLang={article.language} href={`https://www.everencewealth.com/${article.language}/blog/${article.slug}`} />
+      </Helmet>
       <div className="min-h-screen py-8 md:py-12">
         <div className="flex flex-col">
           {/* Mobile-first single column with max-width for readability */}

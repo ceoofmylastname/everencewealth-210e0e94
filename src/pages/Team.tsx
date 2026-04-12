@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useParams } from "react-router-dom";
+import { Helmet } from "react-helmet";
 import { Header } from "@/components/home/Header";
 import { Footer } from "@/components/home/Footer";
 import { TeamHero } from "@/components/team/TeamHero";
@@ -51,6 +52,16 @@ const Team = () => {
       />
 
       <div className="min-h-screen bg-background">
+        <Helmet>
+          <title>Our Team | Everence Wealth</title>
+          <meta name="description" content="Meet the expert wealth advisors at Everence Wealth. Independent brokers with decades of experience in tax-free retirement strategies and asset protection." />
+          <link rel="canonical" href={`https://www.everencewealth.com/${lang || 'en'}/team`} />
+          <meta property="og:title" content="Our Team | Everence Wealth" />
+          <meta property="og:description" content="Meet the expert wealth advisors at Everence Wealth." />
+          <meta property="og:type" content="website" />
+          <meta property="og:url" content={`https://www.everencewealth.com/${lang || 'en'}/team`} />
+          <meta name="twitter:card" content="summary_large_image" />
+        </Helmet>
         <Header />
 
         <main className="mx-2 md:mx-4 lg:mx-6 space-y-4 md:space-y-6 py-4 md:py-6">
