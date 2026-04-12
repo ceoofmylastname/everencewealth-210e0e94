@@ -1,41 +1,74 @@
 
+Goal: stabilize Q&A generation for the 3 affected clusters, regenerate only missing published Q&As, and verify each cluster reaches 24 published Q&A pages.
 
-## Phase 3, Step 10: Publish New Articles & Generate Q&A Pages
+What I found from the current code:
+- `generate-cluster-qas` only orchestrates work; the JSON parse failures are happening inside `supabase/functions/generate-article-qas/index.ts`.
+- The function already inserts Q&As with `status: 'published'`, so new pages should be live if generation succeeds.
+- There is a real logic bug in completion checks: it still assumes 10 languages (`existingLangs.size >= 10`, comments, expected totals), while this function is currently configured for only `['en', 'es']`. That can cause unnecessary retries/skips behavior.
+- The current parser only extracts a JSON object (`{...}`), but your requested retry message expects a JSON array. If we switch to 1 Q&A per call, we should support both array and object extraction safely.
+- There is already a more resilient parsing pattern in `supabase/functions/repair-missing-qas/index.ts` that can be adapted here.
 
-### Current Status
-All 3 cluster generation jobs completed successfully:
-- **Tax-Free Retirement Income** (`42f27c00`): 6 EN + 6 ES articles ✓
-- **Living Benefits & Protection** (`4d44cb1a`): 6 EN + 6 ES articles ✓  
-- **Legacy Planning & Estate Strategy** (`747f2c84`): 6 EN + 6 ES articles ✓
+Implementation plan:
+1. Inspect current backend state with your SQL
+- Run the requested SQL first to confirm current article / published Q&A / draft Q&A counts for:
+  - Tax-Free Retirement Income
+  - Living Benefits & Protection
+  - Legacy Planning & Estate Strategy
+- Also run a direct `qa_pages`-based verification query per cluster/article/qa_type so we can identify exactly which articles have fewer than 4 published EN Q&As.
 
-**Problem:** All 36 new articles were created with `status: 'draft'`. The Q&A generation function requires `status = 'published'` to find articles.
+2. Harden `generate-article-qas` (the real failure point)
+- Update JSON parsing in `supabase/functions/generate-article-qas/index.ts`:
+  - wrap parsing in try/catch
+  - first try normal parse
+  - then strip markdown fences
+  - then regex-extract either array or object payload
+  - then repair common malformed JSON before final parse
+- Add retry logic for English generation:
+  - attempt 1 = current prompt
+  - attempt 2 = same prompt plus explicit instruction:
+    `Respond with ONLY a valid JSON array. No markdown, no code fences, no explanation. Start with [ and end with ]`
+- If the retry returns an array, normalize by taking the first valid item so the rest of the function can still work with one Q&A result.
 
-### Step 1: Publish all draft articles
+3. Reduce failure blast radius
+- Keep generation at 1 Q&A type per AI call (the function already does this), but fix the misleading “4 types × 10 languages” assumptions and logs.
+- Add a 1-second delay between each English Q&A generation call.
+- Keep the existing delay between translations, and normalize all totals/skip logic to the actual enabled languages (`en`, `es`).
 
-Create a database migration to set all new articles to published:
+4. Fix selective regeneration logic
+- Change completion checks to use dynamic enabled-language counts instead of hardcoded 10.
+- Re-trigger generation only for English articles in the 3 target clusters where fewer than 4 published EN Q&As exist.
+- Do not regenerate Q&A types that already exist for that article.
+- If an article already has some completed Q&A types, the function should only fill the missing ones.
 
-```sql
-UPDATE blog_articles 
-SET status = 'published' 
-WHERE cluster_id IN (
-  '42f27c00-4a50-46fd-b80e-39aa40527675',
-  '4d44cb1a-fc3a-4a1a-aa01-7daa5df79fb7',
-  '747f2c84-e762-4ee7-b12b-633f0bfe9d4b'
-) AND status = 'draft';
-```
+5. Deploy and test
+- Deploy the updated edge function(s).
+- Test the function on one affected article first to confirm:
+  - malformed AI output no longer aborts the whole article
+  - new rows are created with `status = 'published'`
+  - existing Q&As are skipped correctly
 
-### Step 2: Trigger Q&A generation for all 3 clusters
+6. Regenerate missing Q&As for the 3 clusters
+- Trigger regeneration only for underfilled articles in:
+  - Tax-Free Retirement Income
+  - Living Benefits & Protection
+  - Legacy Planning & Estate Strategy
+- Monitor jobs until they finish or stall.
+- If any articles still remain under 4 published EN Q&As, run a second targeted pass only for those.
 
-After publishing, invoke `generate-cluster-qas` for each cluster ID. Each cluster produces 24 Q&A pages (6 articles × 4 Q&A types), totaling 72 new Q&A pages.
+7. Final verification
+- Re-run your exact SQL from step 1.
+- Also verify with a direct `qa_pages` query that each of the 3 clusters has:
+  - 6 English articles
+  - 24 published Q&A pages total for the cluster’s active language scope
+  - no newly created draft Q&As
+- Report final totals in the database after completion.
 
-### Step 3: Verify final counts
+Files to update:
+- `supabase/functions/generate-article-qas/index.ts`
+- possibly `supabase/functions/generate-cluster-qas/index.ts` only if its totals/messages need to be corrected to match the new logic
 
-After completion, confirm totals:
-- **Articles:** 36 EN + 36 ES = 72 total (previously 36, adding 36)
-- **Q&A Pages:** 144 existing + 72 new = 216 total
-
-### What this requires
-- 1 database migration (UPDATE to set status = 'published')
-- 3 edge function invocations (generate-cluster-qas)
-- Polling to confirm Q&A generation completes
-
+Technical notes:
+- The user asked to update `generate-cluster-qas`, but the actual parsing code lives in `generate-article-qas`; that is the function that must be fixed.
+- The function currently says “4 types × 10 languages” but is configured for only `en` and `es`. I would correct those constants/comments/logs so progress tracking and skip logic are accurate.
+- New Q&As are already inserted with `status: 'published'`, so no separate publish step should be needed after the fix.
+- Because this is read-only mode, I cannot run the SQL, edit the function, deploy, or retrigger jobs yet. Once you approve, I’ll implement the fix, run the targeted regeneration, and verify the final counts.
