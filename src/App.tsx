@@ -388,8 +388,6 @@ const App = () => (
                 <Route index element={<Navigate to="content" replace />} />
               </Route>
 
-              {/* Standalone Property Management Page */}
-              <Route path="/add-property" element={<ProtectedRoute><AddProperty /></ProtectedRoute>} />
 
               {/* ========================================== */}
               {/* PORTAL ROUTES (MUST BE BEFORE /:lang)     */}
@@ -531,17 +529,7 @@ const App = () => (
               {/* Landing Pages (Paid Traffic) */}
               <Route path="/en/landing" element={<LandingEn />} />
 
-              {/* Retargeting Landing Pages (EN + ES) */}
-              <Route path="/en/welcome-back" element={<RetargetingLanding />} />
-              <Route path="/es/bienvenido" element={<RetargetingLanding />} />
 
-              <Route path="/optin" element={<OptIn />} />
-              <Route path="/:lang/optin" element={<OptIn />} />
-
-              {/* Legacy redirect for brochures - redirect to English */}
-              <Route path="/brochure/:citySlug" element={<Navigate to={window.location.pathname.replace('/brochure/', '/en/brochure/')} replace />} />
-              {/* Language-prefixed brochure routes */}
-              <Route path="/:lang/brochure/:citySlug" element={<CityBrochure />} />
               {/* About page */}
               <Route path="/about" element={<Navigate to="/en/about-us" replace />} />
               <Route path="/:lang/about" element={<About />} />
@@ -610,9 +598,6 @@ const App = () => (
               <Route path="/:lang/retirement-planning" element={<StateGuidesIndex />} />
               <Route path="/:lang/retirement-planning/:topicSlug" element={<StateGuidePage />} />
 
-              {/* Property routes with language prefix */}
-              <Route path="/:lang/properties" element={<PropertyFinder />} />
-              <Route path="/:lang/property/:reference" element={<PropertyDetail />} />
 
               {/* ========================================== */}
               {/* LEGACY ROUTES -> REDIRECT TO /en/...      */}
@@ -635,10 +620,6 @@ const App = () => (
               <Route path="/locations/:citySlug" element={<LocationIndexRedirect />} />
               <Route path="/locations/:citySlug/:topicSlug" element={<LocationPageRedirect />} />
 
-              {/* Property legacy redirects */}
-              <Route path="/properties" element={<Navigate to="/en/properties" replace />} />
-              <Route path="/property-finder" element={<Navigate to="/en/properties" replace />} />
-              <Route path="/property/:reference" element={<PropertyRedirect />} />
 
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
