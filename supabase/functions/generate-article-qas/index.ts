@@ -262,7 +262,7 @@ Return ONLY valid JSON:
         'Authorization': `Bearer ${Deno.env.get('LOVABLE_API_KEY')}`,
       },
       body: JSON.stringify({
-        model: 'openai/gpt-5-mini',
+        model: 'google/gemini-2.5-flash',
         messages: [
           { 
             role: 'system', 
@@ -270,13 +270,14 @@ Return ONLY valid JSON:
           },
           { role: 'user', content: prompt }
         ],
-        max_completion_tokens: 2500,
-        response_format: { type: "json_object" },
+        max_tokens: 2500,
       }),
     }, TRANSLATE_TIMEOUT_MS);
 
     if (!response.ok) {
       const status = response.status;
+      const errorBody = await response.text().catch(() => 'no body');
+      console.error(`[Translate] API error ${status}: ${errorBody.substring(0, 300)}`);
       if (status === 429) {
         console.log(`[Translate] Rate limited for ${targetLanguage}, waiting...`);
         await new Promise(r => setTimeout(r, 10000));
