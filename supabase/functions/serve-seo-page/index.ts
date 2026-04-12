@@ -691,33 +691,33 @@ function generateHubPageHtml(lang: string, hubType: string): string {
     },
     sv: {
       title: "Förmögenhetsförvaltning Guider | Everence Wealth",
-      description: "Utforska omfattande platsguider för Costa del Sol. Expertinsikter om fastighetsköp, bästa områden och investeringsmöjligheter.",
-      speakableSummary: "Everence Wealth Location Intelligence Hub erbjuder omfattande fastighetsguider för 11 städer på Costa del Sol."
+      description: "Utforska omfattande guider för förmögenhetsförvaltning. Expertinsikter om skattefri pension, IUL-strategier och tillgångsskydd.",
+      speakableSummary: "Everence Wealth Wealth Intelligence Hub erbjuder omfattande finansiella planeringsguider."
     },
     no: {
       title: "Formuesforvaltning Guider | Everence Wealth",
-      description: "Utforsk omfattende stedsguider for Costa del Sol. Ekspertinnsikt om eiendomskjøp, beste områder og investeringsmuligheter.",
-      speakableSummary: "Everence Wealth Location Intelligence Hub tilbyr omfattende eiendomsguider for 11 byer på Costa del Sol."
+      description: "Utforsk omfattende guider for formuesforvaltning. Ekspertinnsikt om skattefri pensjon, IUL-strategier og aktivabeskyttelse.",
+      speakableSummary: "Everence Wealth Wealth Intelligence Hub tilbyr omfattende finansielle planleggingsguider."
     },
     da: {
       title: "Formueforvaltning Guider | Everence Wealth",
-      description: "Udforsk omfattende stedguider for Costa del Sol. Ekspertindsigt i ejendomskøb, bedste områder og investeringsmuligheder.",
-      speakableSummary: "Everence Wealth Location Intelligence Hub tilbyder omfattende ejendomsguider til 11 byer på Costa del Sol."
+      description: "Udforsk omfattende guider for formueforvaltning. Ekspertindsigt i skattefri pension, IUL-strategier og aktivbeskyttelse.",
+      speakableSummary: "Everence Wealth Wealth Intelligence Hub tilbyder omfattende finansielle planlægningsguider."
     },
     fi: {
       title: "Varallisuudenhoito Oppaat | Everence Wealth",
-      description: "Tutustu kattaviin sijaintioppaisiin Costa del Solille. Asiantuntijatietoa kiinteistöjen ostosta ja sijoitusmahdollisuuksista.",
-      speakableSummary: "Everence Wealth Location Intelligence Hub tarjoaa kattavat kiinteistöoppaat 11 kaupungille Costa del Solilla."
+      description: "Tutustu kattaviin varallisuudenhoito-oppaisiin. Asiantuntijatietoa verovapaa eläkkeestä, IUL-strategioista ja varallisuuden suojaamisesta.",
+      speakableSummary: "Everence Wealth Wealth Intelligence Hub tarjoaa kattavat taloussuunnitteluoppaat."
     },
     pl: {
       title: "Przewodniki po Zarządzaniu Majątkiem | Everence Wealth",
-      description: "Odkryj kompleksowe przewodniki po lokalizacjach Costa del Sol. Eksperckie informacje o zakupie nieruchomości i możliwościach inwestycyjnych.",
-      speakableSummary: "Everence Wealth Location Intelligence Hub zapewnia kompleksowe przewodniki po nieruchomościach dla 11 miast na Costa del Sol."
+      description: "Odkryj kompleksowe przewodniki po zarządzaniu majątkiem. Eksperckie informacje o emeryturze wolnej od podatków, strategiach IUL i ochronie aktywów.",
+      speakableSummary: "Everence Wealth Wealth Intelligence Hub zapewnia kompleksowe przewodniki po planowaniu finansowym."
     },
     hu: {
       title: "Vagyonkezelési Útmutatók | Everence Wealth",
-      description: "Fedezze fel a Costa del Sol átfogó helyszín útmutatóit. Szakértői betekintés az ingatlanvásárlásba és befektetési lehetőségekbe.",
-      speakableSummary: "A Everence Wealth Location Intelligence Hub átfogó ingatlanos útmutatókat kínál 11 városhoz a Costa del Sol-on."
+      description: "Fedezze fel az átfogó vagyonkezelési útmutatókat. Szakértői betekintés az adómentes nyugdíjba, IUL stratégiákba és vagyonvédelembe.",
+      speakableSummary: "A Everence Wealth Wealth Intelligence Hub átfogó pénzügyi tervezési útmutatókat kínál."
     }
   }
   
@@ -836,10 +836,10 @@ const BUYERS_GUIDE_META: Record<string, {
   subheadline: string;
 }> = {
   en: {
-    title: "Complete Buyers Guide to Costa del Sol Property | Everence Wealth",
-    description: "Your comprehensive guide to buying property on the Costa del Sol. Step-by-step process, costs, legal requirements, and expert advice.",
-    headline: "The Complete Guide to Buying Property on Costa del Sol",
-    subheadline: "Everything you need to know about buying your dream home in Spain's most desirable region."
+    title: "Complete Wealth Management Guide | Everence Wealth",
+    description: "Your comprehensive guide to wealth management. Tax-free retirement strategies, IUL options, asset protection, and expert financial advice.",
+    headline: "The Complete Guide to Wealth Management",
+    subheadline: "Everything you need to know about building and protecting your wealth with independent financial strategies."
   },
   nl: {
     title: "Complete Gids voor het Kopen van Vastgoed aan de Costa del Sol | Everence Wealth",
@@ -1162,7 +1162,7 @@ const ORGANIZATION_SCHEMA = {
   ],
   "address": {
     "@type": "PostalAddress",
-    "addressLocality": "Marbella",
+    "addressLocality": "El Paso",
     "addressRegion": "Málaga",
     "addressCountry": "ES"
   },
@@ -1827,10 +1827,10 @@ function generateArticleBody(metadata: PageMetadata): string {
   
   // CTA text based on language
   const ctaTexts: Record<string, { title: string; text: string; button: string }> = {
-    en: { title: "Ready to Find Your Dream Property in Costa del Sol?", text: "Contact Everence Wealth for expert guidance on luxury real estate.", button: "Get in Touch" },
-    nl: { title: "Klaar om Uw Droomwoning aan de Costa del Sol te Vinden?", text: "Neem contact op met Everence Wealth voor deskundige begeleiding.", button: "Neem Contact Op" },
-    de: { title: "Bereit, Ihre Traumimmobilie an der Costa del Sol zu Finden?", text: "Kontaktieren Sie Everence Wealth für kompetente Beratung.", button: "Kontakt Aufnehmen" },
-    fr: { title: "Prêt à Trouver Votre Propriété de Rêve sur la Costa del Sol?", text: "Contactez Everence Wealth pour des conseils d'experts.", button: "Nous Contacter" },
+    en: { title: "Ready to Build Your Financial Future?", text: "Contact Everence Wealth for expert independent financial guidance.", button: "Get in Touch" },
+    nl: { title: "Klaar om Uw Financiële Toekomst op te Bouwen?", text: "Neem contact op met Everence Wealth voor deskundig onafhankelijk financieel advies.", button: "Neem Contact Op" },
+    de: { title: "Bereit, Ihre Finanzielle Zukunft Aufzubauen?", text: "Kontaktieren Sie Everence Wealth für kompetente unabhängige Finanzberatung.", button: "Kontakt Aufnehmen" },
+    fr: { title: "Prêt à Construire Votre Avenir Financier?", text: "Contactez Everence Wealth pour des conseils financiers indépendants.", button: "Nous Contacter" },
   }
   const cta = ctaTexts[lang] || ctaTexts.en
   
@@ -2259,7 +2259,7 @@ function generate410GoneHtml(lang: string = 'en'): string {
     </div>
   </div>
   <div class="footer">
-    © ${new Date().getFullYear()} <a href="${BASE_URL}">Everence Wealth</a> • Costa del Sol, Spain
+    © ${new Date().getFullYear()} <a href="${BASE_URL}">Everence Wealth</a> • Independent Wealth Management
   </div>
 </body>
 </html>`
