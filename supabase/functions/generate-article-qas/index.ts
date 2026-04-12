@@ -12,8 +12,10 @@ const LANGUAGE_NAMES: Record<string, string> = {
 };
 
 const NON_ENGLISH_LANGUAGES = ['es'];
+const ALL_LANGUAGES = ['en', 'es'];
+const TOTAL_LANGUAGE_COUNT = ALL_LANGUAGES.length; // 2
 
-// 4 Q&A types per article - realistic client questions
+// 4 Q&A types per article
 const QA_TYPES = [
   { id: 'pitfalls', prompt: 'PITFALLS question - What common mistakes, pitfalls, or traps should clients avoid?' },
   { id: 'costs', prompt: 'HIDDEN COSTS question - What unexpected or hidden costs should clients know about?' },
@@ -21,25 +23,15 @@ const QA_TYPES = [
   { id: 'legal', prompt: 'LEGAL/REGULATORY question - What legal requirements, regulations, or compliance considerations are needed?' },
 ];
 
-// Timeout threshold - save progress before edge function times out (2.5 min with 30s buffer)
 const TIMEOUT_THRESHOLD_MS = 150000;
-
-// AI request timeout (60 seconds for generation, 45 seconds for translation)
 const GENERATE_TIMEOUT_MS = 60000;
 const TRANSLATE_TIMEOUT_MS = 45000;
 
-/**
- * Fetch with timeout using AbortController
- */
 async function fetchWithTimeout(url: string, options: RequestInit, timeoutMs: number): Promise<Response> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
-  
   try {
-    const response = await fetch(url, {
-      ...options,
-      signal: controller.signal
-    });
+    const response = await fetch(url, { ...options, signal: controller.signal });
     clearTimeout(timeout);
     return response;
   } catch (error: unknown) {
@@ -56,63 +48,75 @@ async function fetchWithTimeout(url: string, options: RequestInit, timeoutMs: nu
  */
 function repairJSON(text: string): string {
   let fixed = text;
-  // Remove trailing commas before closing braces/brackets
   fixed = fixed.replace(/,(\s*[}\]])/g, '$1');
-  // Fix common Unicode issues
   fixed = fixed.replace(/[\u201C\u201D]/g, '"');
   fixed = fixed.replace(/[\u2018\u2019]/g, "'");
-  // Remove control characters
   fixed = fixed.replace(/[\x00-\x1F\x7F]/g, '');
   return fixed;
 }
 
 /**
- * Parse JSON with repair attempts and enhanced logging
+ * Robust JSON parsing with multiple fallback strategies.
+ * Supports both JSON objects {...} and arrays [{...}].
  */
 function parseJSONSafe(content: string): any | null {
   if (!content || content.trim() === '') {
     console.error('[ParseJSON] Empty content received');
     return null;
   }
-  
-  // Clean markdown fences
-  let cleaned = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-  const start = cleaned.indexOf('{');
-  const end = cleaned.lastIndexOf('}');
-  
-  if (start === -1 || end === -1) {
-    console.error('[ParseJSON] No JSON object found in response');
-    console.error('[ParseJSON] Content preview:', cleaned.substring(0, 300));
-    return null;
-  }
-  
-  const jsonStr = cleaned.slice(start, end + 1);
-  
-  // Try direct parse first
+
+  // Step 1: Strip markdown code fences
+  let cleaned = content.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
+
+  // Step 2: Try direct parse first (handles both objects and arrays)
   try {
-    return JSON.parse(jsonStr);
-  } catch (e) {
-    console.error('[ParseJSON] Direct parse failed:', (e as Error).message);
-    // Try with repairs
-    try {
-      return JSON.parse(repairJSON(jsonStr));
-    } catch (e2) {
-      console.error('[ParseJSON] Repair parse failed:', (e2 as Error).message);
-      console.error('[ParseJSON] Failed JSON preview:', jsonStr.substring(0, 500));
-      return null;
-    }
+    return JSON.parse(cleaned);
+  } catch (_) { /* continue */ }
+
+  // Step 3: Try repaired direct parse
+  try {
+    return JSON.parse(repairJSON(cleaned));
+  } catch (_) { /* continue */ }
+
+  // Step 4: Try extracting a JSON object {...}
+  const objStart = cleaned.indexOf('{');
+  const objEnd = cleaned.lastIndexOf('}');
+  if (objStart !== -1 && objEnd > objStart) {
+    const jsonStr = cleaned.slice(objStart, objEnd + 1);
+    try { return JSON.parse(jsonStr); } catch (_) { /* continue */ }
+    try { return JSON.parse(repairJSON(jsonStr)); } catch (_) { /* continue */ }
   }
+
+  // Step 5: Try extracting a JSON array [...]
+  const arrStart = cleaned.indexOf('[');
+  const arrEnd = cleaned.lastIndexOf(']');
+  if (arrStart !== -1 && arrEnd > arrStart) {
+    const jsonStr = cleaned.slice(arrStart, arrEnd + 1);
+    try {
+      const arr = JSON.parse(jsonStr);
+      if (Array.isArray(arr) && arr.length > 0) return arr[0]; // normalize to single object
+      return arr;
+    } catch (_) { /* continue */ }
+    try {
+      const arr = JSON.parse(repairJSON(jsonStr));
+      if (Array.isArray(arr) && arr.length > 0) return arr[0];
+      return arr;
+    } catch (_) { /* continue */ }
+  }
+
+  console.error('[ParseJSON] All parse strategies failed. Preview:', cleaned.substring(0, 500));
+  return null;
 }
 
 /**
- * Generate original English Q&A content
+ * Generate original English Q&A content with retry
  */
 async function generateEnglishQA(
   sourceContent: { headline: string; content: string; topic: string },
   qaType: { id: string; prompt: string },
-  apiKey: string
+  _apiKey: string
 ): Promise<any | null> {
-  const prompt = `Generate a Q&A page in English about insurance, retirement planning, and wealth management.
+  const basePrompt = `Generate a Q&A page in English about insurance, retirement planning, and wealth management.
 
 Q&A TYPE: ${qaType.prompt}
 
@@ -150,52 +154,70 @@ Return ONLY valid JSON:
   "speakable_answer": "Single paragraph verdict (80-120 words). NO lists. Complete sentences."
 }`;
 
-  try {
-    const response = await fetchWithTimeout('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${Deno.env.get('LOVABLE_API_KEY')}`,
-      },
-      body: JSON.stringify({
-        model: 'openai/gpt-5-mini',
-        messages: [
-          { 
-            role: 'system', 
-            content: 'You are an expert Q&A content generator for insurance, retirement planning, and wealth management. Write in English. Return valid JSON only.' 
-          },
-          { role: 'user', content: prompt }
-        ],
-        max_completion_tokens: 2500,
-        response_format: { type: "json_object" },
-      }),
-    }, GENERATE_TIMEOUT_MS);
+  // Attempt 1: Normal prompt
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    try {
+      const promptToUse = attempt === 1 
+        ? basePrompt 
+        : basePrompt + '\n\nIMPORTANT: Respond with ONLY a valid JSON object. No markdown, no code fences, no explanation. Start with { and end with }';
 
-    if (!response.ok) {
-      const status = response.status;
-      if (status === 429) {
-        console.log('[Generate] Rate limited, waiting...');
-        await new Promise(r => setTimeout(r, 10000));
-        return null;
+      const response = await fetchWithTimeout('https://ai.gateway.lovable.dev/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${Deno.env.get('LOVABLE_API_KEY')}`,
+        },
+        body: JSON.stringify({
+          model: 'google/gemini-2.5-flash',
+          messages: [
+            { 
+              role: 'system', 
+              content: 'You are an expert Q&A content generator for insurance, retirement planning, and wealth management. Write in English. Return valid JSON only.' 
+            },
+            { role: 'user', content: promptToUse }
+          ],
+          max_tokens: 2500,
+        }),
+      }, GENERATE_TIMEOUT_MS);
+
+      if (!response.ok) {
+        const status = response.status;
+        const errorBody = await response.text().catch(() => 'no body');
+        console.error(`[Generate] API error ${status}: ${errorBody.substring(0, 300)}`);
+        if (status === 429) {
+          console.log(`[Generate] Rate limited (attempt ${attempt}), waiting 10s...`);
+          await new Promise(r => setTimeout(r, 10000));
+          continue;
+        }
+        throw new Error(`API error: ${status}`);
       }
-      throw new Error(`API error: ${status}`);
+
+      const data = await response.json();
+      console.log(`[Generate] Response keys: ${Object.keys(data).join(', ')}`);
+      console.log(`[Generate] Choice finish_reason: ${data.choices?.[0]?.finish_reason}`);
+      const content = data.choices?.[0]?.message?.content || '';
+      console.log(`[Generate] Attempt ${attempt} raw response length: ${content.length}`);
+      const parsed = parseJSONSafe(content);
+      if (parsed && parsed.question_main) {
+        return parsed;
+      }
+      console.warn(`[Generate] Attempt ${attempt} parsed but missing required fields, retrying...`);
+    } catch (error) {
+      console.error(`[Generate] Attempt ${attempt} failed for ${qaType.id}:`, error);
     }
 
-    const data = await response.json();
-    const content = data.choices?.[0]?.message?.content || '';
-    console.log(`[Generate] Raw response length: ${content.length}`);
-    const parsed = parseJSONSafe(content);
-    if (!parsed) throw new Error('Failed to parse JSON');
-    return parsed;
-    
-  } catch (error) {
-    console.error(`[Generate] Failed English/${qaType.id}:`, error);
-    return null;
+    // Delay before retry
+    if (attempt < 2) {
+      await new Promise(r => setTimeout(r, 2000));
+    }
   }
+
+  console.error(`[Generate] All attempts failed for English/${qaType.id}`);
+  return null;
 }
 
 /**
- * Translate English Q&A to target language (simpler, cheaper)
+ * Translate English Q&A to target language
  */
 async function translateQA(
   englishQA: {
@@ -207,7 +229,7 @@ async function translateQA(
     slug: string;
   },
   targetLanguage: string,
-  apiKey: string
+  _apiKey: string
 ): Promise<any | null> {
   const languageName = LANGUAGE_NAMES[targetLanguage];
   
@@ -240,7 +262,7 @@ Return ONLY valid JSON:
         'Authorization': `Bearer ${Deno.env.get('LOVABLE_API_KEY')}`,
       },
       body: JSON.stringify({
-        model: 'openai/gpt-5-mini',
+        model: 'google/gemini-2.5-flash',
         messages: [
           { 
             role: 'system', 
@@ -248,13 +270,14 @@ Return ONLY valid JSON:
           },
           { role: 'user', content: prompt }
         ],
-        max_completion_tokens: 2500,
-        response_format: { type: "json_object" },
+        max_tokens: 2500,
       }),
     }, TRANSLATE_TIMEOUT_MS);
 
     if (!response.ok) {
       const status = response.status;
+      const errorBody = await response.text().catch(() => 'no body');
+      console.error(`[Translate] API error ${status}: ${errorBody.substring(0, 300)}`);
       if (status === 429) {
         console.log(`[Translate] Rate limited for ${targetLanguage}, waiting...`);
         await new Promise(r => setTimeout(r, 10000));
@@ -276,9 +299,6 @@ Return ONLY valid JSON:
   }
 }
 
-/**
- * Translate with retry logic (3 attempts with exponential backoff)
- */
 async function translateWithRetry(
   englishQA: any,
   targetLanguage: string,
@@ -288,9 +308,8 @@ async function translateWithRetry(
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     const result = await translateQA(englishQA, targetLanguage, apiKey);
     if (result) return result;
-    
     if (attempt < maxRetries) {
-      const delay = Math.pow(2, attempt) * 1000; // 2s, 4s, 8s
+      const delay = Math.pow(2, attempt) * 1000;
       console.log(`[Translate] Retry ${attempt}/${maxRetries} for ${targetLanguage} in ${delay}ms...`);
       await new Promise(r => setTimeout(r, delay));
     }
@@ -299,12 +318,8 @@ async function translateWithRetry(
   return null;
 }
 
-/**
- * Translate image alt text to target language
- */
 async function translateAltText(altText: string, language: string): Promise<string> {
   if (language === 'en' || !altText) return altText;
-  
   try {
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
@@ -321,7 +336,6 @@ async function translateAltText(altText: string, language: string): Promise<stri
         max_completion_tokens: 100,
       }),
     });
-    
     if (response.ok) {
       const data = await response.json();
       return data.choices?.[0]?.message?.content?.trim() || altText;
@@ -332,9 +346,6 @@ async function translateAltText(altText: string, language: string): Promise<stri
   return altText;
 }
 
-/**
- * Update job progress and trigger next article if needed
- */
 async function updateJobAndContinue(
   supabase: any,
   jobId: string,
@@ -342,7 +353,6 @@ async function updateJobAndContinue(
   articleResult: any,
   dryRun: boolean
 ) {
-  // Get current job state
   const { data: job, error: jobError } = await supabase
     .from('qa_generation_jobs')
     .select('*')
@@ -362,12 +372,12 @@ async function updateJobAndContinue(
   const articleIds = job.article_ids || [];
 
   const isComplete = articlesCompleted >= totalArticles;
-  const expectedTotal = totalArticles * 40;
+  // Fixed: use actual language count (2) not hardcoded 10
+  const expectedTotal = totalArticles * QA_TYPES.length * TOTAL_LANGUAGE_COUNT;
   const completionPercent = Math.round((totalQAsCreated / expectedTotal) * 100);
 
-  console.log(`[Continue] Job ${jobId}: ${articlesCompleted}/${totalArticles} articles, ${totalQAsCreated} Q&As`);
+  console.log(`[Continue] Job ${jobId}: ${articlesCompleted}/${totalArticles} articles, ${totalQAsCreated}/${expectedTotal} Q&As`);
 
-  // Update job with progress
   await supabase
     .from('qa_generation_jobs')
     .update({
@@ -377,7 +387,7 @@ async function updateJobAndContinue(
       article_results: articleResults,
       completion_percent: completionPercent,
       updated_at: new Date().toISOString(),
-      resume_from_qa_type: null, // Clear any resume state
+      resume_from_qa_type: null,
       ...(isComplete ? {
         status: 'completed',
         completed_at: new Date().toISOString(),
@@ -390,7 +400,6 @@ async function updateJobAndContinue(
     return;
   }
 
-  // Trigger next article (self-continuation)
   const nextIndex = articleIndex + 1;
   const nextArticleId = articleIds[nextIndex];
 
@@ -401,7 +410,6 @@ async function updateJobAndContinue(
 
   console.log(`[Continue] Firing article ${nextIndex + 1}/${totalArticles}...`);
 
-  // Update job to show next article
   await supabase
     .from('qa_generation_jobs')
     .update({
@@ -410,10 +418,8 @@ async function updateJobAndContinue(
     })
     .eq('id', jobId);
 
-  // Small delay before next article
   await new Promise(r => setTimeout(r, 3000));
 
-  // Fire-and-forget next article
   fetch(
     `${Deno.env.get('SUPABASE_URL')}/functions/v1/generate-article-qas`,
     {
@@ -434,9 +440,6 @@ async function updateJobAndContinue(
   });
 }
 
-/**
- * Graceful timeout handler - save progress and trigger self-continuation
- */
 async function handleTimeoutSave(
   supabase: any,
   jobId: string,
@@ -449,19 +452,16 @@ async function handleTimeoutSave(
 ) {
   console.log(`[Timeout] ⏰ Saving progress at ${resumeFromQAType} before timeout...`);
   
-  // Insert any created pages so far
   if (!dryRun && createdPages.length > 0) {
     console.log(`[Timeout] Inserting ${createdPages.length} pages before save...`);
     const { error: insertError } = await supabase
       .from('qa_pages')
       .insert(createdPages);
-    
     if (insertError) {
       console.error('[Timeout] Insert error during save:', insertError);
     }
   }
 
-  // Update job with stalled status and resume point
   await supabase
     .from('qa_generation_jobs')
     .update({
@@ -474,7 +474,6 @@ async function handleTimeoutSave(
 
   console.log(`[Timeout] Triggering self-continuation for article ${articleIndex}, resume from ${resumeFromQAType}...`);
 
-  // Fire self-continuation with resume point
   fetch(
     `${Deno.env.get('SUPABASE_URL')}/functions/v1/generate-article-qas`,
     {
@@ -499,7 +498,7 @@ async function handleTimeoutSave(
 /**
  * Main handler - English-first workflow:
  * 1. Generate 4 English Q&As (original content)
- * 2. Translate each to 9 languages
+ * 2. Translate each to Spanish
  * 3. Link each translation to its language's source article
  * 4. If jobId provided, update progress and trigger next article
  */
@@ -508,7 +507,6 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  // Track start time for timeout detection
   const startTime = Date.now();
 
   try {
@@ -526,21 +524,16 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
 
-    console.log(`[Generate] Starting English-first Q&A generation for: ${englishArticleId}`);
+    console.log(`[Generate] Starting Q&A generation for: ${englishArticleId}`);
     if (jobId) {
       console.log(`[Generate] Part of job ${jobId}, article index ${articleIndex}`);
     }
     if (resumeFromQAType) {
       console.log(`[Generate] RESUMING from Q&A type: ${resumeFromQAType}`);
-      
-      // Mark job as running again (from stalled)
       if (jobId) {
         await supabase
           .from('qa_generation_jobs')
-          .update({
-            status: 'running',
-            updated_at: new Date().toISOString(),
-          })
+          .update({ status: 'running', updated_at: new Date().toISOString() })
           .eq('id', jobId);
       }
     }
@@ -554,14 +547,11 @@ serve(async (req) => {
       .single();
 
     if (articleError || !englishArticle) {
-      const errorResult = { articleId: englishArticleId, success: false, error: 'Article not found', created: 0, failed: 40 };
+      const errorResult = { articleId: englishArticleId, success: false, error: 'Article not found', created: 0, failed: QA_TYPES.length * TOTAL_LANGUAGE_COUNT };
       if (jobId) {
         await updateJobAndContinue(supabase, jobId, articleIndex, errorResult, dryRun);
       }
-      return new Response(JSON.stringify({ 
-        error: 'English article not found',
-        englishArticleId 
-      }), {
+      return new Response(JSON.stringify({ error: 'English article not found', englishArticleId }), {
         status: 404,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
@@ -570,18 +560,14 @@ serve(async (req) => {
     console.log(`[Generate] Source: ${englishArticle.headline}`);
     console.log(`[Generate] Cluster: ${englishArticle.cluster_id}`);
 
-    // Update job with current article headline
     if (jobId) {
       await supabase
         .from('qa_generation_jobs')
-        .update({
-          current_article_headline: englishArticle.headline,
-          updated_at: new Date().toISOString(),
-        })
+        .update({ current_article_headline: englishArticle.headline, updated_at: new Date().toISOString() })
         .eq('id', jobId);
     }
 
-    // Get ALL sibling articles in all languages for this article's hreflang group
+    // Get ALL sibling articles in all languages
     const articlesByLang: Record<string, any> = { en: englishArticle };
     
     if (englishArticle.hreflang_group_id) {
@@ -590,18 +576,15 @@ serve(async (req) => {
         .select('id, language, slug, headline, featured_image_url, featured_image_alt')
         .eq('hreflang_group_id', englishArticle.hreflang_group_id)
         .eq('status', 'published');
-      
       for (const sibling of siblings || []) {
         articlesByLang[sibling.language] = sibling;
       }
     } else {
-      // Fallback: match by cluster_id
       const { data: siblings } = await supabase
         .from('blog_articles')
         .select('id, language, slug, headline, featured_image_url, featured_image_alt')
         .eq('cluster_id', englishArticle.cluster_id)
         .eq('status', 'published');
-      
       for (const sibling of siblings || []) {
         if (!articlesByLang[sibling.language]) {
           articlesByLang[sibling.language] = sibling;
@@ -611,30 +594,27 @@ serve(async (req) => {
 
     console.log(`[Generate] Found sibling articles in: ${Object.keys(articlesByLang).join(', ')}`);
 
-    // Check for existing Q&As across ALL languages for this cluster + article's Q&A types
-    // This ensures we only skip Q&A types that are FULLY translated (all 10 languages)
-    const allSiblingArticleIds = Object.values(articlesByLang).map(a => a.id);
+    // Check for existing Q&As
+    const allSiblingArticleIds = Object.values(articlesByLang).map((a: any) => a.id);
     const { data: existingQAs } = await supabase
       .from('qa_pages')
       .select('qa_type, language, hreflang_group_id, source_article_id')
       .eq('cluster_id', englishArticle.cluster_id)
       .in('source_article_id', allSiblingArticleIds);
     
-    // Build a map: qa_type -> { langs: Set, hreflangGroupId }
     const existingByType: Record<string, { langs: Set<string>; hreflangGroupId: string | null }> = {};
     for (const qa of existingQAs || []) {
       if (!existingByType[qa.qa_type]) {
         existingByType[qa.qa_type] = { langs: new Set(), hreflangGroupId: null };
       }
       existingByType[qa.qa_type].langs.add(qa.language);
-      // Capture hreflang_group_id from any sibling (they should all match)
       if (qa.hreflang_group_id) {
         existingByType[qa.qa_type].hreflangGroupId = qa.hreflang_group_id;
       }
     }
     
-    console.log(`[Generate] Found existing Q&As: ${JSON.stringify(Object.fromEntries(
-      Object.entries(existingByType).map(([k, v]) => [k, { langs: Array.from(v.langs), groupId: v.hreflangGroupId?.slice(0, 8) }])
+    console.log(`[Generate] Existing Q&As: ${JSON.stringify(Object.fromEntries(
+      Object.entries(existingByType).map(([k, v]) => [k, { langs: Array.from(v.langs) }])
     ))}`);
 
     const sourceContent = {
@@ -651,63 +631,43 @@ serve(async (req) => {
       hreflangGroups: [] as string[],
     };
 
-    // Determine which Q&A types to process (for resume support)
     let startProcessing = !resumeFromQAType;
-    const ALL_LANGUAGES = ['en', 'es'];
 
     // Process 4 Q&A types
     for (const qaType of QA_TYPES) {
-      // Resume support: skip types until we reach the resume point
       if (resumeFromQAType && qaType.id === resumeFromQAType) {
         startProcessing = true;
         console.log(`[Generate] Resuming from ${qaType.id}`);
       }
       if (!startProcessing) {
-        console.log(`[Generate] Skipping ${qaType.id} (already processed before timeout)`);
+        console.log(`[Generate] Skipping ${qaType.id} (already processed)`);
         continue;
       }
 
-      // Check for timeout BEFORE starting expensive operations
+      // Check timeout
       const elapsed = Date.now() - startTime;
       if (elapsed > TIMEOUT_THRESHOLD_MS && jobId) {
-        console.log(`[Generate] ⏰ Timeout approaching (${elapsed}ms elapsed) - saving progress...`);
-        await handleTimeoutSave(
-          supabase,
-          jobId,
-          articleIndex,
-          englishArticleId,
-          qaType.id,
-          results.qaPages,
-          results,
-          dryRun
-        );
-        
+        console.log(`[Generate] ⏰ Timeout approaching (${elapsed}ms) - saving progress...`);
+        await handleTimeoutSave(supabase, jobId, articleIndex, englishArticleId, qaType.id, results.qaPages, results, dryRun);
         return new Response(JSON.stringify({
-          success: true,
-          partial: true,
-          reason: 'timeout_save',
-          resumeFromQAType: qaType.id,
-          created: results.created,
-          message: `Saved progress, continuing from ${qaType.id}...`,
-        }), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
+          success: true, partial: true, reason: 'timeout_save',
+          resumeFromQAType: qaType.id, created: results.created,
+        }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
       }
       
-      // Check if ALL 10 languages exist for this Q&A type (only then skip completely)
+      // Check if all languages exist for this Q&A type
       const existingInfo = existingByType[qaType.id];
       const existingLangs = existingInfo?.langs || new Set<string>();
-      const allLangsComplete = existingLangs.size >= 10 && ALL_LANGUAGES.every(l => existingLangs.has(l));
+      const allLangsComplete = existingLangs.size >= TOTAL_LANGUAGE_COUNT && ALL_LANGUAGES.every(l => existingLangs.has(l));
 
       if (allLangsComplete) {
-        console.log(`[Generate] Skipping ${qaType.id} - all 10 languages already exist`);
-        results.skipped += 10;
+        console.log(`[Generate] Skipping ${qaType.id} - all ${TOTAL_LANGUAGE_COUNT} languages exist`);
+        results.skipped += TOTAL_LANGUAGE_COUNT;
         continue;
       }
       
-      // Determine missing languages for this Q&A type
       const missingLangs = ALL_LANGUAGES.filter(l => !existingLangs.has(l));
-      console.log(`[Generate] ${qaType.id}: ${existingLangs.size}/10 exist, missing: ${missingLangs.join(', ')}`);
+      console.log(`[Generate] ${qaType.id}: ${existingLangs.size}/${TOTAL_LANGUAGE_COUNT} exist, missing: ${missingLangs.join(', ')}`);
       
       console.log(`\n[Generate] ===== Starting ${qaType.id} =====`);
       
@@ -716,12 +676,10 @@ serve(async (req) => {
       let englishQA: any = null;
       let hreflangGroupId: string = '';
 
-      // Check if English already exists - if so, fetch it and reuse
+      // Reuse existing English Q&A if it exists
       if (existingLangs.has('en')) {
-        // Reuse existing hreflang_group_id
         hreflangGroupId = existingInfo!.hreflangGroupId || crypto.randomUUID();
         
-        // Fetch existing English Q&A to use as translation source
         const { data: existingEnglishQA } = await supabase
           .from('qa_pages')
           .select('*')
@@ -732,7 +690,7 @@ serve(async (req) => {
           .single();
         
         if (existingEnglishQA) {
-          console.log(`[Generate] Using existing English ${qaType.id}: "${existingEnglishQA.question_main?.substring(0, 50)}..."`);
+          console.log(`[Generate] Using existing English ${qaType.id}`);
           englishQA = {
             question_main: existingEnglishQA.question_main,
             answer_main: existingEnglishQA.answer_main,
@@ -742,32 +700,33 @@ serve(async (req) => {
             slug: existingEnglishQA.slug?.replace(/-en-[a-f0-9]+$/, '') || qaType.id,
           };
           languageSlugs['en'] = existingEnglishQA.slug;
-          results.skipped += 1; // English already exists
+          results.skipped += 1;
         } else {
           console.warn(`[Generate] English marked as existing but not found, regenerating...`);
-          existingLangs.delete('en'); // Remove from existing set
+          existingLangs.delete('en');
         }
         
         results.hreflangGroups.push(hreflangGroupId);
       }
       
-      // Generate English Q&A if it doesn't exist yet
+      // Generate English Q&A if needed
       if (!englishQA) {
+        // 1-second delay between English generation calls
+        await new Promise(r => setTimeout(r, 1000));
+
         englishQA = await generateEnglishQA(sourceContent, qaType, '');
         
         if (!englishQA) {
           console.error(`[Generate] Failed to generate English ${qaType.id}`);
-          results.failed += missingLangs.length; // Only count missing languages as failed
+          results.failed += missingLangs.length;
           continue;
         }
 
         console.log(`[Generate] ✅ English ${qaType.id} generated: "${englishQA.question_main?.substring(0, 50)}..."`);
 
-        // Create new hreflang_group_id for this Q&A type
         hreflangGroupId = crypto.randomUUID();
         results.hreflangGroups.push(hreflangGroupId);
 
-        // Create English page with UNIQUE slug (UUID suffix prevents collisions)
         const englishUniqueId = crypto.randomUUID().slice(0, 8);
         const englishSlug = `${englishQA.slug || qaType.id}-en-${englishUniqueId}`.replace(/--+/g, '-').substring(0, 80);
         languageSlugs['en'] = englishSlug;
@@ -790,7 +749,7 @@ serve(async (req) => {
           meta_title: (englishQA.meta_title || '').substring(0, 60),
           meta_description: (englishQA.meta_description || '').substring(0, 160),
           featured_image_url: englishArticle.featured_image_url || 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=1200',
-           featured_image_alt: englishArticle.featured_image_alt || 'Financial planning strategy',
+          featured_image_alt: englishArticle.featured_image_alt || 'Financial planning strategy',
           category: englishArticle.category || 'Financial Planning',
           status: 'published',
           translations: {},
@@ -803,58 +762,39 @@ serve(async (req) => {
       // Rate limiting delay
       await new Promise(r => setTimeout(r, 1000));
 
-      // Step 3: Translate to 9 other languages (only missing ones)
+      // Translate to non-English languages (only if sibling article exists in that language)
       for (const lang of NON_ENGLISH_LANGUAGES) {
-        // Skip languages that already have Q&As for this type
+        // CRITICAL: Skip languages without a matching sibling article
+        // The validate_qa_language_match trigger requires Q&A language to match source article language
+        if (!articlesByLang[lang]) {
+          console.log(`[Generate] Skipping ${lang} - no ${lang} article exists for this cluster`);
+          continue;
+        }
         if (existingLangs.has(lang)) {
           console.log(`[Generate] Skipping ${lang} - already exists for ${qaType.id}`);
           results.skipped += 1;
           continue;
         }
+        
         // Check timeout before each translation
         const translationElapsed = Date.now() - startTime;
         if (translationElapsed > TIMEOUT_THRESHOLD_MS && jobId) {
-          console.log(`[Generate] ⏰ Timeout during ${qaType.id}/${lang} - saving progress...`);
-          
-          // Save pages created so far (including partial translations)
+          console.log(`[Generate] ⏰ Timeout during ${qaType.id}/${lang} - saving...`);
           for (const page of createdPages) {
             page.translations = { ...languageSlugs };
           }
-          
           if (!dryRun && createdPages.length > 0) {
-            const { error: insertError } = await supabase
-              .from('qa_pages')
-              .insert(createdPages);
-            if (insertError) {
-              console.error('[Timeout] Insert error:', insertError);
-            }
+            const { error: insertError } = await supabase.from('qa_pages').insert(createdPages);
+            if (insertError) console.error('[Timeout] Insert error:', insertError);
           }
-          
-          // Continue from next Q&A type (this one is partial, will be skipped on resume)
           const nextQATypeIndex = QA_TYPES.findIndex(q => q.id === qaType.id) + 1;
           const nextQAType = QA_TYPES[nextQATypeIndex]?.id || null;
-          
           if (nextQAType) {
-            await handleTimeoutSave(
-              supabase,
-              jobId,
-              articleIndex,
-              englishArticleId,
-              nextQAType,
-              [],
-              results,
-              dryRun
-            );
+            await handleTimeoutSave(supabase, jobId, articleIndex, englishArticleId, nextQAType, [], results, dryRun);
           }
-          
           return new Response(JSON.stringify({
-            success: true,
-            partial: true,
-            reason: 'timeout_during_translation',
-            created: results.created,
-          }), {
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          });
+            success: true, partial: true, reason: 'timeout_during_translation', created: results.created,
+          }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
         }
         
         console.log(`[Translate] Translating ${qaType.id} to ${lang}...`);
@@ -867,10 +807,9 @@ serve(async (req) => {
           speakable_answer: englishQA.speakable_answer || '',
           slug: englishQA.slug || qaType.id,
         }, lang, '', 3);
+
         if (translatedQA) {
           const langArticle = articlesByLang[lang];
-          
-          // Generate UNIQUE slug with UUID suffix to prevent collisions
           const langUniqueId = crypto.randomUUID().slice(0, 8);
           const langSlug = `${translatedQA.slug || `${qaType.id}-${lang}`}`.replace(/--+/g, '-').substring(0, 70);
           const finalSlug = langSlug.endsWith(`-${lang}`) 
@@ -878,7 +817,6 @@ serve(async (req) => {
             : `${langSlug}-${lang}-${langUniqueId}`;
           languageSlugs[lang] = finalSlug;
 
-          // Use article's existing translated alt text (no AI call needed - 50% reduction!)
           const translatedAlt = langArticle?.featured_image_alt || englishArticle.featured_image_alt || 'Financial planning strategy';
 
           const pageData = {
@@ -907,36 +845,31 @@ serve(async (req) => {
 
           createdPages.push(pageData);
           results.created++;
-          
           console.log(`[Translate] ✅ ${lang} complete`);
         } else {
           results.failed++;
           console.error(`[Translate] ❌ Failed ${lang}/${qaType.id}`);
         }
 
-        // Rate limiting delay between translations
         await new Promise(r => setTimeout(r, 800));
       }
 
-      // Step 4: Update all pages with complete translations JSONB (including self-reference)
+      // Update translations JSONB
       for (const page of createdPages) {
         page.translations = { ...languageSlugs };
       }
 
-      // Step 5: Insert all pages for this Q&A type (with slug deduplication)
+      // Insert pages with slug dedup
       if (!dryRun && createdPages.length > 0) {
         console.log(`[Generate] Inserting ${createdPages.length} pages for ${qaType.id}...`);
         
-        // Check for existing slugs to prevent duplicate key errors
         const slugsToCheck = createdPages.map(p => p.slug);
         const { data: existingSlugs } = await supabase
           .from('qa_pages')
           .select('slug')
           .in('slug', slugsToCheck);
         
-        const existingSlugSet = new Set(existingSlugs?.map(s => s.slug) || []);
-        
-        // Filter out pages with existing slugs
+        const existingSlugSet = new Set(existingSlugs?.map((s: any) => s.slug) || []);
         const pagesToInsert = createdPages.filter(p => !existingSlugSet.has(p.slug));
         
         if (pagesToInsert.length === 0) {
@@ -962,7 +895,6 @@ serve(async (req) => {
           results.failed += pagesToInsert.length;
         } else {
           console.log(`[Generate] ✅ Inserted ${insertedData?.length || 0} pages for ${qaType.id}`);
-          console.log(`[Generate] ✅ VERIFIED: ${qaType.id} group ${hreflangGroupId} has ${insertedData?.length || 0}/10 members`);
           results.qaPages.push(...pagesToInsert.map((p, i) => ({
             ...p,
             id: insertedData?.[i]?.id,
@@ -980,7 +912,6 @@ serve(async (req) => {
     console.log(`\n[Generate] ===== Complete! =====`);
     console.log(`[Generate] Created: ${results.created}, Skipped: ${results.skipped}, Failed: ${results.failed}`);
 
-    // If part of a job, update progress and trigger next article
     if (jobId) {
       const articleResult = {
         articleId: englishArticle.id,
@@ -991,8 +922,6 @@ serve(async (req) => {
         failed: results.failed,
         hreflangGroups: results.hreflangGroups,
       };
-      
-      // Use background processing to trigger next article
       // @ts-ignore
       EdgeRuntime.waitUntil(updateJobAndContinue(supabase, jobId, articleIndex, articleResult, dryRun));
     }
@@ -1005,14 +934,11 @@ serve(async (req) => {
       created: results.created,
       skipped: results.skipped,
       failed: results.failed,
-      expected: QA_TYPES.length * 10, // 4 types × 10 languages = 40
+      expected: QA_TYPES.length * TOTAL_LANGUAGE_COUNT,
       hreflangGroups: results.hreflangGroups,
       qaPages: results.qaPages.map(p => ({ 
-        language: p.language, 
-        qa_type: p.qa_type, 
-        slug: p.slug,
-        source_article_id: p.source_article_id,
-        hreflang_group_id: p.hreflang_group_id,
+        language: p.language, qa_type: p.qa_type, slug: p.slug,
+        source_article_id: p.source_article_id, hreflang_group_id: p.hreflang_group_id,
         canonical_url: p.canonical_url,
       })),
     }), {
