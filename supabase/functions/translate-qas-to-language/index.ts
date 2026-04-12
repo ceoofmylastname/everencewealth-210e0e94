@@ -578,7 +578,7 @@ serve(async (req) => {
     console.log(`[TranslateQAs] ✅ Pre-check passed: ${validQAs.length} Q&As ready, ${missingArticleLinks.length} blocked, ${qaLinkingMismatches.length} mismatches`);
 
     // BULLETPROOF: Process Q&As ONE AT A TIME with retry logic
-    const BATCH_SIZE = 12;
+    const BATCH_SIZE = 6;
     const qaGroup = validQAs.slice(0, BATCH_SIZE);
     const qasRemaining = validQAs.length - qaGroup.length;
     
