@@ -1,19 +1,33 @@
 
 
-## Reset Password for Admin Account
+## Fix Q&A Spanish Translation for 3 Clusters
 
-The account `jrmenterprisegroup@gmail.com` already exists and has full admin access (confirmed in `user_roles` and `admin_email_whitelist`). The login failures are because the stored password doesn't match `Password123!`.
+### Problem Summary
+- 2 clusters (Tax-Free, Living Benefits) have no Spanish articles — Q&A translation can't work without them
+- 1 cluster (Legacy Planning) has Spanish articles + fixed hreflang, but Q&A translation timed out on API calls
+- Target: 72 Spanish Q&As (24 per cluster)
 
-### What I'll do
+### Step 1: Translate articles to Spanish for Tax-Free and Living Benefits
+Invoke `translate-cluster-to-language` for:
+- `42f27c00-4a50-46fd-b80e-39aa40527675` (Tax-Free Retirement Income)
+- `4d44cb1a-fc3a-4a1a-aa01-7daa5df79fb7` (Living Benefits & Protection)
 
-1. **Create a small edge function** (`reset-admin-password`) that uses the Supabase Admin API to update the user's password to `Password123!`
-2. **Invoke it once** to reset the password
-3. **Delete the edge function** immediately after — it should not persist
+Then process the translation queue to create 12 Spanish articles (6 per cluster).
 
-This is the only way to programmatically reset a password in Lovable Cloud without going through the email recovery flow.
+### Step 2: Repair hreflang links for both clusters
+Invoke `repair-cluster-article-hreflang` for Tax-Free and Living Benefits clusters so EN↔ES articles are properly linked.
 
-### After completion
-You'll be able to sign in at `/auth` with:
-- **Email:** jrmenterprisegroup@gmail.com
-- **Password:** Password123!
+### Step 3: Fix Q&A translation timeout issue
+Update `repair-missing-qas` (or `translate-qas-to-language`) to increase the fetch timeout from 15s to 45s, and reduce batch size to avoid edge function time limits.
+
+### Step 4: Translate Q&As to Spanish for all 3 clusters
+Invoke Q&A translation for all 3 clusters. Legacy Planning already has the prerequisites met; the other two will be ready after Steps 1-2.
+
+### Step 5: Verify final counts
+Confirm each cluster has 24 EN + 24 ES Q&As = 48 per cluster, 144 total new Spanish Q&As across all 3.
+
+### Technical details
+- Correct cluster IDs: `42f27c00-4a50-46fd-b80e-39aa40527675`, `4d44cb1a-fc3a-4a1a-aa01-7daa5df79fb7`, `747f2c84-e762-4ee7-b12b-633f0bfe9d4b`
+- The previously used cluster IDs (`42f27c00-1b5e...`, `4d44cb1a-3e7f...`) were incorrect — those don't exist in the database
+- Edge function `repair-missing-qas/index.ts` needs timeout increase from 15000ms to 45000ms
 
