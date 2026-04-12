@@ -65,7 +65,7 @@ export const Footer: React.FC = () => {
 
       <div className="relative z-10 container mx-auto px-4 md:px-6 pt-20 pb-10">
         {/* Main Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-12 mb-16">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-10 mb-16">
           {/* Brand */}
           <div className="lg:col-span-1">
             <div className="mb-4">
