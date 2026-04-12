@@ -6,7 +6,7 @@ export const SUPPORTED_LANGUAGES = ['en', 'es'];
 
 export const langToHreflang: Record<string, string> = {
   en: 'en-US',
-  es: 'es-US'
+  es: 'es-US',
 };
 
 // Static pages that exist for all languages

@@ -76,7 +76,7 @@ interface ProductionAssets {
   js: string[];
 }
 
-const BASE_URL = 'https://www.delsolprimehomes.com';
+const BASE_URL = 'https://www.everencewealth.com';
 const SUPPORTED_LANGUAGES = ['en', 'de', 'nl', 'fr', 'pl', 'sv', 'da', 'hu', 'fi', 'no'];
 
 const langToHreflang: Record<string, string> = {

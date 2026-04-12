@@ -73,7 +73,7 @@ interface ProductionAssets {
   js: string[];
 }
 
-const BASE_URL = 'https://www.delsolprimehomes.com';
+const BASE_URL = 'https://www.everencewealth.com';
 
 function getProductionAssets(distDir: string): ProductionAssets {
   const indexPath = join(distDir, 'index.html');

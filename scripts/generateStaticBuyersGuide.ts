@@ -1,7 +1,7 @@
 import { writeFileSync, mkdirSync, readFileSync, existsSync } from 'fs';
 import { join } from 'path';
 
-const BASE_URL = 'https://www.delsolprimehomes.com';
+const BASE_URL = 'https://www.everencewealth.com';
 const SUPPORTED_LANGUAGES = ['en', 'nl', 'hu', 'de', 'fr', 'sv', 'pl', 'no', 'fi', 'da'];
 
 const LOCALE_MAP: Record<string, string> = {
@@ -270,7 +270,7 @@ function generateJsonLdGraph(lang: string, content: typeof LOCALIZED_CONTENT['en
         "addressCountry": "ES"
       },
       "telephone": "+34 630 03 90 90",
-      "email": "info@delsolprimehomes.com",
+      "email": "info@everencewealth.com",
       "areaServed": {
         "@type": "Place",
         "name": "Costa del Sol"

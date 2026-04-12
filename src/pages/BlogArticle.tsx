@@ -166,7 +166,7 @@ const BlogArticle = () => {
         {/* Keep noindex for error pages */}
         <Helmet>
           <meta name="robots" content="noindex, nofollow" />
-          <title>Error Loading Article | Del Sol Prime Homes</title>
+          <title>Error Loading Article | Everence Wealth</title>
         </Helmet>
         <div className="container mx-auto px-4 py-12">
           <div className="max-w-4xl mx-auto text-center space-y-4">
@@ -195,7 +195,7 @@ const BlogArticle = () => {
         {/* Keep noindex for not found pages */}
         <Helmet>
           <meta name="robots" content="noindex, nofollow" />
-          <title>Article Not Found | Del Sol Prime Homes</title>
+          <title>Article Not Found | Everence Wealth</title>
         </Helmet>
         <div className="container mx-auto px-4 py-12">
           <div className="max-w-4xl mx-auto text-center">

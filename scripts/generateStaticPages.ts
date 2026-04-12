@@ -157,15 +157,15 @@ function getProductionAssets(distDir: string): ProductionAssets {
 function generateOrganizationSchema() {
   return {
     "@context": "https://schema.org",
-    "@type": "RealEstateAgent",
-    "@id": "https://www.delsolprimehomes.com/#organization",
-    "name": "Del Sol Prime Homes",
-    "legalName": "Del Sol Prime Homes",
-    "url": "https://www.delsolprimehomes.com/",
+    "@type": "FinancialService",
+    "@id": "https://www.everencewealth.com/#organization",
+    "name": "Everence Wealth",
+    "legalName": "Everence Wealth",
+    "url": "https://www.everencewealth.com/",
     "description": "Premium real estate agency specializing in Costa del Sol new-build and off-plan properties",
     "logo": {
       "@type": "ImageObject",
-      "url": "https://www.delsolprimehomes.com/assets/logo-new.png",
+      "url": "https://www.everencewealth.com/assets/logo-new.png",
       "width": 256,
       "height": 256
     },
@@ -181,7 +181,7 @@ function generateOrganizationSchema() {
       "contactType": "Customer Service",
       "availableLanguage": ["en", "de", "nl", "fr", "pl", "sv", "da", "hu", "fi", "no"],
       "telephone": "+34 630 03 90 90",
-      "email": "info@delsolprimehomes.com"
+      "email": "info@everencewealth.com"
     },
     "sameAs": [
       "https://www.facebook.com/delsolprimehomes",
@@ -197,7 +197,7 @@ function generateAuthorSchema(author: any) {
   return {
     "@context": "https://schema.org",
     "@type": "Person",
-    "@id": `https://www.delsolprimehomes.com/team/${author.name.toLowerCase().replace(/\s+/g, '-')}#person`,
+    "@id": `https://www.everencewealth.com/team/${author.name.toLowerCase().replace(/\s+/g, '-')}#person`,
     "name": author.name,
     "jobTitle": author.job_title,
     "image": author.photo_url,
@@ -247,7 +247,7 @@ function extractEntitiesForSSG(headline: string, content: string, category: stri
   about.push({
     "@type": "Thing",
     "name": category,
-    "sameAs": `https://www.delsolprimehomes.com/blog/category/${category.toLowerCase().replace(/\s+/g, '-')}`
+    "sameAs": `https://www.everencewealth.com/blog/category/${category.toLowerCase().replace(/\s+/g, '-')}`
   });
 
   // Detect cities in headline (primary) and content (secondary)
@@ -278,7 +278,7 @@ function extractEntitiesForSSG(headline: string, content: string, category: stri
         "@type": "DefinedTerm",
         "name": term,
         "description": definition,
-        "inDefinedTermSet": "https://www.delsolprimehomes.com/glossary"
+        "inDefinedTermSet": "https://www.everencewealth.com/glossary"
       };
       if (WIKIDATA_ENTITIES[term]) entity.sameAs = WIKIDATA_ENTITIES[term];
       mentions.push(entity);
@@ -301,7 +301,7 @@ function generateArticleSchema(article: ArticleData) {
   const schema: any = {
     "@context": "https://schema.org",
     "@type": "BlogPosting",
-    "@id": `https://www.delsolprimehomes.com/${article.language}/blog/${article.slug}#article`,
+    "@id": `https://www.everencewealth.com/${article.language}/blog/${article.slug}#article`,
     "headline": article.headline,
     "description": article.meta_description,
     "image": {
@@ -313,14 +313,14 @@ function generateArticleSchema(article: ArticleData) {
     "dateModified": article.date_modified || article.date_published,
     "wordCount": wordCount,
     "author": article.author ? {
-      "@id": `https://www.delsolprimehomes.com/team/${article.author.name.toLowerCase().replace(/\s+/g, '-')}#person`
+      "@id": `https://www.everencewealth.com/team/${article.author.name.toLowerCase().replace(/\s+/g, '-')}#person`
     } : undefined,
     "publisher": {
-      "@id": "https://www.delsolprimehomes.com/#organization"
+      "@id": "https://www.everencewealth.com/#organization"
     },
     "mainEntityOfPage": {
       "@type": "WebPage",
-      "@id": `https://www.delsolprimehomes.com/${article.language}/blog/${article.slug}`
+      "@id": `https://www.everencewealth.com/${article.language}/blog/${article.slug}`
     },
     "inLanguage": article.language
   };
@@ -358,25 +358,25 @@ function generateBreadcrumbSchema(article: ArticleData) {
   return {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
-    "@id": `https://www.delsolprimehomes.com/${article.language}/blog/${article.slug}#breadcrumb`,
+    "@id": `https://www.everencewealth.com/${article.language}/blog/${article.slug}#breadcrumb`,
     "itemListElement": [
       {
         "@type": "ListItem",
         "position": 1,
         "name": "Home",
-        "item": `https://www.delsolprimehomes.com/${article.language}/`
+        "item": `https://www.everencewealth.com/${article.language}/`
       },
       {
         "@type": "ListItem",
         "position": 2,
         "name": "Blog",
-        "item": `https://www.delsolprimehomes.com/${article.language}/blog/`
+        "item": `https://www.everencewealth.com/${article.language}/blog/`
       },
       {
         "@type": "ListItem",
         "position": 3,
         "name": article.headline,
-        "item": `https://www.delsolprimehomes.com/${article.language}/blog/${article.slug}/`
+        "item": `https://www.everencewealth.com/${article.language}/blog/${article.slug}/`
       }
     ]
   };
@@ -684,7 +684,7 @@ function generateStaticHTML(article: ArticleData, enhancedHreflang: boolean, pro
     // FAQPage schema line removed
   ].filter(Boolean).join('\n  ');
 
-  const baseUrl = 'https://www.delsolprimehomes.com';
+  const baseUrl = 'https://www.everencewealth.com';
   // Canonical always self-referencing with language prefix
   const canonicalUrl = `${baseUrl}/${article.language}/blog/${article.slug}`;
 
@@ -742,8 +742,8 @@ function generateStaticHTML(article: ArticleData, enhancedHreflang: boolean, pro
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="${sanitizeForHTML(article.meta_description)}">
-  <meta name="author" content="${article.author?.name || 'Del Sol Prime Homes'}">
-  <title>${sanitizeForHTML(article.meta_title)} | Del Sol Prime Homes</title>
+  <meta name="author" content="${article.author?.name || 'Everence Wealth'}">
+  <title>${sanitizeForHTML(article.meta_title)} | Everence Wealth</title>
   
   <link rel="canonical" href="${canonicalUrl}" />${hreflangLinks}
   
@@ -768,7 +768,7 @@ function generateStaticHTML(article: ArticleData, enhancedHreflang: boolean, pro
   <meta property="og:description" content="${sanitizeForHTML(article.meta_description)}" />
   <meta property="og:image" content="${article.featured_image_url}" />
   <meta property="og:url" content="${baseUrl}/${article.language}/blog/${article.slug}" />
-  <meta property="og:site_name" content="Del Sol Prime Homes" />
+  <meta property="og:site_name" content="Everence Wealth" />
   
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image" />

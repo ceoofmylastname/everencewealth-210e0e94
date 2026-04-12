@@ -86,7 +86,7 @@ interface ProductionAssets {
   js: string[];
 }
 
-const BASE_URL = 'https://www.delsolprimehomes.com';
+const BASE_URL = 'https://www.everencewealth.com';
 
 // Hardcoded founder data with LinkedIn URLs for entity disambiguation
 const FOUNDERS_DATA: Founder[] = [
@@ -171,7 +171,7 @@ function generateOrganizationSchema(content: AboutPageData) {
     "@context": "https://schema.org",
     "@type": ["Organization", "RealEstateAgent"],
     "@id": `${BASE_URL}/#organization`,
-    "name": "Del Sol Prime Homes",
+    "name": "Everence Wealth",
     "alternateName": "DSPH",
     "url": BASE_URL,
     "logo": {
@@ -234,7 +234,7 @@ function generateLocalBusinessSchema(content: AboutPageData) {
     "@context": "https://schema.org",
     "@type": "LocalBusiness",
     "@id": `${BASE_URL}/#localbusiness`,
-    "name": "Del Sol Prime Homes",
+    "name": "Everence Wealth",
     "priceRange": "€€€",
     "address": {
       "@type": "PostalAddress",
@@ -328,7 +328,7 @@ function generateWebPageSchema(content: AboutPageData) {
       "@type": "WebSite",
       "@id": `${BASE_URL}/#website`,
       "url": BASE_URL,
-      "name": "Del Sol Prime Homes"
+      "name": "Everence Wealth"
     },
     "about": { "@id": `${BASE_URL}/#organization` },
     "speakable": {
@@ -600,8 +600,8 @@ function generateStaticHTML(content: AboutPageData, productionAssets: Production
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="${sanitizeForHTML(content.meta_description)}">
-  <meta name="author" content="Del Sol Prime Homes">
-  <title>${sanitizeForHTML(content.meta_title)} | Del Sol Prime Homes</title>
+  <meta name="author" content="Everence Wealth">
+  <title>${sanitizeForHTML(content.meta_title)} | Everence Wealth</title>
   
   <link rel="canonical" href="${canonicalUrl}" />
   
@@ -620,7 +620,7 @@ function generateStaticHTML(content: AboutPageData, productionAssets: Production
   <meta property="og:title" content="${sanitizeForHTML(content.meta_title)}" />
   <meta property="og:description" content="${sanitizeForHTML(content.meta_description)}" />
   <meta property="og:url" content="${canonicalUrl}" />
-  <meta property="og:site_name" content="Del Sol Prime Homes" />
+  <meta property="og:site_name" content="Everence Wealth" />
   
   <meta name="twitter:card" content="summary" />
   <meta name="twitter:title" content="${sanitizeForHTML(content.meta_title)}" />

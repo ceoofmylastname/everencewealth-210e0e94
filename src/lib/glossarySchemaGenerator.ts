@@ -25,30 +25,14 @@ const BASE_URL = "https://www.everencewealth.com";
 
 // Localized glossary names for each language
 const GLOSSARY_NAMES: Record<string, string> = {
-  en: "Costa del Sol Real Estate Glossary",
-  nl: "Costa del Sol Vastgoed Woordenlijst",
-  de: "Costa del Sol Immobilien Glossar",
-  fr: "Glossaire Immobilier Costa del Sol",
-  fi: "Costa del Sol Kiinteistösanasto",
-  pl: "Słownik Nieruchomości Costa del Sol",
-  da: "Costa del Sol Ejendomsordliste",
-  hu: "Costa del Sol Ingatlan Szójegyzék",
-  sv: "Costa del Sol Fastighetsordlista",
-  no: "Costa del Sol Eiendomsordliste",
+  en: "Wealth Management Glossary | Everence Wealth",
+  es: "Glosario de Gestión Patrimonial | Everence Wealth",
 };
 
 // Localized descriptions
 const GLOSSARY_DESCRIPTIONS: Record<string, string> = {
-  en: "Comprehensive glossary of Spanish property, tax, legal, and real estate terms for international buyers. Expert-compiled definitions for NIE, IBI, Golden Visa, and 60+ essential terms.",
-  nl: "Uitgebreide woordenlijst van Spaanse eigendoms-, belasting-, juridische en vastgoedtermen voor internationale kopers. Door experts samengestelde definities voor NIE, IBI, Golden Visa en 60+ essentiële termen.",
-  de: "Umfassendes Glossar spanischer Immobilien-, Steuer-, Rechts- und Immobilienbegriffe für internationale Käufer. Von Experten zusammengestellte Definitionen für NIE, IBI, Golden Visa und 60+ wesentliche Begriffe.",
-  fr: "Glossaire complet des termes immobiliers, fiscaux, juridiques et immobiliers espagnols pour les acheteurs internationaux. Définitions compilées par des experts pour NIE, IBI, Golden Visa et plus de 60 termes essentiels.",
-  fi: "Kattava sanasto espanjalaisista kiinteistö-, vero-, oikeudellisista ja kiinteistötermeistä kansainvälisille ostajille. Asiantuntijoiden kokoamat määritelmät NIE, IBI, Golden Visa ja yli 60 oleelliselle termille.",
-  pl: "Kompleksowy słownik hiszpańskich terminów nieruchomości, podatkowych, prawnych i nieruchomościowych dla międzynarodowych nabywców. Definicje opracowane przez ekspertów dla NIE, IBI, Golden Visa i ponad 60 niezbędnych terminów.",
-  da: "Omfattende ordliste over spanske ejendoms-, skatte-, juridiske og ejendomstermer for internationale købere. Ekspertkompilerede definitioner for NIE, IBI, Golden Visa og 60+ essentielle termer.",
-  hu: "Átfogó szójegyzék a spanyol ingatlan-, adó-, jogi és ingatlanterminológiáról nemzetközi vásárlók számára. Szakértők által összeállított definíciók NIE, IBI, Golden Visa és 60+ alapvető kifejezéshez.",
-  sv: "Omfattande ordlista över spanska fastighets-, skatte-, juridiska och fastighetstermer för internationella köpare. Expertsammanställda definitioner för NIE, IBI, Golden Visa och 60+ väsentliga termer.",
-  no: "Omfattende ordliste over spanske eiendoms-, skatte-, juridiske og eiendomsbegreper for internasjonale kjøpere. Ekspertkompilerte definisjoner for NIE, IBI, Golden Visa og 60+ essensielle begreper.",
+  en: "Comprehensive glossary of wealth management, retirement planning, tax strategy, and insurance terms. Expert-compiled definitions for IUL, RMD, Roth IRA, Tax Buckets, and 60+ essential financial terms.",
+  es: "Glosario completo de gestión patrimonial, planificación de jubilación, estrategia fiscal y términos de seguros. Definiciones compiladas por expertos para más de 60 términos financieros esenciales.",
 };
 
 // OG Locale mapping
