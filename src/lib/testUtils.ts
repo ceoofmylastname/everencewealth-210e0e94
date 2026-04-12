@@ -1151,8 +1151,8 @@ export async function testPhase16(): Promise<TestResult[]> {
         try {
           const { data, error } = await supabase.functions.invoke('find-external-links', {
             body: {
-              content: 'Test article about Costa del Sol property market trends and real estate investment opportunities.',
-              headline: 'Costa del Sol Real Estate Guide',
+              content: 'Test article about wealth management property market trends and financial planning investment opportunities.',
+              headline: 'wealth management Financial Planning Guide',
               language: 'es'
             }
           });

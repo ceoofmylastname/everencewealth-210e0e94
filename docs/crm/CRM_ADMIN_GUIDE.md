@@ -1,4 +1,4 @@
-# Del Sol Prime Homes CRM - Admin User Guide
+# Everence Wealth CRM - Admin User Guide
 
 ## Overview
 

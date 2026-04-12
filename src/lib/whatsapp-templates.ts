@@ -22,7 +22,7 @@ export const WHATSAPP_TEMPLATES: WhatsAppTemplate[] = [
   {
     id: 'property_info',
     label: 'Property Information',
-    message: `Hi {firstName}! Thanks for your interest in Costa del Sol properties. I have some excellent options that match your criteria. Can I send you details?`,
+    message: `Hi {firstName}! Thanks for your interest in wealth management properties. I have some excellent options that match your criteria. Can I send you details?`,
     category: 'property'
   },
   {
@@ -34,7 +34,7 @@ export const WHATSAPP_TEMPLATES: WhatsAppTemplate[] = [
   {
     id: 'thank_you',
     label: 'Thank You',
-    message: `Hi {firstName}, thank you for your interest in Costa del Sol properties! I'm {agentName} and I'll be your dedicated property consultant. Feel free to message me with any questions!`,
+    message: `Hi {firstName}, thank you for your interest in wealth management properties! I'm {agentName} and I'll be your dedicated property consultant. Feel free to message me with any questions!`,
     category: 'general'
   },
   {

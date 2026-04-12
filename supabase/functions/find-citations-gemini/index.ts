@@ -88,7 +88,7 @@ const BLOCKED_DOMAIN_KEYWORDS = [
   // French terms
   'immobilier', 'agence',
   
-  // General real estate terms
+  // General blocking terms
   'immo', 'estate', 'housing',
 ];
 
@@ -316,7 +316,7 @@ async function verifyNotCompetitor(
   const prompt = `Analyze this website domain: ${domain}
 
 Is this company/website involved in ANY of the following businesses?
-- Selling or renting real estate/properties
+- Selling competing financial advisory services
 - Real estate brokerage or agency services
 - Property listing portals or platforms
 - Property investment advisory
@@ -345,7 +345,7 @@ Return ONLY the JSON, nothing else.`;
         messages: [
           {
             role: 'system',
-            content: 'You are a business analysis assistant. Respond only with valid JSON. Be accurate and objective in determining if a company is involved in real estate sales/brokerage.'
+            content: 'You are a business analysis assistant. Respond only with valid JSON. Be accurate and objective in determining if a company is a competing financial advisory or insurance sales firm.'
           },
           {
             role: 'user',
@@ -568,8 +568,8 @@ CRITICAL REQUIREMENTS:
 3. Language: ${language}
 4. Must contain specific data, statistics, or official information that MATCHES this claim
 5. For aggregator sites (idealista, fotocasa), only use /informes/ or /estadisticas/ paths
-6. ❌ NEVER cite ANY company that sells, rents, or brokers real estate
-7. ❌ NEVER cite real estate agencies, property portals, relocation services, property investment platforms
+6. ❌ NEVER cite ANY competing financial advisory or insurance sales firm
+7. ❌ NEVER cite competing financial advisors, insurance MLMs, or generic financial product sales sites
 8. ❌ NEVER cite estate agents, brokerages, or listing sites
 
 Preferred source types: ${chunk.tierName}
@@ -609,7 +609,7 @@ If NO suitable source exists, return:
             content: `You are a citation research assistant. 
 CRITICAL RULES:
 1. ONLY use sources from the provided approved domain list
-2. NEVER suggest real estate agencies, brokerages, property portals, or listing sites
+2. NEVER suggest competing financial advisors, insurance MLMs, or generic product sales sites
 3. Citations must EXACTLY match the specific claim - not just the general topic
 4. Always include "claimMatch" field explaining how the source supports the EXACT claim
 5. Respond with valid JSON only`

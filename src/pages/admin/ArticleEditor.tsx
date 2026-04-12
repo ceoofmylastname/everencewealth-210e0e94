@@ -488,7 +488,7 @@ const ArticleEditor = () => {
                 id="headline"
                 value={headline}
                 onChange={(e) => setHeadline(e.target.value)}
-                placeholder="How to Buy Property in Costa del Sol?"
+                placeholder="How to Buy Property in wealth management?"
                 className={errors.headline ? "border-red-500" : ""}
               />
               {errors.headline && (

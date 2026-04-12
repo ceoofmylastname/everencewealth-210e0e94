@@ -134,7 +134,7 @@ export const QASection = ({
                 <Input
                   value={faq.question}
                   onChange={(e) => updateQuestion(index, "question", e.target.value)}
-                  placeholder="What is the property buying process in Costa del Sol?"
+                  placeholder="What is the financial planning process in wealth management?"
                 />
               </div>
 

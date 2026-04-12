@@ -163,7 +163,7 @@ export const MediaSection = ({
             id="featuredImageCaption"
             value={featuredImageCaption}
             onChange={(e) => onFeaturedImageCaptionChange(e.target.value)}
-            placeholder="Describe the image for search engines (e.g., 'Luxury villa with sea views in Marbella')"
+            placeholder="Describe the image for search engines (e.g., 'Luxury villa with sea views in El Paso')"
           />
         </div>
 

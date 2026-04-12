@@ -81,7 +81,7 @@ export default function BatchImageGeneration() {
       .from('blog_articles')
       .update({
         featured_image_url: publicUrlData.publicUrl,
-        featured_image_alt: `${article.headline} - Costa del Sol real estate`,
+        featured_image_alt: `${article.headline} - wealth management financial planning`,
       })
       .eq('id', article.id);
 

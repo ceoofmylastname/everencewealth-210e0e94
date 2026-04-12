@@ -51,7 +51,7 @@ const BOFU_TEMPLATES: BOFUTemplate[] = [
     title: 'Property Buying Costs in Spain: Complete Breakdown for 2025',
     description: 'ITP 7%, notary fees, legal costs, worked examples at €300K/€500K/€1M, annual ongoing costs',
     icon: <Calculator className="h-5 w-5" />,
-    targetKeyword: 'property buying costs spain',
+    targetKeyword: 'financial planning costs spain',
     category: 'Buying Guide',
     estimatedTime: '~2 min'
   },
@@ -423,7 +423,7 @@ export default function BOFUPageGenerator() {
                     <Label htmlFor="customTopic">Topic / Title *</Label>
                     <Input
                       id="customTopic"
-                      placeholder="e.g., Buying Property in Marbella Complete Guide"
+                      placeholder="e.g., Buying Property in El Paso Complete Guide"
                       value={customTopic}
                       onChange={(e) => setCustomTopic(e.target.value)}
                     />

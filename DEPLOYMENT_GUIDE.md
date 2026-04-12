@@ -1,14 +1,14 @@
-# Deployment Guide - Del Sol Prime Homes CMS
+# Deployment Guide - Everence Wealth CMS
 
 ## Overview
 
-This guide covers the production deployment of the Del Sol Prime Homes blog CMS, including GitHub integration, Cloudflare Worker setup, and final testing procedures.
+This guide covers the production deployment of the Everence Wealth blog CMS, including GitHub integration, Cloudflare Worker setup, and final testing procedures.
 
 ## Architecture
 
 ```
 ┌─────────────────────────────────────────┐
-│    delsolprimehomes.com (Root Domain)   │
+│    everencewealth.com (Root Domain)   │
 └─────────────────────────────────────────┘
                   ↓
          Cloudflare Worker
@@ -68,7 +68,7 @@ The Lovable project automatically deploys when:
 ```bash
 # In Cloudflare Pages
 1. Go to Custom domains
-2. Add domain: blog.delsolprimehomes.com
+2. Add domain: blog.everencewealth.com
 3. Cloudflare will auto-configure DNS
 4. Wait for SSL certificate (2-5 minutes)
 ```
@@ -87,11 +87,11 @@ export default {
     if (url.pathname.startsWith('/blog') || 
         url.pathname.startsWith('/admin') ||
         url.pathname.startsWith('/auth')) {
-      return fetch(`https://blog.delsolprimehomes.com${url.pathname}${url.search}`);
+      return fetch(`https://blog.everencewealth.com${url.pathname}${url.search}`);
     }
     
     // Route everything else to Webflow
-    return fetch(`https://delsolprimehomes.webflow.io${url.pathname}${url.search}`);
+    return fetch(`https://everencewealth.webflow.io${url.pathname}${url.search}`);
   }
 }
 ```
@@ -113,7 +113,7 @@ wrangler publish
 # In Cloudflare Dashboard
 1. Go to Workers & Pages
 2. Select your worker
-3. Add route: delsolprimehomes.com/*
+3. Add route: everencewealth.com/*
 4. Set to trigger on all requests
 ```
 
@@ -222,9 +222,9 @@ blog  CNAME  delsol-blog-cms.pages.dev  (Cloudflare proxy enabled)
 ### Google Search Console
 
 ```bash
-1. Add property: https://www.delsolprimehomes.com
+1. Add property: https://www.everencewealth.com
 2. Verify ownership via DNS
-3. Submit sitemap: https://www.delsolprimehomes.com/sitemap.xml
+3. Submit sitemap: https://www.everencewealth.com/sitemap.xml
 4. Request indexing for 10 key articles
 5. Monitor coverage report
 ```
@@ -232,7 +232,7 @@ blog  CNAME  delsol-blog-cms.pages.dev  (Cloudflare proxy enabled)
 ### Bing Webmaster Tools
 
 ```bash
-1. Add site: https://www.delsolprimehomes.com
+1. Add site: https://www.everencewealth.com
 2. Verify ownership
 3. Submit sitemap
 4. Enable URL inspection

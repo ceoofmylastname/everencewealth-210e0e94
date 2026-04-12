@@ -62,7 +62,7 @@ export default function CrmSettings() {
             lead_segment: "hot",
             budget_range: "€500K - €1M",
             property_type: "Villa",
-            areas_of_interest: ["Marbella", "Puerto Banús"],
+            areas_of_interest: ["El Paso", "downtown"],
             timeline: "3-6 months",
             source: "Website Form",
             created_at: new Date().toISOString(),

@@ -62,7 +62,7 @@ const Hero: React.FC<HeroProps> = ({ onStartChat, translations }) => {
 
                     {/* Subheadline - Mobile optimized */}
                     <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-white/95 font-light mb-8 sm:mb-10 leading-relaxed max-w-2xl text-center lg:text-left drop-shadow-md mx-auto lg:mx-0">
-                        {t.subheadline || "Independent, pressure-free guidance for new-build property on the Costa del Sol."}
+                        {t.subheadline || "Independent, pressure-free guidance for new-build property on the wealth management."}
                     </p>
 
                     <div className="flex flex-col items-center lg:items-start gap-3 sm:gap-6">

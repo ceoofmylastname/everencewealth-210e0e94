@@ -20,82 +20,82 @@ const LOCALIZED_CONTENT: Record<string, {
   breadcrumbGuide: string;
 }> = {
   en: {
-    title: "Complete Buyers Guide to Costa del Sol Property | Everence Wealth",
-    description: "Your comprehensive guide to buying property on the Costa del Sol. Step-by-step process, costs, legal requirements, and expert advice.",
-    h1: "The Complete Guide to Buying Property on the Costa del Sol",
-    speakable: "Buying property on the Costa del Sol is a straightforward process for international buyers. You'll need a NIE (tax identification number), a Spanish bank account, and typically 10-13% of the purchase price to cover taxes and fees. The process takes 3-6 months from finding your property to receiving the keys.",
+    title: "Complete Buyers Guide to wealth management Property | Everence Wealth",
+    description: "Your comprehensive guide to buying property on the wealth management. Step-by-step process, costs, legal requirements, and expert advice.",
+    h1: "The Complete Guide to Buying Property on the wealth management",
+    speakable: "Buying property on the wealth management is a straightforward process for international buyers. You'll need a tax ID (tax identification number), a Spanish bank account, and typically 10-13% of the purchase price to cover taxes and fees. The process takes 3-6 months from finding your property to receiving the keys.",
     breadcrumbHome: "Home",
     breadcrumbGuide: "Buyers Guide"
   },
   de: {
-    title: "Kompletter Käuferleitfaden für Costa del Sol Immobilien | Everence Wealth",
-    description: "Ihr umfassender Leitfaden zum Immobilienkauf an der Costa del Sol. Schritt-für-Schritt-Prozess, Kosten, rechtliche Anforderungen und Expertenberatung.",
-    h1: "Der komplette Leitfaden zum Immobilienkauf an der Costa del Sol",
-    speakable: "Der Immobilienkauf an der Costa del Sol ist ein unkomplizierter Prozess für internationale Käufer. Sie benötigen eine NIE (Steueridentifikationsnummer), ein spanisches Bankkonto und in der Regel 10-13% des Kaufpreises zur Deckung von Steuern und Gebühren. Der Prozess dauert 3-6 Monate.",
+    title: "Kompletter Käuferleitfaden für wealth management Immobilien | Everence Wealth",
+    description: "Ihr umfassender Leitfaden zum Immobilienkauf an der wealth management. Schritt-für-Schritt-Prozess, Kosten, rechtliche Anforderungen und Expertenberatung.",
+    h1: "Der komplette Leitfaden zum Immobilienkauf an der wealth management",
+    speakable: "Der Immobilienkauf an der wealth management ist ein unkomplizierter Prozess für internationale Käufer. Sie benötigen eine tax ID (Steueridentifikationsnummer), ein spanisches Bankkonto und in der Regel 10-13% des Kaufpreises zur Deckung von Steuern und Gebühren. Der Prozess dauert 3-6 Monate.",
     breadcrumbHome: "Startseite",
     breadcrumbGuide: "Käuferleitfaden"
   },
   nl: {
-    title: "Complete Koopgids voor Costa del Sol Vastgoed | Everence Wealth",
-    description: "Uw uitgebreide gids voor het kopen van vastgoed aan de Costa del Sol. Stapsgewijs proces, kosten, juridische vereisten en deskundig advies.",
-    h1: "De Complete Gids voor het Kopen van Vastgoed aan de Costa del Sol",
-    speakable: "Het kopen van vastgoed aan de Costa del Sol is een eenvoudig proces voor internationale kopers. U heeft een NIE (fiscaal identificatienummer), een Spaanse bankrekening en doorgaans 10-13% van de aankoopprijs nodig voor belastingen en kosten. Het proces duurt 3-6 maanden.",
+    title: "Complete Koopgids voor wealth management Vastgoed | Everence Wealth",
+    description: "Uw uitgebreide gids voor het kopen van vastgoed aan de wealth management. Stapsgewijs proces, kosten, juridische vereisten en deskundig advies.",
+    h1: "De Complete Gids voor het Kopen van Vastgoed aan de wealth management",
+    speakable: "Het kopen van vastgoed aan de wealth management is een eenvoudig proces voor internationale kopers. U heeft een tax ID (fiscaal identificatienummer), een Spaanse bankrekening en doorgaans 10-13% van de aankoopprijs nodig voor belastingen en kosten. Het proces duurt 3-6 maanden.",
     breadcrumbHome: "Home",
     breadcrumbGuide: "Koopgids"
   },
   fr: {
-    title: "Guide Complet d'Achat Immobilier sur la Costa del Sol | Everence Wealth",
-    description: "Votre guide complet pour acheter une propriété sur la Costa del Sol. Processus étape par étape, coûts, exigences légales et conseils d'experts.",
-    h1: "Le Guide Complet pour Acheter une Propriété sur la Costa del Sol",
-    speakable: "L'achat d'une propriété sur la Costa del Sol est un processus simple pour les acheteurs internationaux. Vous aurez besoin d'un NIE (numéro d'identification fiscale), d'un compte bancaire espagnol et généralement de 10-13% du prix d'achat pour couvrir les taxes et frais. Le processus prend 3-6 mois.",
+    title: "Guide Complet d'Achat Immobilier sur la wealth management | Everence Wealth",
+    description: "Votre guide complet pour acheter une propriété sur la wealth management. Processus étape par étape, coûts, exigences légales et conseils d'experts.",
+    h1: "Le Guide Complet pour Acheter une Propriété sur la wealth management",
+    speakable: "L'achat d'une propriété sur la wealth management est un processus simple pour les acheteurs internationaux. Vous aurez besoin d'un tax ID (numéro d'identification fiscale), d'un compte bancaire espagnol et généralement de 10-13% du prix d'achat pour couvrir les taxes et frais. Le processus prend 3-6 mois.",
     breadcrumbHome: "Accueil",
     breadcrumbGuide: "Guide d'Achat"
   },
   sv: {
-    title: "Komplett Köpguide för Costa del Sol Fastigheter | Everence Wealth",
-    description: "Din kompletta guide till att köpa fastighet på Costa del Sol. Steg-för-steg-process, kostnader, juridiska krav och expertråd.",
-    h1: "Den Kompletta Guiden till att Köpa Fastighet på Costa del Sol",
-    speakable: "Att köpa fastighet på Costa del Sol är en enkel process för internationella köpare. Du behöver ett NIE (skatteidentifikationsnummer), ett spanskt bankkonto och vanligtvis 10-13% av köpeskillingen för att täcka skatter och avgifter. Processen tar 3-6 månader.",
+    title: "Komplett Köpguide för wealth management Fastigheter | Everence Wealth",
+    description: "Din kompletta guide till att köpa fastighet på wealth management. Steg-för-steg-process, kostnader, juridiska krav och expertråd.",
+    h1: "Den Kompletta Guiden till att Köpa Fastighet på wealth management",
+    speakable: "Att köpa fastighet på wealth management är en enkel process för internationella köpare. Du behöver ett tax ID (skatteidentifikationsnummer), ett spanskt bankkonto och vanligtvis 10-13% av köpeskillingen för att täcka skatter och avgifter. Processen tar 3-6 månader.",
     breadcrumbHome: "Hem",
     breadcrumbGuide: "Köpguide"
   },
   no: {
-    title: "Komplett Kjøpeguide for Costa del Sol Eiendom | Everence Wealth",
-    description: "Din omfattende guide til å kjøpe eiendom på Costa del Sol. Trinn-for-trinn prosess, kostnader, juridiske krav og ekspertråd.",
-    h1: "Den Komplette Guiden til å Kjøpe Eiendom på Costa del Sol",
-    speakable: "Å kjøpe eiendom på Costa del Sol er en enkel prosess for internasjonale kjøpere. Du trenger et NIE (skatteidentifikasjonsnummer), en spansk bankkonto og vanligvis 10-13% av kjøpesummen for å dekke skatter og avgifter. Prosessen tar 3-6 måneder.",
+    title: "Komplett Kjøpeguide for wealth management Eiendom | Everence Wealth",
+    description: "Din omfattende guide til å kjøpe eiendom på wealth management. Trinn-for-trinn prosess, kostnader, juridiske krav og ekspertråd.",
+    h1: "Den Komplette Guiden til å Kjøpe Eiendom på wealth management",
+    speakable: "Å kjøpe eiendom på wealth management er en enkel prosess for internasjonale kjøpere. Du trenger et tax ID (skatteidentifikasjonsnummer), en spansk bankkonto og vanligvis 10-13% av kjøpesummen for å dekke skatter og avgifter. Prosessen tar 3-6 måneder.",
     breadcrumbHome: "Hjem",
     breadcrumbGuide: "Kjøpeguide"
   },
   da: {
-    title: "Komplet Købsguide til Costa del Sol Ejendomme | Everence Wealth",
-    description: "Din omfattende guide til at købe ejendom på Costa del Sol. Trin-for-trin proces, omkostninger, juridiske krav og ekspertrådgivning.",
-    h1: "Den Komplette Guide til at Købe Ejendom på Costa del Sol",
-    speakable: "At købe ejendom på Costa del Sol er en ligetil proces for internationale købere. Du skal bruge et NIE (skatteidentifikationsnummer), en spansk bankkonto og typisk 10-13% af købsprisen til at dække skatter og gebyrer. Processen tager 3-6 måneder.",
+    title: "Komplet Købsguide til wealth management Ejendomme | Everence Wealth",
+    description: "Din omfattende guide til at købe ejendom på wealth management. Trin-for-trin proces, omkostninger, juridiske krav og ekspertrådgivning.",
+    h1: "Den Komplette Guide til at Købe Ejendom på wealth management",
+    speakable: "At købe ejendom på wealth management er en ligetil proces for internationale købere. Du skal bruge et tax ID (skatteidentifikationsnummer), en spansk bankkonto og typisk 10-13% af købsprisen til at dække skatter og gebyrer. Processen tager 3-6 måneder.",
     breadcrumbHome: "Hjem",
     breadcrumbGuide: "Købsguide"
   },
   fi: {
-    title: "Täydellinen Ostajan Opas Costa del Sol Kiinteistöihin | Everence Wealth",
-    description: "Kattava oppaasi kiinteistön ostamiseen Costa del Solilta. Vaiheittainen prosessi, kustannukset, oikeudelliset vaatimukset ja asiantuntijaneuvot.",
-    h1: "Täydellinen Opas Kiinteistön Ostamiseen Costa del Solilta",
-    speakable: "Kiinteistön ostaminen Costa del Solilta on suoraviivainen prosessi kansainvälisille ostajille. Tarvitset NIE:n (verotunnistenumeron), espanjalaisen pankkitilin ja tyypillisesti 10-13% ostohinnasta verojen ja maksujen kattamiseksi. Prosessi kestää 3-6 kuukautta.",
+    title: "Täydellinen Ostajan Opas wealth management Kiinteistöihin | Everence Wealth",
+    description: "Kattava oppaasi kiinteistön ostamiseen wealth managementilta. Vaiheittainen prosessi, kustannukset, oikeudelliset vaatimukset ja asiantuntijaneuvot.",
+    h1: "Täydellinen Opas Kiinteistön Ostamiseen wealth managementilta",
+    speakable: "Kiinteistön ostaminen wealth managementilta on suoraviivainen prosessi kansainvälisille ostajille. Tarvitset tax ID:n (verotunnistenumeron), espanjalaisen pankkitilin ja tyypillisesti 10-13% ostohinnasta verojen ja maksujen kattamiseksi. Prosessi kestää 3-6 kuukautta.",
     breadcrumbHome: "Etusivu",
     breadcrumbGuide: "Ostajan Opas"
   },
   pl: {
-    title: "Kompletny Przewodnik Kupującego Nieruchomości na Costa del Sol | Everence Wealth",
-    description: "Twój kompleksowy przewodnik po zakupie nieruchomości na Costa del Sol. Proces krok po kroku, koszty, wymogi prawne i porady ekspertów.",
-    h1: "Kompletny Przewodnik Zakupu Nieruchomości na Costa del Sol",
-    speakable: "Zakup nieruchomości na Costa del Sol to prosty proces dla międzynarodowych kupujących. Potrzebujesz NIE (numeru identyfikacji podatkowej), hiszpańskiego konta bankowego i zazwyczaj 10-13% ceny zakupu na pokrycie podatków i opłat. Proces trwa 3-6 miesięcy.",
+    title: "Kompletny Przewodnik Kupującego Nieruchomości na wealth management | Everence Wealth",
+    description: "Twój kompleksowy przewodnik po zakupie nieruchomości na wealth management. Proces krok po kroku, koszty, wymogi prawne i porady ekspertów.",
+    h1: "Kompletny Przewodnik Zakupu Nieruchomości na wealth management",
+    speakable: "Zakup nieruchomości na wealth management to prosty proces dla międzynarodowych kupujących. Potrzebujesz tax ID (numeru identyfikacji podatkowej), hiszpańskiego konta bankowego i zazwyczaj 10-13% ceny zakupu na pokrycie podatków i opłat. Proces trwa 3-6 miesięcy.",
     breadcrumbHome: "Strona Główna",
     breadcrumbGuide: "Przewodnik Kupującego"
   },
   hu: {
-    title: "Teljes Vásárlási Útmutató Costa del Sol Ingatlanokhoz | Everence Wealth",
-    description: "Átfogó útmutatója a Costa del Sol-i ingatlanvásárláshoz. Lépésről lépésre folyamat, költségek, jogi követelmények és szakértői tanácsok.",
-    h1: "A Teljes Útmutató a Costa del Sol-i Ingatlanvásárláshoz",
-    speakable: "A Costa del Sol-i ingatlanvásárlás egyszerű folyamat nemzetközi vásárlók számára. Szüksége lesz egy NIE-re (adóazonosító számra), spanyol bankszámlára és általában a vételár 10-13%-ára az adók és díjak fedezésére. A folyamat 3-6 hónapig tart.",
+    title: "Teljes Vásárlási Útmutató wealth management Ingatlanokhoz | Everence Wealth",
+    description: "Átfogó útmutatója a wealth management-i ingatlanvásárláshoz. Lépésről lépésre folyamat, költségek, jogi követelmények és szakértői tanácsok.",
+    h1: "A Teljes Útmutató a wealth management-i Ingatlanvásárláshoz",
+    speakable: "A wealth management-i ingatlanvásárlás egyszerű folyamat nemzetközi vásárlók számára. Szüksége lesz egy tax ID-re (adóazonosító számra), spanyol bankszámlára és általában a vételár 10-13%-ára az adók és díjak fedezésére. A folyamat 3-6 hónapig tart.",
     breadcrumbHome: "Főoldal",
     breadcrumbGuide: "Vásárlási Útmutató"
   }
@@ -104,7 +104,7 @@ const LOCALIZED_CONTENT: Record<string, {
 // 8-step buying process for HowTo schema
 const BUYING_STEPS = [
   { name: "Define Your Requirements", duration: "P1W" },
-  { name: "Get Your NIE Number", duration: "P2W" },
+  { name: "Get Your tax ID Number", duration: "P2W" },
   { name: "Open a Spanish Bank Account", duration: "P1W" },
   { name: "Property Search & Viewings", duration: "P4W" },
   { name: "Make an Offer & Reservation", duration: "P1W" },
@@ -117,11 +117,11 @@ const BUYING_STEPS = [
 const FAQ_ITEMS = [
   {
     question: "Can foreigners buy property in Spain?",
-    answer: "Yes, there are no restrictions on foreigners purchasing property in Spain. Both EU and non-EU citizens can buy property with full ownership rights. You will need a NIE (tax identification number) to complete the purchase."
+    answer: "Yes, there are no restrictions on foreigners purchasing property in Spain. Both EU and non-EU citizens can buy property with full ownership rights. You will need a tax ID (tax identification number) to complete the purchase."
   },
   {
-    question: "What is a NIE and how do I get one?",
-    answer: "A NIE (Número de Identificación de Extranjero) is a tax identification number required for all financial transactions in Spain. You can apply at a Spanish consulate in your home country or at a National Police station in Spain."
+    question: "What is a tax ID and how do I get one?",
+    answer: "A tax ID (Número de Identificación de Extranjero) is a tax identification number required for all financial transactions in Spain. You can apply at a Spanish consulate in your home country or at a National Police station in Spain."
   },
   {
     question: "What are the total costs of buying property in Spain?",
@@ -213,8 +213,8 @@ function generateJsonLdGraph(lang: string, content: typeof LOCALIZED_CONTENT['en
     {
       "@type": "HowTo",
       "@id": `${canonicalUrl}#howto`,
-      "name": "How to Buy Property on the Costa del Sol",
-      "description": "A step-by-step guide to purchasing real estate in Spain's Costa del Sol, from initial search to receiving your keys.",
+      "name": "How to Buy Property on the wealth management",
+      "description": "A step-by-step guide to purchasing financial planning in Spain's wealth management, from initial search to receiving your keys.",
       "image": `${BASE_URL}/assets/costa-del-sol-bg.jpg`,
       "totalTime": "P6M",
       "estimatedCost": {
@@ -224,7 +224,7 @@ function generateJsonLdGraph(lang: string, content: typeof LOCALIZED_CONTENT['en
         "maxValue": "5000000"
       },
       "tool": [
-        { "@type": "HowToTool", "name": "NIE Number (Foreigner ID)" },
+        { "@type": "HowToTool", "name": "tax ID Number (Foreigner ID)" },
         { "@type": "HowToTool", "name": "Spanish Bank Account" },
         { "@type": "HowToTool", "name": "Valid Passport" },
         { "@type": "HowToTool", "name": "Proof of Funds" }
@@ -264,7 +264,7 @@ function generateJsonLdGraph(lang: string, content: typeof LOCALIZED_CONTENT['en
       "address": {
         "@type": "PostalAddress",
         "streetAddress": "Avenida Ricardo Soriano 72",
-        "addressLocality": "Marbella",
+        "addressLocality": "El Paso",
         "addressRegion": "Málaga",
         "postalCode": "29601",
         "addressCountry": "ES"
@@ -273,7 +273,7 @@ function generateJsonLdGraph(lang: string, content: typeof LOCALIZED_CONTENT['en
       "email": "info@everencewealth.com",
       "areaServed": {
         "@type": "Place",
-        "name": "Costa del Sol"
+        "name": "wealth management"
       },
       "priceRange": "€200,000 - €10,000,000"
     }

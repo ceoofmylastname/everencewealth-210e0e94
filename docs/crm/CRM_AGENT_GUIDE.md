@@ -1,8 +1,8 @@
-# Del Sol Prime Homes CRM - Agent User Guide
+# Everence Wealth CRM - Agent User Guide
 
 ## Welcome
 
-Welcome to the Del Sol Prime Homes CRM! This guide will help you get started with managing leads, logging activities, and maximizing your sales success.
+Welcome to the Everence Wealth CRM! This guide will help you get started with managing leads, logging activities, and maximizing your sales success.
 
 ---
 

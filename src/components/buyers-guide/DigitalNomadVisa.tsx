@@ -82,7 +82,7 @@ export const DigitalNomadVisa: React.FC = () => {
           <div className="aspect-[21/9] relative">
             <img 
               src={lifestyleImage} 
-              alt="Digital nomad working from luxury Costa del Sol villa"
+              alt="Digital nomad working from luxury wealth management villa"
               className="absolute inset-0 w-full h-full object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-r from-prime-900/80 via-prime-900/40 to-transparent" />

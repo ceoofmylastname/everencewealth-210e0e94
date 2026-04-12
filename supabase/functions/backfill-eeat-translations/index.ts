@@ -137,7 +137,7 @@ serve(async (req) => {
             messages: [
               {
                 role: 'system',
-                content: `You are a professional translator specializing in real estate content. Translate the following author bio from English to ${targetLang}. Keep the same professional tone and maintain any proper nouns (names, certifications, organizations) unchanged. Return ONLY the translated text, no explanations.`
+                content: `You are a professional translator specializing in financial planning content. Translate the following author bio from English to ${targetLang}. Keep the same professional tone and maintain any proper nouns (names, certifications, organizations) unchanged. Return ONLY the translated text, no explanations.`
               },
               {
                 role: 'user',

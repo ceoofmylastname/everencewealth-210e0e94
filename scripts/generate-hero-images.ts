@@ -12,49 +12,49 @@ fal.config({
 
 const heroImagePrompts = [
     {
-        name: "luxury-coastal-living",
-        prompt: "Photorealistic luxury modern villa with infinity pool overlooking the Mediterranean Sea at golden hour, Costa del Sol Spain, palm trees, pristine white architecture, azure blue water, elegant terrace with designer furniture, warm sunset lighting, professional real estate photography, ultra detailed, 8K quality, cinematic composition"
+        name: "financial-freedom",
+        prompt: "Photorealistic professional financial advisor consulting with a happy couple in a modern office, warm lighting, clean desk with laptop showing growth charts, confident body language, professional attire, ultra detailed, 8K quality, cinematic composition"
     },
     {
-        name: "mediterranean-lifestyle",
-        prompt: "Elegant rooftop terrace in Marbella with panoramic sea views, luxury outdoor dining setup, modern architectural details, Mediterranean garden with bougainvillea, sophisticated coastal living, golden hour lighting, professional photography, ultra high quality, cinematic"
+        name: "retirement-lifestyle",
+        prompt: "Happy retired couple enjoying a beautiful sunset on their patio, comfortable upscale home, relaxed and content, warm golden hour lighting, professional lifestyle photography, ultra high quality, cinematic"
     },
     {
-        name: "golf-course-luxury",
-        prompt: "Prestigious golf course on Costa del Sol with luxury villas in background, perfectly manicured greens, Mediterranean landscape, mountain backdrop, morning light, professional real estate photography, ultra detailed, premium quality, elegant composition"
+        name: "wealth-growth",
+        prompt: "Abstract visualization of wealth growth, ascending gold and navy blue bars and curves, modern minimalist design, professional financial imagery, clean composition, premium quality, elegant"
     },
     {
-        name: "beach-club-elegance",
-        prompt: "Exclusive beach club on Costa del Sol, white sand beach, crystal clear turquoise water, elegant sun loungers, luxury umbrellas, Mediterranean paradise, summer day, professional lifestyle photography, ultra high quality, sophisticated atmosphere"
+        name: "family-legacy",
+        prompt: "Multi-generational family portrait in an upscale home setting, grandparents with children and grandchildren, warm natural lighting, genuine happiness, professional family photography, ultra high quality"
     },
     {
-        name: "marina-yachts",
-        prompt: "Luxury yacht marina in Puerto Banus, expensive yachts and sailboats, modern waterfront architecture, palm trees, blue sky, prestigious lifestyle, golden hour, professional photography, ultra detailed, premium real estate imagery"
+        name: "professional-meeting",
+        prompt: "Professional financial advisor presenting strategies on a large screen to clients in a modern conference room, clean corporate environment, bright natural lighting, professional photography, premium quality"
     },
     {
-        name: "penthouse-terrace",
-        prompt: "Spectacular penthouse terrace with panoramic Mediterranean views, modern luxury furniture, infinity edge design, Costa del Sol coastline, sunset colors, sophisticated interior design, professional architectural photography, 8K quality, cinematic lighting"
+        name: "secure-future",
+        prompt: "Confident professional standing in front of a modern glass office building, sunrise in background, symbolizing new beginnings and financial security, professional portrait photography, 8K quality, cinematic lighting"
     },
     {
-        name: "andalusian-gardens",
-        prompt: "Beautiful Andalusian gardens with traditional Spanish tiles, fountain, lush tropical plants, elegant colonial architecture, warm Mediterranean sunlight, peaceful luxury setting, professional photography, ultra detailed, premium quality"
+        name: "tax-free-retirement",
+        prompt: "Beautiful modern home office with financial documents and laptop showing retirement projections, cup of coffee, morning light through windows, organized and professional, ultra detailed, premium quality"
     },
     {
-        name: "coastal-promenade",
-        prompt: "Elegant coastal promenade on Costa del Sol, palm tree-lined walkway, Mediterranean Sea, modern cafes and boutiques, luxury lifestyle, bright sunny day, professional travel photography, vibrant colors, ultra high quality"
+        name: "asset-protection",
+        prompt: "Strong safe vault door slightly open revealing golden light inside, symbolizing wealth protection, dramatic lighting, professional product photography, ultra high quality, sophisticated atmosphere"
     },
     {
-        name: "mountain-sea-views",
-        prompt: "Breathtaking panoramic view from luxury villa terrace, Mediterranean Sea and mountain landscape, Costa del Sol, infinity pool in foreground, modern architecture, golden hour lighting, professional real estate photography, cinematic composition, 8K quality"
+        name: "independent-advisor",
+        prompt: "Professional financial advisor shaking hands with satisfied client, modern office setting, warm natural lighting, trust and confidence, professional corporate photography, cinematic composition, 8K quality"
     },
     {
-        name: "luxury-interior-view",
-        prompt: "Floor-to-ceiling windows with stunning Mediterranean sea view, modern luxury interior design, elegant furniture, open-plan living space, bright and airy, Costa del Sol property, professional interior photography, ultra high quality, sophisticated style"
+        name: "education-workshop",
+        prompt: "Financial education workshop with diverse attendees in a modern venue, presenter at whiteboard with financial charts, engaged audience, bright professional lighting, high-end corporate event photography"
     }
 ];
 
 async function generateHeroImages() {
-    console.log("🎨 Generating luxury Costa del Sol hero images...\n");
+    console.log("🎨 Generating Everence Wealth hero images...\n");
 
     const generatedImages: { name: string; url: string }[] = [];
 

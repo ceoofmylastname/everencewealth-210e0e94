@@ -510,15 +510,15 @@ function generateQAIndexHTML(qaPages: QAPageData[], productionAssets: Production
         "@type": "CollectionPage",
         "@id": `${baseUrl}/qa#collectionpage`,
         "name": "Questions & Answers",
-        "description": "Expert answers to common questions about buying property in Costa del Sol, Spain",
+        "description": "Expert answers to your wealth management and financial planning questions",
         "url": `${baseUrl}/qa`,
         "isPartOf": { "@id": `${baseUrl}/#website` },
-        "about": { "@type": "Thing", "name": "Costa del Sol Real Estate" },
+        "about": { "@type": "Thing", "name": "Wealth Management" },
         "mainEntity": {
           "@type": "ItemList",
           "@id": `${baseUrl}/qa#itemlist`,
-          "name": "Costa del Sol Property Q&A",
-          "description": "Expert answers to common questions about buying property in Costa del Sol, Spain",
+          "name": "Wealth Management Q&A",
+          "description": "Expert answers to your wealth management and financial planning questions",
           "numberOfItems": qaPages.length,
           "itemListElement": qaPages.slice(0, 100).map((qa, index) => ({
             "@type": "ListItem",
@@ -541,7 +541,7 @@ function generateQAIndexHTML(qaPages: QAPageData[], productionAssets: Production
         "@id": `${baseUrl}/qa#webpage`,
         "url": `${baseUrl}/qa`,
         "name": "Questions & Answers | Everence Wealth",
-        "description": "Find answers to common questions about buying property in Costa del Sol, Spain. Expert advice on real estate, legal processes, and lifestyle.",
+        "description": "Find answers to common questions about wealth management, tax-free retirement, and financial planning. Expert advice from independent advisors.",
         "isPartOf": { "@id": `${baseUrl}/#website` },
         "inLanguage": "en-GB"
       },
@@ -667,7 +667,7 @@ function generateQAIndexHTML(qaPages: QAPageData[], productionAssets: Production
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Find answers to common questions about buying property in Costa del Sol, Spain. Expert advice on real estate, legal processes, and lifestyle.">
+  <meta name="description" content="Find answers to common questions about wealth management, tax-free retirement, and financial planning. Expert advice from independent advisors.">
   <title>Questions & Answers | Everence Wealth</title>
   
   <link rel="canonical" href="${baseUrl}/qa" />
@@ -685,13 +685,13 @@ function generateQAIndexHTML(qaPages: QAPageData[], productionAssets: Production
   
   <meta property="og:type" content="website" />
   <meta property="og:title" content="Questions & Answers | Everence Wealth" />
-  <meta property="og:description" content="Find answers to common questions about buying property in Costa del Sol, Spain." />
+  <meta property="og:description" content="Find answers to common questions about wealth management and financial planning." />
   <meta property="og:url" content="${baseUrl}/qa" />
   <meta property="og:site_name" content="Everence Wealth" />
   
   <meta name="twitter:card" content="summary" />
   <meta name="twitter:title" content="Questions & Answers | Everence Wealth" />
-  <meta name="twitter:description" content="Find answers to common questions about buying property in Costa del Sol, Spain." />
+  <meta name="twitter:description" content="Find answers to common questions about wealth management and financial planning." />
   
   <script type="application/ld+json" data-schema="qa-index">
 ${JSON.stringify(indexSchema, null, 2)}
@@ -702,7 +702,7 @@ ${JSON.stringify(indexSchema, null, 2)}
     <main class="qa-index-page static-content">
       <div class="qa-index-hero">
         <h1>Questions & Answers</h1>
-        <p>Expert answers to your questions about Costa del Sol real estate, property buying, and Mediterranean lifestyle.</p>
+        <p>Expert answers to your questions about wealth management, tax-free retirement, and financial planning.</p>
       </div>
       
       ${qaListHtml}

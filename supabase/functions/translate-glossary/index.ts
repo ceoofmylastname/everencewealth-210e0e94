@@ -35,9 +35,6 @@ const SPANISH_TERMS = [
   "Padrón", "Empadronamiento", "Residencia", "Tarjeta de Residencia",
   "Hacienda", "Agencia Tributaria", "Modelo 210", "Modelo 720",
   "Impuesto sobre la Renta", "Impuesto de Patrimonio",
-  "Costa del Sol", "Andalucía", "Málaga", "Marbella", "Estepona",
-  "Mijas", "Fuengirola", "Benalmádena", "Torremolinos", "Nerja",
-  "Ronda", "Antequera", "Frigiliana", "Casares", "Manilva", "Benahavís",
 ];
 
 serve(async (req) => {
@@ -196,14 +193,14 @@ async function translateCategory(
   targetLanguageName: string,
   apiKey: string
 ): Promise<any> {
-  const systemPrompt = `You are a professional translator specializing in real estate and legal terminology translation from English to ${targetLanguageName}.
+  const systemPrompt = `You are a professional translator specializing in financial planning and wealth management terminology translation from English to ${targetLanguageName}.
 
 CRITICAL RULES:
 1. KEEP ALL Spanish terms UNCHANGED. These include but are not limited to: ${SPANISH_TERMS.slice(0, 30).join(", ")}, etc.
-2. KEEP all proper nouns unchanged: Costa del Sol, Andalucía, Málaga, Marbella, Spain, etc.
+2. KEEP all financial acronyms and proper nouns unchanged.
 3. KEEP all abbreviations that are Spanish or universal: NIE, NIF, IBI, IVA, etc.
 4. Translate ONLY the English descriptive text to ${targetLanguageName}
-5. Maintain professional real estate/legal terminology appropriate for ${targetLanguageName} speakers
+5. Maintain professional financial planning terminology appropriate for ${targetLanguageName} speakers
 6. Output must be valid JSON that matches the input structure exactly
 7. Do not add any explanations outside the JSON
 

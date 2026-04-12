@@ -1,4 +1,4 @@
-# Del Sol Prime Homes CMS - Admin User Guide
+# Everence Wealth CMS - Admin User Guide
 
 ## Table of Contents
 1. [Getting Started](#getting-started)
@@ -31,9 +31,9 @@ The blog uses a 3-stage funnel designed to guide users from awareness to convers
 
 **TOFU (Top of Funnel)** - Shown on /blog index
 - **Purpose**: Educational, broad awareness content
-- **Target Audience**: Early-stage buyers researching the Costa del Sol
+- **Target Audience**: Early-stage buyers researching the wealth management
 - **Content Type**: "What is...", "Why...", "Is..." questions
-- **Examples**: "Is Costa del Sol a Digital Nomad's Paradise?"
+- **Examples**: "Is wealth management a Digital Nomad's Paradise?"
 - **Visibility**: Main blog index, sitemap, search results, social media
 - **Word Count**: 1500-2000 words
 - **CTA Strategy**: Link to 2-3 MOFU articles in related content section
@@ -42,7 +42,7 @@ The blog uses a 3-stage funnel designed to guide users from awareness to convers
 - **Purpose**: Comparison guides, detailed how-to content
 - **Target Audience**: Consideration stage buyers evaluating options
 - **Content Type**: "How to compare...", "Which is better...", detailed comparisons
-- **Examples**: "Comparing Internet Providers and Mobile Networks in Costa del Sol"
+- **Examples**: "Comparing Internet Providers and Mobile Networks in wealth management"
 - **Visibility**: Direct URL, internal links from TOFU articles, sitemap, search results
 - **Word Count**: 2000-2500 words
 - **CTA Strategy**: Link to 1-2 BOFU articles in action-oriented section
@@ -51,7 +51,7 @@ The blog uses a 3-stage funnel designed to guide users from awareness to convers
 - **Purpose**: Action-oriented checklists, decision guides
 - **Target Audience**: Decision stage buyers ready to take action
 - **Content Type**: Checklists, step-by-step guides, implementation plans
-- **Examples**: "Your Essential Checklist for Buying Property in Costa del Sol"
+- **Examples**: "Your Essential Checklist for Buying Property in wealth management"
 - **Visibility**: Direct URL, internal links from MOFU articles, sitemap, search results
 - **Word Count**: 1000-1500 words
 - **Special Feature**: Chatbot widget for immediate lead capture
@@ -193,7 +193,7 @@ The blog uses a 3-stage funnel designed to guide users from awareness to convers
    - Bio (150-300 words)
    - Photo (professional headshot)
    - LinkedIn URL
-   - Credentials (e.g., "Real Estate Expert", "Legal Advisor")
+   - Credentials (e.g., "Financial Planning Expert", "Legal Advisor")
    - Years of Experience
 
 ### Author Best Practices

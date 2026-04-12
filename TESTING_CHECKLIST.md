@@ -296,7 +296,7 @@ For each language (EN, ES, DE, NL, FR, PL, SV, DA, HU):
 - [ ] Click chatbot button
 - [ ] Verify chat window opens
 - [ ] Check window size (400px desktop, full mobile)
-- [ ] Verify header shows "Chat with Del Sol Homes Expert"
+- [ ] Verify header shows "Chat with Everence Wealth Expert"
 - [ ] Check close button (X) present
 - [ ] Verify welcome message appears
 - [ ] Check quick reply buttons show
@@ -349,7 +349,7 @@ For each language (EN, ES, DE, NL, FR, PL, SV, DA, HU):
 
 #### Meta Tags
 - [ ] View page source of article
-- [ ] Verify `<title>` includes meta_title + " | Del Sol Prime Homes"
+- [ ] Verify `<title>` includes meta_title + " | Everence Wealth"
 - [ ] Verify meta description present
 - [ ] Verify canonical URL present
 - [ ] Check Open Graph tags:
@@ -644,11 +644,11 @@ Test 5 random articles:
 ### 🌐 Production Environment
 
 #### DNS & Routing
-- [ ] Navigate to delsolprimehomes.com
+- [ ] Navigate to everencewealth.com
 - [ ] Verify Webflow site loads
-- [ ] Navigate to delsolprimehomes.com/blog
+- [ ] Navigate to everencewealth.com/blog
 - [ ] Verify React app loads
-- [ ] Navigate to delsolprimehomes.com/admin
+- [ ] Navigate to everencewealth.com/admin
 - [ ] Verify requires auth
 - [ ] Check SSL certificate valid
 - [ ] Test www redirect works

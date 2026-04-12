@@ -33,7 +33,7 @@ export const landingFormTranslations: Record<string, LandingFormTranslations> = 
       buying: "Buying",
       renting: "Renting"
     },
-    consent: "I agree to receive information about Costa del Sol properties",
+    consent: "I agree to receive information about wealth management properties",
     submit: "Get in touch",
     submitting: "Sending...",
     success: "Thank you.",
@@ -52,7 +52,7 @@ export const landingFormTranslations: Record<string, LandingFormTranslations> = 
       buying: "Kopen",
       renting: "Huren"
     },
-    consent: "Ik ga akkoord om informatie over Costa del Sol woningen te ontvangen",
+    consent: "Ik ga akkoord om informatie over wealth management woningen te ontvangen",
     submit: "Neem contact op",
     submitting: "Verzenden...",
     success: "Dank u.",
@@ -71,7 +71,7 @@ export const landingFormTranslations: Record<string, LandingFormTranslations> = 
       buying: "Kaufen",
       renting: "Mieten"
     },
-    consent: "Ich stimme zu, Informationen über Costa del Sol Immobilien zu erhalten",
+    consent: "Ich stimme zu, Informationen über wealth management Immobilien zu erhalten",
     submit: "Kontakt aufnehmen",
     submitting: "Wird gesendet...",
     success: "Vielen Dank.",
@@ -90,7 +90,7 @@ export const landingFormTranslations: Record<string, LandingFormTranslations> = 
       buying: "Acheter",
       renting: "Louer"
     },
-    consent: "J'accepte de recevoir des informations sur les propriétés de la Costa del Sol",
+    consent: "J'accepte de recevoir des informations sur les propriétés de la wealth management",
     submit: "Nous contacter",
     submitting: "Envoi en cours...",
     success: "Merci.",
@@ -109,7 +109,7 @@ export const landingFormTranslations: Record<string, LandingFormTranslations> = 
       buying: "Comprar",
       renting: "Alquilar"
     },
-    consent: "Acepto recibir información sobre propiedades en la Costa del Sol",
+    consent: "Acepto recibir información sobre propiedades en la wealth management",
     submit: "Contactar",
     submitting: "Enviando...",
     success: "Gracias.",
@@ -128,7 +128,7 @@ export const landingFormTranslations: Record<string, LandingFormTranslations> = 
       buying: "Kupno",
       renting: "Wynajem"
     },
-    consent: "Wyrażam zgodę na otrzymywanie informacji o nieruchomościach na Costa del Sol",
+    consent: "Wyrażam zgodę na otrzymywanie informacji o nieruchomościach na wealth management",
     submit: "Skontaktuj się",
     submitting: "Wysyłanie...",
     success: "Dziękujemy.",
@@ -147,7 +147,7 @@ export const landingFormTranslations: Record<string, LandingFormTranslations> = 
       buying: "Köpa",
       renting: "Hyra"
     },
-    consent: "Jag godkänner att ta emot information om Costa del Sol fastigheter",
+    consent: "Jag godkänner att ta emot information om wealth management fastigheter",
     submit: "Kontakta oss",
     submitting: "Skickar...",
     success: "Tack.",
@@ -166,7 +166,7 @@ export const landingFormTranslations: Record<string, LandingFormTranslations> = 
       buying: "Køb",
       renting: "Leje"
     },
-    consent: "Jeg accepterer at modtage information om Costa del Sol ejendomme",
+    consent: "Jeg accepterer at modtage information om wealth management ejendomme",
     submit: "Kontakt os",
     submitting: "Sender...",
     success: "Tak.",
@@ -185,7 +185,7 @@ export const landingFormTranslations: Record<string, LandingFormTranslations> = 
       buying: "Vásárlás",
       renting: "Bérlés"
     },
-    consent: "Hozzájárulok, hogy információkat kapjak a Costa del Sol ingatlanokról",
+    consent: "Hozzájárulok, hogy információkat kapjak a wealth management ingatlanokról",
     submit: "Kapcsolatfelvétel",
     submitting: "Küldés...",
     success: "Köszönjük.",
@@ -204,7 +204,7 @@ export const landingFormTranslations: Record<string, LandingFormTranslations> = 
       buying: "Ostaminen",
       renting: "Vuokraus"
     },
-    consent: "Hyväksyn vastaanottavani tietoa Costa del Sol -kiinteistöistä",
+    consent: "Hyväksyn vastaanottavani tietoa wealth management -kiinteistöistä",
     submit: "Ota yhteyttä",
     submitting: "Lähetetään...",
     success: "Kiitos.",
@@ -223,7 +223,7 @@ export const landingFormTranslations: Record<string, LandingFormTranslations> = 
       buying: "Kjøp",
       renting: "Leie"
     },
-    consent: "Jeg godtar å motta informasjon om Costa del Sol eiendommer",
+    consent: "Jeg godtar å motta informasjon om wealth management eiendommer",
     submit: "Kontakt oss",
     submitting: "Sender...",
     success: "Takk.",

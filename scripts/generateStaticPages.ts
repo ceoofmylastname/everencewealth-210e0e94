@@ -162,7 +162,7 @@ function generateOrganizationSchema() {
     "name": "Everence Wealth",
     "legalName": "Everence Wealth",
     "url": "https://www.everencewealth.com/",
-    "description": "Premium real estate agency specializing in Costa del Sol new-build and off-plan properties",
+    "description": "Independent wealth management firm specializing in tax-free retirement strategies, IUL, and asset protection",
     "logo": {
       "@type": "ImageObject",
       "url": "https://www.everencewealth.com/assets/logo-new.png",
@@ -170,11 +170,7 @@ function generateOrganizationSchema() {
       "height": 256
     },
     "areaServed": [
-      {"@type": "City", "name": "Marbella"},
-      {"@type": "City", "name": "Estepona"},
-      {"@type": "City", "name": "Fuengirola"},
-      {"@type": "City", "name": "Benalmádena"},
-      {"@type": "City", "name": "Mijas"}
+      {"@type": "Country", "name": "United States"}
     ],
     "contactPoint": {
       "@type": "ContactPoint",
@@ -213,28 +209,19 @@ function generateAuthorSchema(author: any) {
 // Entity extraction for about/mentions (simplified for SSG - no external imports)
 function extractEntitiesForSSG(headline: string, content: string, category: string) {
   const WIKIDATA_ENTITIES: Record<string, string> = {
-    "Marbella": "https://www.wikidata.org/wiki/Q8337",
-    "Estepona": "https://www.wikidata.org/wiki/Q477306",
-    "Fuengirola": "https://www.wikidata.org/wiki/Q618947",
-    "Benalmádena": "https://www.wikidata.org/wiki/Q571725",
-    "Mijas": "https://www.wikidata.org/wiki/Q571737",
-    "Sotogrande": "https://www.wikidata.org/wiki/Q3490614",
-    "Casares": "https://www.wikidata.org/wiki/Q1046949",
-    "Torremolinos": "https://www.wikidata.org/wiki/Q184217",
-    "Manilva": "https://www.wikidata.org/wiki/Q571730",
-    "Málaga": "https://www.wikidata.org/wiki/Q8851",
-    "Costa del Sol": "https://www.wikidata.org/wiki/Q751676",
-    "Digital Nomad Visa": "https://www.wikidata.org/wiki/Q111946227",
-    "NIE": "https://www.wikidata.org/wiki/Q6955279",
+    "Indexed Universal Life": "https://www.wikidata.org/wiki/Q6018787",
+    "Roth IRA": "https://www.wikidata.org/wiki/Q1764010",
+    "401(k)": "https://www.wikidata.org/wiki/Q212599",
+    "Life Insurance": "https://www.wikidata.org/wiki/Q165437",
+    "Asset Protection": "https://www.wikidata.org/wiki/Q4807073",
+    "Tax-Free Retirement": "https://www.wikidata.org/wiki/Q181634",
   };
 
   const GLOSSARY_TERMS: Record<string, string> = {
-    "NIE": "Tax identification number for foreigners in Spain",
-    "Digital Nomad Visa": "Spanish residence visa for remote workers (€2,520+/month income from non-Spanish sources)",
-    "Escritura": "Public deed of sale signed before a notary",
-    "IBI": "Annual municipal property tax in Spain",
-    "Plusvalía": "Municipal capital gains tax on land value increase",
-    "Hipoteca": "Spanish mortgage loan secured against property",
+    "IUL": "Indexed Universal Life insurance with market-linked growth potential",
+    "Cash Value": "Tax-advantaged savings component within permanent life insurance",
+    "Tax-Free Retirement": "Strategy using life insurance vehicles to create tax-free retirement income",
+    "Asset Protection": "Legal strategies to shield wealth from creditors and lawsuits",
   };
 
   const plainContent = content.replace(/<[^>]*>/g, ' ');
@@ -251,13 +238,13 @@ function extractEntitiesForSSG(headline: string, content: string, category: stri
   });
 
   // Detect cities in headline (primary) and content (secondary)
-  const cities = ["Marbella", "Estepona", "Fuengirola", "Benalmádena", "Mijas", "Sotogrande", "Casares", "Torremolinos", "Manilva", "Málaga", "Costa del Sol"];
-  const seenCities = new Set<string>();
+  const topics = ["IUL", "Tax-Free Retirement", "Asset Protection", "Roth IRA", "401(k)", "Life Insurance", "Cash Value", "Indexed Universal Life"];
+  const seenTopics = new Set<string>();
   
-  for (const city of cities) {
+  for (const city of topics) {
     const regex = new RegExp(`\\b${city}\\b`, 'gi');
-    if (regex.test(combinedText) && !seenCities.has(city.toLowerCase())) {
-      seenCities.add(city.toLowerCase());
+    if (regex.test(combinedText) && !seenTopics.has(city.toLowerCase())) {
+      seenTopics.add(city.toLowerCase());
       const entity: any = { "@type": "Place", "name": city };
       if (WIKIDATA_ENTITIES[city]) entity.sameAs = WIKIDATA_ENTITIES[city];
       

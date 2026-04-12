@@ -1,7 +1,7 @@
 # 📧 CRM Email Subject Reference & Gmail Filter Guide for Hans
 
 > **Last updated:** 2026-02-10
-> **Sender:** `crm@notifications.delsolprimehomes.com`
+> **Sender:** `crm@notifications.everencewealth.com`
 
 ---
 

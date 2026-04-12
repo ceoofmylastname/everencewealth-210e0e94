@@ -1,4 +1,4 @@
-# Del Sol Prime Homes CRM - Testing Checklist
+# Everence Wealth CRM - Testing Checklist
 
 ## Overview
 Complete testing checklist for all CRM functionality before production launch.

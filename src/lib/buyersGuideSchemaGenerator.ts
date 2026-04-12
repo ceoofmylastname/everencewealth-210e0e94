@@ -245,7 +245,7 @@ export const defaultBuyingSteps: BuyingStep[] = [
   },
   {
     title: "Property Search & Viewings",
-    description: "Work with a trusted real estate agent to identify suitable properties. Schedule viewings and explore different areas of the Costa del Sol.",
+    description: "Work with a trusted financial planning agent to identify suitable properties. Schedule viewings and explore different areas of the wealth management.",
     duration: "P4W"
   },
   {

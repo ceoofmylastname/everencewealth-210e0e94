@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document details the database schema structure for the Del Sol Prime Homes Blog CMS. All tables are in the `public` schema of the Supabase database.
+This document details the database schema structure for the Everence Wealth Blog CMS. All tables are in the `public` schema of the Supabase database.
 
 ## Tables
 
@@ -238,7 +238,7 @@ CREATE TABLE public.authors (
 - Example: "Maria García Lopez"
 
 **job_title** - Professional title
-- Example: "Senior Real Estate Advisor"
+- Example: "Senior Financial Planning Advisor"
 
 **bio** - Professional biography
 - 150-300 words
@@ -254,7 +254,7 @@ CREATE TABLE public.authors (
 
 **credentials** - Array of credentials
 ```sql
-'{"Real Estate Expert", "Licensed Broker", "MBA Finance"}'
+'{"Financial Planning Expert", "Licensed Broker", "MBA Finance"}'
 ```
 
 **years_experience** - Years in industry
@@ -327,7 +327,7 @@ CREATE TABLE public.chatbot_conversations (
 - €500K-€1M, €1M-€2M, €2M-€5M, €5M+
 
 **area** - Preferred location
-- Marbella, Estepona, Fuengirola, Other
+- El Paso, Estepona, Fuengirola, Other
 
 **preferred_language** - Communication preference
 - ISO 639-1 code

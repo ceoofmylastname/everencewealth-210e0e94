@@ -206,7 +206,7 @@ ultra-realistic, 8k resolution, corporate photography style`;
                     type="button"
                     variant="outline"
                     size="sm"
-                    onClick={() => setPrompt("Aerial view of luxury villa in Marbella, Costa del Sol, Mediterranean style, sunset lighting, 8k resolution")}
+                    onClick={() => setPrompt("Aerial view of luxury villa in El Paso, wealth management, professional style, sunset lighting, 8k resolution")}
                   >
                     Aerial property view
                   </Button>
@@ -214,7 +214,7 @@ ultra-realistic, 8k resolution, corporate photography style`;
                     type="button"
                     variant="outline"
                     size="sm"
-                    onClick={() => setPrompt("Modern interior living room Costa del Sol luxury villa, bright natural light, contemporary furniture, architectural photography")}
+                    onClick={() => setPrompt("Modern interior living room wealth management luxury villa, bright natural light, contemporary furniture, architectural photography")}
                   >
                     Interior shot
                   </Button>

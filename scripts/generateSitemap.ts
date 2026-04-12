@@ -58,11 +58,8 @@ const langToHreflang: Record<string, string> = {
   no: 'nb-NO'
 };
 
-// Location brochure cities (not language-prefixed)
-const LOCATION_CITIES = [
-  'marbella', 'estepona', 'mijas', 'fuengirola', 'benalmadena',
-  'torremolinos', 'malaga', 'sotogrande', 'manilva', 'casares'
-];
+// Location brochure cities removed - no longer used
+const LOCATION_CITIES: string[] = [];
 
 interface ArticleData {
   slug: string;

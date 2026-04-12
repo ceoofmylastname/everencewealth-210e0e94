@@ -1,4 +1,4 @@
-# Del Sol Prime Homes CRM - Support Procedures
+# Everence Wealth CRM - Support Procedures
 
 ## Overview
 

@@ -51,9 +51,6 @@ const GmailCallback = lazy(() => import("./pages/auth/GmailCallback"));
 // Lazy load heavy public pages
 const BlogArticle = lazy(() => import("./pages/BlogArticle"));
 const QAPage = lazy(() => import("./pages/QAPage"));
-const PropertyFinder = lazy(() => import("./pages/PropertyFinder"));
-const PropertyDetail = lazy(() => import("./pages/PropertyDetail"));
-const CityBrochure = lazy(() => import("./pages/CityBrochure"));
 const Sitemap = lazy(() => import("./pages/Sitemap"));
 const Glossary = lazy(() => import("./pages/Glossary"));
 const ComparisonPage = lazy(() => import("./pages/ComparisonPage"));
@@ -79,8 +76,6 @@ const ApartmentsLanding = lazy(() => import("./pages/apartments/ApartmentsLandin
 
 // Lazy load ALL admin pages (rarely accessed, heavy components)
 const Dashboard = lazy(() => import("./pages/admin/Dashboard"));
-const AdminProperties = lazy(() => import("./pages/AdminProperties"));
-const PropertyForm = lazy(() => import("./pages/admin/PropertyForm"));
 const Articles = lazy(() => import("./pages/admin/Articles"));
 const ArticleEditor = lazy(() => import("./pages/admin/ArticleEditor"));
 const Authors = lazy(() => import("./pages/admin/Authors"));
@@ -116,7 +111,7 @@ const SystemAudit = lazy(() => import("./pages/admin/SystemAudit"));
 const ProductionAudit = lazy(() => import("./pages/admin/ProductionAudit"));
 const AEOAnswerFixer = lazy(() => import("./pages/admin/AEOAnswerFixer"));
 const MigrateImages = lazy(() => import("./pages/admin/MigrateImages"));
-const AddProperty = lazy(() => import("./pages/AddProperty"));
+
 const EmmaConversations = lazy(() => import("./pages/admin/EmmaConversations"));
 const GoneURLsManager = lazy(() => import("./pages/admin/GoneURLsManager"));
 const RedirectChecker = lazy(() => import("./pages/admin/RedirectChecker"));
@@ -247,7 +242,7 @@ const CrmSalestrailCallLogs = lazy(() => import("./pages/crm/admin/SalestrailCal
 const CrmAssessmentLeads = lazy(() => import("./pages/crm/admin/AssessmentLeads"));
 const LandingEn = lazy(() => import("./pages/landing/en"));
 const OptIn = lazy(() => import("./pages/OptIn"));
-const RetargetingLanding = lazy(() => import("./pages/RetargetingLanding"));
+
 const Assessment = lazy(() => import("./pages/Assessment"));
 const ContractingIntake = lazy(() => import("./pages/ContractingIntake"));
 const WorkshopLanding = lazy(() => import("./pages/public/WorkshopLanding"));
@@ -278,11 +273,6 @@ const PageLoader = () => (
   </div>
 );
 
-// Redirect component for legacy property routes
-const PropertyRedirect = () => {
-  const { reference } = useParams<{ reference: string }>();
-  return <Navigate to={`/en/property/${reference}`} replace />;
-};
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -329,10 +319,7 @@ const App = () => (
               {/* PROTECTED ADMIN ROUTES (MUST BE BEFORE /:lang) */}
               {/* ========================================== */}
               <Route path="/admin" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-              <Route path="/admin/properties" element={<ProtectedRoute><AdminProperties /></ProtectedRoute>} />
               <Route path="/admin/emma" element={<ProtectedRoute><EmmaConversations /></ProtectedRoute>} />
-              <Route path="/admin/properties/new" element={<ProtectedRoute><PropertyForm /></ProtectedRoute>} />
-              <Route path="/admin/properties/edit/:id" element={<ProtectedRoute><PropertyForm /></ProtectedRoute>} />
               <Route path="/admin/articles" element={<ProtectedRoute><Articles /></ProtectedRoute>} />
               <Route path="/admin/articles/new" element={<ProtectedRoute><ArticleEditor /></ProtectedRoute>} />
               <Route path="/admin/articles/:id/edit" element={<ProtectedRoute><ArticleEditor /></ProtectedRoute>} />
@@ -401,8 +388,6 @@ const App = () => (
                 <Route index element={<Navigate to="content" replace />} />
               </Route>
 
-              {/* Standalone Property Management Page */}
-              <Route path="/add-property" element={<ProtectedRoute><AddProperty /></ProtectedRoute>} />
 
               {/* ========================================== */}
               {/* PORTAL ROUTES (MUST BE BEFORE /:lang)     */}
@@ -544,17 +529,7 @@ const App = () => (
               {/* Landing Pages (Paid Traffic) */}
               <Route path="/en/landing" element={<LandingEn />} />
 
-              {/* Retargeting Landing Pages (EN + ES) */}
-              <Route path="/en/welcome-back" element={<RetargetingLanding />} />
-              <Route path="/es/bienvenido" element={<RetargetingLanding />} />
 
-              <Route path="/optin" element={<OptIn />} />
-              <Route path="/:lang/optin" element={<OptIn />} />
-
-              {/* Legacy redirect for brochures - redirect to English */}
-              <Route path="/brochure/:citySlug" element={<Navigate to={window.location.pathname.replace('/brochure/', '/en/brochure/')} replace />} />
-              {/* Language-prefixed brochure routes */}
-              <Route path="/:lang/brochure/:citySlug" element={<CityBrochure />} />
               {/* About page */}
               <Route path="/about" element={<Navigate to="/en/about-us" replace />} />
               <Route path="/:lang/about" element={<About />} />
@@ -623,9 +598,6 @@ const App = () => (
               <Route path="/:lang/retirement-planning" element={<StateGuidesIndex />} />
               <Route path="/:lang/retirement-planning/:topicSlug" element={<StateGuidePage />} />
 
-              {/* Property routes with language prefix */}
-              <Route path="/:lang/properties" element={<PropertyFinder />} />
-              <Route path="/:lang/property/:reference" element={<PropertyDetail />} />
 
               {/* ========================================== */}
               {/* LEGACY ROUTES -> REDIRECT TO /en/...      */}
@@ -648,10 +620,6 @@ const App = () => (
               <Route path="/locations/:citySlug" element={<LocationIndexRedirect />} />
               <Route path="/locations/:citySlug/:topicSlug" element={<LocationPageRedirect />} />
 
-              {/* Property legacy redirects */}
-              <Route path="/properties" element={<Navigate to="/en/properties" replace />} />
-              <Route path="/property-finder" element={<Navigate to="/en/properties" replace />} />
-              <Route path="/property/:reference" element={<PropertyRedirect />} />
 
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />

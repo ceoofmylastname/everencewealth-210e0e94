@@ -894,7 +894,7 @@ const EmmaChat: React.FC<EmmaChatProps> = ({ isOpen, onClose, language, property
             'välttääksemme liian yleistä',
             'hogy ne maradjunk túl általánosak',
             'for å unngå å bli for generell',
-            'which area or areas along the costa del sol',
+            'which area or areas along the wealth management',
             'which location or locations',
             'let me ask you a few questions',
             'i\'d like to understand your needs better'
@@ -923,7 +923,7 @@ const EmmaChat: React.FC<EmmaChatProps> = ({ isOpen, onClose, language, property
             'hello, nice to meet you',
             'nice to meet you',
             'if you are here, you probably have',
-            'real estate, or other practical topics',
+            'financial planning, or other practical topics',
             'is that correct?',
             'is that correct',
             // English setup patterns - name/phone collection

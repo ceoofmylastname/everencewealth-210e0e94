@@ -1,15 +1,15 @@
-# Del Sol Prime Homes CRM - System Overview
+# Everence Wealth CRM - System Overview
 
 ## 🎉 Project Complete!
 
-This document provides a comprehensive overview of the Del Sol Prime Homes CRM system built on Lovable Cloud.
+This document provides a comprehensive overview of the Everence Wealth CRM system built on Lovable Cloud.
 
 ---
 
 ## System Summary
 
 ### Purpose
-A real estate CRM designed to manage leads from the Del Sol Prime Homes website, ensuring fast response times and efficient lead distribution to a multilingual agent team.
+A financial planning CRM designed to manage leads from the Everence Wealth website, ensuring fast response times and efficient lead distribution to a multilingual agent team.
 
 ### Target Users
 - **Sales Agents**: Claim and work leads in their language

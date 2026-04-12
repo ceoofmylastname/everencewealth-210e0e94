@@ -1,4 +1,4 @@
-# Del Sol Prime Homes CRM - Backup & Recovery Procedures
+# Everence Wealth CRM - Backup & Recovery Procedures
 
 ## Overview
 

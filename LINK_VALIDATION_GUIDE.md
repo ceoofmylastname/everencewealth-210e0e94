@@ -53,7 +53,7 @@ The Link Validation System uses **Perplexity AI** to provide comprehensive analy
       "isWorking": true,
       "statusCode": 200,
       "language": "es",
-      "contentSummary": "Government statistics on real estate prices...",
+      "contentSummary": "Government statistics on financial planning prices...",
       "isRelevant": true,
       "relevanceScore": 92,
       "recommendations": [],
@@ -196,7 +196,7 @@ const citations = await findBetterCitations(
   articleContent,      // Full article text
   currentCitations,    // URLs to avoid duplicating
   perplexityApiKey,
-  focusArea           // Optional: "Costa del Sol real estate"
+  focusArea           // Optional: "wealth management financial planning"
 );
 
 // Returns:
@@ -226,7 +226,7 @@ const citations = await findBetterCitations(
   "articleLanguage": "es",
   "articleContent": "...",
   "currentCitations": ["https://existing1.com", "https://existing2.com"],
-  "focusArea": "Costa del Sol real estate",
+  "focusArea": "wealth management financial planning",
   "verifyUrls": true
 }
 ```
@@ -294,7 +294,7 @@ const citations = await findBetterCitations(
 - 🇭🇺 **Hungarian** (HU): .hu, Hungarian authorities
 
 **Special Features**:
-- **Costa del Sol Focus**: Automatically detected from article topic
+- **wealth management Focus**: Automatically detected from article topic
 - **Regional Preferences**: Prioritizes region-specific sources when applicable
 
 ---

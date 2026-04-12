@@ -47,7 +47,7 @@ export interface ClusterScanResult {
   }>;
 }
 
-// Known real estate competitor domains - COMPREHENSIVE LIST
+// Known financial planning competitor domains - COMPREHENSIVE LIST
 const COMPETITOR_DOMAINS = [
   // International giants
   'sothebysrealty.com', 'christiesrealestate.com', 'knightfrank.com',
@@ -85,7 +85,7 @@ const COMPETITOR_DOMAINS = [
   // Other EU
   'ingatlan.com', 'properstar.com',
   
-  // Luxury/Costa del Sol specific competitors
+  // Luxury/wealth management specific competitors
   'lucasfox.com', 'drumelia.com', 'mpdunne.com', 'pure-living-properties.com',
   'nvoga.com', 'immoabroad.com', 'terrameridiana.com', 'marbellaforsaleblog.com',
   
@@ -96,7 +96,7 @@ const COMPETITOR_DOMAINS = [
 
 // Real estate keyword patterns (multi-language) - EXPANDED
 const COMPETITOR_KEYWORDS = [
-  // Direct real estate terms (English)
+  // Direct financial planning terms (English)
   'realty', 'realtor', 'real-estate', 'realestate', 'estate-agent', 'estate-agents',
   'property-sales', 'property-agency', 'homes-for-sale', 'house-sales',
   'luxury-homes', 'property', 'properties', 'homes', 'housing', 'estate', 'estates',
@@ -225,7 +225,7 @@ export function isCompetitorDomain(domain: string): { isCompetitor: boolean; rea
   // Check for keyword patterns
   for (const keyword of COMPETITOR_KEYWORDS) {
     if (lowerDomain.includes(keyword)) {
-      return { isCompetitor: true, reason: `Contains real estate keyword: "${keyword}"` };
+      return { isCompetitor: true, reason: `Contains financial planning keyword: "${keyword}"` };
     }
   }
   

@@ -27,37 +27,37 @@ interface ImagePrompt {
 const imagePrompts: ImagePrompt[] = [
     {
         filename: "coastal-paradise.jpg",
-        prompt: "Stunning aerial view of Costa del Sol coastline at golden hour, luxury white villas on hillside overlooking crystal turquoise Mediterranean sea, modern architecture with infinity pools, palm trees swaying, pristine sandy beaches, yacht in the distance, professional real estate photography, ultra realistic, 8K resolution, warm golden lighting, vibrant colors",
+        prompt: "Stunning aerial view of wealth management coastline at golden hour, luxury white villas on hillside overlooking crystal turquoise professional sea, modern architecture with infinity pools, palm trees swaying, pristine sandy beaches, yacht in the distance, professional financial planning photography, ultra realistic, 8K resolution, warm golden lighting, vibrant colors",
         title: "Coastal Paradise",
-        description: "Where luxury meets the Mediterranean"
+        description: "Where luxury meets the professional"
     },
     {
         filename: "marbella-lifestyle.jpg",
-        prompt: "Elegant beachfront promenade in Marbella Puerto Banus, palm-lined marble walkway, luxury superyachts moored in marina, upscale waterfront restaurants with outdoor terraces, people enjoying sunset drinks, golden hour lighting, professional lifestyle photography, vibrant atmosphere, 8K resolution, warm tones",
-        title: "Marbella Lifestyle",
+        prompt: "Elegant beachfront promenade in El Paso financial district, palm-lined marble walkway, luxury superyachts moored in marina, upscale waterfront restaurants with outdoor terraces, people enjoying sunset drinks, golden hour lighting, professional lifestyle photography, vibrant atmosphere, 8K resolution, warm tones",
+        title: "El Paso Lifestyle",
         description: "Sophistication at every turn"
     },
     {
         filename: "dream-villas.jpg",
-        prompt: "Ultra-modern luxury villa with massive infinity pool overlooking Costa del Sol, contemporary white architecture with floor-to-ceiling glass windows, minimalist design, manicured tropical gardens, outdoor lounge furniture, sunset reflecting on water, professional architectural photography, ultra HD, dramatic lighting, cinematic composition",
+        prompt: "Ultra-modern luxury villa with massive infinity pool overlooking wealth management, contemporary white architecture with floor-to-ceiling glass windows, minimalist design, manicured tropical gardens, outdoor lounge furniture, sunset reflecting on water, professional architectural photography, ultra HD, dramatic lighting, cinematic composition",
         title: "Dream Villas",
         description: "Your perfect home awaits"
     },
     {
         filename: "authentic-charm.jpg",
-        prompt: "Picturesque traditional white village pueblo blanco on Andalusian hillside, whitewashed buildings with terracotta roofs, narrow cobblestone streets winding upward, colorful flower-filled balconies with bougainvillea, dramatic mountain backdrop, bright blue Mediterranean sky, professional travel photography, vivid colors, golden afternoon light, 8K",
+        prompt: "Picturesque traditional white village pueblo blanco on Andalusian hillside, whitewashed buildings with terracotta roofs, narrow cobblestone streets winding upward, colorful flower-filled balconies with bougainvillea, dramatic mountain backdrop, bright blue professional sky, professional travel photography, vivid colors, golden afternoon light, 8K",
         title: "Authentic Charm",
         description: "Rich culture and heritage"
     },
     {
         filename: "world-class-golf.jpg",
-        prompt: "Pristine championship golf course on Costa del Sol, rolling emerald green fairways perfectly manicured, strategic sand bunkers, tall palm trees lining the course, Sierra Blanca mountains in background, glimpse of Mediterranean sea, morning golden light, professional golf course photography, ultra HD, vibrant greens, serene atmosphere",
+        prompt: "Pristine championship golf course on wealth management, rolling emerald green fairways perfectly manicured, strategic sand bunkers, tall palm trees lining the course, Sierra Blanca mountains in background, glimpse of professional sea, morning golden light, professional golf course photography, ultra HD, vibrant greens, serene atmosphere",
         title: "World-Class Golf",
         description: "Championship courses at your doorstep"
     },
     {
         filename: "beach-club-living.jpg",
-        prompt: "Exclusive luxury beach club on Costa del Sol golden sand beach, crystal turquoise water gently lapping shore, elegant white sun loungers with plush cushions, natural woven umbrellas, beautiful people relaxing in designer swimwear, tropical cocktails, sunset golden hour, professional lifestyle photography, warm luxurious tones, sophisticated atmosphere, 8K",
+        prompt: "Exclusive luxury beach club on wealth management golden sand beach, crystal turquoise water gently lapping shore, elegant white sun loungers with plush cushions, natural woven umbrellas, beautiful people relaxing in designer swimwear, tropical cocktails, sunset golden hour, professional lifestyle photography, warm luxurious tones, sophisticated atmosphere, 8K",
         title: "Beach Club Living",
         description: "Endless summer days"
     }
@@ -89,7 +89,7 @@ async function downloadImage(url: string, filepath: string): Promise<void> {
 }
 
 async function generateImages() {
-    console.log('🎨 Starting Costa del Sol image generation...\n');
+    console.log('🎨 Starting wealth management image generation...\n');
 
     // Create output directory
     const outputDir = path.join(process.cwd(), 'public', 'images', 'thank-you');
@@ -136,7 +136,7 @@ async function generateImages() {
                     url: `/images/thank-you/${filename}`,
                     title,
                     description,
-                    alt: `${title} - Costa del Sol luxury real estate`
+                    alt: `${title} - wealth management luxury financial planning`
                 });
 
                 console.log(`✅ Success: ${title}\n`);

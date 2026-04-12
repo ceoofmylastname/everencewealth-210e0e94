@@ -1,8 +1,8 @@
-# Del Sol Prime Homes CRM - Production Deployment Guide
+# Everence Wealth CRM - Production Deployment Guide
 
 ## Overview
 
-This guide covers the complete deployment process for the Del Sol Prime Homes CRM system on Lovable Cloud (Supabase backend).
+This guide covers the complete deployment process for the Everence Wealth CRM system on Lovable Cloud (Supabase backend).
 
 ---
 
@@ -209,7 +209,7 @@ For each agent:
 
 ```json
 {
-  "email": "agent@delsolprimehomes.com",
+  "email": "agent@everencewealth.com",
   "password": "SecurePassword123!",
   "first_name": "Agent",
   "last_name": "Name",
@@ -305,7 +305,7 @@ Configure contact forms to send to same endpoint with:
 
 ### 7.2 Custom Domain (Optional)
 
-If using a custom domain like `crm.delsolprimehomes.com`:
+If using a custom domain like `crm.everencewealth.com`:
 
 1. Go to Lovable project settings
 2. Add custom domain

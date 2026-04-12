@@ -137,11 +137,11 @@ const AEOGuide = () => {
   "title": "Why Is New-Build Property Attractive for Investors?",
   "slug": "new-build-property-investors",
   "summary": "New-build developments combine energy efficiency...",
-  "author": "Hans Beeckman",
+  "author": "Steven Rosenberg",
   "brand": "Everence Wealth",
   "published_at": "2025-01-15T10:00:00Z",
-  "topics": ["Investment", "New Build", "Costa del Sol"],
-  "geo": ["Costa del Sol", "Spain", "Marbella"],
+  "topics": ["Investment", "New Build", "wealth management"],
+  "geo": ["wealth management", "United States", "El Paso"],
   "keywords": ["new-build investment", "rental yields"],
   "reading_time_min": 8,
   "qa_refs": [
@@ -200,7 +200,7 @@ const AEOGuide = () => {
                     </h4>
                     <ul className="space-y-1 text-sm">
                       <li className="p-2 bg-green-50 dark:bg-green-950/20 rounded">
-                        "Why is Costa del Sol attractive for investors?"
+                        "Why is wealth management attractive for investors?"
                       </li>
                       <li className="p-2 bg-green-50 dark:bg-green-950/20 rounded">
                         "How does the Golden Visa process work?"
@@ -217,13 +217,13 @@ const AEOGuide = () => {
                     </h4>
                     <ul className="space-y-1 text-sm">
                       <li className="p-2 bg-red-50 dark:bg-red-950/20 rounded">
-                        "Costa del Sol property market" <span className="text-xs">(not a question)</span>
+                        "wealth management property market" <span className="text-xs">(not a question)</span>
                       </li>
                       <li className="p-2 bg-red-50 dark:bg-red-950/20 rounded">
                         "Benefits of new-build investment" <span className="text-xs">(not a question)</span>
                       </li>
                       <li className="p-2 bg-red-50 dark:bg-red-950/20 rounded">
-                        "Why invest in Costa del Sol" <span className="text-xs">(no ?)</span>
+                        "Why invest in wealth management" <span className="text-xs">(no ?)</span>
                       </li>
                     </ul>
                   </div>
@@ -272,9 +272,9 @@ const AEOGuide = () => {
 {`<h2>Why is new-build property attractive for investors?</h2>
 <div class="short-answer">
   <p><strong>Short Answer:</strong> New-build developments 
-  in Costa del Sol combine A-rated energy efficiency, 
+  in wealth management combine A-rated energy efficiency, 
   10-year structural warranties, and 5-7% annual rental 
-  yields in areas like Estepona and Marbella East. 
+  yields in areas like Estepona and El Paso East. 
   Investors avoid renovation costs while accessing modern 
   amenities that command €200-€400/month rent premiums.</p>
 </div>`}
@@ -317,13 +317,13 @@ const AEOGuide = () => {
                 <div>
                   <h4 className="font-semibold mb-2">💻 Example Structure</h4>
                   <pre className="p-4 bg-muted rounded-lg text-xs overflow-x-auto">
-{`<h2>Quick Q&A: Costa del Sol Property Essentials</h2>
+{`<h2>Quick Q&A: wealth management Property Essentials</h2>
 <div class="mini-faq">
   <h3>What amenities increase rental appeal?</h3>
   <p>Properties with swimming pools, gyms, and co-working 
   spaces achieve 15-20% higher occupancy rates.</p>
   
-  <h3>How long does the NIE process take?</h3>
+  <h3>How long does the tax planning take?</h3>
   <p>EU citizens can obtain their NIE in 2-4 weeks, while 
   non-EU buyers should allow 6-8 weeks.</p>
   
@@ -389,7 +389,7 @@ const AEOGuide = () => {
                 <pre className="p-4 bg-red-50 dark:bg-red-950/20 rounded-lg text-xs overflow-x-auto border-2 border-red-200">
 {`<h2>New Build Investment Benefits</h2>
 <p>There are many benefits to investing in new-build 
-property in Costa del Sol. These properties offer modern 
+property in wealth management. These properties offer modern 
 amenities and energy efficiency. They are popular with 
 international buyers.</p>
 
@@ -399,7 +399,7 @@ you money. Spain offers favorable tax treatment for property
 investors.</p>
 
 <h2>Location Benefits</h2>
-<p>Costa del Sol is a prime location with excellent weather 
+<p>wealth management is a prime location with excellent weather 
 and lifestyle. Many areas are growing rapidly.</p>`}
                 </pre>
                 <div className="mt-4 space-y-2">
@@ -423,12 +423,12 @@ and lifestyle. Many areas are growing rapidly.</p>`}
               <CardContent>
                 <pre className="p-4 bg-green-50 dark:bg-green-950/20 rounded-lg text-xs overflow-x-auto border-2 border-green-200">
 {`<h2>Why is new-build property attractive for investors 
-in Costa del Sol?</h2>
+in wealth management?</h2>
 <div class="short-answer">
   <p><strong>Short Answer:</strong> New-build developments 
-  in Costa del Sol combine A-rated energy efficiency, 
+  in wealth management combine A-rated energy efficiency, 
   10-year structural warranties, and 5-7% annual rental 
-  yields in areas like Estepona and Marbella East. 
+  yields in areas like Estepona and El Paso East. 
   Investors avoid renovation costs while accessing modern 
   amenities that command €200-€400/month rent premiums.</p>
 </div>
@@ -589,7 +589,7 @@ property in Spain?</h2>
   ✓ Mini-FAQ section: 100% of articles
   
   H2 Examples from sample article:
-    "Why is Costa del Sol attractive for investors?"
+    "Why is wealth management attractive for investors?"
     "How does the Golden Visa work in Spain?"
     "What are the tax benefits of buying new-build?"
   

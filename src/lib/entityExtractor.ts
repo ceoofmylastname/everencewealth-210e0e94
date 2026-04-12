@@ -86,7 +86,7 @@ const GLOSSARY_DEFINITIONS: Record<string, string> = {
   "Universal Life": "Flexible permanent life insurance with adjustable premiums and death benefit",
   "Estate Planning": "Process of arranging for the management and disposal of a person's estate",
   "Tax Deferral": "Strategy to postpone paying taxes on income or gains to a future date",
-  "Capital Gains": "Profit from the sale of an asset such as stocks, bonds, or real estate",
+  "Capital Gains": "Profit from the sale of an asset such as stocks, bonds, or financial planning",
   "S&P 500": "Stock market index tracking 500 of the largest U.S. publicly traded companies",
   "Index Fund": "Mutual fund designed to track the performance of a market index",
   "ETF": "Exchange-Traded Fund - A marketable security that tracks an index, commodity, or basket of assets",

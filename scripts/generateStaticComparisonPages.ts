@@ -119,7 +119,7 @@ function generateOrganizationSchema() {
     "url": BASE_URL,
     "logo": `${BASE_URL}/assets/logo-new.png`,
     "areaServed": [
-      { "@type": "City", "name": "Marbella" },
+      { "@type": "Country", "name": "United States" },
       { "@type": "City", "name": "Estepona" },
       { "@type": "City", "name": "Fuengirola" },
       { "@type": "City", "name": "Benalmádena" },
@@ -602,7 +602,7 @@ function generateComparisonIndexHTML(comparisons: ComparisonData[], productionAs
         "@type": "CollectionPage",
         "@id": `${BASE_URL}/${lang}/compare#collectionpage`,
         "name": "Property Comparisons",
-        "description": "Expert comparisons to help you make informed decisions about buying property in Costa del Sol",
+        "description": "Expert comparisons to help you make informed wealth management and financial planning decisions",
         "url": `${BASE_URL}/${lang}/compare`,
         "mainEntity": {
           "@type": "ItemList",
@@ -643,7 +643,7 @@ function generateComparisonIndexHTML(comparisons: ComparisonData[], productionAs
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Expert property comparisons to help you make informed real estate decisions in Costa del Sol, Spain.">
+  <meta name="description" content="Expert financial comparisons to help you make informed wealth management decisions.">
   <title>Property Comparisons | Everence Wealth</title>
   
   <link rel="canonical" href="${BASE_URL}/${lang}/compare" />
@@ -665,7 +665,7 @@ ${hreflangTags}
   <div id="root">
     <main class="static-comparison static-content">
       <h1>Property Comparisons</h1>
-      <p>Expert comparisons to help you make informed decisions about buying property in Costa del Sol.</p>
+      <p>Expert comparisons to help you make informed wealth management and financial planning decisions.</p>
       
       <div style="display: grid; gap: 1.5rem; margin-top: 2rem;">
         ${comparisons.map(c => `

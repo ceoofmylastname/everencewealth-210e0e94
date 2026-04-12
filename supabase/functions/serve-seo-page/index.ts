@@ -670,54 +670,54 @@ function generateHubPageHtml(lang: string, hubType: string): string {
   // Localized hub content
   const hubContent: Record<string, { title: string; description: string; speakableSummary: string }> = {
     en: {
-      title: "Costa del Sol Location Guides | Del Sol Prime Homes",
-      description: "Explore comprehensive location guides for the Costa del Sol. Expert insights on property buying, best areas, cost of living, and investment opportunities in Marbella, Estepona, Fuengirola, and more.",
-      speakableSummary: "Del Sol Prime Homes Location Intelligence Hub provides comprehensive real estate guides for 11 cities across the Costa del Sol. Explore data-driven insights on property prices, investment yields, school zones, safety ratings, and cost of living analysis."
+      title: "Wealth Management Guides | Everence Wealth",
+      description: "Explore comprehensive wealth management guides. Expert insights on tax-free retirement, IUL strategies, asset protection, and financial planning.",
+      speakableSummary: "Everence Wealth Wealth Intelligence Hub provides comprehensive financial planning guides. Explore expert insights on tax-free retirement strategies, indexed universal life insurance, asset protection, and wealth preservation."
     },
     nl: {
-      title: "Costa del Sol Locatiegidsen | Del Sol Prime Homes",
-      description: "Ontdek uitgebreide locatiegidsen voor de Costa del Sol. Expert inzichten over vastgoedaankoop, beste gebieden, kosten van levensonderhoud en investeringsmogelijkheden.",
-      speakableSummary: "Del Sol Prime Homes Location Intelligence Hub biedt uitgebreide vastgoedgidsen voor 11 steden aan de Costa del Sol."
+      title: "Vermogensbeheer Gidsen | Everence Wealth",
+      description: "Ontdek uitgebreide gidsen voor vermogensbeheer. Expertinzichten over belastingvrij pensioen, IUL-strategieën en vermogensbescherming.",
+      speakableSummary: "Everence Wealth Wealth Intelligence Hub biedt uitgebreide financiële planningsgidsen voor vermogensbeheer."
     },
     de: {
-      title: "Costa del Sol Standortführer | Del Sol Prime Homes",
-      description: "Entdecken Sie umfassende Standortführer für die Costa del Sol. Experteneinblicke zu Immobilienkauf, besten Gegenden, Lebenshaltungskosten und Investitionsmöglichkeiten.",
-      speakableSummary: "Del Sol Prime Homes Location Intelligence Hub bietet umfassende Immobilienführer für 11 Städte an der Costa del Sol."
+      title: "Vermögensverwaltung Leitfäden | Everence Wealth",
+      description: "Entdecken Sie umfassende Vermögensverwaltung Leitfäden. Experteneinblicke zu steuerfreier Altersvorsorge, IUL-Strategien und Vermögensschutz.",
+      speakableSummary: "Everence Wealth Wealth Intelligence Hub bietet umfassende Finanzplanungsleitfäden für Vermögensverwaltung."
     },
     fr: {
-      title: "Guides des Emplacements Costa del Sol | Del Sol Prime Homes",
-      description: "Explorez des guides d'emplacement complets pour la Costa del Sol. Informations d'experts sur l'achat immobilier, les meilleurs quartiers et les opportunités d'investissement.",
-      speakableSummary: "Del Sol Prime Homes Location Intelligence Hub fournit des guides immobiliers complets pour 11 villes de la Costa del Sol."
+      title: "Guides de Gestion de Patrimoine | Everence Wealth",
+      description: "Explorez des guides complets de gestion de patrimoine. Informations d'experts sur la retraite défiscalisée, les stratégies IUL et la protection des actifs.",
+      speakableSummary: "Everence Wealth Wealth Intelligence Hub fournit des guides complets de planification financière."
     },
     sv: {
-      title: "Costa del Sol Platsguider | Del Sol Prime Homes",
-      description: "Utforska omfattande platsguider för Costa del Sol. Expertinsikter om fastighetsköp, bästa områden och investeringsmöjligheter.",
-      speakableSummary: "Del Sol Prime Homes Location Intelligence Hub erbjuder omfattande fastighetsguider för 11 städer på Costa del Sol."
+      title: "Förmögenhetsförvaltning Guider | Everence Wealth",
+      description: "Utforska omfattande guider för förmögenhetsförvaltning. Expertinsikter om skattefri pension, IUL-strategier och tillgångsskydd.",
+      speakableSummary: "Everence Wealth Wealth Intelligence Hub erbjuder omfattande finansiella planeringsguider."
     },
     no: {
-      title: "Costa del Sol Stedsguider | Del Sol Prime Homes",
-      description: "Utforsk omfattende stedsguider for Costa del Sol. Ekspertinnsikt om eiendomskjøp, beste områder og investeringsmuligheter.",
-      speakableSummary: "Del Sol Prime Homes Location Intelligence Hub tilbyr omfattende eiendomsguider for 11 byer på Costa del Sol."
+      title: "Formuesforvaltning Guider | Everence Wealth",
+      description: "Utforsk omfattende guider for formuesforvaltning. Ekspertinnsikt om skattefri pensjon, IUL-strategier og aktivabeskyttelse.",
+      speakableSummary: "Everence Wealth Wealth Intelligence Hub tilbyr omfattende finansielle planleggingsguider."
     },
     da: {
-      title: "Costa del Sol Stedguider | Del Sol Prime Homes",
-      description: "Udforsk omfattende stedguider for Costa del Sol. Ekspertindsigt i ejendomskøb, bedste områder og investeringsmuligheder.",
-      speakableSummary: "Del Sol Prime Homes Location Intelligence Hub tilbyder omfattende ejendomsguider til 11 byer på Costa del Sol."
+      title: "Formueforvaltning Guider | Everence Wealth",
+      description: "Udforsk omfattende guider for formueforvaltning. Ekspertindsigt i skattefri pension, IUL-strategier og aktivbeskyttelse.",
+      speakableSummary: "Everence Wealth Wealth Intelligence Hub tilbyder omfattende finansielle planlægningsguider."
     },
     fi: {
-      title: "Costa del Sol Sijaintioppaat | Del Sol Prime Homes",
-      description: "Tutustu kattaviin sijaintioppaisiin Costa del Solille. Asiantuntijatietoa kiinteistöjen ostosta ja sijoitusmahdollisuuksista.",
-      speakableSummary: "Del Sol Prime Homes Location Intelligence Hub tarjoaa kattavat kiinteistöoppaat 11 kaupungille Costa del Solilla."
+      title: "Varallisuudenhoito Oppaat | Everence Wealth",
+      description: "Tutustu kattaviin varallisuudenhoito-oppaisiin. Asiantuntijatietoa verovapaa eläkkeestä, IUL-strategioista ja varallisuuden suojaamisesta.",
+      speakableSummary: "Everence Wealth Wealth Intelligence Hub tarjoaa kattavat taloussuunnitteluoppaat."
     },
     pl: {
-      title: "Przewodniki po Lokalizacjach Costa del Sol | Del Sol Prime Homes",
-      description: "Odkryj kompleksowe przewodniki po lokalizacjach Costa del Sol. Eksperckie informacje o zakupie nieruchomości i możliwościach inwestycyjnych.",
-      speakableSummary: "Del Sol Prime Homes Location Intelligence Hub zapewnia kompleksowe przewodniki po nieruchomościach dla 11 miast na Costa del Sol."
+      title: "Przewodniki po Zarządzaniu Majątkiem | Everence Wealth",
+      description: "Odkryj kompleksowe przewodniki po zarządzaniu majątkiem. Eksperckie informacje o emeryturze wolnej od podatków, strategiach IUL i ochronie aktywów.",
+      speakableSummary: "Everence Wealth Wealth Intelligence Hub zapewnia kompleksowe przewodniki po planowaniu finansowym."
     },
     hu: {
-      title: "Costa del Sol Helyszín Útmutatók | Del Sol Prime Homes",
-      description: "Fedezze fel a Costa del Sol átfogó helyszín útmutatóit. Szakértői betekintés az ingatlanvásárlásba és befektetési lehetőségekbe.",
-      speakableSummary: "A Del Sol Prime Homes Location Intelligence Hub átfogó ingatlanos útmutatókat kínál 11 városhoz a Costa del Sol-on."
+      title: "Vagyonkezelési Útmutatók | Everence Wealth",
+      description: "Fedezze fel az átfogó vagyonkezelési útmutatókat. Szakértői betekintés az adómentes nyugdíjba, IUL stratégiákba és vagyonvédelembe.",
+      speakableSummary: "A Everence Wealth Wealth Intelligence Hub átfogó pénzügyi tervezési útmutatókat kínál."
     }
   }
   
@@ -736,7 +736,7 @@ function generateHubPageHtml(lang: string, hubType: string): string {
       {
         "@type": "Organization",
         "@id": `${BASE_URL}/#organization`,
-        "name": "Del Sol Prime Homes",
+        "name": "Everence Wealth",
         "url": BASE_URL,
         "logo": {
           "@type": "ImageObject",
@@ -794,7 +794,7 @@ ${xDefaultTag}
   <meta property="og:title" content="${content.title}">
   <meta property="og:description" content="${content.description}">
   <meta property="og:locale" content="${locale}">
-  <meta property="og:site_name" content="Del Sol Prime Homes">
+  <meta property="og:site_name" content="Everence Wealth">
   
   <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image">
@@ -836,64 +836,64 @@ const BUYERS_GUIDE_META: Record<string, {
   subheadline: string;
 }> = {
   en: {
-    title: "Complete Buyers Guide to Costa del Sol Property | Del Sol Prime Homes",
-    description: "Your comprehensive guide to buying property on the Costa del Sol. Step-by-step process, costs, legal requirements, and expert advice.",
-    headline: "The Complete Guide to Buying Property on Costa del Sol",
-    subheadline: "Everything you need to know about buying your dream home in Spain's most desirable region."
+    title: "Complete Wealth Management Guide | Everence Wealth",
+    description: "Your comprehensive guide to wealth management. Tax-free retirement strategies, IUL options, asset protection, and expert financial advice.",
+    headline: "The Complete Guide to Wealth Management",
+    subheadline: "Everything you need to know about building and protecting your wealth with independent financial strategies."
   },
   nl: {
-    title: "Complete Gids voor het Kopen van Vastgoed aan de Costa del Sol | Del Sol Prime Homes",
-    description: "Uw uitgebreide gids voor het kopen van onroerend goed aan de Costa del Sol. Stap-voor-stap proces, kosten, juridische vereisten en deskundig advies.",
-    headline: "De Complete Gids voor het Kopen van Vastgoed aan de Costa del Sol",
-    subheadline: "Alles wat u moet weten over het kopen van uw droomhuis in de meest gewilde regio van Spanje."
+    title: "Complete Gids voor Vermogensbeheer | Everence Wealth",
+    description: "Uw uitgebreide gids voor vermogensbeheer. Strategieën voor belastingvrij pensioen, IUL-opties en vermogensbescherming. Stap-voor-stap proces, kosten, juridische vereisten en deskundig advies.",
+    headline: "De Complete Gids voor Vermogensbeheer",
+    subheadline: "Alles wat u moet weten over het opbouwen en beschermen van uw vermogen."
   },
   de: {
-    title: "Vollständiger Käuferleitfaden für Immobilien an der Costa del Sol | Del Sol Prime Homes",
-    description: "Ihr umfassender Leitfaden zum Immobilienkauf an der Costa del Sol. Schritt-für-Schritt-Prozess, Kosten, rechtliche Anforderungen und Expertenberatung.",
-    headline: "Der Komplette Leitfaden zum Immobilienkauf an der Costa del Sol",
-    subheadline: "Alles, was Sie über den Kauf Ihres Traumhauses in Spaniens begehrtester Region wissen müssen."
+    title: "Vollständiger Leitfaden zur Vermögensverwaltung | Everence Wealth",
+    description: "Ihr umfassender Leitfaden zur Vermögensverwaltung. Steuerfreie Altersvorsorge, IUL-Optionen und Vermögensschutz. Schritt-für-Schritt-Prozess, Kosten, rechtliche Anforderungen und Expertenberatung.",
+    headline: "Der Komplette Leitfaden zur Vermögensverwaltung",
+    subheadline: "Alles, was Sie über den Aufbau und Schutz Ihres Vermögens wissen müssen."
   },
   fr: {
-    title: "Guide Complet pour Acheter une Propriété sur la Costa del Sol | Del Sol Prime Homes",
-    description: "Votre guide complet pour l'achat immobilier sur la Costa del Sol. Processus étape par étape, coûts, exigences légales et conseils d'experts.",
-    headline: "Le Guide Complet pour Acheter une Propriété sur la Costa del Sol",
-    subheadline: "Tout ce que vous devez savoir sur l'achat de votre maison de rêve dans la région la plus convoitée d'Espagne."
+    title: "Guide Complet de Gestion de Patrimoine | Everence Wealth",
+    description: "Votre guide complet de gestion de patrimoine. Stratégies de retraite défiscalisée, options IUL et protection des actifs. Processus étape par étape, coûts, exigences légales et conseils d'experts.",
+    headline: "Le Guide Complet de Gestion de Patrimoine",
+    subheadline: "Tout ce que vous devez savoir sur la construction et la protection de votre patrimoine."
   },
   sv: {
-    title: "Komplett Köparguide för Fastigheter på Costa del Sol | Del Sol Prime Homes",
-    description: "Din kompletta guide till fastighetsköp på Costa del Sol. Steg-för-steg-process, kostnader, juridiska krav och expertråd.",
-    headline: "Den Kompletta Guiden till att Köpa Fastighet på Costa del Sol",
-    subheadline: "Allt du behöver veta om att köpa ditt drömhem i Spaniens mest eftertraktade region."
+    title: "Komplett Guide till Förmögenhetsförvaltning | Everence Wealth",
+    description: "Din kompletta guide till förmögenhetsförvaltning. Skattefria pensionsstrategier, IUL-alternativ och tillgångsskydd. Steg-för-steg-process, kostnader, juridiska krav och expertråd.",
+    headline: "Den Kompletta Guiden till Förmögenhetsförvaltning",
+    subheadline: "Allt du behöver veta om att bygga och skydda din förmögenhet."
   },
   no: {
-    title: "Komplett Kjøperguide for Eiendom på Costa del Sol | Del Sol Prime Homes",
-    description: "Din komplette guide til eiendomskjøp på Costa del Sol. Steg-for-steg-prosess, kostnader, juridiske krav og ekspertråd.",
-    headline: "Den Komplette Guiden til å Kjøpe Eiendom på Costa del Sol",
-    subheadline: "Alt du trenger å vite om å kjøpe drømmeboligen din i Spanias mest ettertraktede region."
+    title: "Komplett Guide til Formuesforvaltning | Everence Wealth",
+    description: "Din komplette guide til formuesforvaltning. Skattefrie pensjonsstrategier, IUL-alternativer-prosess, kostnader, juridiske krav og ekspertråd.",
+    headline: "Den Komplette Guiden til Formuesforvaltning",
+    subheadline: "Alt du trenger å vite om å bygge og beskytte din formue."
   },
   da: {
-    title: "Komplet Køberguide til Ejendom på Costa del Sol | Del Sol Prime Homes",
-    description: "Din komplette guide til ejendomskøb på Costa del Sol. Trin-for-trin-proces, omkostninger, juridiske krav og ekspertrådgivning.",
-    headline: "Den Komplette Guide til at Købe Ejendom på Costa del Sol",
-    subheadline: "Alt hvad du behøver at vide om at købe dit drømmehjem i Spaniens mest eftertragtede region."
+    title: "Komplet Guide til Formueforvaltning | Everence Wealth",
+    description: "Din komplette guide til formueforvaltning. Skattefrie pensionsstrategier, IUL-alternativer-proces, omkostninger, juridiske krav og ekspertrådgivning.",
+    headline: "Den Komplette Guide til Formueforvaltning",
+    subheadline: "Alt hvad du behøver at vide om at opbygge og beskytte din formue."
   },
   fi: {
-    title: "Täydellinen Ostajan Opas Costa del Sol Kiinteistöihin | Del Sol Prime Homes",
-    description: "Kattava oppaasi kiinteistön ostamiseen Costa del Solilta. Vaiheittainen prosessi, kustannukset, oikeudelliset vaatimukset ja asiantuntijaneuvot.",
-    headline: "Täydellinen Opas Kiinteistön Ostamiseen Costa del Solilta",
-    subheadline: "Kaikki mitä sinun tarvitsee tietää unelmiesi kodin ostamisesta Espanjan halutuimmalta alueelta."
+    title: "Täydellinen Opas Varallisuudenhoitoon | Everence Wealth",
+    description: "Kattava oppaasi varallisuudenhoitoon. Verovapaita eläkestrategioita, IUL-vaihtoehtoja ja varallisuuden suojausta. Vaiheittainen prosessi, kustannukset, oikeudelliset vaatimukset ja asiantuntijaneuvot.",
+    headline: "Täydellinen Opas Varallisuudenhoitoon",
+    subheadline: "Kaikki mitä sinun tarvitsee tietää varallisuuden rakentamisesta ja suojaamisesta."
   },
   pl: {
-    title: "Kompletny Przewodnik Kupującego Nieruchomości na Costa del Sol | Del Sol Prime Homes",
-    description: "Twój kompleksowy przewodnik po zakupie nieruchomości na Costa del Sol. Proces krok po kroku, koszty, wymogi prawne i porady ekspertów.",
-    headline: "Kompletny Przewodnik po Zakupie Nieruchomości na Costa del Sol",
-    subheadline: "Wszystko, co musisz wiedzieć o zakupie wymarzonego domu w najbardziej pożądanym regionie Hiszpanii."
+    title: "Kompletny Przewodnik po Zarządzaniu Majątkiem | Everence Wealth",
+    description: "Twój kompleksowy przewodnik po zarządzaniu majątkiem. Strategie emerytury wolnej od podatków, opcje IUL i ochrona aktywów. Proces krok po kroku, koszty, wymogi prawne i porady ekspertów.",
+    headline: "Kompletny Przewodnik po Zarządzaniu Majątkiem",
+    subheadline: "Wszystko, co musisz wiedzieć o budowaniu i ochronie swojego majątku."
   },
   hu: {
-    title: "Teljes Vásárlói Útmutató Costa del Sol Ingatlanokhoz | Del Sol Prime Homes",
-    description: "Átfogó útmutatója ingatlanvásárláshoz a Costa del Solon. Lépésről lépésre folyamat, költségek, jogi követelmények és szakértői tanácsok.",
-    headline: "A Teljes Útmutató Ingatlanvásárláshoz a Costa del Solon",
-    subheadline: "Minden, amit tudnia kell álmai otthonának megvásárlásáról Spanyolország legkeresettebb régiójában."
+    title: "Teljes Útmutató a Vagyonkezeléshez | Everence Wealth",
+    description: "Átfogó útmutatója a vagyonkezeléshez. Adómentes nyugdíj stratégiák, IUL lehetőségek és vagyonvédelem. Lépésről lépésre folyamat, költségek, jogi követelmények és szakértői tanácsok.",
+    headline: "A Teljes Útmutató a Vagyonkezeléshez",
+    subheadline: "Minden, amit tudnia kell vagyona felépítéséről és védelméről."
   }
 }
 
@@ -919,7 +919,7 @@ function generateBuyersGuidePageHtml(lang: string): string {
       {
         "@type": "Organization",
         "@id": `${BASE_URL}/#organization`,
-        "name": "Del Sol Prime Homes",
+        "name": "Everence Wealth",
         "url": BASE_URL,
         "logo": {
           "@type": "ImageObject",
@@ -985,7 +985,7 @@ ${xDefaultTag}
   <meta property="og:title" content="${content.title}">
   <meta property="og:description" content="${content.description}">
   <meta property="og:locale" content="${locale}">
-  <meta property="og:site_name" content="Del Sol Prime Homes">
+  <meta property="og:site_name" content="Everence Wealth">
   <meta property="og:image" content="https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=1200&q=80">
   <meta property="og:image:alt" content="${content.headline}">
   
@@ -1120,9 +1120,9 @@ function generateQAPageSchema(metadata: PageMetadata): string {
     "dateModified": metadata.date_modified || metadata.date_published || new Date().toISOString(),
     "author": {
       "@type": "Person",
-      "@id": `${BASE_URL}/#hans-beeckman`,
-      "name": "Hans Beeckman",
-      "jobTitle": "Senior Real Estate Advisor"
+      "@id": `${BASE_URL}/#steven-rosenberg`,
+      "name": "Steven Rosenberg",
+      "jobTitle": "Senior Wealth Strategist"
     },
     "publisher": ORGANIZATION_SCHEMA,
     "mainEntity": {
@@ -1136,7 +1136,7 @@ function generateQAPageSchema(metadata: PageMetadata): string {
         "inLanguage": LOCALE_MAP[metadata.language] || metadata.language,
         "author": {
           "@type": "Person",
-          "@id": `${BASE_URL}/#hans-beeckman`
+          "@id": `${BASE_URL}/#steven-rosenberg`
         }
       }
     }
@@ -1149,7 +1149,7 @@ function generateQAPageSchema(metadata: PageMetadata): string {
 const ORGANIZATION_SCHEMA = {
   "@type": "Organization",
   "@id": `${BASE_URL}/#organization`,
-  "name": "Del Sol Prime Homes",
+  "name": "Everence Wealth",
   "url": BASE_URL,
   "logo": {
     "@type": "ImageObject",
@@ -1162,7 +1162,7 @@ const ORGANIZATION_SCHEMA = {
   ],
   "address": {
     "@type": "PostalAddress",
-    "addressLocality": "Marbella",
+    "addressLocality": "El Paso",
     "addressRegion": "Málaga",
     "addressCountry": "ES"
   },
@@ -1189,8 +1189,8 @@ const FOUNDERS_SCHEMAS = [
   },
   {
     "@type": "Person",
-    "@id": `${BASE_URL}/#hans-beeckman`,
-    "name": "Hans Beeckman",
+    "@id": `${BASE_URL}/#steven-rosenberg`,
+    "name": "Steven Rosenberg",
     "jobTitle": "Sales Director",
     "sameAs": "https://www.linkedin.com/in/hansbeeckman/",
     "worksFor": { "@id": `${BASE_URL}/#organization` }
@@ -1239,7 +1239,7 @@ function generateBlogPostingSchema(metadata: PageMetadata): string {
     "author": {
       "@type": "Organization",
       "@id": `${BASE_URL}/#organization`,
-      "name": "Del Sol Prime Homes"
+      "name": "Everence Wealth"
     },
     "publisher": ORGANIZATION_SCHEMA,
     "mainEntityOfPage": {
@@ -1249,7 +1249,7 @@ function generateBlogPostingSchema(metadata: PageMetadata): string {
     "isPartOf": {
       "@type": "Blog",
       "@id": `${BASE_URL}/${metadata.language}/blog#blog`,
-      "name": "Del Sol Prime Homes Blog",
+      "name": "Everence Wealth Blog",
       "publisher": {
         "@id": `${BASE_URL}/#organization`
       }
@@ -1316,7 +1316,7 @@ function generateArticleSchema(metadata: PageMetadata): string {
     "author": {
       "@type": "Organization",
       "@id": `${BASE_URL}/#organization`,
-      "name": "Del Sol Prime Homes"
+      "name": "Everence Wealth"
     },
     "publisher": ORGANIZATION_SCHEMA,
     "mainEntityOfPage": {
@@ -1391,7 +1391,7 @@ function escapeHtml(text: string | null | undefined): string {
 function generateSSRStyles(): string {
   return `
     <style>
-      /* Del Sol Prime Homes Brand Design System */
+      /* Everence Wealth Brand Design System */
       :root {
         --prime-gold: 43 74% 49%;
         --prime-gold-dark: 43 74% 40%;
@@ -1827,10 +1827,10 @@ function generateArticleBody(metadata: PageMetadata): string {
   
   // CTA text based on language
   const ctaTexts: Record<string, { title: string; text: string; button: string }> = {
-    en: { title: "Ready to Find Your Dream Property in Costa del Sol?", text: "Contact Del Sol Prime Homes for expert guidance on luxury real estate.", button: "Get in Touch" },
-    nl: { title: "Klaar om Uw Droomwoning aan de Costa del Sol te Vinden?", text: "Neem contact op met Del Sol Prime Homes voor deskundige begeleiding.", button: "Neem Contact Op" },
-    de: { title: "Bereit, Ihre Traumimmobilie an der Costa del Sol zu Finden?", text: "Kontaktieren Sie Del Sol Prime Homes für kompetente Beratung.", button: "Kontakt Aufnehmen" },
-    fr: { title: "Prêt à Trouver Votre Propriété de Rêve sur la Costa del Sol?", text: "Contactez Del Sol Prime Homes pour des conseils d'experts.", button: "Nous Contacter" },
+    en: { title: "Ready to Build Your Financial Future?", text: "Contact Everence Wealth for expert independent financial guidance.", button: "Get in Touch" },
+    nl: { title: "Klaar om Uw Financiële Toekomst op te Bouwen?", text: "Neem contact op met Everence Wealth voor deskundig onafhankelijk financieel advies.", button: "Neem Contact Op" },
+    de: { title: "Bereit, Ihre Finanzielle Zukunft Aufzubauen?", text: "Kontaktieren Sie Everence Wealth für kompetente unabhängige Finanzberatung.", button: "Kontakt Aufnehmen" },
+    fr: { title: "Prêt à Construire Votre Avenir Financier?", text: "Contactez Everence Wealth pour des conseils financiers indépendants.", button: "Nous Contacter" },
   }
   const cta = ctaTexts[lang] || ctaTexts.en
   
@@ -1853,7 +1853,7 @@ function generateArticleBody(metadata: PageMetadata): string {
     <header class="site-header">
       <nav class="nav-container">
         <a href="${langPrefix}/" class="logo-link">
-          <img src="https://ghhzfxtchlwmwibtkuds.supabase.co/storage/v1/object/public/site-assets/logo.png" alt="Del Sol Prime Homes" class="logo">
+          <img src="https://ghhzfxtchlwmwibtkuds.supabase.co/storage/v1/object/public/site-assets/logo.png" alt="Everence Wealth" class="logo">
         </a>
         <div class="nav-links">
           <a href="${langPrefix}/properties">${nav.properties}</a>
@@ -1926,7 +1926,7 @@ function generateArticleBody(metadata: PageMetadata): string {
     
     <footer class="site-footer">
       <div class="footer-content">
-        <p>&copy; ${new Date().getFullYear()} Del Sol Prime Homes. All rights reserved.</p>
+        <p>&copy; ${new Date().getFullYear()} Everence Wealth. All rights reserved.</p>
         <nav class="footer-nav">
           <a href="${langPrefix}/privacy">Privacy</a>
           <a href="${langPrefix}/terms">Terms</a>
@@ -1939,7 +1939,7 @@ function generateArticleBody(metadata: PageMetadata): string {
 
 function generateFullHtml(metadata: PageMetadata, hreflangTags: string, _baseHtml: string): string {
   const locale = LOCALE_MAP[metadata.language] || 'en_GB'
-  const escapedTitle = escapeHtml(metadata.meta_title || metadata.headline || 'Del Sol Prime Homes')
+  const escapedTitle = escapeHtml(metadata.meta_title || metadata.headline || 'Everence Wealth')
   const escapedDescription = escapeHtml(metadata.meta_description || '')
   
   // Generate schemas based on content type
@@ -1981,7 +1981,7 @@ ${hreflangTags}
   <meta property="og:image" content="${metadata.featured_image_url || `${BASE_URL}/assets/logo-new.png`}" />
   <meta property="og:image:alt" content="${escapeHtml(metadata.featured_image_alt) || escapedTitle}" />
   <meta property="og:locale" content="${locale}" />
-  <meta property="og:site_name" content="Del Sol Prime Homes" />
+  <meta property="og:site_name" content="Everence Wealth" />
   
   <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image" />
@@ -2116,7 +2116,7 @@ function generate410GoneHtml(lang: string = 'en'): string {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex, nofollow">
   <meta name="googlebot" content="noindex, nofollow">
-  <title>410 - ${messages.title} | Del Sol Prime Homes</title>
+  <title>410 - ${messages.title} | Everence Wealth</title>
   <link rel="icon" type="image/png" href="${BASE_URL}/favicon.png">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -2226,7 +2226,7 @@ function generate410GoneHtml(lang: string = 'en'): string {
 <body>
   <div class="logo-container">
     <a href="${langPrefix}/">
-      <img src="${BASE_URL}/assets/logo-new.png" alt="Del Sol Prime Homes" class="logo">
+      <img src="${BASE_URL}/assets/logo-new.png" alt="Everence Wealth" class="logo">
     </a>
   </div>
   <div class="container">
@@ -2259,7 +2259,7 @@ function generate410GoneHtml(lang: string = 'en'): string {
     </div>
   </div>
   <div class="footer">
-    © ${new Date().getFullYear()} <a href="${BASE_URL}">Del Sol Prime Homes</a> • Costa del Sol, Spain
+    © ${new Date().getFullYear()} <a href="${BASE_URL}">Everence Wealth</a> • Independent Wealth Management
   </div>
 </body>
 </html>`
