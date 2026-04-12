@@ -1,33 +1,44 @@
 
 
-## Fix Q&A Spanish Translation for 3 Clusters
+## Improve Citation Discovery Hit Rate
 
-### Problem Summary
-- 2 clusters (Tax-Free, Living Benefits) have no Spanish articles — Q&A translation can't work without them
-- 1 cluster (Legacy Planning) has Spanish articles + fixed hreflang, but Q&A translation timed out on API calls
-- Target: 72 Spanish Q&As (24 per cluster)
+### Problem
+The `discover-cluster-citations` edge function has a low hit rate — many articles get 0 citations from Perplexity. Root causes:
 
-### Step 1: Translate articles to Spanish for Tax-Free and Living Benefits
-Invoke `translate-cluster-to-language` for:
-- `42f27c00-4a50-46fd-b80e-39aa40527675` (Tax-Free Retirement Income)
-- `4d44cb1a-fc3a-4a1a-aa01-7daa5df79fb7` (Living Benefits & Protection)
+1. **Weak model**: Uses `sonar` (basic) instead of `sonar-pro` (multi-step reasoning with 2x citations)
+2. **Too little context**: Only sends first 3000 chars of article content
+3. **No retry logic**: If Perplexity returns 0 results, gives up immediately
+4. **Over-specific prompt**: Asks for wealth management citations specifically, which narrows results unnecessarily for articles on broader topics
+5. **Temperature too low** (0.1): Reduces creative search ability
+6. **No fallback strategy**: Single prompt attempt with no variation
 
-Then process the translation queue to create 12 Spanish articles (6 per cluster).
+### Plan
 
-### Step 2: Repair hreflang links for both clusters
-Invoke `repair-cluster-article-hreflang` for Tax-Free and Living Benefits clusters so EN↔ES articles are properly linked.
+#### Step 1: Upgrade `discover-cluster-citations/index.ts` — Prompt & Model
+- Switch from `sonar` to `sonar-pro` for better search depth
+- Raise temperature from 0.1 to 0.3
+- Increase `max_tokens` from 2000 to 3000
+- Broaden the prompt: instead of "wealth management and financial planning" framing, use the actual article topic and let Perplexity find the best sources
+- Send more article content (up to 5000 chars) for better context
+- Simplify the prompt to reduce over-constraining — fewer "NEVER" rules in the initial search, filter bad results after
 
-### Step 3: Fix Q&A translation timeout issue
-Update `repair-missing-qas` (or `translate-qas-to-language`) to increase the fetch timeout from 15s to 45s, and reduce batch size to avoid edge function time limits.
+#### Step 2: Add retry with varied prompts
+- If first attempt returns 0 valid citations, retry with a **broader prompt** (different angle: ask for statistics, research, government data related to the topic)
+- If second attempt also returns 0, try a **third prompt** focused on the article headline only (simpler query = more results)
+- Max 3 attempts per article, with 2s delay between retries
 
-### Step 4: Translate Q&As to Spanish for all 3 clusters
-Invoke Q&A translation for all 3 clusters. Legacy Planning already has the prerequisites met; the other two will be ready after Steps 1-2.
+#### Step 3: Relax post-filtering
+- Currently blocks any URL with keywords like "property", "estate", "housing" — this is too aggressive for a wealth management site that may legitimately cite housing statistics
+- Add exception: allow government/statistical domains (.gov, .edu, eurostat, ine.es) even if they contain blocked keywords in their URL path
+- Keep competitor domain blocking but loosen keyword blocking for high-authority sources
 
-### Step 5: Verify final counts
-Confirm each cluster has 24 EN + 24 ES Q&As = 48 per cluster, 144 total new Spanish Q&As across all 3.
+#### Step 4: Increase batch parallelism
+- Currently processes 3 articles at a time with 1s delay
+- Increase to 4 articles at a time (Perplexity rate limits are per-key, sonar-pro handles this)
 
 ### Technical details
-- Correct cluster IDs: `42f27c00-4a50-46fd-b80e-39aa40527675`, `4d44cb1a-fc3a-4a1a-aa01-7daa5df79fb7`, `747f2c84-e762-4ee7-b12b-633f0bfe9d4b`
-- The previously used cluster IDs (`42f27c00-1b5e...`, `4d44cb1a-3e7f...`) were incorrect — those don't exist in the database
-- Edge function `repair-missing-qas/index.ts` needs timeout increase from 15000ms to 45000ms
+- Single file change: `supabase/functions/discover-cluster-citations/index.ts`
+- The `findCitationsForArticle` function inside this file will be rewritten with retry logic
+- Deploy via `supabase--deploy_edge_functions`
+- Test with `supabase--curl_edge_functions` on one cluster
 
