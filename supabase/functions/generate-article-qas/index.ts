@@ -762,8 +762,14 @@ serve(async (req) => {
       // Rate limiting delay
       await new Promise(r => setTimeout(r, 1000));
 
-      // Translate to non-English languages (only missing ones)
+      // Translate to non-English languages (only if sibling article exists in that language)
       for (const lang of NON_ENGLISH_LANGUAGES) {
+        // CRITICAL: Skip languages without a matching sibling article
+        // The validate_qa_language_match trigger requires Q&A language to match source article language
+        if (!articlesByLang[lang]) {
+          console.log(`[Generate] Skipping ${lang} - no ${lang} article exists for this cluster`);
+          continue;
+        }
         if (existingLangs.has(lang)) {
           console.log(`[Generate] Skipping ${lang} - already exists for ${qaType.id}`);
           results.skipped += 1;
