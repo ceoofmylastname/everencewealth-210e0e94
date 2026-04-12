@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useParams } from "react-router-dom";
+import { Helmet } from "react-helmet";
 import { supabase } from "@/integrations/supabase/client";
 import { Header } from "@/components/home/Header";
 import { Footer } from "@/components/home/Footer";
@@ -99,6 +100,16 @@ const About = () => {
   return (
     <>
       <div className="min-h-screen bg-background">
+        <Helmet>
+          <title>{pageContent.meta_title}</title>
+          <meta name="description" content={pageContent.meta_description} />
+          <link rel="canonical" href={pageContent.canonical_url} />
+          <meta property="og:title" content={pageContent.meta_title} />
+          <meta property="og:description" content={pageContent.meta_description} />
+          <meta property="og:type" content="website" />
+          <meta property="og:url" content={pageContent.canonical_url} />
+          <meta name="twitter:card" content="summary_large_image" />
+        </Helmet>
         <Header />
 
         <main className="mx-2 md:mx-4 lg:mx-6 space-y-4 md:space-y-6 py-4 md:py-6">

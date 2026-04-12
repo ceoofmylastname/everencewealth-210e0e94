@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { Helmet } from "react-helmet";
 import { Header } from "@/components/home/Header";
 import { Footer } from "@/components/home/Footer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -78,6 +79,16 @@ export default function ComparisonIndex() {
   return (
     <>
       {/* SEO tags are handled by server/edge - no Helmet needed */}
+      <Helmet>
+        <title>Financial Comparisons | Everence Wealth</title>
+        <meta name="description" content="Expert side-by-side comparisons to help you make smarter decisions about insurance, retirement, and wealth management." />
+        <link rel="canonical" href={`https://www.everencewealth.com/${lang}/compare`} />
+        <meta property="og:title" content="Financial Comparisons | Everence Wealth" />
+        <meta property="og:description" content="Expert side-by-side comparisons for insurance, retirement, and wealth management decisions." />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content={`https://www.everencewealth.com/${lang}/compare`} />
+        <meta name="twitter:card" content="summary_large_image" />
+      </Helmet>
       <Header />
 
       <main className="min-h-screen bg-background">

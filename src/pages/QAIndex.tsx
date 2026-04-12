@@ -2,6 +2,7 @@ import { useState, useMemo, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Link, useParams } from 'react-router-dom';
+import { Helmet } from 'react-helmet';
 import { Header } from '@/components/home/Header';
 import { Footer } from '@/components/home/Footer';
 import { Input } from '@/components/ui/input';
@@ -108,6 +109,16 @@ export default function QAIndex() {
       {/* SEO tags are handled by server/edge - no Helmet needed */}
       <Header variant="transparent" />
 
+      <Helmet>
+        <title>Questions & Answers | Everence Wealth</title>
+        <meta name="description" content="Expert answers to your most pressing retirement planning, tax strategy, and wealth protection questions — answered by licensed financial advisors." />
+        <link rel="canonical" href={`https://www.everencewealth.com/${lang}/qa`} />
+        <meta property="og:title" content="Questions & Answers | Everence Wealth" />
+        <meta property="og:description" content="Expert answers to retirement planning, tax strategy, and wealth protection questions." />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content={`https://www.everencewealth.com/${lang}/qa`} />
+        <meta name="twitter:card" content="summary_large_image" />
+      </Helmet>
       <main className="min-h-screen bg-background">
         {/* Hero Section */}
         <section className="relative pt-32 pb-20 md:pt-40 md:pb-28 overflow-hidden">
