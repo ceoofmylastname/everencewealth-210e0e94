@@ -1,7 +1,7 @@
 export const retargetingTranslations = {
   en: {
     // META
-    metaTitle: "Understand the Costa del Sol Property Market | Del Sol Prime Homes",
+    metaTitle: "Understand the Costa del Sol Property Market | Everence Wealth",
     metaDescription: "Clear explanations, structured insight and human expertise — before you speak to anyone. Learn about Costa del Sol real estate calmly and independently.",
     
     // HERO
@@ -54,7 +54,7 @@ export const retargetingTranslations = {
     testimonials: [
       {
         headline: "No pressure, just clarity",
-        quote: "We weren't ready to view properties. We just wanted to understand how the process works in Spain. Del Sol explained everything clearly, with no pressure to move forward.",
+        quote: "We weren't ready to view properties. We just wanted to understand how the process works in Spain. Everence Wealth explained everything clearly, with no pressure to move forward.",
         author: "Michael & Sarah",
         country: "United Kingdom"
       },
@@ -106,7 +106,7 @@ export const retargetingTranslations = {
     formError: "Something went wrong. Please try again.",
     
     // FOOTER
-    footerCopyright: "© 2026 Del Sol Prime Homes",
+    footerCopyright: "© 2026 Everence Wealth",
     footerPrivacy: "Privacy Policy",
     footerTerms: "Terms of Service",
     
@@ -118,7 +118,7 @@ export const retargetingTranslations = {
   },
   
   nl: {
-    metaTitle: "Begrijp de Costa del Sol vastgoedmarkt | Del Sol Prime Homes",
+    metaTitle: "Begrijp de Costa del Sol vastgoedmarkt | Everence Wealth",
     metaDescription: "Duidelijke uitleg, gestructureerd inzicht en menselijke expertise — voordat u met iemand spreekt. Leer rustig en onafhankelijk over Costa del Sol vastgoed.",
     heroH1: "Begrijp de Costa del Sol vastgoedmarkt — rustig en onafhankelijk.",
     heroSubheadline: "Duidelijke uitleg, gestructureerd inzicht en menselijke expertise — voordat u met iemand spreekt.",
@@ -157,7 +157,7 @@ export const retargetingTranslations = {
     testimonials: [
       {
         headline: "Geen druk, alleen duidelijkheid",
-        quote: "We waren nog niet klaar om woningen te bezichtigen. We wilden alleen begrijpen hoe het proces in Spanje werkt. Del Sol legde alles duidelijk uit, zonder druk om verder te gaan.",
+        quote: "We waren nog niet klaar om woningen te bezichtigen. We wilden alleen begrijpen hoe het proces in Spanje werkt. Everence Wealth legde alles duidelijk uit, zonder druk om verder te gaan.",
         author: "Michael & Sarah",
         country: "Verenigd Koninkrijk"
       },
@@ -201,7 +201,7 @@ export const retargetingTranslations = {
     formSuccess: "Dank u.",
     formSuccessSubtext: "We nemen binnenkort contact op.",
     formError: "Er ging iets mis. Probeer het opnieuw.",
-    footerCopyright: "© 2026 Del Sol Prime Homes",
+    footerCopyright: "© 2026 Everence Wealth",
     footerPrivacy: "Privacybeleid",
     footerTerms: "Servicevoorwaarden",
     propertyTypeApartment: "Appartement",
@@ -211,7 +211,7 @@ export const retargetingTranslations = {
   },
   
   de: {
-    metaTitle: "Verstehen Sie den Costa del Sol Immobilienmarkt | Del Sol Prime Homes",
+    metaTitle: "Verstehen Sie den Costa del Sol Immobilienmarkt | Everence Wealth",
     metaDescription: "Klare Erklärungen, strukturierte Einblicke und menschliche Expertise — bevor Sie mit jemandem sprechen. Lernen Sie ruhig und unabhängig über Costa del Sol Immobilien.",
     heroH1: "Verstehen Sie den Costa del Sol Immobilienmarkt — ruhig und unabhängig.",
     heroSubheadline: "Klare Erklärungen, strukturierte Einblicke und menschliche Expertise — bevor Sie mit jemandem sprechen.",
@@ -250,7 +250,7 @@ export const retargetingTranslations = {
     testimonials: [
       {
         headline: "Kein Druck, nur Klarheit",
-        quote: "Wir waren noch nicht bereit, Immobilien zu besichtigen. Wir wollten nur verstehen, wie der Prozess in Spanien funktioniert. Del Sol erklärte alles klar, ohne Druck weiterzumachen.",
+        quote: "Wir waren noch nicht bereit, Immobilien zu besichtigen. Wir wollten nur verstehen, wie der Prozess in Spanien funktioniert. Everence Wealth erklärte alles klar, ohne Druck weiterzumachen.",
         author: "Michael & Sarah",
         country: "Vereinigtes Königreich"
       },
@@ -294,7 +294,7 @@ export const retargetingTranslations = {
     formSuccess: "Vielen Dank.",
     formSuccessSubtext: "Wir melden uns in Kürze.",
     formError: "Etwas ist schief gelaufen. Bitte versuchen Sie es erneut.",
-    footerCopyright: "© 2026 Del Sol Prime Homes",
+    footerCopyright: "© 2026 Everence Wealth",
     footerPrivacy: "Datenschutzrichtlinie",
     footerTerms: "Nutzungsbedingungen",
     propertyTypeApartment: "Apartment",
@@ -304,7 +304,7 @@ export const retargetingTranslations = {
   },
   
   fr: {
-    metaTitle: "Comprenez le marché immobilier de la Costa del Sol | Del Sol Prime Homes",
+    metaTitle: "Comprenez le marché immobilier de la Costa del Sol | Everence Wealth",
     metaDescription: "Des explications claires, des informations structurées et une expertise humaine — avant de parler à qui que ce soit. Découvrez l'immobilier de la Costa del Sol calmement et en toute indépendance.",
     heroH1: "Comprenez le marché immobilier de la Costa del Sol — calmement et en toute indépendance.",
     heroSubheadline: "Des explications claires, des informations structurées et une expertise humaine — avant de parler à qui que ce soit.",
@@ -343,7 +343,7 @@ export const retargetingTranslations = {
     testimonials: [
       {
         headline: "Pas de pression, juste la clarté",
-        quote: "Nous n'étions pas prêts à visiter des propriétés. Nous voulions juste comprendre comment fonctionne le processus en Espagne. Del Sol a tout expliqué clairement, sans pression pour continuer.",
+        quote: "Nous n'étions pas prêts à visiter des propriétés. Nous voulions juste comprendre comment fonctionne le processus en Espagne. Everence Wealth a tout expliqué clairement, sans pression pour continuer.",
         author: "Michael & Sarah",
         country: "Royaume-Uni"
       },
@@ -387,7 +387,7 @@ export const retargetingTranslations = {
     formSuccess: "Merci.",
     formSuccessSubtext: "Nous vous contacterons bientôt.",
     formError: "Une erreur s'est produite. Veuillez réessayer.",
-    footerCopyright: "© 2026 Del Sol Prime Homes",
+    footerCopyright: "© 2026 Everence Wealth",
     footerPrivacy: "Politique de confidentialité",
     footerTerms: "Conditions d'utilisation",
     propertyTypeApartment: "Appartement",
@@ -397,7 +397,7 @@ export const retargetingTranslations = {
   },
   
   es: {
-    metaTitle: "Comprenda el mercado inmobiliario de la Costa del Sol | Del Sol Prime Homes",
+    metaTitle: "Comprenda el mercado inmobiliario de la Costa del Sol | Everence Wealth",
     metaDescription: "Explicaciones claras, información estructurada y experiencia humana — antes de hablar con nadie. Aprenda sobre el mercado inmobiliario de la Costa del Sol con calma e independencia.",
     heroH1: "Comprenda el mercado inmobiliario de la Costa del Sol — con calma e independencia.",
     heroSubheadline: "Explicaciones claras, información estructurada y experiencia humana — antes de hablar con nadie.",
@@ -436,7 +436,7 @@ export const retargetingTranslations = {
     testimonials: [
       {
         headline: "Sin presión, solo claridad",
-        quote: "No estábamos listos para ver propiedades. Solo queríamos entender cómo funciona el proceso en España. Del Sol explicó todo claramente, sin presión para continuar.",
+        quote: "No estábamos listos para ver propiedades. Solo queríamos entender cómo funciona el proceso en España. Everence Wealth explicó todo claramente, sin presión para continuar.",
         author: "Michael & Sarah",
         country: "Reino Unido"
       },
@@ -480,7 +480,7 @@ export const retargetingTranslations = {
     formSuccess: "Gracias.",
     formSuccessSubtext: "Nos pondremos en contacto pronto.",
     formError: "Algo salió mal. Por favor, inténtelo de nuevo.",
-    footerCopyright: "© 2026 Del Sol Prime Homes",
+    footerCopyright: "© 2026 Everence Wealth",
     footerPrivacy: "Política de privacidad",
     footerTerms: "Términos de servicio",
     propertyTypeApartment: "Apartamento",
@@ -490,7 +490,7 @@ export const retargetingTranslations = {
   },
   
   pl: {
-    metaTitle: "Zrozum rynek nieruchomości Costa del Sol | Del Sol Prime Homes",
+    metaTitle: "Zrozum rynek nieruchomości Costa del Sol | Everence Wealth",
     metaDescription: "Jasne wyjaśnienia, uporządkowane informacje i ludzka ekspertyza — zanim porozmawiasz z kimkolwiek. Poznaj rynek nieruchomości Costa del Sol spokojnie i niezależnie.",
     heroH1: "Zrozum rynek nieruchomości Costa del Sol — spokojnie i niezależnie.",
     heroSubheadline: "Jasne wyjaśnienia, uporządkowane informacje i ludzka ekspertyza — zanim porozmawiasz z kimkolwiek.",
@@ -529,7 +529,7 @@ export const retargetingTranslations = {
     testimonials: [
       {
         headline: "Bez presji, tylko jasność",
-        quote: "Nie byliśmy gotowi oglądać nieruchomości. Chcieliśmy tylko zrozumieć, jak działa proces w Hiszpanii. Del Sol wyjaśnił wszystko jasno, bez presji, by iść dalej.",
+        quote: "Nie byliśmy gotowi oglądać nieruchomości. Chcieliśmy tylko zrozumieć, jak działa proces w Hiszpanii. Everence Wealth wyjaśnił wszystko jasno, bez presji, by iść dalej.",
         author: "Michael & Sarah",
         country: "Wielka Brytania"
       },
@@ -573,7 +573,7 @@ export const retargetingTranslations = {
     formSuccess: "Dziękujemy.",
     formSuccessSubtext: "Wkrótce się skontaktujemy.",
     formError: "Coś poszło nie tak. Spróbuj ponownie.",
-    footerCopyright: "© 2026 Del Sol Prime Homes",
+    footerCopyright: "© 2026 Everence Wealth",
     footerPrivacy: "Polityka prywatności",
     footerTerms: "Warunki korzystania",
     propertyTypeApartment: "Apartament",
@@ -583,7 +583,7 @@ export const retargetingTranslations = {
   },
   
   sv: {
-    metaTitle: "Förstå Costa del Sol fastighetsmarknaden | Del Sol Prime Homes",
+    metaTitle: "Förstå Costa del Sol fastighetsmarknaden | Everence Wealth",
     metaDescription: "Tydliga förklaringar, strukturerad insikt och mänsklig expertis — innan du pratar med någon. Lär dig om Costa del Sol fastigheter lugnt och självständigt.",
     heroH1: "Förstå Costa del Sol fastighetsmarknaden — lugnt och självständigt.",
     heroSubheadline: "Tydliga förklaringar, strukturerad insikt och mänsklig expertis — innan du pratar med någon.",
@@ -622,7 +622,7 @@ export const retargetingTranslations = {
     testimonials: [
       {
         headline: "Ingen press, bara klarhet",
-        quote: "Vi var inte redo att titta på fastigheter. Vi ville bara förstå hur processen fungerar i Spanien. Del Sol förklarade allt tydligt, utan press att gå vidare.",
+        quote: "Vi var inte redo att titta på fastigheter. Vi ville bara förstå hur processen fungerar i Spanien. Everence Wealth förklarade allt tydligt, utan press att gå vidare.",
         author: "Michael & Sarah",
         country: "Storbritannien"
       },
@@ -666,7 +666,7 @@ export const retargetingTranslations = {
     formSuccess: "Tack.",
     formSuccessSubtext: "Vi hör av oss snart.",
     formError: "Något gick fel. Försök igen.",
-    footerCopyright: "© 2026 Del Sol Prime Homes",
+    footerCopyright: "© 2026 Everence Wealth",
     footerPrivacy: "Integritetspolicy",
     footerTerms: "Användarvillkor",
     propertyTypeApartment: "Lägenhet",
@@ -676,7 +676,7 @@ export const retargetingTranslations = {
   },
   
   da: {
-    metaTitle: "Forstå Costa del Sol ejendomsmarkedet | Del Sol Prime Homes",
+    metaTitle: "Forstå Costa del Sol ejendomsmarkedet | Everence Wealth",
     metaDescription: "Klare forklaringer, struktureret indsigt og menneskelig ekspertise — før du taler med nogen. Lær om Costa del Sol ejendomme roligt og uafhængigt.",
     heroH1: "Forstå Costa del Sol ejendomsmarkedet — roligt og uafhængigt.",
     heroSubheadline: "Klare forklaringer, struktureret indsigt og menneskelig ekspertise — før du taler med nogen.",
@@ -715,7 +715,7 @@ export const retargetingTranslations = {
     testimonials: [
       {
         headline: "Ingen pres, kun klarhed",
-        quote: "Vi var ikke klar til at se på ejendomme. Vi ville bare forstå, hvordan processen fungerer i Spanien. Del Sol forklarede alt klart, uden pres for at gå videre.",
+        quote: "Vi var ikke klar til at se på ejendomme. Vi ville bare forstå, hvordan processen fungerer i Spanien. Everence Wealth forklarede alt klart, uden pres for at gå videre.",
         author: "Michael & Sarah",
         country: "Storbritannien"
       },
@@ -759,7 +759,7 @@ export const retargetingTranslations = {
     formSuccess: "Tak.",
     formSuccessSubtext: "Vi kontakter dig snart.",
     formError: "Noget gik galt. Prøv venligst igen.",
-    footerCopyright: "© 2026 Del Sol Prime Homes",
+    footerCopyright: "© 2026 Everence Wealth",
     footerPrivacy: "Privatlivspolitik",
     footerTerms: "Servicevilkår",
     propertyTypeApartment: "Lejlighed",
@@ -769,7 +769,7 @@ export const retargetingTranslations = {
   },
   
   hu: {
-    metaTitle: "Értse meg a Costa del Sol ingatlanpiacot | Del Sol Prime Homes",
+    metaTitle: "Értse meg a Costa del Sol ingatlanpiacot | Everence Wealth",
     metaDescription: "Világos magyarázatok, strukturált betekintés és emberi szakértelem — mielőtt bárkivel beszélne. Ismerje meg a Costa del Sol ingatlanokat nyugodtan és függetlenül.",
     heroH1: "Értse meg a Costa del Sol ingatlanpiacot — nyugodtan és függetlenül.",
     heroSubheadline: "Világos magyarázatok, strukturált betekintés és emberi szakértelem — mielőtt bárkivel beszélne.",
@@ -808,7 +808,7 @@ export const retargetingTranslations = {
     testimonials: [
       {
         headline: "Nincs nyomás, csak tisztánlátás",
-        quote: "Nem voltunk készek ingatlanokat nézni. Csak meg akartuk érteni, hogyan működik a folyamat Spanyolországban. A Del Sol mindent világosan elmagyarázott, nyomás nélkül.",
+        quote: "Nem voltunk készek ingatlanokat nézni. Csak meg akartuk érteni, hogyan működik a folyamat Spanyolországban. A Everence Wealth mindent világosan elmagyarázott, nyomás nélkül.",
         author: "Michael & Sarah",
         country: "Egyesült Királyság"
       },
@@ -852,7 +852,7 @@ export const retargetingTranslations = {
     formSuccess: "Köszönjük.",
     formSuccessSubtext: "Hamarosan felvesszük Önnel a kapcsolatot.",
     formError: "Valami hiba történt. Kérjük, próbálja újra.",
-    footerCopyright: "© 2026 Del Sol Prime Homes",
+    footerCopyright: "© 2026 Everence Wealth",
     footerPrivacy: "Adatvédelmi irányelvek",
     footerTerms: "Szolgáltatási feltételek",
     propertyTypeApartment: "Apartman",
@@ -862,7 +862,7 @@ export const retargetingTranslations = {
   },
   
   fi: {
-    metaTitle: "Ymmärrä Costa del Solin kiinteistömarkkinat | Del Sol Prime Homes",
+    metaTitle: "Ymmärrä Costa del Solin kiinteistömarkkinat | Everence Wealth",
     metaDescription: "Selkeät selitykset, jäsennelty näkemys ja inhimillinen asiantuntemus — ennen kuin puhut kenenkään kanssa. Opi Costa del Solin kiinteistöistä rauhallisesti ja itsenäisesti.",
     heroH1: "Ymmärrä Costa del Solin kiinteistömarkkinat — rauhallisesti ja itsenäisesti.",
     heroSubheadline: "Selkeät selitykset, jäsennelty näkemys ja inhimillinen asiantuntemus — ennen kuin puhut kenenkään kanssa.",
@@ -901,7 +901,7 @@ export const retargetingTranslations = {
     testimonials: [
       {
         headline: "Ei painetta, vain selkeyttä",
-        quote: "Emme olleet valmiita katsomaan kiinteistöjä. Halusimme vain ymmärtää, miten prosessi toimii Espanjassa. Del Sol selitti kaiken selkeästi, ilman painetta jatkaa.",
+        quote: "Emme olleet valmiita katsomaan kiinteistöjä. Halusimme vain ymmärtää, miten prosessi toimii Espanjassa. Everence Wealth selitti kaiken selkeästi, ilman painetta jatkaa.",
         author: "Michael & Sarah",
         country: "Iso-Britannia"
       },
@@ -945,7 +945,7 @@ export const retargetingTranslations = {
     formSuccess: "Kiitos.",
     formSuccessSubtext: "Otamme yhteyttä pian.",
     formError: "Jotain meni pieleen. Yritä uudelleen.",
-    footerCopyright: "© 2026 Del Sol Prime Homes",
+    footerCopyright: "© 2026 Everence Wealth",
     footerPrivacy: "Tietosuojakäytäntö",
     footerTerms: "Käyttöehdot",
     propertyTypeApartment: "Huoneisto",
@@ -955,7 +955,7 @@ export const retargetingTranslations = {
   },
   
   no: {
-    metaTitle: "Forstå Costa del Sol eiendomsmarkedet | Del Sol Prime Homes",
+    metaTitle: "Forstå Costa del Sol eiendomsmarkedet | Everence Wealth",
     metaDescription: "Klare forklaringer, strukturert innsikt og menneskelig ekspertise — før du snakker med noen. Lær om Costa del Sol eiendommer rolig og uavhengig.",
     heroH1: "Forstå Costa del Sol eiendomsmarkedet — rolig og uavhengig.",
     heroSubheadline: "Klare forklaringer, strukturert innsikt og menneskelig ekspertise — før du snakker med noen.",
@@ -994,7 +994,7 @@ export const retargetingTranslations = {
     testimonials: [
       {
         headline: "Ingen press, bare klarhet",
-        quote: "Vi var ikke klare til å se på eiendommer. Vi ville bare forstå hvordan prosessen fungerer i Spania. Del Sol forklarte alt tydelig, uten press for å gå videre.",
+        quote: "Vi var ikke klare til å se på eiendommer. Vi ville bare forstå hvordan prosessen fungerer i Spania. Everence Wealth forklarte alt tydelig, uten press for å gå videre.",
         author: "Michael & Sarah",
         country: "Storbritannia"
       },
@@ -1038,7 +1038,7 @@ export const retargetingTranslations = {
     formSuccess: "Takk.",
     formSuccessSubtext: "Vi tar kontakt snart.",
     formError: "Noe gikk galt. Vennligst prøv igjen.",
-    footerCopyright: "© 2026 Del Sol Prime Homes",
+    footerCopyright: "© 2026 Everence Wealth",
     footerPrivacy: "Personvernerklæring",
     footerTerms: "Tjenestevilkår",
     propertyTypeApartment: "Leilighet",

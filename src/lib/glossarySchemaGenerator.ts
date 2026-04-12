@@ -69,8 +69,8 @@ const glossaryAuthor = {
 };
 
 const organizationSchema = {
-  "@type": "RealEstateAgent",
-  "name": "Del Sol Prime Homes",
+  "@type": "FinancialService",
+  "name": "Everence Wealth",
   "url": BASE_URL,
   "logo": {
     "@type": "ImageObject",
@@ -148,7 +148,7 @@ export function generateGlossaryWebPageSchema(glossaryData: GlossaryData, langua
     "description": getGlossaryDescription(language),
     "isPartOf": {
       "@type": "WebSite",
-      "name": "Del Sol Prime Homes",
+      "name": "Everence Wealth",
       "url": BASE_URL
     },
     "about": {
@@ -279,9 +279,9 @@ export function generateGlossaryFAQSchema(glossaryData: GlossaryData, language: 
 export function generateOrganizationSchema() {
   return {
     "@context": "https://schema.org",
-    "@type": "RealEstateAgent",
+    "@type": "FinancialService",
     "@id": `${BASE_URL}#organization`,
-    "name": "Del Sol Prime Homes",
+    "name": "Everence Wealth",
     "url": BASE_URL,
     "logo": {
       "@type": "ImageObject",
