@@ -46,7 +46,7 @@ const BLOCKED_DOMAINS = [
   // Other EU
   'ingatlan.com', 'properstar.com',
   
-  // Luxury/Costa del Sol specific competitors
+  // Industry-specific competitors
   'lucasfox.com', 'drumelia.com', 'mpdunne.com', 'pure-living-properties.com',
   'nvoga.com', 'immoabroad.com', 'terrameridiana.com', 'marbellaforsaleblog.com',
   
@@ -56,7 +56,7 @@ const BLOCKED_DOMAINS = [
 ];
 
 const BLOCKED_KEYWORDS = [
-  // Direct real estate terms (English)
+  // Industry blocking terms
   'realty', 'realtor', 'real-estate', 'realestate', 'estate-agent', 'estate-agents',
   'property-sales', 'property-agency', 'homes-for-sale', 'house-sales',
   'luxury-homes', 'property', 'properties', 'homes', 'housing', 'estate', 'estates',
@@ -187,7 +187,7 @@ async function findCitationsForArticle(
   const langName = languageNames[language] || 'English';
   const domainPrefs = LANG_DOMAIN_PREFERENCES[language] || LANG_DOMAIN_PREFERENCES['en'];
 
-  const prompt = `Find 4-6 authoritative citations for this article about Costa del Sol real estate.
+  const prompt = `Find 4-6 authoritative citations for this article about wealth management and financial planning.
 
 ARTICLE HEADLINE: "${headline}"
 
@@ -195,15 +195,15 @@ ARTICLE EXCERPT:
 ${content.substring(0, 3000)}
 
 CRITICAL REQUIREMENTS:
-1. NEVER include real estate websites, property portals, or inmobiliarias
-2. NEVER include competitor real estate agencies (Kyero, Idealista, Fotocasa, Sotheby's, Knight Frank, Zillow, Rightmove, etc.)
+1. NEVER include competitor financial advisory firms or insurance sales sites
+2. NEVER include competitor insurance agencies or MLM financial companies
 3. LANGUAGE FLEXIBILITY: Use English OR Spanish sources regardless of article language. Quality over language matching.
 4. PREFER high-authority sources:
    - Government websites (.gov, .gob.es, .gov.uk, ${domainPrefs.slice(0, 2).join(', ')})
    - Official statistics (INE, Eurostat, national statistics offices)
    - Major news outlets (Reuters, BBC, El País, Bloomberg, The Guardian, etc.)
-   - Tourism authorities (Spain.info, regional tourism boards)
-   - Banking/financial institutions (ECB, Bank of Spain)
+   - Government financial regulators (SEC, FINRA, state insurance departments)
+   - Banking/financial institutions (Federal Reserve, FDIC)
    - Academic institutions (.edu)
 5. Each URL must be publicly accessible and working
 6. DIVERSIFY sources - don't repeat the same domain across multiple citations
@@ -230,7 +230,7 @@ Only return the JSON array, no other text.`;
         messages: [
           {
             role: 'system',
-            content: 'You are a citation research assistant. Return ONLY valid JSON arrays of citations. NEVER include real estate websites.'
+            content: 'You are a citation research assistant. Return ONLY valid JSON arrays of citations. NEVER include competitor financial advisory websites.'
           },
           { role: 'user', content: prompt }
         ],

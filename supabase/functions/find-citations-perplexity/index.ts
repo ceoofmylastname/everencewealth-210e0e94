@@ -638,8 +638,8 @@ CRITICAL REQUIREMENTS:
 3. Language: ${language}
 4. Must contain specific data, statistics, or official information that MATCHES this claim
 5. For aggregator sites (idealista, fotocasa), only use /informes/ or /estadisticas/ paths
-6. ❌ NEVER cite ANY company that sells, rents, or brokers real estate
-7. ❌ NEVER cite real estate agencies, property portals, relocation services, property investment platforms
+6. ❌ NEVER cite ANY competing financial advisory or insurance sales firm
+7. ❌ NEVER cite competing financial advisors, insurance MLMs, or generic financial product sales sites
 8. ❌ NEVER cite estate agents, brokerages, or listing sites
 
 Preferred source types: ${chunk.tierName}
@@ -681,7 +681,7 @@ If NO suitable source exists, return:
             content: `You are a citation research assistant. 
 CRITICAL RULES:
 1. ONLY use sources from the provided approved domain list
-2. NEVER suggest real estate agencies, brokerages, property portals, or listing sites
+2. NEVER suggest competing financial advisors, insurance MLMs, or generic product sales sites
 3. Citations must EXACTLY match the specific claim - not just the general topic
 4. Always include "claimMatch" field explaining how the source supports the EXACT claim
 5. Respond with valid JSON only`
@@ -925,7 +925,7 @@ async function findCitationWithOpenWebFallback(
   // LAYER 1: EXPANDED KEYWORD BLOCKING
   // ═══════════════════════════════════════════════════════════════════
   const ultraBlockedKeywords = [
-    // English real estate terms
+    // English blocking terms
     'property', 'properties', 'realestate', 'real-estate', 'estate-agent',
     'homes', 'villas', 'apartments', 'condos', 'realtor', 'broker',
     'listing', 'listings', 'forsale', 'for-sale', 'to-let', 'tolet',
@@ -1005,13 +1005,13 @@ You MUST NEVER cite ANY of these blocked domains:
 ${excludedDomainsStr}
 
 🚫 ABSOLUTELY FORBIDDEN SOURCES:
-- ANY real estate agency, broker, or inmobiliaria
+- ANY competing financial advisory firm or insurance MLM
 - ANY property listing portal (idealista, fotocasa, kyero, etc.)
 - ANY relocation/expat property service
 - ANY site selling, renting, or listing properties
 - ANY site with words like "property", "homes", "villas", "inmobiliaria" in domain
-- ANY Costa del Sol or Malaga-focused real estate site
-- ANY site helping people buy/sell/rent property in Spain
+- ANY competing wealth management or insurance sales site
+- ANY site selling competing financial advisory services
 
 ✅ ONLY ACCEPTABLE SOURCES:
 - Government websites (.gov, .gob.es, .gouv.fr, .gov.uk)
@@ -1039,7 +1039,7 @@ Return ONE citation in this exact JSON format:
       body: JSON.stringify({
         model: 'sonar',
         messages: [
-          { role: 'system', content: 'You are a citation finder. Return ONLY valid JSON. NEVER use real estate company websites, property portals, or relocation services.' },
+          { role: 'system', content: 'You are a citation finder. Return ONLY valid JSON. NEVER use competing financial advisory websites or insurance sales sites.' },
           { role: 'user', content: prompt }
         ],
         temperature: 0.2,
@@ -1132,7 +1132,7 @@ Return ONE citation in this exact JSON format:
         return null;
       }
       
-      console.log(`✅ LAYER 4 PASSED: ${domain} is not a real estate company`);
+      console.log(`✅ LAYER 4 PASSED: ${domain} is not a competing financial advisory firm`);
       console.log(`   Business type: ${verification.businessType}`);
     } else {
       console.log(`✅ Domain ${domain} is pre-approved - skipping verification`);

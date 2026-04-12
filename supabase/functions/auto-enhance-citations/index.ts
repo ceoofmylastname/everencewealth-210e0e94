@@ -174,7 +174,7 @@ async function verifyNotCompetitor(
   const prompt = `Analyze this website domain: ${domain}
 
 Is this company/website involved in ANY of the following businesses?
-- Selling or renting real estate/properties
+- Selling competing financial advisory services
 - Real estate brokerage or agency services
 - Property listing portals or platforms
 - Property investment advisory
@@ -203,7 +203,7 @@ Return ONLY the JSON, nothing else.`;
         messages: [
           {
             role: 'system',
-            content: 'You are a business analysis assistant. Respond only with valid JSON. Be accurate and objective in determining if a company is involved in real estate sales/brokerage.'
+            content: 'You are a business analysis assistant. Respond only with valid JSON. Be accurate and objective in determining if a company is a competing financial advisory or insurance sales firm.'
           },
           {
             role: 'user',
@@ -390,7 +390,7 @@ CRITICAL REQUIREMENTS:
 2. Do NOT use any other domains
 3. Language: ${language}
 4. Must contain specific data, statistics, or official information that MATCHES this claim
-5. ❌ NEVER cite ANY company that sells, rents, or brokers real estate
+5. ❌ NEVER cite ANY competing financial advisory or insurance sales firm
 
 Response format (JSON only):
 {
@@ -423,7 +423,7 @@ If NO suitable source exists, return:
           messages: [
             {
               role: 'system',
-              content: 'You are a citation research assistant. ONLY use sources from the provided approved domain list. NEVER suggest real estate agencies or property portals. Always include "claimMatch" field. Respond with valid JSON only'
+              content: 'You are a citation research assistant. ONLY use sources from the provided approved domain list. NEVER suggest competing financial advisors or insurance MLMs. Always include "claimMatch" field. Respond with valid JSON only'
             },
             {
               role: 'user',
