@@ -55,7 +55,7 @@ CRM/
 
 **Gmail search query:**
 ```
-from:crm@notifications.delsolprimehomes.com subject:(CRM_NEW_LEAD_EN | CRM_NEW_LEAD_NL | CRM_NEW_LEAD_FR | CRM_NEW_LEAD_FI | CRM_NEW_LEAD_PL | CRM_NEW_LEAD_DE | CRM_NEW_LEAD_ES | CRM_NEW_LEAD_SV | CRM_NEW_LEAD_DA | CRM_NEW_LEAD_HU | CRM_NEW_LEAD_NO) -subject:T1 -subject:T2 -subject:T3 -subject:T4
+from:crm@notifications.everencewealth.com subject:(CRM_NEW_LEAD_EN | CRM_NEW_LEAD_NL | CRM_NEW_LEAD_FR | CRM_NEW_LEAD_FI | CRM_NEW_LEAD_PL | CRM_NEW_LEAD_DE | CRM_NEW_LEAD_ES | CRM_NEW_LEAD_SV | CRM_NEW_LEAD_DA | CRM_NEW_LEAD_HU | CRM_NEW_LEAD_NO) -subject:T1 -subject:T2 -subject:T3 -subject:T4
 ```
 
 **Filter actions:**
@@ -81,7 +81,7 @@ from:crm@notifications.delsolprimehomes.com subject:(CRM_NEW_LEAD_EN | CRM_NEW_L
 
 **Gmail search query:**
 ```
-from:crm@notifications.delsolprimehomes.com subject:(CRM_NEW_LEAD_EN_T1 | CRM_NEW_LEAD_NL_T1 | CRM_NEW_LEAD_FR_T1 | CRM_NEW_LEAD_FI_T1 | CRM_NEW_LEAD_PL_T1 | CRM_NEW_LEAD_DE_T1 | CRM_NEW_LEAD_ES_T1 | CRM_NEW_LEAD_SV_T1 | CRM_NEW_LEAD_DA_T1 | CRM_NEW_LEAD_HU_T1 | CRM_NEW_LEAD_NO_T1)
+from:crm@notifications.everencewealth.com subject:(CRM_NEW_LEAD_EN_T1 | CRM_NEW_LEAD_NL_T1 | CRM_NEW_LEAD_FR_T1 | CRM_NEW_LEAD_FI_T1 | CRM_NEW_LEAD_PL_T1 | CRM_NEW_LEAD_DE_T1 | CRM_NEW_LEAD_ES_T1 | CRM_NEW_LEAD_SV_T1 | CRM_NEW_LEAD_DA_T1 | CRM_NEW_LEAD_HU_T1 | CRM_NEW_LEAD_NO_T1)
 ```
 
 **Filter actions (create two filters with same query):**
@@ -109,7 +109,7 @@ from:crm@notifications.delsolprimehomes.com subject:(CRM_NEW_LEAD_EN_T1 | CRM_NE
 
 **Gmail search query:**
 ```
-from:crm@notifications.delsolprimehomes.com subject:(CRM_NEW_LEAD_EN_T2 | CRM_NEW_LEAD_NL_T2 | CRM_NEW_LEAD_FR_T2 | CRM_NEW_LEAD_FI_T2 | CRM_NEW_LEAD_PL_T2 | CRM_NEW_LEAD_DE_T2 | CRM_NEW_LEAD_ES_T2 | CRM_NEW_LEAD_SV_T2 | CRM_NEW_LEAD_DA_T2 | CRM_NEW_LEAD_HU_T2 | CRM_NEW_LEAD_NO_T2)
+from:crm@notifications.everencewealth.com subject:(CRM_NEW_LEAD_EN_T2 | CRM_NEW_LEAD_NL_T2 | CRM_NEW_LEAD_FR_T2 | CRM_NEW_LEAD_FI_T2 | CRM_NEW_LEAD_PL_T2 | CRM_NEW_LEAD_DE_T2 | CRM_NEW_LEAD_ES_T2 | CRM_NEW_LEAD_SV_T2 | CRM_NEW_LEAD_DA_T2 | CRM_NEW_LEAD_HU_T2 | CRM_NEW_LEAD_NO_T2)
 ```
 
 **Filter actions (create two filters with same query):**
@@ -137,7 +137,7 @@ from:crm@notifications.delsolprimehomes.com subject:(CRM_NEW_LEAD_EN_T2 | CRM_NE
 
 **Gmail search query:**
 ```
-from:crm@notifications.delsolprimehomes.com subject:(CRM_NEW_LEAD_EN_T3 | CRM_NEW_LEAD_NL_T3 | CRM_NEW_LEAD_FR_T3 | CRM_NEW_LEAD_FI_T3 | CRM_NEW_LEAD_PL_T3 | CRM_NEW_LEAD_DE_T3 | CRM_NEW_LEAD_ES_T3 | CRM_NEW_LEAD_SV_T3 | CRM_NEW_LEAD_DA_T3 | CRM_NEW_LEAD_HU_T3 | CRM_NEW_LEAD_NO_T3)
+from:crm@notifications.everencewealth.com subject:(CRM_NEW_LEAD_EN_T3 | CRM_NEW_LEAD_NL_T3 | CRM_NEW_LEAD_FR_T3 | CRM_NEW_LEAD_FI_T3 | CRM_NEW_LEAD_PL_T3 | CRM_NEW_LEAD_DE_T3 | CRM_NEW_LEAD_ES_T3 | CRM_NEW_LEAD_SV_T3 | CRM_NEW_LEAD_DA_T3 | CRM_NEW_LEAD_HU_T3 | CRM_NEW_LEAD_NO_T3)
 ```
 
 **Filter actions (create two filters with same query):**
@@ -166,7 +166,7 @@ from:crm@notifications.delsolprimehomes.com subject:(CRM_NEW_LEAD_EN_T3 | CRM_NE
 
 **Gmail search query:**
 ```
-from:crm@notifications.delsolprimehomes.com subject:(CRM_NEW_LEAD_EN_T4 | CRM_NEW_LEAD_NL_T4 | CRM_NEW_LEAD_FR_T4 | CRM_NEW_LEAD_FI_T4 | CRM_NEW_LEAD_PL_T4 | CRM_NEW_LEAD_DE_T4 | CRM_NEW_LEAD_ES_T4 | CRM_NEW_LEAD_SV_T4 | CRM_NEW_LEAD_DA_T4 | CRM_NEW_LEAD_HU_T4 | CRM_NEW_LEAD_NO_T4)
+from:crm@notifications.everencewealth.com subject:(CRM_NEW_LEAD_EN_T4 | CRM_NEW_LEAD_NL_T4 | CRM_NEW_LEAD_FR_T4 | CRM_NEW_LEAD_FI_T4 | CRM_NEW_LEAD_PL_T4 | CRM_NEW_LEAD_DE_T4 | CRM_NEW_LEAD_ES_T4 | CRM_NEW_LEAD_SV_T4 | CRM_NEW_LEAD_DA_T4 | CRM_NEW_LEAD_HU_T4 | CRM_NEW_LEAD_NO_T4)
 ```
 
 **Filter actions:**

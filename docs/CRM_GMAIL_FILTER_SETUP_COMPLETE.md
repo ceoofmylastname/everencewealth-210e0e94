@@ -1,7 +1,7 @@
 # 📧 CRM Gmail Filter Setup Guide
 
 > **Last updated:** 2026-02-13
-> **Sender:** `crm@notifications.delsolprimehomes.com`
+> **Sender:** `crm@notifications.everencewealth.com`
 > **Labels required:** 6 (already created)
 
 ---
@@ -144,7 +144,7 @@ subject:(CRM_ADMIN_NO_CLAIM | CRM_ADMIN_CLAIMED_NOT_CALLED)
 
 **Gmail search query:**
 ```
-subject:"Form Submission" from:crm@notifications.delsolprimehomes.com
+subject:"Form Submission" from:crm@notifications.everencewealth.com
 ```
 
 **Filter actions:**
