@@ -51,9 +51,6 @@ const GmailCallback = lazy(() => import("./pages/auth/GmailCallback"));
 // Lazy load heavy public pages
 const BlogArticle = lazy(() => import("./pages/BlogArticle"));
 const QAPage = lazy(() => import("./pages/QAPage"));
-const PropertyFinder = lazy(() => import("./pages/PropertyFinder"));
-const PropertyDetail = lazy(() => import("./pages/PropertyDetail"));
-const CityBrochure = lazy(() => import("./pages/CityBrochure"));
 const Sitemap = lazy(() => import("./pages/Sitemap"));
 const Glossary = lazy(() => import("./pages/Glossary"));
 const ComparisonPage = lazy(() => import("./pages/ComparisonPage"));
@@ -79,8 +76,6 @@ const ApartmentsLanding = lazy(() => import("./pages/apartments/ApartmentsLandin
 
 // Lazy load ALL admin pages (rarely accessed, heavy components)
 const Dashboard = lazy(() => import("./pages/admin/Dashboard"));
-const AdminProperties = lazy(() => import("./pages/AdminProperties"));
-const PropertyForm = lazy(() => import("./pages/admin/PropertyForm"));
 const Articles = lazy(() => import("./pages/admin/Articles"));
 const ArticleEditor = lazy(() => import("./pages/admin/ArticleEditor"));
 const Authors = lazy(() => import("./pages/admin/Authors"));
@@ -116,7 +111,7 @@ const SystemAudit = lazy(() => import("./pages/admin/SystemAudit"));
 const ProductionAudit = lazy(() => import("./pages/admin/ProductionAudit"));
 const AEOAnswerFixer = lazy(() => import("./pages/admin/AEOAnswerFixer"));
 const MigrateImages = lazy(() => import("./pages/admin/MigrateImages"));
-const AddProperty = lazy(() => import("./pages/AddProperty"));
+
 const EmmaConversations = lazy(() => import("./pages/admin/EmmaConversations"));
 const GoneURLsManager = lazy(() => import("./pages/admin/GoneURLsManager"));
 const RedirectChecker = lazy(() => import("./pages/admin/RedirectChecker"));
@@ -247,7 +242,7 @@ const CrmSalestrailCallLogs = lazy(() => import("./pages/crm/admin/SalestrailCal
 const CrmAssessmentLeads = lazy(() => import("./pages/crm/admin/AssessmentLeads"));
 const LandingEn = lazy(() => import("./pages/landing/en"));
 const OptIn = lazy(() => import("./pages/OptIn"));
-const RetargetingLanding = lazy(() => import("./pages/RetargetingLanding"));
+
 const Assessment = lazy(() => import("./pages/Assessment"));
 const ContractingIntake = lazy(() => import("./pages/ContractingIntake"));
 const WorkshopLanding = lazy(() => import("./pages/public/WorkshopLanding"));
@@ -278,11 +273,6 @@ const PageLoader = () => (
   </div>
 );
 
-// Redirect component for legacy property routes
-const PropertyRedirect = () => {
-  const { reference } = useParams<{ reference: string }>();
-  return <Navigate to={`/en/property/${reference}`} replace />;
-};
 
 const queryClient = new QueryClient({
   defaultOptions: {
