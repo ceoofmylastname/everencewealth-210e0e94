@@ -544,32 +544,32 @@ function generateStaticHTML(productionAssets: ProductionAssets, language: Langua
         </div>
       </section>
       
-      <!-- Featured Areas Section -->
+      <!-- Core Strategies Section -->
       <section class="static-section">
-        <h2>Prime Locations on the Costa del Sol</h2>
+        <h2>Our Wealth Management Strategies</h2>
         <div class="areas-grid">
           <article class="area-card">
             <div class="area-card-content">
-              <h3>Marbella</h3>
-              <p>The jewel of the Costa del Sol, famous for its Golden Mile, Puerto Banús, and year-round international community.</p>
+              <h3>Tax-Free Retirement</h3>
+              <p>Build tax-free retirement income using properly structured life insurance vehicles and IUL strategies.</p>
             </div>
           </article>
           <article class="area-card">
             <div class="area-card-content">
-              <h3>Estepona</h3>
-              <p>The Garden of the Costa del Sol — charming Andalusian atmosphere with growing modern infrastructure and excellent value.</p>
+              <h3>Indexed Universal Life</h3>
+              <p>Market-linked growth potential with downside protection. Access your cash value tax-free in retirement.</p>
             </div>
           </article>
           <article class="area-card">
             <div class="area-card-content">
-              <h3>Sotogrande</h3>
-              <p>Privacy and prestige. World-class polo, golf, and marina lifestyle in an exclusive residential community.</p>
+              <h3>Asset Protection</h3>
+              <p>Shield your wealth from creditors, lawsuits, and market volatility with proven legal strategies.</p>
             </div>
           </article>
           <article class="area-card">
             <div class="area-card-content">
-              <h3>Málaga City</h3>
-              <p>A vibrant cultural hub blending history with futuristic urban living. Excellent connectivity and amenities.</p>
+              <h3>Legacy Planning</h3>
+              <p>Transfer wealth to the next generation efficiently with tax-advantaged insurance structures.</p>
             </div>
           </article>
         </div>
@@ -581,20 +581,20 @@ function generateStaticHTML(productionAssets: ProductionAssets, language: Langua
           <h2>Why Choose Everence Wealth?</h2>
           <div class="usp-grid">
             <div class="usp-item">
-              <h3>35+ Years Experience</h3>
-              <p>Deep local knowledge and established relationships with developers, lawyers, and notaries.</p>
+              <h3>30+ Years Experience</h3>
+              <p>Deep expertise in wealth management, tax-free retirement strategies, and independent financial advising.</p>
             </div>
             <div class="usp-item">
-              <h3>Multilingual Team</h3>
-              <p>Native speakers of English, Dutch, French, German, and Spanish to guide you in your language.</p>
+              <h3>Independent Broker</h3>
+              <p>Not tied to any single carrier. We shop the market to find the best solutions for your specific needs.</p>
             </div>
             <div class="usp-item">
-              <h3>Full-Service Support</h3>
-              <p>From property search to key handover: NIE, banking, legal, and after-sales support included.</p>
+              <h3>Fiduciary Approach</h3>
+              <p>Your interests come first. We provide transparent, unbiased financial guidance with no hidden fees.</p>
             </div>
             <div class="usp-item">
-              <h3>500+ Properties Sold</h3>
-              <p>Proven track record with international buyers from across Europe and beyond.</p>
+              <h3>Proven Results</h3>
+              <p>Hundreds of clients building tax-free retirement income and protecting their wealth.</p>
             </div>
           </div>
         </div>
@@ -605,20 +605,20 @@ function generateStaticHTML(productionAssets: ProductionAssets, language: Langua
         <h2>Our Services</h2>
         <div class="usp-grid">
           <div class="usp-item">
-            <h3>Property Search</h3>
-            <p>Access to exclusive listings, new developments, and off-market opportunities across the Costa del Sol.</p>
+            <h3>Retirement Planning</h3>
+            <p>Custom tax-free retirement strategies using IUL, whole life, and other insurance-based vehicles.</p>
           </div>
           <div class="usp-item">
-            <h3>Legal & Financial</h3>
-            <p>Coordination with lawyers, NIE applications, mortgage arrangements, and Golden Visa guidance.</p>
+            <h3>Wealth Protection</h3>
+            <p>Asset protection strategies, estate planning, and wealth preservation for high-net-worth individuals.</p>
           </div>
           <div class="usp-item">
-            <h3>Viewing Tours</h3>
-            <p>Personalized property tours with airport pickup, area orientation, and restaurant recommendations.</p>
+            <h3>Insurance Solutions</h3>
+            <p>Life insurance, disability coverage, and long-term care planning tailored to your financial goals.</p>
           </div>
           <div class="usp-item">
-            <h3>After-Sales</h3>
-            <p>Property management, rental setup, renovation coordination, and ongoing support after purchase.</p>
+            <h3>Financial Education</h3>
+            <p>Workshops, webinars, and one-on-one consultations to help you understand your options.</p>
           </div>
         </div>
       </section>
