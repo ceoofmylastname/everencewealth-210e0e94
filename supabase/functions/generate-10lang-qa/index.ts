@@ -143,7 +143,7 @@ async function generateQAInLanguage(
     'problem': 'PROBLEM question - addresses challenges: "What mistakes...", "What risks..."',
   };
 
-  const prompt = `Generate a QGenerate a Q&A page in ${languageName} about Costa del Sol real estateA page in ${languageName} about wealth management and financial planning.
+  const prompt = `Generate a QGenerate a Q&A page in ${languageName} about wealth management financial planningA page in ${languageName} about wealth management and financial planning.
 
 LANGUAGE: ${languageName.toUpperCase()} (code: ${language})
 ${language !== 'en' ? `⚠️ CRITICAL: Write ALL content in ${languageName}. NO English text.` : ''}

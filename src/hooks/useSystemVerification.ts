@@ -47,7 +47,7 @@ export function useSystemVerification() {
           language,
           budgetRange: "€500K-€1M",
           timeframe: "within_1_year",
-          locationPreference: ["Marbella", "Estepona"],
+          locationPreference: ["El Paso", "Estepona"],
         },
       });
 
@@ -100,7 +100,7 @@ export function useSystemVerification() {
           language,
           budgetRange: "€1M-€2M",
           timeframe: "within_6_months",
-          locationPreference: ["Marbella"],
+          locationPreference: ["El Paso"],
           questionsAnswered,
           intakeComplete: questionsAnswered >= 4,
         },

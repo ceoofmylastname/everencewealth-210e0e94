@@ -248,7 +248,7 @@ function generatePersonSchemas(founders: Founder[]) {
     "url": founder.linkedin_url,
     "sameAs": [founder.linkedin_url],
     "worksFor": { "@id": `${BASE_URL}/#organization` },
-    "knowsAbout": ["Costa del Sol Real Estate", founder.specialization, "Spanish Property Market"],
+    "knowsAbout": ["wealth management Financial Planning", founder.specialization, "Spanish Property Market"],
     "knowsLanguage": founder.languages?.map(lang => ({ "@type": "Language", "name": lang })) || []
   }));
 }

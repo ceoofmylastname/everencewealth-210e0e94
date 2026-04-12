@@ -169,7 +169,7 @@ export default function DuplicateImageFixer() {
 
     try {
       // Generate topic-specific prompt based on headline
-      const prompt = `Professional real estate photography for article about: ${article.headline}. Costa del Sol, Spain. High quality, modern, aspirational. 16:9 aspect ratio.`;
+      const prompt = `Professional financial planning photography for article about: ${article.headline}. wealth management, Spain. High quality, modern, aspirational. 16:9 aspect ratio.`;
 
       // Call generate-image function
       const { data, error } = await supabase.functions.invoke('generate-image', {
@@ -208,7 +208,7 @@ export default function DuplicateImageFixer() {
         .from('blog_articles')
         .update({
           featured_image_url: publicUrlData.publicUrl,
-          featured_image_alt: `${article.headline} - Costa del Sol real estate`,
+          featured_image_alt: `${article.headline} - wealth management financial planning`,
         })
         .eq('id', pendingItem.article_id);
 

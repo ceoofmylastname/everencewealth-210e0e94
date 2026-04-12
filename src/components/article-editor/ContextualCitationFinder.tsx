@@ -99,7 +99,7 @@ export function ContextualCitationFinder({
                   </span>
                 </div>
                 <Textarea
-                  placeholder='e.g. "Costa del Sol receives 320+ days of sunshine annually"'
+                  placeholder='e.g. "wealth management receives 320+ days of sunshine annually"'
                   value={targetContext}
                   onChange={(e) => handleContextChange(e.target.value)}
                   className="min-h-[80px] resize-none"

@@ -124,7 +124,7 @@ ARTICLE DETAILS:
 - Title: ${article.headline}
 - Topic: ${cluster?.topic || article.headline}
 - Primary Keyword: ${cluster?.primary_keyword || ''}
-- Target Audience: ${cluster?.target_audience || 'real estate investors and buyers'}
+- Target Audience: ${cluster?.target_audience || 'financial planning investors and buyers'}
 - Funnel Stage: ${article.funnel_stage}
 - Language: ${article.language}
 

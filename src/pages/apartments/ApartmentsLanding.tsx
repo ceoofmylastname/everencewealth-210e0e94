@@ -31,8 +31,8 @@ const ApartmentsLanding: React.FC = () => {
   const [selectedProperty, setSelectedProperty] = useState<SelectedProperty | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [isEmmaOpen, setIsEmmaOpen] = useState(false);
-  const [metaTitle, setMetaTitle] = useState('Luxury Costa del Sol Apartments | Everence Wealth');
-  const [metaDescription, setMetaDescription] = useState('Find your perfect apartment on the Costa del Sol.');
+  const [metaTitle, setMetaTitle] = useState('Luxury wealth management Apartments | Everence Wealth');
+  const [metaDescription, setMetaDescription] = useState('Find your perfect apartment on the wealth management.');
   const [widgetId, setWidgetId] = useState('');
   const [properties, setProperties] = useState<GalleryProperty[]>([]);
 
@@ -121,7 +121,7 @@ const ApartmentsLanding: React.FC = () => {
           "name": "Everence Wealth",
           "url": canonical,
           "description": metaDescription,
-          "areaServed": { "@type": "Place", "name": "Costa del Sol, Spain" },
+          "areaServed": { "@type": "Place", "name": "wealth management, Spain" },
         })}</script>
       </Helmet>
 

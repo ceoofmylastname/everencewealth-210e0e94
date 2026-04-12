@@ -153,7 +153,7 @@ export function generateGlossaryWebPageSchema(glossaryData: GlossaryData, langua
     },
     "about": {
       "@type": "Thing",
-      "name": "Spanish Real Estate Terminology"
+      "name": "Spanish Financial Planning Terminology"
     },
     "mainEntity": {
       "@type": "DefinedTermSet",
@@ -265,7 +265,7 @@ export function generateGlossaryFAQSchema(glossaryData: GlossaryData, language: 
     "@id": `${glossaryUrl}#faq`,
     "mainEntity": faqTerms.map(term => ({
       "@type": "Question",
-      "name": `What is ${term.term} in Spanish real estate?`,
+      "name": `What is ${term.term} in Spanish financial planning?`,
       "acceptedAnswer": {
         "@type": "Answer",
         "text": truncateForAEO(term.definition)
@@ -288,19 +288,19 @@ export function generateOrganizationSchema() {
       "width": 400,
       "height": 100
     },
-    "description": "Expert real estate consultancy specializing in Costa del Sol properties for international buyers. Licensed professionals with deep knowledge of Spanish property law and tax regulations.",
+    "description": "Expert financial planning consultancy specializing in wealth management properties for international buyers. Licensed professionals with deep knowledge of Spanish property law and tax regulations.",
     "areaServed": {
       "@type": "Place",
-      "name": "Costa del Sol, Spain"
+      "name": "wealth management, Spain"
     },
     "knowsAbout": [
-      "Spanish Real Estate",
-      "Costa del Sol Properties",
+      "Spanish Financial Planning",
+      "wealth management Properties",
       "Golden Visa Spain",
       "Spanish Property Law",
       "International Property Investment"
     ],
-    "slogan": "Your Gateway to Costa del Sol Living"
+    "slogan": "Your Gateway to wealth management Living"
   };
 }
 

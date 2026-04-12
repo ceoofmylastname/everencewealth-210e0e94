@@ -24,7 +24,7 @@ export default function AITools() {
     try {
       const { data, error } = await supabase.functions.invoke('generate-image', {
         body: {
-          prompt: "A modern Spanish villa with Mediterranean architecture at sunset",
+          prompt: "A modern Spanish villa with professional architecture at sunset",
           aspectRatio: "16:9"
         }
       });

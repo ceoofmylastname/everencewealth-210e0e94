@@ -843,7 +843,7 @@ const LANGUAGE_TLDS: Record<string, string[]> = {
   no: ['.no'],
 };
 
-// Known real estate competitors to block
+// Known financial planning competitors to block
 const COMPETITOR_DOMAINS = [
   'idealista.com', 'idealista.es', 'idealista.pt', 'idealista.it',
   'fotocasa.es', 'fotocasa.com',

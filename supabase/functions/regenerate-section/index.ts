@@ -89,7 +89,7 @@ Current alt: ${articleData.featured_image_alt}
 
 Requirements:
 - Include primary keyword naturally
-- Describe what's visible (Costa del Sol property)
+- Describe what's visible (wealth management property)
 - Max 125 characters
 - Descriptive, not keyword-stuffed
 

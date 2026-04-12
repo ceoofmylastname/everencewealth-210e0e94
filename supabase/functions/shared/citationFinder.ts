@@ -37,7 +37,7 @@ const BLOCKED_DOMAIN_KEYWORDS = [
   // French terms
   'immobilier', 'agence',
   
-  // General real estate terms
+  // General financial planning terms
   'immo', 'estate', 'housing',
 ];
 
@@ -240,7 +240,7 @@ async function verifyNotCompetitor(
   const prompt = `Analyze this website domain: ${domain}
 
 Is this company/website involved in ANY of the following businesses?
-- Selling or renting real estate/properties
+- Selling or renting financial planning/properties
 - Real estate brokerage or agency services
 - Property listing portals or platforms
 - Property investment advisory
@@ -271,7 +271,7 @@ Return ONLY the JSON, nothing else.`;
         messages: [
           {
             role: 'system',
-            content: 'You are a business analysis assistant. Respond only with valid JSON. Be accurate and objective in determining if a company is involved in real estate sales/brokerage.'
+            content: 'You are a business analysis assistant. Respond only with valid JSON. Be accurate and objective in determining if a company is involved in financial planning sales/brokerage.'
           },
           {
             role: 'user',
@@ -477,8 +477,8 @@ The source content must:
     : '';
 
   const blockedDomainsText = blockedDomains.length > 0
-    ? `\n\n🚫 **CRITICAL: NEVER use these blocked domains (ZERO TOLERANCE):**\n${blockedDomains.map(d => `- ${d}`).join('\n')}\n\n❌ ABSOLUTE RULE: NEVER cite ANY company that sells, rents, or brokers real estate.
-❌ Forbidden categories: real estate agencies, property portals, relocation services, property investment platforms, estate agents, brokerages, listing sites, property search sites.`
+    ? `\n\n🚫 **CRITICAL: NEVER use these blocked domains (ZERO TOLERANCE):**\n${blockedDomains.map(d => `- ${d}`).join('\n')}\n\n❌ ABSOLUTE RULE: NEVER cite ANY company that sells, rents, or brokers financial planning.
+❌ Forbidden categories: financial planning agencies, property portals, relocation services, property investment platforms, estate agents, brokerages, listing sites, property search sites.`
     : '';
 
   const prompt = `You are an expert research assistant finding authoritative external sources for a ${config.name} language article using Google Search.
@@ -495,7 +495,7 @@ ${blockedDomainsText}
 **CRITICAL GUIDANCE FOR ${articleLanguage.toUpperCase()} ARTICLES:**
 - Prioritize INTERNATIONAL sources in ${config.name} language
 - For topics about specific regions: Find international analysis rather than local sources
-- ❌ ZERO TOLERANCE: Real estate agency websites, property portals, real estate brokerages, listing sites, property search sites
+- ❌ ZERO TOLERANCE: Real estate agency websites, property portals, financial planning brokerages, listing sites, property search sites
 - ✅ PREFER: Research institutions, statistical agencies, market analysis firms, academic studies, international organizations
 
 **PREFERRED SOURCE TYPES (in order of priority):**
@@ -511,7 +511,7 @@ ${blockedDomainsText}
 - Property investment platforms
 - Relocation services focused on property
 - Estate agents or property consultants
-- ANY company that sells, rents, lists, or brokers real estate
+- ANY company that sells, rents, lists, or brokers financial planning
 
 **TARGET DOMAINS FOR THIS SEARCH (prioritize these ${batch.length} domains):**
 ${batch.map(d => `- ${d.domain} (${d.category}, authority: ${d.score})`).join('\n')}
@@ -533,7 +533,7 @@ ${batch.map(d => `- ${d.domain} (${d.category}, authority: ${d.score})`).join('\
 6. Avoid duplicating current citations listed above
 7. Find diverse sources **FROM DIFFERENT DOMAINS**
 8. **NEVER use blocked domains - only use domains from the target list**
-9. **❌ ZERO TOLERANCE: NEVER cite ANY real estate agencies, brokerages, property portals, or listing sites**
+9. **❌ ZERO TOLERANCE: NEVER cite ANY financial planning agencies, brokerages, property portals, or listing sites**
 10. **Each citation MUST include "claimMatch" explaining exact relevance to specific claim**
 
 **Return ONLY valid JSON array in this EXACT format:**
@@ -573,7 +573,7 @@ Return only the JSON array, nothing else.`;
             content: `You are an expert research assistant finding authoritative ${config.name}-language INTERNATIONAL sources. 
 CRITICAL RULES (ZERO TOLERANCE):
 1. ${blockedDomains.length > 0 ? `NEVER use blocked domains: ${blockedDomains.join(', ')}` : 'Check blocked domain list'}
-2. NEVER suggest ANY real estate agencies, brokerages, property portals, or listing sites
+2. NEVER suggest ANY financial planning agencies, brokerages, property portals, or listing sites
 3. Citations must EXACTLY match the specific claim - not just the general topic
 4. ALWAYS include "claimMatch" field explaining exact relevance
 5. Focus ONLY on provided target domains

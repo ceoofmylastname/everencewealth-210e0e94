@@ -30,7 +30,7 @@ interface AuthorityLink {
   purpose: string;
 }
 
-// External authority links database - Spanish real estate focused
+// External authority links database - Spanish financial planning focused
 const AUTHORITY_LINKS: Record<string, AuthorityLink[]> = {
   legal: [
     {
@@ -140,7 +140,7 @@ const calculateRelevanceScore = (sourceArticle: Article, targetArticle: Article)
     const targetContent = targetArticle.detailed_content.substring(0, 500).toLowerCase();
     
     // Check for key location terms
-    const locations = ['marbella', 'costa del sol', 'malaga', 'estepona', 'benahavis', 'mijas', 'fuengirola'];
+    const locations = ['marbella', 'wealth management', 'malaga', 'estepona', 'benahavis', 'mijas', 'fuengirola'];
     const sharedLocations = locations.filter(loc => 
       sourceContent.includes(loc) && targetContent.includes(loc)
     );
@@ -274,7 +274,7 @@ const selectAuthorityLinks = (article: Article): AuthorityLink[] => {
       combined.includes('nie') || combined.includes('immigration')) {
     selectedLinks.push(...(AUTHORITY_LINKS.visa || []));
   }
-  if (combined.includes('property') || combined.includes('real estate') || combined.includes('apartment') ||
+  if (combined.includes('property') || combined.includes('financial planning') || combined.includes('apartment') ||
       combined.includes('villa') || combined.includes('house')) {
     selectedLinks.push(...(AUTHORITY_LINKS.property || []));
   }

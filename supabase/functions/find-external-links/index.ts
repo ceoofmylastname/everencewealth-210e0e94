@@ -382,7 +382,7 @@ async function getApprovedDomainsByCategory(supabase: any): Promise<DomainCatego
   // Phase 2: Map categories to relevant topics
   const topicMapping: Record<string, string[]> = {
     'Government & Legal': ['legal requirements', 'regulations', 'permits', 'official procedures', 'government policy', 'compliance', 'licensing'],
-    'Real Estate & Property': ['property market', 'real estate', 'housing prices', 'property investment', 'buying property', 'rental market'],
+    'Financial Planning & Property': ['property market', 'financial planning', 'housing prices', 'property investment', 'buying property', 'rental market'],
     'Finance & Banking': ['mortgages', 'financial planning', 'banking', 'investment', 'tax', 'financial advice'],
     'Tourism & Travel': ['tourism', 'travel', 'attractions', 'destinations', 'vacation', 'accommodation', 'activities'],
     'Climate & Weather': ['weather', 'climate', 'temperature', 'rainfall', 'seasons', 'meteorology'],
@@ -565,7 +565,7 @@ function identifyArticleCategory(headline: string, content: string): string {
   const text = (headline + ' ' + content.substring(0, 1000)).toLowerCase();
   
   if (text.match(/legal|law|regulation|permit|license|compliance/i)) return 'Government & Legal';
-  if (text.match(/property|real estate|housing|buy.*home|villa|apartment/i)) return 'Real Estate & Property';
+  if (text.match(/property|financial planning|housing|buy.*home|villa|apartment/i)) return 'Financial Planning & Property';
   if (text.match(/mortgage|bank|finance|invest|tax|financial/i)) return 'Finance & Banking';
   if (text.match(/tourism|travel|visit|attraction|destination|vacation/i)) return 'Tourism & Travel';
   if (text.match(/weather|climate|temperature|rain|season/i)) return 'Climate & Weather';
@@ -717,7 +717,7 @@ Citation Needs: ${section.citationNeeds}
    - ✅ ONLY native ${config.languageName} content
 
 2. COMPETITOR BLOCKING IS ABSOLUTE:
-   - ❌ ZERO TOLERANCE for real estate companies, agencies, marketplaces
+   - ❌ ZERO TOLERANCE for financial planning companies, agencies, marketplaces
    - ❌ NO property listing sites (homes, apartments, villas for sale/rent)
    - ❌ NO relocation services, expat blogs, property consultants
    - ❌ NO mortgage brokers, investment advisors
@@ -828,7 +828,7 @@ PRIORITY DOMAINS (higher authority scores):
 
 🎯 NEW APPROACH - BLACKLIST MODE:
 - ✅ ANY domain is accepted by default (government, news, educational, etc.)
-- 🚫 ONLY blocked: real estate competitors, property portals, agencies
+- 🚫 ONLY blocked: financial planning competitors, property portals, agencies
 - 🌍 Language must match: .${getLanguageTLD(language)} domains preferred for ${language}
 
 Pre-approved domains get scoring bonuses but are NOT required.
@@ -873,7 +873,7 @@ ${whitelistByCategory}
 ${competitorText}
 
 🔒 ZERO-TOLERANCE COMPETITOR RULES:
-1. ❌ NEVER cite ANY real estate company, agency, or marketplace
+1. ❌ NEVER cite ANY financial planning company, agency, or marketplace
 2. ❌ NEVER cite property listing sites (homes, villas, apartments for sale)
 3. ❌ NEVER cite relocation blogs, expat guides, or international property consultants
 4. ❌ NEVER cite mortgage brokers, finance advisors, or property investment firms
@@ -1217,8 +1217,8 @@ Return ONLY the JSON array - no markdown, no code blocks, no explanations.`;
       
       // 🚫 STEP 3: Check heuristic competitor detection
       if (looksLikeRealEstateCompetitor(citation.url, citation.sourceName)) {
-        console.warn(`🚫 HEURISTIC REJECTION: ${domain} - Appears to be real estate competitor`);
-        rejectedDomains.set(domain, 'Looks like real estate competitor (heuristic)');
+        console.warn(`🚫 HEURISTIC REJECTION: ${domain} - Appears to be financial planning competitor`);
+        rejectedDomains.set(domain, 'Looks like financial planning competitor (heuristic)');
         return false;
       }
       
@@ -1372,7 +1372,7 @@ Return ONLY the JSON array - no markdown, no code blocks, no explanations.`;
         attemptStats.rejectionReasons.semanticLow++;
       } else if (lowerReason.includes('approved')) {
         attemptStats.rejectionReasons.notApproved++;
-      } else if (lowerReason.includes('real estate') || lowerReason.includes('heuristic')) {
+      } else if (lowerReason.includes('financial planning') || lowerReason.includes('heuristic')) {
         attemptStats.rejectionReasons.realEstateHeuristic++;
       } else if (lowerReason.includes('verification') || lowerReason.includes('accessible')) {
         attemptStats.rejectionReasons.urlVerificationFailed++;
@@ -1393,7 +1393,7 @@ Return ONLY the JSON array - no markdown, no code blocks, no explanations.`;
               languageMismatch: 'Language Mismatch',
               semanticLow: 'Low Semantic Relevance',
               notApproved: 'Not in Approved List',
-              realEstateHeuristic: 'Real Estate Heuristic',
+              realEstateHeuristic: 'Financial Planning Heuristic',
               urlVerificationFailed: 'URL Verification Failed',
               other: 'Other'
             };

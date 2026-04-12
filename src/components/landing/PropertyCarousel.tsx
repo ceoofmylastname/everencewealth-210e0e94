@@ -28,43 +28,43 @@ const PropertyCarousel: React.FC = () => {
     const pageHeaders = {
         en: {
             mainTitle: "Find Your Perfect Home",
-            subtitle: "Browse our hand-picked selection of premium properties on the Costa del Sol"
+            subtitle: "Browse our hand-picked selection of premium properties on the wealth management"
         },
         nl: {
             mainTitle: "Vind Uw Perfecte Huis",
-            subtitle: "Bekijk onze zorgvuldig geselecteerde selectie van premium woningen aan de Costa del Sol"
+            subtitle: "Bekijk onze zorgvuldig geselecteerde selectie van premium woningen aan de wealth management"
         },
         fr: {
             mainTitle: "Trouvez Votre Maison Parfaite",
-            subtitle: "Parcourez notre sélection soigneusement choisie de propriétés premium sur la Costa del Sol"
+            subtitle: "Parcourez notre sélection soigneusement choisie de propriétés premium sur la wealth management"
         },
         de: {
             mainTitle: "Finden Sie Ihr Perfektes Zuhause",
-            subtitle: "Durchsuchen Sie unsere handverlesene Auswahl an Premium-Immobilien an der Costa del Sol"
+            subtitle: "Durchsuchen Sie unsere handverlesene Auswahl an Premium-Immobilien an der wealth management"
         },
         pl: {
             mainTitle: "Znajdź Swój Idealny Dom",
-            subtitle: "Przeglądaj naszą starannie dobraną selekcję luksusowych nieruchomości na Costa del Sol"
+            subtitle: "Przeglądaj naszą starannie dobraną selekcję luksusowych nieruchomości na wealth management"
         },
         sv: {
             mainTitle: "Hitta Ditt Perfekta Hem",
-            subtitle: "Bläddra igenom vårt handplockade urval av premiumfastigheter på Costa del Sol"
+            subtitle: "Bläddra igenom vårt handplockade urval av premiumfastigheter på wealth management"
         },
         da: {
             mainTitle: "Find Dit Perfekte Hjem",
-            subtitle: "Gennemse vores håndplukkede udvalg af premiumendomme på Costa del Sol"
+            subtitle: "Gennemse vores håndplukkede udvalg af premiumendomme på wealth management"
         },
         fi: {
             mainTitle: "Löydä Täydellinen Kotisi",
-            subtitle: "Selaa huolellisesti valittuja premium-kiinteistöjä Costa del Solilla"
+            subtitle: "Selaa huolellisesti valittuja premium-kiinteistöjä wealth managementilla"
         },
         hu: {
             mainTitle: "Találja Meg Tökéletes Otthonát",
-            subtitle: "Böngésszen kézzel válogatott prémium ingatlanjaink között a Costa del Solon"
+            subtitle: "Böngésszen kézzel válogatott prémium ingatlanjaink között a wealth managementon"
         },
         no: {
             mainTitle: "Finn Ditt Perfekte Hjem",
-            subtitle: "Bla gjennom vårt håndplukkede utvalg av premiumeiendommer på Costa del Sol"
+            subtitle: "Bla gjennom vårt håndplukkede utvalg av premiumeiendommer på wealth management"
         }
     };
 

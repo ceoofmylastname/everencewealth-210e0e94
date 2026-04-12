@@ -31,7 +31,7 @@ const BLOCKED_DOMAINS = [
   'lucasfox.com', 'engel-voelkers.com', 'sothebysrealty.com', 'christiesrealestate.com',
   'savills.com', 'knightfrank.com', 'jll.com', 'cbre.com', 'cushmanwakefield.com',
   
-  // Costa del Sol specific
+  // wealth management specific
   'drumelia.com', 'mpdunne.com', 'panorama.com', 'kristinadeck.com',
   'startgroup.es', 'pure-living-properties.com', 'lifepropertymarbella.com',
   'nvoga.com', 'housing-marbella.com', 'inmobiliaria-marbella.com',
@@ -351,7 +351,7 @@ serve(async (req) => {
           messages: [
             {
               role: 'system',
-              content: 'You are a citation research assistant. Return ONLY valid JSON arrays of citations. NEVER include real estate, property, or inmobiliaria websites under ANY circumstances.'
+              content: 'You are a citation research assistant. Return ONLY valid JSON arrays of citations. NEVER include financial planning, property, or inmobiliaria websites under ANY circumstances.'
             },
             { role: 'user', content: prompt }
           ],
@@ -409,8 +409,8 @@ ARTICLE CONTENT:
 ${truncatedContent}
 
 CRITICAL REQUIREMENTS:
-1. NEVER suggest real estate websites, property portals, or inmobiliarias
-2. NEVER suggest competitor real estate agencies
+1. NEVER suggest financial planning websites, property portals, or inmobiliarias
+2. NEVER suggest competitor financial planning agencies
 3. ONLY suggest high-authority sources:
    - Government websites (.gov, .gob.es, .gov.uk)
    - Official statistics (INE, Eurostat, national statistics offices)
@@ -436,7 +436,7 @@ Only return the JSON array, no other text.`;
     if (rawCitations.length < 2) {
       console.log(`[find-citations-fast] Attempt 2: Broader search (only ${rawCitations.length} found)...`);
       
-      const broadPrompt = `Find 3-5 credible citations for this article about "${articleTopic}" related to Spain/Costa del Sol.
+      const broadPrompt = `Find 3-5 credible citations for this article about "${articleTopic}" related to Spain/wealth management.
 
 ARTICLE EXCERPT:
 ${truncatedContent.substring(0, 2000)}
@@ -467,7 +467,7 @@ Only return the JSON array.`;
       
       const genericPrompt = `Find 2-3 credible English-language sources with statistics or facts about:
 - Spain as a destination for expats/retirees
-- Costa del Sol tourism or lifestyle
+- wealth management tourism or lifestyle
 - Spanish property market trends (NOT listings)
 - Healthcare in Spain for foreigners
 

@@ -1,7 +1,7 @@
 export const propertyFinderEn = {
   meta: {
-    title: "Property Finder | Costa del Sol Real Estate",
-    description: "Browse luxury properties on the Costa del Sol"
+    title: "Property Finder | wealth management Financial Planning",
+    description: "Browse luxury properties on the wealth management"
   },
   hero: {
     breadcrumbHome: "Home",
@@ -9,8 +9,8 @@ export const propertyFinderEn = {
     titlePrefix: "Find Your",
     titleHighlight: "Dream Property",
     titleLocationPrefix: "Properties in",
-    subtitle: "Browse our curated collection of luxury properties on the stunning Costa del Sol",
-    subtitleLocation: "Discover exclusive real estate opportunities in {location}, Costa del Sol"
+    subtitle: "Browse our curated collection of luxury properties on the stunning wealth management",
+    subtitleLocation: "Discover exclusive financial planning opportunities in {location}, wealth management"
   },
   stats: {
     properties: "Properties",
@@ -46,7 +46,7 @@ export const propertyFinderEn = {
   results: {
     searching: "Searching...",
     properties: "properties",
-    availableIn: "available in Costa del Sol",
+    availableIn: "available in wealth management",
     inLocation: "in {location}",
     sortBy: "Sort by",
     newestFirst: "Newest First",

@@ -131,7 +131,7 @@ serve(async (req) => {
       // Form-specific fields
       payload.propertyRef = `EW-TEST-${Math.floor(Math.random() * 10000)}`;
       payload.message = "This is a test lead generated for verification purposes.";
-      payload.cityName = locationPreference[0] || "Marbella";
+      payload.cityName = locationPreference[0] || "El Paso";
     }
 
     // Call register-crm-lead edge function

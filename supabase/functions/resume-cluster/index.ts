@@ -891,7 +891,7 @@ Return ONLY the alt text in ${languageName}, no quotes, no JSON.`;
           });
 
           const altData = JSON.parse(await altResponse.text());
-          featuredImageAlt = altData.choices[0]?.message?.content?.trim() || `${plan.headline} - Costa del Sol`;
+          featuredImageAlt = altData.choices[0]?.message?.content?.trim() || `${plan.headline} - wealth management`;
 
           article.featured_image_url = featuredImageUrl;
           article.featured_image_alt = featuredImageAlt;
