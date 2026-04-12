@@ -53,6 +53,7 @@ const BlogArticle = lazy(() => import("./pages/BlogArticle"));
 const QAPage = lazy(() => import("./pages/QAPage"));
 const Sitemap = lazy(() => import("./pages/Sitemap"));
 const Glossary = lazy(() => import("./pages/Glossary"));
+const GlossaryTermPage = lazy(() => import("./pages/GlossaryTerm"));
 const ComparisonPage = lazy(() => import("./pages/ComparisonPage"));
 const ComparisonIndex = lazy(() => import("./pages/ComparisonIndex"));
 const LocationHub = lazy(() => import("./pages/LocationHub"));
@@ -517,6 +518,7 @@ const App = () => (
               <Route path="/sitemap" element={<Sitemap />} />
               <Route path="/glossary" element={<Navigate to="/en/glossary" replace />} />
               <Route path="/:lang/glossary" element={<Glossary />} />
+              <Route path="/:lang/glossary/:termSlug" element={<GlossaryTermPage />} />
               <Route path="/privacy" element={<PrivacyPolicy />} />
               <Route path="/terms" element={<TermsOfService />} />
 

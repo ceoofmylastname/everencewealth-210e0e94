@@ -26,6 +26,7 @@ import BlogEmmaChat from "@/components/blog-article/BlogEmmaChat";
 import PersonSchema from '@/components/schema/PersonSchema';
 import ArticleSchema from '@/components/schema/ArticleSchema';
 import AuthorByline from '@/components/blog-article/AuthorByline';
+import { ShareButtons } from '@/components/blog-article/ShareButtons';
 
 
 const BlogArticle = () => {
@@ -266,6 +267,11 @@ const BlogArticle = () => {
                 dateModified={article.date_modified}
                 context="blog"
                 photoUrl={author?.photo_url}
+              />
+              <ShareButtons
+                title={article.headline}
+                url={article.canonical_url || `https://www.everencewealth.com/${article.language}/blog/${article.slug}`}
+                description={article.meta_description}
               />
             </div>
 
