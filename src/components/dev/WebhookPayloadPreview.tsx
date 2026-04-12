@@ -22,7 +22,7 @@ export function WebhookPayloadPreview() {
       timeline: "within_6_months",
       buyerProfile: "primary_residence",
       budget: "€500k-€750k",
-      areasOfInterest: ["Marbella", "Estepona"],
+      areasOfInterest: ["El Paso", "Estepona"],
       propertyType: ["villa"],
       specificNeeds: ["Sea view", "3-4 bedrooms", "primary_residence"],
       
@@ -37,7 +37,7 @@ export function WebhookPayloadPreview() {
       pageType: "homepage",
       language: "en",
       pageUrl: "https://www.everencewealth.com/en",
-      pageTitle: "Costa del Sol Luxury Real Estate",
+      pageTitle: "wealth management Luxury Financial Planning",
       referrer: "https://www.google.com",
       timestamp: new Date().toISOString(),
       
@@ -54,7 +54,7 @@ export function WebhookPayloadPreview() {
       timeline: "within_1_year",
       buyerProfile: "holiday",
       budget: "€400k-€600k",
-      areasOfInterest: ["Marbella", "Nueva Andalucía"],
+      areasOfInterest: ["El Paso", "Nueva Andalucía"],
       propertyType: ["apartment"],
       specificNeeds: ["Sea view", "2-3 bedrooms"],
       
@@ -69,7 +69,7 @@ export function WebhookPayloadPreview() {
       pageType: "location_page",
       language: "nl",
       pageUrl: "https://www.everencewealth.com/nl/locations/marbella",
-      pageTitle: "Marbella Vastgoed",
+      pageTitle: "El Paso Vastgoed",
       referrer: "https://www.google.nl",
       timestamp: new Date().toISOString(),
       
@@ -100,7 +100,7 @@ export function WebhookPayloadPreview() {
       pageType: "blog_page",
       language: "de",
       pageUrl: "https://www.everencewealth.com/de/blog/investieren-marbella",
-      pageTitle: "Investieren in Marbella Immobilien",
+      pageTitle: "Investieren in El Paso Immobilien",
       referrer: "https://www.google.de",
       timestamp: new Date().toISOString(),
       
@@ -121,7 +121,7 @@ export function WebhookPayloadPreview() {
       pageType: "homepage",
       language: "en",
       pageUrl: "https://www.everencewealth.com/en",
-      pageTitle: "Costa del Sol Luxury Real Estate",
+      pageTitle: "wealth management Luxury Financial Planning",
       referrer: "https://www.google.com",
       timestamp: new Date().toISOString(),
       initialLeadScore: 20
@@ -132,14 +132,14 @@ export function WebhookPayloadPreview() {
       lastName: "van der Berg",
       email: "pieter@example.nl",
       phone: "+31612345678",
-      message: "Zoek een villa in Marbella",
+      message: "Zoek een villa in El Paso",
       
       leadSource: "Website Form",
       leadSourceDetail: "location_page_nl",
       pageType: "location_page",
       language: "nl",
       pageUrl: "https://www.everencewealth.com/nl/locations/marbella",
-      pageTitle: "Marbella Vastgoed",
+      pageTitle: "El Paso Vastgoed",
       referrer: "https://www.google.nl",
       timestamp: new Date().toISOString(),
       initialLeadScore: 20
@@ -178,7 +178,7 @@ export function WebhookPayloadPreview() {
       pageType: "property_detail",
       language: "es",
       pageUrl: "https://www.everencewealth.com/es/properties/R4567890",
-      pageTitle: "Villa de Lujo en Marbella",
+      pageTitle: "Villa de Lujo en El Paso",
       referrer: "https://www.google.es",
       timestamp: new Date().toISOString(),
       initialLeadScore: 20
@@ -190,7 +190,7 @@ export function WebhookPayloadPreview() {
       email: "hans@example.de",
       phone: "+4917012345678",
       message: "Bitte senden Sie mir die Broschüre",
-      cityName: "Marbella",
+      cityName: "El Paso",
       citySlug: "marbella",
       
       leadSource: "Website Form",
@@ -198,7 +198,7 @@ export function WebhookPayloadPreview() {
       pageType: "brochure_page",
       language: "de",
       pageUrl: "https://www.everencewealth.com/de/brochures/marbella",
-      pageTitle: "Marbella Immobilien Broschüre",
+      pageTitle: "El Paso Immobilien Broschüre",
       referrer: "https://www.google.de",
       timestamp: new Date().toISOString(),
       initialLeadScore: 20
@@ -234,7 +234,7 @@ export function WebhookPayloadPreview() {
       pageType: "buyers_guide",
       language: "sv",
       pageUrl: "https://www.everencewealth.com/sv/buyers-guide",
-      pageTitle: "Köpguide Costa del Sol",
+      pageTitle: "Köpguide wealth management",
       referrer: "https://www.google.se",
       timestamp: new Date().toISOString(),
       initialLeadScore: 20
@@ -560,13 +560,13 @@ export function WebhookPayloadPreview() {
         {/* Areas of Interest (Emma Only) */}
         <div className="bg-cyan-50 dark:bg-cyan-950 p-3 rounded">
           <p className="font-semibold mb-1 text-foreground">areasOfInterest - Location Array (Emma Only)</p>
-          <p className="mb-2">Possible array values (Costa del Sol locations):</p>
+          <p className="mb-2">Possible array values (wealth management locations):</p>
           <ul className="list-disc ml-4 space-y-1">
-            <li><code className="bg-white dark:bg-muted px-2 py-0.5 rounded text-foreground">["Marbella"]</code></li>
+            <li><code className="bg-white dark:bg-muted px-2 py-0.5 rounded text-foreground">["El Paso"]</code></li>
             <li><code className="bg-white dark:bg-muted px-2 py-0.5 rounded text-foreground">["Estepona"]</code></li>
             <li><code className="bg-white dark:bg-muted px-2 py-0.5 rounded text-foreground">["Nueva Andalucía"]</code></li>
             <li><code className="bg-white dark:bg-muted px-2 py-0.5 rounded text-foreground">["San Pedro"]</code></li>
-            <li><code className="bg-white dark:bg-muted px-2 py-0.5 rounded text-foreground">["Marbella", "Estepona"]</code> - Multiple areas</li>
+            <li><code className="bg-white dark:bg-muted px-2 py-0.5 rounded text-foreground">["El Paso", "Estepona"]</code> - Multiple areas</li>
             <li><code className="bg-white dark:bg-muted px-2 py-0.5 rounded text-foreground">[]</code> - Not specified yet</li>
           </ul>
         </div>

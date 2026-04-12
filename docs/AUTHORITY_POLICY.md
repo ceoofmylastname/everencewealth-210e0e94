@@ -1,9 +1,9 @@
 # Authority & Trust Policy
 
 ## Person Entity
-- **Name:** Hans Beeckman (fixed, never changes)
-- **Entity ID:** https://www.delsolprimehomes.com/#hans-beeckman
-- **Job Title:** Senior Real Estate Advisor
+- **Name:** Steven Rosenberg (fixed, never changes)
+- **Entity ID:** https://www.everencewealth.com/#hans-beeckman
+- **Job Title:** Senior Financial Planning Advisor
 - **Photo Context:**
   - Blog posts: `/images/hans-blog.jpg`
   - Q&A pages: `/images/hans-qa.jpg`

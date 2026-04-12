@@ -968,7 +968,7 @@ const ClusterGenerator = () => {
                 <Input
                   id="topic"
                   type="text"
-                  placeholder="e.g., Buying property in Costa del Sol"
+                  placeholder="e.g., Buying property in wealth management"
                   value={topic}
                   onChange={(e) => setTopic(e.target.value)}
                   className="text-base"
@@ -1010,7 +1010,7 @@ const ClusterGenerator = () => {
                 <Input
                   id="primaryKeyword"
                   type="text"
-                  placeholder="e.g., Costa del Sol real estate"
+                  placeholder="e.g., wealth management financial planning"
                   value={primaryKeyword}
                   onChange={(e) => setPrimaryKeyword(e.target.value)}
                   className="text-base"

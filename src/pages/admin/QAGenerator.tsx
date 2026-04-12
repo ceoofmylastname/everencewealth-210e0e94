@@ -1421,7 +1421,7 @@ const queryClient = useQueryClient();
                   Generate Hyper-Specific City Q&A Pages
                 </CardTitle>
                 <CardDescription>
-                  Create AI-ready Q&A pages for each Costa del Sol city.
+                  Create AI-ready Q&A pages for each wealth management city.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">

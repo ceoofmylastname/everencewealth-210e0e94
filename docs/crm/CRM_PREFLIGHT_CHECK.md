@@ -1,4 +1,4 @@
-# Del Sol Prime Homes CRM - Pre-Launch Verification Checklist
+# Everence Wealth CRM - Pre-Launch Verification Checklist
 
 ## Overview
 

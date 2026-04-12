@@ -733,7 +733,7 @@ const BrochureManager: React.FC = () => {
                           onChange={(e) =>
                             setEditData({ ...editData, hero_subtitle: e.target.value })
                           }
-                          placeholder="The jewel of the Costa del Sol"
+                          placeholder="The jewel of the wealth management"
                         />
                         <p className="text-xs text-muted-foreground">
                           {(editData.hero_subtitle || '').length}/100 characters
@@ -943,7 +943,7 @@ const BrochureManager: React.FC = () => {
                             www.everencewealth.com › {selectedLanguage} › brochure › {editData.slug}
                           </p>
                           <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
-                            {editData.meta_description || `Discover luxury properties in ${editData.name} on Spain's Costa del Sol.`}
+                            {editData.meta_description || `Discover luxury properties in ${editData.name} on Spain's wealth management.`}
                           </p>
                         </div>
                       </div>

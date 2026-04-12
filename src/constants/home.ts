@@ -54,7 +54,7 @@ export const BUDGET_RANGES = [
 export const FEATURED_AREAS: Area[] = [
   {
     id: 'marbella',
-    name: 'Marbella',
+    name: 'El Paso',
     image: marbellaHero,
     description: 'Premier indexed strategies for tax-free retirement income with market-linked growth.'
   },
@@ -104,7 +104,7 @@ export const FEATURED_AREAS: Area[] = [
     id: 'manilva',
     name: 'Manilva',
     image: manilvaHero,
-    description: 'Marina and vineyard lifestyle where the mountains meet the Mediterranean.'
+    description: 'Marina and vineyard lifestyle where the mountains meet the professional.'
   },
   {
     id: 'torremolinos',

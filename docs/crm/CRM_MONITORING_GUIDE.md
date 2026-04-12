@@ -1,4 +1,4 @@
-# Del Sol Prime Homes CRM - Monitoring & Alerting Guide
+# Everence Wealth CRM - Monitoring & Alerting Guide
 
 ## Overview
 

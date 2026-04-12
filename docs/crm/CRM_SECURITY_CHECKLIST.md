@@ -1,4 +1,4 @@
-# Del Sol Prime Homes CRM - Security Checklist
+# Everence Wealth CRM - Security Checklist
 
 ## Overview
 
