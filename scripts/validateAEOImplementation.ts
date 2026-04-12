@@ -24,7 +24,7 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 // Configuration
 const SUPPORTED_LANGUAGES = ['en', 'nl', 'de', 'fr', 'pl', 'sv', 'da', 'hu', 'fi', 'no'];
 const EXPECTED_HREFLANG_COUNT = SUPPORTED_LANGUAGES.length + 1; // +1 for x-default
-const BASE_URL = 'https://www.delsolprimehomes.com';
+const BASE_URL = 'https://www.everencewealth.com';
 
 interface ValidationCheck {
   name: string;

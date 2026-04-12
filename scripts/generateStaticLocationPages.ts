@@ -73,7 +73,7 @@ interface ProductionAssets {
   js: string[];
 }
 
-const BASE_URL = 'https://www.delsolprimehomes.com';
+const BASE_URL = 'https://www.everencewealth.com';
 
 function getProductionAssets(distDir: string): ProductionAssets {
   const indexPath = join(distDir, 'index.html');
@@ -125,7 +125,7 @@ function generateLocalBusinessSchema(location: LocationData) {
     "@context": "https://schema.org",
     "@type": "RealEstateAgent",
     "@id": `${BASE_URL}/#organization`,
-    "name": "Del Sol Prime Homes",
+    "name": "Everence Wealth",
     "description": `Expert real estate services in ${location.city_name}, Costa del Sol`,
     "url": BASE_URL,
     "areaServed": {
@@ -243,7 +243,7 @@ function generateWebPageSchema(location: LocationData) {
     "inLanguage": location.language,
     "isPartOf": {
       "@type": "WebSite",
-      "name": "Del Sol Prime Homes",
+      "name": "Everence Wealth",
       "url": BASE_URL
     },
     "about": {
@@ -554,10 +554,10 @@ function generateStaticHTML(location: LocationData, productionAssets: Production
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="${sanitizeForHTML(location.meta_description)}">
-  <meta name="author" content="${location.author?.name || 'Del Sol Prime Homes'}">
+  <meta name="author" content="${location.author?.name || 'Everence Wealth'}">
   <meta name="geo.region" content="ES-MA">
   <meta name="geo.placename" content="${sanitizeForHTML(location.city_name)}">
-  <title>${sanitizeForHTML(location.meta_title)} | Del Sol Prime Homes</title>
+  <title>${sanitizeForHTML(location.meta_title)} | Everence Wealth</title>
   
   <link rel="canonical" href="${canonicalUrl}" />
   
@@ -577,7 +577,7 @@ function generateStaticHTML(location: LocationData, productionAssets: Production
   <meta property="og:description" content="${sanitizeForHTML(location.meta_description)}" />
   ${location.featured_image_url ? `<meta property="og:image" content="${location.featured_image_url}" />` : ''}
   <meta property="og:url" content="${canonicalUrl}" />
-  <meta property="og:site_name" content="Del Sol Prime Homes" />
+  <meta property="og:site_name" content="Everence Wealth" />
   <meta property="og:locale" content="${location.language === 'en' ? 'en_GB' : location.language}" />
   
   <meta name="twitter:card" content="summary_large_image" />

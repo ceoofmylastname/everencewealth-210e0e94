@@ -21,12 +21,12 @@ const LANGUAGES = [
 ];
 
 const CATEGORY_CONFIG: Record<string, { icon: React.ComponentType<any>; color: string }> = {
-  'Buying Guides': { icon: BookOpen, color: 'bg-blue-500' },
-  'Investment Strategies': { icon: TrendingUp, color: 'bg-green-500' },
-  'Legal & Regulations': { icon: Scale, color: 'bg-purple-500' },
-  'Location Insights': { icon: MapPin, color: 'bg-orange-500' },
-  'Market Analysis': { icon: BarChart3, color: 'bg-rose-500' },
-  'Property Management': { icon: Building, color: 'bg-cyan-500' },
+  'Retirement Planning': { icon: BookOpen, color: 'bg-blue-500' },
+  'Tax Strategy': { icon: Scale, color: 'bg-purple-500' },
+  'Index Strategies': { icon: TrendingUp, color: 'bg-green-500' },
+  'Living Benefits': { icon: HelpCircle, color: 'bg-orange-500' },
+  'Legacy Planning': { icon: Building, color: 'bg-cyan-500' },
+  'General Finance': { icon: BarChart3, color: 'bg-rose-500' },
 };
 
 export default function QAIndex() {
@@ -141,7 +141,7 @@ export default function QAIndex() {
               
               {/* qa-hero-description class for speakable schema */}
               <p className="qa-hero-description text-lg md:text-xl text-white/70 mb-10 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-                Expert answers to your questions about Costa del Sol real estate, property buying, and Mediterranean lifestyle.
+                Expert answers to your most pressing retirement planning, tax strategy, and wealth protection questions — answered by licensed financial advisors.
               </p>
 
               {/* Search & Filters */}

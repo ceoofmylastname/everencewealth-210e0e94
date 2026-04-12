@@ -103,10 +103,10 @@ function getProductionAssets(distDir: string): ProductionAssets {
 function generateOrganizationSchema() {
   return {
     "@context": "https://schema.org",
-    "@type": "RealEstateAgent",
-    "@id": "https://www.delsolprimehomes.com/#organization",
-    "name": "Del Sol Prime Homes",
-    "url": "https://www.delsolprimehomes.com/"
+    "@type": "FinancialService",
+    "@id": "https://www.everencewealth.com/#organization",
+    "name": "Everence Wealth",
+    "url": "https://www.everencewealth.com/"
   };
 }
 
@@ -139,7 +139,7 @@ function generateFAQPageSchema(qa: QAPageData) {
   return {
     "@context": "https://schema.org",
     "@type": "FAQPage",
-    "@id": `https://www.delsolprimehomes.com/qa/${qa.slug}#faq`,
+    "@id": `https://www.everencewealth.com/qa/${qa.slug}#faq`,
     "inLanguage": qa.language,
     "mainEntity": mainEntity
   };
@@ -149,15 +149,15 @@ function generateWebPageSchema(qa: QAPageData) {
   return {
     "@context": "https://schema.org",
     "@type": "WebPage",
-    "@id": `https://www.delsolprimehomes.com/qa/${qa.slug}#webpage`,
-    "url": `https://www.delsolprimehomes.com/qa/${qa.slug}`,
+    "@id": `https://www.everencewealth.com/qa/${qa.slug}#webpage`,
+    "url": `https://www.everencewealth.com/qa/${qa.slug}`,
     "name": qa.meta_title,
     "description": qa.meta_description,
     "inLanguage": qa.language,
     "datePublished": qa.created_at,
     "dateModified": qa.updated_at || qa.created_at,
     "isPartOf": {
-      "@id": "https://www.delsolprimehomes.com/#website"
+      "@id": "https://www.everencewealth.com/#website"
     },
     "author": qa.author ? {
       "@type": "Person",
@@ -170,25 +170,25 @@ function generateBreadcrumbSchema(qa: QAPageData) {
   return {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
-    "@id": `https://www.delsolprimehomes.com/qa/${qa.slug}#breadcrumb`,
+    "@id": `https://www.everencewealth.com/qa/${qa.slug}#breadcrumb`,
     "itemListElement": [
       {
         "@type": "ListItem",
         "position": 1,
         "name": "Home",
-        "item": "https://www.delsolprimehomes.com/"
+        "item": "https://www.everencewealth.com/"
       },
       {
         "@type": "ListItem",
         "position": 2,
         "name": "Q&A",
-        "item": "https://www.delsolprimehomes.com/qa/"
+        "item": "https://www.everencewealth.com/qa/"
       },
       {
         "@type": "ListItem",
         "position": 3,
         "name": qa.title,
-        "item": `https://www.delsolprimehomes.com/qa/${qa.slug}/`
+        "item": `https://www.everencewealth.com/qa/${qa.slug}/`
       }
     ]
   };
@@ -374,7 +374,7 @@ function generateStaticHTML(qa: QAPageData, enhancedHreflang: boolean, productio
     `<script type="application/ld+json" data-schema="speakable">${JSON.stringify(speakableSchema, null, 2)}</script>`
   ].join('\n  ');
 
-  const baseUrl = 'https://www.delsolprimehomes.com';
+  const baseUrl = 'https://www.everencewealth.com';
   // FIXED: Include language prefix in canonical URL
   const canonicalUrl = qa.canonical_url || `${baseUrl}/${qa.language}/qa/${qa.slug}`;
 
@@ -423,8 +423,8 @@ function generateStaticHTML(qa: QAPageData, enhancedHreflang: boolean, productio
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
   <meta name="description" content="${sanitizeForHTML(qa.meta_description)}">
-  <meta name="author" content="${qa.author?.name || 'Del Sol Prime Homes'}">
-  <title>${sanitizeForHTML(qa.meta_title)} | Del Sol Prime Homes</title>
+  <meta name="author" content="${qa.author?.name || 'Everence Wealth'}">
+  <title>${sanitizeForHTML(qa.meta_title)} | Everence Wealth</title>
   
   <link rel="canonical" href="${canonicalUrl}" />${hreflangLinks}
   
@@ -444,7 +444,7 @@ function generateStaticHTML(qa: QAPageData, enhancedHreflang: boolean, productio
   <meta property="og:description" content="${sanitizeForHTML(qa.meta_description)}" />
   <meta property="og:image" content="${qa.featured_image_url}" />
   <meta property="og:url" content="${baseUrl}/${qa.language}/qa/${qa.slug}" />
-  <meta property="og:site_name" content="Del Sol Prime Homes" />
+  <meta property="og:site_name" content="Everence Wealth" />
   
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="${sanitizeForHTML(qa.meta_title)}" />
@@ -500,7 +500,7 @@ function generateStaticHTML(qa: QAPageData, enhancedHreflang: boolean, productio
  * Generate static QA Index page with ItemList + CollectionPage schema
  */
 function generateQAIndexHTML(qaPages: QAPageData[], productionAssets: ProductionAssets): string {
-  const baseUrl = 'https://www.delsolprimehomes.com';
+  const baseUrl = 'https://www.everencewealth.com';
   
   // Generate comprehensive schema for QA index
   const indexSchema = {
@@ -540,7 +540,7 @@ function generateQAIndexHTML(qaPages: QAPageData[], productionAssets: Production
         "@type": "WebPage",
         "@id": `${baseUrl}/qa#webpage`,
         "url": `${baseUrl}/qa`,
-        "name": "Questions & Answers | Del Sol Prime Homes",
+        "name": "Questions & Answers | Everence Wealth",
         "description": "Find answers to common questions about buying property in Costa del Sol, Spain. Expert advice on real estate, legal processes, and lifestyle.",
         "isPartOf": { "@id": `${baseUrl}/#website` },
         "inLanguage": "en-GB"
@@ -668,7 +668,7 @@ function generateQAIndexHTML(qaPages: QAPageData[], productionAssets: Production
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Find answers to common questions about buying property in Costa del Sol, Spain. Expert advice on real estate, legal processes, and lifestyle.">
-  <title>Questions & Answers | Del Sol Prime Homes</title>
+  <title>Questions & Answers | Everence Wealth</title>
   
   <link rel="canonical" href="${baseUrl}/qa" />
   
@@ -684,13 +684,13 @@ function generateQAIndexHTML(qaPages: QAPageData[], productionAssets: Production
   ${cssLinks}
   
   <meta property="og:type" content="website" />
-  <meta property="og:title" content="Questions & Answers | Del Sol Prime Homes" />
+  <meta property="og:title" content="Questions & Answers | Everence Wealth" />
   <meta property="og:description" content="Find answers to common questions about buying property in Costa del Sol, Spain." />
   <meta property="og:url" content="${baseUrl}/qa" />
-  <meta property="og:site_name" content="Del Sol Prime Homes" />
+  <meta property="og:site_name" content="Everence Wealth" />
   
   <meta name="twitter:card" content="summary" />
-  <meta name="twitter:title" content="Questions & Answers | Del Sol Prime Homes" />
+  <meta name="twitter:title" content="Questions & Answers | Everence Wealth" />
   <meta name="twitter:description" content="Find answers to common questions about buying property in Costa del Sol, Spain." />
   
   <script type="application/ld+json" data-schema="qa-index">

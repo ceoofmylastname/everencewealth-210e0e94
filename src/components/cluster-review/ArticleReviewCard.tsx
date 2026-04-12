@@ -232,7 +232,7 @@ export const ArticleReviewCard = ({
                 onChange={(e) => onEdit({ slug: e.target.value })}
               />
               <p className="text-xs text-muted-foreground">
-                https://www.delsolprimehomes.com/blog/{article.slug || 'your-slug'}
+                https://www.everencewealth.com/blog/{article.slug || 'your-slug'}
               </p>
             </div>
 

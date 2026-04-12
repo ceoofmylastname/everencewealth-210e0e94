@@ -11,14 +11,13 @@ import {
   type ArticleData,
 } from "@/hooks/useSitemapData";
 
-const BASE_URL = "https://www.delsolprimehomes.com";
+const BASE_URL = "https://www.everencewealth.com";
 
-const SUPPORTED_LANGUAGES = ['en', 'nl', 'de', 'fr', 'pl', 'sv', 'da', 'hu', 'fi', 'no'];
+const SUPPORTED_LANGUAGES = ['en', 'es'];
 
 const langToHreflang: Record<string, string> = {
-  en: 'en-GB', de: 'de-DE', nl: 'nl-NL', hu: 'hu-HU',
-  fr: 'fr-FR', pl: 'pl-PL', sv: 'sv-SE', 
-  da: 'da-DK', fi: 'fi-FI', no: 'nb-NO',
+  en: 'en-US',
+  es: 'es-US',
 };
 
 const Sitemap = () => {
@@ -141,7 +140,7 @@ ${articleUrls}
 
     return `<?xml version="1.0" encoding="UTF-8"?>
 <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <!-- Del Sol Prime Homes Sitemap Index -->
+  <!-- Everence Wealth Sitemap Index -->
   <!-- Total: ${totalUrls} published pages -->
 </sitemapindex>`;
   }, [totalUrls]);

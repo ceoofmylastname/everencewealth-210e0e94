@@ -187,10 +187,10 @@ export function generateWebPageSchema(qaPage: QAPage, author: Author | null) {
       '@type': 'WebSite',
       '@id': `${BASE_URL}/#website`,
       url: BASE_URL,
-      name: 'Del Sol Prime Homes',
+      name: 'Everence Wealth',
       publisher: {
         '@type': 'Organization',
-        name: 'Del Sol Prime Homes',
+        name: 'Everence Wealth',
         url: BASE_URL,
       },
     },

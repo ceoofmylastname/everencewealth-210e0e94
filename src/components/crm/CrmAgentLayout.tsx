@@ -152,7 +152,7 @@ export function CrmAgentLayout() {
                 <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center">
                   <Building2 className="w-4 h-4 text-white" />
                 </div>
-                <span className="font-serif font-bold hidden sm:inline">Del Sol CRM</span>
+                <span className="font-serif font-bold hidden sm:inline">Everence CRM</span>
               </Link>
 
               {/* Desktop Nav */}

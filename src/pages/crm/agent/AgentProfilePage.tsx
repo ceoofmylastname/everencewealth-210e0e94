@@ -154,7 +154,7 @@ export default function AgentProfilePage() {
             Email Integration
           </CardTitle>
           <CardDescription>
-            Connect your @delsolprimehomes.com Gmail to sync emails with leads
+            Connect your @everencewealth.com Gmail to sync emails with leads
           </CardDescription>
         </CardHeader>
         <CardContent>
