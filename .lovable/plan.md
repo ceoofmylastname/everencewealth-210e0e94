@@ -1,86 +1,41 @@
 
 
-## Phase 3: Content Templates & Seeding (Updated)
+## Phase 3, Step 10: Publish New Articles & Generate Q&A Pages
 
-All database inserts use `status: 'published'` (confirmed from existing live rows in all three tables).
+### Current Status
+All 3 cluster generation jobs completed successfully:
+- **Tax-Free Retirement Income** (`42f27c00`): 6 EN + 6 ES articles ✓
+- **Living Benefits & Protection** (`4d44cb1a`): 6 EN + 6 ES articles ✓  
+- **Legacy Planning & Estate Strategy** (`747f2c84`): 6 EN + 6 ES articles ✓
 
----
+**Problem:** All 36 new articles were created with `status: 'draft'`. The Q&A generation function requires `status = 'published'` to find articles.
 
-### Step 1: Glossary — Individual Term Pages + DefinedTerm Schema
+### Step 1: Publish all draft articles
 
-- Create `src/pages/GlossaryTerm.tsx` — renders single term by slug from `en.json` glossary data, includes DefinedTerm JSON-LD schema
-- Add route `/:lang/glossary/:termSlug` in `App.tsx`
-- Add slug generation (term name → kebab-case) and link each term on the glossary index page
-- Result: 60 new indexable pages with structured data
+Create a database migration to set all new articles to published:
 
-### Step 2: Comparisons — Seed 6 Published Pages
+```sql
+UPDATE blog_articles 
+SET status = 'published' 
+WHERE cluster_id IN (
+  '42f27c00-4a50-46fd-b80e-39aa40527675',
+  '4d44cb1a-fc3a-4a1a-aa01-7daa5df79fb7',
+  '747f2c84-e762-4ee7-b12b-633f0bfe9d4b'
+) AND status = 'draft';
+```
 
-Insert 6 rows into `comparison_pages` with `status: 'published'`:
-1. IUL vs Roth IRA
-2. Whole Life vs IUL
-3. Roth IRA vs Traditional IRA
-4. Index Strategy vs Market Portfolio
-5. 401k vs Roth 401k
-6. Indexed Annuity vs Variable Annuity
+### Step 2: Trigger Q&A generation for all 3 clusters
 
-### Step 3: State Guides — Seed 5 Missing States (Published)
+After publishing, invoke `generate-cluster-qas` for each cluster ID. Each cluster produces 24 Q&A pages (6 articles × 4 Q&A types), totaling 72 new Q&A pages.
 
-Already have: CA, FL, GA, IL, MI. Insert 5 rows into `location_pages` with `status: 'published'` for: TX, NY, PA, OH, NC.
+### Step 3: Verify final counts
 
-### Step 4: Locations — Seed 12 More Cities (Published)
+After completion, confirm totals:
+- **Articles:** 36 EN + 36 ES = 72 total (previously 36, adding 36)
+- **Q&A Pages:** 144 existing + 72 new = 216 total
 
-Insert 12 rows into `location_pages` with `status: 'published'` for: New York, Houston, Phoenix, Philadelphia, San Antonio, Jacksonville, Columbus, Charlotte, Indianapolis, Denver, Washington DC, Boston.
-
-### Step 5: Guides Library — Seed 5 Guides (Published)
-
-Insert 5 rows into `brochures` with `status: 'published'`, `featured: true`:
-1. The Complete Guide to Tax-Free Retirement Income
-2. How to Eliminate RMDs
-3. Index Strategy Explained
-4. The 3 Tax Buckets
-5. Living Benefits Explained
-
-### Step 6: Footer — Add Missing Links
-
-Update `src/components/home/Footer.tsx` to add: Comparisons, State Guides, Guides Library, Client Stories, Privacy Policy, Terms of Service.
-
-### Step 7: Fix Speakable Mismatch
-
-Update `src/components/schema/ArticleSchema.tsx` — change `.speakable-summary` to `.speakable-answer` to match the actual CSS class used in `SpeakableBox.tsx`.
-
-### Step 8: Add Share Buttons
-
-Create `src/components/blog-article/ShareButtons.tsx` using native Web Share API with fallback. Add to `BlogArticle.tsx`.
-
-### Step 9: Verify Article FAQs and Q&A Links
-
-Query database to confirm articles have FAQs and Q&A page links. Report findings.
-
-### Step 10: Generate 3 New Topic Clusters
-
-Runtime operation — invoke existing edge functions for:
-1. Tax-Free Retirement Income
-2. Living Benefits & Protection
-3. Legacy Planning & Estate Strategy
-
-This will be triggered after all code changes deploy. Will provide exact invocation instructions.
-
----
-
-### Files created
-- `src/pages/GlossaryTerm.tsx`
-- `src/components/blog-article/ShareButtons.tsx`
-
-### Files modified
-- `src/App.tsx` — glossary term route
-- `src/pages/Glossary.tsx` — term links
-- `src/components/home/Footer.tsx` — new sections
-- `src/components/schema/ArticleSchema.tsx` — speakable selector fix
-- `src/pages/BlogArticle.tsx` — share buttons
-
-### Database inserts (all `status: 'published'`)
-- 6 rows → `comparison_pages`
-- 5 rows → `location_pages` (states)
-- 12 rows → `location_pages` (cities)
-- 5 rows → `brochures`
+### What this requires
+- 1 database migration (UPDATE to set status = 'published')
+- 3 edge function invocations (generate-cluster-qas)
+- Polling to confirm Q&A generation completes
 
