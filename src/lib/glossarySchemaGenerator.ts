@@ -52,19 +52,19 @@ const OG_LOCALES: Record<string, string> = {
 // Author/Expert for E-E-A-T signals
 const glossaryAuthor = {
   "@type": "Person",
-  "name": "Hans Beeckman",
-  "jobTitle": "Licensed Real Estate Consultant",
+  "name": "Everence Wealth Team",
+  "jobTitle": "Licensed Financial Advisors",
   "worksFor": {
-    "@type": "RealEstateAgent",
-    "name": "Del Sol Prime Homes",
+    "@type": "FinancialService",
+    "name": "Everence Wealth",
     "url": BASE_URL
   },
   "knowsAbout": [
-    "Spanish Property Law",
-    "Costa del Sol Real Estate",
-    "Spanish Tax System",
-    "Golden Visa Spain",
-    "NIE Application Process"
+    "Retirement Planning",
+    "Tax-Free Income Strategies",
+    "Indexed Universal Life Insurance",
+    "Wealth Protection",
+    "Legacy Planning"
   ]
 };
 
