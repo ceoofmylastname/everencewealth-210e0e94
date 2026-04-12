@@ -842,58 +842,58 @@ const BUYERS_GUIDE_META: Record<string, {
     subheadline: "Everything you need to know about building and protecting your wealth with independent financial strategies."
   },
   nl: {
-    title: "Complete Gids voor het Kopen van Vastgoed aan de Costa del Sol | Everence Wealth",
-    description: "Uw uitgebreide gids voor het kopen van onroerend goed aan de Costa del Sol. Stap-voor-stap proces, kosten, juridische vereisten en deskundig advies.",
-    headline: "De Complete Gids voor het Kopen van Vastgoed aan de Costa del Sol",
-    subheadline: "Alles wat u moet weten over het kopen van uw droomhuis in de meest gewilde regio van Spanje."
+    title: "Complete Gids voor Vermogensbeheer | Everence Wealth",
+    description: "Uw uitgebreide gids voor vermogensbeheer. Strategieën voor belastingvrij pensioen, IUL-opties en vermogensbescherming. Stap-voor-stap proces, kosten, juridische vereisten en deskundig advies.",
+    headline: "De Complete Gids voor Vermogensbeheer",
+    subheadline: "Alles wat u moet weten over het opbouwen en beschermen van uw vermogen."
   },
   de: {
-    title: "Vollständiger Käuferleitfaden für Immobilien an der Costa del Sol | Everence Wealth",
-    description: "Ihr umfassender Leitfaden zum Immobilienkauf an der Costa del Sol. Schritt-für-Schritt-Prozess, Kosten, rechtliche Anforderungen und Expertenberatung.",
-    headline: "Der Komplette Leitfaden zum Immobilienkauf an der Costa del Sol",
-    subheadline: "Alles, was Sie über den Kauf Ihres Traumhauses in Spaniens begehrtester Region wissen müssen."
+    title: "Vollständiger Leitfaden zur Vermögensverwaltung | Everence Wealth",
+    description: "Ihr umfassender Leitfaden zur Vermögensverwaltung. Steuerfreie Altersvorsorge, IUL-Optionen und Vermögensschutz. Schritt-für-Schritt-Prozess, Kosten, rechtliche Anforderungen und Expertenberatung.",
+    headline: "Der Komplette Leitfaden zur Vermögensverwaltung",
+    subheadline: "Alles, was Sie über den Aufbau und Schutz Ihres Vermögens wissen müssen."
   },
   fr: {
-    title: "Guide Complet pour Acheter une Propriété sur la Costa del Sol | Everence Wealth",
-    description: "Votre guide complet pour l'achat immobilier sur la Costa del Sol. Processus étape par étape, coûts, exigences légales et conseils d'experts.",
-    headline: "Le Guide Complet pour Acheter une Propriété sur la Costa del Sol",
-    subheadline: "Tout ce que vous devez savoir sur l'achat de votre maison de rêve dans la région la plus convoitée d'Espagne."
+    title: "Guide Complet de Gestion de Patrimoine | Everence Wealth",
+    description: "Votre guide complet de gestion de patrimoine. Stratégies de retraite défiscalisée, options IUL et protection des actifs. Processus étape par étape, coûts, exigences légales et conseils d'experts.",
+    headline: "Le Guide Complet de Gestion de Patrimoine",
+    subheadline: "Tout ce que vous devez savoir sur la construction et la protection de votre patrimoine."
   },
   sv: {
-    title: "Komplett Köparguide för Fastigheter på Costa del Sol | Everence Wealth",
-    description: "Din kompletta guide till fastighetsköp på Costa del Sol. Steg-för-steg-process, kostnader, juridiska krav och expertråd.",
-    headline: "Den Kompletta Guiden till att Köpa Fastighet på Costa del Sol",
-    subheadline: "Allt du behöver veta om att köpa ditt drömhem i Spaniens mest eftertraktade region."
+    title: "Komplett Guide till Förmögenhetsförvaltning | Everence Wealth",
+    description: "Din kompletta guide till förmögenhetsförvaltning. Skattefria pensionsstrategier, IUL-alternativ och tillgångsskydd. Steg-för-steg-process, kostnader, juridiska krav och expertråd.",
+    headline: "Den Kompletta Guiden till Förmögenhetsförvaltning",
+    subheadline: "Allt du behöver veta om att bygga och skydda din förmögenhet."
   },
   no: {
-    title: "Komplett Kjøperguide for Eiendom på Costa del Sol | Everence Wealth",
-    description: "Din komplette guide til eiendomskjøp på Costa del Sol. Steg-for-steg-prosess, kostnader, juridiske krav og ekspertråd.",
-    headline: "Den Komplette Guiden til å Kjøpe Eiendom på Costa del Sol",
-    subheadline: "Alt du trenger å vite om å kjøpe drømmeboligen din i Spanias mest ettertraktede region."
+    title: "Komplett Guide til Formuesforvaltning | Everence Wealth",
+    description: "Din komplette guide til formuesforvaltning. Skattefrie pensjonsstrategier, IUL-alternativer-prosess, kostnader, juridiske krav og ekspertråd.",
+    headline: "Den Komplette Guiden til Formuesforvaltning",
+    subheadline: "Alt du trenger å vite om å bygge og beskytte din formue."
   },
   da: {
-    title: "Komplet Køberguide til Ejendom på Costa del Sol | Everence Wealth",
-    description: "Din komplette guide til ejendomskøb på Costa del Sol. Trin-for-trin-proces, omkostninger, juridiske krav og ekspertrådgivning.",
-    headline: "Den Komplette Guide til at Købe Ejendom på Costa del Sol",
-    subheadline: "Alt hvad du behøver at vide om at købe dit drømmehjem i Spaniens mest eftertragtede region."
+    title: "Komplet Guide til Formueforvaltning | Everence Wealth",
+    description: "Din komplette guide til formueforvaltning. Skattefrie pensionsstrategier, IUL-alternativer-proces, omkostninger, juridiske krav og ekspertrådgivning.",
+    headline: "Den Komplette Guide til Formueforvaltning",
+    subheadline: "Alt hvad du behøver at vide om at opbygge og beskytte din formue."
   },
   fi: {
-    title: "Täydellinen Ostajan Opas Costa del Sol Kiinteistöihin | Everence Wealth",
-    description: "Kattava oppaasi kiinteistön ostamiseen Costa del Solilta. Vaiheittainen prosessi, kustannukset, oikeudelliset vaatimukset ja asiantuntijaneuvot.",
-    headline: "Täydellinen Opas Kiinteistön Ostamiseen Costa del Solilta",
-    subheadline: "Kaikki mitä sinun tarvitsee tietää unelmiesi kodin ostamisesta Espanjan halutuimmalta alueelta."
+    title: "Täydellinen Opas Varallisuudenhoitoon | Everence Wealth",
+    description: "Kattava oppaasi varallisuudenhoitoon. Verovapaita eläkestrategioita, IUL-vaihtoehtoja ja varallisuuden suojausta. Vaiheittainen prosessi, kustannukset, oikeudelliset vaatimukset ja asiantuntijaneuvot.",
+    headline: "Täydellinen Opas Varallisuudenhoitoon",
+    subheadline: "Kaikki mitä sinun tarvitsee tietää varallisuuden rakentamisesta ja suojaamisesta."
   },
   pl: {
-    title: "Kompletny Przewodnik Kupującego Nieruchomości na Costa del Sol | Everence Wealth",
-    description: "Twój kompleksowy przewodnik po zakupie nieruchomości na Costa del Sol. Proces krok po kroku, koszty, wymogi prawne i porady ekspertów.",
-    headline: "Kompletny Przewodnik po Zakupie Nieruchomości na Costa del Sol",
-    subheadline: "Wszystko, co musisz wiedzieć o zakupie wymarzonego domu w najbardziej pożądanym regionie Hiszpanii."
+    title: "Kompletny Przewodnik po Zarządzaniu Majątkiem | Everence Wealth",
+    description: "Twój kompleksowy przewodnik po zarządzaniu majątkiem. Strategie emerytury wolnej od podatków, opcje IUL i ochrona aktywów. Proces krok po kroku, koszty, wymogi prawne i porady ekspertów.",
+    headline: "Kompletny Przewodnik po Zarządzaniu Majątkiem",
+    subheadline: "Wszystko, co musisz wiedzieć o budowaniu i ochronie swojego majątku."
   },
   hu: {
-    title: "Teljes Vásárlói Útmutató Costa del Sol Ingatlanokhoz | Everence Wealth",
-    description: "Átfogó útmutatója ingatlanvásárláshoz a Costa del Solon. Lépésről lépésre folyamat, költségek, jogi követelmények és szakértői tanácsok.",
-    headline: "A Teljes Útmutató Ingatlanvásárláshoz a Costa del Solon",
-    subheadline: "Minden, amit tudnia kell álmai otthonának megvásárlásáról Spanyolország legkeresettebb régiójában."
+    title: "Teljes Útmutató a Vagyonkezeléshez | Everence Wealth",
+    description: "Átfogó útmutatója a vagyonkezeléshez. Adómentes nyugdíj stratégiák, IUL lehetőségek és vagyonvédelem. Lépésről lépésre folyamat, költségek, jogi követelmények és szakértői tanácsok.",
+    headline: "A Teljes Útmutató a Vagyonkezeléshez",
+    subheadline: "Minden, amit tudnia kell vagyona felépítéséről és védelméről."
   }
 }
 
