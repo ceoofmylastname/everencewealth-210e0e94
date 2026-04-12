@@ -28,16 +28,7 @@ const STATIC_PAGES = [
   { path: 'buyers-guide', priority: 0.9, changefreq: 'weekly' },
   { path: 'team', priority: 0.7, changefreq: 'monthly' },
   { path: 'glossary', priority: 0.7, changefreq: 'monthly' },
-  { path: 'properties', priority: 0.9, changefreq: 'daily' },
 ];
-
-interface PropertyData {
-  internal_ref: string;
-  internal_name: string;
-  updated_at: string | null;
-  images: any[] | null;
-  is_active: boolean;
-}
 
 function escapeXml(str: string): string {
   if (!str) return '';
@@ -536,50 +527,6 @@ ${cityUrls}
 </urlset>`;
 }
 
-// Generate properties sitemap with image extensions
-function generatePropertiesSitemap(properties: PropertyData[]): string {
-  const today = getToday();
-  
-  const urls = properties.map(prop => {
-    const images = Array.isArray(prop.images) ? prop.images.slice(0, 10) : [];
-    const imageXml = images.length > 0 
-      ? images.map((img: any) => {
-          const imgUrl = typeof img === 'string' ? img : (img?.url || img?.src || '');
-          if (!imgUrl) return '';
-          return `
-    <image:image>
-      <image:loc>${escapeXml(imgUrl)}</image:loc>
-      <image:title>${escapeXml(prop.internal_name || 'Property Image')}</image:title>
-    </image:image>`;
-        }).filter(Boolean).join('')
-      : '';
-    
-    return `  <url>
-    <loc>${BASE_URL}/properties/${escapeXml(prop.internal_ref)}</loc>
-    <lastmod>${prop.updated_at ? new Date(prop.updated_at).toISOString().split('T')[0] : today}</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>${imageXml}
-  </url>`;
-  }).join('\n');
-
-  return `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
-  
-  <!-- Properties Index -->
-  <url>
-    <loc>${BASE_URL}/properties</loc>
-    <lastmod>${today}</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.9</priority>
-  </url>
-  
-  <!-- Property Listings (${properties.length} total) -->
-${urls}
-  
-</urlset>`;
-}
-
 // Generate static pages sitemap with hreflang for all languages
 function generateStaticPagesSitemap(): string {
   const today = getToday();
@@ -902,20 +849,6 @@ Deno.serve(async (req) => {
     }
 
     // Generate static sitemaps
-    console.log('📥 Fetching properties for sitemap...');
-    const { data: propertiesData } = await supabase
-      .from('properties')
-      .select('internal_ref, internal_name, updated_at, images, is_active')
-      .eq('is_active', true);
-    
-    const properties: PropertyData[] = propertiesData || [];
-    console.log(`   🏠 Properties: ${properties.length}`);
-    
-    // Properties sitemap with images
-    const propertiesXml = generatePropertiesSitemap(properties);
-    sitemapFiles['sitemaps/properties.xml'] = propertiesXml;
-    totalUrls += properties.length + 1; // +1 for properties index
-    
     // Static pages sitemap with hreflang
     const staticPagesXml = generateStaticPagesSitemap();
     sitemapFiles['sitemaps/pages.xml'] = staticPagesXml;
