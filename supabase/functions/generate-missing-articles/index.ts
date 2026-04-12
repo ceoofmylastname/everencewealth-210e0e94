@@ -390,7 +390,7 @@ REMEMBER: Minimum 1,500 words in detailed_content is MANDATORY.`;
       console.log(`[Missing] Content generation attempt ${attempts}/${maxAttempts}...`);
       
       let currentPrompt = contentPrompt;
-      let systemPrompt = `You are an expert real estate content writer specializing in Costa del Sol, Spain.
+      let systemPrompt = `You are an expert independent financial advisor specializing in tax-free retirement strategies, IUL, and wealth protection.
 
 CRITICAL REQUIREMENTS:
 1. You MUST respond with valid JSON only
@@ -400,7 +400,7 @@ CRITICAL REQUIREMENTS:
 
       if (attempts === 2 && contentJson) {
         const prevWordCount = countWords(contentJson.detailed_content || '');
-        systemPrompt = `You are an expert real estate content writer. Your previous response was ONLY ${prevWordCount} words - this is UNACCEPTABLE.
+        systemPrompt = `You are an expert independent financial advisor. Your previous response was ONLY ${prevWordCount} words - this is UNACCEPTABLE.
 
 MANDATORY: This response MUST be at least 1,500 words. 
 STRATEGY: Write 8 sections of 200+ words each = 1,600+ words minimum.
@@ -437,7 +437,7 @@ If in doubt, ADD MORE DETAIL. Err on the side of being too long.`;
 Your previous ${attempts - 1} attempts produced only ${prevWordCount} words. This is your LAST chance.
 
 MANDATORY EXPANSION TECHNIQUES:
-• Add specific Costa del Sol examples (Marbella, Estepona, Mijas, etc.)
+• Add specific financial examples (IUL performance, tax-free retirement scenarios, etc.)
 • Include 2-3 sentences of explanation for EVERY claim
 • Add "For example..." or "In practice, this means..." phrases
 • Include relevant statistics and timeframes
@@ -518,7 +518,7 @@ TOTAL MINIMUM: 1,800 words. Do NOT submit under 1,500.`;
     // Use placeholder image (DALL-E takes too long and causes edge function timeout)
     console.log(`[Missing] Using placeholder image to avoid timeout`);
     article.featured_image_url = 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=1792&h=1024&fit=crop';
-    article.featured_image_alt = `${plan.headline} - Costa del Sol real estate`;
+    article.featured_image_alt = `${plan.headline} - Everence Wealth financial planning`;
 
     // Author & Reviewer
     const randomAuthor = authors?.[Math.floor(Math.random() * (authors?.length || 1))] || { id: null };

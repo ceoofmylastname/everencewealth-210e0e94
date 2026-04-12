@@ -601,7 +601,7 @@ Target Keyword: ${plan.targetKeyword}
 Content Angle: ${plan.contentAngle}
 
 Requirements:
-- Meta Title: MUST be in ${seoLanguageName}, include primary keyword, location "Costa del Sol", and year 2025
+- Meta Title: MUST be in ${seoLanguageName}, include primary keyword, brand "Everence Wealth", and year 2025
 - Max 60 characters (strict limit)
 - Meta Description: MUST be in ${seoLanguageName}, compelling summary with CTA
 - Max 160 characters (strict limit)
@@ -695,7 +695,7 @@ Return ONLY the speakable text in ${speakableLangName}, no JSON, no formatting.`
           contentPromptMessages = [
             {
               role: "system",
-              content: "You are Hans Beeckman, an expert Costa del Sol property specialist. Follow the master prompt instructions exactly."
+              content: "You are Steven Rosenberg, an expert independent financial advisor specializing in tax-free retirement strategies, IUL, and wealth protection. Follow the master prompt instructions exactly."
             },
             {
               role: "user",
@@ -776,8 +776,8 @@ Return ONLY the HTML content.`;
         article.detailed_content = detailedContent;
 
         // 7. FEATURED IMAGE (with language-aware alt text and image reuse)
-        const imagePrompt = `Professional Costa del Sol real estate photography:
-${plan.funnelStage === 'TOFU' ? 'Inspirational lifestyle scene' : plan.funnelStage === 'MOFU' ? 'Detailed property showcase' : 'Professional consultation scene'}
+        const imagePrompt = `Professional wealth management imagery:
+${plan.funnelStage === 'TOFU' ? 'Inspirational financial freedom scene' : plan.funnelStage === 'MOFU' ? 'Client success meeting' : 'Client success meeting'}
 Ultra-realistic, 8k resolution, ${plan.headline}`;
 
         // Language name mapping for alt text generation
@@ -896,15 +896,15 @@ Return ONLY the alt text in ${languageName}, no quotes, no JSON.`;
           article.featured_image_url = featuredImageUrl;
           article.featured_image_alt = featuredImageAlt;
           article.featured_image_caption = currentLanguage === 'en' 
-            ? `${plan.headline} - Luxury real estate in Costa del Sol`
+            ? `${plan.headline} - Wealth management by Everence Wealth`
             : featuredImageAlt;
             
           console.log(`✅ [Resume ${jobId}] Image ${imageReused ? 'REUSED' : 'generated'} with ${languageName} alt text`);
         } catch (error) {
           console.error('[Resume] Image generation failed:', error);
           article.featured_image_url = 'https://images.unsplash.com/photo-1582268611958-ebfd161ef9cf?w=1200';
-          article.featured_image_alt = `${plan.headline} - Costa del Sol luxury real estate`;
-          article.featured_image_caption = `${plan.headline} - Luxury real estate in Costa del Sol`;
+          article.featured_image_alt = `${plan.headline} - Everence Wealth financial planning`;
+          article.featured_image_caption = `${plan.headline} - Wealth management by Everence Wealth`;
         }
 
         // 8. DIAGRAM (for MOFU/BOFU)

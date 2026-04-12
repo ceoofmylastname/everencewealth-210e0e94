@@ -143,7 +143,7 @@ async function generateQAInLanguage(
     'problem': 'PROBLEM question - addresses challenges: "What mistakes...", "What risks..."',
   };
 
-  const prompt = `Generate a Q&A page in ${languageName} about Costa del Sol real estate.
+  const prompt = `Generate a QGenerate a Q&A page in ${languageName} about Costa del Sol real estateA page in ${languageName} about wealth management and financial planning.
 
 LANGUAGE: ${languageName.toUpperCase()} (code: ${language})
 ${language !== 'en' ? `⚠️ CRITICAL: Write ALL content in ${languageName}. NO English text.` : ''}
@@ -341,7 +341,7 @@ serve(async (req) => {
       headline: englishArticle.headline,
       content: englishArticle.detailed_content || englishArticle.meta_description || '',
       clusterId: englishArticle.cluster_id,
-      category: englishArticle.category || 'Real Estate',
+      category: englishArticle.category || 'Wealth Management',
     };
 
     for (const currentQaType of typesToGenerate) {
@@ -375,7 +375,7 @@ serve(async (req) => {
           languageSlugs[lang] = finalSlug;
           
           // Translate image alt text to Q&A language
-          let imageAlt = englishArticle.featured_image_alt || 'Costa del Sol property';
+          let imageAlt = englishArticle.featured_image_alt || 'Wealth management';
           
           if (lang !== 'en' && englishArticle.featured_image_alt) {
             try {
@@ -408,19 +408,19 @@ serve(async (req) => {
           
           // Generate unique image for this Q&A
           const sceneVariations = [
-            'luxury villa exterior with pool',
-            'modern apartment interior design',
-            'Mediterranean garden terrace',
-            'beachfront property view',
-            'contemporary living room',
-            'penthouse balcony panorama',
-            'Spanish courtyard with tiles',
-            'golf resort property',
-            'marina view apartment',
-            'mountain backdrop villa'
+            'modern financial office',
+            'professional advisory meeting',
+            'professional office consultation',
+            'family financial planning session',
+            'successful retirement lifestyle',
+            'confident couple reviewing finances',
+            'family estate planning discussion',
+            'retirement lifestyle scene',
+            'wealth growth chart visualization',
+            'secure retirement community'
           ];
           const randomScene = sceneVariations[Math.floor(Math.random() * sceneVariations.length)];
-          const qaImagePrompt = `Professional Costa del Sol real estate photograph, ${randomScene}, bright natural lighting, educational visual style, no text, no watermarks, no logos, clean composition, high-end quality, ${LANGUAGE_NAMES[lang] || lang} market aesthetic`;
+          const qaImagePrompt = `Professional wealth management photograph, ${randomScene}, bright natural lighting, educational visual style, no text, no watermarks, no logos, clean composition, high-end quality, ${LANGUAGE_NAMES[lang] || lang} market aesthetic`;
           const fallbackImageUrl = langArticle?.featured_image_url || englishArticle.featured_image_url || 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=1200';
           let generatedImageUrl = await generateUniqueImage(qaImagePrompt, fallbackImageUrl);
           
