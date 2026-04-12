@@ -76,6 +76,15 @@ const IndexedUniversalLife: React.FC = () => {
     "slogan": "Bridge the Retirement Gap",
   };
 
+  const serviceSchema = {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    "serviceType": currentLang === 'es' ? 'Vida Universal Indexada' : 'Indexed Universal Life Insurance',
+    "provider": { "@type": "FinancialService", "name": "Everence Wealth", "url": baseUrl },
+    "description": seoDesc,
+    "areaServed": "United States",
+  };
+
   return (
     <div className="min-h-screen flex flex-col font-sans bg-white">
       <Helmet>
@@ -96,6 +105,7 @@ const IndexedUniversalLife: React.FC = () => {
         <script type="application/ld+json">{JSON.stringify(articleSchema)}</script>
         <script type="application/ld+json">{JSON.stringify(breadcrumbSchema)}</script>
         <script type="application/ld+json">{JSON.stringify(orgSchema)}</script>
+        <script type="application/ld+json">{JSON.stringify(serviceSchema)}</script>
       </Helmet>
 
       {/* Scroll progress bar */}

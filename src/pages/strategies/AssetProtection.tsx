@@ -76,6 +76,15 @@ const AssetProtection: React.FC = () => {
     "slogan": "Bridge the Retirement Gap",
   };
 
+  const serviceSchema = {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    "serviceType": currentLang === 'es' ? 'Protección de Activos' : 'Asset Protection',
+    "provider": { "@type": "FinancialService", "name": "Everence Wealth", "url": baseUrl },
+    "description": seoDesc,
+    "areaServed": "United States",
+  };
+
   return (
     <div className="min-h-screen flex flex-col font-sans bg-white">
       <Helmet>
@@ -96,6 +105,7 @@ const AssetProtection: React.FC = () => {
         <script type="application/ld+json">{JSON.stringify(articleSchema)}</script>
         <script type="application/ld+json">{JSON.stringify(breadcrumbSchema)}</script>
         <script type="application/ld+json">{JSON.stringify(orgSchema)}</script>
+        <script type="application/ld+json">{JSON.stringify(serviceSchema)}</script>
       </Helmet>
 
       <div className="fixed top-0 left-0 right-0 z-50 h-[3px] bg-transparent pointer-events-none">

@@ -99,7 +99,7 @@ export function generateQAPageSchema(qaPage: QAPage) {
     'url': pageUrl,
     'mainEntity': {
       '@type': 'Question',
-      'name': qaPage.question_main, // In page's language
+      'name': qaPage.question_main,
       'text': qaPage.question_main,
       'answerCount': 1,
       'acceptedAnswer': {
@@ -107,6 +107,10 @@ export function generateQAPageSchema(qaPage: QAPage) {
         'text': qaPage.speakable_answer || truncateAtSentence(qaPage.answer_main?.replace(/<[^>]*>/g, '') || '', 600),
         'inLanguage': langCode,
       },
+    },
+    'speakable': {
+      '@type': 'SpeakableSpecification',
+      'cssSelector': ['.speakable-answer'],
     },
   };
 

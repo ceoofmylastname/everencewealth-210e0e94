@@ -1,15 +1,25 @@
 import React from 'react';
 
+interface FAQ {
+  question: string;
+  answer: string;
+}
+
 interface ArticleSchemaProps {
     headline: string;
     description: string;
-    datePublished: string; // ISO 8601 format
-    dateModified: string;  // ISO 8601 format
+    datePublished: string;
+    dateModified: string;
     articleUrl: string;
     imageUrl?: string;
     imageCaption?: string;
     imageAlt?: string;
     context: 'blog' | 'qa';
+    faqs?: FAQ[];
+    authorName?: string;
+    authorUrl?: string;
+    language?: string;
+    slug?: string;
 }
 
 const ArticleSchema: React.FC<ArticleSchemaProps> = ({
@@ -21,26 +31,42 @@ const ArticleSchema: React.FC<ArticleSchemaProps> = ({
     imageUrl,
     imageCaption,
     imageAlt,
-    context
+    context,
+    faqs,
+    authorName,
+    authorUrl,
+    language = 'en',
+    slug,
 }) => {
-    const articleType = context === 'qa' ? 'FAQPage' : 'Article';
+    const baseUrl = 'https://www.everencewealth.com';
 
-    const articleSchema = {
+    const articleSchema: Record<string, any> = {
         "@context": "https://schema.org",
-        "@type": articleType,
+        "@type": context === 'qa' ? 'QAPage' : 'Article',
         "headline": headline,
         "description": description,
         "datePublished": datePublished,
         "dateModified": dateModified,
         "author": {
-            "@id": "https://www.everencewealth.com/#lead-strategist"
+            "@type": "Person",
+            "name": authorName || "Steven Rosenberg",
+            "url": authorUrl || `${baseUrl}/en/team`
         },
         "publisher": {
-            "@id": "https://www.everencewealth.com/#organization"
+            "@type": "Organization",
+            "name": "Everence Wealth",
+            "logo": {
+                "@type": "ImageObject",
+                "url": `${baseUrl}/favicon.png`
+            }
         },
         "mainEntityOfPage": {
             "@type": "WebPage",
             "@id": articleUrl
+        },
+        "speakable": {
+            "@type": "SpeakableSpecification",
+            "cssSelector": ["h1", ".speakable-summary"]
         },
         ...(imageUrl && {
             "image": {
@@ -52,10 +78,41 @@ const ArticleSchema: React.FC<ArticleSchemaProps> = ({
         })
     };
 
+    const schemas: any[] = [articleSchema];
+
+    // FAQPage schema from qa_entities
+    if (faqs && faqs.length > 0) {
+        schemas.push({
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            "mainEntity": faqs.map(faq => ({
+                "@type": "Question",
+                "name": faq.question,
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": faq.answer
+                }
+            }))
+        });
+    }
+
+    // BreadcrumbList
+    if (context === 'blog') {
+        schemas.push({
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            "itemListElement": [
+                { "@type": "ListItem", "position": 1, "name": "Home", "item": `${baseUrl}/${language}/` },
+                { "@type": "ListItem", "position": 2, "name": "Blog", "item": `${baseUrl}/${language}/blog/` },
+                { "@type": "ListItem", "position": 3, "name": headline, "item": articleUrl }
+            ]
+        });
+    }
+
     return (
         <script
             type="application/ld+json"
-            dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }}
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(schemas) }}
         />
     );
 };
