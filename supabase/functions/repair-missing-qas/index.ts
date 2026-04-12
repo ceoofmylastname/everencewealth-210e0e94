@@ -381,7 +381,7 @@ Return ONLY valid JSON with these fields:
 }`;
 
   try {
-    // FIX 3: Use 15 second timeout
+    // FIX 3: Use 45 second timeout (increased from 15s to prevent timeouts)
     const response = await fetchWithTimeout(
       'https://ai.gateway.lovable.dev/v1/chat/completions',
       {
@@ -400,7 +400,7 @@ Return ONLY valid JSON with these fields:
           response_format: { type: "json_object" },
         }),
       },
-      15000 // 15 second timeout
+      45000 // 45 second timeout
     );
 
     // Rate limit handling
