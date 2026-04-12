@@ -7,100 +7,60 @@ const corsHeaders = {
 };
 
 // ============================================================================
-// COMPETITOR BLOCKING - Comprehensive list (synced with frontend)
+// COMPETITOR BLOCKING
 // ============================================================================
 const BLOCKED_DOMAINS = [
-  // International giants
   'sothebysrealty.com', 'christiesrealestate.com', 'knightfrank.com',
   'savills.com', 'savills.es', 'engelvoelkers.com', 'engel-voelkers.com', 'engel-voelkers.es',
   'remax.com', 'remax.es', 'coldwellbanker.com', 'coldwellbanker.es',
   'century21.com', 'century21.es', 'kellerwilliams.com', 'compass.com',
   'berkshirehathaway.com',
-  
-  // US portals
   'zillow.com', 'trulia.com', 'realtor.com', 'redfin.com', 'apartments.com',
-  
-  // UK portals
   'rightmove.co.uk', 'zoopla.co.uk', 'onthemarket.com', 'primelocation.com',
   'propertypal.com', 'mouseprice.com', 'propertyguides.com',
-  
-  // Spanish portals
   'idealista.com', 'fotocasa.com', 'fotocasa.es', 'pisos.com', 'habitaclia.com',
   'kyero.com', 'thinkspain.com', 'spanishpropertyinsight.com', 'yaencontre.com',
   'tucasa.com', 'enalquiler.com', 'milanuncios.com', 'spanish-property-choice.com',
   'propertiesabroadspain.com', 'spainhouses.net', 'eyeonspain.com',
   'aplaceinthesun.com', 'spanishpropertychoice.com',
-  
-  // Netherlands
   'funda.nl', 'huislijn.nl', 'jaap.nl', 'pararius.nl',
-  
-  // Germany
   'immobilienscout24.de', 'immowelt.de', 'immonet.de',
-  
-  // France
   'seloger.com', 'pap.fr', 'leboncoin.fr', 'logic-immo.com',
-  
-  // Nordic
   'hemnet.se', 'boligsiden.dk', 'finn.no', 'etuovi.com',
-  
-  // Other EU
   'ingatlan.com', 'properstar.com',
-  
-  // Industry-specific competitors
   'lucasfox.com', 'drumelia.com', 'mpdunne.com', 'pure-living-properties.com',
   'nvoga.com', 'immoabroad.com', 'terrameridiana.com', 'marbellaforsaleblog.com',
-  
-  // Malaga-specific competitors
   'movetomalagaspain.com', 'movetomalaga.com', 'propertyfindermalaga.com',
   'homenetspain.com',
 ];
 
 const BLOCKED_KEYWORDS = [
-  // Industry blocking terms
   'realty', 'realtor', 'real-estate', 'realestate', 'estate-agent', 'estate-agents',
   'property-sales', 'property-agency', 'homes-for-sale', 'house-sales',
-  'luxury-homes', 'property', 'properties', 'homes', 'housing', 'estate', 'estates',
-  'villas', 'apartments', 'condos', 'rentals', 'lettings', 'forsale', 'for-sale',
-  'listing', 'listings', 'broker', 'brokerage', 'realtors',
-  'estate-services', 'property-finder', 'home-finder',
-  
-  // Spanish
-  'inmobiliaria', 'inmobiliarias', 'inmueble', 'inmuebles', 'vivienda', 'viviendas',
-  'casas', 'pisos', 'chalets', 'apartamentos', 'alquileres', 'propiedades',
-  
-  // German
-  'immobilien', 'makler', 'hauskauf', 'wohnung', 'wohnungen',
-  
-  // French
-  'immo', 'immobilier', 'agence-immobiliere',
-  
-  // Dutch
-  'makelaar', 'vastgoed', 'woningen', 'huizen', 'woning',
-  
-  // Finnish
-  'kiinteisto', 'asunto',
-  
-  // Norwegian
-  'eiendom', 'bolig',
-  
-  // Swedish
-  'fastighet', 'bostader',
-  
-  // Danish
-  'ejendom',
-  
-  // Hungarian
-  'ingatlan', 'lakás',
-  
-  // Italian
-  'immobiliare',
+  'luxury-homes', 'property-finder', 'home-finder',
+  'forsale', 'for-sale', 'listing', 'listings', 'broker', 'brokerage', 'realtors',
+  'inmobiliaria', 'inmobiliarias', 'inmueble', 'inmuebles',
+  'makler', 'hauskauf',
+  'agence-immobiliere',
+  'makelaar', 'vastgoed',
+];
+
+// High-authority domains that bypass keyword blocking
+const AUTHORITY_DOMAIN_PATTERNS = [
+  '.gov', '.gob.', '.edu', 'eurostat', 'ine.es', 'boe.es',
+  'irs.gov', 'sec.gov', 'ssa.gov', 'treasury.gov', 'federalreserve.gov',
+  'bls.gov', 'census.gov', 'cdc.gov', 'cms.gov',
+  'destatis.de', 'cbs.nl', 'insee.fr', 'stat.fi', 'scb.se', 'ssb.no',
+  'reuters.com', 'bloomberg.com', 'bbc.com', 'nytimes.com', 'wsj.com',
+  'investopedia.com', 'nerdwallet.com', 'bankrate.com',
+  'who.int', 'oecd.org', 'worldbank.org', 'imf.org',
 ];
 
 // ============================================================================
 // LANGUAGE-SPECIFIC DOMAIN PREFERENCES
 // ============================================================================
 const LANG_DOMAIN_PREFERENCES: Record<string, string[]> = {
-  en: ['.gov', '.gov.uk', '.edu', 'ine.es', 'boe.es', 'reuters.com', 'bbc.com'],
+  en: ['.gov', '.gov.uk', '.edu', 'reuters.com', 'bbc.com'],
   es: ['.gob.es', '.gov', 'ine.es', 'boe.es', 'elpais.com', 'elmundo.es'],
   de: ['.gov.de', 'destatis.de', 'dw.com', 'spiegel.de'],
   nl: ['.gov.nl', 'cbs.nl', 'nos.nl'],
@@ -124,9 +84,17 @@ function extractDomain(url: string): string {
   }
 }
 
+function isAuthorityDomain(url: string): boolean {
+  const lowerUrl = url.toLowerCase();
+  return AUTHORITY_DOMAIN_PATTERNS.some(p => lowerUrl.includes(p));
+}
+
 function isBlockedDomain(url: string): boolean {
   const lowerUrl = url.toLowerCase();
+  // Always block exact competitor domains
   if (BLOCKED_DOMAINS.some(d => lowerUrl.includes(d))) return true;
+  // For keyword blocking, exempt high-authority domains
+  if (isAuthorityDomain(url)) return false;
   if (BLOCKED_KEYWORDS.some(k => lowerUrl.includes(k))) return true;
   return false;
 }
@@ -141,7 +109,6 @@ async function checkApprovedDomains(supabase: any, domain: string, language: str
       .maybeSingle();
     
     if (data) {
-      // Check language compatibility
       if (data.is_international || data.language === language || !data.language) {
         return { approved: true, tier: data.tier, trustScore: data.trust_score };
       }
@@ -172,88 +139,165 @@ async function verifyUrl(url: string): Promise<boolean> {
 }
 
 // ============================================================================
-// PERPLEXITY API CALL
+// PERPLEXITY API CALL WITH RETRY LOGIC
 // ============================================================================
+
+function buildPromptAttempt(
+  attempt: number,
+  headline: string,
+  content: string,
+  language: string,
+  domainPrefs: string[]
+): { system: string; user: string } {
+  const langNames: Record<string, string> = {
+    en: 'English', de: 'German', nl: 'Dutch', fr: 'French', es: 'Spanish',
+    pl: 'Polish', sv: 'Swedish', da: 'Danish', hu: 'Hungarian', fi: 'Finnish', no: 'Norwegian'
+  };
+  const langName = langNames[language] || 'English';
+
+  if (attempt === 1) {
+    // Attempt 1: Broad topic-focused search
+    return {
+      system: 'You are a citation research assistant specializing in finding authoritative sources. Return ONLY valid JSON arrays. Never include real estate listing sites or competitor financial advisory firms.',
+      user: `Find 4-6 high-authority citations that support the claims in this ${langName} article.
+
+ARTICLE: "${headline}"
+
+CONTENT EXCERPT:
+${content.substring(0, 5000)}
+
+PREFERRED SOURCES (in order of priority):
+- Government websites (${domainPrefs.slice(0, 3).join(', ')})
+- Official statistics bureaus and regulators
+- Major established news outlets (Reuters, Bloomberg, BBC, etc.)
+- Academic research (.edu)
+- Reputable financial education sites (Investopedia, NerdWallet, etc.)
+
+RULES:
+- Each URL must be real and publicly accessible
+- Diversify domains — no repeating the same site
+- English OR ${langName} sources are both acceptable
+- Focus on the specific claims, statistics, or facts in the article
+
+Return JSON array:
+[{"url": "https://...", "source": "Source Name", "context": "The specific claim this supports", "relevance": 8}]`
+    };
+  } else if (attempt === 2) {
+    // Attempt 2: Statistics and government data angle
+    return {
+      system: 'You are a research assistant finding government data, statistics, and regulatory sources. Return ONLY valid JSON arrays.',
+      user: `Find 3-5 government, regulatory, or statistical sources related to this topic: "${headline}"
+
+Look for:
+- Official government statistics or reports
+- Regulatory guidelines or rules (IRS, SEC, state insurance departments, Social Security Administration)
+- Census data or economic indicators
+- Academic studies or research papers
+- Official .gov or .edu pages
+
+Return JSON array:
+[{"url": "https://...", "source": "Source Name", "context": "What data or regulation this provides", "relevance": 7}]`
+    };
+  } else {
+    // Attempt 3: Simple headline-only search
+    return {
+      system: 'Find authoritative web sources. Return ONLY a JSON array.',
+      user: `Find 3 authoritative sources about: "${headline}"
+
+Prefer .gov, .edu, major news outlets, or well-known financial education sites.
+
+Return JSON array:
+[{"url": "https://...", "source": "Source Name", "context": "Brief description", "relevance": 7}]`
+    };
+  }
+}
+
 async function findCitationsForArticle(
   perplexityKey: string,
   headline: string,
   content: string,
   language: string
 ): Promise<Array<{ url: string; source: string; context: string; relevance: number }>> {
-  const languageNames: Record<string, string> = {
-    en: 'English', de: 'German', nl: 'Dutch', fr: 'French', es: 'Spanish',
-    pl: 'Polish', sv: 'Swedish', da: 'Danish', hu: 'Hungarian', fi: 'Finnish', no: 'Norwegian'
-  };
-  const langName = languageNames[language] || 'English';
   const domainPrefs = LANG_DOMAIN_PREFERENCES[language] || LANG_DOMAIN_PREFERENCES['en'];
-
-  const prompt = `Find 4-6 authoritative citations for this article about wealth management and financial planning.
-
-ARTICLE HEADLINE: "${headline}"
-
-ARTICLE EXCERPT:
-${content.substring(0, 3000)}
-
-CRITICAL REQUIREMENTS:
-1. NEVER include competitor financial advisory firms or insurance sales sites
-2. NEVER include competitor insurance agencies or MLM financial companies
-3. LANGUAGE FLEXIBILITY: Use English OR Spanish sources regardless of article language. Quality over language matching.
-4. PREFER high-authority sources:
-   - Government websites (.gov, .gob.es, .gov.uk, ${domainPrefs.slice(0, 2).join(', ')})
-   - Official statistics (INE, Eurostat, national statistics offices)
-   - Major news outlets (Reuters, BBC, El País, Bloomberg, The Guardian, etc.)
-   - Government financial regulators (SEC, FINRA, state insurance departments)
-   - Banking/financial institutions (Federal Reserve, FDIC)
-   - Academic institutions (.edu)
-5. Each URL must be publicly accessible and working
-6. DIVERSIFY sources - don't repeat the same domain across multiple citations
-
-Return a JSON array with 4-6 citations:
-[{
-  "url": "https://example.gov/page",
-  "source": "Official Source Name",
-  "context": "The specific claim or sentence this citation supports",
-  "relevance": 8
-}]
-
-Only return the JSON array, no other text.`;
-
-  try {
-    const response = await fetch('https://api.perplexity.ai/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${perplexityKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'sonar',
-        messages: [
-          {
-            role: 'system',
-            content: 'You are a citation research assistant. Return ONLY valid JSON arrays of citations. NEVER include competitor financial advisory websites.'
-          },
-          { role: 'user', content: prompt }
-        ],
-        temperature: 0.1,
-        max_tokens: 2000
-      }),
-    });
-
-    if (!response.ok) {
-      console.error(`Perplexity API error: ${response.status}`);
-      return [];
-    }
-
-    const data = await response.json();
-    const content_response = data.choices?.[0]?.message?.content || '';
+  
+  const MAX_ATTEMPTS = 3;
+  
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    const { system, user } = buildPromptAttempt(attempt, headline, content, language, domainPrefs);
     
-    const jsonMatch = content_response.match(/\[[\s\S]*\]/);
-    if (jsonMatch) {
-      return JSON.parse(jsonMatch[0]);
+    try {
+      console.log(`[discover] Attempt ${attempt}/${MAX_ATTEMPTS} for: ${headline.substring(0, 50)}...`);
+      
+      const response = await fetch('https://api.perplexity.ai/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${perplexityKey}`,
+          'Accept': 'application/json',
+          'User-Agent': 'LovableCitationBot/1.0 (https://everencewealth.com)',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'sonar-pro',
+          messages: [
+            { role: 'system', content: system },
+            { role: 'user', content: user }
+          ],
+          temperature: 0.3,
+          max_tokens: 3000
+        }),
+      });
+
+      if (!response.ok) {
+        console.error(`[discover] Perplexity API error: ${response.status} on attempt ${attempt}`);
+        if (attempt < MAX_ATTEMPTS) {
+          await new Promise(r => setTimeout(r, 2000));
+          continue;
+        }
+        return [];
+      }
+
+      const data = await response.json();
+      const contentResponse = data.choices?.[0]?.message?.content || '';
+      
+      const jsonMatch = contentResponse.match(/\[[\s\S]*\]/);
+      if (jsonMatch) {
+        const citations = JSON.parse(jsonMatch[0]);
+        if (Array.isArray(citations) && citations.length > 0) {
+          console.log(`[discover] Attempt ${attempt} found ${citations.length} citations`);
+          
+          // Also grab Perplexity's own citations if available
+          const perplexityCitations = data.citations || [];
+          if (perplexityCitations.length > 0) {
+            // Add any Perplexity-native citations not already in the list
+            for (const pUrl of perplexityCitations) {
+              if (typeof pUrl === 'string' && !citations.some((c: any) => c.url === pUrl)) {
+                citations.push({
+                  url: pUrl,
+                  source: extractDomain(pUrl),
+                  context: `Source referenced by Perplexity for: ${headline.substring(0, 80)}`,
+                  relevance: 6
+                });
+              }
+            }
+          }
+          
+          return citations;
+        }
+      }
+      
+      console.log(`[discover] Attempt ${attempt} returned 0 results, ${attempt < MAX_ATTEMPTS ? 'retrying...' : 'giving up'}`);
+      
+      if (attempt < MAX_ATTEMPTS) {
+        await new Promise(r => setTimeout(r, 2000));
+      }
+    } catch (e) {
+      console.error(`[discover] Error on attempt ${attempt}:`, e);
+      if (attempt < MAX_ATTEMPTS) {
+        await new Promise(r => setTimeout(r, 2000));
+      }
     }
-  } catch (e) {
-    console.error('Perplexity error:', e);
   }
+  
   return [];
 }
 
@@ -288,7 +332,6 @@ serve(async (req) => {
 
     console.log(`[discover-cluster-citations] Starting for cluster: ${cluster_id}`);
 
-    // Fetch articles in the cluster
     const { data: articles, error: fetchError } = await supabase
       .from('blog_articles')
       .select('id, headline, detailed_content, language, external_citations')
@@ -315,15 +358,14 @@ serve(async (req) => {
     let totalVerified = 0;
     let totalApproved = 0;
 
-    // Process articles in batches of 3
-    for (let i = 0; i < articlesToProcess.length; i += 3) {
-      const batch = articlesToProcess.slice(i, i + 3);
+    // Process articles in batches of 4
+    for (let i = 0; i < articlesToProcess.length; i += 4) {
+      const batch = articlesToProcess.slice(i, i + 4);
       
       const batchPromises = batch.map(async (article) => {
         const existingCitations = (article.external_citations as any[]) || [];
         
         try {
-          // Find citations via Perplexity
           const rawCitations = await findCitationsForArticle(
             PERPLEXITY_API_KEY,
             article.headline,
@@ -331,31 +373,22 @@ serve(async (req) => {
             article.language
           );
 
-          console.log(`[discover-cluster-citations] Found ${rawCitations.length} raw citations for: ${article.headline.substring(0, 50)}...`);
+          console.log(`[discover] Found ${rawCitations.length} raw citations for: ${article.headline.substring(0, 50)}...`);
 
-          // Validate each citation
           const validatedCitations: Array<{ url: string; source: string; context: string; verified: boolean; approved: boolean }> = [];
 
           for (const citation of rawCitations) {
             if (!citation.url) continue;
 
-            // Check if blocked
             if (isBlockedDomain(citation.url)) {
-              console.log(`[discover-cluster-citations] Blocked competitor: ${citation.url}`);
+              console.log(`[discover] Blocked: ${citation.url}`);
               continue;
             }
 
-            // Check if already exists
-            if (existingCitations.some((c: any) => c.url === citation.url)) {
-              console.log(`[discover-cluster-citations] Already exists: ${citation.url}`);
-              continue;
-            }
+            if (existingCitations.some((c: any) => c.url === citation.url)) continue;
 
-            // Check approved domains
             const domain = extractDomain(citation.url);
             const approvalCheck = await checkApprovedDomains(supabase, domain, article.language);
-
-            // Verify URL accessibility
             const verified = await verifyUrl(citation.url);
 
             validatedCitations.push({
@@ -380,7 +413,7 @@ serve(async (req) => {
             discoveredCitations: validatedCitations,
           };
         } catch (e: any) {
-          console.error(`[discover-cluster-citations] Error for article ${article.id}:`, e);
+          console.error(`[discover] Error for article ${article.id}:`, e);
           return {
             articleId: article.id,
             headline: article.headline,
@@ -395,8 +428,7 @@ serve(async (req) => {
       const batchResults = await Promise.all(batchPromises);
       results.push(...batchResults);
 
-      // Small delay between batches to avoid rate limiting
-      if (i + 3 < articlesToProcess.length) {
+      if (i + 4 < articlesToProcess.length) {
         await new Promise(resolve => setTimeout(resolve, 1000));
       }
     }
