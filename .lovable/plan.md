@@ -1,80 +1,58 @@
 
 
-## Phase 0: Del Sol Purge
+## Phase 1: Critical Bug Fixes
 
-Remove all Del Sol Prime Homes contamination from the codebase. No database changes.
+### 1. Replace `public/robots.txt`
+Overwrite with the exact content provided — explicit Allow rules for all AI crawlers, Disallow for `/admin/`, `/api/`, `/portal/`, `/_next/`, `/preview/`, and sitemap reference.
 
----
+### 2. Add Helmet to `src/pages/BlogArticle.tsx` for published articles
+Insert a `<Helmet>` block after the schema markup (line 226) with:
+- `<title>{article.meta_title || article.headline} | Everence Wealth</title>`
+- `<meta name="description" content={article.meta_description} />`
+- `<link rel="canonical" href={article.canonical_url || \`https://www.everencewealth.com/${article.language}/blog/${article.slug}\`} />`
+- `og:title`, `og:description`, `og:type="article"`, `og:image` (using article.featured_image_url)
+- `og:url` matching canonical
+- Hreflang links generated from `article.translations` object (iterate keys to build `<link rel="alternate">` tags)
+- Remove the comment "SEO tags are handled by server/edge"
 
-### 1. Regenerate static sitemaps from Supabase
+### 3. Add canonical tags globally via individual Helmet blocks
+Pages missing Helmet/canonical — add `<Helmet>` with `<title>`, `<meta name="description">`, `<link rel="canonical">`, and basic OG tags to:
+- **Home.tsx** — canonical `https://www.everencewealth.com/`
+- **BlogIndex.tsx** — canonical `https://www.everencewealth.com/{lang}/blog`
+- **QAIndex.tsx** — canonical `https://www.everencewealth.com/{lang}/qa`
+- **ComparisonIndex.tsx** — canonical `https://www.everencewealth.com/{lang}/compare`
+- **Team.tsx** — canonical `https://www.everencewealth.com/{lang}/team`
+- **About.tsx** — already has canonical_url in data but no `<Helmet>` rendering it; add Helmet
 
-**`public/sitemaps/en/blog.xml`** — Currently 440 entries all pointing to `delsolprimehomes.com`. Delete and regenerate by querying `blog_articles` table (status=published, language=en), using `everencewealth.com` as the domain.
+No shared `useCanonical` hook needed — each page already has its own lang/slug context. A simple pattern of adding Helmet to each page is cleaner than an abstraction for ~8 pages.
 
-**`public/sitemaps/en/qa.xml`** — Currently 12 entries all pointing to `delsolprimehomes.com`. Delete and regenerate by querying `qa_pages` table (status=published, language=en), using `everencewealth.com` as the domain.
+### 4. Fix duplicate meta tags on Glossary
+The root `index.html` (lines 54, 74-77) has hardcoded `og:title`, `og:description`, `og:image`, and `twitter:*` tags. These duplicate with any page-level Helmet tags. Fix by removing these OG/Twitter tags from `index.html` — react-helmet on each page will provide the correct values. Keep only the basic `<title>` and `<meta name="description">` in index.html as fallbacks (Helmet overrides these correctly).
 
-Both files will be generated via a one-time script that queries the database and writes the XML.
-
-### 2. Fix QAIndex.tsx
-
-- **Line 144**: Replace subtitle with: *"Expert answers to your most pressing retirement planning, tax strategy, and wealth protection questions — answered by licensed financial advisors."*
-- **Lines 23-30**: Replace `CATEGORY_CONFIG` real estate categories with:
-  - Retirement Planning (BookOpen, blue)
-  - Tax Strategy (Scale, purple)
-  - Index Strategies (TrendingUp, green)
-  - Living Benefits (HelpCircle, orange)
-  - Legacy Planning (Building, cyan)
-  - General Finance (BarChart3, rose)
-
-### 3. Fix BlogArticle.tsx error page titles
-
-- **Line 169**: `"Del Sol Prime Homes"` → `"Everence Wealth"`
-- **Line 198**: `"Del Sol Prime Homes"` → `"Everence Wealth"`
-
-### 4. Fix Glossary og:image:alt and twitter:image:alt
-
-- **`src/lib/glossarySchemaGenerator.ts` line 28**: Change `GLOSSARY_NAMES.en` from `"Costa del Sol Real Estate Glossary"` to `"Wealth Management Glossary | Everence Wealth"`
-- Update all other language entries in `GLOSSARY_NAMES` to remove "Costa del Sol" / "Vastgoed" references and use wealth management terminology
-
-### 5. Fix `src/pages/Sitemap.tsx`
-
-- **Line 14**: Change `BASE_URL` from `"https://www.delsolprimehomes.com"` to `"https://www.everencewealth.com"`
-- **Lines 16-21**: Update `SUPPORTED_LANGUAGES` to `['en', 'es']` and `langToHreflang` to `{ en: 'en-US', es: 'es-US' }`
-
-### 6. Fix scripts with hardcoded Del Sol references
-
-These scripts are build-time utilities. Update the `BASE_URL` and all hardcoded references in:
-
-- **`scripts/generateStaticPages.ts`** — Replace `delsolprimehomes.com` with `everencewealth.com`, update org schema from "RealEstateAgent" / "Del Sol Prime Homes" to "FinancialService" / "Everence Wealth"
-- **`scripts/generateStaticQAPages.ts`** — Replace domain, org name, descriptions (remove "Costa del Sol real estate" copy)
-- **`scripts/validateAEOImplementation.ts`** — Update `BASE_URL`
-- **`scripts/generateStaticBuyersGuide.ts`** — Update `BASE_URL` and contact info
-- **`scripts/generateStaticAboutPage.ts`** — Update `BASE_URL` and org references
-- **`scripts/generateStaticLocationPages.ts`** — Update `BASE_URL` and org name
-- **`scripts/generateStaticComparisonPages.ts`** — Update `BASE_URL` if present
-- **`scripts/generateStaticLocationHub.ts`** — Update `BASE_URL` if present
-- **`scripts/generateStaticHomePage.ts`** — Update `BASE_URL` if present
-- **`src/components/cluster-review/ArticleReviewCard.tsx` line 235** — Update preview URL domain
-
-### 7. Fix `src/hooks/useSitemapGeneration.ts`
-
-- **Line 4**: Change `BASE_URL` to `"https://www.everencewealth.com"`
-- **Lines 6-12**: Update `SUPPORTED_LANGUAGES` and `langToHreflang` for en/es US
+### 5. Seed Steven Rosenberg into `team_members` table
+Insert one row using the database insert tool:
+- **name**: Steven Rosenberg
+- **role**: Founder & Chief Wealth Strategist
+- **bio**: Brief professional bio referencing 30+ years experience, independent broker philosophy
+- **is_founder**: true
+- **active**: true
+- **display_order**: 1
+- **credentials**: `['Licensed Insurance Broker', 'Wealth Strategist']`
+- **specializations**: `['Tax-Free Retirement', 'Index Strategies', 'Asset Protection']`
+- **languages_spoken**: `['en', 'es']`
+- **years_experience**: 30
 
 ---
 
-### Files modified (summary)
-- `public/sitemaps/en/blog.xml` — regenerated from database
-- `public/sitemaps/en/qa.xml` — regenerated from database
-- `src/pages/QAIndex.tsx` — subtitle + categories
-- `src/pages/BlogArticle.tsx` — 2 error title strings
-- `src/lib/glossarySchemaGenerator.ts` — GLOSSARY_NAMES
-- `src/pages/Sitemap.tsx` — BASE_URL + languages
-- `src/hooks/useSitemapGeneration.ts` — BASE_URL + languages
-- `src/components/cluster-review/ArticleReviewCard.tsx` — preview URL
-- 8 scripts in `scripts/` — domain + org references
-
-### What is NOT touched
-- No database tables dropped or modified
-- No edge functions changed
-- No blog article content changed
+### Files to modify
+- `public/robots.txt` — full replace
+- `index.html` — remove duplicate OG/Twitter meta tags
+- `src/pages/BlogArticle.tsx` — add Helmet block
+- `src/pages/Home.tsx` — add Helmet
+- `src/pages/BlogIndex.tsx` — add Helmet
+- `src/pages/QAIndex.tsx` — add Helmet (canonical + OG)
+- `src/pages/ComparisonIndex.tsx` — add Helmet
+- `src/pages/Team.tsx` — add Helmet
+- `src/pages/About.tsx` — add Helmet
+- Database: insert 1 row into `team_members`
 
