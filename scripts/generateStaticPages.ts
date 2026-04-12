@@ -184,9 +184,9 @@ function generateOrganizationSchema() {
       "email": "info@everencewealth.com"
     },
     "sameAs": [
-      "https://www.facebook.com/delsolprimehomes",
-      "https://www.instagram.com/delsolprimehomes",
-      "https://www.linkedin.com/company/delsolprimehomes"
+      "https://www.facebook.com/everencewealth",
+      "https://www.instagram.com/everencewealth",
+      "https://www.linkedin.com/company/everencewealth"
     ]
   };
 }
