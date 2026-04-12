@@ -32,8 +32,17 @@ export const Footer: React.FC = () => {
         { label: 'Blog', href: `/${lang}/blog` },
         { label: 'Q&A', href: `/${lang}/qa` },
         { label: 'Financial Terms', href: `/${lang}/glossary` },
-        { label: 'Tax Bucket Guide', href: `/${lang}/tax-bucket-guide` },
+        { label: 'Guides Library', href: `/${lang}/guides` },
         { label: 'Retirement Gap Calculator', href: `/${lang}/calculator`, pulse: true },
+      ],
+    },
+    {
+      title: 'Explore',
+      links: [
+        { label: 'Comparisons', href: `/${lang}/compare` },
+        { label: 'State Guides', href: `/${lang}/retirement-planning` },
+        { label: 'Locations', href: `/${lang}/locations` },
+        { label: 'Client Stories', href: `/${lang}/stories` },
       ],
     },
   ];

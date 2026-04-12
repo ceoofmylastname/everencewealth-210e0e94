@@ -66,7 +66,7 @@ const ArticleSchema: React.FC<ArticleSchemaProps> = ({
         },
         "speakable": {
             "@type": "SpeakableSpecification",
-            "cssSelector": ["h1", ".speakable-summary"]
+            "cssSelector": ["h1", ".speakable-answer"]
         },
         ...(imageUrl && {
             "image": {
