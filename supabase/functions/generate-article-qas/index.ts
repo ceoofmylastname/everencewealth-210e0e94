@@ -168,7 +168,7 @@ Return ONLY valid JSON:
           'Authorization': `Bearer ${Deno.env.get('LOVABLE_API_KEY')}`,
         },
         body: JSON.stringify({
-          model: 'openai/gpt-5-mini',
+          model: 'google/gemini-2.5-flash',
           messages: [
             { 
               role: 'system', 
@@ -176,13 +176,14 @@ Return ONLY valid JSON:
             },
             { role: 'user', content: promptToUse }
           ],
-          max_completion_tokens: 2500,
-          response_format: { type: "json_object" },
+          max_tokens: 2500,
         }),
       }, GENERATE_TIMEOUT_MS);
 
       if (!response.ok) {
         const status = response.status;
+        const errorBody = await response.text().catch(() => 'no body');
+        console.error(`[Generate] API error ${status}: ${errorBody.substring(0, 300)}`);
         if (status === 429) {
           console.log(`[Generate] Rate limited (attempt ${attempt}), waiting 10s...`);
           await new Promise(r => setTimeout(r, 10000));
@@ -192,6 +193,8 @@ Return ONLY valid JSON:
       }
 
       const data = await response.json();
+      console.log(`[Generate] Response keys: ${Object.keys(data).join(', ')}`);
+      console.log(`[Generate] Choice finish_reason: ${data.choices?.[0]?.finish_reason}`);
       const content = data.choices?.[0]?.message?.content || '';
       console.log(`[Generate] Attempt ${attempt} raw response length: ${content.length}`);
       const parsed = parseJSONSafe(content);
