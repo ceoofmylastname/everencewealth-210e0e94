@@ -141,7 +141,7 @@ const AEOGuide = () => {
   "brand": "Everence Wealth",
   "published_at": "2025-01-15T10:00:00Z",
   "topics": ["Investment", "New Build", "wealth management"],
-  "geo": ["wealth management", "Spain", "El Paso"],
+  "geo": ["wealth management", "United States", "El Paso"],
   "keywords": ["new-build investment", "rental yields"],
   "reading_time_min": 8,
   "qa_refs": [
