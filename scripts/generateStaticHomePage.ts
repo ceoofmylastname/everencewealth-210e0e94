@@ -463,7 +463,7 @@ function generateStaticHTML(productionAssets: ProductionAssets, language: Langua
   <title>${sanitizeForHTML(meta.title)}</title>
   <meta name="title" content="${sanitizeForHTML(meta.title)}" />
   <meta name="description" content="${sanitizeForHTML(meta.description)}" />
-  <meta name="keywords" content="Costa del Sol real estate, Marbella properties, Estepona villas, Spanish property investment, luxury homes Spain" />
+  <meta name="keywords" content="wealth management, tax-free retirement, IUL insurance, asset protection, independent financial advisor, Everence Wealth" />
   <meta name="author" content="Everence Wealth" />
   <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
   
@@ -481,7 +481,7 @@ function generateStaticHTML(productionAssets: ProductionAssets, language: Langua
   <meta property="og:image" content="${BASE_URL}/assets/logo-new.png" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
-  <meta property="og:image:alt" content="Everence Wealth - Costa del Sol Real Estate" />
+  <meta property="og:image:alt" content="Everence Wealth - Independent Wealth Management" />
   <meta property="og:site_name" content="Everence Wealth" />
   <meta property="og:locale" content="${meta.ogLocale}" />
   
@@ -491,7 +491,7 @@ function generateStaticHTML(productionAssets: ProductionAssets, language: Langua
   <meta name="twitter:title" content="${sanitizeForHTML(meta.title)}" />
   <meta name="twitter:description" content="${sanitizeForHTML(meta.description)}" />
   <meta name="twitter:image" content="${BASE_URL}/assets/logo-new.png" />
-  <meta name="twitter:image:alt" content="Everence Wealth - Costa del Sol Real Estate" />
+  <meta name="twitter:image:alt" content="Everence Wealth - Independent Wealth Management" />
   
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="/favicon.png" />

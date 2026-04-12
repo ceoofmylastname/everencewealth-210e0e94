@@ -239,12 +239,12 @@ function extractEntitiesForSSG(headline: string, content: string, category: stri
 
   // Detect cities in headline (primary) and content (secondary)
   const topics = ["IUL", "Tax-Free Retirement", "Asset Protection", "Roth IRA", "401(k)", "Life Insurance", "Cash Value", "Indexed Universal Life"];
-  const seenCities = new Set<string>();
+  const seenTopics = new Set<string>();
   
-  for (const city of cities) {
+  for (const city of topics) {
     const regex = new RegExp(`\\b${city}\\b`, 'gi');
-    if (regex.test(combinedText) && !seenCities.has(city.toLowerCase())) {
-      seenCities.add(city.toLowerCase());
+    if (regex.test(combinedText) && !seenTopics.has(city.toLowerCase())) {
+      seenTopics.add(city.toLowerCase());
       const entity: any = { "@type": "Place", "name": city };
       if (WIKIDATA_ENTITIES[city]) entity.sameAs = WIKIDATA_ENTITIES[city];
       
