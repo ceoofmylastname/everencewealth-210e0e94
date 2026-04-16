@@ -24,7 +24,7 @@ const Contact: React.FC = () => {
     '@type': 'FinancialService',
     name: 'Everence Wealth',
     description: contactT.meta?.description || 'Independent wealth management and retirement planning',
-    url: `https://everencewealth.com/${language}/contact`,
+    url: `https://www.everencewealth.com/${language}/contact`,
     telephone: COMPANY_CONTACT.phone,
     email: COMPANY_CONTACT.email,
     address: {
@@ -64,11 +64,11 @@ const Contact: React.FC = () => {
       <Helmet>
         <title>{contactT.meta?.title || 'Contact Everence Wealth | Financial Planning & Wealth Management'}</title>
         <meta name="description" content={contactT.meta?.description || 'Get in touch with our independent wealth advisors.'} />
-        <link rel="canonical" href={`https://everencewealth.com/${language}/contact`} />
+        <link rel="canonical" href={`https://www.everencewealth.com/${language}/contact`} />
         <meta property="og:title" content={contactT.meta?.title} />
         <meta property="og:description" content={contactT.meta?.description} />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content={`https://everencewealth.com/${language}/contact`} />
+        <meta property="og:url" content={`https://www.everencewealth.com/${language}/contact`} />
         <script type="application/ld+json">
           {JSON.stringify(localBusinessSchema)}
         </script>

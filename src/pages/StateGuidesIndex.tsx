@@ -83,7 +83,7 @@ const StateGuidesIndex = () => {
         <html lang={lang} />
         <title>{title}</title>
         <meta name="description" content={description} />
-        <link rel="canonical" href={`https://everencewealth.com/${lang}/retirement-planning`} />
+        <link rel="canonical" href={`https://www.everencewealth.com/${lang}/retirement-planning`} />
         <meta property="og:title" content={title} />
         <meta property="og:description" content={description} />
         <meta property="og:type" content="website" />

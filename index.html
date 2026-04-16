@@ -5,7 +5,7 @@
     <script>
       (function() {
         var match = window.location.pathname.match(/^\/([a-z]{2})\//);
-        var validLangs = ['en','nl','fr','de','fi','pl','da','hu','sv','no'];
+        var validLangs = ['en', 'es'];
         if (match && validLangs.indexOf(match[1]) !== -1) {
           document.documentElement.lang = match[1];
         }

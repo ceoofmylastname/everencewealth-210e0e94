@@ -28,7 +28,7 @@ const IndexedUniversalLife: React.FC = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const baseUrl = 'https://everencewealth.com';
+  const baseUrl = 'https://www.everencewealth.com';
   const canonicalUrl = `${baseUrl}/${currentLang === 'es' ? 'es/estrategias/seguro-universal-indexado' : 'en/strategies/iul'}`;
 
   const seoTitle = s?.seo?.title || 'Indexed Universal Life Insurance: Tax-Free Growth with 0% Floor | Everence Wealth';
