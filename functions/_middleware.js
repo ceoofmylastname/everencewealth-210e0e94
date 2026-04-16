@@ -1,8 +1,8 @@
 // ============================================================
 // Cloudflare Pages Middleware - Routes SEO pages to edge function
 // Calls Supabase serve-seo-page function for dynamic SEO content
-// Last updated: 2026-01-18
-// v2.1 - Query param fix: ?path= instead of URL path appending
+// Last updated: 2026-04-16
+// v2.2 - Fixed LANGUAGES array, legacy domains, added server-side SEO tag injection
 // ============================================================
 
 // Hardcoded values ensure middleware works in Cloudflare Pages environment
@@ -11,8 +11,74 @@ const SUPABASE_URL = 'https://kazggnufaoicopvmwhdl.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImthemdnbnVmYW9pY29wdm13aGRsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA1MzM0ODEsImV4cCI6MjA3NjEwOTQ4MX0.acQwC_xPXFXvOwwn7IATeg6OwQ2HWlu52x76iqUdhB4';
 
 // Supported languages
-const LANGUAGES = ['en', 'nl', 'fr', 'de', 'fi', 'pl', 'da', 'hu', 'sv', 'no'];
+const LANGUAGES = ['en', 'es'];
 const LANG_PATTERN = LANGUAGES.join('|');
+
+const BASE_URL = 'https://www.everencewealth.com';
+
+// Spanish slug mappings for hreflang alternates
+const SLUG_MAP_EN_TO_ES = {
+  '/strategies/whole-life': '/estrategias/seguro-vida-entera',
+  '/strategies/iul': '/estrategias/seguro-universal-indexado',
+  '/strategies/tax-free-retirement': '/estrategias/retiro-libre-impuestos',
+  '/strategies/asset-protection': '/estrategias/proteccion-de-activos',
+  '/contact': '/contacto',
+  '/philosophy': '/filosofia',
+  '/about': '/acerca',
+};
+
+// Build reverse map
+const SLUG_MAP_ES_TO_EN = {};
+for (const [en, es] of Object.entries(SLUG_MAP_EN_TO_ES)) {
+  SLUG_MAP_ES_TO_EN[es] = en;
+}
+
+// Build the alternate path for hreflang
+function buildAlternatePath(path, fromLang, toLang) {
+  // Strip the language prefix: /en/strategies/whole-life -> /strategies/whole-life
+  const pathWithoutLang = path.replace(new RegExp(`^/${fromLang}`), '');
+
+  let alternatePathWithoutLang = pathWithoutLang;
+
+  if (fromLang === 'en' && toLang === 'es') {
+    alternatePathWithoutLang = SLUG_MAP_EN_TO_ES[pathWithoutLang] || pathWithoutLang;
+  } else if (fromLang === 'es' && toLang === 'en') {
+    alternatePathWithoutLang = SLUG_MAP_ES_TO_EN[pathWithoutLang] || pathWithoutLang;
+  }
+
+  return `/${toLang}${alternatePathWithoutLang}`;
+}
+
+// Inject canonical, hreflang, and og:url into an HTML response
+function injectSeoTags(response, pathname) {
+  const langMatch = pathname.match(/^\/([a-z]{2})(\/|$)/);
+  if (!langMatch || !LANGUAGES.includes(langMatch[1])) return response;
+
+  const lang = langMatch[1];
+  const alternateLang = lang === 'en' ? 'es' : 'en';
+
+  const canonicalUrl = `${BASE_URL}${pathname}`;
+  const alternatePath = buildAlternatePath(pathname, lang, alternateLang);
+  const alternateUrl = `${BASE_URL}${alternatePath}`;
+  // x-default always points to the English version
+  const enPath = lang === 'en' ? pathname : buildAlternatePath(pathname, lang, 'en');
+  const defaultUrl = `${BASE_URL}${enPath}`;
+
+  const seoTags = `
+<link rel="canonical" href="${canonicalUrl}" />
+<link rel="alternate" hreflang="${lang}" href="${canonicalUrl}" />
+<link rel="alternate" hreflang="${alternateLang}" href="${alternateUrl}" />
+<link rel="alternate" hreflang="x-default" href="${defaultUrl}" />
+<meta property="og:url" content="${canonicalUrl}" />`;
+
+  return new HTMLRewriter()
+    .on('head', {
+      element(el) {
+        el.append(seoTags, { html: true });
+      }
+    })
+    .transform(response);
+}
 
 // SEO content routes that need edge function SSR
 // NOTE: All content pages (blog, QA, compare, locations) are now pre-rendered
@@ -56,9 +122,9 @@ export async function onRequest({ request, next, env }) {
   // Non-www URLs must redirect to www for SEO consistency
   // (Must run before ANY other logic)
   // ============================================================
-  if (!isLocalhost && url.hostname === 'delsolprimehomes.com') {
+  if (!isLocalhost && url.hostname === 'everencewealth.com') {
     const redirectUrl = new URL(url);
-    redirectUrl.hostname = 'www.delsolprimehomes.com';
+    redirectUrl.hostname = 'www.everencewealth.com';
 
     return new Response(null, {
       status: 301,
@@ -75,7 +141,7 @@ export async function onRequest({ request, next, env }) {
   // ============================================================
   if (url.hostname === 'blog-knowledge-vault.lovable.app' && url.pathname.startsWith('/crm/')) {
     const redirectUrl = new URL(url);
-    redirectUrl.hostname = 'www.delsolprimehomes.com';
+    redirectUrl.hostname = 'www.everencewealth.com';
     
     console.log(`[Middleware] Redirecting CRM from Lovable subdomain: ${url.pathname} → ${redirectUrl.toString()}`);
     
@@ -149,11 +215,12 @@ export async function onRequest({ request, next, env }) {
       headers.set('CDN-Cache-Control', 'max-age=3600');
       headers.set('Cloudflare-CDN-Cache-Control', 'max-age=3600');
       headers.set('Vary', 'Accept-Encoding');
-      return new Response(staticBody, {
+      const seoResponse = new Response(staticBody, {
         status: staticResponse.status,
         statusText: staticResponse.statusText,
         headers,
       });
+      return injectSeoTags(seoResponse, pathname);
     }
 
     // Static file missing/thin/no internal links — call SSR
@@ -181,7 +248,7 @@ export async function onRequest({ request, next, env }) {
 
       if (ssrResponse.ok && ssrBody.includes('<!DOCTYPE html>') && ssrBody.length > 1000) {
         console.log(`[Middleware] Blog SSR fallback success: ${pathname}`);
-        return new Response(ssrBody, {
+        const blogSsrResponse = new Response(ssrBody, {
           status: 200,
           headers: {
             'Content-Type': 'text/html; charset=utf-8',
@@ -194,6 +261,7 @@ export async function onRequest({ request, next, env }) {
             'X-Middleware-Status': 'Active',
           },
         });
+        return injectSeoTags(blogSsrResponse, pathname);
       }
 
       console.log(`[Middleware] Blog SSR returned ${ssrResponse.status}, falling through to SPA`);
@@ -208,11 +276,12 @@ export async function onRequest({ request, next, env }) {
     headers.set('Cache-Control', 'public, max-age=300, s-maxage=300, stale-while-revalidate=3600');
     headers.set('CDN-Cache-Control', 'max-age=300');
     headers.set('Vary', 'Accept-Encoding');
-    return new Response(staticBody, {
+    const spaResponse = new Response(staticBody, {
       status: staticResponse.status,
       statusText: staticResponse.statusText,
       headers,
     });
+    return injectSeoTags(spaResponse, pathname);
   }
 
   // ============================================================
@@ -245,11 +314,12 @@ export async function onRequest({ request, next, env }) {
         headers.set('CDN-Cache-Control', 'max-age=3600');
         headers.set('Cloudflare-CDN-Cache-Control', 'max-age=3600');
         headers.set('Vary', 'Accept-Encoding');
-        return new Response(staticBody, {
+        const qaSeoResponse = new Response(staticBody, {
           status: staticResponse.status,
           statusText: staticResponse.statusText,
           headers,
         });
+        return injectSeoTags(qaSeoResponse, pathname);
       }
 
     // 3. Static file missing/thin — call serve-seo-page edge function
@@ -277,7 +347,7 @@ export async function onRequest({ request, next, env }) {
 
       if (ssrResponse.ok && ssrBody.includes('<!DOCTYPE html>') && ssrBody.length > 1000) {
         console.log(`[Middleware] Q&A SSR fallback success: ${pathname}`);
-        return new Response(ssrBody, {
+        const qaSsrResponse = new Response(ssrBody, {
           status: 200,
           headers: {
             'Content-Type': 'text/html; charset=utf-8',
@@ -290,6 +360,7 @@ export async function onRequest({ request, next, env }) {
             'X-Middleware-Status': 'Active',
           },
         });
+        return injectSeoTags(qaSsrResponse, pathname);
       }
 
       console.log(`[Middleware] Q&A SSR returned ${ssrResponse.status}, falling through to SPA`);
@@ -304,11 +375,12 @@ export async function onRequest({ request, next, env }) {
     headers.set('Cache-Control', 'public, max-age=300, s-maxage=300, stale-while-revalidate=3600');
     headers.set('CDN-Cache-Control', 'max-age=300');
     headers.set('Vary', 'Accept-Encoding');
-    return new Response(staticBody, {
+    const qaSpaResponse = new Response(staticBody, {
       status: staticResponse.status,
       statusText: staticResponse.statusText,
       headers,
     });
+    return injectSeoTags(qaSpaResponse, pathname);
   }
 
   // Check if this route needs SEO
@@ -369,7 +441,7 @@ export async function onRequest({ request, next, env }) {
       // If we got HTML content (check for DOCTYPE or <html), use it
       if (seoBody.includes('<!DOCTYPE html>') || seoBody.includes('<html')) {
         console.log('[Middleware] SEO function returned HTML');
-        return new Response(seoBody, {
+        const edgeResponse = new Response(seoBody, {
           status: 200,
           headers: {
             'Content-Type': 'text/html; charset=utf-8',
@@ -379,6 +451,7 @@ export async function onRequest({ request, next, env }) {
             'X-Middleware-Status': 'Active',
           }
         });
+        return injectSeoTags(edgeResponse, pathname);
       }
 
       // Edge function returned 200 but no HTML - still show the raw response
@@ -419,6 +492,20 @@ export async function onRequest({ request, next, env }) {
         }
       );
     }
+  }
+
+  // ============================================================
+  // ALL OTHER HTML PAGES: Inject SEO tags into SPA responses
+  // Covers strategies, glossary, contact, philosophy, etc.
+  // ============================================================
+  const langRouteMatch = pathname.match(/^\/([a-z]{2})(\/|$)/);
+  if (langRouteMatch && LANGUAGES.includes(langRouteMatch[1])) {
+    const response = await next();
+    const contentType = response.headers.get('content-type') || '';
+    if (contentType.includes('text/html')) {
+      return injectSeoTags(withMiddlewareStatus(response), pathname);
+    }
+    return withMiddlewareStatus(response);
   }
 
   // All other requests - pass through to React SPA
