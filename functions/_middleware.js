@@ -167,6 +167,75 @@ export async function onRequest({ request, next, env }) {
     });
   }
 
+  // ============================================================
+  // 301 REDIRECT MAP — Legacy URLs to current equivalents
+  // ============================================================
+  const REDIRECT_MAP = {
+    '/financial-planning/three-tax-buckets': '/en/blog/tax-planning/understanding-three-tax-buckets',
+    '/wealth-strategies/zero-is-your-hero': '/en/blog/wealth-management/three-tax-buckets',
+    '/indexed-universal-life-insurance/introduction': '/en/strategies/iul',
+    '/schedule': '/en/contact',
+    '/financial-needs-assessment': '/en/contact',
+    '/en/strategies': '/en/',
+    '/es/strategies': '/es/',
+    '/en/tax-bucket-guide': '/en/blog/tax-planning/understanding-three-tax-buckets',
+    '/es/tax-bucket-guide': '/es/',
+    '/en/calculator': '/en/',
+    '/es/calculator': '/es/',
+    '/en/careers': '/en/',
+    '/es/careers': '/es/',
+    '/en/contact/fna': '/en/contact',
+    '/disclosures': '/en/',
+  };
+
+  // Check exact match redirects
+  const redirectTarget = REDIRECT_MAP[pathname];
+  if (redirectTarget) {
+    console.log(`[Middleware] 301 redirect: ${pathname} → ${redirectTarget}`);
+    return new Response(null, {
+      status: 301,
+      headers: {
+        Location: `${BASE_URL}${redirectTarget}`,
+        'X-Middleware-Status': 'Active',
+      },
+    });
+  }
+
+  // Prefix redirect: /blog/category/* → /en/
+  if (pathname.startsWith('/blog/category/')) {
+    console.log(`[Middleware] 301 redirect (prefix): ${pathname} → /en/`);
+    return new Response(null, {
+      status: 301,
+      headers: {
+        Location: `${BASE_URL}/en/`,
+        'X-Middleware-Status': 'Active',
+      },
+    });
+  }
+
+  // ============================================================
+  // 404 BLOCKLIST — Return real HTTP 404 for invalid content
+  // ============================================================
+  const is404Blocked =
+    /^\/(en|es)\/blog\/costadelsol\//.test(pathname) ||
+    pathname === '/blog/category/buying property' ||
+    pathname === '/blog/category/retirement planning';
+
+  if (is404Blocked) {
+    console.log(`[Middleware] 404 blocked: ${pathname}`);
+    return new Response(
+      `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="robots" content="noindex"><title>404 Not Found</title></head><body><h1>404 — Page Not Found</h1><p>The page you requested does not exist.</p><a href="${BASE_URL}/en/">Return to homepage</a></body></html>`,
+      {
+        status: 404,
+        headers: {
+          'Content-Type': 'text/html; charset=utf-8',
+          'X-Robots-Tag': 'noindex',
+          'X-Middleware-Status': 'Active',
+        },
+      }
+    );
+  }
+
   // Skip static files
   if (STATIC_EXTENSIONS.some(ext => pathname.endsWith(ext))) {
     // Special handling for XML files
