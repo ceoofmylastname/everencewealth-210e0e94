@@ -28,7 +28,7 @@ const WholeLife: React.FC = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const baseUrl = 'https://everencewealth.com';
+  const baseUrl = 'https://www.everencewealth.com';
   const canonicalUrl = `${baseUrl}/${currentLang === 'es' ? 'es/estrategias/seguro-vida-entera' : 'en/strategies/whole-life'}`;
 
   const seoTitle = s?.seo?.title || 'Whole Life Insurance: Guaranteed Growth & Infinite Banking | Everence Wealth';

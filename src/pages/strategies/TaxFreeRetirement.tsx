@@ -28,7 +28,7 @@ const TaxFreeRetirement: React.FC = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const baseUrl = 'https://everencewealth.com';
+  const baseUrl = 'https://www.everencewealth.com';
   const canonicalUrl = `${baseUrl}/${currentLang === 'es' ? 'es/estrategias/retiro-libre-impuestos' : 'en/strategies/tax-free-retirement'}`;
 
   const seoTitle = s?.seo?.title || 'Tax-Free Retirement: $0 Income Taxes with Roth, IUL, Munis & HSA | Everence Wealth';

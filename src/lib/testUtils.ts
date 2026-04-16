@@ -2175,7 +2175,7 @@ export async function testPhase21(): Promise<TestResult[]> {
 export async function testPhase22(): Promise<TestResult[]> {
   const results: TestResult[] = [];
   
-  const SUPPORTED_LANGUAGES = ['en', 'nl', 'de', 'fr', 'pl', 'sv', 'da', 'hu', 'fi', 'no'];
+  const SUPPORTED_LANGUAGES = ['en', 'es'];
   const EXPECTED_HREFLANG_COUNT = SUPPORTED_LANGUAGES.length + 1; // +1 for x-default
 
   // Test 1: Validate hreflang tag generation produces 11 tags
@@ -2455,7 +2455,7 @@ export async function testPhase22(): Promise<TestResult[]> {
 export async function testPhase23(): Promise<TestResult[]> {
   const results: TestResult[] = [];
   
-  const SUPPORTED_LANGUAGES = ['en', 'nl', 'de', 'fr', 'pl', 'sv', 'da', 'hu', 'fi', 'no'];
+  const SUPPORTED_LANGUAGES = ['en', 'es'];
 
   // Test 1: Verify main sitemap exists
   try {

@@ -30,7 +30,7 @@ const Philosophy: React.FC = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const baseUrl = 'https://everencewealth.com';
+  const baseUrl = 'https://www.everencewealth.com';
   const canonicalUrl = `${baseUrl}/${currentLang === 'es' ? 'es/filosofia' : 'philosophy'}`;
 
   const webPageSchema = {
