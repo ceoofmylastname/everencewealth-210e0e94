@@ -85,11 +85,8 @@ function injectSeoTags(response, pathname) {
 // as static HTML files during build. The middleware should NOT intercept them.
 // Static files contain full branding + all SEO metadata (hreflang, canonical, schemas).
 // Edge function is ONLY for truly dynamic routes or fallback scenarios.
-const SEO_ROUTE_PATTERNS = [
-  // Location Hub ONLY - the hub index pages need edge function for dynamic city listing
-  // Individual location pages (/{lang}/locations/{city}/{topic}) are served as static files
-  new RegExp(`^/(${LANG_PATTERN})/locations/?$`),
-];
+const SEO_ROUTE_PATTERNS = [];
+
 
 // Check if path needs SEO edge function
 function needsSEO(pathname) {
@@ -218,6 +215,7 @@ export async function onRequest({ request, next, env }) {
   // ============================================================
   const is404Blocked =
     /^\/(en|es)\/blog\/costadelsol\//.test(pathname) ||
+    /^\/es\/property\//.test(pathname) ||
     pathname === '/blog/category/buying property' ||
     pathname === '/blog/category/retirement planning';
 
