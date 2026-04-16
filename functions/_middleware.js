@@ -167,6 +167,75 @@ export async function onRequest({ request, next, env }) {
     });
   }
 
+  // ============================================================
+  // 301 REDIRECT MAP — Legacy URLs to current equivalents
+  // ============================================================
+  const REDIRECT_MAP = {
+    '/financial-planning/three-tax-buckets': '/en/blog/tax-planning/understanding-three-tax-buckets',
+    '/wealth-strategies/zero-is-your-hero': '/en/blog/wealth-management/three-tax-buckets',
+    '/indexed-universal-life-insurance/introduction': '/en/strategies/iul',
+    '/schedule': '/en/contact',
+    '/financial-needs-assessment': '/en/contact',
+    '/en/strategies': '/en/',
+    '/es/strategies': '/es/',
+    '/en/tax-bucket-guide': '/en/blog/tax-planning/understanding-three-tax-buckets',
+    '/es/tax-bucket-guide': '/es/',
+    '/en/calculator': '/en/',
+    '/es/calculator': '/es/',
+    '/en/careers': '/en/',
+    '/es/careers': '/es/',
+    '/en/contact/fna': '/en/contact',
+    '/disclosures': '/en/',
+  };
+
+  // Check exact match redirects
+  const redirectTarget = REDIRECT_MAP[pathname];
+  if (redirectTarget) {
+    console.log(`[Middleware] 301 redirect: ${pathname} → ${redirectTarget}`);
+    return new Response(null, {
+      status: 301,
+      headers: {
+        Location: `${BASE_URL}${redirectTarget}`,
+        'X-Middleware-Status': 'Active',
+      },
+    });
+  }
+
+  // Prefix redirect: /blog/category/* → /en/
+  if (pathname.startsWith('/blog/category/')) {
+    console.log(`[Middleware] 301 redirect (prefix): ${pathname} → /en/`);
+    return new Response(null, {
+      status: 301,
+      headers: {
+        Location: `${BASE_URL}/en/`,
+        'X-Middleware-Status': 'Active',
+      },
+    });
+  }
+
+  // ============================================================
+  // 404 BLOCKLIST — Return real HTTP 404 for invalid content
+  // ============================================================
+  const is404Blocked =
+    /^\/(en|es)\/blog\/costadelsol\//.test(pathname) ||
+    pathname === '/blog/category/buying property' ||
+    pathname === '/blog/category/retirement planning';
+
+  if (is404Blocked) {
+    console.log(`[Middleware] 404 blocked: ${pathname}`);
+    return new Response(
+      `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="robots" content="noindex"><title>404 Not Found</title></head><body><h1>404 — Page Not Found</h1><p>The page you requested does not exist.</p><a href="${BASE_URL}/en/">Return to homepage</a></body></html>`,
+      {
+        status: 404,
+        headers: {
+          'Content-Type': 'text/html; charset=utf-8',
+          'X-Robots-Tag': 'noindex',
+          'X-Middleware-Status': 'Active',
+        },
+      }
+    );
+  }
+
   // Skip static files
   if (STATIC_EXTENSIONS.some(ext => pathname.endsWith(ext))) {
     // Special handling for XML files
@@ -246,6 +315,20 @@ export async function onRequest({ request, next, env }) {
 
       const ssrBody = await ssrResponse.text();
 
+      // Forward 404/410 from edge function directly — do NOT fall through to SPA
+      if (ssrResponse.status === 404 || ssrResponse.status === 410) {
+        console.log(`[Middleware] Blog SSR returned ${ssrResponse.status} for ${pathname}, returning as-is`);
+        return new Response(ssrBody || `<!DOCTYPE html><html><head><meta name="robots" content="noindex"><title>${ssrResponse.status} Not Found</title></head><body><h1>${ssrResponse.status}</h1></body></html>`, {
+          status: ssrResponse.status,
+          headers: {
+            'Content-Type': 'text/html; charset=utf-8',
+            'X-Robots-Tag': 'noindex',
+            'X-SEO-Source': `edge-function-${ssrResponse.status}`,
+            'X-Middleware-Status': 'Active',
+          },
+        });
+      }
+
       if (ssrResponse.ok && ssrBody.includes('<!DOCTYPE html>') && ssrBody.length > 1000) {
         console.log(`[Middleware] Blog SSR fallback success: ${pathname}`);
         const blogSsrResponse = new Response(ssrBody, {
@@ -269,19 +352,20 @@ export async function onRequest({ request, next, env }) {
       console.error(`[Middleware] Blog SSR fallback error for ${pathname}:`, err?.message);
     }
 
-    // Both failed — serve SPA shell with short cache
-    const headers = new Headers(staticResponse.headers);
-    headers.set('X-Middleware-Status', 'Active');
-    headers.set('X-SEO-Source', 'spa-fallback');
-    headers.set('Cache-Control', 'public, max-age=300, s-maxage=300, stale-while-revalidate=3600');
-    headers.set('CDN-Cache-Control', 'max-age=300');
-    headers.set('Vary', 'Accept-Encoding');
-    const spaResponse = new Response(staticBody, {
-      status: staticResponse.status,
-      statusText: staticResponse.statusText,
-      headers,
-    });
-    return injectSeoTags(spaResponse, pathname);
+    // Both failed — serve 404 for blog paths (not 200 SPA shell)
+    console.log(`[Middleware] Blog fallback 404: ${pathname}`);
+    return new Response(
+      `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="robots" content="noindex"><title>404 Not Found</title></head><body><h1>404 — Article Not Found</h1><p>This article does not exist.</p><a href="${BASE_URL}/en/">Return to homepage</a></body></html>`,
+      {
+        status: 404,
+        headers: {
+          'Content-Type': 'text/html; charset=utf-8',
+          'X-Robots-Tag': 'noindex',
+          'X-SEO-Source': 'blog-fallback-404',
+          'X-Middleware-Status': 'Active',
+        },
+      }
+    );
   }
 
   // ============================================================
@@ -345,6 +429,20 @@ export async function onRequest({ request, next, env }) {
 
       const ssrBody = await ssrResponse.text();
 
+      // Forward 404/410 from edge function directly
+      if (ssrResponse.status === 404 || ssrResponse.status === 410) {
+        console.log(`[Middleware] Q&A SSR returned ${ssrResponse.status} for ${pathname}, returning as-is`);
+        return new Response(ssrBody || `<!DOCTYPE html><html><head><meta name="robots" content="noindex"><title>${ssrResponse.status} Not Found</title></head><body><h1>${ssrResponse.status}</h1></body></html>`, {
+          status: ssrResponse.status,
+          headers: {
+            'Content-Type': 'text/html; charset=utf-8',
+            'X-Robots-Tag': 'noindex',
+            'X-SEO-Source': `edge-function-${ssrResponse.status}`,
+            'X-Middleware-Status': 'Active',
+          },
+        });
+      }
+
       if (ssrResponse.ok && ssrBody.includes('<!DOCTYPE html>') && ssrBody.length > 1000) {
         console.log(`[Middleware] Q&A SSR fallback success: ${pathname}`);
         const qaSsrResponse = new Response(ssrBody, {
@@ -368,19 +466,20 @@ export async function onRequest({ request, next, env }) {
       console.error(`[Middleware] Q&A SSR fallback error for ${pathname}:`, err?.message);
     }
 
-    // 4. Both failed — serve original SPA response with short cache
-    const headers = new Headers(staticResponse.headers);
-    headers.set('X-Middleware-Status', 'Active');
-    headers.set('X-SEO-Source', 'spa-fallback');
-    headers.set('Cache-Control', 'public, max-age=300, s-maxage=300, stale-while-revalidate=3600');
-    headers.set('CDN-Cache-Control', 'max-age=300');
-    headers.set('Vary', 'Accept-Encoding');
-    const qaSpaResponse = new Response(staticBody, {
-      status: staticResponse.status,
-      statusText: staticResponse.statusText,
-      headers,
-    });
-    return injectSeoTags(qaSpaResponse, pathname);
+    // Both failed — serve 404 for Q&A paths (not 200 SPA shell)
+    console.log(`[Middleware] Q&A fallback 404: ${pathname}`);
+    return new Response(
+      `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="robots" content="noindex"><title>404 Not Found</title></head><body><h1>404 — Page Not Found</h1><p>This Q&A page does not exist.</p><a href="${BASE_URL}/en/">Return to homepage</a></body></html>`,
+      {
+        status: 404,
+        headers: {
+          'Content-Type': 'text/html; charset=utf-8',
+          'X-Robots-Tag': 'noindex',
+          'X-SEO-Source': 'qa-fallback-404',
+          'X-Middleware-Status': 'Active',
+        },
+      }
+    );
   }
 
   // Check if this route needs SEO
