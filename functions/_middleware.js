@@ -315,6 +315,20 @@ export async function onRequest({ request, next, env }) {
 
       const ssrBody = await ssrResponse.text();
 
+      // Forward 404/410 from edge function directly — do NOT fall through to SPA
+      if (ssrResponse.status === 404 || ssrResponse.status === 410) {
+        console.log(`[Middleware] Blog SSR returned ${ssrResponse.status} for ${pathname}, returning as-is`);
+        return new Response(ssrBody || `<!DOCTYPE html><html><head><meta name="robots" content="noindex"><title>${ssrResponse.status} Not Found</title></head><body><h1>${ssrResponse.status}</h1></body></html>`, {
+          status: ssrResponse.status,
+          headers: {
+            'Content-Type': 'text/html; charset=utf-8',
+            'X-Robots-Tag': 'noindex',
+            'X-SEO-Source': `edge-function-${ssrResponse.status}`,
+            'X-Middleware-Status': 'Active',
+          },
+        });
+      }
+
       if (ssrResponse.ok && ssrBody.includes('<!DOCTYPE html>') && ssrBody.length > 1000) {
         console.log(`[Middleware] Blog SSR fallback success: ${pathname}`);
         const blogSsrResponse = new Response(ssrBody, {
@@ -338,19 +352,20 @@ export async function onRequest({ request, next, env }) {
       console.error(`[Middleware] Blog SSR fallback error for ${pathname}:`, err?.message);
     }
 
-    // Both failed — serve SPA shell with short cache
-    const headers = new Headers(staticResponse.headers);
-    headers.set('X-Middleware-Status', 'Active');
-    headers.set('X-SEO-Source', 'spa-fallback');
-    headers.set('Cache-Control', 'public, max-age=300, s-maxage=300, stale-while-revalidate=3600');
-    headers.set('CDN-Cache-Control', 'max-age=300');
-    headers.set('Vary', 'Accept-Encoding');
-    const spaResponse = new Response(staticBody, {
-      status: staticResponse.status,
-      statusText: staticResponse.statusText,
-      headers,
-    });
-    return injectSeoTags(spaResponse, pathname);
+    // Both failed — serve 404 for blog paths (not 200 SPA shell)
+    console.log(`[Middleware] Blog fallback 404: ${pathname}`);
+    return new Response(
+      `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="robots" content="noindex"><title>404 Not Found</title></head><body><h1>404 — Article Not Found</h1><p>This article does not exist.</p><a href="${BASE_URL}/en/">Return to homepage</a></body></html>`,
+      {
+        status: 404,
+        headers: {
+          'Content-Type': 'text/html; charset=utf-8',
+          'X-Robots-Tag': 'noindex',
+          'X-SEO-Source': 'blog-fallback-404',
+          'X-Middleware-Status': 'Active',
+        },
+      }
+    );
   }
 
   // ============================================================
