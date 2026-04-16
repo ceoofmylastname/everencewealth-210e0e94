@@ -1,38 +1,66 @@
 
 
-## Add Server-Side SEO Tag Injection to Cloudflare Middleware
+## Fix 46 Soft 404 Errors — Redirects, 404s, and Edge Function Hardening
 
 ### Problem
-Googlebot sees canonical/hreflang tags only after JavaScript runs. The middleware already exists at `functions/_middleware.js` but doesn't inject SEO tags into the HTML response.
+Google Search Console reports 46 Soft 404s because the SPA returns HTTP 200 for URLs where content doesn't exist. Legacy URLs need 301 redirects, and certain paths (costadelsol content, dead categories) need real 404 responses.
 
-### Key Finding
-A middleware already exists at `functions/_middleware.js` (not `.ts`). It handles SSR fallbacks, redirects, and static file routing. It also has the **wrong LANGUAGES array on line 14** — still listing 10 unsupported languages instead of `['en', 'es']`.
+### Changes
 
-### Plan
+#### 1. `functions/_middleware.js` — Add redirect map and 404 blocklist
 
-**File: `functions/_middleware.js`** (modify existing — do NOT create a separate `_middleware.ts`)
+**Add BEFORE the static extensions check (~line 170)**, right after `withMiddlewareStatus` is defined:
 
-1. **Fix line 14**: Change `LANGUAGES` from the 10-language array to `['en', 'es']`
+**301 Redirect Map** — a simple object mapping old paths to new paths:
+- `/financial-planning/three-tax-buckets` -> `/en/blog/tax-planning/understanding-three-tax-buckets`
+- `/wealth-strategies/zero-is-your-hero` -> `/en/blog/wealth-management/three-tax-buckets`
+- `/indexed-universal-life-insurance/introduction` -> `/en/strategies/iul`
+- `/schedule` -> `/en/contact`
+- `/financial-needs-assessment` -> `/en/contact`
+- `/en/strategies` -> `/en/`
+- `/es/strategies` -> `/es/`
+- `/en/tax-bucket-guide` -> `/en/blog/tax-planning/understanding-three-tax-buckets`
+- `/es/tax-bucket-guide` -> `/es/`
+- `/en/calculator` -> `/en/`
+- `/es/calculator` -> `/es/`
+- `/en/careers` -> `/en/`
+- `/es/careers` -> `/es/`
+- `/en/contact/fna` -> `/en/contact`
+- `/disclosures` -> `/en/`
 
-2. **Fix lines 59-61**: Update the www-redirect from `delsolprimehomes.com` to `everencewealth.com` (legacy domain still hardcoded)
+**Prefix redirect**: Any path starting with `/blog/category/` -> `/en/`
 
-3. **Fix lines 76-78**: Update the Lovable subdomain redirect from `blog-knowledge-vault.lovable.app` / `delsolprimehomes.com` to use `everencewealth.com`
+**Logic**: Check `pathname` against the map. If matched, return 301 with `Location: BASE_URL + target`. Check `/blog/category/` prefix separately.
 
-4. **Add SEO tag injection**: Before the final `return withMiddlewareStatus(await next())` at line 425, add an HTML rewriting step for all `text/html` responses on `/{lang}/...` routes:
-   - Parse the language from the URL path
-   - Build canonical, hreflang (self + alternate + x-default), and og:url tags
-   - Use `HTMLRewriter` to append these tags into `<head>`
-   - This covers ALL pages (strategies, blog, QA, glossary, etc.) in one place
+**404 Blocklist** — return real HTTP 404 for:
+- Any path matching `/en/blog/costadelsol/` or `/es/blog/costadelsol/` (regex: `^/(en|es)/blog/costadelsol/`)
+- `/blog/category/buying property`
+- `/blog/category/retirement planning`
 
-5. **Also inject into existing SSR/static responses**: The blog and QA fallback paths (lines 131-312) already return full HTML. Wrap those returns through the same HTMLRewriter to ensure consistency.
+**Logic**: Check pathname against blocklist. If matched, return a minimal HTML 404 response with `<meta name="robots" content="noindex">` and HTTP status 404.
 
-### Technical Notes
-- `HTMLRewriter` is a Cloudflare Workers/Pages native API — no imports needed
-- The injection runs at the edge before the browser receives anything — Googlebot sees tags in raw HTML
-- Tags are appended to `<head>`, so they won't duplicate if React also adds them client-side (though client-side tags will be redundant)
-- The file stays as `.js` (not `.ts`) to match the existing Cloudflare Pages Functions setup
-- No new files created — single file modification
+These checks go right after the asset/static-file skip blocks and BEFORE the blog SSR fallback section.
 
-### Verification
-After deploying, view-source on any page like `https://www.everencewealth.com/en/strategies/whole-life` should show canonical and hreflang tags in the raw HTML without JavaScript execution.
+#### 2. `functions/_middleware.js` — Fix blog SSR fallback to respect 410/404 from edge function
+
+Currently at lines 249-265, when the SSR edge function returns a non-200 (like 410 for missing content), the middleware logs it but falls through to serve the SPA shell with status 200 (lines 272-284). This is the core Soft 404 problem.
+
+**Fix**: After the SSR response is received, if `ssrResponse.status === 410 || ssrResponse.status === 404`, return that response directly with the same status code instead of falling through to the SPA shell. Same fix needed in the Q&A SSR fallback section (lines 348-369).
+
+Also: when both static and SSR fail and SPA fallback is used for blog/QA paths, return status **404** instead of the original `staticResponse.status` (which is 200).
+
+#### 3. `supabase/functions/serve-seo-page/index.ts` — Already handles missing content
+
+The edge function already returns 410 when `metadata` is null (line 2447-2461). No changes needed here — the fix is in the middleware properly forwarding that 410 instead of swallowing it.
+
+#### 4. `src/pages/BlogArticle.tsx` — Already handles not-found client-side
+
+The React component already throws `"Article not found"` when data is null (line 57), renders a "not found" UI with `<meta name="robots" content="noindex, nofollow">` (lines 193-208). This is a reasonable client-side fallback. No changes needed.
+
+### Summary of file changes
+- **`functions/_middleware.js`**: Add redirect map (~15 entries), prefix redirect for `/blog/category/`, 404 blocklist for costadelsol paths, and fix SSR fallback to forward 410/404 status codes instead of falling through to 200 SPA shell.
+- No changes to edge function or React components — they already handle missing content correctly.
+
+### Deployment
+The middleware deploys automatically with the Cloudflare Pages build. No edge function redeployment needed.
 
