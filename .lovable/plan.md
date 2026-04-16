@@ -1,44 +1,38 @@
 
 
-## Improve Citation Discovery Hit Rate
+## Add Server-Side SEO Tag Injection to Cloudflare Middleware
 
 ### Problem
-The `discover-cluster-citations` edge function has a low hit rate — many articles get 0 citations from Perplexity. Root causes:
+Googlebot sees canonical/hreflang tags only after JavaScript runs. The middleware already exists at `functions/_middleware.js` but doesn't inject SEO tags into the HTML response.
 
-1. **Weak model**: Uses `sonar` (basic) instead of `sonar-pro` (multi-step reasoning with 2x citations)
-2. **Too little context**: Only sends first 3000 chars of article content
-3. **No retry logic**: If Perplexity returns 0 results, gives up immediately
-4. **Over-specific prompt**: Asks for wealth management citations specifically, which narrows results unnecessarily for articles on broader topics
-5. **Temperature too low** (0.1): Reduces creative search ability
-6. **No fallback strategy**: Single prompt attempt with no variation
+### Key Finding
+A middleware already exists at `functions/_middleware.js` (not `.ts`). It handles SSR fallbacks, redirects, and static file routing. It also has the **wrong LANGUAGES array on line 14** — still listing 10 unsupported languages instead of `['en', 'es']`.
 
 ### Plan
 
-#### Step 1: Upgrade `discover-cluster-citations/index.ts` — Prompt & Model
-- Switch from `sonar` to `sonar-pro` for better search depth
-- Raise temperature from 0.1 to 0.3
-- Increase `max_tokens` from 2000 to 3000
-- Broaden the prompt: instead of "wealth management and financial planning" framing, use the actual article topic and let Perplexity find the best sources
-- Send more article content (up to 5000 chars) for better context
-- Simplify the prompt to reduce over-constraining — fewer "NEVER" rules in the initial search, filter bad results after
+**File: `functions/_middleware.js`** (modify existing — do NOT create a separate `_middleware.ts`)
 
-#### Step 2: Add retry with varied prompts
-- If first attempt returns 0 valid citations, retry with a **broader prompt** (different angle: ask for statistics, research, government data related to the topic)
-- If second attempt also returns 0, try a **third prompt** focused on the article headline only (simpler query = more results)
-- Max 3 attempts per article, with 2s delay between retries
+1. **Fix line 14**: Change `LANGUAGES` from the 10-language array to `['en', 'es']`
 
-#### Step 3: Relax post-filtering
-- Currently blocks any URL with keywords like "property", "estate", "housing" — this is too aggressive for a wealth management site that may legitimately cite housing statistics
-- Add exception: allow government/statistical domains (.gov, .edu, eurostat, ine.es) even if they contain blocked keywords in their URL path
-- Keep competitor domain blocking but loosen keyword blocking for high-authority sources
+2. **Fix lines 59-61**: Update the www-redirect from `delsolprimehomes.com` to `everencewealth.com` (legacy domain still hardcoded)
 
-#### Step 4: Increase batch parallelism
-- Currently processes 3 articles at a time with 1s delay
-- Increase to 4 articles at a time (Perplexity rate limits are per-key, sonar-pro handles this)
+3. **Fix lines 76-78**: Update the Lovable subdomain redirect from `blog-knowledge-vault.lovable.app` / `delsolprimehomes.com` to use `everencewealth.com`
 
-### Technical details
-- Single file change: `supabase/functions/discover-cluster-citations/index.ts`
-- The `findCitationsForArticle` function inside this file will be rewritten with retry logic
-- Deploy via `supabase--deploy_edge_functions`
-- Test with `supabase--curl_edge_functions` on one cluster
+4. **Add SEO tag injection**: Before the final `return withMiddlewareStatus(await next())` at line 425, add an HTML rewriting step for all `text/html` responses on `/{lang}/...` routes:
+   - Parse the language from the URL path
+   - Build canonical, hreflang (self + alternate + x-default), and og:url tags
+   - Use `HTMLRewriter` to append these tags into `<head>`
+   - This covers ALL pages (strategies, blog, QA, glossary, etc.) in one place
+
+5. **Also inject into existing SSR/static responses**: The blog and QA fallback paths (lines 131-312) already return full HTML. Wrap those returns through the same HTMLRewriter to ensure consistency.
+
+### Technical Notes
+- `HTMLRewriter` is a Cloudflare Workers/Pages native API — no imports needed
+- The injection runs at the edge before the browser receives anything — Googlebot sees tags in raw HTML
+- Tags are appended to `<head>`, so they won't duplicate if React also adds them client-side (though client-side tags will be redundant)
+- The file stays as `.js` (not `.ts`) to match the existing Cloudflare Pages Functions setup
+- No new files created — single file modification
+
+### Verification
+After deploying, view-source on any page like `https://www.everencewealth.com/en/strategies/whole-life` should show canonical and hreflang tags in the raw HTML without JavaScript execution.
 
