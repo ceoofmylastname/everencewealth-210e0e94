@@ -1,5 +1,10 @@
 
-Replace `public/llm.txt` entirely with the new Everence Wealth content provided by the user. Pure content swap, no logic involved.
+Trivial single-file replacement. The user specified the exact action.
 
-**File:** `public/llm.txt`
-**Action:** Overwrite with the exact structure the user specified.
+**File:** `wrangler.toml`
+**Action:** Replace entire contents with the single comment:
+```
+# Legacy file — not in use. Cloudflare Pages uses functions/_middleware.js
+```
+
+Replacing rather than deleting preserves the path so any external reference doesn't 404, and the comment documents why the file is empty. No other files touched.
