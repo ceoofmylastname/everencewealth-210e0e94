@@ -1,120 +1,266 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-
-  <!-- Blog Index + 18 Published Articles -->
+  
+  <!-- Blog Index (en) -->
   <url>
     <loc>https://www.everencewealth.com/en/blog</loc>
-    <lastmod>2026-04-12</lastmod>
+    <lastmod>2026-04-20</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
+  </url>
+  
+  <!-- Blog Articles in EN (42 total) -->
+  <url>
+    <loc>https://www.everencewealth.com/en/blog/how-to-protect-your-401-k-from-hidden-taxes-before-retirement</loc>
+    <lastmod>2026-04-18</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://www.everencewealth.com/en/blog/avoiding-the-401-k-tax-trap-strategies-for-savvy-savers</loc>
+    <lastmod>2026-04-18</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://www.everencewealth.com/en/blog/401-k-vs-roth-ira-understanding-tax-deferred-vs-tax-free-accounts</loc>
+    <lastmod>2026-04-18</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://www.everencewealth.com/en/blog/retirement-savings-surprise-the-unexpected-tax-bills</loc>
+    <lastmod>2026-04-18</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://www.everencewealth.com/en/blog/is-your-401-k-really-tax-free-the-truth-you-need-to-know</loc>
+    <lastmod>2026-04-18</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://www.everencewealth.com/en/blog/understanding-your-401-k-the-hidden-tax-implications</loc>
+    <lastmod>2026-04-18</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://www.everencewealth.com/en/blog/comparing-living-benefits-chronic-illness-vs-long-term-care</loc>
+    <lastmod>2026-04-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://www.everencewealth.com/en/blog/start-building-your-tax-free-retirement-plan-today</loc>
+    <lastmod>2026-04-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://www.everencewealth.com/en/blog/selecting-the-right-life-insurance-policy-with-living-benefits-for-your-family</loc>
+    <lastmod>2026-04-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://www.everencewealth.com/en/blog/schedule-a-consultation-with-our-estate-planning-experts-today</loc>
+    <lastmod>2026-04-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://www.everencewealth.com/en/blog/comparing-roth-iras-and-indexed-universal-life-policies-for-tax-free-income</loc>
+    <lastmod>2026-04-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://www.everencewealth.com/en/blog/roth-conversion-strategy-is-it-right-for-your-retirement-plan</loc>
+    <lastmod>2026-04-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://www.everencewealth.com/en/blog/how-to-create-a-multi-generational-legacy-plan</loc>
+    <lastmod>2026-04-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://www.everencewealth.com/en/blog/a-detailed-guide-to-life-insurance-with-critical-illness-coverage</loc>
+    <lastmod>2026-04-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://www.everencewealth.com/en/blog/top-tax-free-income-strategies-for-pre-retirees</loc>
+    <lastmod>2026-04-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://www.everencewealth.com/en/blog/comparing-trust-options-which-is-right-for-your-legacy</loc>
+    <lastmod>2026-04-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://www.everencewealth.com/en/blog/estate-tax-101-what-you-need-to-know</loc>
+    <lastmod>2026-04-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://www.everencewealth.com/en/blog/the-basics-of-life-insurance-with-chronic-illness-coverage</loc>
+    <lastmod>2026-04-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://www.everencewealth.com/en/blog/understanding-indexed-universal-life-for-a-tax-free-retirement</loc>
+    <lastmod>2026-04-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://www.everencewealth.com/en/blog/10-essential-steps-for-effective-wealth-transfer</loc>
+    <lastmod>2026-04-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://www.everencewealth.com/en/blog/how-life-insurance-can-offer-more-than-death-benefits</loc>
+    <lastmod>2026-04-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://www.everencewealth.com/en/blog/the-basics-of-tax-free-retirement-income-what-you-need-to-know</loc>
+    <lastmod>2026-04-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://www.everencewealth.com/en/blog/understanding-the-basics-of-legacy-planning-estate-strategy</loc>
+    <lastmod>2026-04-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://www.everencewealth.com/en/blog/understanding-living-benefits-in-life-insurance-policies</loc>
+    <lastmod>2026-04-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
   </url>
   <url>
     <loc>https://www.everencewealth.com/en/blog/personalized-wealth-management-secure-your-retirement-future</loc>
     <lastmod>2026-02-28</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
+    <priority>1.0</priority>
   </url>
   <url>
     <loc>https://www.everencewealth.com/en/blog/retirement-savings-tools-picking-the-right-options-for-your-needs</loc>
     <lastmod>2026-02-28</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
+    <priority>1.0</priority>
   </url>
   <url>
     <loc>https://www.everencewealth.com/en/blog/closing-the-gap-strategies-to-boost-your-retirement-savings</loc>
     <lastmod>2026-02-28</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
+    <priority>1.0</priority>
   </url>
   <url>
     <loc>https://www.everencewealth.com/en/blog/20-surprising-stats-about-retirement-savings-among-americans</loc>
     <lastmod>2026-02-28</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
+    <priority>1.0</priority>
   </url>
   <url>
     <loc>https://www.everencewealth.com/en/blog/the-growing-concern-of-the-retirement-savings-shortfall-in-america</loc>
     <lastmod>2026-02-28</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
+    <priority>1.0</priority>
   </url>
   <url>
     <loc>https://www.everencewealth.com/en/blog/understanding-the-retirement-gap-what-it-means-for-your-future</loc>
     <lastmod>2026-02-28</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://www.everencewealth.com/en/blog/choosing-the-right-advisor-how-to-protect-your-wealth-from-volatility-drag-and-market-risk</loc>
-    <lastmod>2026-03-02</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://www.everencewealth.com/en/blog/portfolio-recovery-why-a-50-loss-requires-a-100-gain-and-how-to-strategize</loc>
-    <lastmod>2026-02-17</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://www.everencewealth.com/en/blog/comparing-sequence-of-returns-risk-tools-and-strategies-for-mitigating-loss</loc>
-    <lastmod>2026-02-17</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://www.everencewealth.com/en/blog/the-s-p-500-lost-decade-insights-and-lessons-for-modern-investors</loc>
-    <lastmod>2026-02-17</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://www.everencewealth.com/en/blog/average-vs-actual-returns-why-your-investment-growth-might-be-slower-than-expected</loc>
-    <lastmod>2026-02-17</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
+    <priority>1.0</priority>
   </url>
   <url>
     <loc>https://www.everencewealth.com/en/blog/understanding-volatility-drag-the-secret-risk-in-investment-portfolios</loc>
     <lastmod>2026-02-17</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://www.everencewealth.com/en/blog/portfolio-recovery-why-a-50-loss-requires-a-100-gain-and-how-to-strategize</loc>
+    <lastmod>2026-02-17</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://www.everencewealth.com/en/blog/choosing-the-right-advisor-how-to-protect-your-wealth-from-volatility-drag-and-market-risk</loc>
+    <lastmod>2026-02-17</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://www.everencewealth.com/en/blog/comparing-sequence-of-returns-risk-tools-and-strategies-for-mitigating-loss</loc>
+    <lastmod>2026-02-17</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://www.everencewealth.com/en/blog/the-s-p-500-lost-decade-insights-and-lessons-for-modern-investors</loc>
+    <lastmod>2026-02-17</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://www.everencewealth.com/en/blog/average-vs-actual-returns-why-your-investment-growth-might-be-slower-than-expected</loc>
+    <lastmod>2026-02-17</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
   </url>
   <url>
     <loc>https://www.everencewealth.com/en/blog/bridging-the-retirement-gap-effective-strategies-to-close-your-retirement-savings-shortfall</loc>
-    <lastmod>2026-02-17</lastmod>
+    <lastmod>2026-02-16</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
+    <priority>1.0</priority>
   </url>
   <url>
     <loc>https://www.everencewealth.com/en/blog/take-action-personal-finance-tips-to-prevent-running-out-of-money-in-retirement</loc>
-    <lastmod>2026-02-17</lastmod>
+    <lastmod>2026-02-16</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
+    <priority>1.0</priority>
   </url>
   <url>
     <loc>https://www.everencewealth.com/en/blog/how-to-use-a-retirement-gap-calculator-to-secure-your-financial-future</loc>
-    <lastmod>2026-02-17</lastmod>
+    <lastmod>2026-02-16</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
+    <priority>1.0</priority>
   </url>
   <url>
     <loc>https://www.everencewealth.com/en/blog/will-you-run-out-of-money-in-retirement-key-factors-to-consider</loc>
     <lastmod>2026-02-16</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
+    <priority>1.0</priority>
   </url>
   <url>
     <loc>https://www.everencewealth.com/en/blog/top-financial-challenges-for-retirees-in-the-modern-economy</loc>
-    <lastmod>2026-02-17</lastmod>
+    <lastmod>2026-02-16</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
+    <priority>1.0</priority>
   </url>
   <url>
     <loc>https://www.everencewealth.com/en/blog/understanding-the-retirement-gap-why-it-matters-now-more-than-ever</loc>
-    <lastmod>2026-02-17</lastmod>
+    <lastmod>2026-02-16</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
+    <priority>1.0</priority>
   </url>
-
+  
 </urlset>
