@@ -175,7 +175,7 @@ function generateOrganizationSchema() {
     "contactPoint": {
       "@type": "ContactPoint",
       "contactType": "Customer Service",
-      "availableLanguage": ["en", "de", "nl", "fr", "pl", "sv", "da", "hu", "fi", "no"],
+      "availableLanguage": ["en", "es"],
       "telephone": "+34 630 03 90 90",
       "email": "info@everencewealth.com"
     },

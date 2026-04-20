@@ -12,7 +12,7 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
 });
 
 const BASE_URL = 'https://www.everencewealth.com';
-const LANGUAGES = ['en', 'nl', 'de', 'fr', 'pl', 'sv', 'da', 'hu', 'fi', 'no'];
+const LANGUAGES = ['en', 'es'];
 const URLS_PER_LANG = 100;
 const BATCH_SIZE = 200;
 

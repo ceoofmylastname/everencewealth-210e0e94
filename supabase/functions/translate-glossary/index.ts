@@ -6,7 +6,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const SUPPORTED_LANGUAGES = ["en", "de", "nl", "fr", "pl", "sv", "da", "hu", "fi", "no"];
+const SUPPORTED_LANGUAGES = ["en", "es"];
 
 const LANGUAGE_NAMES: Record<string, string> = {
   en: "English",
