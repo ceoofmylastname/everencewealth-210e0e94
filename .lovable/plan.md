@@ -1,38 +1,39 @@
 
-## Revert SSR 410/404 Forwarding in `functions/_middleware.js`
 
-Restore the prior behavior where the middleware never returns hard 404/410 status codes for blog or Q&A SSR paths. Any non-200 response from the Supabase edge function falls through to the SPA shell (200 HTML).
+## Regenerate sitemaps from current database
 
-### Changes — Blog SSR section (≈ lines 316–366)
+Run `scripts/generateSitemap.ts` to rebuild all static sitemap XML files from the live Supabase database. Generation task only — no source code modified.
 
-1. **Remove the 404/410 forwarding block** (lines 316–328). The middleware will no longer forward edge-function 404/410 status to the browser.
-2. **Remove the "Both failed — serve 404 for blog paths" terminal block** (lines 353–366). Replace it with a fall-through to the SPA shell:
-   ```js
-   console.log(`[Middleware] Blog SSR did not yield substantial HTML for ${pathname}, falling through to SPA`);
-   return next();
-   ```
+### Steps
 
-### Changes — Q&A SSR section (≈ lines 430–480)
+1. **Run the generator** — `npx tsx scripts/generateSitemap.ts` from the project root. The script:
+   - Reads `VITE_SUPABASE_URL` / `VITE_SUPABASE_PUBLISHABLE_KEY` from `.env`.
+   - Fetches every `published`, non-redirect record from `blog_articles`, `qa_pages`, `location_pages`, `comparison_pages`.
+   - Excludes any path present in `gone_urls`.
+   - Iterates `SUPPORTED_LANGUAGES = ['en', 'es']` and writes per-language XML to `public/sitemaps/{en,es}/{blog,qa,locations,comparisons}.xml`.
+   - Writes `public/sitemaps/glossary.xml` and `public/sitemaps/brochures.xml`.
+   - Overwrites `public/sitemap-index.xml` with the regenerated master index.
 
-1. **Remove the 404/410 forwarding block** (lines 430–442).
-2. **Remove the "Both failed — serve 404 for Q&A paths" terminal block** (lines 467–480). Replace with a fall-through to the SPA shell:
-   ```js
-   console.log(`[Middleware] Q&A SSR did not yield substantial HTML for ${pathname}, falling through to SPA`);
-   return next();
-   ```
+2. **Verify counts** — count `<url>` tags in each output file:
+   - `public/sitemaps/en/qa.xml` → expect **169** (168 records + 1 index URL)
+   - `public/sitemaps/en/blog.xml` → expect **43** (42 records + 1 index URL)
+   - `public/sitemaps/es/qa.xml` → expect **169**
+   - `public/sitemaps/es/blog.xml` → expect **43**
 
-### Net behavior after revert
-- Edge function returns 200 with substantial HTML → serve SSR HTML (unchanged).
-- Edge function returns 404 / 410 / any non-200 → fall through to the SPA shell (200 HTML), so Googlebot sees a working page instead of a 404.
-- Edge function fetch throws or times out → fall through to the SPA shell (same as above).
+3. **Verify master index** — confirm regenerated `public/sitemap-index.xml` lists all four content sitemaps for both languages plus `locations`, `comparisons`, `glossary`, and `brochures`.
 
-### Untouched (per user instructions)
-- 404 blocklist for `costadelsol` and property pages.
-- Redirect map.
-- `injectSeoTags()` function.
-- `SEO_ROUTE_PATTERNS = []`.
-- `LANGUAGES = ['en','es']`.
-- `BASE_URL` and all other middleware logic.
+4. **Report results** — print final URL counts per file and the contents of the regenerated `sitemap-index.xml`.
 
-### File touched
-- `functions/_middleware.js` — only the four blocks above. No other files.
+### Files written (by the script)
+- `public/sitemaps/en/{blog,qa,locations,comparisons,index}.xml`
+- `public/sitemaps/es/{blog,qa,locations,comparisons,index}.xml`
+- `public/sitemaps/glossary.xml`
+- `public/sitemaps/brochures.xml`
+- `public/sitemap-index.xml`
+- `public/sitemap.xml` (legacy alias)
+
+No `.ts` / `.tsx` / `.js` source files are modified.
+
+### Out of scope (flagged only)
+Legacy directories `public/sitemaps/{da,de,fi,fr,hu,nl,no,pl,sv}/` from the previous 11-language config remain unreferenced. Recommend a follow-up task to delete them.
+
