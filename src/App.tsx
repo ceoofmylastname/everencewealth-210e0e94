@@ -127,8 +127,6 @@ const CitationBackfill = lazy(() => import("./pages/admin/CitationBackfill"));
 const SpeakableTestBench = lazy(() => import("./pages/admin/SpeakableTestBench"));
 const LinkAudit = lazy(() => import("./pages/admin/LinkAudit"));
 const CrawlabilityTest = lazy(() => import("./pages/admin/CrawlabilityTest"));
-const ApartmentsPageContent = lazy(() => import("./pages/admin/ApartmentsPageContent"));
-const ApartmentsProperties = lazy(() => import("./pages/admin/ApartmentsProperties"));
 const ApartmentsEditorManager = lazy(() => import("./pages/admin/ApartmentsEditorManager"));
 const ApartmentsAuth = lazy(() => import("./pages/ApartmentsAuth"));
 
@@ -137,9 +135,7 @@ const Presentation = lazy(() => import("./pages/admin/Presentation"));
 const PresentationQR = lazy(() => import("./pages/admin/PresentationQR"));
 const UnderwritingAI = lazy(() => import("./pages/UnderwritingAI"));
 
-// Inner components for apartments editor layout (no AdminLayout wrapper)
-import { ApartmentsPageContentInner } from "./pages/admin/ApartmentsPageContent";
-import { ApartmentsPropertiesInner } from "./pages/admin/ApartmentsProperties";
+// Apartments editor inner components removed (legacy real estate tooling)
 
 // CRM Pages
 // Portal Pages
@@ -373,8 +369,6 @@ const App = () => (
               <Route path="/admin/speakable-test" element={<ProtectedRoute><SpeakableTestBench /></ProtectedRoute>} />
               <Route path="/admin/link-audit" element={<ProtectedRoute><LinkAudit /></ProtectedRoute>} />
               <Route path="/admin/crawlability-test" element={<ProtectedRoute><CrawlabilityTest /></ProtectedRoute>} />
-              <Route path="/admin/apartments-content" element={<ProtectedRoute><ApartmentsPageContent /></ProtectedRoute>} />
-              <Route path="/admin/apartments-properties" element={<ProtectedRoute><ApartmentsProperties /></ProtectedRoute>} />
               <Route path="/admin/apartments-editors" element={<ProtectedRoute><ApartmentsEditorManager /></ProtectedRoute>} />
 
               {/* Presentation System — moved to portal */}
@@ -382,12 +376,7 @@ const App = () => (
               {/* Apartments Editor Login (public) */}
               <Route path="/apartments/login" element={<ApartmentsAuth />} />
 
-              {/* Apartments Editor Protected Routes */}
-              <Route path="/apartments/dashboard" element={<ApartmentsEditorRoute><ApartmentsEditorLayout /></ApartmentsEditorRoute>}>
-                <Route path="content" element={<ApartmentsPageContentInner />} />
-                <Route path="properties" element={<ApartmentsPropertiesInner />} />
-                <Route index element={<Navigate to="content" replace />} />
-              </Route>
+              {/* Apartments Editor Protected Routes removed (legacy real estate tooling) */}
 
 
               {/* ========================================== */}
