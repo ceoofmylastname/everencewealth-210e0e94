@@ -41,21 +41,13 @@ async function fetchWithRetry<T>(
   return null;
 }
 
-// All 10 supported languages
-const SUPPORTED_LANGUAGES = ['en', 'nl', 'de', 'fr', 'pl', 'sv', 'da', 'hu', 'fi', 'no'];
+// Supported languages
+const SUPPORTED_LANGUAGES = ['en', 'es'];
 
 // Language code mapping for hreflang attributes
 const langToHreflang: Record<string, string> = {
-  en: 'en-GB',
-  de: 'de-DE',
-  nl: 'nl-NL',
-  fr: 'fr-FR',
-  pl: 'pl-PL',
-  sv: 'sv-SE',
-  da: 'da-DK',
-  hu: 'hu-HU',
-  fi: 'fi-FI',
-  no: 'nb-NO'
+  en: 'en-US',
+  es: 'es-US',
 };
 
 // Location brochure cities removed - no longer used
