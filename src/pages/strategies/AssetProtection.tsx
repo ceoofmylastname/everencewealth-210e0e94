@@ -28,7 +28,7 @@ const AssetProtection: React.FC = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const baseUrl = 'https://everencewealth.com';
+  const baseUrl = 'https://www.everencewealth.com';
   const canonicalUrl = `${baseUrl}/${currentLang === 'es' ? 'es/estrategias/proteccion-de-activos' : 'en/strategies/asset-protection'}`;
 
   const seoTitle = s?.seo?.title || 'Asset Protection: Shield Wealth from Lawsuits, Creditors & Estate Taxes | Everence Wealth';
