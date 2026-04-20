@@ -6,13 +6,13 @@ interface PersonSchemaProps {
 
 const PersonSchema: React.FC<PersonSchemaProps> = ({ context }) => {
     const photoUrl = context === 'blog'
-        ? 'https://everencewealth.com/images/steven-blog.jpg'
-        : 'https://everencewealth.com/images/steven-qa.jpg';
+        ? 'https://www.everencewealth.com/images/steven-blog.jpg'
+        : 'https://www.everencewealth.com/images/steven-qa.jpg';
 
     const personSchema = {
         "@context": "https://schema.org",
         "@type": "Person",
-        "@id": "https://everencewealth.com/#steven-rosenberg",
+        "@id": "https://www.everencewealth.com/#steven-rosenberg",
         "name": "Steven Rosenberg",
         "jobTitle": "Founder & Chief Wealth Strategist",
         "description": "Founder & Chief Wealth Strategist at Everence Wealth. Independent insurance broker and licensed professional serving families across all 50 states.",
@@ -22,9 +22,9 @@ const PersonSchema: React.FC<PersonSchemaProps> = ({ context }) => {
         ],
         "worksFor": {
             "@type": "Organization",
-            "@id": "https://everencewealth.com/#organization",
+            "@id": "https://www.everencewealth.com/#organization",
             "name": "Everence Wealth",
-            "url": "https://everencewealth.com"
+            "url": "https://www.everencewealth.com"
         },
         "knowsAbout": [
             "Indexed Universal Life Insurance",

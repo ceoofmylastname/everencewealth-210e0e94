@@ -40,7 +40,7 @@ interface LeadsFilterBarProps {
   hasActiveFilters: boolean;
 }
 
-const LANGUAGES = ["en", "nl", "de", "fr", "es", "fi", "pl", "sv", "da", "hu", "no"];
+const LANGUAGES = ["en", "es"];
 
 export function LeadsFilterBar({
   filters,
