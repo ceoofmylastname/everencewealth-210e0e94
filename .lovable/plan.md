@@ -1,51 +1,38 @@
 
+## Revert SSR 410/404 Forwarding in `functions/_middleware.js`
 
-## Plan: Three Targeted Cleanup Fixes
+Restore the prior behavior where the middleware never returns hard 404/410 status codes for blog or Q&A SSR paths. Any non-200 response from the Supabase edge function falls through to the SPA shell (200 HTML).
 
-### Fix 1 — `public/ai-sitemap.xml`
-Domain is already `www.everencewealth.com` everywhere (no `delsolprimehomes` matches found). However, the file is full of legacy real estate URLs (Marbella, Estepona, Sotogrande, NIE, Costa del Sol, Spanish mortgages, etc.) that don't match any URL on the wealth-management site.
+### Changes — Blog SSR section (≈ lines 316–366)
 
-**Action:** Rewrite the sitemap to contain only valid Everence Wealth URLs. Keep:
-- `/llm.txt`
-- Homepage (`/`)
-- `/en/blog`, `/en/qa`, `/en/glossary`, `/en/philosophy`, `/en/contact`
-- Strategy pages (`/en/strategies/asset-protection`, etc. — verify which exist)
+1. **Remove the 404/410 forwarding block** (lines 316–328). The middleware will no longer forward edge-function 404/410 status to the browser.
+2. **Remove the "Both failed — serve 404 for blog paths" terminal block** (lines 353–366). Replace it with a fall-through to the SPA shell:
+   ```js
+   console.log(`[Middleware] Blog SSR did not yield substantial HTML for ${pathname}, falling through to SPA`);
+   return next();
+   ```
 
-Remove ALL `/brochure/<city>`, `/locations/<city>/...`, `/compare/...`, and any blog URL referencing marbella, estepona, sotogrande, benahavis, costa-del-sol, NIE, digital-nomad-visa, spain, brexit, mortgage, etc.
+### Changes — Q&A SSR section (≈ lines 430–480)
 
-Also strip the leftover `ai:topics` strings that mention `costa-del-sol`, `spanish-property-terms`, `puerto-banus`, etc.
+1. **Remove the 404/410 forwarding block** (lines 430–442).
+2. **Remove the "Both failed — serve 404 for Q&A paths" terminal block** (lines 467–480). Replace with a fall-through to the SPA shell:
+   ```js
+   console.log(`[Middleware] Q&A SSR did not yield substantial HTML for ${pathname}, falling through to SPA`);
+   return next();
+   ```
 
-### Fix 2 — `src/components/schema/PersonSchema.tsx`
-Replace bare-domain `https://everencewealth.com` with `https://www.everencewealth.com` on lines 9, 10, 15, 25, 27 (image URLs, `@id`, and `worksFor.url`/`@id`).
+### Net behavior after revert
+- Edge function returns 200 with substantial HTML → serve SSR HTML (unchanged).
+- Edge function returns 404 / 410 / any non-200 → fall through to the SPA shell (200 HTML), so Googlebot sees a working page instead of a 404.
+- Edge function fetch throws or times out → fall through to the SPA shell (same as above).
 
-### Fix 3 — `src/components/crm/LeadsFilterBar.tsx` line 43
-Change:
-```ts
-const LANGUAGES = ["en", "nl", "de", "fr", "es", "fi", "pl", "sv", "da", "hu", "no"];
-```
-to:
-```ts
-const LANGUAGES = ["en", "es"];
-```
+### Untouched (per user instructions)
+- 404 blocklist for `costadelsol` and property pages.
+- Redirect map.
+- `injectSeoTags()` function.
+- `SEO_ROUTE_PATTERNS = []`.
+- `LANGUAGES = ['en','es']`.
+- `BASE_URL` and all other middleware logic.
 
-### Fix 4 — `src/types/hreflang.ts` line 29
-Update the stale JSDoc comment on the `SupportedLanguage` type. Replace:
-```
- * Results in: 'en' | 'nl' | 'hu' | 'de' | 'fr' | 'sv' | 'pl' | 'no' | 'fi' | 'da'
-```
-with:
-```
- * Results in: 'en' | 'es'
-```
-
-### Final report
-Codebase-wide search for `delsolprimehomes` (excluding `supabase/`, `node_modules/`) was already run and returned **zero matches**. I'll re-confirm after the edits and report in the completion message.
-
-### Files touched
-1. `public/ai-sitemap.xml` (full rewrite)
-2. `src/components/schema/PersonSchema.tsx` (5 string replacements)
-3. `src/components/crm/LeadsFilterBar.tsx` (1 line)
-4. `src/types/hreflang.ts` (1 comment line)
-
-No other files. `functions/_middleware.js` will not be touched.
-
+### File touched
+- `functions/_middleware.js` — only the four blocks above. No other files.
