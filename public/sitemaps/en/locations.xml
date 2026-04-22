@@ -1,185 +1,32 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  
-  <!-- Location Index (en) -->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
     <loc>https://www.everencewealth.com/en/locations</loc>
-    <lastmod>2026-04-20</lastmod>
+    <lastmod>2026-04-22</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
-  
-  <!-- Location Pages in EN (35 total) -->
   <url>
-    <loc>https://www.everencewealth.com/en/locations/illinois/insurance-guide-illinois-retirement-planning</loc>
+    <loc>https://www.everencewealth.com/en/locations/los-angeles,-ca/retirement-planning-los-angeles</loc>
     <lastmod>2026-04-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="es-US" href="https://www.everencewealth.com/es/locations/los-angeles,-ca/retirement-planning-los-angeles-ca-es" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://www.everencewealth.com/en/locations/los-angeles,-ca/retirement-planning-los-angeles" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.everencewealth.com/en/locations/los-angeles,-ca/retirement-planning-los-angeles" />
   </url>
   <url>
-    <loc>https://www.everencewealth.com/en/locations/nevada/tax-advantaged-strategies-nevada</loc>
+    <loc>https://www.everencewealth.com/en/locations/seattle,-wa/wealth-protection-seattle-wa</loc>
     <lastmod>2026-04-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://www.everencewealth.com/en/locations/seattle,-wa/wealth-protection-seattle-wa" />
+    <xhtml:link rel="alternate" hreflang="es-US" href="https://www.everencewealth.com/es/locations/seattle,-wa/wealth-protection-seattle-wa-es" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.everencewealth.com/en/locations/seattle,-wa/wealth-protection-seattle-wa" />
   </url>
   <url>
-    <loc>https://www.everencewealth.com/en/locations/miami,-fl/insurance-guide-miami-fl</loc>
-    <lastmod>2026-04-12</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://www.everencewealth.com/en/locations/colorado/tax-advantaged-strategies-colorado</loc>
-    <lastmod>2026-04-12</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://www.everencewealth.com/en/locations/austin,-tx/tax-advantaged-strategies-austin-tx</loc>
-    <lastmod>2026-04-12</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://www.everencewealth.com/en/locations/arizona/wealth-protection-arizona</loc>
-    <lastmod>2026-04-12</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://www.everencewealth.com/en/locations/indiana/wealth-protection-indiana-insurance-retirement</loc>
-    <lastmod>2026-04-12</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://www.everencewealth.com/en/locations/dallas,-tx/investment-guide-dallas-tx</loc>
-    <lastmod>2026-04-12</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://www.everencewealth.com/en/locations/georgia/insurance-guide-georgia</loc>
-    <lastmod>2026-04-12</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://www.everencewealth.com/en/locations/chicago,-il/wealth-protection-chicago-il</loc>
-    <lastmod>2026-04-12</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://www.everencewealth.com/en/locations/boston,-ma/retirement-planning-boston</loc>
-    <lastmod>2026-04-12</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://www.everencewealth.com/en/locations/washington,-dc/wealth-protection-washington-dc</loc>
-    <lastmod>2026-04-12</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://www.everencewealth.com/en/locations/denver,-co/tax-efficient-strategies-denver</loc>
-    <lastmod>2026-04-12</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://www.everencewealth.com/en/locations/indianapolis,-in/retirement-income-indianapolis</loc>
-    <lastmod>2026-04-12</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://www.everencewealth.com/en/locations/austin,-tx/retirement-planning-austin-tx</loc>
-    <lastmod>2026-04-12</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://www.everencewealth.com/en/locations/california/tax-advantaged-strategies-in-california</loc>
-    <lastmod>2026-04-12</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://www.everencewealth.com/en/locations/charlotte,-nc/wealth-management-charlotte</loc>
-    <lastmod>2026-04-12</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://www.everencewealth.com/en/locations/columbus,-oh/retirement-planning-columbus</loc>
-    <lastmod>2026-04-12</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://www.everencewealth.com/en/locations/jacksonville,-fl/wealth-management-jacksonville</loc>
-    <lastmod>2026-04-12</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://www.everencewealth.com/en/locations/san-antonio,-tx/retirement-income-san-antonio</loc>
-    <lastmod>2026-04-12</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://www.everencewealth.com/en/locations/philadelphia,-pa/wealth-protection-philadelphia</loc>
-    <lastmod>2026-04-12</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://www.everencewealth.com/en/locations/phoenix,-az/tax-efficient-strategies-phoenix</loc>
-    <lastmod>2026-04-12</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://www.everencewealth.com/en/locations/san-diego,-ca/insurance-guide-san-diego-ca</loc>
-    <lastmod>2026-04-12</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://www.everencewealth.com/en/locations/houston,-tx/retirement-planning-houston</loc>
-    <lastmod>2026-04-12</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://www.everencewealth.com/en/locations/new-york-city,-ny/wealth-management-new-york-city</loc>
-    <lastmod>2026-04-12</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://www.everencewealth.com/en/locations/san-francisco,-ca/tax-advantaged-strategies-san-francisco-ca</loc>
-    <lastmod>2026-04-12</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://www.everencewealth.com/en/locations/north-carolina/wealth-protection-north-carolina</loc>
-    <lastmod>2026-04-12</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://www.everencewealth.com/en/locations/michigan/estate-planning-guide-michigan</loc>
-    <lastmod>2026-04-12</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://www.everencewealth.com/en/locations/ohio/retirement-income-strategies-ohio</loc>
+    <loc>https://www.everencewealth.com/en/locations/new-york/wealth-management-new-york</loc>
     <lastmod>2026-04-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
@@ -191,10 +38,172 @@
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://www.everencewealth.com/en/locations/new-york/wealth-management-new-york</loc>
+    <loc>https://www.everencewealth.com/en/locations/san-diego,-ca/insurance-guide-san-diego-ca</loc>
     <lastmod>2026-04-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://www.everencewealth.com/en/locations/san-diego,-ca/insurance-guide-san-diego-ca" />
+    <xhtml:link rel="alternate" hreflang="es-US" href="https://www.everencewealth.com/es/locations/san-diego,-ca/insurance-guide-san-diego-ca-es" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.everencewealth.com/en/locations/san-diego,-ca/insurance-guide-san-diego-ca" />
+  </url>
+  <url>
+    <loc>https://www.everencewealth.com/en/locations/ohio/retirement-income-strategies-ohio</loc>
+    <lastmod>2026-04-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://www.everencewealth.com/en/locations/michigan/estate-planning-guide-michigan</loc>
+    <lastmod>2026-04-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://www.everencewealth.com/en/locations/michigan/estate-planning-guide-michigan" />
+    <xhtml:link rel="alternate" hreflang="es-US" href="https://www.everencewealth.com/es/locations/michigan/estate-planning-michigan-es" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.everencewealth.com/en/locations/michigan/estate-planning-guide-michigan" />
+  </url>
+  <url>
+    <loc>https://www.everencewealth.com/en/locations/north-carolina/wealth-protection-north-carolina</loc>
+    <lastmod>2026-04-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://www.everencewealth.com/en/locations/san-francisco,-ca/tax-advantaged-strategies-san-francisco-ca</loc>
+    <lastmod>2026-04-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://www.everencewealth.com/en/locations/san-francisco,-ca/tax-advantaged-strategies-san-francisco-ca" />
+    <xhtml:link rel="alternate" hreflang="es-US" href="https://www.everencewealth.com/es/locations/san-francisco,-ca/tax-advantages-san-francisco-ca-es" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.everencewealth.com/en/locations/san-francisco,-ca/tax-advantaged-strategies-san-francisco-ca" />
+  </url>
+  <url>
+    <loc>https://www.everencewealth.com/en/locations/houston,-tx/retirement-planning-houston</loc>
+    <lastmod>2026-04-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://www.everencewealth.com/en/locations/phoenix,-az/tax-efficient-strategies-phoenix</loc>
+    <lastmod>2026-04-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://www.everencewealth.com/en/locations/philadelphia,-pa/wealth-protection-philadelphia</loc>
+    <lastmod>2026-04-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://www.everencewealth.com/en/locations/san-antonio,-tx/retirement-income-san-antonio</loc>
+    <lastmod>2026-04-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://www.everencewealth.com/en/locations/charlotte,-nc/wealth-management-charlotte</loc>
+    <lastmod>2026-04-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://www.everencewealth.com/en/locations/california/tax-advantaged-strategies-in-california</loc>
+    <lastmod>2026-04-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://www.everencewealth.com/en/locations/california/tax-advantaged-strategies-in-california" />
+    <xhtml:link rel="alternate" hreflang="es-US" href="https://www.everencewealth.com/es/locations/california/tax-advantages-california-es" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.everencewealth.com/en/locations/california/tax-advantaged-strategies-in-california" />
+  </url>
+  <url>
+    <loc>https://www.everencewealth.com/en/locations/austin,-tx/retirement-planning-austin-tx</loc>
+    <lastmod>2026-04-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://www.everencewealth.com/en/locations/austin,-tx/retirement-planning-austin-tx" />
+    <xhtml:link rel="alternate" hreflang="es-US" href="https://www.everencewealth.com/es/locations/austin,-tx/retirement-planning-austin-tx-es" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.everencewealth.com/en/locations/austin,-tx/retirement-planning-austin-tx" />
+  </url>
+  <url>
+    <loc>https://www.everencewealth.com/en/locations/indianapolis,-in/retirement-income-indianapolis</loc>
+    <lastmod>2026-04-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://www.everencewealth.com/en/locations/denver,-co/tax-efficient-strategies-denver</loc>
+    <lastmod>2026-04-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://www.everencewealth.com/en/locations/washington,-dc/wealth-protection-washington-dc</loc>
+    <lastmod>2026-04-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://www.everencewealth.com/en/locations/boston,-ma/retirement-planning-boston</loc>
+    <lastmod>2026-04-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://www.everencewealth.com/en/locations/georgia/insurance-guide-georgia</loc>
+    <lastmod>2026-04-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://www.everencewealth.com/en/locations/georgia/insurance-guide-georgia" />
+    <xhtml:link rel="alternate" hreflang="es-US" href="https://www.everencewealth.com/es/locations/georgia/insurance-guide-georgia-es" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.everencewealth.com/en/locations/georgia/insurance-guide-georgia" />
+  </url>
+  <url>
+    <loc>https://www.everencewealth.com/en/locations/dallas,-tx/investment-guide-dallas-tx</loc>
+    <lastmod>2026-04-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://www.everencewealth.com/en/locations/dallas,-tx/investment-guide-dallas-tx" />
+    <xhtml:link rel="alternate" hreflang="es-US" href="https://www.everencewealth.com/es/locations/dallas,-tx/investment-guide-dallas-tx-es" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.everencewealth.com/en/locations/dallas,-tx/investment-guide-dallas-tx" />
+  </url>
+  <url>
+    <loc>https://www.everencewealth.com/en/locations/florida/wealth-protection-florida</loc>
+    <lastmod>2026-04-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://www.everencewealth.com/en/locations/florida/wealth-protection-florida" />
+    <xhtml:link rel="alternate" hreflang="es-US" href="https://www.everencewealth.com/es/locations/florida/wealth-protection-florida-es" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.everencewealth.com/en/locations/florida/wealth-protection-florida" />
+  </url>
+  <url>
+    <loc>https://www.everencewealth.com/en/locations/arizona/wealth-protection-arizona</loc>
+    <lastmod>2026-04-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://www.everencewealth.com/en/locations/arizona/wealth-protection-arizona" />
+    <xhtml:link rel="alternate" hreflang="es-US" href="https://www.everencewealth.com/es/locations/arizona/wealth-protection-arizona-es" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.everencewealth.com/en/locations/arizona/wealth-protection-arizona" />
+  </url>
+  <url>
+    <loc>https://www.everencewealth.com/en/locations/jacksonville,-fl/wealth-management-jacksonville</loc>
+    <lastmod>2026-04-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://www.everencewealth.com/en/locations/columbus,-oh/retirement-planning-columbus</loc>
+    <lastmod>2026-04-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://www.everencewealth.com/en/locations/austin,-tx/tax-advantaged-strategies-austin-tx</loc>
+    <lastmod>2026-04-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://www.everencewealth.com/en/locations/austin,-tx/tax-advantaged-strategies-austin-tx" />
+    <xhtml:link rel="alternate" hreflang="es-US" href="https://www.everencewealth.com/es/locations/austin,-tx/tax-advantages-austin-tx-es" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.everencewealth.com/en/locations/austin,-tx/tax-advantaged-strategies-austin-tx" />
   </url>
   <url>
     <loc>https://www.everencewealth.com/en/locations/texas/retirement-planning-texas</loc>
@@ -203,22 +212,63 @@
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://www.everencewealth.com/en/locations/seattle,-wa/wealth-protection-seattle-wa</loc>
+    <loc>https://www.everencewealth.com/en/locations/new-york-city,-ny/wealth-management-new-york-city</loc>
     <lastmod>2026-04-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://www.everencewealth.com/en/locations/los-angeles,-ca/retirement-planning-los-angeles</loc>
+    <loc>https://www.everencewealth.com/en/locations/miami,-fl/insurance-guide-miami-fl</loc>
     <lastmod>2026-04-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="es-US" href="https://www.everencewealth.com/es/locations/miami,-fl/insurance-guide-miami-fl-es" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://www.everencewealth.com/en/locations/miami,-fl/insurance-guide-miami-fl" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.everencewealth.com/en/locations/miami,-fl/insurance-guide-miami-fl" />
   </url>
   <url>
-    <loc>https://www.everencewealth.com/en/locations/florida/wealth-protection-florida</loc>
+    <loc>https://www.everencewealth.com/en/locations/nevada/tax-advantaged-strategies-nevada</loc>
     <lastmod>2026-04-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://www.everencewealth.com/en/locations/nevada/tax-advantaged-strategies-nevada" />
+    <xhtml:link rel="alternate" hreflang="es-US" href="https://www.everencewealth.com/es/locations/nevada/tax-advantages-nevada-es" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.everencewealth.com/en/locations/nevada/tax-advantaged-strategies-nevada" />
   </url>
-  
+  <url>
+    <loc>https://www.everencewealth.com/en/locations/colorado/tax-advantaged-strategies-colorado</loc>
+    <lastmod>2026-04-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="es-US" href="https://www.everencewealth.com/es/locations/colorado/tax-advantages-colorado-es" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://www.everencewealth.com/en/locations/colorado/tax-advantaged-strategies-colorado" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.everencewealth.com/en/locations/colorado/tax-advantaged-strategies-colorado" />
+  </url>
+  <url>
+    <loc>https://www.everencewealth.com/en/locations/chicago,-il/wealth-protection-chicago-il</loc>
+    <lastmod>2026-04-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="es-US" href="https://www.everencewealth.com/es/locations/chicago,-il/wealth-protection-chicago-il-es" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://www.everencewealth.com/en/locations/chicago,-il/wealth-protection-chicago-il" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.everencewealth.com/en/locations/chicago,-il/wealth-protection-chicago-il" />
+  </url>
+  <url>
+    <loc>https://www.everencewealth.com/en/locations/indiana/wealth-protection-indiana-insurance-retirement</loc>
+    <lastmod>2026-04-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="es-US" href="https://www.everencewealth.com/es/locations/indiana/wealth-protection-indiana-es" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://www.everencewealth.com/en/locations/indiana/wealth-protection-indiana-insurance-retirement" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.everencewealth.com/en/locations/indiana/wealth-protection-indiana-insurance-retirement" />
+  </url>
+  <url>
+    <loc>https://www.everencewealth.com/en/locations/illinois/insurance-guide-illinois-retirement-planning</loc>
+    <lastmod>2026-04-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="es-US" href="https://www.everencewealth.com/es/locations/illinois/insurance-guide-illinois-es" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://www.everencewealth.com/en/locations/illinois/insurance-guide-illinois-retirement-planning" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.everencewealth.com/en/locations/illinois/insurance-guide-illinois-retirement-planning" />
+  </url>
 </urlset>

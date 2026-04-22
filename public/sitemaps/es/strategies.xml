@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  <url>
+    <loc>https://www.everencewealth.com/es/estrategias/seguro-universal-indexado</loc>
+    <lastmod>2026-04-16</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="es-US" href="https://www.everencewealth.com/es/estrategias/seguro-universal-indexado" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://www.everencewealth.com/en/strategies/iul" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.everencewealth.com/en/strategies/iul" />
+  </url>
+  <url>
+    <loc>https://www.everencewealth.com/es/estrategias/seguro-vida-entera</loc>
+    <lastmod>2026-04-16</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="es-US" href="https://www.everencewealth.com/es/estrategias/seguro-vida-entera" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://www.everencewealth.com/en/strategies/whole-life" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.everencewealth.com/en/strategies/whole-life" />
+  </url>
+  <url>
+    <loc>https://www.everencewealth.com/es/estrategias/retiro-libre-impuestos</loc>
+    <lastmod>2026-04-16</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="es-US" href="https://www.everencewealth.com/es/estrategias/retiro-libre-impuestos" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://www.everencewealth.com/en/strategies/tax-free-retirement" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.everencewealth.com/en/strategies/tax-free-retirement" />
+  </url>
+  <url>
+    <loc>https://www.everencewealth.com/es/estrategias/proteccion-de-activos</loc>
+    <lastmod>2026-04-20</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="es-US" href="https://www.everencewealth.com/es/estrategias/proteccion-de-activos" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://www.everencewealth.com/en/strategies/asset-protection" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.everencewealth.com/en/strategies/asset-protection" />
+  </url>
+</urlset>
