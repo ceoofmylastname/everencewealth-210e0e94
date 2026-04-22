@@ -36,17 +36,17 @@ const IMAGE_CONFIGS = [
 ];
 
 async function uploadToStorage(
-  falImageUrl: string,
+  sourceImageUrl: string,
   supabase: any,
   key: string
 ): Promise<string> {
   try {
-    if (!falImageUrl) return falImageUrl;
+    if (!sourceImageUrl) return sourceImageUrl;
     console.log(`📥 Downloading image for "${key}"...`);
-    const imageResponse = await fetch(falImageUrl);
+    const imageResponse = await fetch(sourceImageUrl);
     if (!imageResponse.ok) {
       console.error(`❌ Failed to download: ${imageResponse.status}`);
-      return falImageUrl;
+      return sourceImageUrl;
     }
     const imageBuffer = await imageResponse.arrayBuffer();
     const timestamp = Date.now();
@@ -63,17 +63,17 @@ async function uploadToStorage(
 
     if (uploadError) {
       console.error(`❌ Upload failed:`, uploadError);
-      return falImageUrl;
+      return sourceImageUrl;
     }
 
     const { data: publicUrlData } = supabase.storage
       .from('article-images')
       .getPublicUrl(filename);
 
-    return publicUrlData?.publicUrl || falImageUrl;
+    return publicUrlData?.publicUrl || sourceImageUrl;
   } catch (error) {
     console.error(`❌ Storage error for "${key}":`, error);
-    return falImageUrl;
+    return sourceImageUrl;
   }
 }
 
