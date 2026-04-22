@@ -520,7 +520,7 @@ serve(async (req) => {
 
       const result = await generateSingleArticle(
         supabase,
-        OPENAI_API_KEY,
+        CLAUDE_API_KEY,
         plan,
         globalIndex,
         jobId,
