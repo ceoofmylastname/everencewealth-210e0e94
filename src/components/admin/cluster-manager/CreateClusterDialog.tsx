@@ -249,6 +249,33 @@ export function CreateClusterDialog({ open, onOpenChange, onClusterCreated }: Cr
               <AlertCircle className="h-4 w-4 shrink-0" />
               <span>Please don't close this dialog. Generation will continue in background if you navigate away.</span>
             </div>
+
+            {progress?.last_heartbeat && (
+              <div className="text-xs text-muted-foreground bg-muted/30 p-2 rounded-md font-mono break-all">
+                <span className="font-semibold">Last activity:</span> {progress.last_heartbeat}
+                {stalledMs > 30_000 && (
+                  <span className="ml-2 text-amber-600">
+                    ({Math.round(stalledMs / 1000)}s ago)
+                  </span>
+                )}
+              </div>
+            )}
+
+            {showKillButton && (
+              <Button
+                variant="destructive"
+                size="sm"
+                className="w-full"
+                onClick={handleKill}
+                disabled={isKilling}
+              >
+                {isKilling ? (
+                  <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Killing…</>
+                ) : (
+                  <>Kill stuck job (no progress for {Math.round(stalledMs / 1000)}s)</>
+                )}
+              </Button>
+            )}
           </div>
         ) : (
           <div className="space-y-4 py-4">
