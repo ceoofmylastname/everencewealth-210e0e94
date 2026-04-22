@@ -1,6 +1,15 @@
 import 'dotenv/config';
 import { writeFileSync, mkdirSync, readFileSync, existsSync } from 'fs';
 import { join } from 'path';
+import {
+  BUSINESS,
+  businessPostalAddress,
+  businessGeoCoordinates,
+  businessContactPoint,
+  businessAreaServed,
+  businessOpeningHoursSpecification,
+  businessFounderStubs,
+} from '../src/config/business';
 
 /**
  * Static Homepage Generator for SSG - Multi-Language Version
@@ -44,7 +53,7 @@ const HOMEPAGE_META: Record<Language, {
     heroHeadline: 'Architecting Your',
     heroHighlight: 'Financial Legacy',
     heroDescription: 'Independent fiduciary wealth architects specializing in tax-efficient retirement strategies. We guide clients through complex financial landscapes to secure their legacy.',
-    speakableSummary: 'Everence Wealth is an independent fiduciary wealth management firm based in San Francisco. We specialize in tax-efficient retirement strategies, estate planning, and asset protection. Contact us at +1-415-555-0100.',
+    speakableSummary: `Everence Wealth is an independent fiduciary wealth management firm based in San Francisco. We specialize in tax-efficient retirement strategies, estate planning, and asset protection. Contact us at ${BUSINESS.telephone}.`,
   },
   es: {
     title: 'Everence Wealth | Arquitectos Fiduciarios Independientes de Riqueza',
@@ -53,7 +62,7 @@ const HOMEPAGE_META: Record<Language, {
     heroHeadline: 'Arquitectando Su',
     heroHighlight: 'Legado Financiero',
     heroDescription: 'Arquitectos fiduciarios independientes de riqueza especializados en estrategias de jubilación fiscalmente eficientes. Guiamos a los clientes a través de paisajes financieros complejos para asegurar su legado.',
-    speakableSummary: 'Everence Wealth es una firma independiente de gestión de patrimonio fiduciario con sede en San Francisco. Nos especializamos en estrategias de jubilación fiscalmente eficientes, planificación patrimonial y protección de activos. Contáctenos al +1-415-555-0100.',
+    speakableSummary: `Everence Wealth es una firma independiente de gestión de patrimonio fiduciario con sede en San Francisco. Nos especializamos en estrategias de jubilación fiscalmente eficientes, planificación patrimonial y protección de activos. Contáctenos al ${BUSINESS.telephone}.`,
   },
 };
 
@@ -99,40 +108,26 @@ function generateStructuredData(language: Language) {
   const organizationSchema = {
     "@type": ["Organization", "FinancialService"],
     "@id": `${BASE_URL}/#organization`,
-    "name": "Everence Wealth",
-    "alternateName": "Everence",
+    "name": BUSINESS.name,
+    "alternateName": BUSINESS.alternateName,
     "url": BASE_URL,
     "logo": {
       "@type": "ImageObject",
-      "url": `${BASE_URL}/assets/logo-new.png`,
-      "width": 400,
-      "height": 100
+      "url": BUSINESS.logo.url,
+      "width": BUSINESS.logo.width,
+      "height": BUSINESS.logo.height
     },
     "description": meta.description,
-    "foundingDate": "2024",
-    "slogan": "Architecting Your Financial Legacy",
-    "telephone": "+1-415-555-0100",
-    "email": "info@everencewealth.com",
-    "address": {
-      "@type": "PostalAddress",
-      "streetAddress": "One Embarcadero Center, Suite 500",
-      "addressLocality": "San Francisco",
-      "addressRegion": "CA",
-      "postalCode": "94111",
-      "addressCountry": "US"
-    },
-    "areaServed": { "@type": "Country", "name": "United States" },
-    "founders": [
-      { "@type": "Person", "name": "Steven Rosenberg" }
-    ],
-    "contactPoint": {
-      "@type": "ContactPoint",
-      "contactType": "Customer Service",
-      "availableLanguage": ["en", "es"],
-      "telephone": "+1-415-555-0100",
-      "email": "info@everencewealth.com"
-    },
-    "priceRange": "$$$"
+    "foundingDate": BUSINESS.foundingDate,
+    "slogan": BUSINESS.slogan,
+    "telephone": BUSINESS.telephone,
+    "email": BUSINESS.email,
+    "address": businessPostalAddress(),
+    "areaServed": businessAreaServed(),
+    "founders": businessFounderStubs(),
+    "contactPoint": businessContactPoint(),
+    "sameAs": [...BUSINESS.sameAs],
+    "priceRange": BUSINESS.priceRange
   };
 
   const webSiteSchema = {
@@ -179,37 +174,14 @@ function generateStructuredData(language: Language) {
   const localBusinessSchema = {
     "@type": "LocalBusiness",
     "@id": `${BASE_URL}/#localbusiness`,
-    "name": "Everence Wealth",
-    "priceRange": "$$$",
-    "address": {
-      "@type": "PostalAddress",
-      "streetAddress": "One Embarcadero Center, Suite 500",
-      "addressLocality": "San Francisco",
-      "addressRegion": "CA",
-      "postalCode": "94111",
-      "addressCountry": "US"
-    },
-    "geo": {
-      "@type": "GeoCoordinates",
-      "latitude": 37.7941,
-      "longitude": -122.3998
-    },
+    "name": BUSINESS.name,
+    "priceRange": BUSINESS.priceRange,
+    "address": businessPostalAddress(),
+    "geo": businessGeoCoordinates(),
     "url": BASE_URL,
-    "telephone": "+1-415-555-0100",
-    "openingHoursSpecification": [
-      {
-        "@type": "OpeningHoursSpecification",
-        "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
-        "opens": "09:00",
-        "closes": "18:00"
-      },
-      {
-        "@type": "OpeningHoursSpecification",
-        "dayOfWeek": "Saturday",
-        "opens": "10:00",
-        "closes": "14:00"
-      }
-    ]
+    "telephone": BUSINESS.telephone,
+    "email": BUSINESS.email,
+    "openingHoursSpecification": businessOpeningHoursSpecification()
   };
 
   return {
@@ -626,10 +598,10 @@ function generateStaticHTML(productionAssets: ProductionAssets, language: Langua
       <!-- Footer -->
       <footer class="static-footer">
         <p><strong>Everence Wealth</strong></p>
-        <p>455 Market St Ste 1940 PMB 350011, San Francisco, CA 94105</p>
+        <p>${BUSINESS.addressFormatted}</p>
         <p>
-          <a href="tel:+14155550100">+1-415-555-0100</a> | 
-          <a href="mailto:info@everencewealth.com">info@everencewealth.com</a>
+          <a href="tel:${BUSINESS.telephoneE164}">${BUSINESS.telephone}</a> |
+          <a href="mailto:${BUSINESS.email}">${BUSINESS.email}</a>
         </p>
         <p style="margin-top: 1.5rem; font-size: 0.875rem;">© ${new Date().getFullYear()} Everence Wealth. All rights reserved.</p>
       </footer>
