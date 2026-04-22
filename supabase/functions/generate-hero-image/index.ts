@@ -1,42 +1,34 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import * as fal from "npm:@fal-ai/serverless-client";
+import { generateImage as kieGenerateImage } from "../_shared/kieClient.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-interface FalImage {
-  url: string;
-  width: number;
-  height: number;
-}
-
-interface FalResult {
-  images: FalImage[];
-}
-
 /**
- * Upload image from Fal.ai to Supabase Storage
+ * Upload generated image to Supabase Storage
  */
 async function uploadToStorage(
-  falImageUrl: string,
+  sourceImageUrl: string,
   supabase: any,
   bucket: string = 'article-images',
   prefix: string = 'img'
 ): Promise<string> {
   try {
-    if (!falImageUrl || !falImageUrl.includes('fal.media')) {
-      return falImageUrl;
+    if (!sourceImageUrl) return sourceImageUrl;
+    // Skip if already on Supabase
+    if (sourceImageUrl.includes('supabase') && sourceImageUrl.includes('/storage/')) {
+      return sourceImageUrl;
     }
 
-    console.log(`📥 Downloading image from Fal.ai...`);
-    const imageResponse = await fetch(falImageUrl);
+    console.log(`📥 Downloading generated image...`);
+    const imageResponse = await fetch(sourceImageUrl);
     
     if (!imageResponse.ok) {
       console.error(`❌ Failed to download image: ${imageResponse.status}`);
-      return falImageUrl;
+      return sourceImageUrl;
     }
     
     const imageBuffer = await imageResponse.arrayBuffer();
@@ -60,7 +52,7 @@ async function uploadToStorage(
     
     if (uploadError) {
       console.error(`❌ Upload failed:`, uploadError);
-      return falImageUrl;
+      return sourceImageUrl;
     }
     
     const { data: publicUrlData } = supabase.storage
@@ -74,11 +66,11 @@ async function uploadToStorage(
       return supabaseUrl;
     }
     
-    return falImageUrl;
+    return sourceImageUrl;
     
   } catch (error) {
     console.error(`❌ Storage upload error:`, error);
-    return falImageUrl;
+    return sourceImageUrl;
   }
 }
 
