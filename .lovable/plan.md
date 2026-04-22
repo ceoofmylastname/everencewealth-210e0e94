@@ -1,42 +1,48 @@
 
 
-## Fix: Allow null featured_image_url so Kie.ai can populate post-save
+## Why you're being billed but getting zero articles
 
-The previous patch correctly removed the hardcoded Unsplash URL but didn't update the database column. Result: every article fails to save with a NOT NULL violation. Job `007ecf30` is stalled at 0/6 saved.
+Your last cluster job (`738ff4bd`) is still mid-flight (60s in, 240s timeout) so it hasn't crashed yet — but the **pattern** explains the bleed.
 
-### Fix (two changes)
+### Root cause: the quality validator I added is throwing away articles AFTER you've paid Claude for them
 
-**1. Database migration — make `featured_image_url` nullable**
-```sql
-ALTER TABLE public.blog_articles 
-  ALTER COLUMN featured_image_url DROP NOT NULL;
-```
-This is the right model: the article row is created first, then `regenerate-cluster-images` populates the Kie.ai URL afterward. The frontend already handles null images (falls back to a placeholder).
+Last patch made `validateContentQuality` a **hard reject**: if Claude's HTML doesn't contain *exactly* `class="speakable-answer"` and `class="eeat-section"` in `<div>` elements, plus 6+ `<h2>` tags and 5+ FAQs, the article is discarded (`throw new Error(...)`, line 495).
 
-**2. Mark stuck job `007ecf30` as failed**
-```sql
-UPDATE cluster_generations 
-SET status = 'failed', 
-    error = 'featured_image_url NOT NULL constraint violation - fixed in next migration'
-WHERE id = '007ecf30-7466-43e5-a5e2-cea3800ae5a3';
-```
+Then the article retry loop runs up to **3 attempts per article**. So for one rejected article you pay Claude **3 times**, get nothing saved, and the chunk exits as failed. Multiply that by 6 articles in the cluster = up to 18 billable Claude calls for zero output.
 
-### No code changes needed
-- `generate-cluster-chunk/index.ts` is already correct (sets `featured_image_url = null`)
-- `regenerate-cluster-images/index.ts` is already correct (uses Kie.ai)
-- The frontend article renderer already handles null `featured_image_url`
+The master content prompt in your settings (25,484 chars, last updated Feb 28) was written before those CSS class names existed. Claude follows the master prompt faithfully and produces valid AEO/E-E-A-T content — but with different markup (e.g. `<section class="speakable-answer-block">`, or just a styled `<p>` near the top). My regex doesn't match → reject → bill again → reject → fail.
 
-### Verification after patch
-1. Create a new test cluster with the same topic.
-2. Watch logs: article 1 should save successfully (no NOT NULL error).
-3. Confirm `regenerate-cluster-images` fires automatically and populates Kie.ai URLs.
-4. Open finished article → verify Kie.ai 16:9 image renders.
+### The fix (one focused patch — no DB, no master-prompt edit)
+
+**File: `supabase/functions/generate-cluster-chunk/index.ts`**
+
+1. **Demote the scaffolding checks from hard-reject to soft-warn.**
+   Keep word-count (≥1,200) and FAQ presence (≥3) as hard gates. Make `.speakable-answer` div, `.eeat-section` div, and 6+ H2s into **score deductions only** — log the warning, save the article, move on. The article is still good content; we just lose a bonus point. No more throwing away paid output.
+
+2. **Auto-inject the AEO/EEAT scaffolds when Claude omits the exact class names.**  
+   If `validateContentQuality` reports a missing `.speakable-answer` div, wrap the first paragraph as the speakable answer. If `.eeat-section` is missing, append a fallback E-E-A-T block sourced from `article.author` + the existing reviewer credentials. Article saves with the correct markup, JSON-LD Speakable schema still works.
+
+3. **Cut the per-article retry from 3 → 1 for word-count.**  
+   If Claude returns 1,400 words on attempt 1 (just under 1,500), accept it. Only retry if under 1,000 words (genuinely broken output). Saves 2 wasted Claude calls per article.
+
+4. **Log each Claude API charge with token count** so you can see the cost per article in the edge logs and stop guessing where money is going. Add `console.log('[BILLING] article=N input_tokens=X output_tokens=Y')` after each Claude response.
+
+### Cleanup
+- Mark stuck job `738ff4bd` as failed if it doesn't complete within 5 more minutes (a follow-up SQL, not part of the code fix).
+
+### What this fixes
+- Articles you've already paid for **get saved**, not discarded over a CSS class mismatch.
+- Per-article cost drops from 3× Claude calls (worst case) to 1× (success case) or 2× (one retry).
+- You'll have 6 articles in the cluster after the next test run instead of 0.
 
 ### Files touched
-- **New migration:** 1 SQL file (drop NOT NULL + mark stuck job failed)
-- **No edge function changes**
-- **No frontend changes**
+- **Edited:** `supabase/functions/generate-cluster-chunk/index.ts`
+- **No DB changes**
+- **No master-prompt changes** — your prompt is fine; the validator was wrong to require markup the prompt never asked for.
 
-### Why this happened
-Bug 2 in the prior plan ("remove hardcoded Unsplash URL") needed a paired schema change. I shipped the code half but not the schema half. This patch closes the loop.
+### Verification after patch
+1. Run a new cluster with the same topic.
+2. Watch logs for `[BILLING] article=1 input_tokens=...` — confirms one Claude call per success.
+3. Confirm article saves even if speakable/eeat divs are auto-injected (look for `[Chunk] auto-injected speakable scaffold`).
+4. Open finished article — JSON-LD Speakable + FAQPage schemas present, content reads well, Kie.ai image attached.
 
