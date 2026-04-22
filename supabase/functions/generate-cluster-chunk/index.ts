@@ -154,36 +154,55 @@ function validateContentQuality(article: any, plan: any): { isValid: boolean; is
     score -= 10;
   }
   
-  const h2Count = (article.detailed_content.match(/<h2>/gi) || []).length;
-  if (h2Count < 4) {
-    issues.push('Insufficient content structure (need 4+ H2 headings)');
-    score -= 10;
+  const html = article.detailed_content || '';
+  const h2Count = (html.match(/<h2[\s>]/gi) || []).length;
+  if (h2Count < 6) {
+    issues.push(`Insufficient content structure: ${h2Count} H2s (need 6+)`);
+    score -= 25;
   }
-  
-  const wordCount = countWords(article.detailed_content);
-  
-  // HARD FAIL: Articles under 600 words are always invalid
-  if (wordCount < 600) {
-    issues.push(`CRITICAL: Content severely under minimum (${wordCount} words, need 800+)`);
+
+  // AEO: speakable answer scaffold
+  const hasSpeakableDiv = /class\s*=\s*["'][^"']*\bspeakable-answer\b/i.test(html);
+  if (!hasSpeakableDiv) {
+    issues.push('Missing required `.speakable-answer` div for AEO compliance');
+    score -= 20;
+  }
+
+  // E-E-A-T scaffold
+  const hasEeatDiv = /class\s*=\s*["'][^"']*\beeat-section\b/i.test(html);
+  if (!hasEeatDiv) {
+    issues.push('Missing required `.eeat-section` div for E-E-A-T compliance');
+    score -= 20;
+  }
+
+  const wordCount = countWords(html);
+
+  // HARD FAIL: Articles under 1,200 words are always invalid (master prompt demands 1,500+)
+  if (wordCount < 1200) {
+    issues.push(`CRITICAL: Content severely under minimum (${wordCount} words, need 1,500+)`);
     return { isValid: false, issues, score: 0, wordCount };
   }
-  
-  if (wordCount < 800) {
-    issues.push(`Content too short (${wordCount} words, minimum 800)`);
-    score -= 40; // Increased penalty
+
+  if (wordCount < 1500) {
+    issues.push(`Content too short (${wordCount} words, minimum 1,500)`);
+    score -= 30;
   } else if (wordCount > 2500) {
-    issues.push(`Content too long (${wordCount} words, maximum 2500)`);
+    issues.push(`Content too long (${wordCount} words, maximum 2,500)`);
     score -= 10;
   }
-  
-  if (article.qa_entities && Array.isArray(article.qa_entities)) {
-    if (article.qa_entities.length < 5) {
-      issues.push(`Too few FAQs: ${article.qa_entities.length} (need 5-8)`);
-      score -= 10;
-    }
+
+  // FAQ scaffold (master prompt demands 5-8)
+  if (!article.qa_entities || !Array.isArray(article.qa_entities) || article.qa_entities.length < 5) {
+    const n = Array.isArray(article.qa_entities) ? article.qa_entities.length : 0;
+    issues.push(`Missing/insufficient FAQs: ${n} (need 5-8)`);
+    score -= 20;
   }
-  
-  return { isValid: score >= 60, issues, score, wordCount };
+
+  // Hard reject if any structural requirement is missing
+  const hardFail = !hasSpeakableDiv || !hasEeatDiv || h2Count < 6 ||
+    !Array.isArray(article.qa_entities) || article.qa_entities.length < 5;
+
+  return { isValid: !hardFail && score >= 60, issues, score, wordCount };
 }
 
 // Generate a single article
