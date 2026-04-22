@@ -294,9 +294,9 @@ Keep: Last 4 weeks of backups
 ### Production Environment
 
 ```bash
-VITE_SUPABASE_URL=https://kazggnufaoicopvmwhdl.supabase.co
+VITE_SUPABASE_URL=https://zbzrmpmqijvmjbhctfoe.supabase.co
 VITE_SUPABASE_PUBLISHABLE_KEY=eyJhbGci...
-VITE_SUPABASE_PROJECT_ID=kazggnufaoicopvmwhdl
+VITE_SUPABASE_PROJECT_ID=zbzrmpmqijvmjbhctfoe
 ```
 
 **Security Note**: Never commit .env files to repository. Use Cloudflare Pages environment variables instead.

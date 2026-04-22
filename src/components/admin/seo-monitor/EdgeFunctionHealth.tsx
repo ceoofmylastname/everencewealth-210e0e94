@@ -30,7 +30,7 @@ export const EdgeFunctionHealth = () => {
     const start = Date.now();
     try {
       const response = await fetch(
-        `https://kazggnufaoicopvmwhdl.supabase.co/functions/v1/serve-seo-page?path=${encodeURIComponent(path)}`
+        `https://zbzrmpmqijvmjbhctfoe.supabase.co/functions/v1/serve-seo-page?path=${encodeURIComponent(path)}`
       );
       const responseTime = Date.now() - start;
       

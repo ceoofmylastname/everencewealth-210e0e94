@@ -135,7 +135,7 @@ const MigrateImages = () => {
         if (url.includes('fal.media') || url.includes('fal.ai') || url.includes('v3.fal.media')) {
           falAi++;
           tableCounts[table]++;
-        } else if (url.includes('supabase') || url.includes('kazggnufaoicopvmwhdl')) {
+        } else if (url.includes('supabase') || url.includes('zbzrmpmqijvmjbhctfoe')) {
           supabaseCount++;
         } else if (url.includes('unsplash')) {
           unsplash++;

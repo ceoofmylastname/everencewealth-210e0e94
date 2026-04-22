@@ -2,8 +2,8 @@
 # Build v2026.01.18 - Sitemap fix: always generate 42 child sitemaps
 # Last deployment: 2026-01-02 10:02 - Generate static pages for new Q&As
 set -euo pipefail
-export VITE_SUPABASE_URL="https://kazggnufaoicopvmwhdl.supabase.co"
-export VITE_SUPABASE_PUBLISHABLE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImthemdnbnVmYW9pY29wdm13aGRsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA1MzM0ODEsImV4cCI6MjA3NjEwOTQ4MX0.acQwC_xPXFXvOwwn7IATeg6OwQ2HWlu52x76iqUdhB4"
+export VITE_SUPABASE_URL="https://zbzrmpmqijvmjbhctfoe.supabase.co"
+export VITE_SUPABASE_PUBLISHABLE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpienJtcG1xaWp2bWpiaGN0Zm9lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzExNjk1MzUsImV4cCI6MjA4Njc0NTUzNX0.cI7HQmbY1XF_wmPMSm9ofbQdR3iujQ5_YNg8h_YLkVg"
 
 # Build the React app (vite only — must NOT recurse into `npm run build`)
 npm run build:app

@@ -66,7 +66,7 @@ export function generateAppShell(distDir: string = 'dist'): void {
   <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" /></noscript>
   
   <!-- DNS prefetch for external resources -->
-  <link rel="dns-prefetch" href="https://kazggnufaoicopvmwhdl.supabase.co" />
+  <link rel="dns-prefetch" href="https://zbzrmpmqijvmjbhctfoe.supabase.co" />
   <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
   <link rel="dns-prefetch" href="https://images.unsplash.com" />
   
