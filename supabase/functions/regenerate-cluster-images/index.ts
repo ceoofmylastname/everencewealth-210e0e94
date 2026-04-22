@@ -1,6 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { generateImage as kieGenerateImage } from "../_shared/kieClient.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -205,49 +206,28 @@ RULES:
 }
 
 /**
- * Generate image using Fal.ai Nano Banana Pro (via Lovable AI gateway)
+ * Generate image using Kie.ai Nano Banana 2 (KIE_API_KEY secret).
+ * Returns the Kie-hosted result URL; caller should mirror it into Supabase Storage.
  */
 async function generateContentImage(
-  prompt: string,
-  lovableApiKey: string
+  prompt: string
 ): Promise<string | null> {
   try {
-    console.log(`🎨 Generating image with Nano Banana Pro...`);
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${lovableApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-3-pro-image-preview',
-        messages: [
-          {
-            role: 'user',
-            content: `Generate a professional 16:9 marketing image: ${prompt}`
-          }
-        ],
-        modalities: ['image', 'text']
-      }),
+    console.log(`🎨 Generating image with Kie.ai Nano Banana 2 (16:9, 2K)...`);
+    const result = await kieGenerateImage({
+      prompt: `Professional 16:9 marketing image for a financial advisory company. ${prompt}`,
+      aspectRatio: "16:9",
+      resolution: "2K",
+      outputFormat: "png",
     });
-
-    if (!response.ok) {
-      console.error(`❌ Image generation failed: ${response.status}`);
-      return null;
+    if (result?.url) {
+      console.log(`✅ Kie.ai image generated successfully`);
+      return result.url;
     }
-
-    const data = await response.json();
-    const imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
-    
-    if (imageUrl) {
-      console.log(`✅ Image generated successfully`);
-      return imageUrl;
-    }
-    
-    console.error(`❌ No image in response`);
+    console.error(`❌ Kie.ai returned no URL`);
     return null;
   } catch (error) {
-    console.error(`❌ Image generation error:`, error);
+    console.error(`❌ Kie.ai image generation error:`, error);
     return null;
   }
 }
@@ -341,6 +321,13 @@ serve(async (req) => {
     if (!lovableApiKey) {
       return new Response(
         JSON.stringify({ error: 'LOVABLE_API_KEY is not configured', success: false }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (!Deno.env.get('KIE_API_KEY')) {
+      return new Response(
+        JSON.stringify({ error: 'KIE_API_KEY is not configured (required for Nano Banana 2)', success: false }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -473,7 +460,7 @@ serve(async (req) => {
           console.log(`🎨 Generating content-aware image for: "${english.headline.substring(0, 50)}..."`);
 
           try {
-            const generatedImageData = await generateContentImage(imagePrompt, lovableApiKey);
+            const generatedImageData = await generateContentImage(imagePrompt);
 
             if (generatedImageData) {
               let newImageUrl: string | null;

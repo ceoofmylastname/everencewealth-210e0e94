@@ -40,7 +40,9 @@ const corsHeaders = {
 
 const CHUNK_SIZE = 1; // One article per chunk to prevent timeouts
 const MAX_CHUNK_RUNTIME = 4 * 60 * 1000; // 4 minutes per chunk (safety margin)
-const CLAUDE_TIMEOUT_MS = 120_000; // 2 min per Claude call — anything longer is a hung connection
+// 4 min per Claude call — Sonnet legitimately needs this for 1,500-2,500 word
+// HTML articles + 25k-char master prompt + 5-8 FAQs + JSON wrapping.
+const CLAUDE_TIMEOUT_MS = 240_000;
 
 // Heartbeat: log + persist last activity to cluster_generations.progress
 // so frontend dialog & log tail both show where the worker actually is.
@@ -152,36 +154,55 @@ function validateContentQuality(article: any, plan: any): { isValid: boolean; is
     score -= 10;
   }
   
-  const h2Count = (article.detailed_content.match(/<h2>/gi) || []).length;
-  if (h2Count < 4) {
-    issues.push('Insufficient content structure (need 4+ H2 headings)');
-    score -= 10;
+  const html = article.detailed_content || '';
+  const h2Count = (html.match(/<h2[\s>]/gi) || []).length;
+  if (h2Count < 6) {
+    issues.push(`Insufficient content structure: ${h2Count} H2s (need 6+)`);
+    score -= 25;
   }
-  
-  const wordCount = countWords(article.detailed_content);
-  
-  // HARD FAIL: Articles under 600 words are always invalid
-  if (wordCount < 600) {
-    issues.push(`CRITICAL: Content severely under minimum (${wordCount} words, need 800+)`);
+
+  // AEO: speakable answer scaffold
+  const hasSpeakableDiv = /class\s*=\s*["'][^"']*\bspeakable-answer\b/i.test(html);
+  if (!hasSpeakableDiv) {
+    issues.push('Missing required `.speakable-answer` div for AEO compliance');
+    score -= 20;
+  }
+
+  // E-E-A-T scaffold
+  const hasEeatDiv = /class\s*=\s*["'][^"']*\beeat-section\b/i.test(html);
+  if (!hasEeatDiv) {
+    issues.push('Missing required `.eeat-section` div for E-E-A-T compliance');
+    score -= 20;
+  }
+
+  const wordCount = countWords(html);
+
+  // HARD FAIL: Articles under 1,200 words are always invalid (master prompt demands 1,500+)
+  if (wordCount < 1200) {
+    issues.push(`CRITICAL: Content severely under minimum (${wordCount} words, need 1,500+)`);
     return { isValid: false, issues, score: 0, wordCount };
   }
-  
-  if (wordCount < 800) {
-    issues.push(`Content too short (${wordCount} words, minimum 800)`);
-    score -= 40; // Increased penalty
+
+  if (wordCount < 1500) {
+    issues.push(`Content too short (${wordCount} words, minimum 1,500)`);
+    score -= 30;
   } else if (wordCount > 2500) {
-    issues.push(`Content too long (${wordCount} words, maximum 2500)`);
+    issues.push(`Content too long (${wordCount} words, maximum 2,500)`);
     score -= 10;
   }
-  
-  if (article.qa_entities && Array.isArray(article.qa_entities)) {
-    if (article.qa_entities.length < 5) {
-      issues.push(`Too few FAQs: ${article.qa_entities.length} (need 5-8)`);
-      score -= 10;
-    }
+
+  // FAQ scaffold (master prompt demands 5-8)
+  if (!article.qa_entities || !Array.isArray(article.qa_entities) || article.qa_entities.length < 5) {
+    const n = Array.isArray(article.qa_entities) ? article.qa_entities.length : 0;
+    issues.push(`Missing/insufficient FAQs: ${n} (need 5-8)`);
+    score -= 20;
   }
-  
-  return { isValid: score >= 60, issues, score, wordCount };
+
+  // Hard reject if any structural requirement is missing
+  const hardFail = !hasSpeakableDiv || !hasEeatDiv || h2Count < 6 ||
+    !Array.isArray(article.qa_entities) || article.qa_entities.length < 5;
+
+  return { isValid: !hardFail && score >= 60, issues, score, wordCount };
 }
 
 // Generate a single article
@@ -265,19 +286,19 @@ Respond with JSON: { "category": "exact category name from the list" }`;
           .replace(/\{\{languageName\}\}/g, languageName)
       : `Write a comprehensive article about "${plan.headline}" targeting the keyword "${plan.targetKeyword}".`;
 
-    // ALWAYS wrap in JSON requirements with STRICT word count
+    // ALWAYS wrap in JSON requirements with STRICT word count (matches master prompt: 1,500-2,500)
     const contentPrompt = `${basePrompt}
 
-CRITICAL WORD COUNT REQUIREMENT: The article MUST be between 800 and 2,500 words. Count your words carefully.
-- Minimum: 800 words (articles under this will be REJECTED)
-- Target: 1,200-1,800 words (ideal range)
+CRITICAL WORD COUNT REQUIREMENT: The article MUST be between 1,500 and 2,500 words. Count your words carefully.
+- Minimum: 1,500 words (articles under this will be REJECTED)
+- Target: 1,800-2,000 words (ideal range)
 - Maximum: 2,500 words
 
 You MUST respond with a valid JSON object with this exact structure:
 {
-  "detailed_content": "<div class='article-content'>...full HTML article content (MINIMUM 800 words, target 1200-1800)...</div>",
+  "detailed_content": "<div class='article-content'>...full HTML article content (MINIMUM 1,500 words, target 1,800-2,000)...</div>",
   "meta_title": "SEO title (50-60 characters)",
-  "meta_description": "SEO meta description (150-160 characters)", 
+  "meta_description": "SEO meta description (150-160 characters)",
   "speakable_answer": "40-60 word summary answering the main question directly",
   "qa_entities": [
     {"question": "FAQ question 1?", "answer": "Detailed answer (80-120 words, single paragraph, no lists)"},
@@ -285,9 +306,13 @@ You MUST respond with a valid JSON object with this exact structure:
   ]
 }
 
-Include 5-8 FAQ questions in qa_entities. Each answer must be 80-120 words in a single paragraph (no bullet points or lists).
-The detailed_content must be proper HTML with at least 6 H2 headings, detailed paragraphs, examples, and expert insights.
-REMEMBER: Minimum 800 words in detailed_content is MANDATORY.`;
+MANDATORY STRUCTURE inside detailed_content:
+- A <div class="speakable-answer">…40-60 word direct answer…</div> near the top (AEO requirement)
+- An <div class="eeat-section">…200-300 word expert E-E-A-T block with credentials, experience, sources…</div>
+- At least 6 <h2> headings, each followed by 2+ detailed paragraphs
+- 5-8 FAQ questions in qa_entities, each answer 80-120 words, single paragraph (no lists)
+
+REMEMBER: Minimum 1,500 words in detailed_content is MANDATORY. Missing .speakable-answer or .eeat-section will cause REJECTION.`;
 
     // Generate content with retry loop for word count enforcement (3 attempts with escalating prompts)
     let contentJson: any = null;
@@ -415,22 +440,22 @@ TOTAL MINIMUM: 1,000 words. Do NOT submit under 800.`;
 
       lastWordCount = countWords(contentJson.detailed_content || '');
       console.log(`[Chunk ${jobId}] ━━━ Attempt ${attempts}: ${lastWordCount} words ━━━`);
-      
-      if (lastWordCount >= 800) {
-        console.log(`[Chunk ${jobId}] ✅ Word count requirement met!`);
+
+      if (lastWordCount >= 1500) {
+        console.log(`[Chunk ${jobId}] ✅ Word count requirement met (${lastWordCount} ≥ 1,500)!`);
         break;
       }
-      
+
       if (attempts < maxAttempts) {
-        console.warn(`[Chunk ${jobId}] ⚠️ Word count ${lastWordCount} below 800, will retry...`);
+        console.warn(`[Chunk ${jobId}] ⚠️ Word count ${lastWordCount} below 1,500, will retry...`);
         await new Promise(resolve => setTimeout(resolve, 1500));
       } else {
-        console.error(`[Chunk ${jobId}] ❌ Failed to reach 800 words after ${maxAttempts} attempts (final: ${lastWordCount})`);
+        console.error(`[Chunk ${jobId}] ❌ Failed to reach 1,500 words after ${maxAttempts} attempts (final: ${lastWordCount})`);
       }
     }
 
-    // HARD FAIL: If still under 600 words, reject the article
-    if (lastWordCount < 600) {
+    // HARD FAIL: If still under 1,200 words, reject the article (master prompt floor is 1,500)
+    if (lastWordCount < 1200) {
       throw new Error(`Article generation failed: Could not reach minimum word count after ${maxAttempts} attempts (only ${lastWordCount} words). Article rejected.`);
     }
 
@@ -441,11 +466,12 @@ TOTAL MINIMUM: 1,000 words. Do NOT submit under 800.`;
     article.qa_entities = contentJson.qa_entities || contentJson.faqs || [];
     article.cluster_theme = clusterTopic || '';
 
-    // 3. FEATURED IMAGE - Use placeholder to ensure completion within timeout
-    // DALL-E image generation is skipped for reliability (can be regenerated later)
-    article.featured_image_url = 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=1792&h=1024&fit=crop';
+    // 3. FEATURED IMAGE — leave NULL so post-generation Kie.ai (Nano Banana 2)
+    // step in regenerate-cluster-images is the unambiguous source of truth.
+    // Hardcoded Unsplash URLs were causing every article to share the same stock photo.
+    article.featured_image_url = null;
     article.featured_image_alt = `${plan.headline} - Everence Wealth`;
-    console.log(`[Chunk ${jobId}] Using placeholder image (DALL-E skipped for reliability)`);
+    console.log(`[Chunk ${jobId}] Featured image left null — Kie.ai will generate post-save`);
 
     // 4. AUTHOR & REVIEWER
     const randomAuthor = authors?.[Math.floor(Math.random() * (authors?.length || 1))] || { id: null };
@@ -459,11 +485,16 @@ TOTAL MINIMUM: 1,000 words. Do NOT submit under 800.`;
     article.date_published = new Date().toISOString();
     article.date_modified = new Date().toISOString();
 
-    // 6. QUALITY VALIDATION
+    // 6. QUALITY VALIDATION — hard reject if AEO/E-E-A-T scaffolding is missing
     const quality = validateContentQuality(article, plan);
-    console.log(`[Chunk ${jobId}] Article ${articleIndex + 1} quality: ${quality.score}/100`);
+    console.log(`[Chunk ${jobId}] Article ${articleIndex + 1} quality: ${quality.score}/100 (${quality.wordCount} words)`);
     if (quality.issues.length > 0) {
       console.warn(`[Chunk ${jobId}] Quality issues:`, quality.issues);
+    }
+    if (!quality.isValid) {
+      throw new Error(
+        `Article rejected by quality gate (score=${quality.score}, words=${quality.wordCount}): ${quality.issues.join('; ')}`
+      );
     }
 
     // 7. SAVE TO DATABASE
