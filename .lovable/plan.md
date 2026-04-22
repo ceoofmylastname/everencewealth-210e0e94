@@ -1,206 +1,131 @@
 
 
-## Production SSG delivery fix — make the generated HTML actually ship and resolve
+## Purge `kazggnufaoicopvmwhdl` from the codebase, point everything at `zbzrmpmqijvmjbhctfoe`
 
-Your diagnosis is mostly right, and the code audit shows two additional issues that must be fixed in the same pass.
+### Root cause (newly discovered, not in your prompt)
 
-### What the audit confirmed
-
-- `package.json` still runs:
-  - `"build": "tsx scripts/generateSitemap.ts && vite build"`
-- `build.sh` now contains all SSG generators, but it currently calls `npm run build` at the top.
-  - If we simply point `"build"` to `bash build.sh` without restructuring, it will recurse forever.
-- `vite.config.ts` has the SSG plugins commented out, so the old generators are not running through Vite either.
-- The new generators output many routes as flat files:
-  - `dist/en/philosophy.html`
-  - `dist/en/team.html`
-  - `dist/en/glossary.html`
-  - `dist/en/glossary/{slug}.html`
-  - `dist/en/strategies/iul.html`
-- Existing successful generators mostly use `.../index.html` directory routing.
-- Homepage SSG currently writes `dist/home.html`, but nothing in `functions/_middleware.js` or routing serves `/` from `home.html`.
-
-That means there are really **three** fixes, not one:
-1. Deploy must run the full generator pipeline.
-2. New SSG outputs must match extensionless route resolution reliably.
-3. Homepage SSG must be wired to a file the host actually serves.
-
-## Implementation plan
-
-### 1) Fix the build pipeline without recursion
-
-Update build flow so the deploy command runs the full static generation pipeline exactly once.
-
-Recommended structure:
-- In `package.json`:
-  - add `"build:app": "vite build"`
-  - change `"build"` to `"bash build.sh"`
-- In `build.sh`:
-  - add `set -euo pipefail`
-  - replace `npm run build` with `npm run build:app` or `npx vite build`
-
-This makes the production deploy run:
-- app build
-- app-shell generation
-- all existing SSG generators
-- the 4 new JSON-LD generators
-- sitemap generation
-- functions copy
-
-### 2) Change the new generators to output directory-based `index.html` files
-
-Do not keep the new routes as flat `.html` files. Match the already-working pattern used by blog/qa/compare/location pages.
-
-Change outputs to:
-
-```text
-dist/en/strategies/iul/index.html
-dist/en/strategies/whole-life/index.html
-dist/en/strategies/tax-free-retirement/index.html
-dist/en/strategies/asset-protection/index.html
-
-dist/es/estrategias/seguro-universal-indexado/index.html
-dist/es/estrategias/seguro-vida-entera/index.html
-dist/es/estrategias/retiro-libre-impuestos/index.html
-dist/es/estrategias/proteccion-de-activos/index.html
-
-dist/en/philosophy/index.html
-dist/es/philosophy/index.html
-
-dist/en/team/index.html
-dist/es/team/index.html
-
-dist/en/glossary/index.html
-dist/es/glossary/index.html
-
-dist/en/glossary/{termSlug}/index.html
-dist/es/glossary/{termSlug}/index.html
+`build.sh` lines 5-6 contain:
+```bash
+export VITE_SUPABASE_URL="https://kazggnufaoicopvmwhdl.supabase.co"
+export VITE_SUPABASE_PUBLISHABLE_KEY="eyJ...ref:kazggnufaoicopvmwhdl..."
 ```
 
-Files to update:
-- `scripts/generateStaticStrategyPages.ts`
-- `scripts/generateStaticPhilosophyPage.ts`
-- `scripts/generateStaticGlossary.ts`
-- `scripts/generateStaticTeamPage.ts`
+That export runs **before any generator**, which is why the build log showed Del-Sol-shaped data (3,808 articles, 10 European languages) even though Cloudflare Pages env vars are unset and `.env` points at the right project. Vite would also pick this up. **This is the single biggest fix.**
 
-This aligns the filesystem with the actual routes in `src/App.tsx` and avoids ambiguous clean-URL resolution.
+### Full grep results (8 code files + 6 docs)
 
-### 3) Fix homepage SSG so `/` serves real static HTML
+**Code files to fix (8):**
+1. `build.sh` — lines 5-6 (hardcoded export — root cause)
+2. `functions/_middleware.js` — lines 10-11 (SSR runtime URL + key)
+3. `index.html` — line 42 (DNS prefetch)
+4. `public/app-shell.html` — line 25 (DNS prefetch)
+5. `public/cloudflare-worker.js` — line 31 (edge function URL — legacy worker, may be unused but consistent)
+6. `scripts/generateAppShell.ts` — line 69 (DNS prefetch)
+7. `scripts/sampleQAPages.ts` — lines 4-5 (silent fallback)
+8. `scripts/testAllLanguagesQA.ts` — lines 4-5 (silent fallback)
+9. `scripts/generatePriorityQAUrls.ts` — lines 6-7 (silent fallback)
+10. `src/pages/admin/MigrateImages.tsx` — line 138 (string match in URL classifier — update to match new ref)
 
-Right now `generateStaticHomePage.ts` writes `dist/home.html`, but nothing serves it.
+**Docs (informational only — fix for accuracy):**
+- `docs/crm/CRM_DEPLOYMENT_GUIDE.md` (lines 59, 61, 244, 324)
+- `docs/crm/CRM_MONITORING_GUIDE.md` (line 54)
+- `PERFORMANCE.md` (line 101)
+- `DEPLOYMENT_GUIDE.md` (lines 297, 299)
+- `supabase/cron_jobs.sql` (line 3 — comment)
+- `supabase/migrations/20260103041602_*.sql` (line 29 — historical migration; do NOT edit applied migration — leave as-is)
 
-Implement one of these in the same commit:
+**Files already correct:**
+- `scripts/generateSitemap.ts` — fallback already points at `zbzrmpmqijvmjbhctfoe` ✓
+- 6 SSG generators (`generateStaticPages/QAPages/ComparisonPages/LocationPages/LocationHub/AboutPage`) already use `process.env.VITE_SUPABASE_URL!` (non-null assertion, no fallback) ✓
+- `verifySsgDeployment.ts`, `validateAEOImplementation.ts` already fail-fast ✓
+- The 4 newly added generators (Strategy/Philosophy/Glossary/Team) and Home/BuyersGuide do not call Supabase at all ✓
 
-Preferred:
-- keep `dist/app-shell.html` as the generic SPA shell
-- make homepage generation write the English homepage to `dist/index.html`
-- keep `/en/index.html` for the language-prefixed homepage
+### Implementation plan
 
-Alternative:
-- add explicit middleware handling for `/` that serves `home.html`
+**Step 1 — Fix `build.sh` (root cause)**
 
-Preferred is simpler and removes the current dead-file problem. The important rule is: **`/` must map to real generated HTML, not to unused `home.html`.**
+Replace the hardcoded exports with the correct project. Two valid approaches; recommended is **option A** (keep export, correct value) so the build is reproducible regardless of Cloudflare Pages env state:
 
-Files:
-- `scripts/generateStaticHomePage.ts`
-- possibly `functions/_middleware.js` only if you choose the explicit `home.html` serving route
+```bash
+export VITE_SUPABASE_URL="https://zbzrmpmqijvmjbhctfoe.supabase.co"
+export VITE_SUPABASE_PUBLISHABLE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpienJtcG1xaWp2bWpiaGN0Zm9lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzExNjk1MzUsImV4cCI6MjA4Njc0NTUzNX0.cI7HQmbY1XF_wmPMSm9ofbQdR3iujQ5_YNg8h_YLkVg"
+```
 
-### 4) Keep middleware changes minimal unless preview still falls through
+**Step 2 — Fix runtime SSR middleware (`functions/_middleware.js`)**
 
-Current `_routes.json` includes all HTML routes, but that alone is not the main failure. The bigger issues are:
-- the build pipeline never ran the generators in production
-- the new generators wrote flat `.html` files
-- homepage output is disconnected
+Replace URL + anon key on lines 10-11 with the Everence values. Cloudflare Pages Functions cannot read env vars at runtime here, so hardcoding is intentional — just hardcode the *correct* project.
 
-So the routing order should be:
+**Step 3 — Fix DNS prefetch hints (3 files)**
 
-1. Fix build command
-2. Fix output paths to `index.html`
-3. Verify preview/build output
-4. Only if extensionless routes still fall through, add narrow exclusions in `functions/_routes.json` for the fully static families:
-   - `/en/strategies/*`
-   - `/es/estrategias/*`
-   - `/en/philosophy`
-   - `/es/philosophy`
-   - `/en/team`
-   - `/es/team`
-   - `/en/glossary*`
-   - `/es/glossary*`
+Update `index.html` line 42, `public/app-shell.html` line 25, `scripts/generateAppShell.ts` line 69 — same one-line replacement.
 
-No blanket middleware rewrite is needed unless post-fix verification shows one of those route families is still being overridden.
+**Step 4 — Fix legacy/utility scripts with silent fallbacks (3 files)**
 
-### 5) Verify locally from a clean `npm run build`
+Per your instruction, replace the `process.env.X || 'hardcoded'` pattern in `sampleQAPages.ts`, `testAllLanguagesQA.ts`, `generatePriorityQAUrls.ts` with fail-fast:
 
-After the code change, verify that the deploy command itself produces the real files.
+```ts
+const SUPABASE_URL = process.env.VITE_SUPABASE_URL;
+const SUPABASE_ANON_KEY = process.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+  throw new Error('Missing VITE_SUPABASE_URL or VITE_SUPABASE_PUBLISHABLE_KEY — aborted');
+}
+```
 
-Check for existence of:
-- all 8 strategy route files
-- philosophy EN/ES
-- team EN/ES
-- glossary index EN/ES
-- glossary term pages
-- homepage at `dist/index.html`
-- existing generators’ outputs (qa, compare, locations, buyers-guide, about, blog)
+**Step 5 — Apply same fail-fast to `generateSitemap.ts`**
 
-Then verify each generated file contains schema:
-- strategies: expect 6 JSON-LD blocks each
-- philosophy: expect 4
-- glossary index: expect 3
-- glossary term: expect 2
-- team: expect 4
-- homepage: expect at least 1 graph block
+Currently has fallback to `zbzrmpmqijvmjbhctfoe` (correct project but still silent). Convert to fail-fast for consistency and to surface env regressions immediately. The 6 already-correct generators using `!` non-null assertion are fine — those crash on undefined access naturally.
 
-Also preserve the existing guardrail:
-- do not remove any remaining Helmet JSON-LD from legacy routes unless the baked HTML is confirmed present in the generated files and then again in production.
+**Step 6 — Update `public/cloudflare-worker.js`**
 
-### 6) Publish and verify production
+Line 31 edge function URL → new project. (This worker file may be unused legacy, but if it's deployed anywhere it would call the wrong project's edge function.)
 
-After publish, confirm the production build actually ran `bash build.sh` by capturing the publish/build log excerpt showing:
-- build command used
-- generator steps executed
-- counts of generated routes
+**Step 7 — Update `src/pages/admin/MigrateImages.tsx` line 138**
 
-Then re-check the previously failing URLs with ClaudeBot user-agent and report:
-- JSON-LD block count
-- title
-- canonical
-- whether the page is static HTML or SPA fallback
+Change the URL classifier string match from `'kazggnufaoicopvmwhdl'` to `'zbzrmpmqijvmjbhctfoe'` so the admin migration tool correctly identifies Supabase-hosted images.
 
-Priority verification set:
-- `/`
-- `/en/strategies/asset-protection`
-- `/en/philosophy`
-- `/en/glossary`
-- `/en/glossary/indexed-universal-life`
-- `/en/team`
-- `/en/qa`
-- `/en/compare`
-- `/en/locations`
+**Step 8 — Update docs (5 files)**
 
-## Expected outcome
+Find/replace `kazggnufaoicopvmwhdl` → `zbzrmpmqijvmjbhctfoe` in the 5 markdown/config docs listed above. Skip the applied SQL migration (`20260103041602_*.sql`) — never edit applied migrations.
 
-This single deploy should unblock all of the currently dark routes because it fixes the real production gap:
-- the full generator pipeline actually runs during deploy
-- generated files match route resolution shape
-- homepage is no longer written to an unserved filename
+### Verification (post-edit)
 
-## Files to change
+1. `grep -rn "kazggnufaoicopvmwhdl" . --include="*.ts" --include="*.tsx" --include="*.js" --include="*.html" --include="*.json" --include="*.sh"` → expect **zero matches** (excluding the applied migration which lives in `*.sql`).
+2. `npm run build` locally → confirm build log shows blog_articles ≈ 84, qa_pages ≈ 336, languages = `en, es`, no `state_code` error, all 4 new generators emit their `index.html` files.
+3. `grep -c "application/ld+json" dist/en/strategies/iul/index.html` → expect ≥ 1 (Guardrail B from prior plan).
+4. Publish, then curl-verify the 9 priority URLs with ClaudeBot UA.
 
-- `package.json`
+### Files to change (10 code + 5 docs)
+
+**Code:**
 - `build.sh`
-- `scripts/generateStaticHomePage.ts`
-- `scripts/generateStaticStrategyPages.ts`
-- `scripts/generateStaticPhilosophyPage.ts`
-- `scripts/generateStaticGlossary.ts`
-- `scripts/generateStaticTeamPage.ts`
-- possibly `functions/_routes.json` only if post-build preview still falls through after the path-shape fix
+- `functions/_middleware.js`
+- `index.html`
+- `public/app-shell.html`
+- `public/cloudflare-worker.js`
+- `scripts/generateAppShell.ts`
+- `scripts/sampleQAPages.ts`
+- `scripts/testAllLanguagesQA.ts`
+- `scripts/generatePriorityQAUrls.ts`
+- `scripts/generateSitemap.ts` (fail-fast conversion)
+- `src/pages/admin/MigrateImages.tsx`
 
-## Post-fix report format
+**Docs:**
+- `docs/crm/CRM_DEPLOYMENT_GUIDE.md`
+- `docs/crm/CRM_MONITORING_GUIDE.md`
+- `PERFORMANCE.md`
+- `DEPLOYMENT_GUIDE.md`
+- `supabase/cron_jobs.sql` (comment only)
 
-1. Final build command used in production
-2. Build log excerpt showing each generator ran
-3. Dist file existence list for all new route families
-4. Grep counts of `application/ld+json` per generated route
-5. Production curl verification for the 9 priority URLs
-6. Any `_routes.json` exclusions added, or confirmation that none were needed
+**Explicitly NOT changed:**
+- `supabase/migrations/20260103041602_*.sql` — applied migration, immutable history
+- The 6 SSG generators already using `process.env.X!` — already correct
+- `.env` and `src/integrations/supabase/client.ts` — already correct
+
+### Post-deploy report format
+
+1. Pre-edit grep count: 149 matches across 20 files
+2. Post-edit grep count: 0 (in code) / 1 (in immutable SQL migration, expected)
+3. Local build log excerpt: row counts + language breakdown
+4. Production curl audit: 9 priority URLs, JSON-LD block count per route
+5. Confirmation that `_middleware.js` runtime SSR now hits the correct DB
 
