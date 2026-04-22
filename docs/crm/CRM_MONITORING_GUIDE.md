@@ -51,7 +51,7 @@ Monitoring setup and alerting configuration for the CRM system to ensure high av
 ### 2.1 Endpoint Details
 
 ```
-GET https://kazggnufaoicopvmwhdl.supabase.co/functions/v1/health-check
+GET https://zbzrmpmqijvmjbhctfoe.supabase.co/functions/v1/health-check
 ```
 
 ### 2.2 Response Format

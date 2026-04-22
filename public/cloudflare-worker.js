@@ -28,7 +28,7 @@
 
 const CONFIG = {
   // Supabase Edge Function URL
-  EDGE_FUNCTION_URL: 'https://kazggnufaoicopvmwhdl.supabase.co/functions/v1/serve-seo-page',
+  EDGE_FUNCTION_URL: 'https://zbzrmpmqijvmjbhctfoe.supabase.co/functions/v1/serve-seo-page',
   
   // React App origin (Cloudflare Pages or custom)
   REACT_APP_ORIGIN: 'https://everencewealth.pages.dev',

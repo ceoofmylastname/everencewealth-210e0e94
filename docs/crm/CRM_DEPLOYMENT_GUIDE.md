@@ -56,9 +56,9 @@ This guide covers the complete deployment process for the Everence Wealth CRM sy
 These are automatically configured by Lovable Cloud:
 
 ```env
-VITE_SUPABASE_URL=https://kazggnufaoicopvmwhdl.supabase.co
+VITE_SUPABASE_URL=https://zbzrmpmqijvmjbhctfoe.supabase.co
 VITE_SUPABASE_PUBLISHABLE_KEY=[auto-configured]
-VITE_SUPABASE_PROJECT_ID=kazggnufaoicopvmwhdl
+VITE_SUPABASE_PROJECT_ID=zbzrmpmqijvmjbhctfoe
 ```
 
 ---
@@ -241,7 +241,7 @@ For each agent:
 Configure Emma to send leads to:
 
 ```
-POST https://kazggnufaoicopvmwhdl.supabase.co/functions/v1/register-crm-lead
+POST https://zbzrmpmqijvmjbhctfoe.supabase.co/functions/v1/register-crm-lead
 ```
 
 Required headers:
@@ -321,7 +321,7 @@ If using a custom domain like `crm.everencewealth.com`:
 The health-check function provides system status:
 
 ```bash
-curl https://kazggnufaoicopvmwhdl.supabase.co/functions/v1/health-check
+curl https://zbzrmpmqijvmjbhctfoe.supabase.co/functions/v1/health-check
 ```
 
 Response:

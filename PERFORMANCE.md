@@ -98,7 +98,7 @@ onMouseEnter={() => {
 
 **Configured in `index.html`:**
 ```html
-<link rel="dns-prefetch" href="https://kazggnufaoicopvmwhdl.supabase.co">
+<link rel="dns-prefetch" href="https://zbzrmpmqijvmjbhctfoe.supabase.co">
 <link rel="dns-prefetch" href="https://fonts.googleapis.com">
 <link rel="dns-prefetch" href="https://fonts.gstatic.com">
 ```
