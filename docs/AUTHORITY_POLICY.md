@@ -2,11 +2,14 @@
 
 ## Person Entity
 - **Name:** Steven Rosenberg (fixed, never changes)
-- **Entity ID:** https://www.everencewealth.com/#hans-beeckman
-- **Job Title:** Senior Financial Planning Advisor
+- **Entity ID:** https://www.everencewealth.com/#steven-rosenberg
+- **Job Title:** Founder & Chief Wealth Strategist
 - **Photo Context:**
-  - Blog posts: `/images/hans-blog.jpg`
-  - Q&A pages: `/images/hans-qa.jpg`
+  - Blog posts: `/images/steven-blog.jpg`
+  - Q&A pages: `/images/steven-qa.jpg`
+- **Person.sameAs:** `[]` — TODO: pending verified personal LinkedIn / official bio URL.
+  Do NOT substitute the company LinkedIn page; per schema.org, Person.sameAs must
+  point to pages ABOUT THAT PERSON.
 
 ## Date Handling Rules
 
