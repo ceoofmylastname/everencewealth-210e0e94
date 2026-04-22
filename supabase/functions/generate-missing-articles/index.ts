@@ -113,7 +113,8 @@ serve(async (req) => {
 
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY')!;
+    const CLAUDE_API_KEY = Deno.env.get('CLAUDE_API_KEY') || Deno.env.get('ANTHROPIC_API_KEY');
+    if (!CLAUDE_API_KEY) throw new Error('CLAUDE_API_KEY (or ANTHROPIC_API_KEY) is not configured');
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
     console.log(`\n╔════════════════════════════════════════╗`);
@@ -254,13 +255,13 @@ You MUST respond with a valid JSON object:
   "funnelStage": "${firstMissing.funnelStage}"
 }`;
 
-    const planResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+    const planResponse = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
-      headers: { 'Authorization': `Bearer ${OPENAI_API_KEY}`, 'Content-Type': 'application/json' },
+      headers: { 'x-api-key': CLAUDE_API_KEY, 'anthropic-version': '2023-06-01', 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'claude-haiku-4-5-20251001',
         max_tokens: 512,
-        response_format: { type: 'json_object' },
+        system: 'Return ONLY a valid JSON object as specified. No prose.',
         messages: [{ role: 'user', content: planPrompt }],
       }),
     });
@@ -272,9 +273,9 @@ You MUST respond with a valid JSON object:
     }
 
     const planData = await planResponse.json();
-    const planText = planData.choices?.[0]?.message?.content || '';
+    const planText = planData?.content?.[0]?.text || '';
     if (!planText.trim()) {
-      throw new Error('OpenAI returned empty plan response');
+      throw new Error('Claude returned empty plan response');
     }
     
     let plan;
@@ -310,13 +311,13 @@ Funnel Stage: ${firstMissing.funnelStage}
 
 Respond with JSON: { "category": "exact category name from the list" }`;
 
-    const categoryResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+    const categoryResponse = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
-      headers: { 'Authorization': `Bearer ${OPENAI_API_KEY}`, 'Content-Type': 'application/json' },
+      headers: { 'x-api-key': CLAUDE_API_KEY, 'anthropic-version': '2023-06-01', 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'claude-haiku-4-5-20251001',
         max_tokens: 256,
-        response_format: { type: 'json_object' },
+        system: 'Return ONLY a valid JSON object as specified. No prose.',
         messages: [{ role: 'user', content: categoryPrompt }],
       }),
     });
@@ -325,7 +326,7 @@ Respond with JSON: { "category": "exact category name from the list" }`;
     if (categoryResponse.ok) {
       const categoryData = await categoryResponse.json();
       try {
-        const categoryJson = extractJsonFromResponse(categoryData.choices?.[0]?.message?.content || '{}');
+        const categoryJson = extractJsonFromResponse(categoryData?.content?.[0]?.text || '{}');
         const aiCategory = categoryJson.category;
         const matchedCategory = validCategoryNames.find(
           name => name.toLowerCase() === aiCategory?.toLowerCase()
@@ -453,15 +454,14 @@ SECTION WORD COUNTS (strict minimums):
 TOTAL MINIMUM: 1,800 words. Do NOT submit under 1,500.`;
       }
 
-      const contentResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+      const contentResponse = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
-        headers: { 'Authorization': `Bearer ${OPENAI_API_KEY}`, 'Content-Type': 'application/json' },
+        headers: { 'x-api-key': CLAUDE_API_KEY, 'anthropic-version': '2023-06-01', 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          model: 'gpt-4o',
+          model: 'claude-sonnet-4-5-20250929',
           max_tokens: 12000,
-          response_format: { type: 'json_object' },
+          system: systemPrompt + '\n\nIMPORTANT: Return ONLY a valid JSON object as specified. No prose, no markdown fences.',
           messages: [
-            { role: 'system', content: systemPrompt },
             { role: 'user', content: currentPrompt }
           ],
         }),
@@ -474,10 +474,10 @@ TOTAL MINIMUM: 1,800 words. Do NOT submit under 1,500.`;
       }
 
       const contentData = await contentResponse.json();
-      const contentText = contentData.choices?.[0]?.message?.content || '';
+      const contentText = contentData?.content?.[0]?.text || '';
       
       if (!contentText.trim()) {
-        throw new Error('OpenAI returned empty content response');
+        throw new Error('Claude returned empty content response');
       }
       
       try {

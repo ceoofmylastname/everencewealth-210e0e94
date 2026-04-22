@@ -166,7 +166,7 @@ async function generateSingleArticle(
   categories: any[],
   clusterTopic: string
 ): Promise<{ articleId: string | null; error: string | null }> {
-  const OPENAI_API_KEY = openaiKey;
+  const CLAUDE_API_KEY = openaiKey; // legacy var name, now holds CLAUDE_API_KEY
   
   console.log(`\n[Chunk ${jobId}] Generating article ${articleIndex + 1}: "${plan.headline}"`);
   
@@ -192,13 +192,13 @@ Funnel Stage: ${plan.funnelStage}
 
 Respond with JSON: { "category": "exact category name from the list" }`;
 
-    const categoryResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+    const categoryResponse = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
-      headers: { 'Authorization': `Bearer ${OPENAI_API_KEY}`, 'Content-Type': 'application/json' },
+      headers: { 'x-api-key': CLAUDE_API_KEY, 'anthropic-version': '2023-06-01', 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'claude-haiku-4-5-20251001',
         max_tokens: 256,
-        response_format: { type: 'json_object' },
+        system: 'Return ONLY a valid JSON object as specified. No prose.',
         messages: [{ role: 'user', content: categoryPrompt }],
       }),
     });
@@ -207,7 +207,7 @@ Respond with JSON: { "category": "exact category name from the list" }`;
     if (categoryResponse.ok) {
       const categoryData = await categoryResponse.json();
       try {
-        const categoryJson = extractJsonFromResponse(categoryData.choices?.[0]?.message?.content || '{}');
+        const categoryJson = extractJsonFromResponse(categoryData?.content?.[0]?.text || '{}');
         const aiCategory = categoryJson.category;
         const matchedCategory = validCategoryNames.find(
           name => name.toLowerCase() === aiCategory?.toLowerCase()
@@ -329,15 +329,14 @@ SECTION WORD COUNTS (strict minimums):
 TOTAL MINIMUM: 1,000 words. Do NOT submit under 800.`;
       }
       
-      const contentResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+      const contentResponse = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
-        headers: { 'Authorization': `Bearer ${OPENAI_API_KEY}`, 'Content-Type': 'application/json' },
+        headers: { 'x-api-key': CLAUDE_API_KEY, 'anthropic-version': '2023-06-01', 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          model: 'gpt-4o',
+          model: 'claude-sonnet-4-5-20250929',
           max_tokens: 12000,
-          response_format: { type: 'json_object' },
+          system: systemPrompt + '\n\nIMPORTANT: Return ONLY a valid JSON object as specified. No prose, no markdown fences.',
           messages: [
-            { role: 'system', content: systemPrompt },
             { role: 'user', content: currentPrompt }
           ],
         }),
@@ -350,10 +349,10 @@ TOTAL MINIMUM: 1,000 words. Do NOT submit under 800.`;
       }
 
       const contentData = await contentResponse.json();
-      const contentText = contentData.choices?.[0]?.message?.content || '';
+      const contentText = contentData?.content?.[0]?.text || '';
 
       if (!contentText.trim()) {
-        throw new Error('OpenAI returned empty content response');
+        throw new Error('Claude returned empty content response');
       }
 
       try {
@@ -456,7 +455,8 @@ serve(async (req) => {
 
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY')!;
+    const CLAUDE_API_KEY = Deno.env.get('CLAUDE_API_KEY') || Deno.env.get('ANTHROPIC_API_KEY');
+    if (!CLAUDE_API_KEY) throw new Error('CLAUDE_API_KEY (or ANTHROPIC_API_KEY) is not configured');
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
     // Calculate which articles this chunk handles
@@ -520,7 +520,7 @@ serve(async (req) => {
 
       const result = await generateSingleArticle(
         supabase,
-        OPENAI_API_KEY,
+        CLAUDE_API_KEY,
         plan,
         globalIndex,
         jobId,

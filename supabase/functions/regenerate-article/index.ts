@@ -1,6 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { callClaude, extractJsonFromResponse, CLAUDE_MODELS } from "../_shared/claudeClient.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -10,26 +11,6 @@ const corsHeaders = {
 function countWords(html: string): number {
   const text = (html || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
   return text.split(/\s+/).filter(w => w.length > 0).length;
-}
-
-function extractJsonFromResponse(text: string): any {
-  try {
-    return JSON.parse(text);
-  } catch {
-    const codeBlockMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/);
-    if (codeBlockMatch) {
-      try {
-        return JSON.parse(codeBlockMatch[1].trim());
-      } catch {}
-    }
-    const objectMatch = text.match(/\{[\s\S]*\}/);
-    if (objectMatch) {
-      try {
-        return JSON.parse(objectMatch[0]);
-      } catch {}
-    }
-    throw new Error('Failed to parse JSON from response');
-  }
 }
 
 serve(async (req) => {
@@ -51,11 +32,6 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
-    const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
-
-    if (!OPENAI_API_KEY) {
-      throw new Error('OPENAI_API_KEY is not configured');
-    }
 
     // Fetch existing article
     const { data: article, error: articleError } = await supabase
@@ -168,38 +144,34 @@ Write 8 sections with ~200 words each. Be thorough but concise.
 ${userPrompt}`;
       }
 
-      // Use GPT-5 for better instruction following
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${OPENAI_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'gpt-5-2025-08-07',
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: attemptPrompt }
-          ],
-          max_completion_tokens: 16000,
-          response_format: { type: 'json_object' }
-        }),
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`OpenAI API error: ${response.status} - ${errorText}`);
+      // Claude Sonnet 4.5 for long-form article regeneration
+      const claudeSystem = `${systemPrompt}\n\nIMPORTANT: Return ONLY a valid JSON object with the requested fields. No prose, no markdown fences.`;
+      let claudeText = '';
+      try {
+        const claudeRes = await callClaude({
+          model: CLAUDE_MODELS.sonnet,
+          system: claudeSystem,
+          prompt: attemptPrompt,
+          maxTokens: 12000,
+        });
+        claudeText = claudeRes.text;
+      } catch (err) {
+        console.error(`Attempt ${attempt}: Claude call failed:`, err);
+        continue;
       }
 
-      const data = await response.json();
-      const content = data.choices[0]?.message?.content;
-      
-      if (!content) {
+      if (!claudeText) {
         console.error(`Attempt ${attempt}: No content returned`);
         continue;
       }
 
-      const parsed = extractJsonFromResponse(content);
+      let parsed: any;
+      try {
+        parsed = extractJsonFromResponse(claudeText);
+      } catch (err) {
+        console.error(`Attempt ${attempt}: JSON parse failed:`, err);
+        continue;
+      }
       newWordCount = countWords(parsed.detailed_content || '');
       console.log(`Attempt ${attempt}: Generated ${newWordCount} words`);
 

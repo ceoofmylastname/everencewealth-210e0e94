@@ -490,7 +490,7 @@ async function generateCluster(
   const MAX_FUNCTION_RUNTIME = 4.5 * 60 * 1000; // 4.5 minutes (safety margin before 5-min Supabase limit)
   const ARTICLE_TIME_ESTIMATE = 30000; // 30 seconds per article estimate
   
-  const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
+  const CLAUDE_API_KEY = Deno.env.get('CLAUDE_API_KEY') || Deno.env.get('ANTHROPIC_API_KEY');
   const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
   const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
   const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!);
@@ -588,18 +588,19 @@ async function generateCluster(
     console.log(`[Job ${jobId}] Starting generation for:`, { topic, language: currentLanguage, targetAudience, primaryKeyword });
     await updateProgress(supabase, jobId, 0, isMultilingual ? `Generating language 1/10: ${currentLanguage.toUpperCase()}...` : 'Starting generation...');
 
-    // Validate LOVABLE_API_KEY before starting
-    console.log(`[Job ${jobId}] 🔐 Validating LOVABLE_API_KEY...`);
+    // Validate CLAUDE_API_KEY before starting
+    console.log(`[Job ${jobId}] 🔐 Validating CLAUDE_API_KEY...`);
     try {
       const testResponse = await withTimeout(
-        fetch('https://api.openai.com/v1/chat/completions', {
+        fetch('https://api.anthropic.com/v1/messages', {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${OPENAI_API_KEY!}`,
+            'x-api-key': CLAUDE_API_KEY!,
+            'anthropic-version': '2023-06-01',
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            model: 'gpt-4o-mini',
+            model: 'claude-haiku-4-5-20251001',
             max_tokens: 10,
             messages: [{ role: 'user', content: 'test' }],
           }),
@@ -608,13 +609,13 @@ async function generateCluster(
         'API key validation timeout'
       );
       
-      if (!testResponse.ok && testResponse.status === 401) {
-        throw new Error('OPENAI_API_KEY is invalid or expired');
+      if (!testResponse.ok && (testResponse.status === 401 || testResponse.status === 403)) {
+        throw new Error('CLAUDE_API_KEY is invalid or expired');
       }
-      console.log(`[Job ${jobId}] ✅ OPENAI_API_KEY validated successfully`);
+      console.log(`[Job ${jobId}] ✅ CLAUDE_API_KEY validated successfully`);
     } catch (error) {
       console.error(`[Job ${jobId}] ❌ API key validation failed:`, error);
-      throw new Error(`OpenAI key validation failed: ${error instanceof Error ? error.message : String(error)}`);
+      throw new Error(`Claude key validation failed: ${error instanceof Error ? error.message : String(error)}`);
     }
 
     // Fetch master content prompt from database
@@ -685,17 +686,18 @@ Return ONLY the JSON object above, nothing else. No markdown, no explanations, n
     // Wrap AI call with timeout and retry
     const structureResponse = await retryWithBackoff(
       () => withTimeout(
-        fetch('https://api.openai.com/v1/chat/completions', {
+        fetch('https://api.anthropic.com/v1/messages', {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${OPENAI_API_KEY}`,
+            'x-api-key': CLAUDE_API_KEY!,
+            'anthropic-version': '2023-06-01',
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            model: 'gpt-4o',
+            model: 'claude-sonnet-4-5-20250929',
             max_tokens: 4096,
+            system: 'You are an SEO expert specializing in insurance and wealth management content strategy. Return only valid JSON.',
             messages: [
-              { role: 'system', content: 'You are an SEO expert specializing in insurance and wealth management content strategy. Return only valid JSON.' },
               { role: 'user', content: structurePrompt }
             ],
           }),
@@ -710,13 +712,13 @@ Return ONLY the JSON object above, nothing else. No markdown, no explanations, n
 
     if (!structureResponse.ok) {
       if (structureResponse.status === 429) {
-        throw new Error('OpenAI rate limit exceeded. Please wait and try again.');
+        throw new Error('Claude rate limit exceeded. Please wait and try again.');
       }
-      if (structureResponse.status === 402) {
-        throw new Error('OpenAI credits depleted. Please add credits.');
+      if (structureResponse.status === 529) {
+        throw new Error('Claude API overloaded. Please retry shortly.');
       }
       const errorText = await structureResponse.text();
-      throw new Error(`OpenAI error (${structureResponse.status}): ${errorText}`);
+      throw new Error(`Claude error (${structureResponse.status}): ${errorText}`);
     }
 
     // Send heartbeat after major operation
@@ -733,10 +735,10 @@ Return ONLY the JSON object above, nothing else. No markdown, no explanations, n
       throw new Error(`Failed to parse AI structure response: ${errorMsg}`);
     }
 
-    if (!structureData.choices?.[0]?.message?.content) {
+    if (!structureData?.content?.[0]?.text) {
       throw new Error('Invalid article structure response from AI');
     }
-    const structureText = structureData.choices[0].message.content;
+    const structureText = structureData.content[0].text;
 
     console.log(`[Job ${jobId}] 📥 Raw AI response (first 500 chars):`, structureText.substring(0, 500));
 
@@ -921,11 +923,11 @@ serve(async (req) => {
       );
     }
 
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+    const CLAUDE_API_KEY = Deno.env.get('CLAUDE_API_KEY') || Deno.env.get('ANTHROPIC_API_KEY');
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 
-    if (!LOVABLE_API_KEY) throw new Error('LOVABLE_API_KEY is not configured');
+    if (!CLAUDE_API_KEY) throw new Error('CLAUDE_API_KEY (or ANTHROPIC_API_KEY) is not configured');
 
     const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!);
 
