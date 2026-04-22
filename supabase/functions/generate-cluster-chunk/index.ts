@@ -40,7 +40,9 @@ const corsHeaders = {
 
 const CHUNK_SIZE = 1; // One article per chunk to prevent timeouts
 const MAX_CHUNK_RUNTIME = 4 * 60 * 1000; // 4 minutes per chunk (safety margin)
-const CLAUDE_TIMEOUT_MS = 120_000; // 2 min per Claude call — anything longer is a hung connection
+// 4 min per Claude call — Sonnet legitimately needs this for 1,500-2,500 word
+// HTML articles + 25k-char master prompt + 5-8 FAQs + JSON wrapping.
+const CLAUDE_TIMEOUT_MS = 240_000;
 
 // Heartbeat: log + persist last activity to cluster_generations.progress
 // so frontend dialog & log tail both show where the worker actually is.
