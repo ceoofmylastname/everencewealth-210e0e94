@@ -224,7 +224,7 @@ Funnel Stage: ${plan.funnelStage}
 
 Respond with JSON: { "category": "exact category name from the list" }`;
 
-    const categoryResponse = await fetch('https://api.anthropic.com/v1/messages', {
+    const categoryResponse = await fetchClaudeWithTimeout('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: { 'x-api-key': CLAUDE_API_KEY, 'anthropic-version': '2023-06-01', 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -233,7 +233,7 @@ Respond with JSON: { "category": "exact category name from the list" }`;
         system: 'Return ONLY a valid JSON object as specified. No prose.',
         messages: [{ role: 'user', content: categoryPrompt }],
       }),
-    });
+    }, 30_000);
 
     let finalCategory = 'Buying Property';
     if (categoryResponse.ok) {
