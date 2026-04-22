@@ -1,98 +1,103 @@
 
 
-## Final placeholder purge — fix 2 missed leaks, remove wrong-person photos, full dist verification
+## Migrate all content writing to `CLAUDE_API_KEY` (Anthropic)
 
-### Step 1 — Fix the 2 missed visible leaks
+Replace OpenAI and Lovable AI Gateway calls with direct Anthropic Claude API calls across every content-writing edge function. Citations stay on Perplexity (separate concern). Images stay on Fal.ai/Lovable AI (not text content).
 
-**`src/components/home/Footer.tsx` line 52**
+### Scope — what counts as "content writing"
 
-Replace the hardcoded `contactInfo` phone entry. Add `import { BUSINESS } from '@/config/business';` at the top, then change the phone entry to:
-```ts
-{ icon: <Phone size={18} className="text-prime-gold" />, text: '(925) 433-7724', href: `tel:${BUSINESS.telephoneE164}` }
-```
-Also reconcile the email entry to read `BUSINESS.email` for the text and `mailto:${BUSINESS.email}` for the href, so both display values flow from one source.
+**Blog articles (currently OpenAI):**
+- `generate-cluster` — main article generator
+- `generate-cluster-chunk` — chunked article generation
+- `generate-missing-articles` — gap-filler
+- `regenerate-article` — full article regeneration
+- `regenerate-section` — per-section regeneration (headlines, SEO, content, etc.)
 
-**`src/pages/Team.tsx` line 38**
+**Q&A pages (currently Lovable AI / Gemini):**
+- `generate-article-qas`
+- `generate-cluster-qas`
+- `generate-10lang-qa`
+- `generate-qa-pages`
+- `backfill-tofu-faqs`
+- `backfill-article-faqs` (if present)
 
-Replace the inline `"telephone": "+1-415-555-0100"` placeholder in the `organizationSchema` with `BUSINESS.telephone`. Also replace the hardcoded address block (street/locality/postal/region/country) with `businessPostalAddress()` from `@/config/business`, and the `email` line with `BUSINESS.email`. This kills four placeholders in one edit and prevents future drift on the Team page.
+**Translations & misc text (currently Lovable AI):**
+- Any `translate-*` edge function that produces published copy → audit and migrate
+- `generate-speakable-answer`, `generate-meta-*` if they exist as standalone functions
 
-### Step 2 — Remove wrong-person photo references (E-E-A-T integrity)
+**Out of scope (stays as-is):**
+- `find-citations-perplexity`, `find-citations-fast`, `discover-cluster-citations`, `perplexity-health` → Perplexity
+- Image generation (`fal-*`, Nano Banana) → Fal.ai
+- Underwriting AI (Claude already, via `ANTHROPIC_API_KEY` — verify it's the same key or consolidate)
+- Internal admin/debug tools that don't ship content
 
-**`src/components/schema/PersonSchema.tsx`**
+### Step 1 — Audit (first thing in default mode)
 
-Remove the `image: photoUrl` field and the `photoUrl` const entirely. Drop the `context` prop logic since it only existed to switch between blog and QA photos. Add a top-of-file TODO:
-```ts
-// TODO: Person.image pending verified headshots of Steven Rosenberg.
-// Do NOT substitute placeholder photos — schema.org E-E-A-T integrity rule:
-// the image MUST be a verified photo of the named person.
-```
-Update the two consumers (Blog article + Q&A page) to drop the `context` prop. Search for `<PersonSchema` usages and remove the prop everywhere it appears.
+Grep every edge function for:
+- `OPENAI_API_KEY` usage
+- `LOVABLE_API_KEY` usage where the output is article/Q&A/meta content (not images, not citations)
+- Existing `CLAUDE_API_KEY` / `ANTHROPIC_API_KEY` usage to confirm pattern
 
-**`scripts/generateStaticTeamPage.ts`**
+Produce a definitive file list before editing. Confirm whether `CLAUDE_API_KEY` and `ANTHROPIC_API_KEY` are the same value or two separate keys (both exist in secrets).
 
-Remove the `image` field from the Person schema for Steven Rosenberg. Same TODO comment in the source.
+### Step 2 — Build a shared Claude client
 
-**`docs/AUTHORITY_POLICY.md`**
+Create `supabase/functions/_shared/claudeClient.ts`:
+- Reads `CLAUDE_API_KEY`
+- Wraps `https://api.anthropic.com/v1/messages` with required headers (`anthropic-version: 2023-06-01`, `x-api-key`, `content-type`)
+- Default model: `claude-sonnet-4-5-20250929` (best quality for long-form content)
+- Helper for JSON-mode responses (Claude doesn't have native JSON mode — use system prompt + extraction)
+- Handles 429/529 (overloaded) with friendly errors mirroring current OpenAI/Lovable error surface
+- Optional `maxTokens` (default 8000 for articles, 2000 for Q&As)
 
-Keep the path rename to `/images/steven-blog.jpg` and `/images/steven-qa.jpg` as planned, but add a TODO block:
-```md
-## TODO: Pending Assets
-- /public/images/steven-blog.jpg — verified headshot of Steven Rosenberg
-- /public/images/steven-qa.jpg — verified headshot of Steven Rosenberg
+### Step 3 — Migrate each function
 
-These files must be uploaded BEFORE the Person.image field can be re-added
-to PersonSchema.tsx, generateStaticTeamPage.ts, or any other schema.
-Do NOT substitute the legacy hans-*.jpg files — those are photos of a
-different person and substituting them violates schema.org E-E-A-T rules.
-```
+For each function in scope, replace the `fetch('https://api.openai.com/...')` or `fetch('https://ai.gateway.lovable.dev/...')` block with the shared Claude client. Keep prompts identical (they're already tuned), only swap the transport + response parsing:
+- OpenAI: `data.choices[0].message.content`
+- Lovable AI: `data.choices[0].message.content`
+- Claude: `data.content[0].text`
 
-### Step 3 — Delete wrong-person photo files
+JSON parsing helper already exists in `regenerate-article` (`extractJsonFromResponse`) — promote it to the shared module so every function uses the same robust extractor.
 
-Delete `/public/images/hans-blog.jpg` and `/public/images/hans-qa.jpg` so nothing in the future codebase can accidentally reference them.
+### Step 4 — Fix the cosmetic logging bug
 
-### Step 4 — Full build + dist verification
+`generate-cluster/index.ts` line ~592 currently logs `LOVABLE_API_KEY` while validating `OPENAI_API_KEY`. After migration, both references become `CLAUDE_API_KEY`.
 
-```bash
-npm run build
+### Step 5 — Model selection per use case
 
-# Negative — must be empty
-grep -rE "415-555-0100|14155550100|14155551234|One Embarcadero|94111|hans\.?beeckman|hansbeeckman" dist/
+| Use case | Model | Reason |
+|---|---|---|
+| Full article (1,500–2,500 words) | `claude-sonnet-4-5-20250929` | Best long-form quality |
+| Q&A entries (80–120 words each) | `claude-haiku-4-5-20250514` | Faster + cheaper, quality is fine |
+| Section regeneration (headlines, meta) | `claude-haiku-4-5-20250514` | Short outputs, latency matters |
+| Translations | `claude-sonnet-4-5-20250929` | Nuance matters for multi-lingual |
 
-# Positive — must show many
-grep -rE "925-433-7724|9254337724|455 Market St|94105|Steven Rosenberg" dist/
+User can override via env var if they want a single model everywhere.
 
-# First 400 chars of homepage JSON-LD
-python3 -c "import re; h=open('dist/index.html').read(); m=re.search(r'<script type=\"application/ld\\+json\"[^>]*>([^<]+)</script>', h); print(m.group(1)[:400] if m else 'no JSON-LD block found')"
-```
+### Step 6 — Verification
 
-### Post-deploy report
+After migration, in default mode:
+1. `grep -rE "OPENAI_API_KEY|api\.openai\.com" supabase/functions/` — expect zero hits except possibly in deprecated/disabled functions
+2. `grep -rE "LOVABLE_API_KEY|ai\.gateway\.lovable\.dev" supabase/functions/` — expect hits ONLY in image-generation and citation-adjacent functions, never in text-content functions
+3. Test invoke `regenerate-section` on one article with `section: 'speakable'` — confirm Claude responds and the article updates
+4. Test invoke `generate-article-qas` on one article — confirm 3–5 FAQs persist
+5. Report:
+   - List of migrated functions (expect ~10)
+   - List of intentionally untouched functions (citations, images, underwriting)
+   - Smoke-test results for the two test invocations
+   - Any prompts that needed tweaking for Claude's response style
 
-1. Negative grep count from `dist/` (expect 0)
-2. Positive grep count broken down by pattern
-3. First 400 chars of homepage JSON-LD `@graph` from `dist/index.html`
-4. Confirmation `/public/images/hans-blog.jpg` and `/public/images/hans-qa.jpg` were deleted
-5. Flags:
-   - *Steven Rosenberg `Person.image` pending — real headshots required at `/public/images/steven-blog.jpg` and `/public/images/steven-qa.jpg` before re-adding the field*
-   - *Steven Rosenberg `Person.sameAs` pending — verified personal LinkedIn or official bio URL still required*
+### Files to change (estimated ~12)
 
-### Files to change (5 code + 1 doc + 2 deletes)
+**New:** `supabase/functions/_shared/claudeClient.ts`
 
-**Code:**
-- `src/components/home/Footer.tsx`
-- `src/pages/Team.tsx`
-- `src/components/schema/PersonSchema.tsx`
-- `scripts/generateStaticTeamPage.ts`
-- Any consumers of `<PersonSchema context=...>` (drop the prop) — likely `src/pages/BlogArticle.tsx` and `src/pages/QAPage.tsx`; will grep to confirm exact paths
+**Migrated (text content):** `generate-cluster`, `generate-cluster-chunk`, `generate-missing-articles`, `regenerate-article`, `regenerate-section`, `generate-article-qas`, `generate-cluster-qas`, `generate-10lang-qa`, `generate-qa-pages`, `backfill-tofu-faqs`, `backfill-article-faqs` (if exists), translation functions (audit step will list)
 
-**Doc:**
-- `docs/AUTHORITY_POLICY.md`
+**Untouched:** `find-citations-*`, `discover-cluster-citations`, `perplexity-health`, `fal-*` image functions, underwriting RAG (already Claude), admin/debug tools
 
-**Delete:**
-- `public/images/hans-blog.jpg`
-- `public/images/hans-qa.jpg`
+### Open questions to confirm before coding
 
-**Explicitly NOT changed:**
-- `src/i18n/translations/buyersGuide/en.ts` (legitimate San Diego content)
-- `src/pages/admin/{LocationGenerator,NavbarImageGenerator,QAGenerator}.tsx` (admin dropdown options)
-- `src/integrations/supabase/types.ts`, applied SQL migrations, `.env`, `src/integrations/supabase/client.ts`
+1. **Model preference:** Sonnet 4.5 for articles + Haiku 4.5 for Q&As (recommended), or Sonnet for everything (more expensive, slightly higher quality on Q&As)?
+2. **`CLAUDE_API_KEY` vs `ANTHROPIC_API_KEY`:** both exist in secrets — should both be normalized to `CLAUDE_API_KEY`, or keep `ANTHROPIC_API_KEY` for the underwriting RAG and use `CLAUDE_API_KEY` for content writing?
+3. **Translations:** confirm in-scope. The current setup uses Lovable AI / Gemini for cheaper bulk translations. Moving to Claude raises cost but unifies the stack. Migrate or leave on Gemini?
 
