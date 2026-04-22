@@ -466,11 +466,12 @@ TOTAL MINIMUM: 1,000 words. Do NOT submit under 800.`;
     article.qa_entities = contentJson.qa_entities || contentJson.faqs || [];
     article.cluster_theme = clusterTopic || '';
 
-    // 3. FEATURED IMAGE - Use placeholder to ensure completion within timeout
-    // DALL-E image generation is skipped for reliability (can be regenerated later)
-    article.featured_image_url = 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=1792&h=1024&fit=crop';
+    // 3. FEATURED IMAGE — leave NULL so post-generation Kie.ai (Nano Banana 2)
+    // step in regenerate-cluster-images is the unambiguous source of truth.
+    // Hardcoded Unsplash URLs were causing every article to share the same stock photo.
+    article.featured_image_url = null;
     article.featured_image_alt = `${plan.headline} - Everence Wealth`;
-    console.log(`[Chunk ${jobId}] Using placeholder image (DALL-E skipped for reliability)`);
+    console.log(`[Chunk ${jobId}] Featured image left null — Kie.ai will generate post-save`);
 
     // 4. AUTHOR & REVIEWER
     const randomAuthor = authors?.[Math.floor(Math.random() * (authors?.length || 1))] || { id: null };
@@ -484,11 +485,16 @@ TOTAL MINIMUM: 1,000 words. Do NOT submit under 800.`;
     article.date_published = new Date().toISOString();
     article.date_modified = new Date().toISOString();
 
-    // 6. QUALITY VALIDATION
+    // 6. QUALITY VALIDATION — hard reject if AEO/E-E-A-T scaffolding is missing
     const quality = validateContentQuality(article, plan);
-    console.log(`[Chunk ${jobId}] Article ${articleIndex + 1} quality: ${quality.score}/100`);
+    console.log(`[Chunk ${jobId}] Article ${articleIndex + 1} quality: ${quality.score}/100 (${quality.wordCount} words)`);
     if (quality.issues.length > 0) {
       console.warn(`[Chunk ${jobId}] Quality issues:`, quality.issues);
+    }
+    if (!quality.isValid) {
+      throw new Error(
+        `Article rejected by quality gate (score=${quality.score}, words=${quality.wordCount}): ${quality.issues.join('; ')}`
+      );
     }
 
     // 7. SAVE TO DATABASE
