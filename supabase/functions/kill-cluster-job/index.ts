@@ -24,25 +24,26 @@ serve(async (req) => {
     const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-    // Verify caller via JWT
-    const userClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-      global: { headers: { Authorization: authHeader } },
-    });
+    // Service-role client for privileged ops
+    const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+
+    // Verify caller via JWT using getUser (reliable across supabase-js versions)
     const token = authHeader.replace("Bearer ", "");
-    const { data: claimsData, error: claimsErr } = await userClient.auth.getClaims(token);
-    if (claimsErr || !claimsData?.claims) {
+    const { data: userData, error: userErr } = await admin.auth.getUser(token);
+    if (userErr || !userData?.user) {
+      console.error("[kill-cluster-job] auth.getUser failed:", userErr);
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    const userId = claimsData.claims.sub as string;
-
-    // Service-role client for the privileged check + write
-    const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+    const userId = userData.user.id;
 
     // Admin gate: must have user_roles.role = 'admin'
-    const { data: isAdmin } = await admin.rpc("is_admin", { _user_id: userId });
+    const { data: isAdmin, error: roleErr } = await admin.rpc("is_admin", { _user_id: userId });
+    if (roleErr) {
+      console.error("[kill-cluster-job] is_admin rpc failed:", roleErr);
+    }
     if (!isAdmin) {
       return new Response(JSON.stringify({ error: "Forbidden: admin only" }), {
         status: 403,
