@@ -211,7 +211,7 @@ const BlogArticle = () => {
   return (
     <>
       {/* Schema Markup */}
-      <PersonSchema context="blog" />
+      <PersonSchema />
       <ArticleSchema
         headline={article.headline}
         description={article.meta_description}
