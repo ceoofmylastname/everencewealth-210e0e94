@@ -176,7 +176,8 @@ function generateHTML(lang: 'en' | 'es', assets: ProductionAssets): string {
 export function generateStaticTeamPage(distDir: string = 'dist') {
   const assets = getProductionAssets(distDir);
   for (const lang of ['en', 'es'] as const) {
-    const outPath = join(distDir, lang, 'team.html');
+    // Directory-based routing: dist/en/team/index.html
+    const outPath = join(distDir, lang, 'team', 'index.html');
     mkdirSync(join(outPath, '..'), { recursive: true });
     writeFileSync(outPath, generateHTML(lang, assets), 'utf-8');
     console.log(`   ✅ ${outPath}`);

@@ -299,8 +299,8 @@ export function generateStaticGlossary(distDir: string = 'dist') {
       continue;
     }
 
-    // Index page
-    const indexPath = join(distDir, lang, 'glossary.html');
+    // Index page — directory-based routing: dist/en/glossary/index.html
+    const indexPath = join(distDir, lang, 'glossary', 'index.html');
     mkdirSync(join(indexPath, '..'), { recursive: true });
     writeFileSync(indexPath, generateIndexHTML(lang, data, assets), 'utf-8');
     console.log(`   ✅ ${indexPath}`);
@@ -310,7 +310,8 @@ export function generateStaticGlossary(distDir: string = 'dist') {
     for (const [, category] of Object.entries(data.categories)) {
       for (const term of category.terms) {
         const slug = toTermSlug(term.term);
-        const termPath = join(distDir, lang, 'glossary', `${slug}.html`);
+        // Directory-based: dist/en/glossary/{slug}/index.html
+        const termPath = join(distDir, lang, 'glossary', slug, 'index.html');
         mkdirSync(join(termPath, '..'), { recursive: true });
         writeFileSync(termPath, generateTermHTML(lang, term, category.title, data.last_updated, assets), 'utf-8');
         totalTerms++;

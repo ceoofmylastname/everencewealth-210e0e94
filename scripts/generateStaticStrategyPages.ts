@@ -284,7 +284,8 @@ export function generateStaticStrategyPages(distDir: string = 'dist') {
   for (const strategy of STRATEGIES) {
     for (const lang of ['en', 'es'] as const) {
       const slug = lang === 'es' ? strategy.esSlug : strategy.enSlug;
-      const outPath = join(distDir, lang, `${slug}.html`);
+      // Directory-based routing: dist/en/strategies/iul/index.html
+      const outPath = join(distDir, lang, slug, 'index.html');
       mkdirSync(join(outPath, '..'), { recursive: true });
       writeFileSync(outPath, generateHTML(strategy, lang, assets), 'utf-8');
       written++;

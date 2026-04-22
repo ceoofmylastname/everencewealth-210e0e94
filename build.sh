@@ -1,11 +1,12 @@
 #!/bin/bash
 # Build v2026.01.18 - Sitemap fix: always generate 42 child sitemaps
 # Last deployment: 2026-01-02 10:02 - Generate static pages for new Q&As
+set -euo pipefail
 export VITE_SUPABASE_URL="https://kazggnufaoicopvmwhdl.supabase.co"
 export VITE_SUPABASE_PUBLISHABLE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImthemdnbnVmYW9pY29wdm13aGRsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA1MzM0ODEsImV4cCI6MjA3NjEwOTQ4MX0.acQwC_xPXFXvOwwn7IATeg6OwQ2HWlu52x76iqUdhB4"
 
-# Build the React app
-npm run build
+# Build the React app (vite only — must NOT recurse into `npm run build`)
+npm run build:app
 
 # Generate production app-shell.html with correct asset paths
 echo "📦 Generating production app-shell.html..."
