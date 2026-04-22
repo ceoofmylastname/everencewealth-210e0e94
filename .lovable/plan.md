@@ -1,83 +1,51 @@
 
 
-## Sitemap fix + pre-flight URL resolution check
+## No middleware change needed — current setup is already correct
 
-Final plan with 4 amendments + pre-flight URL verification baked in. Single execution.
+After inspecting `functions/_middleware.js` and `functions/_routes.json`, the premise of "Prompt 2" doesn't match this codebase. There is nothing to replace.
 
-### Pre-flight check (BEFORE writing any sitemap)
+### What's actually in production today
 
-Verify each candidate URL pattern actually resolves to real content (not 404, not SPA fallback to homepage). Any pattern that fails routing gets either fixed in the same commit OR swapped to the working URL pattern with the violation flagged.
-
-**Check 1 — Guides:** `curl -sL https://everencewealth.lovable.app/en/guides/<slug>` for all 6 brochure slugs. Inspect for:
-- HTTP 200 + brochure content (not the React `<NotFound />` component)
-- Page title matches brochure, not "Page Not Found"
-
-If `/en/guides/<slug>` returns 404 or SPA-fallback-without-content:
-- (a) **Preferred:** add the localized route in `App.tsx` so `/en/guides/<slug>` renders `BrochureDetail` in the same commit.
-- (b) **Fallback:** write `/guides/<slug>` into the sitemap with `<xhtml:link rel="alternate" hreflang="en" href="..."/>` and flag the language-prefix violation as a separate follow-up.
-
-**Check 2 — State-guides:** `curl -sL https://everencewealth.lovable.app/en/retirement-planning/<topic_slug>` for at least one `topic_slug` returned by the dedup query. Same 200 + real content check. Same fix-or-swap rule.
-
-**Check 3 — Strategies:** `curl -sL` `/en/strategies/iul` and `/es/estrategias/seguro-universal-indexado`. Already verified ES content exists in `es.ts` translations, but routing must respond 200.
-
-**Check 4 — Glossary:** if `glossary_terms` table is non-empty, curl `/en/glossary/<first-slug>`. If table is empty, skip — sitemap ships valid empty `<urlset/>`.
-
-Report each check's result (URL, status, content sample) before proceeding to generator execution.
-
-### Generator changes — `scripts/generateSitemap.ts`
-
-Helpers:
-- `gitLastModified(filePath)` — `git log -1 --format=%cI -- <file>`. Throws on git failure → falls back to per-strategy `REVIEW_DATES` constant. Never `mtime`/`NOW()`.
-- `lastmodFromRow(row)` — `row.updated_at ?? row.date_modified`. Throws if both null.
-- `writeSitemap(lang, type, urls)` — Set-based dedup on `<loc>`; throws when `type ∈ {blog, qa, strategies, locations, comparisons}` and 0 URLs; warns for `{guides, glossary, state-guides}`.
-- DB query wrapper — `try/catch` per query, logs failure, re-throws to fail build with non-zero exit.
-
-New generators:
-
-| File | Source | URL pattern (post-pre-flight) | lastmod | Expected |
-|---|---|---|---|---|
-| `en/strategies.xml` | hardcoded `STRATEGIES.en` | `/en/strategies/{slug}` | `gitLastModified()` | 4 |
-| `es/strategies.xml` | hardcoded `STRATEGIES.es` | `/es/estrategias/{slug}` | `gitLastModified()` | 4 |
-| `en/guides.xml` | `brochures` WHERE `language='en'` | `/en/guides/{slug}` *(or fallback)* | `updated_at` | 6 |
-| `es/guides.xml` | `brochures` WHERE `language='es'` | `/es/guides/{slug}` | `updated_at` | 0 (empty `<urlset/>`) |
-| `en/glossary.xml` | `glossary_terms` else `glossary.json` | `/en/glossary/{slug}` | `updated_at` | 0 or N |
-| `es/glossary.xml` | same filtered ES | `/es/glossary/{slug}` | `updated_at` | 0 or N |
-| `en/state-guides.xml` | `location_pages WHERE state_code IS NOT NULL AND status='published' AND language='en' GROUP BY topic_slug` | `/en/retirement-planning/{topic_slug}` | `MAX(updated_at)` | ~5–10 |
-| `es/state-guides.xml` | same, language='es' | `/es/retirement-planning/{topic_slug}` | `MAX(updated_at)` | N |
-
-Existing generators (blog, qa, locations, comparisons) regenerated with the same dedup + assert + lastmod policy. Anchor-fragment glossary URLs removed.
-
-### Master index
-
-`public/sitemap-index.xml` and `public/sitemap.xml` list all 16 child sitemaps:
+**`functions/_routes.json`** already excludes every sitemap path from middleware:
+```json
+"exclude": [
+  "/sitemap.xml",
+  "/sitemap-index.xml",
+  "/ai-sitemap.xml",
+  "/sitemaps/*",
+  ...
+]
 ```
-en/{blog,qa,locations,comparisons,strategies,guides,glossary,state-guides}.xml
-es/{blog,qa,locations,comparisons,strategies,guides,glossary,state-guides}.xml
-```
+This means Cloudflare Pages serves `/sitemaps/en/blog.xml`, `/sitemaps/es/qa.xml`, and every other `/sitemaps/{lang}/{type}.xml` path **directly as a static file from `dist/`** — no middleware invocation, no per-type code, no routing logic.
 
-### Build pipeline + cleanup
+**`functions/_middleware.js`** has zero per-type sitemap rules. It contains:
+- `www.` redirect, legacy 301 map, 404 blocklist
+- Blog SSR fallback (`/{lang}/blog/...`)
+- Q&A SSR fallback (`/{lang}/qa/...`)
+- Generic SEO-tag injection for HTML pages
 
-- `package.json`: `"build": "tsx scripts/generateSitemap.ts && vite build"` so every Cloudflare Pages deploy regenerates from live DB regardless of build entrypoint.
-- Delete `public/sitemaps/{da,de,fi,fr,hu,nl,no,pl,sv}/`, `public/sitemaps/brochures.xml`, root `public/sitemaps/glossary.xml`.
+There are no rules matching `blog.xml`, `qa.xml`, or `comparisons.xml` to remove. The "per-type rules" referenced in the prompt do not exist in this project.
 
-### Execution order
+### Why no change is the right call
 
-1. Run pre-flight curl checks (guides, state-guides, strategies, optional glossary). Report results.
-2. If any URL fails: apply (a) routing fix or (b) URL-swap-with-flag, then re-curl.
-3. Edit `scripts/generateSitemap.ts` (helpers + 4 new generators + dedup + assertions + try/catch).
-4. Edit `package.json` build script.
-5. Delete legacy directories + standalone XML files.
-6. Run `npx tsx scripts/generateSitemap.ts`.
-7. Report:
-   - Per-file `<url>` counts for all 16 sitemaps.
-   - First 3 `<url>` entries from `en/strategies.xml`, `en/guides.xml`, `en/state-guides.xml`.
-   - Regenerated `sitemap-index.xml` contents.
-   - Pre-flight check log + any (a)/(b) decisions made.
+Your previous deploy (Prompt 1) regenerated all 16 sitemaps as real static XML files in `public/sitemaps/{en,es}/*.xml`. The build copies them to `dist/`. Cloudflare serves them directly — the fastest and most reliable path. A middleware proxy would:
 
-### Out of scope (queued separately)
+1. Add a per-request function invocation on every Googlebot sitemap fetch (small cost, but unnecessary).
+2. Require removing `/sitemaps/*` from `_routes.json`, which would route every sitemap request through the middleware crash path.
+3. Not change behavior — same files served either way.
 
-- React Helmet → SSR JSON-LD migration (next deploy — highest AI-citation lever).
-- `/en/sitemap` HTML hub soft-404.
-- `/llms.txt` SPA shell.
-- Glossary content backfill if both `glossary_terms` and `glossary.json` empty.
+### The one real concern this prompt was probably meant to address
+
+The reason GSC may still show stale sitemap data after Publish is **not** middleware — it's Cloudflare's edge cache holding old copies of the XML files. If verification (Step 2 from the previous round) shows old URL counts in production, the fix is one of:
+
+- **Cloudflare cache purge** for `/sitemap.xml`, `/sitemap-index.xml`, `/sitemaps/en/*`, `/sitemaps/es/*` — done from the Cloudflare Pages dashboard, not from code.
+- **Add `Cache-Control: public, max-age=3600, must-revalidate`** to a `public/_headers` file — but Lovable hosting does not process `_headers`, so this does nothing here. Cache TTL is whatever Cloudflare's defaults are for `.xml`.
+
+If you want belt-and-suspenders, the only meaningful code change would be a single new content-type assertion line in `scripts/generateSitemap.ts` to verify each generated XML file passes XML validation before write — but that's a generator hardening, not a middleware change.
+
+### Recommended action
+
+Skip Prompt 2. Move directly to verifying production after the Publish from the previous round, then ship Prompt 7 (React Helmet → SSR JSON-LD migration), which is the real next deploy.
+
+If verification shows stale XML in production, the fix is Cloudflare cache purge — surface that as a separate operational step, not a code change.
 
