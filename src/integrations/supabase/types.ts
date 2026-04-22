@@ -1258,7 +1258,7 @@ export type Database = {
           external_citations: Json | null
           featured_image_alt: string
           featured_image_caption: string | null
-          featured_image_url: string
+          featured_image_url: string | null
           funnel_stage: string
           generated_qa_page_ids: string[] | null
           has_dead_citations: boolean | null
@@ -1316,7 +1316,7 @@ export type Database = {
           external_citations?: Json | null
           featured_image_alt: string
           featured_image_caption?: string | null
-          featured_image_url: string
+          featured_image_url?: string | null
           funnel_stage: string
           generated_qa_page_ids?: string[] | null
           has_dead_citations?: boolean | null
@@ -1374,7 +1374,7 @@ export type Database = {
           external_citations?: Json | null
           featured_image_alt?: string
           featured_image_caption?: string | null
-          featured_image_url?: string
+          featured_image_url?: string | null
           funnel_stage?: string
           generated_qa_page_ids?: string[] | null
           has_dead_citations?: boolean | null
