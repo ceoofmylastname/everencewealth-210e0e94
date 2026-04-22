@@ -56,7 +56,7 @@ async function uploadToStorage(
     
     if (uploadError) {
       console.error(`❌ Upload failed:`, uploadError);
-      return falImageUrl;
+      return sourceImageUrl;
     }
     
     const { data: publicUrlData } = supabase.storage
@@ -70,11 +70,11 @@ async function uploadToStorage(
       return supabaseUrl;
     }
     
-    return falImageUrl;
+    return sourceImageUrl;
     
   } catch (error) {
     console.error(`❌ Storage upload error:`, error);
-    return falImageUrl;
+    return sourceImageUrl;
   }
 }
 
