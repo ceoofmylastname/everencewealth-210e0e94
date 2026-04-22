@@ -520,23 +520,18 @@ TOTAL MINIMUM: 1,000 words. Do NOT submit under 800.`;
   }
 }
 
-serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
-
-  const FUNCTION_START = Date.now();
-
+// Background processor: runs the entire chunk inside EdgeRuntime.waitUntil so
+// the worker container is NOT torn down when we return 202 to the caller.
+// This was the root cause of "fire next chunk → chunk boots → claude:fetch:start
+// → silent shutdown ~1s later". The fire-and-forget HTTP request from chunk N
+// was being aborted because chunk N's worker exited as soon as it responded.
+async function processChunk(
+  jobId: string,
+  chunkIndex: number,
+  articleStructures: any[],
+  FUNCTION_START: number,
+): Promise<void> {
   try {
-    const { jobId, chunkIndex, articleStructures } = await req.json();
-
-    if (!jobId || chunkIndex === undefined || !articleStructures) {
-      return new Response(JSON.stringify({ error: 'Missing required parameters' }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const CLAUDE_API_KEY = Deno.env.get('CLAUDE_API_KEY') || Deno.env.get('ANTHROPIC_API_KEY');
