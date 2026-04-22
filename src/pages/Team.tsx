@@ -8,6 +8,7 @@ import { TeamGrid } from "@/components/team/TeamGrid";
 import { useTranslation } from "@/i18n";
 import BlogEmmaChat from '@/components/blog-article/BlogEmmaChat';
 import { COMPANY_INFO } from "@/constants/company";
+import { BUSINESS, businessPostalAddress } from "@/config/business";
 
 const BASE_URL = "https://www.everencewealth.com";
 
@@ -27,16 +28,9 @@ const Team = () => {
     "description": t.team?.meta?.description || "Meet the expert wealth advisors at Everence Wealth.",
     "url": BASE_URL,
     "logo": `${BASE_URL}/logo.png`,
-    "address": {
-      "@type": "PostalAddress",
-      "streetAddress": "455 Market St Ste 1940 PMB 350011",
-      "addressLocality": "San Francisco",
-      "postalCode": "94105",
-      "addressRegion": "CA",
-      "addressCountry": "US"
-    },
-    "telephone": "+1-415-555-0100",
-    "email": "info@everencewealth.com",
+    "address": businessPostalAddress(),
+    "telephone": BUSINESS.telephone,
+    "email": BUSINESS.email,
     "areaServed": {
       "@type": "Country",
       "name": "United States"
