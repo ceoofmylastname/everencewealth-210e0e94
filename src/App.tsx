@@ -44,6 +44,7 @@ import QAIndex from "./pages/QAIndex";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import ThankYou from "./pages/ThankYou";
+import Dashboard from "./pages/admin/Dashboard";
 
 // Gmail OAuth callback
 const GmailCallback = lazy(() => import("./pages/auth/GmailCallback"));
@@ -76,7 +77,6 @@ const Contact = lazy(() => import("./pages/Contact"));
 const ApartmentsLanding = lazy(() => import("./pages/apartments/ApartmentsLanding"));
 
 // Lazy load ALL admin pages (rarely accessed, heavy components)
-const Dashboard = lazy(() => import("./pages/admin/Dashboard"));
 const Articles = lazy(() => import("./pages/admin/Articles"));
 const ArticleEditor = lazy(() => import("./pages/admin/ArticleEditor"));
 const Authors = lazy(() => import("./pages/admin/Authors"));
