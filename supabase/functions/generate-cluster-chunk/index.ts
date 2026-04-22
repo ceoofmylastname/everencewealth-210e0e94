@@ -731,24 +731,76 @@ async function processChunk(
       }).catch(err => console.error('[Chunk] Image generation trigger error:', err));
     }
 
-    return new Response(JSON.stringify({
-      success: true,
-      chunkIndex,
-      savedArticles: savedIds.length,
-      totalSaved: allSavedArticles.length,
-      hasMoreChunks: false,
-      status: finalStatus,
-    }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    return;
 
   } catch (error) {
-    console.error('[Chunk] Error:', error);
-    return new Response(JSON.stringify({ 
-      error: error instanceof Error ? error.message : String(error) 
-    }), {
-      status: 500,
+    console.error('[Chunk] Background processChunk error:', error);
+    try {
+      const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
+      const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+      const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+      await supabase
+        .from('cluster_generations')
+        .update({
+          status: 'failed',
+          error: error instanceof Error ? error.message : String(error),
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', jobId);
+    } catch (e) {
+      console.error('[Chunk] Failed to mark job failed:', e);
+    }
+  }
+}
+
+// HTTP entrypoint: parse request, return 202 immediately, run real work in background
+// via EdgeRuntime.waitUntil so the worker container survives the in-flight Claude call
+// AND the fire-next-chunk fetch.
+serve(async (req) => {
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  const FUNCTION_START = Date.now();
+
+  let body: any;
+  try {
+    body = await req.json();
+  } catch {
+    return new Response(JSON.stringify({ error: 'Invalid JSON body' }), {
+      status: 400,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }
+
+  const { jobId, chunkIndex, articleStructures } = body || {};
+  if (!jobId || chunkIndex === undefined || !articleStructures) {
+    return new Response(JSON.stringify({ error: 'Missing required parameters' }), {
+      status: 400,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
+
+  // Run the actual chunk processing in the background. Critical: without
+  // EdgeRuntime.waitUntil the worker is killed as soon as we respond, which
+  // aborts both the Claude fetch AND the fire-next-chunk fetch.
+  const work = processChunk(jobId, chunkIndex, articleStructures, FUNCTION_START);
+  // @ts-ignore — EdgeRuntime is provided by Supabase Edge Runtime
+  if (typeof EdgeRuntime !== 'undefined' && EdgeRuntime.waitUntil) {
+    // @ts-ignore
+    EdgeRuntime.waitUntil(work);
+  } else {
+    // Fallback: at least swallow rejections so they don't crash the worker
+    work.catch(err => console.error('[Chunk] Background work error:', err));
+  }
+
+  return new Response(JSON.stringify({
+    accepted: true,
+    jobId,
+    chunkIndex,
+    message: 'Chunk processing started in background',
+  }), {
+    status: 202,
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+  });
 });
