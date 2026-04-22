@@ -29,6 +29,9 @@ interface GenerationProgress {
   current_article: number;
   total_articles: number;
   step_description?: string;
+  last_heartbeat?: string;
+  heartbeat_ts?: string;
+  job_updated_at?: string;
 }
 
 export function CreateClusterDialog({ open, onOpenChange, onClusterCreated }: CreateClusterDialogProps) {
@@ -38,6 +41,7 @@ export function CreateClusterDialog({ open, onOpenChange, onClusterCreated }: Cr
   const [isGenerating, setIsGenerating] = useState(false);
   const [progress, setProgress] = useState<GenerationProgress | null>(null);
   const [jobId, setJobId] = useState<string | null>(null);
+  const [isKilling, setIsKilling] = useState(false);
 
   const resetForm = () => {
     setTopic("");
@@ -71,21 +75,24 @@ export function CreateClusterDialog({ open, onOpenChange, onClusterCreated }: Cr
         .eq('language', 'en');
       
       const articleCount = articlesCreated || 0;
-      
-      // Update progress based on actual article count
+
+      // Check job status for completion/failure + pull heartbeat from progress JSON
+      const { data: job, error } = await supabase
+        .from('cluster_generations')
+        .select('status, error, progress, updated_at')
+        .eq('id', id)
+        .maybeSingle();
+
+      const progressJson = (job?.progress as any) || {};
       setProgress({
         current_step: articleCount,
         total_steps: 6,
         current_article: articleCount,
-        total_articles: 6
+        total_articles: 6,
+        last_heartbeat: progressJson.last_heartbeat,
+        heartbeat_ts: progressJson.ts,
+        job_updated_at: job?.updated_at,
       });
-      
-      // Check job status for completion/failure
-      const { data: job, error } = await supabase
-        .from('cluster_generations')
-        .select('status, error')
-        .eq('id', id)
-        .maybeSingle();
       
       if (error || !job) continue;
       
@@ -110,7 +117,12 @@ export function CreateClusterDialog({ open, onOpenChange, onClusterCreated }: Cr
       }
       
       if (job.status === 'failed') {
-        toast.error(`Generation failed: ${job.error || 'Unknown error'}`);
+        const reason = job.error === 'claude_timeout'
+          ? 'Claude API hung — try again in a minute.'
+          : job.error === 'killed_by_user'
+          ? 'Job killed.'
+          : (job.error || 'Unknown error');
+        toast.error(`Generation failed: ${reason}`);
         setIsGenerating(false);
         return;
       }
@@ -119,6 +131,29 @@ export function CreateClusterDialog({ open, onOpenChange, onClusterCreated }: Cr
     toast.error("Generation timed out. Check the cluster list for status.");
     setIsGenerating(false);
   };
+
+  const handleKill = async () => {
+    if (!jobId) return;
+    setIsKilling(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('kill-cluster-job', {
+        body: { jobId },
+      });
+      if (error) throw error;
+      if (!data?.success) throw new Error(data?.error || 'Failed to kill job');
+      toast.success('Job killed.');
+    } catch (err: any) {
+      toast.error(`Could not kill job: ${err.message}`);
+    } finally {
+      setIsKilling(false);
+    }
+  };
+
+  // Show kill button if no progress for 60s
+  const stalledMs = progress?.job_updated_at
+    ? Date.now() - new Date(progress.job_updated_at).getTime()
+    : 0;
+  const showKillButton = isGenerating && stalledMs > 60_000;
 
   const createClusterMutation = useMutation({
     mutationFn: async () => {
