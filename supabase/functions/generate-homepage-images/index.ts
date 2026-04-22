@@ -83,10 +83,7 @@ serve(async (req) => {
   }
 
   try {
-    const falKey = Deno.env.get('falainanobananaproedit');
-    if (!falKey) throw new Error('Fal.ai API key is not configured');
-
-    fal.config({ credentials: falKey.trim() });
+    if (!Deno.env.get('KIE_API_KEY')) throw new Error('KIE_API_KEY is not configured');
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -97,19 +94,15 @@ serve(async (req) => {
     for (const config of IMAGE_CONFIGS) {
       console.log(`🎨 Generating image for "${config.key}"...`);
       try {
-        const result = await fal.subscribe("fal-ai/nano-banana-pro", {
-          input: {
-            prompt: config.prompt,
-            aspect_ratio: config.aspect_ratio,
-            resolution: "2K",
-            num_images: 1,
-            output_format: "png",
-          },
-          logs: true,
-        }) as FalResult;
+        const { url } = await kieGenerateImage({
+          prompt: config.prompt,
+          aspectRatio: config.aspect_ratio as KieAspectRatio,
+          resolution: "2K",
+          outputFormat: "png",
+        });
 
-        if (result.images?.[0]?.url) {
-          const permanentUrl = await uploadToStorage(result.images[0].url, supabase, config.key);
+        if (url) {
+          const permanentUrl = await uploadToStorage(url, supabase, config.key);
           results[config.key] = { url: permanentUrl, prompt: config.prompt };
           console.log(`✅ "${config.key}" done: ${permanentUrl.substring(0, 80)}...`);
         }
