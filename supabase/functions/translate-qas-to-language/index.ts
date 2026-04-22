@@ -12,22 +12,23 @@ const corsHeaders = {
  * Upload image from Fal.ai to Supabase Storage
  */
 async function uploadToStorage(
-  falImageUrl: string,
+  sourceImageUrl: string,
   supabase: any,
   bucket: string = 'article-images',
   prefix: string = 'img'
 ): Promise<string> {
   try {
-    if (!falImageUrl || !falImageUrl.includes('fal.media')) {
-      return falImageUrl;
+    if (!sourceImageUrl) return sourceImageUrl;
+    if (sourceImageUrl.includes('supabase') && sourceImageUrl.includes('/storage/')) {
+      return sourceImageUrl;
     }
 
-    console.log(`📥 Downloading image from Fal.ai...`);
-    const imageResponse = await fetch(falImageUrl);
+    console.log(`📥 Downloading generated image...`);
+    const imageResponse = await fetch(sourceImageUrl);
     
     if (!imageResponse.ok) {
       console.error(`❌ Failed to download image: ${imageResponse.status}`);
-      return falImageUrl;
+      return sourceImageUrl;
     }
     
     const imageBuffer = await imageResponse.arrayBuffer();
@@ -51,7 +52,7 @@ async function uploadToStorage(
     
     if (uploadError) {
       console.error(`❌ Upload failed:`, uploadError);
-      return falImageUrl;
+      return sourceImageUrl;
     }
     
     const { data: publicUrlData } = supabase.storage
@@ -65,32 +66,28 @@ async function uploadToStorage(
       return supabaseUrl;
     }
     
-    return falImageUrl;
+    return sourceImageUrl;
     
   } catch (error) {
     console.error(`❌ Storage upload error:`, error);
-    return falImageUrl;
+    return sourceImageUrl;
   }
 }
 
 /**
- * Generate unique image for translated Q&A using Nano Banana Pro
+ * Generate unique image for translated Q&A using Kie.ai Nano Banana 2
  */
 async function generateUniqueImage(prompt: string, fallbackUrl: string): Promise<string> {
   try {
-    const result = await fal.subscribe("fal-ai/nano-banana-pro", {
-      input: {
-        prompt,
-        aspect_ratio: "16:9",
-        resolution: "2K",
-        num_images: 1,
-        output_format: "png"
-      }
+    const { url } = await kieGenerateImage({
+      prompt,
+      aspectRatio: "16:9",
+      resolution: "2K",
+      outputFormat: "png",
     });
-    
-    if (result.data?.images?.[0]?.url) {
-      console.log(`✅ Generated unique Q&A image with Nano Banana Pro`);
-      return result.data.images[0].url;
+    if (url) {
+      console.log(`✅ Generated unique Q&A image with Kie.ai Nano Banana 2`);
+      return url;
     }
   } catch (error) {
     console.error(`⚠️ Q&A image generation failed, using fallback:`, error);
