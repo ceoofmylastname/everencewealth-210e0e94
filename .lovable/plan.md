@@ -1,29 +1,42 @@
 
 
-## Fix Cloudflare build: regenerate package-lock.json
+## Fix: Allow null featured_image_url so Kie.ai can populate post-save
 
-`package.json` pins `zod@3.23.8` (from the earlier build-fix patch) but `package-lock.json` still has `^3.25.76` from before that pin. Cloudflare runs `npm ci` which fails on mismatch.
+The previous patch correctly removed the hardcoded Unsplash URL but didn't update the database column. Result: every article fails to save with a NOT NULL violation. Job `007ecf30` is stalled at 0/6 saved.
 
-### Steps
+### Fix (two changes)
 
-1. **Run `npm install`** at project root to regenerate `package-lock.json` against the current `package.json`. This will:
-   - Resolve `zod` back down to `3.23.8` in the lockfile
-   - Update any other transitive dependencies that drifted
-2. **Verify alignment** by re-running `grep '"zod"' package.json package-lock.json` — both must show `3.23.8`.
-3. **Run `npm ci` locally** to confirm Cloudflare's exact command will now succeed.
-4. **Report the diff** from `git diff --stat package-lock.json` plus a short summary of any other packages whose versions changed (e.g. `@hookform/resolvers`, recharts, react types) so you know nothing unexpected was downgraded/upgraded.
+**1. Database migration — make `featured_image_url` nullable**
+```sql
+ALTER TABLE public.blog_articles 
+  ALTER COLUMN featured_image_url DROP NOT NULL;
+```
+This is the right model: the article row is created first, then `regenerate-cluster-images` populates the Kie.ai URL afterward. The frontend already handles null images (falls back to a placeholder).
 
-### Guardrails
+**2. Mark stuck job `007ecf30` as failed**
+```sql
+UPDATE cluster_generations 
+SET status = 'failed', 
+    error = 'featured_image_url NOT NULL constraint violation - fixed in next migration'
+WHERE id = '007ecf30-7466-43e5-a5e2-cea3800ae5a3';
+```
 
-- Will **not** edit `package.json` (no upgrading zod to silence the lock).
-- If `npm install` tries to upgrade zod beyond `3.23.8`, that means a peer dep (likely `@hookform/resolvers`) requires it — in that case I'll stop and report rather than force the install. Default behavior of an exact pin (`"zod": "3.23.8"` with no caret) is that npm respects it.
-- No code changes, no edge function changes, no DB changes.
+### No code changes needed
+- `generate-cluster-chunk/index.ts` is already correct (sets `featured_image_url = null`)
+- `regenerate-cluster-images/index.ts` is already correct (uses Kie.ai)
+- The frontend article renderer already handles null `featured_image_url`
+
+### Verification after patch
+1. Create a new test cluster with the same topic.
+2. Watch logs: article 1 should save successfully (no NOT NULL error).
+3. Confirm `regenerate-cluster-images` fires automatically and populates Kie.ai URLs.
+4. Open finished article → verify Kie.ai 16:9 image renders.
 
 ### Files touched
+- **New migration:** 1 SQL file (drop NOT NULL + mark stuck job failed)
+- **No edge function changes**
+- **No frontend changes**
 
-- **Edited:** `package-lock.json` only
-
-### After deploy
-
-Cloudflare will auto-trigger a new build on the lockfile commit. Expected outcome: `npm ci` succeeds, TypeScript build runs clean (zod v3 types restored), Cloudflare Pages publishes.
+### Why this happened
+Bug 2 in the prior plan ("remove hardcoded Unsplash URL") needed a paired schema change. I shipped the code half but not the schema half. This patch closes the loop.
 
