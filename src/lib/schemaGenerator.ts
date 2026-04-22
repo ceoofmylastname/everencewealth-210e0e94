@@ -33,7 +33,7 @@ const ORGANIZATION_SCHEMA = {
   "name": "Everence Wealth",
   "description": "Independent wealth architects specializing in tax-efficient retirement strategies and asset protection.",
   "url": "https://www.everencewealth.com",
-  "logo": "https://www.everencewealth.com/assets/logo.png",
+  "logo": "https://storage.googleapis.com/msgsndr/TLhrYb7SRrWrly615tCI/media/6993ada8dcdadb155342f28e.png",
   "address": {
     "@type": "PostalAddress",
     "streetAddress": "455 Market St Ste 1940 PMB 350011",
@@ -50,7 +50,7 @@ const ORGANIZATION_SCHEMA = {
     "@type": "ContactPoint",
     "contactType": "Customer Service",
     "availableLanguage": ["en", "es"],
-    "telephone": "+1-415-555-0100",
+    "telephone": "+1-925-433-7724",
     "email": "info@everencewealth.com"
   }
 };

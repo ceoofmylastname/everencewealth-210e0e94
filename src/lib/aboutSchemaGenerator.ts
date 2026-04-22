@@ -1,6 +1,12 @@
 // About Page Schema Generator for comprehensive JSON-LD
 // Supports: Organization, LocalBusiness, Person, FAQPage, BreadcrumbList, WebPage with Speakable
 import { truncateForAEO } from "./aeoUtils";
+import {
+  BUSINESS,
+  businessPostalAddress,
+  businessGeoCoordinates,
+  businessAreaServed,
+} from "@/config/business";
 
 interface Founder {
   name: string;
@@ -44,14 +50,17 @@ interface AboutPageContent {
 
 const BASE_URL = 'https://www.everencewealth.com';
 
-// Hardcoded founder data
+// Founder bio data (rendered in HTML, expanded beyond BUSINESS.founders stubs).
+// Person.sameAs / linkedin_url is intentionally a company page here ONLY because
+// the existing UI uses it for an external link, not for schema.org sameAs.
+// generatePersonSchemas() below now omits sameAs entirely.
 export const FOUNDERS_DATA: Founder[] = [
   {
-    name: "Steven Rosenberg",
-    role: "Founder & Chief Wealth Strategist",
+    name: BUSINESS.founders[0].name,
+    role: BUSINESS.founders[0].jobTitle,
     bio: "Founder & Chief Wealth Strategist at Everence Wealth. Independent insurance broker and licensed professional serving families across all 50 states.",
-    photo_url: "https://storage.googleapis.com/msgsndr/TLhrYb7SRrWrly615tCI/media/6993ada8dcdadb155342f28e.png",
-    linkedin_url: "https://www.linkedin.com/company/everencewealth/",
+    photo_url: BUSINESS.logo.url,
+    linkedin_url: BUSINESS.sameAs[0],
     credentials: ["Series 65", "Life & Health Licensed (All 50 States)"],
     years_experience: 25,
     languages: ["English", "Spanish"],
@@ -64,23 +73,28 @@ export function generateOrganizationSchema(content: AboutPageContent) {
   return {
     "@type": ["Organization", "FinancialService"],
     "@id": `${BASE_URL}/#organization`,
-    "name": "Everence Wealth",
+    "name": BUSINESS.name,
+    "alternateName": BUSINESS.alternateName,
     "url": BASE_URL,
     "logo": {
       "@type": "ImageObject",
-      "url": "https://storage.googleapis.com/msgsndr/TLhrYb7SRrWrly615tCI/media/6993ada8dcdadb155342f28e.png",
-      "width": 400,
-      "height": 100
+      "url": BUSINESS.logo.url,
+      "width": BUSINESS.logo.width,
+      "height": BUSINESS.logo.height
     },
-    "image": "https://storage.googleapis.com/msgsndr/TLhrYb7SRrWrly615tCI/media/6993ada8dcdadb155342f28e.png",
+    "image": BUSINESS.logo.url,
     "description": content.speakable_summary,
+    "foundingDate": BUSINESS.foundingDate,
+    "telephone": BUSINESS.telephone,
+    "email": BUSINESS.email,
+    "priceRange": BUSINESS.priceRange,
 
     "numberOfEmployees": {
       "@type": "QuantitativeValue",
       "minValue": 3,
       "maxValue": 10
     },
-    "slogan": "Your Independent Wealth Strategist",
+    "slogan": BUSINESS.slogan,
     "knowsAbout": [
       "Retirement Planning",
       "Indexed Universal Life Insurance",
@@ -90,27 +104,18 @@ export function generateOrganizationSchema(content: AboutPageContent) {
       "Wealth Management",
       "Three Tax Buckets Framework"
     ],
-    "areaServed": {
-      "@type": "Country",
-      "name": "United States"
-    },
-    "address": {
-      "@type": "PostalAddress",
-      "addressLocality": "San Diego",
-      "addressRegion": "CA",
-      "addressCountry": "US"
-    },
+    "areaServed": businessAreaServed(),
+    "address": businessPostalAddress(),
     "contactPoint": [
       {
         "@type": "ContactPoint",
-        "email": "info@everencewealth.com",
+        "email": BUSINESS.email,
+        "telephone": BUSINESS.telephone,
         "contactType": "customer service",
         "availableLanguage": ["English", "Spanish"]
       }
     ],
-    "sameAs": [
-      "https://www.linkedin.com/company/everencewealth"
-    ],
+    "sameAs": [...BUSINESS.sameAs],
     "founder": FOUNDERS_DATA.map((f, i) => ({ "@id": `${BASE_URL}/about#founder-${i + 1}` })),
     "employee": FOUNDERS_DATA.map((f, i) => ({ "@id": `${BASE_URL}/about#founder-${i + 1}` })),
   };
@@ -121,15 +126,13 @@ export function generateLocalBusinessSchema(content: AboutPageContent) {
   return {
     "@type": "LocalBusiness",
     "@id": `${BASE_URL}/#localbusiness`,
-    "name": "Everence Wealth",
-    "image": "https://storage.googleapis.com/msgsndr/TLhrYb7SRrWrly615tCI/media/6993ada8dcdadb155342f28e.png",
-    "priceRange": "$$",
-    "address": {
-      "@type": "PostalAddress",
-      "addressLocality": "San Diego",
-      "addressRegion": "CA",
-      "addressCountry": "US"
-    },
+    "name": BUSINESS.name,
+    "image": BUSINESS.logo.url,
+    "priceRange": BUSINESS.priceRange,
+    "address": businessPostalAddress(),
+    "geo": businessGeoCoordinates(),
+    "telephone": BUSINESS.telephone,
+    "email": BUSINESS.email,
     "url": BASE_URL,
   };
 }
@@ -143,8 +146,9 @@ export function generatePersonSchemas(founders: Founder[]) {
     "jobTitle": founder.role,
     "description": founder.bio,
     "image": founder.photo_url.startsWith('http') ? founder.photo_url : `${BASE_URL}${founder.photo_url}`,
-    "url": founder.linkedin_url,
-    "sameAs": [founder.linkedin_url],
+    // url / sameAs intentionally omitted — pending verified PERSONAL profile URL.
+    // Per schema.org, Person.sameAs must point to pages ABOUT THAT PERSON;
+    // a company LinkedIn page is NOT valid here.
     "worksFor": {
       "@type": "Organization",
       "@id": `${BASE_URL}/#organization`
