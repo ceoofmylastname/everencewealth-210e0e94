@@ -1,28 +1,31 @@
+import { BUSINESS } from '@/config/business';
+
 /**
  * Centralized company contact information.
- * Update these values in one place to reflect across the entire site.
+ * Sourced from src/config/business.ts (BUSINESS) — do NOT hardcode here.
  */
 export const COMPANY_CONTACT = {
-  phone: '+1 (925) 433-7724',
-  phoneClean: '19254337724',
-  email: 'info@everencewealth.com',
-  whatsappBase: 'https://wa.me/19254337724',
-  whatsappWithMessage: (msg: string) => 
-    `https://wa.me/19254337724?text=${encodeURIComponent(msg)}`,
+  phone: BUSINESS.telephone,
+  phoneClean: BUSINESS.telephoneE164.replace(/^\+/, ''),
+  email: BUSINESS.email,
+  whatsappBase: `https://wa.me/${BUSINESS.telephoneE164.replace(/^\+/, '')}`,
+  whatsappWithMessage: (msg: string) =>
+    `https://wa.me/${BUSINESS.telephoneE164.replace(/^\+/, '')}?text=${encodeURIComponent(msg)}`,
 } as const;
 
 /**
  * Centralized company address information.
+ * Sourced from BUSINESS — do NOT hardcode address fields here.
  */
 export const COMPANY_ADDRESS = {
-  street: '455 Market St Ste 1940 PMB 350011',
+  street: BUSINESS.address.streetAddress,
   building: '',
   floor: '',
-  postalCode: '94105',
-  city: 'San Francisco',
-  province: 'CA',
+  postalCode: BUSINESS.address.postalCode,
+  city: BUSINESS.address.addressLocality,
+  province: BUSINESS.address.addressRegion,
   country: 'United States',
-  full: '455 Market St Ste 1940 PMB 350011, San Francisco, CA 94105, United States',
+  full: `${BUSINESS.addressFormatted}, United States`,
   googleMapsUrl: 'https://maps.app.goo.gl/example',
   googleMapsEmbed: 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3153.0!2d-122.3989!3d37.7908!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2s455+Market+St!5e0!3m2!1sen!2sus'
 } as const;

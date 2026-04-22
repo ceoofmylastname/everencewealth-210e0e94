@@ -1,21 +1,30 @@
 import { Mail, Phone, MapPin } from "lucide-react";
 import { Link } from "react-router-dom";
+import { BUSINESS } from "@/config/business";
 
 const COMPANY_INFO = {
-  name: "Everence Wealth",
-  tagline: "Independent fiduciary wealth architects specializing in tax-efficient retirement strategies.",
-  phone: "+1-415-555-0100",
-  email: "info@everencewealth.com",
-  website: "https://www.everencewealth.com",
+  name: BUSINESS.name,
+  tagline:
+    "Independent fiduciary wealth architects specializing in tax-efficient retirement strategies.",
+  phone: BUSINESS.telephone,
+  email: BUSINESS.email,
+  website: BUSINESS.url,
   address: {
-    street: "One Embarcadero Center, Suite 500",
-    city: "San Francisco",
-    postalCode: "94111",
-    region: "CA",
-    country: "United States"
+    street: BUSINESS.address.streetAddress,
+    city: BUSINESS.address.addressLocality,
+    postalCode: BUSINESS.address.postalCode,
+    region: BUSINESS.address.addressRegion,
+    country: "United States",
   },
-  specialties: ["Retirement Planning", "Tax-Efficient Strategies", "Estate Planning", "Indexed Universal Life", "Annuities", "Asset Protection"],
-  languages: ["English", "Spanish"]
+  specialties: [
+    "Retirement Planning",
+    "Tax-Efficient Strategies",
+    "Estate Planning",
+    "Indexed Universal Life",
+    "Annuities",
+    "Asset Protection",
+  ],
+  languages: ["English", "Spanish"],
 };
 
 export const ArticleFooter = () => {

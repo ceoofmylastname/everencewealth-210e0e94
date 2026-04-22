@@ -1,4 +1,5 @@
 import { Language, Area, BlogPost } from '../types/home';
+import { BUSINESS, businessPostalAddress } from '../config/business';
 
 // Import location-specific hero images from brochures
 import marbellaHero from '@/assets/brochures/marbella-hero.jpg';
@@ -152,31 +153,24 @@ export const NAV_LINKS = [
 export const getStructuredData = () => ({
   "@context": "https://schema.org",
   "@type": "FinancialService",
-  "name": "Everence Wealth",
-  "description": "Independent wealth architects specializing in tax-efficient retirement strategies and asset protection.",
-  "image": "https://www.everencewealth.com/assets/logo.png",
-  "logo": "https://www.everencewealth.com/assets/logo.png",
-  "url": "https://www.everencewealth.com",
-  "telephone": "+1-415-555-0100",
-  "email": "info@everencewealth.com",
-  "address": {
-    "@type": "PostalAddress",
-    "streetAddress": "455 Market St Ste 1940 PMB 350011",
-    "addressLocality": "San Francisco",
-    "addressRegion": "CA",
-    "postalCode": "94105",
-    "addressCountry": "US"
-  },
-  "priceRange": "$$$",
+  "name": BUSINESS.name,
+  "description": BUSINESS.description,
+  "image": BUSINESS.logo.url,
+  "logo": BUSINESS.logo.url,
+  "url": BUSINESS.url,
+  "telephone": BUSINESS.telephone,
+  "email": BUSINESS.email,
+  "address": businessPostalAddress(),
+  "priceRange": BUSINESS.priceRange,
   "areaServed": {
     "@type": "Country",
-    "name": "United States"
+    "name": BUSINESS.areaServed.name
   },
   "contactPoint": {
     "@type": "ContactPoint",
     "contactType": "Customer Service",
-    "availableLanguage": ["en", "es"],
-    "telephone": "+1-415-555-0100",
-    "email": "info@everencewealth.com"
+    "availableLanguage": [...BUSINESS.contactPoint.availableLanguage],
+    "telephone": BUSINESS.telephone,
+    "email": BUSINESS.email
   }
 });
