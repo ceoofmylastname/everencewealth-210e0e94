@@ -453,7 +453,7 @@ serve(async (req) => {
           console.log(`🎨 Generating content-aware image for: "${english.headline.substring(0, 50)}..."`);
 
           try {
-            const generatedImageData = await generateContentImage(imagePrompt, lovableApiKey);
+            const generatedImageData = await generateContentImage(imagePrompt);
 
             if (generatedImageData) {
               let newImageUrl: string | null;
