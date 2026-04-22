@@ -2,6 +2,9 @@ import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.1';
 
+// Declare EdgeRuntime for TypeScript
+declare const EdgeRuntime: { waitUntil: (promise: Promise<unknown>) => void };
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -15,114 +18,141 @@ const EXPECTED_STRUCTURE = [
 
 // Helper to safely extract JSON from response
 function extractJsonFromResponse(text: string): any {
-  // Try direct parse first
   try {
     return JSON.parse(text);
   } catch (e) {
-    // Try to extract from markdown code blocks
     const jsonMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/);
     if (jsonMatch) {
       try {
         return JSON.parse(jsonMatch[1].trim());
-      } catch (e2) {
-        // Continue to other methods
-      }
+      } catch (e2) { /* continue */ }
     }
-    
-    // Try to find JSON object boundaries
     const firstBrace = text.indexOf('{');
     const lastBrace = text.lastIndexOf('}');
     if (firstBrace !== -1 && lastBrace > firstBrace) {
       try {
         return JSON.parse(text.substring(firstBrace, lastBrace + 1));
-      } catch (e3) {
-        // Continue
-      }
+      } catch (e3) { /* continue */ }
     }
-    
     throw new Error('Could not extract valid JSON from response');
   }
 }
 
-// Count words in HTML content
 function countWords(html: string): number {
   const text = (html || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
   return text.split(/\s+/).filter(w => w.length > 0).length;
 }
 
-// Content quality validation with strict word count enforcement
 function validateContentQuality(article: any, plan: any): { isValid: boolean; issues: string[]; score: number; wordCount: number } {
   const issues: string[] = [];
   let score = 100;
-  
+
   const headlineWords = plan.headline.toLowerCase().split(/\s+/).filter((w: string) => w.length > 3);
   const contentLower = (article.detailed_content || '').toLowerCase();
   const mentionedWords = headlineWords.filter((w: string) => contentLower.includes(w)).length;
-  
+
   if (mentionedWords < headlineWords.length * 0.5) {
     issues.push('Content may not fully address headline topic');
     score -= 15;
   }
-  
+
   const h2Count = (article.detailed_content?.match(/<h2>/gi) || []).length;
   if (h2Count < 4) {
     issues.push('Insufficient content structure (need 4+ H2 headings)');
     score -= 10;
   }
-  
+
   const wordCount = countWords(article.detailed_content || '');
-  
-  // HARD FAIL: Articles under 1200 words are always invalid
+
   if (wordCount < 1200) {
     issues.push(`CRITICAL: Content severely under minimum (${wordCount} words, need 1500+)`);
     return { isValid: false, issues, score: 0, wordCount };
   }
-  
+
   if (wordCount < 1500) {
     issues.push(`Content too short (${wordCount} words, minimum 1500)`);
-    score -= 40; // Increased penalty
+    score -= 40;
   } else if (wordCount > 2500) {
     issues.push(`Content too long (${wordCount} words, maximum 2500)`);
     score -= 10;
   }
-  
+
   if (article.qa_entities && Array.isArray(article.qa_entities)) {
     if (article.qa_entities.length < 5) {
       issues.push(`Too few FAQs: ${article.qa_entities.length} (need 5-8)`);
       score -= 10;
     }
   }
-  
+
   return { isValid: score >= 60, issues, score, wordCount };
 }
 
-serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+// Update job progress on the cluster_generations row (best-effort)
+async function updateProgress(
+  supabase: any,
+  clusterId: string,
+  patch: Record<string, any>
+) {
+  try {
+    const { data: existing } = await supabase
+      .from('cluster_generations')
+      .select('progress')
+      .eq('id', clusterId)
+      .single();
+
+    const merged = { ...(existing?.progress || {}), ...patch, last_heartbeat: new Date().toISOString() };
+
+    await supabase
+      .from('cluster_generations')
+      .update({ progress: merged })
+      .eq('id', clusterId);
+  } catch (err) {
+    console.warn('[Missing] Failed to update progress:', err);
   }
+}
+
+// Self-trigger: invoke this same function again (fire-and-forget) to continue chain
+async function selfContinue(
+  supabaseUrl: string,
+  serviceKey: string,
+  clusterId: string,
+  specificFunnelStage?: string
+) {
+  try {
+    const url = `${supabaseUrl}/functions/v1/generate-missing-articles`;
+    // Fire-and-forget; do not await response body
+    fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${serviceKey}`,
+        'apikey': serviceKey,
+      },
+      body: JSON.stringify({ clusterId, specificFunnelStage }),
+    }).catch((e) => console.warn('[Missing] selfContinue fetch error:', e));
+    console.log('[Missing] 🔁 Self-continuation triggered for next missing slot');
+  } catch (err) {
+    console.warn('[Missing] selfContinue error:', err);
+  }
+}
+
+// The actual long-running work — runs as a background task
+async function processChunk(clusterId: string, specificFunnelStage: string | undefined) {
+  const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
+  const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+  const CLAUDE_API_KEY = Deno.env.get('CLAUDE_API_KEY') || Deno.env.get('ANTHROPIC_API_KEY');
+  if (!CLAUDE_API_KEY) {
+    console.error('[Missing] CLAUDE_API_KEY missing — aborting background work');
+    return;
+  }
+  const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+
+  console.log(`\n╔════════════════════════════════════════╗`);
+  console.log(`║  GENERATE MISSING ARTICLES (bg)        ║`);
+  console.log(`╚════════════════════════════════════════╝`);
+  console.log(`[Missing] Cluster: ${clusterId}`);
 
   try {
-    const { clusterId, specificFunnelStage } = await req.json();
-
-    if (!clusterId) {
-      return new Response(JSON.stringify({ error: 'Missing clusterId' }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
-    const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const CLAUDE_API_KEY = Deno.env.get('CLAUDE_API_KEY') || Deno.env.get('ANTHROPIC_API_KEY');
-    if (!CLAUDE_API_KEY) throw new Error('CLAUDE_API_KEY (or ANTHROPIC_API_KEY) is not configured');
-    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
-
-    console.log(`\n╔════════════════════════════════════════╗`);
-    console.log(`║  GENERATE MISSING ARTICLES             ║`);
-    console.log(`╚════════════════════════════════════════╝`);
-    console.log(`[Missing] Cluster: ${clusterId}`);
-
-    // Get cluster info
     const { data: cluster, error: clusterError } = await supabase
       .from('cluster_generations')
       .select('*')
@@ -130,49 +160,46 @@ serve(async (req) => {
       .single();
 
     if (clusterError || !cluster) {
-      throw new Error(`Cluster not found: ${clusterId}`);
+      console.error(`[Missing] Cluster not found: ${clusterId}`);
+      return;
     }
 
-    // Get existing articles for source language
     const sourceLanguage = cluster.language || 'en';
+
+    // ALWAYS re-read state at the top so concurrent runs / retries stay idempotent
     const { data: existingArticles, error: articlesError } = await supabase
       .from('blog_articles')
       .select('id, funnel_stage, headline, cluster_number')
       .eq('cluster_id', clusterId)
       .eq('language', sourceLanguage);
 
-    if (articlesError) throw articlesError;
+    if (articlesError) {
+      console.error('[Missing] Failed to read existing articles:', articlesError);
+      return;
+    }
 
-    // Analyze what's missing AND track used cluster_numbers
-    const existingByStage: Record<string, number> = {
-      'TOFU': 0,
-      'MOFU': 0,
-      'BOFO': 0,
-    };
-
+    const existingByStage: Record<string, number> = { TOFU: 0, MOFU: 0, BOFU: 0 };
     const usedClusterNumbers = new Set<number>();
 
     for (const article of existingArticles || []) {
-      const stage = article.funnel_stage?.toUpperCase() || 'TOFU';
-      existingByStage[stage] = (existingByStage[stage] || 0) + 1;
+      const stage = (article.funnel_stage || 'TOFU').toUpperCase();
+      // normalize accidentally-typo'd BOFO into BOFU bucket
+      const bucket = stage === 'BOFO' ? 'BOFU' : stage;
+      existingByStage[bucket] = (existingByStage[bucket] || 0) + 1;
       if (article.cluster_number) {
         usedClusterNumbers.add(article.cluster_number);
       }
     }
 
-    // Calculate missing cluster_numbers (should fill gaps 1-6)
     const missingClusterNumbers: number[] = [];
     for (let i = 1; i <= 6; i++) {
-      if (!usedClusterNumbers.has(i)) {
-        missingClusterNumbers.push(i);
-      }
+      if (!usedClusterNumbers.has(i)) missingClusterNumbers.push(i);
     }
 
-    console.log(`[Missing] Existing articles by stage:`, existingByStage);
-    console.log(`[Missing] Used cluster_numbers: [${Array.from(usedClusterNumbers).sort((a,b) => a-b).join(', ')}]`);
+    console.log(`[Missing] Existing by stage:`, existingByStage);
+    console.log(`[Missing] Used cluster_numbers: [${Array.from(usedClusterNumbers).sort((a,b)=>a-b).join(', ')}]`);
     console.log(`[Missing] Missing cluster_numbers: [${missingClusterNumbers.join(', ')}]`);
 
-    // Determine missing articles by funnel stage
     const missingArticles: { funnelStage: string; count: number }[] = [];
     for (const expected of EXPECTED_STRUCTURE) {
       const have = existingByStage[expected.funnelStage] || 0;
@@ -184,58 +211,52 @@ serve(async (req) => {
       }
     }
 
-    // Calculate total missing count
-    const totalMissing = missingArticles.reduce((sum, m) => sum + m.count, 0);
+    const totalMissing = missingArticles.reduce((s, m) => s + m.count, 0);
+    const sourceCountSoFar = (existingArticles || []).length;
 
-    if (missingArticles.length === 0 || totalMissing === 0) {
-      return new Response(JSON.stringify({
-        success: true,
-        message: 'No missing articles found. Cluster has all 6 source articles.',
-        existing: existingByStage,
-        generated: 0,
-        remaining: 0,
-      }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    if (missingArticles.length === 0 || totalMissing === 0 || missingClusterNumbers.length === 0) {
+      console.log('[Missing] ✅ Nothing to generate — cluster already complete');
+      await updateProgress(supabase, clusterId, {
+        saved_articles: sourceCountSoFar,
+        message: 'Source articles complete. Ready for translation.',
+        source_complete: sourceCountSoFar >= 6,
+        needs_translation: sourceCountSoFar >= 6,
+        in_progress: false,
       });
+      if (sourceCountSoFar >= 6) {
+        await supabase
+          .from('cluster_generations')
+          .update({ status: 'partial' })
+          .eq('id', clusterId);
+      }
+      return;
     }
 
-    console.log(`[Missing] Need to generate: ${totalMissing} articles total`, missingArticles);
-
-    // CHUNKED ARCHITECTURE: Generate only ONE article per invocation
-    // Get the first missing article to generate
     const firstMissing = missingArticles[0];
     const nextClusterNumber = missingClusterNumbers[0];
-    
-    if (nextClusterNumber === undefined) {
-      console.error(`[Missing] No available cluster_number slot!`);
-      return new Response(JSON.stringify({
-        success: false,
-        error: 'No available cluster_number slot',
-        generated: 0,
-        remaining: totalMissing,
-      }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
+
+    await updateProgress(supabase, clusterId, {
+      saved_articles: sourceCountSoFar,
+      current_article: nextClusterNumber,
+      message: `Generating article ${nextClusterNumber}/6 (${firstMissing.funnelStage})...`,
+      source_complete: false,
+      in_progress: true,
+    });
 
     // Fetch authors and categories
     const { data: authors } = await supabase.from('authors').select('*');
     const { data: categories } = await supabase.from('categories').select('*');
-
-    // Fetch master prompt
     const { data: promptData } = await supabase
       .from('content_settings')
       .select('setting_value')
       .eq('setting_key', 'master_content_prompt')
       .single();
     const masterPrompt = promptData?.setting_value || '';
+    const validCategoryNames = (categories || []).map((c: any) => c.name);
 
-    const validCategoryNames = (categories || []).map(c => c.name);
-
-    // Generate ONE article (chunked architecture - one per invocation)
     console.log(`\n[Missing] Generating ${firstMissing.funnelStage} article (cluster_number: ${nextClusterNumber})...`);
-    
-    // Generate article plan with JSON mode
+
+    // ─── PLAN ──────────────────────────────────────────
     const planPrompt = `Generate a single article plan for a ${firstMissing.funnelStage} (${
       firstMissing.funnelStage === 'TOFU' ? 'top-of-funnel, awareness' :
       firstMissing.funnelStage === 'MOFU' ? 'middle-of-funnel, consideration' :
@@ -243,7 +264,7 @@ serve(async (req) => {
     }) article about "${cluster.topic}" targeting "${cluster.primary_keyword}".
 
 The cluster already has these articles:
-${(existingArticles || []).map(a => `- ${a.funnel_stage}: ${a.headline}`).join('\n')}
+${(existingArticles || []).map((a: any) => `- ${a.funnel_stage}: ${a.headline}`).join('\n')}
 
 Generate a NEW, UNIQUE article that complements the existing ones without duplicating topics.
 
@@ -269,27 +290,31 @@ You MUST respond with a valid JSON object:
     if (!planResponse.ok) {
       const errorText = await planResponse.text();
       console.error(`[Missing] Plan API error (${planResponse.status}):`, errorText.substring(0, 500));
-      throw new Error(`Plan generation failed: ${planResponse.status}`);
+      await updateProgress(supabase, clusterId, {
+        message: `Plan generation failed (${planResponse.status})`,
+        in_progress: false,
+        last_error: `plan_api_${planResponse.status}`,
+      });
+      return;
     }
 
     const planData = await planResponse.json();
     const planText = planData?.content?.[0]?.text || '';
     if (!planText.trim()) {
-      throw new Error('Claude returned empty plan response');
+      console.error('[Missing] Empty plan response');
+      return;
     }
-    
-    let plan;
+
+    let plan: any;
     try {
       plan = extractJsonFromResponse(planText);
-    } catch (parseError) {
-      console.error(`[Missing] Plan parse error:`, parseError);
-      throw new Error(`Plan response did not contain valid JSON`);
+    } catch (e) {
+      console.error('[Missing] Plan parse error:', e);
+      return;
     }
 
     console.log(`[Missing] Plan: ${plan.headline}`);
-    
-    // Small delay to avoid rate limits
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise((r) => setTimeout(r, 1000));
 
     const article: any = {
       funnel_stage: firstMissing.funnelStage,
@@ -299,11 +324,11 @@ You MUST respond with a valid JSON object:
       slug: plan.headline.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''),
     };
 
-    // Category selection with JSON mode
+    // ─── CATEGORY ──────────────────────────────────────
     const categoryPrompt = `Select the most appropriate category for this article.
 
 Available categories:
-${validCategoryNames.map((name, idx) => `${idx + 1}. ${name}`).join('\n')}
+${validCategoryNames.map((name: string, idx: number) => `${idx + 1}. ${name}`).join('\n')}
 
 Article: ${plan.headline}
 Keyword: ${plan.targetKeyword}
@@ -328,26 +353,25 @@ Respond with JSON: { "category": "exact category name from the list" }`;
       try {
         const categoryJson = extractJsonFromResponse(categoryData?.content?.[0]?.text || '{}');
         const aiCategory = categoryJson.category;
-        const matchedCategory = validCategoryNames.find(
-          name => name.toLowerCase() === aiCategory?.toLowerCase()
+        const matched = validCategoryNames.find(
+          (name: string) => name.toLowerCase() === aiCategory?.toLowerCase()
         );
-        finalCategory = matchedCategory || 'Buying Property';
+        finalCategory = matched || 'Buying Property';
       } catch (e) {
         console.warn('[Missing] Category parse failed, using default');
       }
     }
     article.category = finalCategory;
 
-    // Main content generation with JSON mode
-    const languageNameMap: Record<string, string> = { 
-      'en': 'English', 'de': 'German', 'nl': 'Dutch', 'fr': 'French', 
-      'pl': 'Polish', 'sv': 'Swedish', 'da': 'Danish', 'hu': 'Hungarian', 
-      'fi': 'Finnish', 'no': 'Norwegian' 
+    // ─── CONTENT ───────────────────────────────────────
+    const languageNameMap: Record<string, string> = {
+      en: 'English', de: 'German', nl: 'Dutch', fr: 'French',
+      pl: 'Polish', sv: 'Swedish', da: 'Danish', hu: 'Hungarian',
+      fi: 'Finnish', no: 'Norwegian',
     };
     const languageName = languageNameMap[sourceLanguage] || 'English';
 
-    // Build content prompt with STRICT word count requirements
-    let basePrompt = masterPrompt 
+    const basePrompt = masterPrompt
       ? masterPrompt
           .replace(/\{\{headline\}\}/g, plan.headline)
           .replace(/\{\{targetKeyword\}\}/g, plan.targetKeyword || '')
@@ -368,7 +392,7 @@ You MUST respond with a valid JSON object with this exact structure:
 {
   "detailed_content": "<div class='article-content'>...full HTML article content (MINIMUM 1500 words, target 1800-2000)...</div>",
   "meta_title": "SEO title (50-60 characters)",
-  "meta_description": "SEO meta description (150-160 characters)", 
+  "meta_description": "SEO meta description (150-160 characters)",
   "speakable_answer": "40-60 word summary answering the main question directly",
   "qa_entities": [
     {"question": "FAQ question 1?", "answer": "Detailed answer (80-120 words, single paragraph, no lists)"},
@@ -376,20 +400,19 @@ You MUST respond with a valid JSON object with this exact structure:
   ]
 }
 
-Include 5-8 FAQ questions in qa_entities. Each answer must be 80-120 words in a single paragraph (no bullet points or lists).
+Include 5-8 FAQ questions in qa_entities. Each answer must be 80-120 words in a single paragraph.
 The detailed_content must be proper HTML with at least 6 H2 headings, detailed paragraphs, examples, and expert insights.
 REMEMBER: Minimum 1,500 words in detailed_content is MANDATORY.`;
 
-    // Generate content with retry loop for word count enforcement (3 attempts with escalating prompts)
     let contentJson: any = null;
     let attempts = 0;
     const maxAttempts = 2;
     let lastWordCount = 0;
-    
+
     while (attempts < maxAttempts) {
       attempts++;
       console.log(`[Missing] Content generation attempt ${attempts}/${maxAttempts}...`);
-      
+
       let currentPrompt = contentPrompt;
       let systemPrompt = `You are an expert independent financial advisor specializing in tax-free retirement strategies, IUL, and wealth protection.
 
@@ -403,7 +426,7 @@ CRITICAL REQUIREMENTS:
         const prevWordCount = countWords(contentJson.detailed_content || '');
         systemPrompt = `You are an expert independent financial advisor. Your previous response was ONLY ${prevWordCount} words - this is UNACCEPTABLE.
 
-MANDATORY: This response MUST be at least 1,500 words. 
+MANDATORY: This response MUST be at least 1,500 words.
 STRATEGY: Write 8 sections of 200+ words each = 1,600+ words minimum.
 DO NOT submit anything under 1,500 words.`;
 
@@ -413,45 +436,8 @@ DO NOT submit anything under 1,500 words.`;
 
 You MUST write a MUCH LONGER article. Use this structure:
 1. Introduction (150+ words)
-2. Section 1 - Overview (200+ words)
-3. Section 2 - Key Considerations (200+ words)
-4. Section 3 - Process Details (200+ words)
-5. Section 4 - Costs & Fees (200+ words)
-6. Section 5 - Legal Requirements (200+ words)
-7. Section 6 - Common Mistakes (200+ words)
-8. Section 7 - Expert Tips (200+ words)
-9. Conclusion (150+ words)
-
-This structure gives you 1,700+ words. Follow it exactly.`;
-      } else if (attempts === 3 && contentJson) {
-        const prevWordCount = countWords(contentJson.detailed_content || '');
-        systemPrompt = `FINAL ATTEMPT. Previous responses were too short (${prevWordCount} words).
-
-You are a verbose, detailed writer. EVERY paragraph must be 80-100 words minimum.
-Include specific examples, statistics, expert quotes, and regional details for EVERY point.
-If in doubt, ADD MORE DETAIL. Err on the side of being too long.`;
-
-        currentPrompt = `${contentPrompt}
-
-🚨 FINAL ATTEMPT - MUST REACH 1,500 WORDS 🚨
-
-Your previous ${attempts - 1} attempts produced only ${prevWordCount} words. This is your LAST chance.
-
-MANDATORY EXPANSION TECHNIQUES:
-• Add specific financial examples (IUL performance, tax-free retirement scenarios, etc.)
-• Include 2-3 sentences of explanation for EVERY claim
-• Add "For example..." or "In practice, this means..." phrases
-• Include relevant statistics and timeframes
-• Mention both advantages AND disadvantages of each point
-• Add expert insights like "Experienced agents recommend..."
-
-SECTION WORD COUNTS (strict minimums):
-- Introduction: 200 words
-- Each of 6-8 body sections: 200+ words  
-- FAQ section: 5-8 questions with 100-word answers each
-- Conclusion: 150 words
-
-TOTAL MINIMUM: 1,800 words. Do NOT submit under 1,500.`;
+2-8. Seven body sections (200+ words each)
+9. Conclusion (150+ words)`;
       }
 
       const contentResponse = await fetch('https://api.anthropic.com/v1/messages', {
@@ -461,79 +447,80 @@ TOTAL MINIMUM: 1,800 words. Do NOT submit under 1,500.`;
           model: 'claude-sonnet-4-5-20250929',
           max_tokens: 12000,
           system: systemPrompt + '\n\nIMPORTANT: Return ONLY a valid JSON object as specified. No prose, no markdown fences.',
-          messages: [
-            { role: 'user', content: currentPrompt }
-          ],
+          messages: [{ role: 'user', content: currentPrompt }],
         }),
       });
 
       if (!contentResponse.ok) {
         const errorText = await contentResponse.text();
         console.error(`[Missing] Content API error (${contentResponse.status}):`, errorText.substring(0, 500));
-        throw new Error(`Content generation failed: ${contentResponse.status}`);
+        await updateProgress(supabase, clusterId, {
+          message: `Content generation failed (${contentResponse.status})`,
+          in_progress: false,
+          last_error: `content_api_${contentResponse.status}`,
+        });
+        return;
       }
 
       const contentData = await contentResponse.json();
       const contentText = contentData?.content?.[0]?.text || '';
-      
       if (!contentText.trim()) {
-        throw new Error('Claude returned empty content response');
+        console.error('[Missing] Empty content response');
+        return;
       }
-      
+
       try {
         contentJson = extractJsonFromResponse(contentText);
-      } catch (parseError) {
-        console.error(`[Missing] Content parse error:`, parseError);
-        console.error(`[Missing] Raw content (first 500 chars):`, contentText.substring(0, 500));
-        throw new Error(`Failed to parse content JSON: ${parseError instanceof Error ? parseError.message : String(parseError)}`);
+      } catch (e) {
+        console.error('[Missing] Content parse error:', e);
+        return;
       }
 
       lastWordCount = countWords(contentJson.detailed_content || '');
       console.log(`[Missing] ━━━ Attempt ${attempts}: ${lastWordCount} words ━━━`);
-      
+
       if (lastWordCount >= 1200) {
-        console.log(`[Missing] ✅ Word count requirement met!`);
+        console.log('[Missing] ✅ Word count requirement met!');
         break;
       }
-      
+
       if (attempts < maxAttempts) {
         console.warn(`[Missing] ⚠️ Word count ${lastWordCount} below 1200, will retry...`);
-        await new Promise(resolve => setTimeout(resolve, 500));
-      } else {
-        console.error(`[Missing] ❌ Failed to reach 1200 words after ${maxAttempts} attempts (final: ${lastWordCount})`);
+        await new Promise((r) => setTimeout(r, 500));
       }
     }
 
-    // HARD FAIL: If still under 1000 words, reject the article
     if (lastWordCount < 1000) {
-      throw new Error(`Article generation failed: Could not reach minimum word count after ${maxAttempts} attempts (only ${lastWordCount} words). Article rejected.`);
+      console.error(`[Missing] ❌ Failed to reach minimum word count (${lastWordCount}); skipping save`);
+      await updateProgress(supabase, clusterId, {
+        message: `Article ${nextClusterNumber} rejected (only ${lastWordCount} words)`,
+        in_progress: false,
+        last_error: 'word_count_too_low',
+      });
+      return;
     }
-    
+
     article.detailed_content = contentJson.detailed_content || contentJson.content || '';
     article.meta_title = (contentJson.meta_title || plan.headline).substring(0, 60);
     article.meta_description = (contentJson.meta_description || '').substring(0, 160);
     article.speakable_answer = contentJson.speakable_answer || '';
     article.qa_entities = contentJson.qa_entities || contentJson.faqs || [];
-    
-    // Use placeholder image (DALL-E takes too long and causes edge function timeout)
-    console.log(`[Missing] Using placeholder image to avoid timeout`);
+
+    console.log('[Missing] Using placeholder image to avoid timeout');
     article.featured_image_url = 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=1792&h=1024&fit=crop';
     article.featured_image_alt = `${plan.headline} - Everence Wealth financial planning`;
 
-    // Author & Reviewer
     const randomAuthor = authors?.[Math.floor(Math.random() * (authors?.length || 1))] || { id: null };
-    const randomReviewer = authors?.filter(a => a.id !== randomAuthor.id)?.[0] || randomAuthor;
+    const randomReviewer = authors?.filter((a: any) => a.id !== randomAuthor.id)?.[0] || randomAuthor;
     article.author_id = randomAuthor.id;
     article.reviewer_id = randomReviewer.id;
 
-    // Cluster metadata - USE THE GAP-FILLING cluster_number
     article.cluster_id = clusterId;
     article.cluster_number = nextClusterNumber;
     article.cluster_theme = cluster.topic;
     article.date_published = new Date().toISOString();
     article.date_modified = new Date().toISOString();
 
-    // Assign hreflang_group_id - check if existing articles with same cluster_number have one
     const { data: siblingArticle } = await supabase
       .from('blog_articles')
       .select('hreflang_group_id')
@@ -546,28 +533,51 @@ TOTAL MINIMUM: 1,800 words. Do NOT submit under 1,500.`;
     article.hreflang_group_id = siblingArticle?.hreflang_group_id || crypto.randomUUID();
     console.log(`[Missing] Assigned hreflang_group_id: ${article.hreflang_group_id}`);
 
-    // Quality validation
     const quality = validateContentQuality(article, plan);
     console.log(`[Missing] Article quality: ${quality.score}/100`);
     if (quality.issues.length > 0) {
-      console.warn(`[Missing] Quality issues:`, quality.issues);
+      console.warn('[Missing] Quality issues:', quality.issues);
     }
 
-    // Save to database
-    const { data: savedArticle, error: saveError } = await supabase
+    // ─── IDEMPOTENCY GUARD ────────────────────────────
+    // Re-check that this slot is still open right before insert
+    const { data: slotTaken } = await supabase
       .from('blog_articles')
-      .insert(article)
       .select('id')
-      .single();
+      .eq('cluster_id', clusterId)
+      .eq('language', sourceLanguage)
+      .eq('cluster_number', nextClusterNumber)
+      .limit(1)
+      .maybeSingle();
 
-    if (saveError) {
-      console.error(`[Missing] DB insert error:`, saveError);
-      throw new Error(`Failed to save article: ${saveError.message}`);
+    if (slotTaken) {
+      console.warn(`[Missing] ⚠️ Slot ${nextClusterNumber} was filled by a concurrent run — skipping insert`);
+    } else {
+      const { data: savedArticle, error: saveError } = await supabase
+        .from('blog_articles')
+        .insert(article)
+        .select('id')
+        .single();
+
+      if (saveError) {
+        // If race condition unique-violation, treat as success and continue chain
+        if ((saveError as any).code === '23505') {
+          console.warn(`[Missing] Insert race detected on slot ${nextClusterNumber}; continuing`);
+        } else {
+          console.error('[Missing] DB insert error:', saveError);
+          await updateProgress(supabase, clusterId, {
+            message: `DB insert failed: ${saveError.message}`,
+            in_progress: false,
+            last_error: 'db_insert_failed',
+          });
+          return;
+        }
+      } else {
+        console.log(`[Missing] ✅ Article saved: ${savedArticle.id} (cluster_number: ${nextClusterNumber})`);
+      }
     }
 
-    console.log(`[Missing] ✅ Article saved: ${savedArticle.id} (cluster_number: ${nextClusterNumber})`);
-
-    // Check if cluster is now complete (6 source articles) and update status
+    // ─── RECOUNT + SELF-CONTINUE ──────────────────────
     const { count: finalCount } = await supabase
       .from('blog_articles')
       .select('id', { count: 'exact', head: true })
@@ -576,53 +586,94 @@ TOTAL MINIMUM: 1,800 words. Do NOT submit under 1,500.`;
 
     console.log(`[Missing] Final article count for source language: ${finalCount}`);
 
-    if (finalCount && finalCount >= 6) {
+    const completeNow = (finalCount || 0) >= 6;
+
+    await updateProgress(supabase, clusterId, {
+      saved_articles: finalCount || 0,
+      message: completeNow
+        ? 'Source articles complete. Ready for translation.'
+        : `Saved ${finalCount}/6 source articles. Continuing in background...`,
+      source_complete: completeNow,
+      needs_translation: completeNow,
+      in_progress: !completeNow,
+    });
+
+    if (completeNow) {
       const { error: updateError } = await supabase
         .from('cluster_generations')
-        .update({ 
-          status: 'partial',  // Changed from 'completed' - translations still needed
-          progress: {
-            saved_articles: finalCount,
-            timeout_stopped: false,
-            message: 'Source articles complete. Ready for translation.',
-            source_complete: true,
-            needs_translation: true
-          }
-        })
+        .update({ status: 'partial' })
         .eq('id', clusterId);
-
       if (updateError) {
-        console.error(`[Missing] Failed to update cluster status:`, updateError);
+        console.error('[Missing] Failed to update cluster status:', updateError);
       } else {
-        console.log(`[Missing] ✅ Updated cluster status to 'partial' (ready for translation)`);
+        console.log(`[Missing] ✅ Cluster status set to 'partial' (ready for translation)`);
       }
+      return;
     }
 
-    // CHUNKED RESPONSE: Return remaining count so frontend knows to call again
-    const remaining = totalMissing - 1;
-
-    return new Response(JSON.stringify({
-      success: true,
-      message: `Generated 1 article. ${remaining} remaining.`,
-      generated: 1,
-      remaining: remaining,
-      articleId: savedArticle.id,
-      articleHeadline: article.headline,
-      existing: existingByStage,
-    }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
-
-  } catch (error) {
-    console.error('[Missing] Unexpected error:', error);
-    return new Response(JSON.stringify({ 
-      success: false, 
-      error: error instanceof Error ? error.message : String(error),
-      generated: 0,
-      remaining: 0,
-    }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    // Still missing — chain another background invocation
+    await selfContinue(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, clusterId, specificFunnelStage);
+  } catch (err) {
+    console.error('[Missing] Unexpected background error:', err);
+    try {
+      const supa = createClient(
+        Deno.env.get('SUPABASE_URL')!,
+        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+      );
+      await updateProgress(supa, clusterId, {
+        message: `Background error: ${err instanceof Error ? err.message : String(err)}`,
+        in_progress: false,
+        last_error: 'unexpected_background_error',
+      });
+    } catch (_e) { /* swallow */ }
   }
+}
+
+serve(async (req) => {
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  let clusterId: string | undefined;
+  let specificFunnelStage: string | undefined;
+  try {
+    const body = await req.json();
+    clusterId = body.clusterId;
+    specificFunnelStage = body.specificFunnelStage;
+  } catch (_e) {
+    return new Response(
+      JSON.stringify({ success: false, error: 'Invalid JSON body' }),
+      { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  }
+
+  if (!clusterId) {
+    return new Response(
+      JSON.stringify({ success: false, error: 'Missing clusterId' }),
+      { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  }
+
+  // Kick off the long-running work in the background so the HTTP response
+  // is returned immediately and survives client disconnects.
+  try {
+    // EdgeRuntime is provided by the Supabase Deno runtime
+    // @ts-ignore - EdgeRuntime is a runtime global
+    EdgeRuntime.waitUntil(processChunk(clusterId, specificFunnelStage));
+  } catch (_e) {
+    // Fallback: if EdgeRuntime is unavailable, still kick off the work without awaiting it
+    processChunk(clusterId, specificFunnelStage).catch((err) =>
+      console.error('[Missing] Background work failed (no waitUntil):', err)
+    );
+  }
+
+  return new Response(
+    JSON.stringify({
+      success: true,
+      accepted: true,
+      clusterId,
+      message: 'Background generation started. Poll cluster_generations.progress / blog_articles for state.',
+    }),
+    { status: 202, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+  );
 });

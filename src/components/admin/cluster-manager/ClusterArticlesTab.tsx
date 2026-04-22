@@ -258,59 +258,125 @@ export const ClusterArticlesTab = ({
 
   const handleGenerateMissing = async () => {
     setIsGeneratingMissing(true);
-    let totalGenerated = 0;
-    
+
+    // Helper: read current source-language article count straight from the DB
+    const readSourceCount = async (): Promise<number> => {
+      const { count } = await supabase
+        .from('blog_articles')
+        .select('id', { count: 'exact', head: true })
+        .eq('cluster_id', cluster.cluster_id)
+        .eq('language', sourceInfo.sourceLanguage);
+      return count || 0;
+    };
+
+    // Helper: read job progress (best-effort)
+    const readJobProgress = async (): Promise<{ in_progress?: boolean; last_error?: string; message?: string } | null> => {
+      const { data } = await supabase
+        .from('cluster_generations')
+        .select('progress')
+        .eq('id', cluster.cluster_id)
+        .maybeSingle();
+      return (data?.progress as any) || null;
+    };
+
+    const startCount = await readSourceCount();
+    const targetCount = 6;
+
+    if (startCount >= targetCount) {
+      toast.info('All 6 source articles already exist.');
+      setIsGeneratingMissing(false);
+      return;
+    }
+
     try {
-      // First call to check how many are needed
-      toast.info("Checking for missing articles...");
-      
-      let remaining = 1; // Assume work needed initially
-      
-      while (remaining > 0) {
-        setGenerationProgress({ current: totalGenerated + 1, total: totalGenerated + remaining });
-        toast.info(`Generating article ${totalGenerated + 1}... (this takes 1-2 min)`);
-        
-        const { data, error } = await supabase.functions.invoke('generate-missing-articles', {
-          body: { clusterId: cluster.cluster_id }
+      toast.info(`Starting background generation (${startCount}/${targetCount} done)...`, {
+        description: 'The backend will keep working even if this tab disconnects.',
+      });
+
+      // Fire the background invocation. We don't depend on its response body —
+      // the edge function returns 202 immediately and runs asynchronously.
+      try {
+        await supabase.functions.invoke('generate-missing-articles', {
+          body: { clusterId: cluster.cluster_id },
         });
-        
-        if (error) throw error;
-        
-        if (data.generated > 0) {
-          totalGenerated += data.generated;
-          remaining = data.remaining || 0;
-          
-          toast.success(`✅ Generated "${data.articleHeadline?.substring(0, 40)}..." (${remaining} remaining)`);
-          
-          // Refresh data so UI updates
-          queryClient.invalidateQueries({ queryKey: ['cluster-articles', cluster.cluster_id] });
-        } else if (data.success && data.generated === 0) {
-          // No more articles to generate
-          remaining = 0;
-          if (totalGenerated === 0) {
-            toast.info(data.message || "All required articles already exist");
-          }
-        } else if (!data.success) {
-          // Error occurred
-          toast.error(data.error || data.message || "Generation failed");
+      } catch (invokeErr: any) {
+        // A connection drop here is expected and OK — the worker is still running server-side.
+        console.warn('[GenerateMissing] invoke returned an error (likely connection drop, ignoring):', invokeErr);
+      }
+
+      // Poll DB until count reaches 6 or progress reports a hard error / stalls
+      const pollIntervalMs = 8000;
+      const maxStallChecks = 6; // ~48s of no progress before giving up
+      const overallTimeoutMs = 20 * 60 * 1000; // 20 minutes hard cap
+      const startedAt = Date.now();
+
+      let lastSeenCount = startCount;
+      let stallCount = 0;
+      let currentCount = startCount;
+
+      setGenerationProgress({ current: currentCount, total: targetCount });
+
+      while (currentCount < targetCount) {
+        if (Date.now() - startedAt > overallTimeoutMs) {
+          toast.warning('Background generation is taking longer than expected. Refresh the page in a few minutes to check again.');
           break;
         }
-        
-        // Small delay between calls to avoid overwhelming the API
-        if (remaining > 0) {
-          await new Promise(r => setTimeout(r, 2000));
+
+        await new Promise((r) => setTimeout(r, pollIntervalMs));
+        currentCount = await readSourceCount();
+        setGenerationProgress({ current: currentCount, total: targetCount });
+        queryClient.invalidateQueries({ queryKey: ['cluster-articles', cluster.cluster_id] });
+
+        if (currentCount > lastSeenCount) {
+          toast.success(`Saved article ${currentCount}/${targetCount}`);
+          lastSeenCount = currentCount;
+          stallCount = 0;
+          continue;
+        }
+
+        stallCount++;
+        const progress = await readJobProgress();
+        if (progress?.in_progress === false && (currentCount < targetCount)) {
+          if (progress?.last_error) {
+            toast.error(`Background generation reported an error: ${progress.last_error}`);
+            break;
+          }
+          // Worker stopped but count not at 6 — re-kick the chain once.
+          if (stallCount === 1) {
+            toast.info('Re-starting background generation...');
+            try {
+              await supabase.functions.invoke('generate-missing-articles', {
+                body: { clusterId: cluster.cluster_id },
+              });
+            } catch (_e) {
+              // ignore disconnects
+            }
+            continue;
+          }
+        }
+
+        if (stallCount >= maxStallChecks) {
+          toast.warning(`No progress detected for ${(maxStallChecks * pollIntervalMs) / 1000}s. The job may still be running — refresh later to verify.`);
+          break;
         }
       }
-      
-      if (totalGenerated > 0) {
-        toast.success(`🎉 Generated all ${totalGenerated} missing articles!`);
+
+      if (currentCount >= targetCount) {
+        toast.success('🎉 All 6 source articles generated! Ready for translation.');
       }
     } catch (error: any) {
       console.error('Generate missing failed:', error);
-      toast.error(`Failed after generating ${totalGenerated} articles: ${error.message}`);
+      // Do a final DB check before reporting failure — work may have completed in background.
+      const finalCount = await readSourceCount();
+      if (finalCount >= targetCount) {
+        toast.success('🎉 All 6 source articles generated!');
+      } else {
+        toast.error(`Generation interrupted. Currently ${finalCount}/${targetCount} done. Click Generate Missing again to resume.`);
+      }
     } finally {
       setIsGeneratingMissing(false);
       setGenerationProgress(null);
+      queryClient.invalidateQueries({ queryKey: ['cluster-articles', cluster.cluster_id] });
       queryClient.invalidateQueries({ queryKey: ['clusters-unified'] });
     }
   };
