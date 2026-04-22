@@ -80,12 +80,9 @@ serve(async (req) => {
   }
 
   try {
-    const falKey = Deno.env.get('FAL_KEY');
-    if (!falKey) {
-      throw new Error('FAL_KEY is not configured');
+    if (!Deno.env.get('KIE_API_KEY')) {
+      throw new Error('KIE_API_KEY is not configured');
     }
-
-    fal.config({ credentials: falKey.trim() });
 
     // Initialize Supabase client for storage uploads
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
@@ -98,49 +95,47 @@ serve(async (req) => {
     // Mobile prompt - SITTING couple on terrace at SUNSET, positioned in UPPER THIRD
     const mobilePrompt = `A photorealistic, high-end lifestyle photograph of an attractive couple in their late 50s SITTING together on a plush outdoor sofa on the terrace of their luxury modern professional villa in wealth management. The couple is positioned in the UPPER THIRD of the frame, sitting close together, the man's arm around his wife. They are casually elegant in white/cream linen, holding champagne flutes, looking relaxed and content. Behind them, a stunning infinity pool with glass railing and GOLDEN SUNSET sky with warm orange-pink hues reflecting on the professional Sea. Modern villa architecture with floor-to-ceiling glass and natural stone. GOLDEN HOUR SUNSET lighting - warm, romantic, cinematic. Beige, cream, coral, and gold color palette. Shot in the style of Architectural Digest, 8k resolution, portrait composition. CRITICAL: Couple must be SITTING in the UPPER THIRD. The LOWER portion shows the terrace, pool, and sunset - NO PEOPLE in those areas.`;
 
-    console.log('Generating hero images with Nano Banana Pro...');
-    
-    // Generate desktop landscape images (16:9) - couple on RIGHT
-    const desktopResult = await fal.subscribe("fal-ai/nano-banana-pro", {
-      input: {
+    console.log('Generating hero images with Kie.ai Nano Banana 2 (4K)...');
+
+    // Nano Banana 2 returns one image per task. Run 3 desktop + 3 mobile in parallel.
+    const NUM_VARIATIONS = 3;
+    const desktopPromises = Array.from({ length: NUM_VARIATIONS }, () =>
+      kieGenerateImage({
         prompt: desktopPrompt,
-        aspect_ratio: "16:9",
-        resolution: "2K",
-        num_images: 3,
-        output_format: "png"
-      },
-      logs: true,
-    }) as FalResult;
-
-    // Generate mobile portrait images (4:3) - couple CENTERED
-    const mobileResult = await fal.subscribe("fal-ai/nano-banana-pro", {
-      input: {
+        aspectRatio: "16:9",
+        resolution: "4K",
+        outputFormat: "png",
+      })
+    );
+    const mobilePromises = Array.from({ length: NUM_VARIATIONS }, () =>
+      kieGenerateImage({
         prompt: mobilePrompt,
-        aspect_ratio: "4:3",
-        resolution: "2K",
-        num_images: 3,
-        output_format: "png"
-      },
-      logs: true,
-    }) as FalResult;
+        aspectRatio: "4:3",
+        resolution: "4K",
+        outputFormat: "png",
+      })
+    );
 
-    console.log('Desktop images generated:', desktopResult.images.length);
-    console.log('Mobile images generated:', mobileResult.images.length);
+    const [desktopResults, mobileResults] = await Promise.all([
+      Promise.all(desktopPromises),
+      Promise.all(mobilePromises),
+    ]);
+
+    console.log('Desktop images generated:', desktopResults.length);
+    console.log('Mobile images generated:', mobileResults.length);
 
     // Upload all images to Supabase Storage
     console.log('📤 Uploading images to Supabase Storage...');
-    
+
     const uploadedDesktopImages = await Promise.all(
-      desktopResult.images.map(async (img, i) => ({
-        ...img,
-        url: await uploadToStorage(img.url, supabase, 'article-images', `hero-desktop-${i}`)
+      desktopResults.map(async (r, i) => ({
+        url: await uploadToStorage(r.url, supabase, 'article-images', `hero-desktop-${i}`),
       }))
     );
 
     const uploadedMobileImages = await Promise.all(
-      mobileResult.images.map(async (img, i) => ({
-        ...img,
-        url: await uploadToStorage(img.url, supabase, 'article-images', `hero-mobile-${i}`)
+      mobileResults.map(async (r, i) => ({
+        url: await uploadToStorage(r.url, supabase, 'article-images', `hero-mobile-${i}`),
       }))
     );
 
