@@ -40,6 +40,38 @@ const corsHeaders = {
 
 const CHUNK_SIZE = 1; // One article per chunk to prevent timeouts
 const MAX_CHUNK_RUNTIME = 4 * 60 * 1000; // 4 minutes per chunk (safety margin)
+const CLAUDE_TIMEOUT_MS = 120_000; // 2 min per Claude call — anything longer is a hung connection
+
+// Heartbeat: log + persist last activity to cluster_generations.progress
+// so frontend dialog & log tail both show where the worker actually is.
+async function heartbeat(supabase: any, jobId: string, msg: string) {
+  console.log(`[heartbeat] ${msg}`);
+  try {
+    await supabase
+      .from('cluster_generations')
+      .update({
+        progress: { last_heartbeat: msg, ts: new Date().toISOString() },
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', jobId);
+  } catch (e) {
+    // Heartbeat must never break generation
+    console.warn('[heartbeat] update failed:', (e as any)?.message);
+  }
+}
+
+// Fetch wrapper that converts AbortError → "claude_timeout" so callers can pattern-match.
+async function fetchClaudeWithTimeout(url: string, init: RequestInit, timeoutMs = CLAUDE_TIMEOUT_MS): Promise<Response> {
+  try {
+    return await fetch(url, { ...init, signal: AbortSignal.timeout(timeoutMs) });
+  } catch (err) {
+    const name = (err as any)?.name;
+    if (name === 'TimeoutError' || name === 'AbortError') {
+      throw new Error('claude_timeout');
+    }
+    throw err;
+  }
+}
 
 // Helper function to extract domain from URL
 function extractDomain(url: string): string {
