@@ -155,7 +155,7 @@ export default function AITools() {
                 <Image className="h-5 w-5 text-primary" />
                 Image Generation
               </CardTitle>
-              <CardDescription>FAL.ai - High-quality image generation</CardDescription>
+              <CardDescription>Kie.ai Nano Banana 2 - High-quality image generation</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
@@ -167,7 +167,7 @@ export default function AITools() {
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Model</span>
-                  <span className="font-medium">flux-dev</span>
+                  <span className="font-medium">nano-banana-2</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Avg. Time</span>
@@ -347,8 +347,8 @@ export default function AITools() {
               <TableBody>
                 <TableRow>
                   <TableCell className="font-medium">Image Generation</TableCell>
-                  <TableCell>FAL.ai</TableCell>
-                  <TableCell>flux-dev</TableCell>
+                  <TableCell>Kie.ai</TableCell>
+                  <TableCell>nano-banana-2</TableCell>
                   <TableCell>
                     <Badge variant="outline" className="bg-green-500/10 text-green-600 border-green-500/20">
                       Active
@@ -408,8 +408,8 @@ export default function AITools() {
             <div className="space-y-2">
               <div className="flex items-center justify-between p-3 border rounded-lg">
                 <div>
-                  <p className="font-medium">FAL_KEY</p>
-                  <p className="text-sm text-muted-foreground">FAL.ai API Key</p>
+                  <p className="font-medium">KIE_API_KEY</p>
+                  <p className="text-sm text-muted-foreground">Kie.ai API Key (Nano Banana 2)</p>
                 </div>
                 <Badge>Configured</Badge>
               </div>
