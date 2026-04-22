@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Linkedin, Mail, Phone, MapPin, Twitter, Youtube } from 'lucide-react';
 import { FooterBackgroundGradient, TextHoverEffect } from '@/components/ui/hover-footer';
+import { BUSINESS } from '@/config/business';
 
 export const Footer: React.FC = () => {
   const lang = window.location.pathname.split('/')[1] || 'en';
@@ -48,8 +49,8 @@ export const Footer: React.FC = () => {
   ];
 
   const contactInfo = [
-    { icon: <Mail size={18} className="text-prime-gold" />, text: 'info@everencewealth.com', href: 'mailto:info@everencewealth.com' },
-    { icon: <Phone size={18} className="text-prime-gold" />, text: '(415) 555-0100', href: 'tel:+14155550100' },
+    { icon: <Mail size={18} className="text-prime-gold" />, text: BUSINESS.email, href: `mailto:${BUSINESS.email}` },
+    { icon: <Phone size={18} className="text-prime-gold" />, text: '(925) 433-7724', href: `tel:${BUSINESS.telephoneE164}` },
     { icon: <MapPin size={18} className="text-prime-gold" />, text: 'San Francisco, CA' },
   ];
 

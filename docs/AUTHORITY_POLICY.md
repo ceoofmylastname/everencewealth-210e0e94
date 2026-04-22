@@ -11,6 +11,15 @@
   Do NOT substitute the company LinkedIn page; per schema.org, Person.sameAs must
   point to pages ABOUT THAT PERSON.
 
+## TODO: Pending Assets
+- /public/images/steven-blog.jpg — verified headshot of Steven Rosenberg
+- /public/images/steven-qa.jpg — verified headshot of Steven Rosenberg
+
+These files must be uploaded BEFORE the `Person.image` field can be re-added
+to `PersonSchema.tsx`, `generateStaticTeamPage.ts`, or any other schema.
+Do NOT substitute the legacy `hans-*.jpg` files — those are photos of a
+different person and substituting them violates schema.org E-E-A-T rules.
+
 ## Date Handling Rules
 
 ### datePublished

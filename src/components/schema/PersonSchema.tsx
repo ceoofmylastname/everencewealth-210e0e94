@@ -1,14 +1,10 @@
 import React from 'react';
 
-interface PersonSchemaProps {
-    context: 'blog' | 'qa';
-}
-
-const PersonSchema: React.FC<PersonSchemaProps> = ({ context }) => {
-    const photoUrl = context === 'blog'
-        ? 'https://www.everencewealth.com/images/steven-blog.jpg'
-        : 'https://www.everencewealth.com/images/steven-qa.jpg';
-
+// TODO: Person.image pending verified headshots of Steven Rosenberg.
+// Do NOT substitute placeholder photos — schema.org E-E-A-T integrity rule:
+// the image MUST be a verified photo of the named person.
+// Required assets: /public/images/steven-blog.jpg and /public/images/steven-qa.jpg
+const PersonSchema: React.FC = () => {
     const personSchema = {
         "@context": "https://schema.org",
         "@type": "Person",
@@ -16,7 +12,6 @@ const PersonSchema: React.FC<PersonSchemaProps> = ({ context }) => {
         "name": "Steven Rosenberg",
         "jobTitle": "Founder & Chief Wealth Strategist",
         "description": "Founder & Chief Wealth Strategist at Everence Wealth. Independent insurance broker and licensed professional serving families across all 50 states.",
-        "image": photoUrl,
         // sameAs intentionally omitted — pending verified personal profile URL.
         // Per schema.org, Person.sameAs must point to pages ABOUT THAT PERSON;
         // a company LinkedIn page is NOT valid here.

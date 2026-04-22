@@ -101,7 +101,9 @@ function buildSchemas(lang: 'en' | 'es', canonicalUrl: string, dateModified: str
     name: BUSINESS.founders[0].name,
     jobTitle: BUSINESS.founders[0].jobTitle,
     description: 'Founder & Chief Wealth Strategist at Everence Wealth. Independent insurance broker and licensed professional serving families across all 50 states.',
-    image: 'https://www.everencewealth.com/images/steven-blog.jpg',
+    // TODO: Person.image pending verified headshots of Steven Rosenberg.
+    // Do NOT substitute placeholder photos — schema.org E-E-A-T integrity rule:
+    // the image MUST be a verified photo of the named person.
     // sameAs intentionally omitted — pending verified personal profile URL.
     // Per schema.org, Person.sameAs must point to pages ABOUT THAT PERSON;
     // a company LinkedIn page is NOT valid here.
