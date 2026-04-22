@@ -7,6 +7,7 @@
 import { writeFileSync, mkdirSync, readFileSync, existsSync } from 'fs';
 import { join } from 'path';
 import { execSync } from 'child_process';
+import { BUSINESS, businessPostalAddress, businessAreaServed } from '../src/config/business';
 
 const BASE_URL = 'https://www.everencewealth.com';
 const COMPONENT_FILE = 'src/pages/Team.tsx';
@@ -76,21 +77,19 @@ function buildSchemas(lang: 'en' | 'es', canonicalUrl: string, dateModified: str
     '@context': 'https://schema.org',
     '@type': 'FinancialService',
     '@id': `${BASE_URL}/#organization`,
-    name: 'Everence Wealth',
+    name: BUSINESS.name,
+    alternateName: BUSINESS.alternateName,
     description: meta.description,
     url: BASE_URL,
-    logo: `${BASE_URL}/logo.png`,
-    address: {
-      '@type': 'PostalAddress',
-      streetAddress: '455 Market St Ste 1940 PMB 350011',
-      addressLocality: 'San Francisco',
-      addressRegion: 'CA',
-      postalCode: '94105',
-      addressCountry: 'US',
-    },
-    telephone: '+1-415-555-0100',
-    email: 'info@everencewealth.com',
-    areaServed: { '@type': 'Country', name: 'United States' },
+    logo: BUSINESS.logo.url,
+    address: businessPostalAddress(),
+    telephone: BUSINESS.telephone,
+    email: BUSINESS.email,
+    areaServed: businessAreaServed(),
+    sameAs: [...BUSINESS.sameAs],
+    foundingDate: BUSINESS.foundingDate,
+    slogan: BUSINESS.slogan,
+    priceRange: BUSINESS.priceRange,
     knowsLanguage: ['en', 'es'],
     employee: [{ '@id': `${BASE_URL}/#steven-rosenberg` }],
   };
@@ -99,11 +98,13 @@ function buildSchemas(lang: 'en' | 'es', canonicalUrl: string, dateModified: str
     '@context': 'https://schema.org',
     '@type': 'Person',
     '@id': `${BASE_URL}/#steven-rosenberg`,
-    name: 'Steven Rosenberg',
-    jobTitle: 'Founder & Chief Wealth Strategist',
+    name: BUSINESS.founders[0].name,
+    jobTitle: BUSINESS.founders[0].jobTitle,
     description: 'Founder & Chief Wealth Strategist at Everence Wealth. Independent insurance broker and licensed professional serving families across all 50 states.',
     image: 'https://www.everencewealth.com/images/steven-blog.jpg',
-    sameAs: ['https://www.linkedin.com/in/stevenrosenberg/'],
+    // sameAs intentionally omitted — pending verified personal profile URL.
+    // Per schema.org, Person.sameAs must point to pages ABOUT THAT PERSON;
+    // a company LinkedIn page is NOT valid here.
     worksFor: { '@id': `${BASE_URL}/#organization` },
     knowsAbout: [
       'Indexed Universal Life Insurance',

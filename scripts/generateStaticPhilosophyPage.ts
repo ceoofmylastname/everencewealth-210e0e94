@@ -12,6 +12,7 @@
 import { writeFileSync, mkdirSync, readFileSync, existsSync } from 'fs';
 import { join } from 'path';
 import { execSync } from 'child_process';
+import { BUSINESS, businessPostalAddress } from '../src/config/business';
 
 const BASE_URL = 'https://www.everencewealth.com';
 const COMPONENT_FILE = 'src/pages/Philosophy.tsx';
@@ -81,24 +82,23 @@ function buildSchemas(lang: 'en' | 'es', canonicalUrl: string, dateModified: str
     '@context': 'https://schema.org',
     '@type': 'FinancialService',
     '@id': `${BASE_URL}/#organization`,
-    name: 'Everence Wealth',
+    name: BUSINESS.name,
+    alternateName: BUSINESS.alternateName,
     url: BASE_URL,
-    logo: `${BASE_URL}/logo-icon.png`,
+    logo: BUSINESS.logo.url,
     description: 'Independent wealth management specializing in tax-efficient indexed retirement strategies.',
+    telephone: BUSINESS.telephone,
+    email: BUSINESS.email,
+    foundingDate: BUSINESS.foundingDate,
+    sameAs: [...BUSINESS.sameAs],
     founder: {
       '@type': 'Person',
       '@id': `${BASE_URL}/#steven-rosenberg`,
-      name: 'Steven Rosenberg',
-      jobTitle: 'Founder & Chief Wealth Strategist',
+      name: BUSINESS.founders[0].name,
+      jobTitle: BUSINESS.founders[0].jobTitle,
+      // sameAs intentionally omitted — pending verified personal profile URL.
     },
-    address: {
-      '@type': 'PostalAddress',
-      streetAddress: '455 Market St Ste 1940 PMB 350011',
-      addressLocality: 'San Francisco',
-      addressRegion: 'CA',
-      postalCode: '94105',
-      addressCountry: 'US',
-    },
+    address: businessPostalAddress(),
     slogan: 'Bridge the Retirement Gap',
     knowsAbout: [
       'Tax-Free Retirement Planning',
