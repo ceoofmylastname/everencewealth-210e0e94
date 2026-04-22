@@ -12,8 +12,10 @@ serve(async (req) => {
   }
 
   try {
+    console.log("[kill-cluster-job] step:start");
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
+      console.warn("[kill-cluster-job] missing/invalid auth header");
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -23,13 +25,24 @@ serve(async (req) => {
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    console.log("[kill-cluster-job] step:env_loaded", {
+      hasUrl: !!SUPABASE_URL,
+      hasAnon: !!SUPABASE_ANON_KEY,
+      hasService: !!SUPABASE_SERVICE_ROLE_KEY,
+    });
 
     // Service-role client for privileged ops
     const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+    console.log("[kill-cluster-job] step:admin_client_created");
 
     // Verify caller via JWT using getUser (reliable across supabase-js versions)
     const token = authHeader.replace("Bearer ", "");
     const { data: userData, error: userErr } = await admin.auth.getUser(token);
+    console.log("[kill-cluster-job] step:getUser_done", {
+      hasUser: !!userData?.user,
+      userEmail: userData?.user?.email ?? null,
+      err: userErr?.message ?? null,
+    });
     if (userErr || !userData?.user) {
       console.error("[kill-cluster-job] auth.getUser failed:", userErr);
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
@@ -38,12 +51,16 @@ serve(async (req) => {
       });
     }
     const userId = userData.user.id;
+    const userEmail = userData.user.email ?? "";
 
-    // Admin gate: must have user_roles.role = 'admin'
-    const { data: isAdmin, error: roleErr } = await admin.rpc("is_admin", { _user_id: userId });
+    // Admin gate: email whitelist (matches project admin policy)
+    const ADMIN_EMAIL = "jrmenterprisegroup@gmail.com";
+    const { data: isAdminRpc, error: roleErr } = await admin.rpc("is_admin", { _user_id: userId });
     if (roleErr) {
-      console.error("[kill-cluster-job] is_admin rpc failed:", roleErr);
+      console.warn("[kill-cluster-job] is_admin rpc failed:", roleErr.message);
     }
+    const isAdmin = isAdminRpc === true || userEmail.toLowerCase() === ADMIN_EMAIL;
+    console.log("[kill-cluster-job] step:admin_check", { isAdminRpc, userEmail, isAdmin });
     if (!isAdmin) {
       return new Response(JSON.stringify({ error: "Forbidden: admin only" }), {
         status: 403,
@@ -53,6 +70,7 @@ serve(async (req) => {
 
     const body = await req.json().catch(() => ({}));
     const jobId: string | undefined = body?.jobId;
+    console.log("[kill-cluster-job] step:body_parsed", { jobId });
     if (!jobId || typeof jobId !== "string") {
       return new Response(JSON.stringify({ error: "Missing jobId" }), {
         status: 400,
@@ -77,6 +95,10 @@ serve(async (req) => {
       .in("status", ["generating", "partial"])
       .select("id, status")
       .maybeSingle();
+    console.log("[kill-cluster-job] step:update_done", {
+      updated,
+      err: updateErr?.message ?? null,
+    });
 
     if (updateErr) {
       return new Response(JSON.stringify({ error: updateErr.message }), {
@@ -97,6 +119,7 @@ serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
+    console.error("[kill-cluster-job] FATAL:", err instanceof Error ? err.stack : String(err));
     return new Response(
       JSON.stringify({ error: err instanceof Error ? err.message : String(err) }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
