@@ -286,19 +286,19 @@ Respond with JSON: { "category": "exact category name from the list" }`;
           .replace(/\{\{languageName\}\}/g, languageName)
       : `Write a comprehensive article about "${plan.headline}" targeting the keyword "${plan.targetKeyword}".`;
 
-    // ALWAYS wrap in JSON requirements with STRICT word count
+    // ALWAYS wrap in JSON requirements with STRICT word count (matches master prompt: 1,500-2,500)
     const contentPrompt = `${basePrompt}
 
-CRITICAL WORD COUNT REQUIREMENT: The article MUST be between 800 and 2,500 words. Count your words carefully.
-- Minimum: 800 words (articles under this will be REJECTED)
-- Target: 1,200-1,800 words (ideal range)
+CRITICAL WORD COUNT REQUIREMENT: The article MUST be between 1,500 and 2,500 words. Count your words carefully.
+- Minimum: 1,500 words (articles under this will be REJECTED)
+- Target: 1,800-2,000 words (ideal range)
 - Maximum: 2,500 words
 
 You MUST respond with a valid JSON object with this exact structure:
 {
-  "detailed_content": "<div class='article-content'>...full HTML article content (MINIMUM 800 words, target 1200-1800)...</div>",
+  "detailed_content": "<div class='article-content'>...full HTML article content (MINIMUM 1,500 words, target 1,800-2,000)...</div>",
   "meta_title": "SEO title (50-60 characters)",
-  "meta_description": "SEO meta description (150-160 characters)", 
+  "meta_description": "SEO meta description (150-160 characters)",
   "speakable_answer": "40-60 word summary answering the main question directly",
   "qa_entities": [
     {"question": "FAQ question 1?", "answer": "Detailed answer (80-120 words, single paragraph, no lists)"},
@@ -306,9 +306,13 @@ You MUST respond with a valid JSON object with this exact structure:
   ]
 }
 
-Include 5-8 FAQ questions in qa_entities. Each answer must be 80-120 words in a single paragraph (no bullet points or lists).
-The detailed_content must be proper HTML with at least 6 H2 headings, detailed paragraphs, examples, and expert insights.
-REMEMBER: Minimum 800 words in detailed_content is MANDATORY.`;
+MANDATORY STRUCTURE inside detailed_content:
+- A <div class="speakable-answer">…40-60 word direct answer…</div> near the top (AEO requirement)
+- An <div class="eeat-section">…200-300 word expert E-E-A-T block with credentials, experience, sources…</div>
+- At least 6 <h2> headings, each followed by 2+ detailed paragraphs
+- 5-8 FAQ questions in qa_entities, each answer 80-120 words, single paragraph (no lists)
+
+REMEMBER: Minimum 1,500 words in detailed_content is MANDATORY. Missing .speakable-answer or .eeat-section will cause REJECTION.`;
 
     // Generate content with retry loop for word count enforcement (3 attempts with escalating prompts)
     let contentJson: any = null;
