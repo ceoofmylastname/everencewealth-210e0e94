@@ -454,15 +454,14 @@ SECTION WORD COUNTS (strict minimums):
 TOTAL MINIMUM: 1,800 words. Do NOT submit under 1,500.`;
       }
 
-      const contentResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+      const contentResponse = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
-        headers: { 'Authorization': `Bearer ${OPENAI_API_KEY}`, 'Content-Type': 'application/json' },
+        headers: { 'x-api-key': CLAUDE_API_KEY, 'anthropic-version': '2023-06-01', 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          model: 'gpt-4o',
+          model: 'claude-sonnet-4-5-20250929',
           max_tokens: 12000,
-          response_format: { type: 'json_object' },
+          system: systemPrompt + '\n\nIMPORTANT: Return ONLY a valid JSON object as specified. No prose, no markdown fences.',
           messages: [
-            { role: 'system', content: systemPrompt },
             { role: 'user', content: currentPrompt }
           ],
         }),
@@ -475,10 +474,10 @@ TOTAL MINIMUM: 1,800 words. Do NOT submit under 1,500.`;
       }
 
       const contentData = await contentResponse.json();
-      const contentText = contentData.choices?.[0]?.message?.content || '';
+      const contentText = contentData?.content?.[0]?.text || '';
       
       if (!contentText.trim()) {
-        throw new Error('OpenAI returned empty content response');
+        throw new Error('Claude returned empty content response');
       }
       
       try {
