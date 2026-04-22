@@ -40,6 +40,38 @@ const corsHeaders = {
 
 const CHUNK_SIZE = 1; // One article per chunk to prevent timeouts
 const MAX_CHUNK_RUNTIME = 4 * 60 * 1000; // 4 minutes per chunk (safety margin)
+const CLAUDE_TIMEOUT_MS = 120_000; // 2 min per Claude call — anything longer is a hung connection
+
+// Heartbeat: log + persist last activity to cluster_generations.progress
+// so frontend dialog & log tail both show where the worker actually is.
+async function heartbeat(supabase: any, jobId: string, msg: string) {
+  console.log(`[heartbeat] ${msg}`);
+  try {
+    await supabase
+      .from('cluster_generations')
+      .update({
+        progress: { last_heartbeat: msg, ts: new Date().toISOString() },
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', jobId);
+  } catch (e) {
+    // Heartbeat must never break generation
+    console.warn('[heartbeat] update failed:', (e as any)?.message);
+  }
+}
+
+// Fetch wrapper that converts AbortError → "claude_timeout" so callers can pattern-match.
+async function fetchClaudeWithTimeout(url: string, init: RequestInit, timeoutMs = CLAUDE_TIMEOUT_MS): Promise<Response> {
+  try {
+    return await fetch(url, { ...init, signal: AbortSignal.timeout(timeoutMs) });
+  } catch (err) {
+    const name = (err as any)?.name;
+    if (name === 'TimeoutError' || name === 'AbortError') {
+      throw new Error('claude_timeout');
+    }
+    throw err;
+  }
+}
 
 // Helper function to extract domain from URL
 function extractDomain(url: string): string {
@@ -192,7 +224,7 @@ Funnel Stage: ${plan.funnelStage}
 
 Respond with JSON: { "category": "exact category name from the list" }`;
 
-    const categoryResponse = await fetch('https://api.anthropic.com/v1/messages', {
+    const categoryResponse = await fetchClaudeWithTimeout('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: { 'x-api-key': CLAUDE_API_KEY, 'anthropic-version': '2023-06-01', 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -201,7 +233,7 @@ Respond with JSON: { "category": "exact category name from the list" }`;
         system: 'Return ONLY a valid JSON object as specified. No prose.',
         messages: [{ role: 'user', content: categoryPrompt }],
       }),
-    });
+    }, 30_000);
 
     let finalCategory = 'Buying Property';
     if (categoryResponse.ok) {
@@ -329,18 +361,35 @@ SECTION WORD COUNTS (strict minimums):
 TOTAL MINIMUM: 1,000 words. Do NOT submit under 800.`;
       }
       
-      const contentResponse = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: { 'x-api-key': CLAUDE_API_KEY, 'anthropic-version': '2023-06-01', 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-5-20250929',
-          max_tokens: 12000,
-          system: systemPrompt + '\n\nIMPORTANT: Return ONLY a valid JSON object as specified. No prose, no markdown fences.',
-          messages: [
-            { role: 'user', content: currentPrompt }
-          ],
-        }),
-      });
+      const articleNum = articleIndex + 1;
+      let contentResponse: Response;
+      const fetchStart = Date.now();
+      await heartbeat(supabase, jobId, `claude:fetch:start article=${articleNum} attempt=${attempts}`);
+      try {
+        contentResponse = await fetchClaudeWithTimeout('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: { 'x-api-key': CLAUDE_API_KEY, 'anthropic-version': '2023-06-01', 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            model: 'claude-sonnet-4-5-20250929',
+            max_tokens: 12000,
+            system: systemPrompt + '\n\nIMPORTANT: Return ONLY a valid JSON object as specified. No prose, no markdown fences.',
+            messages: [{ role: 'user', content: currentPrompt }],
+          }),
+        }, CLAUDE_TIMEOUT_MS);
+      } catch (err) {
+        if ((err as Error).message === 'claude_timeout') {
+          console.warn(`[chunk ${jobId}] claude_timeout article=${articleNum} attempt=${attempts}/${maxAttempts} (after ${Date.now() - fetchStart}ms)`);
+          await heartbeat(supabase, jobId, `claude:fetch:response article=${articleNum} attempt=${attempts} status=timeout`);
+          if (attempts >= maxAttempts) {
+            throw new Error(`claude_timeout: Claude API hung after ${maxAttempts} attempts (${CLAUDE_TIMEOUT_MS}ms each)`);
+          }
+          await new Promise(r => setTimeout(r, 1500));
+          continue; // retry with next attempt
+        }
+        throw err;
+      }
+
+      await heartbeat(supabase, jobId, `claude:fetch:response article=${articleNum} attempt=${attempts} status=${contentResponse.ok ? 'ok' : 'error'}`);
 
       if (!contentResponse.ok) {
         const errorText = await contentResponse.text();
@@ -355,6 +404,7 @@ TOTAL MINIMUM: 1,000 words. Do NOT submit under 800.`;
         throw new Error('Claude returned empty content response');
       }
 
+      await heartbeat(supabase, jobId, `claude:parse:start article=${articleNum}`);
       try {
         contentJson = extractJsonFromResponse(contentText);
       } catch (e) {
@@ -417,6 +467,8 @@ TOTAL MINIMUM: 1,000 words. Do NOT submit under 800.`;
     }
 
     // 7. SAVE TO DATABASE
+    await heartbeat(supabase, jobId, `claude:db:save:start article=${articleIndex + 1}`);
+    const saveStart = Date.now();
     const { data: savedArticle, error: saveError } = await supabase
       .from('blog_articles')
       .insert(article)
@@ -427,6 +479,7 @@ TOTAL MINIMUM: 1,000 words. Do NOT submit under 800.`;
       throw new Error(`Failed to save article: ${saveError.message}`);
     }
 
+    await heartbeat(supabase, jobId, `claude:db:save:complete article=${articleIndex + 1} ms=${Date.now() - saveStart}`);
     console.log(`[Chunk ${jobId}] ✅ Article ${articleIndex + 1} saved: ${savedArticle.id}`);
     return { articleId: savedArticle.id, error: null };
 
@@ -536,6 +589,31 @@ serve(async (req) => {
         savedIds.push(result.articleId);
       } else {
         errors.push(`Article ${globalIndex + 1}: ${result.error}`);
+        // If Claude timed out for the entire article (all 3 attempts), mark job failed and stop chunk.
+        if (result.error && result.error.includes('claude_timeout')) {
+          await supabase
+            .from('cluster_generations')
+            .update({
+              status: 'failed',
+              error: 'claude_timeout',
+              progress: {
+                last_heartbeat: `claude_timeout article=${globalIndex + 1} attempt=3/3`,
+                ts: new Date().toISOString(),
+                message: `Claude API hung on article ${globalIndex + 1} after 3 attempts.`,
+              },
+              updated_at: new Date().toISOString(),
+            })
+            .eq('id', jobId);
+          return new Response(JSON.stringify({
+            success: false,
+            error: 'claude_timeout',
+            chunkIndex,
+            savedArticles: savedIds.length,
+          }), {
+            status: 200,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
       }
 
       // Check if we're running out of time

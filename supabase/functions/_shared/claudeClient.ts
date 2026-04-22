@@ -26,6 +26,7 @@ export interface CallClaudeOptions {
   maxTokens?: number;
   temperature?: number;
   apiKey?: string; // override; falls back to CLAUDE_API_KEY then ANTHROPIC_API_KEY
+  timeoutMs?: number; // per-request timeout; default 120_000 (2 min)
 }
 
 export interface ClaudeResponse {
@@ -54,6 +55,7 @@ export async function callClaude(opts: CallClaudeOptions): Promise<ClaudeRespons
   const apiKey = getApiKey(opts.apiKey);
   const model = opts.model || CLAUDE_MODELS.sonnet;
   const maxTokens = opts.maxTokens ?? 4096;
+  const timeoutMs = opts.timeoutMs ?? 120_000;
 
   const messages: ClaudeMessage[] = opts.messages
     ? opts.messages
@@ -73,15 +75,25 @@ export async function callClaude(opts: CallClaudeOptions): Promise<ClaudeRespons
   if (opts.system) body.system = opts.system;
   if (opts.temperature !== undefined) body.temperature = opts.temperature;
 
-  const response = await fetch(ANTHROPIC_URL, {
-    method: "POST",
-    headers: {
-      "x-api-key": apiKey,
-      "anthropic-version": ANTHROPIC_VERSION,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
-  });
+  let response: Response;
+  try {
+    response = await fetch(ANTHROPIC_URL, {
+      method: "POST",
+      headers: {
+        "x-api-key": apiKey,
+        "anthropic-version": ANTHROPIC_VERSION,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(timeoutMs),
+    });
+  } catch (err) {
+    const name = (err as any)?.name;
+    if (name === "TimeoutError" || name === "AbortError") {
+      throw new Error("claude_timeout");
+    }
+    throw err;
+  }
 
   if (!response.ok) {
     const errText = await response.text().catch(() => "");
