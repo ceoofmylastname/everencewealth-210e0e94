@@ -44,6 +44,21 @@ npx tsx scripts/generateStaticAboutPage.ts
 echo "📖 Generating static buyers guide pages..."
 npx tsx scripts/generateStaticBuyersGuide.ts dist
 
+# === SSR JSON-LD migration: bake schemas into pre-hydration HTML ===
+# Lets ClaudeBot, GPTBot, PerplexityBot, Applebot-Extended, Google-Extended
+# read JSON-LD without executing JavaScript.
+echo "🎯 Generating static strategy pages (8 routes)..."
+npx tsx scripts/generateStaticStrategyPages.ts dist
+
+echo "🧭 Generating static philosophy pages (EN + ES)..."
+npx tsx scripts/generateStaticPhilosophyPage.ts dist
+
+echo "📚 Generating static glossary index + term pages..."
+npx tsx scripts/generateStaticGlossary.ts dist
+
+echo "👥 Generating static team pages (EN + ES)..."
+npx tsx scripts/generateStaticTeamPage.ts dist
+
 # Generate sitemap with all pages - OUTPUT TO dist/ for Cloudflare
 echo "🗺️ Generating sitemap..."
 npx tsx scripts/generateSitemap.ts dist
@@ -67,3 +82,7 @@ echo "   - QA: Pre-rendered Q&A pages"
 echo "   - Comparisons: Pre-rendered comparison pages"
 echo "   - Locations: Pre-rendered location pages"
 echo "   - About: Pre-rendered about page"
+echo "   - Strategies: 8 SSR pages with WebPage+Article+Breadcrumb+FinancialService+Service+Speakable"
+echo "   - Philosophy: EN+ES SSR pages with WebPage+Org+Breadcrumb+Speakable"
+echo "   - Glossary: index + per-term SSR pages with DefinedTermSet/DefinedTerm"
+echo "   - Team: EN+ES SSR pages with Org+Person+Breadcrumb"
