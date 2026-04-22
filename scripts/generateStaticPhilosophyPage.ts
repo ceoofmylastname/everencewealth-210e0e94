@@ -177,7 +177,8 @@ function generateHTML(lang: 'en' | 'es', assets: ProductionAssets): string {
 export function generateStaticPhilosophyPage(distDir: string = 'dist') {
   const assets = getProductionAssets(distDir);
   for (const lang of ['en', 'es'] as const) {
-    const outPath = join(distDir, lang, 'philosophy.html');
+    // Directory-based routing: dist/en/philosophy/index.html
+    const outPath = join(distDir, lang, 'philosophy', 'index.html');
     mkdirSync(join(outPath, '..'), { recursive: true });
     writeFileSync(outPath, generateHTML(lang, assets), 'utf-8');
     console.log(`   ✅ ${outPath}`);
