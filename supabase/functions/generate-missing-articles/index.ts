@@ -113,7 +113,8 @@ serve(async (req) => {
 
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY')!;
+    const CLAUDE_API_KEY = Deno.env.get('CLAUDE_API_KEY') || Deno.env.get('ANTHROPIC_API_KEY');
+    if (!CLAUDE_API_KEY) throw new Error('CLAUDE_API_KEY (or ANTHROPIC_API_KEY) is not configured');
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
     console.log(`\n╔════════════════════════════════════════╗`);
