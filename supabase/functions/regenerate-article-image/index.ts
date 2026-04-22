@@ -1,7 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import * as fal from "https://esm.sh/@fal-ai/serverless-client@0.15.0";
+import { generateImage as kieGenerateImage } from "../_shared/kieClient.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -12,30 +12,27 @@ const LANGUAGE_NAMES: Record<string, string> = {
   en: 'English', es: 'Spanish'
 };
 
-interface FalResult {
-  images?: Array<{ url?: string }>;
-}
-
 /**
- * Upload image from Fal.ai to Supabase Storage
+ * Upload generated image to Supabase Storage
  */
 async function uploadToStorage(
-  falImageUrl: string,
+  sourceImageUrl: string,
   supabase: any,
   bucket: string = 'article-images',
   prefix: string = 'img'
 ): Promise<string> {
   try {
-    if (!falImageUrl || !falImageUrl.includes('fal.media')) {
-      return falImageUrl;
+    if (!sourceImageUrl) return sourceImageUrl;
+    if (sourceImageUrl.includes('supabase') && sourceImageUrl.includes('/storage/')) {
+      return sourceImageUrl;
     }
 
-    console.log(`📥 Downloading image from Fal.ai...`);
-    const imageResponse = await fetch(falImageUrl);
+    console.log(`📥 Downloading generated image...`);
+    const imageResponse = await fetch(sourceImageUrl);
     
     if (!imageResponse.ok) {
       console.error(`❌ Failed to download image: ${imageResponse.status}`);
-      return falImageUrl;
+      return sourceImageUrl;
     }
     
     const imageBuffer = await imageResponse.arrayBuffer();
