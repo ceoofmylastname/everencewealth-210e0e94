@@ -1,39 +1,83 @@
 
 
-## Regenerate sitemaps from current database
+## Sitemap fix + pre-flight URL resolution check
 
-Run `scripts/generateSitemap.ts` to rebuild all static sitemap XML files from the live Supabase database. Generation task only — no source code modified.
+Final plan with 4 amendments + pre-flight URL verification baked in. Single execution.
 
-### Steps
+### Pre-flight check (BEFORE writing any sitemap)
 
-1. **Run the generator** — `npx tsx scripts/generateSitemap.ts` from the project root. The script:
-   - Reads `VITE_SUPABASE_URL` / `VITE_SUPABASE_PUBLISHABLE_KEY` from `.env`.
-   - Fetches every `published`, non-redirect record from `blog_articles`, `qa_pages`, `location_pages`, `comparison_pages`.
-   - Excludes any path present in `gone_urls`.
-   - Iterates `SUPPORTED_LANGUAGES = ['en', 'es']` and writes per-language XML to `public/sitemaps/{en,es}/{blog,qa,locations,comparisons}.xml`.
-   - Writes `public/sitemaps/glossary.xml` and `public/sitemaps/brochures.xml`.
-   - Overwrites `public/sitemap-index.xml` with the regenerated master index.
+Verify each candidate URL pattern actually resolves to real content (not 404, not SPA fallback to homepage). Any pattern that fails routing gets either fixed in the same commit OR swapped to the working URL pattern with the violation flagged.
 
-2. **Verify counts** — count `<url>` tags in each output file:
-   - `public/sitemaps/en/qa.xml` → expect **169** (168 records + 1 index URL)
-   - `public/sitemaps/en/blog.xml` → expect **43** (42 records + 1 index URL)
-   - `public/sitemaps/es/qa.xml` → expect **169**
-   - `public/sitemaps/es/blog.xml` → expect **43**
+**Check 1 — Guides:** `curl -sL https://everencewealth.lovable.app/en/guides/<slug>` for all 6 brochure slugs. Inspect for:
+- HTTP 200 + brochure content (not the React `<NotFound />` component)
+- Page title matches brochure, not "Page Not Found"
 
-3. **Verify master index** — confirm regenerated `public/sitemap-index.xml` lists all four content sitemaps for both languages plus `locations`, `comparisons`, `glossary`, and `brochures`.
+If `/en/guides/<slug>` returns 404 or SPA-fallback-without-content:
+- (a) **Preferred:** add the localized route in `App.tsx` so `/en/guides/<slug>` renders `BrochureDetail` in the same commit.
+- (b) **Fallback:** write `/guides/<slug>` into the sitemap with `<xhtml:link rel="alternate" hreflang="en" href="..."/>` and flag the language-prefix violation as a separate follow-up.
 
-4. **Report results** — print final URL counts per file and the contents of the regenerated `sitemap-index.xml`.
+**Check 2 — State-guides:** `curl -sL https://everencewealth.lovable.app/en/retirement-planning/<topic_slug>` for at least one `topic_slug` returned by the dedup query. Same 200 + real content check. Same fix-or-swap rule.
 
-### Files written (by the script)
-- `public/sitemaps/en/{blog,qa,locations,comparisons,index}.xml`
-- `public/sitemaps/es/{blog,qa,locations,comparisons,index}.xml`
-- `public/sitemaps/glossary.xml`
-- `public/sitemaps/brochures.xml`
-- `public/sitemap-index.xml`
-- `public/sitemap.xml` (legacy alias)
+**Check 3 — Strategies:** `curl -sL` `/en/strategies/iul` and `/es/estrategias/seguro-universal-indexado`. Already verified ES content exists in `es.ts` translations, but routing must respond 200.
 
-No `.ts` / `.tsx` / `.js` source files are modified.
+**Check 4 — Glossary:** if `glossary_terms` table is non-empty, curl `/en/glossary/<first-slug>`. If table is empty, skip — sitemap ships valid empty `<urlset/>`.
 
-### Out of scope (flagged only)
-Legacy directories `public/sitemaps/{da,de,fi,fr,hu,nl,no,pl,sv}/` from the previous 11-language config remain unreferenced. Recommend a follow-up task to delete them.
+Report each check's result (URL, status, content sample) before proceeding to generator execution.
+
+### Generator changes — `scripts/generateSitemap.ts`
+
+Helpers:
+- `gitLastModified(filePath)` — `git log -1 --format=%cI -- <file>`. Throws on git failure → falls back to per-strategy `REVIEW_DATES` constant. Never `mtime`/`NOW()`.
+- `lastmodFromRow(row)` — `row.updated_at ?? row.date_modified`. Throws if both null.
+- `writeSitemap(lang, type, urls)` — Set-based dedup on `<loc>`; throws when `type ∈ {blog, qa, strategies, locations, comparisons}` and 0 URLs; warns for `{guides, glossary, state-guides}`.
+- DB query wrapper — `try/catch` per query, logs failure, re-throws to fail build with non-zero exit.
+
+New generators:
+
+| File | Source | URL pattern (post-pre-flight) | lastmod | Expected |
+|---|---|---|---|---|
+| `en/strategies.xml` | hardcoded `STRATEGIES.en` | `/en/strategies/{slug}` | `gitLastModified()` | 4 |
+| `es/strategies.xml` | hardcoded `STRATEGIES.es` | `/es/estrategias/{slug}` | `gitLastModified()` | 4 |
+| `en/guides.xml` | `brochures` WHERE `language='en'` | `/en/guides/{slug}` *(or fallback)* | `updated_at` | 6 |
+| `es/guides.xml` | `brochures` WHERE `language='es'` | `/es/guides/{slug}` | `updated_at` | 0 (empty `<urlset/>`) |
+| `en/glossary.xml` | `glossary_terms` else `glossary.json` | `/en/glossary/{slug}` | `updated_at` | 0 or N |
+| `es/glossary.xml` | same filtered ES | `/es/glossary/{slug}` | `updated_at` | 0 or N |
+| `en/state-guides.xml` | `location_pages WHERE state_code IS NOT NULL AND status='published' AND language='en' GROUP BY topic_slug` | `/en/retirement-planning/{topic_slug}` | `MAX(updated_at)` | ~5–10 |
+| `es/state-guides.xml` | same, language='es' | `/es/retirement-planning/{topic_slug}` | `MAX(updated_at)` | N |
+
+Existing generators (blog, qa, locations, comparisons) regenerated with the same dedup + assert + lastmod policy. Anchor-fragment glossary URLs removed.
+
+### Master index
+
+`public/sitemap-index.xml` and `public/sitemap.xml` list all 16 child sitemaps:
+```
+en/{blog,qa,locations,comparisons,strategies,guides,glossary,state-guides}.xml
+es/{blog,qa,locations,comparisons,strategies,guides,glossary,state-guides}.xml
+```
+
+### Build pipeline + cleanup
+
+- `package.json`: `"build": "tsx scripts/generateSitemap.ts && vite build"` so every Cloudflare Pages deploy regenerates from live DB regardless of build entrypoint.
+- Delete `public/sitemaps/{da,de,fi,fr,hu,nl,no,pl,sv}/`, `public/sitemaps/brochures.xml`, root `public/sitemaps/glossary.xml`.
+
+### Execution order
+
+1. Run pre-flight curl checks (guides, state-guides, strategies, optional glossary). Report results.
+2. If any URL fails: apply (a) routing fix or (b) URL-swap-with-flag, then re-curl.
+3. Edit `scripts/generateSitemap.ts` (helpers + 4 new generators + dedup + assertions + try/catch).
+4. Edit `package.json` build script.
+5. Delete legacy directories + standalone XML files.
+6. Run `npx tsx scripts/generateSitemap.ts`.
+7. Report:
+   - Per-file `<url>` counts for all 16 sitemaps.
+   - First 3 `<url>` entries from `en/strategies.xml`, `en/guides.xml`, `en/state-guides.xml`.
+   - Regenerated `sitemap-index.xml` contents.
+   - Pre-flight check log + any (a)/(b) decisions made.
+
+### Out of scope (queued separately)
+
+- React Helmet → SSR JSON-LD migration (next deploy — highest AI-citation lever).
+- `/en/sitemap` HTML hub soft-404.
+- `/llms.txt` SPA shell.
+- Glossary content backfill if both `glossary_terms` and `glossary.json` empty.
 
