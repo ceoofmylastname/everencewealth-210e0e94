@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { callClaude, extractJsonFromResponse, CLAUDE_MODELS } from "../_shared/claudeClient.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -12,11 +13,6 @@ serve(async (req) => {
 
   try {
     const { articleData, section, clusterTopic } = await req.json();
-
-    const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
-    if (!OPENAI_API_KEY) {
-      throw new Error('OPENAI_API_KEY is not configured');
-    }
 
     console.log('Regenerating section:', section, 'for article:', articleData.headline);
 
@@ -158,33 +154,15 @@ Return ONLY JSON: { "metaDescription": "..." }`;
         throw new Error(`Unknown section: ${section}`);
     }
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${OPENAI_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        max_tokens: 4096,
-        messages: [{ role: 'user', content: prompt }],
-      }),
+    // Use Sonnet for long-form 'content', Haiku for short metadata sections
+    const isLongForm = section === 'content';
+    const claudeRes = await callClaude({
+      model: isLongForm ? CLAUDE_MODELS.sonnet : CLAUDE_MODELS.haiku,
+      system: 'You are an expert SEO and content writer. Return ONLY a valid JSON object as specified. No prose, no markdown fences.',
+      prompt,
+      maxTokens: isLongForm ? 8000 : 1500,
     });
-
-    if (!response.ok) {
-      if (response.status === 429) {
-        throw new Error('Lovable AI rate limit exceeded. Please wait and try again.');
-      }
-      if (response.status === 402) {
-        throw new Error('Lovable AI credits depleted. Please add credits in workspace settings.');
-      }
-      const errorText = await response.text();
-      throw new Error(`Lovable AI error (${response.status}): ${errorText}`);
-    }
-
-    const data = await response.json();
-    const contentText = data.choices[0].message.content;
-    const result = JSON.parse(contentText.replace(/```json\n?|\n?```/g, ''));
+    const result = extractJsonFromResponse(claudeRes.text);
 
     // Extract updates based on section
     if (section === 'headline') {
