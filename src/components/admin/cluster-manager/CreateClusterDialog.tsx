@@ -254,7 +254,7 @@ export function CreateClusterDialog({ open, onOpenChange, onClusterCreated }: Cr
               <div className="text-xs text-muted-foreground bg-muted/30 p-2 rounded-md font-mono break-all">
                 <span className="font-semibold">Last activity:</span> {progress.last_heartbeat}
                 {stalledMs > 30_000 && (
-                  <span className="ml-2 text-amber-600">
+                  <span className="ml-2 text-destructive">
                     ({Math.round(stalledMs / 1000)}s ago)
                   </span>
                 )}
