@@ -325,6 +325,13 @@ serve(async (req) => {
       );
     }
 
+    if (!Deno.env.get('KIE_API_KEY')) {
+      return new Response(
+        JSON.stringify({ error: 'KIE_API_KEY is not configured (required for Nano Banana 2)', success: false }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     console.log(`🔄 Regenerating content-aware images for cluster: ${clusterId}`);
 
     // Fetch all articles including detailed_content for prompt extraction
