@@ -1153,26 +1153,34 @@ const ORGANIZATION_SCHEMA = {
   "url": BASE_URL,
   "logo": {
     "@type": "ImageObject",
-    "url": `${BASE_URL}/assets/logo-new.png`,
-    "width": 512,
-    "height": 512
+    "url": "https://storage.googleapis.com/msgsndr/TLhrYb7SRrWrly615tCI/media/6993ada8dcdadb155342f28e.png",
+    "width": 400,
+    "height": 100
   },
   "sameAs": [
-    "https://www.linkedin.com/company/del-sol-prime-homes"
+    "https://www.linkedin.com/company/everencewealth/"
   ],
   "address": {
     "@type": "PostalAddress",
-    "addressLocality": "El Paso",
-    "addressRegion": "Málaga",
-    "addressCountry": "ES"
+    "streetAddress": "455 Market St Ste 1940 PMB 350011",
+    "addressLocality": "San Francisco",
+    "addressRegion": "CA",
+    "postalCode": "94105",
+    "addressCountry": "US"
   },
+  "telephone": "+1-925-433-7724",
+  "email": "info@everencewealth.com",
+  "areaServed": { "@type": "Country", "name": "United States" },
+  "foundingDate": "1990",
+  "slogan": "Architecting Your Financial Legacy",
+  "priceRange": "$$$",
   "hasCredential": {
     "@type": "EducationalOccupationalCredential",
     "credentialCategory": "license",
-    "name": "Agente de la Propiedad Inmobiliaria (API)",
+    "name": "Licensed Insurance Broker",
     "recognizedBy": {
       "@type": "Organization",
-      "name": "Colegio Oficial de Agentes de la Propiedad Inmobiliaria"
+      "name": "State Department of Insurance"
     }
   }
 }
@@ -1181,26 +1189,12 @@ const ORGANIZATION_SCHEMA = {
 const FOUNDERS_SCHEMAS = [
   {
     "@type": "Person",
-    "@id": `${BASE_URL}/#steven-roberts`,
-    "name": "Steven Roberts",
-    "jobTitle": "Managing Director",
-    "sameAs": "https://www.linkedin.com/company/everencewealth/",
-    "worksFor": { "@id": `${BASE_URL}/#organization` }
-  },
-  {
-    "@type": "Person",
     "@id": `${BASE_URL}/#steven-rosenberg`,
     "name": "Steven Rosenberg",
-    "jobTitle": "Sales Director",
-    "sameAs": "https://www.linkedin.com/in/hansbeeckman/",
-    "worksFor": { "@id": `${BASE_URL}/#organization` }
-  },
-  {
-    "@type": "Person",
-    "@id": `${BASE_URL}/#cedric-van-hecke`,
-    "name": "Cédric Van Hecke",
-    "jobTitle": "Marketing Director",
-    "sameAs": "https://www.linkedin.com/company/everencewealth/",
+    "jobTitle": "Founder & Chief Wealth Strategist",
+    // sameAs intentionally omitted — pending verified personal profile URL.
+    // Per schema.org, Person.sameAs must point to pages ABOUT THAT PERSON;
+    // a company LinkedIn page is NOT valid here.
     "worksFor": { "@id": `${BASE_URL}/#organization` }
   }
 ]

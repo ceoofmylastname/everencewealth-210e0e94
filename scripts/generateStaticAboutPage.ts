@@ -3,6 +3,14 @@ import { createClient } from '@supabase/supabase-js';
 import { writeFileSync, mkdirSync, readFileSync, existsSync } from 'fs';
 import { join, dirname } from 'path';
 import type { Database } from '../src/integrations/supabase/types';
+import {
+  BUSINESS,
+  businessPostalAddress,
+  businessGeoCoordinates,
+  businessAreaServed,
+  businessOpeningHoursSpecification,
+  businessContactPoint,
+} from '../src/config/business';
 
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL!;
 const SUPABASE_ANON_KEY = process.env.VITE_SUPABASE_PUBLISHABLE_KEY!;
@@ -88,14 +96,16 @@ interface ProductionAssets {
 
 const BASE_URL = 'https://www.everencewealth.com';
 
-// Hardcoded founder data with LinkedIn URLs for entity disambiguation
+// Founder bio data — name/role pulled from BUSINESS.
+// linkedin_url is the company page (used only for visible UI link, NOT for
+// schema.org Person.sameAs which is omitted in the schema below).
 const FOUNDERS_DATA: Founder[] = [
   {
-    name: "Steven Rosenberg",
-    role: "Founder & Chief Wealth Strategist",
+    name: BUSINESS.founders[0].name,
+    role: BUSINESS.founders[0].jobTitle,
     bio: "Independent financial advisor with 30+ years experience in wealth management. Specializes in tax-free retirement strategies, IUL, and asset protection.",
-    photo_url: "https://storage.googleapis.com/msgsndr/9m2UBN29nuaCWceOgW2Z/media/steven-rosenberg.jpg",
-    linkedin_url: "https://www.linkedin.com/company/everencewealth/",
+    photo_url: BUSINESS.logo.url,
+    linkedin_url: BUSINESS.sameAs[0],
     credentials: ["Licensed Insurance Broker", "Wealth Strategist"],
     years_experience: 30,
     languages: ["English", "Spanish"],
@@ -148,18 +158,21 @@ function generateOrganizationSchema(content: AboutPageData) {
     "@context": "https://schema.org",
     "@type": ["Organization", "FinancialService"],
     "@id": `${BASE_URL}/#organization`,
-    "name": "Everence Wealth",
-    "alternateName": "Everence",
+    "name": BUSINESS.name,
+    "alternateName": BUSINESS.alternateName,
     "url": BASE_URL,
     "logo": {
       "@type": "ImageObject",
-      "url": `${BASE_URL}/assets/logo-new.png`,
-      "width": 400,
-      "height": 100
+      "url": BUSINESS.logo.url,
+      "width": BUSINESS.logo.width,
+      "height": BUSINESS.logo.height
     },
     "description": content.speakable_summary,
-    "foundingDate": "2010",
-    "slogan": "Your Independent Wealth Management Partner",
+    "foundingDate": BUSINESS.foundingDate,
+    "slogan": BUSINESS.slogan,
+    "telephone": BUSINESS.telephone,
+    "email": BUSINESS.email,
+    "priceRange": BUSINESS.priceRange,
     "knowsAbout": [
       "Tax-Free Retirement",
       "Indexed Universal Life Insurance",
@@ -168,28 +181,10 @@ function generateOrganizationSchema(content: AboutPageData) {
       "Estate Planning",
       "Independent Financial Advisory"
     ],
-    "areaServed": [
-      { "@type": "Country", "name": "United States" }
-    ],
-    "address": {
-      "@type": "PostalAddress",
-      "addressLocality": "El Paso",
-      "addressRegion": "TX",
-      "addressCountry": "US"
-    },
-    "contactPoint": [
-      {
-        "@type": "ContactPoint",
-        "telephone": "+34 630 03 90 90",
-        "contactType": "sales",
-        "availableLanguage": ["English", "Spanish", "Dutch", "French", "German"]
-      }
-    ],
-    "sameAs": [
-      "https://www.facebook.com/everencewealth",
-      "https://www.instagram.com/everencewealth",
-      "https://www.linkedin.com/company/everencewealth"
-    ],
+    "areaServed": [businessAreaServed()],
+    "address": businessPostalAddress(),
+    "contactPoint": [businessContactPoint()],
+    "sameAs": [...BUSINESS.sameAs],
     "aggregateRating": {
       "@type": "AggregateRating",
       "ratingValue": "4.9",
@@ -205,34 +200,14 @@ function generateLocalBusinessSchema(content: AboutPageData) {
     "@context": "https://schema.org",
     "@type": "LocalBusiness",
     "@id": `${BASE_URL}/#localbusiness`,
-    "name": "Everence Wealth",
-    "priceRange": "$$",
-    "address": {
-      "@type": "PostalAddress",
-      "addressLocality": "El Paso",
-      "addressRegion": "TX",
-      "addressCountry": "US"
-    },
-    "geo": {
-      "@type": "GeoCoordinates",
-      "latitude": 31.7619,
-      "longitude": -106.4850
-    },
+    "name": BUSINESS.name,
+    "priceRange": BUSINESS.priceRange,
+    "address": businessPostalAddress(),
+    "geo": businessGeoCoordinates(),
     "url": BASE_URL,
-    "openingHoursSpecification": [
-      {
-        "@type": "OpeningHoursSpecification",
-        "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
-        "opens": "09:00",
-        "closes": "18:00"
-      },
-      {
-        "@type": "OpeningHoursSpecification",
-        "dayOfWeek": "Saturday",
-        "opens": "10:00",
-        "closes": "14:00"
-      }
-    ]
+    "telephone": BUSINESS.telephone,
+    "email": BUSINESS.email,
+    "openingHoursSpecification": businessOpeningHoursSpecification()
   };
 }
 
@@ -245,8 +220,9 @@ function generatePersonSchemas(founders: Founder[]) {
     "jobTitle": founder.role,
     "description": founder.bio,
     "image": founder.photo_url?.startsWith('http') ? founder.photo_url : `${BASE_URL}${founder.photo_url}`,
-    "url": founder.linkedin_url,
-    "sameAs": [founder.linkedin_url],
+    // url / sameAs intentionally omitted — pending verified PERSONAL profile URL.
+    // Per schema.org, Person.sameAs must point to pages ABOUT THAT PERSON;
+    // a company LinkedIn page is NOT valid here.
     "worksFor": { "@id": `${BASE_URL}/#organization` },
     "knowsAbout": ["wealth management Financial Planning", founder.specialization, "Spanish Property Market"],
     "knowsLanguage": founder.languages?.map(lang => ({ "@type": "Language", "name": lang })) || []

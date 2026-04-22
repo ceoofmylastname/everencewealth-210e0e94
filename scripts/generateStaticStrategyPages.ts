@@ -16,6 +16,7 @@
 import { writeFileSync, mkdirSync, readFileSync, existsSync } from 'fs';
 import { join } from 'path';
 import { execSync } from 'child_process';
+import { BUSINESS, businessPostalAddress, businessAreaServed } from '../src/config/business';
 
 const BASE_URL = 'https://www.everencewealth.com';
 
@@ -202,12 +203,19 @@ function buildSchemas(strategy: StrategyDef, lang: 'en' | 'es', canonicalUrl: st
     '@context': 'https://schema.org',
     '@type': 'FinancialService',
     '@id': `${BASE_URL}/#organization`,
-    name: 'Everence Wealth',
+    name: BUSINESS.name,
+    alternateName: BUSINESS.alternateName,
     url: BASE_URL,
-    logo: `${BASE_URL}/logo-icon.png`,
+    logo: BUSINESS.logo.url,
     description: 'Independent wealth advisory firm specializing in tax-efficient retirement strategies with access to 75+ carrier partnerships.',
     slogan: 'Bridge the Retirement Gap',
-    areaServed: { '@type': 'Country', name: 'United States' },
+    telephone: BUSINESS.telephone,
+    email: BUSINESS.email,
+    address: businessPostalAddress(),
+    areaServed: businessAreaServed(),
+    sameAs: [...BUSINESS.sameAs],
+    foundingDate: BUSINESS.foundingDate,
+    priceRange: BUSINESS.priceRange,
   };
 
   const service = {
@@ -217,7 +225,7 @@ function buildSchemas(strategy: StrategyDef, lang: 'en' | 'es', canonicalUrl: st
     serviceType: meta.serviceType,
     provider: { '@id': `${BASE_URL}/#organization` },
     description: meta.description,
-    areaServed: { '@type': 'Country', name: 'United States' },
+    areaServed: businessAreaServed(),
   };
 
   const speakable = {

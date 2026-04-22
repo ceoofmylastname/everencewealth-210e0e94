@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Phone } from 'lucide-react';
 import { useTranslation } from '@/i18n/useTranslation';
 import { useHomepageImages } from '@/hooks/useHomepageImages';
+import { BUSINESS } from '@/config/business';
 
 export const CTA: React.FC = () => {
   const navigate = useNavigate();
@@ -103,7 +104,7 @@ export const CTA: React.FC = () => {
 
           {/* Secondary CTA with glass + animated border + shimmer */}
           <a
-            href="tel:+14155551234"
+            href={`tel:${BUSINESS.telephoneE164}`}
             className="group/sec relative inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full bg-white/[0.06] backdrop-blur-xl border border-white/20 text-white font-semibold text-lg hover:bg-white/10 hover:border-white/30 transition-all overflow-hidden"
           >
             <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.06] to-transparent translate-x-[-100%] group-hover/sec:translate-x-[100%] transition-transform duration-700 pointer-events-none" />

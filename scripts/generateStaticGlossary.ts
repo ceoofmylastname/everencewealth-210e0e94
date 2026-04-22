@@ -13,6 +13,7 @@
  */
 import { writeFileSync, mkdirSync, readFileSync, existsSync } from 'fs';
 import { join } from 'path';
+import { BUSINESS, businessPostalAddress, businessAreaServed } from '../src/config/business';
 
 const BASE_URL = 'https://www.everencewealth.com';
 const PUBLISHED_DATE = '2024-01-15T00:00:00Z';
@@ -139,10 +140,22 @@ function buildIndexSchemas(lang: Lang, data: GlossaryData, canonicalUrl: string,
     description: meta.indexDescription,
     url: canonicalUrl,
     inLanguage: lang,
-    isPartOf: { '@type': 'WebSite', '@id': `${BASE_URL}/#website`, name: 'Everence Wealth', url: BASE_URL },
+    isPartOf: { '@type': 'WebSite', '@id': `${BASE_URL}/#website`, name: BUSINESS.name, url: BASE_URL },
     about: { '@id': `${BASE_URL}/#organization` },
     datePublished: PUBLISHED_DATE,
     dateModified,
+    publisher: {
+      '@type': 'Organization',
+      '@id': `${BASE_URL}/#organization`,
+      name: BUSINESS.name,
+      url: BUSINESS.url,
+      logo: { '@type': 'ImageObject', url: BUSINESS.logo.url },
+      address: businessPostalAddress(),
+      telephone: BUSINESS.telephone,
+      email: BUSINESS.email,
+      areaServed: businessAreaServed(),
+      sameAs: [...BUSINESS.sameAs],
+    },
   };
 
   const breadcrumb = {
