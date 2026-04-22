@@ -686,17 +686,18 @@ Return ONLY the JSON object above, nothing else. No markdown, no explanations, n
     // Wrap AI call with timeout and retry
     const structureResponse = await retryWithBackoff(
       () => withTimeout(
-        fetch('https://api.openai.com/v1/chat/completions', {
+        fetch('https://api.anthropic.com/v1/messages', {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${OPENAI_API_KEY}`,
+            'x-api-key': CLAUDE_API_KEY!,
+            'anthropic-version': '2023-06-01',
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            model: 'gpt-4o',
+            model: 'claude-sonnet-4-5-20250929',
             max_tokens: 4096,
+            system: 'You are an SEO expert specializing in insurance and wealth management content strategy. Return only valid JSON.',
             messages: [
-              { role: 'system', content: 'You are an SEO expert specializing in insurance and wealth management content strategy. Return only valid JSON.' },
               { role: 'user', content: structurePrompt }
             ],
           }),
@@ -711,13 +712,13 @@ Return ONLY the JSON object above, nothing else. No markdown, no explanations, n
 
     if (!structureResponse.ok) {
       if (structureResponse.status === 429) {
-        throw new Error('OpenAI rate limit exceeded. Please wait and try again.');
+        throw new Error('Claude rate limit exceeded. Please wait and try again.');
       }
-      if (structureResponse.status === 402) {
-        throw new Error('OpenAI credits depleted. Please add credits.');
+      if (structureResponse.status === 529) {
+        throw new Error('Claude API overloaded. Please retry shortly.');
       }
       const errorText = await structureResponse.text();
-      throw new Error(`OpenAI error (${structureResponse.status}): ${errorText}`);
+      throw new Error(`Claude error (${structureResponse.status}): ${errorText}`);
     }
 
     // Send heartbeat after major operation
@@ -734,10 +735,10 @@ Return ONLY the JSON object above, nothing else. No markdown, no explanations, n
       throw new Error(`Failed to parse AI structure response: ${errorMsg}`);
     }
 
-    if (!structureData.choices?.[0]?.message?.content) {
+    if (!structureData?.content?.[0]?.text) {
       throw new Error('Invalid article structure response from AI');
     }
-    const structureText = structureData.choices[0].message.content;
+    const structureText = structureData.content[0].text;
 
     console.log(`[Job ${jobId}] 📥 Raw AI response (first 500 chars):`, structureText.substring(0, 500));
 
