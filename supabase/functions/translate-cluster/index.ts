@@ -1,11 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
-import { fal } from "https://esm.sh/@fal-ai/client@1.2.1";
-
-// Configure Fal.ai
-fal.config({
-  credentials: Deno.env.get("FAL_KEY")
-});
+import { generateImage as kieGenerateImage } from "../_shared/kieClient.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
