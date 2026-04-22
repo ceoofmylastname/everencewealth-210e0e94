@@ -206,49 +206,28 @@ RULES:
 }
 
 /**
- * Generate image using Fal.ai Nano Banana Pro (via Lovable AI gateway)
+ * Generate image using Kie.ai Nano Banana 2 (KIE_API_KEY secret).
+ * Returns the Kie-hosted result URL; caller should mirror it into Supabase Storage.
  */
 async function generateContentImage(
-  prompt: string,
-  lovableApiKey: string
+  prompt: string
 ): Promise<string | null> {
   try {
-    console.log(`🎨 Generating image with Nano Banana Pro...`);
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${lovableApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-3-pro-image-preview',
-        messages: [
-          {
-            role: 'user',
-            content: `Generate a professional 16:9 marketing image: ${prompt}`
-          }
-        ],
-        modalities: ['image', 'text']
-      }),
+    console.log(`🎨 Generating image with Kie.ai Nano Banana 2 (16:9, 2K)...`);
+    const result = await kieGenerateImage({
+      prompt: `Professional 16:9 marketing image for a financial advisory company. ${prompt}`,
+      aspectRatio: "16:9",
+      resolution: "2K",
+      outputFormat: "png",
     });
-
-    if (!response.ok) {
-      console.error(`❌ Image generation failed: ${response.status}`);
-      return null;
+    if (result?.url) {
+      console.log(`✅ Kie.ai image generated successfully`);
+      return result.url;
     }
-
-    const data = await response.json();
-    const imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
-    
-    if (imageUrl) {
-      console.log(`✅ Image generated successfully`);
-      return imageUrl;
-    }
-    
-    console.error(`❌ No image in response`);
+    console.error(`❌ Kie.ai returned no URL`);
     return null;
   } catch (error) {
-    console.error(`❌ Image generation error:`, error);
+    console.error(`❌ Kie.ai image generation error:`, error);
     return null;
   }
 }
