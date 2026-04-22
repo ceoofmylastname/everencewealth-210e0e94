@@ -630,15 +630,8 @@ async function processChunk(
               updated_at: new Date().toISOString(),
             })
             .eq('id', jobId);
-          return new Response(JSON.stringify({
-            success: false,
-            error: 'claude_timeout',
-            chunkIndex,
-            savedArticles: savedIds.length,
-          }), {
-            status: 200,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          });
+          console.error(`[Chunk] Stopping chunk ${chunkIndex + 1} due to claude_timeout on article ${globalIndex + 1}`);
+          return;
         }
       }
 
