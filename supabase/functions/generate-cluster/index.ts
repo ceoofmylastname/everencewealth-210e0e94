@@ -588,18 +588,19 @@ async function generateCluster(
     console.log(`[Job ${jobId}] Starting generation for:`, { topic, language: currentLanguage, targetAudience, primaryKeyword });
     await updateProgress(supabase, jobId, 0, isMultilingual ? `Generating language 1/10: ${currentLanguage.toUpperCase()}...` : 'Starting generation...');
 
-    // Validate LOVABLE_API_KEY before starting
-    console.log(`[Job ${jobId}] 🔐 Validating LOVABLE_API_KEY...`);
+    // Validate CLAUDE_API_KEY before starting
+    console.log(`[Job ${jobId}] 🔐 Validating CLAUDE_API_KEY...`);
     try {
       const testResponse = await withTimeout(
-        fetch('https://api.openai.com/v1/chat/completions', {
+        fetch('https://api.anthropic.com/v1/messages', {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${OPENAI_API_KEY!}`,
+            'x-api-key': CLAUDE_API_KEY!,
+            'anthropic-version': '2023-06-01',
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            model: 'gpt-4o-mini',
+            model: 'claude-haiku-4-5-20251001',
             max_tokens: 10,
             messages: [{ role: 'user', content: 'test' }],
           }),
@@ -608,13 +609,13 @@ async function generateCluster(
         'API key validation timeout'
       );
       
-      if (!testResponse.ok && testResponse.status === 401) {
-        throw new Error('OPENAI_API_KEY is invalid or expired');
+      if (!testResponse.ok && (testResponse.status === 401 || testResponse.status === 403)) {
+        throw new Error('CLAUDE_API_KEY is invalid or expired');
       }
-      console.log(`[Job ${jobId}] ✅ OPENAI_API_KEY validated successfully`);
+      console.log(`[Job ${jobId}] ✅ CLAUDE_API_KEY validated successfully`);
     } catch (error) {
       console.error(`[Job ${jobId}] ❌ API key validation failed:`, error);
-      throw new Error(`OpenAI key validation failed: ${error instanceof Error ? error.message : String(error)}`);
+      throw new Error(`Claude key validation failed: ${error instanceof Error ? error.message : String(error)}`);
     }
 
     // Fetch master content prompt from database
