@@ -311,13 +311,13 @@ Funnel Stage: ${firstMissing.funnelStage}
 
 Respond with JSON: { "category": "exact category name from the list" }`;
 
-    const categoryResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+    const categoryResponse = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
-      headers: { 'Authorization': `Bearer ${OPENAI_API_KEY}`, 'Content-Type': 'application/json' },
+      headers: { 'x-api-key': CLAUDE_API_KEY, 'anthropic-version': '2023-06-01', 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'claude-haiku-4-5-20251001',
         max_tokens: 256,
-        response_format: { type: 'json_object' },
+        system: 'Return ONLY a valid JSON object as specified. No prose.',
         messages: [{ role: 'user', content: categoryPrompt }],
       }),
     });
@@ -326,7 +326,7 @@ Respond with JSON: { "category": "exact category name from the list" }`;
     if (categoryResponse.ok) {
       const categoryData = await categoryResponse.json();
       try {
-        const categoryJson = extractJsonFromResponse(categoryData.choices?.[0]?.message?.content || '{}');
+        const categoryJson = extractJsonFromResponse(categoryData?.content?.[0]?.text || '{}');
         const aiCategory = categoryJson.category;
         const matchedCategory = validCategoryNames.find(
           name => name.toLowerCase() === aiCategory?.toLowerCase()
