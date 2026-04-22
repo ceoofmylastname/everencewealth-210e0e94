@@ -196,13 +196,11 @@ serve(async (req) => {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const openaiKey = Deno.env.get('OPENAI_API_KEY');
-    const falKey = Deno.env.get('FAL_KEY');
 
     if (!openaiKey) throw new Error('OPENAI_API_KEY is not configured');
-    if (!falKey) throw new Error('FAL_KEY is not configured');
+    if (!Deno.env.get('KIE_API_KEY')) throw new Error('KIE_API_KEY is not configured');
 
     const supabase = createClient(supabaseUrl, supabaseKey);
-    fal.config({ credentials: falKey.trim().replace(/[\r\n]/g, '') });
 
     console.log(`🖼️ Starting image regeneration for article: ${articleId}`);
 
@@ -320,29 +318,24 @@ Output ONLY the image prompt, nothing else.`
 
     console.log(`🎨 Generated prompt: ${imagePrompt.substring(0, 100)}...`);
 
-    // Generate image
-    console.log(`🖼️ Generating image with Nano Banana Pro...`);
-    const result = await fal.subscribe("fal-ai/nano-banana-pro", {
-      input: {
-        prompt: imagePrompt,
-        aspect_ratio: "16:9",
-        resolution: "2K",
-        num_images: 1,
-        output_format: "png"
-      }
-    }) as FalResult;
+    // Generate image via Kie.ai Nano Banana 2
+    console.log(`🖼️ Generating image with Kie.ai Nano Banana 2...`);
+    const { url: kieUrl } = await kieGenerateImage({
+      prompt: imagePrompt,
+      aspectRatio: "16:9",
+      resolution: "2K",
+      outputFormat: "png",
+    });
 
-    let generatedImageUrl = result.images?.[0]?.url;
+    let generatedImageUrl = kieUrl;
     if (!generatedImageUrl) throw new Error('Image generation failed - no URL returned');
 
     console.log(`✅ Image generated successfully`);
 
-    if (generatedImageUrl.includes('fal.media')) {
-      generatedImageUrl = await uploadToStorage(
-        generatedImageUrl, supabase, 'article-images',
-        `article-${article.slug || article.id.slice(0, 8)}`
-      );
-    }
+    generatedImageUrl = await uploadToStorage(
+      generatedImageUrl, supabase, 'article-images',
+      `article-${article.slug || article.id.slice(0, 8)}`
+    );
 
     const { altText, caption } = await generateLocalizedMetadata(article, imagePrompt, openaiKey);
 
