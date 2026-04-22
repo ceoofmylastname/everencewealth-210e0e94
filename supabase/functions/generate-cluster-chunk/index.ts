@@ -440,22 +440,22 @@ TOTAL MINIMUM: 1,000 words. Do NOT submit under 800.`;
 
       lastWordCount = countWords(contentJson.detailed_content || '');
       console.log(`[Chunk ${jobId}] ━━━ Attempt ${attempts}: ${lastWordCount} words ━━━`);
-      
-      if (lastWordCount >= 800) {
-        console.log(`[Chunk ${jobId}] ✅ Word count requirement met!`);
+
+      if (lastWordCount >= 1500) {
+        console.log(`[Chunk ${jobId}] ✅ Word count requirement met (${lastWordCount} ≥ 1,500)!`);
         break;
       }
-      
+
       if (attempts < maxAttempts) {
-        console.warn(`[Chunk ${jobId}] ⚠️ Word count ${lastWordCount} below 800, will retry...`);
+        console.warn(`[Chunk ${jobId}] ⚠️ Word count ${lastWordCount} below 1,500, will retry...`);
         await new Promise(resolve => setTimeout(resolve, 1500));
       } else {
-        console.error(`[Chunk ${jobId}] ❌ Failed to reach 800 words after ${maxAttempts} attempts (final: ${lastWordCount})`);
+        console.error(`[Chunk ${jobId}] ❌ Failed to reach 1,500 words after ${maxAttempts} attempts (final: ${lastWordCount})`);
       }
     }
 
-    // HARD FAIL: If still under 600 words, reject the article
-    if (lastWordCount < 600) {
+    // HARD FAIL: If still under 1,200 words, reject the article (master prompt floor is 1,500)
+    if (lastWordCount < 1200) {
       throw new Error(`Article generation failed: Could not reach minimum word count after ${maxAttempts} attempts (only ${lastWordCount} words). Article rejected.`);
     }
 
