@@ -1,14 +1,11 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import * as fal from "npm:@fal-ai/serverless-client";
+import { generateImage as kieGenerateImage, type KieAspectRatio } from "../_shared/kieClient.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
-
-interface FalImage { url: string; width: number; height: number; }
-interface FalResult { images: FalImage[]; }
 
 const IMAGE_CONFIGS = [
   {
@@ -39,17 +36,17 @@ const IMAGE_CONFIGS = [
 ];
 
 async function uploadToStorage(
-  falImageUrl: string,
+  sourceImageUrl: string,
   supabase: any,
   key: string
 ): Promise<string> {
   try {
-    if (!falImageUrl) return falImageUrl;
+    if (!sourceImageUrl) return sourceImageUrl;
     console.log(`📥 Downloading image for "${key}"...`);
-    const imageResponse = await fetch(falImageUrl);
+    const imageResponse = await fetch(sourceImageUrl);
     if (!imageResponse.ok) {
       console.error(`❌ Failed to download: ${imageResponse.status}`);
-      return falImageUrl;
+      return sourceImageUrl;
     }
     const imageBuffer = await imageResponse.arrayBuffer();
     const timestamp = Date.now();
@@ -66,17 +63,17 @@ async function uploadToStorage(
 
     if (uploadError) {
       console.error(`❌ Upload failed:`, uploadError);
-      return falImageUrl;
+      return sourceImageUrl;
     }
 
     const { data: publicUrlData } = supabase.storage
       .from('article-images')
       .getPublicUrl(filename);
 
-    return publicUrlData?.publicUrl || falImageUrl;
+    return publicUrlData?.publicUrl || sourceImageUrl;
   } catch (error) {
     console.error(`❌ Storage error for "${key}":`, error);
-    return falImageUrl;
+    return sourceImageUrl;
   }
 }
 
@@ -86,10 +83,7 @@ serve(async (req) => {
   }
 
   try {
-    const falKey = Deno.env.get('falainanobananaproedit');
-    if (!falKey) throw new Error('Fal.ai API key is not configured');
-
-    fal.config({ credentials: falKey.trim() });
+    if (!Deno.env.get('KIE_API_KEY')) throw new Error('KIE_API_KEY is not configured');
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -100,19 +94,15 @@ serve(async (req) => {
     for (const config of IMAGE_CONFIGS) {
       console.log(`🎨 Generating image for "${config.key}"...`);
       try {
-        const result = await fal.subscribe("fal-ai/nano-banana-pro", {
-          input: {
-            prompt: config.prompt,
-            aspect_ratio: config.aspect_ratio,
-            resolution: "2K",
-            num_images: 1,
-            output_format: "png",
-          },
-          logs: true,
-        }) as FalResult;
+        const { url } = await kieGenerateImage({
+          prompt: config.prompt,
+          aspectRatio: config.aspect_ratio as KieAspectRatio,
+          resolution: "2K",
+          outputFormat: "png",
+        });
 
-        if (result.images?.[0]?.url) {
-          const permanentUrl = await uploadToStorage(result.images[0].url, supabase, config.key);
+        if (url) {
+          const permanentUrl = await uploadToStorage(url, supabase, config.key);
           results[config.key] = { url: permanentUrl, prompt: config.prompt };
           console.log(`✅ "${config.key}" done: ${permanentUrl.substring(0, 80)}...`);
         }

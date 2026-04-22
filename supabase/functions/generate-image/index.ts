@@ -1,16 +1,9 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { fal } from "https://esm.sh/@fal-ai/client@1.2.1";
+import { generateImage as kieGenerateImage, mapDimensionsToAspectRatio } from "../_shared/kieClient.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
-};
-
-const DIMENSION_MAP: Record<string, { width: number; height: number }> = {
-  '1:1':  { width: 2048, height: 2048 },
-  '16:9': { width: 3840, height: 2160 },
-  '9:16': { width: 2160, height: 3840 },
-  '4:1':  { width: 3840, height: 960 },
 };
 
 serve(async (req) => {
@@ -105,30 +98,16 @@ serve(async (req) => {
       );
     }
 
-    // IMAGE GENERATION via Fal.ai nano-banana-pro
-    const falKey = Deno.env.get('FAL_KEY');
-    if (!falKey) throw new Error('FAL_KEY is not configured');
-    fal.config({ credentials: falKey });
+    // IMAGE GENERATION via Kie.ai Nano Banana 2
+    const aspectRatio = mapDimensionsToAspectRatio(dimensions);
+    console.log('Generating image with Kie.ai Nano Banana 2:', { promptLength: finalPrompt.length, aspectRatio });
 
-    const imageSize = DIMENSION_MAP[dimensions || '1:1'] || DIMENSION_MAP['1:1'];
-    console.log('Generating image with Fal.ai nano-banana-pro:', { promptLength: finalPrompt.length, imageSize });
-
-    const result = await fal.subscribe("fal-ai/nano-banana-pro", {
-      input: {
-        prompt: finalPrompt,
-        negative_prompt: "blurry, low quality, pixelated, text, watermark, logo, distorted, noisy, grainy, out of focus",
-        image_size: imageSize,
-        num_images: 1,
-        num_inference_steps: 40,
-        guidance_scale: 7.5,
-      },
+    const { url: generatedImageUrl } = await kieGenerateImage({
+      prompt: finalPrompt,
+      aspectRatio,
+      resolution: "4K",
+      outputFormat: "png",
     });
-
-    const generatedImageUrl = result?.data?.images?.[0]?.url;
-    if (!generatedImageUrl) {
-      console.error('Fal.ai response:', JSON.stringify(result));
-      throw new Error('No image returned from Fal.ai');
-    }
 
     console.log('Image generated successfully');
 

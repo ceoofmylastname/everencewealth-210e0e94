@@ -1,7 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import * as fal from "https://esm.sh/@fal-ai/serverless-client@0.15.0";
+import { generateImage as kieGenerateImage } from "../_shared/kieClient.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -12,30 +12,27 @@ const LANGUAGE_NAMES: Record<string, string> = {
   en: 'English', es: 'Spanish'
 };
 
-interface FalResult {
-  images?: Array<{ url?: string }>;
-}
-
 /**
- * Upload image from Fal.ai to Supabase Storage
+ * Upload generated image to Supabase Storage
  */
 async function uploadToStorage(
-  falImageUrl: string,
+  sourceImageUrl: string,
   supabase: any,
   bucket: string = 'article-images',
   prefix: string = 'img'
 ): Promise<string> {
   try {
-    if (!falImageUrl || !falImageUrl.includes('fal.media')) {
-      return falImageUrl;
+    if (!sourceImageUrl) return sourceImageUrl;
+    if (sourceImageUrl.includes('supabase') && sourceImageUrl.includes('/storage/')) {
+      return sourceImageUrl;
     }
 
-    console.log(`📥 Downloading image from Fal.ai...`);
-    const imageResponse = await fetch(falImageUrl);
+    console.log(`📥 Downloading generated image...`);
+    const imageResponse = await fetch(sourceImageUrl);
     
     if (!imageResponse.ok) {
       console.error(`❌ Failed to download image: ${imageResponse.status}`);
-      return falImageUrl;
+      return sourceImageUrl;
     }
     
     const imageBuffer = await imageResponse.arrayBuffer();
@@ -59,7 +56,7 @@ async function uploadToStorage(
     
     if (uploadError) {
       console.error(`❌ Upload failed:`, uploadError);
-      return falImageUrl;
+      return sourceImageUrl;
     }
     
     const { data: publicUrlData } = supabase.storage
@@ -73,11 +70,11 @@ async function uploadToStorage(
       return supabaseUrl;
     }
     
-    return falImageUrl;
+    return sourceImageUrl;
     
   } catch (error) {
     console.error(`❌ Storage upload error:`, error);
-    return falImageUrl;
+    return sourceImageUrl;
   }
 }
 
@@ -199,13 +196,11 @@ serve(async (req) => {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const openaiKey = Deno.env.get('OPENAI_API_KEY');
-    const falKey = Deno.env.get('FAL_KEY');
 
     if (!openaiKey) throw new Error('OPENAI_API_KEY is not configured');
-    if (!falKey) throw new Error('FAL_KEY is not configured');
+    if (!Deno.env.get('KIE_API_KEY')) throw new Error('KIE_API_KEY is not configured');
 
     const supabase = createClient(supabaseUrl, supabaseKey);
-    fal.config({ credentials: falKey.trim().replace(/[\r\n]/g, '') });
 
     console.log(`🖼️ Starting image regeneration for article: ${articleId}`);
 
@@ -323,29 +318,24 @@ Output ONLY the image prompt, nothing else.`
 
     console.log(`🎨 Generated prompt: ${imagePrompt.substring(0, 100)}...`);
 
-    // Generate image
-    console.log(`🖼️ Generating image with Nano Banana Pro...`);
-    const result = await fal.subscribe("fal-ai/nano-banana-pro", {
-      input: {
-        prompt: imagePrompt,
-        aspect_ratio: "16:9",
-        resolution: "2K",
-        num_images: 1,
-        output_format: "png"
-      }
-    }) as FalResult;
+    // Generate image via Kie.ai Nano Banana 2
+    console.log(`🖼️ Generating image with Kie.ai Nano Banana 2...`);
+    const { url: kieUrl } = await kieGenerateImage({
+      prompt: imagePrompt,
+      aspectRatio: "16:9",
+      resolution: "2K",
+      outputFormat: "png",
+    });
 
-    let generatedImageUrl = result.images?.[0]?.url;
+    let generatedImageUrl = kieUrl;
     if (!generatedImageUrl) throw new Error('Image generation failed - no URL returned');
 
     console.log(`✅ Image generated successfully`);
 
-    if (generatedImageUrl.includes('fal.media')) {
-      generatedImageUrl = await uploadToStorage(
-        generatedImageUrl, supabase, 'article-images',
-        `article-${article.slug || article.id.slice(0, 8)}`
-      );
-    }
+    generatedImageUrl = await uploadToStorage(
+      generatedImageUrl, supabase, 'article-images',
+      `article-${article.slug || article.id.slice(0, 8)}`
+    );
 
     const { altText, caption } = await generateLocalizedMetadata(article, imagePrompt, openaiKey);
 

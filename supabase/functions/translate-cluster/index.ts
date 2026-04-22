@@ -1,11 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
-import { fal } from "https://esm.sh/@fal-ai/client@1.2.1";
-
-// Configure Fal.ai
-fal.config({
-  credentials: Deno.env.get("FAL_KEY")
-});
+import { generateImage as kieGenerateImage } from "../_shared/kieClient.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -21,23 +16,23 @@ const corsHeaders = {
  * @returns Supabase public URL or original URL if upload fails
  */
 async function uploadToStorage(
-  falImageUrl: string,
+  sourceImageUrl: string,
   supabase: any,
   bucket: string = 'article-images',
   prefix: string = 'img'
 ): Promise<string> {
   try {
-    // Skip if not a Fal.ai URL
-    if (!falImageUrl || !falImageUrl.includes('fal.media')) {
-      return falImageUrl;
+    if (!sourceImageUrl) return sourceImageUrl;
+    if (sourceImageUrl.includes('supabase') && sourceImageUrl.includes('/storage/')) {
+      return sourceImageUrl;
     }
 
-    console.log(`📥 Downloading image from Fal.ai...`);
-    const imageResponse = await fetch(falImageUrl);
+    console.log(`📥 Downloading generated image...`);
+    const imageResponse = await fetch(sourceImageUrl);
     
     if (!imageResponse.ok) {
       console.error(`❌ Failed to download image: ${imageResponse.status}`);
-      return falImageUrl;
+      return sourceImageUrl;
     }
     
     const imageBuffer = await imageResponse.arrayBuffer();
@@ -62,7 +57,7 @@ async function uploadToStorage(
     
     if (uploadError) {
       console.error(`❌ Upload failed:`, uploadError);
-      return falImageUrl;
+      return sourceImageUrl;
     }
     
     const { data: publicUrlData } = supabase.storage
@@ -76,32 +71,28 @@ async function uploadToStorage(
       return supabaseUrl;
     }
     
-    return falImageUrl;
+    return sourceImageUrl;
     
   } catch (error) {
     console.error(`❌ Storage upload error:`, error);
-    return falImageUrl;
+    return sourceImageUrl;
   }
 }
 
 /**
- * Generate unique image for translated article using Nano Banana Pro
+ * Generate unique image for translated article using Kie.ai Nano Banana 2
  */
 async function generateUniqueImage(prompt: string, fallbackUrl: string): Promise<string> {
   try {
-    const result = await fal.subscribe("fal-ai/nano-banana-pro", {
-      input: {
-        prompt,
-        aspect_ratio: "16:9",
-        resolution: "2K",
-        num_images: 1,
-        output_format: "png"
-      }
+    const { url } = await kieGenerateImage({
+      prompt,
+      aspectRatio: "16:9",
+      resolution: "2K",
+      outputFormat: "png",
     });
-    
-    if (result.data?.images?.[0]?.url) {
-      console.log(`✅ Generated unique image with Nano Banana Pro`);
-      return result.data.images[0].url;
+    if (url) {
+      console.log(`✅ Generated unique image with Kie.ai Nano Banana 2`);
+      return url;
     }
   } catch (error) {
     console.error(`⚠️ Image generation failed, using fallback:`, error);

@@ -1090,16 +1090,13 @@ export async function testPhase13(): Promise<TestResult[]> {
 export async function testPhase14(): Promise<TestResult[]> {
   const results: TestResult[] = [];
 
-  // Test: Check API key exists
-  const hasFalKey = !!import.meta.env.VITE_FAL_KEY;
-  
+  // Image generation now uses Kie.ai (Nano Banana 2) via backend KIE_API_KEY.
+  // No frontend env var to check — the secret lives server-side in Lovable Cloud.
   results.push({
-    name: '🤖 AI Image Generation (Optional)',
-    status: hasFalKey ? 'pass' : 'warning',
-    message: hasFalKey
-      ? '✓ FAL.ai is configured and ready'
-      : '⚠ FAL.ai not configured (images will use placeholders)',
-    details: `AI image generation is an OPTIONAL feature.\n\nStatus:\n${hasFalKey ? '✓' : '○'} API key configured\n\nIf not configured, articles will use placeholder images.\n\nTo enable: Add FAL_KEY to environment variables.`
+    name: '🤖 AI Image Generation (Kie.ai Nano Banana 2)',
+    status: 'pass',
+    message: '✓ Kie.ai Nano Banana 2 configured via backend (KIE_API_KEY)',
+    details: 'Image generation runs server-side via the generate-image edge function using KIE_API_KEY.'
   });
 
   // Don't test the endpoint - just check configuration
