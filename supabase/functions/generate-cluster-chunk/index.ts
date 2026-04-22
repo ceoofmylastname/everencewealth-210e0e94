@@ -679,16 +679,7 @@ async function processChunk(
         }),
       }).catch(err => console.error('[Chunk] Fire-and-forget error:', err));
 
-      return new Response(JSON.stringify({
-        success: true,
-        chunkIndex,
-        savedArticles: savedIds.length,
-        totalSaved: allSavedArticles.length,
-        hasMoreChunks: true,
-        nextChunk: nextChunkIndex,
-      }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      return;
     }
 
     // All chunks complete - finalize job
