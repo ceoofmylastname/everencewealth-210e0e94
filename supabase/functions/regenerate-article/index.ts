@@ -1,6 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { callClaude, extractJsonFromResponse, CLAUDE_MODELS } from "../_shared/claudeClient.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -10,26 +11,6 @@ const corsHeaders = {
 function countWords(html: string): number {
   const text = (html || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
   return text.split(/\s+/).filter(w => w.length > 0).length;
-}
-
-function extractJsonFromResponse(text: string): any {
-  try {
-    return JSON.parse(text);
-  } catch {
-    const codeBlockMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/);
-    if (codeBlockMatch) {
-      try {
-        return JSON.parse(codeBlockMatch[1].trim());
-      } catch {}
-    }
-    const objectMatch = text.match(/\{[\s\S]*\}/);
-    if (objectMatch) {
-      try {
-        return JSON.parse(objectMatch[0]);
-      } catch {}
-    }
-    throw new Error('Failed to parse JSON from response');
-  }
 }
 
 serve(async (req) => {
