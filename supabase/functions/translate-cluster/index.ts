@@ -110,6 +110,30 @@ const MAX_RUNTIME = 50 * 1000; // 50 seconds
 const MAX_ARTICLES_PER_RUN = 4; // Increased from 2 - faster AI allows more
 const MAX_RETRIES = 2;
 const RECENT_LOCK_MS = 90 * 1000;
+const STALL_THRESHOLD_MS = 3 * 60 * 1000; // 3 minutes - reset stuck "generating" jobs
+
+/**
+ * Heartbeat: bump updated_at so external watchers know we're alive.
+ * Call before slow operations (e.g. AI calls).
+ */
+async function writeHeartbeat(supabase: any, jobId: string, message?: string) {
+  if (!jobId) return;
+  try {
+    const update: any = { updated_at: new Date().toISOString() };
+    if (message) {
+      // Merge message into existing progress without clobbering other fields
+      const { data: existing } = await supabase
+        .from('cluster_generations')
+        .select('progress')
+        .eq('id', jobId)
+        .single();
+      update.progress = { ...(existing?.progress || {}), message, last_heartbeat: new Date().toISOString() };
+    }
+    await supabase.from('cluster_generations').update(update).eq('id', jobId);
+  } catch (e) {
+    console.warn('[translate-cluster] Heartbeat failed (non-fatal):', e);
+  }
+}
 
 /**
  * Clean HTML content - remove markdown fences and normalize
