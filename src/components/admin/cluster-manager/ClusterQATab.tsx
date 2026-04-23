@@ -1182,10 +1182,33 @@ export const ClusterQATab = ({
     <div className="space-y-6">
       {/* Summary Stats */}
       <div className="grid grid-cols-4 gap-4">
-        <div className="text-center p-3 bg-muted/50 rounded-lg">
-          <div className="text-2xl font-bold">{totalQAsCreated}</div>
-          <div className="text-xs text-muted-foreground">Total Q&As</div>
-          <div className="text-xs text-muted-foreground/70">of {totalExpectedQAs} expected</div>
+        <div className="p-3 bg-muted/50 rounded-lg">
+          <div className="text-xs text-muted-foreground text-center mb-2 font-medium">Q&A Coverage</div>
+          <div className="space-y-1">
+            {(['en', ...TARGET_LANGUAGES] as const).map((lang) => {
+              const count = languageQACounts[lang] ?? cluster.qa_pages?.[lang]?.total ?? 0;
+              const target = EXPECTED_QAS_PER_LANGUAGE;
+              const isComplete = count >= target;
+              const isInProgress = count > 0 && count < target;
+              const statusColor = isComplete
+                ? 'text-green-600 dark:text-green-500'
+                : isInProgress
+                  ? 'text-amber-600 dark:text-amber-500'
+                  : 'text-muted-foreground';
+              const statusIcon = isComplete ? '✓' : isInProgress ? '…' : '○';
+              return (
+                <div key={lang} className="flex items-center justify-between text-xs">
+                  <span className="flex items-center gap-1.5">
+                    <span>{getLanguageFlag(lang)}</span>
+                    <span className="font-medium uppercase">{lang}</span>
+                  </span>
+                  <span className={`font-mono font-semibold ${statusColor}`}>
+                    {count}/{target} {statusIcon}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
         </div>
         <div className="text-center p-3 bg-muted/50 rounded-lg">
           <div className="text-2xl font-bold text-green-600">{totalPublished}</div>
