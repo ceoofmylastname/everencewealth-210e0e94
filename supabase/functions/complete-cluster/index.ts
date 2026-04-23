@@ -328,8 +328,8 @@ Return ONLY the HTML content.`;
         speakable_answer: speakableAnswer,
         detailed_content: detailedContent,
         canonical_url: `https://www.everencewealth.com/en/blog/${slug}`,
-        featured_image_url: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1200&q=80',
-        featured_image_alt: plan.headline,
+        featured_image_url: null,
+        featured_image_alt: `${plan.headline} - Everence Wealth`,
         author_id: randomAuthor?.id || null,
         date_published: new Date().toISOString(),
         date_modified: new Date().toISOString(),
@@ -392,6 +392,17 @@ Return ONLY the HTML content.`;
           .in('id', articleIds);
       }
     }
+
+    // 8. Auto-trigger content-aware image generation for the completed cluster
+    console.log(`[Complete Cluster] 🎨 Auto-triggering Kie AI image generation for cluster ${clusterId}...`);
+    fetch(`${SUPABASE_URL}/functions/v1/regenerate-cluster-images`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+      },
+      body: JSON.stringify({ clusterId }),
+    }).catch(err => console.error('[Complete Cluster] Image generation trigger error:', err));
 
     return new Response(
       JSON.stringify({
