@@ -1,148 +1,54 @@
 
-## Fix the new cluster-completion failure
 
-### What’s actually failing
-This is a different failure path than the earlier 6-article generation bug.
+## Replace legacy Del Sol logo in social/OG metadata
 
-The current break is in `generate-missing-articles`:
+### Problem
+Social media previews (Open Graph / Twitter cards) and possibly favicons/manifests are still serving the old Del Sol Prime Homes logo instead of the official Everence Wealth logo.
 
-- The function generates and saves **one missing article per request**
-- It does that work **synchronously over a long-lived HTTP connection**
-- Your logs show the article was successfully saved, then the function hit:
+### Official logo (single source of truth)
+`https://assets.cdn.filesafe.space/htr97zzmRc1NMujHbL9R/media/69b7424c5b89c7c557adfe6e.png`
 
-```text
-Http: connection closed before message completed
-```
+### Fix scope
 
-That means:
-1. Claude/content generation already ran
-2. The article insert already happened
-3. The browser/function client lost the response before it finished
-4. The frontend treated that as a hard failure and stopped
-5. The next missing article was never triggered
+1. **Audit all logo / OG image references**
+   - `index.html` — `<meta property="og:image">`, `<meta name="twitter:image">`, favicon `<link rel="icon">`, apple-touch-icon, manifest reference
+   - `public/` directory — replace `og-image.png`, `favicon.ico`, `apple-touch-icon.png`, `site.webmanifest` icon entries if they contain the legacy artwork
+   - `src/config/business.ts` — `BUSINESS.logo.url` (used in JSON-LD Organization schema)
+   - Any `<SEO>` / `<MetaTags>` / `<OGTags>` components that hardcode an image URL
+   - Any sitemap, RSS, or share-card edge function that embeds a logo
+   - Search the codebase for legacy strings: `delsol`, `del-sol`, `prime-homes`, `delsolprimehomes`, and any other CDN URLs that aren't the new asset
 
-So you get charged, sometimes get a saved article, but the cluster still stalls short of 6/6.
+2. **Replace every legacy reference** with the official URL above (or with a locally-hosted copy at `/og-image.png` if we want to self-host for reliability).
 
-### Evidence from the current logs
-`generate-missing-articles` logs show:
+3. **Update favicon + apple-touch-icon**
+   - Download the official logo into `public/favicon.png` and `public/apple-touch-icon.png`
+   - Delete `public/favicon.ico` if it still contains the old mark
+   - Update `index.html` `<link rel="icon">` and `<link rel="apple-touch-icon">` accordingly
 
-- Missing slots: `[5, 6]`
-- It generated article 5
-- It saved article `27545dd0-a08c-4da6-9159-7df9be493682`
-- Final source-language count became `5`
-- Immediately after: `Http: connection closed before message completed`
+4. **Update JSON-LD**
+   - Confirm `BUSINESS.logo.url` in `src/config/business.ts` points to the Everence logo (it already references `6993ada8dcdadb155342f28e.png` — verify that is the correct current Everence asset, otherwise swap to the URL provided above)
 
-That is the signature of a **completed write + failed HTTP response**, not a bad prompt or bad insert.
+5. **Cache busting for social platforms**
+   - After deploy, the user will need to re-scrape the page in:
+     - Facebook Sharing Debugger
+     - LinkedIn Post Inspector
+     - X (Twitter) Card Validator
+   - These tools cache OG images aggressively; without re-scraping, old previews persist even after the fix.
 
----
+### Files expected to change
+- `index.html`
+- `public/favicon.ico` (delete) / `public/favicon.png` (add) / `public/apple-touch-icon.png` (add) / `public/og-image.png` (replace)
+- `src/config/business.ts` (verify/update logo URL)
+- Any SEO component found during audit (e.g. `src/components/SEO.tsx`, `src/components/seo/*`)
+- Any edge function that generates share images
 
-## Implementation plan
+### Out of scope
+- Visual logo placement inside the rendered site UI (header/footer) — those already use the correct Everence logo per current code.
+- Brand color or typography changes.
 
-### 1. Refactor `generate-missing-articles` to background execution
-**File:** `supabase/functions/generate-missing-articles/index.ts`
+### Verification after implementation
+1. View page source on the homepage — confirm `og:image` and `twitter:image` point to the Everence logo.
+2. Hit `/favicon.png` and `/apple-touch-icon.png` directly — confirm they show the Everence mark.
+3. Run Facebook / LinkedIn / X debuggers and force a re-scrape.
+4. Grep the repo for `delsol` and any old CDN paths — should return zero matches.
 
-Convert it to the same pattern already used successfully in `generate-cluster-chunk`:
-
-- Move the real article-generation logic into a background worker function
-- Return `202 Accepted` immediately from the HTTP entrypoint
-- Wrap the work in `EdgeRuntime.waitUntil(...)`
-
-This prevents the worker from being torn down just because the client connection closes.
-
-### 2. Let the function self-continue until the cluster reaches 6 source articles
-Still in `generate-missing-articles/index.ts`:
-
-After saving one article:
-
-- re-count current source-language articles
-- if count is still `< 6`, trigger `generate-missing-articles` again internally using service auth
-- if count reaches `6`, mark the cluster source side complete and stop chaining
-
-This removes the fragile dependency on the browser having to successfully wait for, parse, and then re-trigger article 6.
-
-### 3. Make the function idempotent and duplicate-safe
-Add defensive checks in `generate-missing-articles/index.ts` so retries or overlapping triggers do not create duplicates:
-
-- re-read used `cluster_number` values before insert
-- only fill the next open slot
-- before insert, check whether that exact `cluster_number` already exists for the cluster/language
-- if it exists, skip insert and continue to the next missing slot
-
-This ensures background retries cannot over-generate.
-
-### 4. Persist useful progress into `cluster_generations.progress`
-Update the job record throughout the missing-article flow with fields like:
-
-- `current_article`
-- `saved_articles`
-- `message`
-- `last_heartbeat`
-- `source_complete`
-
-This lets the admin UI reflect the real backend state even if the original browser request was interrupted.
-
-### 5. Make the frontend treat connection drops as “check state first,” not “fail immediately”
-**File:** `src/components/admin/cluster-manager/ClusterArticlesTab.tsx`
-
-Update `handleGenerateMissing` so that if `supabase.functions.invoke('generate-missing-articles')` throws a fetch/connection interruption:
-
-- do **not** assume generation failed
-- wait briefly
-- refetch cluster articles
-- recompute missing count from the database
-- if progress was made, continue polling / triggering until source count reaches 6
-- only show a true error when the DB count does not advance and the job status/progress indicates failure
-
-This matches the actual backend behavior and avoids abandoning the process after a response-level disconnect.
-
-### 6. Add a lightweight “in progress” state for missing article completion
-In the same UI area:
-
-- show “Completing source articles in background...”
-- derive progress from actual article count (`4/6`, `5/6`, `6/6`)
-- keep the button disabled while background completion is active
-- auto-refresh after each attempt / interruption
-
-This makes the flow resilient instead of brittle.
-
-### 7. Clean up the currently stuck cluster state
-After the code fix, run a one-time backend cleanup for the affected cluster:
-
-- verify current English article count
-- if it is 5/6, trigger the repaired missing-article flow once
-- if the cluster status/progress is stale, update it to reflect the real source count before resuming
-
-This finishes the user’s current cluster instead of requiring a brand-new one.
-
----
-
-## Expected outcome after the patch
-
-When you click **Generate Missing (2)** or **Generate Missing (1)**:
-
-- the request will return immediately
-- the backend will keep running even if the browser response closes
-- article 5 and article 6 will continue automatically in the backend
-- the UI will refresh based on real DB count
-- the cluster will end at **6/6 source articles**
-- translation can proceed normally
-
----
-
-## Files to change
-- `supabase/functions/generate-missing-articles/index.ts`
-- `src/components/admin/cluster-manager/ClusterArticlesTab.tsx`
-
-### Optional verification target
-- current affected cluster: `738ff4bd-31f2-4b36-b2a0-6653a39a9d5c`
-
----
-
-## Technical notes
-- Root cause is **HTTP lifecycle / client disconnect handling**, not prompt quality
-- The log line `Http: connection closed before message completed` happened **after** the article save
-- `generate-missing-articles` currently lacks the robust background pattern already present in `generate-cluster-chunk`
-- The safest fix is:
-  1. background execution with `EdgeRuntime.waitUntil`
-  2. backend self-continuation
-  3. frontend recovery on interrupted responses
