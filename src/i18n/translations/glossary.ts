@@ -62,7 +62,7 @@ export const glossaryTranslations = {
     description: "Su guía completa de terminología de planificación financiera, seguros, jubilación y estrategias fiscales eficientes. Conocimiento esencial para construir y proteger su legado.",
     searchPlaceholder: "Buscar términos (ej., IUL, Anualidad, Roth IRA...)",
     compiledBy: "Compilado por",
-    licensedExperts: "Asesores Fiduciarios Licenciados",
+    licensedExperts: "Asesores Independientes Licenciados",
     lastUpdated: "Última actualización:",
     verifiedDefinitions: "definiciones verificadas",
     allTerms: "Todos los Términos",
@@ -72,7 +72,7 @@ export const glossaryTranslations = {
     learnMore: "Más información",
     ctaHeadline: "¿Listo para Construir Su",
     ctaHighlight: "Estrategia Patrimonial?",
-    ctaDescription: "Nuestro equipo fiduciario puede guiarle en la planificación de jubilación, optimización fiscal y protección de activos. Reciba asesoramiento personalizado según sus objetivos financieros.",
+    ctaDescription: "Nuestro equipo independiente puede guiarle en la planificación de jubilación, optimización fiscal y protección de activos. Reciba asesoramiento personalizado según sus objetivos financieros.",
     ctaButton1: "Explorar Nuestros Servicios",
     ctaButton2: "Agendar una Consulta",
     categories: {
