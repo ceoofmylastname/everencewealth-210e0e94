@@ -524,18 +524,23 @@ serve(async (req) => {
       }
     }
 
-    // BLOCKED RESPONSE: If no Q&As can be processed due to missing article links
-    if (validQAs.length === 0 && missingArticleLinks.length > 0) {
-      console.error(`[TranslateQAs] ❌ BLOCKED: All ${qasToTranslate.length} Q&As blocked due to missing article hreflang links`);
-      
-      const uniqueMissingIds = [...new Set(missingArticleLinks)];
-      
+    // SKIP-INSTEAD-OF-ABORT: Only fully block if NO Q&As can proceed.
+    // If even one valid Q&A exists, proceed with that subset and surface skipped IDs.
+    const uniqueMissingIds = [...new Set(missingArticleLinks)];
+
+    if (validQAs.length === 0 && (missingArticleLinks.length > 0 || qaLinkingMismatches.length > 0)) {
+      console.error(`[TranslateQAs] ❌ BLOCKED: All ${qasToTranslate.length} Q&As blocked (no valid Q&As to process)`);
+      const blockedReason = missingArticleLinks.length > 0 ? 'missing_article_linking' : 'qa_linking_mismatch';
+
       return new Response(JSON.stringify({
         success: false,
         blocked: true,
-        blockedReason: 'missing_article_linking',
-        message: `Cannot translate: ${uniqueMissingIds.length} English articles missing hreflang links to ${targetLanguage} articles. Click "Fix Article Linking" to repair.`,
+        blockedReason,
+        message: blockedReason === 'missing_article_linking'
+          ? `Cannot translate: ${uniqueMissingIds.length} English articles missing hreflang links to ${targetLanguage} articles. Click "Fix Article Linking" to repair.`
+          : `Cannot translate: ${qaLinkingMismatches.length} existing Q&As are linked to wrong articles. Click "Fix Q&A Linking" to repair.`,
         missingEnglishArticleIds: uniqueMissingIds,
+        mismatchCount: qaLinkingMismatches.length,
         targetLanguage,
         skipped: skippedCount,
         failed: failedQAIds.length,
@@ -548,29 +553,7 @@ serve(async (req) => {
       });
     }
 
-    // BLOCKED RESPONSE: If Q&A linking mismatches detected (wrong Q&As occupying slots)
-    if (qaLinkingMismatches.length > 0 && validQAs.length > 0) {
-      console.error(`[TranslateQAs] ❌ BLOCKED: ${qaLinkingMismatches.length} Q&As have incorrect article linking`);
-      
-      return new Response(JSON.stringify({
-        success: false,
-        blocked: true,
-        blockedReason: 'qa_linking_mismatch',
-        message: `Cannot translate: ${qaLinkingMismatches.length} existing Q&As are linked to wrong articles. Click "Fix Q&A Linking" to repair.`,
-        mismatchCount: qaLinkingMismatches.length,
-        targetLanguage,
-        skipped: skippedCount,
-        failed: 0,
-        translated: 0,
-        actualCount: skippedCount,
-        remaining: 24 - skippedCount,
-      }), {
-        status: 200,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    console.log(`[TranslateQAs] ✅ Pre-check passed: ${validQAs.length} Q&As ready, ${missingArticleLinks.length} blocked, ${qaLinkingMismatches.length} mismatches`);
+    console.log(`[TranslateQAs] ✅ Pre-check passed: ${validQAs.length} Q&As ready, ${missingArticleLinks.length} skipped (missing links), ${qaLinkingMismatches.length} mismatches (will retry separately)`);
 
     // BULLETPROOF: Process Q&As ONE AT A TIME with retry logic
     const BATCH_SIZE = 6;
