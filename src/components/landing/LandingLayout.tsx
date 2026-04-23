@@ -101,14 +101,14 @@ const LandingLayout: React.FC<LandingLayoutProps> = ({ language, translations })
                 <meta property="og:description" content={heroT.subheadline || "Independent guidance for insurance and wealth management"} />
                 <meta property="og:type" content="website" />
                 <meta property="og:url" content={`https://www.everencewealth.com/${language}/landing`} />
-                <meta property="og:image" content="https://www.everencewealth.com/og-image.jpg" />
+                <meta property="og:image" content="https://www.everencewealth.com/og-image.png" />
                 <meta property="og:locale" content={getLocaleCode(language)} />
 
                 {/* Twitter Card */}
                 <meta name="twitter:card" content="summary_large_image" />
                 <meta name="twitter:title" content={heroT.headline ? `${heroT.headline} | Everence Wealth` : 'Everence Wealth'} />
                 <meta name="twitter:description" content={heroT.subheadline || "Independent guidance for insurance and wealth management"} />
-                <meta name="twitter:image" content="https://www.everencewealth.com/og-image.jpg" />
+                <meta name="twitter:image" content="https://www.everencewealth.com/og-image.png" />
 
                 {/* AEO: Schema.org JSON-LD (Critical for AI Engines) */}
                 <script type="application/ld+json">
