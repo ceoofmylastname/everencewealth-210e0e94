@@ -267,16 +267,20 @@ export function SitemapRegenerator() {
       });
     }
     
-    if (sitemapData.file_list.includes('sitemaps/glossary.xml')) {
-      files.push({
-        name: 'Glossary',
-        path: '/sitemaps/glossary.xml',
-        urlCount: 11,
-        lastmod: today,
-        type: 'glossary',
-        status: 'valid'
-      });
-    }
+    sitemapData.languages_with_content.forEach(lang => {
+      const glossaryPath = `sitemaps/${lang}/glossary.xml`;
+      if (sitemapData.file_list?.includes(glossaryPath)) {
+        files.push({
+          name: `Glossary (${lang.toUpperCase()})`,
+          path: `/${glossaryPath}`,
+          urlCount: 11,
+          lastmod: today,
+          type: 'glossary',
+          language: lang,
+          status: 'valid'
+        });
+      }
+    });
     
     return files;
   }, [sitemapData]);
