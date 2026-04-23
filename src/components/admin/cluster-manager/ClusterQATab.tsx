@@ -1338,11 +1338,31 @@ export const ClusterQATab = ({
             <Languages className="h-5 w-5 text-purple-600" />
             Phase 2: Translate to Languages
             <Button
+              variant="outline"
+              size="sm"
+              onClick={handleTranslateAllMissing}
+              disabled={isTranslatingAllMissing || translatingLanguages.size > 0 || isGeneratingAll}
+              className="ml-auto border-purple-400 text-purple-700 hover:bg-purple-50"
+              title="Scan every cluster and finish any incomplete ES translations in one go"
+            >
+              {isTranslatingAllMissing ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                  {translateAllProgress || 'Translating...'}
+                </>
+              ) : (
+                <>
+                  <Rocket className="h-4 w-4 mr-1" />
+                  Translate All Missing
+                </>
+              )}
+            </Button>
+            <Button
               variant="ghost"
               size="sm"
               onClick={handleRefreshCounts}
               disabled={isRefreshing}
-              className="ml-auto"
+              className=""
             >
               <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
               <span className="ml-1 text-xs">Refresh</span>
