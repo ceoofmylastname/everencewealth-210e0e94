@@ -202,8 +202,8 @@ const CRITICAL_CSS = `
     --prime-gold: 43 74% 49%;
     --prime-50: 45 75% 96%;
     --prime-100: 44 74% 90%;
-    --prime-900: 220 20% 12%;
-    --prime-950: 220 20% 10%;
+    --prime-900: 160 48% 4%;
+    --prime-950: 160 48% 3%;
     --foreground: 220 20% 10%;
     --muted-foreground: 220 10% 45%;
     --background: 0 0% 100%;
@@ -244,7 +244,10 @@ const CRITICAL_CSS = `
   }
   
   .static-hero {
-    background: linear-gradient(135deg, hsl(var(--prime-900)), hsl(var(--prime-950)));
+    background:
+      radial-gradient(60vw 60vw at 10% 30%, hsla(160,48%,25%,0.12), transparent 70%),
+      radial-gradient(50vw 50vw at 100% 100%, hsla(160,48%,30%,0.08), transparent 70%),
+      linear-gradient(135deg, hsl(var(--prime-900)), hsl(var(--prime-950)));
     color: white;
     padding: 5rem 2rem;
     text-align: center;
