@@ -764,7 +764,7 @@ serve(async (req) => {
     // Sync translations JSONB for all affected hreflang groups
     console.log(`[TranslateQAs] Syncing translations JSONB...`);
 
-    const affectedGroupIds = [...new Set(qaGroup.map(qa => qa.hreflang_group_id))];
+    const affectedGroupIds = [...processedGroupIds];
     
     for (const groupId of affectedGroupIds) {
       try {
@@ -836,15 +836,30 @@ serve(async (req) => {
     const isPartial = remaining > 0;
     
     console.log(`[TranslateQAs] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
-    console.log(`[TranslateQAs] ✅ Batch complete in ${duration}s`);
+    console.log(`[TranslateQAs] ✅ Invocation complete in ${duration}s`);
     console.log(`[TranslateQAs]    Translated: ${translatedQAs.length}`);
     console.log(`[TranslateQAs]    Failed: ${failedQAIds.length}`);
     console.log(`[TranslateQAs]    Total: ${currentCount}/24 (${remaining} remaining)`);
+    console.log(`[TranslateQAs]    Time budget exceeded: ${timeBudgetExceeded}, qasRemaining in this invocation: ${qasRemaining}`);
     console.log(`[TranslateQAs] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
+
+    // SELF-INVOKE: If Q&As remain (either time-budget or skipped due to linking), fire-and-forget another invocation
+    const shouldSelfInvoke = remaining >= SELF_INVOKE_THRESHOLD && (qasRemaining > 0 || (timeBudgetExceeded && validQAs.length > 0));
+    if (shouldSelfInvoke) {
+      console.log(`[TranslateQAs] 🔁 Self-invoking to drain remaining ${remaining} Q&As...`);
+      // Fire-and-forget — do NOT await; the new invocation runs independently
+      supabase.functions.invoke('translate-qas-to-language', {
+        body: { clusterId, targetLanguage },
+      }).catch((err) => {
+        console.error(`[TranslateQAs] Self-invoke fetch error (new invocation may still proceed):`, err);
+      });
+    }
 
     return new Response(JSON.stringify({
       success: true,
       partial: isPartial,
+      selfInvoked: shouldSelfInvoke,
+      timeBudgetExceeded,
       targetLanguage,
       translated: translatedQAs.length,
       failed: failedQAIds.length,
@@ -856,7 +871,7 @@ serve(async (req) => {
       errors: errors.length > 0 ? errors : undefined,
       durationSeconds: parseFloat(duration),
       message: remaining > 0 
-        ? `Now at ${currentCount}/24 Q&As. ${remaining} remaining.`
+        ? `Now at ${currentCount}/24 Q&As. ${remaining} remaining${shouldSelfInvoke ? ' (auto-resuming)' : ''}.`
         : `Completed! All 24 Q&As translated to ${LANGUAGE_NAMES[targetLanguage]}`,
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
