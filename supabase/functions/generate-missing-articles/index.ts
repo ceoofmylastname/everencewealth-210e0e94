@@ -491,6 +491,11 @@ You MUST write a MUCH LONGER article. Use this structure:
       const contentText = contentData?.content?.[0]?.text || '';
       if (!contentText.trim()) {
         console.error('[Missing] Empty content response');
+        await updateProgress(supabase, clusterId, {
+          message: 'Empty content response from Claude',
+          in_progress: false,
+          last_error: 'content_empty',
+        });
         return;
       }
 
@@ -498,6 +503,11 @@ You MUST write a MUCH LONGER article. Use this structure:
         contentJson = extractJsonFromResponse(contentText);
       } catch (e) {
         console.error('[Missing] Content parse error:', e);
+        await updateProgress(supabase, clusterId, {
+          message: `Content JSON parse failed: ${e instanceof Error ? e.message : String(e)}`,
+          in_progress: false,
+          last_error: 'content_parse_failed',
+        });
         return;
       }
 
