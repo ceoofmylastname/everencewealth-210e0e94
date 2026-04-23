@@ -908,6 +908,11 @@ export const ClusterQATab = ({
 
   const handleResumeJob = async () => {
     if (!activeJob) return;
+
+  // Translate All Missing: scan every cluster for incomplete ES Q&As, drain in series
+  // (defined as a hoisted function-expression below for clarity)
+  
+  
     
     setIsResumingJob(true);
     
