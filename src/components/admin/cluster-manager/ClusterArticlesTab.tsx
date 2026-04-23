@@ -822,8 +822,8 @@ export const ClusterArticlesTab = ({
             {isGeneratingMissing ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                {generationProgress 
-                  ? `Generating ${generationProgress.current}/${generationProgress.current + (generationProgress.total - generationProgress.current)}...`
+                {generationProgress
+                  ? `Generating ${generationProgress.current}/${generationProgress.total}...`
                   : 'Generating...'}
               </>
             ) : (
