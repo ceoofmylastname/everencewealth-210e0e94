@@ -166,6 +166,16 @@ async function processChunk(clusterId: string, specificFunnelStage: string | und
 
     const sourceLanguage = cluster.language || 'en';
 
+    // Mark job as actively generating (badge + sweeper rely on this)
+    try {
+      await supabase
+        .from('cluster_generations')
+        .update({ status: 'generating', updated_at: new Date().toISOString() })
+        .eq('id', clusterId);
+    } catch (e) {
+      console.warn('[Missing] Failed to set status=generating:', e);
+    }
+
     // ALWAYS re-read state at the top so concurrent runs / retries stay idempotent
     const { data: existingArticles, error: articlesError } = await supabase
       .from('blog_articles')
@@ -175,6 +185,11 @@ async function processChunk(clusterId: string, specificFunnelStage: string | und
 
     if (articlesError) {
       console.error('[Missing] Failed to read existing articles:', articlesError);
+      await updateProgress(supabase, clusterId, {
+        message: `Failed to read existing articles: ${articlesError.message || 'unknown error'}`,
+        in_progress: false,
+        last_error: 'read_articles_failed',
+      });
       return;
     }
 
@@ -302,6 +317,11 @@ You MUST respond with a valid JSON object:
     const planText = planData?.content?.[0]?.text || '';
     if (!planText.trim()) {
       console.error('[Missing] Empty plan response');
+      await updateProgress(supabase, clusterId, {
+        message: 'Empty plan response from Claude',
+        in_progress: false,
+        last_error: 'plan_empty',
+      });
       return;
     }
 
@@ -310,6 +330,11 @@ You MUST respond with a valid JSON object:
       plan = extractJsonFromResponse(planText);
     } catch (e) {
       console.error('[Missing] Plan parse error:', e);
+      await updateProgress(supabase, clusterId, {
+        message: `Plan JSON parse failed: ${e instanceof Error ? e.message : String(e)}`,
+        in_progress: false,
+        last_error: 'plan_parse_failed',
+      });
       return;
     }
 
@@ -466,6 +491,11 @@ You MUST write a MUCH LONGER article. Use this structure:
       const contentText = contentData?.content?.[0]?.text || '';
       if (!contentText.trim()) {
         console.error('[Missing] Empty content response');
+        await updateProgress(supabase, clusterId, {
+          message: 'Empty content response from Claude',
+          in_progress: false,
+          last_error: 'content_empty',
+        });
         return;
       }
 
@@ -473,6 +503,11 @@ You MUST write a MUCH LONGER article. Use this structure:
         contentJson = extractJsonFromResponse(contentText);
       } catch (e) {
         console.error('[Missing] Content parse error:', e);
+        await updateProgress(supabase, clusterId, {
+          message: `Content JSON parse failed: ${e instanceof Error ? e.message : String(e)}`,
+          in_progress: false,
+          last_error: 'content_parse_failed',
+        });
         return;
       }
 

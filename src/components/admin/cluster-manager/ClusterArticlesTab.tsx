@@ -253,8 +253,22 @@ export const ClusterArticlesTab = ({
     return 6 - sourceArticles.length;
   };
 
-  // Track generation progress for UI
-  const [generationProgress, setGenerationProgress] = useState<{ current: number; total: number } | null>(null);
+  // Track generation progress for UI (heartbeat-aware)
+  const [generationProgress, setGenerationProgress] = useState<{
+    current: number;
+    total: number;
+    message?: string;
+    lastActivityAt?: number; // ms epoch of most recent backend signal
+    status?: string;
+    lastError?: string;
+  } | null>(null);
+
+  const invalidateClusterQueries = () => {
+    queryClient.invalidateQueries({ queryKey: ['cluster-articles', cluster.cluster_id] });
+    queryClient.invalidateQueries({ queryKey: ['cluster-articles'] });
+    queryClient.invalidateQueries({ queryKey: ['cluster-jobs'] });
+    queryClient.invalidateQueries({ queryKey: ['clusters-unified'] });
+  };
 
   const handleGenerateMissing = async () => {
     setIsGeneratingMissing(true);
@@ -269,14 +283,19 @@ export const ClusterArticlesTab = ({
       return count || 0;
     };
 
-    // Helper: read job progress (best-effort)
-    const readJobProgress = async (): Promise<{ in_progress?: boolean; last_error?: string; message?: string } | null> => {
+    // Helper: read full job state (status + progress + updated_at + error)
+    const readJobState = async (): Promise<{
+      status?: string;
+      error?: string | null;
+      updated_at?: string | null;
+      progress?: any;
+    } | null> => {
       const { data } = await supabase
         .from('cluster_generations')
-        .select('progress')
+        .select('status, error, updated_at, progress')
         .eq('id', cluster.cluster_id)
         .maybeSingle();
-      return (data?.progress as any) || null;
+      return (data as any) || null;
     };
 
     const startCount = await readSourceCount();
@@ -304,17 +323,26 @@ export const ClusterArticlesTab = ({
         console.warn('[GenerateMissing] invoke returned an error (likely connection drop, ignoring):', invokeErr);
       }
 
-      // Poll DB until count reaches 6 or progress reports a hard error / stalls
-      const pollIntervalMs = 8000;
-      const maxStallChecks = 6; // ~48s of no progress before giving up
-      const overallTimeoutMs = 20 * 60 * 1000; // 20 minutes hard cap
+      // Heartbeat-aware polling: trust either count progress OR backend heartbeat/message.
+      const pollIntervalMs = 6000;
+      const stallThresholdMs = 3 * 60 * 1000; // 3 minutes with no signal at all = stalled
+      const overallTimeoutMs = 20 * 60 * 1000; // 20 min hard cap
       const startedAt = Date.now();
 
       let lastSeenCount = startCount;
-      let stallCount = 0;
+      let lastActivityMs = Date.now(); // any backend signal resets this
+      let lastJobUpdatedAt = '';
+      let lastHeartbeat = '';
+      let lastMessage = '';
+      let restartedOnce = false;
       let currentCount = startCount;
 
-      setGenerationProgress({ current: currentCount, total: targetCount });
+      setGenerationProgress({
+        current: currentCount,
+        total: targetCount,
+        message: 'Starting background generation...',
+        lastActivityAt: lastActivityMs,
+      });
 
       while (currentCount < targetCount) {
         if (Date.now() - startedAt > overallTimeoutMs) {
@@ -323,40 +351,75 @@ export const ClusterArticlesTab = ({
         }
 
         await new Promise((r) => setTimeout(r, pollIntervalMs));
-        currentCount = await readSourceCount();
-        setGenerationProgress({ current: currentCount, total: targetCount });
-        queryClient.invalidateQueries({ queryKey: ['cluster-articles', cluster.cluster_id] });
 
+        const [count, jobState] = await Promise.all([readSourceCount(), readJobState()]);
+        currentCount = count;
+        invalidateClusterQueries();
+
+        const progress = jobState?.progress || {};
+        const hbNow = progress?.last_heartbeat || '';
+        const updNow = jobState?.updated_at || '';
+        const msgNow: string = progress?.message || '';
+        const statusNow: string | undefined = jobState?.status;
+        const errorNow: string | undefined = jobState?.error || progress?.last_error;
+
+        // Any of these advancing counts as "still alive"
+        let activity = false;
         if (currentCount > lastSeenCount) {
           toast.success(`Saved article ${currentCount}/${targetCount}`);
           lastSeenCount = currentCount;
-          stallCount = 0;
+          activity = true;
+        }
+        if (updNow && updNow !== lastJobUpdatedAt) { lastJobUpdatedAt = updNow; activity = true; }
+        if (hbNow && hbNow !== lastHeartbeat) { lastHeartbeat = hbNow; activity = true; }
+        if (msgNow && msgNow !== lastMessage) { lastMessage = msgNow; activity = true; }
+
+        if (activity) lastActivityMs = Date.now();
+
+        setGenerationProgress({
+          current: currentCount,
+          total: targetCount,
+          message: msgNow || (currentCount < targetCount ? 'Working...' : 'Finishing up...'),
+          lastActivityAt: lastActivityMs,
+          status: statusNow,
+          lastError: errorNow || undefined,
+        });
+
+        // Treat partial+6 as immediate success
+        if (statusNow === 'partial' && currentCount >= targetCount) break;
+
+        // Hard failure path: backend reported it stopped with an error
+        if (progress?.in_progress === false && errorNow) {
+          toast.error(`Background generation reported an error: ${errorNow}`);
+          break;
+        }
+
+        // Soft restart: backend marked in_progress=false without error but count incomplete.
+        // Re-kick the chain ONCE (e.g. an early-return without error).
+        if (
+          progress?.in_progress === false &&
+          !errorNow &&
+          currentCount < targetCount &&
+          !restartedOnce
+        ) {
+          restartedOnce = true;
+          toast.info('Resuming background generation...');
+          setGenerationProgress((p) => p ? { ...p, message: 'Resuming background generation...' } : p);
+          try {
+            await supabase.functions.invoke('generate-missing-articles', {
+              body: { clusterId: cluster.cluster_id },
+            });
+          } catch (_e) { /* ignore disconnects */ }
+          lastActivityMs = Date.now();
           continue;
         }
 
-        stallCount++;
-        const progress = await readJobProgress();
-        if (progress?.in_progress === false && (currentCount < targetCount)) {
-          if (progress?.last_error) {
-            toast.error(`Background generation reported an error: ${progress.last_error}`);
-            break;
-          }
-          // Worker stopped but count not at 6 — re-kick the chain once.
-          if (stallCount === 1) {
-            toast.info('Re-starting background generation...');
-            try {
-              await supabase.functions.invoke('generate-missing-articles', {
-                body: { clusterId: cluster.cluster_id },
-              });
-            } catch (_e) {
-              // ignore disconnects
-            }
-            continue;
-          }
-        }
-
-        if (stallCount >= maxStallChecks) {
-          toast.warning(`No progress detected for ${(maxStallChecks * pollIntervalMs) / 1000}s. The job may still be running — refresh later to verify.`);
+        // Real stall: nothing has changed for stallThresholdMs
+        if (Date.now() - lastActivityMs > stallThresholdMs) {
+          toast.warning(
+            `No backend activity for ${Math.round((Date.now() - lastActivityMs) / 1000)}s. ` +
+            `The job may still be running — refresh later to verify.`
+          );
           break;
         }
       }
@@ -376,8 +439,7 @@ export const ClusterArticlesTab = ({
     } finally {
       setIsGeneratingMissing(false);
       setGenerationProgress(null);
-      queryClient.invalidateQueries({ queryKey: ['cluster-articles', cluster.cluster_id] });
-      queryClient.invalidateQueries({ queryKey: ['clusters-unified'] });
+      invalidateClusterQueries();
     }
   };
 
@@ -749,6 +811,37 @@ export const ClusterArticlesTab = ({
 
       {/* Actions */}
       <div className="flex flex-wrap gap-2 pt-2 border-t">
+      </div>
+
+      {/* Live generation progress panel */}
+      {isGeneratingMissing && generationProgress && (
+        <div className="flex items-start gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg dark:bg-blue-950/30 dark:border-blue-900">
+          <Loader2 className="h-4 w-4 text-blue-600 mt-0.5 animate-spin shrink-0" />
+          <div className="text-sm flex-1 min-w-0">
+            <div className="font-medium text-blue-800 dark:text-blue-300">
+              Saved {generationProgress.current}/{generationProgress.total} source articles
+            </div>
+            {generationProgress.message && (
+              <div className="text-blue-700 dark:text-blue-400 mt-0.5 truncate">
+                {generationProgress.message}
+              </div>
+            )}
+            {generationProgress.lastActivityAt && (
+              <div className="text-xs text-blue-600/80 dark:text-blue-400/80 mt-1">
+                Last activity {Math.max(0, Math.round((Date.now() - generationProgress.lastActivityAt) / 1000))}s ago
+              </div>
+            )}
+            {generationProgress.lastError && (
+              <div className="text-xs text-red-600 dark:text-red-400 mt-1">
+                Error: {generationProgress.lastError}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Actions (continued) */}
+      <div className="flex flex-wrap gap-2">
         {sourceInfo.needsMoreSource && (
           <Button
             variant="default"
@@ -760,8 +853,8 @@ export const ClusterArticlesTab = ({
             {isGeneratingMissing ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                {generationProgress 
-                  ? `Generating ${generationProgress.current}/${generationProgress.current + (generationProgress.total - generationProgress.current)}...`
+                {generationProgress
+                  ? `Generating ${generationProgress.current}/${generationProgress.total}...`
                   : 'Generating...'}
               </>
             ) : (
