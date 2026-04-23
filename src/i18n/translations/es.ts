@@ -90,17 +90,17 @@ export const es = {
     trustBadges: {
       api: "75+ Aseguradoras",
       experience: "35+ Años",
-      buyers: "Asesores Fiduciarios",
+      buyers: "Asesores Independientes",
     },
     trustBadgesMobile: {
       api: "75+",
       experience: "35+",
-      buyers: "Fiduciario",
+      buyers: "Independiente",
     },
     headline: "Cierra la Brecha de Jubilación.",
     headlineHighlight: "Protege lo que Importa.",
-    tagline: "Estrategias Fiscalmente Eficientes. Asesoría Independiente. Siempre Fiduciarios.",
-    description: "Everence Wealth ayuda a las familias a cerrar la brecha de jubilación a través de estrategias indexadas fiscalmente eficientes. Como asesores fiduciarios independientes con acceso a más de 75 aseguradoras y más de 35 años de experiencia combinada, eliminamos tarifas ocultas, reducimos la exposición fiscal y construimos riqueza generacional.",
+    tagline: "Estrategias Fiscalmente Eficientes. Asesoría Independiente. Siempre Independientes.",
+    description: "Everence Wealth ayuda a las familias a cerrar la brecha de jubilación a través de estrategias indexadas fiscalmente eficientes. Como asesores independientes independientes con acceso a más de 75 aseguradoras y más de 35 años de experiencia combinada, eliminamos tarifas ocultas, reducimos la exposición fiscal y construimos riqueza generacional.",
     ctaPrimary: "Explorar Estrategias",
     ctaSecondary: "Comenzar",
   },
@@ -149,7 +149,7 @@ export const es = {
   miniAbout: {
     headline: "Experiencia en la que puedes",
     headlineHighlight: "Confiar",
-    paragraph1: "Everence Wealth fue fundada por un equipo de asesores fiduciarios con más de 35 años de experiencia combinada ayudando a estadounidenses a construir estrategias de jubilación fiscalmente eficientes y proteger su patrimonio.",
+    paragraph1: "Everence Wealth fue fundada por un equipo de asesores independientes con más de 35 años de experiencia combinada ayudando a estadounidenses a construir estrategias de jubilación fiscalmente eficientes y proteger su patrimonio.",
     paragraph2: "Nuestro equipo bilingüe brinda orientación experta en inglés y español, especializándose en vida universal indexada, anualidades, planificación patrimonial y gestión integral de patrimonio.",
     cta: "Conocer al equipo",
   },
@@ -158,8 +158,8 @@ export const es = {
     headline: "Por Qué los Clientes Confían en Everence Wealth",
     items: [
       {
-        title: "Estándar Fiduciario",
-        description: "Operamos bajo un estricto deber fiduciario, siempre poniendo sus intereses financieros primero.",
+        title: "Estándar de Interés del Cliente",
+        description: "Operamos bajo un estricto deber de interés del cliente, siempre poniendo sus intereses financieros primero.",
       },
       {
         title: "35+ Años de Experiencia",
@@ -235,26 +235,26 @@ export const es = {
   glossaryTeaser: {
     eyebrow: "Términos Esenciales",
     headline: "Entienda la Terminología Financiera",
-    description: "Navegue el proceso de planificación con confianza. Nuestro glosario explica IUL, RMDs, deber fiduciario y todo lo que necesita saber.",
+    description: "Navegue el proceso de planificación con confianza. Nuestro glosario explica IUL, RMDs, deber de interés del cliente y todo lo que necesita saber.",
     cta: "Explorar Glosario Completo",
     featuredTerms: "Términos Populares",
     learnMore: "Más información",
     terms: {
       nie: "Vida Universal Indexada (IUL) — una póliza de seguro de vida permanente con crecimiento del valor en efectivo vinculado a índices del mercado.",
       digitalNomadVisa: "Distribución Mínima Requerida (RMD) — retiro anual obligatorio de cuentas de jubilación con impuestos diferidos después de los 73 años.",
-      ibi: "Fiduciario — un asesor financiero legalmente obligado a actuar en el mejor interés del cliente en todo momento.",
+      ibi: "Independiente — un asesor financiero legalmente obligado a actuar en el mejor interés del cliente en todo momento.",
       escritura: "Anualidad — un contrato con una compañía de seguros que proporciona pagos de ingresos garantizados por un período específico o de por vida.",
     },
   },
   finalCta: {
     headline: "¿Listo para Asegurar su",
     headlineHighlight: "Futuro Financiero?",
-    description: "Ya sea que esté comenzando a planificar o listo para actuar, nuestros asesores fiduciarios están aquí para guiarlo — de manera clara, transparente y en su idioma.",
+    description: "Ya sea que esté comenzando a planificar o listo para actuar, nuestros asesores independientes están aquí para guiarlo — de manera clara, transparente y en su idioma.",
     ctaPrimary: "Chatear con Everence AI",
     ctaSecondary: "Contactar por Teléfono",
   },
   footer: {
-    brandDescription: "Everence Wealth — Arquitectos fiduciarios independientes de patrimonio especializados en estrategias de jubilación fiscalmente eficientes. Profesionales licenciados. Orientación bilingüe.",
+    brandDescription: "Everence Wealth — Arquitectos independientes de patrimonio especializados en estrategias de jubilación fiscalmente eficientes. Profesionales licenciados. Orientación bilingüe.",
     contactHeading: "Contáctenos",
     navigateHeading: "Navegar",
     legalHeading: "Legal",
@@ -388,7 +388,7 @@ export const es = {
       hero: {
         eyebrow: 'California',
         tagline: 'Donde la Innovación se Encuentra con la Planificación Financiera',
-        description: 'Descubra estrategias excepcionales de jubilación y patrimonio diseñadas para residentes de California. Orientación experta de asesores fiduciarios.',
+        description: 'Descubra estrategias excepcionales de jubilación y patrimonio diseñadas para residentes de California. Orientación experta de asesores independientes.',
       },
       lifestyle: {
         eyebrow: 'La Oportunidad',
@@ -422,12 +422,12 @@ export const es = {
   team: {
     meta: {
       title: "Conozca a Nuestros Asesores | Everence Wealth",
-      description: "Conozca a los asesores fiduciarios expertos de Everence Wealth. Equipo bilingüe con más de 35 años de experiencia combinada."
+      description: "Conozca a los asesores independientes expertos de Everence Wealth. Equipo bilingüe con más de 35 años de experiencia combinada."
     },
     hero: {
       badge: "Nuestros Asesores",
       headline: "Conozca a Nuestro Equipo Experto",
-      subheadline: "Profesionales fiduciarios dedicados listos para ayudarle a construir y proteger su patrimonio",
+      subheadline: "Profesionales independientes dedicados listos para ayudarle a construir y proteger su patrimonio",
       badges: {
         languages: "EN/ES",
         experience: "35+ Años Combinados"
@@ -471,7 +471,7 @@ export const es = {
   contact: {
     meta: {
       title: "Contacte a Everence Wealth | Planificación de Jubilación y Patrimonio",
-      description: "Comuníquese con nuestro equipo de asesores fiduciarios. Llame, envíe un correo o programe una consulta."
+      description: "Comuníquese con nuestro equipo de asesores independientes. Llame, envíe un correo o programe una consulta."
     },
     hero: {
       headline: "Contáctenos",
@@ -564,7 +564,7 @@ export const es = {
         },
         {
           question: "¿Puedo agendar una videollamada?",
-          answer: "¡Absolutamente! Contáctenos por teléfono o correo electrónico para organizar un horario conveniente para una consulta por video con uno de nuestros asesores fiduciarios."
+          answer: "¡Absolutamente! Contáctenos por teléfono o correo electrónico para organizar un horario conveniente para una consulta por video con uno de nuestros asesores independientes."
         },
         {
           question: "¿En qué estados brindan servicio?",
@@ -581,8 +581,8 @@ export const es = {
   },
   aboutUs: {
     meta: {
-      title: "Acerca de Everence Wealth | Arquitectos Fiduciarios de Patrimonio",
-      description: "Conozca a nuestro equipo de asesores fiduciarios con más de 35 años de experiencia ayudando a estadounidenses a construir estrategias de jubilación fiscalmente eficientes."
+      title: "Acerca de Everence Wealth | Arquitectos Independientes de Patrimonio",
+      description: "Conozca a nuestro equipo de asesores independientes con más de 35 años de experiencia ayudando a estadounidenses a construir estrategias de jubilación fiscalmente eficientes."
     },
     cta: {
       meetTeam: "Conozca a Nuestros Asesores",
@@ -590,7 +590,7 @@ export const es = {
     },
     hero: {
       headline: "Sus Socios de Confianza en Gestión de Patrimonio",
-      subheadline: "Asesores fiduciarios con más de 35 años de experiencia y una misión: asegurar su futuro financiero.",
+      subheadline: "Asesores independientes con más de 35 años de experiencia y una misión: asegurar su futuro financiero.",
       breadcrumbHome: "Inicio",
       breadcrumbAbout: "Acerca de",
       statsYears: "Años de Experiencia",
@@ -601,14 +601,14 @@ export const es = {
       heading: "Nuestra Misión",
       summaryLabel: "Acerca de Nosotros",
       content: "Creemos que todos merecen orientación experta al tomar las decisiones financieras más importantes de la vida. Nuestra misión es proporcionar servicios de gestión de patrimonio transparentes y personalizados que pongan sus intereses primero.",
-      speakableContent: "Everence Wealth es una firma de asesoría fiduciaria independiente especializada en estrategias de jubilación fiscalmente eficientes, fundada por profesionales experimentados con más de 35 años de experiencia combinada."
+      speakableContent: "Everence Wealth es una firma de asesoría independiente especializada en estrategias de jubilación fiscalmente eficientes, fundada por profesionales experimentados con más de 35 años de experiencia combinada."
     },
     story: {
       heading: "Nuestra Historia",
-      subheading: "De experiencia individual a una misión fiduciaria unificada",
+      subheading: "De experiencia individual a una misión independiente unificada",
       timelineHeading: "Nuestro Recorrido",
       narrativeHeading: "Un Recorrido de Propósito y Experiencia",
-      narrativeContent: "## Un Recorrido de Propósito y Experiencia\n\nNuestra historia comienza con profesionales financieros experimentados que vieron una mejor manera de servir a los clientes.\n\nDespués de décadas en la industria de servicios financieros, nuestros fundadores reconocieron que la mayoría de los estadounidenses carecían de acceso a asesoría verdaderamente independiente y fiduciaria.\n\nConstruimos Everence Wealth para cambiar eso. Hoy, servimos a clientes en todo Estados Unidos, ayudándoles a cerrar la brecha de jubilación y proteger lo que más importa.",
+      narrativeContent: "## Un Recorrido de Propósito y Experiencia\n\nNuestra historia comienza con profesionales financieros experimentados que vieron una mejor manera de servir a los clientes.\n\nDespués de décadas en la industria de servicios financieros, nuestros fundadores reconocieron que la mayoría de los estadounidenses carecían de acceso a asesoría verdaderamente verdaderamente independiente.\n\nConstruimos Everence Wealth para cambiar eso. Hoy, servimos a clientes en todo Estados Unidos, ayudándoles a cerrar la brecha de jubilación y proteger lo que más importa.",
       timeline: [
         { year: "1991", event: "Los asesores fundadores inician sus carreras financieras" },
         { year: "2010", event: "El equipo se expande a práctica multi-estatal" },
@@ -619,14 +619,14 @@ export const es = {
     founders: {
       badge: "Equipo Experto",
       heading: "Conozca a Los Fundadores",
-      subheading: "Profesionales fiduciarios experimentados unidos por la pasión de ayudar a los clientes a asegurar su futuro financiero",
+      subheading: "Profesionales independientes experimentados unidos por la pasión de ayudar a los clientes a asegurar su futuro financiero",
       specialization: "Especialización",
       viewProfile: "Ver Perfil",
       profiles: [
         {
           name: "Equipo de Asesores",
-          role: "Asesores Fiduciarios",
-          bio: "Nuestro equipo de asesores fiduciarios licenciados aporta más de 35 años de experiencia combinada en planificación de jubilación, seguros y gestión de patrimonio.",
+          role: "Asesores Independientes",
+          bio: "Nuestro equipo de asesores independientes licenciados aporta más de 35 años de experiencia combinada en planificación de jubilación, seguros y gestión de patrimonio.",
           specialization: "Planificación de Jubilación y Estrategias Fiscalmente Eficientes"
         }
       ]
@@ -635,14 +635,14 @@ export const es = {
       heading: "Por Qué Elegirnos",
       subheading: "No solo vendemos productos — diseñamos estrategias financieras integrales",
       features: [
-        { title: "Estándar Fiduciario", description: "Legalmente obligados a actuar en su mejor interés" },
+        { title: "Estándar de Interés del Cliente", description: "Legalmente obligados a actuar en su mejor interés" },
         { title: "Servicio Integral", description: "Desde el diseño de estrategia hasta revisiones continuas del portafolio" },
         { title: "Licenciados y Certificados", description: "Profesionales completamente licenciados y asegurados" },
         { title: "Soporte Receptivo", description: "Disponibles cuando más nos necesita" },
         { title: "Enfoque en el Cliente", description: "Sus objetivos impulsan cada recomendación" },
         { title: "Proceso Transparente", description: "Sin tarifas ocultas, sin sorpresas" }
       ],
-      content: "## Por Qué los Clientes Nos Eligen\n\nCuando se trata de planificar su futuro financiero, necesita un socio que entienda tanto los productos como sus necesidades.\n\n### Experiencia Fiduciaria\n\nNuestro equipo opera bajo un estricto estándar fiduciario.\n\n### Servicio Integral\n\nDesde su primera consulta hasta revisiones anuales del portafolio, estamos con usted en cada paso."
+      content: "## Por Qué los Clientes Nos Eligen\n\nCuando se trata de planificar su futuro financiero, necesita un socio que entienda tanto los productos como sus necesidades.\n\n### Experiencia Independiente\n\nNuestro equipo opera bajo un estricto estándar de interés del cliente.\n\n### Servicio Integral\n\nDesde su primera consulta hasta revisiones anuales del portafolio, estamos con usted en cada paso."
     },
     credentials: {
       heading: "Nuestras Credenciales",
@@ -650,7 +650,7 @@ export const es = {
       citationsLabel: "Verificado por Fuentes Oficiales",
       items: [
         { name: "Licencia Estatal", description: "Licenciados en los 50 estados para productos de seguros y financieros" },
-        { name: "Estándar Fiduciario", description: "Obligados por deber legal de actuar en el mejor interés del cliente" },
+        { name: "Estándar de Interés del Cliente", description: "Obligados por deber legal de actuar en el mejor interés del cliente" },
         { name: "Seguro E&O", description: "Cobertura completa de responsabilidad profesional por errores y omisiones" },
         { name: "Cumplimiento CCPA", description: "Cumplimiento de la Ley de Privacidad del Consumidor de California" }
       ]
@@ -659,7 +659,7 @@ export const es = {
       heading: "Preguntas Frecuentes",
       subheading: "Preguntas comunes sobre Everence Wealth",
       items: [
-        { question: "¿Qué es un asesor fiduciario?", answer: "Un asesor fiduciario está legalmente obligado a actuar en su mejor interés en todo momento. A diferencia de los agentes basados en comisiones, recomendamos estrategias basadas únicamente en lo que es mejor para usted." },
+        { question: "¿Qué es un asesor independiente?", answer: "Un asesor independiente está legalmente obligado a actuar en su mejor interés en todo momento. A diferencia de los agentes basados en comisiones, recomendamos estrategias basadas únicamente en lo que es mejor para usted." },
         { question: "¿Sus asesores están licenciados?", answer: "Sí, todos nuestros asesores están completamente licenciados y asegurados, con credenciales relevantes del estado e industria." },
         { question: "¿Qué idiomas admiten?", answer: "Nuestro equipo bilingüe brinda orientación completa en inglés y español." },
         { question: "¿En qué estados brindan servicio?", answer: "Atendemos clientes en los 50 estados, con experiencia especializada en California, Texas, Florida, Nueva York, Illinois y otros mercados clave." }
@@ -677,12 +677,12 @@ export const es = {
   },
   homepage: {
     hero: {
-      badge: "Cobertura Nacional · Fiduciarios Independientes",
+      badge: "Cobertura Nacional · Asesores Independientes",
       bridge: "CIERRA",
       the: "la",
       gap: "BRECHA",
       sideLeft: "Arquitectura de Patrimonio",
-      sideRight: "Fiduciario Estratégico",
+      sideRight: "Asesor Estratégico",
       subline1: "Deja de financiar la riqueza de Wall Street.",
       subline2: "Comienza a construir la tuya.",
       sublineSmall: "Te han vendido un mito. ¿Ahorrar y esperar? Eso es una apuesta. Te ayudamos a recuperar el control.",
@@ -842,12 +842,12 @@ export const es = {
     },
     homepageAbout: {
       headline: "Everence Wealth: Construido sobre la Independencia",
-      paragraph1: "Fundada en San Francisco, Everence Wealth fue construida sobre una creencia simple: las familias merecen orientación independiente y fiduciaria — no discursos de venta disfrazados de asesoría.",
+      paragraph1: "Fundada en San Francisco, Everence Wealth fue construida sobre una creencia simple: las familias merecen orientación verdaderamente independiente — no discursos de venta disfrazados de asesoría.",
       paragraph2: "Como corredor independiente con acceso a más de 75 aseguradoras, trabajamos para usted, no para ninguna compañía de seguros o firma de inversión. Nuestra misión es ayudarle a cerrar la brecha de jubilación a través de estrategias fiscalmente eficientes que Wall Street no quiere que conozca.",
       facts: [
-        { value: "Independientes", label: "Fiduciarios" },
+        { value: "Independientes", label: "Independientes" },
         { value: "75+", label: "Alianzas con Aseguradoras" },
-        { value: "Fiduciario", label: "Asesor Independiente" },
+        { value: "Independiente", label: "Asesor Independiente" },
         { value: "San Francisco, CA", label: "Sede Central" },
       ],
       testimonial: "Por primera vez, sentí que mi asesor realmente estaba de mi lado — no vendiéndome algo.",
@@ -876,12 +876,12 @@ export const es = {
       badge: "Preguntas Frecuentes",
       headline: "Preguntas Comunes",
       items: [
-        { q: "¿Qué significa ser fiduciario?", a: "Un fiduciario está legalmente obligado a actuar en su mejor interés — no ganar comisiones ni impulsar productos propietarios. A diferencia de la mayoría de los corredores, nosotros estamos de su lado." },
+        { q: "¿Qué significa ser independiente?", a: "Un independiente está legalmente obligado a actuar en su mejor interés — no ganar comisiones ni impulsar productos propietarios. A diferencia de la mayoría de los corredores, nosotros estamos de su lado." },
         { q: "¿Qué es el seguro de Vida Universal Indexada (IUL)?", a: "IUL es un producto de seguro de vida permanente que ofrece un beneficio por muerte más crecimiento del valor en efectivo vinculado a índices del mercado — con un piso que lo protege de pérdidas. Puede servir como suplemento de jubilación con ventajas fiscales." },
         { q: "¿Cómo está estructurada su tarifa?", a: "Somos compensados por las aseguradoras con las que trabajamos — usted no paga nada de su bolsillo por nuestros servicios de asesoría. Divulgamos toda compensación de manera transparente." },
         { q: "¿Cómo funcionan los ingresos de jubilación libres de impuestos?", a: "Ciertos instrumentos financieros, como las IRA Roth y las pólizas IUL correctamente estructuradas, le permiten retirar fondos libres de impuestos en la jubilación. Le ayudamos a construir una estrategia multi-cubeta para minimizar los impuestos de por vida." },
         { q: "¿Para quién es más adecuado Everence Wealth?", a: "Atendemos principalmente a familias y profesionales entre 35-60 años que desean proteger su patrimonio, optimizar su situación fiscal y construir ingresos de jubilación confiables que nunca se agoten." },
-        { q: "¿En qué se diferencia Everence Wealth de un asesor financiero tradicional?", a: "Combinamos deber fiduciario con acceso a más de 75 aseguradoras, estrategias optimizadas fiscalmente y planificación de grado institucional — sin los conflictos de interés comunes en el mundo de corretaje." },
+        { q: "¿En qué se diferencia Everence Wealth de un asesor financiero tradicional?", a: "Combinamos deber de interés del cliente con acceso a más de 75 aseguradoras, estrategias optimizadas fiscalmente y planificación de grado institucional — sin los conflictos de interés comunes en el mundo de corretaje." },
         { q: "¿Qué es la evaluación de brecha de jubilación?", a: "Es un análisis complementario que compara su trayectoria actual contra lo que realmente necesitará en la jubilación. En cinco minutos, verá exactamente dónde se encuentra y qué ajustes podrían cerrar la brecha." },
       ],
     },
@@ -895,7 +895,7 @@ export const es = {
     },
     cta: {
       headline: "Su Jubilación Merece Algo Mejor",
-      subtitle: "Deje de adivinar. Comience a planificar con un fiduciario que pone sus intereses primero — siempre.",
+      subtitle: "Deje de adivinar. Comience a planificar con un independiente que pone sus intereses primero — siempre.",
       primaryCta: "Agendar Evaluación",
       secondaryCta: "Llámenos Directamente",
     },
@@ -903,7 +903,7 @@ export const es = {
   philosophy: {
     seo: {
       title: "Nuestra Filosofía: Creación de Riqueza Contraria | Everence Wealth",
-      description: "Descubra la filosofía financiera contraria de Everence Wealth: desafiando las normas de Wall Street con estrategias libres de impuestos, protección de piso al 0% y orientación fiduciaria.",
+      description: "Descubra la filosofía financiera contraria de Everence Wealth: desafiando las normas de Wall Street con estrategias libres de impuestos, protección de piso al 0% y orientación independiente.",
       breadcrumb: "Filosofía",
     },
     speakable: {
@@ -945,7 +945,7 @@ export const es = {
           chartNote: "Una pérdida del 50% requiere una ganancia del 100% solo para recuperarse. Cero es su héroe.",
         },
         {
-          title: "Fiduciario, Siempre",
+          title: "Independiente, Siempre",
           description: "Estamos legalmente obligados a actuar en su mejor interés — no a maximizar nuestras comisiones.",
           chartLabel: "La Diferencia:",
           chartNote: "Los asesores de Wall Street ganan más cuando usted sigue invertido. Nosotros no ganamos nada si usted pierde.",
@@ -1115,7 +1115,7 @@ export const es = {
           { title: "Protección de Piso 0%", description: "Participe en el crecimiento, protegido contra pérdidas" },
           { title: "Ingresos Exentos de Impuestos", description: "Pague impuestos una vez, retire libre de impuestos para siempre" },
           { title: "75+ Asociaciones con Aseguradoras", description: "Corredor independiente. La mejor solución para USTED." },
-          { title: "Obligación Fiduciaria", description: "Legalmente obligados a actuar en SU mejor interés" },
+          { title: "Obligación con el Cliente", description: "Legalmente obligados a actuar en SU mejor interés" },
         ],
         incentiveLabel: "Nuestro Incentivo:",
         incentiveText: "Ayudarle a lograr independencia financiera y jubilarse exitosamente",
