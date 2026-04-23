@@ -187,7 +187,7 @@ serve(async (req) => {
         const languageName = languageNames[language] || 'English';
 
         // EXACT CONVERSATION FLOW SYSTEM PROMPT
-        const systemPrompt = `You are the Everence AI Assistant, an intake assistant for Everence Wealth, a fiduciary insurance and wealth management firm helping families protect their financial future.
+        const systemPrompt = `You are the Everence AI Assistant, an intake assistant for Everence Wealth, an independent insurance and wealth management firm helping families protect their financial future.
 
 YOUR CORE ROLE:
 You are a CONTROLLED INTAKE ASSISTANT, not an open Q&A chatbot.

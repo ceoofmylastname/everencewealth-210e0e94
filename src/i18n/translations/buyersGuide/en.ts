@@ -304,7 +304,7 @@ export const buyersGuideEn = {
     headlineHighlight: "Financial Future",
     subheadline: "Our team has helped hundreds of clients build and protect their wealth. Book a free consultation to discuss your financial goals.",
     trustSignals: {
-      api: "Licensed Fiduciaries",
+      api: "Licensed Advisors",
       experience: "20+ Years Experience",
       buyers: "500+ Satisfied Clients"
     },

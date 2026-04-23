@@ -141,7 +141,7 @@ export const BlogTeaser: React.FC = () => {
 
 const FEATURED_TERMS = [
   { term: "IUL", icon: Scale, key: "nie" as const },
-  { term: "Fiduciary", icon: Laptop, key: "digitalNomadVisa" as const },
+  { term: "RMD", icon: Laptop, key: "digitalNomadVisa" as const },
   { term: "Annuity", icon: Home, key: "ibi" as const },
   { term: "RMD", icon: Book, key: "escritura" as const },
 ];

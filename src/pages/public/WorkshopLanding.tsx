@@ -912,7 +912,7 @@ const WorkshopLanding: React.FC = () => {
           <div className="relative z-10 max-w-[1200px] mx-auto px-4 sm:px-6 py-16 sm:py-20">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 text-center">
               {[
-                { icon: Shield, label: "Independent Fiduciary", desc: "Your interests always come first" },
+                { icon: Shield, label: "Independent Broker", desc: "Your interests always come first" },
                 { icon: Award, label: "Nationwide Coverage", desc: "Licensed in 50 states" },
                 { icon: Users, label: "75+ Carrier Partners", desc: "Access to the best products" },
               ].map(({ icon: Icon, label, desc }, i) => (

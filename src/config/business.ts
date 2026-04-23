@@ -62,7 +62,7 @@ export const BUSINESS = Object.freeze({
     height: 630,
   }) as BusinessLogo,
   description:
-    'Independent fiduciary wealth architects specializing in tax-efficient retirement strategies, estate planning, and asset protection. Serving clients in San Francisco and nationwide.',
+    'Independent wealth architects specializing in tax-efficient retirement strategies, estate planning, and asset protection. Serving clients in San Francisco and nationwide.',
   slogan: 'Architecting Your Financial Legacy',
   foundingDate: '1990',
   priceRange: '$$$',

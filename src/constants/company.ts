@@ -46,7 +46,7 @@ export const COMPANY_HOURS = {
 export const COMPANY_INFO = {
   name: 'Everence Wealth',
   legalName: 'Everence Wealth LLC',
-  tagline: 'Independent Fiduciary Wealth Architects',
+  tagline: 'Independent Wealth Architects',
 } as const;
 
 /**

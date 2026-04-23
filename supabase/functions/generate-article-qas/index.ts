@@ -141,7 +141,7 @@ CRITICAL - AEO RULES FOR speakable_answer:
 - Directly answers the question in summary form
 
 WRONG: "There are 5 key steps: 1. Get a quote 2. Find an advisor..."
-RIGHT: "Selecting the right life insurance policy involves assessing your coverage needs based on income replacement, consulting a fiduciary advisor for unbiased recommendations, comparing quotes from multiple carriers, and reviewing policy riders for living benefits."
+RIGHT: "Selecting the right life insurance policy involves assessing your coverage needs based on income replacement, consulting an independent advisor for unbiased recommendations, comparing quotes from multiple carriers, and reviewing policy riders for living benefits."
 
 Return ONLY valid JSON:
 {

@@ -47,22 +47,22 @@ const HOMEPAGE_META: Record<Language, {
   speakableSummary: string;
 }> = {
   en: {
-    title: 'Everence Wealth | Independent Fiduciary Wealth Architects',
+    title: 'Everence Wealth - Bridge the Retirement Gap',
     description: 'Specializing in tax-efficient retirement strategies, estate planning, and asset protection. Serving clients in San Francisco and nationwide.',
     ogLocale: 'en_US',
     heroHeadline: 'Architecting Your',
     heroHighlight: 'Financial Legacy',
-    heroDescription: 'Independent fiduciary wealth architects specializing in tax-efficient retirement strategies. We guide clients through complex financial landscapes to secure their legacy.',
-    speakableSummary: `Everence Wealth is an independent fiduciary wealth management firm based in San Francisco. We specialize in tax-efficient retirement strategies, estate planning, and asset protection. Contact us at ${BUSINESS.telephone}.`,
+    heroDescription: 'Independent wealth architects specializing in tax-efficient retirement strategies. We guide clients through complex financial landscapes to secure their legacy.',
+    speakableSummary: `Everence Wealth is an independent wealth management firm based in San Francisco. We specialize in tax-efficient retirement strategies, estate planning, and asset protection. Contact us at ${BUSINESS.telephone}.`,
   },
   es: {
-    title: 'Everence Wealth | Arquitectos Fiduciarios Independientes de Riqueza',
+    title: 'Everence Wealth | Cierra la Brecha de Jubilación',
     description: 'Especializados en estrategias de jubilación fiscalmente eficientes, planificación patrimonial y protección de activos. Sirviendo a clientes en San Francisco y a nivel nacional.',
     ogLocale: 'es_US',
     heroHeadline: 'Arquitectando Su',
     heroHighlight: 'Legado Financiero',
-    heroDescription: 'Arquitectos fiduciarios independientes de riqueza especializados en estrategias de jubilación fiscalmente eficientes. Guiamos a los clientes a través de paisajes financieros complejos para asegurar su legado.',
-    speakableSummary: `Everence Wealth es una firma independiente de gestión de patrimonio fiduciario con sede en San Francisco. Nos especializamos en estrategias de jubilación fiscalmente eficientes, planificación patrimonial y protección de activos. Contáctenos al ${BUSINESS.telephone}.`,
+    heroDescription: 'Arquitectos independientes de patrimonio especializados en estrategias de jubilación fiscalmente eficientes. Guiamos a los clientes a través de paisajes financieros complejos para asegurar su legado.',
+    speakableSummary: `Everence Wealth es una firma independiente de gestión de patrimonio con sede en San Francisco. Nos especializamos en estrategias de jubilación fiscalmente eficientes, planificación patrimonial y protección de activos. Contáctenos al ${BUSINESS.telephone}.`,
   },
 };
 
@@ -135,7 +135,7 @@ function generateStructuredData(language: Language) {
     "@id": `${BASE_URL}/#website`,
     "url": BASE_URL,
     "name": "Everence Wealth",
-    "description": "Independent Fiduciary Wealth Management",
+    "description": "Independent Wealth Management",
     "publisher": { "@id": `${BASE_URL}/#organization` },
     "inLanguage": language,
     "potentialAction": {
@@ -566,7 +566,7 @@ function generateStaticHTML(productionAssets: ProductionAssets, language: Langua
               <p>Not tied to any single carrier. We shop the market to find the best solutions for your specific needs.</p>
             </div>
             <div class="usp-item">
-              <h3>Fiduciary Approach</h3>
+              <h3>Client-First Approach</h3>
               <p>Your interests come first. We provide transparent, unbiased financial guidance with no hidden fees.</p>
             </div>
             <div class="usp-item">

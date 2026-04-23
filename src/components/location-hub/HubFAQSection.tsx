@@ -46,8 +46,8 @@ const LOCALIZED_CONTENT: Record<string, {
     sectionSubtitle: "Preguntas comunes sobre planificación de jubilación y gestión patrimonial",
     faqs: [
       {
-        question: "¿Qué es un asesor fiduciario y por qué es importante?",
-        answer: "Un asesor fiduciario está legalmente obligado a actuar en su mejor interés en todo momento. A diferencia de los vendedores basados en comisiones, los fiduciarios deben recomendar estrategias que lo beneficien a usted. Esto significa tarifas transparentes, recomendaciones imparciales de más de 75 aseguradoras y un enfoque en sus metas financieras a largo plazo."
+        question: "¿Qué significa ser un asesor independiente y por qué es importante?",
+        answer: "Un asesor independiente no está atado a una sola aseguradora ni a productos propietarios. A diferencia de los vendedores basados en comisiones, un asesor independiente puede recomendar estrategias basadas en lo que mejor lo beneficie a usted. Esto significa tarifas transparentes, recomendaciones imparciales de más de 75 aseguradoras y un enfoque en sus metas financieras a largo plazo."
       },
       {
         question: "¿Cómo proporciona el Seguro de Vida Universal Indexado (IUL) ingresos libres de impuestos?",

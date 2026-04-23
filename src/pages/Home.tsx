@@ -6,7 +6,7 @@ import { Hero } from '../components/home/sections/Hero';
 import { WakeUpCall } from '../components/homepage/WakeUpCall';
 import { StackingCards } from '../components/homepage/StackingCards';
 import { WealthPhilosophy } from '../components/homepage/WealthPhilosophy';
-import { FiduciaryDifference } from '../components/homepage/FiduciaryDifference';
+import { IndependentDifference } from '../components/homepage/IndependentDifference';
 import { TheGap } from '../components/homepage/TheGap';
 import { Services } from '../components/homepage/Services';
 import { HomepageAbout } from '../components/homepage/HomepageAbout';
@@ -78,7 +78,7 @@ function Home() {
         <div className={sectionClass}><WakeUpCall /></div>
         <div className={sectionClass}><StackingCards /></div>
         <div className={sectionClass}><WealthPhilosophy /></div>
-        <div className={sectionClass}><FiduciaryDifference /></div>
+        <div className={sectionClass}><IndependentDifference /></div>
         <div className={sectionClass}><TheGap /></div>
         <div className={sectionClass}><Services /></div>
         <div className={sectionClass}><HomepageAbout /></div>

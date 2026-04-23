@@ -52,7 +52,7 @@ function GlowCard({ children, index }: { children: React.ReactNode; index: numbe
   );
 }
 
-export function FiduciaryDifference() {
+export function IndependentDifference() {
   const { t } = useTranslation();
   const fd = t.homepage.independentDifference;
 

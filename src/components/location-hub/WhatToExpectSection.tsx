@@ -62,7 +62,7 @@ const LOCALIZED_CONTENT: Record<string, {
       insuranceCoverage: { title: "Cobertura de Seguros", description: "Requisitos de seguros estatales, disponibilidad de aseguradoras, comparaciones de primas y análisis de brechas de cobertura" },
       cashFlow: { title: "Planificación de Flujo de Caja", description: "Índices de costo de vida, accesibilidad del estilo de vida, costos de salud y proyecciones de sostenibilidad de ingresos" },
       marketAccess: { title: "Acceso al Mercado", description: "Disponibilidad de asesores locales, densidad de instituciones financieras y acceso a servicios especializados" },
-      regulatoryCompliance: { title: "Cumplimiento Regulatorio", description: "Regulaciones financieras estatales, requisitos de licencia, estándares fiduciarios y leyes de protección al consumidor" }
+      regulatoryCompliance: { title: "Cumplimiento Regulatorio", description: "Regulaciones financieras estatales, requisitos de licencia, estándares de conducta del asesor y leyes de protección al consumidor" }
     }
   }
 };

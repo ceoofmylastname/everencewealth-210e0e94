@@ -24,12 +24,12 @@ interface ProductionAssets { css: string[]; js: string[] }
 const META = {
   en: {
     title: 'Our Philosophy: Bridge the Retirement Gap | Everence Wealth',
-    description: 'Independent fiduciary wealth management built on the Three Silent Killers framework — fees, volatility, and taxes. Tax-efficient indexed strategies for life.',
+    description: 'Independent wealth management built on the Three Silent Killers framework — fees, volatility, and taxes. Tax-efficient indexed strategies for life.',
     breadcrumb: 'Philosophy',
   },
   es: {
     title: 'Nuestra Filosofía: Cierre la Brecha de Jubilación | Everence Wealth',
-    description: 'Gestión patrimonial fiduciaria independiente basada en el marco de los Tres Asesinos Silenciosos — comisiones, volatilidad e impuestos. Estrategias indexadas eficientes en impuestos.',
+    description: 'Gestión patrimonial independiente basada en el marco de los Tres Asesinos Silenciosos — comisiones, volatilidad e impuestos. Estrategias indexadas eficientes en impuestos.',
     breadcrumb: 'Filosofía',
   },
 } as const;

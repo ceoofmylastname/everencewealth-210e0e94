@@ -57,7 +57,7 @@ const QUESTIONS: AuditQuestion[] = [
         options: [
             { text: 'I just sell the product', score: 2, detail: "Transactional mindset", emoji: '💵' },
             { text: 'I give them a standard brochure', score: 5, detail: 'The minimum requirement', emoji: '📄' },
-            { text: 'I fundamentally change how they understand wealth', score: 10, detail: "True fiduciary education", emoji: '💡' },
+            { text: 'I fundamentally change how they understand wealth', score: 10, detail: "True client-first education", emoji: '💡' },
         ],
     },
 ];
