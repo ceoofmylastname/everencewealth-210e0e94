@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { generateImage as kieGenerateImage } from "../_shared/kieClient.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -27,9 +28,9 @@ serve(async (req) => {
       );
     }
 
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
+    const KIE_API_KEY = Deno.env.get("KIE_API_KEY");
+    if (!KIE_API_KEY) {
+      throw new Error("KIE_API_KEY is not configured. Add it in Cloud secrets.");
     }
 
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
@@ -38,59 +39,29 @@ serve(async (req) => {
 
     const finalPrompt =
       image_prompt ||
-      `Professional aerial photography of ${city_name}, USA. Modern cityscape skyline, institutional financial district, wealth management imagery. Ultra high resolution, corporate marketing style, clean professional lighting.`;
+      `4K cinematic editorial photograph representing wealth management and retirement planning in ${city_name}, USA. Modern financial metaphor: glass-and-steel architecture at golden hour, soft volumetric light, shallow depth of field, institutional sophistication. No text, no logos, no people in foreground. Aspect 16:9.`;
 
-    console.log(`[generate-location-image] Generating image for ${city_name} (${location_page_id})`);
+    console.log(`[generate-location-image] Generating image via Kie.ai Nano Banana 2 for ${city_name} (${location_page_id})`);
 
-    // Call Lovable AI image gateway (Nano Banana 2)
-    const aiResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-3.1-flash-image-preview",
-        messages: [{ role: "user", content: finalPrompt }],
-        modalities: ["image", "text"],
-      }),
+    // Generate via Kie.ai Nano Banana 2 (shared client)
+    const { url: kieUrl } = await kieGenerateImage({
+      prompt: finalPrompt,
+      aspectRatio: "16:9",
+      resolution: "2K",
+      outputFormat: "jpg",
     });
 
-    if (!aiResp.ok) {
-      const errText = await aiResp.text();
-      if (aiResp.status === 429) {
-        return new Response(
-          JSON.stringify({ error: "Rate limit exceeded. Please wait a moment and try again." }),
-          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-      if (aiResp.status === 402) {
-        return new Response(
-          JSON.stringify({ error: "AI credits exhausted. Add funds in Lovable AI workspace settings." }),
-          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-      throw new Error(`AI Gateway image error: ${aiResp.status} - ${errText}`);
+    console.log(`[generate-location-image] Kie returned image, mirroring to Supabase Storage: ${kieUrl}`);
+
+    // Mirror Kie-hosted image into Supabase Storage (Kie URLs expire)
+    const imgResp = await fetch(kieUrl);
+    if (!imgResp.ok) {
+      throw new Error(`Failed to download Kie image: ${imgResp.status}`);
     }
+    const contentType = imgResp.headers.get("content-type") || "image/jpeg";
+    const binary = new Uint8Array(await imgResp.arrayBuffer());
 
-    const aiData = await aiResp.json();
-    const dataUrl: string | undefined =
-      aiData?.choices?.[0]?.message?.images?.[0]?.image_url?.url;
-
-    if (!dataUrl || !dataUrl.startsWith("data:")) {
-      throw new Error("AI Gateway returned no image data");
-    }
-
-    // Decode base64 -> bytes
-    const commaIdx = dataUrl.indexOf(",");
-    const meta = dataUrl.slice(0, commaIdx); // e.g. "data:image/png;base64"
-    const base64 = dataUrl.slice(commaIdx + 1);
-    const contentType = meta.match(/data:([^;]+);/)?.[1] || "image/png";
-    const ext = contentType.includes("jpeg") || contentType.includes("jpg") ? "jpg" : "png";
-
-    const binary = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
-
-    // Upload to article-images bucket
+    const ext = contentType.includes("png") ? "png" : "jpg";
     const fileName = `state-${city_slug}-${topic_slug}.${ext}`;
     const filePath = `state-pages/${fileName}`;
 
