@@ -571,11 +571,11 @@ ${urls}
 </urlset>`;
 }
 
-function generateGlossarySitemap(): string {
+function generateGlossarySitemap(lang: string = 'en'): string {
   const today = getToday();
   
   const mainUrl = `  <url>
-    <loc>${BASE_URL}/glossary</loc>
+    <loc>${BASE_URL}/${lang}/glossary</loc>
     <lastmod>${today}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
@@ -583,7 +583,7 @@ function generateGlossarySitemap(): string {
 
   const termUrls = GLOSSARY_TERMS.map((term) => {
     return `  <url>
-    <loc>${BASE_URL}/glossary#${term}</loc>
+    <loc>${BASE_URL}/${lang}/glossary/${term}/</loc>
     <lastmod>${today}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
@@ -592,10 +592,10 @@ function generateGlossarySitemap(): string {
 
   return `${xmlHeader(false)}
   
-  <!-- Glossary Main Page -->
+  <!-- Glossary Main Page (${lang.toUpperCase()}) -->
 ${mainUrl}
   
-  <!-- Glossary Term Anchors -->
+  <!-- Glossary Term Pages -->
 ${termUrls}
   
 </urlset>`;
