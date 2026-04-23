@@ -662,7 +662,7 @@ export const ClusterCitationsTab = ({ cluster }: ClusterCitationsTabProps) => {
 
       {/* Scan Results Modal */}
       <Dialog open={showScanModal} onOpenChange={setShowScanModal}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden flex flex-col">
+        <DialogContent className="max-w-4xl h-[80vh] flex flex-col p-6 gap-4">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-3">
               <ShieldAlert className="h-5 w-5 text-amber-600" />
@@ -674,7 +674,7 @@ export const ClusterCitationsTab = ({ cluster }: ClusterCitationsTabProps) => {
           </DialogHeader>
 
           {scanResult && (
-            <ScrollArea className="flex-1 pr-4">
+            <div className="flex-1 min-h-0 overflow-y-auto pr-4">
               <div className="space-y-4">
                 {/* By Language Summary */}
                 <div className="grid grid-cols-5 gap-2">
@@ -786,7 +786,7 @@ export const ClusterCitationsTab = ({ cluster }: ClusterCitationsTabProps) => {
                   </div>
                 )}
               </div>
-            </ScrollArea>
+            </div>
           )}
         </DialogContent>
       </Dialog>
