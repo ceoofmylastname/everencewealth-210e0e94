@@ -103,7 +103,10 @@ const LANGUAGE_NAMES: Record<string, string> = {
 const MAX_RETRIES = 3;
 const RETRY_DELAYS = [2000, 5000, 10000]; // 2s, 5s, 10s exponential backoff
 const REQUEST_TIMEOUT = 60000; // 60s timeout (smaller payload = faster)
-const DELAY_BETWEEN_QAS = 1500; // 1.5s delay between Q&A translations
+const DELAY_BETWEEN_BATCHES = 1500; // 1.5s delay between concurrency groups
+const CONCURRENCY = 3; // Process 3 Q&As in parallel per group
+const TIME_BUDGET_MS = 240_000; // 4 min wall budget (well under edge timeout)
+const SELF_INVOKE_THRESHOLD = 1; // Self-invoke if any Q&As remain after time budget
 
 function sleep(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -521,18 +524,23 @@ serve(async (req) => {
       }
     }
 
-    // BLOCKED RESPONSE: If no Q&As can be processed due to missing article links
-    if (validQAs.length === 0 && missingArticleLinks.length > 0) {
-      console.error(`[TranslateQAs] ❌ BLOCKED: All ${qasToTranslate.length} Q&As blocked due to missing article hreflang links`);
-      
-      const uniqueMissingIds = [...new Set(missingArticleLinks)];
-      
+    // SKIP-INSTEAD-OF-ABORT: Only fully block if NO Q&As can proceed.
+    // If even one valid Q&A exists, proceed with that subset and surface skipped IDs.
+    const uniqueMissingIds = [...new Set(missingArticleLinks)];
+
+    if (validQAs.length === 0 && (missingArticleLinks.length > 0 || qaLinkingMismatches.length > 0)) {
+      console.error(`[TranslateQAs] ❌ BLOCKED: All ${qasToTranslate.length} Q&As blocked (no valid Q&As to process)`);
+      const blockedReason = missingArticleLinks.length > 0 ? 'missing_article_linking' : 'qa_linking_mismatch';
+
       return new Response(JSON.stringify({
         success: false,
         blocked: true,
-        blockedReason: 'missing_article_linking',
-        message: `Cannot translate: ${uniqueMissingIds.length} English articles missing hreflang links to ${targetLanguage} articles. Click "Fix Article Linking" to repair.`,
+        blockedReason,
+        message: blockedReason === 'missing_article_linking'
+          ? `Cannot translate: ${uniqueMissingIds.length} English articles missing hreflang links to ${targetLanguage} articles. Click "Fix Article Linking" to repair.`
+          : `Cannot translate: ${qaLinkingMismatches.length} existing Q&As are linked to wrong articles. Click "Fix Q&A Linking" to repair.`,
         missingEnglishArticleIds: uniqueMissingIds,
+        mismatchCount: qaLinkingMismatches.length,
         targetLanguage,
         skipped: skippedCount,
         failed: failedQAIds.length,
@@ -545,43 +553,16 @@ serve(async (req) => {
       });
     }
 
-    // BLOCKED RESPONSE: If Q&A linking mismatches detected (wrong Q&As occupying slots)
-    if (qaLinkingMismatches.length > 0 && validQAs.length > 0) {
-      console.error(`[TranslateQAs] ❌ BLOCKED: ${qaLinkingMismatches.length} Q&As have incorrect article linking`);
-      
-      return new Response(JSON.stringify({
-        success: false,
-        blocked: true,
-        blockedReason: 'qa_linking_mismatch',
-        message: `Cannot translate: ${qaLinkingMismatches.length} existing Q&As are linked to wrong articles. Click "Fix Q&A Linking" to repair.`,
-        mismatchCount: qaLinkingMismatches.length,
-        targetLanguage,
-        skipped: skippedCount,
-        failed: 0,
-        translated: 0,
-        actualCount: skippedCount,
-        remaining: 24 - skippedCount,
-      }), {
-        status: 200,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
+    console.log(`[TranslateQAs] ✅ Pre-check passed: ${validQAs.length} Q&As ready, ${missingArticleLinks.length} skipped (missing links), ${qaLinkingMismatches.length} mismatches (will retry separately)`);
 
-    console.log(`[TranslateQAs] ✅ Pre-check passed: ${validQAs.length} Q&As ready, ${missingArticleLinks.length} blocked, ${qaLinkingMismatches.length} mismatches`);
+    // AUTO-RESUME LOOP: process all valid Q&As within a 4-min wall budget,
+    // in parallel groups of CONCURRENCY. Self-invoke if any remain.
+    const processedGroupIds = new Set<string>();
+    let totalProcessedThisInvocation = 0;
+    let timeBudgetExceeded = false;
 
-    // BULLETPROOF: Process Q&As ONE AT A TIME with retry logic
-    const BATCH_SIZE = 6;
-    const qaGroup = validQAs.slice(0, BATCH_SIZE);
-    const qasRemaining = validQAs.length - qaGroup.length;
-    
-    console.log(`[TranslateQAs] Processing ${qaGroup.length} Q&As one-at-a-time (${qasRemaining} remaining after this batch)`);
-
-    for (let i = 0; i < qaGroup.length; i++) {
-      const englishQA = qaGroup[i];
-      const qaIndex = skippedCount + i + 1;
-      
+    const processSingleQA = async (englishQA: typeof validQAs[number], qaIndex: number): Promise<void> => {
       console.log(`[TranslateQAs] ━━━ Q&A ${qaIndex}/24: ${englishQA.qa_type} ━━━`);
-
       try {
         // STRICT MATCHING: Find target article via hreflang link FIRST
         const englishArticleHreflang = englishArticleHreflangMap.get(englishQA.source_article_id);
@@ -591,7 +572,7 @@ serve(async (req) => {
           console.error(`[TranslateQAs] ❌ No ${targetLanguage} article linked via hreflang to English article ${englishQA.source_article_id}`);
           errors.push(`Missing hreflang-linked ${targetLanguage} article for Q&A ${englishQA.qa_type} (English article: ${englishQA.source_article_id})`);
           failedQAIds.push(englishQA.id);
-          continue;
+          return;
         }
 
         // Prepare Q&A content for translation
@@ -739,26 +720,51 @@ serve(async (req) => {
           } else {
             console.log(`[TranslateQAs] ✅ Created Q&A: ${slug}`);
             translatedQAs.push(insertedQA.id);
+            processedGroupIds.add(englishQA.hreflang_group_id);
           }
         }
-
-        // Delay between Q&As to avoid rate limiting
-        if (i < qaGroup.length - 1) {
-          await sleep(DELAY_BETWEEN_QAS);
-        }
-
       } catch (error: unknown) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         console.error(`[TranslateQAs] ❌ Failed ${englishQA.qa_type} after all retries:`, errorMessage);
         errors.push(`${englishQA.qa_type}: ${errorMessage}`);
         failedQAIds.push(englishQA.id);
       }
+    };
+
+    // Process Q&As in parallel groups of CONCURRENCY, time-budgeted
+    console.log(`[TranslateQAs] 🚀 Auto-resume loop: ${validQAs.length} Q&As to process, concurrency=${CONCURRENCY}, budget=${TIME_BUDGET_MS / 1000}s`);
+
+    let cursor = 0;
+    while (cursor < validQAs.length) {
+      if (Date.now() - startTime > TIME_BUDGET_MS) {
+        timeBudgetExceeded = true;
+        const remainingCount = validQAs.length - cursor;
+        console.log(`[TranslateQAs] ⏱️ Time budget exceeded after ${totalProcessedThisInvocation} Q&As. ${remainingCount} remain — will self-invoke.`);
+        break;
+      }
+
+      const group = validQAs.slice(cursor, cursor + CONCURRENCY);
+      const baseIndex = skippedCount + cursor;
+
+      await Promise.allSettled(
+        group.map((qa, i) => processSingleQA(qa, baseIndex + i + 1))
+      );
+
+      totalProcessedThisInvocation += group.length;
+      cursor += group.length;
+
+      // Cooldown between concurrency groups (rate-limit safety)
+      if (cursor < validQAs.length && Date.now() - startTime < TIME_BUDGET_MS) {
+        await sleep(DELAY_BETWEEN_BATCHES);
+      }
     }
+
+    const qasRemaining = validQAs.length - cursor;
 
     // Sync translations JSONB for all affected hreflang groups
     console.log(`[TranslateQAs] Syncing translations JSONB...`);
 
-    const affectedGroupIds = [...new Set(qaGroup.map(qa => qa.hreflang_group_id))];
+    const affectedGroupIds = [...processedGroupIds];
     
     for (const groupId of affectedGroupIds) {
       try {
@@ -830,15 +836,30 @@ serve(async (req) => {
     const isPartial = remaining > 0;
     
     console.log(`[TranslateQAs] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
-    console.log(`[TranslateQAs] ✅ Batch complete in ${duration}s`);
+    console.log(`[TranslateQAs] ✅ Invocation complete in ${duration}s`);
     console.log(`[TranslateQAs]    Translated: ${translatedQAs.length}`);
     console.log(`[TranslateQAs]    Failed: ${failedQAIds.length}`);
     console.log(`[TranslateQAs]    Total: ${currentCount}/24 (${remaining} remaining)`);
+    console.log(`[TranslateQAs]    Time budget exceeded: ${timeBudgetExceeded}, qasRemaining in this invocation: ${qasRemaining}`);
     console.log(`[TranslateQAs] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
+
+    // SELF-INVOKE: If Q&As remain (either time-budget or skipped due to linking), fire-and-forget another invocation
+    const shouldSelfInvoke = remaining >= SELF_INVOKE_THRESHOLD && (qasRemaining > 0 || (timeBudgetExceeded && validQAs.length > 0));
+    if (shouldSelfInvoke) {
+      console.log(`[TranslateQAs] 🔁 Self-invoking to drain remaining ${remaining} Q&As...`);
+      // Fire-and-forget — do NOT await; the new invocation runs independently
+      supabase.functions.invoke('translate-qas-to-language', {
+        body: { clusterId, targetLanguage },
+      }).catch((err) => {
+        console.error(`[TranslateQAs] Self-invoke fetch error (new invocation may still proceed):`, err);
+      });
+    }
 
     return new Response(JSON.stringify({
       success: true,
       partial: isPartial,
+      selfInvoked: shouldSelfInvoke,
+      timeBudgetExceeded,
       targetLanguage,
       translated: translatedQAs.length,
       failed: failedQAIds.length,
@@ -850,7 +871,7 @@ serve(async (req) => {
       errors: errors.length > 0 ? errors : undefined,
       durationSeconds: parseFloat(duration),
       message: remaining > 0 
-        ? `Now at ${currentCount}/24 Q&As. ${remaining} remaining.`
+        ? `Now at ${currentCount}/24 Q&As. ${remaining} remaining${shouldSelfInvoke ? ' (auto-resuming)' : ''}.`
         : `Completed! All 24 Q&As translated to ${LANGUAGE_NAMES[targetLanguage]}`,
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
