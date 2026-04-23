@@ -183,3 +183,20 @@ SELECT cron.schedule(
   ) AS request_id;
   $$
 );
+
+-- ==============================================
+-- 10. AUTO-RESUME TRANSLATION JOBS - Every 2 minutes
+-- Detects stalled translate-cluster jobs (status='generating'/'partial' with
+-- no heartbeat for >5 min) and re-invokes translate-cluster to resume them.
+-- ==============================================
+SELECT cron.schedule(
+  'auto-resume-translation-jobs',
+  '*/2 * * * *',
+  $$
+  SELECT net.http_post(
+    url := 'https://zbzrmpmqijvmjbhctfoe.supabase.co/functions/v1/auto-resume-translation-jobs',
+    headers := '{"Content-Type": "application/json", "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpienJtcG1xaWp2bWpiaGN0Zm9lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzExNjk1MzUsImV4cCI6MjA4Njc0NTUzNX0.cI7HQmbY1XF_wmPMSm9ofbQdR3iujQ5_YNg8h_YLkVg"}'::jsonb,
+    body := '{"triggered_by": "cron"}'::jsonb
+  ) AS request_id;
+  $$
+);
