@@ -303,6 +303,12 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // Self-chaining safety: leave enough budget to fire the next invocation
+  // before the 150s edge runtime cap. Each position can take 60-90s (Kie.ai polling),
+  // so we bail out as soon as elapsed time crosses the threshold AFTER a position.
+  const startedAt = Date.now();
+  const MAX_RUNTIME_MS = 110_000; // 110s — safe margin under 150s hard cap
+
   try {
     const { clusterId, dryRun = false, preserveEnglishImages = false } = await req.json();
 
