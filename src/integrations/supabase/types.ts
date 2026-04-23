@@ -7336,9 +7336,9 @@ export type Database = {
           created_at: string | null
           date_modified: string | null
           date_published: string | null
-          featured_image_alt: string
+          featured_image_alt: string | null
           featured_image_caption: string | null
-          featured_image_url: string
+          featured_image_url: string | null
           funnel_stage: string | null
           hreflang_group_id: string | null
           id: string
@@ -7372,9 +7372,9 @@ export type Database = {
           created_at?: string | null
           date_modified?: string | null
           date_published?: string | null
-          featured_image_alt: string
+          featured_image_alt?: string | null
           featured_image_caption?: string | null
-          featured_image_url: string
+          featured_image_url?: string | null
           funnel_stage?: string | null
           hreflang_group_id?: string | null
           id?: string
@@ -7408,9 +7408,9 @@ export type Database = {
           created_at?: string | null
           date_modified?: string | null
           date_published?: string | null
-          featured_image_alt?: string
+          featured_image_alt?: string | null
           featured_image_caption?: string | null
-          featured_image_url?: string
+          featured_image_url?: string | null
           funnel_stage?: string | null
           hreflang_group_id?: string | null
           id?: string
