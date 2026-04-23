@@ -7,7 +7,7 @@ const corsHeaders = {
 };
 
 const LOGO_URL =
-  "https://storage.googleapis.com/msgsndr/TLhrYb7SRrWrly615tCI/media/6993ada8dcdadb155342f28e.png";
+  "https://assets.cdn.filesafe.space/htr97zzmRc1NMujHbL9R/media/69b7424c5b89c7c557adfe6e.png";
 const LOGIN_URL = "https://everencewealth.lovable.app/portal/login";
 
 function brandedEmailWrapper(content: string): string {

@@ -166,7 +166,7 @@ export default function TrainingEvent() {
                         className="bg-white/[0.03] border border-white/10 rounded-2xl p-6 mb-8 text-left space-y-4"
                     >
                         <div className="flex items-center gap-3 pb-4 border-b border-white/5">
-                            <img src="https://storage.googleapis.com/msgsndr/TLhrYb7SRrWrly615tCI/media/6993ada8dcdadb155342f28e.png" alt="Everence" className="w-8 h-8" />
+                            <img src="https://assets.cdn.filesafe.space/htr97zzmRc1NMujHbL9R/media/69b7424c5b89c7c557adfe6e.png" alt="Everence" className="w-8 h-8" />
                             <div>
                                 <p className="text-[#C5A059] font-serif text-lg font-semibold">Everence Wealth</p>
                                 <p className="text-gray-500 text-xs uppercase tracking-widest">Broker Training · Spring '26</p>
