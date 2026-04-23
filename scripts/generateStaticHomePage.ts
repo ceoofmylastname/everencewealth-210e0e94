@@ -50,19 +50,19 @@ const HOMEPAGE_META: Record<Language, {
     title: 'Everence Wealth - Bridge the Retirement Gap',
     description: 'Specializing in tax-efficient retirement strategies, estate planning, and asset protection. Serving clients in San Francisco and nationwide.',
     ogLocale: 'en_US',
-    heroHeadline: 'Architecting Your',
-    heroHighlight: 'Financial Legacy',
-    heroDescription: 'Independent wealth architects specializing in tax-efficient retirement strategies. We guide clients through complex financial landscapes to secure their legacy.',
-    speakableSummary: `Everence Wealth is an independent wealth management firm based in San Francisco. We specialize in tax-efficient retirement strategies, estate planning, and asset protection. Contact us at ${BUSINESS.telephone}.`,
+    heroHeadline: 'Bridge the Retirement',
+    heroHighlight: 'Gap',
+    heroDescription: 'Independent broker offering tax-free retirement strategies, indexed universal life, and guaranteed income solutions for families across the United States.',
+    speakableSummary: `Everence Wealth is an independent broker specializing in tax-free retirement strategies, indexed universal life, and guaranteed income planning for clients nationwide. Contact us at ${BUSINESS.telephone}.`,
   },
   es: {
     title: 'Everence Wealth | Cierra la Brecha de Jubilación',
     description: 'Especializados en estrategias de jubilación fiscalmente eficientes, planificación patrimonial y protección de activos. Sirviendo a clientes en San Francisco y a nivel nacional.',
     ogLocale: 'es_US',
-    heroHeadline: 'Arquitectando Su',
-    heroHighlight: 'Legado Financiero',
-    heroDescription: 'Arquitectos independientes de patrimonio especializados en estrategias de jubilación fiscalmente eficientes. Guiamos a los clientes a través de paisajes financieros complejos para asegurar su legado.',
-    speakableSummary: `Everence Wealth es una firma independiente de gestión de patrimonio con sede en San Francisco. Nos especializamos en estrategias de jubilación fiscalmente eficientes, planificación patrimonial y protección de activos. Contáctenos al ${BUSINESS.telephone}.`,
+    heroHeadline: 'Cierra la Brecha de',
+    heroHighlight: 'Jubilación',
+    heroDescription: 'Bróker independiente que ofrece estrategias de jubilación libres de impuestos, seguros de vida universal indexados y soluciones de ingreso garantizado para familias en todo Estados Unidos.',
+    speakableSummary: `Everence Wealth es un bróker independiente especializado en estrategias de jubilación libres de impuestos, seguros de vida universal indexados y planificación de ingreso garantizado para clientes a nivel nacional. Contáctenos al ${BUSINESS.telephone}.`,
   },
 };
 
@@ -202,8 +202,8 @@ const CRITICAL_CSS = `
     --prime-gold: 43 74% 49%;
     --prime-50: 45 75% 96%;
     --prime-100: 44 74% 90%;
-    --prime-900: 220 20% 12%;
-    --prime-950: 220 20% 10%;
+    --prime-900: 160 48% 4%;
+    --prime-950: 160 48% 3%;
     --foreground: 220 20% 10%;
     --muted-foreground: 220 10% 45%;
     --background: 0 0% 100%;
@@ -244,7 +244,10 @@ const CRITICAL_CSS = `
   }
   
   .static-hero {
-    background: linear-gradient(135deg, hsl(var(--prime-900)), hsl(var(--prime-950)));
+    background:
+      radial-gradient(60vw 60vw at 10% 30%, hsla(160,48%,25%,0.12), transparent 70%),
+      radial-gradient(50vw 50vw at 100% 100%, hsla(160,48%,30%,0.08), transparent 70%),
+      linear-gradient(135deg, hsl(var(--prime-900)), hsl(var(--prime-950)));
     color: white;
     padding: 5rem 2rem;
     text-align: center;
@@ -429,7 +432,7 @@ function generateStaticHTML(productionAssets: ProductionAssets, language: Langua
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta name="theme-color" content="#d4a574" />
+  <meta name="theme-color" content="#020806" />
   
   <!-- Primary Meta Tags -->
   <title>${sanitizeForHTML(meta.title)}</title>
@@ -498,10 +501,11 @@ function generateStaticHTML(productionAssets: ProductionAssets, language: Langua
       <header class="static-header">
         <img src="/assets/logo-new.png" alt="Everence Wealth" />
         <nav>
-          <a href="/${language}/properties" style="margin-right: 1.5rem; color: hsl(43 74% 49%); text-decoration: none; font-weight: 500;">Properties</a>
-          <a href="/about" style="margin-right: 1.5rem; color: inherit; text-decoration: none;">About</a>
-          <a href="/buyers-guide" style="margin-right: 1.5rem; color: inherit; text-decoration: none;">Buyers Guide</a>
-          <a href="/${language}/blog" style="color: inherit; text-decoration: none;">Blog</a>
+          <a href="/${language}/strategies" style="margin-right: 1.5rem; color: hsl(43 74% 49%); text-decoration: none; font-weight: 500;">Strategies</a>
+          <a href="/${language}/philosophy" style="margin-right: 1.5rem; color: inherit; text-decoration: none;">Philosophy</a>
+          <a href="/${language}/about" style="margin-right: 1.5rem; color: inherit; text-decoration: none;">About</a>
+          <a href="/${language}/blog" style="margin-right: 1.5rem; color: inherit; text-decoration: none;">Blog</a>
+          <a href="/${language}/contact" style="color: inherit; text-decoration: none;">Contact</a>
         </nav>
       </header>
       
