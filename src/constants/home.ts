@@ -1,17 +1,8 @@
 import { Language, Area, BlogPost } from '../types/home';
 import { BUSINESS, businessPostalAddress } from '../config/business';
 
-// Import location-specific hero images from brochures
-import marbellaHero from '@/assets/brochures/marbella-hero.jpg';
-import esteponaHero from '@/assets/brochures/estepona-hero.jpg';
-import sotograndeHero from '@/assets/brochures/sotogrande-hero.jpg';
-import malagaHero from '@/assets/brochures/malaga-hero.jpg';
-import fuengirolaHero from '@/assets/brochures/fuengirola-hero.jpg';
-import benalmadenaHero from '@/assets/brochures/benalmadena-hero.jpg';
-import mijasHero from '@/assets/brochures/mijas-hero.jpg';
-import casaresHero from '@/assets/brochures/casares-hero.jpg';
-import manilvaHero from '@/assets/brochures/manilva-hero.jpg';
-import torremolinosHero from '@/assets/brochures/torremolinos-hero.jpg';
+// Neutral wealth-strategy imagery (no legacy real-estate assets)
+const STRATEGY_PLACEHOLDER_IMAGE = 'https://picsum.photos/seed/wealth/800/600';
 
 // Map of full language names
 export const LANGUAGE_NAMES: Record<Language, string> = {
@@ -51,67 +42,67 @@ export const BUDGET_RANGES = [
   { label: '$2,500+/mo', value: '2500+' },
 ];
 
-// Featured Areas Data - will be updated to strategies in Phase 2
+// Featured Wealth Strategies
 export const FEATURED_AREAS: Area[] = [
   {
-    id: 'marbella',
-    name: 'El Paso',
-    image: marbellaHero,
-    description: 'Premier indexed strategies for tax-free retirement income with market-linked growth.'
+    id: 'indexed-strategies',
+    name: 'Indexed Strategies',
+    image: STRATEGY_PLACEHOLDER_IMAGE,
+    description: 'Market-linked growth with downside protection for tax-free retirement income.'
   },
   {
-    id: 'estepona',
-    name: 'Estepona',
-    image: esteponaHero,
+    id: 'annuities',
+    name: 'Fixed Indexed Annuities',
+    image: STRATEGY_PLACEHOLDER_IMAGE,
     description: 'Guaranteed income streams for retirement security with tax-deferred growth.'
   },
   {
-    id: 'fuengirola',
-    name: 'Fuengirola',
-    image: fuengirolaHero,
-    description: 'Family-friendly beach town with vibrant promenade and excellent amenities.'
+    id: 'roth-conversions',
+    name: 'Roth Conversions',
+    image: STRATEGY_PLACEHOLDER_IMAGE,
+    description: 'Proactive tax planning to convert pre-tax accounts into tax-free retirement income.'
   },
   {
-    id: 'benalmadena',
-    name: 'Benalmádena',
-    image: benalmadenaHero,
-    description: 'Marina lifestyle and hillside charm with stunning coastal panoramas.'
+    id: 'estate-planning',
+    name: 'Estate Planning',
+    image: STRATEGY_PLACEHOLDER_IMAGE,
+    description: 'Preserve and transfer wealth across generations with tax-efficient strategies.'
   },
   {
-    id: 'mijas',
-    name: 'Mijas',
-    image: mijasHero,
-    description: 'Authentic white village with panoramic views and traditional Andalusian character.'
+    id: 'long-term-care',
+    name: 'Long-Term Care',
+    image: STRATEGY_PLACEHOLDER_IMAGE,
+    description: 'Protect your retirement savings from the rising cost of extended care.'
   },
   {
-    id: 'sotogrande',
-    name: 'Sotogrande',
-    image: sotograndeHero,
-    description: 'Privacy and prestige. World-class polo, golf, and marina lifestyle.'
+    id: 'tax-diversification',
+    name: 'Tax Diversification',
+    image: STRATEGY_PLACEHOLDER_IMAGE,
+    description: 'Balance taxable, tax-deferred, and tax-free accounts for maximum retirement flexibility.'
   },
   {
-    id: 'malaga-city',
-    name: 'Málaga City',
-    image: malagaHero,
-    description: 'A vibrant cultural hub blending history with futuristic urban living.'
+    id: 'social-security',
+    name: 'Social Security Optimization',
+    image: STRATEGY_PLACEHOLDER_IMAGE,
+    description: 'Timing and claiming strategies to maximize lifetime Social Security benefits.'
   },
   {
-    id: 'casares',
-    name: 'Casares',
-    image: casaresHero,
-    description: 'Traditional pueblo blanco perched on a hillside with breathtaking valley views.'
+    id: 'asset-protection',
+    name: 'Asset Protection',
+    image: STRATEGY_PLACEHOLDER_IMAGE,
+    description: 'Shield your retirement assets from litigation, creditors, and market downturns.'
   },
   {
-    id: 'manilva',
-    name: 'Manilva',
-    image: manilvaHero,
-    description: 'Marina and vineyard lifestyle where the mountains meet the professional.'
+    id: 'business-succession',
+    name: 'Business Succession',
+    image: STRATEGY_PLACEHOLDER_IMAGE,
+    description: 'Plan the tax-efficient transfer, sale, or exit of your closely held business.'
   },
   {
-    id: 'torremolinos',
-    name: 'Torremolinos',
-    image: torremolinosHero,
-    description: 'Classic beach promenade destination with a vibrant entertainment scene.'
+    id: 'wealth-preservation',
+    name: 'Wealth Preservation',
+    image: STRATEGY_PLACEHOLDER_IMAGE,
+    description: 'Comprehensive strategies to preserve purchasing power through retirement.'
   }
 ];
 

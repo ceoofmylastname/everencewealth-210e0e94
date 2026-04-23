@@ -3,7 +3,6 @@ import { Helmet } from 'react-helmet';
 import Hero from './Hero';
 import AutoplayVideo from './AutoplayVideo';
 import EmmaSection from './EmmaSection';
-import PropertiesShowcase from './PropertiesShowcase';
 import ClassicOptin from './ClassicOptin';
 import EmmaChat from './EmmaChat';
 import Footer from './Footer';
@@ -158,21 +157,15 @@ const LandingLayout: React.FC<LandingLayoutProps> = ({ language, translations })
             <header className="fixed top-0 left-0 w-full z-50 bg-white/95 backdrop-blur-md shadow-sm transition-all duration-300 border-b border-gray-100">
                 <div className="container mx-auto px-3 sm:px-4 h-14 sm:h-16 lg:h-20 flex justify-between items-center">
                     
-                    {/* Left: Apartments & Penthouses (Desktop Only) */}
+                    {/* Left: Strategy Links (Desktop Only) */}
                     <nav className="hidden lg:flex items-center gap-4 text-landing-navy text-sm font-medium tracking-wide">
-                        <button 
-                            onClick={() => document.getElementById('properties-section')?.scrollIntoView({ behavior: 'smooth' })} 
-                            className="hover:text-landing-gold transition-colors"
-                        >
-                            {t.header?.apartments || "Apartments"}
-                        </button>
+                        <a href="/en/strategies" className="hover:text-landing-gold transition-colors">
+                            {t.header?.strategies || "Strategies"}
+                        </a>
                         <span className="text-landing-gold/30">|</span>
-                        <button 
-                            onClick={() => document.getElementById('properties-section')?.scrollIntoView({ behavior: 'smooth' })} 
-                            className="hover:text-landing-gold transition-colors"
-                        >
-                            {t.header?.penthouses || "Penthouses"}
-                        </button>
+                        <a href="/en/philosophy" className="hover:text-landing-gold transition-colors">
+                            {t.header?.philosophy || "Philosophy"}
+                        </a>
                     </nav>
 
                     {/* Left: Logo on Mobile */}
@@ -198,21 +191,15 @@ const LandingLayout: React.FC<LandingLayoutProps> = ({ language, translations })
 
                     {/* Right: Actions */}
                     <div className="flex items-center gap-2 sm:gap-3 md:gap-4 lg:gap-6">
-                        {/* Property Links (Desktop Only) */}
+                        {/* Secondary Links (Desktop Only) */}
                         <nav className="hidden lg:flex items-center gap-4 text-landing-navy text-sm font-medium tracking-wide">
-                            <button 
-                                onClick={() => document.getElementById('properties-section')?.scrollIntoView({ behavior: 'smooth' })} 
-                                className="hover:text-landing-gold transition-colors"
-                            >
-                                {t.header?.townhouses || "Townhouses"}
-                            </button>
+                            <a href="/en/blog" className="hover:text-landing-gold transition-colors">
+                                {t.header?.blog || "Blog"}
+                            </a>
                             <span className="text-landing-gold/30">|</span>
-                            <button 
-                                onClick={() => document.getElementById('properties-section')?.scrollIntoView({ behavior: 'smooth' })} 
-                                className="hover:text-landing-gold transition-colors"
-                            >
-                                {t.header?.villas || "Villas"}
-                            </button>
+                            <a href="/en/contact" className="hover:text-landing-gold transition-colors">
+                                {t.header?.contact || "Contact"}
+                            </a>
                         </nav>
                         
                         {/* Language Selector - Visible on all sizes */}
@@ -254,12 +241,6 @@ const LandingLayout: React.FC<LandingLayoutProps> = ({ language, translations })
                 <EmmaSection
                     onStartChat={() => setIsEmmaOpen(true)}
                     translations={translations?.emma}
-                />
-
-                {/* 4. FALLBACK PROPERTIES - De-emphasized */}
-                <PropertiesShowcase
-                    translations={translations}
-                    language={language}
                 />
 
                 {/* 5. CLASSIC OPT-IN - Last Resort */}

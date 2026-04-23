@@ -74,7 +74,6 @@ const BuyersGuide = lazy(() => import("./pages/BuyersGuide"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const TermsOfService = lazy(() => import("./pages/TermsOfService"));
 const Contact = lazy(() => import("./pages/Contact"));
-const ApartmentsLanding = lazy(() => import("./pages/apartments/ApartmentsLanding"));
 
 // Lazy load ALL admin pages (rarely accessed, heavy components)
 const Articles = lazy(() => import("./pages/admin/Articles"));
@@ -127,8 +126,6 @@ const CitationBackfill = lazy(() => import("./pages/admin/CitationBackfill"));
 const SpeakableTestBench = lazy(() => import("./pages/admin/SpeakableTestBench"));
 const LinkAudit = lazy(() => import("./pages/admin/LinkAudit"));
 const CrawlabilityTest = lazy(() => import("./pages/admin/CrawlabilityTest"));
-const ApartmentsEditorManager = lazy(() => import("./pages/admin/ApartmentsEditorManager"));
-const ApartmentsAuth = lazy(() => import("./pages/ApartmentsAuth"));
 
 // Presentation System
 const Presentation = lazy(() => import("./pages/admin/Presentation"));
@@ -218,8 +215,6 @@ import { CrmAgentLayout } from "@/components/crm/CrmAgentLayout";
 import { CrmAgentRoute } from "@/components/crm/CrmAgentRoute";
 import { CrmAdminRoute } from "@/components/crm/CrmAdminRoute";
 import { CrmAdminLayout } from "@/components/crm/CrmAdminLayout";
-import { ApartmentsEditorRoute } from "@/components/ApartmentsEditorRoute";
-import { ApartmentsEditorLayout } from "@/components/ApartmentsEditorLayout";
 import { AdvisorRoute } from "@/components/portal/AdvisorRoute";
 import { ClientRoute } from "@/components/portal/ClientRoute";
 import { AdminRoute } from "@/components/portal/AdminRoute";
@@ -369,14 +364,8 @@ const App = () => (
               <Route path="/admin/speakable-test" element={<ProtectedRoute><SpeakableTestBench /></ProtectedRoute>} />
               <Route path="/admin/link-audit" element={<ProtectedRoute><LinkAudit /></ProtectedRoute>} />
               <Route path="/admin/crawlability-test" element={<ProtectedRoute><CrawlabilityTest /></ProtectedRoute>} />
-              <Route path="/admin/apartments-editors" element={<ProtectedRoute><ApartmentsEditorManager /></ProtectedRoute>} />
 
               {/* Presentation System — moved to portal */}
-
-              {/* Apartments Editor Login (public) */}
-              <Route path="/apartments/login" element={<ApartmentsAuth />} />
-
-              {/* Apartments Editor Protected Routes removed (legacy real estate tooling) */}
 
 
               {/* ========================================== */}
@@ -556,10 +545,6 @@ const App = () => (
               {/* Contact page */}
               <Route path="/contact" element={<Navigate to="/en/contact" replace />} />
               <Route path="/:lang/contact" element={<Contact />} />
-
-              {/* Apartments landing page */}
-              <Route path="/apartments" element={<Navigate to="/en/apartments" replace />} />
-              <Route path="/:lang/apartments" element={<ApartmentsLanding />} />
 
               {/* ========================================== */}
               {/* LANGUAGE-PREFIXED ROUTES (Phase 2)        */}
