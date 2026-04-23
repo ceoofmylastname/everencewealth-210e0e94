@@ -1,51 +1,135 @@
 
+## Fix “Generate Missing” so the admin UI shows real progress and only flags real stalls
 
-## Why article generation stalled at 4/6 and how to fix it
+### What’s actually broken
+The generator is no longer the main problem — the admin UI is.
 
-### What's happening
-Cluster `3de11630-ac9e-4c05-b85f-d07c555412ba` has **4 of 6** English articles. The `generate-missing-articles` edge function ran twice in the last hour, generated the plan for article 5 (MOFU), then silently stopped before saving — no "Article saved" log, no error, no self-continue. The progress JSON still says "Generating article 5/6 (MOFU)..." and the chain is broken.
+The backend logs show `generate-missing-articles` did save articles 5 and 6, set the cluster to `partial`, and triggered image regeneration. But the Articles tab still uses a very shallow progress check:
 
-### Root causes
+- it treats “no new article count after ~48s” as “no progress detected”
+- it only invalidates the per-cluster article query, not the parent cluster/job queries that drive the visible `4/6` warning and button state
+- it does not display the backend `progress.message`, `last_heartbeat`, or `updated_at`
+- the edge function still has several silent early-return paths that stop without writing `last_error`
 
-**1. Self-continue is fire-and-forget but the previous invocation already returned 202.**
-When the Claude content call takes 60–90 seconds, the parent function ends, `EdgeRuntime.waitUntil` is supposed to keep it alive, but in practice the chain is dying mid-content-generation without surfacing an error. The recent logs cut off right after "Plan: Roth Conversion Ladders…" with no content API attempt visible.
+So users can see “Generate Missing not working” even when the worker is actively running or already finished.
 
-**2. There is no recovery mechanism.**
-Nothing in the system detects "progress.in_progress=true but no heartbeat for 5+ minutes" and re-kicks the function. The existing `check_stuck_cluster_jobs()` cron only fires after 20 min and only when `cluster_generations.status='generating' AND updated_at < NOW() - 20m`. But this function never updates `updated_at` on `cluster_generations` — only the `progress` JSON. So the sweeper never sees this job as stuck.
+## Implementation plan
 
-**3. Same hardcoded Unsplash bug as `complete-cluster`.**
-Line 510: `featured_image_url: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?...'` and there is **no post-loop trigger for `regenerate-cluster-images`**. Even if articles 5 and 6 generate, they will show the same generic house photo we just removed from `complete-cluster`.
+### 1. Make `generate-missing-articles` publish accurate job state
+Update `supabase/functions/generate-missing-articles/index.ts` so the job row reflects active work from start to finish.
 
-### Fix
+Changes:
+- Set `cluster_generations.status = 'generating'` when missing-article generation starts.
+- Keep the existing `updated_at` heartbeat behavior on every `updateProgress()` call.
+- Add explicit `updateProgress(..., { in_progress: false, last_error, message })` before every current “silent return” path:
+  - empty plan response
+  - plan JSON parse failure
+  - empty content response
+  - content JSON parse failure
+  - cluster/article read failures
+- Keep the existing completion behavior:
+  - `status = 'partial'` when 6/6 source articles exist
+  - completion message = `Source articles complete. Ready for translation.`
 
-Apply three changes to `supabase/functions/generate-missing-articles/index.ts`:
+Result:
+- the UI can trust status + heartbeat
+- real failures are visible instead of looking like a freeze
 
-**A. Stop using the hardcoded Unsplash placeholder.** Change line 510–511 to:
-```ts
-article.featured_image_url = null;
-article.featured_image_alt = `${plan.headline} - Everence Wealth`;
-```
+### 2. Replace count-only stall detection in the Articles tab
+Update `src/components/admin/cluster-manager/ClusterArticlesTab.tsx` so “Generate Missing” watches real backend activity, not just article count.
 
-**B. After the article is saved AND the cluster reaches 6/6, fire `regenerate-cluster-images` (same pattern we just added to `complete-cluster`).** Right before the `return` inside the `if (completeNow) { ... }` block at line ~611, add a fire-and-forget call to `regenerate-cluster-images` so all 6 articles get unique Kie.ai content-aware images.
+Changes:
+- Expand the local progress state to include:
+  - `current`
+  - `total`
+  - `message`
+  - `lastHeartbeat`
+  - `jobUpdatedAt`
+  - `status`
+  - `lastError`
+- Change polling to read both:
+  - source-language article count from `blog_articles`
+  - job state from `cluster_generations` (`status`, `progress`, `updated_at`, `error`)
+- Reset the stall timer when **either** of these changes:
+  - article count increases
+  - `updated_at` advances
+  - `progress.last_heartbeat` advances
+  - `progress.message` changes
+- Do not warn after 48s just because count is unchanged.
+- Only show a “stalled” warning when the heartbeat itself is stale for a longer real threshold (for example 2–3 minutes), or when status/error explicitly indicates failure.
+- If status becomes `partial` and source count is already 6, treat that as success immediately.
 
-**C. Bump `cluster_generations.updated_at` on every progress write so the 20-min stuck-job sweeper can recover failures.** In `updateProgress()` (line 91–112), include `updated_at: new Date().toISOString()` in the update payload. This makes `check_stuck_cluster_jobs()` automatically reset abandoned jobs after 20 min instead of leaving them frozen forever.
+Result:
+- long Claude/Kie steps won’t look broken
+- users see ongoing work even while the count stays flat between saves
 
-### Recover the current stuck cluster
-After deploying the patched function, manually invoke `generate-missing-articles` once for cluster `3de11630-ac9e-4c05-b85f-d07c555412ba`. The function is idempotent — it will read state, see articles 1–4 exist, generate article 5 (MOFU), save it, and self-chain to article 6 (BOFU). When the count hits 6, it will fire `regenerate-cluster-images` to replace the Unsplash placeholder on article 4 (the one already saved with the bad URL) plus generate proper images for the new 5 and 6.
+### 3. Refresh the actual queries that power the cluster card
+The visible `4/6` warning comes from the parent cluster card, not the local per-tab query.
 
-### Verification checklist
-- `blog_articles` count for cluster `3de11630…` = 6 in `en`
-- All 6 articles have `featured_image_url LIKE '%supabase.co/storage%'` (Kie AI generated)
-- `cluster_generations.status` = `partial` (ready for translation)
-- `progress.message` = "Source articles complete. Ready for translation."
+Update `src/components/admin/cluster-manager/ClusterArticlesTab.tsx` to invalidate:
+- `["cluster-articles"]`
+- `["cluster-jobs"]`
+- `["cluster-articles", cluster.cluster_id]`
 
-### Files to change
-- `supabase/functions/generate-missing-articles/index.ts` — three patches (placeholder, post-completion image trigger, heartbeat on `updated_at`)
+during polling and on completion/failure.
 
-### Out of scope
-- No DB schema changes
-- No prompt or model changes
-- No UI changes
-- The `complete-cluster` function (already fixed in the previous task) is unaffected
-- The 6 articles in the already-completed cluster `738ff4bd…` are unaffected
+Why:
+- `sourceInfo` is derived in `ClusterCard` from the parent `cluster` object built from the global `["cluster-articles"]` query
+- right now the local tab can finish, but the header/warning/button can stay stale until a manual refresh
 
+Result:
+- the “Source language incomplete: 4/6” warning disappears as soon as the cluster is actually complete
+- the “Generate Missing” button no longer lingers after completion
+
+### 4. Surface real missing-article progress in the UI
+Improve the Articles tab so users can see what the backend is doing.
+
+In `src/components/admin/cluster-manager/ClusterArticlesTab.tsx`:
+- add a compact progress panel near the Generate Missing button showing:
+  - `Saved X/6 source articles`
+  - current backend message
+  - last activity timestamp / “Xs ago”
+- update button copy from the current awkward formula to a direct format like:
+  - `Generating 4/6...`
+  - `Generating 5/6...`
+- when a restart happens, show a neutral info state like:
+  - `Resuming background generation...`
+
+Result:
+- users understand whether the system is planning, writing, saving, or completing
+- “no progress detected” becomes rare and meaningful
+
+### 5. Keep cluster-level status badges honest
+Because the cluster card already displays `job_status`, make missing-article generation update that badge correctly.
+
+Changes:
+- while generating missing articles: show `Generating`
+- when source completion reaches 6/6: return to `Partial`
+- if a hard error occurs: show `Failed`
+
+This uses the existing badge UI in `src/components/admin/cluster-manager/ClusterCard.tsx` without redesigning the card.
+
+## Files to change
+- `supabase/functions/generate-missing-articles/index.ts`
+- `src/components/admin/cluster-manager/ClusterArticlesTab.tsx`
+- `src/components/admin/cluster-manager/ClusterCard.tsx` (only if minor status/progress display wiring is needed)
+
+## Verification
+After implementation:
+
+1. Start “Generate Missing” on a 4/6 cluster.
+2. The card badge changes to `Generating`.
+3. The Articles tab shows live backend progress text and heartbeat.
+4. If no article is saved for a while but heartbeat/message keeps changing, no false stall warning appears.
+5. When the 6th source article is saved:
+   - source warning clears
+   - Generate Missing button disappears
+   - cluster job status becomes `Partial`
+   - translation becomes available
+6. If the worker truly fails, the tab shows the actual `last_error` instead of generic “no progress detected”.
+
+## Out of scope
+- No schema changes
+- No prompt/model changes
+- No translation flow rewrite
+- No new backend tables or cron jobs
