@@ -260,8 +260,7 @@
           "term": "Fiduciary",
           "full_name": "Fiduciary Duty",
           "definition": "A legal obligation to act in the best interest of a client. Fiduciary advisors must put their clients' interests ahead of their own and disclose any conflicts of interest.",
-          "related_terms": ["Asset Allocation", "Risk Tolerance"],
-          "see_also": ["/blog/why-fiduciary-matters"]
+          "related_terms": ["Asset Allocation", "Risk Tolerance"]
         },
         {
           "term": "Index Fund",
