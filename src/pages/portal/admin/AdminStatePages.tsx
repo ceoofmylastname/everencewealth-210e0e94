@@ -77,7 +77,7 @@ interface LocationPage {
 const generateStateImage = async (page: { id: string; city_name: string; city_slug: string; topic_slug: string; state_code: string }) => {
   const prompt = `Professional aerial photography of ${page.city_name}, USA. Modern cityscape skyline, institutional financial district, wealth management and retirement planning imagery. Ultra high resolution, corporate marketing style, clean professional lighting.`;
   try {
-    await supabase.functions.invoke("generate-location-image", {
+    const { data, error } = await supabase.functions.invoke("generate-location-image", {
       body: {
         location_page_id: page.id,
         city_name: page.city_name,
@@ -87,9 +87,16 @@ const generateStateImage = async (page: { id: string; city_name: string; city_sl
         image_prompt: prompt,
       },
     });
+    if (error || (data && (data as any).error)) {
+      const msg = (error as any)?.message || (data as any)?.error || "Unknown error";
+      console.error("Image generation failed for", page.city_name, msg);
+      toast.warning(`Hero image failed for ${page.city_name}: ${msg}`);
+      return false;
+    }
     return true;
   } catch (err) {
     console.error("Image generation failed for", page.city_name, err);
+    toast.warning(`Hero image failed for ${page.city_name}`);
     return false;
   }
 };
