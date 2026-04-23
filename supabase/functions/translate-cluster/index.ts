@@ -110,6 +110,30 @@ const MAX_RUNTIME = 50 * 1000; // 50 seconds
 const MAX_ARTICLES_PER_RUN = 4; // Increased from 2 - faster AI allows more
 const MAX_RETRIES = 2;
 const RECENT_LOCK_MS = 90 * 1000;
+const STALL_THRESHOLD_MS = 3 * 60 * 1000; // 3 minutes - reset stuck "generating" jobs
+
+/**
+ * Heartbeat: bump updated_at so external watchers know we're alive.
+ * Call before slow operations (e.g. AI calls).
+ */
+async function writeHeartbeat(supabase: any, jobId: string, message?: string) {
+  if (!jobId) return;
+  try {
+    const update: any = { updated_at: new Date().toISOString() };
+    if (message) {
+      // Merge message into existing progress without clobbering other fields
+      const { data: existing } = await supabase
+        .from('cluster_generations')
+        .select('progress')
+        .eq('id', jobId)
+        .single();
+      update.progress = { ...(existing?.progress || {}), message, last_heartbeat: new Date().toISOString() };
+    }
+    await supabase.from('cluster_generations').update(update).eq('id', jobId);
+  } catch (e) {
+    console.warn('[translate-cluster] Heartbeat failed (non-fatal):', e);
+  }
+}
 
 /**
  * Clean HTML content - remove markdown fences and normalize
@@ -580,6 +604,16 @@ serve(async (req) => {
           }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
+      } else if (timeSinceUpdate >= STALL_THRESHOLD_MS) {
+        console.log(`[translate-cluster] ⚠️ Job stalled in 'generating' for ${Math.round(timeSinceUpdate / 1000)}s (threshold ${STALL_THRESHOLD_MS / 1000}s). Recovering: resetting to 'partial' and proceeding.`);
+        await supabase
+          .from('cluster_generations')
+          .update({ 
+            status: 'partial', 
+            progress: { ...(lockCheck.progress || {}), message: 'Recovered from stall - resuming translation...' },
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', jobId);
       } else {
         console.log(`[translate-cluster] Job stuck in generating for ${Math.round(timeSinceUpdate / 1000)}s, resetting to partial...`);
         await supabase
@@ -753,8 +787,12 @@ serve(async (req) => {
     let translatedCount = 0;
     const translatedArticles: any[] = [];
     let stoppedEarly = false;
+    let loopFinishedNormally = false;
 
-    // Translate source articles
+    // Translate source articles - wrapped in try/finally so any unexpected exit
+    // (Deno isolate recycle, thrown error, early return) flushes a partial heartbeat
+    // instead of leaving the row pinned in 'generating'.
+    try {
     for (let i = 0; i < sourceArticles.length; i++) {
       currentArticleIndex = i + 1;
       
@@ -831,6 +869,14 @@ serve(async (req) => {
       try {
         console.log(
           `[translate-cluster] Translating article ${i + 1}/${expectedCount}: ${sourceArticle.headline}`
+        );
+
+        // Pre-AI heartbeat: signals "we're alive and about to call Claude"
+        // so the 3-min stall detector doesn't fire during a slow LLM call.
+        await writeHeartbeat(
+          supabase,
+          jobId,
+          `Translating ${LANGUAGE_NAMES[currentLanguage] || currentLanguage}: article ${i + 1}/${expectedCount}`
         );
 
         const translated = await translateArticleWithRetry(sourceArticle, currentLanguage, supabase);
@@ -933,6 +979,39 @@ serve(async (req) => {
         });
         
         throw error;
+      }
+    }
+    loopFinishedNormally = true;
+    } finally {
+      // Guarantee we never leave the job stuck in 'generating' on unexpected exit.
+      // If the loop completed normally OR threw, the post-loop code / catch block
+      // will set the final status. This finally handles the "isolate recycled" case.
+      if (!loopFinishedNormally && !stoppedEarly) {
+        try {
+          const { count: totalInDb } = await supabase
+            .from('blog_articles')
+            .select('*', { count: 'exact', head: true })
+            .eq('cluster_id', jobId);
+
+          await supabase
+            .from('cluster_generations')
+            .update({
+              status: 'partial',
+              progress: {
+                message: `Recoverable stop at ${LANGUAGE_NAMES[currentLanguage] || currentLanguage} article ${currentArticleIndex}/${expectedCount}. Auto-resume will continue.`,
+                current_language: currentLanguage,
+                articles_translated: initialExistingCount + translatedCount,
+                generated_articles: totalInDb || 0,
+                total_articles: 12,
+                last_heartbeat: new Date().toISOString(),
+              },
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', jobId);
+          console.log(`[translate-cluster] 🛟 Finally-block flushed partial status for job ${jobId}`);
+        } catch (e) {
+          console.error('[translate-cluster] Finally-block flush failed:', e);
+        }
       }
     }
 
