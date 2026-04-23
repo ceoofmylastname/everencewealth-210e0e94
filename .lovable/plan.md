@@ -1,101 +1,87 @@
 
 
-## Fix the blue-flash on `everencewealth.com` before the green hero loads
+## State Page Generator: NOT running correctly. Two hard blockers.
 
-### Root cause (confirmed)
+### What I checked
 
-The file Cloudflare serves at `https://everencewealth.com/` is `dist/index.html`, which is **pre-rendered at build time** by `scripts/generateStaticHomePage.ts`. That script injects a static SEO hero block:
+- `/admin/state-pages` UI (`AdminStatePages.tsx`) — calls `generate-location-page` for content, then calls `generate-location-image` for hero images.
+- Edge function logs for `generate-location-page` (last hour, 3 separate jobs).
+- Source for `generate-location-page/index.ts` to see which AI provider it uses.
+- Existence check on `generate-location-image` function.
 
-```html
-<section class="static-hero">  <!-- background: linear-gradient(135deg, hsl(220 20% 12%), hsl(220 20% 10%)) -->
-  <h1>Architecting Your <span>Financial Legacy</span></h1>
-  …
-</section>
+### Blocker 1 — Content generation is failing 100% of the time (no pages being created)
+
+Every single recent job for `generate-location-page` failed with the same error from OpenAI:
+
+```
+AI API error for en: 429 - "You exceeded your current quota,
+please check your plan and billing details."
+"type": "insufficient_quota", "code": "insufficient_quota"
 ```
 
-`--prime-900: 220 20% 12%` and `--prime-950: 220 20% 10%` are **dark slate-blue / navy** — that's the blue you see for ~300–800 ms. Then React hydrates, mounts `src/pages/Home.tsx → <Hero />` which uses `bg-dark-bg` (`#020806`, near-black with green tint), and the rest of the site replaces it.
-
-So it's not a CSS bug — it's a **stale pre-rendered static hero** that doesn't match the current React hero anymore.
-
-### Bonus issues found in the same file
-
-- Line 501-504 of `scripts/generateStaticHomePage.ts` still renders legacy real-estate links: `Properties`, `Buyers Guide`. This violates `mem://project/cleanup-legacy-purge` and would also be visible in the flash for SEO crawlers.
-- Hero copy says "Architecting Your Financial Legacy" — the live React hero says "BRIDGE THE RETIREMENT GAP". Mismatch hurts both the visual continuity and Google's first-paint signal.
-
-### Fix plan
-
-Update `scripts/generateStaticHomePage.ts` so the pre-rendered hero **visually matches** the React hero. Two color/copy changes — no architecture change, no new files.
-
-**1. Recolor the static hero to match `bg-dark-bg` (`#020806`)**
-
-In `CRITICAL_CSS` (lines 200-210), repoint the prime-900/950 vars used by `.static-hero`:
-
-```css
---prime-900: 160 48% 4%;   /* was 220 20% 12% — dark blue-gray */
---prime-950: 160 48% 3%;   /* was 220 20% 10% — dark blue-gray */
+Three jobs in the last 5 minutes (`ebdd5c53…`, `b199b29d…`, `35a68666…`) all logged:
+```
+Generating en (1/2)... → Error: 429 insufficient_quota
+Generating es (2/2)... → Error: 429 insufficient_quota
+Completed! Generated 0/2 languages
 ```
 
-These HSL values produce near-black with the same green tint as `#020806`, eliminating the blue cast. The `.hero-highlight` (`--prime-gold`) stays gold, matching the React hero's `text-primary` accent.
+**Root cause:** `supabase/functions/generate-location-page/index.ts` line 139-153 calls **`https://api.openai.com/v1/chat/completions`** directly with `model: 'gpt-4o'`, using the user's `OPENAI_API_KEY` secret. That key is out of quota / unpaid.
 
-Add a subtle radial-gradient overlay in `.static-hero` (mirroring the React hero's mesh-gradient blobs) so the static frame and the React frame are visually indistinguishable during hydration:
+This is an outlier — the rest of the platform uses **Lovable AI Gateway** (free, no API key needed). This one function was never migrated.
 
-```css
-.static-hero {
-  background:
-    radial-gradient(60vw 60vw at 10% 30%, hsla(160,48%,25%,0.12), transparent 70%),
-    radial-gradient(50vw 50vw at 100% 100%, hsla(160,48%,30%,0.08), transparent 70%),
-    linear-gradient(135deg, hsl(var(--prime-900)), hsl(var(--prime-950)));
-}
-```
+### Blocker 2 — Image generation function does not exist
 
-**2. Replace the static hero copy with the live React hero copy**
+`AdminStatePages.tsx` line 80 calls `supabase.functions.invoke("generate-location-image", …)` after each page is created. But:
 
-In the `META` map (lines 50-66) update both EN and ES:
-- `heroHeadline` → `"Bridge the Retirement"`
-- `heroHighlight` → `"Gap"`
-- `heroDescription` → US-market subline matching `homepage.hero.subline1`/`subline2` from the EN translations file
-- `speakableSummary` → keep, but rewrite to use the new positioning ("Independent broker offering tax-free retirement strategies…")
-- ES variants translated equivalently
+- `supabase/functions/generate-location-image/` **directory does not exist**.
+- So even if content generation worked, every image call would 404 silently (caught in the try/catch at line 91-94 — error logged to console only, no toast).
 
-**3. Purge the legacy real-estate nav links from the static header**
+That's why you see "Generating hero images for N page(s)…" toast but no images ever appear: the request fails before it reaches any AI service.
 
-Lines 500-505 — replace with the actual current nav (`Strategies`, `Philosophy`, `About`, `Blog`, `Contact`) so crawlers and the flash both reflect the real site:
+### Why the UI shows "stalled"
 
-```html
-<nav>
-  <a href="/en/strategies">Strategies</a>
-  <a href="/en/philosophy">Philosophy</a>
-  <a href="/en/about">About</a>
-  <a href="/en/blog">Blog</a>
-  <a href="/en/contact">Contact</a>
-</nav>
-```
+It isn't stalled — it's failing fast and silently:
+- `generate-location-page` returns `{status: "started", job_id: …}` immediately (fire-and-forget background job).
+- The poller (line 172) sees `job.status = 'failed'`, shows a toast, but the `generation_jobs.error_message` is rarely surfaced clearly.
+- Image generation throws 404 inside a try/catch that only `console.error`s — no user-facing toast.
 
-**4. Add `theme-color` matching the new hero**
+So nothing visible breaks → looks like a stall.
 
-In the `<head>` of the static template, set `<meta name="theme-color" content="#020806">` (currently `#d4a574` in `index.html`, which causes mobile browser chrome to flash tan). This eliminates the mobile address-bar color flash too.
+### Fix plan (two changes, both in edge functions)
 
-### Files to change
+**Fix 1 — Migrate `generate-location-page` to Lovable AI Gateway** (kills the 429s)
 
-- `scripts/generateStaticHomePage.ts` — only file touched
-  - `CRITICAL_CSS` block: recolor `--prime-900` / `--prime-950`, add gradient overlay
-  - `META` (EN + ES): update hero headline / highlight / description / speakable
-  - `<head>`: change `theme-color` meta
-  - `<header>` static nav: remove `Properties` + `Buyers Guide`, replace with live nav
+Edit `supabase/functions/generate-location-page/index.ts`:
+
+- Replace the OpenAI fetch (lines 139-154) with a call to `https://ai.gateway.lovable.dev/v1/chat/completions` using `LOVABLE_API_KEY` (already in env, no user action needed).
+- Switch `model: 'gpt-4o'` → `google/gemini-2.5-flash` (fast, free, more than capable for location content).
+- Drop the `OPENAI_API_KEY` parameter from `generateLanguageVersion()` and its caller in `processBackgroundGeneration()`.
+- Handle gateway-specific 429 (rate limit) and 402 (credit) responses with a clear `error_message` written back to `generation_jobs` so the UI shows it.
+
+**Fix 2 — Create the missing `generate-location-image` edge function**
+
+New file `supabase/functions/generate-location-image/index.ts`:
+
+- Accept `{ location_page_id, city_name, city_slug, topic_slug, image_prompt }` from the body (matches what `AdminStatePages.tsx` line 80-89 already sends).
+- Call Lovable AI image gateway `https://ai.gateway.lovable.dev/v1/images/generations` with `google/gemini-3.1-flash-image-preview` (per AI prompt guidelines memory — 4K cinematic financial imagery).
+- Download the returned image, upload to existing `article-images` Supabase storage bucket as `state-${city_slug}-${topic_slug}.jpg`.
+- Update `location_pages.featured_image_url` and `featured_image_alt` for the matching `id`.
+- Return `{ success: true, url }` and CORS headers.
+- Add small front-end polish in `AdminStatePages.tsx` (one line) so a failed image call shows a `toast.warning` instead of console-silent.
 
 ### Out of scope
 
-- No change to React `<Hero />` — it stays exactly as-is
-- No change to `index.html`, `app-shell.html`, `_middleware.js`, or sitemap files
-- No DB or edge function changes
-- ES translations of the new headline are direct equivalents; if you want a different ES tagline, say so
+- No DB schema changes (`location_pages`, `generation_jobs` columns are fine).
+- No UI redesign — the Generator page stays as-is.
+- Not touching the OpenAI key in secrets (the fix removes the dependency entirely).
+- No retroactive image backfill for existing imageless state pages — but once Fix 2 ships, the existing "regenerate image" button on the manage tab will work for them.
 
-### Verification
+### Verification after deploy
 
-After deploy:
-1. Hard-refresh `https://everencewealth.com/` in an incognito window (or throttle to Slow 3G).
-2. Watch the first paint — should be near-black with subtle green tint and "Bridge the Retirement Gap" copy. No blue cast, no copy swap.
-3. View source — `<section class="static-hero">` headline reads "Bridge the Retirement", highlight "Gap".
-4. Mobile Safari address bar should be near-black, not tan.
-5. The transition into the hydrated React hero should be visually seamless (only the animated letters/particles arriving differ).
+1. Go to `/admin/state-pages` → Generate tab → pick "Texas" → "Retirement Planning" → Generate.
+2. Within ~30 s the progress should reach 2/2 and toast "State page(s) generated successfully!"
+3. Within another ~10 s a "Hero image ready" toast should appear and the Texas card on the Manage tab should show a real image (not a placeholder).
+4. Re-check `generate-location-page` logs — should see `Generated 2/2 languages` instead of `0/2`.
+5. Check `generate-location-image` logs (new function) — should show successful uploads to storage.
 
