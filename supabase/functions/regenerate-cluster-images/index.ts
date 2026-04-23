@@ -303,6 +303,12 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // Self-chaining safety: leave enough budget to fire the next invocation
+  // before the 150s edge runtime cap. Each position can take 60-90s (Kie.ai polling),
+  // so we bail out as soon as elapsed time crosses the threshold AFTER a position.
+  const startedAt = Date.now();
+  const MAX_RUNTIME_MS = 110_000; // 110s — safe margin under 150s hard cap
+
   try {
     const { clusterId, dryRun = false, preserveEnglishImages = false } = await req.json();
 
@@ -554,6 +560,40 @@ serve(async (req) => {
           failCount++;
           results.push({ id: translation.id, language: translation.language, success: false });
         }
+      }
+
+      // Self-chaining: if we're running out of time and there's still work to do,
+      // fire-and-forget re-invoke ourselves and return early. The next invocation
+      // will skip already-processed positions (Supabase URL check) and continue.
+      const elapsedMs = Date.now() - startedAt;
+      if (elapsedMs >= MAX_RUNTIME_MS) {
+        console.log(`⏱️ Approaching runtime limit (${elapsedMs}ms) — chaining next invocation for cluster ${clusterId}`);
+        try {
+          // Fire-and-forget: do NOT await
+          fetch(`${supabaseUrl}/functions/v1/regenerate-cluster-images`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${supabaseKey}`,
+            },
+            body: JSON.stringify({ clusterId, preserveEnglishImages }),
+          }).catch((e) => console.error('Self-chain invoke error (ignored):', e));
+        } catch (e) {
+          console.error('Self-chain setup error (ignored):', e);
+        }
+
+        return new Response(
+          JSON.stringify({
+            success: true,
+            chained: true,
+            clusterId,
+            partialSuccessCount: successCount,
+            partialFailCount: failCount,
+            elapsedMs,
+            message: 'Partial run complete; next invocation chained to finish remaining positions.',
+          }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
       }
     }
 
