@@ -604,6 +604,16 @@ serve(async (req) => {
           }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
+      } else if (timeSinceUpdate >= STALL_THRESHOLD_MS) {
+        console.log(`[translate-cluster] ⚠️ Job stalled in 'generating' for ${Math.round(timeSinceUpdate / 1000)}s (threshold ${STALL_THRESHOLD_MS / 1000}s). Recovering: resetting to 'partial' and proceeding.`);
+        await supabase
+          .from('cluster_generations')
+          .update({ 
+            status: 'partial', 
+            progress: { ...(lockCheck.progress || {}), message: 'Recovered from stall - resuming translation...' },
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', jobId);
       } else {
         console.log(`[translate-cluster] Job stuck in generating for ${Math.round(timeSinceUpdate / 1000)}s, resetting to partial...`);
         await supabase
