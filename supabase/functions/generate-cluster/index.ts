@@ -652,7 +652,7 @@ async function generateCluster(
       'en': 'English', 'es': 'Spanish',
     }[language] || 'English';
 
-    const structurePrompt = `You are an expert SEO content strategist for a fiduciary insurance and wealth management firm in the United States.
+    const structurePrompt = `You are an expert SEO content strategist for an independent insurance and wealth management firm in the United States.
 
 Create a content cluster structure for the topic: "${topic}"
 Language: ${language} (${structureLanguageName})
