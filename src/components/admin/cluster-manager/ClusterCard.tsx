@@ -179,7 +179,9 @@ export const ClusterCard = ({
                         <Copy className="h-3 w-3" />
                       </Button>
                       <span>•</span>
-                      <span>{cluster.total_articles} articles</span>
+                      <span>
+                        {(cluster.languages?.en?.total ?? cluster.total_articles)} articles × {Math.max(Object.keys(cluster.languages || {}).length, 1)} languages
+                      </span>
                       <span>•</span>
                       <span>QAs: {cluster.total_qa_published}P/{cluster.total_qa_pages}T ({cluster.qa_completion_percent}%)</span>
                       <span>•</span>
