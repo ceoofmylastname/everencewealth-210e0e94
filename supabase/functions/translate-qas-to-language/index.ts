@@ -103,7 +103,10 @@ const LANGUAGE_NAMES: Record<string, string> = {
 const MAX_RETRIES = 3;
 const RETRY_DELAYS = [2000, 5000, 10000]; // 2s, 5s, 10s exponential backoff
 const REQUEST_TIMEOUT = 60000; // 60s timeout (smaller payload = faster)
-const DELAY_BETWEEN_QAS = 1500; // 1.5s delay between Q&A translations
+const DELAY_BETWEEN_BATCHES = 1500; // 1.5s delay between concurrency groups
+const CONCURRENCY = 3; // Process 3 Q&As in parallel per group
+const TIME_BUDGET_MS = 240_000; // 4 min wall budget (well under edge timeout)
+const SELF_INVOKE_THRESHOLD = 1; // Self-invoke if any Q&As remain after time budget
 
 function sleep(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms));
