@@ -1,173 +1,54 @@
 
 
-## Phase 1 — Diagnostic Inventory
+## Why the favicon and mobile preview look wrong
 
-### Why the brand-leak still happens
-The earlier fix only updated `index.html` and a couple of text fields. The real leak comes from **rendered HTML the SSG pipeline writes into every static page**, plus Del-Sol-owned image files still sitting in the repo.
+The Everence logo is correct. The problem is the **same rectangular wordmark file** is being used for **three slots that each require a different shape**:
 
-### Image URLs in pre-hydration HTML
+| Slot | Required shape | Currently | Result |
+|---|---|---|---|
+| Browser tab favicon | square 32×32 (or 16×16) | 560×445 wordmark | shrunk to a blurry sliver in the tab |
+| iOS / Android home-screen icon | square 180×180 (Apple) / 192×192 (Android) | 560×445 wordmark | cropped/squished inside the rounded square |
+| Social link preview (OG image) | landscape 1200×630 | 560×445 wordmark | platforms upscale + crop badly |
 
-**`index.html`** (root template — Everence ✅)
-- `og:image`, `og:image:alt`, `twitter:image` → `https://www.everencewealth.com/og-image.png` (Everence — but file underneath is the Everence one only because we just replaced it; not the canonical 1200x630 brand asset)
-- favicon / apple-touch-icon → `/favicon.png`, `/apple-touch-icon.png` (Everence ✅)
+All three files (`public/favicon.png`, `public/apple-touch-icon.png`, `public/og-image.png`) are byte-identical copies of the same 560×445 rectangular wordmark. That's the entire bug.
 
-**SSG-generated pages — the actual leak source**
+## Fix
 
-| File | Reference | Origin |
-|---|---|---|
-| `scripts/generateStaticHomePage.ts` line 453 | `og:image` → `/assets/logo-new.png` | **Del Sol** ❌ |
-| `scripts/generateStaticHomePage.ts` line 465 | `twitter:image` → `/assets/logo-new.png` | **Del Sol** ❌ |
-| `scripts/generateStaticHomePage.ts` line 494 | inline `<img src="/assets/logo-new.png">` in `.static-header` | **Del Sol** ❌ — this is the **visible flash** |
-| `scripts/generateStaticLocationHub.ts` line 332/341 | `og:image` / `twitter:image` → `/assets/costa-del-sol-locations.jpg` | **Del Sol** ❌ |
-| `scripts/generateStaticLocationHub.ts` line 226 | JSON-LD logo → `/assets/logo-new.png` | **Del Sol** ❌ |
-| `scripts/generateStaticBuyersGuide.ts` lines 218/324/333 | `og:image` / `twitter:image` / Recipe.image → `/assets/costa-del-sol-bg.jpg` | **Del Sol** ❌ |
-| `scripts/generateStaticBuyersGuide.ts` line 260 | JSON-LD logo → `/assets/logo-new.png` | **Del Sol** ❌ |
-| `scripts/generateStaticComparisonPages.ts` line 120 | JSON-LD logo → `/assets/logo-new.png` | **Del Sol** ❌ |
-| `scripts/generateStaticPages.ts` line 168 | JSON-LD logo → `/assets/logo-new.png` | **Del Sol** ❌ |
-| `scripts/generateStaticPages.ts` line 851–860 | `ensureLogoInPublicAssets()` actively copies Del Sol logo into `dist/assets/logo-new.png` on every build | **Del Sol** ❌ |
-| `src/lib/glossarySchemaGenerator.ts` lines 77, 287 | JSON-LD logo → `/assets/logo-new.png` | **Del Sol** ❌ |
-| `src/lib/buyersGuideSchemaGenerator.ts` line 4 | LOGO_URL constant → `/assets/logo-new.png` | **Del Sol** ❌ |
+This requires **a square version of the Everence mark** (the gold "E" emblem alone, without the "Everence Wealth" wordmark) for the favicon and home-screen icon. The wordmark only works in landscape for the OG image.
 
-**Hardcoded `storage.googleapis.com/msgsndr/TLhrYb7SRrWrly615tCI/...` (Del Sol GHL bucket)**
+### Option A (preferred — cleanest result)
+Ask the user to upload one square PNG of just the gold "E" emblem (ideally 512×512 or larger, transparent background). I'll then generate all sized variants from it:
 
-| File | Context |
-|---|---|
-| `src/config/business.ts` line 60 | `BUSINESS.logo.url` — feeds **all** JSON-LD Organization schemas |
-| `src/lib/schemaGenerator.ts` line 36 | Organization logo |
-| `supabase/functions/serve-seo-page/index.ts` lines 989, 996, 1156, 1975, 1985 | Edge-function-rendered SEO pages: `og:image`, `twitter:image`, JSON-LD logo, fallback `og:image`, fallback `twitter:image` |
-| `supabase/functions/notify-portal-message/index.ts` line 10 | Email logo |
-| `supabase/functions/notify-contracting-message/index.ts` line 10 | Email logo |
-| `supabase/functions/upgrade-license/index.ts` line 138 | Email logo |
-| `src/components/ApartmentsEditorLayout.tsx` line 8 | Editor sidebar logo |
-| `src/pages/ContractingIntake.tsx` line 438 | Header logo |
-| `src/pages/portal/PortalLogin.tsx` line 9 | Login screen logo |
-| `src/pages/TrainingEvent.tsx` lines 169, 272, 656 | Training event logos |
+- `public/favicon.png` → 32×32 PNG of the E emblem
+- `public/favicon-16x16.png` → 16×16 PNG of the E emblem
+- `public/apple-touch-icon.png` → 180×180 PNG of the E emblem on the dark green brand background (no transparency — iOS doesn't honor it)
+- `public/icon-192.png` and `public/icon-512.png` → for Android home-screen / PWA
+- `public/og-image.png` → keep the landscape wordmark, but **regenerate at the standard 1200×630** so social platforms stop upscaling
 
-> The bucket ID `TLhrYb7SRrWrly615tCI` is the Del Sol Prime Homes GHL subaccount. Every URL that contains it must be replaced.
+Update `index.html` to add the new sized icon links and the web app manifest.
 
-### Image files physically in the repo
+### Option B (no new asset needed — quick stopgap)
+Without a square emblem file, I can:
 
-`public/assets/`
-- `logo-new.png` (713813 B) — **Del Sol** ❌ — gets re-copied from `src/assets/logo-new.png`
-- `.gitkeep`
+1. Crop the existing wordmark file to just the gold "E" portion at the left edge of the image to use as the square favicon / apple-touch-icon. Quality will be limited (the source is only 560 px tall), but it'll look correct in shape.
+2. Pad the existing wordmark onto a 1200×630 dark-green canvas to fix the OG image dimensions.
 
-`src/assets/`
-- `logo-new.png` (713813 B) — **Del Sol** ❌ (copy source)
-- `logo.png` (713813 B) — **Del Sol** ❌
-- `logo.jpeg` (14900 B) — **Del Sol** ❌
-- `costa-del-sol-bg.jpg` (314594 B) — **Del Sol** ❌
-- `hero-landing-costa-del-sol.jpg` (187511 B) — **Del Sol artwork** ❌
+This produces a working result today with no upload required, and we swap to a higher-quality square emblem later if/when you provide one.
 
-`public/` root — `og-image.png`, `favicon.png`, `apple-touch-icon.png` (Everence ✅, set in prior turn)
+### Option C (re-fetch a higher-resolution square mark from Filesafe)
+If your Filesafe CDN already hosts a square emblem variant, paste that URL and I'll pull it directly. The current canonical URL on file (`...69b7424c5b89c7c557adfe6e.png`) is the rectangular wordmark, so a separate emblem URL would be needed.
 
-`hans-*.jpg` files: confirmed gone ✅
+## Files that will change
+- `public/favicon.png` (replaced — square)
+- `public/apple-touch-icon.png` (replaced — 180×180 square)
+- `public/og-image.png` (replaced — 1200×630 landscape)
+- `public/favicon-16x16.png`, `public/icon-192.png`, `public/icon-512.png` (new)
+- `public/site.webmanifest` (new — PWA icon manifest)
+- `index.html` (added `<link rel="icon" sizes="16x16">`, `<link rel="icon" sizes="32x32">`, `<link rel="manifest">`, and `<meta property="og:image:width/height">`)
 
----
+## Out of scope
+No changes to component logo usage, brand colors, JSON-LD logo URL, or SSG output. This is purely a static-asset shape/dimensions fix.
 
-## Phase 2 — Fix Plan
-
-### Single source of truth
-```
-EVERENCE_LOGO_URL = "https://assets.cdn.filesafe.space/htr97zzmRc1NMujHbL9R/media/69b7424c5b89c7c557adfe6e.png"
-```
-
-### 2.1 Replace the Del Sol image file at the source
-- Download the Everence logo from filesafe.space and write it to **both**:
-  - `src/assets/logo-new.png`
-  - `public/assets/logo-new.png`
-- This kills the flash because the static homepage `<img src="/assets/logo-new.png">` will now render the Everence mark.
-- Delete `src/assets/logo.png`, `src/assets/logo.jpeg`, `src/assets/costa-del-sol-bg.jpg`, `src/assets/hero-landing-costa-del-sol.jpg`. Also delete `public/assets/costa-del-sol-bg.jpg` if present in dist source.
-
-### 2.2 Replace every Del Sol GHL URL with the Everence filesafe.space URL
-Files to edit (replace `https://storage.googleapis.com/msgsndr/TLhrYb7SRrWrly615tCI/media/6993ada8dcdadb155342f28e.png` with the new URL):
-- `src/config/business.ts` (also update `width: 1200`, `height: 630`)
-- `src/lib/schemaGenerator.ts`
-- `supabase/functions/serve-seo-page/index.ts` (all 5 occurrences — including the unsplash fallback `og:image` at lines 989, 996)
-- `supabase/functions/notify-portal-message/index.ts`
-- `supabase/functions/notify-contracting-message/index.ts`
-- `supabase/functions/upgrade-license/index.ts`
-- `src/components/ApartmentsEditorLayout.tsx`
-- `src/pages/ContractingIntake.tsx`
-- `src/pages/portal/PortalLogin.tsx`
-- `src/pages/TrainingEvent.tsx`
-
-### 2.3 Fix SSG `og:image` / `twitter:image` references
-For each, swap the relative `/assets/...` path for the filesafe.space URL:
-- `scripts/generateStaticHomePage.ts` (og:image, twitter:image, AND keep the `<img src>` in static-header pointing at `/assets/logo-new.png` — that file is now Everence after step 2.1)
-- `scripts/generateStaticLocationHub.ts` (og:image, twitter:image, JSON-LD logo)
-- `scripts/generateStaticBuyersGuide.ts` (og:image, twitter:image, Recipe.image, JSON-LD logo)
-- `scripts/generateStaticComparisonPages.ts` (JSON-LD logo)
-- `scripts/generateStaticPages.ts` (JSON-LD logo)
-- `src/lib/glossarySchemaGenerator.ts` (both occurrences)
-- `src/lib/buyersGuideSchemaGenerator.ts` (LOGO_URL constant)
-
-### 2.4 Edge-function deployment
-Redeploy `serve-seo-page`, `notify-portal-message`, `notify-contracting-message`, `upgrade-license` so the live SEO pages and emails stop emitting Del Sol URLs.
-
-### 2.5 Favicon / apple-touch-icon — flagged
-The current `public/favicon.png`, `public/apple-touch-icon.png`, and `public/og-image.png` were set in the prior turn. Confirm they are the Everence mark and not a stale copy. The brand brief says use the filesafe.space PNG for OG; the favicon needs a square 192×192 (or 32×32) icon — the rectangular brand logo isn't ideal as a favicon but is acceptable temporarily.
-- **TODO flagged for user**: provide a dedicated square 512×512 Everence icon PNG for `favicon.png` / `apple-touch-icon.png`. Until then, keep what's there (it's already Everence-derived) and do **not** swap it for the rectangular OG asset.
-
-### 2.6 Final grep verification (zero matches expected)
-```
-grep -rE "del-sol|delsol|TLhrYb7SRrWrly615tCI|prime-homes|costa-del-sol-bg|costa-del-sol-locations|hans-" \
-  src/ public/ scripts/ supabase/functions/ index.html
-```
-Acceptable remaining matches:
-- `functions/_middleware.js` — 301 redirect rule for legacy `/blog/costadelsol/` paths (intentional, leave it)
-- `supabase/migrations/*.sql` — historical seed data referencing legacy LinkedIn URLs (immutable migrations, leave them)
-
-### 2.7 Build + spot-check
-- `npm run build`
-- Confirm `dist/` no longer contains `assets/costa-del-sol-bg.jpg` or any Del Sol image
-- Confirm `dist/index.html` and `dist/en/index.html` have `og:image` pointing at the filesafe.space URL
-- Confirm `dist/assets/logo-new.png` is the Everence mark (file size will change from 713813 B to whatever the new asset weighs)
-
----
-
-## Files to change (Phase 2)
-
-**Replaced binary assets**
-- `src/assets/logo-new.png`
-- `public/assets/logo-new.png`
-
-**Deleted Del Sol files**
-- `src/assets/logo.png`
-- `src/assets/logo.jpeg`
-- `src/assets/costa-del-sol-bg.jpg`
-- `src/assets/hero-landing-costa-del-sol.jpg`
-
-**URL swaps**
-- `src/config/business.ts`
-- `src/lib/schemaGenerator.ts`
-- `src/lib/glossarySchemaGenerator.ts`
-- `src/lib/buyersGuideSchemaGenerator.ts`
-- `src/components/ApartmentsEditorLayout.tsx`
-- `src/pages/ContractingIntake.tsx`
-- `src/pages/portal/PortalLogin.tsx`
-- `src/pages/TrainingEvent.tsx`
-- `scripts/generateStaticHomePage.ts`
-- `scripts/generateStaticLocationHub.ts`
-- `scripts/generateStaticBuyersGuide.ts`
-- `scripts/generateStaticComparisonPages.ts`
-- `scripts/generateStaticPages.ts`
-- `supabase/functions/serve-seo-page/index.ts`
-- `supabase/functions/notify-portal-message/index.ts`
-- `supabase/functions/notify-contracting-message/index.ts`
-- `supabase/functions/upgrade-license/index.ts`
-
-**Edge function redeploys**
-- `serve-seo-page`
-- `notify-portal-message`
-- `notify-contracting-message`
-- `upgrade-license`
-
----
-
-## Outcome
-- No flash of Del Sol logo on first paint (the file behind `/assets/logo-new.png` is now Everence)
-- All `og:image` / `twitter:image` across every static page, SSR edge function, and email points at the canonical Everence brand asset
-- All JSON-LD `Organization.logo` URLs point at the canonical Everence brand asset
-- All Del Sol image files purged from the repo
-- Social-platform caches will need a manual re-scrape (Facebook Debugger, LinkedIn Inspector, X Card Validator) — flagged in post-deploy report
+## Decision needed
+Which option do you want — **A** (you upload a square emblem PNG), **B** (I crop and pad the existing wordmark today), or **C** (you provide a Filesafe URL for the square emblem)?
 
