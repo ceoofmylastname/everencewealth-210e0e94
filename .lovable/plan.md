@@ -1,54 +1,125 @@
 
+## Fix the favicon and apple-touch-icon by promoting the existing Everence mountain mark
 
-## Why the favicon and mobile preview look wrong
+### Source asset located
+The Everence mountain/triangle mark is present in the codebase and can be used as the favicon source.
 
-The Everence logo is correct. The problem is the **same rectangular wordmark file** is being used for **three slots that each require a different shape**:
+- Primary source: `src/assets/logo-new.png`
+- Mirrored copy: `public/assets/logo-new.png`
+- Format: PNG
+- Dimensions: 560×445
+- Visual: gold mountain/road mark on transparent background
 
-| Slot | Required shape | Currently | Result |
-|---|---|---|---|
-| Browser tab favicon | square 32×32 (or 16×16) | 560×445 wordmark | shrunk to a blurry sliver in the tab |
-| iOS / Android home-screen icon | square 180×180 (Apple) / 192×192 (Android) | 560×445 wordmark | cropped/squished inside the rounded square |
-| Social link preview (OG image) | landscape 1200×630 | 560×445 wordmark | platforms upscale + crop badly |
+### Component trace
+- `src/components/home/Header.tsx` (homepage top-left header) currently renders the remote Everence wordmark URL, not the mountain mark asset.
+- `src/components/home/Footer.tsx` also renders the remote wordmark URL.
+- The mountain-mark asset is currently imported and used in:
+  - `src/components/AdminLayout.tsx`
+  - `src/pages/ApartmentsAuth.tsx`
 
-All three files (`public/favicon.png`, `public/apple-touch-icon.png`, `public/og-image.png`) are byte-identical copies of the same 560×445 rectangular wordmark. That's the entire bug.
+So the favicon fix should promote `src/assets/logo-new.png` / `public/assets/logo-new.png` as the canonical icon source.
 
-## Fix
+## Why the favicon is still wrong
+The asset generation was only partially wired up.
 
-This requires **a square version of the Everence mark** (the gold "E" emblem alone, without the "Everence Wealth" wordmark) for the favicon and home-screen icon. The wordmark only works in landscape for the OG image.
+Current issues:
+- `index.html` still points the 32×32 favicon slot to `/favicon.png` instead of a dedicated `favicon-32x32.png`
+- `public/app-shell.html` still points both favicon and apple-touch-icon to legacy generic paths
+- `scripts/generateAppShell.ts` still emits generic favicon tags
+- Several static generators still emit only:
+  - `<link rel="icon" href="/favicon.png">`
+  - `<link rel="apple-touch-icon" href="/favicon.png">`
+- `public/site.webmanifest` still references `icon-192.png` and `icon-512.png` instead of Android Chrome filenames
+- No guaranteed multi-resolution `favicon.ico` path is being emitted everywhere
 
-### Option A (preferred — cleanest result)
-Ask the user to upload one square PNG of just the gold "E" emblem (ideally 512×512 or larger, transparent background). I'll then generate all sized variants from it:
+## Implementation
+### 1. Promote the mountain mark as the favicon source
+Use `src/assets/logo-new.png` as the master source and generate these outputs on a square canvas, centered, with transparent background unless the rasterization needs the brand dark green for better legibility:
 
-- `public/favicon.png` → 32×32 PNG of the E emblem
-- `public/favicon-16x16.png` → 16×16 PNG of the E emblem
-- `public/apple-touch-icon.png` → 180×180 PNG of the E emblem on the dark green brand background (no transparency — iOS doesn't honor it)
-- `public/icon-192.png` and `public/icon-512.png` → for Android home-screen / PWA
-- `public/og-image.png` → keep the landscape wordmark, but **regenerate at the standard 1200×630** so social platforms stop upscaling
+- `public/favicon.png` → 512×512
+- `public/favicon-32x32.png` → 32×32
+- `public/favicon-16x16.png` → 16×16
+- `public/apple-touch-icon.png` → 180×180
+- `public/android-chrome-192x192.png` → 192×192
+- `public/android-chrome-512x512.png` → 512×512
+- `public/favicon.ico` → ICO containing 16×16, 32×32, 48×48
 
-Update `index.html` to add the new sized icon links and the web app manifest.
+### 2. Update head tags in root templates
+Update both `index.html` and `public/app-shell.html` to use the full icon set:
 
-### Option B (no new asset needed — quick stopgap)
-Without a square emblem file, I can:
+```html
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/android-chrome-192x192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="/android-chrome-512x512.png">
+<link rel="manifest" href="/site.webmanifest">
+```
 
-1. Crop the existing wordmark file to just the gold "E" portion at the left edge of the image to use as the square favicon / apple-touch-icon. Quality will be limited (the source is only 560 px tall), but it'll look correct in shape.
-2. Pad the existing wordmark onto a 1200×630 dark-green canvas to fix the OG image dimensions.
+### 3. Update generated app shell output
+Update `scripts/generateAppShell.ts` so production-generated `dist/app-shell.html` emits the same icon links instead of the old generic favicon references.
 
-This produces a working result today with no upload required, and we swap to a higher-quality square emblem later if/when you provide one.
+### 4. Update static HTML generators still emitting old favicon links
+Replace old generic favicon tags in:
+- `scripts/generateStaticHomePage.ts`
+- `scripts/generateStaticAboutPage.ts`
+- `scripts/generateStaticLocationPages.ts`
+- `scripts/generateStaticStrategyPages.ts`
+- `scripts/generateStaticGlossary.ts`
+- `scripts/generateStaticPhilosophyPage.ts`
 
-### Option C (re-fetch a higher-resolution square mark from Filesafe)
-If your Filesafe CDN already hosts a square emblem variant, paste that URL and I'll pull it directly. The current canonical URL on file (`...69b7424c5b89c7c557adfe6e.png`) is the rectangular wordmark, so a separate emblem URL would be needed.
+Each should emit the same full icon set so generated pages and pre-hydration HTML are consistent.
 
-## Files that will change
-- `public/favicon.png` (replaced — square)
-- `public/apple-touch-icon.png` (replaced — 180×180 square)
-- `public/og-image.png` (replaced — 1200×630 landscape)
-- `public/favicon-16x16.png`, `public/icon-192.png`, `public/icon-512.png` (new)
-- `public/site.webmanifest` (new — PWA icon manifest)
-- `index.html` (added `<link rel="icon" sizes="16x16">`, `<link rel="icon" sizes="32x32">`, `<link rel="manifest">`, and `<meta property="og:image:width/height">`)
+### 5. Update the web manifest
+Change `public/site.webmanifest` icons to:
+- `/android-chrome-192x192.png`
+- `/android-chrome-512x512.png`
 
-## Out of scope
-No changes to component logo usage, brand colors, JSON-LD logo URL, or SSG output. This is purely a static-asset shape/dimensions fix.
+This removes dependency on the older `icon-192.png` / `icon-512.png` filenames.
 
-## Decision needed
-Which option do you want — **A** (you upload a square emblem PNG), **B** (I crop and pad the existing wordmark today), or **C** (you provide a Filesafe URL for the square emblem)?
+### 6. Keep OG image separate
+Do not replace social OG usage with the favicon files. The favicon should come from the mountain mark, while the existing social preview image remains independent unless separately requested.
 
+## Verification after implementation
+### Build/output checks
+After build, verify these all exist in `dist/` and are non-zero size:
+- `dist/favicon.png`
+- `dist/favicon-32x32.png`
+- `dist/favicon-16x16.png`
+- `dist/apple-touch-icon.png`
+- `dist/android-chrome-192x192.png`
+- `dist/android-chrome-512x512.png`
+- `dist/favicon.ico`
+
+### HTML checks
+Confirm every generated HTML head references real files in `dist/`:
+- `dist/index.html`
+- `dist/app-shell.html`
+- static generated pages that emit their own `<head>`
+
+### Report back after implementation
+The final implementation report should include:
+1. Source file used: `src/assets/logo-new.png` (PNG, 560×445)
+2. All generated icon filenames and sizes
+3. Confirmation that every `<link rel="icon">` in built HTML resolves to a real file
+4. Confirmation that favicon and apple-touch-icon no longer point at stale or placeholder assets
+
+## Files expected to change
+- `index.html`
+- `public/app-shell.html`
+- `public/site.webmanifest`
+- `public/favicon.png`
+- `public/favicon-32x32.png`
+- `public/favicon-16x16.png`
+- `public/apple-touch-icon.png`
+- `public/android-chrome-192x192.png`
+- `public/android-chrome-512x512.png`
+- `public/favicon.ico`
+- `scripts/generateAppShell.ts`
+- `scripts/generateStaticHomePage.ts`
+- `scripts/generateStaticAboutPage.ts`
+- `scripts/generateStaticLocationPages.ts`
+- `scripts/generateStaticStrategyPages.ts`
+- `scripts/generateStaticGlossary.ts`
+- `scripts/generateStaticPhilosophyPage.ts`
