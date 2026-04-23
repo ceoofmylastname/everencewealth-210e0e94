@@ -104,7 +104,7 @@ async function updateProgress(
 
     await supabase
       .from('cluster_generations')
-      .update({ progress: merged })
+      .update({ progress: merged, updated_at: new Date().toISOString() })
       .eq('id', clusterId);
   } catch (err) {
     console.warn('[Missing] Failed to update progress:', err);
@@ -506,9 +506,10 @@ You MUST write a MUCH LONGER article. Use this structure:
     article.speakable_answer = contentJson.speakable_answer || '';
     article.qa_entities = contentJson.qa_entities || contentJson.faqs || [];
 
-    console.log('[Missing] Using placeholder image to avoid timeout');
-    article.featured_image_url = 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=1792&h=1024&fit=crop';
-    article.featured_image_alt = `${plan.headline} - Everence Wealth financial planning`;
+    // Leave image null — regenerate-cluster-images will fill in content-aware Kie.ai images
+    // once the cluster reaches 6/6 (see post-completion trigger below).
+    article.featured_image_url = null;
+    article.featured_image_alt = `${plan.headline} - Everence Wealth`;
 
     const randomAuthor = authors?.[Math.floor(Math.random() * (authors?.length || 1))] || { id: null };
     const randomReviewer = authors?.filter((a: any) => a.id !== randomAuthor.id)?.[0] || randomAuthor;
@@ -608,6 +609,26 @@ You MUST write a MUCH LONGER article. Use this structure:
       } else {
         console.log(`[Missing] ✅ Cluster status set to 'partial' (ready for translation)`);
       }
+
+      // Fire-and-forget: regenerate content-aware images for all 6 articles
+      // (replaces any nulls / leftover Unsplash placeholders with Kie.ai images).
+      try {
+        const regenUrl = `${Deno.env.get('SUPABASE_URL')}/functions/v1/regenerate-cluster-images`;
+        const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+        fetch(regenUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${serviceKey}`,
+            'apikey': serviceKey,
+          },
+          body: JSON.stringify({ clusterId }),
+        }).catch((e) => console.warn('[Missing] regenerate-cluster-images fetch error:', e));
+        console.log('[Missing] 🎨 Triggered regenerate-cluster-images for content-aware images');
+      } catch (err) {
+        console.warn('[Missing] Failed to trigger regenerate-cluster-images:', err);
+      }
+
       return;
     }
 
