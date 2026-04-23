@@ -555,19 +555,14 @@ serve(async (req) => {
 
     console.log(`[TranslateQAs] ✅ Pre-check passed: ${validQAs.length} Q&As ready, ${missingArticleLinks.length} skipped (missing links), ${qaLinkingMismatches.length} mismatches (will retry separately)`);
 
-    // BULLETPROOF: Process Q&As ONE AT A TIME with retry logic
-    const BATCH_SIZE = 6;
-    const qaGroup = validQAs.slice(0, BATCH_SIZE);
-    const qasRemaining = validQAs.length - qaGroup.length;
-    
-    console.log(`[TranslateQAs] Processing ${qaGroup.length} Q&As one-at-a-time (${qasRemaining} remaining after this batch)`);
+    // AUTO-RESUME LOOP: process all valid Q&As within a 4-min wall budget,
+    // in parallel groups of CONCURRENCY. Self-invoke if any remain.
+    const processedGroupIds = new Set<string>();
+    let totalProcessedThisInvocation = 0;
+    let timeBudgetExceeded = false;
 
-    for (let i = 0; i < qaGroup.length; i++) {
-      const englishQA = qaGroup[i];
-      const qaIndex = skippedCount + i + 1;
-      
+    const processSingleQA = async (englishQA: typeof validQAs[number], qaIndex: number): Promise<void> => {
       console.log(`[TranslateQAs] ━━━ Q&A ${qaIndex}/24: ${englishQA.qa_type} ━━━`);
-
       try {
         // STRICT MATCHING: Find target article via hreflang link FIRST
         const englishArticleHreflang = englishArticleHreflangMap.get(englishQA.source_article_id);
@@ -577,7 +572,7 @@ serve(async (req) => {
           console.error(`[TranslateQAs] ❌ No ${targetLanguage} article linked via hreflang to English article ${englishQA.source_article_id}`);
           errors.push(`Missing hreflang-linked ${targetLanguage} article for Q&A ${englishQA.qa_type} (English article: ${englishQA.source_article_id})`);
           failedQAIds.push(englishQA.id);
-          continue;
+          return;
         }
 
         // Prepare Q&A content for translation
@@ -725,21 +720,46 @@ serve(async (req) => {
           } else {
             console.log(`[TranslateQAs] ✅ Created Q&A: ${slug}`);
             translatedQAs.push(insertedQA.id);
+            processedGroupIds.add(englishQA.hreflang_group_id);
           }
         }
-
-        // Delay between Q&As to avoid rate limiting
-        if (i < qaGroup.length - 1) {
-          await sleep(DELAY_BETWEEN_QAS);
-        }
-
       } catch (error: unknown) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         console.error(`[TranslateQAs] ❌ Failed ${englishQA.qa_type} after all retries:`, errorMessage);
         errors.push(`${englishQA.qa_type}: ${errorMessage}`);
         failedQAIds.push(englishQA.id);
       }
+    };
+
+    // Process Q&As in parallel groups of CONCURRENCY, time-budgeted
+    console.log(`[TranslateQAs] 🚀 Auto-resume loop: ${validQAs.length} Q&As to process, concurrency=${CONCURRENCY}, budget=${TIME_BUDGET_MS / 1000}s`);
+
+    let cursor = 0;
+    while (cursor < validQAs.length) {
+      if (Date.now() - startTime > TIME_BUDGET_MS) {
+        timeBudgetExceeded = true;
+        const remainingCount = validQAs.length - cursor;
+        console.log(`[TranslateQAs] ⏱️ Time budget exceeded after ${totalProcessedThisInvocation} Q&As. ${remainingCount} remain — will self-invoke.`);
+        break;
+      }
+
+      const group = validQAs.slice(cursor, cursor + CONCURRENCY);
+      const baseIndex = skippedCount + cursor;
+
+      await Promise.allSettled(
+        group.map((qa, i) => processSingleQA(qa, baseIndex + i + 1))
+      );
+
+      totalProcessedThisInvocation += group.length;
+      cursor += group.length;
+
+      // Cooldown between concurrency groups (rate-limit safety)
+      if (cursor < validQAs.length && Date.now() - startTime < TIME_BUDGET_MS) {
+        await sleep(DELAY_BETWEEN_BATCHES);
+      }
     }
+
+    const qasRemaining = validQAs.length - cursor;
 
     // Sync translations JSONB for all affected hreflang groups
     console.log(`[TranslateQAs] Syncing translations JSONB...`);
