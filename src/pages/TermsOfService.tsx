@@ -3,7 +3,7 @@ import { motion, useScroll, useSpring } from 'framer-motion';
 import { FileText, Scale, Users, AlertTriangle, Gavel, HelpCircle, CheckCircle2, Mail, ArrowLeft, Smartphone, ShieldAlert, UserCheck } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
-const LOGO_URL = 'https://storage.googleapis.com/msgsndr/TLhrYb7SRrWrly615tCI/media/6993ada8dcdadb155342f28e.png';
+const LOGO_URL = 'https://assets.cdn.filesafe.space/htr97zzmRc1NMujHbL9R/media/69b7424c5b89c7c557adfe6e.png';
 
 const sections = [
   {

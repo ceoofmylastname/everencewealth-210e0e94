@@ -218,7 +218,7 @@ export default function CrmLogin() {
               {/* Logo */}
               <div className="mb-6 animate-fade-in" style={{ animationDelay: '100ms' }}>
                 <img 
-                  src="https://storage.googleapis.com/msgsndr/TLhrYb7SRrWrly615tCI/media/6993ada8dcdadb155342f28e.png"
+                  src="https://assets.cdn.filesafe.space/htr97zzmRc1NMujHbL9R/media/69b7424c5b89c7c557adfe6e.png"
                   alt="Everence Wealth"
                   className="h-24 md:h-28 w-auto mx-auto object-contain"
                 />

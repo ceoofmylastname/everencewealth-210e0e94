@@ -22,7 +22,7 @@ const ORGANIZATION_SCHEMA = {
   "url": BASE_URL,
   "logo": {
     "@type": "ImageObject",
-    "url": "https://storage.googleapis.com/msgsndr/TLhrYb7SRrWrly615tCI/media/6993ada8dcdadb155342f28e.png",
+    "url": "https://assets.cdn.filesafe.space/htr97zzmRc1NMujHbL9R/media/69b7424c5b89c7c557adfe6e.png",
     "width": 512,
     "height": 512
   },

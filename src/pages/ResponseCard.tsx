@@ -660,7 +660,7 @@ export default function ResponseCard() {
       <div className="border-b border-gray-100 relative z-10">
         <div className="max-w-3xl mx-auto flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4">
           <img
-            src="https://storage.googleapis.com/msgsndr/TLhrYb7SRrWrly615tCI/media/6993ada8dcdadb155342f28e.png"
+            src="https://assets.cdn.filesafe.space/htr97zzmRc1NMujHbL9R/media/69b7424c5b89c7c557adfe6e.png"
             alt="Everence Wealth"
             className="h-8 w-auto"
           />

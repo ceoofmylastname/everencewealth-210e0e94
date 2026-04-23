@@ -9,7 +9,7 @@ import { z } from "zod";
 import { Eye, EyeOff } from "lucide-react";
 import { motion } from "framer-motion";
 
-const LOGO_URL = "https://storage.googleapis.com/msgsndr/TLhrYb7SRrWrly615tCI/media/6993ada8dcdadb155342f28e.png";
+const LOGO_URL = "https://assets.cdn.filesafe.space/htr97zzmRc1NMujHbL9R/media/69b7424c5b89c7c557adfe6e.png";
 
 const authSchema = z.object({
   email: z.string().email("Invalid email address"),
