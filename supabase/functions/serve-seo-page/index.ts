@@ -740,7 +740,7 @@ function generateHubPageHtml(lang: string, hubType: string): string {
         "url": BASE_URL,
         "logo": {
           "@type": "ImageObject",
-          "url": `${BASE_URL}/assets/logo-new.png`
+          "url": "https://assets.cdn.filesafe.space/htr97zzmRc1NMujHbL9R/media/69b7424c5b89c7c557adfe6e.png"
         }
       },
       {
@@ -923,7 +923,7 @@ function generateBuyersGuidePageHtml(lang: string): string {
         "url": BASE_URL,
         "logo": {
           "@type": "ImageObject",
-          "url": `${BASE_URL}/assets/logo-new.png`
+          "url": "https://assets.cdn.filesafe.space/htr97zzmRc1NMujHbL9R/media/69b7424c5b89c7c557adfe6e.png"
         }
       },
       {
@@ -1153,9 +1153,9 @@ const ORGANIZATION_SCHEMA = {
   "url": BASE_URL,
   "logo": {
     "@type": "ImageObject",
-    "url": "https://storage.googleapis.com/msgsndr/TLhrYb7SRrWrly615tCI/media/6993ada8dcdadb155342f28e.png",
-    "width": 400,
-    "height": 100
+    "url": "https://assets.cdn.filesafe.space/htr97zzmRc1NMujHbL9R/media/69b7424c5b89c7c557adfe6e.png",
+    "width": 1200,
+    "height": 630
   },
   "sameAs": [
     "https://www.linkedin.com/company/everencewealth/"
@@ -1224,7 +1224,7 @@ function generateBlogPostingSchema(metadata: PageMetadata): string {
     "description": metadata.meta_description,
     "image": {
       "@type": "ImageObject",
-      "url": metadata.featured_image_url || `${BASE_URL}/assets/logo-new.png`,
+      "url": metadata.featured_image_url || "https://assets.cdn.filesafe.space/htr97zzmRc1NMujHbL9R/media/69b7424c5b89c7c557adfe6e.png",
       "caption": metadata.featured_image_alt || metadata.headline
     },
     "datePublished": metadata.date_published || new Date().toISOString(),
@@ -1303,7 +1303,7 @@ function generateArticleSchema(metadata: PageMetadata): string {
     "@id": `${metadata.canonical_url}#article`,
     "headline": metadata.headline,
     "description": metadata.meta_description,
-    "image": metadata.featured_image_url || `${BASE_URL}/assets/logo-new.png`,
+    "image": metadata.featured_image_url || "https://assets.cdn.filesafe.space/htr97zzmRc1NMujHbL9R/media/69b7424c5b89c7c557adfe6e.png",
     "datePublished": metadata.date_published || new Date().toISOString(),
     "dateModified": metadata.date_modified || new Date().toISOString(),
     "inLanguage": LOCALE_MAP[metadata.language] || metadata.language,
@@ -1847,7 +1847,7 @@ function generateArticleBody(metadata: PageMetadata): string {
     <header class="site-header">
       <nav class="nav-container">
         <a href="${langPrefix}/" class="logo-link">
-          <img src="https://ghhzfxtchlwmwibtkuds.supabase.co/storage/v1/object/public/site-assets/logo.png" alt="Everence Wealth" class="logo">
+          <img src="https://assets.cdn.filesafe.space/htr97zzmRc1NMujHbL9R/media/69b7424c5b89c7c557adfe6e.png" alt="Everence Wealth" class="logo">
         </a>
         <div class="nav-links">
           <a href="${langPrefix}/properties">${nav.properties}</a>
@@ -1972,7 +1972,7 @@ ${hreflangTags}
   <meta property="og:url" content="${metadata.canonical_url}" />
   <meta property="og:title" content="${escapedTitle}" />
   <meta property="og:description" content="${escapedDescription}" />
-  <meta property="og:image" content="${metadata.featured_image_url || `${BASE_URL}/assets/logo-new.png`}" />
+  <meta property="og:image" content="${metadata.featured_image_url || 'https://assets.cdn.filesafe.space/htr97zzmRc1NMujHbL9R/media/69b7424c5b89c7c557adfe6e.png'}" />
   <meta property="og:image:alt" content="${escapeHtml(metadata.featured_image_alt) || escapedTitle}" />
   <meta property="og:locale" content="${locale}" />
   <meta property="og:site_name" content="Everence Wealth" />
@@ -1982,7 +1982,7 @@ ${hreflangTags}
   <meta name="twitter:url" content="${metadata.canonical_url}" />
   <meta name="twitter:title" content="${escapedTitle}" />
   <meta name="twitter:description" content="${escapedDescription}" />
-  <meta name="twitter:image" content="${metadata.featured_image_url || `${BASE_URL}/assets/logo-new.png`}" />
+  <meta name="twitter:image" content="${metadata.featured_image_url || 'https://assets.cdn.filesafe.space/htr97zzmRc1NMujHbL9R/media/69b7424c5b89c7c557adfe6e.png'}" />
   <meta name="twitter:image:alt" content="${escapeHtml(metadata.featured_image_alt) || escapedTitle}" />
   
   <!-- Article Meta -->
@@ -2220,7 +2220,7 @@ function generate410GoneHtml(lang: string = 'en'): string {
 <body>
   <div class="logo-container">
     <a href="${langPrefix}/">
-      <img src="${BASE_URL}/assets/logo-new.png" alt="Everence Wealth" class="logo">
+      <img src="https://assets.cdn.filesafe.space/htr97zzmRc1NMujHbL9R/media/69b7424c5b89c7c557adfe6e.png" alt="Everence Wealth" class="logo">
     </a>
   </div>
   <div class="container">
