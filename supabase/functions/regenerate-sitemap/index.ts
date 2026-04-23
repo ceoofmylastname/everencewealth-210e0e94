@@ -151,10 +151,12 @@ function generateMasterSitemapIndex(
     });
   });
   
-  entries.push(`  <sitemap>
-    <loc>${BASE_URL}/sitemaps/glossary.xml</loc>
+  for (const lang of SUPPORTED_LANGUAGES) {
+    entries.push(`  <sitemap>
+    <loc>${BASE_URL}/sitemaps/${lang}/glossary.xml</loc>
     <lastmod>${lastmod}</lastmod>
   </sitemap>`);
+  }
   entries.push(`  <sitemap>
     <loc>${BASE_URL}/sitemaps/brochures.xml</loc>
     <lastmod>${lastmod}</lastmod>
@@ -203,10 +205,12 @@ function generateEnhancedMasterSitemapIndex(
     <loc>${BASE_URL}/sitemaps/brochures.xml</loc>
     <lastmod>${lastmod}</lastmod>
   </sitemap>`);
-  entries.push(`  <sitemap>
-    <loc>${BASE_URL}/sitemaps/glossary.xml</loc>
+  for (const lang of SUPPORTED_LANGUAGES) {
+    entries.push(`  <sitemap>
+    <loc>${BASE_URL}/sitemaps/${lang}/glossary.xml</loc>
     <lastmod>${lastmod}</lastmod>
   </sitemap>`);
+  }
 
   return `<?xml version="1.0" encoding="UTF-8"?>
 <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
@@ -571,11 +575,11 @@ ${urls}
 </urlset>`;
 }
 
-function generateGlossarySitemap(): string {
+function generateGlossarySitemap(lang: string = 'en'): string {
   const today = getToday();
   
   const mainUrl = `  <url>
-    <loc>${BASE_URL}/glossary</loc>
+    <loc>${BASE_URL}/${lang}/glossary</loc>
     <lastmod>${today}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
@@ -583,7 +587,7 @@ function generateGlossarySitemap(): string {
 
   const termUrls = GLOSSARY_TERMS.map((term) => {
     return `  <url>
-    <loc>${BASE_URL}/glossary#${term}</loc>
+    <loc>${BASE_URL}/${lang}/glossary/${term}/</loc>
     <lastmod>${today}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
@@ -592,10 +596,10 @@ function generateGlossarySitemap(): string {
 
   return `${xmlHeader(false)}
   
-  <!-- Glossary Main Page -->
+  <!-- Glossary Main Page (${lang.toUpperCase()}) -->
 ${mainUrl}
   
-  <!-- Glossary Term Anchors -->
+  <!-- Glossary Term Pages -->
 ${termUrls}
   
 </urlset>`;
@@ -858,9 +862,12 @@ Deno.serve(async (req) => {
     sitemapFiles['sitemaps/brochures.xml'] = brochuresXml;
     totalUrls += 1 + 1 + 1 + LOCATION_CITIES.length; // homepage + guide + about + cities
 
-    const glossaryXml = generateGlossarySitemap();
-    sitemapFiles['sitemaps/glossary.xml'] = glossaryXml;
-    totalUrls += 1 + GLOSSARY_TERMS.length; // main + terms
+    // Per-language glossary sitemaps (matches sitemap-index entries)
+    for (const lang of SUPPORTED_LANGUAGES) {
+      const glossaryXml = generateGlossarySitemap(lang);
+      sitemapFiles[`sitemaps/${lang}/glossary.xml`] = glossaryXml;
+      totalUrls += 1 + GLOSSARY_TERMS.length; // main + terms
+    }
 
     // Generate master sitemap index (now includes pages and properties)
     const updatedMasterIndex = generateEnhancedMasterSitemapIndex(languageContentTypes, getToday(), properties.length);
