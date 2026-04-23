@@ -906,13 +906,98 @@ export const ClusterQATab = ({
     }
   };
 
+  // Translate All Missing: scan every cluster for incomplete ES Q&As and trigger
+  // translate-qas-to-language for each. Auto-resume loop in the edge function
+  // drains each one to 24/24 without further clicks.
+  const handleTranslateAllMissing = async () => {
+    setIsTranslatingAllMissing(true);
+    setTranslateAllProgress('Scanning all clusters for missing ES Q&As...');
+
+    try {
+      // 1) Find every cluster that has English Q&As but ES count < 24
+      const { data: counts, error: countsErr } = await supabase
+        .rpc('get_cluster_qa_counts');
+
+      if (countsErr) throw countsErr;
+
+      const byCluster = new Map<string, { en: number; es: number }>();
+      (counts || []).forEach((row: { cluster_id: string; language: string; total_count: number }) => {
+        if (!row.cluster_id) return;
+        const entry = byCluster.get(row.cluster_id) || { en: 0, es: 0 };
+        if (row.language === 'en') entry.en = Number(row.total_count);
+        else if (row.language === 'es') entry.es = Number(row.total_count);
+        byCluster.set(row.cluster_id, entry);
+      });
+
+      const incomplete = Array.from(byCluster.entries())
+        .filter(([, c]) => c.en >= 24 && c.es < 24)
+        .map(([clusterId, c]) => ({ clusterId, esCount: c.es }));
+
+      if (incomplete.length === 0) {
+        toast.success('All clusters already have 24/24 ES Q&As. Nothing to do.');
+        return;
+      }
+
+      toast.info(`Found ${incomplete.length} cluster(s) with missing ES Q&As. Starting...`);
+
+      const results: { clusterId: string; before: number; after: number }[] = [];
+
+      for (let i = 0; i < incomplete.length; i++) {
+        const { clusterId, esCount } = incomplete[i];
+        setTranslateAllProgress(`Cluster ${i + 1}/${incomplete.length} (was ${esCount}/24)`);
+
+        // Fire the edge function — its internal auto-resume loop will self-invoke until done
+        await supabase.functions.invoke('translate-qas-to-language', {
+          body: { clusterId, targetLanguage: 'es' },
+        }).catch((err) => {
+          console.warn(`[TranslateAllMissing] Cluster ${clusterId} invoke error (may still complete):`, err);
+        });
+
+        // Poll until this cluster reaches 24 or 10-min timeout
+        const pollStart = Date.now();
+        const POLL_TIMEOUT_MS = 10 * 60 * 1000;
+        let finalCount = esCount;
+
+        while (Date.now() - pollStart < POLL_TIMEOUT_MS) {
+          await new Promise((r) => setTimeout(r, 8000));
+          const { count } = await supabase
+            .from('qa_pages')
+            .select('*', { count: 'exact', head: true })
+            .eq('cluster_id', clusterId)
+            .eq('language', 'es');
+
+          finalCount = count || 0;
+          setTranslateAllProgress(`Cluster ${i + 1}/${incomplete.length}: ${finalCount}/24`);
+          if (finalCount >= 24) break;
+        }
+
+        results.push({ clusterId, before: esCount, after: finalCount });
+      }
+
+      const fullyDone = results.filter((r) => r.after >= 24).length;
+      const stillIncomplete = results.length - fullyDone;
+
+      if (stillIncomplete === 0) {
+        toast.success(`✅ All ${results.length} cluster(s) now at 24/24 ES Q&As.`);
+      } else {
+        toast.warning(`Completed ${fullyDone}/${results.length}. ${stillIncomplete} still incomplete — check individual clusters.`);
+        console.table(results);
+      }
+
+      await fetchQACounts();
+      await queryClient.invalidateQueries({ queryKey: ['cluster-generations'] });
+      await queryClient.invalidateQueries({ queryKey: ['cluster-qa-pages'] });
+    } catch (error) {
+      console.error('[TranslateAllMissing] Error:', error);
+      toast.error(`Failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setIsTranslatingAllMissing(false);
+      setTranslateAllProgress(null);
+    }
+  };
+
   const handleResumeJob = async () => {
     if (!activeJob) return;
-
-  // Translate All Missing: scan every cluster for incomplete ES Q&As, drain in series
-  // (defined as a hoisted function-expression below for clarity)
-  
-  
     
     setIsResumingJob(true);
     
