@@ -1,135 +1,49 @@
 
-## Fix “Generate Missing” so the admin UI shows real progress and only flags real stalls
 
-### What’s actually broken
-The generator is no longer the main problem — the admin UI is.
+## Why the translation failed and how to fix it
 
-The backend logs show `generate-missing-articles` did save articles 5 and 6, set the cluster to `partial`, and triggered image regeneration. But the Articles tab still uses a very shallow progress check:
+### What's happening
+Cluster `3de11630-ac9e-4c05-b85f-d07c555412ba` has 6 English + 3 Spanish articles. The translate-cluster function processed articles 1, 2 and 3 then the function instance shut down mid-run and never wrote a `partial` status. The job row is still pinned at `status='generating'` with `progress.message='Translating Spanish: article 3/6'` and `updated_at` over 6 minutes stale, so:
 
-- it treats “no new article count after ~48s” as “no progress detected”
-- it only invalidates the per-cluster article query, not the parent cluster/job queries that drive the visible `4/6` warning and button state
-- it does not display the backend `progress.message`, `last_heartbeat`, or `updated_at`
-- the edge function still has several silent early-return paths that stop without writing `last_error`
+- The admin UI's polling loop sees `status='generating' + recent updated_at` (when it started) and just keeps polling instead of re-invoking
+- After the user navigates away, nothing resumes the job
+- The existing `check_stuck_cluster_jobs()` cron only marks stuck jobs as **failed** after 20 min — it never **resumes** them
+- Result: "Translation fail" — articles 4, 5, 6 will never be created without manual intervention
 
-So users can see “Generate Missing not working” even when the worker is actively running or already finished.
+### Root causes
 
-## Implementation plan
+**1. Silent shutdown without writing partial state.** When the Deno isolate is recycled mid-loop (between articles), neither the `MAX_RUNTIME` early-exit nor the `try/catch` fires, so `cluster_generations` is left in `generating` with no heartbeat update. The 50s `MAX_RUNTIME` check only runs at the top of each iteration — if Claude takes 35s and the runtime sweeper kills the function 5s later, no partial flush happens.
 
-### 1. Make `generate-missing-articles` publish accurate job state
-Update `supabase/functions/generate-missing-articles/index.ts` so the job row reflects active work from start to finish.
+**2. No auto-resume mechanism.** Translation jobs have no equivalent of `auto-resume-qa-jobs`. They rely 100% on the admin keeping the browser tab open and the UI loop re-invoking. The moment the tab closes or the loop times out at 30 min, the job is dead.
 
-Changes:
-- Set `cluster_generations.status = 'generating'` when missing-article generation starts.
-- Keep the existing `updated_at` heartbeat behavior on every `updateProgress()` call.
-- Add explicit `updateProgress(..., { in_progress: false, last_error, message })` before every current “silent return” path:
-  - empty plan response
-  - plan JSON parse failure
-  - empty content response
-  - content JSON parse failure
-  - cluster/article read failures
-- Keep the existing completion behavior:
-  - `status = 'partial'` when 6/6 source articles exist
-  - completion message = `Source articles complete. Ready for translation.`
+**3. UI polling treats stale `generating` as "still running".** `STUCK_THRESHOLD_MS = 2 minutes`, but the job is older than that and the UI was no longer running when the staleness crossed the threshold. There's no server-side recovery.
 
-Result:
-- the UI can trust status + heartbeat
-- real failures are visible instead of looking like a freeze
+### The fix
 
-### 2. Replace count-only stall detection in the Articles tab
-Update `src/components/admin/cluster-manager/ClusterArticlesTab.tsx` so “Generate Missing” watches real backend activity, not just article count.
+**A. Patch `supabase/functions/translate-cluster/index.ts`** to make stalls recoverable:
+- At the very start of the handler (after fetching the job), if `status='generating'` AND `updated_at` is older than 3 minutes, treat it as a recoverable stall: log it, reset `status='partial'`, and proceed. Today the code refuses to start because another instance "owns" it.
+- Add a final `try/finally` around the article loop so that ANY exit path (including thrown errors and unexpected returns) flushes a `partial` status with current progress and a fresh `updated_at` heartbeat. This guarantees the job never gets stuck in `generating`.
+- Bump `updated_at` more aggressively: write a heartbeat right before each Claude call, not only after a successful save. This way the 3-min staleness check is reliable.
 
-Changes:
-- Expand the local progress state to include:
-  - `current`
-  - `total`
-  - `message`
-  - `lastHeartbeat`
-  - `jobUpdatedAt`
-  - `status`
-  - `lastError`
-- Change polling to read both:
-  - source-language article count from `blog_articles`
-  - job state from `cluster_generations` (`status`, `progress`, `updated_at`, `error`)
-- Reset the stall timer when **either** of these changes:
-  - article count increases
-  - `updated_at` advances
-  - `progress.last_heartbeat` advances
-  - `progress.message` changes
-- Do not warn after 48s just because count is unchanged.
-- Only show a “stalled” warning when the heartbeat itself is stale for a longer real threshold (for example 2–3 minutes), or when status/error explicitly indicates failure.
-- If status becomes `partial` and source count is already 6, treat that as success immediately.
+**B. Create a new edge function `auto-resume-translation-jobs`** mirroring the existing `auto-resume-qa-jobs` pattern:
+- Query `cluster_generations` for rows where `status IN ('generating','partial')` AND `updated_at < NOW() - INTERVAL '5 minutes'` AND the article count for the current language is below `expectedCount`.
+- For each stalled job, invoke `translate-cluster` with `{ jobId }` (fire-and-forget).
+- Schedule it via `pg_cron` to run every 2 minutes.
 
-Result:
-- long Claude/Kie steps won’t look broken
-- users see ongoing work even while the count stays flat between saves
+**C. Recover the current stuck cluster.** After deploying the patches, manually invoke `translate-cluster` once for `3de11630-ac9e-4c05-b85f-d07c555412ba`. The function is idempotent (skips already-translated articles by `cluster_number`), so it will resume at article 4 and continue through 5 and 6, then mark Spanish complete.
 
-### 3. Refresh the actual queries that power the cluster card
-The visible `4/6` warning comes from the parent cluster card, not the local per-tab query.
+### Files to change
+- `supabase/functions/translate-cluster/index.ts` — stall detection at entry, try/finally heartbeat flush, pre-Claude heartbeat write
+- `supabase/functions/auto-resume-translation-jobs/index.ts` — new function (mirror of `auto-resume-qa-jobs`)
+- New migration: `pg_cron` job invoking `auto-resume-translation-jobs` every 2 minutes
 
-Update `src/components/admin/cluster-manager/ClusterArticlesTab.tsx` to invalidate:
-- `["cluster-articles"]`
-- `["cluster-jobs"]`
-- `["cluster-articles", cluster.cluster_id]`
+### Verification
+- Cluster `3de11630…` reaches 6/6 Spanish articles; `cluster_generations.status='completed'`
+- Killing a translate-cluster invocation mid-loop leaves `status='partial'` (never `generating`) within 3 min
+- New cron logs show `[AutoResumeTranslate] Resuming N stalled jobs` when relevant; otherwise `No stalled jobs`
 
-during polling and on completion/failure.
+### Out of scope
+- No prompt changes, no model changes, no translation logic changes
+- No UI changes (the existing polling loop already handles `partial` correctly; once auto-resume runs server-side, the user no longer needs to keep the tab open)
+- No schema changes to `cluster_generations` or `blog_articles`
 
-Why:
-- `sourceInfo` is derived in `ClusterCard` from the parent `cluster` object built from the global `["cluster-articles"]` query
-- right now the local tab can finish, but the header/warning/button can stay stale until a manual refresh
-
-Result:
-- the “Source language incomplete: 4/6” warning disappears as soon as the cluster is actually complete
-- the “Generate Missing” button no longer lingers after completion
-
-### 4. Surface real missing-article progress in the UI
-Improve the Articles tab so users can see what the backend is doing.
-
-In `src/components/admin/cluster-manager/ClusterArticlesTab.tsx`:
-- add a compact progress panel near the Generate Missing button showing:
-  - `Saved X/6 source articles`
-  - current backend message
-  - last activity timestamp / “Xs ago”
-- update button copy from the current awkward formula to a direct format like:
-  - `Generating 4/6...`
-  - `Generating 5/6...`
-- when a restart happens, show a neutral info state like:
-  - `Resuming background generation...`
-
-Result:
-- users understand whether the system is planning, writing, saving, or completing
-- “no progress detected” becomes rare and meaningful
-
-### 5. Keep cluster-level status badges honest
-Because the cluster card already displays `job_status`, make missing-article generation update that badge correctly.
-
-Changes:
-- while generating missing articles: show `Generating`
-- when source completion reaches 6/6: return to `Partial`
-- if a hard error occurs: show `Failed`
-
-This uses the existing badge UI in `src/components/admin/cluster-manager/ClusterCard.tsx` without redesigning the card.
-
-## Files to change
-- `supabase/functions/generate-missing-articles/index.ts`
-- `src/components/admin/cluster-manager/ClusterArticlesTab.tsx`
-- `src/components/admin/cluster-manager/ClusterCard.tsx` (only if minor status/progress display wiring is needed)
-
-## Verification
-After implementation:
-
-1. Start “Generate Missing” on a 4/6 cluster.
-2. The card badge changes to `Generating`.
-3. The Articles tab shows live backend progress text and heartbeat.
-4. If no article is saved for a while but heartbeat/message keeps changing, no false stall warning appears.
-5. When the 6th source article is saved:
-   - source warning clears
-   - Generate Missing button disappears
-   - cluster job status becomes `Partial`
-   - translation becomes available
-6. If the worker truly fails, the tab shows the actual `last_error` instead of generic “no progress detected”.
-
-## Out of scope
-- No schema changes
-- No prompt/model changes
-- No translation flow rewrite
-- No new backend tables or cron jobs
