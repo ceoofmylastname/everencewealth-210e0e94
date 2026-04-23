@@ -811,6 +811,37 @@ export const ClusterArticlesTab = ({
 
       {/* Actions */}
       <div className="flex flex-wrap gap-2 pt-2 border-t">
+      </div>
+
+      {/* Live generation progress panel */}
+      {isGeneratingMissing && generationProgress && (
+        <div className="flex items-start gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg dark:bg-blue-950/30 dark:border-blue-900">
+          <Loader2 className="h-4 w-4 text-blue-600 mt-0.5 animate-spin shrink-0" />
+          <div className="text-sm flex-1 min-w-0">
+            <div className="font-medium text-blue-800 dark:text-blue-300">
+              Saved {generationProgress.current}/{generationProgress.total} source articles
+            </div>
+            {generationProgress.message && (
+              <div className="text-blue-700 dark:text-blue-400 mt-0.5 truncate">
+                {generationProgress.message}
+              </div>
+            )}
+            {generationProgress.lastActivityAt && (
+              <div className="text-xs text-blue-600/80 dark:text-blue-400/80 mt-1">
+                Last activity {Math.max(0, Math.round((Date.now() - generationProgress.lastActivityAt) / 1000))}s ago
+              </div>
+            )}
+            {generationProgress.lastError && (
+              <div className="text-xs text-red-600 dark:text-red-400 mt-1">
+                Error: {generationProgress.lastError}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Actions (continued) */}
+      <div className="flex flex-wrap gap-2">
         {sourceInfo.needsMoreSource && (
           <Button
             variant="default"
