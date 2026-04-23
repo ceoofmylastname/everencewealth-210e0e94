@@ -787,8 +787,12 @@ serve(async (req) => {
     let translatedCount = 0;
     const translatedArticles: any[] = [];
     let stoppedEarly = false;
+    let loopFinishedNormally = false;
 
-    // Translate source articles
+    // Translate source articles - wrapped in try/finally so any unexpected exit
+    // (Deno isolate recycle, thrown error, early return) flushes a partial heartbeat
+    // instead of leaving the row pinned in 'generating'.
+    try {
     for (let i = 0; i < sourceArticles.length; i++) {
       currentArticleIndex = i + 1;
       
@@ -865,6 +869,14 @@ serve(async (req) => {
       try {
         console.log(
           `[translate-cluster] Translating article ${i + 1}/${expectedCount}: ${sourceArticle.headline}`
+        );
+
+        // Pre-AI heartbeat: signals "we're alive and about to call Claude"
+        // so the 3-min stall detector doesn't fire during a slow LLM call.
+        await writeHeartbeat(
+          supabase,
+          jobId,
+          `Translating ${LANGUAGE_NAMES[currentLanguage] || currentLanguage}: article ${i + 1}/${expectedCount}`
         );
 
         const translated = await translateArticleWithRetry(sourceArticle, currentLanguage, supabase);
@@ -967,6 +979,39 @@ serve(async (req) => {
         });
         
         throw error;
+      }
+    }
+    loopFinishedNormally = true;
+    } finally {
+      // Guarantee we never leave the job stuck in 'generating' on unexpected exit.
+      // If the loop completed normally OR threw, the post-loop code / catch block
+      // will set the final status. This finally handles the "isolate recycled" case.
+      if (!loopFinishedNormally && !stoppedEarly) {
+        try {
+          const { count: totalInDb } = await supabase
+            .from('blog_articles')
+            .select('*', { count: 'exact', head: true })
+            .eq('cluster_id', jobId);
+
+          await supabase
+            .from('cluster_generations')
+            .update({
+              status: 'partial',
+              progress: {
+                message: `Recoverable stop at ${LANGUAGE_NAMES[currentLanguage] || currentLanguage} article ${currentArticleIndex}/${expectedCount}. Auto-resume will continue.`,
+                current_language: currentLanguage,
+                articles_translated: initialExistingCount + translatedCount,
+                generated_articles: totalInDb || 0,
+                total_articles: 12,
+                last_heartbeat: new Date().toISOString(),
+              },
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', jobId);
+          console.log(`[translate-cluster] 🛟 Finally-block flushed partial status for job ${jobId}`);
+        } catch (e) {
+          console.error('[translate-cluster] Finally-block flush failed:', e);
+        }
       }
     }
 
