@@ -117,7 +117,7 @@ async function generateLanguageVersion(
   country: string,
   intentType: string,
   hreflangGroupId: string | null,
-  OPENAI_API_KEY: string
+  LOVABLE_API_KEY: string
 ): Promise<any> {
   let systemPrompt: string;
   let currentPrompt: string;
@@ -136,26 +136,30 @@ Adapt cultural references and examples to be relevant for ${targetLang}-speaking
       : prompt;
   }
 
-  const response = await fetch('https://api.openai.com/v1/chat/completions', {
+  const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${OPENAI_API_KEY}`,
+      'Authorization': `Bearer ${LOVABLE_API_KEY}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: 'gpt-4o',
+      model: 'google/gemini-2.5-flash',
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: currentPrompt }
       ],
-      temperature: 0.7,
-      max_tokens: 8000,
     }),
   });
 
   if (!response.ok) {
     const errorText = await response.text();
-    throw new Error(`AI API error for ${targetLang}: ${response.status} - ${errorText}`);
+    if (response.status === 429) {
+      throw new Error(`Rate limit exceeded for ${targetLang}. Please wait a moment and try again.`);
+    }
+    if (response.status === 402) {
+      throw new Error(`AI credits exhausted for ${targetLang}. Add funds in Lovable AI workspace settings.`);
+    }
+    throw new Error(`AI Gateway error for ${targetLang}: ${response.status} - ${errorText}`);
   }
 
   const aiData = await response.json();
@@ -222,7 +226,7 @@ async function processBackgroundGeneration(
   country: string,
   intentType: string,
   hreflangGroupId: string,
-  OPENAI_API_KEY: string
+  LOVABLE_API_KEY: string
 ) {
   const supabase = getSupabaseClient();
   let englishVersion: any = null;
@@ -245,7 +249,7 @@ async function processBackgroundGeneration(
           country,
           intentType,
           hreflangGroupId,
-          OPENAI_API_KEY
+          LOVABLE_API_KEY
         );
 
         // Save English version for translation reference
@@ -346,9 +350,9 @@ serve(async (req) => {
       );
     }
 
-    const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
-    if (!OPENAI_API_KEY) {
-      throw new Error('OPENAI_API_KEY is not configured');
+    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+    if (!LOVABLE_API_KEY) {
+      throw new Error('LOVABLE_API_KEY is not configured');
     }
 
     // Determine which languages to generate
@@ -433,7 +437,7 @@ serve(async (req) => {
           country,
           intent_type,
           hreflangGroupId,
-          OPENAI_API_KEY
+          LOVABLE_API_KEY
         )
       );
 
@@ -463,7 +467,7 @@ serve(async (req) => {
       country,
       intent_type,
       hreflangGroupId,
-      OPENAI_API_KEY
+      LOVABLE_API_KEY
     );
 
     console.log('Generated single location page:', locationPage.topic_slug);
