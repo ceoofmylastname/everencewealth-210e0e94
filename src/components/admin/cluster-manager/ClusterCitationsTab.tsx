@@ -546,7 +546,7 @@ export const ClusterCitationsTab = ({ cluster }: ClusterCitationsTabProps) => {
 
       {/* Discovery Modal */}
       <Dialog open={showDiscoveryModal} onOpenChange={setShowDiscoveryModal}>
-        <DialogContent className="max-w-5xl max-h-[85vh] overflow-hidden flex flex-col">
+        <DialogContent className="max-w-5xl h-[85vh] flex flex-col p-6 gap-4">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-3">
               <Sparkles className="h-5 w-5 text-blue-600" />
@@ -558,7 +558,7 @@ export const ClusterCitationsTab = ({ cluster }: ClusterCitationsTabProps) => {
             </DialogDescription>
           </DialogHeader>
 
-          <ScrollArea className="flex-1 min-h-0 pr-4">
+          <div className="flex-1 min-h-0 overflow-y-auto pr-4">
             <div className="space-y-4">
               {discoveryResult?.results.map((result) => (
                 <Card key={result.articleId}>
@@ -632,7 +632,7 @@ export const ClusterCitationsTab = ({ cluster }: ClusterCitationsTabProps) => {
                 </Card>
               ))}
             </div>
-          </ScrollArea>
+          </div>
 
           <DialogFooter className="border-t pt-4">
             <div className="flex items-center gap-4 w-full">
