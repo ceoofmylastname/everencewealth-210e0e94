@@ -1,7 +1,7 @@
 import { truncateForAEO } from "./aeoUtils";
 
 const BASE_URL = 'https://www.everencewealth.com';
-const LOGO_URL = `${BASE_URL}/assets/logo-new.png`;
+const LOGO_URL = 'https://assets.cdn.filesafe.space/htr97zzmRc1NMujHbL9R/media/69b7424c5b89c7c557adfe6e.png';
 
 export interface BuyingStep {
   title: string;
@@ -72,9 +72,9 @@ export const generateBuyersGuideSchema = (
     "description": "Everything you need to know about building and protecting your wealth. From retirement planning to estate strategies.",
     "image": {
       "@type": "ImageObject",
-      "url": `${BASE_URL}/assets/costa-del-sol-bg.jpg`,
-      "width": 1920,
-      "height": 1080
+      "url": LOGO_URL,
+      "width": 1200,
+      "height": 630
     },
     "author": {
       "@type": "Organization",

@@ -14,7 +14,7 @@ export const RecruitHeader: React.FC = () => {
                 {/* Logo */}
                 <Link to="/" className="flex items-center gap-2">
                     <img
-                        src="https://storage.googleapis.com/msgsndr/TLhrYb7SRrWrly615tCI/media/6993ada8dcdadb155342f28e.png"
+                        src="https://assets.cdn.filesafe.space/htr97zzmRc1NMujHbL9R/media/69b7424c5b89c7c557adfe6e.png"
                         alt="Everence Wealth"
                         className="h-10 md:h-12 w-auto"
                         loading="eager"

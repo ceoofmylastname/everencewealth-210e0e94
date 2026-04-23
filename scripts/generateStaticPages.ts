@@ -165,9 +165,9 @@ function generateOrganizationSchema() {
     "description": "Independent wealth management firm specializing in tax-free retirement strategies, IUL, and asset protection",
     "logo": {
       "@type": "ImageObject",
-      "url": "https://www.everencewealth.com/assets/logo-new.png",
-      "width": 256,
-      "height": 256
+      "url": "https://assets.cdn.filesafe.space/htr97zzmRc1NMujHbL9R/media/69b7424c5b89c7c557adfe6e.png",
+      "width": 1200,
+      "height": 630
     },
     "areaServed": [
       {"@type": "Country", "name": "United States"}

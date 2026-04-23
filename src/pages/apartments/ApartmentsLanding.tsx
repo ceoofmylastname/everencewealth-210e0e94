@@ -129,7 +129,7 @@ const ApartmentsLanding: React.FC = () => {
       <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md shadow-sm border-b border-gray-100">
         <div className="container mx-auto px-4 flex items-center justify-between h-16">
           <img
-            src="https://storage.googleapis.com/msgsndr/TLhrYb7SRrWrly615tCI/media/6993ada8dcdadb155342f28e.png"
+            src="https://assets.cdn.filesafe.space/htr97zzmRc1NMujHbL9R/media/69b7424c5b89c7c557adfe6e.png"
             alt="Everence Wealth"
             className="h-10"
           />

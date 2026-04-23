@@ -117,7 +117,7 @@ function generateOrganizationSchema() {
     "@id": `${BASE_URL}/#organization`,
     "name": "Everence Wealth",
     "url": BASE_URL,
-    "logo": `${BASE_URL}/assets/logo-new.png`,
+    "logo": "https://assets.cdn.filesafe.space/htr97zzmRc1NMujHbL9R/media/69b7424c5b89c7c557adfe6e.png",
     "areaServed": [
       { "@type": "Country", "name": "United States" },
       { "@type": "City", "name": "Estepona" },

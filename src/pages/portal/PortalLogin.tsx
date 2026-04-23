@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 import portalBg from "@/assets/portal-login-bg.jpg";
 
 const LOGO_URL =
-  "https://storage.googleapis.com/msgsndr/TLhrYb7SRrWrly615tCI/media/6993ada8dcdadb155342f28e.png";
+  "https://assets.cdn.filesafe.space/htr97zzmRc1NMujHbL9R/media/69b7424c5b89c7c557adfe6e.png";
 
 const features = [
   { title: "Personalized Financial Planning", desc: "Tailored strategies for every life stage" },

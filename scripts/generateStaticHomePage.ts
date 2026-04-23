@@ -450,7 +450,7 @@ function generateStaticHTML(productionAssets: ProductionAssets, language: Langua
   <meta property="og:url" content="${canonicalUrl}" />
   <meta property="og:title" content="${sanitizeForHTML(meta.title)}" />
   <meta property="og:description" content="${sanitizeForHTML(meta.description)}" />
-  <meta property="og:image" content="${BASE_URL}/assets/logo-new.png" />
+  <meta property="og:image" content="https://assets.cdn.filesafe.space/htr97zzmRc1NMujHbL9R/media/69b7424c5b89c7c557adfe6e.png" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
   <meta property="og:image:alt" content="Everence Wealth - Independent Wealth Management" />
@@ -462,7 +462,7 @@ function generateStaticHTML(productionAssets: ProductionAssets, language: Langua
   <meta name="twitter:url" content="${canonicalUrl}" />
   <meta name="twitter:title" content="${sanitizeForHTML(meta.title)}" />
   <meta name="twitter:description" content="${sanitizeForHTML(meta.description)}" />
-  <meta name="twitter:image" content="${BASE_URL}/assets/logo-new.png" />
+  <meta name="twitter:image" content="https://assets.cdn.filesafe.space/htr97zzmRc1NMujHbL9R/media/69b7424c5b89c7c557adfe6e.png" />
   <meta name="twitter:image:alt" content="Everence Wealth - Independent Wealth Management" />
   
   <!-- Favicon -->

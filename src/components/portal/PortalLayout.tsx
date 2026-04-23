@@ -244,7 +244,7 @@ export function PortalLayout() {
           className="flex items-center gap-2.5"
         >
           <img
-            src="https://storage.googleapis.com/msgsndr/TLhrYb7SRrWrly615tCI/media/6993ada8dcdadb155342f28e.png"
+            src="https://assets.cdn.filesafe.space/htr97zzmRc1NMujHbL9R/media/69b7424c5b89c7c557adfe6e.png"
             alt="Everence Wealth"
             className="h-8 w-auto"
           />
@@ -391,7 +391,7 @@ export function PortalLayout() {
           </Button>
           <div className="ml-3 flex items-center gap-2 flex-1">
             <img
-              src="https://storage.googleapis.com/msgsndr/TLhrYb7SRrWrly615tCI/media/6993ada8dcdadb155342f28e.png"
+              src="https://assets.cdn.filesafe.space/htr97zzmRc1NMujHbL9R/media/69b7424c5b89c7c557adfe6e.png"
               alt="Everence Wealth"
               className="h-6 w-auto"
             />

@@ -135,7 +135,7 @@ Deno.serve(async (req) => {
 <head><meta charset="utf-8"></head>
 <body style="margin:0;padding:0;background:#ffffff;font-family:Georgia,serif;">
   <div style="max-width:560px;margin:40px auto;padding:32px 24px;">
-    <img src="https://storage.googleapis.com/msgsndr/TLhrYb7SRrWrly615tCI/media/6993ada8dcdadb155342f28e.png" alt="Everence Wealth" style="height:48px;margin-bottom:32px;" />
+    <img src="https://assets.cdn.filesafe.space/htr97zzmRc1NMujHbL9R/media/69b7424c5b89c7c557adfe6e.png" alt="Everence Wealth" style="height:48px;margin-bottom:32px;" />
     <h1 style="font-size:26px;color:#1a1a1a;margin:0 0 16px;">Congratulations, ${agent.first_name}!</h1>
     <p style="font-size:16px;color:#555;line-height:1.6;margin:0 0 24px;">
       Your insurance license has been received. You've been upgraded to the licensed agent onboarding path.

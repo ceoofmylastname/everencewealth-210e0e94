@@ -74,12 +74,12 @@ const organizationSchema = {
   "url": BASE_URL,
   "logo": {
     "@type": "ImageObject",
-    "url": `${BASE_URL}/assets/logo-new.png`,
-    "width": 400,
-    "height": 100
+    "url": "https://assets.cdn.filesafe.space/htr97zzmRc1NMujHbL9R/media/69b7424c5b89c7c557adfe6e.png",
+    "width": 1200,
+    "height": 630
   },
   "sameAs": [
-    "https://www.linkedin.com/company/del-sol-prime-homes"
+    "https://www.linkedin.com/company/everencewealth/"
   ],
   "address": {
     "@type": "PostalAddress",
@@ -284,9 +284,9 @@ export function generateOrganizationSchema() {
     "url": BASE_URL,
     "logo": {
       "@type": "ImageObject",
-      "url": `${BASE_URL}/assets/logo-new.png`,
-      "width": 400,
-      "height": 100
+      "url": "https://assets.cdn.filesafe.space/htr97zzmRc1NMujHbL9R/media/69b7424c5b89c7c557adfe6e.png",
+      "width": 1200,
+      "height": 630
     },
     "description": "Expert financial planning consultancy specializing in wealth management properties for international buyers. Licensed professionals with deep knowledge of Spanish property law and tax regulations.",
     "areaServed": {
