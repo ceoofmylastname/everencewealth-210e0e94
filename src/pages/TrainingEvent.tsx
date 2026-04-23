@@ -269,7 +269,7 @@ export default function TrainingEvent() {
                 {/* Navbar */}
                 <nav className="p-4 md:p-6 md:px-12 flex items-center justify-between border-b border-white/5 backdrop-blur-md sticky top-0 bg-[#080f0b]/60 z-50">
                     <Link to="/" className="flex items-center gap-3 group">
-                        <img src="https://storage.googleapis.com/msgsndr/TLhrYb7SRrWrly615tCI/media/6993ada8dcdadb155342f28e.png" alt="Logo" className="w-10 h-10 group-hover:scale-105 transition-transform" />
+                        <img src="https://assets.cdn.filesafe.space/htr97zzmRc1NMujHbL9R/media/69b7424c5b89c7c557adfe6e.png" alt="Logo" className="w-10 h-10 group-hover:scale-105 transition-transform" />
                         <span className="text-xl tracking-wider uppercase hidden sm:block" style={{ color: '#C8A96E', letterSpacing: '0.12em', fontWeight: 600 }}>Everence Wealth</span>
                     </Link>
                     <div className="text-sm font-medium tracking-widest uppercase flex items-center gap-2" style={{ color: 'rgba(200,169,110,0.7)', letterSpacing: '0.14em' }}>
@@ -653,7 +653,7 @@ export default function TrainingEvent() {
 
                 {/* Footer Minimal */}
                 <footer className="py-10 text-center border-t border-white/5 bg-[#0A120F] relative z-20">
-                    <img src="https://storage.googleapis.com/msgsndr/TLhrYb7SRrWrly615tCI/media/6993ada8dcdadb155342f28e.png" alt="Logo" className="w-8 h-8 opacity-50 mx-auto mb-4" />
+                    <img src="https://assets.cdn.filesafe.space/htr97zzmRc1NMujHbL9R/media/69b7424c5b89c7c557adfe6e.png" alt="Logo" className="w-8 h-8 opacity-50 mx-auto mb-4" />
                     <p className="text-gray-600 text-sm">&copy; {new Date().getFullYear()} Everence Wealth Management. All rights reserved.</p>
                 </footer>
             </div>

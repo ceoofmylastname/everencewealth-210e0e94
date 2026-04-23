@@ -223,9 +223,9 @@ function generateJsonLdGraph(lang: string, content: typeof LOCALIZED_CONTENT['en
       "url": BASE_URL,
       "logo": {
         "@type": "ImageObject",
-        "url": `${BASE_URL}/assets/logo-new.png`,
-        "width": 512,
-        "height": 512
+        "url": "https://assets.cdn.filesafe.space/htr97zzmRc1NMujHbL9R/media/69b7424c5b89c7c557adfe6e.png",
+        "width": 1200,
+        "height": 630
       },
       "address": {
         "@type": "PostalAddress",
@@ -329,7 +329,7 @@ ${hreflangTags}
   <meta property="og:url" content="${canonicalUrl}" />
   <meta property="og:title" content="${escapeHtml(content.title)}" />
   <meta property="og:description" content="${escapeHtml(content.description)}" />
-  <meta property="og:image" content="${BASE_URL}/assets/costa-del-sol-locations.jpg" />
+  <meta property="og:image" content="https://assets.cdn.filesafe.space/htr97zzmRc1NMujHbL9R/media/69b7424c5b89c7c557adfe6e.png" />
   <meta property="og:locale" content="${locale}" />
   <meta property="og:site_name" content="Everence Wealth" />
   
@@ -338,7 +338,7 @@ ${hreflangTags}
   <meta name="twitter:url" content="${canonicalUrl}" />
   <meta name="twitter:title" content="${escapeHtml(content.title)}" />
   <meta name="twitter:description" content="${escapeHtml(content.description)}" />
-  <meta name="twitter:image" content="${BASE_URL}/assets/costa-del-sol-locations.jpg" />
+  <meta name="twitter:image" content="https://assets.cdn.filesafe.space/htr97zzmRc1NMujHbL9R/media/69b7424c5b89c7c557adfe6e.png" />
   
   <!-- JSON-LD Schema -->
   <script type="application/ld+json">${JSON.stringify(jsonLd)}</script>
