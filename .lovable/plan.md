@@ -1,78 +1,101 @@
 
 
-## Why Google Search Console shows "1 error" on `glossary.xml`
+## Fix the blue-flash on `everencewealth.com` before the green hero loads
 
-### Root cause
+### Root cause (confirmed)
 
-Google flags `https://www.everencewealth.com/sitemaps/en/glossary.xml` because the file you're publishing is an **empty `<urlset>` with zero `<url>` entries**:
+The file Cloudflare serves at `https://everencewealth.com/` is `dist/index.html`, which is **pre-rendered at build time** by `scripts/generateStaticHomePage.ts`. That script injects a static SEO hero block:
 
-```xml
-<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <!-- glossary sitemap for EN - intentionally empty -->
-</urlset>
+```html
+<section class="static-hero">  <!-- background: linear-gradient(135deg, hsl(220 20% 12%), hsl(220 20% 10%)) -->
+  <h1>Architecting Your <span>Financial Legacy</span></h1>
+  …
+</section>
 ```
 
-Google's sitemap parser treats a `<urlset>` containing **no `<url>` children** as malformed → "1 error" (typically reported as *"Sitemap contains URLs which are blocked by robots.txt"* or *"Empty sitemap"* depending on the day). Every other sitemap (blog 19, comparisons 11, qa 73, etc.) returns successfully because they have real entries.
+`--prime-900: 220 20% 12%` and `--prime-950: 220 20% 10%` are **dark slate-blue / navy** — that's the blue you see for ~300–800 ms. Then React hydrates, mounts `src/pages/Home.tsx → <Hero />` which uses `bg-dark-bg` (`#020806`, near-black with green tint), and the rest of the site replaces it.
 
-The same empty file is deployed for **both** `/sitemaps/en/glossary.xml` and `/sitemaps/es/glossary.xml` — so the ES version will trip the same error on its next read.
+So it's not a CSS bug — it's a **stale pre-rendered static hero** that doesn't match the current React hero anymore.
 
-### Why it ended up empty
+### Bonus issues found in the same file
 
-There are two separate generators for this sitemap and they disagree:
-
-1. **`supabase/functions/regenerate-sitemap/index.ts`** (line 574-602) builds a real glossary sitemap with 11 URLs — `/glossary` plus 10 hash anchors (`/glossary#iul`, `/glossary#rmd`, …). It writes them to `sitemaps/glossary.xml` (no language folder).
-2. **The deployed `public/sitemaps/{en,es}/glossary.xml`** files were committed as placeholders ("intentionally empty") and never replaced. The sitemap *index* still points at them.
-3. **A real glossary architecture** exists per memory `mem://features/glossary-term-architecture` — individual indexable pages at `/en/glossary/[term-slug]/` — but no generator currently emits those URLs into `sitemaps/en/glossary.xml`.
-
-So the index advertises a sitemap, the file exists and returns HTTP 200, but it's empty → Google flags it.
+- Line 501-504 of `scripts/generateStaticHomePage.ts` still renders legacy real-estate links: `Properties`, `Buyers Guide`. This violates `mem://project/cleanup-legacy-purge` and would also be visible in the flash for SEO crawlers.
+- Hero copy says "Architecting Your Financial Legacy" — the live React hero says "BRIDGE THE RETIREMENT GAP". Mismatch hurts both the visual continuity and Google's first-paint signal.
 
 ### Fix plan
 
-**Step 1 — Stop advertising an empty sitemap (immediate, removes the GSC error)**
+Update `scripts/generateStaticHomePage.ts` so the pre-rendered hero **visually matches** the React hero. Two color/copy changes — no architecture change, no new files.
 
-Two options, pick one:
+**1. Recolor the static hero to match `bg-dark-bg` (`#020806`)**
 
-- **A. Remove glossary entries** from `public/sitemap.xml` and `public/sitemap-index.xml` (lines 27-30 and 59-62 in each) until real glossary URLs exist. Resubmit `sitemap.xml` in GSC. Error clears within 24-48 h.
-- **B. Populate the files** with the 10 hash-anchor URLs the edge function already knows about. Each file becomes ~12 valid `<url>` entries. Error clears the same way.
+In `CRITICAL_CSS` (lines 200-210), repoint the prime-900/950 vars used by `.static-hero`:
 
-Recommend **B** — keeps the link surface visible to Google.
+```css
+--prime-900: 160 48% 4%;   /* was 220 20% 12% — dark blue-gray */
+--prime-950: 160 48% 3%;   /* was 220 20% 10% — dark blue-gray */
+```
 
-**Step 2 — Generate real per-term URLs (proper fix)**
+These HSL values produce near-black with the same green tint as `#020806`, eliminating the blue cast. The `.hero-highlight` (`--prime-gold`) stays gold, matching the React hero's `text-primary` accent.
 
-Per the memory note, glossary terms have individual indexable pages at `/en/glossary/[term-slug]/`. Update the sitemap generator to emit those:
+Add a subtle radial-gradient overlay in `.static-hero` (mirroring the React hero's mesh-gradient blobs) so the static frame and the React frame are visually indistinguishable during hydration:
 
-- In `supabase/functions/regenerate-sitemap/index.ts`:
-  - Add `generateGlossarySitemap(lang: 'en' | 'es')` that emits `${BASE_URL}/${lang}/glossary` + one entry per slug in `GLOSSARY_TERMS` as `${BASE_URL}/${lang}/glossary/${slug}/` (not `#anchor`).
-  - Write to `sitemaps/en/glossary.xml` and `sitemaps/es/glossary.xml` (matching the index paths) instead of the legacy `sitemaps/glossary.xml`.
-  - If a `glossary_terms` table exists in the DB later, swap `GLOSSARY_TERMS` for a `supabase.from('glossary_terms').select('slug').eq('language', lang).eq('is_published', true)` query — same pattern as the QA sitemap. (DB check: `glossary_terms` table does not exist today, so the hardcoded array stays for now.)
+```css
+.static-hero {
+  background:
+    radial-gradient(60vw 60vw at 10% 30%, hsla(160,48%,25%,0.12), transparent 70%),
+    radial-gradient(50vw 50vw at 100% 100%, hsla(160,48%,30%,0.08), transparent 70%),
+    linear-gradient(135deg, hsl(var(--prime-900)), hsl(var(--prime-950)));
+}
+```
 
-**Step 3 — Resubmit and verify**
+**2. Replace the static hero copy with the live React hero copy**
 
-After deploying:
-1. Hit `POST` on the `regenerate-sitemap` edge function from the Sitemap Regenerator admin page.
-2. In GSC → Sitemaps, click the `…` menu on `https://www.everencewealth.com/sitemap.xml` and **Resubmit**.
-3. Within 24-48 h the `1 error` flag on `/sitemaps/en/glossary.xml` flips to `Success` with `11` discovered URLs.
+In the `META` map (lines 50-66) update both EN and ES:
+- `heroHeadline` → `"Bridge the Retirement"`
+- `heroHighlight` → `"Gap"`
+- `heroDescription` → US-market subline matching `homepage.hero.subline1`/`subline2` from the EN translations file
+- `speakableSummary` → keep, but rewrite to use the new positioning ("Independent broker offering tax-free retirement strategies…")
+- ES variants translated equivalently
+
+**3. Purge the legacy real-estate nav links from the static header**
+
+Lines 500-505 — replace with the actual current nav (`Strategies`, `Philosophy`, `About`, `Blog`, `Contact`) so crawlers and the flash both reflect the real site:
+
+```html
+<nav>
+  <a href="/en/strategies">Strategies</a>
+  <a href="/en/philosophy">Philosophy</a>
+  <a href="/en/about">About</a>
+  <a href="/en/blog">Blog</a>
+  <a href="/en/contact">Contact</a>
+</nav>
+```
+
+**4. Add `theme-color` matching the new hero**
+
+In the `<head>` of the static template, set `<meta name="theme-color" content="#020806">` (currently `#d4a574` in `index.html`, which causes mobile browser chrome to flash tan). This eliminates the mobile address-bar color flash too.
 
 ### Files to change
 
-- `public/sitemaps/en/glossary.xml` — replace placeholder with 11 real `<url>` entries
-- `public/sitemaps/es/glossary.xml` — same, with `/es/` paths
-- `supabase/functions/regenerate-sitemap/index.ts` — make `generateGlossarySitemap` language-aware and write to `sitemaps/{lang}/glossary.xml`
-- `src/components/admin/SitemapRegenerator.tsx` — fix the hardcoded `urlCount: 11` reference path if needed
+- `scripts/generateStaticHomePage.ts` — only file touched
+  - `CRITICAL_CSS` block: recolor `--prime-900` / `--prime-950`, add gradient overlay
+  - `META` (EN + ES): update hero headline / highlight / description / speakable
+  - `<head>`: change `theme-color` meta
+  - `<header>` static nav: remove `Properties` + `Buyers Guide`, replace with live nav
 
 ### Out of scope
 
-- No DB schema changes (no `glossary_terms` table to add today)
-- No change to other sitemaps — they're all `Success`
-- No robots.txt or hreflang changes
+- No change to React `<Hero />` — it stays exactly as-is
+- No change to `index.html`, `app-shell.html`, `_middleware.js`, or sitemap files
+- No DB or edge function changes
+- ES translations of the new headline are direct equivalents; if you want a different ES tagline, say so
 
 ### Verification
 
-```bash
-curl -s https://www.everencewealth.com/sitemaps/en/glossary.xml | grep -c '<loc>'
-# expect 11
-```
-
-GSC shows `Success / 11 / 0` instead of `1 error / 0 / 0`.
+After deploy:
+1. Hard-refresh `https://everencewealth.com/` in an incognito window (or throttle to Slow 3G).
+2. Watch the first paint — should be near-black with subtle green tint and "Bridge the Retirement Gap" copy. No blue cast, no copy swap.
+3. View source — `<section class="static-hero">` headline reads "Bridge the Retirement", highlight "Gap".
+4. Mobile Safari address bar should be near-black, not tan.
+5. The transition into the hydrated React hero should be visually seamless (only the animated letters/particles arriving differ).
 
