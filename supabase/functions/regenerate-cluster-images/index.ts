@@ -561,6 +561,40 @@ serve(async (req) => {
           results.push({ id: translation.id, language: translation.language, success: false });
         }
       }
+
+      // Self-chaining: if we're running out of time and there's still work to do,
+      // fire-and-forget re-invoke ourselves and return early. The next invocation
+      // will skip already-processed positions (Supabase URL check) and continue.
+      const elapsedMs = Date.now() - startedAt;
+      if (elapsedMs >= MAX_RUNTIME_MS) {
+        console.log(`⏱️ Approaching runtime limit (${elapsedMs}ms) — chaining next invocation for cluster ${clusterId}`);
+        try {
+          // Fire-and-forget: do NOT await
+          fetch(`${supabaseUrl}/functions/v1/regenerate-cluster-images`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${supabaseKey}`,
+            },
+            body: JSON.stringify({ clusterId, preserveEnglishImages }),
+          }).catch((e) => console.error('Self-chain invoke error (ignored):', e));
+        } catch (e) {
+          console.error('Self-chain setup error (ignored):', e);
+        }
+
+        return new Response(
+          JSON.stringify({
+            success: true,
+            chained: true,
+            clusterId,
+            partialSuccessCount: successCount,
+            partialFailCount: failCount,
+            elapsedMs,
+            message: 'Partial run complete; next invocation chained to finish remaining positions.',
+          }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
     }
 
     const uniqueImagesGenerated = results.filter(r => r.success && r.language === 'en' && !r.preserved).length;
