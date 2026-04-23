@@ -1,87 +1,71 @@
 
 
-## State Page Generator: NOT running correctly. Two hard blockers.
+## Fix: Use Kie.ai Nano Banana 2 for state page hero images
 
-### What I checked
+### Why it's failing now
 
-- `/admin/state-pages` UI (`AdminStatePages.tsx`) — calls `generate-location-page` for content, then calls `generate-location-image` for hero images.
-- Edge function logs for `generate-location-page` (last hour, 3 separate jobs).
-- Source for `generate-location-page/index.ts` to see which AI provider it uses.
-- Existence check on `generate-location-image` function.
+The `generate-location-image` function I just shipped calls the **Lovable AI Gateway** (`google/gemini-3.1-flash-image-preview`). It's likely returning either no `images[]` array (Gemini 3.1 image preview has been flaky on the gateway lately) or hitting a 402/429 — and even if it worked, it's the wrong provider for this platform.
 
-### Blocker 1 — Content generation is failing 100% of the time (no pages being created)
+Every other image generator on the project (`regenerate-cluster-images`, `regenerate-article-image`, `generate-homepage-images`, `generate-hero-image`) uses the shared **Kie.ai Nano Banana 2 client** at `supabase/functions/_shared/kieClient.ts` with `KIE_API_KEY`. State pages are the outlier.
 
-Every single recent job for `generate-location-page` failed with the same error from OpenAI:
+Per memory `mem://ai/prompt-guidelines`, Nano Banana (Kie.ai) is the standard for 4K cinematic financial imagery.
+
+### Fix
+
+Rewrite `supabase/functions/generate-location-image/index.ts` to use the shared `kieClient` exactly like the other image functions:
+
+1. **Import the shared client**
+   ```ts
+   import { generateImage } from "../_shared/kieClient.ts";
+   ```
+
+2. **Replace the Lovable Gateway call** with:
+   ```ts
+   const { url: kieUrl } = await generateImage({
+     prompt: finalPrompt,
+     aspectRatio: "16:9",      // landscape hero
+     resolution: "2K",          // matches cluster/article standard
+     outputFormat: "jpg",       // smaller files for hero use
+   });
+   ```
+
+3. **Mirror the Kie-hosted result into Supabase Storage** (Kie URLs expire). Pattern matches `regenerate-cluster-images`:
+   - `fetch(kieUrl)` → `arrayBuffer()`
+   - Upload to `article-images` bucket as `state-pages/state-${city_slug}-${topic_slug}.jpg`
+   - `getPublicUrl()` → write to `location_pages.featured_image_url`
+
+4. **Surface Kie-specific errors clearly** — the `friendlyError` helper inside `kieClient.ts` already returns user-readable strings for 401 (bad key), 402 (no credits), 429 (rate limit), 422 (validation). Just let them bubble through the catch block; the toast in `AdminStatePages.tsx` already displays the message.
+
+5. **Verify `KIE_API_KEY` is set** at the top of the handler (mirrors what `generate-hero-image` does), returning a 500 with a clear message if missing.
+
+### Prompt tweak
+
+The current prompt is generic skyline. Align it with the Nano Banana prompt guidelines memory — cinematic financial metaphor, not literal cityscape:
 
 ```
-AI API error for en: 429 - "You exceeded your current quota,
-please check your plan and billing details."
-"type": "insufficient_quota", "code": "insufficient_quota"
+4K cinematic editorial photograph representing wealth management and 
+retirement planning in ${city_name}, USA. Modern financial metaphor: 
+glass-and-steel architecture at golden hour, soft volumetric light, 
+shallow depth of field, institutional sophistication. No text, no logos, 
+no people in foreground. Aspect 16:9.
 ```
 
-Three jobs in the last 5 minutes (`ebdd5c53…`, `b199b29d…`, `35a68666…`) all logged:
-```
-Generating en (1/2)... → Error: 429 insufficient_quota
-Generating es (2/2)... → Error: 429 insufficient_quota
-Completed! Generated 0/2 languages
-```
+### Files
 
-**Root cause:** `supabase/functions/generate-location-page/index.ts` line 139-153 calls **`https://api.openai.com/v1/chat/completions`** directly with `model: 'gpt-4o'`, using the user's `OPENAI_API_KEY` secret. That key is out of quota / unpaid.
-
-This is an outlier — the rest of the platform uses **Lovable AI Gateway** (free, no API key needed). This one function was never migrated.
-
-### Blocker 2 — Image generation function does not exist
-
-`AdminStatePages.tsx` line 80 calls `supabase.functions.invoke("generate-location-image", …)` after each page is created. But:
-
-- `supabase/functions/generate-location-image/` **directory does not exist**.
-- So even if content generation worked, every image call would 404 silently (caught in the try/catch at line 91-94 — error logged to console only, no toast).
-
-That's why you see "Generating hero images for N page(s)…" toast but no images ever appear: the request fails before it reaches any AI service.
-
-### Why the UI shows "stalled"
-
-It isn't stalled — it's failing fast and silently:
-- `generate-location-page` returns `{status: "started", job_id: …}` immediately (fire-and-forget background job).
-- The poller (line 172) sees `job.status = 'failed'`, shows a toast, but the `generation_jobs.error_message` is rarely surfaced clearly.
-- Image generation throws 404 inside a try/catch that only `console.error`s — no user-facing toast.
-
-So nothing visible breaks → looks like a stall.
-
-### Fix plan (two changes, both in edge functions)
-
-**Fix 1 — Migrate `generate-location-page` to Lovable AI Gateway** (kills the 429s)
-
-Edit `supabase/functions/generate-location-page/index.ts`:
-
-- Replace the OpenAI fetch (lines 139-154) with a call to `https://ai.gateway.lovable.dev/v1/chat/completions` using `LOVABLE_API_KEY` (already in env, no user action needed).
-- Switch `model: 'gpt-4o'` → `google/gemini-2.5-flash` (fast, free, more than capable for location content).
-- Drop the `OPENAI_API_KEY` parameter from `generateLanguageVersion()` and its caller in `processBackgroundGeneration()`.
-- Handle gateway-specific 429 (rate limit) and 402 (credit) responses with a clear `error_message` written back to `generation_jobs` so the UI shows it.
-
-**Fix 2 — Create the missing `generate-location-image` edge function**
-
-New file `supabase/functions/generate-location-image/index.ts`:
-
-- Accept `{ location_page_id, city_name, city_slug, topic_slug, image_prompt }` from the body (matches what `AdminStatePages.tsx` line 80-89 already sends).
-- Call Lovable AI image gateway `https://ai.gateway.lovable.dev/v1/images/generations` with `google/gemini-3.1-flash-image-preview` (per AI prompt guidelines memory — 4K cinematic financial imagery).
-- Download the returned image, upload to existing `article-images` Supabase storage bucket as `state-${city_slug}-${topic_slug}.jpg`.
-- Update `location_pages.featured_image_url` and `featured_image_alt` for the matching `id`.
-- Return `{ success: true, url }` and CORS headers.
-- Add small front-end polish in `AdminStatePages.tsx` (one line) so a failed image call shows a `toast.warning` instead of console-silent.
+- `supabase/functions/generate-location-image/index.ts` — replace Lovable Gateway call with `kieClient.generateImage`, add Kie URL → Supabase Storage mirror step, update default prompt
+- No DB changes, no UI changes, no other functions touched
 
 ### Out of scope
 
-- No DB schema changes (`location_pages`, `generation_jobs` columns are fine).
-- No UI redesign — the Generator page stays as-is.
-- Not touching the OpenAI key in secrets (the fix removes the dependency entirely).
-- No retroactive image backfill for existing imageless state pages — but once Fix 2 ships, the existing "regenerate image" button on the manage tab will work for them.
+- Not changing `AdminStatePages.tsx` — the existing toast already surfaces whatever error message the function returns
+- Not touching the other 4 image functions — they already use Kie correctly
+- Not changing `generate-location-page` (content) — that one correctly uses Lovable AI Gateway for text
 
-### Verification after deploy
+### Verification
 
-1. Go to `/admin/state-pages` → Generate tab → pick "Texas" → "Retirement Planning" → Generate.
-2. Within ~30 s the progress should reach 2/2 and toast "State page(s) generated successfully!"
-3. Within another ~10 s a "Hero image ready" toast should appear and the Texas card on the Manage tab should show a real image (not a placeholder).
-4. Re-check `generate-location-page` logs — should see `Generated 2/2 languages` instead of `0/2`.
-5. Check `generate-location-image` logs (new function) — should show successful uploads to storage.
+1. Confirm `KIE_API_KEY` exists in Cloud secrets (it does — used by 4 other functions today).
+2. Click the orange image icon next to "Retirement Planning Strategies in Texas" on `/admin/state-pages`.
+3. Within ~30–60 s (Kie polls every 3 s up to 10 min) the icon should turn green and the row's `featured_image_url` should be a `…supabase.co/storage/v1/object/public/article-images/state-pages/state-texas-retirement-planning.jpg` URL.
+4. Check `generate-location-image` logs — should show `[kie] task xxxx state=success` and `Success: https://…`.
+5. If `KIE_API_KEY` is out of credits, the toast will read "Kie.ai credits exhausted. Top up your Kie.ai account." instead of a generic failure.
 
