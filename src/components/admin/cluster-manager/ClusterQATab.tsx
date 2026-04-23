@@ -111,6 +111,10 @@ export const ClusterQATab = ({
   // ENHANCEMENT 6: Generate All
   const [isGeneratingAll, setIsGeneratingAll] = useState(false);
   const [generateAllProgress, setGenerateAllProgress] = useState<string | null>(null);
+
+  // Translate All Missing across every cluster
+  const [isTranslatingAllMissing, setIsTranslatingAllMissing] = useState(false);
+  const [translateAllProgress, setTranslateAllProgress] = useState<string | null>(null);
   
   // Refresh state for forcing reload
   const [isRefreshing, setIsRefreshing] = useState(false);
