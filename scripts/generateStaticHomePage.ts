@@ -432,7 +432,7 @@ function generateStaticHTML(productionAssets: ProductionAssets, language: Langua
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta name="theme-color" content="#d4a574" />
+  <meta name="theme-color" content="#020806" />
   
   <!-- Primary Meta Tags -->
   <title>${sanitizeForHTML(meta.title)}</title>
@@ -501,10 +501,11 @@ function generateStaticHTML(productionAssets: ProductionAssets, language: Langua
       <header class="static-header">
         <img src="/assets/logo-new.png" alt="Everence Wealth" />
         <nav>
-          <a href="/${language}/properties" style="margin-right: 1.5rem; color: hsl(43 74% 49%); text-decoration: none; font-weight: 500;">Properties</a>
-          <a href="/about" style="margin-right: 1.5rem; color: inherit; text-decoration: none;">About</a>
-          <a href="/buyers-guide" style="margin-right: 1.5rem; color: inherit; text-decoration: none;">Buyers Guide</a>
-          <a href="/${language}/blog" style="color: inherit; text-decoration: none;">Blog</a>
+          <a href="/${language}/strategies" style="margin-right: 1.5rem; color: hsl(43 74% 49%); text-decoration: none; font-weight: 500;">Strategies</a>
+          <a href="/${language}/philosophy" style="margin-right: 1.5rem; color: inherit; text-decoration: none;">Philosophy</a>
+          <a href="/${language}/about" style="margin-right: 1.5rem; color: inherit; text-decoration: none;">About</a>
+          <a href="/${language}/blog" style="margin-right: 1.5rem; color: inherit; text-decoration: none;">Blog</a>
+          <a href="/${language}/contact" style="color: inherit; text-decoration: none;">Contact</a>
         </nav>
       </header>
       
