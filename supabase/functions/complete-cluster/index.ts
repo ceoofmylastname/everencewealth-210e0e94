@@ -131,7 +131,7 @@ serve(async (req) => {
     // 4. Generate article plans using AI
     console.log(`[Complete Cluster] Generating article plans...`);
     
-    const planPrompt = `You are an SEO content strategist for a fiduciary wealth management and insurance firm in the United States.
+    const planPrompt = `You are an SEO content strategist for an independent wealth management and insurance firm in the United States.
 
 The cluster theme is: "${clusterTheme}"
 Category: ${category}
