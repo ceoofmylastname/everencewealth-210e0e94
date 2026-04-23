@@ -240,7 +240,13 @@ function generateIndexHTML(lang: Lang, data: GlossaryData, assets: ProductionAss
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="${sanitizeForHTML(meta.indexTitle)}" />
   <meta name="twitter:description" content="${sanitizeForHTML(meta.indexDescription)}" />
-  <link rel="icon" type="image/png" href="/favicon.png" />
+  <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+  <link rel="icon" type="image/png" sizes="192x192" href="/android-chrome-192x192.png" />
+  <link rel="icon" type="image/png" sizes="512x512" href="/android-chrome-512x512.png" />
+  <link rel="manifest" href="/site.webmanifest" />
   ${schemaScripts}
   ${cssLinks}
 </head>
@@ -289,7 +295,13 @@ function generateTermHTML(lang: Lang, term: GlossaryTerm, categoryTitle: string,
   <meta name="twitter:card" content="summary" />
   <meta name="twitter:title" content="${sanitizeForHTML(pageTitle)}" />
   <meta name="twitter:description" content="${sanitizeForHTML(pageDescription)}" />
-  <link rel="icon" type="image/png" href="/favicon.png" />
+  <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+  <link rel="icon" type="image/png" sizes="192x192" href="/android-chrome-192x192.png" />
+  <link rel="icon" type="image/png" sizes="512x512" href="/android-chrome-512x512.png" />
+  <link rel="manifest" href="/site.webmanifest" />
   ${schemaScripts}
   ${cssLinks}
 </head>
