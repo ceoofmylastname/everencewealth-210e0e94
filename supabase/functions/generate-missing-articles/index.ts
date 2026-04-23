@@ -317,6 +317,11 @@ You MUST respond with a valid JSON object:
     const planText = planData?.content?.[0]?.text || '';
     if (!planText.trim()) {
       console.error('[Missing] Empty plan response');
+      await updateProgress(supabase, clusterId, {
+        message: 'Empty plan response from Claude',
+        in_progress: false,
+        last_error: 'plan_empty',
+      });
       return;
     }
 
@@ -325,6 +330,11 @@ You MUST respond with a valid JSON object:
       plan = extractJsonFromResponse(planText);
     } catch (e) {
       console.error('[Missing] Plan parse error:', e);
+      await updateProgress(supabase, clusterId, {
+        message: `Plan JSON parse failed: ${e instanceof Error ? e.message : String(e)}`,
+        in_progress: false,
+        last_error: 'plan_parse_failed',
+      });
       return;
     }
 
