@@ -236,7 +236,7 @@ serve(async (req) => {
           meta_description: qaContent.metaDescription,
           speakable_answer: qaContent.speakableAnswer,
           featured_image_url: article.featured_image_url
-            || 'https://www.everencewealth.com/og-image.png',
+            || 'https://www.everencewealth.com/og-image-v2.png?v=2',
           featured_image_alt: article.featured_image_alt
             || `${qaContent.question} – Everence Wealth`,
           hreflang_group_id: hreflangGroupId,
