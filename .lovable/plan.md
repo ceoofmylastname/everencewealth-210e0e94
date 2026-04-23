@@ -1,125 +1,62 @@
 
-## Fix the favicon and apple-touch-icon by promoting the existing Everence mountain mark
 
-### Source asset located
-The Everence mountain/triangle mark is present in the codebase and can be used as the favicon source.
+## Why 0 Q&As were created
 
-- Primary source: `src/assets/logo-new.png`
-- Mirrored copy: `public/assets/logo-new.png`
-- Format: PNG
-- Dimensions: 560×445
-- Visual: gold mountain/road mark on transparent background
+The edge function ran successfully and Gemini generated all 4 Q&As, but **every database insert was rejected** with the same error:
 
-### Component trace
-- `src/components/home/Header.tsx` (homepage top-left header) currently renders the remote Everence wordmark URL, not the mountain mark asset.
-- `src/components/home/Footer.tsx` also renders the remote wordmark URL.
-- The mountain-mark asset is currently imported and used in:
-  - `src/components/AdminLayout.tsx`
-  - `src/pages/ApartmentsAuth.tsx`
-
-So the favicon fix should promote `src/assets/logo-new.png` / `public/assets/logo-new.png` as the canonical icon source.
-
-## Why the favicon is still wrong
-The asset generation was only partially wired up.
-
-Current issues:
-- `index.html` still points the 32×32 favicon slot to `/favicon.png` instead of a dedicated `favicon-32x32.png`
-- `public/app-shell.html` still points both favicon and apple-touch-icon to legacy generic paths
-- `scripts/generateAppShell.ts` still emits generic favicon tags
-- Several static generators still emit only:
-  - `<link rel="icon" href="/favicon.png">`
-  - `<link rel="apple-touch-icon" href="/favicon.png">`
-- `public/site.webmanifest` still references `icon-192.png` and `icon-512.png` instead of Android Chrome filenames
-- No guaranteed multi-resolution `favicon.ico` path is being emitted everywhere
-
-## Implementation
-### 1. Promote the mountain mark as the favicon source
-Use `src/assets/logo-new.png` as the master source and generate these outputs on a square canvas, centered, with transparent background unless the rasterization needs the brand dark green for better legibility:
-
-- `public/favicon.png` → 512×512
-- `public/favicon-32x32.png` → 32×32
-- `public/favicon-16x16.png` → 16×16
-- `public/apple-touch-icon.png` → 180×180
-- `public/android-chrome-192x192.png` → 192×192
-- `public/android-chrome-512x512.png` → 512×512
-- `public/favicon.ico` → ICO containing 16×16, 32×32, 48×48
-
-### 2. Update head tags in root templates
-Update both `index.html` and `public/app-shell.html` to use the full icon set:
-
-```html
-<link rel="icon" type="image/x-icon" href="/favicon.ico">
-<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-<link rel="icon" type="image/png" sizes="192x192" href="/android-chrome-192x192.png">
-<link rel="icon" type="image/png" sizes="512x512" href="/android-chrome-512x512.png">
-<link rel="manifest" href="/site.webmanifest">
+```
+null value in column "featured_image_url" of relation "qa_pages"
+violates not-null constraint
 ```
 
-### 3. Update generated app shell output
-Update `scripts/generateAppShell.ts` so production-generated `dist/app-shell.html` emits the same icon links instead of the old generic favicon references.
+### Root cause
+`qa_pages.featured_image_url` is defined as `NOT NULL` in the database. The edge function `generate-english-article-qas` copies `featured_image_url` straight from the source article:
 
-### 4. Update static HTML generators still emitting old favicon links
-Replace old generic favicon tags in:
-- `scripts/generateStaticHomePage.ts`
-- `scripts/generateStaticAboutPage.ts`
-- `scripts/generateStaticLocationPages.ts`
-- `scripts/generateStaticStrategyPages.ts`
-- `scripts/generateStaticGlossary.ts`
-- `scripts/generateStaticPhilosophyPage.ts`
+```ts
+featured_image_url: article.featured_image_url,
+featured_image_alt: article.featured_image_alt,
+```
 
-Each should emit the same full icon set so generated pages and pre-hydration HTML are consistent.
+The source article (`The Retirement Savings Gap…`, id `0655c0e6…`) has **no featured image set** — its `featured_image_url` is `NULL` in the database. So the insert sends `NULL` into a `NOT NULL` column and Postgres rejects it. This happens for all 4 Q&A types (pitfalls, costs, process, legal), which is exactly why the toast says "0 of 4 created."
 
-### 5. Update the web manifest
-Change `public/site.webmanifest` icons to:
-- `/android-chrome-192x192.png`
-- `/android-chrome-512x512.png`
+This affects every article in the cluster that doesn't have a featured image, not just this one.
 
-This removes dependency on the older `icon-192.png` / `icon-512.png` filenames.
+## Fix
 
-### 6. Keep OG image separate
-Do not replace social OG usage with the favicon files. The favicon should come from the mountain mark, while the existing social preview image remains independent unless separately requested.
+Two changes, applied together:
 
-## Verification after implementation
-### Build/output checks
-After build, verify these all exist in `dist/` and are non-zero size:
-- `dist/favicon.png`
-- `dist/favicon-32x32.png`
-- `dist/favicon-16x16.png`
-- `dist/apple-touch-icon.png`
-- `dist/android-chrome-192x192.png`
-- `dist/android-chrome-512x512.png`
-- `dist/favicon.ico`
+### 1. Edge function: provide a safe fallback
+In `supabase/functions/generate-english-article-qas/index.ts`, when building `qaRecord`, fall back to a placeholder if the article has no image:
 
-### HTML checks
-Confirm every generated HTML head references real files in `dist/`:
-- `dist/index.html`
-- `dist/app-shell.html`
-- static generated pages that emit their own `<head>`
+```ts
+featured_image_url: article.featured_image_url
+  || 'https://www.everencewealth.com/og-image.png',
+featured_image_alt: article.featured_image_alt
+  || `${qaContent.question} – Everence Wealth`,
+```
 
-### Report back after implementation
-The final implementation report should include:
-1. Source file used: `src/assets/logo-new.png` (PNG, 560×445)
-2. All generated icon filenames and sizes
-3. Confirmation that every `<link rel="icon">` in built HTML resolves to a real file
-4. Confirmation that favicon and apple-touch-icon no longer point at stale or placeholder assets
+This unblocks Q&A generation immediately for all articles, regardless of whether their featured image has been set yet.
 
-## Files expected to change
-- `index.html`
-- `public/app-shell.html`
-- `public/site.webmanifest`
-- `public/favicon.png`
-- `public/favicon-32x32.png`
-- `public/favicon-16x16.png`
-- `public/apple-touch-icon.png`
-- `public/android-chrome-192x192.png`
-- `public/android-chrome-512x512.png`
-- `public/favicon.ico`
-- `scripts/generateAppShell.ts`
-- `scripts/generateStaticHomePage.ts`
-- `scripts/generateStaticAboutPage.ts`
-- `scripts/generateStaticLocationPages.ts`
-- `scripts/generateStaticStrategyPages.ts`
-- `scripts/generateStaticGlossary.ts`
-- `scripts/generateStaticPhilosophyPage.ts`
+### 2. Database: relax the constraint so this can never silently break again
+Run a migration to make these columns nullable (Q&A pages can legitimately exist without a featured image — the page renderer already handles missing images):
+
+```sql
+ALTER TABLE public.qa_pages
+  ALTER COLUMN featured_image_url DROP NOT NULL,
+  ALTER COLUMN featured_image_alt DROP NOT NULL;
+```
+
+This is the durable fix. The edge function fallback is the immediate fix.
+
+## After the fix
+- Click "Generate 4 Q&As" on Article 1 again → all 4 inserts succeed.
+- Optional follow-up (not part of this fix): a small bulk script to populate `featured_image_url` on the 6 cluster articles that are missing one, so the Q&As inherit a real image instead of the OG fallback.
+
+## Files changed
+- `supabase/functions/generate-english-article-qas/index.ts` (fallback values)
+- New migration: drop NOT NULL on `qa_pages.featured_image_url` and `featured_image_alt`
+
+## Out of scope
+- No prompt changes, no model changes, no UI changes.
+- Translation pipeline (`translate-cluster`) is unaffected — it copies the same fields from the English Q&A, which will now always have a value.
+
