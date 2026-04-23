@@ -5,7 +5,7 @@ import { BUSINESS } from "@/config/business";
 const COMPANY_INFO = {
   name: BUSINESS.name,
   tagline:
-    "Independent fiduciary wealth architects specializing in tax-efficient retirement strategies.",
+    "Independent wealth architects specializing in tax-efficient retirement strategies.",
   phone: BUSINESS.telephone,
   email: BUSINESS.email,
   website: BUSINESS.url,

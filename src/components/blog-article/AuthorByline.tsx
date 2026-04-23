@@ -42,7 +42,7 @@ const AuthorByline: React.FC<AuthorBylineProps> = ({
                     <span className="text-sm text-muted-foreground">•</span>
                     <span className="text-sm text-muted-foreground">Founder & Chief Wealth Strategist, Everence Wealth</span>
                 </div>
-                <p className="text-xs text-muted-foreground mt-0.5">Independent Fiduciary Advisor | Licensed in 50 States</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Independent Advisor | Licensed in 50 States</p>
 
                 {/* Dates */}
                 <div className="flex items-center gap-3 mt-1 text-sm text-muted-foreground">

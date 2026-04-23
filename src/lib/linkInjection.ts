@@ -224,7 +224,6 @@ export const addCitationMarkers = (
       'retirement',
       'portfolio',
       'investment',
-      'fiduciary',
       'estate planning',
       'wealth',
       'fees',
