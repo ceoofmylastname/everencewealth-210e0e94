@@ -1,150 +1,82 @@
 
 
-## Purge remaining Del Sol / Costa del Sol / Real Estate / Hans Beeckman legacy references
+## Why Phase 2 (Translate to Languages) isn't finishing perfectly
 
-### What I found
+### Root cause
 
-The prior "Deep Purge" left significant residue. A full audit surfaced legacy references in these buckets:
+Phase 2 (the purple "Translate to Languages" card under each cluster) calls the `translate-qas-to-language` edge function once per click. That function is hard-capped to translate **only 6 Q&As per invocation** (`BATCH_SIZE = 6` at line 573 of `supabase/functions/translate-qas-to-language/index.ts`). So a fresh language needs **4 button presses** (6+6+6+6 = 24) to finish, and any timeout, parse error, or rate-limit on a single Q&A inside a batch leaves a permanent gap.
 
-**1. Spanish/European city names used as wealth-strategy keys** (~23 files)
-`marbella`, `estepona`, `fuengirola`, `benalmadena`, `sotogrande`, `malaga`, `mijas`, `casares`, `manilva` are used as object keys in `src/i18n/translations/en.ts`, `es.ts`, `src/constants/home.ts`, `scripts/generateStaticLocationHub.ts`, `scripts/generateStaticComparisonPages.ts`, edge functions, and admin tools. Many have US display names (e.g. `{ id: 'marbella', name: 'El Paso' }`), but the internal slugs still read as Costa del Sol cities.
+Today's database confirms exactly this:
 
-**2. Apartments / Property / Villas / Penthouses system** (17+ files)
-`src/pages/ApartmentsAuth.tsx`, `src/pages/apartments/**`, `src/components/apartments/*` (Hero, Lightbox, MasonryGrid, PropertyTile, LeadFormModal, PropertiesSection), `src/pages/landing/*` (mentions "Apartments & Penthouses", "Townhouses & Villas"), `src/translations/landing/en.json` header menu, `src/hooks/usePropertyGallery.ts`, admin apartments editor routes. This is the old real-estate listings/gallery system.
+| cluster | EN articles | ES articles | EN Q&As | ES Q&As |
+|---|---|---|---|---|
+| `3de11630…` | 6 | 6 | 24 | **14** ← stuck |
+| 8 other clusters | 6 | 6 | 24 | 24 ✅ |
 
-**3. Explicit "Costa del Sol" / "Spain" / "€" / "Mediterranean" copy**
-- `src/i18n/translations/en.ts` line 353 `costaDelSolSpain: "United States"` (key name is a fossil)
-- `src/i18n/translations/es.ts` line 326 same key
-- `functions/_middleware.js` 404 block regex for `/blog/costadelsol/`
-- `src/pages/admin/BOFUPageGenerator.tsx` — whole page generates "Property Buying Costs in Spain", "NIE Number Spain", "Spanish Mortgage", "Digital Nomad Visa Spain"
-- `src/pages/admin/AITools.tsx` — demo prompts about buying property in Spain
-- `src/pages/admin/AEOGuide.tsx` — Estepona / El Paso East rental yields copy
-- `SCHEMA_DOCUMENTATION.md`, `TESTING_CHECKLIST.md` — El Paso/Estepona/Fuengirola example docs
-- `src/pages/crm/admin/CrmSettings.tsx` — Villa property_type example, El Paso lead example
-- `src/components/crm/AddAgentModal.tsx` — default timezone `Europe/Madrid`
-- `src/lib/glossarySchemaGenerator.ts` — Fuengirola, Málaga, 29640 postal code in PostalAddress schema
-- `src/components/crm/admin/CreateRoutingRuleDialog.tsx` — placeholder "marbella, malaga, estepona"
-- `src/hooks/useSystemVerification.ts` — test data "El Paso, Estepona"
-- `src/pages/admin/SEOStatusChecker.tsx` — example `/de/locations/marbella/buying-guide`
-- `scripts/generateThankYouImages.ts` — `marbella-lifestyle.jpg`
-- `propagate_translations.py` — hardcoded path `DEL SOL Prime Homes 2.0`
+10 English Q&As in that cluster have **no Spanish counterpart**. There are **no broken hreflang links and no orphaned ES Q&As** — the function simply never finished translating those 10 rows.
 
-**4. Competitor/Block domain lists referencing real estate**
-- `src/lib/competitorDetection.ts` — 45+ real-estate domains + keywords `realtor`, `realestate`, `property`, `homes`, `villa`
-- `src/lib/domainLanguageValidator.ts` — `realestate`, `realtor`, `inmobiliaria`, `vastgoed`, `makelaar` patterns
-- `supabase/functions/find-external-links/index.ts`, `discover-cluster-citations/index.ts`, `regenerate-cluster-links/index.ts` — same competitor lists and geographic heuristics
+### Five concrete failure modes in the current code
 
-**5. JSON-LD Schema types leaking real-estate**
-- `scripts/generateStaticComparisonPages.ts` — `"@type": "RealEstateAgent"`
-- `src/lib/testUtils.ts` — tests still accept `RealEstateAgent` schema as valid Organization
+1. **Hard 6-per-call cap.** `BATCH_SIZE = 6` then the function returns. The frontend's "fire-and-forget + 10s polling for 5 min" loop in `ClusterQATab.handleTranslateToLanguage` doesn't auto-relaunch — the user must click again.
+2. **Single TARGET_LANGUAGES = ['es'].** `MAX_PARALLEL_TRANSLATIONS = 1`. No way to fan out work — it's strictly serial, ~12-15 s per Q&A × 24 = up to 6 min wall-clock per language even on the happy path.
+3. **One-shot retries + no DLQ.** `translateSingleQA` retries 3× inside the function call, but if the *whole* edge function times out (Lovable Cloud invocation limit), the in-flight Q&A is silently dropped and not re-queued. There is no `cluster_translation_queue` analog for Q&As (the queue table exists only for *article* translation).
+4. **Stall detection is passive.** The frontend `noProgressTicks` poller waits 5 min then warns the user. It never automatically re-invokes. So a partial 14/24 looks "done" until a human notices and clicks "Resume ES".
+5. **Q&A→article linking pre-check is brittle.** When a single English Q&A points to an English article whose `hreflang_group_id` is null or mismatched, the function returns `blocked: 'missing_article_linking'` and translates **zero** Q&As that batch — even the ones that *could* have succeeded. The "Fix Article Linking" button must be clicked first, then translation retried.
 
-**6. Brochure hero image assets**
-- `src/assets/brochures/marbella-hero.jpg`, `estepona-hero.jpg`, `sotogrande-hero.jpg`, `malaga-hero.jpg` — imported in `src/constants/home.ts`
+### Plan to make Phase 2 reliable and one-click
 
-**7. No direct person-name hits** — `Hans Beeckman`, `Cédric Van Hecke`, `Steven Roberts`, `delsolprimehomes` return **zero** matches in `src/`, `scripts/`, `functions/`, `index.html`. Residue is only in `supabase/migrations/*.sql` (historical files — not executed on rebuild).
+**A. Auto-resume loop in the edge function (highest leverage)**
 
-**8. DB migrations** — 14 historical SQL migration files contain Del Sol / Hans Beeckman / Marbella seed data. These are **historical records already applied** and should NOT be edited (editing past migrations breaks the migration graph). Instead, any lingering DB rows they seeded need a new cleanup migration.
+Change `translate-qas-to-language` so it processes all remaining Q&As within a single invocation, with internal time-budgeting:
 
-### Plan
+- Replace `BATCH_SIZE = 6` with a `while (validQAs.length > 0 && Date.now() - startTime < 240_000)` loop (4-min wall budget, well under Lovable Cloud's edge timeout).
+- After the loop, if Q&As remain, **self-invoke** the same edge function (`supabase.functions.invoke('translate-qas-to-language', { body: { clusterId, targetLanguage } })` fire-and-forget) so the queue drains automatically without user clicks.
+- Add per-Q&A error isolation: a failed Q&A is logged to a new `qa_translation_failures` table (or `cluster_completion_progress.languages_status.qa_failures[]`) and skipped, not aborted.
 
-I'll split this into five focused phases. Approve and I'll execute them in sequence.
+**B. Increase concurrency inside a batch**
 
----
+- Process Q&As in parallel groups of 3 (`Promise.allSettled`) instead of strictly serial. Q&As are independent rows — there's no ordering requirement. Cuts wall time ~3×.
+- Keep `DELAY_BETWEEN_QAS = 1500ms` between *batches* (not between every single Q&A) to respect Lovable AI Gateway rate limits.
 
-**Phase 1 — Rename city slugs to US-state concepts in translations & constants**
+**C. Fix the "all-or-nothing" blocking pre-check**
 
-Rewrite all translation keys and constants so Spanish city names disappear from the code:
+In `translate-qas-to-language` lines 524-568, change the blocked response from "abort everything" to "skip the blocked Q&As and translate the rest". The blocked Q&A IDs still surface to the frontend, but the user gets 22/24 ES instead of 0/24 ES + a vague error.
 
-- `src/i18n/translations/en.ts` + `es.ts`:
-  - `cities.{marbella|estepona|malaga|sotogrande}` → `strategies.{indexed|annuity|roth|estate}`
-  - `areas.{marbella|estepona|fuengirola|benalmadena|mijas|sotogrande|malaga|casares|manilva}` → `strategies.{indexedLife|annuities|roth|estate|longTermCare|taxDiversification|socialSecurity|assetProtection|businessSuccession}`
-  - Drop the fossil key `costaDelSolSpain` entirely (replace with `servingArea: "United States"`)
-  - Update every consumer of those keys
-- `src/constants/home.ts`:
-  - `FEATURED_AREAS` items keyed by `marbella/estepona/...` → `indexed/annuity/roth/estate` with proper US strategy names; drop brochure hero image imports and use existing wealth-strategy imagery (or neutral placeholders)
-  - Delete unused `src/assets/brochures/*-hero.jpg` imports (files themselves can stay until Phase 5 asset cleanup)
+**D. Add a "Translate All Missing" admin button**
 
-**Phase 2 — Remove/rename the Apartments/Property/Villas system**
+In `ClusterQATab.tsx` add a button next to "Phase 2: Translate to Languages" that:
+1. Queries every cluster with `es_qas < 24`.
+2. Calls `translate-qas-to-language` for each in series.
+3. Polls `qa_pages` count per cluster until ≥24 or 10-min timeout.
+4. Reports a final table: cluster_id → final_count.
 
-The Apartments section is a leftover real-estate listings UI. Decision point needed:
+This lets you fix all incomplete clusters in one click instead of clicking through each cluster manager.
 
-- **Option A (recommended):** Fully remove. Delete `src/pages/ApartmentsAuth.tsx`, `src/pages/apartments/`, `src/components/apartments/`, `src/hooks/usePropertyGallery.ts`, landing-page apartments/villas sections (`src/components/landing/*` tiles), and related admin editor pages. Remove routes from the router. Remove `apartments_editor` role references. Remove the menu items "Apartments", "Penthouses", "Townhouses", "Villas" from `src/translations/landing/*.json` and all header components. Keep the DB tables but stop reading from them.
-- **Option B:** Keep the scaffolding, rename to "Strategies Gallery" — significant refactor; still leaves legacy behavior.
+**E. Repair the current 10-Q&A gap immediately**
 
-I'll default to **Option A** unless you say otherwise in the next message. *(This is the only decision point; everything else below is automatic.)*
-
-**Phase 3 — Purge "Spain / Costa del Sol / €" from admin tools, CRM, tests, docs**
-
-- `src/pages/admin/BOFUPageGenerator.tsx` — replace the 4 Spain-themed generator presets with US wealth presets (e.g. "Roth Conversion Strategy", "Social Security Optimization", "IUL vs 401k", "Estate Planning Basics"). Remove `'costa-del-sol-property-buying-costs'` slug.
-- `src/pages/admin/AITools.tsx` — rewrite demo prompts to wealth topics (no Spain, no property).
-- `src/pages/admin/AEOGuide.tsx` — rewrite the 2 sample answer blocks (remove Estepona rental yield example, replace with IUL/annuity wealth example).
-- `src/pages/admin/SEOStatusChecker.tsx` — change example URL from `/de/locations/marbella/buying-guide` to `/en/strategies/indexed-life`.
-- `src/pages/crm/admin/CrmSettings.tsx` — change `property_type: "Villa"` / `areas_of_interest: ["El Paso", "downtown"]` to `strategy_interest: "IUL"` / `states_of_interest: ["CA", "TX"]`.
-- `src/hooks/useSystemVerification.ts` — change test `locationPreference: ["El Paso", "Estepona"]` and `budgetRange: "€500K-€1M"` to US values (`["CA", "TX"]` and `"$500K-$1M"`).
-- `src/components/crm/AddAgentModal.tsx` — default timezone `Europe/Madrid` → `America/Los_Angeles`.
-- `src/components/crm/admin/CreateRoutingRuleDialog.tsx` — placeholder `marbella, malaga, estepona` → `california, texas, florida`.
-- `src/lib/glossarySchemaGenerator.ts` — replace Fuengirola PostalAddress with `BUSINESS.address` from `src/config/business.ts` (San Francisco, CA 94105).
-- `scripts/generateStaticLocationHub.ts` — `CITIES` array uses `slug: 'marbella'` while `name: 'El Paso'`; make slug match state (`slug: 'california'`, etc.), or delete the location hub entirely if it no longer makes sense. (I'll default to renaming slugs to US-state slugs.)
-- `scripts/generateStaticComparisonPages.ts` — change `"@type": "RealEstateAgent"` → `"@type": "FinancialService"`; change `City` entries (Estepona, Fuengirola, Benalmádena) → US cities (San Francisco, Los Angeles, San Diego) or remove.
-- `scripts/generateThankYouImages.ts` — rename `marbella-lifestyle.jpg` → `wealth-lifestyle.jpg` (asset rename deferred to Phase 5).
-- `src/lib/testUtils.ts` — remove `RealEstateAgent` from accepted organization schema types.
-- `functions/_middleware.js` — keep the 404 block regex for `/blog/costadelsol/` (it blocks legacy URLs, which is desired) but add a comment; no copy change needed.
-- Delete `propagate_translations.py` (legacy script with hardcoded old project path).
-- `SCHEMA_DOCUMENTATION.md`, `TESTING_CHECKLIST.md` — update El Paso/Estepona/Fuengirola examples to US states. (Lower priority; docs only.)
-
-**Phase 4 — Competitor domain lists & real-estate keyword heuristics**
-
-These lists exist so the citation/link-finder system doesn't cite real-estate competitors — they are correct in spirit. But they're bloated and signal the old domain. Clean up:
-
-- `src/lib/competitorDetection.ts` — strip the 45 real-estate-specific domain entries and replace with wealth-management competitor domains (Fidelity, Vanguard, Schwab, Edward Jones, etc. — only if flagged as competitors; otherwise empty list). Keep generic "competitor keywords" list but swap `realtor/realestate/property/homes/villa` for wealth terms (`retirement-plan-seller`, `annuity-broker`, etc.) — or leave empty if no competitor blocking is actually needed for this domain.
-- `src/lib/domainLanguageValidator.ts` — remove `realestate/realtor/property/inmobiliaria/immobilien/vastgoed/makelaar` from competitor patterns.
-- `supabase/functions/find-external-links/index.ts`, `discover-cluster-citations/index.ts`, `regenerate-cluster-links/index.ts` — same cleanup: strip real-estate competitor domains and geographic Marbella/Malaga/Estepona heuristics; replace with wealth-management equivalents.
-
-**Phase 5 — DB cleanup migration (new migration, no edits to historical ones)**
-
-Historical migration files (`20251119...`, `20251117...`, `20251214...`, `20251221...`, `20251227...`) contain seed data like `blocked_domains`, `approved_domains`, `about_page_content` with Del Sol / Hans Beeckman / Marbella text. These files must NOT be edited. Instead, create **one new migration** that:
-
-1. `DELETE FROM blocked_domains WHERE category IN ('competitor', 'real_estate', 'property_portal', 'listing_site') OR reason ILIKE '%real estate%' OR reason ILIKE '%costa del sol%'` — clears the seeded real-estate domain blocklist rows.
-2. `DELETE FROM approved_domains WHERE category ILIKE '%Real Estate%'` — clears real-estate competitor blocklist rows.
-3. `DELETE FROM about_page_content WHERE meta_title ILIKE '%Del Sol%' OR content ILIKE '%Hans Beeckman%' OR content ILIKE '%Costa del Sol%'` — clears the seeded Del Sol "About" content row.
-4. `UPDATE locations SET ... WHERE slug IN ('marbella','estepona','fuengirola','benalmadena','sotogrande','malaga','mijas','casares','manilva')` — either delete or rename to US-state slugs, depending on whether the locations hub stays (Phase 3 decision).
-5. Any remaining tables with Marbella/Spain text (I'll query first with `supabase--read_query` to confirm which tables still hold legacy content before adding DELETEs).
-
-**Phase 6 — Asset cleanup**
-
-Delete `src/assets/brochures/marbella-hero.jpg`, `estepona-hero.jpg`, `sotogrande-hero.jpg`, `malaga-hero.jpg` once Phase 1 has decoupled them.
-
----
-
-### Question before I proceed
-
-**Apartments/Property/Villas system** — confirm **Option A (fully remove)** vs **Option B (rename & keep)**? Default is A.
-
-### Verification
-
-After all phases:
-
-```
-grep -riE "(del ?sol|delsol|prime homes|hans ?beeckman|marbella|estepona|fuengirola|benalmadena|sotogrande|mijas|casares|manilva|costa del sol|costadelsol|real ?estate|realtor|inmobiliaria|€|mediterranean|spain|spanish)" \
-  src/ scripts/ public/ index.html functions/ --exclude-dir=node_modules
-```
-
-must return **zero** matches except:
-- `functions/_middleware.js` — intentional 404 redirect block for legacy URLs
-- `supabase/migrations/` — historical, not edited
-- `supabase/functions/*-cluster-*` competitor-domain arrays IF you choose to keep them as a defensive citation filter (I'll default to stripping them)
-- `public/glossary/en.json` glossary definitions if any term genuinely references real estate (I'll check and exclude only if SEO-relevant; likely none)
-
-A SQL spot-check:
-```sql
-SELECT COUNT(*) FROM blocked_domains WHERE reason ILIKE '%real estate%'; -- expect 0
-SELECT COUNT(*) FROM about_page_content WHERE content ILIKE '%Hans Beeckman%'; -- expect 0
-SELECT COUNT(*) FROM locations WHERE slug IN ('marbella','estepona','fuengirola'); -- expect 0
-```
+Cluster `3de11630-ac9e-4c05-b85f-d07c555412ba` is stuck at 14/24 ES Q&As. Once the edge function fix is deployed, calling `translate-qas-to-language { clusterId: '3de11630…', targetLanguage: 'es' }` will pick up the 10 missing Q&As (skip-existing logic at lines 402-414 already handles resume safely).
 
 ### Out of scope
 
-- Historical `supabase/migrations/*.sql` files are NOT edited (would break migration graph).
-- Published blog article *body* content in the database is not rewritten in bulk; however, I'll offer a follow-up SQL query to find and list any articles whose body still contains "Marbella"/"Costa del Sol" so you can decide per-article.
-- No changes to the React framework, routing architecture, or auth.
+- The `cluster_translation_queue` *article* translation system shown in `process-translation-queue/index.ts` is separate and currently working correctly (12 of 12 jobs `completed`). No changes there.
+- No DB schema changes required for the auto-resume loop. A new `qa_translation_failures` table is optional polish; the JSONB column on `cluster_completion_progress` can hold failures meanwhile.
+- No frontend re-architecture — `handleTranslateToLanguage`'s polling loop stays; it just becomes more decorative since the backend now self-completes.
+
+### Verification after fix
+
+```sql
+-- Should return 0 rows (all clusters at 24/24 ES)
+SELECT cluster_id, COUNT(*) AS es_count
+FROM qa_pages WHERE language='es' AND cluster_id IS NOT NULL
+GROUP BY cluster_id HAVING COUNT(*) < 24;
+
+-- Should return 0 (no EN Q&A without ES sibling)
+SELECT COUNT(*) FROM qa_pages qa_en
+WHERE qa_en.language='en' AND qa_en.hreflang_group_id IS NOT NULL
+AND NOT EXISTS (SELECT 1 FROM qa_pages qa_es 
+                WHERE qa_es.hreflang_group_id=qa_en.hreflang_group_id 
+                AND qa_es.language='es');
+```
+
+Manual: open the cluster manager for `3de11630…`, click "Resume ES (14/24)" once, watch progress climb to 24/24 within ~3 min without further clicks.
 
