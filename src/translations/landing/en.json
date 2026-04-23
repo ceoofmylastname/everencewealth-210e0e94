@@ -24,29 +24,29 @@
     "microcopy": "Private · Pressure-free"
   },
   "fallback": {
-    "headline": "Prefer to explore first? You can browse a small curated selection below.",
-    "apartments": {
-      "subtitle": "6 carefully selected new-build projects",
-      "cta": "View apartments & penthouses"
+    "headline": "Prefer to explore first? Browse our core wealth strategies below.",
+    "retirement": {
+      "subtitle": "Tax-efficient retirement planning",
+      "cta": "View retirement strategies"
     },
-    "villas": {
-      "subtitle": "6 carefully selected new-build projects",
-      "cta": "View townhouses & villas"
+    "protection": {
+      "subtitle": "Indexed strategies and guaranteed income",
+      "cta": "View protection strategies"
     }
   },
   "classicOptin": {
-    "headline": "Receive project details via WhatsApp or SMS — at your convenience.",
+    "headline": "Receive strategy details via SMS — at your convenience.",
     "fields": {
       "fullName": "Full Name",
-      "phone": "WhatsApp / SMS Number",
+      "phone": "SMS Number",
       "interest": "I'm interested in",
       "interestOptions": {
-        "apartments": "Apartments & Penthouses",
-        "villas": "Townhouses & Villas",
+        "retirement": "Retirement Planning",
+        "protection": "Indexed & Annuity Strategies",
         "both": "Both"
       }
     },
-    "checkbox": "I agree to receive property updates via WhatsApp/SMS",
+    "checkbox": "I agree to receive strategy updates via SMS",
     "button": "Send me the details",
     "success": "Thank you! You'll receive details within 24 hours."
   },
