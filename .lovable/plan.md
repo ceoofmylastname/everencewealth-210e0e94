@@ -1,41 +1,87 @@
 
 
-## Why this article has no image
+## Remove "fiduciary" everywhere and fix social share card to show "Everence Wealth — Bridge the Retirement Gap"
 
-The blog index loads the 3 most recent published English articles. The newest one ("Tax-Free Retirement Income Implementation: Your 90-Day Action Plan") has `featured_image_url = NULL` in the database, which is why the card shows a blank gray area instead of an image.
+### What's wrong
 
-## Root cause
+The screenshot you shared is the **social share preview card** (LinkedIn/iMessage/Facebook). It shows only the gold mountain — no "Everence Wealth" brand text — and the description reads "Independent Fiduciary Wealth Architects". Two problems:
 
-This is residue from the bugs we just fixed, not a new one:
+1. **OG image** (`/public/og-image.png`) is logo-only. On mobile social cards there's no wordmark, so the brand never reads as "Everence Wealth".
+2. **"Fiduciary" still lives in dozens of places** — SEO meta, Spanish translations, English footer, landing layout, static SSG pages, glossary term tiles, company constants, buyer guide, recruit audit, location hub, blog article footer, author byline, and the Cloudflare/SSG rendered home HTML.
 
-- Cluster `3de11630…` finished generating its 6th English article during the recent recovery, but the post-completion `regenerate-cluster-images` trigger we added didn't run for the final article (saved during a self-chained invocation that ended before reaching the trigger block).
-- Cluster `738ff4bd…` reached 6/6 *before* we added the trigger at all, so it still has 2 articles using the old hardcoded Unsplash placeholder (`photo-1600596542815-ffad4c1539a9`).
+### Fix
 
-Database confirms it:
-- `3de11630…` → 6/6 articles, **1 NULL image**, 5 Kie.ai images
-- `738ff4bd…` → 6/6 articles, **2 Unsplash placeholders**, 4 Kie.ai images
+**A. Social share card → shows Everence Wealth brand + "Bridge the Retirement Gap"**
 
-The `regenerate-cluster-images` edge function already handles both cases correctly (it skips only articles that already have a Supabase Storage URL). It just needs to be invoked once per affected cluster.
+Replace `public/og-image.png` with a new 1200×630 card that:
+- Keeps the existing gold mountain mark on the left
+- Adds the wordmark **"Everence Wealth"** in the brand gold next to it
+- Adds tagline **"Bridge the Retirement Gap"** in white below
+- Keeps the evergreen (#0c231c) background
 
-## Fix
+Update all `og:image` and `twitter:image` references to a cache-busted filename (`og-image-v2.png`) so LinkedIn/Meta/iMessage re-scrape instead of showing the cached logo-only version.
 
-Pure data backfill — no code changes needed.
+**B. Purge the word "fiduciary" from all user-visible copy and metadata**
 
-1. Invoke `regenerate-cluster-images` for cluster `3de11630-ac9e-4c05-b85f-d07c555412ba` → fills the NULL on the BOFU article.
-2. Invoke `regenerate-cluster-images` for cluster `738ff4bd-31f2-4b36-b2a0-6653a39a9d5c` → replaces the 2 Unsplash placeholders with content-aware Kie.ai images.
+Replace every occurrence with equivalent "independent" / "client-first" / "independent advisor" phrasing. Files to update:
 
-Each affected article also propagates its new image to its Spanish counterpart at the same cluster position (built-in behavior of the function).
+SEO / metadata / SSG:
+- `src/config/business.ts` — `description`
+- `src/constants/company.ts` — `tagline: 'Independent Wealth Architects'`
+- `scripts/generateStaticHomePage.ts` — title, description, heroDescription, speakableSummary, "Fiduciary Approach" USP card, WebSite schema description (both `en` and `es`)
+- `scripts/generateStaticPhilosophyPage.ts` — description
+- `src/components/landing/LandingLayout.tsx` — JSON-LD description fallback
+- `supabase/functions/generate-cluster/index.ts` — remove "fiduciary" from cluster-generation prompt
+- `supabase/functions/regenerate-sitemap/index.ts` — remove `'fiduciary'` glossary slug from sitemap list
+- `src/lib/linkInjection.ts` — remove `'fiduciary'` from keyword list
 
-## Out of scope
+English UI copy:
+- `src/components/blog-article/ArticleFooter.tsx` — tagline
+- `src/components/blog-article/AuthorByline.tsx` — "Independent Advisor | Licensed in 50 States"
+- `src/pages/public/WorkshopLanding.tsx` — "Independent Broker" label
+- `src/components/home/sections/ReviewsAndBlog.tsx` — swap "Fiduciary" tile for another glossary term (e.g. "Roth IRA" or "IUL Floor")
+- `src/components/recruit/ProducerAudit.tsx` — "True client-first education"
+- `src/i18n/translations/buyersGuide/en.ts` — `api: "Licensed Advisors"`
+- `src/components/homepage/HomepageAbout.tsx` — remove stale comment mention
 
-- No schema changes
-- No edge function code changes (the trigger fix is already deployed for future clusters)
-- The 9 articles that already have proper Kie.ai images are not touched (the function skips them)
+Spanish UI copy (`src/i18n/translations/es.ts`, ~35 occurrences):
+- Replace every `fiduciario/fiduciaria/fiduciarios/fiduciarias` with `independiente` / `asesor independiente` / `Estándar de Interés del Cliente` depending on context
+- Spanish OG/SSG: `"Arquitectos Fiduciarios Independientes"` → `"Arquitectos Independientes de Patrimonio"`
 
-## Verification
+Spanish location-hub:
+- `src/components/location-hub/HubFAQSection.tsx` — rewrite the Spanish "¿Qué es un asesor fiduciario?" FAQ to "¿Qué significa ser un asesor independiente?"
+- `src/components/location-hub/WhatToExpectSection.tsx` — "estándares fiduciarios" → "estándares de conducta del asesor"
 
-After running:
-- Blog index card for "Tax-Free Retirement Income Implementation" shows a real image
-- `SELECT COUNT(*) FROM blog_articles WHERE language='en' AND (featured_image_url IS NULL OR featured_image_url LIKE '%unsplash%')` returns 0 for both clusters
-- All 12 English articles across both clusters show `featured_image_url LIKE '%supabase.co/storage%'`
+Glossary data:
+- `public/glossary/en.json` — keep the term entry (it's a defined industry concept users search for) but confirm it stays only inside the glossary index (factual definition). Not removed from the glossary, since that's reference content, not marketing copy. *(Confirming this exception is OK with you — see question below.)*
+
+Rendered home HTML:
+- `index.html` already has the correct title/description. After SSG regeneration the home route output will pick up the new meta automatically.
+
+**C. Component rename (internal only)**
+
+Rename `src/components/homepage/FiduciaryDifference.tsx` → `IndependentDifference.tsx` and update the import in `src/pages/Home.tsx`. This is the component rendering "The Independent Difference" section. Pure internal rename — no visible change, just removes the word from the filename.
+
+### Quick clarifying question
+
+The glossary page at `/en/glossary/fiduciary` is a searchable educational term (people search "what is a fiduciary"). Two options:
+
+1. **Keep the glossary term** (factual reference content, no marketing language) — strong SEO for search intent, word appears only inside a neutral definition.
+2. **Delete it entirely** — word vanishes from the site 100%, but you lose the SEO term page.
+
+I'll default to **#1 (keep the term page only)** unless you say otherwise — all marketing copy, taglines, and OG metadata are still purged.
+
+### Out of scope
+
+- Blog article *body* content already published in the database is not rewritten (that's historical editorial content). Only the site chrome, templates, meta, and translations are changed.
+- No schema or DB changes.
+- No changes to the mobile site's in-page logo — `src/components/home/Header.tsx` already renders the full Everence Wealth logo image on mobile. The "mobile logo" issue is strictly the social share card, fixed in step A.
+
+### Verification
+
+- `grep -riE "fiduciar" src/ scripts/ public/ --exclude-dir=node_modules` returns zero matches outside `public/glossary/en.json` (the single defined-term exception) and the `es.json` counterpart.
+- Sharing the site to LinkedIn/iMessage shows the new card with "Everence Wealth" wordmark and "Bridge the Retirement Gap" tagline.
+- Home OG title reads "Everence Wealth - Bridge the Retirement Gap".
+- Home OG description no longer contains "fiduciary".
+- Spanish homepage loads with no "fiduciario/fiduciaria" anywhere.
 
