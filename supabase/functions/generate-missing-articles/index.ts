@@ -166,6 +166,16 @@ async function processChunk(clusterId: string, specificFunnelStage: string | und
 
     const sourceLanguage = cluster.language || 'en';
 
+    // Mark job as actively generating (badge + sweeper rely on this)
+    try {
+      await supabase
+        .from('cluster_generations')
+        .update({ status: 'generating', updated_at: new Date().toISOString() })
+        .eq('id', clusterId);
+    } catch (e) {
+      console.warn('[Missing] Failed to set status=generating:', e);
+    }
+
     // ALWAYS re-read state at the top so concurrent runs / retries stay idempotent
     const { data: existingArticles, error: articlesError } = await supabase
       .from('blog_articles')
@@ -175,6 +185,11 @@ async function processChunk(clusterId: string, specificFunnelStage: string | und
 
     if (articlesError) {
       console.error('[Missing] Failed to read existing articles:', articlesError);
+      await updateProgress(supabase, clusterId, {
+        message: `Failed to read existing articles: ${articlesError.message || 'unknown error'}`,
+        in_progress: false,
+        last_error: 'read_articles_failed',
+      });
       return;
     }
 
