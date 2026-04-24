@@ -234,79 +234,9 @@ serve(async (req) => {
     const oldImageUrl = article.featured_image_url;
     const languageName = LANGUAGE_NAMES[article.language] || 'English';
 
-    // IMAGE SHARING: Non-English articles share images from English primary
-    if (article.language !== 'en' && article.cluster_id && article.funnel_stage) {
-      console.log(`🔗 Non-English article detected - checking for English primary image...`);
-
-      let englishImageUrl: string | null = null;
-
-      // Strategy 1: Find English sibling whose translations JSON points at this article
-      const { data: translationMatches } = await supabase
-        .from('blog_articles')
-        .select('id, featured_image_url, translations')
-        .eq('cluster_id', article.cluster_id)
-        .eq('language', 'en')
-        .not('featured_image_url', 'is', null);
-
-      if (translationMatches && translationMatches.length > 0) {
-        const linked = translationMatches.find((row: any) => {
-          const t = row.translations || {};
-          return t?.[article.language] === article.id || t?.[article.language]?.id === article.id;
-        });
-        if (linked?.featured_image_url) {
-          englishImageUrl = linked.featured_image_url;
-          console.log(`✅ Matched English sibling via translations JSON (${linked.id})`);
-        }
-      }
-
-      // Strategy 2: Fallback to funnel_stage match, ordered by created_at, take first
-      if (!englishImageUrl) {
-        const { data: stageMatches } = await supabase
-          .from('blog_articles')
-          .select('id, featured_image_url')
-          .eq('cluster_id', article.cluster_id)
-          .eq('funnel_stage', article.funnel_stage)
-          .eq('language', 'en')
-          .eq('status', 'published')
-          .not('featured_image_url', 'is', null)
-          .order('created_at', { ascending: true })
-          .limit(1);
-
-        if (stageMatches && stageMatches.length > 0) {
-          englishImageUrl = stageMatches[0].featured_image_url;
-          console.log(`✅ Matched English sibling via funnel_stage fallback (${stageMatches[0].id})`);
-        }
-      }
-
-      if (englishImageUrl) {
-        console.log(`✅ Found English primary image - sharing instead of generating new`);
-
-        const imagePromptForMetadata = `financial advisory consultation, professional office setting, wealth management`;
-        const { altText, caption } = await generateLocalizedMetadata(article, imagePromptForMetadata, lovableKey);
-
-        const { error: updateError } = await supabase
-          .from('blog_articles')
-          .update({
-            featured_image_url: englishImageUrl,
-            featured_image_alt: altText,
-            featured_image_caption: caption,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', articleId);
-
-        if (updateError) throw new Error(`Failed to update article: ${updateError.message}`);
-
-        return new Response(
-          JSON.stringify({
-            success: true, sharedFromEnglish: true, articleId,
-            headline: article.headline, language: article.language,
-            imageUrl: englishImageUrl, altText, caption
-          }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-      console.log(`⚠️ No English primary found - will generate new image`);
-    }
+    // OPTION B: Every click reads THIS article and generates a fresh, bespoke
+    // Kie.ai image — no EN→ES sharing. Each language gets its own image.
+    console.log(`🎯 Fresh-generation mode: reading "${article.headline}" (${article.language}) for a bespoke image`);
 
     // Generate content-based image prompt via Lovable AI Gateway
     console.log(`🧠 Generating content-based image prompt via Lovable AI...`);
