@@ -1,65 +1,45 @@
 
 
-## Fix the failing image regeneration
+## Confirm "Regenerate Image" reads the article → Kie.ai → no branding
 
-Three connected bugs are killing the "Regenerate" button on Spanish (and any cluster with multiple articles in the same funnel stage). Here is what to fix.
+### What the button does today (already correct)
 
-### Root cause
+When you click **Regenerate** on `/admin/image-health`:
 
-From the edge function logs for article `6ff02a39…` (the Spanish "La Brecha de Jubilación"):
+1. Edge function loads the article (headline, meta, theme, funnel stage, first 2,000 chars of body).
+2. Sends that to **Lovable AI Gemini 2.5 Flash** with a strict system prompt that:
+   - Bans 24+ named competitors (Apex, Ascend, Edward Jones, Fidelity, etc.) plus generic "any other firm/competitor logo or wordmark."
+   - Requires "no text, no watermarks, no logos, no brand marks, no monograms, no shields, no badges, no company names, no signatures, no words anywhere in the frame."
+3. Hard-appends `--no logo, no watermark, no brand mark, no text overlay, no company name, no shield emblem, no monogram, no badge, no signature, no photographer credit, no stock-photo mark, no letters, no words` to whatever the AI produced.
+4. Sends the final prompt to **Kie.ai Nano Banana 2** (16:9, 2K).
+5. Pipes the result through `analyze-image-for-text` (logo mode). If a logo is still detected, regenerates up to 2 more times with stricter wording.
+6. Uploads to Supabase Storage, updates `featured_image_url` + alt + caption, deletes the old image.
 
-```text
-🖼️ Starting image regeneration
-📝 Article: "La Brecha de Jubilación..." (es)
-🔗 Non-English article detected - checking for English primary image...
-⚠️ No English primary found - will generate new image
-🧠 Generating content-based image prompt...
-ERROR: Failed to generate image prompt   ← OpenAI call returned non-200
-```
+So the core flow you described is exactly what runs.
 
-Two compounding problems:
+### One behavior worth your decision
 
-1. **English primary lookup uses `.maybeSingle()`** — but this MOFU cluster has TWO English articles (and two Spanish translations). `maybeSingle()` returns `null` whenever more than one row matches, so the Spanish article can't borrow its English sibling's image and falls into the fresh-generation path.
-2. **Fresh-generation path calls OpenAI `gpt-4o-mini`** for both the image prompt and the alt-text/caption. OpenAI is the **only** part of this function still on OpenAI — every other AI call in the project uses the Lovable AI Gateway. The OpenAI key returned an error (most likely expired / out of credits / rate-limited), and the function throws instead of falling back, so the Kie.ai image step is never even reached.
+For **Spanish articles** the function does NOT generate a new Kie.ai image by default — it copies the English sibling's image and writes Spanish alt/caption. This was added so EN/ES pairs share visual identity. Your wording today ("read the article and create an image based on it") suggests you may want each language to get its own image instead. Two options:
 
-### What I'll change in `regenerate-article-image/index.ts`
+| Option | Behavior |
+|---|---|
+| **A. Keep sharing (current)** | Spanish articles inherit the English image. Faster, no extra Kie.ai cost. |
+| **B. Always regenerate fresh** | Every click reads that specific article and asks Kie.ai for a new image, regardless of language. |
 
-**1. Fix the English-primary lookup**
-- Replace `.eq('funnel_stage', X).eq('language','en').maybeSingle()` with a slug-based match: find the English sibling whose `translations` JSON points back at this Spanish article (or vice versa). That gives a 1-to-1 pairing instead of a funnel-stage bucket.
-- Fallback: order by `created_at` and take the first result so `maybeSingle()` never collides.
+### Three small hardenings I'd ship alongside
 
-**2. Migrate prompt generation off OpenAI → Lovable AI Gateway**
-- Switch the prompt-generation call from `https://api.openai.com/v1/chat/completions` (gpt-4o-mini) to `https://ai.gateway.lovable.dev/v1/chat/completions` (`google/gemini-2.5-flash`).
-- Use `LOVABLE_API_KEY` (already managed, no key rotation needed).
-- Same change for `generateLocalizedMetadata()` — alt text + caption.
-
-**3. Add a hardcoded fallback prompt**
-- If the AI prompt-generation step fails for any reason, fall through to a high-quality default prompt based on `funnel_stage` + `cluster_theme` instead of throwing. The image still gets regenerated; we just lose the bespoke prompt.
-
-**4. Better error logging**
-- Log the actual HTTP status + body when the gateway call fails so the next failure tells us *why* (429 vs 402 vs 400) instead of a generic "Failed to generate image prompt".
-- Surface 429 (rate limit) and 402 (no credits) as user-visible toast messages in the dashboard.
-
-**5. Remove the `OPENAI_API_KEY` requirement**
-- Drop the `if (!openaiKey) throw…` guard so the function boots cleanly without OpenAI at all. (`KIE_API_KEY` is still required for the actual image generation.)
-
-### What stays the same
-
-- Kie.ai Nano Banana 2 still does the image generation.
-- Logo verification + retry loop (added in the last migration) is untouched.
-- Storage upload, old-image cleanup, alt/caption persistence — all unchanged.
-- Image sharing across EN/ES translations remains the preferred path; we're just making the lookup actually work.
-
-### Verifying the fix
-
-After the change I'll re-run the failed regenerate against article `6ff02a39…` and confirm:
-- Logs show "Found English primary image - sharing" (the lookup now finds the match).
-- The Spanish article gets the same image as its English sibling.
-- A second test on a Spanish article *without* an English sibling proves the fresh-generation path works end-to-end via Lovable AI + Kie.ai, with no OpenAI dependency.
+1. **Tighten the Lovable AI system prompt** — remove a contradictory line currently in it (`"NEVER generate financial planning, villas, professional, or property images"`) which conflicts with the rest of the prompt and likely came from legacy real-estate copy. Replace with a cleaner positive directive.
+2. **Add the article body content into the negative-suffix sanity check** — currently the suffix is appended only if `--no logo` isn't already present. Make that check also catch `no logos` / `no brand` so we never get a duplicate stack.
+3. **Surface the verification result in the toast** — when the retry loop catches a logo on attempt 1 or 2 and successfully replaces it, log "Logo blocked on attempt N — regenerated clean" so you can see it working in the activity feed.
 
 ### Out of scope
 
 - No UI changes to the dashboard.
 - No schema changes.
-- No changes to scan / detection logic — only the regenerate function.
+- No changes to scan / detection logic.
+- Logo-verification retry loop (already in place) untouched.
+
+### Pick one to proceed
+
+Reply with **A** (keep EN→ES sharing) or **B** (every click = fresh Kie.ai image), and I'll ship that plus the three hardenings.
 
