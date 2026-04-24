@@ -192,7 +192,7 @@ function buildFallbackPrompt(funnelStage?: string, clusterTheme?: string): strin
     BOFU: `a premium museum-grade educational apparatus visualizing the decisive outcome of ${theme}, with a central polished titanium core, glowing data conduits branching to three labeled outcome chambers, integrated tablet-style displays showing comparative metrics, and a brass plaque reading "OUTCOME STAGE"`,
   };
   const scene = stageScenes[(funnelStage || '').toUpperCase()] || stageScenes.MOFU;
-  return `${scene}, photorealistic museum-exhibit composition with dense infographic detail, integrated diagrammatic call-outs, schematic overlays, holographic data clouds and descriptive functional labels, premium materials (crystal, brushed titanium, brass, copper, polished chrome), cinematic studio lighting in cool blue, warm amber and vibrant green, 16:9 aspect ratio, 2K resolution, no company logos, no brand names, no watermarks, no buckets, no jars`;
+  return `${scene}, photorealistic museum-exhibit composition with dense infographic detail, integrated diagrammatic call-outs, schematic overlays, holographic data clouds and descriptive functional labels, premium materials (crystal, brushed titanium, brass, copper, polished chrome, optionally including labeled glass jars or buckets when they best illustrate the concept), cinematic studio lighting in cool blue, warm amber and vibrant green, 16:9 aspect ratio, 2K resolution, no company logos, no brand names, no watermarks`;
 }
 
 serve(async (req) => {
