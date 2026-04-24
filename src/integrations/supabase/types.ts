@@ -6081,6 +6081,33 @@ export type Database = {
         }
         Relationships: []
       }
+      hub_cache: {
+        Row: {
+          expires_at: string
+          generated_at: string
+          hub_type: string
+          is_stale: boolean
+          language: string
+          payload: Json
+        }
+        Insert: {
+          expires_at?: string
+          generated_at?: string
+          hub_type: string
+          is_stale?: boolean
+          language: string
+          payload: Json
+        }
+        Update: {
+          expires_at?: string
+          generated_at?: string
+          hub_type?: string
+          is_stale?: boolean
+          language?: string
+          payload?: Json
+        }
+        Relationships: []
+      }
       image_regeneration_queue: {
         Row: {
           article_id: string
