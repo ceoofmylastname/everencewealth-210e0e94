@@ -1,113 +1,65 @@
 
 
-## Detect & Replace All Images Containing Competitor Logos
+## Fix the failing image regeneration
 
-The good news: most of this system already exists. We have a logo-detection edge function (`analyze-image-for-text`), an issues table (`article_image_issues`), an Image Health Dashboard at `/admin/image-health`, and a regenerator (`regenerate-article-image`) whose prompt already enforces "no text, no watermarks, no logos." The gap is that bulk **logo scanning** is currently capped at 10 images and isn't surfaced as a one-click action, and the regenerator needs a stronger anti-logo guardrail.
+Three connected bugs are killing the "Regenerate" button on Spanish (and any cluster with multiple articles in the same funnel stage). Here is what to fix.
 
-This plan turns the existing pieces into a complete **"Find every logo'd image → replace it"** workflow.
+### Root cause
 
----
-
-### What you'll get
-
-A new section on the Image Health Dashboard called **"Logo & Branding Scan"** with three buttons:
-
-1. **Scan All Article Images for Logos** — runs every published article image through the vision model, flags any that contain a brand mark, company name, or watermark. Progress bar shows X / Y scanned.
-2. **Review Flagged Images** — gallery view of every flagged image side-by-side with the detected brand name (Apex, Ascend, etc.), article title, and language.
-3. **Replace All Flagged (Bulk)** — one click regenerates every flagged image with the hardened "no-logo" prompt, replaces it in storage, marks the issue resolved, and shows a before/after grid.
-
-Per-image controls: Approve (it's actually fine), Replace (regenerate just this one), Skip.
-
----
-
-### How it works end-to-end
+From the edge function logs for article `6ff02a39…` (the Spanish "La Brecha de Jubilación"):
 
 ```text
-[Scan All Logos button]
-        │
-        ▼
-scan-article-images (logo mode) ──► loops every published blog_articles row
-        │                            sends each image to analyze-image-for-text
-        │                            (Lovable AI Gateway, Gemini 2.5 Flash vision)
-        │                            writes hits to article_image_issues
-        │                            with issue_type='logo_detected'
-        ▼
-[Review Flagged gallery] ──► shows brand_name, article, image preview
-        │
-        ▼
-[Replace All Flagged] ──► fans out to regenerate-article-image per row
-                          new prompt enforces zero text / zero logos
-                          old image deleted from storage, new one written
-                          article_image_issues row marked resolved
-                          before/after appears in the Fixed tab
+🖼️ Starting image regeneration
+📝 Article: "La Brecha de Jubilación..." (es)
+🔗 Non-English article detected - checking for English primary image...
+⚠️ No English primary found - will generate new image
+🧠 Generating content-based image prompt...
+ERROR: Failed to generate image prompt   ← OpenAI call returned non-200
 ```
 
----
+Two compounding problems:
 
-### Implementation steps
+1. **English primary lookup uses `.maybeSingle()`** — but this MOFU cluster has TWO English articles (and two Spanish translations). `maybeSingle()` returns `null` whenever more than one row matches, so the Spanish article can't borrow its English sibling's image and falls into the fresh-generation path.
+2. **Fresh-generation path calls OpenAI `gpt-4o-mini`** for both the image prompt and the alt-text/caption. OpenAI is the **only** part of this function still on OpenAI — every other AI call in the project uses the Lovable AI Gateway. The OpenAI key returned an error (most likely expired / out of credits / rate-limited), and the function throws instead of falling back, so the Kie.ai image step is never even reached.
 
-**1. Backend — upgrade `analyze-image-for-text`**
-- Switch from OpenAI Vision to Lovable AI Gateway (`google/gemini-2.5-flash` with vision) — already the project standard, no extra API key.
-- Tighten the prompt to specifically detect: company logos, brand wordmarks (Apex, Ascend, APEX Financial Advisors, etc.), watermarks, photographer credits, any non-Everence brand mark. Return `brandName` field when found.
-- Add a `logo` value to the existing `severity` flow with `severity: 'high'` for any branded content.
+### What I'll change in `regenerate-article-image/index.ts`
 
-**2. Backend — extend `scan-article-images`**
-- Add a new `scanType: 'logos'` mode that removes the 10-image cap.
-- Process in batches of 5 with concurrency control and a progress channel (writes percent-complete to a `scan_jobs` table so the UI can poll).
-- Inserts go into `article_image_issues` with `issue_type='logo_detected'` and `details.brand_name`.
+**1. Fix the English-primary lookup**
+- Replace `.eq('funnel_stage', X).eq('language','en').maybeSingle()` with a slug-based match: find the English sibling whose `translations` JSON points back at this Spanish article (or vice versa). That gives a 1-to-1 pairing instead of a funnel-stage bucket.
+- Fallback: order by `created_at` and take the first result so `maybeSingle()` never collides.
 
-**3. Database — additions**
-- Migration: add `'logo_detected'` to the allowed `issue_type` values (currently `duplicate | text_detected | expired_url`).
-- New `image_scan_jobs` table: `id, status, total, processed, flagged, started_at, finished_at` so the UI can show live progress.
-- RLS: admin-only read/write (matches existing policy).
+**2. Migrate prompt generation off OpenAI → Lovable AI Gateway**
+- Switch the prompt-generation call from `https://api.openai.com/v1/chat/completions` (gpt-4o-mini) to `https://ai.gateway.lovable.dev/v1/chat/completions` (`google/gemini-2.5-flash`).
+- Use `LOVABLE_API_KEY` (already managed, no key rotation needed).
+- Same change for `generateLocalizedMetadata()` — alt text + caption.
 
-**4. Backend — harden `regenerate-article-image` prompt**
-The current prompt says "no text, no watermarks, no logos" but Kie.ai still occasionally hallucinates brand marks. Strengthen with:
-- Explicit negative examples in the system prompt ("DO NOT include shields, badges, monograms, financial company logos, advisor brand marks, watermarks in corners, photographer credits").
-- Append `--no logo, no watermark, no brand mark, no text overlay, no company name, no shield emblem, no monogram` to every prompt sent to Kie.ai.
-- Optional post-generation check: pipe the new image through `analyze-image-for-text` and regenerate up to 2 times if a logo is still detected (auto-retry loop).
+**3. Add a hardcoded fallback prompt**
+- If the AI prompt-generation step fails for any reason, fall through to a high-quality default prompt based on `funnel_stage` + `cluster_theme` instead of throwing. The image still gets regenerated; we just lose the bespoke prompt.
 
-**5. Frontend — new "Logo & Branding Scan" tab on Image Health Dashboard**
-- Live progress bar wired to `image_scan_jobs` (Supabase Realtime subscription).
-- Flagged-images gallery: thumbnail, article title, brand name detected, language badge, severity badge.
-- Per-row Replace / Skip / Approve buttons.
-- Top-of-tab "Replace All Flagged" button with confirmation dialog showing count + estimated time.
+**4. Better error logging**
+- Log the actual HTTP status + body when the gateway call fails so the next failure tells us *why* (429 vs 402 vs 400) instead of a generic "Failed to generate image prompt".
+- Surface 429 (rate limit) and 402 (no credits) as user-visible toast messages in the dashboard.
 
-**6. Frontend — link from current article preview**
-On the route you're on now (`/en/blog/...`), add an admin-only floating button "Scan this image for logos" that triggers a single-image check and offers immediate replacement — handy for the cases you spot manually like the two screenshots you uploaded.
+**5. Remove the `OPENAI_API_KEY` requirement**
+- Drop the `if (!openaiKey) throw…` guard so the function boots cleanly without OpenAI at all. (`KIE_API_KEY` is still required for the actual image generation.)
 
----
+### What stays the same
 
-### Coverage
+- Kie.ai Nano Banana 2 still does the image generation.
+- Logo verification + retry loop (added in the last migration) is untouched.
+- Storage upload, old-image cleanup, alt/caption persistence — all unchanged.
+- Image sharing across EN/ES translations remains the preferred path; we're just making the lookup actually work.
 
-The scan covers every place an image is stored:
-- `blog_articles.featured_image_url` (12 per cluster, ~hundreds total)
-- `qa_pages.featured_image_url` (48 per cluster)
-- `homepage_images.image_url`
-- `comparison_pages.featured_image_url`
-- `glossary_terms.image_url`
+### Verifying the fix
 
-All of these flow through the same `regenerate-article-image` family of functions, so one workflow covers the whole site.
-
----
-
-### Cost & time estimate
-
-- Vision scan: ~1.2 s per image via Gemini 2.5 Flash. A full site sweep of ~600 images ≈ 12 min.
-- Regeneration: ~8 s per image via Kie.ai Nano Banana 2. If ~10–15% are flagged (≈ 60–90 images), ≈ 8–12 min.
-- Lovable AI credits: well within standard usage; no new API keys required.
-
----
+After the change I'll re-run the failed regenerate against article `6ff02a39…` and confirm:
+- Logs show "Found English primary image - sharing" (the lookup now finds the match).
+- The Spanish article gets the same image as its English sibling.
+- A second test on a Spanish article *without* an English sibling proves the fresh-generation path works end-to-end via Lovable AI + Kie.ai, with no OpenAI dependency.
 
 ### Out of scope
 
-- No changes to the cluster generator's normal flow — just hardens the existing prompt.
-- No changes to non-image content (text, FAQs, citations).
-- No new external services. Everything uses existing Lovable AI + Kie.ai stack.
-
----
-
-### Final deliverable
-
-After approval and implementation, you'll click one button at `/admin/image-health` → "Scan All for Logos" → wait ~12 minutes → review the flagged gallery → click "Replace All" → the system regenerates every branded image with logo-free versions, marks them resolved, and you see before/after proof. The two examples you uploaded (Apex shield, Ascend wordmark) get caught and replaced automatically.
+- No UI changes to the dashboard.
+- No schema changes.
+- No changes to scan / detection logic — only the regenerate function.
 
