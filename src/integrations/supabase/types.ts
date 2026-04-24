@@ -9016,20 +9016,6 @@ export type Database = {
       }
     }
     Functions: {
-      _tmp_check_vault_service_role_key: {
-        Args: never
-        Returns: {
-          key_len: number
-          secret_exists: boolean
-        }[]
-      }
-      _tmp_list_vault_secret_names: {
-        Args: never
-        Returns: {
-          secret_name: string
-        }[]
-      }
-      _tmp_seed_vault_key: { Args: { p_key: string }; Returns: string }
       calculate_translation_completeness: {
         Args: { p_article_id: string }
         Returns: number
