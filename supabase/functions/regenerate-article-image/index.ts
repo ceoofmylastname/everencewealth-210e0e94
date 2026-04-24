@@ -136,7 +136,7 @@ Output a JSON object with:
 RULES:
 - Write in ${languageName} (not English, unless article is English)
 - Be descriptive and specific to financial services
-- The image is an INFOGRAPHIC-STYLE PHOTOREALISTIC EDUCATIONAL EXHIBIT — a multi-stage mechanical / scientific apparatus (filtration chambers, clockwork, aqueducts, growth catalysts, architectural cross-sections) with integrated descriptive labels and data overlays. It is NEVER people, offices, buckets, or jars. Describe the apparatus and the financial concept it visually explains.
+- The image is an INFOGRAPHIC-STYLE PHOTOREALISTIC EDUCATIONAL EXHIBIT — a multi-stage visual apparatus (filtration chambers, clockwork, aqueducts, growth catalysts, architectural cross-sections, labeled glass jars/buckets, scales, hourglasses, or any object-based metaphor that best visualizes the article's concept) with integrated descriptive labels and data overlays. It is NEVER people or offices. Describe the apparatus and the financial concept it visually explains. Buckets and jars ARE allowed when they are the clearest visual metaphor (e.g. three labeled tax buckets).
 - Reference Everence Wealth where appropriate
 - No generic placeholder text
 
