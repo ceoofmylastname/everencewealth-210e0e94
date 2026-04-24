@@ -20,6 +20,15 @@ Deno.serve(async (req) => {
       );
     }
 
+    // Diagnostic-only: report length, never the value.
+    const keyLen = key.length;
+    if (keyLen < 100) {
+      return new Response(
+        JSON.stringify({ ok: false, error: "env key too short", key_len: keyLen }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
     const rpcRes = await fetch(`${url}/rest/v1/rpc/_tmp_seed_vault_key`, {
       method: "POST",
       headers: {
@@ -35,7 +44,7 @@ Deno.serve(async (req) => {
       // Strip any accidental key echoes defensively before returning.
       const safe = text.replaceAll(key, "[REDACTED]");
       return new Response(
-        JSON.stringify({ ok: false, status: rpcRes.status, error: safe }),
+        JSON.stringify({ ok: false, status: rpcRes.status, error: safe, env_key_len: keyLen }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
