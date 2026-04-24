@@ -50,11 +50,16 @@ function buildAlternatePath(path, fromLang, toLang) {
 }
 
 // Inject canonical, hreflang, and og:url into an HTML response — but ONLY
-// if they are not already present. Cloudflare HTMLRewriter streams the document
-// in source order, so detector handlers on <link> / <meta> nested inside <head>
-// fire BEFORE the closing-side handler on <head> itself. We use that ordering
-// to set boolean flags during streaming, then the head handler appends only
-// the tags that were missing.
+// if they are not already present.
+//
+// Cloudflare HTMLRewriter streams the document in source order. By registering
+// detector handlers on `link[rel="canonical"]`, `link[rel="alternate"][hreflang]`,
+// and `meta[property="og:url"]`, we set boolean flags as those elements stream
+// past inside <head>. We then attach an `onEndTag` callback to <head> that
+// fires when </head> is parsed — by which point every child of <head> has
+// already streamed through and updated our flags. Inside that callback we
+// call `endTag.before(html, { html: true })`, which inserts the missing tags
+// immediately before </head>.
 //
 // This prevents the previous bug where every SSR/static page shipped with 2+
 // canonical tags (one from SSR, one from the middleware) and 6+ hreflang tags.
@@ -88,10 +93,7 @@ function injectSeoTags(response, pathname) {
     })
     .on('head', {
       element(el) {
-        // The element handler with no end-tag callback runs at the START of
-        // <head>. To make a decision based on what's INSIDE <head>, we must
-        // append on the END tag, not the element. Use onEndTag for that.
-        el.onEndTag(() => {
+        el.onEndTag((endTag) => {
           let tags = '';
           if (!hasCanonical) {
             tags += `\n<link rel="canonical" href="${canonicalUrl}" />`;
@@ -106,24 +108,11 @@ function injectSeoTags(response, pathname) {
             tags += `\n<meta property="og:url" content="${canonicalUrl}" />`;
           }
           if (tags) {
-            // Insert tags just before </head>
-            return Promise.resolve().then(() => {});
+            endTag.before(tags, { html: true });
           }
         });
-        // Append a placeholder via element rewriter that appends content
-        // BEFORE end tag using onEndTag's text-emit pattern.
-        // Cloudflare HTMLRewriter does not allow returning HTML from onEndTag,
-        // so we use a different approach: stage detection via element handlers
-        // on link/meta (which fire first while parsing children), then append
-        // unconditionally at end of head — but only the missing pieces.
       }
     })
-    // Second pass on </head> using a dedicated handler that supports replace().
-    // Cloudflare HTMLRewriter allows el.append(content, {html:true}) inside the
-    // element() handler; that append targets the END of the element's children,
-    // i.e. just before </head>. By the time </head> is parsed, all <link> and
-    // <meta> children have already fired their element() handlers and updated
-    // our flags. So a SECOND HTMLRewriter pass is what we want.
     .transform(response);
 }
 
