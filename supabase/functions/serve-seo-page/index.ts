@@ -1900,14 +1900,16 @@ function generateArticleBody(metadata: PageMetadata): string {
         
         ${faqSection}
         
-        ${metadata.internal_links && Array.isArray(metadata.internal_links) && metadata.internal_links.length > 0 ? `
         <nav class="internal-links-section" aria-label="Related articles">
-          <h3>${metadata.language === 'es' ? 'Lectura relacionada' : metadata.language === 'fi' ? 'Aiheeseen liittyvää' : metadata.language === 'sv' ? 'Relaterad läsning' : metadata.language === 'de' ? 'Weiterführende Artikel' : metadata.language === 'fr' ? 'Articles connexes' : metadata.language === 'nl' ? 'Gerelateerde artikelen' : metadata.language === 'da' ? 'Relateret læsning' : metadata.language === 'nb' ? 'Relatert lesning' : metadata.language === 'ru' ? 'Похожие статьи' : metadata.language === 'pt' ? 'Leitura relacionada' : 'Related Reading'}</h3>
+          <h3>${metadata.language === 'es' ? 'Lectura relacionada' : 'Related Reading'}</h3>
           <ul>
-            ${metadata.internal_links.map((link: any) => `<li><a href="${escapeHtml(link.url)}"${link.title ? ` title="${escapeHtml(link.title)}"` : ''}>${escapeHtml(link.text)}</a></li>`).join('\n            ')}
+            ${(metadata.internal_links && Array.isArray(metadata.internal_links) && metadata.internal_links.length > 0
+              ? metadata.internal_links.map((link: any) => `<li><a href="${escapeHtml(link.url)}"${link.title ? ` title="${escapeHtml(link.title)}"` : ''}>${escapeHtml(link.text)}</a></li>`).join('\n            ')
+              : `<li><a href="${langPrefix}/blog">${metadata.language === 'es' ? 'Explorar el blog' : 'Explore the blog'}</a></li>
+            <li><a href="${langPrefix}/qa">${metadata.language === 'es' ? 'Preguntas y respuestas' : 'Questions & Answers'}</a></li>
+            <li><a href="${langPrefix}/contact">${metadata.language === 'es' ? 'Hablar con un asesor' : 'Speak with an advisor'}</a></li>`)}
           </ul>
         </nav>
-        ` : ''}
         
         <div class="cta-section">
           <h3>${cta.title}</h3>
