@@ -1900,14 +1900,16 @@ function generateArticleBody(metadata: PageMetadata): string {
         
         ${faqSection}
         
-        ${metadata.internal_links && Array.isArray(metadata.internal_links) && metadata.internal_links.length > 0 ? `
         <nav class="internal-links-section" aria-label="Related articles">
-          <h3>${metadata.language === 'es' ? 'Lectura relacionada' : metadata.language === 'fi' ? 'Aiheeseen liittyvää' : metadata.language === 'sv' ? 'Relaterad läsning' : metadata.language === 'de' ? 'Weiterführende Artikel' : metadata.language === 'fr' ? 'Articles connexes' : metadata.language === 'nl' ? 'Gerelateerde artikelen' : metadata.language === 'da' ? 'Relateret læsning' : metadata.language === 'nb' ? 'Relatert lesning' : metadata.language === 'ru' ? 'Похожие статьи' : metadata.language === 'pt' ? 'Leitura relacionada' : 'Related Reading'}</h3>
+          <h3>${metadata.language === 'es' ? 'Lectura relacionada' : 'Related Reading'}</h3>
           <ul>
-            ${metadata.internal_links.map((link: any) => `<li><a href="${escapeHtml(link.url)}"${link.title ? ` title="${escapeHtml(link.title)}"` : ''}>${escapeHtml(link.text)}</a></li>`).join('\n            ')}
+            ${(metadata.internal_links && Array.isArray(metadata.internal_links) && metadata.internal_links.length > 0
+              ? metadata.internal_links.map((link: any) => `<li><a href="${escapeHtml(link.url)}"${link.title ? ` title="${escapeHtml(link.title)}"` : ''}>${escapeHtml(link.text)}</a></li>`).join('\n            ')
+              : `<li><a href="${langPrefix}/blog">${metadata.language === 'es' ? 'Explorar el blog' : 'Explore the blog'}</a></li>
+            <li><a href="${langPrefix}/qa">${metadata.language === 'es' ? 'Preguntas y respuestas' : 'Questions & Answers'}</a></li>
+            <li><a href="${langPrefix}/contact">${metadata.language === 'es' ? 'Hablar con un asesor' : 'Speak with an advisor'}</a></li>`)}
           </ul>
         </nav>
-        ` : ''}
         
         <div class="cta-section">
           <h3>${cta.title}</h3>
@@ -2273,6 +2275,458 @@ function isContentPathPattern(path: string): { lang: string; type: string } | nu
   return null
 }
 
+// ============================================================
+// STRATEGY (BOFU) HARDCODED CONTENT MAP
+// English slugs → bilingual content. ES slugs map back to EN keys.
+// ============================================================
+const STRATEGY_ES_TO_EN: Record<string, string> = {
+  'seguro-vida-entera': 'whole-life',
+  'seguro-universal-indexado': 'iul',
+  'retiro-libre-impuestos': 'tax-free-retirement',
+  'proteccion-de-activos': 'asset-protection',
+}
+const STRATEGY_EN_TO_ES: Record<string, string> = {
+  'whole-life': 'seguro-vida-entera',
+  'iul': 'seguro-universal-indexado',
+  'tax-free-retirement': 'retiro-libre-impuestos',
+  'asset-protection': 'proteccion-de-activos',
+}
+
+interface StrategyContent {
+  en: { title: string; h1: string; description: string; intro: string; faqs: { q: string; a: string }[] }
+  es: { title: string; h1: string; description: string; intro: string; faqs: { q: string; a: string }[] }
+}
+
+const STRATEGY_CONTENT: Record<string, StrategyContent> = {
+  'iul': {
+    en: {
+      title: 'Indexed Universal Life Insurance (IUL) | Everence Wealth',
+      h1: 'Indexed Universal Life Insurance: Tax-Advantaged Growth with Downside Protection',
+      description: 'Build cash value tied to market index performance with a 0% floor that protects against losses. IUL combines life insurance protection with tax-free retirement income potential.',
+      intro: 'Indexed Universal Life (IUL) insurance is a permanent life insurance policy whose cash value growth is linked to a market index such as the S&P 500. Unlike direct market investments, IUL offers a 0% floor that protects your principal from market losses while allowing you to participate in market upside up to a defined cap. Properly structured, an IUL provides tax-deferred accumulation, tax-free policy loans for retirement income, and a tax-free death benefit for your heirs.',
+      faqs: [
+        { q: 'What is the difference between IUL and a 401(k)?', a: 'A 401(k) offers tax-deferred growth but withdrawals are taxed as ordinary income and subject to RMDs at age 73. An IUL offers tax-free policy loans, no RMDs, no contribution limits, and a tax-free death benefit, in addition to downside protection through its 0% floor.' },
+        { q: 'Can I lose money in an IUL?', a: 'Your cash value cannot lose money due to market downturns thanks to the 0% floor. However, policy fees, cost of insurance, and underperformance vs. cap rates can erode value if the policy is not properly funded.' },
+        { q: 'How much can I contribute to an IUL?', a: 'Unlike qualified retirement plans, IULs have no IRS contribution limits. The maximum is set by your policy structure under IRS guidelines (TEFRA/DEFRA/TAMRA) to maintain tax-advantaged status.' },
+      ],
+    },
+    es: {
+      title: 'Seguro de Vida Universal Indexado (IUL) | Everence Wealth',
+      h1: 'Seguro de Vida Universal Indexado: Crecimiento con Ventajas Fiscales y Protección',
+      description: 'Acumule valor en efectivo vinculado al rendimiento de un índice del mercado con un piso del 0% que protege contra pérdidas. El IUL combina protección de vida con potencial de ingresos de jubilación libres de impuestos.',
+      intro: 'El Seguro de Vida Universal Indexado (IUL) es una póliza permanente cuyo valor en efectivo está vinculado a un índice de mercado como el S&P 500. A diferencia de las inversiones directas en el mercado, el IUL ofrece un piso del 0% que protege su principal de las pérdidas del mercado al tiempo que le permite participar en el alza del mercado hasta un tope definido.',
+      faqs: [
+        { q: '¿Cuál es la diferencia entre un IUL y un 401(k)?', a: 'Un 401(k) ofrece crecimiento con impuestos diferidos, pero los retiros se gravan como ingresos ordinarios y están sujetos a RMD a los 73 años. Un IUL ofrece préstamos de póliza libres de impuestos, sin RMD, sin límites de contribución y un beneficio por fallecimiento libre de impuestos.' },
+        { q: '¿Puedo perder dinero en un IUL?', a: 'Su valor en efectivo no puede perder dinero debido a caídas del mercado gracias al piso del 0%. Sin embargo, las tarifas de póliza pueden erosionar el valor si la póliza no está bien financiada.' },
+        { q: '¿Cuánto puedo aportar a un IUL?', a: 'A diferencia de los planes de jubilación calificados, los IUL no tienen límites de contribución del IRS. El máximo lo establece la estructura de su póliza según las directrices del IRS.' },
+      ],
+    },
+  },
+  'whole-life': {
+    en: {
+      title: 'Whole Life Insurance | Everence Wealth',
+      h1: 'Whole Life Insurance: Guaranteed Cash Value & Lifetime Protection',
+      description: 'Permanent life insurance with guaranteed cash value growth, fixed premiums, and a guaranteed death benefit. A foundational asset for tax-advantaged wealth transfer.',
+      intro: 'Whole life insurance is a permanent policy that provides guaranteed cash value growth, fixed level premiums, and a guaranteed death benefit for your entire life. Issued by mutual insurance carriers, participating whole life policies also pay non-guaranteed dividends that can compound your cash value, increase your death benefit, or be received as cash. Whole life is a cornerstone of multi-generational wealth planning, business succession, and tax-efficient legacy transfer.',
+      faqs: [
+        { q: 'How is whole life different from term life?', a: 'Term life provides coverage for a fixed period (10-30 years) with no cash value. Whole life provides lifetime coverage, builds guaranteed cash value, and pays dividends from mutual carriers — making it both protection and an asset.' },
+        { q: 'Can I borrow against my whole life policy?', a: 'Yes. Policy loans are not taxable income and do not require credit approval. The cash value continues to earn dividends even on the loaned amount in many policies.' },
+        { q: 'Are whole life dividends guaranteed?', a: 'No, dividends are not guaranteed, but top mutual carriers like New York Life, MassMutual, Northwestern Mutual, and Guardian have paid dividends every year for over 150 years.' },
+      ],
+    },
+    es: {
+      title: 'Seguro de Vida Entera | Everence Wealth',
+      h1: 'Seguro de Vida Entera: Valor en Efectivo Garantizado y Protección Vitalicia',
+      description: 'Seguro de vida permanente con crecimiento garantizado del valor en efectivo, primas fijas y un beneficio por fallecimiento garantizado.',
+      intro: 'El seguro de vida entera es una póliza permanente que ofrece crecimiento garantizado del valor en efectivo, primas fijas niveladas y un beneficio por fallecimiento garantizado de por vida. Emitido por aseguradoras mutuales, las pólizas participantes también pagan dividendos no garantizados que pueden capitalizar su valor en efectivo.',
+      faqs: [
+        { q: '¿En qué se diferencia el seguro de vida entera del seguro de vida a término?', a: 'El seguro a término ofrece cobertura por un período fijo sin valor en efectivo. El de vida entera ofrece cobertura vitalicia, acumula valor en efectivo garantizado y paga dividendos.' },
+        { q: '¿Puedo pedir prestado contra mi póliza?', a: 'Sí. Los préstamos de póliza no son ingresos imponibles y no requieren aprobación crediticia.' },
+        { q: '¿Están garantizados los dividendos?', a: 'No, los dividendos no están garantizados, pero las principales aseguradoras mutuales han pagado dividendos durante más de 150 años consecutivos.' },
+      ],
+    },
+  },
+  'tax-free-retirement': {
+    en: {
+      title: 'Tax-Free Retirement Income Strategies | Everence Wealth',
+      h1: 'Tax-Free Retirement: Build Income You Will Never Owe Taxes On',
+      description: 'Combine Roth accounts, cash-value life insurance, and municipal bonds to create retirement income that is fully tax-free at the federal level — and not subject to RMDs.',
+      intro: 'Tax-free retirement income strategies use a combination of Roth IRAs, Roth 401(k)s, properly structured cash-value life insurance (IUL or whole life), and municipal bonds to generate retirement income that is not subject to federal income tax. Unlike traditional 401(k) and IRA withdrawals — which are taxed as ordinary income and subject to Required Minimum Distributions at age 73 — tax-free strategies give you full control over your distributions and protect you against future tax-rate increases.',
+      faqs: [
+        { q: 'Why is tax-free retirement income important?', a: 'Federal tax rates are at historic lows. Most economists expect rates to rise as the national debt and entitlement obligations grow. Locking in tax-free income today protects you from paying significantly more tax in 20-30 years.' },
+        { q: 'How much of my retirement should be tax-free?', a: 'Most planners recommend at least 30-50% of retirement income come from tax-free sources, with the balance from tax-deferred and taxable accounts. This is the "Three Tax Buckets" framework.' },
+        { q: 'Are Roth conversions worth it?', a: 'For most pre-retirees in the 12-24% federal bracket, converting traditional IRA assets to Roth before age 73 can save tens of thousands in lifetime taxes — especially if you expect higher tax rates in retirement.' },
+      ],
+    },
+    es: {
+      title: 'Estrategias de Jubilación Libres de Impuestos | Everence Wealth',
+      h1: 'Jubilación Libre de Impuestos: Construya Ingresos Que Nunca Pagarán Impuestos',
+      description: 'Combine cuentas Roth, seguros de vida con valor en efectivo y bonos municipales para crear ingresos de jubilación totalmente libres de impuestos federales.',
+      intro: 'Las estrategias de jubilación libres de impuestos utilizan una combinación de Roth IRAs, Roth 401(k), seguros de vida con valor en efectivo (IUL o vida entera) y bonos municipales para generar ingresos de jubilación que no están sujetos al impuesto federal sobre la renta.',
+      faqs: [
+        { q: '¿Por qué es importante la jubilación libre de impuestos?', a: 'Las tasas impositivas federales están en mínimos históricos. La mayoría de los economistas esperan que las tasas suban a medida que crezca la deuda nacional.' },
+        { q: '¿Cuánto de mi jubilación debe ser libre de impuestos?', a: 'La mayoría de los planificadores recomiendan que al menos el 30-50% de los ingresos de jubilación provenga de fuentes libres de impuestos.' },
+        { q: '¿Vale la pena hacer conversiones Roth?', a: 'Para la mayoría de las personas pre-jubiladas en categorías impositivas del 12-24%, convertir activos IRA tradicionales a Roth antes de los 73 años puede ahorrar decenas de miles en impuestos.' },
+      ],
+    },
+  },
+  'asset-protection': {
+    en: {
+      title: 'Asset Protection Strategies | Everence Wealth',
+      h1: 'Asset Protection: Shield Your Wealth from Lawsuits, Creditors, and Taxes',
+      description: 'Use trusts, life insurance, qualified retirement plans, and proper entity structuring to legally protect your assets from creditors and frivolous lawsuits.',
+      intro: 'Asset protection planning uses legal structures — irrevocable trusts, properly structured life insurance, qualified retirement accounts, LLCs, and family limited partnerships — to shield personal and business wealth from creditors, lawsuits, and excessive taxation. In most US states, life insurance cash value and qualified retirement plan assets receive significant statutory protection from creditors. A properly designed asset protection plan must be in place BEFORE a claim arises — fraudulent transfer laws prevent last-minute restructuring.',
+      faqs: [
+        { q: 'When should I start asset protection planning?', a: 'Now. Asset protection only works if it is established before any claim or threat arises. Transfers made in anticipation of a known creditor are typically void under fraudulent transfer statutes.' },
+        { q: 'Are retirement accounts protected from creditors?', a: 'Yes — ERISA-qualified plans (401(k), pension) receive unlimited federal protection. IRAs are protected up to $1,512,350 (2024) under federal bankruptcy law, with broader protection in many states.' },
+        { q: 'Does life insurance protect from lawsuits?', a: 'In most states, the cash value of life insurance owned by the insured is partially or fully exempt from creditor claims. Florida, Texas, and several other states offer 100% protection.' },
+      ],
+    },
+    es: {
+      title: 'Protección de Activos | Everence Wealth',
+      h1: 'Protección de Activos: Proteja Su Patrimonio de Demandas, Acreedores e Impuestos',
+      description: 'Use fideicomisos, seguros de vida, planes de jubilación calificados y estructuración de entidades para proteger legalmente sus activos.',
+      intro: 'La planificación de protección de activos utiliza estructuras legales — fideicomisos irrevocables, seguros de vida correctamente estructurados, cuentas de jubilación calificadas, LLC y sociedades familiares limitadas — para proteger el patrimonio personal y empresarial de acreedores, demandas e impuestos excesivos.',
+      faqs: [
+        { q: '¿Cuándo debo comenzar la planificación de protección de activos?', a: 'Ahora. La protección de activos solo funciona si se establece antes de que surja cualquier reclamo o amenaza.' },
+        { q: '¿Las cuentas de jubilación están protegidas de los acreedores?', a: 'Sí — los planes calificados ERISA (401(k), pensión) reciben protección federal ilimitada.' },
+        { q: '¿El seguro de vida protege contra demandas?', a: 'En la mayoría de los estados, el valor en efectivo del seguro de vida está parcial o totalmente exento de reclamos de acreedores.' },
+      ],
+    },
+  },
+}
+
+function generateStrategyHtml(lang: string, slugRaw: string): string | null {
+  // Normalize ES slug → EN key
+  const enKey = STRATEGY_ES_TO_EN[slugRaw] || slugRaw
+  const content = STRATEGY_CONTENT[enKey]
+  if (!content) return null
+
+  const c = lang === 'es' ? content.es : content.en
+  const enSlug = enKey
+  const esSlug = STRATEGY_EN_TO_ES[enKey] || enKey
+  const canonicalPath = lang === 'es'
+    ? `/es/estrategias/${esSlug}`
+    : `/en/strategies/${enSlug}`
+  const canonical = `${BASE_URL}${canonicalPath}`
+  const altEn = `${BASE_URL}/en/strategies/${enSlug}`
+  const altEs = `${BASE_URL}/es/estrategias/${esSlug}`
+
+  const escTitle = escapeHtml(c.title)
+  const escDesc = escapeHtml(c.description)
+  const escH1 = escapeHtml(c.h1)
+
+  const serviceSchema = JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'FinancialProduct',
+    'name': c.h1,
+    'description': c.description,
+    'url': canonical,
+    'provider': {
+      '@type': 'FinancialService',
+      'name': 'Everence Wealth',
+      'url': BASE_URL,
+    },
+    'inLanguage': lang,
+  })
+
+  const faqSchema = JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    'mainEntity': c.faqs.map(f => ({
+      '@type': 'Question',
+      'name': f.q,
+      'acceptedAnswer': { '@type': 'Answer', 'text': f.a },
+    })),
+  })
+
+  const breadcrumbSchema = JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    'itemListElement': [
+      { '@type': 'ListItem', 'position': 1, 'name': lang === 'es' ? 'Inicio' : 'Home', 'item': `${BASE_URL}/${lang}/` },
+      { '@type': 'ListItem', 'position': 2, 'name': lang === 'es' ? 'Estrategias' : 'Strategies', 'item': `${BASE_URL}/${lang}/${lang === 'es' ? 'estrategias' : 'strategies'}` },
+      { '@type': 'ListItem', 'position': 3, 'name': c.h1, 'item': canonical },
+    ],
+  })
+
+  const speakableSchema = JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'WebPage',
+    'name': c.h1,
+    'speakable': { '@type': 'SpeakableSpecification', 'cssSelector': ['#speakable-summary', 'h1'] },
+    'url': canonical,
+  })
+
+  const ssrStyles = generateSSRStyles()
+  const langPrefix = `/${lang}`
+  const stratLabel = lang === 'es' ? 'Estrategias' : 'Strategies'
+  const ctaTitle = lang === 'es' ? '¿Listo para construir su futuro financiero?' : 'Ready to Build Your Financial Future?'
+  const ctaText = lang === 'es' ? 'Hable con un asesor independiente de Everence Wealth.' : 'Speak with an independent Everence Wealth advisor.'
+  const ctaButton = lang === 'es' ? 'Contáctenos' : 'Get in Touch'
+  const faqHeading = lang === 'es' ? 'Preguntas Frecuentes' : 'Frequently Asked Questions'
+  const relatedHeading = lang === 'es' ? 'Lectura relacionada' : 'Related Reading'
+
+  return `<!DOCTYPE html>
+<html lang="${lang}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <title>${escTitle}</title>
+  <meta name="title" content="${escTitle}" />
+  <meta name="description" content="${escDesc}" />
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1" />
+  <link rel="canonical" href="${canonical}" />
+  <link rel="alternate" hreflang="en" href="${altEn}" />
+  <link rel="alternate" hreflang="es" href="${altEs}" />
+  <link rel="alternate" hreflang="x-default" href="${altEn}" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="${canonical}" />
+  <meta property="og:title" content="${escTitle}" />
+  <meta property="og:description" content="${escDesc}" />
+  <meta property="og:site_name" content="Everence Wealth" />
+  <meta property="og:locale" content="${LOCALE_MAP[lang] || 'en_US'}" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="${escTitle}" />
+  <meta name="twitter:description" content="${escDesc}" />
+  <script type="application/ld+json">${serviceSchema}</script>
+  <script type="application/ld+json">${faqSchema}</script>
+  <script type="application/ld+json">${breadcrumbSchema}</script>
+  <script type="application/ld+json">${speakableSchema}</script>
+  ${ssrStyles}
+</head>
+<body>
+  <header class="site-header">
+    <nav class="nav-container">
+      <a href="${langPrefix}/" class="logo-link">
+        <img src="https://assets.cdn.filesafe.space/htr97zzmRc1NMujHbL9R/media/69b7424c5b89c7c557adfe6e.png" alt="Everence Wealth" class="logo">
+      </a>
+      <div class="nav-links">
+        <a href="${langPrefix}/${lang === 'es' ? 'estrategias' : 'strategies'}/iul">${stratLabel}</a>
+        <a href="${langPrefix}/blog">Blog</a>
+        <a href="${langPrefix}/qa">Q&amp;A</a>
+        <a href="${langPrefix}/${lang === 'es' ? 'contacto' : 'contact'}">${lang === 'es' ? 'Contacto' : 'Contact'}</a>
+      </div>
+    </nav>
+  </header>
+  <main class="article-container">
+    <article itemscope itemtype="https://schema.org/FinancialProduct">
+      <header class="article-header">
+        <h1 itemprop="name">${escH1}</h1>
+      </header>
+      <div class="speakable-summary speakable-answer" id="speakable-summary" itemprop="description">
+        <p>${escapeHtml(c.description)}</p>
+      </div>
+      <div class="article-content" itemprop="description">
+        <p>${escapeHtml(c.intro)}</p>
+      </div>
+      <section class="faq-section">
+        <h2>${faqHeading}</h2>
+        ${c.faqs.map(f => `
+        <details class="faq-item">
+          <summary>${escapeHtml(f.q)}</summary>
+          <p>${escapeHtml(f.a)}</p>
+        </details>`).join('')}
+      </section>
+      <nav class="internal-links-section" aria-label="Related strategies">
+        <h3>${relatedHeading}</h3>
+        <ul>
+          ${Object.keys(STRATEGY_CONTENT).filter(k => k !== enKey).map(k => {
+            const slug = lang === 'es' ? (STRATEGY_EN_TO_ES[k] || k) : k
+            const label = lang === 'es' ? STRATEGY_CONTENT[k].es.h1 : STRATEGY_CONTENT[k].en.h1
+            return `<li><a href="${langPrefix}/${lang === 'es' ? 'estrategias' : 'strategies'}/${slug}">${escapeHtml(label)}</a></li>`
+          }).join('\n          ')}
+        </ul>
+      </nav>
+      <div class="cta-section">
+        <h3>${ctaTitle}</h3>
+        <p>${ctaText}</p>
+        <a href="${langPrefix}/${lang === 'es' ? 'contacto' : 'contact'}" class="cta-button">${ctaButton}</a>
+      </div>
+    </article>
+  </main>
+  <footer class="site-footer">
+    <div class="footer-content">
+      <p>&copy; ${new Date().getFullYear()} Everence Wealth. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>`
+}
+
+// ============================================================
+// HOMEPAGE SSR
+// ============================================================
+function generateHomeHtml(lang: 'en' | 'es'): string {
+  const isEs = lang === 'es'
+  const title = isEs
+    ? 'Everence Wealth | Asesoría Financiera Independiente y Seguros de Vida'
+    : 'Everence Wealth | Independent Financial Advisory & Life Insurance'
+  const description = isEs
+    ? 'Asesoría financiera independiente especializada en estrategias de jubilación libres de impuestos, seguros de vida con valor en efectivo y protección de activos.'
+    : 'Independent financial advisory specializing in tax-free retirement strategies, cash-value life insurance, and asset protection. Bridge the retirement gap with proven wealth-building frameworks.'
+  const h1 = isEs
+    ? 'Cierre la Brecha de la Jubilación con Estrategias Probadas de Riqueza'
+    : 'Bridge the Retirement Gap with Proven Wealth Strategies'
+  const intro = isEs
+    ? 'Everence Wealth es una firma de asesoría financiera independiente que ayuda a familias y profesionales a construir riqueza con ventajas fiscales mediante seguros de vida con valor en efectivo, estrategias de jubilación Roth y planificación de protección de activos.'
+    : 'Everence Wealth is an independent financial advisory firm helping families and professionals build tax-advantaged wealth through cash-value life insurance, Roth retirement strategies, and asset protection planning.'
+
+  const canonical = `${BASE_URL}/${lang}/`
+  const altEn = `${BASE_URL}/en/`
+  const altEs = `${BASE_URL}/es/`
+
+  const orgSchema = JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'FinancialService',
+    'name': 'Everence Wealth',
+    'url': BASE_URL,
+    'logo': 'https://assets.cdn.filesafe.space/htr97zzmRc1NMujHbL9R/media/69b7424c5b89c7c557adfe6e.png',
+    'description': description,
+    'sameAs': [],
+    'areaServed': { '@type': 'Country', 'name': 'United States' },
+  })
+
+  const websiteSchema = JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    'name': 'Everence Wealth',
+    'url': BASE_URL,
+    'inLanguage': [lang],
+    'potentialAction': {
+      '@type': 'SearchAction',
+      'target': `${BASE_URL}/${lang}/qa?q={search_term_string}`,
+      'query-input': 'required name=search_term_string',
+    },
+  })
+
+  const faqs = isEs ? [
+    { q: '¿Qué es Everence Wealth?', a: 'Everence Wealth es una firma de asesoría financiera independiente especializada en estrategias de jubilación libres de impuestos, seguros de vida con valor en efectivo y protección de activos.' },
+    { q: '¿Trabajan con clientes en todo Estados Unidos?', a: 'Sí. Trabajamos con familias y profesionales en los 50 estados a través de reuniones virtuales seguras.' },
+    { q: '¿Cómo cobran sus servicios?', a: 'Como asesores independientes, nuestros servicios de planificación y estrategia generalmente son sin costo para el cliente; somos compensados por las compañías de seguros cuando un producto es adecuado.' },
+  ] : [
+    { q: 'What is Everence Wealth?', a: 'Everence Wealth is an independent financial advisory firm specializing in tax-free retirement strategies, cash-value life insurance, and asset protection planning.' },
+    { q: 'Do you work with clients nationwide?', a: 'Yes. We work with families and professionals in all 50 states through secure virtual meetings.' },
+    { q: 'How do you charge for your services?', a: 'As independent advisors, our planning and strategy services are typically no-cost to the client; we are compensated by insurance carriers when a product is appropriate.' },
+  ]
+
+  const faqSchema = JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    'mainEntity': faqs.map(f => ({
+      '@type': 'Question', 'name': f.q,
+      'acceptedAnswer': { '@type': 'Answer', 'text': f.a },
+    })),
+  })
+
+  const speakableSchema = JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'WebPage',
+    'name': h1,
+    'speakable': { '@type': 'SpeakableSpecification', 'cssSelector': ['#speakable-summary', 'h1'] },
+    'url': canonical,
+  })
+
+  const escTitle = escapeHtml(title)
+  const escDesc = escapeHtml(description)
+  const escH1 = escapeHtml(h1)
+  const langPrefix = `/${lang}`
+  const ssrStyles = generateSSRStyles()
+  const stratLabel = isEs ? 'Estrategias' : 'Strategies'
+
+  return `<!DOCTYPE html>
+<html lang="${lang}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <title>${escTitle}</title>
+  <meta name="description" content="${escDesc}" />
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1" />
+  <link rel="canonical" href="${canonical}" />
+  <link rel="alternate" hreflang="en" href="${altEn}" />
+  <link rel="alternate" hreflang="es" href="${altEs}" />
+  <link rel="alternate" hreflang="x-default" href="${altEn}" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="${canonical}" />
+  <meta property="og:title" content="${escTitle}" />
+  <meta property="og:description" content="${escDesc}" />
+  <meta property="og:site_name" content="Everence Wealth" />
+  <meta property="og:locale" content="${LOCALE_MAP[lang] || 'en_US'}" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="${escTitle}" />
+  <meta name="twitter:description" content="${escDesc}" />
+  <script type="application/ld+json">${orgSchema}</script>
+  <script type="application/ld+json">${websiteSchema}</script>
+  <script type="application/ld+json">${faqSchema}</script>
+  <script type="application/ld+json">${speakableSchema}</script>
+  ${ssrStyles}
+</head>
+<body>
+  <header class="site-header">
+    <nav class="nav-container">
+      <a href="${langPrefix}/" class="logo-link">
+        <img src="https://assets.cdn.filesafe.space/htr97zzmRc1NMujHbL9R/media/69b7424c5b89c7c557adfe6e.png" alt="Everence Wealth" class="logo">
+      </a>
+      <div class="nav-links">
+        <a href="${langPrefix}/${isEs ? 'estrategias' : 'strategies'}/iul">${stratLabel}</a>
+        <a href="${langPrefix}/blog">Blog</a>
+        <a href="${langPrefix}/qa">Q&amp;A</a>
+        <a href="${langPrefix}/${isEs ? 'contacto' : 'contact'}">${isEs ? 'Contacto' : 'Contact'}</a>
+      </div>
+    </nav>
+  </header>
+  <main class="article-container">
+    <article>
+      <header class="article-header">
+        <h1>${escH1}</h1>
+      </header>
+      <div class="speakable-summary speakable-answer" id="speakable-summary">
+        <p>${escDesc}</p>
+      </div>
+      <div class="article-content">
+        <p>${escapeHtml(intro)}</p>
+      </div>
+      <section class="faq-section">
+        <h2>${isEs ? 'Preguntas Frecuentes' : 'Frequently Asked Questions'}</h2>
+        ${faqs.map(f => `
+        <details class="faq-item">
+          <summary>${escapeHtml(f.q)}</summary>
+          <p>${escapeHtml(f.a)}</p>
+        </details>`).join('')}
+      </section>
+      <nav class="internal-links-section" aria-label="Explore">
+        <h3>${isEs ? 'Explorar' : 'Explore'}</h3>
+        <ul>
+          <li><a href="${langPrefix}/${isEs ? 'estrategias' : 'strategies'}/iul">${isEs ? 'Seguro de Vida Universal Indexado (IUL)' : 'Indexed Universal Life Insurance (IUL)'}</a></li>
+          <li><a href="${langPrefix}/${isEs ? 'estrategias' : 'strategies'}/${isEs ? 'seguro-vida-entera' : 'whole-life'}">${isEs ? 'Seguro de Vida Entera' : 'Whole Life Insurance'}</a></li>
+          <li><a href="${langPrefix}/${isEs ? 'estrategias' : 'strategies'}/${isEs ? 'retiro-libre-impuestos' : 'tax-free-retirement'}">${isEs ? 'Jubilación Libre de Impuestos' : 'Tax-Free Retirement'}</a></li>
+          <li><a href="${langPrefix}/${isEs ? 'estrategias' : 'strategies'}/${isEs ? 'proteccion-de-activos' : 'asset-protection'}">${isEs ? 'Protección de Activos' : 'Asset Protection'}</a></li>
+          <li><a href="${langPrefix}/blog">${isEs ? 'Blog' : 'Blog'}</a></li>
+          <li><a href="${langPrefix}/qa">${isEs ? 'Preguntas y Respuestas' : 'Questions &amp; Answers'}</a></li>
+        </ul>
+      </nav>
+      <div class="cta-section">
+        <h3>${isEs ? '¿Listo para empezar?' : 'Ready to Get Started?'}</h3>
+        <p>${isEs ? 'Hable con un asesor independiente hoy.' : 'Speak with an independent advisor today.'}</p>
+        <a href="${langPrefix}/${isEs ? 'contacto' : 'contact'}" class="cta-button">${isEs ? 'Contáctenos' : 'Get in Touch'}</a>
+      </div>
+    </article>
+  </main>
+  <footer class="site-footer">
+    <div class="footer-content">
+      <p>&copy; ${new Date().getFullYear()} Everence Wealth. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>`
+}
+
 /**
  * Main request handler with timeout protection
  */
@@ -2308,7 +2762,8 @@ async function handleRequest(req: Request): Promise<Response> {
         ...corsHeaders,
         'Content-Type': 'text/html; charset=utf-8',
         'Cache-Control': 'public, max-age=3600',
-        'X-SEO-Source': 'edge-function-hub'
+        'X-SEO-Source': 'edge-function-hub',
+        'X-SSR-Schema': 'injected=true'
       }
     })
   }
@@ -2331,7 +2786,55 @@ async function handleRequest(req: Request): Promise<Response> {
         ...corsHeaders,
         'Content-Type': 'text/html; charset=utf-8',
         'Cache-Control': 'public, max-age=3600',
-        'X-SEO-Source': 'edge-function-buyers-guide'
+        'X-SEO-Source': 'edge-function-buyers-guide',
+        'X-SSR-Schema': 'injected=true'
+      }
+    })
+  }
+
+  // ============================================================
+  // STRATEGY DETAIL: /{lang}/strategies/{slug} or /es/estrategias/{slug}
+  // Hardcoded BOFU money-pages — emit full SSR with H1, body, schemas
+  // ============================================================
+  const strategyMatch = path.match(/^\/(en|es)\/(strategies|estrategias)\/([a-z0-9-]+)\/?$/i)
+  if (strategyMatch) {
+    const [, lang, , slugRaw] = strategyMatch
+    const slug = slugRaw.toLowerCase()
+    console.log(`[SEO] Detected strategy detail: lang=${lang}, slug=${slug}`)
+    const html = generateStrategyHtml(lang, slug)
+    if (html) {
+      return new Response(html, {
+        status: 200,
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'text/html; charset=utf-8',
+          'Cache-Control': 'public, max-age=3600, stale-while-revalidate=86400',
+          'X-SEO-Source': 'edge-function-strategy',
+          'X-SSR-Schema': 'injected=true',
+          'X-Content-Language': lang,
+        }
+      })
+    }
+  }
+
+  // ============================================================
+  // HOMEPAGE: /, /en, /en/, /es, /es/
+  // Emit Organization + WebSite + FAQPage schemas with visible H1
+  // ============================================================
+  const homeMatch = path.match(/^\/(en|es)?\/?$/)
+  if (homeMatch) {
+    const lang = (homeMatch[1] || 'en') as 'en' | 'es'
+    console.log(`[SEO] Detected homepage: lang=${lang}`)
+    const html = generateHomeHtml(lang)
+    return new Response(html, {
+      status: 200,
+      headers: {
+        ...corsHeaders,
+        'Content-Type': 'text/html; charset=utf-8',
+        'Cache-Control': 'public, max-age=3600, stale-while-revalidate=86400',
+        'X-SEO-Source': 'edge-function-home',
+        'X-SSR-Schema': 'injected=true',
+        'X-Content-Language': lang,
       }
     })
   }
@@ -2568,6 +3071,7 @@ async function handleRequest(req: Request): Promise<Response> {
         'Content-Type': 'text/html; charset=utf-8',
         'Cache-Control': 'public, max-age=3600, stale-while-revalidate=86400',
         'X-SEO-Source': 'edge-function-ssr',
+        'X-SSR-Schema': 'injected=true',
         'X-Content-Language': metadata.language,
       }
     })
