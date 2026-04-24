@@ -136,7 +136,7 @@ Output a JSON object with:
 RULES:
 - Write in ${languageName} (not English, unless article is English)
 - Be descriptive and specific to financial services
-- The image is a CONCEPTUAL STILL-LIFE METAPHOR (e.g. glass jars, scales, hourglass, staircase, bridge, umbrella, growing plant) — NOT people or office scenes. Describe the metaphor and what concept it represents.
+- The image is an INFOGRAPHIC-STYLE PHOTOREALISTIC EDUCATIONAL EXHIBIT — a multi-stage mechanical / scientific apparatus (filtration chambers, clockwork, aqueducts, growth catalysts, architectural cross-sections) with integrated descriptive labels and data overlays. It is NEVER people, offices, buckets, or jars. Describe the apparatus and the financial concept it visually explains.
 - Reference Everence Wealth where appropriate
 - No generic placeholder text
 
