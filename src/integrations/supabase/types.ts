@@ -5970,6 +5970,51 @@ export type Database = {
           },
         ]
       }
+      image_scan_jobs: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          error_message: string | null
+          finished_at: string | null
+          flagged: number
+          id: string
+          processed: number
+          scan_type: string
+          started_at: string | null
+          status: string
+          total: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          error_message?: string | null
+          finished_at?: string | null
+          flagged?: number
+          id?: string
+          processed?: number
+          scan_type?: string
+          started_at?: string | null
+          status?: string
+          total?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          error_message?: string | null
+          finished_at?: string | null
+          flagged?: number
+          id?: string
+          processed?: number
+          scan_type?: string
+          started_at?: string | null
+          status?: string
+          total?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       internal_link_suggestions: {
         Row: {
           applied_at: string | null
