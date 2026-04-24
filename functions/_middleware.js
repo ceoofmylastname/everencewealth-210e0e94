@@ -428,6 +428,80 @@ export async function onRequest({ request, next, env }) {
     return next();
   }
 
+  // ============================================================
+  // STRATEGY + HOMEPAGE SSR FALLBACK
+  // Try static file first, fall back to serve-seo-page if thin
+  // ============================================================
+  const strategyMatch = pathname.match(/^\/(en|es)\/(strategies|estrategias)\/[a-z0-9-]+\/?$/i);
+  const homeMatch = pathname.match(/^\/(en|es)?\/?$/);
+  if (strategyMatch || homeMatch) {
+    const staticResponse = await next();
+    const staticClone = staticResponse.clone();
+    const staticBody = await staticClone.text();
+
+    const isComplete =
+      staticBody.includes('<!DOCTYPE html>') &&
+      !staticBody.includes('<div id="root"></div>') &&
+      staticBody.length > 5000 &&
+      staticBody.includes('internal-links-section');
+
+    if (isComplete) {
+      console.log(`[Middleware] Static served (complete): ${pathname}`);
+      const headers = new Headers(staticResponse.headers);
+      headers.set('X-Middleware-Status', 'Active');
+      headers.set('X-SEO-Source', 'static');
+      headers.set('Cache-Control', 'public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400');
+      const seoResponse = new Response(staticBody, {
+        status: staticResponse.status,
+        statusText: staticResponse.statusText,
+        headers,
+      });
+      return injectSeoTags(seoResponse, pathname.startsWith('/') && pathname.length > 1 ? pathname : '/en/');
+    }
+
+    console.log(`[Middleware] Static thin for ${pathname}, trying SSR fallback`);
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 12000);
+      const ssrPath = pathname === '/' ? '/en/' : pathname;
+      const ssrResponse = await fetch(
+        `${SUPABASE_URL}/functions/v1/serve-seo-page?path=${encodeURIComponent(ssrPath)}&html=true`,
+        {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+            'Content-Type': 'application/json',
+            'X-Original-URL': url.toString(),
+            'X-Forwarded-Host': url.host,
+          },
+          signal: controller.signal,
+        }
+      );
+      clearTimeout(timeoutId);
+      const ssrBody = await ssrResponse.text();
+      if (ssrResponse.ok && ssrBody.includes('<!DOCTYPE html>') && ssrBody.length > 1000) {
+        console.log(`[Middleware] SSR fallback success: ${pathname}`);
+        const ssrSchemaHeader = ssrResponse.headers.get('X-SSR-Schema') || 'injected=true';
+        const ssrFinal = new Response(ssrBody, {
+          status: 200,
+          headers: {
+            'Content-Type': 'text/html; charset=utf-8',
+            'Cache-Control': 'public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400',
+            'X-SEO-Source': 'edge-function-ssr',
+            'X-SSR-Schema': ssrSchemaHeader,
+            'X-Robots-Tag': 'all',
+            'X-Middleware-Status': 'Active',
+          },
+        });
+        return injectSeoTags(ssrFinal, ssrPath);
+      }
+      console.log(`[Middleware] SSR returned ${ssrResponse.status}, falling through to SPA`);
+    } catch (err) {
+      console.error(`[Middleware] SSR fallback error for ${pathname}:`, err?.message);
+    }
+    return next();
+  }
+
   // Check if this route needs SEO
   if (needsSEO(pathname)) {
     console.log('[Middleware] Routing to SEO edge function:', pathname);
