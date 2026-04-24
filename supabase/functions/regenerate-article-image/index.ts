@@ -432,7 +432,7 @@ Output ONLY the image prompt as a single dense paragraph (300–500 words). Open
     // Hard-append negative constraints so Kie.ai cannot hallucinate brand marks.
     // NOTE: We intentionally allow short physical labels on objects (e.g. "Taxable" etched on a jar)
     // so the negative suffix bans branding/headlines but NOT all letters.
-    const negativeSuffix = ' --no company logos, no brand names, no wordmarks, no watermarks, no signatures, no photographer credits, no headlines, no paragraph text, no captions, no stock-photo marks, no buckets, no mason jars, no storage jars, no dates, no branded devices, no named software interfaces';
+    const negativeSuffix = ' --no company logos, no brand names, no wordmarks, no watermarks, no signatures, no photographer credits, no headlines, no paragraph text, no captions, no stock-photo marks, no dates, no branded devices, no named software interfaces';
     const alreadyHasNegative = /no\s+(company\s+)?logos?\b/i.test(imagePrompt)
       || /no\s+brand(\s+names?)?\b/i.test(imagePrompt)
       || /no\s+watermarks?\b/i.test(imagePrompt);
