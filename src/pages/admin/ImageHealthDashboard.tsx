@@ -24,6 +24,8 @@ import {
   Sparkles
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { LogoBrandingScanTab } from '@/components/admin/image-health/LogoBrandingScanTab';
+import { ShieldAlert } from 'lucide-react';
 
 interface ImageIssue {
   id: string;
@@ -657,13 +659,21 @@ export default function ImageHealthDashboard() {
             <Clock className="h-4 w-4" />
             Expired URLs ({counts.expiredUrls})
           </TabsTrigger>
+          <TabsTrigger value="logos" className="gap-2">
+            <ShieldAlert className="h-4 w-4" />
+            Logo & Branding
+          </TabsTrigger>
           <TabsTrigger value="fixed" className="gap-2">
             <CheckCircle2 className="h-4 w-4 text-green-500" />
             Fixed ({counts.fixed})
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value={activeTab} className="mt-4">
+        <TabsContent value="logos" className="mt-4">
+          <LogoBrandingScanTab />
+        </TabsContent>
+
+        <TabsContent value={activeTab === 'logos' ? '__skip__' : activeTab} className="mt-4">
           {loading ? (
             <div className="flex items-center justify-center py-12">
               <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
