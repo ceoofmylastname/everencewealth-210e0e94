@@ -2340,6 +2340,53 @@ async function handleRequest(req: Request): Promise<Response> {
     })
   }
 
+  // ============================================================
+  // STRATEGY DETAIL: /{lang}/strategies/{slug} or /es/estrategias/{slug}
+  // Hardcoded BOFU money-pages — emit full SSR with H1, body, schemas
+  // ============================================================
+  const strategyMatch = path.match(/^\/(en|es)\/(strategies|estrategias)\/([a-z0-9-]+)\/?$/i)
+  if (strategyMatch) {
+    const [, lang, , slugRaw] = strategyMatch
+    const slug = slugRaw.toLowerCase()
+    console.log(`[SEO] Detected strategy detail: lang=${lang}, slug=${slug}`)
+    const html = generateStrategyHtml(lang, slug)
+    if (html) {
+      return new Response(html, {
+        status: 200,
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'text/html; charset=utf-8',
+          'Cache-Control': 'public, max-age=3600, stale-while-revalidate=86400',
+          'X-SEO-Source': 'edge-function-strategy',
+          'X-SSR-Schema': 'injected=true',
+          'X-Content-Language': lang,
+        }
+      })
+    }
+  }
+
+  // ============================================================
+  // HOMEPAGE: /, /en, /en/, /es, /es/
+  // Emit Organization + WebSite + FAQPage schemas with visible H1
+  // ============================================================
+  const homeMatch = path.match(/^\/(en|es)?\/?$/)
+  if (homeMatch) {
+    const lang = (homeMatch[1] || 'en') as 'en' | 'es'
+    console.log(`[SEO] Detected homepage: lang=${lang}`)
+    const html = generateHomeHtml(lang)
+    return new Response(html, {
+      status: 200,
+      headers: {
+        ...corsHeaders,
+        'Content-Type': 'text/html; charset=utf-8',
+        'Cache-Control': 'public, max-age=3600, stale-while-revalidate=86400',
+        'X-SEO-Source': 'edge-function-home',
+        'X-SSR-Schema': 'injected=true',
+        'X-Content-Language': lang,
+      }
+    })
+  }
+
   // Parse the path: /{lang}/{type}/{slug}
   const pathMatch = path.match(/^\/(\w{2})\/(qa|blog|compare|locations)\/(.+)$/)
   
