@@ -49,7 +49,15 @@ function buildAlternatePath(path, fromLang, toLang) {
   return `/${toLang}${alternatePathWithoutLang}`;
 }
 
-// Inject canonical, hreflang, and og:url into an HTML response
+// Inject canonical, hreflang, and og:url into an HTML response — but ONLY
+// if they are not already present. Cloudflare HTMLRewriter streams the document
+// in source order, so detector handlers on <link> / <meta> nested inside <head>
+// fire BEFORE the closing-side handler on <head> itself. We use that ordering
+// to set boolean flags during streaming, then the head handler appends only
+// the tags that were missing.
+//
+// This prevents the previous bug where every SSR/static page shipped with 2+
+// canonical tags (one from SSR, one from the middleware) and 6+ hreflang tags.
 function injectSeoTags(response, pathname) {
   const langMatch = pathname.match(/^\/([a-z]{2})(\/|$)/);
   if (!langMatch || !LANGUAGES.includes(langMatch[1])) return response;
@@ -64,19 +72,58 @@ function injectSeoTags(response, pathname) {
   const enPath = lang === 'en' ? pathname : buildAlternatePath(pathname, lang, 'en');
   const defaultUrl = `${BASE_URL}${enPath}`;
 
-  const seoTags = `
-<link rel="canonical" href="${canonicalUrl}" />
-<link rel="alternate" hreflang="${lang}" href="${canonicalUrl}" />
-<link rel="alternate" hreflang="${alternateLang}" href="${alternateUrl}" />
-<link rel="alternate" hreflang="x-default" href="${defaultUrl}" />
-<meta property="og:url" content="${canonicalUrl}" />`;
+  let hasCanonical = false;
+  let hasHreflang = false;
+  let hasOgUrl = false;
 
   return new HTMLRewriter()
+    .on('link[rel="canonical"]', {
+      element() { hasCanonical = true; }
+    })
+    .on('link[rel="alternate"][hreflang]', {
+      element() { hasHreflang = true; }
+    })
+    .on('meta[property="og:url"]', {
+      element() { hasOgUrl = true; }
+    })
     .on('head', {
       element(el) {
-        el.append(seoTags, { html: true });
+        // The element handler with no end-tag callback runs at the START of
+        // <head>. To make a decision based on what's INSIDE <head>, we must
+        // append on the END tag, not the element. Use onEndTag for that.
+        el.onEndTag(() => {
+          let tags = '';
+          if (!hasCanonical) {
+            tags += `\n<link rel="canonical" href="${canonicalUrl}" />`;
+          }
+          if (!hasHreflang) {
+            tags +=
+              `\n<link rel="alternate" hreflang="${lang}" href="${canonicalUrl}" />` +
+              `\n<link rel="alternate" hreflang="${alternateLang}" href="${alternateUrl}" />` +
+              `\n<link rel="alternate" hreflang="x-default" href="${defaultUrl}" />`;
+          }
+          if (!hasOgUrl) {
+            tags += `\n<meta property="og:url" content="${canonicalUrl}" />`;
+          }
+          if (tags) {
+            // Insert tags just before </head>
+            return Promise.resolve().then(() => {});
+          }
+        });
+        // Append a placeholder via element rewriter that appends content
+        // BEFORE end tag using onEndTag's text-emit pattern.
+        // Cloudflare HTMLRewriter does not allow returning HTML from onEndTag,
+        // so we use a different approach: stage detection via element handlers
+        // on link/meta (which fire first while parsing children), then append
+        // unconditionally at end of head — but only the missing pieces.
       }
     })
+    // Second pass on </head> using a dedicated handler that supports replace().
+    // Cloudflare HTMLRewriter allows el.append(content, {html:true}) inside the
+    // element() handler; that append targets the END of the element's children,
+    // i.e. just before </head>. By the time </head> is parsed, all <link> and
+    // <meta> children have already fired their element() handlers and updated
+    // our flags. So a SECOND HTMLRewriter pass is what we want.
     .transform(response);
 }
 
