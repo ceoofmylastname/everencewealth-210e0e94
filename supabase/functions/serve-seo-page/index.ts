@@ -659,11 +659,6 @@ function generateHreflangTags(siblings: HreflangSibling[], currentLang: string, 
   return tags.join('\n')
 }
 
-/**
- * Generate full SEO HTML for hub pages (e.g., /{lang}/locations)
- * Includes all metadata, hreflang tags, and JSON-LD schema
- */
-function generateHubPageHtml(lang: string, hubType: string): string {
 // ============================================================
 // HUB / INDEX PAGE RENDERERS (Fix 9, 2026-04-24)
 //
