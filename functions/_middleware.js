@@ -616,18 +616,39 @@ export async function onRequest({ request, next, env }) {
         });
       }
 
-      // If we got HTML content (check for DOCTYPE or <html), use it
+      // If we got HTML content (check for DOCTYPE or <html), use it.
+      // Copy ALL headers from the edge response so custom X-* headers
+      // (X-SEO-Source, X-Hub-Type, X-SSR-Source, X-SSR-Schema,
+      // X-Content-Language, etc.) survive the proxy hop. Middleware only
+      // adds security/cache fallbacks when the edge function did not
+      // already set them.
       if (seoBody.includes('<!DOCTYPE html>') || seoBody.includes('<html')) {
         console.log('[Middleware] SEO function returned HTML');
+        const newHeaders = new Headers();
+        for (const [key, value] of seoResponse.headers.entries()) {
+          newHeaders.set(key, value);
+        }
+        // Always re-assert content-type (the upstream sometimes omits charset)
+        newHeaders.set('Content-Type', 'text/html; charset=utf-8');
+        // Middleware-owned diagnostics
+        newHeaders.set('X-SEO-Status', seoStatus);
+        newHeaders.set('X-Middleware-Status', 'Active');
+        // Security + cache fallbacks (only if upstream did not set them)
+        if (!newHeaders.has('Strict-Transport-Security')) {
+          newHeaders.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+        }
+        if (!newHeaders.has('X-Content-Type-Options')) {
+          newHeaders.set('X-Content-Type-Options', 'nosniff');
+        }
+        if (!newHeaders.has('Referrer-Policy')) {
+          newHeaders.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+        }
+        if (!newHeaders.has('Cache-Control')) {
+          newHeaders.set('Cache-Control', 'public, max-age=600, stale-while-revalidate=86400');
+        }
         const edgeResponse = new Response(seoBody, {
           status: 200,
-          headers: {
-            'Content-Type': 'text/html; charset=utf-8',
-            'Cache-Control': 'public, max-age=300',
-            'X-SEO-Source': 'edge-function',
-            'X-SEO-Status': seoStatus,
-            'X-Middleware-Status': 'Active',
-          }
+          headers: newHeaders,
         });
         return injectSeoTags(edgeResponse, pathname);
       }
