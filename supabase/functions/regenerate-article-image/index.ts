@@ -136,7 +136,7 @@ Output a JSON object with:
 RULES:
 - Write in ${languageName} (not English, unless article is English)
 - Be descriptive and specific to financial services
-- The image is an INFOGRAPHIC-STYLE PHOTOREALISTIC EDUCATIONAL EXHIBIT — a multi-stage mechanical / scientific apparatus (filtration chambers, clockwork, aqueducts, growth catalysts, architectural cross-sections) with integrated descriptive labels and data overlays. It is NEVER people, offices, buckets, or jars. Describe the apparatus and the financial concept it visually explains.
+- The image is an INFOGRAPHIC-STYLE PHOTOREALISTIC EDUCATIONAL EXHIBIT — a multi-stage visual apparatus (filtration chambers, clockwork, aqueducts, growth catalysts, architectural cross-sections, labeled glass jars/buckets, scales, hourglasses, or any object-based metaphor that best visualizes the article's concept) with integrated descriptive labels and data overlays. It is NEVER people or offices. Describe the apparatus and the financial concept it visually explains. Buckets and jars ARE allowed when they are the clearest visual metaphor (e.g. three labeled tax buckets).
 - Reference Everence Wealth where appropriate
 - No generic placeholder text
 
@@ -192,7 +192,7 @@ function buildFallbackPrompt(funnelStage?: string, clusterTheme?: string): strin
     BOFU: `a premium museum-grade educational apparatus visualizing the decisive outcome of ${theme}, with a central polished titanium core, glowing data conduits branching to three labeled outcome chambers, integrated tablet-style displays showing comparative metrics, and a brass plaque reading "OUTCOME STAGE"`,
   };
   const scene = stageScenes[(funnelStage || '').toUpperCase()] || stageScenes.MOFU;
-  return `${scene}, photorealistic museum-exhibit composition with dense infographic detail, integrated diagrammatic call-outs, schematic overlays, holographic data clouds and descriptive functional labels, premium materials (crystal, brushed titanium, brass, copper, polished chrome), cinematic studio lighting in cool blue, warm amber and vibrant green, 16:9 aspect ratio, 2K resolution, no company logos, no brand names, no watermarks, no buckets, no jars`;
+  return `${scene}, photorealistic museum-exhibit composition with dense infographic detail, integrated diagrammatic call-outs, schematic overlays, holographic data clouds and descriptive functional labels, premium materials (crystal, brushed titanium, brass, copper, polished chrome, optionally including labeled glass jars or buckets when they best illustrate the concept), cinematic studio lighting in cool blue, warm amber and vibrant green, 16:9 aspect ratio, 2K resolution, no company logos, no brand names, no watermarks`;
 }
 
 serve(async (req) => {
@@ -341,8 +341,8 @@ Generate a hyper-detailed, photorealistic, infographic-like visual explainer der
 
 1. NO logos, brand names, wordmarks, registered trademarks, watermarks, signatures, photographer credits, or stock-photo marks. Inspect every label and replace any branded language with generic descriptive copy.
 2. NO branded niche widgets — no specific phone models, named software UIs, branded chart tools, or proprietary devices that imply a company.
-3. NO buckets, jars, mason jars, or literal storage-container metaphors as the central framework. The central structure must instead be a complex mechanical, scientific, natural, architectural, or clockwork apparatus.
-4. NO separate "article title" block, headline plate, or paragraph text floating in the image. The ONLY text allowed is short, descriptive functional labels integrated into the graphic elements themselves (etched plaques, schematic call-outs, gauge labels, conduit tags, plaque headings on stages).
+3. Buckets, jars, glass vessels, scales, hourglasses, and similar object-based metaphors ARE PERMITTED and encouraged when they are the clearest visual representation of the article's concept (e.g. three labeled glass jars for the Three Tax Buckets). Choose the metaphor that best explains the topic — mechanical apparatus, clockwork, filtration system, aqueduct, orrery, architectural cross-section, OR labeled containers — whichever communicates the concept most clearly.
+4. NO separate "article title" block, headline plate, or paragraph text floating in the image. The ONLY text allowed is short, descriptive functional labels integrated into the graphic elements themselves (etched plaques, jar labels, schematic call-outs, gauge labels, conduit tags, plaque headings on stages).
 5. NO dates anywhere in the image. Use generic future-state language like "FUTURE HARVEST" or "RETIREMENT WINDOW".
 6. NO people as the primary subject. Tiny generic silhouettes or figurines are allowed only if the metaphor demands them (e.g. a small house with a figurine for legacy transfer).
 7. Named competitors are FORBIDDEN: Apex, Ascend, Ameriprise, Edward Jones, Fidelity, Vanguard, Schwab, Merrill, Morgan Stanley, Raymond James, LPL, Northwestern Mutual, Prudential, MassMutual, John Hancock, Lincoln, Allianz, Pacific Life, Nationwide, MetLife, New York Life, Transamerica, AIG, Mutual of Omaha — and any other firm name.
@@ -350,7 +350,8 @@ Generate a hyper-detailed, photorealistic, infographic-like visual explainer der
 ## SYNTHESIS PROCESS (do this silently before writing the prompt)
 
 1. Identify the article's main subject, key processes, comparative elements, restrictions/rules, and final outcomes.
-2. Choose a NON-BUCKET complex metaphor that models the relationship. Pick from these families (or invent a comparable one):
+2. Choose the BEST visual metaphor that models the relationship — pick whatever most clearly explains the concept. Options include:
+   - Labeled glass jars, buckets, vessels, or containers (ideal for tax buckets, asset categories, allocations)
    - Multi-stage filtration / catalyst systems (chambers, gauges, valves, conduits)
    - Aqueducts, waterfalls, pipe networks, pressure vessels
    - Clockwork mechanisms (gears, escapements, mainsprings, pendulums)
@@ -381,11 +382,11 @@ The image MUST be visually dense and infographic-heavy. Required elements in EVE
 
 ## OUTPUT FORMAT
 
-Output ONLY the image prompt as a single dense paragraph (300–500 words). Open with the apparatus name and setting. Describe each stage with materials + integrated labels + internal mechanisms. Describe the interconnecting conduits with their descriptive tags. Mention the integrated schematic overlays, data clouds, and tablet-style screens. End with: "photorealistic museum-exhibit composition, cinematic studio lighting, dense infographic detail, descriptive functional labels only, 16:9 aspect ratio, 2K resolution — devoid of any company logos, brand names, buckets, jars, or dates."`
+Output ONLY the image prompt as a single dense paragraph (300–500 words). Open with the apparatus or scene name and setting. Describe each stage or vessel with materials + integrated labels + internal mechanisms. Describe the interconnecting conduits or relationships with their descriptive tags. Mention the integrated schematic overlays, data clouds, and tablet-style screens. End with: "photorealistic museum-exhibit composition, cinematic studio lighting, dense infographic detail, descriptive functional labels only, 16:9 aspect ratio, 2K resolution — devoid of any company logos, brand names, watermarks, or dates."`
           },
           {
             role: 'user',
-            content: `Synthesize this article into an Image Explainer (IE) prompt. First silently identify the core concept, key stages, and comparative elements. Then choose a NON-BUCKET complex metaphor (filtration system, clockwork, aqueduct, orrery, growth catalyst, architectural cross-section, etc.). Then write the dense single-paragraph photorealistic prompt:\n\n${contentForAnalysis}`
+            content: `Synthesize this article into an Image Explainer (IE) prompt. First silently identify the core concept, key stages, and comparative elements. Then choose the BEST visual metaphor that most clearly explains the concept — labeled glass jars/buckets/vessels are encouraged when they fit (e.g. tax buckets), or use a filtration system, clockwork, aqueduct, orrery, growth catalyst, or architectural cross-section when those fit better. Then write the dense single-paragraph photorealistic prompt:\n\n${contentForAnalysis}`
           }
         ]
       }),
@@ -431,7 +432,7 @@ Output ONLY the image prompt as a single dense paragraph (300–500 words). Open
     // Hard-append negative constraints so Kie.ai cannot hallucinate brand marks.
     // NOTE: We intentionally allow short physical labels on objects (e.g. "Taxable" etched on a jar)
     // so the negative suffix bans branding/headlines but NOT all letters.
-    const negativeSuffix = ' --no company logos, no brand names, no wordmarks, no watermarks, no signatures, no photographer credits, no headlines, no paragraph text, no captions, no stock-photo marks, no buckets, no mason jars, no storage jars, no dates, no branded devices, no named software interfaces';
+    const negativeSuffix = ' --no company logos, no brand names, no wordmarks, no watermarks, no signatures, no photographer credits, no headlines, no paragraph text, no captions, no stock-photo marks, no dates, no branded devices, no named software interfaces';
     const alreadyHasNegative = /no\s+(company\s+)?logos?\b/i.test(imagePrompt)
       || /no\s+brand(\s+names?)?\b/i.test(imagePrompt)
       || /no\s+watermarks?\b/i.test(imagePrompt);
