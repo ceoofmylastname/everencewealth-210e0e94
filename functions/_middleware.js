@@ -116,12 +116,35 @@ function injectSeoTags(response, pathname) {
     .transform(response);
 }
 
-// SEO content routes that need edge function SSR
-// NOTE: All content pages (blog, QA, compare, locations) are now pre-rendered
-// as static HTML files during build. The middleware should NOT intercept them.
-// Static files contain full branding + all SEO metadata (hreflang, canonical, schemas).
-// Edge function is ONLY for truly dynamic routes or fallback scenarios.
-const SEO_ROUTE_PATTERNS = [];
+// SEO content routes that need edge function SSR.
+//
+// Detail pages: pre-rendered static HTML covers most of these, but the
+// middleware still routes them to the edge function so that any newly
+// published or recently updated detail page is served fresh from the DB
+// (the edge function falls through to the static file if the DB row is
+// missing).
+//
+// Hub / index pages (added 2026-04-24, Fix 9): /blog, /qa, /locations,
+// /compare were previously SPA shells with no SSR schema. The edge
+// function now renders fully-formed hub pages (H1 + intro + child links
+// + FAQPage + ItemList + CollectionPage + BreadcrumbList) using a
+// 10-minute hub_cache table for performance.
+const SEO_ROUTE_PATTERNS = [
+  // -------- Detail pages (already SSR'd by serve-seo-page) --------
+  /^\/(en|es)\/blog\/[^\/]+\/?$/,
+  /^\/(en|es)\/qa\/[^\/]+\/?$/,
+  /^\/(en|es)\/strategies\/[^\/]+\/?$/,
+  /^\/(en|es)\/estrategias\/[^\/]+\/?$/,
+  /^\/(en|es)\/(locations|ubicaciones)\/[^\/]+(\/[^\/]+)?\/?$/,
+  /^\/(en|es)\/(compare|comparar|comparisons)\/[^\/]+\/?$/,
+  /^\/(en|es)\/(glossary|glosario)\/[^\/]+\/?$/,
+
+  // -------- Hub / index pages (NEW - SSR via serve-seo-page) --------
+  /^\/(en|es)\/blog\/?$/,
+  /^\/(en|es)\/qa\/?$/,
+  /^\/(en|es)\/(locations|ubicaciones)\/?$/,
+  /^\/(en|es)\/(compare|comparar|comparisons)\/?$/,
+];
 
 
 // Check if path needs SEO edge function
