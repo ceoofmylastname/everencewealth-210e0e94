@@ -346,6 +346,7 @@ Generate a hyper-detailed, photorealistic, infographic-like visual explainer der
 5. NO dates anywhere in the image. Use generic future-state language like "FUTURE HARVEST" or "RETIREMENT WINDOW".
 6. NO people as the primary subject. Tiny generic silhouettes or figurines are allowed only if the metaphor demands them (e.g. a small house with a figurine for legacy transfer).
 7. Named competitors are FORBIDDEN: Apex, Ascend, Ameriprise, Edward Jones, Fidelity, Vanguard, Schwab, Merrill, Morgan Stanley, Raymond James, LPL, Northwestern Mutual, Prudential, MassMutual, John Hancock, Lincoln, Allianz, Pacific Life, Nationwide, MetLife, New York Life, Transamerica, AIG, Mutual of Omaha — and any other firm name.
+8. NO market index names, ticker symbols, or exchange names anywhere in the image — specifically forbidden: S&P 500, S&P, SPX, Dow Jones, DJIA, Nasdaq, NDX, Russell 2000, Russell, FTSE, MSCI, Wilshire, NYSE, CBOE, VIX, and any stock ticker (e.g. AAPL, TSLA). If the article references "the market" or a "broad index", any plaque or label MUST use generic phrasing like "MARKET INDEX", "BROAD INDEX", or "EQUITY INDEX" — never a real index name.
 
 ## SYNTHESIS PROCESS (do this silently before writing the prompt)
 
