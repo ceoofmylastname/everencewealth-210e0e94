@@ -49,7 +49,20 @@ function buildAlternatePath(path, fromLang, toLang) {
   return `/${toLang}${alternatePathWithoutLang}`;
 }
 
-// Inject canonical, hreflang, and og:url into an HTML response
+// Inject canonical, hreflang, and og:url into an HTML response — but ONLY
+// if they are not already present.
+//
+// Cloudflare HTMLRewriter streams the document in source order. By registering
+// detector handlers on `link[rel="canonical"]`, `link[rel="alternate"][hreflang]`,
+// and `meta[property="og:url"]`, we set boolean flags as those elements stream
+// past inside <head>. We then attach an `onEndTag` callback to <head> that
+// fires when </head> is parsed — by which point every child of <head> has
+// already streamed through and updated our flags. Inside that callback we
+// call `endTag.before(html, { html: true })`, which inserts the missing tags
+// immediately before </head>.
+//
+// This prevents the previous bug where every SSR/static page shipped with 2+
+// canonical tags (one from SSR, one from the middleware) and 6+ hreflang tags.
 function injectSeoTags(response, pathname) {
   const langMatch = pathname.match(/^\/([a-z]{2})(\/|$)/);
   if (!langMatch || !LANGUAGES.includes(langMatch[1])) return response;
@@ -64,17 +77,40 @@ function injectSeoTags(response, pathname) {
   const enPath = lang === 'en' ? pathname : buildAlternatePath(pathname, lang, 'en');
   const defaultUrl = `${BASE_URL}${enPath}`;
 
-  const seoTags = `
-<link rel="canonical" href="${canonicalUrl}" />
-<link rel="alternate" hreflang="${lang}" href="${canonicalUrl}" />
-<link rel="alternate" hreflang="${alternateLang}" href="${alternateUrl}" />
-<link rel="alternate" hreflang="x-default" href="${defaultUrl}" />
-<meta property="og:url" content="${canonicalUrl}" />`;
+  let hasCanonical = false;
+  let hasHreflang = false;
+  let hasOgUrl = false;
 
   return new HTMLRewriter()
+    .on('link[rel="canonical"]', {
+      element() { hasCanonical = true; }
+    })
+    .on('link[rel="alternate"][hreflang]', {
+      element() { hasHreflang = true; }
+    })
+    .on('meta[property="og:url"]', {
+      element() { hasOgUrl = true; }
+    })
     .on('head', {
       element(el) {
-        el.append(seoTags, { html: true });
+        el.onEndTag((endTag) => {
+          let tags = '';
+          if (!hasCanonical) {
+            tags += `\n<link rel="canonical" href="${canonicalUrl}" />`;
+          }
+          if (!hasHreflang) {
+            tags +=
+              `\n<link rel="alternate" hreflang="${lang}" href="${canonicalUrl}" />` +
+              `\n<link rel="alternate" hreflang="${alternateLang}" href="${alternateUrl}" />` +
+              `\n<link rel="alternate" hreflang="x-default" href="${defaultUrl}" />`;
+          }
+          if (!hasOgUrl) {
+            tags += `\n<meta property="og:url" content="${canonicalUrl}" />`;
+          }
+          if (tags) {
+            endTag.before(tags, { html: true });
+          }
+        });
       }
     })
     .transform(response);
