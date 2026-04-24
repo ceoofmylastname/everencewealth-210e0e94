@@ -382,11 +382,11 @@ The image MUST be visually dense and infographic-heavy. Required elements in EVE
 
 ## OUTPUT FORMAT
 
-Output ONLY the image prompt as a single dense paragraph (300–500 words). Open with the apparatus name and setting. Describe each stage with materials + integrated labels + internal mechanisms. Describe the interconnecting conduits with their descriptive tags. Mention the integrated schematic overlays, data clouds, and tablet-style screens. End with: "photorealistic museum-exhibit composition, cinematic studio lighting, dense infographic detail, descriptive functional labels only, 16:9 aspect ratio, 2K resolution — devoid of any company logos, brand names, buckets, jars, or dates."`
+Output ONLY the image prompt as a single dense paragraph (300–500 words). Open with the apparatus or scene name and setting. Describe each stage or vessel with materials + integrated labels + internal mechanisms. Describe the interconnecting conduits or relationships with their descriptive tags. Mention the integrated schematic overlays, data clouds, and tablet-style screens. End with: "photorealistic museum-exhibit composition, cinematic studio lighting, dense infographic detail, descriptive functional labels only, 16:9 aspect ratio, 2K resolution — devoid of any company logos, brand names, watermarks, or dates."`
           },
           {
             role: 'user',
-            content: `Synthesize this article into an Image Explainer (IE) prompt. First silently identify the core concept, key stages, and comparative elements. Then choose a NON-BUCKET complex metaphor (filtration system, clockwork, aqueduct, orrery, growth catalyst, architectural cross-section, etc.). Then write the dense single-paragraph photorealistic prompt:\n\n${contentForAnalysis}`
+            content: `Synthesize this article into an Image Explainer (IE) prompt. First silently identify the core concept, key stages, and comparative elements. Then choose the BEST visual metaphor that most clearly explains the concept — labeled glass jars/buckets/vessels are encouraged when they fit (e.g. tax buckets), or use a filtration system, clockwork, aqueduct, orrery, growth catalyst, or architectural cross-section when those fit better. Then write the dense single-paragraph photorealistic prompt:\n\n${contentForAnalysis}`
           }
         ]
       }),
