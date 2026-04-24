@@ -341,8 +341,8 @@ Generate a hyper-detailed, photorealistic, infographic-like visual explainer der
 
 1. NO logos, brand names, wordmarks, registered trademarks, watermarks, signatures, photographer credits, or stock-photo marks. Inspect every label and replace any branded language with generic descriptive copy.
 2. NO branded niche widgets — no specific phone models, named software UIs, branded chart tools, or proprietary devices that imply a company.
-3. NO buckets, jars, mason jars, or literal storage-container metaphors as the central framework. The central structure must instead be a complex mechanical, scientific, natural, architectural, or clockwork apparatus.
-4. NO separate "article title" block, headline plate, or paragraph text floating in the image. The ONLY text allowed is short, descriptive functional labels integrated into the graphic elements themselves (etched plaques, schematic call-outs, gauge labels, conduit tags, plaque headings on stages).
+3. Buckets, jars, glass vessels, scales, hourglasses, and similar object-based metaphors ARE PERMITTED and encouraged when they are the clearest visual representation of the article's concept (e.g. three labeled glass jars for the Three Tax Buckets). Choose the metaphor that best explains the topic — mechanical apparatus, clockwork, filtration system, aqueduct, orrery, architectural cross-section, OR labeled containers — whichever communicates the concept most clearly.
+4. NO separate "article title" block, headline plate, or paragraph text floating in the image. The ONLY text allowed is short, descriptive functional labels integrated into the graphic elements themselves (etched plaques, jar labels, schematic call-outs, gauge labels, conduit tags, plaque headings on stages).
 5. NO dates anywhere in the image. Use generic future-state language like "FUTURE HARVEST" or "RETIREMENT WINDOW".
 6. NO people as the primary subject. Tiny generic silhouettes or figurines are allowed only if the metaphor demands them (e.g. a small house with a figurine for legacy transfer).
 7. Named competitors are FORBIDDEN: Apex, Ascend, Ameriprise, Edward Jones, Fidelity, Vanguard, Schwab, Merrill, Morgan Stanley, Raymond James, LPL, Northwestern Mutual, Prudential, MassMutual, John Hancock, Lincoln, Allianz, Pacific Life, Nationwide, MetLife, New York Life, Transamerica, AIG, Mutual of Omaha — and any other firm name.
@@ -350,7 +350,8 @@ Generate a hyper-detailed, photorealistic, infographic-like visual explainer der
 ## SYNTHESIS PROCESS (do this silently before writing the prompt)
 
 1. Identify the article's main subject, key processes, comparative elements, restrictions/rules, and final outcomes.
-2. Choose a NON-BUCKET complex metaphor that models the relationship. Pick from these families (or invent a comparable one):
+2. Choose the BEST visual metaphor that models the relationship — pick whatever most clearly explains the concept. Options include:
+   - Labeled glass jars, buckets, vessels, or containers (ideal for tax buckets, asset categories, allocations)
    - Multi-stage filtration / catalyst systems (chambers, gauges, valves, conduits)
    - Aqueducts, waterfalls, pipe networks, pressure vessels
    - Clockwork mechanisms (gears, escapements, mainsprings, pendulums)
