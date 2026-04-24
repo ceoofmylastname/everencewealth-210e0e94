@@ -664,164 +664,560 @@ function generateHreflangTags(siblings: HreflangSibling[], currentLang: string, 
  * Includes all metadata, hreflang tags, and JSON-LD schema
  */
 function generateHubPageHtml(lang: string, hubType: string): string {
-  const locale = LOCALE_MAP[lang] || 'en_GB'
-  const canonicalUrl = `${BASE_URL}/${lang}/${hubType}`
-  
-  // Localized hub content
-  const hubContent: Record<string, { title: string; description: string; speakableSummary: string }> = {
-    en: {
-      title: "Wealth Management Guides | Everence Wealth",
-      description: "Explore comprehensive wealth management guides. Expert insights on tax-free retirement, IUL strategies, asset protection, and financial planning.",
-      speakableSummary: "Everence Wealth Wealth Intelligence Hub provides comprehensive financial planning guides. Explore expert insights on tax-free retirement strategies, indexed universal life insurance, asset protection, and wealth preservation."
-    },
-    nl: {
-      title: "Vermogensbeheer Gidsen | Everence Wealth",
-      description: "Ontdek uitgebreide gidsen voor vermogensbeheer. Expertinzichten over belastingvrij pensioen, IUL-strategieën en vermogensbescherming.",
-      speakableSummary: "Everence Wealth Wealth Intelligence Hub biedt uitgebreide financiële planningsgidsen voor vermogensbeheer."
-    },
-    de: {
-      title: "Vermögensverwaltung Leitfäden | Everence Wealth",
-      description: "Entdecken Sie umfassende Vermögensverwaltung Leitfäden. Experteneinblicke zu steuerfreier Altersvorsorge, IUL-Strategien und Vermögensschutz.",
-      speakableSummary: "Everence Wealth Wealth Intelligence Hub bietet umfassende Finanzplanungsleitfäden für Vermögensverwaltung."
-    },
-    fr: {
-      title: "Guides de Gestion de Patrimoine | Everence Wealth",
-      description: "Explorez des guides complets de gestion de patrimoine. Informations d'experts sur la retraite défiscalisée, les stratégies IUL et la protection des actifs.",
-      speakableSummary: "Everence Wealth Wealth Intelligence Hub fournit des guides complets de planification financière."
-    },
-    sv: {
-      title: "Förmögenhetsförvaltning Guider | Everence Wealth",
-      description: "Utforska omfattande guider för förmögenhetsförvaltning. Expertinsikter om skattefri pension, IUL-strategier och tillgångsskydd.",
-      speakableSummary: "Everence Wealth Wealth Intelligence Hub erbjuder omfattande finansiella planeringsguider."
-    },
-    no: {
-      title: "Formuesforvaltning Guider | Everence Wealth",
-      description: "Utforsk omfattende guider for formuesforvaltning. Ekspertinnsikt om skattefri pensjon, IUL-strategier og aktivabeskyttelse.",
-      speakableSummary: "Everence Wealth Wealth Intelligence Hub tilbyr omfattende finansielle planleggingsguider."
-    },
-    da: {
-      title: "Formueforvaltning Guider | Everence Wealth",
-      description: "Udforsk omfattende guider for formueforvaltning. Ekspertindsigt i skattefri pension, IUL-strategier og aktivbeskyttelse.",
-      speakableSummary: "Everence Wealth Wealth Intelligence Hub tilbyder omfattende finansielle planlægningsguider."
-    },
-    fi: {
-      title: "Varallisuudenhoito Oppaat | Everence Wealth",
-      description: "Tutustu kattaviin varallisuudenhoito-oppaisiin. Asiantuntijatietoa verovapaa eläkkeestä, IUL-strategioista ja varallisuuden suojaamisesta.",
-      speakableSummary: "Everence Wealth Wealth Intelligence Hub tarjoaa kattavat taloussuunnitteluoppaat."
-    },
-    pl: {
-      title: "Przewodniki po Zarządzaniu Majątkiem | Everence Wealth",
-      description: "Odkryj kompleksowe przewodniki po zarządzaniu majątkiem. Eksperckie informacje o emeryturze wolnej od podatków, strategiach IUL i ochronie aktywów.",
-      speakableSummary: "Everence Wealth Wealth Intelligence Hub zapewnia kompleksowe przewodniki po planowaniu finansowym."
-    },
-    hu: {
-      title: "Vagyonkezelési Útmutatók | Everence Wealth",
-      description: "Fedezze fel az átfogó vagyonkezelési útmutatókat. Szakértői betekintés az adómentes nyugdíjba, IUL stratégiákba és vagyonvédelembe.",
-      speakableSummary: "A Everence Wealth Wealth Intelligence Hub átfogó pénzügyi tervezési útmutatókat kínál."
+// ============================================================
+// HUB / INDEX PAGE RENDERERS (Fix 9, 2026-04-24)
+//
+// Renders fully-formed SEO HTML for the four hub pages:
+//   /en|es/blog
+//   /en|es/qa
+//   /en|es/locations  (also /es/ubicaciones)
+//   /en|es/compare    (also /es/comparar, /es/comparisons)
+//
+// Each hub emits:
+//   - <title> + <meta name="description"> + canonical + hreflang + og:*
+//   - JSON-LD: Organization + CollectionPage + ItemList + FAQPage +
+//     BreadcrumbList + SpeakableSpecification
+//   - Visible H1, 80-120 word speakable intro, child link list
+//     (grouped for /locations + /compare, flat for /blog + /qa),
+//     5-question FAQ accordion, closing CTA paragraph
+//   - <nav class="internal-links-section"> with the same child links
+//
+// Source data is cached in the hub_cache table (10-min TTL, invalidated
+// on publish via DB triggers). Cache miss falls back to a live query.
+// ============================================================
+
+type HubType = 'blog' | 'qa' | 'locations' | 'compare'
+
+interface HubChildLink {
+  url: string
+  title: string
+  description: string
+  group?: string
+  groupSubtitle?: string
+}
+
+interface HubPayload {
+  links: HubChildLink[]
+  totalPublished: number
+}
+
+interface HubMeta {
+  title: string
+  description: string
+  h1: string
+  intro: string
+  faqs: { q: string; a: string }[]
+  ctaText: string
+  ctaHref: string
+  breadcrumbName: string
+}
+
+const HUB_PATH_FOR_TYPE: Record<HubType, string> = {
+  blog: 'blog',
+  qa: 'qa',
+  locations: 'locations',
+  compare: 'compare',
+}
+
+function getHubMeta(hubType: HubType, lang: string, totalPublished: number): HubMeta {
+  const isEs = lang === 'es'
+  const fmtCount = totalPublished > 0 ? totalPublished : ''
+
+  switch (hubType) {
+    case 'blog':
+      return isEs ? {
+        title: 'Artículos de Gestión Patrimonial | Everence Wealth',
+        description: 'Guías expertas sobre planificación de jubilación, estrategias fiscales, seguros indexados y protección patrimonial. Publicado y revisado por asesores autorizados.',
+        h1: 'Artículos de Gestión Patrimonial',
+        intro: `Everence Wealth publica análisis editoriales sobre planificación de jubilación, estrategias indexadas, eficiencia fiscal y protección de activos. Cada artículo es escrito o revisado por un profesional autorizado y se actualiza cuando cambia la ley fiscal o las prácticas del sector. Actualmente disponibles ${fmtCount} artículos en español, ordenados por fecha de actualización para que primero veas el contenido más reciente. <a href="/es/blog/comprender-la-brecha-de-jubilacion-por-que-es-mas-importante-que-nunca-1-992v">Comienza con nuestro artículo principal sobre la brecha de jubilación</a>.`,
+        faqs: [
+          { q: '¿Con qué frecuencia publica nuevos artículos Everence Wealth?', a: 'Publicamos contenido nuevo varias veces al mes, priorizando temas que reflejan cambios recientes en la legislación fiscal estadounidense y en los productos del IRS Code 7702. Los artículos existentes se revisan trimestralmente.' },
+          { q: '¿Quién escribe los artículos?', a: 'Cada artículo es producido o revisado por un asesor autorizado del equipo Everence Wealth, encabezado por Steven Rosenberg. Los autores y revisores aparecen claramente identificados al final de cada artículo, junto con sus credenciales.' },
+          { q: '¿Qué temas cubre Everence Wealth?', a: 'Cubrimos planificación de jubilación libre de impuestos, seguros indexados (IUL), seguros de vida entera, protección de activos, planificación patrimonial, estrategias contra los "Tres Asesinos Silenciosos" (comisiones, volatilidad, impuestos) y educación financiera para familias en su etapa de acumulación y distribución.' },
+          { q: '¿Cómo encuentro un artículo relevante para mi situación?', a: 'Usa la lista cronológica a continuación o navega por categorías. Si necesitas orientación personalizada, agenda una consulta gratuita y te conectaremos con un asesor que revisará tu caso específico antes de la llamada.' },
+          { q: '¿Reflejan los artículos la ley fiscal vigente?', a: 'Sí. Cada artículo lleva una fecha de "última actualización" visible y se revisa cuando hay cambios significativos en el IRS Code, leyes estatales aplicables o regulaciones de aseguradoras. Si encuentras información desactualizada, contáctanos.' },
+        ],
+        ctaText: '¿Listo para una conversación personalizada? Reserva una consulta gratuita de 30 minutos con un asesor de Everence Wealth y revisaremos tu situación específica antes de recomendar cualquier estrategia.',
+        ctaHref: '/es/contact',
+        breadcrumbName: 'Artículos',
+      } : {
+        title: 'Wealth Management Articles | Everence Wealth',
+        description: 'Expert guides on retirement planning, tax strategies, indexed universal life insurance, and asset protection. Authored and reviewed by licensed advisors.',
+        h1: 'Wealth Management Articles',
+        intro: `Everence Wealth publishes editorial analysis on retirement planning, indexed strategies, tax efficiency, and asset protection. Every article is written or reviewed by a licensed professional and updated whenever tax law or industry practices change. ${fmtCount} articles are currently available in English, ordered by most-recently-updated so the freshest analysis appears first. <a href="/en/blog/understanding-the-retirement-gap-why-it-matters-now-more-than-ever">Start with our flagship article on the retirement gap</a>.`,
+        faqs: [
+          { q: 'How often does Everence Wealth publish new articles?', a: 'We publish new content several times per month, prioritizing topics that reflect recent changes in U.S. tax law and IRS Code 7702 products. Existing articles are reviewed quarterly and updated whenever the underlying regulations change.' },
+          { q: 'Who writes the articles on Everence Wealth?', a: 'Every article is produced or reviewed by a licensed advisor on the Everence Wealth team, led by Steven Rosenberg. Authors and reviewers are clearly identified at the end of each article along with their credentials and years of experience.' },
+          { q: 'What wealth topics does Everence Wealth cover?', a: 'We cover tax-free retirement planning, indexed universal life insurance (IUL), whole life insurance, asset protection, estate planning, the "Three Silent Killers" framework (fees, volatility, taxes), and financial education for families in both the accumulation and distribution stages.' },
+          { q: 'How do I find articles relevant to my specific situation?', a: 'Use the reverse-chronological list below or browse by category from any article page. If you need personalized guidance, schedule a free consultation and we will connect you with an advisor who reviews your specific situation before the call.' },
+          { q: 'Do articles reflect current tax law?', a: 'Yes. Each article carries a visible "last updated" date and is reviewed whenever there are material changes to the IRS Code, applicable state law, or carrier regulation. If you spot outdated information, please reach out and we will refresh it.' },
+        ],
+        ctaText: 'Ready for a personalized conversation? Book a free 30-minute consultation with an Everence Wealth advisor and we will review your specific situation before recommending any strategy.',
+        ctaHref: '/en/contact',
+        breadcrumbName: 'Articles',
+      }
+
+    case 'qa':
+      return isEs ? {
+        title: 'Preguntas Frecuentes sobre Patrimonio | Everence Wealth',
+        description: 'Respuestas claras y directas a preguntas comunes sobre jubilación, impuestos, seguros indexados y planificación patrimonial. Curadas por asesores autorizados.',
+        h1: 'Preguntas Frecuentes sobre Gestión Patrimonial',
+        intro: `Esta es la biblioteca de preguntas y respuestas de Everence Wealth: respuestas concisas y citables a las preguntas que las familias estadounidenses hacen con más frecuencia sobre jubilación libre de impuestos, seguros indexados, protección de activos y planificación financiera. Cada respuesta es revisada por un asesor autorizado y enlaza con el artículo completo cuando se necesita más profundidad. ${fmtCount} preguntas en español están disponibles a continuación, ordenadas por última actualización. <a href="/es/qa">Explora la biblioteca completa</a>.`,
+        faqs: [
+          { q: '¿De dónde vienen las preguntas en esta biblioteca?', a: 'Las preguntas provienen de tres fuentes: consultas reales de clientes recibidas por nuestros asesores, búsquedas frecuentes en motores de búsqueda y motores de IA conversacional, y consultas que llegan a nuestro formulario de contacto. Priorizamos preguntas con alto volumen de búsqueda y baja calidad de respuesta en otros sitios.' },
+          { q: '¿Quién revisa las respuestas?', a: 'Cada respuesta es revisada por un asesor autorizado de Everence Wealth antes de publicarse, y revalidada cuando cambia la ley fiscal o la regulación de aseguradoras. Las respuestas que afectan decisiones financieras llevan una fecha de revisión visible.' },
+          { q: '¿Puedo confiar en las respuestas para tomar decisiones financieras?', a: 'Las respuestas son educativas y no constituyen asesoramiento financiero personalizado. Para decisiones específicas (compra de pólizas, asignación de activos, planificación de jubilación) recomendamos agendar una consulta donde un asesor revise tu situación particular.' },
+          { q: '¿Qué hacer si mi pregunta no aparece aquí?', a: 'Envía tu pregunta por el formulario de contacto. Las preguntas frecuentes se incorporan a la biblioteca en español e inglés dentro de 7-14 días. Las preguntas urgentes reciben respuesta directa por correo o llamada.' },
+          { q: '¿Las respuestas reflejan la ley fiscal estadounidense actual?', a: 'Sí. Toda la biblioteca está alineada con el IRS Code, regulaciones estatales aplicables y prácticas vigentes del sector asegurador. Cuando cambia una regla material, actualizamos las respuestas afectadas.' },
+        ],
+        ctaText: '¿Tienes una pregunta sobre tu situación específica? Reserva una consulta gratuita de 30 minutos y un asesor responderá directamente, con análisis personalizado de tu caso.',
+        ctaHref: '/es/contact',
+        breadcrumbName: 'Preguntas y Respuestas',
+      } : {
+        title: 'Frequently Asked Wealth Questions | Everence Wealth',
+        description: 'Clear, direct answers to common questions about retirement, taxes, indexed life insurance, and wealth planning. Curated by licensed advisors.',
+        h1: 'Frequently Asked Wealth Management Questions',
+        intro: `This is the Everence Wealth question library: concise, citable answers to the questions American families most frequently ask about tax-free retirement, indexed life insurance, asset protection, and financial planning. Each answer is reviewed by a licensed advisor and links to the full article when more depth is needed. ${fmtCount} English questions are available below, ordered by most-recently-updated. <a href="/en/qa">Browse the full library</a>.`,
+        faqs: [
+          { q: 'Where do the questions in this library come from?', a: 'Questions come from three sources: actual client conversations received by our advisors, high-volume queries in search engines and conversational AI, and questions submitted through our contact form. We prioritize questions with high search volume and low answer quality on other sites.' },
+          { q: 'Who reviews the answers?', a: 'Every answer is reviewed by a licensed Everence Wealth advisor before publication and revalidated whenever tax law or carrier regulation changes. Answers that affect financial decisions carry a visible review date.' },
+          { q: 'Can I rely on these answers to make financial decisions?', a: 'Answers are educational and do not constitute personalized financial advice. For specific decisions (purchasing policies, asset allocation, retirement income planning) we recommend scheduling a consultation where an advisor reviews your particular situation in detail.' },
+          { q: 'What if my question is not listed?', a: 'Submit your question through the contact form. Recurring questions are added to the library in both English and Spanish within 7-14 days. Time-sensitive questions receive a direct email or call response from an advisor.' },
+          { q: 'Do answers reflect current U.S. tax law?', a: 'Yes. The entire library is kept aligned with the IRS Code, applicable state regulations, and current insurance industry practice. When a material rule changes, we update the affected answers and bump the visible review date.' },
+        ],
+        ctaText: 'Have a question about your specific situation? Book a free 30-minute consultation and an advisor will respond directly with personalized analysis of your case.',
+        ctaHref: '/en/contact',
+        breadcrumbName: 'Q&A',
+      }
+
+    case 'locations':
+      return isEs ? {
+        title: 'Servicios por Ubicación | Everence Wealth',
+        description: 'Estrategias de gestión patrimonial y planificación de jubilación adaptadas a tu estado y ciudad. Cobertura nacional con foco en regulaciones fiscales locales.',
+        h1: 'Servicios de Gestión Patrimonial por Ubicación',
+        intro: `Everence Wealth atiende familias en todo Estados Unidos, con páginas dedicadas que explican cómo las regulaciones fiscales estatales y municipales afectan las estrategias de jubilación libre de impuestos, seguros indexados y protección de activos. Selecciona tu ciudad o estado a continuación para ver guías localizadas, regulaciones aplicables y aseguradoras autorizadas en tu jurisdicción. ${fmtCount} páginas de ubicación en español están disponibles. <a href="/es/contact">Habla con un asesor sobre tu estado específico</a>.`,
+        faqs: [
+          { q: '¿Por qué importa la ubicación en planificación patrimonial?', a: 'La regulación fiscal estatal, las leyes de protección de activos (homestead, ERISA, exenciones de seguros) y las aseguradoras autorizadas varían dramáticamente entre estados. California, Texas, Florida y Nueva York tienen marcos completamente diferentes que afectan cuánto retienes después de impuestos.' },
+          { q: '¿Atiende Everence Wealth a clientes fuera de su estado de residencia?', a: 'Sí. Nuestros asesores tienen licencias en múltiples estados y trabajamos con familias en todo Estados Unidos. Las consultas iniciales son virtuales; las reuniones presenciales se coordinan según ubicación.' },
+          { q: '¿Qué información incluye cada página de ubicación?', a: 'Cada página describe el marco fiscal estatal, las protecciones de activos disponibles, las aseguradoras autorizadas, ejemplos de casos relevantes para residentes de esa zona, y las consideraciones específicas para residentes de alto patrimonio en esa jurisdicción.' },
+          { q: '¿Cómo selecciono la página correcta para mi situación?', a: 'Empieza por tu estado de residencia fiscal. Si tienes propiedades o negocios en múltiples estados, agenda una consulta para que un asesor diseñe una estrategia multijurisdiccional adecuada.' },
+          { q: '¿Las páginas reflejan las regulaciones estatales actuales?', a: 'Sí. Las páginas se revisan cuando hay cambios materiales en la legislación estatal o federal aplicable. Cada página lleva fecha de actualización visible.' },
+        ],
+        ctaText: '¿No encuentras tu ciudad? Atendemos familias en los 50 estados. Reserva una consulta gratuita y un asesor con licencia en tu estado revisará tu situación.',
+        ctaHref: '/es/contact',
+        breadcrumbName: 'Ubicaciones',
+      } : {
+        title: 'Wealth Management by Location | Everence Wealth',
+        description: 'Wealth management and retirement planning strategies tailored to your state and city. Nationwide coverage with focus on local tax regulations.',
+        h1: 'Wealth Management Services by Location',
+        intro: `Everence Wealth serves families across the United States with dedicated pages explaining how state and municipal tax regulations affect tax-free retirement, indexed life insurance, and asset protection strategies. Select your city or state below to see localized guides, applicable regulations, and licensed carriers in your jurisdiction. ${fmtCount} location pages are currently published in English. <a href="/en/contact">Speak with an advisor about your specific state</a>.`,
+        faqs: [
+          { q: 'Why does location matter in wealth planning?', a: 'State tax regulation, asset protection law (homestead, ERISA, insurance exemptions), and licensed carriers vary dramatically between states. California, Texas, Florida, and New York have fundamentally different frameworks that affect after-tax outcomes by tens of thousands of dollars over a lifetime.' },
+          { q: 'Does Everence Wealth serve clients outside its home state?', a: 'Yes. Our advisors hold licenses in multiple states and we work with families nationwide. Initial consultations are virtual; in-person meetings are coordinated based on location and advisor availability.' },
+          { q: 'What information is on each location page?', a: 'Each page covers the state tax framework, available asset protection, licensed carriers, case examples relevant to residents of that area, and specific considerations for high-net-worth residents in that jurisdiction.' },
+          { q: 'How do I pick the right page for my situation?', a: 'Start with your state of tax residence. If you own property or businesses across multiple states, schedule a consultation so an advisor can design an appropriate multi-jurisdictional strategy.' },
+          { q: 'Are pages kept current with state regulations?', a: 'Yes. Pages are reviewed whenever there are material changes to applicable state or federal legislation. Each page carries a visible last-updated date.' },
+        ],
+        ctaText: 'Cannot find your city? We serve families in all 50 states. Book a free consultation and an advisor licensed in your state will review your situation.',
+        ctaHref: '/en/contact',
+        breadcrumbName: 'Locations',
+      }
+
+    case 'compare':
+      return isEs ? {
+        title: 'Comparaciones de Productos Financieros | Everence Wealth',
+        description: 'Comparaciones lado a lado de IUL vs Whole Life, planes 401(k) vs IRA, seguros vs inversiones, y otras decisiones clave de planificación patrimonial.',
+        h1: 'Comparaciones de Productos y Estrategias Financieras',
+        intro: `La biblioteca de comparaciones de Everence Wealth ayuda a las familias a tomar decisiones informadas entre productos financieros que parecen similares pero tienen consecuencias fiscales y de protección muy diferentes. Cada comparación incluye un veredicto claro, escenarios de caso de uso, y la recomendación basada en perfil de cliente. ${fmtCount} comparaciones en español están disponibles. <a href="/es/contact">Si necesitas ayuda eligiendo, agenda una consulta</a>.`,
+        faqs: [
+          { q: '¿Cómo se eligen las comparaciones?', a: 'Comparamos productos y estrategias que las familias confunden con frecuencia: IUL vs Whole Life, anualidades indexadas vs anualidades fijas, 401(k) vs Roth IRA, seguros de vida como protección vs como inversión. Priorizamos pares que reciben búsquedas frecuentes y respuestas confusas en otros sitios.' },
+          { q: '¿Las comparaciones favorecen ciertos productos?', a: 'Las comparaciones son objetivas y se basan en datos del IRS, regulaciones estatales y rendimientos históricos. Cuando un producto es claramente superior para un perfil específico, lo decimos; cuando depende del caso, explicamos cuándo cada opción gana.' },
+          { q: '¿Quién valida las comparaciones?', a: 'Cada comparación es revisada por un asesor autorizado del equipo Everence Wealth y enlaza con las fuentes regulatorias originales. Las comparaciones llevan fecha de actualización visible.' },
+          { q: '¿Puedo usar las comparaciones para decidir qué comprar?', a: 'Las comparaciones son educativas y muestran cuándo cada opción es apropiada. Para una recomendación personalizada que considere tu situación fiscal, perfil de riesgo y objetivos, agenda una consulta gratuita con un asesor.' },
+          { q: '¿Qué pasa si necesito comparar productos que no aparecen aquí?', a: 'Solicita la comparación por el formulario de contacto. Las comparaciones de alta demanda se publican en 7-14 días en ambos idiomas. Para casos urgentes, un asesor responde directamente con un análisis personalizado.' },
+        ],
+        ctaText: '¿No estás seguro cuál opción es mejor para ti? Reserva una consulta gratuita de 30 minutos con un asesor que revisará tu situación antes de recomendar.',
+        ctaHref: '/es/contact',
+        breadcrumbName: 'Comparaciones',
+      } : {
+        title: 'Financial Product Comparisons | Everence Wealth',
+        description: 'Side-by-side comparisons of IUL vs Whole Life, 401(k) vs IRA, insurance vs investments, and other key wealth planning decisions.',
+        h1: 'Financial Product and Strategy Comparisons',
+        intro: `The Everence Wealth comparison library helps families make informed choices between financial products that look similar but carry very different tax and protection consequences. Each comparison includes a clear verdict, use-case scenarios, and a recommendation by client profile. ${fmtCount} comparisons are currently published in English. <a href="/en/contact">If you need help choosing, schedule a consultation</a>.`,
+        faqs: [
+          { q: 'How are comparisons chosen?', a: 'We compare products and strategies that families frequently conflate: IUL vs Whole Life, indexed annuities vs fixed annuities, 401(k) vs Roth IRA, life insurance as protection vs as investment. We prioritize pairs that receive heavy search volume with confusing answers elsewhere.' },
+          { q: 'Do comparisons favor certain products?', a: 'Comparisons are objective and based on IRS data, state regulations, and historical performance. When a product is clearly superior for a specific profile, we say so; when it depends on the case, we explain exactly when each option wins.' },
+          { q: 'Who validates the comparisons?', a: 'Each comparison is reviewed by a licensed advisor on the Everence Wealth team and links to original regulatory sources. Comparisons carry a visible last-updated date.' },
+          { q: 'Can I use comparisons to decide what to buy?', a: 'Comparisons are educational and show when each option is appropriate. For a personalized recommendation that considers your tax situation, risk profile, and goals, schedule a free consultation with an advisor.' },
+          { q: 'What if I need to compare products not listed?', a: 'Request the comparison through the contact form. High-demand comparisons are published in 7-14 days in both languages. For urgent cases, an advisor responds directly with personalized analysis.' },
+        ],
+        ctaText: 'Not sure which option is right for you? Book a free 30-minute consultation with an advisor who will review your situation before recommending.',
+        ctaHref: '/en/contact',
+        breadcrumbName: 'Comparisons',
+      }
+  }
+}
+
+/**
+ * Fetch the child link list for a hub from the source detail tables.
+ * Each branch knows its own table + columns + grouping rules.
+ */
+async function fetchHubChildren(
+  supabase: ReturnType<typeof createTimeoutClient>,
+  hubType: HubType,
+  lang: string,
+): Promise<HubPayload> {
+  switch (hubType) {
+    case 'blog': {
+      const { data, error } = await supabase
+        .from('blog_articles')
+        .select('slug, headline, meta_description, date_modified')
+        .eq('language', lang)
+        .eq('status', 'published')
+        .order('date_modified', { ascending: false })
+        .limit(40)
+      if (error) throw error
+      const links: HubChildLink[] = (data || []).map((row: any) => ({
+        url: `/${lang}/blog/${row.slug}`,
+        title: row.headline,
+        description: row.meta_description || '',
+      }))
+      return { links, totalPublished: links.length }
+    }
+
+    case 'qa': {
+      const { data, error } = await supabase
+        .from('qa_pages')
+        .select('slug, question_main, speakable_answer, date_modified')
+        .eq('language', lang)
+        .eq('status', 'published')
+        .order('date_modified', { ascending: false })
+        .limit(40)
+      if (error) throw error
+      const links: HubChildLink[] = (data || []).map((row: any) => ({
+        url: `/${lang}/qa/${row.slug}`,
+        title: row.question_main,
+        description: row.speakable_answer || '',
+      }))
+      return { links, totalPublished: links.length }
+    }
+
+    case 'locations': {
+      const { data, error } = await supabase
+        .from('location_pages')
+        .select('city_slug, topic_slug, city_name, state_code, region, headline, meta_description')
+        .eq('language', lang)
+        .eq('status', 'published')
+        .order('state_code', { ascending: true, nullsFirst: false })
+        .order('city_name', { ascending: true })
+        .limit(80)
+      if (error) throw error
+      const links: HubChildLink[] = (data || []).map((row: any) => {
+        const stateLabel = row.state_code || row.region || 'United States'
+        return {
+          url: `/${lang}/locations/${row.city_slug}/${row.topic_slug}`,
+          title: row.headline || `${row.city_name}, ${stateLabel}`,
+          description: row.meta_description || '',
+          group: stateLabel,
+          groupSubtitle: row.city_name,
+        }
+      })
+      return { links, totalPublished: links.length }
+    }
+
+    case 'compare': {
+      const { data, error } = await supabase
+        .from('comparison_pages')
+        .select('slug, comparison_topic, headline, meta_description, option_a, option_b, date_modified')
+        .eq('language', lang)
+        .eq('status', 'published')
+        .order('comparison_topic', { ascending: true, nullsFirst: false })
+        .order('date_modified', { ascending: false })
+        .limit(40)
+      if (error) throw error
+      const links: HubChildLink[] = (data || []).map((row: any) => ({
+        url: `/${lang}/compare/${row.slug}`,
+        title: row.headline || `${row.option_a} vs ${row.option_b}`,
+        description: row.meta_description || '',
+        group: row.comparison_topic || (lang === 'es' ? 'Comparaciones generales' : 'General comparisons'),
+      }))
+      return { links, totalPublished: links.length }
     }
   }
-  
-  const content = hubContent[lang] || hubContent.en
-  
-  // Generate hreflang tags for all 10 languages + x-default
-  const hreflangTags = SUPPORTED_LANGUAGES.map(langCode => 
-    `  <link rel="alternate" hreflang="${langCode}" href="${BASE_URL}/${langCode}/${hubType}" />`
-  ).join('\n')
-  const xDefaultTag = `  <link rel="alternate" hreflang="x-default" href="${BASE_URL}/en/${hubType}" />`
-  
-  // Generate JSON-LD schema
-  const schemaGraph = {
-    "@context": "https://schema.org",
-    "@graph": [
-      {
-        "@type": "Organization",
-        "@id": `${BASE_URL}/#organization`,
-        "name": "Everence Wealth",
-        "url": BASE_URL,
-        "logo": {
-          "@type": "ImageObject",
-          "url": "https://assets.cdn.filesafe.space/htr97zzmRc1NMujHbL9R/media/69b7424c5b89c7c557adfe6e.png"
-        }
-      },
-      {
-        "@type": "WebPage",
-        "@id": `${canonicalUrl}#webpage`,
-        "url": canonicalUrl,
-        "name": content.title,
-        "description": content.description,
-        "inLanguage": locale,
-        "speakable": {
-          "@type": "SpeakableSpecification",
-          "cssSelector": ["#speakable-summary", ".speakable-hub-intro", ".speakable-answer"]
-        }
-      },
-      {
-        "@type": "CollectionPage",
-        "@id": `${canonicalUrl}#collectionpage`,
-        "name": content.title,
-        "url": canonicalUrl,
-        "inLanguage": locale
-      },
-      {
-        "@type": "BreadcrumbList",
-        "@id": `${canonicalUrl}#breadcrumb`,
-        "itemListElement": [
-          { "@type": "ListItem", "position": 1, "name": "Home", "item": `${BASE_URL}/${lang}` },
-          { "@type": "ListItem", "position": 2, "name": "Locations", "item": canonicalUrl }
-        ]
-      }
-    ]
+}
+
+/**
+ * Get hub payload from cache, falling back to a live query and writing back.
+ */
+async function getHubPayload(
+  supabase: ReturnType<typeof createTimeoutClient>,
+  hubType: HubType,
+  lang: string,
+): Promise<HubPayload> {
+  // 1. Try cache
+  try {
+    const { data: cacheRow } = await supabase
+      .from('hub_cache')
+      .select('payload, expires_at, is_stale')
+      .eq('hub_type', hubType)
+      .eq('language', lang)
+      .maybeSingle()
+
+    if (cacheRow && !cacheRow.is_stale && new Date(cacheRow.expires_at) > new Date()) {
+      console.log(`[HubCache] HIT: ${hubType}:${lang}`)
+      return cacheRow.payload as HubPayload
+    }
+    console.log(`[HubCache] MISS or STALE: ${hubType}:${lang}`)
+  } catch (e) {
+    console.warn('[HubCache] read failed, falling through to live query:', e)
   }
-  
+
+  // 2. Live query
+  const payload = await fetchHubChildren(supabase, hubType, lang)
+
+  // 3. Best-effort write-back (non-blocking semantics)
+  try {
+    await supabase.from('hub_cache').upsert({
+      hub_type: hubType,
+      language: lang,
+      payload: payload as any,
+      generated_at: new Date().toISOString(),
+      expires_at: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
+      is_stale: false,
+    }, { onConflict: 'hub_type,language' })
+  } catch (e) {
+    console.warn('[HubCache] write-back failed:', e)
+  }
+
+  return payload
+}
+
+function renderChildLinkList(payload: HubPayload, hubType: HubType, lang: string): string {
+  if (payload.links.length === 0) {
+    return `<p>${lang === 'es' ? 'No hay contenido publicado todavía.' : 'No content published yet.'}</p>`
+  }
+
+  const useGrouping = hubType === 'locations' || hubType === 'compare'
+  if (!useGrouping) {
+    // Flat reverse-chronological list for blog + qa
+    const items = payload.links.map(link => `
+      <li class="hub-child-item">
+        <a href="${escapeHtml(link.url)}" class="hub-child-title">${escapeHtml(link.title)}</a>
+        ${link.description ? `<p class="hub-child-description">${escapeHtml(link.description)}</p>` : ''}
+      </li>`).join('')
+    return `<ul class="hub-child-list">${items}</ul>`
+  }
+
+  // Grouped list for locations + compare
+  const groups = new Map<string, HubChildLink[]>()
+  for (const link of payload.links) {
+    const g = link.group || (lang === 'es' ? 'Otros' : 'Other')
+    if (!groups.has(g)) groups.set(g, [])
+    groups.get(g)!.push(link)
+  }
+
+  const sections: string[] = []
+  for (const [groupName, links] of groups) {
+    const items = links.map(link => `
+      <li class="hub-child-item">
+        <a href="${escapeHtml(link.url)}" class="hub-child-title">${escapeHtml(link.title)}</a>
+        ${link.description ? `<p class="hub-child-description">${escapeHtml(link.description)}</p>` : ''}
+      </li>`).join('')
+    sections.push(`
+      <section class="hub-group">
+        <h2 class="hub-group-heading">${escapeHtml(groupName)}</h2>
+        <ul class="hub-child-list">${items}</ul>
+      </section>`)
+  }
+  return sections.join('\n')
+}
+
+function renderFaqAccordion(faqs: { q: string; a: string }[]): string {
+  return faqs.map((faq, i) => `
+    <details class="hub-faq-item"${i === 0 ? ' open' : ''}>
+      <summary class="hub-faq-question">${escapeHtml(faq.q)}</summary>
+      <div class="hub-faq-answer">${escapeHtml(faq.a)}</div>
+    </details>`).join('')
+}
+
+/**
+ * Generate full SEO HTML for a hub page (DB-backed, cached).
+ */
+async function generateHubPageHtmlAsync(
+  supabase: ReturnType<typeof createTimeoutClient>,
+  lang: string,
+  hubType: HubType,
+): Promise<string> {
+  const locale = LOCALE_MAP[lang] || 'en_US'
+  const canonicalPath = `/${lang}/${HUB_PATH_FOR_TYPE[hubType]}`
+  const canonicalUrl = `${BASE_URL}${canonicalPath}`
+  const altLang = lang === 'en' ? 'es' : 'en'
+  const altUrl = `${BASE_URL}/${altLang}/${HUB_PATH_FOR_TYPE[hubType]}`
+  const xDefaultUrl = `${BASE_URL}/en/${HUB_PATH_FOR_TYPE[hubType]}`
+
+  const payload = await getHubPayload(supabase, hubType, lang)
+  const meta = getHubMeta(hubType, lang, payload.totalPublished)
+
+  // ItemList JSON-LD entries
+  const itemListElements = payload.links.slice(0, 30).map((link, i) => ({
+    '@type': 'ListItem',
+    position: i + 1,
+    url: `${BASE_URL}${link.url}`,
+    name: link.title,
+  }))
+
+  // FAQPage JSON-LD entries
+  const faqEntities = meta.faqs.map(f => ({
+    '@type': 'Question',
+    name: f.q,
+    acceptedAnswer: { '@type': 'Answer', text: f.a },
+  }))
+
+  const schemaGraph = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'Organization',
+        '@id': `${BASE_URL}/#organization`,
+        name: 'Everence Wealth',
+        url: BASE_URL,
+        logo: { '@type': 'ImageObject', url: 'https://assets.cdn.filesafe.space/htr97zzmRc1NMujHbL9R/media/69b7424c5b89c7c557adfe6e.png' },
+      },
+      {
+        '@type': 'WebSite',
+        '@id': `${BASE_URL}/#website`,
+        url: BASE_URL,
+        name: 'Everence Wealth',
+        publisher: { '@id': `${BASE_URL}/#organization` },
+        inLanguage: locale,
+      },
+      {
+        '@type': 'CollectionPage',
+        '@id': `${canonicalUrl}#collectionpage`,
+        url: canonicalUrl,
+        name: meta.title,
+        description: meta.description,
+        inLanguage: locale,
+        isPartOf: { '@id': `${BASE_URL}/#website` },
+        about: { '@id': `${BASE_URL}/#organization` },
+        speakable: {
+          '@type': 'SpeakableSpecification',
+          cssSelector: ['.speakable-answer', '.hub-intro', 'h1'],
+        },
+        hasPart: [
+          { '@id': `${canonicalUrl}#itemlist` },
+          { '@id': `${canonicalUrl}#faqpage` },
+        ],
+      },
+      {
+        '@type': 'ItemList',
+        '@id': `${canonicalUrl}#itemlist`,
+        name: meta.h1,
+        numberOfItems: itemListElements.length,
+        itemListElement: itemListElements,
+      },
+      {
+        '@type': 'FAQPage',
+        '@id': `${canonicalUrl}#faqpage`,
+        mainEntity: faqEntities,
+      },
+      {
+        '@type': 'BreadcrumbList',
+        '@id': `${canonicalUrl}#breadcrumb`,
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: lang === 'es' ? 'Inicio' : 'Home', item: `${BASE_URL}/${lang}` },
+          { '@type': 'ListItem', position: 2, name: meta.breadcrumbName, item: canonicalUrl },
+        ],
+      },
+    ],
+  }
+
+  const childListHtml = renderChildLinkList(payload, hubType, lang)
+  const faqAccordionHtml = renderFaqAccordion(meta.faqs)
+
+  // Internal-link nav block (same links, different DOM structure for AI parsers)
+  const internalNavLinks = payload.links.slice(0, 20).map(link =>
+    `<a href="${escapeHtml(link.url)}">${escapeHtml(link.title)}</a>`
+  ).join('\n      ')
+
   return `<!DOCTYPE html>
 <html lang="${lang}">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${content.title}</title>
-  <meta name="description" content="${content.description}">
-  
-  <!-- Canonical -->
-  <link rel="canonical" href="${canonicalUrl}">
-  
-  <!-- Hreflang tags - 10 languages + x-default -->
-${hreflangTags}
-${xDefaultTag}
-  
-  <!-- Open Graph / Facebook -->
-  <meta property="og:type" content="website">
-  <meta property="og:url" content="${canonicalUrl}">
-  <meta property="og:title" content="${content.title}">
-  <meta property="og:description" content="${content.description}">
-  <meta property="og:locale" content="${locale}">
-  <meta property="og:site_name" content="Everence Wealth">
-  
-  <!-- Twitter -->
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="${content.title}">
-  <meta name="twitter:description" content="${content.description}">
-  
-  <!-- JSON-LD Structured Data -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>${escapeHtml(meta.title)}</title>
+  <meta name="description" content="${escapeHtml(meta.description)}" />
+
+  <link rel="canonical" href="${canonicalUrl}" />
+  <link rel="alternate" hreflang="${lang}" href="${canonicalUrl}" />
+  <link rel="alternate" hreflang="${altLang}" href="${altUrl}" />
+  <link rel="alternate" hreflang="x-default" href="${xDefaultUrl}" />
+
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="${canonicalUrl}" />
+  <meta property="og:title" content="${escapeHtml(meta.title)}" />
+  <meta property="og:description" content="${escapeHtml(meta.description)}" />
+  <meta property="og:locale" content="${locale}" />
+  <meta property="og:site_name" content="Everence Wealth" />
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="${escapeHtml(meta.title)}" />
+  <meta name="twitter:description" content="${escapeHtml(meta.description)}" />
+
   <script type="application/ld+json">
-  ${JSON.stringify(schemaGraph, null, 2)}
+${JSON.stringify(schemaGraph, null, 2)}
   </script>
-  
-  <!-- Redirect to React app for hydration -->
-  <meta http-equiv="refresh" content="0;url=/${lang}/${hubType}">
+
+  <style>
+    body { font-family: 'Lato', system-ui, sans-serif; line-height: 1.7; max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem; color: #1a1d24; }
+    h1 { font-size: 2.25rem; line-height: 1.2; margin-bottom: 1rem; color: #1a1d24; }
+    .hub-intro, .speakable-answer { font-size: 1.125rem; line-height: 1.7; max-width: 780px; margin-bottom: 2.5rem; color: #2c3138; }
+    .hub-intro a, .hub-cta a { color: #b08400; text-decoration: underline; font-weight: 600; }
+    .hub-section-heading { font-size: 1.5rem; margin: 2.5rem 0 1rem; }
+    .hub-child-list { list-style: none; padding: 0; margin: 0; }
+    .hub-child-item { padding: 1rem 0; border-bottom: 1px solid #e5e7eb; }
+    .hub-child-title { font-size: 1.125rem; font-weight: 600; color: #1a1d24; text-decoration: none; display: block; margin-bottom: .25rem; }
+    .hub-child-title:hover { color: #b08400; text-decoration: underline; }
+    .hub-child-description { color: #4b5563; font-size: .95rem; margin: 0; }
+    .hub-group { margin-bottom: 2rem; }
+    .hub-group-heading { font-size: 1.25rem; font-weight: 700; margin-bottom: .5rem; padding-bottom: .25rem; border-bottom: 2px solid #b08400; }
+    .hub-faq-section { margin-top: 3rem; }
+    .hub-faq-item { padding: 1rem 0; border-bottom: 1px solid #e5e7eb; }
+    .hub-faq-question { font-weight: 600; font-size: 1.05rem; cursor: pointer; }
+    .hub-faq-answer { margin-top: .75rem; color: #4b5563; }
+    .hub-cta { background: #f8fafc; border-left: 4px solid #b08400; padding: 1.5rem; margin: 3rem 0 2rem; border-radius: 4px; }
+    .internal-links-section { margin-top: 3rem; padding-top: 2rem; border-top: 1px solid #e5e7eb; }
+    .internal-links-section a { display: inline-block; margin: .25rem .5rem .25rem 0; color: #b08400; }
+  </style>
 </head>
 <body>
-  <!-- Speakable summary for AI/voice assistants -->
-  <div id="speakable-summary">
-    ${content.speakableSummary}
-  </div>
-  
-  <h1>${content.title}</h1>
-  <p>${content.description}</p>
-  
-  <script>window.location.href='/${lang}/${hubType}';</script>
-  <noscript>
-    <p>Loading <a href="/${lang}/${hubType}">${content.title}</a>...</p>
-  </noscript>
+  <main>
+    <nav aria-label="${lang === 'es' ? 'Migas de pan' : 'Breadcrumb'}">
+      <a href="/${lang}">${lang === 'es' ? 'Inicio' : 'Home'}</a> &raquo;
+      <span aria-current="page">${escapeHtml(meta.breadcrumbName)}</span>
+    </nav>
+
+    <h1>${escapeHtml(meta.h1)}</h1>
+
+    <div class="speakable-answer hub-intro">${meta.intro}</div>
+
+    <h2 class="hub-section-heading">${lang === 'es' ? 'Contenido publicado' : 'Published content'} (${payload.totalPublished})</h2>
+    ${childListHtml}
+
+    <section class="hub-faq-section" aria-labelledby="hub-faq-heading">
+      <h2 id="hub-faq-heading" class="hub-section-heading">${lang === 'es' ? 'Preguntas frecuentes sobre esta sección' : 'Questions about this section'}</h2>
+      ${faqAccordionHtml}
+    </section>
+
+    <aside class="hub-cta">
+      <p><strong>${lang === 'es' ? 'Próximo paso' : 'Next step'}:</strong> ${escapeHtml(meta.ctaText)} <a href="${meta.ctaHref}">${lang === 'es' ? 'Reservar consulta' : 'Book a consultation'}</a>.</p>
+    </aside>
+
+    <nav class="internal-links-section" aria-label="${lang === 'es' ? 'Enlaces internos' : 'Internal links'}">
+      <h2 class="hub-section-heading">${lang === 'es' ? 'Explorar más' : 'Explore more'}</h2>
+      ${internalNavLinks}
+    </nav>
+  </main>
 </body>
 </html>`
 }
