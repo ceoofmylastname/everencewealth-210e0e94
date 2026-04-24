@@ -1760,6 +1760,61 @@ function generateComparisonTableSchema(metadata: PageMetadata, comparisonTable: 
   return `<script type="application/ld+json">${JSON.stringify(schema)}</script>`
 }
 
+/**
+ * Generate FAQPage JSON-LD for blog posts that have qa_entities.
+ * Only emits when:
+ *   - content_type is 'blog' (BlogPosting + FAQPage composition is valid;
+ *     QAPage uses a different shape and gets its own mainEntity Question)
+ *   - qa_entities is a non-empty array
+ *
+ * BlogPosting uses mainEntityOfPage (a WebPage reference), so adding
+ * FAQPage here does NOT create a duplicate mainEntity field on the
+ * document. FAQPage is its own top-level @type with its own mainEntity.
+ */
+function generateFAQPageSchema(metadata: PageMetadata): string {
+  if (metadata.content_type !== 'blog') return ''
+  const faqs = Array.isArray(metadata.qa_entities) ? metadata.qa_entities : []
+  if (faqs.length === 0) return ''
+
+  const mainEntity = faqs
+    .map((entry: any) => {
+      // Tolerate multiple shapes used historically:
+      //   { question, answer }
+      //   { q, a }
+      //   { name, acceptedAnswer: { text } }
+      const question =
+        (entry?.question ?? entry?.q ?? entry?.name ?? '').toString().trim()
+      const rawAnswer =
+        (entry?.answer ?? entry?.a ?? entry?.acceptedAnswer?.text ?? '').toString()
+      if (!question || !rawAnswer) return null
+      const cleanAnswer = truncateAtSentence(rawAnswer.replace(/<[^>]*>/g, ''), 800)
+      if (!cleanAnswer) return null
+      return {
+        "@type": "Question",
+        "name": question,
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": cleanAnswer,
+          "inLanguage": LOCALE_MAP[metadata.language] || metadata.language
+        }
+      }
+    })
+    .filter(Boolean)
+
+  if (mainEntity.length === 0) return ''
+
+  const schema = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "@id": `${metadata.canonical_url}#faqpage`,
+    "inLanguage": LOCALE_MAP[metadata.language] || metadata.language,
+    "isPartOf": { "@id": `${metadata.canonical_url}#blogposting` },
+    "mainEntity": mainEntity
+  }
+
+  return `<script type="application/ld+json">${JSON.stringify(schema)}</script>`
+}
+
 function escapeHtml(text: string | null | undefined): string {
   if (!text) return ''
   return text
@@ -2336,6 +2391,7 @@ function generateFullHtml(metadata: PageMetadata, hreflangTags: string, _baseHtm
   const breadcrumbSchema = generateBreadcrumbSchema(metadata)
   const speakableSchema = metadata.speakable_answer ? generateSpeakableSchema(metadata) : ''
   const comparisonTableSchema = generateComparisonTableSchema(metadata, metadata.quick_comparison_table || [])
+  const faqPageSchema = generateFAQPageSchema(metadata)
 
   // Generate SSR styles and body content
   const ssrStyles = generateSSRStyles()
@@ -2388,6 +2444,7 @@ ${hreflangTags}
   ${articleSchema}
   ${breadcrumbSchema}
   ${speakableSchema}
+  ${faqPageSchema}
   ${comparisonTableSchema}
   
   <!-- SSR Styles -->
