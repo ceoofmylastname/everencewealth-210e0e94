@@ -9023,6 +9023,12 @@ export type Database = {
           secret_exists: boolean
         }[]
       }
+      _tmp_list_vault_secret_names: {
+        Args: never
+        Returns: {
+          secret_name: string
+        }[]
+      }
       calculate_translation_completeness: {
         Args: { p_article_id: string }
         Returns: number
