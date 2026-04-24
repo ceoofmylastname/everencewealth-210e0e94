@@ -1,81 +1,63 @@
 
 
-## Why the regeneration failed
+# SSR Schema + Route Fix — Status check and remaining work
 
-I traced your failed attempt in the edge function logs. Here is exactly what happened.
+The corrected scope at the bottom of your prompt pack (Step 1 + Step 2) was **already implemented and shipped earlier today** in the prior approved plan. Specifically:
 
-### The article that failed
+- `supabase/functions/serve-seo-page/index.ts` — `blog-detail`, `strategy-detail`, and `home` route handlers were added, all emitting the `internal-links-section` marker and `X-SSR-Schema: injected=true` header.
+- `functions/_middleware.js` — fallback patterns for `^/(en|es)/(strategies|estrategias)/...` and for `/`, `/en/`, `/es/` were added, reusing the static-then-SSR fallback pattern.
 
-**"The Retirement Savings Gap: Why 64% of Americans Over 50 Are Financially Unprepared"** (English, article ID `0655c0e6…`).
+So Steps 1 and 2 from the "Corrected Scope (2026-04-23)" section don't need to be re-shipped. What remains is **Prompt 5 — Verification** to confirm the deploy actually behaves the way we intended in production.
 
-You actually clicked Regenerate **twice**, ~5 minutes apart. Both clicks failed for the **same reason**, but at different points.
+## What I'll do
 
-### What the logs show
+Run the verification table from the corrected scope against the live site (`https://www.everencewealth.com`) using a normal browser UA AND `ClaudeBot/1.0`, then report the gap (if any).
 
-```text
-06:25:36  🖼️ Starting image regeneration for article: 0655c0e6 (English)
-06:25:36  📝 Article: "The Retirement Savings Gap…"
-06:25:36  🧠 Generating content-based image prompt via Lovable AI...
-06:25:42  🎨 Generated prompt: "A museum-grade exhibit showcasing a Tax-Advantaged Retirement Income Gateway…"
-06:25:42  🖼️ Generating image with Kie.ai Nano Banana 2...
-06:27:23  [kie] task c3a5e69e state=success      ← 1st image came back
-06:27:23  ⚠️ Attempt 1: brand mark still detected (S&P 500). Regenerating…
-06:27:23  [kie] task 746e8965 state=waiting       ← retry kicked off
-          (no further logs — function timed out / connection closed)
-06:28:05  Toast: "Failed: The Retirement Savings Gap…"
-```
+### URLs to verify
 
-### Root cause
+1. `/` (and `/en/`)
+2. `/en/qa` (index)
+3. `/en/qa/what-process-steps-bridge-the-retirement-gap-using-process-eeb9ac85` (real slug)
+4. `/en/blog` (index)
+5. `/en/blog/tax-planning/understanding-three-tax-buckets` (no trailing slash — the previously broken case)
+6. `/en/strategies/asset-protection`
+7. `/en/strategies/iul`
+8. `/es/` (Spanish home)
+9. A real `/es/qa/{slug}` and `/es/estrategias/{slug}` pulled from sitemaps
 
-The **logo-verification retry loop** caught a brand mark (`S&P 500`) burned into the first generated image, kicked off a stricter retry, and the **second Kie.ai job didn't finish before the edge function's wall-clock budget expired** (or before the client-side request aborted). The function never returned a 2xx, so the dashboard surfaced a generic `FunctionsHttpError`.
+### What I'll extract per URL
 
-This is a known weak spot:
-- One Kie.ai generation = ~90 seconds (your earlier successful runs match: 06:23:09 → 06:25:13 = 124 s).
-- A retry doubles the wall clock to ~3 minutes.
-- The function is doing all this **synchronously** on the client request, so it's racing against both the edge function timeout (~150 s default) and the Supabase Functions client timeout.
+- HTTP status
+- `X-SSR-Schema` and `X-Seo-Source` headers
+- Count of `<script type="application/ld+json">` blocks
+- `@type` values of each JSON-LD block
+- Whether `<h1>` exists and is non-empty
+- `<title>` value (must NOT be the generic "Bridge the Retirement Gap")
+- `<link rel="canonical">` href (must self-reference)
+- `<meta name="description">` content (must be unique)
+- Whether `datePublished` and `dateModified` appear in JSON-LD for article-type pages
+- All `<link rel="alternate" hreflang="...">` tags
 
-It is NOT a problem with your prompt, your Kie.ai key, or the article. The same article on a fresh run will probably succeed — but any article whose first image happens to contain "S&P 500", "Nasdaq", "Apple", "401(k)" rendered as a logo, etc. will hit this trap.
+### Plus three infrastructure checks
 
-### Why "S&P 500" keeps appearing
+- `/robots.txt` — confirm no `Disallow: /` for ClaudeBot, GPTBot, PerplexityBot, Google-Extended, Applebot-Extended
+- `/llms.txt` — confirm `Content-Type: text/plain` and that BOFU strategies are listed
+- `/sitemap.xml` and the 11 sub-sitemaps — confirm `Content-Type: application/xml` and valid XML (not SPA shell HTML)
 
-Gemini generates a prompt mentioning index investing, and Kie.ai renders an apparatus with "S&P 500" engraved on a plaque. The current negative suffix bans logos and brand names but does NOT explicitly ban index names like "S&P 500", "Dow Jones", "Nasdaq", "Russell 2000". The vision check then correctly flags it as a brand mark, triggering the retry that runs out of time.
+### Output
 
-### The fix (3 small changes, all in `supabase/functions/regenerate-article-image/index.ts`)
+A single results table with a Pass/Fail column per URL. Pass = `X-SSR-Schema: injected=true`, ≥ 2 JSON-LD blocks, non-empty `<h1>`, unique `<title>`. Any Fail row gets a one-line root cause and a one-line proposed fix.
 
-**1. Pre-empt the retry — ban index/ticker names in the prompt itself.**
-Add to the existing negative suffix and to the system prompt's "STRICT NON-NEGOTIABLE RULES":
-- No index names: S&P 500, Dow Jones, DJIA, Nasdaq, Russell 2000, FTSE, MSCI, Wilshire
-- No ticker symbols, no exchange names
-- Plaques referring to "the market" or "broad index" must use generic phrasing like "MARKET INDEX" only
+## What I won't do
 
-This stops ~90% of the brand-mark false positives at the source so the retry never has to fire.
+- No code changes in this run — verification only, per Prompt 5's "Do not change any code" rule.
+- No Helmet removal (Prompt 4 stays out of scope, as the corrected pack confirms).
+- No 410 / `gone_urls` work (Prompt 3 stays out of scope).
+- No `functions/[[path]].js` or HTMLRewriter pipeline (would conflict with existing `_middleware.js`).
 
-**2. Cut the retry wall-clock risk — drop max retries from 2 to 1, and skip the retry entirely on the second attempt if we're already past 90 s elapsed.**
-Track `Date.now()` at function start. If a brand mark is detected but `elapsed > 90_000 ms`, accept the image with a logged warning rather than starting another 90-second Kie.ai job that we know won't finish.
+## After the verification
 
-**3. Return a structured error to the dashboard instead of a generic 500.**
-When the function does time out or fail, respond with a JSON body like `{ error: "kie_timeout", message: "Image generation exceeded budget — try again", articleId, attempts: 2 }` so the toast shows something actionable instead of "Edge Function returned a non-2xx status code".
+If everything passes, you're cleared to resume the 50-cluster build plan. If any row fails, I'll come back with a focused fix plan for that specific failure mode (most likely candidates: blog SSR fetch returning empty for a particular slug, strategy page missing one of the four allowed slugs, or homepage middleware not catching the bare `/` correctly).
 
-### What stays unchanged
-
-- Kie.ai Nano Banana 2 stays the renderer.
-- The Image Explainer system prompt (museum exhibit / metaphor library) is untouched.
-- Buckets/jars stay allowed.
-- The EN→ES sharing path is untouched (it worked correctly for the Spanish sibling — log line `✅ Found English primary image - sharing instead of generating new`).
-- The vision-check logo verifier stays — we're just making the retry cheaper, not removing the safety net.
-
-### How you'll verify it worked
-
-1. After the change ships, click **Regenerate** on the same article (`The Retirement Savings Gap…`).
-2. Watch the edge logs — the first generated image should no longer contain "S&P 500" because the prompt now bans index names outright.
-3. If a retry does fire, it should now complete within budget OR the function should return a clean error toast instead of a generic 500.
-4. Test on 5 more articles to confirm no regressions.
-
-### Out of scope
-
-- No async/background-job refactor (that's a bigger change; the 3 fixes above should make it unnecessary for normal volume).
-- No UI changes to the dashboard.
-- No DB schema changes.
-
-Reply approve to ship.
+Reply approve to run the verification table.
 
