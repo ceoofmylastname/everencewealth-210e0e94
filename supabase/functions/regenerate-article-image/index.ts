@@ -287,9 +287,10 @@ Content Preview: ${(article.detailed_content || '').substring(0, 2000)}
 Your task is to analyze a financial planning or insurance article from Everence Wealth and create a professional photography prompt that visually complements the article content.
 
 CRITICAL RULES:
-- NEVER include text, headlines, watermarks, or logos in the image
+- NEVER include text, headlines, watermarks, logos, brand marks, monograms, badges, shields, emblems, company names, photographer credits, or stock-photo signatures in the image
+- Forbidden: Apex, Ascend, Ameriprise, Edward Jones, Fidelity, Vanguard, Schwab, Merrill, Morgan Stanley, Raymond James, LPL, Northwestern Mutual, Prudential, MassMutual, John Hancock, Lincoln, Allianz, Pacific Life, Nationwide, MetLife, New York Life, Transamerica, AIG, Mutual of Omaha — and ANY other firm/competitor logo or wordmark
 - Focus on professional settings, people in consultation, financial planning scenes
-- Include "no text, no watermarks, no logos, no words" in every prompt
+- Include "no text, no watermarks, no logos, no brand marks, no monograms, no shields, no badges, no company names, no signatures, no words anywhere in the frame" in every prompt
 - Specify "16:9 aspect ratio, professional photography, 2K resolution"
 - Match the article's tone: retirement = warm/optimistic, insurance = protective/family, investment = professional/growth
 - Themes: financial advisory offices, family protection, retirement lifestyle, wealth management
@@ -313,24 +314,60 @@ Output ONLY the image prompt, nothing else.`
     }
 
     const promptData = await promptGenerationResponse.json();
-    const imagePrompt = promptData.choices?.[0]?.message?.content?.trim() || 
-      `Professional financial advisory consultation, modern office, advisor and client reviewing documents, warm lighting, ultra-realistic, 8k resolution, no text, no watermarks, no logos, 16:9 aspect ratio`;
+    let imagePrompt = promptData.choices?.[0]?.message?.content?.trim() || 
+      `Professional financial advisory consultation, modern office, advisor and client reviewing documents, warm lighting, ultra-realistic, 8k resolution, 16:9 aspect ratio`;
+
+    // Hard-append negative constraints so Kie.ai cannot hallucinate brand marks
+    const negativeSuffix = ' --no logo, no watermark, no brand mark, no text overlay, no company name, no shield emblem, no monogram, no badge, no signature, no photographer credit, no stock-photo mark, no letters, no words';
+    if (!imagePrompt.includes('--no logo')) imagePrompt = `${imagePrompt}${negativeSuffix}`;
 
     console.log(`🎨 Generated prompt: ${imagePrompt.substring(0, 100)}...`);
 
-    // Generate image via Kie.ai Nano Banana 2
+    // Generate image via Kie.ai Nano Banana 2 with auto-retry if a logo is detected
     console.log(`🖼️ Generating image with Kie.ai Nano Banana 2...`);
-    const { url: kieUrl } = await kieGenerateImage({
-      prompt: imagePrompt,
-      aspectRatio: "16:9",
-      resolution: "2K",
-      outputFormat: "png",
-    });
+    let generatedImageUrl: string | null = null;
+    const MAX_LOGO_RETRIES = 2;
+    for (let attempt = 0; attempt <= MAX_LOGO_RETRIES; attempt++) {
+      const { url: kieUrl } = await kieGenerateImage({
+        prompt: imagePrompt,
+        aspectRatio: "16:9",
+        resolution: "2K",
+        outputFormat: "png",
+      });
+      if (!kieUrl) throw new Error('Image generation failed - no URL returned');
 
-    let generatedImageUrl = kieUrl;
-    if (!generatedImageUrl) throw new Error('Image generation failed - no URL returned');
+      // Verify the generated image has no logo / brand mark
+      try {
+        const verifyRes = await fetch(`${supabaseUrl}/functions/v1/analyze-image-for-text`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${supabaseKey}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ imageUrl: kieUrl, mode: 'logo' })
+        });
+        if (verifyRes.ok) {
+          const { analysis } = await verifyRes.json();
+          const stillBranded = analysis?.hasLogo === true
+            || analysis?.textType === 'logo'
+            || analysis?.textType === 'brand_mark'
+            || analysis?.textType === 'watermark';
+          if (stillBranded && attempt < MAX_LOGO_RETRIES) {
+            console.log(`⚠️ Attempt ${attempt + 1}: brand mark still detected (${analysis?.brandName || 'unknown'}). Regenerating with stricter prompt...`);
+            imagePrompt = `${imagePrompt} --strictly no brand marks --absolutely no text in image`;
+            continue;
+          }
+        }
+      } catch (verifyErr) {
+        console.error('Logo verification step failed (non-fatal):', verifyErr);
+      }
 
-    console.log(`✅ Image generated successfully`);
+      generatedImageUrl = kieUrl;
+      break;
+    }
+
+    if (!generatedImageUrl) throw new Error('Image generation failed after retries');
+    console.log(`✅ Image generated successfully (logo-verified)`);
 
     generatedImageUrl = await uploadToStorage(
       generatedImageUrl, supabase, 'article-images',
