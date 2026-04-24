@@ -415,9 +415,14 @@ Output ONLY the image prompt as a single paragraph. Specify the metaphor, physic
         || buildFallbackPrompt(article.funnel_stage, article.cluster_theme);
     }
 
-    // Hard-append negative constraints so Kie.ai cannot hallucinate brand marks
-    const negativeSuffix = ' --no logo, no watermark, no brand mark, no text overlay, no company name, no shield emblem, no monogram, no badge, no signature, no photographer credit, no stock-photo mark, no letters, no words';
-    if (!imagePrompt.includes('--no logo')) imagePrompt = `${imagePrompt}${negativeSuffix}`;
+    // Hard-append negative constraints so Kie.ai cannot hallucinate brand marks.
+    // NOTE: We intentionally allow short physical labels on objects (e.g. "Taxable" etched on a jar)
+    // so the negative suffix bans branding/headlines but NOT all letters.
+    const negativeSuffix = ' --no company logos, no brand names, no wordmarks, no watermarks, no signatures, no photographer credits, no headlines, no paragraph text, no captions, no stock-photo marks';
+    const alreadyHasNegative = /no\s+(company\s+)?logos?\b/i.test(imagePrompt)
+      || /no\s+brand(\s+names?)?\b/i.test(imagePrompt)
+      || /no\s+watermarks?\b/i.test(imagePrompt);
+    if (!alreadyHasNegative) imagePrompt = `${imagePrompt}${negativeSuffix}`;
 
     console.log(`🎨 Generated prompt: ${imagePrompt.substring(0, 100)}...`);
 
