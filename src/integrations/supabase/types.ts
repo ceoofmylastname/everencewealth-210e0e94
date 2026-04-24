@@ -9029,6 +9029,7 @@ export type Database = {
           secret_name: string
         }[]
       }
+      _tmp_seed_vault_key: { Args: { p_key: string }; Returns: string }
       calculate_translation_completeness: {
         Args: { p_article_id: string }
         Returns: number
