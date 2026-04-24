@@ -1,71 +1,176 @@
 
 
-## Fix: Use Kie.ai Nano Banana 2 for state page hero images
+## Remediation Plan — Scrub foreign Supabase project ref from Everence Wealth
 
-### Why it's failing now
+**Target project:** `zbzrmpmqijvmjbhctfoe` (Everence Wealth) — exclusively.
+**Foreign project to neutralize:** `kazggnufaoicopvmwhdl` (Del Sol Prime Homes) — will not be contacted, queried, or referenced in any executable code path after this task.
 
-The `generate-location-image` function I just shipped calls the **Lovable AI Gateway** (`google/gemini-3.1-flash-image-preview`). It's likely returning either no `images[]` array (Gemini 3.1 image preview has been flaky on the gateway lately) or hitting a 402/429 — and even if it worked, it's the wrong provider for this platform.
+---
 
-Every other image generator on the project (`regenerate-cluster-images`, `regenerate-article-image`, `generate-homepage-images`, `generate-hero-image`) uses the shared **Kie.ai Nano Banana 2 client** at `supabase/functions/_shared/kieClient.ts` with `KIE_API_KEY`. State pages are the outlier.
+### Task 1 — One new migration: rewrite the two trigger functions
 
-Per memory `mem://ai/prompt-guidelines`, Nano Banana (Kie.ai) is the standard for 4K cinematic financial imagery.
+Create a single new file in `supabase/migrations/` with today's UTC timestamp prefix. No existing migration file is modified.
 
-### Fix
+**Full SQL diff (preview — not yet applied):**
 
-Rewrite `supabase/functions/generate-location-image/index.ts` to use the shared `kieClient` exactly like the other image functions:
+```sql
+-- Migration: Remove foreign Supabase project reference (kazggnufaoicopvmwhdl)
+-- from notify_sitemap_ping() and auto_generate_faqs(). Replace with Everence
+-- Wealth project (zbzrmpmqijvmjbhctfoe) and harden via GUC fallback so URLs
+-- can never silently drift to a foreign project again.
 
-1. **Import the shared client**
-   ```ts
-   import { generateImage } from "../_shared/kieClient.ts";
-   ```
+-- ─────────────────────────────────────────────────────────────
+-- 1. notify_sitemap_ping() — replaces hardcoded foreign URL
+-- ─────────────────────────────────────────────────────────────
+CREATE OR REPLACE FUNCTION public.notify_sitemap_ping()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path TO 'public'
+AS $function$
+DECLARE
+  v_slug         TEXT;
+  v_supabase_url TEXT;
+BEGIN
+  -- Only proceed if status is being set to 'published'
+  IF TG_OP = 'INSERT' THEN
+    IF NEW.status != 'published' THEN
+      RETURN NEW;
+    END IF;
+  ELSIF TG_OP = 'UPDATE' THEN
+    IF NEW.status != 'published' OR OLD.status = 'published' THEN
+      RETURN NEW;
+    END IF;
+  END IF;
 
-2. **Replace the Lovable Gateway call** with:
-   ```ts
-   const { url: kieUrl } = await generateImage({
-     prompt: finalPrompt,
-     aspectRatio: "16:9",      // landscape hero
-     resolution: "2K",          // matches cluster/article standard
-     outputFormat: "jpg",       // smaller files for hero use
-   });
-   ```
+  -- Slug source depends on table
+  IF TG_TABLE_NAME = 'location_pages' THEN
+    v_slug := NEW.topic_slug;
+  ELSE
+    v_slug := NEW.slug;
+  END IF;
 
-3. **Mirror the Kie-hosted result into Supabase Storage** (Kie URLs expire). Pattern matches `regenerate-cluster-images`:
-   - `fetch(kieUrl)` → `arrayBuffer()`
-   - Upload to `article-images` bucket as `state-pages/state-${city_slug}-${topic_slug}.jpg`
-   - `getPublicUrl()` → write to `location_pages.featured_image_url`
+  -- Resolve Supabase URL: GUC first, then Everence fallback (NEVER foreign)
+  v_supabase_url := current_setting('app.settings.supabase_url', true);
+  IF v_supabase_url IS NULL OR v_supabase_url = '' THEN
+    v_supabase_url := 'https://zbzrmpmqijvmjbhctfoe.supabase.co';
+  END IF;
 
-4. **Surface Kie-specific errors clearly** — the `friendlyError` helper inside `kieClient.ts` already returns user-readable strings for 401 (bad key), 402 (no credits), 429 (rate limit), 422 (validation). Just let them bubble through the catch block; the toast in `AdminStatePages.tsx` already displays the message.
+  PERFORM net.http_post(
+    url     := v_supabase_url || '/functions/v1/ping-indexnow',
+    headers := jsonb_build_object('Content-Type', 'application/json'),
+    body    := jsonb_build_object(
+      'table',  TG_TABLE_NAME,
+      'slug',   v_slug,
+      'action', TG_OP
+    )
+  );
 
-5. **Verify `KIE_API_KEY` is set** at the top of the handler (mirrors what `generate-hero-image` does), returning a 500 with a clear message if missing.
+  RAISE NOTICE 'IndexNow ping triggered for % - %', TG_TABLE_NAME, v_slug;
+  RETURN NEW;
+END;
+$function$;
 
-### Prompt tweak
+COMMENT ON FUNCTION public.notify_sitemap_ping() IS
+  'Pings IndexNow on publish. Updated YYYY-MM-DD: removed hardcoded foreign Supabase project ref (kazggnufaoicopvmwhdl); now uses GUC app.settings.supabase_url with Everence (zbzrmpmqijvmjbhctfoe) fallback.';
 
-The current prompt is generic skyline. Align it with the Nano Banana prompt guidelines memory — cinematic financial metaphor, not literal cityscape:
+-- ─────────────────────────────────────────────────────────────
+-- 2. auto_generate_faqs() — replaces hardcoded foreign fallback
+-- ─────────────────────────────────────────────────────────────
+CREATE OR REPLACE FUNCTION public.auto_generate_faqs()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path TO 'public'
+AS $function$
+DECLARE
+  v_supabase_url     TEXT;
+  v_service_role_key TEXT;
+BEGIN
+  IF NEW.status = 'published'
+     AND (NEW.qa_entities IS NULL OR jsonb_array_length(NEW.qa_entities) = 0) THEN
 
+    v_supabase_url     := current_setting('app.settings.supabase_url',     true);
+    v_service_role_key := current_setting('app.settings.service_role_key', true);
+
+    -- Everence fallback ONLY (never foreign)
+    IF v_supabase_url IS NULL OR v_supabase_url = '' THEN
+      v_supabase_url := 'https://zbzrmpmqijvmjbhctfoe.supabase.co';
+    END IF;
+
+    PERFORM net.http_post(
+      url     := v_supabase_url || '/functions/v1/backfill-article-faqs',
+      headers := jsonb_build_object(
+        'Content-Type',  'application/json',
+        'Authorization', 'Bearer ' || COALESCE(v_service_role_key, '')
+      ),
+      body := jsonb_build_object(
+        'articles', jsonb_build_array(
+          jsonb_build_object(
+            'id',               NEW.id,
+            'headline',         NEW.headline,
+            'detailed_content', NEW.detailed_content,
+            'meta_description', NEW.meta_description,
+            'language',         NEW.language,
+            'funnel_stage',     NEW.funnel_stage
+          )
+        ),
+        'single_article_mode', true
+      )
+    );
+  END IF;
+
+  RETURN NEW;
+END;
+$function$;
+
+COMMENT ON FUNCTION public.auto_generate_faqs() IS
+  'Auto-backfills FAQs on publish. Updated YYYY-MM-DD: removed hardcoded foreign Supabase project ref (kazggnufaoicopvmwhdl); now uses GUC app.settings.supabase_url with Everence (zbzrmpmqijvmjbhctfoe) fallback. Service role key sourced from GUC, never literal.';
 ```
-4K cinematic editorial photograph representing wealth management and 
-retirement planning in ${city_name}, USA. Modern financial metaphor: 
-glass-and-steel architecture at golden hour, soft volumetric light, 
-shallow depth of field, institutional sophistication. No text, no logos, 
-no people in foreground. Aspect 16:9.
-```
 
-### Files
+**Key safety properties of this migration:**
 
-- `supabase/functions/generate-location-image/index.ts` — replace Lovable Gateway call with `kieClient.generateImage`, add Kie URL → Supabase Storage mirror step, update default prompt
-- No DB changes, no UI changes, no other functions touched
+- Zero literal JWTs (no anon, no service role pasted as string).
+- No `net.http_post` to any foreign URL — fallback is hardcoded to Everence only.
+- Functions are recreated, not invoked. No trigger fires during the migration.
+- Existing migration files are untouched.
 
-### Out of scope
+---
 
-- Not changing `AdminStatePages.tsx` — the existing toast already surfaces whatever error message the function returns
-- Not touching the other 4 image functions — they already use Kie correctly
-- Not changing `generate-location-page` (content) — that one correctly uses Lovable AI Gateway for text
+### Task 2 — Doc file scrubs (4 files, find/replace only)
 
-### Verification
+For each file: replace every literal `kazggnufaoicopvmwhdl` with `zbzrmpmqijvmjbhctfoe`. Anon JWTs that decode to `ref: kazggnufaoicopvmwhdl` will be replaced with the placeholder string `YOUR_SUPABASE_ANON_KEY` (since pasting the live Everence anon key into docs is unnecessary and a doc is not a runtime). No other line edits.
 
-1. Confirm `KIE_API_KEY` exists in Cloud secrets (it does — used by 4 other functions today).
-2. Click the orange image icon next to "Retirement Planning Strategies in Texas" on `/admin/state-pages`.
-3. Within ~30–60 s (Kie polls every 3 s up to 10 min) the icon should turn green and the row's `featured_image_url` should be a `…supabase.co/storage/v1/object/public/article-images/state-pages/state-texas-retirement-planning.jpg` URL.
-4. Check `generate-location-image` logs — should show `[kie] task xxxx state=success` and `Success: https://…`.
-5. If `KIE_API_KEY` is out of credits, the toast will read "Kie.ai credits exhausted. Top up your Kie.ai account." instead of a generic failure.
+Affected files and occurrence counts (from audit):
+
+| File | Replacements |
+|---|---|
+| `DEPLOYMENT_GUIDE.md` | `kazggnufaoicopvmwhdl` → `zbzrmpmqijvmjbhctfoe`; foreign JWT example → `YOUR_SUPABASE_ANON_KEY` |
+| `DEPLOYMENT_SSG_CHECKLIST.md` | same rule |
+| `README_STATIC_SEO.md` | same rule |
+| `SCHEMA_DOCUMENTATION.md` | same rule |
+
+Exact diffs will be generated and shown to you for review before write, per your instruction.
+
+---
+
+### Out of scope (explicitly NOT touched)
+
+- Any existing file in `supabase/migrations/` (historical record stays intact)
+- `functions/_middleware.js`, citation blocklists, any `costadelsol*.com` reference
+- `.env`, `supabase/config.toml`, `src/integrations/supabase/client.ts`, every edge function
+- No edge function deploy, invoke, warm-up, or test
+- No connection to any other Supabase / Lovable / GitHub project
+
+---
+
+### Review gate
+
+On approval I will:
+
+1. Generate the migration file with today's UTC timestamp and present the final SQL.
+2. Generate per-file unified diffs for the 4 docs.
+3. Pause for your go-ahead before running the migration tool or writing any file.
+
+**Confirmation:** All planned changes target Supabase project `zbzrmpmqijvmjbhctfoe` only. Project `kazggnufaoicopvmwhdl` will not be contacted, deployed to, queried, or referenced in any runtime code path.
 
