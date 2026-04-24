@@ -323,13 +323,23 @@ Output ONLY the image prompt, nothing else.`
 
     // Hard-append negative constraints so Kie.ai cannot hallucinate brand marks
     const negativeSuffix = ' --no logo, no watermark, no brand mark, no text overlay, no company name, no shield emblem, no monogram, no badge, no signature, no photographer credit, no stock-photo mark, no letters, no words';
-    if (!imagePrompt.includes('--no logo')) imagePrompt = `${imagePrompt}${negativeSuffix}`;
+    // Sanity check: catch all common variants ("no logo", "no logos", "no brand")
+    // so we never stack duplicate negative suffixes on top of each other.
+    const lowerPrompt = imagePrompt.toLowerCase();
+    const alreadyHasNegatives =
+      lowerPrompt.includes('--no logo') ||
+      lowerPrompt.includes('no logos') ||
+      lowerPrompt.includes('no brand mark') ||
+      lowerPrompt.includes('no watermark');
+    if (!alreadyHasNegatives) imagePrompt = `${imagePrompt}${negativeSuffix}`;
 
     console.log(`🎨 Generated prompt: ${imagePrompt.substring(0, 100)}...`);
 
     // Generate image via Kie.ai Nano Banana 2 with auto-retry if a logo is detected
     console.log(`🖼️ Generating image with Kie.ai Nano Banana 2...`);
     let generatedImageUrl: string | null = null;
+    let logoBlockedAttempts = 0;
+    let lastDetectedBrand: string | null = null;
     const MAX_LOGO_RETRIES = 2;
     for (let attempt = 0; attempt <= MAX_LOGO_RETRIES; attempt++) {
       const { url: kieUrl } = await kieGenerateImage({
@@ -357,9 +367,14 @@ Output ONLY the image prompt, nothing else.`
             || analysis?.textType === 'brand_mark'
             || analysis?.textType === 'watermark';
           if (stillBranded && attempt < MAX_LOGO_RETRIES) {
-            console.log(`⚠️ Attempt ${attempt + 1}: brand mark still detected (${analysis?.brandName || 'unknown'}). Regenerating with stricter prompt...`);
+            logoBlockedAttempts = attempt + 1;
+            lastDetectedBrand = analysis?.brandName || 'unknown';
+            console.log(`🛡️ Logo blocked on attempt ${attempt + 1} — detected "${lastDetectedBrand}". Regenerating with stricter prompt...`);
             imagePrompt = `${imagePrompt} --strictly no brand marks --absolutely no text in image`;
             continue;
+          }
+          if (logoBlockedAttempts > 0 && !stillBranded) {
+            console.log(`✅ Clean image produced after ${logoBlockedAttempts} blocked attempt(s) (last brand: ${lastDetectedBrand})`);
           }
         }
       } catch (verifyErr) {
@@ -403,7 +418,12 @@ Output ONLY the image prompt, nothing else.`
       JSON.stringify({
         success: true, articleId, headline: article.headline,
         language: article.language, imageUrl: generatedImageUrl,
-        altText, caption, prompt: imagePrompt
+        altText, caption, prompt: imagePrompt,
+        logoBlockedAttempts,
+        lastDetectedBrand,
+        verificationNote: logoBlockedAttempts > 0
+          ? `Logo blocked on attempt ${logoBlockedAttempts} (${lastDetectedBrand}) — regenerated clean`
+          : null
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
