@@ -200,8 +200,12 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const fnStartedAt = Date.now();
+  let currentArticleId: string | null = null;
+  let attemptsUsed = 0;
   try {
     const { articleId } = await req.json();
+    currentArticleId = articleId ?? null;
 
     if (!articleId) {
       return new Response(
@@ -346,6 +350,7 @@ Generate a hyper-detailed, photorealistic, infographic-like visual explainer der
 5. NO dates anywhere in the image. Use generic future-state language like "FUTURE HARVEST" or "RETIREMENT WINDOW".
 6. NO people as the primary subject. Tiny generic silhouettes or figurines are allowed only if the metaphor demands them (e.g. a small house with a figurine for legacy transfer).
 7. Named competitors are FORBIDDEN: Apex, Ascend, Ameriprise, Edward Jones, Fidelity, Vanguard, Schwab, Merrill, Morgan Stanley, Raymond James, LPL, Northwestern Mutual, Prudential, MassMutual, John Hancock, Lincoln, Allianz, Pacific Life, Nationwide, MetLife, New York Life, Transamerica, AIG, Mutual of Omaha — and any other firm name.
+8. NO market index names, ticker symbols, or exchange names anywhere in the image — specifically forbidden: S&P 500, S&P, SPX, Dow Jones, DJIA, Nasdaq, NDX, Russell 2000, Russell, FTSE, MSCI, Wilshire, NYSE, CBOE, VIX, and any stock ticker (e.g. AAPL, TSLA). If the article references "the market" or a "broad index", any plaque or label MUST use generic phrasing like "MARKET INDEX", "BROAD INDEX", or "EQUITY INDEX" — never a real index name.
 
 ## SYNTHESIS PROCESS (do this silently before writing the prompt)
 
@@ -432,7 +437,7 @@ Output ONLY the image prompt as a single dense paragraph (300–500 words). Open
     // Hard-append negative constraints so Kie.ai cannot hallucinate brand marks.
     // NOTE: We intentionally allow short physical labels on objects (e.g. "Taxable" etched on a jar)
     // so the negative suffix bans branding/headlines but NOT all letters.
-    const negativeSuffix = ' --no company logos, no brand names, no wordmarks, no watermarks, no signatures, no photographer credits, no headlines, no paragraph text, no captions, no stock-photo marks, no dates, no branded devices, no named software interfaces';
+    const negativeSuffix = ' --no company logos, no brand names, no wordmarks, no watermarks, no signatures, no photographer credits, no headlines, no paragraph text, no captions, no stock-photo marks, no dates, no branded devices, no named software interfaces, no market index names (no S&P 500, no S&P, no SPX, no Dow Jones, no DJIA, no Nasdaq, no Russell 2000, no FTSE, no MSCI, no Wilshire, no NYSE, no VIX), no stock ticker symbols, no exchange names — use generic phrasing like "MARKET INDEX" or "BROAD INDEX" instead';
     const alreadyHasNegative = /no\s+(company\s+)?logos?\b/i.test(imagePrompt)
       || /no\s+brand(\s+names?)?\b/i.test(imagePrompt)
       || /no\s+watermarks?\b/i.test(imagePrompt);
@@ -440,11 +445,15 @@ Output ONLY the image prompt as a single dense paragraph (300–500 words). Open
 
     console.log(`🎨 Generated prompt: ${imagePrompt.substring(0, 100)}...`);
 
-    // Generate image via Kie.ai Nano Banana 2 with auto-retry if a logo is detected
+    // Generate image via Kie.ai Nano Banana 2 with auto-retry if a logo is detected.
+    // Retry budget: max 1 retry, AND only retry if elapsed wall-clock < 90s.
+    // One Kie.ai job ~90s, so a retry past that point will exceed the edge function timeout.
     console.log(`🖼️ Generating image with Kie.ai Nano Banana 2...`);
     let generatedImageUrl: string | null = null;
-    const MAX_LOGO_RETRIES = 2;
+    const MAX_LOGO_RETRIES = 1;
+    const RETRY_BUDGET_MS = 90_000;
     for (let attempt = 0; attempt <= MAX_LOGO_RETRIES; attempt++) {
+      attemptsUsed = attempt + 1;
       const { url: kieUrl } = await kieGenerateImage({
         prompt: imagePrompt,
         aspectRatio: "16:9",
@@ -469,10 +478,14 @@ Output ONLY the image prompt as a single dense paragraph (300–500 words). Open
             || analysis?.textType === 'logo'
             || analysis?.textType === 'brand_mark'
             || analysis?.textType === 'watermark';
-          if (stillBranded && attempt < MAX_LOGO_RETRIES) {
-            console.log(`⚠️ Attempt ${attempt + 1}: brand mark still detected (${analysis?.brandName || 'unknown'}). Regenerating with stricter prompt...`);
-            imagePrompt = `${imagePrompt} --strictly no brand marks --absolutely no text in image`;
+          const elapsed = Date.now() - fnStartedAt;
+          if (stillBranded && attempt < MAX_LOGO_RETRIES && elapsed < RETRY_BUDGET_MS) {
+            console.log(`⚠️ Attempt ${attempt + 1}: brand mark still detected (${analysis?.brandName || 'unknown'}) — retrying (elapsed ${elapsed}ms < budget ${RETRY_BUDGET_MS}ms)`);
+            imagePrompt = `${imagePrompt} --strictly no brand marks --absolutely no real index names like S&P 500 or Nasdaq --absolutely no ticker symbols`;
             continue;
+          }
+          if (stillBranded) {
+            console.log(`⚠️ Brand mark detected (${analysis?.brandName || 'unknown'}) but accepting image — elapsed ${elapsed}ms, retry budget exhausted or already used`);
           }
         }
       } catch (verifyErr) {
@@ -524,9 +537,43 @@ Output ONLY the image prompt as a single dense paragraph (300–500 words). Open
   } catch (error: unknown) {
     console.error('Error in regenerate-article-image:', error);
     const message = error instanceof Error ? error.message : 'Unknown error';
+    const elapsed = Date.now() - fnStartedAt;
+
+    // Classify the failure so the dashboard can show an actionable toast.
+    let code = 'unknown_error';
+    let friendly = message;
+    let status = 500;
+    const lower = message.toLowerCase();
+    if (lower.includes('timed out') || lower.includes('timeout')) {
+      code = 'kie_timeout';
+      friendly = 'Image generation exceeded the time budget. Please try again — the next attempt usually succeeds.';
+      status = 504;
+    } else if (lower.includes('kie.ai') && (lower.includes('credits') || lower.includes('402'))) {
+      code = 'kie_credits';
+      friendly = 'Kie.ai credits exhausted. Top up your Kie.ai account and retry.';
+      status = 402;
+    } else if (lower.includes('rate limit') || lower.includes('429')) {
+      code = 'rate_limited';
+      friendly = 'Rate limit hit. Wait a minute and try again.';
+      status = 429;
+    } else if (lower.includes('article not found')) {
+      code = 'article_not_found';
+      status = 404;
+    } else if (lower.includes('kie.ai') || lower.includes('kie_api_key')) {
+      code = 'kie_error';
+    }
+
     return new Response(
-      JSON.stringify({ error: message, success: false }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      JSON.stringify({
+        success: false,
+        error: code,
+        message: friendly,
+        details: message,
+        articleId: currentArticleId,
+        attempts: attemptsUsed,
+        elapsedMs: elapsed,
+      }),
+      { status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 });
