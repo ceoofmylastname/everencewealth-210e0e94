@@ -2310,7 +2310,8 @@ async function handleRequest(req: Request): Promise<Response> {
         ...corsHeaders,
         'Content-Type': 'text/html; charset=utf-8',
         'Cache-Control': 'public, max-age=3600',
-        'X-SEO-Source': 'edge-function-hub'
+        'X-SEO-Source': 'edge-function-hub',
+        'X-SSR-Schema': 'injected=true'
       }
     })
   }
@@ -2333,7 +2334,8 @@ async function handleRequest(req: Request): Promise<Response> {
         ...corsHeaders,
         'Content-Type': 'text/html; charset=utf-8',
         'Cache-Control': 'public, max-age=3600',
-        'X-SEO-Source': 'edge-function-buyers-guide'
+        'X-SEO-Source': 'edge-function-buyers-guide',
+        'X-SSR-Schema': 'injected=true'
       }
     })
   }
