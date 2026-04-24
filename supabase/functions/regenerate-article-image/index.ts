@@ -187,12 +187,12 @@ Generate alt text and caption in ${languageName}.`
 function buildFallbackPrompt(funnelStage?: string, clusterTheme?: string): string {
   const theme = clusterTheme || 'financial planning and wealth management';
   const stageScenes: Record<string, string> = {
-    TOFU: `conceptual still-life: an open glass jar with a single gold coin dropping in, soft seedling growing beside it on warm marble, representing the first step into ${theme}`,
-    MOFU: `conceptual still-life: a polished brass balance scale weighing a stack of gold coins against a small hourglass on a clean studio backdrop, representing trade-offs in ${theme}`,
-    BOFU: `conceptual still-life: an ascending staircase of gold bars leading toward warm light, with a small brass key resting on the top step, representing the decisive path in ${theme}`,
+    TOFU: `a multi-stage crystal-and-brass educational exhibit visualizing the entry point into ${theme}, with three labeled inflow conduits, an integrated schematic call-out panel reading "FOUNDATION STAGE", and a small holographic data cloud showing comparative growth curves`,
+    MOFU: `an intricate clockwork-and-glass scientific model comparing two parallel pathways through ${theme}, with brass gauges, transparent flow chambers, integrated call-out plaques labeled "STRATEGY A" and "STRATEGY B", and side schematic overlays showing trade-offs`,
+    BOFU: `a premium museum-grade educational apparatus visualizing the decisive outcome of ${theme}, with a central polished titanium core, glowing data conduits branching to three labeled outcome chambers, integrated tablet-style displays showing comparative metrics, and a brass plaque reading "OUTCOME STAGE"`,
   };
   const scene = stageScenes[(funnelStage || '').toUpperCase()] || stageScenes.MOFU;
-  return `${scene}, editorial financial-magazine photography in the style of Bloomberg Businessweek and The Economist, soft directional studio light, shallow depth of field, premium materials (glass, brass, marble, wood), photorealistic, 16:9 aspect ratio, 2K resolution, no company logos, no brand names, no watermarks`;
+  return `${scene}, photorealistic museum-exhibit composition with dense infographic detail, integrated diagrammatic call-outs, schematic overlays, holographic data clouds and descriptive functional labels, premium materials (crystal, brushed titanium, brass, copper, polished chrome), cinematic studio lighting in cool blue, warm amber and vibrant green, 16:9 aspect ratio, 2K resolution, no company logos, no brand names, no watermarks, no buckets, no jars`;
 }
 
 serve(async (req) => {
