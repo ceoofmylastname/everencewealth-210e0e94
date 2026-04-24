@@ -271,8 +271,8 @@ CRITICAL RULES:
 - Specify "16:9 aspect ratio, professional photography, 2K resolution"
 - Match the article's tone: retirement = warm/optimistic, insurance = protective/family, investment = professional/growth
 - Themes: financial advisory offices, family protection, retirement lifestyle, wealth management
-- NEVER generate financial planning, villas, professional, or property images
 - Be specific about lighting, composition, and style
+- Generate ONLY clean, modern editorial photography of people, environments, and abstract financial scenes — never real-estate, villas, or property listings
 
 Output ONLY the image prompt, nothing else.`
           },
