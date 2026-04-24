@@ -232,7 +232,6 @@ serve(async (req) => {
 
     console.log(`📝 Article: "${article.headline}" (${article.language})`);
     const oldImageUrl = article.featured_image_url;
-    const languageName = LANGUAGE_NAMES[article.language] || 'English';
 
     // OPTION B: Every click reads THIS article and generates a fresh, bespoke
     // Kie.ai image — no EN→ES sharing. Each language gets its own image.
