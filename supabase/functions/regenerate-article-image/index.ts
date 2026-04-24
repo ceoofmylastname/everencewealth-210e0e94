@@ -112,18 +112,18 @@ async function deleteOldImage(
 async function generateLocalizedMetadata(
   article: { headline: string; cluster_theme?: string; language: string },
   imagePrompt: string,
-  openaiKey: string
+  lovableKey: string
 ): Promise<{ altText: string; caption: string | null }> {
   const languageName = LANGUAGE_NAMES[article.language] || 'English';
 
-  const metadataResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+  const metadataResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${openaiKey}`,
+      'Authorization': `Bearer ${lovableKey}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: 'gpt-4o-mini',
+      model: 'google/gemini-2.5-flash',
       messages: [
         {
           role: 'system',
@@ -149,9 +149,7 @@ Image shows: ${imagePrompt}
 
 Generate alt text and caption in ${languageName}.`
         }
-      ],
-      max_tokens: 300,
-      temperature: 0.7
+      ]
     }),
   });
 
@@ -173,9 +171,27 @@ Generate alt text and caption in ${languageName}.`
     } catch (parseError) {
       console.error('Failed to parse metadata JSON:', parseError);
     }
+  } else {
+    const body = await metadataResponse.text().catch(() => '');
+    console.error(`⚠️ Metadata generation failed: ${metadataResponse.status} ${body.substring(0, 200)}`);
   }
 
   return { altText, caption };
+}
+
+/**
+ * Build a high-quality fallback image prompt based on funnel stage + theme.
+ * Used when AI prompt generation fails (rate limit, credits, etc).
+ */
+function buildFallbackPrompt(funnelStage?: string, clusterTheme?: string): string {
+  const theme = clusterTheme || 'financial planning and wealth management';
+  const stageScenes: Record<string, string> = {
+    TOFU: `inviting modern financial advisory office, diverse family of three meeting with a warm, approachable advisor, soft natural light through large windows, hopeful and educational atmosphere, ${theme}`,
+    MOFU: `professional advisor and middle-aged couple reviewing retirement charts on a tablet at a glass conference table, focused and trusting expressions, premium contemporary office, ${theme}`,
+    BOFU: `confident wealth strategist shaking hands with a successful client in an executive office at golden hour, framed achievement art on the walls, decisive and prosperous mood, ${theme}`,
+  };
+  const scene = stageScenes[(funnelStage || '').toUpperCase()] || stageScenes.MOFU;
+  return `${scene}, ultra-realistic editorial photography, cinematic lighting, shallow depth of field, 16:9 aspect ratio, 2K resolution, no text, no watermarks, no logos, no brand marks`;
 }
 
 serve(async (req) => {
@@ -195,9 +211,9 @@ serve(async (req) => {
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const openaiKey = Deno.env.get('OPENAI_API_KEY');
+    const lovableKey = Deno.env.get('LOVABLE_API_KEY');
 
-    if (!openaiKey) throw new Error('OPENAI_API_KEY is not configured');
+    if (!lovableKey) throw new Error('LOVABLE_API_KEY is not configured');
     if (!Deno.env.get('KIE_API_KEY')) throw new Error('KIE_API_KEY is not configured');
 
     const supabase = createClient(supabaseUrl, supabaseKey);
@@ -206,7 +222,7 @@ serve(async (req) => {
 
     const { data: article, error: fetchError } = await supabase
       .from('blog_articles')
-      .select('id, headline, meta_description, detailed_content, language, funnel_stage, cluster_theme, slug, cluster_id, featured_image_url')
+      .select('id, headline, meta_description, detailed_content, language, funnel_stage, cluster_theme, slug, cluster_id, featured_image_url, translations, source_language')
       .eq('id', articleId)
       .single();
 
@@ -221,26 +237,57 @@ serve(async (req) => {
     // IMAGE SHARING: Non-English articles share images from English primary
     if (article.language !== 'en' && article.cluster_id && article.funnel_stage) {
       console.log(`🔗 Non-English article detected - checking for English primary image...`);
-      
-      const { data: englishPrimary, error: primaryError } = await supabase
-        .from('blog_articles')
-        .select('featured_image_url')
-        .eq('cluster_id', article.cluster_id)
-        .eq('funnel_stage', article.funnel_stage)
-        .eq('language', 'en')
-        .eq('status', 'published')
-        .maybeSingle();
 
-      if (!primaryError && englishPrimary?.featured_image_url) {
+      let englishImageUrl: string | null = null;
+
+      // Strategy 1: Find English sibling whose translations JSON points at this article
+      const { data: translationMatches } = await supabase
+        .from('blog_articles')
+        .select('id, featured_image_url, translations')
+        .eq('cluster_id', article.cluster_id)
+        .eq('language', 'en')
+        .not('featured_image_url', 'is', null);
+
+      if (translationMatches && translationMatches.length > 0) {
+        const linked = translationMatches.find((row: any) => {
+          const t = row.translations || {};
+          return t?.[article.language] === article.id || t?.[article.language]?.id === article.id;
+        });
+        if (linked?.featured_image_url) {
+          englishImageUrl = linked.featured_image_url;
+          console.log(`✅ Matched English sibling via translations JSON (${linked.id})`);
+        }
+      }
+
+      // Strategy 2: Fallback to funnel_stage match, ordered by created_at, take first
+      if (!englishImageUrl) {
+        const { data: stageMatches } = await supabase
+          .from('blog_articles')
+          .select('id, featured_image_url')
+          .eq('cluster_id', article.cluster_id)
+          .eq('funnel_stage', article.funnel_stage)
+          .eq('language', 'en')
+          .eq('status', 'published')
+          .not('featured_image_url', 'is', null)
+          .order('created_at', { ascending: true })
+          .limit(1);
+
+        if (stageMatches && stageMatches.length > 0) {
+          englishImageUrl = stageMatches[0].featured_image_url;
+          console.log(`✅ Matched English sibling via funnel_stage fallback (${stageMatches[0].id})`);
+        }
+      }
+
+      if (englishImageUrl) {
         console.log(`✅ Found English primary image - sharing instead of generating new`);
-        
+
         const imagePromptForMetadata = `financial advisory consultation, professional office setting, wealth management`;
-        const { altText, caption } = await generateLocalizedMetadata(article, imagePromptForMetadata, openaiKey);
+        const { altText, caption } = await generateLocalizedMetadata(article, imagePromptForMetadata, lovableKey);
 
         const { error: updateError } = await supabase
           .from('blog_articles')
           .update({
-            featured_image_url: englishPrimary.featured_image_url,
+            featured_image_url: englishImageUrl,
             featured_image_alt: altText,
             featured_image_caption: caption,
             updated_at: new Date().toISOString()
@@ -253,7 +300,7 @@ serve(async (req) => {
           JSON.stringify({
             success: true, sharedFromEnglish: true, articleId,
             headline: article.headline, language: article.language,
-            imageUrl: englishPrimary.featured_image_url, altText, caption
+            imageUrl: englishImageUrl, altText, caption
           }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
@@ -261,8 +308,8 @@ serve(async (req) => {
       console.log(`⚠️ No English primary found - will generate new image`);
     }
 
-    // Generate content-based image prompt using OpenAI
-    console.log(`🧠 Generating content-based image prompt...`);
+    // Generate content-based image prompt via Lovable AI Gateway
+    console.log(`🧠 Generating content-based image prompt via Lovable AI...`);
     
     const contentForAnalysis = `
 Headline: ${article.headline}
@@ -272,14 +319,14 @@ Funnel Stage: ${article.funnel_stage}
 Content Preview: ${(article.detailed_content || '').substring(0, 2000)}
     `.trim();
 
-    const promptGenerationResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+    const promptGenerationResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${openaiKey}`,
+        'Authorization': `Bearer ${lovableKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'google/gemini-2.5-flash',
         messages: [
           {
             role: 'system',
@@ -303,19 +350,46 @@ Output ONLY the image prompt, nothing else.`
             role: 'user',
             content: `Create a professional photography prompt for this article:\n\n${contentForAnalysis}`
           }
-        ],
-        max_tokens: 500,
-        temperature: 0.7
+        ]
       }),
     });
 
+    let imagePrompt: string;
     if (!promptGenerationResponse.ok) {
-      throw new Error('Failed to generate image prompt');
-    }
+      const status = promptGenerationResponse.status;
+      const errBody = await promptGenerationResponse.text().catch(() => '');
+      console.error(`⚠️ Prompt generation failed: ${status} ${errBody.substring(0, 300)}`);
 
-    const promptData = await promptGenerationResponse.json();
-    let imagePrompt = promptData.choices?.[0]?.message?.content?.trim() || 
-      `Professional financial advisory consultation, modern office, advisor and client reviewing documents, warm lighting, ultra-realistic, 8k resolution, 16:9 aspect ratio`;
+      // Surface rate-limit / credits errors clearly to the client
+      if (status === 429) {
+        return new Response(
+          JSON.stringify({
+            error: 'AI rate limit reached. Please wait a minute and try again.',
+            success: false,
+            code: 'rate_limited'
+          }),
+          { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      if (status === 402) {
+        return new Response(
+          JSON.stringify({
+            error: 'Lovable AI credits exhausted. Please add credits in Settings → Workspace → Usage.',
+            success: false,
+            code: 'no_credits'
+          }),
+          { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Other errors: fall back to a high-quality default prompt and keep going
+      console.log(`🛟 Falling back to default prompt for funnel stage: ${article.funnel_stage}`);
+      imagePrompt = buildFallbackPrompt(article.funnel_stage, article.cluster_theme);
+    } else {
+      const promptData = await promptGenerationResponse.json();
+      imagePrompt = promptData.choices?.[0]?.message?.content?.trim()
+        || buildFallbackPrompt(article.funnel_stage, article.cluster_theme);
+    }
 
     // Hard-append negative constraints so Kie.ai cannot hallucinate brand marks
     const negativeSuffix = ' --no logo, no watermark, no brand mark, no text overlay, no company name, no shield emblem, no monogram, no badge, no signature, no photographer credit, no stock-photo mark, no letters, no words';
@@ -374,7 +448,7 @@ Output ONLY the image prompt, nothing else.`
       `article-${article.slug || article.id.slice(0, 8)}`
     );
 
-    const { altText, caption } = await generateLocalizedMetadata(article, imagePrompt, openaiKey);
+    const { altText, caption } = await generateLocalizedMetadata(article, imagePrompt, lovableKey);
 
     console.log(`💾 Updating article with new image...`);
     const { error: updateError } = await supabase
