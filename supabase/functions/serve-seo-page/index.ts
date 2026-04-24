@@ -3141,27 +3141,49 @@ async function handleRequest(req: Request): Promise<Response> {
   console.log(`[SEO] Processing path: ${path}`)
 
   // ============================================================
-  // HUB PAGE DETECTION: Handle /{lang}/locations hub page
-  // Must come BEFORE the content slug parsing
+  // HUB / INDEX PAGE DETECTION (Fix 9, 2026-04-24)
+  // Routes /blog, /qa, /locations, /compare hubs (and Spanish
+  // aliases /ubicaciones, /comparar, /comparisons) to a DB-backed,
+  // cached SSR renderer. Must come BEFORE content slug parsing.
   // ============================================================
-  const hubMatch = path.match(/^\/(\w{2})\/(locations)\/?$/)
+  const hubMatch = path.match(
+    /^\/(en|es)\/(blog|qa|locations|ubicaciones|compare|comparar|comparisons)\/?$/
+  )
   if (hubMatch) {
-    const [, lang, hubType] = hubMatch
-    console.log(`[SEO] Detected hub page: lang=${lang}, type=${hubType}`)
-    
-    // Generate full SEO HTML for hub page
-    const hubHtml = generateHubPageHtml(lang, hubType)
-    
-    return new Response(hubHtml, {
-      status: 200,
-      headers: {
-        ...corsHeaders,
-        'Content-Type': 'text/html; charset=utf-8',
-        'Cache-Control': 'public, max-age=3600',
-        'X-SEO-Source': 'edge-function-hub',
-        'X-SSR-Schema': 'injected=true'
-      }
-    })
+    const [, lang, rawHub] = hubMatch
+    // Normalize Spanish aliases back to canonical hub_type values
+    const hubTypeMap: Record<string, HubType> = {
+      blog: 'blog',
+      qa: 'qa',
+      locations: 'locations',
+      ubicaciones: 'locations',
+      compare: 'compare',
+      comparar: 'compare',
+      comparisons: 'compare',
+    }
+    const hubType = hubTypeMap[rawHub]
+    console.log(`[SEO] Detected hub page: lang=${lang}, raw=${rawHub}, type=${hubType}`)
+
+    try {
+      const supabase = createTimeoutClient()
+      const hubHtml = await generateHubPageHtmlAsync(supabase, lang, hubType)
+      return new Response(hubHtml, {
+        status: 200,
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'text/html; charset=utf-8',
+          'Cache-Control': 'public, max-age=600, stale-while-revalidate=86400',
+          'X-SEO-Source': 'edge-function-ssr',
+          'X-SSR-Source': 'edge-function-ssr',
+          'X-SSR-Schema': 'injected=true',
+          'X-Content-Language': lang,
+          'X-Hub-Type': hubType,
+        }
+      })
+    } catch (e) {
+      console.error(`[SEO] Hub render failed for ${hubType}:${lang}:`, e)
+      // Fall through to existing handlers / fallback HTML
+    }
   }
 
   // ============================================================
