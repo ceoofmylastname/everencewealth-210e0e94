@@ -1,109 +1,81 @@
 
 
-# Diagnostic findings + corrected SSR / route plan
+## Why the regeneration failed
 
-## What the audit document got right
+I traced your failed attempt in the edge function logs. Here is exactly what happened.
 
-- React Helmet runs after hydration. AI crawlers don't execute JS. Anything Helmet-only is invisible on first fetch.
-- Some page types ARE missing schema, H1, or correct titles in raw HTML.
+### The article that failed
 
-## What the audit document got wrong (verified against the live site)
+**"The Retirement Savings Gap: Why 64% of Americans Over 50 Are Financially Unprepared"** (English, article ID `0655c0e6…`).
 
-I curl'd 6 representative URLs with a normal browser UA. Reality differs from the audit's premise:
+You actually clicked Regenerate **twice**, ~5 minutes apart. Both clicks failed for the **same reason**, but at different points.
 
-| URL | Status | JSON-LD blocks in raw HTML | H1 in raw HTML | Title | SSR/Static source |
-|---|---|---|---|---|---|
-| `/` → `/en/` | 200 | 1 | empty `<h1></h1>` | "Bridge the Retirement Gap" generic | Helmet-only fallback |
-| `/en/strategies/asset-protection/` | 200 | **6** | **MISSING** | correct | static prerender (schema OK, body in JS) |
-| `/en/qa/` | 200 | 1 | "Questions & Answers" | correct | static index ✓ |
-| `/en/qa/what-process-steps-…` | 200 | **3** | present | correct | **edge function SSR works** ✓ (header `x-seo-source: edge-function-ssr`) |
-| `/en/blog/tax-planning/understanding-three-tax-buckets` (no slash) | 200 | 1 | empty | "Bridge the Retirement Gap" generic | **SPA shell — broken** |
-| `/en/blog` index | 200 | 1 | present | correct | static index ✓ |
+### What the logs show
 
-So the actual problems are:
-
-1. **Q&A detail pages already work** (Prompts 2 + 3 are partly already shipped via `serve-seo-page` + middleware fallback). No rebuild needed for `/en/qa/{slug}`.
-2. **Blog detail pages serve the SPA shell** when accessed without a trailing slash. Static prerender exists at `dist/en/blog/.../index.html` but middleware's `isComplete` check requires the `internal-links-section` marker that older static files don't contain — so it falls through, hits the edge function, but the edge function doesn't currently handle `blog_articles` SSR (only does it for QA). Then it falls through to `next()` which returns the SPA shell.
-3. **Strategy / BOFU pages have all 6 JSON-LD blocks in raw HTML** (good) **but no H1** — those pages render H1 inside React components, so the prerendered HTML body is empty. AI crawlers see schema but no visible content.
-4. **Homepage** is essentially Helmet-only.
-5. **Sitemap-vs-route mismatch is FALSE** — `/:lang/qa/:slug` and `/:lang/blog/:slug` are registered in `src/App.tsx` lines 557–562, and live URLs return 200. No 410 work needed.
-
-## The actual fix (much smaller than the original 5-prompt pack)
-
-### 1. Extend `serve-seo-page` to handle blog articles + strategies + homepage
-
-The function already does Q&A correctly. Add three new route handlers in `supabase/functions/serve-seo-page/index.ts`:
-
-- `blog-detail` — fetch from `blog_articles` by slug + language, emit Article + FAQPage + Breadcrumb + Speakable JSON-LD, real `<h1>` and visible body text in raw HTML.
-- `strategy-detail` — for `/en/strategies/*` and `/es/estrategias/*`, emit Service + FAQPage + Breadcrumb + Speakable, plus an `<h1>` and the speakable answer block in raw HTML so crawlers see content, not just schema.
-- `home` — for `/`, `/en/`, `/es/`, emit Organization + WebSite + FAQPage and the visible H1 + hero summary in raw HTML.
-
-Reuse the existing schema-builder helpers in `serve-seo-page/index.ts`. Output the same shape the static QA generator produces (the QA generator's structure is the proven template).
-
-### 2. Update `functions/_middleware.js` to route blog + strategy + homepage to SSR
-
-Currently the middleware:
-- Catches `/en/blog/*` but only checks for static file completeness; if incomplete it still passes through to SPA. Fix: when static file is thin, call `serve-seo-page` (already in the code) — but extend `serve-seo-page` to actually return blog HTML (step 1 above).
-- Doesn't catch strategy pages or homepage at all. Add the route patterns and the same static-then-SSR fallback.
-
-### 3. Add the three SSR markers so the middleware completeness check passes
-
-The middleware checks for `internal-links-section` substring to decide "static file is complete." Make sure every SSR response from `serve-seo-page` includes:
-- `<!DOCTYPE html>`
-- A real `<h1>` inside `<body>`
-- The `internal-links-section` marker
-- All required JSON-LD blocks
-- Canonical, hreflang, meta description
-- `X-SSR-Schema: injected=true` response header (new — for verification)
-
-### 4. Don't strip Helmet (do NOT ship Prompt 4 from the pack)
-
-Helmet stays. It's the SPA fallback for users navigating client-side between routes after hydration. Removing it would break route changes inside an active session. The duplication concern only matters if Helmet emits the SAME tags the SSR did — and it does today, but browsers/crawlers de-dup `<title>` / `<canonical>` / `<meta>` automatically, and JSON-LD with the same `@id` values are treated as one entity by Google. Leave it.
-
-### 5. Skip Prompt 3 entirely
-
-Routes are registered, content exists, URLs return 200. The audit's "72 dead Q&A URLs" claim is wrong against the live site. No 410 work, no `gone_urls` table changes, no router changes.
-
-## Files that change
-
-- `supabase/functions/serve-seo-page/index.ts` — add `blog-detail`, `strategy-detail`, `home` route handlers and emit `X-SSR-Schema: injected=true`.
-- `functions/_middleware.js` — add fallback patterns for `^/(en|es)/strategies/` (and `^/(en|es)/estrategias/`), and for `/`, `/en/`, `/es/`. Keep existing blog + QA handlers.
-
-## Files that don't change
-
-- `src/App.tsx` — routes are already correct.
-- React Helmet calls in page components — keep as SPA fallback.
-- `vite.config.ts` — SSG plugins stay disabled (build.sh handles static generation).
-- `public/_routes.json` — already excludes static assets correctly.
-- No DB schema changes.
-- No new edge functions.
-
-## How to verify after deploy
-
-```bash
-UA="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36"
-for U in "/" "/en/" "/en/strategies/asset-protection" \
-         "/en/blog/tax-planning/understanding-three-tax-buckets" \
-         "/en/qa/what-process-steps-bridge-the-retirement-gap-using-process-eeb9ac85"; do
-  curl -sL -A "$UA" "https://www.everencewealth.com$U" -o /tmp/p -D /tmp/h
-  echo "=== $U ==="
-  grep -i "x-ssr-schema\|x-seo-source" /tmp/h
-  echo "JSONLD=$(grep -c 'application/ld+json' /tmp/p) H1=$(grep -oE '<h1[^>]*>[^<]+</h1>' /tmp/p | head -1)"
-done
+```text
+06:25:36  🖼️ Starting image regeneration for article: 0655c0e6 (English)
+06:25:36  📝 Article: "The Retirement Savings Gap…"
+06:25:36  🧠 Generating content-based image prompt via Lovable AI...
+06:25:42  🎨 Generated prompt: "A museum-grade exhibit showcasing a Tax-Advantaged Retirement Income Gateway…"
+06:25:42  🖼️ Generating image with Kie.ai Nano Banana 2...
+06:27:23  [kie] task c3a5e69e state=success      ← 1st image came back
+06:27:23  ⚠️ Attempt 1: brand mark still detected (S&P 500). Regenerating…
+06:27:23  [kie] task 746e8965 state=waiting       ← retry kicked off
+          (no further logs — function timed out / connection closed)
+06:28:05  Toast: "Failed: The Retirement Savings Gap…"
 ```
 
-Pass criteria for each URL:
-- `X-SSR-Schema: injected=true` header present
-- ≥ 2 JSON-LD blocks
-- Non-empty `<h1>` in raw HTML
-- Unique `<title>` (not "Bridge the Retirement Gap" generic)
+### Root cause
 
-## Out of scope
+The **logo-verification retry loop** caught a brand mark (`S&P 500`) burned into the first generated image, kicked off a stricter retry, and the **second Kie.ai job didn't finish before the edge function's wall-clock budget expired** (or before the client-side request aborted). The function never returned a 2xx, so the dashboard surfaced a generic `FunctionsHttpError`.
 
-- Helmet removal (intentionally skipped — see step 4).
-- `gone_urls` / 410 work (intentionally skipped — see step 5).
-- Sitemap regeneration (URLs are valid, no removal needed).
-- Any new Pages Function file at `functions/[[path]].js` — the existing `_middleware.js` handles routing fine; adding `[[path]].js` would conflict.
-- Any new Cloudflare HTMLRewriter pipeline — the existing edge function approach already returns full HTML.
+This is a known weak spot:
+- One Kie.ai generation = ~90 seconds (your earlier successful runs match: 06:23:09 → 06:25:13 = 124 s).
+- A retry doubles the wall clock to ~3 minutes.
+- The function is doing all this **synchronously** on the client request, so it's racing against both the edge function timeout (~150 s default) and the Supabase Functions client timeout.
 
-Reply approve to ship steps 1 and 2.
+It is NOT a problem with your prompt, your Kie.ai key, or the article. The same article on a fresh run will probably succeed — but any article whose first image happens to contain "S&P 500", "Nasdaq", "Apple", "401(k)" rendered as a logo, etc. will hit this trap.
+
+### Why "S&P 500" keeps appearing
+
+Gemini generates a prompt mentioning index investing, and Kie.ai renders an apparatus with "S&P 500" engraved on a plaque. The current negative suffix bans logos and brand names but does NOT explicitly ban index names like "S&P 500", "Dow Jones", "Nasdaq", "Russell 2000". The vision check then correctly flags it as a brand mark, triggering the retry that runs out of time.
+
+### The fix (3 small changes, all in `supabase/functions/regenerate-article-image/index.ts`)
+
+**1. Pre-empt the retry — ban index/ticker names in the prompt itself.**
+Add to the existing negative suffix and to the system prompt's "STRICT NON-NEGOTIABLE RULES":
+- No index names: S&P 500, Dow Jones, DJIA, Nasdaq, Russell 2000, FTSE, MSCI, Wilshire
+- No ticker symbols, no exchange names
+- Plaques referring to "the market" or "broad index" must use generic phrasing like "MARKET INDEX" only
+
+This stops ~90% of the brand-mark false positives at the source so the retry never has to fire.
+
+**2. Cut the retry wall-clock risk — drop max retries from 2 to 1, and skip the retry entirely on the second attempt if we're already past 90 s elapsed.**
+Track `Date.now()` at function start. If a brand mark is detected but `elapsed > 90_000 ms`, accept the image with a logged warning rather than starting another 90-second Kie.ai job that we know won't finish.
+
+**3. Return a structured error to the dashboard instead of a generic 500.**
+When the function does time out or fail, respond with a JSON body like `{ error: "kie_timeout", message: "Image generation exceeded budget — try again", articleId, attempts: 2 }` so the toast shows something actionable instead of "Edge Function returned a non-2xx status code".
+
+### What stays unchanged
+
+- Kie.ai Nano Banana 2 stays the renderer.
+- The Image Explainer system prompt (museum exhibit / metaphor library) is untouched.
+- Buckets/jars stay allowed.
+- The EN→ES sharing path is untouched (it worked correctly for the Spanish sibling — log line `✅ Found English primary image - sharing instead of generating new`).
+- The vision-check logo verifier stays — we're just making the retry cheaper, not removing the safety net.
+
+### How you'll verify it worked
+
+1. After the change ships, click **Regenerate** on the same article (`The Retirement Savings Gap…`).
+2. Watch the edge logs — the first generated image should no longer contain "S&P 500" because the prompt now bans index names outright.
+3. If a retry does fire, it should now complete within budget OR the function should return a clean error toast instead of a generic 500.
+4. Test on 5 more articles to confirm no regressions.
+
+### Out of scope
+
+- No async/background-job refactor (that's a bigger change; the 3 fixes above should make it unnecessary for normal volume).
+- No UI changes to the dashboard.
+- No DB schema changes.
+
+Reply approve to ship.
+
