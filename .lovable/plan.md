@@ -1,26 +1,44 @@
 
 
-## Remediation Plan — Scrub foreign Supabase project ref from Everence Wealth
+## Option C — Inline Vault lookup in both trigger functions
 
-**Target project:** `zbzrmpmqijvmjbhctfoe` (Everence Wealth) — exclusively.
-**Foreign project to neutralize:** `kazggnufaoicopvmwhdl` (Del Sol Prime Homes) — will not be contacted, queried, or referenced in any executable code path after this task.
+**Target:** `zbzrmpmqijvmjbhctfoe` (Everence Wealth) only. No contact with `kazggnufaoicopvmwhdl`.
 
----
+### What changes
 
-### Task 1 — One new migration: rewrite the two trigger functions
+Both trigger functions stop reading `app.settings.service_role_key` (GUC) and instead read the key inline from `vault.decrypted_secrets` where `name = 'service_role_key'` (the Vault entry you just created). The Supabase URL behavior is unchanged — GUC first, Everence-only fallback.
 
-Create a single new file in `supabase/migrations/` with today's UTC timestamp prefix. No existing migration file is modified.
+### Why this is safe
 
-**Full SQL diff (preview — not yet applied):**
+- `vault.decrypted_secrets` is a Supabase-managed view that decrypts on read using the project's encryption key. Only `SECURITY DEFINER` functions owned by `postgres` (which these are) can read it.
+- No literal JWT enters the migration file or chat.
+- If Vault lookup returns NULL (secret missing/renamed), `auto_generate_faqs` sends `Authorization: Bearer ` and `backfill-article-faqs` returns 401 — same safe-fail behavior as the GUC version, no foreign URL ever called.
+- `notify_sitemap_ping` doesn't need the key at all (no auth header on `ping-indexnow`), so it stays GUC-only for the URL.
+
+### Pre-flight check (read-only, run before migration)
+
+I'll first run this `SELECT` to confirm the Vault entry exists and is readable:
 
 ```sql
--- Migration: Remove foreign Supabase project reference (kazggnufaoicopvmwhdl)
--- from notify_sitemap_ping() and auto_generate_faqs(). Replace with Everence
--- Wealth project (zbzrmpmqijvmjbhctfoe) and harden via GUC fallback so URLs
--- can never silently drift to a foreign project again.
+SELECT name, length(decrypted_secret) AS key_len
+FROM vault.decrypted_secrets
+WHERE name = 'service_role_key';
+```
+
+Expected: one row, `key_len ≈ 200–250`. If zero rows or NULL, I stop and report — no migration runs.
+
+### Migration SQL (preview — not yet applied)
+
+One new file in `supabase/migrations/` with today's UTC timestamp:
+
+```sql
+-- Migration: Switch auto_generate_faqs() from GUC to inline Vault lookup
+-- for the service role key. notify_sitemap_ping() unchanged in behavior;
+-- recreated only to keep the pair in sync and re-stamp the COMMENT.
+-- Target project: zbzrmpmqijvmjbhctfoe (Everence Wealth) ONLY.
 
 -- ─────────────────────────────────────────────────────────────
--- 1. notify_sitemap_ping() — replaces hardcoded foreign URL
+-- 1. notify_sitemap_ping() — unchanged logic, refreshed comment
 -- ─────────────────────────────────────────────────────────────
 CREATE OR REPLACE FUNCTION public.notify_sitemap_ping()
 RETURNS trigger
@@ -32,25 +50,18 @@ DECLARE
   v_slug         TEXT;
   v_supabase_url TEXT;
 BEGIN
-  -- Only proceed if status is being set to 'published'
   IF TG_OP = 'INSERT' THEN
-    IF NEW.status != 'published' THEN
-      RETURN NEW;
-    END IF;
+    IF NEW.status != 'published' THEN RETURN NEW; END IF;
   ELSIF TG_OP = 'UPDATE' THEN
-    IF NEW.status != 'published' OR OLD.status = 'published' THEN
-      RETURN NEW;
-    END IF;
+    IF NEW.status != 'published' OR OLD.status = 'published' THEN RETURN NEW; END IF;
   END IF;
 
-  -- Slug source depends on table
   IF TG_TABLE_NAME = 'location_pages' THEN
     v_slug := NEW.topic_slug;
   ELSE
     v_slug := NEW.slug;
   END IF;
 
-  -- Resolve Supabase URL: GUC first, then Everence fallback (NEVER foreign)
   v_supabase_url := current_setting('app.settings.supabase_url', true);
   IF v_supabase_url IS NULL OR v_supabase_url = '' THEN
     v_supabase_url := 'https://zbzrmpmqijvmjbhctfoe.supabase.co';
@@ -59,23 +70,18 @@ BEGIN
   PERFORM net.http_post(
     url     := v_supabase_url || '/functions/v1/ping-indexnow',
     headers := jsonb_build_object('Content-Type', 'application/json'),
-    body    := jsonb_build_object(
-      'table',  TG_TABLE_NAME,
-      'slug',   v_slug,
-      'action', TG_OP
-    )
+    body    := jsonb_build_object('table', TG_TABLE_NAME, 'slug', v_slug, 'action', TG_OP)
   );
 
-  RAISE NOTICE 'IndexNow ping triggered for % - %', TG_TABLE_NAME, v_slug;
   RETURN NEW;
 END;
 $function$;
 
 COMMENT ON FUNCTION public.notify_sitemap_ping() IS
-  'Pings IndexNow on publish. Updated YYYY-MM-DD: removed hardcoded foreign Supabase project ref (kazggnufaoicopvmwhdl); now uses GUC app.settings.supabase_url with Everence (zbzrmpmqijvmjbhctfoe) fallback.';
+  'Pings IndexNow on publish. URL via GUC app.settings.supabase_url with Everence (zbzrmpmqijvmjbhctfoe) fallback. No auth header required.';
 
 -- ─────────────────────────────────────────────────────────────
--- 2. auto_generate_faqs() — replaces hardcoded foreign fallback
+-- 2. auto_generate_faqs() — service role key from Vault inline
 -- ─────────────────────────────────────────────────────────────
 CREATE OR REPLACE FUNCTION public.auto_generate_faqs()
 RETURNS trigger
@@ -90,13 +96,18 @@ BEGIN
   IF NEW.status = 'published'
      AND (NEW.qa_entities IS NULL OR jsonb_array_length(NEW.qa_entities) = 0) THEN
 
-    v_supabase_url     := current_setting('app.settings.supabase_url',     true);
-    v_service_role_key := current_setting('app.settings.service_role_key', true);
-
-    -- Everence fallback ONLY (never foreign)
+    -- URL: GUC first, Everence-only fallback
+    v_supabase_url := current_setting('app.settings.supabase_url', true);
     IF v_supabase_url IS NULL OR v_supabase_url = '' THEN
       v_supabase_url := 'https://zbzrmpmqijvmjbhctfoe.supabase.co';
     END IF;
+
+    -- Service role key: inline Vault lookup (never literal, never GUC)
+    SELECT decrypted_secret
+      INTO v_service_role_key
+      FROM vault.decrypted_secrets
+      WHERE name = 'service_role_key'
+      LIMIT 1;
 
     PERFORM net.http_post(
       url     := v_supabase_url || '/functions/v1/backfill-article-faqs',
@@ -125,52 +136,48 @@ END;
 $function$;
 
 COMMENT ON FUNCTION public.auto_generate_faqs() IS
-  'Auto-backfills FAQs on publish. Updated YYYY-MM-DD: removed hardcoded foreign Supabase project ref (kazggnufaoicopvmwhdl); now uses GUC app.settings.supabase_url with Everence (zbzrmpmqijvmjbhctfoe) fallback. Service role key sourced from GUC, never literal.';
+  'Auto-backfills FAQs on publish. URL via GUC app.settings.supabase_url with Everence (zbzrmpmqijvmjbhctfoe) fallback. Service role key sourced inline from vault.decrypted_secrets where name = ''service_role_key'' — never literal, never GUC.';
 ```
 
-**Key safety properties of this migration:**
+### Safety properties
 
-- Zero literal JWTs (no anon, no service role pasted as string).
-- No `net.http_post` to any foreign URL — fallback is hardcoded to Everence only.
-- Functions are recreated, not invoked. No trigger fires during the migration.
-- Existing migration files are untouched.
+- Zero literal JWTs anywhere in the file.
+- No reference to `kazggnufaoicopvmwhdl` in any code path.
+- `CREATE OR REPLACE` only — no triggers fire during migration.
+- No edge functions deployed, invoked, or warmed.
+- No `ALTER DATABASE` statement (sidesteps the tooling block entirely).
+- Existing migration files untouched.
 
----
+### Post-migration verification (read-only)
 
-### Task 2 — Doc file scrubs (4 files, find/replace only)
+```sql
+-- Confirm both functions reference the right things
+SELECT proname,
+       (pg_get_functiondef(oid) ILIKE '%kazggnufaoicopvmwhdl%') AS has_foreign_ref,
+       (pg_get_functiondef(oid) ILIKE '%vault.decrypted_secrets%') AS reads_vault,
+       (pg_get_functiondef(oid) ILIKE '%zbzrmpmqijvmjbhctfoe%') AS has_everence_ref
+FROM pg_proc
+WHERE proname IN ('notify_sitemap_ping', 'auto_generate_faqs')
+  AND pronamespace = 'public'::regnamespace;
+```
 
-For each file: replace every literal `kazggnufaoicopvmwhdl` with `zbzrmpmqijvmjbhctfoe`. Anon JWTs that decode to `ref: kazggnufaoicopvmwhdl` will be replaced with the placeholder string `YOUR_SUPABASE_ANON_KEY` (since pasting the live Everence anon key into docs is unnecessary and a doc is not a runtime). No other line edits.
+Expected:
+| function | has_foreign_ref | reads_vault | has_everence_ref |
+|---|---|---|---|
+| notify_sitemap_ping | false | false | true |
+| auto_generate_faqs | false | true  | true |
 
-Affected files and occurrence counts (from audit):
+### Out of scope
 
-| File | Replacements |
-|---|---|
-| `DEPLOYMENT_GUIDE.md` | `kazggnufaoicopvmwhdl` → `zbzrmpmqijvmjbhctfoe`; foreign JWT example → `YOUR_SUPABASE_ANON_KEY` |
-| `DEPLOYMENT_SSG_CHECKLIST.md` | same rule |
-| `README_STATIC_SEO.md` | same rule |
-| `SCHEMA_DOCUMENTATION.md` | same rule |
+- No edge function changes
+- No app code changes
+- No GUC changes (`app.settings.supabase_url` may still be set later if you want; not required)
+- No connection to any non-Everence project
 
-Exact diffs will be generated and shown to you for review before write, per your instruction.
+### Execution order on approval
 
----
-
-### Out of scope (explicitly NOT touched)
-
-- Any existing file in `supabase/migrations/` (historical record stays intact)
-- `functions/_middleware.js`, citation blocklists, any `costadelsol*.com` reference
-- `.env`, `supabase/config.toml`, `src/integrations/supabase/client.ts`, every edge function
-- No edge function deploy, invoke, warm-up, or test
-- No connection to any other Supabase / Lovable / GitHub project
-
----
-
-### Review gate
-
-On approval I will:
-
-1. Generate the migration file with today's UTC timestamp and present the final SQL.
-2. Generate per-file unified diffs for the 4 docs.
-3. Pause for your go-ahead before running the migration tool or writing any file.
-
-**Confirmation:** All planned changes target Supabase project `zbzrmpmqijvmjbhctfoe` only. Project `kazggnufaoicopvmwhdl` will not be contacted, deployed to, queried, or referenced in any runtime code path.
+1. Run pre-flight `SELECT` against Vault to confirm `service_role_key` exists and is non-null.
+2. If confirmed → apply the migration above.
+3. Run the post-migration verification query and report the table.
+4. Confirm: "All changes target `zbzrmpmqijvmjbhctfoe` only. Service role key never printed. Foreign project `kazggnufaoicopvmwhdl` not contacted."
 
