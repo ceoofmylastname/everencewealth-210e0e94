@@ -2570,6 +2570,7 @@ async function handleRequest(req: Request): Promise<Response> {
         'Content-Type': 'text/html; charset=utf-8',
         'Cache-Control': 'public, max-age=3600, stale-while-revalidate=86400',
         'X-SEO-Source': 'edge-function-ssr',
+        'X-SSR-Schema': 'injected=true',
         'X-Content-Language': metadata.language,
       }
     })
