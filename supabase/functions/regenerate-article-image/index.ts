@@ -187,12 +187,12 @@ Generate alt text and caption in ${languageName}.`
 function buildFallbackPrompt(funnelStage?: string, clusterTheme?: string): string {
   const theme = clusterTheme || 'financial planning and wealth management';
   const stageScenes: Record<string, string> = {
-    TOFU: `inviting modern financial advisory office, diverse family of three meeting with a warm, approachable advisor, soft natural light through large windows, hopeful and educational atmosphere, ${theme}`,
-    MOFU: `professional advisor and middle-aged couple reviewing retirement charts on a tablet at a glass conference table, focused and trusting expressions, premium contemporary office, ${theme}`,
-    BOFU: `confident wealth strategist shaking hands with a successful client in an executive office at golden hour, framed achievement art on the walls, decisive and prosperous mood, ${theme}`,
+    TOFU: `conceptual still-life: an open glass jar with a single gold coin dropping in, soft seedling growing beside it on warm marble, representing the first step into ${theme}`,
+    MOFU: `conceptual still-life: a polished brass balance scale weighing a stack of gold coins against a small hourglass on a clean studio backdrop, representing trade-offs in ${theme}`,
+    BOFU: `conceptual still-life: an ascending staircase of gold bars leading toward warm light, with a small brass key resting on the top step, representing the decisive path in ${theme}`,
   };
   const scene = stageScenes[(funnelStage || '').toUpperCase()] || stageScenes.MOFU;
-  return `${scene}, ultra-realistic editorial photography, cinematic lighting, shallow depth of field, 16:9 aspect ratio, 2K resolution, no text, no watermarks, no logos, no brand marks`;
+  return `${scene}, editorial financial-magazine photography in the style of Bloomberg Businessweek and The Economist, soft directional studio light, shallow depth of field, premium materials (glass, brass, marble, wood), photorealistic, 16:9 aspect ratio, 2K resolution, no company logos, no brand names, no watermarks`;
 }
 
 serve(async (req) => {
