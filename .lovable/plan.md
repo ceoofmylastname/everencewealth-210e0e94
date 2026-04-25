@@ -1,112 +1,154 @@
-# Restore SPA Hydration on `/`, `/en/`, `/es/`
+# Compliance Cleanup Execution + Verification Plan
 
-## Root cause (confirmed against production)
+Mode: switch to default (write-enabled) to run this. Read-only mode blocks DB writes, migrations, and live curls.
 
-Live diagnostic on `https://www.everencewealth.com/en/`:
+## Step 1 — Migration (single transaction, trigger-gated)
 
-```
-size: 19589 bytes
-script src tags: 0
-<div id="root"></div>: 0
-x-seo-source: edge-function-ssr
-x-ssr-schema: injected=true
-```
+Pattern: `BEGIN; ALTER TABLE blog_articles DISABLE TRIGGER trg_block_fiduciary_terms; <updates>; ALTER TABLE blog_articles ENABLE TRIGGER trg_block_fiduciary_terms; COMMIT;`
 
-The homepage is being rendered by the `serve-seo-page` edge function, which emits the SEO shell only (H1 + Quick Answer + FAQ + JSON-LD) and **no SPA bundle `<script src>` tags**. Browsers therefore have nothing to hydrate.
+Rationale for disable/enable: the trigger only blocks BLOCKED metadata columns (headline, meta_*, slug, speakable_answer), not `detailed_content`. So technically the trigger should not fire. But we keep the gate as a safety pattern in case a row's metadata still contains a residual stem we missed — failing closed mid-transaction is worse than auditing after.
 
-The user's hypothesis pointed at `SEO_ROUTE_PATTERNS`, but that array does NOT contain a language-root pattern. The actual interceptor is a different block in `functions/_middleware.js`:
+### 1a. 15 AUTO-STRIP blog rows (sweep)
+Apply the approved replacement table per row. These are full-phrase replacements on `detailed_content` only.
 
-```js
-// line 519
-const homeMatch = pathname.match(/^\/(en|es)?\/?$/);
-if (strategyMatch || homeMatch) {
-  const staticResponse = await next();              // returns SPA index.html
-  const staticBody = await staticResponse.text();
-  const isComplete =
-    staticBody.includes('<!DOCTYPE html>') &&
-    !staticBody.includes('<div id="root"></div>') && // SPA shell HAS this -> false
-    staticBody.length > 5000 &&
-    staticBody.includes('internal-links-section');   // SPA shell lacks this -> false
-  if (isComplete) { ...return static... }
-  // falls through here for the homepage every time
-  // calls serve-seo-page and returns SSR HTML w/ no <script src>
-}
+### 1b. Row 2 (manual rewrite from your earlier instruction)
+Apply the explicit rewrite you gave during the REVIEW resolution step.
+
+### 1c. Row 1 (en) — surgical
+```sql
+UPDATE blog_articles
+SET detailed_content = REPLACE(
+  detailed_content,
+  'our unwavering commitment to fiduciary duty',
+  'our unwavering commitment to a best-interest standard'
+),
+date_modified = NOW()
+WHERE id = '<row-1-uuid>'
+  AND detailed_content LIKE '%our unwavering commitment to fiduciary duty%';
 ```
 
-There is no pre-rendered `home.html` / `en/index.html` artifact in `public/`. The `next()` call returns the live SPA `index.html` shell — which legitimately contains the bundle tags AND the empty `<div id="root">`. The `isComplete` check rejects it because of the empty root div, then the SSR fallback fires and overwrites the response with bundle-less HTML.
-
-The same regex `/^\/(en|es)?\/?$/` also matches `/`, so the bare-domain homepage is broken too (in practice `/` is 301'd to `/en` by `_redirects`, then `/en` is matched by this block and SSR'd).
-
-## The fix
-
-Remove the `homeMatch` branch entirely so the language-root homepages and the bare domain fall through to the normal `next()` path (= the SPA `index.html` with bundle tags). The `strategyMatch` branch must be preserved because strategy detail pages still need the static-then-SSR flow.
-
-### File: `functions/_middleware.js`
-
-Replace the combined match (around lines 518-520):
-
-```js
-const strategyMatch = pathname.match(/^\/(en|es)\/(strategies|estrategias)\/[a-z0-9-]+\/?$/i);
-const homeMatch = pathname.match(/^\/(en|es)?\/?$/);
-if (strategyMatch || homeMatch) {
+### 1d. Row 4 (es) — surgical
+```sql
+UPDATE blog_articles
+SET detailed_content = REPLACE(
+  detailed_content,
+  'nuestro inquebrantable compromiso con el deber fiduciario',
+  'nuestro inquebrantable compromiso con el estándar de mejor interés'
+),
+date_modified = NOW()
+WHERE id = '<row-4-uuid>'
+  AND detailed_content LIKE '%nuestro inquebrantable compromiso con el deber fiduciario%';
 ```
 
-with strategy-only:
+If either surgical UPDATE returns 0 rows affected (phrase already changed or whitespace variant), abort the txn and re-snapshot the exact substring before retrying.
 
-```js
-const strategyMatch = pathname.match(/^\/(en|es)\/(strategies|estrategias)\/[a-z0-9-]+\/?$/i);
-if (strategyMatch) {
+## Step 2 — Post-cleanup verification
+
+### 2.1 BLOCKED-column audit (all 5 tables)
+```sql
+-- expected: 0 rows
+SELECT 'authors' AS t, id FROM authors
+  WHERE job_title ~* '\yfiduciar' OR bio ~* '\yfiduciar'
+     OR bio_short ~* '\yfiduciar' OR bio_full_markdown ~* '\yfiduciar'
+     OR name ~* '\yfiduciar'
+     OR EXISTS (SELECT 1 FROM unnest(credentials) c WHERE c ~* '\yfiduciar')
+UNION ALL SELECT 'blog_articles', id FROM blog_articles
+  WHERE headline ~* '\yfiduciar' OR meta_title ~* '\yfiduciar'
+     OR meta_description ~* '\yfiduciar' OR speakable_answer ~* '\yfiduciar'
+     OR slug ~* '\yfiduciar'
+UNION ALL SELECT 'qa_pages', id FROM qa_pages
+  WHERE question ~* '\yfiduciar' OR meta_title ~* '\yfiduciar'
+     OR meta_description ~* '\yfiduciar' OR speakable_answer ~* '\yfiduciar'
+     OR slug ~* '\yfiduciar'
+UNION ALL SELECT 'location_pages', id FROM location_pages
+  WHERE meta_title ~* '\yfiduciar' OR meta_description ~* '\yfiduciar'
+UNION ALL SELECT 'comparison_pages', id FROM comparison_pages
+  WHERE meta_title ~* '\yfiduciar' OR meta_description ~* '\yfiduciar';
 ```
 
-Also delete the now-unused `ssrPath` adjustment inside the block:
+### 2.2 Long-form body audit
+```sql
+-- blog_articles.detailed_content: pre=25, expected post = 7 KEEP-AUTO
+--   + Row1 (2 surviving educational) + Row4 (2 surviving educational) = 11 rows
+SELECT id, language, slug,
+  (LENGTH(detailed_content) - LENGTH(REGEXP_REPLACE(detailed_content, '\yfiduciar', '', 'gi'))) / 9 AS hits
+FROM blog_articles
+WHERE detailed_content ~* '\yfiduciar'
+ORDER BY language, slug;
 
-```js
-const ssrPath = pathname === '/' ? '/en/' : pathname;
+-- qa_pages.answer_main: expected 73 (unchanged, all KEEP)
+SELECT COUNT(*) FROM qa_pages WHERE answer_main ~* '\yfiduciar';
 ```
-becomes
-```js
-const ssrPath = pathname;
+
+### 2.3 Trigger functionality test (dry run + rollback)
+```sql
+BEGIN;
+UPDATE blog_articles
+SET meta_description = 'TEST: fiduciary trigger check'
+WHERE id = (SELECT id FROM blog_articles WHERE language='en' AND status='published' LIMIT 1);
+-- expected: ERROR — Compliance block: "fiduciary" not permitted ...
+ROLLBACK;
 ```
+Run via `supabase--read_query` won't work (write). Use a one-shot exec in default mode and capture the exception text.
 
-And the trailing `injectSeoTags(seoResponse, pathname...'/en/')` ternary at line 542 can simplify to `pathname` since strategy paths are always non-root.
+### 2.4 Live URL spot-checks (Googlebot UA)
+Three curls as specified:
+- `/en/blog/take-action-personal-finance-tips-to-prevent-running-out-of-money-in-retirement` → expect 0
+- `/en/blog/understanding-the-retirement-gap-why-it-matters-now-more-than-ever` → expect 0 or low (educational)
+- `/es/blog/comprender-la-brecha-de-jubilacion-por-que-es-mas-importante-que-nunca-1-992v` → expect 0 or low
 
-No other edits to the middleware. Specifically NOT touched:
-- `SEO_ROUTE_PATTERNS` array (already does not include the language root)
-- Hub patterns: `/en/blog`, `/en/qa`, `/en/locations`, `/en/compare` — still SSR
-- Detail page patterns: `/en/blog/{slug}`, `/en/qa/{slug}`, `/en/strategies/{slug}`, `/en/locations/{...}`, `/en/compare/{slug}`, `/en/glossary/{slug}` — still SSR
-- Blog and Q&A static-then-SSR fallback blocks (lines 340-512)
-- Static-asset bypass
-- Comma-strip 301 redirect
-- `injectSeoTags` and any header-pass-through logic
+If any return non-zero on a STRIPped page, proceed to Step 3 cache purge and re-curl.
 
-## Deploy + verify
+## Step 3 — Cloudflare Pages cache purge
 
-1. Publish to roll out the middleware change (Cloudflare Pages function).
-2. Purge CF cache for `https://www.everencewealth.com/`, `/en/`, `/es/` (manual step in Cloudflare dashboard — I cannot do this from the sandbox).
-3. Wait ~60s, then run:
+The SSR edge function caches per-page. After migration commits:
 
+Option A (preferred if API token available): targeted purge via Cloudflare API
 ```bash
-# Browsers receive SPA bundle
-curl -sH "User-Agent: Mozilla/5.0" https://www.everencewealth.com/en/ \
-  | grep -oE 'src="[^"]+\.js"' | head -5
-# Expect: 2+ bundle paths
-
-curl -sIH "User-Agent: Mozilla/5.0" https://www.everencewealth.com/en/ \
-  | grep -i 'x-seo-source'
-# Expect: header absent (or 'static')
-
-# Bots still get JSON-LD from the SPA index.html (head tags injected at build time)
-curl -sH "User-Agent: Googlebot" https://www.everencewealth.com/en/ \
-  | grep -c 'application/ld+json'
-# Expect: >= 1
-
-# Hub + detail SSR untouched
-curl -sIH "User-Agent: Googlebot" https://www.everencewealth.com/en/blog/ \
-  | grep -i 'x-seo-source'
-# Expect: edge-function-ssr (or hub variant)
+curl -X POST "https://api.cloudflare.com/client/v4/zones/$CF_ZONE_ID/purge_cache" \
+  -H "Authorization: Bearer $CF_API_TOKEN" \
+  -H "Content-Type: application/json" \
+  --data '{"files":[
+    "https://www.everencewealth.com/en/blog/take-action-personal-finance-tips-to-prevent-running-out-of-money-in-retirement",
+    "https://www.everencewealth.com/en/blog/understanding-the-retirement-gap-why-it-matters-now-more-than-ever",
+    "https://www.everencewealth.com/es/blog/comprender-la-brecha-de-jubilacion-por-que-es-mas-importante-que-nunca-1-992v"
+  ]}'
 ```
 
-## Notes on the user's verification expectations
+I'll run `secrets--fetch_secrets` first to check for `CF_API_TOKEN` / `CF_ZONE_ID`. If absent, I'll surface a `<lov-add-secret>` request for both. Wildcard purge (`/en/blog/*`, `/es/blog/*`) requires Enterprise plan; I'll attempt but fall back to the 18-URL targeted list if rejected.
 
-- The user expects "2 or more" `application/ld+json` blocks for the Googlebot homepage check. The SPA `index.html` ships whatever JSON-LD blocks are baked in at build time — if that count comes back as 0 or 1, that is a separate (pre-existing) concern about homepage build-time SEO and is not caused by this fix. Flag it but do not roll back.
-- `x-seo-source` will be absent on the homepage after the fix because static SPA assets do not pass through the SSR header injection. That matches the user's stated expectation.
+After purge, re-run the 3 curls from Step 2.4 to confirm.
+
+## Step 4 — Final report + Fix 13 handoff
+
+Report block (delivered in chat):
+```
+COMPLIANCE CLEANUP — FINAL
+Migration: 18 rows updated (15 AUTO-STRIP + Row2 manual + Row1 surgical + Row4 surgical)
+BLOCKED-column audit (5 tables): X hits (target 0)
+detailed_content survivors: X rows / Y total occurrences (target ~11 rows)
+qa_pages.answer_main: X rows (target 73, unchanged)
+Trigger test: PASS/FAIL (raised exception: "...")
+Live curl spot-checks:
+  URL1: N hits
+  URL2: N hits
+  URL3: N hits
+Cache purge: targeted 18 URLs / wildcard / N/A
+```
+
+Then: "Fix 13 resuming Phase 2 — Person schema generation will read from cleaned authors.bio_short / bio_full_markdown / credentials."
+
+## Technical notes
+
+- All UPDATEs include `date_modified = NOW()` to invalidate hub_cache via `invalidate_hub_cache` trigger.
+- Single transaction so a failure on row N rolls back rows 1..N-1.
+- Row 1 / Row 4 UUIDs will be resolved at execution time by re-querying snippets to avoid stale IDs from the report.
+- If `secrets--fetch_secrets` shows no Cloudflare creds, I will pause and request them before Step 3 rather than skip silently — stale cache would invalidate Step 2.4.
+
+## What I need from you
+
+Approve this plan to switch to default mode. No further per-row decisions needed; I will execute Steps 1→4 in order and only pause if:
+- A surgical UPDATE returns 0 rows (phrase mismatch)
+- BLOCKED-column audit returns >0 hits
+- Cloudflare creds missing
+- Trigger test does NOT raise
