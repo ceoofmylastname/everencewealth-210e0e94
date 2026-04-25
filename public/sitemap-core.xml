@@ -14,14 +14,23 @@
     <ai:citability>high</ai:citability>
   </url>
 
-  <!-- Philosophy -->
+  <!-- Philosophy (PROMPT 12: trailing slash + EN/ES) -->
   <url>
-    <loc>https://www.everencewealth.com/en/philosophy</loc>
-    <lastmod>2026-04-20</lastmod>
+    <loc>https://www.everencewealth.com/en/philosophy/</loc>
+    <lastmod>2026-04-25</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
     <ai:content-type>educational-pillar</ai:content-type>
     <ai:topics>three-tax-buckets, retirement-gap, three-silent-killers, tax-strategy</ai:topics>
+    <ai:citability>high</ai:citability>
+  </url>
+  <url>
+    <loc>https://www.everencewealth.com/es/philosophy/</loc>
+    <lastmod>2026-04-25</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+    <ai:content-type>educational-pillar</ai:content-type>
+    <ai:topics>tres-cubos-fiscales, brecha-jubilacion, tres-asesinos-silenciosos</ai:topics>
     <ai:citability>high</ai:citability>
   </url>
 
@@ -94,12 +103,40 @@
     <ai:topics>retirement-terms, insurance-terminology, tax-terminology</ai:topics>
   </url>
 
+  <!-- Contact (PROMPT 12: trailing slash + EN/ES) -->
   <url>
-    <loc>https://www.everencewealth.com/en/contact</loc>
-    <lastmod>2026-04-20</lastmod>
+    <loc>https://www.everencewealth.com/en/contact/</loc>
+    <lastmod>2026-04-25</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <ai:content-type>contact</ai:content-type>
+  </url>
+  <url>
+    <loc>https://www.everencewealth.com/es/contact/</loc>
+    <lastmod>2026-04-25</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <ai:content-type>contact</ai:content-type>
+  </url>
+
+  <!-- Team hub (PROMPT 12: trailing slash + EN/ES) -->
+  <url>
+    <loc>https://www.everencewealth.com/en/team/</loc>
+    <lastmod>2026-04-25</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <ai:content-type>about-team</ai:content-type>
+    <ai:topics>independent-advisors, steven-rosenberg, retirement-planning</ai:topics>
+    <ai:citability>high</ai:citability>
+  </url>
+  <url>
+    <loc>https://www.everencewealth.com/es/team/</loc>
+    <lastmod>2026-04-25</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <ai:content-type>about-team</ai:content-type>
+    <ai:topics>asesores-independientes, steven-rosenberg, planificacion-jubilacion</ai:topics>
+    <ai:citability>high</ai:citability>
   </url>
 
   <!-- Team bio pages (Fix 13 Phase 3) -->
