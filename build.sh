@@ -90,3 +90,4 @@ echo "   - Strategies: 8 SSR pages with WebPage+Article+Breadcrumb+FinancialServ
 echo "   - Philosophy: EN+ES SSR pages with WebPage+Org+Breadcrumb+Speakable"
 echo "   - Glossary: index + per-term SSR pages with DefinedTermSet/DefinedTerm"
 echo "   - Team: EN+ES SSR pages with Org+Person+Breadcrumb"
+echo "   - Author bios: EN+ES SSR bio pages with Person+ProfilePage+Org+Breadcrumb"
