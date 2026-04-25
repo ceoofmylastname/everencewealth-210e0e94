@@ -516,8 +516,7 @@ export async function onRequest({ request, next, env }) {
   // Try static file first, fall back to serve-seo-page if thin
   // ============================================================
   const strategyMatch = pathname.match(/^\/(en|es)\/(strategies|estrategias)\/[a-z0-9-]+\/?$/i);
-  const homeMatch = pathname.match(/^\/(en|es)?\/?$/);
-  if (strategyMatch || homeMatch) {
+  if (strategyMatch) {
     const staticResponse = await next();
     const staticClone = staticResponse.clone();
     const staticBody = await staticClone.text();
@@ -539,14 +538,14 @@ export async function onRequest({ request, next, env }) {
         statusText: staticResponse.statusText,
         headers,
       });
-      return injectSeoTags(seoResponse, pathname.startsWith('/') && pathname.length > 1 ? pathname : '/en/');
+      return injectSeoTags(seoResponse, pathname);
     }
 
     console.log(`[Middleware] Static thin for ${pathname}, trying SSR fallback`);
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 12000);
-      const ssrPath = pathname === '/' ? '/en/' : pathname;
+      const ssrPath = pathname;
       const ssrResponse = await fetch(
         `${SUPABASE_URL}/functions/v1/serve-seo-page?path=${encodeURIComponent(ssrPath)}&html=true`,
         {
