@@ -296,7 +296,7 @@ const STATIC_EXTENSIONS = [
   '.xml', '.txt', '.json'
 ];
 
-export async function onRequest({ request, next, env }) {
+async function buildResponse({ request, next, env, ctx }) {
   const url = new URL(request.url);
   // env is optional; used only for diagnostics
 
