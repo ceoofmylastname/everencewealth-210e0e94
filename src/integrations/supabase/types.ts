@@ -6825,6 +6825,150 @@ export type Database = {
           },
         ]
       }
+      location_pages_backup_20260424: {
+        Row: {
+          author_id: string | null
+          best_areas: Json | null
+          canonical_url: string | null
+          city_name: string | null
+          city_slug: string | null
+          content_type: string | null
+          cost_breakdown: Json | null
+          country: string | null
+          created_at: string | null
+          date_modified: string | null
+          date_published: string | null
+          external_citations: Json | null
+          featured_carriers: string[] | null
+          featured_image_alt: string | null
+          featured_image_caption: string | null
+          featured_image_height: number | null
+          featured_image_url: string | null
+          featured_image_width: number | null
+          final_summary: string | null
+          headline: string | null
+          hreflang_group_id: string | null
+          id: string | null
+          image_prompt: string | null
+          intent_type: string | null
+          internal_links: Json | null
+          is_redirect: boolean | null
+          language: string | null
+          location_overview: string | null
+          market_breakdown: string | null
+          meta_description: string | null
+          meta_title: string | null
+          qa_entities: Json | null
+          redirect_to: string | null
+          region: string | null
+          regulations_summary: string | null
+          reviewer_id: string | null
+          source_language: string | null
+          speakable_answer: string | null
+          state_code: string | null
+          status: string | null
+          tax_advantages: string | null
+          topic_slug: string | null
+          translations: Json | null
+          updated_at: string | null
+          use_cases: string | null
+        }
+        Insert: {
+          author_id?: string | null
+          best_areas?: Json | null
+          canonical_url?: string | null
+          city_name?: string | null
+          city_slug?: string | null
+          content_type?: string | null
+          cost_breakdown?: Json | null
+          country?: string | null
+          created_at?: string | null
+          date_modified?: string | null
+          date_published?: string | null
+          external_citations?: Json | null
+          featured_carriers?: string[] | null
+          featured_image_alt?: string | null
+          featured_image_caption?: string | null
+          featured_image_height?: number | null
+          featured_image_url?: string | null
+          featured_image_width?: number | null
+          final_summary?: string | null
+          headline?: string | null
+          hreflang_group_id?: string | null
+          id?: string | null
+          image_prompt?: string | null
+          intent_type?: string | null
+          internal_links?: Json | null
+          is_redirect?: boolean | null
+          language?: string | null
+          location_overview?: string | null
+          market_breakdown?: string | null
+          meta_description?: string | null
+          meta_title?: string | null
+          qa_entities?: Json | null
+          redirect_to?: string | null
+          region?: string | null
+          regulations_summary?: string | null
+          reviewer_id?: string | null
+          source_language?: string | null
+          speakable_answer?: string | null
+          state_code?: string | null
+          status?: string | null
+          tax_advantages?: string | null
+          topic_slug?: string | null
+          translations?: Json | null
+          updated_at?: string | null
+          use_cases?: string | null
+        }
+        Update: {
+          author_id?: string | null
+          best_areas?: Json | null
+          canonical_url?: string | null
+          city_name?: string | null
+          city_slug?: string | null
+          content_type?: string | null
+          cost_breakdown?: Json | null
+          country?: string | null
+          created_at?: string | null
+          date_modified?: string | null
+          date_published?: string | null
+          external_citations?: Json | null
+          featured_carriers?: string[] | null
+          featured_image_alt?: string | null
+          featured_image_caption?: string | null
+          featured_image_height?: number | null
+          featured_image_url?: string | null
+          featured_image_width?: number | null
+          final_summary?: string | null
+          headline?: string | null
+          hreflang_group_id?: string | null
+          id?: string | null
+          image_prompt?: string | null
+          intent_type?: string | null
+          internal_links?: Json | null
+          is_redirect?: boolean | null
+          language?: string | null
+          location_overview?: string | null
+          market_breakdown?: string | null
+          meta_description?: string | null
+          meta_title?: string | null
+          qa_entities?: Json | null
+          redirect_to?: string | null
+          region?: string | null
+          regulations_summary?: string | null
+          reviewer_id?: string | null
+          source_language?: string | null
+          speakable_answer?: string | null
+          state_code?: string | null
+          status?: string | null
+          tax_advantages?: string | null
+          topic_slug?: string | null
+          translations?: Json | null
+          updated_at?: string | null
+          use_cases?: string | null
+        }
+        Relationships: []
+      }
       marketing_resources: {
         Row: {
           category: string
