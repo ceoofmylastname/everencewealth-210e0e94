@@ -928,3 +928,19 @@ async function buildResponse({ request, next, env, ctx }) {
   // All other requests - pass through to React SPA
   return withMiddlewareStatus(await next());
 }
+
+// ============================================================
+// PROMPT 13 — Exported handler wraps buildResponse so we can
+// fire-and-forget the bot traffic logger AFTER the response is
+// computed but BEFORE it is returned. ctx.waitUntil keeps the
+// fetch worker alive long enough to flush the INSERT without
+// blocking the response on its way to the crawler.
+// ============================================================
+export async function onRequest(context) {
+  const response = await buildResponse(context);
+  const ctx = context && context.ctx;
+  if (ctx && typeof ctx.waitUntil === 'function') {
+    ctx.waitUntil(logBotHit(context.request, response).catch(() => {}));
+  }
+  return response;
+}
