@@ -215,11 +215,27 @@ function parseCsv(filePath: string): string[] {
     const line = lines[i].trim();
     if (!line) continue;
     if (i === 0 && /^url\b/i.test(line)) continue; // skip header
-    // First column is the URL. Strip quotes and trailing comma fields.
-    const first = line.split(',')[0].trim().replace(/^"|"$/g, '');
-    if (!first) continue;
-    if (!first.startsWith('http')) continue; // skip stray rows
-    out.push(first);
+    // First column is the URL. Handle two formats:
+    //   1. "https://...with,commas/" , "Last crawled"   <- quoted (RFC 4180)
+    //   2. https://.../path/,2026-04-20                  <- unquoted; commas in URL are
+    //      legal per RFC 3986 but rare. GSC exports state-comma slugs unquoted, e.g.
+    //      https://www.everencewealth.com/en/locations/los-angeles,-ca/iul/,2026-04-20
+    //   We split on the LAST comma whose suffix looks like a date/timestamp; if no
+    //   such suffix, take the whole line as the URL.
+    let url: string;
+    if (line.startsWith('"')) {
+      // RFC 4180 quoted: take everything up to the matching close-quote.
+      const close = line.indexOf('"', 1);
+      url = close > 0 ? line.slice(1, close) : line.slice(1);
+    } else {
+      // Unquoted: trim trailing ",YYYY-MM-DD..." columns if present.
+      const dateTrailMatch = line.match(/,\d{4}-\d{2}-\d{2}.*$/);
+      url = dateTrailMatch ? line.slice(0, dateTrailMatch.index) : line;
+    }
+    url = url.trim();
+    if (!url) continue;
+    if (!url.startsWith('http')) continue; // skip stray rows
+    out.push(url);
   }
   return out;
 }
