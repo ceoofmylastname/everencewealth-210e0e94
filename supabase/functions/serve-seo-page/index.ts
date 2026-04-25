@@ -261,6 +261,11 @@ interface PageMetadata {
   read_time?: number             // For blogs
   author_bio?: string            // Author info
   internal_links?: Array<{ text: string; url: string; title?: string; funnelStage?: string }>
+  // Location-only fields — populated when content_type === 'locations'.
+  // Used to build FinancialService schema (areaServed, name, etc.).
+  city_name?: string
+  region?: string         // state code, e.g. "CA"
+  country?: string        // e.g. "United States"
 }
 
 // Result type for metadata with potential redirect (language mismatch handling)
@@ -571,6 +576,10 @@ async function fetchLocationMetadata(supabase: any, slug: string, lang: string):
       content_type: 'locations',
       // SSR content
       location_overview: data.location_overview,
+      // FinancialService schema fields
+      city_name: data.city_name,
+      region: data.region,
+      country: data.country,
     }
   }
 }
@@ -1683,11 +1692,20 @@ function generateBreadcrumbSchema(metadata: PageMetadata): string {
 }
 
 function generateArticleSchema(metadata: PageMetadata): string {
-  // Only generate Article schema for comparison/location content
+  // Article schema is the primary @type for COMPARE pages only.
+  // - QA / blog have their own primary types (QAPage / BlogPosting).
+  // - Locations get FinancialService (a wealth-management service in
+  //   a geographic area), not Article.
   if (metadata.content_type === 'qa' || metadata.content_type === 'blog') {
     return '' // QA pages use QAPage, blog uses BlogPosting
   }
-  
+
+  if (metadata.content_type === 'locations') {
+    return generateFinancialServiceSchema(metadata)
+  }
+
+  // Compare pages keep Article — they genuinely are educational
+  // comparison articles.
   const schema = {
     "@context": "https://schema.org",
     "@type": "Article",
@@ -1707,6 +1725,78 @@ function generateArticleSchema(metadata: PageMetadata): string {
     "mainEntityOfPage": {
       "@type": "WebPage",
       "@id": metadata.canonical_url
+    }
+  }
+
+  return `<script type="application/ld+json">${JSON.stringify(schema)}</script>`
+}
+
+// US state code -> full name. Used to expand location.region (e.g. "CA")
+// to the canonical state name in FinancialService.areaServed.
+const US_STATE_NAMES: Record<string, string> = {
+  AL: 'Alabama', AK: 'Alaska', AZ: 'Arizona', AR: 'Arkansas',
+  CA: 'California', CO: 'Colorado', CT: 'Connecticut', DE: 'Delaware',
+  DC: 'District of Columbia', FL: 'Florida', GA: 'Georgia', HI: 'Hawaii',
+  ID: 'Idaho', IL: 'Illinois', IN: 'Indiana', IA: 'Iowa',
+  KS: 'Kansas', KY: 'Kentucky', LA: 'Louisiana', ME: 'Maine',
+  MD: 'Maryland', MA: 'Massachusetts', MI: 'Michigan', MN: 'Minnesota',
+  MS: 'Mississippi', MO: 'Missouri', MT: 'Montana', NE: 'Nebraska',
+  NV: 'Nevada', NH: 'New Hampshire', NJ: 'New Jersey', NM: 'New Mexico',
+  NY: 'New York', NC: 'North Carolina', ND: 'North Dakota', OH: 'Ohio',
+  OK: 'Oklahoma', OR: 'Oregon', PA: 'Pennsylvania', RI: 'Rhode Island',
+  SC: 'South Carolina', SD: 'South Dakota', TN: 'Tennessee', TX: 'Texas',
+  UT: 'Utah', VT: 'Vermont', VA: 'Virginia', WA: 'Washington',
+  WV: 'West Virginia', WI: 'Wisconsin', WY: 'Wyoming',
+}
+
+function generateFinancialServiceSchema(metadata: PageMetadata): string {
+  const regionRaw = metadata.region || ''
+  // region may already be a full state name; only expand if it's a 2-letter code
+  const stateName = US_STATE_NAMES[regionRaw.toUpperCase()] || regionRaw
+  const cityName = metadata.city_name || ''
+
+  const schema = {
+    "@context": "https://schema.org",
+    "@type": "FinancialService",
+    "@id": `${metadata.canonical_url}#financialservice`,
+    "name": cityName && regionRaw
+      ? `Everence Wealth - ${cityName}, ${regionRaw}`
+      : "Everence Wealth",
+    "description": metadata.meta_description,
+    "url": metadata.canonical_url,
+    "image": {
+      "@type": "ImageObject",
+      "url": metadata.featured_image_url || "https://assets.cdn.filesafe.space/htr97zzmRc1NMujHbL9R/media/69b7424c5b89c7c557adfe6e.png",
+      "width": 1200,
+      "height": 630
+    },
+    "areaServed": {
+      "@type": "City",
+      "name": cityName,
+      "containedInPlace": {
+        "@type": "State",
+        "name": stateName,
+        "containedInPlace": {
+          "@type": "Country",
+          "name": metadata.country || "United States"
+        }
+      }
+    },
+    "parentOrganization": {
+      "@id": `${BASE_URL}/#organization`
+    },
+    "priceRange": "$$$",
+    "serviceType": "Wealth Management",
+    "knowsAbout": [
+      "retirement planning",
+      "tax strategy",
+      "asset protection",
+      "estate planning",
+      "indexed universal life insurance"
+    ],
+    "speakable": {
+      "@type": "SpeakableSpecification",
+      "cssSelector": [".speakable-answer"]
     }
   }
 
