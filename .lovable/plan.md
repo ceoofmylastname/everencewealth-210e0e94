@@ -1,127 +1,154 @@
-# Fix 13 Phase 2 — Person Schema on BlogPosting
-
 ## Goal
-Replace the current `author: { @type: "Organization" }` stub on the BlogPosting JSON-LD emitted by `serve-seo-page` with a fully-populated `Person` schema sourced from the cleaned `authors` table, plus `reviewedBy`. Include a defensive Organization fallback so a failed author lookup never breaks the page.
 
-Phase 2 is **edge-function-only**. No middleware changes, no DB changes, no React/component changes.
+Replace the four SPA-shell informational pages (`/about`, `/team`, `/contact`, `/philosophy` in EN + ES) with database-driven SSR'd HTML that bakes visible body content + JSON-LD into pre-hydration markup — identical pattern to `/en/team/steven-rosenberg/` (Fix 13 Phase 3). Bots that don't execute JS see a complete H1, 600-1200 word body, and ≥3 JSON-LD blocks.
 
-## Scope (single file)
-`supabase/functions/serve-seo-page/index.ts`
+## Slug verification (settled)
 
-Other files stay untouched:
-- middleware (`functions/_middleware.js`) — guard rails per user instructions
-- `src/components/schema/PersonSchema.tsx` — only used by client React tree, not by the SSR JSON-LD that Googlebot reads
-- DB schema — `authors.bio_short` / `authors.bio_full_markdown` already exist (added in Step 4); they’re currently NULL and Phase 3 will populate them
+From `src/App.tsx`:
+- `/:lang/about` and `/:lang/about-us` → `<About />`
+- `/:lang/team` → `<Team />`
+- `/:lang/contact` → `<Contact />`
+- `/:lang/philosophy` → `<Philosophy />` (with `/es/filosofia` → `/es/philosophy` redirect)
 
-## Verified inputs (read-only DB checks)
-- `authors` row for Steven (id `1a709766-…`): `name`, `job_title="Founder & Chief Wealth Strategist"`, `credentials=[…3 items…]`, `linkedin_url=https://www.linkedin.com/in/stevenrosenberg/`, `photo_url`, `bio` (518 chars), `bio_short=NULL`, `bio_full_markdown=NULL`
-- All 132 published `blog_articles` map to that single `author_id`
-- Compliance trigger blocks WRITES on regulated columns; we only READ, so no interaction
+**Decision:** Seed `static_pages.slug` with English-named slugs (`about`, `team`, `contact`, `philosophy`) for both languages. Prebuilt files land at `dist/{en|es}/{slug}/index.html`. Hreflang block reflects this.
 
-## Technical changes
+## Step 0 — Read existing generators first (NEW)
 
-### 1. Extend `PageMetadata` (around line 269)
-Add optional fields populated only for blog content:
-- `author_id?: string`
-- `author?: AuthorRecord | null` (fetched record, or `null` if lookup failed)
+Before writing the new prebuild script, read all three existing scripts in full:
+- `scripts/generateStaticAboutPage.ts`
+- `scripts/generateStaticTeamPage.ts`
+- `scripts/generateStaticPhilosophyPage.ts`
 
-Define a local `AuthorRecord` interface mirroring the columns we read: `id, name, job_title, bio, bio_short, bio_full_markdown, photo_url, linkedin_url, credentials, years_experience`.
+Preserve any compliance-approved JSON-LD shapes, copy fragments, or edge-case logic. If anything in the existing scripts conflicts with the new spec (e.g., schema `@type` choice, breadcrumb structure, dateModified strategy), surface the conflict in chat before deciding which wins. Default precedence: existing script's compliance-approved shape > PROMPT 12 spec > my own draft.
 
-### 2. Add `fetchAuthor(supabase, authorId)` helper
-- `select('id, name, job_title, bio, bio_short, bio_full_markdown, photo_url, linkedin_url, credentials, years_experience').eq('id', authorId).maybeSingle()`
-- Wrap in the existing `withTimeout` pattern used by other queries
-- On error or null, log `[Author] lookup failed for <id>: <reason>` and return `null` so the defensive Organization fallback fires
-- Cache results in a small in-memory `Map<string, AuthorRecord>` for the lifetime of the isolate (authors rarely change; same TTL approach as `pageCache`)
+## Step 1 — Database migration
 
-### 3. Wire it into `fetchBlogMetadata` (around line 365)
-After the `exactMatch` is loaded:
-- Capture `author_id: exactMatch.author_id`
-- `const author = exactMatch.author_id ? await fetchAuthor(supabase, exactMatch.author_id) : null`
-- Add both `author_id` and `author` to the returned metadata object
+Create `static_pages` table per spec (UUID PK, `(slug, language)` unique, `page_type` CHECK constraint, content columns NOT NULL, `hero_image_url` nullable, three timestamps).
 
-### 4. Rewrite `generateBlogPostingSchema` (lines 1613–1654)
+Triggers:
+1. `static_pages_set_updated_at` (`BEFORE UPDATE`, `WHEN` clause checks the four content columns) — backed by a new `public.set_static_pages_updated_at()` function that bumps `updated_at = NOW()`.
+2. `static_pages_block_fiduciar` (`BEFORE INSERT OR UPDATE`) — extend the existing `public.enforce_fiduciary_term_block()` function to add a `static_pages` branch validating `title`, `meta_description`, `h1`, `body_markdown`. Do NOT create a parallel function.
 
-Replace the hardcoded `author: { @type: "Organization", … }` block with this logic:
+RLS: enable; public `SELECT`; admin-only writes via `public.is_admin(auth.uid())`.
 
-```text
-if (metadata.author):
-  authorNode = {
-    "@type": "Person",
-    "@id": `${BASE_URL}/${metadata.language}/team/steven-rosenberg#person`,
-    "name": author.name,
-    "jobTitle": author.job_title,
-    "url": `${BASE_URL}/${metadata.language}/team/steven-rosenberg`,
-    "image": author.photo_url || undefined,
-    "description": author.bio_short || truncate(author.bio, 200) || undefined,
-    "worksFor": { "@id": `${BASE_URL}/#organization` },
-    "sameAs": author.linkedin_url ? [author.linkedin_url] : undefined,
-    "hasCredential": (author.credentials || []).map(c => ({
-      "@type": "EducationalOccupationalCredential",
-      "credentialCategory": "professional certification",
-      "name": c
-    }))
-  }
-  reviewedByNode = { "@type": "Person", "@id": authorNode["@id"], "name": author.name }
-else:
-  // Defensive fallback — never break the page on a failed lookup
-  authorNode = { "@type": "Organization", "@id": `${BASE_URL}/#organization`, "name": "Everence Wealth" }
-  reviewedByNode = undefined  // omit reviewedBy entirely when author missing
-```
+## Step 2 — Compliance pre-grep on seed copy (EXPANDED)
 
-Strip undefined values before serialization (`JSON.stringify` already drops them).
+Before inserting any seed row, grep all 8 draft `body_markdown` blocks for the following regulated terms in addition to `\yfiduciar`:
 
-The team URL is hardcoded to `…/team/steven-rosenberg` because (a) all 132 published articles share that single author id and (b) the user’s verification command expects exactly that URL. If a second author ever lands, this becomes a slug lookup; we’ll cross that bridge in a future fix.
+- `\bRIA\b`
+- `Registered Investment Advisor`
+- `fee-only`
+- `advice-not-product` / `advice not product`
+- `wealth manager` (when used as self-title)
+- `financial planner` (when used as self-title without CFP qualifier)
 
-### 5. Keep everything else intact
-- QAPage schema (line 1509) keeps its own author block — out of scope for Phase 2
-- BreadcrumbList, FAQ, FinancialService, Speakable, ComparisonTable schemas — untouched
-- All hreflang / canonical / 301 logic — untouched
-- HTML body, microdata `itemprop` markup — untouched
+Rule: if any appear in **self-claim context** (not third-party citation, not protective disclaimer), rewrite to neutral framing such as "independent insurance and tax-advantaged retirement strategist" or "licensed life insurance professional specializing in tax-free retirement income". Surface the grep output in chat before seeding so you can spot-check.
 
-## Verification (after deploy)
+The DB trigger only enforces `\yfiduciar`; the rest is enforced at draft time by the agent.
 
-Run the curl + python script the user provided against:
-- `https://www.everencewealth.com/en/blog/understanding-the-retirement-gap-why-it-matters-now-more-than-ever`
+## Step 3 — Seed 8 rows (insert tool)
 
-Expected:
-```text
-JSON-LD block count: 4   (Organization+Founders, Breadcrumb, BlogPosting, FAQPage)
-Block N: @type=BlogPosting
-  author.@type: Person
-  author.name: Steven Rosenberg
-  author.jobTitle: Founder & Chief Wealth Strategist
-  author.url: https://www.everencewealth.com/en/team/steven-rosenberg
-  author.hasCredential count: 3
-  reviewedBy.@type: Person
-  reviewedBy.name: Steven Rosenberg
-```
+4 page_types × 2 languages. Each row:
+- 600-1200 word `body_markdown`, compliance-clean
+- Real H1, title, meta description
+- `hero_image_url` where available
 
-If `author.@type` comes back as `Organization`, the lookup failed → pull `serve-seo-page` logs and grep for `[Author] lookup failed`.
+Sources for draft copy: project memory (`mem://project/identity`, `mem://features/strategic-frameworks`, `mem://features/philosophy-interactive-architecture`, `mem://project/contact-details`) + visible copy in current React pages. ES rows are faithful translations.
 
-Cache note: `serve-seo-page` has a 1-hour in-memory page cache. After deploy, the first request rebuilds; subsequent ones are cached. Cloudflare Pages also caches the SSR HTML edge-side, so the verification curl may need a Cloudflare URL purge for the test article (same pattern used at end of compliance sweep).
+Per-page focus:
+- **about** — Mission, Three Silent Killers, Steven's authority positioning, what makes Everence independent
+- **team** — Team intro; bio data fetched live from `authors` at prebuild (not duplicated in `static_pages`)
+- **contact** — Address, phone, email, response-time expectations, free-consultation framing, A2P-compliant note
+- **philosophy** — Three Tax Buckets, retirement-gap framework, indexed strategies overview
 
-## Pause point
-After Phase 2 verification comes back green, pause and request from the user:
-1. `bio_short` (1–2 sentences for meta description / Person.description)
-2. `bio_full_markdown` (3–4 paragraphs for the bio page body)
-3. Any additional `sameAs` URLs beyond the LinkedIn already on file
+## Step 4 — Prebuild script: `scripts/generateStaticPagesPrebuild.ts`
 
-User has these drafts pre-written; will paste on request. Then Phase 3 builds `/en/team/steven-rosenberg`.
+Mirrors `scripts/generateStaticAuthorBioPage.ts`:
 
-## Risk assessment
-- **Low risk**: single function, additive read query, defensive null fallback
-- **No DB writes** → compliance trigger never engaged
-- **No middleware changes** → all guard rails (canonical/hreflang dedup, comma-strip 301, static-asset bypass) stay in place
-- **Cache invalidates naturally** on edge function redeploy (isolate restart wipes `pageCache`)
+1. Read production assets from `dist/index.html` (CSS/JS hashes).
+2. Fetch all 8 rows from `static_pages` ordered by `(language, page_type)`.
+3. For `page_type='team'`, also fetch Steven Rosenberg from `authors` to assemble Person collection.
+4. Render markdown body to HTML using `marked` (verify in `package.json`; add only if missing).
+5. Build per-type JSON-LD (≥3 blocks each), preserving shapes from the existing 3 generators where they overlap:
+   - **about**: `AboutPage` + `Organization` (FinancialService) + `BreadcrumbList`
+   - **team**: `WebPage` + `ItemList` of `Person` references + `BreadcrumbList`
+   - **contact**: `ContactPage` + `Organization` with `contactPoint` + `BreadcrumbList`
+   - **philosophy**: `WebPage` + `Article` + `BreadcrumbList`
+6. Render full HTML doc:
+   - `<head>`: title, meta description, canonical (trailing slash), hreflang en/es/x-default (x-default → en), OG tags, Twitter card, favicons, JSON-LD scripts, CSS links
+   - `<body data-prebuilt="static-page" data-page-type="{type}">`: `<div id="root">` containing `<h1>`, hero image, rendered body HTML, footer Org block, then module scripts after `</div>`
+7. Write to `dist/{lang}/{slug}/index.html`.
+8. Log: `static_pages: {lang}/{slug} -> {bytes} bytes, {schemaCount} JSON-LD`.
+9. Return generated paths for the sitemap step.
 
-## Approval requested
-Approve to switch to default mode and execute. I will:
-1. Edit `supabase/functions/serve-seo-page/index.ts` only
-2. Confirm deploy
-3. Run the verification curl
-4. Report results, then pause for the bio content
+## Step 5 — React/prebuild substance parity (NEW verification)
 
-Pause without proceeding to Phase 3 if:
-- author.@type renders as Organization (lookup failure → debug logs)
-- JSON-LD block count != 4 (check for parse errors)
-- Any non-blog page regresses (unlikely; QA path untouched)
+Before shipping, manually diff each prebuilt body against what the React component renders for the same route. Standard:
+- **Substance parity required**, not styling parity.
+- If `Philosophy.tsx` renders an interactive Three Tax Buckets component and seed `body_markdown` is static prose describing the same three buckets with the same key facts → acceptable.
+- If the React component renders entirely different topical content than the seed → that's effectively cloaking; revise the seed to match the React substance before deploying.
+
+Surface a diff summary per page in chat at the verification stage.
+
+## Step 6 — `/:lang/about-us` duplicate-content fix (NEW)
+
+Both `/:lang/about` and `/:lang/about-us` currently route to `<About />`. Resolution:
+
+1. Add Cloudflare Pages middleware redirect in `functions/_middleware.js`: 301 `/(en|es)/about-us/?` → `/(en|es)/about/`. Preserves existing backlinks.
+2. Remove the `/:lang/about-us` route from `src/App.tsx`.
+
+Middleware redirect is safer than just dropping the route (preserves any external backlinks).
+
+## Step 7 — Build chain
+
+Update `build.sh`:
+- Replace the three invocations (`generateStaticAboutPage.ts`, `generateStaticPhilosophyPage.ts`, `generateStaticTeamPage.ts`) with a single `generateStaticPagesPrebuild.ts` call.
+- Keep `generateStaticAuthorBioPage.ts` (different concern).
+- Keep sitemap generation last.
+
+The three superseded scripts stay on disk but unwired (delete in a follow-up; not removing now to keep the change surgical).
+
+## Step 8 — Sitemap
+
+Update `public/sitemap-core.xml`:
+- Add 7 new entries (`/en/about/`, `/es/about/`, `/en/team/`, `/es/team/`, `/en/contact/`, `/es/contact/`, `/es/philosophy/`).
+- Normalize existing `/en/philosophy` to trailing slash.
+- Each with `<lastmod>` from `static_pages.updated_at` and `<xhtml:link rel="alternate" hreflang>` pairs.
+
+Trailing slashes match the bio page convention to eliminate the 308 hop on Cloudflare Pages.
+
+## Step 9 — React route hydration safety
+
+The four page components (`About.tsx`, `Team.tsx`, `Contact.tsx`, `Philosophy.tsx`) get a small mount-time check: read `document.body.dataset.prebuilt`; if `'static-page'`, the prebuilt DOM is canonical pre-hydration. React renders into `#root` as today. No data-fetch changes; no UI change. Same hydration pattern as the bio page.
+
+## Step 10 — Do NOT touch
+
+- `supabase/functions/serve-seo-page/index.ts`
+- Hub renderers for `/blog`, `/qa`, `/locations`, `/compare`
+- (`functions/_middleware.js` IS touched, but only to add the `/about-us` 301)
+
+## Verification (post-deploy)
+
+User's bash loop. PASS criteria per row:
+- HTTP/2 200 (trailing slash → no 308)
+- `h1=1`
+- `schema >= 3`
+- `words >= 400`
+
+Plus 9th check: `curl -sIL /en/about-us/` returns 301 → `/en/about/`.
+
+## Files changed
+
+**Created:**
+- `supabase/migrations/<ts>_static_pages_table.sql` — table, triggers, RLS, extended `enforce_fiduciary_term_block()`
+- `scripts/generateStaticPagesPrebuild.ts`
+
+**Edited:**
+- `build.sh` — swap 3 generators for new prebuild
+- `public/sitemap-core.xml` — add 7 entries, normalize trailing slashes
+- `src/App.tsx` — remove `/:lang/about-us` route
+- `functions/_middleware.js` — add 301 for `/about-us` → `/about`
+- `src/pages/About.tsx`, `Team.tsx`, `Contact.tsx`, `Philosophy.tsx` — hydration-safety read of `data-prebuilt`
+
+**Data ops (insert tool, not migration):**
+- 8 seed rows in `static_pages`
