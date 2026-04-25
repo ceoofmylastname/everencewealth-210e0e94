@@ -1,5 +1,47 @@
 # PROMPT 15 — IndexNow Push Pipeline (Hardened)
 
+## STATUS: SHIPPED 2026-04-25
+
+### What landed
+- New 64-char IndexNow key: stored as `INDEXNOW_KEY` secret + ownership-proof file `public/6ef3ee9b142c08d0d1766cbca6419279d3558d720518d27ce752a79fba85da93.txt`. Old weak key file (`indexnow-key.txt`, 16 hex, repo-leaked) deleted.
+- `ping-indexnow` edge function refactored: reads `INDEXNOW_KEY` (no fallback), computes `keyLocation` dynamically, fans out to api.indexnow.org + bing + yandex, and logs every endpoint result to `indexnow_pings`.
+- Migration `20260425220334`: `indexnow_pings` table (RLS: admin-only SELECT, anon INSERT), `notify_indexnow()` PL/pgSQL function, and 5 AFTER INSERT/UPDATE triggers on blog_articles, qa_pages, location_pages, comparison_pages, static_pages.
+- Build assertion `scripts/buildAssertIndexNowKeyFile.ts` wired into `build.sh` — fails the build if the key file goes missing or its name diverges from its body.
+- `scripts/indexnowBulkSubmit.ts` ready: paginates `all_published_slugs` view + reads `public/glossary.json`, batches into chunks of 10000, posts to the deployed function with `source='manual-bulk'`. Run after deploy: `bun run scripts/indexnowBulkSubmit.ts`.
+
+### Verification (recorded)
+- Build assertion: `[indexnow-key-assert] OK — 6ef3ee9b...da93.txt (key length 64)`
+- Live function smoke test (POST `/ping-indexnow` with `{urls: ["https://www.everencewealth.com/en/"], source: "manual"}`):
+  - api.indexnow.org → 202
+  - www.bing.com/indexnow → 202
+  - yandex.com/indexnow → 202 `{"success":true}`
+- 3 corresponding rows confirmed in `public.indexnow_pings` (one per endpoint, source=`manual`).
+- 5 triggers verified live in `pg_trigger` with `tgenabled='O'`.
+
+### Schema corrections during ship
+- `qa_pages` columns are `question_main`/`answer_main`, not `question`/`answer` — trigger column list adjusted.
+- `comparison_pages` has no `content` column — trigger fires on `headline, final_verdict` instead.
+- `location_pages` has no `content` column — trigger fires on `headline, location_overview, final_summary`.
+- `static_pages` confirmed has no `status` column — trigger fires unconditionally on slug/title/h1/body_markdown changes.
+- `glossary_terms` table confirmed not to exist — glossary IndexNow coverage relies on the bulk script reading `public/glossary.json` (currently a stub; bulk script tolerates empty entries).
+
+### Manual ping curl shape (admin-only)
+```
+curl -X POST https://zbzrmpmqijvmjbhctfoe.supabase.co/functions/v1/ping-indexnow \
+  -H "Authorization: Bearer $SUPABASE_ANON_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"urls":["https://www.everencewealth.com/en/blog/some-slug/"],"source":"manual"}'
+```
+
+### Out of scope / next tickets
+- Cleanup of legacy `notify_sitemap_ping` triggers (functional duplication, harmless).
+- Admin UI for one-click manual ping (curl-only for now).
+- Migrate glossary from JSON file to DB table to enable real-time triggers.
+
+---
+
+## Original Plan (kept for reference)
+
 ## Reality Check vs. Prompt Assumptions
 
 The prompt assumed a greenfield IndexNow install. Audit reveals partial infrastructure with three functional gaps:

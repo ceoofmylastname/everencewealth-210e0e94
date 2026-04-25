@@ -4,222 +4,177 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 
 const INDEXNOW_ENDPOINTS = [
   'https://api.indexnow.org/indexnow',
   'https://www.bing.com/indexnow',
-  'https://yandex.com/indexnow'
+  'https://yandex.com/indexnow',
 ];
 
 const BASE_URL = 'https://www.everencewealth.com';
-const API_KEY = Deno.env.get('INDEXNOW_API_KEY') || '8f3a2c1d4e5b6f7a8c9d0e1f2a3b4c5d';
-const KEY_LOCATION = `${BASE_URL}/indexnow-key.txt`;
+const HOST = 'www.everencewealth.com';
 
 interface IndexNowRequest {
   urls?: string[];
   table?: string;
   slug?: string;
-  action?: string;
+  source?: string;   // 'manual' | 'manual-bulk' | 'insert' | 'update' | 'delete'
+  action?: string;   // legacy: TG_OP from old triggers
 }
 
-interface IndexNowResult {
+interface PingResult {
   endpoint: string;
   status: number;
   success: boolean;
+  body?: string;
   error?: string;
+}
+
+// Legacy URL builder for {table, slug} payloads from older triggers
+function buildUrlsFromContent(table: string, slug: string): string[] {
+  const lang = 'en'; // legacy callers don't send language; default to EN
+  switch (table) {
+    case 'blog_articles':     return [`${BASE_URL}/${lang}/blog/${slug}/`];
+    case 'qa_pages':          return [`${BASE_URL}/${lang}/qa/${slug}/`];
+    case 'comparison_pages':  return [`${BASE_URL}/${lang}/compare/${slug}/`];
+    case 'static_pages':      return [`${BASE_URL}/${lang}/${slug}/`];
+    default:                  return [];
+  }
 }
 
 async function submitToIndexNow(
   urls: string[],
-  apiKey: string
-): Promise<IndexNowResult[]> {
-  const results: IndexNowResult[] = [];
-  
+  apiKey: string,
+  keyLocation: string,
+): Promise<PingResult[]> {
+  const body = JSON.stringify({
+    host: HOST,
+    key: apiKey,
+    keyLocation,
+    urlList: urls,
+  });
+
+  const results: PingResult[] = [];
+
   for (const endpoint of INDEXNOW_ENDPOINTS) {
     try {
-      const body = {
-        host: 'www.everencewealth.com',
-        key: apiKey,
-        keyLocation: KEY_LOCATION,
-        urlList: urls
-      };
-      
-      console.log(`Submitting ${urls.length} URLs to ${endpoint}`);
-      
       const response = await fetch(endpoint, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(body)
+        headers: { 'Content-Type': 'application/json' },
+        body,
       });
-      
+      const responseBody = await response.text().catch(() => '');
       results.push({
         endpoint,
         status: response.status,
-        success: response.status === 200 || response.status === 202
+        success: response.status === 200 || response.status === 202,
+        body: responseBody.slice(0, 500),
       });
-      
-      console.log(`${endpoint}: ${response.status} ${response.statusText}`);
-    } catch (error) {
-      console.error(`Error submitting to ${endpoint}:`, error);
-      results.push({
-        endpoint,
-        status: 0,
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error'
-      });
+      console.log(`[indexnow] ${endpoint} -> ${response.status} (${urls.length} URLs)`);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error(`[indexnow] ${endpoint} failed: ${msg}`);
+      results.push({ endpoint, status: 0, success: false, error: msg });
     }
   }
-  
+
   return results;
 }
 
-
-function buildUrlsFromContent(table: string, slug: string): string[] {
-  const urls: string[] = [];
-  const languages = ['en', 'nl', 'de', 'fr', 'pl', 'sv', 'da', 'hu', 'fi', 'no'];
-  
-  // Build URL based on content type
-  switch (table) {
-    case 'blog_articles':
-      // Primary URL (English as default)
-      urls.push(`${BASE_URL}/en/blog/${slug}`);
-      // Add language-prefixed versions
-      languages.forEach(lang => {
-        if (lang !== 'en') {
-          urls.push(`${BASE_URL}/${lang}/blog/${slug}`);
-        }
-      });
-      break;
-    
-    case 'qa_pages':
-      urls.push(`${BASE_URL}/en/qa/${slug}`);
-      languages.forEach(lang => {
-        if (lang !== 'en') {
-          urls.push(`${BASE_URL}/${lang}/qa/${slug}`);
-        }
-      });
-      break;
-    
-    case 'location_pages':
-      urls.push(`${BASE_URL}/en/locations/${slug}`);
-      languages.forEach(lang => {
-        if (lang !== 'en') {
-          urls.push(`${BASE_URL}/${lang}/locations/${slug}`);
-        }
-      });
-      break;
-    
-    case 'comparison_pages':
-      urls.push(`${BASE_URL}/en/compare/${slug}`);
-      languages.forEach(lang => {
-        if (lang !== 'en') {
-          urls.push(`${BASE_URL}/${lang}/compare/${slug}`);
-        }
-      });
-      break;
-    
-    default:
-      urls.push(`${BASE_URL}/${slug}`);
+async function logPings(
+  supabaseUrl: string,
+  serviceKey: string,
+  urls: string[],
+  source: string,
+  results: PingResult[],
+): Promise<void> {
+  try {
+    const client = createClient(supabaseUrl, serviceKey);
+    const rows = results.map((r) => ({
+      urls,
+      endpoint: r.endpoint,
+      status_code: r.status,
+      response_body: r.error ?? r.body ?? null,
+      source,
+    }));
+    const { error } = await client.from('indexnow_pings').insert(rows);
+    if (error) console.error(`[indexnow] log insert failed: ${error.message}`);
+  } catch (err) {
+    console.error(`[indexnow] log exception:`, err);
   }
-  
-  return urls;
 }
 
 serve(async (req) => {
-  // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    // Use the API key from env or fallback
-    const apiKey = API_KEY;
-    
-    if (!apiKey) {
-      console.warn('INDEXNOW_API_KEY not configured - skipping IndexNow submission');
+    const apiKey = Deno.env.get('INDEXNOW_KEY');
+    if (!apiKey || apiKey.length < 8) {
+      console.error('[indexnow] INDEXNOW_KEY secret missing or invalid');
       return new Response(
-        JSON.stringify({ 
-          success: false, 
-          message: 'IndexNow API key not configured',
-          skipped: true 
-        }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ success: false, error: 'INDEXNOW_KEY not configured' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
       );
     }
+    const keyLocation = `${BASE_URL}/${apiKey}.txt`;
 
-    const body: IndexNowRequest = await req.json();
-    let urlsToSubmit: string[] = [];
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+                    ?? Deno.env.get('SUPABASE_ANON_KEY')!;
 
-    // Handle direct URL submission
+    const body: IndexNowRequest = await req.json().catch(() => ({}));
+
+    let urls: string[] = [];
+    let source = body.source ?? body.action?.toLowerCase() ?? 'manual';
+
     if (body.urls && body.urls.length > 0) {
-      urlsToSubmit = body.urls;
-      console.log(`Received ${urlsToSubmit.length} URLs for direct submission`);
+      urls = body.urls;
+    } else if (body.table && body.slug) {
+      urls = buildUrlsFromContent(body.table, body.slug);
     }
-    // Handle table/slug trigger (from database triggers)
-    else if (body.table && body.slug) {
-      urlsToSubmit = buildUrlsFromContent(body.table, body.slug);
-      console.log(`Built ${urlsToSubmit.length} URLs from ${body.table}/${body.slug} (action: ${body.action || 'unknown'})`);
-    }
-    else {
+
+    if (urls.length === 0) {
       return new Response(
-        JSON.stringify({ 
-          success: false, 
-          error: 'Missing required parameters: urls OR (table + slug)' 
-        }),
-        { 
-          status: 400, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
+        JSON.stringify({ success: false, error: 'Provide either {urls: string[]} or {table, slug}' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
       );
     }
 
-    // Limit to 10,000 URLs per request (IndexNow limit)
-    if (urlsToSubmit.length > 10000) {
-      urlsToSubmit = urlsToSubmit.slice(0, 10000);
-      console.warn('Truncated URL list to 10,000 (IndexNow limit)');
+    if (urls.length > 10000) {
+      urls = urls.slice(0, 10000);
+      console.warn('[indexnow] truncated URL list to 10000');
     }
 
-    // Submit to IndexNow endpoints (Bing, Yandex)
-    const results = await submitToIndexNow(urlsToSubmit, apiKey);
-    
-    const successCount = results.filter(r => r.success).length;
-    const overallSuccess = successCount > 0;
+    const results = await submitToIndexNow(urls, apiKey, keyLocation);
 
-    // Log results
-    console.log(`IndexNow submission complete: ${successCount}/${results.length} endpoints successful`);
-    results.forEach(r => {
-      console.log(`  ${r.endpoint}: ${r.success ? '✓' : '✗'} (${r.status})${r.error ? ` - ${r.error}` : ''}`);
-    });
+    // Fire-and-forget log (do not block response on log errors)
+    logPings(supabaseUrl, serviceKey, urls, source, results).catch((e) =>
+      console.error('[indexnow] log task failed', e),
+    );
+
+    const successCount = results.filter((r) => r.success).length;
+    const overall = successCount > 0;
 
     return new Response(
       JSON.stringify({
-        success: overallSuccess,
-        message: overallSuccess 
-          ? `Submitted ${urlsToSubmit.length} URLs to ${successCount} search engines (Bing/Yandex)`
-          : 'Failed to submit to any search engine',
-        urlCount: urlsToSubmit.length,
+        success: overall,
+        urlCount: urls.length,
+        source,
+        endpoints: results.length,
+        successful: successCount,
         results,
-        submittedUrls: urlsToSubmit.slice(0, 10) // Return first 10 for reference
       }),
-      { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-      }
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
     );
-
-  } catch (error) {
-    console.error('IndexNow error:', error);
+  } catch (err) {
+    console.error('[indexnow] handler error:', err);
     return new Response(
-      JSON.stringify({ 
-        success: false, 
-        error: error instanceof Error ? error.message : 'Unknown error' 
-      }),
-      { 
-        status: 500, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-      }
+      JSON.stringify({ success: false, error: err instanceof Error ? err.message : 'Unknown error' }),
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
     );
   }
 });
