@@ -16,6 +16,137 @@ const LANG_PATTERN = LANGUAGES.join('|');
 
 const BASE_URL = 'https://www.everencewealth.com';
 
+// ============================================================
+// PROMPT 13 — Soft-404 catchall + AI bot traffic logger
+// ============================================================
+
+// Catchall regexes for unmatched content URLs.
+// 1-segment slug: /<lang>/<section>/<slug>/
+// 2-segment slug: /<lang>/locations/<city>/<topic>/
+// Hub roots (/<lang>/, /<lang>/blog/) and PROMPT 12 static dirs
+// (/en/about/, /en/team/, /en/contact/, /en/philosophy/) intentionally
+// do NOT match (no slug segment, or different shape). The team bio
+// /en/team/steven-rosenberg/ is a 2-segment path under /team/, which
+// is also outside both regexes.
+const ONE_SEGMENT_CATCHALL_REGEX =
+  /^\/(en|es)\/(blog|qa|compare|comparisons|comparar|estrategias|strategies|guides|glossary|state-guides)\/[^\/]+\/?$/;
+const TWO_SEGMENT_CATCHALL_REGEX =
+  /^\/(en|es)\/(locations|ubicaciones)\/[^\/]+\/[^\/]+\/?$/;
+
+// Known AI / search bot UA patterns (used by logBotHit)
+const KNOWN_BOTS = [
+  { pattern: /GPTBot/i,             name: 'GPTBot' },
+  { pattern: /ChatGPT-User/i,       name: 'ChatGPT-User' },
+  { pattern: /OAI-SearchBot/i,      name: 'OAI-SearchBot' },
+  { pattern: /ClaudeBot/i,          name: 'ClaudeBot' },
+  { pattern: /anthropic-ai/i,       name: 'anthropic-ai' },
+  { pattern: /Claude-Web/i,         name: 'Claude-Web' },
+  { pattern: /PerplexityBot/i,      name: 'PerplexityBot' },
+  { pattern: /Perplexity-User/i,    name: 'Perplexity-User' },
+  { pattern: /Google-Extended/i,    name: 'Google-Extended' },
+  { pattern: /Googlebot/i,          name: 'Googlebot' },
+  { pattern: /Applebot-Extended/i,  name: 'Applebot-Extended' },
+  { pattern: /Applebot/i,           name: 'Applebot' },
+  { pattern: /Bingbot/i,            name: 'Bingbot' },
+  { pattern: /meta-externalagent/i, name: 'meta-externalagent' },
+  { pattern: /CCBot/i,              name: 'CCBot' },
+  { pattern: /Bytespider/i,         name: 'Bytespider' },
+  { pattern: /Amazonbot/i,          name: 'Amazonbot' },
+];
+
+function detectBotName(ua) {
+  if (!ua) return null;
+  for (const { pattern, name } of KNOWN_BOTS) {
+    if (pattern.test(ua)) return name;
+  }
+  return null;
+}
+
+// Fire-and-forget INSERT into bot_traffic_log via PostgREST.
+// Anon role has INSERT-only RLS — this is intentional write-only access.
+async function logBotHit(request, response) {
+  const ua = request.headers.get('user-agent') || '';
+  const botName = detectBotName(ua);
+  if (!botName) return;
+
+  const url = new URL(request.url);
+  const cfRay = request.headers.get('cf-ray') || null;
+  const country = (request.cf && request.cf.country) || null;
+  const contentLengthHeader = response.headers.get('content-length');
+  const responseBytes = contentLengthHeader ? parseInt(contentLengthHeader, 10) : null;
+
+  const payload = {
+    ua: ua.slice(0, 500),
+    bot_name: botName,
+    method: request.method,
+    path: url.pathname.slice(0, 1000),
+    status: response.status,
+    cf_ray: cfRay,
+    country,
+    response_bytes: Number.isFinite(responseBytes) ? responseBytes : null,
+  };
+
+  await fetch(`${SUPABASE_URL}/rest/v1/bot_traffic_log`, {
+    method: 'POST',
+    headers: {
+      apikey: SUPABASE_ANON_KEY,
+      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+      'Content-Type': 'application/json',
+      Prefer: 'return=minimal',
+    },
+    body: JSON.stringify(payload),
+  });
+}
+
+// Bilingual 410/404 page rendered by the soft-404 catchall.
+// Intentional noindex meta + visible body content + internal links so
+// AI engines see the page is retired/missing on purpose, not broken.
+function render410Page(pathname, statusCode) {
+  const isSpanish = pathname.startsWith('/es/');
+  const lang = isSpanish ? 'es' : 'en';
+  const title = isSpanish ? 'Página no disponible' : 'Page no longer available';
+  const heading = isSpanish ? 'Esta página ya no está disponible' : 'This page is no longer available';
+  const body = isSpanish
+    ? 'El contenido que buscas ha sido retirado o reorganizado. Te invitamos a explorar nuestras secciones principales.'
+    : 'The content you are looking for has been retired or reorganized. Explore our main sections instead.';
+  const linksLabel = isSpanish ? 'Secciones principales' : 'Main sections';
+  const homeLabel = isSpanish ? 'Inicio' : 'Home';
+  const blogLabel = isSpanish ? 'Blog' : 'Blog';
+  const qaLabel = isSpanish ? 'Preguntas y Respuestas' : 'Questions & Answers';
+  const sitemapLabel = isSpanish ? 'Mapa del sitio' : 'Sitemap';
+  const statusText = statusCode === 410 ? 'Gone (410)' : 'Not Found (404)';
+
+  return `<!DOCTYPE html>
+<html lang="${lang}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>${title} | Everence Wealth</title>
+  <style>
+    body { font-family: 'Lato', -apple-system, sans-serif; max-width: 720px; margin: 4rem auto; padding: 2rem; line-height: 1.6; color: #1f2937; }
+    h1 { font-family: 'Playfair Display', Georgia, serif; color: #0f172a; font-size: 2rem; }
+    .status { display: inline-block; padding: 0.25rem 0.75rem; background: #fef3c7; color: #92400e; font-size: 0.75rem; border-radius: 0.25rem; margin-bottom: 1rem; }
+    a { color: #a87339; text-decoration: underline; }
+    ul { padding-left: 1.5rem; }
+    li { margin-bottom: 0.5rem; }
+  </style>
+</head>
+<body>
+  <span class="status">${statusText}</span>
+  <h1>${heading}</h1>
+  <p>${body}</p>
+  <h2>${linksLabel}</h2>
+  <ul>
+    <li><a href="/${lang}/">${homeLabel}</a></li>
+    <li><a href="/${lang}/blog/">${blogLabel}</a></li>
+    <li><a href="/${lang}/qa/">${qaLabel}</a></li>
+    <li><a href="/sitemap.xml">${sitemapLabel}</a></li>
+  </ul>
+</body>
+</html>`;
+}
+
 // Spanish slug mappings for hreflang alternates.
 // NOTE: /contact, /philosophy, /about, /team intentionally use English slugs
 // in BOTH languages — those entries are NOT translated. Only strategies use
@@ -165,7 +296,7 @@ const STATIC_EXTENSIONS = [
   '.xml', '.txt', '.json'
 ];
 
-export async function onRequest({ request, next, env }) {
+async function buildResponse({ request, next, env, ctx }) {
   const url = new URL(request.url);
   // env is optional; used only for diagnostics
 
@@ -339,6 +470,69 @@ export async function onRequest({ request, next, env }) {
   // Skip asset paths
   if (pathname.startsWith('/assets/') || pathname.startsWith('/.well-known/')) {
     return withMiddlewareStatus(await next());
+  }
+
+  // ============================================================
+  // PROMPT 13 — Soft-404 catchall.
+  // Returns real 410 (intentionally retired, listed in gone_urls) or
+  // 404 (never existed) for unmatched content URLs under /blog/, /qa/,
+  // /compare/, /strategies/, /guides/, /state-guides/, /glossary/,
+  // and /locations/<city>/<topic>/. Without this, the SPA shell would
+  // return 200 — Google reports those as "Soft 404 (FAILED)".
+  //
+  // Hub roots (/<lang>/, /<lang>/blog/, etc.) and PROMPT 12 static
+  // prebuilt directories (/en/about/, /en/team/, /en/contact/,
+  // /en/philosophy/, /en/team/steven-rosenberg/, plus /es/ versions)
+  // do NOT match these regexes, so they fall through untouched.
+  // ============================================================
+  if (
+    ONE_SEGMENT_CATCHALL_REGEX.test(pathname) ||
+    TWO_SEGMENT_CATCHALL_REGEX.test(pathname)
+  ) {
+    try {
+      const lookupUrl =
+        `${SUPABASE_URL}/rest/v1/all_published_slugs` +
+        `?full_path=eq.${encodeURIComponent(pathname)}&select=slug&limit=1`;
+      const lookupResp = await fetch(lookupUrl, {
+        headers: {
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+        },
+      });
+      const rows = lookupResp.ok ? await lookupResp.json() : [];
+      const exists = Array.isArray(rows) && rows.length > 0;
+
+      if (!exists) {
+        // Not in published surface. Check if explicitly retired.
+        const goneUrl =
+          `${SUPABASE_URL}/rest/v1/gone_urls` +
+          `?url_path=eq.${encodeURIComponent(pathname)}&select=id&limit=1`;
+        const goneResp = await fetch(goneUrl, {
+          headers: {
+            apikey: SUPABASE_ANON_KEY,
+            Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+          },
+        });
+        const goneRows = goneResp.ok ? await goneResp.json() : [];
+        const isGone = Array.isArray(goneRows) && goneRows.length > 0;
+        const status = isGone ? 410 : 404;
+        const html = render410Page(pathname, status);
+        console.log(`[Middleware] Catchall ${status}: ${pathname}`);
+        return new Response(html, {
+          status,
+          headers: {
+            'Content-Type': 'text/html; charset=utf-8',
+            'X-410-Source': 'middleware-catchall',
+            'X-Middleware-Status': 'Active',
+            'Cache-Control': 'public, max-age=300',
+            'X-Robots-Tag': 'noindex, nofollow',
+          },
+        });
+      }
+    } catch (err) {
+      // On lookup failure, do not block — fall through to SSR/SPA.
+      console.error(`[Middleware] Catchall lookup failed for ${pathname}:`, err && err.message);
+    }
   }
 
   // ============================================================
@@ -733,4 +927,20 @@ export async function onRequest({ request, next, env }) {
 
   // All other requests - pass through to React SPA
   return withMiddlewareStatus(await next());
+}
+
+// ============================================================
+// PROMPT 13 — Exported handler wraps buildResponse so we can
+// fire-and-forget the bot traffic logger AFTER the response is
+// computed but BEFORE it is returned. ctx.waitUntil keeps the
+// fetch worker alive long enough to flush the INSERT without
+// blocking the response on its way to the crawler.
+// ============================================================
+export async function onRequest(context) {
+  const response = await buildResponse(context);
+  const ctx = context && context.ctx;
+  if (ctx && typeof ctx.waitUntil === 'function') {
+    ctx.waitUntil(logBotHit(context.request, response).catch(() => {}));
+  }
+  return response;
 }

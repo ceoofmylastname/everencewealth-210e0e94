@@ -1,186 +1,290 @@
-# PROMPT 12 — Static SSR for /team, /philosophy, /contact (Option A, finalized)
+## PROMPT 13 — Soft-404 catchall + AI bot traffic logger
 
-Scope narrowed to the 3 pages with the SPA-shell soft-content problem. `/about` opts out (already DB-driven via `about_page_content` with 6 schemas + 700+ word baked body — working pipeline).
+Eliminate the GSC "Soft 404 (FAILED)" bucket (46 URLs) by returning real 410/404 for
+unmatched content URLs under `/blog/`, `/qa/`, `/locations/`, `/compare/`,
+`/strategies/`, `/guides/`, `/state-guides/` instead of the SPA shell 200. Also
+install a fire-and-forget bot traffic logger so we can confirm AI crawlers (now
+unblocked) are actually arriving and what they fetch.
 
-## Goal
+### Schema reality check (deviations from prompt)
 
-Eliminate empty-body shells on `/team`, `/philosophy`, `/contact` for non-JS bots (ClaudeBot, GPTBot, Applebot-Extended, PerplexityBot). Today these serve 7-9 visible words pre-hydration. After this ships: 600-1200 words of compliance-clean visible body + preserved JSON-LD schemas, baked into pre-hydration HTML at trailing-slash URLs, with inline critical CSS so humans see styled content immediately.
+I read the live DB before planning. Three corrections are required:
 
-## What the user will see
+1. **`location_pages` does not have `slug` / `state_slug`.** It has `city_slug` and
+   `topic_slug`. URL shape in the data is `/<lang>/locations/<city_slug>/<topic_slug>/`
+   for BOTH `en` and `es` (no `/ubicaciones/` rows actually exist; SEO regex still
+   accepts the alias for safety). The view will use those columns.
+2. **`glossary_terms` table does not exist.** That UNION branch is dropped from the
+   view. (Glossary content lives in `public/glossary.json`, not a DB table.)
+3. **`gone_urls.path` does not exist** — the column is `url_path`. Lookup query
+   updated accordingly.
 
-- `https://www.everencewealth.com/{en,es}/team/` — 4 schemas (AboutPage, FinancialService, Person, BreadcrumbList) + visible H1 + body + advisor section, styled pre-hydration.
-- `https://www.everencewealth.com/{en,es}/philosophy/` — 5 schemas (WebPage, FinancialService w/ nested founder @id-ref, Person, BreadcrumbList, SpeakableSpecification) + visible body covering Three Silent Killers framework.
-- `https://www.everencewealth.com/{en,es}/contact/` — 3 schemas (ContactPage, FinancialService, BreadcrumbList) + visible body + contact details.
-- React hydrates over the prebuilt DOM cleanly — no flash, no double-render.
-- `/about` untouched.
+Row counts for sanity: blog 132 + qa 528 + locations 55 + compare 14 + static 6 = **735 rows** in the view (matches the GSC indexed-count ballpark; safely small enough to skip materialization).
 
-## Database
+### Step 1 — Database (single migration)
 
-**New table** `public.static_pages`:
+Create the catalog view, the bot-traffic table + RLS + summary view, and the
+supporting partial indexes.
 
-```text
-id              uuid pk default gen_random_uuid()
-slug            text   ('team' | 'philosophy' | 'contact')
-language        text   ('en' | 'es')
-page_type       text   ('AboutPage' | 'WebPage' | 'ContactPage')
-title           text
-meta_description text
-h1              text
-body_markdown   text   600-1200 words
-created_at      timestamptz default now()
-updated_at      timestamptz default now()
-unique (slug, language)
+```sql
+-- 1a. Catalog view of every published, indexable URL on the site
+CREATE OR REPLACE VIEW public.all_published_slugs AS
+  SELECT ('/' || language || '/blog/' || slug || '/') AS full_path,
+         slug, language
+    FROM public.blog_articles WHERE status = 'published'
+  UNION ALL
+  SELECT ('/' || language || '/qa/' || slug || '/'), slug, language
+    FROM public.qa_pages WHERE status = 'published'
+  UNION ALL
+  -- location_pages: actual cols are city_slug + topic_slug; routing is
+  -- /<lang>/locations/<city_slug>/<topic_slug>/ for en AND es
+  SELECT ('/' || language || '/locations/' || city_slug || '/' || topic_slug || '/'),
+         topic_slug, language
+    FROM public.location_pages WHERE status = 'published'
+  UNION ALL
+  SELECT ('/en/compare/' || slug || '/'), slug, 'en'
+    FROM public.comparison_pages WHERE status = 'published' AND language = 'en'
+  UNION ALL
+  SELECT ('/es/comparar/' || slug || '/'), slug, 'es'
+    FROM public.comparison_pages WHERE status = 'published' AND language = 'es'
+  UNION ALL
+  -- static_pages from PROMPT 12 — /<lang>/<slug>/
+  SELECT ('/' || language || '/' || slug || '/'), slug, language
+    FROM public.static_pages;
+
+-- 1b. Partial indexes on source tables (view inherits perf via these)
+CREATE INDEX IF NOT EXISTS idx_blog_articles_pub_lang_slug
+  ON public.blog_articles(language, slug) WHERE status = 'published';
+CREATE INDEX IF NOT EXISTS idx_qa_pages_pub_lang_slug
+  ON public.qa_pages(language, slug) WHERE status = 'published';
+CREATE INDEX IF NOT EXISTS idx_location_pages_pub_lang_city_topic
+  ON public.location_pages(language, city_slug, topic_slug) WHERE status = 'published';
+CREATE INDEX IF NOT EXISTS idx_comparison_pages_pub_lang_slug
+  ON public.comparison_pages(language, slug) WHERE status = 'published';
+
+-- 1c. Bot traffic log
+CREATE TABLE public.bot_traffic_log (
+  id BIGSERIAL PRIMARY KEY,
+  ts TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  ua TEXT NOT NULL,
+  bot_name TEXT NOT NULL,
+  method TEXT NOT NULL,
+  path TEXT NOT NULL,
+  status INT NOT NULL,
+  cf_ray TEXT,
+  country TEXT,
+  response_bytes INT
+);
+CREATE INDEX bot_traffic_log_ts_idx ON public.bot_traffic_log (ts DESC);
+CREATE INDEX bot_traffic_log_bot_name_idx ON public.bot_traffic_log (bot_name, ts DESC);
+
+ALTER TABLE public.bot_traffic_log ENABLE ROW LEVEL SECURITY;
+
+-- Anon = INSERT only (middleware fire-and-forget). No SELECT for anon =
+-- write-only, no exfiltration. Admins read via service role / dashboard.
+CREATE POLICY "bot_traffic_log_insert_anon"
+  ON public.bot_traffic_log FOR INSERT TO anon WITH CHECK (true);
+
+-- Admin read policy via existing has_role()
+CREATE POLICY "bot_traffic_log_admin_select"
+  ON public.bot_traffic_log FOR SELECT
+  TO authenticated
+  USING (public.has_role(auth.uid(), 'admin'));
+
+-- 1d. Hourly summary view for the admin dashboard
+CREATE OR REPLACE VIEW public.bot_traffic_summary AS
+  SELECT bot_name,
+         DATE_TRUNC('hour', ts) AS hour,
+         COUNT(*) AS hits,
+         COUNT(*) FILTER (WHERE status = 200) AS hits_200,
+         COUNT(*) FILTER (WHERE status BETWEEN 400 AND 499) AS hits_4xx,
+         COUNT(*) FILTER (WHERE status = 410) AS hits_410,
+         COUNT(*) FILTER (WHERE status = 308) AS hits_308,
+         COUNT(DISTINCT path) AS unique_paths
+    FROM public.bot_traffic_log
+   WHERE ts > NOW() - INTERVAL '7 days'
+   GROUP BY bot_name, hour
+   ORDER BY hour DESC, bot_name;
 ```
 
-**Triggers**:
-- `static_pages_set_updated_at` — bumps `updated_at` ONLY when `title`, `meta_description`, `h1`, or `body_markdown` actually change (not on every UPDATE). This makes `updated_at` an authentic content-change signal.
-- Extend existing `public.enforce_fiduciary_term_block()` to validate `title`, `meta_description`, `h1`, `body_markdown` on `static_pages`.
+Post-migration sanity checks (read-only):
+- `SELECT COUNT(*) FROM all_published_slugs;` → expect ~735
+- `SELECT * FROM all_published_slugs LIMIT 5;` → confirm `full_path` values
 
-**RLS**: Enabled. Public SELECT (build-time read by service role; content is public). No write policies — managed via insert tool.
+### Step 2 — Middleware catchall (`functions/_middleware.js`)
 
-**Seed**: 6 rows drafted from project memory + existing React component visible copy. Pre-seed grep for regulated terms (`fiduciary`, `RIA`, `fee-only`, ambiguous "advisor" usage) — Steven is an independent insurance broker, not an RIA.
+Insertion point (verified by reading the full file): after the comma-strip 301
+(line ~283), after the `is404Blocked` block (line ~319), after the static-extension
+skip (line ~337) and asset-path skip (line ~342), and **before** the blog SSR
+fallback (line ~348). This guarantees:
+- Static assets, redirects, and 404 blocklist are untouched.
+- Non-existent slugs return 410/404 immediately without burning an SSR call.
+- Real published slugs fall through to the existing blog/qa/strategy/SEO branches.
 
-## Static generator
+Add at module top (after `LANGUAGES` const):
 
-**New file** `scripts/generateStaticInformationalPages.ts` (category name; works for 3 pages).
+```js
+// PROMPT 13: catchall regexes for unmatched content URLs.
+// 1-segment: /<lang>/<section>/<slug>/
+// 2-segment: /<lang>/locations/<city>/<topic>/
+const ONE_SEGMENT_CATCHALL_REGEX =
+  /^\/(en|es)\/(blog|qa|compare|comparisons|comparar|estrategias|strategies|guides|glossary|state-guides)\/[^\/]+\/?$/;
+const TWO_SEGMENT_CATCHALL_REGEX =
+  /^\/(en|es)\/(locations|ubicaciones)\/[^\/]+\/[^\/]+\/?$/;
 
-Reads `static_pages` via service role + Supabase client, renders markdown via `marked`, emits per-page schemas, writes `dist/{lang}/{slug}/index.html` with directory-based trailing-slash routing.
-
-### `dateModified` resolution (per row, NOT git log)
-
-The body lives in DB, not the TSX file. Git log of `Team.tsx` would be wrong in both directions (styling tweaks bump it falsely; insert-tool body edits don't bump it at all).
-
-Resolution order, per row:
-1. `static_pages.updated_at` (primary — trigger only fires on content changes)
-2. `static_pages.created_at` (fallback)
-3. Hardcoded `2026-04-12T00:00:00Z` (last-resort)
-
-Same source feeds sitemap `<lastmod>`.
-
-### Schema richness rule
-
-Preserve all schemas from existing generators. Net counts after PROMPT 12:
-
-| Page | Schemas |
-|------|---------|
-| /team | AboutPage + FinancialService (#organization) + Person (#steven-rosenberg, full def) + BreadcrumbList |
-| /philosophy | WebPage + FinancialService (#organization, w/ `founder: { "@id": ".../team/steven-rosenberg/#person" }`) + Person (top-level, references same @id) + BreadcrumbList + SpeakableSpecification |
-| /contact | ContactPage + FinancialService (#organization) + BreadcrumbList |
-
-**Person @id discipline**: The canonical Person definition lives on `/en/team/steven-rosenberg/#person` (existing bio page). All other Person references across the site (philosophy founder nest, team page, future pages) use `{ "@id": "https://www.everencewealth.com/en/team/steven-rosenberg/#person" }` — never duplicated objects. Keeps the @id graph linked so AI engines resolve all Steven references as one entity.
-
-All schemas pull from `src/config/business.ts` — single source of truth.
-
-### Inline critical CSS
-
-Match `generateStaticAuthorBioPage.ts` and `generateStaticPages.ts` convention. Inline `<style>` block in `<head>` covering:
-- Typography: Playfair Display (headings), Lato (body), Raleway (accents)
-- Layout: max-width container, padding, line-height
-- H1/H2 sizing, breadcrumb styling, body paragraph rhythm
-- Color tokens matching the live theme (#d4a574 accent, neutral surfaces)
-
-Bots ignore CSS; humans get styled content immediately. Eliminates the 200-500ms FOUC window.
-
-### HTML structure
-
-```text
-<!DOCTYPE html>
-<html lang="{lang}">
-<head>
-  <meta + title + description + canonical + hreflang (trailing slashes) />
-  <link rel="canonical" href=".../{lang}/{slug}/" />
-  <link rel="alternate" hreflang="en" href=".../en/{slug}/" />
-  <link rel="alternate" hreflang="es" href=".../es/{slug}/" />
-  <link rel="alternate" hreflang="x-default" href=".../en/{slug}/" />
-  <style>{CRITICAL_CSS}</style>
-  <script type="application/ld+json" data-schema="{slug}">...</script>  // × N
-  <link rel="stylesheet" href="{prod CSS}" />
-</head>
-<body data-prebuilt="static-page" data-slug="{slug}">
-  <div id="root">
-    <h1>{h1}</h1>
-    <nav class="breadcrumb">...</nav>
-    <article>{rendered markdown}</article>
-  </div>
-  <script type="module" src="{prod JS}"></script>
-</body>
-</html>
+// AI/search bot UA detection (used by Step 3 logger)
+const KNOWN_BOTS = [
+  { pattern: /GPTBot/i,             name: 'GPTBot' },
+  { pattern: /ChatGPT-User/i,       name: 'ChatGPT-User' },
+  { pattern: /OAI-SearchBot/i,      name: 'OAI-SearchBot' },
+  { pattern: /ClaudeBot/i,          name: 'ClaudeBot' },
+  { pattern: /anthropic-ai/i,       name: 'anthropic-ai' },
+  { pattern: /Claude-Web/i,         name: 'Claude-Web' },
+  { pattern: /PerplexityBot/i,      name: 'PerplexityBot' },
+  { pattern: /Perplexity-User/i,    name: 'Perplexity-User' },
+  { pattern: /Google-Extended/i,    name: 'Google-Extended' },
+  { pattern: /Googlebot/i,          name: 'Googlebot' },
+  { pattern: /Applebot-Extended/i,  name: 'Applebot-Extended' },
+  { pattern: /Applebot/i,           name: 'Applebot' },
+  { pattern: /Bingbot/i,            name: 'Bingbot' },
+  { pattern: /meta-externalagent/i, name: 'meta-externalagent' },
+  { pattern: /CCBot/i,              name: 'CCBot' },
+  { pattern: /Bytespider/i,         name: 'Bytespider' },
+  { pattern: /Amazonbot/i,          name: 'Amazonbot' },
+];
+function detectBotName(ua) {
+  if (!ua) return null;
+  for (const { pattern, name } of KNOWN_BOTS) if (pattern.test(ua)) return name;
+  return null;
+}
 ```
 
-Production CSS/JS asset paths read from `dist/index.html` (same pattern as existing generators).
+Add the catchall block immediately after the asset-path skip (`if (pathname.startsWith('/assets/') ...)`), before `const blogMatch = ...`:
 
-## React component updates
+```js
+// PROMPT 13: Soft-404 catchall.
+// Returns real 410 (intentionally retired, listed in gone_urls)
+// or 404 (never existed) for unmatched content URLs.
+// Hub roots (/en/, /en/blog/, etc.) and static prebuilt dirs
+// (/en/about/, /en/team/, /en/contact/, /en/philosophy/,
+// /en/team/steven-rosenberg/) are NOT matched by these regexes
+// (they have no trailing slug segment, or different shape).
+if (
+  ONE_SEGMENT_CATCHALL_REGEX.test(pathname) ||
+  TWO_SEGMENT_CATCHALL_REGEX.test(pathname)
+) {
+  try {
+    const lookupUrl =
+      `${SUPABASE_URL}/rest/v1/all_published_slugs` +
+      `?full_path=eq.${encodeURIComponent(pathname)}&select=slug&limit=1`;
+    const lookupResp = await fetch(lookupUrl, {
+      headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` },
+    });
+    const rows = lookupResp.ok ? await lookupResp.json() : [];
+    const exists = Array.isArray(rows) && rows.length > 0;
 
-`src/pages/Team.tsx`, `src/pages/Philosophy.tsx`, `src/pages/Contact.tsx`:
-- `useEffect` check for `document.body.dataset.prebuilt === 'static-page'` (marker for analytics/debug).
-- Substance parity: rendered React output stays substantively similar to baked markdown (same topics, similar length, key phrases preserved) — avoids cloaking flags. Not pixel-perfect.
-- `Philosophy.tsx` line 34: fix stale Spanish canonical from `/es/filosofia` → `/es/philosophy/` (trailing slash).
-- Existing `<Helmet>` blocks remain (harmless duplicates post-SSR; preserves dev experience).
-
-## Routing & redirects
-
-`functions/_middleware.js`:
-- Remove incorrect entries from `SLUG_MAP_EN_TO_ES` (`about → acerca`, `team → equipo`, `philosophy → filosofia`, `contact → contacto`). Actual app routes are English-slug-only for both langs.
-- Add 301: `/:lang/about-us` → `/:lang/about/`.
-- Trailing-slash 308 rule continues to apply via Cloudflare Pages directory serving.
-
-`src/App.tsx`: no route changes.
-
-## Build pipeline
-
-`build.sh`:
-- Replace `generateStaticPhilosophyPage.ts` and `generateStaticTeamPage.ts` calls with single `generateStaticInformationalPages.ts`.
-- Keep `generateStaticAboutPage.ts` as-is.
-- New generator runs after `generateAppShell.ts`, before `generateSitemap.ts`.
-
-## Sitemap
-
-`public/sitemap-core.xml`: 6 trailing-slash entries with hreflang pairs:
-- `/en/team/`, `/es/team/`
-- `/en/philosophy/`, `/es/philosophy/`
-- `/en/contact/`, `/es/contact/`
-
-`<lastmod>` per entry pulls from `static_pages.updated_at` (same resolution as schema dateModified). Remove any existing no-slash duplicates.
-
-## Verification (post-deploy)
-
-```bash
-for path in /en/team /es/team /en/philosophy /es/philosophy /en/contact /es/contact; do
-  code=$(curl -sI -A "ClaudeBot/1.0" "https://www.everencewealth.com$path/" | head -1 | awk '{print $2}')
-  h1=$(curl -sL -A "ClaudeBot/1.0" "https://www.everencewealth.com$path/" | grep -oc '<h1')
-  schema=$(curl -sL -A "ClaudeBot/1.0" "https://www.everencewealth.com$path/" | grep -oc 'application/ld+json')
-  words=$(curl -sL -A "ClaudeBot/1.0" "https://www.everencewealth.com$path/" | python3 -c "import sys,re; t=re.sub('<[^>]+>',' ',sys.stdin.read()); print(len(t.split()))")
-  echo "$path | $code | h1=$h1 | schema=$schema | words=$words"
-done
+    if (!exists) {
+      // Check gone_urls (column is url_path, not path)
+      const goneUrl =
+        `${SUPABASE_URL}/rest/v1/gone_urls` +
+        `?url_path=eq.${encodeURIComponent(pathname)}&select=id&limit=1`;
+      const goneResp = await fetch(goneUrl, {
+        headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` },
+      });
+      const goneRows = goneResp.ok ? await goneResp.json() : [];
+      const isGone = Array.isArray(goneRows) && goneRows.length > 0;
+      const status = isGone ? 410 : 404;
+      const html = render410Page(pathname, status);
+      const catchallResp = new Response(html, {
+        status,
+        headers: {
+          'Content-Type': 'text/html; charset=utf-8',
+          'X-410-Source': 'middleware-catchall',
+          'X-Middleware-Status': 'Active',
+          'Cache-Control': 'public, max-age=300',
+          'X-Robots-Tag': 'noindex, nofollow',
+        },
+      });
+      // Step 3: log bot hit before returning
+      if (typeof ctx?.waitUntil === 'function') {
+        ctx.waitUntil(logBotHit(request, catchallResp, ctx).catch(() => {}));
+      }
+      return catchallResp;
+    }
+  } catch (err) {
+    // On lookup failure, do NOT block — fall through to SSR/SPA.
+    console.error(`[Middleware] Catchall lookup failed for ${pathname}:`, err?.message);
+  }
+}
 ```
 
-PASS per row: HTTP 200, h1=1, schema≥3, words≥400.
+Add `render410Page(pathname, statusCode)` helper at module top (per prompt
+verbatim — bilingual, noindex meta, Playfair/Lato styling, internal links to
+home/blog/qa/sitemap, status badge).
 
-Additional spot-check: confirm philosophy founder reference uses `@id` ref (not duplicated Person), and confirm one row's `dateModified` matches `static_pages.updated_at` exactly.
+### Step 3 — Bot traffic logger (fire-and-forget)
 
-## File-by-file change list
+Two changes:
 
-**Created**:
-- `supabase/migrations/{timestamp}_static_pages_table.sql` — table + content-aware updated_at trigger + extend enforce_fiduciary_term_block + RLS
-- `scripts/generateStaticInformationalPages.ts`
-- Insert tool call to seed 6 `static_pages` rows
+1. **Update handler signature** to receive `ctx`:
+   `export async function onRequest({ request, next, env, ctx }) {`
+   (Cloudflare Pages Functions provides `ctx.waitUntil`; current code omits it.)
 
-**Edited**:
-- `build.sh`
-- `functions/_middleware.js`
-- `public/sitemap-core.xml`
-- `src/pages/Team.tsx`
-- `src/pages/Philosophy.tsx` (incl. line 34 stale ES canonical fix)
-- `src/pages/Contact.tsx`
+2. **Add `logBotHit(request, response, ctx)`** at module top (per prompt
+   verbatim, but using SUPABASE_URL/ANON constants already defined). Reads UA,
+   matches `KNOWN_BOTS`, extracts `cf-ray` and `request.cf?.country`, POSTs to
+   `/rest/v1/bot_traffic_log` with `Prefer: return=minimal`.
 
-**Deleted**:
-- `scripts/generateStaticTeamPage.ts`
-- `scripts/generateStaticPhilosophyPage.ts`
+3. **Wrap every response path** so logging fires regardless of which branch
+   produced the response. Cleanest approach: wrap the existing handler body in a
+   helper, OR add a `logIfBot(response)` call at each `return` site that
+   produces a final response. **Plan: wrap the handler.** Keep current handler
+   logic in an internal `async function buildResponse()`; the exported
+   `onRequest` calls it, then schedules the log:
+   ```js
+   export async function onRequest(context) {
+     const { request, ctx } = context;
+     const response = await buildResponse(context);
+     if (typeof ctx?.waitUntil === 'function') {
+       ctx.waitUntil(logBotHit(request, response, ctx).catch(() => {}));
+     }
+     return response;
+   }
+   ```
+   This avoids touching every existing `return` site (there are ~12) while still
+   capturing every status code we emit.
 
-**Untouched**: `src/pages/About.tsx`, `scripts/generateStaticAboutPage.ts`, `about_page_content` table.
+   Edge case: the comma-strip 301, 404 blocklist, and the new catchall return
+   directly inside `buildResponse`, so they're covered. The blog/qa SSR branches
+   that call `next()` then return its result are also covered.
 
-## Out of scope (queued separately)
+### Step 4 — Verification (post-deploy)
 
-1. `/about` schema audit + substance-parity check
-2. Codebase audit doc note: `about_page_content` ≠ `static_pages`
-3. PROMPT 17 (46 Soft 404s) ships next per GSC-driven reorder
+Run the bash block from the prompt. PASS criteria:
+- `/en/blog/this-slug-does-not-exist/` → `HTTP/2 410`, header `X-410-Source: middleware-catchall`
+- `/en/locations/florida/this-city-does-not-exist/` → `HTTP/2 410`
+- `/en/about/`, `/en/team/`, `/en/contact/`, `/en/philosophy/`,
+  `/en/team/steven-rosenberg/` (and `/es/` equivalents) → all `200`
+- Hub roots `/en/`, `/es/`, `/en/blog/`, `/en/qa/`, `/en/locations/`,
+  `/en/compare/` → all `200`
+- Real published slug (pick one from `SELECT full_path FROM all_published_slugs LIMIT 1;`) → `200`, no `X-410` header
+- After 10 min: `SELECT bot_name, COUNT(*) FROM bot_traffic_log WHERE ts > NOW() - INTERVAL '15 minutes' GROUP BY bot_name;` → at least Googlebot/Bingbot rows; AI bots appear as they crawl
+- `SELECT * FROM bot_traffic_summary LIMIT 5;` → returns hourly aggregated rows
+
+### Guardrails honored
+
+- Catchall sits AFTER static-asset bypass, comma-strip 301, and 404 blocklist;
+  BEFORE blog/qa/strategy SSR branches. Hubs (no slug segment) and PROMPT 12
+  static dirs (`/en/about/`, `/en/team/`, etc.) do not match either regex.
+- `injectSeoTags` HTMLRewriter dedup logic is untouched.
+- Comma-strip 301 redirect for `/locations/*` is untouched.
+- Only `SUPABASE_ANON_KEY` is used in middleware (both view lookup and bot
+  insert). Anon RLS allows INSERT-only on `bot_traffic_log`.
+- View definition matches actual DB schema (`city_slug`/`topic_slug` for
+  locations; no `glossary_terms`; `gone_urls.url_path`).
+
+### Files changed
+
+- New SQL migration: view, indexes, table, RLS, summary view
+- `functions/_middleware.js`: catchall regexes + `render410Page` + `KNOWN_BOTS` +
+  `detectBotName` + `logBotHit` + handler-wrap with `ctx.waitUntil`

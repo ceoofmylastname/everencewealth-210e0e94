@@ -1605,6 +1605,45 @@ export type Database = {
         }
         Relationships: []
       }
+      bot_traffic_log: {
+        Row: {
+          bot_name: string
+          cf_ray: string | null
+          country: string | null
+          id: number
+          method: string
+          path: string
+          response_bytes: number | null
+          status: number
+          ts: string
+          ua: string
+        }
+        Insert: {
+          bot_name: string
+          cf_ray?: string | null
+          country?: string | null
+          id?: number
+          method: string
+          path: string
+          response_bytes?: number | null
+          status: number
+          ts?: string
+          ua: string
+        }
+        Update: {
+          bot_name?: string
+          cf_ray?: string | null
+          country?: string | null
+          id?: number
+          method?: string
+          path?: string
+          response_bytes?: number | null
+          status?: number
+          ts?: string
+          ua?: string
+        }
+        Relationships: []
+      }
       brochure_downloads: {
         Row: {
           brochure_id: string | null
@@ -9375,6 +9414,27 @@ export type Database = {
       }
     }
     Views: {
+      all_published_slugs: {
+        Row: {
+          full_path: string | null
+          language: string | null
+          slug: string | null
+        }
+        Relationships: []
+      }
+      bot_traffic_summary: {
+        Row: {
+          bot_name: string | null
+          hits: number | null
+          hits_200: number | null
+          hits_308: number | null
+          hits_410: number | null
+          hits_4xx: number | null
+          hour: string | null
+          unique_paths: number | null
+        }
+        Relationships: []
+      }
       content_freshness_report: {
         Row: {
           date_modified: string | null
