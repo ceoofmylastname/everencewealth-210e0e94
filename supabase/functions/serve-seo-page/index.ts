@@ -266,6 +266,71 @@ interface PageMetadata {
   city_name?: string
   region?: string         // state code, e.g. "CA"
   country?: string        // e.g. "United States"
+  // Author authority fields — populated for blog content (Fix 13 Phase 2)
+  author_id?: string
+  author?: AuthorRecord | null
+}
+
+// Author record sourced from `authors` table for E-E-A-T Person schema.
+// Reads only — never written by this function.
+interface AuthorRecord {
+  id: string
+  name: string
+  job_title: string | null
+  bio: string | null
+  bio_short: string | null
+  bio_full_markdown: string | null
+  photo_url: string | null
+  linkedin_url: string | null
+  credentials: string[] | null
+  years_experience: number | null
+}
+
+// In-memory author cache for the lifetime of the isolate.
+// Authors rarely change; matches the pattern used by `pageCache`.
+const authorCache = new Map<string, { data: AuthorRecord | null; expires: number }>()
+const AUTHOR_CACHE_TTL = 60 * 60 * 1000 // 1 hour
+
+async function fetchAuthor(supabase: any, authorId: string): Promise<AuthorRecord | null> {
+  if (!authorId) return null
+  const cached = authorCache.get(authorId)
+  if (cached && cached.expires > Date.now()) {
+    return cached.data
+  }
+  try {
+    const { data, error } = await supabase
+      .from('authors')
+      .select('id, name, job_title, bio, bio_short, bio_full_markdown, photo_url, linkedin_url, credentials, years_experience')
+      .eq('id', authorId)
+      .maybeSingle()
+    if (error) {
+      console.error(`[Author] lookup failed for ${authorId}: ${error.message}`)
+      authorCache.set(authorId, { data: null, expires: Date.now() + 60 * 1000 })
+      return null
+    }
+    if (!data) {
+      console.warn(`[Author] no row found for ${authorId}`)
+      authorCache.set(authorId, { data: null, expires: Date.now() + 60 * 1000 })
+      return null
+    }
+    const record: AuthorRecord = {
+      id: data.id,
+      name: data.name,
+      job_title: data.job_title ?? null,
+      bio: data.bio ?? null,
+      bio_short: data.bio_short ?? null,
+      bio_full_markdown: data.bio_full_markdown ?? null,
+      photo_url: data.photo_url ?? null,
+      linkedin_url: data.linkedin_url ?? null,
+      credentials: Array.isArray(data.credentials) ? data.credentials : null,
+      years_experience: typeof data.years_experience === 'number' ? data.years_experience : null,
+    }
+    authorCache.set(authorId, { data: record, expires: Date.now() + AUTHOR_CACHE_TTL })
+    return record
+  } catch (e) {
+    console.error(`[Author] lookup exception for ${authorId}: ${(e as Error).message}`)
+    return null
+  }
 }
 
 // Result type for metadata with potential redirect (language mismatch handling)

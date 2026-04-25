@@ -1,154 +1,127 @@
-# Compliance Cleanup Execution + Verification Plan
+# Fix 13 Phase 2 — Person Schema on BlogPosting
 
-Mode: switch to default (write-enabled) to run this. Read-only mode blocks DB writes, migrations, and live curls.
+## Goal
+Replace the current `author: { @type: "Organization" }` stub on the BlogPosting JSON-LD emitted by `serve-seo-page` with a fully-populated `Person` schema sourced from the cleaned `authors` table, plus `reviewedBy`. Include a defensive Organization fallback so a failed author lookup never breaks the page.
 
-## Step 1 — Migration (single transaction, trigger-gated)
+Phase 2 is **edge-function-only**. No middleware changes, no DB changes, no React/component changes.
 
-Pattern: `BEGIN; ALTER TABLE blog_articles DISABLE TRIGGER trg_block_fiduciary_terms; <updates>; ALTER TABLE blog_articles ENABLE TRIGGER trg_block_fiduciary_terms; COMMIT;`
+## Scope (single file)
+`supabase/functions/serve-seo-page/index.ts`
 
-Rationale for disable/enable: the trigger only blocks BLOCKED metadata columns (headline, meta_*, slug, speakable_answer), not `detailed_content`. So technically the trigger should not fire. But we keep the gate as a safety pattern in case a row's metadata still contains a residual stem we missed — failing closed mid-transaction is worse than auditing after.
+Other files stay untouched:
+- middleware (`functions/_middleware.js`) — guard rails per user instructions
+- `src/components/schema/PersonSchema.tsx` — only used by client React tree, not by the SSR JSON-LD that Googlebot reads
+- DB schema — `authors.bio_short` / `authors.bio_full_markdown` already exist (added in Step 4); they’re currently NULL and Phase 3 will populate them
 
-### 1a. 15 AUTO-STRIP blog rows (sweep)
-Apply the approved replacement table per row. These are full-phrase replacements on `detailed_content` only.
+## Verified inputs (read-only DB checks)
+- `authors` row for Steven (id `1a709766-…`): `name`, `job_title="Founder & Chief Wealth Strategist"`, `credentials=[…3 items…]`, `linkedin_url=https://www.linkedin.com/in/stevenrosenberg/`, `photo_url`, `bio` (518 chars), `bio_short=NULL`, `bio_full_markdown=NULL`
+- All 132 published `blog_articles` map to that single `author_id`
+- Compliance trigger blocks WRITES on regulated columns; we only READ, so no interaction
 
-### 1b. Row 2 (manual rewrite from your earlier instruction)
-Apply the explicit rewrite you gave during the REVIEW resolution step.
+## Technical changes
 
-### 1c. Row 1 (en) — surgical
-```sql
-UPDATE blog_articles
-SET detailed_content = REPLACE(
-  detailed_content,
-  'our unwavering commitment to fiduciary duty',
-  'our unwavering commitment to a best-interest standard'
-),
-date_modified = NOW()
-WHERE id = '<row-1-uuid>'
-  AND detailed_content LIKE '%our unwavering commitment to fiduciary duty%';
+### 1. Extend `PageMetadata` (around line 269)
+Add optional fields populated only for blog content:
+- `author_id?: string`
+- `author?: AuthorRecord | null` (fetched record, or `null` if lookup failed)
+
+Define a local `AuthorRecord` interface mirroring the columns we read: `id, name, job_title, bio, bio_short, bio_full_markdown, photo_url, linkedin_url, credentials, years_experience`.
+
+### 2. Add `fetchAuthor(supabase, authorId)` helper
+- `select('id, name, job_title, bio, bio_short, bio_full_markdown, photo_url, linkedin_url, credentials, years_experience').eq('id', authorId).maybeSingle()`
+- Wrap in the existing `withTimeout` pattern used by other queries
+- On error or null, log `[Author] lookup failed for <id>: <reason>` and return `null` so the defensive Organization fallback fires
+- Cache results in a small in-memory `Map<string, AuthorRecord>` for the lifetime of the isolate (authors rarely change; same TTL approach as `pageCache`)
+
+### 3. Wire it into `fetchBlogMetadata` (around line 365)
+After the `exactMatch` is loaded:
+- Capture `author_id: exactMatch.author_id`
+- `const author = exactMatch.author_id ? await fetchAuthor(supabase, exactMatch.author_id) : null`
+- Add both `author_id` and `author` to the returned metadata object
+
+### 4. Rewrite `generateBlogPostingSchema` (lines 1613–1654)
+
+Replace the hardcoded `author: { @type: "Organization", … }` block with this logic:
+
+```text
+if (metadata.author):
+  authorNode = {
+    "@type": "Person",
+    "@id": `${BASE_URL}/${metadata.language}/team/steven-rosenberg#person`,
+    "name": author.name,
+    "jobTitle": author.job_title,
+    "url": `${BASE_URL}/${metadata.language}/team/steven-rosenberg`,
+    "image": author.photo_url || undefined,
+    "description": author.bio_short || truncate(author.bio, 200) || undefined,
+    "worksFor": { "@id": `${BASE_URL}/#organization` },
+    "sameAs": author.linkedin_url ? [author.linkedin_url] : undefined,
+    "hasCredential": (author.credentials || []).map(c => ({
+      "@type": "EducationalOccupationalCredential",
+      "credentialCategory": "professional certification",
+      "name": c
+    }))
+  }
+  reviewedByNode = { "@type": "Person", "@id": authorNode["@id"], "name": author.name }
+else:
+  // Defensive fallback — never break the page on a failed lookup
+  authorNode = { "@type": "Organization", "@id": `${BASE_URL}/#organization`, "name": "Everence Wealth" }
+  reviewedByNode = undefined  // omit reviewedBy entirely when author missing
 ```
 
-### 1d. Row 4 (es) — surgical
-```sql
-UPDATE blog_articles
-SET detailed_content = REPLACE(
-  detailed_content,
-  'nuestro inquebrantable compromiso con el deber fiduciario',
-  'nuestro inquebrantable compromiso con el estándar de mejor interés'
-),
-date_modified = NOW()
-WHERE id = '<row-4-uuid>'
-  AND detailed_content LIKE '%nuestro inquebrantable compromiso con el deber fiduciario%';
+Strip undefined values before serialization (`JSON.stringify` already drops them).
+
+The team URL is hardcoded to `…/team/steven-rosenberg` because (a) all 132 published articles share that single author id and (b) the user’s verification command expects exactly that URL. If a second author ever lands, this becomes a slug lookup; we’ll cross that bridge in a future fix.
+
+### 5. Keep everything else intact
+- QAPage schema (line 1509) keeps its own author block — out of scope for Phase 2
+- BreadcrumbList, FAQ, FinancialService, Speakable, ComparisonTable schemas — untouched
+- All hreflang / canonical / 301 logic — untouched
+- HTML body, microdata `itemprop` markup — untouched
+
+## Verification (after deploy)
+
+Run the curl + python script the user provided against:
+- `https://www.everencewealth.com/en/blog/understanding-the-retirement-gap-why-it-matters-now-more-than-ever`
+
+Expected:
+```text
+JSON-LD block count: 4   (Organization+Founders, Breadcrumb, BlogPosting, FAQPage)
+Block N: @type=BlogPosting
+  author.@type: Person
+  author.name: Steven Rosenberg
+  author.jobTitle: Founder & Chief Wealth Strategist
+  author.url: https://www.everencewealth.com/en/team/steven-rosenberg
+  author.hasCredential count: 3
+  reviewedBy.@type: Person
+  reviewedBy.name: Steven Rosenberg
 ```
 
-If either surgical UPDATE returns 0 rows affected (phrase already changed or whitespace variant), abort the txn and re-snapshot the exact substring before retrying.
+If `author.@type` comes back as `Organization`, the lookup failed → pull `serve-seo-page` logs and grep for `[Author] lookup failed`.
 
-## Step 2 — Post-cleanup verification
+Cache note: `serve-seo-page` has a 1-hour in-memory page cache. After deploy, the first request rebuilds; subsequent ones are cached. Cloudflare Pages also caches the SSR HTML edge-side, so the verification curl may need a Cloudflare URL purge for the test article (same pattern used at end of compliance sweep).
 
-### 2.1 BLOCKED-column audit (all 5 tables)
-```sql
--- expected: 0 rows
-SELECT 'authors' AS t, id FROM authors
-  WHERE job_title ~* '\yfiduciar' OR bio ~* '\yfiduciar'
-     OR bio_short ~* '\yfiduciar' OR bio_full_markdown ~* '\yfiduciar'
-     OR name ~* '\yfiduciar'
-     OR EXISTS (SELECT 1 FROM unnest(credentials) c WHERE c ~* '\yfiduciar')
-UNION ALL SELECT 'blog_articles', id FROM blog_articles
-  WHERE headline ~* '\yfiduciar' OR meta_title ~* '\yfiduciar'
-     OR meta_description ~* '\yfiduciar' OR speakable_answer ~* '\yfiduciar'
-     OR slug ~* '\yfiduciar'
-UNION ALL SELECT 'qa_pages', id FROM qa_pages
-  WHERE question ~* '\yfiduciar' OR meta_title ~* '\yfiduciar'
-     OR meta_description ~* '\yfiduciar' OR speakable_answer ~* '\yfiduciar'
-     OR slug ~* '\yfiduciar'
-UNION ALL SELECT 'location_pages', id FROM location_pages
-  WHERE meta_title ~* '\yfiduciar' OR meta_description ~* '\yfiduciar'
-UNION ALL SELECT 'comparison_pages', id FROM comparison_pages
-  WHERE meta_title ~* '\yfiduciar' OR meta_description ~* '\yfiduciar';
-```
+## Pause point
+After Phase 2 verification comes back green, pause and request from the user:
+1. `bio_short` (1–2 sentences for meta description / Person.description)
+2. `bio_full_markdown` (3–4 paragraphs for the bio page body)
+3. Any additional `sameAs` URLs beyond the LinkedIn already on file
 
-### 2.2 Long-form body audit
-```sql
--- blog_articles.detailed_content: pre=25, expected post = 7 KEEP-AUTO
---   + Row1 (2 surviving educational) + Row4 (2 surviving educational) = 11 rows
-SELECT id, language, slug,
-  (LENGTH(detailed_content) - LENGTH(REGEXP_REPLACE(detailed_content, '\yfiduciar', '', 'gi'))) / 9 AS hits
-FROM blog_articles
-WHERE detailed_content ~* '\yfiduciar'
-ORDER BY language, slug;
+User has these drafts pre-written; will paste on request. Then Phase 3 builds `/en/team/steven-rosenberg`.
 
--- qa_pages.answer_main: expected 73 (unchanged, all KEEP)
-SELECT COUNT(*) FROM qa_pages WHERE answer_main ~* '\yfiduciar';
-```
+## Risk assessment
+- **Low risk**: single function, additive read query, defensive null fallback
+- **No DB writes** → compliance trigger never engaged
+- **No middleware changes** → all guard rails (canonical/hreflang dedup, comma-strip 301, static-asset bypass) stay in place
+- **Cache invalidates naturally** on edge function redeploy (isolate restart wipes `pageCache`)
 
-### 2.3 Trigger functionality test (dry run + rollback)
-```sql
-BEGIN;
-UPDATE blog_articles
-SET meta_description = 'TEST: fiduciary trigger check'
-WHERE id = (SELECT id FROM blog_articles WHERE language='en' AND status='published' LIMIT 1);
--- expected: ERROR — Compliance block: "fiduciary" not permitted ...
-ROLLBACK;
-```
-Run via `supabase--read_query` won't work (write). Use a one-shot exec in default mode and capture the exception text.
+## Approval requested
+Approve to switch to default mode and execute. I will:
+1. Edit `supabase/functions/serve-seo-page/index.ts` only
+2. Confirm deploy
+3. Run the verification curl
+4. Report results, then pause for the bio content
 
-### 2.4 Live URL spot-checks (Googlebot UA)
-Three curls as specified:
-- `/en/blog/take-action-personal-finance-tips-to-prevent-running-out-of-money-in-retirement` → expect 0
-- `/en/blog/understanding-the-retirement-gap-why-it-matters-now-more-than-ever` → expect 0 or low (educational)
-- `/es/blog/comprender-la-brecha-de-jubilacion-por-que-es-mas-importante-que-nunca-1-992v` → expect 0 or low
-
-If any return non-zero on a STRIPped page, proceed to Step 3 cache purge and re-curl.
-
-## Step 3 — Cloudflare Pages cache purge
-
-The SSR edge function caches per-page. After migration commits:
-
-Option A (preferred if API token available): targeted purge via Cloudflare API
-```bash
-curl -X POST "https://api.cloudflare.com/client/v4/zones/$CF_ZONE_ID/purge_cache" \
-  -H "Authorization: Bearer $CF_API_TOKEN" \
-  -H "Content-Type: application/json" \
-  --data '{"files":[
-    "https://www.everencewealth.com/en/blog/take-action-personal-finance-tips-to-prevent-running-out-of-money-in-retirement",
-    "https://www.everencewealth.com/en/blog/understanding-the-retirement-gap-why-it-matters-now-more-than-ever",
-    "https://www.everencewealth.com/es/blog/comprender-la-brecha-de-jubilacion-por-que-es-mas-importante-que-nunca-1-992v"
-  ]}'
-```
-
-I'll run `secrets--fetch_secrets` first to check for `CF_API_TOKEN` / `CF_ZONE_ID`. If absent, I'll surface a `<lov-add-secret>` request for both. Wildcard purge (`/en/blog/*`, `/es/blog/*`) requires Enterprise plan; I'll attempt but fall back to the 18-URL targeted list if rejected.
-
-After purge, re-run the 3 curls from Step 2.4 to confirm.
-
-## Step 4 — Final report + Fix 13 handoff
-
-Report block (delivered in chat):
-```
-COMPLIANCE CLEANUP — FINAL
-Migration: 18 rows updated (15 AUTO-STRIP + Row2 manual + Row1 surgical + Row4 surgical)
-BLOCKED-column audit (5 tables): X hits (target 0)
-detailed_content survivors: X rows / Y total occurrences (target ~11 rows)
-qa_pages.answer_main: X rows (target 73, unchanged)
-Trigger test: PASS/FAIL (raised exception: "...")
-Live curl spot-checks:
-  URL1: N hits
-  URL2: N hits
-  URL3: N hits
-Cache purge: targeted 18 URLs / wildcard / N/A
-```
-
-Then: "Fix 13 resuming Phase 2 — Person schema generation will read from cleaned authors.bio_short / bio_full_markdown / credentials."
-
-## Technical notes
-
-- All UPDATEs include `date_modified = NOW()` to invalidate hub_cache via `invalidate_hub_cache` trigger.
-- Single transaction so a failure on row N rolls back rows 1..N-1.
-- Row 1 / Row 4 UUIDs will be resolved at execution time by re-querying snippets to avoid stale IDs from the report.
-- If `secrets--fetch_secrets` shows no Cloudflare creds, I will pause and request them before Step 3 rather than skip silently — stale cache would invalidate Step 2.4.
-
-## What I need from you
-
-Approve this plan to switch to default mode. No further per-row decisions needed; I will execute Steps 1→4 in order and only pause if:
-- A surgical UPDATE returns 0 rows (phrase mismatch)
-- BLOCKED-column audit returns >0 hits
-- Cloudflare creds missing
-- Trigger test does NOT raise
+Pause without proceeding to Phase 3 if:
+- author.@type renders as Organization (lookup failure → debug logs)
+- JSON-LD block count != 4 (check for parse errors)
+- Any non-blog page regresses (unlikely; QA path untouched)
