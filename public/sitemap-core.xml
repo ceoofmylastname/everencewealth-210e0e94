@@ -102,4 +102,25 @@
     <ai:content-type>contact</ai:content-type>
   </url>
 
+  <!-- Team bio pages (Fix 13 Phase 3) -->
+  <url>
+    <loc>https://www.everencewealth.com/en/team/steven-rosenberg</loc>
+    <lastmod>2026-04-25</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <ai:content-type>person-bio</ai:content-type>
+    <ai:topics>steven-rosenberg, founder, independent-wealth-strategist, tax-free-retirement</ai:topics>
+    <ai:citability>high</ai:citability>
+  </url>
+
+  <url>
+    <loc>https://www.everencewealth.com/es/team/steven-rosenberg</loc>
+    <lastmod>2026-04-25</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <ai:content-type>person-bio</ai:content-type>
+    <ai:topics>steven-rosenberg, founder, independent-wealth-strategist, tax-free-retirement</ai:topics>
+    <ai:citability>high</ai:citability>
+  </url>
+
 </urlset>

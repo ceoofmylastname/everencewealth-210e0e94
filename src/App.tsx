@@ -69,6 +69,7 @@ const WholeLife = lazy(() => import("./pages/strategies/WholeLife"));
 const TaxFreeRetirement = lazy(() => import("./pages/strategies/TaxFreeRetirement"));
 const AssetProtection = lazy(() => import("./pages/strategies/AssetProtection"));
 const Team = lazy(() => import("./pages/Team"));
+const TeamMember = lazy(() => import("./pages/TeamMember"));
 const ClientStories = lazy(() => import("./pages/ClientStories"));
 const BuyersGuide = lazy(() => import("./pages/BuyersGuide"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
@@ -518,6 +519,7 @@ const App = () => (
               {/* Team page */}
               <Route path="/team" element={<Navigate to="/en/team" replace />} />
               <Route path="/:lang/team" element={<Team />} />
+              <Route path="/:lang/team/:slug" element={<TeamMember />} />
 
               {/* Client Stories page */}
               <Route path="/client-stories" element={<Navigate to="/en/client-stories" replace />} />
