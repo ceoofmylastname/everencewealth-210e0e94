@@ -5,6 +5,11 @@ set -euo pipefail
 export VITE_SUPABASE_URL="https://zbzrmpmqijvmjbhctfoe.supabase.co"
 export VITE_SUPABASE_PUBLISHABLE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpienJtcG1xaWp2bWpiaGN0Zm9lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzExNjk1MzUsImV4cCI6MjA4Njc0NTUzNX0.cI7HQmbY1XF_wmPMSm9ofbQdR3iujQ5_YNg8h_YLkVg"
 
+# Sanity check: IndexNow ownership-proof key file in public/ must match
+# the INDEXNOW_KEY secret. Fail fast if the file is missing or mismatched.
+echo "🔑 Asserting IndexNow key file..."
+npx tsx scripts/buildAssertIndexNowKeyFile.ts
+
 # Build the React app (vite only — must NOT recurse into `npm run build`)
 npm run build:app
 
