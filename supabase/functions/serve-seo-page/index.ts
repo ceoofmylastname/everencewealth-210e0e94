@@ -428,6 +428,9 @@ async function fetchBlogMetadata(supabase: any, slug: string, lang: string): Pro
     .maybeSingle()
 
   if (exactMatch) {
+    const author = exactMatch.author_id
+      ? await fetchAuthor(supabase, exactMatch.author_id)
+      : null
     return {
       metadata: {
         language: exactMatch.language || lang,
@@ -447,6 +450,8 @@ async function fetchBlogMetadata(supabase: any, slug: string, lang: string): Pro
         read_time: exactMatch.read_time,
         author_bio: exactMatch.author_bio_localized,
         internal_links: exactMatch.internal_links,
+        author_id: exactMatch.author_id,
+        author,
       }
     }
   }
