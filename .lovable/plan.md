@@ -1,168 +1,111 @@
-# PROMPT 15 — IndexNow Push Pipeline (Hardened)
+# PROMPT 18 — GSC URL-List Triage Script
 
-## STATUS: SHIPPED 2026-04-25
+Build a deterministic, re-runnable triage script that ingests 6 GSC Page Indexing CSV exports and emits 5 ready-to-apply output files. The script does **not** mutate the database, the sitemap, or call the IndexNow function. The user reviews `triage_report.csv` first, then applies each output manually.
 
-### What landed
-- New 64-char IndexNow key: stored as `INDEXNOW_KEY` secret + ownership-proof file `public/6ef3ee9b142c08d0d1766cbca6419279d3558d720518d27ce752a79fba85da93.txt`. Old weak key file (`indexnow-key.txt`, 16 hex, repo-leaked) deleted.
-- `ping-indexnow` edge function refactored: reads `INDEXNOW_KEY` (no fallback), computes `keyLocation` dynamically, fans out to api.indexnow.org + bing + yandex, and logs every endpoint result to `indexnow_pings`.
-- Migration `20260425220334`: `indexnow_pings` table (RLS: admin-only SELECT, anon INSERT), `notify_indexnow()` PL/pgSQL function, and 5 AFTER INSERT/UPDATE triggers on blog_articles, qa_pages, location_pages, comparison_pages, static_pages.
-- Build assertion `scripts/buildAssertIndexNowKeyFile.ts` wired into `build.sh` — fails the build if the key file goes missing or its name diverges from its body.
-- `scripts/indexnowBulkSubmit.ts` ready: paginates `all_published_slugs` view + reads `public/glossary.json`, batches into chunks of 10000, posts to the deployed function with `source='manual-bulk'`. Run after deploy: `bun run scripts/indexnowBulkSubmit.ts`.
+## Verified assumptions (corrections from the prompt baked in)
 
-### Verification (recorded)
-- Build assertion: `[indexnow-key-assert] OK — 6ef3ee9b...da93.txt (key length 64)`
-- Live function smoke test (POST `/ping-indexnow` with `{urls: ["https://www.everencewealth.com/en/"], source: "manual"}`):
-  - api.indexnow.org → 202
-  - www.bing.com/indexnow → 202
-  - yandex.com/indexnow → 202 `{"success":true}`
-- 3 corresponding rows confirmed in `public.indexnow_pings` (one per endpoint, source=`manual`).
-- 5 triggers verified live in `pg_trigger` with `tgenabled='O'`.
+| Prompt said | Actual codebase state | Plan does |
+|---|---|---|
+| `gone_urls (url_path, retired_reason, retired_at)` | Real columns: `url_path`, `reason`, `pattern_match`, `marked_gone_at`, `created_at` (id, created_at auto) | Generated SQL uses **`(url_path, reason, marked_gone_at)`** with `ON CONFLICT (url_path) DO NOTHING` |
+| `all_published_slugs` view exists | Confirmed. Columns: `full_path`, `slug`, `language` | Existence check uses `.eq('full_path', path).maybeSingle()` |
+| Edge function `ping-indexnow` | Confirmed at `supabase/functions/ping-indexnow/` | IndexNow JSON output targets that function name |
+| `scripts/generateSitemap.ts` exists | Confirmed. **No blocklist mechanism currently in place** | Script only emits the `.txt`; wiring into the sitemap generator happens during apply step 4.2 (not in this ship) |
+| `raw/` directory holds CSVs | Does not exist yet | Script fails gracefully with clear "create raw/ and drop the 6 CSVs first" message if any CSV is missing |
 
-### Schema corrections during ship
-- `qa_pages` columns are `question_main`/`answer_main`, not `question`/`answer` — trigger column list adjusted.
-- `comparison_pages` has no `content` column — trigger fires on `headline, final_verdict` instead.
-- `location_pages` has no `content` column — trigger fires on `headline, location_overview, final_summary`.
-- `static_pages` confirmed has no `status` column — trigger fires unconditionally on slug/title/h1/body_markdown changes.
-- `glossary_terms` table confirmed not to exist — glossary IndexNow coverage relies on the bulk script reading `public/glossary.json` (currently a stub; bulk script tolerates empty entries).
+## What gets built
 
-### Manual ping curl shape (admin-only)
+**One file:** `scripts/gscTriageURLs.ts`
+
+That's it. No DB migrations. No edge function changes. No sitemap changes. The script only reads CSVs, queries `all_published_slugs`, and writes 5 files to `outputs/`.
+
+## Categorization rules (deterministic, per GSC reason)
+
+```text
+soft-404 (46 URLs)
+  isContentPath(url) AND NOT in all_published_slugs  → ADD_TO_GONE_URLS
+  else                                                → CONTENT_QUALITY_REVIEW
+
+page-with-redirect (40 URLs)
+  path contains ',' OR matches comma-state regex     → REMOVE_FROM_SITEMAP
+  else                                                → FIX_CANONICAL
+
+duplicate-no-canonical (9 URLs)
+  always                                              → FIX_CANONICAL
+
+not-found (6 URLs)
+  NOT in all_published_slugs                          → ADD_TO_GONE_URLS
+  else                                                → FIX_CANONICAL
+
+crawled-not-indexed (36 URLs)
+  always                                              → CONTENT_QUALITY_REVIEW
+
+discovered-not-indexed (48 URLs)
+  in all_published_slugs                              → INDEXNOW_PUSH
+  else                                                → CONTENT_QUALITY_REVIEW (logged with reason "discovered but not in published surface")
 ```
-curl -X POST https://zbzrmpmqijvmjbhctfoe.supabase.co/functions/v1/ping-indexnow \
-  -H "Authorization: Bearer $SUPABASE_ANON_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{"urls":["https://www.everencewealth.com/en/blog/some-slug/"],"source":"manual"}'
+
+The `existsInPublished()` check is mandatory before any `ADD_TO_GONE_URLS` recommendation — inserting a published URL into `gone_urls` would make the PROMPT 17 catchall return 410 on a live page.
+
+## Outputs (5 files in `outputs/`)
+
+1. **`outputs/triage_report.csv`** — `url, category, action, reason` for every input row, sorted by action then category. The summary view the user inspects first.
+
+2. **`outputs/triage_add_to_gone_urls.sql`** — corrected schema:
+   ```sql
+   -- GSC triage 2026-04-26. Review triage_report.csv before running.
+   INSERT INTO public.gone_urls (url_path, reason, marked_gone_at) VALUES
+     ('/en/blog/old-slug-1/', 'gsc-soft-404-2026-04-26', NOW()),
+     ...
+   ON CONFLICT (url_path) DO NOTHING;
+   ```
+
+3. **`outputs/triage_remove_from_sitemap.txt`** — one path per line, `#`-prefixed header explaining how to feed into a blocklist `Set` in `scripts/generateSitemap.ts` (wiring is manual, not part of this ship).
+
+4. **`outputs/triage_indexnow_push.json`** — `{ "urls": [...], "source": "manual-gsc-triage-2026-04-26" }`. Pre-validated: every URL is confirmed present in `all_published_slugs`. URLs that fail this check get demoted to `triage_manual_review.csv`.
+
+5. **`outputs/triage_manual_review.csv`** — every row with action `FIX_CANONICAL` or `CONTENT_QUALITY_REVIEW`. The dump for content/SEO review.
+
+## Console summary at end
+
+```text
+Total URLs processed: N
+Action distribution:
+  ADD_TO_GONE_URLS:        X
+  REMOVE_FROM_SITEMAP:     X
+  FIX_CANONICAL:           X
+  CONTENT_QUALITY_REVIEW:  X
+  INDEXNOW_PUSH:           X
+  IGNORE:                  X
+Output files written to outputs/ (5 files)
 ```
 
-### Out of scope / next tickets
-- Cleanup of legacy `notify_sitemap_ping` triggers (functional duplication, harmless).
-- Admin UI for one-click manual ping (curl-only for now).
-- Migrate glossary from JSON file to DB table to enable real-time triggers.
+## Hard guard rails (enforced in code)
 
----
+1. `decide()` calls `existsInPublished()` before any `ADD_TO_GONE_URLS` recommendation.
+2. `INDEXNOW_PUSH` URLs are double-checked against `all_published_slugs`; misses are demoted.
+3. Script aborts with a clear message if any of the 6 CSVs is missing from `raw/`.
+4. Re-running overwrites `outputs/`. User is reminded in the console summary to copy `outputs/` to `outputs/2026-04-26/` before applying if they want a snapshot.
+5. Script never writes to the DB, never POSTs to ping-indexnow, never edits the sitemap.
 
-## Original Plan (kept for reference)
+## Apply sequence (after user reviews `outputs/triage_report.csv`)
 
-## Reality Check vs. Prompt Assumptions
+These steps are **not** part of this ship. They're documented in the script's console summary for the user to run manually:
 
-The prompt assumed a greenfield IndexNow install. Audit reveals partial infrastructure with three functional gaps:
+1. `psql "$SUPABASE_DB_URL" < outputs/triage_add_to_gone_urls.sql`
+2. Wire the `.txt` blocklist into `scripts/generateSitemap.ts`, regenerate, redeploy
+3. `curl -X POST -H "Authorization: Bearer $SUPABASE_ANON_KEY" -H "Content-Type: application/json" --data @outputs/triage_indexnow_push.json https://zbzrmpmqijvmjbhctfoe.functions.supabase.co/functions/v1/ping-indexnow`
+4. Hand `triage_manual_review.csv` to content/SEO
+5. Wait 14 days, re-screenshot GSC
 
-| Component | Prompt assumed | Actual state | Action |
-|---|---|---|---|
-| Secret `INDEXNOW_KEY` | Generate fresh | **Missing**. Function falls back to hardcoded `8f3a2c1d4e5b6f7a8c9d0e1f2a3b4c5d` (16 hex chars, committed to repo) | Generate new 64-char key, store as secret, retire old |
-| Key file at origin | Create `public/{KEY}.txt` | `public/indexnow-key.txt` exists with weak key, no trailing newline, nonstandard filename | Replace with `public/{NEW_KEY}.txt` matching the secret |
-| Edge function | Create `indexnow-ping` | `ping-indexnow` already exists, accepts both `{urls}` and `{table, slug}` shapes, fans out to api.indexnow.org + bing + yandex | **Reuse**. Add log-to-DB step, switch to `INDEXNOW_KEY` secret, remove hardcoded fallback |
-| DB triggers | Create on 5 tables | Migration files define them but `information_schema.triggers` returns **0 rows live** — triggers are not installed. Publishes do NOT ping IndexNow today. | Re-create triggers cleanly; add `static_pages` (was missing) |
-| `indexnow_pings` log table | Create | Does not exist | Create |
-| `static_pages` | Has `status` column | **No `status` column** — every row is live | Fire trigger on every UPDATE (matches prompt note) |
-| `glossary_terms` table | Create trigger | **Does not exist** — content lives in `public/glossary.json` | Skip trigger; cover via bulk submit script |
-| `all_published_slugs` view | Used by bulk script | Already exists from Prompt 13/17, returns `full_path` | Reuse directly |
+## User action required before the script is useful
 
-The site has been silently relying on Bing/Google crawl discovery this whole time despite having an IndexNow function. This plan makes it actually work.
+Drop the 6 GSC exports into `raw/` with the exact filenames from the prompt:
 
----
+- `raw/gsc-2026-04-26-soft-404.csv`
+- `raw/gsc-2026-04-26-page-with-redirect.csv`
+- `raw/gsc-2026-04-26-duplicate-no-canonical.csv`
+- `raw/gsc-2026-04-26-not-found.csv`
+- `raw/gsc-2026-04-26-crawled-not-indexed.csv`
+- `raw/gsc-2026-04-26-discovered-not-indexed.csv`
 
-## Plan
-
-### Step 1 — Rotate the IndexNow key
-
-1. Generate a new 64-char lowercase hex string (cryptographically random).
-2. Store as Supabase secret `INDEXNOW_KEY` via `add_secret`. The user will paste the value in the secret prompt.
-3. Write `public/{KEY}.txt` (filename = the key itself, per IndexNow spec) containing only the key + single trailing newline.
-4. Delete the old `public/indexnow-key.txt` (weak, leaked).
-5. Add `scripts/buildAssertIndexNowKeyFile.ts` invoked from `build.sh` that fails the build if:
-   - Exactly one `public/[0-9a-f]{64}.txt` file exists, AND
-   - Its basename (sans `.txt`) equals its file contents (trimmed).
-   The script does NOT need the secret — it only checks file/filename consistency. Secret/file alignment is verified by the `keyLocation` URL test in Step 6.
-
-### Step 2 — Refactor `ping-indexnow` edge function
-
-Edits to `supabase/functions/ping-indexnow/index.ts`:
-
-- Read `INDEXNOW_KEY` from env. If missing, return 500 with clear error — **remove the hardcoded fallback** so a misconfigured deploy fails loudly instead of pinging with a leaked key.
-- Compute `KEY_LOCATION = ${BASE_URL}/${INDEXNOW_KEY}.txt` dynamically (was hardcoded to old filename).
-- After fanout to the 3 endpoints, insert one row per endpoint into `public.indexnow_pings`:
-  `urls TEXT[], submitted_at TIMESTAMPTZ DEFAULT now(), endpoint TEXT, status_code INT, response_body TEXT, source TEXT` (`'insert' | 'update' | 'manual' | 'manual-bulk'`).
-- Source field: derive from request body's `action` (DB trigger sends `TG_OP`) or `source` (manual/bulk callers). Default `'manual'`.
-- Keep existing CORS, keep the `{table, slug}` → URL builder for back-compat with any old triggers, but the new triggers (Step 3) will send `{urls, source}` directly.
-- Add JWT auth check on the manual path: if `source === 'manual'` or `'manual-bulk'`, require `Authorization` header with admin claim. Trigger-originated calls authenticate via `Authorization: Bearer <anon>` with a body marker — keep `verify_jwt = false` (default) and validate in code.
-
-### Step 3 — Database migration
-
-One migration file containing:
-
-**3a. `indexnow_pings` table** with RLS — admin-only SELECT, anon INSERT (function uses anon key).
-
-**3b. `notify_indexnow()` function** — clean rewrite separate from existing `notify_sitemap_ping()`. URL builder per the prompt's CASE block:
-- `blog_articles` → `/{lang}/blog/{slug}/`
-- `qa_pages` → `/{lang}/qa/{slug}/`
-- `location_pages` → `/{lang}/locations/{city_slug}/{topic_slug}/` (both languages, `/ubicaciones/` skipped — zero data rows)
-- `comparison_pages` → `/en/compare/{slug}/` or `/es/comparar/{slug}/`
-- `static_pages` → `/{lang}/{slug}/` (fires on every UPDATE since no status column)
-
-For tables with `status`: only fire when `NEW.status = 'published'`. For `static_pages`: skip the status check.
-
-Calls `net.http_post` to `https://zbzrmpmqijvmjbhctfoe.functions.supabase.co/functions/v1/ping-indexnow` with body `{urls: [url], source: TG_OP}` and `Authorization: Bearer <ANON_KEY>` (sourced from a GUC `app.settings.anon_key` with hardcoded fallback to the project's anon key — same pattern used by `notify_sitemap_ping` per migration `20260424033831`).
-
-**3c. Triggers** — drop any pre-existing `on_*_ping_indexnow` triggers (from old migrations that didn't actually install), then `CREATE TRIGGER` on:
-- `blog_articles` AFTER INSERT OR UPDATE OF status, slug, headline, detailed_content, meta_description
-- `qa_pages` AFTER INSERT OR UPDATE OF status, slug, question, answer, meta_description
-- `location_pages` AFTER INSERT OR UPDATE OF status, city_slug, topic_slug, content
-- `comparison_pages` AFTER INSERT OR UPDATE OF status, slug, content
-- `static_pages` AFTER INSERT OR UPDATE OF slug, title, h1, body_markdown (no status filter)
-
-Each trigger calls `notify_indexnow()`. The existing `notify_sitemap_ping` triggers (whatever survives) are **left in place** — they fire the same edge function with `{table, slug}` shape, which is harmless duplication during the cutover. Cleanup of those is a separate ticket.
-
-### Step 4 — Manual ping endpoint
-
-Already covered by `ping-indexnow` accepting `{urls, source: 'manual'}`. Add a thin admin UI later (out of scope for this prompt). For now, document the curl shape in `.lovable/plan.md`.
-
-### Step 5 — One-shot bulk submit script
-
-`scripts/indexnowBulkSubmit.ts`:
-1. Query `SELECT full_path, language FROM public.all_published_slugs` → covers blog/qa/locations/compare/static.
-2. Read `public/glossary.json`, generate `/en/glossary/{term-slug}/` and `/es/glossary/{term-slug}/` per entry (verify `term-slug` field name in JSON before generating).
-3. Map all paths to absolute URLs (`https://www.everencewealth.com{path}`).
-4. Batch into chunks of 10000, POST each to the deployed `ping-indexnow` with `source: 'manual-bulk'` and a service-role bearer token (script runs locally with env access).
-5. Log result count and first-row ping_id.
-
-Run once after deploy. Re-runnable safely (IndexNow ignores duplicates within a window).
-
-### Step 6 — Verification checklist
-
-1. `curl -sIL https://www.everencewealth.com/{NEW_KEY}.txt` → `200 text/plain`.
-2. `curl https://www.everencewealth.com/{NEW_KEY}.txt` body equals `INDEXNOW_KEY` secret value (manual eyeball).
-3. Touch a published blog post (UPDATE meta_description). Within ~5s:
-   `SELECT * FROM indexnow_pings ORDER BY submitted_at DESC LIMIT 5;` → 3 rows (one per endpoint), status_code 200/202, urls contains the test URL, source = `'UPDATE'`.
-4. Bulk-submit script runs, logs N rows where N = `SELECT count(*) FROM all_published_slugs` + glossary URLs.
-5. Bing Webmaster Tools URL Inspection on test URL within 10 min shows "Discovered via IndexNow".
-
----
-
-## Files Touched
-
-**Created**:
-- `public/{NEW_64_CHAR_KEY}.txt`
-- `scripts/buildAssertIndexNowKeyFile.ts`
-- `scripts/indexnowBulkSubmit.ts`
-- `supabase/migrations/{timestamp}_indexnow_triggers_and_log.sql`
-
-**Edited**:
-- `supabase/functions/ping-indexnow/index.ts` (logging + remove hardcoded key + JWT check on manual)
-- `build.sh` (invoke key-file assertion)
-- `.lovable/plan.md` (document curl shape + cutover notes)
-
-**Deleted**:
-- `public/indexnow-key.txt` (weak, retired)
-
-## Required User Action Before Implementation
-
-The `INDEXNOW_KEY` secret must be added. Once approved, the implementation will:
-1. Generate the 64-char key.
-2. Prompt the user to add it as the `INDEXNOW_KEY` secret (cannot self-set).
-3. Pause until secret is confirmed, then proceed with file creation, migration, and function refactor.
-
-## Out of Scope
-
-- Cleaning up the legacy `notify_sitemap_ping` triggers (functional duplication is harmless; separate ticket).
-- Admin UI for manual ping (curl-only for now).
-- Glossary migration to DB (would unlock real-time triggers; documented but not done).
+After approval, I'll create the script and an empty `raw/.gitkeep` + `outputs/.gitkeep` so the directories exist. Once the CSVs are dropped in, run `bun run scripts/gscTriageURLs.ts`.
