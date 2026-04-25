@@ -8549,6 +8549,45 @@ export type Database = {
           },
         ]
       }
+      static_pages: {
+        Row: {
+          body_markdown: string
+          created_at: string
+          h1: string
+          id: string
+          language: string
+          meta_description: string
+          page_type: string
+          slug: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          body_markdown: string
+          created_at?: string
+          h1: string
+          id?: string
+          language: string
+          meta_description: string
+          page_type: string
+          slug: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          body_markdown?: string
+          created_at?: string
+          h1?: string
+          id?: string
+          language?: string
+          meta_description?: string
+          page_type?: string
+          slug?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       strategy_form_submissions: {
         Row: {
           assigned_to: string | null
