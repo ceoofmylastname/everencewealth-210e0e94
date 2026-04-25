@@ -473,6 +473,69 @@ async function buildResponse({ request, next, env, ctx }) {
   }
 
   // ============================================================
+  // PROMPT 13 — Soft-404 catchall.
+  // Returns real 410 (intentionally retired, listed in gone_urls) or
+  // 404 (never existed) for unmatched content URLs under /blog/, /qa/,
+  // /compare/, /strategies/, /guides/, /state-guides/, /glossary/,
+  // and /locations/<city>/<topic>/. Without this, the SPA shell would
+  // return 200 — Google reports those as "Soft 404 (FAILED)".
+  //
+  // Hub roots (/<lang>/, /<lang>/blog/, etc.) and PROMPT 12 static
+  // prebuilt directories (/en/about/, /en/team/, /en/contact/,
+  // /en/philosophy/, /en/team/steven-rosenberg/, plus /es/ versions)
+  // do NOT match these regexes, so they fall through untouched.
+  // ============================================================
+  if (
+    ONE_SEGMENT_CATCHALL_REGEX.test(pathname) ||
+    TWO_SEGMENT_CATCHALL_REGEX.test(pathname)
+  ) {
+    try {
+      const lookupUrl =
+        `${SUPABASE_URL}/rest/v1/all_published_slugs` +
+        `?full_path=eq.${encodeURIComponent(pathname)}&select=slug&limit=1`;
+      const lookupResp = await fetch(lookupUrl, {
+        headers: {
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+        },
+      });
+      const rows = lookupResp.ok ? await lookupResp.json() : [];
+      const exists = Array.isArray(rows) && rows.length > 0;
+
+      if (!exists) {
+        // Not in published surface. Check if explicitly retired.
+        const goneUrl =
+          `${SUPABASE_URL}/rest/v1/gone_urls` +
+          `?url_path=eq.${encodeURIComponent(pathname)}&select=id&limit=1`;
+        const goneResp = await fetch(goneUrl, {
+          headers: {
+            apikey: SUPABASE_ANON_KEY,
+            Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+          },
+        });
+        const goneRows = goneResp.ok ? await goneResp.json() : [];
+        const isGone = Array.isArray(goneRows) && goneRows.length > 0;
+        const status = isGone ? 410 : 404;
+        const html = render410Page(pathname, status);
+        console.log(`[Middleware] Catchall ${status}: ${pathname}`);
+        return new Response(html, {
+          status,
+          headers: {
+            'Content-Type': 'text/html; charset=utf-8',
+            'X-410-Source': 'middleware-catchall',
+            'X-Middleware-Status': 'Active',
+            'Cache-Control': 'public, max-age=300',
+            'X-Robots-Tag': 'noindex, nofollow',
+          },
+        });
+      }
+    } catch (err) {
+      // On lookup failure, do not block — fall through to SSR/SPA.
+      console.error(`[Middleware] Catchall lookup failed for ${pathname}:`, err && err.message);
+    }
+  }
+
+  // ============================================================
   // BLOG SSR FALLBACK: Try static file first, then edge function
   // Ensures crawlers get full HTML with internal links section
   // ============================================================
