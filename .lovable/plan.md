@@ -1,154 +1,186 @@
+# PROMPT 12 — Static SSR for /team, /philosophy, /contact (Option A, finalized)
+
+Scope narrowed to the 3 pages with the SPA-shell soft-content problem. `/about` opts out (already DB-driven via `about_page_content` with 6 schemas + 700+ word baked body — working pipeline).
+
 ## Goal
 
-Replace the four SPA-shell informational pages (`/about`, `/team`, `/contact`, `/philosophy` in EN + ES) with database-driven SSR'd HTML that bakes visible body content + JSON-LD into pre-hydration markup — identical pattern to `/en/team/steven-rosenberg/` (Fix 13 Phase 3). Bots that don't execute JS see a complete H1, 600-1200 word body, and ≥3 JSON-LD blocks.
+Eliminate empty-body shells on `/team`, `/philosophy`, `/contact` for non-JS bots (ClaudeBot, GPTBot, Applebot-Extended, PerplexityBot). Today these serve 7-9 visible words pre-hydration. After this ships: 600-1200 words of compliance-clean visible body + preserved JSON-LD schemas, baked into pre-hydration HTML at trailing-slash URLs, with inline critical CSS so humans see styled content immediately.
 
-## Slug verification (settled)
+## What the user will see
 
-From `src/App.tsx`:
-- `/:lang/about` and `/:lang/about-us` → `<About />`
-- `/:lang/team` → `<Team />`
-- `/:lang/contact` → `<Contact />`
-- `/:lang/philosophy` → `<Philosophy />` (with `/es/filosofia` → `/es/philosophy` redirect)
+- `https://www.everencewealth.com/{en,es}/team/` — 4 schemas (AboutPage, FinancialService, Person, BreadcrumbList) + visible H1 + body + advisor section, styled pre-hydration.
+- `https://www.everencewealth.com/{en,es}/philosophy/` — 5 schemas (WebPage, FinancialService w/ nested founder @id-ref, Person, BreadcrumbList, SpeakableSpecification) + visible body covering Three Silent Killers framework.
+- `https://www.everencewealth.com/{en,es}/contact/` — 3 schemas (ContactPage, FinancialService, BreadcrumbList) + visible body + contact details.
+- React hydrates over the prebuilt DOM cleanly — no flash, no double-render.
+- `/about` untouched.
 
-**Decision:** Seed `static_pages.slug` with English-named slugs (`about`, `team`, `contact`, `philosophy`) for both languages. Prebuilt files land at `dist/{en|es}/{slug}/index.html`. Hreflang block reflects this.
+## Database
 
-## Step 0 — Read existing generators first (NEW)
+**New table** `public.static_pages`:
 
-Before writing the new prebuild script, read all three existing scripts in full:
-- `scripts/generateStaticAboutPage.ts`
-- `scripts/generateStaticTeamPage.ts`
-- `scripts/generateStaticPhilosophyPage.ts`
+```text
+id              uuid pk default gen_random_uuid()
+slug            text   ('team' | 'philosophy' | 'contact')
+language        text   ('en' | 'es')
+page_type       text   ('AboutPage' | 'WebPage' | 'ContactPage')
+title           text
+meta_description text
+h1              text
+body_markdown   text   600-1200 words
+created_at      timestamptz default now()
+updated_at      timestamptz default now()
+unique (slug, language)
+```
 
-Preserve any compliance-approved JSON-LD shapes, copy fragments, or edge-case logic. If anything in the existing scripts conflicts with the new spec (e.g., schema `@type` choice, breadcrumb structure, dateModified strategy), surface the conflict in chat before deciding which wins. Default precedence: existing script's compliance-approved shape > PROMPT 12 spec > my own draft.
+**Triggers**:
+- `static_pages_set_updated_at` — bumps `updated_at` ONLY when `title`, `meta_description`, `h1`, or `body_markdown` actually change (not on every UPDATE). This makes `updated_at` an authentic content-change signal.
+- Extend existing `public.enforce_fiduciary_term_block()` to validate `title`, `meta_description`, `h1`, `body_markdown` on `static_pages`.
 
-## Step 1 — Database migration
+**RLS**: Enabled. Public SELECT (build-time read by service role; content is public). No write policies — managed via insert tool.
 
-Create `static_pages` table per spec (UUID PK, `(slug, language)` unique, `page_type` CHECK constraint, content columns NOT NULL, `hero_image_url` nullable, three timestamps).
+**Seed**: 6 rows drafted from project memory + existing React component visible copy. Pre-seed grep for regulated terms (`fiduciary`, `RIA`, `fee-only`, ambiguous "advisor" usage) — Steven is an independent insurance broker, not an RIA.
 
-Triggers:
-1. `static_pages_set_updated_at` (`BEFORE UPDATE`, `WHEN` clause checks the four content columns) — backed by a new `public.set_static_pages_updated_at()` function that bumps `updated_at = NOW()`.
-2. `static_pages_block_fiduciar` (`BEFORE INSERT OR UPDATE`) — extend the existing `public.enforce_fiduciary_term_block()` function to add a `static_pages` branch validating `title`, `meta_description`, `h1`, `body_markdown`. Do NOT create a parallel function.
+## Static generator
 
-RLS: enable; public `SELECT`; admin-only writes via `public.is_admin(auth.uid())`.
+**New file** `scripts/generateStaticInformationalPages.ts` (category name; works for 3 pages).
 
-## Step 2 — Compliance pre-grep on seed copy (EXPANDED)
+Reads `static_pages` via service role + Supabase client, renders markdown via `marked`, emits per-page schemas, writes `dist/{lang}/{slug}/index.html` with directory-based trailing-slash routing.
 
-Before inserting any seed row, grep all 8 draft `body_markdown` blocks for the following regulated terms in addition to `\yfiduciar`:
+### `dateModified` resolution (per row, NOT git log)
 
-- `\bRIA\b`
-- `Registered Investment Advisor`
-- `fee-only`
-- `advice-not-product` / `advice not product`
-- `wealth manager` (when used as self-title)
-- `financial planner` (when used as self-title without CFP qualifier)
+The body lives in DB, not the TSX file. Git log of `Team.tsx` would be wrong in both directions (styling tweaks bump it falsely; insert-tool body edits don't bump it at all).
 
-Rule: if any appear in **self-claim context** (not third-party citation, not protective disclaimer), rewrite to neutral framing such as "independent insurance and tax-advantaged retirement strategist" or "licensed life insurance professional specializing in tax-free retirement income". Surface the grep output in chat before seeding so you can spot-check.
+Resolution order, per row:
+1. `static_pages.updated_at` (primary — trigger only fires on content changes)
+2. `static_pages.created_at` (fallback)
+3. Hardcoded `2026-04-12T00:00:00Z` (last-resort)
 
-The DB trigger only enforces `\yfiduciar`; the rest is enforced at draft time by the agent.
+Same source feeds sitemap `<lastmod>`.
 
-## Step 3 — Seed 8 rows (insert tool)
+### Schema richness rule
 
-4 page_types × 2 languages. Each row:
-- 600-1200 word `body_markdown`, compliance-clean
-- Real H1, title, meta description
-- `hero_image_url` where available
+Preserve all schemas from existing generators. Net counts after PROMPT 12:
 
-Sources for draft copy: project memory (`mem://project/identity`, `mem://features/strategic-frameworks`, `mem://features/philosophy-interactive-architecture`, `mem://project/contact-details`) + visible copy in current React pages. ES rows are faithful translations.
+| Page | Schemas |
+|------|---------|
+| /team | AboutPage + FinancialService (#organization) + Person (#steven-rosenberg, full def) + BreadcrumbList |
+| /philosophy | WebPage + FinancialService (#organization, w/ `founder: { "@id": ".../team/steven-rosenberg/#person" }`) + Person (top-level, references same @id) + BreadcrumbList + SpeakableSpecification |
+| /contact | ContactPage + FinancialService (#organization) + BreadcrumbList |
 
-Per-page focus:
-- **about** — Mission, Three Silent Killers, Steven's authority positioning, what makes Everence independent
-- **team** — Team intro; bio data fetched live from `authors` at prebuild (not duplicated in `static_pages`)
-- **contact** — Address, phone, email, response-time expectations, free-consultation framing, A2P-compliant note
-- **philosophy** — Three Tax Buckets, retirement-gap framework, indexed strategies overview
+**Person @id discipline**: The canonical Person definition lives on `/en/team/steven-rosenberg/#person` (existing bio page). All other Person references across the site (philosophy founder nest, team page, future pages) use `{ "@id": "https://www.everencewealth.com/en/team/steven-rosenberg/#person" }` — never duplicated objects. Keeps the @id graph linked so AI engines resolve all Steven references as one entity.
 
-## Step 4 — Prebuild script: `scripts/generateStaticPagesPrebuild.ts`
+All schemas pull from `src/config/business.ts` — single source of truth.
 
-Mirrors `scripts/generateStaticAuthorBioPage.ts`:
+### Inline critical CSS
 
-1. Read production assets from `dist/index.html` (CSS/JS hashes).
-2. Fetch all 8 rows from `static_pages` ordered by `(language, page_type)`.
-3. For `page_type='team'`, also fetch Steven Rosenberg from `authors` to assemble Person collection.
-4. Render markdown body to HTML using `marked` (verify in `package.json`; add only if missing).
-5. Build per-type JSON-LD (≥3 blocks each), preserving shapes from the existing 3 generators where they overlap:
-   - **about**: `AboutPage` + `Organization` (FinancialService) + `BreadcrumbList`
-   - **team**: `WebPage` + `ItemList` of `Person` references + `BreadcrumbList`
-   - **contact**: `ContactPage` + `Organization` with `contactPoint` + `BreadcrumbList`
-   - **philosophy**: `WebPage` + `Article` + `BreadcrumbList`
-6. Render full HTML doc:
-   - `<head>`: title, meta description, canonical (trailing slash), hreflang en/es/x-default (x-default → en), OG tags, Twitter card, favicons, JSON-LD scripts, CSS links
-   - `<body data-prebuilt="static-page" data-page-type="{type}">`: `<div id="root">` containing `<h1>`, hero image, rendered body HTML, footer Org block, then module scripts after `</div>`
-7. Write to `dist/{lang}/{slug}/index.html`.
-8. Log: `static_pages: {lang}/{slug} -> {bytes} bytes, {schemaCount} JSON-LD`.
-9. Return generated paths for the sitemap step.
+Match `generateStaticAuthorBioPage.ts` and `generateStaticPages.ts` convention. Inline `<style>` block in `<head>` covering:
+- Typography: Playfair Display (headings), Lato (body), Raleway (accents)
+- Layout: max-width container, padding, line-height
+- H1/H2 sizing, breadcrumb styling, body paragraph rhythm
+- Color tokens matching the live theme (#d4a574 accent, neutral surfaces)
 
-## Step 5 — React/prebuild substance parity (NEW verification)
+Bots ignore CSS; humans get styled content immediately. Eliminates the 200-500ms FOUC window.
 
-Before shipping, manually diff each prebuilt body against what the React component renders for the same route. Standard:
-- **Substance parity required**, not styling parity.
-- If `Philosophy.tsx` renders an interactive Three Tax Buckets component and seed `body_markdown` is static prose describing the same three buckets with the same key facts → acceptable.
-- If the React component renders entirely different topical content than the seed → that's effectively cloaking; revise the seed to match the React substance before deploying.
+### HTML structure
 
-Surface a diff summary per page in chat at the verification stage.
+```text
+<!DOCTYPE html>
+<html lang="{lang}">
+<head>
+  <meta + title + description + canonical + hreflang (trailing slashes) />
+  <link rel="canonical" href=".../{lang}/{slug}/" />
+  <link rel="alternate" hreflang="en" href=".../en/{slug}/" />
+  <link rel="alternate" hreflang="es" href=".../es/{slug}/" />
+  <link rel="alternate" hreflang="x-default" href=".../en/{slug}/" />
+  <style>{CRITICAL_CSS}</style>
+  <script type="application/ld+json" data-schema="{slug}">...</script>  // × N
+  <link rel="stylesheet" href="{prod CSS}" />
+</head>
+<body data-prebuilt="static-page" data-slug="{slug}">
+  <div id="root">
+    <h1>{h1}</h1>
+    <nav class="breadcrumb">...</nav>
+    <article>{rendered markdown}</article>
+  </div>
+  <script type="module" src="{prod JS}"></script>
+</body>
+</html>
+```
 
-## Step 6 — `/:lang/about-us` duplicate-content fix (NEW)
+Production CSS/JS asset paths read from `dist/index.html` (same pattern as existing generators).
 
-Both `/:lang/about` and `/:lang/about-us` currently route to `<About />`. Resolution:
+## React component updates
 
-1. Add Cloudflare Pages middleware redirect in `functions/_middleware.js`: 301 `/(en|es)/about-us/?` → `/(en|es)/about/`. Preserves existing backlinks.
-2. Remove the `/:lang/about-us` route from `src/App.tsx`.
+`src/pages/Team.tsx`, `src/pages/Philosophy.tsx`, `src/pages/Contact.tsx`:
+- `useEffect` check for `document.body.dataset.prebuilt === 'static-page'` (marker for analytics/debug).
+- Substance parity: rendered React output stays substantively similar to baked markdown (same topics, similar length, key phrases preserved) — avoids cloaking flags. Not pixel-perfect.
+- `Philosophy.tsx` line 34: fix stale Spanish canonical from `/es/filosofia` → `/es/philosophy/` (trailing slash).
+- Existing `<Helmet>` blocks remain (harmless duplicates post-SSR; preserves dev experience).
 
-Middleware redirect is safer than just dropping the route (preserves any external backlinks).
+## Routing & redirects
 
-## Step 7 — Build chain
+`functions/_middleware.js`:
+- Remove incorrect entries from `SLUG_MAP_EN_TO_ES` (`about → acerca`, `team → equipo`, `philosophy → filosofia`, `contact → contacto`). Actual app routes are English-slug-only for both langs.
+- Add 301: `/:lang/about-us` → `/:lang/about/`.
+- Trailing-slash 308 rule continues to apply via Cloudflare Pages directory serving.
 
-Update `build.sh`:
-- Replace the three invocations (`generateStaticAboutPage.ts`, `generateStaticPhilosophyPage.ts`, `generateStaticTeamPage.ts`) with a single `generateStaticPagesPrebuild.ts` call.
-- Keep `generateStaticAuthorBioPage.ts` (different concern).
-- Keep sitemap generation last.
+`src/App.tsx`: no route changes.
 
-The three superseded scripts stay on disk but unwired (delete in a follow-up; not removing now to keep the change surgical).
+## Build pipeline
 
-## Step 8 — Sitemap
+`build.sh`:
+- Replace `generateStaticPhilosophyPage.ts` and `generateStaticTeamPage.ts` calls with single `generateStaticInformationalPages.ts`.
+- Keep `generateStaticAboutPage.ts` as-is.
+- New generator runs after `generateAppShell.ts`, before `generateSitemap.ts`.
 
-Update `public/sitemap-core.xml`:
-- Add 7 new entries (`/en/about/`, `/es/about/`, `/en/team/`, `/es/team/`, `/en/contact/`, `/es/contact/`, `/es/philosophy/`).
-- Normalize existing `/en/philosophy` to trailing slash.
-- Each with `<lastmod>` from `static_pages.updated_at` and `<xhtml:link rel="alternate" hreflang>` pairs.
+## Sitemap
 
-Trailing slashes match the bio page convention to eliminate the 308 hop on Cloudflare Pages.
+`public/sitemap-core.xml`: 6 trailing-slash entries with hreflang pairs:
+- `/en/team/`, `/es/team/`
+- `/en/philosophy/`, `/es/philosophy/`
+- `/en/contact/`, `/es/contact/`
 
-## Step 9 — React route hydration safety
-
-The four page components (`About.tsx`, `Team.tsx`, `Contact.tsx`, `Philosophy.tsx`) get a small mount-time check: read `document.body.dataset.prebuilt`; if `'static-page'`, the prebuilt DOM is canonical pre-hydration. React renders into `#root` as today. No data-fetch changes; no UI change. Same hydration pattern as the bio page.
-
-## Step 10 — Do NOT touch
-
-- `supabase/functions/serve-seo-page/index.ts`
-- Hub renderers for `/blog`, `/qa`, `/locations`, `/compare`
-- (`functions/_middleware.js` IS touched, but only to add the `/about-us` 301)
+`<lastmod>` per entry pulls from `static_pages.updated_at` (same resolution as schema dateModified). Remove any existing no-slash duplicates.
 
 ## Verification (post-deploy)
 
-User's bash loop. PASS criteria per row:
-- HTTP/2 200 (trailing slash → no 308)
-- `h1=1`
-- `schema >= 3`
-- `words >= 400`
+```bash
+for path in /en/team /es/team /en/philosophy /es/philosophy /en/contact /es/contact; do
+  code=$(curl -sI -A "ClaudeBot/1.0" "https://www.everencewealth.com$path/" | head -1 | awk '{print $2}')
+  h1=$(curl -sL -A "ClaudeBot/1.0" "https://www.everencewealth.com$path/" | grep -oc '<h1')
+  schema=$(curl -sL -A "ClaudeBot/1.0" "https://www.everencewealth.com$path/" | grep -oc 'application/ld+json')
+  words=$(curl -sL -A "ClaudeBot/1.0" "https://www.everencewealth.com$path/" | python3 -c "import sys,re; t=re.sub('<[^>]+>',' ',sys.stdin.read()); print(len(t.split()))")
+  echo "$path | $code | h1=$h1 | schema=$schema | words=$words"
+done
+```
 
-Plus 9th check: `curl -sIL /en/about-us/` returns 301 → `/en/about/`.
+PASS per row: HTTP 200, h1=1, schema≥3, words≥400.
 
-## Files changed
+Additional spot-check: confirm philosophy founder reference uses `@id` ref (not duplicated Person), and confirm one row's `dateModified` matches `static_pages.updated_at` exactly.
 
-**Created:**
-- `supabase/migrations/<ts>_static_pages_table.sql` — table, triggers, RLS, extended `enforce_fiduciary_term_block()`
-- `scripts/generateStaticPagesPrebuild.ts`
+## File-by-file change list
 
-**Edited:**
-- `build.sh` — swap 3 generators for new prebuild
-- `public/sitemap-core.xml` — add 7 entries, normalize trailing slashes
-- `src/App.tsx` — remove `/:lang/about-us` route
-- `functions/_middleware.js` — add 301 for `/about-us` → `/about`
-- `src/pages/About.tsx`, `Team.tsx`, `Contact.tsx`, `Philosophy.tsx` — hydration-safety read of `data-prebuilt`
+**Created**:
+- `supabase/migrations/{timestamp}_static_pages_table.sql` — table + content-aware updated_at trigger + extend enforce_fiduciary_term_block + RLS
+- `scripts/generateStaticInformationalPages.ts`
+- Insert tool call to seed 6 `static_pages` rows
 
-**Data ops (insert tool, not migration):**
-- 8 seed rows in `static_pages`
+**Edited**:
+- `build.sh`
+- `functions/_middleware.js`
+- `public/sitemap-core.xml`
+- `src/pages/Team.tsx`
+- `src/pages/Philosophy.tsx` (incl. line 34 stale ES canonical fix)
+- `src/pages/Contact.tsx`
+
+**Deleted**:
+- `scripts/generateStaticTeamPage.ts`
+- `scripts/generateStaticPhilosophyPage.ts`
+
+**Untouched**: `src/pages/About.tsx`, `scripts/generateStaticAboutPage.ts`, `about_page_content` table.
+
+## Out of scope (queued separately)
+
+1. `/about` schema audit + substance-parity check
+2. Codebase audit doc note: `about_page_content` ≠ `static_pages`
+3. PROMPT 17 (46 Soft 404s) ships next per GSC-driven reorder

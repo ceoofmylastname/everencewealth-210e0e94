@@ -51,14 +51,11 @@ npx tsx scripts/generateStaticBuyersGuide.ts dist
 echo "🎯 Generating static strategy pages (8 routes)..."
 npx tsx scripts/generateStaticStrategyPages.ts dist
 
-echo "🧭 Generating static philosophy pages (EN + ES)..."
-npx tsx scripts/generateStaticPhilosophyPage.ts dist
-
 echo "📚 Generating static glossary index + term pages..."
 npx tsx scripts/generateStaticGlossary.ts dist
 
-echo "👥 Generating static team pages (EN + ES)..."
-npx tsx scripts/generateStaticTeamPage.ts dist
+echo "🏛️  Generating static informational pages (team, philosophy, contact × en/es)..."
+npx tsx scripts/generateStaticInformationalPages.ts dist
 
 echo "👤 Generating static author bio pages (EN + ES)..."
 npx tsx scripts/generateStaticAuthorBioPage.ts dist

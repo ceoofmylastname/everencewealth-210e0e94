@@ -31,7 +31,9 @@ const Philosophy: React.FC = () => {
   }, []);
 
   const baseUrl = 'https://www.everencewealth.com';
-  const canonicalUrl = `${baseUrl}/${currentLang === 'es' ? 'es/filosofia' : 'philosophy'}`;
+  // Both languages use the English /philosophy slug, with a trailing slash
+  // matching the Cloudflare Pages directory-served prebuilt HTML.
+  const canonicalUrl = `${baseUrl}/${currentLang}/philosophy/`;
 
   const webPageSchema = {
     "@context": "https://schema.org",
