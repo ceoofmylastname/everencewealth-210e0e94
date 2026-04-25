@@ -6264,6 +6264,36 @@ export type Database = {
         }
         Relationships: []
       }
+      indexnow_pings: {
+        Row: {
+          endpoint: string
+          id: string
+          response_body: string | null
+          source: string
+          status_code: number | null
+          submitted_at: string
+          urls: string[]
+        }
+        Insert: {
+          endpoint: string
+          id?: string
+          response_body?: string | null
+          source?: string
+          status_code?: number | null
+          submitted_at?: string
+          urls: string[]
+        }
+        Update: {
+          endpoint?: string
+          id?: string
+          response_body?: string | null
+          source?: string
+          status_code?: number | null
+          submitted_at?: string
+          urls?: string[]
+        }
+        Relationships: []
+      }
       internal_link_suggestions: {
         Row: {
           applied_at: string | null
