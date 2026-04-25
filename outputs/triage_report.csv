@@ -1,0 +1,11 @@
+url,category,action,reason
+https://www.everencewealth.com/en/qa/totally-fake-qa/,not-found,ADD_TO_GONE_URLS,404 + slug not in published surface
+https://www.everencewealth.com/en/blog/this-slug-definitely-does-not-exist-xyz/,soft-404,ADD_TO_GONE_URLS,soft-404 + content-path + not-published
+https://www.everencewealth.com/en/blog/crawled-but-not-indexed-foo/,crawled-not-indexed,CONTENT_QUALITY_REVIEW,Google quality signal — content team review
+https://www.everencewealth.com/en/blog/never-published-discovery/,discovered-not-indexed,CONTENT_QUALITY_REVIEW,discovered but not in all_published_slugs — investigate before pinging
+https://www.everencewealth.com/en/blog/10-essential-steps-for-effective-wealth-transfer/,soft-404,CONTENT_QUALITY_REVIEW,soft-404 + non-content-path or still-published
+https://www.everencewealth.com/some-random-non-content-path/,soft-404,CONTENT_QUALITY_REVIEW,soft-404 + non-content-path or still-published
+https://www.everencewealth.com/en/blog/dup-1/,duplicate-no-canonical,FIX_CANONICAL,duplicate detected — manual canonical inspection
+https://www.everencewealth.com/en/locations/los-angeles,page-with-redirect,FIX_CANONICAL,redirect chain — manual canonical inspection needed
+https://www.everencewealth.com/en/blog/some-redirected-blog-post/,page-with-redirect,FIX_CANONICAL,redirect chain — manual canonical inspection needed
+https://www.everencewealth.com/en/blog/10-essential-steps-for-effective-wealth-transfer/,discovered-not-indexed,INDEXNOW_PUSH,in published surface — IndexNow accelerates discovery
