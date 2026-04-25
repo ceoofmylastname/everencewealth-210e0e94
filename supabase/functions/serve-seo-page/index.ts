@@ -1685,8 +1685,58 @@ function generateBlogPostingSchema(metadata: PageMetadata): string {
   if (metadata.content_type !== 'blog') {
     return ''
   }
-  
-  const schema = {
+
+  // Author authority block (Fix 13 Phase 2).
+  // - When the author lookup returns a row, emit a fully-populated Person
+  //   schema with hasCredential[] and a reviewedBy: Person echo.
+  // - When the lookup fails (network error, missing row, etc.), fall back to
+  //   the Organization stub so the page never breaks. reviewedBy is omitted
+  //   in that case because we cannot truthfully attribute review.
+  const author = metadata.author
+  let authorNode: Record<string, unknown>
+  let reviewedByNode: Record<string, unknown> | undefined
+
+  if (author) {
+    // All published blog articles currently map to Steven Rosenberg.
+    // The /team/steven-rosenberg page lands in Phase 3; the URL is emitted
+    // now so the entity graph is consistent the moment that page deploys.
+    const personUrl = `${BASE_URL}/${metadata.language}/team/steven-rosenberg`
+    const personId = `${personUrl}#person`
+    const description = author.bio_short
+      ?? (author.bio ? truncateAtSentence(author.bio.replace(/<[^>]*>/g, ''), 200) : undefined)
+
+    authorNode = {
+      "@type": "Person",
+      "@id": personId,
+      "name": author.name,
+      "jobTitle": author.job_title || undefined,
+      "url": personUrl,
+      "image": author.photo_url || undefined,
+      "description": description || undefined,
+      "worksFor": { "@id": `${BASE_URL}/#organization` },
+      "sameAs": author.linkedin_url ? [author.linkedin_url] : undefined,
+      "hasCredential": (author.credentials || []).map((c) => ({
+        "@type": "EducationalOccupationalCredential",
+        "credentialCategory": "professional certification",
+        "name": c,
+      })),
+    }
+    reviewedByNode = {
+      "@type": "Person",
+      "@id": personId,
+      "name": author.name,
+    }
+  } else {
+    // Defensive fallback — never break the page on a failed author lookup.
+    authorNode = {
+      "@type": "Organization",
+      "@id": `${BASE_URL}/#organization`,
+      "name": "Everence Wealth",
+    }
+    // reviewedBy intentionally omitted when author is unknown.
+  }
+
+  const schema: Record<string, unknown> = {
     "@context": "https://schema.org",
     "@type": "BlogPosting",
     "@id": `${metadata.canonical_url}#blogposting`,
@@ -1700,11 +1750,7 @@ function generateBlogPostingSchema(metadata: PageMetadata): string {
     "datePublished": metadata.date_published || new Date().toISOString(),
     "dateModified": metadata.date_modified || metadata.date_published || new Date().toISOString(),
     "inLanguage": LOCALE_MAP[metadata.language] || metadata.language,
-    "author": {
-      "@type": "Organization",
-      "@id": `${BASE_URL}/#organization`,
-      "name": "Everence Wealth"
-    },
+    "author": authorNode,
     "publisher": ORGANIZATION_SCHEMA,
     "mainEntityOfPage": {
       "@type": "WebPage",
@@ -1718,6 +1764,10 @@ function generateBlogPostingSchema(metadata: PageMetadata): string {
         "@id": `${BASE_URL}/#organization`
       }
     }
+  }
+
+  if (reviewedByNode) {
+    schema.reviewedBy = reviewedByNode
   }
 
   return `<script type="application/ld+json">${JSON.stringify(schema)}</script>`
