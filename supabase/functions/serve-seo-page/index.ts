@@ -261,6 +261,11 @@ interface PageMetadata {
   read_time?: number             // For blogs
   author_bio?: string            // Author info
   internal_links?: Array<{ text: string; url: string; title?: string; funnelStage?: string }>
+  // Location-only fields — populated when content_type === 'locations'.
+  // Used to build FinancialService schema (areaServed, name, etc.).
+  city_name?: string
+  region?: string         // state code, e.g. "CA"
+  country?: string        // e.g. "United States"
 }
 
 // Result type for metadata with potential redirect (language mismatch handling)
@@ -571,6 +576,10 @@ async function fetchLocationMetadata(supabase: any, slug: string, lang: string):
       content_type: 'locations',
       // SSR content
       location_overview: data.location_overview,
+      // FinancialService schema fields
+      city_name: data.city_name,
+      region: data.region,
+      country: data.country,
     }
   }
 }
