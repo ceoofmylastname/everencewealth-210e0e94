@@ -16,15 +16,16 @@ const LANG_PATTERN = LANGUAGES.join('|');
 
 const BASE_URL = 'https://www.everencewealth.com';
 
-// Spanish slug mappings for hreflang alternates
+// Spanish slug mappings for hreflang alternates.
+// NOTE: /contact, /philosophy, /about, /team intentionally use English slugs
+// in BOTH languages — those entries are NOT translated. Only strategies use
+// Spanish slug variants because those routes are explicitly registered as
+// /estrategias/* in App.tsx.
 const SLUG_MAP_EN_TO_ES = {
   '/strategies/whole-life': '/estrategias/seguro-vida-entera',
   '/strategies/iul': '/estrategias/seguro-universal-indexado',
   '/strategies/tax-free-retirement': '/estrategias/retiro-libre-impuestos',
   '/strategies/asset-protection': '/estrategias/proteccion-de-activos',
-  '/contact': '/contacto',
-  '/philosophy': '/filosofia',
-  '/about': '/acerca',
 };
 
 // Build reverse map
