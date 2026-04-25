@@ -3,4 +3,4 @@
 # Then regenerate the sitemap and redeploy.
 # Format: one path per line. Lines starting with # are comments.
 
-# No URLs qualified for sitemap removal.
+/en/locations/los-angeles,-ca/iul/
