@@ -1,290 +1,126 @@
-## PROMPT 13 — Soft-404 catchall + AI bot traffic logger
+# PROMPT 15 — IndexNow Push Pipeline (Hardened)
 
-Eliminate the GSC "Soft 404 (FAILED)" bucket (46 URLs) by returning real 410/404 for
-unmatched content URLs under `/blog/`, `/qa/`, `/locations/`, `/compare/`,
-`/strategies/`, `/guides/`, `/state-guides/` instead of the SPA shell 200. Also
-install a fire-and-forget bot traffic logger so we can confirm AI crawlers (now
-unblocked) are actually arriving and what they fetch.
+## Reality Check vs. Prompt Assumptions
 
-### Schema reality check (deviations from prompt)
+The prompt assumed a greenfield IndexNow install. Audit reveals partial infrastructure with three functional gaps:
 
-I read the live DB before planning. Three corrections are required:
+| Component | Prompt assumed | Actual state | Action |
+|---|---|---|---|
+| Secret `INDEXNOW_KEY` | Generate fresh | **Missing**. Function falls back to hardcoded `8f3a2c1d4e5b6f7a8c9d0e1f2a3b4c5d` (16 hex chars, committed to repo) | Generate new 64-char key, store as secret, retire old |
+| Key file at origin | Create `public/{KEY}.txt` | `public/indexnow-key.txt` exists with weak key, no trailing newline, nonstandard filename | Replace with `public/{NEW_KEY}.txt` matching the secret |
+| Edge function | Create `indexnow-ping` | `ping-indexnow` already exists, accepts both `{urls}` and `{table, slug}` shapes, fans out to api.indexnow.org + bing + yandex | **Reuse**. Add log-to-DB step, switch to `INDEXNOW_KEY` secret, remove hardcoded fallback |
+| DB triggers | Create on 5 tables | Migration files define them but `information_schema.triggers` returns **0 rows live** — triggers are not installed. Publishes do NOT ping IndexNow today. | Re-create triggers cleanly; add `static_pages` (was missing) |
+| `indexnow_pings` log table | Create | Does not exist | Create |
+| `static_pages` | Has `status` column | **No `status` column** — every row is live | Fire trigger on every UPDATE (matches prompt note) |
+| `glossary_terms` table | Create trigger | **Does not exist** — content lives in `public/glossary.json` | Skip trigger; cover via bulk submit script |
+| `all_published_slugs` view | Used by bulk script | Already exists from Prompt 13/17, returns `full_path` | Reuse directly |
 
-1. **`location_pages` does not have `slug` / `state_slug`.** It has `city_slug` and
-   `topic_slug`. URL shape in the data is `/<lang>/locations/<city_slug>/<topic_slug>/`
-   for BOTH `en` and `es` (no `/ubicaciones/` rows actually exist; SEO regex still
-   accepts the alias for safety). The view will use those columns.
-2. **`glossary_terms` table does not exist.** That UNION branch is dropped from the
-   view. (Glossary content lives in `public/glossary.json`, not a DB table.)
-3. **`gone_urls.path` does not exist** — the column is `url_path`. Lookup query
-   updated accordingly.
+The site has been silently relying on Bing/Google crawl discovery this whole time despite having an IndexNow function. This plan makes it actually work.
 
-Row counts for sanity: blog 132 + qa 528 + locations 55 + compare 14 + static 6 = **735 rows** in the view (matches the GSC indexed-count ballpark; safely small enough to skip materialization).
+---
 
-### Step 1 — Database (single migration)
+## Plan
 
-Create the catalog view, the bot-traffic table + RLS + summary view, and the
-supporting partial indexes.
+### Step 1 — Rotate the IndexNow key
 
-```sql
--- 1a. Catalog view of every published, indexable URL on the site
-CREATE OR REPLACE VIEW public.all_published_slugs AS
-  SELECT ('/' || language || '/blog/' || slug || '/') AS full_path,
-         slug, language
-    FROM public.blog_articles WHERE status = 'published'
-  UNION ALL
-  SELECT ('/' || language || '/qa/' || slug || '/'), slug, language
-    FROM public.qa_pages WHERE status = 'published'
-  UNION ALL
-  -- location_pages: actual cols are city_slug + topic_slug; routing is
-  -- /<lang>/locations/<city_slug>/<topic_slug>/ for en AND es
-  SELECT ('/' || language || '/locations/' || city_slug || '/' || topic_slug || '/'),
-         topic_slug, language
-    FROM public.location_pages WHERE status = 'published'
-  UNION ALL
-  SELECT ('/en/compare/' || slug || '/'), slug, 'en'
-    FROM public.comparison_pages WHERE status = 'published' AND language = 'en'
-  UNION ALL
-  SELECT ('/es/comparar/' || slug || '/'), slug, 'es'
-    FROM public.comparison_pages WHERE status = 'published' AND language = 'es'
-  UNION ALL
-  -- static_pages from PROMPT 12 — /<lang>/<slug>/
-  SELECT ('/' || language || '/' || slug || '/'), slug, language
-    FROM public.static_pages;
+1. Generate a new 64-char lowercase hex string (cryptographically random).
+2. Store as Supabase secret `INDEXNOW_KEY` via `add_secret`. The user will paste the value in the secret prompt.
+3. Write `public/{KEY}.txt` (filename = the key itself, per IndexNow spec) containing only the key + single trailing newline.
+4. Delete the old `public/indexnow-key.txt` (weak, leaked).
+5. Add `scripts/buildAssertIndexNowKeyFile.ts` invoked from `build.sh` that fails the build if:
+   - Exactly one `public/[0-9a-f]{64}.txt` file exists, AND
+   - Its basename (sans `.txt`) equals its file contents (trimmed).
+   The script does NOT need the secret — it only checks file/filename consistency. Secret/file alignment is verified by the `keyLocation` URL test in Step 6.
 
--- 1b. Partial indexes on source tables (view inherits perf via these)
-CREATE INDEX IF NOT EXISTS idx_blog_articles_pub_lang_slug
-  ON public.blog_articles(language, slug) WHERE status = 'published';
-CREATE INDEX IF NOT EXISTS idx_qa_pages_pub_lang_slug
-  ON public.qa_pages(language, slug) WHERE status = 'published';
-CREATE INDEX IF NOT EXISTS idx_location_pages_pub_lang_city_topic
-  ON public.location_pages(language, city_slug, topic_slug) WHERE status = 'published';
-CREATE INDEX IF NOT EXISTS idx_comparison_pages_pub_lang_slug
-  ON public.comparison_pages(language, slug) WHERE status = 'published';
+### Step 2 — Refactor `ping-indexnow` edge function
 
--- 1c. Bot traffic log
-CREATE TABLE public.bot_traffic_log (
-  id BIGSERIAL PRIMARY KEY,
-  ts TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  ua TEXT NOT NULL,
-  bot_name TEXT NOT NULL,
-  method TEXT NOT NULL,
-  path TEXT NOT NULL,
-  status INT NOT NULL,
-  cf_ray TEXT,
-  country TEXT,
-  response_bytes INT
-);
-CREATE INDEX bot_traffic_log_ts_idx ON public.bot_traffic_log (ts DESC);
-CREATE INDEX bot_traffic_log_bot_name_idx ON public.bot_traffic_log (bot_name, ts DESC);
+Edits to `supabase/functions/ping-indexnow/index.ts`:
 
-ALTER TABLE public.bot_traffic_log ENABLE ROW LEVEL SECURITY;
+- Read `INDEXNOW_KEY` from env. If missing, return 500 with clear error — **remove the hardcoded fallback** so a misconfigured deploy fails loudly instead of pinging with a leaked key.
+- Compute `KEY_LOCATION = ${BASE_URL}/${INDEXNOW_KEY}.txt` dynamically (was hardcoded to old filename).
+- After fanout to the 3 endpoints, insert one row per endpoint into `public.indexnow_pings`:
+  `urls TEXT[], submitted_at TIMESTAMPTZ DEFAULT now(), endpoint TEXT, status_code INT, response_body TEXT, source TEXT` (`'insert' | 'update' | 'manual' | 'manual-bulk'`).
+- Source field: derive from request body's `action` (DB trigger sends `TG_OP`) or `source` (manual/bulk callers). Default `'manual'`.
+- Keep existing CORS, keep the `{table, slug}` → URL builder for back-compat with any old triggers, but the new triggers (Step 3) will send `{urls, source}` directly.
+- Add JWT auth check on the manual path: if `source === 'manual'` or `'manual-bulk'`, require `Authorization` header with admin claim. Trigger-originated calls authenticate via `Authorization: Bearer <anon>` with a body marker — keep `verify_jwt = false` (default) and validate in code.
 
--- Anon = INSERT only (middleware fire-and-forget). No SELECT for anon =
--- write-only, no exfiltration. Admins read via service role / dashboard.
-CREATE POLICY "bot_traffic_log_insert_anon"
-  ON public.bot_traffic_log FOR INSERT TO anon WITH CHECK (true);
+### Step 3 — Database migration
 
--- Admin read policy via existing has_role()
-CREATE POLICY "bot_traffic_log_admin_select"
-  ON public.bot_traffic_log FOR SELECT
-  TO authenticated
-  USING (public.has_role(auth.uid(), 'admin'));
+One migration file containing:
 
--- 1d. Hourly summary view for the admin dashboard
-CREATE OR REPLACE VIEW public.bot_traffic_summary AS
-  SELECT bot_name,
-         DATE_TRUNC('hour', ts) AS hour,
-         COUNT(*) AS hits,
-         COUNT(*) FILTER (WHERE status = 200) AS hits_200,
-         COUNT(*) FILTER (WHERE status BETWEEN 400 AND 499) AS hits_4xx,
-         COUNT(*) FILTER (WHERE status = 410) AS hits_410,
-         COUNT(*) FILTER (WHERE status = 308) AS hits_308,
-         COUNT(DISTINCT path) AS unique_paths
-    FROM public.bot_traffic_log
-   WHERE ts > NOW() - INTERVAL '7 days'
-   GROUP BY bot_name, hour
-   ORDER BY hour DESC, bot_name;
-```
+**3a. `indexnow_pings` table** with RLS — admin-only SELECT, anon INSERT (function uses anon key).
 
-Post-migration sanity checks (read-only):
-- `SELECT COUNT(*) FROM all_published_slugs;` → expect ~735
-- `SELECT * FROM all_published_slugs LIMIT 5;` → confirm `full_path` values
+**3b. `notify_indexnow()` function** — clean rewrite separate from existing `notify_sitemap_ping()`. URL builder per the prompt's CASE block:
+- `blog_articles` → `/{lang}/blog/{slug}/`
+- `qa_pages` → `/{lang}/qa/{slug}/`
+- `location_pages` → `/{lang}/locations/{city_slug}/{topic_slug}/` (both languages, `/ubicaciones/` skipped — zero data rows)
+- `comparison_pages` → `/en/compare/{slug}/` or `/es/comparar/{slug}/`
+- `static_pages` → `/{lang}/{slug}/` (fires on every UPDATE since no status column)
 
-### Step 2 — Middleware catchall (`functions/_middleware.js`)
+For tables with `status`: only fire when `NEW.status = 'published'`. For `static_pages`: skip the status check.
 
-Insertion point (verified by reading the full file): after the comma-strip 301
-(line ~283), after the `is404Blocked` block (line ~319), after the static-extension
-skip (line ~337) and asset-path skip (line ~342), and **before** the blog SSR
-fallback (line ~348). This guarantees:
-- Static assets, redirects, and 404 blocklist are untouched.
-- Non-existent slugs return 410/404 immediately without burning an SSR call.
-- Real published slugs fall through to the existing blog/qa/strategy/SEO branches.
+Calls `net.http_post` to `https://zbzrmpmqijvmjbhctfoe.functions.supabase.co/functions/v1/ping-indexnow` with body `{urls: [url], source: TG_OP}` and `Authorization: Bearer <ANON_KEY>` (sourced from a GUC `app.settings.anon_key` with hardcoded fallback to the project's anon key — same pattern used by `notify_sitemap_ping` per migration `20260424033831`).
 
-Add at module top (after `LANGUAGES` const):
+**3c. Triggers** — drop any pre-existing `on_*_ping_indexnow` triggers (from old migrations that didn't actually install), then `CREATE TRIGGER` on:
+- `blog_articles` AFTER INSERT OR UPDATE OF status, slug, headline, detailed_content, meta_description
+- `qa_pages` AFTER INSERT OR UPDATE OF status, slug, question, answer, meta_description
+- `location_pages` AFTER INSERT OR UPDATE OF status, city_slug, topic_slug, content
+- `comparison_pages` AFTER INSERT OR UPDATE OF status, slug, content
+- `static_pages` AFTER INSERT OR UPDATE OF slug, title, h1, body_markdown (no status filter)
 
-```js
-// PROMPT 13: catchall regexes for unmatched content URLs.
-// 1-segment: /<lang>/<section>/<slug>/
-// 2-segment: /<lang>/locations/<city>/<topic>/
-const ONE_SEGMENT_CATCHALL_REGEX =
-  /^\/(en|es)\/(blog|qa|compare|comparisons|comparar|estrategias|strategies|guides|glossary|state-guides)\/[^\/]+\/?$/;
-const TWO_SEGMENT_CATCHALL_REGEX =
-  /^\/(en|es)\/(locations|ubicaciones)\/[^\/]+\/[^\/]+\/?$/;
+Each trigger calls `notify_indexnow()`. The existing `notify_sitemap_ping` triggers (whatever survives) are **left in place** — they fire the same edge function with `{table, slug}` shape, which is harmless duplication during the cutover. Cleanup of those is a separate ticket.
 
-// AI/search bot UA detection (used by Step 3 logger)
-const KNOWN_BOTS = [
-  { pattern: /GPTBot/i,             name: 'GPTBot' },
-  { pattern: /ChatGPT-User/i,       name: 'ChatGPT-User' },
-  { pattern: /OAI-SearchBot/i,      name: 'OAI-SearchBot' },
-  { pattern: /ClaudeBot/i,          name: 'ClaudeBot' },
-  { pattern: /anthropic-ai/i,       name: 'anthropic-ai' },
-  { pattern: /Claude-Web/i,         name: 'Claude-Web' },
-  { pattern: /PerplexityBot/i,      name: 'PerplexityBot' },
-  { pattern: /Perplexity-User/i,    name: 'Perplexity-User' },
-  { pattern: /Google-Extended/i,    name: 'Google-Extended' },
-  { pattern: /Googlebot/i,          name: 'Googlebot' },
-  { pattern: /Applebot-Extended/i,  name: 'Applebot-Extended' },
-  { pattern: /Applebot/i,           name: 'Applebot' },
-  { pattern: /Bingbot/i,            name: 'Bingbot' },
-  { pattern: /meta-externalagent/i, name: 'meta-externalagent' },
-  { pattern: /CCBot/i,              name: 'CCBot' },
-  { pattern: /Bytespider/i,         name: 'Bytespider' },
-  { pattern: /Amazonbot/i,          name: 'Amazonbot' },
-];
-function detectBotName(ua) {
-  if (!ua) return null;
-  for (const { pattern, name } of KNOWN_BOTS) if (pattern.test(ua)) return name;
-  return null;
-}
-```
+### Step 4 — Manual ping endpoint
 
-Add the catchall block immediately after the asset-path skip (`if (pathname.startsWith('/assets/') ...)`), before `const blogMatch = ...`:
+Already covered by `ping-indexnow` accepting `{urls, source: 'manual'}`. Add a thin admin UI later (out of scope for this prompt). For now, document the curl shape in `.lovable/plan.md`.
 
-```js
-// PROMPT 13: Soft-404 catchall.
-// Returns real 410 (intentionally retired, listed in gone_urls)
-// or 404 (never existed) for unmatched content URLs.
-// Hub roots (/en/, /en/blog/, etc.) and static prebuilt dirs
-// (/en/about/, /en/team/, /en/contact/, /en/philosophy/,
-// /en/team/steven-rosenberg/) are NOT matched by these regexes
-// (they have no trailing slug segment, or different shape).
-if (
-  ONE_SEGMENT_CATCHALL_REGEX.test(pathname) ||
-  TWO_SEGMENT_CATCHALL_REGEX.test(pathname)
-) {
-  try {
-    const lookupUrl =
-      `${SUPABASE_URL}/rest/v1/all_published_slugs` +
-      `?full_path=eq.${encodeURIComponent(pathname)}&select=slug&limit=1`;
-    const lookupResp = await fetch(lookupUrl, {
-      headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` },
-    });
-    const rows = lookupResp.ok ? await lookupResp.json() : [];
-    const exists = Array.isArray(rows) && rows.length > 0;
+### Step 5 — One-shot bulk submit script
 
-    if (!exists) {
-      // Check gone_urls (column is url_path, not path)
-      const goneUrl =
-        `${SUPABASE_URL}/rest/v1/gone_urls` +
-        `?url_path=eq.${encodeURIComponent(pathname)}&select=id&limit=1`;
-      const goneResp = await fetch(goneUrl, {
-        headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` },
-      });
-      const goneRows = goneResp.ok ? await goneResp.json() : [];
-      const isGone = Array.isArray(goneRows) && goneRows.length > 0;
-      const status = isGone ? 410 : 404;
-      const html = render410Page(pathname, status);
-      const catchallResp = new Response(html, {
-        status,
-        headers: {
-          'Content-Type': 'text/html; charset=utf-8',
-          'X-410-Source': 'middleware-catchall',
-          'X-Middleware-Status': 'Active',
-          'Cache-Control': 'public, max-age=300',
-          'X-Robots-Tag': 'noindex, nofollow',
-        },
-      });
-      // Step 3: log bot hit before returning
-      if (typeof ctx?.waitUntil === 'function') {
-        ctx.waitUntil(logBotHit(request, catchallResp, ctx).catch(() => {}));
-      }
-      return catchallResp;
-    }
-  } catch (err) {
-    // On lookup failure, do NOT block — fall through to SSR/SPA.
-    console.error(`[Middleware] Catchall lookup failed for ${pathname}:`, err?.message);
-  }
-}
-```
+`scripts/indexnowBulkSubmit.ts`:
+1. Query `SELECT full_path, language FROM public.all_published_slugs` → covers blog/qa/locations/compare/static.
+2. Read `public/glossary.json`, generate `/en/glossary/{term-slug}/` and `/es/glossary/{term-slug}/` per entry (verify `term-slug` field name in JSON before generating).
+3. Map all paths to absolute URLs (`https://www.everencewealth.com{path}`).
+4. Batch into chunks of 10000, POST each to the deployed `ping-indexnow` with `source: 'manual-bulk'` and a service-role bearer token (script runs locally with env access).
+5. Log result count and first-row ping_id.
 
-Add `render410Page(pathname, statusCode)` helper at module top (per prompt
-verbatim — bilingual, noindex meta, Playfair/Lato styling, internal links to
-home/blog/qa/sitemap, status badge).
+Run once after deploy. Re-runnable safely (IndexNow ignores duplicates within a window).
 
-### Step 3 — Bot traffic logger (fire-and-forget)
+### Step 6 — Verification checklist
 
-Two changes:
+1. `curl -sIL https://www.everencewealth.com/{NEW_KEY}.txt` → `200 text/plain`.
+2. `curl https://www.everencewealth.com/{NEW_KEY}.txt` body equals `INDEXNOW_KEY` secret value (manual eyeball).
+3. Touch a published blog post (UPDATE meta_description). Within ~5s:
+   `SELECT * FROM indexnow_pings ORDER BY submitted_at DESC LIMIT 5;` → 3 rows (one per endpoint), status_code 200/202, urls contains the test URL, source = `'UPDATE'`.
+4. Bulk-submit script runs, logs N rows where N = `SELECT count(*) FROM all_published_slugs` + glossary URLs.
+5. Bing Webmaster Tools URL Inspection on test URL within 10 min shows "Discovered via IndexNow".
 
-1. **Update handler signature** to receive `ctx`:
-   `export async function onRequest({ request, next, env, ctx }) {`
-   (Cloudflare Pages Functions provides `ctx.waitUntil`; current code omits it.)
+---
 
-2. **Add `logBotHit(request, response, ctx)`** at module top (per prompt
-   verbatim, but using SUPABASE_URL/ANON constants already defined). Reads UA,
-   matches `KNOWN_BOTS`, extracts `cf-ray` and `request.cf?.country`, POSTs to
-   `/rest/v1/bot_traffic_log` with `Prefer: return=minimal`.
+## Files Touched
 
-3. **Wrap every response path** so logging fires regardless of which branch
-   produced the response. Cleanest approach: wrap the existing handler body in a
-   helper, OR add a `logIfBot(response)` call at each `return` site that
-   produces a final response. **Plan: wrap the handler.** Keep current handler
-   logic in an internal `async function buildResponse()`; the exported
-   `onRequest` calls it, then schedules the log:
-   ```js
-   export async function onRequest(context) {
-     const { request, ctx } = context;
-     const response = await buildResponse(context);
-     if (typeof ctx?.waitUntil === 'function') {
-       ctx.waitUntil(logBotHit(request, response, ctx).catch(() => {}));
-     }
-     return response;
-   }
-   ```
-   This avoids touching every existing `return` site (there are ~12) while still
-   capturing every status code we emit.
+**Created**:
+- `public/{NEW_64_CHAR_KEY}.txt`
+- `scripts/buildAssertIndexNowKeyFile.ts`
+- `scripts/indexnowBulkSubmit.ts`
+- `supabase/migrations/{timestamp}_indexnow_triggers_and_log.sql`
 
-   Edge case: the comma-strip 301, 404 blocklist, and the new catchall return
-   directly inside `buildResponse`, so they're covered. The blog/qa SSR branches
-   that call `next()` then return its result are also covered.
+**Edited**:
+- `supabase/functions/ping-indexnow/index.ts` (logging + remove hardcoded key + JWT check on manual)
+- `build.sh` (invoke key-file assertion)
+- `.lovable/plan.md` (document curl shape + cutover notes)
 
-### Step 4 — Verification (post-deploy)
+**Deleted**:
+- `public/indexnow-key.txt` (weak, retired)
 
-Run the bash block from the prompt. PASS criteria:
-- `/en/blog/this-slug-does-not-exist/` → `HTTP/2 410`, header `X-410-Source: middleware-catchall`
-- `/en/locations/florida/this-city-does-not-exist/` → `HTTP/2 410`
-- `/en/about/`, `/en/team/`, `/en/contact/`, `/en/philosophy/`,
-  `/en/team/steven-rosenberg/` (and `/es/` equivalents) → all `200`
-- Hub roots `/en/`, `/es/`, `/en/blog/`, `/en/qa/`, `/en/locations/`,
-  `/en/compare/` → all `200`
-- Real published slug (pick one from `SELECT full_path FROM all_published_slugs LIMIT 1;`) → `200`, no `X-410` header
-- After 10 min: `SELECT bot_name, COUNT(*) FROM bot_traffic_log WHERE ts > NOW() - INTERVAL '15 minutes' GROUP BY bot_name;` → at least Googlebot/Bingbot rows; AI bots appear as they crawl
-- `SELECT * FROM bot_traffic_summary LIMIT 5;` → returns hourly aggregated rows
+## Required User Action Before Implementation
 
-### Guardrails honored
+The `INDEXNOW_KEY` secret must be added. Once approved, the implementation will:
+1. Generate the 64-char key.
+2. Prompt the user to add it as the `INDEXNOW_KEY` secret (cannot self-set).
+3. Pause until secret is confirmed, then proceed with file creation, migration, and function refactor.
 
-- Catchall sits AFTER static-asset bypass, comma-strip 301, and 404 blocklist;
-  BEFORE blog/qa/strategy SSR branches. Hubs (no slug segment) and PROMPT 12
-  static dirs (`/en/about/`, `/en/team/`, etc.) do not match either regex.
-- `injectSeoTags` HTMLRewriter dedup logic is untouched.
-- Comma-strip 301 redirect for `/locations/*` is untouched.
-- Only `SUPABASE_ANON_KEY` is used in middleware (both view lookup and bot
-  insert). Anon RLS allows INSERT-only on `bot_traffic_log`.
-- View definition matches actual DB schema (`city_slug`/`topic_slug` for
-  locations; no `glossary_terms`; `gone_urls.url_path`).
+## Out of Scope
 
-### Files changed
-
-- New SQL migration: view, indexes, table, RLS, summary view
-- `functions/_middleware.js`: catchall regexes + `render410Page` + `KNOWN_BOTS` +
-  `detectBotName` + `logBotHit` + handler-wrap with `ctx.waitUntil`
+- Cleaning up the legacy `notify_sitemap_ping` triggers (functional duplication is harmless; separate ticket).
+- Admin UI for manual ping (curl-only for now).
+- Glossary migration to DB (would unlock real-time triggers; documented but not done).
