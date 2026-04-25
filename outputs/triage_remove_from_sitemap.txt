@@ -1,6 +1,0 @@
-# GSC triage 2026-04-26 — sitemap blocklist
-# Feed these paths into a Set used by scripts/generateSitemap.ts to filter URLs.
-# Then regenerate the sitemap and redeploy.
-# Format: one path per line. Lines starting with # are comments.
-
-/en/locations/los-angeles,-ca/iul/
