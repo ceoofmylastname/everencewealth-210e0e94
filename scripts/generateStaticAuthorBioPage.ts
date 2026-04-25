@@ -305,9 +305,9 @@ function generateHTML(
   assets: ProductionAssets
 ): string {
   const copy = COPY[lang];
-  const canonicalUrl = `${BASE_URL}/${lang}/team/${slug}`;
+  const canonicalUrl = `${BASE_URL}/${lang}/team/${slug}/`;
   const altLang = lang === 'en' ? 'es' : 'en';
-  const altUrl = `${BASE_URL}/${altLang}/team/${slug}`;
+  const altUrl = `${BASE_URL}/${altLang}/team/${slug}/`;
   const dateModified = gitLastModified(COMPONENT_FILE);
 
   const description =
@@ -342,9 +342,9 @@ function generateHTML(
   <meta name="description" content="${sanitizeForHTML(description)}" />
   <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
   <link rel="canonical" href="${canonicalUrl}" />
-  <link rel="alternate" hreflang="en" href="${BASE_URL}/en/team/${slug}" />
-  <link rel="alternate" hreflang="es" href="${BASE_URL}/es/team/${slug}" />
-  <link rel="alternate" hreflang="x-default" href="${BASE_URL}/en/team/${slug}" />
+  <link rel="alternate" hreflang="en" href="${BASE_URL}/en/team/${slug}/" />
+  <link rel="alternate" hreflang="es" href="${BASE_URL}/es/team/${slug}/" />
+  <link rel="alternate" hreflang="x-default" href="${BASE_URL}/en/team/${slug}/" />
   <meta property="og:type" content="profile" />
   <meta property="og:url" content="${canonicalUrl}" />
   <meta property="og:title" content="${sanitizeForHTML(title)}" />

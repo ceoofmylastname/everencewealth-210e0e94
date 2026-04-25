@@ -98,7 +98,7 @@ const TeamMember = () => {
 
   const personSchema = useMemo(() => {
     if (!author) return null;
-    const personUrl = `${BASE_URL}/${language}/team/${slug}`;
+    const personUrl = `${BASE_URL}/${language}/team/${slug}/`;
     return {
       "@context": "https://schema.org",
       "@type": "Person",
@@ -122,9 +122,9 @@ const TeamMember = () => {
     return <Navigate to={`/${language}/team`} replace />;
   }
 
-  const canonicalUrl = `${BASE_URL}/${language}/team/${slug}`;
+  const canonicalUrl = `${BASE_URL}/${language}/team/${slug}/`;
   const altLang = language === "en" ? "es" : "en";
-  const altUrl = `${BASE_URL}/${altLang}/team/${slug}`;
+  const altUrl = `${BASE_URL}/${altLang}/team/${slug}/`;
 
   const paragraphs = author?.bio_full_markdown
     ? renderMarkdownParagraphs(author.bio_full_markdown)
@@ -154,7 +154,7 @@ const TeamMember = () => {
           <link rel="canonical" href={canonicalUrl} />
           <link rel="alternate" hrefLang={language} href={canonicalUrl} />
           <link rel="alternate" hrefLang={altLang} href={altUrl} />
-          <link rel="alternate" hrefLang="x-default" href={`${BASE_URL}/en/team/${slug}`} />
+          <link rel="alternate" hrefLang="x-default" href={`${BASE_URL}/en/team/${slug}/`} />
           <meta property="og:type" content="profile" />
           <meta property="og:title" content={metaTitle} />
           <meta property="og:description" content={metaDescription} />
