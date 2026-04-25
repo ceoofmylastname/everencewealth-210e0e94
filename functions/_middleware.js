@@ -257,6 +257,30 @@ export async function onRequest({ request, next, env }) {
     });
   }
 
+  // ============================================================
+  // RULE: Strip commas from /<lang>/(locations|ubicaciones)/* URLs.
+  // Historical city_slug values like "los-angeles,-ca" produced URLs
+  // with literal commas. The DB has been cleaned + locked, so any
+  // inbound request still carrying a comma is from an old external
+  // link or stale crawler cache. 301 to the comma-free path.
+  // (Cloudflare decodes %2C before this runs, so the regex covers
+  // both raw and encoded comma URLs.)
+  // ============================================================
+  if (/^\/(en|es)\/(locations|ubicaciones)\/[^\/]*,/.test(pathname)) {
+    const cleaned = pathname.replace(/,(?=-)/g, '').replace(/,/g, '');
+    if (cleaned !== pathname) {
+      const target = new URL(cleaned + url.search, url.origin).toString();
+      console.log(`[Middleware] 301 comma-strip: ${pathname} → ${cleaned}`);
+      return new Response(null, {
+        status: 301,
+        headers: {
+          Location: target,
+          'X-Middleware-Status': 'Active',
+        },
+      });
+    }
+  }
+
   // Prefix redirect: /blog/category/* → /en/
   if (pathname.startsWith('/blog/category/')) {
     console.log(`[Middleware] 301 redirect (prefix): ${pathname} → /en/`);
