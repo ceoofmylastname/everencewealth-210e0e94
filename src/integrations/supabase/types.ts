@@ -1161,6 +1161,8 @@ export type Database = {
       authors: {
         Row: {
           bio: string
+          bio_full_markdown: string | null
+          bio_short: string | null
           created_at: string
           credentials: string[] | null
           id: string
@@ -1175,6 +1177,8 @@ export type Database = {
         }
         Insert: {
           bio: string
+          bio_full_markdown?: string | null
+          bio_short?: string | null
           created_at?: string
           credentials?: string[] | null
           id?: string
@@ -1189,6 +1193,8 @@ export type Database = {
         }
         Update: {
           bio?: string
+          bio_full_markdown?: string | null
+          bio_short?: string | null
           created_at?: string
           credentials?: string[] | null
           id?: string
