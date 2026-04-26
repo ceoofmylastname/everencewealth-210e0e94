@@ -21,6 +21,7 @@ import { ArrowRight, ArrowLeft, BookOpen, Layers, ChevronDown } from "lucide-rea
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { LanguageMismatchNotFound } from "@/components/LanguageMismatchNotFound";
+import { withTrailingSlash } from "@/lib/urlSlash";
 
 const BASE_URL = "https://www.everencewealth.com";
 
