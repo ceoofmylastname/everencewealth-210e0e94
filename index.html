@@ -37,7 +37,15 @@
       <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Lato:wght@400;700&family=Raleway:wght@400;500;600;700&family=Sora:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&family=Cormorant+Garamond:wght@400;600;700&family=DM+Sans:wght@400;500;600;700&display=swap">
     </noscript>
     
-    <!-- LCP preload removed — dark hero, no image -->
+    <!-- LCP hero image preload — desktop + mobile, fetchpriority high -->
+    <link rel="preload" as="image"
+          href="/hero/hero-landing-desktop.jpg"
+          fetchpriority="high"
+          media="(min-width: 768px)">
+    <link rel="preload" as="image"
+          href="/hero/hero-landing-mobile.jpg"
+          fetchpriority="high"
+          media="(max-width: 767px)">
     
     <!-- DNS Prefetch for external domains -->
     <link rel="dns-prefetch" href="https://zbzrmpmqijvmjbhctfoe.supabase.co">
