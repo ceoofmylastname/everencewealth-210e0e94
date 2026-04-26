@@ -185,7 +185,7 @@ const Glossary: React.FC = () => {
   }
 
   const schemaData = generateAllGlossarySchemas(glossaryData, currentLang);
-  const canonicalUrl = `${BASE_URL}/${currentLang}/glossary`;
+  const canonicalUrl = `${BASE_URL}/${currentLang}/glossary/`;
   const ogImageUrl = `${BASE_URL}/assets/logo-new.png`;
   const pageTitle = t.meta.title;
   const pageDescription = t.meta.description;

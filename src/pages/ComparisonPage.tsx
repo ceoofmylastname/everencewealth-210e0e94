@@ -21,6 +21,7 @@ import { ArrowRight, ArrowLeft, BookOpen, Layers, ChevronDown } from "lucide-rea
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { LanguageMismatchNotFound } from "@/components/LanguageMismatchNotFound";
+import { withTrailingSlash } from "@/lib/urlSlash";
 
 const BASE_URL = "https://www.everencewealth.com";
 
@@ -139,8 +140,10 @@ export default function ComparisonPage() {
     ? comparison.qa_entities 
     : [];
 
-  const canonicalUrl = (comparison as any).canonical_url || 
-    `${BASE_URL}/${comparison.language}/compare/${comparison.slug}`;
+  const canonicalUrl = withTrailingSlash(
+    (comparison as any).canonical_url ||
+      `${BASE_URL}/${comparison.language}/compare/${comparison.slug}`
+  );
 
   // Build hreflang tags from translations
   const translations = (comparison as any).translations as Record<string, string> | null;
@@ -148,7 +151,7 @@ export default function ComparisonPage() {
   
   hreflangTags.push({
     lang: comparison.language || 'en',
-    href: `${BASE_URL}/${comparison.language}/compare/${comparison.slug}`,
+    href: withTrailingSlash(`${BASE_URL}/${comparison.language}/compare/${comparison.slug}`),
   });
   
   if (translations) {
@@ -156,7 +159,7 @@ export default function ComparisonPage() {
       if (lang !== comparison.language) {
         hreflangTags.push({
           lang,
-          href: `${BASE_URL}/${lang}/compare/${slug}`,
+          href: withTrailingSlash(`${BASE_URL}/${lang}/compare/${slug}`),
         });
       }
     });
@@ -179,7 +182,7 @@ export default function ComparisonPage() {
           <link key={lang} rel="alternate" hrefLang={lang} href={href} />
         ))}
         
-        <link rel="alternate" hrefLang="x-default" href={`${BASE_URL}/${xDefaultLang}/compare/${xDefaultSlug}`} />
+        <link rel="alternate" hrefLang="x-default" href={withTrailingSlash(`${BASE_URL}/${xDefaultLang}/compare/${xDefaultSlug}`)} />
         
         {/* Article Schema */}
         <script type="application/ld+json">

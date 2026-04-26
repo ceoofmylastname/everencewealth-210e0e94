@@ -17,13 +17,16 @@ import { type AboutPageContent } from "@/lib/aboutSchemaGenerator";
 import { COMPANY_FACTS } from "@/constants/company";
 import BlogEmmaChat from '@/components/blog-article/BlogEmmaChat';
 import { useTranslation } from "@/i18n";
+import { withTrailingSlash } from "@/lib/urlSlash";
 
 const BASE_URL = "https://www.everencewealth.com";
 
 const defaultContent: AboutPageContent = {
   meta_title: "About Everence Wealth | Independent Wealth Architects",
   meta_description: `Meet the founders of Everence Wealth. ${COMPANY_FACTS.yearsExperience}+ years experience helping families build tax-efficient retirement strategies and asset protection plans.`,
-  canonical_url: `${BASE_URL}/about`,
+  // Real canonical is built per-request from the route lang param below.
+  // This default is only used if the component renders before lang resolves.
+  canonical_url: `${BASE_URL}/en/about/`,
   speakable_summary: `Everence Wealth is an independent wealth management firm, founded by experienced professionals with over ${COMPANY_FACTS.yearsExperience} years of combined experience helping families secure their financial future.`,
   hero_headline: "Your Independent Wealth Architects",
   hero_subheadline: `Three founders, ${COMPANY_FACTS.yearsExperience}+ years of expertise, and one mission: building tax-efficient wealth strategies that protect what matters most.`,
@@ -42,6 +45,12 @@ const About = () => {
   const { t } = useTranslation();
   const aboutUs = t.aboutUs as Record<string, unknown> | undefined;
   const credentialsFromI18n = (aboutUs?.credentials as { items?: Array<{ name: string; description: string }> })?.items || [];
+
+  // PROMPT 20 P0-3: canonical was hardcoded to ${BASE_URL}/about (legacy
+  // un-prefixed path), which made /en/about/ self-canonicalize to root in
+  // production. Always build canonical from the resolved lang param with a
+  // trailing slash so it matches the request URL exactly.
+  const aboutCanonical = withTrailingSlash(`${BASE_URL}/${lang}/about/`);
 
   const { data: content, isLoading } = useQuery({
     queryKey: ["about-page-content"],
@@ -64,7 +73,7 @@ const About = () => {
     ? {
         meta_title: content.meta_title,
         meta_description: content.meta_description,
-        canonical_url: content.canonical_url || `${BASE_URL}/about`,
+        canonical_url: withTrailingSlash(content.canonical_url || aboutCanonical),
         speakable_summary: content.speakable_summary,
         hero_headline: content.hero_headline,
         hero_subheadline: content.hero_subheadline,
@@ -80,7 +89,7 @@ const About = () => {
         })) as AboutPageContent["founders"],
         language: content.language || "en"
       }
-    : defaultContent;
+    : { ...defaultContent, canonical_url: aboutCanonical };
 
   useEffect(() => {
     window.scrollTo(0, 0);

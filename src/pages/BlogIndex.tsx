@@ -156,11 +156,11 @@ const BlogIndex = () => {
       <Helmet>
         <title>Wealth Management Blog | Everence Wealth</title>
         <meta name="description" content="Expert articles on tax-free retirement strategies, index strategies, asset protection, and wealth management from licensed financial advisors." />
-        <link rel="canonical" href={`https://www.everencewealth.com/${lang}/blog`} />
+        <link rel="canonical" href={`https://www.everencewealth.com/${lang}/blog/`} />
         <meta property="og:title" content="Wealth Management Blog | Everence Wealth" />
         <meta property="og:description" content="Expert articles on tax-free retirement strategies, index strategies, asset protection, and wealth management." />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content={`https://www.everencewealth.com/${lang}/blog`} />
+        <meta property="og:url" content={`https://www.everencewealth.com/${lang}/blog/`} />
         <meta name="twitter:card" content="summary_large_image" />
       </Helmet>
       <div className="container mx-auto px-4 pt-24 pb-12">

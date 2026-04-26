@@ -82,11 +82,11 @@ export default function ComparisonIndex() {
       <Helmet>
         <title>Financial Comparisons | Everence Wealth</title>
         <meta name="description" content="Expert side-by-side comparisons to help you make smarter decisions about insurance, retirement, and wealth management." />
-        <link rel="canonical" href={`https://www.everencewealth.com/${lang}/compare`} />
+        <link rel="canonical" href={`https://www.everencewealth.com/${lang}/compare/`} />
         <meta property="og:title" content="Financial Comparisons | Everence Wealth" />
         <meta property="og:description" content="Expert side-by-side comparisons for insurance, retirement, and wealth management decisions." />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content={`https://www.everencewealth.com/${lang}/compare`} />
+        <meta property="og:url" content={`https://www.everencewealth.com/${lang}/compare/`} />
         <meta name="twitter:card" content="summary_large_image" />
       </Helmet>
       <Header />
