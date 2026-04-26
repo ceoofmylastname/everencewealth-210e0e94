@@ -247,24 +247,24 @@ function generateFAQPageSchema(faqs: FAQ[]) {
   };
 }
 
-function generateBreadcrumbSchema() {
+function generateBreadcrumbSchema(canonicalUrl: string) {
   return {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
-    "@id": `${BASE_URL}/about#breadcrumb`,
+    "@id": `${canonicalUrl}#breadcrumb`,
     "itemListElement": [
       { "@type": "ListItem", "position": 1, "name": "Home", "item": BASE_URL },
-      { "@type": "ListItem", "position": 2, "name": "About Us", "item": `${BASE_URL}/about` }
+      { "@type": "ListItem", "position": 2, "name": "About Us", "item": canonicalUrl }
     ]
   };
 }
 
-function generateWebPageSchema(content: AboutPageData) {
+function generateWebPageSchema(content: AboutPageData, canonicalUrl: string) {
   return {
     "@context": "https://schema.org",
     "@type": "AboutPage",
-    "@id": `${BASE_URL}/about#webpage`,
-    "url": `${BASE_URL}/about`,
+    "@id": `${canonicalUrl}#webpage`,
+    "url": canonicalUrl,
     "name": content.meta_title,
     "description": content.meta_description,
     "inLanguage": content.language || "en",
