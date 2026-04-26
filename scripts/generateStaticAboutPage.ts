@@ -656,7 +656,7 @@ export async function generateStaticAboutPage(distDir: string) {
 
     if (enError || !enRow) {
       console.error('❌ Error fetching EN about content:', enError);
-      return;
+      throw new Error('about_page_content EN row missing — cannot generate static about pages');
     }
 
     // Fetch ES row (optional — fall back to EN content with ES canonical/lang)
@@ -718,9 +718,15 @@ export async function generateStaticAboutPage(distDir: string) {
   }
 }
 
-// Run if called directly (not when imported as module)
-const isMainModule = import.meta.url === `file://${process.argv[1]}`;
-if (isMainModule) {
-  const distDir = process.argv[2] || 'dist';
-  generateStaticAboutPage(distDir);
-}
+// Always run when invoked via `npx tsx scripts/generateStaticAboutPage.ts ...`
+// (nothing imports this module, so unconditional execution is safe and avoids
+// the fragile isMainModule guard that was silently no-op'ing in production.)
+const distDir = process.argv[2] || 'dist';
+generateStaticAboutPage(distDir)
+  .then(() => {
+    console.log('✅ generateStaticAboutPage completed');
+  })
+  .catch((err) => {
+    console.error('❌ generateStaticAboutPage FAILED:', err);
+    process.exit(1);
+  });
