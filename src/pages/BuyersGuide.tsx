@@ -27,17 +27,17 @@ const BuyersGuide: React.FC = () => {
       <Helmet>
         <title>{t.meta.title}</title>
         <meta name="description" content={t.meta.description} />
-        <link rel="canonical" href={`${BASE_URL}/${currentLanguage}/buyers-guide`} />
+        <link rel="canonical" href={`${BASE_URL}/${currentLanguage}/buyers-guide/`} />
         
         {AVAILABLE_LANGUAGES.map((langInfo) => (
           <link
             key={langInfo.code}
             rel="alternate"
             hrefLang={langInfo.code}
-            href={`${BASE_URL}/${langInfo.code}/buyers-guide`}
+            href={`${BASE_URL}/${langInfo.code}/buyers-guide/`}
           />
         ))}
-        <link rel="alternate" hrefLang="x-default" href={`${BASE_URL}/en/buyers-guide`} />
+        <link rel="alternate" hrefLang="x-default" href={`${BASE_URL}/en/buyers-guide/`} />
         
         <meta property="og:title" content={t.meta.title} />
         <meta property="og:description" content={t.meta.description} />

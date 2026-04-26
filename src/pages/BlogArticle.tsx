@@ -27,6 +27,7 @@ import PersonSchema from '@/components/schema/PersonSchema';
 import ArticleSchema from '@/components/schema/ArticleSchema';
 import AuthorByline from '@/components/blog-article/AuthorByline';
 import { ShareButtons } from '@/components/blog-article/ShareButtons';
+import { withTrailingSlash } from '@/lib/urlSlash';
 
 
 const BlogArticle = () => {
