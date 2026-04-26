@@ -139,8 +139,9 @@ const calculateRelevanceScore = (sourceArticle: Article, targetArticle: Article)
     const sourceContent = sourceArticle.detailed_content.substring(0, 500).toLowerCase();
     const targetContent = targetArticle.detailed_content.substring(0, 500).toLowerCase();
     
-    // Check for key location terms
-    const locations = ['marbella', 'wealth management', 'malaga', 'estepona', 'benahavis', 'mijas', 'fuengirola'];
+    // Check for key wealth/retirement terms (cleaned 2026-04-26: replaced
+    // Del Sol Spanish-city list with US wealth-management terms).
+    const locations = ['retirement', 'wealth management', 'tax', 'estate planning', 'iul', 'annuity', 'california'];
     const sharedLocations = locations.filter(loc => 
       sourceContent.includes(loc) && targetContent.includes(loc)
     );

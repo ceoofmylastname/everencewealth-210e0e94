@@ -953,20 +953,10 @@ async function findCitationWithOpenWebFallback(
   // ═══════════════════════════════════════════════════════════════════
   // LAYER 2: LOCATION + PROPERTY PATTERN BLOCKING
   // ═══════════════════════════════════════════════════════════════════
-  const locationPropertyPatterns = [
-    /costa.*sol.*(property|homes|villas|real|estate|agency|living)/i,
-    /malaga.*(property|homes|villas|real|estate|agency|relocation)/i,
-    /marbella.*(property|homes|villas|real|estate|agency|living)/i,
-    /spain.*(property|homes|villas|real|estate|living|relocation)/i,
-    /andaluc[ií]a.*(property|homes|villas|real|estate)/i,
-    /move.*to.*(malaga|marbella|spain|costa.*sol|andalucia)/i,
-    /(malaga|marbella|spain|costa.*sol).*move/i,
-    /(buy|sell|rent).*(malaga|marbella|costa.*sol|spain)/i,
-    /(malaga|marbella|costa.*sol).*(buy|sell|rent)/i,
-    /living.*in.*(malaga|marbella|spain|costa.*sol)/i,
-    /expat.*(malaga|marbella|spain|costa.*sol)/i,
-    /(malaga|marbella|spain|costa.*sol).*expat/i,
-  ];
+  // Cleaned 2026-04-26: removed Del Sol / Spain location+property regex
+  // patterns (Everence is US wealth management). DB blacklist handles
+  // active blocks; consumer loop below safely no-ops on empty array.
+  const locationPropertyPatterns: RegExp[] = [];
 
   try {
     // Fetch blacklisted domains from database
