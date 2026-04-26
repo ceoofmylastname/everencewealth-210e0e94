@@ -463,6 +463,29 @@ async function buildResponse({ request, next, env, ctx }) {
       });
     }
 
+    // Special handling for plain-text discovery files (PROMPT 20).
+    // Without this, /llms.txt and /llms-full.txt were caught by the SPA
+    // fallback and served as text/html, which AI agents (ChatGPT, Claude,
+    // Perplexity) silently down-weight. Forcing text/plain on every .txt
+    // restores content-type fidelity for /llm.txt, /llms.txt,
+    // /llms-full.txt, /robots.txt, /ai.txt, etc. without per-file
+    // allowlists.
+    if (pathname.endsWith('.txt')) {
+      const response = await next();
+      const headers = new Headers(response.headers);
+      headers.set('Content-Type', 'text/plain; charset=utf-8');
+      headers.set('X-Content-Type-Options', 'nosniff');
+      headers.set('X-Middleware-Status', 'Active');
+      if (!headers.has('Cache-Control')) {
+        headers.set('Cache-Control', 'public, max-age=3600');
+      }
+      return new Response(response.body, {
+        status: response.status,
+        statusText: response.statusText,
+        headers,
+      });
+    }
+
     return withMiddlewareStatus(await next());
   }
 
