@@ -3,6 +3,12 @@ import { createClient } from '@supabase/supabase-js';
 import { writeFileSync, mkdirSync, readFileSync, existsSync, copyFileSync } from 'fs';
 import { join, dirname } from 'path';
 import type { Database } from '../src/integrations/supabase/types';
+import {
+  BUSINESS,
+  businessPostalAddress,
+  businessAreaServed,
+  businessContactPoint,
+} from '../src/config/business';
 
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL!;
 const SUPABASE_ANON_KEY = process.env.VITE_SUPABASE_PUBLISHABLE_KEY!;
@@ -159,31 +165,21 @@ function generateOrganizationSchema() {
     "@context": "https://schema.org",
     "@type": "FinancialService",
     "@id": "https://www.everencewealth.com/#organization",
-    "name": "Everence Wealth",
-    "legalName": "Everence Wealth",
-    "url": "https://www.everencewealth.com/",
+    "name": BUSINESS.name,
+    "legalName": BUSINESS.legalName,
+    "url": `${BUSINESS.url}/`,
     "description": "Independent wealth management firm specializing in tax-free retirement strategies, IUL, and asset protection",
     "logo": {
       "@type": "ImageObject",
-      "url": "https://assets.cdn.filesafe.space/htr97zzmRc1NMujHbL9R/media/69b7424c5b89c7c557adfe6e.png",
-      "width": 1200,
-      "height": 630
+      "url": BUSINESS.logo.url,
+      "width": BUSINESS.logo.width,
+      "height": BUSINESS.logo.height
     },
-    "areaServed": [
-      {"@type": "Country", "name": "United States"}
-    ],
-    "contactPoint": {
-      "@type": "ContactPoint",
-      "contactType": "Customer Service",
-      "availableLanguage": ["en", "es"],
-      "telephone": "+34 630 03 90 90",
-      "email": "info@everencewealth.com"
-    },
-    "sameAs": [
-      "https://www.facebook.com/everencewealth",
-      "https://www.instagram.com/everencewealth",
-      "https://www.linkedin.com/company/everencewealth"
-    ]
+    "address": businessPostalAddress(),
+    "areaServed": [businessAreaServed()],
+    "contactPoint": businessContactPoint(),
+    "email": BUSINESS.email,
+    "sameAs": [...BUSINESS.sameAs]
   };
 }
 
