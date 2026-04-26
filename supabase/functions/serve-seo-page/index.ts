@@ -8,6 +8,22 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+// PROMPT 20 P0-4: trailing-slash normalizer for canonical + hreflang URLs.
+// Sitemaps and middleware route-detection use trailing-slash URLs for every
+// content-detail and hub page. Canonical and hreflang must match or AI
+// engines see a self-referencing contradiction and down-weight the page.
+function withTrailingSlash(url: string | null | undefined): string {
+  if (!url) return url ?? ''
+  const [bareAndQuery, ...fragmentParts] = url.split('#')
+  const [path, ...queryParts] = bareAndQuery.split('?')
+  if (path.endsWith('/')) return url
+  const lastSegment = path.split('/').pop() || ''
+  if (lastSegment.includes('.')) return url
+  const slashed = `${path}/`
+  const rebuilt = queryParts.length ? `${slashed}?${queryParts.join('?')}` : slashed
+  return fragmentParts.length ? `${rebuilt}#${fragmentParts.join('#')}` : rebuilt
+}
+
 // ============================================================
 // TIMEOUT & CIRCUIT BREAKER CONFIGURATION
 // Prevents 504/524 errors from hanging database queries
@@ -106,8 +122,8 @@ function generateFallbackHTML(url: URL): string {
   const contentPath = isQA ? 'qa' : pathname.split('/').filter(Boolean)[1] || '';
   const hreflangTags = isQA && slug
     ? supportedLangs.map(l => 
-        `<link rel="alternate" hreflang="${l}" href="${BASE_URL}/${l}/qa/${slug}">`
-      ).join('\n  ') + `\n  <link rel="alternate" hreflang="x-default" href="${BASE_URL}/en/qa/${slug}">`
+        `<link rel="alternate" hreflang="${l}" href="${withTrailingSlash(`${BASE_URL}/${l}/qa/${slug}`)}">`
+      ).join('\n  ') + `\n  <link rel="alternate" hreflang="x-default" href="${withTrailingSlash(`${BASE_URL}/en/qa/${slug}`)}">`
     : '';
   
   const baseTitle = isQA
@@ -127,14 +143,14 @@ function generateFallbackHTML(url: URL): string {
   <meta name="robots" content="index, follow">
   
   <!-- Canonical -->
-  <link rel="canonical" href="${BASE_URL}${pathname}">
+  <link rel="canonical" href="${withTrailingSlash(`${BASE_URL}${pathname}`)}">
   
   <!-- Hreflang tags -->
   ${hreflangTags}
   
   <!-- Open Graph / Facebook -->
   <meta property="og:type" content="website">
-  <meta property="og:url" content="${BASE_URL}${pathname}">
+  <meta property="og:url" content="${withTrailingSlash(`${BASE_URL}${pathname}`)}">
   <meta property="og:title" content="${baseTitle}">
   <meta property="og:description" content="${baseDescription}">
    <meta property="og:site_name" content="Everence Wealth">
@@ -374,7 +390,7 @@ async function fetchQAMetadata(supabase: any, slug: string, lang: string): Promi
         language: exactMatch.language || lang,
         meta_title: exactMatch.meta_title || exactMatch.title || '',
         meta_description: exactMatch.meta_description || '',
-        canonical_url: exactMatch.canonical_url || `${BASE_URL}/${exactMatch.language}/qa/${slug}`,
+        canonical_url: withTrailingSlash(exactMatch.canonical_url || `${BASE_URL}/${exactMatch.language}/qa/${slug}`),
         headline: exactMatch.question_main || exactMatch.title || '',
         speakable_answer: exactMatch.answer_main || exactMatch.speakable_answer || '',
         featured_image_url: exactMatch.featured_image_url,
@@ -436,7 +452,7 @@ async function fetchBlogMetadata(supabase: any, slug: string, lang: string): Pro
         language: exactMatch.language || lang,
         meta_title: exactMatch.meta_title,
         meta_description: exactMatch.meta_description,
-        canonical_url: exactMatch.canonical_url || `${BASE_URL}/${exactMatch.language}/blog/${slug}`,
+        canonical_url: withTrailingSlash(exactMatch.canonical_url || `${BASE_URL}/${exactMatch.language}/blog/${slug}`),
         headline: exactMatch.headline,
         speakable_answer: exactMatch.speakable_answer,
         featured_image_url: exactMatch.featured_image_url,
@@ -499,7 +515,7 @@ async function fetchComparisonMetadata(supabase: any, slug: string, lang: string
         language: exactMatch.language || lang,
         meta_title: exactMatch.meta_title,
         meta_description: exactMatch.meta_description,
-        canonical_url: exactMatch.canonical_url || `${BASE_URL}/${exactMatch.language}/compare/${slug}`,
+        canonical_url: withTrailingSlash(exactMatch.canonical_url || `${BASE_URL}/${exactMatch.language}/compare/${slug}`),
         headline: exactMatch.headline,
         speakable_answer: exactMatch.speakable_answer,
         featured_image_url: exactMatch.featured_image_url,
@@ -634,7 +650,7 @@ async function fetchLocationMetadata(supabase: any, slug: string, lang: string):
       language: data.language || lang,
       meta_title: data.meta_title,
       meta_description: data.meta_description,
-      canonical_url: data.canonical_url || `${BASE_URL}/${data.language}/locations/${fullSlug}`,
+      canonical_url: withTrailingSlash(data.canonical_url || `${BASE_URL}/${data.language}/locations/${fullSlug}`),
       headline: data.headline,
       speakable_answer: data.speakable_answer,
       featured_image_url: data.featured_image_url,
@@ -721,7 +737,7 @@ function generateHreflangTags(siblings: HreflangSibling[], currentLang: string, 
   for (const sibling of siblings) {
     // Only include published siblings with valid slugs
     if (sibling.language && sibling.slug) {
-      const url = sibling.canonical_url || `${BASE_URL}/${sibling.language}/${pathPrefix}/${sibling.slug}`
+      const url = withTrailingSlash(sibling.canonical_url || `${BASE_URL}/${sibling.language}/${pathPrefix}/${sibling.slug}`)
       tags.push(`  <link rel="alternate" hreflang="${sibling.language}" href="${url}" />`)
     }
   }
@@ -730,9 +746,9 @@ function generateHreflangTags(siblings: HreflangSibling[], currentLang: string, 
   const englishVersion = availableLanguages.get('en')
   const xDefaultVersion = englishVersion || availableLanguages.get(currentLang) || siblings[0]
   const xDefaultLang = englishVersion ? 'en' : (xDefaultVersion?.language || currentLang)
-  const xDefaultUrl = xDefaultVersion 
+  const xDefaultUrl = withTrailingSlash(xDefaultVersion 
     ? (xDefaultVersion.canonical_url || `${BASE_URL}/${xDefaultLang}/${pathPrefix}/${xDefaultVersion.slug}`)
-    : `${BASE_URL}/${currentLang}/${pathPrefix}/${siblings[0]?.slug || ''}`
+    : `${BASE_URL}/${currentLang}/${pathPrefix}/${siblings[0]?.slug || ''}`)
   tags.push(`  <link rel="alternate" hreflang="x-default" href="${xDefaultUrl}" />`)
 
   return tags.join('\n')
@@ -1124,10 +1140,10 @@ async function generateHubPageHtmlAsync(
 ): Promise<string> {
   const locale = LOCALE_MAP[lang] || 'en_US'
   const canonicalPath = `/${lang}/${HUB_PATH_FOR_TYPE[hubType]}`
-  const canonicalUrl = `${BASE_URL}${canonicalPath}`
+  const canonicalUrl = withTrailingSlash(`${BASE_URL}${canonicalPath}`)
   const altLang = lang === 'en' ? 'es' : 'en'
-  const altUrl = `${BASE_URL}/${altLang}/${HUB_PATH_FOR_TYPE[hubType]}`
-  const xDefaultUrl = `${BASE_URL}/en/${HUB_PATH_FOR_TYPE[hubType]}`
+  const altUrl = withTrailingSlash(`${BASE_URL}/${altLang}/${HUB_PATH_FOR_TYPE[hubType]}`)
+  const xDefaultUrl = withTrailingSlash(`${BASE_URL}/en/${HUB_PATH_FOR_TYPE[hubType]}`)
 
   const payload = await getHubPayload(supabase, hubType, lang)
   const meta = getHubMeta(hubType, lang, payload.totalPublished)
