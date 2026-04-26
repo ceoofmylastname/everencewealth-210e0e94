@@ -28,8 +28,8 @@ const BASE_URL = 'https://www.everencewealth.com';
 // do NOT match (no slug segment, or different shape). The team bio
 // /en/team/steven-rosenberg/ is a 2-segment path under /team/, which
 // is also outside both regexes.
-const ONE_SEGMENT_CATCHALL_REGEX =
-  /^\/(en|es)\/(blog|qa|compare|comparisons|comparar|estrategias|strategies|guides|glossary|state-guides)\/[^\/]+\/?$/;
+const CONTENT_PATH_CATCHALL_REGEX =
+  /^\/(en|es)\/(blog|qa|compare|comparisons|comparar|estrategias|strategies|guides|glossary|state-guides)\/.+$/;
 const TWO_SEGMENT_CATCHALL_REGEX =
   /^\/(en|es)\/(locations|ubicaciones)\/[^\/]+\/[^\/]+\/?$/;
 
