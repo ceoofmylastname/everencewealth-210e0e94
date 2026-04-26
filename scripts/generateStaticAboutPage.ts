@@ -480,7 +480,7 @@ const CRITICAL_CSS = `
   }
 `;
 
-function generateStaticHTML(content: AboutPageData, productionAssets: ProductionAssets): string {
+function generateStaticHTML(content: AboutPageData, productionAssets: ProductionAssets, canonicalUrl: string, hreflangBlock: string): string {
   // Use hardcoded founders if none in database
   const founders = content.founders && content.founders.length > 0 
     ? content.founders 
@@ -491,8 +491,8 @@ function generateStaticHTML(content: AboutPageData, productionAssets: Production
   const apiCredentialSchema = generateAPICredentialSchema();
   const personSchemas = generatePersonSchemas(founders);
   const faqSchema = generateFAQPageSchema(content.faq_entities || []);
-  const breadcrumbSchema = generateBreadcrumbSchema();
-  const webPageSchema = generateWebPageSchema(content);
+  const breadcrumbSchema = generateBreadcrumbSchema(canonicalUrl);
+  const webPageSchema = generateWebPageSchema(content, canonicalUrl);
   
   // Build @graph array with API credential and Person schemas
   const graphItems = [
@@ -511,8 +511,6 @@ function generateStaticHTML(content: AboutPageData, productionAssets: Production
   };
   
   const schemaScript = `<script type="application/ld+json" data-schema="about-graph">${JSON.stringify(schemaGraph, null, 2)}</script>`;
-
-  const canonicalUrl = content.canonical_url || `${BASE_URL}/about`;
 
   const cssLinks = productionAssets.css.map(href => 
     `<link rel="stylesheet" href="${href}" />`
