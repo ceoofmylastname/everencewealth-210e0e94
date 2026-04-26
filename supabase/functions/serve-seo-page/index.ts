@@ -1171,7 +1171,7 @@ async function generateHubPageHtmlAsync(
         '@id': `${BASE_URL}/#organization`,
         name: 'Everence Wealth',
         url: BASE_URL,
-        logo: { '@type': 'ImageObject', url: 'https://assets.cdn.filesafe.space/htr97zzmRc1NMujHbL9R/media/69b7424c5b89c7c557adfe6e.png' },
+        logo: { '@type': 'ImageObject', url: 'https://www.everencewealth.com/logo.png' },
       },
       {
         '@type': 'WebSite',

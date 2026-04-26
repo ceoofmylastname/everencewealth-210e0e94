@@ -151,6 +151,17 @@ function buildSchemas(
     description,
     worksFor: { '@id': `${BASE_URL}/#organization` },
     sameAs: author.linkedin_url ? [author.linkedin_url] : undefined,
+    knowsAbout: [
+      'Indexed Universal Life Insurance',
+      'Tax-Free Retirement Income',
+      'Roth Conversion Strategies',
+      'Sequence of Returns Risk',
+      'High-Earner Tax Strategy',
+      'Whole Life Insurance',
+      'Annuities',
+      'Asset Protection Planning',
+      'Cash-Value Life Insurance',
+    ],
     hasCredential: (author.credentials || []).map((c) => ({
       '@type': 'EducationalOccupationalCredential',
       credentialCategory: 'professional certification',
