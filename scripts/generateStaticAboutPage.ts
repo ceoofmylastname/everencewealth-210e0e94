@@ -646,38 +646,72 @@ export async function generateStaticAboutPage(distDir: string) {
   
   try {
     const productionAssets = getProductionAssets(distDir);
-    
-    const { data: aboutContent, error } = await supabase
+
+    // Fetch EN row first (used as fallback if a language row is missing)
+    const { data: enRow, error: enError } = await supabase
       .from('about_page_content')
       .select('*')
       .eq('language', 'en')
       .single();
 
-    if (error) {
-      console.error('❌ Error fetching about content:', error);
+    if (enError || !enRow) {
+      console.error('❌ Error fetching EN about content:', enError);
       return;
     }
 
-    if (!aboutContent) {
-      console.log('⚠️ No about page content found');
-      return;
-    }
+    // Fetch ES row (optional — fall back to EN content with ES canonical/lang)
+    const { data: esRow } = await supabase
+      .from('about_page_content')
+      .select('*')
+      .eq('language', 'es')
+      .maybeSingle();
 
-    // Parse JSON fields with proper type casting
-    const content: AboutPageData = {
-      ...aboutContent,
-      faq_entities: (aboutContent.faq_entities as unknown as FAQ[]) || [],
-      founders: (aboutContent.founders as unknown as Founder[]) || [],
-      credentials: (aboutContent.credentials as unknown as Credential[]) || []
+    const LANGS: Array<'en' | 'es'> = ['en', 'es'];
+    const rowByLang: Record<'en' | 'es', any> = {
+      en: enRow,
+      es: esRow || { ...enRow, language: 'es' },
     };
 
-    const html = generateStaticHTML(content, productionAssets);
-    const filePath = join(distDir, 'about', 'index.html');
-    
-    mkdirSync(dirname(filePath), { recursive: true });
-    writeFileSync(filePath, html, 'utf-8');
-    
-    console.log('✨ About page generated successfully!');
+    // Hreflang trio shared across both language files (trailing slash mandatory)
+    const hreflangBlock = [
+      `<link rel="alternate" hreflang="en" href="${BASE_URL}/en/about/" />`,
+      `<link rel="alternate" hreflang="es" href="${BASE_URL}/es/about/" />`,
+      `<link rel="alternate" hreflang="x-default" href="${BASE_URL}/en/about/" />`,
+    ].join('\n  ');
+
+    for (const lang of LANGS) {
+      const row = rowByLang[lang];
+      const content: AboutPageData = {
+        ...row,
+        language: lang,
+        faq_entities: (row.faq_entities as unknown as FAQ[]) || [],
+        founders: (row.founders as unknown as Founder[]) || [],
+        credentials: (row.credentials as unknown as Credential[]) || [],
+      };
+
+      const canonicalUrl = `${BASE_URL}/${lang}/about/`;
+      const html = generateStaticHTML(content, productionAssets, canonicalUrl, hreflangBlock);
+      const filePath = join(distDir, lang, 'about', 'index.html');
+      mkdirSync(dirname(filePath), { recursive: true });
+      writeFileSync(filePath, html, 'utf-8');
+      console.log(`✨ /${lang}/about/index.html generated`);
+    }
+
+    // Legacy path: keep dist/about/index.html (defaults to EN canonical /en/about/)
+    // so any pre-existing 301 chain continues to resolve cleanly.
+    const legacyContent: AboutPageData = {
+      ...enRow,
+      language: 'en',
+      faq_entities: (enRow.faq_entities as unknown as FAQ[]) || [],
+      founders: (enRow.founders as unknown as Founder[]) || [],
+      credentials: (enRow.credentials as unknown as Credential[]) || [],
+    };
+    const legacyCanonical = `${BASE_URL}/en/about/`;
+    const legacyHtml = generateStaticHTML(legacyContent, productionAssets, legacyCanonical, hreflangBlock);
+    const legacyPath = join(distDir, 'about', 'index.html');
+    mkdirSync(dirname(legacyPath), { recursive: true });
+    writeFileSync(legacyPath, legacyHtml, 'utf-8');
+    console.log('✨ Legacy /about/index.html generated (canonical → /en/about/)');
   } catch (err) {
     console.error('❌ About page generation failed:', err);
     throw err;
