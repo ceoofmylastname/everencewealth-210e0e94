@@ -489,9 +489,12 @@ async function buildResponse({ request, next, env, ctx }) {
     TWO_SEGMENT_CATCHALL_REGEX.test(pathname)
   ) {
     try {
+      // Normalize path: all_published_slugs view stores paths with trailing
+      // slash. Always look up the trailing-slash variant.
+      const normalizedPath = pathname.endsWith('/') ? pathname : pathname + '/';
       const lookupUrl =
         `${SUPABASE_URL}/rest/v1/all_published_slugs` +
-        `?full_path=eq.${encodeURIComponent(pathname)}&select=slug&limit=1`;
+        `?full_path=eq.${encodeURIComponent(normalizedPath)}&select=slug&limit=1`;
       const lookupResp = await fetch(lookupUrl, {
         headers: {
           apikey: SUPABASE_ANON_KEY,
@@ -505,7 +508,7 @@ async function buildResponse({ request, next, env, ctx }) {
         // Not in published surface. Check if explicitly retired.
         const goneUrl =
           `${SUPABASE_URL}/rest/v1/gone_urls` +
-          `?url_path=eq.${encodeURIComponent(pathname)}&select=id&limit=1`;
+          `?url_path=eq.${encodeURIComponent(normalizedPath)}&select=id&limit=1`;
         const goneResp = await fetch(goneUrl, {
           headers: {
             apikey: SUPABASE_ANON_KEY,
