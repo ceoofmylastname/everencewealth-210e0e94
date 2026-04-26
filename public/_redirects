@@ -76,6 +76,9 @@
 # Buyers Guide - serve SSG HTML
 /:lang/buyers-guide  /:lang/buyers-guide/index.html  200
 
+# About page - serve SSG HTML (en/es)
+/:lang/about  /:lang/about/index.html  200
+
 # Q&A pages - serve pre-rendered static HTML (MUST come before SPA fallback)
 /:lang/qa/:slug  /:lang/qa/:slug/index.html  200
 /:lang/qa  /:lang/qa/index.html  200

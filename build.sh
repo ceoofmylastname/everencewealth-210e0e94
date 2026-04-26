@@ -44,7 +44,7 @@ npx tsx scripts/generateStaticLocationHub.ts dist
 
 # Generate static about page
 echo "👤 Generating static about page..."
-npx tsx scripts/generateStaticAboutPage.ts
+npx tsx scripts/generateStaticAboutPage.ts dist
 
 # Generate static buyers guide pages
 echo "📖 Generating static buyers guide pages..."
