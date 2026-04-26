@@ -485,7 +485,7 @@ async function buildResponse({ request, next, env, ctx }) {
   // do NOT match these regexes, so they fall through untouched.
   // ============================================================
   if (
-    ONE_SEGMENT_CATCHALL_REGEX.test(pathname) ||
+    CONTENT_PATH_CATCHALL_REGEX.test(pathname) ||
     TWO_SEGMENT_CATCHALL_REGEX.test(pathname)
   ) {
     try {
@@ -506,9 +506,13 @@ async function buildResponse({ request, next, env, ctx }) {
 
       if (!exists) {
         // Not in published surface. Check if explicitly retired.
+        // gone_urls rows may have been inserted with or without a trailing
+        // slash; match both variants.
+        const slashed = pathname.endsWith('/') ? pathname : pathname + '/';
+        const unslashed = pathname.endsWith('/') ? pathname.slice(0, -1) : pathname;
         const goneUrl =
           `${SUPABASE_URL}/rest/v1/gone_urls` +
-          `?url_path=eq.${encodeURIComponent(normalizedPath)}&select=id&limit=1`;
+          `?or=(url_path.eq.${encodeURIComponent(slashed)},url_path.eq.${encodeURIComponent(unslashed)})&select=id&limit=1`;
         const goneResp = await fetch(goneUrl, {
           headers: {
             apikey: SUPABASE_ANON_KEY,
