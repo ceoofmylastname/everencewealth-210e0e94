@@ -103,35 +103,27 @@ function urlPath(url: string): string {
 const publishedCache = new Map<string, boolean>();
 
 async function existsInPublished(supabase: SupabaseClient, path: string): Promise<boolean> {
-  if (publishedCache.has(path)) return publishedCache.get(path)!;
+  // all_published_slugs view always stores paths with trailing slash.
+  // Normalize once on input so callers don't have to remember.
+  const normalizedPath = path.endsWith('/') ? path : path + '/';
 
-  // Try the path as-is, with trailing slash, and without trailing slash.
-  // all_published_slugs paths are stored with trailing slash (verified during plan phase).
-  const candidates = [path];
-  if (path.endsWith('/')) {
-    candidates.push(path.slice(0, -1));
-  } else {
-    candidates.push(path + '/');
+  if (publishedCache.has(normalizedPath)) return publishedCache.get(normalizedPath)!;
+
+  const { data, error } = await supabase
+    .from('all_published_slugs')
+    .select('full_path')
+    .eq('full_path', normalizedPath)
+    .maybeSingle();
+
+  if (error) {
+    console.warn(`[gsc-triage] published lookup error for ${normalizedPath}: ${error.message}`);
+    publishedCache.set(normalizedPath, false);
+    return false;
   }
 
-  for (const candidate of candidates) {
-    const { data, error } = await supabase
-      .from('all_published_slugs')
-      .select('full_path')
-      .eq('full_path', candidate)
-      .maybeSingle();
-    if (error) {
-      console.warn(`[gsc-triage] published lookup error for ${candidate}: ${error.message}`);
-      continue;
-    }
-    if (data) {
-      publishedCache.set(path, true);
-      return true;
-    }
-  }
-
-  publishedCache.set(path, false);
-  return false;
+  const exists = data != null;
+  publishedCache.set(normalizedPath, exists);
+  return exists;
 }
 
 // ---------- Decision tree ----------
@@ -175,9 +167,16 @@ async function decide(
     }
 
     case 'not-found': {
+      // Hub URLs (homepage variants like /es, /en/glossary, /en/about) are
+      // NEVER in all_published_slugs (the view UNIONs content slugs only).
+      // Don't blindly route them to ADD_TO_GONE_URLS — that would 410 valid
+      // hubs. Send to FIX_CANONICAL for human inspection.
+      if (!isContentPath(url)) {
+        return { action: 'FIX_CANONICAL', reason: '404 + non-content-path URL — likely hub/static needing manual inspection' };
+      }
       const exists = await existsInPublished(supabase, path);
       if (!exists) {
-        return { action: 'ADD_TO_GONE_URLS', reason: '404 + slug not in published surface' };
+        return { action: 'ADD_TO_GONE_URLS', reason: '404 + content-path slug not in published surface' };
       }
       return { action: 'FIX_CANONICAL', reason: '404 but slug exists — likely path malformation' };
     }

@@ -1,43 +1,73 @@
-## Hotfix: Replace Spanish WhatsApp link in AuthorBio.tsx
+## Hotfix: gscTriageURLs.ts trailing-slash + non-content-path false positives
 
-Single-file surgical edit to remove the lingering Costa del Sol Spanish WhatsApp number and replace the message with wealth-management context.
+Surgical change to `scripts/gscTriageURLs.ts` only. Two edits.
 
-### Change
+### Edit 1 — Simplify `existsInPublished()` (lines 105–135)
 
-**File:** `src/components/blog-article/AuthorBio.tsx`
+Replace the current dual-candidate loop with a single normalized lookup, since `all_published_slugs` always stores paths with a trailing slash. Keeps the existing `publishedCache` to avoid duplicate round trips.
 
-1. Add import at top of file (after existing imports):
-   ```ts
-   import { BUSINESS } from '@/config/business';
-   ```
+```ts
+async function existsInPublished(supabase: SupabaseClient, path: string): Promise<boolean> {
+  // all_published_slugs view always stores paths with trailing slash.
+  // Normalize once on input so callers don't have to remember.
+  const normalizedPath = path.endsWith('/') ? path : path + '/';
 
-2. Replace the WhatsApp `<a>` href on line 131:
+  if (publishedCache.has(normalizedPath)) return publishedCache.get(normalizedPath)!;
 
-   **Before:**
-   ```tsx
-   href="https://wa.me/34630039090?text=Hi,%20I%20have%20a%20question%20about%20Costa%20del%20Sol%20properties"
-   ```
+  const { data, error } = await supabase
+    .from('all_published_slugs')
+    .select('full_path')
+    .eq('full_path', normalizedPath)
+    .maybeSingle();
 
-   **After:**
-   ```tsx
-   href={`https://wa.me/${BUSINESS.telephoneE164.replace(/\+/g, '')}?text=Hi%2C%20I%20saw%20your%20article%20and%20have%20a%20question%20about%20wealth%20management`}
-   ```
+  if (error) {
+    console.warn(`[gsc-triage] published lookup error for ${normalizedPath}: ${error.message}`);
+    publishedCache.set(normalizedPath, false);
+    return false;
+  }
 
-### Notes
+  const exists = data != null;
+  publishedCache.set(normalizedPath, exists);
+  return exists;
+}
+```
 
-- `BUSINESS.telephoneE164` is `+19254337724`; stripping `+` yields the bare `wa.me` digits.
-- No other JSX, props, styles, badges, buttons, or logic are touched.
-- No other files are modified.
+### Edit 2 — Guard `case 'not-found'` against non-content paths (lines 177–183)
 
-### Verification (post-deploy)
+Add an `isContentPath(url)` check before the published-surface lookup so hub URLs (`/es`, `/en/glossary`, `/en/about`) get routed to `FIX_CANONICAL` instead of `ADD_TO_GONE_URLS`.
+
+```ts
+case 'not-found': {
+  // Hub URLs (homepage variants like /es, /en/glossary, /en/about) are
+  // NEVER in all_published_slugs (the view UNIONs content slugs only).
+  // Don't blindly route them to ADD_TO_GONE_URLS — that would 410 valid
+  // hubs. Send to FIX_CANONICAL for human inspection.
+  if (!isContentPath(url)) {
+    return { action: 'FIX_CANONICAL', reason: '404 + non-content-path URL — likely hub/static needing manual inspection' };
+  }
+  const exists = await existsInPublished(supabase, path);
+  if (!exists) {
+    return { action: 'ADD_TO_GONE_URLS', reason: '404 + content-path slug not in published surface' };
+  }
+  return { action: 'FIX_CANONICAL', reason: '404 but slug exists — likely path malformation' };
+}
+```
+
+### Verification
+
+Re-run the triage script against existing CSVs in `raw/`:
 
 ```
-curl -sL https://www.everencewealth.com/en/blog/{slug}/ \
-  | grep -oE 'wa\.me/[0-9]+\?text=[^"]+' | head -1
+npx tsx scripts/gscTriageURLs.ts
 ```
-Expect: `wa.me/19254337724?text=Hi%2C%20I%20saw...`
 
-Project-wide grep should return zero hits:
-```
-grep -RE "\+34 630|\+34630|6300390|630 03 90" src/ public/
-```
+Expected:
+- `ADD_TO_GONE_URLS`: 4 → 2 (drops `/es` and `/en/glossary`)
+- `FIX_CANONICAL`: 52 → 54 (gains the two demoted hubs)
+
+### Out of scope
+
+- All other branches (`soft-404`, `page-with-redirect`, `duplicate-no-canonical`, `crawled-not-indexed`, `discovered-not-indexed`)
+- Regex constants (`CONTENT_PATH_REGEX_ONE`, `CONTENT_PATH_REGEX_TWO`, `COMMA_LEGACY_REGEX`)
+- CSV parsing and output file format
+- Middleware files
