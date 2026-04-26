@@ -546,6 +546,7 @@ function generateStaticHTML(content: AboutPageData, productionAssets: Production
   <title>${sanitizeForHTML(content.meta_title)} | Everence Wealth</title>
   
   <link rel="canonical" href="${canonicalUrl}" />
+  ${hreflangBlock}
   
   <link rel="icon" type="image/x-icon" href="/favicon.ico" />
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
