@@ -292,8 +292,8 @@ function looksLikeRealEstateCompetitor(url: string, sourceName: string): boolean
     signals.push('commercial-url-structure');
   }
   
-  // NOTE: Geographic keywords (marbella, estepona, etc.) are NOT penalized alone
-  // They only matter when combined with property + commercial signals
+  // NOTE: Geographic keywords are NOT penalized alone — only when combined
+  // with property + commercial signals.
   
   const isCompetitor = score >= 3;
   

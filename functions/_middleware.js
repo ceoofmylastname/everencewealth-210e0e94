@@ -429,7 +429,6 @@ async function buildResponse({ request, next, env, ctx }) {
   // 404 BLOCKLIST — Return real HTTP 404 for invalid content
   // ============================================================
   const is404Blocked =
-    /^\/(en|es)\/blog\/costadelsol\//.test(pathname) ||
     /^\/es\/property\//.test(pathname) ||
     pathname === '/blog/category/buying property' ||
     pathname === '/blog/category/retirement planning';

@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import ctaBackground from '@/assets/buyers-guide/luxury-villa-cta.jpg';
 import { useBuyersGuideTranslation } from '@/hooks/useBuyersGuideTranslation';
 import { COMPANY_RESOURCES } from '@/constants/company';
+import { BUSINESS } from '@/config/business';
 
 const trustIcons = [Shield, Award, Users];
 
@@ -76,7 +77,7 @@ export const BuyersGuideCTA: React.FC = () => {
             {/* Contact Options */}
             <div className="space-y-4">
               <a 
-                href="tel:+34630039090"
+                href={`tel:${BUSINESS.telephoneE164}`}
                 className="group flex items-center gap-4 p-5 bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20 hover:bg-white/15 hover:border-prime-gold/40 transition-all duration-300"
               >
                 <div className="w-14 h-14 rounded-xl bg-prime-gold/20 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">

@@ -20,6 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useCreateAgent } from "@/hooks/useCrmAgents";
+import { BUSINESS } from "@/config/business";
 import {
   agentFormSchema,
   AgentFormData,
@@ -142,7 +143,7 @@ export function AddAgentModal({ open, onOpenChange }: AddAgentModalProps) {
             <Input
               id="phone"
               {...register("phone")}
-              placeholder="+34 600 000 000"
+              placeholder={BUSINESS.telephone}
             />
           </div>
 

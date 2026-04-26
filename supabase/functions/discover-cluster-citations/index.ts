@@ -28,10 +28,8 @@ const BLOCKED_DOMAINS = [
   'seloger.com', 'pap.fr', 'leboncoin.fr', 'logic-immo.com',
   'hemnet.se', 'boligsiden.dk', 'finn.no', 'etuovi.com',
   'ingatlan.com', 'properstar.com',
-  'lucasfox.com', 'drumelia.com', 'mpdunne.com', 'pure-living-properties.com',
-  'nvoga.com', 'immoabroad.com', 'terrameridiana.com', 'marbellaforsaleblog.com',
-  'movetomalagaspain.com', 'movetomalaga.com', 'propertyfindermalaga.com',
-  'homenetspain.com',
+  // Cleaned 2026-04-26: removed Del Sol / Marbella / Malaga agency entries
+  // (Everence is US wealth management). Generic luxury brokerages above remain.
 ];
 
 const BLOCKED_KEYWORDS = [

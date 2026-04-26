@@ -11,40 +11,11 @@ const corsHeaders = {
 // ============================================================================
 
 // Layer 1: Hardcoded competitor domains
-const BLOCKED_DOMAINS = [
-  // Major Spanish portals
-  'idealista.com', 'fotocasa.com', 'kyero.com', 'pisos.com', 'habitaclia.com',
-  'milanuncios.com', 'yaencontre.com', 'tucasa.com', 'enalquiler.com',
-  
-  // International portals
-  'rightmove.co.uk', 'zoopla.co.uk', 'onthemarket.com', 'primelocation.com',
-  'properstar.com', 'immowelt.de', 'immobilienscout24.de', 'funda.nl',
-  'jaap.nl', 'pararius.nl', 'seloger.com', 'leboncoin.fr', 'hemnet.se',
-  'boligsiden.dk', 'finn.no', 'etuovi.com', 'oikotie.fi', 'ingatlan.com',
-  
-  // UK-focused Spain portals
-  'thinkspain.com', 'aplaceinthesun.com', 'spainhouses.net', 'eyeonspain.com',
-  'spanishpropertyinsight.com', 'spanishpropertychoice.com', 'vitaloca.com',
-  'costablancapropertyguide.com', 'costadelsol4u.com', 'absolutelyspain.com',
-  
-  // Luxury/international agencies
-  'lucasfox.com', 'engel-voelkers.com', 'sothebysrealty.com', 'christiesrealestate.com',
-  'savills.com', 'knightfrank.com', 'jll.com', 'cbre.com', 'cushmanwakefield.com',
-  
-  // wealth management specific
-  'drumelia.com', 'mpdunne.com', 'panorama.com', 'kristinadeck.com',
-  'startgroup.es', 'pure-living-properties.com', 'lifepropertymarbella.com',
-  'nvoga.com', 'housing-marbella.com', 'inmobiliaria-marbella.com',
-  
-  // Developer sites
-  'taylor-wimpey.es', 'aedas.com', 'kronos-homes.com', 'metrovacesa.com',
-  
-  // Aggregators
-  'spotahome.com', 'nestpick.com', 'housinganyhere.com', 'badi.com',
-  
-  // Malaga-specific competitors
-  'movetomalagaspain.com', 'movetomalaga.com', 'propertyfindermalaga.com',
-];
+// Cleaned 2026-04-26: removed Del Sol / Spanish real-estate hardcoded
+// blocklist (Everence is US wealth management). Generic luxury/international
+// brokerages also dropped — DB blocklist (approved_domains/blocked_domains)
+// is the source of truth for active blocks.
+const BLOCKED_DOMAINS: string[] = [];
 
 // Layer 2: Blocked keywords in domains/URLs
 const BLOCKED_KEYWORDS = [
@@ -101,7 +72,7 @@ const AUTHORITY_DOMAINS = [
   'elpais.com', 'elmundo.es', 'abc.es', 'lavanguardia.com', 'expansion.com',
   
   // Tourism authorities
-  'spain.info', 'andalucia.org', 'visitcostadelsol.com',
+  // (Spanish tourism boards removed 2026-04-26 — not authoritative for US wealth.)
 ];
 
 // Government TLD patterns
@@ -109,7 +80,7 @@ const GOVERNMENT_PATTERNS = [
   '.gov', '.gob', '.gouv', '.gov.uk', '.gov.es',
   'ine.es', 'insee.fr', 'destatis.de', 'scb.se', 'ssb.no', 'dst.dk',
   'ksh.hu', 'cbs.nl', 'stat.fi', 'boe.es', 'seg-social.es',
-  'juntadeandalucia.es', 'malagaturismo.com',
+  // (Junta de Andalucía / Malaga tourism removed 2026-04-26.)
 ];
 
 // ============================================================================

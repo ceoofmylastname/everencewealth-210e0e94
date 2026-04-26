@@ -13,6 +13,7 @@ import 'react-phone-number-input/style.css';
 import { LanguageCode } from '@/utils/landing/languageDetection';
 import { submitLeadFunction } from '@/utils/landing/leadSubmission';
 import { trackEvent } from '@/utils/landing/analytics';
+import { BUSINESS } from '@/config/business';
 
 // Schema Definition
 const formSchema = z.object({
@@ -133,10 +134,10 @@ const LeadForm: React.FC<LeadFormProps> = ({
                         render={({ field }) => (
                             <PhoneInput
                                 international
-                                defaultCountry="ES"
+                                defaultCountry="US"
                                 value={field.value}
                                 onChange={field.onChange}
-                                placeholder="+34 600 123 456"
+                                placeholder={BUSINESS.telephone}
                                 className={`flex h-12 w-full rounded-sm border border-gray-200 bg-gray-50 px-4 py-2 text-base text-landing-navy focus-within:ring-2 focus-within:ring-landing-gold focus-within:ring-offset-2 ${errors.whatsapp_sms ? "border-red-500" : ""}`}
                             />
                         )}

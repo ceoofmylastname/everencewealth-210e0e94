@@ -16,21 +16,10 @@ const MAX_CHUNKS_TO_SEARCH = 5; // Search up to 100 domains (5 chunks × 20 doma
 // ═══════════════════════════════════════════════════════════════════
 // COMPETITOR AGENCIES - ALWAYS BLOCKED
 // ═══════════════════════════════════════════════════════════════════
-const COMPETITOR_AGENCIES = [
-  'panoramamarbella.com', 'panoramaproperties.com', 'christopherclover.com',
-  'drumelia.com', 'landmar.com', 'crystal-shore.com', 'marbella-hills.com',
-  'marbellaproperties.com', 'costadelsolproperties.com', 'inmobiliaria-marbella.com',
-  'viva-estates.com', 'inmogolf.com', 'habitat-marbella.com',
-  'engel-voelkers.com', 'sothebysrealty.com', 'knightfrank.com', 'savills.com',
-  'christiesrealestate.com', 'lucasfox.com', 'coldwellbanker.com', 'century21.es',
-  're-max.es', 'remax.es', 'berkshirehathaway.com', 'compass.com', 'kw.com',
-  'kellerwilliams.com', 'gilmar.es', 'promora.es', 'solvia.es', 'oi-realtor.com',
-  'housers.com', 'propertyinvestment.com', 'buyspanishproperty.com',
-  'investinspain.com', 'spanish-property-investment.com', 'aplaceinthesun.com',
-  'kyero.com', 'thinkspain.com', 'spanish-property.com', 'propertyguides.com',
-  'spainhouses.net', 'spanishproperties.com', 'spanishhomes.com',
-  'spanish-property-centre.com', 'primeinvest.es',
-];
+// Cleaned 2026-04-26: removed Del Sol / Spanish real-estate competitor list
+// (Everence is US wealth management — none of these are competitors).
+// Database blacklist (approved_domains/blocked_domains) handles real blocks.
+const COMPETITOR_AGENCIES: string[] = [];
 
 const BLOCKED_DOMAIN_KEYWORDS = [
   'property', 'properties', 'realestate', 'real-estate', 'estate-agent',
