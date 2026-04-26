@@ -1,52 +1,93 @@
-## P0 Hotfix: Catchall 404'ing real published URLs
+## Goal
 
-### Problem
-The PROMPT 17 catchall in `functions/_middleware.js` (lines 487–535) queries the `all_published_slugs` view with `eq.full_path=<pathname>`. The view stores paths **with** trailing slashes (e.g. `/en/blog/foo/`), but requests without a trailing slash (e.g. `/en/blog/foo`) miss the lookup and fall into the 404/410 branch — even when the page is published.
+Extend PROMPT 17 catchall in `functions/_middleware.js` so multi-segment junk URLs under content prefixes (e.g. `/en/blog/costadelsol/best-neighborhoods`) hit the catchall instead of falling through to the SSR shell, and make the `gone_urls` lookup tolerant of both trailing-slash variants. Surgical changes only — no signature/response shape changes.
 
-This is hitting production right now across `/blog/`, `/qa/`, `/compare/`, `/comparisons/`, `/comparar/`, `/strategies/`, `/estrategias/`, `/guides/`, `/glossary/`, `/state-guides/`, and 2-segment `/locations/<city>/<topic>/` style URLs.
+## Changes (single file: `functions/_middleware.js`)
 
-### Fix (surgical, 2 lookup URLs only)
+### Change 1 — Rename + broaden the one-segment catchall regex (lines 31-32)
 
-In `functions/_middleware.js`, inside the catchall block, before the `all_published_slugs` lookup at line ~492, add a single path-normalization line and reuse it for both lookups:
-
+Before:
 ```js
-// Normalize path: all_published_slugs view stores paths with trailing
-// slash. Always look up the trailing-slash variant.
-const normalizedPath = pathname.endsWith('/') ? pathname : pathname + '/';
-const lookupUrl =
-  `${SUPABASE_URL}/rest/v1/all_published_slugs` +
-  `?full_path=eq.${encodeURIComponent(normalizedPath)}&select=slug&limit=1`;
+const ONE_SEGMENT_CATCHALL_REGEX =
+  /^\/(en|es)\/(blog|qa|compare|comparisons|comparar|estrategias|strategies|guides|glossary|state-guides)\/[^\/]+\/?$/;
 ```
 
-And in the `gone_urls` lookup just below (line ~507):
+After:
+```js
+const CONTENT_PATH_CATCHALL_REGEX =
+  /^\/(en|es)\/(blog|qa|compare|comparisons|comparar|estrategias|strategies|guides|glossary|state-guides)\/.+$/;
+```
 
+`TWO_SEGMENT_CATCHALL_REGEX` (line 33-34, locations) is left untouched.
+
+### Change 2 — Update the catchall test reference (line 488)
+
+Before:
+```js
+ONE_SEGMENT_CATCHALL_REGEX.test(pathname) ||
+TWO_SEGMENT_CATCHALL_REGEX.test(pathname)
+```
+
+After:
+```js
+CONTENT_PATH_CATCHALL_REGEX.test(pathname) ||
+TWO_SEGMENT_CATCHALL_REGEX.test(pathname)
+```
+
+No other file references the old constant — it is local to `functions/_middleware.js`.
+
+### Change 3 — Tolerant `gone_urls` lookup (lines 510-511)
+
+`all_published_slugs` lookup at lines 494-497 stays exactly as-is (view always stores trailing slash; `normalizedPath` is correct).
+
+Before:
 ```js
 const goneUrl =
   `${SUPABASE_URL}/rest/v1/gone_urls` +
   `?url_path=eq.${encodeURIComponent(normalizedPath)}&select=id&limit=1`;
 ```
 
-Both lookups use the same `normalizedPath` so behavior is identical regardless of whether the request URL has a trailing slash.
-
-### Untouched (per guard rails)
-- Catchall regex definitions, response shape, headers, status logic
-- Canonical/hreflang HTMLRewriter dedup
-- Comma-strip 301 redirect
-- Everything outside lines ~492–508
-
-### Verification (post-deploy)
+After:
+```js
+const slashed = pathname.endsWith('/') ? pathname : pathname + '/';
+const unslashed = pathname.endsWith('/') ? pathname.slice(0, -1) : pathname;
+const goneUrl =
+  `${SUPABASE_URL}/rest/v1/gone_urls` +
+  `?or=(url_path.eq.${encodeURIComponent(slashed)},url_path.eq.${encodeURIComponent(unslashed)})&select=id&limit=1`;
 ```
-curl -sI https://www.everencewealth.com/en/blog/understanding-the-retirement-gap-why-it-matters-now-more-than-ever | head -1
-# expect: HTTP/2 200
 
+## Out of scope (do not touch)
+
+- `TWO_SEGMENT_CATCHALL_REGEX`
+- `all_published_slugs` lookup / `normalizedPath` derivation
+- Response shape, status code logic, headers
+- HTMLRewriter canonical/hreflang dedup
+- Comma-strip 301 redirect
+- Any file other than `functions/_middleware.js`
+
+## Verification (post-deploy)
+
+```bash
+# Real published URL still 200 (with and without slash)
+curl -sI https://www.everencewealth.com/en/blog/understanding-the-retirement-gap-why-it-matters-now-more-than-ever | head -1
+curl -sI https://www.everencewealth.com/en/blog/understanding-the-retirement-gap-why-it-matters-now-more-than-ever/ | head -1
+# Expected: HTTP/2 200
+
+# Bad 1-segment slug still 404 (both variants)
 curl -sI https://www.everencewealth.com/en/blog/this-slug-does-not-exist | head -1
 curl -sI https://www.everencewealth.com/en/blog/this-slug-does-not-exist/ | head -1
-# expect: HTTP/2 404 (both)
+# Expected: HTTP/2 404
 
+# Multi-segment Del Sol leftover NOW 410 (was 200)
 curl -sI https://www.everencewealth.com/en/blog/costadelsol/best-neighborhoods | head -1
 curl -sI https://www.everencewealth.com/en/blog/costadelsol/best-neighborhoods/ | head -1
-# expect: HTTP/2 410 (both — gone_urls still match)
-```
+# Expected: HTTP/2 410
 
-### Files changed
-- `functions/_middleware.js` (one block, ~3 lines added/changed)
+# Multi-segment garbage not in gone_urls → 404
+curl -sI https://www.everencewealth.com/en/blog/random/garbage/path | head -1
+# Expected: HTTP/2 404
+
+# Locations 2-segment routing unchanged
+curl -sI https://www.everencewealth.com/en/locations/florida/this-city-does-not-exist | head -1
+# Expected: HTTP/2 404
+```
