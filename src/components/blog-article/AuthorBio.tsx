@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Linkedin, MessageCircle, Star, ShieldCheck, Award } from "lucide-react";
 import { Author } from "@/types/blog";
 import { translations } from "@/i18n/translations";
+import { BUSINESS } from "@/config/business";
 
 interface AuthorBioProps {
   author: Author;
@@ -128,7 +129,7 @@ export const AuthorBio = ({ author, language = 'en', localizedBio }: AuthorBioPr
                 className="flex-1 min-h-[48px] bg-[#25D366] hover:bg-[#1fb355] text-white shadow-md hover:shadow-lg active:scale-[0.98]"
               >
                 <a
-                  href="https://wa.me/34630039090?text=Hi,%20I%20have%20a%20question%20about%20Costa%20del%20Sol%20properties"
+                  href={`https://wa.me/${BUSINESS.telephoneE164.replace(/\+/g, '')}?text=Hi%2C%20I%20saw%20your%20article%20and%20have%20a%20question%20about%20wealth%20management`}
                   target="_blank"
                   rel="noopener noreferrer"
                 >
