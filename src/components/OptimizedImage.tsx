@@ -31,6 +31,19 @@ const getSupabaseTransformUrl = (url: string, width?: number, height?: number): 
   return `${transformedUrl}?${params.toString()}`;
 };
 
+/**
+ * Derive a sibling .webp URL from a .png/.jpg/.jpeg source.
+ * Returns null when source isn't a convertible raster (svg, gif, already webp,
+ * data URIs, or transformation URLs that already specify a different format).
+ */
+const deriveWebpUrl = (url: string): string | null => {
+  if (!url) return null;
+  if (url.startsWith('data:')) return null;
+  if (/\.webp(\?|$)/i.test(url)) return null;
+  if (!/\.(png|jpe?g)(\?|$)/i.test(url)) return null;
+  return url.replace(/\.(png|jpe?g)(\?|$)/i, '.webp$2');
+};
+
 export const OptimizedImage = ({
   src,
   alt,
@@ -49,25 +62,30 @@ export const OptimizedImage = ({
     ? getSupabaseTransformUrl(src, transformWidth, transformHeight)
     : src;
 
+  const webpSrc = deriveWebpUrl(optimizedSrc);
+
   return (
     <div 
       className={`relative overflow-hidden ${className}`}
       style={width && height ? { aspectRatio: `${width}/${height}` } : undefined}
     >
-      <img
-        src={optimizedSrc}
-        alt={alt}
-        width={width}
-        height={height}
-        loading={priority ? 'eager' : 'lazy'}
-        decoding={priority ? 'sync' : 'async'}
-        fetchPriority={priority ? 'high' : 'auto'}
-        onLoad={() => setIsLoaded(true)}
-        className={`transition-all duration-500 ${
-          isLoaded ? 'opacity-100 blur-0' : 'opacity-0 blur-sm scale-105'
-        } ${className}`}
-        {...props}
-      />
+      <picture>
+        {webpSrc && <source srcSet={webpSrc} type="image/webp" />}
+        <img
+          src={optimizedSrc}
+          alt={alt}
+          width={width}
+          height={height}
+          loading={priority ? 'eager' : 'lazy'}
+          decoding={priority ? 'sync' : 'async'}
+          fetchPriority={priority ? 'high' : 'auto'}
+          onLoad={() => setIsLoaded(true)}
+          className={`transition-all duration-500 ${
+            isLoaded ? 'opacity-100 blur-0' : 'opacity-0 blur-sm scale-105'
+          } ${className}`}
+          {...props}
+        />
+      </picture>
       {!isLoaded && (
         <div className="absolute inset-0 bg-muted">
           <div className="w-full h-full bg-gradient-to-r from-muted via-muted-foreground/10 to-muted animate-pulse" />

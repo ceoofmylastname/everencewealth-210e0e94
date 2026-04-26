@@ -27,6 +27,42 @@
 /llm.txt
   Content-Type: text/plain; charset=utf-8
 
+# Hashed/immutable build assets — 1 year
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/static/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Web fonts — 1 year
+/*.woff2
+  Cache-Control: public, max-age=31536000, immutable
+
+# Brand + media assets — 30 days
+/og/*
+  Cache-Control: public, max-age=2592000
+
+/logo/*
+  Cache-Control: public, max-age=2592000
+
+/hero/*
+  Cache-Control: public, max-age=2592000
+
+/*.png
+  Cache-Control: public, max-age=2592000
+
+/*.jpg
+  Cache-Control: public, max-age=2592000
+
+/*.webp
+  Cache-Control: public, max-age=2592000
+
+/*.svg
+  Cache-Control: public, max-age=2592000
+
+/favicon.ico
+  Cache-Control: public, max-age=2592000
+
 # Q&A pages - aggressive CDN caching + crawler headers
 /*/qa/*
   Cache-Control: public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400
@@ -37,3 +73,9 @@
 # JSON files
 /*.json
   Content-Type: application/json; charset=utf-8
+
+# Catch-all security headers — must remain LAST (Cloudflare reads top-down)
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=()
