@@ -171,7 +171,7 @@ const LandingLayout: React.FC<LandingLayoutProps> = ({ language, translations })
                     {/* Left: Logo on Mobile */}
                     <div className="lg:hidden cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
                         <img 
-                            src="https://assets.cdn.filesafe.space/htr97zzmRc1NMujHbL9R/media/69b7424c5b89c7c557adfe6e.png"
+                            src="/logo.png"
                             alt="Everence Wealth"
                             className="h-10 sm:h-12 w-auto object-contain drop-shadow-[0_2px_4px_rgba(0,0,0,0.2)]"
                         />
@@ -183,7 +183,7 @@ const LandingLayout: React.FC<LandingLayoutProps> = ({ language, translations })
                         onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
                     >
                         <img 
-                            src="https://assets.cdn.filesafe.space/htr97zzmRc1NMujHbL9R/media/69b7424c5b89c7c557adfe6e.png"
+                            src="/logo.png"
                             alt="Everence Wealth"
                             className="h-14 md:h-16 w-auto object-contain drop-shadow-[0_2px_4px_rgba(0,0,0,0.2)]"
                         />

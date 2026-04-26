@@ -71,7 +71,7 @@ export const Footer: React.FC = () => {
           <div className="lg:col-span-1">
             <div className="mb-4">
               <img
-                src="https://assets.cdn.filesafe.space/htr97zzmRc1NMujHbL9R/media/69b7424c5b89c7c557adfe6e.png"
+                src="/logo.png"
                 alt="Everence Wealth"
                 className="h-14 md:h-16 w-auto object-contain brightness-0 invert drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]"
               />
