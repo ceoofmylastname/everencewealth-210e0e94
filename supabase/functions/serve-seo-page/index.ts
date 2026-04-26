@@ -1171,7 +1171,7 @@ async function generateHubPageHtmlAsync(
         '@id': `${BASE_URL}/#organization`,
         name: 'Everence Wealth',
         url: BASE_URL,
-        logo: { '@type': 'ImageObject', url: 'https://assets.cdn.filesafe.space/htr97zzmRc1NMujHbL9R/media/69b7424c5b89c7c557adfe6e.png' },
+        logo: { '@type': 'ImageObject', url: 'https://www.everencewealth.com/logo.png' },
       },
       {
         '@type': 'WebSite',
@@ -1409,7 +1409,7 @@ function generateBuyersGuidePageHtml(lang: string): string {
         "url": BASE_URL,
         "logo": {
           "@type": "ImageObject",
-          "url": "https://assets.cdn.filesafe.space/htr97zzmRc1NMujHbL9R/media/69b7424c5b89c7c557adfe6e.png"
+          "url": "https://www.everencewealth.com/logo.png"
         }
       },
       {
@@ -1639,7 +1639,7 @@ const ORGANIZATION_SCHEMA = {
   "url": BASE_URL,
   "logo": {
     "@type": "ImageObject",
-    "url": "https://assets.cdn.filesafe.space/htr97zzmRc1NMujHbL9R/media/69b7424c5b89c7c557adfe6e.png",
+    "url": "https://www.everencewealth.com/logo.png",
     "width": 1200,
     "height": 630
   },
@@ -1760,7 +1760,7 @@ function generateBlogPostingSchema(metadata: PageMetadata): string {
     "description": metadata.meta_description,
     "image": {
       "@type": "ImageObject",
-      "url": metadata.featured_image_url || "https://assets.cdn.filesafe.space/htr97zzmRc1NMujHbL9R/media/69b7424c5b89c7c557adfe6e.png",
+      "url": metadata.featured_image_url || "https://www.everencewealth.com/logo.png",
       "caption": metadata.featured_image_alt || metadata.headline
     },
     "datePublished": metadata.date_published || new Date().toISOString(),
@@ -1848,7 +1848,7 @@ function generateArticleSchema(metadata: PageMetadata): string {
     "@id": `${metadata.canonical_url}#article`,
     "headline": metadata.headline,
     "description": metadata.meta_description,
-    "image": metadata.featured_image_url || "https://assets.cdn.filesafe.space/htr97zzmRc1NMujHbL9R/media/69b7424c5b89c7c557adfe6e.png",
+    "image": metadata.featured_image_url || "https://www.everencewealth.com/logo.png",
     "datePublished": metadata.date_published || new Date().toISOString(),
     "dateModified": metadata.date_modified || new Date().toISOString(),
     "inLanguage": LOCALE_MAP[metadata.language] || metadata.language,
@@ -1902,7 +1902,7 @@ function generateFinancialServiceSchema(metadata: PageMetadata): string {
     "url": metadata.canonical_url,
     "image": {
       "@type": "ImageObject",
-      "url": metadata.featured_image_url || "https://assets.cdn.filesafe.space/htr97zzmRc1NMujHbL9R/media/69b7424c5b89c7c557adfe6e.png",
+      "url": metadata.featured_image_url || "https://www.everencewealth.com/logo.png",
       "width": 1200,
       "height": 630
     },
@@ -2519,7 +2519,7 @@ function generateArticleBody(metadata: PageMetadata): string {
     <header class="site-header">
       <nav class="nav-container">
         <a href="${langPrefix}/" class="logo-link">
-          <img src="https://assets.cdn.filesafe.space/htr97zzmRc1NMujHbL9R/media/69b7424c5b89c7c557adfe6e.png" alt="Everence Wealth" class="logo">
+          <img src="https://www.everencewealth.com/logo.png" alt="Everence Wealth" class="logo">
         </a>
         <div class="nav-links">
           <a href="${langPrefix}/properties">${nav.properties}</a>
@@ -2647,7 +2647,7 @@ ${hreflangTags}
   <meta property="og:url" content="${metadata.canonical_url}" />
   <meta property="og:title" content="${escapedTitle}" />
   <meta property="og:description" content="${escapedDescription}" />
-  <meta property="og:image" content="${metadata.featured_image_url || 'https://assets.cdn.filesafe.space/htr97zzmRc1NMujHbL9R/media/69b7424c5b89c7c557adfe6e.png'}" />
+  <meta property="og:image" content="${metadata.featured_image_url || 'https://www.everencewealth.com/logo.png'}" />
   <meta property="og:image:alt" content="${escapeHtml(metadata.featured_image_alt) || escapedTitle}" />
   <meta property="og:locale" content="${locale}" />
   <meta property="og:site_name" content="Everence Wealth" />
@@ -2657,7 +2657,7 @@ ${hreflangTags}
   <meta name="twitter:url" content="${metadata.canonical_url}" />
   <meta name="twitter:title" content="${escapedTitle}" />
   <meta name="twitter:description" content="${escapedDescription}" />
-  <meta name="twitter:image" content="${metadata.featured_image_url || 'https://assets.cdn.filesafe.space/htr97zzmRc1NMujHbL9R/media/69b7424c5b89c7c557adfe6e.png'}" />
+  <meta name="twitter:image" content="${metadata.featured_image_url || 'https://www.everencewealth.com/logo.png'}" />
   <meta name="twitter:image:alt" content="${escapeHtml(metadata.featured_image_alt) || escapedTitle}" />
   
   <!-- Article Meta -->
@@ -2896,7 +2896,7 @@ function generate410GoneHtml(lang: string = 'en'): string {
 <body>
   <div class="logo-container">
     <a href="${langPrefix}/">
-      <img src="https://assets.cdn.filesafe.space/htr97zzmRc1NMujHbL9R/media/69b7424c5b89c7c557adfe6e.png" alt="Everence Wealth" class="logo">
+      <img src="https://www.everencewealth.com/logo.png" alt="Everence Wealth" class="logo">
     </a>
   </div>
   <div class="container">
@@ -3176,7 +3176,7 @@ function generateStrategyHtml(lang: string, slugRaw: string): string | null {
   <header class="site-header">
     <nav class="nav-container">
       <a href="${langPrefix}/" class="logo-link">
-        <img src="https://assets.cdn.filesafe.space/htr97zzmRc1NMujHbL9R/media/69b7424c5b89c7c557adfe6e.png" alt="Everence Wealth" class="logo">
+        <img src="https://www.everencewealth.com/logo.png" alt="Everence Wealth" class="logo">
       </a>
       <div class="nav-links">
         <a href="${langPrefix}/${lang === 'es' ? 'estrategias' : 'strategies'}/iul">${stratLabel}</a>
@@ -3258,7 +3258,7 @@ function generateHomeHtml(lang: 'en' | 'es'): string {
     '@type': 'FinancialService',
     'name': 'Everence Wealth',
     'url': BASE_URL,
-    'logo': 'https://assets.cdn.filesafe.space/htr97zzmRc1NMujHbL9R/media/69b7424c5b89c7c557adfe6e.png',
+    'logo': 'https://www.everencewealth.com/logo.png',
     'description': description,
     'sameAs': [],
     'areaServed': { '@type': 'Country', 'name': 'United States' },
@@ -3345,7 +3345,7 @@ function generateHomeHtml(lang: 'en' | 'es'): string {
   <header class="site-header">
     <nav class="nav-container">
       <a href="${langPrefix}/" class="logo-link">
-        <img src="https://assets.cdn.filesafe.space/htr97zzmRc1NMujHbL9R/media/69b7424c5b89c7c557adfe6e.png" alt="Everence Wealth" class="logo">
+        <img src="https://www.everencewealth.com/logo.png" alt="Everence Wealth" class="logo">
       </a>
       <div class="nav-links">
         <a href="${langPrefix}/${isEs ? 'estrategias' : 'strategies'}/iul">${stratLabel}</a>
