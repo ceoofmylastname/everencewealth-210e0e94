@@ -252,7 +252,7 @@ export function generateWebPageSchema(content: AboutPageContent) {
     },
     "primaryImageOfPage": {
       "@type": "ImageObject",
-      "url": "https://assets.cdn.filesafe.space/htr97zzmRc1NMujHbL9R/media/69b7424c5b89c7c557adfe6e.png"
+      "url": "https://www.everencewealth.com/logo.png"
     },
     "speakable": {
       "@type": "SpeakableSpecification",

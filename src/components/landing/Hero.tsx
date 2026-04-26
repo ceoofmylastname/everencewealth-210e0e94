@@ -1,8 +1,10 @@
 import React from 'react';
 import { Play } from 'lucide-react';
 import { useScrollAnimation } from '@/hooks/useScrollAnimation';
-import heroImageDesktop from '@/assets/hero-landing-desktop.jpg';
-import heroImageMobile from '@/assets/hero-landing-mobile.jpg';
+
+// Hero images served from /public for stable URLs (preload + cache headers).
+const heroImageDesktop = '/hero/hero-landing-desktop.jpg';
+const heroImageMobile = '/hero/hero-landing-mobile.jpg';
 
 interface HeroProps {
     onStartChat: () => void;

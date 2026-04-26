@@ -74,7 +74,7 @@ const organizationSchema = {
   "url": BASE_URL,
   "logo": {
     "@type": "ImageObject",
-    "url": "https://assets.cdn.filesafe.space/htr97zzmRc1NMujHbL9R/media/69b7424c5b89c7c557adfe6e.png",
+    "url": "https://www.everencewealth.com/logo.png",
     "width": 1200,
     "height": 630
   },
@@ -284,7 +284,7 @@ export function generateOrganizationSchema() {
     "url": BASE_URL,
     "logo": {
       "@type": "ImageObject",
-      "url": "https://assets.cdn.filesafe.space/htr97zzmRc1NMujHbL9R/media/69b7424c5b89c7c557adfe6e.png",
+      "url": "https://www.everencewealth.com/logo.png",
       "width": 1200,
       "height": 630
     },
