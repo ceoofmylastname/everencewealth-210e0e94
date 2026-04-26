@@ -1389,14 +1389,14 @@ const BUYERS_GUIDE_META: Record<string, {
  */
 function generateBuyersGuidePageHtml(lang: string): string {
   const locale = LOCALE_MAP[lang] || 'en_GB'
-  const canonicalUrl = `${BASE_URL}/${lang}/buyers-guide`
+  const canonicalUrl = withTrailingSlash(`${BASE_URL}/${lang}/buyers-guide`)
   const content = BUYERS_GUIDE_META[lang] || BUYERS_GUIDE_META.en
   
   // Generate hreflang tags for all 10 languages + x-default
   const hreflangTags = SUPPORTED_LANGUAGES.map(langCode => 
-    `  <link rel="alternate" hreflang="${langCode}" href="${BASE_URL}/${langCode}/buyers-guide" />`
+    `  <link rel="alternate" hreflang="${langCode}" href="${withTrailingSlash(`${BASE_URL}/${langCode}/buyers-guide`)}" />`
   ).join('\n')
-  const xDefaultTag = `  <link rel="alternate" hreflang="x-default" href="${BASE_URL}/en/buyers-guide" />`
+  const xDefaultTag = `  <link rel="alternate" hreflang="x-default" href="${withTrailingSlash(`${BASE_URL}/en/buyers-guide`)}" />`
   
   // Generate JSON-LD schema with WebPage and HowTo types
   const schemaGraph = {

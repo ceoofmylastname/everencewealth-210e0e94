@@ -1,290 +1,133 @@
-# PROMPT 20 — Everence P0 Critical Fixes
+## Goal
 
-Close 4 P0 findings from the AI citation audit. Each item is currently blocking confident citation by ChatGPT, Claude, Perplexity, and Google AI Overviews.
+Force the three lingering P0 fixes from PROMPT 20 over the line:
 
-## Verified before writing this plan
-
-| Check | Result |
-|---|---|
-| `src/config/business.ts` is the single source of truth | ✅ Confirmed (BUSINESS frozen object) |
-| Comma-strip 301, PROMPT 17 catchall, `injectSeoTags()` HTMLRewriter | ✅ Located in `functions/_middleware.js` — will not touch |
-| Blog `date_modified` diversity | ❌ **132 articles, only 2 distinct values** (synthetic) |
-| QA `date_modified` diversity | ✅ 528 pages, 401 distinct (already healthy — no backfill needed) |
-| `/llm.txt` (singular) content-type | ✅ `text/plain` (file exists in `public/`) |
-| `/llms.txt` content-type | ❌ `text/html` (file does not exist, falls to SPA) |
-| `/en/about/` canonical | ❌ Resolves to `https://www.everencewealth.com` (homepage) |
-| Blog/QA detail canonical trailing slash | ❌ Emitted **without** trailing slash; URL has one |
-
-The root cause for each finding is now isolated, so the fix list below is surgical.
-
-## Guard rails (will not modify)
-
-- Any existing file under `supabase/migrations/` (only ADD a new migration)
-- Comma-strip 301 redirect block (`functions/_middleware.js`)
-- `injectSeoTags()` HTMLRewriter dedup logic
-- `CONTENT_PATH_CATCHALL_REGEX` / `TWO_SEGMENT_CATCHALL_REGEX` block + its trailing-slash normalization
-- Static-asset bypass at line 451–467 (must stay first)
-- `enforce_fiduciary_term_block()` compliance trigger
-- Any `BUSINESS.*` field in `src/config/business.ts`
+1. Edge function emits canonicals/hreflangs without trailing slash
+2. `/en/about/` and `/es/about/` fall to the SPA shell with wrong canonical
+3. Cloudflare HTML cache is serving stale dateModified
 
 ---
 
-## P0-1 — `date_modified` content-aware trigger + staggered backfill
+## Issue 1 — `serve-seo-page` returns bare canonicals
 
-**Scope**: blog only. QA is already healthy (401 distinct values).
+### What I verified by reading the code
 
-### New migration: `supabase/migrations/<timestamp>_blog_date_modified_change_detection.sql`
+`withTrailingSlash` IS already present in `supabase/functions/serve-seo-page/index.ts` and IS already wrapping every URL that flows into the JSON response:
 
-```sql
--- Content-change-aware date_modified for blog_articles.
--- Only bumps on actual editorial changes; ignores cosmetic UPDATEs.
-CREATE OR REPLACE FUNCTION public.update_blog_date_modified_on_change()
-RETURNS TRIGGER
-LANGUAGE plpgsql
-SET search_path TO 'public'
-AS $$
-BEGIN
-  IF (
-    NEW.headline         IS DISTINCT FROM OLD.headline
-    OR NEW.meta_title    IS DISTINCT FROM OLD.meta_title
-    OR NEW.meta_description IS DISTINCT FROM OLD.meta_description
-    OR NEW.detailed_content IS DISTINCT FROM OLD.detailed_content
-    OR NEW.speakable_answer IS DISTINCT FROM OLD.speakable_answer
-  ) THEN
-    NEW.date_modified := NOW();
-  ELSE
-    NEW.date_modified := OLD.date_modified;
-  END IF;
-  RETURN NEW;
-END;
-$$;
+- `metadata.canonical_url` is wrapped at lines 393, 455, 518, 653 (QA / blog / comparison / location)
+- Hub generator wraps at 1143–1146
+- `generateHreflangTags()` wraps at 740 / 749
+- QA hreflang generator wraps at 125–126
 
-DROP TRIGGER IF EXISTS trg_blog_date_modified_change ON public.blog_articles;
-CREATE TRIGGER trg_blog_date_modified_change
-  BEFORE UPDATE ON public.blog_articles
-  FOR EACH ROW EXECUTE FUNCTION public.update_blog_date_modified_on_change();
+The JSON response field at line 3789 (`canonical: metadata.canonical_url`) is fine because `metadata.canonical_url` is already a wrapped value.
 
--- Staggered backfill: spread the 132 synthetic timestamps across the
--- publish window using date_published + a deterministic per-row offset.
--- Capped so no value exceeds NOW().
-UPDATE public.blog_articles
-SET date_modified = LEAST(
-  NOW(),
-  COALESCE(date_published, created_at) + (random() * INTERVAL '60 days')
-)
-WHERE status = 'published'
-  AND date_modified IN (
-    -- Cover the 2 synthetic values we found in production
-    '2026-04-25 01:50:51.090765+00'::timestamptz,
-    '2026-04-24 20:56:22.885046+00'::timestamptz
-  );
+The user's curl returned a bare canonical. With the source code already correct, the only consistent explanation is: **the edge function was never redeployed after PROMPT 20.** Lovable Cloud does deploy edge functions on commit, but a failed/skipped deploy would leave the old binary live and produce exactly this symptom.
+
+### One real gap remaining
+
+`generateBuyersGuidePageHtml()` (line 1390) builds canonical + hreflang + og:url WITHOUT `withTrailingSlash`. This is a real PROMPT 20 miss.
+
+### Fix
+
+a. Wrap the buyers-guide canonical + 10 hreflang + x-default + og:url with `withTrailingSlash` (lines 1392, 1397, 1399, plus the schema graph references at 1417, 1418, 1430, 1444, 1447).
+
+b. Force a fresh deploy of `serve-seo-page` via the deploy tool so the live edge function picks up both the PROMPT 20 changes and (a).
+
+### Verification (after deploy)
+
+```
+curl -sL "https://zbzrmpmqijvmjbhctfoe.supabase.co/functions/v1/serve-seo-page?path=/en/blog/understanding-the-retirement-gap-why-it-matters-now-more-than-ever/" \
+  -H "apikey: <anon>" | grep -oE '"canonical":\s*"[^"]+"'
 ```
 
-QA pages already have a healthy spread; **do not** apply the backfill there. The trigger pattern is also not added to QA because audit shows QA dateModified is already varied. (If QA later flattens, we can revisit.)
-
-`location_pages` and `comparison_pages` also store `date_modified`; the audit did not flag them as P0, so we leave them alone in this PR to keep the surgical scope.
-
-### Out of scope
-
-- Touching `protect_date_published()` (compliance trigger stays as-is)
-- Modifying `date_published` on any row
+Expected: ends with `/`.
 
 ---
 
-## P0-2 — `/llms.txt` and `/llms-full.txt` return `text/plain`
+## Issue 2 — `/en/about/` and `/es/about/` SPA-shell fallback
 
-### Create `public/llms.txt`
+### What I verified
 
-LLM-discovery file mirroring the structure recommended by Anthropic and OpenAI. Steven framed as **independent insurance broker**, NOT RIA, to stay aligned with `enforce_fiduciary_term_block()`.
+`scripts/generateStaticAboutPage.ts` already exists and is invoked from `build.sh` line 47, but it:
+- Writes only to `dist/about/index.html` (legacy, no language prefix)
+- Defaults canonical to `${BASE_URL}/about` (no trailing slash, no `/en/` or `/es/`)
+- Only fetches `language='en'` from `about_page_content`
 
-### Create `public/llms-full.txt`
+Result: requests to `/en/about/` and `/es/about/` miss the static file and fall to `dist/index.html`, which has the homepage canonical baked in.
 
-Same header as `llms.txt` plus a longer-form summary with links into `/en/blog/`, `/en/qa/`, `/en/strategies/`, `/en/locations/` hubs. Not a full corpus dump — keeps the file under 50 KB while restoring content-type fidelity.
+### Fix (Approach A — extend the existing script)
 
-### Patch `functions/_middleware.js` static-asset handler
+Modify `scripts/generateStaticAboutPage.ts`:
 
-Currently `STATIC_EXTENSIONS` includes `.txt`, but only `.xml` gets an explicit `Content-Type` override (lines 452–464). Add a `.txt` branch directly below the `.xml` branch:
+1. Loop over `['en', 'es']` instead of single `.eq('language', 'en').single()`.
+2. For each language:
+   - Compute `canonicalUrl = ${BASE_URL}/${lang}/about/` (trailing slash, language-prefixed). Fallback only if DB row has nothing.
+   - Add hreflang tags inside the `<head>`:
+     ```
+     <link rel="alternate" hreflang="en" href="https://www.everencewealth.com/en/about/" />
+     <link rel="alternate" hreflang="es" href="https://www.everencewealth.com/es/about/" />
+     <link rel="alternate" hreflang="x-default" href="https://www.everencewealth.com/en/about/" />
+     ```
+   - Update breadcrumb / WebPage schema URLs to the language-prefixed canonical with trailing slash.
+   - Write to `dist/${lang}/about/index.html`.
+3. Keep the legacy `dist/about/index.html` write as well (existing 301 redirect chain expects it).
+4. If the `es` row is missing in `about_page_content`, fall back to the `en` row content but keep `lang="es"` and the Spanish canonical — so we always emit a real static file with the correct canonical.
 
-```js
-if (pathname.endsWith('.txt')) {
-  const response = await next();
-  const headers = new Headers(response.headers);
-  headers.set('Content-Type', 'text/plain; charset=utf-8');
-  headers.set('X-Content-Type-Options', 'nosniff');
-  headers.set('X-Middleware-Status', 'Active');
-  if (!headers.has('Cache-Control')) {
-    headers.set('Cache-Control', 'public, max-age=3600');
-  }
-  return new Response(response.body, {
-    status: response.status,
-    statusText: response.statusText,
-    headers,
-  });
-}
-```
-
-This automatically covers `/llm.txt`, `/llms.txt`, `/llms-full.txt`, `/robots.txt`, `/ai.txt`, `/security.txt` if/when added — no per-file allowlist needed.
-
-### Verify (post-deploy)
+### Verification (after Lovable rebuild + cache purge)
 
 ```
-curl -sI https://www.everencewealth.com/llms.txt      | grep -i content-type
-curl -sI https://www.everencewealth.com/llms-full.txt | grep -i content-type
+curl -sL https://www.everencewealth.com/en/about/ | grep canonical
+curl -sL https://www.everencewealth.com/es/about/ | grep canonical
 ```
-Both must return `text/plain; charset=utf-8`.
+
+Expected: each emits `<link rel="canonical" href="https://www.everencewealth.com/{lang}/about/" />`
 
 ---
 
-## P0-3 — `/en/about/` canonical points to homepage
+## Issue 3 — Cloudflare HTML cache holds stale dateModified
 
-### Root cause
+DB has 51 distinct `date_modified` values; served HTML shows 3. The PROMPT 20 backfill landed correctly; only the cache is stale. This is not a code change.
 
-- There is NO static prebuild for `/en/about/`. `static_pages` table only has team / philosophy / contact. `scripts/generateStaticAboutPage.ts` writes to `dist/about/index.html` (legacy un-prefixed path).
-- `/en/about/` falls to the SPA shell. `src/pages/About.tsx` hardcodes `canonical_url: \`${BASE_URL}/about\`` (line 26 + line 67 fallback). That string is rendered into `<head>` via `react-helmet`, which causes `injectSeoTags()` to skip canonical injection (its detector finds an existing one).
-- The audit observation that canonical = `https://www.everencewealth.com` (root) means the pre-hydration index.html canonical is also wrong; we fix BOTH layers.
+### Action — surface to user
 
-### Edit `src/pages/About.tsx`
+After the code changes ship and the build completes, the user must purge Cloudflare's HTML cache. Two options:
 
-Replace the two hardcoded canonical fallbacks so they path-build using the `lang` route param with a trailing slash:
+**A (fastest)**: Cloudflare dashboard → Caching → Configuration → Purge Everything
 
-```ts
-// Around line 26 (defaultContent)
-canonical_url: `${BASE_URL}/${lang}/about/`,
-
-// Around line 67 (fallback when DB row exists but canonical_url empty)
-canonical_url: content.canonical_url || `${BASE_URL}/${lang}/about/`,
+**B (API)**:
+```
+curl -X POST "https://api.cloudflare.com/client/v4/zones/<zone-id>/purge_cache" \
+  -H "Authorization: Bearer <api-token>" \
+  -H "Content-Type: application/json" \
+  --data '{"purge_everything":true}'
 ```
 
-`defaultContent` currently lives at module scope; move it inside the `About` component so it can read the `lang` param, OR build the canonical URL inline in the JSX:
-
-```tsx
-const aboutCanonical = `${BASE_URL}/${lang}/about/`;
-…
-<link rel="canonical" href={aboutCanonical} />
-<meta property="og:url" content={aboutCanonical} />
-```
-
-### Verify
+### Verification (after purge)
 
 ```
-curl -sL https://www.everencewealth.com/en/about/ | grep -E 'rel="canonical"'
-curl -sL https://www.everencewealth.com/es/about/ | grep -E 'rel="canonical"'
+for slug in $(curl -s https://www.everencewealth.com/sitemaps/en/blog.xml \
+  | grep -oE '<loc>[^<]+</loc>' | sed 's/<[^>]*>//g' | tail -n +2 | head -10); do
+  curl -sL "$slug" | grep -oE '"dateModified":"[^"]+"' | head -1
+done | sort -u | wc -l
 ```
-Expected: each canonical matches the request URL exactly (with `/en/about/` or `/es/about/`).
 
-### Out of scope
-
-- Building a real `static_pages` row + extending `generateStaticInformationalPages.ts` to render `about` as a 4th slug. That's a larger refactor for a future PR. For now, fixing the SPA-shell canonical is enough to clear the P0 finding.
+Expected: 8–10 distinct.
 
 ---
 
-## P0-4 — Trailing-slash alignment on canonical + hreflang
+## Files changed
 
-### Root cause
+Edited:
+- `supabase/functions/serve-seo-page/index.ts` — wrap buyers-guide canonical + hreflang + og:url + schema URLs with `withTrailingSlash`
+- `scripts/generateStaticAboutPage.ts` — emit `dist/en/about/index.html` and `dist/es/about/index.html` with language-prefixed trailing-slash canonical + hreflang trio; keep legacy `dist/about/index.html` write
 
-`supabase/functions/serve-seo-page/index.ts` builds canonical and hreflang URLs from DB `canonical_url` (stored without trailing slash) with fallbacks like `${BASE_URL}/${lang}/blog/${slug}` (also no slash). Sitemaps already use trailing slashes → self-referencing contradiction.
+Then:
+- Deploy `serve-seo-page` via the edge-function deploy tool
+- User triggers Lovable rebuild (frontend Update) and Cloudflare cache purge
 
-### Add a single helper at top of `serve-seo-page/index.ts`
-
-```ts
-// Trailing-slash normalization for canonical + hreflang URLs.
-// Hub roots and content-detail pages all use trailing slashes per
-// site-wide convention. File-extension URLs (.xml, .json, .txt) and
-// fragment-only URLs are left untouched.
-function withTrailingSlash(url: string): string {
-  if (!url) return url;
-  const [bare, ...rest] = url.split('#');
-  const [path, ...query] = bare.split('?');
-  if (path.endsWith('/')) return url;
-  // Skip if path looks like a file (has a final-segment dot)
-  const lastSegment = path.split('/').pop() || '';
-  if (lastSegment.includes('.')) return url;
-  const slashed = path + '/';
-  const rebuilt = query.length ? `${slashed}?${query.join('?')}` : slashed;
-  return rest.length ? `${rebuilt}#${rest.join('#')}` : rebuilt;
-}
-```
-
-### Apply at all canonical + hreflang emission sites in `serve-seo-page/index.ts`
-
-Wrap every URL written into a `<link rel="canonical">`, `<link rel="alternate" hreflang>`, or `og:url` tag:
-
-| Line(s) | Current | Fix |
-|---|---|---|
-| 109–110 | `${BASE_URL}/${l}/qa/${slug}` (early hreflang for QA fallback) | `withTrailingSlash(...)` |
-| 130 | `${BASE_URL}${pathname}` (canonical) | `withTrailingSlash(...)` |
-| 137 | `${BASE_URL}${pathname}` (og:url) | `withTrailingSlash(...)` |
-| 377, 439, 502, 637 | `canonical_url` defaulting in detail-page assemblers (qa, blog, compare, locations) | Wrap the chosen value |
-| 724 | hreflang sibling URL (`generateHreflangTags`) | Wrap before emitting `<link>` |
-| 734 | x-default URL | Wrap |
-| 1126–1127 | hub canonical builder | Wrap |
-
-For each call site: keep the existing fallback logic; only normalize the final string before it goes into the HTML.
-
-### Patch `src/pages/About.tsx` (already covered in P0-3 with trailing slash)
-
-### Patch `src/pages/BlogArticle.tsx`, `src/pages/ComparisonPage.tsx`, `src/pages/Contact.tsx`, `src/pages/BlogIndex.tsx`, `src/pages/ComparisonIndex.tsx`, `src/pages/Glossary.tsx`, `src/pages/BuyersGuide.tsx`
-
-These hub/detail SPA pages also emit canonicals via `react-helmet`. SSR overrides the SPA shell on cached crawls, but on cold misses or non-prerendered routes the SPA value can win. Add trailing slashes to the inline fallback strings:
-
-```tsx
-// Example — BlogArticle.tsx line 235
-href={
-  withTrailingSlashClient(
-    article.canonical_url ||
-      `https://www.everencewealth.com/${article.language}/blog/${article.slug}`
-  )
-}
-```
-
-A tiny client helper goes into a new `src/lib/urlSlash.ts` (single export, ~10 lines, mirrors the edge-function helper).
-
-### Do NOT touch `injectSeoTags()` HTMLRewriter
-
-Per guard rails. The HTMLRewriter only fills in canonicals when the page lacks one, and it builds them from `pathname` (which already carries the trailing slash from Cloudflare). It is already correct.
-
-### Verify (post-deploy)
-
-```
-for path in \
-  /en/blog/understanding-the-retirement-gap-why-it-matters-now-more-than-ever/ \
-  /en/qa/how-to-establish-a-trust-for-legacy-planning-en-67a7570c/; do
-  echo "=== $path ==="
-  curl -sL "https://www.everencewealth.com$path" \
-    | grep -E 'rel="canonical"|hreflang' \
-    | grep -vE '/" ' \
-    | grep -vE '/"$'
-done
-```
-Expected: zero hits per URL.
-
----
-
-## Files touched
-
-**Edited**
-- `functions/_middleware.js` — add `.txt` content-type branch in static-asset handler (1 block, ~12 lines)
-- `supabase/functions/serve-seo-page/index.ts` — add `withTrailingSlash` helper + wrap ~10 emission sites
-- `src/pages/About.tsx` — fix canonical to `${BASE_URL}/${lang}/about/`
-- `src/pages/BlogArticle.tsx`, `BlogIndex.tsx`, `ComparisonPage.tsx`, `ComparisonIndex.tsx`, `Contact.tsx`, `Glossary.tsx`, `BuyersGuide.tsx` — trailing-slash on inline canonical fallbacks
-
-**Created**
-- `public/llms.txt`
-- `public/llms-full.txt`
-- `src/lib/urlSlash.ts` — tiny client-side trailing-slash helper
-- `supabase/migrations/<timestamp>_blog_date_modified_change_detection.sql` — content-aware trigger + staggered backfill
-
-**Untouched** (per guard rails): all existing migrations, comma-strip 301, `injectSeoTags()`, PROMPT 17 catchall, `BUSINESS.*` constants, `enforce_fiduciary_term_block()`, QA / locations / comparisons date_modified columns.
-
----
-
-## Final post-deploy verification (Step 5 from prompt)
-
-1. **dateModified diversity** — sample 10 sitemap URLs, count distinct `dateModified` values → expect 10.
-2. **`/llms.txt` content-type** → `text/plain; charset=utf-8`.
-3. **`/llms-full.txt` content-type** → `text/plain; charset=utf-8`.
-4. **`/en/about/` canonical** → `https://www.everencewealth.com/en/about/`.
-5. **Blog detail trailing-slash sweep** → zero canonical/hreflang URLs without trailing slash.
-6. **QA detail trailing-slash sweep** → zero canonical/hreflang URLs without trailing slash.
-
-Expected audit score lift: 76 → 88. Categories flipping FAIL → PASS: canonical (4), llms.txt (7), dateModified (12).
+Untouched (per guard rails):
+- All `supabase/migrations/*.sql`
+- `functions/_middleware.js` (PROMPT 17 catchall, comma-strip 301)
+- `injectSeoTags()` HTMLRewriter
+- PROMPT 20 work (llms.txt handler, dateModified trigger, About.tsx react-helmet)
+- `BUSINESS.*` constants
