@@ -7,6 +7,7 @@ import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { BUSINESS } from "@/config/business";
 
 interface HealthStatus {
   status: 'healthy' | 'degraded' | 'unhealthy';
@@ -57,7 +58,7 @@ export default function CrmSettings() {
             first_name: "Test",
             last_name: "Lead",
             email: "test@example.com",
-            phone: "+34 600 000 000",
+            phone: BUSINESS.telephone,
             preferred_language: "en",
             lead_segment: "hot",
             budget_range: "€500K - €1M",
