@@ -1,104 +1,52 @@
-# Del Sol Residue Cleanup + Phone Source-of-Truth Consolidation
+## P0 Hotfix: Catchall 404'ing real published URLs
 
-Three high-severity fixes (one is a P0 click-to-call bug calling a Spanish number), plus middleware dead-code removal and an audit of 6 edge functions for Costa del Sol entity dictionaries. Everything routes through `BUSINESS` from `src/config/business.ts` — no new constants, no independent judgments about what `BUSINESS` should contain.
+### Problem
+The PROMPT 17 catchall in `functions/_middleware.js` (lines 487–535) queries the `all_published_slugs` view with `eq.full_path=<pathname>`. The view stores paths **with** trailing slashes (e.g. `/en/blog/foo/`), but requests without a trailing slash (e.g. `/en/blog/foo`) miss the lookup and fall into the 404/410 branch — even when the page is published.
 
----
+This is hitting production right now across `/blog/`, `/qa/`, `/compare/`, `/comparisons/`, `/comparar/`, `/strategies/`, `/estrategias/`, `/guides/`, `/glossary/`, `/state-guides/`, and 2-segment `/locations/<city>/<topic>/` style URLs.
 
-## HIGH SEVERITY
+### Fix (surgical, 2 lookup URLs only)
 
-### 1. `src/components/buyers-guide/BuyersGuideCTA.tsx` (P0)
+In `functions/_middleware.js`, inside the catchall block, before the `all_published_slugs` lookup at line ~492, add a single path-normalization line and reuse it for both lookups:
 
-- Add `import { BUSINESS } from '@/config/business';`
-- Line 79: change `href="tel:+34630039090"` → `href={\`tel:${BUSINESS.telephoneE164}\`}`
-- Visible label at line 87 reads from `t.cta.phone.number` translation file — out of scope here.
+```js
+// Normalize path: all_published_slugs view stores paths with trailing
+// slash. Always look up the trailing-slash variant.
+const normalizedPath = pathname.endsWith('/') ? pathname : pathname + '/';
+const lookupUrl =
+  `${SUPABASE_URL}/rest/v1/all_published_slugs` +
+  `?full_path=eq.${encodeURIComponent(normalizedPath)}&select=slug&limit=1`;
+```
 
-### 2. `scripts/generateStaticPages.ts` — `generateOrganizationSchema()` (lines 157–188)
+And in the `gone_urls` lookup just below (line ~507):
 
-Affects ~132 published blog articles every build.
+```js
+const goneUrl =
+  `${SUPABASE_URL}/rest/v1/gone_urls` +
+  `?url_path=eq.${encodeURIComponent(normalizedPath)}&select=id&limit=1`;
+```
 
-- Add: `import { BUSINESS, businessPostalAddress, businessAreaServed, businessContactPoint } from '../src/config/business';`
-- Replace hardcoded fields with `BUSINESS` reads:
-  - `name` → `BUSINESS.name`
-  - `legalName` → `BUSINESS.legalName`
-  - `url` → `BUSINESS.url + '/'`
-  - `logo.url/width/height` → `BUSINESS.logo.*`
-  - `areaServed` → `[businessAreaServed()]`
-  - `contactPoint` → `businessContactPoint()` (this fixes the `+34 630 03 90 90` bug)
-  - **`sameAs` → `[...BUSINESS.sameAs]` verbatim.** No independent judgment about which entries are valid. `src/config/business.ts` is the single source of truth — whatever's in it ships. If FB/IG handles need to be added/removed, that's a separate ticket against `business.ts`.
-  - Add `address: businessPostalAddress()` (currently missing)
-  - Add `email: BUSINESS.email`
-- Keep `@id`, `@context`, `@type: "FinancialService"`, and `description` as-is.
+Both lookups use the same `normalizedPath` so behavior is identical regardless of whether the request URL has a trailing slash.
 
-### 3. Form placeholders + test fixture phones + `<PhoneInput>` default country
+### Untouched (per guard rails)
+- Catchall regex definitions, response shape, headers, status logic
+- Canonical/hreflang HTMLRewriter dedup
+- Comma-strip 301 redirect
+- Everything outside lines ~492–508
 
-- **`src/components/crm/AddAgentModal.tsx`** — add `BUSINESS` import; line 145 `placeholder="+34 600 000 000"` → `placeholder={BUSINESS.telephone}`
-- **`src/components/landing/LeadForm.tsx`** — add `BUSINESS` import:
-  - Line 139 `placeholder="+34 600 123 456"` → `placeholder={BUSINESS.telephone}`
-  - **Also flip `<PhoneInput defaultCountry="ES">` → `defaultCountry="US"`** (same file, same blast radius; avoids a confusing brief-window UX where the form auto-formats Spanish numbers as users type).
-- **`src/pages/crm/admin/CrmSettings.tsx`** — add `BUSINESS` import; line 60 `phone: "+34 600 000 000"` → `phone: BUSINESS.telephone`
-- **`scripts/generateStaticBuyersGuide.ts`** (surfaced by grep, not in original prompt) — line 272 `"telephone": "+34 630 03 90 90"` → `BUSINESS.telephone`. The surrounding hardcoded ES `address`/`areaServed`/`priceRange` fields in that `RealEstateAgent` block are flagged as a separate cleanup; not touched here.
+### Verification (post-deploy)
+```
+curl -sI https://www.everencewealth.com/en/blog/understanding-the-retirement-gap-why-it-matters-now-more-than-ever | head -1
+# expect: HTTP/2 200
 
----
+curl -sI https://www.everencewealth.com/en/blog/this-slug-does-not-exist | head -1
+curl -sI https://www.everencewealth.com/en/blog/this-slug-does-not-exist/ | head -1
+# expect: HTTP/2 404 (both)
 
-## MEDIUM SEVERITY
+curl -sI https://www.everencewealth.com/en/blog/costadelsol/best-neighborhoods | head -1
+curl -sI https://www.everencewealth.com/en/blog/costadelsol/best-neighborhoods/ | head -1
+# expect: HTTP/2 410 (both — gone_urls still match)
+```
 
-### 4. `functions/_middleware.js` — remove dead `costadelsol` regex
-
-Lines 431–435 contain a 4-clause `is404Blocked` OR-chain. Only line 432 (`/^\/(en|es)\/blog\/costadelsol\//`) is the dead Del Sol leftover. Remove that single line; keep the other three clauses untouched.
-
-### 5. Edge function audit — 6 files
-
-Surgical array-content changes only. No signature changes.
-
-| File | Action |
-|---|---|
-| `auto-enhance-citations/index.ts` lines 19–33 | Delete entire `COMPETITOR_AGENCIES` Spanish-realestate array and any references to it |
-| `find-citations-fast/index.ts` lines 14–47 | Strip Spanish portals + Marbella/Malaga agencies from `BLOCKED_DOMAINS`; keep generic global luxury brokerages |
-| `find-citations-fast/index.ts` line 104 | Remove `'visitcostadelsol.com'` from `AUTHORITY_DOMAINS` |
-| `find-citations-fast/index.ts` line 112 | Remove `'juntadeandalucia.es', 'malagaturismo.com'` from `GOVERNMENT_PATTERNS` |
-| `find-citations-perplexity/index.ts` lines 956–969 | Delete entire `locationPropertyPatterns` block + any consumer |
-| `find-external-links/index.ts` line 295 | Delete the marbella/estepona comment; logic untouched |
-| `discover-cluster-citations/index.ts` lines 31–34 | Strip Marbella/Malaga agency entries from `BLOCKED_DOMAINS` |
-| `regenerate-cluster-links/index.ts` line 143 | Replace Spanish cities with US/wealth terms: `['retirement', 'wealth management', 'tax', 'estate planning', 'iul', 'annuity', 'california']` — keeps the +15 overlap-scoring bonus working |
-
-These edge functions are deployed; edits take effect on next Lovable redeploy. Diffs surfaced in the implementation message.
-
----
-
-## OUT OF SCOPE (per prompt guard rails)
-
-- All `supabase/migrations/*.sql`
-- All `docs/`, `README*.md`, `DEPLOYMENT_*` markdown
-- The comma-strip 301 redirect in middleware
-- `injectSeoTags()` HTMLRewriter dedup
-- PROMPT 17's catchall block
-- The hardcoded `RealEstateAgent` ES address block in `generateStaticBuyersGuide.ts` (lines 264–279) — only the `telephone` line is fixed
-- `BUSINESS.sameAs` contents — used verbatim; changes to it are a separate ticket
-
----
-
-## VERIFICATION
-
-1. `grep -rn "+34 630\|+34630\|+34 6" src/ scripts/ --include="*.ts" --include="*.tsx" --include="*.js"` → zero hits
-2. `grep -i "costadelsol" functions/_middleware.js` → zero hits
-3. `grep -i "costa del sol\|costadelsol\|delsolprimehomes\|kazggnufaoicopvmwhdl\|marbella\|estepona" supabase/functions/{auto-enhance-citations,find-citations-fast,find-citations-perplexity,find-external-links,discover-cluster-citations,regenerate-cluster-links}/index.ts` → zero or only cleanup-doc comments
-4. TypeScript check passes
-5. After deploy: `curl -sL https://www.everencewealth.com/en/blog/{slug}/ | grep -oE '"telephone"\s*:\s*"[^"]+"' | head -1` → `"telephone":"+1-925-433-7724"`. If still `+34`, blog static pages didn't regenerate — trigger a rebuild.
-
----
-
-## FILES EDITED
-
-- `src/components/buyers-guide/BuyersGuideCTA.tsx`
-- `scripts/generateStaticPages.ts`
-- `scripts/generateStaticBuyersGuide.ts` (telephone line only)
-- `src/components/crm/AddAgentModal.tsx`
-- `src/components/landing/LeadForm.tsx` (placeholder + defaultCountry)
-- `src/pages/crm/admin/CrmSettings.tsx`
-- `functions/_middleware.js`
-- `supabase/functions/auto-enhance-citations/index.ts`
-- `supabase/functions/find-citations-fast/index.ts`
-- `supabase/functions/find-citations-perplexity/index.ts`
-- `supabase/functions/find-external-links/index.ts`
-- `supabase/functions/discover-cluster-citations/index.ts`
-- `supabase/functions/regenerate-cluster-links/index.ts`
+### Files changed
+- `functions/_middleware.js` (one block, ~3 lines added/changed)
