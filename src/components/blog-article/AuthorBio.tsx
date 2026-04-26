@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Linkedin, MessageCircle, Star, ShieldCheck, Award } from "lucide-react";
 import { Author } from "@/types/blog";
 import { translations } from "@/i18n/translations";
+import { BUSINESS } from "@/config/business";
 
 interface AuthorBioProps {
   author: Author;
