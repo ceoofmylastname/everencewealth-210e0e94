@@ -22,7 +22,7 @@ const ORGANIZATION_SCHEMA = {
   "url": BASE_URL,
   "logo": {
     "@type": "ImageObject",
-    "url": "https://assets.cdn.filesafe.space/htr97zzmRc1NMujHbL9R/media/69b7424c5b89c7c557adfe6e.png",
+    "url": "https://www.everencewealth.com/logo.png",
     "width": 512,
     "height": 512
   },

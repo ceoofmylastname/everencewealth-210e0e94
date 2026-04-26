@@ -1,7 +1,7 @@
 import { truncateForAEO } from "./aeoUtils";
 
 const BASE_URL = 'https://www.everencewealth.com';
-const LOGO_URL = 'https://assets.cdn.filesafe.space/htr97zzmRc1NMujHbL9R/media/69b7424c5b89c7c557adfe6e.png';
+const LOGO_URL = 'https://www.everencewealth.com/logo.png';
 
 export interface BuyingStep {
   title: string;

@@ -193,6 +193,10 @@ function buildSchemas(
     about: { '@id': `${BASE_URL}/#organization` },
     datePublished: PUBLISHED_DATE,
     dateModified,
+    speakable: {
+      '@type': 'SpeakableSpecification',
+      cssSelector: ['h1', 'article[data-author-id] section p'],
+    },
   };
 
   const breadcrumb = {

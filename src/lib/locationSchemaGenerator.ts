@@ -75,7 +75,7 @@ const ORGANIZATION_SCHEMA = {
   "name": "Everence Wealth",
   "description": "Independent wealth management and retirement planning",
   "url": "https://www.everencewealth.com",
-  "logo": "https://assets.cdn.filesafe.space/htr97zzmRc1NMujHbL9R/media/69b7424c5b89c7c557adfe6e.png",
+  "logo": "https://www.everencewealth.com/logo.png",
   "address": {
     "@type": "PostalAddress",
     "addressLocality": "San Diego",
