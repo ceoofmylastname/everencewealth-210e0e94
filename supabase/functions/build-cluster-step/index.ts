@@ -62,6 +62,11 @@ interface ResultRow {
   duration_sec: number;
   flagged_count?: number;
   error?: string;
+  // FIX B — partial-failure visibility (when some articles saved, some failed)
+  partial?: boolean;
+  partial_failures?: Array<{ article_index: number; error: string; attempt_count: number }>;
+  verified_count?: number | null;
+  expected_count?: number | null;
 }
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
@@ -260,7 +265,7 @@ serve(async (req) => {
     // ----- 4. Already kicked off — poll cluster_generations -----
     const { data: gen } = await admin
       .from("cluster_generations")
-      .select("id, status, completed_languages, is_multilingual, error, updated_at")
+      .select("id, status, completed_languages, is_multilingual, error, updated_at, progress")
       .eq("id", job.current_job_id)
       .maybeSingle();
 
@@ -291,6 +296,7 @@ serve(async (req) => {
       is_multilingual: boolean | null;
       error: string | null;
       updated_at: string;
+      progress: any;
     };
 
     // 4a. Completed
@@ -303,6 +309,16 @@ serve(async (req) => {
     if (completionOk) {
       const entryStartedAt = job.entry_started_at ? new Date(job.entry_started_at).getTime() : startedAt;
       const durationSec = Math.round((Date.now() - entryStartedAt) / 1000);
+
+      // FIX B — Read partial-failure signal from progress JSONB.
+      // generate-cluster-chunk now writes progress.partial=true and progress.partial_failures
+      // when some articles saved but not all. We surface this in the batch result row
+      // as status='flagged' (alongside compliance flags) so the batch report shows it.
+      const progress = (g.progress && typeof g.progress === "object") ? g.progress : {};
+      const isPartial = progress.partial === true;
+      const partialFailures: any[] = Array.isArray(progress.partial_failures) ? progress.partial_failures : [];
+      const verifiedCount = typeof progress.verified_count === "number" ? progress.verified_count : null;
+      const expectedCount = typeof progress.expected_count === "number" ? progress.expected_count : null;
 
       // Compliance scan for recruiting clusters
       let flaggedCount = 0;
@@ -342,9 +358,15 @@ serve(async (req) => {
 
       const row: ResultRow = {
         id: c.id, name: c.name, topic: c.topic, job_id: g.id,
-        status: flaggedCount > 0 ? "flagged" : "built",
+        status: (flaggedCount > 0 || isPartial) ? "flagged" : "built",
         duration_sec: durationSec,
         flagged_count: flaggedCount > 0 ? flaggedCount : undefined,
+        ...(isPartial && {
+          partial: true,
+          partial_failures: partialFailures,
+          verified_count: verifiedCount,
+          expected_count: expectedCount,
+        }),
       };
       await admin.from("cluster_batch_jobs").update({
         results: [...results, row],
@@ -355,9 +377,25 @@ serve(async (req) => {
         entry_started_at: null,
       }).eq("id", batch_job_id);
       await logStep(admin, batch_job_id, idx, c.topic, g.id, g.status,
-        "advanced_built", { flagged_count: flaggedCount, duration_sec: durationSec });
+        isPartial ? "advanced_built_partial" : "advanced_built",
+        {
+          flagged_count: flaggedCount,
+          duration_sec: durationSec,
+          ...(isPartial && {
+            partial: true,
+            verified_count: verifiedCount,
+            expected_count: expectedCount,
+            partial_failures_count: partialFailures.length,
+          }),
+        });
       await releaseLock(admin, batch_job_id);
-      return new Response(JSON.stringify({ ok: true, action: "built", duration_sec: durationSec, flagged: flaggedCount }), {
+      return new Response(JSON.stringify({
+        ok: true,
+        action: isPartial ? "built_partial" : "built",
+        duration_sec: durationSec,
+        flagged: flaggedCount,
+        ...(isPartial && { partial: true, verified_count: verifiedCount, expected_count: expectedCount }),
+      }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }

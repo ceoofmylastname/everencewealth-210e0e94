@@ -135,6 +135,101 @@ function countWords(html: string): number {
   return text.split(/\s+/).filter(w => w.length > 0).length;
 }
 
+// FIX A — Sanitization safety net.
+// Mirrors BOTH sibling DB CHECK constraints on blog_articles.detailed_content:
+//   - blog_articles_body_no_head_h1   : forbids <head…> and <h1…>
+//   - blog_articles_body_no_head_or_canonical : forbids <head>, </head>,
+//       rel="canonical"|'canonical', rel="alternate"|'alternate', application/ld+json
+// Also strips other document-level wrappers we never want in body content.
+function sanitizeDetailedContent(html: string): { cleaned: string; removed: string[] } {
+  const removed: string[] = [];
+  let cleaned = html || '';
+
+  // Strip <head>…</head> blocks entirely (greedy match)
+  if (/<head[\s>]/i.test(cleaned)) {
+    cleaned = cleaned.replace(/<head[\s\S]*?<\/head>/gi, '');
+    removed.push('head_block');
+  }
+  // Strip stray <head…> or </head> tags that survived (mismatched)
+  if (/<\/?head[\s>]/i.test(cleaned)) {
+    cleaned = cleaned.replace(/<\/?head[^>]*>/gi, '');
+    if (!removed.includes('head_block')) removed.push('head_stray');
+  }
+
+  // Strip <html> and <body> wrappers (keep inner content)
+  if (/<\/?html[\s>]/i.test(cleaned)) {
+    cleaned = cleaned.replace(/<\/?html[^>]*>/gi, '');
+    removed.push('html_wrapper');
+  }
+  if (/<\/?body[\s>]/i.test(cleaned)) {
+    cleaned = cleaned.replace(/<\/?body[^>]*>/gi, '');
+    removed.push('body_wrapper');
+  }
+
+  // Downgrade <h1>…</h1> to <h2>…</h2> (preserve content)
+  if (/<h1[\s>]/i.test(cleaned)) {
+    cleaned = cleaned.replace(/<h1([\s>])/gi, '<h2$1').replace(/<\/h1>/gi, '</h2>');
+    removed.push('h1_downgraded');
+  }
+
+  // Strip <meta> tags
+  if (/<meta\b/i.test(cleaned)) {
+    cleaned = cleaned.replace(/<meta\b[^>]*>/gi, '');
+    removed.push('meta_tags');
+  }
+
+  // Strip <link rel="canonical|alternate"> (in any quote style or unquoted)
+  if (/<link\b[^>]*rel\s*=\s*["']?(canonical|alternate)/i.test(cleaned)) {
+    cleaned = cleaned.replace(/<link\b[^>]*rel\s*=\s*["']?(canonical|alternate)["']?[^>]*>/gi, '');
+    removed.push('link_canonical_alternate');
+  }
+
+  // Strip <script type="application/ld+json">…</script>
+  if (/application\/ld\+json/i.test(cleaned)) {
+    cleaned = cleaned.replace(/<script\b[^>]*type\s*=\s*["']?application\/ld\+json["']?[^>]*>[\s\S]*?<\/script>/gi, '');
+    removed.push('jsonld_block');
+  }
+
+  // Strip <style>…</style> blocks
+  if (/<style\b/i.test(cleaned)) {
+    cleaned = cleaned.replace(/<style\b[\s\S]*?<\/style>/gi, '');
+    removed.push('style_block');
+  }
+
+  return { cleaned: cleaned.trim(), removed };
+}
+
+// FIX C — Pre-insert validation mirror.
+// After sanitization, verify NOTHING the DB CHECK constraints reject remains.
+// Throw a descriptive error so the gen fails fast with a clear cause instead
+// of a generic "violates check constraint" Postgres error.
+function validateNoForbiddenTags(html: string): void {
+  if (!html) return;
+
+  // Mirror blog_articles_body_no_head_h1
+  if (/<head[\s>]/i.test(html)) {
+    throw new Error('db:validate:fail pattern=head_open_tag (sanitizer regression)');
+  }
+  if (/<h1[\s>]/i.test(html)) {
+    throw new Error('db:validate:fail pattern=h1_tag (sanitizer regression)');
+  }
+
+  // Mirror blog_articles_body_no_head_or_canonical
+  const lower = html.toLowerCase();
+  if (lower.includes('<head>') || lower.includes('</head>')) {
+    throw new Error('db:validate:fail pattern=head_block (sanitizer regression)');
+  }
+  if (lower.includes('rel="canonical"') || lower.includes("rel='canonical'")) {
+    throw new Error('db:validate:fail pattern=rel_canonical (sanitizer regression)');
+  }
+  if (lower.includes('rel="alternate"') || lower.includes("rel='alternate'")) {
+    throw new Error('db:validate:fail pattern=rel_alternate (sanitizer regression)');
+  }
+  if (lower.includes('application/ld+json')) {
+    throw new Error('db:validate:fail pattern=jsonld (sanitizer regression)');
+  }
+}
+
 // Content quality validation with strict word count enforcement
 function validateContentQuality(article: any, plan: any): { isValid: boolean; issues: string[]; score: number; wordCount: number } {
   const issues: string[] = [];
@@ -312,7 +407,17 @@ MANDATORY STRUCTURE inside detailed_content:
 - At least 6 <h2> headings, each followed by 2+ detailed paragraphs
 - 5-8 FAQ questions in qa_entities, each answer 80-120 words, single paragraph (no lists)
 
-REMEMBER: Minimum 1,500 words in detailed_content is MANDATORY. Missing .speakable-answer or .eeat-section will cause REJECTION.`;
+OUTPUT FORMAT RULES for detailed_content (ENFORCED — violations cause REJECTION):
+- Output the article BODY ONLY, wrapped in a single <div class="article-content">…</div>
+- Do NOT emit <html>, <head>, <body>, or <h1> tags anywhere in detailed_content
+- The article title belongs in the "headline" field at the schema root, NOT as <h1> in the body
+- Section headings start at <h2>; subsections use <h3>; deeper levels use <h4>
+- Do NOT include <meta>, <link>, <script>, or <style> tags
+- Do NOT include rel="canonical", rel="alternate", or any application/ld+json blocks
+  (canonical URLs, hreflang alternates, and JSON-LD schema are injected separately by the publishing pipeline)
+- Do NOT wrap content in any document-level tags
+
+REMEMBER: Minimum 1,500 words in detailed_content is MANDATORY. Missing .speakable-answer or .eeat-section will cause REJECTION. Document-level tags (<html>/<head>/<body>/<h1>/<meta>/<link>/<script>/<style>) will cause REJECTION at the database layer.`;
 
     // Generate content with retry loop for word count enforcement (3 attempts with escalating prompts)
     let contentJson: any = null;
@@ -331,7 +436,8 @@ CRITICAL REQUIREMENTS:
 1. You MUST respond with valid JSON only
 2. Articles MUST be between 800 and 2,500 words - this is NON-NEGOTIABLE
 3. Include at least 6 H2 sections, each with 2+ detailed paragraphs
-4. Before finalizing, mentally count your words - if under 800, ADD MORE CONTENT`;
+4. Before finalizing, mentally count your words - if under 800, ADD MORE CONTENT
+5. detailed_content is the article BODY ONLY — NO <html>, <head>, <body>, <h1>, <meta>, <link>, <script>, <style> tags. Section headings start at <h2>. Title goes in the "headline" field, never as <h1>.`;
 
       if (attempts === 2 && contentJson) {
         const prevWordCount = countWords(contentJson.detailed_content || '');
@@ -339,7 +445,8 @@ CRITICAL REQUIREMENTS:
 
 MANDATORY: This response MUST be at least 800 words. 
 STRATEGY: Write 6+ sections of 150+ words each = 900+ words minimum.
-DO NOT submit anything under 800 words.`;
+DO NOT submit anything under 800 words.
+detailed_content is the article BODY ONLY — NO <html>, <head>, <body>, <h1>, <meta>, <link>, <script>, <style> tags. Section headings start at <h2>.`;
 
         currentPrompt = `${contentPrompt}
 
@@ -363,7 +470,8 @@ This structure gives you 1,700+ words. Follow it exactly.`;
 
 You are a detailed writer. EVERY paragraph must be 60-80 words minimum.
 Include specific examples, statistics, and expert insights.
-If in doubt, ADD MORE DETAIL.`;
+If in doubt, ADD MORE DETAIL.
+detailed_content is the article BODY ONLY — NO <html>, <head>, <body>, <h1>, <meta>, <link>, <script>, <style> tags. Section headings start at <h2>.`;
 
         currentPrompt = `${contentPrompt}
 
@@ -459,7 +567,18 @@ TOTAL MINIMUM: 1,000 words. Do NOT submit under 800.`;
       throw new Error(`Article generation failed: Could not reach minimum word count after ${maxAttempts} attempts (only ${lastWordCount} words). Article rejected.`);
     }
 
-    article.detailed_content = contentJson.detailed_content || contentJson.content || '';
+    // FIX A — Sanitize LLM output before any downstream use.
+    // The DB has TWO sibling CHECK constraints on detailed_content; sanitize covers both
+    // so a violation isn't surfaced as a generic Postgres error.
+    const rawContent = contentJson.detailed_content || contentJson.content || '';
+    const { cleaned: sanitizedContent, removed: sanitizerRemoved } = sanitizeDetailedContent(rawContent);
+    if (sanitizerRemoved.length > 0) {
+      // Surface to the heartbeat trail so we can monitor whether the prompt fix is holding.
+      // Empty array = LLM is now respecting the prompt; populated = sanitizer is doing real work.
+      await heartbeat(supabase, jobId, `sanitize:applied article=${articleIndex + 1} removed=${sanitizerRemoved.join(',')}`);
+      console.warn(`[Chunk ${jobId}] Article ${articleIndex + 1} sanitized: ${sanitizerRemoved.join(', ')}`);
+    }
+    article.detailed_content = sanitizedContent;
     article.meta_title = (contentJson.meta_title || plan.headline).substring(0, 60);
     article.meta_description = (contentJson.meta_description || '').substring(0, 160);
     article.speakable_answer = contentJson.speakable_answer || '';
@@ -495,6 +614,17 @@ TOTAL MINIMUM: 1,000 words. Do NOT submit under 800.`;
       throw new Error(
         `Article rejected by quality gate (score=${quality.score}, words=${quality.wordCount}): ${quality.issues.join('; ')}`
       );
+    }
+
+    // FIX C — Pre-insert validation mirror.
+    // Catch sanitizer regressions BEFORE the DB CHECK constraint fires, so we get
+    // a precise error string instead of "violates check constraint blog_articles_…".
+    try {
+      validateNoForbiddenTags(article.detailed_content);
+    } catch (validateErr) {
+      const msg = validateErr instanceof Error ? validateErr.message : String(validateErr);
+      await heartbeat(supabase, jobId, `validate:fail article=${articleIndex + 1} ${msg}`);
+      throw new Error(`Article ${articleIndex + 1} pre-insert validation failed: ${msg}`);
     }
 
     // 7. SAVE TO DATABASE
@@ -575,6 +705,8 @@ async function processChunk(
     // Process articles in this chunk
     const savedIds: string[] = [];
     const errors: string[] = [];
+    // FIX B — Structured partial-failure record per article (kept across chunks via progress.partial_failures)
+    const partialFailures: Array<{ article_index: number; error: string; attempt_count: number }> = [];
 
     for (let i = 0; i < chunkArticles.length; i++) {
       const globalIndex = startIdx + i;
@@ -615,6 +747,11 @@ async function processChunk(
         savedIds.push(result.articleId);
       } else {
         errors.push(`Article ${globalIndex + 1}: ${result.error}`);
+        partialFailures.push({
+          article_index: globalIndex + 1,
+          error: (result.error || 'unknown').substring(0, 500),
+          attempt_count: 3, // generateSingleArticle does 3 attempts max
+        });
         // If Claude timed out for the entire article (all 3 attempts), mark job failed and stop chunk.
         if (result.error && result.error.includes('claude_timeout')) {
           await supabase
@@ -626,6 +763,7 @@ async function processChunk(
                 last_heartbeat: `claude_timeout article=${globalIndex + 1} attempt=3/3`,
                 ts: new Date().toISOString(),
                 message: `Claude API hung on article ${globalIndex + 1} after 3 attempts.`,
+                partial_failures: partialFailures,
               },
               updated_at: new Date().toISOString(),
             })
@@ -650,17 +788,55 @@ async function processChunk(
     const existingArticles = job.articles || [];
     const allSavedArticles = [...existingArticles, ...savedIds];
 
+    // FIX B — Merge this chunk's partial failures with any previously recorded ones.
+    const existingProgress = job.progress || {};
+    const existingPartialFailures: any[] = Array.isArray(existingProgress.partial_failures)
+      ? existingProgress.partial_failures
+      : [];
+    const mergedPartialFailures = [...existingPartialFailures, ...partialFailures];
+
     await supabase
       .from('cluster_generations')
       .update({
         articles: allSavedArticles,
         updated_at: new Date().toISOString(),
+        ...(mergedPartialFailures.length > 0 && {
+          progress: {
+            ...existingProgress,
+            partial_failures: mergedPartialFailures,
+            partial: true,
+          },
+        }),
       })
       .eq('id', jobId);
 
     console.log(`\n[Chunk] ✅ Chunk ${chunkIndex + 1} complete`);
     console.log(`[Chunk] Saved: ${savedIds.length}, Errors: ${errors.length}`);
     console.log(`[Chunk] Total saved so far: ${allSavedArticles.length}/${articleStructures.length}`);
+
+    // FIX B — Total-failure guard: if THIS chunk saved nothing AND had errors,
+    // and there are no previous saves, mark gen failed so the orchestrator advances
+    // instead of waiting for the 20-min worker timeout.
+    if (savedIds.length === 0 && errors.length > 0 && allSavedArticles.length === 0 && !hasMoreChunks) {
+      const firstErr = (errors[0] || 'unknown').substring(0, 400);
+      await supabase
+        .from('cluster_generations')
+        .update({
+          status: 'failed',
+          error: `All articles failed in chunk ${chunkIndex + 1}: ${firstErr}`,
+          progress: {
+            ...existingProgress,
+            partial_failures: mergedPartialFailures,
+            partial: false,
+            total_failure: true,
+            ts: new Date().toISOString(),
+          },
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', jobId);
+      console.error(`[Chunk] ❌ Total failure on cluster ${jobId} — marked failed.`);
+      return;
+    }
 
     // Fire next chunk if needed (fire-and-forget)
     if (hasMoreChunks) {
@@ -695,31 +871,67 @@ async function processChunk(
     const verifiedCount = countError ? allSavedArticles.length : (actualSavedCount || 0);
     console.log(`[Chunk] 📊 Verified article count from DB: ${verifiedCount} (internal tracking: ${allSavedArticles.length}, expected: ${articleStructures.length})`);
 
-    // Use verified DB count to determine status - if DB has all articles, it's completed
-    const finalStatus = verifiedCount >= articleStructures.length ? 'completed' : 'partial';
-    
+    // FIX B — Status decision matrix:
+    //   verified == 0  AND errors  → 'failed'      (orchestrator advances with fail)
+    //   0 < verified < expected    → 'completed' + progress.partial=true
+    //                                (orchestrator advances; flagged in step log)
+    //   verified >= expected       → 'completed'   (happy path)
+    // We deliberately do NOT introduce a 'completed_with_errors' status because
+    // build-cluster-step:300 does a strict equality check on g.status === 'completed'.
+    // A new status value would leave the batch stuck. Partial signal lives in progress.
+    let finalStatus: string;
+    let isPartial = false;
+    if (verifiedCount === 0) {
+      finalStatus = 'failed';
+    } else if (verifiedCount < articleStructures.length) {
+      finalStatus = 'completed';
+      isPartial = true;
+    } else {
+      finalStatus = 'completed';
+    }
+
+    const finalExistingProgress = (await supabase
+      .from('cluster_generations')
+      .select('progress')
+      .eq('id', jobId)
+      .single()).data?.progress || {};
+    const finalPartialFailures = Array.isArray(finalExistingProgress.partial_failures)
+      ? finalExistingProgress.partial_failures
+      : [];
+
     await supabase
       .from('cluster_generations')
       .update({
         status: finalStatus,
         completion_note: `${verifiedCount}/${articleStructures.length} articles generated via chunked processing (verified from DB).`,
+        ...(finalStatus === 'failed' && {
+          error: finalPartialFailures.length > 0
+            ? `0/${articleStructures.length} articles saved. First error: ${finalPartialFailures[0]?.error || 'unknown'}`
+            : `0/${articleStructures.length} articles saved (no error captured).`,
+        }),
         progress: {
+          ...finalExistingProgress,
           current_step: articleStructures.length + 2,
           total_steps: articleStructures.length + 2,
           current_article: articleStructures.length,
           total_articles: articleStructures.length,
-          message: finalStatus === 'completed' 
-            ? `✅ Cluster complete: ${verifiedCount} articles generated.`
-            : `⚠️ Partial: ${verifiedCount}/${articleStructures.length} articles.`,
+          message: finalStatus === 'failed'
+            ? `❌ Total failure: 0/${articleStructures.length} articles saved.`
+            : isPartial
+              ? `⚠️ Partial success: ${verifiedCount}/${articleStructures.length} articles saved (advancing batch).`
+              : `✅ Cluster complete: ${verifiedCount} articles generated.`,
           chunked: true,
           total_chunks: Math.ceil(articleStructures.length / CHUNK_SIZE),
+          partial: isPartial,
+          verified_count: verifiedCount,
+          expected_count: articleStructures.length,
         },
         updated_at: new Date().toISOString(),
       })
       .eq('id', jobId);
 
-    // Auto-generate content-aware images for the completed cluster
-    if (finalStatus === 'completed') {
+    // Auto-generate content-aware images for the completed (or partially completed) cluster
+    if (finalStatus === 'completed' && verifiedCount > 0) {
       console.log(`[Chunk] 🎨 Auto-triggering content-aware image generation for cluster ${jobId}...`);
       fetch(`${SUPABASE_URL}/functions/v1/regenerate-cluster-images`, {
         method: 'POST',
