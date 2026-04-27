@@ -23,6 +23,11 @@ import { createClient } from "@supabase/supabase-js";
 import fs from "node:fs";
 import path from "node:path";
 
+// Use an untyped client so this script doesn't depend on the auto-generated
+// Database types (the new flagged_articles table won't be in them until the
+// next type sync).
+type AnyClient = ReturnType<typeof createClient>;
+
 // ---------- Constants (mirror the manifest contract) ----------
 
 const MONEY_PAGE_WHITELIST = new Set([
@@ -166,7 +171,7 @@ function normTheme(s: string): string {
   return s.toLowerCase().replace(/\s+/g, " ").trim();
 }
 
-async function buildDedupeIndex(supabase: ReturnType<typeof createClient>) {
+async function buildDedupeIndex(supabase: AnyClient) {
   const themes = new Set<string>();
   const topics = new Set<string>();
   const primaryKws = new Set<string>();
@@ -216,7 +221,7 @@ function isDuplicate(
 // ---------- Edge function calls ----------
 
 async function invokeGenerateCluster(
-  supabase: ReturnType<typeof createClient>,
+  supabase: AnyClient,
   e: ManifestEntry,
 ): Promise<{ jobId: string | null; error?: string }> {
   const { data, error } = await supabase.functions.invoke("generate-cluster", {
@@ -234,7 +239,7 @@ async function invokeGenerateCluster(
   return { jobId };
 }
 
-async function killJob(supabase: ReturnType<typeof createClient>, jobId: string): Promise<void> {
+async function killJob(supabase: AnyClient, jobId: string): Promise<void> {
   try {
     await supabase.functions.invoke("kill-cluster-job", { body: { jobId } });
   } catch (err) {
@@ -250,7 +255,7 @@ interface JobStatusRow {
 }
 
 async function pollUntilDone(
-  supabase: ReturnType<typeof createClient>,
+  supabase: AnyClient,
   jobId: string,
   startedAt: number,
   debug: boolean,
@@ -318,7 +323,7 @@ function scanText(text: string): { pattern: string; excerpt: string } | null {
 }
 
 async function scanRecruitingCluster(
-  supabase: ReturnType<typeof createClient>,
+  supabase: AnyClient,
   jobId: string,
   complianceClass: ComplianceClass,
 ): Promise<number> {
@@ -350,7 +355,7 @@ async function scanRecruitingCluster(
       .eq("id", a.id);
 
     // Insert flag (unique constraint on (article_id, reason))
-    await supabase.from("flagged_articles").upsert(
+    await supabase.from("flagged_articles" as never).upsert(
       {
         article_id: a.id,
         reason: "income_claim_detected",
@@ -359,7 +364,7 @@ async function scanRecruitingCluster(
         cluster_generation_id: jobId,
         compliance_class: complianceClass,
         status: "pending_review",
-      },
+      } as never,
       { onConflict: "article_id,reason" },
     );
     flagged++;
@@ -493,8 +498,9 @@ async function main() {
     const durationSec = Math.round((Date.now() - startedAt) / 1000);
 
     if (!result.ok) {
-      console.error(`  ❌ ${result.reason} after ${durationSec}s${result.error ? `: ${result.error}` : ""}`);
-      report.push({ id: e.id, name: e.name, jobId: inv.jobId, status: result.reason === "timeout" ? "timeout" : "failed", durationSec, error: result.error, resumeFrom: e.id });
+      const failResult = result; // narrow
+      console.error(`  ❌ ${failResult.reason} after ${durationSec}s${failResult.error ? `: ${failResult.error}` : ""}`);
+      report.push({ id: e.id, name: e.name, jobId: inv.jobId, status: failResult.reason === "timeout" ? "timeout" : "failed", durationSec, error: failResult.error, resumeFrom: e.id });
       failedCount++;
       // Continue to next cluster after gap
       await new Promise((res) => setTimeout(res, INTER_CLUSTER_GAP_MS));
