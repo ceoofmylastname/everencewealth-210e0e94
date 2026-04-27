@@ -33,6 +33,49 @@ const CONTENT_PATH_CATCHALL_REGEX =
 const TWO_SEGMENT_CATCHALL_REGEX =
   /^\/(en|es)\/(locations|ubicaciones)\/[^\/]+\/[^\/]+\/?$/;
 
+// ============================================================
+// PROMPT 25 — Static React routes that match the catchall regex
+// but ARE valid pages (not in all_published_slugs because they're
+// SPA-rendered, not DB-driven). Without this, the catchall returns
+// 404 for our BOFU money pages — the exact reason FIX 7 BOFU pages
+// weren't indexing. Match with or without trailing slash.
+// ============================================================
+const STATIC_ROUTE_EXEMPT = new Set([
+  '/en/strategies/iul', '/en/strategies/iul/',
+  '/en/strategies/whole-life', '/en/strategies/whole-life/',
+  '/en/strategies/tax-free-retirement', '/en/strategies/tax-free-retirement/',
+  '/en/strategies/asset-protection', '/en/strategies/asset-protection/',
+  '/es/strategies/iul', '/es/strategies/iul/',
+  '/es/strategies/whole-life', '/es/strategies/whole-life/',
+  '/es/strategies/tax-free-retirement', '/es/strategies/tax-free-retirement/',
+  '/es/strategies/asset-protection', '/es/strategies/asset-protection/',
+  '/en/estrategias/seguro-universal-indexado', '/en/estrategias/seguro-universal-indexado/',
+  '/en/estrategias/seguro-vida-entera', '/en/estrategias/seguro-vida-entera/',
+  '/en/estrategias/retiro-libre-impuestos', '/en/estrategias/retiro-libre-impuestos/',
+  '/en/estrategias/proteccion-de-activos', '/en/estrategias/proteccion-de-activos/',
+  '/es/estrategias/seguro-universal-indexado', '/es/estrategias/seguro-universal-indexado/',
+  '/es/estrategias/seguro-vida-entera', '/es/estrategias/seguro-vida-entera/',
+  '/es/estrategias/retiro-libre-impuestos', '/es/estrategias/retiro-libre-impuestos/',
+  '/es/estrategias/proteccion-de-activos', '/es/estrategias/proteccion-de-activos/',
+]);
+
+// ============================================================
+// PROMPT 25 — FIX 1: Structural 410 patterns. Any path matching
+// these regexes is from a Costa del Sol legacy URL or old blog
+// hierarchy that no longer exists. Short-circuits to 410 BEFORE
+// the gone_urls DB lookup so we don't pay a roundtrip on guaranteed
+// dead patterns. Note: /(en|es)/locations/* is NOT in this list
+// because LocationPage.tsx is an active route — those use
+// gone_urls table seed data instead.
+// ============================================================
+const STRUCTURAL_410_PATTERNS = [
+  /^\/(en|es)\/property\/R\d+\/?$/i,
+  /^\/(en|es)\/properties(\/|\?|$)/i,
+  /^\/(en|es)\/retirement-planning\/.+/i,
+  /^\/en\/blog\/(insurance-management|insurance-strategies|investment-strategies|investment|wealth-management|tax-planning|retirement-planning|retirement|financial-planning)\/.+/i,
+  /^\/en\/blog\/costadelsol\/.+/i,
+];
+
 // Known AI / search bot UA patterns (used by logBotHit)
 const KNOWN_BOTS = [
   { pattern: /GPTBot/i,             name: 'GPTBot' },
