@@ -408,13 +408,11 @@ serve(async (req) => {
             results.push({ id: english.id, language: 'en', success: false });
           }
         } else {
-          // CONTENT-AWARE GENERATION: Read article content → extract prompt → generate image
-          console.log(`🧠 Extracting content-specific prompt for position ${position}...`);
-
-          const imagePrompt = await extractImagePrompt(
-            english.detailed_content || '',
+          // CONTENT-AWARE GENERATION: Build editorial prompt from article title + first paragraph.
+          console.log(`🧠 Building editorial prompt for position ${position}...`);
+          const imagePrompt = buildArticlePrompt(
             english.headline,
-            lovableApiKey
+            english.detailed_content || ''
           );
 
           console.log(`🎨 Generating content-aware image for: "${english.headline.substring(0, 50)}..."`);
