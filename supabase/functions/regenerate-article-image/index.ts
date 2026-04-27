@@ -2,6 +2,11 @@ import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { generateImage as kieGenerateImage } from "../_shared/kieClient.ts";
+import {
+  buildEditorialImagePrompt,
+  firstParagraphFromContent,
+  BRAND_RETRY_SUFFIX,
+} from "../_shared/editorialImagePrompt.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -178,21 +183,6 @@ Generate alt text and caption in ${languageName}.`
   }
 
   return { altText, caption };
-}
-
-/**
- * Build a high-quality fallback image prompt based on funnel stage + theme.
- * Used when AI prompt generation fails (rate limit, credits, etc).
- */
-function buildFallbackPrompt(funnelStage?: string, clusterTheme?: string): string {
-  const theme = clusterTheme || 'financial planning and wealth management';
-  const stageScenes: Record<string, string> = {
-    TOFU: `a multi-stage crystal-and-brass educational exhibit visualizing the entry point into ${theme}, with three labeled inflow conduits, an integrated schematic call-out panel reading "FOUNDATION STAGE", and a small holographic data cloud showing comparative growth curves`,
-    MOFU: `an intricate clockwork-and-glass scientific model comparing two parallel pathways through ${theme}, with brass gauges, transparent flow chambers, integrated call-out plaques labeled "STRATEGY A" and "STRATEGY B", and side schematic overlays showing trade-offs`,
-    BOFU: `a premium museum-grade educational apparatus visualizing the decisive outcome of ${theme}, with a central polished titanium core, glowing data conduits branching to three labeled outcome chambers, integrated tablet-style displays showing comparative metrics, and a brass plaque reading "OUTCOME STAGE"`,
-  };
-  const scene = stageScenes[(funnelStage || '').toUpperCase()] || stageScenes.MOFU;
-  return `${scene}, photorealistic museum-exhibit composition with dense infographic detail, integrated diagrammatic call-outs, schematic overlays, holographic data clouds and descriptive functional labels, premium materials (crystal, brushed titanium, brass, copper, polished chrome, optionally including labeled glass jars or buckets when they best illustrate the concept), cinematic studio lighting in cool blue, warm amber and vibrant green, 16:9 aspect ratio, 2K resolution, no company logos, no brand names, no watermarks`;
 }
 
 serve(async (req) => {
