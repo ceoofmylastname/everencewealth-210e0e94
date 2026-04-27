@@ -32,13 +32,13 @@
       "moneyPageTarget": "/en/strategies/iul",
       "compliance_class": "wealth_standard",
       "tofu_titles": [
-        "What is Indexed Universal Life Insurance — A Beginner's Guide",
+        "What is Indexed Universal Life Insurance \u2014 A Beginner's Guide",
         "How IUL Cash Value Grows Without Market Risk",
         "IUL vs Term Life Insurance: Where High Earners Go Wrong"
       ],
       "mofu_titles": [
-        "IUL vs 401(k) for Tax-Free Income — The Comparison",
-        "Does IUL Really Offer Tax-Free Withdrawals — How It Works"
+        "IUL vs 401(k) for Tax-Free Income \u2014 The Comparison",
+        "Does IUL Really Offer Tax-Free Withdrawals \u2014 How It Works"
       ],
       "bofu_title": "IUL for High Earners: Tax-Free Retirement Income Strategy",
       "internal_link_anchors": [
@@ -68,12 +68,12 @@
       "moneyPageTarget": "/en/strategies/tax-free-retirement",
       "compliance_class": "wealth_standard",
       "tofu_titles": [
-        "What is a Roth Conversion — Complete Step-by-Step Guide",
+        "What is a Roth Conversion \u2014 Complete Step-by-Step Guide",
         "The Pro-Rata Rule Explained: How Backdoor Roths Work",
         "When to Do a Roth Conversion (Timing in Retirement)"
       ],
       "mofu_titles": [
-        "Roth Conversion vs Roth IRA Direct Contribution — Which Is Right",
+        "Roth Conversion vs Roth IRA Direct Contribution \u2014 Which Is Right",
         "Roth Conversion Tax Impact: Calculating Your Best Year"
       ],
       "bofu_title": "Roth Conversion Roadmap: Pre-Retirees to Early Retirees",
@@ -105,7 +105,7 @@
       "tofu_titles": [
         "How to Build Tax-Free Retirement Income (4 Strategies)",
         "The Difference Between Tax-Deferred and Tax-Free Retirement Plans",
-        "Ordinary Income vs Capital Gains in Retirement — Why It Matters"
+        "Ordinary Income vs Capital Gains in Retirement \u2014 Why It Matters"
       ],
       "mofu_titles": [
         "Tax-Free vs Tax-Deferred Retirement: Side-by-Side Comparison",
@@ -179,7 +179,7 @@
         "Types of Life Insurance That Build Cash Value"
       ],
       "mofu_titles": [
-        "Life Insurance Loan Strategy vs 401(k) Withdrawal — Comparison",
+        "Life Insurance Loan Strategy vs 401(k) Withdrawal \u2014 Comparison",
         "How Much Life Insurance Cash Value Do You Need for Retirement"
       ],
       "bofu_title": "Life Insurance Retirement Strategy: The Tax-Free Accumulation Plan",
@@ -232,7 +232,7 @@
     },
     {
       "id": 7,
-      "name": "The Retirement Gap — When Social Security Isn't Enough",
+      "name": "The Retirement Gap \u2014 When Social Security Isn't Enough",
       "topic": "Retirement Gap",
       "primaryKeyword": "retirement income gap",
       "secondaryKeywords": [
@@ -303,7 +303,7 @@
     },
     {
       "id": 9,
-      "name": "Should You Retire Early — The Math & Risk Assessment",
+      "name": "Should You Retire Early \u2014 The Math & Risk Assessment",
       "topic": "Retirement Gap",
       "primaryKeyword": "early retirement timeline",
       "secondaryKeywords": [
@@ -479,7 +479,7 @@
     },
     {
       "id": 14,
-      "name": "Mega Backdoor Roth — The Ultimate High-Earner Move",
+      "name": "Mega Backdoor Roth \u2014 The Ultimate High-Earner Move",
       "topic": "Tax-Free Retirement",
       "primaryKeyword": "mega backdoor Roth",
       "secondaryKeywords": [
@@ -494,7 +494,7 @@
       "compliance_class": "wealth_standard",
       "tofu_titles": [
         "What is a Mega Backdoor Roth (And How It Works)",
-        "Mega Backdoor Roth vs Regular Backdoor Roth — Differences",
+        "Mega Backdoor Roth vs Regular Backdoor Roth \u2014 Differences",
         "Can Your Employer 401(k) Plan Offer Mega Backdoor Roth"
       ],
       "mofu_titles": [
@@ -1656,7 +1656,7 @@
       "compliance_class": "wealth_standard",
       "tofu_titles": [
         "Insurance Broker vs Financial Advisor (Licensing Differences)",
-        "Fiduciary Duty: Insurance Brokers vs Financial Advisors",
+        "Suitability vs Best-Interest Standards: Insurance Brokers vs Financial Advisors",
         "State Insurance License vs Securities License"
       ],
       "mofu_titles": [
@@ -1666,7 +1666,7 @@
       "bofu_title": "Advisor Licensing & Credentials: What You Should Know",
       "internal_link_anchors": [
         "insurance broker licensing",
-        "RIA fiduciary",
+        "RIA registration",
         "financial advisor credentials",
         "regulatory structure",
         "advisor qualifications"
@@ -1739,7 +1739,7 @@
         "advisor selection",
         "CFP certification",
         "advisor vetting",
-        "fiduciary advisor"
+        "registered advisor"
       ],
       "language": "en",
       "skip_by_default": false
@@ -1781,7 +1781,7 @@
     },
     {
       "id": 51,
-      "name": "Becoming an Insurance Broker — Career Overview",
+      "name": "Becoming an Insurance Broker \u2014 Career Overview",
       "topic": "Insurance Career",
       "primaryKeyword": "how to become insurance broker",
       "secondaryKeywords": [
@@ -1873,7 +1873,7 @@
         "Choosing Between Independent and Captive: 7 Considerations",
         "The Independent Model: Why More Brokers Are Switching"
       ],
-      "bofu_title": "Joining an Independent Insurance Broker — What to Expect",
+      "bofu_title": "Joining an Independent Insurance Broker \u2014 What to Expect",
       "internal_link_anchors": [
         "independent broker",
         "captive agency",
