@@ -705,6 +705,8 @@ async function processChunk(
     // Process articles in this chunk
     const savedIds: string[] = [];
     const errors: string[] = [];
+    // FIX B — Structured partial-failure record per article (kept across chunks via progress.partial_failures)
+    const partialFailures: Array<{ article_index: number; error: string; attempt_count: number }> = [];
 
     for (let i = 0; i < chunkArticles.length; i++) {
       const globalIndex = startIdx + i;
@@ -745,6 +747,11 @@ async function processChunk(
         savedIds.push(result.articleId);
       } else {
         errors.push(`Article ${globalIndex + 1}: ${result.error}`);
+        partialFailures.push({
+          article_index: globalIndex + 1,
+          error: (result.error || 'unknown').substring(0, 500),
+          attempt_count: 3, // generateSingleArticle does 3 attempts max
+        });
         // If Claude timed out for the entire article (all 3 attempts), mark job failed and stop chunk.
         if (result.error && result.error.includes('claude_timeout')) {
           await supabase
@@ -756,6 +763,7 @@ async function processChunk(
                 last_heartbeat: `claude_timeout article=${globalIndex + 1} attempt=3/3`,
                 ts: new Date().toISOString(),
                 message: `Claude API hung on article ${globalIndex + 1} after 3 attempts.`,
+                partial_failures: partialFailures,
               },
               updated_at: new Date().toISOString(),
             })
@@ -780,17 +788,55 @@ async function processChunk(
     const existingArticles = job.articles || [];
     const allSavedArticles = [...existingArticles, ...savedIds];
 
+    // FIX B — Merge this chunk's partial failures with any previously recorded ones.
+    const existingProgress = job.progress || {};
+    const existingPartialFailures: any[] = Array.isArray(existingProgress.partial_failures)
+      ? existingProgress.partial_failures
+      : [];
+    const mergedPartialFailures = [...existingPartialFailures, ...partialFailures];
+
     await supabase
       .from('cluster_generations')
       .update({
         articles: allSavedArticles,
         updated_at: new Date().toISOString(),
+        ...(mergedPartialFailures.length > 0 && {
+          progress: {
+            ...existingProgress,
+            partial_failures: mergedPartialFailures,
+            partial: true,
+          },
+        }),
       })
       .eq('id', jobId);
 
     console.log(`\n[Chunk] ✅ Chunk ${chunkIndex + 1} complete`);
     console.log(`[Chunk] Saved: ${savedIds.length}, Errors: ${errors.length}`);
     console.log(`[Chunk] Total saved so far: ${allSavedArticles.length}/${articleStructures.length}`);
+
+    // FIX B — Total-failure guard: if THIS chunk saved nothing AND had errors,
+    // and there are no previous saves, mark gen failed so the orchestrator advances
+    // instead of waiting for the 20-min worker timeout.
+    if (savedIds.length === 0 && errors.length > 0 && allSavedArticles.length === 0 && !hasMoreChunks) {
+      const firstErr = (errors[0] || 'unknown').substring(0, 400);
+      await supabase
+        .from('cluster_generations')
+        .update({
+          status: 'failed',
+          error: `All articles failed in chunk ${chunkIndex + 1}: ${firstErr}`,
+          progress: {
+            ...existingProgress,
+            partial_failures: mergedPartialFailures,
+            partial: false,
+            total_failure: true,
+            ts: new Date().toISOString(),
+          },
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', jobId);
+      console.error(`[Chunk] ❌ Total failure on cluster ${jobId} — marked failed.`);
+      return;
+    }
 
     // Fire next chunk if needed (fire-and-forget)
     if (hasMoreChunks) {
@@ -825,31 +871,67 @@ async function processChunk(
     const verifiedCount = countError ? allSavedArticles.length : (actualSavedCount || 0);
     console.log(`[Chunk] 📊 Verified article count from DB: ${verifiedCount} (internal tracking: ${allSavedArticles.length}, expected: ${articleStructures.length})`);
 
-    // Use verified DB count to determine status - if DB has all articles, it's completed
-    const finalStatus = verifiedCount >= articleStructures.length ? 'completed' : 'partial';
-    
+    // FIX B — Status decision matrix:
+    //   verified == 0  AND errors  → 'failed'      (orchestrator advances with fail)
+    //   0 < verified < expected    → 'completed' + progress.partial=true
+    //                                (orchestrator advances; flagged in step log)
+    //   verified >= expected       → 'completed'   (happy path)
+    // We deliberately do NOT introduce a 'completed_with_errors' status because
+    // build-cluster-step:300 does a strict equality check on g.status === 'completed'.
+    // A new status value would leave the batch stuck. Partial signal lives in progress.
+    let finalStatus: string;
+    let isPartial = false;
+    if (verifiedCount === 0) {
+      finalStatus = 'failed';
+    } else if (verifiedCount < articleStructures.length) {
+      finalStatus = 'completed';
+      isPartial = true;
+    } else {
+      finalStatus = 'completed';
+    }
+
+    const finalExistingProgress = (await supabase
+      .from('cluster_generations')
+      .select('progress')
+      .eq('id', jobId)
+      .single()).data?.progress || {};
+    const finalPartialFailures = Array.isArray(finalExistingProgress.partial_failures)
+      ? finalExistingProgress.partial_failures
+      : [];
+
     await supabase
       .from('cluster_generations')
       .update({
         status: finalStatus,
         completion_note: `${verifiedCount}/${articleStructures.length} articles generated via chunked processing (verified from DB).`,
+        ...(finalStatus === 'failed' && {
+          error: finalPartialFailures.length > 0
+            ? `0/${articleStructures.length} articles saved. First error: ${finalPartialFailures[0]?.error || 'unknown'}`
+            : `0/${articleStructures.length} articles saved (no error captured).`,
+        }),
         progress: {
+          ...finalExistingProgress,
           current_step: articleStructures.length + 2,
           total_steps: articleStructures.length + 2,
           current_article: articleStructures.length,
           total_articles: articleStructures.length,
-          message: finalStatus === 'completed' 
-            ? `✅ Cluster complete: ${verifiedCount} articles generated.`
-            : `⚠️ Partial: ${verifiedCount}/${articleStructures.length} articles.`,
+          message: finalStatus === 'failed'
+            ? `❌ Total failure: 0/${articleStructures.length} articles saved.`
+            : isPartial
+              ? `⚠️ Partial success: ${verifiedCount}/${articleStructures.length} articles saved (advancing batch).`
+              : `✅ Cluster complete: ${verifiedCount} articles generated.`,
           chunked: true,
           total_chunks: Math.ceil(articleStructures.length / CHUNK_SIZE),
+          partial: isPartial,
+          verified_count: verifiedCount,
+          expected_count: articleStructures.length,
         },
         updated_at: new Date().toISOString(),
       })
       .eq('id', jobId);
 
-    // Auto-generate content-aware images for the completed cluster
-    if (finalStatus === 'completed') {
+    // Auto-generate content-aware images for the completed (or partially completed) cluster
+    if (finalStatus === 'completed' && verifiedCount > 0) {
       console.log(`[Chunk] 🎨 Auto-triggering content-aware image generation for cluster ${jobId}...`);
       fetch(`${SUPABASE_URL}/functions/v1/regenerate-cluster-images`, {
         method: 'POST',
