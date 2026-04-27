@@ -483,6 +483,16 @@ function generateStaticHTML(productionAssets: ProductionAssets, language: Langua
   <link rel="preload" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Lato:wght@400;700&family=Raleway:wght@400;500;600;700&display=swap" as="style">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Lato:wght@400;700&family=Raleway:wght@400;500;600;700&display=swap">
   
+  <!-- LCP hero image preload — desktop + mobile, fetchpriority high -->
+  <link rel="preload" as="image"
+        href="/hero/hero-landing-desktop.jpg"
+        fetchpriority="high"
+        media="(min-width: 768px)">
+  <link rel="preload" as="image"
+        href="/hero/hero-landing-mobile.jpg"
+        fetchpriority="high"
+        media="(max-width: 767px)">
+
   <!-- Critical CSS -->
   <style>${CRITICAL_CSS}</style>
   

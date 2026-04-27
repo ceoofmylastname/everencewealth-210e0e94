@@ -390,6 +390,29 @@ async function buildResponse({ request, next, env, ctx }) {
   }
 
   // ============================================================
+  // Un-prefixed → /en/ redirects for known landing routes.
+  // Handles /assessment, /assessment/, /about, /about/.
+  // Runs before the comma-strip and static-asset bypass so these
+  // canonicalize before any other routing logic fires.
+  // ============================================================
+  const UNPREFIXED_TO_EN = ['/assessment', '/about'];
+  if (
+    UNPREFIXED_TO_EN.includes(pathname) ||
+    UNPREFIXED_TO_EN.some((p) => pathname === p + '/')
+  ) {
+    const base = pathname.replace(/\/$/, '');
+    const target = `${BASE_URL}/en${base}/`;
+    console.log(`[Middleware] 301 unprefixed→/en: ${pathname} → ${target}`);
+    return new Response(null, {
+      status: 301,
+      headers: {
+        Location: target,
+        'X-Middleware-Status': 'Active',
+      },
+    });
+  }
+
+  // ============================================================
   // RULE: Strip commas from /<lang>/(locations|ubicaciones)/* URLs.
   // Historical city_slug values like "los-angeles,-ca" produced URLs
   // with literal commas. The DB has been cleaned + locked, so any

@@ -1,107 +1,115 @@
-## Goal
+# Cleanup: Un-prefixed redirects + hero LCP preloads
 
-Switch image generation from the current "museum-exhibit infographic apparatus" prompt style to a **photorealistic, human-centric editorial style** that visually mirrors the article's story. Add hard brand/text constraints so output never contains logos, third-party names, or readable copy. Then bulk-regenerate flagged branded images.
+Closes 3 of 4 audit items (Items 1, 2, 3). Item 4 (Bing `msvalidate.01`) deferred until the real token is available.
 
-## What's already in place (no rework needed)
+## Why prior hero-preload attempts failed
 
-- `kieClient.ts` already pins `model: "nano-banana-2"` — verified, will surface to you.
-- `LogoBrandingScanTab.tsx` **already has** a "Replace All Flagged" bulk button and a per-row "Replace" button, both wired to `regenerate-article-image`. **Step 2.2 and Step 2.3 of your spec are essentially done.** The plan keeps those buttons but tightens behaviour (forces brand-mark verification retry, marks `resolved_at` after success, refuses to re-flag the next scan via `resolved_at IS NOT NULL` filter that's already there).
-- Detection store: `article_image_issues` table, filtered by `issue_type='logo_detected'` and `resolved_at IS NULL`. Detection runs via `scan-article-images` edge function which calls `analyze-image-for-text` (vision API).
+`index.html` already has hero preload tags at lines 40-49. But production never sees them because `scripts/generateStaticHomePage.ts` overwrites `dist/index.html` at build time with its own `<head>` template (lines 430-494) that has no hero preload tags. The Vite plugin pipeline runs:
 
-## Current prompt style (what we're replacing)
+1. Vite builds `dist/index.html` from source `index.html` (preloads survive).
+2. `staticPageGenerator` plugin's `closeBundle` runs `generateStaticHomePage()`.
+3. That generator writes a fresh template to `dist/index.html` — wiping the preloads.
 
-`regenerate-article-image` builds a 500-word "Image Explainer" director prompt: museum apparatus with crystal vessels, brass gauges, holographic data clouds, etched plaques. Explicitly **no people** as primary subject. Visually dense, infographic-style, label-heavy.
+Fix: add the preload tags to the generator template, not just source `index.html`. `app-shell.html` (used for non-homepage SPA fallback) does NOT need them — those routes aren't the LCP hero.
 
-`regenerate-cluster-images` uses a much simpler `extractImagePrompt` helper but still defaults to "professional financial advisory photograph" with brand-free constraints.
+## Changes
 
-`generate-hero-image` is **not** article-driven — it generates fixed villa/couple lifestyle hero images for the homepage. Different surface; the new template doesn't apply cleanly there. **Flagged below.**
+### 1. `functions/_middleware.js` — add un-prefixed → `/en/` redirects
 
-## Plan
+Insert a new block immediately AFTER the `REDIRECT_MAP` (line ~390) and BEFORE the comma-strip rule (line ~401). Same precedence as other 301 rules, runs before the static-asset bypass at line 451.
 
-### 1. New unified prompt template (PART 1)
-
-Build a shared helper `buildEditorialImagePrompt({ title, firstParagraph })` in a new file `supabase/functions/_shared/editorialImagePrompt.ts` that returns the exact template from your spec:
-
-```
-Photorealistic editorial-quality image illustrating: ${title}.
-
-Visual concept derived from: ${firstParagraph}
-
-Style: cinematic professional photography, natural lighting,
-documentary realism, financial planning context, mature professional audience.
-
-Subject focus: human-centric storytelling that conveys the article's
-emotional core (retirement security, financial confidence, family legacy,
-generational wealth) through facial expression, body language, and
-environmental context.
-
-HARD CONSTRAINTS — IMAGE MUST NOT CONTAIN:
-- Any company logos, brand marks, trademarks, or product packaging
-- Any readable text, captions, watermarks, signs, or screen displays
-- Any third-party brand names (banks, insurance carriers, financial
-  products, software platforms, news outlets, etc.)
-- Stock photo aesthetic, generic AI look, plastic/synthetic skin
-- Cartoon, illustration, or vector art styles
-- Crypto, NFT, or speculative-finance imagery
-- Spanish-language signage (this is a US-market wealth firm)
-
-Required: 16:9 aspect ratio, 2K resolution, color-graded for
-professional financial publication.
+```js
+// ============================================================
+// Un-prefixed → /en/ redirects for known landing routes
+// ============================================================
+const UNPREFIXED_TO_EN = ['/assessment', '/about'];
+if (
+  UNPREFIXED_TO_EN.includes(pathname) ||
+  UNPREFIXED_TO_EN.some(p => pathname === p + '/')
+) {
+  const base = pathname.replace(/\/$/, '');
+  const target = `${BASE_URL}/en${base}/`;
+  console.log(`[Middleware] 301 unprefixed→/en: ${pathname} → ${target}`);
+  return new Response(null, {
+    status: 301,
+    headers: { Location: target, 'X-Middleware-Status': 'Active' },
+  });
+}
 ```
 
-`firstParagraph` is built by stripping HTML from `detailed_content` (or `answer_main` for QA, or `description` for locations) and trimming to ~300 chars at the nearest sentence boundary. `title` comes from `headline` / `question_main` / `topic` depending on content type.
+Handles all four cases: `/assessment`, `/assessment/`, `/about`, `/about/` → `/en/assessment/` and `/en/about/`.
 
-### 2. Wire the helper into the three generation surfaces
+### 2. `scripts/generateStaticHomePage.ts` — inject hero preloads in template
 
-**`regenerate-article-image/index.ts`**
-- Delete the entire "Image Explainer (IE) prompt director" Lovable AI synthesis call (~150 lines of system prompt + the fetch).
-- Delete `buildFallbackPrompt` (museum-exhibit fallback no longer matches the new aesthetic).
-- Build the prompt directly with `buildEditorialImagePrompt({ title: article.headline, firstParagraph: stripHtml(article.detailed_content).slice(0, 300) })`.
-- Keep the existing **logo verification + 1 retry loop** against `analyze-image-for-text` — it's the safety net for branded outputs. On retry, append `--strictly no brand marks, no readable text, no signage` rather than the old index-name appendix.
-- Keep image upload, alt/caption metadata generation (it stays multilingual EN/ES), `featured_image_url` update, old image deletion.
+In the head template (around line 484, right after the Google Fonts `<link rel="stylesheet">`), add:
 
-**`regenerate-cluster-images/index.ts`**
-- Replace `extractImagePrompt` Lovable AI call with the same direct template build per English position. Faster, cheaper, deterministic.
-- Spanish translations continue to share the English image; no change to the sharing logic.
+```html
+<!-- LCP hero image preload — desktop + mobile, fetchpriority high -->
+<link rel="preload" as="image"
+      href="/hero/hero-landing-desktop.jpg"
+      fetchpriority="high"
+      media="(min-width: 768px)">
+<link rel="preload" as="image"
+      href="/hero/hero-landing-mobile.jpg"
+      fetchpriority="high"
+      media="(max-width: 767px)">
+```
 
-**`generate-hero-image/index.ts`**
-- This is **not** article-driven — it generates fixed homepage villa/couple hero images. The new article-template doesn't fit. **Recommendation: leave the current hero prompts intact** but append the same `HARD CONSTRAINTS` block to both `desktopPrompt` and `mobilePrompt` so any incidental signage / wordmarks in the villa scene gets suppressed. No structural rewrite.
-- Will surface this trade-off in chat and let you confirm before editing.
+This template is used to write `dist/index.html` (root `/`), `dist/en/index.html`, and `dist/{lang}/index.html` for all 10 supported languages, so all homepages get the LCP preloads.
 
-### 3. Bulk regeneration UI (PART 2)
+### 3. `index.html` — leave existing hero preload tags in place
 
-`LogoBrandingScanTab.tsx` already has both buttons. Light tightening only:
+Source `index.html` already has them at lines 40-49 (PROMPT 21 work). They survive the Vite step but get wiped by the generator — fixing the generator (above) is the real fix. Keeping them in source is defensive (covers the dev server and any non-homepage entry point that uses raw `index.html`). No edit needed.
 
-- Confirm `resolved_at` is set after a successful replace so the next scan won't re-flag (already done — verified).
-- Ensure the per-row replace passes through `force: true` so the edge function regenerates even if the article already has a Supabase image. **Note:** `regenerate-article-image` does not currently honour a `force` flag; it always regenerates the English primary. Spanish siblings always share from English. This is already the correct behaviour for "Replace All Flagged" — no flag plumbing required.
-- No new buttons needed. No new force flag needed. Step 2 of your spec is functionally complete.
+### 4. (Deferred) Bing `msvalidate.01` meta tag
 
-### 4. PART 3 verification
+Skipped — the prompt provided a literal placeholder. Will land when the real token is supplied.
 
-After deploy:
-1. From `/admin/articles/batch-images` (BatchImageGeneration), pick one article missing an image and trigger generation. Inspect the result — confirm photorealistic, human-centric, no logos, no text, matches headline.
-2. From `/admin/image-health` Logo & Branding tab, run a scan. Pick 5–10 flagged items, click "Replace" on each individually first to spot-check. Then "Replace All Flagged".
-3. Confirm `articles.featured_image_url` updates and old image is removed from the bucket (current code already deletes the old image on success).
+## Files touched
 
-## Files changed
+- `functions/_middleware.js` — add `UNPREFIXED_TO_EN` redirect block
+- `scripts/generateStaticHomePage.ts` — add 2 preload tags to head template
 
-**Created:**
-- `supabase/functions/_shared/editorialImagePrompt.ts` — exports `buildEditorialImagePrompt({ title, firstParagraph })` and a `stripHtml` helper.
+## Files explicitly NOT touched
 
-**Edited:**
-- `supabase/functions/regenerate-article-image/index.ts` — replace IE director prompt with template; keep logo-verify retry; update retry appendix.
-- `supabase/functions/regenerate-cluster-images/index.ts` — replace `extractImagePrompt` with direct template build.
-- `supabase/functions/generate-hero-image/index.ts` — append HARD CONSTRAINTS block to both villa prompts (no structural change).
+- `supabase/migrations/*` 
+- PROMPT 17 catchall, comma-strip 301, `.txt`/`.xml` content-type branches
+- `injectSeoTags()` HTMLRewriter
+- `OptimizedImage.tsx`
+- `serve-seo-page/index.ts`
+- `editorialImagePrompt.ts`
+- `src/config/business.ts`
+- `public/_headers` (PROMPT 22)
+- `scripts/generateAppShell.ts` (app-shell isn't homepage; preloads not relevant there)
+- Source `index.html` (already correct; generator was the bottleneck)
 
-**Untouched (per your guardrails):**
-- All `supabase/migrations/*.sql`
-- `OptimizedImage.tsx` (just fixed)
-- `functions/_middleware.js`, `injectSeoTags()`, `serve-seo-page` HTMLRewriter
-- `src/config/business.ts` BUSINESS values
-- All PROMPT 20/21/22 work (sameAs, knowsAbout, security headers, llms.txt, etc.)
+## Verification (post-deploy + Cloudflare cache purge)
 
-## Two questions before implementation
+```bash
+# Item 1
+curl -sIL https://www.everencewealth.com/assessment | grep -E "HTTP|location" | head -4
+# Expected: 301 → /en/assessment/ → 200
 
-1. **Hero image (`generate-hero-image`):** OK to leave the villa/couple prompts intact and just append the no-logo / no-text constraints? Or do you want the homepage hero to also follow the article-style template (which would change the entire homepage hero aesthetic)?
+# Item 2
+curl -sIL https://www.everencewealth.com/about/ | grep -E "HTTP|location" | head -4
+# Expected: 301 → /en/about/ → 200
 
-2. **Per-row "force regenerate" flag:** Your spec mentions `force=true`. Current behaviour already re-runs the full pipeline regardless of whether the article has a Supabase image. Is the explicit flag needed for any case I'm missing, or is "always regenerate when called" the correct semantic?
+# Item 3
+curl -sL https://www.everencewealth.com/ | grep -iE 'preload.*image|fetchpriority' 
+# Expected: 2 hero preload lines
+
+# Regression check (PROMPT 20/21/22)
+curl -sI https://www.everencewealth.com/ | grep -iE "strict-transport|x-frame|content-security|permissions-policy" | wc -l
+# Expected: 4
+curl -sI https://www.everencewealth.com/llms.txt | grep -i content-type
+# Expected: text/plain; charset=utf-8
+curl -sL https://www.everencewealth.com/en/about/ | grep canonical
+# Expected: canonical → /en/about/
+```
+
+Local pre-deploy sanity check:
+
+```bash
+npm run build && grep -c 'preload.*hero' dist/index.html
+# Expected: 2
+```
