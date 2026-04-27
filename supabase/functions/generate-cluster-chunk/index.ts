@@ -567,7 +567,18 @@ TOTAL MINIMUM: 1,000 words. Do NOT submit under 800.`;
       throw new Error(`Article generation failed: Could not reach minimum word count after ${maxAttempts} attempts (only ${lastWordCount} words). Article rejected.`);
     }
 
-    article.detailed_content = contentJson.detailed_content || contentJson.content || '';
+    // FIX A — Sanitize LLM output before any downstream use.
+    // The DB has TWO sibling CHECK constraints on detailed_content; sanitize covers both
+    // so a violation isn't surfaced as a generic Postgres error.
+    const rawContent = contentJson.detailed_content || contentJson.content || '';
+    const { cleaned: sanitizedContent, removed: sanitizerRemoved } = sanitizeDetailedContent(rawContent);
+    if (sanitizerRemoved.length > 0) {
+      // Surface to the heartbeat trail so we can monitor whether the prompt fix is holding.
+      // Empty array = LLM is now respecting the prompt; populated = sanitizer is doing real work.
+      await heartbeat(supabase, jobId, `sanitize:applied article=${articleIndex + 1} removed=${sanitizerRemoved.join(',')}`);
+      console.warn(`[Chunk ${jobId}] Article ${articleIndex + 1} sanitized: ${sanitizerRemoved.join(', ')}`);
+    }
+    article.detailed_content = sanitizedContent;
     article.meta_title = (contentJson.meta_title || plan.headline).substring(0, 60);
     article.meta_description = (contentJson.meta_description || '').substring(0, 160);
     article.speakable_answer = contentJson.speakable_answer || '';
@@ -603,6 +614,17 @@ TOTAL MINIMUM: 1,000 words. Do NOT submit under 800.`;
       throw new Error(
         `Article rejected by quality gate (score=${quality.score}, words=${quality.wordCount}): ${quality.issues.join('; ')}`
       );
+    }
+
+    // FIX C — Pre-insert validation mirror.
+    // Catch sanitizer regressions BEFORE the DB CHECK constraint fires, so we get
+    // a precise error string instead of "violates check constraint blog_articles_…".
+    try {
+      validateNoForbiddenTags(article.detailed_content);
+    } catch (validateErr) {
+      const msg = validateErr instanceof Error ? validateErr.message : String(validateErr);
+      await heartbeat(supabase, jobId, `validate:fail article=${articleIndex + 1} ${msg}`);
+      throw new Error(`Article ${articleIndex + 1} pre-insert validation failed: ${msg}`);
     }
 
     // 7. SAVE TO DATABASE
