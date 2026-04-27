@@ -410,7 +410,7 @@ async function buildResponse({ request, next, env, ctx }) {
     '/financial-needs-assessment': '/en/assessment/',
     '/en/strategies': '/en/',
     '/es/strategies': '/es/',
-    '/en/tax-bucket-guide': '/en/blog/tax-planning/understanding-three-tax-buckets',
+    '/en/tax-bucket-guide': '/en/strategies/tax-free-retirement/',
     '/es/tax-bucket-guide': '/es/',
     '/en/calculator': '/en/',
     '/es/calculator': '/es/',
