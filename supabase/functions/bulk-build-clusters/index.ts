@@ -275,11 +275,13 @@ serve(async (req) => {
       }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    // Fire-and-forget worker for index 0
+    // Fire-and-forget first tick so the user doesn't wait up to 60 sec for cron.
+    // Cron (tick-cluster-batches) handles every tick after this one. The worker
+    // reads current_index from the DB row, so no index is passed in the body.
     fetch(`${SUPABASE_URL}/functions/v1/build-cluster-step`, {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${SERVICE_KEY}` },
-      body: JSON.stringify({ batch_job_id: job.id, classification_index: 0 }),
+      body: JSON.stringify({ batch_job_id: job.id }),
     }).catch((err) => console.error("[bulk-build-clusters] fire-and-forget error (ignored):", err));
 
     return new Response(JSON.stringify({
@@ -290,7 +292,7 @@ serve(async (req) => {
       build_count: buildList.length,
       skip_count: skipCount,
       dedupe_summary,
-      message: "Live batch started. Worker will self-chain.",
+      message: "Live batch started. pg_cron will tick the worker every 60 sec until completion.",
     }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
   } catch (err) {
