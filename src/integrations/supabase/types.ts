@@ -3254,6 +3254,7 @@ export type Database = {
           current_job_id: string | null
           current_topic: string | null
           dedupe_summary: Json | null
+          entry_started_at: string | null
           error: string | null
           fail_count: number
           flagged_count: number
@@ -3267,6 +3268,8 @@ export type Database = {
           start_from: number | null
           started_at: string | null
           status: string
+          tick_in_progress: boolean
+          tick_locked_at: string | null
           total_entries: number
           triggered_by: string | null
           updated_at: string
@@ -3280,6 +3283,7 @@ export type Database = {
           current_job_id?: string | null
           current_topic?: string | null
           dedupe_summary?: Json | null
+          entry_started_at?: string | null
           error?: string | null
           fail_count?: number
           flagged_count?: number
@@ -3293,6 +3297,8 @@ export type Database = {
           start_from?: number | null
           started_at?: string | null
           status?: string
+          tick_in_progress?: boolean
+          tick_locked_at?: string | null
           total_entries?: number
           triggered_by?: string | null
           updated_at?: string
@@ -3306,6 +3312,7 @@ export type Database = {
           current_job_id?: string | null
           current_topic?: string | null
           dedupe_summary?: Json | null
+          entry_started_at?: string | null
           error?: string | null
           fail_count?: number
           flagged_count?: number
@@ -3319,6 +3326,8 @@ export type Database = {
           start_from?: number | null
           started_at?: string | null
           status?: string
+          tick_in_progress?: boolean
+          tick_locked_at?: string | null
           total_entries?: number
           triggered_by?: string | null
           updated_at?: string
@@ -3474,6 +3483,50 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      cluster_step_logs: {
+        Row: {
+          action_taken: string
+          batch_job_id: string
+          cluster_generations_status: string | null
+          created_at: string
+          current_index: number | null
+          current_job_id: string | null
+          current_topic: string | null
+          detail: Json | null
+          id: string
+        }
+        Insert: {
+          action_taken: string
+          batch_job_id: string
+          cluster_generations_status?: string | null
+          created_at?: string
+          current_index?: number | null
+          current_job_id?: string | null
+          current_topic?: string | null
+          detail?: Json | null
+          id?: string
+        }
+        Update: {
+          action_taken?: string
+          batch_job_id?: string
+          cluster_generations_status?: string | null
+          created_at?: string
+          current_index?: number | null
+          current_job_id?: string | null
+          current_topic?: string | null
+          detail?: Json | null
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cluster_step_logs_batch_job_id_fkey"
+            columns: ["batch_job_id"]
+            isOneToOne: false
+            referencedRelation: "cluster_batch_jobs"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       cluster_translation_queue: {
         Row: {
@@ -9891,6 +9944,10 @@ export type Database = {
           read_ct: number
         }[]
       }
+      release_batch_tick_lock: {
+        Args: { _batch_job_id: string }
+        Returns: undefined
+      }
       replace_citation_tracking: {
         Args: {
           p_anchor_text: string
@@ -9901,6 +9958,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      try_lock_batch_tick: { Args: { _batch_job_id: string }; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "editor" | "viewer" | "apartments_editor"
