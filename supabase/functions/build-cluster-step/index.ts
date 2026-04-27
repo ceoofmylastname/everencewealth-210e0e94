@@ -62,6 +62,11 @@ interface ResultRow {
   duration_sec: number;
   flagged_count?: number;
   error?: string;
+  // FIX B — partial-failure visibility (when some articles saved, some failed)
+  partial?: boolean;
+  partial_failures?: Array<{ article_index: number; error: string; attempt_count: number }>;
+  verified_count?: number | null;
+  expected_count?: number | null;
 }
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
