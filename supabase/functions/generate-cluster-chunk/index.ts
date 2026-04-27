@@ -407,7 +407,17 @@ MANDATORY STRUCTURE inside detailed_content:
 - At least 6 <h2> headings, each followed by 2+ detailed paragraphs
 - 5-8 FAQ questions in qa_entities, each answer 80-120 words, single paragraph (no lists)
 
-REMEMBER: Minimum 1,500 words in detailed_content is MANDATORY. Missing .speakable-answer or .eeat-section will cause REJECTION.`;
+OUTPUT FORMAT RULES for detailed_content (ENFORCED — violations cause REJECTION):
+- Output the article BODY ONLY, wrapped in a single <div class="article-content">…</div>
+- Do NOT emit <html>, <head>, <body>, or <h1> tags anywhere in detailed_content
+- The article title belongs in the "headline" field at the schema root, NOT as <h1> in the body
+- Section headings start at <h2>; subsections use <h3>; deeper levels use <h4>
+- Do NOT include <meta>, <link>, <script>, or <style> tags
+- Do NOT include rel="canonical", rel="alternate", or any application/ld+json blocks
+  (canonical URLs, hreflang alternates, and JSON-LD schema are injected separately by the publishing pipeline)
+- Do NOT wrap content in any document-level tags
+
+REMEMBER: Minimum 1,500 words in detailed_content is MANDATORY. Missing .speakable-answer or .eeat-section will cause REJECTION. Document-level tags (<html>/<head>/<body>/<h1>/<meta>/<link>/<script>/<style>) will cause REJECTION at the database layer.`;
 
     // Generate content with retry loop for word count enforcement (3 attempts with escalating prompts)
     let contentJson: any = null;
