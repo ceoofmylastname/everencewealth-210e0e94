@@ -90,6 +90,7 @@ const BatchImageGeneration = lazy(() => import("./pages/admin/BatchImageGenerati
 const CitationHealth = lazy(() => import("./pages/admin/CitationHealth"));
 const ApprovedDomains = lazy(() => import("./pages/admin/ApprovedDomains"));
 const BulkInternalLinks = lazy(() => import("./pages/admin/BulkInternalLinks"));
+const BulkClusterBatches = lazy(() => import("./pages/admin/BulkClusterBatches"));
 const BulkSpeakableRegeneration = lazy(() => import("./pages/admin/BulkSpeakableRegeneration"));
 const BulkArticleLinker = lazy(() => import("./pages/admin/BulkArticleLinker"));
 const BrochureManager = lazy(() => import("./pages/admin/BrochureManager"));
