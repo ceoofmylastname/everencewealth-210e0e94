@@ -90,6 +90,7 @@ const BatchImageGeneration = lazy(() => import("./pages/admin/BatchImageGenerati
 const CitationHealth = lazy(() => import("./pages/admin/CitationHealth"));
 const ApprovedDomains = lazy(() => import("./pages/admin/ApprovedDomains"));
 const BulkInternalLinks = lazy(() => import("./pages/admin/BulkInternalLinks"));
+const BulkClusterBatches = lazy(() => import("./pages/admin/BulkClusterBatches"));
 const BulkSpeakableRegeneration = lazy(() => import("./pages/admin/BulkSpeakableRegeneration"));
 const BulkArticleLinker = lazy(() => import("./pages/admin/BulkArticleLinker"));
 const BrochureManager = lazy(() => import("./pages/admin/BrochureManager"));
@@ -329,6 +330,7 @@ const App = () => (
               <Route path="/admin/docs/aeo-sge-guide" element={<ProtectedRoute><AEOGuide /></ProtectedRoute>} />
               <Route path="/admin/approved-domains" element={<ProtectedRoute><ApprovedDomains /></ProtectedRoute>} />
               <Route path="/admin/bulk-internal-links" element={<ProtectedRoute><BulkInternalLinks /></ProtectedRoute>} />
+              <Route path="/admin/bulk-cluster-batches" element={<ProtectedRoute><BulkClusterBatches /></ProtectedRoute>} />
               <Route path="/admin/brochures" element={<ProtectedRoute><AdminBrochures /></ProtectedRoute>} />
               <Route path="/admin/brochures/new" element={<ProtectedRoute><AdminBrochureForm /></ProtectedRoute>} />
               <Route path="/admin/brochures/:id/edit" element={<ProtectedRoute><AdminBrochureForm /></ProtectedRoute>} />
