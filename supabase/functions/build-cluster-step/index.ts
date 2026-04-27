@@ -50,6 +50,8 @@ interface Classification {
   reason?: string;
   money: string;
   compliance_class: "wealth_standard" | "recruiting_no_income_claims";
+  primary_keyword: string;
+  target_audience: string;
 }
 
 interface ResultRow {
@@ -180,6 +182,8 @@ serve(async (req) => {
       body: JSON.stringify({
         topic: c.topic,
         language: "en",
+        targetAudience: c.target_audience,
+        primaryKeyword: c.primary_keyword,
       }),
     });
     const invokeJson = await invokeResp.json().catch(() => ({}));
