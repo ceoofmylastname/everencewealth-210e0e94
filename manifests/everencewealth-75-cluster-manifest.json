@@ -1,0 +1,2658 @@
+{
+  "manifest_version": "v2-2026-04-27",
+  "total_count": 75,
+  "generated_at": "2026-04-27",
+  "compliance_classes": {
+    "wealth_standard": "No income-claim regex pass; auto-publish on EN+ES completion. DB enforce_fiduciary_term_block trigger applies.",
+    "recruiting_no_income_claims": "Post-generation income-claim regex pass. Articles matching any pattern are flipped to status=draft and inserted into flagged_articles for manual review."
+  },
+  "money_page_whitelist": [
+    "/contracting/intake",
+    "/en/buyers-guide/",
+    "/en/strategies/",
+    "/en/strategies/asset-protection",
+    "/en/strategies/iul",
+    "/en/strategies/tax-free-retirement",
+    "/en/strategies/whole-life"
+  ],
+  "clusters": [
+    {
+      "id": 1,
+      "name": "IUL Basics for High Earners",
+      "topic": "IUL",
+      "primaryKeyword": "indexed universal life insurance",
+      "secondaryKeywords": [
+        "how IUL works",
+        "IUL explained",
+        "IUL for high earners",
+        "cash value life insurance"
+      ],
+      "targetAudience": "High-Earner Pre-Retiree (5y out)",
+      "searchIntent": "Informational",
+      "moneyPageTarget": "/en/strategies/iul",
+      "compliance_class": "wealth_standard",
+      "tofu_titles": [
+        "What is Indexed Universal Life Insurance — A Beginner's Guide",
+        "How IUL Cash Value Grows Without Market Risk",
+        "IUL vs Term Life Insurance: Where High Earners Go Wrong"
+      ],
+      "mofu_titles": [
+        "IUL vs 401(k) for Tax-Free Income — The Comparison",
+        "Does IUL Really Offer Tax-Free Withdrawals — How It Works"
+      ],
+      "bofu_title": "IUL for High Earners: Tax-Free Retirement Income Strategy",
+      "internal_link_anchors": [
+        "IUL cash value growth",
+        "tax-free retirement income",
+        "high-earner retirement strategy",
+        "indexed universal life insurance",
+        "sequence-of-returns risk mitigation"
+      ],
+      "language": "en",
+      "skip_by_default": true,
+      "skip_reason": "Overlaps existing theme: IUL vs 401(k) Head-to-Head"
+    },
+    {
+      "id": 2,
+      "name": "Roth Conversion Strategy in Retirement",
+      "topic": "Roth Conversion",
+      "primaryKeyword": "Roth conversion in retirement",
+      "secondaryKeywords": [
+        "Roth IRA strategy",
+        "pro-rata rule Roth",
+        "Roth ladder strategy",
+        "pre-tax to Roth conversion"
+      ],
+      "targetAudience": "Early Retiree",
+      "searchIntent": "Informational / Decision",
+      "moneyPageTarget": "/en/strategies/tax-free-retirement",
+      "compliance_class": "wealth_standard",
+      "tofu_titles": [
+        "What is a Roth Conversion — Complete Step-by-Step Guide",
+        "The Pro-Rata Rule Explained: How Backdoor Roths Work",
+        "When to Do a Roth Conversion (Timing in Retirement)"
+      ],
+      "mofu_titles": [
+        "Roth Conversion vs Roth IRA Direct Contribution — Which Is Right",
+        "Roth Conversion Tax Impact: Calculating Your Best Year"
+      ],
+      "bofu_title": "Roth Conversion Roadmap: Pre-Retirees to Early Retirees",
+      "internal_link_anchors": [
+        "Roth conversion ladder",
+        "pro-rata rule planning",
+        "tax-free retirement income",
+        "Roth IRA contributions",
+        "pre-retiree tax planning"
+      ],
+      "language": "en",
+      "skip_by_default": false
+    },
+    {
+      "id": 3,
+      "name": "Tax-Free Retirement Income Planning",
+      "topic": "Tax-Free Retirement",
+      "primaryKeyword": "tax-free retirement income",
+      "secondaryKeywords": [
+        "retire with no taxes",
+        "tax-efficient retirement",
+        "zero-tax retirement strategy",
+        "qualified distributions"
+      ],
+      "targetAudience": "High-Earner Pre-Retiree (5y out)",
+      "searchIntent": "Decision / Comparison",
+      "moneyPageTarget": "/en/strategies/tax-free-retirement",
+      "compliance_class": "wealth_standard",
+      "tofu_titles": [
+        "How to Build Tax-Free Retirement Income (4 Strategies)",
+        "The Difference Between Tax-Deferred and Tax-Free Retirement Plans",
+        "Ordinary Income vs Capital Gains in Retirement — Why It Matters"
+      ],
+      "mofu_titles": [
+        "Tax-Free vs Tax-Deferred Retirement: Side-by-Side Comparison",
+        "Medicare Premium Impact of Retirement Income: The IRMAA Trap"
+      ],
+      "bofu_title": "Build a Zero-Tax Retirement: Complete Income Planning System",
+      "internal_link_anchors": [
+        "tax-free income sources",
+        "IRMAA Medicare premium",
+        "tax bracket management",
+        "qualified distributions",
+        "retired income planning"
+      ],
+      "language": "en",
+      "skip_by_default": true,
+      "skip_reason": "Overlaps existing theme: Tax-Free Retirement Income"
+    },
+    {
+      "id": 4,
+      "name": "How Whole Life Insurance Builds Cash Value",
+      "topic": "Whole Life",
+      "primaryKeyword": "whole life insurance cash value",
+      "secondaryKeywords": [
+        "permanent life insurance",
+        "how cash value grows",
+        "dividend-paying life insurance",
+        "life insurance as investment"
+      ],
+      "targetAudience": "Pre-Retiree (5y out)",
+      "searchIntent": "Informational",
+      "moneyPageTarget": "/en/strategies/whole-life",
+      "compliance_class": "wealth_standard",
+      "tofu_titles": [
+        "How Whole Life Insurance Cash Value Works (Illustrated)",
+        "Participating Whole Life Dividends Explained",
+        "Whole Life Insurance vs Universal Life vs Term Life"
+      ],
+      "mofu_titles": [
+        "Can You Borrow from Whole Life Cash Value (Loans vs Withdrawals)",
+        "Whole Life Surrender Charges and Early Withdrawal Costs"
+      ],
+      "bofu_title": "Whole Life Insurance for Wealth Building: A High-Earner Strategy",
+      "internal_link_anchors": [
+        "whole life cash value",
+        "permanent life insurance",
+        "life insurance dividends",
+        "cash value growth",
+        "infinite banking strategy"
+      ],
+      "language": "en",
+      "skip_by_default": false
+    },
+    {
+      "id": 5,
+      "name": "Life Insurance as a Retirement Vehicle",
+      "topic": "Tax-Free Retirement",
+      "primaryKeyword": "life insurance for retirement income",
+      "secondaryKeywords": [
+        "insurance-based retirement",
+        "cash-value life insurance retirement",
+        "non-qualified deferred compensation alternative",
+        "retirement supplement"
+      ],
+      "targetAudience": "High-Earner Pre-Retiree (5y out)",
+      "searchIntent": "Decision",
+      "moneyPageTarget": "/en/strategies/iul",
+      "compliance_class": "wealth_standard",
+      "tofu_titles": [
+        "Can Life Insurance Be Used for Retirement (Yes, Here's How)",
+        "Insurance vs 401(k) for Retirement Accumulation",
+        "Types of Life Insurance That Build Cash Value"
+      ],
+      "mofu_titles": [
+        "Life Insurance Loan Strategy vs 401(k) Withdrawal — Comparison",
+        "How Much Life Insurance Cash Value Do You Need for Retirement"
+      ],
+      "bofu_title": "Life Insurance Retirement Strategy: The Tax-Free Accumulation Plan",
+      "internal_link_anchors": [
+        "life insurance cash value",
+        "tax-free retirement income",
+        "insurance loans",
+        "retirement vehicle",
+        "permanent insurance strategy"
+      ],
+      "language": "en",
+      "skip_by_default": true,
+      "skip_reason": "Overlaps existing theme: Tax-Free Retirement Income"
+    },
+    {
+      "id": 6,
+      "name": "Sequence of Returns Risk Explained",
+      "topic": "Sequence-of-Returns Risk",
+      "primaryKeyword": "sequence of returns risk",
+      "secondaryKeywords": [
+        "sequence of risk",
+        "early retirement market risk",
+        "retirement sequence risk",
+        "stock market timing retirement"
+      ],
+      "targetAudience": "Pre-Retiree (5y out)",
+      "searchIntent": "Informational",
+      "moneyPageTarget": "/en/strategies/tax-free-retirement",
+      "compliance_class": "wealth_standard",
+      "tofu_titles": [
+        "What is Sequence of Returns Risk (The $500K Mistake)",
+        "How Bad Market Years Early in Retirement Destroy Portfolios",
+        "Sequence Risk vs Longevity Risk: Why Both Matter"
+      ],
+      "mofu_titles": [
+        "Sequence of Returns Risk Mitigation Strategies",
+        "How to Build a Sequence-Protected Retirement Income"
+      ],
+      "bofu_title": "Defeat Sequence Risk: Blended Income Strategy for Stable Retirement",
+      "internal_link_anchors": [
+        "sequence of returns risk",
+        "early retirement market crashes",
+        "sequence-protected income",
+        "portfolio timing",
+        "market timing in retirement"
+      ],
+      "language": "en",
+      "skip_by_default": true,
+      "skip_reason": "Overlaps existing theme: Sequence of Returns Risk in the First 5 Years of Retirement"
+    },
+    {
+      "id": 7,
+      "name": "The Retirement Gap — When Social Security Isn't Enough",
+      "topic": "Retirement Gap",
+      "primaryKeyword": "retirement income gap",
+      "secondaryKeywords": [
+        "retirement shortfall",
+        "gap between retirement needs and income",
+        "social security retirement gap",
+        "retirement income planning"
+      ],
+      "targetAudience": "Pre-Retiree (5y out)",
+      "searchIntent": "Informational / Decision",
+      "moneyPageTarget": "/en/strategies/tax-free-retirement",
+      "compliance_class": "wealth_standard",
+      "tofu_titles": [
+        "What is a Retirement Gap (And How Much You Really Need)",
+        "How to Calculate Your Retirement Income Gap",
+        "Why Social Security Alone Won't Fund Your Retirement"
+      ],
+      "mofu_titles": [
+        "Closing Your Retirement Gap: 5 Income Sources Ranked",
+        "Retirement Savings Goals by Age (Milestone Calculator)"
+      ],
+      "bofu_title": "Fill Your Retirement Gap: 3-Part Income Strategy for Pre-Retirees",
+      "internal_link_anchors": [
+        "retirement gap calculation",
+        "retirement income sources",
+        "social security strategy",
+        "income planning",
+        "retirement savings goals"
+      ],
+      "language": "en",
+      "skip_by_default": true,
+      "skip_reason": "Overlaps existing theme: The Retirement Gap Crisis"
+    },
+    {
+      "id": 8,
+      "name": "Tax Bracket Transitions in Retirement",
+      "topic": "High-Earner Tax",
+      "primaryKeyword": "retirement tax bracket",
+      "secondaryKeywords": [
+        "managing tax brackets in retirement",
+        "tax-efficient retirement withdrawals",
+        "ordinary income in retirement",
+        "tax rates for retirees"
+      ],
+      "targetAudience": "High-Earner Pre-Retiree (5y out)",
+      "searchIntent": "Informational",
+      "moneyPageTarget": "/en/strategies/tax-free-retirement",
+      "compliance_class": "wealth_standard",
+      "tofu_titles": [
+        "How Tax Brackets Change in Retirement",
+        "Ordinary Income vs Capital Gains in Early Retirement",
+        "Pro-Rata Rule: Why Some 401(k) Withdrawals Trigger More Taxes"
+      ],
+      "mofu_titles": [
+        "Strategic Withdrawal Ordering: Which Accounts to Tap First",
+        "Tax-Loss Harvesting in Retirement: Does It Still Apply"
+      ],
+      "bofu_title": "Tax-Efficient Withdrawal Strategy: 4-Layer Retirement Income Plan",
+      "internal_link_anchors": [
+        "tax bracket management",
+        "ordinary income planning",
+        "strategic withdrawal order",
+        "capital gains strategy",
+        "retirement tax optimization"
+      ],
+      "language": "en",
+      "skip_by_default": false
+    },
+    {
+      "id": 9,
+      "name": "Should You Retire Early — The Math & Risk Assessment",
+      "topic": "Retirement Gap",
+      "primaryKeyword": "early retirement timeline",
+      "secondaryKeywords": [
+        "retire in 5 years",
+        "early retirement plan",
+        "financial independence early retirement",
+        "can I retire early"
+      ],
+      "targetAudience": "High-Earner Pre-Retiree (5y out)",
+      "searchIntent": "Decision",
+      "moneyPageTarget": "/en/strategies/",
+      "compliance_class": "wealth_standard",
+      "tofu_titles": [
+        "Early Retirement Timeline: 5-Year vs 10-Year Plan",
+        "How Much Do You Need to Retire Early (Real Numbers)",
+        "Early Retirement Healthcare: The Medicare Age Challenge"
+      ],
+      "mofu_titles": [
+        "Early Retirement Income Sources: Penalty-Free Withdrawals Explained",
+        "Early Retirement Social Security Strategy (Claiming at 62 vs Later)"
+      ],
+      "bofu_title": "Early Retirement Blueprint: Risk Assessment + Income Planning",
+      "internal_link_anchors": [
+        "early retirement timeline",
+        "early retirement income",
+        "healthcare before Medicare",
+        "Social Security claiming strategy",
+        "retirement readiness"
+      ],
+      "language": "en",
+      "skip_by_default": true,
+      "skip_reason": "Overlaps existing theme: The Retirement Gap Crisis"
+    },
+    {
+      "id": 10,
+      "name": "Pre-Retiree Financial Stress Tests",
+      "topic": "Sequence-of-Returns Risk",
+      "primaryKeyword": "retirement stress test",
+      "secondaryKeywords": [
+        "what-if retirement scenarios",
+        "retirement calculator stress test",
+        "market crash retirement impact",
+        "inflation retirement planning"
+      ],
+      "targetAudience": "Pre-Retiree (5y out)",
+      "searchIntent": "Decision / Calculator",
+      "moneyPageTarget": "/en/strategies/tax-free-retirement",
+      "compliance_class": "wealth_standard",
+      "tofu_titles": [
+        "Stress Testing Your Retirement: What-If Scenarios Matter",
+        "What Happens to Your Retirement in a Market Crash",
+        "Inflation Impact on Retirement Income (5% vs 3% vs 2%)"
+      ],
+      "mofu_titles": [
+        "Retirement Scenarios: Bear Market, Inflation, Healthcare Spike",
+        "Building a Recession-Proof Retirement Income Stream"
+      ],
+      "bofu_title": "Retirement Stress Test + Resilience Plan for Pre-Retirees",
+      "internal_link_anchors": [
+        "retirement stress test",
+        "market crash scenario",
+        "inflation planning",
+        "recession-proof retirement",
+        "retirement income resilience"
+      ],
+      "language": "en",
+      "skip_by_default": false
+    },
+    {
+      "id": 11,
+      "name": "401(k) Catch-Up Contributions for Pre-Retirees",
+      "topic": "High-Earner Tax",
+      "primaryKeyword": "401k catch-up contributions",
+      "secondaryKeywords": [
+        "catch-up contribution limits",
+        "age 50 401k",
+        "maximize 401k contributions",
+        "401k contribution limit over 50"
+      ],
+      "targetAudience": "High-Earner Pre-Retiree (5y out)",
+      "searchIntent": "Informational",
+      "moneyPageTarget": "/en/strategies/tax-free-retirement",
+      "compliance_class": "wealth_standard",
+      "tofu_titles": [
+        "401(k) Catch-Up Contributions Explained (Age 50+)",
+        "How Much Can You Contribute to a 401(k) Over Age 50",
+        "Mega Backdoor Roth vs Regular Catch-Up Contributions"
+      ],
+      "mofu_titles": [
+        "Catch-Up Contributions vs Roth Conversion: Which Saves More Tax",
+        "401(k) Contribution Limits for 2026 (All Scenarios)"
+      ],
+      "bofu_title": "Maximize Pre-Retirement Savings: 401(k) Catch-Up Strategy",
+      "internal_link_anchors": [
+        "401k catch-up contributions",
+        "mega backdoor Roth",
+        "contribution limits",
+        "tax-deferred savings",
+        "high-earner retirement savings"
+      ],
+      "language": "en",
+      "skip_by_default": false
+    },
+    {
+      "id": 12,
+      "name": "Non-Qualified Deferred Compensation Plans",
+      "topic": "Executive Compensation",
+      "primaryKeyword": "non-qualified deferred compensation",
+      "secondaryKeywords": [
+        "NQDC plans",
+        "executive deferred comp",
+        "deferred compensation agreement",
+        "409A valuation"
+      ],
+      "targetAudience": "Executive",
+      "searchIntent": "Informational / Decision",
+      "moneyPageTarget": "/en/strategies/tax-free-retirement",
+      "compliance_class": "wealth_standard",
+      "tofu_titles": [
+        "What is Non-Qualified Deferred Compensation (NQDC)",
+        "How NQDC Plans Work vs 401(k) Plans",
+        "409A Valuations: Why They Matter for Deferred Compensation"
+      ],
+      "mofu_titles": [
+        "NQDC vs Restricted Stock Units: Tax Implications Compared",
+        "NQDC Forfeiture Risk: When You Lose the Money"
+      ],
+      "bofu_title": "Non-Qualified Deferred Compensation Strategy for Executives",
+      "internal_link_anchors": [
+        "non-qualified deferred compensation",
+        "409A valuation",
+        "executive benefits",
+        "deferred comp strategy",
+        "executive tax planning"
+      ],
+      "language": "en",
+      "skip_by_default": false
+    },
+    {
+      "id": 13,
+      "name": "Executive Stock Options & SERPs",
+      "topic": "Executive Compensation",
+      "primaryKeyword": "executive stock options",
+      "secondaryKeywords": [
+        "supplemental executive retirement plans",
+        "SERP plans",
+        "stock options tax",
+        "restricted stock awards"
+      ],
+      "targetAudience": "Executive",
+      "searchIntent": "Informational",
+      "moneyPageTarget": "/en/strategies/tax-free-retirement",
+      "compliance_class": "wealth_standard",
+      "tofu_titles": [
+        "Executive Stock Options Explained (ISO vs NSO)",
+        "How Supplemental Retirement Plans (SERPs) Work",
+        "Tax Implications of Executive Compensation Packages"
+      ],
+      "mofu_titles": [
+        "ISO vs NSO Stock Options: Tax Difference Strategy",
+        "SERP vs Deferred Comp: Which Executive Benefit Is Better"
+      ],
+      "bofu_title": "Executive Compensation Tax Strategy: Options + SERPs + Deferred Comp",
+      "internal_link_anchors": [
+        "executive stock options",
+        "SERP plans",
+        "ISO NSO taxation",
+        "executive benefits",
+        "stock compensation strategy"
+      ],
+      "language": "en",
+      "skip_by_default": false
+    },
+    {
+      "id": 14,
+      "name": "Mega Backdoor Roth — The Ultimate High-Earner Move",
+      "topic": "Tax-Free Retirement",
+      "primaryKeyword": "mega backdoor Roth",
+      "secondaryKeywords": [
+        "mega Roth strategy",
+        "unlimited Roth conversion",
+        "after-tax 401k contribution",
+        "Roth conversion high earners"
+      ],
+      "targetAudience": "High-Earner Pre-Retiree (5y out)",
+      "searchIntent": "Decision",
+      "moneyPageTarget": "/en/strategies/tax-free-retirement",
+      "compliance_class": "wealth_standard",
+      "tofu_titles": [
+        "What is a Mega Backdoor Roth (And How It Works)",
+        "Mega Backdoor Roth vs Regular Backdoor Roth — Differences",
+        "Can Your Employer 401(k) Plan Offer Mega Backdoor Roth"
+      ],
+      "mofu_titles": [
+        "Mega Backdoor Roth Eligibility & IRS Limits (2026)",
+        "Pro-Rata Rule Impact on Mega Backdoor Roth Conversions"
+      ],
+      "bofu_title": "Mega Backdoor Roth Strategy: Tax-Free Wealth for High Earners",
+      "internal_link_anchors": [
+        "mega backdoor Roth conversion",
+        "unlimited Roth contributions",
+        "after-tax 401k",
+        "pro-rata rule",
+        "high-earner tax strategy"
+      ],
+      "language": "en",
+      "skip_by_default": true,
+      "skip_reason": "Overlaps existing theme: Tax-Free Retirement Income"
+    },
+    {
+      "id": 15,
+      "name": "Employee Stock Purchase Plans & Tax Strategy",
+      "topic": "High-Earner Tax",
+      "primaryKeyword": "ESPP employee stock purchase plan",
+      "secondaryKeywords": [
+        "ESPP tax treatment",
+        "qualified ESPP disposition",
+        "holding period ESPP",
+        "ESPP versus stock options"
+      ],
+      "targetAudience": "Executive",
+      "searchIntent": "Informational",
+      "moneyPageTarget": "/en/strategies/tax-free-retirement",
+      "compliance_class": "wealth_standard",
+      "tofu_titles": [
+        "How Employee Stock Purchase Plans (ESPPs) Work",
+        "ESPP Tax Implications: Ordinary Income vs Capital Gains",
+        "Qualified vs Disqualified ESPP Dispositions Explained"
+      ],
+      "mofu_titles": [
+        "ESPP vs Stock Options vs RSUs: Tax Comparison",
+        "ESPP Holding Periods and Tax Optimization Strategy"
+      ],
+      "bofu_title": "ESPP Tax Strategy: Maximize Benefits, Minimize Taxes",
+      "internal_link_anchors": [
+        "ESPP tax treatment",
+        "qualified disposition",
+        "employee stock purchase plan",
+        "RSU taxation",
+        "equity compensation strategy"
+      ],
+      "language": "en",
+      "skip_by_default": false
+    },
+    {
+      "id": 16,
+      "name": "Solo 401(k) vs SEP IRA for Self-Employed",
+      "topic": "Business Owner Planning",
+      "primaryKeyword": "solo 401k vs SEP IRA",
+      "secondaryKeywords": [
+        "self-employed retirement plan",
+        "solo 401k contribution limit",
+        "SEP IRA contribution limit",
+        "best retirement plan for self-employed"
+      ],
+      "targetAudience": "Business Owner",
+      "searchIntent": "Comparison",
+      "moneyPageTarget": "/en/strategies/tax-free-retirement",
+      "compliance_class": "wealth_standard",
+      "tofu_titles": [
+        "Solo 401(k) Explained: The Self-Employed Retirement Plan",
+        "SEP IRA for Business Owners: Contribution Limits & Tax Deduction",
+        "Solo 401(k) vs SEP IRA vs Simple IRA: Comparison"
+      ],
+      "mofu_titles": [
+        "Solo 401(k) Loans & Distributions vs SEP IRA Withdrawal Rules",
+        "Which Plan Fits Your Self-Employment Income Level"
+      ],
+      "bofu_title": "Choose Your Retirement Plan: Solo 401(k) vs SEP IRA Strategy",
+      "internal_link_anchors": [
+        "solo 401k contributions",
+        "SEP IRA deduction",
+        "self-employed retirement",
+        "business owner savings",
+        "retirement plan selection"
+      ],
+      "language": "en",
+      "skip_by_default": false
+    },
+    {
+      "id": 17,
+      "name": "Defined Benefit Plans for Business Owners",
+      "topic": "Business Owner Planning",
+      "primaryKeyword": "defined benefit plan business owner",
+      "secondaryKeywords": [
+        "cash balance plan",
+        "DB plan tax deduction",
+        "business owner pension plan",
+        "maximum retirement contribution"
+      ],
+      "targetAudience": "Business Owner",
+      "searchIntent": "Decision",
+      "moneyPageTarget": "/en/strategies/tax-free-retirement",
+      "compliance_class": "wealth_standard",
+      "tofu_titles": [
+        "Defined Benefit Plans Explained (For Business Owners)",
+        "Cash Balance Plans vs Traditional Defined Benefit Plans",
+        "How Much Can You Contribute to a DB Plan (No Cap)"
+      ],
+      "mofu_titles": [
+        "Defined Benefit Plan Costs: Setup, Admin, and Actuarial Fees",
+        "DB Plans vs Solo 401(k): Which Saves More Taxes"
+      ],
+      "bofu_title": "Defined Benefit Plan Strategy: Maximum Tax-Free Retirement Savings",
+      "internal_link_anchors": [
+        "defined benefit plan",
+        "cash balance plan",
+        "maximum contributions",
+        "business owner pension",
+        "retirement savings strategy"
+      ],
+      "language": "en",
+      "skip_by_default": false
+    },
+    {
+      "id": 18,
+      "name": "Key-Person Life Insurance for Business Owners",
+      "topic": "Business Owner Planning",
+      "primaryKeyword": "key-person insurance",
+      "secondaryKeywords": [
+        "key man insurance",
+        "business owner life insurance",
+        "buy-sell agreement",
+        "business continuity insurance"
+      ],
+      "targetAudience": "Business Owner",
+      "searchIntent": "Informational / Decision",
+      "moneyPageTarget": "/en/strategies/whole-life",
+      "compliance_class": "wealth_standard",
+      "tofu_titles": [
+        "What is Key-Person Life Insurance (And Why You Need It)",
+        "How Key-Person Insurance Protects Your Business",
+        "Key-Person Insurance vs Business Overhead Insurance"
+      ],
+      "mofu_titles": [
+        "Key-Person Insurance Costs and Coverage Amounts",
+        "Buy-Sell Agreements and Key-Person Insurance Coordination"
+      ],
+      "bofu_title": "Key-Person Insurance Strategy: Protect Your Business & Wealth",
+      "internal_link_anchors": [
+        "key-person insurance",
+        "buy-sell agreement",
+        "business continuity",
+        "business owner protection",
+        "succession planning"
+      ],
+      "language": "en",
+      "skip_by_default": false
+    },
+    {
+      "id": 19,
+      "name": "Business Succession Planning & Wealth Transfer",
+      "topic": "Estate Planning",
+      "primaryKeyword": "business succession plan",
+      "secondaryKeywords": [
+        "family business succession",
+        "business exit strategy",
+        "selling your business",
+        "business transition plan"
+      ],
+      "targetAudience": "Business Owner",
+      "searchIntent": "Decision",
+      "moneyPageTarget": "/en/strategies/asset-protection",
+      "compliance_class": "wealth_standard",
+      "tofu_titles": [
+        "Business Succession Planning: A Complete Roadmap",
+        "Buy-Sell Agreements: Protecting Your Business & Family",
+        "Exit Strategy for Business Owners (3 Options)"
+      ],
+      "mofu_titles": [
+        "Business Valuation for Succession and Estate Planning",
+        "Tax Implications of Transferring Business Ownership"
+      ],
+      "bofu_title": "Succession Planning Strategy: Transfer & Protect Your Business",
+      "internal_link_anchors": [
+        "business succession plan",
+        "buy-sell agreement",
+        "business valuation",
+        "exit strategy",
+        "family business transition"
+      ],
+      "language": "en",
+      "skip_by_default": false
+    },
+    {
+      "id": 20,
+      "name": "Protecting Business Assets from Creditors",
+      "topic": "Asset Protection",
+      "primaryKeyword": "asset protection business owner",
+      "secondaryKeywords": [
+        "business liability insurance",
+        "business entity structure asset protection",
+        "LLC vs sole proprietor protection",
+        "business lawsuit protection"
+      ],
+      "targetAudience": "Business Owner",
+      "searchIntent": "Decision",
+      "moneyPageTarget": "/en/strategies/asset-protection",
+      "compliance_class": "wealth_standard",
+      "tofu_titles": [
+        "Asset Protection for Business Owners (The 5-Layer Strategy)",
+        "How Business Entities Protect Your Personal Assets",
+        "Business Liability Insurance vs Personal Umbrella Policy"
+      ],
+      "mofu_titles": [
+        "Separating Business and Personal Assets Legally",
+        "Business Entity Tax Treatment and Asset Protection Trade-Offs"
+      ],
+      "bofu_title": "Business Asset Protection Strategy: Legal Structure & Insurance",
+      "internal_link_anchors": [
+        "asset protection strategy",
+        "LLC protection",
+        "business liability insurance",
+        "personal asset protection",
+        "business entity structure"
+      ],
+      "language": "en",
+      "skip_by_default": false
+    },
+    {
+      "id": 21,
+      "name": "Creditor Protection Laws by State",
+      "topic": "Asset Protection",
+      "primaryKeyword": "creditor protection laws",
+      "secondaryKeywords": [
+        "judgment creditor",
+        "homestead exemption by state",
+        "exempt assets by state",
+        "creditor-proof assets"
+      ],
+      "targetAudience": "High-Earner Pre-Retiree",
+      "searchIntent": "Informational",
+      "moneyPageTarget": "/en/strategies/asset-protection",
+      "compliance_class": "wealth_standard",
+      "tofu_titles": [
+        "Creditor Protection Laws: What Assets Are Judgment-Proof",
+        "Homestead Exemption by State (Complete 50-State Guide)",
+        "Exempt vs Non-Exempt Assets (What Creditors Can Seize)"
+      ],
+      "mofu_titles": [
+        "Life Insurance as Creditor Protection (State Laws Vary)",
+        "Retirement Accounts and Creditor Protection (ERISA vs Non-ERISA)"
+      ],
+      "bofu_title": "Asset Protection Planning: State-Specific Creditor Shield Strategy",
+      "internal_link_anchors": [
+        "creditor protection",
+        "homestead exemption",
+        "judgment-proof assets",
+        "exempt assets",
+        "state asset protection"
+      ],
+      "language": "en",
+      "skip_by_default": false
+    },
+    {
+      "id": 22,
+      "name": "Irrevocable Trusts for Asset Protection",
+      "topic": "Asset Protection",
+      "primaryKeyword": "irrevocable trust asset protection",
+      "secondaryKeywords": [
+        "irrevocable life insurance trust",
+        "ILIT",
+        "self-settled spendthrift trust",
+        "asset protection trust"
+      ],
+      "targetAudience": "High-Earner Pre-Retiree",
+      "searchIntent": "Decision",
+      "moneyPageTarget": "/en/strategies/asset-protection",
+      "compliance_class": "wealth_standard",
+      "tofu_titles": [
+        "Irrevocable Trusts Explained (And How They Protect Assets)",
+        "Irrevocable Life Insurance Trusts (ILITs) for Wealth Protection",
+        "Revocable vs Irrevocable Trusts: What's the Difference"
+      ],
+      "mofu_titles": [
+        "Setting Up an Irrevocable Trust: Costs, Timeline, Requirements",
+        "Irrevocable Trust Tax Treatment and Gift Tax Implications"
+      ],
+      "bofu_title": "Irrevocable Trust Strategy: Permanent Asset Protection Structure",
+      "internal_link_anchors": [
+        "irrevocable trust",
+        "ILIT life insurance trust",
+        "asset protection trust",
+        "revocable trust",
+        "wealth protection strategy"
+      ],
+      "language": "en",
+      "skip_by_default": false
+    },
+    {
+      "id": 23,
+      "name": "Divorce-Proofing Your Wealth",
+      "topic": "Asset Protection",
+      "primaryKeyword": "divorce asset protection",
+      "secondaryKeywords": [
+        "prenuptial agreement",
+        "separate property",
+        "marital property",
+        "protecting assets in divorce",
+        "spousal protection"
+      ],
+      "targetAudience": "Recently Divorced",
+      "searchIntent": "Decision",
+      "moneyPageTarget": "/en/strategies/asset-protection",
+      "compliance_class": "wealth_standard",
+      "tofu_titles": [
+        "Divorce Asset Protection: What You Can and Cannot Do",
+        "Prenuptial Agreements Explained (And Why They Matter)",
+        "Separate Property vs Marital Property in Divorce"
+      ],
+      "mofu_titles": [
+        "Life Insurance and Asset Protection in Divorce Settlements",
+        "Retirement Account Division in Divorce (QDRO Rules)"
+      ],
+      "bofu_title": "Divorce Asset Protection Planning: Pre-Divorce & Post-Divorce",
+      "internal_link_anchors": [
+        "divorce asset protection",
+        "prenuptial agreement",
+        "separate property",
+        "marital assets",
+        "divorce settlement strategy"
+      ],
+      "language": "en",
+      "skip_by_default": false
+    },
+    {
+      "id": 24,
+      "name": "Umbrella Insurance & Personal Liability Protection",
+      "topic": "Asset Protection",
+      "primaryKeyword": "umbrella insurance",
+      "secondaryKeywords": [
+        "personal umbrella policy",
+        "excess liability insurance",
+        "homeowners liability limits",
+        "umbrella insurance coverage"
+      ],
+      "targetAudience": "High-Earner Pre-Retiree",
+      "searchIntent": "Informational / Decision",
+      "moneyPageTarget": "/en/strategies/asset-protection",
+      "compliance_class": "wealth_standard",
+      "tofu_titles": [
+        "What is Umbrella Insurance (And Who Needs It)",
+        "How Much Umbrella Insurance Coverage Do You Need",
+        "Umbrella Insurance vs Homeowners Liability: The Gap"
+      ],
+      "mofu_titles": [
+        "Umbrella Insurance Costs and Coverage Limits by Amount",
+        "What Umbrella Insurance Does and Doesn't Cover"
+      ],
+      "bofu_title": "Umbrella Insurance Strategy: Maximum Liability Protection",
+      "internal_link_anchors": [
+        "umbrella insurance",
+        "personal liability",
+        "excess liability coverage",
+        "homeowners insurance limits",
+        "liability protection"
+      ],
+      "language": "en",
+      "skip_by_default": false
+    },
+    {
+      "id": 25,
+      "name": "LLC & Business Entity Asset Protection",
+      "topic": "Asset Protection",
+      "primaryKeyword": "LLC asset protection",
+      "secondaryKeywords": [
+        "limited liability company",
+        "business entity asset protection",
+        "piercing the corporate veil",
+        "LLC vs corporation protection"
+      ],
+      "targetAudience": "Business Owner",
+      "searchIntent": "Decision",
+      "moneyPageTarget": "/en/strategies/asset-protection",
+      "compliance_class": "wealth_standard",
+      "tofu_titles": [
+        "How LLCs Protect Personal Assets (Legal Separation)",
+        "LLC vs Corporation: Which Protects Your Assets Better",
+        "Piercing the Corporate Veil: When Personal Assets Are at Risk"
+      ],
+      "mofu_titles": [
+        "Multi-Member LLC vs Single-Member LLC Asset Protection",
+        "Operating Agreements and Liability Limitation"
+      ],
+      "bofu_title": "Business Entity Strategy: LLC & Protection Structure",
+      "internal_link_anchors": [
+        "LLC asset protection",
+        "business entity structure",
+        "piercing corporate veil",
+        "personal liability shield",
+        "business protection"
+      ],
+      "language": "en",
+      "skip_by_default": false
+    },
+    {
+      "id": 26,
+      "name": "Revocable Living Trusts vs Wills",
+      "topic": "Estate Planning",
+      "primaryKeyword": "revocable living trust",
+      "secondaryKeywords": [
+        "living will",
+        "revocable trust vs will",
+        "estate planning trust",
+        "avoiding probate"
+      ],
+      "targetAudience": "High-Earner Pre-Retiree",
+      "searchIntent": "Comparison",
+      "moneyPageTarget": "/en/strategies/asset-protection",
+      "compliance_class": "wealth_standard",
+      "tofu_titles": [
+        "What is a Revocable Living Trust (And How It Works)",
+        "Revocable Trust vs Will: The Key Differences",
+        "Does Everyone Need a Revocable Living Trust"
+      ],
+      "mofu_titles": [
+        "Cost of Setting Up a Living Trust vs Will",
+        "Probate Avoidance: Revocable Trust vs Pour-Over Will"
+      ],
+      "bofu_title": "Revocable Living Trust Strategy: Estate Planning Essentials",
+      "internal_link_anchors": [
+        "revocable living trust",
+        "living trust",
+        "avoid probate",
+        "estate planning",
+        "trust vs will"
+      ],
+      "language": "en",
+      "skip_by_default": false
+    },
+    {
+      "id": 27,
+      "name": "Beneficiary Designation Strategies",
+      "topic": "Estate Planning",
+      "primaryKeyword": "beneficiary designations",
+      "secondaryKeywords": [
+        "primary and contingent beneficiaries",
+        "beneficiary naming strategies",
+        "retirement account beneficiary",
+        "life insurance beneficiary"
+      ],
+      "targetAudience": "Pre-Retiree (5y out)",
+      "searchIntent": "Informational / Decision",
+      "moneyPageTarget": "/en/strategies/asset-protection",
+      "compliance_class": "wealth_standard",
+      "tofu_titles": [
+        "Beneficiary Designations Explained (Primary, Contingent, Other)",
+        "How Beneficiary Designations Override Your Will",
+        "SECURE Act 2.0 Changes to Beneficiary Rules (2024)"
+      ],
+      "mofu_titles": [
+        "Naming Trusts vs Individuals as Beneficiaries",
+        "Stretch IRA Elimination: New Beneficiary Withdrawal Rules"
+      ],
+      "bofu_title": "Beneficiary Strategy: Tax-Efficient Designations & Trust Planning",
+      "internal_link_anchors": [
+        "beneficiary designations",
+        "SECURE Act rules",
+        "stretch IRA",
+        "primary beneficiary",
+        "retirement account inheritance"
+      ],
+      "language": "en",
+      "skip_by_default": false
+    },
+    {
+      "id": 28,
+      "name": "Generational Wealth Transfer",
+      "topic": "Generational Wealth",
+      "primaryKeyword": "generational wealth transfer",
+      "secondaryKeywords": [
+        "dynasty trust",
+        "generation-skipping transfer tax",
+        "wealth for next generation",
+        "transferring wealth to heirs"
+      ],
+      "targetAudience": "Inheritance Recipient",
+      "searchIntent": "Decision",
+      "moneyPageTarget": "/en/strategies/asset-protection",
+      "compliance_class": "wealth_standard",
+      "tofu_titles": [
+        "Generational Wealth Transfer: Planning for Your Children",
+        "What is a Dynasty Trust (And How Long It Lasts)",
+        "Generation-Skipping Transfer Tax Explained"
+      ],
+      "mofu_titles": [
+        "Annual Gifting Strategy and Lifetime Gift Tax Exemption",
+        "529 Plans vs Trusts for Funding Education"
+      ],
+      "bofu_title": "Generational Wealth Strategy: Multi-Generation Trust Planning",
+      "internal_link_anchors": [
+        "generational wealth",
+        "dynasty trust",
+        "generation-skipping tax",
+        "wealth transfer strategy",
+        "multi-generation planning"
+      ],
+      "language": "en",
+      "skip_by_default": false
+    },
+    {
+      "id": 29,
+      "name": "Life Insurance for Estate Taxes & Legacy",
+      "topic": "Estate Planning",
+      "primaryKeyword": "life insurance estate taxes",
+      "secondaryKeywords": [
+        "ILIT irrevocable life insurance trust",
+        "life insurance liquidity needs",
+        "estate tax planning",
+        "death benefit planning"
+      ],
+      "targetAudience": "High-Earner Pre-Retiree",
+      "searchIntent": "Decision",
+      "moneyPageTarget": "/en/strategies/asset-protection",
+      "compliance_class": "wealth_standard",
+      "tofu_titles": [
+        "How Life Insurance Covers Estate Taxes",
+        "Irrevocable Life Insurance Trusts (ILITs) Explained",
+        "Estate Tax Exemptions for 2024-2025 (And Beyond)"
+      ],
+      "mofu_titles": [
+        "Second-to-Die Life Insurance for Couples Estate Planning",
+        "Life Insurance vs Assets for Estate Tax Liquidity"
+      ],
+      "bofu_title": "Life Insurance Estate Strategy: Tax-Efficient Legacy Planning",
+      "internal_link_anchors": [
+        "ILIT estate planning",
+        "life insurance death benefit",
+        "estate tax liquidity",
+        "second-to-die policy",
+        "legacy planning"
+      ],
+      "language": "en",
+      "skip_by_default": false
+    },
+    {
+      "id": 30,
+      "name": "Charitable Giving & Legacy",
+      "topic": "Generational Wealth",
+      "primaryKeyword": "charitable giving strategy",
+      "secondaryKeywords": [
+        "donor-advised fund",
+        "charitable remainder trust",
+        "tax-deductible giving",
+        "philanthropy planning"
+      ],
+      "targetAudience": "High-Earner Pre-Retiree",
+      "searchIntent": "Decision",
+      "moneyPageTarget": "/en/strategies/asset-protection",
+      "compliance_class": "wealth_standard",
+      "tofu_titles": [
+        "Charitable Giving Strategies (Tax Deduction Maximization)",
+        "Donor-Advised Funds Explained (And Tax Benefits)",
+        "Charitable Remainder Trusts for Income + Legacy"
+      ],
+      "mofu_titles": [
+        "Bunching Charitable Deductions (Standard Deduction Strategy)",
+        "Charitable Giving and Tax Bracket Impact"
+      ],
+      "bofu_title": "Charitable Strategy: Tax-Efficient Giving & Legacy Planning",
+      "internal_link_anchors": [
+        "charitable giving strategy",
+        "donor-advised fund",
+        "charitable remainder trust",
+        "tax deduction",
+        "philanthropy planning"
+      ],
+      "language": "en",
+      "skip_by_default": false
+    },
+    {
+      "id": 31,
+      "name": "Life Insurance Loans & Infinite Banking",
+      "topic": "IUL",
+      "primaryKeyword": "life insurance loans",
+      "secondaryKeywords": [
+        "infinite banking",
+        "policy loans",
+        "life insurance borrowing",
+        "cash value loans",
+        "policy loan interest rates"
+      ],
+      "targetAudience": "High-Earner Pre-Retiree",
+      "searchIntent": "Decision",
+      "moneyPageTarget": "/en/strategies/iul",
+      "compliance_class": "wealth_standard",
+      "tofu_titles": [
+        "How Life Insurance Loans Work (And Why You'd Use Them)",
+        "Policy Loan Interest Rates and Repayment Terms",
+        "Infinite Banking Explained (The Dividend Strategy)"
+      ],
+      "mofu_titles": [
+        "Life Insurance Loans vs Bank Loans: Tax Comparison",
+        "Policy Loan Default Risk: What Happens If You Don't Repay"
+      ],
+      "bofu_title": "Life Insurance Loan Strategy: Access Cash & Tax Efficiency",
+      "internal_link_anchors": [
+        "policy loans",
+        "life insurance borrowing",
+        "infinite banking",
+        "cash value access",
+        "tax-efficient borrowing"
+      ],
+      "language": "en",
+      "skip_by_default": true,
+      "skip_reason": "Overlaps existing theme: IUL vs 401(k) Head-to-Head"
+    },
+    {
+      "id": 32,
+      "name": "Long-Term Care Riders on Life Insurance",
+      "topic": "Healthcare/Medicare Planning",
+      "primaryKeyword": "long-term care rider life insurance",
+      "secondaryKeywords": [
+        "LTC insurance rider",
+        "accelerated death benefit rider",
+        "nursing home costs",
+        "long-term care planning"
+      ],
+      "targetAudience": "Pre-Retiree (5y out)",
+      "searchIntent": "Informational / Decision",
+      "moneyPageTarget": "/en/strategies/asset-protection",
+      "compliance_class": "wealth_standard",
+      "tofu_titles": [
+        "Long-Term Care Riders on Life Insurance (How They Work)",
+        "LTC Rider vs Standalone LTC Insurance (Comparison)",
+        "Long-Term Care Costs: Nursing Home, Assisted Living, Home Care"
+      ],
+      "mofu_titles": [
+        "LTC Rider Qualifications and Benefit Triggers",
+        "LTC Insurance Costs and Premium Inflation"
+      ],
+      "bofu_title": "Long-Term Care Strategy: Life Insurance Rider vs Standalone",
+      "internal_link_anchors": [
+        "long-term care rider",
+        "LTC insurance",
+        "accelerated death benefit",
+        "nursing home costs",
+        "healthcare planning"
+      ],
+      "language": "en",
+      "skip_by_default": false
+    },
+    {
+      "id": 33,
+      "name": "Disability Insurance for High Earners",
+      "topic": "Insurance Strategy Beyond Death Benefit",
+      "primaryKeyword": "disability insurance",
+      "secondaryKeywords": [
+        "long-term disability insurance",
+        "own-occupation disability",
+        "disability income replacement",
+        "group disability vs individual"
+      ],
+      "targetAudience": "High-Earner Pre-Retiree",
+      "searchIntent": "Decision",
+      "moneyPageTarget": "/en/strategies/asset-protection",
+      "compliance_class": "wealth_standard",
+      "tofu_titles": [
+        "Disability Insurance for High Earners (Own-Occupation Coverage)",
+        "Group Disability vs Individual Disability Insurance",
+        "Disability Benefit Taxation (Tax-Free Income Protection)"
+      ],
+      "mofu_titles": [
+        "Disability Insurance Costs and Benefit Periods",
+        "Pre-Existing Condition Exclusions and Coverage Limits"
+      ],
+      "bofu_title": "Disability Insurance Strategy: Income Protection Planning",
+      "internal_link_anchors": [
+        "disability insurance",
+        "own-occupation definition",
+        "income replacement",
+        "disability benefits",
+        "income protection"
+      ],
+      "language": "en",
+      "skip_by_default": false
+    },
+    {
+      "id": 34,
+      "name": "Life Insurance for Business Debt Payoff",
+      "topic": "Business Owner Planning",
+      "primaryKeyword": "life insurance business debt",
+      "secondaryKeywords": [
+        "insurance for business loan",
+        "business line of credit insurance",
+        "debt payoff insurance",
+        "business loan protection"
+      ],
+      "targetAudience": "Business Owner",
+      "searchIntent": "Decision",
+      "moneyPageTarget": "/en/strategies/asset-protection",
+      "compliance_class": "wealth_standard",
+      "tofu_titles": [
+        "Life Insurance as Business Debt Protection",
+        "How Much Life Insurance Covers Business Debt",
+        "Key-Person Insurance vs Loan Protection Insurance"
+      ],
+      "mofu_titles": [
+        "Business Loan Payoff Insurance Costs and Requirements",
+        "Insurance Proceeds and Business Continuation Planning"
+      ],
+      "bofu_title": "Business Debt Insurance Strategy: Loan Protection & Payoff",
+      "internal_link_anchors": [
+        "business debt insurance",
+        "loan protection",
+        "life insurance payoff",
+        "business continuity",
+        "debt elimination"
+      ],
+      "language": "en",
+      "skip_by_default": false
+    },
+    {
+      "id": 35,
+      "name": "Critical Illness & Accident Insurance",
+      "topic": "Healthcare/Medicare Planning",
+      "primaryKeyword": "critical illness insurance",
+      "secondaryKeywords": [
+        "accident insurance",
+        "serious illness coverage",
+        "critical illness benefit",
+        "cancer insurance",
+        "heart attack coverage"
+      ],
+      "targetAudience": "High-Earner Pre-Retiree",
+      "searchIntent": "Informational",
+      "moneyPageTarget": "/en/strategies/asset-protection",
+      "compliance_class": "wealth_standard",
+      "tofu_titles": [
+        "What is Critical Illness Insurance (And What It Covers)",
+        "Accident Insurance for Unexpected Medical Events",
+        "Critical Illness vs Health Insurance (What's the Gap)"
+      ],
+      "mofu_titles": [
+        "Critical Illness Insurance Costs and Benefit Amounts",
+        "Claims Process and Benefit Payout for Critical Illness"
+      ],
+      "bofu_title": "Critical Illness Strategy: Supplemental Health Risk Coverage",
+      "internal_link_anchors": [
+        "critical illness insurance",
+        "accident coverage",
+        "serious illness benefit",
+        "health insurance gaps",
+        "medical emergency planning"
+      ],
+      "language": "en",
+      "skip_by_default": false
+    },
+    {
+      "id": 36,
+      "name": "Multi-Generational Wealth Transfer in Hispanic Families",
+      "topic": "Multi-Generational Wealth Transfer",
+      "primaryKeyword": "multi-generational wealth transfer hispanic families",
+      "secondaryKeywords": [
+        "family wealth transfer",
+        "first-generation wealth",
+        "hispanic family financial planning",
+        "generational asset protection"
+      ],
+      "targetAudience": "First-Gen Hispanic-American High Earner (40-55)",
+      "searchIntent": "Decision",
+      "moneyPageTarget": "/en/strategies/asset-protection",
+      "tofu_titles": [
+        "What Multi-Generational Wealth Actually Looks Like in First-Generation Families",
+        "Why First-Generation Wealth Builders Lose Assets at Transfer",
+        "How Hispanic Families Pass Wealth Across Generations Without Losing It"
+      ],
+      "mofu_titles": [
+        "Trust Structures for First-Generation Wealth Builders",
+        "Beneficiary Strategy When Family Spans Two Countries"
+      ],
+      "bofu_title": "Multi-Generational Wealth Transfer Plan for Hispanic-American Families",
+      "internal_link_anchors": [
+        "generational wealth transfer",
+        "first-generation wealth",
+        "trust structures",
+        "beneficiary designation",
+        "family financial planning"
+      ],
+      "compliance_class": "wealth_standard",
+      "language": "en",
+      "skip_by_default": false
+    },
+    {
+      "id": 37,
+      "name": "First-Generation Wealth Building for Hispanic-American Professionals",
+      "topic": "First-Generation Wealth Building",
+      "primaryKeyword": "first-generation wealth building hispanic american",
+      "secondaryKeywords": [
+        "first generation wealth",
+        "hispanic professional finances",
+        "building wealth from scratch",
+        "no inherited wealth playbook"
+      ],
+      "targetAudience": "First-Gen Hispanic-American Professional (30-45)",
+      "searchIntent": "Informational / Decision",
+      "moneyPageTarget": "/en/buyers-guide/",
+      "tofu_titles": [
+        "What First-Generation Wealth Building Actually Requires",
+        "The Money Conversations First-Generation Professionals Wish They'd Had Earlier",
+        "Why Building Wealth Without an Inherited Playbook Is Different"
+      ],
+      "mofu_titles": [
+        "First-Generation Wealth Mistakes Worth Avoiding",
+        "Where First-Generation Hispanic Professionals Should Start"
+      ],
+      "bofu_title": "First-Generation Wealth Roadmap for Hispanic-American Professionals",
+      "internal_link_anchors": [
+        "first-generation wealth building",
+        "hispanic professional finances",
+        "wealth roadmap",
+        "financial foundation",
+        "long-term wealth"
+      ],
+      "compliance_class": "wealth_standard",
+      "language": "en",
+      "skip_by_default": false
+    },
+    {
+      "id": 38,
+      "name": "Choosing a Family Financial Advisor When You're the First in Your Family",
+      "topic": "Family Advisor Selection",
+      "primaryKeyword": "choosing family financial advisor first generation",
+      "secondaryKeywords": [
+        "family financial advisor",
+        "first generation advisor selection",
+        "trusted advisor hispanic family",
+        "questions to ask advisor"
+      ],
+      "targetAudience": "First-Gen Hispanic-American Professional (35-55)",
+      "searchIntent": "Decision",
+      "moneyPageTarget": "/en/buyers-guide/",
+      "tofu_titles": [
+        "What a Family Financial Advisor Actually Does (Plain English)",
+        "Questions to Ask a Financial Advisor Before Hiring",
+        "The Difference Between a Salesperson and a Family Advisor"
+      ],
+      "mofu_titles": [
+        "Family-Based Advisory vs Single-Client Advisory: Which Fits Your Family",
+        "Red Flags to Watch For When Choosing an Advisor"
+      ],
+      "bofu_title": "How to Choose a Family Financial Advisor When You're the First in Your Family",
+      "internal_link_anchors": [
+        "family financial advisor",
+        "advisor selection",
+        "advisor questions",
+        "trusted advisor",
+        "family advisory"
+      ],
+      "compliance_class": "wealth_standard",
+      "language": "en",
+      "skip_by_default": false
+    },
+    {
+      "id": 39,
+      "name": "Bilingual Wealth Planning When Your Parents Speak Spanish and You Don't",
+      "topic": "Bilingual Family Wealth Planning",
+      "primaryKeyword": "bilingual wealth planning hispanic family",
+      "secondaryKeywords": [
+        "bilingual financial advisor",
+        "spanish-speaking parents financial planning",
+        "hispanic family financial conversations",
+        "language bridge advisory"
+      ],
+      "targetAudience": "2nd-Gen Hispanic-American Professional (30-50)",
+      "searchIntent": "Informational / Decision",
+      "moneyPageTarget": "/en/buyers-guide/",
+      "tofu_titles": [
+        "Why Bilingual Family Financial Planning Is Different",
+        "The Conversation Gap: When Your Parents Speak Spanish and You Don't",
+        "How Cultural Context Shapes Family Financial Decisions"
+      ],
+      "mofu_titles": [
+        "English-Only vs Bilingual Advisory: Service Reach Comparison",
+        "Helping Spanish-Speaking Parents Understand Financial Decisions"
+      ],
+      "bofu_title": "Bilingual Wealth Planning Strategy for Multi-Language Hispanic-American Families",
+      "internal_link_anchors": [
+        "bilingual planning",
+        "spanish-speaking advisor",
+        "family conversations",
+        "cultural competency",
+        "language bridge"
+      ],
+      "compliance_class": "wealth_standard",
+      "language": "en",
+      "skip_by_default": false
+    },
+    {
+      "id": 40,
+      "name": "Dual-Currency Retirement Planning for Cross-Border Hispanic Families",
+      "topic": "Cross-Border Retirement Planning",
+      "primaryKeyword": "dual currency retirement planning hispanic family",
+      "secondaryKeywords": [
+        "cross-border retirement",
+        "us mexico retirement planning",
+        "international retirement income",
+        "expat retirement planning"
+      ],
+      "targetAudience": "Hispanic-American Pre-Retiree with Cross-Border Family (45-60)",
+      "searchIntent": "Decision",
+      "moneyPageTarget": "/en/strategies/tax-free-retirement",
+      "tofu_titles": [
+        "What Cross-Border Retirement Planning Looks Like for Hispanic Families",
+        "Currency Risk in Retirement When Your Family Lives in Two Countries",
+        "How Tax Treaties Affect US-Hispanic Retirement Income"
+      ],
+      "mofu_titles": [
+        "Single-Country vs Dual-Currency Retirement Income: Trade-Offs",
+        "Sending Retirement Income to Family Abroad: Tax and Currency Strategy"
+      ],
+      "bofu_title": "Dual-Currency Retirement Plan for Cross-Border Hispanic-American Families",
+      "internal_link_anchors": [
+        "cross-border retirement",
+        "dual-currency planning",
+        "international family income",
+        "currency risk",
+        "expat retirement"
+      ],
+      "compliance_class": "wealth_standard",
+      "language": "en",
+      "skip_by_default": false
+    },
+    {
+      "id": 41,
+      "name": "Retirement Savings Goal Calculator",
+      "topic": "Retirement Gap",
+      "primaryKeyword": "retirement calculator",
+      "secondaryKeywords": [
+        "how much to save for retirement",
+        "retirement goal calculator",
+        "retirement savings goal",
+        "retirement planning calculator"
+      ],
+      "targetAudience": "Pre-Retiree (5y out)",
+      "searchIntent": "Calculator",
+      "moneyPageTarget": "/en/buyers-guide/",
+      "compliance_class": "wealth_standard",
+      "tofu_titles": [
+        "How Much Money Do You Need to Retire",
+        "Retirement Savings by Age: Milestone Targets",
+        "Rule of 25: The Retirement Number Explained"
+      ],
+      "mofu_titles": [
+        "Retirement Calculator: See Your Retirement Number",
+        "Retirement Savings Rate Needed to Meet Your Goal"
+      ],
+      "bofu_title": "Retirement Savings Goal: Interactive Calculator + Planning",
+      "internal_link_anchors": [
+        "retirement savings calculator",
+        "retirement goal",
+        "retirement number",
+        "savings by age",
+        "retirement planning"
+      ],
+      "language": "en",
+      "skip_by_default": true,
+      "skip_reason": "Overlaps existing theme: The Retirement Gap Crisis"
+    },
+    {
+      "id": 42,
+      "name": "Tax-Free Withdrawal Strategy Calculator",
+      "topic": "Tax-Free Retirement",
+      "primaryKeyword": "retirement withdrawal calculator",
+      "secondaryKeywords": [
+        "tax-efficient withdrawal strategy",
+        "strategic withdrawal ordering",
+        "retirement withdrawal tax",
+        "sequence of withdrawals"
+      ],
+      "targetAudience": "Early Retiree",
+      "searchIntent": "Calculator",
+      "moneyPageTarget": "/en/buyers-guide/",
+      "compliance_class": "wealth_standard",
+      "tofu_titles": [
+        "How to Withdraw from Retirement Accounts (Tax-Efficiently)",
+        "Strategic Withdrawal Ordering: Which Account First",
+        "Retirement Withdrawal Tax Impact by Withdrawal Method"
+      ],
+      "mofu_titles": [
+        "Tax-Free Withdrawal Calculator for Retirement",
+        "Impact of Withdrawals on Medicare Premiums (IRMAA)"
+      ],
+      "bofu_title": "Withdrawal Strategy Calculator: Tax-Efficient Retirement Plan",
+      "internal_link_anchors": [
+        "withdrawal strategy calculator",
+        "strategic withdrawal order",
+        "tax-free withdrawal",
+        "IRMAA impact",
+        "retirement withdrawal"
+      ],
+      "language": "en",
+      "skip_by_default": true,
+      "skip_reason": "Overlaps existing theme: Tax-Free Retirement Income"
+    },
+    {
+      "id": 43,
+      "name": "Roth Conversion Optimizer",
+      "topic": "Roth Conversion",
+      "primaryKeyword": "Roth conversion calculator",
+      "secondaryKeywords": [
+        "Roth conversion opportunity",
+        "best year for Roth conversion",
+        "Roth conversion impact",
+        "pro-rata rule calculator"
+      ],
+      "targetAudience": "Early Retiree",
+      "searchIntent": "Calculator",
+      "moneyPageTarget": "/en/buyers-guide/",
+      "compliance_class": "wealth_standard",
+      "tofu_titles": [
+        "When is the Best Year for a Roth Conversion",
+        "Calculating Roth Conversion Tax Impact",
+        "Pro-Rata Rule Simplified (With Examples)"
+      ],
+      "mofu_titles": [
+        "Roth Conversion Optimizer Tool: Interactive Calculator",
+        "Roth Conversion in Low-Income Years"
+      ],
+      "bofu_title": "Roth Conversion Calculator: Optimal Year Planning",
+      "internal_link_anchors": [
+        "Roth conversion calculator",
+        "best year to convert",
+        "pro-rata rule",
+        "conversion strategy",
+        "tax optimization"
+      ],
+      "language": "en",
+      "skip_by_default": false
+    },
+    {
+      "id": 44,
+      "name": "Life Insurance Need Analyzer",
+      "topic": "Estate Planning",
+      "primaryKeyword": "life insurance calculator",
+      "secondaryKeywords": [
+        "how much life insurance do I need",
+        "life insurance needs analysis",
+        "death benefit calculator",
+        "life insurance coverage amount"
+      ],
+      "targetAudience": "Pre-Retiree (5y out)",
+      "searchIntent": "Calculator",
+      "moneyPageTarget": "/en/buyers-guide/",
+      "compliance_class": "wealth_standard",
+      "tofu_titles": [
+        "How Much Life Insurance Do You Actually Need",
+        "Life Insurance Coverage by Life Stage",
+        "Estate Tax Liability and Life Insurance Coverage"
+      ],
+      "mofu_titles": [
+        "Life Insurance Needs Analyzer Tool",
+        "Life Insurance vs Savings for Estate Liquidity"
+      ],
+      "bofu_title": "Life Insurance Needs Calculator: Coverage Analysis",
+      "internal_link_anchors": [
+        "life insurance calculator",
+        "coverage needs",
+        "death benefit amount",
+        "estate liquidity",
+        "life insurance analysis"
+      ],
+      "language": "en",
+      "skip_by_default": false
+    },
+    {
+      "id": 45,
+      "name": "Social Security Claiming Strategy Optimizer",
+      "topic": "Social Security Optimization",
+      "primaryKeyword": "Social Security calculator",
+      "secondaryKeywords": [
+        "when to claim Social Security",
+        "Social Security claiming strategy",
+        "full retirement age Social Security",
+        "Social Security break-even"
+      ],
+      "targetAudience": "Early Retiree",
+      "searchIntent": "Calculator",
+      "moneyPageTarget": "/en/buyers-guide/",
+      "compliance_class": "wealth_standard",
+      "tofu_titles": [
+        "When Should You Claim Social Security (Age 62 vs 70)",
+        "Social Security Benefits Calculation Explained",
+        "How Life Expectancy Affects Social Security Strategy"
+      ],
+      "mofu_titles": [
+        "Social Security Claiming Strategy Optimizer (Interactive)",
+        "Spousal Social Security Benefits and Claiming Strategy"
+      ],
+      "bofu_title": "Social Security Claiming Strategy: Optimize Your Benefits",
+      "internal_link_anchors": [
+        "Social Security calculator",
+        "claiming strategy",
+        "full retirement age",
+        "break-even analysis",
+        "Social Security benefits"
+      ],
+      "language": "en",
+      "skip_by_default": false
+    },
+    {
+      "id": 46,
+      "name": "Independent Broker vs Captive Agent",
+      "topic": "Compliance & Trust Signals",
+      "primaryKeyword": "independent insurance broker",
+      "secondaryKeywords": [
+        "captive insurance agent",
+        "insurance broker vs agent",
+        "independent insurance broker benefits",
+        "captive agent vs independent"
+      ],
+      "targetAudience": "High-Earner Pre-Retiree",
+      "searchIntent": "Comparison",
+      "moneyPageTarget": "/en/strategies/",
+      "compliance_class": "wealth_standard",
+      "tofu_titles": [
+        "Independent Insurance Broker vs Captive Agent (Differences)",
+        "Why Independent Brokers Have Better Options",
+        "Conflicts of Interest in Captive Agent Relationships"
+      ],
+      "mofu_titles": [
+        "Independent Broker vs Captive Agent: Cost and Service",
+        "How to Choose an Insurance Broker (Captive vs Independent)"
+      ],
+      "bofu_title": "Why Independent Brokers Deliver Better Planning (Transparency)",
+      "internal_link_anchors": [
+        "independent broker",
+        "captive agent",
+        "insurance agent comparison",
+        "broker selection",
+        "conflict of interest"
+      ],
+      "language": "en",
+      "skip_by_default": false
+    },
+    {
+      "id": 47,
+      "name": "Insurance Broker vs Financial Advisor Licensing",
+      "topic": "Compliance & Trust Signals",
+      "primaryKeyword": "insurance broker licensing",
+      "secondaryKeywords": [
+        "financial advisor RIA",
+        "broker-dealer vs RIA",
+        "insurance license requirements",
+        "financial advisor credentials"
+      ],
+      "targetAudience": "High-Earner Pre-Retiree",
+      "searchIntent": "Comparison",
+      "moneyPageTarget": "/en/buyers-guide/",
+      "compliance_class": "wealth_standard",
+      "tofu_titles": [
+        "Insurance Broker vs Financial Advisor (Licensing Differences)",
+        "Fiduciary Duty: Insurance Brokers vs Financial Advisors",
+        "State Insurance License vs Securities License"
+      ],
+      "mofu_titles": [
+        "Broker-Dealer vs RIA: Regulatory Structure Comparison",
+        "How to Verify Advisor Credentials and Licenses"
+      ],
+      "bofu_title": "Advisor Licensing & Credentials: What You Should Know",
+      "internal_link_anchors": [
+        "insurance broker licensing",
+        "RIA fiduciary",
+        "financial advisor credentials",
+        "regulatory structure",
+        "advisor qualifications"
+      ],
+      "language": "en",
+      "skip_by_default": false
+    },
+    {
+      "id": 48,
+      "name": "How Life Insurance Advisors Are Compensated",
+      "topic": "Compliance & Trust Signals",
+      "primaryKeyword": "life insurance advisor commission",
+      "secondaryKeywords": [
+        "insurance commission structure",
+        "insurance agent compensation",
+        "fee-based vs commission life insurance",
+        "life insurance advisor fees"
+      ],
+      "targetAudience": "High-Earner Pre-Retiree",
+      "searchIntent": "Informational",
+      "moneyPageTarget": "/en/buyers-guide/",
+      "compliance_class": "wealth_standard",
+      "tofu_titles": [
+        "How Insurance Advisors Are Paid (Commission Structure)",
+        "Commission-Based vs Fee-Based Life Insurance Advice",
+        "Transparency in Insurance Advisor Compensation"
+      ],
+      "mofu_titles": [
+        "Insurance Commissions and Advisor Incentives (What to Know)",
+        "Fee-Only Life Insurance Planning vs Commission-Based"
+      ],
+      "bofu_title": "Life Insurance Advisor Compensation: Transparency & Alignment",
+      "internal_link_anchors": [
+        "insurance commission",
+        "advisor compensation",
+        "fee-based insurance",
+        "commission structure",
+        "advisor incentives"
+      ],
+      "language": "en",
+      "skip_by_default": false
+    },
+    {
+      "id": 49,
+      "name": "Building Trust With Financial Advisors",
+      "topic": "Compliance & Trust Signals",
+      "primaryKeyword": "financial advisor credentials",
+      "secondaryKeywords": [
+        "how to vet financial advisor",
+        "financial advisor background check",
+        "advisor qualifications",
+        "choosing financial advisor"
+      ],
+      "targetAudience": "High-Earner Pre-Retiree",
+      "searchIntent": "Informational",
+      "moneyPageTarget": "/en/buyers-guide/",
+      "compliance_class": "wealth_standard",
+      "tofu_titles": [
+        "Red Flags When Choosing a Financial Advisor",
+        "Financial Advisor Credentials and Certifications (What Matters)",
+        "Questions to Ask Before Hiring a Financial Advisor"
+      ],
+      "mofu_titles": [
+        "Verifying Advisor Credentials (FINRA BrokerCheck, SEC)",
+        "Advisor Experience and Track Record Evaluation"
+      ],
+      "bofu_title": "Advisor Selection Checklist: Credentials, Experience, Trust",
+      "internal_link_anchors": [
+        "financial advisor credentials",
+        "advisor selection",
+        "CFP certification",
+        "advisor vetting",
+        "fiduciary advisor"
+      ],
+      "language": "en",
+      "skip_by_default": false
+    },
+    {
+      "id": 50,
+      "name": "Insurance Company Financial Strength",
+      "topic": "Compliance & Trust Signals",
+      "primaryKeyword": "insurance company ratings",
+      "secondaryKeywords": [
+        "A.M. Best rating",
+        "insurance company financial strength",
+        "insurance company solvency",
+        "life insurance company stability"
+      ],
+      "targetAudience": "High-Earner Pre-Retiree",
+      "searchIntent": "Informational",
+      "moneyPageTarget": "/en/buyers-guide/",
+      "compliance_class": "wealth_standard",
+      "tofu_titles": [
+        "How to Check Insurance Company Financial Strength (Ratings)",
+        "A.M. Best Ratings Explained (What the Grades Mean)",
+        "Insurance Company Failure: How Your Policy is Protected"
+      ],
+      "mofu_titles": [
+        "Comparing Insurance Companies by Financial Strength",
+        "State Guarantee Funds and Insurance Company Insolvency"
+      ],
+      "bofu_title": "Insurance Company Strength: Ratings, Research, Security",
+      "internal_link_anchors": [
+        "insurance company ratings",
+        "A.M. Best grade",
+        "financial strength",
+        "insurance solvency",
+        "company stability"
+      ],
+      "language": "en",
+      "skip_by_default": false
+    },
+    {
+      "id": 51,
+      "name": "Becoming an Insurance Broker — Career Overview",
+      "topic": "Insurance Career",
+      "primaryKeyword": "how to become insurance broker",
+      "secondaryKeywords": [
+        "insurance broker career",
+        "insurance career path",
+        "broker vs agent",
+        "insurance professional"
+      ],
+      "targetAudience": "Career Changer",
+      "searchIntent": "Informational",
+      "moneyPageTarget": "/contracting/intake",
+      "compliance_class": "recruiting_no_income_claims",
+      "tofu_titles": [
+        "What Does an Insurance Broker Actually Do",
+        "Insurance Broker vs Insurance Agent: The Real Difference",
+        "A Day in the Life of a Modern Insurance Professional"
+      ],
+      "mofu_titles": [
+        "Independent Broker vs Captive Agent: Which Path Fits You",
+        "5 Signs You'd Thrive in an Insurance Career"
+      ],
+      "bofu_title": "How to Start a Career as an Insurance Broker",
+      "internal_link_anchors": [
+        "insurance career path",
+        "becoming a broker",
+        "independent broker",
+        "day in the life",
+        "career transition"
+      ],
+      "language": "en",
+      "skip_by_default": false
+    },
+    {
+      "id": 52,
+      "name": "Career Changers Transitioning Into Insurance",
+      "topic": "Mid-Career Transition",
+      "primaryKeyword": "career change to insurance",
+      "secondaryKeywords": [
+        "transitioning into insurance",
+        "second career insurance",
+        "mid-career change",
+        "insurance for professionals"
+      ],
+      "targetAudience": "Career Changer",
+      "searchIntent": "Informational / Decision",
+      "moneyPageTarget": "/contracting/intake",
+      "compliance_class": "recruiting_no_income_claims",
+      "tofu_titles": [
+        "Why Professionals in Their 40s and 50s Are Choosing Insurance Careers",
+        "Transitioning from Corporate to Independent Insurance: What Changes",
+        "Bringing Your Existing Skills Into an Insurance Career"
+      ],
+      "mofu_titles": [
+        "Career Change vs Career Pivot: How Insurance Compares",
+        "Skills That Transfer Best Into the Insurance Industry"
+      ],
+      "bofu_title": "Mid-Career Transition to Insurance: A Practical Roadmap",
+      "internal_link_anchors": [
+        "career changers",
+        "mid-career transition",
+        "transferable skills",
+        "professional pivot",
+        "insurance career path"
+      ],
+      "language": "en",
+      "skip_by_default": false
+    },
+    {
+      "id": 53,
+      "name": "Independent vs Captive Agency Models",
+      "topic": "Broker Model",
+      "primaryKeyword": "independent agent vs captive agent",
+      "secondaryKeywords": [
+        "independent insurance broker",
+        "captive agency model",
+        "independent broker advantage",
+        "insurance agency types"
+      ],
+      "targetAudience": "Aspiring Agent / Career Changer",
+      "searchIntent": "Comparison",
+      "moneyPageTarget": "/contracting/intake",
+      "compliance_class": "recruiting_no_income_claims",
+      "tofu_titles": [
+        "What is an Independent Insurance Broker (Plain English)",
+        "Captive Agency Explained: Pros and Constraints",
+        "Independent vs Captive: How the Models Differ"
+      ],
+      "mofu_titles": [
+        "Choosing Between Independent and Captive: 7 Considerations",
+        "The Independent Model: Why More Brokers Are Switching"
+      ],
+      "bofu_title": "Joining an Independent Insurance Broker — What to Expect",
+      "internal_link_anchors": [
+        "independent broker",
+        "captive agency",
+        "broker model",
+        "agency choice",
+        "contractual structure"
+      ],
+      "language": "en",
+      "skip_by_default": false
+    },
+    {
+      "id": 54,
+      "name": "The Independent Broker Advantage for Clients and Professionals",
+      "topic": "Broker Model",
+      "primaryKeyword": "independent broker advantage",
+      "secondaryKeywords": [
+        "why independent insurance",
+        "broker independence",
+        "multi-carrier broker",
+        "client-first insurance"
+      ],
+      "targetAudience": "Career Changer / Industry Curious",
+      "searchIntent": "Informational / Decision",
+      "moneyPageTarget": "/contracting/intake",
+      "compliance_class": "recruiting_no_income_claims",
+      "tofu_titles": [
+        "Why Independent Brokers Can Offer Multiple Carriers",
+        "The Client-First Advantage of Independent Insurance Brokers",
+        "How Independent Brokers Build Long-Term Practices"
+      ],
+      "mofu_titles": [
+        "Independent Broker vs Single-Carrier Agent: Client Comparison",
+        "What Independent Means in Practice (Day-to-Day)"
+      ],
+      "bofu_title": "Becoming an Independent Insurance Broker: The Path Forward",
+      "internal_link_anchors": [
+        "independent advantage",
+        "multi-carrier",
+        "broker independence",
+        "client-first",
+        "long-term practice"
+      ],
+      "language": "en",
+      "skip_by_default": false
+    },
+    {
+      "id": 55,
+      "name": "Building a Long-Term Career in Insurance",
+      "topic": "Career Longevity",
+      "primaryKeyword": "long term insurance career",
+      "secondaryKeywords": [
+        "insurance career growth",
+        "building practice insurance",
+        "career longevity insurance",
+        "sustainable insurance career"
+      ],
+      "targetAudience": "New Agent / Aspiring Agent",
+      "searchIntent": "Informational",
+      "moneyPageTarget": "/contracting/intake",
+      "compliance_class": "recruiting_no_income_claims",
+      "tofu_titles": [
+        "Why Insurance Careers Span Decades (Industry Stability)",
+        "The Long-Term Trajectory of an Insurance Professional",
+        "How Insurance Careers Evolve Over Time"
+      ],
+      "mofu_titles": [
+        "Career Stages in Insurance: From New Licensee to Veteran Broker",
+        "Specialization vs Generalization: Which Builds a Better Career"
+      ],
+      "bofu_title": "Designing a Sustainable Long-Term Insurance Career",
+      "internal_link_anchors": [
+        "career trajectory",
+        "long-term career",
+        "career evolution",
+        "career stages",
+        "professional development"
+      ],
+      "language": "en",
+      "skip_by_default": false
+    },
+    {
+      "id": 56,
+      "name": "Life Insurance License Path",
+      "topic": "Life Insurance Licensing",
+      "primaryKeyword": "life insurance license",
+      "secondaryKeywords": [
+        "how to get life insurance license",
+        "life insurance license requirements",
+        "life insurance exam",
+        "insurance licensing process"
+      ],
+      "targetAudience": "Aspiring Agent / Pre-Licensee",
+      "searchIntent": "Informational / Decision",
+      "moneyPageTarget": "/contracting/intake",
+      "compliance_class": "recruiting_no_income_claims",
+      "tofu_titles": [
+        "How to Get Your Life Insurance License (Step by Step)",
+        "Life Insurance License Requirements by State",
+        "The Life Insurance Pre-Licensing Course Explained"
+      ],
+      "mofu_titles": [
+        "Life Insurance vs Life and Health: Which License to Get First",
+        "Self-Study vs Classroom Pre-Licensing: Pros and Cons"
+      ],
+      "bofu_title": "Your Complete Life Insurance Licensing Roadmap",
+      "internal_link_anchors": [
+        "life insurance license",
+        "pre-licensing course",
+        "state requirements",
+        "licensing roadmap",
+        "exam preparation"
+      ],
+      "language": "en",
+      "skip_by_default": false
+    },
+    {
+      "id": 57,
+      "name": "Health Insurance License Path",
+      "topic": "Health Insurance Licensing",
+      "primaryKeyword": "health insurance license",
+      "secondaryKeywords": [
+        "accident and health license",
+        "life and health license",
+        "health insurance exam",
+        "health insurance broker license"
+      ],
+      "targetAudience": "Aspiring Agent / Pre-Licensee",
+      "searchIntent": "Informational",
+      "moneyPageTarget": "/contracting/intake",
+      "compliance_class": "recruiting_no_income_claims",
+      "tofu_titles": [
+        "How to Get a Health Insurance License (State-by-State Guide)",
+        "Life vs Health vs Combined Life and Health Licenses",
+        "What's Covered on the Health Insurance Licensing Exam"
+      ],
+      "mofu_titles": [
+        "Should You Get a Combined Life and Health License: Comparison",
+        "Health Insurance Specialties: Where Brokers Focus"
+      ],
+      "bofu_title": "Health Insurance Licensing: Complete Path for New Brokers",
+      "internal_link_anchors": [
+        "health insurance license",
+        "life and health license",
+        "health licensing exam",
+        "accident and health",
+        "broker licensing"
+      ],
+      "language": "en",
+      "skip_by_default": false
+    },
+    {
+      "id": 58,
+      "name": "Pre-Licensing Education Requirements",
+      "topic": "Insurance Education",
+      "primaryKeyword": "insurance pre-licensing education",
+      "secondaryKeywords": [
+        "pre-licensing course",
+        "insurance education requirements",
+        "life insurance course hours",
+        "pre-licensing study time"
+      ],
+      "targetAudience": "Aspiring Agent / Pre-Licensee",
+      "searchIntent": "Informational",
+      "moneyPageTarget": "/contracting/intake",
+      "compliance_class": "recruiting_no_income_claims",
+      "tofu_titles": [
+        "What Pre-Licensing Education Covers (Topic Breakdown)",
+        "State-by-State Pre-Licensing Hour Requirements",
+        "Pre-Licensing Course Formats: Online vs Classroom"
+      ],
+      "mofu_titles": [
+        "Pre-Licensing Self-Paced vs Live Class: Which Approach Works",
+        "How Long Does Pre-Licensing Take (Realistic Timeline)"
+      ],
+      "bofu_title": "Choosing Your Pre-Licensing Course Provider",
+      "internal_link_anchors": [
+        "pre-licensing education",
+        "course requirements",
+        "study hours",
+        "course format",
+        "education provider"
+      ],
+      "language": "en",
+      "skip_by_default": false
+    },
+    {
+      "id": 59,
+      "name": "Insurance Exam Preparation Strategies",
+      "topic": "Exam Prep",
+      "primaryKeyword": "insurance exam prep",
+      "secondaryKeywords": [
+        "life insurance exam tips",
+        "how to pass insurance exam",
+        "insurance test taking strategies",
+        "exam study plan"
+      ],
+      "targetAudience": "Pre-Licensee",
+      "searchIntent": "Informational / Decision",
+      "moneyPageTarget": "/contracting/intake",
+      "compliance_class": "recruiting_no_income_claims",
+      "tofu_titles": [
+        "How to Study for the Life Insurance Licensing Exam",
+        "Common Topics on Insurance Licensing Exams",
+        "Test-Taking Strategies for the Insurance Exam"
+      ],
+      "mofu_titles": [
+        "Practice Tests vs Textbook Study: What Actually Works",
+        "Cramming vs Spaced Study: The Better Approach for Insurance Exams"
+      ],
+      "bofu_title": "A 30-Day Study Plan for the Life Insurance License Exam",
+      "internal_link_anchors": [
+        "exam prep",
+        "study strategies",
+        "practice tests",
+        "test-taking tips",
+        "study plan"
+      ],
+      "language": "en",
+      "skip_by_default": false
+    },
+    {
+      "id": 60,
+      "name": "Continuing Education and License Renewal",
+      "topic": "Continuing Education",
+      "primaryKeyword": "insurance continuing education",
+      "secondaryKeywords": [
+        "CE requirements insurance",
+        "license renewal insurance",
+        "insurance CE hours",
+        "continuing education broker"
+      ],
+      "targetAudience": "Licensed Professional / Aspiring Agent",
+      "searchIntent": "Informational",
+      "moneyPageTarget": "/contracting/intake",
+      "compliance_class": "recruiting_no_income_claims",
+      "tofu_titles": [
+        "What Continuing Education Looks Like for Licensed Brokers",
+        "State-by-State CE Requirements for Insurance Licenses",
+        "How License Renewal Works (Cycles, Hours, Topics)"
+      ],
+      "mofu_titles": [
+        "Online CE vs In-Person: Comparison for Working Brokers",
+        "Specialty CE Topics: Beyond the Required Hours"
+      ],
+      "bofu_title": "Building a Long-Term CE Plan for Your Insurance Career",
+      "internal_link_anchors": [
+        "continuing education",
+        "CE requirements",
+        "license renewal",
+        "CE hours",
+        "professional development"
+      ],
+      "language": "en",
+      "skip_by_default": false
+    },
+    {
+      "id": 61,
+      "name": "Skills That Help Insurance Professionals Serve Clients",
+      "topic": "Professional Skills",
+      "primaryKeyword": "insurance broker skills",
+      "secondaryKeywords": [
+        "insurance professional skills",
+        "what makes a good insurance broker",
+        "insurance career skills",
+        "communication skills insurance"
+      ],
+      "targetAudience": "New Agent / Aspiring Agent",
+      "searchIntent": "Informational",
+      "moneyPageTarget": "/contracting/intake",
+      "compliance_class": "recruiting_no_income_claims",
+      "tofu_titles": [
+        "7 Skills Every Insurance Professional Develops",
+        "Active Listening: Why It's the #1 Insurance Broker Skill",
+        "The Skills Insurance Brokers Use Every Day (Real Examples)"
+      ],
+      "mofu_titles": [
+        "Hard Skills vs Soft Skills in Insurance: Which Matter More",
+        "Building Skills Through Practice: A New Agent's Path"
+      ],
+      "bofu_title": "Developing the Skills That Build a Long-Term Practice",
+      "internal_link_anchors": [
+        "broker skills",
+        "communication skills",
+        "active listening",
+        "professional skills",
+        "skill development"
+      ],
+      "language": "en",
+      "skip_by_default": false
+    },
+    {
+      "id": 62,
+      "name": "Communication Skills with Clients",
+      "topic": "Client Communication",
+      "primaryKeyword": "insurance client communication",
+      "secondaryKeywords": [
+        "talking to insurance clients",
+        "financial advisor communication",
+        "explaining insurance to clients",
+        "client conversations"
+      ],
+      "targetAudience": "New Agent",
+      "searchIntent": "Informational",
+      "moneyPageTarget": "/contracting/intake",
+      "compliance_class": "recruiting_no_income_claims",
+      "tofu_titles": [
+        "How Insurance Brokers Explain Complex Products to Clients",
+        "The Discovery Conversation: How Brokers Learn About Clients",
+        "Listening More, Talking Less: The Insurance Broker Mindset"
+      ],
+      "mofu_titles": [
+        "In-Person vs Phone vs Video Client Meetings: When Each Works",
+        "Asking Better Questions: A Framework for Client Conversations"
+      ],
+      "bofu_title": "Mastering the Client Communication Process",
+      "internal_link_anchors": [
+        "client communication",
+        "discovery conversation",
+        "client meetings",
+        "listening skills",
+        "conversation framework"
+      ],
+      "language": "en",
+      "skip_by_default": false
+    },
+    {
+      "id": 63,
+      "name": "Building a Practice Through Referrals",
+      "topic": "Practice Building",
+      "primaryKeyword": "insurance referral strategy",
+      "secondaryKeywords": [
+        "building insurance practice",
+        "how brokers grow practice",
+        "client referrals insurance",
+        "referral-based practice"
+      ],
+      "targetAudience": "New Agent / Building Practice",
+      "searchIntent": "Informational",
+      "moneyPageTarget": "/contracting/intake",
+      "compliance_class": "recruiting_no_income_claims",
+      "tofu_titles": [
+        "How Insurance Brokers Build Practice Through Referrals",
+        "Why Referral-Based Practices Last Decades in Insurance",
+        "The Difference Between Cold Outreach and Referral Relationships"
+      ],
+      "mofu_titles": [
+        "Referral Practice vs Marketing-Heavy Practice: Comparison",
+        "When and How to Ask for Referrals (Without Being Awkward)"
+      ],
+      "bofu_title": "Building a Sustainable Referral-Based Insurance Practice",
+      "internal_link_anchors": [
+        "referral strategy",
+        "practice building",
+        "referral relationships",
+        "sustainable practice",
+        "client referrals"
+      ],
+      "language": "en",
+      "skip_by_default": false
+    },
+    {
+      "id": 64,
+      "name": "Mentorship in the Insurance Industry",
+      "topic": "Mentorship",
+      "primaryKeyword": "insurance mentor",
+      "secondaryKeywords": [
+        "finding insurance mentor",
+        "mentorship insurance career",
+        "learning from insurance broker",
+        "broker apprenticeship"
+      ],
+      "targetAudience": "New Agent / Aspiring Agent",
+      "searchIntent": "Informational",
+      "moneyPageTarget": "/contracting/intake",
+      "compliance_class": "recruiting_no_income_claims",
+      "tofu_titles": [
+        "Why Mentorship Accelerates Insurance Careers",
+        "What a Good Insurance Mentor Actually Does",
+        "Finding a Mentor in the Insurance Industry"
+      ],
+      "mofu_titles": [
+        "Formal Mentorship vs Casual Guidance: What Actually Helps New Brokers",
+        "The Mentor-Mentee Relationship: How It Evolves Over Time"
+      ],
+      "bofu_title": "Choosing the Right Mentor for Your Insurance Career",
+      "internal_link_anchors": [
+        "insurance mentor",
+        "mentorship",
+        "finding a mentor",
+        "broker apprenticeship",
+        "career guidance"
+      ],
+      "language": "en",
+      "skip_by_default": false
+    },
+    {
+      "id": 65,
+      "name": "Specialization vs Generalist Insurance Practice",
+      "topic": "Practice Building",
+      "primaryKeyword": "insurance specialization",
+      "secondaryKeywords": [
+        "generalist insurance broker",
+        "insurance niche",
+        "specialty insurance practice",
+        "focusing insurance practice"
+      ],
+      "targetAudience": "New Agent / Building Practice",
+      "searchIntent": "Comparison / Decision",
+      "moneyPageTarget": "/contracting/intake",
+      "compliance_class": "recruiting_no_income_claims",
+      "tofu_titles": [
+        "Specialization vs Generalist: Two Paths in Insurance",
+        "Common Insurance Specialties (and Why Brokers Choose Them)",
+        "Why Many Brokers Niche Down Over Time"
+      ],
+      "mofu_titles": [
+        "Specializing in Retirement vs Generalist Practice: Trade-Offs",
+        "Choosing a Specialty: 5 Factors to Consider"
+      ],
+      "bofu_title": "Specialization Roadmap for the Insurance Broker",
+      "internal_link_anchors": [
+        "insurance specialization",
+        "generalist vs specialist",
+        "niche practice",
+        "specialty path",
+        "focused practice"
+      ],
+      "language": "en",
+      "skip_by_default": false
+    },
+    {
+      "id": 66,
+      "name": "Becoming a Family Financial Advisor",
+      "topic": "Family Advisory",
+      "primaryKeyword": "family financial advisor",
+      "secondaryKeywords": [
+        "becoming a family advisor",
+        "working with families on retirement",
+        "multi-generational planning advisor",
+        "trusted family advisor"
+      ],
+      "targetAudience": "Career Changer / Mission-Driven",
+      "searchIntent": "Informational",
+      "moneyPageTarget": "/contracting/intake",
+      "compliance_class": "recruiting_no_income_claims",
+      "tofu_titles": [
+        "Why Insurance Brokers Often Become Trusted Family Advisors",
+        "The Multi-Generational Relationship: How It Forms",
+        "What Families Look For in a Long-Term Advisor"
+      ],
+      "mofu_titles": [
+        "Single-Client vs Family-Based Practice: How They Differ",
+        "The Trust-Building Process: From New Contact to Family Advisor"
+      ],
+      "bofu_title": "Becoming the Trusted Advisor Multiple Generations Rely On",
+      "internal_link_anchors": [
+        "family advisor",
+        "multi-generational",
+        "trusted relationship",
+        "long-term advisor",
+        "family practice"
+      ],
+      "language": "en",
+      "skip_by_default": false
+    },
+    {
+      "id": 67,
+      "name": "Working With Multi-Generational Households",
+      "topic": "Multi-Generational Planning",
+      "primaryKeyword": "multi-generational household",
+      "secondaryKeywords": [
+        "working with multiple generations",
+        "family planning across generations",
+        "generational wealth advising",
+        "household financial planning"
+      ],
+      "targetAudience": "New Agent / Building Practice",
+      "searchIntent": "Informational",
+      "moneyPageTarget": "/contracting/intake",
+      "compliance_class": "recruiting_no_income_claims",
+      "tofu_titles": [
+        "What Multi-Generational Households Need From a Financial Professional",
+        "Helping Three Generations Plan Together: A Framework",
+        "Why Generational Planning Differs From Individual Planning"
+      ],
+      "mofu_titles": [
+        "Working With One Generation vs the Whole Family: How It Changes",
+        "Coordinating Different Generation Goals: A Practical Approach"
+      ],
+      "bofu_title": "Multi-Generational Family Planning: A Broker's Approach",
+      "internal_link_anchors": [
+        "multi-generational planning",
+        "household planning",
+        "generation coordination",
+        "family meetings",
+        "generational wealth"
+      ],
+      "language": "en",
+      "skip_by_default": false
+    },
+    {
+      "id": 68,
+      "name": "Spanish-Speaking Family Advisor Opportunity",
+      "topic": "Hispanic Market Service",
+      "primaryKeyword": "spanish speaking insurance broker",
+      "secondaryKeywords": [
+        "hispanic family advisor",
+        "bilingual insurance career",
+        "serving hispanic families",
+        "latino family financial advisor"
+      ],
+      "targetAudience": "Career Changer / Spanish-Speaking Professional",
+      "searchIntent": "Informational / Decision",
+      "moneyPageTarget": "/contracting/intake",
+      "compliance_class": "recruiting_no_income_claims",
+      "tofu_titles": [
+        "Why the Hispanic-American Market Needs More Insurance Professionals",
+        "Bilingual Insurance Brokers: An Underserved Service Need",
+        "How Cultural Understanding Shapes Family Financial Conversations"
+      ],
+      "mofu_titles": [
+        "English-Only vs Bilingual Practice: Service Reach Comparison",
+        "Cultural Competency in Family Insurance Conversations"
+      ],
+      "bofu_title": "Building a Bilingual Insurance Practice for Hispanic-American Families",
+      "internal_link_anchors": [
+        "bilingual broker",
+        "hispanic market",
+        "cultural competency",
+        "family financial conversations",
+        "spanish-speaking advisor"
+      ],
+      "language": "en",
+      "skip_by_default": false
+    },
+    {
+      "id": 69,
+      "name": "Real Family Problems Insurance Brokers Solve",
+      "topic": "Family Service",
+      "primaryKeyword": "insurance broker problems solved",
+      "secondaryKeywords": [
+        "real client situations insurance",
+        "family financial problems",
+        "what insurance brokers actually do",
+        "real-world insurance work"
+      ],
+      "targetAudience": "Career Changer / Mission-Driven",
+      "searchIntent": "Informational",
+      "moneyPageTarget": "/contracting/intake",
+      "compliance_class": "recruiting_no_income_claims",
+      "tofu_titles": [
+        "The Real Family Problems Insurance Brokers Help Solve",
+        "Beyond Selling Policies: What Insurance Professionals Actually Do",
+        "The \"Helping\" Work in an Insurance Career"
+      ],
+      "mofu_titles": [
+        "Reactive vs Proactive Insurance Service: Which Helps Families More",
+        "Real Client Stories: How Insurance Service Plays Out"
+      ],
+      "bofu_title": "The Service-First Insurance Practice: A Practical Vision",
+      "internal_link_anchors": [
+        "real client situations",
+        "family problems solved",
+        "service-first practice",
+        "helping families",
+        "real-world work"
+      ],
+      "language": "en",
+      "skip_by_default": false
+    },
+    {
+      "id": 70,
+      "name": "Mission-Driven Insurance Careers",
+      "topic": "Career Purpose",
+      "primaryKeyword": "meaningful career insurance",
+      "secondaryKeywords": [
+        "mission-driven career",
+        "helping families career",
+        "purposeful work insurance",
+        "career with purpose"
+      ],
+      "targetAudience": "Career Changer / Mission-Driven",
+      "searchIntent": "Informational",
+      "moneyPageTarget": "/contracting/intake",
+      "compliance_class": "recruiting_no_income_claims",
+      "tofu_titles": [
+        "Why Insurance Careers Often Feel Mission-Driven",
+        "The \"Helping People\" Aspect of Insurance Work",
+        "Career Purpose: Why Some Professionals Choose This Industry"
+      ],
+      "mofu_titles": [
+        "Career Satisfaction in Insurance vs Traditional Corporate Jobs",
+        "How Mission-Driven Brokers Approach Their Work Differently"
+      ],
+      "bofu_title": "Building a Career Around Helping Families",
+      "internal_link_anchors": [
+        "mission-driven career",
+        "meaningful work",
+        "helping families",
+        "career purpose",
+        "service mindset"
+      ],
+      "language": "en",
+      "skip_by_default": false
+    },
+    {
+      "id": 71,
+      "name": "Flexibility and Autonomy in an Insurance Career",
+      "topic": "Career Flexibility",
+      "primaryKeyword": "insurance career flexibility",
+      "secondaryKeywords": [
+        "autonomous insurance broker",
+        "flexible schedule insurance",
+        "work-life balance insurance",
+        "independent broker schedule"
+      ],
+      "targetAudience": "Career Changer",
+      "searchIntent": "Informational / Decision",
+      "moneyPageTarget": "/contracting/intake",
+      "compliance_class": "recruiting_no_income_claims",
+      "tofu_titles": [
+        "The Day-to-Day Schedule of an Independent Insurance Broker",
+        "Autonomy vs Structure: How Insurance Careers Compare",
+        "Why Flexibility Looks Different for Independent vs Captive Brokers"
+      ],
+      "mofu_titles": [
+        "9-to-5 Corporate Job vs Independent Broker Schedule: Realities",
+        "Managing Your Own Schedule as a Licensed Broker"
+      ],
+      "bofu_title": "Career Flexibility for the Independent Insurance Broker",
+      "internal_link_anchors": [
+        "career flexibility",
+        "autonomous practice",
+        "independent schedule",
+        "work-life balance",
+        "schedule control"
+      ],
+      "language": "en",
+      "skip_by_default": false
+    },
+    {
+      "id": 72,
+      "name": "Working From Home as an Insurance Professional",
+      "topic": "Remote Work",
+      "primaryKeyword": "insurance broker work from home",
+      "secondaryKeywords": [
+        "remote insurance career",
+        "virtual insurance broker",
+        "home office insurance",
+        "remote financial advisor"
+      ],
+      "targetAudience": "Career Changer / Remote Worker",
+      "searchIntent": "Informational",
+      "moneyPageTarget": "/contracting/intake",
+      "compliance_class": "recruiting_no_income_claims",
+      "tofu_titles": [
+        "How Insurance Brokers Work From Home (Practical Setup)",
+        "Remote vs In-Person Insurance Practice: What Actually Works",
+        "Tools That Modern Insurance Brokers Use (Tech Stack Overview)"
+      ],
+      "mofu_titles": [
+        "Hybrid vs Fully Remote Insurance Practice: Pros of Each",
+        "Building Client Trust Without In-Person Meetings"
+      ],
+      "bofu_title": "Building a Remote Insurance Practice",
+      "internal_link_anchors": [
+        "remote insurance career",
+        "work from home",
+        "virtual broker",
+        "home office practice",
+        "remote tools"
+      ],
+      "language": "en",
+      "skip_by_default": false
+    },
+    {
+      "id": 73,
+      "name": "Insurance Industry Overview for Newcomers",
+      "topic": "Industry Overview",
+      "primaryKeyword": "insurance industry overview",
+      "secondaryKeywords": [
+        "how insurance industry works",
+        "insurance industry structure",
+        "insurance career landscape",
+        "insurance industry explained"
+      ],
+      "targetAudience": "Industry Curious / Career Changer",
+      "searchIntent": "Informational",
+      "moneyPageTarget": "/contracting/intake",
+      "compliance_class": "recruiting_no_income_claims",
+      "tofu_titles": [
+        "How the Insurance Industry Actually Works (Plain English)",
+        "The Major Players: Carriers, Brokers, Agencies, IMOs",
+        "Insurance Industry Career Paths: A Visual Map"
+      ],
+      "mofu_titles": [
+        "Working at a Carrier vs Independent Broker: Two Different Worlds",
+        "Insurance Industry Roles: Beyond Just \"Selling Policies\""
+      ],
+      "bofu_title": "Insurance Industry: A Newcomer's Practical Roadmap",
+      "internal_link_anchors": [
+        "insurance industry overview",
+        "industry structure",
+        "career landscape",
+        "industry roles",
+        "industry roadmap"
+      ],
+      "language": "en",
+      "skip_by_default": false
+    },
+    {
+      "id": 74,
+      "name": "Why Mature Professionals Choose Insurance Careers",
+      "topic": "Mid-Career Transition",
+      "primaryKeyword": "career change in 40s",
+      "secondaryKeywords": [
+        "second career insurance",
+        "insurance career later in life",
+        "mature career changer",
+        "transition to insurance from corporate"
+      ],
+      "targetAudience": "Career Changer (40s-50s)",
+      "searchIntent": "Informational",
+      "moneyPageTarget": "/contracting/intake",
+      "compliance_class": "recruiting_no_income_claims",
+      "tofu_titles": [
+        "Why Insurance Attracts Career Changers in Their 40s and 50s",
+        "Bringing Life Experience Into an Insurance Career",
+        "The \"Second Act\" Career: Why Insurance Fits"
+      ],
+      "mofu_titles": [
+        "Career Change at 40 vs at 50: How Insurance Adapts",
+        "Established Professional Skills That Translate to Insurance Practice"
+      ],
+      "bofu_title": "Mid-Career Transition Roadmap: From Corporate to Insurance",
+      "internal_link_anchors": [
+        "mid-career transition",
+        "second career",
+        "mature career changer",
+        "established professional",
+        "life experience advantage"
+      ],
+      "language": "en",
+      "skip_by_default": false
+    },
+    {
+      "id": 75,
+      "name": "Long-Term Career Trajectory in Insurance",
+      "topic": "Career Trajectory",
+      "primaryKeyword": "insurance career trajectory",
+      "secondaryKeywords": [
+        "long term insurance career",
+        "career evolution insurance",
+        "insurance career progression",
+        "broker career growth"
+      ],
+      "targetAudience": "Career Changer / New Agent",
+      "searchIntent": "Informational",
+      "moneyPageTarget": "/contracting/intake",
+      "compliance_class": "recruiting_no_income_claims",
+      "tofu_titles": [
+        "The 5-Year Trajectory of a New Insurance Broker",
+        "The 10-Year Trajectory: How Practices Evolve",
+        "The 20-Year Career: Why Many Brokers Stay"
+      ],
+      "mofu_titles": [
+        "Specialist Trajectory vs Generalist Trajectory: Two Different Careers",
+        "Solo Practice vs Team Building: Trajectory Comparison"
+      ],
+      "bofu_title": "Designing Your 10-Year Insurance Career Trajectory",
+      "internal_link_anchors": [
+        "career trajectory",
+        "long-term career",
+        "career progression",
+        "practice evolution",
+        "career planning"
+      ],
+      "language": "en",
+      "skip_by_default": false
+    }
+  ]
+}
