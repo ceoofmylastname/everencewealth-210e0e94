@@ -6003,6 +6003,76 @@ export type Database = {
         }
         Relationships: []
       }
+      flagged_articles: {
+        Row: {
+          article_id: string
+          cluster_generation_id: string | null
+          compliance_class: string | null
+          created_at: string
+          id: string
+          matched_excerpt: string | null
+          matched_pattern: string | null
+          notes: string | null
+          reason: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          article_id: string
+          cluster_generation_id?: string | null
+          compliance_class?: string | null
+          created_at?: string
+          id?: string
+          matched_excerpt?: string | null
+          matched_pattern?: string | null
+          notes?: string | null
+          reason: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          article_id?: string
+          cluster_generation_id?: string | null
+          compliance_class?: string | null
+          created_at?: string
+          id?: string
+          matched_excerpt?: string | null
+          matched_pattern?: string | null
+          notes?: string | null
+          reason?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "flagged_articles_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "blog_articles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "flagged_articles_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "content_freshness_report"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "flagged_articles_cluster_generation_id_fkey"
+            columns: ["cluster_generation_id"]
+            isOneToOne: false
+            referencedRelation: "cluster_generations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       generation_jobs: {
         Row: {
           city: string | null
