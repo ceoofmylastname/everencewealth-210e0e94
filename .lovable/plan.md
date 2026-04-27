@@ -1,37 +1,107 @@
-# Fix blog card image regression
+## Goal
 
-## Root cause
+Switch image generation from the current "museum-exhibit infographic apparatus" prompt style to a **photorealistic, human-centric editorial style** that visually mirrors the article's story. Add hard brand/text constraints so output never contains logos, third-party names, or readable copy. Then bulk-regenerate flagged branded images.
 
-`src/components/OptimizedImage.tsx` emits a `<picture>` with a `<source srcSet={webpSrc} type="image/webp">` derived by string-replacing `.png` → `.webp`. The WebP siblings don't exist in the `article-images` Supabase bucket (the one-shot `convertHerosToWebp.ts` was never run), so those URLs return HTTP 400.
+## What's already in place (no rework needed)
 
-Per the HTML spec, `<picture>` source selection is based on `type` / `media` matching, **not** on whether the resource loads. Every modern browser supports `image/webp`, so it commits to the WebP source. When the request 400s, it does **not** fall back to the `<img>` — it just shows a broken image. Because `<img>` starts at `opacity-0` and only flips to `opacity-100` in the `onLoad` handler (which never fires), the gray skeleton sits there forever.
+- `kieClient.ts` already pins `model: "nano-banana-2"` — verified, will surface to you.
+- `LogoBrandingScanTab.tsx` **already has** a "Replace All Flagged" bulk button and a per-row "Replace" button, both wired to `regenerate-article-image`. **Step 2.2 and Step 2.3 of your spec are essentially done.** The plan keeps those buttons but tightens behaviour (forces brand-mark verification retry, marks `resolved_at` after success, refuses to re-flag the next scan via `resolved_at IS NOT NULL` filter that's already there).
+- Detection store: `article_image_issues` table, filtered by `issue_type='logo_detected'` and `resolved_at IS NULL`. Detection runs via `scan-article-images` edge function which calls `analyze-image-for-text` (vision API).
 
-The user-suggested `<picture>` pattern has the same defect — it would behave identically. The real fix is to stop advertising a WebP source we can't guarantee exists.
+## Current prompt style (what we're replacing)
 
-(Note on the curl claim: `/en/blog/` and `/en/blog/<slug>/` are served by the `serve-seo-page` edge function, which renders text-only link lists for hub pages and doesn't emit `<img>` tags at all. So curl on the hub will still show zero `src=""` after this fix — that's expected. The user-visible card images live in the React-hydrated `BlogIndex.tsx` and detail pages, and **that** is what this fix restores.)
+`regenerate-article-image` builds a 500-word "Image Explainer" director prompt: museum apparatus with crystal vessels, brass gauges, holographic data clouds, etched plaques. Explicitly **no people** as primary subject. Visually dense, infographic-style, label-heavy.
 
-## Change
+`regenerate-cluster-images` uses a much simpler `extractImagePrompt` helper but still defaults to "professional financial advisory photograph" with brand-free constraints.
 
-Edit a single file: `src/components/OptimizedImage.tsx`.
+`generate-hero-image` is **not** article-driven — it generates fixed villa/couple lifestyle hero images for the homepage. Different surface; the new template doesn't apply cleanly there. **Flagged below.**
 
-1. Drop the `deriveWebpUrl` branch and the `<picture>` / `<source>` markup. Render a plain `<img src={optimizedSrc}>` directly.
-2. Remove the opacity-0 → opacity-100 gate driven by `onLoad`. Keep the skeleton as a behind-the-image placeholder that `onLoad` hides, but render the `<img>` itself at full opacity so a missed `onLoad` event never blanks the image.
-3. Keep all other behavior: Supabase render-image transform URL, `loading`, `decoding`, `fetchPriority`, `width`/`height` aspect ratio, error fallback, className passthrough.
+## Plan
 
-Result:
-- Browser requests the PNG/JPG directly → 200 → image renders.
-- All consumers (`ArticleCard`, `RelatedArticles`, `ArticleContent`, `LocationHero`, `FeaturedCitiesSection`, `QAIndex`, `LocationGenerator`) inherit the fix with no further edits — none of them add their own `<picture>` wrapper.
-- When `convertHerosToWebp.ts` is later run and `.webp` siblings exist, we can reintroduce a `<source>` element guarded by a build-time manifest (out of scope here).
+### 1. New unified prompt template (PART 1)
 
-## Out of scope (explicitly untouched)
+Build a shared helper `buildEditorialImagePrompt({ title, firstParagraph })` in a new file `supabase/functions/_shared/editorialImagePrompt.ts` that returns the exact template from your spec:
 
-- `functions/_middleware.js`, `injectSeoTags()`, PROMPT 17 catchall.
-- `supabase/functions/serve-seo-page/index.ts` (PROMPT 20/21/22 work).
-- `scripts/convertHerosToWebp.ts` (don't run it as part of this fix).
-- All `supabase/migrations/*`.
+```
+Photorealistic editorial-quality image illustrating: ${title}.
 
-## Verification after deploy
+Visual concept derived from: ${firstParagraph}
 
-1. Visit `/en/blog/` in the browser — cards render their PNG hero images instead of gray skeletons.
-2. Visit any `/en/blog/<slug>/` detail page — hero image renders.
-3. DevTools Network tab: a single request per card to the `.png` (or `.jpg`) URL returning 200, with no failing `.webp` request.
+Style: cinematic professional photography, natural lighting,
+documentary realism, financial planning context, mature professional audience.
+
+Subject focus: human-centric storytelling that conveys the article's
+emotional core (retirement security, financial confidence, family legacy,
+generational wealth) through facial expression, body language, and
+environmental context.
+
+HARD CONSTRAINTS — IMAGE MUST NOT CONTAIN:
+- Any company logos, brand marks, trademarks, or product packaging
+- Any readable text, captions, watermarks, signs, or screen displays
+- Any third-party brand names (banks, insurance carriers, financial
+  products, software platforms, news outlets, etc.)
+- Stock photo aesthetic, generic AI look, plastic/synthetic skin
+- Cartoon, illustration, or vector art styles
+- Crypto, NFT, or speculative-finance imagery
+- Spanish-language signage (this is a US-market wealth firm)
+
+Required: 16:9 aspect ratio, 2K resolution, color-graded for
+professional financial publication.
+```
+
+`firstParagraph` is built by stripping HTML from `detailed_content` (or `answer_main` for QA, or `description` for locations) and trimming to ~300 chars at the nearest sentence boundary. `title` comes from `headline` / `question_main` / `topic` depending on content type.
+
+### 2. Wire the helper into the three generation surfaces
+
+**`regenerate-article-image/index.ts`**
+- Delete the entire "Image Explainer (IE) prompt director" Lovable AI synthesis call (~150 lines of system prompt + the fetch).
+- Delete `buildFallbackPrompt` (museum-exhibit fallback no longer matches the new aesthetic).
+- Build the prompt directly with `buildEditorialImagePrompt({ title: article.headline, firstParagraph: stripHtml(article.detailed_content).slice(0, 300) })`.
+- Keep the existing **logo verification + 1 retry loop** against `analyze-image-for-text` — it's the safety net for branded outputs. On retry, append `--strictly no brand marks, no readable text, no signage` rather than the old index-name appendix.
+- Keep image upload, alt/caption metadata generation (it stays multilingual EN/ES), `featured_image_url` update, old image deletion.
+
+**`regenerate-cluster-images/index.ts`**
+- Replace `extractImagePrompt` Lovable AI call with the same direct template build per English position. Faster, cheaper, deterministic.
+- Spanish translations continue to share the English image; no change to the sharing logic.
+
+**`generate-hero-image/index.ts`**
+- This is **not** article-driven — it generates fixed homepage villa/couple hero images. The new article-template doesn't fit. **Recommendation: leave the current hero prompts intact** but append the same `HARD CONSTRAINTS` block to both `desktopPrompt` and `mobilePrompt` so any incidental signage / wordmarks in the villa scene gets suppressed. No structural rewrite.
+- Will surface this trade-off in chat and let you confirm before editing.
+
+### 3. Bulk regeneration UI (PART 2)
+
+`LogoBrandingScanTab.tsx` already has both buttons. Light tightening only:
+
+- Confirm `resolved_at` is set after a successful replace so the next scan won't re-flag (already done — verified).
+- Ensure the per-row replace passes through `force: true` so the edge function regenerates even if the article already has a Supabase image. **Note:** `regenerate-article-image` does not currently honour a `force` flag; it always regenerates the English primary. Spanish siblings always share from English. This is already the correct behaviour for "Replace All Flagged" — no flag plumbing required.
+- No new buttons needed. No new force flag needed. Step 2 of your spec is functionally complete.
+
+### 4. PART 3 verification
+
+After deploy:
+1. From `/admin/articles/batch-images` (BatchImageGeneration), pick one article missing an image and trigger generation. Inspect the result — confirm photorealistic, human-centric, no logos, no text, matches headline.
+2. From `/admin/image-health` Logo & Branding tab, run a scan. Pick 5–10 flagged items, click "Replace" on each individually first to spot-check. Then "Replace All Flagged".
+3. Confirm `articles.featured_image_url` updates and old image is removed from the bucket (current code already deletes the old image on success).
+
+## Files changed
+
+**Created:**
+- `supabase/functions/_shared/editorialImagePrompt.ts` — exports `buildEditorialImagePrompt({ title, firstParagraph })` and a `stripHtml` helper.
+
+**Edited:**
+- `supabase/functions/regenerate-article-image/index.ts` — replace IE director prompt with template; keep logo-verify retry; update retry appendix.
+- `supabase/functions/regenerate-cluster-images/index.ts` — replace `extractImagePrompt` with direct template build.
+- `supabase/functions/generate-hero-image/index.ts` — append HARD CONSTRAINTS block to both villa prompts (no structural change).
+
+**Untouched (per your guardrails):**
+- All `supabase/migrations/*.sql`
+- `OptimizedImage.tsx` (just fixed)
+- `functions/_middleware.js`, `injectSeoTags()`, `serve-seo-page` HTMLRewriter
+- `src/config/business.ts` BUSINESS values
+- All PROMPT 20/21/22 work (sameAs, knowsAbout, security headers, llms.txt, etc.)
+
+## Two questions before implementation
+
+1. **Hero image (`generate-hero-image`):** OK to leave the villa/couple prompts intact and just append the no-logo / no-text constraints? Or do you want the homepage hero to also follow the article-style template (which would change the entire homepage hero aesthetic)?
+
+2. **Per-row "force regenerate" flag:** Your spec mentions `force=true`. Current behaviour already re-runs the full pipeline regardless of whether the article has a Supabase image. Is the explicit flag needed for any case I'm missing, or is "always regenerate when called" the correct semantic?
