@@ -90,26 +90,17 @@ async function logStep(
   });
 }
 
+// Concurrency control: CAS-based "tick in progress" flag on the batch row,
+// implemented via the public.try_lock_batch_tick / release_batch_tick_lock
+// RPCs (defined in the cluster_step_logs migration). Stale locks (>5 min)
+// auto-expire so a crashed worker can't permanently block a batch.
 async function tryAcquireLock(admin: AdminClient, batch_job_id: string): Promise<boolean> {
-  // pg_try_advisory_xact_lock takes an int8. Use hashtext() then cast.
-  // We invoke via RPC against a tiny SQL function defined in the migration.
-  // Fallback: use a UNIQUE constraint trick. To keep things simple and
-  // self-contained, we use a row-level lock on the batch row instead.
-  //
-  // Implementation: SELECT ... FOR UPDATE NOWAIT inside an RPC. If we can't
-  // get the row lock, another tick is in progress.
-  //
-  // Since the supabase-js client doesn't expose explicit transactions, we
-  // implement the lock via a Postgres function created in the migration:
-  //   public.try_lock_batch_tick(_batch_job_id uuid) RETURNS boolean
-  // which uses pg_try_advisory_xact_lock under the hood and returns the result.
   const { data, error } = await admin.rpc("try_lock_batch_tick", {
     _batch_job_id: batch_job_id,
   });
   if (error) {
     console.error("[step] try_lock_batch_tick error:", error);
-    // Fail closed: behave as if locked — safer than racing.
-    return false;
+    return false; // fail closed
   }
   return data === true;
 }
@@ -145,15 +136,7 @@ serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    // NOTE: the advisory xact lock is held by the SQL function call's own
-    // transaction and is released when that transaction commits. To keep the
-    // lock for the whole tick, we re-acquire AND hold it via a long-lived
-    // RPC. The RPC does the entire tick server-side? No — too complex.
-    //
-    // Practical replacement: use a CAS update on cluster_batch_jobs.tick_in_progress
-    // boolean column. This is simpler, transparent, and equally correct.
-    // (See migration: cluster_batch_jobs.tick_in_progress column + try_lock fn
-    //  uses CAS not advisory_xact.)
+    // Lock acquired — every return path below MUST call releaseLock().
 
     // Load the batch job
     const { data: job, error: jobErr } = await admin
