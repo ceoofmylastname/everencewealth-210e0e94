@@ -33,6 +33,49 @@ const CONTENT_PATH_CATCHALL_REGEX =
 const TWO_SEGMENT_CATCHALL_REGEX =
   /^\/(en|es)\/(locations|ubicaciones)\/[^\/]+\/[^\/]+\/?$/;
 
+// ============================================================
+// PROMPT 25 — Static React routes that match the catchall regex
+// but ARE valid pages (not in all_published_slugs because they're
+// SPA-rendered, not DB-driven). Without this, the catchall returns
+// 404 for our BOFU money pages — the exact reason FIX 7 BOFU pages
+// weren't indexing. Match with or without trailing slash.
+// ============================================================
+const STATIC_ROUTE_EXEMPT = new Set([
+  '/en/strategies/iul', '/en/strategies/iul/',
+  '/en/strategies/whole-life', '/en/strategies/whole-life/',
+  '/en/strategies/tax-free-retirement', '/en/strategies/tax-free-retirement/',
+  '/en/strategies/asset-protection', '/en/strategies/asset-protection/',
+  '/es/strategies/iul', '/es/strategies/iul/',
+  '/es/strategies/whole-life', '/es/strategies/whole-life/',
+  '/es/strategies/tax-free-retirement', '/es/strategies/tax-free-retirement/',
+  '/es/strategies/asset-protection', '/es/strategies/asset-protection/',
+  '/en/estrategias/seguro-universal-indexado', '/en/estrategias/seguro-universal-indexado/',
+  '/en/estrategias/seguro-vida-entera', '/en/estrategias/seguro-vida-entera/',
+  '/en/estrategias/retiro-libre-impuestos', '/en/estrategias/retiro-libre-impuestos/',
+  '/en/estrategias/proteccion-de-activos', '/en/estrategias/proteccion-de-activos/',
+  '/es/estrategias/seguro-universal-indexado', '/es/estrategias/seguro-universal-indexado/',
+  '/es/estrategias/seguro-vida-entera', '/es/estrategias/seguro-vida-entera/',
+  '/es/estrategias/retiro-libre-impuestos', '/es/estrategias/retiro-libre-impuestos/',
+  '/es/estrategias/proteccion-de-activos', '/es/estrategias/proteccion-de-activos/',
+]);
+
+// ============================================================
+// PROMPT 25 — FIX 1: Structural 410 patterns. Any path matching
+// these regexes is from a Costa del Sol legacy URL or old blog
+// hierarchy that no longer exists. Short-circuits to 410 BEFORE
+// the gone_urls DB lookup so we don't pay a roundtrip on guaranteed
+// dead patterns. Note: /(en|es)/locations/* is NOT in this list
+// because LocationPage.tsx is an active route — those use
+// gone_urls table seed data instead.
+// ============================================================
+const STRUCTURAL_410_PATTERNS = [
+  /^\/(en|es)\/property\/R\d+\/?$/i,
+  /^\/(en|es)\/properties(\/|\?|$)/i,
+  /^\/(en|es)\/retirement-planning\/.+/i,
+  /^\/en\/blog\/(insurance-management|insurance-strategies|investment-strategies|investment|wealth-management|tax-planning|retirement-planning|retirement|financial-planning)\/.+/i,
+  /^\/en\/blog\/costadelsol\/.+/i,
+];
+
 // Known AI / search bot UA patterns (used by logBotHit)
 const KNOWN_BOTS = [
   { pattern: /GPTBot/i,             name: 'GPTBot' },
@@ -359,21 +402,24 @@ async function buildResponse({ request, next, env, ctx }) {
   // 301 REDIRECT MAP — Legacy URLs to current equivalents
   // ============================================================
   const REDIRECT_MAP = {
-    '/financial-planning/three-tax-buckets': '/en/blog/tax-planning/understanding-three-tax-buckets',
-    '/wealth-strategies/zero-is-your-hero': '/en/blog/wealth-management/three-tax-buckets',
+    // PROMPT 25 FIX 2: legacy strategy paths now point to live strategy pages
+    '/financial-planning/three-tax-buckets': '/en/strategies/tax-free-retirement/',
+    '/wealth-strategies/zero-is-your-hero': '/en/strategies/tax-free-retirement/',
     '/indexed-universal-life-insurance/introduction': '/en/strategies/iul',
-    '/schedule': '/en/contact',
-    '/financial-needs-assessment': '/en/contact',
+    '/schedule': '/en/contact/',
+    '/financial-needs-assessment': '/en/assessment/',
     '/en/strategies': '/en/',
     '/es/strategies': '/es/',
-    '/en/tax-bucket-guide': '/en/blog/tax-planning/understanding-three-tax-buckets',
+    '/en/tax-bucket-guide': '/en/strategies/tax-free-retirement/',
     '/es/tax-bucket-guide': '/es/',
     '/en/calculator': '/en/',
     '/es/calculator': '/es/',
     '/en/careers': '/en/',
     '/es/careers': '/es/',
     '/en/contact/fna': '/en/contact',
-    '/disclosures': '/en/',
+    // PROMPT 25 FIX 2: /disclosures and /philosophy now point to real pages (verified 200)
+    '/disclosures': '/en/disclosures/',
+    '/philosophy': '/en/philosophy/',
   };
 
   // Check exact match redirects
@@ -534,6 +580,33 @@ async function buildResponse({ request, next, env, ctx }) {
     CONTENT_PATH_CATCHALL_REGEX.test(pathname) ||
     TWO_SEGMENT_CATCHALL_REGEX.test(pathname)
   ) {
+    // PROMPT 25 FIX 7 PRECURSOR: Static React routes (BOFU money pages,
+    // glossary, compare, guides indexes) match the catchall regex but
+    // are valid SPA routes. Skip the catchall for these so they reach
+    // the SPA shell + SSR pipeline. Without this, /en/strategies/iul
+    // and the rest 404 — the root cause of FIX 7.
+    if (STATIC_ROUTE_EXEMPT.has(pathname)) {
+      // fall through to SSR / SPA
+    } else {
+    // PROMPT 25 FIX 1: Structural 410 short-circuit. Catches Costa del
+    // Sol property URLs, /<lang>/properties, /<lang>/retirement-planning/*,
+    // old blog hierarchy, /en/blog/costadelsol/*. Skips DB lookup.
+    for (const re of STRUCTURAL_410_PATTERNS) {
+      if (re.test(pathname)) {
+        const html = render410Page(pathname, 410);
+        console.log(`[Middleware] Structural 410: ${pathname}`);
+        return new Response(html, {
+          status: 410,
+          headers: {
+            'Content-Type': 'text/html; charset=utf-8',
+            'X-410-Source': 'middleware-structural',
+            'X-Middleware-Status': 'Active',
+            'Cache-Control': 'public, max-age=3600',
+            'X-Robots-Tag': 'noindex, nofollow',
+          },
+        });
+      }
+    }
     try {
       // Normalize path: all_published_slugs view stores paths with trailing
       // slash. Always look up the trailing-slash variant.
@@ -584,6 +657,7 @@ async function buildResponse({ request, next, env, ctx }) {
     } catch (err) {
       // On lookup failure, do not block — fall through to SSR/SPA.
       console.error(`[Middleware] Catchall lookup failed for ${pathname}:`, err && err.message);
+    }
     }
   }
 
