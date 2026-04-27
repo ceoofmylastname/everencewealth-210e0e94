@@ -135,6 +135,101 @@ function countWords(html: string): number {
   return text.split(/\s+/).filter(w => w.length > 0).length;
 }
 
+// FIX A — Sanitization safety net.
+// Mirrors BOTH sibling DB CHECK constraints on blog_articles.detailed_content:
+//   - blog_articles_body_no_head_h1   : forbids <head…> and <h1…>
+//   - blog_articles_body_no_head_or_canonical : forbids <head>, </head>,
+//       rel="canonical"|'canonical', rel="alternate"|'alternate', application/ld+json
+// Also strips other document-level wrappers we never want in body content.
+function sanitizeDetailedContent(html: string): { cleaned: string; removed: string[] } {
+  const removed: string[] = [];
+  let cleaned = html || '';
+
+  // Strip <head>…</head> blocks entirely (greedy match)
+  if (/<head[\s>]/i.test(cleaned)) {
+    cleaned = cleaned.replace(/<head[\s\S]*?<\/head>/gi, '');
+    removed.push('head_block');
+  }
+  // Strip stray <head…> or </head> tags that survived (mismatched)
+  if (/<\/?head[\s>]/i.test(cleaned)) {
+    cleaned = cleaned.replace(/<\/?head[^>]*>/gi, '');
+    if (!removed.includes('head_block')) removed.push('head_stray');
+  }
+
+  // Strip <html> and <body> wrappers (keep inner content)
+  if (/<\/?html[\s>]/i.test(cleaned)) {
+    cleaned = cleaned.replace(/<\/?html[^>]*>/gi, '');
+    removed.push('html_wrapper');
+  }
+  if (/<\/?body[\s>]/i.test(cleaned)) {
+    cleaned = cleaned.replace(/<\/?body[^>]*>/gi, '');
+    removed.push('body_wrapper');
+  }
+
+  // Downgrade <h1>…</h1> to <h2>…</h2> (preserve content)
+  if (/<h1[\s>]/i.test(cleaned)) {
+    cleaned = cleaned.replace(/<h1([\s>])/gi, '<h2$1').replace(/<\/h1>/gi, '</h2>');
+    removed.push('h1_downgraded');
+  }
+
+  // Strip <meta> tags
+  if (/<meta\b/i.test(cleaned)) {
+    cleaned = cleaned.replace(/<meta\b[^>]*>/gi, '');
+    removed.push('meta_tags');
+  }
+
+  // Strip <link rel="canonical|alternate"> (in any quote style or unquoted)
+  if (/<link\b[^>]*rel\s*=\s*["']?(canonical|alternate)/i.test(cleaned)) {
+    cleaned = cleaned.replace(/<link\b[^>]*rel\s*=\s*["']?(canonical|alternate)["']?[^>]*>/gi, '');
+    removed.push('link_canonical_alternate');
+  }
+
+  // Strip <script type="application/ld+json">…</script>
+  if (/application\/ld\+json/i.test(cleaned)) {
+    cleaned = cleaned.replace(/<script\b[^>]*type\s*=\s*["']?application\/ld\+json["']?[^>]*>[\s\S]*?<\/script>/gi, '');
+    removed.push('jsonld_block');
+  }
+
+  // Strip <style>…</style> blocks
+  if (/<style\b/i.test(cleaned)) {
+    cleaned = cleaned.replace(/<style\b[\s\S]*?<\/style>/gi, '');
+    removed.push('style_block');
+  }
+
+  return { cleaned: cleaned.trim(), removed };
+}
+
+// FIX C — Pre-insert validation mirror.
+// After sanitization, verify NOTHING the DB CHECK constraints reject remains.
+// Throw a descriptive error so the gen fails fast with a clear cause instead
+// of a generic "violates check constraint" Postgres error.
+function validateNoForbiddenTags(html: string): void {
+  if (!html) return;
+
+  // Mirror blog_articles_body_no_head_h1
+  if (/<head[\s>]/i.test(html)) {
+    throw new Error('db:validate:fail pattern=head_open_tag (sanitizer regression)');
+  }
+  if (/<h1[\s>]/i.test(html)) {
+    throw new Error('db:validate:fail pattern=h1_tag (sanitizer regression)');
+  }
+
+  // Mirror blog_articles_body_no_head_or_canonical
+  const lower = html.toLowerCase();
+  if (lower.includes('<head>') || lower.includes('</head>')) {
+    throw new Error('db:validate:fail pattern=head_block (sanitizer regression)');
+  }
+  if (lower.includes('rel="canonical"') || lower.includes("rel='canonical'")) {
+    throw new Error('db:validate:fail pattern=rel_canonical (sanitizer regression)');
+  }
+  if (lower.includes('rel="alternate"') || lower.includes("rel='alternate'")) {
+    throw new Error('db:validate:fail pattern=rel_alternate (sanitizer regression)');
+  }
+  if (lower.includes('application/ld+json')) {
+    throw new Error('db:validate:fail pattern=jsonld (sanitizer regression)');
+  }
+}
+
 // Content quality validation with strict word count enforcement
 function validateContentQuality(article: any, plan: any): { isValid: boolean; issues: string[]; score: number; wordCount: number } {
   const issues: string[] = [];
