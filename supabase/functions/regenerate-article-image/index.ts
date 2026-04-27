@@ -351,7 +351,7 @@ serve(async (req) => {
           const elapsed = Date.now() - fnStartedAt;
           if (stillBranded && attempt < MAX_LOGO_RETRIES && elapsed < RETRY_BUDGET_MS) {
             console.log(`⚠️ Attempt ${attempt + 1}: brand mark still detected (${analysis?.brandName || 'unknown'}) — retrying (elapsed ${elapsed}ms < budget ${RETRY_BUDGET_MS}ms)`);
-            imagePrompt = `${imagePrompt} --strictly no brand marks --absolutely no real index names like S&P 500 or Nasdaq --absolutely no ticker symbols`;
+            imagePrompt = `${imagePrompt}${BRAND_RETRY_SUFFIX}`;
             continue;
           }
           if (stillBranded) {
