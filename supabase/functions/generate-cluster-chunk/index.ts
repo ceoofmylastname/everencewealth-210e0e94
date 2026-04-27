@@ -436,7 +436,8 @@ CRITICAL REQUIREMENTS:
 1. You MUST respond with valid JSON only
 2. Articles MUST be between 800 and 2,500 words - this is NON-NEGOTIABLE
 3. Include at least 6 H2 sections, each with 2+ detailed paragraphs
-4. Before finalizing, mentally count your words - if under 800, ADD MORE CONTENT`;
+4. Before finalizing, mentally count your words - if under 800, ADD MORE CONTENT
+5. detailed_content is the article BODY ONLY — NO <html>, <head>, <body>, <h1>, <meta>, <link>, <script>, <style> tags. Section headings start at <h2>. Title goes in the "headline" field, never as <h1>.`;
 
       if (attempts === 2 && contentJson) {
         const prevWordCount = countWords(contentJson.detailed_content || '');
@@ -444,7 +445,8 @@ CRITICAL REQUIREMENTS:
 
 MANDATORY: This response MUST be at least 800 words. 
 STRATEGY: Write 6+ sections of 150+ words each = 900+ words minimum.
-DO NOT submit anything under 800 words.`;
+DO NOT submit anything under 800 words.
+detailed_content is the article BODY ONLY — NO <html>, <head>, <body>, <h1>, <meta>, <link>, <script>, <style> tags. Section headings start at <h2>.`;
 
         currentPrompt = `${contentPrompt}
 
@@ -468,7 +470,8 @@ This structure gives you 1,700+ words. Follow it exactly.`;
 
 You are a detailed writer. EVERY paragraph must be 60-80 words minimum.
 Include specific examples, statistics, and expert insights.
-If in doubt, ADD MORE DETAIL.`;
+If in doubt, ADD MORE DETAIL.
+detailed_content is the article BODY ONLY — NO <html>, <head>, <body>, <h1>, <meta>, <link>, <script>, <style> tags. Section headings start at <h2>.`;
 
         currentPrompt = `${contentPrompt}
 
