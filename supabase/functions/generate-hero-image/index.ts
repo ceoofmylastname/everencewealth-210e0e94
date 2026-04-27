@@ -7,6 +7,20 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Brand-safety appendix shared with the editorial article-image prompts.
+// Suppresses logos, readable text, third-party brand names, and anything
+// that would compromise compliance or look like a stock photo.
+const HERO_BRAND_CONSTRAINTS = `
+
+HARD CONSTRAINTS — IMAGE MUST NOT CONTAIN:
+- Any company logos, brand marks, trademarks, or product packaging
+- Any readable text, captions, watermarks, signs, or screen displays
+- Any third-party brand names (banks, insurance carriers, financial products, software platforms, news outlets, etc.)
+- Stock photo aesthetic, generic AI look, plastic/synthetic skin
+- Cartoon, illustration, or vector art styles
+- Crypto, NFT, or speculative-finance imagery
+- Spanish-language signage (this is a US-market wealth firm)`;
+
 /**
  * Upload generated image to Supabase Storage
  */
