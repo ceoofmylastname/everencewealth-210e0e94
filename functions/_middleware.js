@@ -580,6 +580,33 @@ async function buildResponse({ request, next, env, ctx }) {
     CONTENT_PATH_CATCHALL_REGEX.test(pathname) ||
     TWO_SEGMENT_CATCHALL_REGEX.test(pathname)
   ) {
+    // PROMPT 25 FIX 7 PRECURSOR: Static React routes (BOFU money pages,
+    // glossary, compare, guides indexes) match the catchall regex but
+    // are valid SPA routes. Skip the catchall for these so they reach
+    // the SPA shell + SSR pipeline. Without this, /en/strategies/iul
+    // and the rest 404 — the root cause of FIX 7.
+    if (STATIC_ROUTE_EXEMPT.has(pathname)) {
+      // fall through to SSR / SPA
+    } else {
+    // PROMPT 25 FIX 1: Structural 410 short-circuit. Catches Costa del
+    // Sol property URLs, /<lang>/properties, /<lang>/retirement-planning/*,
+    // old blog hierarchy, /en/blog/costadelsol/*. Skips DB lookup.
+    for (const re of STRUCTURAL_410_PATTERNS) {
+      if (re.test(pathname)) {
+        const html = render410Page(pathname, 410);
+        console.log(`[Middleware] Structural 410: ${pathname}`);
+        return new Response(html, {
+          status: 410,
+          headers: {
+            'Content-Type': 'text/html; charset=utf-8',
+            'X-410-Source': 'middleware-structural',
+            'X-Middleware-Status': 'Active',
+            'Cache-Control': 'public, max-age=3600',
+            'X-Robots-Tag': 'noindex, nofollow',
+          },
+        });
+      }
+    }
     try {
       // Normalize path: all_published_slugs view stores paths with trailing
       // slash. Always look up the trailing-slash variant.
@@ -630,6 +657,7 @@ async function buildResponse({ request, next, env, ctx }) {
     } catch (err) {
       // On lookup failure, do not block — fall through to SSR/SPA.
       console.error(`[Middleware] Catchall lookup failed for ${pathname}:`, err && err.message);
+    }
     }
   }
 
