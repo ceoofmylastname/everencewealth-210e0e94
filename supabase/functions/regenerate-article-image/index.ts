@@ -303,137 +303,17 @@ serve(async (req) => {
       console.log(`⚠️ No English primary found - will generate new image`);
     }
 
-    // Generate content-based image prompt via Lovable AI Gateway
-    console.log(`🧠 Generating content-based image prompt via Lovable AI...`);
-    
-    const contentForAnalysis = `
-Headline: ${article.headline}
-Meta Description: ${article.meta_description}
-Theme: ${article.cluster_theme || 'Financial Planning & Insurance'}
-Funnel Stage: ${article.funnel_stage}
-Content Preview: ${(article.detailed_content || '').substring(0, 2000)}
-    `.trim();
-
-    const promptGenerationResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${lovableKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
-        messages: [
-          {
-            role: 'system',
-            content: `You are the IMAGE EXPLAINER (IE) prompt director for Everence Wealth. Your job is to translate a financial article into a single photorealistic prompt for an infographic-grade visual MASTERPIECE — a dense, multi-tiered, museum-exhibit-quality educational model that visually explains the article's concept end-to-end. Think Bloomberg Businessweek opener crossed with a Royal Society science-museum exhibit.
-
-## GOAL
-
-Generate a hyper-detailed, photorealistic, infographic-like visual explainer derived ENTIRELY from the article's title and body. The image must be self-contained: a viewer should grasp the core concept just from looking at it. It is NOT a single conceptual photo — it is a complex, layered, label-rich educational apparatus.
-
-## STRICT NON-NEGOTIABLE RULES
-
-1. NO logos, brand names, wordmarks, registered trademarks, watermarks, signatures, photographer credits, or stock-photo marks. Inspect every label and replace any branded language with generic descriptive copy.
-2. NO branded niche widgets — no specific phone models, named software UIs, branded chart tools, or proprietary devices that imply a company.
-3. Buckets, jars, glass vessels, scales, hourglasses, and similar object-based metaphors ARE PERMITTED and encouraged when they are the clearest visual representation of the article's concept (e.g. three labeled glass jars for the Three Tax Buckets). Choose the metaphor that best explains the topic — mechanical apparatus, clockwork, filtration system, aqueduct, orrery, architectural cross-section, OR labeled containers — whichever communicates the concept most clearly.
-4. NO separate "article title" block, headline plate, or paragraph text floating in the image. The ONLY text allowed is short, descriptive functional labels integrated into the graphic elements themselves (etched plaques, jar labels, schematic call-outs, gauge labels, conduit tags, plaque headings on stages).
-5. NO dates anywhere in the image. Use generic future-state language like "FUTURE HARVEST" or "RETIREMENT WINDOW".
-6. NO people as the primary subject. Tiny generic silhouettes or figurines are allowed only if the metaphor demands them (e.g. a small house with a figurine for legacy transfer).
-7. Named competitors are FORBIDDEN: Apex, Ascend, Ameriprise, Edward Jones, Fidelity, Vanguard, Schwab, Merrill, Morgan Stanley, Raymond James, LPL, Northwestern Mutual, Prudential, MassMutual, John Hancock, Lincoln, Allianz, Pacific Life, Nationwide, MetLife, New York Life, Transamerica, AIG, Mutual of Omaha — and any other firm name.
-8. NO market index names, ticker symbols, or exchange names anywhere in the image — specifically forbidden: S&P 500, S&P, SPX, Dow Jones, DJIA, Nasdaq, NDX, Russell 2000, Russell, FTSE, MSCI, Wilshire, NYSE, CBOE, VIX, and any stock ticker (e.g. AAPL, TSLA). If the article references "the market" or a "broad index", any plaque or label MUST use generic phrasing like "MARKET INDEX", "BROAD INDEX", or "EQUITY INDEX" — never a real index name.
-
-## SYNTHESIS PROCESS (do this silently before writing the prompt)
-
-1. Identify the article's main subject, key processes, comparative elements, restrictions/rules, and final outcomes.
-2. Choose the BEST visual metaphor that models the relationship — pick whatever most clearly explains the concept. Options include:
-   - Labeled glass jars, buckets, vessels, or containers (ideal for tax buckets, asset categories, allocations)
-   - Multi-stage filtration / catalyst systems (chambers, gauges, valves, conduits)
-   - Aqueducts, waterfalls, pipe networks, pressure vessels
-   - Clockwork mechanisms (gears, escapements, mainsprings, pendulums)
-   - Astronomical orreries (planetary models, brass rings, gimbals)
-   - Botanical growth catalysts (greenhouse with measurement instruments)
-   - Architectural cross-sections (multi-floor cutaways, vault interiors)
-   - Scientific exhibit apparatus (crystal vessels, brass instruments, holographic overlays)
-3. Map each key article concept to a distinct STAGE or COMPONENT of the metaphor (e.g. Taxable → Sediment Exposure Chamber; Tax-Deferred → Pressurized Growth Vessel; Tax-Free → Crystal Compounding Catalyst).
-4. Populate the scene with INTEGRATED EXPLAINER ELEMENTS: schematic overlays, holographic data clouds, integrated tablet-style screens with generic non-branded interfaces, comparative micro-graphs, gauge readouts, glowing data conduits with descriptive tags, call-out plaques.
-5. Scrub every detail for branding. Replace any implicit brand reference with generic, descriptive language.
-
-## VISUAL DENSITY REQUIREMENT
-
-The image MUST be visually dense and infographic-heavy. Required elements in EVERY prompt:
-- A clearly described central multi-stage apparatus (named generically, e.g. "the Asset Filtration Catalyst")
-- 2–4 distinct named stages or chambers, each with its own materials, internal mechanism, and integrated descriptive plaque
-- Glowing data conduits or pipes physically linking the stages, each labeled with descriptive concept tags
-- At least one integrated schematic overlay or holographic data cloud showing comparative metrics
-- At least one integrated tablet-style screen with a generic non-branded interface displaying a relevant chart
-- Premium materials throughout: crystal, brushed titanium, polished brass, aged copper, reinforced glass, polished chrome, marble, dark wood
-- Cinematic studio lighting with cool blue, warm amber, and vibrant green accents; museum/exhibit setting; shallow depth of field background bokeh
-
-## LABEL RULES
-
-- Labels must be SHORT, ALL-CAPS, PURELY DESCRIPTIVE (max ~5 words each).
-- Examples of good labels: "TAXABLE ASSET ZONE", "RMD CLOCK", "TAX-FREE WITHDRAWAL", "PRINCIPAL PROTECTION CORE", "CONTRIBUTION LIMITS", "RISK TOLERANCE GAUGE".
-- Max 8 labels in the whole frame. No paragraphs, no headlines, no sentences.
-
-## OUTPUT FORMAT
-
-Output ONLY the image prompt as a single dense paragraph (300–500 words). Open with the apparatus or scene name and setting. Describe each stage or vessel with materials + integrated labels + internal mechanisms. Describe the interconnecting conduits or relationships with their descriptive tags. Mention the integrated schematic overlays, data clouds, and tablet-style screens. End with: "photorealistic museum-exhibit composition, cinematic studio lighting, dense infographic detail, descriptive functional labels only, 16:9 aspect ratio, 2K resolution — devoid of any company logos, brand names, watermarks, or dates."`
-          },
-          {
-            role: 'user',
-            content: `Synthesize this article into an Image Explainer (IE) prompt. First silently identify the core concept, key stages, and comparative elements. Then choose the BEST visual metaphor that most clearly explains the concept — labeled glass jars/buckets/vessels are encouraged when they fit (e.g. tax buckets), or use a filtration system, clockwork, aqueduct, orrery, growth catalyst, or architectural cross-section when those fit better. Then write the dense single-paragraph photorealistic prompt:\n\n${contentForAnalysis}`
-          }
-        ]
-      }),
+    // Build the editorial prompt directly from article title + first paragraph.
+    // Photorealistic, human-centric, with hard brand/text constraints baked in.
+    const articleFirstParagraph = firstParagraphFromContent(
+      article.detailed_content || article.meta_description || '',
+      300
+    );
+    let imagePrompt = buildEditorialImagePrompt({
+      title: article.headline,
+      firstParagraph: articleFirstParagraph,
     });
-
-    let imagePrompt: string;
-    if (!promptGenerationResponse.ok) {
-      const status = promptGenerationResponse.status;
-      const errBody = await promptGenerationResponse.text().catch(() => '');
-      console.error(`⚠️ Prompt generation failed: ${status} ${errBody.substring(0, 300)}`);
-
-      // Surface rate-limit / credits errors clearly to the client
-      if (status === 429) {
-        return new Response(
-          JSON.stringify({
-            error: 'AI rate limit reached. Please wait a minute and try again.',
-            success: false,
-            code: 'rate_limited'
-          }),
-          { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-      if (status === 402) {
-        return new Response(
-          JSON.stringify({
-            error: 'Lovable AI credits exhausted. Please add credits in Settings → Workspace → Usage.',
-            success: false,
-            code: 'no_credits'
-          }),
-          { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-
-      // Other errors: fall back to a high-quality default prompt and keep going
-      console.log(`🛟 Falling back to default prompt for funnel stage: ${article.funnel_stage}`);
-      imagePrompt = buildFallbackPrompt(article.funnel_stage, article.cluster_theme);
-    } else {
-      const promptData = await promptGenerationResponse.json();
-      imagePrompt = promptData.choices?.[0]?.message?.content?.trim()
-        || buildFallbackPrompt(article.funnel_stage, article.cluster_theme);
-    }
-
-    // Hard-append negative constraints so Kie.ai cannot hallucinate brand marks.
-    // NOTE: We intentionally allow short physical labels on objects (e.g. "Taxable" etched on a jar)
-    // so the negative suffix bans branding/headlines but NOT all letters.
-    const negativeSuffix = ' --no company logos, no brand names, no wordmarks, no watermarks, no signatures, no photographer credits, no headlines, no paragraph text, no captions, no stock-photo marks, no dates, no branded devices, no named software interfaces, no market index names (no S&P 500, no S&P, no SPX, no Dow Jones, no DJIA, no Nasdaq, no Russell 2000, no FTSE, no MSCI, no Wilshire, no NYSE, no VIX), no stock ticker symbols, no exchange names — use generic phrasing like "MARKET INDEX" or "BROAD INDEX" instead';
-    const alreadyHasNegative = /no\s+(company\s+)?logos?\b/i.test(imagePrompt)
-      || /no\s+brand(\s+names?)?\b/i.test(imagePrompt)
-      || /no\s+watermarks?\b/i.test(imagePrompt);
-    if (!alreadyHasNegative) imagePrompt = `${imagePrompt}${negativeSuffix}`;
-
-    console.log(`🎨 Generated prompt: ${imagePrompt.substring(0, 100)}...`);
+    console.log(`🎨 Editorial prompt built (${imagePrompt.length} chars) for: "${article.headline.substring(0, 60)}..."`);
 
     // Generate image via Kie.ai Nano Banana 2 with auto-retry if a logo is detected.
     // Retry budget: max 1 retry, AND only retry if elapsed wall-clock < 90s.
