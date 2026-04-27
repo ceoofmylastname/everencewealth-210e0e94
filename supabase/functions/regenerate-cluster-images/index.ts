@@ -2,6 +2,10 @@ import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { generateImage as kieGenerateImage } from "../_shared/kieClient.ts";
+import {
+  buildEditorialImagePrompt,
+  firstParagraphFromContent,
+} from "../_shared/editorialImagePrompt.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -145,64 +149,14 @@ async function uploadUrlToStorage(
 }
 
 /**
- * Use Lovable AI to extract a hyper-specific image prompt from article content
+ * Build the editorial image prompt for an English article position.
+ * Uses the shared photorealistic, human-centric template with hard brand/text constraints.
  */
-async function extractImagePrompt(
-  articleContent: string,
-  headline: string,
-  lovableApiKey: string
-): Promise<string> {
-  try {
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${lovableApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
-        messages: [
-          {
-            role: 'system',
-            content: `You create image generation prompts for a financial advisory company (Everence Wealth). 
-Read the article content and create ONE highly specific, visual image prompt that captures the core concept.
-
-RULES:
-- Focus on the specific financial concept (e.g., "tax-free retirement buckets", "IUL cash value growth curve", "estate planning generational wealth transfer")
-- Include specific visual elements from the article content
-- Professional, modern, clean aesthetic
-- No text, no watermarks, no logos
-- 16:9 aspect ratio, marketing quality
-- Keep prompt under 200 words
-- Return ONLY the prompt text, nothing else`
-          },
-          {
-            role: 'user',
-            content: `Headline: ${headline}\n\nArticle content (first 3000 chars):\n${articleContent.replace(/<[^>]*>/g, ' ').substring(0, 3000)}`
-          }
-        ],
-        max_tokens: 300,
-        temperature: 0.7
-      }),
-    });
-
-    if (!response.ok) {
-      console.error(`❌ Lovable AI prompt extraction failed: ${response.status}`);
-      return `Professional financial advisory photograph related to ${headline}, bright natural lighting, high-end marketing quality, no text, no watermarks, clean composition`;
-    }
-
-    const data = await response.json();
-    const prompt = data.choices?.[0]?.message?.content?.trim();
-    
-    if (prompt && prompt.length > 20) {
-      console.log(`✅ Extracted content-specific prompt: ${prompt.substring(0, 100)}...`);
-      return prompt;
-    }
-  } catch (error) {
-    console.error(`❌ Prompt extraction error:`, error);
-  }
-
-  return `Professional financial advisory photograph related to ${headline}, bright natural lighting, high-end marketing quality, no text, no watermarks, clean composition`;
+function buildArticlePrompt(headline: string, articleContent: string): string {
+  return buildEditorialImagePrompt({
+    title: headline,
+    firstParagraph: firstParagraphFromContent(articleContent, 300),
+  });
 }
 
 /**
@@ -215,7 +169,7 @@ async function generateContentImage(
   try {
     console.log(`🎨 Generating image with Kie.ai Nano Banana 2 (16:9, 2K)...`);
     const result = await kieGenerateImage({
-      prompt: `Professional 16:9 marketing image for a financial advisory company. ${prompt}`,
+      prompt,
       aspectRatio: "16:9",
       resolution: "2K",
       outputFormat: "png",
