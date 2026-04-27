@@ -402,11 +402,12 @@ async function buildResponse({ request, next, env, ctx }) {
   // 301 REDIRECT MAP — Legacy URLs to current equivalents
   // ============================================================
   const REDIRECT_MAP = {
-    '/financial-planning/three-tax-buckets': '/en/blog/tax-planning/understanding-three-tax-buckets',
-    '/wealth-strategies/zero-is-your-hero': '/en/blog/wealth-management/three-tax-buckets',
+    // PROMPT 25 FIX 2: legacy strategy paths now point to live strategy pages
+    '/financial-planning/three-tax-buckets': '/en/strategies/tax-free-retirement/',
+    '/wealth-strategies/zero-is-your-hero': '/en/strategies/tax-free-retirement/',
     '/indexed-universal-life-insurance/introduction': '/en/strategies/iul',
-    '/schedule': '/en/contact',
-    '/financial-needs-assessment': '/en/contact',
+    '/schedule': '/en/contact/',
+    '/financial-needs-assessment': '/en/assessment/',
     '/en/strategies': '/en/',
     '/es/strategies': '/es/',
     '/en/tax-bucket-guide': '/en/blog/tax-planning/understanding-three-tax-buckets',
@@ -416,7 +417,9 @@ async function buildResponse({ request, next, env, ctx }) {
     '/en/careers': '/en/',
     '/es/careers': '/es/',
     '/en/contact/fna': '/en/contact',
-    '/disclosures': '/en/',
+    // PROMPT 25 FIX 2: /disclosures and /philosophy now point to real pages (verified 200)
+    '/disclosures': '/en/disclosures/',
+    '/philosophy': '/en/philosophy/',
   };
 
   // Check exact match redirects
