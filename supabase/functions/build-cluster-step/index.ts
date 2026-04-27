@@ -1,10 +1,11 @@
-// build-cluster-step: per-cluster worker for the bulk batch orchestrator.
-// Reads its assigned classification entry, invokes generate-cluster, polls
-// cluster_generations until done, runs compliance scan on recruiting clusters,
-// updates the batch job row, then fires itself for the next BUILD entry.
+// build-cluster-step: idempotent single-tick worker for the bulk batch orchestrator.
 //
-// Self-continuation pattern: each invocation handles exactly one cluster.
-// No single function ever runs longer than ~5 min, so timeouts don't apply.
+// Architecture: each invocation does ONE pass — check state, advance one step, return.
+// No internal polling loop. pg_cron (via tick-cluster-batches dispatcher) fires us
+// every 60 sec until the batch is no longer 'running'.
+//
+// Concurrency: a Postgres transaction-scoped advisory lock keyed on batch_job_id
+// prevents double-fires. If the lock is held, we log 'lock_held' and return fast.
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
@@ -14,9 +15,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const POLL_INTERVAL_MS = 15_000;
-const TIMEOUT_MS = 30 * 60 * 1000;
-const INTER_CLUSTER_GAP_MS = 10_000;
+const WORKER_TIMEOUT_MIN = 20;
 
 const INCOME_PATTERNS: { pattern: RegExp; label: string }[] = [
   { pattern: /\$\s?\d[\d,.]*\s*(per|a|each|every)?\s*(year|month|week|hour|day|annually|annual)/i, label: "dollar_per_period" },
@@ -68,12 +67,42 @@ interface ResultRow {
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-function fireNext(batch_job_id: string, classification_index: number) {
-  fetch(`${SUPABASE_URL}/functions/v1/build-cluster-step`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${SERVICE_KEY}` },
-    body: JSON.stringify({ batch_job_id, classification_index }),
-  }).catch((err) => console.error("[build-cluster-step] fire-next error (ignored):", err));
+type AdminClient = ReturnType<typeof createClient>;
+
+async function logStep(
+  admin: AdminClient,
+  batch_job_id: string,
+  current_index: number | null,
+  current_topic: string | null,
+  current_job_id: string | null,
+  cluster_generations_status: string | null,
+  action_taken: string,
+  detail: Record<string, unknown> | null = null,
+) {
+  await admin.from("cluster_step_logs").insert({
+    batch_job_id,
+    current_index,
+    current_topic,
+    current_job_id,
+    cluster_generations_status,
+    action_taken,
+    detail,
+  });
+}
+
+// Concurrency control: CAS-based "tick in progress" flag on the batch row,
+// implemented via the public.try_lock_batch_tick / release_batch_tick_lock
+// RPCs (defined in the cluster_step_logs migration). Stale locks (>5 min)
+// auto-expire so a crashed worker can't permanently block a batch.
+async function tryAcquireLock(admin: AdminClient, batch_job_id: string): Promise<boolean> {
+  const { data, error } = await admin.rpc("try_lock_batch_tick", {
+    _batch_job_id: batch_job_id,
+  });
+  if (error) {
+    console.error("[step] try_lock_batch_tick error:", error);
+    return false; // fail closed
+  }
+  return data === true;
 }
 
 serve(async (req) => {
@@ -85,13 +114,29 @@ serve(async (req) => {
   });
 
   let batch_job_id: string | null = null;
-  let classification_index: number = 0;
 
   try {
-    const body = await req.json();
-    batch_job_id = body.batch_job_id;
-    classification_index = body.classification_index ?? 0;
-    if (!batch_job_id) throw new Error("batch_job_id required");
+    // Accept batch_job_id from body OR query string (for cron via dispatcher).
+    let body: Record<string, unknown> = {};
+    try { body = await req.json(); } catch { /* may be empty */ }
+    const url = new URL(req.url);
+    batch_job_id = (body.batch_job_id as string | undefined) ?? url.searchParams.get("batch_job_id");
+    if (!batch_job_id) {
+      return new Response(JSON.stringify({ error: "batch_job_id required" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // ===== Concurrency lock =====
+    const locked = await tryAcquireLock(admin, batch_job_id);
+    if (!locked) {
+      await logStep(admin, batch_job_id, null, null, null, null, "lock_held",
+        { skipped: true });
+      return new Response(JSON.stringify({ ok: true, skipped: "lock_held" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    // Lock acquired — every return path below MUST call releaseLock().
 
     // Load the batch job
     const { data: job, error: jobErr } = await admin
@@ -99,288 +144,305 @@ serve(async (req) => {
       .select("*")
       .eq("id", batch_job_id)
       .single();
-    if (jobErr || !job) throw new Error(`batch job not found: ${jobErr?.message}`);
+
+    if (jobErr || !job) {
+      await releaseLock(admin, batch_job_id);
+      throw new Error(`batch job not found: ${jobErr?.message}`);
+    }
 
     // Pause/abort check
-    if (job.status === "paused") {
-      console.log(`[step] Batch ${batch_job_id} paused — stopping chain at index ${classification_index}`);
-      return new Response(JSON.stringify({ success: true, paused: true }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
     if (job.status !== "running") {
-      console.log(`[step] Batch ${batch_job_id} status=${job.status} — stopping chain`);
-      return new Response(JSON.stringify({ success: true, stopped: true }), {
+      await logStep(admin, batch_job_id, job.current_index, job.current_topic,
+        job.current_job_id, null,
+        job.status === "paused" ? "stopped_paused" : "idle",
+        { batch_status: job.status });
+      await releaseLock(admin, batch_job_id);
+      return new Response(JSON.stringify({ ok: true, stopped: true, batch_status: job.status }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     const classifications: Classification[] = job.classifications ?? [];
     const results: ResultRow[] = job.results ?? [];
+    const idx: number = job.current_index ?? 0;
 
-    // End of list — mark complete
-    if (classification_index >= classifications.length) {
+    // ----- 1. End of list -----
+    if (idx >= classifications.length) {
       await admin.from("cluster_batch_jobs").update({
         status: "completed",
         completed_at: new Date().toISOString(),
         current_index: classifications.length,
         current_topic: null,
         current_job_id: null,
+        entry_started_at: null,
       }).eq("id", batch_job_id);
-      console.log(`[step] Batch ${batch_job_id} complete at index ${classification_index}`);
-      return new Response(JSON.stringify({ success: true, completed: true }), {
+      await logStep(admin, batch_job_id, idx, null, null, null, "completed_batch", null);
+      await releaseLock(admin, batch_job_id);
+      return new Response(JSON.stringify({ ok: true, completed: true }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const c = classifications[classification_index];
+    const c = classifications[idx];
 
-    // Skip entries: record + advance immediately
+    // ----- 2. Skip entry -----
     if (c.action === "skip") {
       const row: ResultRow = {
         id: c.id, name: c.name, topic: c.topic, job_id: null,
         status: "skipped", duration_sec: 0, error: c.reason,
       };
-      const updated = [...results, row];
       await admin.from("cluster_batch_jobs").update({
-        results: updated,
-        current_index: classification_index + 1,
+        results: [...results, row],
+        current_index: idx + 1,
         current_topic: c.topic,
         current_job_id: null,
+        entry_started_at: null,
       }).eq("id", batch_job_id);
-      fireNext(batch_job_id, classification_index + 1);
-      return new Response(JSON.stringify({ success: true, action: "skipped", index: classification_index }), {
+      await logStep(admin, batch_job_id, idx, c.topic, null, null, "advanced_skip",
+        { reason: c.reason });
+      await releaseLock(admin, batch_job_id);
+      return new Response(JSON.stringify({ ok: true, action: "skipped", index: idx }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Build entry: lookup full manifest entry to get target_audience, primary_keyword
-    // We need to invoke generate-cluster which expects topic + primary_keyword + target_audience.
-    // The classification only stores topic, so we need to re-fetch the full manifest entry.
-    // Strategy: re-import the manifest from the orchestrator's bundled copy via internal HTTP fetch
-    // is overkill; instead we store enough payload in the classification. Rewriting:
-    //
-    // BUT: we kept classifications minimal. Easiest fix — call generate-cluster with topic only
-    // and let it derive defaults, OR enrich classifications upstream. We'll enrich via direct lookup.
-    //
-    // We pass topic + primary_keyword by re-reading the bundled manifest in the orchestrator,
-    // but the worker doesn't have it. Solution: include the needed fields in the classification.
-    // Per agreed contract, classification carries topic + name only. We'll invoke generate-cluster
-    // with topic + language only — it accepts minimal payload and uses topic-derived defaults.
+    // ----- 3. Build entry: branch on whether generate-cluster has been kicked off -----
+    if (!job.current_job_id) {
+      // First tick for this entry — fire generate-cluster
+      const invokeResp = await fetch(`${SUPABASE_URL}/functions/v1/generate-cluster`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${SERVICE_KEY}` },
+        body: JSON.stringify({
+          topic: c.topic,
+          language: "en",
+          targetAudience: c.target_audience,
+          primaryKeyword: c.primary_keyword,
+        }),
+      });
+      const invokeJson = await invokeResp.json().catch(() => ({}));
+      const jobId: string | null = invokeJson?.jobId ?? invokeJson?.job_id ?? null;
 
-    await admin.from("cluster_batch_jobs").update({
-      current_index: classification_index,
-      current_topic: c.topic,
-    }).eq("id", batch_job_id);
+      if (!invokeResp.ok || !jobId) {
+        const msg = invokeJson?.error ?? `generate-cluster failed (${invokeResp.status})`;
+        const row: ResultRow = {
+          id: c.id, name: c.name, topic: c.topic, job_id: null,
+          status: "failed", duration_sec: Math.round((Date.now() - startedAt) / 1000), error: msg,
+        };
+        await admin.from("cluster_batch_jobs").update({
+          results: [...results, row],
+          fail_count: (job.fail_count ?? 0) + 1,
+          current_index: idx + 1,
+          current_topic: c.topic,
+          current_job_id: null,
+          entry_started_at: null,
+        }).eq("id", batch_job_id);
+        await logStep(admin, batch_job_id, idx, c.topic, null, null, "advanced_failed",
+          { error: msg });
+        await releaseLock(admin, batch_job_id);
+        return new Response(JSON.stringify({ ok: false, action: "failed", error: msg }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
 
-    console.log(`[step] Building #${c.id} "${c.name}" (index ${classification_index})`);
-
-    // Invoke generate-cluster
-    const invokeResp = await fetch(`${SUPABASE_URL}/functions/v1/generate-cluster`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${SERVICE_KEY}` },
-      body: JSON.stringify({
-        topic: c.topic,
-        language: "en",
-        targetAudience: c.target_audience,
-        primaryKeyword: c.primary_keyword,
-      }),
-    });
-    const invokeJson = await invokeResp.json().catch(() => ({}));
-    const jobId: string | null = invokeJson?.jobId ?? invokeJson?.job_id ?? null;
-
-    if (!invokeResp.ok || !jobId) {
-      const msg = invokeJson?.error ?? `generate-cluster failed (${invokeResp.status})`;
-      const row: ResultRow = {
-        id: c.id, name: c.name, topic: c.topic, job_id: null,
-        status: "failed", duration_sec: Math.round((Date.now() - startedAt) / 1000), error: msg,
-      };
-      const updated = [...results, row];
       await admin.from("cluster_batch_jobs").update({
-        results: updated,
-        fail_count: (job.fail_count ?? 0) + 1,
-        current_index: classification_index + 1,
-        current_job_id: null,
+        current_job_id: jobId,
+        current_topic: c.topic,
+        entry_started_at: new Date().toISOString(),
       }).eq("id", batch_job_id);
-      fireNext(batch_job_id, classification_index + 1);
-      return new Response(JSON.stringify({ success: false, action: "failed", error: msg }), {
+      await logStep(admin, batch_job_id, idx, c.topic, jobId, null, "fired_generate",
+        { jobId, name: c.name });
+      await releaseLock(admin, batch_job_id);
+      return new Response(JSON.stringify({ ok: true, action: "fired_generate", jobId }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    await admin.from("cluster_batch_jobs").update({
-      current_job_id: jobId,
-    }).eq("id", batch_job_id);
+    // ----- 4. Already kicked off — poll cluster_generations -----
+    const { data: gen } = await admin
+      .from("cluster_generations")
+      .select("id, status, completed_languages, is_multilingual, error, updated_at")
+      .eq("id", job.current_job_id)
+      .maybeSingle();
 
-    // Poll
-    let pollResult: { ok: true } | { ok: false; reason: "failed" | "timeout"; error?: string };
-    while (true) {
-      const elapsed = Date.now() - startedAt;
-      if (elapsed > TIMEOUT_MS) {
-        // Try to kill the in-flight job
-        try {
-          await fetch(`${SUPABASE_URL}/functions/v1/kill-cluster-job`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json", Authorization: `Bearer ${SERVICE_KEY}` },
-            body: JSON.stringify({ jobId }),
-          });
-        } catch { /* ignore */ }
-        pollResult = { ok: false, reason: "timeout", error: `>${TIMEOUT_MS / 60000}min` };
-        break;
-      }
-      const { data: row } = await admin
-        .from("cluster_generations")
-        .select("status, completed_languages, error, is_multilingual")
-        .eq("id", jobId)
-        .maybeSingle();
-
-      if (row) {
-        const r = row as { status: string | null; completed_languages: string[] | null; error: string | null; is_multilingual: boolean | null };
-        if (r.status === "failed") {
-          pollResult = { ok: false, reason: "failed", error: r.error ?? "unknown" };
-          break;
-        }
-        if (r.status === "completed") {
-          const langs = r.completed_languages ?? [];
-          const hasEn = langs.includes("en");
-          const hasEs = langs.includes("es");
-          if (r.is_multilingual === false || (hasEn && hasEs) || (hasEn && !r.is_multilingual)) {
-            pollResult = { ok: true };
-            break;
-          }
-        }
-      }
-
-      // Re-check pause status periodically
-      const { data: cur } = await admin.from("cluster_batch_jobs").select("status").eq("id", batch_job_id).single();
-      if (cur && (cur as { status: string }).status === "paused") {
-        console.log(`[step] Batch paused mid-cluster — letting current ${jobId} finish but won't fire next`);
-        // Fall through to record current result then stop chain
-      }
-
-      await new Promise((res) => setTimeout(res, POLL_INTERVAL_MS));
-    }
-
-    const durationSec = Math.round((Date.now() - startedAt) / 1000);
-
-    if (!pollResult.ok) {
+    if (!gen) {
+      // Generation row vanished — treat as failed and advance
       const row: ResultRow = {
-        id: c.id, name: c.name, topic: c.topic, job_id: jobId,
-        status: pollResult.reason === "timeout" ? "timeout" : "failed",
-        duration_sec: durationSec, error: pollResult.error,
+        id: c.id, name: c.name, topic: c.topic, job_id: job.current_job_id,
+        status: "failed", duration_sec: 0, error: "cluster_generations row missing",
       };
-      const updated = [...results, row];
       await admin.from("cluster_batch_jobs").update({
-        results: updated,
+        results: [...results, row],
         fail_count: (job.fail_count ?? 0) + 1,
-        current_index: classification_index + 1,
+        current_index: idx + 1,
         current_job_id: null,
+        entry_started_at: null,
       }).eq("id", batch_job_id);
-      // Inter-cluster gap, then fire next
-      await new Promise((r) => setTimeout(r, INTER_CLUSTER_GAP_MS));
-      // Re-check pause before firing
-      const { data: cur2 } = await admin.from("cluster_batch_jobs").select("status").eq("id", batch_job_id).single();
-      if (cur2 && (cur2 as { status: string }).status === "running") {
-        fireNext(batch_job_id, classification_index + 1);
-      }
-      return new Response(JSON.stringify({ success: false, action: pollResult.reason }), {
+      await logStep(admin, batch_job_id, idx, c.topic, job.current_job_id, null,
+        "advanced_failed", { error: "cluster_generations row missing" });
+      await releaseLock(admin, batch_job_id);
+      return new Response(JSON.stringify({ ok: false, action: "failed", error: "missing_gen_row" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Compliance scan for recruiting clusters
-    let flaggedCount = 0;
-    if (c.compliance_class === "recruiting_no_income_claims") {
-      const { data: arts } = await admin
-        .from("blog_articles")
-        .select("id, headline, meta_title, meta_description, speakable_answer, detailed_content")
-        .eq("cluster_id", jobId);
-
-      for (const a of (arts ?? []) as Array<{
-        id: string; headline?: string | null; meta_title?: string | null;
-        meta_description?: string | null; speakable_answer?: string | null;
-        detailed_content?: string | null;
-      }>) {
-        const fields = [a.headline, a.meta_title, a.meta_description, a.speakable_answer, a.detailed_content];
-        let hit: { pattern: string; excerpt: string } | null = null;
-        for (const t of fields) {
-          if (typeof t === "string" && t.length) {
-            const h = scanText(t);
-            if (h) { hit = h; break; }
-          }
-        }
-        if (!hit) continue;
-        await admin.from("blog_articles").update({ status: "draft" }).eq("id", a.id);
-        await admin.from("flagged_articles").upsert({
-          article_id: a.id,
-          reason: "income_claim_detected",
-          matched_pattern: hit.pattern,
-          matched_excerpt: hit.excerpt,
-          cluster_generation_id: jobId,
-          compliance_class: c.compliance_class,
-          status: "pending_review",
-        }, { onConflict: "article_id,reason" });
-        flaggedCount++;
-      }
-    }
-
-    const row: ResultRow = {
-      id: c.id, name: c.name, topic: c.topic, job_id: jobId,
-      status: flaggedCount > 0 ? "flagged" : "built",
-      duration_sec: durationSec,
-      flagged_count: flaggedCount > 0 ? flaggedCount : undefined,
+    const g = gen as {
+      id: string; status: string | null;
+      completed_languages: string[] | null;
+      is_multilingual: boolean | null;
+      error: string | null;
+      updated_at: string;
     };
-    const updated = [...results, row];
-    await admin.from("cluster_batch_jobs").update({
-      results: updated,
-      build_count: (job.build_count ?? 0) + 1,
-      flagged_count: (job.flagged_count ?? 0) + flaggedCount,
-      current_index: classification_index + 1,
-      current_job_id: null,
-    }).eq("id", batch_job_id);
 
-    console.log(`[step] Built #${c.id} in ${durationSec}s${flaggedCount ? ` (🚩 ${flaggedCount})` : ""}`);
+    // 4a. Completed
+    const langs = g.completed_languages ?? [];
+    const hasEn = langs.includes("en");
+    const hasEs = langs.includes("es");
+    const completionOk = g.status === "completed" &&
+      (g.is_multilingual === false || (hasEn && hasEs) || (hasEn && !g.is_multilingual));
 
-    // Inter-cluster gap, then fire next (with pause re-check)
-    await new Promise((r) => setTimeout(r, INTER_CLUSTER_GAP_MS));
-    const { data: cur3 } = await admin.from("cluster_batch_jobs").select("status").eq("id", batch_job_id).single();
-    if (cur3 && (cur3 as { status: string }).status === "running") {
-      fireNext(batch_job_id, classification_index + 1);
-    } else {
-      console.log(`[step] Batch status=${(cur3 as { status: string } | null)?.status ?? "missing"} — not firing next`);
+    if (completionOk) {
+      const entryStartedAt = job.entry_started_at ? new Date(job.entry_started_at).getTime() : startedAt;
+      const durationSec = Math.round((Date.now() - entryStartedAt) / 1000);
+
+      // Compliance scan for recruiting clusters
+      let flaggedCount = 0;
+      if (c.compliance_class === "recruiting_no_income_claims") {
+        const { data: arts } = await admin
+          .from("blog_articles")
+          .select("id, headline, meta_title, meta_description, speakable_answer, detailed_content")
+          .eq("cluster_id", g.id);
+
+        for (const a of (arts ?? []) as Array<{
+          id: string; headline?: string | null; meta_title?: string | null;
+          meta_description?: string | null; speakable_answer?: string | null;
+          detailed_content?: string | null;
+        }>) {
+          const fields = [a.headline, a.meta_title, a.meta_description, a.speakable_answer, a.detailed_content];
+          let hit: { pattern: string; excerpt: string } | null = null;
+          for (const t of fields) {
+            if (typeof t === "string" && t.length) {
+              const h = scanText(t);
+              if (h) { hit = h; break; }
+            }
+          }
+          if (!hit) continue;
+          await admin.from("blog_articles").update({ status: "draft" }).eq("id", a.id);
+          await admin.from("flagged_articles").upsert({
+            article_id: a.id,
+            reason: "income_claim_detected",
+            matched_pattern: hit.pattern,
+            matched_excerpt: hit.excerpt,
+            cluster_generation_id: g.id,
+            compliance_class: c.compliance_class,
+            status: "pending_review",
+          }, { onConflict: "article_id,reason" });
+          flaggedCount++;
+        }
+      }
+
+      const row: ResultRow = {
+        id: c.id, name: c.name, topic: c.topic, job_id: g.id,
+        status: flaggedCount > 0 ? "flagged" : "built",
+        duration_sec: durationSec,
+        flagged_count: flaggedCount > 0 ? flaggedCount : undefined,
+      };
+      await admin.from("cluster_batch_jobs").update({
+        results: [...results, row],
+        build_count: (job.build_count ?? 0) + 1,
+        flagged_count: (job.flagged_count ?? 0) + flaggedCount,
+        current_index: idx + 1,
+        current_job_id: null,
+        entry_started_at: null,
+      }).eq("id", batch_job_id);
+      await logStep(admin, batch_job_id, idx, c.topic, g.id, g.status,
+        "advanced_built", { flagged_count: flaggedCount, duration_sec: durationSec });
+      await releaseLock(admin, batch_job_id);
+      return new Response(JSON.stringify({ ok: true, action: "built", duration_sec: durationSec, flagged: flaggedCount }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
-    return new Response(JSON.stringify({ success: true, action: "built", duration_sec: durationSec, flagged: flaggedCount }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    // 4b. Failed
+    if (g.status === "failed") {
+      const row: ResultRow = {
+        id: c.id, name: c.name, topic: c.topic, job_id: g.id,
+        status: "failed",
+        duration_sec: Math.round((Date.now() - (job.entry_started_at ? new Date(job.entry_started_at).getTime() : startedAt)) / 1000),
+        error: g.error ?? "unknown",
+      };
+      await admin.from("cluster_batch_jobs").update({
+        results: [...results, row],
+        fail_count: (job.fail_count ?? 0) + 1,
+        current_index: idx + 1,
+        current_job_id: null,
+        entry_started_at: null,
+      }).eq("id", batch_job_id);
+      await logStep(admin, batch_job_id, idx, c.topic, g.id, g.status,
+        "advanced_failed", { error: g.error });
+      await releaseLock(admin, batch_job_id);
+      return new Response(JSON.stringify({ ok: false, action: "failed", error: g.error }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // 4c. Worker timeout — > WORKER_TIMEOUT_MIN since entry_started_at AND no recent gen update
+    const entryStarted = job.entry_started_at ? new Date(job.entry_started_at).getTime() : Date.now();
+    const ageMin = (Date.now() - entryStarted) / 60000;
+    const lastGenUpdate = new Date(g.updated_at).getTime();
+    const genStaleMin = (Date.now() - lastGenUpdate) / 60000;
+
+    if (ageMin > WORKER_TIMEOUT_MIN && genStaleMin > 5) {
+      // Mark generation row failed
+      await admin.from("cluster_generations").update({
+        status: "failed",
+        error: `aborted: ${WORKER_TIMEOUT_MIN}min worker timeout`,
+        updated_at: new Date().toISOString(),
+      }).eq("id", g.id);
+
+      const row: ResultRow = {
+        id: c.id, name: c.name, topic: c.topic, job_id: g.id,
+        status: "timeout",
+        duration_sec: Math.round((Date.now() - entryStarted) / 1000),
+        error: `>${WORKER_TIMEOUT_MIN}min no progress`,
+      };
+      await admin.from("cluster_batch_jobs").update({
+        results: [...results, row],
+        fail_count: (job.fail_count ?? 0) + 1,
+        current_index: idx + 1,
+        current_job_id: null,
+        entry_started_at: null,
+      }).eq("id", batch_job_id);
+      await logStep(admin, batch_job_id, idx, c.topic, g.id, g.status,
+        "advanced_timeout", { age_min: ageMin, gen_stale_min: genStaleMin });
+      await releaseLock(admin, batch_job_id);
+      return new Response(JSON.stringify({ ok: false, action: "timeout", age_min: ageMin }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // 4d. Still generating — wait for next cron tick
+    await logStep(admin, batch_job_id, idx, c.topic, g.id, g.status, "polled",
+      { age_min: ageMin, gen_stale_min: genStaleMin, completed_languages: langs });
+    await releaseLock(admin, batch_job_id);
+    return new Response(JSON.stringify({
+      ok: true, action: "polled", status: g.status, age_min: ageMin, gen_stale_min: genStaleMin,
+    }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
   } catch (err) {
     console.error("[build-cluster-step] error:", err);
-    // Try to advance to avoid stalling the chain
     if (batch_job_id) {
       try {
-        const { data: job } = await admin.from("cluster_batch_jobs").select("results, fail_count, classifications").eq("id", batch_job_id).single();
-        if (job) {
-          const j = job as { results: ResultRow[]; fail_count: number; classifications: Classification[] };
-          const c = j.classifications?.[classification_index];
-          if (c) {
-            const errRow: ResultRow = {
-              id: c.id, name: c.name, topic: c.topic, job_id: null,
-              status: "failed", duration_sec: Math.round((Date.now() - startedAt) / 1000),
-              error: String(err),
-            };
-            await admin.from("cluster_batch_jobs").update({
-              results: [...(j.results ?? []), errRow],
-              fail_count: (j.fail_count ?? 0) + 1,
-              current_index: classification_index + 1,
-            }).eq("id", batch_job_id);
-            fireNext(batch_job_id, classification_index + 1);
-          }
-        }
-      } catch { /* swallow */ }
+        await logStep(admin, batch_job_id, null, null, null, null, "error",
+          { error: String(err) });
+      } catch { /* ignore */ }
+      try { await releaseLock(admin, batch_job_id); } catch { /* ignore */ }
     }
     return new Response(JSON.stringify({ error: String(err) }), {
       status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 });
+
+async function releaseLock(admin: AdminClient, batch_job_id: string) {
+  await admin.rpc("release_batch_tick_lock", { _batch_job_id: batch_job_id });
+}
