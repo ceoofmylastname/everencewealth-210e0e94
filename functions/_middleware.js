@@ -546,6 +546,29 @@ async function buildResponse({ request, next, env, ctx }) {
   }
 
   // ============================================================
+  // Wave 1.5 (PROMPT 25): STRUCTURAL 410 — runs unconditionally so
+  // it catches paths outside the catchall whitelist (e.g.
+  // /<lang>/retirement-planning/* and /<lang>/property/R*, which
+  // previously fell through to the SPA and returned 200).
+  // ============================================================
+  for (const re of STRUCTURAL_410_PATTERNS) {
+    if (re.test(pathname)) {
+      const html = render410Page(pathname, 410);
+      console.log(`[Middleware] Structural 410 (hoisted): ${pathname}`);
+      return new Response(html, {
+        status: 410,
+        headers: {
+          'Content-Type': 'text/html; charset=utf-8',
+          'X-410-Source': 'middleware-structural',
+          'X-Middleware-Status': 'Active',
+          'Cache-Control': 'public, max-age=3600',
+          'X-Robots-Tag': 'noindex, nofollow',
+        },
+      });
+    }
+  }
+
+  // ============================================================
   // PROMPT 13 — Soft-404 catchall.
   // Returns real 410 (intentionally retired, listed in gone_urls) or
   // 404 (never existed) for unmatched content URLs under /blog/, /qa/,
@@ -570,25 +593,7 @@ async function buildResponse({ request, next, env, ctx }) {
     if (STATIC_ROUTE_EXEMPT.has(pathname)) {
       // fall through to SSR / SPA
     } else {
-    // PROMPT 25 FIX 1: Structural 410 short-circuit. Catches Costa del
-    // Sol property URLs, /<lang>/properties, /<lang>/retirement-planning/*,
-    // old blog hierarchy, /en/blog/costadelsol/*. Skips DB lookup.
-    for (const re of STRUCTURAL_410_PATTERNS) {
-      if (re.test(pathname)) {
-        const html = render410Page(pathname, 410);
-        console.log(`[Middleware] Structural 410: ${pathname}`);
-        return new Response(html, {
-          status: 410,
-          headers: {
-            'Content-Type': 'text/html; charset=utf-8',
-            'X-410-Source': 'middleware-structural',
-            'X-Middleware-Status': 'Active',
-            'Cache-Control': 'public, max-age=3600',
-            'X-Robots-Tag': 'noindex, nofollow',
-          },
-        });
-      }
-    }
+    // Structural 410 patterns now handled in the hoisted block above.
     try {
       // Normalize path: all_published_slugs view stores paths with trailing
       // slash. Always look up the trailing-slash variant.
