@@ -3244,6 +3244,87 @@ export type Database = {
           },
         ]
       }
+      cluster_batch_jobs: {
+        Row: {
+          build_count: number
+          classifications: Json
+          completed_at: string | null
+          created_at: string
+          current_index: number
+          current_job_id: string | null
+          current_topic: string | null
+          dedupe_summary: Json | null
+          error: string | null
+          fail_count: number
+          flagged_count: number
+          force_rebuild: boolean
+          id: string
+          limit_count: number | null
+          manifest_path: string
+          mode: string
+          results: Json
+          skip_count: number
+          start_from: number | null
+          started_at: string | null
+          status: string
+          total_entries: number
+          triggered_by: string | null
+          updated_at: string
+        }
+        Insert: {
+          build_count?: number
+          classifications?: Json
+          completed_at?: string | null
+          created_at?: string
+          current_index?: number
+          current_job_id?: string | null
+          current_topic?: string | null
+          dedupe_summary?: Json | null
+          error?: string | null
+          fail_count?: number
+          flagged_count?: number
+          force_rebuild?: boolean
+          id?: string
+          limit_count?: number | null
+          manifest_path: string
+          mode: string
+          results?: Json
+          skip_count?: number
+          start_from?: number | null
+          started_at?: string | null
+          status?: string
+          total_entries?: number
+          triggered_by?: string | null
+          updated_at?: string
+        }
+        Update: {
+          build_count?: number
+          classifications?: Json
+          completed_at?: string | null
+          created_at?: string
+          current_index?: number
+          current_job_id?: string | null
+          current_topic?: string | null
+          dedupe_summary?: Json | null
+          error?: string | null
+          fail_count?: number
+          flagged_count?: number
+          force_rebuild?: boolean
+          id?: string
+          limit_count?: number | null
+          manifest_path?: string
+          mode?: string
+          results?: Json
+          skip_count?: number
+          start_from?: number | null
+          started_at?: string | null
+          status?: string
+          total_entries?: number
+          triggered_by?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       cluster_completion_progress: {
         Row: {
           articles_completed: number | null
