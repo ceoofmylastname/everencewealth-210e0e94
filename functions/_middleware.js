@@ -405,7 +405,8 @@ async function buildResponse({ request, next, env, ctx }) {
     // PROMPT 25 FIX 2: legacy strategy paths now point to live strategy pages
     '/financial-planning/three-tax-buckets': '/en/strategies/tax-free-retirement/',
     '/wealth-strategies/zero-is-your-hero': '/en/strategies/tax-free-retirement/',
-    '/indexed-universal-life-insurance/introduction': '/en/strategies/iul',
+    // Wave 1.5: trailing slash for redirect-chain consistency
+    '/indexed-universal-life-insurance/introduction': '/en/strategies/iul/',
     '/schedule': '/en/contact/',
     '/financial-needs-assessment': '/en/assessment/',
     '/en/strategies': '/en/',
@@ -494,28 +495,9 @@ async function buildResponse({ request, next, env, ctx }) {
     });
   }
 
-  // ============================================================
-  // 404 BLOCKLIST — Return real HTTP 404 for invalid content
-  // ============================================================
-  const is404Blocked =
-    /^\/es\/property\//.test(pathname) ||
-    pathname === '/blog/category/buying property' ||
-    pathname === '/blog/category/retirement planning';
-
-  if (is404Blocked) {
-    console.log(`[Middleware] 404 blocked: ${pathname}`);
-    return new Response(
-      `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="robots" content="noindex"><title>404 Not Found</title></head><body><h1>404 — Page Not Found</h1><p>The page you requested does not exist.</p><a href="${BASE_URL}/en/">Return to homepage</a></body></html>`,
-      {
-        status: 404,
-        headers: {
-          'Content-Type': 'text/html; charset=utf-8',
-          'X-Robots-Tag': 'noindex',
-          'X-Middleware-Status': 'Active',
-        },
-      }
-    );
-  }
+  // Wave 1.5 (PROMPT 25): is404Blocked block removed.
+  //   - /es/property/* now handled by STRUCTURAL_410_PATTERNS → 410 (correct semantic)
+  //   - /blog/category/* already caught by the prefix 301 above
 
   // Skip static files
   if (STATIC_EXTENSIONS.some(ext => pathname.endsWith(ext))) {
@@ -564,6 +546,29 @@ async function buildResponse({ request, next, env, ctx }) {
   }
 
   // ============================================================
+  // Wave 1.5 (PROMPT 25): STRUCTURAL 410 — runs unconditionally so
+  // it catches paths outside the catchall whitelist (e.g.
+  // /<lang>/retirement-planning/* and /<lang>/property/R*, which
+  // previously fell through to the SPA and returned 200).
+  // ============================================================
+  for (const re of STRUCTURAL_410_PATTERNS) {
+    if (re.test(pathname)) {
+      const html = render410Page(pathname, 410);
+      console.log(`[Middleware] Structural 410 (hoisted): ${pathname}`);
+      return new Response(html, {
+        status: 410,
+        headers: {
+          'Content-Type': 'text/html; charset=utf-8',
+          'X-410-Source': 'middleware-structural',
+          'X-Middleware-Status': 'Active',
+          'Cache-Control': 'public, max-age=3600',
+          'X-Robots-Tag': 'noindex, nofollow',
+        },
+      });
+    }
+  }
+
+  // ============================================================
   // PROMPT 13 — Soft-404 catchall.
   // Returns real 410 (intentionally retired, listed in gone_urls) or
   // 404 (never existed) for unmatched content URLs under /blog/, /qa/,
@@ -588,25 +593,7 @@ async function buildResponse({ request, next, env, ctx }) {
     if (STATIC_ROUTE_EXEMPT.has(pathname)) {
       // fall through to SSR / SPA
     } else {
-    // PROMPT 25 FIX 1: Structural 410 short-circuit. Catches Costa del
-    // Sol property URLs, /<lang>/properties, /<lang>/retirement-planning/*,
-    // old blog hierarchy, /en/blog/costadelsol/*. Skips DB lookup.
-    for (const re of STRUCTURAL_410_PATTERNS) {
-      if (re.test(pathname)) {
-        const html = render410Page(pathname, 410);
-        console.log(`[Middleware] Structural 410: ${pathname}`);
-        return new Response(html, {
-          status: 410,
-          headers: {
-            'Content-Type': 'text/html; charset=utf-8',
-            'X-410-Source': 'middleware-structural',
-            'X-Middleware-Status': 'Active',
-            'Cache-Control': 'public, max-age=3600',
-            'X-Robots-Tag': 'noindex, nofollow',
-          },
-        });
-      }
-    }
+    // Structural 410 patterns now handled in the hoisted block above.
     try {
       // Normalize path: all_published_slugs view stores paths with trailing
       // slash. Always look up the trailing-slash variant.
