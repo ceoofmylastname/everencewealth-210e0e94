@@ -202,9 +202,17 @@ serve(async (req) => {
         const reason = skipManifest
           ? `manifest skip_by_default${e.skip_reason ? `: ${e.skip_reason}` : ""}`
           : `prod overlap (${prod.matched})`;
-        return { id: e.id, name: e.name, topic: e.topic, action: "skip" as const, reason, money: e.moneyPageTarget, compliance_class: e.compliance_class };
+        return {
+          id: e.id, name: e.name, topic: e.topic, action: "skip" as const, reason,
+          money: e.moneyPageTarget, compliance_class: e.compliance_class,
+          primary_keyword: e.primaryKeyword, target_audience: e.targetAudience,
+        };
       }
-      return { id: e.id, name: e.name, topic: e.topic, action: "build" as const, money: e.moneyPageTarget, compliance_class: e.compliance_class };
+      return {
+        id: e.id, name: e.name, topic: e.topic, action: "build" as const,
+        money: e.moneyPageTarget, compliance_class: e.compliance_class,
+        primary_keyword: e.primaryKeyword, target_audience: e.targetAudience,
+      };
     });
 
     const buildList = classifications.filter((c) => c.action === "build");
