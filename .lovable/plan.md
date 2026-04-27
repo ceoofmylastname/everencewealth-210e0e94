@@ -1,97 +1,37 @@
-## PROMPT 22 — P2 Closure Plan (audit 94 → ~99)
+# Fix blog card image regression
 
-### Audit baseline reconciliation
-Production exploration showed two findings are already resolved — work skipped, results documented in the final report:
+## Root cause
 
-- **P2-3 (empty glossary sitemap):** NOT empty. `public/sitemaps/en/glossary.xml` and `es/glossary.xml` already contain real terms (e.g. `/en/glossary/iul/`). No `glossary_terms` table exists — content is hardcoded in `regenerate-sitemap`. No code change.
-- **P2-4 (QAPage acceptedAnswer count = 2):** Stale. Live curl on 3 sample QA pages shows `acceptedAnswer` count = 0 on the QA page schema and exactly 1 per Question inside FAQ subgraphs. Code at `serve-seo-page/index.ts:1163` is correct. No code change.
+`src/components/OptimizedImage.tsx` emits a `<picture>` with a `<source srcSet={webpSrc} type="image/webp">` derived by string-replacing `.png` → `.webp`. The WebP siblings don't exist in the `article-images` Supabase bucket (the one-shot `convertHerosToWebp.ts` was never run), so those URLs return HTTP 400.
 
-### Items to ship
+Per the HTML spec, `<picture>` source selection is based on `type` / `media` matching, **not** on whether the resource loads. Every modern browser supports `image/webp`, so it commits to the WebP source. When the request 400s, it does **not** fall back to the `<img>` — it just shows a broken image. Because `<img>` starts at `opacity-0` and only flips to `opacity-100` in the `onLoad` handler (which never fires), the gray skeleton sits there forever.
 
-**P2-1 — sameAs (Person + Organization)**
-- Wait for the user's verified URL list (next message).
-- Once received: update `src/config/business.ts`:
-  - `BUSINESS.sameAs` → Org array.
-  - Extend `BusinessFounder` interface + add a new `BUSINESS.founderSameAs` array; remove the existing TODO comment.
-- Wire `BUSINESS.founderSameAs` into `scripts/generateStaticAuthorBioPage.ts` Person node, merged with the existing DB `author.linkedin_url` and de-duplicated.
-- Person.sameAs already emits via DB (`linkedin.com/in/stevenrosenberg/`); we only ADD entries, never remove the LinkedIn one.
+The user-suggested `<picture>` pattern has the same defect — it would behave identically. The real fix is to stop advertising a WebP source we can't guarantee exists.
 
-**P2-2 — knowsAbout (Person)**
-- Add to Person node in `scripts/generateStaticAuthorBioPage.ts`:
-  ```
-  knowsAbout: [
-    "Indexed Universal Life Insurance",
-    "Tax-Free Retirement Income",
-    "Roth Conversion Strategies",
-    "Sequence of Returns Risk",
-    "High-Earner Tax Strategy",
-    "Whole Life Insurance",
-    "Annuities",
-    "Asset Protection Planning",
-    "Cash-Value Life Insurance"
-  ]
-  ```
-  9 topics: 5 with verified ≥3-article EN coverage + 4 advisor-specialty pillars from /strategies/. Estate Planning dropped (only 1 article).
+(Note on the curl claim: `/en/blog/` and `/en/blog/<slug>/` are served by the `serve-seo-page` edge function, which renders text-only link lists for hub pages and doesn't emit `<img>` tags at all. So curl on the hub will still show zero `src=""` after this fix — that's expected. The user-visible card images live in the React-hydrated `BlogIndex.tsx` and detail pages, and **that** is what this fix restores.)
 
-**P2-5 — Security headers (CSP as Report-Only)**
-- Append to the existing `/*` block in `public/_headers`:
-  ```
-  Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
-  X-Frame-Options: DENY
-  Content-Security-Policy-Report-Only: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.supabase.co; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://api.fontshare.com; font-src 'self' data: https://fonts.gstatic.com https://api.fontshare.com https://cdn.fontshare.com; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.indexnow.org; frame-src 'self' https://www.youtube.com https://player.vimeo.com; object-src 'none'; base-uri 'self'; form-action 'self' https://services.leadconnectorhq.com
-  ```
-  Differences from spec, all justified by code/memory:
-  - GTM/GA removed from allowlist (per `mem://project/tracking-policy`).
-  - Fontshare added (used by index.html line 30).
-  - IndexNow + GHL leadconnectorhq added (used by webhook/IndexNow scripts).
-  - **Report-Only mode** so violations log to console without breaking pages. Promote to enforced in a future prompt after monitoring.
+## Change
 
-**P2-6 — Bing site verification**
-- Surface as a manual user step. Once user provides the `content` value, add one line to `index.html` `<head>`:
-  `<meta name="msvalidate.01" content="<bing-content>" />`
-- If user does not provide it this round, skip.
+Edit a single file: `src/components/OptimizedImage.tsx`.
 
-### Drive-by from PROMPT 21 (approved)
-- `supabase/functions/serve-seo-page/index.ts:1174` — replace hardcoded `https://assets.cdn.filesafe.space/.../69b7424c5b89c7c557adfe6e.png` with `https://www.everencewealth.com/logo.png`. Same Organization JSON-LD logo we already standardized everywhere else.
+1. Drop the `deriveWebpUrl` branch and the `<picture>` / `<source>` markup. Render a plain `<img src={optimizedSrc}>` directly.
+2. Remove the opacity-0 → opacity-100 gate driven by `onLoad`. Keep the skeleton as a behind-the-image placeholder that `onLoad` hides, but render the `<img>` itself at full opacity so a missed `onLoad` event never blanks the image.
+3. Keep all other behavior: Supabase render-image transform URL, `loading`, `decoding`, `fetchPriority`, `width`/`height` aspect ratio, error fallback, className passthrough.
 
-### Files edited
-- `src/config/business.ts` — Person + Org sameAs, founderSameAs scaffold
-- `scripts/generateStaticAuthorBioPage.ts` — knowsAbout + merged sameAs into Person node
-- `public/_headers` — append HSTS + X-Frame-Options + Permissions-Policy refinement + CSP-Report-Only inside existing `/*` block (block stays last)
-- `supabase/functions/serve-seo-page/index.ts` — drive-by logo URL fix (line 1174)
-- `index.html` — Bing meta (only if user supplies value)
+Result:
+- Browser requests the PNG/JPG directly → 200 → image renders.
+- All consumers (`ArticleCard`, `RelatedArticles`, `ArticleContent`, `LocationHero`, `FeaturedCitiesSection`, `QAIndex`, `LocationGenerator`) inherit the fix with no further edits — none of them add their own `<picture>` wrapper.
+- When `convertHerosToWebp.ts` is later run and `.webp` siblings exist, we can reintroduce a `<source>` element guarded by a build-time manifest (out of scope here).
 
-### Untouched (per guard rails)
-- `supabase/migrations/*.sql`
-- All PROMPT 20 + 21 verified work (canonical/hreflang, llms.txt, dateModified, hero preload, _headers cache rules, OptimizedImage WebP, comma-strip 301, injectSeoTags HTMLRewriter, PROMPT 17 catchall, `functions/_middleware.js`)
-- `BUSINESS.telephone`/compliance trigger
-- `regenerate-sitemap` (P2-3 a no-op)
-- QAPage emitter (P2-4 a no-op)
+## Out of scope (explicitly untouched)
 
-### Sequencing
-1. User pastes verified Person + Org sameAs URLs.
-2. I ship P2-1, P2-2, P2-5, P2-6 (if Bing supplied), and the drive-by logo fix in one batch.
-3. Optional: deploy `serve-seo-page` so the logo fix lands without waiting for the next edge-function deploy cycle.
-4. User publishes + Cloudflare cache purge.
+- `functions/_middleware.js`, `injectSeoTags()`, PROMPT 17 catchall.
+- `supabase/functions/serve-seo-page/index.ts` (PROMPT 20/21/22 work).
+- `scripts/convertHerosToWebp.ts` (don't run it as part of this fix).
+- All `supabase/migrations/*`.
 
-### Verification (post-deploy)
-```bash
-# 7a Person sameAs
-curl -sL https://www.everencewealth.com/en/team/steven-rosenberg/ \
-  | grep -oE '"sameAs":\[[^]]*\]' | head -2
+## Verification after deploy
 
-# 7b knowsAbout
-curl -sL https://www.everencewealth.com/en/team/steven-rosenberg/ \
-  | grep -oE '"knowsAbout":\[[^]]*\]'
-
-# 7e Security headers
-curl -sI https://www.everencewealth.com/ \
-  | grep -iE "strict-transport|x-frame|content-security|permissions-policy"
-
-# 7f Bing meta (if applied)
-curl -sL https://www.everencewealth.com/ | grep msvalidate.01
-
-# Drive-by: serve-seo-page logo
-curl -sL https://www.everencewealth.com/en/qa/<some-slug>/ | grep -c "filesafe.space"   # expect 0
-```
-P2-3 and P2-4 verifications skipped — already correct in baseline. Documented in final report.
+1. Visit `/en/blog/` in the browser — cards render their PNG hero images instead of gray skeletons.
+2. Visit any `/en/blog/<slug>/` detail page — hero image renders.
+3. DevTools Network tab: a single request per card to the `.png` (or `.jpg`) URL returning 200, with no failing `.webp` request.
