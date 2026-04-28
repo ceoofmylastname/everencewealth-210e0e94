@@ -114,8 +114,27 @@ UI strings ("6 English articles" in `CreateClusterDialog.tsx`, `ClusterGenerator
 2. **On ack:** ship A + B + C + D + E in single deploy.
 3. **Pause** at Wave 2 Fix 4 audit gate; paste rows.
 4. **On audit ack:** apply the language-mismatch UPDATEs.
-5. **Smoke test** `limit=10`. Verify: 10/10 clusters have EN=6 + ES=6, all bodies clean, no hardcoded "12" in any progress JSON, flagged_articles only on regex hits, no chunk-resumer firings.
+5. **Smoke test** `limit=10` against the manifest. Pass criteria:
+   - Every **built** cluster has EN=6 + ES=6 + `featured_image_url IS NOT NULL` on all 12 rows + `status='published'` on both EN and ES + compliance scan ran on any recruiting cluster.
+   - **Skipped** manifest entries return `ResultRow{status:'skipped', reason:...}` and require no article verification.
+   - `build_count + skip_count + fail_count = 10`.
+   - `fail_count = 0`.
+   - `0` chunk-resumer firings on any built cluster (any firing = underlying instability still present → pause and diagnose).
+   - No hardcoded "12" appears in any `progress` JSON; `flagged_articles` rows exist only where regex hit.
 6. **If green:** approve overnight 65-cluster run.
+
+### G. Migration notes for `cluster_step_logs.action_taken`
+The Wave 2.5 work introduces four new `action_taken` enum/text values. The migration must document and (if the column is an enum) `ALTER TYPE … ADD VALUE` for:
+- `count_mismatch` — emitted by `translate-cluster` / `build-cluster-step` when row counts don't equal 6/6.
+- `resumer_fired` — emitted by the chunk-chain resumer when it re-fires a missing funnel position.
+- `auto_published` — emitted when EN auto-publish (Option A) flips status to `published` after the 6/6/0-flag gate.
+- `held_for_flag` — emitted when auto-publish is suppressed because `flagged_count > 0`.
+
+If `action_taken` is a free-text column, no schema change is required, but the migration file must still include a comment block enumerating these four canonical values so future readers don't reinvent them.
+
+### H. Hard-stop reminders (will be enforced at runtime)
+- Wave 2 Fix #4: paste suspected language-mismatch rows for review **before** any `UPDATE blog_articles SET language=…` or `INSERT INTO url_redirects`. No writes until explicit ack.
+- After deploy: post a single message with the file diff summary (file paths + lines added/removed) so the change surface is auditable.
 
 ---
 
