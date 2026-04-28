@@ -1,127 +1,128 @@
-# Verification Results + Combined Audit Steps 1-3 + PROMPT 25 Wave 2
+# Flags 1-3: Answers + Revised Combined Ship Plan
 
-## Verification 1: "San Francisco" source location
+## FLAG 1 — Speakable truncation: 800 chars is canonical, 250 was a typo
 
-**Single source of truth:** `src/config/business.ts`
+**Confirmed: 800 chars / 150 words is the rule.** No source ever changed this.
 
-| Line | Field | Current Value |
-|------|-------|---------------|
-| 64-65 | `description` | "Independent wealth architects… Serving clients in **San Francisco** and nationwide." |
-| 73 | `streetAddress` | "455 Market St Ste 1940 PMB 350011" |
-| 74 | `addressLocality` | "San Francisco" |
-| 76 | `postalCode` | "94105" |
-| 81 | `addressFormatted` | "455 Market St Ste 1940 PMB 350011, San Francisco, CA 94105" |
+Authority chain (verified read-only):
+- `supabase/functions/shared/aeoRules.ts` line 11–17: `MAX_WORDS=150, MAX_CHARS=800`
+- `src/lib/aeoUtils.ts` line 13–20: `MAX_WORDS=150, MAX_CHARS=800, MIN_LENGTH=160`
+- `supabase/functions/fix-aeo-compliance/index.ts` line 11: `AEO_MAX_CHARS=800, AEO_MAX_WORDS=150`
 
-`COMPANY_ADDRESS` in `src/constants/company.ts` re-exports BUSINESS, so editing `business.ts` propagates everywhere (Home schema, footer, all JSON-LD). Zero hardcoded "San Francisco" elsewhere in `src/`.
+The "250" in the prior plan was a typo against `MIN_LENGTH=160` — it should have read 800. Earlier verification samples (913→652, 795 chars) align with the 800 ceiling and stay above the 160 floor. No new samples needed; the algorithm itself is correct, only the prior plan's number was wrong.
 
-**Also relevant:** `src/constants/company.ts` line 32 contains a hardcoded Google Maps embed URL pinning `455+Market+St` — needs swap.
-
-**Question for you:** What address replaces it? Per memory the target is "Pleasanton" but no street/zip is in the codebase. Options:
-1. Pleasanton CA mailing address (you provide street + zip)
-2. Drop street entirely → schema uses only `addressLocality: "Pleasanton"`, `addressRegion: "CA"`, `addressCountry: "US"` (valid PostalAddress, looser local-SEO signal)
-3. Keep address private; use only `areaServed: "US"` and remove PostalAddress block
+**Action:** Use `truncateForAEO(text, 800)` from `src/lib/aeoUtils.ts` everywhere; delete the duplicated truncation code in any caller that hardcodes a different number. No new constants.
 
 ---
 
-## Verification 2: locations.xml contents — NOT Costa del Sol legacy
+## FLAG 2 — PROMPT 24 is intact. Roth Conversion failure was NOT a CHECK violation
 
-Both files contain real US wealth-strategy URLs. NOT safe to delete wholesale.
+### a) Fix A sanitization location
+`supabase/functions/generate-cluster-chunk/index.ts` lines **145–200** (`sanitizeDetailedContent`) — strips `<head>`, `<html>`, `<body>`, downgrades `<h1>→<h2>`, removes `<meta>`, `rel="canonical|alternate"`, `application/ld+json`, `<style>`.
 
-**EN: 35 URLs** — all `/en/locations/{city|state}/{strategy}` covering: LA, Seattle, NYC, Pennsylvania, San Diego, Ohio, Michigan, NC, San Francisco, Houston, Phoenix, Philadelphia, San Antonio, Charlotte, California, Austin, Indianapolis, Denver, DC, Boston, Georgia, Dallas, Florida, Arizona, Jacksonville, Columbus, Texas, NYC, Miami, Nevada, Colorado, Chicago, Indiana, Illinois.
+### b) Fix C pre-insert validator location
+Same file, lines **205–230** (`validateNoForbiddenTags`) — throws `db:validate:fail pattern=…` before INSERT.
 
-**ES: 21 URLs** — Spanish counterparts of subset above.
+### c) Did PROMPT 24 ship?
+Yes. Both functions are present in current `generate-cluster-chunk/index.ts` and the prompt updates (lines 412–474) explicitly forbid `<h1>/<head>/<meta>/<link>/<script>/<style>`.
 
-**Conflict diagnosis:** robots.txt `Disallow: /en/locations` blocks ALL of these. Either the Disallow is wrong, or the sitemap is wrong. Per `mem://project/cleanup-legacy-purge` "locations" was supposedly purged, but the URLs above are clearly current US strategy hubs.
+### d) The Roth Conversion bodies are clean
+Queried `blog_articles WHERE cluster_id='7eeebd5d…'`:
+- 2 EN rows (status=`draft`), body lengths 26,974 and 38,046 chars
+- 2 ES rows (status=`published`), body lengths 32,258 and 46,608 chars
+- All 4 bodies start with `<div class='article-content'><div class="speakable-answer"…` — no `<h1>`, no `<head>`, no canonical link
 
-**Question for you (pick one):**
-1. **Keep locations live** → remove Disallow lines from robots.txt; keep sitemap; verify pages render (likely fix is just removing Disallow). Best for SEO.
-2. **Kill locations entirely** → delete both XMLs + sitemap-index entries + the `/en/locations/*` route + DB rows (whatever is rendering them). Aligns with purge memory but sacrifices 56 indexed pages.
-3. **Selective:** keep state-level pages (CA, FL, TX…), drop city-level. Need DB review of `locations` table to do this cleanly.
+**`cluster_step_logs` for this job (verified):**
+- 06:14 `fired_generate` (article index 1)
+- 06:15–06:27 14 minutes of `polled / generating / completed_languages: []` — chain stalled
+- 06:28 `advanced_built` with `cluster_generations_status=completed`, `flagged_count=0`, `duration_sec=841`
 
----
+**No CHECK constraint error fired.** PROMPT 24 sanitization is working. The actual failure was the chunk loop stopping after generating articles 1–2 (likely Gemini timeout / silent function shutdown — Deno boots are visible in `tick-cluster-batches` logs every ~40s) AND the orchestrator marking the job `completed` without verifying article count.
 
-## Verification 3: AEO truncation samples (5 random Q&As, before → after)
+### Conclusion
+My Wave 2.5 Fix #4 is **not duplicating PROMPT 24**. PROMPT 24 covers the *write path* (sanitize before INSERT). The bug is in the *control plane*:
+1. `translate-cluster/index.ts:735` and `:1064` set `status='completed'` without counting `blog_articles` rows.
+2. `build-cluster-step` (around `advanced_built` at line ~304 per earlier RCA) sets `cluster_generations_status='completed'` based on language flags only.
+3. The chunk-chain has no resumer when a `generate-cluster-chunk` invocation dies mid-flight (no error, no retry, no log).
 
-All 5 samples below: original 850-918 chars / 107-133 words. All truncated cleanly at sentence boundary, no ellipsis fallback used, all end on `.`. Coherence preserved (each truncation drops only the final summary sentence, retains the substance).
-
-| ID | Lang | Before | After | Loss |
-|----|------|--------|-------|------|
-| 0ddba9fc | es | 891c/133w | 757c/111w | Drops final summary sentence about plan validity |
-| 34337643 | es | 871c/128w | 665c/98w | Drops "over-reliance on single tool" closer |
-| 44a18652 | es | 850c/119w | 493c/69w | Drops final allocation sentence (most aggressive cut) |
-| 79aadacf | en | 850c/107w | 743c/94w | Drops "comprehensive compliance" closer |
-| 9d20c212 | es | 918c/132w | 717c/105w | Drops "proactively manage" closer |
-
-Full text in this thread above. Sample `44a18652` is the worst case: 357 chars dropped because the answer's only sentence boundaries were front-loaded. Still ends mid-thought-but-grammatical. **Recommendation:** pair the truncation pass with an AI-rewrite for any answer where post-truncation length < 500c (regenerate at 80-120w using Lovable AI). I'll bake this into the script.
-
----
-
-## Cluster Batch Jobs Status (smoke test recovery)
-
-Latest job:
-```
-id:            9e9eed7b-5cff-4401-9676-e826f9aba220
-status:        completed
-mode:          live
-current_index: 10 / 10
-build_count:   4
-skip_count:    6
-fail_count:    0
-current_topic: (empty — completed)
-started:       2026-04-27 05:04:53 UTC
-completed:     2026-04-27 07:15:01 UTC
-triggered_by:  431e15bd-… (you)
-```
-
-That run finished 4 builds / 6 skips. **Roth Conversion 2/6 status is NOT visible in this row** — no in-flight job exists. Either the prior run already completed silently (the 4 builds may be the Roth set), or the smoke test was on a different `cluster_topic`/manifest path. Need to query `cluster_step_logs` for that job ID to confirm — will include in next pass. No data lost; resuming requires a new triggered run.
+Wave 2.5 Fix #4 should add: **chain-health resumer** (re-fire missing funnel positions when `count(blog_articles WHERE cluster_id=X AND language='en') < 6`) — this is net-new, not a sanitization duplicate. The pre-insert sanitization line in the prior plan can be **removed**; PROMPT 24 already owns it.
 
 ---
 
-## Combined Ship Plan: Audit Steps 1-3 + PROMPT 25 Wave 2
+## FLAG 3 — Hardcoded "12 articles" strings (verified locations)
 
-### Files to edit (no overlap between audit + wave 2)
-
-**Audit Steps 1-3:**
-- `src/config/business.ts` — line 64-65 description, lines 73/74/76/81 address (pending your Q1 answer)
-- `src/constants/company.ts` — line 32 Google Maps embed URL
-- `src/pages/Home.tsx` — canonical → `/en/`, og:url → `/en/`, hreflang triplet
-- `public/_redirects` — `/  /en/  301` (single hop)
-- `public/robots.txt` — depending on Q2 answer
-- `public/sitemap-index.xml`, `public/sitemap.xml` — sync depending on Q2
-- `public/sitemaps/en/glossary.xml`, `public/sitemaps/es/glossary.xml` — delete (empty, no content backing)
-- `public/llms.txt`, `public/llm.txt`, `public/llms-full.txt`, `public/ai-sitemap.xml` — remove glossary refs; locations refs depend on Q2
-- `public/.well-known/ai-plugin.json` — remove broken `api.url` block
-
-**Wave 2:**
-- Migration: slug-suffix dedup (move `-en/-es/-nl/-sv` slugs to canonical via `url_redirects` table)
-- Migration: create `url_redirects` table (from + to + status_code + created_at)
-- Migration: language mismatch cleanup (rows where `language` ≠ slug language marker)
-- `functions/_middleware.js` — read `url_redirects` for 301s; ensure no double-hop on root
-
-### Database operations
-- `qa_pages`: invoke existing `fix-aeo-compliance` edge function with `{dryRun: false, contentType: "qa"}` — it already handles 211 violations using the exact logic verified above
-- Same function with `contentType: "blog"` and `contentType: "comparison"` for completeness
-- `blog_articles.canonical_url` backfill (30 rows): SQL UPDATE
-- `blog_articles.meta_description` backfill (14 rows): one-shot Deno script using Lovable AI
-
-### Verification curls (post-deploy)
 ```text
-curl -sI https://www.everencewealth.com/                     # expect 301 → /en/
-curl -sI https://www.everencewealth.com/en                   # expect 308 or 200 (no chain)
-curl -sL https://www.everencewealth.com/ | grep -c "San Francisco"   # expect 0
-curl -sL https://www.everencewealth.com/en/ | grep -E "canonical|og:url"   # expect /en/
-curl -sI https://www.everencewealth.com/sitemap-index.xml    # 200
-curl -s  https://www.everencewealth.com/llms.txt | grep -c "glossary"    # expect 0
-curl -s  https://www.everencewealth.com/sitemaps/en/glossary.xml         # expect 404
-psql -c "SELECT count(*) FROM qa_pages WHERE length(speakable_answer) > 800;"   # expect 0
-psql -c "SELECT count(*) FROM blog_articles WHERE is_published AND canonical_url IS NULL;"   # expect 0
+supabase/functions/translate-cluster/index.ts:735   message: '✅ All 12 articles generated and linked!'
+supabase/functions/translate-cluster/index.ts:1064  message: '✅ All 12 articles generated and linked!'
+supabase/functions/translate-cluster/index.ts:1072  completion_note: 'Bilingual cluster complete: 6 English articles + 6 Spanish translations (12 total)'
+supabase/functions/translate-cluster/index.ts:746   generated_articles: 12, total_articles: 12   (literal)
+supabase/functions/translate-cluster/index.ts:1067  total_articles: 12   (literal)
+supabase/functions/complete-cluster/index.ts:92     message: 'Cluster is already complete (6 English articles)'
 ```
+
+UI strings ("6 English articles" in `CreateClusterDialog.tsx`, `ClusterGenerator.tsx`, `ClusterManager.tsx`, `ImageSharingProgress.tsx`) are static copy describing the product — **leave those alone**, they're not lying about counts of a specific job.
+
+**Replacement plan for the runtime strings:**
+1. Before each `update({status:'completed', progress:{…}})`, query:
+   ```ts
+   const { count: enCount } = await supabase.from('blog_articles')
+     .select('id', { count: 'exact', head: true })
+     .eq('cluster_id', jobId).eq('language', 'en');
+   const { count: esCount } = await supabase.from('blog_articles')
+     .select('id', { count: 'exact', head: true })
+     .eq('cluster_id', jobId).eq('language', 'es');
+   const totalCount = (enCount ?? 0) + (esCount ?? 0);
+   ```
+2. Substitute into `progress.message`, `progress.generated_articles`, `progress.total_articles`, and `completion_note` using `enCount`, `esCount`, `totalCount`.
+3. **Gate the `completed` status** on `enCount === 6 && esCount === 6`. If not, write `status='partial'` + insert a `cluster_step_logs` row `action_taken='count_mismatch'`, `detail={expected_en:6, actual_en:enCount, expected_es:6, actual_es:esCount}`. This is the same gate I described in Wave 2.5 Fix #3 — Flag 3 just enforces the message reflects truth.
 
 ---
 
-## Two answers I need before shipping
+## Revised Combined Ship Plan (after your ack on flags 1–3)
 
-1. **Replacement address?** (option 1, 2, or 3 from Verification 1 above)
-2. **Locations sitemap fate?** (option 1, 2, or 3 from Verification 2 above)
+### A. Address consolidation
+- Update `src/pages/PrivacyPolicy.tsx` and `src/pages/TermsOfService.tsx` to import `BUSINESS` from `src/config/business.ts` and replace the `101 Montgomery` string. SF stays.
+- No changes to schema generators, i18n, or meta descriptions.
 
-Reply with two numbers (e.g. "Q1=2, Q2=1") and I'll execute the combined ship in one build pass. Person-schema enrichment (Step 4) still parked until you provide headshots + sameAs URLs.
+### B. Audit Steps 1–3
+- Homepage canonical/hreflang fixes.
+- Backfill `canonical_url` and `meta_description` on missing rows.
+- Speakable truncation: route all callers through `truncateForAEO(text, 800)`. **Strip HTML tags before counting** (the existing function already does this on line ~70 of `aeoUtils.ts`; verify no caller bypasses it).
+
+### C. Wave 2 (PROMPT 25)
+- Fix 3: slug deduplication migration + generator fix.
+- Fix 4: create `url_redirects` table, middleware lookup, language CHECK constraint.
+  - **HARD STOP** at audit gate: paste suspected language-mismatch rows for review before any UPDATE.
+- Fix 9: `/en/contact` canonical fix.
+
+### D. Wave 2.5 (pipeline repair)
+- **Drop** the body pre-validation work (PROMPT 24 already owns it).
+- Tighten `translate-cluster` lines 735 and 1064 with row-count verification (Flag 3 logic above).
+- Tighten `build-cluster-step` "built" gate (verify EN count == 6 before allowing `advanced_built`).
+- Replace all 4 hardcoded "12" strings with derived counts.
+- Add chunk-chain resumer: edge function (or `pg_cron` poll) that detects `cluster_generations.status='generating'` with `age > 5min` AND `count(blog_articles WHERE cluster_id=X AND language='en') < 6`, then re-fires `generate-cluster-chunk` for the missing funnel position.
+- Decouple image generation via `pg_cron` (unchanged from prior plan).
+- EN auto-publish (Option A) once `enCount===6 && esCount===6 && flagged_count===0`.
+
+### E. Migrations (3 files)
+1. Slug deduplication backfill.
+2. `url_redirects` table + language CHECK on `blog_articles`.
+3. Index on `blog_articles(cluster_id, language, status)` to speed the new count gates.
+
+### F. Order of operations
+1. **Now:** await your ack on flags 1, 2, 3 (this message — no code changes).
+2. **On ack:** ship A + B + C + D + E in single deploy.
+3. **Pause** at Wave 2 Fix 4 audit gate; paste rows.
+4. **On audit ack:** apply the language-mismatch UPDATEs.
+5. **Smoke test** `limit=10`. Verify: 10/10 clusters have EN=6 + ES=6, all bodies clean, no hardcoded "12" in any progress JSON, flagged_articles only on regex hits, no chunk-resumer firings.
+6. **If green:** approve overnight 65-cluster run.
+
+---
+
+## What I need from you
+Ack on:
+- **Flag 1:** 800 chars confirmed, 250 was a typo, no new samples needed.
+- **Flag 2:** PROMPT 24 intact; Wave 2.5 drops the redundant pre-validation and adds the chain-resumer instead.
+- **Flag 3:** 6 hardcoded strings replaced with derived counts; UI copy left as-is; status gated on real row counts.
+
+No code changes until you ack.
