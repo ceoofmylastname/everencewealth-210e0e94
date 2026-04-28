@@ -1,146 +1,127 @@
-# AI-SEO Audit — Everence Wealth
+# Verification Results + Combined Audit Steps 1-3 + PROMPT 25 Wave 2
 
-Scope: AEO (Answer Engine Optimization), GEO (Generative Engine Optimization), E-E-A-T, plus crawlability for Googlebot, GPTBot, ChatGPT-User, ClaudeBot, PerplexityBot, Google-Extended, Applebot-Extended.
+## Verification 1: "San Francisco" source location
 
-I fetched the live site as bots, parsed schemas, audited robots/sitemaps/llm files, and queried the database. Here is what I found and what I propose to fix.
+**Single source of truth:** `src/config/business.ts`
 
----
+| Line | Field | Current Value |
+|------|-------|---------------|
+| 64-65 | `description` | "Independent wealth architects… Serving clients in **San Francisco** and nationwide." |
+| 73 | `streetAddress` | "455 Market St Ste 1940 PMB 350011" |
+| 74 | `addressLocality` | "San Francisco" |
+| 76 | `postalCode` | "94105" |
+| 81 | `addressFormatted` | "455 Market St Ste 1940 PMB 350011, San Francisco, CA 94105" |
 
-## What is working well
+`COMPANY_ADDRESS` in `src/constants/company.ts` re-exports BUSINESS, so editing `business.ts` propagates everywhere (Home schema, footer, all JSON-LD). Zero hardcoded "San Francisco" elsewhere in `src/`.
 
-- robots.txt explicitly allows GPTBot, ChatGPT-User, ClaudeBot, anthropic-ai, PerplexityBot, Google-Extended, Applebot-Extended, cohere-ai, FacebookBot.
-- llm.txt, llms.txt, llms-full.txt, ai.txt, ai-plugin.json all return 200.
-- Q&A hub has 264 EN + 264 ES published pages with FAQPage + ItemList + BreadcrumbList JSON-LD.
-- Blog: 138 published articles, 100% have author_id and reviewer_id, no dead citations, all >2000 words. Excellent E-E-A-T.
-- Philosophy page has the full schema stack (WebPage + FinancialService + Person + BreadcrumbList + SpeakableSpecification).
-- speakable CSS class present on home, QA, blog, philosophy, strategy.
-- Bots receive same HTML as Googlebot (no cloaking; pre-rendered SSG works).
+**Also relevant:** `src/constants/company.ts` line 32 contains a hardcoded Google Maps embed URL pinning `455+Market+St` — needs swap.
 
----
-
-## Critical issues (fix first)
-
-### 1. Homepage redirect chain breaks crawl budget
-`/` → 301 → `/en` → 308 → `/en/`. Two hops on the most-linked URL. ChatGPT-User and PerplexityBot frequently follow only one hop.
-**Fix:** Single 301 from `/` directly to `/en/`. Update `public/_redirects` and Cloudflare middleware.
-
-### 2. Homepage canonical is wrong
-HTML canonical = `https://www.everencewealth.com` but the page actually serves at `/en/`. Mismatch confuses Google and AI crawlers about which URL to cite.
-**Fix:** Set canonical to `https://www.everencewealth.com/en/` in `src/pages/Home.tsx` and the Organization schema `url` field.
-
-### 3. Homepage description still says "San Francisco" — violates US-national + Pleasanton memory
-Live HTML and Organization JSON-LD: `"Specializing in tax-efficient retirement strategies… Serving clients in San Francisco and nationwide."` This is the description AI engines quote. The address block also still shows `455 Market St… San Francisco, CA 94105`.
-**Fix:** Replace with US-national, Steven Rosenberg authority copy. Use the canonical address from `src/constants/company.ts` (per existing memory). Update meta description, og:description, FinancialService schema description, and PostalAddress.
-
-### 4. Glossary sitemap is empty (0 URLs) and term page returned 404
-`sitemaps/en/glossary.xml` lists 0 URLs. `/en/glossary/finance-protection-pillar` returns 404 with title "Page no longer available." But `llms.txt` advertises `/en/glossary/` as a citation hub and the index page is in the AI sitemap.
-**Fix:** Decide — either rebuild glossary terms (per `mem://features/glossary-term-architecture`) and populate the sitemap, OR remove `/en/glossary/` and `/es/glossary/` from `llms.txt`, `ai-sitemap.xml`, and `sitemap-index.xml`. Recommend the latter unless content exists.
-
-### 5. robots.txt vs sitemap conflict on /locations
-robots.txt: `Disallow: /en/locations` and `Disallow: /es/locations`. But `sitemaps/en/locations.xml` has 36 URLs (Ohio, Dallas, Jacksonville, etc.) advertised. Crawlers get mixed signals; AI bots may discard the entire sitemap as untrustworthy.
-**Fix:** Remove the locations sitemap entries from `sitemap-index.xml` (and the `.xml` files), OR remove the Disallow if you actually want them indexed. Per `mem://project/cleanup-legacy-purge` Costa del Sol locations are purged — recommend removing the sitemap.
-
-### 6. 211 Q&A pages have speakable_answer >800 chars — fails AEO rules
-Hans' AEO rules in `src/lib/aeoUtils.ts` cap acceptedAnswer at 150 words / 800 chars. 211 of 528 published Q&As violate this. AI engines truncate or skip long answers when generating citations.
-**Fix:** Run a one-shot script to call `truncateForAEO()` on every `qa_pages.speakable_answer` >800 chars and persist the cleaned version. Optionally regenerate using Lovable AI (Gemini 3 Flash) to produce a tighter 80–120 word answer.
-
-### 7. Person schema has no `image` and no `sameAs`
-`PersonSchema.tsx` documents this as a TODO. Without a verified Person.image and Person.sameAs to authoritative profiles, E-E-A-T "Authoritativeness" is weak — this is the single biggest lever for ChatGPT/Perplexity citations.
-**Fix:** Add `/public/images/steven-blog.jpg` + `/public/images/steven-qa.jpg` (verified headshot), add `sameAs: [LinkedIn personal URL, Crunchbase, Muckrack, etc.]`, add `alumniOf`, `award`, `hasCredential` (state insurance license numbers).
+**Question for you:** What address replaces it? Per memory the target is "Pleasanton" but no street/zip is in the codebase. Options:
+1. Pleasanton CA mailing address (you provide street + zip)
+2. Drop street entirely → schema uses only `addressLocality: "Pleasanton"`, `addressRegion: "CA"`, `addressCountry: "US"` (valid PostalAddress, looser local-SEO signal)
+3. Keep address private; use only `areaServed: "US"` and remove PostalAddress block
 
 ---
 
-## High-priority issues
+## Verification 2: locations.xml contents — NOT Costa del Sol legacy
 
-### 8. 30 published blog articles missing canonical_url, 14 missing meta_description
-Inconsistent canonicals = duplicate-content risk. Missing meta_description = AI engines fall back to first paragraph, often citing the wrong sentence.
-**Fix:** Backfill via SQL — set `canonical_url = 'https://www.everencewealth.com/' || language || '/blog/' || slug` where NULL; generate missing meta_descriptions via Lovable AI from `detailed_content`.
+Both files contain real US wealth-strategy URLs. NOT safe to delete wholesale.
 
-### 9. 6 blog articles missing featured_image_url or alt
-Open Graph and Article schema both expect a primary image. AI engines (esp. Perplexity, Bing Copilot) prefer cited results with images.
-**Fix:** Backfill image + alt for those 6 rows.
+**EN: 35 URLs** — all `/en/locations/{city|state}/{strategy}` covering: LA, Seattle, NYC, Pennsylvania, San Diego, Ohio, Michigan, NC, San Francisco, Houston, Phoenix, Philadelphia, San Antonio, Charlotte, California, Austin, Indianapolis, Denver, DC, Boston, Georgia, Dallas, Florida, Arizona, Jacksonville, Columbus, Texas, NYC, Miami, Nevada, Colorado, Chicago, Indiana, Illinois.
 
-### 10. ai-plugin.json points to nonexistent OpenAPI spec
-`api.url = https://www.everencewealth.com/openapi.yaml` — that file does not exist. ChatGPT plugin discovery will mark the plugin invalid.
-**Fix:** Either publish a minimal `openapi.yaml` describing public read endpoints, or remove the `api` block (manifest-only is acceptable for retrieval-only sources).
+**ES: 21 URLs** — Spanish counterparts of subset above.
 
-### 11. llms.txt has stale references
-- Lists `/en/locations/` as a "most cited content hub" while robots.txt disallows it.
-- Lists `/en/glossary/` while glossary sitemap is empty.
-- Lists sitemap URLs that no longer match `sitemap-index.xml` order.
-**Fix:** Rewrite llms.txt to advertise only the hubs that actually have content (blog, qa, strategies, philosophy). Remove location and glossary lines unless content is restored.
+**Conflict diagnosis:** robots.txt `Disallow: /en/locations` blocks ALL of these. Either the Disallow is wrong, or the sitemap is wrong. Per `mem://project/cleanup-legacy-purge` "locations" was supposedly purged, but the URLs above are clearly current US strategy hubs.
 
-### 12. Homepage is thin (274 words rendered)
-Strategy page is also thin (297 words). AI engines weight content depth.
-**Fix:** Add a 400-word summary block on home (Three Tax Buckets / The Gap / Independent Difference text) ensuring it renders in pre-rendered HTML, not behind motion-only reveals. Same for each strategy page (target 800–1200 words).
+**Question for you (pick one):**
+1. **Keep locations live** → remove Disallow lines from robots.txt; keep sitemap; verify pages render (likely fix is just removing Disallow). Best for SEO.
+2. **Kill locations entirely** → delete both XMLs + sitemap-index entries + the `/en/locations/*` route + DB rows (whatever is rendering them). Aligns with purge memory but sacrifices 56 indexed pages.
+3. **Selective:** keep state-level pages (CA, FL, TX…), drop city-level. Need DB review of `locations` table to do this cleanly.
 
 ---
 
-## Medium-priority issues
+## Verification 3: AEO truncation samples (5 random Q&As, before → after)
 
-### 13. Strategy page robots tag is missing `max-video-preview` and `max-image-preview` consistency
-Home/QA/Glossary index use `max-image-preview:large, max-snippet:-1, max-video-preview:-1`. Strategy page uses only `max-image-preview:large, max-snippet:-1`. Make uniform across all public templates.
+All 5 samples below: original 850-918 chars / 107-133 words. All truncated cleanly at sentence boundary, no ellipsis fallback used, all end on `.`. Coherence preserved (each truncation drops only the final summary sentence, retains the substance).
 
-### 14. hreflang missing trailing slashes and uses bare domain
-Home: `hreflang="en" href="https://www.everencewealth.com"` but the served URL is `/en/`. Self-referencing hreflang must match canonical exactly. Same issue on x-default.
-**Fix:** Set `hreflang=en` to `/en/`, `hreflang=es` to `/es/`, `x-default` to `/en/`.
+| ID | Lang | Before | After | Loss |
+|----|------|--------|-------|------|
+| 0ddba9fc | es | 891c/133w | 757c/111w | Drops final summary sentence about plan validity |
+| 34337643 | es | 871c/128w | 665c/98w | Drops "over-reliance on single tool" closer |
+| 44a18652 | es | 850c/119w | 493c/69w | Drops final allocation sentence (most aggressive cut) |
+| 79aadacf | en | 850c/107w | 743c/94w | Drops "comprehensive compliance" closer |
+| 9d20c212 | es | 918c/132w | 717c/105w | Drops "proactively manage" closer |
 
-### 15. Add Speakable schema to QA and Blog index pages
-Speakable JSON-LD currently lives only on Philosophy. Add to BlogIndex and QA hub so Google Assistant / Alexa can read top answers aloud (a Google E-E-A-T ranking signal for finance YMYL content).
-
-### 16. Add `mainEntity` and `author`+`reviewedBy` to every QA page
-Already have author_id/reviewer_id in DB. Inject into JSON-LD as `Person` references (with sameAs to Steven Rosenberg `@id`). Highest-impact change for AI citation since it ties every answer to an authoritative person.
-
-### 17. Add `LocalBusiness` daily-hours and `priceRange` to FinancialService
-Both fields improve Knowledge-Panel eligibility, which strongly correlates with citation in AI Overviews.
+Full text in this thread above. Sample `44a18652` is the worst case: 357 chars dropped because the answer's only sentence boundaries were front-loaded. Still ends mid-thought-but-grammatical. **Recommendation:** pair the truncation pass with an AI-rewrite for any answer where post-truncation length < 500c (regenerate at 80-120w using Lovable AI). I'll bake this into the script.
 
 ---
 
-## What this plan will deliver
+## Cluster Batch Jobs Status (smoke test recovery)
 
+Latest job:
+```
+id:            9e9eed7b-5cff-4401-9676-e826f9aba220
+status:        completed
+mode:          live
+current_index: 10 / 10
+build_count:   4
+skip_count:    6
+fail_count:    0
+current_topic: (empty — completed)
+started:       2026-04-27 05:04:53 UTC
+completed:     2026-04-27 07:15:01 UTC
+triggered_by:  431e15bd-… (you)
+```
+
+That run finished 4 builds / 6 skips. **Roth Conversion 2/6 status is NOT visible in this row** — no in-flight job exists. Either the prior run already completed silently (the 4 builds may be the Roth set), or the smoke test was on a different `cluster_topic`/manifest path. Need to query `cluster_step_logs` for that job ID to confirm — will include in next pass. No data lost; resuming requires a new triggered run.
+
+---
+
+## Combined Ship Plan: Audit Steps 1-3 + PROMPT 25 Wave 2
+
+### Files to edit (no overlap between audit + wave 2)
+
+**Audit Steps 1-3:**
+- `src/config/business.ts` — line 64-65 description, lines 73/74/76/81 address (pending your Q1 answer)
+- `src/constants/company.ts` — line 32 Google Maps embed URL
+- `src/pages/Home.tsx` — canonical → `/en/`, og:url → `/en/`, hreflang triplet
+- `public/_redirects` — `/  /en/  301` (single hop)
+- `public/robots.txt` — depending on Q2 answer
+- `public/sitemap-index.xml`, `public/sitemap.xml` — sync depending on Q2
+- `public/sitemaps/en/glossary.xml`, `public/sitemaps/es/glossary.xml` — delete (empty, no content backing)
+- `public/llms.txt`, `public/llm.txt`, `public/llms-full.txt`, `public/ai-sitemap.xml` — remove glossary refs; locations refs depend on Q2
+- `public/.well-known/ai-plugin.json` — remove broken `api.url` block
+
+**Wave 2:**
+- Migration: slug-suffix dedup (move `-en/-es/-nl/-sv` slugs to canonical via `url_redirects` table)
+- Migration: create `url_redirects` table (from + to + status_code + created_at)
+- Migration: language mismatch cleanup (rows where `language` ≠ slug language marker)
+- `functions/_middleware.js` — read `url_redirects` for 301s; ensure no double-hop on root
+
+### Database operations
+- `qa_pages`: invoke existing `fix-aeo-compliance` edge function with `{dryRun: false, contentType: "qa"}` — it already handles 211 violations using the exact logic verified above
+- Same function with `contentType: "blog"` and `contentType: "comparison"` for completeness
+- `blog_articles.canonical_url` backfill (30 rows): SQL UPDATE
+- `blog_articles.meta_description` backfill (14 rows): one-shot Deno script using Lovable AI
+
+### Verification curls (post-deploy)
 ```text
-FILES TO EDIT
-  public/robots.txt
-  public/_redirects
-  public/llms.txt
-  public/llm.txt
-  public/ai-sitemap.xml
-  public/sitemap-index.xml
-  public/sitemap.xml
-  public/sitemaps/en/locations.xml      (delete)
-  public/sitemaps/es/locations.xml      (delete)
-  public/sitemaps/en/glossary.xml       (delete or repopulate)
-  public/sitemaps/es/glossary.xml       (delete or repopulate)
-  public/.well-known/ai-plugin.json
-  src/pages/Home.tsx                    (canonical, description, hreflang, schema)
-  src/components/schema/PersonSchema.tsx (image, sameAs, credentials)
-  src/pages/strategies/*.tsx            (robots tag uniformity, longer copy)
-  src/pages/BlogIndex.tsx               (Speakable schema)
-  src/pages/Qa*.tsx                     (Speakable schema, author/reviewer in mainEntity)
-
-DATABASE MIGRATIONS / SCRIPTS
-  - Backfill blog_articles.canonical_url where NULL  (30 rows)
-  - Backfill blog_articles.meta_description where missing/short (14 rows)
-  - Backfill blog_articles.featured_image_url + alt (6 rows)
-  - Truncate qa_pages.speakable_answer where >800 chars (211 rows)
-    using truncateForAEO() rules
-
-ASSETS YOU NEED TO PROVIDE
-  - /public/images/steven-blog.jpg    (verified headshot, 1200x1200)
-  - /public/images/steven-qa.jpg      (verified headshot, 800x800)
-  - LinkedIn / Crunchbase / Muckrack URLs for Person.sameAs
-  - State insurance license numbers (CA + 49 others) for hasCredential
+curl -sI https://www.everencewealth.com/                     # expect 301 → /en/
+curl -sI https://www.everencewealth.com/en                   # expect 308 or 200 (no chain)
+curl -sL https://www.everencewealth.com/ | grep -c "San Francisco"   # expect 0
+curl -sL https://www.everencewealth.com/en/ | grep -E "canonical|og:url"   # expect /en/
+curl -sI https://www.everencewealth.com/sitemap-index.xml    # 200
+curl -s  https://www.everencewealth.com/llms.txt | grep -c "glossary"    # expect 0
+curl -s  https://www.everencewealth.com/sitemaps/en/glossary.xml         # expect 404
+psql -c "SELECT count(*) FROM qa_pages WHERE length(speakable_answer) > 800;"   # expect 0
+psql -c "SELECT count(*) FROM blog_articles WHERE is_published AND canonical_url IS NULL;"   # expect 0
 ```
 
 ---
 
-## Suggested execution order (after approval)
+## Two answers I need before shipping
 
-1. Crawl + canonical fixes (issues 1, 2, 3, 14) — highest impact, lowest risk.
-2. Sitemap/robots reconciliation (issues 4, 5, 11).
-3. Database backfills (issues 6, 8, 9).
-4. Schema enrichment (issues 7, 15, 16, 17) — pending the assets you provide.
-5. Content depth (issue 12) — slowest to ship; can be staged.
-6. Final validation: re-fetch as Googlebot + GPTBot + PerplexityBot, validate JSON-LD with Schema.org validator, submit refreshed sitemap-index to IndexNow.
+1. **Replacement address?** (option 1, 2, or 3 from Verification 1 above)
+2. **Locations sitemap fate?** (option 1, 2, or 3 from Verification 2 above)
 
-Approve to proceed and I will start with steps 1–3 (crawl fixes + sitemap reconciliation + DB backfills) in the first build pass. I will pause before step 4 to collect your headshot/social-profile assets.
+Reply with two numbers (e.g. "Q1=2, Q2=1") and I'll execute the combined ship in one build pass. Person-schema enrichment (Step 4) still parked until you provide headshots + sameAs URLs.
