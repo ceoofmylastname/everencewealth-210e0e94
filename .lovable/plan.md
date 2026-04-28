@@ -1,26 +1,23 @@
-## Update ExamFX Contact Email
-
-The "ExamFX — Pre-Licensing Courses" card on the compliance page is sourced from the `compliance_resources` table. Currently it shows `kjenson@lifeconetwork.com`, which needs to be replaced with the new Everence/Agora contact.
+## Replace SureLC "Create Your Profile" Link
 
 ### Change
+In `src/pages/portal/advisor/contracting/SureLCSetup.tsx` (line 124), replace the `surelc_register` `url` value:
 
-Run a migration to update the single row:
-
-- **Table:** `public.compliance_resources`
-- **Row:** `id = 4c1371eb-40c9-4d48-a582-ab88e16ec95c` (title: "ExamFX — Pre-Licensing Courses")
-- **Field:** `contact_email`
-- **From:** `kjenson@lifeconetwork.com`
-- **To:** `info@agoraassurancesolutions.com`
-
-```sql
-UPDATE public.compliance_resources
-SET contact_email = 'info@agoraassurancesolutions.com',
-    updated_at = now()
-WHERE id = '4c1371eb-40c9-4d48-a582-ab88e16ec95c';
+**From:**
+```
+https://surelc.surancebay.com/sbweb/login.jsp?branch=Agora%20Assurance%20Solutions%20Corp&branchEditable=off&branchRequired=on&branchVisible=on&gaId=137&gaName=Southwest%20Annuities%20Marketing%20LLC
 ```
 
-### Verification
+**To:**
+```
+https://accounts.surancebay.com/oauth/authorize?redirect_uri=https:%2F%2Fsurelc.surancebay.com%2Fproducer%2Foauth%3FreturnUrl%3D%252Fprofile%252Fcontact-info%253FgaId%253D152%2526gaId%253D152%2526phone%253D7076857014%2526branch%253DEverence%252520Wealth%252520LLC%2526branchVisible%253Dtrue%2526branchEditable%253Dfalse%2526branchRequired%253Dtrue%2526dba%253DB%2526autoAdd%253Dfalse%2526requestMethod%253DGET&gaId=152&client_id=surecrmweb&response_type=code
+```
 
-After the migration runs, re-query the row to confirm and reload `/portal/advisor/compliance` (or wherever the ExamFX card renders) to verify the UI shows the new address.
+### Memory update
+Update `mem://portal/contracting/surelc-integration` to reflect:
+- New base: `accounts.surancebay.com/oauth/authorize` (OAuth flow, `client_id=surecrmweb`)
+- New `gaId=152`
+- New branch: `Everence Wealth LLC` (replaces `Agora Assurance Solutions Corp`)
 
-No code changes required — the card reads directly from the database.
+### Out of scope
+No DB changes, no other files. Button label, videos, and screenshot upload step remain unchanged.
