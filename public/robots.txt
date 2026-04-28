@@ -6,9 +6,6 @@ Disallow: /api/
 Disallow: /portal/
 Disallow: /_next/
 Disallow: /preview/
-# PROMPT 25 FIX 10: Costa del Sol legacy locations hubs (intentionally noindex)
-Disallow: /en/locations
-Disallow: /es/locations
 Crawl-delay: 1
 
 User-agent: Googlebot
