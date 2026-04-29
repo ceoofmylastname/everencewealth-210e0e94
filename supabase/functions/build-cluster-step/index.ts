@@ -409,6 +409,38 @@ serve(async (req) => {
         current_job_id: null,
         entry_started_at: null,
       }).eq("id", batch_job_id);
+
+      // Fire-and-forget IndexNow ping for the URLs of every published article
+      // in this freshly-completed cluster (EN + ES blogs and Q&As).
+      try {
+        const [{ data: blogs }, { data: qas }] = await Promise.all([
+          admin.from("blog_articles")
+            .select("slug, language, status")
+            .eq("cluster_id", g.id)
+            .eq("status", "published"),
+          admin.from("qa_pages")
+            .select("slug, language, status")
+            .eq("cluster_id", g.id)
+            .eq("status", "published"),
+        ]);
+        const urls: string[] = [];
+        for (const b of (blogs ?? []) as Array<{ slug: string; language: string }>) {
+          if (b.slug && b.language) urls.push(`https://www.everencewealth.com/${b.language}/blog/${b.slug}/`);
+        }
+        for (const q of (qas ?? []) as Array<{ slug: string; language: string }>) {
+          if (q.slug && q.language) urls.push(`https://www.everencewealth.com/${q.language}/qa/${q.slug}/`);
+        }
+        if (urls.length > 0) {
+          fetch(`${SUPABASE_URL}/functions/v1/ping-indexnow`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Authorization: `Bearer ${SERVICE_KEY}` },
+            body: JSON.stringify({ urls, source: "cluster_complete" }),
+          }).catch((e) => console.error("[build-cluster-step] indexnow fire-and-forget error (ignored):", e));
+        }
+      } catch (e) {
+        console.error("[build-cluster-step] indexnow ping prep failed (non-fatal):", e);
+      }
+
       await logStep(admin, batch_job_id, idx, c.topic, g.id, g.status,
         isPartial ? "advanced_built_partial" : "advanced_built",
         {
