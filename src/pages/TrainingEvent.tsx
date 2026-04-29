@@ -8,16 +8,15 @@ import { toast } from "@/hooks/use-toast";
 import { ArrowRight, Calendar, MapPin, Clock, Loader2, CheckCircle2, ChevronRight, ChevronLeft, Check, Star } from "lucide-react";
 import confetti from "canvas-confetti";
 const sessionHighlights = [
-    { time: "10:30 AM", title: "Registration & Check-In" },
-    { time: "11:00 AM", title: "Financial Workshop Begins" },
+    { time: "9:30 AM", title: "Registration & Check-In" },
+    { time: "10:00 AM", title: "Financial Workshop Begins" },
     { title: "Welcome & Introductions" },
     { title: "Everence Product Portfolio Overview" },
     { title: "Values-Based Financial Planning Strategies" },
     { title: "Client Communication & Engagement" },
     { title: "Compliance & Regulatory Updates" },
     { title: "Case Studies & Workshop Sessions" },
-    { title: "Q&A Panel with Everence Advisors" },
-    { time: "4:00 PM", title: "Closing Remarks" }
+    { title: "Q&A Panel with Everence Advisors" }
 ];
 
 export default function TrainingEvent() {

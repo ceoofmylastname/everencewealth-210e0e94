@@ -1,31 +1,28 @@
-# Reschedule Broker Training: March 21 → June 27, 2026
+# Update Broker Training Times (June 27, 2026)
 
-Live page: https://www.everencewealth.com/broker-training
-June 27, 2026 is a Saturday, so "Saturday" copy stays correct.
+New times across the landing page and all connected emails:
+- Registration: **9:30 AM PT**
+- Event start: **10:00 AM PT**
+- **No end time** mentioned anywhere
 
 ## Changes
 
-**1. `src/pages/TrainingEvent.tsx`** (the /broker-training landing page)
-- `March 21, 2026` → `June 27, 2026`
-- `MARCH 21, 2026` → `JUNE 27, 2026`
-- `Saturday, March 21` → `Saturday, June 27`
-- `leading up to March 21` → `leading up to June 27`
+**1. `src/pages/TrainingEvent.tsx`** (the `/broker-training` page)
+- Line 11: `"10:30 AM"` Registration → `"9:30 AM"`
+- Line 12: `"11:00 AM"` Financial Workshop Begins → `"10:00 AM"`
+- Line 20: Remove the `{ time: "4:00 PM", title: "Closing Remarks" }` agenda item (drops the end time entirely)
+- Line 180: `Registration 10:30 AM | Event 11:00 AM – 4:00 PM PT` → `Registration 9:30 AM | Event 10:00 AM PT`
+- Line 407: `11:00 AM – 4:00 PM PT` → `10:00 AM PT`
 
-**2. `src/pages/portal/admin/AdminAgents.tsx`**
-- CRM tab label `March 21st Event` → `June 27th Event`
+**2. `supabase/functions/register-training-event/index.ts`** (registration confirmation email)
+- Line 76: `Registration: 10:30 AM PST` → `Registration: 9:30 AM PT`
+- Line 77: `Event: 11:00 AM – 4:00 PM PST` → `Event: 10:00 AM PT` (end time removed)
 
-**3. `supabase/functions/register-training-event/index.ts`** (registration confirmation email)
-- Body copy: `... on March 21st` → `... on June 27th`
-- Event details line: `Date: March 21st, 2026` → `Date: June 27th, 2026`
-- Keep DB `status: "March21Event"` value unchanged so existing registrants stay linked to the reminder pipeline. Add a code comment noting it's a legacy key for the rescheduled June 27 event.
+**3. `supabase/functions/process-training-reminders/index.ts`** (10-day / 5-day / 24-hour reminder emails)
+- Line 13–14: Update `EVENT_DATETIME` constant to `new Date("2026-06-27T10:00:00-07:00")` and refresh the comment to reflect the new 10:00 AM PDT start. This keeps reminder timing accurate (10-day, 5-day, 24-hour countdowns).
+- Line 93: `Registration: 10:30 AM PST` → `Registration: 9:30 AM PT`
+- Line 94: `Event: 11:00 AM – 4:00 PM PST` → `Event: 10:00 AM PT` (end time removed)
 
-**4. `supabase/functions/process-training-reminders/index.ts`** (10-day / 5-day / 24-hour reminder emails)
-- `EVENT_DATETIME` constant → `new Date("2026-06-27T11:00:00-07:00")` (PDT, same offset)
-- Update the date-math comment above it
-- Email subject/body: `March 21st Broker Training` → `June 27th Broker Training`
-- Email details line: `Saturday, March 21, 2026` → `Saturday, June 27, 2026`
-- Keep the `.eq("status", "March21Event")` query filter unchanged
-
-## Unchanged
-- Time (11:00 AM PT), location (Andaz Napa), registration window
-- `register-socorro-booking` (different Socorro ISD event, not broker training)
+## Notes
+- Date (Saturday, June 27, 2026), location (Andaz Napa), and the database status key `"March21Event"` remain unchanged.
+- Switching the timezone label from `PST` to `PT` since June is daylight time (PDT); `PT` is correct year-round and consistent with the landing page copy.
