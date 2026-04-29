@@ -48,11 +48,6 @@ const Contact: React.FC = () => {
         closes: '17:00'
       }
     ],
-    aggregateRating: {
-      '@type': 'AggregateRating',
-      ratingValue: '4.9',
-      reviewCount: COMPANY_FACTS.happyClients
-    },
     areaServed: {
       '@type': 'Country',
       name: 'United States'

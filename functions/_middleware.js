@@ -41,6 +41,13 @@ const TWO_SEGMENT_CATCHALL_REGEX =
 // weren't indexing. Match with or without trailing slash.
 // ============================================================
 const STATIC_ROUTE_EXEMPT = new Set([
+  // PROMPT 26 Fix 1A/1B: index hubs + assessment lang-prefixed alias
+  '/en/strategies', '/en/strategies/',
+  '/es/strategies', '/es/strategies/',
+  '/en/estrategias', '/en/estrategias/',
+  '/es/estrategias', '/es/estrategias/',
+  '/en/assessment', '/en/assessment/',
+  '/es/assessment', '/es/assessment/',
   '/en/strategies/iul', '/en/strategies/iul/',
   '/en/strategies/whole-life', '/en/strategies/whole-life/',
   '/en/strategies/tax-free-retirement', '/en/strategies/tax-free-retirement/',
@@ -387,6 +394,28 @@ async function buildResponse({ request, next, env, ctx }) {
 
   const pathname = url.pathname;
 
+  // ============================================================
+  // PROMPT 26 Fix 5: IndexNow ownership-proof key file. Must run
+  // BEFORE STRUCTURAL_410_PATTERNS, REDIRECT_MAP, and the SPA/SSR
+  // fallback so Cloudflare Pages does not intercept it. The key
+  // mirrors `public/<KEY>.txt` and the INDEXNOW_KEY secret used by
+  // supabase/functions/ping-indexnow/index.ts.
+  // ============================================================
+  const INDEXNOW_KEY = '6ef3ee9b142c08d0d1766cbca6419279d3558d720518d27ce752a79fba85da93';
+  if (
+    pathname === `/${INDEXNOW_KEY}.txt` ||
+    pathname === '/indexnow.txt'
+  ) {
+    return new Response(INDEXNOW_KEY, {
+      status: 200,
+      headers: {
+        'Content-Type': 'text/plain; charset=utf-8',
+        'Cache-Control': 'public, max-age=86400',
+        'X-Middleware-Status': 'Active',
+      },
+    });
+  }
+
   // Adds a debug header so we can verify middleware execution in the Network tab.
   function withMiddlewareStatus(response) {
     const headers = new Headers(response.headers);
@@ -409,8 +438,17 @@ async function buildResponse({ request, next, env, ctx }) {
     '/indexed-universal-life-insurance/introduction': '/en/strategies/iul/',
     '/schedule': '/en/contact/',
     '/financial-needs-assessment': '/en/assessment/',
-    '/en/strategies': '/en/',
-    '/es/strategies': '/es/',
+    // PROMPT 26 Fix 1A: removed `/en/strategies → /en/` and `/es/strategies → /es/`.
+    // Those entries neutered the new index hub. Strategy index pages now SSR
+    // via scripts/generateStaticStrategiesIndex.ts (see STATIC_ROUTE_EXEMPT).
+    // PROMPT 26 Fix 2: foundational Q&A what-is-iul deleted in PROMPT 23
+    // cleanup. Redirect to the strategy detail page (closest BOFU intent).
+    '/en/qa/what-is-iul': '/en/strategies/iul/',
+    '/en/qa/what-is-iul/': '/en/strategies/iul/',
+    '/es/qa/what-is-iul': '/es/estrategias/seguro-universal-indexado/',
+    '/es/qa/what-is-iul/': '/es/estrategias/seguro-universal-indexado/',
+    '/es/qa/que-es-iul': '/es/estrategias/seguro-universal-indexado/',
+    '/es/qa/que-es-iul/': '/es/estrategias/seguro-universal-indexado/',
     '/en/tax-bucket-guide': '/en/strategies/tax-free-retirement/',
     '/es/tax-bucket-guide': '/es/',
     '/en/calculator': '/en/',

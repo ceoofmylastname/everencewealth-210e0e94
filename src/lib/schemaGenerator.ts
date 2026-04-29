@@ -368,44 +368,6 @@ export function generateBOFUProductSchema(
         "url": baseUrl
       }
     },
-    "aggregateRating": {
-      "@type": "AggregateRating",
-      "ratingValue": "4.9",
-      "bestRating": "5",
-      "worstRating": "1",
-      "ratingCount": "67",
-      "reviewCount": "62"
-    },
-    "review": [
-      {
-        "@type": "Review",
-        "author": {
-          "@type": "Person",
-          "name": "James Richardson"
-        },
-        "reviewRating": {
-          "@type": "Rating",
-          "ratingValue": "5",
-          "bestRating": "5"
-        },
-        "reviewBody": "Exceptional service from Everence Wealth. They guided us through every step of our retirement planning strategy.",
-        "datePublished": "2024-06-15"
-      },
-      {
-        "@type": "Review",
-        "author": {
-          "@type": "Person",
-          "name": "Maria van der Berg"
-        },
-        "reviewRating": {
-          "@type": "Rating",
-          "ratingValue": "5",
-          "bestRating": "5"
-        },
-        "reviewBody": "Professional, knowledgeable, and truly understood our needs. Found us the perfect wealth strategy.",
-        "datePublished": "2024-08-22"
-      }
-    ],
     "url": `${baseUrl}/blog/${article.slug}`,
     "image": article.featured_image_url
   };

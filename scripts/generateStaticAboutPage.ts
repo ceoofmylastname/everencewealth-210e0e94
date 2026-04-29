@@ -184,14 +184,7 @@ function generateOrganizationSchema(content: AboutPageData) {
     "areaServed": [businessAreaServed()],
     "address": businessPostalAddress(),
     "contactPoint": [businessContactPoint()],
-    "sameAs": [...BUSINESS.sameAs],
-    "aggregateRating": {
-      "@type": "AggregateRating",
-      "ratingValue": "4.9",
-      "reviewCount": (content.properties_sold || 500).toString(),
-      "bestRating": "5",
-      "worstRating": "1"
-    }
+    "sameAs": [...BUSINESS.sameAs]
   };
 }
 
@@ -224,7 +217,17 @@ function generatePersonSchemas(founders: Founder[]) {
     // Per schema.org, Person.sameAs must point to pages ABOUT THAT PERSON;
     // a company LinkedIn page is NOT valid here.
     "worksFor": { "@id": `${BASE_URL}/#organization` },
-    "knowsAbout": ["wealth management Financial Planning", founder.specialization, "Spanish Property Market"],
+    "knowsAbout": [
+      "Indexed Universal Life Insurance",
+      "Tax-Free Retirement Income",
+      "Roth Conversion Strategies",
+      "Sequence of Returns Risk",
+      "High-Earner Tax Strategy",
+      "Whole Life Insurance",
+      "Annuities",
+      "Asset Protection Planning",
+      "Cash-Value Life Insurance"
+    ],
     "knowsLanguage": founder.languages?.map(lang => ({ "@type": "Language", "name": lang })) || []
   }));
 }
