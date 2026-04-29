@@ -68,6 +68,7 @@ const IndexedUniversalLife = lazy(() => import("./pages/strategies/IndexedUniver
 const WholeLife = lazy(() => import("./pages/strategies/WholeLife"));
 const TaxFreeRetirement = lazy(() => import("./pages/strategies/TaxFreeRetirement"));
 const AssetProtection = lazy(() => import("./pages/strategies/AssetProtection"));
+const StrategiesIndex = lazy(() => import("./pages/strategies/StrategiesIndex"));
 const Team = lazy(() => import("./pages/Team"));
 const TeamMember = lazy(() => import("./pages/TeamMember"));
 const ClientStories = lazy(() => import("./pages/ClientStories"));
@@ -534,6 +535,10 @@ const App = () => (
               <Route path="/:lang/philosophy" element={<Philosophy />} />
 
               {/* Strategy pages */}
+              <Route path="/:lang/strategies" element={<StrategiesIndex />} />
+              <Route path="/:lang/strategies/" element={<StrategiesIndex />} />
+              <Route path="/:lang/estrategias" element={<StrategiesIndex />} />
+              <Route path="/:lang/estrategias/" element={<StrategiesIndex />} />
               <Route path="/:lang/strategies/iul" element={<IndexedUniversalLife />} />
               <Route path="/:lang/estrategias/seguro-universal-indexado" element={<IndexedUniversalLife />} />
               <Route path="/:lang/strategies/whole-life" element={<WholeLife />} />
@@ -542,6 +547,10 @@ const App = () => (
               <Route path="/:lang/estrategias/retiro-libre-impuestos" element={<TaxFreeRetirement />} />
               <Route path="/:lang/strategies/asset-protection" element={<AssetProtection />} />
               <Route path="/:lang/estrategias/proteccion-de-activos" element={<AssetProtection />} />
+
+              {/* Assessment — lang-prefixed alias of /assessment */}
+              <Route path="/:lang/assessment" element={<Assessment />} />
+              <Route path="/:lang/assessment/" element={<Assessment />} />
 
               <Route path="/buyers-guide" element={<Navigate to="/en/buyers-guide" replace />} />
               <Route path="/:lang/buyers-guide" element={<BuyersGuide />} />
