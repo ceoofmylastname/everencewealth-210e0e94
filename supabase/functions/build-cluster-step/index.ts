@@ -27,6 +27,8 @@ const INCOME_PATTERNS: { pattern: RegExp; label: string }[] = [
   { pattern: /\btop[-\s]?(earner|earning|paid|paying)\b/i, label: "top_earner" },
   { pattern: /\b(highest|best)[-\s]?(paid|paying)\b/i, label: "best_paying" },
   { pattern: /\b\$\s?\d[\d,.]*\s*(k|m|million|grand)\b/i, label: "dollar_shorthand" },
+  { pattern: /\bsign[-\s]?on\s+bonus\b/i, label: "signon_bonus" },
+  { pattern: /\boverride\s+schedule\b/i, label: "override_schedule" },
 ];
 
 function scanText(text: string): { pattern: string; excerpt: string } | null {
@@ -254,6 +256,37 @@ serve(async (req) => {
         current_topic: c.topic,
         entry_started_at: new Date().toISOString(),
       }).eq("id", batch_job_id);
+
+      // Seed cluster_completion_progress so the dashboard tracks this build
+      // from the first article onward (PROMPT 27 sync trigger only UPDATEs).
+      // Recruiting clusters carry tier_1 + compliance_class metadata; wealth
+      // clusters get a neutral baseline row with no JSONB metadata change.
+      {
+        const isRecruiting = c.compliance_class === "recruiting_no_income_claims";
+        const progressRow: Record<string, unknown> = {
+          cluster_id: jobId,
+          cluster_theme: c.name,
+          total_articles_needed: 60,
+          status: "in_progress",
+          articles_completed: 0,
+          english_articles: 0,
+          translations_completed: 0,
+          priority_score: c.id,
+          last_updated: new Date().toISOString(),
+          started_at: new Date().toISOString(),
+        };
+        if (isRecruiting) {
+          progressRow.tier = "tier_1";
+          progressRow.languages_status = { compliance_class: "recruiting_no_income_claims" };
+        }
+        const { error: progErr } = await admin
+          .from("cluster_completion_progress")
+          .upsert(progressRow, { onConflict: "cluster_id" });
+        if (progErr) {
+          console.error("[build-cluster-step] progress upsert failed (non-fatal):", progErr.message);
+        }
+      }
+
       await logStep(admin, batch_job_id, idx, c.topic, jobId, null, "fired_generate",
         { jobId, name: c.name });
       await releaseLock(admin, batch_job_id);
@@ -376,6 +409,38 @@ serve(async (req) => {
         current_job_id: null,
         entry_started_at: null,
       }).eq("id", batch_job_id);
+
+      // Fire-and-forget IndexNow ping for the URLs of every published article
+      // in this freshly-completed cluster (EN + ES blogs and Q&As).
+      try {
+        const [{ data: blogs }, { data: qas }] = await Promise.all([
+          admin.from("blog_articles")
+            .select("slug, language, status")
+            .eq("cluster_id", g.id)
+            .eq("status", "published"),
+          admin.from("qa_pages")
+            .select("slug, language, status")
+            .eq("cluster_id", g.id)
+            .eq("status", "published"),
+        ]);
+        const urls: string[] = [];
+        for (const b of (blogs ?? []) as Array<{ slug: string; language: string }>) {
+          if (b.slug && b.language) urls.push(`https://www.everencewealth.com/${b.language}/blog/${b.slug}/`);
+        }
+        for (const q of (qas ?? []) as Array<{ slug: string; language: string }>) {
+          if (q.slug && q.language) urls.push(`https://www.everencewealth.com/${q.language}/qa/${q.slug}/`);
+        }
+        if (urls.length > 0) {
+          fetch(`${SUPABASE_URL}/functions/v1/ping-indexnow`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Authorization: `Bearer ${SERVICE_KEY}` },
+            body: JSON.stringify({ urls, source: "cluster_complete" }),
+          }).catch((e) => console.error("[build-cluster-step] indexnow fire-and-forget error (ignored):", e));
+        }
+      } catch (e) {
+        console.error("[build-cluster-step] indexnow ping prep failed (non-fatal):", e);
+      }
+
       await logStep(admin, batch_job_id, idx, c.topic, g.id, g.status,
         isPartial ? "advanced_built_partial" : "advanced_built",
         {
