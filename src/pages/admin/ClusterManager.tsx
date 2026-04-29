@@ -16,7 +16,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Search, Loader2, FolderOpen, RefreshCw, Link2, AlertTriangle, PlayCircle, Plus, ImageIcon, BarChart3 } from "lucide-react";
+import { Search, Loader2, FolderOpen, RefreshCw, Link2, AlertTriangle, PlayCircle, Plus, ImageIcon, BarChart3, Rocket } from "lucide-react";
 import { toast } from "sonner";
 import { ClusterCard } from "@/components/admin/cluster-manager/ClusterCard";
 import { CreateClusterDialog } from "@/components/admin/cluster-manager/CreateClusterDialog";
@@ -61,6 +61,8 @@ const ClusterManager = () => {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showBulkImageDialog, setShowBulkImageDialog] = useState(false);
   const [showDashboard, setShowDashboard] = useState(true);
+  const [showRecruitingBuildConfirm, setShowRecruitingBuildConfirm] = useState(false);
+  const [launchingRecruitingBuild, setLaunchingRecruitingBuild] = useState(false);
   
   // Dashboard stats
   const { data: dashboardStats, isLoading: isLoadingStats } = useClusterManagerStats();
@@ -1107,6 +1109,24 @@ setTranslationProgress({
             <Button onClick={() => setShowCreateDialog(true)}>
               <Plus className="mr-2 h-4 w-4" />
               Create New Cluster
+            </Button>
+            <Button
+              variant="default"
+              className="bg-amber-600 hover:bg-amber-700 text-white"
+              onClick={() => setShowRecruitingBuildConfirm(true)}
+              disabled={launchingRecruitingBuild}
+            >
+              {launchingRecruitingBuild ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Launching...
+                </>
+              ) : (
+                <>
+                  <Rocket className="mr-2 h-4 w-4" />
+                  Bulk Build 51–75 (Live)
+                </>
+              )}
             </Button>
             <Button 
               variant="outline"
