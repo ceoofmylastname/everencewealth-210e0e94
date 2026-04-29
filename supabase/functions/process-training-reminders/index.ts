@@ -10,8 +10,8 @@ function brandedEmailWrapper(subtitle: string, innerHtml: string): string {
 }
 
 // Event rescheduled from March 21 to June 27, 2026.
-// 2026-06-27T11:00:00 PDT = 2026-06-27T18:00:00Z (PDT = UTC-7).
-const EVENT_DATETIME = new Date("2026-06-27T11:00:00-07:00").getTime();
+// 2026-06-27T10:00:00 PDT = 2026-06-27T17:00:00Z (PDT = UTC-7).
+const EVENT_DATETIME = new Date("2026-06-27T10:00:00-07:00").getTime();
 
 const REMINDERS = [
     {
@@ -90,8 +90,8 @@ Deno.serve(async (req) => {
             <h2 style="color:#1A4D3E;font-size:20px;margin:16px 0 8px;font-family:Georgia,serif;">June 27th Broker Training</h2>
             <div style="background:#f9fafb;border-radius:8px;padding:16px;margin:16px 0;">
               <p style="margin:0 0 8px;color:#4A5565;font-size:14px;">📅 <strong>Date:</strong> Saturday, June 27, 2026</p>
-              <p style="margin:0 0 8px;color:#4A5565;font-size:14px;">🕐 <strong>Registration:</strong> 10:30 AM PST</p>
-              <p style="margin:0 0 8px;color:#4A5565;font-size:14px;">🕐 <strong>Event:</strong> 11:00 AM – 4:00 PM PST</p>
+              <p style="margin:0 0 8px;color:#4A5565;font-size:14px;">🕐 <strong>Registration:</strong> 9:30 AM PT</p>
+              <p style="margin:0 0 8px;color:#4A5565;font-size:14px;">🕐 <strong>Event:</strong> 10:00 AM PT</p>
               <p style="margin:0;color:#4A5565;font-size:14px;">📍 <strong>Location:</strong> Andaz Napa</p>
             </div>
             <p style="color:#4A5565;line-height:1.6;font-size:16px;margin:0 0 16px;">Get ready for a focused, full-day program designed to deepen your expertise in values-based financial planning, strengthen client engagement strategies, and expand your knowledge.</p>
