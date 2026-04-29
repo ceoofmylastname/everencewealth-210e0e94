@@ -27,6 +27,8 @@ const INCOME_PATTERNS: { pattern: RegExp; label: string }[] = [
   { pattern: /\btop[-\s]?(earner|earning|paid|paying)\b/i, label: "top_earner" },
   { pattern: /\b(highest|best)[-\s]?(paid|paying)\b/i, label: "best_paying" },
   { pattern: /\b\$\s?\d[\d,.]*\s*(k|m|million|grand)\b/i, label: "dollar_shorthand" },
+  { pattern: /\bsign[-\s]?on\s+bonus\b/i, label: "signon_bonus" },
+  { pattern: /\boverride\s+schedule\b/i, label: "override_schedule" },
 ];
 
 function scanText(text: string): { pattern: string; excerpt: string } | null {
@@ -254,6 +256,37 @@ serve(async (req) => {
         current_topic: c.topic,
         entry_started_at: new Date().toISOString(),
       }).eq("id", batch_job_id);
+
+      // Seed cluster_completion_progress so the dashboard tracks this build
+      // from the first article onward (PROMPT 27 sync trigger only UPDATEs).
+      // Recruiting clusters carry tier_1 + compliance_class metadata; wealth
+      // clusters get a neutral baseline row with no JSONB metadata change.
+      {
+        const isRecruiting = c.compliance_class === "recruiting_no_income_claims";
+        const progressRow: Record<string, unknown> = {
+          cluster_id: jobId,
+          cluster_theme: c.name,
+          total_articles_needed: 60,
+          status: "in_progress",
+          articles_completed: 0,
+          english_articles: 0,
+          translations_completed: 0,
+          priority_score: c.id,
+          last_updated: new Date().toISOString(),
+          started_at: new Date().toISOString(),
+        };
+        if (isRecruiting) {
+          progressRow.tier = "tier_1";
+          progressRow.languages_status = { compliance_class: "recruiting_no_income_claims" };
+        }
+        const { error: progErr } = await admin
+          .from("cluster_completion_progress")
+          .upsert(progressRow, { onConflict: "cluster_id" });
+        if (progErr) {
+          console.error("[build-cluster-step] progress upsert failed (non-fatal):", progErr.message);
+        }
+      }
+
       await logStep(admin, batch_job_id, idx, c.topic, jobId, null, "fired_generate",
         { jobId, name: c.name });
       await releaseLock(admin, batch_job_id);
