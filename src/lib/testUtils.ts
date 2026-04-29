@@ -2007,22 +2007,25 @@ export async function testPhase21(): Promise<TestResult[]> {
     };
     
     const productSchema = generateBOFUProductSchema(testArticle);
-    
-    const hasRequired = productSchema && 
+
+    // PROMPT 26 Fix 4: aggregateRating + review array stripped from
+    // generateBOFUProductSchema (fabricated data violated Google policy).
+    // Test now asserts the schema is well-formed AND free of fake ratings.
+    const hasRequired = productSchema &&
       productSchema['@type'] === 'Product' &&
-      productSchema.aggregateRating?.ratingValue &&
-      productSchema.aggregateRating?.ratingCount &&
-      productSchema.offers;
-    
+      productSchema.offers &&
+      !productSchema.aggregateRating &&
+      !productSchema.review;
+
     results.push({
       name: 'BOFU Product Schema Generation',
       status: hasRequired ? 'pass' : 'fail',
-      message: hasRequired 
-        ? '✓ Product schema with aggregateRating generates correctly'
-        : '✗ Product schema missing required fields',
+      message: hasRequired
+        ? '✓ Product schema generates correctly without fabricated reviews'
+        : '✗ Product schema malformed or contains forbidden aggregateRating/review',
       details: hasRequired
-        ? `Rating: ${productSchema.aggregateRating.ratingValue}/5 (${productSchema.aggregateRating.ratingCount} ratings)`
-        : 'Missing: @type, aggregateRating, or offers'
+        ? 'Type: Product with offers; aggregateRating + review intentionally absent'
+        : 'Expected: Product + offers, no aggregateRating, no review'
     });
   } catch (error: any) {
     results.push({
