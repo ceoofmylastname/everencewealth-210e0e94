@@ -1483,6 +1483,53 @@ setTranslationProgress({
           }}
         />
 
+        {/* Recruiting Bulk Build Confirm */}
+        <AlertDialog open={showRecruitingBuildConfirm} onOpenChange={setShowRecruitingBuildConfirm}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Launch Recruiting Bulk Build (Clusters 51–75)?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This will invoke <code>bulk-build-clusters</code> in <strong>live</strong> mode with
+                <code> start_from=51</code>, <code>limit=25</code>. Estimated runtime ~13.5h and
+                $75–$130 in Anthropic API costs. This action bills real tokens.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={launchingRecruitingBuild}>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                disabled={launchingRecruitingBuild}
+                onClick={async (e) => {
+                  e.preventDefault();
+                  setLaunchingRecruitingBuild(true);
+                  try {
+                    const { data, error } = await supabase.functions.invoke("bulk-build-clusters", {
+                      body: { start_from: 51, limit: 25, mode: "live" },
+                    });
+                    if (error) throw error;
+                    toast.success(
+                      `Bulk build launched. Batch ID: ${data?.batch_id || "queued"}. Monitor progress at /admin/bulk-cluster-batches.`
+                    );
+                    setShowRecruitingBuildConfirm(false);
+                  } catch (err: any) {
+                    toast.error(`Failed to launch bulk build: ${err?.message || "Unknown error"}`);
+                  } finally {
+                    setLaunchingRecruitingBuild(false);
+                  }
+                }}
+              >
+                {launchingRecruitingBuild ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Launching...
+                  </>
+                ) : (
+                  "Launch Live Build"
+                )}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
         {/* Bulk Image Regeneration Dialog */}
         <BulkImageRegenerationDialog
           open={showBulkImageDialog}
