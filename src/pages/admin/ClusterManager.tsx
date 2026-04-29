@@ -16,7 +16,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Search, Loader2, FolderOpen, RefreshCw, Link2, AlertTriangle, PlayCircle, Plus, ImageIcon, BarChart3 } from "lucide-react";
+import { Search, Loader2, FolderOpen, RefreshCw, Link2, AlertTriangle, PlayCircle, Plus, ImageIcon, BarChart3, Rocket } from "lucide-react";
 import { toast } from "sonner";
 import { ClusterCard } from "@/components/admin/cluster-manager/ClusterCard";
 import { CreateClusterDialog } from "@/components/admin/cluster-manager/CreateClusterDialog";
@@ -61,6 +61,8 @@ const ClusterManager = () => {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showBulkImageDialog, setShowBulkImageDialog] = useState(false);
   const [showDashboard, setShowDashboard] = useState(true);
+  const [showRecruitingBuildConfirm, setShowRecruitingBuildConfirm] = useState(false);
+  const [launchingRecruitingBuild, setLaunchingRecruitingBuild] = useState(false);
   
   // Dashboard stats
   const { data: dashboardStats, isLoading: isLoadingStats } = useClusterManagerStats();
@@ -1108,6 +1110,24 @@ setTranslationProgress({
               <Plus className="mr-2 h-4 w-4" />
               Create New Cluster
             </Button>
+            <Button
+              variant="default"
+              className="bg-amber-600 hover:bg-amber-700 text-white"
+              onClick={() => setShowRecruitingBuildConfirm(true)}
+              disabled={launchingRecruitingBuild}
+            >
+              {launchingRecruitingBuild ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Launching...
+                </>
+              ) : (
+                <>
+                  <Rocket className="mr-2 h-4 w-4" />
+                  Bulk Build 51–75 (Live)
+                </>
+              )}
+            </Button>
             <Button 
               variant="outline"
               onClick={() => setShowBulkImageDialog(true)}
@@ -1462,6 +1482,53 @@ setTranslationProgress({
             queryClient.invalidateQueries({ queryKey: ["cluster-jobs"] });
           }}
         />
+
+        {/* Recruiting Bulk Build Confirm */}
+        <AlertDialog open={showRecruitingBuildConfirm} onOpenChange={setShowRecruitingBuildConfirm}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Launch Recruiting Bulk Build (Clusters 51–75)?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This will invoke <code>bulk-build-clusters</code> in <strong>live</strong> mode with
+                <code> start_from=51</code>, <code>limit=25</code>. Estimated runtime ~13.5h and
+                $75–$130 in Anthropic API costs. This action bills real tokens.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={launchingRecruitingBuild}>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                disabled={launchingRecruitingBuild}
+                onClick={async (e) => {
+                  e.preventDefault();
+                  setLaunchingRecruitingBuild(true);
+                  try {
+                    const { data, error } = await supabase.functions.invoke("bulk-build-clusters", {
+                      body: { start_from: 51, limit: 25, mode: "live" },
+                    });
+                    if (error) throw error;
+                    toast.success(
+                      `Bulk build launched. Batch ID: ${data?.batch_id || "queued"}. Monitor progress at /admin/bulk-cluster-batches.`
+                    );
+                    setShowRecruitingBuildConfirm(false);
+                  } catch (err: any) {
+                    toast.error(`Failed to launch bulk build: ${err?.message || "Unknown error"}`);
+                  } finally {
+                    setLaunchingRecruitingBuild(false);
+                  }
+                }}
+              >
+                {launchingRecruitingBuild ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Launching...
+                  </>
+                ) : (
+                  "Launch Live Build"
+                )}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
 
         {/* Bulk Image Regeneration Dialog */}
         <BulkImageRegenerationDialog
