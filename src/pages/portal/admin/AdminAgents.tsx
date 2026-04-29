@@ -283,7 +283,7 @@ export default function AdminAgents() {
             )}
           </TabsTrigger>
           <TabsTrigger value="training_event" className="data-[state=active]:bg-white data-[state=active]:text-[#1A4D3E] data-[state=active]:shadow-sm rounded-md gap-2">
-            March 21st Event
+            June 27th Event
           </TabsTrigger>
         </TabsList>
 

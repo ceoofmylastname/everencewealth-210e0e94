@@ -9,8 +9,9 @@ function brandedEmailWrapper(subtitle: string, innerHtml: string): string {
     return `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head><body style="margin:0;padding:0;background-color:#F0F2F1;font-family:Georgia,serif;"><table width="100%" cellpadding="0" cellspacing="0" style="background-color:#F0F2F1;padding:40px 20px;"><tr><td align="center"><table width="600" cellpadding="0" cellspacing="0" style="background-color:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);"><tr><td style="background-color:#1A4D3E;padding:28px 24px;text-align:center;"><img src="https://assets.cdn.filesafe.space/htr97zzmRc1NMujHbL9R/media/69b7424c5b89c7c557adfe6e.png" alt="Everence Wealth" width="48" height="48" style="margin-bottom:10px;"/><h1 style="margin:0;color:#F0F2F1;font-size:24px;font-weight:700;font-family:Georgia,serif;">Everence Wealth</h1><p style="margin:6px 0 0;color:#C5A059;font-size:14px;font-family:Georgia,serif;">${subtitle}</p></td></tr><tr><td style="padding:32px 28px;">${innerHtml}</td></tr><tr><td style="background-color:#F0F2F1;padding:20px 24px;text-align:center;border-top:1px solid #e5e7eb;"><p style="margin:0;font-size:12px;color:#4A5565;font-family:Georgia,serif;">&copy; ${new Date().getFullYear()} Everence Wealth. All rights reserved.</p><p style="margin:4px 0 0;font-size:12px;color:#4A5565;font-family:Georgia,serif;">455 Market St Ste 1940 PMB 350011, San Francisco, CA 94105</p></td></tr></table></td></tr></table></body></html>`;
 }
 
-// 2026-03-21T11:00:00 PST = 2026-03-21T18:00:00Z (PDT is UTC-7, PST is UTC-8. In March, daylight saving applies. Match 8th -> PDT. So UTC-7. 11+7=18)
-const EVENT_DATETIME = new Date("2026-03-21T11:00:00-07:00").getTime();
+// Event rescheduled from March 21 to June 27, 2026.
+// 2026-06-27T11:00:00 PDT = 2026-06-27T18:00:00Z (PDT = UTC-7).
+const EVENT_DATETIME = new Date("2026-06-27T11:00:00-07:00").getTime();
 
 const REMINDERS = [
     {
@@ -86,9 +87,9 @@ Deno.serve(async (req) => {
             <p style="color:#4A5565;line-height:1.6;font-size:16px;margin:0 0 8px;">
               <strong>${reminder.urgency}</strong>
             </p>
-            <h2 style="color:#1A4D3E;font-size:20px;margin:16px 0 8px;font-family:Georgia,serif;">March 21st Broker Training</h2>
+            <h2 style="color:#1A4D3E;font-size:20px;margin:16px 0 8px;font-family:Georgia,serif;">June 27th Broker Training</h2>
             <div style="background:#f9fafb;border-radius:8px;padding:16px;margin:16px 0;">
-              <p style="margin:0 0 8px;color:#4A5565;font-size:14px;">📅 <strong>Date:</strong> Saturday, March 21, 2026</p>
+              <p style="margin:0 0 8px;color:#4A5565;font-size:14px;">📅 <strong>Date:</strong> Saturday, June 27, 2026</p>
               <p style="margin:0 0 8px;color:#4A5565;font-size:14px;">🕐 <strong>Registration:</strong> 10:30 AM PST</p>
               <p style="margin:0 0 8px;color:#4A5565;font-size:14px;">🕐 <strong>Event:</strong> 11:00 AM – 4:00 PM PST</p>
               <p style="margin:0;color:#4A5565;font-size:14px;">📍 <strong>Location:</strong> Andaz Napa</p>

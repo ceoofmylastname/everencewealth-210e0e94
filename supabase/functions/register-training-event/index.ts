@@ -37,6 +37,9 @@ Deno.serve(async (req) => {
                     name,
                     email,
                     phone: phone || "",
+                    // NOTE: legacy status key — event was rescheduled from March 21
+                    // to June 27, 2026. Key is preserved so existing registrants
+                    // remain linked to the reminder pipeline.
                     status: "March21Event",
                     audit_score: 0,
                     audit_answers: {
@@ -65,11 +68,11 @@ Deno.serve(async (req) => {
             const innerHtml = `
         <p style="color:#4A5565;line-height:1.6;font-size:16px;margin:0 0 16px;">Hi ${name.split(' ')[0]},</p>
         <p style="color:#4A5565;line-height:1.6;font-size:16px;margin:0 0 16px;">
-          Thank you for registering for the exclusive <strong>Everence Wealth Training Event</strong> on <strong>March 21st</strong>.
+          Thank you for registering for the exclusive <strong>Everence Wealth Training Event</strong> on <strong>June 27th</strong>.
         </p>
         <div style="background:#f9fafb;border-radius:8px;padding:16px;margin:24px 0;border-left:4px solid #1A4D3E;">
           <h2 style="color:#1A4D3E;font-size:18px;margin:0 0 8px;font-family:Georgia,serif;">Event Details</h2>
-          <p style="margin:0 0 8px;color:#4A5565;font-size:14px;">📅 <strong>Date:</strong> March 21st, 2026</p>
+          <p style="margin:0 0 8px;color:#4A5565;font-size:14px;">📅 <strong>Date:</strong> June 27th, 2026</p>
           <p style="margin:0 0 8px;color:#4A5565;font-size:14px;">🕐 <strong>Registration:</strong> 10:30 AM PST</p>
           <p style="margin:0 0 8px;color:#4A5565;font-size:14px;">🕐 <strong>Event:</strong> 11:00 AM – 4:00 PM PST</p>
           <p style="margin:0;color:#4A5565;font-size:14px;">📍 <strong>Location:</strong> Andaz Napa, 1450 First Street, Napa, CA 94559</p>

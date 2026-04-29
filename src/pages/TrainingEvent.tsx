@@ -169,12 +169,12 @@ export default function TrainingEvent() {
                             <img src="https://assets.cdn.filesafe.space/htr97zzmRc1NMujHbL9R/media/69b7424c5b89c7c557adfe6e.png" alt="Everence" className="w-8 h-8" />
                             <div>
                                 <p className="text-[#C5A059] font-serif text-lg font-semibold">Everence Wealth</p>
-                                <p className="text-gray-500 text-xs uppercase tracking-widest">Broker Training · Spring '26</p>
+                                <p className="text-gray-500 text-xs uppercase tracking-widest">Broker Training · Summer '26</p>
                             </div>
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 text-sm">
                             <div className="flex items-center gap-2 text-gray-300">
-                                <Calendar className="w-4 h-4 text-[#C5A059]" /> March 21, 2026
+                                <Calendar className="w-4 h-4 text-[#C5A059]" /> June 27, 2026
                             </div>
                             <div className="flex items-center gap-2 text-gray-300">
                                 <Clock className="w-4 h-4 text-[#C5A059]" /> Registration 10:30 AM | Event 11:00 AM – 4:00 PM PT
@@ -348,7 +348,7 @@ export default function TrainingEvent() {
                                 color: '#C8A96E', marginBottom: '28px',
                                 animation: 'te-fadeUp 400ms ease 200ms both',
                             }}>
-                                INVITATION ONLY&ensp;·&ensp;NAPA, CA&ensp;·&ensp;MARCH 21, 2026
+                                INVITATION ONLY&ensp;·&ensp;NAPA, CA&ensp;·&ensp;JUNE 27, 2026
                             </p>
 
                             {/* 2. HEADLINE */}
@@ -399,7 +399,7 @@ export default function TrainingEvent() {
                             <div className="flex items-center gap-6" style={{ marginBottom: '40px', animation: 'te-fadeIn 400ms ease 650ms both' }}>
                                 <div>
                                     <p style={{ fontSize: '9px', letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.35)', marginBottom: '4px' }}>DATE</p>
-                                    <p style={{ fontSize: '13px', fontWeight: 500, color: '#FFFFFF' }}>Saturday, March 21</p>
+                                    <p style={{ fontSize: '13px', fontWeight: 500, color: '#FFFFFF' }}>Saturday, June 27</p>
                                 </div>
                                 <div style={{ width: '1px', height: '32px', background: 'rgba(255,255,255,0.12)', flexShrink: 0 }} />
                                 <div>
@@ -551,7 +551,7 @@ export default function TrainingEvent() {
                                                     </button>
                                                 </div>
                                                 <p className="text-center text-xs" style={{ color: 'rgba(255,255,255,0.3)', marginTop: '8px' }}>
-                                                    We'll send reminders via email leading up to March 21.
+                                                    We'll send reminders via email leading up to June 27.
                                                 </p>
                                             </motion.form>
                                         )}
