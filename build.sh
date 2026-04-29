@@ -56,6 +56,12 @@ npx tsx scripts/generateStaticBuyersGuide.ts dist
 echo "🎯 Generating static strategy pages (8 routes)..."
 npx tsx scripts/generateStaticStrategyPages.ts dist
 
+echo "🎯 Generating static strategies index hub (EN + ES)..."
+npx tsx scripts/generateStaticStrategiesIndex.ts dist
+
+echo "📝 Generating static assessment intro pages (EN + ES)..."
+npx tsx scripts/generateStaticAssessmentPage.ts dist
+
 echo "📚 Generating static glossary index + term pages..."
 npx tsx scripts/generateStaticGlossary.ts dist
 
