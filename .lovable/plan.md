@@ -1,170 +1,102 @@
-# Lovable Prompt 26 — P0 Five Fixes (corrected after live recon)
+# Fix cluster_completion_progress sync bug
 
-Five P0 fixes shipped together. Plan corrects three architecture mismatches in the prompt before any code is written.
+## Problem
 
-## Architecture corrections (read first)
+`cluster_completion_progress` is a static tracker — nothing updates it when content lands in `blog_articles` or `qa_pages`. Live data confirms the bug: tracker reports **36/660** completed across 11 clusters, while the actual tables hold **12 rows per cluster** (6 EN blogs + 6 ES blogs, with QA still pending). Dashboard reads from the tracker, so every cluster appears stuck at 0.
 
-The audit assumed an SSR edge function with a `hub_cache`-driven content table. That is wrong for the pages in scope. Live recon shows:
+There are currently **no triggers** on `blog_articles` or `qa_pages` writing to the tracker. An orphan `update_cluster_progress()` function exists but is unused (and references columns that don't exist on these tables), so it can be ignored.
 
-1. **Live `/en/about/` HTML carries `data-static="true"`** — it is a pre-baked SSG file produced at build time by `scripts/generateStaticAboutPage.ts`, not the React `About.tsx` and not `serve-seo-page`. The `aboutSchemaGenerator.ts` (already clean) never reaches crawlers. **Real source of fabricated rating + "Spanish Property Market" is `scripts/generateStaticAboutPage.ts` lines 188 and 227.**
-2. **`hub_cache` table has a CHECK constraint** restricting `hub_type` to `blog | qa | locations | compare` and is a 10-min TTL CACHE, not a content store. The hub copy lives procedurally in `serve-seo-page/index.ts` `getHubMeta()`. We will NOT add strategies/assessment to `hub_cache`. We use the existing **SSG generator pattern** (`generateStaticStrategyPages.ts`, etc., already invoked by `build.sh`).
-3. **`functions/_middleware.js` REDIRECT_MAP currently 301-redirects `/en/strategies` → `/en/`** (lines 416–417). This is why the URL "404s" — it actually redirects to home, then home renders. These two map entries must be **deleted** before adding the index hub. Same for `/es/strategies`.
+## Fix
 
-Other confirmed findings:
-- `/:lang/assessment` route is missing in `App.tsx` (only `/assessment` exists at line 297).
-- `/en/qa/what-is-iul` has no row in `qa_pages` and no row in `gone_urls`.
-- IndexNow key file `public/6ef3ee9b…da93.txt` exists but middleware has zero IndexNow handling, so SPA fallback wins.
-- `team_members` table has Steven Rosenberg with clean `specializations` (no Costa del Sol leftover). Confirmed safe.
-- No `/sitemaps/static.xml` file exists. The `/assessment` cleanup item in the audit is a no-op.
+Single migration that installs one shared trigger function and attaches it to both content tables, then backfills existing rows in the same migration.
 
----
+### Migration file
+`supabase/migrations/<TIMESTAMP>_cluster_progress_sync_trigger.sql`
 
-## Fix 1A — `/en/strategies/` and `/es/estrategias/` index hubs (SSG)
+### Step 1 — `sync_cluster_progress()` function
+- `SECURITY DEFINER`, `search_path = public`.
+- Resolves `target_cluster_id := COALESCE(NEW.cluster_id, OLD.cluster_id)`; exits early if NULL.
+- Recomputes from source of truth:
+  - `en_blogs`, `es_blogs` from `blog_articles` filtered by `cluster_id`.
+  - `en_qas`, `es_qas` from `qa_pages` filtered by `cluster_id`.
+  - `total_count = en_blogs + es_blogs + en_qas + es_qas`.
+- Reads `total_articles_needed` for the cluster (defaults to 60 if missing).
+- `UPDATE cluster_completion_progress` setting:
+  - `english_articles = en_blogs`
+  - `translations_completed = es_blogs`
+  - `articles_completed = total_count`
+  - `status` = `'complete' | 'in_progress' | 'not_started'` per spec
+  - `completed_at` set to `now()` on first crossover, cleared if it drops back below the threshold
+  - `last_updated = now()`
+- Returns `COALESCE(NEW, OLD)`.
 
-Use the same SSG pattern as `generateStaticStrategyPages.ts` (already in `build.sh` line ~57). Bake fully-rendered HTML to `dist/en/strategies/index.html` and `dist/es/estrategias/index.html`.
+Note: the spec uses `status='complete'` (not the `'completed'` value seen in the existing orphan function). Following the spec exactly so the dashboard contract stays as the user wrote it.
 
-Files:
-- **NEW** `src/pages/strategies/StrategiesIndex.tsx` — bilingual React hub for hydration after SSG load. Reads `lang` from `useParams`, renders 4 strategy cards with internal links + Helmet metadata.
-- **NEW** `scripts/generateStaticStrategiesIndex.ts` — Node script that emits 2 baked HTML files with: `<title>`, meta description, canonical, full hreflang cluster (en/es/x-default), JSON-LD `CollectionPage` (with `hasPart` FinancialProduct array, Speakable, BreadcrumbList, Organization @id reference), and ~250-word body covering all 4 strategies + CTA. Use real address from `src/config/business.ts` (455 Market St SF). Hydrates the React component below the SSG body.
-- **EDIT** `build.sh` — add a line after `generateStaticStrategyPages.ts`: `npx tsx scripts/generateStaticStrategiesIndex.ts dist`.
-- **EDIT** `src/App.tsx` — add lazy import + 4 routes: `/:lang/strategies`, `/:lang/strategies/`, `/:lang/estrategias`, `/:lang/estrategias/` → `<StrategiesIndex />`.
-- **EDIT** `functions/_middleware.js`:
-  - **REMOVE** `'/en/strategies': '/en/'` and `'/es/strategies': '/es/'` from `REDIRECT_MAP` (lines 416–417). These currently neuter the URL.
-  - **ADD** to `STATIC_ROUTE_EXEMPT`: `/en/strategies`, `/en/strategies/`, `/es/strategies`, `/es/strategies/`, `/en/estrategias`, `/en/estrategias/`, `/es/estrategias`, `/es/estrategias/`.
+### Step 2 — Triggers
+```sql
+CREATE TRIGGER sync_cluster_progress_blog_articles
+  AFTER INSERT OR UPDATE OF cluster_id, language OR DELETE
+  ON blog_articles
+  FOR EACH ROW EXECUTE FUNCTION sync_cluster_progress();
 
-## Fix 1B — `/:lang/assessment` route + SSG intro
+CREATE TRIGGER sync_cluster_progress_qa_pages
+  AFTER INSERT OR UPDATE OF cluster_id, language OR DELETE
+  ON qa_pages
+  FOR EACH ROW EXECUTE FUNCTION sync_cluster_progress();
+```
+These fire only on the columns that affect counts, so normal content edits (headline, body, status) won't thrash the tracker.
 
-The existing `Assessment.tsx` is a 567-line interactive quiz. It needs a lang-aware route + a pre-rendered intro block for crawlers.
+### Step 3 — One-time backfill (in the same migration)
+After the function is defined, reconcile every existing tracker row from current table contents:
 
-Files:
-- **EDIT** `src/App.tsx` — keep `/assessment`; add `/:lang/assessment` and `/:lang/assessment/` → `<Assessment />`.
-- **NEW** `scripts/generateStaticAssessmentPage.ts` — bake `dist/en/assessment/index.html` and `dist/es/assessment/index.html` with ~120-word intro inside `<main>`, full meta+hreflang+JSON-LD `WebPage` with Speakable. The interactive React quiz hydrates over the intro after JS load (intro stays visible until hydration; that's fine — bots only see SSG output).
-- **EDIT** `build.sh` — invoke the new generator after the strategies index.
-- **EDIT** `functions/_middleware.js` `STATIC_ROUTE_EXEMPT` — add `/en/assessment`, `/en/assessment/`, `/es/assessment`, `/es/assessment/`.
-- The existing `UNPREFIXED_TO_EN` block (line ~440) already redirects `/assessment` → `/en/assessment/`. Leave it.
-
-## Fix 2 — `/en/qa/what-is-iul/` 301
-
-**EDIT** `functions/_middleware.js` `REDIRECT_MAP` — add 6 entries:
-
-```js
-'/en/qa/what-is-iul':                       '/en/strategies/iul/',
-'/en/qa/what-is-iul/':                      '/en/strategies/iul/',
-'/es/qa/what-is-iul':                       '/es/estrategias/seguro-universal-indexado/',
-'/es/qa/what-is-iul/':                      '/es/estrategias/seguro-universal-indexado/',
-'/es/qa/que-es-iul':                        '/es/estrategias/seguro-universal-indexado/',
-'/es/qa/que-es-iul/':                       '/es/estrategias/seguro-universal-indexado/',
+```sql
+WITH counts AS (
+  SELECT
+    ccp.cluster_id,
+    COUNT(*) FILTER (WHERE ba.language = 'en') AS en_blogs,
+    COUNT(*) FILTER (WHERE ba.language = 'es') AS es_blogs
+  FROM cluster_completion_progress ccp
+  LEFT JOIN blog_articles ba ON ba.cluster_id = ccp.cluster_id
+  GROUP BY ccp.cluster_id
+),
+qa_counts AS (
+  SELECT
+    ccp.cluster_id,
+    COUNT(*) FILTER (WHERE qp.language = 'en') AS en_qas,
+    COUNT(*) FILTER (WHERE qp.language = 'es') AS es_qas
+  FROM cluster_completion_progress ccp
+  LEFT JOIN qa_pages qp ON qp.cluster_id = ccp.cluster_id
+  GROUP BY ccp.cluster_id
+)
+UPDATE cluster_completion_progress ccp
+SET
+  english_articles       = c.en_blogs,
+  translations_completed = c.es_blogs,
+  articles_completed     = c.en_blogs + c.es_blogs + q.en_qas + q.es_qas,
+  status = CASE
+    WHEN (c.en_blogs + c.es_blogs + q.en_qas + q.es_qas) >= COALESCE(ccp.total_articles_needed, 60) THEN 'complete'
+    WHEN (c.en_blogs + c.es_blogs + q.en_qas + q.es_qas) > 0 THEN 'in_progress'
+    ELSE 'not_started'
+  END,
+  completed_at = CASE
+    WHEN (c.en_blogs + c.es_blogs + q.en_qas + q.es_qas) >= COALESCE(ccp.total_articles_needed, 60)
+      AND ccp.completed_at IS NULL THEN now()
+    WHEN (c.en_blogs + c.es_blogs + q.en_qas + q.es_qas) <  COALESCE(ccp.total_articles_needed, 60)
+      THEN NULL
+    ELSE ccp.completed_at
+  END,
+  last_updated = now()
+FROM counts c
+JOIN qa_counts q ON q.cluster_id = c.cluster_id
+WHERE ccp.cluster_id = c.cluster_id;
 ```
 
-GSC 404 export classification deferred to Prompt 27 (noted in PR description).
+## Verification (after deploy)
 
-## Fix 4 — Strip fabricated AggregateRating + "Spanish Property Market"
+1. Query `cluster_completion_progress` — every cluster with 12 blog rows should now show `english_articles=6`, `translations_completed=6`, `articles_completed=12`, `status='in_progress'`.
+2. Insert a throwaway blog row pointing at any existing `cluster_id`; counters bump by 1. Delete it; counters drop back. Then refresh `/cluster-dashboard`.
 
-Three real source files (verified by grep on the actual codebase):
+## Files touched
+- New: `supabase/migrations/<TIMESTAMP>_cluster_progress_sync_trigger.sql` (function + 2 triggers + backfill UPDATE)
 
-1. **`scripts/generateStaticAboutPage.ts`**:
-   - Delete `aggregateRating` block at lines 188–193.
-   - Replace line 227 `knowsAbout` array with the canonical 9-topic list:
-     ```ts
-     "knowsAbout": [
-       "Indexed Universal Life Insurance",
-       "Tax-Free Retirement Income",
-       "Roth Conversion Strategies",
-       "Sequence of Returns Risk",
-       "High-Earner Tax Strategy",
-       "Whole Life Insurance",
-       "Annuities",
-       "Asset Protection Planning",
-       "Cash-Value Life Insurance"
-     ],
-     ```
-2. **`src/pages/Contact.tsx`** — delete `aggregateRating` block at lines 51–55.
-3. **`src/lib/schemaGenerator.ts`** — delete fabricated `aggregateRating` (line 371) AND fake `review` array with mock names "James Richardson"/"Maria van der Berg" (lines ~380–410). This is in `generateProductSchema`. Verify with `rg -n "generateProductSchema" src/` whether it's still imported anywhere; if dead code, leave it but strip the fakes regardless.
-
-No DB updates needed — `team_members` is clean.
-
-## Fix 5 — IndexNow key file route
-
-The key string is hardcoded at `public/6ef3ee9b142c08d0d1766cbca6419279d3558d720518d27ce752a79fba85da93.txt`. Cloudflare Pages SPA fallback intercepts it.
-
-**EDIT** `functions/_middleware.js` — insert at the very top of the request handler (BEFORE structural-410 patterns, BEFORE REDIRECT_MAP, BEFORE SSR call):
-
-```js
-const INDEXNOW_KEY = '6ef3ee9b142c08d0d1766cbca6419279d3558d720518d27ce752a79fba85da93';
-if (
-  pathname === `/${INDEXNOW_KEY}.txt` ||
-  pathname === '/indexnow.txt'
-) {
-  return new Response(INDEXNOW_KEY, {
-    status: 200,
-    headers: {
-      'Content-Type': 'text/plain; charset=utf-8',
-      'Cache-Control': 'public, max-age=86400',
-    },
-  });
-}
-```
-
-Verify `INDEXNOW_KEY` secret matches the 64-char string (will check via `secrets--fetch_secrets`; if missing, request via `add_secret` before deploy). `supabase/functions/ping-indexnow/index.ts` already constructs `keyLocation` correctly — no changes there.
-
-Bulk submission via `bun run scripts/indexnowBulkSubmit.ts` runs post-deploy.
-
----
-
-## Files changed summary
-
-| File | Change |
-|---|---|
-| `src/pages/strategies/StrategiesIndex.tsx` | NEW — bilingual hub component |
-| `scripts/generateStaticStrategiesIndex.ts` | NEW — SSG bake |
-| `scripts/generateStaticAssessmentPage.ts` | NEW — SSG bake |
-| `scripts/generateStaticAboutPage.ts` | -6 lines aggregateRating, knowsAbout array replaced |
-| `src/pages/Contact.tsx` | -5 lines (aggregateRating) |
-| `src/lib/schemaGenerator.ts` | strip fabricated aggregateRating + reviews from generateProductSchema |
-| `src/App.tsx` | +1 lazy import, +6 route entries |
-| `functions/_middleware.js` | +IndexNow handler at top, +6 REDIRECT_MAP entries (what-is-iul), -2 REDIRECT_MAP entries (/en/strategies, /es/strategies), +8 STATIC_ROUTE_EXEMPT entries |
-| `build.sh` | +2 generator invocations |
-
-No DB migrations. No edge function changes. No new secrets unless `INDEXNOW_KEY` is missing.
-
-## Post-deploy verification (will paste output)
-
-```bash
-# Fix 1A
-curl -sL -A "ClaudeBot/1.0" https://www.everencewealth.com/en/strategies/ | python3 -c "import sys,re;h=sys.stdin.read();b=re.search(r'<body[^>]*>(.*?)</body>',h,re.DOTALL);print('words:',len(re.sub(r'<[^>]+>',' ',b.group(1) if b else '').split()))"
-curl -sL -A "ClaudeBot/1.0" https://www.everencewealth.com/es/estrategias/ | python3 -c "..."  # same
-
-# Fix 1B
-curl -sIL -A "ClaudeBot/1.0" https://www.everencewealth.com/en/assessment/ | grep HTTP/
-curl -sL  -A "ClaudeBot/1.0" https://www.everencewealth.com/en/assessment/ | python3 -c "..."  # words > 80
-
-# Fix 2
-curl -sIL https://www.everencewealth.com/en/qa/what-is-iul/ | grep -E "HTTP/|location:"
-
-# Fix 4
-curl -sL https://www.everencewealth.com/en/about/    | grep -cE "aggregateRating|ratingValue"  # = 0
-curl -sL https://www.everencewealth.com/en/contact/  | grep -cE "aggregateRating|ratingValue"  # = 0
-curl -sL https://www.everencewealth.com/en/about/    | grep -c "Spanish Property Market"        # = 0
-
-# Fix 5
-curl -sI https://www.everencewealth.com/6ef3ee9b142c08d0d1766cbca6419279d3558d720518d27ce752a79fba85da93.txt | grep -iE "HTTP/|content-type"
-curl -sX POST https://api.indexnow.org/IndexNow -H "Content-Type: application/json" \
-  -d '{"host":"www.everencewealth.com","key":"6ef3...da93","keyLocation":"https://www.everencewealth.com/6ef3...da93.txt","urlList":["https://www.everencewealth.com/en/blog/"]}' \
-  -w "\nHTTP %{http_code}\n"
-```
-
-## Acceptance criteria
-
-1. `/en/strategies/` body words > 150 to ClaudeBot UA.
-2. `/es/estrategias/` body words > 150.
-3. `/en/assessment/` 200 + body words > 80 to ClaudeBot UA.
-4. `/es/assessment/` same.
-5. `/en/qa/what-is-iul/` returns 301 with `Location: /en/strategies/iul/`.
-6. `/en/about/` aggregateRating count = 0; `/en/contact/` aggregateRating count = 0; `/en/about/` "Spanish Property Market" count = 0.
-7. `/{INDEXNOW_KEY}.txt` returns 200 + `Content-Type: text/plain` + body = key.
-8. Test IndexNow POST returns 200 or 202.
-9. No regressions on other 200 / 410 / sitemap URLs and the 4 strategy detail pages.
-
-## Out of scope (deferred to follow-up prompts)
-
-GSC 404 export classification (Prompt 27); 100 EN blog slug-vs-content audit; Steven `@id` unification; strategy-page Person/reviewedBy schema; homepage og:image; Contact canonical/OG dedupe; recruiting clusters; glossary entries; inline citation system.
+No application code changes required — dashboard already reads from `cluster_completion_progress`.
