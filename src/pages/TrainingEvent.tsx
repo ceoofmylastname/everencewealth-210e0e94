@@ -8,16 +8,15 @@ import { toast } from "@/hooks/use-toast";
 import { ArrowRight, Calendar, MapPin, Clock, Loader2, CheckCircle2, ChevronRight, ChevronLeft, Check, Star } from "lucide-react";
 import confetti from "canvas-confetti";
 const sessionHighlights = [
-    { time: "10:30 AM", title: "Registration & Check-In" },
-    { time: "11:00 AM", title: "Financial Workshop Begins" },
+    { time: "9:30 AM", title: "Registration & Check-In" },
+    { time: "10:00 AM", title: "Financial Workshop Begins" },
     { title: "Welcome & Introductions" },
     { title: "Everence Product Portfolio Overview" },
     { title: "Values-Based Financial Planning Strategies" },
     { title: "Client Communication & Engagement" },
     { title: "Compliance & Regulatory Updates" },
     { title: "Case Studies & Workshop Sessions" },
-    { title: "Q&A Panel with Everence Advisors" },
-    { time: "4:00 PM", title: "Closing Remarks" }
+    { title: "Q&A Panel with Everence Advisors" }
 ];
 
 export default function TrainingEvent() {
@@ -177,7 +176,7 @@ export default function TrainingEvent() {
                                 <Calendar className="w-4 h-4 text-[#C5A059]" /> June 27, 2026
                             </div>
                             <div className="flex items-center gap-2 text-gray-300">
-                                <Clock className="w-4 h-4 text-[#C5A059]" /> Registration 10:30 AM | Event 11:00 AM – 4:00 PM PT
+                                <Clock className="w-4 h-4 text-[#C5A059]" /> Registration 9:30 AM | Event 10:00 AM PT
                             </div>
                             <div className="flex items-center gap-2 text-gray-300">
                                 <MapPin className="w-4 h-4 text-[#C5A059]" /> Andaz Napa
@@ -404,7 +403,7 @@ export default function TrainingEvent() {
                                 <div style={{ width: '1px', height: '32px', background: 'rgba(255,255,255,0.12)', flexShrink: 0 }} />
                                 <div>
                                     <p style={{ fontSize: '9px', letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.35)', marginBottom: '4px' }}>EVENT TIME</p>
-                                    <p style={{ fontSize: '13px', fontWeight: 500, color: '#FFFFFF' }}>11:00 AM – 4:00 PM PT</p>
+                                    <p style={{ fontSize: '13px', fontWeight: 500, color: '#FFFFFF' }}>10:00 AM PT</p>
                                 </div>
                             </div>
 
