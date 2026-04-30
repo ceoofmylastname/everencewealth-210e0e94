@@ -33,6 +33,14 @@ function extractJsonFromResponse(text: string): any {
     } catch (_) { /* try next fence */ }
   }
 
+  // 3b. UNCLOSED fence — Claude truncated mid-stream (max_tokens hit or stream
+  // cut). Strip leading ```json\n and try to parse the remainder.
+  const openFenceMatch = cleaned.match(/^```(?:json|JSON)?\s*\n?/);
+  if (openFenceMatch) {
+    const stripped = cleaned.slice(openFenceMatch[0].length).trim();
+    try { return JSON.parse(stripped); } catch (_) { /* fall through */ }
+  }
+
   // 4. First '{' .. last '}' substring
   const firstBrace = cleaned.indexOf('{');
   const lastBrace = cleaned.lastIndexOf('}');
@@ -518,7 +526,7 @@ TOTAL MINIMUM: 1,000 words. Do NOT submit under 800.`;
           headers: { 'x-api-key': CLAUDE_API_KEY, 'anthropic-version': '2023-06-01', 'Content-Type': 'application/json' },
           body: JSON.stringify({
             model: 'claude-sonnet-4-5-20250929',
-            max_tokens: 12000,
+            max_tokens: 16000,
             system: systemPrompt + '\n\nIMPORTANT: Return ONLY a valid JSON object as specified. No prose, no markdown fences.',
             messages: [{ role: 'user', content: currentPrompt }],
           }),
@@ -551,12 +559,22 @@ TOTAL MINIMUM: 1,000 words. Do NOT submit under 800.`;
         throw new Error('Claude returned empty content response');
       }
 
+      // Log Claude's stop_reason so we can distinguish max_tokens truncation
+      // from end_turn / network cutoff in post-mortem analysis.
+      const stopReason = contentData?.stop_reason || 'unknown';
+      await heartbeat(supabase, jobId, `claude:stop_reason article=${articleNum} attempt=${attempts} reason=${stopReason} text_len=${contentText.length}`);
+      console.log(`[Chunk ${jobId}] Article ${articleNum} stop_reason=${stopReason} text_len=${contentText.length}`);
+
       await heartbeat(supabase, jobId, `claude:parse:start article=${articleNum}`);
       try {
         contentJson = extractJsonFromResponse(contentText);
       } catch (e) {
         console.error(`[Chunk ${jobId}] Content parse failed:`, e);
         console.error(`[Chunk ${jobId}] Raw content (first 500 chars):`, contentText.substring(0, 500));
+        // Tail snippet — reveals whether closing fence is present (regex bug)
+        // vs missing entirely (truncation). Critical for diagnosing P1 failures.
+        console.error(`[Chunk ${jobId}] Raw content TAIL (last 200 chars):`, contentText.slice(-200));
+        await heartbeat(supabase, jobId, `claude:parse:fail article=${articleNum} stop_reason=${stopReason} text_tail=${contentText.slice(-200).replace(/\s+/g, ' ')}`);
         throw new Error(`Failed to parse content JSON: ${e instanceof Error ? e.message : String(e)}`);
       }
 
