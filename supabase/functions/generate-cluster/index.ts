@@ -620,12 +620,15 @@ async function generateCluster(
       throw new Error(`Claude key validation failed: ${error instanceof Error ? error.message : String(error)}`);
     }
 
-    // Fetch master content prompt from database
-    console.log(`[Job ${jobId}] Fetching master content prompt...`);
+    // Fetch master content prompt from database — Bug A: branch by compliance class
+    const masterPromptKey = complianceClass === 'recruiting_no_income_claims'
+      ? 'master_content_prompt_recruiting'
+      : 'master_content_prompt';
+    console.log(`[Job ${jobId}] Fetching master content prompt: ${masterPromptKey} (compliance_class=${complianceClass})`);
     const { data: masterPromptData, error: promptError } = await supabase
       .from('content_settings')
       .select('setting_value, updated_at')
-      .eq('setting_key', 'master_content_prompt')
+      .eq('setting_key', masterPromptKey)
       .single();
 
     if (promptError) {
@@ -654,7 +657,44 @@ async function generateCluster(
       'en': 'English', 'es': 'Spanish',
     }[language] || 'English';
 
-    const structurePrompt = `You are an expert SEO content strategist for an independent insurance and wealth management firm in the United States.
+    const structurePrompt = complianceClass === 'recruiting_no_income_claims'
+      ? `You are an expert SEO content strategist for an independent insurance brokerage in the United States that recruits new and career-changing insurance professionals.
+
+Create a content cluster structure for the topic: "${topic}"
+Cluster name: "${clusterName ?? topic}"
+Language: ${language} (${structureLanguageName})
+Target audience: ${targetAudience}
+Primary keyword: ${primaryKeyword}
+
+CRITICAL COMPLIANCE — RECRUITING (no-income-claims):
+- Do NOT propose any headlines, keywords, or angles that promise income, salary, commissions, "earn $X", "top earner", "highest-paying specialty", sign-on bonuses, or override schedules.
+- Headlines must focus on career path, licensing, skills, mentorship, autonomy, mission, daily practice, and professional growth — NOT on money outcomes.
+- The BOFU article must point to /contracting/intake (career path), not to income/earnings claims.
+
+CRITICAL LANGUAGE REQUIREMENT: ALL headlines, target keywords, and content angles MUST be written in ${structureLanguageName}. Do NOT write in English unless the target language IS English.
+
+Generate 6 article titles following this funnel structure:
+- 3 TOFU (Top of Funnel) - Awareness stage, educational, broad career-education topics
+- 2 MOFU (Middle of Funnel) - Consideration stage, comparison (e.g., independent vs captive), career fit
+- 1 BOFU (Bottom of Funnel) - Decision stage, action-oriented (e.g., "How to start", "Joining an independent broker")
+
+CRITICAL: You MUST return ONLY a valid JSON object with this EXACT structure. Do NOT include markdown code blocks, explanations, or any other text.
+CRITICAL: All text content (headline, targetKeyword, contentAngle) MUST be in ${structureLanguageName}.
+
+{
+  "articles": [
+    {
+      "funnelStage": "TOFU",
+      "headline": "Headline in ${structureLanguageName} (no income/earnings language)",
+      "targetKeyword": "keyword phrase in ${structureLanguageName} (career-focused, not income-focused)",
+      "searchIntent": "informational",
+      "contentAngle": "Career-education angle in ${structureLanguageName}"
+    }
+  ]
+}
+
+Return ONLY the JSON object above, nothing else. No markdown, no explanations, no code fences.`
+      : `You are an expert SEO content strategist for an independent insurance and wealth management firm in the United States.
 
 Create a content cluster structure for the topic: "${topic}"
 Language: ${language} (${structureLanguageName})
