@@ -585,7 +585,15 @@ You MUST write a MUCH LONGER article. Use this structure:
       return;
     }
 
-    article.detailed_content = contentJson.detailed_content || contentJson.content || '';
+    // Bug 5 — Sanitize before assigning to article. Without this, every Claude
+    // response containing a stray <h1> or <head> bombs the INSERT with a CHECK
+    // constraint violation and the run produces zero articles.
+    const rawContent = contentJson.detailed_content || contentJson.content || '';
+    const { cleaned: sanitizedContent, removed: sanitizerRemoved } = sanitizeDetailedContent(rawContent);
+    if (sanitizerRemoved.length > 0) {
+      console.warn(`[Missing] Sanitizer applied: ${sanitizerRemoved.join(', ')}`);
+    }
+    article.detailed_content = sanitizedContent;
     article.meta_title = (contentJson.meta_title || plan.headline).substring(0, 60);
     article.meta_description = (contentJson.meta_description || '').substring(0, 160);
     article.speakable_answer = contentJson.speakable_answer || '';
