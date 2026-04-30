@@ -66,15 +66,40 @@ const MAX_CHUNK_RUNTIME = 4 * 60 * 1000; // 4 minutes per chunk (safety margin)
 // HTML articles + 25k-char master prompt + 5-8 FAQs + JSON wrapping.
 const CLAUDE_TIMEOUT_MS = 480_000;
 
+// SSE inactivity budget: kill the stream if no token arrives for this long.
+// A healthy Sonnet stream emits a delta every few hundred ms; 60s of silence
+// means the connection is wedged, not slow. Replaces the buffered single-shot
+// timeout with something that lets long-but-active responses finish while
+// killing dead ones fast.
+const SSE_INACTIVITY_MS = 60_000;
+// Hard ceiling on a single SSE call. Even a healthy stream should not exceed
+// this — if it does, something pathological is happening (Sonnet stuck in a
+// loop, prompt 10x too long, etc.).
+const SSE_HARD_TIMEOUT_MS = 8 * 60 * 1000; // 8 min
+
 // Heartbeat: log + persist last activity to cluster_generations.progress
 // so frontend dialog & log tail both show where the worker actually is.
-async function heartbeat(supabase: any, jobId: string, msg: string) {
+// IMPORTANT: merges with existing progress instead of overwriting. The v4
+// post-mortem showed partial_failures writes clobbered every heartbeat, leaving
+// us with zero stop_reason data. Read-modify-write here keeps both alive.
+async function heartbeat(supabase: any, jobId: string, msg: string, extra?: Record<string, any>) {
   console.log(`[heartbeat] ${msg}`);
   try {
+    const { data: cur } = await supabase
+      .from('cluster_generations')
+      .select('progress')
+      .eq('id', jobId)
+      .maybeSingle();
+    const merged = {
+      ...(cur?.progress ?? {}),
+      last_heartbeat: msg,
+      ts: new Date().toISOString(),
+      ...(extra ?? {}),
+    };
     await supabase
       .from('cluster_generations')
       .update({
-        progress: { last_heartbeat: msg, ts: new Date().toISOString() },
+        progress: merged,
         updated_at: new Date().toISOString(),
       })
       .eq('id', jobId);
@@ -94,6 +119,152 @@ async function fetchClaudeWithTimeout(url: string, init: RequestInit, timeoutMs 
       throw new Error('claude_timeout');
     }
     throw err;
+  }
+}
+
+// Stream Claude response via SSE. Returns full accumulated text + stop_reason.
+// Heartbeats every ~2s with chars_received so the dashboard shows real progress
+// instead of an 8-minute black box. Inactivity timeout kills wedged connections
+// fast; hard timeout caps total runtime.
+async function streamClaude(
+  supabase: any,
+  jobId: string,
+  articleNum: number,
+  attempt: number,
+  body: Record<string, any>,
+  apiKey: string,
+): Promise<{ text: string; stopReason: string; httpStatus: number; errorText?: string }> {
+  const controller = new AbortController();
+  const hardTimer = setTimeout(() => controller.abort(new Error('sse_hard_timeout')), SSE_HARD_TIMEOUT_MS);
+  let inactivityTimer: ReturnType<typeof setTimeout> | undefined;
+  const resetInactivity = () => {
+    if (inactivityTimer) clearTimeout(inactivityTimer);
+    inactivityTimer = setTimeout(() => controller.abort(new Error('sse_inactivity')), SSE_INACTIVITY_MS);
+  };
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ ...body, stream: true }),
+      signal: controller.signal,
+    });
+
+    if (!resp.ok || !resp.body) {
+      const errorText = await resp.text().catch(() => '');
+      return { text: '', stopReason: 'http_error', httpStatus: resp.status, errorText };
+    }
+
+    resetInactivity();
+    const reader = resp.body.pipeThrough(new TextDecoderStream()).getReader();
+    let buffer = '';
+    let accumulated = '';
+    let stopReason = 'unknown';
+    let lastHeartbeatChars = 0;
+    let lastHeartbeatAt = Date.now();
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      resetInactivity();
+      buffer += value;
+
+      // SSE frames are separated by blank lines. Each frame has lines like:
+      //   event: content_block_delta
+      //   data: {"type":"content_block_delta","delta":{"type":"text_delta","text":"..."}}
+      let sep: number;
+      while ((sep = buffer.indexOf('\n\n')) !== -1) {
+        const frame = buffer.slice(0, sep);
+        buffer = buffer.slice(sep + 2);
+        for (const line of frame.split('\n')) {
+          if (!line.startsWith('data:')) continue;
+          const payload = line.slice(5).trim();
+          if (!payload || payload === '[DONE]') continue;
+          try {
+            const evt = JSON.parse(payload);
+            if (evt.type === 'content_block_delta' && evt.delta?.type === 'text_delta') {
+              accumulated += evt.delta.text || '';
+            } else if (evt.type === 'message_delta' && evt.delta?.stop_reason) {
+              stopReason = evt.delta.stop_reason;
+            } else if (evt.type === 'message_stop') {
+              // terminal event
+            } else if (evt.type === 'error') {
+              return {
+                text: accumulated,
+                stopReason: 'stream_error',
+                httpStatus: 200,
+                errorText: JSON.stringify(evt.error ?? evt),
+              };
+            }
+          } catch {
+            // Unparseable SSE payload — skip
+          }
+        }
+      }
+
+      // Heartbeat at most every 2s OR every 2KB of new text, whichever comes first
+      const now = Date.now();
+      const newChars = accumulated.length - lastHeartbeatChars;
+      if (now - lastHeartbeatAt > 2000 || newChars > 2048) {
+        await heartbeat(
+          supabase,
+          jobId,
+          `claude:stream article=${articleNum} attempt=${attempt} chars=${accumulated.length} stop_reason=${stopReason}`,
+          { stream_chars: accumulated.length, stream_stop_reason: stopReason, stream_article: articleNum, stream_attempt: attempt },
+        );
+        lastHeartbeatChars = accumulated.length;
+        lastHeartbeatAt = now;
+      }
+    }
+
+    return { text: accumulated, stopReason, httpStatus: resp.status };
+  } catch (err) {
+    const reason = (err as any)?.message || String(err);
+    if (reason === 'sse_inactivity') throw new Error('claude_timeout');
+    if (reason === 'sse_hard_timeout') throw new Error('claude_timeout');
+    throw err;
+  } finally {
+    if (inactivityTimer) clearTimeout(inactivityTimer);
+    clearTimeout(hardTimer);
+  }
+}
+
+// Persist a full Claude response on parse/timeout/api failure for forensics.
+// Stores the COMPLETE raw text (no 300-char truncation) so we can post-mortem
+// whether the failure was truncation, escape corruption, or wrong content shape.
+async function recordGenerationFailure(
+  supabase: any,
+  args: {
+    generationId: string;
+    clusterId: string | null;
+    articleIndex: number;
+    attempt: number;
+    failureKind: 'parse' | 'timeout' | 'api_error' | 'validation';
+    stopReason?: string | null;
+    rawResponse?: string | null;
+    errorMessage?: string | null;
+    promptContext?: Record<string, any>;
+  },
+) {
+  try {
+    await supabase.from('cluster_generation_failures').insert({
+      generation_id: args.generationId,
+      cluster_id: args.clusterId,
+      article_index: args.articleIndex,
+      attempt: args.attempt,
+      failure_kind: args.failureKind,
+      stop_reason: args.stopReason ?? null,
+      text_len: args.rawResponse?.length ?? null,
+      raw_response: args.rawResponse ?? null,
+      error_message: args.errorMessage ?? null,
+      prompt_context: args.promptContext ?? {},
+    });
+  } catch (e) {
+    console.warn('[recordGenerationFailure] insert failed (non-fatal):', (e as any)?.message);
   }
 }
 
