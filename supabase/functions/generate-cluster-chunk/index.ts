@@ -721,24 +721,39 @@ TOTAL MINIMUM: 1,000 words. Do NOT submit under 800.`;
       }
       
       const articleNum = articleIndex + 1;
-      let contentResponse: Response;
       const fetchStart = Date.now();
       await heartbeat(supabase, jobId, `claude:fetch:start article=${articleNum} attempt=${attempts}`);
+      let streamResult: { text: string; stopReason: string; httpStatus: number; errorText?: string };
       try {
-        contentResponse = await fetchClaudeWithTimeout('https://api.anthropic.com/v1/messages', {
-          method: 'POST',
-          headers: { 'x-api-key': CLAUDE_API_KEY, 'anthropic-version': '2023-06-01', 'Content-Type': 'application/json' },
-          body: JSON.stringify({
+        // Diff 1 — stream Claude via SSE so heartbeats track real progress
+        // and a stalled connection dies on inactivity instead of the 8-min wall.
+        streamResult = await streamClaude(
+          supabase,
+          jobId,
+          articleNum,
+          attempts,
+          {
             model: 'claude-sonnet-4-5-20250929',
             max_tokens: 12000,
             system: systemPrompt + '\n\nIMPORTANT: Return ONLY a valid JSON object as specified. No prose, no markdown fences.',
             messages: [{ role: 'user', content: currentPrompt }],
-          }),
-        }, CLAUDE_TIMEOUT_MS);
+          },
+          CLAUDE_API_KEY,
+        );
       } catch (err) {
         if ((err as Error).message === 'claude_timeout') {
           console.warn(`[chunk ${jobId}] claude_timeout article=${articleNum} attempt=${attempts}/${maxAttempts} (after ${Date.now() - fetchStart}ms)`);
           await heartbeat(supabase, jobId, `claude:fetch:response article=${articleNum} attempt=${attempts} status=timeout`);
+          await recordGenerationFailure(supabase, {
+            generationId: jobId,
+            clusterId,
+            articleIndex,
+            attempt: attempts,
+            failureKind: 'timeout',
+            stopReason: 'claude_timeout',
+            errorMessage: `SSE timeout after ${Date.now() - fetchStart}ms`,
+            promptContext,
+          });
           if (attempts >= maxAttempts) {
             throw new Error(`claude_timeout: Claude API hung after ${maxAttempts} attempts (${CLAUDE_TIMEOUT_MS}ms each)`);
           }
@@ -748,24 +763,44 @@ TOTAL MINIMUM: 1,000 words. Do NOT submit under 800.`;
         throw err;
       }
 
-      await heartbeat(supabase, jobId, `claude:fetch:response article=${articleNum} attempt=${attempts} status=${contentResponse.ok ? 'ok' : 'error'}`);
+      await heartbeat(supabase, jobId, `claude:fetch:response article=${articleNum} attempt=${attempts} status=${streamResult.httpStatus === 200 ? 'ok' : 'error'} stop_reason=${streamResult.stopReason}`);
 
-      if (!contentResponse.ok) {
-        const errorText = await contentResponse.text();
-        console.error(`[Chunk ${jobId}] Content API error:`, errorText.substring(0, 500));
-        throw new Error(`Content generation failed: ${contentResponse.status}`);
+      if (streamResult.httpStatus !== 200 || streamResult.stopReason === 'http_error' || streamResult.stopReason === 'stream_error') {
+        const errorText = streamResult.errorText || '';
+        console.error(`[Chunk ${jobId}] Content API error (status=${streamResult.httpStatus} stop=${streamResult.stopReason}):`, errorText.substring(0, 500));
+        await recordGenerationFailure(supabase, {
+          generationId: jobId,
+          clusterId,
+          articleIndex,
+          attempt: attempts,
+          failureKind: 'api_error',
+          stopReason: streamResult.stopReason,
+          rawResponse: streamResult.text || null,
+          errorMessage: errorText.substring(0, 1000),
+          promptContext,
+        });
+        throw new Error(`Content generation failed: ${streamResult.httpStatus} ${streamResult.stopReason}`);
       }
 
-      const contentData = await contentResponse.json();
-      const contentText = contentData?.content?.[0]?.text || '';
+      const contentText = streamResult.text || '';
+      const stopReason = streamResult.stopReason;
 
       if (!contentText.trim()) {
+        await recordGenerationFailure(supabase, {
+          generationId: jobId,
+          clusterId,
+          articleIndex,
+          attempt: attempts,
+          failureKind: 'api_error',
+          stopReason,
+          errorMessage: 'empty response',
+          promptContext,
+        });
         throw new Error('Claude returned empty content response');
       }
 
       // Log Claude's stop_reason so we can distinguish max_tokens truncation
       // from end_turn / network cutoff in post-mortem analysis.
-      const stopReason = contentData?.stop_reason || 'unknown';
       await heartbeat(supabase, jobId, `claude:stop_reason article=${articleNum} attempt=${attempts} reason=${stopReason} text_len=${contentText.length}`);
       console.log(`[Chunk ${jobId}] Article ${articleNum} stop_reason=${stopReason} text_len=${contentText.length}`);
 
@@ -779,6 +814,18 @@ TOTAL MINIMUM: 1,000 words. Do NOT submit under 800.`;
         // vs missing entirely (truncation). Critical for diagnosing P1 failures.
         console.error(`[Chunk ${jobId}] Raw content TAIL (last 200 chars):`, contentText.slice(-200));
         await heartbeat(supabase, jobId, `claude:parse:fail article=${articleNum} stop_reason=${stopReason} text_tail=${contentText.slice(-200).replace(/\s+/g, ' ')}`);
+        // Diff 3 — persist FULL raw response for forensics, not just 300-char snippet.
+        await recordGenerationFailure(supabase, {
+          generationId: jobId,
+          clusterId,
+          articleIndex,
+          attempt: attempts,
+          failureKind: 'parse',
+          stopReason,
+          rawResponse: contentText,
+          errorMessage: e instanceof Error ? e.message : String(e),
+          promptContext,
+        });
         throw new Error(`Failed to parse content JSON: ${e instanceof Error ? e.message : String(e)}`);
       }
 

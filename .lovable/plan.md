@@ -1,111 +1,86 @@
-## Cluster 51 v4 — Three-Diff Package
+# Three Failures, One Consolidated Fix
 
-### Forensics (deliverable 1) — corrected
+## What's actually broken right now
 
-v4 generation `94707123-9359-4ad6-b2ec-552c6876a790` failed at the 35-min worker watchdog. Confirmed against database:
+Forensics on the live database confirmed three independent failures stacked on top of each other. The "no backend activity" symptom is the visible tip; underneath, three different code paths are silently dying.
 
-- **Cluster 51 actual theme:** "Becoming an Insurance Broker — Career Overview" (`primary_keyword='how to become insurance broker'`, `target_audience='Career Changer'`). **Not Roth Conversions.** The Roth articles visible in the dashboard screenshot belong to a different cluster — the dashboard view scope was misleading. Claude was generating the correct topic.
-- **Failure mode:** All 3 EN article attempts failed with identical parser error: `Failed to parse content JSON: Could not extract valid JSON from response. First 300 chars: ` ```json {...` ``. Each article exhausted its 3 retries.
-- **Stop reason:** Cannot be read — the parser threw before we ever inspected `stop_reason`. The diagnostic data Diff 1 was supposed to surface is structurally unreachable with buffered POST.
-- **Bug 4 confirmed live:** `cluster_batch_jobs.status='completed'` with `build_count=0, fail_count=1`. Dashboard reports success on a fully-failed run.
-- **`cluster_completion_progress` clean:** `articles_completed=0, status='not_started'` — the hard-reset migration worked correctly. There are no v4 orphans to clean up.
-- **No `cluster_id` column on `cluster_generations`:** the orchestrator joins through `cluster_batch_jobs.results[].job_id` instead. Bug 3 mis-keying audit deferred — irrelevant since 0 articles were created.
+### Bug 5 (NEW, blocking missing-articles backfill)
+At 21:54Z, `generate-missing-articles` produced a high-quality 3,168-word Roth Conversions article, then Postgres rejected the INSERT:
 
-The parser snippet (` ```json { "detailed_content": "<div class='article-content'>... `) shows Claude's response opens with a markdown fence followed by valid JSON. The extractor at `generate-cluster-chunk/index.ts:6-56` handles closed fences and unclosed-leading-fence cases, but the responses are still failing all 5 strategies. Either the response is being truncated mid-string at a point that breaks the fallback brace-slice (likely — 12k tokens × 3 articles in one chunk × Sonnet's verbose HTML ≈ ceiling), or there is a content character (unescaped quote/newline inside `detailed_content`) that defeats `JSON.parse`. Buffered fetch cannot tell us which without SSE visibility.
-
-### Diff 1 — SSE streaming for Claude (the real fix)
-
-Convert the Claude call in `generate-cluster-chunk/index.ts` from buffered POST to Server-Sent Events.
-
-- Set request body `stream: true`. Anthropic returns `event: content_block_delta` chunks with `delta.text` increments and a terminal `event: message_stop` with `stop_reason`.
-- Consume the stream with `ReadableStreamDefaultReader`, accumulating `delta.text` into a buffer.
-- After each delta, write a heartbeat to `cluster_generations.progress` with `{chars_received, last_delta_at, stop_reason: null}` so the UI shows real progress instead of an 8-minute black box.
-- On `message_stop`, capture `stop_reason` (`end_turn`, `max_tokens`, `stop_sequence`, `tool_use`) and persist to `progress.stop_reason`. This is the diagnostic data we have been unable to read for three test cycles.
-- Run the same `extractJsonFromResponse` parser on the accumulated buffer. If `stop_reason='max_tokens'`, the parser will see truncated JSON — log explicitly that truncation occurred so we stop blaming the parser.
-- Replace the single 8-minute `AbortController` with an inactivity-based timeout (60s with no delta = abort). A streaming response that keeps emitting tokens never trips it; a stalled response dies fast.
-
-This gives us three things we have never had: real-time progress, a confirmed `stop_reason`, and the ability to distinguish "Claude truncated" from "parser broke."
-
-### Diff 2 — Atomic cluster completion gate
-
-New SQL function and table column, wired into the orchestrator.
-
-```sql
-ALTER TABLE cluster_completion_progress
-  ADD COLUMN missing_components jsonb DEFAULT '{}'::jsonb;
-
-CREATE OR REPLACE FUNCTION verify_cluster_complete(_cluster_id uuid)
-RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=public AS $$
-DECLARE
-  en_blogs int; es_blogs int; en_qas int; es_qas int;
-  orphan_en_blogs int; orphan_en_qas int;
-  blogs_without_citations int;
-  result jsonb;
-BEGIN
-  SELECT count(*) FILTER (WHERE language='en' AND status='published'),
-         count(*) FILTER (WHERE language='es' AND status='published')
-    INTO en_blogs, es_blogs
-    FROM blog_articles WHERE cluster_id = _cluster_id;
-
-  SELECT count(*) FILTER (WHERE language='en' AND status='published'),
-         count(*) FILTER (WHERE language='es' AND status='published')
-    INTO en_qas, es_qas
-    FROM qa_pages WHERE cluster_id = _cluster_id;
-
-  SELECT count(*) INTO orphan_en_blogs FROM blog_articles en
-    WHERE en.cluster_id=_cluster_id AND en.language='en'
-      AND NOT EXISTS (SELECT 1 FROM blog_articles es
-        WHERE es.hreflang_group_id=en.hreflang_group_id AND es.language='es');
-
-  SELECT count(*) INTO orphan_en_qas FROM qa_pages en
-    WHERE en.cluster_id=_cluster_id AND en.language='en'
-      AND NOT EXISTS (SELECT 1 FROM qa_pages es
-        WHERE es.hreflang_group_id=en.hreflang_group_id AND es.language='es');
-
-  SELECT count(*) INTO blogs_without_citations FROM blog_articles
-    WHERE cluster_id=_cluster_id
-      AND (external_citations IS NULL OR jsonb_array_length(external_citations) < 1);
-
-  result := jsonb_build_object(
-    'passed', (en_blogs=6 AND es_blogs=6 AND en_qas=24 AND es_qas=24
-               AND orphan_en_blogs=0 AND orphan_en_qas=0 AND blogs_without_citations=0),
-    'en_blogs', en_blogs, 'es_blogs', es_blogs,
-    'en_qas', en_qas, 'es_qas', es_qas,
-    'orphan_en_blogs', orphan_en_blogs, 'orphan_en_qas', orphan_en_qas,
-    'blogs_without_citations', blogs_without_citations
-  );
-  RETURN result;
-END $$;
+```
+new row violates check constraint "blog_articles_body_no_head_h1"
 ```
 
-Wiring:
+The constraint forbids `<head>` or `<h1>` tags inside `detailed_content`. Claude is emitting one of them, the function has no sanitizer, every attempt fails. Net articles saved this run: zero.
 
-- In `build-cluster-step` cluster-finalization branch: call `verify_cluster_complete(cluster_id)`. If `passed=true` → `status='completed'`. Otherwise → `status='flagged'`, write the result to `missing_components`, and emit a `results[]` entry with the gap detail.
-- Orchestrator's per-entry advance: when an entry finishes, only increment `current_index` if the gate passed OR the entry exhausted its retry budget (preventing infinite loops). Flagged clusters surface in the batch results without poisoning the next entry.
-- Tighten Bug 4: in the same `completed_batch` branch, compute terminal status from the entries:
-  - all entries `passed` → `'completed'`
-  - some passed → `'halted_partial'`
-  - none passed → `'failed'`
-  - never `'completed'` when `build_count=0`
+### Bug B confirmed (v4 cluster generation died exactly as predicted)
+Cluster 51 v4 (`cluster_generations.id = 94707123`) terminal state:
+- `status: failed`, `error: aborted: 35min worker timeout`
+- All 3 EN article attempts failed with: `"Could not extract valid JSON from response. First 300 chars: ```json {...`
+- The SSE streaming refactor (Diff 1) was scaffolded last turn but **never wired into the main `fetchClaudeWithTimeout` call site**. v4 ran on the old buffered parser and died the same way v3 did.
 
-### Diff 3 — Forensics-grade observability + Bug 3 deferred-fix prep
+### Bug 6 (observability gap)
+`cluster_generations.cluster_id` is `NULL` on the v4 row. The column was added by Diff 3 schema, but no code writes to it. Forensics joins remain impossible.
 
-Small additions that pay back the next time something breaks.
+Two-strike rule is now in force. No more Option 1 retries on Cluster 51.
 
-- In `generate-cluster-chunk`, log the resolved prompt context at chunk start: `cluster_id`, `topic`, `primary_keyword`, `target_audience`, `language`, `chunk_index/total`. One line, structured, so we can confirm prompt-routing in logs without DB joins.
-- On parser failure, persist the **full** Claude response (not just first 300 chars) to a new `cluster_generation_failures` table keyed by `(generation_id, article_index, attempt)`. Today the truncated 300-char snippet is all we have; the full payload tells us if it was truncation or escape-character corruption.
-- Add a `cluster_id` column to `cluster_generations` (currently missing — confirmed via `information_schema`). Backfill via the orchestrator's `current_job_id`/`results[].job_id` mapping. This unblocks Bug 3's eventual fix and lets the dashboard query progress without joining through `cluster_batch_jobs.results`.
+---
 
-### Order of operations on approval
+## The fix — one diff, three changes
 
-1. Ship Diff 3's logging additions first (smallest, lowest risk, immediately useful for the v5 retest).
-2. Ship Diff 2's migration + verifier wiring (database-only change, doesn't affect generation).
-3. Ship Diff 1's SSE streaming refactor (largest behavior change).
-4. Hard-reset Cluster 51 once more (`cluster_completion_progress` is already clean, only the `cluster_batch_jobs` row needs status fixed).
-5. Trigger v5. Two-strike rule fully spent on v4 — if v5 fails, we stop and review root cause before any further code changes.
+### Change A: H1/head sanitizer in `generate-missing-articles`
+Before insert, strip `<h1>...</h1>` and `<head>...</head>` blocks (or downgrade `<h1>` to `<h2>`, since the constraint also rejects `<h1 …>`). Add the same sanitizer to `generate-cluster-chunk` so the same crash can't reappear in cluster mode.
 
-### Holds
+```ts
+function sanitizeForBlogConstraint(html: string): string {
+  return html
+    .replace(/<head[\s\S]*?<\/head>/gi, '')
+    .replace(/<h1\b[^>]*>/gi, '<h2>')
+    .replace(/<\/h1>/gi, '</h2>');
+}
+```
 
-- No 25-cluster batch under any state until you say "go live."
-- v5 is a single-cluster retest. Verification package on terminal state will include the `stop_reason` audit (now actually readable) and the `verify_cluster_complete` JSON for Cluster 51.
-- Bug 3 mis-keying full repair stays deferred — Diff 3 only adds the column and backfill, not the codebase sweep.
+Also: the article in question was 3,168 words vs the 2,500 cap. The function logged the warning but proceeded to insert anyway. Add a hard truncate or regenerate-with-shorter-prompt step.
+
+### Change B: Wire SSE + cluster_id + recordGenerationFailure into the live path
+Last turn's diff added `streamClaude()`, `recordGenerationFailure()`, and the `cluster_id` column but left them dormant. Wire them in:
+
+1. Replace the buffered `fetchClaudeWithTimeout(...)` call (~line 519-579 of `generate-cluster-chunk/index.ts`) with `streamClaude()`.
+2. On parse failure or timeout, call `recordGenerationFailure(generationId, clusterId, rawResponse, stopReason, promptContext)`.
+3. At the top of the orchestrator's INSERT into `cluster_generations`, populate the new `cluster_id` column.
+4. Tolerate ` ```json ` fences in the parser: strip leading ` ```json\n? ` and trailing ` ``` ` before `JSON.parse`. This alone would have saved v4.
+
+### Change C: Activate the atomic completion gate
+The `verify_cluster_complete(_cluster_id)` RPC and `missing_components` jsonb column already exist. Wire them into `build-cluster-step`:
+
+- After each article insert, call `verify_cluster_complete()`.
+- If it returns false, write the missing component list to `cluster_completion_progress.missing_components` and **do not advance `current_index`**.
+- Only when it returns true (60-piece gate passes) does the cluster transition to `status='completed'`.
+- Tighten the batch terminal logic so a batch can only mark `completed` when every member cluster passes the gate. (Closes Bug 4.)
+
+### Change D (deferred — explicit non-goal this round)
+Do **not** re-trigger Cluster 51 v5 in this round. Two-strike rule. Once A/B/C land and pass a single-cluster smoke test on a fresh cluster, then plan the streaming-escalation re-run as a separate approval.
+
+---
+
+## Files touched
+
+- `supabase/functions/generate-missing-articles/index.ts` — add sanitizer + word-cap enforcement
+- `supabase/functions/generate-cluster-chunk/index.ts` — wire `streamClaude`, fence-tolerant parser, sanitizer, `recordGenerationFailure` calls, populate `cluster_id` on insert
+- `supabase/functions/build-cluster-step/index.ts` — call `verify_cluster_complete`, gate `current_index` advance, gate batch completion
+- `Branded/log.md` — append v4 forensics + Bug 5/6 entries
+
+No new migrations needed — schema from last turn already supports all of this.
+
+---
+
+## Smoke test before any production batch
+
+After deploy:
+1. Pick one fresh cluster (NOT 51), trigger single-cluster generation manually.
+2. Watch `cluster_generations.progress.chars_received` heartbeat in real time.
+3. On completion, query `verify_cluster_complete(<id>)` — must return true.
+4. Query `cluster_completion_progress.missing_components` — must be `[]` or null.
+5. Confirm `cluster_generations.cluster_id` is populated and joinable.
+
+If any of those five fail, stop and escalate before touching Cluster 51.
