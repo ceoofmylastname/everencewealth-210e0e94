@@ -43,6 +43,56 @@ function countWords(html: string): number {
   return text.split(/\s+/).filter(w => w.length > 0).length;
 }
 
+// Bug 5 — Mirror the sanitizer in generate-cluster-chunk.
+// blog_articles has TWO sibling CHECK constraints on detailed_content:
+//   - blog_articles_body_no_head_h1 (forbids <head…>, <h1…>)
+//   - blog_articles_body_no_head_or_canonical (forbids <head>, rel="canonical|alternate", ld+json)
+// Without sanitization, Claude's stray <h1> or <head> tags bomb the INSERT
+// and the entire run produces zero articles.
+function sanitizeDetailedContent(html: string): { cleaned: string; removed: string[] } {
+  const removed: string[] = [];
+  let cleaned = html || '';
+
+  if (/<head[\s>]/i.test(cleaned)) {
+    cleaned = cleaned.replace(/<head[\s\S]*?<\/head>/gi, '');
+    removed.push('head_block');
+  }
+  if (/<\/?head[\s>]/i.test(cleaned)) {
+    cleaned = cleaned.replace(/<\/?head[^>]*>/gi, '');
+    if (!removed.includes('head_block')) removed.push('head_stray');
+  }
+  if (/<\/?html[\s>]/i.test(cleaned)) {
+    cleaned = cleaned.replace(/<\/?html[^>]*>/gi, '');
+    removed.push('html_wrapper');
+  }
+  if (/<\/?body[\s>]/i.test(cleaned)) {
+    cleaned = cleaned.replace(/<\/?body[^>]*>/gi, '');
+    removed.push('body_wrapper');
+  }
+  if (/<h1[\s>]/i.test(cleaned)) {
+    cleaned = cleaned.replace(/<h1([\s>])/gi, '<h2$1').replace(/<\/h1>/gi, '</h2>');
+    removed.push('h1_downgraded');
+  }
+  if (/<meta\b/i.test(cleaned)) {
+    cleaned = cleaned.replace(/<meta\b[^>]*>/gi, '');
+    removed.push('meta_tags');
+  }
+  if (/<link\b[^>]*rel\s*=\s*["']?(canonical|alternate)/i.test(cleaned)) {
+    cleaned = cleaned.replace(/<link\b[^>]*rel\s*=\s*["']?(canonical|alternate)["']?[^>]*>/gi, '');
+    removed.push('link_canonical_alternate');
+  }
+  if (/application\/ld\+json/i.test(cleaned)) {
+    cleaned = cleaned.replace(/<script\b[^>]*type\s*=\s*["']?application\/ld\+json["']?[^>]*>[\s\S]*?<\/script>/gi, '');
+    removed.push('jsonld_block');
+  }
+  if (/<style\b/i.test(cleaned)) {
+    cleaned = cleaned.replace(/<style\b[\s\S]*?<\/style>/gi, '');
+    removed.push('style_block');
+  }
+
+  return { cleaned: cleaned.trim(), removed };
+}
+
 function validateContentQuality(article: any, plan: any): { isValid: boolean; issues: string[]; score: number; wordCount: number } {
   const issues: string[] = [];
   let score = 100;
