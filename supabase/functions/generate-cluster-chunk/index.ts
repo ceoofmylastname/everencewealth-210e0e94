@@ -4,33 +4,47 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.1';
 
 // Helper to safely extract JSON from response
 function extractJsonFromResponse(text: string): any {
-  // Try direct parse first
+  // P1 — Robust JSON extraction. Claude sometimes wraps JSON in ```json fences,
+  // adds prose preamble, or includes BOM/zero-width chars. Strategy:
+  //   1. Trim + strip BOM/zero-width prefix.
+  //   2. Try direct JSON.parse on the cleaned text.
+  //   3. Try EVERY fenced code block in order (```json ... ``` then ``` ... ```).
+  //   4. Fall back to first '{' .. last '}' substring slice.
+  //   5. Throw with a diagnostic snippet so failures are debuggable.
+  const original = text || '';
+  const cleaned = original
+    .replace(/^\uFEFF/, '')         // BOM
+    .replace(/^[\u200B-\u200D]+/, '') // zero-width chars
+    .trim();
+
+  // 2. Direct parse
   try {
-    return JSON.parse(text);
-  } catch (e) {
-    // Try to extract from markdown code blocks
-    const jsonMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/);
-    if (jsonMatch) {
-      try {
-        return JSON.parse(jsonMatch[1].trim());
-      } catch (e2) {
-        // Continue to other methods
-      }
-    }
-    
-    // Try to find JSON object boundaries
-    const firstBrace = text.indexOf('{');
-    const lastBrace = text.lastIndexOf('}');
-    if (firstBrace !== -1 && lastBrace > firstBrace) {
-      try {
-        return JSON.parse(text.substring(firstBrace, lastBrace + 1));
-      } catch (e3) {
-        // Continue
-      }
-    }
-    
-    throw new Error('Could not extract valid JSON from response');
+    return JSON.parse(cleaned);
+  } catch (_) { /* fall through */ }
+
+  // 3. Walk every fenced block (some responses contain multiple fences)
+  const fenceRegex = /```(?:json|JSON)?\s*([\s\S]*?)```/g;
+  let m: RegExpExecArray | null;
+  while ((m = fenceRegex.exec(cleaned)) !== null) {
+    const inner = (m[1] || '').trim();
+    if (!inner) continue;
+    try {
+      return JSON.parse(inner);
+    } catch (_) { /* try next fence */ }
   }
+
+  // 4. First '{' .. last '}' substring
+  const firstBrace = cleaned.indexOf('{');
+  const lastBrace = cleaned.lastIndexOf('}');
+  if (firstBrace !== -1 && lastBrace > firstBrace) {
+    try {
+      return JSON.parse(cleaned.substring(firstBrace, lastBrace + 1));
+    } catch (_) { /* fall through */ }
+  }
+
+  // 5. Diagnostic
+  const snippet = cleaned.slice(0, 300).replace(/\s+/g, ' ');
+  throw new Error(`Could not extract valid JSON from response. First 300 chars: ${snippet}`);
 }
 
 const corsHeaders = {
