@@ -1025,13 +1025,17 @@ serve(async (req) => {
       (async () => {
         try {
           await generateCluster(
-            job.id, 
-            job.topic, 
+            job.id,
+            job.topic,
             _resumeMultilingualJob ? job.languages_queue[resumedLanguageIndex] : language,
-            job.target_audience, 
+            job.target_audience,
             job.primary_keyword,
             _resumeMultilingualJob ? resumedLanguageIndex : undefined,
-            _resumeMultilingualJob ? true : false
+            _resumeMultilingualJob ? true : false,
+            (job.compliance_class === 'recruiting_no_income_claims'
+              ? 'recruiting_no_income_claims'
+              : 'wealth_standard'),
+            cluster_name,
           );
         } catch (error) {
           console.error(`[Job ${job.id}] 🚨 FATAL ERROR - generateCluster crashed:`, {
