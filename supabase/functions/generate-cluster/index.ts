@@ -484,7 +484,9 @@ async function generateCluster(
   targetAudience: string, 
   primaryKeyword: string,
   resumedLanguageIndex?: number,
-  isResumedMultilingual?: boolean
+  isResumedMultilingual?: boolean,
+  complianceClass: 'wealth_standard' | 'recruiting_no_income_claims' = 'wealth_standard',
+  clusterName: string | null = null,
 ) {
   const FUNCTION_START_TIME = Date.now();
   const MAX_FUNCTION_RUNTIME = 4.5 * 60 * 1000; // 4.5 minutes (safety margin before 5-min Supabase limit)
