@@ -510,6 +510,39 @@ async function generateSingleArticle(
   const CLAUDE_API_KEY = openaiKey; // legacy var name, now holds CLAUDE_API_KEY
   
   console.log(`\n[Chunk ${jobId}] Generating article ${articleIndex + 1}: "${plan.headline}"`);
+
+  // Diff 3: structured prompt-context log so we can confirm cluster→prompt routing
+  // without joining DB tables. Shows up as a single line per article in edge logs.
+  console.log(`[Chunk ${jobId}] PROMPT_CONTEXT ${JSON.stringify({
+    cluster_id: clusterId,
+    cluster_topic: clusterTopic,
+    article_index: articleIndex,
+    headline: plan.headline,
+    target_keyword: plan.targetKeyword,
+    funnel_stage: plan.funnelStage,
+    language,
+  })}`);
+
+  // Stamp cluster_id on cluster_generations so future queries can join directly.
+  // Forward-only fix per Diff 3 — historical generations stay un-keyed.
+  try {
+    await supabase
+      .from('cluster_generations')
+      .update({ cluster_id: clusterId })
+      .eq('id', jobId)
+      .is('cluster_id', null);
+  } catch (e) {
+    console.warn(`[Chunk ${jobId}] cluster_id stamp failed (non-fatal):`, (e as any)?.message);
+  }
+
+  const promptContext = {
+    cluster_id: clusterId,
+    cluster_topic: clusterTopic,
+    headline: plan.headline,
+    target_keyword: plan.targetKeyword,
+    funnel_stage: plan.funnelStage,
+    language,
+  };
   
   try {
     const article: any = {
