@@ -509,9 +509,21 @@ serve(async (req) => {
         }
       }
 
+      // Bug B — Decide QA-phase policy based on flag count.
+      //   0 flags                                       → fire QA for all 6 articles
+      //   1 flag (single article flagged)               → fire QA for 5 surviving published articles
+      //   ≥2 flags                                      → SKIP QA, mark cluster flagged, advance immediately
+      const isRecruiting = c.compliance_class === "recruiting_no_income_claims";
+      let qaPolicy: "all" | "survivors" | "skip" = "all";
+      if (isRecruiting) {
+        if (flaggedCount === 0) qaPolicy = "all";
+        else if (flaggedCount === 1) qaPolicy = "survivors";
+        else qaPolicy = "skip";
+      }
+
       const row: ResultRow = {
         id: c.id, name: c.name, topic: c.topic, job_id: g.id,
-        status: (flaggedCount > 0 || isPartial) ? "flagged" : "built",
+        status: (qaPolicy === "skip" || flaggedCount > 0 || isPartial) ? "flagged" : "built",
         duration_sec: durationSec,
         flagged_count: flaggedCount > 0 ? flaggedCount : undefined,
         ...(isPartial && {
@@ -521,12 +533,64 @@ serve(async (req) => {
           expected_count: expectedCount,
         }),
       };
+
+      // If we're going to fire the QA phase, DO NOT advance the index yet —
+      // park the entry in current_phase='qa' so subsequent ticks poll the QA job.
+      const willFireQa = qaPolicy === "all" || qaPolicy === "survivors";
+
+      if (willFireQa) {
+        // Fire generate-cluster-qas (fire-and-forget). The orchestrator returns a job ID
+        // synchronously which we capture and persist on the batch row.
+        let qaJobId: string | null = null;
+        try {
+          const qaResp = await fetch(`${SUPABASE_URL}/functions/v1/generate-cluster-qas`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Authorization: `Bearer ${SERVICE_KEY}` },
+            body: JSON.stringify({ clusterId: g.id }),
+          });
+          const qaJson: any = await qaResp.json().catch(() => ({}));
+          qaJobId = qaJson?.jobId ?? null;
+          if (!qaResp.ok || !qaJobId) {
+            console.error(`[build-cluster-step] generate-cluster-qas failed (${qaResp.status}):`, qaJson);
+          }
+        } catch (e) {
+          console.error("[build-cluster-step] generate-cluster-qas invoke threw:", e);
+        }
+
+        if (qaJobId) {
+          await admin.from("cluster_batch_jobs").update({
+            results: [...results, row],
+            build_count: (job.build_count ?? 0) + 1,
+            flagged_count: (job.flagged_count ?? 0) + flaggedCount,
+            current_phase: "qa",
+            qa_job_id: qaJobId,
+            qa_phase_started_at: new Date().toISOString(),
+            // Keep current_index pointing at THIS entry; do not advance.
+            current_job_id: g.id,
+            entry_started_at: null,
+          }).eq("id", batch_job_id);
+
+          await logStep(admin, batch_job_id, idx, c.topic, g.id, g.status, "qa_phase_fired",
+            { qa_policy: qaPolicy, qa_job_id: qaJobId, flagged_count: flaggedCount });
+          await releaseLock(admin, batch_job_id);
+          return new Response(JSON.stringify({
+            ok: true, action: "qa_phase_fired", qa_policy: qaPolicy, qa_job_id: qaJobId,
+          }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        }
+        // If QA invoke failed, fall through and advance like skip (don't block batch).
+        console.warn(`[build-cluster-step] QA invoke failed — advancing without QA for cluster ${g.id}`);
+      }
+
+      // Skip-QA path (≥2 flags, or QA invoke failed): advance the index now.
       await admin.from("cluster_batch_jobs").update({
         results: [...results, row],
         build_count: (job.build_count ?? 0) + 1,
         flagged_count: (job.flagged_count ?? 0) + flaggedCount,
         current_index: idx + 1,
         current_job_id: null,
+        current_phase: "blog",
+        qa_job_id: null,
+        qa_phase_started_at: null,
         entry_started_at: null,
       }).eq("id", batch_job_id);
 
