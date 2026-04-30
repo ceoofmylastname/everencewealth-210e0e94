@@ -16,6 +16,8 @@ const corsHeaders = {
 };
 
 const WORKER_TIMEOUT_MIN = 20;
+// Bug B — independent QA-phase timeout, separate from blog-phase WORKER_TIMEOUT_MIN.
+const QA_TIMEOUT_MIN = 30;
 
 const INCOME_PATTERNS: { pattern: RegExp; label: string }[] = [
   { pattern: /\$\s?\d[\d,.]*\s*(per|a|each|every)?\s*(year|month|week|hour|day|annually|annual)/i, label: "dollar_per_period" },
