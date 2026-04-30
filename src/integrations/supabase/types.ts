@@ -3353,6 +3353,7 @@ export type Database = {
           error_count: number | null
           languages_status: Json | null
           last_updated: string | null
+          missing_components: Json | null
           priority_score: number | null
           started_at: string | null
           status: string
@@ -3369,6 +3370,7 @@ export type Database = {
           error_count?: number | null
           languages_status?: Json | null
           last_updated?: string | null
+          missing_components?: Json | null
           priority_score?: number | null
           started_at?: string | null
           status?: string
@@ -3385,12 +3387,58 @@ export type Database = {
           error_count?: number | null
           languages_status?: Json | null
           last_updated?: string | null
+          missing_components?: Json | null
           priority_score?: number | null
           started_at?: string | null
           status?: string
           tier?: string | null
           total_articles_needed?: number | null
           translations_completed?: number | null
+        }
+        Relationships: []
+      }
+      cluster_generation_failures: {
+        Row: {
+          article_index: number
+          attempt: number
+          cluster_id: string | null
+          created_at: string
+          error_message: string | null
+          failure_kind: string
+          generation_id: string
+          id: string
+          prompt_context: Json | null
+          raw_response: string | null
+          stop_reason: string | null
+          text_len: number | null
+        }
+        Insert: {
+          article_index: number
+          attempt: number
+          cluster_id?: string | null
+          created_at?: string
+          error_message?: string | null
+          failure_kind: string
+          generation_id: string
+          id?: string
+          prompt_context?: Json | null
+          raw_response?: string | null
+          stop_reason?: string | null
+          text_len?: number | null
+        }
+        Update: {
+          article_index?: number
+          attempt?: number
+          cluster_id?: string | null
+          created_at?: string
+          error_message?: string | null
+          failure_kind?: string
+          generation_id?: string
+          id?: string
+          prompt_context?: Json | null
+          raw_response?: string | null
+          stop_reason?: string | null
+          text_len?: number | null
         }
         Relationships: []
       }
@@ -3401,6 +3449,7 @@ export type Database = {
           articles_per_cluster: number | null
           cluster_count: number | null
           cluster_focus_areas: Json | null
+          cluster_id: string | null
           completed_languages: string[] | null
           completion_completed_at: string | null
           completion_note: string | null
@@ -3434,6 +3483,7 @@ export type Database = {
           articles_per_cluster?: number | null
           cluster_count?: number | null
           cluster_focus_areas?: Json | null
+          cluster_id?: string | null
           completed_languages?: string[] | null
           completion_completed_at?: string | null
           completion_note?: string | null
@@ -3467,6 +3517,7 @@ export type Database = {
           articles_per_cluster?: number | null
           cluster_count?: number | null
           cluster_focus_areas?: Json | null
+          cluster_id?: string | null
           completed_languages?: string[] | null
           completion_completed_at?: string | null
           completion_note?: string | null
@@ -9971,6 +10022,7 @@ export type Database = {
         Returns: undefined
       }
       try_lock_batch_tick: { Args: { _batch_job_id: string }; Returns: boolean }
+      verify_cluster_complete: { Args: { _cluster_id: string }; Returns: Json }
     }
     Enums: {
       app_role: "admin" | "editor" | "viewer" | "apartments_editor"
