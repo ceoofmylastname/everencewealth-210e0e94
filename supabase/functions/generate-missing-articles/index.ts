@@ -49,48 +49,83 @@ function countWords(html: string): number {
 //   - blog_articles_body_no_head_or_canonical (forbids <head>, rel="canonical|alternate", ld+json)
 // Without sanitization, Claude's stray <h1> or <head> tags bomb the INSERT
 // and the entire run produces zero articles.
+//
+// Bug 5 strike-2: the previous "if test → then replace" pattern silently missed
+// edge cases (every gate's `.test()` could return false on a weird whitespace
+// variant while Postgres still flagged it). This version always replaces and
+// reports based on diff, so we never short-circuit a strip.
 function sanitizeDetailedContent(html: string): { cleaned: string; removed: string[] } {
   const removed: string[] = [];
   let cleaned = html || '';
 
-  if (/<head[\s>]/i.test(cleaned)) {
-    cleaned = cleaned.replace(/<head[\s\S]*?<\/head>/gi, '');
-    removed.push('head_block');
-  }
-  if (/<\/?head[\s>]/i.test(cleaned)) {
-    cleaned = cleaned.replace(/<\/?head[^>]*>/gi, '');
-    if (!removed.includes('head_block')) removed.push('head_stray');
-  }
-  if (/<\/?html[\s>]/i.test(cleaned)) {
-    cleaned = cleaned.replace(/<\/?html[^>]*>/gi, '');
-    removed.push('html_wrapper');
-  }
-  if (/<\/?body[\s>]/i.test(cleaned)) {
-    cleaned = cleaned.replace(/<\/?body[^>]*>/gi, '');
-    removed.push('body_wrapper');
-  }
-  if (/<h1[\s>]/i.test(cleaned)) {
-    cleaned = cleaned.replace(/<h1([\s>])/gi, '<h2$1').replace(/<\/h1>/gi, '</h2>');
-    removed.push('h1_downgraded');
-  }
-  if (/<meta\b/i.test(cleaned)) {
-    cleaned = cleaned.replace(/<meta\b[^>]*>/gi, '');
-    removed.push('meta_tags');
-  }
-  if (/<link\b[^>]*rel\s*=\s*["']?(canonical|alternate)/i.test(cleaned)) {
-    cleaned = cleaned.replace(/<link\b[^>]*rel\s*=\s*["']?(canonical|alternate)["']?[^>]*>/gi, '');
-    removed.push('link_canonical_alternate');
-  }
-  if (/application\/ld\+json/i.test(cleaned)) {
-    cleaned = cleaned.replace(/<script\b[^>]*type\s*=\s*["']?application\/ld\+json["']?[^>]*>[\s\S]*?<\/script>/gi, '');
-    removed.push('jsonld_block');
-  }
-  if (/<style\b/i.test(cleaned)) {
-    cleaned = cleaned.replace(/<style\b[\s\S]*?<\/style>/gi, '');
-    removed.push('style_block');
-  }
+  const stripIfChanged = (label: string, regex: RegExp, replacement: string | ((m: string) => string) = '') => {
+    const before = cleaned;
+    cleaned = cleaned.replace(regex, replacement as any);
+    if (cleaned !== before) removed.push(label);
+  };
+
+  // Strip full <head>…</head> blocks first (greedy)
+  stripIfChanged('head_block', /<head\b[\s\S]*?<\/head>/gi);
+  // Strip any stray <head ...> or </head> tags using \b word boundary
+  stripIfChanged('head_stray', /<\/?head\b[^>]*>/gi);
+  // Strip <html>/<body> wrappers
+  stripIfChanged('html_wrapper', /<\/?html\b[^>]*>/gi);
+  stripIfChanged('body_wrapper', /<\/?body\b[^>]*>/gi);
+  // Downgrade <h1> → <h2> using \b (catches <h1>, <h1 class>, <h1\n>, <h1/>)
+  stripIfChanged('h1_downgraded', /<(\/?)h1\b([^>]*)>/gi, (_m, slash, attrs) => `<${slash}h2${attrs}>`);
+  // Strip <meta>
+  stripIfChanged('meta_tags', /<meta\b[^>]*>/gi);
+  // Strip <link rel=canonical|alternate>
+  stripIfChanged('link_canonical_alternate', /<link\b[^>]*rel\s*=\s*["']?(canonical|alternate)["']?[^>]*>/gi);
+  // Strip ld+json scripts
+  stripIfChanged('jsonld_block', /<script\b[^>]*type\s*=\s*["']?application\/ld\+json["']?[^>]*>[\s\S]*?<\/script>/gi);
+  // Strip <style> blocks
+  stripIfChanged('style_block', /<style\b[\s\S]*?<\/style>/gi);
 
   return { cleaned: cleaned.trim(), removed };
+}
+
+// Bug 5 strike-2: forensic guard.
+// Mirrors the Postgres CHECK constraint regex EXACTLY. Returns offending
+// substrings if anything would still trigger blog_articles_body_no_head_h1.
+function findConstraintOffenders(html: string): string[] {
+  if (!html) return [];
+  const offenders: string[] = [];
+  const h1 = html.match(/<h1[\s>][^>]{0,200}/gi);
+  const head = html.match(/<head[\s>][^>]{0,200}/gi);
+  if (h1) offenders.push(`H1[${h1.length}]: ${h1.slice(0, 3).join(' || ')}`);
+  if (head) offenders.push(`HEAD[${head.length}]: ${head.slice(0, 3).join(' || ')}`);
+  return offenders;
+}
+
+// Nuclear strip — used by the pre-insert guard if the primary sanitizer missed something.
+function nuclearStrip(html: string): string {
+  return (html || '')
+    .replace(/<(\/?)h1\b([^>]*)>/gi, (_m, slash, attrs) => `<${slash}h2${attrs}>`)
+    .replace(/<\/?head\b[^>]*>/gi, '');
+}
+
+// Persist forensic record so we can analyze what slipped past primary sanitizer.
+async function recordSanitizerBypass(
+  supabase: any,
+  args: { clusterId: string; clusterNumber: number; headline: string; offenders: string[]; sample: string },
+) {
+  try {
+    await supabase.from('cluster_generation_failures').insert({
+      cluster_id: args.clusterId,
+      generation_id: null,
+      article_index: args.clusterNumber - 1,
+      attempt: 1,
+      failure_kind: 'validation',
+      stop_reason: 'pre_insert_sanitizer_guard',
+      text_len: args.sample.length,
+      raw_response: args.sample.substring(0, 8000),
+      error_message: args.offenders.join(' | '),
+      prompt_context: { source: 'generate-missing-articles', cluster_number: args.clusterNumber, headline: args.headline },
+    });
+  } catch (e) {
+    console.warn('[Missing] recordSanitizerBypass failed (non-fatal):', (e as any)?.message);
+  }
 }
 
 function validateContentQuality(article: any, plan: any): { isValid: boolean; issues: string[]; score: number; wordCount: number } {
