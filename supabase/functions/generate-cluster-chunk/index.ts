@@ -338,58 +338,42 @@ function sanitizeDetailedContent(html: string): { cleaned: string; removed: stri
   const removed: string[] = [];
   let cleaned = html || '';
 
-  // Strip <head>…</head> blocks entirely (greedy match)
-  if (/<head[\s>]/i.test(cleaned)) {
-    cleaned = cleaned.replace(/<head[\s\S]*?<\/head>/gi, '');
-    removed.push('head_block');
-  }
-  // Strip stray <head…> or </head> tags that survived (mismatched)
-  if (/<\/?head[\s>]/i.test(cleaned)) {
-    cleaned = cleaned.replace(/<\/?head[^>]*>/gi, '');
-    if (!removed.includes('head_block')) removed.push('head_stray');
-  }
+  // Bug 5 strike-2: gate-free always-replace pattern. The previous
+  // "if test() then replace" allowed silent misses on whitespace edge cases.
+  const stripIfChanged = (label: string, regex: RegExp, replacement: string | ((...a: any[]) => string) = '') => {
+    const before = cleaned;
+    cleaned = cleaned.replace(regex, replacement as any);
+    if (cleaned !== before) removed.push(label);
+  };
 
-  // Strip <html> and <body> wrappers (keep inner content)
-  if (/<\/?html[\s>]/i.test(cleaned)) {
-    cleaned = cleaned.replace(/<\/?html[^>]*>/gi, '');
-    removed.push('html_wrapper');
-  }
-  if (/<\/?body[\s>]/i.test(cleaned)) {
-    cleaned = cleaned.replace(/<\/?body[^>]*>/gi, '');
-    removed.push('body_wrapper');
-  }
-
-  // Downgrade <h1>…</h1> to <h2>…</h2> (preserve content)
-  if (/<h1[\s>]/i.test(cleaned)) {
-    cleaned = cleaned.replace(/<h1([\s>])/gi, '<h2$1').replace(/<\/h1>/gi, '</h2>');
-    removed.push('h1_downgraded');
-  }
-
-  // Strip <meta> tags
-  if (/<meta\b/i.test(cleaned)) {
-    cleaned = cleaned.replace(/<meta\b[^>]*>/gi, '');
-    removed.push('meta_tags');
-  }
-
-  // Strip <link rel="canonical|alternate"> (in any quote style or unquoted)
-  if (/<link\b[^>]*rel\s*=\s*["']?(canonical|alternate)/i.test(cleaned)) {
-    cleaned = cleaned.replace(/<link\b[^>]*rel\s*=\s*["']?(canonical|alternate)["']?[^>]*>/gi, '');
-    removed.push('link_canonical_alternate');
-  }
-
-  // Strip <script type="application/ld+json">…</script>
-  if (/application\/ld\+json/i.test(cleaned)) {
-    cleaned = cleaned.replace(/<script\b[^>]*type\s*=\s*["']?application\/ld\+json["']?[^>]*>[\s\S]*?<\/script>/gi, '');
-    removed.push('jsonld_block');
-  }
-
-  // Strip <style>…</style> blocks
-  if (/<style\b/i.test(cleaned)) {
-    cleaned = cleaned.replace(/<style\b[\s\S]*?<\/style>/gi, '');
-    removed.push('style_block');
-  }
+  stripIfChanged('head_block', /<head\b[\s\S]*?<\/head>/gi);
+  stripIfChanged('head_stray', /<\/?head\b[^>]*>/gi);
+  stripIfChanged('html_wrapper', /<\/?html\b[^>]*>/gi);
+  stripIfChanged('body_wrapper', /<\/?body\b[^>]*>/gi);
+  stripIfChanged('h1_downgraded', /<(\/?)h1\b([^>]*)>/gi, (_m: string, slash: string, attrs: string) => `<${slash}h2${attrs}>`);
+  stripIfChanged('meta_tags', /<meta\b[^>]*>/gi);
+  stripIfChanged('link_canonical_alternate', /<link\b[^>]*rel\s*=\s*["']?(canonical|alternate)["']?[^>]*>/gi);
+  stripIfChanged('jsonld_block', /<script\b[^>]*type\s*=\s*["']?application\/ld\+json["']?[^>]*>[\s\S]*?<\/script>/gi);
+  stripIfChanged('style_block', /<style\b[\s\S]*?<\/style>/gi);
 
   return { cleaned: cleaned.trim(), removed };
+}
+
+// Bug 5 strike-2: forensic helpers (mirror generate-missing-articles).
+function findConstraintOffenders(html: string): string[] {
+  if (!html) return [];
+  const offenders: string[] = [];
+  const h1 = html.match(/<h1[\s>][^>]{0,200}/gi);
+  const head = html.match(/<head[\s>][^>]{0,200}/gi);
+  if (h1) offenders.push(`H1[${h1.length}]: ${h1.slice(0, 3).join(' || ')}`);
+  if (head) offenders.push(`HEAD[${head.length}]: ${head.slice(0, 3).join(' || ')}`);
+  return offenders;
+}
+
+function nuclearStrip(html: string): string {
+  return (html || '')
+    .replace(/<(\/?)h1\b([^>]*)>/gi, (_m, slash, attrs) => `<${slash}h2${attrs}>`)
+    .replace(/<\/?head\b[^>]*>/gi, '');
 }
 
 // FIX C — Pre-insert validation mirror.
