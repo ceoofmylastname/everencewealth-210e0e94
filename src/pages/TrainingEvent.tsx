@@ -272,7 +272,7 @@ export default function TrainingEvent() {
                         <span className="text-xl tracking-wider uppercase hidden sm:block" style={{ color: '#C8A96E', letterSpacing: '0.12em', fontWeight: 600 }}>Everence Wealth</span>
                     </Link>
                     <div className="text-sm font-medium tracking-widest uppercase flex items-center gap-2" style={{ color: 'rgba(200,169,110,0.7)', letterSpacing: '0.14em' }}>
-                        Broker Training <span className="hidden sm:inline">· Spring '26</span>
+                        Broker Training <span className="hidden sm:inline">· Summer '26</span>
                     </div>
                 </nav>
 
