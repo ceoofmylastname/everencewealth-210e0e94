@@ -16,6 +16,8 @@ const corsHeaders = {
 };
 
 const WORKER_TIMEOUT_MIN = 20;
+// Bug B — independent QA-phase timeout, separate from blog-phase WORKER_TIMEOUT_MIN.
+const QA_TIMEOUT_MIN = 30;
 
 const INCOME_PATTERNS: { pattern: RegExp; label: string }[] = [
   { pattern: /\$\s?\d[\d,.]*\s*(per|a|each|every)?\s*(year|month|week|hour|day|annually|annual)/i, label: "dollar_per_period" },
@@ -213,6 +215,120 @@ serve(async (req) => {
       });
     }
 
+    // ----- 2.5. QA phase poll (Bug B sub-state machine) -----
+    // If we're already in the QA sub-phase for this entry, poll the QA job and
+    // either: (a) wait, (b) timeout, or (c) finalize + advance the batch index.
+    if (job.current_phase === "qa" && job.qa_job_id) {
+      const phaseStartedMs = job.qa_phase_started_at
+        ? new Date(job.qa_phase_started_at).getTime()
+        : Date.now();
+      const ageMin = (Date.now() - phaseStartedMs) / 60000;
+
+      const { data: qaJob } = await admin
+        .from("qa_generation_jobs")
+        .select("id, status, articles_completed, total_articles, total_qas_created, error, updated_at")
+        .eq("id", job.qa_job_id)
+        .maybeSingle();
+
+      if (!qaJob) {
+        // QA job vanished — treat as failure of QA only, advance the batch entry.
+        const lastResult = results[results.length - 1];
+        const updatedRow: ResultRow = {
+          ...(lastResult ?? { id: c.id, name: c.name, topic: c.topic, job_id: job.current_job_id, status: "built", duration_sec: 0 }),
+          error: (lastResult?.error ? lastResult.error + "; " : "") + "qa_job_missing",
+        };
+        const newResults = lastResult ? [...results.slice(0, -1), updatedRow] : [...results, updatedRow];
+        await admin.from("cluster_batch_jobs").update({
+          results: newResults,
+          current_index: idx + 1,
+          current_job_id: null,
+          current_phase: "blog",
+          qa_job_id: null,
+          qa_phase_started_at: null,
+          entry_started_at: null,
+        }).eq("id", batch_job_id);
+        await logStep(admin, batch_job_id, idx, c.topic, job.current_job_id, null,
+          "qa_advanced_missing", { qa_job_id: job.qa_job_id });
+        await releaseLock(admin, batch_job_id);
+        return new Response(JSON.stringify({ ok: false, action: "qa_missing" }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const qaDone = qaJob.status === "completed" || qaJob.status === "failed";
+      const qaTimedOut = !qaDone && ageMin > QA_TIMEOUT_MIN;
+
+      if (!qaDone && !qaTimedOut) {
+        await logStep(admin, batch_job_id, idx, c.topic, job.current_job_id, qaJob.status,
+          "qa_polled", {
+            qa_job_id: qaJob.id,
+            qa_status: qaJob.status,
+            articles_completed: qaJob.articles_completed,
+            total_articles: qaJob.total_articles,
+            total_qas_created: qaJob.total_qas_created,
+            age_min: ageMin,
+          });
+        await releaseLock(admin, batch_job_id);
+        return new Response(JSON.stringify({
+          ok: true,
+          action: "qa_polled",
+          qa_status: qaJob.status,
+          age_min: ageMin,
+        }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+
+      // QA phase done (or timed out). Update the entry's existing result row,
+      // then advance the batch index.
+      const lastResult = results[results.length - 1];
+      const qaSummary = {
+        qa_status: qaTimedOut ? "timeout" : qaJob.status,
+        articles_completed: qaJob.articles_completed,
+        total_qas_created: qaJob.total_qas_created,
+        total_articles: qaJob.total_articles,
+        ...(qaJob.error ? { qa_error: String(qaJob.error).substring(0, 300) } : {}),
+      };
+      const updatedRow: ResultRow = {
+        ...(lastResult ?? { id: c.id, name: c.name, topic: c.topic, job_id: job.current_job_id, status: "built", duration_sec: 0 }),
+        ...((qaTimedOut || qaJob.status === "failed") && lastResult?.status === "built"
+          ? { status: "flagged" as const }
+          : {}),
+        // Stash QA summary into the row's error field if there was a QA failure
+        ...((qaTimedOut || qaJob.status === "failed") && {
+          error: (lastResult?.error ? lastResult.error + "; " : "") +
+            `qa_${qaTimedOut ? "timeout" : "failed"}: ${qaJob.articles_completed ?? 0}/${qaJob.total_articles ?? 0} articles`,
+        }),
+      };
+      const newResults = lastResult ? [...results.slice(0, -1), updatedRow] : [...results, updatedRow];
+
+      await admin.from("cluster_batch_jobs").update({
+        results: newResults,
+        current_index: idx + 1,
+        current_job_id: null,
+        current_phase: "blog",
+        qa_job_id: null,
+        qa_phase_started_at: null,
+        entry_started_at: null,
+      }).eq("id", batch_job_id);
+
+      // Mark the QA job failed in DB if we timed out
+      if (qaTimedOut) {
+        await admin.from("qa_generation_jobs").update({
+          status: "failed",
+          error: `aborted: ${QA_TIMEOUT_MIN}min QA-phase timeout`,
+          completed_at: new Date().toISOString(),
+        }).eq("id", qaJob.id);
+      }
+
+      await logStep(admin, batch_job_id, idx, c.topic, job.current_job_id, qaJob.status,
+        qaTimedOut ? "qa_advanced_timeout" : "qa_advanced_complete", qaSummary);
+      await releaseLock(admin, batch_job_id);
+      return new Response(JSON.stringify({
+        ok: !qaTimedOut && qaJob.status !== "failed",
+        action: qaTimedOut ? "qa_timeout" : "qa_complete",
+        ...qaSummary,
+      }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
     // ----- 3. Build entry: branch on whether generate-cluster has been kicked off -----
     if (!job.current_job_id) {
       // First tick for this entry — fire generate-cluster
@@ -224,6 +340,10 @@ serve(async (req) => {
           language: "en",
           targetAudience: c.target_audience,
           primaryKeyword: c.primary_keyword,
+          // Bug A — forward classification metadata so generate-cluster picks
+          // the recruiting structure prompt + master_content_prompt_recruiting.
+          compliance_class: c.compliance_class ?? "wealth_standard",
+          cluster_name: c.name,
         }),
       });
       const invokeJson = await invokeResp.json().catch(() => ({}));
@@ -389,9 +509,21 @@ serve(async (req) => {
         }
       }
 
+      // Bug B — Decide QA-phase policy based on flag count.
+      //   0 flags                                       → fire QA for all 6 articles
+      //   1 flag (single article flagged)               → fire QA for 5 surviving published articles
+      //   ≥2 flags                                      → SKIP QA, mark cluster flagged, advance immediately
+      const isRecruiting = c.compliance_class === "recruiting_no_income_claims";
+      let qaPolicy: "all" | "survivors" | "skip" = "all";
+      if (isRecruiting) {
+        if (flaggedCount === 0) qaPolicy = "all";
+        else if (flaggedCount === 1) qaPolicy = "survivors";
+        else qaPolicy = "skip";
+      }
+
       const row: ResultRow = {
         id: c.id, name: c.name, topic: c.topic, job_id: g.id,
-        status: (flaggedCount > 0 || isPartial) ? "flagged" : "built",
+        status: (qaPolicy === "skip" || flaggedCount > 0 || isPartial) ? "flagged" : "built",
         duration_sec: durationSec,
         flagged_count: flaggedCount > 0 ? flaggedCount : undefined,
         ...(isPartial && {
@@ -401,12 +533,64 @@ serve(async (req) => {
           expected_count: expectedCount,
         }),
       };
+
+      // If we're going to fire the QA phase, DO NOT advance the index yet —
+      // park the entry in current_phase='qa' so subsequent ticks poll the QA job.
+      const willFireQa = qaPolicy === "all" || qaPolicy === "survivors";
+
+      if (willFireQa) {
+        // Fire generate-cluster-qas (fire-and-forget). The orchestrator returns a job ID
+        // synchronously which we capture and persist on the batch row.
+        let qaJobId: string | null = null;
+        try {
+          const qaResp = await fetch(`${SUPABASE_URL}/functions/v1/generate-cluster-qas`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Authorization: `Bearer ${SERVICE_KEY}` },
+            body: JSON.stringify({ clusterId: g.id }),
+          });
+          const qaJson: any = await qaResp.json().catch(() => ({}));
+          qaJobId = qaJson?.jobId ?? null;
+          if (!qaResp.ok || !qaJobId) {
+            console.error(`[build-cluster-step] generate-cluster-qas failed (${qaResp.status}):`, qaJson);
+          }
+        } catch (e) {
+          console.error("[build-cluster-step] generate-cluster-qas invoke threw:", e);
+        }
+
+        if (qaJobId) {
+          await admin.from("cluster_batch_jobs").update({
+            results: [...results, row],
+            build_count: (job.build_count ?? 0) + 1,
+            flagged_count: (job.flagged_count ?? 0) + flaggedCount,
+            current_phase: "qa",
+            qa_job_id: qaJobId,
+            qa_phase_started_at: new Date().toISOString(),
+            // Keep current_index pointing at THIS entry; do not advance.
+            current_job_id: g.id,
+            entry_started_at: null,
+          }).eq("id", batch_job_id);
+
+          await logStep(admin, batch_job_id, idx, c.topic, g.id, g.status, "qa_phase_fired",
+            { qa_policy: qaPolicy, qa_job_id: qaJobId, flagged_count: flaggedCount });
+          await releaseLock(admin, batch_job_id);
+          return new Response(JSON.stringify({
+            ok: true, action: "qa_phase_fired", qa_policy: qaPolicy, qa_job_id: qaJobId,
+          }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        }
+        // If QA invoke failed, fall through and advance like skip (don't block batch).
+        console.warn(`[build-cluster-step] QA invoke failed — advancing without QA for cluster ${g.id}`);
+      }
+
+      // Skip-QA path (≥2 flags, or QA invoke failed): advance the index now.
       await admin.from("cluster_batch_jobs").update({
         results: [...results, row],
         build_count: (job.build_count ?? 0) + 1,
         flagged_count: (job.flagged_count ?? 0) + flaggedCount,
         current_index: idx + 1,
         current_job_id: null,
+        current_phase: "blog",
+        qa_job_id: null,
+        qa_phase_started_at: null,
         entry_started_at: null,
       }).eq("id", batch_job_id);
 

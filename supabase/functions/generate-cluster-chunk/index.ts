@@ -694,11 +694,15 @@ async function processChunk(
     const { data: authors } = await supabase.from('authors').select('*');
     const { data: categories } = await supabase.from('categories').select('*');
 
-    // Fetch master prompt
+    // Fetch master prompt — Bug A: branch by job.compliance_class
+    const masterPromptKey = job.compliance_class === 'recruiting_no_income_claims'
+      ? 'master_content_prompt_recruiting'
+      : 'master_content_prompt';
+    console.log(`[Chunk ${jobId}] Loading master prompt: ${masterPromptKey} (compliance_class=${job.compliance_class || 'wealth_standard'})`);
     const { data: promptData } = await supabase
       .from('content_settings')
       .select('setting_value')
-      .eq('setting_key', 'master_content_prompt')
+      .eq('setting_key', masterPromptKey)
       .single();
     const masterPrompt = promptData?.setting_value || '';
 
