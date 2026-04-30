@@ -15,7 +15,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const WORKER_TIMEOUT_MIN = 20;
+const WORKER_TIMEOUT_MIN = 35;
 // Bug B — independent QA-phase timeout, separate from blog-phase WORKER_TIMEOUT_MIN.
 const QA_TIMEOUT_MIN = 30;
 

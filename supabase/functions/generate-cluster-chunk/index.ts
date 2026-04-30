@@ -64,7 +64,7 @@ const CHUNK_SIZE = 1; // One article per chunk to prevent timeouts
 const MAX_CHUNK_RUNTIME = 4 * 60 * 1000; // 4 minutes per chunk (safety margin)
 // 4 min per Claude call — Sonnet legitimately needs this for 1,500-2,500 word
 // HTML articles + 25k-char master prompt + 5-8 FAQs + JSON wrapping.
-const CLAUDE_TIMEOUT_MS = 240_000;
+const CLAUDE_TIMEOUT_MS = 480_000;
 
 // Heartbeat: log + persist last activity to cluster_generations.progress
 // so frontend dialog & log tail both show where the worker actually is.
@@ -526,7 +526,7 @@ TOTAL MINIMUM: 1,000 words. Do NOT submit under 800.`;
           headers: { 'x-api-key': CLAUDE_API_KEY, 'anthropic-version': '2023-06-01', 'Content-Type': 'application/json' },
           body: JSON.stringify({
             model: 'claude-sonnet-4-5-20250929',
-            max_tokens: 16000,
+            max_tokens: 12000,
             system: systemPrompt + '\n\nIMPORTANT: Return ONLY a valid JSON object as specified. No prose, no markdown fences.',
             messages: [{ role: 'user', content: currentPrompt }],
           }),
