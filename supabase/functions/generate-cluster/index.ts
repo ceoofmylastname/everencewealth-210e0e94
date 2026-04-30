@@ -908,7 +908,24 @@ serve(async (req) => {
   }
 
   try {
-    const { topic, language, targetAudience, primaryKeyword, _resumeMultilingualJob } = await req.json();
+    const {
+      topic,
+      language,
+      targetAudience,
+      primaryKeyword,
+      _resumeMultilingualJob,
+      compliance_class: rawComplianceClass,
+      cluster_name: rawClusterName,
+    } = await req.json();
+
+    // Bug A — accept compliance_class from the orchestrator. Default to wealth.
+    const compliance_class: 'wealth_standard' | 'recruiting_no_income_claims' =
+      rawComplianceClass === 'recruiting_no_income_claims'
+        ? 'recruiting_no_income_claims'
+        : 'wealth_standard';
+    const cluster_name: string | null = typeof rawClusterName === 'string' && rawClusterName.length
+      ? rawClusterName
+      : null;
 
     // ENFORCE ENGLISH-FIRST STRATEGY
     // Master clusters must be created in English. Translations happen via Cluster Manager.
@@ -986,6 +1003,7 @@ serve(async (req) => {
           primary_keyword: primaryKeyword,
           status: 'pending',
           started_at: new Date().toISOString(), // Track when job started
+          compliance_class,
         })
         .select()
         .single();
