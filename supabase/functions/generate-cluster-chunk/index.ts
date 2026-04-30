@@ -886,12 +886,31 @@ TOTAL MINIMUM: 1,000 words. Do NOT submit under 800.`;
     // FIX C — Pre-insert validation mirror.
     // Catch sanitizer regressions BEFORE the DB CHECK constraint fires, so we get
     // a precise error string instead of "violates check constraint blog_articles_…".
-    try {
-      validateNoForbiddenTags(article.detailed_content);
-    } catch (validateErr) {
-      const msg = validateErr instanceof Error ? validateErr.message : String(validateErr);
-      await heartbeat(supabase, jobId, `validate:fail article=${articleIndex + 1} ${msg}`);
-      throw new Error(`Article ${articleIndex + 1} pre-insert validation failed: ${msg}`);
+    // Bug 5 strike-2: instead of throwing immediately on a sanitizer regression,
+    // try the nuclear strip + forensic log first. Only abort if even nuclear fails.
+    const offenders = findConstraintOffenders(article.detailed_content);
+    if (offenders.length > 0) {
+      console.error(`[Chunk ${jobId}] 🚨 GUARD TRIPPED article=${articleIndex + 1}:`, offenders);
+      await heartbeat(supabase, jobId, `guard:tripped article=${articleIndex + 1} offenders=${offenders.length}`);
+      await recordGenerationFailure(supabase, {
+        generationId: jobId,
+        clusterId,
+        articleIndex,
+        attempt: 1,
+        failureKind: 'validation',
+        stopReason: 'pre_insert_sanitizer_guard',
+        rawResponse: article.detailed_content?.substring(0, 8000) ?? null,
+        errorMessage: offenders.join(' | '),
+        promptContext: { source: 'generate-cluster-chunk', headline: plan.headline, cluster_number: articleIndex + 1 },
+      });
+      article.detailed_content = nuclearStrip(article.detailed_content);
+      const stillBad = findConstraintOffenders(article.detailed_content);
+      if (stillBad.length > 0) {
+        await heartbeat(supabase, jobId, `guard:unrecoverable article=${articleIndex + 1}`);
+        throw new Error(`Article ${articleIndex + 1} sanitizer guard unrecoverable: ${stillBad.join(' | ')}`);
+      }
+      await heartbeat(supabase, jobId, `guard:recovered article=${articleIndex + 1} via=nuclear_strip`);
+      console.warn(`[Chunk ${jobId}] ✅ Nuclear strip recovered article ${articleIndex + 1}`);
     }
 
     // 7. SAVE TO DATABASE
