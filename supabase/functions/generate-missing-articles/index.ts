@@ -682,6 +682,33 @@ You MUST write a MUCH LONGER article. Use this structure:
     if (slotTaken) {
       console.warn(`[Missing] ⚠️ Slot ${nextClusterNumber} was filled by a concurrent run — skipping insert`);
     } else {
+      // Bug 5 strike-2 — Pre-insert hard guard with forensic logging.
+      // If anything still matches the constraint regex, force-strip and persist
+      // a forensic record so we finally see what's slipping through.
+      const offenders = findConstraintOffenders(article.detailed_content);
+      if (offenders.length > 0) {
+        console.error(`[Missing] 🚨 GUARD TRIPPED — sanitizer bypass on slot ${nextClusterNumber}:`, offenders);
+        await recordSanitizerBypass(supabase, {
+          clusterId,
+          clusterNumber: nextClusterNumber,
+          headline: plan.headline,
+          offenders,
+          sample: article.detailed_content,
+        });
+        article.detailed_content = nuclearStrip(article.detailed_content);
+        const stillBad = findConstraintOffenders(article.detailed_content);
+        if (stillBad.length > 0) {
+          console.error(`[Missing] ❌ Nuclear strip failed — aborting insert:`, stillBad);
+          await updateProgress(supabase, clusterId, {
+            message: `Article ${nextClusterNumber} aborted (sanitizer + guard both failed)`,
+            in_progress: false,
+            last_error: 'sanitizer_guard_unrecoverable',
+          });
+          return;
+        }
+        console.warn(`[Missing] ✅ Nuclear strip cleared offenders, proceeding with insert`);
+      }
+
       const { data: savedArticle, error: saveError } = await supabase
         .from('blog_articles')
         .insert(article)
