@@ -58,7 +58,7 @@ function sanitizeDetailedContent(html: string): { cleaned: string; removed: stri
   const removed: string[] = [];
   let cleaned = html || '';
 
-  const stripIfChanged = (label: string, regex: RegExp, replacement: string | ((m: string) => string) = '') => {
+  const stripIfChanged = (label: string, regex: RegExp, replacement: string | ((...args: any[]) => string) = '') => {
     const before = cleaned;
     cleaned = cleaned.replace(regex, replacement as any);
     if (cleaned !== before) removed.push(label);
@@ -72,7 +72,7 @@ function sanitizeDetailedContent(html: string): { cleaned: string; removed: stri
   stripIfChanged('html_wrapper', /<\/?html\b[^>]*>/gi);
   stripIfChanged('body_wrapper', /<\/?body\b[^>]*>/gi);
   // Downgrade <h1> → <h2> using \b (catches <h1>, <h1 class>, <h1\n>, <h1/>)
-  stripIfChanged('h1_downgraded', /<(\/?)h1\b([^>]*)>/gi, (_m, slash, attrs) => `<${slash}h2${attrs}>`);
+  stripIfChanged('h1_downgraded', /<(\/?)h1\b([^>]*)>/gi, (_m: string, slash: string, attrs: string) => `<${slash}h2${attrs}>`);
   // Strip <meta>
   stripIfChanged('meta_tags', /<meta\b[^>]*>/gi);
   // Strip <link rel=canonical|alternate>
