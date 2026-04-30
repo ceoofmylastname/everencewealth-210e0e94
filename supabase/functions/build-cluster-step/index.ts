@@ -521,6 +521,26 @@ serve(async (req) => {
         else qaPolicy = "skip";
       }
 
+      // P2 — Halt-on-partial. If the blog phase reported partial=true (some
+      // articles failed to generate after retries), do NOT fire QA over the
+      // surviving articles. We do not want to compound a broken blog phase
+      // with a half-baked QA phase. Force qaPolicy='skip', mark the cluster
+      // status='flagged' with reason='partial_blog_generation', and advance.
+      // Diagnostics for which articles failed and why are already persisted
+      // on cluster_generations.progress.partial_failures and replicated into
+      // the batch row's results[].partial_failures below.
+      if (isPartial) {
+        qaPolicy = "skip";
+        await logStep(admin, batch_job_id, idx, c.topic, g.id, g.status,
+          "halt_on_partial", {
+            reason: "partial_blog_generation",
+            verified_count: verifiedCount,
+            expected_count: expectedCount,
+            partial_failures_count: partialFailures.length,
+            partial_failures: partialFailures,
+          });
+      }
+
       const row: ResultRow = {
         id: c.id, name: c.name, topic: c.topic, job_id: g.id,
         status: (qaPolicy === "skip" || flaggedCount > 0 || isPartial) ? "flagged" : "built",
