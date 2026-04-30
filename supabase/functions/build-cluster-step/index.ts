@@ -287,10 +287,36 @@ serve(async (req) => {
         total_articles: qaJob.total_articles,
         ...(qaJob.error ? { qa_error: String(qaJob.error).substring(0, 300) } : {}),
       };
+
+      // Diff 2 — Atomic cluster completion gate. Even if QA reported "completed",
+      // we re-verify the 6/6 EN, 6/6 ES, 24/24 EN-QA, 24/24 ES-QA, hreflang
+      // parity, and citation presence. If the gate fails, the cluster is
+      // demoted to 'flagged' and missing_components is written so the dashboard
+      // shows exactly what's missing instead of a false-positive completion.
+      let gateResult: any = null;
+      let gatePassed = true;
+      try {
+        const { data: gateData } = await admin.rpc('verify_cluster_complete', { _cluster_id: c.id });
+        gateResult = gateData;
+        gatePassed = gateResult?.passed === true;
+        if (!gatePassed) {
+          await admin.from('cluster_completion_progress').update({
+            status: 'flagged',
+            missing_components: gateResult?.gates ?? {},
+            last_updated: new Date().toISOString(),
+          }).eq('cluster_id', c.id);
+        }
+      } catch (e) {
+        console.warn('[build-cluster-step] verify_cluster_complete failed (non-fatal):', (e as any)?.message);
+      }
+
       const updatedRow: ResultRow = {
         ...(lastResult ?? { id: c.id, name: c.name, topic: c.topic, job_id: job.current_job_id, status: "built", duration_sec: 0 }),
         ...((qaTimedOut || qaJob.status === "failed") && lastResult?.status === "built"
           ? { status: "flagged" as const }
+          : {}),
+        ...(!gatePassed && (lastResult?.status === "built" || lastResult?.status === "flagged")
+          ? { status: "flagged" as const, gate_failed: true, gate_result: gateResult }
           : {}),
         // Stash QA summary into the row's error field if there was a QA failure
         ...((qaTimedOut || qaJob.status === "failed") && {
