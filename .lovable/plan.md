@@ -1,96 +1,111 @@
-## Execution Plan — Recruiting Pipeline Fix + Cluster 51 Verification
+## Cluster 51 v4 — Three-Diff Package
 
-### Step 1 — Patch the approved recruiting prompt with the BLS carve-out
+### Forensics (deliverable 1) — corrected
 
-Add to **Section 5 (Forbidden Content → MONEY / INCOME block)**:
+v4 generation `94707123-9359-4ad6-b2ec-552c6876a790` failed at the 35-min worker watchdog. Confirmed against database:
 
-> **BLS Pay-Tab carve-out:** The Bureau of Labor Statistics Occupational Outlook Handbook is APPROVED for citation, but ONLY for non-pay content: job description, working conditions, education and licensing requirements, employment outlook trends, day-to-day duties. The "Pay" tab, median wage tables, percentile wage ranges, and any dollar figures from BLS pages are explicitly OFF-LIMITS for citation, paraphrase, or summary. Reason: the BLS "Insurance Sales Agents" page displays median pay prominently at the top — citing it will trip the `dollar_per_period` regex and demote the article.
+- **Cluster 51 actual theme:** "Becoming an Insurance Broker — Career Overview" (`primary_keyword='how to become insurance broker'`, `target_audience='Career Changer'`). **Not Roth Conversions.** The Roth articles visible in the dashboard screenshot belong to a different cluster — the dashboard view scope was misleading. Claude was generating the correct topic.
+- **Failure mode:** All 3 EN article attempts failed with identical parser error: `Failed to parse content JSON: Could not extract valid JSON from response. First 300 chars: ` ```json {...` ``. Each article exhausted its 3 retries.
+- **Stop reason:** Cannot be read — the parser threw before we ever inspected `stop_reason`. The diagnostic data Diff 1 was supposed to surface is structurally unreachable with buffered POST.
+- **Bug 4 confirmed live:** `cluster_batch_jobs.status='completed'` with `build_count=0, fail_count=1`. Dashboard reports success on a fully-failed run.
+- **`cluster_completion_progress` clean:** `articles_completed=0, status='not_started'` — the hard-reset migration worked correctly. There are no v4 orphans to clean up.
+- **No `cluster_id` column on `cluster_generations`:** the orchestrator joins through `cluster_batch_jobs.results[].job_id` instead. Bug 3 mis-keying audit deferred — irrelevant since 0 articles were created.
 
-Add to **Section 10 (Output Format → Citations line)**:
+The parser snippet (` ```json { "detailed_content": "<div class='article-content'>... `) shows Claude's response opens with a markdown fence followed by valid JSON. The extractor at `generate-cluster-chunk/index.ts:6-56` handles closed fences and unclosed-leading-fence cases, but the responses are still failing all 5 strategies. Either the response is being truncated mid-string at a point that breaks the fallback brace-slice (likely — 12k tokens × 3 articles in one chunk × Sonnet's verbose HTML ≈ ceiling), or there is a content character (unescaped quote/newline inside `detailed_content`) that defeats `JSON.parse`. Buffered fetch cannot tell us which without SSE visibility.
 
-> Citations (footnoted, approved sources only — DOI, state insurance department sites, NAIC, and BLS Occupational Outlook Handbook pages are fine; **when citing BLS, quote only non-pay sections — never the median wage, wage ranges, or any pay-tab data**; NEVER cite earnings tables from any source).
+### Diff 1 — SSE streaming for Claude (the real fix)
 
-Save final approved prompt to `/mnt/documents/master_content_prompt_recruiting_v2.txt` for the record.
+Convert the Claude call in `generate-cluster-chunk/index.ts` from buffered POST to Server-Sent Events.
 
-### Step 2 — Seed `content_settings.master_content_prompt_recruiting`
+- Set request body `stream: true`. Anthropic returns `event: content_block_delta` chunks with `delta.text` increments and a terminal `event: message_stop` with `stop_reason`.
+- Consume the stream with `ReadableStreamDefaultReader`, accumulating `delta.text` into a buffer.
+- After each delta, write a heartbeat to `cluster_generations.progress` with `{chars_received, last_delta_at, stop_reason: null}` so the UI shows real progress instead of an 8-minute black box.
+- On `message_stop`, capture `stop_reason` (`end_turn`, `max_tokens`, `stop_sequence`, `tool_use`) and persist to `progress.stop_reason`. This is the diagnostic data we have been unable to read for three test cycles.
+- Run the same `extractJsonFromResponse` parser on the accumulated buffer. If `stop_reason='max_tokens'`, the parser will see truncated JSON — log explicitly that truncation occurred so we stop blaming the parser.
+- Replace the single 8-minute `AbortController` with an inactivity-based timeout (60s with no delta = abort). A streaming response that keeps emitting tokens never trips it; a stalled response dies fast.
 
-`INSERT` (or upsert) one row in `content_settings` with `setting_key='master_content_prompt_recruiting'` and the patched prompt as `setting_value`. Verify with a length check that matches the file.
+This gives us three things we have never had: real-time progress, a confirmed `stop_reason`, and the ability to distinguish "Claude truncated" from "parser broke."
 
-### Step 3 — Bug A fix (forward `compliance_class` + branch prompt selection)
+### Diff 2 — Atomic cluster completion gate
 
-- `build-cluster-step/index.ts` (~line 219–228): when invoking `generate-cluster`, include `compliance_class: c.compliance_class` and `cluster_name: c.name` in the POST body.
-- `generate-cluster/index.ts` and `generate-cluster-chunk/index.ts`:
-  - Read `compliance_class` from request, persist on `cluster_generations` (add column if missing via migration).
-  - Branch master prompt fetch: `setting_key = 'master_content_prompt_recruiting'` when `compliance_class === 'recruiting_no_income_claims'`, else the existing `master_content_prompt`.
-  - Branch the structure prompt: when recruiting, swap "wealth management firm" framing for "independent broker / insurance career mentor" and inject the forbidden-topic list.
+New SQL function and table column, wired into the orchestrator.
 
-### Step 4 — Bug B fix (QA phase state machine + flag-handling policy)
+```sql
+ALTER TABLE cluster_completion_progress
+  ADD COLUMN missing_components jsonb DEFAULT '{}'::jsonb;
 
-Migration:
-- Add `current_phase TEXT DEFAULT 'blog' CHECK (current_phase IN ('blog','qa'))` to `cluster_batch_jobs`.
-- Add `qa_job_id UUID NULL`, `qa_phase_started_at TIMESTAMPTZ NULL` to `cluster_batch_jobs`.
+CREATE OR REPLACE FUNCTION verify_cluster_complete(_cluster_id uuid)
+RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=public AS $$
+DECLARE
+  en_blogs int; es_blogs int; en_qas int; es_qas int;
+  orphan_en_blogs int; orphan_en_qas int;
+  blogs_without_citations int;
+  result jsonb;
+BEGIN
+  SELECT count(*) FILTER (WHERE language='en' AND status='published'),
+         count(*) FILTER (WHERE language='es' AND status='published')
+    INTO en_blogs, es_blogs
+    FROM blog_articles WHERE cluster_id = _cluster_id;
 
-`build-cluster-step/index.ts`:
-- When blog completion gate flips true:
-  - Run compliance scan as today.
-  - Count flagged articles in this cluster.
-    - **0 flags:** fire `generate-cluster-qas` for the cluster, store returned `jobId` in `qa_job_id`, set `current_phase='qa'`, `qa_phase_started_at=now()`. Do NOT advance `current_index`.
-    - **1 flag:** demote that article to draft, log to `flagged_articles` with cluster_theme/slug/matched_pattern/excerpt, fire `generate-cluster-qas` for the surviving 5 published articles, set `current_phase='qa'`. Do NOT advance.
-    - **≥2 flags:** demote all flagged articles, log each to `flagged_articles`, mark cluster `status='flagged'`, **skip QA phase entirely**, advance `current_index` immediately.
-- On subsequent ticks when `current_phase='qa'`:
-  - Poll `qa_generation_jobs` row for `qa_job_id`.
-  - If `status='completed'` (or `failed` after retry budget): record `qa_count` / `qa_failed` on the result row, advance `current_index`, reset `current_phase='blog'`, clear `qa_job_id`.
-  - If `qa_phase_started_at < now() - 30 min`: log phase timeout separately, mark cluster `status='qa_timeout'`, advance.
-- Blog phase keeps existing 20-min `WORKER_TIMEOUT_MIN`. QA phase uses independent 30-min budget. Log phase timeouts separately for diagnosis.
+  SELECT count(*) FILTER (WHERE language='en' AND status='published'),
+         count(*) FILTER (WHERE language='es' AND status='published')
+    INTO en_qas, es_qas
+    FROM qa_pages WHERE cluster_id = _cluster_id;
 
-### Step 5 — Cleanup verification
+  SELECT count(*) INTO orphan_en_blogs FROM blog_articles en
+    WHERE en.cluster_id=_cluster_id AND en.language='en'
+      AND NOT EXISTS (SELECT 1 FROM blog_articles es
+        WHERE es.hreflang_group_id=en.hreflang_group_id AND es.language='es');
 
-Re-confirm pre-test database state (already executed):
-- `blog_articles` count for the 25 recruiting cluster IDs = 0
-- `flagged_articles` count = 0
-- `cluster_completion_progress` for all 25 = `articles_completed=0`, `english_articles=0`, `translations_completed=0`, `status='not_started'`, `completed_at=NULL`
-- `qa_generation_jobs` count for these clusters = 0
+  SELECT count(*) INTO orphan_en_qas FROM qa_pages en
+    WHERE en.cluster_id=_cluster_id AND en.language='en'
+      AND NOT EXISTS (SELECT 1 FROM qa_pages es
+        WHERE es.hreflang_group_id=en.hreflang_group_id AND es.language='es');
 
-### Step 6 — Recalculate cost estimate (token math)
+  SELECT count(*) INTO blogs_without_citations FROM blog_articles
+    WHERE cluster_id=_cluster_id
+      AND (external_citations IS NULL OR jsonb_array_length(external_citations) < 1);
 
-Per cluster:
-- 6 blog generations × ~2,500 output tokens = 15,000 output tokens (Claude Sonnet 4.5)
-- 24 QA generations (6 articles × 4 QAs) × ~600 output tokens = 14,400 output tokens (Claude Sonnet 4.5)
-- Spanish translation × 30 items via Gemini 2.5 Flash
+  result := jsonb_build_object(
+    'passed', (en_blogs=6 AND es_blogs=6 AND en_qas=24 AND es_qas=24
+               AND orphan_en_blogs=0 AND orphan_en_qas=0 AND blogs_without_citations=0),
+    'en_blogs', en_blogs, 'es_blogs', es_blogs,
+    'en_qas', en_qas, 'es_qas', es_qas,
+    'orphan_en_blogs', orphan_en_blogs, 'orphan_en_qas', orphan_en_qas,
+    'blogs_without_citations', blogs_without_citations
+  );
+  RETURN result;
+END $$;
+```
 
-× 25 clusters → input + output token math at current Sonnet 4.5 + Gemini Flash rates. Send the dollar figure with the verification package.
+Wiring:
 
-### Step 7 — Cluster 51 single-cluster test
+- In `build-cluster-step` cluster-finalization branch: call `verify_cluster_complete(cluster_id)`. If `passed=true` → `status='completed'`. Otherwise → `status='flagged'`, write the result to `missing_components`, and emit a `results[]` entry with the gap detail.
+- Orchestrator's per-entry advance: when an entry finishes, only increment `current_index` if the gate passed OR the entry exhausted its retry budget (preventing infinite loops). Flagged clusters surface in the batch results without poisoning the next entry.
+- Tighten Bug 4: in the same `completed_batch` branch, compute terminal status from the entries:
+  - all entries `passed` → `'completed'`
+  - some passed → `'halted_partial'`
+  - none passed → `'failed'`
+  - never `'completed'` when `build_count=0`
 
-- Trigger `bulk-build-clusters` scoped to Cluster 51 only (`Becoming an Insurance Broker — Career Overview`, compliance_class `recruiting_no_income_claims`).
-- Poll until `cluster_completion_progress.status = 'completed'` for cluster 51.
-- Capture: `articles_completed`, blog count by language, QA count by language, flagged count.
+### Diff 3 — Forensics-grade observability + Bug 3 deferred-fix prep
 
-### Step 8 — Four-condition verification package
+Small additions that pay back the next time something breaks.
 
-Send before any 25-cluster retry:
+- In `generate-cluster-chunk`, log the resolved prompt context at chunk start: `cluster_id`, `topic`, `primary_keyword`, `target_audience`, `language`, `chunk_index/total`. One line, structured, so we can confirm prompt-routing in logs without DB joins.
+- On parser failure, persist the **full** Claude response (not just first 300 chars) to a new `cluster_generation_failures` table keyed by `(generation_id, article_index, attempt)`. Today the truncated 300-char snippet is all we have; the full payload tells us if it was truncation or escape-character corruption.
+- Add a `cluster_id` column to `cluster_generations` (currently missing — confirmed via `information_schema`). Backfill via the orchestrator's `current_job_id`/`results[].job_id` mapping. This unblocks Bug 3's eventual fix and lets the dashboard query progress without joining through `cluster_batch_jobs.results`.
 
-1. **`articles_completed = 60`** for Cluster 51 (6 EN blog + 6 ES blog + 24 EN QA + 24 ES QA).
-2. **Sample EN blog body** (full text of one TOFU and one BOFU) demonstrating: recruiting topic, no dollar signs, no wealth-vertical drift, no BLS pay-tab data, CTA points to `/contracting/intake`.
-3. **QA-phase execution proof**: `qa_generation_jobs` row for cluster 51 with `status='completed'`, plus `build-cluster-step` log lines showing `current_phase='qa'` transition and post-QA advance.
-4. **Recalculated 25-cluster cost estimate** from Step 6.
+### Order of operations on approval
 
-### Hold gate
+1. Ship Diff 3's logging additions first (smallest, lowest risk, immediately useful for the v5 retest).
+2. Ship Diff 2's migration + verifier wiring (database-only change, doesn't affect generation).
+3. Ship Diff 1's SSE streaming refactor (largest behavior change).
+4. Hard-reset Cluster 51 once more (`cluster_completion_progress` is already clean, only the `cluster_batch_jobs` row needs status fixed).
+5. Trigger v5. Two-strike rule fully spent on v4 — if v5 fails, we stop and review root cause before any further code changes.
 
-Wait for written "go live" before triggering the 25-cluster retry. Cleanup, prompt seed, and code fixes will not be re-run; only the bulk batch trigger.
+### Holds
 
-### Technical Details
-
-**Files to edit:**
-- `supabase/functions/build-cluster-step/index.ts` — forward compliance_class, add current_phase state machine, flag-handling branch.
-- `supabase/functions/generate-cluster/index.ts` — read compliance_class, branch prompt fetch + structure prompt.
-- `supabase/functions/generate-cluster-chunk/index.ts` — same prompt-fetch branch.
-
-**Migrations:**
-- `cluster_batch_jobs`: add `current_phase`, `qa_job_id`, `qa_phase_started_at`.
-- `cluster_generations`: add `compliance_class TEXT NULL` for traceability (optional but recommended).
-
-**Data inserts (via insert tool, not migration):**
-- Upsert `content_settings` row with `setting_key='master_content_prompt_recruiting'`.
-
-**No schema changes to:** `qa_generation_jobs`, `qa_pages`, `blog_articles`, `flagged_articles`, `cluster_completion_progress`.
+- No 25-cluster batch under any state until you say "go live."
+- v5 is a single-cluster retest. Verification package on terminal state will include the `stop_reason` audit (now actually readable) and the `verify_cluster_complete` JSON for Cluster 51.
+- Bug 3 mis-keying full repair stays deferred — Diff 3 only adds the column and backfill, not the codebase sweep.
