@@ -530,7 +530,13 @@ serve(async (req) => {
       // on cluster_generations.progress.partial_failures and replicated into
       // the batch row's results[].partial_failures below.
       if (isPartial) {
-        qaPolicy = "skip";
+        // P2 v2 — REAL short-circuit. On partial blog generation we:
+        //   1. Log the halt with full diagnostics
+        //   2. Mark the batch status='halted_partial' + current_phase='halted'
+        //   3. Mark cluster_completion_progress status='flagged'
+        //   4. RETURN — do NOT fall through to QA fire / advance / completion logic
+        // This prevents the bug where a flagged cluster still got marked
+        // 'completed' on the batch row.
         await logStep(admin, batch_job_id, idx, c.topic, g.id, g.status,
           "halt_on_partial", {
             reason: "partial_blog_generation",
@@ -539,6 +545,45 @@ serve(async (req) => {
             partial_failures_count: partialFailures.length,
             partial_failures: partialFailures,
           });
+
+        const haltDurationSec = Math.round(
+          (Date.now() - (job.entry_started_at ? new Date(job.entry_started_at).getTime() : startedAt)) / 1000
+        );
+        const flaggedRow: ResultRow = {
+          id: c.id, name: c.name, topic: c.topic, job_id: g.id,
+          status: "flagged",
+          duration_sec: haltDurationSec,
+          partial: true,
+          partial_failures: partialFailures,
+          verified_count: verifiedCount,
+          expected_count: expectedCount,
+        };
+
+        await admin.from("cluster_batch_jobs").update({
+          results: [...results, flaggedRow],
+          status: "halted_partial",
+          current_phase: "halted",
+          flagged_count: (job.flagged_count ?? 0) + 1,
+          current_job_id: null,
+          qa_job_id: null,
+          qa_phase_started_at: null,
+          entry_started_at: null,
+        }).eq("id", batch_job_id);
+
+        await admin.from("cluster_completion_progress").update({
+          status: "flagged",
+          last_updated: new Date().toISOString(),
+        }).eq("cluster_id", c.id);
+
+        await releaseLock(admin, batch_job_id);
+        return new Response(JSON.stringify({
+          ok: false,
+          action: "halted_partial",
+          reason: "partial_blog_generation",
+          verified_count: verifiedCount,
+          expected_count: expectedCount,
+          partial_failures: partialFailures,
+        }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
 
       const row: ResultRow = {
