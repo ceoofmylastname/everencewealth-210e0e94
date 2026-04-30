@@ -3252,6 +3252,7 @@ export type Database = {
           created_at: string
           current_index: number
           current_job_id: string | null
+          current_phase: string
           current_topic: string | null
           dedupe_summary: Json | null
           entry_started_at: string | null
@@ -3263,6 +3264,8 @@ export type Database = {
           limit_count: number | null
           manifest_path: string
           mode: string
+          qa_job_id: string | null
+          qa_phase_started_at: string | null
           results: Json
           skip_count: number
           start_from: number | null
@@ -3281,6 +3284,7 @@ export type Database = {
           created_at?: string
           current_index?: number
           current_job_id?: string | null
+          current_phase?: string
           current_topic?: string | null
           dedupe_summary?: Json | null
           entry_started_at?: string | null
@@ -3292,6 +3296,8 @@ export type Database = {
           limit_count?: number | null
           manifest_path: string
           mode: string
+          qa_job_id?: string | null
+          qa_phase_started_at?: string | null
           results?: Json
           skip_count?: number
           start_from?: number | null
@@ -3310,6 +3316,7 @@ export type Database = {
           created_at?: string
           current_index?: number
           current_job_id?: string | null
+          current_phase?: string
           current_topic?: string | null
           dedupe_summary?: Json | null
           entry_started_at?: string | null
@@ -3321,6 +3328,8 @@ export type Database = {
           limit_count?: number | null
           manifest_path?: string
           mode?: string
+          qa_job_id?: string | null
+          qa_phase_started_at?: string | null
           results?: Json
           skip_count?: number
           start_from?: number | null
@@ -3397,6 +3406,7 @@ export type Database = {
           completion_note: string | null
           completion_started_at: string | null
           completion_status: string | null
+          compliance_class: string | null
           created_at: string | null
           current_language_index: number | null
           english_articles_count: number | null
@@ -3429,6 +3439,7 @@ export type Database = {
           completion_note?: string | null
           completion_started_at?: string | null
           completion_status?: string | null
+          compliance_class?: string | null
           created_at?: string | null
           current_language_index?: number | null
           english_articles_count?: number | null
@@ -3461,6 +3472,7 @@ export type Database = {
           completion_note?: string | null
           completion_started_at?: string | null
           completion_status?: string | null
+          compliance_class?: string | null
           created_at?: string | null
           current_language_index?: number | null
           english_articles_count?: number | null
