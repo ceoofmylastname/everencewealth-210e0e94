@@ -1,88 +1,96 @@
-## Root Cause Analysis — Batch f2fb9e87
+## Execution Plan — Recruiting Pipeline Fix + Cluster 51 Verification
 
-Verified against code + DB. Both bugs are real, but Bug B's actual cause differs from the hypothesis.
+### Step 1 — Patch the approved recruiting prompt with the BLS carve-out
 
-### Batch outcome (ground truth)
+Add to **Section 5 (Forbidden Content → MONEY / INCOME block)**:
 
-| Status   | Clusters | Notes |
-|----------|----------|-------|
-| built    | 3        | Recruiting names, but only 2 articles each, all wealth-flavored |
-| flagged  | 11       | Compliance scan caught $-amount patterns; articles set to `draft` |
-| timeout  | 11       | Hit the 20-min worker timeout; most have 0 articles |
-| **Q&A jobs created** | **0 of 25** | `qa_generation_jobs` is empty for every cluster |
+> **BLS Pay-Tab carve-out:** The Bureau of Labor Statistics Occupational Outlook Handbook is APPROVED for citation, but ONLY for non-pay content: job description, working conditions, education and licensing requirements, employment outlook trends, day-to-day duties. The "Pay" tab, median wage tables, percentile wage ranges, and any dollar figures from BLS pages are explicitly OFF-LIMITS for citation, paraphrase, or summary. Reason: the BLS "Insurance Sales Agents" page displays median pay prominently at the top — citing it will trip the `dollar_per_period` regex and demote the article.
 
-So 21 "flagged-as-draft" articles = the 11 flagged clusters' worth of articles whose status was demoted by the compliance scanner in `build-cluster-step` (lines 358–390). They were never recruiting articles to begin with.
+Add to **Section 10 (Output Format → Citations line)**:
 
----
+> Citations (footnoted, approved sources only — DOI, state insurance department sites, NAIC, and BLS Occupational Outlook Handbook pages are fine; **when citing BLS, quote only non-pay sections — never the median wage, wage ranges, or any pay-tab data**; NEVER cite earnings tables from any source).
 
-### Bug A — Recruiting prompt is not actually a recruiting prompt
+Save final approved prompt to `/mnt/documents/master_content_prompt_recruiting_v2.txt` for the record.
 
-**Root cause:** `generate-cluster` has no recruiting branch at all.
+### Step 2 — Seed `content_settings.master_content_prompt_recruiting`
 
-Evidence:
-- `build-cluster-step` carries `c.compliance_class === 'recruiting_no_income_claims'` (line 265, 358), but when it fires `generate-cluster` (lines 219–228) it only forwards `topic`, `language`, `targetAudience`, `primaryKeyword`. **`compliance_class` is never sent.**
-- `generate-cluster/index.ts`:
-  - Hard-coded structure prompt (line 655): *"You are an expert SEO content strategist for an independent insurance and wealth management firm…"* — no recruiting variant.
-  - Master article prompt is fetched once from `app_settings.master_content_prompt` (line 622–629). That single row is the wealth corpus prompt with Social Security / RMD / IUL / $1M-portfolio examples.
-  - `rg compliance_class supabase/functions/generate-cluster*/` → 0 matches.
-- Result: every recruiting cluster received the wealth master prompt verbatim. Claude obediently wrote about $1,800/month Social Security on a "Health Insurance License Path" topic. The compliance scanner then caught the dollar patterns and demoted those articles to draft — which is why the 21 "flagged" articles all read like wealth content.
+`INSERT` (or upsert) one row in `content_settings` with `setting_key='master_content_prompt_recruiting'` and the patched prompt as `setting_value`. Verify with a length check that matches the file.
 
-The Branded/everencewealth-25-recruiting-clusters.md spec was used to seed the classifications (topic / primary_keyword / target_audience), but its constraints never reach Claude.
+### Step 3 — Bug A fix (forward `compliance_class` + branch prompt selection)
 
----
+- `build-cluster-step/index.ts` (~line 219–228): when invoking `generate-cluster`, include `compliance_class: c.compliance_class` and `cluster_name: c.name` in the POST body.
+- `generate-cluster/index.ts` and `generate-cluster-chunk/index.ts`:
+  - Read `compliance_class` from request, persist on `cluster_generations` (add column if missing via migration).
+  - Branch master prompt fetch: `setting_key = 'master_content_prompt_recruiting'` when `compliance_class === 'recruiting_no_income_claims'`, else the existing `master_content_prompt`.
+  - Branch the structure prompt: when recruiting, swap "wealth management firm" framing for "independent broker / insurance career mentor" and inject the forbidden-topic list.
 
-### Bug B — Orchestrator doesn't have a Q&A phase at all (not a timeout)
+### Step 4 — Bug B fix (QA phase state machine + flag-handling policy)
 
-**Root cause hypothesis was wrong.** The 150-sec edge timeout is irrelevant, and `tick-cluster-batches` is not "advancing past Q&A." The Q&A phase simply does not exist in the batch pipeline.
+Migration:
+- Add `current_phase TEXT DEFAULT 'blog' CHECK (current_phase IN ('blog','qa'))` to `cluster_batch_jobs`.
+- Add `qa_job_id UUID NULL`, `qa_phase_started_at TIMESTAMPTZ NULL` to `cluster_batch_jobs`.
 
-Evidence:
-- `rg "generate-cluster-qas|generate-article-qas" supabase/functions/{build-cluster-step,generate-cluster,bulk-build-clusters,tick-cluster-batches}/` → 0 matches.
-- `build-cluster-step` completion gate (lines 339–342) is purely:
-  ```
-  cluster_generations.status === 'completed'
-  AND (en + es present, or single-lang)
-  ```
-  When that flips true, it scans for compliance, writes the result row, increments `current_index`, and moves on. No Q&A trigger anywhere.
-- DB confirms: for all 25 clusters, `qa_generation_jobs` count = 0. `qa_pages` count = 0. `qa_generation_errors` is empty because nothing ever ran to fail.
-- `generate-cluster-qas` (the orchestrator that creates `qa_generation_jobs` and chains `generate-article-qas`) is invoked manually from the admin UI / `batch-complete-clusters` — never from `build-cluster-step`.
-- Side effect: the `articles_completed` counter in the dashboard reflects English+ES blog rows only, which is why the 11 "completed" clusters show 0–6 articles (most lost half their articles to the compliance demotion to `draft`).
+`build-cluster-step/index.ts`:
+- When blog completion gate flips true:
+  - Run compliance scan as today.
+  - Count flagged articles in this cluster.
+    - **0 flags:** fire `generate-cluster-qas` for the cluster, store returned `jobId` in `qa_job_id`, set `current_phase='qa'`, `qa_phase_started_at=now()`. Do NOT advance `current_index`.
+    - **1 flag:** demote that article to draft, log to `flagged_articles` with cluster_theme/slug/matched_pattern/excerpt, fire `generate-cluster-qas` for the surviving 5 published articles, set `current_phase='qa'`. Do NOT advance.
+    - **≥2 flags:** demote all flagged articles, log each to `flagged_articles`, mark cluster `status='flagged'`, **skip QA phase entirely**, advance `current_index` immediately.
+- On subsequent ticks when `current_phase='qa'`:
+  - Poll `qa_generation_jobs` row for `qa_job_id`.
+  - If `status='completed'` (or `failed` after retry budget): record `qa_count` / `qa_failed` on the result row, advance `current_index`, reset `current_phase='blog'`, clear `qa_job_id`.
+  - If `qa_phase_started_at < now() - 30 min`: log phase timeout separately, mark cluster `status='qa_timeout'`, advance.
+- Blog phase keeps existing 20-min `WORKER_TIMEOUT_MIN`. QA phase uses independent 30-min budget. Log phase timeouts separately for diagnosis.
 
-Secondary observation on the 11 timeouts: 8 of them have `blog_count = 0` and `completed_languages = []`, and `cluster_generations.status='failed'` was set by the WORKER_TIMEOUT_MIN (20 min) path. `generate-cluster` itself is dying or stalling on those topics before producing any English article — likely Claude refusal/loop on the "no income claims" topics being fed the wealth prompt. Same root cause as Bug A.
+### Step 5 — Cleanup verification
 
----
+Re-confirm pre-test database state (already executed):
+- `blog_articles` count for the 25 recruiting cluster IDs = 0
+- `flagged_articles` count = 0
+- `cluster_completion_progress` for all 25 = `articles_completed=0`, `english_articles=0`, `translations_completed=0`, `status='not_started'`, `completed_at=NULL`
+- `qa_generation_jobs` count for these clusters = 0
 
-### Why this happened together
+### Step 6 — Recalculate cost estimate (token math)
 
-Bug A is the upstream defect. Because the wealth prompt was used:
-1. Topics like "Insurance Exam Preparation Strategies" caused Claude to either (a) generate off-topic wealth content (flagged → draft) or (b) refuse / loop / produce malformed JSON until the 20-min worker timeout fired (the 11 timeouts).
-2. Even on clusters that "succeeded," the missing Q&A phase meant zero Q&A pages — but that would have been true for wealth clusters in this batch too. The recruiting batch just made it visible because the user expected QAs.
+Per cluster:
+- 6 blog generations × ~2,500 output tokens = 15,000 output tokens (Claude Sonnet 4.5)
+- 24 QA generations (6 articles × 4 QAs) × ~600 output tokens = 14,400 output tokens (Claude Sonnet 4.5)
+- Spanish translation × 30 items via Gemini 2.5 Flash
 
----
+× 25 clusters → input + output token math at current Sonnet 4.5 + Gemini Flash rates. Send the dollar figure with the verification package.
 
-### Fix plan (do not execute yet — sending RCA only, per instructions)
+### Step 7 — Cluster 51 single-cluster test
 
-**Bug A — make compliance_class actually constrain the prompt**
-1. `build-cluster-step` line ~227: forward `compliance_class: c.compliance_class` and `cluster_name: c.name` in the `generate-cluster` POST body.
-2. `generate-cluster`:
-   - Read `compliance_class` from request and persist on `cluster_generations` row.
-   - Branch the structure prompt: when `recruiting_no_income_claims`, swap "wealth management firm" for "insurance career and broker recruitment" and inject explicit forbidden topics (Social Security amounts, AUM, RMD, policy loans, retirement income figures) plus required topics (licensing path, mentorship, exam prep, agency models, day-in-the-life — non-monetary).
-   - For the article body prompt: do not use `app_settings.master_content_prompt` when recruiting. Either (a) load a separate `master_recruiting_prompt` row, or (b) wrap the master prompt with a hard override block listing the forbidden patterns from `INCOME_PATTERNS` in `build-cluster-step` and pointing at the recruiting-clusters spec.
-3. Tighten the output: instruct Claude to never include numeric currency, never mention client portfolios, frame everything from the agent's perspective.
+- Trigger `bulk-build-clusters` scoped to Cluster 51 only (`Becoming an Insurance Broker — Career Overview`, compliance_class `recruiting_no_income_claims`).
+- Poll until `cluster_completion_progress.status = 'completed'` for cluster 51.
+- Capture: `articles_completed`, blog count by language, QA count by language, flagged count.
 
-**Bug B — wire Q&A into the cluster lifecycle**
-Two viable options; recommend option 2.
+### Step 8 — Four-condition verification package
 
-- *Option 1 (minimal):* extend the completion gate in `build-cluster-step` (line 342) to also fire `generate-cluster-qas` (fire-and-forget) before advancing, and accept that Q&A runs after `current_index` advances. Pro: tiny diff. Con: still no visibility — same failure mode could recur silently.
+Send before any 25-cluster retry:
 
-- *Option 2 (recommended):* add a sub-state machine to the entry. New `current_phase` column on `cluster_batch_jobs` (`'blog'` | `'qa'`). When blog completes:
-  1. Fire `generate-cluster-qas` for the cluster, store returned `jobId` on the batch row.
-  2. Set `current_phase='qa'`. Do NOT advance `current_index` yet.
-  3. On subsequent ticks, poll `qa_generation_jobs.status` for that jobId. When `completed` (or `failed` after retry budget), record qa_count / qa_failed in the result row, then advance `current_index`, reset `current_phase='blog'`.
-  4. Add a separate phase timeout (~30 min) so a stuck Q&A job can't block the whole batch.
+1. **`articles_completed = 60`** for Cluster 51 (6 EN blog + 6 ES blog + 24 EN QA + 24 ES QA).
+2. **Sample EN blog body** (full text of one TOFU and one BOFU) demonstrating: recruiting topic, no dollar signs, no wealth-vertical drift, no BLS pay-tab data, CTA points to `/contracting/intake`.
+3. **QA-phase execution proof**: `qa_generation_jobs` row for cluster 51 with `status='completed'`, plus `build-cluster-step` log lines showing `current_phase='qa'` transition and post-QA advance.
+4. **Recalculated 25-cluster cost estimate** from Step 6.
 
-**Verification before re-running**
-- Unit-trigger `generate-cluster` with `compliance_class='recruiting_no_income_claims'` on one recruiting topic and grep the generated articles for `INCOME_PATTERNS` + check `flagged_articles` stays at 0.
-- Run a 1-cluster batch end-to-end and confirm `qa_pages` rows appear before `current_index` advances.
-- Then re-run the 25-cluster bulk.
+### Hold gate
 
-I have not changed any code yet. Approve this plan and I'll switch to build mode and implement the fix.
+Wait for written "go live" before triggering the 25-cluster retry. Cleanup, prompt seed, and code fixes will not be re-run; only the bulk batch trigger.
+
+### Technical Details
+
+**Files to edit:**
+- `supabase/functions/build-cluster-step/index.ts` — forward compliance_class, add current_phase state machine, flag-handling branch.
+- `supabase/functions/generate-cluster/index.ts` — read compliance_class, branch prompt fetch + structure prompt.
+- `supabase/functions/generate-cluster-chunk/index.ts` — same prompt-fetch branch.
+
+**Migrations:**
+- `cluster_batch_jobs`: add `current_phase`, `qa_job_id`, `qa_phase_started_at`.
+- `cluster_generations`: add `compliance_class TEXT NULL` for traceability (optional but recommended).
+
+**Data inserts (via insert tool, not migration):**
+- Upsert `content_settings` row with `setting_key='master_content_prompt_recruiting'`.
+
+**No schema changes to:** `qa_generation_jobs`, `qa_pages`, `blog_articles`, `flagged_articles`, `cluster_completion_progress`.
