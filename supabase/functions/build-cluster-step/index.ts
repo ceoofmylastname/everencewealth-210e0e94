@@ -71,6 +71,9 @@ interface ResultRow {
   partial_failures?: Array<{ article_index: number; error: string; attempt_count: number }>;
   verified_count?: number | null;
   expected_count?: number | null;
+  // Diff 2 — atomic completion gate fields
+  gate_failed?: boolean;
+  gate_result?: any;
 }
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
