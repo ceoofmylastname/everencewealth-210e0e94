@@ -224,6 +224,10 @@ serve(async (req) => {
           language: "en",
           targetAudience: c.target_audience,
           primaryKeyword: c.primary_keyword,
+          // Bug A — forward classification metadata so generate-cluster picks
+          // the recruiting structure prompt + master_content_prompt_recruiting.
+          compliance_class: c.compliance_class ?? "wealth_standard",
+          cluster_name: c.name,
         }),
       });
       const invokeJson = await invokeResp.json().catch(() => ({}));
