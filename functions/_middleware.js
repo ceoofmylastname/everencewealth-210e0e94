@@ -48,6 +48,9 @@ const STATIC_ROUTE_EXEMPT = new Set([
   '/es/estrategias', '/es/estrategias/',
   '/en/assessment', '/en/assessment/',
   '/es/assessment', '/es/assessment/',
+  // PROMPT 27 Fix 1C: calculator hub pages (SSR'd by generateStaticCalculatorPage.ts)
+  '/en/calculator', '/en/calculator/',
+  '/es/calculator', '/es/calculator/',
   '/en/strategies/iul', '/en/strategies/iul/',
   '/en/strategies/whole-life', '/en/strategies/whole-life/',
   '/en/strategies/tax-free-retirement', '/en/strategies/tax-free-retirement/',
@@ -451,11 +454,12 @@ async function buildResponse({ request, next, env, ctx }) {
     '/es/qa/que-es-iul/': '/es/estrategias/seguro-universal-indexado/',
     '/en/tax-bucket-guide': '/en/strategies/tax-free-retirement/',
     '/es/tax-bucket-guide': '/es/',
-    '/en/calculator': '/en/',
-    '/es/calculator': '/es/',
-    '/en/careers': '/en/',
-    '/es/careers': '/es/',
-    '/en/contact/fna': '/en/contact',
+    // PROMPT 27 Fix 1B: redirect career & contact-fna URLs to live targets
+    '/en/careers': '/en/team/',
+    '/es/careers': '/es/team/',
+    '/en/contact/fna': '/en/assessment/',
+    '/es/acerca': '/es/team/',
+    '/es/contacto': '/es/contact/',
     // PROMPT 25 FIX 2: /disclosures and /philosophy now point to real pages (verified 200)
     '/disclosures': '/en/disclosures/',
     '/philosophy': '/en/philosophy/',
