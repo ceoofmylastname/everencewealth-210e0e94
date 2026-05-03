@@ -8745,6 +8745,36 @@ export type Database = {
         }
         Relationships: []
       }
+      slug_dedup_log: {
+        Row: {
+          action: string
+          canonical_slug: string
+          created_at: string
+          id: number
+          language: string
+          original_slug: string
+          table_name: string
+        }
+        Insert: {
+          action: string
+          canonical_slug: string
+          created_at?: string
+          id?: number
+          language: string
+          original_slug: string
+          table_name: string
+        }
+        Update: {
+          action?: string
+          canonical_slug?: string
+          created_at?: string
+          id?: number
+          language?: string
+          original_slug?: string
+          table_name?: string
+        }
+        Relationships: []
+      }
       socorro_advisor_availability: {
         Row: {
           advisor_id: string
