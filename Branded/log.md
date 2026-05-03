@@ -83,3 +83,24 @@ batch on top of a silently-failed test, discovers the issue only when
 **Logged:** Cluster 51 v3 (batch c2f7618f, gen 63d056f2) — both Claude
 fetches aborted at the 4-min CLAUDE_TIMEOUT_MS, worker watchdog killed
 the gen at 20 min, batch reported success with zero articles.
+
+---
+
+## PROMPT 27 — Soft 404 Sweep + Slug-Suffix Dedup (2026-05-03)
+
+**Pre-deploy GSC counts (baseline for 2-6 week recovery measurement):**
+- Soft 404: 49 URLs
+- Discovered, currently not indexed: 602 URLs
+- Duplicate without user-selected canonical: 20 URLs
+
+**Shipped:**
+- 21 literal soft-404 URLs added to `gone_urls` (defense-in-depth alongside `STRUCTURAL_410_PATTERNS`)
+- 5 REDIRECT_MAP changes (careers→team, contact/fna→assessment, /es/acerca, /es/contacto), removed broken `/en/calculator`→`/en/` and `/es/calculator`→`/es/`
+- Calculator hub pages: SSR via `scripts/generateStaticCalculatorPage.ts` + React `Calculator.tsx` route
+- 60 `qa_pages` rows with `-process-XX-XXXXXXXX` suffix consolidated via `slug_dedup_log` (renamed where canonical missing, merged + 410 where canonical existed)
+- Sitemap generator gained `assertNoDuplicateLocs` build-time guard
+
+**Manual post-deploy actions:**
+- Resubmit `sitemap-index.xml` in GSC + Bing Webmaster Tools
+- Run `bun run scripts/indexnowBulkSubmit.ts`
+- Request GSC validation for "Soft 404" + "Duplicate without user-selected canonical" categories

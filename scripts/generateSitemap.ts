@@ -198,6 +198,10 @@ function writeSitemap(
     ? `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n  <!-- ${type} sitemap${lang ? ' for ' + lang.toUpperCase() : ''} - intentionally empty -->\n</urlset>`
     : buildUrlsetXml(unique, includeHreflang);
 
+  // PROMPT 27 Fix 2B: build-time assertion — fail the build if any
+  // duplicate <loc> entries slip past the Set dedup above.
+  assertNoDuplicateLocs(xml, `${lang ? lang + '/' : ''}${type}.xml`);
+
   const relPath = lang ? `sitemaps/${lang}/${type}.xml` : `sitemaps/${type}.xml`;
   const fullPath = lang ? join(sitemapsPath, lang, `${type}.xml`) : join(sitemapsPath, `${type}.xml`);
   if (lang) ensureDir(join(sitemapsPath, lang));
@@ -214,6 +218,14 @@ function writeSitemap(
 function ensureDir(dirPath: string): void {
   if (!existsSync(dirPath)) {
     mkdirSync(dirPath, { recursive: true });
+  }
+}
+
+function assertNoDuplicateLocs(xml: string, path: string): void {
+  const locs = [...xml.matchAll(/<loc>(.*?)<\/loc>/g)].map((m) => m[1]);
+  if (locs.length !== new Set(locs).size) {
+    const dupes = locs.filter((u, i) => locs.indexOf(u) !== i);
+    throw new Error(`Duplicate <loc> entries in ${path}: ${[...new Set(dupes)].slice(0, 5).join(', ')}`);
   }
 }
 

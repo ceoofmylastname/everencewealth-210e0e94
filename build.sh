@@ -62,6 +62,9 @@ npx tsx scripts/generateStaticStrategiesIndex.ts dist
 echo "📝 Generating static assessment intro pages (EN + ES)..."
 npx tsx scripts/generateStaticAssessmentPage.ts dist
 
+echo "🧮 Generating static calculator intro pages (EN + ES)..."
+npx tsx scripts/generateStaticCalculatorPage.ts dist
+
 echo "📚 Generating static glossary index + term pages..."
 npx tsx scripts/generateStaticGlossary.ts dist
 
