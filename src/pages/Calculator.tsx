@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
-import { Helmet } from "react-helmet-async";
 
 /**
  * Retirement Income Calculator hub page (PROMPT 27 Fix 1C).
@@ -126,20 +125,27 @@ export default function Calculator() {
   }, []);
 
   const canonical = `https://www.everencewealth.com/${lang}/calculator/`;
-  const enHref = "https://www.everencewealth.com/en/calculator/";
-  const esHref = "https://www.everencewealth.com/es/calculator/";
+
+  useEffect(() => {
+    document.title = copy.title;
+    let meta = document.querySelector('meta[name="description"]');
+    if (!meta) {
+      meta = document.createElement("meta");
+      meta.setAttribute("name", "description");
+      document.head.appendChild(meta);
+    }
+    meta.setAttribute("content", copy.description);
+    let link = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
+    if (!link) {
+      link = document.createElement("link");
+      link.setAttribute("rel", "canonical");
+      document.head.appendChild(link);
+    }
+    link.setAttribute("href", canonical);
+  }, [copy.title, copy.description, canonical]);
 
   return (
     <>
-      <Helmet>
-        <html lang={lang} />
-        <title>{copy.title}</title>
-        <meta name="description" content={copy.description} />
-        <link rel="canonical" href={canonical} />
-        <link rel="alternate" hrefLang="en" href={enHref} />
-        <link rel="alternate" hrefLang="es" href={esHref} />
-        <link rel="alternate" hrefLang="x-default" href={enHref} />
-      </Helmet>
       <main className="ssr-calculator-intro mx-auto max-w-3xl px-4 py-12">
         <header className="mb-8">
           <h1 className="font-display text-4xl font-semibold text-foreground mb-4">{copy.h1}</h1>
