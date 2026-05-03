@@ -239,6 +239,7 @@ const LandingEn = lazy(() => import("./pages/landing/en"));
 const OptIn = lazy(() => import("./pages/OptIn"));
 
 const Assessment = lazy(() => import("./pages/Assessment"));
+const Calculator = lazy(() => import("./pages/Calculator"));
 const ContractingIntake = lazy(() => import("./pages/ContractingIntake"));
 const WorkshopLanding = lazy(() => import("./pages/public/WorkshopLanding"));
 const Recruit = lazy(() => import("./pages/Recruit"));
@@ -551,6 +552,9 @@ const App = () => (
               {/* Assessment — lang-prefixed alias of /assessment */}
               <Route path="/:lang/assessment" element={<Assessment />} />
               <Route path="/:lang/assessment/" element={<Assessment />} />
+              {/* PROMPT 27 Fix 1C: Calculator hub pages */}
+              <Route path="/:lang/calculator" element={<Calculator />} />
+              <Route path="/:lang/calculator/" element={<Calculator />} />
 
               <Route path="/buyers-guide" element={<Navigate to="/en/buyers-guide" replace />} />
               <Route path="/:lang/buyers-guide" element={<BuyersGuide />} />
