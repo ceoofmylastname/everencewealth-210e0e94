@@ -33,16 +33,16 @@ export default function ContactNotesTab({ contactId, advisorId }: { contactId: s
       <div className="bg-white border rounded-lg p-3">
         <textarea className="w-full border rounded-md p-2 text-sm" rows={3} placeholder="Add a note..." value={body} onChange={(e) => setBody(e.target.value)} />
         <div className="flex justify-end mt-2">
-          <Button size="sm" onClick={add} style={{ backgroundColor: "#1A4D3E" }}>Add Note</Button>
+          <Button size="sm" className="w-full sm:w-auto min-h-10" onClick={add} style={{ backgroundColor: "#1A4D3E" }}>Add Note</Button>
         </div>
       </div>
       {notes.map((n) => (
         <div key={n.id} className={`bg-white border rounded-lg p-4 ${n.pinned ? "border-amber-300" : ""}`}>
           <div className="flex justify-between items-start gap-2">
-            <div className="text-sm whitespace-pre-wrap flex-1">{n.body}</div>
-            <div className="flex gap-1">
-              <Button variant="ghost" size="sm" onClick={() => togglePin(n)}><Pin className={`w-4 h-4 ${n.pinned ? "text-amber-600 fill-amber-600" : ""}`} /></Button>
-              <Button variant="ghost" size="sm" onClick={() => remove(n.id)}><Trash2 className="w-4 h-4 text-red-600" /></Button>
+            <div className="text-sm whitespace-pre-wrap flex-1 min-w-0 break-words">{n.body}</div>
+            <div className="flex gap-1 shrink-0">
+              <Button variant="ghost" size="sm" className="min-h-10 min-w-10" aria-label="Pin note" onClick={() => togglePin(n)}><Pin className={`w-4 h-4 ${n.pinned ? "text-amber-600 fill-amber-600" : ""}`} /></Button>
+              <Button variant="ghost" size="sm" className="min-h-10 min-w-10" aria-label="Delete note" onClick={() => remove(n.id)}><Trash2 className="w-4 h-4 text-red-600" /></Button>
             </div>
           </div>
           <div className="text-xs text-gray-400 mt-2">{new Date(n.created_at).toLocaleString()}</div>

@@ -33,12 +33,12 @@ export default function ContactCNAsTab({ contactId, advisorId }: { contactId: st
   return (
     <div className="space-y-3">
       <div className="bg-white border rounded-lg p-4">
-        <div className="flex items-center justify-between mb-3">
-          <div>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-3">
+          <div className="min-w-0">
             <h3 className="font-semibold text-gray-900 text-sm">Linked Client Needs Analyses</h3>
             <p className="text-xs text-gray-500">CNAs you have created and attached to this contact.</p>
           </div>
-          <Button size="sm" variant="outline" onClick={() => setPickerOpen(true)}>
+          <Button size="sm" variant="outline" className="w-full sm:w-auto min-h-10" onClick={() => setPickerOpen(true)}>
             <Link2 className="w-4 h-4 mr-1" /> Link existing CNA
           </Button>
         </div>
@@ -47,19 +47,19 @@ export default function ContactCNAsTab({ contactId, advisorId }: { contactId: st
         ) : (
           <div className="space-y-2">
             {linked.map((c) => (
-              <div key={c.id} className="border rounded-md p-3 flex items-start justify-between">
-                <div className="text-sm">
-                  <div className="font-medium text-gray-900">{c.applicant_name}</div>
-                  <div className="text-xs text-gray-500 mt-0.5">
+              <div key={c.id} className="border rounded-md p-3 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
+                <div className="text-sm min-w-0 flex-1">
+                  <div className="font-medium text-gray-900 break-words">{c.applicant_name}</div>
+                  <div className="text-xs text-gray-500 mt-0.5 break-words">
                     {c.status} · Created {new Date(c.created_at).toLocaleDateString()}
                     {c.client_id && " · Shared with client"}
                   </div>
                 </div>
-                <div className="flex gap-1 shrink-0">
+                <div className="flex gap-1 shrink-0 self-end sm:self-start">
                   <Link to={`/portal/advisor/cna/${c.id}`}>
-                    <Button variant="ghost" size="sm"><ExternalLink className="w-4 h-4" /></Button>
+                    <Button variant="ghost" size="sm" className="min-h-10 min-w-10" aria-label="Open CNA"><ExternalLink className="w-4 h-4" /></Button>
                   </Link>
-                  <Button variant="ghost" size="sm" onClick={() => unlink(c.id)}>
+                  <Button variant="ghost" size="sm" className="min-h-10 min-w-10" aria-label="Unlink CNA" onClick={() => unlink(c.id)}>
                     <Unlink className="w-4 h-4 text-red-600" />
                   </Button>
                 </div>
@@ -103,21 +103,21 @@ function CNAPicker({ open, onOpenChange, advisorId, contactId, onLinked }: {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-lg w-[calc(100vw-2rem)] sm:w-full max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle>Link an existing CNA</DialogTitle>
           <DialogDescription>Choose one of your client needs analyses to attach.</DialogDescription>
         </DialogHeader>
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-          <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search by applicant name..." className="pl-9" autoFocus />
+          <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search by applicant name..." className="pl-9 h-11" />
         </div>
-        <div className="max-h-80 overflow-y-auto divide-y border rounded-md">
+        <div className="max-h-[60vh] overflow-y-auto divide-y border rounded-md">
           {loading ? <div className="p-4 text-sm text-gray-500">Loading...</div>
           : filtered.length === 0 ? <div className="p-4 text-sm text-gray-500">No CNAs found.</div>
           : filtered.map((c) => (
             <button key={c.id} onClick={() => pick(c)} disabled={c.contact_id === contactId}
-              className="w-full text-left px-3 py-2 hover:bg-gray-50 transition-colors disabled:opacity-50">
+              className="w-full text-left px-3 py-3 min-h-[56px] hover:bg-gray-50 transition-colors disabled:opacity-50">
               <div className="font-medium text-sm text-gray-900">{c.applicant_name}</div>
               <div className="text-xs text-gray-500">
                 {c.status} · {new Date(c.created_at).toLocaleDateString()}
