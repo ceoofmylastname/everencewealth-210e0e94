@@ -142,6 +142,506 @@ export type Database = {
           },
         ]
       }
+      advisor_contact_appointments: {
+        Row: {
+          advisor_id: string
+          contact_id: string
+          created_at: string
+          description: string | null
+          ends_at: string | null
+          id: string
+          location: string | null
+          starts_at: string
+          status: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          advisor_id: string
+          contact_id: string
+          created_at?: string
+          description?: string | null
+          ends_at?: string | null
+          id?: string
+          location?: string | null
+          starts_at: string
+          status?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          advisor_id?: string
+          contact_id?: string
+          created_at?: string
+          description?: string | null
+          ends_at?: string | null
+          id?: string
+          location?: string | null
+          starts_at?: string
+          status?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "advisor_contact_appointments_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "advisor_contacts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      advisor_contact_associations: {
+        Row: {
+          advisor_id: string
+          contact_a_id: string
+          contact_b_id: string
+          created_at: string
+          id: string
+          relationship_label: string
+        }
+        Insert: {
+          advisor_id: string
+          contact_a_id: string
+          contact_b_id: string
+          created_at?: string
+          id?: string
+          relationship_label: string
+        }
+        Update: {
+          advisor_id?: string
+          contact_a_id?: string
+          contact_b_id?: string
+          created_at?: string
+          id?: string
+          relationship_label?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "advisor_contact_associations_contact_a_id_fkey"
+            columns: ["contact_a_id"]
+            isOneToOne: false
+            referencedRelation: "advisor_contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "advisor_contact_associations_contact_b_id_fkey"
+            columns: ["contact_b_id"]
+            isOneToOne: false
+            referencedRelation: "advisor_contacts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      advisor_contact_custom_fields: {
+        Row: {
+          advisor_id: string
+          created_at: string
+          display_order: number | null
+          field_key: string
+          field_type: string
+          id: string
+          label: string
+          options: Json | null
+        }
+        Insert: {
+          advisor_id: string
+          created_at?: string
+          display_order?: number | null
+          field_key: string
+          field_type?: string
+          id?: string
+          label: string
+          options?: Json | null
+        }
+        Update: {
+          advisor_id?: string
+          created_at?: string
+          display_order?: number | null
+          field_key?: string
+          field_type?: string
+          id?: string
+          label?: string
+          options?: Json | null
+        }
+        Relationships: []
+      }
+      advisor_contact_documents: {
+        Row: {
+          advisor_id: string
+          contact_id: string
+          created_at: string
+          file_name: string
+          id: string
+          mime_type: string | null
+          size_bytes: number | null
+          storage_path: string
+        }
+        Insert: {
+          advisor_id: string
+          contact_id: string
+          created_at?: string
+          file_name: string
+          id?: string
+          mime_type?: string | null
+          size_bytes?: number | null
+          storage_path: string
+        }
+        Update: {
+          advisor_id?: string
+          contact_id?: string
+          created_at?: string
+          file_name?: string
+          id?: string
+          mime_type?: string | null
+          size_bytes?: number | null
+          storage_path?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "advisor_contact_documents_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "advisor_contacts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      advisor_contact_emails: {
+        Row: {
+          advisor_id: string
+          contact_id: string
+          created_at: string
+          email: string
+          id: string
+          is_primary: boolean | null
+          label: string | null
+        }
+        Insert: {
+          advisor_id: string
+          contact_id: string
+          created_at?: string
+          email: string
+          id?: string
+          is_primary?: boolean | null
+          label?: string | null
+        }
+        Update: {
+          advisor_id?: string
+          contact_id?: string
+          created_at?: string
+          email?: string
+          id?: string
+          is_primary?: boolean | null
+          label?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "advisor_contact_emails_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "advisor_contacts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      advisor_contact_field_values: {
+        Row: {
+          advisor_id: string
+          contact_id: string
+          created_at: string
+          field_id: string
+          id: string
+          updated_at: string
+          value: string | null
+        }
+        Insert: {
+          advisor_id: string
+          contact_id: string
+          created_at?: string
+          field_id: string
+          id?: string
+          updated_at?: string
+          value?: string | null
+        }
+        Update: {
+          advisor_id?: string
+          contact_id?: string
+          created_at?: string
+          field_id?: string
+          id?: string
+          updated_at?: string
+          value?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "advisor_contact_field_values_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "advisor_contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "advisor_contact_field_values_field_id_fkey"
+            columns: ["field_id"]
+            isOneToOne: false
+            referencedRelation: "advisor_contact_custom_fields"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      advisor_contact_notes: {
+        Row: {
+          advisor_id: string
+          body: string
+          contact_id: string
+          created_at: string
+          id: string
+          pinned: boolean | null
+          updated_at: string
+        }
+        Insert: {
+          advisor_id: string
+          body: string
+          contact_id: string
+          created_at?: string
+          id?: string
+          pinned?: boolean | null
+          updated_at?: string
+        }
+        Update: {
+          advisor_id?: string
+          body?: string
+          contact_id?: string
+          created_at?: string
+          id?: string
+          pinned?: boolean | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "advisor_contact_notes_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "advisor_contacts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      advisor_contact_phones: {
+        Row: {
+          advisor_id: string
+          contact_id: string
+          created_at: string
+          id: string
+          is_primary: boolean | null
+          label: string | null
+          phone: string
+        }
+        Insert: {
+          advisor_id: string
+          contact_id: string
+          created_at?: string
+          id?: string
+          is_primary?: boolean | null
+          label?: string | null
+          phone: string
+        }
+        Update: {
+          advisor_id?: string
+          contact_id?: string
+          created_at?: string
+          id?: string
+          is_primary?: boolean | null
+          label?: string | null
+          phone?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "advisor_contact_phones_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "advisor_contacts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      advisor_contact_policies: {
+        Row: {
+          advisor_id: string
+          carrier_name: string | null
+          cash_value: number | null
+          contact_id: string
+          created_at: string
+          face_amount: number | null
+          id: string
+          issue_date: string | null
+          monthly_modal_premium: number | null
+          notes: string | null
+          policy_number: string | null
+          product_type: string | null
+          status: string | null
+          updated_at: string
+        }
+        Insert: {
+          advisor_id: string
+          carrier_name?: string | null
+          cash_value?: number | null
+          contact_id: string
+          created_at?: string
+          face_amount?: number | null
+          id?: string
+          issue_date?: string | null
+          monthly_modal_premium?: number | null
+          notes?: string | null
+          policy_number?: string | null
+          product_type?: string | null
+          status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          advisor_id?: string
+          carrier_name?: string | null
+          cash_value?: number | null
+          contact_id?: string
+          created_at?: string
+          face_amount?: number | null
+          id?: string
+          issue_date?: string | null
+          monthly_modal_premium?: number | null
+          notes?: string | null
+          policy_number?: string | null
+          product_type?: string | null
+          status?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "advisor_contact_policies_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "advisor_contacts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      advisor_contact_reminders: {
+        Row: {
+          advisor_id: string
+          body: string | null
+          completed_at: string | null
+          contact_id: string
+          created_at: string
+          dismissed_at: string | null
+          id: string
+          remind_at: string
+          title: string
+        }
+        Insert: {
+          advisor_id: string
+          body?: string | null
+          completed_at?: string | null
+          contact_id: string
+          created_at?: string
+          dismissed_at?: string | null
+          id?: string
+          remind_at: string
+          title: string
+        }
+        Update: {
+          advisor_id?: string
+          body?: string | null
+          completed_at?: string | null
+          contact_id?: string
+          created_at?: string
+          dismissed_at?: string | null
+          id?: string
+          remind_at?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "advisor_contact_reminders_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "advisor_contacts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      advisor_contacts: {
+        Row: {
+          address_city: string | null
+          address_country: string | null
+          address_state: string | null
+          address_street: string | null
+          address_zip: string | null
+          advisor_id: string
+          company: string | null
+          created_at: string
+          date_of_birth: string | null
+          first_name: string | null
+          id: string
+          job_title: string | null
+          last_name: string | null
+          lifecycle_stage: string | null
+          linked_client_id: string | null
+          notes_summary: string | null
+          primary_email: string | null
+          primary_phone: string | null
+          source: string | null
+          tags: string[] | null
+          updated_at: string
+        }
+        Insert: {
+          address_city?: string | null
+          address_country?: string | null
+          address_state?: string | null
+          address_street?: string | null
+          address_zip?: string | null
+          advisor_id: string
+          company?: string | null
+          created_at?: string
+          date_of_birth?: string | null
+          first_name?: string | null
+          id?: string
+          job_title?: string | null
+          last_name?: string | null
+          lifecycle_stage?: string | null
+          linked_client_id?: string | null
+          notes_summary?: string | null
+          primary_email?: string | null
+          primary_phone?: string | null
+          source?: string | null
+          tags?: string[] | null
+          updated_at?: string
+        }
+        Update: {
+          address_city?: string | null
+          address_country?: string | null
+          address_state?: string | null
+          address_street?: string | null
+          address_zip?: string | null
+          advisor_id?: string
+          company?: string | null
+          created_at?: string
+          date_of_birth?: string | null
+          first_name?: string | null
+          id?: string
+          job_title?: string | null
+          last_name?: string | null
+          lifecycle_stage?: string | null
+          linked_client_id?: string | null
+          notes_summary?: string | null
+          primary_email?: string | null
+          primary_phone?: string | null
+          source?: string | null
+          tags?: string[] | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       advisor_debts: {
         Row: {
           advisor_id: string
