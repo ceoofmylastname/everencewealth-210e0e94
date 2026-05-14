@@ -1,116 +1,66 @@
-## Contacts Tab for Advisor Portal (GHL-style)
+## Goal
 
-Add a full-featured Contacts module to the advisor portal, sitting between Dashboard and Clients in the side nav. Each advisor sees only their own contacts; all data scoped via RLS using `advisor_id` resolved from `portal_users.id`.
+1. Let advisors link existing **Policies** (from the main Policies table) to a **Contact**, while keeping the standalone "quick add" policy entry on the contact card.
+2. Let advisors link a **CNA** to a **Contact** (in addition to the existing CNA → Client link).
 
-### 1. Database (new migration)
+## 1. Database migration
 
-**`advisor_contacts`** — main contact record
-- advisor_id, first_name, last_name, company, job_title
-- primary_email, primary_phone, address fields (street/city/state/zip/country)
-- date_of_birth, source, lifecycle_stage, tags (text[]), notes_summary
-- linked_client_id (nullable FK to portal clients — when contact is also a client)
+Add nullable `contact_id` columns so existing data is untouched:
 
-**`advisor_contact_emails`** / **`advisor_contact_phones`** — multiple per contact, with label + is_primary
+```sql
+ALTER TABLE public.policies
+  ADD COLUMN contact_id uuid NULL REFERENCES public.advisor_contacts(id) ON DELETE SET NULL;
+CREATE INDEX idx_policies_contact ON public.policies(contact_id);
 
-**`advisor_contact_custom_fields`** — per-advisor field definitions (label, type: text/number/date/select/boolean, options jsonb)
-
-**`advisor_contact_field_values`** — contact_id + field_id + value
-
-**`advisor_contact_policies`** — carrier_name, product_type, policy_number, monthly_modal_premium, face_amount, issue_date, status, notes (independent of formal `policies` table — these are advisor's CRM-side records)
-
-**`advisor_contact_notes`** — contact_id, advisor_id, body, pinned, created_at
-
-**`advisor_contact_documents`** — contact_id, file_name, storage_path, mime_type, size_bytes (Storage bucket: `advisor-contact-docs`, private, path prefixed by advisor_id)
-
-**`advisor_contact_associations`** — contact_a_id, contact_b_id, relationship_label (spouse, child, parent, business_partner, referral, other). Bidirectional via trigger or paired rows.
-
-**`advisor_contact_appointments`** — contact_id, advisor_id, title, starts_at, ends_at, location, description, status. Joined into existing advisor schedule view.
-
-**`advisor_contact_reminders`** — contact_id, advisor_id, title, body, remind_at, completed_at, dismissed_at. Surfaced on AdvisorDashboard widget.
-
-**RLS:** Every table — advisor can SELECT/INSERT/UPDATE/DELETE only where `advisor_id = get_advisor_id_for_auth()`. Admin override via `is_admin()`.
-
-**Storage bucket:** `advisor-contact-docs` (private). Policies enforce `(storage.foldername(name))[1] = advisor_id::text`.
-
-### 2. Routes & Navigation
-
-Add to `PortalLayout.tsx` advisor nav, between Dashboard and Clients:
-```
-{ label: "Contacts", icon: Contact, href: "/portal/advisor/contacts" }
+ALTER TABLE public.client_needs_analysis
+  ADD COLUMN contact_id uuid NULL REFERENCES public.advisor_contacts(id) ON DELETE SET NULL;
+CREATE INDEX idx_cna_contact ON public.client_needs_analysis(contact_id);
 ```
 
-New routes in `App.tsx`:
-- `/portal/advisor/contacts` — list/search/filter + Import CSV button + Add Contact
-- `/portal/advisor/contacts/new` — create form
-- `/portal/advisor/contacts/:id` — detail page (tabs: Overview, Policies, Notes, Appointments, Documents, Associations, Custom Fields, Activity)
-- `/portal/advisor/contacts/import` — CSV upload + column mapper
-- `/portal/advisor/contacts/settings` — manage custom field definitions
+RLS already scopes both tables by `advisor_id`, so no policy changes needed (the new column is just metadata an advisor can set on their own row).
 
-### 3. Pages / Components
+## 2. Contact card → Policies tab (`ContactPoliciesTab.tsx`)
 
-```
-src/pages/portal/advisor/contacts/
-├── ContactsList.tsx          # table, search, filter by tag/stage, pagination
-├── ContactDetail.tsx         # tabbed contact card
-├── ContactForm.tsx           # create/edit
-├── ContactImport.tsx         # CSV → column mapper → preview → import
-└── ContactCustomFields.tsx   # field definitions manager
+Keep current "quick add" form (writes to `advisor_contact_policies`). Add a second section above it:
 
-src/components/portal/contacts/
-├── ContactPoliciesTab.tsx
-├── ContactNotesTab.tsx
-├── ContactAppointmentsTab.tsx
-├── ContactDocumentsTab.tsx
-├── ContactAssociationsTab.tsx
-├── ContactRemindersPanel.tsx
-├── AddReminderDialog.tsx
-└── ContactCsvMapper.tsx
+- **"Linked Policies"** list: query `policies` where `contact_id = :contactId`, render carrier / product / status / premium with a link to `/portal/advisor/policies/:id`.
+- **"Link existing policy" button**: opens a modal that lists the advisor's policies (from `policies`) with search by carrier/policy number/client name. Selecting one runs `update policies set contact_id = :contactId`.
+- **Unlink** button per row: sets `contact_id = null`.
 
-src/hooks/
-├── useAdvisorContacts.ts
-├── useAdvisorContact.ts (single contact + related data)
-└── useAdvisorReminders.ts
-```
+## 3. Contact card → new "CNAs" tab
 
-### 4. CSV Import flow
+Add a new tab "CNAs" between Notes and Appointments (update `TABS` in `ContactDetail.tsx`). New component `ContactCNAsTab.tsx`:
 
-1. Upload CSV (parse client-side with PapaParse — already in deps if not, add it).
-2. Show preview of first 5 rows.
-3. Mapper UI: dropdown per CSV column → contact field (or "skip" / "custom field").
-4. Validate required (first_name OR last_name OR email).
-5. Bulk insert in batches of 100 via supabase client.
-6. Show summary: inserted / skipped / errors.
+- Lists `client_needs_analysis` rows where `contact_id = :contactId` (id, applicant_name, created_at, linked client name if any). Row click → `/portal/advisor/cna/:id`.
+- "Link existing CNA" button: modal with searchable list of advisor's CNAs (filtered to ones with no contact or any of theirs); selecting writes `contact_id`.
+- Unlink button.
 
-### 5. Reminders on Dashboard
+## 4. Main Policies page (`AdvisorPolicies.tsx`)
 
-Add a new widget to `AdvisorDashboard.tsx`: "Upcoming Reminders" — list of `advisor_contact_reminders` where `remind_at <= now() + 7 days` AND `completed_at IS NULL`, joined with contact name. Each row links to contact detail; has Complete/Dismiss buttons. Overdue reminders styled red.
+Add a small "Link contact" affordance next to each policy row:
 
-Appointments from `advisor_contact_appointments` also surface on the dashboard "Upcoming" widget and on the existing `SchedulePage` (joined alongside existing global/private events).
+- If `policy.contact_id` is set, show contact name as a chip linking to `/portal/advisor/contacts/:id`.
+- If unset, show "Link contact" button → opens contact picker modal (search advisor's `advisor_contacts` by name/email) → updates `policies.contact_id`.
 
-### 6. Associations
+## 5. CNA Dashboard (`CNADashboard.tsx`)
 
-On contact detail Associations tab: search other contacts → pick → choose relationship label → save. Trigger inserts the reciprocal row so both contacts show the relationship. Display as cards linking to associated contact.
+Mirror the existing "Link to Client" UX with a parallel "Link to Contact":
 
-### 7. Privacy guarantees
+- Add a "Link Contact" button on each CNA card; same modal pattern with contact search; writes `client_needs_analysis.contact_id`.
+- Show the linked contact name next to the existing "Shared · client name" chip.
 
-- Every query filtered by `advisor_id` server-side via RLS.
-- Reminders/appointments dashboard widgets query only current advisor's rows.
-- Storage bucket private; signed URLs only; advisor-scoped folder.
-- No advisor can read another advisor's contacts, notes, documents, reminders, or appointments.
+## 6. Out of scope
 
-### 8. Out of scope (explicit)
+- No changes to `advisor_contact_policies` (kept as quick-entry).
+- No automatic two-way creation (linking a policy does not create a contact and vice versa).
+- No bulk linking.
+- No changes to client-side policy/CNA visibility (RLS unchanged).
 
-- Email/SMS sending from contacts (can be added later via existing edge function patterns).
-- Workflow automation / pipelines (GHL-style).
-- Bulk edit / bulk delete (can add after MVP).
-- Sharing contacts between advisors.
+## Files
 
-### Implementation order
-
-1. Migration (tables + RLS + storage bucket + bidirectional association trigger).
-2. Hooks + types.
-3. Nav + route wiring + ContactsList.
-4. ContactForm + ContactDetail with all tabs.
-5. CSV Import.
-6. Reminders + Dashboard widget integration.
-7. Custom fields manager.
+- New migration `supabase/migrations/<ts>_link_policies_cna_to_contacts.sql`
+- New `src/components/portal/contacts/ContactCNAsTab.tsx`
+- Edit `src/components/portal/contacts/ContactPoliciesTab.tsx`
+- Edit `src/pages/portal/advisor/contacts/ContactDetail.tsx` (add CNAs tab)
+- Edit `src/pages/portal/advisor/AdvisorPolicies.tsx` (contact chip + picker)
+- Edit `src/pages/portal/advisor/CNADashboard.tsx` (link-contact button + picker)
