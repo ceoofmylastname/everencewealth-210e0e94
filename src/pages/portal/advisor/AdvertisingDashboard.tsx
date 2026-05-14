@@ -3,10 +3,11 @@ import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion'
 import {
     Play, Video, FileText, Mic, Calendar, Target,
     Zap, PenTool, LayoutTemplate, Briefcase, BarChart, CheckCircle2,
-    ChevronRight, Sparkles, ArrowRight, MousePointerClick, TrendingUp
+    ChevronRight, Sparkles, ArrowRight, MousePointerClick, TrendingUp,
+    Linkedin
 } from 'lucide-react';
 import {
-    SiFacebook, SiInstagram, SiLinkedin, SiTiktok,
+    SiFacebook, SiInstagram, SiTiktok,
     SiYoutube, SiWhatsapp, SiSpotify, SiPinterest, SiX,
     SiSnapchat, SiGoogle
 } from 'react-icons/si';
@@ -158,7 +159,7 @@ const AdvertisingDashboard = () => {
                                 <span className="text-sm font-semibold text-foreground">Instagram</span>
                             </div>
                             <div className="flex items-center gap-3 px-4 py-2 rounded-full bg-white shadow-sm border border-border shrink-0">
-                                <SiLinkedin size={24} className="text-[#0077B5]" />
+                                <Linkedin size={24} className="text-[#0077B5]" />
                                 <span className="text-sm font-semibold text-foreground">LinkedIn</span>
                             </div>
                             <div className="flex items-center gap-3 px-4 py-2 rounded-full bg-white shadow-sm border border-border shrink-0">
@@ -223,7 +224,7 @@ const AdvertisingDashboard = () => {
                             <span className="text-sm text-gray-500">Instagram</span>
                         </div>
                         <div className="flex flex-col items-center justify-center p-4 bg-gray-50 rounded-lg shadow-sm hover:shadow-md transition-shadow">
-                            <SiLinkedin size={40} className="text-[#0077B5] mb-2" />
+                            <Linkedin size={40} className="text-[#0077B5] mb-2" />
                             <span className="text-sm text-gray-500">LinkedIn</span>
                         </div>
                         <div className="flex flex-col items-center justify-center p-4 bg-gray-50 rounded-lg shadow-sm hover:shadow-md transition-shadow">
