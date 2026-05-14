@@ -53,16 +53,16 @@ export default function ContactPickerDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-lg w-[calc(100vw-2rem)] sm:w-full max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>Search your contacts to link one.</DialogDescription>
         </DialogHeader>
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-          <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search by name, email, phone, company..." className="pl-9" autoFocus />
+          <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search name, email, phone..." className="pl-9 h-11" />
         </div>
-        <div className="max-h-80 overflow-y-auto divide-y border rounded-md">
+        <div className="max-h-[60vh] overflow-y-auto divide-y border rounded-md">
           {loading ? (
             <div className="p-4 text-sm text-gray-500">Loading...</div>
           ) : filtered.length === 0 ? (
@@ -71,10 +71,10 @@ export default function ContactPickerDialog({
             <button
               key={c.id}
               onClick={() => { onPick(c); onOpenChange(false); }}
-              className="w-full text-left px-3 py-2 hover:bg-gray-50 transition-colors"
+              className="w-full text-left px-3 py-3 min-h-[56px] hover:bg-gray-50 transition-colors"
             >
               <div className="font-medium text-sm text-gray-900">{c.first_name} {c.last_name}</div>
-              <div className="text-xs text-gray-500">
+              <div className="text-xs text-gray-500 break-words">
                 {[c.primary_email, c.primary_phone, c.company].filter(Boolean).join(" · ") || "—"}
               </div>
             </button>

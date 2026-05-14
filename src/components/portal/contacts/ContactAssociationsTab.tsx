@@ -55,14 +55,14 @@ export default function ContactAssociationsTab({ contactId, advisorId }: { conta
     <div className="space-y-3">
       <div className="bg-white border rounded-lg p-4 space-y-3">
         <div className="text-sm font-medium">Link another contact</div>
-        <div className="grid grid-cols-3 gap-3">
-          <div className="col-span-2 relative">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="sm:col-span-2 relative">
             <Input placeholder="Search contacts..." value={pickedName || search}
               onChange={(e) => { setPickedId(""); setPickedName(""); searchContacts(e.target.value); }} />
             {results.length > 0 && !pickedId && (
               <div className="absolute z-10 left-0 right-0 mt-1 bg-white border rounded shadow max-h-48 overflow-y-auto">
                 {results.map((r) => (
-                  <button key={r.id} className="w-full text-left px-3 py-2 hover:bg-gray-50 text-sm"
+                  <button key={r.id} className="w-full text-left px-3 py-2.5 min-h-[44px] hover:bg-gray-50 text-sm"
                     onClick={() => { setPickedId(r.id); setPickedName(`${r.first_name ?? ""} ${r.last_name ?? ""}`); setResults([]); }}>
                     {r.first_name} {r.last_name} <span className="text-gray-500">{r.primary_email}</span>
                   </button>
@@ -70,28 +70,28 @@ export default function ContactAssociationsTab({ contactId, advisorId }: { conta
               </div>
             )}
           </div>
-          <select className="border rounded-md h-10 px-3" value={rel} onChange={(e) => setRel(e.target.value)}>
+          <select className="border rounded-md h-10 px-3 bg-white" value={rel} onChange={(e) => setRel(e.target.value)}>
             {RELATIONSHIPS.map((r) => <option key={r} value={r}>{r.replace("_", " ")}</option>)}
           </select>
         </div>
         <div className="flex justify-end">
-          <Button size="sm" onClick={add} style={{ backgroundColor: "#1A4D3E" }}><Plus className="w-4 h-4 mr-1" /> Link Contact</Button>
+          <Button size="sm" className="w-full sm:w-auto min-h-10" onClick={add} style={{ backgroundColor: "#1A4D3E" }}><Plus className="w-4 h-4 mr-1" /> Link Contact</Button>
         </div>
       </div>
       {assocs.length === 0 ? (
         <div className="bg-white border rounded-lg p-8 text-center text-gray-500 text-sm">No related contacts.</div>
       ) : assocs.map((a) => (
-        <div key={a.id} className="bg-white border rounded-lg p-4 flex justify-between items-center">
-          <div className="flex items-center gap-3">
-            <Users className="w-5 h-5 text-gray-500" />
-            <div>
-              <Link to={`/portal/advisor/contacts/${a.contact_b_id}`} className="font-medium hover:underline">
+        <div key={a.id} className="bg-white border rounded-lg p-4 flex justify-between items-center gap-2">
+          <div className="flex items-center gap-3 min-w-0 flex-1">
+            <Users className="w-5 h-5 text-gray-500 shrink-0" />
+            <div className="min-w-0 flex-1">
+              <Link to={`/portal/advisor/contacts/${a.contact_b_id}`} className="font-medium hover:underline break-words">
                 {a.other?.first_name} {a.other?.last_name}
               </Link>
               <div className="text-xs text-gray-500 capitalize">{a.relationship_label.replace("_", " ")}</div>
             </div>
           </div>
-          <Button variant="ghost" size="sm" onClick={() => remove(a.id)}><Trash2 className="w-4 h-4 text-red-600" /></Button>
+          <Button variant="ghost" size="sm" className="min-h-10 min-w-10 shrink-0" aria-label="Remove association" onClick={() => remove(a.id)}><Trash2 className="w-4 h-4 text-red-600" /></Button>
         </div>
       ))}
     </div>

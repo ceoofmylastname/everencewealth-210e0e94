@@ -51,12 +51,12 @@ export default function ContactPoliciesTab({ contactId, advisorId }: { contactId
     <div className="space-y-3">
       {/* Linked existing policies */}
       <div className="bg-white border rounded-lg p-4">
-        <div className="flex items-center justify-between mb-3">
-          <div>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-3">
+          <div className="min-w-0">
             <h3 className="font-semibold text-gray-900 text-sm">Linked Policies</h3>
             <p className="text-xs text-gray-500">Policies from your main Policies list linked to this contact.</p>
           </div>
-          <Button size="sm" variant="outline" onClick={() => setPickerOpen(true)}>
+          <Button size="sm" variant="outline" className="w-full sm:w-auto min-h-10" onClick={() => setPickerOpen(true)}>
             <Link2 className="w-4 h-4 mr-1" /> Link existing policy
           </Button>
         </div>
@@ -65,12 +65,12 @@ export default function ContactPoliciesTab({ contactId, advisorId }: { contactId
         ) : (
           <div className="space-y-2">
             {linkedPolicies.map((p) => (
-              <div key={p.id} className="border rounded-md p-3 flex items-start justify-between">
-                <div className="text-sm">
-                  <div className="font-medium text-gray-900">
+              <div key={p.id} className="border rounded-md p-3 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
+                <div className="text-sm min-w-0 flex-1">
+                  <div className="font-medium text-gray-900 break-words">
                     {p.carrier_name} <span className="text-gray-500 font-normal">· {p.product_type}</span>
                   </div>
-                  <div className="text-xs text-gray-500 mt-0.5">
+                  <div className="text-xs text-gray-500 mt-0.5 break-words">
                     #{p.policy_number} · {p.policy_status}
                     {p.client && ` · Client: ${p.client.first_name} ${p.client.last_name}`}
                   </div>
@@ -78,11 +78,11 @@ export default function ContactPoliciesTab({ contactId, advisorId }: { contactId
                     Premium: ${p.monthly_premium?.toLocaleString() ?? "—"}/mo · Death Benefit: ${p.death_benefit?.toLocaleString() ?? "—"}
                   </div>
                 </div>
-                <div className="flex gap-1 shrink-0">
+                <div className="flex gap-1 shrink-0 self-end sm:self-start">
                   <Link to={`/portal/advisor/policies/${p.id}`}>
-                    <Button variant="ghost" size="sm"><ExternalLink className="w-4 h-4" /></Button>
+                    <Button variant="ghost" size="sm" className="min-h-10 min-w-10" aria-label="Open policy"><ExternalLink className="w-4 h-4" /></Button>
                   </Link>
-                  <Button variant="ghost" size="sm" onClick={() => unlinkPolicy(p.id)}>
+                  <Button variant="ghost" size="sm" className="min-h-10 min-w-10" aria-label="Unlink policy" onClick={() => unlinkPolicy(p.id)}>
                     <Unlink className="w-4 h-4 text-red-600" />
                   </Button>
                 </div>
@@ -92,9 +92,9 @@ export default function ContactPoliciesTab({ contactId, advisorId }: { contactId
         )}
       </div>
 
-      <div className="flex items-center justify-between pt-2">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pt-2">
         <h3 className="font-semibold text-gray-900 text-sm">Quick policies (notes only)</h3>
-        <Button size="sm" onClick={() => setAdding(true)} style={{ backgroundColor: "#1A4D3E" }}>
+        <Button size="sm" className="w-full sm:w-auto min-h-10" onClick={() => setAdding(true)} style={{ backgroundColor: "#1A4D3E" }}>
           <Plus className="w-4 h-4 mr-1" /> Add Policy
         </Button>
       </div>
@@ -103,11 +103,11 @@ export default function ContactPoliciesTab({ contactId, advisorId }: { contactId
         <div className="bg-white border rounded-lg p-6 text-center text-gray-500 text-sm">No quick-entry policies yet.</div>
       ) : policies.map((p) => (
         <div key={p.id} className="bg-white border rounded-lg p-4">
-          <div className="flex justify-between items-start">
-            <div>
-              <div className="font-semibold">{p.carrier_name || "—"} <span className="text-gray-500 font-normal">· {p.product_type}</span></div>
+          <div className="flex justify-between items-start gap-2">
+            <div className="min-w-0 flex-1">
+              <div className="font-semibold break-words">{p.carrier_name || "—"} <span className="text-gray-500 font-normal">· {p.product_type}</span></div>
               <div className="text-sm text-gray-600 mt-1">Policy #{p.policy_number || "—"}</div>
-              <div className="grid grid-cols-3 gap-4 mt-3 text-sm">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4 mt-3 text-sm">
                 <div><div className="text-xs text-gray-500">Monthly Premium</div><div>${p.monthly_modal_premium?.toLocaleString() ?? "—"}</div></div>
                 <div><div className="text-xs text-gray-500">Face Amount</div><div>${p.face_amount?.toLocaleString() ?? "—"}</div></div>
                 <div><div className="text-xs text-gray-500">Cash Value</div><div>${p.cash_value?.toLocaleString() ?? "—"}</div></div>
@@ -116,7 +116,7 @@ export default function ContactPoliciesTab({ contactId, advisorId }: { contactId
               </div>
               {p.notes && <div className="text-sm text-gray-700 mt-3 whitespace-pre-wrap">{p.notes}</div>}
             </div>
-            <Button variant="ghost" size="sm" onClick={() => remove(p.id)}><Trash2 className="w-4 h-4 text-red-600" /></Button>
+            <Button variant="ghost" size="sm" className="min-h-10 min-w-10 shrink-0" aria-label="Delete policy" onClick={() => remove(p.id)}><Trash2 className="w-4 h-4 text-red-600" /></Button>
           </div>
         </div>
       ))}
@@ -159,21 +159,21 @@ function PolicyPicker({ open, onOpenChange, advisorId, contactId, onLinked }: {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-lg w-[calc(100vw-2rem)] sm:w-full max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle>Link an existing policy</DialogTitle>
           <DialogDescription>Choose one of your policies to attach to this contact.</DialogDescription>
         </DialogHeader>
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-          <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search by carrier, policy #, client..." className="pl-9" autoFocus />
+          <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search carrier, policy #..." className="pl-9 h-11" />
         </div>
-        <div className="max-h-80 overflow-y-auto divide-y border rounded-md">
+        <div className="max-h-[60vh] overflow-y-auto divide-y border rounded-md">
           {loading ? <div className="p-4 text-sm text-gray-500">Loading...</div>
           : filtered.length === 0 ? <div className="p-4 text-sm text-gray-500">No policies found.</div>
           : filtered.map((p) => (
             <button key={p.id} onClick={() => pick(p)} disabled={p.contact_id === contactId}
-              className="w-full text-left px-3 py-2 hover:bg-gray-50 transition-colors disabled:opacity-50">
+              className="w-full text-left px-3 py-3 min-h-[56px] hover:bg-gray-50 transition-colors disabled:opacity-50">
               <div className="font-medium text-sm text-gray-900">{p.carrier_name} · {p.product_type}</div>
               <div className="text-xs text-gray-500">
                 #{p.policy_number} · {p.policy_status}
@@ -213,7 +213,7 @@ function PolicyForm({ contactId, advisorId, onDone }: { contactId: string; advis
   const u = (k: keyof typeof f) => (e: React.ChangeEvent<HTMLInputElement>) => setF((p) => ({ ...p, [k]: e.target.value }));
   return (
     <div className="bg-white border rounded-lg p-4 space-y-3">
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <Input placeholder="Carrier name" value={f.carrier_name} onChange={u("carrier_name")} />
         <Input placeholder="Product type (IUL, Term, Annuity...)" value={f.product_type} onChange={u("product_type")} />
         <Input placeholder="Policy number" value={f.policy_number} onChange={u("policy_number")} />
@@ -221,15 +221,15 @@ function PolicyForm({ contactId, advisorId, onDone }: { contactId: string; advis
         <Input placeholder="Face amount" type="number" value={f.face_amount} onChange={u("face_amount")} />
         <Input placeholder="Cash value" type="number" value={f.cash_value} onChange={u("cash_value")} />
         <Input placeholder="Issue date" type="date" value={f.issue_date} onChange={u("issue_date")} />
-        <select className="border rounded-md h-10 px-3" value={f.status} onChange={(e) => setF((p) => ({ ...p, status: e.target.value }))}>
+        <select className="border rounded-md h-10 px-3 bg-white" value={f.status} onChange={(e) => setF((p) => ({ ...p, status: e.target.value }))}>
           <option value="active">Active</option><option value="pending">Pending</option>
           <option value="lapsed">Lapsed</option><option value="cancelled">Cancelled</option><option value="paid_up">Paid up</option>
         </select>
       </div>
       <textarea className="w-full border rounded-md p-2 text-sm" rows={2} placeholder="Notes" value={f.notes} onChange={(e) => setF((p) => ({ ...p, notes: e.target.value }))} />
-      <div className="flex justify-end gap-2">
-        <Button variant="outline" size="sm" onClick={onDone}>Cancel</Button>
-        <Button size="sm" onClick={save} style={{ backgroundColor: "#1A4D3E" }}>Save</Button>
+      <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
+        <Button variant="outline" size="sm" className="w-full sm:w-auto min-h-10" onClick={onDone}>Cancel</Button>
+        <Button size="sm" className="w-full sm:w-auto min-h-10" onClick={save} style={{ backgroundColor: "#1A4D3E" }}>Save</Button>
       </div>
     </div>
   );

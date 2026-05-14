@@ -46,24 +46,24 @@ export default function ContactDocumentsTab({ contactId, advisorId }: { contactI
     <div className="space-y-3">
       <div className="flex justify-end">
         <input ref={fileRef} type="file" className="hidden" onChange={(e) => e.target.files?.[0] && upload(e.target.files[0])} />
-        <Button size="sm" onClick={() => fileRef.current?.click()} disabled={uploading} style={{ backgroundColor: "#1A4D3E" }}>
+        <Button size="sm" className="w-full sm:w-auto min-h-10" onClick={() => fileRef.current?.click()} disabled={uploading} style={{ backgroundColor: "#1A4D3E" }}>
           <Upload className="w-4 h-4 mr-1" /> {uploading ? "Uploading..." : "Upload"}
         </Button>
       </div>
       {docs.length === 0 ? (
         <div className="bg-white border rounded-lg p-8 text-center text-gray-500 text-sm">No documents uploaded.</div>
       ) : docs.map((d) => (
-        <div key={d.id} className="bg-white border rounded-lg p-4 flex justify-between items-center">
-          <div className="flex items-center gap-3">
-            <FileText className="w-5 h-5 text-gray-500" />
-            <div>
-              <div className="font-medium">{d.file_name}</div>
+        <div key={d.id} className="bg-white border rounded-lg p-4 flex justify-between items-center gap-2">
+          <div className="flex items-center gap-3 min-w-0 flex-1">
+            <FileText className="w-5 h-5 text-gray-500 shrink-0" />
+            <div className="min-w-0 flex-1">
+              <div className="font-medium truncate">{d.file_name}</div>
               <div className="text-xs text-gray-500">{((d.size_bytes ?? 0) / 1024).toFixed(1)} KB · {new Date(d.created_at).toLocaleString()}</div>
             </div>
           </div>
-          <div className="flex gap-1">
-            <Button variant="ghost" size="sm" onClick={() => download(d)}><Download className="w-4 h-4" /></Button>
-            <Button variant="ghost" size="sm" onClick={() => remove(d)}><Trash2 className="w-4 h-4 text-red-600" /></Button>
+          <div className="flex gap-1 shrink-0">
+            <Button variant="ghost" size="sm" className="min-h-10 min-w-10" aria-label="Download" onClick={() => download(d)}><Download className="w-4 h-4" /></Button>
+            <Button variant="ghost" size="sm" className="min-h-10 min-w-10" aria-label="Delete" onClick={() => remove(d)}><Trash2 className="w-4 h-4 text-red-600" /></Button>
           </div>
         </div>
       ))}

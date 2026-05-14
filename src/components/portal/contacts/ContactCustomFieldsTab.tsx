@@ -44,11 +44,11 @@ export default function ContactCustomFieldsTab({ contactId, advisorId }: { conta
   }
 
   return (
-    <div className="bg-white border rounded-lg p-6 space-y-4">
+    <div className="bg-white border rounded-lg p-4 md:p-6 space-y-4">
       {fields.map((f) => (
-        <div key={f.id} className="grid grid-cols-3 gap-3 items-center">
-          <label className="text-sm font-medium text-gray-700">{f.label}</label>
-          <div className="col-span-2">
+        <div key={f.id} className="grid grid-cols-1 md:grid-cols-3 gap-1 md:gap-3 md:items-center">
+          <label className="text-xs md:text-sm font-medium text-gray-700 uppercase md:normal-case tracking-wider md:tracking-normal">{f.label}</label>
+          <div className="md:col-span-2">
             <Input
               type={f.field_type === "number" ? "number" : f.field_type === "date" ? "date" : "text"}
               defaultValue={values[f.id]?.value ?? ""}
