@@ -613,6 +613,47 @@ async function buildResponse({ request, next, env, ctx }) {
   }
 
   // ============================================================
+  // PROMPT 27 HOTFIX: Unconditional gone_urls lookup. Previously
+  // the gone_urls check ran only inside the CONTENT_PATH_CATCHALL
+  // gate, so paths outside the whitelisted sections (e.g.
+  // /es/stories) skipped the DB lookup and fell through to the SPA
+  // catch-all → 200. Run BEFORE the catchall and BEFORE SPA so any
+  // retired path returns 410 regardless of section.
+  // ============================================================
+  if (!STATIC_ROUTE_EXEMPT.has(pathname)) {
+    try {
+      const slashed = pathname.endsWith('/') ? pathname : pathname + '/';
+      const unslashed = pathname.endsWith('/') ? pathname.slice(0, -1) : pathname;
+      const goneLookupUrl =
+        `${SUPABASE_URL}/rest/v1/gone_urls` +
+        `?or=(url_path.eq.${encodeURIComponent(slashed)},url_path.eq.${encodeURIComponent(unslashed)})&select=id&limit=1`;
+      const goneResp = await fetch(goneLookupUrl, {
+        headers: {
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+        },
+      });
+      const goneRows = goneResp.ok ? await goneResp.json() : [];
+      if (Array.isArray(goneRows) && goneRows.length > 0) {
+        const html = render410Page(pathname, 410);
+        console.log(`[Middleware] gone_urls 410 (hoisted): ${pathname}`);
+        return new Response(html, {
+          status: 410,
+          headers: {
+            'Content-Type': 'text/html; charset=utf-8',
+            'X-410-Source': 'middleware-gone-urls',
+            'X-Middleware-Status': 'Active',
+            'Cache-Control': 'public, max-age=3600',
+            'X-Robots-Tag': 'noindex, nofollow',
+          },
+        });
+      }
+    } catch (err) {
+      console.error(`[Middleware] gone_urls hoisted lookup failed for ${pathname}:`, err && err.message);
+    }
+  }
+
+  // ============================================================
   // PROMPT 13 — Soft-404 catchall.
   // Returns real 410 (intentionally retired, listed in gone_urls) or
   // 404 (never existed) for unmatched content URLs under /blog/, /qa/,
