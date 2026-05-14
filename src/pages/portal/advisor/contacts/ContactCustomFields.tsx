@@ -82,45 +82,45 @@ export default function ContactCustomFields() {
   if (authLoading) return <div className="p-6 text-sm text-gray-500">Loading…</div>;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-4 md:p-6 max-w-4xl mx-auto">
       <div className="flex items-center gap-3">
         <Link to="/portal/advisor/contacts" className="text-sm text-gray-500 hover:text-gray-900 flex items-center gap-1">
           <ArrowLeft className="h-4 w-4" /> Back to Contacts
         </Link>
       </div>
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Custom Fields</h1>
+        <h1 className="text-xl md:text-2xl font-bold text-gray-900">Custom Fields</h1>
         <p className="text-sm text-gray-500 mt-1">
           Define your own fields to capture data unique to your practice. These appear on every contact's Custom Fields tab.
         </p>
       </div>
 
-      <div className="bg-white border rounded-lg p-5 space-y-3">
+      <div className="bg-white border rounded-lg p-4 md:p-5 space-y-3">
         <h2 className="text-sm font-bold text-gray-900">Add a new field</h2>
         <div className="flex flex-col sm:flex-row gap-2">
           <Input
             placeholder="Field label (e.g. Spouse Name)"
             value={newLabel}
             onChange={(e) => setNewLabel(e.target.value)}
-            className="flex-1"
+            className="flex-1 h-11"
           />
           <select
             value={newType}
             onChange={(e) => setNewType(e.target.value)}
-            className="border rounded-md px-3 py-2 text-sm"
+            className="border rounded-md px-3 text-sm h-11 bg-white"
           >
             {FIELD_TYPES.map((t) => (
               <option key={t} value={t}>{t}</option>
             ))}
           </select>
-          <Button onClick={addField} disabled={!newLabel.trim()}>
+          <Button onClick={addField} disabled={!newLabel.trim()} className="min-h-11">
             <Plus className="h-4 w-4 mr-1" /> Add
           </Button>
         </div>
       </div>
 
       <div className="bg-white border rounded-lg overflow-hidden">
-        <div className="px-5 py-3 border-b text-sm font-bold text-gray-900">
+        <div className="px-4 md:px-5 py-3 border-b text-sm font-bold text-gray-900">
           Your Fields {fields.length > 0 && <span className="text-gray-400 font-normal">({fields.length})</span>}
         </div>
         {loading ? (
@@ -130,14 +130,14 @@ export default function ContactCustomFields() {
         ) : (
           <ul className="divide-y">
             {fields.map((f) => (
-              <li key={f.id} className="px-5 py-3 flex items-center justify-between">
-                <div>
+              <li key={f.id} className="px-4 md:px-5 py-3 flex items-center justify-between gap-3">
+                <div className="min-w-0 flex-1">
                   <p className="text-sm font-medium text-gray-900">{f.label}</p>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-gray-500 truncate">
                     <code>{f.field_key}</code> · {f.field_type}
                   </p>
                 </div>
-                <Button variant="ghost" size="sm" onClick={() => removeField(f.id)}>
+                <Button variant="ghost" size="sm" className="min-h-11 min-w-11 shrink-0" aria-label="Delete field" onClick={() => removeField(f.id)}>
                   <Trash2 className="h-4 w-4 text-red-600" />
                 </Button>
               </li>

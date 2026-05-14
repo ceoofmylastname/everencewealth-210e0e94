@@ -66,10 +66,10 @@ export default function ContactForm() {
   });
 
   return (
-    <div className="p-6 max-w-3xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6">{editing ? "Edit Contact" : "Add Contact"}</h1>
-      <div className="bg-white border rounded-lg p-6 space-y-4">
-        <div className="grid grid-cols-2 gap-4">
+    <div className="p-4 md:p-6 max-w-3xl mx-auto">
+      <h1 className="text-xl md:text-2xl font-bold mb-5">{editing ? "Edit Contact" : "Add Contact"}</h1>
+      <div className="bg-white border rounded-lg p-4 md:p-6 space-y-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
           <Field label="First name"><Input {...F("first_name")} /></Field>
           <Field label="Last name"><Input {...F("last_name")} /></Field>
           <Field label="Company"><Input {...F("company")} /></Field>
@@ -80,13 +80,13 @@ export default function ContactForm() {
           <Field label="Source"><Input placeholder="referral, website..." {...F("source")} /></Field>
         </div>
         <Field label="Street"><Input {...F("address_street")} /></Field>
-        <div className="grid grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
           <Field label="City"><Input {...F("address_city")} /></Field>
           <Field label="State"><Input {...F("address_state")} /></Field>
           <Field label="ZIP"><Input {...F("address_zip")} /></Field>
           <Field label="Country"><Input {...F("address_country")} /></Field>
         </div>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
           <Field label="Lifecycle stage">
             <select className="w-full border rounded-md h-10 px-3" value={form.lifecycle_stage}
               onChange={(e) => setForm((f) => ({ ...f, lifecycle_stage: e.target.value }))}>
@@ -98,9 +98,9 @@ export default function ContactForm() {
           </Field>
           <Field label="Tags (comma-separated)"><Input {...F("tags")} /></Field>
         </div>
-        <div className="flex gap-2 justify-end pt-4">
-          <Button variant="outline" onClick={() => navigate(-1)}>Cancel</Button>
-          <Button onClick={save} disabled={saving} style={{ backgroundColor: "#1A4D3E" }}>
+        <div className="flex flex-col-reverse sm:flex-row gap-2 sm:justify-end pt-4">
+          <Button variant="outline" className="w-full sm:w-auto min-h-11" onClick={() => navigate(-1)}>Cancel</Button>
+          <Button onClick={save} disabled={saving} className="w-full sm:w-auto min-h-11" style={{ backgroundColor: "#1A4D3E" }}>
             {saving ? "Saving..." : "Save Contact"}
           </Button>
         </div>
