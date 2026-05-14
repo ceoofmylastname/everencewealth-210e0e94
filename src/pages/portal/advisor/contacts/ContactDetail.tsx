@@ -12,8 +12,9 @@ import ContactDocumentsTab from "@/components/portal/contacts/ContactDocumentsTa
 import ContactAssociationsTab from "@/components/portal/contacts/ContactAssociationsTab";
 import ContactRemindersTab from "@/components/portal/contacts/ContactRemindersTab";
 import ContactCustomFieldsTab from "@/components/portal/contacts/ContactCustomFieldsTab";
+import ContactCNAsTab from "@/components/portal/contacts/ContactCNAsTab";
 
-const TABS = ["Overview", "Policies", "Notes", "Appointments", "Reminders", "Documents", "Associations", "Custom Fields"] as const;
+const TABS = ["Overview", "Policies", "CNAs", "Notes", "Appointments", "Reminders", "Documents", "Associations", "Custom Fields"] as const;
 type Tab = typeof TABS[number];
 
 export default function ContactDetail() {
@@ -95,6 +96,7 @@ export default function ContactDetail() {
       <div>
         {tab === "Overview" && <OverviewTab contact={contact} />}
         {tab === "Policies" && advisorId && <ContactPoliciesTab contactId={id!} advisorId={advisorId} />}
+        {tab === "CNAs" && advisorId && <ContactCNAsTab contactId={id!} advisorId={advisorId} />}
         {tab === "Notes" && advisorId && <ContactNotesTab contactId={id!} advisorId={advisorId} />}
         {tab === "Appointments" && advisorId && <ContactAppointmentsTab contactId={id!} advisorId={advisorId} />}
         {tab === "Reminders" && advisorId && <ContactRemindersTab contactId={id!} advisorId={advisorId} />}
