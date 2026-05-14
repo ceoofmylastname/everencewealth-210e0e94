@@ -84,6 +84,8 @@ const STRUCTURAL_410_PATTERNS = [
   /^\/(en|es)\/retirement-planning\/.+/i,
   /^\/en\/blog\/(insurance-management|insurance-strategies|investment-strategies|investment|wealth-management|tax-planning|retirement-planning|retirement|financial-planning)\/.+/i,
   /^\/en\/blog\/costadelsol\/.+/i,
+  // PROMPT 27 HOTFIX: belt-and-suspenders for /es/stories (also in gone_urls)
+  /^\/es\/stories\/?$/,
 ];
 
 // Known AI / search bot UA patterns (used by logBotHit)

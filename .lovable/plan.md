@@ -1,73 +1,100 @@
-## PROMPT 27 — Soft 404 Sweep + Slug-Suffix Dedup + Sitemap Resubmit
+## Hotfix to PROMPT 27 — gone_urls bypass for `/es/stories`
 
-Three coordinated remediations. Branch: `gsc-soft404-and-dedup-2026-05-02`.
+### Root cause
 
-### Pre-flight findings
+In `functions/_middleware.js`, the `gone_urls` DB lookup is nested inside the catchall regex gate (line 626):
 
-- `functions/_middleware.js` already has `STATIC_ROUTE_EXEMPT` (line 43), `STRUCTURAL_410_PATTERNS` (78), `REDIRECT_MAP` (433). The map already contains `/schedule`, `/financial-needs-assessment`, `/disclosures`, `/en/calculator`→`/en/`, `/es/calculator`→`/es/`, `/en/careers`→`/en/`, `/es/careers`→`/es/`, `/en/contact/fna`. These need to be **changed**, not added.
-- `STRUCTURAL_410_PATTERNS` line 82 already 410s the legacy `/en/blog/<old-cat>/*` and line 83 the costadelsol paths — Bucket A's regex-matchable URLs are already gone via pattern. Only the literal odd-balls (`/blog/category/*`, `/es/stories`, the suffixed slug) need explicit `gone_urls` rows.
-- DB confirms 60 rows (all `qa_pages`, `language='es'`) match the suffix regex; 0 in `blog_articles`. The "translate-cluster" generator at line 386 is **not** the producer (uses `cluster_number-rand4`). Source of `-process-XX-XXXXXXXX` is unidentified in current code — likely from a deleted/older job. Generator-fix scope shrinks to a guard, not a rewrite.
-- `src/pages/Calculator.tsx` does not exist; a Calculator page must be created (or `/calculator` redirects kept and we skip Bucket C). User asked for SSR hub_cache + route wire — we'll build a thin `Calculator.tsx` page that mounts a placeholder calc and reads the hub_cache intro.
-- Sitemap generators: `supabase/functions/regenerate-sitemap/index.ts` and `scripts/generateSitemap.ts`. Both need the dedup `Set` filter + `assertNoDuplicateLocs`.
+```js
+if (CONTENT_PATH_CATCHALL_REGEX.test(pathname) || TWO_SEGMENT_CATCHALL_REGEX.test(pathname)) {
+  // ... all_published_slugs lookup ...
+  // ... gone_urls lookup ...
+}
+```
 
-### Plan
+`CONTENT_PATH_CATCHALL_REGEX` only matches `/<lang>/(blog|qa|compare|comparisons|comparar|estrategias|strategies|guides|glossary|state-guides)/...`. **`/es/stories` doesn't match `stories` (it's not in the alternation), so it skips the gone_urls lookup and falls through to the SPA catch-all → 200.**
 
-#### Fix 1A — Bucket A: 410 sweep (gone_urls)
-New migration `*_soft404_gone_urls.sql` inserting the 22 paths from the prompt into `gone_urls` with `ON CONFLICT (path) DO NOTHING`. Run the wealth-management/tax-planning audit query first inside a `DO` block — only insert paths where no live `blog_articles` row matches. Paths already covered by `STRUCTURAL_410_PATTERNS` regex are still safe to insert (idempotent, defense in depth).
+### Order audit vs. spec
 
-#### Fix 1B — Bucket B: 301 redirects (REDIRECT_MAP)
-Edit `functions/_middleware.js` REDIRECT_MAP:
-- **Change** `/en/calculator` and `/es/calculator` → remove (Bucket C wires them as 200s).
-- **Change** `/en/careers` → `/en/join-our-team/`, `/es/careers` → `/es/unete-nuestro-equipo/`. **Verify these targets exist before merge**; if not, leave as `/en/` and `/es/` and flag in PR.
-- **Change** `/en/contact/fna` → `/en/assessment/`.
-- **Change** `/en/tax-bucket-guide` → `/en/blog/tax-planning/understanding-three-tax-buckets` and `/es/tax-bucket-guide` → `/es/blog/tax-planning/entender-tres-cubetas`. **Verify both blog targets exist** via `SELECT slug FROM blog_articles WHERE slug IN (...)`. If missing, fall back to `/en/strategies/tax-free-retirement/` (current target).
-- **Add** `/financial-planning/three-tax-buckets` → `/en/blog/tax-planning/understanding-three-tax-buckets` (with same fallback rule).
-- **Add** `/wealth-strategies/zero-is-your-hero` → `/en/blog/wealth-management/zero-is-your-hero` (same rule).
-- **Add** `/es/acerca` → `/es/acerca-de/`, `/es/contacto` → `/es/contact/`.
-- `/disclosures`, `/schedule`, `/financial-needs-assessment` already correct — leave.
+Spec order: IndexNow → STRUCTURAL_410 → gone_urls → REDIRECT_MAP → STATIC_ROUTE_EXEMPT → SPA.
 
-#### Fix 1C — Bucket C: Calculator route + hub_cache SSR
-- New file `src/pages/Calculator.tsx`: lightweight component that fetches the matching `hub_cache` row (by `slug = '/<lang>/calculator/'`) and renders its HTML server-side via the existing hub_cache rendering pattern used by `/en/assessment/`. Below the SSR block, mount a placeholder calculator UI (<5 inputs, 1 output) in a div with id `calculator-mount`.
-- `src/App.tsx`: lazy import + 2 routes (with and without trailing slash).
-- `functions/_middleware.js`: add `/en/calculator`, `/en/calculator/`, `/es/calculator`, `/es/calculator/` to `STATIC_ROUTE_EXEMPT`.
-- New migration `*_calculator_hub_cache.sql`: insert 2 rows into `hub_cache` (en + es) with the `<header>` + speakable summary HTML from the prompt.
+Current order:
+1. IndexNow key file (line 408) — correct
+2. REDIRECT_MAP (line 469) — runs before STRUCTURAL_410 (harmless: no overlap), but out of spec
+3. STRUCTURAL_410_PATTERNS (line 596) — correct position relative to catchall
+4. gone_urls (line 661) — **WRONG: gated behind catchall regex; must be unconditional**
+5. SPA catchall via `next()` — correct
 
-#### Fix 2 — Slug-suffix dedup (qa_pages only, 60 rows)
-- New migration `*_dedup_slug_suffixes.sql`:
-  - Create `slug_dedup_log` table.
-  - For each suffixed `qa_pages` row: derive canonical slug, check for canonical row in same language. If canonical exists → insert `/es/qa/<suffixed_slug>` into `gone_urls`, delete suffixed row, log `merged`. If not → `UPDATE` slug to canonical, log `renamed`.
-  - Skip `blog_articles` block (0 rows) but include the SQL commented out for parity.
-- **Generator guard**: edit `supabase/functions/translate-cluster/index.ts` line 386 to use deterministic counter-based dedup (`generateUniqueSlug` helper) instead of `cluster_number-rand4`. While we did not confirm this is the producer of the `-process-XX-` pattern, the random-suffix approach is still wrong per the audit; this prevents regression.
+### Fix (two parts)
 
-#### Fix 2B — Sitemap dedup
-- Edit `supabase/functions/regenerate-sitemap/index.ts` and `scripts/generateSitemap.ts`: add a `Set<string>`-based filter before XML emission, plus an `assertNoDuplicateLocs(xml, path)` function that throws if duplicates are detected.
+**Part 1 — Hoist gone_urls into an unconditional block** between STRUCTURAL_410 (line 596–611) and the existing catchall block (~line 626). New block:
 
-#### Fix 3 — Resubmit + log
-- Append a dated entry to `Branded/log.md` recording PROMPT 27 ship + pre-deploy GSC counts (49 soft 404, 602 discovered-not-indexed, 20 dup-canonical).
-- Manual step (post-deploy, called out in PR description, not coded): resubmit `sitemap-index.xml` in GSC + Bing, run `bun run scripts/indexnowBulkSubmit.ts`.
+```js
+// PROMPT 27 HOTFIX: Unconditional gone_urls lookup. Previously this ran
+// only inside the CONTENT_PATH_CATCHALL gate, so paths like /es/stories
+// fell through to SPA → 200. Run BEFORE the catchall and BEFORE SPA so
+// any retired path returns 410 regardless of section.
+if (!STATIC_ROUTE_EXEMPT.has(pathname)) {
+  try {
+    const slashed = pathname.endsWith('/') ? pathname : pathname + '/';
+    const unslashed = pathname.endsWith('/') ? pathname.slice(0, -1) : pathname;
+    const goneUrl =
+      `${SUPABASE_URL}/rest/v1/gone_urls` +
+      `?or=(url_path.eq.${encodeURIComponent(slashed)},url_path.eq.${encodeURIComponent(unslashed)})&select=id&limit=1`;
+    const goneResp = await fetch(goneUrl, {
+      headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` },
+    });
+    const goneRows = goneResp.ok ? await goneResp.json() : [];
+    if (Array.isArray(goneRows) && goneRows.length > 0) {
+      const html = render410Page(pathname, 410);
+      console.log(`[Middleware] gone_urls 410 (hoisted): ${pathname}`);
+      return new Response(html, {
+        status: 410,
+        headers: {
+          'Content-Type': 'text/html; charset=utf-8',
+          'X-410-Source': 'middleware-gone-urls',
+          'X-Middleware-Status': 'Active',
+          'Cache-Control': 'public, max-age=3600',
+          'X-Robots-Tag': 'noindex, nofollow',
+        },
+      });
+    }
+  } catch (err) {
+    console.error(`[Middleware] gone_urls lookup failed for ${pathname}:`, err && err.message);
+  }
+}
+```
+
+The existing catchall block (all_published_slugs + nested gone_urls) stays as-is — the inner gone_urls call is now redundant but harmless.
+
+**Part 2 — Belt-and-suspenders regex** added to `STRUCTURAL_410_PATTERNS` (line 81):
+
+```js
+/^\/es\/stories\/?$/,
+```
+
+Guarantees `/es/stories` returns 410 even if the DB lookup ever fails.
+
+### Other gone_urls rows scanned
+
+Production GET status check needed for these (from `pattern_match=false` query):
+- `/es/stories`, `/es/stories/` — **confirmed broken** (the bug)
+- `/blog/category/...` — already 301'd by prefix redirect (line 529); OK
+- `/en/blog/costadelsol/...`, `/en/retirement-planning/...`, `/es/property/...` — caught by STRUCTURAL_410; OK
+- `/<lang>/locations/<city>/<topic>/` rows — match TWO_SEGMENT_CATCHALL; OK
+- `/es/locations/los-angeles,-ca` and `/es/locations/los-angeles,-ca/` — comma-strip 301 (line 513) fires first; OK
+- `/en/blog/{insurance-management,...}/...` — caught by STRUCTURAL_410 line 85; OK
+
+Only `/es/stories[/]` is structurally outside every existing gate. The hoisted gone_urls block fixes that and any future entries.
+
+### Verification
+
+After deploy:
+- `curl -sI https://www.everencewealth.com/es/stories` → expect `HTTP/2 410` + `X-410-Source: middleware-structural` (regex hit) or `middleware-gone-urls` (DB hit)
+- `curl -sI https://www.everencewealth.com/es/stories/` → expect 410
+- Run `~/.bun/bin/bun run /Users/johnmelvin/Documents/everence-wealth-wiki/branded/verify-prompt-27.ts` → expect PASS
 
 ### Files changed
 
-```text
-supabase/migrations/<ts>_soft404_gone_urls.sql        NEW
-supabase/migrations/<ts>_dedup_slug_suffixes.sql      NEW
-supabase/migrations/<ts>_calculator_hub_cache.sql     NEW
-functions/_middleware.js                              EDIT (REDIRECT_MAP + STATIC_ROUTE_EXEMPT)
-src/App.tsx                                           EDIT (Calculator route)
-src/pages/Calculator.tsx                              NEW
-supabase/functions/translate-cluster/index.ts         EDIT (slug dedup guard, line 386)
-supabase/functions/regenerate-sitemap/index.ts        EDIT (Set dedup + assertion)
-scripts/generateSitemap.ts                            EDIT (Set dedup + assertion)
-Branded/log.md                                        APPEND
-```
+- `functions/_middleware.js` — add `/^\/es\/stories\/?$/` to STRUCTURAL_410_PATTERNS, insert unconditional gone_urls block after the STRUCTURAL_410 loop.
 
-### Risks / open items I'll resolve at build time
-
-1. `/en/blog/tax-planning/understanding-three-tax-buckets` and `/es/blog/tax-planning/entender-tres-cubetas` existence — verified via `SELECT` before writing the redirect; fall back to current targets if missing.
-2. `/en/join-our-team/` and `/es/unete-nuestro-equipo/` existence — same.
-3. The actual producer of `-process-XX-XXXXXXXX` slugs is not in current code (likely older deleted job). Cleanup migration handles existing rows; the generator guard prevents the documented PROMPT 24 path from regressing. If new suffixed rows reappear, that's a separate hunt.
-4. `Calculator.tsx` will be a stub (3-input projection). Full calculator UX is out of scope per prompt — only the SSR hub_cache + 200 OK matter for indexing.
-
-### Acceptance check (post-deploy, manual via curl)
-
-Run the verification block from the prompt. All 410s, 301s, body-word > 80 on calculator pages, 0 suffixed slugs, 0 dup `<loc>`, IndexNow 200/202.
+No DB migration needed (`/es/stories` row already present).
