@@ -145,6 +145,11 @@ const PortalResetPassword = lazy(() => import("./pages/portal/PortalResetPasswor
 const AdvisorDashboard = lazy(() => import("./pages/portal/advisor/AdvisorDashboard"));
 const AdvisorClients = lazy(() => import("./pages/portal/advisor/AdvisorClients"));
 const AdvisorPolicies = lazy(() => import("./pages/portal/advisor/AdvisorPolicies"));
+const ContactsList = lazy(() => import("./pages/portal/advisor/contacts/ContactsList"));
+const ContactForm = lazy(() => import("./pages/portal/advisor/contacts/ContactForm"));
+const ContactDetail = lazy(() => import("./pages/portal/advisor/contacts/ContactDetail"));
+const ContactImport = lazy(() => import("./pages/portal/advisor/contacts/ContactImport"));
+const ContactCustomFields = lazy(() => import("./pages/portal/advisor/contacts/ContactCustomFields"));
 const PolicyForm = lazy(() => import("./pages/portal/advisor/PolicyForm"));
 const PolicyDetail = lazy(() => import("./pages/portal/advisor/PolicyDetail"));
 const AdvisorDocuments = lazy(() => import("./pages/portal/advisor/AdvisorDocuments"));
@@ -384,6 +389,12 @@ const App = () => (
                 <Route element={<PortalLayout />}>
                   <Route path="dashboard" element={<AdvisorDashboard />} />
                   <Route path="clients" element={<AdvisorClients />} />
+                  <Route path="contacts" element={<ContactsList />} />
+                  <Route path="contacts/new" element={<ContactForm />} />
+                  <Route path="contacts/import" element={<ContactImport />} />
+                  <Route path="contacts/settings" element={<ContactCustomFields />} />
+                  <Route path="contacts/:id" element={<ContactDetail />} />
+                  <Route path="contacts/:id/edit" element={<ContactForm />} />
                   <Route path="policies" element={<AdvisorPolicies />} />
                   <Route path="policies/new" element={<PolicyForm />} />
                   <Route path="policies/:id" element={<PolicyDetail />} />
