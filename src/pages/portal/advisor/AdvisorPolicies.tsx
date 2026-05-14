@@ -3,8 +3,10 @@ import { Link, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { usePortalAuth } from "@/hooks/usePortalAuth";
 import { Input } from "@/components/ui/input";
-import { FileText, Plus, Search, Eye, Pencil, Trash2, Filter } from "lucide-react";
+import { FileText, Plus, Search, Eye, Pencil, Trash2, Filter, UserPlus, X } from "lucide-react";
 import { toast } from "sonner";
+import ContactPickerDialog from "@/components/portal/contacts/ContactPickerDialog";
+import { useCurrentAdvisorId } from "@/hooks/useCurrentAdvisorId";
 
 const BRAND_GREEN = "#1A4D3E";
 
@@ -13,6 +15,8 @@ interface Policy {
   policy_number: string; product_type: string; policy_status: string;
   death_benefit: number | null; cash_value: number | null; monthly_premium: number | null;
   issue_date: string | null; created_at: string;
+  contact_id?: string | null;
+  contact?: { id: string; first_name: string | null; last_name: string | null } | null;
   client?: { first_name: string; last_name: string };
 }
 
@@ -40,6 +44,7 @@ function StatusBadge({ status }: { status: string }) {
 
 export default function AdvisorPolicies() {
   const { portalUser } = usePortalAuth();
+  const { advisorId: myAdvisorId } = useCurrentAdvisorId();
   const [searchParams] = useSearchParams();
   const clientFilter = searchParams.get("client");
   const [policies, setPolicies] = useState<Policy[]>([]);
@@ -48,6 +53,7 @@ export default function AdvisorPolicies() {
   const [advisors, setAdvisors] = useState<AdvisorInfo[]>([]);
   const [advisorFilter, setAdvisorFilter] = useState<string>("all");
   const [advisorNameMap, setAdvisorNameMap] = useState<Record<string, string>>({});
+  const [linkingPolicyId, setLinkingPolicyId] = useState<string | null>(null);
 
   const isAdmin = portalUser?.role === "admin";
 
@@ -55,6 +61,7 @@ export default function AdvisorPolicies() {
 
   async function loadPolicies() {
     try {
+      const selectClause = "*, client:portal_users!policies_client_id_fkey(first_name, last_name), contact:advisor_contacts!policies_contact_id_fkey(id, first_name, last_name)";
       if (isAdmin) {
         // Admin: load all advisors and all policies
         const { data: allAdvisors } = await supabase.from("advisors").select("id, first_name, last_name, portal_user_id");
@@ -64,20 +71,20 @@ export default function AdvisorPolicies() {
         advisorList.forEach((a) => { nameMap[a.id] = `${a.first_name} ${a.last_name}`; });
         setAdvisorNameMap(nameMap);
 
-        let query = supabase.from("policies").select("*, client:portal_users!policies_client_id_fkey(first_name, last_name)").order("created_at", { ascending: false });
+        let query = supabase.from("policies").select(selectClause).order("created_at", { ascending: false });
         if (clientFilter) query = query.eq("client_id", clientFilter);
         const { data, error } = await query;
         if (error) throw error;
-        setPolicies((data as Policy[]) ?? []);
+        setPolicies((data as unknown as Policy[]) ?? []);
       } else {
         // Advisor: only their own policies
         const { data: advisor } = await supabase.from("advisors").select("id").eq("portal_user_id", portalUser!.id).maybeSingle();
         if (!advisor) { setLoading(false); return; }
-        let query = supabase.from("policies").select("*, client:portal_users!policies_client_id_fkey(first_name, last_name)").eq("advisor_id", advisor.id).order("created_at", { ascending: false });
+        let query = supabase.from("policies").select(selectClause).eq("advisor_id", advisor.id).order("created_at", { ascending: false });
         if (clientFilter) query = query.eq("client_id", clientFilter);
         const { data, error } = await query;
         if (error) throw error;
-        setPolicies((data as Policy[]) ?? []);
+        setPolicies((data as unknown as Policy[]) ?? []);
       }
     } catch (err) { console.error("Error loading policies:", err); }
     finally { setLoading(false); }
@@ -87,6 +94,13 @@ export default function AdvisorPolicies() {
     if (!confirm("Are you sure you want to delete this policy?")) return;
     const { error } = await supabase.from("policies").delete().eq("id", id);
     if (error) { toast.error("Failed to delete policy"); } else { toast.success("Policy deleted"); setPolicies((prev) => prev.filter((p) => p.id !== id)); }
+  }
+
+  async function unlinkContact(policyId: string) {
+    const { error } = await supabase.from("policies").update({ contact_id: null }).eq("id", policyId);
+    if (error) return toast.error(error.message);
+    toast.success("Contact unlinked");
+    loadPolicies();
   }
 
   const filtered = policies.filter((p) => {
@@ -161,6 +175,21 @@ export default function AdvisorPolicies() {
                         {advisorNameMap[policy.advisor_id]}
                       </span>
                     )}
+                    {policy.contact ? (
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-medium inline-flex items-center gap-1">
+                        <Link to={`/portal/advisor/contacts/${policy.contact.id}`} className="hover:underline">
+                          Contact: {policy.contact.first_name} {policy.contact.last_name}
+                        </Link>
+                        <button onClick={() => unlinkContact(policy.id)} title="Unlink contact" className="hover:text-red-600">
+                          <X className="h-3 w-3" />
+                        </button>
+                      </span>
+                    ) : (
+                      <button onClick={() => setLinkingPolicyId(policy.id)}
+                        className="text-xs px-2 py-0.5 rounded-full bg-gray-50 text-gray-600 border border-gray-200 font-medium inline-flex items-center gap-1 hover:bg-gray-100">
+                        <UserPlus className="h-3 w-3" /> Link contact
+                      </button>
+                    )}
                   </div>
                   <div className="text-sm text-gray-400 space-x-3">
                     <span>#{policy.policy_number}</span>
@@ -193,6 +222,23 @@ export default function AdvisorPolicies() {
             </div>
           ))}
         </div>
+      )}
+
+      {myAdvisorId && (
+        <ContactPickerDialog
+          open={!!linkingPolicyId}
+          onOpenChange={(o) => { if (!o) setLinkingPolicyId(null); }}
+          advisorId={myAdvisorId}
+          title="Link a contact to this policy"
+          onPick={async (c) => {
+            if (!linkingPolicyId) return;
+            const { error } = await supabase.from("policies").update({ contact_id: c.id }).eq("id", linkingPolicyId);
+            if (error) { toast.error(error.message); return; }
+            toast.success("Contact linked");
+            setLinkingPolicyId(null);
+            loadPolicies();
+          }}
+        />
       )}
     </div>
   );

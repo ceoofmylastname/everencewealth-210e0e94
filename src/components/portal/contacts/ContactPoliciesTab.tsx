@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Link2, Unlink, ExternalLink, Search } from "lucide-react";
 import { toast } from "sonner";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 
 interface Policy {
   id: string; carrier_name: string | null; product_type: string | null;
@@ -15,11 +17,28 @@ interface Policy {
 export default function ContactPoliciesTab({ contactId, advisorId }: { contactId: string; advisorId: string }) {
   const [policies, setPolicies] = useState<Policy[]>([]);
   const [adding, setAdding] = useState(false);
+  const [linkedPolicies, setLinkedPolicies] = useState<any[]>([]);
+  const [pickerOpen, setPickerOpen] = useState(false);
 
-  useEffect(() => { load(); }, [contactId]);
+  useEffect(() => { load(); loadLinked(); }, [contactId]);
   async function load() {
     const { data } = await supabase.from("advisor_contact_policies").select("*").eq("contact_id", contactId).order("created_at", { ascending: false });
     setPolicies((data as Policy[]) || []);
+  }
+  async function loadLinked() {
+    const { data } = await supabase
+      .from("policies")
+      .select("id, carrier_name, product_type, policy_number, policy_status, monthly_premium, death_benefit, client:portal_users!policies_client_id_fkey(first_name, last_name)")
+      .eq("contact_id", contactId)
+      .order("created_at", { ascending: false });
+    setLinkedPolicies(data || []);
+  }
+  async function unlinkPolicy(policyId: string) {
+    if (!confirm("Unlink this policy from the contact?")) return;
+    const { error } = await supabase.from("policies").update({ contact_id: null }).eq("id", policyId);
+    if (error) return toast.error(error.message);
+    toast.success("Policy unlinked");
+    loadLinked();
   }
   async function remove(id: string) {
     if (!confirm("Delete this policy?")) return;
@@ -30,14 +49,58 @@ export default function ContactPoliciesTab({ contactId, advisorId }: { contactId
 
   return (
     <div className="space-y-3">
-      <div className="flex justify-end">
+      {/* Linked existing policies */}
+      <div className="bg-white border rounded-lg p-4">
+        <div className="flex items-center justify-between mb-3">
+          <div>
+            <h3 className="font-semibold text-gray-900 text-sm">Linked Policies</h3>
+            <p className="text-xs text-gray-500">Policies from your main Policies list linked to this contact.</p>
+          </div>
+          <Button size="sm" variant="outline" onClick={() => setPickerOpen(true)}>
+            <Link2 className="w-4 h-4 mr-1" /> Link existing policy
+          </Button>
+        </div>
+        {linkedPolicies.length === 0 ? (
+          <div className="text-center text-gray-500 text-sm py-4">No linked policies yet.</div>
+        ) : (
+          <div className="space-y-2">
+            {linkedPolicies.map((p) => (
+              <div key={p.id} className="border rounded-md p-3 flex items-start justify-between">
+                <div className="text-sm">
+                  <div className="font-medium text-gray-900">
+                    {p.carrier_name} <span className="text-gray-500 font-normal">· {p.product_type}</span>
+                  </div>
+                  <div className="text-xs text-gray-500 mt-0.5">
+                    #{p.policy_number} · {p.policy_status}
+                    {p.client && ` · Client: ${p.client.first_name} ${p.client.last_name}`}
+                  </div>
+                  <div className="text-xs text-gray-600 mt-1">
+                    Premium: ${p.monthly_premium?.toLocaleString() ?? "—"}/mo · Death Benefit: ${p.death_benefit?.toLocaleString() ?? "—"}
+                  </div>
+                </div>
+                <div className="flex gap-1 shrink-0">
+                  <Link to={`/portal/advisor/policies/${p.id}`}>
+                    <Button variant="ghost" size="sm"><ExternalLink className="w-4 h-4" /></Button>
+                  </Link>
+                  <Button variant="ghost" size="sm" onClick={() => unlinkPolicy(p.id)}>
+                    <Unlink className="w-4 h-4 text-red-600" />
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="flex items-center justify-between pt-2">
+        <h3 className="font-semibold text-gray-900 text-sm">Quick policies (notes only)</h3>
         <Button size="sm" onClick={() => setAdding(true)} style={{ backgroundColor: "#1A4D3E" }}>
           <Plus className="w-4 h-4 mr-1" /> Add Policy
         </Button>
       </div>
       {adding && <PolicyForm contactId={contactId} advisorId={advisorId} onDone={() => { setAdding(false); load(); }} />}
       {policies.length === 0 && !adding ? (
-        <div className="bg-white border rounded-lg p-8 text-center text-gray-500 text-sm">No policies yet.</div>
+        <div className="bg-white border rounded-lg p-6 text-center text-gray-500 text-sm">No quick-entry policies yet.</div>
       ) : policies.map((p) => (
         <div key={p.id} className="bg-white border rounded-lg p-4">
           <div className="flex justify-between items-start">
@@ -57,7 +120,72 @@ export default function ContactPoliciesTab({ contactId, advisorId }: { contactId
           </div>
         </div>
       ))}
+      <PolicyPicker open={pickerOpen} onOpenChange={setPickerOpen} advisorId={advisorId} contactId={contactId} onLinked={loadLinked} />
     </div>
+  );
+}
+
+function PolicyPicker({ open, onOpenChange, advisorId, contactId, onLinked }: {
+  open: boolean; onOpenChange: (o: boolean) => void; advisorId: string; contactId: string; onLinked: () => void;
+}) {
+  const [items, setItems] = useState<any[]>([]);
+  const [q, setQ] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!open) return;
+    setLoading(true);
+    supabase.from("policies")
+      .select("id, carrier_name, product_type, policy_number, policy_status, contact_id, client:portal_users!policies_client_id_fkey(first_name, last_name)")
+      .eq("advisor_id", advisorId)
+      .order("created_at", { ascending: false })
+      .limit(500)
+      .then(({ data }) => { setItems(data || []); setLoading(false); });
+  }, [open, advisorId]);
+
+  async function pick(p: any) {
+    const { error } = await supabase.from("policies").update({ contact_id: contactId }).eq("id", p.id);
+    if (error) return toast.error(error.message);
+    toast.success("Policy linked to contact");
+    onLinked();
+    onOpenChange(false);
+  }
+
+  const filtered = items.filter((p) => {
+    if (!q.trim()) return true;
+    const hay = `${p.carrier_name} ${p.policy_number} ${p.product_type} ${p.client?.first_name || ""} ${p.client?.last_name || ""}`.toLowerCase();
+    return hay.includes(q.toLowerCase());
+  });
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Link an existing policy</DialogTitle>
+          <DialogDescription>Choose one of your policies to attach to this contact.</DialogDescription>
+        </DialogHeader>
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search by carrier, policy #, client..." className="pl-9" autoFocus />
+        </div>
+        <div className="max-h-80 overflow-y-auto divide-y border rounded-md">
+          {loading ? <div className="p-4 text-sm text-gray-500">Loading...</div>
+          : filtered.length === 0 ? <div className="p-4 text-sm text-gray-500">No policies found.</div>
+          : filtered.map((p) => (
+            <button key={p.id} onClick={() => pick(p)} disabled={p.contact_id === contactId}
+              className="w-full text-left px-3 py-2 hover:bg-gray-50 transition-colors disabled:opacity-50">
+              <div className="font-medium text-sm text-gray-900">{p.carrier_name} · {p.product_type}</div>
+              <div className="text-xs text-gray-500">
+                #{p.policy_number} · {p.policy_status}
+                {p.client && ` · ${p.client.first_name} ${p.client.last_name}`}
+                {p.contact_id === contactId && " · already linked"}
+                {p.contact_id && p.contact_id !== contactId && " · linked to another contact"}
+              </div>
+            </button>
+          ))}
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 

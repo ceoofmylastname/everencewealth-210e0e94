@@ -3440,6 +3440,7 @@ export type Database = {
           combined_gross_income: number | null
           combined_net_income: number | null
           completed_at: string | null
+          contact_id: string | null
           created_at: string | null
           debt_to_income_ratio: number | null
           email: string | null
@@ -3526,6 +3527,7 @@ export type Database = {
           combined_gross_income?: number | null
           combined_net_income?: number | null
           completed_at?: string | null
+          contact_id?: string | null
           created_at?: string | null
           debt_to_income_ratio?: number | null
           email?: string | null
@@ -3612,6 +3614,7 @@ export type Database = {
           combined_gross_income?: number | null
           combined_net_income?: number | null
           completed_at?: string | null
+          contact_id?: string | null
           created_at?: string | null
           debt_to_income_ratio?: number | null
           email?: string | null
@@ -3683,6 +3686,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "portal_users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_needs_analysis_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "advisor_contacts"
             referencedColumns: ["id"]
           },
           {
@@ -7978,6 +7988,7 @@ export type Database = {
           carrier_name: string
           cash_value: number | null
           client_id: string
+          contact_id: string | null
           created_at: string
           death_benefit: number | null
           id: string
@@ -7999,6 +8010,7 @@ export type Database = {
           carrier_name: string
           cash_value?: number | null
           client_id: string
+          contact_id?: string | null
           created_at?: string
           death_benefit?: number | null
           id?: string
@@ -8020,6 +8032,7 @@ export type Database = {
           carrier_name?: string
           cash_value?: number | null
           client_id?: string
+          contact_id?: string | null
           created_at?: string
           death_benefit?: number | null
           id?: string
@@ -8048,6 +8061,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "portal_users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "policies_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "advisor_contacts"
             referencedColumns: ["id"]
           },
         ]

@@ -12,9 +12,11 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import {
-  Plus, Search, FileText, ClipboardList, CheckCircle, Clock, TrendingUp, Send, Eye, Users,
+  Plus, Search, FileText, ClipboardList, CheckCircle, Clock, TrendingUp, Send, Eye, Users, UserPlus,
 } from "lucide-react";
 import { toast } from "sonner";
+import ContactPickerDialog from "@/components/portal/contacts/ContactPickerDialog";
+import { useCurrentAdvisorId } from "@/hooks/useCurrentAdvisorId";
 
 const BRAND_GREEN = "#1A4D3E";
 
@@ -27,6 +29,7 @@ const statusConfig: Record<string, { label: string; color: string; bg: string }>
 
 export default function CNADashboard() {
   const { portalUser } = usePortalAuth();
+  const { advisorId: myAdvisorId } = useCurrentAdvisorId();
   const isAdmin = portalUser?.role === "admin";
   const [cnas, setCnas] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -37,6 +40,8 @@ export default function CNADashboard() {
   const [sendingCnaId, setSendingCnaId] = useState<string | null>(null);
   const [selectedClientId, setSelectedClientId] = useState("");
   const [sending, setSending] = useState(false);
+  const [linkingContactCnaId, setLinkingContactCnaId] = useState<string | null>(null);
+  const [contactNames, setContactNames] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (!portalUser) return;
@@ -48,10 +53,16 @@ export default function CNADashboard() {
     try {
       const { data, error } = await supabase
         .from("client_needs_analysis")
-        .select("*, advisor:portal_users!advisor_id(first_name, last_name)")
+        .select("*, advisor:portal_users!advisor_id(first_name, last_name), contact:advisor_contacts!client_needs_analysis_contact_id_fkey(id, first_name, last_name)")
         .order("created_at", { ascending: false });
       if (error) throw error;
-      setCnas(data ?? []);
+      const list = data ?? [];
+      setCnas(list);
+      const map: Record<string, string> = {};
+      list.forEach((c: any) => {
+        if (c.contact) map[c.id] = `${c.contact.first_name || ""} ${c.contact.last_name || ""}`.trim();
+      });
+      setContactNames(map);
     } catch (err) {
       console.error("Error loading CNAs:", err);
     } finally {
@@ -253,6 +264,11 @@ export default function CNADashboard() {
                             Shared{getClientName(cna.client_id) ? ` · ${getClientName(cna.client_id)}` : ""}
                           </span>
                         )}
+                        {cna.contact_id && contactNames[cna.id] && (
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                            Contact · {contactNames[cna.id]}
+                          </span>
+                        )}
                         {cna.reviewed_at && (
                           <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-600 border border-emerald-200 flex items-center gap-1">
                             <Eye className="h-3 w-3" />
@@ -291,6 +307,17 @@ export default function CNADashboard() {
                         title="Send to Client"
                       >
                         <Send className="h-4 w-4 text-gray-500" />
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setLinkingContactCnaId(cna.id);
+                        }}
+                        className="h-8 w-8 rounded-lg flex items-center justify-center hover:bg-gray-100 transition-colors"
+                        title="Link to Contact"
+                      >
+                        <UserPlus className="h-4 w-4 text-gray-500" />
                       </button>
                     </div>
                   </div>
@@ -337,6 +364,26 @@ export default function CNADashboard() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {myAdvisorId && (
+        <ContactPickerDialog
+          open={!!linkingContactCnaId}
+          onOpenChange={(o) => { if (!o) setLinkingContactCnaId(null); }}
+          advisorId={myAdvisorId}
+          title="Link this CNA to a contact"
+          onPick={async (c) => {
+            if (!linkingContactCnaId) return;
+            const { error } = await supabase
+              .from("client_needs_analysis")
+              .update({ contact_id: c.id })
+              .eq("id", linkingContactCnaId);
+            if (error) { toast.error(error.message); return; }
+            toast.success("Contact linked");
+            setLinkingContactCnaId(null);
+            loadCnas();
+          }}
+        />
+      )}
     </div>
   );
 }
