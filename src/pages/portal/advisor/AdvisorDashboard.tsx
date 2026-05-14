@@ -6,7 +6,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import {
   Users, FileText, Send, ArrowUpRight, TrendingUp,
   Calendar, Shield, Calculator, GraduationCap, Megaphone,
-  Wrench, ClipboardList, ClipboardCheck,
+  Wrench, ClipboardList, ClipboardCheck, Bell, CheckCircle2, X as XIcon,
 } from "lucide-react";
 
 const BRAND_GREEN = "#1A4D3E";
@@ -33,6 +33,24 @@ interface RecentClient {
   created_at: string;
 }
 
+interface ContactReminder {
+  id: string;
+  title: string;
+  body: string | null;
+  remind_at: string;
+  contact_id: string;
+  contact?: { first_name: string | null; last_name: string | null } | null;
+}
+
+interface ContactAppointment {
+  id: string;
+  title: string;
+  starts_at: string;
+  location: string | null;
+  contact_id: string;
+  contact?: { first_name: string | null; last_name: string | null } | null;
+}
+
 function getHour() {
   const h = new Date().getHours();
   if (h < 12) return "Good morning";
@@ -46,6 +64,8 @@ export default function AdvisorDashboard() {
   const [recentNews, setRecentNews] = useState<any[]>([]);
   const [upcomingEvents, setUpcomingEvents] = useState<any[]>([]);
   const [recentClients, setRecentClients] = useState<RecentClient[]>([]);
+  const [reminders, setReminders] = useState<ContactReminder[]>([]);
+  const [contactAppointments, setContactAppointments] = useState<ContactAppointment[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -80,11 +100,45 @@ export default function AdvisorDashboard() {
       );
       setUpcomingEvents(filteredEvents);
       setRecentClients((recentClientsRes.data as RecentClient[]) ?? []);
+
+      // Contacts module: upcoming reminders + appointments for this advisor
+      const sevenDays = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+      const nowIso = new Date().toISOString();
+      const [remindersRes, apptsRes] = await Promise.all([
+        supabase
+          .from("advisor_contact_reminders")
+          .select("id, title, body, remind_at, contact_id, contact:advisor_contacts(first_name, last_name)")
+          .eq("advisor_id", advisor.id)
+          .is("completed_at", null)
+          .is("dismissed_at", null)
+          .lte("remind_at", sevenDays)
+          .order("remind_at", { ascending: true })
+          .limit(5),
+        supabase
+          .from("advisor_contact_appointments")
+          .select("id, title, starts_at, location, contact_id, contact:advisor_contacts(first_name, last_name)")
+          .eq("advisor_id", advisor.id)
+          .gte("starts_at", nowIso)
+          .order("starts_at", { ascending: true })
+          .limit(5),
+      ]);
+      setReminders((remindersRes.data as any) ?? []);
+      setContactAppointments((apptsRes.data as any) ?? []);
     } catch (err) {
       console.error("Error loading dashboard:", err);
     } finally {
       setLoading(false);
     }
+  }
+
+  async function completeReminder(id: string) {
+    await supabase.from("advisor_contact_reminders").update({ completed_at: new Date().toISOString() }).eq("id", id);
+    setReminders((p) => p.filter((r) => r.id !== id));
+  }
+
+  async function dismissReminder(id: string) {
+    await supabase.from("advisor_contact_reminders").update({ dismissed_at: new Date().toISOString() }).eq("id", id);
+    setReminders((p) => p.filter((r) => r.id !== id));
   }
 
   const statCards = [
@@ -163,6 +217,83 @@ export default function AdvisorDashboard() {
       </div>
 
       {/* Bottom 3-column grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-5">
+        {/* Contact Reminders */}
+        <div className={CARD}>
+          <div className="flex items-center justify-between p-5 border-b border-gray-100">
+            <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+              <Bell className="h-4 w-4" style={{ color: BRAND_GREEN }} /> Upcoming Reminders
+            </h2>
+            <Link to="/portal/advisor/contacts" className="text-xs font-semibold text-[#1A4D3E] hover:underline">
+              Contacts
+            </Link>
+          </div>
+          <div className="p-5 space-y-2">
+            {loading ? (
+              <Skeleton className="h-16 w-full" />
+            ) : reminders.length === 0 ? (
+              <p className="text-sm text-gray-400 text-center py-4">No reminders in the next 7 days</p>
+            ) : reminders.map((r) => {
+              const name = [r.contact?.first_name, r.contact?.last_name].filter(Boolean).join(" ") || "Contact";
+              return (
+                <div key={r.id} className="flex items-start gap-2 p-3 rounded-lg hover:bg-gray-50 border border-gray-100">
+                  <div className="flex-1 min-w-0">
+                    <Link to={`/portal/advisor/contacts/${r.contact_id}`} className="text-sm font-medium text-gray-900 hover:underline block truncate">
+                      {r.title}
+                    </Link>
+                    <p className="text-xs text-gray-500 truncate">{name} · {new Date(r.remind_at).toLocaleString()}</p>
+                  </div>
+                  <button onClick={() => completeReminder(r.id)} title="Complete" className="p-1 hover:bg-emerald-50 rounded">
+                    <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                  </button>
+                  <button onClick={() => dismissReminder(r.id)} title="Dismiss" className="p-1 hover:bg-red-50 rounded">
+                    <XIcon className="h-4 w-4 text-gray-400" />
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Contact Appointments */}
+        <div className={CARD}>
+          <div className="flex items-center justify-between p-5 border-b border-gray-100">
+            <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+              <Calendar className="h-4 w-4" style={{ color: BRAND_GREEN }} /> Contact Appointments
+            </h2>
+            <Link to="/portal/advisor/contacts" className="text-xs font-semibold text-[#1A4D3E] hover:underline">
+              All
+            </Link>
+          </div>
+          <div className="p-5 space-y-2">
+            {loading ? (
+              <Skeleton className="h-16 w-full" />
+            ) : contactAppointments.length === 0 ? (
+              <p className="text-sm text-gray-400 text-center py-4">No upcoming contact appointments</p>
+            ) : contactAppointments.map((a) => {
+              const name = [a.contact?.first_name, a.contact?.last_name].filter(Boolean).join(" ") || "Contact";
+              return (
+                <Link key={a.id} to={`/portal/advisor/contacts/${a.contact_id}`} className="block">
+                  <div className="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 border-l-4 border-l-emerald-400">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium text-gray-900 truncate">{a.title}</p>
+                      <p className="text-xs text-gray-500 truncate">
+                        {name} · {new Date(a.starts_at).toLocaleString()}
+                        {a.location ? ` · ${a.location}` : ""}
+                      </p>
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Spacer column for layout balance on lg */}
+        <div className="hidden lg:block" />
+      </div>
+
+      {/* Existing 3-column grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-5">
         {/* Left 2/3: News + Events */}
         <div className="lg:col-span-2 space-y-5">
