@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useId } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { usePortalAuth } from "@/hooks/usePortalAuth";
 import { Bell } from "lucide-react";
@@ -26,13 +26,14 @@ export function NotificationBell() {
   const navigate = useNavigate();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [open, setOpen] = useState(false);
+  const instanceId = useId();
 
   useEffect(() => {
     if (!portalUser) return;
     fetchNotifications();
 
     const channel = supabase
-      .channel("portal-notifications")
+      .channel(`portal-notifications-${portalUser.id}-${instanceId}`)
       .on(
         "postgres_changes",
         {
@@ -48,7 +49,7 @@ export function NotificationBell() {
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
-  }, [portalUser]);
+  }, [portalUser, instanceId]);
 
   async function fetchNotifications() {
     if (!portalUser) return;
