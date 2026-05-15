@@ -1,21 +1,30 @@
-## Plan
+Plan to fix `/portal/advisor/presentation-v2`:
 
-The route `/portal/advisor/presentation-v2` already exists from the previous turn (registered in `src/App.tsx` under the `<AdvisorRoute>` guard, rendering `src/pages/portal/advisor/PresentationV2.tsx`). Two things still need to happen:
+1. **Confirm iframe target**
+   - Check `src/pages/portal/advisor/PresentationV2.tsx`.
+   - Ensure the iframe `src` is exactly `/presentation-v2.html`.
+   - Keep the page as iframe-only: no layout, no padding, no sidebar, fullscreen `100vw`/`100vh`, `allowFullScreen`, and `allow="autoplay; fullscreen; encrypted-media"`.
 
-### 1. Upload the real HTML
-`public/presentation-v2.html` is currently a placeholder. The file `everence-bridging-the-gap.html` referenced in the message is **not actually attached to this turn**. Please re-attach it — once attached I will copy it verbatim to `public/presentation-v2.html`, overwriting the placeholder. No edits to the HTML contents.
+2. **Override iframe-blocking headers for the static deck**
+   - Update `public/_headers` by adding this block at the very top, leaving all existing rules below untouched:
 
-### 2. Update iframe attributes
-Update `src/pages/portal/advisor/PresentationV2.tsx` to match the exact spec:
-- `allow="autoplay; fullscreen; encrypted-media"` (currently missing `encrypted-media`)
-- `allowFullScreen`
-- `style={{ border: "none", display: "block", width: "100vw", height: "100vh", position: "fixed", inset: 0 }}`
-- No header / footer / sidebar / padding (already true — page is mounted outside any layout wrapper, only wrapped in `<AdvisorRoute>`).
+```text
+/presentation-v2.html
+  X-Frame-Options: SAMEORIGIN
+  Content-Security-Policy: frame-ancestors 'self'
+```
 
-### 3. Deploy
-Frontend changes only — deployment requires you to click **Publish → Update** in the editor. I cannot trigger a production publish from here. After you re-attach the HTML and I apply the two edits above, hit Update to push live.
+   - This should override the sitewide `X-Frame-Options: DENY` rule for the standalone deck file so the same-origin portal iframe can render it.
 
-### Technical notes
-- Auth guard: `<AdvisorRoute>` from `src/components/portal/AdvisorRoute.tsx`, identical wrapper used by `/portal/advisor/presentation`.
-- Static serving: `public/_routes.json` already excludes `/*.html` from SPA fallback, so `/presentation-v2.html` is served directly by Cloudflare Pages.
-- No router, dependency, backend, or design-token changes.
+3. **Important file note**
+   - `public/presentation-v2.html` currently appears to be a placeholder, not the real 24-slide `everence-bridging-the-gap.html` deck.
+   - If the real HTML file is attached/available when implementation starts, replace the placeholder with it verbatim. If not, I’ll leave the placeholder and call that out.
+
+4. **Verification after implementation**
+   - Confirm the source code contains `src="/presentation-v2.html"`.
+   - Confirm the `_headers` override is at the top of `public/_headers`.
+   - After you publish/update production, verify:
+     - `https://www.everencewealth.com/presentation-v2.html` loads directly.
+     - `/portal/advisor/presentation-v2` loads the deck inside the authenticated portal route.
+
+Deployment note: frontend/static header changes require clicking **Publish → Update** in Lovable to deploy to production.
