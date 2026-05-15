@@ -71,8 +71,12 @@ export default function ContactsList() {
           <Button variant="outline" className="flex-1 md:flex-none min-h-11" onClick={() => navigate("/portal/advisor/contacts/settings")}>
             <SettingsIcon className="w-4 h-4 md:mr-2" /> <span className="hidden sm:inline">Custom Fields</span>
           </Button>
-          <Button variant="outline" className="flex-1 md:flex-none min-h-11" onClick={() => navigate("/portal/advisor/contacts/import")}>
-            <Upload className="w-4 h-4 md:mr-2" /> <span className="hidden sm:inline">Import CSV</span>
+          <Button
+            variant="outline"
+            onClick={() => navigate("/portal/advisor/contacts/import")}
+            className="flex-1 md:flex-none min-h-11 rounded-xl border-white/40 backdrop-blur-md bg-gradient-to-r from-emerald-700/15 to-amber-200/25 hover:from-emerald-700/25 hover:to-amber-200/40 hover:shadow-[0_0_0_1px_rgba(237,219,119,0.7)] active:scale-95 transition"
+          >
+            <Upload className="w-4 h-4 md:mr-2" /> <span className="hidden sm:inline">Import Contacts</span>
           </Button>
           <Button className="flex-1 md:flex-none min-h-11" onClick={() => navigate("/portal/advisor/contacts/new")} style={{ backgroundColor: "#1A4D3E" }}>
             <Plus className="w-4 h-4 md:mr-2" /> <span>Add<span className="hidden sm:inline"> Contact</span></span>
