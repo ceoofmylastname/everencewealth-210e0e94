@@ -1,43 +1,21 @@
-## Plan: Add `/portal/advisor/presentation-v2` iframe route
+## Plan
 
-### Files to add
-1. **`public/presentation-v2.html`** — uploaded `everence-bridging-the-gap.html` copied verbatim into `public/` so it is served as a static asset at `/presentation-v2.html`.
-2. **`src/pages/portal/advisor/PresentationV2.tsx`** — new page component:
-   ```tsx
-   export default function PresentationV2() {
-     return (
-       <iframe
-         src="/presentation-v2.html"
-         title="Everence — Bridging the Gap"
-         allow="autoplay; fullscreen"
-         allowFullScreen
-         style={{
-           position: "fixed",
-           inset: 0,
-           width: "100vw",
-           height: "100vh",
-           border: 0,
-         }}
-       />
-     );
-   }
-   ```
-   No header, footer, padding, or layout chrome.
+The route `/portal/advisor/presentation-v2` already exists from the previous turn (registered in `src/App.tsx` under the `<AdvisorRoute>` guard, rendering `src/pages/portal/advisor/PresentationV2.tsx`). Two things still need to happen:
 
-### Routing
-3. **`src/App.tsx`** — register the new route alongside the existing `/portal/advisor/presentation` route, wrapped in the same `<AdvisorRoute>` guard so only authenticated advisors/admins can view it:
-   ```tsx
-   <Route element={<AdvisorRoute />}>
-     <Route path="/portal/advisor/presentation" element={<Presentation />} />
-     <Route path="/portal/advisor/presentation-v2" element={<PresentationV2 />} />
-   </Route>
-   ```
-   (Exact placement will mirror however the existing `/portal/advisor/presentation` route is currently registered — same guard, same nesting, no layout wrapper.)
+### 1. Upload the real HTML
+`public/presentation-v2.html` is currently a placeholder. The file `everence-bridging-the-gap.html` referenced in the message is **not actually attached to this turn**. Please re-attach it — once attached I will copy it verbatim to `public/presentation-v2.html`, overwriting the placeholder. No edits to the HTML contents.
 
-### Auth guard parity
-- Reuses `AdvisorRoute` from `src/components/portal/AdvisorRoute.tsx` — same pattern as `/portal/advisor/presentation`. Unauthenticated users → `/portal/login`. Non-advisors → `/portal/client/dashboard`.
+### 2. Update iframe attributes
+Update `src/pages/portal/advisor/PresentationV2.tsx` to match the exact spec:
+- `allow="autoplay; fullscreen; encrypted-media"` (currently missing `encrypted-media`)
+- `allowFullScreen`
+- `style={{ border: "none", display: "block", width: "100vw", height: "100vh", position: "fixed", inset: 0 }}`
+- No header / footer / sidebar / padding (already true — page is mounted outside any layout wrapper, only wrapped in `<AdvisorRoute>`).
 
-### Notes
-- `public/_routes.json` already excludes `/*.html` from the SPA fallback, so `/presentation-v2.html` will be served as a static file directly — no router interception.
-- No edits to the uploaded HTML; it ships as-is.
-- No new dependencies, no backend changes, no design tokens touched.
+### 3. Deploy
+Frontend changes only — deployment requires you to click **Publish → Update** in the editor. I cannot trigger a production publish from here. After you re-attach the HTML and I apply the two edits above, hit Update to push live.
+
+### Technical notes
+- Auth guard: `<AdvisorRoute>` from `src/components/portal/AdvisorRoute.tsx`, identical wrapper used by `/portal/advisor/presentation`.
+- Static serving: `public/_routes.json` already excludes `/*.html` from SPA fallback, so `/presentation-v2.html` is served directly by Cloudflare Pages.
+- No router, dependency, backend, or design-token changes.
