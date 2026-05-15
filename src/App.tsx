@@ -436,6 +436,7 @@ const App = () => (
                   <Route path="underwriting" element={<UnderwritingAI />} />
                   <Route path="response-cards" element={<ResponseCardSubmissions />} />
                 </Route>
+                <Route path="presentation-v2" element={<PresentationV2 />} />
               </Route>
               <Route path="/portal/client" element={<ClientRoute />}>
                 <Route element={<PortalLayout />}>
