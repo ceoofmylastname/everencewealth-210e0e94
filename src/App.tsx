@@ -132,7 +132,6 @@ const CrawlabilityTest = lazy(() => import("./pages/admin/CrawlabilityTest"));
 
 // Presentation System
 const Presentation = lazy(() => import("./pages/admin/Presentation"));
-const PresentationV2 = lazy(() => import("./pages/portal/advisor/PresentationV2"));
 const PresentationQR = lazy(() => import("./pages/admin/PresentationQR"));
 const UnderwritingAI = lazy(() => import("./pages/UnderwritingAI"));
 
@@ -437,7 +436,6 @@ const App = () => (
                   <Route path="underwriting" element={<UnderwritingAI />} />
                   <Route path="response-cards" element={<ResponseCardSubmissions />} />
                 </Route>
-                <Route path="presentation-v2" element={<PresentationV2 />} />
               </Route>
               <Route path="/portal/client" element={<ClientRoute />}>
                 <Route element={<PortalLayout />}>
