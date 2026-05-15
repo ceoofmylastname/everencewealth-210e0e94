@@ -132,6 +132,7 @@ const CrawlabilityTest = lazy(() => import("./pages/admin/CrawlabilityTest"));
 
 // Presentation System
 const Presentation = lazy(() => import("./pages/admin/Presentation"));
+const PresentationV2 = lazy(() => import("./pages/portal/advisor/PresentationV2"));
 const PresentationQR = lazy(() => import("./pages/admin/PresentationQR"));
 const UnderwritingAI = lazy(() => import("./pages/UnderwritingAI"));
 
