@@ -1,7 +1,6 @@
 import { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Papa from "papaparse";
-import { parse as parseVcard } from "vcard4";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentAdvisorId } from "@/hooks/useCurrentAdvisorId";
 import { Button } from "@/components/ui/button";
@@ -86,14 +85,6 @@ function autoMatch(header: string): string {
 // ---------------- Helpers ----------------
 function normalizePhone(raw: string): string {
   return raw.replace(/[^\d+]/g, "").trim();
-}
-
-function pickLabel(p: Record<string, string | string[]> | undefined): string | null {
-  if (!p) return null;
-  const t = (p as any).TYPE ?? (p as any).type;
-  if (!t) return null;
-  const v = Array.isArray(t) ? t[0] : t;
-  return String(v).toLowerCase().split(",")[0] || null;
 }
 
 // Android picker doesn't have ContactsManager types in TS lib
@@ -463,54 +454,84 @@ function IphoneTab({ onParsed }: { onParsed: (rows: ParsedContact[]) => void }) 
   );
 }
 
+// Hand-rolled vCard parser. Supports vCard 2.1, 3.0, and 4.0 for the fields
+// we extract (FN, N, TEL, EMAIL). iPhone exports 3.0 by default; macOS exports
+// 3.0; Android varies by app. Handles Apple's ITEM1.PROPERTY grouping and
+// RFC 6350 line folding.
 function parseVcfText(text: string): ParsedContact[] {
-  const result = parseVcard(text);
-  const cards = Array.isArray(result) ? result : [result];
+  const unfolded = text.replace(/\r?\n[ \t]/g, "");
+  const lines = unfolded.split(/\r?\n/);
   const rows: ParsedContact[] = [];
-  for (const card of cards) {
-    if (!card || typeof card.getProperty !== "function") continue;
+  let current: ParsedContact | null = null;
 
-    let first: string | null = null;
-    let last: string | null = null;
-    const nProps = card.getProperty("N");
-    if (nProps && nProps.length > 0) {
-      // N format: Last;First;Middle;Prefix;Suffix
-      const parts = String(nProps[0].value || "").split(";");
-      last = parts[0]?.trim() || null;
-      first = parts[1]?.trim() || null;
+  for (const rawLine of lines) {
+    const line = rawLine.trim();
+    if (!line) continue;
+    if (line.toUpperCase() === "BEGIN:VCARD") {
+      current = { first_name: null, last_name: null, phones: [], emails: [], source: "iphone_vcf" };
+      continue;
     }
-    if (!first && !last) {
-      const fnProps = card.getProperty("FN");
-      const fn = fnProps?.[0]?.value?.trim();
-      if (fn) {
-        const idx = fn.indexOf(" ");
-        if (idx === -1) {
-          first = fn;
-        } else {
-          first = fn.slice(0, idx);
-          last = fn.slice(idx + 1);
-        }
+    if (line.toUpperCase() === "END:VCARD") {
+      if (current && (current.first_name || current.last_name || current.phones.length || current.emails.length)) {
+        rows.push(current);
       }
+      current = null;
+      continue;
     }
+    if (!current) continue;
 
-    const phones: PhoneEntry[] = [];
-    for (const p of card.getProperty("TEL") ?? []) {
-      const phone = normalizePhone(String(p.value || ""));
-      if (!phone) continue;
-      phones.push({ phone, label: pickLabel(p.parameters) });
+    const colonIdx = line.indexOf(":");
+    if (colonIdx === -1) continue;
+    const left = line.slice(0, colonIdx);
+    const value = line.slice(colonIdx + 1);
+
+    const semiIdx = left.indexOf(";");
+    const rawName = (semiIdx === -1 ? left : left.slice(0, semiIdx)).toUpperCase();
+    const paramStr = semiIdx === -1 ? "" : left.slice(semiIdx + 1);
+    const propName = rawName.replace(/^ITEM\d+\./, "");
+
+    if (propName === "N") {
+      const parts = value.split(";");
+      current.last_name = (parts[0] || "").trim() || null;
+      current.first_name = (parts[1] || "").trim() || null;
+    } else if (propName === "FN" && !current.first_name && !current.last_name) {
+      const v = value.trim();
+      const idx = v.indexOf(" ");
+      if (idx === -1) {
+        current.first_name = v;
+      } else {
+        current.first_name = v.slice(0, idx);
+        current.last_name = v.slice(idx + 1);
+      }
+    } else if (propName === "TEL") {
+      const phone = normalizePhone(value.replace(/^tel:/i, ""));
+      if (phone) current.phones.push({ phone, label: extractTypeLabel(paramStr) });
+    } else if (propName === "EMAIL") {
+      const email = value.trim();
+      if (email) current.emails.push({ email, label: extractTypeLabel(paramStr) });
     }
-
-    const emails: EmailEntry[] = [];
-    for (const p of card.getProperty("EMAIL") ?? []) {
-      const email = String(p.value || "").trim();
-      if (!email) continue;
-      emails.push({ email, label: pickLabel(p.parameters) });
-    }
-
-    if (!first && !last && phones.length === 0 && emails.length === 0) continue;
-    rows.push({ first_name: first, last_name: last, phones, emails, source: "iphone_vcf" });
   }
   return rows;
+}
+
+function extractTypeLabel(paramStr: string): string | null {
+  if (!paramStr) return null;
+  const noise = new Set(["pref", "internet", "voice"]);
+  for (const part of paramStr.split(";")) {
+    const eqIdx = part.indexOf("=");
+    let values: string[];
+    if (eqIdx === -1) {
+      values = [part];
+    } else {
+      if (part.slice(0, eqIdx).toUpperCase() !== "TYPE") continue;
+      values = part.slice(eqIdx + 1).split(",");
+    }
+    for (const v of values) {
+      const lower = v.trim().toLowerCase().replace(/^"|"$/g, "");
+      if (lower && !noise.has(lower)) return lower;
+    }
+  }
+  return null;
 }
 
 // ---------------- CSV tab ----------------
