@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { Helmet } from "react-helmet-async";
+import { Helmet } from "react-helmet";
 import { Card } from "@/components/ui/card";
 
 const EMERALD = "#0F3B2E";
