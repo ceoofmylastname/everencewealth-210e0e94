@@ -163,6 +163,7 @@ const ToolsHub = lazy(() => import("./pages/portal/advisor/ToolsHub"));
 const TrainingCenter = lazy(() => import("./pages/portal/advisor/TrainingCenter"));
 const TrainingDetail = lazy(() => import("./pages/portal/advisor/TrainingDetail"));
 const MarketingResources = lazy(() => import("./pages/portal/advisor/MarketingResources"));
+const TaxHistory = lazy(() => import("./pages/portal/advisor/resources/TaxHistory"));
 const AdvertisingDashboard = lazy(() => import("./pages/portal/advisor/AdvertisingDashboard"));
 const ImageStudio = lazy(() => import("./pages/portal/advisor/ImageStudio"));
 const SchedulePage = lazy(() => import("./pages/portal/advisor/SchedulePage"));
@@ -410,6 +411,7 @@ const App = () => (
                   <Route path="training" element={<TrainingCenter />} />
                   <Route path="training/:id" element={<TrainingDetail />} />
                   <Route path="marketing" element={<MarketingResources />} />
+                  <Route path="resources/tax-history" element={<TaxHistory />} />
                   <Route path="advertising" element={<AdvertisingDashboard />} />
                   <Route path="image-studio" element={<ImageStudio />} />
                   <Route path="schedule" element={<SchedulePage />} />
