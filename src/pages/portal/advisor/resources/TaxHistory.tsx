@@ -23,7 +23,7 @@ const whyCards = [
     body: "For most of the 20th century, the top marginal rate sat above 70%. From 1944 to 1963 it never dropped below 91%. The current 37% bracket is the lowest sustained top rate the country has seen outside of a brief window in the late 1980s. Tax-deferred dollars sitting in qualified accounts will eventually be taxed at whatever future rates demand.",
   },
   {
-    head: "TCJA Sunset at the End of 2025",
+    head: "TCJA Sunset at the End of 2026",
     title: "The Trigger",
     body: "The Tax Cuts and Jobs Act of 2017 is scheduled to expire after December 31, 2025. Without Congressional action, the top rate is set to revert from 37% back to 39.6%. Standard deductions shrink. Brackets compress. Every projection that assumed today's rates would last needs to be re-modeled.",
   },
