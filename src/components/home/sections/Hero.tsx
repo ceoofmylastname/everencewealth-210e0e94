@@ -231,7 +231,7 @@ export const Hero: React.FC = () => {
 
       {/* Bottom HUD panel */}
       <motion.div
-        className="absolute bottom-4 md:bottom-8 inset-x-0 z-20 flex justify-center px-4"
+        className="absolute bottom-4 md:bottom-8 inset-x-0 z-40 flex justify-center px-4"
         initial={{ opacity: 0, y: 80 }}
         animate={stage >= 4 ? { opacity: 1, y: 0 } : {}}
         transition={{ type: 'spring', stiffness: 120, damping: 18, mass: 1 }}
