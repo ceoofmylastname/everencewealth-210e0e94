@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo, lazy, Suspense } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -170,6 +171,7 @@ export default function ToolsHub() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [openCalculator, setOpenCalculator] = useState<{ name: string; component: React.ComponentType<{ onClose: () => void }> } | null>(null);
   const [openIllustration, setOpenIllustration] = useState<IllustrationKey | null>(null);
+  const navigate = useNavigate();
 
   useEffect(() => { loadData(); }, []);
 
@@ -296,7 +298,8 @@ export default function ToolsHub() {
                 className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {filteredIllustrations.map(ill => {
                   const Icon = ill.icon;
-                  const onOpen = () => setOpenIllustration(ill.key);
+                  const onOpen = () =>
+                    ill.route ? navigate(ill.route) : setOpenIllustration(ill.key);
                   return (
                     <Card3D key={ill.id}
                       className="bg-white rounded-2xl border border-gray-200 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.08)] p-5 flex flex-col gap-3 transition-all cursor-pointer"
@@ -323,7 +326,7 @@ export default function ToolsHub() {
                       <button onClick={onOpen}
                         className="w-full py-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 text-white transition-all hover:opacity-90 hover:shadow-md"
                         style={{ background: "#0F3B2E" }}>
-                        <BarChart3 className="h-3.5 w-3.5" /> View Illustration
+                        <BarChart3 className="h-3.5 w-3.5" /> {ill.route ? "Open" : "View Illustration"}
                       </button>
                     </Card3D>
                   );

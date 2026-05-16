@@ -1,6 +1,6 @@
-import { BarChart3, type LucideIcon } from "lucide-react";
+import { BarChart3, History, type LucideIcon } from "lucide-react";
 
-export type IllustrationKey = "indexing_backtest";
+export type IllustrationKey = "indexing_backtest" | "tax_history";
 
 export interface IllustrationCard {
   id: string;
@@ -10,6 +10,8 @@ export interface IllustrationCard {
   description: string;
   badge: string;
   icon: LucideIcon;
+  /** Optional in-app route. When set, clicking the card navigates here instead of opening a modal. */
+  route?: string;
 }
 
 export const ILLUSTRATIONS: IllustrationCard[] = [
@@ -22,5 +24,16 @@ export const ILLUSTRATIONS: IllustrationCard[] = [
       "Visual proof that capped upside with zero floor outperformed uncapped market exposure over 27 years.",
     badge: "Illustration",
     icon: BarChart3,
+  },
+  {
+    id: "illustration-tax-history",
+    key: "tax_history",
+    title: "US Tax History (1913–Today)",
+    subtitle: "Top marginal rates over a century",
+    description:
+      "See how top federal tax rates have shifted from 1913 to today — context for every tax-planning conversation.",
+    badge: "Reference",
+    icon: History,
+    route: "/portal/advisor/tools/tax-history",
   },
 ];

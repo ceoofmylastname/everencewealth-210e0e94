@@ -411,7 +411,7 @@ const App = () => (
                   <Route path="training" element={<TrainingCenter />} />
                   <Route path="training/:id" element={<TrainingDetail />} />
                   <Route path="marketing" element={<MarketingResources />} />
-                  <Route path="resources/tax-history" element={<TaxHistory />} />
+                  <Route path="tools/tax-history" element={<TaxHistory />} />
                   <Route path="advertising" element={<AdvertisingDashboard />} />
                   <Route path="image-studio" element={<ImageStudio />} />
                   <Route path="schedule" element={<SchedulePage />} />
