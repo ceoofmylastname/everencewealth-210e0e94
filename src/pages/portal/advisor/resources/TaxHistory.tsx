@@ -44,7 +44,7 @@ const timeline: { era: string; body: string }[] = [
   { era: "1993 – 2000", body: "Clinton-era reforms moved the top rate to 39.6%, where it stayed through the dot-com expansion. Surpluses replaced deficits for a short window." },
   { era: "2001 – 2012", body: "The Bush tax cuts dropped the top rate to 35%. These cuts were originally temporary and were extended multiple times before partially expiring." },
   { era: "2013 – 2017", body: "The American Taxpayer Relief Act restored the 39.6% top bracket for high earners while keeping the lower Bush rates permanent for everyone else." },
-  { era: "2018 – Today", body: "The Tax Cuts and Jobs Act dropped the top rate to 37%. This is where we live now. This rate is scheduled to expire at the end of 2025." },
+  { era: "2018 – Today", body: "The Tax Cuts and Jobs Act dropped the top rate to 37%. This is where we live now. This rate is scheduled to expire at the end of 2026." },
 ];
 
 const talkingPoints = [
