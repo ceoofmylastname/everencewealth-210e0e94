@@ -25,7 +25,7 @@ const whyCards = [
   {
     head: "TCJA Sunset at the End of 2026",
     title: "The Trigger",
-    body: "The Tax Cuts and Jobs Act of 2017 is scheduled to expire after December 31, 2025. Without Congressional action, the top rate is set to revert from 37% back to 39.6%. Standard deductions shrink. Brackets compress. Every projection that assumed today's rates would last needs to be re-modeled.",
+    body: "Roth conversions executed in 2025 and 2026 lock in today's lower brackets. Tax-free retirement vehicles such as properly structured IUL contracts and municipal bond ladders become more valuable as rates climb. The math favors clients who act while rates are still suppressed.",
   },
   {
     head: "Move Before the Window Shuts",
