@@ -49,7 +49,7 @@ const timeline: { era: string; body: string }[] = [
 
 const talkingPoints = [
   "For the client who thinks rates will stay low: \u201CLook at the chart. Since 1913, the top rate has averaged around 60%. Today it's 37%. That is not a baseline. That is a sale. Are you building your retirement assuming the sale lasts forever?\u201D",
-  "For the client with a large 401(k) or Traditional IRA: \u201CEvery dollar in there is an IOU to the IRS at a rate you don't know yet. We have until December 2025 to move dollars at today's known rates. After that, we are guessing.\u201D",
+  "For the client with a large 401(k) or Traditional IRA: \u201CEvery dollar in there is an IOU to the IRS at a rate you don't know yet. We have until December 2026 to move dollars at today's known rates. After that, we are guessing.\u201D",
   "For the client who says they'll just be in a lower bracket in retirement: \u201CMaybe. But that assumes brackets stay where they are. Look at the 1940s through the 1970s. People who retired in 1965 thinking 30% was their ceiling watched the top rate hit 70%. Required Minimum Distributions don't care what bracket you wanted to be in.\u201D",
 ];
 
