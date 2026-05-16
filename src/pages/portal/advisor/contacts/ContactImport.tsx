@@ -179,7 +179,7 @@ export default function ContactImport() {
             }
             const { data: inserted, error } = await supabase
               .from("advisor_contacts")
-              .insert(baseRow)
+              .insert([baseRow] as any)
               .select("id")
               .single();
             if (error) throw error;
