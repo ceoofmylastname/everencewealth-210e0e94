@@ -372,7 +372,7 @@ export const ContactForm: React.FC<ContactFormProps> = ({ t, language, variant =
                   className="mt-1"
                 />
                 <Label htmlFor="smsTransactional" className="text-sm text-muted-foreground leading-relaxed cursor-pointer">
-                  I consent to receive transactional messages (e.g., appointment confirmations, account alerts) from <span className="font-semibold text-foreground">Everence Wealth</span> at the phone number provided. Message frequency may vary. Message & Data rates may apply. Reply HELP for help or STOP to opt-out.
+                  I consent to receive transactional messages (e.g., appointment confirmations, account alerts, responses to support requests, ticket updates, appointment coordination, or follow-up communications related to an existing inquiry) from <span className="font-semibold text-foreground">Everence Wealth</span> at the phone number provided. Message frequency may vary. Message & Data rates may apply. Reply HELP for help or STOP to opt-out.
                 </Label>
               </div>
 
