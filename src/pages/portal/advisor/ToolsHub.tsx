@@ -1,10 +1,15 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, lazy, Suspense } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ExternalLink, Calculator, Wrench, Search, Lock, ChevronDown, ChevronUp, DollarSign, TrendingUp, Calendar, Building2, Scale, TrendingDown, Coffee, Heart, Shield, Wallet, Users } from "lucide-react";
+import { ExternalLink, Calculator, Wrench, Search, Lock, ChevronDown, ChevronUp, DollarSign, TrendingUp, Calendar, Building2, Scale, TrendingDown, Coffee, Heart, Shield, Wallet, Users, BarChart3 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { ILLUSTRATIONS, type IllustrationKey } from "@/data/illustrations";
+
+const IndexingBacktestModal = lazy(
+  () => import("@/components/portal/illustrations/IndexingBacktestModal"),
+);
 
 import IULvs401k from "./calculators/IULvs401k";
 import InflationImpact from "./calculators/InflationImpact";
@@ -96,12 +101,14 @@ const TOOL_TYPE_COLORS: Record<string, { bg: string; text: string }> = {
   quick_quote: { bg: "#ECFDF5", text: "#065F46" },
   agent_portal: { bg: "#EFF6FF", text: "#1D4ED8" },
   microsite: { bg: "#FDF4FF", text: "#7E22CE" },
+  illustration: { bg: "#0F3B2E", text: "#F5EFE0" },
 };
 
 const TOOL_TYPES = [
   { key: "quick_quote", label: "Quick Quotes" },
   { key: "agent_portal", label: "Agent Portals" },
   { key: "microsite", label: "Microsites" },
+  { key: "illustration", label: "Illustrations" },
 ];
 
 const CALC_CATEGORIES = [
@@ -162,6 +169,7 @@ export default function ToolsHub() {
   const [expandedInstructions, setExpandedInstructions] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [openCalculator, setOpenCalculator] = useState<{ name: string; component: React.ComponentType<{ onClose: () => void }> } | null>(null);
+  const [openIllustration, setOpenIllustration] = useState<IllustrationKey | null>(null);
 
   useEffect(() => { loadData(); }, []);
 
@@ -184,6 +192,22 @@ export default function ToolsHub() {
     if (selectedType) result = result.filter(t => t.tool_type === selectedType);
     return result;
   }, [tools, searchQuery, selectedType]);
+
+  const filteredIllustrations = useMemo(() => {
+    let result = ILLUSTRATIONS;
+    if (selectedType && selectedType !== "illustration") return [];
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      result = result.filter(i =>
+        i.title.toLowerCase().includes(q) ||
+        i.subtitle.toLowerCase().includes(q) ||
+        i.description.toLowerCase().includes(q),
+      );
+    }
+    return result;
+  }, [searchQuery, selectedType]);
+
+  const hasAnyResults = filteredTools.length > 0 || filteredIllustrations.length > 0;
 
   const handleOpenCalculator = (calcName: string) => {
     const component = CALC_COMPONENTS[calcName];
@@ -217,6 +241,15 @@ export default function ToolsHub() {
           <div className="p-6">{ActiveCalculator && <ActiveCalculator onClose={() => setOpenCalculator(null)} />}</div>
         </DialogContent>
       </Dialog>
+
+      {openIllustration && (
+        <Suspense fallback={null}>
+          <IndexingBacktestModal
+            open={openIllustration === "indexing_backtest"}
+            onOpenChange={(o) => { if (!o) setOpenIllustration(null); }}
+          />
+        </Suspense>
+      )}
 
       <Tabs defaultValue="quoting">
         <TabsList className="bg-gray-100 rounded-lg p-1 w-full sm:w-auto">
@@ -252,7 +285,7 @@ export default function ToolsHub() {
           </div>
 
           <AnimatePresence mode="wait">
-            {filteredTools.length === 0 ? (
+            {!hasAnyResults ? (
               <motion.div key="empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                 className="bg-white rounded-2xl border border-gray-200 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.08)] text-center py-12">
                 <Search className="h-8 w-8 text-gray-300 mx-auto mb-2" />
@@ -261,6 +294,40 @@ export default function ToolsHub() {
             ) : (
               <motion.div key="grid" variants={containerVariants} initial="hidden" animate="visible"
                 className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {filteredIllustrations.map(ill => {
+                  const Icon = ill.icon;
+                  const onOpen = () => setOpenIllustration(ill.key);
+                  return (
+                    <Card3D key={ill.id}
+                      className="bg-white rounded-2xl border border-gray-200 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.08)] p-5 flex flex-col gap-3 transition-all cursor-pointer"
+                    >
+                      <div onClick={onOpen} className="flex flex-col gap-3 flex-1">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="h-10 w-10 rounded-lg flex items-center justify-center" style={{ background: "#0F3B2E12" }}>
+                            <Icon className="h-5 w-5" style={{ color: "#0F3B2E" }} />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="font-semibold text-gray-900 truncate">{ill.title}</p>
+                            <p className="text-xs text-gray-400">{ill.subtitle}</p>
+                          </div>
+                        </div>
+                        <div className="flex flex-wrap gap-1.5">
+                          <span className="text-xs px-2.5 py-0.5 rounded-full font-medium"
+                            style={{ background: "#0F3B2E", color: "#F5EFE0" }}>
+                            {ill.badge}
+                          </span>
+                        </div>
+                        <p className="text-xs text-gray-400 line-clamp-2">{ill.description}</p>
+                        <div className="flex-1" />
+                      </div>
+                      <button onClick={onOpen}
+                        className="w-full py-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 text-white transition-all hover:opacity-90 hover:shadow-md"
+                        style={{ background: "#0F3B2E" }}>
+                        <BarChart3 className="h-3.5 w-3.5" /> View Illustration
+                      </button>
+                    </Card3D>
+                  );
+                })}
                 {filteredTools.map(t => {
                   const typeColor = TOOL_TYPE_COLORS[t.tool_type] || { bg: "#F3F4F6", text: "#374151" };
                   return (

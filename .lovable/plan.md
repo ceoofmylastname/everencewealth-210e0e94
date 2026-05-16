@@ -1,44 +1,46 @@
 ## Goal
-Add a view-only "Tax History" resource page to the Advisor Portal at `/portal/advisor/resources/tax-history`, linked from the Resources sidebar group. The page renders the uploaded Marginal Tax Rates flyer with right-click/drag/save disabled, plus editorial commentary sections.
+Add a new "Illustrations" category and a single illustration card ("Indexing Strategy: 27-Year Backtest") to the advisor Tools Hub (`/portal/advisor/tools`). Clicking the card opens a fullscreen, view-only Dialog rendering the uploaded S&P 500 chart plus seven editorial sections. No download, print, share, drag, or right-click.
 
-## Files to add / change
+## Files
 
 **New**
-- `public/resources/everence-tax-history-flyer.png` — copied from the uploaded `The_History_of_Marginal_tax_rates.png`.
-- `src/pages/portal/advisor/resources/TaxHistory.tsx` — the new page.
+- `public/resources/everence-sp500-indexing-backtest.png` — copy of the uploaded chart (`user-uploads://S_P500_vs_indexing.png`).
+- `src/data/illustrations.ts` — exported `ILLUSTRATIONS` array of card metadata (id, title, subtitle, description, icon name, modal key). Designed for future illustrations without editing the Tools page.
+- `src/components/portal/illustrations/IndexingBacktestModal.tsx` — the locked-down modal. Lazy-loaded via `React.lazy` inside `ToolsHub.tsx`.
 
 **Edit**
-- `src/components/portal/PortalLayout.tsx` — add a new sidebar item under the existing `Resources` group:
-  `{ label: "Tax History", icon: TrendingUp, href: "/portal/advisor/resources/tax-history" }`
-- `src/App.tsx` — lazy-import `TaxHistory` and register `<Route path="resources/tax-history" element={<TaxHistory />} />` inside the existing advisor route group (same `AdvisorRoute` + `PortalLayout` guard chain used by `tools`, `training`, `marketing`).
+- `src/pages/portal/advisor/ToolsHub.tsx` — add `illustration` to `TOOL_TYPES`, add illustration cards to the Quoting Tools grid (visible under "All" and "Illustrations"), wire click → open modal via local `useState`. Existing carrier tools and calculators stay untouched.
 
-## Page structure (TaxHistory.tsx)
+No shared `ToolCard.tsx` exists today — cards are inlined in `ToolsHub.tsx`. I'll add a small inline branch in the same grid that renders illustration cards with an emerald "Illustration" badge and a "View Illustration" button (no external-link icon) instead of refactoring the existing card markup.
 
-Wrapper `<div onContextMenu={preventDefault}>` + `useEffect` that adds a document-level `contextmenu` listener on mount and removes it on unmount. `<Helmet>` with `<meta name="robots" content="noindex,nofollow" />`.
+## Tab + card behavior
+- New tab "Illustrations" added next to All / Quick Quotes / Agent Portals / Microsites, with `selectedType = "illustration"`.
+- Filter logic extended so illustration cards are included in the grid alongside DB-loaded carrier tools. Search matches title/subtitle/description.
+- Card: `BarChart3` icon, deep-emerald pill badge (`#0F3B2E` bg, cream text), title, subtitle, description, primary button "View Illustration" → opens modal. No lock icon, no external link icon.
 
-Sticky sub-nav (anchors: Flyer / Why It Matters / Timeline / Talking Points), smooth scroll via `scroll-behavior: smooth` on a section container.
+## Modal (`IndexingBacktestModal.tsx`)
+- shadcn `Dialog` + `DialogContent`, custom classes: fullscreen on mobile (`w-screen h-screen max-w-none rounded-none`), desktop `md:max-w-[1400px] md:max-h-[90vh] md:rounded-xl`. Charcoal `#1A1A1A` bg, 1px gold `#C9A24B` border.
+- Inner scroll container with `overflow-y-auto`, `scrollBehavior: 'smooth'`, `userSelect: 'none'`.
+- Close (X) button top-right (shadcn default). No other controls.
+- Escape + backdrop close handled by Dialog. Focus trap via Radix.
+- `useEffect` adds document-level `contextmenu` preventDefault while modal is open, removed on unmount.
+- No `@media print` styles introduced. No download/print/share UI.
 
-1. **Hero** — dark gradient (charcoal → emerald `#0F3B2E` → gold `#C9A24B` accent line), gold pill badge "EVERENCE WEALTH RESOURCE", serif H1 "112 Years of Tax History. One Window That's Closing.", cream subhead.
-2. **Flyer** — centered `<img src="/resources/everence-tax-history-flyer.png">` max-w 1400px, `object-contain`, 1px gold border + soft shadow. Attributes: `draggable={false}`, `onDragStart={preventDefault}`, `onContextMenu={preventDefault}`, inline style `userSelect:'none', WebkitUserDrag:'none', pointerEvents:'none'`. Absolutely-positioned transparent overlay `<div>` on top to swallow selection while leaving the image visible.
-3. **Why This Matters** — 3 glassmorphic cards (gold top border, inner shadow) with the supplied "Discount / Trigger / Strategy" copy verbatim.
-4. **Timeline** — parchment-cream background, 2-column serif reading layout on desktop, single column on mobile, long-form paragraphs verbatim from the task (1913→Today).
-5. **Talking Points** — muted gray card section with the three advisor scripts verbatim.
-6. **Source strip** — small footer paragraph with the sources/disclaimer text verbatim.
+### Sections (top → bottom)
+1. **Header strip** — gold uppercase pill "EVERENCE WEALTH ILLUSTRATION"; serif H1 ("What Happens When You Cap the Wins and Eliminate the Losses?"); cream subhead (verbatim from task).
+2. **Chart** — `<img src="/resources/everence-sp500-indexing-backtest.png">`, `max-w-[1400px]`, `object-contain`, gold border at 30% opacity, soft shadow. Props: `draggable={false}`, `onDragStart`/`onContextMenu` preventDefault, inline `userSelect:'none'`, `WebkitUserDrag:'none'`, `pointerEvents:'none'`. Absolutely-positioned transparent overlay `<div>` on top with its own `onContextMenu` preventDefault to swallow right-click attempts.
+3. **Headline number** — gold-bordered centered block: `$622,724` (Full Market), `$950,648` (gold accent, larger, Capped & Floored), `$327,924 more` (smaller) with verbatim subtexts.
+4. **Counterintuitive Truth** — parchment-cream Card with thin inner gold border, header "Why Capping the Upside Beats Capturing It.", four verbatim serif body paragraphs, two-column on `md+`, single column mobile.
+5. **Stat Cards** — three glassmorphic dark cards with gold top border in `md:grid-cols-3`: "The Win Rate Was Identical", "The Drawdown Story", "Why CAGR Lies" — verbatim copy.
+6. **Advisor Talking Points** — muted gray card, header "Three Ways to Frame This in a Client Meeting.", three verbatim scripts.
+7. **Assumptions/Source strip** — small light-gray footer paragraph (verbatim).
 
-## Anti-save lockdown
-- No download / print / "save as" buttons anywhere.
-- Image is non-draggable, non-right-clickable, non-selectable; transparent overlay sits above it.
-- Page-level `contextmenu` listener blocks right-click everywhere in the route.
-- No `@media print` styles added.
+## Tokens / colors
+Inline hex only where tokens don't exist: emerald `#0F3B2E`, gold `#C9A24B`, cream `#F5EFE0`, charcoal `#1A1A1A`, accent red `#C8362C`. Headings `font-serif`, body sans.
 
-## Design tokens
-- Reuse existing portal Tailwind classes; inline brand hex (emerald `#0F3B2E`, gold `#C9A24B`, cream `#F5EFE0`, charcoal `#1A1A1A`) only where semantic tokens don't exist.
-- Serif headings via `font-serif` (matches existing brand serif usage); sans body via default.
-- shadcn `Card` for the Why-It-Matters and Talking-Points blocks.
-- Mobile-first; grids collapse below `md`.
-
-## Auth
-Route is nested under the same `AdvisorRoute` + `PortalLayout` group as other Resources pages, so existing advisor auth gate applies automatically. No new guard needed.
-
-## Out of scope
-No DB, no edge functions, no analytics events, no i18n strings added — page is English-only static content.
+## Acceptance verification
+- Card appears under "All" and "Illustrations" tabs with emerald badge.
+- Click opens modal; Esc and backdrop close; X closes.
+- Chart: cannot drag, right-click, or select; no download/print/share controls.
+- All 7 sections render correctly on mobile (single column) and desktop (1400px max).
+- Rest of Tools page (carrier quoting tools, calculators tab) untouched.
