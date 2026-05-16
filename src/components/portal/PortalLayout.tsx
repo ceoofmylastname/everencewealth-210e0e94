@@ -52,7 +52,6 @@ const advisorNavGroups = [
       { label: "Socorro Workshop", icon: ClipboardList, href: "/portal/advisor/socorro-workshop" },
       { label: "Underwriting AI", icon: FileSearch, href: "/portal/advisor/underwriting" },
       { label: "Response Cards", icon: ClipboardCheck, href: "/portal/advisor/response-cards" },
-      { label: "Tax History", icon: TrendingUp, href: "/portal/advisor/resources/tax-history" },
     ],
   },
   {
