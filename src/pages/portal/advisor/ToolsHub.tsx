@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ExternalLink, Calculator, Wrench, Search, Lock, ChevronDown, ChevronUp, DollarSign, TrendingUp, Calendar, Building2, Scale, TrendingDown, Coffee, Heart, Shield, Wallet, Users, BarChart3 } from "lucide-react";
+import { ExternalLink, Calculator, Wrench, Search, Lock, ChevronDown, ChevronUp, DollarSign, TrendingUp, Calendar, Building2, Scale, TrendingDown, Coffee, Heart, Shield, Wallet, Users, BarChart3, FileText, Download } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ILLUSTRATIONS, type IllustrationKey } from "@/data/illustrations";
 
@@ -103,6 +103,7 @@ const TOOL_TYPE_COLORS: Record<string, { bg: string; text: string }> = {
   agent_portal: { bg: "#EFF6FF", text: "#1D4ED8" },
   microsite: { bg: "#FDF4FF", text: "#7E22CE" },
   illustration: { bg: "#0F3B2E", text: "#F5EFE0" },
+  pdf_document: { bg: "#FEF3C7", text: "#92400E" },
 };
 
 const TOOL_TYPES = [
@@ -110,6 +111,7 @@ const TOOL_TYPES = [
   { key: "agent_portal", label: "Agent Portals" },
   { key: "microsite", label: "Microsites" },
   { key: "illustration", label: "Illustrations" },
+  { key: "pdf_document", label: "Documents" },
 ];
 
 const CALC_CATEGORIES = [
@@ -171,6 +173,7 @@ export default function ToolsHub() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [openCalculator, setOpenCalculator] = useState<{ name: string; component: React.ComponentType<{ onClose: () => void }> } | null>(null);
   const [openIllustration, setOpenIllustration] = useState<IllustrationKey | null>(null);
+  const [openPdf, setOpenPdf] = useState<{ name: string; url: string; allowDownload: boolean } | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => { loadData(); }, []);
@@ -253,6 +256,29 @@ export default function ToolsHub() {
         </Suspense>
       )}
 
+      <Dialog open={!!openPdf} onOpenChange={(o) => { if (!o) setOpenPdf(null); }}>
+        <DialogContent className="max-w-5xl w-full h-[90vh] p-0 mx-2 sm:mx-auto flex flex-col">
+          <DialogHeader className="px-6 py-3 border-b border-gray-100 flex-row items-center justify-between">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="h-8 w-8 rounded-lg flex items-center justify-center" style={{ background: `${BRAND_GREEN}15` }}>
+                <FileText className="h-4 w-4" style={{ color: BRAND_GREEN }} />
+              </div>
+              <DialogTitle className="text-gray-900 text-base font-semibold truncate">{openPdf?.name}</DialogTitle>
+            </div>
+            {openPdf?.allowDownload && (
+              <a href={openPdf.url} download target="_blank" rel="noopener noreferrer"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white hover:opacity-90 mr-6"
+                style={{ background: BRAND_GREEN }}>
+                <Download className="h-3.5 w-3.5" /> Download
+              </a>
+            )}
+          </DialogHeader>
+          {openPdf && (
+            <iframe src={`${openPdf.url}#toolbar=${openPdf.allowDownload ? 1 : 0}`} title={openPdf.name} className="flex-1 w-full" />
+          )}
+        </DialogContent>
+      </Dialog>
+
       <Tabs defaultValue="quoting">
         <TabsList className="bg-gray-100 rounded-lg p-1 w-full sm:w-auto">
           <TabsTrigger value="quoting" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-gray-900 text-gray-500 py-2.5 sm:py-1.5 flex-1 sm:flex-none touch-manipulation">
@@ -333,6 +359,8 @@ export default function ToolsHub() {
                 })}
                 {filteredTools.map(t => {
                   const typeColor = TOOL_TYPE_COLORS[t.tool_type] || { bg: "#F3F4F6", text: "#374151" };
+                  const isPdf = t.tool_type === "pdf_document" || !!t.file_url;
+                  const pdfUrl = t.file_url || t.tool_url;
                   return (
                     <Card3D key={t.id} className="bg-white rounded-2xl border border-gray-200 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.08)] p-5 flex flex-col gap-3 transition-all">
                       <div className="flex items-center gap-3 min-w-0">
@@ -340,7 +368,7 @@ export default function ToolsHub() {
                           <img src={t.carriers.carrier_logo_url} alt={t.carriers.carrier_name} className="h-10 w-10 object-contain rounded-lg bg-gray-50 p-1" />
                         ) : (
                           <div className="h-10 w-10 rounded-lg flex items-center justify-center" style={{ background: `${BRAND_GREEN}12` }}>
-                            <Building2 className="h-5 w-5" style={{ color: BRAND_GREEN }} />
+                            {isPdf ? <FileText className="h-5 w-5" style={{ color: BRAND_GREEN }} /> : <Building2 className="h-5 w-5" style={{ color: BRAND_GREEN }} />}
                           </div>
                         )}
                         <div className="min-w-0 flex-1">
@@ -376,12 +404,20 @@ export default function ToolsHub() {
                         </div>
                       )}
 
-                      <a href={t.tool_url} target="_blank" rel="noopener noreferrer">
-                        <button className="w-full py-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 text-white transition-all hover:opacity-90 hover:shadow-md"
+                      {isPdf && t.file_url ? (
+                        <button onClick={() => setOpenPdf({ name: t.tool_name, url: pdfUrl, allowDownload: t.allow_download ?? true })}
+                          className="w-full py-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 text-white transition-all hover:opacity-90 hover:shadow-md"
                           style={{ background: BRAND_GREEN }}>
-                          <ExternalLink className="h-3.5 w-3.5" /> Open Tool
+                          <FileText className="h-3.5 w-3.5" /> View PDF
                         </button>
-                      </a>
+                      ) : (
+                        <a href={t.tool_url} target="_blank" rel="noopener noreferrer">
+                          <button className="w-full py-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 text-white transition-all hover:opacity-90 hover:shadow-md"
+                            style={{ background: BRAND_GREEN }}>
+                            <ExternalLink className="h-3.5 w-3.5" /> Open Tool
+                          </button>
+                        </a>
+                      )}
                     </Card3D>
                   );
                 })}
