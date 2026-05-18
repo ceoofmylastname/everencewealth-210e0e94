@@ -42,6 +42,9 @@ export default function ContactDetail() {
     navigate("/portal/advisor/contacts");
   }
 
+  const isOwned = !!advisorId && !!contact && contact.advisor_id === advisorId;
+  const isReadOnly = !!contact && !isOwned;
+
   if (loading) return <div className="p-8">Loading...</div>;
   if (!contact) return <div className="p-8">Contact not found.</div>;
 
@@ -50,6 +53,12 @@ export default function ContactDetail() {
       <Link to="/portal/advisor/contacts" className="inline-flex items-center text-sm text-gray-600 mb-4">
         <ArrowLeft className="w-4 h-4 mr-1" /> Back to contacts
       </Link>
+
+      {isReadOnly && (
+        <div className="mb-4 p-3 rounded-xl border border-amber-200 bg-amber-50 text-sm text-amber-900">
+          You are viewing this contact as a manager. Read-only — only the owning advisor can make changes.
+        </div>
+      )}
 
       <div className="bg-white border rounded-lg p-4 md:p-6 mb-4">
         <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
@@ -72,12 +81,14 @@ export default function ContactDetail() {
             </div>
           </div>
           <div className="flex gap-2 w-full md:w-auto md:shrink-0">
+            {isOwned && (<>
             <Button variant="outline" className="flex-1 md:flex-none min-h-11" onClick={() => navigate(`/portal/advisor/contacts/${id}/edit`)}>
               <Pencil className="w-4 h-4 mr-1" /> Edit
             </Button>
             <Button variant="outline" className="min-h-11 min-w-11" onClick={deleteContact} aria-label="Delete contact">
               <Trash2 className="w-4 h-4 text-red-600" />
             </Button>
+            </>)}
           </div>
         </div>
       </div>

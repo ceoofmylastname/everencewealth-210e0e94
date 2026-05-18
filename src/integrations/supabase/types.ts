@@ -10375,6 +10375,10 @@ export type Database = {
         Args: { _lead_id: string; _user_id: string }
         Returns: boolean
       }
+      can_manage_advisor: {
+        Args: { _advisor_id: string; _auth_uid: string }
+        Returns: boolean
+      }
       check_extension_exists: {
         Args: { extension_name: string }
         Returns: boolean
@@ -10465,6 +10469,15 @@ export type Database = {
           total_uses: number
           trust_score: number
           usage_status: string
+        }[]
+      }
+      get_managed_advisor_ids: {
+        Args: { _auth_uid: string }
+        Returns: {
+          advisor_id: string
+          email: string
+          first_name: string
+          last_name: string
         }[]
       }
       get_missing_languages: {

@@ -2,9 +2,10 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentAdvisorId } from "@/hooks/useCurrentAdvisorId";
+import { useManagedAdvisors } from "@/hooks/useManagedAdvisors";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Plus, Search, Upload, Settings as SettingsIcon, UserCircle2 } from "lucide-react";
+import { Plus, Search, Upload, Settings as SettingsIcon, UserCircle2, Eye } from "lucide-react";
 import { toast } from "sonner";
 
 interface Contact {
@@ -21,22 +22,33 @@ interface Contact {
 
 export default function ContactsList() {
   const { advisorId, loading: authLoading } = useCurrentAdvisorId();
+  const { managed, loading: managedLoading } = useManagedAdvisors();
+  const [viewAdvisorId, setViewAdvisorId] = useState<string>("");
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [stage, setStage] = useState<string>("all");
   const navigate = useNavigate();
 
+  // Default scope to self when advisor id resolves
   useEffect(() => {
-    if (!advisorId) return;
+    if (advisorId && !viewAdvisorId) setViewAdvisorId(advisorId);
+  }, [advisorId, viewAdvisorId]);
+
+  const isViewingOther = !!advisorId && !!viewAdvisorId && viewAdvisorId !== advisorId;
+  const viewingAdvisor = managed.find((m) => m.advisor_id === viewAdvisorId);
+
+  useEffect(() => {
+    if (!viewAdvisorId) return;
     load();
-  }, [advisorId]);
+  }, [viewAdvisorId]);
 
   async function load() {
     setLoading(true);
     const { data, error } = await supabase
       .from("advisor_contacts")
       .select("id, first_name, last_name, primary_email, primary_phone, company, lifecycle_stage, tags, created_at")
+      .eq("advisor_id", viewAdvisorId)
       .order("created_at", { ascending: false })
       .limit(500);
     if (error) toast.error(error.message);
@@ -58,15 +70,43 @@ export default function ContactsList() {
     });
   }, [contacts, search, stage]);
 
-  if (authLoading) return <div className="p-8">Loading...</div>;
+  if (authLoading || managedLoading) return <div className="p-8">Loading...</div>;
 
   return (
     <div className="p-4 md:p-6 max-w-7xl mx-auto">
+      {managed.length > 0 && (
+        <div className="mb-4 flex flex-col sm:flex-row sm:items-center gap-2 p-3 rounded-xl border border-emerald-200 bg-emerald-50/60">
+          <div className="flex items-center gap-2 text-sm text-emerald-900 font-medium">
+            <Eye className="w-4 h-4" /> Viewing contacts for:
+          </div>
+          <select
+            className="border rounded-md px-3 h-10 text-sm bg-white flex-1 sm:flex-none sm:min-w-[280px]"
+            value={viewAdvisorId}
+            onChange={(e) => setViewAdvisorId(e.target.value)}
+          >
+            {advisorId && <option value={advisorId}>My contacts</option>}
+            {managed.map((m) => (
+              <option key={m.advisor_id} value={m.advisor_id}>
+                {m.first_name} {m.last_name} {m.email ? `· ${m.email}` : ""}
+              </option>
+            ))}
+          </select>
+          {isViewingOther && (
+            <span className="text-xs px-2 py-1 rounded-full bg-amber-100 text-amber-800 border border-amber-200">
+              Read-only
+            </span>
+          )}
+        </div>
+      )}
+
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between mb-5">
         <div>
-          <h1 className="text-xl md:text-2xl font-bold text-gray-900">Contacts</h1>
-          <p className="text-sm text-gray-500 mt-1">{contacts.length} contacts in your book</p>
+          <h1 className="text-xl md:text-2xl font-bold text-gray-900">
+            {isViewingOther ? `${viewingAdvisor?.first_name ?? ""} ${viewingAdvisor?.last_name ?? ""}'s Contacts` : "Contacts"}
+          </h1>
+          <p className="text-sm text-gray-500 mt-1">{contacts.length} contacts {isViewingOther ? "in this advisor's book" : "in your book"}</p>
         </div>
+        {!isViewingOther && (
         <div className="flex gap-2 w-full md:w-auto">
           <Button variant="outline" className="flex-1 md:flex-none min-h-11" onClick={() => navigate("/portal/advisor/contacts/settings")}>
             <SettingsIcon className="w-4 h-4 md:mr-2" /> <span className="hidden sm:inline">Custom Fields</span>
@@ -82,6 +122,7 @@ export default function ContactsList() {
             <Plus className="w-4 h-4 md:mr-2" /> <span>Add<span className="hidden sm:inline"> Contact</span></span>
           </Button>
         </div>
+        )}
       </div>
 
       <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 mb-4">
