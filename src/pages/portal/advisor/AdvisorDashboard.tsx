@@ -219,12 +219,20 @@ export default function AdvisorDashboard() {
       {/* Bottom 3-column grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-5">
         {/* Contact Reminders */}
-        <div className={CARD}>
-          <div className="flex items-center justify-between p-5 border-b border-gray-100">
+        <div className={`${CARD} overflow-hidden ring-1 ring-amber-200/60 shadow-[0_4px_20px_-8px_rgba(217,119,6,0.25)]`}>
+          <div className="flex items-center justify-between p-5 bg-gradient-to-r from-amber-50 via-amber-50/70 to-white border-b-2 border-amber-300">
             <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-              <Bell className="h-4 w-4" style={{ color: BRAND_GREEN }} /> Upcoming Reminders
+              <span className="h-8 w-8 rounded-lg bg-amber-500 flex items-center justify-center shadow-sm">
+                <Bell className="h-4 w-4 text-white" />
+              </span>
+              Upcoming Reminders
+              {reminders.length > 0 && (
+                <span className="ml-1 inline-flex items-center justify-center min-w-[22px] h-[22px] px-1.5 rounded-full bg-amber-500 text-white text-xs font-bold">
+                  {reminders.length}
+                </span>
+              )}
             </h2>
-            <Link to="/portal/advisor/contacts" className="text-xs font-semibold text-[#1A4D3E] hover:underline">
+            <Link to="/portal/advisor/contacts" className="text-xs font-semibold text-amber-700 hover:text-amber-900 hover:underline">
               Contacts
             </Link>
           </div>
@@ -236,7 +244,7 @@ export default function AdvisorDashboard() {
             ) : reminders.map((r) => {
               const name = [r.contact?.first_name, r.contact?.last_name].filter(Boolean).join(" ") || "Contact";
               return (
-                <div key={r.id} className="flex items-start gap-2 p-3 rounded-lg hover:bg-gray-50 border border-gray-100">
+                <div key={r.id} className="flex items-start gap-2 p-3 rounded-lg bg-amber-50/40 hover:bg-amber-50 border-l-4 border-l-amber-400 border border-amber-100 transition-colors">
                   <div className="flex-1 min-w-0">
                     <Link to={`/portal/advisor/contacts/${r.contact_id}`} className="text-sm font-medium text-gray-900 hover:underline block truncate">
                       {r.title}
@@ -256,12 +264,20 @@ export default function AdvisorDashboard() {
         </div>
 
         {/* Contact Appointments */}
-        <div className={CARD}>
-          <div className="flex items-center justify-between p-5 border-b border-gray-100">
+        <div className={`${CARD} overflow-hidden ring-1 ring-emerald-200/60 shadow-[0_4px_20px_-8px_rgba(16,122,90,0.25)]`}>
+          <div className="flex items-center justify-between p-5 bg-gradient-to-r from-emerald-50 via-emerald-50/70 to-white border-b-2 border-emerald-300">
             <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-              <Calendar className="h-4 w-4" style={{ color: BRAND_GREEN }} /> Contact Appointments
+              <span className="h-8 w-8 rounded-lg flex items-center justify-center shadow-sm" style={{ background: BRAND_GREEN }}>
+                <Calendar className="h-4 w-4 text-white" />
+              </span>
+              Contact Appointments
+              {contactAppointments.length > 0 && (
+                <span className="ml-1 inline-flex items-center justify-center min-w-[22px] h-[22px] px-1.5 rounded-full text-white text-xs font-bold" style={{ background: BRAND_GREEN }}>
+                  {contactAppointments.length}
+                </span>
+              )}
             </h2>
-            <Link to="/portal/advisor/contacts" className="text-xs font-semibold text-[#1A4D3E] hover:underline">
+            <Link to="/portal/advisor/contacts" className="text-xs font-semibold hover:underline" style={{ color: BRAND_GREEN }}>
               All
             </Link>
           </div>
@@ -274,7 +290,7 @@ export default function AdvisorDashboard() {
               const name = [a.contact?.first_name, a.contact?.last_name].filter(Boolean).join(" ") || "Contact";
               return (
                 <Link key={a.id} to={`/portal/advisor/contacts/${a.contact_id}`} className="block">
-                  <div className="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 border-l-4 border-l-emerald-400">
+                  <div className="flex items-start gap-3 p-3 rounded-lg bg-emerald-50/40 hover:bg-emerald-50 border-l-4 border-l-emerald-500 border border-emerald-100 transition-colors">
                     <div className="min-w-0 flex-1">
                       <p className="text-sm font-medium text-gray-900 truncate">{a.title}</p>
                       <p className="text-xs text-gray-500 truncate">
