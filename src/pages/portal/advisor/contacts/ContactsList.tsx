@@ -196,7 +196,7 @@ export default function ContactsList() {
         ) : filtered.length === 0 ? (
           <div className="p-8 text-center text-gray-500 bg-white border rounded-lg">No contacts yet. Add one or import a CSV.</div>
         ) : filtered.map((c) => (
-          <button key={c.id} onClick={() => navigate(`/portal/advisor/contacts/${c.id}`)}
+          <button key={c.id} onClick={() => navigate(`/portal/advisor/contacts/${c.id}${isViewingOther ? `?from=team&agent=${viewAdvisorId}` : ""}`)}
             className="w-full text-left bg-white border rounded-lg p-4 active:bg-gray-50">
             <div className="flex items-start gap-3">
               <UserCircle2 className="w-10 h-10 text-gray-300 shrink-0" />
