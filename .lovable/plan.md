@@ -1,43 +1,110 @@
-## Goal
+# Profile Key — Contact Rating System
 
-On `/portal/advisor/contacts`, keep the manager's own contacts strictly separated from contacts owned by agents they manage. No merged list, no shared counts.
+A visually rich rating overlay that lets advisors flag each contact across 8 lifestyle traits (1–8) plus a Response/Associate/Client status (R/A/C). The total score (0–8) drives a color heat-map so high-potential contacts pop instantly.
 
-## Current behavior
+## The traits
 
-A single contacts list with a "Viewing contacts for" dropdown that swaps the active advisor. Functionally separate (each fetch is scoped to one `advisor_id`), but visually it lives on the same page, which makes it feel like the manager's own book and the managed agents' books are part of the same view.
+Numeric (count toward 0–8 score):
+1. 25+ years old
+2. Married
+3. Children
+4. Homeowner
+5. Income
+6. Ambitious
+7. Dissatisfied (with job)
+8. Entrepreneur mindset
 
-## New UX
+Status (separate badge, single-select): **R** Response · **A** Associate · **C** Client
 
-Add a top-level tab strip on `/portal/advisor/contacts` (only for users who manage at least one agent — regular advisors see no tabs and no change):
+## Color heat-map (score → color)
 
 ```text
-[ My Contacts ]  [ Team Contacts ]
+0  slate     (cold)
+1  zinc
+2  sky
+3  teal
+4  amber       ← "watch list" threshold
+5  orange
+6  rose
+7  fuchsia
+8  emerald     (hot / urgent priority)
 ```
 
-- **My Contacts** (default) — exactly the manager's own contacts. Same create/edit/delete behavior they have today. No managed-agent rows ever appear here.
-- **Team Contacts** — read-only view of contacts owned by agents the manager manages. Inside this tab, an "Agent" dropdown picks which managed agent's book to view (same dropdown that exists today, just moved into this tab). Header shows "Viewing {Agent name}'s contacts (read-only)". Create/Edit/Delete hidden.
+Score ≥ 4 = elevated priority. Score ≥ 6 = urgent. Colors are HSL tokens added to the design system, not hard-coded.
 
-Switching tabs fully resets the query — the two tabs never share state, never share a list, and the contact count badge on each tab reflects only that tab's scope.
+## What gets built
 
-### Contact detail page
+### 1. Database
+New `advisor_contact_profile_key` table (1:1 with contact):
+- 8 boolean trait columns
+- `status_code` enum: `response | associate | client | null`
+- generated `score` int (0–8)
+- RLS mirrors `advisor_contacts` (owner read/write, manager read-only)
 
-`ContactDetail.tsx` keeps its existing owned-vs-read-only logic. We add a small back-link breadcrumb that returns the user to whichever tab they came from (`?from=team` vs default), so a manager viewing an agent's contact lands back on **Team Contacts** with the same agent selected.
+### 2. Profile Key editor (on Contact Detail page)
+A new card placed above the tabs on `/portal/advisor/contacts/:id`:
 
-## Out of scope
+```text
+┌────────────────────────────────────────────────┐
+│  PROFILE KEY                       SCORE 6 / 8 │
+│  ●●●●●●○○  (animated dot meter, heat color)    │
+│                                                │
+│  [1 25+]  [2 Married]  [3 Children] [4 Home]   │ ← toggle chips
+│  [5 Income][6 Ambitious][7 Dissat] [8 Entrep]  │
+│                                                │
+│  Status:  ( R )  ( A )  ( C )                  │ ← segmented pill
+└────────────────────────────────────────────────┘
+```
 
-- No RLS / policy changes — the manager SELECT policies added in the previous migration already enforce the read-only access correctly.
-- No changes to non-manager advisors' experience.
-- No write access for managers on team contacts.
-- No merged/combined view (explicitly rejected by this request).
+- Each trait = large rounded toggle chip; lit chips glow in the score's heat color
+- Animated radial/dot meter shows score; framer-motion spring on toggle
+- Status row is a segmented control (R / A / C)
+- Auto-saves on toggle (optimistic, toast on error)
+- Read-only for managers viewing team contacts
 
-## Files to change (frontend only)
+### 3. Contact List enhancements
+On `/portal/advisor/contacts`:
+- Each row gets a **heat dot** + score badge (`6/8`) and status letter (`R`/`A`/`C`)
+- Header gets a horizontal **Profile Key legend** strip (matches your screenshot)
+- New filters:
+  - Score buckets: `All · 2+ · 4+ · 6+ · 8`
+  - Status: `R / A / C`
+  - Individual trait filter (multi-select dropdown: "Has children", "Dissatisfied", etc.)
+- Sort by score (desc) option
 
-- `src/pages/portal/advisor/contacts/ContactsList.tsx`
-  - Replace the inline dropdown with a `Tabs` component (`My Contacts` / `Team Contacts`).
-  - Tab visibility gated on `useManagedAdvisors().managed.length > 0`.
-  - Move the agent-picker dropdown inside the `Team Contacts` tab only.
-  - `viewAdvisorId` state: forced to the manager's own `advisorId` while on `My Contacts`; equals the selected managed agent's id while on `Team Contacts`.
-  - Persist active tab + selected agent in URL params (`?tab=team&agent=<id>`) so refresh and back-links work.
-- `src/pages/portal/advisor/contacts/ContactDetail.tsx`
-  - Read `?from=team&agent=<id>` and use it for the back link target.
-- No changes to `useManagedAdvisors`, RLS, or any other contact subpages (custom fields, form, etc.) — they continue to operate on whichever `advisor_id` is in scope.
+### 4. Dashboard alert widget
+On the advisor dashboard, alongside Reminders / Appointments:
+- New **Hot Profiles** card listing contacts scored ≥ 4 (configurable threshold)
+- Color-coded rows by score, click → contact detail
+- Counts: e.g. "3 urgent (7+) · 8 watch (4-6)"
+
+### 5. Design tokens
+Add to `index.css` / `tailwind.config.ts`:
+- `--profile-key-0` … `--profile-key-8` HSL tokens
+- `--profile-key-gradient` (multi-stop heat gradient for meter)
+- Glassmorphic card style matching the Modern Premium aesthetic (rounded-2xl, subtle gold accent on active chips)
+
+## Technical notes
+
+- New migration: `advisor_contact_profile_key` table + RLS + generated `score` column + index on `(advisor_id, score desc)` for the dashboard alert query
+- New hook `useContactProfileKey(contactId)` with optimistic toggle
+- New hook `useHotProfiles(advisorId, threshold=4)` for dashboard
+- New components:
+  - `components/portal/contacts/ProfileKeyCard.tsx` (editor)
+  - `components/portal/contacts/ProfileKeyBadge.tsx` (list row badge)
+  - `components/portal/contacts/ProfileKeyLegend.tsx` (header strip)
+  - `components/portal/dashboard/HotProfilesAlert.tsx`
+- Filter state lives in `?score=4&trait=children,income&status=R` query params (shareable)
+- Score is generated in SQL so filtering/sorting stays fast
+
+## Out of scope (ask if you want these)
+- Historical score timeline / changelog
+- Bulk-edit profile keys from the list
+- Auto-suggest profile traits from notes (AI)
+
+---
+
+**Questions before I build:**
+1. Color scale above looks ok, or do you want me to design directions first (visual mockup) so you can pick the chip/meter style?
+2. Dashboard alert threshold default: **4+** sound right, or stricter (6+)?
+3. Should the Profile Key card sit **above** the tab strip (always visible) or live inside an "Overview" tab section?
