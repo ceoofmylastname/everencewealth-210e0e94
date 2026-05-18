@@ -13,6 +13,7 @@ import ContactAssociationsTab from "@/components/portal/contacts/ContactAssociat
 import ContactRemindersTab from "@/components/portal/contacts/ContactRemindersTab";
 import ContactCustomFieldsTab from "@/components/portal/contacts/ContactCustomFieldsTab";
 import ContactCNAsTab from "@/components/portal/contacts/ContactCNAsTab";
+import ProfileKeyCard from "@/components/portal/contacts/ProfileKeyCard";
 
 const TABS = ["Overview", "Policies", "CNAs", "Notes", "Appointments", "Reminders", "Documents", "Associations", "Custom Fields"] as const;
 type Tab = typeof TABS[number];
@@ -109,6 +110,17 @@ export default function ContactDetail() {
           ))}
         </div>
       </div>
+
+      {/* Profile Key — always visible above tab content */}
+      {(isOwned || isReadOnly) && (
+        <div className="mb-4">
+          <ProfileKeyCard
+            contactId={id!}
+            advisorId={contact.advisor_id}
+            readOnly={isReadOnly}
+          />
+        </div>
+      )}
 
       <div>
         {tab === "Overview" && <OverviewTab contact={contact} />}
