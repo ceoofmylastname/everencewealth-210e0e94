@@ -526,6 +526,65 @@ export type Database = {
           },
         ]
       }
+      advisor_contact_profile_key: {
+        Row: {
+          advisor_id: string
+          contact_id: string
+          created_at: string
+          score: number | null
+          status_code: Database["public"]["Enums"]["profile_key_status"] | null
+          trait_age_25_plus: boolean
+          trait_ambitious: boolean
+          trait_children: boolean
+          trait_dissatisfied: boolean
+          trait_entrepreneur: boolean
+          trait_homeowner: boolean
+          trait_income: boolean
+          trait_married: boolean
+          updated_at: string
+        }
+        Insert: {
+          advisor_id: string
+          contact_id: string
+          created_at?: string
+          score?: number | null
+          status_code?: Database["public"]["Enums"]["profile_key_status"] | null
+          trait_age_25_plus?: boolean
+          trait_ambitious?: boolean
+          trait_children?: boolean
+          trait_dissatisfied?: boolean
+          trait_entrepreneur?: boolean
+          trait_homeowner?: boolean
+          trait_income?: boolean
+          trait_married?: boolean
+          updated_at?: string
+        }
+        Update: {
+          advisor_id?: string
+          contact_id?: string
+          created_at?: string
+          score?: number | null
+          status_code?: Database["public"]["Enums"]["profile_key_status"] | null
+          trait_age_25_plus?: boolean
+          trait_ambitious?: boolean
+          trait_children?: boolean
+          trait_dissatisfied?: boolean
+          trait_entrepreneur?: boolean
+          trait_homeowner?: boolean
+          trait_income?: boolean
+          trait_married?: boolean
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "advisor_contact_profile_key_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: true
+            referencedRelation: "advisor_contacts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       advisor_contact_reminders: {
         Row: {
           advisor_id: string
@@ -10595,6 +10654,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "editor" | "viewer" | "apartments_editor"
+      profile_key_status: "response" | "associate" | "client"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -10723,6 +10783,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "editor", "viewer", "apartments_editor"],
+      profile_key_status: ["response", "associate", "client"],
     },
   },
 } as const
