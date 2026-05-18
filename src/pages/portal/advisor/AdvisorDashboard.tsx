@@ -308,8 +308,12 @@ export default function AdvisorDashboard() {
           </div>
         </div>
 
-        {/* Spacer column for layout balance on lg */}
-        <div className="hidden lg:block" />
+        {/* Hot Profiles — Profile Key alert */}
+        {advisorId ? (
+          <HotProfilesAlert advisorId={advisorId} threshold={4} />
+        ) : (
+          <div className="hidden lg:block" />
+        )}
       </div>
 
       {/* Existing 3-column grid */}
