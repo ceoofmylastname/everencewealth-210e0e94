@@ -1,28 +1,33 @@
 ## Goal
-Relocate the existing **Tax History** page out of the Resources sidebar group and surface it as an entry inside the Tools hub at `/portal/advisor/tools`, with a clearer label.
+Make each advisor's contacts strictly private — only the owning advisor can view them. Block admins (and everyone else) from reading other advisors' contact data.
 
 ## Current state
-- Page file: `src/pages/portal/advisor/resources/TaxHistory.tsx`
-- Route: `/portal/advisor/resources/tax-history` (in `src/App.tsx`)
-- Sidebar link: under the "Resources" group in `src/components/portal/PortalLayout.tsx` (line 55)
+- Database already isolates contacts per advisor via `advisor_id = get_advisor_id_for_auth(auth.uid())`, so **no other advisor can see your 17 contacts today**.
+- The only leak is at the admin level: every SELECT policy on contact tables has `OR is_admin(auth.uid())`, which lets portal admins read all advisors' contacts.
 
-## Changes
+## Change
+Drop the `OR is_admin(...)` clause from the SELECT policy on all 11 contact-related tables, so the only readable rows are those owned by the authed advisor:
 
-1. **Sidebar (`PortalLayout.tsx`)**
-   - Remove the `Tax History` item from the Resources group. No new sidebar entry — it will live inside the Tools hub instead.
+- `advisor_contacts`
+- `advisor_contact_appointments`
+- `advisor_contact_associations`
+- `advisor_contact_custom_fields`
+- `advisor_contact_documents`
+- `advisor_contact_emails`
+- `advisor_contact_field_values`
+- `advisor_contact_notes`
+- `advisor_contact_phones`
+- `advisor_contact_policies`
+- `advisor_contact_reminders`
 
-2. **Route (`src/App.tsx`)**
-   - Move the route to `/portal/advisor/tools/tax-history` (keep the existing component import; just rename the path). Leave the file in place to avoid churn, or optionally move it to `pages/portal/advisor/tools/TaxHistory.tsx` in a follow-up.
+New SELECT rule for each: `USING (advisor_id = get_advisor_id_for_auth(auth.uid()))`.
 
-3. **Tools Hub (`src/pages/portal/advisor/ToolsHub.tsx`)**
-   - Add a new card titled **"US Tax History (1913–Today)"** with subtitle "See how top marginal tax rates have shifted over the last century."
-   - Place it in the existing **Tax Planning** category (alongside Tax Bucket Optimizer / Estate Tax) so it shows under the "All" and "Tax Planning" tabs.
-   - Card click navigates to `/portal/advisor/tools/tax-history` (full page, same as today — no modal rework).
-   - Use an appropriate icon (e.g. `History` or `TrendingUp` from lucide-react) and the same card styling as neighboring tool cards.
+INSERT / UPDATE / DELETE policies are already advisor-scoped and stay as-is.
 
-## Label decision
-Proposed display label: **"US Tax History (1913–Today)"**. If you prefer something shorter like "Tax Rate History" or "Historical Tax Rates", say the word and I'll use that instead.
+## Technical details
+Single migration that, for each table above, drops the existing `advisor_select_own_*` policy and recreates it without the admin OR-branch. No app code changes required — the frontend already queries through Supabase with the user's session, so the tighter policy applies automatically.
 
 ## Out of scope
-- No changes to the Tax History page contents itself.
-- No data/model changes.
+- No changes to leads, policies for clients, documents bucket, or any non-contact tables.
+- No UI changes.
+- No data migration — your 17 contacts stay exactly as they are.
