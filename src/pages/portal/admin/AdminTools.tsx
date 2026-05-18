@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { ExternalLink, Wrench, Search, Lock, Plus, Pencil, Trash2 } from "lucide-react";
+import { ExternalLink, Wrench, Search, Lock, Plus, Pencil, Trash2, FileText, Upload, X } from "lucide-react";
 import { toast } from "sonner";
 
 const BRAND_GREEN = "#1A4D3E";
@@ -13,10 +13,10 @@ const inputCls = "border-gray-200 bg-white text-gray-900 placeholder:text-gray-4
 const TOOL_TYPES = [
   { key: "quick_quote", label: "Quick Quote" }, { key: "agent_portal", label: "Agent Portal" },
   { key: "microsite", label: "Microsite" }, { key: "illustration_system", label: "Illustration System" },
-  { key: "application_portal", label: "Application Portal" },
+  { key: "application_portal", label: "Application Portal" }, { key: "pdf_document", label: "PDF Document" },
 ];
 
-const defaultToolForm = { tool_name: "", tool_url: "", tool_type: "quick_quote", carrier_id: "", description: "", requires_login: false, login_instructions: "", featured: false };
+const defaultToolForm = { tool_name: "", tool_url: "", tool_type: "quick_quote", carrier_id: "", description: "", requires_login: false, login_instructions: "", featured: false, file_url: "", allow_download: true };
 
 function FilterChip({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
   return (<button onClick={onClick} className={`px-3 py-1 rounded-full text-xs font-medium transition-all cursor-pointer border ${active ? "text-white border-transparent" : "border-gray-200 text-gray-600 bg-white hover:bg-gray-50"}`} style={active ? { background: BRAND_GREEN } : {}}>{label}</button>);
@@ -31,6 +31,7 @@ export default function AdminTools() {
   const [showDialog, setShowDialog] = useState(false);
   const [editingTool, setEditingTool] = useState<any>(null);
   const [form, setForm] = useState({ ...defaultToolForm });
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => { loadData(); }, []);
 
@@ -45,13 +46,27 @@ export default function AdminTools() {
   function openAdd() { setEditingTool(null); setForm({ ...defaultToolForm }); setShowDialog(true); }
   function openEdit(t: any) {
     setEditingTool(t);
-    setForm({ tool_name: t.tool_name || "", tool_url: t.tool_url || "", tool_type: t.tool_type || "quick_quote", carrier_id: t.carrier_id || "", description: t.description || "", requires_login: t.requires_login || false, login_instructions: t.login_instructions || "", featured: t.featured || false });
+    setForm({ tool_name: t.tool_name || "", tool_url: t.tool_url || "", tool_type: t.tool_type || "quick_quote", carrier_id: t.carrier_id || "", description: t.description || "", requires_login: t.requires_login || false, login_instructions: t.login_instructions || "", featured: t.featured || false, file_url: t.file_url || "", allow_download: t.allow_download ?? true });
     setShowDialog(true);
+  }
+
+  async function handleFileUpload(file: File) {
+    if (file.type !== "application/pdf") { toast.error("Only PDF files are allowed"); return; }
+    if (file.size > 25 * 1024 * 1024) { toast.error("File must be under 25MB"); return; }
+    setUploading(true);
+    const path = `${crypto.randomUUID()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
+    const { error } = await supabase.storage.from("tool-documents").upload(path, file, { contentType: "application/pdf", upsert: false });
+    if (error) { toast.error("Upload failed: " + error.message); setUploading(false); return; }
+    const { data } = supabase.storage.from("tool-documents").getPublicUrl(path);
+    setForm(f => ({ ...f, file_url: data.publicUrl, tool_type: f.tool_type === "pdf_document" ? f.tool_type : "pdf_document" }));
+    setUploading(false);
+    toast.success("PDF uploaded!");
   }
 
   async function handleSave() {
     if (!form.tool_name.trim()) { toast.error("Tool name is required"); return; }
-    const payload = { ...form, carrier_id: form.carrier_id || null };
+    if (!form.tool_url.trim() && !form.file_url.trim()) { toast.error("Provide a Tool URL or upload a PDF"); return; }
+    const payload = { ...form, carrier_id: form.carrier_id || null, tool_url: form.tool_url.trim() || form.file_url };
     if (editingTool) {
       const { error } = await supabase.from("quoting_tools").update(payload).eq("id", editingTool.id);
       if (error) { toast.error("Failed to update tool"); return; }
@@ -96,7 +111,31 @@ export default function AdminTools() {
           <DialogHeader><DialogTitle className="text-gray-900">{editingTool ? "Edit Tool" : "Add Tool"}</DialogTitle></DialogHeader>
           <div className="space-y-4 mt-2">
             <div><label className="text-sm font-medium text-gray-600">Tool Name *</label><Input value={form.tool_name} onChange={e => setForm({ ...form, tool_name: e.target.value })} className={inputCls} /></div>
-            <div><label className="text-sm font-medium text-gray-600">Tool URL *</label><Input value={form.tool_url} onChange={e => setForm({ ...form, tool_url: e.target.value })} placeholder="https://..." className={inputCls} /></div>
+            <div><label className="text-sm font-medium text-gray-600">Tool URL {form.file_url ? "(optional)" : "*"}</label><Input value={form.tool_url} onChange={e => setForm({ ...form, tool_url: e.target.value })} placeholder="https://..." className={inputCls} /></div>
+
+            <div className="rounded-lg border border-dashed border-gray-300 p-3 bg-gray-50/50">
+              <label className="text-sm font-medium text-gray-600 flex items-center gap-1.5"><FileText className="h-4 w-4" /> PDF Document (optional)</label>
+              <p className="text-xs text-gray-400 mt-0.5">Upload a PDF that agents can view and optionally download.</p>
+              {form.file_url ? (
+                <div className="mt-2 flex items-center gap-2 bg-white rounded-md border border-gray-200 px-3 py-2">
+                  <FileText className="h-4 w-4 text-gray-500 shrink-0" />
+                  <a href={form.file_url} target="_blank" rel="noopener noreferrer" className="text-xs text-gray-600 truncate hover:underline flex-1">{decodeURIComponent(form.file_url.split("/").pop() || "PDF")}</a>
+                  <button onClick={() => setForm({ ...form, file_url: "" })} className="text-gray-400 hover:text-red-600"><X className="h-3.5 w-3.5" /></button>
+                </div>
+              ) : (
+                <label className="mt-2 flex items-center justify-center gap-2 cursor-pointer rounded-md border border-gray-200 bg-white px-3 py-2 text-xs font-medium text-gray-600 hover:bg-gray-50">
+                  <Upload className="h-3.5 w-3.5" /> {uploading ? "Uploading..." : "Choose PDF file"}
+                  <input type="file" accept="application/pdf" className="hidden" disabled={uploading} onChange={e => { const f = e.target.files?.[0]; if (f) handleFileUpload(f); e.target.value = ""; }} />
+                </label>
+              )}
+              {form.file_url && (
+                <div className="flex items-center gap-2 mt-2">
+                  <input id="allow_dl" type="checkbox" checked={form.allow_download} onChange={e => setForm({ ...form, allow_download: e.target.checked })} className="rounded" />
+                  <label htmlFor="allow_dl" className="text-sm text-gray-600">Allow agents to download this PDF</label>
+                </div>
+              )}
+            </div>
+
             <div className="grid grid-cols-2 gap-4">
               <div><label className="text-sm font-medium text-gray-600">Type</label>
                 <select value={form.tool_type} onChange={e => setForm({ ...form, tool_type: e.target.value })} className={`w-full mt-1 rounded-lg border px-3 py-2 text-sm ${inputCls}`}>
