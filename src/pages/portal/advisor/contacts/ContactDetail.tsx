@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useParams, Link } from "react-router-dom";
+import { useNavigate, useParams, Link, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentAdvisorId } from "@/hooks/useCurrentAdvisorId";
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,12 @@ type Tab = typeof TABS[number];
 export default function ContactDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const fromTeam = searchParams.get("from") === "team";
+  const teamAgent = searchParams.get("agent") || "";
+  const backHref = fromTeam
+    ? `/portal/advisor/contacts?tab=team${teamAgent ? `&agent=${teamAgent}` : ""}`
+    : "/portal/advisor/contacts";
   const { advisorId } = useCurrentAdvisorId();
   const [contact, setContact] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -39,7 +45,7 @@ export default function ContactDetail() {
     const { error } = await supabase.from("advisor_contacts").delete().eq("id", id!);
     if (error) return toast.error(error.message);
     toast.success("Contact deleted");
-    navigate("/portal/advisor/contacts");
+    navigate(backHref);
   }
 
   const isOwned = !!advisorId && !!contact && contact.advisor_id === advisorId;
@@ -50,8 +56,8 @@ export default function ContactDetail() {
 
   return (
     <div className="p-4 md:p-6 max-w-6xl mx-auto">
-      <Link to="/portal/advisor/contacts" className="inline-flex items-center text-sm text-gray-600 mb-4">
-        <ArrowLeft className="w-4 h-4 mr-1" /> Back to contacts
+      <Link to={backHref} className="inline-flex items-center text-sm text-gray-600 mb-4">
+        <ArrowLeft className="w-4 h-4 mr-1" /> {fromTeam ? "Back to team contacts" : "Back to contacts"}
       </Link>
 
       {isReadOnly && (

@@ -1,46 +1,43 @@
 ## Goal
-On `/portal/advisor/contacts`, a manager (anyone listed as `manager_id` on one or more `contracting_agents`) can pick one of their managed agents from a dropdown and see that agent's contacts exactly as the agent would — all tabs, notes, phones, emails, reminders, appointments, documents, policies, custom fields, associations.
 
-Only managers of that specific agent get access. Other advisors and portal admins remain blocked (matching the privacy rules we just locked down).
+On `/portal/advisor/contacts`, keep the manager's own contacts strictly separated from contacts owned by agents they manage. No merged list, no shared counts.
 
-## Backend changes (database)
+## Current behavior
 
-1. **New SECURITY DEFINER helper** `public.can_manage_advisor(_auth_uid uuid, _advisor_id uuid)` that returns true when the caller's `portal_users.id` equals the `manager_id` of the `contracting_agents` row whose `auth_user_id` matches the target advisor's `auth_user_id`. Uses a definer function to avoid RLS recursion.
+A single contacts list with a "Viewing contacts for" dropdown that swaps the active advisor. Functionally separate (each fetch is scoped to one `advisor_id`), but visually it lives on the same page, which makes it feel like the manager's own book and the managed agents' books are part of the same view.
 
-2. **New helper** `public.get_managed_advisor_ids(_auth_uid uuid)` returning the array of `advisors.id` the caller manages — used by the frontend to populate the dropdown without exposing other data.
+## New UX
 
-3. **Add a manager SELECT policy** to each of the 11 contact tables (`advisor_contacts`, `advisor_contact_appointments`, `advisor_contact_associations`, `advisor_contact_custom_fields`, `advisor_contact_documents`, `advisor_contact_emails`, `advisor_contact_field_values`, `advisor_contact_notes`, `advisor_contact_phones`, `advisor_contact_policies`, `advisor_contact_reminders`) named `manager_select_managed_advisor_contacts`:
-   `USING (can_manage_advisor(auth.uid(), advisor_id))`
-   
-   Existing owner-only SELECT/INSERT/UPDATE/DELETE policies stay untouched, so managers get **read-only** visibility (they can't edit or delete the agent's contacts — only view and work alongside).
+Add a top-level tab strip on `/portal/advisor/contacts` (only for users who manage at least one agent — regular advisors see no tabs and no change):
 
-## Frontend changes
+```text
+[ My Contacts ]  [ Team Contacts ]
+```
 
-1. **`src/pages/portal/advisor/contacts/`** (the contacts list page):
-   - Add a `useManagedAdvisors()` hook that calls `get_managed_advisor_ids` + joins `advisors` for names/emails.
-   - If the result is empty → no UI change (regular advisor).
-   - If non-empty → render a "Viewing contacts for" dropdown in the page header listing "My contacts" (self) + each managed advisor.
-   - Selected advisor id is held in component state (or URL param `?advisor=`) and passed into every contact query that currently uses `get_advisor_id_for_auth` — replace the implicit advisor scope with an explicit `advisor_id` filter using the selected id.
+- **My Contacts** (default) — exactly the manager's own contacts. Same create/edit/delete behavior they have today. No managed-agent rows ever appear here.
+- **Team Contacts** — read-only view of contacts owned by agents the manager manages. Inside this tab, an "Agent" dropdown picks which managed agent's book to view (same dropdown that exists today, just moved into this tab). Header shows "Viewing {Agent name}'s contacts (read-only)". Create/Edit/Delete hidden.
 
-2. **Contact detail / tabs pages** (notes, phones, emails, reminders, appointments, documents, policies, custom fields): same pattern — they already query by `contact_id`, which is owned by the selected advisor, so RLS does the gating. The only frontend work is keeping the selected-advisor context (e.g. via a small `SelectedAdvisorContext`) so deep links and tab switches keep the right scope.
+Switching tabs fully resets the query — the two tabs never share state, never share a list, and the contact count badge on each tab reflects only that tab's scope.
 
-3. **Read-only affordance**: when viewing another advisor's contacts, hide/disable Create/Edit/Delete buttons (since policies will reject those writes anyway). Show a subtle banner: "Viewing {Agent name}'s contacts (read-only)".
+### Contact detail page
+
+`ContactDetail.tsx` keeps its existing owned-vs-read-only logic. We add a small back-link breadcrumb that returns the user to whichever tab they came from (`?from=team` vs default), so a manager viewing an agent's contact lands back on **Team Contacts** with the same agent selected.
 
 ## Out of scope
-- No changes to write policies — managers cannot mutate an agent's contacts.
-- No changes to admin access — admins still blocked from contact tables (per last migration).
-- No change to the contacts schema or to leads/policies/documents tables outside the contact namespace.
 
-## Technical notes
-```text
-auth.uid() ──► portal_users.id ──► contracting_agents.manager_id
-                                          │
-                                          ▼
-                                contracting_agents.auth_user_id
-                                          │
-                                          ▼
-                              advisors.auth_user_id → advisors.id
-                                          │
-                                          ▼
-                              advisor_contacts.advisor_id
-```
+- No RLS / policy changes — the manager SELECT policies added in the previous migration already enforce the read-only access correctly.
+- No changes to non-manager advisors' experience.
+- No write access for managers on team contacts.
+- No merged/combined view (explicitly rejected by this request).
+
+## Files to change (frontend only)
+
+- `src/pages/portal/advisor/contacts/ContactsList.tsx`
+  - Replace the inline dropdown with a `Tabs` component (`My Contacts` / `Team Contacts`).
+  - Tab visibility gated on `useManagedAdvisors().managed.length > 0`.
+  - Move the agent-picker dropdown inside the `Team Contacts` tab only.
+  - `viewAdvisorId` state: forced to the manager's own `advisorId` while on `My Contacts`; equals the selected managed agent's id while on `Team Contacts`.
+  - Persist active tab + selected agent in URL params (`?tab=team&agent=<id>`) so refresh and back-links work.
+- `src/pages/portal/advisor/contacts/ContactDetail.tsx`
+  - Read `?from=team&agent=<id>` and use it for the back link target.
+- No changes to `useManagedAdvisors`, RLS, or any other contact subpages (custom fields, form, etc.) — they continue to operate on whichever `advisor_id` is in scope.
