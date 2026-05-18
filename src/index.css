@@ -103,6 +103,30 @@ All colors MUST be HSL.
   }
 }
 
+/* ============================================================
+   Profile Key — heat-map tokens (score 0..8)
+   Cold (slate) → hot (emerald) urgency scale
+   ============================================================ */
+:root {
+  --profile-key-0: 215 16% 65%;   /* slate    — cold */
+  --profile-key-1: 220 9% 55%;    /* zinc */
+  --profile-key-2: 199 89% 55%;   /* sky */
+  --profile-key-3: 173 80% 40%;   /* teal */
+  --profile-key-4: 38 92% 50%;    /* amber    — watch */
+  --profile-key-5: 25 95% 53%;    /* orange */
+  --profile-key-6: 350 89% 60%;   /* rose */
+  --profile-key-7: 292 84% 61%;   /* fuchsia */
+  --profile-key-8: 152 76% 40%;   /* emerald  — hot */
+  --profile-key-gradient: linear-gradient(
+    90deg,
+    hsl(var(--profile-key-0)) 0%,
+    hsl(var(--profile-key-2)) 25%,
+    hsl(var(--profile-key-4)) 50%,
+    hsl(var(--profile-key-6)) 75%,
+    hsl(var(--profile-key-8)) 100%
+  );
+}
+
 @layer base {
   * {
     @apply border-border;
