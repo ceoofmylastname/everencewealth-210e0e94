@@ -8722,42 +8722,48 @@ export type Database = {
       }
       quoting_tools: {
         Row: {
+          allow_download: boolean
           carrier_id: string | null
           created_at: string | null
           description: string | null
           featured: boolean | null
+          file_url: string | null
           id: string
           login_instructions: string | null
           requires_login: boolean | null
           tool_name: string
           tool_type: string
-          tool_url: string
+          tool_url: string | null
           updated_at: string | null
         }
         Insert: {
+          allow_download?: boolean
           carrier_id?: string | null
           created_at?: string | null
           description?: string | null
           featured?: boolean | null
+          file_url?: string | null
           id?: string
           login_instructions?: string | null
           requires_login?: boolean | null
           tool_name: string
           tool_type: string
-          tool_url: string
+          tool_url?: string | null
           updated_at?: string | null
         }
         Update: {
+          allow_download?: boolean
           carrier_id?: string | null
           created_at?: string | null
           description?: string | null
           featured?: boolean | null
+          file_url?: string | null
           id?: string
           login_instructions?: string | null
           requires_login?: boolean | null
           tool_name?: string
           tool_type?: string
-          tool_url?: string
+          tool_url?: string | null
           updated_at?: string | null
         }
         Relationships: [
