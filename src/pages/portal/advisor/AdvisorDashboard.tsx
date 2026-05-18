@@ -8,6 +8,7 @@ import {
   Calendar, Shield, Calculator, GraduationCap, Megaphone,
   Wrench, ClipboardList, ClipboardCheck, Bell, CheckCircle2, X as XIcon,
 } from "lucide-react";
+import HotProfilesAlert from "@/components/portal/dashboard/HotProfilesAlert";
 
 const BRAND_GREEN = "#1A4D3E";
 const GOLD = "hsla(51, 78%, 65%, 1)";
@@ -66,6 +67,7 @@ export default function AdvisorDashboard() {
   const [recentClients, setRecentClients] = useState<RecentClient[]>([]);
   const [reminders, setReminders] = useState<ContactReminder[]>([]);
   const [contactAppointments, setContactAppointments] = useState<ContactAppointment[]>([]);
+  const [advisorId, setAdvisorId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -77,6 +79,7 @@ export default function AdvisorDashboard() {
     try {
       const { data: advisor } = await supabase.from("advisors").select("id").eq("portal_user_id", portalUser!.id).maybeSingle();
       if (!advisor) { setLoading(false); return; }
+      setAdvisorId(advisor.id);
 
       const currentYear = new Date().getFullYear();
       const today = new Date().toISOString().split("T")[0];
