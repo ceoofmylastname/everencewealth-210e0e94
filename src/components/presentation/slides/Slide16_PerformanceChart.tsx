@@ -66,9 +66,9 @@ export default function Slide16_PerformanceChart() {
               }}
             >
               <div style={{ width: 10, height: 10, borderRadius: 9999, background: "#1A4D3E" }} />
-              <span style={{ fontSize: 12, fontWeight: 500, color: "#5a5a5a" }}>Indexed — 0% / 12% Cap</span>
+              <span style={{ fontSize: 12, fontWeight: 500, color: "#5a5a5a" }}>Indexed — 0% / 15% Cap</span>
               <span style={{ fontSize: 14, fontWeight: 700, color: "#1A4D3E" }}>
-                {isRevealed(3) ? <CountingNumber value={541391.51} prefix="$" decimals={2} /> : "$0.00"}
+                {isRevealed(3) ? <CountingNumber value={740361.45} prefix="$" decimals={2} /> : "$0.00"}
               </span>
             </div>
           </div>
@@ -87,7 +87,7 @@ export default function Slide16_PerformanceChart() {
               boxShadow: "0 6px 20px rgba(26,77,62,0.2)",
             }}
           >
-            +$132,503.28 MORE — Protected Strategy
+            +$331,473.22 MORE — Protected Strategy
           </div>
           <div
             style={{
@@ -100,7 +100,7 @@ export default function Slide16_PerformanceChart() {
               boxShadow: "0 4px 16px rgba(200,169,110,0.25)",
             }}
           >
-            Actual Rate over 20 Years: 5.57%
+            Actual Rate over 26 Years: 8.01%
           </div>
         </RevealElement>
       </div>
