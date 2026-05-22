@@ -3,18 +3,18 @@ import { motion } from "framer-motion";
 import RevealElement from "../RevealElement";
 
 const carriers = [
-  { name: "Prudential", logo: "https://assets.cdn.filesafe.space/9m2UBN29nuaCWceOgW2Z/media/691d516d7e9b293d0b7d9e26.png" },
-  { name: "Principal", logo: "https://assets.cdn.filesafe.space/9m2UBN29nuaCWceOgW2Z/media/691d516d7e9b292aa47d9e25.png" },
-  { name: "Lincoln Financial Group", logo: "https://assets.cdn.filesafe.space/9m2UBN29nuaCWceOgW2Z/media/691d516dce99892f5f7679f6.png" },
-  { name: "Allianz", logo: "https://assets.cdn.filesafe.space/9m2UBN29nuaCWceOgW2Z/media/691d516d6d309e2866328d5e.png" },
-  { name: "Global Atlantic", logo: "https://assets.cdn.filesafe.space/9m2UBN29nuaCWceOgW2Z/media/691d516d6d309e8871328d5d.png" },
-  { name: "American National", logo: "https://assets.cdn.filesafe.space/9m2UBN29nuaCWceOgW2Z/media/691d516dce998948627679f5.png" },
-  { name: "Securian Financial", logo: "https://assets.cdn.filesafe.space/9m2UBN29nuaCWceOgW2Z/media/691d516dce998922617679f4.png" },
-  { name: "John Hancock", logo: "https://assets.cdn.filesafe.space/9m2UBN29nuaCWceOgW2Z/media/691d516dcdf2313ec7bd0e4e.png" },
-  { name: "Mutual of Omaha", logo: "https://assets.cdn.filesafe.space/9m2UBN29nuaCWceOgW2Z/media/691d516dcdf23108afbd0e4f.png" },
-  { name: "National Life Group", logo: "https://assets.cdn.filesafe.space/9m2UBN29nuaCWceOgW2Z/media/691d516d7e9b299af97d9e27.png" },
-  { name: "North American", logo: "https://assets.cdn.filesafe.space/9m2UBN29nuaCWceOgW2Z/media/691d516d4b75355b4548aad2.png" },
-  { name: "Equitable", logo: "https://assets.cdn.filesafe.space/9m2UBN29nuaCWceOgW2Z/media/69b5d32aad0276db2ddac132.png" },
+  { name: "Fidelity & Guaranty", logo: "https://assets.cdn.filesafe.space/9m2UBN29nuaCWceOgW2Z/media/691d516d7e9b293d0b7d9e26.png" },
+  { name: "Lafayette Life", logo: "https://assets.cdn.filesafe.space/9m2UBN29nuaCWceOgW2Z/media/691d516d7e9b292aa47d9e25.png" },
+  { name: "American Equity", logo: "https://assets.cdn.filesafe.space/9m2UBN29nuaCWceOgW2Z/media/691d516dce99892f5f7679f6.png" },
+  { name: "Baltimore Life", logo: "https://assets.cdn.filesafe.space/9m2UBN29nuaCWceOgW2Z/media/691d516d6d309e2866328d5e.png" },
+  { name: "Royal Neighbors of America", logo: "https://assets.cdn.filesafe.space/9m2UBN29nuaCWceOgW2Z/media/691d516d6d309e8871328d5d.png" },
+  { name: "American Amicable", logo: "https://assets.cdn.filesafe.space/9m2UBN29nuaCWceOgW2Z/media/691d516dce998948627679f5.png" },
+  { name: "Allianz", logo: "https://assets.cdn.filesafe.space/9m2UBN29nuaCWceOgW2Z/media/691d516dce998922617679f4.png" },
+  { name: "Foresters", logo: "https://assets.cdn.filesafe.space/9m2UBN29nuaCWceOgW2Z/media/691d516dcdf2313ec7bd0e4e.png" },
+  { name: "Transamerica", logo: "https://assets.cdn.filesafe.space/9m2UBN29nuaCWceOgW2Z/media/691d516dcdf23108afbd0e4f.png" },
+  { name: "North American", logo: "https://assets.cdn.filesafe.space/9m2UBN29nuaCWceOgW2Z/media/691d516d7e9b299af97d9e27.png" },
+  { name: "National Life Group", logo: "https://assets.cdn.filesafe.space/9m2UBN29nuaCWceOgW2Z/media/691d516d4b75355b4548aad2.png" },
+  { name: "Global Atlantic", logo: "https://assets.cdn.filesafe.space/9m2UBN29nuaCWceOgW2Z/media/69b5d32aad0276db2ddac132.png" },
 ];
 
 function CarrierCard({ carrier, index }: { carrier: typeof carriers[0]; index: number }) {
