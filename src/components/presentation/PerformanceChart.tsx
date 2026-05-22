@@ -7,28 +7,32 @@ interface DataPoint {
 
 const SP500_DATA: DataPoint[] = [
   { year: 1999, value: 100000.00 },
-  { year: 2000, value: 100000.00 },
-  { year: 2001, value: 58880.41 },
-  { year: 2002, value: 58880.41 },
-  { year: 2003, value: 82480.21 },
-  { year: 2004, value: 84954.62 },
-  { year: 2005, value: 84954.62 },
-  { year: 2006, value: 61468.66 },
-  { year: 2007, value: 61468.66 },
-  { year: 2008, value: 85580.91 },
-  { year: 2009, value: 85580.91 },
-  { year: 2010, value: 125786.28 },
-  { year: 2011, value: 125786.28 },
-  { year: 2012, value: 139090.51 },
-  { year: 2013, value: 152359.74 },
-  { year: 2014, value: 152359.74 },
-  { year: 2015, value: 170594.45 },
-  { year: 2016, value: 170594.45 },
-  { year: 2017, value: 263961.83 },
-  { year: 2018, value: 307071.03 },
-  { year: 2019, value: 283383.18 },
-  { year: 2020, value: 283383.18 },
-  { year: 2021, value: 408888.23 },
+  { year: 2000, value: 89861.85 },
+  { year: 2001, value: 78140.92 },
+  { year: 2002, value: 59882.04 },
+  { year: 2003, value: 75679.85 },
+  { year: 2004, value: 82486.00 },
+  { year: 2005, value: 84961.27 },
+  { year: 2006, value: 96533.41 },
+  { year: 2007, value: 99939.42 },
+  { year: 2008, value: 61477.65 },
+  { year: 2009, value: 75897.99 },
+  { year: 2010, value: 85597.41 },
+  { year: 2011, value: 85594.69 },
+  { year: 2012, value: 97069.05 },
+  { year: 2013, value: 125801.94 },
+  { year: 2014, value: 140134.42 },
+  { year: 2015, value: 139116.21 },
+  { year: 2016, value: 152378.36 },
+  { year: 2017, value: 181968.31 },
+  { year: 2018, value: 170617.40 },
+  { year: 2019, value: 219891.66 },
+  { year: 2020, value: 255644.62 },
+  { year: 2021, value: 324394.83 },
+  { year: 2022, value: 261326.05 },
+  { year: 2023, value: 324643.18 },
+  { year: 2024, value: 400316.16 },
+  { year: 2025, value: 408888.23 },
 ];
 
 const INDEXED_DATA: DataPoint[] = [
@@ -36,30 +40,34 @@ const INDEXED_DATA: DataPoint[] = [
   { year: 2000, value: 100000.00 },
   { year: 2001, value: 100000.00 },
   { year: 2002, value: 100000.00 },
-  { year: 2003, value: 122068.80 },
-  { year: 2004, value: 140818.57 },
-  { year: 2005, value: 140818.57 },
-  { year: 2006, value: 145789.46 },
-  { year: 2007, value: 145789.46 },
-  { year: 2008, value: 182878.30 },
-  { year: 2009, value: 182878.30 },
-  { year: 2010, value: 182878.30 },
-  { year: 2011, value: 229402.54 },
-  { year: 2012, value: 255531.49 },
-  { year: 2013, value: 255531.49 },
-  { year: 2014, value: 255531.49 },
-  { year: 2015, value: 313498.30 },
-  { year: 2016, value: 313498.30 },
-  { year: 2017, value: 344064.38 },
-  { year: 2018, value: 431594.35 },
-  { year: 2019, value: 483385.28 },
-  { year: 2020, value: 483385.28 },
-  { year: 2021, value: 541391.51 },
+  { year: 2003, value: 115000.00 },
+  { year: 2004, value: 125338.50 },
+  { year: 2005, value: 129098.66 },
+  { year: 2006, value: 146664.91 },
+  { year: 2007, value: 151840.99 },
+  { year: 2008, value: 151840.99 },
+  { year: 2009, value: 174617.14 },
+  { year: 2010, value: 196931.21 },
+  { year: 2011, value: 196931.21 },
+  { year: 2012, value: 223318.18 },
+  { year: 2013, value: 256815.91 },
+  { year: 2014, value: 286067.04 },
+  { year: 2015, value: 286067.04 },
+  { year: 2016, value: 313375.81 },
+  { year: 2017, value: 360382.18 },
+  { year: 2018, value: 360382.18 },
+  { year: 2019, value: 414439.51 },
+  { year: 2020, value: 476605.44 },
+  { year: 2021, value: 548096.26 },
+  { year: 2022, value: 548096.26 },
+  { year: 2023, value: 630310.70 },
+  { year: 2024, value: 724857.30 },
+  { year: 2025, value: 740361.45 },
 ];
 
 const MIN_YEAR = 1999;
 const MAX_YEAR = 2025;
-const MAX_VAL = 600000;
+const MAX_VAL = 800000;
 const PADDING = { top: 65, right: 50, bottom: 55, left: 90 };
 
 const RED = "#E87070";
@@ -101,7 +109,7 @@ export default function PerformanceChart({ animate = false, className, onAnimati
       const highlightT = Math.max(0, Math.min((t - 0.7) / 0.3, 1));
 
       // Grid lines
-      const ySteps = [50000, 100000, 150000, 200000, 250000, 300000, 350000, 400000, 450000, 500000, 550000, 600000];
+      const ySteps = [50000, 100000, 150000, 200000, 250000, 300000, 350000, 400000, 450000, 500000, 550000, 600000, 650000, 700000, 750000, 800000];
       ctx.strokeStyle = "rgba(0,0,0,0.06)";
       ctx.lineWidth = 1;
       for (const val of ySteps) {
@@ -147,7 +155,7 @@ export default function PerformanceChart({ animate = false, className, onAnimati
       ctx.fillStyle = GREEN;
       ctx.fillRect(gx, ly, 14, 10);
       ctx.fillStyle = "#374151";
-      ctx.fillText("S&P 500 Indexed 0% Guarantee 12% Cap", gx + 20, ly + 9);
+      ctx.fillText("S&P 500 Indexed 0% Guarantee 15% Cap", gx + 20, ly + 9);
       ctx.globalAlpha = 1;
 
       // Gradient fill
