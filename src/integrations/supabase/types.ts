@@ -10530,6 +10530,23 @@ export type Database = {
           usage_status: string
         }[]
       }
+      get_invitation_by_token: {
+        Args: { _token: string }
+        Returns: {
+          advisor_first_name: string
+          advisor_id: string
+          advisor_last_name: string
+          advisor_photo_url: string
+          advisor_title: string
+          email: string
+          expires_at: string
+          first_name: string
+          id: string
+          last_name: string
+          phone: string
+          status: string
+        }[]
+      }
       get_managed_advisor_ids: {
         Args: { _auth_uid: string }
         Returns: {
