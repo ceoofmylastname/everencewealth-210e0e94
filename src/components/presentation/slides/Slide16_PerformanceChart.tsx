@@ -16,7 +16,7 @@ export default function Slide16_PerformanceChart() {
             How <GradientText>Strategy</GradientText> Impacts Performance
           </h2>
           <p className="text-sm mt-2" style={{ color: "#7a7a7a" }}>
-            $100,000 invested — S&P 500 Direct vs. Indexed Strategy (1999–2021)
+            $100,000 invested — S&P 500 Direct vs. Indexed Strategy (1999–2025)
           </p>
         </RevealElement>
 

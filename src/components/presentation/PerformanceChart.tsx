@@ -6,48 +6,41 @@ interface DataPoint {
 }
 
 const SP500_DATA: DataPoint[] = [
-  { year: 1999, value: 100000 },
-  { year: 2000, value: 59880.41 },
-  { year: 2001, value: 82480.21 },
-  { year: 2002, value: 61468.66 },
-  { year: 2004, value: 84954.62 },
-  { year: 2005, value: 85580.91 },
+  { year: 1999, value: 100000.00 },
+  { year: 2000, value: 82480.21 },
+  { year: 2002, value: 59880.41 },
+  { year: 2003, value: 61468.66 },
+  { year: 2005, value: 84954.62 },
+  { year: 2006, value: 85580.91 },
   { year: 2008, value: 125786.28 },
   { year: 2009, value: 139090.51 },
-  { year: 2011, value: 152359.74 },
-  { year: 2012, value: 170594.45 },
-  { year: 2013, value: 263961.83 },
-  { year: 2015, value: 263961.83 },
-  { year: 2016, value: 313498.30 },
-  { year: 2017, value: 344064.38 },
+  { year: 2010, value: 152359.74 },
+  { year: 2011, value: 170594.45 },
+  { year: 2014, value: 263961.83 },
   { year: 2018, value: 307071.03 },
-  { year: 2019, value: 431594.35 },
   { year: 2020, value: 283383.18 },
   { year: 2021, value: 408888.23 },
 ];
 
 const INDEXED_DATA: DataPoint[] = [
-  { year: 1999, value: 100000 },
+  { year: 1999, value: 100000.00 },
+  { year: 2000, value: 100000.00 },
+  { year: 2001, value: 100000.00 },
   { year: 2003, value: 122068.80 },
   { year: 2004, value: 140818.57 },
   { year: 2006, value: 145789.46 },
   { year: 2007, value: 182878.30 },
-  { year: 2009, value: 229402.54 },
-  { year: 2010, value: 255531.49 },
-  { year: 2012, value: 313498.30 },
+  { year: 2008, value: 229402.54 },
+  { year: 2009, value: 255531.49 },
+  { year: 2011, value: 313498.30 },
   { year: 2013, value: 344064.38 },
-  { year: 2014, value: 431594.35 },
-  { year: 2015, value: 483385.28 },
-  { year: 2016, value: 497000 },
-  { year: 2017, value: 505000 },
-  { year: 2018, value: 510000 },
-  { year: 2019, value: 518000 },
-  { year: 2020, value: 525000 },
+  { year: 2015, value: 431594.35 },
+  { year: 2017, value: 483385.28 },
   { year: 2021, value: 541391.51 },
 ];
 
 const MIN_YEAR = 1999;
-const MAX_YEAR = 2021;
+const MAX_YEAR = 2025;
 const MAX_VAL = 580000;
 const PADDING = { top: 65, right: 50, bottom: 55, left: 90 };
 
@@ -90,7 +83,7 @@ export default function PerformanceChart({ animate = false, className, onAnimati
       const highlightT = Math.max(0, Math.min((t - 0.7) / 0.3, 1));
 
       // Grid lines
-      const ySteps = [0, 50000, 100000, 150000, 200000, 250000, 300000, 350000, 400000, 450000, 500000, 550000, 580000];
+      const ySteps = [50000, 100000, 150000, 200000, 250000, 300000, 350000, 400000, 450000, 500000, 550000];
       ctx.strokeStyle = "rgba(0,0,0,0.06)";
       ctx.lineWidth = 1;
       for (const val of ySteps) {
