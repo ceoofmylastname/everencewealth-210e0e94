@@ -51,16 +51,9 @@ export default function ClientSignup() {
 
   async function validateToken(token: string) {
     try {
-      const { data, error } = await supabase
-        .from("client_invitations")
-        .select(`
-          id, first_name, last_name, email, phone, advisor_id, status, expires_at,
-          advisors!advisor_id (
-            first_name, last_name, title, photo_url
-          )
-        `)
-        .eq("invitation_token", token)
-        .maybeSingle();
+      const { data: rows, error } = await supabase
+        .rpc("get_invitation_by_token", { _token: token });
+      const data = Array.isArray(rows) ? rows[0] : rows;
 
       if (error || !data) {
         setTokenError("Invalid or expired invitation link.");
@@ -77,9 +70,25 @@ export default function ClientSignup() {
         return;
       }
 
-      const { advisors: advisorData, ...invitationFields } = data as any;
-      setInvitation(invitationFields as InvitationData);
-      if (advisorData) setAdvisor(advisorData as AdvisorPreview);
+      const d = data as any;
+      setInvitation({
+        id: d.id,
+        first_name: d.first_name,
+        last_name: d.last_name,
+        email: d.email,
+        phone: d.phone,
+        advisor_id: d.advisor_id,
+        status: d.status,
+        expires_at: d.expires_at,
+      } as InvitationData);
+      if (d.advisor_first_name || d.advisor_last_name) {
+        setAdvisor({
+          first_name: d.advisor_first_name,
+          last_name: d.advisor_last_name,
+          title: d.advisor_title,
+          photo_url: d.advisor_photo_url,
+        } as AdvisorPreview);
+      }
     } catch {
       setTokenError("Unable to validate invitation.");
     } finally {
