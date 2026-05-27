@@ -390,25 +390,16 @@ export const ContactForm: React.FC<ContactFormProps> = ({ t, language, variant =
               </div>
             </div>
 
-            {/* Privacy & Terms Acknowledgment (Required) */}
-            <div className="flex items-start gap-3">
-              <Checkbox
-                id="privacy"
-                checked={formData.privacy}
-                onCheckedChange={(checked) => setFormData({ ...formData, privacy: checked as boolean })}
-                className="mt-1"
-              />
-              <Label htmlFor="privacy" className="text-sm text-muted-foreground leading-relaxed cursor-pointer">
-                I agree to the{' '}
-                <Link to="/privacy" className="text-primary hover:underline">
-                  {t.form.fields.privacyLink || 'Privacy Policy'}
-                </Link>
-                {' & '}
-                <Link to="/terms" className="text-primary hover:underline">
-                  {t.form.fields.termsLink || 'Terms & Conditions'}
-                </Link> *
-              </Label>
-            </div>
+            {/* Privacy & Terms Links */}
+            <p className="text-center text-sm text-muted-foreground">
+              <Link to="/privacy" className="text-primary hover:underline">
+                {t.form.fields.privacyLink || 'Privacy Policy'}
+              </Link>
+              {' & '}
+              <Link to="/terms" className="text-primary hover:underline">
+                {t.form.fields.termsLink || 'Terms & Conditions'}
+              </Link>
+            </p>
 
             {/* Submit */}
             <Button
