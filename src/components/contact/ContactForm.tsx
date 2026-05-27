@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Send, CheckCircle, Loader2 } from 'lucide-react';
+import { Send, CheckCircle, Loader2, Sparkles, Mail, Phone } from 'lucide-react';
+import confetti from 'canvas-confetti';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -76,6 +77,111 @@ const LANGUAGES = [
   { code: 'en', name: 'English' },
   { code: 'es', name: 'Español' },
 ];
+
+// Glassmorphic success card with confetti burst
+const SuccessCard: React.FC<{ t: ContactFormTranslations; isEmbedded: boolean }> = ({ t, isEmbedded }) => {
+  useEffect(() => {
+    const fire = (particleRatio: number, opts: confetti.Options) => {
+      confetti({
+        origin: { y: 0.6 },
+        colors: ['#EDDB77', '#1A4D3E', '#F5E9A8', '#ffffff', '#C9A84C'],
+        ...opts,
+        particleCount: Math.floor(220 * particleRatio),
+      });
+    };
+    fire(0.25, { spread: 26, startVelocity: 55 });
+    fire(0.2, { spread: 60 });
+    fire(0.35, { spread: 100, decay: 0.91, scalar: 0.9 });
+    fire(0.1, { spread: 120, startVelocity: 25, decay: 0.92, scalar: 1.2 });
+    fire(0.1, { spread: 120, startVelocity: 45 });
+  }, []);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 24, scale: 0.96 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+      className={isEmbedded ? '' : 'max-w-2xl mx-auto'}
+    >
+      <div className="relative overflow-hidden rounded-[2rem] p-[1px] bg-gradient-to-br from-prime-gold/60 via-white/10 to-prime-gold/30 shadow-[0_30px_80px_-20px_rgba(0,0,0,0.5)]">
+        {/* Aurora glow */}
+        <div className="pointer-events-none absolute -top-24 -left-24 w-72 h-72 rounded-full bg-prime-gold/30 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-24 -right-20 w-80 h-80 rounded-full bg-emerald-500/20 blur-3xl" />
+
+        <div className="relative rounded-[calc(2rem-1px)] bg-white/10 backdrop-blur-2xl border border-white/15 p-8 md:p-14 text-center">
+          {/* Animated check */}
+          <motion.div
+            initial={{ scale: 0, rotate: -90 }}
+            animate={{ scale: 1, rotate: 0 }}
+            transition={{ delay: 0.15, type: 'spring', stiffness: 200, damping: 14 }}
+            className="relative mx-auto mb-7 w-24 h-24"
+          >
+            <div className="absolute inset-0 rounded-full bg-gradient-to-br from-prime-gold/40 to-emerald-400/30 blur-xl" />
+            <div className="relative w-24 h-24 rounded-full bg-white/15 backdrop-blur-xl border border-white/30 flex items-center justify-center shadow-[inset_0_1px_0_rgba(255,255,255,0.4)]">
+              <CheckCircle className="w-12 h-12 text-prime-gold drop-shadow-[0_2px_12px_rgba(237,219,119,0.6)]" strokeWidth={1.5} />
+            </div>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.6 }}
+              animate={{ opacity: [0, 1, 0], scale: [0.6, 1.6, 2] }}
+              transition={{ duration: 1.4, delay: 0.3, ease: 'easeOut' }}
+              className="absolute inset-0 rounded-full border-2 border-prime-gold/50"
+            />
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.35, duration: 0.5 }}
+            className="inline-flex items-center gap-2 px-3 py-1 mb-4 rounded-full bg-white/10 border border-white/20 backdrop-blur-md"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-prime-gold" />
+            <span className="text-xs font-medium tracking-wider uppercase text-prime-gold">Received</span>
+          </motion.div>
+
+          <motion.h2
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.45, duration: 0.5 }}
+            className="text-3xl md:text-4xl font-serif font-bold text-foreground mb-3 tracking-tight"
+          >
+            {t.form.success.title}
+          </motion.h2>
+
+          <motion.p
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.55, duration: 0.5 }}
+            className="text-muted-foreground text-base md:text-lg max-w-md mx-auto leading-relaxed"
+          >
+            {t.form.success.description}
+          </motion.p>
+
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.7, duration: 0.5 }}
+            className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3"
+          >
+            <a
+              href="mailto:info@everencewealth.com"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-full bg-white/10 hover:bg-white/15 border border-white/20 backdrop-blur-md text-sm text-foreground transition-colors"
+            >
+              <Mail className="w-4 h-4 text-prime-gold" />
+              info@everencewealth.com
+            </a>
+            <a
+              href="tel:+19254337724"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-full bg-white/10 hover:bg-white/15 border border-white/20 backdrop-blur-md text-sm text-foreground transition-colors"
+            >
+              <Phone className="w-4 h-4 text-prime-gold" />
+              (925) 433-7724
+            </a>
+          </motion.div>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
 
 export const ContactForm: React.FC<ContactFormProps> = ({ t, language, variant = 'default', showBrandName = false }) => {
   const isEmbedded = variant === 'embedded';
@@ -176,23 +282,7 @@ export const ContactForm: React.FC<ContactFormProps> = ({ t, language, variant =
 
   if (isSubmitted) {
     const successContent = (
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className={isEmbedded ? "" : "max-w-2xl mx-auto text-center"}
-      >
-        <div className={`bg-card border border-border rounded-2xl p-8 md:p-12 ${isEmbedded ? 'text-center' : ''}`}>
-          <div className="w-20 h-20 rounded-full bg-green-500/20 flex items-center justify-center mx-auto mb-6">
-            <CheckCircle className="w-10 h-10 text-green-500" />
-          </div>
-          <h2 className="text-2xl md:text-3xl font-serif font-bold text-foreground mb-4">
-            {t.form.success.title}
-          </h2>
-          <p className="text-muted-foreground text-lg">
-            {t.form.success.description}
-          </p>
-        </div>
-      </motion.div>
+      <SuccessCard t={t} isEmbedded={isEmbedded} />
     );
 
     if (isEmbedded) return successContent;
