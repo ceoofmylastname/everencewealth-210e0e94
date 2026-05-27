@@ -98,7 +98,7 @@ export const ContactForm: React.FC<ContactFormProps> = ({ t, language, variant =
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.fullName || !formData.email || !formData.message || !formData.privacy) {
+    if (!formData.fullName || !formData.email || !formData.message) {
       toast({
         title: t.form.validation?.requiredFields || 'Please fill in all required fields',
         variant: 'destructive',
