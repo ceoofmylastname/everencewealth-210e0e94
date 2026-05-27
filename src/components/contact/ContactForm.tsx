@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Send, CheckCircle, Loader2 } from 'lucide-react';
+import { Send, CheckCircle, Loader2, Sparkles, Mail, Phone } from 'lucide-react';
+import confetti from 'canvas-confetti';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -176,23 +177,7 @@ export const ContactForm: React.FC<ContactFormProps> = ({ t, language, variant =
 
   if (isSubmitted) {
     const successContent = (
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className={isEmbedded ? "" : "max-w-2xl mx-auto text-center"}
-      >
-        <div className={`bg-card border border-border rounded-2xl p-8 md:p-12 ${isEmbedded ? 'text-center' : ''}`}>
-          <div className="w-20 h-20 rounded-full bg-green-500/20 flex items-center justify-center mx-auto mb-6">
-            <CheckCircle className="w-10 h-10 text-green-500" />
-          </div>
-          <h2 className="text-2xl md:text-3xl font-serif font-bold text-foreground mb-4">
-            {t.form.success.title}
-          </h2>
-          <p className="text-muted-foreground text-lg">
-            {t.form.success.description}
-          </p>
-        </div>
-      </motion.div>
+      <SuccessCard t={t} isEmbedded={isEmbedded} />
     );
 
     if (isEmbedded) return successContent;
