@@ -4,6 +4,8 @@ import { z } from "zod";
 import { motion, AnimatePresence } from "framer-motion";
 import confetti from "canvas-confetti";
 import { ArrowLeft, ArrowRight, Check, User, Mail, Phone, MapPin, DollarSign, MessageSquare, Heart, Send, Search, ChevronDown } from "lucide-react";
+import { HIDE_CLIENT_OPT_IN_FORMS } from "@/lib/clientFormsFlag";
+import { UseChatWidgetNotice } from "@/components/shared/UseChatWidgetNotice";
 
 /* ───────── constants ───────── */
 const phoneRegex = /^\(\d{3}\)\s?\d{3}-\d{4}$/;

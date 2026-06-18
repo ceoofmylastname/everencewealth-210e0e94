@@ -73,6 +73,14 @@ const LeadForm: React.FC<LeadFormProps> = ({
         }
     });
 
+    if (HIDE_CLIENT_OPT_IN_FORMS) {
+        return (
+            <div className={className}>
+                <UseChatWidgetNotice variant="inline" />
+            </div>
+        );
+    }
+
     const onSubmit = async (data: FormValues) => {
         setIsSubmitting(true);
         setErrorMsg(null);

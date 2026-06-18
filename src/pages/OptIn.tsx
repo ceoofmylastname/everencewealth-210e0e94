@@ -5,6 +5,8 @@ import { useTranslation } from 'react-i18next';
 import LeadForm from '@/components/landing/LeadForm';
 import { LanguageCode, detectUserLanguage } from '@/utils/landing/languageDetection';
 import enTranslations from '@/translations/landing/en.json';
+import { HIDE_CLIENT_OPT_IN_FORMS } from '@/lib/clientFormsFlag';
+import { UseChatWidgetNotice } from '@/components/shared/UseChatWidgetNotice';
 
 const translationsMap: Record<string, any> = {
     en: enTranslations,
@@ -42,7 +44,9 @@ const OptInPage: React.FC = () => {
 
             <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-[480px]">
                 <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-                    {isSuccess ? (
+                    {HIDE_CLIENT_OPT_IN_FORMS ? (
+                        <UseChatWidgetNotice variant="inline" />
+                    ) : isSuccess ? (
                         <div className="text-center space-y-4">
                             <div className="text-green-600 font-medium text-lg">
                                 {translations.form?.success || "We will contact you shortly."}
