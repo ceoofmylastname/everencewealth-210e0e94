@@ -6,6 +6,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import confetti from 'canvas-confetti';
 import { CheckCircle, Loader2 } from 'lucide-react';
+import { HIDE_CLIENT_OPT_IN_FORMS } from '@/lib/clientFormsFlag';
+import { UseChatWidgetNotice } from '@/components/shared/UseChatWidgetNotice';
 
 interface StrategyFormCTAProps {
   headline: string;
@@ -25,6 +27,9 @@ export const StrategyFormCTA: React.FC<StrategyFormCTAProps> = ({
   namePlaceholder, emailPlaceholder, phonePlaceholder, incomePlaceholder,
   formSource,
 }) => {
+  if (HIDE_CLIENT_OPT_IN_FORMS) {
+    return <UseChatWidgetNotice headline={headline} subtitle={subtitle} />;
+  }
   const [form, setForm] = useState({ name: '', email: '', phone: '', income: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);

@@ -14,6 +14,8 @@ import { LanguageCode } from '@/utils/landing/languageDetection';
 import { submitLeadFunction } from '@/utils/landing/leadSubmission';
 import { trackEvent } from '@/utils/landing/analytics';
 import { BUSINESS } from '@/config/business';
+import { HIDE_CLIENT_OPT_IN_FORMS } from '@/lib/clientFormsFlag';
+import { UseChatWidgetNotice } from '@/components/shared/UseChatWidgetNotice';
 
 // Schema Definition
 const formSchema = z.object({
@@ -70,6 +72,14 @@ const LeadForm: React.FC<LeadFormProps> = ({
             consent: false,
         }
     });
+
+    if (HIDE_CLIENT_OPT_IN_FORMS) {
+        return (
+            <div className={className}>
+                <UseChatWidgetNotice variant="inline" />
+            </div>
+        );
+    }
 
     const onSubmit = async (data: FormValues) => {
         setIsSubmitting(true);
