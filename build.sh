@@ -78,14 +78,13 @@ npx tsx scripts/generateStaticAuthorBioPage.ts dist
 # Static page generators use their own templates and bypass index.html,
 # so we patch the dist output here. Remove this block to disable the widget.
 echo "💬 Injecting LeadConnector chat widget into all HTML files..."
-WIDGET_TAG='<script src="https://widgets.leadconnectorhq.com/loader.js" data-resources-url="https://widgets.leadconnectorhq.com/chat-widget/loader.js" data-widget-id="6a344e321beacbb27327f210" data-source="WEB_USER"></script>'
+export WIDGET_TAG='<script src="https://widgets.leadconnectorhq.com/loader.js" data-resources-url="https://widgets.leadconnectorhq.com/chat-widget/loader.js" data-widget-id="6a344e321beacbb27327f210" data-source="WEB_USER"></script>'
 find dist -type f -name '*.html' | while read -r f; do
   if ! grep -q 'widgets.leadconnectorhq.com' "$f"; then
     # Insert the widget tag just before </body>
     perl -i -pe 'BEGIN{$tag=$ENV{WIDGET_TAG}} s{</body>}{$tag</body>}i' "$f"
   fi
 done
-export WIDGET_TAG
 echo "   ✅ Widget injected"
 
 # Generate sitemap with all pages - OUTPUT TO dist/ for Cloudflare
