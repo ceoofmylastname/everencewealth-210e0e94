@@ -10,6 +10,8 @@ import { Progress } from '@/components/ui/progress';
 import { Input } from '@/components/ui/input';
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { QUESTIONS, calculateScores } from '@/lib/assessment-scoring';
+import { HIDE_CLIENT_OPT_IN_FORMS } from '@/lib/clientFormsFlag';
+import { UseChatWidgetNotice } from '@/components/shared/UseChatWidgetNotice';
 
 // ── Contact Form Schema ──────────────────────────────────────
 const contactSchema = z.object({
@@ -117,6 +119,17 @@ function launchMassiveConfetti(canvas: HTMLCanvasElement) {
 
 // ── Main Component ─────────────────────────────────────────────
 const Assessment: React.FC = () => {
+  if (HIDE_CLIENT_OPT_IN_FORMS) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background px-4 py-16">
+        <UseChatWidgetNotice
+          variant="inline"
+          headline="Let’s connect"
+          subtitle="Tap the chat widget in the lower-right corner of your screen and a member of our team will be with you shortly."
+        />
+      </div>
+    );
+  }
   const navigate = useNavigate();
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
