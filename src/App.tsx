@@ -16,6 +16,8 @@ import {
   LocationPageRedirect,
 } from "@/components/LegacyRouteRedirects";
 import { SUPPORTED_LANGUAGES } from "@/types/hreflang";
+import { HIDE_CLIENT_OPT_IN_FORMS } from "@/lib/clientFormsFlag";
+import { UseChatWidgetNotice } from "@/components/shared/UseChatWidgetNotice";
 
 // Language-prefixed homepage wrapper - validates lang param and renders Home, or falls through to WorkshopLanding
 const LanguageHome = () => {
@@ -574,7 +576,18 @@ const App = () => (
 
               {/* Contact page */}
               <Route path="/contact" element={<Navigate to="/en/contact" replace />} />
-              <Route path="/:lang/contact" element={<Contact />} />
+              <Route
+                path="/:lang/contact"
+                element={
+                  HIDE_CLIENT_OPT_IN_FORMS ? (
+                    <div className="min-h-screen flex items-center justify-center bg-background px-4">
+                      <UseChatWidgetNotice variant="inline" />
+                    </div>
+                  ) : (
+                    <Contact />
+                  )
+                }
+              />
 
               {/* ========================================== */}
               {/* LANGUAGE-PREFIXED ROUTES (Phase 2)        */}
