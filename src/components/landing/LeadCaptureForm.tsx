@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { LanguageCode } from '@/utils/landing/languageDetection';
 import LeadForm from './LeadForm';
+import { HIDE_CLIENT_OPT_IN_FORMS } from '@/lib/clientFormsFlag';
+import { UseChatWidgetNotice } from '@/components/shared/UseChatWidgetNotice';
 
 interface LeadCaptureFormProps {
     isOpen: boolean;
@@ -39,6 +41,21 @@ const LeadCaptureForm: React.FC<LeadCaptureFormProps> = ({
             setTimeout(() => setIsSuccess(false), 300);
         }, 3000);
     };
+
+    if (HIDE_CLIENT_OPT_IN_FORMS) {
+        return (
+            <Dialog open={isOpen} onOpenChange={onClose}>
+                <DialogContent className="sm:max-w-[500px] bg-white border-0 shadow-2xl p-8 md:p-10">
+                    <DialogHeader className="mb-4">
+                        <DialogTitle className="text-2xl font-serif text-landing-navy text-center">
+                            Chat with us
+                        </DialogTitle>
+                    </DialogHeader>
+                    <UseChatWidgetNotice variant="inline" />
+                </DialogContent>
+            </Dialog>
+        );
+    }
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
