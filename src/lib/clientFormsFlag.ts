@@ -8,4 +8,4 @@
  * Flip back to `false` to restore every form to its previous behavior.
  * No form logic has been deleted — only short-circuited at render time.
  */
-export const HIDE_CLIENT_OPT_IN_FORMS = true;
+export const HIDE_CLIENT_OPT_IN_FORMS = false;
