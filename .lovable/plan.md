@@ -1,30 +1,24 @@
-## Goal
-Remove the LeadConnector chat widget and re-activate all opt-in forms (including the `/contact` "Get in Touch" page) to their pre-widget state.
+## Why "No CNAs found" appears
 
-## Changes
+The CNA picker is filtering by the wrong identity.
 
-1. **`src/lib/clientFormsFlag.ts`** — flip `HIDE_CLIENT_OPT_IN_FORMS` from `true` to `false`. This single switch automatically restores:
-   - `src/components/landing/LeadCaptureForm.tsx`
-   - `src/components/landing/LeadForm.tsx`
-   - `src/components/strategies/shared/StrategyFormCTA.tsx`
-   - `src/pages/Assessment.tsx`
-   - `src/pages/OptIn.tsx`
-   - `src/pages/ResponseCard.tsx`
-   - The `/contact` route in `src/App.tsx` (renders real `<Contact />` again)
+- `CNAForm.tsx` saves new CNAs with `advisor_id = portalUser.id` (i.e. `portal_users.id`).
+- `ContactCNAsTab.tsx` receives `advisorId` from `useCurrentAdvisorId()`, which returns `advisors.id` (a different UUID for the same user).
 
-2. **`index.html`** — remove the LeadConnector `<script src="https://widgets.leadconnectorhq.com/loader.js" ...>` tag added earlier.
+So the picker query `client_needs_analysis.advisor_id = <advisors.id>` never matches any rows — every CNA in the table is keyed by `portal_users.id`. I confirmed this in the database (e.g. CNAs are stored under `e4ec821e-...` which is the portal_users.id for david.rosenberg, while `advisors.id` is `91a5b531-...`).
 
-3. **`build.sh`** — remove the post-SSG "Injecting LeadConnector chat widget" block (the `WIDGET_TAG` export + `find dist -type f -name '*.html'` loop) so generated static pages no longer get the widget injected.
+## Fix
 
-4. **Leave in place (harmless, reusable later):**
-   - `src/components/shared/UseChatWidgetNotice.tsx` — unused once flag is false, but kept for future re-enable.
-   - `src/lib/clientFormsFlag.ts` itself — kept so the kill-switch remains available.
-   - The conditional import in `src/App.tsx` — still works correctly when flag is false.
+Change `ContactCNAsTab.tsx` so the picker queries CNAs by the current `portalUser.id` instead of the advisor row id.
 
-## Verification
-- Confirm `/contact` renders the full Contact page (hero, office info, FAQ, mobile sticky contact).
-- Confirm strategy CTAs, `/opt-in`, `/assessment`, `/response-card` show their real forms.
-- Confirm no chat bubble appears in the lower-right on the deployed site after next build.
+1. In `ContactDetail.tsx`, also pull `portalUser` from `usePortalAuth()` (or extend the existing call) and pass `portalUserId={portalUser.id}` into `<ContactCNAsTab>`.
+2. In `ContactCNAsTab.tsx`:
+   - Add a `portalUserId` prop.
+   - In `CNAPicker`, replace `.eq("advisor_id", advisorId)` with `.eq("advisor_id", portalUserId)` so it matches how CNAs are actually saved.
+   - Leave the linked-list query (which filters by `contact_id`) untouched.
 
-## To revert again later
-Flip `HIDE_CLIENT_OPT_IN_FORMS` back to `true`, re-add the `<script>` to `index.html`, and re-add the build.sh injection block.
+The `advisorId` prop can stay for the existing `isOwned`/link checks elsewhere; only the picker query changes.
+
+## Out of scope
+
+I won't touch `CNAForm.tsx` or migrate existing CNA rows to use `advisors.id`. That's a larger normalization that would also need RLS review. Let me know if you want that as a follow-up.

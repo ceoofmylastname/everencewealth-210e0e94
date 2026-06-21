@@ -27,7 +27,7 @@ export default function ContactDetail() {
   const backHref = fromTeam
     ? `/portal/advisor/contacts?tab=team${teamAgent ? `&agent=${teamAgent}` : ""}`
     : "/portal/advisor/contacts";
-  const { advisorId } = useCurrentAdvisorId();
+  const { advisorId, portalUser } = useCurrentAdvisorId();
   const [contact, setContact] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<Tab>("Overview");
@@ -125,7 +125,7 @@ export default function ContactDetail() {
       <div>
         {tab === "Overview" && <OverviewTab contact={contact} />}
         {tab === "Policies" && advisorId && <ContactPoliciesTab contactId={id!} advisorId={advisorId} />}
-        {tab === "CNAs" && advisorId && <ContactCNAsTab contactId={id!} advisorId={advisorId} />}
+        {tab === "CNAs" && advisorId && <ContactCNAsTab contactId={id!} advisorId={advisorId} portalUserId={portalUser?.id} />}
         {tab === "Notes" && advisorId && <ContactNotesTab contactId={id!} advisorId={advisorId} />}
         {tab === "Appointments" && advisorId && <ContactAppointmentsTab contactId={id!} advisorId={advisorId} />}
         {tab === "Reminders" && advisorId && <ContactRemindersTab contactId={id!} advisorId={advisorId} />}

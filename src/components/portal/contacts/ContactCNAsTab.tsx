@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Link2, Unlink, ExternalLink, Search } from "lucide-react";
 import { toast } from "sonner";
 
-export default function ContactCNAsTab({ contactId, advisorId }: { contactId: string; advisorId: string }) {
+export default function ContactCNAsTab({ contactId, advisorId, portalUserId }: { contactId: string; advisorId: string; portalUserId?: string }) {
   const [linked, setLinked] = useState<any[]>([]);
   const [pickerOpen, setPickerOpen] = useState(false);
 
@@ -68,7 +68,7 @@ export default function ContactCNAsTab({ contactId, advisorId }: { contactId: st
           </div>
         )}
       </div>
-      <CNAPicker open={pickerOpen} onOpenChange={setPickerOpen} advisorId={advisorId} contactId={contactId} onLinked={load} />
+      <CNAPicker open={pickerOpen} onOpenChange={setPickerOpen} advisorId={portalUserId || advisorId} contactId={contactId} onLinked={load} />
     </div>
   );
 }
