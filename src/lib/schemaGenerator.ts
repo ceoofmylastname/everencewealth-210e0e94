@@ -50,7 +50,7 @@ const ORGANIZATION_SCHEMA = {
     "@type": "ContactPoint",
     "contactType": "Customer Service",
     "availableLanguage": ["en", "es"],
-    "telephone": "+1-925-433-7724",
+    "telephone": "+1-925-886-0608",
     "email": "info@everencewealth.com"
   }
 };

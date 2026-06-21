@@ -170,7 +170,7 @@ const SuccessCard: React.FC<{ t: ContactFormTranslations; isEmbedded: boolean }>
               info@everencewealth.com
             </a>
             <a
-              href="tel:+19254337724"
+              href="tel:+19258860608"
               className="inline-flex items-center gap-2 px-4 py-2.5 rounded-full bg-white/10 hover:bg-white/15 border border-white/20 backdrop-blur-md text-sm text-foreground transition-colors"
             >
               <Phone className="w-4 h-4 text-prime-gold" />

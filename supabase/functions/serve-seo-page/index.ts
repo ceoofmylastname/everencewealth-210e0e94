@@ -1654,7 +1654,7 @@ const ORGANIZATION_SCHEMA = {
     "postalCode": "94105",
     "addressCountry": "US"
   },
-  "telephone": "+1-925-433-7724",
+  "telephone": "+1-925-886-0608",
   "email": "info@everencewealth.com",
   "areaServed": { "@type": "Country", "name": "United States" },
   "foundingDate": "1990",

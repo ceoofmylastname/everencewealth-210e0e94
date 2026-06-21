@@ -66,8 +66,8 @@ export const BUSINESS = Object.freeze({
   slogan: 'Architecting Your Financial Legacy',
   foundingDate: '1990',
   priceRange: '$$$',
-  telephone: '+1-925-433-7724',
-  telephoneE164: '+19254337724',
+  telephone: '+1-925-886-0608',
+  telephoneE164: '+19258860608',
   email: 'info@everencewealth.com',
   address: Object.freeze({
     streetAddress: '455 Market St Ste 1940 PMB 350011',
@@ -97,7 +97,7 @@ export const BUSINESS = Object.freeze({
   contactPoint: Object.freeze({
     contactType: 'Customer Service',
     availableLanguage: Object.freeze(['en', 'es']),
-    telephone: '+1-925-433-7724',
+    telephone: '+1-925-886-0608',
     email: 'info@everencewealth.com',
   }) as BusinessContactPoint,
   openingHours: Object.freeze([
