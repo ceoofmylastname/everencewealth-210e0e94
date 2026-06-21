@@ -46,7 +46,7 @@ export const AboutCTA = () => {
 
           <div className="grid md:grid-cols-3 gap-8 max-w-3xl mx-auto">
             {[
-              { icon: Phone, label: ctaSection?.callUs || "Call Us", value: "+1 (925) 433-7724" },
+              { icon: Phone, label: ctaSection?.callUs || "Call Us", value: "+1 (925) 886-0608" },
               { icon: Mail, label: ctaSection?.emailUs || "Email Us", value: "info@everencewealth.com" },
               { icon: MapPin, label: ctaSection?.visitUs || "Visit Us", value: ctaSection?.location || "San Francisco, CA" },
             ].map((item, i) => (
