@@ -6,6 +6,41 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+function getTimeZoneOffsetMinutes(date: Date, timeZone: string): number {
+  const dtf = new Intl.DateTimeFormat("en-US", {
+    timeZone, hourCycle: "h23",
+    year: "numeric", month: "2-digit", day: "2-digit",
+    hour: "2-digit", minute: "2-digit", second: "2-digit",
+  });
+  const map: Record<string, string> = {};
+  for (const p of dtf.formatToParts(date)) if (p.type !== "literal") map[p.type] = p.value;
+  const asUTC = Date.UTC(
+    Number(map.year), Number(map.month) - 1, Number(map.day),
+    Number(map.hour), Number(map.minute), Number(map.second)
+  );
+  return (asUTC - date.getTime()) / 60_000;
+}
+
+function zonedDateTimeToUtc(dateStr: string, timeStr: string, timeZone: string): Date {
+  const tz = timeZone || "America/Los_Angeles";
+  const [y, m, d] = dateStr.split("-").map(Number);
+  const [hh = 0, mm = 0, ss = 0] = (timeStr || "00:00:00").split(":").map(Number);
+  const utcGuess = Date.UTC(y, m - 1, d, hh, mm, ss);
+  const offsetMinutes = getTimeZoneOffsetMinutes(new Date(utcGuess), tz);
+  return new Date(utcGuess - offsetMinutes * 60_000);
+}
+
+function formatInZone(date: Date, timeZone: string): { dateLabel: string; timeLabel: string } {
+  const tz = timeZone || "America/Los_Angeles";
+  const dateLabel = new Intl.DateTimeFormat("en-US", {
+    timeZone: tz, weekday: "long", year: "numeric", month: "long", day: "numeric",
+  }).format(date);
+  const timeLabel = new Intl.DateTimeFormat("en-US", {
+    timeZone: tz, hour: "numeric", minute: "2-digit", hour12: true, timeZoneName: "short",
+  }).format(date);
+  return { dateLabel, timeLabel };
+}
+
 function brandedEmailWrapper(subtitle: string, innerHtml: string): string {
   return `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head><body style="margin:0;padding:0;background-color:#F0F2F1;font-family:Georgia,serif;"><table width="100%" cellpadding="0" cellspacing="0" style="background-color:#F0F2F1;padding:40px 20px;"><tr><td align="center"><table width="600" cellpadding="0" cellspacing="0" style="background-color:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);"><tr><td style="background-color:#1A4D3E;padding:28px 24px;text-align:center;"><img src="https://assets.cdn.filesafe.space/htr97zzmRc1NMujHbL9R/media/69b7424c5b89c7c557adfe6e.png" alt="Everence Wealth" width="48" height="48" style="margin-bottom:10px;"/><h1 style="margin:0;color:#F0F2F1;font-size:24px;font-weight:700;font-family:Georgia,serif;">Everence Wealth</h1><p style="margin:6px 0 0;color:#C5A059;font-size:14px;font-family:Georgia,serif;">${subtitle}</p></td></tr><tr><td style="padding:32px 28px;">${innerHtml}</td></tr><tr><td style="background-color:#F0F2F1;padding:20px 24px;text-align:center;border-top:1px solid #e5e7eb;"><p style="margin:0;font-size:12px;color:#4A5565;font-family:Georgia,serif;">&copy; ${new Date().getFullYear()} Everence Wealth. All rights reserved.</p><p style="margin:4px 0 0;font-size:12px;color:#4A5565;font-family:Georgia,serif;">455 Market St Ste 1940 PMB 350011, San Francisco, CA 94105</p></td></tr></table></td></tr></table></body></html>`;
 }
@@ -34,7 +69,7 @@ Deno.serve(async (req) => {
       .from("workshop_registrations")
       .select(`
         *,
-        workshops!inner(title, description, workshop_date, workshop_time, zoom_join_url, zoom_passcode, max_attendees),
+        workshops!inner(title, description, workshop_date, workshop_time, timezone, zoom_join_url, zoom_passcode, max_attendees),
         advisors!inner(first_name, last_name, email, phone, photo_url)
       `)
       .eq("id", registration_id)
@@ -58,13 +93,9 @@ Deno.serve(async (req) => {
 
     const workshop = reg.workshops;
     const advisor = reg.advisors;
-    const workshopDate = new Date(workshop.workshop_date);
-    const formattedDate = workshopDate.toLocaleDateString("en-US", {
-      weekday: "long",
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
+    const tz = workshop.timezone || "America/Los_Angeles";
+    const startUtc = zonedDateTimeToUtc(workshop.workshop_date, workshop.workshop_time || "00:00:00", tz);
+    const { dateLabel: formattedDate, timeLabel: formattedTime } = formatInZone(startUtc, tz);
 
     const zoomSection = workshop.zoom_join_url
       ? `<div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:16px;margin:24px 0;">
@@ -82,7 +113,7 @@ Deno.serve(async (req) => {
       <h2 style="color:#1A4D3E;font-size:20px;margin:16px 0 8px;font-family:Georgia,serif;">${workshop.title}</h2>
       <div style="background:#f9fafb;border-radius:8px;padding:16px;margin:16px 0;">
         <p style="margin:0 0 8px;color:#4A5565;font-size:14px;">📅 <strong>Date:</strong> ${formattedDate}</p>
-        <p style="margin:0 0 8px;color:#4A5565;font-size:14px;">🕐 <strong>Time:</strong> ${workshop.workshop_time || "TBD"}</p>
+        <p style="margin:0 0 8px;color:#4A5565;font-size:14px;">🕐 <strong>Time:</strong> ${formattedTime}</p>
         <p style="margin:0;color:#4A5565;font-size:14px;">👤 <strong>Hosted by:</strong> ${advisor.first_name} ${advisor.last_name}</p>
       </div>
       ${zoomSection}
