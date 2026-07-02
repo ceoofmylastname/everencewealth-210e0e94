@@ -32,6 +32,48 @@ function sleep(ms: number) {
   return new Promise((r) => setTimeout(r, ms));
 }
 
+// Compute the UTC Date for a workshop scheduled at (date, time) in a given IANA timezone.
+// Handles DST correctly by asking Intl for the target zone's offset on that specific instant.
+function zonedDateTimeToUtc(dateStr: string, timeStr: string, timeZone: string): Date {
+  const tz = timeZone || "America/Los_Angeles";
+  const [y, m, d] = dateStr.split("-").map(Number);
+  const [hh = 0, mm = 0, ss = 0] = (timeStr || "00:00:00").split(":").map(Number);
+  // First assume the wall time is UTC, then measure how far off the target zone is at that instant.
+  const utcGuess = Date.UTC(y, m - 1, d, hh, mm, ss);
+  const offsetMinutes = getTimeZoneOffsetMinutes(new Date(utcGuess), tz);
+  // Real UTC = wall time - zone offset. (offset is minutes east of UTC.)
+  return new Date(utcGuess - offsetMinutes * 60_000);
+}
+
+// Returns the offset in minutes east of UTC for the given instant in the given IANA zone.
+function getTimeZoneOffsetMinutes(date: Date, timeZone: string): number {
+  const dtf = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    hourCycle: "h23",
+    year: "numeric", month: "2-digit", day: "2-digit",
+    hour: "2-digit", minute: "2-digit", second: "2-digit",
+  });
+  const parts = dtf.formatToParts(date);
+  const map: Record<string, string> = {};
+  for (const p of parts) if (p.type !== "literal") map[p.type] = p.value;
+  const asUTC = Date.UTC(
+    Number(map.year), Number(map.month) - 1, Number(map.day),
+    Number(map.hour), Number(map.minute), Number(map.second)
+  );
+  return (asUTC - date.getTime()) / 60_000;
+}
+
+function formatInZone(date: Date, timeZone: string): { dateLabel: string; timeLabel: string } {
+  const tz = timeZone || "America/Los_Angeles";
+  const dateLabel = new Intl.DateTimeFormat("en-US", {
+    timeZone: tz, weekday: "long", year: "numeric", month: "long", day: "numeric",
+  }).format(date);
+  const timeLabel = new Intl.DateTimeFormat("en-US", {
+    timeZone: tz, hour: "numeric", minute: "2-digit", hour12: true, timeZoneName: "short",
+  }).format(date);
+  return { dateLabel, timeLabel };
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -67,7 +109,7 @@ Deno.serve(async (req) => {
         .from("workshop_registrations")
         .select(`
           id, first_name, email,
-          workshops!inner(id, title, workshop_date, workshop_time, zoom_join_url, zoom_passcode),
+          workshops!inner(id, title, workshop_date, workshop_time, timezone, zoom_join_url, zoom_passcode),
           advisors!inner(first_name, last_name)
         `)
         .eq(window.sentCol, false)
@@ -83,15 +125,12 @@ Deno.serve(async (req) => {
 
       // Filter to registrations where workshop is within the reminder window
       const eligible = registrations.filter((reg) => {
-        const ws = reg.workshops as unknown as { id: string; title: string; workshop_date: string; workshop_time: string; zoom_join_url: string; zoom_passcode: string };
-        // Combine date + time into a proper datetime
-        let workshopDateTime: Date;
-        if (ws.workshop_time) {
-          workshopDateTime = new Date(`${ws.workshop_date}T${ws.workshop_time}`);
-        } else {
-          workshopDateTime = new Date(ws.workshop_date);
-        }
-
+        const ws = reg.workshops as unknown as { id: string; title: string; workshop_date: string; workshop_time: string; timezone: string; zoom_join_url: string; zoom_passcode: string };
+        const workshopDateTime = zonedDateTimeToUtc(
+          ws.workshop_date,
+          ws.workshop_time || "00:00:00",
+          ws.timezone || "America/Los_Angeles"
+        );
         const timeDiffMinutes = (workshopDateTime.getTime() - now.getTime()) / 60000;
         
         // Send if workshop is within the window range
@@ -104,13 +143,9 @@ Deno.serve(async (req) => {
       const sendOne = async (reg: any) => {
         const ws = reg.workshops;
         const advisor = reg.advisors;
-        const workshopDate = new Date(ws.workshop_date);
-        const formattedDate = workshopDate.toLocaleDateString("en-US", {
-          weekday: "long",
-          year: "numeric",
-          month: "long",
-          day: "numeric",
-        });
+        const tz = ws.timezone || "America/Los_Angeles";
+        const startUtc = zonedDateTimeToUtc(ws.workshop_date, ws.workshop_time || "00:00:00", tz);
+        const { dateLabel: formattedDate, timeLabel: formattedTime } = formatInZone(startUtc, tz);
 
         const zoomButton = ws.zoom_join_url
           ? `<div style="text-align:center;margin:24px 0;">
@@ -130,7 +165,7 @@ Deno.serve(async (req) => {
           <h2 style="color:#1A4D3E;font-size:20px;margin:16px 0 8px;font-family:Georgia,serif;">${ws.title}</h2>
           <div style="background:#f9fafb;border-radius:8px;padding:16px;margin:16px 0;">
             <p style="margin:0 0 8px;color:#4A5565;font-size:14px;">📅 <strong>Date:</strong> ${formattedDate}</p>
-            <p style="margin:0 0 8px;color:#4A5565;font-size:14px;">🕐 <strong>Time:</strong> ${ws.workshop_time || "TBD"}</p>
+            <p style="margin:0 0 8px;color:#4A5565;font-size:14px;">🕐 <strong>Time:</strong> ${formattedTime}</p>
             <p style="margin:0;color:#4A5565;font-size:14px;">👤 <strong>Host:</strong> ${advisor.first_name} ${advisor.last_name}</p>
           </div>
           ${zoomButton}
