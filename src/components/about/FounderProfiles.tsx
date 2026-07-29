@@ -69,7 +69,9 @@ export const FounderProfiles = ({ founders }: FounderProfilesProps) => {
 
   const getLocalizedFounder = (founder: Founder, index: number): Founder => {
     const localizedProfile = foundersSection?.profiles?.[index];
-    if (!localizedProfile) return founder;
+    // Only apply localized copy when it actually describes this founder —
+    // otherwise generic placeholder entries overwrite real profile data.
+    if (!localizedProfile || localizedProfile.name !== founder.name) return founder;
     return {
       ...founder,
       role: localizedProfile.role || founder.role,
