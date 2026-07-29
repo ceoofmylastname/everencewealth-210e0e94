@@ -1,10 +1,9 @@
 import { motion } from "framer-motion";
-import { Globe, Award, MessageCircle, Briefcase } from "lucide-react";
+import { Globe, Award, Briefcase } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useTranslation } from "@/i18n";
-import { COMPANY_CONTACT } from "@/constants/company";
 
 interface TeamMember {
   id: string;
@@ -19,7 +18,6 @@ interface TeamMember {
   years_experience: number | null;
   credentials: string[] | null;
   is_founder: boolean;
-  whatsapp: string | null;
   email: string | null;
 }
 
@@ -33,13 +31,6 @@ export const TeamMemberCard = ({ member, index, onClick }: TeamMemberCardProps) 
   const { t, currentLanguage } = useTranslation();
 
   const translatedRole = member.role_translations?.[currentLanguage] || member.role;
-
-  const handleWhatsAppClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    const phone = member.whatsapp || COMPANY_CONTACT.phoneClean;
-    const message = encodeURIComponent(`Hi ${member.name}, I'd like to discuss wealth strategies with you.`);
-    window.open(`https://wa.me/${phone}?text=${message}`, '_blank');
-  };
 
   return (
     <motion.div
