@@ -117,19 +117,13 @@ export const TeamMemberCard = ({ member, index, onClick }: TeamMemberCardProps) 
             </div>
           )}
 
-          <div className="flex gap-2">
+          <div className="flex">
             <Button
               variant="outline"
-              className="flex-1 border-[hsl(43,74%,49%)]/30 text-white hover:bg-[hsl(43,74%,49%)] hover:text-[hsl(160,48%,12%)] transition-colors rounded-xl"
+              className="flex-1 bg-transparent border-[hsl(43,74%,49%)]/40 text-white hover:bg-[hsl(43,74%,49%)] hover:text-[hsl(160,48%,12%)] transition-colors rounded-xl"
               onClick={onClick}
             >
               {t.team?.card?.viewProfile || "View Profile"}
-            </Button>
-            <Button
-              className="bg-green-600 hover:bg-green-700 text-white rounded-xl"
-              onClick={handleWhatsAppClick}
-            >
-              <MessageCircle className="w-4 h-4" />
             </Button>
           </div>
         </div>
