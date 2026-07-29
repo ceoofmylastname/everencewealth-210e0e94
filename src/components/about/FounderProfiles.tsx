@@ -69,7 +69,9 @@ export const FounderProfiles = ({ founders }: FounderProfilesProps) => {
 
   const getLocalizedFounder = (founder: Founder, index: number): Founder => {
     const localizedProfile = foundersSection?.profiles?.[index];
-    if (!localizedProfile) return founder;
+    // Only apply localized copy when it actually describes this founder —
+    // otherwise generic placeholder entries overwrite real profile data.
+    if (!localizedProfile || localizedProfile.name !== founder.name) return founder;
     return {
       ...founder,
       role: localizedProfile.role || founder.role,
@@ -118,7 +120,7 @@ export const FounderProfiles = ({ founders }: FounderProfilesProps) => {
                   >
                     <div className="p-6 text-center relative">
                       <Avatar className="w-24 h-24 mx-auto mb-4 ring-4 ring-[hsl(43,74%,49%)]/30 shadow-xl group-hover:ring-[hsl(43,74%,49%)]/50 transition-all">
-                        <AvatarImage src={founder.photo_url} alt={founder.name} className="object-cover" />
+                        <AvatarImage src={founder.photo_url} alt={founder.name} className="object-cover object-[50%_18%] scale-110" />
                         <AvatarFallback className="bg-[hsl(43,74%,49%)] text-white text-2xl font-serif">
                           {founder.name.split(' ').map(n => n[0]).join('')}
                         </AvatarFallback>

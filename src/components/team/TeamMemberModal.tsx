@@ -86,7 +86,7 @@ export const TeamMemberModal = ({ member, isOpen, onClose }: TeamMemberModalProp
             <AvatarImage 
               src={member.photo_url || undefined} 
               alt={member.name}
-              className="object-cover"
+              className="object-cover object-[50%_18%] scale-110"
             />
             <AvatarFallback className="bg-prime-gold text-white text-3xl font-serif">
               {member.name.split(' ').map(n => n[0]).join('')}
