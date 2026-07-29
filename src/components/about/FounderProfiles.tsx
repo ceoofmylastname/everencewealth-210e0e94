@@ -33,7 +33,6 @@ const transformFounderToTeamMember = (founder: Founder) => ({
   photo_url: founder.photo_url,
   email: null,
   phone: null,
-  whatsapp: null,
   linkedin_url: founder.linkedin_url,
   languages_spoken: founder.languages,
   specializations: [founder.specialization],

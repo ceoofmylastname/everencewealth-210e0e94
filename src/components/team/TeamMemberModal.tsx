@@ -6,7 +6,6 @@ import { Separator } from "@/components/ui/separator";
 import { useTranslation } from "@/i18n";
 import { COMPANY_CONTACT } from "@/constants/company";
 import { 
-  MessageCircle, 
   Mail, 
   Phone, 
   Linkedin, 
@@ -28,7 +27,6 @@ interface TeamMember {
   photo_url: string | null;
   email: string | null;
   phone: string | null;
-  whatsapp: string | null;
   linkedin_url: string | null;
   languages_spoken: string[] | null;
   specializations: string[] | null;
@@ -51,12 +49,6 @@ export const TeamMemberModal = ({ member, isOpen, onClose }: TeamMemberModalProp
 
   const translatedRole = member.role_translations?.[currentLanguage] || member.role;
   const translatedBio = member.bio_translations?.[currentLanguage] || member.bio;
-
-  const handleWhatsAppClick = () => {
-    const phone = member.whatsapp || COMPANY_CONTACT.phoneClean;
-    const message = encodeURIComponent(`Hi ${member.name}, I'd like to discuss wealth strategies with you.`);
-    window.open(`https://wa.me/${phone}?text=${message}`, '_blank');
-  };
 
   const handleEmailClick = () => {
     const email = member.email || COMPANY_CONTACT.email;
@@ -113,13 +105,6 @@ export const TeamMemberModal = ({ member, isOpen, onClose }: TeamMemberModalProp
         <div className="p-6 space-y-6">
           {/* Contact buttons */}
           <div className="flex flex-wrap gap-3">
-            <Button 
-              className="flex-1 bg-green-600 hover:bg-green-700 text-white"
-              onClick={handleWhatsAppClick}
-            >
-              <MessageCircle className="w-4 h-4 mr-2" />
-              {t.team?.modal?.whatsapp || "WhatsApp"}
-            </Button>
             <Button 
               variant="outline"
               className="flex-1"

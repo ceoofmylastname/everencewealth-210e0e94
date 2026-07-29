@@ -17,7 +17,6 @@ interface TeamMember {
   photo_url: string | null;
   email: string | null;
   phone: string | null;
-  whatsapp: string | null;
   linkedin_url: string | null;
   languages_spoken: string[] | null;
   specializations: string[] | null;
