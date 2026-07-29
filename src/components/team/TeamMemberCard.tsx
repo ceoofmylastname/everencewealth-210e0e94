@@ -34,19 +34,22 @@ export const TeamMemberCard = ({ member, index, onClick }: TeamMemberCardProps) 
 
   return (
     <motion.div
+      className="h-full"
       initial={{ opacity: 0, y: 30 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.6, delay: index * 0.1 }}
     >
       <div
-        className="h-full rounded-2xl overflow-hidden group cursor-pointer transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl"
+        className="h-full flex flex-col rounded-2xl overflow-hidden group cursor-pointer transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl"
         style={{ background: 'linear-gradient(135deg, hsl(160,48%,14%) 0%, hsl(160,48%,8%) 100%)' }}
         onClick={onClick}
       >
         {/* Header */}
         <div className="p-6 text-center relative">
           <Avatar className="w-24 h-24 mx-auto mb-4 ring-4 ring-[hsl(43,74%,49%)]/30 shadow-xl group-hover:ring-[hsl(43,74%,49%)]/50 transition-all">
+            {/* crop anchored toward the top of portrait headshots so faces
+                aren't cut off by the circular frame */}
             <AvatarImage
               src={member.photo_url || undefined}
               alt={member.name}
@@ -60,7 +63,8 @@ export const TeamMemberCard = ({ member, index, onClick }: TeamMemberCardProps) 
           <h3 className="font-serif text-xl font-bold text-white mb-1">
             {member.name}
           </h3>
-          <p className="text-[hsl(43,74%,49%)] text-sm font-medium">
+          {/* min-h-10 reserves two lines so long/short roles don't shift the rows below */}
+          <p className="text-[hsl(43,74%,49%)] text-sm font-medium min-h-10">
             {translatedRole}
           </p>
 
@@ -77,7 +81,7 @@ export const TeamMemberCard = ({ member, index, onClick }: TeamMemberCardProps) 
           )}
         </div>
 
-        <div className="px-6 pb-6">
+        <div className="px-6 pb-6 flex flex-col flex-1">
           {member.languages_spoken && member.languages_spoken.length > 0 && (
             <div className="flex items-center gap-2 mb-4">
               <Globe className="w-4 h-4 text-[hsl(43,74%,49%)] flex-shrink-0" />
@@ -108,7 +112,8 @@ export const TeamMemberCard = ({ member, index, onClick }: TeamMemberCardProps) 
             </div>
           )}
 
-          <div className="flex">
+          {/* mt-auto pins the button to the card bottom so both cards' button rows align */}
+          <div className="flex mt-auto">
             <Button
               variant="outline"
               className="flex-1 bg-transparent border-[hsl(43,74%,49%)]/40 text-white hover:bg-[hsl(43,74%,49%)] hover:text-[hsl(160,48%,12%)] transition-colors rounded-xl"

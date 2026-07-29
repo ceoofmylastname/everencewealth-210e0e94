@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { resolveTeamPhoto } from "@/lib/teamPhotos";
 import { useTranslation } from "@/i18n";
 import { TeamMemberCard } from "./TeamMemberCard";
 import { TeamMemberModal } from "./TeamMemberModal";
@@ -42,7 +43,11 @@ export const TeamGrid = () => {
         .order('display_order', { ascending: true });
 
       if (error) throw error;
-      return data as TeamMember[];
+      // Swap dead Lovable-internal photo paths for repo-hosted headshots
+      return (data as TeamMember[]).map((m) => ({
+        ...m,
+        photo_url: resolveTeamPhoto(m.name, m.photo_url),
+      }));
     }
   });
 

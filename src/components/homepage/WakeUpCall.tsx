@@ -5,7 +5,14 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from '@/i18n/useTranslation';
 
 function AnimatedCounter({ target, prefix = '' }: { target: string; prefix?: string }) {
-  const num = parseInt(target.replace(/[^0-9]/g, ''), 10) || 0;
+  // Split target into leading text, final number, and trailing text so
+  // "80-90%" animates the 90 and renders "80-" + count + "%" — never a
+  // fabricated figure like "$8,090" (old bug: stripped all non-digits
+  // and hardcoded a "$").
+  const match = target.match(/^(.*?)(\d[\d,]*)(\D*)$/);
+  const before = match ? match[1] : '';
+  const num = match ? parseInt(match[2].replace(/,/g, ''), 10) || 0 : 0;
+  const after = match ? match[3] : '';
   const motionVal = useMotionValue(0);
   const spring = useSpring(motionVal, { stiffness: 60, damping: 20 });
   const [display, setDisplay] = useState('0');
@@ -32,7 +39,7 @@ function AnimatedCounter({ target, prefix = '' }: { target: string; prefix?: str
     return () => obs.disconnect();
   }, [num, motionVal]);
 
-  return <span ref={ref}>{prefix}${display}</span>;
+  return <span ref={ref}>{prefix}{before}{display}{after}</span>;
 }
 
 export const WakeUpCall: React.FC = () => {

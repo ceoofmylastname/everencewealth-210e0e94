@@ -5,8 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useTranslation } from "@/i18n";
 import { COMPANY_CONTACT } from "@/constants/company";
-import { 
-  Mail, 
+import {
+  Mail,
   Phone, 
   Linkedin, 
   Globe, 
@@ -105,7 +105,7 @@ export const TeamMemberModal = ({ member, isOpen, onClose }: TeamMemberModalProp
         <div className="p-6 space-y-6">
           {/* Contact buttons */}
           <div className="flex flex-wrap gap-3">
-            <Button 
+            <Button
               variant="outline"
               className="flex-1"
               onClick={handleEmailClick}

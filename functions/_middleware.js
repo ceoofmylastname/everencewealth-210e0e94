@@ -400,6 +400,32 @@ async function buildResponse({ request, next, env, ctx }) {
   const pathname = url.pathname;
 
   // ============================================================
+  // ASSET GUARD: hashed build assets must never fall back to the
+  // SPA shell. During a deploy race a request for a not-yet-live
+  // /assets/<hash>.css would get index.html with HTTP 200 plus the
+  // immutable /assets/* cache headers — poisoning the Cloudflare
+  // edge cache for a year and serving the site unstyled. Return an
+  // uncacheable 404 instead so the next request can hit the real
+  // file once it lands. Also short-circuits all SEO middleware for
+  // asset requests.
+  // ============================================================
+  if (pathname.startsWith('/assets/')) {
+    const assetResponse = await next();
+    const assetType = assetResponse.headers.get('content-type') || '';
+    if (assetResponse.status === 404 || assetType.includes('text/html')) {
+      return new Response('Not Found', {
+        status: 404,
+        headers: {
+          'Content-Type': 'text/plain; charset=utf-8',
+          'Cache-Control': 'no-store',
+          'X-Middleware-Status': 'Active',
+        },
+      });
+    }
+    return assetResponse;
+  }
+
+  // ============================================================
   // PROMPT 26 Fix 5: IndexNow ownership-proof key file. Must run
   // BEFORE STRUCTURAL_410_PATTERNS, REDIRECT_MAP, and the SPA/SSR
   // fallback so Cloudflare Pages does not intercept it. The key
