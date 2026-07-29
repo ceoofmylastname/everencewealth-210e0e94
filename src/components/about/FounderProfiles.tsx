@@ -155,7 +155,7 @@ export const FounderProfiles = ({ founders }: FounderProfilesProps) => {
 
                       <Button
                         variant="outline"
-                        className="w-full border-[hsl(43,74%,49%)]/30 text-white hover:bg-[hsl(43,74%,49%)] hover:text-[hsl(160,48%,12%)] transition-colors rounded-xl"
+                        className="w-full bg-transparent border-[hsl(43,74%,49%)]/40 text-white hover:bg-[hsl(43,74%,49%)] hover:text-[hsl(160,48%,12%)] transition-colors rounded-xl"
                         asChild
                         onClick={(e) => e.stopPropagation()}
                       >
