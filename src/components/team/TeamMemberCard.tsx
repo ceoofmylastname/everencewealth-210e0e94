@@ -74,7 +74,9 @@ export const TeamMemberCard = ({ member, index, onClick }: TeamMemberCardProps) 
             </Badge>
           )}
 
-          {member.years_experience && member.years_experience > 0 && (
+          {/* strict boolean check: `0 && …` would render a literal "0" text node,
+              adding an invisible line that pushes the rows below out of alignment */}
+          {(member.years_experience ?? 0) > 0 && (
             <div className="absolute top-4 left-4 bg-white/20 text-white text-xs font-bold px-2 py-1 rounded-full backdrop-blur-sm">
               {member.years_experience}+ {t.team?.card?.yearsExperience || "yrs"}
             </div>
