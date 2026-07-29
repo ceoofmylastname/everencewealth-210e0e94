@@ -59,7 +59,7 @@ export const TeamMemberCard = ({ member, index, onClick }: TeamMemberCardProps) 
             <AvatarImage
               src={member.photo_url || undefined}
               alt={member.name}
-              className="object-cover"
+              className="object-cover object-[50%_18%] scale-110"
             />
             <AvatarFallback className="bg-[hsl(43,74%,49%)] text-white text-2xl font-serif">
               {member.name.split(' ').map(n => n[0]).join('')}
