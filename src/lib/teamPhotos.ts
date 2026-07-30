@@ -12,6 +12,7 @@
  * by the member's exact `name`.
  */
 const LOCAL_TEAM_PHOTOS: Record<string, string> = {
+  'Steven Rosenberg': '/team/steven-rosenberg.jpg',
   'David Rosenberg': '/team/david-rosenberg.jpg',
 };
 
