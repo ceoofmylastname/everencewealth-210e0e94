@@ -400,16 +400,20 @@ async function buildResponse({ request, next, env, ctx }) {
   const pathname = url.pathname;
 
   // ============================================================
-  // ASSET GUARD: hashed build assets must never fall back to the
-  // SPA shell. During a deploy race a request for a not-yet-live
-  // /assets/<hash>.css would get index.html with HTTP 200 plus the
-  // immutable /assets/* cache headers — poisoning the Cloudflare
-  // edge cache for a year and serving the site unstyled. Return an
+  // STATIC-FILE GUARD: any path with a non-HTML file extension
+  // (/assets/*.css, /team/*.jpg, fonts, icons, …) must never fall
+  // back to the SPA shell. During a deploy race a request for a
+  // not-yet-live file would get index.html with HTTP 200 plus
+  // long-lived cache headers — poisoning the Cloudflare edge cache
+  // (this served HTML-as-CSS sitewide for a year, and HTML instead
+  // of /team/steven-rosenberg.jpg for 30 days). Return an
   // uncacheable 404 instead so the next request can hit the real
-  // file once it lands. Also short-circuits all SEO middleware for
-  // asset requests.
+  // file once it lands. `.txt`/`.xml` are deliberately NOT guarded:
+  // the discovery-file blocks further down own their handling, and
+  // those files ship in every deploy so they cannot race.
   // ============================================================
-  if (pathname.startsWith('/assets/')) {
+  const STATIC_FILE_REGEX = /\.(js|mjs|css|map|jpe?g|png|webp|avif|gif|svg|ico|woff2?|ttf|otf|eot|mp[34]|webm|pdf|json|webmanifest|wasm)$/i;
+  if (STATIC_FILE_REGEX.test(pathname)) {
     const assetResponse = await next();
     const assetType = assetResponse.headers.get('content-type') || '';
     if (assetResponse.status === 404 || assetType.includes('text/html')) {
