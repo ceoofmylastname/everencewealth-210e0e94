@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Link, useNavigate } from 'react-router-dom';
-import { Menu as MenuIcon, X, ChevronDown, Users, Shield, TrendingUp, Umbrella, Lock, Newspaper, MessageCircleQuestion, BookMarked, Info, Heart, LogIn, Scale, MapPin, Building2, Library } from 'lucide-react';
+import { Menu as MenuIcon, X, ChevronDown, Users, Shield, TrendingUp, Umbrella, Lock, Newspaper, MessageCircleQuestion, BookMarked, Info, Heart, Scale, MapPin, Building2, Library } from 'lucide-react';
 import { Button } from './ui/Button';
 import { useTranslation } from '../../i18n';
 import { NavigationPill } from '../ui/3d-adaptive-navigation-bar';
@@ -96,11 +96,6 @@ export const Header: React.FC<HeaderProps> = ({ variant = 'transparent', content
         )}
       </div>
 
-      <div className="flex flex-col gap-3 mt-auto mb-8">
-        <Link to="/portal/login" onClick={closeMobile} className="flex items-center justify-center gap-2 py-3 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-          <LogIn className="w-4 h-4" /> {nav.portalLogin}
-        </Link>
-      </div>
     </div>
   );
 
@@ -138,13 +133,6 @@ export const Header: React.FC<HeaderProps> = ({ variant = 'transparent', content
           ) : (
             <LanguageSwitcher variant="compact" className={isLightBackground ? '' : 'border-white/30 text-white [&_button]:text-white'} />
           )}
-
-          <Link
-            to="/portal/login"
-            className={`text-sm font-medium hover:opacity-80 transition-opacity flex items-center gap-1.5 ${isLightBackground ? 'text-foreground' : 'text-white'}`}
-          >
-            <LogIn className="w-4 h-4" /> {nav.portalLogin}
-          </Link>
         </div>
 
         {/* Mobile Toggle */}

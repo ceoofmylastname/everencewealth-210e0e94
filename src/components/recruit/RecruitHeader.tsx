@@ -31,13 +31,6 @@ export const RecruitHeader: React.FC = () => {
                     </Link>
                 </div>
 
-                {/* Right — Portal link */}
-                <Link
-                    to="/portal/login"
-                    className="text-[11px] font-semibold tracking-[0.2em] uppercase text-[#E2E8F0]/60 hover:text-[#D4AF37] transition-colors duration-300"
-                >
-                    Portal →
-                </Link>
             </div>
         </motion.header>
     );

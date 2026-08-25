@@ -26,8 +26,6 @@ const Footer: React.FC<FooterProps> = ({ content }) => {
                         <span>© {currentYear}</span>
                         <a href="/privacy" className="hover:text-landing-navy transition-colors">{content?.privacy || "Privacy"}</a>
                         <a href="/terms" className="hover:text-landing-navy transition-colors">{content?.terms || "Terms"}</a>
-                        <a href="/crm/agent/login" className="hover:text-landing-navy transition-colors">Dashboard</a>
-                        <a href="/portal/login" className="hover:text-landing-navy transition-colors">Advisor</a>
                         <a href="/apply" className="hover:text-landing-navy transition-colors">Become an Agent</a>
                     </div>
 
