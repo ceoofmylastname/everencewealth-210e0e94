@@ -4707,6 +4707,8 @@ export type Database = {
           id: string
           is_licensed: boolean | null
           last_name: string
+          license_reminder_count: number
+          license_reminder_next_at: string | null
           manager_id: string | null
           notes: string | null
           phone: string | null
@@ -4732,6 +4734,8 @@ export type Database = {
           id?: string
           is_licensed?: boolean | null
           last_name: string
+          license_reminder_count?: number
+          license_reminder_next_at?: string | null
           manager_id?: string | null
           notes?: string | null
           phone?: string | null
@@ -4757,6 +4761,8 @@ export type Database = {
           id?: string
           is_licensed?: boolean | null
           last_name?: string
+          license_reminder_count?: number
+          license_reminder_next_at?: string | null
           manager_id?: string | null
           notes?: string | null
           phone?: string | null
