@@ -531,6 +531,7 @@ export type Database = {
           advisor_id: string
           contact_id: string
           created_at: string
+          pinned_top: boolean
           score: number | null
           status_code: Database["public"]["Enums"]["profile_key_status"] | null
           trait_age_25_plus: boolean
@@ -547,6 +548,7 @@ export type Database = {
           advisor_id: string
           contact_id: string
           created_at?: string
+          pinned_top?: boolean
           score?: number | null
           status_code?: Database["public"]["Enums"]["profile_key_status"] | null
           trait_age_25_plus?: boolean
@@ -563,6 +565,7 @@ export type Database = {
           advisor_id?: string
           contact_id?: string
           created_at?: string
+          pinned_top?: boolean
           score?: number | null
           status_code?: Database["public"]["Enums"]["profile_key_status"] | null
           trait_age_25_plus?: boolean
@@ -580,6 +583,44 @@ export type Database = {
             foreignKeyName: "advisor_contact_profile_key_contact_id_fkey"
             columns: ["contact_id"]
             isOneToOne: true
+            referencedRelation: "advisor_contacts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      advisor_contact_profile_key_history: {
+        Row: {
+          advisor_id: string
+          changed_trait: string | null
+          contact_id: string
+          created_at: string
+          id: string
+          score: number
+          status_code: Database["public"]["Enums"]["profile_key_status"] | null
+        }
+        Insert: {
+          advisor_id: string
+          changed_trait?: string | null
+          contact_id: string
+          created_at?: string
+          id?: string
+          score: number
+          status_code?: Database["public"]["Enums"]["profile_key_status"] | null
+        }
+        Update: {
+          advisor_id?: string
+          changed_trait?: string | null
+          contact_id?: string
+          created_at?: string
+          id?: string
+          score?: number
+          status_code?: Database["public"]["Enums"]["profile_key_status"] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "advisor_contact_profile_key_history_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
             referencedRelation: "advisor_contacts"
             referencedColumns: ["id"]
           },
@@ -1042,6 +1083,7 @@ export type Database = {
           phone: string | null
           photo_url: string | null
           portal_user_id: string
+          profile_key_automation_enabled: boolean
           rank_override_id: string | null
           resident_license_exp: string | null
           resident_license_number: string | null
@@ -1069,6 +1111,7 @@ export type Database = {
           phone?: string | null
           photo_url?: string | null
           portal_user_id: string
+          profile_key_automation_enabled?: boolean
           rank_override_id?: string | null
           resident_license_exp?: string | null
           resident_license_number?: string | null
@@ -1096,6 +1139,7 @@ export type Database = {
           phone?: string | null
           photo_url?: string | null
           portal_user_id?: string
+          profile_key_automation_enabled?: boolean
           rank_override_id?: string | null
           resident_license_exp?: string | null
           resident_license_number?: string | null
