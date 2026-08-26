@@ -35,7 +35,11 @@ export default function ContactsList() {
   const { advisorId, loading: authLoading } = useCurrentAdvisorId();
   const { managed, loading: managedLoading } = useManagedAdvisors();
   const [searchParams, setSearchParams] = useSearchParams();
-  const tab = (searchParams.get("tab") === "team" ? "team" : "mine") as "mine" | "team";
+  const tabParam = searchParams.get("tab");
+  const tab = (tabParam === "team" ? "team" : tabParam === "top25" ? "top25" : "mine") as
+    | "mine"
+    | "top25"
+    | "team";
   const teamAgentParam = searchParams.get("agent") || "";
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [loading, setLoading] = useState(true);
@@ -61,11 +65,15 @@ export default function ContactsList() {
   const isViewingOther = tab === "team";
   const viewingAdvisor = managed.find((m) => m.advisor_id === viewAdvisorId);
   const hasManaged = managed.length > 0;
+  const { deltas } = useAdvisorProfileKeyTrends(viewAdvisorId || undefined);
 
-  function setTab(next: "mine" | "team") {
+  function setTab(next: "mine" | "top25" | "team") {
     const sp = new URLSearchParams(searchParams);
     if (next === "mine") {
       sp.delete("tab");
+      sp.delete("agent");
+    } else if (next === "top25") {
+      sp.set("tab", "top25");
       sp.delete("agent");
     } else {
       sp.set("tab", "team");
@@ -80,6 +88,7 @@ export default function ContactsList() {
     sp.set("agent", id);
     setSearchParams(sp, { replace: true });
   }
+
 
   useEffect(() => {
     if (!viewAdvisorId) return;
