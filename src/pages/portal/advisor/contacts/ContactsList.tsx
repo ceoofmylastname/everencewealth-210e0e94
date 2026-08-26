@@ -157,17 +157,25 @@ export default function ContactsList() {
 
   return (
     <div className="p-4 md:p-6 max-w-7xl mx-auto">
-      {hasManaged && (
-        <div className="mb-5 flex flex-col gap-3">
-          <div className="inline-flex p-1 rounded-xl border bg-white w-full sm:w-auto">
-            <button
-              onClick={() => setTab("mine")}
-              className={`flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-4 h-10 rounded-lg text-sm font-medium transition ${
-                tab === "mine" ? "bg-emerald-700 text-white shadow" : "text-gray-700 hover:bg-gray-50"
-              }`}
-            >
-              <User className="w-4 h-4" /> My Contacts
-            </button>
+      <div className="mb-5 flex flex-col gap-3">
+        <div className="inline-flex p-1 rounded-xl border bg-white w-full sm:w-auto">
+          <button
+            onClick={() => setTab("mine")}
+            className={`flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-4 h-10 rounded-lg text-sm font-medium transition ${
+              tab === "mine" ? "bg-emerald-700 text-white shadow" : "text-gray-700 hover:bg-gray-50"
+            }`}
+          >
+            <User className="w-4 h-4" /> My Contacts
+          </button>
+          <button
+            onClick={() => setTab("top25")}
+            className={`flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-4 h-10 rounded-lg text-sm font-medium transition ${
+              tab === "top25" ? "bg-emerald-700 text-white shadow" : "text-gray-700 hover:bg-gray-50"
+            }`}
+          >
+            <Trophy className="w-4 h-4" /> Top 25
+          </button>
+          {hasManaged && (
             <button
               onClick={() => setTab("team")}
               className={`flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-4 h-10 rounded-lg text-sm font-medium transition ${
@@ -176,31 +184,46 @@ export default function ContactsList() {
             >
               <Users className="w-4 h-4" /> Team Contacts
             </button>
-          </div>
-
-          {tab === "team" && (
-            <div className="flex flex-col sm:flex-row sm:items-center gap-2 p-3 rounded-xl border border-emerald-200 bg-emerald-50/60">
-              <div className="flex items-center gap-2 text-sm text-emerald-900 font-medium">
-                <Eye className="w-4 h-4" /> Agent:
-              </div>
-              <select
-                className="border rounded-md px-3 h-10 text-sm bg-white flex-1 sm:flex-none sm:min-w-[280px]"
-                value={viewAdvisorId}
-                onChange={(e) => setTeamAgent(e.target.value)}
-              >
-                {managed.map((m) => (
-                  <option key={m.advisor_id} value={m.advisor_id}>
-                    {m.first_name} {m.last_name} {m.email ? `· ${m.email}` : ""}
-                  </option>
-                ))}
-              </select>
-              <span className="text-xs px-2 py-1 rounded-full bg-amber-100 text-amber-800 border border-amber-200">
-                Read-only
-              </span>
-            </div>
           )}
         </div>
+
+        {tab === "team" && hasManaged && (
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 p-3 rounded-xl border border-emerald-200 bg-emerald-50/60">
+            <div className="flex items-center gap-2 text-sm text-emerald-900 font-medium">
+              <Eye className="w-4 h-4" /> Agent:
+            </div>
+            <select
+              className="border rounded-md px-3 h-10 text-sm bg-white flex-1 sm:flex-none sm:min-w-[280px]"
+              value={viewAdvisorId}
+              onChange={(e) => setTeamAgent(e.target.value)}
+            >
+              {managed.map((m) => (
+                <option key={m.advisor_id} value={m.advisor_id}>
+                  {m.first_name} {m.last_name} {m.email ? `· ${m.email}` : ""}
+                </option>
+              ))}
+            </select>
+            <span className="text-xs px-2 py-1 rounded-full bg-amber-100 text-amber-800 border border-amber-200">
+              Read-only
+            </span>
+          </div>
+        )}
+      </div>
+
+      {tab === "top25" && (
+        <div className="space-y-4">
+          <div>
+            <h1 className="text-xl md:text-2xl font-bold text-gray-900">My Top 25</h1>
+            <p className="text-sm text-gray-500 mt-1">Your highest-priority contacts by Profile Key</p>
+          </div>
+          <ProfileKeyLegend />
+          {advisorId && <Top25List advisorId={advisorId} />}
+        </div>
       )}
+
+      {tab !== "top25" && (
+      <>
+
 
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between mb-5">
         <div>
