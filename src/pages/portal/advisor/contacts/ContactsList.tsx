@@ -409,6 +409,8 @@ export default function ContactsList() {
           </tbody>
         </table>
       </div>
+      </>
+      )}
     </div>
   );
 }
