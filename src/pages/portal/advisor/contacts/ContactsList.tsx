@@ -3,13 +3,18 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentAdvisorId } from "@/hooks/useCurrentAdvisorId";
 import { useManagedAdvisors } from "@/hooks/useManagedAdvisors";
+import { useAdvisorProfileKeyTrends } from "@/hooks/useProfileKeyTrend";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Plus, Search, Upload, Settings as SettingsIcon, UserCircle2, Eye, User, Users } from "lucide-react";
+import { Plus, Search, Upload, Settings as SettingsIcon, UserCircle2, Eye, User, Users, Trophy } from "lucide-react";
 import { toast } from "sonner";
 import ProfileKeyBadge from "@/components/portal/contacts/ProfileKeyBadge";
 import ProfileKeyLegend from "@/components/portal/contacts/ProfileKeyLegend";
+import ProfileKeyTrendArrow from "@/components/portal/contacts/ProfileKeyTrendArrow";
+import ProfileKeyAutomationToggle from "@/components/portal/contacts/ProfileKeyAutomationToggle";
+import Top25List from "./Top25List";
 import { PROFILE_KEY_TRAITS, ProfileTraitKey, scoreColorHsl } from "@/lib/profileKey";
+
 
 interface Contact {
   id: string;
