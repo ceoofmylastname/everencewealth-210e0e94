@@ -266,14 +266,14 @@ export default function AgentAgreementForm({ agentId, fullName, onClose, onSigne
             <h3 className="font-bold text-base" style={{ color: BRAND }}>XXI. GOVERNING LAW</h3>
             <p>
               This Agreement shall be governed by and construed in accordance with the laws of the State of
-              Florida, without regard to its conflict of laws principles.
+              California, without regard to its conflict of laws principles.
             </p>
 
             {/* Section XXII */}
             <h3 className="font-bold text-base" style={{ color: BRAND }}>XXII. FORUM SELECTION</h3>
             <p>
               The parties agree that any legal proceedings arising out of or relating to this Agreement shall be
-              brought exclusively in the state or federal courts located in the State of Florida.
+              brought exclusively in the state or federal courts located in the State of California.
             </p>
 
             {/* Section XXIII */}
