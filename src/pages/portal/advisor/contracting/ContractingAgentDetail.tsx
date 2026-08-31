@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import ManagerAssignmentCard from "@/components/portal/contracting/ManagerAssignmentCard";
 
 const BRAND = "#1A4D3E";
 const ACCENT = "#EBD975";
@@ -43,6 +44,7 @@ interface Agent {
   started_at: string;
   notes: string | null;
   contracting_role: string;
+  manager_id: string | null;
 }
 
 interface Step {
@@ -289,6 +291,17 @@ export default function ContractingAgentDetail() {
           </span>
         </div>
       </div>
+
+      {/* Reporting structure */}
+      <ManagerAssignmentCard
+        agentId={agent.id}
+        agentName={`${agent.first_name} ${agent.last_name}`}
+        managerId={agent.manager_id}
+        canManage={canManage}
+        onChanged={(newManagerId) =>
+          setAgent((prev) => (prev ? { ...prev, manager_id: newManagerId } : prev))
+        }
+      />
 
       {/* Progress */}
       <div className="bg-white rounded-2xl border border-gray-200 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.08)] p-5">
