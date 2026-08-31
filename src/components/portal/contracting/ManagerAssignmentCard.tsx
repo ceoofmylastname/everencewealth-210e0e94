@@ -50,16 +50,17 @@ export default function ManagerAssignmentCard({
 
   useEffect(() => {
     let cancelled = false;
-    supabase.functions
-      .invoke("list-contracting-managers")
-      .then(({ data, error }) => {
+    // Eligible = active admins/managers, minus this agent and anyone who
+    // reports up through them, so a reporting loop can't be selected.
+    (supabase.rpc as any)("get_eligible_managers", { _agent_id: agentId })
+      .then(({ data, error }: { data: ManagerOption[] | null; error: unknown }) => {
         if (cancelled) return;
-        if (error) console.error("list-contracting-managers", error);
-        setManagers((data as ManagerOption[]) || []);
+        if (error) console.error("get_eligible_managers", error);
+        setManagers(data || []);
         setLoading(false);
       });
     return () => { cancelled = true; };
-  }, []);
+  }, [agentId]);
 
   const nameOf = (m: ManagerOption) =>
     `${m.first_name ?? ""} ${m.last_name ?? ""}`.trim() || "Unnamed";
