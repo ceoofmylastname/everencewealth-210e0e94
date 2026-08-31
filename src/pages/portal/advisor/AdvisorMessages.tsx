@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { usePortalAuth } from "@/hooks/usePortalAuth";
+import { useManagedAdvisors } from "@/hooks/useManagedAdvisors";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -38,11 +39,17 @@ export default function AdvisorMessages() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const isAdmin = portalUser?.role === "admin";
+  const { managed } = useManagedAdvisors();
+  // Admins and managers both view conversations they are not a party to —
+  // read-only oversight of their downline. Plain advisors only ever see
+  // their own, so the observing affordances stay hidden for them.
+  const canSeeOthers = isAdmin || managed.length > 0;
 
-  // Check if admin owns the selected conversation
+  // Check whether the viewer owns the selected conversation
   const selectedConversation = conversations.find((c) => c.id === selectedConv);
   const isOwnConversation = selectedConversation?.advisor_id === portalUser?.id;
-  const canSend = !isAdmin || isOwnConversation;
+  // Observers may read but never send into someone else's thread.
+  const canSend = isOwnConversation || !canSeeOthers;
 
   useEffect(() => {
     if (!portalUser) return;
@@ -85,7 +92,7 @@ export default function AdvisorMessages() {
       .select("*")
       .order("last_message_at", { ascending: false });
 
-    if (!isAdmin) {
+    if (!canSeeOthers) {
       query = query.eq("advisor_id", portalUser.id);
     }
 
@@ -190,7 +197,7 @@ export default function AdvisorMessages() {
         body: {
           conversation_id: selectedConv,
           message_content: content,
-          sender_role: isAdmin ? "advisor" : "advisor",
+          sender_role: "advisor",
         },
       }).catch((err) => console.warn("Notification error:", err));
     }
@@ -198,7 +205,7 @@ export default function AdvisorMessages() {
   }
 
   // Get unique advisors for filter dropdown
-  const uniqueAdvisors = isAdmin
+  const uniqueAdvisors = canSeeOthers
     ? Array.from(new Map(conversations.map((c) => [c.advisor_id, c.advisor_name || "Unknown"])).entries())
     : [];
 
@@ -208,13 +215,13 @@ export default function AdvisorMessages() {
     : conversations.filter((c) => c.advisor_id === advisorFilter);
 
   function getMessageAlignment(msg: Message) {
-    if (!isAdmin) return msg.sender_id === portalUser?.id ? "right" : "left";
+    if (!canSeeOthers) return msg.sender_id === portalUser?.id ? "right" : "left";
     const conv = selectedConversation;
     return conv && msg.sender_id === conv.advisor_id ? "right" : "left";
   }
 
   function getConversationLabel(conv: Conversation) {
-    if (isAdmin) return `${conv.advisor_name} ↔ ${conv.client_name}`;
+    if (canSeeOthers) return `${conv.advisor_name} ↔ ${conv.client_name}`;
     return conv.client_name || "Unknown";
   }
 
@@ -227,13 +234,13 @@ export default function AdvisorMessages() {
         <h1 className="text-2xl font-bold text-foreground" style={{ fontFamily: "'Playfair Display', serif" }}>
           Messages
         </h1>
-        {isAdmin && selectedConv && !isOwnConversation && (
+        {canSeeOthers && selectedConv && !isOwnConversation && (
           <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300">
             <Eye className="h-3 w-3" />
             Observing
           </span>
         )}
-        {isAdmin && selectedConv && isOwnConversation && (
+        {canSeeOthers && selectedConv && isOwnConversation && (
           <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300">
             <MessageSquare className="h-3 w-3" />
             Your Conversation
@@ -249,7 +256,7 @@ export default function AdvisorMessages() {
           </CardHeader>
           <CardContent className="p-0 flex-1 overflow-y-auto">
             {/* Admin: Advisor filter */}
-            {isAdmin && uniqueAdvisors.length > 1 && (
+            {canSeeOthers && uniqueAdvisors.length > 1 && (
               <div className="p-3 border-b">
                 <div className="flex items-center gap-2">
                   <Filter className="h-3.5 w-3.5 text-muted-foreground" />
@@ -300,15 +307,15 @@ export default function AdvisorMessages() {
                     <div className="flex items-center gap-3">
                       <div className={cn(
                         "h-8 w-8 rounded-full flex items-center justify-center",
-                        isAdmin && isOwn ? "bg-emerald-100" : "bg-primary/10"
+                        canSeeOthers && isOwn ? "bg-emerald-100" : "bg-primary/10"
                       )}>
-                        <User className={cn("h-4 w-4", isAdmin && isOwn ? "text-emerald-700" : "text-primary")} />
+                        <User className={cn("h-4 w-4", canSeeOthers && isOwn ? "text-emerald-700" : "text-primary")} />
                       </div>
                       <div className="min-w-0 flex-1">
                         <p className="text-sm font-medium truncate">{getConversationLabel(conv)}</p>
                         <p className="text-xs text-muted-foreground">
                           {new Date(conv.last_message_at).toLocaleDateString()}
-                          {isAdmin && isOwn && <span className="ml-1.5 text-emerald-600 font-medium">• Yours</span>}
+                          {canSeeOthers && isOwn && <span className="ml-1.5 text-emerald-600 font-medium">• Yours</span>}
                         </p>
                       </div>
                     </div>
@@ -351,7 +358,7 @@ export default function AdvisorMessages() {
                           ? "bg-primary text-primary-foreground rounded-br-md"
                           : "bg-muted rounded-bl-md"
                       )}>
-                        {isAdmin && senderLabel && (
+                        {canSeeOthers && senderLabel && (
                           <p className={cn("text-[10px] font-semibold mb-0.5", isRight ? "text-primary-foreground/70" : "text-muted-foreground")}>
                             {senderLabel}
                           </p>
