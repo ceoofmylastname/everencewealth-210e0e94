@@ -84,6 +84,14 @@ echo "🔧 Setting up Cloudflare Pages Functions..."
 if [ -d "functions" ]; then
   cp -r functions dist/functions
   echo "   ✅ Copied functions/ to dist/functions/"
+  # Cloudflare Pages reads _routes.json from the OUTPUT DIRECTORY ROOT.
+  # Left only inside functions/ it is ignored, Pages auto-generates its own
+  # routing, and the static-file guard in _middleware.js never runs for
+  # /assets/* — which is how HTML got cached under a .js URL.
+  if [ -f "functions/_routes.json" ]; then
+    cp functions/_routes.json dist/_routes.json
+    echo "   ✅ Placed _routes.json at dist/ root"
+  fi
 else
   echo "   ⚠️ No functions/ directory found"
 fi
