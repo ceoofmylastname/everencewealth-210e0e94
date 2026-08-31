@@ -17,6 +17,7 @@ import {
 import { toast } from "sonner";
 import ContactPickerDialog from "@/components/portal/contacts/ContactPickerDialog";
 import { useCurrentAdvisorId } from "@/hooks/useCurrentAdvisorId";
+import { useManagedAdvisors } from "@/hooks/useManagedAdvisors";
 
 const BRAND_GREEN = "#1A4D3E";
 
@@ -31,6 +32,11 @@ export default function CNADashboard() {
   const { portalUser } = usePortalAuth();
   const { advisorId: myAdvisorId } = useCurrentAdvisorId();
   const isAdmin = portalUser?.role === "admin";
+  const { managed } = useManagedAdvisors();
+  // Managers see their downline's CNAs (via RLS), so they need the same
+  // owner badge and advisor filter that admins get — otherwise the extra
+  // rows are indistinguishable from their own.
+  const canSeeOtherAdvisors = isAdmin || managed.length > 0;
   const [cnas, setCnas] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -103,7 +109,7 @@ export default function CNADashboard() {
   }
 
   // Build unique advisor list for filter dropdown
-  const advisorOptions = isAdmin
+  const advisorOptions = canSeeOtherAdvisors
     ? Array.from(
         new Map(
           cnas
@@ -204,7 +210,7 @@ export default function CNADashboard() {
             </button>
           ))}
         </div>
-        {isAdmin && advisorOptions.length > 0 && (
+        {canSeeOtherAdvisors && advisorOptions.length > 0 && (
           <Select value={advisorFilter} onValueChange={setAdvisorFilter}>
             <SelectTrigger className="w-[200px]">
               <Users className="h-4 w-4 mr-2 text-gray-400" />
@@ -254,7 +260,7 @@ export default function CNADashboard() {
                         <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold" style={{ background: sc.bg, color: sc.color }}>
                           {sc.label}
                         </span>
-                        {isAdmin && cna.advisor && (
+                        {canSeeOtherAdvisors && cna.advisor && (
                           <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-purple-50 text-purple-700 border border-purple-200">
                             By: {cna.advisor.first_name} {cna.advisor.last_name}
                           </span>
