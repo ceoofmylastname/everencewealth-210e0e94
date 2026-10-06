@@ -52,7 +52,7 @@ export function TrainingEventCRM() {
         const rows = leads.map(sub => {
             const answers = typeof sub.audit_answers === 'string' ? JSON.parse(sub.audit_answers) : (sub.audit_answers || {});
             const dateStr = new Date(sub.created_at).toLocaleDateString();
-            return `"${dateStr}","${sub.name}","${sub.email}","${sub.phone}","${answers.reminder_10d_sent ? 'Sent' : 'Pending'}","${answers.reminder_5d_sent ? 'Sent' : 'Pending'}","${answers.reminder_24h_sent ? 'Sent' : 'Pending'}"`;
+            return `"${dateStr}","${sub.name}","${sub.email}","${sub.phone}","${answers.reminder_oct2026_10d_sent ? 'Sent' : 'Pending'}","${answers.reminder_oct2026_5d_sent ? 'Sent' : 'Pending'}","${answers.reminder_oct2026_24h_sent ? 'Sent' : 'Pending'}"`;
         });
 
         const csvContent = "data:text/csv;charset=utf-8," + headers.join(",") + "\n" + rows.join("\n");
@@ -129,9 +129,9 @@ export function TrainingEventCRM() {
                                             </TableCell>
                                             <TableCell className="text-center">
                                                 <div className="flex items-center justify-center gap-2">
-                                                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${answers.reminder_10d_sent ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-400'}`}>10D</span>
-                                                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${answers.reminder_5d_sent ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-400'}`}>5D</span>
-                                                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${answers.reminder_24h_sent ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-400'}`}>24H</span>
+                                                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${answers.reminder_oct2026_10d_sent ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-400'}`}>10D</span>
+                                                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${answers.reminder_oct2026_5d_sent ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-400'}`}>5D</span>
+                                                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${answers.reminder_oct2026_24h_sent ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-400'}`}>24H</span>
                                                 </div>
                                             </TableCell>
                                         </TableRow>
