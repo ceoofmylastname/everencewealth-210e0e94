@@ -38,15 +38,15 @@ Deno.serve(async (req) => {
                     email,
                     phone: phone || "",
                     // NOTE: legacy status key — event was rescheduled from March 21
-                    // to June 27, 2026. Key is preserved so existing registrants
+                    // to October 10, 2026. Key is preserved so existing registrants
                     // remain linked to the reminder pipeline.
                     status: "March21Event",
                     audit_score: 0,
                     audit_answers: {
                         is_training_event: true,
-                        reminder_10d_sent: false,
-                        reminder_5d_sent: false,
-                        reminder_24h_sent: false,
+                        reminder_oct2026_10d_sent: false,
+                        reminder_oct2026_5d_sent: false,
+                        reminder_oct2026_24h_sent: false,
                         registered_at: new Date().toISOString()
                     },
                 },
@@ -68,13 +68,13 @@ Deno.serve(async (req) => {
             const innerHtml = `
         <p style="color:#4A5565;line-height:1.6;font-size:16px;margin:0 0 16px;">Hi ${name.split(' ')[0]},</p>
         <p style="color:#4A5565;line-height:1.6;font-size:16px;margin:0 0 16px;">
-          Thank you for registering for the exclusive <strong>Everence Wealth Training Event</strong> on <strong>June 27th</strong>.
+          Thank you for registering for the exclusive <strong>Everence Wealth Training Event</strong> on <strong>October 10th</strong>.
         </p>
         <div style="background:#f9fafb;border-radius:8px;padding:16px;margin:24px 0;border-left:4px solid #1A4D3E;">
           <h2 style="color:#1A4D3E;font-size:18px;margin:0 0 8px;font-family:Georgia,serif;">Event Details</h2>
-          <p style="margin:0 0 8px;color:#4A5565;font-size:14px;">📅 <strong>Date:</strong> June 27th, 2026</p>
+          <p style="margin:0 0 8px;color:#4A5565;font-size:14px;">📅 <strong>Date:</strong> Saturday, October 10, 2026</p>
           <p style="margin:0 0 8px;color:#4A5565;font-size:14px;">🕐 <strong>Registration:</strong> 9:30 AM PT</p>
-          <p style="margin:0 0 8px;color:#4A5565;font-size:14px;">🕐 <strong>Event:</strong> 10:00 AM PT</p>
+          <p style="margin:0 0 8px;color:#4A5565;font-size:14px;">🕐 <strong>Event:</strong> 10:00 AM–2:30 PM PT</p>
           <p style="margin:0;color:#4A5565;font-size:14px;">📍 <strong>Location:</strong> Andaz Napa, 1450 First Street, Napa, CA 94559</p>
         </div>
         <p style="color:#4A5565;line-height:1.6;font-size:16px;margin:0 0 16px;">

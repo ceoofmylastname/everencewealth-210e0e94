@@ -9,28 +9,29 @@ function brandedEmailWrapper(subtitle: string, innerHtml: string): string {
     return `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head><body style="margin:0;padding:0;background-color:#F0F2F1;font-family:Georgia,serif;"><table width="100%" cellpadding="0" cellspacing="0" style="background-color:#F0F2F1;padding:40px 20px;"><tr><td align="center"><table width="600" cellpadding="0" cellspacing="0" style="background-color:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);"><tr><td style="background-color:#1A4D3E;padding:28px 24px;text-align:center;"><img src="https://assets.cdn.filesafe.space/htr97zzmRc1NMujHbL9R/media/69b7424c5b89c7c557adfe6e.png" alt="Everence Wealth" width="48" height="48" style="margin-bottom:10px;"/><h1 style="margin:0;color:#F0F2F1;font-size:24px;font-weight:700;font-family:Georgia,serif;">Everence Wealth</h1><p style="margin:6px 0 0;color:#C5A059;font-size:14px;font-family:Georgia,serif;">${subtitle}</p></td></tr><tr><td style="padding:32px 28px;">${innerHtml}</td></tr><tr><td style="background-color:#F0F2F1;padding:20px 24px;text-align:center;border-top:1px solid #e5e7eb;"><p style="margin:0;font-size:12px;color:#4A5565;font-family:Georgia,serif;">&copy; ${new Date().getFullYear()} Everence Wealth. All rights reserved.</p><p style="margin:4px 0 0;font-size:12px;color:#4A5565;font-family:Georgia,serif;">455 Market St Ste 1940 PMB 350011, San Francisco, CA 94105</p></td></tr></table></td></tr></table></body></html>`;
 }
 
-// Event rescheduled from March 21 to June 27, 2026.
-// 2026-06-27T10:00:00 PDT = 2026-06-27T17:00:00Z (PDT = UTC-7).
-const EVENT_DATETIME = new Date("2026-06-27T10:00:00-07:00").getTime();
+// Event rescheduled from June 27 to October 10, 2026.
+// 2026-10-10T10:00:00 PDT = 2026-10-10T17:00:00Z (PDT = UTC-7).
+const EVENT_DATETIME = new Date("2026-10-10T10:00:00-07:00").getTime();
+const REMINDER_WINDOW = 24 * 60 * 60 * 1000;
 
 const REMINDERS = [
     {
         key: "reminder_10d",
-        flag: "reminder_10d_sent",
+        flag: "reminder_oct2026_10d_sent",
         timeBefore: 10 * 24 * 60 * 60 * 1000,
         subject: "10 Days to Event",
         urgency: "The countdown begins! Your training event is only 10 days away."
     },
     {
         key: "reminder_5d",
-        flag: "reminder_5d_sent",
+        flag: "reminder_oct2026_5d_sent",
         timeBefore: 5 * 24 * 60 * 60 * 1000,
         subject: "5 Days to Event",
         urgency: "We are just 5 days out. Have you prepared?"
     },
     {
         key: "reminder_24h",
-        flag: "reminder_24h_sent",
+        flag: "reminder_oct2026_24h_sent",
         timeBefore: 24 * 60 * 60 * 1000,
         subject: "Action Required: Workshop Tomorrow",
         urgency: "Your workshop starts tomorrow!"
@@ -77,9 +78,8 @@ Deno.serve(async (req) => {
                 // If event is approaching, and we haven't sent this reminder, and we're within the reminder time frame
                 const timeRemaining = EVENT_DATETIME - now;
 
-                // We trigger the reminder if the remaining time is Less Than the reminder trigger time + 24 hours (so we have a window)
-                // And greater than 0
-                if (timeRemaining <= reminder.timeBefore && timeRemaining > 0 && !answers[reminder.flag]) {
+                // Send only within the 24-hour window after each reminder threshold.
+                if (timeRemaining <= reminder.timeBefore && timeRemaining > reminder.timeBefore - REMINDER_WINDOW && !answers[reminder.flag]) {
                     console.log(`Sending ${reminder.key} to ${lead.email}`);
 
                     const innerHtml = `
@@ -87,11 +87,11 @@ Deno.serve(async (req) => {
             <p style="color:#4A5565;line-height:1.6;font-size:16px;margin:0 0 8px;">
               <strong>${reminder.urgency}</strong>
             </p>
-            <h2 style="color:#1A4D3E;font-size:20px;margin:16px 0 8px;font-family:Georgia,serif;">June 27th Broker Training</h2>
+            <h2 style="color:#1A4D3E;font-size:20px;margin:16px 0 8px;font-family:Georgia,serif;">October 10th Broker Training</h2>
             <div style="background:#f9fafb;border-radius:8px;padding:16px;margin:16px 0;">
-              <p style="margin:0 0 8px;color:#4A5565;font-size:14px;">📅 <strong>Date:</strong> Saturday, June 27, 2026</p>
+              <p style="margin:0 0 8px;color:#4A5565;font-size:14px;">📅 <strong>Date:</strong> Saturday, October 10, 2026</p>
               <p style="margin:0 0 8px;color:#4A5565;font-size:14px;">🕐 <strong>Registration:</strong> 9:30 AM PT</p>
-              <p style="margin:0 0 8px;color:#4A5565;font-size:14px;">🕐 <strong>Event:</strong> 10:00 AM PT</p>
+              <p style="margin:0 0 8px;color:#4A5565;font-size:14px;">🕐 <strong>Event:</strong> 10:00 AM–2:30 PM PT</p>
               <p style="margin:0;color:#4A5565;font-size:14px;">📍 <strong>Location:</strong> Andaz Napa</p>
             </div>
             <p style="color:#4A5565;line-height:1.6;font-size:16px;margin:0 0 16px;">Get ready for a focused, full-day program designed to deepen your expertise in values-based financial planning, strengthen client engagement strategies, and expand your knowledge.</p>

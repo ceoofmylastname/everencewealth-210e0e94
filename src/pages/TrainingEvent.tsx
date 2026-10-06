@@ -9,7 +9,7 @@ import { ArrowRight, Calendar, MapPin, Clock, Loader2, CheckCircle2, ChevronRigh
 import confetti from "canvas-confetti";
 const sessionHighlights = [
     { time: "9:30 AM", title: "Registration & Check-In" },
-    { time: "10:00 AM", title: "Financial Workshop Begins" },
+    { time: "10:00 AM–2:30 PM", title: "Financial Workshop" },
     { title: "Welcome & Introductions" },
     { title: "Everence Product Portfolio Overview" },
     { title: "Values-Based Financial Planning Strategies" },
@@ -168,15 +168,15 @@ export default function TrainingEvent() {
                             <img src="https://assets.cdn.filesafe.space/htr97zzmRc1NMujHbL9R/media/69b7424c5b89c7c557adfe6e.png" alt="Everence" className="w-8 h-8" />
                             <div>
                                 <p className="text-[#C5A059] font-serif text-lg font-semibold">Everence Wealth</p>
-                                <p className="text-gray-500 text-xs uppercase tracking-widest">Broker Training · Summer '26</p>
+                                <p className="text-gray-500 text-xs uppercase tracking-widest">Broker Training · Fall '26</p>
                             </div>
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 text-sm">
                             <div className="flex items-center gap-2 text-gray-300">
-                                <Calendar className="w-4 h-4 text-[#C5A059]" /> June 27, 2026
+                                <Calendar className="w-4 h-4 text-[#C5A059]" /> October 10, 2026
                             </div>
                             <div className="flex items-center gap-2 text-gray-300">
-                                <Clock className="w-4 h-4 text-[#C5A059]" /> Registration 9:30 AM | Event 10:00 AM PT
+                                <Clock className="w-4 h-4 text-[#C5A059]" /> Check-in 9:30 AM | Event 10:00 AM–2:30 PM PT
                             </div>
                             <div className="flex items-center gap-2 text-gray-300">
                                 <MapPin className="w-4 h-4 text-[#C5A059]" /> Andaz Napa
@@ -347,7 +347,7 @@ export default function TrainingEvent() {
                                 color: '#C8A96E', marginBottom: '28px',
                                 animation: 'te-fadeUp 400ms ease 200ms both',
                             }}>
-                                INVITATION ONLY&ensp;·&ensp;NAPA, CA&ensp;·&ensp;JUNE 27, 2026
+                                INVITATION ONLY&ensp;·&ensp;NAPA, CA&ensp;·&ensp;OCTOBER 10, 2026
                             </p>
 
                             {/* 2. HEADLINE */}
@@ -398,12 +398,12 @@ export default function TrainingEvent() {
                             <div className="flex items-center gap-6" style={{ marginBottom: '40px', animation: 'te-fadeIn 400ms ease 650ms both' }}>
                                 <div>
                                     <p style={{ fontSize: '9px', letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.35)', marginBottom: '4px' }}>DATE</p>
-                                    <p style={{ fontSize: '13px', fontWeight: 500, color: '#FFFFFF' }}>Saturday, June 27</p>
+                                    <p style={{ fontSize: '13px', fontWeight: 500, color: '#FFFFFF' }}>Saturday, October 10</p>
                                 </div>
                                 <div style={{ width: '1px', height: '32px', background: 'rgba(255,255,255,0.12)', flexShrink: 0 }} />
                                 <div>
                                     <p style={{ fontSize: '9px', letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.35)', marginBottom: '4px' }}>EVENT TIME</p>
-                                    <p style={{ fontSize: '13px', fontWeight: 500, color: '#FFFFFF' }}>10:00 AM PT</p>
+                                    <p style={{ fontSize: '13px', fontWeight: 500, color: '#FFFFFF' }}>10:00 AM–2:30 PM PT</p>
                                 </div>
                             </div>
 
@@ -550,7 +550,7 @@ export default function TrainingEvent() {
                                                     </button>
                                                 </div>
                                                 <p className="text-center text-xs" style={{ color: 'rgba(255,255,255,0.3)', marginTop: '8px' }}>
-                                                    We'll send reminders via email leading up to June 27.
+                                                    We'll send reminders via email leading up to October 10.
                                                 </p>
                                             </motion.form>
                                         )}
